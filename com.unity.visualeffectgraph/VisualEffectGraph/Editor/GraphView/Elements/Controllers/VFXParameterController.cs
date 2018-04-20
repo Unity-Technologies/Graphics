@@ -12,7 +12,7 @@ using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXSubParameterController : IPropertyRMProvider, IValueController
+    class VFXSubParameterController : IPropertyRMProvider
     {
         VFXParameterController m_Parameter;
         //int m_Field;
@@ -324,6 +324,57 @@ namespace UnityEditor.VFX.UI
             return MakeNameUnique(name, allNames);
         }
 
+
+        public IPropertyRMProvider GetMemberController(string memberPath)
+        {
+            if( string.IsNullOrEmpty(memberPath))
+            {
+                return this;
+            }
+            if (m_SubControllers == null)
+            {
+                m_SubControllers = ComputeSubControllers(portType, new List<int>(),"");
+            }
+            VFXSubParameterController subParameterController = null;
+            if(m_ChildrenByPath.TryGetValue(memberPath,out subParameterController))
+            {
+                return subParameterController;
+            }
+            else
+            {
+                string parentMemberPath = memberPath;
+
+                List<string> members = new List<string>();
+                
+                while(true)
+                {
+                    int index = parentMemberPath.LastIndexOf(VFXGizmoUtility.Context.separator);
+                    if( index == -1)
+                    {
+                        Debug.LogError("Couln't find SubParameter path" + memberPath);
+                        return null;
+                    }
+
+                    members.Add(parentMemberPath.Substring(index+1));
+                    parentMemberPath = parentMemberPath.Substring(0,index);
+                    if( m_ChildrenByPath.TryGetValue(parentMemberPath,out subParameterController))
+                    {
+                        break;
+                    }
+                }
+
+                foreach(var member in members)
+                {
+                    subParameterController = subParameterController.children.FirstOrDefault(t=>t.name == member);
+                    if( subParameterController == null)
+                    {
+                        Debug.LogError("Couln't find SubParameter path" + memberPath);
+                        return null;
+                    }
+                }
+                return subParameterController;
+            }
+        }
 
         public void SetMemberValue(string memberPath,object value)
         {
@@ -722,9 +773,21 @@ namespace UnityEditor.VFX.UI
 
         protected override void InternalPrepare(){}
 
-        public override void SetMemberValue(string memberPath, object value)
+        public override VFXGizmo.IProperty RegisterProperty(string member)
         {
-            m_Controller.SetMemberValue(memberPath,value);
+            VFXGizmo.IProperty result;
+            if( m_PropertyCache.TryGetValue(member,out result))
+            {
+                return result;
+            }
+            var controller = m_Controller.GetMemberController(member);
+
+            if( controller != null )
+            {
+                return new VFXGizmoUtility.Property(controller,true);
+            }
+
+            return VFXGizmoUtility.NullProperty.defaultProperty;
         }
     }
 }

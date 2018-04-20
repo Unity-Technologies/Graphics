@@ -18,7 +18,7 @@ namespace UnityEditor.VFX.UI
         Direction direction {get; }
     }
 
-    abstract class VFXDataAnchorController : VFXController<VFXSlot>, IVFXAnchorController, IPropertyRMProvider, IValueController
+    abstract class VFXDataAnchorController : VFXController<VFXSlot>, IVFXAnchorController, IPropertyRMProvider
     {
         private VFXNodeController m_SourceNode;
 
@@ -535,7 +535,6 @@ namespace UnityEditor.VFX.UI
         }
 
         List<Action<List<object>>> m_ValueBuilder = new List<Action<List<object>>>();
-        Dictionary<string,VFXDataAnchorController> m_StringToMember = new Dictionary<string,VFXDataAnchorController>();
 
         protected override void InternalPrepare()
         {
@@ -548,8 +547,6 @@ namespace UnityEditor.VFX.UI
             }
             m_ReadOnlyMembers.Clear();
             m_ValueBuilder.Clear();
-            m_StringToMember.Clear();
-            m_StringToMember.Add("",m_Controller);
 
             bool valueSet = false;
             m_ValueBuilder.Add(o=>o.Add(m_Controller.value));
@@ -640,23 +637,36 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public override void SetMemberValue(string memberPath, object value)
+
+
+
+        public override VFXGizmo.IProperty RegisterProperty(string member)
         {
-
-            VFXDataAnchorController controller = null;
-            if( m_StringToMember.TryGetValue(memberPath, out controller))
+            VFXGizmo.IProperty result;
+            if( m_PropertyCache.TryGetValue(member,out result))
             {
-                controller.value = value;
-                return;
+                return result;
+            }
+            var controller = GetMemberController(member);
+
+            if( controller != null )
+            {
+                return new VFXGizmoUtility.Property(controller,IsMemberEditable(member));
             }
 
-            controller = GetSubMemberController(memberPath, m_Controller.model, value);
-            if( controller != null)
-            {
-                controller.value = value;
-                m_StringToMember.Add(memberPath,controller);
-            }
+            return VFXGizmoUtility.NullProperty.defaultProperty;
         }
+
+        VFXDataAnchorController GetMemberController(string memberPath)
+        {
+            if( string.IsNullOrEmpty(memberPath))
+            {
+                return m_Controller;
+            }
+
+            return GetSubMemberController(memberPath, m_Controller.model, value);
+        }
+        
 
         VFXDataAnchorController GetSubMemberController(string memberPath, VFXSlot slot, object value)
         {
@@ -682,6 +692,24 @@ namespace UnityEditor.VFX.UI
                     return GetSubMemberController(memberPath.Substring(index + 1), subSlot, value);
                 }
                 return null;
+            }
+        }
+        protected bool m_FullReadOnly;
+        protected HashSet<string> m_ReadOnlyMembers = new HashSet<string>();
+
+        bool IsMemberEditable(string memberPath)
+        {
+            if( m_Indeterminate) return false;
+            if (m_FullReadOnly) return false;
+            while (true)
+            {
+                if (m_ReadOnlyMembers.Contains(memberPath))
+                    return false;
+                int index = memberPath.LastIndexOf(separator);
+                if (index == -1)
+                    return true;
+
+                memberPath = memberPath.Substring(0, index);
             }
         }
     }

@@ -68,7 +68,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXParameterNodeController : VFXNodeController, IPropertyRMProvider, IValueController
+    class VFXParameterNodeController : VFXNodeController, IPropertyRMProvider
     {
         VFXParameterController m_ParentController;
 

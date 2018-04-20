@@ -9,23 +9,48 @@ using Delegate = System.Delegate;
 
 namespace UnityEditor.VFX.UI
 {
-    interface IValueController
-    {
-        object value { get; set; }
-
-        System.Type portType { get; }
-    }
-
-
-
     public class VFXGizmoUtility
     {
         static Dictionary<System.Type,VFXGizmo> s_DrawFunctions;
 
-        public abstract class Context
+        internal class Property : VFXGizmo.IProperty
         {
+            public Property(IPropertyRMProvider controller,bool editable)
+            {
+                m_Controller = controller;
+                m_Editable = editable;
+            }
+            IPropertyRMProvider m_Controller;
+
+            bool m_Editable;
+
+            public bool isEditable
+            {
+                get{ return m_Editable;}
+            }
+            public void SetValue(object value)
+            {
+                if( m_Editable)
+                    m_Controller.value = value;
+            }
+        }
+
+        internal class NullProperty : VFXGizmo.IProperty
+        {
+             public bool isEditable
+            {
+                get{ return false;}
+            }
+            public void SetValue(object value)
+            {
+            }
 
 
+            public static NullProperty defaultProperty = new NullProperty();
+        }
+        
+        public abstract class Context : VFXGizmo.IContext
+        {
             public abstract Type portType
             {
                 get;
@@ -38,12 +63,15 @@ namespace UnityEditor.VFX.UI
                 m_Prepared = false;
             }
 
-            public void Prepare()
+            public bool Prepare()
             {
                 if( m_Prepared)
-                    return;
+                    return false;
                 m_Prepared = true;
+                m_Indeterminate = false;
+                m_PropertyCache.Clear();
                 InternalPrepare();
+                return true;
             }
 
             protected abstract void InternalPrepare();
@@ -55,22 +83,10 @@ namespace UnityEditor.VFX.UI
                 get;
             }
 
-            public bool IsMemberEditable(string memberPath)
-            {
-                if( m_Indeterminate) return false;
-                if (m_FullReadOnly) return false;
-                while (true)
-                {
-                    if (m_ReadOnlyMembers.Contains(memberPath))
-                        return false;
-                    int index = memberPath.LastIndexOf(separator);
-                    if (index == -1)
-                        return true;
 
-                    memberPath = memberPath.Substring(0, index);
-                }
-            }
+            protected Dictionary<string,VFXGizmo.IProperty> m_PropertyCache = new Dictionary<string,VFXGizmo.IProperty>();
 
+            public abstract VFXGizmo.IProperty RegisterProperty(string member);
 
             protected bool m_Indeterminate;
 
@@ -78,12 +94,6 @@ namespace UnityEditor.VFX.UI
             {
                 return m_Indeterminate;
             }
-
-
-            public abstract void SetMemberValue(string memberPath, object value);
-
-            protected bool m_FullReadOnly;
-            protected HashSet<string> m_ReadOnlyMembers = new HashSet<string>();
         }
 
 
@@ -126,9 +136,12 @@ namespace UnityEditor.VFX.UI
             VFXGizmo gizmo;
             if (s_DrawFunctions.TryGetValue(context.portType, out gizmo))
             {
-                context.Prepare();
+                if(context.Prepare())
+                {
+                    gizmo.RegisterEditableMembers(context);
+                }
                 if( ! context.IsIndeterminate())
-                    gizmo.CallDrawGizmo(context,context.value,component);
+                    gizmo.CallDrawGizmo(context.value,component);
             }
         }
 
@@ -920,94 +933,6 @@ namespace UnityEditor.VFX.UI
 
 #endif
     }
-
-    public abstract class VFXGizmo
-    {
-        public abstract void CallDrawGizmo(VFXGizmoUtility.Context context, object value, VisualEffect component);
-
-        protected const float handleSize = 0.1f;
-        protected const float arcHandleSizeMultiplier = 1.25f;
-
-
-        protected CoordinateSpace m_CurrentSpace;
-
-        protected bool PositionGizmo(VisualEffect component, ref Vector3 position)
-        {
-            EditorGUI.BeginChangeCheck();
-            position = Handles.PositionHandle(position, m_CurrentSpace == CoordinateSpace.Local ? component.transform.rotation : Quaternion.identity);
-            return EditorGUI.EndChangeCheck();
-        }
-        protected bool RotationGizmo(VisualEffect component, Vector3 position, ref Vector3 rotation)
-        {
-            EditorGUI.BeginChangeCheck();
-
-            Quaternion modifiedRotation = Handles.RotationHandle(Quaternion.Euler(rotation), position);
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                rotation = modifiedRotation.eulerAngles;
-                return true;
-            }
-            return false;
-        }
-        protected static void DefaultAngleHandleDrawFunction(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
-        {
-            Handles.DrawLine(Vector3.zero, position);
-
-            // draw a cylindrical "hammer head" to indicate the direction the handle will move
-            Vector3 worldPosition = Handles.matrix.MultiplyPoint3x4(position);
-            Vector3 normal = worldPosition - Handles.matrix.MultiplyPoint3x4(Vector3.zero);
-            Vector3 tangent = Handles.matrix.MultiplyVector(Quaternion.AngleAxis(90f, Vector3.up) * position);
-            rotation = Quaternion.LookRotation(tangent, normal);
-            Matrix4x4 matrix = Matrix4x4.TRS(worldPosition, rotation, (Vector3.one + Vector3.forward * arcHandleSizeMultiplier));
-            using (new Handles.DrawingScope(matrix))
-                Handles.CylinderHandleCap(controlID, Vector3.zero, Quaternion.identity, size, eventType);
-        }
-    }
-
-    public abstract class VFXGizmo<T> : VFXGizmo
-    {
-        public override void CallDrawGizmo(VFXGizmoUtility.Context context, object value, VisualEffect component)
-        {
-            m_CurrentSpace = CoordinateSpace.Global;
-            OnDrawGizmo(context,(T)value,component);
-        }
-        public abstract void OnDrawGizmo(VFXGizmoUtility.Context context, T value, VisualEffect component);
-
-    }
-    public abstract class VFXSpaceableGizmo<T> : VFXGizmo<T> where T : ISpaceable
-    {
-        public override void OnDrawGizmo(VFXGizmoUtility.Context context, T value, VisualEffect component)
-        {
-            m_CurrentSpace = value.space;
-            Matrix4x4 oldMatrix = Handles.matrix;
-
-            if (value.space == CoordinateSpace.Local)
-            {
-                if (component == null) return;
-                Handles.matrix = component.transform.localToWorldMatrix;
-            }
-
-            OnDrawSpacedGizmo(context,value,component);
-
-            Handles.matrix = oldMatrix;
-        }
-        public abstract void OnDrawSpacedGizmo(VFXGizmoUtility.Context context, T value, VisualEffect component);
-    }
-#if false
-    class VFXPositionGizmo : VFXGizmo<Position>
-    {
-        public static void OnDrawGizmo(VFXValueGizmo.Context context, VisualEffect component)
-        {
-            Position pos = (Position)context.value;
-
-            if (PositionGizmo(component, pos.space, ref pos.position))
-            {
-                context.value = pos;
-            }
-        }
-    }
-#endif
 }
 
 
