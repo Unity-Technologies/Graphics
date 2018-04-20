@@ -2,6 +2,14 @@ Shader "HDRenderPipeline/TerrainLit"
 {
     Properties
     {
+        [HideInInspector] _Control("Control (RGBA)", 2D) = "red" {}
+
+        // TODO: route values from terrain layers. enable _DENSITY_MODE if any of these enabled.
+        [HideInInspector] [ToggleUI] _OpacityAsDensity0("_OpacityAsDensity0", Float) = 0.0
+        [HideInInspector] [ToggleUI] _OpacityAsDensity1("_OpacityAsDensity1", Float) = 0.0
+        [HideInInspector] [ToggleUI] _OpacityAsDensity2("_OpacityAsDensity2", Float) = 0.0
+        [HideInInspector] [ToggleUI] _OpacityAsDensity3("_OpacityAsDensity3", Float) = 0.0
+
         // Following set of parameters represent the parameters node inside the MaterialGraph.
         // They are use to fill a SurfaceData. With a MaterialGraph this should not exist.
 
@@ -187,7 +195,6 @@ Shader "HDRenderPipeline/TerrainLit"
         // All the following properties exist only in layered lit material
 
         // Layer blending options
-        _LayerMaskMap("LayerMaskMap", 2D) = "white" {}
         _LayerInfluenceMaskMap("LayerInfluenceMaskMap", 2D) = "white" {}
         [ToggleUI] _UseHeightBasedBlend("UseHeightBasedBlend", Float) = 0.0
 
@@ -207,12 +214,6 @@ Shader "HDRenderPipeline/TerrainLit"
         _InheritBaseColor1("_InheritBaseColor1", Range(0, 1.0)) = 0.0
         _InheritBaseColor2("_InheritBaseColor2", Range(0, 1.0)) = 0.0
         _InheritBaseColor3("_InheritBaseColor3", Range(0, 1.0)) = 0.0
-
-        // TODO: route values from terrain layers. enable _DENSITY_MODE if any of these enabled.
-        [HideInInspector] [ToggleUI] _OpacityAsDensity0("_OpacityAsDensity0", Float) = 0.0
-        [HideInInspector] [ToggleUI] _OpacityAsDensity1("_OpacityAsDensity1", Float) = 0.0
-        [HideInInspector] [ToggleUI] _OpacityAsDensity2("_OpacityAsDensity2", Float) = 0.0
-        [HideInInspector] [ToggleUI] _OpacityAsDensity3("_OpacityAsDensity3", Float) = 0.0
 
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBlendMask("UV Set for blendMask", Float) = 0
         [HideInInspector] _UVMappingMaskBlendMask("_UVMappingMaskBlendMask", Color) = (1, 0, 0, 0)

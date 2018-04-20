@@ -309,6 +309,9 @@ float BlendLayeredDiffusionProfile(float x0, float x1, float x2, float x3, float
     return diffusionProfileId;
 }
 
+TEXTURE2D(_Control);
+SAMPLER(sampler_Control);
+
 #define SURFACEDATA_BLEND_VECTOR3(surfaceData, name, mask) BlendLayeredVector3(MERGE_NAME(surfaceData, 0) MERGE_NAME(., name), MERGE_NAME(surfaceData, 1) MERGE_NAME(., name), MERGE_NAME(surfaceData, 2) MERGE_NAME(., name), MERGE_NAME(surfaceData, 3) MERGE_NAME(., name), mask);
 #define SURFACEDATA_BLEND_SCALAR(surfaceData, name, mask) BlendLayeredScalar(MERGE_NAME(surfaceData, 0) MERGE_NAME(., name), MERGE_NAME(surfaceData, 1) MERGE_NAME(., name), MERGE_NAME(surfaceData, 2) MERGE_NAME(., name), MERGE_NAME(surfaceData, 3) MERGE_NAME(., name), mask);
 #define SURFACEDATA_BLEND_DIFFUSION_PROFILE(surfaceData, name, mask) BlendLayeredDiffusionProfile(MERGE_NAME(surfaceData, 0) MERGE_NAME(., name), MERGE_NAME(surfaceData, 1) MERGE_NAME(., name), MERGE_NAME(surfaceData, 2) MERGE_NAME(., name), MERGE_NAME(surfaceData, 3) MERGE_NAME(., name), mask);
@@ -330,7 +333,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     // Note: Blend mask have its dedicated mapping and tiling.
     // To share code, we simply call the regular code from the main layer for it then save the result, then do regular call for all layers.
     ComputeLayerTexCoord0(  texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMaskBlendMask, _UVMappingMaskBlendMask,
-                            _LayerMaskMap_ST.xy, _LayerMaskMap_ST.zw, float2(0.0, 0.0), float2(0.0, 0.0), 1.0, false,
+                            float2(1, 1), float2(0, 0), float2(0.0, 0.0), float2(0.0, 0.0), 1.0, false,
                             positionWS, _TexWorldScaleBlendMask,
                             mappingType, layerTexCoord);
 
@@ -477,13 +480,13 @@ void ComputeMaskWeights(float4 inputMasks, out float outWeights[_MAX_LAYER])
 }
 
 // Caution: Blend mask are Layer 1 R - Layer 2 G - Layer 3 B - Main Layer A
-float4 GetBlendMask(LayerTexCoord layerTexCoord, float4 vertexColor, bool useLodSampling = false, float lod = 0)
+float4 GetBlendMask(LayerTexCoord layerTexCoord, float4 vertexColor)
 {
     // Caution:
     // Blend mask are Main Layer A - Layer 1 R - Layer 2 G - Layer 3 B
     // Value for main layer is not use for blending itself but for alternate weighting like density.
     // Settings this specific Main layer blend mask in alpha allow to be transparent in case we don't use it and 1 is provide by default.
-    float4 blendMasks = useLodSampling ? SAMPLE_UVMAPPING_TEXTURE2D_LOD(_LayerMaskMap, sampler_LayerMaskMap, layerTexCoord.blendMask, lod) : SAMPLE_UVMAPPING_TEXTURE2D(_LayerMaskMap, sampler_LayerMaskMap, layerTexCoord.blendMask);
+    float4 blendMasks = SAMPLE_UVMAPPING_TEXTURE2D(_Control, sampler_Control, layerTexCoord.blendMask);
 
     // Wind uses vertex alpha as an intensity parameter.
     // So in case Layered shader uses wind, we need to hardcode the alpha here so that the main layer can be visible without affecting wind intensity.

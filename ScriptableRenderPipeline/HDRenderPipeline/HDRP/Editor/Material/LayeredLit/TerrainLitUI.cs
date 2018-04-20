@@ -35,8 +35,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         // Layer options
-        MaterialProperty layerMaskMap = null;
-        const string kLayerMaskMap = "_LayerMaskMap";
         MaterialProperty layerInfluenceMaskMap = null;
         const string kLayerInfluenceMaskMap = "_LayerInfluenceMaskMap";
         MaterialProperty UVBlendMask = null;
@@ -72,7 +70,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             base.FindMaterialEmissiveProperties(props);
 
-            layerMaskMap = FindProperty(kLayerMaskMap, props);
             layerInfluenceMaskMap = FindProperty(kLayerInfluenceMaskMap, props);
             UVBlendMask = FindProperty(kUVBlendMask, props);
             UVMappingMaskBlendMask = FindProperty(kUVMappingMaskBlendMask, props);
@@ -104,8 +101,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel++;
             GUILayout.Label(styles.layersText, EditorStyles.boldLabel);
 
-            m_MaterialEditor.TexturePropertySingleLine(styles.layerMapMaskText, layerMaskMap);
-
             EditorGUI.indentLevel++;
             m_MaterialEditor.ShaderProperty(UVBlendMask, styles.UVBlendMaskText);
             UVBaseMapping uvBlendMask = (UVBaseMapping)UVBlendMask.floatValue;
@@ -123,7 +118,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 m_MaterialEditor.ShaderProperty(texWorldScaleBlendMask, styles.layerTexWorldScaleText);
             }
-            m_MaterialEditor.TextureScaleOffsetProperty(layerMaskMap);
             EditorGUI.indentLevel--;
 
             EditorGUI.BeginChangeCheck();
