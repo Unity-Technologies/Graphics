@@ -280,7 +280,7 @@ bool SSRT_FUNC(ScreenSpaceProxyRaycast, SSRTID)(
         float2 rayOriginNDC         = ComputeNormalizedDeviceCoordinates(input.rayOriginWS, GetWorldToHClipMatrix());
         uint2 rayOriginSS           = uint2(rayOriginNDC * _ScreenSize.xy);
 
-        debug.tracingModel          = PROJECTION_MODEL_PROXY;
+        debug.tracingModel          = PROJECTIONMODEL_PROXY;
         debug.loopStartPositionSSX  = rayOriginSS.x;
         debug.loopStartPositionSSY  = rayOriginSS.y;
         debug.loopStartLinearDepth  = rayOriginCS.w;
@@ -467,7 +467,7 @@ bool SSRT_FUNC(ScreenSpaceHiZRaymarch, SSRTID)(
         ScreenSpaceTracingDebug debug;
         ZERO_INITIALIZE(ScreenSpaceTracingDebug, debug);
 
-        debug.tracingModel                  = PROJECTION_MODEL_HI_Z;
+        debug.tracingModel                  = PROJECTIONMODEL_HI_Z;
         debug.loopStartPositionSSX          = uint(startPositionSS.x);
         debug.loopStartPositionSSY          = uint(startPositionSS.y);
         debug.loopStartLinearDepth          = 1 / startPositionSS.z;
