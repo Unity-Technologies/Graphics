@@ -161,7 +161,7 @@ namespace UnityEditor.VFX.UI
 
                 var children = model.children;
 
-                if (model.property.type.GetCustomAttributes(typeof(VFXSpaceable), true).Any() && model.children.Count() == 1)
+                if (model.Spaceable && model.children.Count() == 1)
                 {
                     children = children.First().children;
                 }

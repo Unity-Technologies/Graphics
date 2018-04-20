@@ -11,9 +11,21 @@ namespace UnityEditor.VFX
     public class VFXTypeAttribute : Attribute
     {}
 
-    [AttributeUsage(AttributeTargets.Struct)]
-    public class VFXSpaceable : Attribute
+    public enum SpaceableType
     {
+        Position,
+        Direction,
+        Normal
+    }
+
+    [AttributeUsage(AttributeTargets.Field)]
+    public class VFXSpaceAttribute : PropertyAttribute
+    {
+        public readonly SpaceableType type;
+        public VFXSpaceAttribute(SpaceableType type)
+        {
+            this.type = type;
+        }
     }
 
     public class ShowAsColorAttribute : Attribute
@@ -24,7 +36,7 @@ namespace UnityEditor.VFX
         public static readonly int SpaceCount = Enum.GetValues(typeof(CoordinateSpace)).Length;
     }
 
-    interface ISpaceable
+    interface ISpaceable //WIP
     {
         CoordinateSpace space { get; set; }
     }
@@ -205,10 +217,10 @@ namespace UnityEditor.VFX
         public static Transform defaultValue = new Transform { scale = Vector3.one };
     }
 
-    [VFXType, VFXSpaceable, Serializable]
+    [VFXType, Serializable]
     struct Position
     {
-        [Tooltip("The position.")]
+        [Tooltip("The position."), VFXSpace(SpaceableType.Position)]
         public Vector3 position;
 
         public static Position defaultValue = new Position { position = Vector3.zero };

@@ -244,7 +244,7 @@ namespace UnityEditor.VFX.UI
 
         static bool ShouldSkipLevel(Type type)
         {
-            return typeof(ISpaceable).IsAssignableFrom(type) && type.GetFields().Length == 2; // spaceable having only one member plus their space member.
+            return typeof(ISpaceable).IsAssignableFrom(type) && type.GetFields().Length == 2; // spaceable having only one member plus their space member. //TODOPAUL : wrong
         }
 
         bool ShouldIgnoreMember(Type type, FieldInfo field)

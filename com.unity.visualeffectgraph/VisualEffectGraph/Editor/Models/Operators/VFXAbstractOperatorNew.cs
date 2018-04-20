@@ -14,6 +14,8 @@ namespace UnityEditor.VFX
         {
             typeof(Vector4),
             typeof(Position),
+            //typeof(Vector),
+            //typeof(DirectionType),
             typeof(Vector3),
             typeof(Vector2),
             typeof(float),

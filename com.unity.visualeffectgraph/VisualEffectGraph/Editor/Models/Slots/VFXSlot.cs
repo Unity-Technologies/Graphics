@@ -80,7 +80,16 @@ namespace UnityEditor.VFX
         {
             get
             {
-                return property.type.GetCustomAttributes(typeof(VFXSpaceable), true).Any();
+                //TODOPAUL doesn't really work
+                var fields = property.type.GetFields(BindingFlags.Public | BindingFlags.Instance).ToArray();
+                foreach (var field in fields)
+                {
+                    if(field.GetCustomAttributes(typeof(VFXSpaceAttribute), true).Any())
+                    {
+                        return true;
+                    }
+                }
+                return false;
             }
         }
 
