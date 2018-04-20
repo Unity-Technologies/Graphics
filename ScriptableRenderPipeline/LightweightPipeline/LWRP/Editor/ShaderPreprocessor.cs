@@ -88,6 +88,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             return false;
         }
 
+#if LOG_VARIANTS
         void LogVariants(Shader shader, ShaderSnippetData snippetData, int prevVariantsCount, int currVariantsCount)
         {
 #if LOG_ONLY_LWRP_VARIANTS
@@ -105,6 +106,8 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
                 Debug.Log(result);
             }
         }
+
+#endif
 
         public void OnProcessShader(Shader shader, ShaderSnippetData snippetData, IList<ShaderCompilerData> compilerDataList)
         {
