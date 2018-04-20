@@ -32,8 +32,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static GUIContent msaaContent = new GUIContent("Anti Aliasing (MSAA)", "Controls the global anti aliasing settings.");
 
 
-            public static GUIContent supportsSoftShadows = new GUIContent("Soft Shadows", "If enabled pipeline will perform shadow filtering. Otherwise all shadows will only perform a single shadow sample.");
-            public static GUIContent supportsDirectionalShadows = new GUIContent("Directional Shadows", "If disabled all directional lights won't cast shadows.");
+            public static GUIContent supportsSoftShadows = new GUIContent("Soft Shadows", "If enabled pipeline will perform shadow filtering. Otherwise all lights that cast shadows will fallback to perform a single shadow sample.");
+            public static GUIContent supportsDirectionalShadows = new GUIContent("Directional Shadows", "If enabled shadows will be supported for directional lights.");
 
             public static GUIContent shadowDistance = new GUIContent("Distance", "Max shadow rendering distance.");
 
@@ -46,7 +46,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static GUIContent shadowCascadeSplit = new GUIContent("Cascades Split",
                     "Percentages to split shadow volume");
 
-            public static GUIContent supportsLocalShadows = new GUIContent("Local Shadows", "If disabled all local lights won't cast shadows.");
+            public static GUIContent supportsLocalShadows = new GUIContent("Local Shadows", "If enabled shadows will be supported for spot lights.");
 
             public static GUIContent localShadowsAtlasResolution = new GUIContent("Atlas Resolution",
                     "All local lights are packed into a single atlas. This setting controls the atlas size.");
@@ -164,14 +164,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         void DrawShadowSettings()
         {
-            bool directionalShadows = false;
-            bool localShadows = false;
-
             EditorGUILayout.LabelField(Styles.shadowLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
 
             EditorGUILayout.PropertyField(m_DirectionalShadowsSupportedProp, Styles.supportsDirectionalShadows);
-            directionalShadows = m_DirectionalShadowsSupportedProp.boolValue;
+            bool directionalShadows = m_DirectionalShadowsSupportedProp.boolValue;
             if (directionalShadows)
             {
                 EditorGUI.indentLevel++;
@@ -191,7 +188,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
 
             EditorGUILayout.PropertyField(m_LocalShadowSupportedProp, Styles.supportsLocalShadows);
-            localShadows = m_LocalShadowSupportedProp.boolValue;
+            bool localShadows = m_LocalShadowSupportedProp.boolValue;
             if (localShadows)
             {
                 EditorGUI.indentLevel++;

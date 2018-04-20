@@ -250,7 +250,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             set { m_RenderScale = value; }
         }
 
-        public bool IsDirectionalShadowsSupported
+        public bool SupportsDirectionalShadows
         {
             get { return m_DirectionalShadowsSupported; }
         }
@@ -292,7 +292,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             get { return m_Cascade4Split; }
         }
 
-        public bool IsLocalShadowsSupported
+        public bool SupportsLocalShadows
         {
             get { return m_LocalShadowsSupported; }
         }
@@ -301,7 +301,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             get { return (int)m_LocalShadowsAtlasResolution; }
         }
-        public bool IsSoftShadowsSupported
+        public bool SupportsSoftShadows
         {
             get { return m_SoftShadowsSupported; }
         }

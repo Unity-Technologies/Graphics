@@ -46,20 +46,20 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             s_PipelineCapabilities = 0U;
 
-            if (pipelineAsset.MaxPixelLights < 1 && !pipelineAsset.SupportsVertexLight)
+            if (pipelineAsset.MaxPixelLights > 1 || pipelineAsset.SupportsVertexLight)
                 s_PipelineCapabilities |= PipelineCapabilities.AdditionalLights;
 
             if (pipelineAsset.SupportsVertexLight)
                 s_PipelineCapabilities |= PipelineCapabilities.VertexLights;
 
-            if (pipelineAsset.IsDirectionalShadowsSupported)
+            if (pipelineAsset.SupportsDirectionalShadows)
                 s_PipelineCapabilities |= PipelineCapabilities.DirectionalShadows;
 
-            if (pipelineAsset.IsLocalShadowsSupported)
+            if (pipelineAsset.SupportsLocalShadows)
                 s_PipelineCapabilities |= PipelineCapabilities.LocalShadows;
 
-            bool anyShadows = pipelineAsset.IsDirectionalShadowsSupported || pipelineAsset.IsLocalShadowsSupported;
-            if (pipelineAsset.IsSoftShadowsSupported && anyShadows)
+            bool anyShadows = pipelineAsset.SupportsDirectionalShadows || pipelineAsset.SupportsLocalShadows;
+            if (pipelineAsset.SupportsSoftShadows && anyShadows)
                 s_PipelineCapabilities |= PipelineCapabilities.SoftShadows;
         }
     }
