@@ -1,5 +1,7 @@
 # Changelog
 
+## [2018.2.b1 undecided]
+
 ## [2018.1.0f2]
 
 ### Improvements
