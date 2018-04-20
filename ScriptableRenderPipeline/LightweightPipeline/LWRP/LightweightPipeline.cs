@@ -67,6 +67,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private static readonly float kRenderScaleThreshold = 0.05f;
 
+        private static readonly string kMSAADepthKeyword = "_MSAA_DEPTH";
+
         private bool m_IsOffscreenCamera;
 
         private Vector4 kDefaultLightPosition = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
@@ -129,8 +131,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private CameraComparer m_CameraComparer = new CameraComparer();
 
         private Material m_BlitMaterial;
-        private Material m_CopyDepthNoMSAAMaterial;
-        private Material m_CopyDepthMSAAMaterial;
         private Material m_CopyDepthMaterial;
         private Material m_ErrorMaterial;
         private Material m_SamplingMaterial;
@@ -200,8 +200,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Shader.globalRenderPipeline = "LightweightPipeline";
 
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(m_Asset.BlitShader);
-            m_CopyDepthNoMSAAMaterial = CoreUtils.CreateEngineMaterial(m_Asset.CopyDepthShader);
-            m_CopyDepthMSAAMaterial = CoreUtils.CreateEngineMaterial(m_Asset.CopyDepthMSAAShader);
+            m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(m_Asset.CopyDepthShader);
             m_SamplingMaterial = CoreUtils.CreateEngineMaterial(m_Asset.SamplingShader);
             m_ErrorMaterial = CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader");
         }
@@ -213,10 +212,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures();
 
-            m_CopyDepthMaterial = null;
             CoreUtils.Destroy(m_ErrorMaterial);
-            CoreUtils.Destroy(m_CopyDepthNoMSAAMaterial);
-            CoreUtils.Destroy(m_CopyDepthMSAAMaterial);
+            CoreUtils.Destroy(m_CopyDepthMaterial);
             CoreUtils.Destroy(m_BlitMaterial);
             CoreUtils.Destroy(m_SamplingMaterial);
 
@@ -458,8 +455,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 if (LightweightUtils.HasFlag(config, FrameRenderingConfiguration.DepthCopy))
                 {
-                    m_CopyDepthMSAAMaterial.SetFloat(m_SampleCount, (float)m_MSAASamples);
-                    bool forceBlit = m_CopyDepthMaterial == m_CopyDepthMSAAMaterial;
+                    bool forceBlit = false;
+                    if (m_MSAASamples > 1)
+                    {
+                        m_CopyDepthMaterial.SetFloat(m_SampleCount, (float)m_MSAASamples);
+                        m_CopyDepthMaterial.EnableKeyword(kMSAADepthKeyword);
+                        forceBlit = true;
+                    }
+                    else
+                        m_CopyDepthMaterial.DisableKeyword(kMSAADepthKeyword);
+                    
                     CopyTexture(cmd, m_DepthRT, m_CopyDepth, m_CopyDepthMaterial, forceBlit);
                     depthRT = m_CopyDepth;
                     setRenderTarget = true;
@@ -525,7 +530,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void SetupFrameRenderingConfiguration(out FrameRenderingConfiguration configuration, bool screenspaceShadows, bool stereoEnabled, bool sceneViewCamera)
         {
-            m_CopyDepthMaterial = null;
             configuration = (stereoEnabled) ? FrameRenderingConfiguration.Stereo : FrameRenderingConfiguration.None;
             if (stereoEnabled && XRSettings.eyeTextureDesc.dimension == TextureDimension.Tex2DArray)
                 m_IntermediateTextureArray = true;
@@ -581,9 +585,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             if (m_RequireDepthTexture)
             {
-                bool copyShaderSupported = (msaaEnabled && m_Asset.CopyDepthMSAAShader.isSupported) || (!msaaEnabled && m_Asset.CopyDepthShader.isSupported);
+                bool hasTex2DMS = SystemInfo.supportsMultisampledTextures != 0;
+                bool copyShaderSupported = m_Asset.CopyDepthShader.isSupported && (msaaEnabled == hasTex2DMS);
                 bool supportsDepthCopy = m_CopyTextureSupport != CopyTextureSupport.None || copyShaderSupported;
-                bool requiresDepthPrepassToResolveMSAA = msaaEnabled && (SystemInfo.supportsMultisampledTextures == 0);
+                bool requiresDepthPrepassToResolveMSAA = msaaEnabled && !hasTex2DMS;
                 bool requiresDepthPrepass = !supportsDepthCopy || screenspaceShadows || requiresDepthPrepassToResolveMSAA;
 
                 m_DepthRenderBuffer = !requiresDepthPrepass;
@@ -592,10 +597,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (requiresDepthPrepass)
                     configuration |= FrameRenderingConfiguration.DepthPrePass;
                 else if (supportsDepthCopy && !canSkipDepthCopy)
-                {
                     configuration |= FrameRenderingConfiguration.DepthCopy;
-                    m_CopyDepthMaterial = msaaEnabled ? m_CopyDepthMSAAMaterial : m_CopyDepthNoMSAAMaterial;
-                }
             }
 
             Rect cameraRect = m_CurrCamera.rect;
