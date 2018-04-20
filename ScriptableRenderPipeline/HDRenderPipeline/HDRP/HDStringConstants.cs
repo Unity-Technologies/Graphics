@@ -333,6 +333,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _Source4 = Shader.PropertyToID("_Source4");
         public static readonly int _Result1 = Shader.PropertyToID("_Result1");
 
+        public static readonly int _AtmosphericScatteringType  = Shader.PropertyToID("_AtmosphericScatteringType");
         public static readonly int _AmbientProbeCoeffs         = Shader.PropertyToID("_AmbientProbeCoeffs");
         public static readonly int _GlobalExtinction           = Shader.PropertyToID("_GlobalExtinction");
         public static readonly int _GlobalScattering           = Shader.PropertyToID("_GlobalScattering");
@@ -350,7 +351,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _VBufferLightingFeedback    = Shader.PropertyToID("_VBufferLightingFeedback");
         public static readonly int _VBufferSampleOffset        = Shader.PropertyToID("_VBufferSampleOffset");
         public static readonly int _VolumeBounds               = Shader.PropertyToID("_VolumeBounds");
-        public static readonly int _VolumeProperties           = Shader.PropertyToID("_VolumeProperties");
+        public static readonly int _VolumeData                 = Shader.PropertyToID("_VolumeData");
         public static readonly int _NumVisibleDensityVolumes   = Shader.PropertyToID("_NumVisibleDensityVolumes");
     }
 }
