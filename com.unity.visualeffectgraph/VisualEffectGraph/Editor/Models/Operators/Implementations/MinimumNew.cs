@@ -13,9 +13,9 @@ namespace UnityEditor.VFX.Operator
         protected override sealed int defaultValueInt { get { return int.MaxValue; } }
         protected override sealed uint defaultValueUint { get { return uint.MaxValue; } }
 
-        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression ComposeExpression(VFXExpression a, VFXExpression b)
         {
-            return new[] { new VFXExpressionMin(inputExpression[0], inputExpression[1]) };
+            return new VFXExpressionMin(a, b);
         }
     }
 }

@@ -18,6 +18,7 @@ namespace UnityEditor.VFX
             var attrib = ScriptableObject.CreateInstance<VFXAttributeParameter>();
             attrib.SetSettingValue("location", VFXAttributeLocation.Source);
             attrib.SetSettingValue("attribute", attribute);
+            attrib.position = position;
 
             VFXSlot.TransferLinksAndValue(attrib.GetOutputSlot(0), GetOutputSlot(0), true);
             ReplaceModel(attrib, this);

@@ -229,74 +229,31 @@ namespace UnityEditor.VFX
 
         public override bool CanBeCompiled()
         {
+            // Has enough contexts and capacity
             if (m_Owners.Count < 1 || m_Capacity <= 0)
                 return false;
 
+            // Has a initialize
             if (m_Owners[0].contextType != VFXContextType.kInit)
                 return false;
 
-            var firstSpawnInput = m_Owners[0].inputContexts.FirstOrDefault();
-            if (firstSpawnInput == null)
+            // Has a spawner
+            if (m_Owners[0].inputContexts.FirstOrDefault() == null)
                 return false;
 
-            if (firstSpawnInput.contextType == VFXContextType.kSpawner)
+            // Has an output
+            if (m_Owners.Last().contextType == VFXContextType.kOutput)
                 return true;
 
-            Func<VFXSlot, VFXContext> contextOwnerFromSlot = delegate(VFXSlot slot)
-                {
-                    if (slot.owner is VFXBlock)
-                    {
-                        var block = slot.owner as VFXBlock;
-                        if (block.enabled)
-                        {
-                            return block.GetParent();
-                        }
-                    }
-                    else if (slot.owner is VFXContext)
-                    {
-                        return slot.owner as VFXContext;
-                    }
-                    return null;
-                };
+            // Has a least one dependent compilable system
+            if (m_Owners.SelectMany(c => c.allLinkedOutputSlot)
+                .Select(s => s.owner)
+                .Where(m => ((m is VFXBlock) && ((VFXBlock)m).enabled) || (m is VFXContext))
+                .Select(m => ((VFXModel)m).GetFirstParentOfType<VFXContext>())
+                .Distinct()
+                .Any(c => c.CanBeCompiled()))
+                return true;
 
-            if (m_Owners.Last().contextType != VFXContextType.kOutput)
-            {
-                //< Check at least one output dependency is valid
-                if (m_Owners.Where(o => o.allLinkedOutputSlot.Where(s =>
-                    {
-                        var context = contextOwnerFromSlot(s);
-                        if (context != null && context.outputContexts.Where(c => c.CanBeCompiled()).Any())
-                        {
-                            return true;
-                        }
-                        return false;
-                    }).Any())
-                    .Any())
-                {
-                    return true;
-                }
-            }
-
-            if (firstSpawnInput.contextType == VFXContextType.kSpawnerGPU)
-            {
-                //< Check at least one input dependency is valid
-                if (firstSpawnInput.allLinkedInputSlot.Where(s =>
-                    {
-                        if (s.owner is VFXBlock)
-                        {
-                            var block = (s.owner as VFXBlock);
-                            return block.enabled && block.GetParent().CanBeCompiled();
-                        }
-                        else if (s.owner is VFXContext)
-                        {
-                            return (s.owner as VFXContext).CanBeCompiled();
-                        }
-                        return false;
-                    }).Any())
-                {
-                    return true;
-                }
-            }
             return false;
         }
 

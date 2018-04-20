@@ -11,7 +11,7 @@ namespace UnityEditor.VFX
     {
         public VFXCameraSort() : base(VFXContextType.kUpdate, VFXDataType.kParticle, VFXDataType.kParticle) {}
         public override string name { get { return "CameraSort"; } }
-        public override string codeGeneratorTemplate { get { return "VFXShaders/VFXCameraSort"; } }
+        public override string codeGeneratorTemplate { get { return "VFXEditor/Shaders/VFXCameraSort"; } }
         public override bool codeGeneratorCompute { get { return true; } }
         public override VFXTaskType taskType { get { return VFXTaskType.CameraSort; } }
 

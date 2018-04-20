@@ -7,9 +7,9 @@ namespace UnityEditor.VFX.Operator
     {
         override public string name { get { return "Power"; } }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        override protected VFXExpression ComposeExpression(VFXExpression a, VFXExpression b)
         {
-            return new[] { new VFXExpressionPow(inputExpression[0], inputExpression[1]) };
+            return new VFXExpressionPow(a, b);
         }
     }
 }

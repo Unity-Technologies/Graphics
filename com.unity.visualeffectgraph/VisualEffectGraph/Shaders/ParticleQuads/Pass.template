@@ -1,0 +1,8 @@
+#if !(defined(VFX_VARYING_PS_INPUTS) && defined(VFX_VARYING_POSCS))
+#error VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.
+#endif
+
+${VFXInclude("Assets/VFXEditor/Shaders/ParticleQuads/PassVS.template"),!USE_GEOMETRY_SHADER}
+${VFXInclude("Assets/VFXEditor/Shaders/ParticleQuads/PassGS.template"),USE_GEOMETRY_SHADER}
+
+${VFXFragmentCommonFunctions}

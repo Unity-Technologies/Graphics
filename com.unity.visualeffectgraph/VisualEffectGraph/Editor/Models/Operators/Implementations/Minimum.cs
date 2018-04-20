@@ -7,9 +7,9 @@ namespace UnityEditor.VFX.Operator
     {
         override public string name { get { return "Minimum"; } }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        override protected VFXExpression ComposeExpression(VFXExpression a, VFXExpression b)
         {
-            return new[] { new VFXExpressionMin(inputExpression[0], inputExpression[1]) };
+            return new VFXExpressionMin(a, b);
         }
     }
 }
