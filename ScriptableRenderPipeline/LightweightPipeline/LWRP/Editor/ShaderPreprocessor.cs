@@ -8,6 +8,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.LightweightPipeline;
 using UnityEngine.Rendering;
+using LightweightRP = UnityEngine.Experimental.Rendering.LightweightPipeline.LightweightPipeline;
 
 namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 {
@@ -111,7 +112,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
         public void OnProcessShader(Shader shader, ShaderSnippetData snippetData, IList<ShaderCompilerData> compilerDataList)
         {
-            PipelineCapabilities capabilities = UnityEngine.Experimental.Rendering.LightweightPipeline.LightweightPipeline.GetPipelineCapabilities();
+            PipelineCapabilities capabilities = LightweightRP.GetPipelineCapabilities();
             int prevVariantCount = compilerDataList.Count;
 
             for (int i = 0; i < compilerDataList.Count; ++i)
