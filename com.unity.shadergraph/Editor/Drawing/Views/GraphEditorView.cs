@@ -271,7 +271,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             foreach (var node in m_Graph.removedNodes)
             {
                 node.UnregisterCallback(OnNodeChanged);
-                var nodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(p => p.node != null && p.node.guid == node.guid);
+                var nodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>()
+                    .FirstOrDefault(p => p.node != null && p.node.guid == node.guid);
                 if (nodeView != null)
                 {
                     nodeView.Dispose();
@@ -287,7 +288,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var node in m_Graph.pastedNodes)
             {
-                var nodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>().FirstOrDefault(p => p.node != null && p.node.guid == node.guid);
+                var nodeView = m_GraphView.nodes.ToList().OfType<MaterialNodeView>()
+                    .FirstOrDefault(p => p.node != null && p.node.guid == node.guid);
                 m_GraphView.AddToSelection(nodeView);
             }
 
@@ -296,7 +298,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var edge in m_Graph.removedEdges)
             {
-                var edgeView = m_GraphView.graphElements.ToList().OfType<Edge>().FirstOrDefault(p => p.userData is IEdge && Equals((IEdge)p.userData, edge));
+                var edgeView = m_GraphView.graphElements.ToList().OfType<Edge>()
+                    .FirstOrDefault(p => p.userData is IEdge && Equals((IEdge) p.userData, edge));
                 if (edgeView != null)
                 {
                     var nodeView = edgeView.input.node as MaterialNodeView;
@@ -304,6 +307,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     {
                         nodesToUpdate.Add(nodeView);
                     }
+
                     edgeView.output.Disconnect(edgeView);
                     edgeView.input.Disconnect(edgeView);
 
@@ -318,16 +322,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var edgeView = AddEdge(edge);
                 if (edgeView != null)
-                    nodesToUpdate.Add((MaterialNodeView)edgeView.input.node);
+                    nodesToUpdate.Add((MaterialNodeView) edgeView.input.node);
             }
 
             foreach (var node in nodesToUpdate)
                 node.UpdatePortInputVisibilities();
 
             UpdateEdgeColors(nodesToUpdate);
-
-            if (m_ProfilerView != null)
-                m_ProfilerView.Profile();
         }
 
         void AddNode(INode node)
@@ -336,7 +337,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_GraphView.AddElement(nodeView);
             nodeView.Initialize(node as AbstractMaterialNode, m_PreviewManager, m_EdgeConnectorListener);
             node.RegisterCallback(OnNodeChanged);
-            nodeView.Dirty(ChangeType.Repaint);
+            nodeView.MarkDirtyRepaint();
 
             if (m_SearchWindowProvider.nodeNeedsRepositioning && m_SearchWindowProvider.targetSlotReference.nodeGuid.Equals(node.guid))
             {
@@ -371,8 +372,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             var drawState = nodeView.node.drawState;
             drawState.position = position;
             nodeView.node.drawState = drawState;
-            nodeView.Dirty(ChangeType.Repaint);
-            port.Dirty(ChangeType.Repaint);
+            nodeView.MarkDirtyRepaint();
+            port.MarkDirtyRepaint();
         }
 
         Edge AddEdge(IEdge edge)
@@ -422,7 +423,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         Stack<MaterialNodeView> m_NodeStack = new Stack<MaterialNodeView>();
-        PixelCacheProfilerView m_ProfilerView;
 
         void UpdateEdgeColors(HashSet<MaterialNodeView> nodeViews)
         {

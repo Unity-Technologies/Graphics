@@ -80,7 +80,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             buttonPanel.Add(outputButtonBlue);
 
             Add(buttonPanel);
-            
+
             var redSliderPanel = new VisualElement { name = "sliderPanel" };
             redSliderPanel.Add(new Label("R"));
             Action<float> changedRedIn = (s) => { OnChangeSlider(s, 0); };
@@ -186,7 +186,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     break;
             }
             m_PropertyInfo.SetValue(m_Node, m_ChannelMixer, null);
-            Dirty(ChangeType.Repaint);
+
+            this.MarkDirtyRepaint();
         }
 
         void OnClickButton(int outChannel)
