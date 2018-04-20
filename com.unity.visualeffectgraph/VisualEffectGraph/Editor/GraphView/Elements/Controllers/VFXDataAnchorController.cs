@@ -395,7 +395,7 @@ namespace UnityEditor.VFX.UI
             {
                 m_GizmoContext = new VFXDataAnchorGizmoContext(this);
             }
-            VFXValueGizmo.Draw(new VFXDataAnchorGizmoContext(this), component);
+            VFXGizmoUtility.Draw(new VFXDataAnchorGizmoContext(this), component);
         }
     }
 
@@ -500,7 +500,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    public class VFXDataAnchorGizmoContext : VFXValueGizmo.Context
+    public class VFXDataAnchorGizmoContext : VFXGizmoUtility.Context
     {
         // Provider
         internal VFXDataAnchorGizmoContext(VFXDataAnchorController controller)

@@ -281,7 +281,7 @@ namespace UnityEditor.VFX.UI
 
             for (int i = startIndex; i < count + startIndex; ++i)
             {
-                string path = string.IsNullOrEmpty(memberPath)? fields[i].Name : memberPath + VFXValueGizmo.Context.separator + fields[i].Name;
+                string path = string.IsNullOrEmpty(memberPath)? fields[i].Name : memberPath + VFXGizmoUtility.Context.separator + fields[i].Name;
                 subControllers[i - startIndex] = new VFXSubParameterController(this, fieldPath.Concat(Enumerable.Repeat(i, 1)),path);
                 m_ChildrenByPath[path] = subControllers[i - startIndex];
             }
@@ -349,7 +349,7 @@ namespace UnityEditor.VFX.UI
                 
                 while(true)
                 {
-                    int index = parentMemberPath.LastIndexOf(VFXValueGizmo.Context.separator);
+                    int index = parentMemberPath.LastIndexOf(VFXGizmoUtility.Context.separator);
                     if( index == -1)
                     {
                         Debug.LogError("Couln't find SubParameter path" + memberPath);
@@ -597,7 +597,7 @@ namespace UnityEditor.VFX.UI
             {
                 m_Context = new ParameterGizmoContext(this);
             }
-            VFXValueGizmo.Draw(m_Context,component);
+            VFXGizmoUtility.Draw(m_Context,component);
         }
 
         Dictionary<int, VFXParameterNodeController> m_Controllers = new Dictionary<int, VFXParameterNodeController>();
@@ -701,7 +701,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    public class ParameterGizmoContext : VFXValueGizmo.Context
+    public class ParameterGizmoContext : VFXGizmoUtility.Context
     {
         internal ParameterGizmoContext(VFXParameterController controller)
         {

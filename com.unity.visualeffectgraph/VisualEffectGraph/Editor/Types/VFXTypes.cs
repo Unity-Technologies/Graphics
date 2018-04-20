@@ -20,7 +20,7 @@ namespace UnityEditor.VFX
         public static readonly int SpaceCount = Enum.GetValues(typeof(CoordinateSpace)).Length;
     }
 
-    interface ISpaceable
+    public interface ISpaceable
     {
         CoordinateSpace space { get; set; }
     }

@@ -18,9 +18,9 @@ namespace UnityEditor.VFX.UI
 
 
 
-    public class VFXValueGizmo
+    public class VFXGizmoUtility
     {
-        static Dictionary<System.Type, System.Action<Context, VisualEffect>> s_DrawFunctions;
+        static Dictionary<System.Type,VFXGizmo> s_DrawFunctions;
 
         public abstract class Context
         {
@@ -90,39 +90,25 @@ namespace UnityEditor.VFX.UI
         const float handleSize = 0.1f;
         const float arcHandleSizeMultiplier = 1.25f;
 
-        static VFXValueGizmo()
+        static VFXGizmoUtility()
         {
-            s_DrawFunctions = new Dictionary<System.Type, System.Action<Context, VisualEffect>>();
+            s_DrawFunctions = new Dictionary<System.Type, VFXGizmo>();
 
-            s_DrawFunctions[typeof(ArcCircle)] = OnDrawArcCircleDataAnchorGizmo;
-            //s_DrawFunctions[typeof(Sphere)] = OnDrawSphereDataAnchorGizmo;
-            //s_DrawFunctions[typeof(ArcSphere)] = OnDrawArcSphereDataAnchorGizmo;
-            s_DrawFunctions[typeof(Position)] = OnDrawPositionDataAnchorGizmo;
-            //s_DrawFunctions[typeof(AABox)] = OnDrawAABoxDataAnchorGizmo;
-            //s_DrawFunctions[typeof(OrientedBox)] = OnDrawOrientedBoxDataAnchorGizmo;
-            //s_DrawFunctions[typeof(Plane)] = OnDrawPlaneDataAnchorGizmo;
-            //s_DrawFunctions[typeof(Cylinder)] = OnDrawCylinderDataAnchorGizmo;
-            //s_DrawFunctions[typeof(ArcTorus)] = OnDrawArcTorusDataAnchorGizmo;
-            //s_DrawFunctions[typeof(ArcCone)] = OnDrawArcConeDataAnchorGizmo;
-
-            foreach (Type type in typeof(VFXValueGizmo).Assembly.GetTypes())
+            foreach (Type type in typeof(VFXGizmoUtility).Assembly.GetTypes()) // TODO put all user assemblies instead
             {
                 Type gizmoedType = GetGizmoType(type);
 
                 if (gizmoedType != null)
                 {
-                    MethodInfo info = type.GetMethod("OnDrawGizmo", BindingFlags.Static | BindingFlags.Public);
-
-                    if (info != null)
-                    {
-                        s_DrawFunctions[gizmoedType] = (System.Action<Context, VisualEffect>)Delegate.CreateDelegate(typeof(System.Action<IValueController, VisualEffect>), info);
-                    }
+                    s_DrawFunctions[gizmoedType] = (VFXGizmo)System.Activator.CreateInstance(type);
                 }
             }
         }
 
         static Type GetGizmoType(Type type)
         {
+            if( type.IsAbstract ) 
+                return null;
             Type baseType = type.BaseType;
             while (baseType != null)
             {
@@ -135,14 +121,14 @@ namespace UnityEditor.VFX.UI
             return null;
         }
 
-        static internal void Draw(Context anchor, VisualEffect component)
+        static internal void Draw(Context context, VisualEffect component)
         {
-            System.Action<Context, VisualEffect> func;
-            if (s_DrawFunctions.TryGetValue(anchor.portType, out func))
+            VFXGizmo gizmo;
+            if (s_DrawFunctions.TryGetValue(context.portType, out gizmo))
             {
-                anchor.Prepare();
-                if( ! anchor.IsIndeterminate())
-                    func(anchor, component);
+                context.Prepare();
+                if( ! context.IsIndeterminate())
+                    gizmo.CallDrawGizmo(context,context.value,component);
             }
         }
 
@@ -220,107 +206,10 @@ namespace UnityEditor.VFX.UI
             return false;
         }
 
-        static void OnDrawPositionDataAnchorGizmo(Context anchor, VisualEffect component)
-        {
-            Position pos = (Position)anchor.value;
-
-            if (anchor.IsMemberEditable(""))
-            {
-                if (PositionGizmo(component, pos.space, ref pos.position))
-                {
-                    anchor.SetMemberValue("", pos);
-                }
-            }
-        }
-
-        static void OnDrawArcCircleDataAnchorGizmo(Context anchor, VisualEffect component)
-        {
-            Matrix4x4 oldMatrix = Handles.matrix;
-
-            ArcCircle arcCircle = (ArcCircle)anchor.value;
-            Circle circle = arcCircle.circle;
-
-            Vector3 center = circle.center;
-            float radius = circle.radius;
-            float arc = arcCircle.arc * Mathf.Rad2Deg;
-            if (circle.space == CoordinateSpace.Local)
-            {
-                if (component == null) return;
-                Handles.matrix = component.transform.localToWorldMatrix;
-            }
-
-            // Draw circle around the arc
-            Handles.DrawWireArc(center, -Vector3.forward, Vector3.up, arc, radius);
-
-            if (anchor.IsMemberEditable("circle.center") && PositionGizmo(component, circle.space, ref circle.center))
-            {
-                arcCircle.circle = circle;
-                anchor.SetMemberValue("circle.center", circle.center);
-            }
-
-            // Radius controls
-            if (anchor.IsMemberEditable("circle.radius"))
-            {
-                foreach (var dist in new Vector3[] { Vector3.left, Vector3.up, Vector3.right, Vector3.down })
-                {
-                    EditorGUI.BeginChangeCheck();
-                    Vector3 sliderPos = center + dist * radius;
-                    Vector3 result = Handles.Slider(sliderPos, dist, handleSize * HandleUtility.GetHandleSize(sliderPos), Handles.CubeHandleCap, 0);
-
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        radius = (result - center).magnitude;
-
-                        if (float.IsNaN(radius))
-                        {
-                            radius = 0;
-                        }
-                        anchor.SetMemberValue("circle.radius", radius);
-                    }
-                }
-            }
-
-            Handles.DrawLine(center, center + Vector3.up * radius);
-
-            // Arc handle control
-            if (anchor.IsMemberEditable("arc"))
-            {
-                using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.Translate(center) * Matrix4x4.Rotate(Quaternion.Euler(-90.0f, 0.0f, 0.0f))))
-                {
-                    Vector3 arcHandlePosition = Quaternion.AngleAxis(arc, Vector3.up) * Vector3.forward * radius;
-                    EditorGUI.BeginChangeCheck();
-                    {
-                        arcHandlePosition = Handles.Slider2D(
-                                arcHandlePosition,
-                                Vector3.up,
-                                Vector3.forward,
-                                Vector3.right,
-                                handleSize * arcHandleSizeMultiplier * HandleUtility.GetHandleSize(center + arcHandlePosition),
-                                DefaultAngleHandleDrawFunction,
-                                0
-                                );
-                    }
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        float newArc = Vector3.Angle(Vector3.forward, arcHandlePosition) * Mathf.Sign(Vector3.Dot(Vector3.right, arcHandlePosition));
-                        arc += Mathf.DeltaAngle(arc, newArc);
-                        arc = Mathf.Repeat(arc, 360.0f);
-                        anchor.SetMemberValue("arc", arc * Mathf.Deg2Rad);
-                    }
-                }
-            }
-            else
-            {
-                Handles.DrawLine(center, center +  Quaternion.AngleAxis(arc, -Vector3.forward) * Vector3.up * radius);
-            }
-
-            Handles.matrix = oldMatrix;
-        }
-
 #if false
-        static void OnDrawSphereDataAnchorGizmo(Context anchor, VisualEffect component)
+        static void OnDrawSphereDataAnchorGizmo(Context context, VisualEffect component)
         {
-            Sphere sphere = (Sphere)anchor.value;
+            Sphere sphere = (Sphere)context.value;
 
             Vector3 center = sphere.center;
             float radius = sphere.radius;
@@ -336,7 +225,7 @@ namespace UnityEditor.VFX.UI
 
             if (PositionGizmo(component, sphere.space, ref sphere.center))
             {
-                anchor.value = sphere;
+                context.value = sphere;
             }
 
             foreach (var dist in new Vector3[] { Vector3.left, Vector3.up, Vector3.forward })
@@ -354,17 +243,17 @@ namespace UnityEditor.VFX.UI
                         sphere.radius = 0;
                     }
 
-                    anchor.value = sphere;
+                    context.value = sphere;
                 }
                 EditorGUI.EndChangeCheck();
             }
         }
 
-        static void OnDrawArcSphereDataAnchorGizmo(Context anchor, VisualEffect component)
+        static void OnDrawArcSphereDataAnchorGizmo(Context context, VisualEffect component)
         {
             Matrix4x4 oldMatrix = Handles.matrix;
 
-            ArcSphere arcSphere = (ArcSphere)anchor.value;
+            ArcSphere arcSphere = (ArcSphere)context.value;
             Sphere sphere = arcSphere.sphere;
 
             Vector3 center = sphere.center;
@@ -394,7 +283,7 @@ namespace UnityEditor.VFX.UI
             if (PositionGizmo(component, sphere.space, ref sphere.center))
             {
                 arcSphere.sphere = sphere;
-                anchor.value = arcSphere;
+                context.value = arcSphere;
             }
 
             // Radius controls
@@ -414,7 +303,7 @@ namespace UnityEditor.VFX.UI
                     }
 
                     arcSphere.sphere = sphere;
-                    anchor.value = arcSphere;
+                    context.value = arcSphere;
                 }
                 EditorGUI.EndChangeCheck();
             }
@@ -442,18 +331,18 @@ namespace UnityEditor.VFX.UI
                     arc = Mathf.Repeat(arc, 360.0f);
 
                     arcSphere.arc = arc * Mathf.Deg2Rad;
-                    anchor.value = arcSphere;
+                    context.value = arcSphere;
                 }
             }
 
             Handles.matrix = oldMatrix;
         }
 
-        static void OnDrawArcTorusDataAnchorGizmo(Context anchor, VisualEffect component)
+        static void OnDrawArcTorusDataAnchorGizmo(Context context, VisualEffect component)
         {
             Matrix4x4 oldMatrix = Handles.matrix;
 
-            ArcTorus torus = (ArcTorus)anchor.value;
+            ArcTorus torus = (ArcTorus)context.value;
 
             Vector3 center = torus.center;
             float majorRadius = torus.majorRadius;
@@ -467,7 +356,7 @@ namespace UnityEditor.VFX.UI
 
             if (PositionGizmo(component, torus.space, ref torus.center))
             {
-                anchor.value = torus;
+                context.value = torus;
             }
 
             Handles.DrawLine(Vector3.zero, Vector3.up * majorRadius);
@@ -495,7 +384,7 @@ namespace UnityEditor.VFX.UI
                     arc = Mathf.Repeat(arc, 360.0f);
                     torus.arc = arc * Mathf.Deg2Rad;
 
-                    anchor.value = torus;
+                    context.value = torus;
                 }
             }
 
@@ -536,7 +425,7 @@ namespace UnityEditor.VFX.UI
                                     torus.minorRadius = 0;
                                 }
 
-                                anchor.value = torus;
+                                context.value = torus;
                             }
                             EditorGUI.EndChangeCheck();
                         }
@@ -558,7 +447,7 @@ namespace UnityEditor.VFX.UI
                                     torus.majorRadius = 0;
                                 }
 
-                                anchor.value = torus;
+                                context.value = torus;
                             }
                             EditorGUI.EndChangeCheck();
                         }
@@ -588,36 +477,36 @@ namespace UnityEditor.VFX.UI
 /* */
 
 #if false
-        static void OnDrawAABoxDataAnchorGizmo(Context anchor, VisualEffect component)
+        static void OnDrawAABoxDataAnchorGizmo(Context context, VisualEffect component)
         {
-            AABox box = (AABox)anchor.value;
+            AABox box = (AABox)context.value;
 
-            if (OnDrawBoxDataAnchorGizmo(anchor, component, box.space, ref box.center, ref box.size, Vector3.zero))
+            if (OnDrawBoxDataAnchorGizmo(context, component, box.space, ref box.center, ref box.size, Vector3.zero))
             {
-                anchor.value = box;
+                context.value = box;
             }
         }
 
-        static void OnDrawOrientedBoxDataAnchorGizmo(Context anchor, VisualEffect component)
+        static void OnDrawOrientedBoxDataAnchorGizmo(Context context, VisualEffect component)
         {
-            OrientedBox box = (OrientedBox)anchor.value;
+            OrientedBox box = (OrientedBox)context.value;
 
-            if (OnDrawBoxDataAnchorGizmo(anchor, component, box.space, ref box.center, ref box.size, box.angles))
+            if (OnDrawBoxDataAnchorGizmo(context, component, box.space, ref box.center, ref box.size, box.angles))
             {
-                anchor.value = box;
+                context.value = box;
             }
             if (RotationGizmo(component, box.space, box.center, ref box.angles))
             {
-                anchor.value = box;
+                context.value = box;
             }
         }
 
 #endif
 #if false
 
-        static void OnDrawPlaneDataAnchorGizmo(Context anchor, VisualEffect component)
+        static void OnDrawPlaneDataAnchorGizmo(Context context, VisualEffect component)
         {
-            Plane plane = (Plane)anchor.value;
+            Plane plane = (Plane)context.value;
 
             Quaternion normalQuat = Quaternion.FromToRotation(Vector3.forward, plane.normal);
             Handles.RectangleHandleCap(0, plane.position, normalQuat, 10, Event.current.type);
@@ -626,7 +515,7 @@ namespace UnityEditor.VFX.UI
 
             if (PositionGizmo(component, plane.space, ref plane.position))
             {
-                anchor.value = plane;
+                context.value = plane;
             }
 
             Vector3 normal = plane.normal.normalized;
@@ -643,14 +532,14 @@ namespace UnityEditor.VFX.UI
             {
                 normal = result * Vector3.forward;
                 plane.normal = normal;
-                anchor.value = plane;
+                context.value = plane;
             }
             EditorGUI.EndChangeCheck();
         }
 
-        static void OnDrawCylinderDataAnchorGizmo(Context anchor, VisualEffect component)
+        static void OnDrawCylinderDataAnchorGizmo(Context context, VisualEffect component)
         {
-            Cylinder cylinder = (Cylinder)anchor.value;
+            Cylinder cylinder = (Cylinder)context.value;
 
             Vector3 center = cylinder.center;
             Vector3 normal = Vector3.up;
@@ -721,7 +610,7 @@ namespace UnityEditor.VFX.UI
 
             if (PositionGizmo(component, cylinder.space, ref cylinder.center))
             {
-                anchor.value = cylinder;
+                context.value = cylinder;
             }
 
             Vector3 result;
@@ -735,7 +624,7 @@ namespace UnityEditor.VFX.UI
                 if (GUI.changed)
                 {
                     cylinder.radius = (result - center).magnitude;
-                    anchor.value = cylinder;
+                    context.value = cylinder;
                 }
 
                 EditorGUI.EndChangeCheck();
@@ -748,7 +637,7 @@ namespace UnityEditor.VFX.UI
             if (GUI.changed)
             {
                 cylinder.height = (result - center).magnitude * 2;
-                anchor.value = cylinder;
+                context.value = cylinder;
             }
 
             EditorGUI.EndChangeCheck();
@@ -760,13 +649,13 @@ namespace UnityEditor.VFX.UI
             if (GUI.changed)
             {
                 cylinder.height = (result - center).magnitude * 2;
-                anchor.value = cylinder;
+                context.value = cylinder;
             }
 
             EditorGUI.EndChangeCheck();
         }
 
-        static bool OnDrawBoxDataAnchorGizmo(Context anchor, VisualEffect component, CoordinateSpace space, ref Vector3 center, ref Vector3 size, Vector3 additionnalRotation)
+        static bool OnDrawBoxDataAnchorGizmo(Context context, VisualEffect component, CoordinateSpace space, ref Vector3 center, ref Vector3 size, Vector3 additionnalRotation)
         {
             var saveMatrix = Handles.matrix;
             if (space == CoordinateSpace.Local)
@@ -922,9 +811,9 @@ namespace UnityEditor.VFX.UI
             return changed;
         }
 
-        static void OnDrawArcConeDataAnchorGizmo(Context anchor, VisualEffect component)
+        static void OnDrawArcConeDataAnchorGizmo(Context context, VisualEffect component)
         {
-            ArcCone cone = (ArcCone)anchor.value;
+            ArcCone cone = (ArcCone)context.value;
 
             Vector3 center = cone.center;
             Vector3 normal = Vector3.up;
@@ -993,7 +882,7 @@ namespace UnityEditor.VFX.UI
 
             if (PositionGizmo(component, cone.space, ref cone.center))
             {
-                anchor.value = cone;
+                context.value = cone;
             }
 
             Vector3 result;
@@ -1010,7 +899,7 @@ namespace UnityEditor.VFX.UI
                         cone.radius0 = (result - center).magnitude;
                     else
                         cone.radius1 = (result - topCap).magnitude;
-                    anchor.value = cone;
+                    context.value = cone;
                 }
 
                 EditorGUI.EndChangeCheck();
@@ -1023,7 +912,7 @@ namespace UnityEditor.VFX.UI
             if (GUI.changed)
             {
                 cone.height = (result - center).magnitude;
-                anchor.value = cone;
+                context.value = cone;
             }
 
             EditorGUI.EndChangeCheck();
@@ -1032,50 +921,94 @@ namespace UnityEditor.VFX.UI
 #endif
     }
 
-    class VFXGizmo
+    public abstract class VFXGizmo
     {
-    }
+        public abstract void CallDrawGizmo(VFXGizmoUtility.Context context, object value, VisualEffect component);
 
-    class VFXGizmo<T> : VFXGizmo
-    {
-        public static bool PositionGizmo(VisualEffect component, CoordinateSpace space, ref Vector3 position)
+        protected const float handleSize = 0.1f;
+        protected const float arcHandleSizeMultiplier = 1.25f;
+
+
+        protected CoordinateSpace m_CurrentSpace;
+
+        protected bool PositionGizmo(VisualEffect component, ref Vector3 position)
+        {
+            EditorGUI.BeginChangeCheck();
+            position = Handles.PositionHandle(position, m_CurrentSpace == CoordinateSpace.Local ? component.transform.rotation : Quaternion.identity);
+            return EditorGUI.EndChangeCheck();
+        }
+        protected bool RotationGizmo(VisualEffect component, Vector3 position, ref Vector3 rotation)
         {
             EditorGUI.BeginChangeCheck();
 
-            Vector3 worldPosition = position;
-            if (space == CoordinateSpace.Local)
-            {
-                if (component == null) return false;
-                worldPosition = component.transform.localToWorldMatrix.MultiplyPoint(position);
-            }
+            Quaternion modifiedRotation = Handles.RotationHandle(Quaternion.Euler(rotation), position);
 
-            Vector3 modifiedPosition = Handles.PositionHandle(worldPosition, space == CoordinateSpace.Local ? component.transform.rotation : Quaternion.identity);
-            if (space == CoordinateSpace.Local)
+            if (EditorGUI.EndChangeCheck())
             {
-                modifiedPosition = component.transform.worldToLocalMatrix.MultiplyPoint(modifiedPosition);
-            }
-            bool changed = GUI.changed;
-            EditorGUI.EndChangeCheck();
-            if (changed)
-            {
-                position = modifiedPosition;
+                rotation = modifiedRotation.eulerAngles;
                 return true;
             }
             return false;
         }
+        protected static void DefaultAngleHandleDrawFunction(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
+        {
+            Handles.DrawLine(Vector3.zero, position);
+
+            // draw a cylindrical "hammer head" to indicate the direction the handle will move
+            Vector3 worldPosition = Handles.matrix.MultiplyPoint3x4(position);
+            Vector3 normal = worldPosition - Handles.matrix.MultiplyPoint3x4(Vector3.zero);
+            Vector3 tangent = Handles.matrix.MultiplyVector(Quaternion.AngleAxis(90f, Vector3.up) * position);
+            rotation = Quaternion.LookRotation(tangent, normal);
+            Matrix4x4 matrix = Matrix4x4.TRS(worldPosition, rotation, (Vector3.one + Vector3.forward * arcHandleSizeMultiplier));
+            using (new Handles.DrawingScope(matrix))
+                Handles.CylinderHandleCap(controlID, Vector3.zero, Quaternion.identity, size, eventType);
+        }
+    }
+
+    public abstract class VFXGizmo<T> : VFXGizmo
+    {
+        public override void CallDrawGizmo(VFXGizmoUtility.Context context, object value, VisualEffect component)
+        {
+            m_CurrentSpace = CoordinateSpace.Global;
+            OnDrawGizmo(context,(T)value,component);
+        }
+        public abstract void OnDrawGizmo(VFXGizmoUtility.Context context, T value, VisualEffect component);
+
+    }
+    public abstract class VFXSpaceableGizmo<T> : VFXGizmo<T> where T : ISpaceable
+    {
+        public override void OnDrawGizmo(VFXGizmoUtility.Context context, T value, VisualEffect component)
+        {
+            m_CurrentSpace = value.space;
+            Matrix4x4 oldMatrix = Handles.matrix;
+
+            if (value.space == CoordinateSpace.Local)
+            {
+                if (component == null) return;
+                Handles.matrix = component.transform.localToWorldMatrix;
+            }
+
+            OnDrawSpacedGizmo(context,value,component);
+
+            Handles.matrix = oldMatrix;
+        }
+        public abstract void OnDrawSpacedGizmo(VFXGizmoUtility.Context context, T value, VisualEffect component);
     }
 #if false
     class VFXPositionGizmo : VFXGizmo<Position>
     {
-        public static void OnDrawGizmo(VFXValueGizmo.Context anchor, VisualEffect component)
+        public static void OnDrawGizmo(VFXValueGizmo.Context context, VisualEffect component)
         {
-            Position pos = (Position)anchor.value;
+            Position pos = (Position)context.value;
 
             if (PositionGizmo(component, pos.space, ref pos.position))
             {
-                anchor.value = pos;
+                context.value = pos;
             }
         }
     }
 #endif
 }
+
+
+
