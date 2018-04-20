@@ -18,9 +18,9 @@
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+ProjectionModel:  static fields
 //
-#define PROJECTION_MODEL_NONE (0)
-#define PROJECTION_MODEL_PROXY (1)
-#define PROJECTION_MODEL_HI_Z (2)
+#define PROJECTIONMODEL_NONE (0)
+#define PROJECTIONMODEL_PROXY (1)
+#define PROJECTIONMODEL_HI_Z (2)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+HiZIntersectionKind:  static fields

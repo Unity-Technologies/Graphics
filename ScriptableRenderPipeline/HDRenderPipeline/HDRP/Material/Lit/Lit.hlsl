@@ -1764,14 +1764,14 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     // -------------------------------
     // Choose projection model
     // -------------------------------
-    int projectionModel = PROJECTION_MODEL_NONE;
+    int projectionModel = PROJECTIONMODEL_NONE;
 #if HAS_REFRACTION
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
     {
     #if defined(_REFRACTION_SSRAY_HIZ)
-        projectionModel = PROJECTION_MODEL_HI_Z;
+        projectionModel = PROJECTIONMODEL_HI_Z;
     #else defined(_REFRACTION_SSRAY_PROXY)
-        projectionModel = PROJECTION_MODEL_PROXY;
+        projectionModel = PROJECTIONMODEL_PROXY;
     #endif
     }
 #else
@@ -1779,7 +1779,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
         projectionModel = _SSReflectionProjectionModel;
 #endif
 
-    if (projectionModel == PROJECTION_MODEL_NONE)
+    if (projectionModel == PROJECTIONMODEL_NONE)
         return lighting;
 
     // -------------------------------
@@ -1836,7 +1836,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     // -------------------------------
     // Proxy raycasting
     // -------------------------------
-    if (projectionModel == PROJECTION_MODEL_PROXY)
+    if (projectionModel == PROJECTIONMODEL_PROXY)
     {
         ScreenSpaceProxyRaycastInput ssRayInput;
         ZERO_INITIALIZE(ScreenSpaceProxyRaycastInput, ssRayInput);
@@ -1860,7 +1860,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     // -------------------------------
     // HiZ raymarching
     // -------------------------------
-    else if (projectionModel == PROJECTION_MODEL_HI_Z)
+    else if (projectionModel == PROJECTIONMODEL_HI_Z)
     {
         ScreenSpaceHiZRaymarchInput ssRayInput;
         ZERO_INITIALIZE(ScreenSpaceHiZRaymarchInput, ssRayInput);
