@@ -13,7 +13,7 @@ namespace UnityEditor.VFX.UI
     {
         static Dictionary<System.Type,VFXGizmo> s_DrawFunctions;
 
-        internal class Property : VFXGizmo.IProperty
+        internal class Property<T> : VFXGizmo.IProperty<T>
         {
             public Property(IPropertyRMProvider controller,bool editable)
             {
@@ -28,25 +28,25 @@ namespace UnityEditor.VFX.UI
             {
                 get{ return m_Editable;}
             }
-            public void SetValue(object value)
+            public void SetValue(T value)
             {
                 if( m_Editable)
                     m_Controller.value = value;
             }
         }
 
-        internal class NullProperty : VFXGizmo.IProperty
+        internal class NullProperty<T> : VFXGizmo.IProperty<T>
         {
              public bool isEditable
             {
                 get{ return false;}
             }
-            public void SetValue(object value)
+            public void SetValue(T value)
             {
             }
 
 
-            public static NullProperty defaultProperty = new NullProperty();
+            public static NullProperty<T> defaultProperty = new NullProperty<T>();
         }
         
         public abstract class Context : VFXGizmo.IContext
@@ -84,9 +84,9 @@ namespace UnityEditor.VFX.UI
             }
 
 
-            protected Dictionary<string,VFXGizmo.IProperty> m_PropertyCache = new Dictionary<string,VFXGizmo.IProperty>();
+            protected Dictionary<string,object> m_PropertyCache = new Dictionary<string,object>();
 
-            public abstract VFXGizmo.IProperty RegisterProperty(string member);
+            public abstract VFXGizmo.IProperty<T> RegisterProperty<T>(string member);
 
             protected bool m_Indeterminate;
 

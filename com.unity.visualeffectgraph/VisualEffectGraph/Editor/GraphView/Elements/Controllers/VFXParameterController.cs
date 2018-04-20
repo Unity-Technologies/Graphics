@@ -351,7 +351,7 @@ namespace UnityEditor.VFX.UI
                     int index = parentMemberPath.LastIndexOf(VFXGizmoUtility.Context.separator);
                     if( index == -1)
                     {
-                        Debug.LogError("Couln't find SubParameter path" + memberPath);
+                        Debug.LogError("Coulnd't find SubParameter path " + memberPath);
                         return null;
                     }
 
@@ -368,7 +368,7 @@ namespace UnityEditor.VFX.UI
                     subParameterController = subParameterController.children.FirstOrDefault(t=>t.name == member);
                     if( subParameterController == null)
                     {
-                        Debug.LogError("Couln't find SubParameter path" + memberPath);
+                        Debug.LogError("Coulnd't find SubParameter path " + memberPath);
                         return null;
                     }
                 }
@@ -403,7 +403,7 @@ namespace UnityEditor.VFX.UI
                     int index = parentMemberPath.LastIndexOf(VFXGizmoUtility.Context.separator);
                     if( index == -1)
                     {
-                        Debug.LogError("Couln't find SubParameter path" + memberPath);
+                        Debug.LogError("Coulnd't find SubParameter path " + memberPath);
                         return;
                     }
 
@@ -420,7 +420,7 @@ namespace UnityEditor.VFX.UI
                     subParameterController = subParameterController.children.FirstOrDefault(t=>t.name == member);
                     if( subParameterController == null)
                     {
-                        Debug.LogError("Couln't find SubParameter path" + memberPath);
+                        Debug.LogError("Coulnd't find SubParameter path " + memberPath);
                         return;
                     }
                 }
@@ -773,21 +773,24 @@ namespace UnityEditor.VFX.UI
 
         protected override void InternalPrepare(){}
 
-        public override VFXGizmo.IProperty RegisterProperty(string member)
+        public override VFXGizmo.IProperty<T> RegisterProperty<T>(string member)
         {
-            VFXGizmo.IProperty result;
+            object result;
             if( m_PropertyCache.TryGetValue(member,out result))
             {
-                return result;
+                if( result is VFXGizmo.IProperty<T> )
+                    return result as VFXGizmo.IProperty<T>;
+                else
+                    return VFXGizmoUtility.NullProperty<T>.defaultProperty;
             }
             var controller = m_Controller.GetMemberController(member);
 
-            if( controller != null )
+            if( controller != null && controller.portType == typeof(T))
             {
-                return new VFXGizmoUtility.Property(controller,true);
+                return new VFXGizmoUtility.Property<T>(controller,true);
             }
 
-            return VFXGizmoUtility.NullProperty.defaultProperty;
+            return VFXGizmoUtility.NullProperty<T>.defaultProperty;
         }
     }
 }

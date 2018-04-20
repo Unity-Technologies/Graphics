@@ -11,16 +11,16 @@ namespace UnityEditor.VFX
 {
     public abstract class VFXGizmo
     {
-        public interface IProperty
+        public interface IProperty<T>
         {
             bool isEditable{get;}
 
-            void SetValue(object value);
+            void SetValue(T value);
         }
 
         public interface IContext
         {
-            IProperty RegisterProperty(string memberPath);
+            IProperty<T> RegisterProperty<T>(string memberPath);
         }
         public abstract void RegisterEditableMembers(IContext context);
         public abstract void CallDrawGizmo(object value, VisualEffect component);
@@ -30,13 +30,13 @@ namespace UnityEditor.VFX
 
         protected CoordinateSpace m_CurrentSpace;
 
-        protected bool PositionGizmo(VisualEffect component, ref Vector3 position)
+        public bool PositionGizmo(VisualEffect component, ref Vector3 position)
         {
             EditorGUI.BeginChangeCheck();
             position = Handles.PositionHandle(position, m_CurrentSpace == CoordinateSpace.Local ? component.transform.rotation : Quaternion.identity);
             return EditorGUI.EndChangeCheck();
         }
-        protected bool RotationGizmo(VisualEffect component, Vector3 position, ref Vector3 rotation)
+        public bool RotationGizmo(VisualEffect component, Vector3 position, ref Vector3 rotation)
         {
             EditorGUI.BeginChangeCheck();
 
@@ -49,7 +49,7 @@ namespace UnityEditor.VFX
             }
             return false;
         }
-        protected static void DefaultAngleHandleDrawFunction(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
+        public static void DefaultAngleHandleDrawFunction(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
         {
             Handles.DrawLine(Vector3.zero, position);
 

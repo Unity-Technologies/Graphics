@@ -640,21 +640,24 @@ namespace UnityEditor.VFX.UI
 
 
 
-        public override VFXGizmo.IProperty RegisterProperty(string member)
+        public override VFXGizmo.IProperty<T> RegisterProperty<T>(string member)
         {
-            VFXGizmo.IProperty result;
+            object result;
             if( m_PropertyCache.TryGetValue(member,out result))
             {
-                return result;
+                if( result is VFXGizmo.IProperty<T> )
+                    return result as VFXGizmo.IProperty<T>;
+                else
+                    return VFXGizmoUtility.NullProperty<T>.defaultProperty;
             }
             var controller = GetMemberController(member);
 
-            if( controller != null )
+            if( controller != null && controller.portType == typeof(T))
             {
-                return new VFXGizmoUtility.Property(controller,IsMemberEditable(member));
+                return new VFXGizmoUtility.Property<T>(controller,IsMemberEditable(member));
             }
 
-            return VFXGizmoUtility.NullProperty.defaultProperty;
+            return VFXGizmoUtility.NullProperty<T>.defaultProperty;
         }
 
         VFXDataAnchorController GetMemberController(string memberPath)
