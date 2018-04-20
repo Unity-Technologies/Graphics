@@ -600,11 +600,15 @@ namespace UnityEditor.ShaderGraph
 
         internal void PasteGraph(CopyPasteGraph graphToPaste, List<INode> remappedNodes, List<IEdge> remappedEdges)
         {
-            var nodesToPaste = new List<INode>();
+            var nodeGuidMap = new Dictionary<Guid, Guid>();
             foreach (var node in graphToPaste.GetNodes<INode>())
             {
-                // If the pasted node is a property node, convert it into a concrete node
-                // if the associated property does not exist.
+                INode pastedNode = node;
+
+                var oldGuid = node.guid;
+                var newGuid = node.RewriteGuid();
+
+                // Check if the property nodes need to be made into a concrete node.
                 if (node is PropertyNode)
                 {
                     PropertyNode propertyNode = (PropertyNode)node;
@@ -617,23 +621,16 @@ namespace UnityEditor.ShaderGraph
                         var pastedGraphMetaProperties = graphToPaste.metaProperties.Where(x => x.guid == propertyNode.propertyGuid);
                         if (pastedGraphMetaProperties.Any())
                         {
-                            INode concreteNode = pastedGraphMetaProperties.FirstOrDefault().ToConcreteNode();
-                            concreteNode.drawState = node.drawState;
-                            nodesToPaste.Add(concreteNode);
-                            continue;
+                            pastedNode = pastedGraphMetaProperties.FirstOrDefault().ToConcreteNode();
+                            pastedNode.drawState = node.drawState;
+                            nodeGuidMap[oldGuid] = pastedNode.guid;
                         }
                     }
                 }
-
-                nodesToPaste.Add(node);
-            }
-
-            var nodeGuidMap = new Dictionary<Guid, Guid>();
-            foreach (var node in nodesToPaste)
-            {
-                var oldGuid = node.guid;
-                var newGuid = node.RewriteGuid();
-                nodeGuidMap[oldGuid] = newGuid;
+                else
+                {
+                    nodeGuidMap[oldGuid] = newGuid;
+                }
 
                 var drawState = node.drawState;
                 var position = drawState.position;
@@ -641,11 +638,11 @@ namespace UnityEditor.ShaderGraph
                 position.y += 30;
                 drawState.position = position;
                 node.drawState = drawState;
-                remappedNodes.Add(node);
-                AddNode(node);
+                remappedNodes.Add(pastedNode);
+                AddNode(pastedNode);
 
                 // add the node to the pasted node list
-                m_PastedNodes.Add(node);
+                m_PastedNodes.Add(pastedNode);
             }
 
             // only connect edges within pasted elements, discard
