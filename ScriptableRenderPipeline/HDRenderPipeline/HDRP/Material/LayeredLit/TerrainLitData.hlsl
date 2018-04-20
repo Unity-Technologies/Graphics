@@ -24,6 +24,11 @@ TEXTURE2D(_Splat3);
 float4 _Splat3_ST;
 SAMPLER(sampler_Splat0);
 
+#define _BaseColor0 float4(1,1,1,1)
+#define _BaseColor1 float4(1,1,1,1)
+#define _BaseColor2 float4(1,1,1,1)
+#define _BaseColor3 float4(1,1,1,1)
+
 // Number of sampler are limited, we need to share sampler as much as possible with lit material
 // for this we put the constraint that the sampler are the same in a layered material for all textures of the same type
 // then we take the sampler matching the first textures use of this type
@@ -112,6 +117,7 @@ SAMPLER(sampler_Splat0);
 #define ADD_ZERO_IDX(Name) Name##0
 #define _BaseColorMap _Splat
 #define sampler_BaseColorMap sampler_Splat
+#define ALPHA_USED_AS_SMOOTHNESS
 
 // include LitDataInternal multiple time to define the variation of GetSurfaceData for each layer
 #define LAYER_INDEX 0
@@ -217,6 +223,8 @@ SAMPLER(sampler_Splat0);
 #undef _THICKNESSMAP_IDX
 #undef _MASKMAP_IDX
 #undef _BENTNORMALMAP_IDX
+
+#undef ALPHA_USED_AS_SMOOTHNESS
 
 float3 BlendLayeredVector3(float3 x0, float3 x1, float3 x2, float3 x3, float weight[4])
 {
@@ -580,10 +588,10 @@ float3 ComputeMainBaseColorInfluence(float influenceMask, float3 baseColor0, flo
 
     // We want to calculate the mean color of the texture. For this we will sample a low mipmap
     float textureBias = 15.0; // Use maximum bias
-    float3 baseMeanColor0 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_Splat0, sampler_Splat0, layerTexCoord.base0, textureBias).rgb *_BaseColor0.rgb;
-    float3 baseMeanColor1 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_Splat1, sampler_Splat0, layerTexCoord.base1, textureBias).rgb *_BaseColor1.rgb;
-    float3 baseMeanColor2 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_Splat2, sampler_Splat0, layerTexCoord.base2, textureBias).rgb *_BaseColor2.rgb;
-    float3 baseMeanColor3 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_Splat3, sampler_Splat0, layerTexCoord.base3, textureBias).rgb *_BaseColor3.rgb;
+    float3 baseMeanColor0 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_Splat0, sampler_Splat0, layerTexCoord.base0, textureBias).rgb;
+    float3 baseMeanColor1 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_Splat1, sampler_Splat0, layerTexCoord.base1, textureBias).rgb;
+    float3 baseMeanColor2 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_Splat2, sampler_Splat0, layerTexCoord.base2, textureBias).rgb;
+    float3 baseMeanColor3 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_Splat3, sampler_Splat0, layerTexCoord.base3, textureBias).rgb;
 
     float3 meanColor = BlendLayeredVector3(baseMeanColor0, baseMeanColor1, baseMeanColor2, baseMeanColor3, weights);
 

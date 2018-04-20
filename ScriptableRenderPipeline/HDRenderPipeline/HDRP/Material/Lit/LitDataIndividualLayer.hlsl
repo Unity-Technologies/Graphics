@@ -180,15 +180,21 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 {
     float alpha = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_BaseColorMap), ADD_ZERO_IDX(sampler_BaseColorMap), ADD_IDX(layerTexCoord.base)).a * ADD_IDX(_BaseColor).a;
 
+#ifndef ALPHA_USED_AS_SMOOTHNESS
     // Perform alha test very early to save performance (a killed pixel will not sample textures)
-#if defined(_ALPHATEST_ON) && !defined(LAYERED_LIT_SHADER)
-    float alphaCutoff = _AlphaCutoff;
-    #ifdef CUTOFF_TRANSPARENT_DEPTH_PREPASS
-    alphaCutoff = _AlphaCutoffPrepass;
-    #elif defined(CUTOFF_TRANSPARENT_DEPTH_POSTPASS)
-    alphaCutoff = _AlphaCutoffPostpass;
+    #if defined(_ALPHATEST_ON) && !defined(LAYERED_LIT_SHADER)
+        float alphaCutoff = _AlphaCutoff;
+        #ifdef CUTOFF_TRANSPARENT_DEPTH_PREPASS
+        alphaCutoff = _AlphaCutoffPrepass;
+        #elif defined(CUTOFF_TRANSPARENT_DEPTH_POSTPASS)
+        alphaCutoff = _AlphaCutoffPostpass;
+        #endif
+        DoAlphaTest(alpha, alphaCutoff);
     #endif
-    DoAlphaTest(alpha, alphaCutoff);
+    surfaceData.perceptualSmoothness = 1;
+#else
+    surfaceData.perceptualSmoothness = alpha;
+    alpha = 1;
 #endif
 
     float3 detailNormalTS = float3(0.0, 0.0, 0.0);
@@ -224,10 +230,10 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     bentNormalTS = ADD_IDX(GetBentNormalTS)(input, layerTexCoord, normalTS, detailNormalTS, detailMask);
 
 #if defined(_MASKMAP_IDX)
-    surfaceData.perceptualSmoothness = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), SAMPLER_MASKMAP_IDX, ADD_IDX(layerTexCoord.base)).a;
+    surfaceData.perceptualSmoothness *= SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_MaskMap), SAMPLER_MASKMAP_IDX, ADD_IDX(layerTexCoord.base)).a;
     surfaceData.perceptualSmoothness = lerp(ADD_IDX(_SmoothnessRemapMin), ADD_IDX(_SmoothnessRemapMax), surfaceData.perceptualSmoothness);
 #else
-    surfaceData.perceptualSmoothness = ADD_IDX(_Smoothness);
+    surfaceData.perceptualSmoothness *= ADD_IDX(_Smoothness);
 #endif
 
 #ifdef _DETAIL_MAP_IDX
