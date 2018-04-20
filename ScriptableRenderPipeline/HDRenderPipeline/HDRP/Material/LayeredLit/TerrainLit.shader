@@ -9,6 +9,16 @@ Shader "HDRenderPipeline/TerrainLit"
         [HideInInspector] _Splat2("Layer 2", 2D) = "white" {}
         [HideInInspector] _Splat3("Layer 3", 2D) = "white" {}
 
+        // Since we don't use a mask texture for getting the mask, we'll need the metallic property to be serialized as in sRGB space.
+        [HideInInspector] [Gamma] _Metallic0("Metallic 0", Range(0.0, 1.0)) = 0
+        [HideInInspector] [Gamma] _Metallic1("Metallic 1", Range(0.0, 1.0)) = 0
+        [HideInInspector] [Gamma] _Metallic2("Metallic 2", Range(0.0, 1.0)) = 0
+        [HideInInspector] [Gamma] _Metallic3("Metallic 3", Range(0.0, 1.0)) = 0
+        [HideInInspector] _Smoothness0("Smoothness0", Range(0.0, 1.0)) = 1.0
+        [HideInInspector] _Smoothness1("Smoothness1", Range(0.0, 1.0)) = 1.0
+        [HideInInspector] _Smoothness2("Smoothness2", Range(0.0, 1.0)) = 1.0
+        [HideInInspector] _Smoothness3("Smoothness3", Range(0.0, 1.0)) = 1.0
+
         // TODO: route values from terrain layers. enable _DENSITY_MODE if any of these enabled.
         [HideInInspector] [ToggleUI] _OpacityAsDensity0("_OpacityAsDensity0", Float) = 0.0
         [HideInInspector] [ToggleUI] _OpacityAsDensity1("_OpacityAsDensity1", Float) = 0.0
@@ -19,22 +29,6 @@ Shader "HDRenderPipeline/TerrainLit"
         // They are use to fill a SurfaceData. With a MaterialGraph this should not exist.
 
         // All the following properties are filled by the referenced lit shader.
-
-        // Reminder. Color here are in linear but the UI (color picker) do the conversion sRGB to linear
-        _BaseColor0("BaseColor0", Color) = (1, 1, 1, 1)
-        _BaseColor1("BaseColor1", Color) = (1, 1, 1, 1)
-        _BaseColor2("BaseColor2", Color) = (1, 1, 1, 1)
-        _BaseColor3("BaseColor3", Color) = (1, 1, 1, 1)
-
-        _Metallic0("Metallic0", Range(0.0, 1.0)) = 0
-        _Metallic1("Metallic1", Range(0.0, 1.0)) = 0
-        _Metallic2("Metallic2", Range(0.0, 1.0)) = 0
-        _Metallic3("Metallic3", Range(0.0, 1.0)) = 0
-
-        _Smoothness0("Smoothness0", Range(0.0, 1.0)) = 1.0
-        _Smoothness1("Smoothness1", Range(0.0, 1.0)) = 1.0
-        _Smoothness2("Smoothness2", Range(0.0, 1.0)) = 1.0
-        _Smoothness3("Smoothness3", Range(0.0, 1.0)) = 1.0
 
         _SmoothnessRemapMin0("SmoothnessRemapMin0", Range(0.0, 1.0)) = 0.0
         _SmoothnessRemapMin1("SmoothnessRemapMin1", Range(0.0, 1.0)) = 0.0
