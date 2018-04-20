@@ -30,23 +30,23 @@ VertexOutput vert(VertexInput i)
 }
 
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-#define USE_ARRAY_TEXTURE 1
+#define DEPTH_TEXTURE_MS Texture2DMSArray
+#define DEPTH_TEXTURE(name) TEXTURE2D_ARRAY(name)
+#define LOAD(uv, sampleIndex) LOAD_TEXTURE2D_ARRAY_MSAA(_CameraDepthTexture, uv, unity_StereoEyeIndex, sampleIndex)
+#define SAMPLE(uv) SAMPLE_TEXTURE2D_ARRAY(_CameraDepthTexture, sampler_CameraDepthTexture, uv, unity_StereoEyeIndex).r
+#else
+#define DEPTH_TEXTURE_MS Texture2DMS
+#define DEPTH_TEXTURE(name) TEXTURE2D(name)
+#define LOAD(uv, sampleIndex) LOAD_TEXTURE2D_MSAA(_CameraDepthTexture, uv, sampleIndex)
+#define SAMPLE(uv) SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv)
 #endif
 
 #ifdef MSAA_DEPTH
-    #ifdef USE_ARRAY_TEXTURE
-        Texture2DMSArray<float> _CameraDepthTexture;
-    #else
-        Texture2DMS<float> _CameraDepthTexture;
-    #endif
+    DEPTH_TEXTURE_MS<float> _CameraDepthTexture;
     float _SampleCount;
     float4 _CameraDepthTexture_TexelSize;
 #else
-    #ifdef USE_ARRAY_TEXTURE
-        TEXTURE2D_ARRAY(_CameraDepthTexture);
-    #else
-        TEXTURE2D(_CameraDepthTexture);
-    #endif
+    DEPTH_TEXTURE(_CameraDepthTexture);
     SAMPLER(sampler_CameraDepthTexture);
 #endif
 
@@ -64,19 +64,11 @@ float SampleDepth(float2 uv)
     #endif
 
     for (int i = 0; i < samples; ++i)
-        #ifdef USE_ARRAY_TEXTURE
-            outDepth = DEPTH_OP(LOAD_TEXTURE2D_ARRAY_MSAA(_CameraDepthTexture, uv, unity_StereoEyeIndex, i), outDepth);
-        #else
-            outDepth = DEPTH_OP(LOAD_TEXTURE2D_MSAA(_CameraDepthTexture, uv, i), outDepth);
-        #endif
-
+        outDepth = DEPTH_OP(LOAD(uv, i), outDepth);
+    
     return outDepth;
 #else
-    #ifdef USE_ARRAY_TEXTURE
-        return SAMPLE_TEXTURE2D_ARRAY(_CameraDepthTexture, sampler_CameraDepthTexture, uv, unity_StereoEyeIndex).r;
-    #else
-        return SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv);
-    #endif
+    return SAMPLE(uv);
 #endif
 }
 
