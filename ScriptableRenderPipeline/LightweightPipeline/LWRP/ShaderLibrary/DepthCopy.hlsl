@@ -41,7 +41,7 @@ VertexOutput vert(VertexInput i)
 #define SAMPLE(uv) SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv)
 #endif
 
-#ifdef MSAA_DEPTH
+#ifdef _MSAA_DEPTH
     DEPTH_TEXTURE_MS<float> _CameraDepthTexture;
     float _SampleCount;
     float4 _CameraDepthTexture_TexelSize;
@@ -52,7 +52,7 @@ VertexOutput vert(VertexInput i)
 
 float SampleDepth(float2 uv)
 {
-#ifdef MSAA_DEPTH
+#ifdef _MSAA_DEPTH
     int2 coord = int2(uv * _CameraDepthTexture_TexelSize.zw);
     int samples = (int)_SampleCount;
     #if UNITY_REVERSED_Z
