@@ -1,6 +1,12 @@
-# Changelog
 
-## [2018.2.b1 undecided]
+- # Changelog
+
+## [2018.2 undecided]
+
+## [2018.1 undecided]
+
+### Bug fixes
+- Fix ConvertPhysicalLightIntensityToLightIntensity() function used when creating light from script to match HDLightEditor behavior
 
 ## [2018.1.0f2]
 
@@ -14,7 +20,11 @@
 - Improve the quality of volumetric lighting reprojection.
 - Optimize Morton Order code in the Subsurface Scattering pass.
 - Planar Reflection Probe support roughness (gaussian convolution of captured probe)
+- Use an atlas instead of a texture array for cluster transparent decals
+- Add a debug view to visualize the decal atlas
 - Only store decal textures to atlas if decal is visible, debounce out of memory decal atlas warning.
+- Add manipulator gizmo on decal to improve authoring workflow
+- Add a minimal StackLit material (work in progress, this version can be used as template to add new material)
 
 ### Changed, Removals and deprecations
 - EnableShadowMask in FrameSettings (But shadowMaskSupport still disable by default)
