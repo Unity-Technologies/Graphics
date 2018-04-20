@@ -5,13 +5,16 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 
-namespace UnityEditor.VFX
+namespace UnityEditor.VFX.Block
 {
     [VFXInfo(category = "Spawn", variantProvider = typeof(AttributeVariantReadWritable))]
     class VFXSpawnerSetAttribute : VFXAbstractSpawner
     {
-        [VFXSetting, StringProvider(typeof(AttributeProvider))]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(AttributeProvider))]
         public string attribute = VFXAttribute.AllReadWritable.First();
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
+        public RandomMode randomMode = RandomMode.Off;
 
         private VFXAttribute currentAttribute
         {
@@ -25,11 +28,53 @@ namespace UnityEditor.VFX
         {
             get
             {
-                yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(currentAttribute.type), currentAttribute.name), currentAttribute.value.GetContent());
+                switch (randomMode)
+                {
+                    case RandomMode.Off:
+                        yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(currentAttribute.type), currentAttribute.name), currentAttribute.value.GetContent());
+                        break;
+                    case RandomMode.Uniform:
+                    case RandomMode.PerComponent:
+                        yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(currentAttribute.type), "Min"), currentAttribute.value.GetContent());
+                        yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(currentAttribute.type), "Max"), currentAttribute.value.GetContent());
+                        break;
+                }
             }
         }
 
-        public override string name { get { return "Set Attribute " + attribute; } }
+        public override IEnumerable<VFXNamedExpression> parameters
+        {
+            get
+            {
+                VFXExpression random;
+                int size = VFXExpression.TypeToSize(currentAttribute.type);
+                switch (randomMode)
+                {
+                    default:
+                    case RandomMode.Off:
+                        return base.parameters;
+                    case RandomMode.PerComponent:
+
+                        VFXExpression[] members = new VFXExpression[size];
+                        for (int i = 0; i < size; i++)
+                        {
+                            members[i] = new VFXExpressionRandom();
+                        }
+                        random = new VFXExpressionCombine(members);
+                        break;
+                    case RandomMode.Uniform:
+                        random = new VFXExpressionCombine(Enumerable.Repeat(new VFXExpressionRandom(), size).ToArray());
+                        break;
+                }
+
+                var min = base.parameters.FirstOrDefault(o => o.name == "Min");
+                var max = base.parameters.FirstOrDefault(o => o.name == "Max");
+                return new [] { new VFXNamedExpression(VFXOperatorUtility.Lerp(min.exp, max.exp, random), currentAttribute.name)};
+            }
+        }
+
+        public override string name { get { return string.Format("Set SpawnEvent {0} {1}", attribute, VFXBlockUtility.GetNameString(randomMode)); } }
         public override VFXTaskType spawnerType { get { return VFXTaskType.SetAttributeSpawner; } }
+
     }
 }
