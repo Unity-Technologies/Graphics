@@ -447,6 +447,7 @@ float4 GetBlendMask(LayerTexCoord layerTexCoord, float4 vertexColor)
     // Value for main layer is not use for blending itself but for alternate weighting like density.
     // Settings this specific Main layer blend mask in alpha allow to be transparent in case we don't use it and 1 is provide by default.
     float4 blendMasks = SAMPLE_UVMAPPING_TEXTURE2D(_Control, sampler_Control, layerTexCoord.blendMask);
+    blendMasks = blendMasks.gbar;
 
     // Wind uses vertex alpha as an intensity parameter.
     // So in case Layered shader uses wind, we need to hardcode the alpha here so that the main layer can be visible without affecting wind intensity.
