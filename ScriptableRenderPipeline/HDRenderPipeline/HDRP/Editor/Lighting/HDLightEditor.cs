@@ -357,18 +357,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         }
                         else if (spotLightShape == SpotLightShape.Pyramid)
                         {
-                            var aspectRatio = m_AdditionalLightData.aspectRatio.floatValue;
-                            // Since the smallest angles is = to the fov, and we don't care of the angle order, simply make sure the aspect ratio is > 1
-                            if ( aspectRatio < 1f ) aspectRatio = 1f/aspectRatio;
-
-                            var angleA = settings.spotAngle.floatValue * Mathf.Deg2Rad;
-
-                            var halfAngle = angleA * 0.5f; // half of the smallest angle
-                            var length = Mathf.Tan(halfAngle); // half length of the smallest side of the rectangle
-                            length *= aspectRatio; // half length of the bigest side of the rectangle
-                            halfAngle = Mathf.Atan(length); // half of the bigest angle
-
-                            var angleB = halfAngle * 2f;
+                            float angleA, angleB;
+                            LightUtils.CalculateAnglesForPyramid(   m_AdditionalLightData.aspectRatio.floatValue, settings.spotAngle.floatValue,
+                                                                    out angleA, out angleB);
 
                             settings.intensity.floatValue = LightUtils.ConvertFrustrumLightIntensity(m_AdditionalLightData.punctualIntensity.floatValue, angleA, angleB );
                         }
