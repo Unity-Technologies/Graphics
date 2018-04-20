@@ -1,5 +1,5 @@
 
-- # Changelog
+# Changelog
 
 ## [2018.2 undecided]
 
