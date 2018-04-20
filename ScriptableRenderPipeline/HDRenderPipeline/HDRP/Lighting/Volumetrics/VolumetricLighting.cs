@@ -647,6 +647,9 @@ public class VolumetricLightingSystem
 
             int rfc = Time.renderedFrameCount;
             int sampleIndex = rfc % 7;
+
+            // TODO: should we somehow reorder offsets in Z based on the offset in XY? S.t. the samples more evenly cover the domain.
+            // Currently, we assume that they are completely uncorrelated, but maybe we should correlate them somehow.
             Vector4 offset = new Vector4(xySeq[sampleIndex].x, xySeq[sampleIndex].y, zSeq[sampleIndex], rfc);
 
             // Get the interpolated asymmetry value.
