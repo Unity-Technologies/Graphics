@@ -208,11 +208,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.ClearRenderTarget(true, true, Color.white);
             cmd.Blit(m_ScreenSpaceShadowmapTexture, m_ScreenSpaceShadowmapTexture, m_ScreenSpaceShadowsMaterial);
 
-            LightweightUtils.StartStereoRendering(camera, ref context, frameRenderingConfiguration);
+            LightweightPipeline.StartStereoRendering(camera, ref context, frameRenderingConfiguration);
 
             context.ExecuteCommandBuffer(cmd);
 
-            LightweightUtils.StopStereoRendering(camera, ref context, frameRenderingConfiguration);
+            LightweightPipeline.StopStereoRendering(camera, ref context, frameRenderingConfiguration);
 
             CommandBufferPool.Release(cmd);
         }
