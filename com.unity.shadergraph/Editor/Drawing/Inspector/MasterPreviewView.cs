@@ -202,7 +202,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         void OnPreviewChanged()
         {
             m_PreviewTextureView.image = StyleValue<Texture>.Create(m_PreviewRenderHandle.texture ?? Texture2D.blackTexture);
-            m_PreviewTextureView.Dirty(ChangeType.Repaint);
+            m_PreviewTextureView.MarkDirtyRepaint();
         }
 
         void ChangePrimitiveMesh(string primitiveName)

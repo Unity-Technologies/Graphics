@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             m_Node.owner.owner.RegisterCompleteObjectUndo("Color Change");
             m_Color.color = evt.newValue;
             m_PropertyInfo.SetValue(m_Node, m_Color, null);
-            Dirty(ChangeType.Repaint);
+            this.MarkDirtyRepaint();
         }
 
         void OnModeChanged(ChangeEvent<Enum> evt)

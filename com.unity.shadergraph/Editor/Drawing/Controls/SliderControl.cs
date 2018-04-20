@@ -72,8 +72,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         {
             if (scope == ModificationScope.Graph)
             {
-                Dirty(ChangeType.Repaint);
-            } 
+                this.MarkDirtyRepaint();
+            }
         }
 
         void OnChangeSlider(float newValue)
@@ -84,13 +84,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             m_PropertyInfo.SetValue(m_Node, value, null);
             if(m_SliderInput != null)
                 m_SliderInput.value = newValue;
-            Dirty(ChangeType.Repaint);
+            this.MarkDirtyRepaint();
         }
-        
+
         FloatField AddField(VisualElement panel, string label, int index, Vector3 initValiue)
         {
             var field = new FloatField { userData = index, value = initValiue[index] };
-            
+
             if(label != "")
             {
                 var l = new Label(label);
@@ -98,7 +98,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 var dragger = new FieldMouseDragger<double>(field);
                 dragger.SetDragZone(l);
             }
-                
+
             field.RegisterCallback<MouseDownEvent>(Repaint);
             field.RegisterCallback<MouseMoveEvent>(Repaint);
             field.OnValueChanged(evt =>
@@ -108,7 +108,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     m_PropertyInfo.SetValue(m_Node, value, null);
                     m_UndoGroup = -1;
                     UpdateSlider(m_SliderPanel, index, value);
-                    Dirty(ChangeType.Repaint);
+                    this.MarkDirtyRepaint();
                 });
             field.RegisterCallback<InputEvent>(evt =>
                 {
@@ -123,7 +123,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     var value = (Vector3)m_PropertyInfo.GetValue(m_Node, null);
                     value[index] = newValue;
                     m_PropertyInfo.SetValue(m_Node, value, null);
-                    Dirty(ChangeType.Repaint);
+                    this.MarkDirtyRepaint();
                 });
             field.RegisterCallback<KeyDownEvent>(evt =>
                 {
@@ -135,7 +135,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                         UpdateSlider(m_SliderPanel, index, m_Value);
                         evt.StopPropagation();
                     }
-                    Dirty(ChangeType.Repaint);
+                    this.MarkDirtyRepaint();
                 });
             panel.Add(field);
             return field;
@@ -162,7 +162,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         void Repaint<T>(MouseEventBase<T> evt) where T : MouseEventBase<T>, new()
         {
             evt.StopPropagation();
-            Dirty(ChangeType.Repaint);
+            this.MarkDirtyRepaint();
         }
     }
 }

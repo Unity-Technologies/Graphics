@@ -49,7 +49,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
             var value = (Enum)m_PropertyInfo.GetValue(m_Node, null);
             m_ValueNames = Enum.GetNames(value.GetType());
-            
+
             CreatePopup();
         }
 
@@ -71,8 +71,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             if (scope == ModificationScope.Node)
             {
                 CreatePopup();
-                m_PopupField.Dirty(ChangeType.Repaint);
-            } 
+                m_PopupField.MarkDirtyRepaint();
+            }
         }
 
         void CreatePopup()
@@ -86,7 +86,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
                 Remove(m_PopupField);
             }
-            
+
             m_PreviousChannelCount = channelCount;
             List<string> popupEntries = new List<string>();
             for (int i = 0; i < channelCount; i++)
