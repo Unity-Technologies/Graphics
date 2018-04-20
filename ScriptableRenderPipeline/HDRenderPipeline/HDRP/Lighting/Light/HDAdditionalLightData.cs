@@ -35,6 +35,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float punctualIntensity      = 600.0f;   // Light default to 600 lumen, i.e ~48 candela
         public float areaIntensity          = 200.0f;   // Light default to 200 lumen to better match point light
 
+        // Only for Spotlight, should be hide for other light
+        public bool enableSpotReflector = false;
+
         [Range(0.0f, 100.0f)]
         public float m_InnerSpotPercent = 0.0f; // To display this field in the UI this need to be public
 
@@ -56,9 +59,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Only for Spotlight, should be hide for other light
         public SpotLightShape spotLightShape = SpotLightShape.Cone;
-
-        // Only for Spotlight, should be hide for other light
-        public bool enableSpotReflector = false;
 
         // Only for Rectangle/Line/box projector lights
         public float shapeWidth = 0.5f;
