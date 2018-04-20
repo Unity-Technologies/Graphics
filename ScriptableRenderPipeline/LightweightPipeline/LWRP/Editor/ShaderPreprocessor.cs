@@ -13,8 +13,10 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 {
     public class ShaderPreprocessor : IPreprocessShaders
     {
+#if LOG_VARIANTS
         int m_TotalVariantsInputCount;
         int m_TotalVariantsOutputCount;
+#endif
 
         // Multiple callback may be implemented.
         // The first one executed is the one where callbackOrder is returning the smallest number.
