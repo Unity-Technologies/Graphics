@@ -83,7 +83,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     value[index] = (float)evt.newValue;
                     SetValue(value);
                     m_UndoGroup = -1;
-                    Dirty(ChangeType.Repaint);
+                    this.MarkDirtyRepaint();
                 });
             field.RegisterCallback<InputEvent>(evt =>
                 {
@@ -98,7 +98,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     var value = GetValue();
                     value[index] = newValue;
                     SetValue(value);
-                    Dirty(ChangeType.Repaint);
+                    this.MarkDirtyRepaint();
                 });
             field.RegisterCallback<KeyDownEvent>(evt =>
                 {
@@ -109,7 +109,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                         m_Value = GetValue();
                         evt.StopPropagation();
                     }
-                    Dirty(ChangeType.Repaint);
+                    this.MarkDirtyRepaint();
                 });
             Add(field);
         }
@@ -145,7 +145,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         void Repaint<T>(MouseEventBase<T> evt) where T : MouseEventBase<T>, new()
         {
             evt.StopPropagation();
-            Dirty(ChangeType.Repaint);
+            this.MarkDirtyRepaint();
         }
     }
 }
