@@ -378,7 +378,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Set the reference value for the stencil test.
             int stencilRef = (int)StencilLightingUsage.RegularLighting;
-            if ((int)material.GetFloat(kMaterialID) == (int)BaseLitGUI.MaterialId.LitSSS)
+            if (material.HasProperty(kMaterialID) && (int)material.GetFloat(kMaterialID) == (int)BaseLitGUI.MaterialId.LitSSS)
             {
                 stencilRef = (int)StencilLightingUsage.SplitLighting;
             }
