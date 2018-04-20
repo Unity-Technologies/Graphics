@@ -7,6 +7,7 @@ Shader "Hidden/LightweightPipeline/Blit"
 
         Pass
         {
+            Name "Default"
             Tags { "LightMode" = "LightweightForward"}
 
             ZTest Always ZWrite Off

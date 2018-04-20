@@ -2,10 +2,11 @@ Shader "Hidden/LightweightPipeline/CopyDepth"
 {
     SubShader
     {
-        Tags { "RenderType" = "Opaque" "RenderPipeline" = "LightiweightPipeline"}
+        Tags { "RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline"}
 
         Pass
         {
+            Name "Default"
             ZTest Always ZWrite On ColorMask 0
 
             HLSLPROGRAM
