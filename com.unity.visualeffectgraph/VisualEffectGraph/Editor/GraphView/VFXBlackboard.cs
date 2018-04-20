@@ -295,6 +295,8 @@ namespace  UnityEditor.VFX.UI
             {
                 button.clickable.clicked += OnExpand;
             }
+
+            clippingOptions = ClippingOptions.ClipAndCacheContents;
         }
 
         void OnExpand()
@@ -431,6 +433,9 @@ namespace  UnityEditor.VFX.UI
             AddStyleSheetPath("VFXBlackboard");
 
             RegisterCallback<MouseDownEvent>(OnMouseClick,Capture.Capture);
+
+
+            clippingOptions = ClippingOptions.ClipContents;
         }
 
 

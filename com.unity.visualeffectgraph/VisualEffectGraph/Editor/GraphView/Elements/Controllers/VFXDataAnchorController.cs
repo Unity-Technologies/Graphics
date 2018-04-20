@@ -535,6 +535,7 @@ namespace UnityEditor.VFX.UI
         }
 
         List<Action<List<object>>> m_ValueBuilder = new List<Action<List<object>>>();
+        Dictionary<string,VFXDataAnchorController> m_StringToMember = new Dictionary<string,VFXDataAnchorController>();
 
         protected override void InternalPrepare()
         {
@@ -547,6 +548,8 @@ namespace UnityEditor.VFX.UI
             }
             m_ReadOnlyMembers.Clear();
             m_ValueBuilder.Clear();
+            m_StringToMember.Clear();
+            m_StringToMember.Add("",m_Controller);
 
             bool valueSet = false;
             m_ValueBuilder.Add(o=>o.Add(m_Controller.value));
@@ -557,13 +560,17 @@ namespace UnityEditor.VFX.UI
                 valueSet = true;
                 m_FullReadOnly = true;
             }
-            else if (m_Controller.model.HasLink(false))
-            {
-                m_Indeterminate = true;
-                return;
-            }
             else if (m_Controller.model.HasLink(true))
-            {
+            { 
+                if( m_Controller.model.HasLink(false) )
+                {
+                    if(VFXTypeUtility.GetComponentCount(m_Controller.model) != 0)
+                    {
+                        m_Indeterminate = true;
+                        return;
+                    }
+                    m_FullReadOnly = true;
+                }
                 BuildValue( m_Controller.model, "", valueSet);
             }
         }
@@ -583,6 +590,8 @@ namespace UnityEditor.VFX.UI
                         subMemberPath = memberPath + separator + subMemberPath;
                     }
                     bool subValueSet = false;
+
+                    bool subValueBuild = false;
                     if (!valueSet)
                     {
                         subValueSet = false;
@@ -593,7 +602,7 @@ namespace UnityEditor.VFX.UI
                             m_ValueBuilder.Add(o=>o.Add(m_Controller.viewController.GetEvaluatedContent(subSlot)));
                             subValueSet = true;
                         }
-                        else if( slot.HasLink(false))
+                        else if( subSlot.HasLink(false) && VFXTypeUtility.GetComponentCount(subSlot) != 0) // replace by is VFXType
                         {
                             m_Indeterminate = true;
                             return;
@@ -603,6 +612,7 @@ namespace UnityEditor.VFX.UI
                             m_ValueBuilder.Add(o=>o.Add(subSlot.value));
 
                             BuildValue(subSlot, subMemberPath, false);
+                            subValueBuild = true;
                             if( m_Indeterminate) return;
                         }
                         m_ValueBuilder.Add(o=>field.SetValue(o[o.Count-2], o[ o.Count-1]));
@@ -613,7 +623,7 @@ namespace UnityEditor.VFX.UI
                     {
                         m_ReadOnlyMembers.Add(subMemberPath);
                     }
-                    else if (subSlot.HasLink(true))
+                    else if (subSlot.HasLink(true) && !subValueBuild)
                     {
                         if (m_Controller.viewController.CanGetEvaluatedContent(subSlot))
                         // for the moment we can edit only part of a position or rotation so mark it as read only if one of the children has a link
@@ -632,16 +642,23 @@ namespace UnityEditor.VFX.UI
 
         public override void SetMemberValue(string memberPath, object value)
         {
-            if (string.IsNullOrEmpty(memberPath))
+
+            VFXDataAnchorController controller = null;
+            if( m_StringToMember.TryGetValue(memberPath, out controller))
             {
-                m_Controller.value = value;
+                controller.value = value;
                 return;
             }
 
-            SetSubMemberValue(memberPath, m_Controller.model, value);
+            controller = GetSubMemberController(memberPath, m_Controller.model, value);
+            if( controller != null)
+            {
+                controller.value = value;
+                m_StringToMember.Add(memberPath,controller);
+            }
         }
 
-        void SetSubMemberValue(string memberPath, VFXSlot slot, object value)
+        VFXDataAnchorController GetSubMemberController(string memberPath, VFXSlot slot, object value)
         {
             int index = memberPath.IndexOf(separator);
 
@@ -650,8 +667,10 @@ namespace UnityEditor.VFX.UI
                 VFXSlot subSlot = slot.children.FirstOrDefault(t => t.name == memberPath);
                 if (subSlot != null)
                 {
-                    m_Controller.sourceNode.inputPorts.First(t => t.model == subSlot).value = value;
+                    var subController = m_Controller.sourceNode.inputPorts.FirstOrDefault(t => t.model == subSlot);
+                    return subController;
                 }
+                return null;
             }
             else
             {
@@ -660,8 +679,9 @@ namespace UnityEditor.VFX.UI
                 VFXSlot subSlot = slot.children.FirstOrDefault(t => t.name == memberName);
                 if (subSlot != null)
                 {
-                    SetSubMemberValue(memberPath.Substring(index + 1), subSlot, value);
+                    return GetSubMemberController(memberPath.Substring(index + 1), subSlot, value);
                 }
+                return null;
             }
         }
     }

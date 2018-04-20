@@ -327,6 +327,11 @@ namespace UnityEditor.VFX.UI
 
         public void SetMemberValue(string memberPath,object value)
         {
+            if( string.IsNullOrEmpty(memberPath))
+            {
+                this.value = value;
+                return;
+            }
             if (m_SubControllers == null)
             {
                 m_SubControllers = ComputeSubControllers(portType, new List<int>(),"");
