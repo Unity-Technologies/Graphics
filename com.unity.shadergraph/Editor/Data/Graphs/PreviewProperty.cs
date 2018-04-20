@@ -24,6 +24,8 @@ namespace UnityEditor.ShaderGraph
             [FieldOffset(0)]
             public Cubemap cubemapValue;
             [FieldOffset(0)]
+            public Gradient gradientValue;
+            [FieldOffset(0)]
             public Vector4 vector4Value;
             [FieldOffset(0)]
             public float floatValue;
@@ -78,6 +80,22 @@ namespace UnityEditor.ShaderGraph
                 if (propType != PropertyType.Cubemap)
                     throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Cubemap, propType));
                 m_Data.cubemapValue = value;
+            }
+        }
+
+        public Gradient gradientValue
+        {
+            get
+            {
+                if (propType != PropertyType.Gradient)
+                    throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Gradient, propType));
+                return m_Data.gradientValue;
+            }
+            set
+            {
+                if (propType != PropertyType.Gradient)
+                    throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Gradient, propType));
+                m_Data.gradientValue = value;
             }
         }
 
