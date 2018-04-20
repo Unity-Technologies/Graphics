@@ -28,14 +28,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static GUIContent requireOpaqueTexture = new GUIContent("Opaque Texture", "If enabled the pipeline will copy the screen to texture after opaque objects are drawn. For transparent objects this can be bound in shaders as _CameraOpaqueTexture.");
 
             public static GUIContent opaqueDownsampling = new GUIContent("Opaque Downsampling", "The downsampling method that is used for the opaque texture");
+            public static GUIContent hdrContent = new GUIContent("HDR", "Controls the global HDR settings.");
+            public static GUIContent msaaContent = new GUIContent("Anti Aliasing (MSAA)", "Controls the global anti aliasing settings.");
 
-            public static GUIContent shadowType = new GUIContent("Type",
-                    "Global shadow settings. Options are NO_SHADOW, HARD_SHADOWS and SOFT_SHADOWS.");
 
-            public static GUIContent shadowDistante = new GUIContent("Distance", "Max shadow rendering distance.");
+            public static GUIContent supportsSoftShadows = new GUIContent("Soft Shadows", "If enabled pipeline will perform shadow filtering. Otherwise all lights that cast shadows will fallback to perform a single shadow sample.");
+            public static GUIContent supportsDirectionalShadows = new GUIContent("Directional Shadows", "If enabled shadows will be supported for directional lights.");
 
-            public static GUIContent shadowAtlasResolution = new GUIContent("Shadowmap Resolution",
-                    "Resolution of shadow map texture. If cascades are enabled, cascades will be packed into an atlas and this setting controls the max shadows atlas resolution.");
+            public static GUIContent shadowDistance = new GUIContent("Distance", "Max shadow rendering distance.");
+
+            public static GUIContent directionalShadowAtlasResolution = new GUIContent("Atlas Resolution",
+                    "Resolution of the directional shadow map texture. If cascades are enabled, cascades will be packed into an atlas and this setting controls the max shadows atlas resolution.");
 
             public static GUIContent shadowCascades = new GUIContent("Cascades",
                     "Number of cascades used in directional lights shadows");
@@ -43,10 +46,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static GUIContent shadowCascadeSplit = new GUIContent("Cascades Split",
                     "Percentages to split shadow volume");
 
-            public static GUIContent hdrContent = new GUIContent("HDR", "Controls the global HDR settings.");
-            public static GUIContent msaaContent = new GUIContent("Anti Aliasing (MSAA)", "Controls the global anti aliasing settings.");
+            public static GUIContent supportsLocalShadows = new GUIContent("Local Shadows", "If enabled shadows will be supported for spot lights.");
 
-            public static string[] shadowTypeOptions = {"No Shadows", "Hard Shadows", "Hard and Soft Shadows"};
+            public static GUIContent localShadowsAtlasResolution = new GUIContent("Atlas Resolution",
+                    "All local lights are packed into a single atlas. This setting controls the atlas size.");
+
             public static string[] shadowCascadeOptions = {"No Cascades", "Two Cascades", "Four Cascades"};
             public static string[] opaqueDownsamplingOptions = {"None", "2x (Bilinear)", "4x (Box)", "4x (Bilinear)"};
         }
@@ -65,14 +69,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private SerializedProperty m_RequireSoftParticlesProp;
         private SerializedProperty m_RequireOpaqueTextureProp;
         private SerializedProperty m_OpaqueDownsamplingProp;
-        private SerializedProperty m_ShadowTypeProp;
+        private SerializedProperty m_HDR;
+        private SerializedProperty m_MSAA;
+
+        private SerializedProperty m_SoftShadowsSupportedProp;
+        private SerializedProperty m_DirectionalShadowsSupportedProp;
         private SerializedProperty m_ShadowDistanceProp;
-        private SerializedProperty m_ShadowAtlasResolutionProp;
+        private SerializedProperty m_DirectionalShadowAtlasResolutionProp;
         private SerializedProperty m_ShadowCascadesProp;
         private SerializedProperty m_ShadowCascade2SplitProp;
         private SerializedProperty m_ShadowCascade4SplitProp;
-        private SerializedProperty m_HDR;
-        private SerializedProperty m_MSAA;
+        private SerializedProperty m_LocalShadowSupportedProp;
+        private SerializedProperty m_LocalShadowsAtlasResolutionProp;
 
         void OnEnable()
         {
@@ -83,14 +91,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_RequireSoftParticlesProp = serializedObject.FindProperty("m_RequireSoftParticles");
             m_RequireOpaqueTextureProp = serializedObject.FindProperty("m_RequireOpaqueTexture");
             m_OpaqueDownsamplingProp = serializedObject.FindProperty("m_OpaqueDownsampling");
-            m_ShadowTypeProp = serializedObject.FindProperty("m_ShadowType");
+            m_HDR = serializedObject.FindProperty("m_SupportsHDR");
+            m_MSAA = serializedObject.FindProperty("m_MSAA");
+
+            m_DirectionalShadowsSupportedProp = serializedObject.FindProperty("m_DirectionalShadowsSupported");
             m_ShadowDistanceProp = serializedObject.FindProperty("m_ShadowDistance");
-            m_ShadowAtlasResolutionProp = serializedObject.FindProperty("m_ShadowAtlasResolution");
+            m_DirectionalShadowAtlasResolutionProp = serializedObject.FindProperty("m_ShadowAtlasResolution");
             m_ShadowCascadesProp = serializedObject.FindProperty("m_ShadowCascades");
             m_ShadowCascade2SplitProp = serializedObject.FindProperty("m_Cascade2Split");
             m_ShadowCascade4SplitProp = serializedObject.FindProperty("m_Cascade4Split");
-            m_HDR = serializedObject.FindProperty("m_SupportsHDR");
-            m_MSAA = serializedObject.FindProperty("m_MSAA");
+            m_LocalShadowSupportedProp = serializedObject.FindProperty("m_LocalShadowsSupported");
+            m_LocalShadowsAtlasResolutionProp = serializedObject.FindProperty("m_LocalShadowsAtlasResolution");
+            m_SoftShadowsSupportedProp = serializedObject.FindProperty("m_SoftShadowsSupported");
 
             m_ShowSoftParticles.valueChanged.AddListener(Repaint);
             m_ShowSoftParticles.value = m_RequireSoftParticlesProp.boolValue;
@@ -124,11 +136,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     CoreEditorUtils.DrawPopup(content, prop, options);
         }
 
-        public override void OnInspectorGUI()
+        void DrawRenderingSettings()
         {
-            serializedObject.Update();
-
-            UpdateAnimationValues();
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(Styles.renderingLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
@@ -151,21 +160,56 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
             EditorGUILayout.Space();
+        }
 
+        void DrawShadowSettings()
+        {
             EditorGUILayout.LabelField(Styles.shadowLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
-            CoreEditorUtils.DrawPopup(Styles.shadowType, m_ShadowTypeProp, Styles.shadowTypeOptions);
-            EditorGUILayout.PropertyField(m_ShadowAtlasResolutionProp, Styles.shadowAtlasResolution);
-            m_ShadowDistanceProp.floatValue = Mathf.Max(0.0f, EditorGUILayout.FloatField(Styles.shadowDistante, m_ShadowDistanceProp.floatValue));
-            CoreEditorUtils.DrawPopup(Styles.shadowCascades, m_ShadowCascadesProp, Styles.shadowCascadeOptions);
 
-            ShadowCascades cascades = (ShadowCascades)m_ShadowCascadesProp.intValue;
-            if (cascades == ShadowCascades.FOUR_CASCADES)
-                CoreEditorUtils.DrawCascadeSplitGUI<Vector3>(ref m_ShadowCascade4SplitProp);
-            else if (cascades == ShadowCascades.TWO_CASCADES)
-                CoreEditorUtils.DrawCascadeSplitGUI<float>(ref m_ShadowCascade2SplitProp);
+            EditorGUILayout.PropertyField(m_DirectionalShadowsSupportedProp, Styles.supportsDirectionalShadows);
+            bool directionalShadows = m_DirectionalShadowsSupportedProp.boolValue;
+            if (directionalShadows)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_DirectionalShadowAtlasResolutionProp, Styles.directionalShadowAtlasResolution);
+                m_ShadowDistanceProp.floatValue = Mathf.Max(0.0f,
+                        EditorGUILayout.FloatField(Styles.shadowDistance, m_ShadowDistanceProp.floatValue));
+                CoreEditorUtils.DrawPopup(Styles.shadowCascades, m_ShadowCascadesProp, Styles.shadowCascadeOptions);
+
+                ShadowCascades cascades = (ShadowCascades)m_ShadowCascadesProp.intValue;
+                if (cascades == ShadowCascades.FOUR_CASCADES)
+                    CoreEditorUtils.DrawCascadeSplitGUI<Vector3>(ref m_ShadowCascade4SplitProp);
+                else if (cascades == ShadowCascades.TWO_CASCADES)
+                    CoreEditorUtils.DrawCascadeSplitGUI<float>(ref m_ShadowCascade2SplitProp);
+
+                EditorGUI.indentLevel--;
+                EditorGUILayout.Space();
+            }
+
+            EditorGUILayout.PropertyField(m_LocalShadowSupportedProp, Styles.supportsLocalShadows);
+            bool localShadows = m_LocalShadowSupportedProp.boolValue;
+            if (localShadows)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_LocalShadowsAtlasResolutionProp, Styles.localShadowsAtlasResolution);
+                EditorGUI.indentLevel--;
+                EditorGUILayout.Space();
+            }
+
+            if (directionalShadows || localShadows)
+                EditorGUILayout.PropertyField(m_SoftShadowsSupportedProp, Styles.supportsSoftShadows);
 
             EditorGUI.indentLevel--;
+        }
+
+        public override void OnInspectorGUI()
+        {
+            serializedObject.Update();
+
+            UpdateAnimationValues();
+            DrawRenderingSettings();
+            DrawShadowSettings();
 
             serializedObject.ApplyModifiedProperties();
         }

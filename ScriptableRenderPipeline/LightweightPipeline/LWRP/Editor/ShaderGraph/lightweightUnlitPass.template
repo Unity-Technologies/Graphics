@@ -1,5 +1,6 @@
 Pass
 {
+    Name "StandardUnlit"
 	Tags{"LightMode" = "LightweightForward"}
 	${Tags}
 	${Blending}

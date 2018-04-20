@@ -47,7 +47,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static int opaque;
     }
 
-    public class LightweightPipeline : RenderPipeline
+    public partial class LightweightPipeline : RenderPipeline
     {
         private readonly LightweightPipelineAsset m_Asset;
 
@@ -145,6 +145,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_Asset = asset;
 
             SetRenderingFeatures();
+            SetPipelineCapabilities(asset);
 
             PerFrameBuffer._GlossyEnvironmentColor = Shader.PropertyToID("_GlossyEnvironmentColor");
             PerFrameBuffer._SubtractiveShadowColor = Shader.PropertyToID("_SubtractiveShadowColor");
@@ -368,10 +369,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             var opaqueScaler = m_OpaqueScalerValues[(int)m_Asset.OpaqueDownsampling];
             RenderTextureDescriptor opaqueDesc = CreateRTDesc(frameRenderingConfiguration, opaqueScaler);
-            
+
             CommandBuffer cmd = CommandBufferPool.Get("Opaque Copy");
             cmd.GetTemporaryRT(CameraRenderTargetID.opaque, opaqueDesc, m_Asset.OpaqueDownsampling == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
-            switch(m_Asset.OpaqueDownsampling)
+            switch (m_Asset.OpaqueDownsampling)
             {
                 case Downsampling.None:
                     cmd.Blit(m_CurrCameraColorRT, CameraRenderTargetID.opaque);
@@ -983,25 +984,21 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void SetShaderKeywords(CommandBuffer cmd, ref LightData lightData)
         {
-            List<VisibleLight> visibleLights = lightData.visibleLights;
-            int mainLightIndex = lightData.mainLightIndex;
-
             int vertexLightsCount = lightData.totalAdditionalLightsCount - lightData.pixelAdditionalLightsCount;
 
-            bool shadowsEnabled = m_ShadowPass.HasDirectionalShadowmap || m_ShadowPass.HasLocalLightsShadowmap;
-            CoreUtils.SetKeyword(cmd, "_SHADOWS_ENABLED", shadowsEnabled);
+            CoreUtils.SetKeyword(cmd, LightweightKeywords.AdditionalLightsText, lightData.totalAdditionalLightsCount > 0);
+            CoreUtils.SetKeyword(cmd, LightweightKeywords.MixedLightingSubtractiveText, m_MixedLightingSetup == MixedLightingSetup.Subtractive);
+            CoreUtils.SetKeyword(cmd, LightweightKeywords.VertexLightsText, vertexLightsCount > 0);
 
-            // TODO: Currently we are shading same keyword for directional and local lights
-            // When we have ability to strip keywords we can use the one below instead
-            //CoreUtils.SetKeyword(cmd, "_SHADOWS_ENABLED", m_ShadowPass.HasDirectionalShadowmap);
-            //CoreUtils.SetKeyword(cmd, "_LOCAL_SHADOWS_ENABLED", m_ShadowPass.HasLocalLightsShadowmap);
+            // TODO: We have to discuss cookie approach on LWRP.
+            // CoreUtils.SetKeyword(cmd, LightweightKeywords.MainLightCookieText, mainLightIndex != -1 && LightweightUtils.IsSupportedCookieType(visibleLights[mainLightIndex].lightType) && visibleLights[mainLightIndex].light.cookie != null);
 
-            //TIM: Not used in shader for V1 to reduce keywords
-            CoreUtils.SetKeyword(cmd, "_MAIN_LIGHT_COOKIE", mainLightIndex != -1 && LightweightUtils.IsSupportedCookieType(visibleLights[mainLightIndex].lightType) && visibleLights[mainLightIndex].light.cookie != null);
+            bool anyShadowsEnabled = m_ShadowPass.IsDirectionalShadowsEnabled || m_ShadowPass.IsLocalShadowsEnabled;
+            CoreUtils.SetKeyword(cmd, LightweightKeywords.DirectionalShadowsText, m_ShadowPass.DirectionalShadowsRendered);
+            CoreUtils.SetKeyword(cmd, LightweightKeywords.LocalShadowsText, m_ShadowPass.LocalShadowsRendered);
+            CoreUtils.SetKeyword(cmd, LightweightKeywords.SoftShadowsText, m_ShadowPass.IsSoftShadowsEnabled && anyShadowsEnabled);
 
-            CoreUtils.SetKeyword(cmd, "_ADDITIONAL_LIGHTS", lightData.totalAdditionalLightsCount > 0);
-            CoreUtils.SetKeyword(cmd, "_MIXED_LIGHTING_SUBTRACTIVE", m_MixedLightingSetup == MixedLightingSetup.Subtractive);
-            CoreUtils.SetKeyword(cmd, "_VERTEX_LIGHTS", vertexLightsCount > 0);
+            // TODO: Remove this. legacy particles support will be removed from Unity in 2018.3. This should be a shader_feature instead with prop exposed in the Standard particles shader.
             CoreUtils.SetKeyword(cmd, "SOFTPARTICLES_ON", m_RequireDepthTexture && m_Asset.RequireSoftParticles);
         }
 
