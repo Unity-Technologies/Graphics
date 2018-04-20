@@ -223,7 +223,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             bool supportsScreenSpaceShadows = SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
             m_ShadowSettings = ShadowSettings.Default;
-            m_ShadowSettings.supportsDirectionalShadows = pipelineAsset.IsDirectionalShadowsSupported;
+            m_ShadowSettings.supportsDirectionalShadows = pipelineAsset.SupportsDirectionalShadows;
             m_ShadowSettings.screenSpace = m_ShadowSettings.supportsDirectionalShadows && supportsScreenSpaceShadows;
             m_ShadowSettings.directionalLightCascadeCount = (m_ShadowSettings.screenSpace) ? pipelineAsset.CascadeCount : 1;
 
@@ -246,9 +246,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     break;
             }
 
-            m_ShadowSettings.supportsLocalShadows = pipelineAsset.IsLocalShadowsSupported;
+            m_ShadowSettings.supportsLocalShadows = pipelineAsset.SupportsLocalShadows;
             m_ShadowSettings.localShadowAtlasWidth = m_ShadowSettings.localShadowAtlasHeight = pipelineAsset.LocalShadowAtlasResolution;
-            m_ShadowSettings.supportsSoftShadows = pipelineAsset.IsSoftShadowsSupported;
+            m_ShadowSettings.supportsSoftShadows = pipelineAsset.SupportsSoftShadows;
 
             m_ShadowSettings.bufferBitCount = 16;
 

@@ -963,8 +963,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CoreUtils.SetKeyword(cmd, LightweightKeywords.AdditionalLightsText, lightData.totalAdditionalLightsCount > 0);
             CoreUtils.SetKeyword(cmd, LightweightKeywords.MixedLightingSubtractiveText, m_MixedLightingSetup == MixedLightingSetup.Subtractive);
             CoreUtils.SetKeyword(cmd, LightweightKeywords.VertexLightsText, vertexLightsCount > 0);
-            //TIM: Not used in shader for V1 to reduce keywords
-            CoreUtils.SetKeyword(cmd, LightweightKeywords.MainLightCookieText, mainLightIndex != -1 && LightweightUtils.IsSupportedCookieType(visibleLights[mainLightIndex].lightType) && visibleLights[mainLightIndex].light.cookie != null);
+
+            // TODO: We have to discuss cookie approach on LWRP.
+            // CoreUtils.SetKeyword(cmd, LightweightKeywords.MainLightCookieText, mainLightIndex != -1 && LightweightUtils.IsSupportedCookieType(visibleLights[mainLightIndex].lightType) && visibleLights[mainLightIndex].light.cookie != null);
 
             bool anyShadowsEnabled = m_ShadowPass.IsDirectionalShadowsEnabled || m_ShadowPass.IsLocalShadowsEnabled;
             CoreUtils.SetKeyword(cmd, LightweightKeywords.DirectionalShadowsText, m_ShadowPass.DirectionalShadowsRendered);
