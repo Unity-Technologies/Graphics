@@ -349,13 +349,26 @@ namespace UnityEditor.ShaderGraph
             return s_LegacyTypeRemapping;
         }
 
-        // Sanitize a name to not conflict with other names.
-        // `existingNames` is the collection of names that the sanitized name should not collide with.
-        // `duplicateFormat` is the format applied to handle cases with overlapping names. The string supplied should
-        // be a formattable string where the first argument is the base name, and the second argument the
-        // `duplication number`.
-        // An example of input ({"name", "name (1)"}, "{0} ({1})", name) should yield the output "name (2)".
-        public static string SanitizeName(IEnumerable<string> existingNames, string duplicateFormat, string name)
+        /// <summary>
+        /// Sanitizes a supplied string such that it does not collide
+        /// with any other name in a collection.
+        /// </summary>
+        /// <param name="existingNames">
+        /// A collection of names that the new name should not collide with.
+        /// </param>
+        /// <param name="duplicateFormat">
+        /// The format applied to the name if a duplicate exists.
+        /// This must be a format string that contains `{0}` and `{1}`
+        /// once each. An example could be `{0} ({1})`, which will append ` (n)`
+        /// to the name for the n`th duplicate.
+        /// </param>
+        /// <param name="name">
+        /// The name to be sanitized.
+        /// </param>
+        /// <returns>
+        /// A name that is distinct form any name in `existingNames`.
+        /// </returns>
+        internal static string SanitizeName(IEnumerable<string> existingNames, string duplicateFormat, string name)
         {
             if (!existingNames.Contains(name))
                 return name;
