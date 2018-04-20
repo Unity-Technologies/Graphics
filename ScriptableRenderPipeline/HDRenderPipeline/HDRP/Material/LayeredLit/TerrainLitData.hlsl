@@ -14,6 +14,16 @@
 
 #define LAYERS_HEIGHTMAP_ENABLE (defined(_HEIGHTMAP0) || defined(_HEIGHTMAP1) || (_LAYER_COUNT > 2 && defined(_HEIGHTMAP2)) || (_LAYER_COUNT > 3 && defined(_HEIGHTMAP3)))
 
+TEXTURE2D(_Splat0);
+float4 _Splat0_ST;
+TEXTURE2D(_Splat1);
+float4 _Splat1_ST;
+TEXTURE2D(_Splat2);
+float4 _Splat2_ST;
+TEXTURE2D(_Splat3);
+float4 _Splat3_ST;
+SAMPLER(sampler_Splat0);
+
 // Number of sampler are limited, we need to share sampler as much as possible with lit material
 // for this we put the constraint that the sampler are the same in a layered material for all textures of the same type
 // then we take the sampler matching the first textures use of this type
@@ -67,16 +77,6 @@
     #endif
 #endif
 
-#if defined(_DETAIL_MAP0)
-#define SAMPLER_DETAILMAP_IDX sampler_DetailMap0
-#elif defined(_DETAIL_MAP1)
-#define SAMPLER_DETAILMAP_IDX sampler_DetailMap1
-#elif defined(_DETAIL_MAP2)
-#define SAMPLER_DETAILMAP_IDX sampler_DetailMap2
-#else
-#define SAMPLER_DETAILMAP_IDX sampler_DetailMap3
-#endif
-
 #if defined(_MASKMAP0)
 #define SAMPLER_MASKMAP_IDX sampler_MaskMap0
 #elif defined(_MASKMAP1)
@@ -120,6 +120,8 @@
 // Define a helper macro
 
 #define ADD_ZERO_IDX(Name) Name##0
+#define _BaseColorMap _Splat
+#define sampler_BaseColorMap sampler_Splat
 
 // include LitDataInternal multiple time to define the variation of GetSurfaceData for each layer
 #define LAYER_INDEX 0
@@ -129,9 +131,6 @@
 #endif
 #ifdef _NORMALMAP_TANGENT_SPACE0
 #define _NORMALMAP_TANGENT_SPACE_IDX
-#endif
-#ifdef _DETAIL_MAP0
-#define _DETAIL_MAP_IDX
 #endif
 #ifdef _SUBSURFACE_MASK_MAP0
 #define _SUBSURFACE_MASK_MAP_IDX
@@ -150,7 +149,6 @@
 #undef ADD_IDX
 #undef _NORMALMAP_IDX
 #undef _NORMALMAP_TANGENT_SPACE_IDX
-#undef _DETAIL_MAP_IDX
 #undef _SUBSURFACE_MASK_MAP_IDX
 #undef _THICKNESSMAP_IDX
 #undef _MASKMAP_IDX
@@ -163,9 +161,6 @@
 #endif
 #ifdef _NORMALMAP_TANGENT_SPACE1
 #define _NORMALMAP_TANGENT_SPACE_IDX
-#endif
-#ifdef _DETAIL_MAP1
-#define _DETAIL_MAP_IDX
 #endif
 #ifdef _SUBSURFACE_MASK_MAP1
 #define _SUBSURFACE_MASK_MAP_IDX
@@ -184,7 +179,6 @@
 #undef ADD_IDX
 #undef _NORMALMAP_IDX
 #undef _NORMALMAP_TANGENT_SPACE_IDX
-#undef _DETAIL_MAP_IDX
 #undef _SUBSURFACE_MASK_MAP_IDX
 #undef _THICKNESSMAP_IDX
 #undef _MASKMAP_IDX
@@ -197,9 +191,6 @@
 #endif
 #ifdef _NORMALMAP_TANGENT_SPACE2
 #define _NORMALMAP_TANGENT_SPACE_IDX
-#endif
-#ifdef _DETAIL_MAP2
-#define _DETAIL_MAP_IDX
 #endif
 #ifdef _SUBSURFACE_MASK_MAP2
 #define _SUBSURFACE_MASK_MAP_IDX
@@ -218,7 +209,6 @@
 #undef ADD_IDX
 #undef _NORMALMAP_IDX
 #undef _NORMALMAP_TANGENT_SPACE_IDX
-#undef _DETAIL_MAP_IDX
 #undef _SUBSURFACE_MASK_MAP_IDX
 #undef _THICKNESSMAP_IDX
 #undef _MASKMAP_IDX
@@ -231,9 +221,6 @@
 #endif
 #ifdef _NORMALMAP_TANGENT_SPACE3
 #define _NORMALMAP_TANGENT_SPACE_IDX
-#endif
-#ifdef _DETAIL_MAP3
-#define _DETAIL_MAP_IDX
 #endif
 #ifdef _SUBSURFACE_MASK_MAP3
 #define _SUBSURFACE_MASK_MAP_IDX
@@ -252,7 +239,6 @@
 #undef ADD_IDX
 #undef _NORMALMAP_IDX
 #undef _NORMALMAP_TANGENT_SPACE_IDX
-#undef _DETAIL_MAP_IDX
 #undef _SUBSURFACE_MASK_MAP_IDX
 #undef _THICKNESSMAP_IDX
 #undef _MASKMAP_IDX
@@ -333,7 +319,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     // Note: Blend mask have its dedicated mapping and tiling.
     // To share code, we simply call the regular code from the main layer for it then save the result, then do regular call for all layers.
     ComputeLayerTexCoord0(  texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMaskBlendMask, _UVMappingMaskBlendMask,
-                            float2(1, 1), float2(0, 0), float2(0.0, 0.0), float2(0.0, 0.0), 1.0, false,
+                            float2(1, 1), float2(0, 0), float2(0, 0), float2(0, 0), 1.0, false,
                             positionWS, _TexWorldScaleBlendMask,
                             mappingType, layerTexCoord);
 
@@ -350,12 +336,12 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     mappingType = UV_MAPPING_TRIPLANAR;
 #endif
 
-    ComputeLayerTexCoord0(  texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMask0, _UVDetailsMappingMask0,
-                            _BaseColorMap0_ST.xy, _BaseColorMap0_ST.zw, _DetailMap0_ST.xy, _DetailMap0_ST.zw, 1.0
+    ComputeLayerTexCoord0(  texCoord0, texCoord1, texCoord2, texCoord3, float4(1, 0, 0, 0), float4(0, 0, 0, 0),
+                            _Splat0_ST.xy, _Splat0_ST.zw, float2(0, 0), float2(0, 0), 1.0
                             #if !defined(_MAIN_LAYER_INFLUENCE_MODE)
                             * tileObjectScale  // We only affect layer0 in case we are not in influence mode (i.e we should not change the base object)
                             #endif
-                            , _LinkDetailsWithBase0
+                            , 0
                             , positionWS, _TexWorldScale0,
                             mappingType, layerTexCoord);
 
@@ -365,8 +351,8 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 #elif defined(_LAYER_MAPPING_TRIPLANAR1)
     mappingType = UV_MAPPING_TRIPLANAR;
 #endif
-    ComputeLayerTexCoord1(  texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMask1, _UVDetailsMappingMask1,
-                            _BaseColorMap1_ST.xy, _BaseColorMap1_ST.zw, _DetailMap1_ST.xy, _DetailMap1_ST.zw, tileObjectScale, _LinkDetailsWithBase1,
+    ComputeLayerTexCoord1(  texCoord0, texCoord1, texCoord2, texCoord3, float4(1, 0, 0, 0), float4(0, 0, 0, 0),
+                            _Splat1_ST.xy, _Splat1_ST.zw, float2(0, 0), float2(0, 0), tileObjectScale, 0,
                             positionWS, _TexWorldScale1,
                             mappingType, layerTexCoord);
 
@@ -376,8 +362,8 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 #elif defined(_LAYER_MAPPING_TRIPLANAR2)
     mappingType = UV_MAPPING_TRIPLANAR;
 #endif
-    ComputeLayerTexCoord2(  texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMask2, _UVDetailsMappingMask2,
-                            _BaseColorMap2_ST.xy, _BaseColorMap2_ST.zw, _DetailMap2_ST.xy, _DetailMap2_ST.zw, tileObjectScale, _LinkDetailsWithBase2,
+    ComputeLayerTexCoord2(  texCoord0, texCoord1, texCoord2, texCoord3, float4(1, 0, 0, 0), float4(0, 0, 0, 0),
+                            _Splat2_ST.xy, _Splat2_ST.zw, float2(0, 0), float2(0, 0), tileObjectScale, 0,
                             positionWS, _TexWorldScale2,
                             mappingType, layerTexCoord);
 
@@ -387,8 +373,8 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 #elif defined(_LAYER_MAPPING_TRIPLANAR3)
     mappingType = UV_MAPPING_TRIPLANAR;
 #endif
-    ComputeLayerTexCoord3(  texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMask3, _UVDetailsMappingMask3,
-                            _BaseColorMap3_ST.xy, _BaseColorMap3_ST.zw, _DetailMap3_ST.xy, _DetailMap3_ST.zw, tileObjectScale, _LinkDetailsWithBase3,
+    ComputeLayerTexCoord3(  texCoord0, texCoord1, texCoord2, texCoord3, float4(1, 0, 0, 0), float4(0, 0, 0, 0),
+                            _Splat3_ST.xy, _Splat3_ST.zw, float2(0, 0), float2(0, 0), tileObjectScale, 0,
                             positionWS, _TexWorldScale3,
                             mappingType, layerTexCoord);
 }
@@ -619,10 +605,10 @@ float3 ComputeMainBaseColorInfluence(float influenceMask, float3 baseColor0, flo
 
     // We want to calculate the mean color of the texture. For this we will sample a low mipmap
     float textureBias = 15.0; // Use maximum bias
-    float3 baseMeanColor0 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap0, sampler_BaseColorMap0, layerTexCoord.base0, textureBias).rgb *_BaseColor0.rgb;
-    float3 baseMeanColor1 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap1, sampler_BaseColorMap0, layerTexCoord.base1, textureBias).rgb *_BaseColor1.rgb;
-    float3 baseMeanColor2 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap2, sampler_BaseColorMap0, layerTexCoord.base2, textureBias).rgb *_BaseColor2.rgb;
-    float3 baseMeanColor3 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_BaseColorMap3, sampler_BaseColorMap0, layerTexCoord.base3, textureBias).rgb *_BaseColor3.rgb;
+    float3 baseMeanColor0 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_Splat0, sampler_Splat0, layerTexCoord.base0, textureBias).rgb *_BaseColor0.rgb;
+    float3 baseMeanColor1 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_Splat1, sampler_Splat0, layerTexCoord.base1, textureBias).rgb *_BaseColor1.rgb;
+    float3 baseMeanColor2 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_Splat2, sampler_Splat0, layerTexCoord.base2, textureBias).rgb *_BaseColor2.rgb;
+    float3 baseMeanColor3 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_Splat3, sampler_Splat0, layerTexCoord.base3, textureBias).rgb *_BaseColor3.rgb;
 
     float3 meanColor = BlendLayeredVector3(baseMeanColor0, baseMeanColor1, baseMeanColor2, baseMeanColor3, weights);
 

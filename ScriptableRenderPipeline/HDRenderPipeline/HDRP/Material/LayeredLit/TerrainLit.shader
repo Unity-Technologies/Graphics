@@ -4,6 +4,11 @@ Shader "HDRenderPipeline/TerrainLit"
     {
         [HideInInspector] _Control("Control (RGBA)", 2D) = "red" {}
 
+        [HideInInspector] _Splat0("Layer 0", 2D) = "white" {}
+        [HideInInspector] _Splat1("Layer 1", 2D) = "white" {}
+        [HideInInspector] _Splat2("Layer 2", 2D) = "white" {}
+        [HideInInspector] _Splat3("Layer 3", 2D) = "white" {}
+
         // TODO: route values from terrain layers. enable _DENSITY_MODE if any of these enabled.
         [HideInInspector] [ToggleUI] _OpacityAsDensity0("_OpacityAsDensity0", Float) = 0.0
         [HideInInspector] [ToggleUI] _OpacityAsDensity1("_OpacityAsDensity1", Float) = 0.0
@@ -20,11 +25,6 @@ Shader "HDRenderPipeline/TerrainLit"
         _BaseColor1("BaseColor1", Color) = (1, 1, 1, 1)
         _BaseColor2("BaseColor2", Color) = (1, 1, 1, 1)
         _BaseColor3("BaseColor3", Color) = (1, 1, 1, 1)
-
-        _BaseColorMap0("BaseColorMap0", 2D) = "white" {}
-        _BaseColorMap1("BaseColorMap1", 2D) = "white" {}
-        _BaseColorMap2("BaseColorMap2", 2D) = "white" {}
-        _BaseColorMap3("BaseColorMap3", 2D) = "white" {}
 
         _Metallic0("Metallic0", Range(0.0, 1.0)) = 0
         _Metallic1("Metallic1", Range(0.0, 1.0)) = 0
@@ -137,26 +137,6 @@ Shader "HDRenderPipeline/TerrainLit"
         _HeightPoMAmplitude2("Height Amplitude2", Float) = 2.0 // In centimeters
         _HeightPoMAmplitude3("Height Amplitude3", Float) = 2.0 // In centimeters
 
-        _DetailMap0("DetailMap0", 2D) = "black" {}
-        _DetailMap1("DetailMap1", 2D) = "black" {}
-        _DetailMap2("DetailMap2", 2D) = "black" {}
-        _DetailMap3("DetailMap3", 2D) = "black" {}
-
-        _DetailAlbedoScale0("_DetailAlbedoScale0", Range(0.0, 2.0)) = 1
-        _DetailAlbedoScale1("_DetailAlbedoScale1", Range(0.0, 2.0)) = 1
-        _DetailAlbedoScale2("_DetailAlbedoScale2", Range(0.0, 2.0)) = 1
-        _DetailAlbedoScale3("_DetailAlbedoScale3", Range(0.0, 2.0)) = 1
-
-        _DetailNormalScale0("_DetailNormalScale0", Range(0.0, 2.0)) = 1
-        _DetailNormalScale1("_DetailNormalScale1", Range(0.0, 2.0)) = 1
-        _DetailNormalScale2("_DetailNormalScale2", Range(0.0, 2.0)) = 1
-        _DetailNormalScale3("_DetailNormalScale3", Range(0.0, 2.0)) = 1
-
-        _DetailSmoothnessScale0("_DetailSmoothnessScale0", Range(0.0, 2.0)) = 1
-        _DetailSmoothnessScale1("_DetailSmoothnessScale1", Range(0.0, 2.0)) = 1
-        _DetailSmoothnessScale2("_DetailSmoothnessScale2", Range(0.0, 2.0)) = 1
-        _DetailSmoothnessScale3("_DetailSmoothnessScale3", Range(0.0, 2.0)) = 1
-
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace0("NormalMap space", Float) = 0
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace1("NormalMap space", Float) = 0
         [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace2("NormalMap space", Float) = 0
@@ -200,7 +180,6 @@ Shader "HDRenderPipeline/TerrainLit"
 
         _HeightTransition("Height Transition", Range(0, 1.0)) = 0.0
 
-        [ToggleUI] _UseDensityMode("Use Density mode", Float) = 0.0
         [ToggleUI] _UseMainLayerInfluence("UseMainLayerInfluence", Float) = 0.0
 
         _InheritBaseNormal1("_InheritBaseNormal1", Range(0, 1.0)) = 0.0
@@ -270,21 +249,6 @@ Shader "HDRenderPipeline/TerrainLit"
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase2("UV Set for base2", Float) = 0
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase3("UV Set for base3", Float) = 0
 
-        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail0("UV Set for detail0", Float) = 0
-        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail1("UV Set for detail1", Float) = 0
-        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail2("UV Set for detail2", Float) = 0
-        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail3("UV Set for detail3", Float) = 0
-
-        [HideInInspector] _UVDetailsMappingMask0("_UVDetailsMappingMask0", Color) = (1, 0, 0, 0)
-        [HideInInspector] _UVDetailsMappingMask1("_UVDetailsMappingMask1", Color) = (1, 0, 0, 0)
-        [HideInInspector] _UVDetailsMappingMask2("_UVDetailsMappingMask2", Color) = (1, 0, 0, 0)
-        [HideInInspector] _UVDetailsMappingMask3("_UVDetailsMappingMask3", Color) = (1, 0, 0, 0)
-
-        [ToggleUI] _LinkDetailsWithBase0("LinkDetailsWithBase0", Float) = 1.0
-        [ToggleUI] _LinkDetailsWithBase1("LinkDetailsWithBase1", Float) = 1.0
-        [ToggleUI] _LinkDetailsWithBase2("LinkDetailsWithBase2", Float) = 1.0
-        [ToggleUI] _LinkDetailsWithBase3("LinkDetailsWithBase3", Float) = 1.0
-
         // HACK: GI Baking system relies on some properties existing in the shader ("_MainTex", "_Cutoff" and "_Color") for opacity handling, so we need to store our version of those parameters in the hard-coded name the GI baking system recognizes.
         _MainTex("Albedo", 2D) = "white" {}
         _Color("Color", Color) = (1,1,1,1)
@@ -324,10 +288,6 @@ Shader "HDRenderPipeline/TerrainLit"
     #pragma shader_feature _BENTNORMALMAP3
     #pragma shader_feature _EMISSIVE_COLOR_MAP
     #pragma shader_feature _ENABLESPECULAROCCLUSION
-    #pragma shader_feature _DETAIL_MAP0
-    #pragma shader_feature _DETAIL_MAP1
-    #pragma shader_feature _DETAIL_MAP2
-    #pragma shader_feature _DETAIL_MAP3
     #pragma shader_feature _HEIGHTMAP0
     #pragma shader_feature _HEIGHTMAP1
     #pragma shader_feature _HEIGHTMAP2
