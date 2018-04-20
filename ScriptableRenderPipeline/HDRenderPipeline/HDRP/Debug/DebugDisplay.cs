@@ -86,7 +86,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         DebugUI.Widget[] m_DebugRenderingItems;
         DebugUI.Widget[] m_DebugScreenSpaceTracingItems;
         DebugUI.Widget[] m_DebugDecalsItems;
-        
+
 
         public float debugOverlayRatio = 0.33f;
         public FullScreenDebugMode  fullScreenDebugMode = FullScreenDebugMode.None;
@@ -111,10 +111,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         Lit.ProjectionModel m_LastProjectionModel = Lit.ProjectionModel.None;
         ScreenSpaceTracingDebug m_ScreenSpaceTracingDebugData;
-        public ScreenSpaceTracingDebug screenSpaceTracingDebugData 
+        public ScreenSpaceTracingDebug screenSpaceTracingDebugData
         {
             get { return m_ScreenSpaceTracingDebugData; }
-            internal set 
+            internal set
             {
                 m_ScreenSpaceTracingDebugData = value; 
                 if (m_LastProjectionModel != m_ScreenSpaceTracingDebugData.tracingModel)
@@ -283,7 +283,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         bool IsScreenSpaceTracingRefractionDebugEnabled()
         {
-            return fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceTracing 
+            return fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceTracing
                 && lightingDebugSettings.debugLightingMode == DebugLightingMode.ScreenSpaceTracingRefraction;
         }
 

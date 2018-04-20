@@ -26,7 +26,6 @@ TEXTURE2D(_GBufferTexture3);
 #define GBufferType3 float4
 
 #define HAS_REFRACTION (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE)) && (defined(_REFRACTION_SSRAY_PROXY) || defined(_REFRACTION_SSRAY_HIZ))
-#define HAS_SSREFLECTION (defined(_REFLECTION_SSRAY_PROXY) || defined(_REFLECTION_SSRAY_HIZ))
 
 #define DEFAULT_SPECULAR_VALUE 0.04
 

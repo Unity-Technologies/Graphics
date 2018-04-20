@@ -160,12 +160,12 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         uint envLightStart, envLightCount;
 
         // Fetch first env light to provide the scene proxy for screen space computation
-#ifdef LIGHTLOOP_TILE_PASS
+    #ifdef LIGHTLOOP_TILE_PASS
         GetCountAndStart(posInput, LIGHTCATEGORY_ENV, envLightStart, envLightCount);
-#else
+    #else
         envLightCount = _EnvLightCount;
         envLightStart = 0;
-#endif
+    #endif
 
         // Reflection / Refraction hierarchy is
         //  1. Screen Space Refraction / Reflection
@@ -173,9 +173,13 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         //  3. Sky Reflection / Refraction
         EnvLightData envLightData;
         if (envLightCount > 0)
+        {
             envLightData = FetchEnvLight(envLightStart, 0);
+        }
         else
+        {
             envLightData = InitSkyEnvLightData(0);
+        }
 
         if (featureFlags & LIGHTFEATUREFLAGS_SSREFLECTION)
         {
@@ -226,11 +230,11 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         // Only apply the sky IBL if the sky texture is available
         if ((featureFlags & LIGHTFEATUREFLAGS_SKY) && _EnvLightSkyEnabled)
         {
-                // The sky is a single cubemap texture separate from the reflection probe texture array (different resolution and compression)
-                context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_SKY;
+            // The sky is a single cubemap texture separate from the reflection probe texture array (different resolution and compression)
+            context.sampleReflection = SINGLE_PASS_CONTEXT_SAMPLE_SKY;
 
-                // The sky data are generated on the fly so the compiler can optimize the code
-                EnvLightData envLightSky = InitSkyEnvLightData(0);
+            // The sky data are generated on the fly so the compiler can optimize the code
+            EnvLightData envLightSky = InitSkyEnvLightData(0);
 
             // Only apply the sky if we haven't yet accumulated enough IBL lighting.
             if (reflectionHierarchyWeight < 1.0)

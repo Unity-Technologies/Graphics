@@ -15,7 +15,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             Opaque,
             PreRefraction,
-            Transparent,
+            Transparent
         }
 
         static readonly string[] k_ForwardPassDebugName =
@@ -109,7 +109,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // The pass "SRPDefaultUnlit" is a fall back to legacy unlit rendering and is required to support unity 2d + unity UI that render in the scene.
         ShaderPassName[] m_ForwardAndForwardOnlyPassNames = { new ShaderPassName(), new ShaderPassName(), HDShaderPassNames.s_SRPDefaultUnlitName };
         ShaderPassName[] m_ForwardOnlyPassNames = { new ShaderPassName(), HDShaderPassNames.s_SRPDefaultUnlitName };
-        ShaderPassName[] m_ForwardSSReflectionPassNames = { HDShaderPassNames.s_ForwardName };
 
         ShaderPassName[] m_AllTransparentPassNames = {  HDShaderPassNames.s_TransparentBackfaceName,
                                                         HDShaderPassNames.s_ForwardOnlyName,
@@ -337,7 +336,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             RTHandles.Release(m_DebugColorPickerBuffer);
             RTHandles.Release(m_DebugFullScreenTempBuffer);
-
+            
             m_DebugScreenSpaceTracingData.Release();
 
             HDCamera.ClearAll();
@@ -581,7 +580,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         Mathf.Log(Mathf.Min(previousDepthPyramidRT.rt.width, previousDepthPyramidRT.rt.height), 2), 
                         0.0f
                     ));
-            }
+                }
                     
                 var previousColorPyramidRT = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorPyramid);
                 if (previousColorPyramidRT != null)
@@ -599,7 +598,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         Mathf.Log(Mathf.Min(previousColorPyramidRT.rt.width, previousColorPyramidRT.rt.height), 2), 
                         0.0f
                     ));
-        }
+                }
             }
         }
 
@@ -1004,7 +1003,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             m_LightLoop.RenderShadows(renderContext, cmd, m_CullResults);
 
                             // Overwrite camera properties set during the shadow pass with the original camera properties.
-                            renderContext.SetupCameraProperties(camera, m_FrameSettings.enableStereo); 
+                            renderContext.SetupCameraProperties(camera, m_FrameSettings.enableStereo);
                             hdCamera.SetupGlobalParams(cmd, m_Time, m_LastTime);
                             if (m_FrameSettings.enableStereo) hdCamera.SetupGlobalStereoParams(cmd);
                         }
