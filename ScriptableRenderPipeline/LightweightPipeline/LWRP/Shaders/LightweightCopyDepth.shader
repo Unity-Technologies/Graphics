@@ -17,10 +17,6 @@ Shader "Hidden/LightweightPipeline/CopyDepth"
 
             #include "LWRP/ShaderLibrary/DepthCopy.hlsl"
 
-            float frag(VertexOutput i) : SV_Depth
-            {
-                return SampleDepth(i.uv);
-            }
             ENDHLSL
         }
     }

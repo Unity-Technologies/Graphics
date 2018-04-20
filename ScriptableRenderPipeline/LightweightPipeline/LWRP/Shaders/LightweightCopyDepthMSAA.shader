@@ -7,7 +7,7 @@ Shader "Hidden/LightweightPipeline/CopyDepthMSAA"
 
     SubShader
     {
-        Tags { "RenderType" = "Opaque" "RenderPipeline" = "LightiweightPipeline"}
+        Tags { "RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline"}
 
         Pass
         {
@@ -24,10 +24,6 @@ Shader "Hidden/LightweightPipeline/CopyDepthMSAA"
 
             #include "LWRP/ShaderLibrary/DepthCopy.hlsl"
 
-            float frag(VertexOutput i) : SV_Depth
-            {
-                return SampleDepth(i.uv);
-            }
             ENDHLSL
         }
     }
