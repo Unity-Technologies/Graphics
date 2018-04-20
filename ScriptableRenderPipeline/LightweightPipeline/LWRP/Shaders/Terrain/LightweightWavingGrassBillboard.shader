@@ -1,14 +1,14 @@
 // Unity built-in shader source. Copyright (c) 2016 Unity Technologies. MIT license (see license.txt)
 Shader "Hidden/TerrainEngine/Details/BillboardWavingDoublePass" // Has to override the internal shaders so named like this
 {
-    Properties 
+    Properties
     {
         _WavingTint ("Fade Color", Color) = (.7,.6,.5, 0)
         _MainTex ("Base (RGB) Alpha (A)", 2D) = "white" {}
         _WaveAndDistance ("Wave and distance", Vector) = (12, 3.6, 1, 1)
         _Cutoff ("Cutoff", float) = 0.5
     }
-    SubShader 
+    SubShader
     {
         Tags {"Queue" = "Geometry+200" "RenderType" = "GrassBillBoard" "IgnoreProjectors" = "True" "RenderPipeline" = "LightweightPipeline" }//"DisableBatching"="True"
         Cull Off
@@ -30,9 +30,8 @@ Shader "Hidden/TerrainEngine/Details/BillboardWavingDoublePass" // Has to overri
             #pragma multi_compile _ _VERTEX_LIGHTS
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
             #pragma multi_compile _ _SHADOWS_ENABLED
-
-            // TODO: Enabled this when we have C# keyword stripping
-            //#pragma multi_compile _ _LOCAL_SHADOWS_ENABLED
+            #pragma multi_compile _ _LOCAL_SHADOWS_ENABLED
+            #pragma multi_compile _ _SHADOWS_SOFT
 
             // -------------------------------------
             // Unity defined keywords
