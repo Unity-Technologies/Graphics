@@ -6,11 +6,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     [Flags]
     public enum PipelineCapabilities
     {
-        AdditionalLights = (1 << 0),
-        VertexLights = (1 << 1),
-        DirectionalShadows = (1 << 2),
-        LocalShadows = (1 << 3),
-        SoftShadows = (1 << 4),
+        AdditionalLights    = (1 << 0),
+        VertexLights        = (1 << 1),
+        DirectionalShadows  = (1 << 2),
+        LocalShadows        = (1 << 3),
+        SoftShadows         = (1 << 4),
     }
 
     public class LightweightKeywords
@@ -35,32 +35,32 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public partial class LightweightPipeline
     {
-        static PipelineCapabilities pipelineCapabilities;
+        static PipelineCapabilities s_PipelineCapabilities;
 
         public static PipelineCapabilities GetPipelineCapabilities()
         {
-            return pipelineCapabilities;
+            return s_PipelineCapabilities;
         }
 
         static void SetPipelineCapabilities(LightweightPipelineAsset pipelineAsset)
         {
-            pipelineCapabilities = 0U;
+            s_PipelineCapabilities = 0U;
 
             if (pipelineAsset.MaxPixelLights < 1 && !pipelineAsset.SupportsVertexLight)
-                pipelineCapabilities |= PipelineCapabilities.AdditionalLights;
+                s_PipelineCapabilities |= PipelineCapabilities.AdditionalLights;
 
             if (pipelineAsset.SupportsVertexLight)
-                pipelineCapabilities |= PipelineCapabilities.VertexLights;
+                s_PipelineCapabilities |= PipelineCapabilities.VertexLights;
 
             if (pipelineAsset.IsDirectionalShadowsSupported)
-                pipelineCapabilities |= PipelineCapabilities.DirectionalShadows;
+                s_PipelineCapabilities |= PipelineCapabilities.DirectionalShadows;
 
             if (pipelineAsset.IsLocalShadowsSupported)
-                pipelineCapabilities |= PipelineCapabilities.LocalShadows;
+                s_PipelineCapabilities |= PipelineCapabilities.LocalShadows;
 
             bool anyShadows = pipelineAsset.IsDirectionalShadowsSupported || pipelineAsset.IsLocalShadowsSupported;
             if (pipelineAsset.IsSoftShadowsSupported && anyShadows)
-                pipelineCapabilities |= PipelineCapabilities.SoftShadows;
+                s_PipelineCapabilities |= PipelineCapabilities.SoftShadows;
         }
     }
 }
