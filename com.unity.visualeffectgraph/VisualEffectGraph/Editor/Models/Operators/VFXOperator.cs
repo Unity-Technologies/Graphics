@@ -54,7 +54,7 @@ namespace UnityEditor.VFX
             return changed;
         }
 
-        protected sealed override void OnInvalidate(VFXModel model, InvalidationCause cause)
+        protected override sealed void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
             if (cause == InvalidationCause.kConnectionChanged)
             {
