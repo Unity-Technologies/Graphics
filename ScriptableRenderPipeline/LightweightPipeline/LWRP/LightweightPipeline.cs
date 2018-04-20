@@ -956,8 +956,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void SetShaderKeywords(CommandBuffer cmd, ref LightData lightData)
         {
-            List<VisibleLight> visibleLights = lightData.visibleLights;
-            int mainLightIndex = lightData.mainLightIndex;
             int vertexLightsCount = lightData.totalAdditionalLightsCount - lightData.pixelAdditionalLightsCount;
 
             CoreUtils.SetKeyword(cmd, LightweightKeywords.AdditionalLightsText, lightData.totalAdditionalLightsCount > 0);
