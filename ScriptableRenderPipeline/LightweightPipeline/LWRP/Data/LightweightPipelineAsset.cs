@@ -86,7 +86,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         // Deprecated
         [SerializeField] private ShadowType m_ShadowType = ShadowType.HARD_SHADOWS;
-        
+
 #if UNITY_EDITOR
         [NonSerialized]
         private LightweightPipelineEditorResources m_EditorResourcesAsset;

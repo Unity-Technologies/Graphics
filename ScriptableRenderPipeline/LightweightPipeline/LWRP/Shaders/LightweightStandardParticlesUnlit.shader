@@ -93,7 +93,7 @@ Shader "LightweightPipeline/Particles/Standard Unlit"
                     half3 diffuse = AlphaModulate(albedo.rgb, albedo.a);
                     half alpha = AlphaBlendAndTest(albedo.a, _Cutoff);
                     half3 emission = SampleEmission(IN, _EmissionColor.rgb, TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap));
-                    
+
                     half3 result = diffuse + emission;
                     half fogFactor = IN.posWS.w;
                     ApplyFogColor(result, half3(0, 0, 0), fogFactor);

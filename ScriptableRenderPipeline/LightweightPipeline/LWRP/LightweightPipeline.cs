@@ -361,10 +361,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             var opaqueScaler = m_OpaqueScalerValues[(int)m_Asset.OpaqueDownsampling];
             RenderTextureDescriptor opaqueDesc = CreateRTDesc(frameRenderingConfiguration, opaqueScaler);
-            
+
             CommandBuffer cmd = CommandBufferPool.Get("Opaque Copy");
             cmd.GetTemporaryRT(CameraRenderTargetID.opaque, opaqueDesc, m_Asset.OpaqueDownsampling == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);
-            switch(m_Asset.OpaqueDownsampling)
+            switch (m_Asset.OpaqueDownsampling)
             {
                 case Downsampling.None:
                     cmd.Blit(m_CurrCameraColorRT, CameraRenderTargetID.opaque);
@@ -970,7 +970,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CoreUtils.SetKeyword(cmd, LightweightKeywords.DirectionalShadowsText, m_ShadowPass.DirectionalShadowsRendered);
             CoreUtils.SetKeyword(cmd, LightweightKeywords.LocalShadowsText, m_ShadowPass.LocalShadowsRendered);
             CoreUtils.SetKeyword(cmd, LightweightKeywords.SoftShadowsText, m_ShadowPass.IsSoftShadowsEnabled && anyShadowsEnabled);
-            
+
             // TODO: Remove this. legacy particles support will be removed from Unity in 2018.3. This should be a shader_feature instead with prop exposed in the Standard particles shader.
             CoreUtils.SetKeyword(cmd, "SOFTPARTICLES_ON", m_RequireDepthTexture && m_Asset.RequireSoftParticles);
         }
