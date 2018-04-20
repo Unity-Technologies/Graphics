@@ -62,7 +62,7 @@ Shader "LightweightPipeline/Terrain/Standard Terrain"
             #pragma multi_compile_fog
 
             #pragma multi_compile __ _TERRAIN_NORMAL_MAP
-            
+
             #include "LWRP/ShaderLibrary/Terrain/InputSurfaceTerrain.hlsl"
             #include "LWRP/ShaderLibrary/Terrain/LightweightPassLitTerrain.hlsl"
 

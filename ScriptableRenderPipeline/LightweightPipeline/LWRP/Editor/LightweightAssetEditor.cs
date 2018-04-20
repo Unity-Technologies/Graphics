@@ -34,7 +34,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             public static GUIContent supportsSoftShadows = new GUIContent("Soft Shadows", "If enabled pipeline will perform shadow filtering. Otherwise all shadows will only perform a single shadow sample.");
             public static GUIContent supportsDirectionalShadows = new GUIContent("Directional Shadows", "If disabled all directional lights won't cast shadows.");
-           
+
             public static GUIContent shadowDistance = new GUIContent("Distance", "Max shadow rendering distance.");
 
             public static GUIContent directionalShadowAtlasResolution = new GUIContent("Atlas Resolution",
@@ -49,7 +49,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static GUIContent supportsLocalShadows = new GUIContent("Local Shadows", "If disabled all local lights won't cast shadows.");
 
             public static GUIContent localShadowsAtlasResolution = new GUIContent("Atlas Resolution",
-                "All local lights are packed into a single atlas. This setting controls the atlas size.");
+                    "All local lights are packed into a single atlas. This setting controls the atlas size.");
 
             public static string[] shadowCascadeOptions = {"No Cascades", "Two Cascades", "Four Cascades"};
             public static string[] opaqueDownsamplingOptions = {"None", "2x (Bilinear)", "4x (Box)", "4x (Bilinear)"};
@@ -81,7 +81,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private SerializedProperty m_ShadowCascade4SplitProp;
         private SerializedProperty m_LocalShadowSupportedProp;
         private SerializedProperty m_LocalShadowsAtlasResolutionProp;
-        
+
         void OnEnable()
         {
             m_RenderScale = serializedObject.FindProperty("m_RenderScale");
@@ -177,10 +177,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_DirectionalShadowAtlasResolutionProp, Styles.directionalShadowAtlasResolution);
                 m_ShadowDistanceProp.floatValue = Mathf.Max(0.0f,
-                    EditorGUILayout.FloatField(Styles.shadowDistance, m_ShadowDistanceProp.floatValue));
+                        EditorGUILayout.FloatField(Styles.shadowDistance, m_ShadowDistanceProp.floatValue));
                 CoreEditorUtils.DrawPopup(Styles.shadowCascades, m_ShadowCascadesProp, Styles.shadowCascadeOptions);
 
-                ShadowCascades cascades = (ShadowCascades) m_ShadowCascadesProp.intValue;
+                ShadowCascades cascades = (ShadowCascades)m_ShadowCascadesProp.intValue;
                 if (cascades == ShadowCascades.FOUR_CASCADES)
                     CoreEditorUtils.DrawCascadeSplitGUI<Vector3>(ref m_ShadowCascade4SplitProp);
                 else if (cascades == ShadowCascades.TWO_CASCADES)
@@ -213,7 +213,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             UpdateAnimationValues();
             DrawRenderingSettings();
             DrawShadowSettings();
-            
+
             serializedObject.ApplyModifiedProperties();
         }
     }

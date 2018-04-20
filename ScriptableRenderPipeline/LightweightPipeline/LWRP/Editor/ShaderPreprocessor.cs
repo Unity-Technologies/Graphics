@@ -92,14 +92,14 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             if (shader.name.Contains("LightweightPipeline"))
 #endif
             {
-                float percentageCurrent = (float) currVariantsCount / (float) prevVariantsCount * 100f;
-                float percentageTotal = (float) m_TotalVariantsOutputCount / (float) m_TotalVariantsInputCount * 100f;
+                float percentageCurrent = (float)currVariantsCount / (float)prevVariantsCount * 100f;
+                float percentageTotal = (float)m_TotalVariantsOutputCount / (float)m_TotalVariantsInputCount * 100f;
 
                 string result = string.Format("STRIPPING: {0} ({1} pass) ({2}) -" +
-                                              " Remaining shader variants = {3}/{4} = {5}% - Total = {6}/{7} = {8}%",
-                    shader.name, snippetData.passName, snippetData.shaderType.ToString(), currVariantsCount,
-                    prevVariantsCount, percentageCurrent, m_TotalVariantsOutputCount, m_TotalVariantsInputCount,
-                    percentageTotal);
+                        " Remaining shader variants = {3}/{4} = {5}% - Total = {6}/{7} = {8}%",
+                        shader.name, snippetData.passName, snippetData.shaderType.ToString(), currVariantsCount,
+                        prevVariantsCount, percentageCurrent, m_TotalVariantsOutputCount, m_TotalVariantsInputCount,
+                        percentageTotal);
                 Debug.Log(result);
             }
         }
@@ -127,4 +127,3 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
         }
     }
 }
-

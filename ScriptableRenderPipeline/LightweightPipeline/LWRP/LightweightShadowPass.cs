@@ -44,7 +44,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     defaultShadowSettings.shadowmapTextureFormat = RenderTextureFormat.Shadowmap;
                     defaultShadowSettings.screenspaceShadowmapTextureFormat = RenderTextureFormat.R8;
                     defaultShadowSettings.supportsSoftShadows = false;
-
                 }
                 return defaultShadowSettings;
             }
