@@ -23,7 +23,7 @@ Pass
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
 	
 ${VFXBegin:VFXVertexAdditionalProcess}
-	o.pos = UnityApplyLinearShadowBias(o.pos);
+o.pos = VFXApplyShadowBias(o.pos);
 ${VFXEnd}
 
 	${VFXInclude("Assets/VFXEditor/Shaders/ParticlePoints/Pass.template")}	

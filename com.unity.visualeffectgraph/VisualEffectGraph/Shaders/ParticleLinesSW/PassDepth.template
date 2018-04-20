@@ -1,4 +1,4 @@
-// Shadow pass
+// Depth pass
 Pass
 {		
 	Tags { "LightMode"=${VFXPassShadow} }
@@ -21,12 +21,8 @@ Pass
 #define VFX_VARYING_POSCS pos
 #define VFX_VARYING_ALPHA builtInInterpolants.y
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x
-		
-${VFXBegin:VFXVertexAdditionalProcess}
-o.pos = VFXApplyShadowBias(o.pos);
-${VFXEnd}
-		
-	${VFXInclude("Assets/VFXEditor/Shaders/ParticleLines/Pass.template")}	
+				
+	${VFXInclude("Assets/VFXEditor/Shaders/ParticleLinesSW/Pass.template")}	
 		
 	#pragma fragment frag
 	float frag(ps_input i) : SV_TARGET

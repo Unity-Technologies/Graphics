@@ -41,7 +41,17 @@ float4 VFXGetPOSSS(float4 posCS)
     return ComputeScreenPos(posCS);
 }
 
-float VFXLinearEyeDepth(float4 posSS)
+float VFXSampleDepth(float4 posSS)
 {
-    return LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(posSS)));
+    return SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(posSS));
+}
+
+float VFXLinearEyeDepth(float depth)
+{
+    return LinearEyeDepth(depth);
+}
+
+float4 VFXApplyShadowBias(float4 posCS)
+{
+    return UnityApplyLinearShadowBias(posCS);
 }

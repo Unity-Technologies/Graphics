@@ -2,8 +2,6 @@
 #include "HDRP/ShaderVariables.hlsl"
 #include "HDRP/Sky/AtmosphericScattering/AtmosphericScattering.hlsl"
 
-#define VFX_DEPTH_TEXTURE _MainDepthTexture
-
 float4 VFXTransformPositionWorldToClip(float3 posWS)
 {
     posWS = GetCameraRelativePositionWS(posWS);
@@ -44,7 +42,17 @@ float4 VFXGetPOSSS(float4 posCS)
     return posSS;
 }
 
-float VFXLinearEyeDepth(float4 posSS)
+float VFXSampleDepth(float4 posSS)
 {
-    return LinearEyeDepth(SAMPLE_TEXTURE2D(_MainDepthTexture, sampler_MainDepthTexture, posSS.xyz / posSS.w),_ZBufferParams);
+    return SAMPLE_TEXTURE2D(_MainDepthTexture, sampler_MainDepthTexture, posSS.xyz / posSS.w);
+}
+
+float VFXLinearEyeDepth(float depth)
+{
+    return LinearEyeDepth(depth,_ZBufferParams);
+}
+
+float4 VFXApplyShadowBias(float4 posCS)
+{
+    return posCS;
 }

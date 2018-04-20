@@ -16,7 +16,7 @@ float VFXGetSoftParticleFade(VFX_VARYING_PS_INPUTS i)
 {
     float fade = 1.0f;
     #if USE_SOFT_PARTICLE && defined(VFX_VARYING_POSSS) && defined(VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE)
-    float sceneZ = VFXLinearEyeDepth(i.VFX_VARYING_POSSS);
+    float sceneZ = VFXLinearEyeDepth(VFXSampleDepth(i.VFX_VARYING_POSSS));
     fade = saturate(i.VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE * (sceneZ - i.VFX_VARYING_POSSS.w));
     fade = fade * fade * (3.0 - (2.0 * fade)); // Smoothsteping the fade
     #endif

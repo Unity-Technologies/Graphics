@@ -32,9 +32,9 @@ Pass
 #define VFX_VARYING_FRAMEBLEND builtInInterpolants.y
 #define VFX_VARYING_UV uv
 		
-	${VFXBegin:VFXVertexAdditionalProcess}
-	o.pos = UnityApplyLinearShadowBias(o.pos);
-	${VFXEnd}
+${VFXBegin:VFXVertexAdditionalProcess}
+o.pos = VFXApplyShadowBias(o.pos);
+${VFXEnd}
 		
 	${VFXInclude("Assets/VFXEditor/Shaders/ParticleQuads/Pass.template")}	
 		
