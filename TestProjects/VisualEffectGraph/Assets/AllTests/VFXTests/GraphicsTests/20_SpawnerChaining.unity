@@ -144,9 +144,9 @@ VisualEffect:
       m_Array: []
     m_Vector2f:
       m_Array:
-      - m_Value: {x: 0.25, y: 0}
+      - m_Value: {x: 0.3, y: 0.2}
         m_Name: parameter
-        m_Overridden: 0
+        m_Overridden: 1
     m_Vector3f:
       m_Array: []
     m_Vector4f:
@@ -360,9 +360,9 @@ VisualEffect:
       m_Array: []
     m_Vector2f:
       m_Array:
-      - m_Value: {x: 0.25, y: 0}
+      - m_Value: {x: 0.4, y: 0.1}
         m_Name: parameter
-        m_Overridden: 0
+        m_Overridden: 1
     m_Vector3f:
       m_Array: []
     m_Vector4f:
