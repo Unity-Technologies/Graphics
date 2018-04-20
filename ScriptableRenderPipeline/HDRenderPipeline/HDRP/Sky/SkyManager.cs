@@ -27,15 +27,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     public class BuiltinSkyParameters
     {
-        public Matrix4x4        pixelCoordToViewDirMatrix;
-        public Matrix4x4        invViewProjMatrix;
-        public Vector3          cameraPosWS;
-        public Vector4          screenSize;
-        public CommandBuffer    commandBuffer;
-        public Light            sunLight;
-        public RTHandleSystem.RTHandle      colorBuffer;
-        public RTHandleSystem.RTHandle      depthBuffer;
-        public HDCamera         hdCamera;
+        public Matrix4x4                pixelCoordToViewDirMatrix;
+        public Matrix4x4                invViewProjMatrix;
+        public Vector3                  cameraPosWS;
+        public Vector4                  screenSize;
+        public CommandBuffer            commandBuffer;
+        public Light                    sunLight;
+        public RTHandleSystem.RTHandle  colorBuffer;
+        public RTHandleSystem.RTHandle  depthBuffer;
+        public HDCamera                 hdCamera;
 
         public DebugDisplaySettings debugSettings;
 

@@ -32,7 +32,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             foreach (var rth in m_DepthPyramidMips)
                 RTHandles.Release(rth);
-            }
+        }
 
         public int GetPyramidLodCount(Vector2Int size)
         {

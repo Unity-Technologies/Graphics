@@ -10,10 +10,10 @@ namespace UnityEngine.Experimental.Rendering
     public partial class RTHandleSystem : IDisposable
     {
         public enum ResizeMode
-    {
+        {
             Auto,
             OnDemand
-    }
+        }
 
         internal enum RTCategory
         {
@@ -51,7 +51,7 @@ namespace UnityEngine.Experimental.Rendering
                 m_MaxWidths[i] = 1;
                 m_MaxHeights[i] = 1;
             }
-            }
+        }
 
         public void Dispose()
         {
@@ -79,7 +79,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 Assert.AreEqual(this, rth.m_Owner);
                 rth.Release();
-        }
+            }
         }
 
         public void SetReferenceSize(int width, int height, bool msaa, MSAASamples msaaSamples)
