@@ -53,7 +53,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         public void OnNodeModified(ModificationScope scope)
         {
             if (scope == ModificationScope.Graph)
-                m_Container.Dirty(ChangeType.Repaint);
+                m_Container.MarkDirtyRepaint();
         }
 
         private void UpdatePopup()

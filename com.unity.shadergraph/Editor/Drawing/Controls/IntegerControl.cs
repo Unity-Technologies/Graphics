@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 #endif
                 evt.newValue;
             m_PropertyInfo.SetValue(m_Node, newValue, null);
-            Dirty(ChangeType.Repaint);
+            this.MarkDirtyRepaint();
         }
     }
 }
