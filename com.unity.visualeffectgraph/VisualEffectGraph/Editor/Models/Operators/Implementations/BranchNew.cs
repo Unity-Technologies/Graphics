@@ -108,8 +108,7 @@ namespace UnityEditor.VFX.Operator
         {
             get
             {
-                const string outputName = "o";
-                yield return new VFXPropertyWithValue(new VFXProperty(m_Type, outputName));
+                yield return new VFXPropertyWithValue(new VFXProperty(m_Type, string.Empty));
             }
         }
 

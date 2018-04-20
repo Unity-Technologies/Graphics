@@ -139,10 +139,9 @@ namespace UnityEditor.VFX
                 else
                 {
                     //Most common behavior : output of an operation depend of input type
-                    const string outputName = "o";
                     var slotType = GetExpectedOutputTypeOfOperation(inputSlots.Select(o => o.property.type));
                     if (slotType != null)
-                        yield return new VFXPropertyWithValue(new VFXProperty(slotType, outputName));
+                        yield return new VFXPropertyWithValue(new VFXProperty(slotType, string.Empty));
                 }
             }
         }
