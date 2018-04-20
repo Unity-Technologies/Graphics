@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental.UIElements.GraphView;
@@ -229,10 +229,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 return;
 
             if (create)
-            {
                 property.displayName = m_Graph.SanitizePropertyName(property.displayName);
-                property.overrideReferenceName = m_Graph.SanitizePropertyReferenceName(property.overrideReferenceName);
-            }
 
             var field = new BlackboardField(m_ExposedIcon, property.displayName, property.propertyType.ToString()) { userData = property };
             var row = new BlackboardRow(field, new BlackboardFieldPropertyView(m_Graph, property));
