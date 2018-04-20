@@ -1246,8 +1246,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var capturePosition = Vector3.zero;
             var influenceToWorld = probe.influenceToWorld;
 
-            var sampleDirectionDiscardWS = Vector3.zero;
-
             // 31 bits index, 1 bit cache type
             var envIndex = -1;
             if (probe.planarReflectionProbe != null)
@@ -1274,7 +1272,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // We transform it to object space by translating the capturePosition
                 var vp = gpuProj * gpuView * Matrix4x4.Translate(capturePosition);
                 m_Env2DCaptureVP[fetchIndex] = vp;
-                sampleDirectionDiscardWS = captureRotation * Vector3.forward;
             }
             else if (probe.reflectionProbe != null)
             {
@@ -1300,7 +1297,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             envLightData.blendDistanceNegative = probe.blendDistanceNegative;
             envLightData.boxSideFadePositive = probe.boxSideFadePositive;
             envLightData.boxSideFadeNegative = probe.boxSideFadeNegative;
-            envLightData.sampleDirectionDiscardWS = sampleDirectionDiscardWS;
 
             envLightData.influenceRight = influenceToWorld.GetColumn(0).normalized;
             envLightData.influenceUp = influenceToWorld.GetColumn(1).normalized;
@@ -1877,7 +1873,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_lightList.bounds.AddRange(m_lightList.rightEyeBounds);
                     m_lightList.lightVolumes.AddRange(m_lightList.rightEyeLightVolumes);
                 }
-                
+
                 UpdateDataBuffers();
 
                 return m_enableBakeShadowMask;
@@ -1994,7 +1990,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // XRTODO: If possible, we could generate a non-oblique stereo projection
                 // matrix.  It's ok if it's not the exact same matrix, as long as it encompasses
                 // the same FOV as the original projection matrix (which would mean padding each half
-                // of the frustum with the max half-angle). We don't need the light information in 
+                // of the frustum with the max half-angle). We don't need the light information in
                 // real projection space.  We just use screen space to figure out what is proximal
                 // to a cluster or tile.
                 // Once we generate this non-oblique projection matrix, it can be shared across both eyes (un-array)
@@ -2299,7 +2295,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public bool outputSplitLighting;
         }
 
-        public void RenderDeferredDirectionalShadow(HDCamera hdCamera, RTHandle deferredShadowRT, RenderTargetIdentifier depthTexture, CommandBuffer cmd)
+        public void RenderDeferredDirectionalShadow(HDCamera hdCamera, RTHandleSystem.RTHandle deferredShadowRT, RenderTargetIdentifier depthTexture, CommandBuffer cmd)
         {
             if (m_CurrentSunLight == null || m_CurrentSunLight.GetComponent<AdditionalShadowData>() == null || m_CurrentSunLightShadowIndex < 0)
             {
