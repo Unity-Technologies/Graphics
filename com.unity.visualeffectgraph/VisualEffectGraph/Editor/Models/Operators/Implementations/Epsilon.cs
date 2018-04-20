@@ -1,10 +1,11 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Constants")]
+    [VFXInfo(category = "Math/Constants")]
     class Epsilon : VFXOperator
     {
         override public string name { get { return "Epsilon (ε)"; } }
@@ -19,7 +20,7 @@ namespace UnityEditor.VFX.Operator
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new[] { VFXOperatorUtility.EpsilonExpression[1] };
+            return new[] { VFXOperatorUtility.EpsilonExpression[VFXValueType.Float] };
         }
     }
 }

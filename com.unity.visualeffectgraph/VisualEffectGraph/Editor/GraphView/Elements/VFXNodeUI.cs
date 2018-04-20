@@ -44,6 +44,8 @@ namespace UnityEditor.VFX.UI
 
         protected virtual void OnNewController()
         {
+            if (controller != null)
+                persistenceKey = string.Format("NodeID-{0}", controller.model.GetInstanceID());
         }
 
         public VisualElement settingsContainer {get; private set; }
@@ -213,7 +215,8 @@ namespace UnityEditor.VFX.UI
                 correctOrder[0].SendToBack();
                 for (int i = 1; i < correctOrder.Length; ++i)
                 {
-                    correctOrder[i].PlaceInFront(correctOrder[i - 1]);
+                    if (container.ElementAt(i) != correctOrder[i])
+                        correctOrder[i].PlaceInFront(correctOrder[i - 1]);
                 }
             }
             Profiler.EndSample();

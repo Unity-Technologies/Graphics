@@ -85,6 +85,7 @@ namespace UnityEditor.VFX
 
         public bool IsExpandable()
         {
+            if (type == null) return false;
             return !type.IsPrimitive && !typeof(UnityEngine.Object).IsAssignableFrom(type) && type != typeof(AnimationCurve) && type != typeof(Matrix4x4);
         }
     }

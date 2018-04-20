@@ -56,3 +56,8 @@
 {
     port-color : #84e4e7;
 }
+.port.typeGPUEvent
+{
+    port-color : #17AB6A;
+}
+

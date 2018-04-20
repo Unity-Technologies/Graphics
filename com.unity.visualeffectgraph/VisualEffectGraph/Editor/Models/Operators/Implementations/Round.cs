@@ -2,7 +2,7 @@ using System;
 using UnityEditor.VFX;
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math")]
+    [VFXInfo(category = "Math/Clamp")]
     class Round : VFXOperatorUnaryFloatOperation
     {
         override public string name { get { return "Round"; } }

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using UnityEditor.VFX;
 using System;
 
@@ -33,7 +34,7 @@ namespace UnityEditor.VFX.Block
                 foreach (var param in GetExpressionsFromSlots(this))
                     yield return param;
 
-                yield return new VFXNamedExpression(VFXOperatorUtility.OneExpression[3] / inputSlots[0][1].GetExpression(), "invVolumeSize");
+                yield return new VFXNamedExpression(VFXOperatorUtility.OneExpression[VFXValueType.Float3] / inputSlots[0][1].GetExpression(), "invVolumeSize");
             }
         }
 

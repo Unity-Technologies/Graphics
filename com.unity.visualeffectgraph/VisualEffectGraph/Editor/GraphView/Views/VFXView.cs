@@ -200,11 +200,19 @@ namespace UnityEditor.VFX.UI
             m_GeometrySet = false;
 
             // Remove all in view now that the controller has been disconnected.
-            var graphElements = this.graphElements.ToList();
-            foreach (var element in graphElements)
+            foreach (var element in rootGroupNodeElements.Values)
             {
                 RemoveElement(element);
             }
+            foreach (var element in groupNodes.Values)
+            {
+                RemoveElement(element);
+            }
+
+            groupNodes.Clear();
+            stickyNotes.Clear();
+            rootNodes.Clear();
+            rootGroupNodeElements.Clear();
         }
 
         void ConnectController()
@@ -242,12 +250,18 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
-        public VFXNodeController AddNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
+
+        VFXGroupNode GetPickedGroupNode(Vector2 panelPosition)
         {
             List<VisualElement> picked = new List<VisualElement>();
-            panel.PickAll(mPos, picked);
+            panel.PickAll(panelPosition, picked);
 
-            VFXGroupNode groupNode = picked.OfType<VFXGroupNode>().FirstOrDefault();
+            return picked.OfType<VFXGroupNode>().FirstOrDefault();
+        }
+
+        public VFXNodeController AddNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
+        {
+            var groupNode = GetPickedGroupNode(mPos);
 
             mPos = this.ChangeCoordinatesTo(contentViewContainer, mPos);
 
@@ -265,31 +279,6 @@ namespace UnityEditor.VFX.UI
             else
                 return controller.AddNode(mPos, d.modelDescriptor, groupNode != null ? groupNode.controller : null);
             return null;
-        }
-
-        protected void OnKeyDown(KeyDownEvent evt)
-        {
-            if (evt.imguiEvent.Equals(Event.KeyboardEvent("space")))
-            {
-                OnCreateThing(evt as KeyDownEvent);
-            }
-        }
-
-        void OnCreateThing(KeyDownEvent evt)
-        {
-            VisualElement picked = panel.Pick(evt.originalMousePosition);
-            VFXContextUI context = picked.GetFirstOfType<VFXContextUI>();
-
-            if (context != null)
-            {
-                context.OnCreateBlock(evt.originalMousePosition);
-            }
-            else
-            {
-                NodeCreationContext ctx = new NodeCreationContext();
-                ctx.screenMousePosition = GUIUtility.GUIToScreenPoint(evt.imguiEvent.mousePosition);
-                OnCreateNode(ctx);
-            }
         }
 
         VFXNodeProvider m_NodeProvider;
@@ -399,7 +388,6 @@ namespace UnityEditor.VFX.UI
 
             Add(m_NoAssetLabel);
 
-            vfxGroupNodes = this.Query<VisualElement>().Children<VFXGroupNode>().Build();
             RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
             RegisterCallback<VFXRecompileEvent>(OnRecompile);
 
@@ -414,7 +402,6 @@ namespace UnityEditor.VFX.UI
 
             RegisterCallback<DragUpdatedEvent>(OnDragUpdated);
             RegisterCallback<DragPerformEvent>(OnDragPerform);
-            RegisterCallback<KeyDownEvent>(OnKeyDown);
             RegisterCallback<ValidateCommandEvent>(ValidateCommand);
             RegisterCallback<ExecuteCommandEvent>(ExecuteCommand);
 
@@ -423,6 +410,8 @@ namespace UnityEditor.VFX.UI
             elementResized = VFXElementResized;
 
             Undo.undoRedoPerformed = OnUndoPerformed;
+
+            persistenceKey = "VFXView";
         }
 
         void OnUndoPerformed()
@@ -446,8 +435,6 @@ namespace UnityEditor.VFX.UI
                 EditorPrefs.SetBool("vfx-blackboard-visible", false);
             }
         }
-
-        public UQuery.QueryState<VFXGroupNode> vfxGroupNodes { get; private set; }
 
         Toggle m_ToggleDebug;
 
@@ -473,6 +460,22 @@ namespace UnityEditor.VFX.UI
         void ControllerChanged(int change)
         {
             m_InControllerChanged = true;
+
+            if (change == VFXViewController.Change.groupNode)
+            {
+                Profiler.BeginSample("VFXView.SyncGroupNodes");
+                SyncGroupNodes();
+                Profiler.EndSample();
+
+                var groupNodes = this.groupNodes;
+                foreach (var groupNode in groupNodes.Values)
+                {
+                    Profiler.BeginSample("VFXGroupNode.SelfChange");
+                    groupNode.SelfChange();
+                    Profiler.EndSample();
+                }
+                return;
+            }
             Profiler.BeginSample("VFXView.ControllerChanged");
             if (change == VFXViewController.Change.destroy)
             {
@@ -597,47 +600,19 @@ namespace UnityEditor.VFX.UI
             UnregisterCallback<GeometryChangedEvent>(OnFrameNewControllerWithPanel);
         }
 
-        Dictionary<VFXNodeController, GraphElement> rootNodes = new Dictionary<VFXNodeController, GraphElement>();
+        Dictionary<VFXNodeController, VFXNodeUI> rootNodes = new Dictionary<VFXNodeController, VFXNodeUI>();
+        Dictionary<Controller, GraphElement> rootGroupNodeElements = new Dictionary<Controller, GraphElement>();
 
 
-        Dictionary<VFXGroupNodeController, VFXGroupNode> groupNodes
+        public GraphElement GetGroupNodeElement(Controller controller)
         {
-            get
-            {
-                var dic = new Dictionary<VFXGroupNodeController, VFXGroupNode>();
-                foreach (var layer in contentViewContainer.Children())
-                {
-                    foreach (var graphElement in layer.Children())
-                    {
-                        if (graphElement is VFXGroupNode)
-                        {
-                            dic[(graphElement as VFXGroupNode).controller] = graphElement as VFXGroupNode;
-                        }
-                    }
-                }
-
-
-                return dic;
-            }
+            GraphElement result = null;
+            rootGroupNodeElements.TryGetValue(controller, out result);
+            return result;
         }
-        Dictionary<VFXStickyNoteController, VFXStickyNote> stickyNotes
-        {
-            get
-            {
-                var dic = new Dictionary<VFXStickyNoteController, VFXStickyNote>();
-                foreach (var layer in contentViewContainer.Children())
-                {
-                    foreach (var graphElement in layer.Children())
-                    {
-                        if (graphElement is VFXStickyNote)
-                        {
-                            dic[(graphElement as VFXStickyNote).controller] = graphElement as VFXStickyNote;
-                        }
-                    }
-                }
-                return dic;
-            }
-        }
+
+        Dictionary<VFXGroupNodeController, VFXGroupNode> groupNodes = new Dictionary<VFXGroupNodeController, VFXGroupNode>();
+        Dictionary<VFXStickyNoteController, VFXStickyNote> stickyNotes = new Dictionary<VFXStickyNoteController, VFXStickyNote>();
 
         void OnOneNodeGeometryChanged(GeometryChangedEvent e)
         {
@@ -655,6 +630,7 @@ namespace UnityEditor.VFX.UI
                     SafeRemoveElement(element);
                 }
                 rootNodes.Clear();
+                rootGroupNodeElements.Clear();
             }
             else
             {
@@ -668,6 +644,7 @@ namespace UnityEditor.VFX.UI
                 {
                     SafeRemoveElement(rootNodes[deletedController]);
                     rootNodes.Remove(deletedController);
+                    rootGroupNodeElements.Remove(deletedController);
                     changed = true;
                 }
 
@@ -675,7 +652,7 @@ namespace UnityEditor.VFX.UI
 
                 foreach (var newController in controller.nodes.Except(rootNodes.Keys).ToArray())
                 {
-                    GraphElement newElement = null;
+                    VFXNodeUI newElement = null;
                     if (newController is VFXContextController)
                     {
                         newElement = new VFXContextUI();
@@ -695,8 +672,9 @@ namespace UnityEditor.VFX.UI
                     changed = true;
                     AddElement(newElement);
                     rootNodes[newController] = newElement;
+                    rootGroupNodeElements[newController] = newElement;
                     (newElement as ISettableControlledElement<VFXNodeController>).controller = newController;
-                    if( needOneListenToGeometry )
+                    if (needOneListenToGeometry)
                     {
                         needOneListenToGeometry = false;
                         newElement.RegisterCallback<GeometryChangedEvent>(OnOneNodeGeometryChanged);
@@ -714,7 +692,7 @@ namespace UnityEditor.VFX.UI
         bool m_UpdateUIBounds = false;
         void UpdateUIBounds()
         {
-            if( ! m_GeometrySet ) return;
+            if (!m_GeometrySet) return;
             if (m_InControllerChanged)
             {
                 m_UpdateUIBounds = true;
@@ -725,28 +703,28 @@ namespace UnityEditor.VFX.UI
             if (panel != null)
             {
                 (panel as BaseVisualElementPanel).ValidateLayout();
-                controller.graph.UIInfos.uiBounds = GetElementsBounds(rootNodes.Values.Concat(groupNodes.Values.Cast<GraphElement>()).Concat(stickyNotes.Values.Cast<GraphElement>()));
+                controller.graph.UIInfos.uiBounds = GetElementsBounds(rootGroupNodeElements.Values.Concat(groupNodes.Values.Cast<GraphElement>()));
             }
         }
 
         void SyncGroupNodes()
         {
-            var groupNodes = this.groupNodes;
-
             if (controller == null)
             {
                 foreach (var kv in groupNodes)
                 {
                     RemoveElement(kv.Value);
                 }
+                groupNodes.Clear();
             }
             else
             {
-                var deletedControllers = groupNodes.Keys.Except(controller.groupNodes);
+                var deletedControllers = groupNodes.Keys.Except(controller.groupNodes).ToArray();
 
                 foreach (var deletedController in deletedControllers)
                 {
                     RemoveElement(groupNodes[deletedController]);
+                    groupNodes.Remove(deletedController);
                 }
 
 
@@ -757,6 +735,7 @@ namespace UnityEditor.VFX.UI
                     var newElement = new VFXGroupNode();
                     AddElement(newElement);
                     newElement.controller = newController;
+                    groupNodes.Add(newController, newElement);
 
                     addNew = true;
                 }
@@ -770,22 +749,24 @@ namespace UnityEditor.VFX.UI
 
         void SyncStickyNotes()
         {
-            var stickyNotes = this.stickyNotes;
-
             if (controller == null)
             {
                 foreach (var kv in stickyNotes)
                 {
                     SafeRemoveElement(kv.Value);
                 }
+                rootGroupNodeElements.Clear();
+                stickyNotes.Clear();
             }
             else
             {
-                var deletedControllers = stickyNotes.Keys.Except(controller.stickyNotes);
+                var deletedControllers = stickyNotes.Keys.Except(controller.stickyNotes).ToArray();
 
                 foreach (var deletedController in deletedControllers)
                 {
                     SafeRemoveElement(stickyNotes[deletedController]);
+                    rootGroupNodeElements.Remove(deletedController);
+                    stickyNotes.Remove(deletedController);
                 }
 
                 foreach (var newController in controller.stickyNotes.Except(stickyNotes.Keys))
@@ -793,10 +774,11 @@ namespace UnityEditor.VFX.UI
                     var newElement = new VFXStickyNote();
                     newElement.controller = newController;
                     AddElement(newElement);
+                    rootGroupNodeElements[newController] = newElement;
+                    stickyNotes[newController] = newElement;
                 }
             }
         }
-
 
         public void SafeRemoveElement(GraphElement element)
         {
@@ -807,21 +789,24 @@ namespace UnityEditor.VFX.UI
             VFXGroupNode.inRemoveElement = false;
         }
 
+        Dictionary<VFXDataEdgeController, VFXDataEdge> dataEdges = new Dictionary<VFXDataEdgeController, VFXDataEdge>();
+        Dictionary<VFXFlowEdgeController, VFXFlowEdge> flowEdges = new Dictionary<VFXFlowEdgeController, VFXFlowEdge>();
+
         void SyncEdges(int change)
         {
             if (change != VFXViewController.Change.flowEdge)
             {
-                var dataEdges = contentViewContainer.Query().Children<VisualElement>().Children<VFXDataEdge>().ToList().ToDictionary(t => t.controller, t => t);
                 if (controller == null)
                 {
                     foreach (var element in dataEdges.Values)
                     {
                         RemoveElement(element);
                     }
+                    dataEdges.Clear();
                 }
                 else
                 {
-                    var deletedControllers = dataEdges.Keys.Except(controller.dataEdges);
+                    var deletedControllers = dataEdges.Keys.Except(controller.dataEdges).ToArray();
 
                     foreach (var deletedController in deletedControllers)
                     {
@@ -835,9 +820,10 @@ namespace UnityEditor.VFX.UI
                             edge.output.Disconnect(edge);
                         }
                         RemoveElement(edge);
+                        dataEdges.Remove(deletedController);
                     }
 
-                    foreach (var newController in controller.dataEdges.Except(dataEdges.Keys))
+                    foreach (var newController in controller.dataEdges.Except(dataEdges.Keys).ToArray())
                     {
                         // SyncEdges could be called before the VFXNodeUI have been created, it that case ignore them and trust that they will be created later when the
                         // nodes arrive.
@@ -853,6 +839,8 @@ namespace UnityEditor.VFX.UI
                         var newElement = new VFXDataEdge();
                         AddElement(newElement);
                         newElement.controller = newController;
+
+                        dataEdges.Add(newController, newElement);
                         if (newElement.input != null)
                             newElement.input.node.RefreshExpandedState();
                         if (newElement.output != null)
@@ -863,17 +851,17 @@ namespace UnityEditor.VFX.UI
 
             if (change != VFXViewController.Change.dataEdge)
             {
-                var flowEdges = contentViewContainer.Query().Children<VisualElement>().Children<VFXFlowEdge>().ToList().ToDictionary(t => t.controller, t => t);
                 if (controller == null)
                 {
                     foreach (var element in flowEdges.Values)
                     {
                         RemoveElement(element);
                     }
+                    flowEdges.Clear();
                 }
                 else
                 {
-                    var deletedControllers = flowEdges.Keys.Except(controller.flowEdges);
+                    var deletedControllers = flowEdges.Keys.Except(controller.flowEdges).ToArray();
 
                     foreach (var deletedController in deletedControllers)
                     {
@@ -887,6 +875,7 @@ namespace UnityEditor.VFX.UI
                             edge.output.Disconnect(edge);
                         }
                         RemoveElement(edge);
+                        flowEdges.Remove(deletedController);
                     }
 
                     foreach (var newController in controller.flowEdges.Except(flowEdges.Keys))
@@ -894,6 +883,7 @@ namespace UnityEditor.VFX.UI
                         var newElement = new VFXFlowEdge();
                         AddElement(newElement);
                         newElement.controller = newController;
+                        flowEdges.Add(newController, newElement);
                     }
                 }
             }
@@ -901,7 +891,18 @@ namespace UnityEditor.VFX.UI
 
         void OnCreateNode(NodeCreationContext ctx)
         {
-            VFXFilterWindow.Show(VFXViewWindow.currentWindow, GUIUtility.ScreenToGUIPoint(ctx.screenMousePosition), m_NodeProvider);
+            Vector2 point = GUIUtility.ScreenToGUIPoint(ctx.screenMousePosition);
+            VisualElement picked = panel.Pick(point);
+            VFXContextUI context = picked.GetFirstOfType<VFXContextUI>();
+
+            if (context != null)
+            {
+                context.OnCreateBlock(point);
+            }
+            else
+            {
+                VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, m_NodeProvider);
+            }
         }
 
         VFXRendererSettings GetRendererSettings()
@@ -1032,11 +1033,11 @@ namespace UnityEditor.VFX.UI
             return controller.AddVFXParameter(pos, desc);
         }
 
-        void AddVFXParameter(Vector2 pos, VFXParameterController parameterController)
+        void AddVFXParameter(Vector2 pos, VFXParameterController parameterController, VFXGroupNode groupNode)
         {
             if (controller == null || parameterController == null) return;
 
-            controller.AddVFXParameter(pos, parameterController);
+            controller.AddVFXParameter(pos, parameterController, groupNode != null ? groupNode.controller : null);
         }
 
         public EventPropagation Resync()
@@ -1143,7 +1144,7 @@ namespace UnityEditor.VFX.UI
             if (change.movedElements != null && change.movedElements.Count > 0)
             {
                 HashSet<IVFXMovable> movables = new HashSet<IVFXMovable>(change.movedElements.OfType<IVFXMovable>());
-                foreach (var groupNode in vfxGroupNodes.ToList())
+                foreach (var groupNode in groupNodes.Values)
                 {
                     var containedElements = groupNode.containedElements;
 
@@ -1436,7 +1437,7 @@ namespace UnityEditor.VFX.UI
             return VFXCopyPaste.SerializeElements(ElementsToController(elements), GetElementsBounds(elements));
         }
 
-        Vector2 visibleCenter
+        Vector2 pasteCenter
         {
             get
             {
@@ -1450,7 +1451,7 @@ namespace UnityEditor.VFX.UI
 
         void UnserializeAndPasteElements(string operationName, string data)
         {
-            VFXCopyPaste.UnserializeAndPasteElements(controller, visibleCenter, data, this);
+            VFXCopyPaste.UnserializeAndPasteElements(controller, pasteCenter, data, this);
 
             pasteOffset += defaultPasteOffset;
         }
@@ -1549,10 +1550,10 @@ namespace UnityEditor.VFX.UI
             controller.GroupNodes(selection.OfType<ISettableControlledElement<VFXNodeController>>().Select(t => t.controller));
         }
 
-        void AddStickyNote(Vector2 position)
+        void AddStickyNote(Vector2 position, VFXGroupNode group = null)
         {
             position = contentViewContainer.WorldToLocal(position);
-            controller.AddStickyNote(position);
+            controller.AddStickyNote(position, group != null ? group.controller : null);
         }
 
         void OnCreateNodeInGroupNode(ContextualMenu.MenuAction e)
@@ -1565,11 +1566,21 @@ namespace UnityEditor.VFX.UI
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             Vector2 mousePosition = evt.mousePosition;
-            evt.menu.AppendAction("Group Selection", (e) => { GroupSelection(); },
-                (e) => { return canGroupSelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled; });
-            evt.menu.AppendAction("New Sticky Note", (e) => { AddStickyNote(mousePosition); },
-                (e) => { return ContextualMenu.MenuAction.StatusFlags.Normal; });
-            evt.menu.AppendSeparator();
+            bool hasMenu = false;
+            if (evt.target is VFXNodeUI)
+            {
+                evt.menu.AppendAction("Group Selection", (e) => { GroupSelection(); },
+                    (e) => { return canGroupSelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled; });
+                hasMenu = true;
+            }
+            if (evt.target is VFXView)
+            {
+                evt.menu.AppendAction("New Sticky Note", (e) => { AddStickyNote(mousePosition); },
+                    (e) => { return ContextualMenu.MenuAction.StatusFlags.Normal; });
+                hasMenu = true;
+            }
+            if (hasMenu)
+                evt.menu.AppendSeparator();
             if (evt.target is VFXContextUI)
             {
                 evt.menu.AppendAction("Cut", (e) => { CutSelectionCallback(); },
@@ -1577,13 +1588,19 @@ namespace UnityEditor.VFX.UI
                 evt.menu.AppendAction("Copy", (e) => { CopySelectionCallback(); },
                     (e) => { return canCopySelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled; });
             }
-            base.BuildContextualMenu(evt);
-            /*
-            if (evt.target is UIElements.GraphView.GraphView)
+
+            if (evt.target is VFXGroupNode)
             {
-                evt.menu.AppendAction("Paste", (e) => { PasteCallback(); },
-                    (e) => { return canPaste ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled; });
-            }*/
+                VFXGroupNode group = evt.target as VFXGroupNode;
+                evt.menu.AppendAction("Create Node", OnCreateNodeInGroupNode, e => ContextualMenu.MenuAction.StatusFlags.Normal);
+
+                evt.menu.AppendAction("New Sticky Note", (e) => { AddStickyNote(mousePosition, group); },
+                    (e) => { return ContextualMenu.MenuAction.StatusFlags.Normal; });
+                hasMenu = true;
+                evt.menu.AppendSeparator();
+            }
+
+            base.BuildContextualMenu(evt);
         }
 
         private static readonly KeyValuePair<string, VFXCullingFlags>[] k_CullingOptions = new KeyValuePair<string, VFXCullingFlags>[]
@@ -1613,9 +1630,11 @@ namespace UnityEditor.VFX.UI
             var rows = selection.OfType<BlackboardField>().Select(t => t.GetFirstAncestorOfType<VFXBlackboardRow>()).Where(t => t != null).ToArray();
 
             Vector2 mousePosition = contentViewContainer.WorldToLocal(evt.mousePosition);
+
+
             foreach (var row in rows)
             {
-                AddVFXParameter(mousePosition - new Vector2(100, 75), row.controller);
+                AddVFXParameter(mousePosition - new Vector2(100, 75), row.controller, null);
             }
 
             return true;
@@ -1639,13 +1658,15 @@ namespace UnityEditor.VFX.UI
 
         void OnDragPerform(DragPerformEvent e)
         {
+            var groupNode = GetPickedGroupNode(e.mousePosition);
+
             var rows = selection.OfType<BlackboardField>().Select(t => t.GetFirstAncestorOfType<VFXBlackboardRow>()).Where(t => t != null).ToArray();
             if (rows.Length > 0)
             {
                 Vector2 mousePosition = contentViewContainer.WorldToLocal(e.mousePosition);
                 foreach (var row in rows)
                 {
-                    AddVFXParameter(mousePosition - new Vector2(50, 20), row.controller);
+                    AddVFXParameter(mousePosition - new Vector2(50, 20), row.controller, groupNode);
                 }
             }
         }

@@ -6,7 +6,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo(category = "Spawner")]
+    [VFXInfo(category = "Spawn")]
     class VFXSpawnerBurst : VFXAbstractSpawner
     {
         public enum RandomMode

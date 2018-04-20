@@ -45,6 +45,7 @@ namespace UnityEditor.VFX.UI
         {
             m_GradientField.SetEnabled(propertyEnabled);
         }
+
         protected override void UpdateIndeterminate()
         {
             m_GradientField.visible = !indeterminate;

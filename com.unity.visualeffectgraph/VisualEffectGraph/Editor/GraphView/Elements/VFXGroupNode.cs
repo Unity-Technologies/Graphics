@@ -34,14 +34,47 @@ namespace UnityEditor.VFX.UI
 
         VFXGroupNodeController m_Controller;
 
+
+        VisualElement m_GroupDropArea;
+
         public VFXGroupNode()
         {
             RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
 
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
+
+            m_GroupDropArea = this.Query("dropArea");
+
+            RegisterCallback<DragPerformEvent>(DragPerform);
+            RegisterCallback<DragUpdatedEvent>(DragUpdated);
+            RegisterCallback<DragLeaveEvent>(DragLeave);
         }
 
-        public virtual void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        public bool CanAcceptDrop()
+        {
+            VFXView view = GetFirstAncestorOfType<VFXView>();
+            if (view == null)
+                return false;
+            return view.selection.Any(t => t is BlackboardField && (t as BlackboardField).GetFirstAncestorOfType<VFXBlackboardRow>() != null);
+        }
+
+        public void DragUpdated(DragUpdatedEvent evt)
+        {
+            if (CanAcceptDrop())
+                m_GroupDropArea.AddToClassList("dragEntered");
+        }
+
+        public void DragPerform(DragPerformEvent evt)
+        {
+            m_GroupDropArea.RemoveFromClassList("dragEntered");
+        }
+
+        public void DragLeave(DragLeaveEvent evt)
+        {
+            m_GroupDropArea.RemoveFromClassList("dragEntered");
+        }
+
+        public void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
         }
 
@@ -55,34 +88,42 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void OnControllerChanged(ControllerChangedEvent e)
+        void OnControllerChanged(ControllerChangedEvent e)
         {
             if (e.controller == controller)
             {
-                // use are custom data changed from the view because we can't listen simply to the VFXUI, because the VFXUI might have been modified because we were removed and the datawatch might call us before the view
-                VFXView view = this.GetFirstAncestorOfType<VFXView>();
-                if (view == null) return;
+                SelfChange();
+            }
+        }
+
+        public void SelfChange()
+        {
+            // use are custom data changed from the view because we can't listen simply to the VFXUI, because the VFXUI might have been modified because we were removed and the datawatch might call us before the view
+            VFXView view = this.GetFirstAncestorOfType<VFXView>();
+            if (view == null) return;
 
 
-                m_ModificationFromController = true;
-                title = controller.title;
+            m_ModificationFromController = true;
+            inRemoveElement = true;
+            title = controller.title;
 
 
-                var presenterContent = controller.nodes.ToArray();
-                var elementContent = containedElements.OfType<IControlledElement>().Where(t=>t.controller is VFXNodeController || t.controller is VFXStickyNoteController);
+            var presenterContent = new HashSet<Controller>(controller.nodes);
+            var elementContent = containedElements.OfType<IControlledElement>().Where(t => t.controller is VFXNodeController || t.controller is VFXStickyNoteController).ToArray();
 
-                bool elementsChanged = false;
-                var elementToDelete = elementContent.Where(t => !presenterContent.Contains(t.controller)).ToArray();
-                foreach (var element in elementToDelete)
-                {
-                    this.RemoveElement(element as GraphElement);
-                    elementsChanged = true;
-                }
+            bool elementsChanged = false;
+            var elementToDelete = elementContent.Where(t => !presenterContent.Contains(t.controller)).ToArray();
+            foreach (var element in elementToDelete)
+            {
+                this.RemoveElement(element as GraphElement);
+                elementsChanged = true;
+            }
 
-                var viewElements = view.Query().Children<VisualElement>().Children<GraphElement>().ToList().OfType<IControlledElement>();
+            if (presenterContent.Count() != elementContent.Count())
+            {
+                var elementToAdd = presenterContent.Select(t => view.GetGroupNodeElement(t)).Except(elementContent.Cast<GraphElement>()).ToArray();
 
-                var elementToAdd = presenterContent.Where(t => elementContent.FirstOrDefault(u => u.controller == t) == null).Select(t => viewElements.FirstOrDefault(u => u.controller == t)).ToArray();
-
+                //bool someNodeNotFound = false;
                 foreach (var element in elementToAdd)
                 {
                     if (element != null)
@@ -90,25 +131,31 @@ namespace UnityEditor.VFX.UI
                         this.AddElement(element as GraphElement);
                         elementsChanged = true;
                     }
+                    else
+                    {
+                        //someNodeNotFound = true;
+                    }
                 }
-
-                // only update position if the groupnode is empty otherwise the size should be computed from the content.
-                if (presenterContent.Length == 0)
-                {
-                    SetPosition(controller.position);
-                }
-                else
-                {
-                    UpdateGeometryFromContent();
-                }
-
-                m_ModificationFromController = false;
             }
+
+            // only update position if the groupnode is empty otherwise the size should be computed from the content.
+            if (presenterContent.Count() == 0)
+            {
+                SetPosition(controller.position);
+            }
+            else
+            {
+                if (elementsChanged)
+                    UpdateGeometryFromContent();
+            }
+
+            m_ModificationFromController = false;
+            inRemoveElement = false;
         }
 
         bool m_ModificationFromController;
 
-        public static bool inRemoveElement{get;set;}
+        public static bool inRemoveElement {get; set; }
 
         public void ElementAddedToGroupNode(GraphElement element)
         {
@@ -122,7 +169,7 @@ namespace UnityEditor.VFX.UI
 
                     OnMoved();
                 }
-                else if( element is VFXStickyNote)
+                else if (element is VFXStickyNote)
                 {
                     controller.AddStickyNote((element as VFXStickyNote).controller);
                 }
@@ -131,7 +178,7 @@ namespace UnityEditor.VFX.UI
 
         public void ElementRemovedFromGroupNode(GraphElement element)
         {
-            if (!m_ModificationFromController && ! inRemoveElement)
+            if (!m_ModificationFromController && !inRemoveElement)
             {
                 ISettableControlledElement<VFXNodeController> node = element as ISettableControlledElement<VFXNodeController>;
                 if (node != null)
@@ -140,7 +187,7 @@ namespace UnityEditor.VFX.UI
 
                     OnMoved();
                 }
-                else if( element is VFXStickyNote)
+                else if (element is VFXStickyNote)
                 {
                     controller.RemoveStickyNote((element as VFXStickyNote).controller);
                 }

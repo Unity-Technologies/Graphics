@@ -34,7 +34,7 @@ namespace UnityEditor.VFX
             {
                 switch (m_expressionOp)
                 {
-                    // Do to reorganization, some indices have changed
+                    // Due to reorganization, some indices have changed
                     case VFXExpressionOperation.Tan:         m_expressionOp = VFXExpressionOperation.DeltaTime; break;
                     case VFXExpressionOperation.ASin:        m_expressionOp = VFXExpressionOperation.TotalTime; break;
                     case VFXExpressionOperation.ACos:        m_expressionOp = VFXExpressionOperation.SystemSeed; break;

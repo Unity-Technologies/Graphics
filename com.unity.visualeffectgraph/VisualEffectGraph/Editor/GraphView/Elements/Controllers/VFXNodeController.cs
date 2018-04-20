@@ -11,12 +11,8 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.UI
 {
-    abstract class VFXNodeController : Controller<VFXModel>
+    abstract class VFXNodeController : VFXController<VFXModel>
     {
-        public VFXViewController viewController { get { return m_ViewController; } }
-
-        VFXViewController m_ViewController;
-
         protected List<VFXDataAnchorController> m_InputPorts = new List<VFXDataAnchorController>();
 
         protected List<VFXDataAnchorController> m_OutputPorts = new List<VFXDataAnchorController>();
@@ -31,10 +27,8 @@ namespace UnityEditor.VFX.UI
             get { return m_OutputPorts.AsReadOnly(); }
         }
 
-        public VFXNodeController(VFXModel model, VFXViewController viewController) : base(model)
+        public VFXNodeController(VFXModel model, VFXViewController viewController) : base(viewController, model)
         {
-            m_ViewController = viewController;
-
             var settings = model.GetSettings(true);
             m_Settings = new VFXSettingController[settings.Count()];
             int cpt = 0;
@@ -51,19 +45,41 @@ namespace UnityEditor.VFX.UI
             ModelChanged(model);
         }
 
+        protected virtual void NewInputSet(List<VFXDataAnchorController> newInputs)
+        {
+        }
+
+        public bool CouldLink(VFXDataAnchorController myAnchor, VFXDataAnchorController otherAnchor)
+        {
+            if (myAnchor.direction != Direction.Input)
+            {
+                return otherAnchor.sourceNode.CouldLinkMyInputTo(otherAnchor, myAnchor);
+            }
+
+            return CouldLinkMyInputTo(myAnchor, otherAnchor);
+        }
+
+        protected virtual bool CouldLinkMyInputTo(VFXDataAnchorController myInput, VFXDataAnchorController otherOutput)
+        {
+            return false;
+        }
+
         protected override void ModelChanged(UnityEngine.Object obj)
         {
             var inputs = inputPorts;
-            List<VFXDataAnchorController> newAnchors = new List<VFXDataAnchorController>();
+            var newAnchors = new List<VFXDataAnchorController>();
 
             m_SyncingSlots = true;
             bool changed = UpdateSlots(newAnchors, slotContainer.inputSlots, true, true);
+            NewInputSet(newAnchors);
 
             foreach (var anchorController in m_InputPorts.Except(newAnchors))
             {
                 anchorController.OnDisable();
             }
             m_InputPorts = newAnchors;
+
+
             newAnchors = new List<VFXDataAnchorController>();
             changed |= UpdateSlots(newAnchors, slotContainer.outputSlots, true, false);
 
@@ -131,7 +147,25 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        bool UpdateSlots(List<VFXDataAnchorController> newAnchors, IEnumerable<VFXSlot> slotList, bool expanded, bool input)
+        public virtual void NodeGoingToBeRemoved()
+        {
+            var outputEdges = outputPorts.SelectMany(t => t.connections);
+
+            foreach (var edge in outputEdges)
+            {
+                edge.input.sourceNode.OnEdgeGoingToBeRemoved(edge.input);
+            }
+        }
+
+        public virtual void OnEdgeGoingToBeRemoved(VFXDataAnchorController myInput)
+        {
+        }
+
+        public virtual void WillCreateLink(ref VFXSlot myInput, ref VFXSlot otherOutput)
+        {
+        }
+
+        protected virtual bool UpdateSlots(List<VFXDataAnchorController> newAnchors, IEnumerable<VFXSlot> slotList, bool expanded, bool input)
         {
             VFXSlot[] slots = slotList.ToArray();
             bool changed = false;

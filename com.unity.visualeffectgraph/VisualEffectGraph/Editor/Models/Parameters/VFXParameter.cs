@@ -53,6 +53,7 @@ namespace UnityEditor.VFX
                         m_Min = null;
                         m_Max = null;
                     }
+                    Invalidate(InvalidationCause.kUIChanged);
                 }
             }
         }
@@ -252,7 +253,7 @@ namespace UnityEditor.VFX
             return new Node(m_IDCounter++);
         }
 
-        public void AddNode(Vector2 pos)
+        public int AddNode(Vector2 pos)
         {
             Node info = NewNode();
 
@@ -261,6 +262,8 @@ namespace UnityEditor.VFX
             m_Nodes.Add(info);
 
             Invalidate(InvalidationCause.kUIChanged);
+
+            return info.id;
         }
 
         public void RemoveNode(Node info)

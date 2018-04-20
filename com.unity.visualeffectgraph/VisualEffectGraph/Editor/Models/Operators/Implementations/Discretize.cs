@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math")]
+    [VFXInfo(category = "Math/Clamp")]
     class Discretize : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         public class InputProperties
