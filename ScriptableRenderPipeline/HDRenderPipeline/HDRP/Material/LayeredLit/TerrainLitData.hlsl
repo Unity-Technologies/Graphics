@@ -339,12 +339,6 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     // On all layers (but not on blend mask) we can scale the tiling with object scale (only uniform supported)
     // Note: the object scale doesn't affect planar/triplanar mapping as they already handle the object scale.
     float tileObjectScale = 1.0;
-#ifdef _LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE
-    // Extract scaling from world transform
-    float4x4 worldTransform = GetObjectToWorldMatrix();
-    // assuming uniform scaling, take only the first column
-    tileObjectScale = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
-#endif
 
     mappingType = UV_MAPPING_UVSET;
 #if defined(_LAYER_MAPPING_PLANAR0)
@@ -413,12 +407,6 @@ void ApplyDisplacementTileScale(inout float height0, inout float height1, inout 
     // When we change the tiling, we have want to conserve the ratio with the displacement (and this is consistent with per pixel displacement)
 #ifdef _DISPLACEMENT_LOCK_TILING_SCALE
     float tileObjectScale = 1.0;
-    #ifdef _LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE
-    // Extract scaling from world transform
-    float4x4 worldTransform = GetObjectToWorldMatrix();
-    // assuming uniform scaling, take only the first column
-    tileObjectScale = length(float3(worldTransform._m00, worldTransform._m01, worldTransform._m02));
-    #endif
 
     // TODO: precompute all these scaling factors!
     height0 *= _InvTilingScale0;

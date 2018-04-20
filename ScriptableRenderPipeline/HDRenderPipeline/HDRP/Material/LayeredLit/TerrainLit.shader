@@ -215,7 +215,6 @@ Shader "HDRenderPipeline/TerrainLit"
 
         [HideInInspector] _LayerCount("_LayerCount", Float) = 2.0
 
-        [ToggleUI]  _ObjectScaleAffectTile("_ObjectScaleAffectTile", Float) = 0.0
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBlendMask("UV Set for blendMask", Float) = 0
         [HideInInspector] _UVMappingMaskBlendMask("_UVMappingMaskBlendMask", Color) = (1, 0, 0, 0)
         _TexWorldScaleBlendMask("Tiling", Float) = 1.0
@@ -271,11 +270,6 @@ Shader "HDRenderPipeline/TerrainLit"
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase2("UV Set for base2", Float) = 0
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase3("UV Set for base3", Float) = 0
 
-        [HideInInspector] _UVMappingMask0("_UVMappingMask0", Color) = (1, 0, 0, 0)
-        [HideInInspector] _UVMappingMask1("_UVMappingMask1", Color) = (1, 0, 0, 0)
-        [HideInInspector] _UVMappingMask2("_UVMappingMask2", Color) = (1, 0, 0, 0)
-        [HideInInspector] _UVMappingMask3("_UVMappingMask3", Color) = (1, 0, 0, 0)
-
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail0("UV Set for detail0", Float) = 0
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail1("UV Set for detail1", Float) = 0
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail2("UV Set for detail2", Float) = 0
@@ -291,7 +285,6 @@ Shader "HDRenderPipeline/TerrainLit"
         [ToggleUI] _LinkDetailsWithBase2("LinkDetailsWithBase2", Float) = 1.0
         [ToggleUI] _LinkDetailsWithBase3("LinkDetailsWithBase3", Float) = 1.0
 
-        [HideInInspector] _ShowMaterialReferences("_ShowMaterialReferences", Float) = 0
         [HideInInspector] _ShowLayer0("_ShowLayer0", Float) = 0
         [HideInInspector] _ShowLayer1("_ShowLayer1", Float) = 0
         [HideInInspector] _ShowLayer2("_ShowLayer2", Float) = 0
@@ -312,7 +305,6 @@ Shader "HDRenderPipeline/TerrainLit"
     #pragma shader_feature _DOUBLESIDED_ON
 
     #pragma shader_feature _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR
-    #pragma shader_feature _LAYER_TILING_COUPLED_WITH_UNIFORM_OBJECT_SCALE
     #pragma shader_feature _ _LAYER_MAPPING_PLANAR_BLENDMASK _LAYER_MAPPING_TRIPLANAR_BLENDMASK
     #pragma shader_feature _ _LAYER_MAPPING_PLANAR0 _LAYER_MAPPING_TRIPLANAR0
     #pragma shader_feature _ _LAYER_MAPPING_PLANAR1 _LAYER_MAPPING_TRIPLANAR1
@@ -322,7 +314,6 @@ Shader "HDRenderPipeline/TerrainLit"
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE1
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE2
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE3
-    #pragma shader_feature _ _REQUIRE_UV2 _REQUIRE_UV3
 
     #pragma shader_feature _NORMALMAP0
     #pragma shader_feature _NORMALMAP1
