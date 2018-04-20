@@ -19,6 +19,7 @@ Shader "Hidden/HDRenderPipeline/OpaqueAtmosphericScattering"
             // #pragma enable_d3d11_debug_symbols
 
             #include "CoreRP/ShaderLibrary/Common.hlsl"
+            #include "CoreRP/ShaderLibrary/Color.hlsl"
             #include "../ShaderVariables.hlsl"
             #include "AtmosphericScattering/AtmosphericScattering.hlsl"
 

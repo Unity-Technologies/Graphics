@@ -117,7 +117,6 @@ struct EnvLightData
     float3 boxSideFadeNegative;
     float weight;
     float multiplier;
-    float3 sampleDirectionDiscardWS;
     int envIndex;
 };
 
@@ -347,10 +346,6 @@ float GetWeight(EnvLightData value)
 float GetMultiplier(EnvLightData value)
 {
 	return value.multiplier;
-}
-float3 GetSampleDirectionDiscardWS(EnvLightData value)
-{
-	return value.sampleDirectionDiscardWS;
 }
 int GetEnvIndex(EnvLightData value)
 {

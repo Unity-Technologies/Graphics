@@ -150,7 +150,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float weight;
         public float multiplier;
 
-        public Vector3 sampleDirectionDiscardWS;
         // Sampling properties
         public int envIndex;
     };

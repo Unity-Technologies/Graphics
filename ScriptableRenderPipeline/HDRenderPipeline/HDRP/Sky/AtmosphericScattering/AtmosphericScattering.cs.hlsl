@@ -10,6 +10,7 @@
 #define FOGTYPE_NONE (0)
 #define FOGTYPE_LINEAR (1)
 #define FOGTYPE_EXPONENTIAL (2)
+#define FOGTYPE_VOLUMETRIC (3)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.FogColorMode:  static fields

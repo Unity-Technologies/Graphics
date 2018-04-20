@@ -17,12 +17,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Matrix4x4 nonJitteredProjMatrix;
         public Vector4   worldSpaceCameraPos;
         public float     detViewMatrix;
-        public Vector4 screenSize;
-        public Frustum frustum;
+        public Vector4   screenSize;
+        public Frustum   frustum;
         public Vector4[] frustumPlaneEquations;
-        public Camera camera;
-        public uint taaFrameIndex;
-        public Vector2 taaFrameRotation;
+        public Camera    camera;
+        public uint      taaFrameIndex;
+        public Vector2   taaFrameRotation;
         public Vector4   zBufferParams;
         public Vector4   unity_OrthoParams;
         public Vector4   projectionParams;
@@ -149,17 +149,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         HDAdditionalCameraData m_AdditionalCameraData;
 
-        // Fallback used when the HDAdditionalCameraData is missing
-        BufferedRTHandleSystem m_HistoryRTSystem = null;
-        BufferedRTHandleSystem historyRTSystem 
-        {
-             get 
-             { 
-                if (m_HistoryRTSystem == null)
-                    m_HistoryRTSystem = new BufferedRTHandleSystem();
-                return m_HistoryRTSystem;
-             } 
-        }
+        BufferedRTHandleSystem m_HistoryRTSystem = new BufferedRTHandleSystem();
 
         public HDCamera(Camera cam)
         {
@@ -294,18 +284,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Unfortunately sometime (like in the HDCameraEditor) HDUtils.hdrpSettings can be null because of scripts that change the current pipeline...
             m_msaaSamples = HDUtils.hdrpSettings != null ? HDUtils.hdrpSettings.msaaSampleCount : MSAASamples.None;
             RTHandles.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, m_msaaSamples);
-            if (m_HistoryRTSystem != null)
-            {
-                m_HistoryRTSystem.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, m_msaaSamples);
-                m_HistoryRTSystem.Swap();
-            }
+            m_HistoryRTSystem.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, m_msaaSamples);
+            m_HistoryRTSystem.Swap();
 
             int maxWidth = RTHandles.maxWidth;
             int maxHeight = RTHandles.maxHeight;
             m_CameraScaleBias.x = (float)m_ActualWidth / maxWidth;
             m_CameraScaleBias.y = (float)m_ActualHeight / maxHeight;
 
-            screenSize = new Vector4(screenWidth, screenHeight, 1.0f / screenWidth, 1.0f / screenHeight);
+            screenSize   = new Vector4(screenWidth, screenHeight, 1.0f / screenWidth, 1.0f / screenHeight);
             screenParams = new Vector4(screenSize.x, screenSize.y, 1 + screenSize.z, 1 + screenSize.w);
         }
 
@@ -433,10 +420,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static void ClearAll()
         {
-            int frameCheck = Time.frameCount - 1;
-
             foreach (var cam in s_Cameras)
-                cam.Value.historyRTSystem.ReleaseAll();
+                cam.Value.ReleaseHistoryBuffer();
 
             s_Cameras.Clear();
             s_Cleanup.Clear();
@@ -449,7 +434,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             foreach (var kvp in s_Cameras)
             {
-                if (kvp.Value.m_LastFrameActive != frameCheck)
+                if (kvp.Value.m_LastFrameActive < frameCheck)
                     s_Cleanup.Add(kvp.Key);
             }
 
@@ -470,24 +455,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Set up UnityPerView CBuffer.
         public void SetupGlobalParams(CommandBuffer cmd, float time, float lastTime)
         {
-            cmd.SetGlobalMatrix(HDShaderIDs._ViewMatrix, viewMatrix);
-            cmd.SetGlobalMatrix(HDShaderIDs._InvViewMatrix, viewMatrix.inverse);
-            cmd.SetGlobalMatrix(HDShaderIDs._ProjMatrix, projMatrix);
-            cmd.SetGlobalMatrix(HDShaderIDs._InvProjMatrix, projMatrix.inverse);
-            cmd.SetGlobalMatrix(HDShaderIDs._ViewProjMatrix, viewProjMatrix);
-            cmd.SetGlobalMatrix(HDShaderIDs._InvViewProjMatrix, viewProjMatrix.inverse);
+            cmd.SetGlobalMatrix(HDShaderIDs._ViewMatrix,                viewMatrix);
+            cmd.SetGlobalMatrix(HDShaderIDs._InvViewMatrix,             viewMatrix.inverse);
+            cmd.SetGlobalMatrix(HDShaderIDs._ProjMatrix,                projMatrix);
+            cmd.SetGlobalMatrix(HDShaderIDs._InvProjMatrix,             projMatrix.inverse);
+            cmd.SetGlobalMatrix(HDShaderIDs._ViewProjMatrix,            viewProjMatrix);
+            cmd.SetGlobalMatrix(HDShaderIDs._InvViewProjMatrix,         viewProjMatrix.inverse);
             cmd.SetGlobalMatrix(HDShaderIDs._NonJitteredViewProjMatrix, nonJitteredViewProjMatrix);
             cmd.SetGlobalMatrix(HDShaderIDs._PrevViewProjMatrix,        prevViewProjMatrix);
             cmd.SetGlobalVector(HDShaderIDs._WorldSpaceCameraPos,       worldSpaceCameraPos);
             cmd.SetGlobalFloat( HDShaderIDs._DetViewMatrix,             detViewMatrix);
-            cmd.SetGlobalVector(HDShaderIDs._ScreenSize, screenSize);
-            cmd.SetGlobalVector(HDShaderIDs._ScreenToTargetScale, scaleBias);
+            cmd.SetGlobalVector(HDShaderIDs._ScreenSize,                screenSize);
+            cmd.SetGlobalVector(HDShaderIDs._ScreenToTargetScale,       scaleBias);
             cmd.SetGlobalVector(HDShaderIDs._ZBufferParams,             zBufferParams);
             cmd.SetGlobalVector(HDShaderIDs._ProjectionParams,          projectionParams);
             cmd.SetGlobalVector(HDShaderIDs.unity_OrthoParams,          unity_OrthoParams);
             cmd.SetGlobalVector(HDShaderIDs._ScreenParams,              screenParams);
             cmd.SetGlobalVector(HDShaderIDs._TaaFrameRotation,          taaFrameRotation);
-            cmd.SetGlobalVectorArray(HDShaderIDs._FrustumPlanes, frustumPlaneEquations);
+            cmd.SetGlobalVectorArray(HDShaderIDs._FrustumPlanes,        frustumPlaneEquations);
 
             // Time is also a part of the UnityPerView CBuffer.
             // Different views can have different values of the "Animated Materials" setting.
@@ -535,19 +520,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public RTHandleSystem.RTHandle GetPreviousFrameRT(int id)
         {
-            return historyRTSystem.GetFrameRT(id, 1);
+            return m_HistoryRTSystem.GetFrameRT(id, 1);
         }
 
         public RTHandleSystem.RTHandle GetCurrentFrameRT(int id)
         {
-            return historyRTSystem.GetFrameRT(id, 0);
+            return m_HistoryRTSystem.GetFrameRT(id, 0);
         }
 
         // Allocate buffers frames and return current frame
         public RTHandleSystem.RTHandle AllocHistoryFrameRT(int id, Func<string, int, RTHandleSystem, RTHandleSystem.RTHandle> allocator)
         {
-            historyRTSystem.AllocBuffer(id, (rts, i) => allocator(camera.name, i, rts), 2);
-            return historyRTSystem.GetFrameRT(id, 0);
+            m_HistoryRTSystem.AllocBuffer(id, (rts, i) => allocator(camera.name, i, rts), 2);
+            return m_HistoryRTSystem.GetFrameRT(id, 0);
+        }
+
+        void ReleaseHistoryBuffer()
+        {
+            m_HistoryRTSystem.ReleaseAll();
         }
     }
 }

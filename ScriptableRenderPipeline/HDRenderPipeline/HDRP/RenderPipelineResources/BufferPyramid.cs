@@ -32,12 +32,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             foreach (var rth in m_DepthPyramidMips)
                 RTHandles.Release(rth);
-        }
+            }
 
-        public int GetPyramidLodCount(HDCamera camera)
+        public int GetPyramidLodCount(Vector2Int size)
         {
-            var minSize = Mathf.Min(camera.actualWidth, camera.actualHeight);
-            return Mathf.FloorToInt(Mathf.Log(minSize, 2f));
+            var minSize = Mathf.Min(size.x, size.y);
+            return Mathf.Max(0, Mathf.FloorToInt(Mathf.Log(minSize, 2f)));
         }
 
         Vector2Int CalculatePyramidMipSize(Vector2Int baseMipSize, int mipIndex)
@@ -80,7 +80,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandleSystem.RTHandle sourceDepthTexture,
             RTHandleSystem.RTHandle targetDepthTexture)
         {
-            int lodCount = GetPyramidLodCount(hdCamera);
+            int lodCount = Mathf.Min(
+                GetPyramidLodCount(targetDepthTexture.referenceSize),
+                GetPyramidLodCount(new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight))
+            );
+            if (lodCount == 0)
+            {
+                Debug.LogWarning("The target for the pyramid buffer has an invalid size. Skipping DepthPyramid calculation.");
+                return;
+            }
+
             UpdatePyramidMips(hdCamera, targetDepthTexture.rt.format, m_DepthPyramidMips, lodCount);
 
             Vector2 scale = GetPyramidToScreenScale(hdCamera, targetDepthTexture);
@@ -107,7 +116,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandleSystem.RTHandle sourceColorTexture,
             RTHandleSystem.RTHandle targetColorTexture)
         {
-            int lodCount = GetPyramidLodCount(hdCamera);
+            int lodCount = Mathf.Min(
+                GetPyramidLodCount(targetColorTexture.referenceSize),
+                GetPyramidLodCount(new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight))
+            );
+            if (lodCount == 0)
+            {
+                Debug.LogWarning("The target for the pyramid buffer has an invalid size. Skipping ColorPyramid calculation.");
+                return;
+            }
+
             UpdatePyramidMips(hdCamera, targetColorTexture.rt.format, m_ColorPyramidMips, lodCount);
 
             Vector2 scale = GetPyramidToScreenScale(hdCamera, targetColorTexture);

@@ -5,18 +5,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     internal class SkyRenderingContext
     {
-        IBLFilterGGX                m_IBLFilterGGX;
+        IBLFilterGGX            m_IBLFilterGGX;
         RTHandleSystem.RTHandle     m_SkyboxCubemapRT;
         RTHandleSystem.RTHandle     m_SkyboxGGXCubemapRT;
         RTHandleSystem.RTHandle     m_SkyboxMarginalRowCdfRT;
         RTHandleSystem.RTHandle     m_SkyboxConditionalCdfRT;
-        Vector4                     m_CubemapScreenSize;
-        Matrix4x4[]                 m_facePixelCoordToViewDirMatrices   = new Matrix4x4[6];
-        Matrix4x4[]                 m_faceCameraInvViewProjectionMatrix = new Matrix4x4[6];
-        bool                        m_SupportsConvolution = false;
-        bool                        m_SupportsMIS = false;
-        BuiltinSkyParameters        m_BuiltinParameters = new BuiltinSkyParameters();
-        bool                        m_NeedUpdate = true;
+        Vector4                 m_CubemapScreenSize;
+        Matrix4x4[]             m_facePixelCoordToViewDirMatrices   = new Matrix4x4[6];
+        Matrix4x4[]             m_faceCameraInvViewProjectionMatrix = new Matrix4x4[6];
+        bool                    m_SupportsConvolution = false;
+        bool                    m_SupportsMIS = false;
+        BuiltinSkyParameters    m_BuiltinParameters = new BuiltinSkyParameters();
+        bool                    m_NeedUpdate = true;
 
         public RenderTexture cubemapRT { get { return m_SkyboxCubemapRT; } }
         public Texture reflectionTexture { get { return m_SkyboxGGXCubemapRT; } }
