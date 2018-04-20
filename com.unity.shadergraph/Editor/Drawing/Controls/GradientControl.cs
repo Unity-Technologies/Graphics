@@ -85,7 +85,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
                 m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
                 m_PropertyInfo.SetValue(m_Node, m_GradientObject.gradient, null);
-                Dirty(ChangeType.Repaint);
+                this.MarkDirtyRepaint();
             }
         }
     }
