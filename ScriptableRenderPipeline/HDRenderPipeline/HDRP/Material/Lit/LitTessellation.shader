@@ -110,7 +110,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
         // Transparency
         [Enum(None, 0, Plane, 1, Sphere, 2)]_RefractionModel("Refraction Model", Int) = 0
-        [Enum(Proxy, 1, HiZ, 2)]_RefractionProjectionModel("Refraction Projection Model", Int) = 0
+        [Enum(Proxy, 1, HiZ, 2)]_SSRefractionProjectionModel("Refraction Projection Model", Int) = 0
         _Ior("Index Of Refraction", Range(1.0, 2.5)) = 1.0
         _ThicknessMultiplier("Thickness Multiplier", Float) = 1.0
         _TransmittanceColor("Transmittance Color", Color) = (1.0, 1.0, 1.0)
@@ -119,7 +119,7 @@ Shader "HDRenderPipeline/LitTessellation"
         [ToggleUI] _PreRefractionPass("PreRefractionPass", Float) = 0.0
 
         // SSReflection
-        [Enum(None, 0, Proxy, 1, HiZ, 2)]_ReflectionProjectionModel("Reflection Projection Model", Int) = 0
+        [Enum(None, 0, Proxy, 1, HiZ, 2)]_SSReflectionProjectionModel("Reflection Projection Model", Int) = 0
 
         // Stencil state
         [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting  (fixed at compile time)

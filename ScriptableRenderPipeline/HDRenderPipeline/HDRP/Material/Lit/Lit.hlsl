@@ -1770,7 +1770,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     {
     #if defined(_REFRACTION_SSRAY_HIZ)
         projectionModel = PROJECTIONMODEL_HI_Z;
-    #else defined(_REFRACTION_SSRAY_PROXY)
+    #elif defined(_REFRACTION_SSRAY_PROXY)
         projectionModel = PROJECTIONMODEL_PROXY;
     #endif
     }

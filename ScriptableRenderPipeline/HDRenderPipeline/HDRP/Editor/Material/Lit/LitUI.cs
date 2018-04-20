@@ -44,7 +44,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent UVBaseMappingText = new GUIContent("Base UV mapping", "");
             public static GUIContent texWorldScaleText = new GUIContent("World scale", "Tiling factor applied to Planar/Trilinear mapping");
             // SSReflection
-            public static GUIContent reflectionProjectionModelText = new GUIContent("Projection Model", "Screen Space Projection Model");
+            public static GUIContent reflectionProjectionModelText = new GUIContent("SS Reflection Projection Model", "Screen Space Projection Model For Reflections");
 
             // Details
             public static string detailText = "Detail Inputs";
@@ -292,10 +292,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kThicknessMultiplier = "_ThicknessMultiplier";
         protected MaterialProperty refractionModel = null;
         protected const string kRefractionModel = "_RefractionModel";
-        protected MaterialProperty refractionProjectionModel = null;
-        protected const string kRefractionProjectionModel = "_RefractionProjectionModel";
-        protected MaterialProperty reflectionProjectionModel = null;
-        protected const string kReflectionProjectionModel = "_ReflectionProjectionModel";
+        protected MaterialProperty ssrefractionProjectionModel = null;
+        protected const string kSSRefractionProjectionModel = "_SSRefractionProjectionModel";
+        protected MaterialProperty ssreflectionProjectionModel = null;
+        protected const string kSSReflectionProjectionModel = "_SSReflectionProjectionModel";
 
         protected override bool showBlendModePopup
         {
@@ -404,8 +404,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Transparency
             refractionModel = FindProperty(kRefractionModel, props, false);
-            refractionProjectionModel = FindProperty(kRefractionProjectionModel, props, false);
-            reflectionProjectionModel = FindProperty(kReflectionProjectionModel, props, false);
+            ssrefractionProjectionModel = FindProperty(kSSRefractionProjectionModel, props, false);
+            ssreflectionProjectionModel = FindProperty(kSSReflectionProjectionModel, props, false);
             transmittanceColor = FindProperty(kTransmittanceColor, props, false);
             transmittanceColorMap = FindProperty(kTransmittanceColorMap, props, false);
             atDistance = FindProperty(kATDistance, props, false);
@@ -814,7 +814,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     var mode = (Lit.RefractionModel)refractionModel.floatValue;
                     if (mode != Lit.RefractionModel.None)
                     {
-                        m_MaterialEditor.ShaderProperty(refractionProjectionModel, Styles.refractionProjectionModelText);
+                        m_MaterialEditor.ShaderProperty(ssrefractionProjectionModel, Styles.refractionProjectionModelText);
                         m_MaterialEditor.ShaderProperty(ior, Styles.refractionIorText);
 
                         blendMode.floatValue = (float)BlendMode.Alpha;
@@ -842,7 +842,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             else if (surfaceTypeValue == SurfaceType.Opaque)
             {
-                m_MaterialEditor.ShaderProperty(reflectionProjectionModel, Styles.reflectionProjectionModelText);
+                m_MaterialEditor.ShaderProperty(ssreflectionProjectionModel, Styles.reflectionProjectionModelText);
             }
         }
 
@@ -982,7 +982,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SPECULAR_COLOR", materialId == BaseLitGUI.MaterialId.LitSpecular);
 
             var refractionModelValue = (Lit.RefractionModel)material.GetFloat(kRefractionModel);
-            var refractionProjectionModelValue = (Lit.ProjectionModel)material.GetFloat(kRefractionProjectionModel);
+            var refractionProjectionModelValue = (Lit.ProjectionModel)material.GetFloat(kSSRefractionProjectionModel);
             // We can't have refraction in pre-refraction queue
             var canHaveRefraction = !material.HasProperty(kPreRefractionPass) || material.GetFloat(kPreRefractionPass) <= 0.0;
             CoreUtils.SetKeyword(material, "_REFRACTION_PLANE", (refractionModelValue == Lit.RefractionModel.Plane) && canHaveRefraction);
