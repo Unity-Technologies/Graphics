@@ -1,3 +1,6 @@
+//#define LOG_VARIANTS
+//#define LOG_ONLY_LWRP_VARIANTS
+
 using System.Collections.Generic;
 using UnityEditor.Build;
 using UnityEditor.Rendering;
@@ -10,15 +13,21 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 {
     public class ShaderPreprocessor : IPreprocessShaders
     {
-        int totalVariantsInputCount = 0;
-        int totalVariantsOutputCount = 0;
+        int m_TotalVariantsInputCount;
+        int m_TotalVariantsOutputCount;
 
         // Multiple callback may be implemented.
         // The first one executed is the one where callbackOrder is returning the smallest number.
         public int callbackOrder { get { return 0; } }
 
-        private bool StripUnusedShader(PipelineCapabilities capabilities, Shader shader)
+        bool StripUnusedShader(PipelineCapabilities capabilities, Shader shader)
         {
+            if (shader.name.Contains("Debug"))
+                return true;
+
+            if (shader.name.Contains("HDRenderPipeline"))
+                return true;
+
             if (!CoreUtils.HasFlag(capabilities, PipelineCapabilities.DirectionalShadows) &&
                 shader.name.Contains("ScreenSpaceShadows"))
                 return true;
@@ -26,7 +35,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             return false;
         }
 
-        private bool StripUnusedPass(PipelineCapabilities capabilities, ShaderSnippetData snippetData)
+        bool StripUnusedPass(PipelineCapabilities capabilities, ShaderSnippetData snippetData)
         {
             if (snippetData.passType == PassType.Meta)
                 return true;
@@ -38,7 +47,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             return false;
         }
 
-        private bool StripUnusedVariant(PipelineCapabilities capabilities, ShaderCompilerData compilerData)
+        bool StripUnusedVariant(PipelineCapabilities capabilities, ShaderCompilerData compilerData)
         {
             if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeywords.AdditionalLights) &&
                 !CoreUtils.HasFlag(capabilities, PipelineCapabilities.AdditionalLights))
@@ -63,7 +72,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             return false;
         }
 
-        private bool StripUnused(PipelineCapabilities capabilities, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
+        bool StripUnused(PipelineCapabilities capabilities, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
             if (StripUnusedShader(capabilities, shader))
                 return true;
@@ -77,33 +86,44 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             return false;
         }
 
-        public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> data)
+        void LogVariants(Shader shader, ShaderSnippetData snippetData, int prevVariantsCount, int currVariantsCount)
+        {
+#if LOG_ONLY_LWRP_VARIANTS
+            if (shader.name.Contains("LightweightPipeline"))
+#endif
+            {
+                float percentageCurrent = (float) currVariantsCount / (float) prevVariantsCount * 100f;
+                float percentageTotal = (float) m_TotalVariantsOutputCount / (float) m_TotalVariantsInputCount * 100f;
+
+                string result = string.Format("STRIPPING: {0} ({1} pass) ({2}) -" +
+                                              " Remaining shader variants = {3}/{4} = {5}% - Total = {6}/{7} = {8}%",
+                    shader.name, snippetData.passName, snippetData.shaderType.ToString(), currVariantsCount,
+                    prevVariantsCount, percentageCurrent, m_TotalVariantsOutputCount, m_TotalVariantsInputCount,
+                    percentageTotal);
+                Debug.Log(result);
+            }
+        }
+
+        public void OnProcessShader(Shader shader, ShaderSnippetData snippetData, IList<ShaderCompilerData> compilerDataList)
         {
             PipelineCapabilities capabilities = UnityEngine.Experimental.Rendering.LightweightPipeline.LightweightPipeline.GetPipelineCapabilities();
-            int initDataCount = data.Count;
+            int prevVariantCount = compilerDataList.Count;
 
-            for (int i = 0; i < data.Count; ++i)
+            for (int i = 0; i < compilerDataList.Count; ++i)
             {
-                if (StripUnused(capabilities, shader, snippet, data[i]))
+                if (StripUnused(capabilities, shader, snippetData, compilerDataList[i]))
                 {
-                    data.RemoveAt(i);
+                    compilerDataList.RemoveAt(i);
                     --i;
                 }
             }
 
-            totalVariantsInputCount += initDataCount;
-            totalVariantsOutputCount += data.Count;
+#if LOG_VARIANTS
+            m_TotalVariantsInputCount += prevVariantCount;
+            m_TotalVariantsOutputCount += compilerDataList.Count;
 
-            if (shader.name.Contains("LightweightPipeline/Standard (Physically Based)") || shader.name.Contains("LightweightPipeline/Standard (Simple Lighting)"))
-            {
-                float percentageCurrent = (float) data.Count / (float) initDataCount * 100f;
-                float percentageTotal = (float) totalVariantsOutputCount / (float) totalVariantsInputCount * 100f;
-                string result = "STRIPPING: " + shader.name + "(" + snippet.passName + " pass)" + "(" + snippet.shaderType.ToString() +
-                                ") - Remaining shader variants = " + data.Count + " / " + initDataCount + " = " +
-                                percentageCurrent + "% - Total = " + totalVariantsOutputCount + " / " +
-                                totalVariantsInputCount + " = " + percentageTotal + "%";
-                Debug.Log(result);
-            }
+            LogVariants(shader, snippetData, prevVariantCount, compilerDataList.Count);
+#endif
         }
     }
 }
