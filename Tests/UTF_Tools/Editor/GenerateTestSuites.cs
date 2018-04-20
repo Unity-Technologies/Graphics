@@ -12,20 +12,29 @@ public class GenerateTestSuites
 	[MenuItem("UTF/Generate SRP TestSuites")]
 	private static void GenerateSRPTestSuites()
 	{
+		// ---------- HDRP ----------
+
 		string[] scenesGUIDs = AssetDatabase.FindAssets("t:Scene", new string[]{hdrp_TestsFolder});
 
-		foreach(string guid in scenesGUIDs)
-		{
-			Debug.Log(AssetDatabase.GUIDToAssetPath(guid));
-		}
+		// Find the different RP assets sub folders
+		string[] subFolders = AssetDatabase.GetSubFolders(hdrp_PipelinesFolder);
 
-		// ---------- HDRP ----------
-		string[] hdrp_PipelineAssetsGUIDs = AssetDatabase.FindAssets("t:RenderPipelineAsset", new string[]{hdrp_PipelinesFolder});
-		foreach( string guid in hdrp_PipelineAssetsGUIDs)
+		foreach (string subFolder in subFolders)
 		{
-			RenderPipelineAsset hdrp_PipelineAsset = AssetDatabase.LoadAssetAtPath<RenderPipelineAsset>( AssetDatabase.GUIDToAssetPath(guid));
+			string subFolderName = Path.GetFileName(subFolder);
 
-			GenerateTestSuiteFromScenes( hdrp_SuitesFolder , "HDRP_"+hdrp_PipelineAsset.name.Replace("HDRP_Test_", ""), scenesGUIDs, hdrp_PipelineAsset);
+			string[] hdrp_PipelineAssetsGUIDs = AssetDatabase.FindAssets("t:RenderPipelineAsset", new string[]{subFolder});
+
+			if (hdrp_PipelineAssetsGUIDs.Length == 0) continue;
+
+			var hdrp_PipelineAssets = new UnityEngine.Experimental.Rendering.HDPipeline.HDRenderPipelineAsset[ hdrp_PipelineAssetsGUIDs.Length ];
+
+			for ( int i=0 ; i<hdrp_PipelineAssets.Length ; ++i)
+			{
+				hdrp_PipelineAssets[i] = AssetDatabase.LoadAssetAtPath<UnityEngine.Experimental.Rendering.HDPipeline.HDRenderPipelineAsset>( AssetDatabase.GUIDToAssetPath(hdrp_PipelineAssetsGUIDs[i]));
+			}
+
+			GenerateTestSuiteFromScenes( hdrp_SuitesFolder , "HDRP_"+subFolderName, scenesGUIDs, hdrp_PipelineAssets);
 		}
 
 		// ---------- LWRP ----------
@@ -87,12 +96,32 @@ public class GenerateTestSuites
 	public static readonly string lwrp_PipelinesFolder = GetPathInSRP( new string[] { "Tests", "UTF_Tests_LWRP", "Common", "RP_Assets" } );
 	public static readonly string lwrp_SuitesFolder = GetPathInSRP( new string[] {"Tests", "UTF_Suites_LWRP" , "Resources" } );
 
-	public static void GenerateTestSuiteFromScenes( string path, string name, string[] scenesGUIDs, RenderPipelineAsset renderPipelineAsset = null, int platforms = -1 )
+	public static void GenerateTestSuiteFromScenes( string path, string name, string[] scenesGUIDs, RenderPipelineAsset[] renderPipelineAssets = null, int platforms = -1 )
 	{
 		Suite suite = new Suite();
 		suite.suiteName = name;
 		string suitePath = Path.Combine(path, name+".asset");
-		if (renderPipelineAsset != null) suite.defaultRenderPipeline = renderPipelineAsset;
+
+		if (renderPipelineAssets != null)
+		{
+			if (renderPipelineAssets.Length > 0)
+				suite.defaultRenderPipeline = renderPipelineAssets[0];
+			
+			if (renderPipelineAssets.Length > 1)
+			{
+				AlternateSettings[] alternateSettings = new AlternateSettings[renderPipelineAssets.Length-1];
+
+				for (int i=1 ; i<renderPipelineAssets.Length ; ++i)
+				{
+					alternateSettings[i-1] = new AlternateSettings(){
+						renderPipeline = renderPipelineAssets[i],
+						testSettings = null
+					};
+				}
+
+				suite.alternateSettings = alternateSettings;
+			}
+		}
 		
 		Dictionary<string, Group> groups = new Dictionary<string, Group>();
 
@@ -103,7 +132,11 @@ public class GenerateTestSuites
 
 			string testName = Path.GetFileName( scenePath );
 			string groupName = Path.GetFileName( Path.GetDirectoryName( scenePath ) );
-			groupName = groupName.Replace("xxx", "x");
+
+			var regEx = new System.Text.RegularExpressions.Regex("[^a-zA-Z0-9]"); // Regex to remove non alphanumerical character from the test and group name
+
+			testName = regEx.Replace( testName, "");
+			groupName = regEx.Replace( groupName, "");
 
 			if (!groups.ContainsKey(groupName))
 			{
@@ -117,8 +150,8 @@ public class GenerateTestSuites
 			test.platforms = platforms;
 			test.scene = scene;
 			test.scenePath = scenePath;
-			test.minimumUnityVersion = 4;
-			test.testTypes = 2; // 2 = frame comparison
+			test.minimumUnityVersion = 5;	// See Common.cs unityVersionList	5 = 2018.2
+			test.testTypes = 2; 			// 2 = frame comparison
 			test.run = true;
 
 			groups[groupName].tests.Add(test);
