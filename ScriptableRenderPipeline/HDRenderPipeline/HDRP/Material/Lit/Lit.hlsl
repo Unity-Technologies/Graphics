@@ -1780,7 +1780,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
 #endif
 
     if (projectionModel == PROJECTIONMODEL_NONE)
-        return lighting;
+       return lighting;
 
     // -------------------------------
     // Initialize screen space tracing
@@ -2096,7 +2096,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
  
     if (_DebugLightingMode != 0)
     {
-        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+        bool keepSpecular = false;
 
         switch (_DebugLightingMode)
         {
@@ -2115,8 +2115,20 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
         case DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFRACTION:
             if (_DebugLightingSubMode != DEBUGSCREENSPACETRACING_COLOR)
                 diffuseLighting = lighting.indirect.specularTransmitted;
+            else
+                keepSpecular = true;
+            break;
+
+        case DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFLECTION:
+            if (_DebugLightingSubMode != DEBUGSCREENSPACETRACING_COLOR)
+                diffuseLighting = lighting.indirect.specularReflected;
+            else
+                keepSpecular = true;
             break;
         }
+
+        if (!keepSpecular)
+            specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
     }
     else if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
