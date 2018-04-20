@@ -13,7 +13,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             public readonly GUIContent layersText = new GUIContent("Inputs");
             public readonly GUIContent layerMapMaskText = new GUIContent("Layer Mask", "Layer mask");
-            public readonly GUIContent layerCountText = new GUIContent("Layer Count", "Number of layers.");
 
             public readonly GUIContent layerTexWorldScaleText = new GUIContent("World Scale", "Tiling factor applied to Planar/Trilinear mapping");
             public readonly GUIContent UVBlendMaskText = new GUIContent("BlendMask UV Mapping", "Base UV Mapping mode of the layer.");
@@ -29,7 +28,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public TerrainLitGUI()
         {
-            m_LayerCount = 4;
             m_PropertySuffixes[0] = "0";
             m_PropertySuffixes[1] = "1";
             m_PropertySuffixes[2] = "2";
@@ -37,8 +35,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         // Layer options
-        MaterialProperty layerCount = null;
-        const string kLayerCount = "_LayerCount";
         MaterialProperty layerMaskMap = null;
         const string kLayerMaskMap = "_LayerMaskMap";
         MaterialProperty layerInfluenceMaskMap = null;
@@ -76,7 +72,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             base.FindMaterialEmissiveProperties(props);
 
-            layerCount = FindProperty(kLayerCount, props);
             layerMaskMap = FindProperty(kLayerMaskMap, props);
             layerInfluenceMaskMap = FindProperty(kLayerInfluenceMaskMap, props);
             UVBlendMask = FindProperty(kUVBlendMask, props);
@@ -108,16 +103,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             EditorGUI.indentLevel++;
             GUILayout.Label(styles.layersText, EditorStyles.boldLabel);
-
-            EditorGUI.showMixedValue = layerCount.hasMixedValue;
-            EditorGUI.BeginChangeCheck();
-            int newLayerCount = EditorGUILayout.IntSlider(styles.layerCountText, (int)layerCount.floatValue, 2, 4);
-            if (EditorGUI.EndChangeCheck())
-            {
-                Material material = m_MaterialEditor.target as Material;
-                Undo.RecordObject(material, "Change layer count");
-                layerCount.floatValue = (float)newLayerCount;
-            }
 
             m_MaterialEditor.TexturePropertySingleLine(styles.layerMapMaskText, layerMaskMap);
 
@@ -199,33 +184,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_LAYER_MAPPING_PLANAR_BLENDMASK", UVBlendMaskMapping == UVBaseMapping.Planar);
             CoreUtils.SetKeyword(material, "_LAYER_MAPPING_TRIPLANAR_BLENDMASK",  UVBlendMaskMapping == UVBaseMapping.Triplanar);
 
-            int numLayer = (int)material.GetFloat(kLayerCount);
-
             // Layer
-            if (numLayer == 4)
-            {
-                CoreUtils.SetKeyword(material, "_LAYEREDLIT_4_LAYERS", true);
-                CoreUtils.SetKeyword(material, "_LAYEREDLIT_3_LAYERS", false);
-            }
-            else if (numLayer == 3)
-            {
-                CoreUtils.SetKeyword(material, "_LAYEREDLIT_4_LAYERS", false);
-                CoreUtils.SetKeyword(material, "_LAYEREDLIT_3_LAYERS", true);
-            }
-            else
-            {
-                CoreUtils.SetKeyword(material, "_LAYEREDLIT_4_LAYERS", false);
-                CoreUtils.SetKeyword(material, "_LAYEREDLIT_3_LAYERS", false);
-            }
+            CoreUtils.SetKeyword(material, "_LAYEREDLIT_4_LAYERS", true);
+            CoreUtils.SetKeyword(material, "_LAYEREDLIT_3_LAYERS", false);
 
             const string kLayerMappingPlanar = "_LAYER_MAPPING_PLANAR";
             const string kLayerMappingTriplanar = "_LAYER_MAPPING_TRIPLANAR";
 
-            // We have to check for each layer if the UV2 or UV3 is needed.
-            bool needUV3 = false;
-            bool needUV2 = false;
-
-            for (int i = 0; i < numLayer; ++i)
+            for (int i = 0; i < kMaxLayerCount; ++i)
             {
                 string layerUVBaseParam = string.Format("{0}{1}", kUVBase, i);
                 UVBaseMapping layerUVBaseMapping = (UVBaseMapping)material.GetFloat(layerUVBaseParam);
@@ -233,36 +199,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 CoreUtils.SetKeyword(material, currentLayerMappingPlanar, layerUVBaseMapping == UVBaseMapping.Planar);
                 string currentLayerMappingTriplanar = string.Format("{0}{1}", kLayerMappingTriplanar, i);
                 CoreUtils.SetKeyword(material, currentLayerMappingTriplanar, layerUVBaseMapping == UVBaseMapping.Triplanar);
-
-                string uvBase = string.Format("{0}{1}", kUVBase, i);
-                string uvDetail = string.Format("{0}{1}", kUVDetail, i);
-
-                if (((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV2) || ((UVBaseMapping)material.GetFloat(uvBase) == UVBaseMapping.UV2))
-                {
-                    needUV2 = true;
-                }
-
-                if (((UVDetailMapping)material.GetFloat(uvDetail) == UVDetailMapping.UV3) || ((UVBaseMapping)material.GetFloat(uvBase) == UVBaseMapping.UV3))
-                {
-                    needUV3 = true;
-                    break; // If we find it UV3 let's early out
-                }
-            }
-
-            if (needUV3)
-            {
-                material.DisableKeyword("_REQUIRE_UV2");
-                material.EnableKeyword("_REQUIRE_UV3");
-            }
-            else if (needUV2)
-            {
-                material.EnableKeyword("_REQUIRE_UV2");
-                material.DisableKeyword("_REQUIRE_UV3");
-            }
-            else
-            {
-                material.DisableKeyword("_REQUIRE_UV2");
-                material.DisableKeyword("_REQUIRE_UV3");
             }
         }
 
@@ -311,13 +247,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             bool useHeightBasedBlend = material.GetFloat(kUseHeightBasedBlend) != 0.0f;
             CoreUtils.SetKeyword(material, "_HEIGHT_BASED_BLEND", useHeightBasedBlend);
-
-            bool useDensityModeEnable = false;
-            for (int i = 0; i < material.GetInt(kLayerCount); ++i )
-            {
-                useDensityModeEnable |= material.GetFloat(kOpacityAsDensity + i) != 0.0f;
-            }
-            CoreUtils.SetKeyword(material, "_DENSITY_MODE", useDensityModeEnable);
         }
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)

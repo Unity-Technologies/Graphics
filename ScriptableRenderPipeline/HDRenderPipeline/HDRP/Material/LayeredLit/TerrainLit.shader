@@ -208,12 +208,11 @@ Shader "HDRenderPipeline/TerrainLit"
         _InheritBaseColor2("_InheritBaseColor2", Range(0, 1.0)) = 0.0
         _InheritBaseColor3("_InheritBaseColor3", Range(0, 1.0)) = 0.0
 
-        [ToggleUI] _OpacityAsDensity0("_OpacityAsDensity0", Float) = 0.0
-        [ToggleUI] _OpacityAsDensity1("_OpacityAsDensity1", Float) = 0.0
-        [ToggleUI] _OpacityAsDensity2("_OpacityAsDensity2", Float) = 0.0
-        [ToggleUI] _OpacityAsDensity3("_OpacityAsDensity3", Float) = 0.0
-
-        [HideInInspector] _LayerCount("_LayerCount", Float) = 2.0
+        // TODO: route values from terrain layers. enable _DENSITY_MODE if any of these enabled.
+        [HideInInspector] [ToggleUI] _OpacityAsDensity0("_OpacityAsDensity0", Float) = 0.0
+        [HideInInspector] [ToggleUI] _OpacityAsDensity1("_OpacityAsDensity1", Float) = 0.0
+        [HideInInspector] [ToggleUI] _OpacityAsDensity2("_OpacityAsDensity2", Float) = 0.0
+        [HideInInspector] [ToggleUI] _OpacityAsDensity3("_OpacityAsDensity3", Float) = 0.0
 
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBlendMask("UV Set for blendMask", Float) = 0
         [HideInInspector] _UVMappingMaskBlendMask("_UVMappingMaskBlendMask", Color) = (1, 0, 0, 0)
@@ -284,11 +283,6 @@ Shader "HDRenderPipeline/TerrainLit"
         [ToggleUI] _LinkDetailsWithBase1("LinkDetailsWithBase1", Float) = 1.0
         [ToggleUI] _LinkDetailsWithBase2("LinkDetailsWithBase2", Float) = 1.0
         [ToggleUI] _LinkDetailsWithBase3("LinkDetailsWithBase3", Float) = 1.0
-
-        [HideInInspector] _ShowLayer0("_ShowLayer0", Float) = 0
-        [HideInInspector] _ShowLayer1("_ShowLayer1", Float) = 0
-        [HideInInspector] _ShowLayer2("_ShowLayer2", Float) = 0
-        [HideInInspector] _ShowLayer3("_ShowLayer3", Float) = 0
 
         // HACK: GI Baking system relies on some properties existing in the shader ("_MainTex", "_Cutoff" and "_Color") for opacity handling, so we need to store our version of those parameters in the hard-coded name the GI baking system recognizes.
         _MainTex("Albedo", 2D) = "white" {}
