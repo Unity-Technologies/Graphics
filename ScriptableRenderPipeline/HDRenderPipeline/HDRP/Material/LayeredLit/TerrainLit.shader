@@ -106,21 +106,6 @@ Shader "HDRenderPipeline/TerrainLit"
         _DiffusionProfile2("Diffusion Profile2", Int) = 0
         _DiffusionProfile3("Diffusion Profile3", Int) = 0
 
-        _Thickness0("Thickness", Range(0.0, 1.0)) = 1.0
-        _Thickness1("Thickness", Range(0.0, 1.0)) = 1.0
-        _Thickness2("Thickness", Range(0.0, 1.0)) = 1.0
-        _Thickness3("Thickness", Range(0.0, 1.0)) = 1.0
-
-        _ThicknessMap0("Thickness Map", 2D) = "white" {}
-        _ThicknessMap1("Thickness Map", 2D) = "white" {}
-        _ThicknessMap2("Thickness Map", 2D) = "white" {}
-        _ThicknessMap3("Thickness Map", 2D) = "white" {}
-
-        _ThicknessRemap0("Thickness Remap", Vector) = (0, 1, 0, 0)
-        _ThicknessRemap1("Thickness Remap", Vector) = (0, 1, 0, 0)
-        _ThicknessRemap2("Thickness Remap", Vector) = (0, 1, 0, 0)
-        _ThicknessRemap3("Thickness Remap", Vector) = (0, 1, 0, 0)
-
         // All the following properties exist only in layered lit material
 
         // Layer blending options
@@ -241,10 +226,6 @@ Shader "HDRenderPipeline/TerrainLit"
     #pragma shader_feature _HEIGHTMAP1
     #pragma shader_feature _HEIGHTMAP2
     #pragma shader_feature _HEIGHTMAP3
-    #pragma shader_feature _THICKNESSMAP0
-    #pragma shader_feature _THICKNESSMAP1
-    #pragma shader_feature _THICKNESSMAP2
-    #pragma shader_feature _THICKNESSMAP3
 
     #pragma shader_feature _MAIN_LAYER_INFLUENCE_MODE
     #pragma shader_feature _INFLUENCEMASK_MAP
