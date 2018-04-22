@@ -395,7 +395,7 @@ namespace UnityEditor.VFX.UI
             {
                 m_GizmoContext = new VFXDataAnchorGizmoContext(this);
             }
-            VFXGizmoUtility.Draw(new VFXDataAnchorGizmoContext(this), component);
+            VFXGizmoUtility.Draw(m_GizmoContext, component);
         }
     }
 
@@ -545,19 +545,10 @@ namespace UnityEditor.VFX.UI
                 Debug.LogError("No support for class types in Gizmos");
                 return;
             }
-            m_ReadOnlyMembers.Clear();
             m_ValueBuilder.Clear();
-
-            bool valueSet = false;
             m_ValueBuilder.Add(o=>o.Add(m_Controller.value));
-            m_FullReadOnly = false;
-
-            if (m_Controller.viewController.CanGetEvaluatedContent(m_Controller.model))// this is for Vector type that the system knows how to compute
-            {
-                valueSet = true;
-                m_FullReadOnly = true;
-            }
-            else if (m_Controller.model.HasLink(true))
+            
+            if (!m_Controller.viewController.CanGetEvaluatedContent(m_Controller.model))
             { 
                 if( m_Controller.model.HasLink(false) )
                 {
@@ -568,12 +559,12 @@ namespace UnityEditor.VFX.UI
                     }
                     m_FullReadOnly = true;
                 }
-                BuildValue( m_Controller.model, "", valueSet);
+                BuildValue( m_Controller.model);
             }
         }
 
 
-        void BuildValue(VFXSlot slot, string memberPath, bool valueSet)
+        void BuildValue(VFXSlot slot)
         {
             foreach (var field in slot.property.type.GetFields())
             {
@@ -581,64 +572,26 @@ namespace UnityEditor.VFX.UI
 
                 if (subSlot != null)
                 {
-                    string subMemberPath = field.Name;
-                    if (memberPath.Length > 0)
+                    if (m_Controller.viewController.CanGetEvaluatedContent(subSlot))
                     {
-                        subMemberPath = memberPath + separator + subMemberPath;
+                        m_ValueBuilder.Add(o=>o.Add(m_Controller.viewController.GetEvaluatedContent(subSlot)));
                     }
-                    bool subValueSet = false;
-
-                    bool subValueBuild = false;
-                    if (!valueSet)
+                    else if( subSlot.HasLink(false) && VFXTypeUtility.GetComponentCount(subSlot) != 0) // replace by is VFXType
                     {
-                        subValueSet = false;
-
-
-                        if (m_Controller.viewController.CanGetEvaluatedContent(subSlot))
-                        {
-                            m_ValueBuilder.Add(o=>o.Add(m_Controller.viewController.GetEvaluatedContent(subSlot)));
-                            subValueSet = true;
-                        }
-                        else if( subSlot.HasLink(false) && VFXTypeUtility.GetComponentCount(subSlot) != 0) // replace by is VFXType
-                        {
-                            m_Indeterminate = true;
-                            return;
-                        }
-                        else
-                        {
-                            m_ValueBuilder.Add(o=>o.Add(subSlot.value));
-
-                            BuildValue(subSlot, subMemberPath, false);
-                            subValueBuild = true;
-                            if( m_Indeterminate) return;
-                        }
-                        m_ValueBuilder.Add(o=>field.SetValue(o[o.Count-2], o[ o.Count-1]));
-                        m_ValueBuilder.Add(o=>o.RemoveAt(o.Count-1));
+                        m_Indeterminate = true;
+                        return;
                     }
-
-                    if (subSlot.HasLink(false))
+                    else
                     {
-                        m_ReadOnlyMembers.Add(subMemberPath);
+                        m_ValueBuilder.Add(o=>o.Add(subSlot.value));
+                        BuildValue(subSlot);
+                        if( m_Indeterminate) return;
                     }
-                    else if (subSlot.HasLink(true) && !subValueBuild)
-                    {
-                        if (m_Controller.viewController.CanGetEvaluatedContent(subSlot))
-                        // for the moment we can edit only part of a position or rotation so mark it as read only if one of the children has a link
-                        {
-                            m_ReadOnlyMembers.Add(subMemberPath);
-                        }
-                        else if (subValueSet || valueSet)
-                        {
-                            BuildValue( subSlot, subMemberPath, true);
-                            if( m_Indeterminate) return;
-                        }
-                    }
+                    m_ValueBuilder.Add(o=>field.SetValue(o[o.Count-2], o[ o.Count-1]));
+                    m_ValueBuilder.Add(o=>o.RemoveAt(o.Count-1));
                 }
             }
         }
-
-
-
 
         public override VFXGizmo.IProperty<T> RegisterProperty<T>(string member)
         {
@@ -654,7 +607,7 @@ namespace UnityEditor.VFX.UI
 
             if( controller != null && controller.portType == typeof(T))
             {
-                return new VFXGizmoUtility.Property<T>(controller,IsMemberEditable(member));
+                return new VFXGizmoUtility.Property<T>(controller, !controller.model.HasLink(true));
             }
 
             return VFXGizmoUtility.NullProperty<T>.defaultProperty;
@@ -667,11 +620,11 @@ namespace UnityEditor.VFX.UI
                 return m_Controller;
             }
 
-            return GetSubMemberController(memberPath, m_Controller.model, value);
+            return GetSubMemberController(memberPath, m_Controller.model);
         }
         
 
-        VFXDataAnchorController GetSubMemberController(string memberPath, VFXSlot slot, object value)
+        VFXDataAnchorController GetSubMemberController(string memberPath, VFXSlot slot)
         {
             int index = memberPath.IndexOf(separator);
 
@@ -692,7 +645,7 @@ namespace UnityEditor.VFX.UI
                 VFXSlot subSlot = slot.children.FirstOrDefault(t => t.name == memberName);
                 if (subSlot != null)
                 {
-                    return GetSubMemberController(memberPath.Substring(index + 1), subSlot, value);
+                    return GetSubMemberController(memberPath.Substring(index + 1), subSlot);
                 }
                 return null;
             }
