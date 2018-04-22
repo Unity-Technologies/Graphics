@@ -382,8 +382,18 @@ namespace UnityEditor.VFX.UI
             if( ! model.IsMasterSlot())
             {
                 var parentController = sourceNode.inputPorts.FirstOrDefault(t=>t.model == model.GetParent());
-                if( parentController != null)
+                if (parentController != null)
+                {
                     parentController.RefreshGizmo();
+                }
+                else if(model.GetParent()) // Try with grand parent for Vector3 spacable types
+                {
+                    parentController = sourceNode.inputPorts.FirstOrDefault(t => t.model == model.GetParent().GetParent());
+                    if (parentController != null)
+                    {
+                        parentController.RefreshGizmo();
+                    }
+                }
             }
         }
 
