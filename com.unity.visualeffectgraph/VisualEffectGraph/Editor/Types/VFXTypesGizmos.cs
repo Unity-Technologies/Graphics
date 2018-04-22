@@ -31,15 +31,24 @@ namespace UnityEditor.VFX
         }
         public override void OnDrawSpacedGizmo(DirectionType direction)
         {
+            direction.direction.Normalize();
             Quaternion normalQuat = Quaternion.FromToRotation(Vector3.forward, direction.direction);
-
             Handles.ArrowHandleCap(0, Vector3.zero, normalQuat, HandleUtility.GetHandleSize(Vector3.zero) * 1, Event.current.type);
 
-            if (m_Property.isEditable && RotationGizmo(Vector3.zero, ref normalQuat, true))
+            if( m_Property.isEditable && NormalGizmo(Vector3.zero, ref direction.direction, true))
             {
-                direction.direction = (normalQuat * Vector3.forward).normalized;
+                direction.direction.Normalize();
                 m_Property.SetValue(direction);
             }
+        }
+
+        Quaternion m_PrevQuaternion;
+
+
+        public static void AngleHandleDrawFunction(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
+        {
+            Handles.DrawWireDisc(Vector3.zero, Vector3.forward, size * 10);
+            Handles.DrawLine(Vector3.zero, position);
         }
     }
     class VFXVectorGizmo : VFXSpaceableGizmo<Vector>
@@ -55,14 +64,12 @@ namespace UnityEditor.VFX
 
             float length = vector.vector.magnitude;
 
-
-            if (m_Property.isEditable && RotationGizmo(Vector3.zero, ref normalQuat, true))
+            if (m_Property.isEditable && NormalGizmo(Vector3.zero, ref vector.vector, true))
             {
-                vector.vector = (normalQuat * Vector3.forward).normalized * length;
                 m_Property.SetValue(vector);
             }
 
-            if(m_Property.isEditable)
+            if (m_Property.isEditable)
             {
                 Handles.DrawLine(Vector3.zero,vector.vector);
                 EditorGUI.BeginChangeCheck();

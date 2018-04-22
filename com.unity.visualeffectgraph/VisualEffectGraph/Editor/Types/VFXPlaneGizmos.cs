@@ -24,17 +24,32 @@ namespace UnityEditor.VFX
             {
                 normal = Vector3.up;
             }
-            Quaternion normalQuat = Quaternion.FromToRotation(Vector3.forward, plane.normal);
-            Handles.RectangleHandleCap(0, plane.position, normalQuat, 10, Event.current.type);
 
+            var normalQuat = Quaternion.FromToRotation(Vector3.forward,plane.normal);
+
+            float size = 10;
+
+            Vector3[] points = new Vector3[]
+            {
+                new Vector3(size,size,0),
+                new Vector3(size,-size,0),
+                new Vector3(-size,-size,0),
+                new Vector3(-size,size,0),
+                new Vector3(size,size,0),
+            };
+
+            using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.Translate(plane.position) * Matrix4x4.Rotate(normalQuat)))
+            {
+                Handles.DrawPolyLine(points);
+            }
             Handles.ArrowHandleCap(0, plane.position, normalQuat, 5, Event.current.type);
 
             PositionGizmo(plane.position, m_PositionProperty, false);
 
-            if (m_NormalProperty.isEditable && RotationGizmo(plane.position, ref normalQuat, false))
+            if (m_NormalProperty.isEditable && NormalGizmo(plane.position, ref normal, false))
             {
-                Vector3 newNormal = normalQuat * Vector3.forward;
-                m_NormalProperty.SetValue(newNormal);
+                normal.Normalize();
+                m_NormalProperty.SetValue(normal);
             }   
         }
     }

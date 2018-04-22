@@ -44,7 +44,7 @@ namespace UnityEditor.VFX
 
         public bool PositionGizmo(Vector3 position, IProperty<Vector3> positionProperty, bool always)
         {
-            if (positionProperty.isEditable && PositionGizmo(ref position, true))
+            if (positionProperty.isEditable && PositionGizmo(ref position, always))
             {
                 positionProperty.SetValue(position);
                 return true;
@@ -114,6 +114,29 @@ namespace UnityEditor.VFX
                         return true;
                     }
                 }
+            }
+            return false;
+        }
+
+        static Vector3 m_InitialNormal;
+
+        public bool NormalGizmo(Vector3 position,  ref Vector3 normal ,bool always)
+        {
+            if (Event.current.type == EventType.MouseDown)
+            {
+                m_InitialNormal = normal;
+            }
+
+            EditorGUI.BeginChangeCheck();
+            Quaternion delta = Quaternion.identity;
+
+            RotationGizmo(position, ref delta, always);
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                normal = delta * m_InitialNormal;
+
+                return true;
             }
             return false;
         }
