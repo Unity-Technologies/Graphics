@@ -146,39 +146,6 @@ namespace UnityEditor.VFX.UI
         }
 #if false
 
-        static void OnDrawPlaneDataAnchorGizmo(Context context, VisualEffect component)
-        {
-            Plane plane = (Plane)context.value;
-
-            Quaternion normalQuat = Quaternion.FromToRotation(Vector3.forward, plane.normal);
-            Handles.RectangleHandleCap(0, plane.position, normalQuat, 10, Event.current.type);
-
-            Handles.ArrowHandleCap(0, plane.position, normalQuat, 5, Event.current.type);
-
-            if (PositionGizmo(component, plane.space, ref plane.position))
-            {
-                context.value = plane;
-            }
-
-            Vector3 normal = plane.normal.normalized;
-
-            Quaternion rotation = Quaternion.FromToRotation(Vector3.forward, normal);
-
-            EditorGUI.BeginChangeCheck();
-            Quaternion result = Handles.RotationHandle(rotation, plane.position);
-
-
-            //Quaternion result = UnityEditorInternal.Disc.Do(0, rotation, plane.position, Vector3.left, 3, true, 0, false, true, Color.yellow);
-
-            if (GUI.changed)
-            {
-                normal = result * Vector3.forward;
-                plane.normal = normal;
-                context.value = plane;
-            }
-            EditorGUI.EndChangeCheck();
-        }
-
         static void OnDrawCylinderDataAnchorGizmo(Context context, VisualEffect component)
         {
             Cylinder cylinder = (Cylinder)context.value;
