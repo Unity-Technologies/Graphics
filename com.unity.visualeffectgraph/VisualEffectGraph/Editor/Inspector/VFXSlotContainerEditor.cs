@@ -72,25 +72,32 @@ public class VFXSlotContainerEditor : Editor
 
     void OnSceneGUI(SceneView sv)
     {
-        var slotContainer = targets[0] as VFXModel;
-        if ( VFXViewWindow.currentWindow != null )
+        try // make sure we don't break the whole scene
         {
-            VFXView view = VFXViewWindow.currentWindow.graphView;
-            if(view.controller.graph == slotContainer.GetGraph())
+            var slotContainer = targets[0] as VFXModel;
+            if (VFXViewWindow.currentWindow != null)
             {
-                if( slotContainer is VFXParameter)
+                VFXView view = VFXViewWindow.currentWindow.graphView;
+                if (view.controller != null && view.controller.graph == slotContainer.GetGraph())
                 {
-                    var controller = view.controller.GetParameterController(slotContainer as VFXParameter);
+                    if (slotContainer is VFXParameter)
+                    {
+                        var controller = view.controller.GetParameterController(slotContainer as VFXParameter);
 
-                    controller.DrawGizmos(view.attachedComponent);
-                }
-                else
-                {
-                    var controller = view.controller.GetControllerFromModel(slotContainer, 0);
-
-                    controller.DrawGizmos(view.attachedComponent);
+                        controller.DrawGizmos(view.attachedComponent);
+                    }
+                    else
+                    {
+                        var controller = view.controller.GetControllerFromModel(slotContainer, 0);
+                        if (controller != null)
+                            controller.DrawGizmos(view.attachedComponent);
+                    }
                 }
             }
+        }
+        finally
+        {
+
         }
     }
 
