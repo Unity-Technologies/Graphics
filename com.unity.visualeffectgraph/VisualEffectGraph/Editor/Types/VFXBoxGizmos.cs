@@ -31,12 +31,12 @@ namespace UnityEditor.VFX
             VFXAABoxGizmo.DrawBoxSizeDataAnchorGizmo(new AABox(){center = box.center,size = box.size},component,this,m_CenterProperty,m_SizeXProperty, m_SizeYProperty, m_SizeZProperty, fullTranform);
             
 
-            if(m_AnglesProperty.isEditable && RotationGizmo(box.center,ref box.angles)) 
+            if(m_AnglesProperty.isEditable && RotationGizmo(box.center,ref box.angles, false)) 
             {
                 m_AnglesProperty.SetValue(box.angles);
             }
 
-            if (m_CenterProperty.isEditable && PositionGizmo(ref box.center))
+            if (m_CenterProperty.isEditable && PositionGizmo(ref box.center, false))
             {
                 m_CenterProperty.SetValue(box.center);
             }
@@ -61,7 +61,7 @@ namespace UnityEditor.VFX
         {
             DrawBoxSizeDataAnchorGizmo(box,component,this,m_CenterProperty, m_SizeXProperty, m_SizeYProperty, m_SizeZProperty, Matrix4x4.identity);
 
-            if (m_CenterProperty.isEditable && PositionGizmo(ref box.center))
+            if (m_CenterProperty.isEditable && PositionGizmo(ref box.center, true))
             {
                 m_CenterProperty.SetValue(box.center);
             }

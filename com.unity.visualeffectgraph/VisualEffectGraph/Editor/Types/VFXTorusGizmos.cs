@@ -25,7 +25,7 @@ namespace UnityEditor.VFX
 
         public static void DrawTorus(Torus torus,VFXGizmo gizmo, IProperty<Vector3> centerProperty, IProperty<float> minorRadiusProperty, IProperty<float> majorRadiusProperty, IEnumerable<float> angles)
         {
-            if (centerProperty.isEditable && gizmo.PositionGizmo(ref torus.center))
+            if (centerProperty.isEditable && gizmo.PositionGizmo(ref torus.center, true))
             {
                 centerProperty.SetValue(torus.center);
             }

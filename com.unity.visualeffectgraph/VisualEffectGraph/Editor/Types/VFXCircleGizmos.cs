@@ -20,7 +20,7 @@ namespace UnityEditor.VFX
 
         public static void DrawCircle(Circle circle, VFXGizmo gizmo, IProperty<Vector3> centerProperty, IProperty<float> radiusProperty)
         {
-            if (centerProperty.isEditable && gizmo.PositionGizmo(ref circle.center))
+            if (centerProperty.isEditable && gizmo.PositionGizmo(ref circle.center, true))
             {
                 centerProperty.SetValue(circle.center);
             }

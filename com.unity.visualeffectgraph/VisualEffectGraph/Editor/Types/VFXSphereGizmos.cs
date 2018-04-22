@@ -20,7 +20,7 @@ namespace UnityEditor.VFX
 
         public static void DrawSphere(Sphere sphere, VFXGizmo gizmo, IProperty<Vector3> centerProperty, IProperty<float> radiusProperty)
         {
-            if (centerProperty.isEditable && gizmo.PositionGizmo(ref sphere.center))
+            if (centerProperty.isEditable && gizmo.PositionGizmo(ref sphere.center, true))
             {
                 centerProperty.SetValue(sphere.center);
             }

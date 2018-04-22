@@ -31,22 +31,37 @@ namespace UnityEditor.VFX
         protected CoordinateSpace m_CurrentSpace;
         public VisualEffect component {get;set;}
 
-        public bool PositionGizmo(ref Vector3 position)
+        public bool PositionGizmo(ref Vector3 position, bool always)
         {
-            EditorGUI.BeginChangeCheck();
-            position = Handles.PositionHandle(position, m_CurrentSpace == CoordinateSpace.Local ? component.transform.rotation : Quaternion.identity);
-            return EditorGUI.EndChangeCheck();
-        }
-        public bool RotationGizmo(Vector3 position, ref Vector3 rotation)
-        {
-            EditorGUI.BeginChangeCheck();
-
-            Quaternion modifiedRotation = Handles.RotationHandle(Quaternion.Euler(rotation), position);
-
-            if (EditorGUI.EndChangeCheck())
+            if(always || Tools.current == Tool.Move || Tools.current == Tool.Transform)
             {
-                rotation = modifiedRotation.eulerAngles;
+                EditorGUI.BeginChangeCheck();
+                position = Handles.PositionHandle(position, m_CurrentSpace == CoordinateSpace.Local ? component.transform.rotation : Quaternion.identity);
+                return EditorGUI.EndChangeCheck();
+            }
+            return false;
+        }
+        public bool RotationGizmo(Vector3 position, ref Vector3 rotation,bool always)
+        {
+            Quaternion quaternion = Quaternion.Euler(rotation);
+
+            bool result = RotationGizmo(position, ref quaternion, always);
+            if(result)
+            {
+                rotation = quaternion.eulerAngles;
                 return true;
+            }
+            return false;
+        }
+        public bool RotationGizmo(Vector3 position, ref Quaternion rotation,bool always)
+        {
+            if (always || Tools.current == Tool.Rotate || Tools.current == Tool.Transform)
+            {
+                EditorGUI.BeginChangeCheck();
+
+                rotation = Handles.RotationHandle(rotation, position);
+
+                return EditorGUI.EndChangeCheck();
             }
             return false;
         }

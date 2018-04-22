@@ -16,7 +16,7 @@ namespace UnityEditor.VFX
         }
         public override void OnDrawSpacedGizmo(Position position)
         {
-            if (m_Property.isEditable && PositionGizmo( ref position.position))
+            if (m_Property.isEditable && PositionGizmo( ref position.position, true))
             {
                 m_Property.SetValue(position);
             }
