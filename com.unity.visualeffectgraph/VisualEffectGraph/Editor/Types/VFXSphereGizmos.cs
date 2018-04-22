@@ -18,9 +18,9 @@ namespace UnityEditor.VFX
         }
         public static readonly Vector3[] radiusDirections = new Vector3[] { Vector3.left, Vector3.up, Vector3.forward };
 
-        public static void DrawSphere(Sphere sphere,VisualEffect component, VFXGizmo gizmo, IProperty<Vector3> centerProperty, IProperty<float> radiusProperty)
+        public static void DrawSphere(Sphere sphere, VFXGizmo gizmo, IProperty<Vector3> centerProperty, IProperty<float> radiusProperty)
         {
-            if (centerProperty.isEditable && gizmo.PositionGizmo(component, ref sphere.center))
+            if (centerProperty.isEditable && gizmo.PositionGizmo(ref sphere.center))
             {
                 centerProperty.SetValue(sphere.center);
             }
@@ -48,13 +48,13 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override void OnDrawSpacedGizmo(Sphere sphere, VisualEffect component)
+        public override void OnDrawSpacedGizmo(Sphere sphere)
         {
             Handles.DrawWireDisc(sphere.center, Vector3.forward, sphere.radius);
             Handles.DrawWireDisc(sphere.center, Vector3.up, sphere.radius);
             Handles.DrawWireDisc(sphere.center, Vector3.right, sphere.radius);
 
-            DrawSphere(sphere,component,this,m_CenterProperty,m_RadiusProperty);
+            DrawSphere(sphere,this,m_CenterProperty,m_RadiusProperty);
         }
     }
     class VFXArcSphereGizmo : VFXSpaceableGizmo<ArcSphere>
@@ -70,7 +70,7 @@ namespace UnityEditor.VFX
             m_ArcProperty = context.RegisterProperty<float>("arc");
         }
         public static readonly Vector3[] radiusDirections = new Vector3[] { Vector3.left, Vector3.up, Vector3.right, Vector3.down };
-        public override void OnDrawSpacedGizmo(ArcSphere arcSphere, VisualEffect component)
+        public override void OnDrawSpacedGizmo(ArcSphere arcSphere)
         {
             Vector3 center = arcSphere.sphere.center;
             float radius = arcSphere.sphere.radius;
@@ -92,7 +92,7 @@ namespace UnityEditor.VFX
             // Draw 3rd circle around the arc
             Handles.DrawWireArc(center, -Vector3.forward, Vector3.up, arc, radius);
 
-            VFXSphereGizmo.DrawSphere(arcSphere.sphere,component,this,m_CenterProperty,m_RadiusProperty);
+            VFXSphereGizmo.DrawSphere(arcSphere.sphere,this,m_CenterProperty,m_RadiusProperty);
 
             // Arc handle control
             if (m_ArcProperty.isEditable)

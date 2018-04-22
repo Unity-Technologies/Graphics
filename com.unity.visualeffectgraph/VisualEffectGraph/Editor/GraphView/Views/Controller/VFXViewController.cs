@@ -1109,7 +1109,7 @@ namespace UnityEditor.VFX.UI
 
             if (groupNode != null)
             {
-                var nodeController = GetControllerFromModel(parameterController.model, id);
+                var nodeController = GetRootNodeController(parameterController.model, id);
                 if (nodeController != null)
                 {
                     groupNode.AddNode(nodeController);
@@ -1466,7 +1466,23 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public VFXNodeController GetControllerFromModel(VFXModel model, int id)
+
+        public VFXNodeController GetNodeController(VFXModel model, int id)
+        {
+            if( model is VFXBlock)
+            {
+                VFXContextController controller = GetRootNodeController(model.GetParent(), 0) as VFXContextController;
+                if (controller == null)
+                    return null;
+                return controller.blockControllers.FirstOrDefault(t => t.model == model);
+            }
+            else
+            {
+                return GetRootNodeController(model, id);
+            }
+        }
+
+        public VFXNodeController GetRootNodeController(VFXModel model, int id)
         {
             List<VFXNodeController> controller = null;
             m_SyncedModels.TryGetValue(model, out controller);

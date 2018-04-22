@@ -23,7 +23,7 @@ namespace UnityEditor.VFX
             m_SizeZProperty = context.RegisterProperty<float>("size.z");
             m_AnglesProperty = context.RegisterProperty<Vector3>("angles");
         }
-        public override void OnDrawSpacedGizmo(OrientedBox box, VisualEffect component)
+        public override void OnDrawSpacedGizmo(OrientedBox box)
         {
             Matrix4x4 rotate = Matrix4x4.Rotate(Quaternion.Euler(box.angles));
             Matrix4x4 fullTranform = Matrix4x4.Translate(box.center) * rotate * Matrix4x4.Translate(-box.center);
@@ -31,12 +31,12 @@ namespace UnityEditor.VFX
             VFXAABoxGizmo.DrawBoxSizeDataAnchorGizmo(new AABox(){center = box.center,size = box.size},component,this,m_CenterProperty,m_SizeXProperty, m_SizeYProperty, m_SizeZProperty, fullTranform);
             
 
-            if(m_AnglesProperty.isEditable && RotationGizmo(component, box.center,ref box.angles)) 
+            if(m_AnglesProperty.isEditable && RotationGizmo(box.center,ref box.angles)) 
             {
                 m_AnglesProperty.SetValue(box.angles);
             }
 
-            if (m_CenterProperty.isEditable && PositionGizmo(component, ref box.center))
+            if (m_CenterProperty.isEditable && PositionGizmo(ref box.center))
             {
                 m_CenterProperty.SetValue(box.center);
             }
@@ -57,11 +57,11 @@ namespace UnityEditor.VFX
             m_SizeYProperty = context.RegisterProperty<float>("size.y");
             m_SizeZProperty = context.RegisterProperty<float>("size.z");
         }
-        public override void OnDrawSpacedGizmo(AABox box, VisualEffect component)
+        public override void OnDrawSpacedGizmo(AABox box)
         {
             DrawBoxSizeDataAnchorGizmo(box,component,this,m_CenterProperty, m_SizeXProperty, m_SizeYProperty, m_SizeZProperty, Matrix4x4.identity);
 
-            if (m_CenterProperty.isEditable && PositionGizmo(component, ref box.center))
+            if (m_CenterProperty.isEditable && PositionGizmo(ref box.center))
             {
                 m_CenterProperty.SetValue(box.center);
             }

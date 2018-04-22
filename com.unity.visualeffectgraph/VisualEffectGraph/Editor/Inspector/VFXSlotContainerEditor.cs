@@ -88,7 +88,7 @@ public class VFXSlotContainerEditor : Editor
                     }
                     else
                     {
-                        var controller = view.controller.GetControllerFromModel(slotContainer, 0);
+                        var controller = view.controller.GetNodeController(slotContainer, 0);
                         if (controller != null)
                             controller.DrawGizmos(view.attachedComponent);
                     }

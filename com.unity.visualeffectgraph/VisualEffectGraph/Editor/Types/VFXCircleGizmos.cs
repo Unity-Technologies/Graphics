@@ -18,9 +18,9 @@ namespace UnityEditor.VFX
         }
         public static readonly Vector3[] radiusDirections = new Vector3[] { Vector3.left, Vector3.up, Vector3.right, Vector3.down };
 
-        public static void DrawCircle(Circle circle,VisualEffect component, VFXGizmo gizmo, IProperty<Vector3> centerProperty, IProperty<float> radiusProperty)
+        public static void DrawCircle(Circle circle, VFXGizmo gizmo, IProperty<Vector3> centerProperty, IProperty<float> radiusProperty)
         {
-            if (centerProperty.isEditable && gizmo.PositionGizmo(component, ref circle.center))
+            if (centerProperty.isEditable && gizmo.PositionGizmo(ref circle.center))
             {
                 centerProperty.SetValue(circle.center);
             }
@@ -48,12 +48,12 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override void OnDrawSpacedGizmo(Circle circle, VisualEffect component)
+        public override void OnDrawSpacedGizmo(Circle circle)
         {
             // Draw circle around the arc
             Handles.DrawWireDisc(circle.center, -Vector3.forward, circle.radius);
 
-            DrawCircle(circle,component,this,m_CenterProperty,m_RadiusProperty);
+            DrawCircle(circle,this,m_CenterProperty,m_RadiusProperty);
         }
     }
     class VFXArcCircleGizmo : VFXSpaceableGizmo<ArcCircle>
@@ -69,7 +69,7 @@ namespace UnityEditor.VFX
             m_ArcProperty = context.RegisterProperty<float>("arc");
         }
         public static readonly Vector3[] radiusDirections = new Vector3[] { Vector3.left, Vector3.up, Vector3.right, Vector3.down };
-        public override void OnDrawSpacedGizmo(ArcCircle arcCircle, VisualEffect component)
+        public override void OnDrawSpacedGizmo(ArcCircle arcCircle)
         {
             Vector3 center = arcCircle.circle.center;
             float radius = arcCircle.circle.radius;
@@ -78,7 +78,7 @@ namespace UnityEditor.VFX
             // Draw circle around the arc
             Handles.DrawWireArc(center, -Vector3.forward, Vector3.up, arc, radius);
 
-            VFXCircleGizmo.DrawCircle(arcCircle.circle,component,this,m_CenterProperty,m_RadiusProperty);
+            VFXCircleGizmo.DrawCircle(arcCircle.circle,this,m_CenterProperty,m_RadiusProperty);
 
             //Arc first line
             Handles.DrawLine(center, center + Vector3.up * radius);

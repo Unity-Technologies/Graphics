@@ -13,7 +13,7 @@ namespace UnityEditor.VFX
     {
         public interface IProperty<T>
         {
-            bool isEditable{get;}
+            bool isEditable { get; }
 
             void SetValue(T value);
         }
@@ -23,20 +23,21 @@ namespace UnityEditor.VFX
             IProperty<T> RegisterProperty<T>(string memberPath);
         }
         public abstract void RegisterEditableMembers(IContext context);
-        public abstract void CallDrawGizmo(object value, VisualEffect component);
+        public abstract void CallDrawGizmo(object value);
 
         protected const float handleSize = 0.1f;
         protected const float arcHandleSizeMultiplier = 1.25f;
 
         protected CoordinateSpace m_CurrentSpace;
+        public VisualEffect component {get;set;}
 
-        public bool PositionGizmo(VisualEffect component, ref Vector3 position)
+        public bool PositionGizmo(ref Vector3 position)
         {
             EditorGUI.BeginChangeCheck();
             position = Handles.PositionHandle(position, m_CurrentSpace == CoordinateSpace.Local ? component.transform.rotation : Quaternion.identity);
             return EditorGUI.EndChangeCheck();
         }
-        public bool RotationGizmo(VisualEffect component, Vector3 position, ref Vector3 rotation)
+        public bool RotationGizmo(Vector3 position, ref Vector3 rotation)
         {
             EditorGUI.BeginChangeCheck();
 
@@ -66,17 +67,17 @@ namespace UnityEditor.VFX
 
     public abstract class VFXGizmo<T> : VFXGizmo
     {
-        public override void CallDrawGizmo(object value, VisualEffect component)
+        public override void CallDrawGizmo(object value)
         {
             m_CurrentSpace = CoordinateSpace.Global;
-            OnDrawGizmo((T)value,component);
+            OnDrawGizmo((T)value);
         }
-        public abstract void OnDrawGizmo(T value, VisualEffect component);
+        public abstract void OnDrawGizmo(T value);
 
     }
     public abstract class VFXSpaceableGizmo<T> : VFXGizmo<T> where T : ISpaceable
     {
-        public override void OnDrawGizmo(T value, VisualEffect component)
+        public override void OnDrawGizmo(T value)
         {
             m_CurrentSpace = value.space;
             Matrix4x4 oldMatrix = Handles.matrix;
@@ -87,11 +88,11 @@ namespace UnityEditor.VFX
                 Handles.matrix = component.transform.localToWorldMatrix;
             }
 
-            OnDrawSpacedGizmo(value,component);
+            OnDrawSpacedGizmo(value);
 
             Handles.matrix = oldMatrix;
         }
-        public abstract void OnDrawSpacedGizmo(T value, VisualEffect component);
+        public abstract void OnDrawSpacedGizmo(T value);
     }
 }
 

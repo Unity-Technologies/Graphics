@@ -144,7 +144,7 @@ namespace UnityEditor.VFX.UI
                 if (m_Index == -1) return Enumerable.Empty<Controller>();
 
                 if (m_UI.groupInfos[m_Index].contents != null)
-                    return m_UI.groupInfos[m_Index].contents.Where(t => t.isStickyNote || t.model != null).Select(t => t.isStickyNote ? (Controller)m_ViewController.GetStickyNoteController(t.id) : (Controller)m_ViewController.GetControllerFromModel(t.model, t.id)).Where(t => t != null);
+                    return m_UI.groupInfos[m_Index].contents.Where(t => t.isStickyNote || t.model != null).Select(t => t.isStickyNote ? (Controller)m_ViewController.GetStickyNoteController(t.id) : (Controller)m_ViewController.GetRootNodeController(t.model, t.id)).Where(t => t != null);
                 return Enumerable.Empty<Controller>();
             }
             //set { m_UI.groupInfos[m_Index].contents = value.Select(t => new VFXNodeID(t.model, t.id)).ToArray(); }

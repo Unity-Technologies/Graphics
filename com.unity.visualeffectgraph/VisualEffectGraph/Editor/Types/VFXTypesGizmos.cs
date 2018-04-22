@@ -14,9 +14,9 @@ namespace UnityEditor.VFX
         {
             m_Property = context.RegisterProperty<Position>("");
         }
-        public override void OnDrawSpacedGizmo(Position position, VisualEffect component)
+        public override void OnDrawSpacedGizmo(Position position)
         {
-            if (m_Property.isEditable && PositionGizmo(component,  ref position.position))
+            if (m_Property.isEditable && PositionGizmo( ref position.position))
             {
                 m_Property.SetValue(position);
             }
