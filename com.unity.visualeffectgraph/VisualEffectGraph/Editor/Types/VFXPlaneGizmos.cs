@@ -29,12 +29,9 @@ namespace UnityEditor.VFX
 
             Handles.ArrowHandleCap(0, plane.position, normalQuat, 5, Event.current.type);
 
-            if (m_PositionProperty.isEditable && PositionGizmo(ref plane.position, false))
-            {
-                m_PositionProperty.SetValue(plane.position);
-            }
+            PositionGizmo(plane.position, m_PositionProperty, false);
 
-            if(m_NormalProperty.isEditable && RotationGizmo(plane.position, ref normalQuat, false))
+            if (m_NormalProperty.isEditable && RotationGizmo(plane.position, ref normalQuat, false))
             {
                 Vector3 newNormal = normalQuat * Vector3.forward;
                 m_NormalProperty.SetValue(newNormal);

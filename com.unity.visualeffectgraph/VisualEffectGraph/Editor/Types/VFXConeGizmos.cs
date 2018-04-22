@@ -91,10 +91,8 @@ namespace UnityEditor.VFX
 
         public static void DrawCone(Cone cone, VFXGizmo gizmo, ref Extremities extremities, IProperty<Vector3> centerProperty, IProperty<float> radius0Property, IProperty<float> radius1Property, IProperty<float> heightProperty)
         {
-            if (centerProperty.isEditable && gizmo.PositionGizmo(ref cone.center, true))
-            {
-                centerProperty.SetValue(cone.center);
-            }
+            gizmo.PositionGizmo(cone.center, centerProperty, true);
+
             using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.Translate(cone.center) ))
             {
                 if (radius0Property.isEditable)
@@ -182,6 +180,7 @@ namespace UnityEditor.VFX
             float arc = arcCone.arc * Mathf.Rad2Deg;
             Cone cone = new Cone { center = arcCone.center, radius0 = arcCone.radius0, radius1 = arcCone.radius1, height = arcCone.height };
             var extremities = new VFXConeGizmo.Extremities(cone,arc);
+            Vector3 arcDirection = Quaternion.AngleAxis(arc, Vector3.up) * Vector3.forward;
 
             using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.Translate(arcCone.center)))
             {
@@ -192,54 +191,24 @@ namespace UnityEditor.VFX
                 {
                     Handles.DrawLine(extremities.extremities[i], extremities.extremities[i + extremities.extremities.Length / 2]);
                 }
+
+                Handles.DrawLine(extremities.topCap, extremities.extremities[0]);
+                Handles.DrawLine(extremities.bottomCap, extremities.extremities[extremities.extremities.Length / 2]);
+
+
+                Handles.DrawLine(extremities.topCap, extremities.topCap + arcDirection * arcCone.radius1);
+                Handles.DrawLine(extremities.bottomCap, arcDirection * arcCone.radius0);
+
+                Handles.DrawLine(arcDirection * arcCone.radius0, extremities.topCap + arcDirection * arcCone.radius1);
             }
 
             VFXConeGizmo.DrawCone(cone,this,ref extremities, m_CenterProperty,m_Radius0Property, m_Radius1Property,m_HeightProperty);
-
-            Handles.DrawLine(extremities.topCap, extremities.extremities[0]);
-            Handles.DrawLine(extremities.bottomCap, extremities.extremities[extremities.extremities.Length/2]);
-
-            Vector3 arcDirection = Quaternion.AngleAxis(arc, Vector3.up) * Vector3.forward;
-
-            Handles.DrawLine(extremities.topCap, extremities.topCap + arcDirection * arcCone.radius1);
-            Handles.DrawLine(extremities.bottomCap, arcDirection * arcCone.radius0);
-
-            Handles.DrawLine(arcDirection * arcCone.radius0, extremities.topCap + arcDirection * arcCone.radius1);
 
             float radius = arcCone.radius0 > arcCone.radius1 ? arcCone.radius0 : arcCone.radius1;
             Vector3 center = arcCone.radius0 > arcCone.radius1 ? Vector3.zero : extremities.topCap;
             Vector3 arcHandlePosition = arcDirection * radius;
 
-            // Arc handle control
-            if (m_ArcProperty.isEditable)
-            {
-                using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.Translate(arcCone.center + center)))
-                {
-                    EditorGUI.BeginChangeCheck();
-                    {
-                        arcHandlePosition = Handles.Slider2D(
-                                arcHandlePosition,
-                                Vector3.up,
-                                Vector3.forward,
-                                Vector3.right,
-                                handleSize * arcHandleSizeMultiplier * HandleUtility.GetHandleSize(arcHandlePosition),
-                                DefaultAngleHandleDrawFunction,
-                                0
-                                );
-                    }
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        float newArc = Vector3.Angle(Vector3.forward, arcHandlePosition) * Mathf.Sign(Vector3.Dot(Vector3.right, arcHandlePosition));
-                        arc += Mathf.DeltaAngle(arc, newArc);
-                        arc = Mathf.Repeat(arc, 360.0f);
-                        m_ArcProperty.SetValue(arc * Mathf.Deg2Rad);
-                    }
-                }
-            }
-            else
-            {
-
-            }
+            ArcGizmo(center, radius, arc, m_ArcProperty, Quaternion.identity, true);
         }
     }
 }

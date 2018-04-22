@@ -29,17 +29,8 @@ namespace UnityEditor.VFX
             Matrix4x4 fullTranform = Matrix4x4.Translate(box.center) * rotate * Matrix4x4.Translate(-box.center);
             
             VFXAABoxGizmo.DrawBoxSizeDataAnchorGizmo(new AABox(){center = box.center,size = box.size},component,this,m_CenterProperty,m_SizeXProperty, m_SizeYProperty, m_SizeZProperty, fullTranform);
-            
 
-            if(m_AnglesProperty.isEditable && RotationGizmo(box.center,ref box.angles, false)) 
-            {
-                m_AnglesProperty.SetValue(box.angles);
-            }
-
-            if (m_CenterProperty.isEditable && PositionGizmo(ref box.center, false))
-            {
-                m_CenterProperty.SetValue(box.center);
-            }
+            RotationGizmo(box.center, box.angles, m_AnglesProperty, true);
         }
 
     }
@@ -60,11 +51,6 @@ namespace UnityEditor.VFX
         public override void OnDrawSpacedGizmo(AABox box)
         {
             DrawBoxSizeDataAnchorGizmo(box,component,this,m_CenterProperty, m_SizeXProperty, m_SizeYProperty, m_SizeZProperty, Matrix4x4.identity);
-
-            if (m_CenterProperty.isEditable && PositionGizmo(ref box.center, true))
-            {
-                m_CenterProperty.SetValue(box.center);
-            }
         }
 
 
@@ -158,6 +144,9 @@ namespace UnityEditor.VFX
             Vector3 zFaceMiddle = (points[0] + points[1] + points[2] + points[3]) * 0.25f;
             Vector3 minusZFaceMiddle = (points[4] + points[5] + points[6] + points[7]) * 0.25f;
             changed = TwoSidedSizeHandle(Color.blue, zFaceMiddle, minusZFaceMiddle, center, sizeZProperty, centerProperty) || changed;
+
+
+            changed = gizmo.PositionGizmo(box.center, centerProperty, true) || changed;
 
             return changed;
         }

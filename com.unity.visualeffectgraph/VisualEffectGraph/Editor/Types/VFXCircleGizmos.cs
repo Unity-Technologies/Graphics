@@ -20,10 +20,7 @@ namespace UnityEditor.VFX
 
         public static void DrawCircle(Circle circle, VFXGizmo gizmo, IProperty<Vector3> centerProperty, IProperty<float> radiusProperty)
         {
-            if (centerProperty.isEditable && gizmo.PositionGizmo(ref circle.center, true))
-            {
-                centerProperty.SetValue(circle.center);
-            }
+            gizmo.PositionGizmo(circle.center, centerProperty,true);
 
             // Radius controls
             if (radiusProperty.isEditable)
@@ -82,38 +79,9 @@ namespace UnityEditor.VFX
 
             //Arc first line
             Handles.DrawLine(center, center + Vector3.up * radius);
+            Handles.DrawLine(center, center + Quaternion.AngleAxis(arc, -Vector3.forward) * Vector3.up * radius);
 
-            // Arc handle control
-            if (m_ArcProperty.isEditable)
-            {
-                using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.Translate(center) * Matrix4x4.Rotate(Quaternion.Euler(-90.0f, 0.0f, 0.0f))))
-                {
-                    Vector3 arcHandlePosition = Quaternion.AngleAxis(arc, Vector3.up) * Vector3.forward * radius;
-                    EditorGUI.BeginChangeCheck();
-                    {
-                        arcHandlePosition = Handles.Slider2D(
-                                arcHandlePosition,
-                                Vector3.up,
-                                Vector3.forward,
-                                Vector3.right,
-                                handleSize * arcHandleSizeMultiplier * HandleUtility.GetHandleSize(center + arcHandlePosition),
-                                DefaultAngleHandleDrawFunction,
-                                0
-                                );
-                    }
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        float newArc = Vector3.Angle(Vector3.forward, arcHandlePosition) * Mathf.Sign(Vector3.Dot(Vector3.right, arcHandlePosition));
-                        arc += Mathf.DeltaAngle(arc, newArc);
-                        arc = Mathf.Repeat(arc, 360.0f);
-                        m_ArcProperty.SetValue(arc * Mathf.Deg2Rad);
-                    }
-                }
-            }
-            else
-            {
-                Handles.DrawLine(center, center +  Quaternion.AngleAxis(arc, -Vector3.forward) * Vector3.up * radius);
-            }
+            ArcGizmo(center, radius, arc, m_ArcProperty, Quaternion.Euler(-90.0f, 0.0f, 0.0f), true);
         }
     }
 }

@@ -39,10 +39,8 @@ namespace UnityEditor.VFX
             extremities[6] = bottomCap + Vector3.left * cylinder.radius;
             extremities[7] = bottomCap - Vector3.left * cylinder.radius;
 
-            if (m_CenterProperty.isEditable && PositionGizmo(ref cylinder.center, true))
-            {
-                m_CenterProperty.SetValue(cylinder.center);
-            }
+
+            PositionGizmo(cylinder.center, m_CenterProperty, true);
 
             using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.Translate(cylinder.center)))
             {

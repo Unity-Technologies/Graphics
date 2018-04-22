@@ -9,17 +9,14 @@ namespace UnityEditor.VFX
 {
     class VFXPositionGizmo : VFXSpaceableGizmo<Position>
     {
-        IProperty<Position> m_Property;
+        IProperty<Vector3> m_Property;
         public override void RegisterEditableMembers(IContext context)
         {
-            m_Property = context.RegisterProperty<Position>("");
+            m_Property = context.RegisterProperty<Vector3>("position");
         }
         public override void OnDrawSpacedGizmo(Position position)
         {
-            if (m_Property.isEditable && PositionGizmo( ref position.position, true))
-            {
-                m_Property.SetValue(position);
-            }
+            PositionGizmo(position.position,m_Property, true);
         }
     }
 }

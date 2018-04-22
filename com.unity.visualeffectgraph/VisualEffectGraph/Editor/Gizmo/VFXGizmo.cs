@@ -41,6 +41,27 @@ namespace UnityEditor.VFX
             }
             return false;
         }
+
+        public bool PositionGizmo(Vector3 position, IProperty<Vector3> positionProperty, bool always)
+        {
+            if (positionProperty.isEditable && PositionGizmo(ref position, true))
+            {
+                positionProperty.SetValue(position);
+                return true;
+            }
+            return false;
+        }
+
+        public bool RotationGizmo(Vector3 position, Vector3 rotation, IProperty<Vector3> anglesProperty, bool always)
+        {
+            if( anglesProperty.isEditable && RotationGizmo(position,ref rotation, always))
+            {
+                anglesProperty.SetValue(rotation);
+                return true;
+            }
+            return false;
+        }
+
         public bool RotationGizmo(Vector3 position, ref Vector3 rotation,bool always)
         {
             Quaternion quaternion = Quaternion.Euler(rotation);
@@ -65,6 +86,38 @@ namespace UnityEditor.VFX
             }
             return false;
         }
+
+        public bool ArcGizmo(Vector3 center, float radius, float degArc,IProperty<float> arcProperty, Quaternion rotation, bool always)
+        {
+            // Arc handle control
+            if (arcProperty.isEditable && (always || Tools.current == Tool.Rotate || Tools.current == Tool.Transform))
+            {
+                using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.Translate(center) * Matrix4x4.Rotate(rotation)))
+                {
+                    EditorGUI.BeginChangeCheck();
+                    Vector3 arcHandlePosition =  Quaternion.AngleAxis(degArc, Vector3.up) * Vector3.forward * radius;
+                    arcHandlePosition = Handles.Slider2D(
+                                arcHandlePosition,
+                                Vector3.up,
+                                Vector3.forward,
+                                Vector3.right,
+                                handleSize * arcHandleSizeMultiplier * HandleUtility.GetHandleSize(arcHandlePosition),
+                                DefaultAngleHandleDrawFunction,
+                                0
+                                );
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        float newArc = Vector3.Angle(Vector3.forward, arcHandlePosition) * Mathf.Sign(Vector3.Dot(Vector3.right, arcHandlePosition));
+                        degArc += Mathf.DeltaAngle(degArc, newArc);
+                        degArc = Mathf.Repeat(degArc, 360.0f);
+                        arcProperty.SetValue(degArc * Mathf.Deg2Rad);
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
         public static void DefaultAngleHandleDrawFunction(int controlID, Vector3 position, Quaternion rotation, float size, EventType eventType)
         {
             Handles.DrawLine(Vector3.zero, position);

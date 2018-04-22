@@ -25,13 +25,9 @@ namespace UnityEditor.VFX
 
         public static void DrawTorus(Torus torus,VFXGizmo gizmo, IProperty<Vector3> centerProperty, IProperty<float> minorRadiusProperty, IProperty<float> majorRadiusProperty, IEnumerable<float> angles)
         {
-            if (centerProperty.isEditable && gizmo.PositionGizmo(ref torus.center, true))
-            {
-                centerProperty.SetValue(torus.center);
-            }
+            gizmo.PositionGizmo(torus.center, centerProperty, true);
 
             // Radius controls
-
 
             using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.Translate(torus.center) * Matrix4x4.Rotate(Quaternion.Euler(-90.0f, 0.0f, 0.0f))))
             {
@@ -133,33 +129,7 @@ namespace UnityEditor.VFX
             Torus torus = new Torus() { center = arcTorus.center, minorRadius = arcTorus.minorRadius, majorRadius = arcTorus.majorRadius };
             VFXTorusGizmo.DrawTorus(torus,this,m_CenterProperty, m_MinorRadiusProperty, m_MajorRadiusProperty, VFXTorusGizmo.angles.Concat(new float[] { arc }).Where(t=>t <= arc));
 
-            // Arc handle control
-            if (m_ArcProperty.isEditable)
-            {
-                using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.Translate(center) * Matrix4x4.Rotate(Quaternion.Euler(-90.0f, 0.0f, 0.0f))))
-                {
-                    Vector3 arcHandlePosition = Quaternion.AngleAxis(arc, Vector3.up) * Vector3.forward * arcTorus.majorRadius;
-                    EditorGUI.BeginChangeCheck();
-                    {
-                        arcHandlePosition = Handles.Slider2D(
-                                arcHandlePosition,
-                                Vector3.up,
-                                Vector3.forward,
-                                Vector3.right,
-                                handleSize * arcHandleSizeMultiplier * HandleUtility.GetHandleSize(center + arcHandlePosition),
-                                DefaultAngleHandleDrawFunction,
-                                0
-                                );
-                    }
-                    if (EditorGUI.EndChangeCheck())
-                    {
-                        float newArc = Vector3.Angle(Vector3.forward, arcHandlePosition) * Mathf.Sign(Vector3.Dot(Vector3.right, arcHandlePosition));
-                        arc += Mathf.DeltaAngle(arc, newArc);
-                        arc = Mathf.Repeat(arc, 360.0f);
-                        m_ArcProperty.SetValue(arc * Mathf.Deg2Rad);
-                    }
-                }
-            }
+            ArcGizmo(center, arcTorus.majorRadius, arc, m_ArcProperty, Quaternion.Euler(-90.0f, 0.0f, 0.0f), true);
         }
     }
 }
