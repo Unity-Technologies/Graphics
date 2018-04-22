@@ -130,6 +130,10 @@ namespace  UnityEditor.VFX.UI
             }
             currentWindow = null;
         }
+        void OnFocus()
+        {
+            graphView.UpdateGloblalSelection();
+        }
 
         void OnSelectionChange()
         {

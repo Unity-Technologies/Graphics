@@ -41,6 +41,7 @@ public class VFXParameterEditor : VFXSlotContainerEditor
             controller.useCount--;
             controller = null;
         }
+        base.OnDisable();
     }
 
     public override void DoInspectorGUI()

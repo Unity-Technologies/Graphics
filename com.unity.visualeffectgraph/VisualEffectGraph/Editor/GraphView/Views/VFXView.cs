@@ -184,7 +184,6 @@ namespace UnityEditor.VFX.UI
 
         void DisconnectController()
         {
-            SceneView.onSceneGUIDelegate -= OnDrawGizmo;
             m_Controller.UnregisterHandler(this);
             m_Controller.useCount--;
 
@@ -228,34 +227,13 @@ namespace UnityEditor.VFX.UI
             elementAddedToGroup = ElementAddedToGroupNode;
             elementRemovedFromGroup = ElementRemovedFromGroupNode;
             groupTitleChanged = GroupNodeTitleChanged;
-
-
-            //VisualEffectAsset.drawVisualEffectGizmo += OnDrawGizmo;
-            SceneView.onSceneGUIDelegate += OnDrawGizmo;
         }
 
-        void OnDrawGizmo(SceneView sv)
+        public VisualEffect attachedComponent
         {
-            VisualEffect component = m_ComponentBoard != null ? m_ComponentBoard.GetAttachedComponent() : null;
-            if (selection.Count != 1)
-                return;
-
-            VFXNodeUI selectedObject = selection.First() as VFXNodeUI;
-
-            if (selectedObject != null)
+            get
             {
-                selectedObject.controller.DrawGizmos(component);
-            }
-            else 
-            {
-                VFXBlackboardField field = selection.First() as VFXBlackboardField;
-
-                if( field != null)
-                {
-                    VFXBlackboardRow row = field.GetFirstAncestorOfType<VFXBlackboardRow>();
-                    if( row != null)
-                        row.controller.DrawGizmos(component);
-                }
+                return m_ComponentBoard != null ? m_ComponentBoard.GetAttachedComponent() : null;
             }
         }
 
@@ -595,7 +573,7 @@ namespace UnityEditor.VFX.UI
             }
 
             // needed if some or all the selection has been deleted, so we no longer show the deleted object in the inspector.
-            SelectionUpdated();
+            UpdateGloblalSelection();
             Profiler.EndSample();
             m_InControllerChanged = false;
             if (m_UpdateUIBounds)
@@ -1361,7 +1339,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void SelectionUpdated()
+        public void UpdateGloblalSelection()
         {
             if (controller == null) return;
 
@@ -1405,13 +1383,13 @@ namespace UnityEditor.VFX.UI
         public override void AddToSelection(ISelectable selectable)
         {
             base.AddToSelection(selectable);
-            SelectionUpdated();
+            UpdateGloblalSelection();
         }
 
         public override void RemoveFromSelection(ISelectable selectable)
         {
             base.RemoveFromSelection(selectable);
-            SelectionUpdated();
+            UpdateGloblalSelection();
         }
 
         public override void ClearSelection()
@@ -1419,7 +1397,7 @@ namespace UnityEditor.VFX.UI
             bool selectionEmpty = selection.Count() == 0;
             base.ClearSelection();
             if (!selectionEmpty)
-                SelectionUpdated();
+                UpdateGloblalSelection();
         }
 
         VFXBlackboard m_Blackboard;

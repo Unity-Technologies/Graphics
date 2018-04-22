@@ -20,6 +20,12 @@ public class VFXSlotContainerEditor : Editor
 {
     protected void OnEnable()
     {
+        SceneView.onSceneGUIDelegate += OnSceneGUI;
+    }
+
+    protected void OnDisable()
+    {
+        SceneView.onSceneGUIDelegate -= OnSceneGUI;
     }
 
     public virtual void DoInspectorGUI()
@@ -58,6 +64,31 @@ public class VFXSlotContainerEditor : Editor
                     {
                         visibleChildren = EditorGUILayout.PropertyField(childProp);
                     }
+                }
+            }
+        }
+    }
+
+
+    void OnSceneGUI(SceneView sv)
+    {
+        var slotContainer = targets[0] as VFXModel;
+        if ( VFXViewWindow.currentWindow != null )
+        {
+            VFXView view = VFXViewWindow.currentWindow.graphView;
+            if(view.controller.graph == slotContainer.GetGraph())
+            {
+                if( slotContainer is VFXParameter)
+                {
+                    var controller = view.controller.GetParameterController(slotContainer as VFXParameter);
+
+                    controller.DrawGizmos(view.attachedComponent);
+                }
+                else
+                {
+                    var controller = view.controller.GetControllerFromModel(slotContainer, 0);
+
+                    controller.DrawGizmos(view.attachedComponent);
                 }
             }
         }
