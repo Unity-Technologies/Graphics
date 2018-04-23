@@ -50,7 +50,15 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override ValidTypeRule typeFilter
+        {
+            get
+            {
+                return ValidTypeRule.allowEverythingExceptInteger;
+            }
+        }
+
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             if (GetMaskSize() == 0)
                 return new VFXExpression[] {};
