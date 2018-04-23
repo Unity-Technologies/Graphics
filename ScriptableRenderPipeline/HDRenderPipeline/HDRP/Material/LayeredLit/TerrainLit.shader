@@ -9,6 +9,11 @@ Shader "HDRenderPipeline/TerrainLit"
         [HideInInspector] _Splat2("Layer 2", 2D) = "white" {}
         [HideInInspector] _Splat3("Layer 3", 2D) = "white" {}
 
+        [HideInInspector] _Normal0("Normal 0", 2D) = "bump" {}
+        [HideInInspector] _Normal1("Normal 1", 2D) = "bump" {}
+        [HideInInspector] _Normal2("Normal 2", 2D) = "bump" {}
+        [HideInInspector] _Normal3("Normal 3", 2D) = "bump" {}
+
         // Since we don't use a mask texture for getting the mask, we'll need the metallic property to be serialized as in sRGB space.
         [HideInInspector] [Gamma] _Metallic0("Metallic 0", Range(0.0, 1.0)) = 0
         [HideInInspector] [Gamma] _Metallic1("Metallic 1", Range(0.0, 1.0)) = 0
@@ -70,36 +75,6 @@ Shader "HDRenderPipeline/TerrainLit"
         _MaskMap1("MaskMap1", 2D) = "white" {}
         _MaskMap2("MaskMap2", 2D) = "white" {}
         _MaskMap3("MaskMap3", 2D) = "white" {}
-
-        _NormalMap0("NormalMap0", 2D) = "bump" {}
-        _NormalMap1("NormalMap1", 2D) = "bump" {}
-        _NormalMap2("NormalMap2", 2D) = "bump" {}
-        _NormalMap3("NormalMap3", 2D) = "bump" {}
-
-        _NormalMapOS0("NormalMapOS0", 2D) = "white" {}
-        _NormalMapOS1("NormalMapOS1", 2D) = "white" {}
-        _NormalMapOS2("NormalMapOS2", 2D) = "white" {}
-        _NormalMapOS3("NormalMapOS3", 2D) = "white" {}
-
-        _NormalScale0("_NormalScale0", Range(0.0, 2.0)) = 1
-        _NormalScale1("_NormalScale1", Range(0.0, 2.0)) = 1
-        _NormalScale2("_NormalScale2", Range(0.0, 2.0)) = 1
-        _NormalScale3("_NormalScale3", Range(0.0, 2.0)) = 1
-
-        _BentNormalMap0("BentNormalMap0", 2D) = "bump" {}
-        _BentNormalMap1("BentNormalMap1", 2D) = "bump" {}
-        _BentNormalMap2("BentNormalMap2", 2D) = "bump" {}
-        _BentNormalMap3("BentNormalMap3", 2D) = "bump" {}
-
-        _BentNormalMapOS0("BentNormalMapOS0", 2D) = "white" {}
-        _BentNormalMapOS1("BentNormalMapOS1", 2D) = "white" {}
-        _BentNormalMapOS2("BentNormalMapOS2", 2D) = "white" {}
-        _BentNormalMapOS3("BentNormalMapOS3", 2D) = "white" {}
-
-        [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace0("NormalMap space", Float) = 0
-        [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace1("NormalMap space", Float) = 0
-        [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace2("NormalMap space", Float) = 0
-        [Enum(TangentSpace, 0, ObjectSpace, 1)] _NormalMapSpace3("NormalMap space", Float) = 0
 
         _DiffusionProfile0("Diffusion Profile0", Int) = 0
         _DiffusionProfile1("Diffusion Profile1", Int) = 0
@@ -193,10 +168,6 @@ Shader "HDRenderPipeline/TerrainLit"
     //#pragma shader_feature _ _LAYER_MAPPING_PLANAR1 _LAYER_MAPPING_TRIPLANAR1
     //#pragma shader_feature _ _LAYER_MAPPING_PLANAR2 _LAYER_MAPPING_TRIPLANAR2
     //#pragma shader_feature _ _LAYER_MAPPING_PLANAR3 _LAYER_MAPPING_TRIPLANAR3
-    #pragma shader_feature _NORMALMAP_TANGENT_SPACE0
-    #pragma shader_feature _NORMALMAP_TANGENT_SPACE1
-    #pragma shader_feature _NORMALMAP_TANGENT_SPACE2
-    #pragma shader_feature _NORMALMAP_TANGENT_SPACE3
 
     #pragma shader_feature _NORMALMAP0
     #pragma shader_feature _NORMALMAP1
@@ -206,10 +177,6 @@ Shader "HDRenderPipeline/TerrainLit"
     #pragma shader_feature _MASKMAP1
     #pragma shader_feature _MASKMAP2
     #pragma shader_feature _MASKMAP3
-    #pragma shader_feature _BENTNORMALMAP0
-    #pragma shader_feature _BENTNORMALMAP1
-    #pragma shader_feature _BENTNORMALMAP2
-    #pragma shader_feature _BENTNORMALMAP3
     #pragma shader_feature _EMISSIVE_COLOR_MAP
     #pragma shader_feature _ENABLESPECULAROCCLUSION
     #pragma shader_feature _HEIGHTMAP0

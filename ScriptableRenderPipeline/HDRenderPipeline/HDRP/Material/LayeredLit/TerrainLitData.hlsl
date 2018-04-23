@@ -15,12 +15,16 @@
 #define LAYERS_HEIGHTMAP_ENABLE (defined(_HEIGHTMAP0) || defined(_HEIGHTMAP1) || (_LAYER_COUNT > 2 && defined(_HEIGHTMAP2)) || (_LAYER_COUNT > 3 && defined(_HEIGHTMAP3)))
 
 TEXTURE2D(_Splat0);
+TEXTURE2D(_Normal0);
 float4 _Splat0_ST;
 TEXTURE2D(_Splat1);
+TEXTURE2D(_Normal1);
 float4 _Splat1_ST;
 TEXTURE2D(_Splat2);
+TEXTURE2D(_Normal2);
 float4 _Splat2_ST;
 TEXTURE2D(_Splat3);
+TEXTURE2D(_Normal3);
 float4 _Splat3_ST;
 SAMPLER(sampler_Splat0);
 
@@ -28,59 +32,15 @@ SAMPLER(sampler_Splat0);
 #define _BaseColor1 float4(1,1,1,1)
 #define _BaseColor2 float4(1,1,1,1)
 #define _BaseColor3 float4(1,1,1,1)
+#define _NormalScale0 1
+#define _NormalScale1 1
+#define _NormalScale2 1
+#define _NormalScale3 1
 
 // Number of sampler are limited, we need to share sampler as much as possible with lit material
 // for this we put the constraint that the sampler are the same in a layered material for all textures of the same type
 // then we take the sampler matching the first textures use of this type
-#if defined(_NORMALMAP0)
-    #if defined(_NORMALMAP_TANGENT_SPACE0)
-    #define SAMPLER_NORMALMAP_IDX sampler_NormalMap0
-    #else
-    #define SAMPLER_NORMALMAP_IDX sampler_NormalMapOS0
-    #endif
-#elif defined(_NORMALMAP1)
-    #if defined(_NORMALMAP_TANGENT_SPACE1)
-    #define SAMPLER_NORMALMAP_IDX sampler_NormalMap1
-    #else
-    #define SAMPLER_NORMALMAP_IDX sampler_NormalMapOS1
-    #endif
-#elif defined(_NORMALMAP2)
-    #if defined(_NORMALMAP_TANGENT_SPACE2)
-    #define SAMPLER_NORMALMAP_IDX sampler_NormalMap2
-    #else
-    #define SAMPLER_NORMALMAP_IDX sampler_NormalMapOS2
-    #endif
-#elif defined(_NORMALMAP3)
-    #if defined(_NORMALMAP_TANGENT_SPACE3)
-    #define SAMPLER_NORMALMAP_IDX sampler_NormalMap3
-    #else
-    #define SAMPLER_NORMALMAP_IDX sampler_NormalMapOS3
-    #endif
-#elif defined(_BENTNORMALMAP0)
-    #if defined(_NORMALMAP_TANGENT_SPACE0)
-    #define SAMPLER_NORMALMAP_IDX sampler_BentNormalMap0
-    #else
-    #define SAMPLER_NORMALMAP_IDX sampler_BentNormalMapOS0
-    #endif
-#elif defined(_BENTNORMALMAP1)
-    #if defined(_NORMALMAP_TANGENT_SPACE1)
-    #define SAMPLER_NORMALMAP_IDX sampler_BentNormalMap1
-    #else
-    #define SAMPLER_NORMALMAP_IDX sampler_BentNormalMapOS1
-    #endif
-#elif defined(_BENTNORMALMAP2)
-    #if defined(_NORMALMAP_TANGENT_SPACE2)
-    #define SAMPLER_NORMALMAP_IDX sampler_BentNormalMap2
-    #else
-    #define SAMPLER_NORMALMAP_IDX sampler_BentNormalMapOS2
-    #endif
-#else
-    #if defined(_NORMALMAP_TANGENT_SPACE3)
-    #define SAMPLER_NORMALMAP_IDX sampler_BentNormalMap3
-    #else
-    #define SAMPLER_NORMALMAP_IDX sampler_BentNormalMapOS3
-    #endif
-#endif
+#define SAMPLER_NORMALMAP_IDX sampler_Splat0
 
 #if defined(_MASKMAP0)
 #define SAMPLER_MASKMAP_IDX sampler_MaskMap0
@@ -107,7 +67,9 @@ SAMPLER(sampler_Splat0);
 #define ADD_ZERO_IDX(Name) Name##0
 #define _BaseColorMap _Splat
 #define sampler_BaseColorMap sampler_Splat
+#define _NormalMap _Normal
 #define ALPHA_USED_AS_SMOOTHNESS
+#define _NORMALMAP_TANGENT_SPACE_IDX
 
 // include LitDataInternal multiple time to define the variation of GetSurfaceData for each layer
 #define LAYER_INDEX 0
@@ -115,90 +77,63 @@ SAMPLER(sampler_Splat0);
 #ifdef _NORMALMAP0
 #define _NORMALMAP_IDX
 #endif
-#ifdef _NORMALMAP_TANGENT_SPACE0
-#define _NORMALMAP_TANGENT_SPACE_IDX
-#endif
 #ifdef _MASKMAP0
 #define _MASKMAP_IDX
-#endif
-#ifdef _BENTNORMALMAP0
-#define _BENTNORMALMAP_IDX
 #endif
 #include "../Lit/LitDataIndividualLayer.hlsl"
 #undef LAYER_INDEX
 #undef ADD_IDX
 #undef _NORMALMAP_IDX
-#undef _NORMALMAP_TANGENT_SPACE_IDX
 #undef _MASKMAP_IDX
-#undef _BENTNORMALMAP_IDX
 
 #define LAYER_INDEX 1
 #define ADD_IDX(Name) Name##1
 #ifdef _NORMALMAP1
 #define _NORMALMAP_IDX
 #endif
-#ifdef _NORMALMAP_TANGENT_SPACE1
-#define _NORMALMAP_TANGENT_SPACE_IDX
-#endif
 #ifdef _MASKMAP1
 #define _MASKMAP_IDX
-#endif
-#ifdef _BENTNORMALMAP1
-#define _BENTNORMALMAP_IDX
 #endif
 #include "../Lit/LitDataIndividualLayer.hlsl"
 #undef LAYER_INDEX
 #undef ADD_IDX
 #undef _NORMALMAP_IDX
-#undef _NORMALMAP_TANGENT_SPACE_IDX
 #undef _MASKMAP_IDX
-#undef _BENTNORMALMAP_IDX
 
 #define LAYER_INDEX 2
 #define ADD_IDX(Name) Name##2
 #ifdef _NORMALMAP2
 #define _NORMALMAP_IDX
 #endif
-#ifdef _NORMALMAP_TANGENT_SPACE2
-#define _NORMALMAP_TANGENT_SPACE_IDX
-#endif
 #ifdef _MASKMAP2
 #define _MASKMAP_IDX
-#endif
-#ifdef _BENTNORMALMAP2
-#define _BENTNORMALMAP_IDX
 #endif
 #include "../Lit/LitDataIndividualLayer.hlsl"
 #undef LAYER_INDEX
 #undef ADD_IDX
 #undef _NORMALMAP_IDX
-#undef _NORMALMAP_TANGENT_SPACE_IDX
 #undef _MASKMAP_IDX
-#undef _BENTNORMALMAP_IDX
 
 #define LAYER_INDEX 3
 #define ADD_IDX(Name) Name##3
 #ifdef _NORMALMAP3
 #define _NORMALMAP_IDX
 #endif
-#ifdef _NORMALMAP_TANGENT_SPACE3
-#define _NORMALMAP_TANGENT_SPACE_IDX
-#endif
 #ifdef _MASKMAP3
 #define _MASKMAP_IDX
-#endif
-#ifdef _BENTNORMALMAP3
-#define _BENTNORMALMAP_IDX
 #endif
 #include "../Lit/LitDataIndividualLayer.hlsl"
 #undef LAYER_INDEX
 #undef ADD_IDX
 #undef _NORMALMAP_IDX
-#undef _NORMALMAP_TANGENT_SPACE_IDX
 #undef _MASKMAP_IDX
-#undef _BENTNORMALMAP_IDX
 
+#undef ADD_ZERO_IDX
+#undef _BaseColorMap
+#undef sampler_BaseColorMap
+#undef _NormalMap
 #undef ALPHA_USED_AS_SMOOTHNESS
+#undef _NORMALMAP_TANGENT_SPACE_IDX
 
 float3 BlendLayeredVector3(float3 x0, float3 x1, float3 x2, float3 x3, float weight[4])
 {
