@@ -5,8 +5,16 @@
 
 ## [2018.1 undecided]
 
+### Improvements
+- Configure the volumetric lighting code path to be on by default
+
+### Changed, Removals and deprecations
+- 
+
 ### Bug fixes
 - Fix ConvertPhysicalLightIntensityToLightIntensity() function used when creating light from script to match HDLightEditor behavior
+- Fix numerical issues with the default value of mean free path of volumetric fog 
+- Fix the bug preventing decals from coexisting with density volumes 
 
 ## [2018.1.0f2]
 
