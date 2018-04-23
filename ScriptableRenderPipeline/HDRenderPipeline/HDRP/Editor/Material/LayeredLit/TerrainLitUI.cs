@@ -13,13 +13,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             public readonly GUIContent layersText = new GUIContent("Inputs");
             public readonly GUIContent layerMapMaskText = new GUIContent("Layer Mask", "Layer mask");
-
-            public readonly GUIContent layerTexWorldScaleText = new GUIContent("World Scale", "Tiling factor applied to Planar/Trilinear mapping");
-            public readonly GUIContent UVBlendMaskText = new GUIContent("BlendMask UV Mapping", "Base UV Mapping mode of the layer.");
-
             public readonly GUIContent useHeightBasedBlendText = new GUIContent("Use Height Based Blend", "Layer will be blended with the underlying layer based on the height.");
-            public readonly GUIContent useMainLayerInfluenceModeText = new GUIContent("Main Layer Influence", "Switch between regular layers mode and base/layers mode");
-
             public readonly GUIContent heightTransition = new GUIContent("Height Transition", "Size in world units of the smooth transition between layers.");
         }
 
@@ -35,12 +29,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         // Layer options
-        MaterialProperty UVBlendMask = null;
-        const string kUVBlendMask = "_UVBlendMask";
-        MaterialProperty UVMappingMaskBlendMask = null;
-        const string kUVMappingMaskBlendMask = "_UVMappingMaskBlendMask";
-        MaterialProperty texWorldScaleBlendMask = null;
-        const string kTexWorldScaleBlendMask = "_TexWorldScaleBlendMask";
         MaterialProperty useHeightBasedBlend = null;
         const string kUseHeightBasedBlend = "_UseHeightBasedBlend";
 
@@ -64,10 +52,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override void FindMaterialProperties(MaterialProperty[] props)
         {
-            UVBlendMask = FindProperty(kUVBlendMask, props);
-            UVMappingMaskBlendMask = FindProperty(kUVMappingMaskBlendMask, props);
-            texWorldScaleBlendMask = FindProperty(kTexWorldScaleBlendMask, props);
-
             useHeightBasedBlend = FindProperty(kUseHeightBasedBlend, props);
             heightTransition = FindProperty(kHeightTransition, props);
 
@@ -92,25 +76,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             EditorGUI.indentLevel++;
             GUILayout.Label(styles.layersText, EditorStyles.boldLabel);
-
-            EditorGUI.indentLevel++;
-            m_MaterialEditor.ShaderProperty(UVBlendMask, styles.UVBlendMaskText);
-            UVBaseMapping uvBlendMask = (UVBaseMapping)UVBlendMask.floatValue;
-
-            float X, Y, Z, W;
-            X = (uvBlendMask == UVBaseMapping.UV0) ? 1.0f : 0.0f;
-            Y = (uvBlendMask == UVBaseMapping.UV1) ? 1.0f : 0.0f;
-            Z = (uvBlendMask == UVBaseMapping.UV2) ? 1.0f : 0.0f;
-            W = (uvBlendMask == UVBaseMapping.UV3) ? 1.0f : 0.0f;
-
-            UVMappingMaskBlendMask.colorValue = new Color(X, Y, Z, W);
-
-            if (((UVBaseMapping)UVBlendMask.floatValue == UVBaseMapping.Planar) ||
-                ((UVBaseMapping)UVBlendMask.floatValue == UVBaseMapping.Triplanar))
-            {
-                m_MaterialEditor.ShaderProperty(texWorldScaleBlendMask, styles.layerTexWorldScaleText);
-            }
-            EditorGUI.indentLevel--;
 
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = useHeightBasedBlend.hasMixedValue;
@@ -157,11 +122,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static public void SetupLayersMappingKeywords(Material material)
         {
-            // Blend mask
-            UVBaseMapping UVBlendMaskMapping = (UVBaseMapping)material.GetFloat(kUVBlendMask);
-            CoreUtils.SetKeyword(material, "_LAYER_MAPPING_PLANAR_BLENDMASK", UVBlendMaskMapping == UVBaseMapping.Planar);
-            CoreUtils.SetKeyword(material, "_LAYER_MAPPING_TRIPLANAR_BLENDMASK", UVBlendMaskMapping == UVBaseMapping.Triplanar);
-
             const string kLayerMappingPlanar = "_LAYER_MAPPING_PLANAR";
             const string kLayerMappingTriplanar = "_LAYER_MAPPING_TRIPLANAR";
 
