@@ -1446,6 +1446,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void UpdateCullingParameters(ref ScriptableCullingParameters cullingParams)
         {
             m_ShadowMgr.UpdateCullingParameters( ref cullingParams );
+            // In HDRP we don't need per object light/probe info so we disable the native code that handles it.
+            cullingParams.cullingFlags |= CullFlag.DisablePerObjectCulling;
         }
 
         public bool IsBakedShadowMaskLight(Light light)
