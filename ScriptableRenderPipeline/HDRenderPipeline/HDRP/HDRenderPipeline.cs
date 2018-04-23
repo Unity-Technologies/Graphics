@@ -33,6 +33,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         };
 
         readonly HDRenderPipelineAsset m_Asset;
+        public HDRenderPipelineAsset asset { get { return m_Asset; } }
 
         DiffusionProfileSettings m_InternalSSSAsset;
         public DiffusionProfileSettings diffusionProfileSettings
