@@ -80,5 +80,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             //radiance = power / (length * (4 * Pi)).
             return intensity / (4.0f * Mathf.PI * lineWidth);
         }
+
+        public static void CalculateAnglesForPyramid(float aspectRatio, float spotAngle, out float angleA, out float angleB)
+        {
+            // Since the smallest angles is = to the fov, and we don't care of the angle order, simply make sure the aspect ratio is > 1
+            if (aspectRatio < 1.0f)
+                aspectRatio = 1.0f / aspectRatio;
+
+            angleA = spotAngle * Mathf.Deg2Rad;
+
+            var halfAngle = angleA * 0.5f; // half of the smallest angle
+            var length = Mathf.Tan(halfAngle); // half length of the smallest side of the rectangle
+            length *= aspectRatio; // half length of the bigest side of the rectangle
+            halfAngle = Mathf.Atan(length); // half of the bigest angle
+
+            angleB = halfAngle * 2.0f;
+        }
     }
 }

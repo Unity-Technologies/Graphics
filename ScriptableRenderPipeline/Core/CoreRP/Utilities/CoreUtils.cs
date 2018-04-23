@@ -483,7 +483,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             string msg = "AR/VR devices are not supported, no rendering will occur";
             DisplayUnsupportedMessage(msg);
-        }        
+        }
 
         // Returns 'true' if "Animated Materials" are enabled for the view associated with the given camera.
         public static  bool AreAnimatedMaterialsEnabled(Camera camera)
@@ -523,7 +523,7 @@ namespace UnityEngine.Experimental.Rendering
                     }
                 }
             }
-            
+
             // TODO: how to handle reflection views? We don't know the parent window they are being rendered into,
             // so we don't know whether we can animate them...
             //
@@ -542,6 +542,32 @@ namespace UnityEngine.Experimental.Rendering
         #endif
 
             return animateMaterials;
+        }
+
+        public static bool IsSceneViewFogEnabled(Camera camera)
+        {
+            bool fogEnable = true;
+
+#if UNITY_EDITOR
+            fogEnable = Application.isPlaying;
+
+            if (camera.cameraType == CameraType.SceneView)
+            {
+                fogEnable = false;
+
+                // Determine whether the "Animated Materials" checkbox is checked for the current view.
+                foreach (UnityEditor.SceneView sv in Resources.FindObjectsOfTypeAll(typeof(UnityEditor.SceneView)))
+                {
+                    if (sv.camera == camera && sv.sceneViewState.showFog)
+                    {
+                        fogEnable = true;
+                        break;
+                    }
+                }
+            }
+#endif
+
+            return fogEnable;
         }
     }
 }
