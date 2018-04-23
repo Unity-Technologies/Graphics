@@ -36,6 +36,11 @@ float3 VFXGetViewWorldPosition()
     return UNITY_MATRIX_I_V._m03_m13_m23;
 }
 
+float4x4 VFXGetViewToWorldMatrix()
+{
+    return UNITY_MATRIX_I_V;
+}
+
 float4 VFXGetPOSSS(float4 posCS)
 {
     return ComputeScreenPos(posCS);
