@@ -6,17 +6,20 @@
 TEXTURE2D(_DistortionVectorMap);
 SAMPLER(sampler_DistortionVectorMap);
 
-TEXTURE2D(_EmissiveColorMap);
-SAMPLER(sampler_EmissiveColorMap);
-
 TEXTURE2D(_BaseColorMap);
 SAMPLER(sampler_BaseColorMap);
 
-TEXTURE2D(_MaskMapA);
-SAMPLER(sampler_MaskMapA);
+TEXTURE2D(_MetallicMap);
+SAMPLER(sampler_MetallicMap);
 
-TEXTURE2D(_MaskMapB);
-SAMPLER(sampler_MaskMapB);
+TEXTURE2D(_SmoothnessAMap);
+SAMPLER(sampler_SmoothnessAMap);
+
+TEXTURE2D(_SmoothnessBMap);
+SAMPLER(sampler_SmoothnessBMap);
+
+TEXTURE2D(_EmissiveColorMap);
+SAMPLER(sampler_EmissiveColorMap);
 
 TEXTURE2D(_NormalMap);
 SAMPLER(sampler_NormalMap);
@@ -28,17 +31,24 @@ float4 _BaseColor;
 float4 _BaseColorMap_ST;
 float4 _BaseColorMap_TexelSize;
 float4 _BaseColorMap_MipInfo;
+float _BaseColorMapUV;
 
 float _Metallic;
+float _MetallicMapUV;
+float4 _MetallicMapChannel;
+
 float _SmoothnessA;
-float _SmoothnessARemapMin;
-float _SmoothnessARemapMax;
+float _SmoothnessAMapUV;
+float4 _SmoothnessAMapChannel;
+float4 _SmoothnessARemap;
 float _SmoothnessB;
-float _SmoothnessBRemapMin;
-float _SmoothnessBRemapMax;
+float _SmoothnessBUV;
+float4 _SmoothnessBMapChannel;
+float4 _SmoothnessBRemap;
 float _LobeMix;
 
 float _NormalScale;
+float _NormalMapUV;
 
 float4 _UVMappingMask;
 
