@@ -14,8 +14,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         PBRMasterNode m_Node;
         public PBRSettingsView(PBRMasterNode node)
         {
-            AddStyleSheetPath("Styles/PBRSettings");
-            m_Node = (PBRMasterNode)node;
+            m_Node = node;
 
             PropertySheet ps = new PropertySheet();
 
