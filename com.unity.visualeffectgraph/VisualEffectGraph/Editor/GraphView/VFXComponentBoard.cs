@@ -227,9 +227,9 @@ namespace  UnityEditor.VFX.UI
 
         void OnSelectionChanged()
         {
-            m_SelectionCandidate = null;
             if (Selection.activeGameObject != null && controller != null)
             {
+                m_SelectionCandidate = null;
                 m_SelectionCandidate = Selection.activeGameObject.GetComponent<VisualEffect>();
                 if (m_SelectionCandidate != null && m_SelectionCandidate.visualEffectAsset != controller.model)
                 {

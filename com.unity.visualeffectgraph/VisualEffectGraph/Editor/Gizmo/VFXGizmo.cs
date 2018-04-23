@@ -29,11 +29,11 @@ namespace UnityEditor.VFX
         protected const float arcHandleSizeMultiplier = 1.25f;
 
         protected CoordinateSpace m_CurrentSpace;
-        public VisualEffect component {get;set;}
+        public VisualEffect component {get; set; }
 
         public bool PositionGizmo(ref Vector3 position, bool always)
         {
-            if(always || Tools.current == Tool.Move || Tools.current == Tool.Transform)
+            if (always || Tools.current == Tool.Move || Tools.current == Tool.Transform)
             {
                 EditorGUI.BeginChangeCheck();
                 position = Handles.PositionHandle(position, m_CurrentSpace == CoordinateSpace.Local ? component.transform.rotation : Quaternion.identity);
@@ -54,7 +54,7 @@ namespace UnityEditor.VFX
 
         public bool RotationGizmo(Vector3 position, Vector3 rotation, IProperty<Vector3> anglesProperty, bool always)
         {
-            if( anglesProperty.isEditable && RotationGizmo(position,ref rotation, always))
+            if (anglesProperty.isEditable && RotationGizmo(position, ref rotation, always))
             {
                 anglesProperty.SetValue(rotation);
                 return true;
@@ -62,19 +62,20 @@ namespace UnityEditor.VFX
             return false;
         }
 
-        public bool RotationGizmo(Vector3 position, ref Vector3 rotation,bool always)
+        public bool RotationGizmo(Vector3 position, ref Vector3 rotation, bool always)
         {
             Quaternion quaternion = Quaternion.Euler(rotation);
 
             bool result = RotationGizmo(position, ref quaternion, always);
-            if(result)
+            if (result)
             {
                 rotation = quaternion.eulerAngles;
                 return true;
             }
             return false;
         }
-        public bool RotationGizmo(Vector3 position, ref Quaternion rotation,bool always)
+
+        public bool RotationGizmo(Vector3 position, ref Quaternion rotation, bool always)
         {
             if (always || Tools.current == Tool.Rotate || Tools.current == Tool.Transform)
             {
@@ -87,7 +88,7 @@ namespace UnityEditor.VFX
             return false;
         }
 
-        public bool ArcGizmo(Vector3 center, float radius, float degArc,IProperty<float> arcProperty, Quaternion rotation, bool always)
+        public bool ArcGizmo(Vector3 center, float radius, float degArc, IProperty<float> arcProperty, Quaternion rotation, bool always)
         {
             // Arc handle control
             if (arcProperty.isEditable && (always || Tools.current == Tool.Rotate || Tools.current == Tool.Transform))
@@ -97,14 +98,14 @@ namespace UnityEditor.VFX
                     EditorGUI.BeginChangeCheck();
                     Vector3 arcHandlePosition =  Quaternion.AngleAxis(degArc, Vector3.up) * Vector3.forward * radius;
                     arcHandlePosition = Handles.Slider2D(
-                                arcHandlePosition,
-                                Vector3.up,
-                                Vector3.forward,
-                                Vector3.right,
-                                handleSize * arcHandleSizeMultiplier * HandleUtility.GetHandleSize(arcHandlePosition),
-                                DefaultAngleHandleDrawFunction,
-                                0
-                                );
+                            arcHandlePosition,
+                            Vector3.up,
+                            Vector3.forward,
+                            Vector3.right,
+                            handleSize * arcHandleSizeMultiplier * HandleUtility.GetHandleSize(arcHandlePosition),
+                            DefaultAngleHandleDrawFunction,
+                            0
+                            );
                     if (EditorGUI.EndChangeCheck())
                     {
                         float newArc = Vector3.Angle(Vector3.forward, arcHandlePosition) * Mathf.Sign(Vector3.Dot(Vector3.right, arcHandlePosition));
@@ -120,7 +121,7 @@ namespace UnityEditor.VFX
 
         static Vector3 m_InitialNormal;
 
-        public bool NormalGizmo(Vector3 position,  ref Vector3 normal ,bool always)
+        public bool NormalGizmo(Vector3 position,  ref Vector3 normal , bool always)
         {
             if (Event.current.type == EventType.MouseDown)
             {
@@ -161,10 +162,11 @@ namespace UnityEditor.VFX
         public override void CallDrawGizmo(object value)
         {
             m_CurrentSpace = CoordinateSpace.Global;
+
             OnDrawGizmo((T)value);
         }
-        public abstract void OnDrawGizmo(T value);
 
+        public abstract void OnDrawGizmo(T value);
     }
     public abstract class VFXSpaceableGizmo<T> : VFXGizmo<T> where T : ISpaceable
     {
@@ -183,9 +185,7 @@ namespace UnityEditor.VFX
 
             Handles.matrix = oldMatrix;
         }
+
         public abstract void OnDrawSpacedGizmo(T value);
     }
 }
-
-
-

@@ -185,34 +185,53 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+
+        class ProfilerScope : System.IDisposable
+        {
+            public ProfilerScope(string name)
+            {
+                UnityEngine.Profiling.Profiler.BeginSample(name);
+            }
+
+            void System.IDisposable.Dispose()
+            {
+                UnityEngine.Profiling.Profiler.EndSample();
+            }
+        }
+
         public virtual object value
         {
             get
             {
-                if (portType != null)
+                using (var scope = new ProfilerScope("VFXDataAnchorController.value.get"))
                 {
-                    if (!editable)
+                    if (portType != null)
                     {
-                        VFXViewController nodeController = m_SourceNode.viewController;
-
-                        try
+                        if (!editable)
                         {
-                            if (nodeController.CanGetEvaluatedContent(model))
+                            VFXViewController nodeController = m_SourceNode.viewController;
+
+                            try
                             {
-                                return VFXConverter.ConvertTo(nodeController.GetEvaluatedContent(model), portType);
+                                Profiler.BeginSample("GetEvaluatedContent");
+                                var evaluatedValue = nodeController.GetEvaluatedContent(model);
+                                Profiler.EndSample();
+                                if (evaluatedValue != null)
+                                {
+                                    return VFXConverter.ConvertTo(evaluatedValue, portType);
+                                }
+                            }
+                            catch (System.Exception e)
+                            {
+                                Debug.LogError("Trying to get the value from expressions threw." + e.Message + " In anchor : " + name + " from node :" + sourceNode.title);
                             }
                         }
-                        catch (System.Exception e)
-                        {
-                            Debug.LogError("Trying to get the value from expressions threw." + e.Message + " In anchor : " + name + " from node :" + sourceNode.title);
-                        }
+                        return VFXConverter.ConvertTo(model.value, portType);
                     }
-
-                    return VFXConverter.ConvertTo(model.value, portType);
-                }
-                else
-                {
-                    return null;
+                    else
+                    {
+                        return null;
+                    }
                 }
             }
 
@@ -311,38 +330,36 @@ namespace UnityEditor.VFX.UI
             get { return expandedSelf; }
         }
 
+        public bool m_Editable = true;
+
+        public void UpdateEditable()
+        {
+            m_Editable = true;
+            if (direction == Direction.Output)
+                return;
+            VFXSlot slot = model;
+            if (slot.HasLink(true))
+            {
+                m_Editable = false;
+                return;
+            }
+
+            while (slot != null)
+            {
+                if (slot.HasLink())
+                {
+                    m_Editable = false;
+                    return;
+                }
+                slot = slot.GetParent();
+            }
+        }
+
         public virtual bool editable
         {
             get
             {
-                if (direction == Direction.Output)
-                    return true;
-                bool editable = m_SourceNode.enabled;
-
-                if (editable)
-                {
-                    VFXSlot slot = model;
-                    while (slot != null)
-                    {
-                        if (slot.HasLink())
-                        {
-                            editable = false;
-                            break;
-                        }
-                        slot = slot.GetParent();
-                    }
-
-
-                    foreach (VFXSlot child in model.children)
-                    {
-                        if (child.HasLink())
-                        {
-                            editable = false;
-                        }
-                    }
-                }
-
-                return editable;
+                return m_SourceNode.enabled && m_Editable;
             }
         }
 
@@ -377,16 +394,16 @@ namespace UnityEditor.VFX.UI
 
         void RefreshGizmo()
         {
-            if( m_GizmoContext != null)m_GizmoContext.Unprepare();
+            if (m_GizmoContext != null) m_GizmoContext.Unprepare();
 
-            if( ! model.IsMasterSlot())
+            if (!model.IsMasterSlot())
             {
-                var parentController = sourceNode.inputPorts.FirstOrDefault(t=>t.model == model.GetParent());
+                var parentController = sourceNode.inputPorts.FirstOrDefault(t => t.model == model.GetParent());
                 if (parentController != null)
                 {
                     parentController.RefreshGizmo();
                 }
-                else if(model.GetParent()) // Try with grand parent for Vector3 spacable types
+                else if (model.GetParent()) // Try with grand parent for Vector3 spacable types
                 {
                     parentController = sourceNode.inputPorts.FirstOrDefault(t => t.model == model.GetParent().GetParent());
                     if (parentController != null)
@@ -401,7 +418,7 @@ namespace UnityEditor.VFX.UI
 
         public void DrawGizmo(VisualEffect component)
         {
-            if(m_GizmoContext == null)
+            if (m_GizmoContext == null)
             {
                 m_GizmoContext = new VFXDataAnchorGizmoContext(this);
             }
@@ -526,15 +543,14 @@ namespace UnityEditor.VFX.UI
         }
 
 
-
-        List<object> stack= new List<object>();
-        public override object value 
+        List<object> stack = new List<object>();
+        public override object value
         {
             get
             {
                 stack.Clear();
                 int stackSize = stack.Count;
-                foreach(var action in m_ValueBuilder)
+                foreach (var action in m_ValueBuilder)
                 {
                     action(stack);
                     stackSize = stack.Count;
@@ -556,23 +572,22 @@ namespace UnityEditor.VFX.UI
                 return;
             }
             m_ValueBuilder.Clear();
-            m_ValueBuilder.Add(o=>o.Add(m_Controller.value));
-            
+            m_ValueBuilder.Add(o => o.Add(m_Controller.value));
+
             if (!m_Controller.viewController.CanGetEvaluatedContent(m_Controller.model))
-            { 
-                if( m_Controller.model.HasLink(false) )
+            {
+                if (m_Controller.model.HasLink(false))
                 {
-                    if(VFXTypeUtility.GetComponentCount(m_Controller.model) != 0)
+                    if (VFXTypeUtility.GetComponentCount(m_Controller.model) != 0)
                     {
                         m_Indeterminate = true;
                         return;
                     }
                     m_FullReadOnly = true;
                 }
-                BuildValue( m_Controller.model);
+                BuildValue(m_Controller.model);
             }
         }
-
 
         void BuildValue(VFXSlot slot)
         {
@@ -584,21 +599,21 @@ namespace UnityEditor.VFX.UI
                 {
                     if (m_Controller.viewController.CanGetEvaluatedContent(subSlot))
                     {
-                        m_ValueBuilder.Add(o=>o.Add(m_Controller.viewController.GetEvaluatedContent(subSlot)));
+                        m_ValueBuilder.Add(o => o.Add(m_Controller.viewController.GetEvaluatedContent(subSlot)));
                     }
-                    else if( subSlot.HasLink(false) && VFXTypeUtility.GetComponentCount(subSlot) != 0) // replace by is VFXType
+                    else if (subSlot.HasLink(false) && VFXTypeUtility.GetComponentCount(subSlot) != 0) // replace by is VFXType
                     {
                         m_Indeterminate = true;
                         return;
                     }
                     else
                     {
-                        m_ValueBuilder.Add(o=>o.Add(subSlot.value));
+                        m_ValueBuilder.Add(o => o.Add(subSlot.value));
                         BuildValue(subSlot);
-                        if( m_Indeterminate) return;
+                        if (m_Indeterminate) return;
                     }
-                    m_ValueBuilder.Add(o=>field.SetValue(o[o.Count-2], o[ o.Count-1]));
-                    m_ValueBuilder.Add(o=>o.RemoveAt(o.Count-1));
+                    m_ValueBuilder.Add(o => field.SetValue(o[o.Count - 2], o[o.Count - 1]));
+                    m_ValueBuilder.Add(o => o.RemoveAt(o.Count - 1));
                 }
             }
         }
@@ -606,16 +621,16 @@ namespace UnityEditor.VFX.UI
         public override VFXGizmo.IProperty<T> RegisterProperty<T>(string member)
         {
             object result;
-            if( m_PropertyCache.TryGetValue(member,out result))
+            if (m_PropertyCache.TryGetValue(member, out result))
             {
-                if( result is VFXGizmo.IProperty<T> )
+                if (result is VFXGizmo.IProperty<T> )
                     return result as VFXGizmo.IProperty<T>;
                 else
                     return VFXGizmoUtility.NullProperty<T>.defaultProperty;
             }
             var controller = GetMemberController(member);
 
-            if( controller != null && controller.portType == typeof(T))
+            if (controller != null && controller.portType == typeof(T))
             {
                 return new VFXGizmoUtility.Property<T>(controller, !controller.model.HasLink(true));
             }
@@ -625,14 +640,13 @@ namespace UnityEditor.VFX.UI
 
         VFXDataAnchorController GetMemberController(string memberPath)
         {
-            if( string.IsNullOrEmpty(memberPath))
+            if (string.IsNullOrEmpty(memberPath))
             {
                 return m_Controller;
             }
 
             return GetSubMemberController(memberPath, m_Controller.model);
         }
-        
 
         VFXDataAnchorController GetSubMemberController(string memberPath, VFXSlot slot)
         {
@@ -660,12 +674,13 @@ namespace UnityEditor.VFX.UI
                 return null;
             }
         }
+
         protected bool m_FullReadOnly;
         protected HashSet<string> m_ReadOnlyMembers = new HashSet<string>();
 
         bool IsMemberEditable(string memberPath)
         {
-            if( m_Indeterminate) return false;
+            if (m_Indeterminate) return false;
             if (m_FullReadOnly) return false;
             while (true)
             {

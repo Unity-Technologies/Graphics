@@ -45,43 +45,59 @@ namespace UnityEditor.VFX.UI
             return (T)ConvertTo(value, typeof(T));
         }
 
+        class ProfilerScope : System.IDisposable
+        {
+            public ProfilerScope(string name)
+            {
+                UnityEngine.Profiling.Profiler.BeginSample(name);
+            }
+
+            void System.IDisposable.Dispose()
+            {
+                UnityEngine.Profiling.Profiler.EndSample();
+            }
+        }
+
         public static object ConvertTo(object value, Type type)
         {
-            if (value == null || value.GetType() == type)
+            using (var scope = new ProfilerScope("VFXConverter.ConvertTo"))
             {
-                return value;
-            }
-            if (type == typeof(Color))
-            {
-                return ConvertToColor(value);
-            }
-            else if (type == typeof(Vector4))
-            {
-                return ConvertToVector4(value);
-            }
-            else if (type == typeof(Vector3))
-            {
-                return ConvertToVector3(value);
-            }
-            else if (type == typeof(Position))
-            {
-                return ConvertToPosition(value);
-            }
-            else if (type == typeof(Vector))
-            {
-                return ConvertToVector(value);
-            }
-            else if (type == typeof(Vector2))
-            {
-                return ConvertToVector2(value);
-            }
-            else if (type == typeof(float))
-            {
-                return ConvertToFloat(value);
-            }
-            else
-            {
-                return value;
+                if (value == null || value.GetType() == type)
+                {
+                    return value;
+                }
+                if (type == typeof(Color))
+                {
+                    return ConvertToColor(value);
+                }
+                else if (type == typeof(Vector4))
+                {
+                    return ConvertToVector4(value);
+                }
+                else if (type == typeof(Vector3))
+                {
+                    return ConvertToVector3(value);
+                }
+                else if (type == typeof(Position))
+                {
+                    return ConvertToPosition(value);
+                }
+                else if (type == typeof(Vector))
+                {
+                    return ConvertToVector(value);
+                }
+                else if (type == typeof(Vector2))
+                {
+                    return ConvertToVector2(value);
+                }
+                else if (type == typeof(float))
+                {
+                    return ConvertToFloat(value);
+                }
+                else
+                {
+                    return value;
+                }
             }
         }
 

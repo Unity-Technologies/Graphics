@@ -176,8 +176,9 @@ namespace UnityEditor.VFX.UI
 
             m_InNotify = false;
 
-            if( m_DataEdgesMightHaveChangedAsked)
+            if (m_DataEdgesMightHaveChangedAsked)
             {
+                m_DataEdgesMightHaveChangedAsked = false;
                 DataEdgesMightHaveChanged();
             }
         }
@@ -275,44 +276,56 @@ namespace UnityEditor.VFX.UI
                 unusedEdges.Add(e);
             }
 
+            var nodeToUpdate = new HashSet<VFXNodeController>();
+
             foreach (var operatorControllers in m_SyncedModels.Values)
             {
                 foreach (var nodeController in operatorControllers)
                 {
+                    bool nodeChanged = false;
                     foreach (var input in nodeController.inputPorts)
                     {
-                        changed |= RecreateInputSlotEdge(unusedEdges, nodeController, input);
+                        nodeChanged |= RecreateInputSlotEdge(unusedEdges, nodeController, input);
                     }
                     if (nodeController is VFXContextController)
                     {
                         VFXContextController contextController = nodeController as VFXContextController;
-                        foreach (var input in contextController.inputPorts)
-                        {
-                            changed |= RecreateInputSlotEdge(unusedEdges, contextController, input);
-                        }
 
                         foreach (var block in contextController.blockControllers)
                         {
+                            bool blockChanged = false;
                             foreach (var input in block.inputPorts)
                             {
-                                changed |= RecreateInputSlotEdge(unusedEdges, block, input);
+                                blockChanged |= RecreateInputSlotEdge(unusedEdges, block, input);
                             }
+                            if (blockChanged)
+                                nodeToUpdate.Add(block);
+                            changed |= blockChanged;
                         }
                     }
+                    if (nodeChanged)
+                        nodeToUpdate.Add(nodeController);
+
+                    changed |= nodeChanged;
                 }
             }
 
             foreach (var edge in unusedEdges)
             {
+                nodeToUpdate.Add(edge.input.sourceNode);
                 edge.OnDisable();
 
                 m_DataEdges.Remove(edge);
                 changed = true;
             }
 
+            foreach (var node in nodeToUpdate)
+            {
+                node.UpdateAllEditable();
+            }
+
             return changed;
         }
-
 
         bool m_DataEdgesMightHaveChangedAsked;
 
@@ -320,9 +333,9 @@ namespace UnityEditor.VFX.UI
         {
             if (m_Syncing) return;
 
-            if( m_InNotify)
+            if (m_InNotify)
             {
-                m_DataEdgesMightHaveChangedAsked =true;
+                m_DataEdgesMightHaveChangedAsked = true;
                 return;
             }
 
@@ -1466,10 +1479,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-
         public VFXNodeController GetNodeController(VFXModel model, int id)
         {
-            if( model is VFXBlock)
+            if (model is VFXBlock)
             {
                 VFXContextController controller = GetRootNodeController(model.GetParent(), 0) as VFXContextController;
                 if (controller == null)

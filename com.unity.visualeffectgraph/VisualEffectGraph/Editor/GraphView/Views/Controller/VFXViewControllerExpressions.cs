@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine.Experimental.VFX;
 using UnityEngine;
+using UnityEngine.Profiling;
 
 using Object = UnityEngine.Object;
 using UnityEngine.Experimental.UIElements;
@@ -88,18 +89,20 @@ namespace UnityEditor.VFX.UI
                 return false;
             if (slot.GetExpression() == null)
                 return false;
-
+            Profiler.BeginSample("CanGetEvaluatedContent");
             var reduced = m_ExpressionContext.GetReduced(slot.GetExpression());
-            return reduced != null && reduced.Is(VFXExpression.Flags.Value);
+            var result = reduced != null && reduced.Is(VFXExpression.Flags.Value);
+            Profiler.EndSample();
+            return result;
         }
 
         public object GetEvaluatedContent(VFXSlot slot)
         {
             if (!CanGetEvaluatedContent(slot))
                 return null;
-
             var reduced = m_ExpressionContext.GetReduced(slot.GetExpression());
-            return reduced.GetContent();
+            var result = reduced.GetContent();
+            return result;
         }
 
         private VFXExpression.Context m_ExpressionContext;
