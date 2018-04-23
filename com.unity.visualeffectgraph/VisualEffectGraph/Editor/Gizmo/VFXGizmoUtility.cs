@@ -9,7 +9,7 @@ using Delegate = System.Delegate;
 
 namespace UnityEditor.VFX.UI
 {
-    public class VFXGizmoUtility
+    public static class VFXGizmoUtility
     {
         static Dictionary<System.Type,VFXGizmo> s_DrawFunctions;
 
@@ -109,6 +109,11 @@ namespace UnityEditor.VFX.UI
                     s_DrawFunctions[gizmoedType] = (VFXGizmo)System.Activator.CreateInstance(type);
                 }
             }
+        }
+
+        public static bool HasGizmo(Type type)
+        {
+            return s_DrawFunctions.ContainsKey(type);
         }
 
         static Type GetGizmoType(Type type)

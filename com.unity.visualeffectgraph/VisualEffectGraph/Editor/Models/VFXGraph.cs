@@ -229,18 +229,17 @@ namespace UnityEditor.VFX
                             info.max = attr.max;
                         }
                         info.descendantCount = 0;
-                        count++;
                     }
                     else
                     {
-                        if( field.FieldType.IsEnum) // For space
+                        if( field.FieldType == typeof(CoordinateSpace)) // For space
                             continue;
                         info.descendantCount = RecurseBuildParameterInfo(subList, field.FieldType,info.path);
                     }
                     infos.Add(info);
                     infos.AddRange(subList);
                     subList.Clear();
-                    count += info.descendantCount;
+                    count++;
                 }
             }
             return count;
