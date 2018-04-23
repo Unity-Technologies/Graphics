@@ -1250,17 +1250,20 @@ namespace UnityEditor.VFX.UI
 
                     for (int i = 0; i < ui.groupInfos.Length; ++i)
                     {
-                        for (int j = 0; j < ui.groupInfos[i].contents.Length; ++j)
+                        if (ui.groupInfos[i].contents != null)
                         {
-                            if (usedNodeIds.Contains(ui.groupInfos[i].contents[j]))
+                            for (int j = 0; j < ui.groupInfos[i].contents.Length; ++j)
                             {
-                                Debug.Log("Element present in multiple groupnodes");
-                                --j;
-                                ui.groupInfos[i].contents = ui.groupInfos[i].contents.Where((t, k) => k != j).ToArray();
-                            }
-                            else
-                            {
-                                usedNodeIds.Add(ui.groupInfos[i].contents[j]);
+                                if (usedNodeIds.Contains(ui.groupInfos[i].contents[j]))
+                                {
+                                    Debug.Log("Element present in multiple groupnodes");
+                                    --j;
+                                    ui.groupInfos[i].contents = ui.groupInfos[i].contents.Where((t, k) => k != j).ToArray();
+                                }
+                                else
+                                {
+                                    usedNodeIds.Add(ui.groupInfos[i].contents[j]);
+                                }
                             }
                         }
                     }

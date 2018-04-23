@@ -22,7 +22,7 @@ namespace UnityEditor.VFX
             set
             {
                 m_Disabled = !value;
-                Invalidate(this, InvalidationCause.kStructureChanged);
+                Invalidate(InvalidationCause.kStructureChanged);
             }
         }
 
