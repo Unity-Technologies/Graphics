@@ -9,6 +9,7 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
+#if UNITY_2018_2_OR_NEWER
     class HDRPVariantStripper : IPreprocessShaders
     {
         // returns true if the variant should be stripped.
@@ -59,7 +60,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // FOG_LINEAR, FOG_EXP, FOG_EXP2
             // STEREO_INSTANCING_ON, STEREO_MULTIVIEW_ON, STEREO_CUBEMAP_RENDER_ON, UNITY_SINGLE_PASS_STEREO
             // INSTANCING_ON
-            
+
             if (!m_CurrentHDRPAsset.renderPipelineSettings.supportMotionVectors && isMotionPass)
                 return true;
 
@@ -83,7 +84,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (isTransparentForwardPass)
                     return true;
 
-                if (!m_CurrentHDRPAsset.renderPipelineSettings.supportForwardOnly && inputData.shaderKeywordSet.IsEnabled(m_ClusterLighting)) 
+                if (!m_CurrentHDRPAsset.renderPipelineSettings.supportForwardOnly && inputData.shaderKeywordSet.IsEnabled(m_ClusterLighting))
                     return true;
 
                 if (!m_CurrentHDRPAsset.renderPipelineSettings.supportForwardOnly)
@@ -142,5 +143,5 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 inputData.Add(workaround);
         }
     }
-
+#endif
 }
