@@ -81,16 +81,20 @@ namespace UnityEditor.VFX
         {
             allowVectorType = 1 << 1,
             allowOneDimensionType = 1 << 2,
-            allowInteger = 1 << 3,
+            allowSignedInteger = 1 << 3,
+            allowUnsignedInteger = 1 << 4,
+            allowInteger = allowSignedInteger | allowUnsignedInteger,
 
             allowEverything = allowVectorType | allowOneDimensionType | allowInteger,
             allowEverythingExceptInteger = allowEverything & ~allowInteger,
+            allowEverythingExceptUnsignedInteger = allowEverything & ~allowUnsignedInteger,
             allowEverythingExceptOneDimension = allowEverything & ~allowOneDimensionType
         };
 
         private static readonly Type[] kVectorType = new Type[] { typeof(Vector4), typeof(Vector3), typeof(Vector2) };
         private static readonly Type[] kOneDimensionType = new Type[] { typeof(float), typeof(uint), typeof(int) };
-        private static readonly Type[] kIntegerType = new Type[] { typeof(uint), typeof(int) };
+        private static readonly Type[] kSIntegerType = new Type[] { typeof(int) };
+        private static readonly Type[] kUIntegerType = new Type[] { typeof(uint) };
 
         protected virtual ValidTypeRule typeFilter { get { return ValidTypeRule.allowEverything; } }
 
@@ -105,8 +109,11 @@ namespace UnityEditor.VFX
                 if ((typeFilter & ValidTypeRule.allowOneDimensionType) != ValidTypeRule.allowOneDimensionType)
                     types = types.Except(kOneDimensionType);
 
-                if ((typeFilter & ValidTypeRule.allowInteger) != ValidTypeRule.allowInteger)
-                    types = types.Except(kIntegerType);
+                if ((typeFilter & ValidTypeRule.allowSignedInteger) != ValidTypeRule.allowSignedInteger)
+                    types = types.Except(kSIntegerType);
+
+                if ((typeFilter & ValidTypeRule.allowUnsignedInteger) != ValidTypeRule.allowUnsignedInteger)
+                    types = types.Except(kUIntegerType);
 
                 return types;
             }
