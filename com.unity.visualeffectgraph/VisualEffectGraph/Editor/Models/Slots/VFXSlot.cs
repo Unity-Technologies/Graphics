@@ -67,7 +67,7 @@ namespace UnityEditor.VFX
                         m_CachedValue = m_FieldInfoCache.GetValue(parentValue);
                     }
 
-                    if( m_CachedValue == null && !property.type.IsAssignableFrom(typeof(UnityEngine.Object)))
+                    if( m_CachedValue == null && !typeof(UnityEngine.Object).IsAssignableFrom(property.type))
                     {
                         Debug.Log("null value in slot of type"+property.type.UserFriendlyName());
                     }

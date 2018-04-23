@@ -201,7 +201,6 @@ public class VisualEffectEditor : Editor
             effect.pause = false;
             effect.playRate = 1.0f;
         }
-        //EditorApplication.contextualPropertyMenu -= PropertyMenuCallback;
     }
 
     struct Infos
@@ -219,29 +218,6 @@ public class VisualEffectEditor : Editor
         public string fieldName;
         public RangeAttribute rangeAttribute;
     }
- /*   void RecurseAddFieldNames(System.Type type, string rootName, List<FieldData> fieldNames)
-    {
-        if (type.IsValueType)
-        {
-            var fields = type.GetFields(BindingFlags.Instance | BindingFlags.Public);
-
-            foreach (var field in fields)
-            {
-                string fieldName = VisualEffectUtility.GetTypeField(field.FieldType);
-
-                string name = rootName + "_" + field.Name;
-                if (fieldName != null)
-                {
-                    fieldNames.Add(new FieldData { type = field.FieldType, fieldName = fieldName, exposedName = name, rangeAttribute = field.GetCustomAttributes(true).OfType<RangeAttribute>().FirstOrDefault() });
-                }
-                else
-                {
-                    RecurseAddFieldNames(field.FieldType, name, fieldNames);
-                }
-            }
-        }
-    }
-    */
 
     const float overrideWidth = 16;
 
@@ -518,8 +494,6 @@ public class VisualEffectEditor : Editor
 
         GUI.enabled = true;
     }
-
-    bool m_WasEditingAsset;
 
     private class Styles
     {
