@@ -29,15 +29,10 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_SettingsContainer;
         bool m_ShowSettings = false;
         VisualElement m_SettingsButton;
-        VisualElement m_SettingsDivider;
         VisualElement m_Settings;
         VisualElement m_NodeSettingsView;
         VisualElement m_CollapseButton;
 
-        // Remove this after updated to the correct API call has landed in trunk. ------------
-        VisualElement m_TitleContainer;
-        VisualElement m_ButtonContainer;
-        // -----------------------------------------------------------------------------------
 
         public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener)
         {
@@ -153,6 +148,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_CollapseButton = this.Q("collapse-button");
 
             // Remove this after updated to the correct API call has landed in trunk. ------------
+            VisualElement m_TitleContainer;
+            VisualElement m_ButtonContainer;
             m_TitleContainer = this.Q("title");
             // -----------------------------------------------------------------------------------
 
@@ -167,9 +164,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_SettingsButton = new VisualElement {name = "settings-button"};
                 m_SettingsButton.Add(new VisualElement { name = "icon" });
 
+                m_Settings = settings.CreateSettingsElement();
+
                 m_SettingsButton.AddManipulator(new Clickable(() =>
                 {
-                    UpdateSettingsExpandedState(settings);
+                    UpdateSettingsExpandedState();
                 }));
 
                 // Remove this after updated to the correct API call has landed in trunk. ------------
@@ -253,12 +252,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void UpdateSettingsExpandedState(IHasSettings settings)
+        void UpdateSettingsExpandedState()
         {
             m_ShowSettings = !m_ShowSettings;
             if (m_ShowSettings)
             {
-                m_Settings = settings.CreateSettingsElement();
                 m_NodeSettingsView.Add(m_Settings);
                 m_NodeSettingsView.visible = true;
 

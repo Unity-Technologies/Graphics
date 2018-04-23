@@ -1,6 +1,0 @@
-﻿<UXML xmlns:ui="UnityEngine.Experimental.UIElements">
-    <ui:VisualElement name="container" class="row">
-        <Style path="Styles/NodeSettings"/>
-        <ui:Label name="nodename" text="Settings"/>
-    </ui:VisualElement>   
-</UXML>

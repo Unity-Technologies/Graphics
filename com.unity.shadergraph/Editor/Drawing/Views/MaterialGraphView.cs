@@ -12,7 +12,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     public sealed class MaterialGraphView : GraphView, IDropTarget
     {
-        NodeSettingsView m_NodeSettingsView;
         public MaterialGraphView()
         {
             AddStyleSheetPath("Styles/MaterialGraphView");
@@ -25,8 +24,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         public MaterialGraphView(AbstractMaterialGraph graph) : this()
         {
             this.graph = graph;
-            MaterialGraph mg = (MaterialGraph)graph;
-            var node = mg.masterNode;
         }
 
         public AbstractMaterialGraph graph { get; private set; }

@@ -3,7 +3,7 @@ PropertyRow Label,
 PropertyRow Toggle,
 PropertyRow DoubleField {
     margin-left: 0;
-	margin-right: 0;
+    margin-right: 0;
 }
 
 PropertyRow > #container{

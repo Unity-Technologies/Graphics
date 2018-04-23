@@ -14,8 +14,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         UnlitMasterNode m_Node;
         public UnlitSettingsView(UnlitMasterNode node)
         {
-            AddStyleSheetPath("Styles/UnlitSettings");
-            m_Node = (UnlitMasterNode)node;
+            m_Node = node;
 
             PropertySheet ps = new PropertySheet();
 
