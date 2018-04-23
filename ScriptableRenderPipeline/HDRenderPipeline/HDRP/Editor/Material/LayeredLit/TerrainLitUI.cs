@@ -176,11 +176,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Blend mask
             UVBaseMapping UVBlendMaskMapping = (UVBaseMapping)material.GetFloat(kUVBlendMask);
             CoreUtils.SetKeyword(material, "_LAYER_MAPPING_PLANAR_BLENDMASK", UVBlendMaskMapping == UVBaseMapping.Planar);
-            CoreUtils.SetKeyword(material, "_LAYER_MAPPING_TRIPLANAR_BLENDMASK",  UVBlendMaskMapping == UVBaseMapping.Triplanar);
-
-            // Layer
-            CoreUtils.SetKeyword(material, "_LAYEREDLIT_4_LAYERS", true);
-            CoreUtils.SetKeyword(material, "_LAYEREDLIT_3_LAYERS", false);
+            CoreUtils.SetKeyword(material, "_LAYER_MAPPING_TRIPLANAR_BLENDMASK", UVBlendMaskMapping == UVBaseMapping.Triplanar);
 
             const string kLayerMappingPlanar = "_LAYER_MAPPING_PLANAR";
             const string kLayerMappingTriplanar = "_LAYER_MAPPING_TRIPLANAR";
@@ -201,7 +197,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             SetupBaseLitKeywords(material);
             SetupBaseLitMaterialPass(material);
-            SetupLayersMappingKeywords(material);
+
+            // TODO: planar/triplannar supprt
+            //SetupLayersMappingKeywords(material);
 
             for (int i = 0; i < kMaxLayerCount; ++i)
             {
