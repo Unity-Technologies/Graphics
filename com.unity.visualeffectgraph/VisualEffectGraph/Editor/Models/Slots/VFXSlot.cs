@@ -29,27 +29,30 @@ namespace UnityEditor.VFX
 
         void ValueModified()
         {
-            m_ValueCached = false;
-            PropagateToChildren(t=>t.m_ValueCached = false);
+            m_IsValueCached = false;
+            PropagateToChildren(t=>t.m_IsValueCached = false);
         }
 
-        bool m_ValueCached;
-        object m_Value;
+        [System.NonSerialized]
+        bool m_IsValueCached;
+
+        [System.NonSerialized]
+        object m_CachedValue;
 
         public object value
         {
             get
             {
-                if (m_ValueCached)
+                if (m_IsValueCached)
                 {
-                    return m_Value;
+                    return m_CachedValue;
                 }
                 try
                 {
-                    m_ValueCached = true;
+                    m_IsValueCached = true;
                     if (IsMasterSlot())
                     {
-                        m_Value = GetMasterData().m_Value.Get();
+                        m_CachedValue = GetMasterData().m_Value.Get();
                     }
                     else
                     {
@@ -61,20 +64,25 @@ namespace UnityEditor.VFX
                             m_FieldInfoCache = type.GetField(name);
                         }
 
-                        m_Value = m_FieldInfoCache.GetValue(parentValue);
+                        m_CachedValue = m_FieldInfoCache.GetValue(parentValue);
+                    }
+
+                    if( m_CachedValue == null && !property.type.IsAssignableFrom(typeof(UnityEngine.Object)))
+                    {
+                        Debug.Log("null value in slot of type"+property.type.UserFriendlyName());
                     }
                 }
                 catch (Exception e)
                 {
                     Debug.LogError(string.Format("Exception while getting value for slot {0} of type {1}: {2}\n{3}", name, GetType(), e, e.StackTrace));
                     // TODO Initialize to default value (try to call static default static method defaultValue from type)
-                    m_Value = null;
+                    m_CachedValue = null;
                 }
-                return m_Value;
+                return m_CachedValue;
             }
             set
             {
-                m_ValueCached = false;
+                m_IsValueCached = false;
                 try
                 {
                     if (IsMasterSlot())
