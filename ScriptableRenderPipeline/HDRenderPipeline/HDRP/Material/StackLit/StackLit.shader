@@ -8,42 +8,64 @@ Shader "HDRenderPipeline/StackLit"
         // Reminder. Color here are in linear but the UI (color picker) do the conversion sRGB to linear
         // Be careful, do not change the name here to _Color. It will conflict with the "fake" parameters (see end of properties) required for GI.
         _BaseColor("BaseColor", Color) = (1,1,1,1)
-        _BaseColorMap("BaseColorMap", 2D) = "white" {}
-        _BaseColorMapUV("BaseColorMapUV", Float) = 0.0
+        _BaseColorMap("BaseColor Map", 2D) = "white" {}
+        [HideInInspector] _BaseColorMapShow("BaseColor Map Show", Float) = 0
+        _BaseColorMapUV("BaseColor Map UV", Float) = 0.0
 
         _Metallic("Metallic", Range(0.0, 1.0)) = 0
-        _MetallicMap("MetallicMap", 2D) = "black" {}
-        _MetallicMapUV("MetallicMapUV", Float) = 0.0
-        _MetallicMapChannel("MetallicMapChannel", Vector) = (1, 0, 0, 0)
-        _MetallicRemap("Metallic Remap", Vector) = (0, 1, 0, 0)
-        [ToggleUI] _MetallicRemapInverted("Invert Metallic Remap", Float) = 0.0
 
         _SmoothnessA("SmoothnessA", Range(0.0, 1.0)) = 1.0
-        _SmoothnessAMap("BaseColorMap", 2D) = "white" {}
-        _SmoothnessAMapUV("SmoothnessAMapUV", Float) = 0.0
+        _MetallicMap("Metallic Map", 2D) = "black" {}
+        [HideInInspector] _MetallicMapShow("Metallic Map Show", Float) = 0
+        _MetallicMapUV("Metallic Map UV", Float) = 0.0
+        _MetallicMapChannel("Metallic Map Channel", Vector) = (1, 0, 0, 0)
+        _MetallicRemap("Metallic Remap", Vector) = (0, 1, 0, 0)
+        [ToggleUI] _MetallicRemapInverted("Invert Metallic Remap", Float) = 0.0
+        _SmoothnessAMap("SmoothnessA Map", 2D) = "white" {}
+        [HideInInspector] _SmoothnessAMapShow("SmoothnessA Map Show", Float) = 0
+        _SmoothnessAMapUV("SmoothnessA Map UV", Float) = 0.0
         _SmoothnessAMapChannel("SmoothnessA Map Channel", Vector) = (1, 0, 0, 0)
         _SmoothnessARemap("SmoothnessA Remap", Vector)  = (0, 1, 0, 0)
         [ToggleUI] _SmoothnessARemapInverted("Invert SmoothnessA Remap", Float) = 0.0
         _SmoothnessB("SmoothnessB", Range(0.0, 1.0)) = 1.0
-        _SmoothnessBMap("SmoothnessBMap", 2D) = "white" {}
-        _SmoothnessBMapUV("SmoothnessBMapUV", Float) = 0.0
+        _SmoothnessBMap("SmoothnessB Map", 2D) = "white" {}
+        [HideInInspector] _SmoothnessBMapShow("SmoothnessB Map Show", Float) = 0
+        _SmoothnessBMapUV("SmoothnessB Map UV", Float) = 0.0
         _SmoothnessBMapChannel("SmoothnessB Map Channel", Vector) = (1, 0, 0, 0)
         _SmoothnessBRemap("SmoothnessB Remap", Vector) = (0, 1, 0, 0)
         [ToggleUI] _SmoothnessBRemapInverted("Invert SmoothnessB Remap", Float) = 0.0
         _LobeMix("Lobe Mix", Range(0.0, 1.0)) = 0
 
         _NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
+        [HideInInspector] _NormalMapShow("NormalMap Show", Float) = 0.0
         _NormalMapUV("NormalMapUV", Float) = 0.0
         _NormalScale("_NormalScale", Range(0.0, 2.0)) = 1
 
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase("UV Set for base", Float) = 0
         [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
 
-        _EmissiveColor("EmissiveColor", Color) = (1, 1, 1)
-        _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
-        _EmissiveColorMapUV("EmissiveColorMap", Range(0.0, 1.0)) = 0
-        _EmissiveIntensity("EmissiveIntensity", Float) = 0
+        _EmissiveColor("Emissive Color", Color) = (1, 1, 1)
+        _EmissiveColorMap("Emissive Color Map", 2D) = "white" {}
+        [HideInInspector] _EmissiveColorMapShow("Emissive Color Map Show", Float) = 0.0
+        _EmissiveColorMapUV("Emissive Color Map UV", Range(0.0, 1.0)) = 0
+        _EmissiveIntensity("Emissive Intensity", Float) = 0
         [ToggleUI] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
+
+        _SubsurfaceMask("Subsurface Mask", Range(0.0, 1.0)) = 1.0
+        _SubsurfaceMaskMap("Subsurface Mask MAp", 2D) = "black" {}
+        [HideInInspector] _SubsurfaceMaskMapShow("Subsurface Mask Map Show", Float) = 0
+        _SubsurfaceMaskMapUV("Subsurface Mask Map UV", Float) = 0.0
+        _SubsurfaceMaskMapChannel("Subsurface Mask Map Channel", Vector) = (1, 0, 0, 0)
+        _SubsurfaceMaskRemap("Subsurface Mask Remap", Vector) = (0, 1, 0, 0)
+        [ToggleUI] _SubsurfaceMaskRemapInverted("Invert Subsurface Mask Remap", Float) = 0.0
+
+        _Thickness("Thickness", Range(0.0, 1.0)) = 1.0
+        _ThicknessMap("Thickness MAp", 2D) = "black" {}
+        [HideInInspector] _ThicknessMapShow("Thickness Show", Float) = 0
+        _ThicknessMapUV("Thickness Map UV", Float) = 0.0
+        _ThicknessMapChannel("Thickness Map Channel", Vector) = (1, 0, 0, 0)
+        _ThicknessRemap("Thickness Remap", Vector) = (0, 1, 0, 0)
+        [ToggleUI] _ThicknessRemapInverted("Invert Thickness Remap", Float) = 0.0
 
         _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
         [ToggleUI] _DistortionEnable("Enable Distortion", Float) = 0.0
@@ -94,6 +116,18 @@ Shader "HDRenderPipeline/StackLit"
         [ToggleUI] _DoubleSidedEnable("Double sided enable", Float) = 0.0
         [Enum(Flip, 0, Mirror, 1, None, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1 // This is for the editor only, see BaseLitUI.cs: _DoubleSidedConstants will be set based on the mode.
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
+
+
+        // Sections show values.
+        [HideInInspector] _StandardShow("_StandardShow", Float) = 0.0
+        [HideInInspector] _EmissiveShow("_EmissiveShow", Float) = 0.0
+        [HideInInspector] _CoatShow("_CoatShow", Float) = 0.0
+        [HideInInspector] _SSSShow("_SSSShow", Float) = 0.0
+        [HideInInspector] _Lobe2Show("_Lobe2Show", Float) = 0.0
+        [HideInInspector] _AnisotropyShow("_AnisotropyShow", Float) = 0.0
+        [HideInInspector] _TransmissionShow("_TransmissionShow", Float) = 0.0
+        [HideInInspector] _IridescenceShow("_IridescenceShow", Float) = 0.0
+        [HideInInspector] _GlintShow("_GlintShow", Float) = 0.0
 
         // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
         // value that exist to identify if the GI emission need to be enabled.

@@ -74,15 +74,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public StackLitGUI()
         {
-            _baseMaterialProperties = new GroupProperty(this, new BaseProperty[]
+            _baseMaterialProperties = new GroupProperty(this, "_BaseMaterial", new BaseProperty[]
             {
                 // JFFTODO: Find the proper condition, and proper way to display this.
                 new Property(this, k_DoubleSidedNormalMode, "Normal mode", "This will modify the normal base on the selected mode. Mirror: Mirror the normal with vertex normal plane, Flip: Flip the normal.", false), 
             });
 
-            _materialProperties = new GroupProperty(this, new BaseProperty[]
+            _materialProperties = new GroupProperty(this, "_Material", new BaseProperty[]
             {
-                new GroupProperty(this, "Standard", new BaseProperty[]
+                new GroupProperty(this, "_Standard", "Standard", new BaseProperty[]
                 {
                     new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Base Color + Opacity", "Albedo (RGB) and Opacity (A)", false),
                     new TextureProperty(this, k_MetallicMap, k_Metallic, "Metallic", "Metallic", false), 
@@ -93,52 +93,52 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     //new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Dielectric IoR", "Index of Refraction for Dielectric", false),
                 }),
 
-                new GroupProperty(this, "Emissive", new BaseProperty[]
+                new GroupProperty(this, "_Emissive", "Emissive", new BaseProperty[]
                 {
                     new TextureProperty(this, k_EmissiveColorMap, k_EmissiveColor, "Emissive Color", "Emissive", false),
                     new Property(this, k_EmissiveIntensity, "Emissive Intensity", "Emissive", false),
                     new Property(this, k_AlbedoAffectEmissive, "Albedo Affect Emissive", "Specifies whether or not the emissive color is multiplied by the albedo.", false),
                 }),
 
-                //new GroupProperty(this, "Coat", new BaseProperty[]
+                //new GroupProperty(this, "_Coat", "Coat", new BaseProperty[]
                 //{
                 //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "SmoothnessCoat", "smoothnessCoat", false),
                 //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Index Of Refraction", "iorCoat", false),
                 //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Normal", "normal Coat", false),
                 //}),
 
-                new GroupProperty(this, "Sub-Surface Scattering", new BaseProperty[]
+                new GroupProperty(this, "_SSS", "Sub-Surface Scattering", new BaseProperty[]
                 {
                     new DiffusionProfileProperty(this, k_DiffusionProfileName, "Diffusion Profile", "A profile determines the shape of the SSS/transmission filter.", false),
-                    new TextureProperty(this, k_SubsurfaceMaskName, "Subsurface mask map (R)", "Determines the strength of the subsurface scattering effect.", false),
+                    new TextureProperty(this, k_SubsurfaceMaskMap, k_SubsurfaceMaskName, "Subsurface mask map (R)", "Determines the strength of the subsurface scattering effect.", false),
                 }/*, _ => _materialId == MaterialId.SubSurfaceScattering*/),
 
-                new GroupProperty(this, "Second Specular Lobe", new BaseProperty[]
+                new GroupProperty(this, "_Lobe2", "Second Specular Lobe", new BaseProperty[]
                 {
                     new TextureProperty(this, k_Smoothness2Map, k_Smoothness2, "Smoothness2", "Smoothness2", false),
                     new Property(this, k_LobeMix, "Lobe Mix", "Lobe Mix", false), 
                 }),
 
-                //new GroupProperty(this, "Anisotropy", new BaseProperty[]
+                //new GroupProperty(this, "_Anisotropy", "Anisotropy", new BaseProperty[]
                 //{
                 //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Anisotropy Strength", "anisotropy strength", false),
                 //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Rotation", "rotation", false),
                 //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Tangent", "tangent", false),
                 //}),
 
-                new GroupProperty(this, "Transmission", new BaseProperty[]
+                new GroupProperty(this, "_Transmission", "Transmission", new BaseProperty[]
                 {
                     new DiffusionProfileProperty(this, k_DiffusionProfileName, "Diffusion Profile", "A profile determines the shape of the SSS/transmission filter.", false),
-                    new TextureProperty(this, k_ThicknessName, "Thickness", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.", false),
+                    new TextureProperty(this, k_ThicknessMapName, k_ThicknessName, "Thickness", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.", false),
                 }),
 
-                //new GroupProperty(this, "Iridescence", new BaseProperty[]
+                //new GroupProperty(this, "_Iridescence", "Iridescence", new BaseProperty[]
                 //{
                 //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Index of Refraction", "Index of Refraction for Iridescence", false),
                 //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Thickness", "Thickness", false),
                 //}),
 
-                //new GroupProperty(this, "Glint", new BaseProperty[]
+                //new GroupProperty(this, "_Glint", "Glint", new BaseProperty[]
                 //{
                 //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Density", "Density:", false),
                 //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Tint", "Tint", false),

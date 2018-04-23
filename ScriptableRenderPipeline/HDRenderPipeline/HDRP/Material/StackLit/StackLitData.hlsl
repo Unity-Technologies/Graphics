@@ -95,7 +95,7 @@ float3 GetNormalTS(FragInputs input, LayerTexCoord layerTexCoord, float3 detailN
     // Note we don't use the _NORMALMAP_IDX mechanism of the Lit shader, since we don't have "layers", we can 
     // directly use the shader_feature keyword:
 #ifdef _NORMALMAP
-        normalTS = SAMPLE_UVMAPPING_NORMALMAP(_NormalMap, SAMPLER_NORMALMAP_ID, layerTexCoord.base, _NormalScale);
+    normalTS = SAMPLE_UVMAPPING_NORMALMAP(_NormalMap, SAMPLER_NORMALMAP_ID, layerTexCoord.base, _NormalScale);
 #else
     normalTS = float3(0.0, 0.0, 1.0);
 #endif
