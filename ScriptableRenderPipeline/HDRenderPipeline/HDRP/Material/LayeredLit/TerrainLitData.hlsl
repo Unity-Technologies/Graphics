@@ -200,19 +200,12 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     layerTexCoord.vertexNormalWS = vertexNormalWS;
     layerTexCoord.triplanarWeights = ComputeTriplanarWeights(vertexNormalWS);
 
-    int mappingType = UV_MAPPING_UVSET;
-#if defined(_LAYER_MAPPING_PLANAR_BLENDMASK)
-    mappingType = UV_MAPPING_PLANAR;
-#elif defined(_LAYER_MAPPING_TRIPLANAR_BLENDMASK)
-    mappingType = UV_MAPPING_TRIPLANAR;
-#endif
-
     // Note: Blend mask have its dedicated mapping and tiling.
     // To share code, we simply call the regular code from the main layer for it then save the result, then do regular call for all layers.
-    ComputeLayerTexCoord0(  texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMaskBlendMask, _UVMappingMaskBlendMask,
+    ComputeLayerTexCoord0(  texCoord0, texCoord1, texCoord2, texCoord3, float4(1, 0, 0, 0), float4(0, 0, 0, 0),
                             float2(1, 1), float2(0, 0), float2(0, 0), float2(0, 0), 1.0, false,
-                            positionWS, _TexWorldScaleBlendMask,
-                            mappingType, layerTexCoord);
+                            positionWS, 1,
+                            UV_MAPPING_UVSET, layerTexCoord);
 
     layerTexCoord.blendMask = layerTexCoord.base0;
 
@@ -220,7 +213,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     // Note: the object scale doesn't affect planar/triplanar mapping as they already handle the object scale.
     float tileObjectScale = 1.0;
 
-    mappingType = UV_MAPPING_UVSET;
+    int mappingType = UV_MAPPING_UVSET;
 #if defined(_LAYER_MAPPING_PLANAR0)
     mappingType = UV_MAPPING_PLANAR;
 #elif defined(_LAYER_MAPPING_TRIPLANAR0)

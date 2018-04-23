@@ -94,10 +94,6 @@ Shader "HDRenderPipeline/TerrainLit"
         _InheritBaseColor2("_InheritBaseColor2", Range(0, 1.0)) = 0.0
         _InheritBaseColor3("_InheritBaseColor3", Range(0, 1.0)) = 0.0
 
-        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBlendMask("UV Set for blendMask", Float) = 0
-        [HideInInspector] _UVMappingMaskBlendMask("_UVMappingMaskBlendMask", Color) = (1, 0, 0, 0)
-        _TexWorldScaleBlendMask("Tiling", Float) = 1.0
-
         // Following are builtin properties
 
         [ToggleUI]  _EnableSpecularOcclusion("Enable specular occlusion", Float) = 0.0
@@ -143,7 +139,6 @@ Shader "HDRenderPipeline/TerrainLit"
 
     #pragma shader_feature _DOUBLESIDED_ON
 
-    //#pragma shader_feature _ _LAYER_MAPPING_PLANAR_BLENDMASK _LAYER_MAPPING_TRIPLANAR_BLENDMASK
     //#pragma shader_feature _ _LAYER_MAPPING_PLANAR0 _LAYER_MAPPING_TRIPLANAR0
     //#pragma shader_feature _ _LAYER_MAPPING_PLANAR1 _LAYER_MAPPING_TRIPLANAR1
     //#pragma shader_feature _ _LAYER_MAPPING_PLANAR2 _LAYER_MAPPING_TRIPLANAR2
