@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,7 +6,7 @@ namespace UnityEditor.VFX
 {
     public class VFXDebugWindow : EditorWindow
     {
-        [MenuItem("Window/Visual Effects/VFXEditor Debug Window",false, 3011, true)]
+        [MenuItem("Window/Visual Effects/VFXEditor Debug Window", false, 3011, true)]
         public static void OpenWindow()
         {
             GetWindow<VFXDebugWindow>();
@@ -24,7 +24,6 @@ namespace UnityEditor.VFX
 
                 if (GUILayout.Button("Rebuild"))
                     VFXCacheManager.Build();
-
             }
             EditorGUILayout.Space();
 #endif
@@ -45,16 +44,11 @@ namespace UnityEditor.VFX
                     VFXMigration.Resave();
             }
             EditorGUILayout.Space();
-
-
         }
 
         static class Contents
         {
             public static GUIContent title = new GUIContent("VFX Debug");
         }
-
     }
-
 }
-
