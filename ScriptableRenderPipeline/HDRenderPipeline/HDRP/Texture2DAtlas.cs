@@ -118,14 +118,14 @@ namespace UnityEngine.Experimental.Rendering
 
     public class Texture2DAtlas
     {
-        private RTHandle m_AtlasTexture = null;
+        private RTHandleSystem.RTHandle m_AtlasTexture = null;
         private int m_Width;
         private int m_Height;
         private RenderTextureFormat m_Format;
         private AtlasAllocator m_AtlasAllocator = null;
         private Dictionary<IntPtr, Vector4> m_AllocationCache = new Dictionary<IntPtr, Vector4>(); 
 
-        public RTHandle AtlasTexture
+        public RTHandleSystem.RTHandle AtlasTexture
         {
             get
             {
@@ -138,7 +138,7 @@ namespace UnityEngine.Experimental.Rendering
             m_Width = width;
             m_Height = height;
             m_Format = format;
-            m_AtlasTexture = RTHandle.Alloc(m_Width,
+            m_AtlasTexture = RTHandles.Alloc(m_Width,
                 m_Height,
                 1,
                 DepthBits.None,
@@ -157,7 +157,7 @@ namespace UnityEngine.Experimental.Rendering
         public void Release()
         {
             ResetAllocator();
-            RTHandle.Release(m_AtlasTexture);
+            RTHandles.Release(m_AtlasTexture);
         }
 
         public void ResetAllocator()

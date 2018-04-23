@@ -171,3 +171,109 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     attenuation *= shadow;
 
 }
+
+// Environment map share function
+#include "Reflection/VolumeProjection.hlsl"
+
+void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightData lightData, int influenceShapeType, inout float3 R, inout float weight)
+{
+    // Guideline for reflection volume: In HDRenderPipeline we separate the projection volume (the proxy of the scene) from the influence volume (what pixel on the screen is affected)
+    // However we add the constrain that the shape of the projection and influence volume is the same (i.e if we have a sphere shape projection volume, we have a shape influence).
+    // It allow to have more coherence for the dynamic if in shader code.
+    // Users can also chose to not have any projection, in this case we use the property minProjectionDistance to minimize code change. minProjectionDistance is set to huge number
+    // that simulate effect of no shape projection
+
+    float3x3 worldToIS = WorldToInfluenceSpace(lightData); // IS: Influence space
+    float3 positionIS = WorldToInfluencePosition(lightData, worldToIS, positionWS);
+    float3 dirIS = mul(R, worldToIS);
+
+    float3x3 worldToPS = WorldToProxySpace(lightData); // PS: Proxy space
+    float3 positionPS = WorldToProxyPosition(lightData, worldToPS, positionWS);
+    float3 dirPS = mul(R, worldToPS);
+
+    float projectionDistance = 0;
+
+    // Process the projection
+    // In Unity the cubemaps are capture with the localToWorld transform of the component.
+    // This mean that location and orientation matter. So after intersection of proxy volume we need to convert back to world.
+    if (influenceShapeType == ENVSHAPETYPE_SPHERE)
+    {
+        projectionDistance = IntersectSphereProxy(lightData, dirPS, positionPS);
+        // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.capturePositionWS
+        float3 capturePositionWS = lightData.capturePositionWS;
+        R = (positionWS + projectionDistance * R) - capturePositionWS;
+
+        weight = InfluenceSphereWeight(lightData, normalWS, positionWS, positionIS, dirIS);
+    }
+    else if (influenceShapeType == ENVSHAPETYPE_BOX)
+    {
+        projectionDistance = IntersectBoxProxy(lightData, dirPS, positionPS);
+        // No need to normalize for fetching cubemap
+        // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.capturePositionWS
+        float3 capturePositionWS = lightData.capturePositionWS;
+        R = (positionWS + projectionDistance * R) - capturePositionWS;
+
+        weight = InfluenceBoxWeight(lightData, normalWS, positionWS, positionIS, dirIS);
+    }
+
+    // Smooth weighting
+    weight = Smoothstep01(weight);
+    weight *= lightData.weight;
+}
+
+// Ambient occlusion
+struct AmbientOcclusionFactor
+{
+    float3 indirectAmbientOcclusion;
+    float3 directAmbientOcclusion;
+    float3 indirectSpecularOcclusion;
+};
+
+void GetScreenSpaceAmbientOcclusion(float2 positionSS, float NdotV, float perceptualRoughness, float specularOcclusionFromData, out AmbientOcclusionFactor aoFactor)
+{
+    // Note: When we ImageLoad outside of texture size, the value returned by Load is 0 (Note: On Metal maybe it clamp to value of texture which is also fine)
+    // We use this property to have a neutral value for AO that doesn't consume a sampler and work also with compute shader (i.e use ImageLoad)
+    // We store inverse AO so neutral is black. So either we sample inside or outside the texture it return 0 in case of neutral
+
+    // Ambient occlusion use for indirect lighting (reflection probe, baked diffuse lighting)
+#ifndef _SURFACE_TYPE_TRANSPARENT
+    float indirectAmbientOcclusion = 1.0 - LOAD_TEXTURE2D(_AmbientOcclusionTexture, positionSS).x;
+    // Ambient occlusion use for direct lighting (directional, punctual, area)
+    float directAmbientOcclusion = lerp(1.0, indirectAmbientOcclusion, _AmbientOcclusionParam.w);
+#else
+    float indirectAmbientOcclusion = 1.0;
+    float directAmbientOcclusion = 1.0;
+#endif
+
+    float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
+    float specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(NdotV), indirectAmbientOcclusion, roughness);
+
+    aoFactor.indirectAmbientOcclusion   = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), indirectAmbientOcclusion);
+    aoFactor.directAmbientOcclusion     = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), directAmbientOcclusion);
+    aoFactor.indirectSpecularOcclusion  = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), min(specularOcclusionFromData, specularOcclusion));
+}
+
+void GetScreenSpaceAmbientOcclusionMultibounce(float2 positionSS, float NdotV, float perceptualRoughness, float specularOcclusionFromData, float3 diffuseColor, float3 fresnel0, out AmbientOcclusionFactor aoFactor)
+{
+    // Use GTAOMultiBounce approximation for ambient occlusion (allow to get a tint from the diffuseColor)
+    // Note: When we ImageLoad outside of texture size, the value returned by Load is 0 (Note: On Metal maybe it clamp to value of texture which is also fine)
+    // We use this property to have a neutral value for AO that doesn't consume a sampler and work also with compute shader (i.e use ImageLoad)
+    // We store inverse AO so neutral is black. So either we sample inside or outside the texture it return 0 in case of neutral
+
+    // Ambient occlusion use for indirect lighting (reflection probe, baked diffuse lighting)
+#ifndef _SURFACE_TYPE_TRANSPARENT
+    float indirectAmbientOcclusion = 1.0 - LOAD_TEXTURE2D(_AmbientOcclusionTexture, positionSS).x;
+    // Ambient occlusion use for direct lighting (directional, punctual, area)
+    float directAmbientOcclusion = lerp(1.0, indirectAmbientOcclusion, _AmbientOcclusionParam.w);
+#else
+    float indirectAmbientOcclusion = 1.0;
+    float directAmbientOcclusion = 1.0;
+#endif
+
+    float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
+    float specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(NdotV), indirectAmbientOcclusion, roughness);
+
+    aoFactor.indirectAmbientOcclusion   = GTAOMultiBounce(indirectAmbientOcclusion, diffuseColor);
+    aoFactor.directAmbientOcclusion     = GTAOMultiBounce(min(specularOcclusionFromData, specularOcclusion), fresnel0);
+    aoFactor.indirectSpecularOcclusion  = GTAOMultiBounce(directAmbientOcclusion, diffuseColor);
+}

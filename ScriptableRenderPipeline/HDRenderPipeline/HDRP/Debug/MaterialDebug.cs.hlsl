@@ -17,7 +17,6 @@
 #define DEBUGVIEWVARYING_VERTEX_NORMAL_WS (7)
 #define DEBUGVIEWVARYING_VERTEX_COLOR (8)
 #define DEBUGVIEWVARYING_VERTEX_COLOR_ALPHA (9)
-#define DEBUGVIEWVARYING_LAST (10)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Attributes.DebugViewGbuffer:  static fields
@@ -29,7 +28,6 @@
 #define DEBUGVIEWGBUFFER_BAKE_SHADOW_MASK1 (13)
 #define DEBUGVIEWGBUFFER_BAKE_SHADOW_MASK2 (14)
 #define DEBUGVIEWGBUFFER_BAKE_SHADOW_MASK3 (15)
-#define DEBUGVIEWGBUFFER_LAST (16)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Attributes.DebugViewProperties:  static fields
@@ -42,7 +40,6 @@
 #define DEBUGVIEWPROPERTIES_DEPTH_OFFSET (20)
 #define DEBUGVIEWPROPERTIES_LIGHTMAP (21)
 #define DEBUGVIEWPROPERTIES_INSTANCING (22)
-#define DEBUGVIEWPROPERTIES_LAST (23)
 
 
 #endif

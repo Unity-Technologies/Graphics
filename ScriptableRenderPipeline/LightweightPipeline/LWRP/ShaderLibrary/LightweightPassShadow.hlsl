@@ -2,7 +2,6 @@
 #define LIGHTWEIGHT_PASS_SHADOW_INCLUDED
 
 #include "LWRP/ShaderLibrary/Core.hlsl"
-#include "LWRP/ShaderLibrary/InputSurface.hlsl"
 
 // x: global clip space bias, y: normal world space bias
 float4 _ShadowBias;
@@ -51,14 +50,14 @@ VertexOutput ShadowPassVertex(VertexInput v)
     VertexOutput o;
     UNITY_SETUP_INSTANCE_ID(v);
 
-    o.uv = TransformMainTextureCoord(v.texcoord);
+    o.uv = TRANSFORM_TEX(v.texcoord, _MainTex);
     o.clipPos = GetShadowPositionHClip(v);
     return o;
 }
 
 half4 ShadowPassFragment(VertexOutput IN) : SV_TARGET
 {
-    Alpha(MainTexture(IN.uv).a);
+    Alpha(SampleAlbedoAlpha(IN.uv, TEXTURE2D_PARAM(_MainTex, sampler_MainTex)).a, _Color, _Cutoff);
     return 0;
 }
 
