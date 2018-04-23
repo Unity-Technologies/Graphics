@@ -82,18 +82,6 @@ Shader "HDRenderPipeline/TerrainLit"
         [ToggleUI] _UseHeightBasedBlend("UseHeightBasedBlend", Float) = 0.0
         _HeightTransition("Height Transition", Range(0, 1.0)) = 0.0
 
-        _InheritBaseNormal1("_InheritBaseNormal1", Range(0, 1.0)) = 0.0
-        _InheritBaseNormal2("_InheritBaseNormal2", Range(0, 1.0)) = 0.0
-        _InheritBaseNormal3("_InheritBaseNormal3", Range(0, 1.0)) = 0.0
-
-        _InheritBaseHeight1("_InheritBaseHeight1", Range(0, 1.0)) = 0.0
-        _InheritBaseHeight2("_InheritBaseHeight2", Range(0, 1.0)) = 0.0
-        _InheritBaseHeight3("_InheritBaseHeight3", Range(0, 1.0)) = 0.0
-
-        _InheritBaseColor1("_InheritBaseColor1", Range(0, 1.0)) = 0.0
-        _InheritBaseColor2("_InheritBaseColor2", Range(0, 1.0)) = 0.0
-        _InheritBaseColor3("_InheritBaseColor3", Range(0, 1.0)) = 0.0
-
         // Following are builtin properties
 
         [ToggleUI]  _EnableSpecularOcclusion("Enable specular occlusion", Float) = 0.0

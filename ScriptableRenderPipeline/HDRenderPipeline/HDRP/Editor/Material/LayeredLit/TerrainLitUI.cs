@@ -36,14 +36,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         MaterialProperty[] opacityAsDensity = new MaterialProperty[kMaxLayerCount];
         const string kOpacityAsDensity = "_OpacityAsDensity";
 
-        // Influence
-        MaterialProperty[] inheritBaseNormal = new MaterialProperty[kMaxLayerCount - 1];
-        const string kInheritBaseNormal = "_InheritBaseNormal";
-        MaterialProperty[] inheritBaseHeight = new MaterialProperty[kMaxLayerCount - 1];
-        const string kInheritBaseHeight = "_InheritBaseHeight";
-        MaterialProperty[] inheritBaseColor = new MaterialProperty[kMaxLayerCount - 1];
-        const string kInheritBaseColor = "_InheritBaseColor";
-
         // Height blend
         MaterialProperty heightTransition = null;
         const string kHeightTransition = "_HeightTransition";
@@ -59,14 +51,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 // Density/opacity mode
                 opacityAsDensity[i] = FindProperty(string.Format("{0}{1}", kOpacityAsDensity, i), props);
-
-                if (i != 0)
-                {
-                    // Influence
-                    inheritBaseNormal[i - 1] = FindProperty(string.Format("{0}{1}", kInheritBaseNormal, i), props);
-                    inheritBaseHeight[i - 1] = FindProperty(string.Format("{0}{1}", kInheritBaseHeight, i), props);
-                    inheritBaseColor[i - 1] = FindProperty(string.Format("{0}{1}", kInheritBaseColor, i), props);
-                }
             }
         }
 
