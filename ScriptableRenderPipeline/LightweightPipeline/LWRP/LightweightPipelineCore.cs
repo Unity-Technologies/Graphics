@@ -54,6 +54,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static readonly ShaderKeyword DirectionalShadows = new ShaderKeyword(DirectionalShadowsText);
         public static readonly ShaderKeyword LocalShadows = new ShaderKeyword(LocalShadowsText);
         public static readonly ShaderKeyword SoftShadows = new ShaderKeyword(SoftShadowsText);
+
+        public static readonly ShaderKeyword Lightmap = new ShaderKeyword("LIGHTMAP_ON");
+        public static readonly ShaderKeyword DirectionalLightmap = new ShaderKeyword("DIRLIGHTMAP_COMBINED");
     }
 
     public partial class LightweightPipeline

@@ -75,6 +75,26 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             return false;
         }
 
+        bool StripInvalidVariants(ShaderCompilerData compilerData)
+        {
+            bool isShadowVariant = compilerData.shaderKeywordSet.IsEnabled(LightweightKeywords.DirectionalShadows) ||
+                compilerData.shaderKeywordSet.IsEnabled(LightweightKeywords.LocalShadows);
+
+            if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeywords.SoftShadows) && !isShadowVariant)
+                return true;
+
+            if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeywords.VertexLights) &&
+                !compilerData.shaderKeywordSet.IsEnabled(LightweightKeywords.AdditionalLights))
+                return true;
+
+            // Note: LWRP doesn't support Dynamic Lightmap.
+            if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeywords.DirectionalLightmap) &&
+                !compilerData.shaderKeywordSet.IsEnabled(LightweightKeywords.Lightmap))
+                return true;
+
+            return false;
+        }
+
         bool StripUnused(PipelineCapabilities capabilities, Shader shader, ShaderSnippetData snippetData, ShaderCompilerData compilerData)
         {
             if (StripUnusedShader(capabilities, shader))
@@ -84,6 +104,9 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
                 return true;
 
             if (StripUnusedVariant(capabilities, compilerData))
+                return true;
+
+            if (StripInvalidVariants(compilerData))
                 return true;
 
             return false;
