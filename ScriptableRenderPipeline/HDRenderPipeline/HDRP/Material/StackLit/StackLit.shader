@@ -9,29 +9,39 @@ Shader "HDRenderPipeline/StackLit"
         // Be careful, do not change the name here to _Color. It will conflict with the "fake" parameters (see end of properties) required for GI.
         _BaseColor("BaseColor", Color) = (1,1,1,1)
         _BaseColorMap("BaseColorMap", 2D) = "white" {}
+        _BaseColorMapUV("BaseColorMapUV", Float) = 0.0
 
         _Metallic("Metallic", Range(0.0, 1.0)) = 0
-
+        _MetallicMap("MetallicMap", 2D) = "black" {}
+        _MetallicMapUV("MetallicMapUV", Float) = 0.0
+        _MetallicMapChannel("MetallicMapChannel", Vector) = (1, 0, 0, 0)
+        _MetallicRemap("Metallic Remap", Vector) = (0, 1, 0, 0)
+        [ToggleUI] _MetallicRemapInverted("Invert Metallic Remap", Float) = 0.0
 
         _SmoothnessA("SmoothnessA", Range(0.0, 1.0)) = 1.0
-        _SmoothnessARemapMin("SmoothnessARemapMin", Float) = 0.0
-        _SmoothnessARemapMax("SmoothnessARemapMax", Float) = 1.0
+        _SmoothnessAMap("BaseColorMap", 2D) = "white" {}
+        _SmoothnessAMapUV("SmoothnessAMapUV", Float) = 0.0
+        _SmoothnessAMapChannel("SmoothnessA Map Channel", Vector) = (1, 0, 0, 0)
+        _SmoothnessARemap("SmoothnessA Remap", Vector)  = (0, 1, 0, 0)
+        [ToggleUI] _SmoothnessARemapInverted("Invert SmoothnessA Remap", Float) = 0.0
         _SmoothnessB("SmoothnessB", Range(0.0, 1.0)) = 1.0
-        _SmoothnessBRemapMin("SmoothnessBRemapMin", Float) = 0.0
-        _SmoothnessBRemapMax("SmoothnessBRemapMax", Float) = 1.0
-        _LobeMix("lobeMix", Range(0.0, 1.0)) = 0
-        _MaskMapA("MaskMapA", 2D) = "white" {}
-        _MaskMapB("MaskMapB", 2D) = "white" {}
+        _SmoothnessBMap("SmoothnessBMap", 2D) = "white" {}
+        _SmoothnessBMapUV("SmoothnessBMapUV", Float) = 0.0
+        _SmoothnessBMapChannel("SmoothnessB Map Channel", Vector) = (1, 0, 0, 0)
+        _SmoothnessBRemap("SmoothnessB Remap", Vector) = (0, 1, 0, 0)
+        [ToggleUI] _SmoothnessBRemapInverted("Invert SmoothnessB Remap", Float) = 0.0
+        _LobeMix("Lobe Mix", Range(0.0, 1.0)) = 0
 
         _NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
+        _NormalMapUV("NormalMapUV", Float) = 0.0
         _NormalScale("_NormalScale", Range(0.0, 2.0)) = 1
 
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase("UV Set for base", Float) = 0
         [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
 
-
         _EmissiveColor("EmissiveColor", Color) = (1, 1, 1)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
+        _EmissiveColorMapUV("EmissiveColorMap", Range(0.0, 1.0)) = 0
         _EmissiveIntensity("EmissiveIntensity", Float) = 0
         [ToggleUI] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
 
