@@ -228,12 +228,8 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
 #endif
 
     ComputeLayerTexCoord0(  texCoord0, texCoord1, texCoord2, texCoord3, float4(1, 0, 0, 0), float4(0, 0, 0, 0),
-                            _Splat0_ST.xy, _Splat0_ST.zw, float2(0, 0), float2(0, 0), 1.0
-                            #if !defined(_MAIN_LAYER_INFLUENCE_MODE)
-                            * tileObjectScale  // We only affect layer0 in case we are not in influence mode (i.e we should not change the base object)
-                            #endif
-                            , 0
-                            , positionWS, _TexWorldScale0,
+                            _Splat0_ST.xy, _Splat0_ST.zw, float2(0, 0), float2(0, 0), tileObjectScale, 0,
+                            positionWS, _TexWorldScale0,
                             mappingType, layerTexCoord);
 
     mappingType = UV_MAPPING_UVSET;
@@ -527,25 +523,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     float3 normalTS;
     float3 bentNormalWS;
-#if defined(_MAIN_LAYER_INFLUENCE_MODE)
-
-    #ifdef _INFLUENCEMASK_MAP
-    float influenceMask = GetInfluenceMask(layerTexCoord);
-    #else
-    float influenceMask = 1.0;
-    #endif
-
-    if (influenceMask > 0.0f)
-    {
-        surfaceData.baseColor = ComputeMainBaseColorInfluence(influenceMask, surfaceData0.baseColor, surfaceData1.baseColor, surfaceData2.baseColor, surfaceData3.baseColor, layerTexCoord, blendMasks.a, weights);
-        normalTS = ComputeMainNormalInfluence(influenceMask, input, normalTS0, normalTS1, normalTS2, normalTS3, layerTexCoord, blendMasks.a, weights);
-    }
-    else
-#endif
-    {
-        surfaceData.baseColor = SURFACEDATA_BLEND_VECTOR3(surfaceData, baseColor, weights);
-        normalTS = BlendLayeredVector3(normalTS0, normalTS1, normalTS2, normalTS3, weights);
-    }
+    surfaceData.baseColor = SURFACEDATA_BLEND_VECTOR3(surfaceData, baseColor, weights);
+    normalTS = BlendLayeredVector3(normalTS0, normalTS1, normalTS2, normalTS3, weights);
 
     surfaceData.perceptualSmoothness = SURFACEDATA_BLEND_SCALAR(surfaceData, perceptualSmoothness, weights);
     surfaceData.ambientOcclusion = SURFACEDATA_BLEND_SCALAR(surfaceData, ambientOcclusion, weights);
