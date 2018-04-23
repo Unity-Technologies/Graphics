@@ -256,6 +256,8 @@ public class VolumetricLightingSystem
     public void ResizeVBuffer(HDCamera camera, int screenWidth, int screenHeight)
     {
         if (preset == VolumetricLightingPreset.Off) return;
+        var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
+        if (visualEnvironment == null || visualEnvironment.fogType != FogType.Volumetric) return;
 
         long viewID = camera.GetViewID();
 
@@ -412,6 +414,8 @@ public class VolumetricLightingSystem
     public void PushGlobalParams(HDCamera camera, CommandBuffer cmd)
     {
         if (preset == VolumetricLightingPreset.Off) return;
+        var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
+        if (visualEnvironment == null || visualEnvironment.fogType != FogType.Volumetric) return;
 
         // Modify the near plane.
         // Warning: it can screw up the reprojection. However, we have to do it in order for clustered lighting to work correctly.
@@ -440,10 +444,8 @@ public class VolumetricLightingSystem
         DensityVolumeList densityVolumes = new DensityVolumeList();
 
         if (preset == VolumetricLightingPreset.Off) return densityVolumes;
-
         var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-
-        if (visualEnvironment.fogType != FogType.Volumetric) return densityVolumes;
+        if (visualEnvironment == null || visualEnvironment.fogType != FogType.Volumetric) return densityVolumes;
 
         using (new ProfilingSample(cmd, "Prepare Visible Density Volume List"))
         {
@@ -500,6 +502,8 @@ public class VolumetricLightingSystem
     public void VolumeVoxelizationPass(DensityVolumeList densityVolumes, HDCamera camera, CommandBuffer cmd, FrameSettings settings)
     {
         if (preset == VolumetricLightingPreset.Off) return;
+        var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
+        if (visualEnvironment == null || visualEnvironment.fogType != FogType.Volumetric) return;
 
         using (new ProfilingSample(cmd, "Volume Voxelization"))
         {
@@ -508,11 +512,12 @@ public class VolumetricLightingSystem
             if (numVisibleVolumes == 0)
             {
                 // Clear the render target instead of running the shader.
+                // Note: the clear must take the global fog into account!
                 // CoreUtils.SetRenderTarget(cmd, vBuffer.GetDensityBuffer(), ClearFlag.Color, CoreUtils.clearColorAllBlack);
                 // return;
 
                 // Clearing 3D textures does not seem to work!
-                // Use the workaround by running the full shader with 0 density.
+                // Use the workaround by running the full shader with 0 density
             }
 
             VBuffer vBuffer = FindVBuffer(camera.GetViewID());
@@ -585,21 +590,11 @@ public class VolumetricLightingSystem
     public void VolumetricLightingPass(HDCamera camera, CommandBuffer cmd, FrameSettings settings)
     {
         if (preset == VolumetricLightingPreset.Off) return;
+        var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
+        if (visualEnvironment == null || visualEnvironment.fogType != FogType.Volumetric) return;
 
         using (new ProfilingSample(cmd, "Volumetric Lighting"))
         {
-            var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-
-            if (visualEnvironment.fogType != FogType.Volumetric)
-            {
-                // Clear the render target instead of running the shader.
-                // CoreUtils.SetRenderTarget(cmd, vBuffer.GetDensityBuffer(), ClearFlag.Color, CoreUtils.clearColorAllBlack);
-                // return;
-
-                // Clearing 3D textures does not seem to work!
-                // Use the workaround by running the full shader with 0 density.
-            }
-
             VBuffer vBuffer = FindVBuffer(camera.GetViewID());
             Debug.Assert(vBuffer != null);
 
