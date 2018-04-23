@@ -318,8 +318,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void UpdateMaterials()
         {
-            //if (mipMapDebugSettings.debugMipMapMode != 0)
-            //    Texture.SetStreamingTextureMaterialDebugProperties();
+#if UNITY_2018_2_OR_NEWER
+            if (mipMapDebugSettings.debugMipMapMode != 0)
+                Texture.SetStreamingTextureMaterialDebugProperties();
+#endif
         }
 
         public bool DebugNeedsExposure()

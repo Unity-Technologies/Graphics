@@ -93,6 +93,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return renderPipelineSettings;
         }
 
+        public bool allowShaderVariantStripping = true;
+
         [SerializeField]
         public DiffusionProfileSettings diffusionProfileSettings;
 

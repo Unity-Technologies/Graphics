@@ -1,28 +1,43 @@
+
 # Changelog
-All notable changes to this package will be documented in this file.
 
-The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
-and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
+## [2018.2 undecided]
 
-## [Unreleased]
-### Added
+### Improvements
+- Add stripper of shader variant when building a player. Save shader compile time.
+- Disable per-object culling that was executed in C++ in HD whereas it was not used (Optimization)
+- Enable texture streaming debugging (was not working before 2018.2)
 
+## [2018.1 undecided]
 
-### Changed
+### Improvements
+- Configure the volumetric lighting code path to be on by default
 
-
-## [0.1.6] - 2018-xx-yy
-
-### New features and functionality
+### Changed, Removals and deprecations
 - 
 
 ### Bug fixes
-- Fix fog flags in scene view is now taken into account
-- Fix sky in preview windows that were disappearing after a load of a new level
-- Fix numerical issues in IntersectRayAABB().
-- Fix alpha blending of volumetric lighting with transparent objects.
-- Fix the near plane of the V-Buffer causing out-of-bounds look-ups in the clustered data structure.
-- Depth and color pyramid are properly computed and sampled when the camera renders inside a viewport of a RTHandle.
+- Fix ConvertPhysicalLightIntensityToLightIntensity() function used when creating light from script to match HDLightEditor behavior
+- Fix numerical issues with the default value of mean free path of volumetric fog 
+- Fix the bug preventing decals from coexisting with density volumes 
+
+## [2018.1.0f2]
+
+### Improvements
+- Screen Space Refraction projection model (Proxy raycasting, HiZ raymarching)
+- Screen Space Refraction settings as volume component
+- Added buffered frame history per camera
+- Port Global Density Volumes to the Interpolation Volume System.
+- Optimize ImportanceSampleLambert() to not require the tangent frame.
+- Generalize SampleVBuffer() to handle different sampling and reconstruction methods.
+- Improve the quality of volumetric lighting reprojection.
+- Optimize Morton Order code in the Subsurface Scattering pass.
+- Planar Reflection Probe support roughness (gaussian convolution of captured probe)
+- Use an atlas instead of a texture array for cluster transparent decals
+- Add a debug view to visualize the decal atlas
+- Only store decal textures to atlas if decal is visible, debounce out of memory decal atlas warning.
+- Add manipulator gizmo on decal to improve authoring workflow
+- Add a minimal StackLit material (work in progress, this version can be used as template to add new material)
 
 ### Changed, Removals and deprecations
 - EnableShadowMask in FrameSettings (But shadowMaskSupport still disable by default)
@@ -32,16 +47,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Moved RTHandle static methods to RTHandles
 - Renamed RTHandle to RTHandleSystem.RTHandle
  
-### Improvements
-- Port Global Density Volumes to the Interpolation Volume System.
-- Optimize ImportanceSampleLambert() to not require the tangent frame.
-- Generalize SampleVBuffer() to handle different sampling and reconstruction methods.
-- Improve the quality of volumetric lighting reprojection.
-- Optimize Morton Order code in the Subsurface Scattering pass.
-- Planar Reflection Probe support roughness (gaussian convolution of captured probe)
-- Only store decal textures to atlas if decal is visible, debounce out of memory decal atlas warning.
+### Bug fixes
+- Fix fog flags in scene view is now taken into account
+- Fix sky in preview windows that were disappearing after a load of a new level
+- Fix numerical issues in IntersectRayAABB().
+- Fix alpha blending of volumetric lighting with transparent objects.
+- Fix the near plane of the V-Buffer causing out-of-bounds look-ups in the clustered data structure.
+- Depth and color pyramid are properly computed and sampled when the camera renders inside a viewport of a RTHandle.
 
-### Features
-- Screen Space Refraction projection model (Proxy raycasting, HiZ raymarching)
-- Screen Space Refraction settings as volume component
-- Added buffered frame history per camera
+## [2018.1.0b13]
+
+...
