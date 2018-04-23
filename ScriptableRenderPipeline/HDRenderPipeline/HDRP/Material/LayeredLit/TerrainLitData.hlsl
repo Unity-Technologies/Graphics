@@ -437,54 +437,6 @@ void ComputeLayerWeights(FragInputs input, LayerTexCoord layerTexCoord, float4 i
     ComputeMaskWeights(blendMasks, outWeights);
 }
 
-float3 ComputeMainNormalInfluence(float influenceMask, FragInputs input, float3 normalTS0, float3 normalTS1, float3 normalTS2, float3 normalTS3, LayerTexCoord layerTexCoord, float inputMainLayerMask, float weights[_MAX_LAYER])
-{
-    // Get our regular normal from regular layering
-    float3 normalTS = BlendLayeredVector3(normalTS0, normalTS1, normalTS2, normalTS3, weights);
-
-    // THen get Main Layer Normal influence factor. Main layer is 0 because it can't be influence. In this case the final lerp return normalTS.
-    float influenceFactor = BlendLayeredScalar(0.0, _InheritBaseNormal1, _InheritBaseNormal2, _InheritBaseNormal3, weights) * influenceMask;
-    // We will add smoothly the contribution of the normal map by lerping between vertex normal ( (0,0,1) in tangent space) and the actual normal from the main layer depending on the influence factor.
-    // Note: that we don't take details map into account here.
-    #ifdef SURFACE_GRADIENT
-    float3 neutralNormalTS = float3(0.0, 0.0, 0.0);
-    #else
-    float3 neutralNormalTS = float3(0.0, 0.0, 1.0);
-    #endif
-    float3 mainNormalTS = lerp(neutralNormalTS, normalTS0, influenceFactor);
-
-    // Add on our regular normal a bit of Main Layer normal base on influence factor. Note that this affect only the "visible" normal.
-    #ifdef SURFACE_GRADIENT
-    return normalTS + influenceFactor * mainNormalTS * inputMainLayerMask;
-    #else
-    return lerp(normalTS, BlendNormalRNM(normalTS, mainNormalTS), influenceFactor * inputMainLayerMask); // Multiply by inputMainLayerMask in order to avoid influence where main layer should never be present
-    #endif
-}
-
-float3 ComputeMainBaseColorInfluence(float influenceMask, float3 baseColor0, float3 baseColor1, float3 baseColor2, float3 baseColor3, LayerTexCoord layerTexCoord, float inputMainLayerMask, float weights[_MAX_LAYER])
-{
-    float3 baseColor = BlendLayeredVector3(baseColor0, baseColor1, baseColor2, baseColor3, weights);
-
-    float influenceFactor = BlendLayeredScalar(0.0, _InheritBaseColor1, _InheritBaseColor2, _InheritBaseColor3, weights) * influenceMask * inputMainLayerMask; // Multiply by inputMainLayerMask in order to avoid influence where main layer should never be present
-
-    // We want to calculate the mean color of the texture. For this we will sample a low mipmap
-    float textureBias = 15.0; // Use maximum bias
-    float3 baseMeanColor0 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_Splat0, sampler_Splat0, layerTexCoord.base0, textureBias).rgb;
-    float3 baseMeanColor1 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_Splat1, sampler_Splat0, layerTexCoord.base1, textureBias).rgb;
-    float3 baseMeanColor2 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_Splat2, sampler_Splat0, layerTexCoord.base2, textureBias).rgb;
-    float3 baseMeanColor3 = SAMPLE_UVMAPPING_TEXTURE2D_BIAS(_Splat3, sampler_Splat0, layerTexCoord.base3, textureBias).rgb;
-
-    float3 meanColor = BlendLayeredVector3(baseMeanColor0, baseMeanColor1, baseMeanColor2, baseMeanColor3, weights);
-
-    // If we inherit from base layer, we will add a bit of it
-    // We add variance of current visible level and the base color 0 or mean (to retrieve initial color) depends on influence
-    // (baseColor - meanColor) + lerp(meanColor, baseColor0, inheritBaseColor) simplify to
-    // saturate(influenceFactor * (baseColor0 - meanColor) + baseColor);
-    // There is a special case when baseColor < meanColor to avoid getting negative values.
-    float3 factor = baseColor > meanColor ? (baseColor0 - meanColor) : (baseColor0 * baseColor / max(meanColor, 0.001) - baseColor); // max(to avoid divide by 0)
-    return influenceFactor * factor + baseColor;
-}
-
 #include "LayeredLitDataDisplacement.hlsl"
 #include "../Lit/LitBuiltinData.hlsl"
 
