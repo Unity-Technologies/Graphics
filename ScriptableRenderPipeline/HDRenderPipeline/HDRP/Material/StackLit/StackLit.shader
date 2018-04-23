@@ -12,19 +12,22 @@ Shader "HDRenderPipeline/StackLit"
         _BaseColorMapUV("BaseColorMapUV", Float) = 0.0
 
         _Metallic("Metallic", Range(0.0, 1.0)) = 0
-        _MetallicMap("MetallicMap", 2D) = "white" {}
+        _MetallicMap("MetallicMap", 2D) = "black" {}
         _MetallicMapUV("MetallicMapUV", Float) = 0.0
+        _MetallicMapChannel("MetallicMapChannel", Vector) = (1, 0, 0, 0)
         _MetallicRemap("Metallic Remap", Vector) = (0, 1, 0, 0)
         [ToggleUI] _MetallicRemapInverted("Invert Metallic Remap", Float) = 0.0
 
         _SmoothnessA("SmoothnessA", Range(0.0, 1.0)) = 1.0
         _SmoothnessAMap("BaseColorMap", 2D) = "white" {}
         _SmoothnessAMapUV("SmoothnessAMapUV", Float) = 0.0
-        _SmoothnessARemap("SmoothnessA Remap", Vector) = (0, 1, 0, 0)
+        _SmoothnessAMapChannel("SmoothnessA Map Channel", Vector) = (1, 0, 0, 0)
+        _SmoothnessARemap("SmoothnessA Remap", Vector)  = (0, 1, 0, 0)
         [ToggleUI] _SmoothnessARemapInverted("Invert SmoothnessA Remap", Float) = 0.0
         _SmoothnessB("SmoothnessB", Range(0.0, 1.0)) = 1.0
         _SmoothnessBMap("SmoothnessBMap", 2D) = "white" {}
         _SmoothnessBMapUV("SmoothnessBMapUV", Float) = 0.0
+        _SmoothnessBMapChannel("SmoothnessB Map Channel", Vector) = (1, 0, 0, 0)
         _SmoothnessBRemap("SmoothnessB Remap", Vector) = (0, 1, 0, 0)
         [ToggleUI] _SmoothnessBRemapInverted("Invert SmoothnessB Remap", Float) = 0.0
         _LobeMix("Lobe Mix", Range(0.0, 1.0)) = 0

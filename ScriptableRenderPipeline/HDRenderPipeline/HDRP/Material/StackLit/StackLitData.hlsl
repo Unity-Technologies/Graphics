@@ -195,14 +195,14 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     //TODO: bentNormalTS
 
 #if defined(_SMOOTHNESSMASKMAPA)
-    surfaceData.perceptualSmoothnessA = SAMPLE_UVMAPPING_TEXTURE2D(_SmoothnessAMap, sampler_SmoothnessAMap, layerTexCoord.base).a;
+    surfaceData.perceptualSmoothnessA = dot(SAMPLE_UVMAPPING_TEXTURE2D(_SmoothnessAMap, sampler_SmoothnessAMap, layerTexCoord.base), _MetallicMapChannel, _SmoothnessAMapChannel);
     surfaceData.perceptualSmoothnessA = lerp(_SmoothnessARemap.x, _SmoothnessARemap.y, surfaceData.perceptualSmoothnessA);
 #else
     surfaceData.perceptualSmoothnessA = _SmoothnessA;
 #endif
 
 #if defined(_SMOOTHNESSMASKMAPB)
-    surfaceData.perceptualSmoothnessB = SAMPLE_UVMAPPING_TEXTURE2D(_SmoothnessAMaB, sampler_SmoothnessBMap, layerTexCoord.base).a;
+    surfaceData.perceptualSmoothnessB = dot(SAMPLE_UVMAPPING_TEXTURE2D(_SmoothnessAMaB, sampler_SmoothnessBMap, layerTexCoord.base), _SmoothnessBMapChannel);
     surfaceData.perceptualSmoothnessB = lerp(_SmoothnessBRemap.x, _SmoothnessBRemap.y, surfaceData.perceptualSmoothnessB);
 #else
     surfaceData.perceptualSmoothnessB = _SmoothnessB;
@@ -213,7 +213,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     // TODO: Ambient occlusion, detail mask.
 #ifdef _METALLICMAP
-    surfaceData.metallic = SAMPLE_UVMAPPING_TEXTURE2D(_MetallicMap, sampler_MetallicMap, layerTexCoord.base).r;
+    surfaceData.metallic = dot(SAMPLE_UVMAPPING_TEXTURE2D(_MetallicMap, sampler_MetallicMap, layerTexCoord.base), _MetallicMapChannel);
 #else
     surfaceData.metallic = 1.0;
 #endif
