@@ -35,12 +35,15 @@ float _BaseColorMapUV;
 
 float _Metallic;
 float _MetallicMapUV;
+float4 _MetallicMapChannel;
 
 float _SmoothnessA;
 float _SmoothnessAMapUV;
+float4 _SmoothnessAMapChannel;
 float4 _SmoothnessARemap;
 float _SmoothnessB;
 float _SmoothnessBUV;
+float4 _SmoothnessBMapChannel;
 float4 _SmoothnessBRemap;
 float _LobeMix;
 
