@@ -22,37 +22,59 @@ namespace UnityEditor.VFX
         public VFXProperty property     { get { return m_Property; } }
         public override string name     { get { return m_Property.name; } }
 
-        protected VFXSlot() {}
+        protected VFXSlot() {onModified += t=>ValueModified();}
+
+
+        FieldInfo m_FieldInfoCache;
+
+        void ValueModified()
+        {
+            m_ValueCached = false;
+            PropagateToChildren(t=>t.m_ValueCached = false);
+        }
+
+        bool m_ValueCached;
+        object m_Value;
 
         public object value
         {
             get
             {
+                if (m_ValueCached)
+                {
+                    return m_Value;
+                }
                 try
                 {
+                    m_ValueCached = true;
                     if (IsMasterSlot())
                     {
-                        return GetMasterData().m_Value.Get();
+                        m_Value = GetMasterData().m_Value.Get();
                     }
                     else
                     {
                         object parentValue = GetParent().value;
 
-                        Type type = GetParent().property.type;
-                        FieldInfo info = type.GetField(name);
+                        if(m_FieldInfoCache == null)
+                        {
+                            Type type = GetParent().property.type;
+                            m_FieldInfoCache = type.GetField(name);
+                        }
 
-                        return info.GetValue(parentValue);
+                        m_Value = m_FieldInfoCache.GetValue(parentValue);
                     }
                 }
                 catch (Exception e)
                 {
                     Debug.LogError(string.Format("Exception while getting value for slot {0} of type {1}: {2}\n{3}", name, GetType(), e, e.StackTrace));
                     // TODO Initialize to default value (try to call static default static method defaultValue from type)
+                    m_Value = null;
                 }
-                return null;
+                return m_Value;
             }
             set
             {
+                m_ValueCached = false;
                 try
                 {
                     if (IsMasterSlot())
@@ -61,10 +83,13 @@ namespace UnityEditor.VFX
                     {
                         object parentValue = GetParent().value;
 
-                        Type type = GetParent().property.type;
-                        FieldInfo info = type.GetField(name);
+                        if(m_FieldInfoCache == null)
+                        {
+                            Type type = GetParent().property.type;
+                            m_FieldInfoCache = type.GetField(name);
+                        }
 
-                        info.SetValue(parentValue, value);
+                        m_FieldInfoCache.SetValue(parentValue, value);
 
                         GetParent().value = parentValue;
                     }
@@ -468,6 +493,7 @@ namespace UnityEditor.VFX
 
         public void UpdateAttributes(VFXPropertyAttribute[] attributes)
         {
+            m_FieldInfoCache = null; // this is call by syncslot. at this point the type of our master slot might have changed.
             m_Property.attributes = attributes;
         }
 

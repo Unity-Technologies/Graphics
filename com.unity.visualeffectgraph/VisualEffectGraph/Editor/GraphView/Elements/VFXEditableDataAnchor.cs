@@ -182,19 +182,24 @@ namespace UnityEditor.VFX.UI
                 m_EditedType = controller.portType;
             }
 
-            OnRecompile();
+            OnRecompile(false);
             Profiler.EndSample();
         }
 
-        public void OnRecompile()
+        public void OnRecompile(bool valueOnly)
         {
             if (m_PropertyRM != null && controller != null)
             {
-                controller.UpdateInfos();
-                bool editable = controller.editable;
-                m_PropertyRM.propertyEnabled = editable && controller.expandedInHierachy;
-                m_PropertyRM.indeterminate = !editable && controller.indeterminate;
-                m_PropertyRM.Update();
+                if( ! valueOnly)
+                {
+                    controller.UpdateInfos();
+                    bool editable = controller.editable;
+                    m_PropertyRM.propertyEnabled = editable && controller.expandedInHierachy;
+                    m_PropertyRM.indeterminate = !editable && controller.indeterminate;
+                    m_PropertyRM.Update();
+                }
+                else
+                    m_PropertyRM.UpdateValue();
             }
         }
 

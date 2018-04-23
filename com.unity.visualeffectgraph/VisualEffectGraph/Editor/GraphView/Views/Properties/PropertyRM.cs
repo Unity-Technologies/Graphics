@@ -160,6 +160,13 @@ namespace UnityEditor.VFX.UI
 
         public abstract void UpdateGUI(bool force);
 
+
+        public void UpdateValue()
+        {
+            object value = m_Provider.value;
+            SetValue(value);
+        }
+
         public void Update()
         {
             Profiler.BeginSample("PropertyRM.Update");

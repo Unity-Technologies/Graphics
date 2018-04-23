@@ -169,7 +169,7 @@ namespace UnityEditor.VFX.UI
         {
             foreach (var anchor in allDataAnchors)
             {
-                anchor.OnRecompile();
+                anchor.OnRecompile(e.valueOnly);
             }
         }
 

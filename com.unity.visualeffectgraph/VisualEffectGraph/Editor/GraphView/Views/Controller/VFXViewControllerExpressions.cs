@@ -12,6 +12,14 @@ namespace UnityEditor.VFX.UI
 {
     class VFXRecompileEvent : EventBase<VFXRecompileEvent>, IPropagatableEvent
     {
+        public bool valueOnly{get;private set;}
+        public static VFXRecompileEvent GetPooled(bool valueOnly)
+        {
+            VFXRecompileEvent evt = GetPooled();
+            evt.valueOnly = valueOnly;
+
+            return evt;
+        }
         public VFXViewController controller;
         protected override void Init()
         {
@@ -40,7 +48,7 @@ namespace UnityEditor.VFX.UI
                 Debug.LogException(e);
             }
 
-            using (VFXRecompileEvent e = VFXRecompileEvent.GetPooled())
+            using (VFXRecompileEvent e = VFXRecompileEvent.GetPooled(ExpressionGraphDirtyParamOnly))
             {
                 SendEvent(e);
             }
@@ -51,12 +59,14 @@ namespace UnityEditor.VFX.UI
             if (cause != VFXModel.InvalidationCause.kStructureChanged &&
                 cause != VFXModel.InvalidationCause.kExpressionInvalidated &&
                 cause != VFXModel.InvalidationCause.kParamChanged)
-                /*use != VFXModel.InvalidationCause.kConnectionChanged &&
-                cause != VFXModel.InvalidationCause.kParamChanged &&
-                cause != VFXModel.InvalidationCause.kSettingChanged)*/
+            {
+                if( cause != VFXModel.InvalidationCause.kParamChanged)
+                    ExpressionGraphDirtyParamOnly = false;
                 return;
+            }
 
             ExpressionGraphDirty = true;
+            ExpressionGraphDirtyParamOnly = cause == VFXModel.InvalidationCause.kParamChanged;
         }
 
         private void CreateExpressionContext(bool forceRecreation)
@@ -108,5 +118,7 @@ namespace UnityEditor.VFX.UI
         private VFXExpression.Context m_ExpressionContext;
         [NonSerialized]
         private bool ExpressionGraphDirty = true;
+
+        private bool ExpressionGraphDirtyParamOnly = false;
     }
 }
