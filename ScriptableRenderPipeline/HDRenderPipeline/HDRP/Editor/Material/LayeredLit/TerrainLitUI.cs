@@ -68,8 +68,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override void FindMaterialProperties(MaterialProperty[] props)
         {
-            base.FindMaterialEmissiveProperties(props);
-
             layerInfluenceMaskMap = FindProperty(kLayerInfluenceMaskMap, props);
             UVBlendMask = FindProperty(kUVBlendMask, props);
             UVMappingMaskBlendMask = FindProperty(kUVMappingMaskBlendMask, props);
@@ -163,7 +161,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override bool ShouldEmissionBeEnabled(Material mat)
         {
-            return mat.GetFloat(kEmissiveIntensity) > 0.0f;
+            return false;
         }
 
         protected override void SetupMaterialKeywordsAndPassInternal(Material material)
@@ -214,11 +212,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             CoreUtils.SetKeyword(material, "_INFLUENCEMASK_MAP", material.GetTexture(kLayerInfluenceMaskMap) && material.GetFloat(kkUseMainLayerInfluence) != 0.0f);
 
-            CoreUtils.SetKeyword(material, "_EMISSIVE_MAPPING_PLANAR", ((UVBaseMapping)material.GetFloat(kUVEmissive)) == UVBaseMapping.Planar && material.GetTexture(kEmissiveColorMap));
-            CoreUtils.SetKeyword(material, "_EMISSIVE_MAPPING_TRIPLANAR", ((UVBaseMapping)material.GetFloat(kUVEmissive)) == UVBaseMapping.Triplanar && material.GetTexture(kEmissiveColorMap));
-            CoreUtils.SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
-            CoreUtils.SetKeyword(material, "_ENABLESPECULAROCCLUSION", material.GetFloat(kEnableSpecularOcclusion) > 0.0f);
-
             CoreUtils.SetKeyword(material, "_MAIN_LAYER_INFLUENCE_MODE", material.GetFloat(kkUseMainLayerInfluence) != 0.0f);
 
             bool useHeightBasedBlend = material.GetFloat(kUseHeightBasedBlend) != 0.0f;
@@ -249,23 +242,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             bool layerChanged = DoLayersGUI(materialImporter);
-            EditorGUI.BeginChangeCheck();
-            {
-                DoEmissiveGUI(material);
-            }
-            if (EditorGUI.EndChangeCheck())
-            {
-                optionsChanged = true;
-            }
-
-            DoEmissionArea(material);
 
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(StylesBaseUnlit.advancedText, EditorStyles.boldLabel);
             // NB RenderQueue editor is not shown on purpose: we want to override it based on blend mode
             EditorGUI.indentLevel++;
             m_MaterialEditor.EnableInstancingField();
-            m_MaterialEditor.ShaderProperty(enableSpecularOcclusion, Styles.enableSpecularOcclusionText);
             EditorGUI.indentLevel--;
 
             if (layerChanged || optionsChanged)

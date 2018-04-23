@@ -106,11 +106,6 @@ Shader "HDRenderPipeline/TerrainLit"
 
         [ToggleUI]  _EnableSpecularOcclusion("Enable specular occlusion", Float) = 0.0
 
-        _EmissiveColor("EmissiveColor", Color) = (1, 1, 1)
-        _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
-        _EmissiveIntensity("EmissiveIntensity", Float) = 0
-        [ToggleUI] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
-
         // Stencil state
         [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting
         [HideInInspector] _StencilWriteMask("_StencilWriteMask", Int) = 7 // StencilMask.Lighting  (fixed at compile time)
@@ -127,15 +122,10 @@ Shader "HDRenderPipeline/TerrainLit"
         [Enum(Flip, 0, Mirror, 1, None, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
 
-        [Enum(Use Emissive Color, 0, Use Emissive Mask, 1)] _EmissiveColorMode("Emissive color mode", Float) = 1
-        [Enum(UV0, 0, Planar, 4, TriPlanar, 5)] _UVEmissive("UV Set for emissive", Float) = 0
-        _TexWorldScaleEmissive("Scale to apply on world coordinate", Float) = 1.0
-        [HideInInspector] _UVMappingMaskEmissive("_UVMappingMaskEmissive", Color) = (1, 0, 0, 0)
-
         // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
         // value that exist to identify if the GI emission need to be enabled.
         // In our case we don't use such a mechanism but need to keep the code quiet. We declare the value and always enable it.
-        // TODO: Fix the code in legacy unity so we can customize the beahvior for GI
+        // TODO: Fix the code in legacy unity so we can customize the behavior for GI
         _EmissionColor("Color", Color) = (1, 1, 1)
 
         _TexWorldScale0("Tiling", Float) = 1.0
@@ -157,7 +147,6 @@ Shader "HDRenderPipeline/TerrainLit"
 
     #pragma shader_feature _DOUBLESIDED_ON
 
-    #pragma shader_feature _ _EMISSIVE_MAPPING_PLANAR _EMISSIVE_MAPPING_TRIPLANAR
     //#pragma shader_feature _ _LAYER_MAPPING_PLANAR_BLENDMASK _LAYER_MAPPING_TRIPLANAR_BLENDMASK
     //#pragma shader_feature _ _LAYER_MAPPING_PLANAR0 _LAYER_MAPPING_TRIPLANAR0
     //#pragma shader_feature _ _LAYER_MAPPING_PLANAR1 _LAYER_MAPPING_TRIPLANAR1
@@ -172,8 +161,6 @@ Shader "HDRenderPipeline/TerrainLit"
     #pragma shader_feature _MASKMAP1
     #pragma shader_feature _MASKMAP2
     #pragma shader_feature _MASKMAP3
-    #pragma shader_feature _EMISSIVE_COLOR_MAP
-    #pragma shader_feature _ENABLESPECULAROCCLUSION
     #pragma shader_feature _HEIGHTMAP0
     #pragma shader_feature _HEIGHTMAP1
     #pragma shader_feature _HEIGHTMAP2
