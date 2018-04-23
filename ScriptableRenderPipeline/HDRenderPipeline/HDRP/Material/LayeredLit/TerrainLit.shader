@@ -76,11 +76,6 @@ Shader "HDRenderPipeline/TerrainLit"
         _MaskMap2("MaskMap2", 2D) = "white" {}
         _MaskMap3("MaskMap3", 2D) = "white" {}
 
-        _DiffusionProfile0("Diffusion Profile0", Int) = 0
-        _DiffusionProfile1("Diffusion Profile1", Int) = 0
-        _DiffusionProfile2("Diffusion Profile2", Int) = 0
-        _DiffusionProfile3("Diffusion Profile3", Int) = 0
-
         // All the following properties exist only in layered lit material
 
         // Layer blending options
