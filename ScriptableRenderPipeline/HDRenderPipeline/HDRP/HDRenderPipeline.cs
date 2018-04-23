@@ -1478,7 +1478,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_SkyManager.RenderSky(hdCamera, m_LightLoop.GetCurrentSunLight(), m_CameraColorBuffer, m_CameraDepthStencilBuffer, m_CurrentDebugDisplaySettings, cmd);
 
-            if (visualEnv.fogType != FogType.None || m_VolumetricLightingSystem.preset != VolumetricLightingSystem.VolumetricLightingPreset.Off)
+            if (visualEnv.fogType != FogType.None)
                 m_SkyManager.RenderOpaqueAtmosphericScattering(cmd);
         }
 
