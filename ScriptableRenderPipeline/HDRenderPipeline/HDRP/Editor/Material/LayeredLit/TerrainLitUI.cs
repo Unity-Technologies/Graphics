@@ -35,16 +35,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         // Layer options
-        MaterialProperty layerInfluenceMaskMap = null;
-        const string kLayerInfluenceMaskMap = "_LayerInfluenceMaskMap";
         MaterialProperty UVBlendMask = null;
         const string kUVBlendMask = "_UVBlendMask";
         MaterialProperty UVMappingMaskBlendMask = null;
         const string kUVMappingMaskBlendMask = "_UVMappingMaskBlendMask";
         MaterialProperty texWorldScaleBlendMask = null;
         const string kTexWorldScaleBlendMask = "_TexWorldScaleBlendMask";
-        MaterialProperty useMainLayerInfluence = null;
-        const string kkUseMainLayerInfluence = "_UseMainLayerInfluence";
         MaterialProperty useHeightBasedBlend = null;
         const string kUseHeightBasedBlend = "_UseHeightBasedBlend";
 
@@ -68,12 +64,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override void FindMaterialProperties(MaterialProperty[] props)
         {
-            layerInfluenceMaskMap = FindProperty(kLayerInfluenceMaskMap, props);
             UVBlendMask = FindProperty(kUVBlendMask, props);
             UVMappingMaskBlendMask = FindProperty(kUVMappingMaskBlendMask, props);
             texWorldScaleBlendMask = FindProperty(kTexWorldScaleBlendMask, props);
 
-            useMainLayerInfluence = FindProperty(kkUseMainLayerInfluence, props);
             useHeightBasedBlend = FindProperty(kUseHeightBasedBlend, props);
             heightTransition = FindProperty(kHeightTransition, props);
 
@@ -117,14 +111,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.ShaderProperty(texWorldScaleBlendMask, styles.layerTexWorldScaleText);
             }
             EditorGUI.indentLevel--;
-
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = useMainLayerInfluence.hasMixedValue;
-            bool mainLayerModeInfluenceEnable = EditorGUILayout.Toggle(styles.useMainLayerInfluenceModeText, useMainLayerInfluence.floatValue > 0.0f);
-            if (EditorGUI.EndChangeCheck())
-            {
-                useMainLayerInfluence.floatValue = mainLayerModeInfluenceEnable ? 1.0f : 0.0f;
-            }
 
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = useHeightBasedBlend.hasMixedValue;
@@ -209,10 +195,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 CoreUtils.SetKeyword(material, "_THICKNESSMAP" + i, material.GetTexture(kThicknessMap + i));
             }
-
-            CoreUtils.SetKeyword(material, "_INFLUENCEMASK_MAP", material.GetTexture(kLayerInfluenceMaskMap) && material.GetFloat(kkUseMainLayerInfluence) != 0.0f);
-
-            CoreUtils.SetKeyword(material, "_MAIN_LAYER_INFLUENCE_MODE", material.GetFloat(kkUseMainLayerInfluence) != 0.0f);
 
             bool useHeightBasedBlend = material.GetFloat(kUseHeightBasedBlend) != 0.0f;
             CoreUtils.SetKeyword(material, "_HEIGHT_BASED_BLEND", useHeightBasedBlend);

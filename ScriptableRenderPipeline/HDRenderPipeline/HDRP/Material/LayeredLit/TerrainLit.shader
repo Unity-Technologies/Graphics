@@ -79,12 +79,8 @@ Shader "HDRenderPipeline/TerrainLit"
         // All the following properties exist only in layered lit material
 
         // Layer blending options
-        _LayerInfluenceMaskMap("LayerInfluenceMaskMap", 2D) = "white" {}
         [ToggleUI] _UseHeightBasedBlend("UseHeightBasedBlend", Float) = 0.0
-
         _HeightTransition("Height Transition", Range(0, 1.0)) = 0.0
-
-        [ToggleUI] _UseMainLayerInfluence("UseMainLayerInfluence", Float) = 0.0
 
         _InheritBaseNormal1("_InheritBaseNormal1", Range(0, 1.0)) = 0.0
         _InheritBaseNormal2("_InheritBaseNormal2", Range(0, 1.0)) = 0.0
@@ -166,8 +162,6 @@ Shader "HDRenderPipeline/TerrainLit"
     #pragma shader_feature _HEIGHTMAP2
     #pragma shader_feature _HEIGHTMAP3
 
-    #pragma shader_feature _MAIN_LAYER_INFLUENCE_MODE
-    #pragma shader_feature _INFLUENCEMASK_MAP
     #pragma shader_feature _DENSITY_MODE
     #pragma shader_feature _HEIGHT_BASED_BLEND
 
