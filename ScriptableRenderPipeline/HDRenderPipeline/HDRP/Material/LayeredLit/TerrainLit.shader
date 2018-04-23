@@ -46,6 +46,12 @@ Shader "HDRenderPipeline/TerrainLit"
         [HideInInspector] _HeightCenter2("Height Bias2", Range(0.0, 1.0)) = 0.5
         [HideInInspector] _HeightCenter3("Height Bias3", Range(0.0, 1.0)) = 0.5
 
+        // TODO: support tri-planar?
+        [HideInInspector] _TexWorldScale0("Tiling", Float) = 1.0
+        [HideInInspector] _TexWorldScale1("Tiling", Float) = 1.0
+        [HideInInspector] _TexWorldScale2("Tiling", Float) = 1.0
+        [HideInInspector] _TexWorldScale3("Tiling", Float) = 1.0
+
         // Following set of parameters represent the parameters node inside the MaterialGraph.
         // They are use to fill a SurfaceData. With a MaterialGraph this should not exist.
 
@@ -84,8 +90,6 @@ Shader "HDRenderPipeline/TerrainLit"
 
         // Following are builtin properties
 
-        [ToggleUI]  _EnableSpecularOcclusion("Enable specular occlusion", Float) = 0.0
-
         // Stencil state
         [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting
         [HideInInspector] _StencilWriteMask("_StencilWriteMask", Int) = 7 // StencilMask.Lighting  (fixed at compile time)
@@ -107,11 +111,6 @@ Shader "HDRenderPipeline/TerrainLit"
         // In our case we don't use such a mechanism but need to keep the code quiet. We declare the value and always enable it.
         // TODO: Fix the code in legacy unity so we can customize the behavior for GI
         _EmissionColor("Color", Color) = (1, 1, 1)
-
-        _TexWorldScale0("Tiling", Float) = 1.0
-        _TexWorldScale1("Tiling", Float) = 1.0
-        _TexWorldScale2("Tiling", Float) = 1.0
-        _TexWorldScale3("Tiling", Float) = 1.0
 
         // HACK: GI Baking system relies on some properties existing in the shader ("_MainTex", "_Cutoff" and "_Color") for opacity handling, so we need to store our version of those parameters in the hard-coded name the GI baking system recognizes.
         _MainTex("Albedo", 2D) = "white" {}
