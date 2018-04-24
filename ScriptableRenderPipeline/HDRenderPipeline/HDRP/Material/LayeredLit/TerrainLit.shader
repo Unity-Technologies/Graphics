@@ -147,8 +147,7 @@ Shader "HDRenderPipeline/TerrainLit"
     #pragma shader_feature _DENSITY_MODE
     #pragma shader_feature _HEIGHT_BASED_BLEND
 
-    // TODO: define _LAYER_COUNT directly and support 2-4
-    #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
+    #pragma shader_feature _TERRAINLIT_1_LAYER _TERRAINLIT_2_LAYERS _TERRAINLIT_3_LAYERS _TERRAINLIT_4_LAYERS
 
     #pragma shader_feature _DISABLE_DBUFFER
 
@@ -177,15 +176,7 @@ Shader "HDRenderPipeline/TerrainLit"
     // variable declaration
     //-------------------------------------------------------------------------------------
 
-    #define _MAX_LAYER 4
-
-    #if defined(_LAYEREDLIT_4_LAYERS)
-    #   define _LAYER_COUNT 4
-    #elif defined(_LAYEREDLIT_3_LAYERS)
-    #   define _LAYER_COUNT 3
-    #else
-    #   define _LAYER_COUNT 2
-    #endif
+    #define _MAX_LAYER 4 // TODO: expand to 8?
 
     // Explicitely said that we are a layered shader as we share code between lit and layered lit
     #define LAYERED_LIT_SHADER
