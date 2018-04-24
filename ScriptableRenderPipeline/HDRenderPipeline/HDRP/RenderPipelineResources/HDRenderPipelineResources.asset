@@ -75,6 +75,7 @@ MonoBehaviour:
   hdriSky: {fileID: 4800000, guid: 9bd32a6ece529fd4f9408b8d7e00c10d, type: 3}
   proceduralSky: {fileID: 4800000, guid: ec63f47fd265df243a7b1d40f9ef7fe7, type: 3}
   skyboxCubemap: {fileID: 103, guid: 0000000000000000f000000000000000, type: 0}
+  preIntegratedFGD: {fileID: 4800000, guid: 123f13d52852ef547b2962de4bd9eaad, type: 3}
   encodeBC6HCS: {fileID: 7200000, guid: aa922d239de60304f964e24488559eeb, type: 3}
   cubeToPanoShader: {fileID: 4800000, guid: 595434cc3b6405246b6cd3086d0b6f7d, type: 3}
   blitCubeTextureFace: {fileID: 4800000, guid: d850d0a2481878d4bbf17e5126b04163, type: 3}
