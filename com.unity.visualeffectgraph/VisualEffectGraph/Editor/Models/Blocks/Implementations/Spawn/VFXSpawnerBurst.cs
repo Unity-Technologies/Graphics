@@ -35,17 +35,22 @@ namespace UnityEditor.VFX
             Random,
         }
 
+        public RepeatMode Repeat { get { return repeat; } set { repeat = value; Invalidate(InvalidationCause.kSettingChanged); } }
+        public RandomMode SpawnMode { get { return spawnMode; } set { spawnMode = value; Invalidate(InvalidationCause.kSettingChanged); } }
+        public RandomMode DelayMode { get { return delayMode; } set { delayMode = value; Invalidate(InvalidationCause.kSettingChanged); } }
+
+
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         private RepeatMode repeat = RepeatMode.Single;
 
         [VFXSetting, SerializeField]
-        private RandomMode SpawnMode =  RandomMode.Constant;
+        private RandomMode spawnMode =  RandomMode.Constant;
 
         [VFXSetting, SerializeField]
-        private RandomMode DelayMode = RandomMode.Constant;
+        private RandomMode delayMode = RandomMode.Constant;
 
         public override string name { get { return repeat.ToString() + " Burst"; } }
-        public override VFXTaskType spawnerType { get { return VFXTaskType.BurstSpawner; } }
+        public override VFXTaskType spawnerType { get { return repeat == RepeatMode.Periodic ? VFXTaskType.PeriodicBurstSpawner : VFXTaskType.BurstSpawner; } }
 
         public class AdvancedInputProperties
         {
@@ -66,12 +71,12 @@ namespace UnityEditor.VFX
                 var simple = PropertiesFromType("SimpleInputProperties");
                 var advanced = PropertiesFromType("AdvancedInputProperties");
 
-                if (SpawnMode == RandomMode.Constant)
+                if (spawnMode == RandomMode.Constant)
                     yield return simple.FirstOrDefault(o => o.property.name == "Count");
                 else
                     yield return advanced.FirstOrDefault(o => o.property.name == "Count");
 
-                if (DelayMode == RandomMode.Constant)
+                if (delayMode == RandomMode.Constant)
                     yield return simple.FirstOrDefault(o => o.property.name == "Delay");
                 else
                     yield return advanced.FirstOrDefault(o => o.property.name == "Delay");
@@ -82,24 +87,28 @@ namespace UnityEditor.VFX
         {
             get
             {
+                // Get InputProperties
                 var namedExpressions = GetExpressionsFromSlots(this);
 
+                // Map Expressions based on Task Type (TODO: Fix names on C++ side)
+                string countName = Repeat == RepeatMode.Periodic ? "nb" : "Count";
+                string delayName = Repeat == RepeatMode.Periodic ? "period" : "Delay";
 
-                if (SpawnMode == RandomMode.Random)
-                    yield return namedExpressions.FirstOrDefault(o => o.name == "Count");
-                else
-                {
-                    var countExp = namedExpressions.First(e => e.name == "Count").exp;
-                    yield return new VFXNamedExpression(new VFXExpressionCombine(countExp, countExp), "Count");
-                }
+                // Process Counts
+                var countExp = namedExpressions.First(e => e.name == "Count").exp;
 
-                if (DelayMode == RandomMode.Random)
-                    yield return namedExpressions.FirstOrDefault(o => o.name == "Delay");
+                if (spawnMode == RandomMode.Random)
+                    yield return new VFXNamedExpression(countExp, countName);
                 else
-                {
-                    var countExp = namedExpressions.First(e => e.name == "Delay").exp;
-                    yield return new VFXNamedExpression(new VFXExpressionCombine(countExp, countExp), "Delay");
-                }
+                    yield return new VFXNamedExpression(new VFXExpressionCombine(countExp, countExp), countName);
+
+                // Process Delay
+                var delayExp = namedExpressions.First(e => e.name == "Delay").exp;
+
+                if (delayMode == RandomMode.Random)
+                    yield return new VFXNamedExpression(delayExp, delayName);
+                else
+                    yield return new VFXNamedExpression(new VFXExpressionCombine(delayExp, delayExp), delayName);
             }
         }
     }

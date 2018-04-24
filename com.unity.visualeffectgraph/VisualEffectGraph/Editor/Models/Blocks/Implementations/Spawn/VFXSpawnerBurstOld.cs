@@ -7,7 +7,6 @@ using UnityEngine.Experimental.VFX;
 namespace UnityEditor.VFX
 {
     [Obsolete]
-    [VFXInfo(category = "Spawn")]
     class VFXSpawnerBurstOld : VFXAbstractSpawner
     {
         [VFXSetting, SerializeField]
@@ -49,6 +48,35 @@ namespace UnityEditor.VFX
                     yield return new VFXNamedExpression(VFXValue.Constant(Vector2.zero), "Delay");
                 }
             }
+        }
+
+        public override void Sanitize()
+        {
+            var newBlock = ScriptableObject.CreateInstance<VFXSpawnerBurst>();
+            newBlock.Repeat = VFXSpawnerBurst.RepeatMode.Single;
+
+            if(advanced)
+            {
+                newBlock.SpawnMode = VFXSpawnerBurst.RandomMode.Random;
+                newBlock.DelayMode = VFXSpawnerBurst.RandomMode.Random;
+            }
+            else
+            {
+                newBlock.SpawnMode = VFXSpawnerBurst.RandomMode.Constant;
+                newBlock.DelayMode = VFXSpawnerBurst.RandomMode.Constant;
+            }
+
+            // Count
+            VFXSlot.TransferLinksAndValue(newBlock.GetInputSlot(0), GetInputSlot(0), true);
+
+            // Delay
+            if (advanced)
+                VFXSlot.TransferLinksAndValue(newBlock.GetInputSlot(1), GetInputSlot(1), true);
+            else
+                newBlock.GetInputSlot(1).value = 0.0f;
+
+            ReplaceModel(newBlock, this);
+            base.Sanitize();
         }
     }
 }
