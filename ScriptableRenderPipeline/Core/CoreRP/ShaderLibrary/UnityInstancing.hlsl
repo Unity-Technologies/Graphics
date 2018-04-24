@@ -230,9 +230,8 @@
             UNITY_DEFINE_INSTANCED_PROP(float4x4, unity_WorldToObjectArray)
         #endif
         #if defined(UNITY_USE_LODFADE_ARRAY) && defined(UNITY_INSTANCING_SUPPORT_FLEXIBLE_ARRAY_SIZE)
-            UNITY_DEFINE_INSTANCED_PROP(float, unity_LODFadeArray)
-            // the quantized fade value (unity_LODFade.y) is automatically used for cross-fading instances
-            #define unity_LODFade UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_LODFadeArray).xxxx
+            UNITY_DEFINE_INSTANCED_PROP(float2, unity_LODFadeArray)
+            #define unity_LODFade UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_LODFadeArray).xyxx
         #endif
     UNITY_INSTANCING_BUFFER_END(unity_Builtins0)
 
@@ -241,9 +240,8 @@
             UNITY_DEFINE_INSTANCED_PROP(float4x4, unity_WorldToObjectArray)
         #endif
         #if defined(UNITY_USE_LODFADE_ARRAY) && !defined(UNITY_INSTANCING_SUPPORT_FLEXIBLE_ARRAY_SIZE)
-            UNITY_DEFINE_INSTANCED_PROP(float, unity_LODFadeArray)
-            // the quantized fade value (unity_LODFade.y) is automatically used for cross-fading instances
-            #define unity_LODFade UNITY_ACCESS_INSTANCED_PROP(unity_Builtins1, unity_LODFadeArray).xxxx
+            UNITY_DEFINE_INSTANCED_PROP(float2, unity_LODFadeArray)
+            #define unity_LODFade UNITY_ACCESS_INSTANCED_PROP(unity_Builtins1, unity_LODFadeArray).xyxx
         #endif
     UNITY_INSTANCING_BUFFER_END(unity_Builtins1)
 
