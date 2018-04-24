@@ -12,6 +12,7 @@
 
 ### Improvements
 - Configure the volumetric lighting code path to be on by default
+- Trigger a build exception when trying to build an unsupported platform
 
 ### Changed, Removals and deprecations
 - Remove Resource folder of PreIntegratedFGD and add the resource to RenderPipeline Asset
