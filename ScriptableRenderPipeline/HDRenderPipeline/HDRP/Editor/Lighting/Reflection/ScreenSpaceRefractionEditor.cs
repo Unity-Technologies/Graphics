@@ -1,9 +1,8 @@
 using System.Collections;
 using UnityEngine;
-using UnityEditor;
-using UnityEditor.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     [CanEditMultipleObjects]
     [VolumeComponentEditor(typeof(ScreenSpaceRefraction))]

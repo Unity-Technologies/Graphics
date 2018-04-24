@@ -43,8 +43,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public static GUIContent UVBaseMappingText = new GUIContent("Base UV mapping", "");
             public static GUIContent texWorldScaleText = new GUIContent("World scale", "Tiling factor applied to Planar/Trilinear mapping");
-            // SSReflection
-            public static GUIContent reflectionProjectionModelText = new GUIContent("SS Reflection Projection Model", "Screen Space Projection Model For Reflections");
 
             // Details
             public static string detailText = "Detail Inputs";
@@ -294,8 +292,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kRefractionModel = "_RefractionModel";
         protected MaterialProperty ssrefractionProjectionModel = null;
         protected const string kSSRefractionProjectionModel = "_SSRefractionProjectionModel";
-        protected MaterialProperty ssreflectionProjectionModel = null;
-        protected const string kSSReflectionProjectionModel = "_SSReflectionProjectionModel";
 
         protected override bool showBlendModePopup
         {
@@ -405,7 +401,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Transparency
             refractionModel = FindProperty(kRefractionModel, props, false);
             ssrefractionProjectionModel = FindProperty(kSSRefractionProjectionModel, props, false);
-            ssreflectionProjectionModel = FindProperty(kSSReflectionProjectionModel, props, false);
             transmittanceColor = FindProperty(kTransmittanceColor, props, false);
             transmittanceColorMap = FindProperty(kTransmittanceColorMap, props, false);
             atDistance = FindProperty(kATDistance, props, false);
@@ -839,10 +834,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 DoDistortionInputsGUI();
 
                 --EditorGUI.indentLevel;
-            }
-            else if (surfaceTypeValue == SurfaceType.Opaque)
-            {
-                m_MaterialEditor.ShaderProperty(ssreflectionProjectionModel, Styles.reflectionProjectionModelText);
             }
         }
 

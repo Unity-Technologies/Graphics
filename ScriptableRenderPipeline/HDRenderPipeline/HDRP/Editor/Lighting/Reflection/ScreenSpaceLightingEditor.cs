@@ -1,9 +1,8 @@
 using System.Collections;
 using UnityEngine;
-using UnityEditor;
-using UnityEditor.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class ScreenSpaceLightingEditor : VolumeComponentEditor
     {
@@ -26,13 +25,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override void OnInspectorGUI()
         {
+            OnCommonInspectorGUI();
+            EditorGUILayout.Separator();
+            OnHiZInspectorGUI();
+        }
+
+        protected virtual void OnHiZInspectorGUI()
+        {
             EditorGUILayout.LabelField(CoreEditorUtils.GetContent("HiZ Settings"));
             PropertyField(m_RayMinLevel, CoreEditorUtils.GetContent("Ray Min Level"));
             PropertyField(m_RayMaxLevel, CoreEditorUtils.GetContent("Ray Max Level"));
             PropertyField(m_RayMaxIterations, CoreEditorUtils.GetContent("Ray Max Iterations"));
             PropertyField(m_RayDepthSuccessBias, CoreEditorUtils.GetContent("Ray Depth Success Bias"));
+        }
 
-            EditorGUILayout.Separator();
+        protected virtual void OnCommonInspectorGUI()
+        {
             EditorGUILayout.LabelField(CoreEditorUtils.GetContent("Common Settings"));
             PropertyField(m_ScreenWeightDistance, CoreEditorUtils.GetContent("Screen Weight Distance"));
         }
