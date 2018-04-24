@@ -12,6 +12,16 @@
 
 #include "../Lit/LitData.hlsl"
 
+#if defined(_TERRAINLIT_4_LAYERS)
+    #define _LAYER_COUNT 4
+#elif defined(_TERRAINLIT_3_LAYERS)
+    #define _LAYER_COUNT 3
+#elif defined(_TERRAINLIT_2_LAYERS)
+    #define _LAYER_COUNT 2
+#else
+    #define _LAYER_COUNT 1
+#endif
+
 #define LAYERS_HEIGHTMAP_ENABLE (defined(_HEIGHTMAP0) || defined(_HEIGHTMAP1) || (_LAYER_COUNT > 2 && defined(_HEIGHTMAP2)) || (_LAYER_COUNT > 3 && defined(_HEIGHTMAP3)))
 
 TEXTURE2D(_Splat0);
@@ -137,9 +147,10 @@ SAMPLER(sampler_Splat0);
 
 float3 BlendLayeredVector3(float3 x0, float3 x1, float3 x2, float3 x3, float weight[4])
 {
-    float3 result = float3(0.0, 0.0, 0.0);
-
-    result = x0 * weight[0] + x1 * weight[1];
+    float3 result = x0;
+#if _LAYER_COUNT >= 2
+    result = result * weight[0] + x1 * weight[1];
+#endif
 #if _LAYER_COUNT >= 3
     result += (x2 * weight[2]);
 #endif
@@ -152,9 +163,10 @@ float3 BlendLayeredVector3(float3 x0, float3 x1, float3 x2, float3 x3, float wei
 
 float BlendLayeredScalar(float x0, float x1, float x2, float x3, float weight[4])
 {
-    float result = 0.0;
-
-    result = x0 * weight[0] + x1 * weight[1];
+    float result = x0;
+#if _LAYER_COUNT >= 2
+    result = result * weight[0] + x1 * weight[1];
+#endif
 #if _LAYER_COUNT >= 3
     result += x2 * weight[2];
 #endif
@@ -165,33 +177,11 @@ float BlendLayeredScalar(float x0, float x1, float x2, float x3, float weight[4]
     return result;
 }
 
-// In the case of subsurface profile index, the goal is to take the index with the hights weights.
-// Or the last found in case of equality.
-float BlendLayeredDiffusionProfile(float x0, float x1, float x2, float x3, float weight[4])
-{
-    int diffusionProfileId = x0;
-    float currentMax = weight[0];
-
-    diffusionProfileId = currentMax < weight[1] ? x1 : diffusionProfileId;
-    currentMax = max(currentMax, weight[1]);
-
-#if _LAYER_COUNT >= 3
-    diffusionProfileId = currentMax < weight[2] ? x2 : diffusionProfileId;
-    currentMax = max(currentMax, weight[2]);
-#endif
-#if _LAYER_COUNT >= 4
-    diffusionProfileId = currentMax < weight[3] ? x3 : diffusionProfileId;
-#endif
-
-    return diffusionProfileId;
-}
-
 TEXTURE2D(_Control);
 SAMPLER(sampler_Control);
 
 #define SURFACEDATA_BLEND_VECTOR3(surfaceData, name, mask) BlendLayeredVector3(MERGE_NAME(surfaceData, 0) MERGE_NAME(., name), MERGE_NAME(surfaceData, 1) MERGE_NAME(., name), MERGE_NAME(surfaceData, 2) MERGE_NAME(., name), MERGE_NAME(surfaceData, 3) MERGE_NAME(., name), mask);
 #define SURFACEDATA_BLEND_SCALAR(surfaceData, name, mask) BlendLayeredScalar(MERGE_NAME(surfaceData, 0) MERGE_NAME(., name), MERGE_NAME(surfaceData, 1) MERGE_NAME(., name), MERGE_NAME(surfaceData, 2) MERGE_NAME(., name), MERGE_NAME(surfaceData, 3) MERGE_NAME(., name), mask);
-#define SURFACEDATA_BLEND_DIFFUSION_PROFILE(surfaceData, name, mask) BlendLayeredDiffusionProfile(MERGE_NAME(surfaceData, 0) MERGE_NAME(., name), MERGE_NAME(surfaceData, 1) MERGE_NAME(., name), MERGE_NAME(surfaceData, 2) MERGE_NAME(., name), MERGE_NAME(surfaceData, 3) MERGE_NAME(., name), mask);
 #define PROP_BLEND_SCALAR(name, mask) BlendLayeredScalar(name##0, name##1, name##2, name##3, mask);
 
 void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3,
@@ -293,70 +283,30 @@ void SetEnabledHeightByLayer(inout float height0, inout float height1, inout flo
 #if _LAYER_COUNT < 3
     height2 = 0.0;
 #endif
+#if _LAYER_COUNT < 2
+    height1 = 0.0;
+#endif
 }
 
 void ComputeMaskWeights(float4 inputMasks, out float outWeights[_MAX_LAYER])
 {
     ZERO_INITIALIZE_ARRAY(float, outWeights, _MAX_LAYER);
 
-    float masks[_MAX_LAYER];
-    masks[0] = inputMasks.a;
-
-    masks[1] = inputMasks.r;
-#if _LAYER_COUNT > 2
-    masks[2] = inputMasks.g;
-#else
-    masks[2] = 0.0;
+    outWeights[0] = inputMasks.r;
+#if _LAYER_COUNT >= 2
+    outWeights[1] = inputMasks.g;
 #endif
-#if _LAYER_COUNT > 3
-    masks[3] = inputMasks.b;
-#else
-    masks[3] = 0.0;
+#if _LAYER_COUNT >= 3
+    outWeights[2] = inputMasks.b;
 #endif
-
-    // calculate weight of each layers
-    // Algorithm is like this:
-    // Top layer have priority on others layers
-    // If a top layer doesn't use the full weight, the remaining can be use by the following layer.
-    float weightsSum = 0.0;
-
-    UNITY_UNROLL
-    for (int i = _LAYER_COUNT - 1; i >= 0; --i)
-    {
-        outWeights[i] = min(masks[i], (1.0 - weightsSum));
-        weightsSum = saturate(weightsSum + masks[i]);
-    }
+#if _LAYER_COUNT >= 4
+    outWeights[3] = inputMasks.a;
+#endif
 }
 
-// Caution: Blend mask are Layer 1 R - Layer 2 G - Layer 3 B - Main Layer A
 float4 GetBlendMask(LayerTexCoord layerTexCoord, float4 vertexColor)
 {
-    // Caution:
-    // Blend mask are Main Layer A - Layer 1 R - Layer 2 G - Layer 3 B
-    // Value for main layer is not use for blending itself but for alternate weighting like density.
-    // Settings this specific Main layer blend mask in alpha allow to be transparent in case we don't use it and 1 is provide by default.
-    float4 blendMasks = SAMPLE_UVMAPPING_TEXTURE2D(_Control, sampler_Control, layerTexCoord.blendMask);
-    blendMasks = blendMasks.gbar;
-
-    // Wind uses vertex alpha as an intensity parameter.
-    // So in case Layered shader uses wind, we need to hardcode the alpha here so that the main layer can be visible without affecting wind intensity.
-    // It also means that when using wind, users can't use vertex color to modulate the effect of influence from the main layer.
-    float4 maskVertexColor = vertexColor;
-#if defined(_LAYER_MASK_VERTEX_COLOR_MUL)
-    #if defined(_VERTEX_WIND)
-    // For multiplicative vertex color blend mask. 1.0f is the neutral value
-    maskVertexColor.a = 1.0f;
-    #endif
-    blendMasks *= maskVertexColor;
-#elif defined(_LAYER_MASK_VERTEX_COLOR_ADD)
-    #if defined(_VERTEX_WIND)
-    // For additive vertex color blend mask. 0.5f is the neutral value (0.5 * 2.0 - 1.0 = 0.0)
-    maskVertexColor.a = 0.5f;
-    #endif
-    blendMasks = saturate(blendMasks + maskVertexColor * 2.0 - 1.0);
-#endif
-
-    return blendMasks;
+    return SAMPLE_UVMAPPING_TEXTURE2D(_Control, sampler_Control, layerTexCoord.blendMask);
 }
 
 float GetInfluenceMask(LayerTexCoord layerTexCoord, bool useLodSampling = false, float lod = 0)
@@ -367,14 +317,16 @@ float GetInfluenceMask(LayerTexCoord layerTexCoord, bool useLodSampling = false,
 
 float GetMaxHeight(float4 heights)
 {
-    float maxHeight = max(heights.r, heights.g);
-#ifdef _LAYEREDLIT_4_LAYERS
+    float maxHeight;
+#if _LAYER_COUNT >= 4
     maxHeight = max(Max3(heights.r, heights.g, heights.b), heights.a);
-#endif
-#ifdef _LAYEREDLIT_3_LAYERS
+#elif _LAYER_COUNT >= 3
     maxHeight = Max3(heights.r, heights.g, heights.b);
+#elif _LAYER_COUNT >= 2
+    maxHeight = max(heights.r, heights.g);
+#else
+    maxHeight = heights.r;
 #endif
-
     return maxHeight;
 }
 
@@ -408,10 +360,9 @@ float4 ApplyHeightBlend(float4 heights, float4 blendMask)
 void ComputeLayerWeights(FragInputs input, LayerTexCoord layerTexCoord, float4 inputAlphaMask, float4 blendMasks, out float outWeights[_MAX_LAYER])
 {
 #if defined(_DENSITY_MODE)
-    // Note: blendMasks.argb because a is main layer
-    float4 opacityAsDensity = saturate((inputAlphaMask - (float4(1.0, 1.0, 1.0, 1.0) - blendMasks.argb)) * 20.0); // 20.0 is the number of steps in inputAlphaMask (Density mask. We decided 20 empirically)
+    float4 opacityAsDensity = saturate((inputAlphaMask - (float4(1.0, 1.0, 1.0, 1.0) - blendMasks)) * 20.0); // 20.0 is the number of steps in inputAlphaMask (Density mask. We decided 20 empirically)
     float4 useOpacityAsDensityParam = float4(_OpacityAsDensity0, _OpacityAsDensity1, _OpacityAsDensity2, _OpacityAsDensity3);
-    blendMasks.argb = lerp(blendMasks.argb, opacityAsDensity, useOpacityAsDensityParam);
+    blendMasks = lerp(blendMasks, opacityAsDensity, useOpacityAsDensityParam);
 #endif
 
 #if LAYERS_HEIGHTMAP_ENABLE
@@ -477,7 +428,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. Tag: SURFACE_GRADIENT
     surfaceData.subsurfaceMask = 0;
     surfaceData.thickness = 1;
-    surfaceData.diffusionProfile = SURFACEDATA_BLEND_DIFFUSION_PROFILE(surfaceData, diffusionProfile, weights);
+    surfaceData.diffusionProfile = 0;
 
     surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
 
