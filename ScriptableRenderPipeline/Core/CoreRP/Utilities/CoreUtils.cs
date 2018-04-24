@@ -549,8 +549,6 @@ namespace UnityEngine.Experimental.Rendering
             bool fogEnable = true;
 
 #if UNITY_EDITOR
-            fogEnable = Application.isPlaying;
-
             if (camera.cameraType == CameraType.SceneView)
             {
                 fogEnable = false;
