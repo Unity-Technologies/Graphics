@@ -61,6 +61,11 @@ namespace UnityEditor.VFX.UI
 
         protected override bool CouldLinkMyInputTo(VFXDataAnchorController myInput, VFXDataAnchorController otherOutput)
         {
+            if( otherOutput.direction == myInput.direction)
+                return false;
+
+            if( ! myInput.CanLinkToNode(otherOutput.sourceNode))
+                return false;
             return model.GetBestAffinityType(otherOutput.portType) != null;
         }
 

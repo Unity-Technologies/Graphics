@@ -269,26 +269,18 @@ namespace UnityEditor.VFX.UI
                     IVFXSlotContainer slotContainer = nodeController.slotContainer;
                     if (controller.direction == Direction.Input)
                     {
-                        foreach (var outputSlot in slotContainer.outputSlots)
+                        foreach(var output in nodeController.outputPorts.Where(t=>t.model == null || t.model.IsMasterSlot()))
                         {
-                            var endController = nodeController.outputPorts.First(t => t.model == outputSlot);
-                            if (compatibleAnchors.Contains(endController))
-                            {
-                                startSlot.Link(outputSlot);
+                            if( viewController.CreateLink(controller,output) )
                                 break;
-                            }
                         }
                     }
                     else
                     {
-                        foreach (var inputSlot in slotContainer.inputSlots)
+                        foreach(var input in nodeController.inputPorts.Where(t=>t.model == null || t.model.IsMasterSlot()))
                         {
-                            var endController = nodeController.inputPorts.First(t => t.model == inputSlot);
-                            if (compatibleAnchors.Contains(endController) && !endController.connected)
-                            {
-                                inputSlot.Link(startSlot);
+                            if( viewController.CreateLink(input,controller) )
                                 break;
-                            }
                         }
                     }
                 }
@@ -405,12 +397,9 @@ namespace UnityEditor.VFX.UI
 
                 if (mySlot != null)
                 {
-                    if (port.model.CanLink(mySlot))
+                    if (viewController.CreateLink(direction == Direction.Input ? controller : port, direction == Direction.Input ? port : controller))
                     {
-                        if (viewController.CreateLink(direction == Direction.Input ? controller : port, direction == Direction.Input ? port : controller))
-                        {
-                            break;
-                        }
+                        break;
                     }
                 }
                 else if (validTypes != null)
