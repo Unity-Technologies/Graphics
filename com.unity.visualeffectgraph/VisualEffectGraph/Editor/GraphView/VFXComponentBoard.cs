@@ -350,7 +350,7 @@ namespace  UnityEditor.VFX.UI
                 m_LastKnownPlayRate = m_AttachedComponent.playRate;
                 float playRateValue = m_AttachedComponent.playRate * VisualEffectControl.playRateToValue;
                 m_PlayRateSlider.value = Mathf.Pow(playRateValue, 1 / VisualEffectControl.sliderPower);
-                if (!m_PlayRateField.HasFocus())
+                if (m_PlayRateField != null && !m_PlayRateField.HasFocus())
                     m_PlayRateField.value = Mathf.RoundToInt(playRateValue);
             }
         }
