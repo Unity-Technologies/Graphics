@@ -342,7 +342,7 @@ namespace UnityEditor.VFX.Test
 
             Undo.IncrementCurrentGroup();
             var absDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Absolute");
-            var abs = m_ViewController.AddVFXOperator(new Vector2(0, 0), absDesc);
+            m_ViewController.AddVFXOperator(new Vector2(0, 0), absDesc);
 
             fnTestShouldExist();
             Undo.PerformUndo();
@@ -370,7 +370,7 @@ namespace UnityEditor.VFX.Test
                 };
 
             var absDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Absolute");
-            var abs = m_ViewController.AddVFXOperator(new Vector2(0, 0), absDesc);
+            m_ViewController.AddVFXOperator(new Vector2(0, 0), absDesc);
 
             var absOperator = fnAllOperatorController()[0];
 
@@ -400,7 +400,7 @@ namespace UnityEditor.VFX.Test
                 };
 
             var absDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Absolute");
-            var abs = m_ViewController.AddVFXOperator(new Vector2(0, 0), absDesc);
+            m_ViewController.AddVFXOperator(new Vector2(0, 0), absDesc);
 
             var absOperator = fnAllOperatorController()[0];
 
@@ -464,7 +464,7 @@ namespace UnityEditor.VFX.Test
                 };
 
             var absDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Absolute");
-            var abs = m_ViewController.AddVFXOperator(new Vector2(0, 0), absDesc);
+            m_ViewController.AddVFXOperator(new Vector2(0, 0), absDesc);
 
             var absOperator = fnAllOperatorController()[0];
 
@@ -503,9 +503,9 @@ namespace UnityEditor.VFX.Test
             var cosDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Cosine");
             var sinDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Sine");
             Undo.IncrementCurrentGroup();
-            var cos = m_ViewController.AddVFXOperator(new Vector2(0, 0), cosDesc);
+            m_ViewController.AddVFXOperator(new Vector2(0, 0), cosDesc);
             Undo.IncrementCurrentGroup();
-            var sin = m_ViewController.AddVFXOperator(new Vector2(1, 1), sinDesc);
+            m_ViewController.AddVFXOperator(new Vector2(1, 1), sinDesc);
             var cosController = fnFindController(typeof(Operator.Cosine));
             var sinController = fnFindController(typeof(Operator.Sine));
 
@@ -561,8 +561,8 @@ namespace UnityEditor.VFX.Test
             var contextUpdateDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Update"));
             var blockAttributeDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.modelType == typeof(Block.SetAttribute));
 
-            var cos = m_ViewController.AddVFXOperator(new Vector2(0, 0), cosDesc);
-            var update = m_ViewController.AddVFXContext(new Vector2(2, 2), contextUpdateDesc);
+            m_ViewController.AddVFXOperator(new Vector2(0, 0), cosDesc);
+            m_ViewController.AddVFXContext(new Vector2(2, 2), contextUpdateDesc);
             var blockAttribute = blockAttributeDesc.CreateInstance();
             blockAttribute.SetSettingValue("attribute", "color");
             fnFirstContextController().AddBlock(0, blockAttribute);
@@ -605,11 +605,11 @@ namespace UnityEditor.VFX.Test
             var cosDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Cosine");
             var sinDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Sine");
 
-            var abs = m_ViewController.AddVFXOperator(new Vector2(0, 0), absDesc);
-            var append = m_ViewController.AddVFXOperator(new Vector2(1, 1), appendDesc);
-            var cross = m_ViewController.AddVFXOperator(new Vector2(2, 2), crossDesc);
-            var cos = m_ViewController.AddVFXOperator(new Vector2(3, 3), cosDesc);
-            var sin = m_ViewController.AddVFXOperator(new Vector2(4, 4), sinDesc);
+            m_ViewController.AddVFXOperator(new Vector2(0, 0), absDesc);
+            m_ViewController.AddVFXOperator(new Vector2(1, 1), appendDesc);
+            m_ViewController.AddVFXOperator(new Vector2(2, 2), crossDesc);
+            m_ViewController.AddVFXOperator(new Vector2(3, 3), cosDesc);
+            m_ViewController.AddVFXOperator(new Vector2(4, 4), sinDesc);
 
             var absController = fnFindController(typeof(Operator.Absolute));
             var appendController = fnFindController(typeof(Operator.AppendVector));
@@ -680,7 +680,7 @@ namespace UnityEditor.VFX.Test
                 };
 
             var swizzleDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Swizzle");
-            var swizzle = m_ViewController.AddVFXOperator(new Vector2(0, 0), swizzleDesc);
+            m_ViewController.AddVFXOperator(new Vector2(0, 0), swizzleDesc);
 
             var maskList = new string[] { "xy", "yww", "xw", "z" };
             for (int i = 0; i < maskList.Length; ++i)
@@ -712,7 +712,7 @@ namespace UnityEditor.VFX.Test
             var contextUpdateDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Update"));
             var blockDesc = VFXLibrary.GetBlocks().FirstOrDefault(o => o.modelType == typeof(AllType));
 
-            var contextUpdate = m_ViewController.AddVFXContext(Vector2.one, contextUpdateDesc);
+            m_ViewController.AddVFXContext(Vector2.one, contextUpdateDesc);
             Func<VFXContextController> fnContextController = delegate()
                 {
                     m_ViewController.ApplyChanges();
@@ -899,8 +899,8 @@ namespace UnityEditor.VFX.Test
             var contextInitializeDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Init"));
             var contextUpdateDesc = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Update"));
 
-            var contextInitialize = m_ViewController.AddVFXContext(new Vector2(1, 1), contextInitializeDesc);
-            var contextUpdate = m_ViewController.AddVFXContext(new Vector2(2, 2), contextUpdateDesc);
+            m_ViewController.AddVFXContext(new Vector2(1, 1), contextInitializeDesc);
+            m_ViewController.AddVFXContext(new Vector2(2, 2), contextUpdateDesc);
 
             //Creation
             var flowEdge = new VFXFlowEdgeController(fnUpdateController().flowInputAnchors.FirstOrDefault(), fnInitializeController().flowOutputAnchors.FirstOrDefault());

@@ -184,8 +184,8 @@ namespace UnityEditor.VFX.UI
         internal static bool Show(EditorWindow mainWindow, Vector2 position, IProvider provider)
         {
             // If the window is already open, close it instead.
-            UnityEngine.Object[] wins = Resources.FindObjectsOfTypeAll(typeof(VFXFilterWindow));
-            /*if (wins.Length > 0)
+            /*UnityEngine.Object[] wins = Resources.FindObjectsOfTypeAll(typeof(VFXFilterWindow));
+            if (wins.Length > 0)
             {
                 try
                 {

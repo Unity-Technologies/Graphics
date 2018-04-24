@@ -120,13 +120,10 @@ namespace UnityEditor.VFX.UI
     {
         VFXViewController m_ViewController;
 
-
-        bool m_Registered = false;
         public VFXController(VFXViewController viewController, T model) : base(model)
         {
             m_ViewController = viewController;
             m_ViewController.RegisterNotification(model, OnModelChanged);
-            m_Registered = true;
         }
 
         public VFXViewController viewController {get {return m_ViewController; }}
@@ -134,7 +131,6 @@ namespace UnityEditor.VFX.UI
         public override void OnDisable()
         {
             m_ViewController.UnRegisterNotification(model, OnModelChanged);
-            m_Registered = false;
             base.OnDisable();
         }
 

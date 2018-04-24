@@ -149,8 +149,6 @@ namespace UnityEditor.VFX.UI
 
             if (isEditable)
             {
-                VFXCascadedOperatorController cascadedController = controller as VFXCascadedOperatorController;
-
                 if (m_EditButton.parent == null)
                 {
                     titleContainer.Insert(1, m_EditButton);

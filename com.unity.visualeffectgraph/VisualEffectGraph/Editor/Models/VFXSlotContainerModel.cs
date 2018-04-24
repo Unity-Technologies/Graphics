@@ -351,8 +351,6 @@ namespace UnityEditor.VFX
                     Debug.LogError("Something wrong");
                 }
 
-                var currentSlot = isInput ? inputSlots : outputSlots;
-
                 // Try to keep links for slots of same name and compatible types
                 for (int i = 0; i < existingSlots.Count; ++i)
                 {

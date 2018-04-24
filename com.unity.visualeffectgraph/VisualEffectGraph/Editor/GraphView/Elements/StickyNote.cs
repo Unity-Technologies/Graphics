@@ -516,7 +516,7 @@ namespace UnityEditor.VFX.UI
 
         void OnTitleBlur(BlurEvent e)
         {
-            bool changed = m_Title.text != m_TitleField.value;
+            //bool changed = m_Title.text != m_TitleField.value;
             title = m_TitleField.value;
             m_TitleField.visible = false;
 
