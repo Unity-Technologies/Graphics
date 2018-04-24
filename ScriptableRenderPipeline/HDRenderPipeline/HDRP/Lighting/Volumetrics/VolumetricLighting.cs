@@ -53,7 +53,7 @@ public class VolumeRenderingUtils
 public struct DensityVolumeParameters
 {
     public Color albedo;       // Single scattering albedo: [0, 1]. Alpha is ignored
-    public float meanFreePath; // In meters: [1, FLT_MAX]. Should be chromatic - this is an optimization!
+    public float meanFreePath; // In meters: [1, 1000000]. Should be chromatic - this is an optimization!
     public float asymmetry;    // Controls the phase function: [-1, 1]
 
     public void Constrain()
