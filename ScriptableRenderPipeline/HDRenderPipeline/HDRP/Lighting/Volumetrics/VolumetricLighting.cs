@@ -348,7 +348,7 @@ public class VolumetricLightingSystem
     // Since a single voxel corresponds to a tile (e.g. 8x8) of pixels,
     // the VBuffer can potentially extend past the boundaries of the viewport.
     // The function returns the fraction of the {width, height} of the VBuffer visible on screen.
-    // Note: for performance reasons, scale is unused (implicitly 1). The error is typically under 1%.
+    // Note: for performance reasons, the scale is unused (implicitly 1). The error is typically under 1%.
     static Vector2 ComputeVBufferResolutionAndScale(VolumetricLightingPreset preset,
                                                     int screenWidth, int screenHeight,
                                                     ref int w, ref int h, ref int d)
@@ -371,8 +371,8 @@ public class VolumetricLightingSystem
         float n = nearPlane;
         float f = farPlane;
 
-        depthParams.x = Mathf.Log(c, 2) * (1.0f / Mathf.Log(c * (f - n) + 1, 2));
         depthParams.y = 1.0f / Mathf.Log(c * (f - n) + 1, 2);
+        depthParams.x = Mathf.Log(c, 2) * depthParams.y;
         depthParams.z = n - 1.0f / c; // Same
         depthParams.w = 0.0f;
 
@@ -388,7 +388,7 @@ public class VolumetricLightingSystem
         float f = farPlane;
 
         depthParams.x = 1.0f / c;
-        depthParams.y = c * (f - n) + 1;
+        depthParams.y = Mathf.Log(c * (f - n) + 1, 2);
         depthParams.z = n - 1.0f / c; // Same
         depthParams.w = 0.0f;
 
