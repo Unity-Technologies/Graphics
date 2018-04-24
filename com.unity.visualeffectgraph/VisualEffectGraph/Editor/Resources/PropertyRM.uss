@@ -194,7 +194,7 @@ Matrix4x4PropertyRM.propertyrm > .fieldContainer
 }
 
 
-.propertyrm > #indeterminate, .propertyrm VFXFlipBookField #indeterminate
+.propertyrm #indeterminate, .propertyrm #indeterminate
 {
     flex:1;
 	slice-left: 3;
