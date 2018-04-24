@@ -279,7 +279,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (!CullResults.GetCullingParameters(m_CurrCamera, stereoEnabled, out cullingParameters))
                     continue;
 
-                var cmd = CommandBufferPool.Get("");
                 cullingParameters.shadowDistance = Mathf.Min(m_ShadowPass.RenderingDistance, m_CurrCamera.farClipPlane);
 
 #if UNITY_EDITOR
@@ -318,23 +317,29 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 ForwardPass(frameRenderingConfiguration, ref lightData, ref context);
 
-                cmd.name = "After Camera Render";
+                CommandBuffer cmd;
 #if UNITY_EDITOR
                 if (sceneViewCamera)
+                {
+                    cmd = CommandBufferPool.Get("Copy Depth to Camera");
+                    cmd.DisableShaderKeyword(kMSAADepthKeyword);
                     CopyTexture(cmd, CameraRenderTargetID.depth, BuiltinRenderTextureType.CameraTarget, m_CopyDepthMaterial, true);
+                    context.ExecuteCommandBuffer(cmd);
+                    CommandBufferPool.Release(cmd);
+                }
 #endif
-                context.Submit();
 
+                cmd = CommandBufferPool.Get("Dispose of Temporaries");
                 cmd.ReleaseTemporaryRT(CameraRenderTargetID.depthCopy);
                 cmd.ReleaseTemporaryRT(CameraRenderTargetID.depth);
                 cmd.ReleaseTemporaryRT(CameraRenderTargetID.color);
                 cmd.ReleaseTemporaryRT(CameraRenderTargetID.copyColor);
                 cmd.ReleaseTemporaryRT(CameraRenderTargetID.opaque);
 
+                m_ShadowPass.Dispose(cmd);
+
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
-
-                m_ShadowPass.Dispose(cmd);
 
                 context.Submit();
             }
@@ -459,17 +464,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     bool forceBlit = false;
                     if (m_MSAASamples > 1)
                     {
-                        m_CopyDepthMaterial.SetFloat(m_SampleCount, (float)m_MSAASamples);
-                        m_CopyDepthMaterial.EnableKeyword(kMSAADepthKeyword);
+                        cmd.SetGlobalFloat(m_SampleCount, (float)m_MSAASamples);
+                        cmd.EnableShaderKeyword(kMSAADepthKeyword);
                         forceBlit = true;
                     }
                     else
-                        m_CopyDepthMaterial.DisableKeyword(kMSAADepthKeyword);
+                        cmd.DisableShaderKeyword(kMSAADepthKeyword);
                     
                     CopyTexture(cmd, m_DepthRT, m_CopyDepth, m_CopyDepthMaterial, forceBlit);
                     depthRT = m_CopyDepth;
                     setRenderTarget = true;
-                    cmd.SetGlobalTexture(CameraRenderTargetID.depth, m_CopyDepth);
+                    cmd.SetGlobalTexture(CameraRenderTargetID.depthCopy, m_CopyDepth);
                 }
 
                 if (setRenderTarget)
