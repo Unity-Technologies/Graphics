@@ -38,8 +38,8 @@ float4      _ShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
 CBUFFER_END
 
 CBUFFER_START(_LocalShadowBuffer)
-float4x4    _LocalWorldToShadowAtlas[4];
-half        _LocalShadowStrength[4];
+float4x4    _LocalWorldToShadowAtlas[MAX_VISIBLE_LIGHTS];
+half        _LocalShadowStrength[MAX_VISIBLE_LIGHTS];
 half4       _LocalShadowOffset0;
 half4       _LocalShadowOffset1;
 half4       _LocalShadowOffset2;
