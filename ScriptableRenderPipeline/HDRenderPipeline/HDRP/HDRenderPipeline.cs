@@ -337,7 +337,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             RTHandles.Release(m_DebugColorPickerBuffer);
             RTHandles.Release(m_DebugFullScreenTempBuffer);
-            
+
             m_DebugScreenSpaceTracingData.Release();
 
             HDCamera.CleanUnused();
@@ -397,6 +397,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         bool IsSupportedPlatform()
         {
+            // Note: If you add new platform in this function, think about adding support when building the player to in HDRPCustomBuildProcessor.cs
+
             if (!SystemInfo.supportsComputeShaders)
                 return false;
 
@@ -565,33 +567,33 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     cmd.SetGlobalTexture(HDShaderIDs._DepthPyramidTexture, previousDepthPyramidRT);
                     cmd.SetGlobalVector(HDShaderIDs._DepthPyramidSize, new Vector4(
-                        previousDepthPyramidRT.referenceSize.x, 
-                        previousDepthPyramidRT.referenceSize.y, 
-                        1f / previousDepthPyramidRT.referenceSize.x, 
+                        previousDepthPyramidRT.referenceSize.x,
+                        previousDepthPyramidRT.referenceSize.y,
+                        1f / previousDepthPyramidRT.referenceSize.x,
                         1f / previousDepthPyramidRT.referenceSize.y
                     ));
                     cmd.SetGlobalVector(HDShaderIDs._DepthPyramidScale, new Vector4(
-                        previousDepthPyramidRT.referenceSize.x / (float)previousDepthPyramidRT.rt.width, 
-                        previousDepthPyramidRT.referenceSize.y / (float)previousDepthPyramidRT.rt.height, 
-                        Mathf.Log(Mathf.Min(previousDepthPyramidRT.rt.width, previousDepthPyramidRT.rt.height), 2), 
+                        previousDepthPyramidRT.referenceSize.x / (float)previousDepthPyramidRT.rt.width,
+                        previousDepthPyramidRT.referenceSize.y / (float)previousDepthPyramidRT.rt.height,
+                        Mathf.Log(Mathf.Min(previousDepthPyramidRT.rt.width, previousDepthPyramidRT.rt.height), 2),
                         0.0f
                     ));
                 }
-                    
+
                 var previousColorPyramidRT = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorPyramid);
                 if (previousColorPyramidRT != null)
                 {
                     cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, previousColorPyramidRT);
                     cmd.SetGlobalVector(HDShaderIDs._ColorPyramidSize, new Vector4(
-                        previousColorPyramidRT.referenceSize.x, 
-                        previousColorPyramidRT.referenceSize.y, 
-                        1f / previousColorPyramidRT.referenceSize.x, 
+                        previousColorPyramidRT.referenceSize.x,
+                        previousColorPyramidRT.referenceSize.y,
+                        1f / previousColorPyramidRT.referenceSize.x,
                         1f / previousColorPyramidRT.referenceSize.y
                     ));
                     cmd.SetGlobalVector(HDShaderIDs._ColorPyramidScale, new Vector4(
-                        previousColorPyramidRT.referenceSize.x / (float)previousColorPyramidRT.rt.width, 
-                        previousColorPyramidRT.referenceSize.y / (float)previousColorPyramidRT.rt.height, 
-                        Mathf.Log(Mathf.Min(previousColorPyramidRT.rt.width, previousColorPyramidRT.rt.height), 2), 
+                        previousColorPyramidRT.referenceSize.x / (float)previousColorPyramidRT.rt.width,
+                        previousColorPyramidRT.referenceSize.y / (float)previousColorPyramidRT.rt.height,
+                        Mathf.Log(Mathf.Min(previousColorPyramidRT.rt.width, previousColorPyramidRT.rt.height), 2),
                         0.0f
                     ));
                 }
