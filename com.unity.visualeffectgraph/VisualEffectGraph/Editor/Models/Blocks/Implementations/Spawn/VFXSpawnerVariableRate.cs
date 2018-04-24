@@ -14,7 +14,7 @@ namespace UnityEditor.VFX
         {
             [Tooltip("Minimum/Maximum Spawn Rate (in number per second)")]
             public Vector2 Rate = new Vector2(0, 10);
-            [Tooltip("Minimum/Maximum period between rate recomputation")]
+            [Tooltip("Minimum/Maximum period used for rate interpolation")]
             public Vector2 Period = new Vector2(0, 1);
         }
 
