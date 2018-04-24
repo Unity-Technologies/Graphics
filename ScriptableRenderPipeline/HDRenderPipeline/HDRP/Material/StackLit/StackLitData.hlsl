@@ -194,26 +194,26 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     normalTS = GetNormalTS(input, layerTexCoord, detailNormalTS, detailMask);
     //TODO: bentNormalTS
 
-#if defined(_MASKMAPA)
-    surfaceData.perceptualSmoothnessA = SAMPLE_UVMAPPING_TEXTURE2D(_MaskMapA, sampler_MaskMapA, layerTexCoord.base).a;
-    surfaceData.perceptualSmoothnessA = lerp(_SmoothnessARemapMin, _SmoothnessARemapMax, surfaceData.perceptualSmoothnessA);
+#if defined(_SMOOTHNESSMASKMAPA)
+    surfaceData.perceptualSmoothnessA = dot(SAMPLE_UVMAPPING_TEXTURE2D(_SmoothnessAMap, sampler_SmoothnessAMap, layerTexCoord.base), _MetallicMapChannel, _SmoothnessAMapChannel);
+    surfaceData.perceptualSmoothnessA = lerp(_SmoothnessARemap.x, _SmoothnessARemap.y, surfaceData.perceptualSmoothnessA);
 #else
     surfaceData.perceptualSmoothnessA = _SmoothnessA;
 #endif
 
-#if defined(_MASKMAPB)
-    surfaceData.perceptualSmoothnessB = SAMPLE_UVMAPPING_TEXTURE2D(_MaskMapB, sampler_MaskMapB, layerTexCoord.base).a;
-    surfaceData.perceptualSmoothnessB = lerp(_SmoothnessBRemapMin, _SmoothnessBRemapMax, surfaceData.perceptualSmoothnessB);
+#if defined(_SMOOTHNESSMASKMAPB)
+    surfaceData.perceptualSmoothnessB = dot(SAMPLE_UVMAPPING_TEXTURE2D(_SmoothnessAMaB, sampler_SmoothnessBMap, layerTexCoord.base), _SmoothnessBMapChannel);
+    surfaceData.perceptualSmoothnessB = lerp(_SmoothnessBRemap.x, _SmoothnessBRemap.y, surfaceData.perceptualSmoothnessB);
 #else
     surfaceData.perceptualSmoothnessB = _SmoothnessB;
 #endif
+
     // TODOSTACKLIT: lobe weighting
     surfaceData.lobeMix = _LobeMix;
 
-    // MaskMapA is RGBA: Metallic, Ambient Occlusion (Optional), detail Mask (Optional), Smoothness
     // TODO: Ambient occlusion, detail mask.
-#ifdef _MASKMAPA
-    surfaceData.metallic = SAMPLE_UVMAPPING_TEXTURE2D(_MaskMapA, sampler_MaskMapA, layerTexCoord.base).r;
+#ifdef _METALLICMAP
+    surfaceData.metallic = dot(SAMPLE_UVMAPPING_TEXTURE2D(_MetallicMap, sampler_MetallicMap, layerTexCoord.base), _MetallicMapChannel);
 #else
     surfaceData.metallic = 1.0;
 #endif
