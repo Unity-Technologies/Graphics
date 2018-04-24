@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using Node = UnityEditor.Experimental.UIElements.GraphView.Node;
 #if UNITY_2018_1
@@ -25,6 +26,8 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_ControlsDivider;
         IEdgeConnectorListener m_ConnectorListener;
         VisualElement m_PortInputContainer;
+        VisualElement m_Title;
+        IconBadge m_WrongPipeline;
 
         public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener)
         {
@@ -141,6 +144,18 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (node is SubGraphNode)
             {
                 RegisterCallback<MouseDownEvent>(OnSubGraphDoubleClick);
+            }
+
+            var masterNode = node as IMasterNode;
+            if (masterNode != null)
+            {
+                if (!masterNode.IsPipelineCompatible(RenderPipelineManager.currentPipeline))
+                {
+                    m_WrongPipeline = IconBadge.CreateError("The current render pipeline is not compatible with this node preview.");
+                    Add(m_WrongPipeline);
+                    m_Title = this.Q("title");
+                    m_WrongPipeline.AttachTo(m_Title, SpriteAlignment.LeftCenter);
+                }
             }
 
             m_PortInputContainer.SendToBack();
