@@ -19,7 +19,7 @@ namespace UnityEditor.VFX.UI
             m_DisableCalled = true;
             foreach (var element in allChildren)
             {
-                Profiler.BeginSample(element.GetType().Name+".OnDisable");
+                Profiler.BeginSample(element.GetType().Name + ".OnDisable");
                 element.OnDisable();
                 Profiler.EndSample();
             }
@@ -52,7 +52,7 @@ namespace UnityEditor.VFX.UI
 
             foreach (var eventHandler in eventHandlers)
             {
-                Profiler.BeginSample("NotifyChange:"+eventHandler.GetType().Name);
+                Profiler.BeginSample("NotifyChange:" + eventHandler.GetType().Name);
                 NotifyEventHandler(eventHandler, eventID);
                 Profiler.EndSample();
             }

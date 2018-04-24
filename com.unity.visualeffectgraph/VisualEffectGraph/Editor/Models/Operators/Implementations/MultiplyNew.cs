@@ -13,9 +13,9 @@ namespace UnityEditor.VFX.Operator
 
         protected override sealed double defaultValueDouble { get { return 1.0; } }
 
-        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression ComposeExpression(VFXExpression a, VFXExpression b)
         {
-            return new[] { inputExpression[0] * inputExpression[1] };
+            return a * b;
         }
     }
 }

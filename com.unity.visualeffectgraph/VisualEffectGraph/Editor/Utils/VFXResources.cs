@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.VFX
 {
@@ -45,7 +46,10 @@ namespace UnityEditor.VFX
                 newAsset.particleTexture = SafeLoadAssetAtPath<Texture2D>(defaultPath + "Textures/DefaultParticle.tga");
                 newAsset.noiseTexture = SafeLoadAssetAtPath<Texture2D>(defaultPath + "Textures/Noise.tga");
                 newAsset.vectorField = SafeLoadAssetAtPath<Texture3D>(defaultPath + "Textures/vectorfield.asset");
-                newAsset.particleMesh = Resources.GetBuiltinResource<Mesh>("New-Capsule.fbx");
+                newAsset.mesh = Resources.GetBuiltinResource<Mesh>("New-Capsule.fbx");
+
+                newAsset.shader = Shader.Find("Hidden/Default StaticMeshOutput");
+
                 newAsset.animationCurve = new AnimationCurve(new Keyframe[]
                 {
                     new Keyframe(0.0f, 0.0f, 0.0f, 0.0f),
@@ -77,8 +81,9 @@ namespace UnityEditor.VFX
         public Texture2D particleTexture;
         public Texture2D noiseTexture;
         public Texture3D vectorField;
-        public Mesh particleMesh;
+        public Mesh mesh;
         public AnimationCurve animationCurve;
         public Gradient gradient;
+        public Shader shader;
     }
 }

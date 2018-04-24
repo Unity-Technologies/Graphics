@@ -52,6 +52,7 @@ namespace UnityEditor.VFX.Test
 
             const int res = 256;
             var renderTexture = new RenderTexture(res, res, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave };
+            renderTexture.name = "VFXGraphicTest";
             instance.camera.targetTexture = renderTexture;
 
             var ambientProbe = RenderSettings.ambientProbe;

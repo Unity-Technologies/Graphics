@@ -108,36 +108,29 @@ namespace UnityEditor.VFX.Operator
         {
             get
             {
-                const string outputName = "o";
-                yield return new VFXPropertyWithValue(new VFXProperty(m_Type, outputName));
+                yield return new VFXPropertyWithValue(new VFXProperty(m_Type, string.Empty));
             }
         }
 
-        public sealed override void UpdateOutputExpressions()
+        protected sealed override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            var TrueList = new List<VFXExpression>();
-            var FalseList = new List<VFXExpression>();
+            var nbExpressionPerSlot = (inputExpression.Length - 1) / 2;
 
-            GetInputExpressionsRecursive(TrueList, Enumerable.Repeat(inputSlots[1], 1));
-            GetInputExpressionsRecursive(FalseList, Enumerable.Repeat(inputSlots[2], 1));
+            var branches = inputExpression.Skip(1);
+            var trueList = branches.Take(nbExpressionPerSlot);
+            var falseList = branches.Skip(nbExpressionPerSlot).Take(nbExpressionPerSlot);
 
-            var result = new List<VFXExpression>();
-            var itTrue = TrueList.GetEnumerator();
-            var itFalse = FalseList.GetEnumerator();
+            var pred = inputExpression[0];
 
-            var pred = inputSlots[0].GetExpression();
-
+            var itTrue = trueList.GetEnumerator();
+            var itFalse = falseList.GetEnumerator();
+            var result = new List<VFXExpression>(nbExpressionPerSlot);
             while (itTrue.MoveNext() && itFalse.MoveNext())
             {
                 result.Add(new VFXExpressionBranch(pred, itTrue.Current, itFalse.Current));
             }
 
-            SetOutputExpressions(result.ToArray());
-        }
-
-        protected sealed override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
-        {
-            throw new NotImplementedException();
+            return result.ToArray();
         }
     }
 }

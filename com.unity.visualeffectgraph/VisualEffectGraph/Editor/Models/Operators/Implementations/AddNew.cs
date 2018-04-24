@@ -8,9 +8,9 @@ namespace UnityEditor.VFX.Operator
     {
         public override sealed string name { get { return "AddNew"; } }
         protected override sealed double defaultValueDouble { get { return 0.0; } }
-        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression ComposeExpression(VFXExpression a, VFXExpression b)
         {
-            return new[] { inputExpression[0] + inputExpression[1] };
+            return a + b;
         }
     }
 }
