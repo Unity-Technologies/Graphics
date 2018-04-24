@@ -227,8 +227,7 @@ half LocalLightRealtimeShadowAttenuation(int lightIndex, float3 positionWS)
     float4 shadowCoord = mul(_LocalWorldToShadowAtlas[lightIndex], float4(positionWS, 1.0));
     ShadowSamplingData shadowSamplingData = GetLocalLightShadowSamplingData();
     half shadowStrength = GetLocalLightShadowStrenth(lightIndex);
-    half attenuation = SampleShadowmap(shadowCoord, TEXTURE2D_PARAM(_LocalShadowMapAtlas, sampler_LocalShadowMapAtlas), shadowSamplingData, shadowStrength);
-    return (shadowStrength > 0.0h) ? attenuation : 1.0h;
+    return SampleShadowmap(shadowCoord, TEXTURE2D_PARAM(_LocalShadowMapAtlas, sampler_LocalShadowMapAtlas), shadowSamplingData, shadowStrength);
 #endif
 }
 
