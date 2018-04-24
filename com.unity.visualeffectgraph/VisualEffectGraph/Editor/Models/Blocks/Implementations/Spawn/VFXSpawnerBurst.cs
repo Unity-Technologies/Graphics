@@ -14,14 +14,14 @@ namespace UnityEditor.VFX
             {
                 return new Dictionary<string, object[]>
                 {
-                    { "repeat", new object[] { VFXSpawnerBurstNew.RepeatMode.Single, VFXSpawnerBurstNew.RepeatMode.Periodic } }
+                    { "repeat", new object[] { VFXSpawnerBurst.RepeatMode.Single, VFXSpawnerBurst.RepeatMode.Periodic } }
                 };
             }
         }
     }
 
     [VFXInfo(category = "Spawn", variantProvider = typeof(VFXSpawnerBurstVariantCollection))]
-    class VFXSpawnerBurstNew : VFXAbstractSpawner
+    class VFXSpawnerBurst : VFXAbstractSpawner
     {
         public enum RepeatMode
         {

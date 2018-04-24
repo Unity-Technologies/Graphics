@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
 {
     [Obsolete]
     [VFXInfo(category = "Spawn")]
-    class VFXSpawnerBurst : VFXAbstractSpawner
+    class VFXSpawnerBurstOld : VFXAbstractSpawner
     {
         [VFXSetting, SerializeField]
         private bool advanced = true;
