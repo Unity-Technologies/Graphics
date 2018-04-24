@@ -192,7 +192,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_MaxLocalLightsShadedPerPass = m_UseComputeBuffer ? kMaxVisibleLocalLights : kMaxNonIndexedLocalLights;
             m_LocalLightIndices = new List<int>(m_MaxLocalLightsShadedPerPass);
 
-            m_ShadowPass = new LightweightShadowPass(m_Asset, m_MaxLocalLightsShadedPerPass);
+            m_ShadowPass = new LightweightShadowPass(m_Asset, kMaxVisibleLocalLights);
 
             // Let engine know we have MSAA on for cases where we support MSAA backbuffer
             if (QualitySettings.antiAliasing != m_Asset.MSAASampleCount)
@@ -707,9 +707,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 if (visibleLights[i].lightType != LightType.Directional)
                     m_LocalLightIndices.Add(i);
-
-                if (m_LocalLightIndices.Count >= m_MaxLocalLightsShadedPerPass)
-                    break;
             }
 
             // Clear to default all light constant data
