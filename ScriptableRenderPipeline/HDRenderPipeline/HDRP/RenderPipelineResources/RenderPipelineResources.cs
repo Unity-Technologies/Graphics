@@ -54,8 +54,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Shader opaqueAtmosphericScattering;
         public Shader hdriSky;
         public Shader proceduralSky;
-
         public Shader skyboxCubemap;
+
+        // Material
+        public Shader preIntegratedFGD;
 
         // Utilities / Core
         public ComputeShader encodeBC6HCS;
