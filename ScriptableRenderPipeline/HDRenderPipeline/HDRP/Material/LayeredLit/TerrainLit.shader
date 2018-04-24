@@ -153,6 +153,7 @@ Shader "HDRenderPipeline/TerrainLit"
 
     //enable GPU instancing support
     #pragma multi_compile_instancing
+    #pragma instancing_options assumeuniformscaling nomatrices nolightprobe nolightmap
 
     //-------------------------------------------------------------------------------------
     // Define
@@ -162,7 +163,7 @@ Shader "HDRenderPipeline/TerrainLit"
     // Use surface gradient normal mapping as it handle correctly triplanar normal mapping and multiple UVSet
     #define SURFACE_GRADIENT
     // This shader support vertex modification
-    #define HAVE_VERTEX_MODIFICATION // TODO: Implement ApplyVertexModification for terrain heightmap sampling
+    #define HAVE_VERTEX_MODIFICATION
 
     //-------------------------------------------------------------------------------------
     // Include
@@ -178,7 +179,7 @@ Shader "HDRenderPipeline/TerrainLit"
 
     #define _MAX_LAYER 4 // TODO: expand to 8?
 
-    // Explicitely said that we are a layered shader as we share code between lit and layered lit
+    // Explicitly said that we are a layered shader as we share code between lit and layered lit
     #define LAYERED_LIT_SHADER
 
     //-------------------------------------------------------------------------------------
