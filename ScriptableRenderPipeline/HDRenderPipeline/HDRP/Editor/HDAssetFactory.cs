@@ -100,14 +100,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 newAsset.opaqueAtmosphericScattering = Load<Shader>(HDRenderPipelinePath + "Sky/OpaqueAtmosphericScattering.shader");
                 newAsset.hdriSky = Load<Shader>(HDRenderPipelinePath + "Sky/HDRISky/HDRISky.shader");
                 newAsset.proceduralSky = Load<Shader>(HDRenderPipelinePath + "Sky/ProceduralSky/ProceduralSky.shader");
+                // Skybox/Cubemap is a builtin shader, must use Sahder.Find to access it. It is fine because we are in the editor
+                newAsset.skyboxCubemap = Shader.Find("Skybox/Cubemap");
+
+                // Material
+                newAsset.preIntegratedFGD = Load<Shader>(HDRenderPipelinePath + "Material/PreIntegratedFGD.shader");
 
                 // Utilities / Core
                 newAsset.encodeBC6HCS = Load<ComputeShader>(CorePath + "CoreResources/EncodeBC6H.compute");
                 newAsset.cubeToPanoShader = Load<Shader>(CorePath + "CoreResources/CubeToPano.shader");
                 newAsset.blitCubeTextureFace = Load<Shader>(CorePath + "CoreResources/BlitCubeTextureFace.shader");
-
-                // Skybox/Cubemap is a builtin shader, must use Sahder.Find to access it. It is fine because we are in the editor
-                newAsset.skyboxCubemap = Shader.Find("Skybox/Cubemap");
 
                 // Shadow
                 newAsset.shadowClearShader = Load<Shader>(CorePath + "Shadow/ShadowClear.shader");
