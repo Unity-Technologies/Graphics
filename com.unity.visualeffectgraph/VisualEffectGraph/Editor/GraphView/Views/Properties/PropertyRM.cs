@@ -162,7 +162,6 @@ namespace UnityEditor.VFX.UI
 
         public void Update()
         {
-
             Profiler.BeginSample("PropertyRM.Update");
 
             Profiler.BeginSample("PropertyRM.Update:Angle");

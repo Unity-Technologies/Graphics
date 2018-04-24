@@ -19,19 +19,17 @@ namespace UnityEditor.VFX.Operator
             public FloatN False = 0.0f;
         }
 
-        override public string name { get { return "Branch"; } }
+        public sealed override string name { get { return "Branch"; } }
 
-        sealed override protected IEnumerable<VFXExpression> GetInputExpressions()
+        protected sealed override IEnumerable<VFXExpression> ApplyPatchInputExpression(IEnumerable<VFXExpression> inputExpression)
         {
-            var inputExpression = GetRawInputExpressions();
-
             yield return inputExpression.First();
             var branches = VFXOperatorUtility.UpcastAllFloatN(inputExpression.Skip(1));
             foreach (var b in branches)
                 yield return b;
         }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected sealed override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { new VFXExpressionBranch(inputExpression[0], inputExpression[1], inputExpression[2]) };
         }
