@@ -387,6 +387,8 @@ Shader "HDRenderPipeline/TerrainLit"
 
             ENDHLSL
         }
+
+        UsePass "Hidden/Nature/Terrain/Picking/TERRAINPICKING"
     }
 
     CustomEditor "UnityEditor.Experimental.Rendering.HDPipeline.TerrainLitGUI"
