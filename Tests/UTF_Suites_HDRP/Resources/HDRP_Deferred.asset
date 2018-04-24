@@ -224,6 +224,20 @@ MonoBehaviour:
       minimumUnityVersion: 4
       platforms: -1
       run: 0
+    - name: Assets/SRP/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2401_Light_on_Tesselation.unity
+      scene: {fileID: 102900000, guid: 89b7af98516d8634abb2541bf74b8e3c, type: 3}
+      scenePath: Assets/SRP/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2401_Light_on_Tesselation.unity
+      testTypes: 2
+      minimumUnityVersion: 5
+      platforms: -1
+      run: 1
+    - name: Assets/SRP/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2401_Light_on_Tesselation.unity
+      scene: {fileID: 102900000, guid: a79dc73c0530f6c45ab17d50c2efe30d, type: 3}
+      scenePath: Assets/SRP/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2401_Light_on_Tesselation.unity
+      testTypes: 2
+      minimumUnityVersion: 5
+      platforms: -1
+      run: 1
     - name: Assets/SRP/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2301_Shadow_Mask.unity
       scene: {fileID: 102900000, guid: 1029947770f955b4290bbdd8b641f7f1, type: 3}
       scenePath: Assets/SRP/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2301_Shadow_Mask.unity
