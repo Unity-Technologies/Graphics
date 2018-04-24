@@ -55,7 +55,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float projectionDistance;                            // Proxy
 
         // 4x32 bits
-        public bool endHitSuccess;                                  // Proxy, HiZ
+        public int endHitSuccess;                                   // Proxy, HiZ
         public float endLinearDepth;                                // Proxy, HiZ
         public uint endPositionSSX;                                 // Proxy, HiZ
         public uint endPositionSSY;                                 // Proxy, HiZ
@@ -406,7 +406,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 displayName = "Debug Values",
                                 children =
                                 {
-                                    new DebugUI.Value { displayName = "Hit Success", getter = () => screenSpaceTracingDebugData.endHitSuccess },
+                                    new DebugUI.Value { displayName = "Hit Success", getter = () => screenSpaceTracingDebugData.endHitSuccess != 0 },
                                     new DebugUI.Value { displayName = "Proxy Shape", getter = () => screenSpaceTracingDebugData.proxyShapeType },
                                     new DebugUI.Value { displayName = "Projection Distance", getter = () => screenSpaceTracingDebugData.projectionDistance },
                                     new DebugUI.Value { displayName = "Start Position", getter = () => screenSpaceTracingDebugData.loopStartPositionSS },
@@ -432,7 +432,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 displayName = "Debug Values (loop)",
                                 children =
                                 {
-                                    new DebugUI.Value { displayName = "Hit Success", getter = () => screenSpaceTracingDebugData.endHitSuccess },
+                                    new DebugUI.Value { displayName = "Hit Success", getter = () => screenSpaceTracingDebugData.endHitSuccess != 0 },
                                     new DebugUI.Value { displayName = "Start Position", getter = () => screenSpaceTracingDebugData.loopStartPositionSS },
                                     new DebugUI.Value { displayName = "Start Linear Depth", getter = () => screenSpaceTracingDebugData.loopStartLinearDepth },
                                     new DebugUI.Value { displayName = "Ray Direction SS", getter = () => new Vector2(screenSpaceTracingDebugData.loopRayDirectionSS.x, screenSpaceTracingDebugData.loopRayDirectionSS.y) },
