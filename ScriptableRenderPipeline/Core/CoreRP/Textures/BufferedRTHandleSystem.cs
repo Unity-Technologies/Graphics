@@ -97,10 +97,10 @@ namespace UnityEngine.Experimental.Rendering
         /// <summary>
         /// Set the reference size for this RT Handle System (<see cref="RTHandleSystem.SetReferenceSize(int, int, bool, MSAASamples)"/>)
         /// </summary>
-        /// <param name="width"></param>
-        /// <param name="height"></param>
-        /// <param name="msaa"></param>
-        /// <param name="msaaSamples"></param>
+        /// <param name="width">The width of the RTs of this buffer.</param>
+        /// <param name="height">The height of the RTs of this buffer.</param>
+        /// <param name="msaa">Whether this buffer use MSAA.</param>
+        /// <param name="msaaSamples">Number of MSAA samples for this buffer.</param>
         public void SetReferenceSize(int width, int height, bool msaa, MSAASamples msaaSamples)
         {
             m_RTHandleSystem.SetReferenceSize(width, height, msaa, msaaSamples);
