@@ -11,7 +11,7 @@ namespace UnityEditor.VFX
         public override VFXTaskType spawnerType { get { return VFXTaskType.ConstantRateSpawner; } }
         public class InputProperties
         {
-            [Min(0)]
+            [Min(0), Tooltip("Spawn Rate (in number per seconds)")]
             public float Rate = 10;
         }
     }
