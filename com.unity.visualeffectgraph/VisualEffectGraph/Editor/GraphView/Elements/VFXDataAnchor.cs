@@ -425,10 +425,17 @@ namespace UnityEditor.VFX.UI
                 else if (newNodeController is VFXOperatorController)
                 {
                     var inlineOperator = (newNodeController as VFXOperatorController).model as VFXInlineOperator;
-                    if (inlineOperator)
+                    if (inlineOperator && inlineOperator.type == controller.portType)
                     {
                         if (VFXConverter.CanConvert(inlineOperator.type))
-                            inlineOperator.inputSlots[0].value = VFXConverter.ConvertTo(controller.model.value, inlineOperator.type);
+                        {
+                            try
+                            {
+                                inlineOperator.inputSlots[0].value = VFXConverter.ConvertTo(controller.model.value, inlineOperator.type);
+                            }
+                            catch(System.InvalidCastException) // don't fail here
+                            {}
+                        }
                         else
                             inlineOperator.inputSlots[0].value = controller.model.value;
                     }
