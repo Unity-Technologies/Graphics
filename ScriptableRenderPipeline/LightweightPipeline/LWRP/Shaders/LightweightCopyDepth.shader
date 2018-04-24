@@ -21,7 +21,7 @@ Shader "Hidden/LightweightPipeline/CopyDepth"
             #pragma vertex vert
             #pragma fragment frag
 
-            #pragma multi_compile _MSAA_DEPTH
+            #pragma multi_compile __ _MSAA_DEPTH
 
             #include "LWRP/ShaderLibrary/DepthCopy.hlsl"
 
