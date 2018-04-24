@@ -88,11 +88,23 @@ public class ScriptableCullingTests
         requests.AddRequest(cullingParams);
 
         var lightCullResults = Culling.CullLights(requests);
-        var lightCullResult = lightCullResults.results[0];
-        Assert.AreEqual(3, lightCullResult.visibleLights.Length);
-        Assert.AreEqual(2, lightCullResult.visibleShadowCastingLights.Length);
+        var lightCullResult = lightCullResults.GetResult(0);
+        Assert.AreEqual(4, lightCullResult.visibleLights.Length);
+        Assert.IsTrue(Array.Exists(lightCullResult.visibleLights, (visibleLight) => visibleLight.light.gameObject.name == "Directional Light"));
+        Assert.IsTrue(Array.Exists(lightCullResult.visibleLights, (visibleLight) => visibleLight.light.gameObject.name == "Point Light Inside"));
+        Assert.IsTrue(Array.Exists(lightCullResult.visibleLights, (visibleLight) => visibleLight.light.gameObject.name == "Point Light 2 Inside"));
+        Assert.IsTrue(Array.Exists(lightCullResult.visibleLights, (visibleLight) => visibleLight.light.gameObject.name == "Spot Light Inside"));
+
+        Assert.AreEqual(1, lightCullResult.visibleShadowCastingLights.Length);
+        Assert.IsTrue(Array.Exists(lightCullResult.visibleShadowCastingLights, (visibleLight) => visibleLight.light.gameObject.name == "Point Light Partial"));
+
         Assert.AreEqual(2, lightCullResult.visibleOffscreenVertexLights.Length);
+        Assert.IsTrue(Array.Exists(lightCullResult.visibleOffscreenVertexLights, (visibleLight) => visibleLight.light.gameObject.name == "Point Light Vertex"));
+        Assert.IsTrue(Array.Exists(lightCullResult.visibleOffscreenVertexLights, (visibleLight) => visibleLight.light.gameObject.name == "Point Light 2 Vertex"));
+
+        // The number here should actually be 1 but returns 3 because the off screen vertex light culling is wrong so we have false positives.
         Assert.AreEqual(1, lightCullResult.visibleOffscreenShadowCastingVertexLights.Length);
+        Assert.IsTrue(Array.Exists(lightCullResult.visibleOffscreenShadowCastingVertexLights, (visibleLight) => visibleLight.light.gameObject.name == "Spot Light Vertex"));
 
         TearDown();
     }
@@ -112,9 +124,9 @@ public class ScriptableCullingTests
 
         var result = reflectionCullingResults.GetResult(0);
         Assert.AreEqual(2, result.visibleReflectionProbes.Length);
-
-        Assert.IsTrue(Array.Exists(result.visibleReflectionProbes, (visibleProbe) => visibleProbe.probe.gameObject.name == "ReflectionProbeInside"));
-        Assert.IsTrue(Array.Exists(result.visibleReflectionProbes, (visibleProbe) => visibleProbe.probe.gameObject.name == "ReflectionProbePartial"));
+        
+        Assert.IsTrue(Array.Exists(result.visibleReflectionProbes, (visibleProbe) => visibleProbe.probe.gameObject.name == "ReflectionProbe Inside"));
+        Assert.IsTrue(Array.Exists(result.visibleReflectionProbes, (visibleProbe) => visibleProbe.probe.gameObject.name == "ReflectionProbe Partial"));
 
         TearDown();
     }
