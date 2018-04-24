@@ -32,6 +32,10 @@ namespace UnityEditor.VFX
         public override void OnDrawSpacedGizmo(DirectionType direction)
         {
             direction.direction.Normalize();
+            if( direction.direction == Vector3.zero)
+            {
+                direction.direction = Vector3.up;
+            }
             Quaternion normalQuat = Quaternion.FromToRotation(Vector3.forward, direction.direction);
             Handles.ArrowHandleCap(0, Vector3.zero, normalQuat, HandleUtility.GetHandleSize(Vector3.zero) * 1, Event.current.type);
 
@@ -60,6 +64,11 @@ namespace UnityEditor.VFX
         }
         public override void OnDrawSpacedGizmo(Vector vector)
         {
+            if( vector.vector == Vector3.zero)
+            {
+                vector.vector = Vector3.up;
+            }
+
             Quaternion normalQuat = Quaternion.FromToRotation(Vector3.forward, vector.vector);
 
             float length = vector.vector.magnitude;
