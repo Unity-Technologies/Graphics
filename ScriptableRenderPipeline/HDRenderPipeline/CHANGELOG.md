@@ -14,7 +14,8 @@
 - Configure the volumetric lighting code path to be on by default
 
 ### Changed, Removals and deprecations
-- 
+- Remove Resource folder of PreIntegratedFGD and add the resource to RenderPipeline Asset
+- Default number of planar reflection change from 4 to 2
 
 ### Bug fixes
 - Fix ConvertPhysicalLightIntensityToLightIntensity() function used when creating light from script to match HDLightEditor behavior
@@ -46,6 +47,8 @@
 - Screen Space Refraction proxy model uses the proxy of the first environment light (Reflection probe/Planar probe) or the sky
 - Moved RTHandle static methods to RTHandles
 - Renamed RTHandle to RTHandleSystem.RTHandle
+- Move code for PreIntegratedFDG (Lit.shader) into its dedicated folder to be share with other material
+- Move code for LTCArea (Lit.shader) into its dedicated folder to be share with other material
  
 ### Bug fixes
 - Fix fog flags in scene view is now taken into account
