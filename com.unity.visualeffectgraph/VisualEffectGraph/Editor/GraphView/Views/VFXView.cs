@@ -572,8 +572,6 @@ namespace UnityEditor.VFX.UI
                 m_ToggleMotionVectors.SetEnabled(false);
             }
 
-            // needed if some or all the selection has been deleted, so we no longer show the deleted object in the inspector.
-            UpdateGloblalSelection();
             Profiler.EndSample();
             m_InControllerChanged = false;
             if (m_UpdateUIBounds)
