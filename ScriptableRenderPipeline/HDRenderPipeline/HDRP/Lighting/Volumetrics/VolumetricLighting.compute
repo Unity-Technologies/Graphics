@@ -491,10 +491,10 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         float4 reprojValue = SampleVBuffer(TEXTURE3D_PARAM(_VBufferLightingHistory, s_linear_clamp_sampler),
                                            centerWS,
                                            _PrevViewProjMatrix,
-                                           _VBufferResolution,
-                                           _VBufferSliceCount.xy,
-                                           _VBufferDepthEncodingParams,
-                                           _VBufferDepthDecodingParams,
+                                           _VBufferPrevResolution,
+                                           _VBufferPrevSliceCount.xy,
+                                           _VBufferPrevDepthEncodingParams,
+                                           _VBufferPrevDepthDecodingParams,
                                            false, false, true);
 
         // Compute the exponential moving average over 'n' frames:

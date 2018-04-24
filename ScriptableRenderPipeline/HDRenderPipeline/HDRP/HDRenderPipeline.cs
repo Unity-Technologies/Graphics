@@ -147,7 +147,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_CurrentHeight;
 
         // Use to detect frame changes
-        int   m_FrameCount;
+        uint  m_FrameCount;
         float m_LastTime, m_Time;
 
         public int GetCurrentShadowCount() { return m_LightLoop.GetCurrentShadowCount(); }
@@ -337,7 +337,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             RTHandles.Release(m_DebugColorPickerBuffer);
             RTHandles.Release(m_DebugFullScreenTempBuffer);
-            
+
             m_DebugScreenSpaceTracingData.Release();
 
             HDCamera.CleanUnused();
@@ -534,7 +534,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Warning: (resolutionChanged == false) if you open a new Editor tab of the same size!
-            m_VolumetricLightingSystem.ResizeVBuffer(hdCamera, hdCamera.actualWidth, hdCamera.actualHeight);
+            m_VolumetricLightingSystem.ResizeVBufferAndUpdateProperties(hdCamera, m_FrameCount);
 
             // update recorded window resolution
             m_CurrentWidth = hdCamera.actualWidth;
@@ -550,7 +550,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_DbufferManager.PushGlobalParams(cmd, m_FrameSettings);
 
-                m_VolumetricLightingSystem.PushGlobalParams(hdCamera, cmd);
+                m_VolumetricLightingSystem.PushGlobalParams(hdCamera, cmd, m_FrameCount);
 
                 var ssRefraction = VolumeManager.instance.stack.GetComponent<ScreenSpaceRefraction>()
                     ?? ScreenSpaceRefraction.@default;
@@ -675,7 +675,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Therefore, outside of the Play Mode we update the time at 60 fps,
                 // and in the Play Mode we rely on 'Time.frameCount'.
                 float t = Time.realtimeSinceStartup;
-                int   c = Time.frameCount;
+                uint  c = (uint)Time.frameCount;
 
                 bool newFrame;
 
@@ -1022,13 +1022,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             }
                         }
 
+                        {
+                            // Set fog parameters for volumetric lighting.
+                            var visualEnv = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
+                            visualEnv.PushFogShaderParameters(cmd, m_FrameSettings);
+                        }
+
                         // Perform the voxelization step which fills the density 3D texture.
                         // Requires the clustered lighting data structure to be built, and can run async.
-                        m_VolumetricLightingSystem.VolumeVoxelizationPass(densityVolumes, hdCamera, cmd, m_FrameSettings);
+                        m_VolumetricLightingSystem.VolumeVoxelizationPass(densityVolumes, hdCamera, cmd, m_FrameSettings, m_FrameCount);
 
                         // Render the volumetric lighting.
                         // The pass requires the volume properties, the light list and the shadows, and can run async.
-                        m_VolumetricLightingSystem.VolumetricLightingPass(hdCamera, cmd, m_FrameSettings);
+                        m_VolumetricLightingSystem.VolumetricLightingPass(hdCamera, cmd, m_FrameSettings, m_FrameCount);
 
                         RenderDeferredLighting(hdCamera, cmd);
 
@@ -1472,9 +1478,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderSky(HDCamera hdCamera, CommandBuffer cmd)
         {
-            // Rendering the sky is the first time in the frame where we need fog parameters so we push them here for the whole frame.
             var visualEnv = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-            visualEnv.PushFogShaderParameters(cmd, m_FrameSettings);
 
             m_SkyManager.RenderSky(hdCamera, m_LightLoop.GetCurrentSunLight(), m_CameraColorBuffer, m_CameraDepthStencilBuffer, m_CurrentDebugDisplaySettings, cmd);
 

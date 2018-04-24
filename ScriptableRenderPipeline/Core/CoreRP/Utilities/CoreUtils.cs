@@ -119,6 +119,23 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        static Texture3D m_BlackVolumeTexture;
+        public static Texture3D blackVolumeTexture
+        {
+            get
+            {
+                if (m_BlackVolumeTexture == null)
+                {
+                    Color[] colors = { Color.black };
+                    m_BlackVolumeTexture = new Texture3D(1, 1, 1, TextureFormat.ARGB32, false);
+                    m_BlackVolumeTexture.SetPixels(colors, 0);
+                    m_BlackVolumeTexture.Apply();
+                }
+
+                return m_BlackVolumeTexture;
+            }
+        }
+
         public static void ClearRenderTarget(CommandBuffer cmd, ClearFlag clearFlag, Color clearColor)
         {
             if (clearFlag != ClearFlag.None)
