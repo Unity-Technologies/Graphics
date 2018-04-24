@@ -4,7 +4,10 @@ using UnityEngine.Rendering;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [Serializable]
-    public sealed class LitProjectionModelParameter : VolumeParameter<Lit.ProjectionModel> { }
+    public sealed class LitProjectionModelParameter : VolumeParameter<Lit.ProjectionModel> 
+    {
+        public LitProjectionModelParameter() : base(Lit.ProjectionModel.Proxy, false) { }
+    }
 
     [Serializable]
     public class ScreenSpaceReflection : ScreenSpaceLighting

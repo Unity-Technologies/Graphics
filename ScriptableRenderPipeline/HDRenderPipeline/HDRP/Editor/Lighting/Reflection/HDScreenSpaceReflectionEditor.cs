@@ -1,9 +1,8 @@
 using System.Collections;
 using UnityEngine;
-using UnityEditor;
-using UnityEditor.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
-namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     [CanEditMultipleObjects]
     [VolumeComponentEditor(typeof(ScreenSpaceReflection))]
@@ -21,9 +20,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override void OnInspectorGUI()
         {
-            base.OnInspectorGUI();
+            OnCommonInspectorGUI();
+            var projectionModel = (Lit.ProjectionModel)m_DeferredProjectionModel.value.enumValueIndex;
+            switch (projectionModel)
+            {
+                case Lit.ProjectionModel.HiZ:
+                    EditorGUILayout.Separator();
+                    OnHiZInspectorGUI();
+                    break;
+            }
+        }
 
-            EditorGUILayout.LabelField(CoreEditorUtils.GetContent("Deferred Settings"));
+        protected override void OnCommonInspectorGUI()
+        {
+            base.OnCommonInspectorGUI();
             PropertyField(m_DeferredProjectionModel, CoreEditorUtils.GetContent("Projection Model"));
         }
     }
