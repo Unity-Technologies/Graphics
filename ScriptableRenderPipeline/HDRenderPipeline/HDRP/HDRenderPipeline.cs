@@ -582,6 +582,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         0.0f
                     ));
                 }
+                else
+                {
+                    cmd.SetGlobalTexture(HDShaderIDs._DepthPyramidTexture, Texture2D.blackTexture);
+                    cmd.SetGlobalVector(HDShaderIDs._DepthPyramidSize, Vector4.one);
+                    cmd.SetGlobalVector(HDShaderIDs._DepthPyramidScale, Vector4.one);
+                }
                     
                 var previousColorPyramidRT = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorPyramid);
                 if (previousColorPyramidRT != null)
@@ -599,6 +605,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         Mathf.Log(Mathf.Min(previousColorPyramidRT.rt.width, previousColorPyramidRT.rt.height), 2), 
                         0.0f
                     ));
+                }
+                else
+                {
+                    cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, Texture2D.blackTexture);
+                    cmd.SetGlobalVector(HDShaderIDs._ColorPyramidSize, Vector4.one);
+                    cmd.SetGlobalVector(HDShaderIDs._ColorPyramidScale, Vector4.one);
                 }
             }
         }
