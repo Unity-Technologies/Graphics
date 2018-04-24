@@ -474,7 +474,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     CopyTexture(cmd, m_DepthRT, m_CopyDepth, m_CopyDepthMaterial, forceBlit);
                     depthRT = m_CopyDepth;
                     setRenderTarget = true;
-                    cmd.SetGlobalTexture(CameraRenderTargetID.depthCopy, m_CopyDepth);
+                    cmd.SetGlobalTexture(CameraRenderTargetID.depth, m_CopyDepth);
                 }
 
                 if (setRenderTarget)
