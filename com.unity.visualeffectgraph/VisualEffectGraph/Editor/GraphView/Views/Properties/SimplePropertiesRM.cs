@@ -12,7 +12,6 @@ using Type = System.Type;
 using EnumField = UnityEditor.VFX.UIElements.VFXEnumField;
 using VFXVector2Field = UnityEditor.VFX.UIElements.VFXVector2Field;
 using VFXVector4Field = UnityEditor.VFX.UIElements.VFXVector4Field;
-using FloatField = UnityEditor.VFX.UIElements.VFXFloatField;
 
 namespace UnityEditor.VFX.UI
 {

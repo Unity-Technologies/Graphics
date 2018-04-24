@@ -11,7 +11,6 @@ using Object = UnityEngine.Object;
 using Type = System.Type;
 
 using VFXVector3Field = UnityEditor.VFX.UIElements.VFXVector3Field;
-using FloatField = UnityEditor.VFX.UIElements.VFXFloatField;
 using VFXColorField = UnityEditor.VFX.UIElements.VFXColorField;
 
 namespace UnityEditor.VFX.UI
