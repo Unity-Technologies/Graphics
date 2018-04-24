@@ -249,7 +249,7 @@ namespace UnityEditor.VFX
             public override VFXGizmo.IProperty<T> RegisterProperty<T>(string memberPath)
             {
                 var cmdList = new List<Action<List<object>, object>>();
-                bool succeeded = BuildPropertyValue<T>(cmdList, m_Parameter.type, m_Parameter.exposedName, memberPath.Split(separator[0]), 0);
+                bool succeeded = BuildPropertyValue<T>(cmdList, m_Parameter.type, m_Parameter.exposedName, memberPath.Split(new char[]{separator[0]},StringSplitOptions.RemoveEmptyEntries), 0);
                 if (succeeded)
                 {
                     return new Property<T>(m_SerializedObject, cmdList);
@@ -258,7 +258,7 @@ namespace UnityEditor.VFX
                 return VFXGizmoUtility.NullProperty<T>.defaultProperty;
             }
 
-            bool BuildPropertyValue<T>(List<Action<List<object>, object>> cmdList, Type type, string propertyPath, string[] memberPath, int depth)
+            bool BuildPropertyValue<T>(List<Action<List<object>, object>> cmdList, Type type, string propertyPath, string[] memberPath, int depth, FieldInfo specialSpacableVector3CaseField = null)
             {
                 string field = VisualEffectUtility.GetTypeField(type);
 
@@ -306,11 +306,23 @@ namespace UnityEditor.VFX
                     else
                     {
                         var currentValue = GetObjectValue(property);
-                        if (!typeof(T).IsAssignableFrom(currentValue.GetType()))
+                        if( specialSpacableVector3CaseField != null)
                         {
-                            return false;
+                            cmdList.Add(
+                                (l, o) => {
+                                    object vector3Property = specialSpacableVector3CaseField.GetValue(o);
+                                    SetObjectValue(property, vector3Property);
+                                });
                         }
-                        cmdList.Add((l, o) => SetObjectValue(property, o));
+                        else
+                        {
+                            if (!typeof(T).IsAssignableFrom(currentValue.GetType()))
+                            {
+                                return false;
+                            }
+
+                            cmdList.Add((l, o) => SetObjectValue(property, o));
+                        }
                         return true;
                     }
                 }
@@ -320,6 +332,17 @@ namespace UnityEditor.VFX
                     if (subField == null)
                         return false;
                     return BuildPropertyValue<T>(cmdList, subField.FieldType, propertyPath + "_" + memberPath[depth], memberPath, depth + 1);
+                }
+                else if(typeof(Position) == type ||typeof(Vector) == type || typeof(DirectionType) == type)
+                {
+                    if (typeof(T) != type)
+                    {
+                        return false;
+                    }
+
+                    FieldInfo vector3Field = type.GetFields(BindingFlags.Instance | BindingFlags.Public).First(t=>t.FieldType == typeof(Vector3));
+                    string name = vector3Field.Name;
+                    return BuildPropertyValue<T>(cmdList, typeof(Vector3), propertyPath + "_" + name, new string[]{name}, 1, vector3Field);
                 }
                 Debug.LogError("Setting A value across multiple property is not yet supported");
 
