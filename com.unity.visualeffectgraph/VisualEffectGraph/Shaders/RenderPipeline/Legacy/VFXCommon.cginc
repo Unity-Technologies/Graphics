@@ -14,6 +14,11 @@ float4 VFXTransformPositionObjectToClip(float3 posOS)
     return UnityObjectToClipPos(posOS);
 }
 
+float3 VFXTransformPositionWorldToView(float3 posWS)
+{
+    return mul(UNITY_MATRIX_V, float4(posWS, 1.0f)).xyz;
+}
+
 float4x4 VFXGetObjectToWorldMatrix()
 {
     return unity_ObjectToWorld;
