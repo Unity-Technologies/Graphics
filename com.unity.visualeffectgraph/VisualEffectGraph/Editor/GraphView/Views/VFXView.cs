@@ -251,7 +251,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        VFXGroupNode GetPickedGroupNode(Vector2 panelPosition)
+        public VFXGroupNode GetPickedGroupNode(Vector2 panelPosition)
         {
             List<VisualElement> picked = new List<VisualElement>();
             panel.PickAll(panelPosition, picked);
