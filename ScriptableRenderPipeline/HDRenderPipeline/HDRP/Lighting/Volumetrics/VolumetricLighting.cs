@@ -461,30 +461,26 @@ public class VolumetricLightingSystem
             m_VisibleVolumeData.Clear();
 
             // Collect all visible finite volume data, and upload it to the GPU.
-            HomogeneousDensityVolume[] volumes = Object.FindObjectsOfType(typeof(HomogeneousDensityVolume)) as HomogeneousDensityVolume[];
+            HomogeneousDensityVolume[] volumes = DensityVolumeManager.manager.GetAllVolumes();
 
             for (int i = 0; i < Math.Min(volumes.Length, k_MaxVisibleVolumeCount); i++)
             {
                 HomogeneousDensityVolume volume = volumes[i];
 
-                // Only test active finite volumes.
-                if (volume.enabled)
+                // TODO: cache these?
+                var obb = OrientedBBox.Create(volume.transform);
+
+                // Handle camera-relative rendering.
+                obb.center -= camOffset;
+
+                // Frustum cull on the CPU for now. TODO: do it on the GPU.
+                if (GeometryUtils.Overlap(obb, camera.frustum, 6, 8))
                 {
                     // TODO: cache these?
-                    var obb = OrientedBBox.Create(volume.transform);
+                    var data = volume.parameters.GetData();
 
-                    // Handle camera-relative rendering.
-                    obb.center -= camOffset;
-
-                    // Frustum cull on the CPU for now. TODO: do it on the GPU.
-                    if (GeometryUtils.Overlap(obb, camera.frustum, 6, 8))
-                    {
-                        // TODO: cache these?
-                        var data = volume.parameters.GetData();
-
-                        m_VisibleVolumeBounds.Add(obb);
-                        m_VisibleVolumeData.Add(data);
-                    }
+                    m_VisibleVolumeBounds.Add(obb);
+                    m_VisibleVolumeData.Add(data);
                 }
             }
 
