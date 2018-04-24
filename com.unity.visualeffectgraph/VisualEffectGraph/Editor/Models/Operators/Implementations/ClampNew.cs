@@ -4,7 +4,7 @@ using UnityEditor.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math", experimental = true)]
+    [VFXInfo(category = "Math/Clamp", experimental = true)]
     class ClampNew : VFXOperatorNumericUniformNew
     {
         public class InputProperties
