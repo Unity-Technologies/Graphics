@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ## [0.1.6] - 2018-xx-yy
 
 ### New features and functionality
-- 
+- Added Screen Space Reflection with Proxy Projection Model
 
 ### Bug fixes
 - Fix fog flags in scene view is now taken into account
