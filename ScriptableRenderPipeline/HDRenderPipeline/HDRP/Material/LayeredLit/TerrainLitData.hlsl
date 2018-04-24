@@ -2,14 +2,6 @@
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
 
-#ifdef ATTRIBUTES_NEED_TANGENT
-    #define COMPUTE_TANGENT
-    float4 ComputeTangent(AttributesMesh input)
-    {
-        return float4(cross(input.normalOS, float3(0, 0, 1)), 1);
-    }
-#endif
-
 #include "../Lit/LitData.hlsl"
 
 #if defined(_TERRAINLIT_4_LAYERS)
@@ -471,4 +463,4 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     GetBuiltinData(input, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);
 }
 
-#include "../Lit/LitDataMeshModification.hlsl"
+#include "TerrainLitDataMeshModification.hlsl"

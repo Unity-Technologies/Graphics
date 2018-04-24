@@ -13,12 +13,8 @@
     #define UNITY_SUPPORT_STEREO_INSTANCING
 #endif
 
-#if defined(SHADER_API_D3D11) || defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3) || defined(SHADER_API_VULKAN) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL) || defined(SHADER_API_METAL) || defined(SHADER_API_SWITCH)
-    #define UNITY_INSTANCING_AOS
-#endif
-
 // These platforms support dynamically adjusting the instancing CB size according to the current batch.
-#if defined(SHADER_API_D3D11) || defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3) || defined(SHADER_API_METAL) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN)
+#if defined(SHADER_API_D3D11) || defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3) || defined(SHADER_API_METAL) || defined(SHADER_API_PSSL) || defined(SHADER_API_VULKAN) || defined(SHADER_API_SWITCH)
     #define UNITY_INSTANCING_SUPPORT_FLEXIBLE_ARRAY_SIZE
 #endif
 
@@ -183,17 +179,10 @@
         #endif
     #endif
 
-    #ifdef UNITY_INSTANCING_AOS
-        #define UNITY_INSTANCING_BUFFER_START(buf)      UNITY_INSTANCING_CBUFFER_SCOPE_BEGIN(UnityInstancing_##buf) struct {
-        #define UNITY_INSTANCING_BUFFER_END(arr)        } arr##Array[UNITY_INSTANCED_ARRAY_SIZE]; UNITY_INSTANCING_CBUFFER_SCOPE_END
-        #define UNITY_DEFINE_INSTANCED_PROP(type, var)  type var;
-        #define UNITY_ACCESS_INSTANCED_PROP(arr, var)   arr##Array[unity_InstanceID].var
-    #else
-        #define UNITY_INSTANCING_BUFFER_START(buf)      UNITY_INSTANCING_CBUFFER_SCOPE_BEGIN(UnityInstancing_##buf)
-        #define UNITY_INSTANCING_BUFFER_END(arr)        UNITY_INSTANCING_CBUFFER_SCOPE_END
-        #define UNITY_DEFINE_INSTANCED_PROP(type, var)  type var[UNITY_INSTANCED_ARRAY_SIZE];
-        #define UNITY_ACCESS_INSTANCED_PROP(arr, var)   var[unity_InstanceID]
-    #endif
+    #define UNITY_INSTANCING_BUFFER_START(buf)      UNITY_INSTANCING_CBUFFER_SCOPE_BEGIN(UnityInstancing_##buf) struct {
+    #define UNITY_INSTANCING_BUFFER_END(arr)        } arr##Array[UNITY_INSTANCED_ARRAY_SIZE]; UNITY_INSTANCING_CBUFFER_SCOPE_END
+    #define UNITY_DEFINE_INSTANCED_PROP(type, var)  type var;
+    #define UNITY_ACCESS_INSTANCED_PROP(arr, var)   arr##Array[unity_InstanceID].var
 
     // Put worldToObject array to a separate CB if UNITY_ASSUME_UNIFORM_SCALING is defined. Most of the time it will not be used.
     #ifdef UNITY_ASSUME_UNIFORM_SCALING
@@ -225,9 +214,11 @@
     #endif
 
     UNITY_INSTANCING_BUFFER_START(PerDraw0)
-        UNITY_DEFINE_INSTANCED_PROP(float4x4, unity_ObjectToWorldArray)
-        #if UNITY_WORLDTOOBJECTARRAY_CB == 0
-            UNITY_DEFINE_INSTANCED_PROP(float4x4, unity_WorldToObjectArray)
+        #ifndef UNITY_DONT_INSTANCE_OBJECT_MATRICES
+            UNITY_DEFINE_INSTANCED_PROP(float4x4, unity_ObjectToWorldArray)
+            #if UNITY_WORLDTOOBJECTARRAY_CB == 0
+                UNITY_DEFINE_INSTANCED_PROP(float4x4, unity_WorldToObjectArray)
+            #endif
         #endif
         #if defined(UNITY_USE_LODFADE_ARRAY) && defined(UNITY_INSTANCING_SUPPORT_FLEXIBLE_ARRAY_SIZE)
             UNITY_DEFINE_INSTANCED_PROP(float, unity_LODFadeArray)
@@ -237,7 +228,7 @@
     UNITY_INSTANCING_BUFFER_END(unity_Builtins0)
 
     UNITY_INSTANCING_BUFFER_START(PerDraw1)
-        #if UNITY_WORLDTOOBJECTARRAY_CB == 1
+        #if !defined(UNITY_DONT_INSTANCE_OBJECT_MATRICES) && UNITY_WORLDTOOBJECTARRAY_CB == 1
             UNITY_DEFINE_INSTANCED_PROP(float4x4, unity_WorldToObjectArray)
         #endif
         #if defined(UNITY_USE_LODFADE_ARRAY) && !defined(UNITY_INSTANCING_SUPPORT_FLEXIBLE_ARRAY_SIZE)
@@ -278,13 +269,14 @@
         #endif
     UNITY_INSTANCING_BUFFER_END(unity_Builtins2)
 
-    #undef UNITY_MATRIX_M
-    #define UNITY_MATRIX_M     UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_ObjectToWorldArray)
+    #ifndef UNITY_DONT_INSTANCE_OBJECT_MATRICES
+        #undef UNITY_MATRIX_M
+        #define UNITY_MATRIX_M     UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_ObjectToWorldArray)
 
-    #define MERGE_UNITY_BUILTINS_INDEX(X) unity_Builtins##X
-
-    #undef UNITY_MATRIX_I_M
-    #define UNITY_MATRIX_I_M     UNITY_ACCESS_INSTANCED_PROP(MERGE_UNITY_BUILTINS_INDEX(UNITY_WORLDTOOBJECTARRAY_CB), unity_WorldToObjectArray)
+        #define MERGE_UNITY_BUILTINS_INDEX(X) unity_Builtins##X
+        #undef UNITY_MATRIX_I_M
+        #define UNITY_MATRIX_I_M     UNITY_ACCESS_INSTANCED_PROP(MERGE_UNITY_BUILTINS_INDEX(UNITY_WORLDTOOBJECTARRAY_CB), unity_WorldToObjectArray)
+    #endif
 
 #else // UNITY_INSTANCING_ENABLED
 

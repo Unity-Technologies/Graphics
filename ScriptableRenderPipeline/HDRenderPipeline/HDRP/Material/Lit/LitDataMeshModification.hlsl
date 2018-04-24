@@ -11,6 +11,10 @@ float3 GetVertexDisplacement(float3 positionWS, float3 normalWS, float2 texCoord
     return ComputePerVertexDisplacement(layerTexCoord, vertexColor, lod) * normalWS;
 }
 
+void ApplyPreVertexModification(inout AttributesMesh input)
+{
+}
+
 void ApplyVertexModification(AttributesMesh input, float3 normalWS, inout float3 positionWS, float4 time)
 {
 #if defined(_VERTEX_DISPLACEMENT)

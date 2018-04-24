@@ -68,10 +68,9 @@ float3 TransformWorldToObjectDir(float3 dirWS)
 float3 TransformObjectToWorldNormal(float3 normalOS)
 {
 #ifdef UNITY_ASSUME_UNIFORM_SCALING
-    return UnityObjectToWorldDir(normalOS);
+    return TransformObjectToWorldDir(normalOS);
 #else
     // Normal need to be multiply by inverse transpose
-    // mul(IT_M, norm) => mul(norm, I_M) => {dot(norm, I_M.col0), dot(norm, I_M.col1), dot(norm, I_M.col2)}
     return normalize(mul(normalOS, (float3x3)GetWorldToObjectMatrix()));
 #endif
 }

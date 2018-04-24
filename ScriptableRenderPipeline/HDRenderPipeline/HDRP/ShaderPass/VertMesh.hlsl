@@ -93,12 +93,17 @@ VaryingsToDS InterpolateWithBaryCoordsToDS(VaryingsToDS input0, VaryingsToDS inp
 #endif
 
 // TODO: Here we will also have all the vertex deformation (GPU skinning, vertex animation, morph target...) or we will need to generate a compute shaders instead (better! but require work to deal with unpacking like fp16)
-VaryingsMeshType VertMesh(AttributesMesh input)
+// Make it inout so that VelocityPass can get the modified input values later.
+VaryingsMeshType VertMesh(inout AttributesMesh input)
 {
     VaryingsMeshType output;
 
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output);
+
+#if defined(HAVE_VERTEX_MODIFICATION)
+    ApplyPreVertexModification(input);
+#endif
 
     float3 positionWS = TransformObjectToWorld(input.positionOS);
 #ifdef ATTRIBUTES_NEED_NORMAL
@@ -107,9 +112,6 @@ VaryingsMeshType VertMesh(AttributesMesh input)
     float3 normalWS = float3(0.0, 0.0, 0.0); // We need this case to be able to compile ApplyVertexModification that doesn't use normal.
 #endif
 
-#ifdef COMPUTE_TANGENT
-    input.tangentOS = ComputeTangent(input);
-#endif
 #ifdef ATTRIBUTES_NEED_TANGENT
     float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
 #endif
