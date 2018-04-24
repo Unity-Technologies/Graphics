@@ -73,7 +73,7 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        public override string name { get { return string.Format("Set SpawnEvent {0} {1}", attribute, VFXBlockUtility.GetNameString(randomMode)); } }
+        public override string name { get { return string.Format("Set SpawnEvent {0} {1}", ObjectNames.NicifyVariableName(attribute), VFXBlockUtility.GetNameString(randomMode)); } }
         public override VFXTaskType spawnerType { get { return VFXTaskType.SetAttributeSpawner; } }
 
     }

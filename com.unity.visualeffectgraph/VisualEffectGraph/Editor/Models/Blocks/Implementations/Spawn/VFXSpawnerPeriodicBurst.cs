@@ -4,10 +4,11 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
+    [Obsolete]
     [VFXInfo(category = "Spawn")]
     class VFXSpawnerPeriodicBurst : VFXAbstractSpawner
     {
-        public override string name { get { return "PeriodicBurst"; } }
+        public override string name { get { return "PeriodicBurst (DEPRECATED)"; } }
         public override VFXTaskType spawnerType { get { return VFXTaskType.PeriodicBurstSpawner; } }
         public class InputProperties
         {

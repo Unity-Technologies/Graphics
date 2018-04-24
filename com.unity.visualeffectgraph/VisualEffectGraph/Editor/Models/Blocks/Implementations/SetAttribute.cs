@@ -5,7 +5,23 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Attribute", variantProvider = typeof(AttributeVariantReadWritable))]
+    class SetAttributeVariantReadWritable : IVariantProvider
+    {
+        public Dictionary<string, object[]> variants
+        {
+            get
+            {
+                return new Dictionary<string, object[]>
+                {
+                    { "attribute", VFXAttribute.AllReadWritable.Cast<object>().ToArray() },
+                    { "Source", new object[] { SetAttribute.ValueSource.Slot, SetAttribute.ValueSource.Source } },
+                };
+            }
+        }
+    }
+
+
+    [VFXInfo(category = "Attribute", variantProvider = typeof(SetAttributeVariantReadWritable))]
     class SetAttribute : VFXBlock
     {
         public enum ValueSource
@@ -30,11 +46,12 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
+                string attributeName = ObjectNames.NicifyVariableName(attribute);
                 switch (Source)
                 {
-                    case ValueSource.Slot: return VFXBlockUtility.GetNameString(Composition) + " " + attribute + " " + VFXBlockUtility.GetNameString(Random);
+                    case ValueSource.Slot: return VFXBlockUtility.GetNameString(Composition) + " " + attributeName + " " + VFXBlockUtility.GetNameString(Random);
                     case ValueSource.Source:
-                        return "Inherit Source " + attribute + " (" + VFXBlockUtility.GetNameString(Composition) + ")";
+                        return "Inherit Source " + attributeName + " (" + VFXBlockUtility.GetNameString(Composition) + ")";
                     default: return "NOT IMPLEMENTED : " + Source;
                 }
             }

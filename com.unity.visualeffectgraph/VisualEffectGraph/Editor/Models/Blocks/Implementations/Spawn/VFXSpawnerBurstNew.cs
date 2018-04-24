@@ -6,14 +6,37 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
-    [VFXInfo(category = "Spawn")]
-    class VFXSpawnerBurst : VFXAbstractSpawner
+    class VFXSpawnerBurstVariantCollection : IVariantProvider
     {
+        public Dictionary<string, object[]> variants
+        {
+            get
+            {
+                return new Dictionary<string, object[]>
+                {
+                    { "repeat", new object[] { VFXSpawnerBurstNew.RepeatMode.Single, VFXSpawnerBurstNew.RepeatMode.Periodic } }
+                };
+            }
+        }
+    }
+
+    [VFXInfo(category = "Spawn", variantProvider = typeof(VFXSpawnerBurstVariantCollection))]
+    class VFXSpawnerBurstNew : VFXAbstractSpawner
+    {
+        public enum RepeatMode
+        {
+            Single,
+            Periodic
+        }
+
         public enum RandomMode
         {
             Constant,
             Random,
         }
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        private RepeatMode repeat = RepeatMode.Single;
 
         [VFXSetting, SerializeField]
         private RandomMode SpawnMode =  RandomMode.Constant;
@@ -21,7 +44,7 @@ namespace UnityEditor.VFX
         [VFXSetting, SerializeField]
         private RandomMode DelayMode = RandomMode.Constant;
 
-        public override string name { get { return "Burst"; } }
+        public override string name { get { return repeat.ToString() + " Burst"; } }
         public override VFXTaskType spawnerType { get { return VFXTaskType.BurstSpawner; } }
 
         public class AdvancedInputProperties
