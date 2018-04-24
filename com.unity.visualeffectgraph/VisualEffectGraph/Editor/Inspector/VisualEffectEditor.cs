@@ -93,83 +93,6 @@ namespace UnityEditor.VFX
             return m_Icons[(int)icon];
         }
     }
-
-    static class VisualEffectUtility
-    {
-        public static string GetTypeField(Type type)
-        {
-            if (type == typeof(Vector2))
-            {
-                return "m_Vector2f";
-            }
-            else if (type == typeof(Vector3))
-            {
-                return "m_Vector3f";
-            }
-            else if (type == typeof(Vector4))
-            {
-                return "m_Vector4f";
-            }
-            else if (type == typeof(Color))
-            {
-                return "m_Vector4f";
-            }
-            else if (type == typeof(AnimationCurve))
-            {
-                return "m_AnimationCurve";
-            }
-            else if (type == typeof(Gradient))
-            {
-                return "m_Gradient";
-            }
-            else if (type == typeof(Texture2D))
-            {
-                return "m_NamedObject";
-            }
-            else if (type == typeof(Texture2DArray))
-            {
-                return "m_NamedObject";
-            }
-            else if (type == typeof(Texture3D))
-            {
-                return "m_NamedObject";
-            }
-            else if (type == typeof(Cubemap))
-            {
-                return "m_NamedObject";
-            }
-            else if (type == typeof(CubemapArray))
-            {
-                return "m_NamedObject";
-            }
-            else if (type == typeof(Mesh))
-            {
-                return "m_NamedObject";
-            }
-            else if (type == typeof(float))
-            {
-                return "m_Float";
-            }
-            else if (type == typeof(int))
-            {
-                return "m_Int";
-            }
-            else if (type == typeof(uint))
-            {
-                return "m_Uint";
-            }
-            else if (type == typeof(bool))
-            {
-                return "m_Bool";
-            }
-            else if (type == typeof(Matrix4x4))
-            {
-                return "m_Matrix4x4f";
-            }
-            //Debug.LogError("unknown vfx property type:"+type.UserFriendlyName());
-            return null;
-        }
-    }
     public class VisualEffectEditor : Editor
     {
         public static bool CanSetOverride = false;
@@ -193,6 +116,7 @@ namespace UnityEditor.VFX
 
             m_Infos.Clear();
         }
+
         protected void OnDisable()
         {
             VisualEffect effect = ((VisualEffect)targets[0]);
@@ -249,7 +173,7 @@ namespace UnityEditor.VFX
                 else
                     EditorGUILayout.IntSlider(property, (int)parameter.min, (int)parameter.max, EditorGUIUtility.TextContent(parameter.name));
             }
-            else if (property.propertyType == SerializedPropertyType.Color)
+            else if (parameter.realType == typeof(Color).Name)
             {
                 Vector4 vVal = property.vector4Value;
                 Color c = new Color(vVal.x, vVal.y, vVal.z, vVal.w);
@@ -278,6 +202,7 @@ namespace UnityEditor.VFX
 
             EditorGUILayout.EndHorizontal();
         }
+
         public void InitializeGUI()
         {
             if (m_Contents == null)
@@ -408,6 +333,13 @@ namespace UnityEditor.VFX
             //Field
             GUILayout.Label(m_Contents.HeaderParameters, m_Styles.InspectorHeader);
 
+            EditMode.DoEditModeInspectorModeButton(
+                EditMode.SceneViewEditMode.Collider,
+                "Show Parameters",
+                EditorGUIUtility.IconContent("EditCollider"),
+                this
+                );
+
             if (m_graph == null || m_asset != component.visualEffectAsset)
             {
                 m_asset = component.visualEffectAsset;
@@ -419,37 +351,36 @@ namespace UnityEditor.VFX
 
             if (m_graph != null)
             {
-
-                if( m_graph.m_ParameterInfo == null)
+                if (m_graph.m_ParameterInfo == null)
                 {
                     m_graph.BuildParameterInfo();
                 }
-                if( m_graph.m_ParameterInfo != null)
+                if (m_graph.m_ParameterInfo != null)
                 {
                     List<int> stack = new List<int>();
                     int currentCount = m_graph.m_ParameterInfo.Length;
-                    foreach(var parameter in m_graph.m_ParameterInfo)
+                    foreach (var parameter in m_graph.m_ParameterInfo)
                     {
                         --currentCount;
-                        if( currentCount == 0 && stack.Count > 0 )
+                        if (currentCount == 0 && stack.Count > 0)
                         {
                             currentCount = stack.Last();
-                            stack.RemoveAt(stack.Count-1);
+                            stack.RemoveAt(stack.Count - 1);
                         }
-                        if( parameter.descendantCount > 0)
+                        if (parameter.descendantCount > 0)
                         {
                             stack.Add(currentCount);
                             currentCount = parameter.descendantCount;
                         }
-                        
-                        if(string.IsNullOrEmpty(parameter.sheetType))
+
+                        if (string.IsNullOrEmpty(parameter.sheetType))
                         {
-                            if( parameter.name != null)
+                            if (parameter.name != null)
                             {
                                 EmptyLineControl(parameter.name, stack.Count);
                             }
                         }
-                        else if( parameter.sheetType != null)
+                        else if (parameter.sheetType != null)
                         {
                             var vfxField = m_VFXPropertySheet.FindPropertyRelative(parameter.sheetType + ".m_Array");
                             SerializedProperty property = null;
@@ -560,407 +491,5 @@ namespace UnityEditor.VFX
 
             public GUIContent infoButton = new GUIContent("Debug", EditorGUIUtility.IconContent("console.infoicon").image);
         }
-    }
-
-    [CustomEditor(typeof(VisualEffect))]
-    public class AdvancedVisualEffectEditor : VisualEffectEditor
-    {
-
-        new void OnEnable()
-        {
-            base.OnEnable();
-        }
-
-        VFXParameter GetParameter(string name)
-        {
-            VisualEffect effect = (VisualEffect)target;
-
-            if(effect.visualEffectAsset == null)
-                return null;
-
-            VFXGraph graph = effect.visualEffectAsset.graph as VFXGraph;
-            if( graph == null)
-                return null;
-
-            var parameter = graph.children.OfType<VFXParameter>().FirstOrDefault(t=>t.exposedName == name && t.exposed == true);
-            if( parameter == null)
-                return null;
-
-            return parameter;
-        }
-
-        VFXParameter m_GizmoedParameter;
-
-        protected override void EmptyLineControl(string name, int depth)
-        {
-            if( depth != 1 )
-            {
-                base.EmptyLineControl(name,depth);
-                return;
-            }
-
-            VFXParameter parameter = GetParameter(name);
-
-
-            if(! VFXGizmoUtility.HasGizmo(parameter.type) )
-            {
-                base.EmptyLineControl(name,depth);
-                return;
-            }
-
-            GUILayout.BeginHorizontal();
-            //GUILayout.Space(overrideWidth + 4); // the 4 is so that Labels are aligned with elements having an override toggle.
-            if(GUILayout.Button(EditorGUIUtility.IconContent("EditCollider"),GUILayout.Width(overrideWidth)))
-            {
-                m_GizmoedParameter = parameter;
-            }
-            EditorGUILayout.LabelField(name);
-            GUILayout.EndHorizontal();
-        }
-
-
-        GizmoContext m_GizmoContext;
-
-        new void OnSceneGUI()
-        {
-            base.OnSceneGUI();
-
-            if(m_GizmoedParameter != null)
-            {
-                if( m_GizmoContext == null)
-                {
-                    m_GizmoContext = new GizmoContext(serializedObject,m_GizmoedParameter);
-                }
-                else
-                {
-                    m_GizmoContext.SetParameter(m_GizmoedParameter);
-                }
-                VFXGizmoUtility.Draw(m_GizmoContext,(VisualEffect)target);
-            }
-
-        }
-
-
-        class GizmoContext : VFXGizmoUtility.Context
-        {
-            public GizmoContext(SerializedObject obj,VFXParameter parameter)
-            {
-                m_SerializedObject = obj;
-                m_Parameter = parameter;
-                m_VFXPropertySheet = m_SerializedObject.FindProperty("m_PropertySheet");
-            }
-
-
-            public override System.Type portType
-            {
-                get{return m_Parameter.type;} 
-            }
-
-
-            public List<object> m_Stack = new List<object>();
-
-            public override object value
-            {
-                get{
-                    m_Stack.Clear();
-                    m_Stack.Add(System.Activator.CreateInstance(portType));
-                    int stackSize = m_Stack.Count;
-
-                    foreach(var cmd in m_ValueCmdList)
-                    {
-                        cmd(m_Stack);
-                        stackSize = m_Stack.Count;
-                    }
-
-
-                    return m_Stack[0];
-                }
-            }
-
-            SerializedObject m_SerializedObject;
-            SerializedProperty m_VFXPropertySheet;
-
-            public override VFXGizmo.IProperty<T> RegisterProperty<T>(string memberPath)
-            {
-                var cmdList = new List<Action<List<object>,object>>(); 
-                bool succeeded = BuildPropertyValue<T>(cmdList,m_Parameter.type,m_Parameter.exposedName, memberPath.Split(separator[0]), 0);
-                if( succeeded)
-                {
-                    return new Property<T>(m_SerializedObject,cmdList);
-                }
-
-                return VFXGizmoUtility.NullProperty<T>.defaultProperty;
-            }
-
-            bool BuildPropertyValue<T>(List<Action<List<object>,object>> cmdList, Type type,string propertyPath,string[] memberPath,int depth)
-            {
-                string field = VisualEffectUtility.GetTypeField(type);
-
-                if( field != null)
-                {
-                    var vfxField = m_VFXPropertySheet.FindPropertyRelative(field + ".m_Array");
-                    if( vfxField == null)
-                        return false;
-
-                    SerializedProperty property = null;
-                    if (vfxField != null)
-                    {
-                        for (int i = 0; i < vfxField.arraySize; ++i)
-                        {
-                            property = vfxField.GetArrayElementAtIndex(i);
-                            var nameProperty = property.FindPropertyRelative("m_Name").stringValue;
-                            if (nameProperty == propertyPath)
-                            {
-                                break;
-                            }
-                            property = null;
-                        }
-                    }
-                    if (property != null)
-                    {
-                        SerializedProperty overrideProperty = property.FindPropertyRelative("m_Overridden");
-                        property = property.FindPropertyRelative("m_Value");
-                        
-                        cmdList.Add((l,o)=>overrideProperty.boolValue = true);
-                    }
-                    else
-                    {
-                        return false;
-                    }
-
-                    if( depth < memberPath.Length)
-                    {
-                        cmdList.Add((l,o)=>l.Add(GetObjectValue(property)));
-                        if( !BuildPropertySubValue<T>(cmdList,type,memberPath,depth))
-                            return false;
-                        cmdList.Add((l,o)=>SetObjectValue(property,l[l.Count-1]));
-                        
-                        return true;
-                    }
-                    else
-                    {
-                        var currentValue = GetObjectValue(property);
-                        if( ! typeof(T).IsAssignableFrom(currentValue.GetType()))
-                        {
-                            return false;
-                        }
-                        cmdList.Add((l,o)=>SetObjectValue(property,o));
-                        return true;
-                    }
-                }
-                else if( depth < memberPath.Length)
-                {
-                    FieldInfo subField = type.GetField(memberPath[depth]);
-                    if( subField == null)
-                        return false;
-                    return BuildPropertyValue<T>(cmdList,subField.FieldType,propertyPath + "_" + memberPath[depth],memberPath,depth+1);
-                }
-                Debug.LogError("Setting A value across multiple property is not yet supported");
-
-                return false;
-            }
-            bool BuildPropertySubValue<T>(List<Action<List<object>,object>> cmdList, Type type,string[] memberPath,int depth)
-            {
-                FieldInfo subField = type.GetField(memberPath[depth]);
-                if( subField == null)
-                    return false;
-
-                depth++;
-                if( depth < memberPath.Length)
-                {
-                    cmdList.Add((l,o)=>l.Add(subField.GetValue(l[l.Count-1])));
-                    BuildPropertySubValue<T>(cmdList,type,memberPath,depth);
-                    cmdList.Add((l,o)=>subField.SetValue(l[l.Count-2],l[l.Count-1]));
-                    cmdList.Add((l,o)=>l.RemoveAt(l.Count-1));
-                }
-                else
-                {
-                    if( subField.FieldType != typeof(T))
-                        return false;
-                    cmdList.Add((l,o)=>subField.SetValue(l[l.Count-1],o));
-                }
-
-                return true;
-            }
-
-
-            object GetObjectValue(SerializedProperty prop)
-            {
-                switch(prop.propertyType)
-                {
-                    case SerializedPropertyType.Float:
-                        return prop.floatValue;
-                    case SerializedPropertyType.Vector3:
-                        return prop.vector3Value;
-                    case SerializedPropertyType.Vector2:
-                        return prop.vector2Value;
-                    case SerializedPropertyType.Vector4:
-                        return prop.vector4Value;
-                    //case SerializedPropertyType.ObjectReference:
-                    //    return prop.objectReferenceValue;
-                    case SerializedPropertyType.Integer:
-                        return prop.intValue;
-                    case SerializedPropertyType.Boolean:
-                        return prop.boolValue;
-                    //case SerializedPropertyType.Gradient:
-                    //    return prop.gradientValue;
-                    //case SerializedPropertyType.AnimationCurve:
-                    //    return prop.animationCurveValue;
-                }
-                return null;
-            }
-            void SetObjectValue(SerializedProperty prop, object value)
-            {
-                switch(prop.propertyType)
-                {
-                    case SerializedPropertyType.Float:
-                        prop.floatValue = (float)value;
-                        return;
-                    case SerializedPropertyType.Vector3:
-                        prop.vector3Value = (Vector3)value;
-                        return;
-                    case SerializedPropertyType.Vector2:
-                        prop.vector2Value = (Vector2)value;
-                        return;
-                    case SerializedPropertyType.Vector4:
-                        prop.vector4Value = (Vector4)value;
-                        return;
-                    //case SerializedPropertyType.ObjectReference:
-                    //    prop.objectReferenceValue = (UnityEngine.Object)value;
-                    //    return;
-                    case SerializedPropertyType.Integer:
-                        prop.intValue = (int)value;
-                        return;
-                    case SerializedPropertyType.Boolean:
-                        prop.boolValue = (bool)value;
-                        return;
-                    //case SerializedPropertyType.Gradient:
-                    //    prop.gradientValue = (Gradient)value;
-                    //    return;
-                    //case SerializedPropertyType.AnimationCurve:
-                    //    prop.animationCurveValue = (AnimationCurve)value;
-                    //    return;
-                }
-            }
-
-            public void SetParameter(VFXParameter parameter)
-            {
-                if( parameter != m_Parameter)
-                {
-                    Unprepare();
-                    m_Parameter = parameter;
-                }
-            }
-
-            List<Action<List<object>>> m_ValueCmdList = new List<Action<List<object>>>();
-
-            protected override void InternalPrepare()
-            {
-                m_ValueCmdList.Clear();
-
-                BuildValue(m_ValueCmdList,portType,m_Parameter.exposedName);
-            }
-
-            void BuildValue(List<Action<List<object>>> cmdList, Type type,string propertyPath)
-            {
-                string field = VisualEffectUtility.GetTypeField(type);
-                if (field != null)
-                {
-                    var vfxField = m_VFXPropertySheet.FindPropertyRelative(field + ".m_Array");
-                    SerializedProperty property = null;
-                    if (vfxField != null)
-                    {
-                        for (int i = 0; i < vfxField.arraySize; ++i)
-                        {
-                            property = vfxField.GetArrayElementAtIndex(i);
-                            var nameProperty = property.FindPropertyRelative("m_Name").stringValue;
-                            if (nameProperty == propertyPath)
-                            {
-                                break;
-                            }
-                            property = null;
-                        }
-                    }
-                    if (property != null)
-                    {
-                        property = property.FindPropertyRelative("m_Value");
-                        
-
-                        //Debug.Log("PushProperty" + propertyPath + "("+property.propertyType.ToString()+")");
-                        cmdList.Add(
-                            o=>PushProperty(o,property)
-                            );
-                    }
-                }
-                else
-                {
-                    foreach(var fieldInfo in type.GetFields(BindingFlags.Public|BindingFlags.Instance))
-                    {
-                        if( fieldInfo.FieldType == typeof(CoordinateSpace))
-                            continue;
-                        //Debug.Log("Push "+type.UserFriendlyName()+"."+fieldInfo.Name+"("+fieldInfo.FieldType.UserFriendlyName());
-                        cmdList.Add(o=>
-                        {
-                            Push(o,fieldInfo);
-                        });
-                        BuildValue(cmdList,fieldInfo.FieldType,propertyPath + "_" + fieldInfo.Name);
-                        //Debug.Log("Pop "+type.UserFriendlyName()+"."+fieldInfo.Name+"("+fieldInfo.FieldType.UserFriendlyName());
-                        cmdList.Add(o=>
-                            Pop(o,fieldInfo)
-                        );
-                    }
-                }
-            }
-
-            void PushProperty(List<object> stack, SerializedProperty property)
-            {
-                stack[stack.Count-1] = GetObjectValue(property);
-            }
-
-            void Push(List<object> stack,FieldInfo fieldInfo)
-            {
-                object prev = stack[stack.Count-1];
-                stack.Add(fieldInfo.GetValue(prev));
-            }
-
-            void Pop(List<object> stack,FieldInfo fieldInfo)
-            {
-                fieldInfo.SetValue(stack[stack.Count-2],stack[stack.Count-1]);
-                stack.RemoveAt(stack.Count-1);
-            }
-
-
-            class Property<T> : VFXGizmo.IProperty<T>
-            {
-
-                public Property(SerializedObject serilializedObject, List<Action<List<object>,object>> cmdlist)
-                {
-                    m_SerializedObject = serilializedObject;
-                    m_CmdList = cmdlist;
-                }
-
-                public bool isEditable { get{return true;} }
-
-
-                List<Action<List<object>,object>> m_CmdList;
-                List<object> m_Stack = new List<object>();
-
-                SerializedObject m_SerializedObject;
-
-                public void SetValue(T value)
-                {
-                    m_Stack.Clear();
-                    foreach( var cmd in m_CmdList)
-                    {
-                        cmd(m_Stack,value);
-                    }
-                    m_SerializedObject.ApplyModifiedProperties();
-                }
-            }
-
-            VFXParameter m_Parameter;
-
-        }
-
     }
 }

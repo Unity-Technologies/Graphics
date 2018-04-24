@@ -33,10 +33,10 @@ namespace UnityEditor.VFX
 
         public bool PositionGizmo(ref Vector3 position, bool always)
         {
-            if (always || Tools.current == Tool.Move || Tools.current == Tool.Transform)
+            if (always || Tools.current == Tool.Move || Tools.current == Tool.Transform || Tools.current == Tool.None)
             {
                 EditorGUI.BeginChangeCheck();
-                position = Handles.PositionHandle(position, m_CurrentSpace == CoordinateSpace.Local ? component.transform.rotation : Quaternion.identity);
+                position = Handles.PositionHandle(position, Tools.pivotRotation == PivotRotation.Local ? Quaternion.identity : Handles.matrix.inverse.rotation);
                 return EditorGUI.EndChangeCheck();
             }
             return false;
@@ -77,7 +77,7 @@ namespace UnityEditor.VFX
 
         public bool RotationGizmo(Vector3 position, ref Quaternion rotation, bool always)
         {
-            if (always || Tools.current == Tool.Rotate || Tools.current == Tool.Transform)
+            if (always || Tools.current == Tool.Rotate || Tools.current == Tool.Transform || Tools.current == Tool.None)
             {
                 EditorGUI.BeginChangeCheck();
 

@@ -144,19 +144,23 @@ namespace UnityEditor.VFX
         [Serializable]
         public struct ParameterInfo
         {
-            public ParameterInfo(string exposedName)
+            public ParameterInfo(string exposedName, string realType)
             {
                 name = exposedName;
+                this.realType = realType;
                 path = null;
                 min = Mathf.NegativeInfinity;
                 max = Mathf.Infinity;
                 descendantCount = 0;
                 sheetType = null;
             }
+
             public string name;
             public string path;
 
             public string sheetType;
+
+            public string realType;
 
             public float min;
             public float max;
@@ -172,12 +176,12 @@ namespace UnityEditor.VFX
 
             List<ParameterInfo> infos = new List<ParameterInfo>();
             List<ParameterInfo> subList = new List<ParameterInfo>();
-            foreach( var parameter in parameters)
+            foreach (var parameter in parameters)
             {
                 string rootFieldName = VisualEffectUtility.GetTypeField(parameter.type);
-                
-                ParameterInfo paramInfo = new ParameterInfo(parameter.exposedName);
-                if( rootFieldName != null)
+
+                ParameterInfo paramInfo = new ParameterInfo(parameter.exposedName, parameter.type.Name);
+                if (rootFieldName != null)
                 {
                     paramInfo.sheetType = rootFieldName;
                     paramInfo.path = paramInfo.name;
@@ -192,18 +196,18 @@ namespace UnityEditor.VFX
                 }
                 else
                 {
-                    paramInfo.descendantCount = RecurseBuildParameterInfo(subList,parameter.type,parameter.exposedName);
+                    paramInfo.descendantCount = RecurseBuildParameterInfo(subList, parameter.type, parameter.exposedName);
                 }
 
-                
-                
+
                 infos.Add(paramInfo);
                 infos.AddRange(subList);
                 subList.Clear();
             }
             m_ParameterInfo = infos.ToArray();
         }
-        int RecurseBuildParameterInfo(List<ParameterInfo> infos,System.Type type, string path)
+
+        int RecurseBuildParameterInfo(List<ParameterInfo> infos, System.Type type, string path)
         {
             int count = 0;
             if (type.IsValueType)
@@ -213,7 +217,7 @@ namespace UnityEditor.VFX
                 List<ParameterInfo> subList = new List<ParameterInfo>();
                 foreach (var field in fields)
                 {
-                    ParameterInfo info = new ParameterInfo(field.Name);
+                    ParameterInfo info = new ParameterInfo(field.Name, field.FieldType.Name);
 
                     info.path = path + "_" + field.Name;
 
@@ -223,7 +227,7 @@ namespace UnityEditor.VFX
                     {
                         info.sheetType = fieldName;
                         RangeAttribute attr = field.GetCustomAttributes(true).OfType<RangeAttribute>().FirstOrDefault();
-                        if( attr != null)
+                        if (attr != null)
                         {
                             info.min = attr.min;
                             info.max = attr.max;
@@ -232,9 +236,9 @@ namespace UnityEditor.VFX
                     }
                     else
                     {
-                        if( field.FieldType == typeof(CoordinateSpace)) // For space
+                        if (field.FieldType == typeof(CoordinateSpace)) // For space
                             continue;
-                        info.descendantCount = RecurseBuildParameterInfo(subList, field.FieldType,info.path);
+                        info.descendantCount = RecurseBuildParameterInfo(subList, field.FieldType, info.path);
                     }
                     infos.Add(info);
                     infos.AddRange(subList);
