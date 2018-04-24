@@ -1,9 +1,9 @@
 Shader "Hidden/HDRenderPipeline/PreIntegratedFGD"
 {
-    SubShader 
+    SubShader
     {
         Tags{ "RenderPipeline" = "HDRenderPipeline" }
-        Pass 
+        Pass
         {
             ZTest Always Cull Off ZWrite Off
 
@@ -15,7 +15,7 @@ Shader "Hidden/HDRenderPipeline/PreIntegratedFGD"
 
             #include "CoreRP/ShaderLibrary/Common.hlsl"
             #include "CoreRP/ShaderLibrary/ImageBasedLighting.hlsl"
-            #include "../../../ShaderVariables.hlsl"
+            #include "../../ShaderVariables.hlsl"
 
             struct Attributes
             {
