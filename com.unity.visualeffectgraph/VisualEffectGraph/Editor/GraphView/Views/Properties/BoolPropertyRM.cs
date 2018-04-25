@@ -21,7 +21,7 @@ namespace UnityEditor.VFX.UI
 
         void OnValueChanged()
         {
-            m_Value = m_Toggle.on;
+            m_Value = m_Toggle.value;
             NotifyValueChanged();
         }
 
@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.UI
 
         public override void UpdateGUI(bool force)
         {
-            m_Toggle.on = m_Value;
+            m_Toggle.value = m_Value;
         }
 
         Toggle m_Toggle;
