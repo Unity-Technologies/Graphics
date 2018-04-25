@@ -8,10 +8,10 @@ namespace UnityEditor.VFX.Operator
     {
         public override sealed string name { get { return "MaximumNew"; } }
 
-        protected override sealed double defaultValueDouble { get { throw new NotImplementedException(); } }
-        protected override sealed float defaultValueFloat { get { return float.MinValue; } }
-        protected override sealed int defaultValueInt { get { return int.MinValue; } }
-        protected override sealed uint defaultValueUint { get { return uint.MinValue; } }
+        protected override sealed double defaultValueDouble { get { return 0.0; } }
+        protected override sealed float identityValueFloat { get { return float.MinValue; } }
+        protected override sealed int identityValueInt { get { return int.MinValue; } }
+        protected override sealed uint identityValueUint { get { return uint.MinValue; } }
 
         protected override sealed VFXExpression ComposeExpression(VFXExpression a, VFXExpression b)
         {

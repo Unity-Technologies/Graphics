@@ -126,7 +126,7 @@ namespace UnityEditor.VFX.UI
 
         public bool CanRemove()
         {
-            return model.operandCount > 2;
+            return model.operandCount > model.MinimalOperandCount;
         }
 
         public void RemoveOperand(VFXDataAnchorController myInput)

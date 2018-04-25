@@ -64,6 +64,11 @@ namespace UnityEditor.VFX
         {
             return VFXTypeExtension.GetDefaultField(type);
         }
+
+        protected virtual object GetIdentityValueForType(Type type)
+        {
+            return GetDefaultValueForType(type);
+        }
     }
 
     abstract class VFXOperatorNumericNew : VFXOperatorDynamicOperand
@@ -190,7 +195,7 @@ namespace UnityEditor.VFX
                     {
                         currentExpression = new VFXExpressionCastIntToFloat(currentExpression);
                     }
-                    currentExpression = VFXOperatorUtility.CastFloat(currentExpression, unifiedType, defaultValueFloat);
+                    currentExpression = VFXOperatorUtility.CastFloat(currentExpression, unifiedType, identityValueFloat);
                 }
                 else if (VFXExpression.IsIntValueType(unifiedType))
                 {
@@ -222,6 +227,11 @@ namespace UnityEditor.VFX
         protected virtual float defaultValueFloat { get { return (float)defaultValueDouble; } }
         protected virtual int defaultValueInt { get { return (int)defaultValueDouble; } }
         protected virtual uint defaultValueUint { get { return (uint)defaultValueDouble; } }
+
+        protected virtual double identityValueDouble { get { return defaultValueDouble; } }
+        protected virtual float identityValueFloat { get { return defaultValueFloat; } }
+        protected virtual int identityValueInt { get { return defaultValueInt; } }
+        protected virtual uint identityValueUint { get { return defaultValueUint; } }
     }
 
     interface IVFXOperatorUniform
@@ -389,11 +399,19 @@ namespace UnityEditor.VFX
             {
                 if (m_Operands == null) //Lazy init at this stage is suitable because inputProperties access is done with SyncSlot
                 {
-                    m_Operands = new Operand[] { GetDefaultOperand(0), GetDefaultOperand(1) };
+                    m_Operands = Enumerable.Range(0, MinimalOperandCount).Select(i => GetDefaultOperand(i)).ToArray();
                 }
 
                 foreach (var operand in m_Operands)
                     yield return new VFXPropertyWithValue(new VFXProperty(operand.type, operand.name), GetDefaultValueForType(operand.type));
+            }
+        }
+
+        public virtual int MinimalOperandCount
+        {
+            get
+            {
+                return 2;
             }
         }
 
@@ -497,6 +515,11 @@ namespace UnityEditor.VFX
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
+            if (inputExpression.Length == 0)
+            {
+                return new[] { VFXValue.Constant(defaultValueFloat) };
+            }
+
             //Process aggregate two by two element until result
             var outputExpression = new Stack<VFXExpression>(inputExpression.Reverse());
             while (outputExpression.Count > 1)
