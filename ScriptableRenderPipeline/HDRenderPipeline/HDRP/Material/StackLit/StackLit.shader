@@ -104,6 +104,8 @@ Shader "HDRenderPipeline/StackLit"
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
         _TransparentSortPriority("_TransparentSortPriority", Float) = 0
 
+        // global control
+        [ToggleUI] _UseLocalPlanarMapping("Use Local Planar Mapping", Float) = 0.0
 
         // Stencil state
         [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting  (fixed at compile time)
@@ -125,7 +127,7 @@ Shader "HDRenderPipeline/StackLit"
 
         [ToggleUI] _EnableFogOnTransparent("Enable Fog", Float) = 1.0
         [ToggleUI] _EnableBlendModePreserveSpecularLighting("Enable Blend Mode Preserve Specular Lighting", Float) = 1.0
-        
+
         [ToggleUI] _DoubleSidedEnable("Double sided enable", Float) = 0.0
         [Enum(Flip, 0, Mirror, 1, None, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1 // This is for the editor only, see BaseLitUI.cs: _DoubleSidedConstants will be set based on the mode.
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
@@ -167,9 +169,11 @@ Shader "HDRenderPipeline/StackLit"
     #pragma shader_feature _DOUBLESIDED_ON
 
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE
-    #pragma shader_feature _ _REQUIRE_UV2 _REQUIRE_UV3 
-    // ...TODO: for surface gradient framework eg see litdata.hlsl, 
-    // but we need it right away for toggle with LayerTexCoord mapping so we might need them 
+    #pragma shader_feature _USE_UV2
+    #pragma shader_feature _USE_UV3
+    #pragma shader_feature _USE_TRIPLANAR
+    // ...TODO: for surface gradient framework eg see litdata.hlsl,
+    // but we need it right away for toggle with LayerTexCoord mapping so we might need them
     // from the Frag input right away. See also ShaderPass/StackLitSharePass.hlsl.
 
     #pragma shader_feature _NORMALMAP
@@ -182,7 +186,7 @@ Shader "HDRenderPipeline/StackLit"
     #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
     #pragma shader_feature _BLENDMODE_PRESERVE_SPECULAR_LIGHTING // easily handled in material.hlsl, so adding this already.
     #pragma shader_feature _ENABLE_FOG_ON_TRANSPARENT
-    
+
     //enable GPU instancing support
     #pragma multi_compile_instancing
 
@@ -335,7 +339,7 @@ Shader "HDRenderPipeline/StackLit"
             ZWrite [_ZWrite]
             Cull [_CullModeForward]
             //
-            // NOTE: For _CullModeForward, see BaseLitUI and the handling of TransparentBackfaceEnable: 
+            // NOTE: For _CullModeForward, see BaseLitUI and the handling of TransparentBackfaceEnable:
             // Basically, we need to use it to support a TransparentBackface pass before this pass
             // (and it should be placed just before this one) for separate backface and frontface rendering,
             // eg for "hair shader style" approximate sorting, see eg Thorsten Scheuermann writeups on this:
@@ -343,7 +347,7 @@ Shader "HDRenderPipeline/StackLit"
             // http://amd-dev.wpengine.netdna-cdn.com/wordpress/media/2012/10/Scheuermann_HairSketchSlides.pdf
             // http://web.engr.oregonstate.edu/~mjb/cs519/Projects/Papers/HairRendering.pdf
             //
-            // See Lit.shader and the order of the passes after a DistortionVectors, we have: 
+            // See Lit.shader and the order of the passes after a DistortionVectors, we have:
             // TransparentDepthPrepass, TransparentBackface, Forward, TransparentDepthPostpass
 
             HLSLPROGRAM
