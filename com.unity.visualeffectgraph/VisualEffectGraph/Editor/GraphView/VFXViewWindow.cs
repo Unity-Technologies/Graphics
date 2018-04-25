@@ -128,7 +128,8 @@ namespace  UnityEditor.VFX.UI
         }
         void OnFocus()
         {
-            graphView.UpdateGloblalSelection();
+            if( graphView != null)
+                graphView.UpdateGlobalSelection();
         }
 
         void OnSelectionChange()
@@ -143,10 +144,6 @@ namespace  UnityEditor.VFX.UI
                     LoadAsset(objs[0] as VisualEffectAsset);
                 }
             }
-            /*else if( controller != null && objs.All(t => t is VFXModel && (t as VFXModel).GetGraph() == controller.graph)
-            {
-                graphView.SelectMo
-            }*/
         }
 
         void OnEnterPanel(AttachToPanelEvent e)

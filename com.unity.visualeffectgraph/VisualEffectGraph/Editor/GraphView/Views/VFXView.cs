@@ -1334,7 +1334,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void UpdateGloblalSelection()
+        public void UpdateGlobalSelection()
         {
             if (controller == null) return;
 
@@ -1378,13 +1378,13 @@ namespace UnityEditor.VFX.UI
         public override void AddToSelection(ISelectable selectable)
         {
             base.AddToSelection(selectable);
-            UpdateGloblalSelection();
+            UpdateGlobalSelection();
         }
 
         public override void RemoveFromSelection(ISelectable selectable)
         {
             base.RemoveFromSelection(selectable);
-            UpdateGloblalSelection();
+            UpdateGlobalSelection();
         }
 
         public override void ClearSelection()
@@ -1392,7 +1392,7 @@ namespace UnityEditor.VFX.UI
             bool selectionEmpty = selection.Count() == 0;
             base.ClearSelection();
             if (!selectionEmpty)
-                UpdateGloblalSelection();
+                UpdateGlobalSelection();
         }
 
         VFXBlackboard m_Blackboard;
