@@ -5,7 +5,6 @@ Shader "Hidden/VFX/ParticleQuads"
 		Cull Off
 		
 		${VFXInclude("Assets/VFXEditor/Shaders/VFXParticleHeader.template")}
-
-		${VFXInclude("Assets/VFXEditor/Shaders/particleSpheres/PassForward.template")}
+		${VFXInclude("Assets/VFXEditor/Shaders/particleSpheres/PassGBuffer.template")}
 	}
 }
