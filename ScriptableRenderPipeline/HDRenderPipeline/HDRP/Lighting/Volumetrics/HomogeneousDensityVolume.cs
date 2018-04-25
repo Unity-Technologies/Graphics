@@ -19,10 +19,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private void OnEnable()
         {
+            DensityVolumeManager.manager.RegisterVolume(this);
         }
 
         private void OnDisable()
         {
+            DensityVolumeManager.manager.DeRegisterVolume(this);
         }
 
         private void Update()

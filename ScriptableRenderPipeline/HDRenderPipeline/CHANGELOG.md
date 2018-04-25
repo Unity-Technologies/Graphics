@@ -13,6 +13,8 @@
 
 ### Improvements
 - Configure the volumetric lighting code path to be on by default
+- Trigger a build exception when trying to build an unsupported platform
+- Introduce the VolumetricLightingController component, which can (and should) be placed on the camera, and allows one to control the near and the far plane of the V-Buffer (volumetric "froxel" buffer) along with the depth distribution (from logarithmic to linear)
 
 ### Changed, Removals and deprecations
 - Remove Resource folder of PreIntegratedFGD and add the resource to RenderPipeline Asset
@@ -58,6 +60,7 @@
 - Fix alpha blending of volumetric lighting with transparent objects.
 - Fix the near plane of the V-Buffer causing out-of-bounds look-ups in the clustered data structure.
 - Depth and color pyramid are properly computed and sampled when the camera renders inside a viewport of a RTHandle.
+- Fix decal atlas debug view to work correctly when shadow atlas view is also enabled
 
 ## [2018.1.0b13]
 

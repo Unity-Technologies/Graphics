@@ -624,7 +624,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             { 
                 using (new ProfilingSample(cmd, "Display Decal Atlas", CustomSamplerId.DisplayDebugDecalsAtlas.GetSampler()))
                 {
-                    HDUtils.BlitQuad(cmd, Atlas.AtlasTexture, new Vector4(1,1,0,0), new Vector4(width / hdCamera.actualWidth, overlaySize / hdCamera.actualHeight, x / hdCamera.actualWidth, y / hdCamera.actualHeight), (int)debugDisplaySettings.decalsDebugSettings.m_MipLevel, true);
+                    cmd.SetViewport(new Rect(x, y, overlaySize, overlaySize));
+                    HDUtils.BlitQuad(cmd, Atlas.AtlasTexture, new Vector4(1, 1, 0 ,0), new Vector4(1, 1, 0, 0), (int)debugDisplaySettings.decalsDebugSettings.m_MipLevel, true);
                     HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera.actualWidth);
                 }
             }
