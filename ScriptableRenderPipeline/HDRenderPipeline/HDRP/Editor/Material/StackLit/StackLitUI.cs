@@ -5,6 +5,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     class StackLitGUI : BaseMaterialGUI
     {
+        protected static class StylesStackLit
+        {
+            public static GUIContent useLocalPlanarMapping = new GUIContent("Use Local Planar Mapping", "Use local space for planar/triplanar mapping instead of world space");
+        };
+
         #region Strings
 
         protected const string k_DoubleSidedNormalMode = "_DoubleSidedNormalMode";
@@ -86,6 +91,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         //protected const string kRefractionModel = "_RefractionModel";
         //protected MaterialProperty refractionSSRayModel = null;
         //protected const string kRefractionSSRayModel = "_RefractionSSRayModel";
+
+        protected MaterialProperty useLocalPlanarMapping = null;
+        protected const string k_UseLocalPlanarMapping = "_UseLocalPlanarMapping";
         #endregion
 
         // Add the properties into an array.
@@ -97,7 +105,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             _baseMaterialProperties = new GroupProperty(this, "_BaseMaterial", new BaseProperty[]
             {
                 // JFFTODO: Find the proper condition, and proper way to display this.
-                new Property(this, k_DoubleSidedNormalMode, "Normal mode", "This will modify the normal base on the selected mode. Mirror: Mirror the normal with vertex normal plane, Flip: Flip the normal.", false), 
+                new Property(this, k_DoubleSidedNormalMode, "Normal mode", "This will modify the normal base on the selected mode. Mirror: Mirror the normal with vertex normal plane, Flip: Flip the normal.", false),
             });
 
             _materialProperties = new GroupProperty(this, "_Material", new BaseProperty[]
@@ -105,7 +113,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 new GroupProperty(this, "_Standard", "Standard", new BaseProperty[]
                 {
                     new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Base Color + Opacity", "Albedo (RGB) and Opacity (A)", true, false),
-                    new TextureProperty(this, k_MetallicMap, k_Metallic, "Metallic", "Metallic", false, false), 
+                    new TextureProperty(this, k_MetallicMap, k_Metallic, "Metallic", "Metallic", false, false),
                     new TextureProperty(this, k_Smoothness1Map, k_Smoothness1, "Smoothness", "Smoothness", false, false),
                     // TODO: Special case for normal maps.
                     new TextureProperty(this, k_NormalMap, k_NormalScale, "Normal TODO", "Normal Map", false, false, true),
@@ -136,7 +144,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 new GroupProperty(this, "_Lobe2", "Second Specular Lobe", new BaseProperty[]
                 {
                     new TextureProperty(this, k_Smoothness2Map, k_Smoothness2, "Smoothness2", "Smoothness2", false, false),
-                    new Property(this, k_LobeMix, "Lobe Mix", "Lobe Mix", false), 
+                    new Property(this, k_LobeMix, "Lobe Mix", "Lobe Mix", false),
                 }),
 
                 //new GroupProperty(this, "_Anisotropy", "Anisotropy", new BaseProperty[]
@@ -180,12 +188,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected override void FindMaterialProperties(MaterialProperty[] props)
         {
             //base.FindMaterialProperties(props);
+            useLocalPlanarMapping = FindProperty(k_UseLocalPlanarMapping, props);
             _materialProperties.OnFindProperty(props);
-            }
+        }
 
         protected override void BaseMaterialPropertiesGUI()
         {
             base.BaseMaterialPropertiesGUI();
+            m_MaterialEditor.ShaderProperty(useLocalPlanarMapping, StylesStackLit.useLocalPlanarMapping);
             _baseMaterialProperties.OnGUI();
         }
 
@@ -283,7 +293,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
-            //NOTE: For SSS in forward and split lighting, obviously we don't have a gbuffer pass, 
+            //NOTE: For SSS in forward and split lighting, obviously we don't have a gbuffer pass,
             // so no stencil tagging there, but velocity? To check...
 
             //TODO: stencil state, displacement, wind, depthoffset, tessellation
@@ -316,29 +326,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             bool requireUv2 = false;
             bool requireUv3 = false;
+            bool requireTriplanar = false;
             for (int i = 0; i < uvIndices.Length; ++i)
             {
                 requireUv2 = requireUv2 || uvIndices[i] == TextureProperty.UVMapping.UV2;
                 requireUv3 = requireUv3 || uvIndices[i] == TextureProperty.UVMapping.UV3;
+                requireTriplanar = requireTriplanar || uvIndices[i] == TextureProperty.UVMapping.Triplanar;
             }
 
-            if (requireUv2)
-            {
-                material.EnableKeyword("_REQUIRE_UV2");
-            }
-            else
-            {
-                material.DisableKeyword("_REQUIRE_UV2");
-            }
-
-            if (requireUv3)
-            {
-                material.EnableKeyword("_REQUIRE_UV3");
-            }
-            else
-            {
-                material.DisableKeyword("_REQUIRE_UV3");
-            }
+            CoreUtils.SetKeyword(material, "_USE_UV2", requireUv2);
+            CoreUtils.SetKeyword(material, "_USE_UV3", requireUv3);
+            CoreUtils.SetKeyword(material, "_USE_TRIPLANAR", requireTriplanar);
         }
     }
 } // namespace UnityEditor
