@@ -224,14 +224,14 @@ MonoBehaviour:
       scene: {fileID: 102900000, guid: 371699c064b85d04ba90b577c881c643, type: 3}
       scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2204_ScreenSpaceReflectionProxyBox.unity
       testTypes: 2
-      minimumUnityVersion: 5
+      minimumUnityVersion: 4
       platforms: -1
       run: 1
     - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2205_ScreenSpaceReflectionProxySphere.unity
       scene: {fileID: 102900000, guid: 3a4f431f1be840b45945d9ec965b621c, type: 3}
       scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2205_ScreenSpaceReflectionProxySphere.unity
       testTypes: 2
-      minimumUnityVersion: 5
+      minimumUnityVersion: 4
       platforms: -1
       run: 1
     - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2301_Shadow_Mask.unity
@@ -331,4 +331,4 @@ MonoBehaviour:
       minimumUnityVersion: 4
       platforms: -1
       run: 0
-  suiteVersion: 4
+  suiteVersion: 5
