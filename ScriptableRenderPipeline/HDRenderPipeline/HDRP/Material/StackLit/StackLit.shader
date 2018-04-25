@@ -12,60 +12,73 @@ Shader "HDRenderPipeline/StackLit"
         [HideInInspector] _BaseColorMapShow("BaseColor Map Show", Float) = 0
         _BaseColorMapUV("BaseColor Map UV", Float) = 0.0
 
-        _Metallic("Metallic", Range(0.0, 1.0)) = 0
-
-        _SmoothnessA("SmoothnessA", Range(0.0, 1.0)) = 1.0
-        _MetallicMap("Metallic Map", 2D) = "black" {}
         [HideInInspector] _MetallicMapShow("Metallic Map Show", Float) = 0
+        _Metallic("Metallic", Range(0.0, 1.0)) = 0
+        _MetallicMap("Metallic Map", 2D) = "black" {}
+        _MetallicUseMap("Metallic Use Map", Float) = 0
         _MetallicMapUV("Metallic Map UV", Float) = 0.0
-        _MetallicMapChannel("Metallic Map Channel", Vector) = (1, 0, 0, 0)
+        _MetallicMapChannel("Metallic Map Channel", Float) = 0.0
+        _MetallicMapChannelMask("Metallic Map Channel Mask", Vector) = (1, 0, 0, 0)
         _MetallicRemap("Metallic Remap", Vector) = (0, 1, 0, 0)
         [ToggleUI] _MetallicRemapInverted("Invert Metallic Remap", Float) = 0.0
-        _SmoothnessAMap("SmoothnessA Map", 2D) = "white" {}
+        [HideInInspector] _MetallicRange("Metallic Range", Vector) = (0, 1, 0, 0)
+
         [HideInInspector] _SmoothnessAMapShow("SmoothnessA Map Show", Float) = 0
+        _SmoothnessA("SmoothnessA", Range(0.0, 1.0)) = 1.0
+        _SmoothnessAMap("SmoothnessA Map", 2D) = "white" {}
+        _SmoothnessAUseMap("SmoothnessA Use Map", Float) = 0
         _SmoothnessAMapUV("SmoothnessA Map UV", Float) = 0.0
-        _SmoothnessAMapChannel("SmoothnessA Map Channel", Vector) = (1, 0, 0, 0)
+        _SmoothnessAMapChannel("SmoothnessA Map Channel", Float) = 0.0
+        _SmoothnessAMapChannelMask("SmoothnessA Map Channel Mask", Vector) = (1, 0, 0, 0)
         _SmoothnessARemap("SmoothnessA Remap", Vector)  = (0, 1, 0, 0)
         [ToggleUI] _SmoothnessARemapInverted("Invert SmoothnessA Remap", Float) = 0.0
+        [HideInInspector] _SmoothnessARange("SmoothnessA Range", Vector) = (0, 1, 0, 0)
+
+        [HideInInspector] _SmoothnessBMapShow("SmoothnessB Map Show", Float) = 0
         _SmoothnessB("SmoothnessB", Range(0.0, 1.0)) = 1.0
         _SmoothnessBMap("SmoothnessB Map", 2D) = "white" {}
-        [HideInInspector] _SmoothnessBMapShow("SmoothnessB Map Show", Float) = 0
+        _SmoothnessBUseMap("SmoothnessB Use Map", Float) = 0
         _SmoothnessBMapUV("SmoothnessB Map UV", Float) = 0.0
-        _SmoothnessBMapChannel("SmoothnessB Map Channel", Vector) = (1, 0, 0, 0)
+        _SmoothnessBMapChannel("SmoothnessB Map Channel", Float) = 0.0
+        _SmoothnessBMapChannelMask("SmoothnessB Map Channel Mask", Vector) = (1, 0, 0, 0)
         _SmoothnessBRemap("SmoothnessB Remap", Vector) = (0, 1, 0, 0)
         [ToggleUI] _SmoothnessBRemapInverted("Invert SmoothnessB Remap", Float) = 0.0
+        [HideInInspector] _SmoothnessBRange("SmoothnessB Range", Vector) = (0, 1, 0, 0)
         _LobeMix("Lobe Mix", Range(0.0, 1.0)) = 0
 
-        _NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
         [HideInInspector] _NormalMapShow("NormalMap Show", Float) = 0.0
+        _NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
         _NormalMapUV("NormalMapUV", Float) = 0.0
-        _NormalScale("_NormalScale", Range(0.0, 2.0)) = 1
+        _NormalScale("Normal Scale", Range(0.0, 2.0)) = 1
 
-        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase("UV Set for base", Float) = 0
-        [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
-
+        [HideInInspector] _EmissiveColorMapShow("Emissive Color Map Show", Float) = 0.0
         _EmissiveColor("Emissive Color", Color) = (1, 1, 1)
         _EmissiveColorMap("Emissive Color Map", 2D) = "white" {}
-        [HideInInspector] _EmissiveColorMapShow("Emissive Color Map Show", Float) = 0.0
         _EmissiveColorMapUV("Emissive Color Map UV", Range(0.0, 1.0)) = 0
         _EmissiveIntensity("Emissive Intensity", Float) = 0
         [ToggleUI] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
 
-        _SubsurfaceMask("Subsurface Mask", Range(0.0, 1.0)) = 1.0
-        _SubsurfaceMaskMap("Subsurface Mask MAp", 2D) = "black" {}
         [HideInInspector] _SubsurfaceMaskMapShow("Subsurface Mask Map Show", Float) = 0
+        _SubsurfaceMask("Subsurface Mask", Range(0.0, 1.0)) = 1.0
+        _SubsurfaceMaskMap("Subsurface Mask Map", 2D) = "black" {}
+        _SubsurfaceMaskUSeMap("Subsurface Mask Use Map", Float) = 0
         _SubsurfaceMaskMapUV("Subsurface Mask Map UV", Float) = 0.0
-        _SubsurfaceMaskMapChannel("Subsurface Mask Map Channel", Vector) = (1, 0, 0, 0)
+        _SubsurfaceMaskMapChannel("Subsurface Mask Map Channel", Float) = 0.0
+        _SubsurfaceMaskMapChannelMask("Subsurface Mask Map Channel Mask", Vector) = (1, 0, 0, 0)
         _SubsurfaceMaskRemap("Subsurface Mask Remap", Vector) = (0, 1, 0, 0)
         [ToggleUI] _SubsurfaceMaskRemapInverted("Invert Subsurface Mask Remap", Float) = 0.0
+        [HideInInspector] _SubsurfaceMaskRange("Subsurface Mask Range", Vector) = (0, 1, 0, 0)
 
-        _Thickness("Thickness", Range(0.0, 1.0)) = 1.0
-        _ThicknessMap("Thickness MAp", 2D) = "black" {}
         [HideInInspector] _ThicknessMapShow("Thickness Show", Float) = 0
+        _Thickness("Thickness", Range(0.0, 1.0)) = 1.0
+        _ThicknessMap("Thickness Map", 2D) = "black" {}
+        _ThicknessUseMap("Thickness Use Map", Float) = 0
         _ThicknessMapUV("Thickness Map UV", Float) = 0.0
-        _ThicknessMapChannel("Thickness Map Channel", Vector) = (1, 0, 0, 0)
+        _ThicknessMapChannel("Thickness Map Channel", Float) = 0.0
+        _ThicknessMapChannelMask("Thickness Map Channel Mask", Vector) = (1, 0, 0, 0)
         _ThicknessRemap("Thickness Remap", Vector) = (0, 1, 0, 0)
         [ToggleUI] _ThicknessRemapInverted("Invert Thickness Remap", Float) = 0.0
+        [HideInInspector] _ThicknessRange("Thickness Range", Vector) = (0, 1, 0, 0)
 
         _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
         [ToggleUI] _DistortionEnable("Enable Distortion", Float) = 0.0
