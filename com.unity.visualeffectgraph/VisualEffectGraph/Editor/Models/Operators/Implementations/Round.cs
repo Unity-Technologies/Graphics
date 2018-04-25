@@ -7,7 +7,7 @@ namespace UnityEditor.VFX.Operator
     {
         override public string name { get { return "Round"; } }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { VFXOperatorUtility.Round(inputExpression[0]) };
         }

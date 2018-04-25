@@ -4,9 +4,9 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Logic")]
-    class LogicalOr : VFXOperator
+    class LogicalNand : VFXOperator
     {
-        override public string name { get { return "Or"; } }
+        override public string name { get { return "Nand"; } }
 
         public class InputProperties
         {
@@ -24,7 +24,7 @@ namespace UnityEditor.VFX.Operator
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new[] { new VFXExpressionLogicalOr(inputExpression[0], inputExpression[1]) };
+            return new[] { new VFXExpressionLogicalNot(new VFXExpressionLogicalAnd(inputExpression[0], inputExpression[1])) };
         }
     }
 }

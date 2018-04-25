@@ -63,7 +63,7 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             int nbComponents = outputComponentCount;
             var allComponent = inputExpression.SelectMany(e => VFXOperatorUtility.ExtractComponents(e))

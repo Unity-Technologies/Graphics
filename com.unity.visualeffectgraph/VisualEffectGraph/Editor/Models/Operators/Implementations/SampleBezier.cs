@@ -31,7 +31,7 @@ namespace UnityEditor.VFX.Operator
 
         override public string name { get { return "Sample Bezier"; } }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var t = inputExpression[0];
             var posA = inputExpression[1];

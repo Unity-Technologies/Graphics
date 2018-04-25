@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.Operator
             public bool o;
         }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { new VFXExpressionLogicalAnd(inputExpression[0], inputExpression[1]) };
         }

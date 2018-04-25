@@ -6,7 +6,7 @@ namespace UnityEditor.VFX.Operator
     {
         override public string name { get { return "Absolute"; } }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { new VFXExpressionAbs(inputExpression[0]) };
         }

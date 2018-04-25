@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.Operator
 
         override public string name { get { return "Squared Distance"; } }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { VFXOperatorUtility.SqrDistance(inputExpression[0], inputExpression[1]) };
         }

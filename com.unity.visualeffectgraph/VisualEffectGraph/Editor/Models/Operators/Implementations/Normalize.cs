@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.Operator
 
         override public string name { get { return "Normalize"; } }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { VFXOperatorUtility.Normalize(inputExpression[0]) };
         }

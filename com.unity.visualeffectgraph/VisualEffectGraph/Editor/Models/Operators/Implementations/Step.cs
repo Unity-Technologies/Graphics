@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.Operator
             public FloatN Threshold = 0.5f;
         }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             int size = VFXExpression.TypeToSize(inputExpression[0].valueType);
 
