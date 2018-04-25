@@ -32,6 +32,7 @@ Shader "LightweightPipeline/Terrain/Standard Terrain"
 
         Pass
         {
+            Name "TerrainLit"
             Tags { "LightMode" = "LightweightForward" }
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
@@ -51,6 +52,8 @@ Shader "LightweightPipeline/Terrain/Standard Terrain"
             #pragma multi_compile _ _VERTEX_LIGHTS
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
             #pragma multi_compile _ _SHADOWS_ENABLED
+            #pragma multi_compile _ _LOCAL_SHADOWS_ENABLED
+            #pragma multi_compile _ _SHADOWS_SOFT
 
             // -------------------------------------
             // Unity defined keywords
@@ -59,7 +62,7 @@ Shader "LightweightPipeline/Terrain/Standard Terrain"
             #pragma multi_compile_fog
 
             #pragma multi_compile __ _TERRAIN_NORMAL_MAP
-            
+
             #include "LWRP/ShaderLibrary/Terrain/InputSurfaceTerrain.hlsl"
             #include "LWRP/ShaderLibrary/Terrain/LightweightPassLitTerrain.hlsl"
 
@@ -68,6 +71,7 @@ Shader "LightweightPipeline/Terrain/Standard Terrain"
 
         Pass
         {
+            Name "ShadowCaster"
             Tags{"LightMode" = "ShadowCaster"}
 
             ZWrite On
@@ -88,6 +92,7 @@ Shader "LightweightPipeline/Terrain/Standard Terrain"
 
         Pass
         {
+            Name "DepthOnly"
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On

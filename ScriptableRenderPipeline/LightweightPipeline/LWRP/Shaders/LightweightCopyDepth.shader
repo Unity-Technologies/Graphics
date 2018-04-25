@@ -1,11 +1,17 @@
 Shader "Hidden/LightweightPipeline/CopyDepth"
 {
+    Properties
+    {
+        [HideInInspector] _SampleCount("MSAA sample count", Float) = 1.0
+    }
+
     SubShader
     {
-        Tags { "RenderType" = "Opaque" "RenderPipeline" = "LightiweightPipeline"}
+        Tags { "RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline"}
 
         Pass
         {
+            Name "Default"
             ZTest Always ZWrite On ColorMask 0
 
             HLSLPROGRAM
@@ -15,35 +21,10 @@ Shader "Hidden/LightweightPipeline/CopyDepth"
             #pragma vertex vert
             #pragma fragment frag
 
-            #include "LWRP/ShaderLibrary/Core.hlsl"
+            #pragma multi_compile __ _MSAA_DEPTH
 
-            TEXTURE2D(_CameraDepthTexture);
-            SAMPLER(sampler_CameraDepthTexture);
+            #include "LWRP/ShaderLibrary/DepthCopy.hlsl"
 
-            struct VertexInput
-            {
-                float4 vertex   : POSITION;
-                float2 uv       : TEXCOORD0;
-            };
-
-            struct VertexOutput
-            {
-                float4 position : SV_POSITION;
-                float2 uv       : TEXCOORD0;
-            };
-
-            VertexOutput vert(VertexInput i)
-            {
-                VertexOutput o;
-                o.uv = i.uv;
-                o.position = TransformObjectToHClip(i.vertex.xyz);
-                return o;
-            }
-
-            float frag(VertexOutput i) : SV_Depth
-            {
-                return SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, i.uv);
-            }
             ENDHLSL
         }
     }
