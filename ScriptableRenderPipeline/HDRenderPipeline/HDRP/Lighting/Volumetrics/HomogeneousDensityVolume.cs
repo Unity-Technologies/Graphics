@@ -10,7 +10,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             parameters.albedo       = new Color(0.5f, 0.5f, 0.5f);
             parameters.meanFreePath = 10.0f;
-            parameters.asymmetry    = 0.0f;
+            parameters.anisotropy   = 0.0f;
         }
 
         private void Awake()

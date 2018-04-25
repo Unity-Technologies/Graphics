@@ -12,7 +12,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         private SerializedDataParameter m_Albedo;
         private SerializedDataParameter m_MeanFreePath;
-        private SerializedDataParameter m_Asymmetry;
+        private SerializedDataParameter m_Anisotropy;
 
         public override void OnEnable()
         {
@@ -21,14 +21,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             m_Albedo       = Unpack(o.Find(x => x.albedo));
             m_MeanFreePath = Unpack(o.Find(x => x.meanFreePath));
-            m_Asymmetry    = Unpack(o.Find(x => x.asymmetry));
+            m_Anisotropy   = Unpack(o.Find(x => x.anisotropy));
         }
 
         public override void OnInspectorGUI()
         {
             PropertyField(m_Albedo);
             PropertyField(m_MeanFreePath);
-            PropertyField(m_Asymmetry);
+            PropertyField(m_Anisotropy);
         }
     }
 }

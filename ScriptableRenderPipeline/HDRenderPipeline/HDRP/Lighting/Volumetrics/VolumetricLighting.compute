@@ -111,7 +111,7 @@ struct VoxelLighting
 // Computes the light integral (in-scattered radiance) within the voxel.
 // Multiplication by the scattering coefficient and the phase function is performed outside.
 VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags, PositionInputs posInput, float3 centerWS,
-                                    DualRay ray, float t0, float t1, float dt, float rndVal, float extinction, float asymmetry
+                                    DualRay ray, float t0, float t1, float dt, float rndVal, float extinction, float anisotropy
                                 #ifdef USE_CLUSTERED_LIGHTLIST
                                     , uint lightClusters[2])
                                 #else
@@ -148,12 +148,12 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
             // function) is not possible. We work around this issue by reprojecting
             // lighting not affected by the phase function. This basically removes
             // the phase function from the temporal integration process. It is a hack.
-            // The downside is that asymmetry no longer benefits from temporal averaging,
-            // and any temporal instability of asymmetry causes causes visible jitter.
+            // The downside is that anisotropy no longer benefits from temporal averaging,
+            // and any temporal instability of anisotropy causes causes visible jitter.
             // In order to stabilize the image, we use the voxel center for all
-            // asymmetry-related calculations.
+            // anisotropy-related calculations.
             float cosTheta = dot(L, ray.centerDirWS);
-            float phase    = CornetteShanksPhasePartVarying(asymmetry, cosTheta);
+            float phase    = CornetteShanksPhasePartVarying(anisotropy, cosTheta);
 
             // Note: the 'weight' accounts for transmittance from 't0' to 't'.
             float intensity = attenuation * weight;
@@ -279,13 +279,13 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                     // function) is not possible. We work around this issue by reprojecting
                     // lighting not affected by the phase function. This basically removes
                     // the phase function from the temporal integration process. It is a hack.
-                    // The downside is that asymmetry no longer benefits from temporal averaging,
-                    // and any temporal instability of asymmetry causes causes visible jitter.
+                    // The downside is that anisotropy no longer benefits from temporal averaging,
+                    // and any temporal instability of anisotropy causes causes visible jitter.
                     // In order to stabilize the image, we use the voxel center for all
-                    // asymmetry-related calculations.
+                    // anisotropy-related calculations.
                     float3 centerL = light.positionWS - centerWS;
                     float  cosTheta = dot(centerL, ray.centerDirWS) * rsqrt(dot(centerL, centerL));
-                    float  phase    = CornetteShanksPhasePartVarying(asymmetry, cosTheta);
+                    float  phase    = CornetteShanksPhasePartVarying(anisotropy, cosTheta);
 
                     float intensity = attenuation * rcpPdf;
 
@@ -367,13 +367,13 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                     // function) is not possible. We work around this issue by reprojecting
                     // lighting not affected by the phase function. This basically removes
                     // the phase function from the temporal integration process. It is a hack.
-                    // The downside is that asymmetry no longer benefits from temporal averaging,
-                    // and any temporal instability of asymmetry causes causes visible jitter.
+                    // The downside is that anisotropy no longer benefits from temporal averaging,
+                    // and any temporal instability of anisotropy causes causes visible jitter.
                     // In order to stabilize the image, we use the voxel center for all
-                    // asymmetry-related calculations.
-                    float3 centerL = light.positionWS - centerWS;
+                    // anisotropy-related calculations.
+                    float3 centerL  = light.positionWS - centerWS;
                     float  cosTheta = dot(centerL, ray.centerDirWS) * rsqrt(dot(centerL, centerL));
-                    float  phase    = CornetteShanksPhasePartVarying(asymmetry, cosTheta);
+                    float  phase    = CornetteShanksPhasePartVarying(anisotropy, cosTheta);
 
                     // Note: the 'weight' accounts for transmittance from 'tEntr' to 't'.
                     float intensity = attenuation * weight;
@@ -465,7 +465,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // TODO: piecewise linear.
         float3 scattering = LOAD_TEXTURE3D(_VBufferDensity, voxelCoord).rgb;
         float  extinction = LOAD_TEXTURE3D(_VBufferDensity, voxelCoord).a;
-        float  asymmetry  = _GlobalAsymmetry;
+        float  anisotropy = _GlobalAnisotropy;
 
         // Prevent division by 0.
         extinction = max(extinction, FLT_MIN);
@@ -479,7 +479,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     #endif
 
         VoxelLighting lighting = EvaluateVoxelLighting(context, featureFlags, posInput, centerWS,
-                                                       ray, t0, t1, dt, rndVal, extinction, asymmetry
+                                                       ray, t0, t1, dt, rndVal, extinction, anisotropy
                                                    #ifdef USE_CLUSTERED_LIGHTLIST
                                                        , lightClusters);
                                                    #else
