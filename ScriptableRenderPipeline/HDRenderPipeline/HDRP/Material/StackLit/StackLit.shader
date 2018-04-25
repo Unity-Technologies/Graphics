@@ -11,12 +11,14 @@ Shader "HDRenderPipeline/StackLit"
         _BaseColorMap("BaseColor Map", 2D) = "white" {}
         [HideInInspector] _BaseColorMapShow("BaseColor Map Show", Float) = 0
         _BaseColorMapUV("BaseColor Map UV", Float) = 0.0
+        _BaseColorMapUVLocal("BaseColorMap UV Local", Float) = 0.0
 
         [HideInInspector] _MetallicMapShow("Metallic Map Show", Float) = 0
         _Metallic("Metallic", Range(0.0, 1.0)) = 0
         _MetallicMap("Metallic Map", 2D) = "black" {}
         _MetallicUseMap("Metallic Use Map", Float) = 0
         _MetallicMapUV("Metallic Map UV", Float) = 0.0
+        _MetallicMapUVLocal("Metallic Map UV Local", Float) = 0.0
         _MetallicMapChannel("Metallic Map Channel", Float) = 0.0
         _MetallicMapChannelMask("Metallic Map Channel Mask", Vector) = (1, 0, 0, 0)
         _MetallicRemap("Metallic Remap", Vector) = (0, 1, 0, 0)
@@ -28,6 +30,7 @@ Shader "HDRenderPipeline/StackLit"
         _SmoothnessAMap("SmoothnessA Map", 2D) = "white" {}
         _SmoothnessAUseMap("SmoothnessA Use Map", Float) = 0
         _SmoothnessAMapUV("SmoothnessA Map UV", Float) = 0.0
+        _SmoothnessAMapUVLocal("_SmoothnessA Map UV Local", Float) = 0.0
         _SmoothnessAMapChannel("SmoothnessA Map Channel", Float) = 0.0
         _SmoothnessAMapChannelMask("SmoothnessA Map Channel Mask", Vector) = (1, 0, 0, 0)
         _SmoothnessARemap("SmoothnessA Remap", Vector)  = (0, 1, 0, 0)
@@ -39,6 +42,7 @@ Shader "HDRenderPipeline/StackLit"
         _SmoothnessBMap("SmoothnessB Map", 2D) = "white" {}
         _SmoothnessBUseMap("SmoothnessB Use Map", Float) = 0
         _SmoothnessBMapUV("SmoothnessB Map UV", Float) = 0.0
+        _SmoothnessAMapUVLocal("_SmoothnessB Map UV Local", Float) = 0.0
         _SmoothnessBMapChannel("SmoothnessB Map Channel", Float) = 0.0
         _SmoothnessBMapChannelMask("SmoothnessB Map Channel Mask", Vector) = (1, 0, 0, 0)
         _SmoothnessBRemap("SmoothnessB Remap", Vector) = (0, 1, 0, 0)
@@ -55,6 +59,7 @@ Shader "HDRenderPipeline/StackLit"
         _EmissiveColor("Emissive Color", Color) = (1, 1, 1)
         _EmissiveColorMap("Emissive Color Map", 2D) = "white" {}
         _EmissiveColorMapUV("Emissive Color Map UV", Range(0.0, 1.0)) = 0
+        _EmissiveColorMapUVLocal("Emissive Color Map UV Local", Float) = 0.0
         _EmissiveIntensity("Emissive Intensity", Float) = 0
         [ToggleUI] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
 
@@ -103,9 +108,6 @@ Shader "HDRenderPipeline/StackLit"
         [ToggleUI]  _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
         _TransparentSortPriority("_TransparentSortPriority", Float) = 0
-
-        // global control
-        [ToggleUI] _UseLocalPlanarMapping("Use Local Planar Mapping", Float) = 0.0
 
         // Stencil state
         [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting  (fixed at compile time)

@@ -38,10 +38,12 @@ float4 _BaseColorMap_ST;
 float4 _BaseColorMap_TexelSize;
 float4 _BaseColorMap_MipInfo;
 float _BaseColorMapUV;
+float _BaseColorMapUVLocal;
 
 float _Metallic;
 float _MetallicUseMap;
 float _MetallicMapUV;
+float _MetallicMapUVLocal;
 float4 _MetallicMap_ST;
 float4 _MetallicMap_TexelSize;
 float4 _MetallicMap_MipInfo;
@@ -51,6 +53,7 @@ float4 _MetallicRange;
 float _SmoothnessA;
 float _SmoothnessAUseMap;
 float _SmoothnessAMapUV;
+float _SmoothnessAMapUVLocal;
 float4 _SmoothnessAMap_ST;
 float4 _SmoothnessAMap_TexelSize;
 float4 _SmoothnessAMap_MipInfo;
@@ -59,6 +62,7 @@ float4 _SmoothnessARange;
 float _SmoothnessB;
 float _SmoothnessBUseMap;
 float _SmoothnessBMapUV;
+float _SmoothnessBMapUVLocal;
 float4 _SmoothnessBMap_ST;
 float4 _SmoothnessBMap_TexelSize;
 float4 _SmoothnessBMap_MipInfo;
@@ -77,6 +81,7 @@ float4 _EmissiveColorMap_ST;
 float4 _EmissiveColorMap_TexelSize;
 float4 _EmissiveColorMap_MipInfo;
 float _EmissiveColorMapUV;
+float _EmissiveColorMapUVLocal;
 float _EmissiveIntensity;
 float _AlbedoAffectEmissive;
 
@@ -107,8 +112,6 @@ float _DistortionVectorBias;
 float _DistortionBlurScale;
 float _DistortionBlurRemapMin;
 float _DistortionBlurRemapMax;
-
-float _UseLocalPlanarMapping;
 
 // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
 // value that exist to identify if the GI emission need to be enabled.
