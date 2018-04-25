@@ -476,10 +476,16 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     // Warning: the contents are later overwritten for Standard and SSS!
     outGBuffer0 = float4(surfaceData.baseColor, surfaceData.specularOcclusion);
 
+    // The sign of the Z component of the normal MUST round-trip through the G-Buffer, otherwise
+    // the reconstruction of the tangent frame for anisotropic GGX creates a seam along the Z axis.
+    // The constant was eye-balled to not cause artifacts.
+    // TODO: find a proper solution.
+    const float seamThreshold = 1.0/1024.0;
+    surfaceData.normalWS.z = CopySign(max(seamThreshold, abs(surfaceData.normalWS.z)), surfaceData.normalWS.z);
+
     // RT1 - 8:8:8:8
     // Our tangent encoding is based on our normal.
-    // With octahedral quad packing we get an artifact for reconstructed tangent at the center of this quad. We use rect packing instead to avoid it.
-    float2 octNormalWS = PackNormalOctRectEncode(surfaceData.normalWS);
+    float2 octNormalWS = PackNormalOctQuadEncode(surfaceData.normalWS);
     float3 packNormalWS = PackFloat2To888(saturate(octNormalWS * 0.5 + 0.5));
     // We store perceptualRoughness instead of roughness because it is perceptually linear.
     outGBuffer1 = float4(packNormalWS, PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness));
@@ -639,7 +645,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
 
     float3 packNormalWS = inGBuffer1.rgb;
     float2 octNormalWS = Unpack888ToFloat2(packNormalWS);
-    bsdfData.normalWS = UnpackNormalOctRectEncode(octNormalWS * 2.0 - 1.0);
+    bsdfData.normalWS = UnpackNormalOctQuadEncode(octNormalWS * 2.0 - 1.0);
     bsdfData.perceptualRoughness = inGBuffer1.a;
 
     bakeDiffuseLighting = inGBuffer3.rgb;
