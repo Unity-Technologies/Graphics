@@ -1,0 +1,62 @@
+#pragma vertex vert
+VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
+{
+	uint index = (id >> 2) + instanceID * 2048;
+	VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
+	
+	${VFXLoadAttributesOrCull}
+	${VFXProcessBlocks}
+	
+	if (!alive)
+		return o;
+	
+	o.VFX_VARYING_UV.x = float(id & 1) * 2.0f - 1.0f;
+	o.VFX_VARYING_UV.y = float(id & 2) - 1.0f; 
+	
+	${VFXLoadSize}
+	float uSize = size.x;
+	
+	float camDist = length(VFXGetViewWorldPosition() - position);
+	float scale = 1.0f - uSize / camDist;
+	
+	float3 vPos = position;
+	vPos += axisX * (o.VFX_VARYING_UV.x * uSize * scale);
+	vPos += axisY * (o.VFX_VARYING_UV.y * uSize * scale);
+	vPos -= axisZ * uSize;
+	
+	#ifdef VFX_VARYING_POSWS
+	o.positionWS = vPos;
+	#endif
+	#ifdef VFX_VARYING_VIEWCENTERPOS
+	o.VFX_VARYING_VIEWCENTERPOS = TransformPositionVFXToView(position);
+	#endif
+	#ifdef VFX_VARYING_VIEWPOSANDSIZE
+	o.VFX_VARYING_VIEWPOSANDSIZE.xyz = TransformPositionVFXToView(vPos);
+	o.VFX_VARYING_VIEWPOSANDSIZE.w = uSize;
+	#endif
+	
+	o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
+
+	${VFXVertexCommonProcess}
+	${VFXVertexAdditionalProcess}
+
+	return o;
+}
+
+${VFXFragmentCommonFunctions}
+
+void VFXClipSphereAndGetDepthOffsetAndNormal(out float depthOffset, out float3 normalWS ,VFX_VARYING_PS_INPUTS i)
+{
+	float lsqr = dot(i.uv, i.uv);
+	clip(1.0f - lsqr);
+		
+	float nDepthOffset = 1.0f - sqrt(1.0f - lsqr); // normalized depth offset	
+	
+	float3 camToPosDir = normalize(i.VFX_VARYING_VIEWPOSANDSIZE.xyz);
+	float3 viewPos = i.VFX_VARYING_VIEWPOSANDSIZE.xyz + (camToPosDir * (nDepthOffset * i.VFX_VARYING_VIEWPOSANDSIZE.w));
+	
+	depthOffset = -(1.0f + viewPos.z * _ZBufferParams.w) / (viewPos.z * _ZBufferParams.z);
+	
+	normalWS = normalize(viewPos - i.VFX_VARYING_VIEWCENTERPOS);				
+	normalWS = mul((float3x3)VFXGetViewToWorldMatrix(), normalWS);
+}

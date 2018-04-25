@@ -1,0 +1,93 @@
+// Forward pass
+Pass
+{		
+	Tags { "LightMode"="GBuffer" }
+	
+	Stencil
+	{
+		WriteMask 7
+		Ref  2
+		Comp Always
+		Pass Replace
+	}	
+		
+	HLSLPROGRAM
+	#pragma target 4.5
+	
+	#define UNITY_MATERIAL_LIT
+	#define SHADERPASS SHADERPASS_GBUFFER
+	#ifdef DEBUG_DISPLAY
+	#include "HDRP/Debug/DebugDisplay.hlsl"
+	#endif
+	#include "HDRP/Material/Material.hlsl"
+	#include "HDRP/Material/BuiltIn/BuiltInData.cs.hlsl"
+		
+	struct ps_input
+	{
+		float4 pos : SV_POSITION;
+		float2 uv : TEXCOORD0;
+		float3 viewCenterPos : TEXCOORD1;
+		float4 viewPosAndSize : TEXCOORD2;
+		//float3 positionWS : TEXCOORD3; // For LPPV
+
+		#if VFX_NEEDS_COLOR_INTERPOLATOR
+		nointerpolation float4 color : COLOR0;
+		#endif
+		
+#if USE_SPECULAR_WORKFLOW	
+		nointerpolation float4 specularColor : COLOR1;
+#endif
+		// x: smoothness
+		// y: metallic
+		nointerpolation float2 materialProperties : TEXCOORD4;
+	};
+	
+#define VFX_VARYING_PS_INPUTS ps_input
+#define VFX_VARYING_POSCS pos
+//#define VFX_VARYING_POSWS positionWS
+#define VFX_VARYING_COLOR color.rgb
+#define VFX_VARYING_UV uv
+#define VFX_VARYING_VIEWCENTERPOS viewCenterPos	
+#define VFX_VARYING_VIEWPOSANDSIZE viewPosAndSize	
+	
+${VFXBegin:VFXVertexAdditionalProcess}
+${VFXLoadParameter:{smoothness}}
+o.materialProperties.x = smoothness;
+#if USE_SPECULAR_WORKFLOW
+${VFXLoadParameter:{specularColor}}
+o.specularColor = specularColor;
+#else
+${VFXLoadParameter:{metallic}}
+o.materialProperties.y = metallic;	
+#endif
+${VFXEnd}
+	
+	${VFXInclude("Assets/VFXEditor/Shaders/ParticleSpheres/Pass.template")}	
+				
+	#pragma fragment frag
+	void frag(ps_input i, OUTPUT_GBUFFER(outGBuffer), out float oDepth : SV_DepthLessEqual)
+	{
+		SurfaceData surfaceData = (SurfaceData)0;
+		VFXClipSphereAndGetDepthOffsetAndNormal(oDepth, surfaceData.normalWS, i);
+		
+		BuiltinData builtinData = (BuiltinData)0;
+		builtinData.opacity = 1.0f;
+				
+		#if USE_SPECULAR_WORKFLOW
+		surfaceData.materialFeatures = 2;
+		surfaceData.specularColor = i.specularColor;
+		#else
+		surfaceData.materialFeatures = 1;
+		surfaceData.metallic = i.materialProperties.y;
+		#endif
+		surfaceData.baseColor = VFXGetFragmentColor(i).xyz;
+		surfaceData.perceptualSmoothness = i.materialProperties.x;
+		surfaceData.specularOcclusion = 1.0f;
+		surfaceData.ambientOcclusion = 1.0f;
+		
+		float3 ambient = SampleLightProbes(surfaceData.normalWS);
+		
+		ENCODE_INTO_GBUFFER(surfaceData, ambient, i.pos, outGBuffer);
+	}
+	ENDHLSL
+}

@@ -1,0 +1,39 @@
+// Forward pass
+Pass
+{		
+	Tags { "LightMode"=${VFXPassDepth} }
+		
+	HLSLPROGRAM
+	#pragma target 4.5
+		
+	struct ps_input
+	{
+		float4 pos : SV_POSITION;
+		float2 uv : TEXCOORD0;
+		float3 viewCenterPos : TEXCOORD1;
+		float4 viewPosAndSize : TEXCOORD2;
+	};
+	
+	struct ps_output
+	{
+		float depth : SV_DepthLessEqual;
+	};
+
+#define VFX_VARYING_PS_INPUTS ps_input
+#define VFX_VARYING_POSCS pos
+#define VFX_VARYING_UV uv
+#define VFX_VARYING_VIEWCENTERPOS viewCenterPos	
+#define VFX_VARYING_VIEWPOSANDSIZE viewPosAndSize	
+				
+	${VFXInclude("Assets/VFXEditor/Shaders/ParticleSpheres/Pass.template")}	
+		
+	#pragma fragment frag
+	ps_output frag(ps_input i)
+	{
+		ps_output o = (ps_output)0;
+		float3 dummy;
+		VFXClipSphereAndGetDepthOffsetAndNormal(o.depth,dummy,i);
+		return o;
+	}
+	ENDHLSL
+}
