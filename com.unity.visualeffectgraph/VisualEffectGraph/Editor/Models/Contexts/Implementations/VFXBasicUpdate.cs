@@ -21,7 +21,7 @@ namespace UnityEditor.VFX
 
         public VFXBasicUpdate() : base(VFXContextType.kUpdate, VFXDataType.kParticle, VFXDataType.kParticle) {}
         public override string name { get { return "Update"; } }
-        public override string codeGeneratorTemplate { get { return "VFXShaders/VFXUpdate"; } }
+        public override string codeGeneratorTemplate { get { return "VFXEditor/Shaders/VFXUpdate"; } }
         public override bool codeGeneratorCompute { get { return true; } }
         public override VFXTaskType taskType { get { return VFXTaskType.Update; } }
 

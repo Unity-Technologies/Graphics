@@ -2,14 +2,14 @@ using System;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math")]
+    [VFXInfo(category = "Math/Arithmetic")]
     class Divide : VFXOperatorBinaryFloatOperationOne
     {
         override public string name { get { return "Divide"; } }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        override protected VFXExpression ComposeExpression(VFXExpression a, VFXExpression b)
         {
-            return new[] { inputExpression[0] / inputExpression[1] };
+            return a / b;
         }
     }
 }

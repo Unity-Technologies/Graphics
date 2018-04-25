@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Geometry")]
+    [VFXInfo(category = "Math/Geometry")]
     class TorusVolume : VFXOperator
     {
         public class InputProperties

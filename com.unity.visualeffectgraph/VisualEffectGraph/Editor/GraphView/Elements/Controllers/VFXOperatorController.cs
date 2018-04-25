@@ -108,13 +108,13 @@ namespace UnityEditor.VFX.UI
         }
 
         VFXUpcommingDataAnchorController m_UpcommingDataAnchor;
-        protected override void NewInputSet()
+        protected override void NewInputSet(List<VFXDataAnchorController> newInputs)
         {
             if (m_UpcommingDataAnchor == null)
             {
                 m_UpcommingDataAnchor = new VFXUpcommingDataAnchorController(this, false);
             }
-            m_InputPorts.Add(m_UpcommingDataAnchor);
+            newInputs.Add(m_UpcommingDataAnchor);
         }
 
         public override void OnEdgeGoingToBeRemoved(VFXDataAnchorController myInput)
@@ -133,6 +133,7 @@ namespace UnityEditor.VFX.UI
         {
             RemoveOperand(model.GetSlotIndex(myInput.model));
         }
+
         public void RemoveOperand(int index)
         {
             if (CanRemove())
@@ -163,13 +164,17 @@ namespace UnityEditor.VFX.UI
 
             var myInputCopy = myInput;
             bool hasLink = inputPorts.Any(t => t.model != myInputCopy && t.model.HasLink());
+            int index = model.GetSlotIndex(myInput);
+
+            if (model.staticSlotIndex.Contains(index))
+                return;
+
             // The new link is impossible if we don't change (case of a vector3 trying to be linked to a vector4)
             bool linkImpossibleNow = !myInput.CanLink(otherOutput) || !otherOutput.CanLink(myInput);
 
             var bestAffinity = model.GetBestAffinityType(otherOutput.property.type);
             if ((!hasLink || linkImpossibleNow) && bestAffinity != null)
             {
-                int index = model.GetSlotIndex(myInput);
                 model.SetOperandType(bestAffinity);
                 myInput = model.GetInputSlot(index);
             }

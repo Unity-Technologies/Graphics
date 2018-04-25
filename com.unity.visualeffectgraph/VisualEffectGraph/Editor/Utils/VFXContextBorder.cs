@@ -24,11 +24,6 @@ namespace UnityEditor.VFX.UI
 
         static Mesh s_Mesh;
 
-        static VFXContextBorder()
-        {
-            Debug.Log("VFXContextBorder registered");
-        }
-
         public VFXContextBorder()
         {
             if (s_Mesh == null)
@@ -123,7 +118,7 @@ namespace UnityEditor.VFX.UI
             {
                 float radius = style.borderRadius;
 
-                float realBorder = style.borderLeftWidth.value*view.scale;
+                float realBorder = style.borderLeftWidth.value * view.scale;
 
                 Vector4 size = new Vector4(layout.width * .5f, layout.height * 0.5f, 0, 0);
                 m_Mat.SetVector("_Size", size);

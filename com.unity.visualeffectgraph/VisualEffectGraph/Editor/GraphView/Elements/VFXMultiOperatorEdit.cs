@@ -13,7 +13,7 @@ using BranchNew = UnityEditor.VFX.Operator.BranchNew;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXUniformOperatorEdit<T,U> : VisualElement, IControlledElement<T> where U : VFXOperatorDynamicOperand, IVFXOperatorUniform where T : VFXUniformOperatorController<U>
+    class VFXUniformOperatorEdit<T, U> : VisualElement, IControlledElement<T> where U : VFXOperatorDynamicOperand, IVFXOperatorUniform where T : VFXUniformOperatorController<U>
     {
         Label m_TypePopup;
         public VFXUniformOperatorEdit()
@@ -171,11 +171,6 @@ namespace UnityEditor.VFX.UI
                 operand.Set(op);
             }
 
-            VFXOperatorUI opUI = GetFirstAncestorOfType<VFXOperatorUI>();
-            if (opUI != null)
-            {
-                opUI.ForceRefreshLayout();
-            }
             m_SelfChanging = false;
         }
 

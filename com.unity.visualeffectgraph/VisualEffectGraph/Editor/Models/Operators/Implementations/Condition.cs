@@ -5,7 +5,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Flow")]
+    [VFXInfo(category = "Logic")]
     class Condition : VFXOperator
     {
         [VFXSetting, SerializeField]

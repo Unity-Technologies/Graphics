@@ -11,12 +11,8 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.UI
 {
-    abstract class VFXNodeController : Controller<VFXModel>
+    abstract class VFXNodeController : VFXController<VFXModel>
     {
-        public VFXViewController viewController { get { return m_ViewController; } }
-
-        VFXViewController m_ViewController;
-
         protected List<VFXDataAnchorController> m_InputPorts = new List<VFXDataAnchorController>();
 
         protected List<VFXDataAnchorController> m_OutputPorts = new List<VFXDataAnchorController>();
@@ -31,10 +27,8 @@ namespace UnityEditor.VFX.UI
             get { return m_OutputPorts.AsReadOnly(); }
         }
 
-        public VFXNodeController(VFXModel model, VFXViewController viewController) : base(model)
+        public VFXNodeController(VFXModel model, VFXViewController viewController) : base(viewController, model)
         {
-            m_ViewController = viewController;
-
             var settings = model.GetSettings(true);
             m_Settings = new VFXSettingController[settings.Count()];
             int cpt = 0;
@@ -51,7 +45,7 @@ namespace UnityEditor.VFX.UI
             ModelChanged(model);
         }
 
-        protected virtual void NewInputSet()
+        protected virtual void NewInputSet(List<VFXDataAnchorController> newInputs)
         {
         }
 
@@ -73,18 +67,17 @@ namespace UnityEditor.VFX.UI
         protected override void ModelChanged(UnityEngine.Object obj)
         {
             var inputs = inputPorts;
-            List<VFXDataAnchorController> newAnchors = new List<VFXDataAnchorController>();
+            var newAnchors = new List<VFXDataAnchorController>();
 
             m_SyncingSlots = true;
             bool changed = UpdateSlots(newAnchors, slotContainer.inputSlots, true, true);
+            NewInputSet(newAnchors);
 
             foreach (var anchorController in m_InputPorts.Except(newAnchors))
             {
                 anchorController.OnDisable();
             }
             m_InputPorts = newAnchors;
-
-            NewInputSet();
 
 
             newAnchors = new List<VFXDataAnchorController>();
@@ -172,7 +165,7 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        bool UpdateSlots(List<VFXDataAnchorController> newAnchors, IEnumerable<VFXSlot> slotList, bool expanded, bool input)
+        protected virtual bool UpdateSlots(List<VFXDataAnchorController> newAnchors, IEnumerable<VFXSlot> slotList, bool expanded, bool input)
         {
             VFXSlot[] slots = slotList.ToArray();
             bool changed = false;

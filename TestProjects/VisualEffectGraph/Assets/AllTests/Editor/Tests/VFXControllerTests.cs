@@ -679,70 +679,30 @@ namespace UnityEditor.VFX.Test
                     return m_ViewController.allChildren.OfType<VFXOperatorController>().FirstOrDefault();
                 };
 
-            Action<Operator.ComponentMask, string> fnSetSetting = delegate(Operator.ComponentMask target, string mask)
-                {
-                    target.x = target.y = target.z = target.w = Operator.ComponentMask.Component.None;
-                    for (int i = 0; i < mask.Length; ++i)
-                    {
-                        var current = (Operator.ComponentMask.Component)Enum.Parse(typeof(Operator.ComponentMask.Component),  mask[i].ToString().ToUpper());
-                        if (i == 0)
-                        {
-                            target.x = current;
-                        }
-                        else if (i == 1)
-                        {
-                            target.y = current;
-                        }
-                        else if (i == 2)
-                        {
-                            target.z = current;
-                        }
-                        else if (i == 3)
-                        {
-                            target.w = current;
-                        }
-                    }
-                    target.Invalidate(VFXModel.InvalidationCause.kSettingChanged);
-                };
-
-            Func<Operator.ComponentMask, string> fnGetSetting = delegate(Operator.ComponentMask target)
-                {
-                    var value = "";
-                    if (target.x != Operator.ComponentMask.Component.None)
-                        value += target.x.ToString().ToLower();
-                    if (target.y != Operator.ComponentMask.Component.None)
-                        value += target.y.ToString().ToLower();
-                    if (target.z != Operator.ComponentMask.Component.None)
-                        value += target.z.ToString().ToLower();
-                    if (target.w != Operator.ComponentMask.Component.None)
-                        value += target.w.ToString().ToLower();
-                    return value;
-                };
-
-            var componentMaskDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "ComponentMask");
-            var componentMask = m_ViewController.AddVFXOperator(new Vector2(0, 0), componentMaskDesc);
+            var swizzleDesc = VFXLibrary.GetOperators().FirstOrDefault(o => o.name == "Swizzle");
+            var swizzle = m_ViewController.AddVFXOperator(new Vector2(0, 0), swizzleDesc);
 
             var maskList = new string[] { "xy", "yww", "xw", "z" };
             for (int i = 0; i < maskList.Length; ++i)
             {
                 var componentMaskController = fnFirstOperatorController();
                 Undo.IncrementCurrentGroup();
-                fnSetSetting(componentMaskController.model as Operator.ComponentMask, maskList[i]);
-                Assert.AreEqual(maskList[i], fnGetSetting(componentMaskController.model as Operator.ComponentMask));
+                (componentMaskController.model as Operator.Swizzle).SetSettingValue("mask", maskList[i]);
+                Assert.AreEqual(maskList[i], (componentMaskController.model as Operator.Swizzle).mask);
             }
 
             for (int i = maskList.Length - 1; i > 0; --i)
             {
                 Undo.PerformUndo();
                 var componentMaskController = fnFirstOperatorController();
-                Assert.AreEqual(maskList[i - 1], fnGetSetting(componentMaskController.model as Operator.ComponentMask));
+                Assert.AreEqual(maskList[i - 1], (componentMaskController.model as Operator.Swizzle).mask);
             }
 
             for (int i = 0; i < maskList.Length - 1; ++i)
             {
                 Undo.PerformRedo();
                 var componentMaskController = fnFirstOperatorController();
-                Assert.AreEqual(maskList[i + 1], fnGetSetting(componentMaskController.model as Operator.ComponentMask));
+                Assert.AreEqual(maskList[i + 1], (componentMaskController.model as Operator.Swizzle).mask);
             }
         }
 
@@ -826,7 +786,7 @@ namespace UnityEditor.VFX.Test
             Func<VFXContextController> fnSpawner = delegate()
                 {
                     var controller = fnContextController();
-                    return controller.FirstOrDefault(o => o.model.name.Contains("Spawner"));
+                    return controller.FirstOrDefault(o => o.model.name.Contains("Spawn"));
                 };
 
             Func<string, VFXContextController> fnEvent = delegate(string name)
@@ -852,7 +812,7 @@ namespace UnityEditor.VFX.Test
                     return m_ViewController.allChildren.OfType<VFXFlowEdgeController>().Count();
                 };
 
-            var contextSpawner = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Spawner"));
+            var contextSpawner = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Spawn"));
             var contextEvent = VFXLibrary.GetContexts().FirstOrDefault(o => o.name.Contains("Event"));
 
             m_ViewController.AddVFXContext(new Vector2(1, 1), contextSpawner);

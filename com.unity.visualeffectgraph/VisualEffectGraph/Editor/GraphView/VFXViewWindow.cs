@@ -38,7 +38,7 @@ namespace  UnityEditor.VFX.UI
 
         public static VFXViewWindow currentWindow;
 
-        [MenuItem("VFX Editor/Window")]
+        [MenuItem("Window/Visual Effects/Visual Effect Graph", false, 3010)]
         public static void ShowWindow()
         {
             GetWindow<VFXViewWindow>();
@@ -166,18 +166,26 @@ namespace  UnityEditor.VFX.UI
         void Update()
         {
             VFXViewController controller = graphView.controller;
-            if (controller != null && controller.model != null && controller.graph != null)
+            var filename = "No Asset";
+            if (controller != null)
             {
-                var graph = controller.graph;
-                var filename = m_AssetName;
-                if (!graph.saved)
+                controller.NotifyUpdate();
+                if (controller.model != null)
                 {
-                    filename += "*";
+                    var graph = controller.graph;
+                    if (graph != null)
+                    {
+                        filename = controller.model.name;
+                        if (!graph.saved)
+                        {
+                            filename += "*";
+                        }
+                        graph.RecompileIfNeeded(!autoCompile);
+                        controller.RecompileExpressionGraphIfNeeded();
+                    }
                 }
-                titleContent.text = filename;
-                graph.RecompileIfNeeded(!autoCompile);
-                controller.RecompileExpressionGraphIfNeeded();
             }
+            titleContent.text = filename;
         }
 
         [SerializeField]
