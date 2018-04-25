@@ -318,7 +318,7 @@ bool SSRT_FUNC(ScreenSpaceHiZRaymarch, SSRTID)(
     int minMipLevel = max(SSRT_SETTING(RayMinLevel, SSRTID), 0);
     int maxMipLevel = min(SSRT_SETTING(RayMaxLevel, SSRTID), int(_DepthPyramidScale.z));
     uint2 bufferSize = uint2(_DepthPyramidSize.xy);
-    uint maxIterations = min(input.maxIterations, SSRT_SETTING(RayMaxIterations, SSRTID));
+    uint maxIterations = min(input.maxIterations, uint(SSRT_SETTING(RayMaxIterations, SSRTID)));
 
     float3 startPositionSS;
     float3 raySS;
