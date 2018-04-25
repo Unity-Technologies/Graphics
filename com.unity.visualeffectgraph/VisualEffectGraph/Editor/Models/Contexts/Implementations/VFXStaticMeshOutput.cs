@@ -32,8 +32,8 @@ namespace UnityEditor.VFX
         {
             get
             {
-                yield return new VFXPropertyWithValue(new VFXProperty(typeof(Mesh), "mesh"));
-                yield return new VFXPropertyWithValue(new VFXProperty(typeof(Transform), "transform"));
+                yield return new VFXPropertyWithValue(new VFXProperty(typeof(Mesh), "mesh"), VFXResources.defaultResources.mesh);
+                yield return new VFXPropertyWithValue(new VFXProperty(typeof(Transform), "transform"), Transform.defaultValue);
                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), "subMeshMask"), uint.MaxValue);
 
                 if (shader != null)

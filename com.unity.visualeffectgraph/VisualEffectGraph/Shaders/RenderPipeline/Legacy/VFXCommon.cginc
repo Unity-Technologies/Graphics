@@ -36,12 +36,27 @@ float3 VFXGetViewWorldPosition()
     return UNITY_MATRIX_I_V._m03_m13_m23;
 }
 
+float4x4 VFXGetViewToWorldMatrix()
+{
+    return UNITY_MATRIX_I_V;
+}
+
 float4 VFXGetPOSSS(float4 posCS)
 {
     return ComputeScreenPos(posCS);
 }
 
-float VFXLinearEyeDepth(float4 posSS)
+float VFXSampleDepth(float4 posSS)
 {
-    return LinearEyeDepth(SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(posSS)));
+    return SAMPLE_DEPTH_TEXTURE_PROJ(_CameraDepthTexture, UNITY_PROJ_COORD(posSS));
+}
+
+float VFXLinearEyeDepth(float depth)
+{
+    return LinearEyeDepth(depth);
+}
+
+float4 VFXApplyShadowBias(float4 posCS)
+{
+    return UnityApplyLinearShadowBias(posCS);
 }

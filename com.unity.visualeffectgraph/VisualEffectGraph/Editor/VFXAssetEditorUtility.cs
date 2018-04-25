@@ -15,7 +15,7 @@ namespace UnityEditor
 
         public const string templateAssetName = "Simple Particle System.vfx";
 
-        [MenuItem("GameObject/Effects/Visual Effect", false, 10)]
+        [MenuItem("GameObject/Visual Effects/Visual Effect", false, 10)]
         public static void CreateVisualEffectGameObject(MenuCommand menuCommand)
         {
             GameObject go = new GameObject("Visual Effect");

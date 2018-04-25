@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Misc", experimental = true)]
+    [VFXInfo(category = "Math/Vector", experimental = true)]
     class AppendVectorNew : VFXOperatorNumericCascadedUnifiedNew
     {
         public override sealed string name { get { return "AppendVectorNew"; } }
@@ -28,14 +28,6 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        public override void UpdateOutputExpressions()
-        {
-            //< Basic implementation without unified/cascaded behavior
-            var inputExpressions = GetInputExpressions();
-            var outputExpressions = BuildExpression(inputExpressions.ToArray());
-            SetOutputExpressions(outputExpressions);
-        }
-
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var allComponent = inputExpression.SelectMany(e => VFXOperatorUtility.ExtractComponents(e))
@@ -51,6 +43,11 @@ namespace UnityEditor.VFX.Operator
                 return allComponent;
             }
             return new[] { new VFXExpressionCombine(allComponent) };
+        }
+
+        protected override VFXExpression ComposeExpression(VFXExpression a, VFXExpression b)
+        {
+            throw new NotImplementedException();
         }
     }
 }

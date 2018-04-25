@@ -2097,6 +2097,7 @@ MonoBehaviour:
   indirectDraw: 0
   preRefraction: 0
   targetFromAttributes: 1
+  useNativeLines: 0
 --- !u!114 &114443467981279648
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -6063,7 +6064,7 @@ VisualEffectAsset:
         index: 82
       - nameId: bounds_size
         index: 86
-      processor: {fileID: 7200000, guid: 6891c0dba67637542ad29bbad6651bfd, type: 3}
+      processor: {fileID: 7200000, guid: d6992d565a947ce409ea34329fbf195b, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -6092,7 +6093,7 @@ VisualEffectAsset:
       - nameId: gradient_c
         index: 83
       params: []
-      processor: {fileID: 7200000, guid: 97fa6338529ccea4f9f1a09bfa5371e6, type: 3}
+      processor: {fileID: 7200000, guid: 8619d283c10cfa148bb73046f007636e, type: 3}
     - type: 805306369
       buffers:
       - nameId: attributeBuffer
@@ -6107,7 +6108,7 @@ VisualEffectAsset:
       - nameId: localToWorld
         index: 78
       params: []
-      processor: {fileID: 7200000, guid: 137389943bebc584ab11f91ea5269d77, type: 3}
+      processor: {fileID: 7200000, guid: 080d84c5534162242a8a4a3b50d584cf, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -6126,7 +6127,7 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectDraw
         index: 1
-      processor: {fileID: 4800000, guid: 61387c8e3e4a7634ead52184e4f95ed0, type: 3}
+      processor: {fileID: 4800000, guid: 83456e74a217bd14d943ed2b6093737c, type: 3}
     - type: 1073741824
       buffers:
       - nameId: attributeBuffer
@@ -6149,13 +6150,15 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectDraw
         index: 1
-      processor: {fileID: 4800000, guid: 01f1909f080a27e43bfe78bba941a5fd, type: 3}
-    - type: 1073741825
+      processor: {fileID: 4800000, guid: d3d0b70124b57b34c80c6835ad7abaf7, type: 3}
+    - type: 1073741826
       buffers:
       - nameId: attributeBuffer
         index: 0
       - nameId: indirectBuffer
         index: 5
+      - nameId: deadListCount
+        index: 4
       values:
       - nameId: uniform_a
         index: 24
@@ -6174,7 +6177,7 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectDraw
         index: 1
-      processor: {fileID: 4800000, guid: 60a5235e155ffb74f8693cfcf47ab902, type: 3}
+      processor: {fileID: 4800000, guid: a8b7dce095f01164ba5d08a3bbd9862c, type: 3}
     - type: 1073741828
       buffers:
       - nameId: attributeBuffer
@@ -6201,7 +6204,7 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectDraw
         index: 1
-      processor: {fileID: 4800000, guid: ea39a0e55b47a5845823a59a8a64dd80, type: 3}
+      processor: {fileID: 4800000, guid: 91e3528f25be52348967050fdccef63a, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000

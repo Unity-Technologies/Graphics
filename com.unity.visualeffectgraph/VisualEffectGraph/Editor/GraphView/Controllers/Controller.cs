@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX.UI
 {
@@ -18,12 +19,16 @@ namespace UnityEditor.VFX.UI
             m_DisableCalled = true;
             foreach (var element in allChildren)
             {
+                Profiler.BeginSample(element.GetType().Name + ".OnDisable");
                 element.OnDisable();
+                Profiler.EndSample();
             }
         }
 
         public void RegisterHandler(IEventHandler handler)
         {
+            //Debug.Log("RegisterHandler  of " + handler.GetType().Name + " on " + GetType().Name );
+
             if (m_EventHandlers.Contains(handler))
                 Debug.LogError("Handler registered twice");
             else
@@ -47,7 +52,9 @@ namespace UnityEditor.VFX.UI
 
             foreach (var eventHandler in eventHandlers)
             {
+                Profiler.BeginSample("NotifyChange:" + eventHandler.GetType().Name);
                 NotifyEventHandler(eventHandler, eventID);
+                Profiler.EndSample();
             }
         }
 
