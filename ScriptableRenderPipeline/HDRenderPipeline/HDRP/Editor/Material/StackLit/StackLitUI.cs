@@ -91,9 +91,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         //protected const string kRefractionModel = "_RefractionModel";
         //protected MaterialProperty refractionSSRayModel = null;
         //protected const string kRefractionSSRayModel = "_RefractionSSRayModel";
-
-        protected MaterialProperty useLocalPlanarMapping = null;
-        protected const string k_UseLocalPlanarMapping = "_UseLocalPlanarMapping";
         #endregion
 
         // Add the properties into an array.
@@ -188,14 +185,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected override void FindMaterialProperties(MaterialProperty[] props)
         {
             //base.FindMaterialProperties(props);
-            useLocalPlanarMapping = FindProperty(k_UseLocalPlanarMapping, props);
             _materialProperties.OnFindProperty(props);
         }
 
         protected override void BaseMaterialPropertiesGUI()
         {
             base.BaseMaterialPropertiesGUI();
-            m_MaterialEditor.ShaderProperty(useLocalPlanarMapping, StylesStackLit.useLocalPlanarMapping);
             _baseMaterialProperties.OnGUI();
         }
 
@@ -334,8 +329,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 requireTriplanar = requireTriplanar || uvIndices[i] == TextureProperty.UVMapping.Triplanar;
             }
 
-            CoreUtils.SetKeyword(material, "_USE_UV2", requireUv2);
-            CoreUtils.SetKeyword(material, "_USE_UV3", requireUv3);
+            //CoreUtils.SetKeyword(material, "_USE_UV2", requireUv2);
+            //CoreUtils.SetKeyword(material, "_USE_UV3", requireUv3);
             CoreUtils.SetKeyword(material, "_USE_TRIPLANAR", requireTriplanar);
         }
     }
