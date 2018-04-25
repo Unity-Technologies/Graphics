@@ -11,7 +11,7 @@ namespace UnityEditor.VFX.UI
 {
     public static class VFXGizmoUtility
     {
-        static Dictionary<System.Type, VFXGizmo> s_DrawFunctions;
+        static Dictionary<System.Type, GizmoContext> s_DrawFunctions;
 
         internal class Property<T> : VFXGizmo.IProperty<T>
         {
@@ -98,7 +98,7 @@ namespace UnityEditor.VFX.UI
 
         static VFXGizmoUtility()
         {
-            s_DrawFunctions = new Dictionary<System.Type, VFXGizmo>();
+            s_DrawFunctions = new Dictionary<System.Type, GizmoContext>();
 
             foreach (Type type in typeof(VFXGizmoUtility).Assembly.GetTypes()) // TODO put all user assemblies instead
             {
@@ -106,7 +106,7 @@ namespace UnityEditor.VFX.UI
 
                 if (gizmoedType != null)
                 {
-                    s_DrawFunctions[gizmoedType] = (VFXGizmo)System.Activator.CreateInstance(type);
+                    s_DrawFunctions[gizmoedType] = new GizmoContext() { gizmo = (VFXGizmo)System.Activator.CreateInstance(type) };
                 }
             }
         }
@@ -134,26 +134,38 @@ namespace UnityEditor.VFX.UI
 
         public static VFXGizmo CreateGizmoInstance(Context context)
         {
-            VFXGizmo gizmo;
+            GizmoContext gizmo;
             if (s_DrawFunctions.TryGetValue(context.portType, out gizmo))
             {
-                return (VFXGizmo)System.Activator.CreateInstance(gizmo.GetType());
+                return (VFXGizmo)System.Activator.CreateInstance(gizmo.gizmo.GetType());
             }
             return null;
         }
 
+        struct GizmoContext
+        {
+            public Context lastContext;
+            public VFXGizmo gizmo;
+        }
+
         static internal void Draw(Context context, VisualEffect component)
         {
-            VFXGizmo gizmo;
+            GizmoContext gizmo;
             if (s_DrawFunctions.TryGetValue(context.portType, out gizmo))
             {
-                Draw(context,component,gizmo);
+                bool forceRegister = false;
+                if( gizmo.lastContext != context)
+                {
+                    forceRegister = true;
+                    s_DrawFunctions[context.portType] = new GizmoContext() { gizmo = gizmo.gizmo, lastContext = context };
+                }
+                Draw(context,component,gizmo.gizmo,forceRegister);
             }
         }
 
-        static internal void Draw(Context context, VisualEffect component, VFXGizmo gizmo)
+        static internal void Draw(Context context, VisualEffect component, VFXGizmo gizmo, bool forceRegister = false)
         {
-            if (context.Prepare())
+            if (context.Prepare() || forceRegister)
             {
                 gizmo.RegisterEditableMembers(context);
             }
