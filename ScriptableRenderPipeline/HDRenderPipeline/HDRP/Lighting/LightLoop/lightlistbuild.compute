@@ -1,4 +1,4 @@
-﻿// The implementation is based on the demo on "fine pruned tiled lighting" published in GPU Pro 7.
+// The implementation is based on the demo on "fine pruned tiled lighting" published in GPU Pro 7.
 // https://github.com/wolfgangfengel/GPU-Pro-7
 
 #pragma kernel TileLightListGen                             LIGHTLISTGEN=TileLightListGen
@@ -17,7 +17,7 @@
 #include "SortingComputeUtils.hlsl"
 #endif
 
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
 #define FINE_PRUNING_ENABLED
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS

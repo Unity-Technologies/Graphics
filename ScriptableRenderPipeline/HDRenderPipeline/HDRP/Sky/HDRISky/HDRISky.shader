@@ -1,4 +1,4 @@
-﻿Shader "Hidden/HDRenderPipeline/Sky/HDRISky"
+Shader "Hidden/HDRenderPipeline/Sky/HDRISky"
 {
     HLSLINCLUDE
 
@@ -6,7 +6,7 @@
     #pragma fragment Frag
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+    #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
     #include "CoreRP/ShaderLibrary/Common.hlsl"
     #include "CoreRP/ShaderLibrary/Color.hlsl"

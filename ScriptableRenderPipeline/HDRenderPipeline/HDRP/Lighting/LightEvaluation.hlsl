@@ -1,4 +1,4 @@
-﻿// This files include various function uses to evaluate lights
+// This files include various function uses to evaluate lights
 // To use deferred directional shadow with cascaded shadow map, 
 // it is required to define USE_DEFERRED_DIRECTIONAL_SHADOWS before including this files
 

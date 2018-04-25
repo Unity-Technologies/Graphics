@@ -1,4 +1,4 @@
-﻿Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
+Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
 {
     SubShader
     {
@@ -9,7 +9,7 @@
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -50,7 +50,7 @@
             {
                 // input.positionCS is SV_Position
                 float depth = LOAD_TEXTURE2D(_MainDepthTexture, input.positionCS.xy).x;
-                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP);
+                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
                 BSDFData bsdfData;
                 BakeLightingData bakeLightingData;

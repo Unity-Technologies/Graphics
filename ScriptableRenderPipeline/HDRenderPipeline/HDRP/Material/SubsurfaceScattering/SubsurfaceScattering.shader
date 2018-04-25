@@ -1,4 +1,4 @@
-﻿Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
+Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
 {
     Properties
     {
@@ -27,7 +27,7 @@
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal
             // #pragma enable_d3d11_debug_symbols
 
             #pragma vertex Vert
