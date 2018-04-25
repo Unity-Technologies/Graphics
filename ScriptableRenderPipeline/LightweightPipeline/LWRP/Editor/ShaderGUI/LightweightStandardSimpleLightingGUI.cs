@@ -159,7 +159,7 @@ public class LightweightStandardSimpleLightingGUI : LightweightShaderGUI
 
     private bool RequiresAlpha()
     {
-        SurfaceType surfaceType = (SurfaceType) surfaceTypeProp.floatValue;
+        SurfaceType surfaceType = (SurfaceType)surfaceTypeProp.floatValue;
         return alphaClipProp.floatValue > 0.0f || surfaceType == SurfaceType.Transparent;
     }
 
@@ -200,7 +200,7 @@ public class LightweightStandardSimpleLightingGUI : LightweightShaderGUI
             if (RequiresAlpha())
             {
                 GUI.enabled = false;
-                glossinessSourceProp.floatValue = (float)EditorGUILayout.Popup(Styles.glossinessSourceLabel, (int) GlossinessSource.SpecularAlpha, Styles.glossinessSourceNames);
+                glossinessSourceProp.floatValue = (float)EditorGUILayout.Popup(Styles.glossinessSourceLabel, (int)GlossinessSource.SpecularAlpha, Styles.glossinessSourceNames);
                 GUI.enabled = true;
             }
             else
@@ -215,7 +215,7 @@ public class LightweightStandardSimpleLightingGUI : LightweightShaderGUI
 
             EditorGUI.BeginChangeCheck();
             float shininess = EditorGUILayout.Slider(Styles.shininessLabel, shininessProp.floatValue,
-                kMinShininessValue, 1.0f);
+                    kMinShininessValue, 1.0f);
             if (EditorGUI.EndChangeCheck())
                 shininessProp.floatValue = shininess;
             EditorGUI.indentLevel -= 2;

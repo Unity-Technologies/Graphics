@@ -162,4 +162,3 @@ half4 SpatmapFragment(VertexOutput IN) : SV_TARGET
 }
 
 #endif // LIGHTWEIGHT_PASS_LIT_TERRAIN_INCLUDED
-
