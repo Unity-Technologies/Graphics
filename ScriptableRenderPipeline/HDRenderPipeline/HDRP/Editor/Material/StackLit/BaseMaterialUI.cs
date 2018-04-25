@@ -83,7 +83,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
         }
-         
+
         public class Property : BaseProperty
         {
             public string PropertyName;
@@ -99,7 +99,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 get { return m_MaterialProperty != null; }
             }
-        
+
             public float FloatValue
             {
                 get { return m_MaterialProperty.floatValue; }
@@ -338,6 +338,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 A,
             }
 
+            public enum PlanarSpace
+            {
+                World,
+                Local
+            }
+
             public enum UVMapping
             {
                 UV0,
@@ -358,7 +364,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public ComboProperty m_UvSetProperty;
 
-            public Property m_LocalOrWorldProperty;
+            public ComboProperty m_LocalOrWorldProperty;
 
             public Property m_ChannelProperty;
 
@@ -384,7 +390,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_TextureProperty = new TextureOneLineProperty(parent, propertyName, useConstantAsTint ? constantPropertyName : string.Empty, guiText, toolTip, isMandatory);
 
                 m_UvSetProperty = new ComboProperty(parent, propertyName + "UV", "UV Mapping", Enum.GetNames(typeof(UVMapping)), false);
-                m_LocalOrWorldProperty = new Property(parent, propertyName + "LocalOrWorld", "Local Space", "Whether Planar or Triplanar is using Local or World space.", false);
+                m_LocalOrWorldProperty = new ComboProperty(parent, propertyName + "UVLocal", "Local or world", Enum.GetNames(typeof(PlanarSpace)), false);
 
                 m_ChannelProperty = new ComboProperty(parent, propertyName + "Channel", "Channel", Enum.GetNames(typeof(Channel)), false);
 
@@ -431,12 +437,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         if (m_TextureProperty.TextureValue != null)
                         {
                             m_UvSetProperty.OnGUI();
-                            m_LocalOrWorldProperty.OnGUI();
                             m_ChannelProperty.OnGUI();
 
                             Parent.m_MaterialEditor.TextureScaleOffsetProperty(m_TextureProperty.m_MaterialProperty);
 
-                            m_LocalOrWorldProperty.OnGUI();
+                            if (m_UvSetProperty.FloatValue >= (float)UVMapping.PlanarXY)
+                            {
+                                m_LocalOrWorldProperty.OnGUI();
+                            }
 
                             if (m_RemapProperty.IsValid)
                             {
