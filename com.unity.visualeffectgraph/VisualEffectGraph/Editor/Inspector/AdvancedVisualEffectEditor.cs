@@ -230,7 +230,13 @@ namespace UnityEditor.VFX
                 }
                 else
                 {
+                    var prevType = context.context.portType;
                     context.context.SetParameter(m_GizmoedParameter);
+                    if( context.context.portType != prevType)
+                    {
+                        context.gizmo = VFXGizmoUtility.CreateGizmoInstance(context.context);
+                        m_ContextsPerComponent[(VisualEffect)target] = context;
+                    }
                 }
 
                 VFXGizmoUtility.Draw(context.context, (VisualEffect)target,context.gizmo);
@@ -478,6 +484,7 @@ namespace UnityEditor.VFX
             protected override void InternalPrepare()
             {
                 m_ValueCmdList.Clear();
+                m_Stack.Clear();
 
                 BuildValue(m_ValueCmdList, portType, m_Parameter.exposedName);
             }
