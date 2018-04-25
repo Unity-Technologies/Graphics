@@ -6,7 +6,7 @@ Shader "Hidden/HDRenderPipeline/Sky/HDRISky"
     #pragma fragment Frag
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal
+    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
     #include "CoreRP/ShaderLibrary/Common.hlsl"
     #include "CoreRP/ShaderLibrary/Color.hlsl"
