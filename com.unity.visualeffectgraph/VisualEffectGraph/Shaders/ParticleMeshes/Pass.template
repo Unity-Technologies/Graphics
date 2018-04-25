@@ -2,6 +2,9 @@
 #error VFX_VARYING_PS_INPUTS, VFX_VARYING_POSCS and VFX_VARYING_UV must be defined.
 #endif
 
+${VFXPerPassInclude}
+${VFXGeneratedBlockFunction}
+
 struct vs_input
 {
 	float3 pos : POSITION;

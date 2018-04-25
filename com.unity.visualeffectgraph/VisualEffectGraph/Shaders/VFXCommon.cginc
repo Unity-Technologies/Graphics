@@ -16,6 +16,8 @@
 #define SAMPLE_SPLINE_TANGENT(v,u) sampleSpline(v.y,u)
 #define INVERSE(m) Inv##m
 
+#define VFX_EPSILON 1e-5
+
 struct VFXSampler2D
 {
     Texture2D t;
