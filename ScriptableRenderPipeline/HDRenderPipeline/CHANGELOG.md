@@ -8,6 +8,9 @@
 - Disable per-object culling that was executed in C++ in HD whereas it was not used (Optimization)
 - Enable texture streaming debugging (was not working before 2018.2)
 
+### Changed, Removals and deprecations
+- Removed GlobalLightLoopSettings.maxPlanarReflectionProbes and instead use value of GlobalLightLoopSettings.planarReflectionProbeCacheSize
+
 ## [2018.1 undecided]
 
 ### Improvements
