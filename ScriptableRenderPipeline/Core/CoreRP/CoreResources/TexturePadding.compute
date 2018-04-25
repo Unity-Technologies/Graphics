@@ -1,4 +1,4 @@
-﻿#include "CoreRP/ShaderLibrary/Common.hlsl"
+#include "CoreRP/ShaderLibrary/Common.hlsl"
 
 #define DIRECTION_TOPRIGHT 0
 #define DIRECTION_TOP 1
@@ -8,7 +8,7 @@
 #pragma kernel KMainTop                 KERNEL_NAME=KMainTop        DIRECTION=DIRECTION_TOP
 #pragma kernel KMainRight               KERNEL_NAME=KMainRight      DIRECTION=DIRECTION_RIGHT
 
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
 // ------------------------------------------------
 // Texture buffers

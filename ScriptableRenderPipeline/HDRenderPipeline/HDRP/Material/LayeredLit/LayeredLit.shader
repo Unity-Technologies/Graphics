@@ -1,4 +1,4 @@
-﻿Shader "HDRenderPipeline/LayeredLit"
+Shader "HDRenderPipeline/LayeredLit"
 {
     Properties
     {
@@ -351,7 +351,7 @@
     HLSLINCLUDE
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+    #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
     #pragma shader_feature _ALPHATEST_ON
     #pragma shader_feature _DEPTHOFFSET_ON

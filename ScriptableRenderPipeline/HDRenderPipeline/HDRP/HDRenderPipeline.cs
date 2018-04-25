@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine.Rendering;
 using System;
 using System.Diagnostics;
@@ -377,7 +377,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return false;
             }
 
-#if !UNITY_SWITCH
             // VR is not supported currently in HD
             if (XRSettings.isDeviceActive)
             {
@@ -385,7 +384,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 return false;
             }
-#endif
 
             return true;
         }
@@ -400,8 +398,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12 ||
-                SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan ||
-                SystemInfo.graphicsDeviceType == (GraphicsDeviceType)22 /*GraphicsDeviceType.Switch*/)
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan)
             {
                 return true;
             }

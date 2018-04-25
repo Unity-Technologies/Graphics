@@ -1,4 +1,4 @@
-﻿Shader "Hidden/HDRenderPipeline/GGXConvolve"
+Shader "Hidden/HDRenderPipeline/GGXConvolve"
 {
     SubShader
     {
@@ -12,7 +12,7 @@
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
             #pragma multi_compile _ USE_MIS
 
