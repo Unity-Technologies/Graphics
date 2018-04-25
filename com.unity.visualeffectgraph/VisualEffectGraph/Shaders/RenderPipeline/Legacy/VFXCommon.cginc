@@ -1,7 +1,5 @@
 #include "UnityCG.cginc"
 
-#define VFX_EPSILON 1e-5
-
 UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
 
 float4 VFXTransformPositionWorldToClip(float3 posWS)
