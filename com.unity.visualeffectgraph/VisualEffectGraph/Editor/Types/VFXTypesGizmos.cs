@@ -14,9 +14,10 @@ namespace UnityEditor.VFX
         {
             m_Property = context.RegisterProperty<Position>("");
         }
+
         public override void OnDrawSpacedGizmo(Position position)
         {
-            if( m_Property.isEditable && PositionGizmo(ref position.position, true))
+            if (m_Property.isEditable && PositionGizmo(ref position.position, true))
             {
                 m_Property.SetValue(position);
             }
@@ -29,17 +30,18 @@ namespace UnityEditor.VFX
         {
             m_Property = context.RegisterProperty<DirectionType>("");
         }
+
         public override void OnDrawSpacedGizmo(DirectionType direction)
         {
             direction.direction.Normalize();
-            if( direction.direction == Vector3.zero)
+            if (direction.direction == Vector3.zero)
             {
                 direction.direction = Vector3.up;
             }
             Quaternion normalQuat = Quaternion.FromToRotation(Vector3.forward, direction.direction);
             Handles.ArrowHandleCap(0, Vector3.zero, normalQuat, HandleUtility.GetHandleSize(Vector3.zero) * 1, Event.current.type);
 
-            if( m_Property.isEditable && NormalGizmo(Vector3.zero, ref direction.direction, true))
+            if (m_Property.isEditable && NormalGizmo(Vector3.zero, ref direction.direction, true))
             {
                 direction.direction.Normalize();
                 m_Property.SetValue(direction);
@@ -62,9 +64,10 @@ namespace UnityEditor.VFX
         {
             m_Property = context.RegisterProperty<Vector>("");
         }
+
         public override void OnDrawSpacedGizmo(Vector vector)
         {
-            if( vector.vector == Vector3.zero)
+            if (vector.vector == Vector3.zero)
             {
                 vector.vector = Vector3.up;
             }
@@ -80,9 +83,9 @@ namespace UnityEditor.VFX
 
             if (m_Property.isEditable)
             {
-                Handles.DrawLine(Vector3.zero,vector.vector);
+                Handles.DrawLine(Vector3.zero, vector.vector);
                 EditorGUI.BeginChangeCheck();
-                Vector3 result = Handles.Slider(vector.vector, vector.vector, handleSize* 2 * HandleUtility.GetHandleSize(vector.vector), Handles.ConeHandleCap, 0);
+                Vector3 result = Handles.Slider(vector.vector, vector.vector, handleSize * 2 * HandleUtility.GetHandleSize(vector.vector), Handles.ConeHandleCap, 0);
                 if (EditorGUI.EndChangeCheck())
                 {
                     vector.vector = vector.vector.normalized * result.magnitude;

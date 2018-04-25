@@ -210,4 +210,3 @@ namespace UnityEditor.VFX.UI
         }
     }
 }
-

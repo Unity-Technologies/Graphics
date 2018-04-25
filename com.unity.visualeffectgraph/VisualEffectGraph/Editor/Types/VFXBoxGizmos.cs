@@ -23,16 +23,16 @@ namespace UnityEditor.VFX
             m_SizeZProperty = context.RegisterProperty<float>("size.z");
             m_AnglesProperty = context.RegisterProperty<Vector3>("angles");
         }
+
         public override void OnDrawSpacedGizmo(OrientedBox box)
         {
             Matrix4x4 rotate = Matrix4x4.Rotate(Quaternion.Euler(box.angles));
             Matrix4x4 fullTranform = Matrix4x4.Translate(box.center) * rotate * Matrix4x4.Translate(-box.center);
-            
-            VFXAABoxGizmo.DrawBoxSizeDataAnchorGizmo(new AABox(){center = box.center,size = box.size},component,this,m_CenterProperty,m_SizeXProperty, m_SizeYProperty, m_SizeZProperty, fullTranform);
+
+            VFXAABoxGizmo.DrawBoxSizeDataAnchorGizmo(new AABox() {center = box.center, size = box.size}, component, this, m_CenterProperty, m_SizeXProperty, m_SizeYProperty, m_SizeZProperty, fullTranform);
 
             RotationGizmo(box.center, box.angles, m_AnglesProperty, true);
         }
-
     }
 
     class VFXAABoxGizmo : VFXSpaceableGizmo<AABox>
@@ -48,13 +48,13 @@ namespace UnityEditor.VFX
             m_SizeYProperty = context.RegisterProperty<float>("size.y");
             m_SizeZProperty = context.RegisterProperty<float>("size.z");
         }
+
         public override void OnDrawSpacedGizmo(AABox box)
         {
-            DrawBoxSizeDataAnchorGizmo(box,component,this,m_CenterProperty, m_SizeXProperty, m_SizeYProperty, m_SizeZProperty, Matrix4x4.identity);
+            DrawBoxSizeDataAnchorGizmo(box, component, this, m_CenterProperty, m_SizeXProperty, m_SizeYProperty, m_SizeZProperty, Matrix4x4.identity);
         }
 
-
-        static bool TwoSidedSizeHandle(Color color,Vector3 otherMiddle, Vector3 middle, Vector3 center, IProperty<float> sizeProperty, IProperty<Vector3> centerProperty)
+        static bool TwoSidedSizeHandle(Color color, Vector3 otherMiddle, Vector3 middle, Vector3 center, IProperty<float> sizeProperty, IProperty<Vector3> centerProperty)
         {
             Handles.color = color;
             if (sizeProperty.isEditable)
@@ -65,14 +65,14 @@ namespace UnityEditor.VFX
             return false;
         }
 
-        static bool SizeHandle(Vector3 otherMiddle,Vector3 middle,Vector3 center, IProperty<float> sizeProperty, IProperty<Vector3> centerProperty)
+        static bool SizeHandle(Vector3 otherMiddle, Vector3 middle, Vector3 center, IProperty<float> sizeProperty, IProperty<Vector3> centerProperty)
         {
             EditorGUI.BeginChangeCheck();
             Vector3 middleResult = Handles.Slider(middle, (middle - center), handleSize * HandleUtility.GetHandleSize(middle), Handles.CubeHandleCap, 0);
 
             if (EditorGUI.EndChangeCheck())
             {
-                sizeProperty.SetValue( (middleResult - otherMiddle).magnitude);
+                sizeProperty.SetValue((middleResult - otherMiddle).magnitude);
                 if (centerProperty.isEditable)
                 {
                     centerProperty.SetValue((middleResult + otherMiddle) * 0.5f);
@@ -110,7 +110,7 @@ namespace UnityEditor.VFX
             points[7] = center + new Vector3(-size.x * 0.5f, -size.y * 0.5f, -size.z * 0.5f);
 
 
-            for(int i = 0 ; i < points.Length ; ++i)
+            for (int i = 0; i < points.Length; ++i)
             {
                 points[i] = centerMatrix.MultiplyPoint(points[i]);
             }

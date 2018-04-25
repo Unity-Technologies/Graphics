@@ -11,44 +11,44 @@ namespace UnityEditor.VFX.UI
 {
     public static class VFXGizmoUtility
     {
-        static Dictionary<System.Type,VFXGizmo> s_DrawFunctions;
+        static Dictionary<System.Type, VFXGizmo> s_DrawFunctions;
 
         internal class Property<T> : VFXGizmo.IProperty<T>
         {
-            public Property(IPropertyRMProvider controller,bool editable)
+            public Property(IPropertyRMProvider controller, bool editable)
             {
                 m_Controller = controller;
                 m_Editable = editable;
             }
+
             IPropertyRMProvider m_Controller;
 
             bool m_Editable;
 
             public bool isEditable
             {
-                get{ return m_Editable;}
+                get { return m_Editable; }
             }
             public void SetValue(T value)
             {
-                if( m_Editable)
+                if (m_Editable)
                     m_Controller.value = value;
             }
         }
 
         internal class NullProperty<T> : VFXGizmo.IProperty<T>
         {
-             public bool isEditable
+            public bool isEditable
             {
-                get{ return false;}
+                get { return false; }
             }
             public void SetValue(T value)
             {
             }
 
-
             public static NullProperty<T> defaultProperty = new NullProperty<T>();
         }
-        
+
         public abstract class Context : VFXGizmo.IContext
         {
             public abstract Type portType
@@ -65,7 +65,7 @@ namespace UnityEditor.VFX.UI
 
             public bool Prepare()
             {
-                if( m_Prepared)
+                if (m_Prepared)
                     return false;
                 m_Prepared = true;
                 m_Indeterminate = false;
@@ -84,7 +84,7 @@ namespace UnityEditor.VFX.UI
             }
 
 
-            protected Dictionary<string,object> m_PropertyCache = new Dictionary<string,object>();
+            protected Dictionary<string, object> m_PropertyCache = new Dictionary<string, object>();
 
             public abstract VFXGizmo.IProperty<T> RegisterProperty<T>(string member);
 
@@ -118,7 +118,7 @@ namespace UnityEditor.VFX.UI
 
         static Type GetGizmoType(Type type)
         {
-            if( type.IsAbstract ) 
+            if (type.IsAbstract)
                 return null;
             Type baseType = type.BaseType;
             while (baseType != null)
@@ -137,7 +137,7 @@ namespace UnityEditor.VFX.UI
             VFXGizmo gizmo;
             if (s_DrawFunctions.TryGetValue(context.portType, out gizmo))
             {
-                if(context.Prepare())
+                if (context.Prepare())
                 {
                     gizmo.RegisterEditableMembers(context);
                 }
@@ -149,9 +149,5 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
-
     }
 }
-
-
-

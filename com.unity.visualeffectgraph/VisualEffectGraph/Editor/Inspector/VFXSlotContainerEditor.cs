@@ -69,7 +69,6 @@ public class VFXSlotContainerEditor : Editor
         }
     }
 
-
     void OnSceneGUI(SceneView sv)
     {
         try // make sure we don't break the whole scene
@@ -97,7 +96,6 @@ public class VFXSlotContainerEditor : Editor
         }
         finally
         {
-
         }
     }
 

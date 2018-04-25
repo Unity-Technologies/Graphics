@@ -16,6 +16,7 @@ namespace UnityEditor.VFX
             m_CenterProperty = context.RegisterProperty<Vector3>("center");
             m_RadiusProperty = context.RegisterProperty<float>("radius");
         }
+
         public static readonly Vector3[] radiusDirections = new Vector3[] { Vector3.left, Vector3.up, Vector3.forward };
 
         public static void DrawSphere(Sphere sphere, VFXGizmo gizmo, IProperty<Vector3> centerProperty, IProperty<float> radiusProperty)
@@ -51,7 +52,7 @@ namespace UnityEditor.VFX
             Handles.DrawWireDisc(sphere.center, Vector3.up, sphere.radius);
             Handles.DrawWireDisc(sphere.center, Vector3.right, sphere.radius);
 
-            DrawSphere(sphere,this,m_CenterProperty,m_RadiusProperty);
+            DrawSphere(sphere, this, m_CenterProperty, m_RadiusProperty);
         }
     }
     class VFXArcSphereGizmo : VFXSpaceableGizmo<ArcSphere>
@@ -66,6 +67,7 @@ namespace UnityEditor.VFX
             m_RadiusProperty = context.RegisterProperty<float>("sphere.radius");
             m_ArcProperty = context.RegisterProperty<float>("arc");
         }
+
         public static readonly Vector3[] radiusDirections = new Vector3[] { Vector3.left, Vector3.up, Vector3.right, Vector3.down };
         public override void OnDrawSpacedGizmo(ArcSphere arcSphere)
         {
@@ -89,7 +91,7 @@ namespace UnityEditor.VFX
             // Draw 3rd circle around the arc
             Handles.DrawWireArc(center, -Vector3.forward, Vector3.up, arc, radius);
 
-            VFXSphereGizmo.DrawSphere(arcSphere.sphere,this,m_CenterProperty,m_RadiusProperty);
+            VFXSphereGizmo.DrawSphere(arcSphere.sphere, this, m_CenterProperty, m_RadiusProperty);
 
 
             ArcGizmo(center, radius, arc, m_ArcProperty, Quaternion.Euler(-90.0f, 0.0f, 0.0f), true);

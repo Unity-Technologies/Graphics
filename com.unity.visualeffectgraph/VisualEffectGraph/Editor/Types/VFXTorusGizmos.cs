@@ -19,11 +19,12 @@ namespace UnityEditor.VFX
             m_MinorRadiusProperty = context.RegisterProperty<float>("minorRadius");
             m_MajorRadiusProperty = context.RegisterProperty<float>("majorRadius");
         }
+
         public static readonly Vector3[] radiusDirections = new Vector3[] { Vector3.left, Vector3.up, Vector3.right, Vector3.down };
 
         public static readonly float[] angles = new float[] { 0.0f, 90.0f, 180.0f, 270.0f };
 
-        public static void DrawTorus(Torus torus,VFXGizmo gizmo, IProperty<Vector3> centerProperty, IProperty<float> minorRadiusProperty, IProperty<float> majorRadiusProperty, IEnumerable<float> angles)
+        public static void DrawTorus(Torus torus, VFXGizmo gizmo, IProperty<Vector3> centerProperty, IProperty<float> minorRadiusProperty, IProperty<float> majorRadiusProperty, IEnumerable<float> angles)
         {
             gizmo.PositionGizmo(torus.center, centerProperty, true);
 
@@ -95,7 +96,7 @@ namespace UnityEditor.VFX
             Handles.DrawWireDisc(torus.center, Vector3.forward, torus.majorRadius + torus.minorRadius);
             Handles.DrawWireDisc(torus.center, Vector3.forward, torus.majorRadius - torus.minorRadius);
 
-            DrawTorus(torus,this,m_CenterProperty, m_MinorRadiusProperty,m_MajorRadiusProperty, angles);
+            DrawTorus(torus, this, m_CenterProperty, m_MinorRadiusProperty, m_MajorRadiusProperty, angles);
         }
     }
     class VFXArcTorusGizmo : VFXSpaceableGizmo<ArcTorus>
@@ -112,6 +113,7 @@ namespace UnityEditor.VFX
             m_MajorRadiusProperty = context.RegisterProperty<float>("majorRadius");
             m_ArcProperty = context.RegisterProperty<float>("arc");
         }
+
         public static readonly Vector3[] radiusDirections = new Vector3[] { Vector3.left, Vector3.up, Vector3.right, Vector3.down };
         public override void OnDrawSpacedGizmo(ArcTorus arcTorus)
         {
@@ -127,7 +129,7 @@ namespace UnityEditor.VFX
             Handles.DrawWireArc(arcTorus.center, Vector3.back, Vector3.up, angle, arcTorus.majorRadius - arcTorus.minorRadius);
 
             Torus torus = new Torus() { center = arcTorus.center, minorRadius = arcTorus.minorRadius, majorRadius = arcTorus.majorRadius };
-            VFXTorusGizmo.DrawTorus(torus,this,m_CenterProperty, m_MinorRadiusProperty, m_MajorRadiusProperty, VFXTorusGizmo.angles.Concat(new float[] { arc }).Where(t=>t <= arc));
+            VFXTorusGizmo.DrawTorus(torus, this, m_CenterProperty, m_MinorRadiusProperty, m_MajorRadiusProperty, VFXTorusGizmo.angles.Concat(new float[] { arc }).Where(t => t <= arc));
 
             ArcGizmo(center, arcTorus.majorRadius, arc, m_ArcProperty, Quaternion.Euler(-90.0f, 0.0f, 0.0f), true);
         }

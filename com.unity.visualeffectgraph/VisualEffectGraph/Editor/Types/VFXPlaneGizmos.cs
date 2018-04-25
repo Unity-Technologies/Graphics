@@ -20,22 +20,22 @@ namespace UnityEditor.VFX
         public override void OnDrawSpacedGizmo(Plane plane)
         {
             Vector3 normal = plane.normal.normalized;
-            if( normal == Vector3.zero)
+            if (normal == Vector3.zero)
             {
                 normal = Vector3.up;
             }
 
-            var normalQuat = Quaternion.FromToRotation(Vector3.forward,plane.normal);
+            var normalQuat = Quaternion.FromToRotation(Vector3.forward, plane.normal);
 
             float size = 10;
 
             Vector3[] points = new Vector3[]
             {
-                new Vector3(size,size,0),
-                new Vector3(size,-size,0),
-                new Vector3(-size,-size,0),
-                new Vector3(-size,size,0),
-                new Vector3(size,size,0),
+                new Vector3(size, size, 0),
+                new Vector3(size, -size, 0),
+                new Vector3(-size, -size, 0),
+                new Vector3(-size, size, 0),
+                new Vector3(size, size, 0),
             };
 
             using (new Handles.DrawingScope(Handles.matrix * Matrix4x4.Translate(plane.position) * Matrix4x4.Rotate(normalQuat)))
@@ -50,7 +50,7 @@ namespace UnityEditor.VFX
             {
                 normal.Normalize();
                 m_NormalProperty.SetValue(normal);
-            }   
+            }
         }
     }
 }

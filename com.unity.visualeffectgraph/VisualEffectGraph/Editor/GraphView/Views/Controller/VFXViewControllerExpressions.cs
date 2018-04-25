@@ -12,7 +12,7 @@ namespace UnityEditor.VFX.UI
 {
     class VFXRecompileEvent : EventBase<VFXRecompileEvent>, IPropagatableEvent
     {
-        public bool valueOnly{get;private set;}
+        public bool valueOnly {get; private set; }
         public static VFXRecompileEvent GetPooled(bool valueOnly)
         {
             VFXRecompileEvent evt = GetPooled();
@@ -20,6 +20,7 @@ namespace UnityEditor.VFX.UI
 
             return evt;
         }
+
         public VFXViewController controller;
         protected override void Init()
         {
@@ -60,7 +61,7 @@ namespace UnityEditor.VFX.UI
                 cause != VFXModel.InvalidationCause.kExpressionInvalidated &&
                 cause != VFXModel.InvalidationCause.kParamChanged)
             {
-                if( cause != VFXModel.InvalidationCause.kParamChanged)
+                if (cause != VFXModel.InvalidationCause.kParamChanged)
                     ExpressionGraphDirtyParamOnly = false;
                 return;
             }

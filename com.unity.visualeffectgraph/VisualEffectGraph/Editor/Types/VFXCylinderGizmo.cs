@@ -21,7 +21,6 @@ namespace UnityEditor.VFX
 
         public override void OnDrawSpacedGizmo(Cylinder cylinder)
         {
-
             Vector3 topCap = cylinder.height * 0.5f * Vector3.up;
             Vector3 bottomCap = -cylinder.height * 0.5f * Vector3.up;
 
@@ -68,7 +67,7 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                if( m_HeightProperty.isEditable)
+                if (m_HeightProperty.isEditable)
                 {
                     foreach (var cap in new Vector3[] { topCap, bottomCap })
                     {

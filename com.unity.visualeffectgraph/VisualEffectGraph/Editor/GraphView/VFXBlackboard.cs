@@ -432,12 +432,11 @@ namespace  UnityEditor.VFX.UI
 
             AddStyleSheetPath("VFXBlackboard");
 
-            RegisterCallback<MouseDownEvent>(OnMouseClick,Capture.Capture);
+            RegisterCallback<MouseDownEvent>(OnMouseClick, Capture.Capture);
 
 
             clippingOptions = ClippingOptions.ClipContents;
         }
-
 
         void OnMouseClick(MouseDownEvent e)
         {
@@ -543,8 +542,7 @@ namespace  UnityEditor.VFX.UI
 
         public void OnMoved()
         {
-            BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.blackboard,GetPosition());
+            BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.blackboard, GetPosition());
         }
     }
-
 }

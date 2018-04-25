@@ -22,7 +22,7 @@ namespace UnityEditor.VFX
         public VFXProperty property     { get { return m_Property; } }
         public override string name     { get { return m_Property.name; } }
 
-        protected VFXSlot() {onModified += t=>ValueModified();}
+        protected VFXSlot() {onModified += t => ValueModified(); }
 
 
         FieldInfo m_FieldInfoCache;
@@ -30,7 +30,7 @@ namespace UnityEditor.VFX
         void ValueModified()
         {
             m_IsValueCached = false;
-            PropagateToChildren(t=>t.m_IsValueCached = false);
+            PropagateToChildren(t => t.m_IsValueCached = false);
         }
 
         [System.NonSerialized]
@@ -58,7 +58,7 @@ namespace UnityEditor.VFX
                     {
                         object parentValue = GetParent().value;
 
-                        if(m_FieldInfoCache == null)
+                        if (m_FieldInfoCache == null)
                         {
                             Type type = GetParent().property.type;
                             m_FieldInfoCache = type.GetField(name);
@@ -67,9 +67,9 @@ namespace UnityEditor.VFX
                         m_CachedValue = m_FieldInfoCache.GetValue(parentValue);
                     }
 
-                    if( m_CachedValue == null && !typeof(UnityEngine.Object).IsAssignableFrom(property.type))
+                    if (m_CachedValue == null && !typeof(UnityEngine.Object).IsAssignableFrom(property.type))
                     {
-                        Debug.Log("null value in slot of type"+property.type.UserFriendlyName());
+                        Debug.Log("null value in slot of type" + property.type.UserFriendlyName());
                     }
                 }
                 catch (Exception e)
@@ -91,7 +91,7 @@ namespace UnityEditor.VFX
                     {
                         object parentValue = GetParent().value;
 
-                        if(m_FieldInfoCache == null)
+                        if (m_FieldInfoCache == null)
                         {
                             Type type = GetParent().property.type;
                             m_FieldInfoCache = type.GetField(name);

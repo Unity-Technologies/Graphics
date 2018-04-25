@@ -29,7 +29,6 @@ namespace UnityEditor.VFX.UI
             RecreateResources();
         }
 
-
         void RecreateResources()
         {
             if (s_Mesh == null)
