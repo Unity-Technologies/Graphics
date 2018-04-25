@@ -120,9 +120,6 @@ namespace  UnityEditor.VFX.UI
         {
             if (graphView != null)
             {
-                m_ViewScale = graphView.contentViewContainer.transform.scale;
-                m_ViewPosition = graphView.contentViewContainer.transform.position;
-
                 graphView.UnregisterCallback<AttachToPanelEvent>(OnEnterPanel);
                 graphView.UnregisterCallback<DetachFromPanelEvent>(OnLeavePanel);
                 graphView.controller = null;
@@ -193,11 +190,5 @@ namespace  UnityEditor.VFX.UI
 
         [SerializeField]
         private VisualEffectAsset m_DisplayedAsset;
-
-        [SerializeField]
-        Vector3 m_ViewPosition;
-
-        [SerializeField]
-        Vector3 m_ViewScale;
     }
 }

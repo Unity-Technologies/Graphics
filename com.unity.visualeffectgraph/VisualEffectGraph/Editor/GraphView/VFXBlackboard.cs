@@ -109,7 +109,7 @@ namespace  UnityEditor.VFX.UI
 
         IPropertyRMProvider m_RangeProvider;
 
-        public void Clear()
+        public new void Clear()
         {
             m_ExposedProperty = null;
             m_RangeProperty = null;

@@ -690,14 +690,12 @@ namespace UnityEditor.VFX.UI
                 elementRemovedFromGroup = null;
 
                 var deletedControllers = rootNodes.Keys.Except(controller.nodes).ToArray();
-                bool changed = false;
 
                 foreach (var deletedController in deletedControllers)
                 {
                     SafeRemoveElement(rootNodes[deletedController]);
                     rootNodes.Remove(deletedController);
                     rootGroupNodeElements.Remove(deletedController);
-                    changed = true;
                 }
 
                 bool needOneListenToGeometry = !m_GeometrySet;
@@ -721,7 +719,6 @@ namespace UnityEditor.VFX.UI
                     {
                         throw new InvalidOperationException("Can't find right ui for controller" + newController.GetType().Name);
                     }
-                    changed = true;
                     AddElement(newElement);
                     rootNodes[newController] = newElement;
                     rootGroupNodeElements[newController] = newElement;

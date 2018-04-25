@@ -262,8 +262,6 @@ namespace UnityEditor.VFX.UI
             {
                 VFXNodeController nodeController = endNode.controller;
 
-                var compatibleAnchors = nodeController.viewController.GetCompatiblePorts(controller, null);
-
                 if (nodeController != null)
                 {
                     IVFXSlotContainer slotContainer = nodeController.slotContainer;

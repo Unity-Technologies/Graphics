@@ -714,7 +714,7 @@ namespace UnityEditor.VFX.UI
 
         public bool expandable { get { return false; } }
 
-        public string name { get { return "Value"; } }
+        public override string name { get { return "Value"; } }
 
         public object[] customAttributes { get { return new object[] {}; } }
 

@@ -209,7 +209,6 @@ namespace UnityEditor.VFX
 
             float radius = arcCone.radius0 > arcCone.radius1 ? arcCone.radius0 : arcCone.radius1;
             Vector3 center = arcCone.radius0 > arcCone.radius1 ? Vector3.zero : extremities.topCap;
-            Vector3 arcHandlePosition = arcDirection * radius;
 
             ArcGizmo(center, radius, arc, m_ArcProperty, Quaternion.identity, true);
         }

@@ -106,7 +106,6 @@ namespace UnityEditor.VFX
 
         private Contents m_Contents;
         private Styles m_Styles;
-        private bool m_ShowDebugStats = false;
 
         protected void OnEnable()
         {
