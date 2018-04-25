@@ -306,9 +306,15 @@ namespace UnityEditor.VFX
 
     interface IVFXOperatorNumericUnifiedNew
     {
-        int operandCount {get; }
+        int operandCount { get; }
         Type GetOperandType(int index);
         void SetOperandType(int index, Type type);
+    }
+
+    interface IVFXOperatorNumericUnifiedConstrained
+    {
+        IEnumerable<int> strictSameTypeSlotIndex { get; }
+        IEnumerable<int> allowExceptionalScalarSlotIndex { get; }
     }
 
     abstract class VFXOperatorNumericUnifiedNew : VFXOperatorNumericNew, IVFXOperatorNumericUnifiedNew

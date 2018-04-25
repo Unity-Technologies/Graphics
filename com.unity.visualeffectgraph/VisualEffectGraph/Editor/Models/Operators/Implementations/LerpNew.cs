@@ -1,9 +1,10 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math", experimental = true)]
-    class LerpNew : VFXOperatorNumericUniformNew
+    class LerpNew : VFXOperatorNumericUnifiedNew, IVFXOperatorNumericUnifiedConstrained
     {
         public class InputProperties
         {
@@ -16,6 +17,24 @@ namespace UnityEditor.VFX.Operator
         }
 
         public override sealed string name { get { return "LerpNew"; } }
+
+        public IEnumerable<int> strictSameTypeSlotIndex
+        {
+            get
+            {
+                yield return 0;
+                yield return 1;
+                yield return 2;
+            }
+        }
+
+        public IEnumerable<int> allowExceptionalScalarSlotIndex
+        {
+            get
+            {
+                yield return 2;
+            }
+        }
 
         protected override sealed ValidTypeRule typeFilter { get { return ValidTypeRule.allowEverythingExceptInteger; } }
 
