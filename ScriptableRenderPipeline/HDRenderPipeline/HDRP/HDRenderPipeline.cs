@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.Experimental.GlobalIllumination;
+using UnityEngine.XR;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -32,6 +33,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         };
 
         readonly HDRenderPipelineAsset m_Asset;
+        public HDRenderPipelineAsset asset { get { return m_Asset; } }
 
         DiffusionProfileSettings m_InternalSSSAsset;
         public DiffusionProfileSettings diffusionProfileSettings
@@ -93,17 +95,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RenderTargetIdentifier[] m_MRTCache2 = new RenderTargetIdentifier[2];
 
         // 'm_CameraColorBuffer' does not contain diffuse lighting of SSS materials until the SSS pass. It is stored within 'm_CameraSssDiffuseLightingBuffer'.
-        RTHandle m_CameraColorBuffer;
-        RTHandle m_CameraSssDiffuseLightingBuffer;
+        RTHandleSystem.RTHandle m_CameraColorBuffer;
+        RTHandleSystem.RTHandle m_CameraSssDiffuseLightingBuffer;
 
-        RTHandle m_CameraDepthStencilBuffer;
-        RTHandle m_CameraDepthBufferCopy;
-        RTHandle m_CameraStencilBufferCopy;
+        RTHandleSystem.RTHandle m_CameraDepthStencilBuffer;
+        RTHandleSystem.RTHandle m_CameraDepthBufferCopy;
+        RTHandleSystem.RTHandle m_CameraStencilBufferCopy;
 
-        RTHandle m_VelocityBuffer;
-        RTHandle m_DeferredShadowBuffer;
-        RTHandle m_AmbientOcclusionBuffer;
-        RTHandle m_DistortionBuffer;
+        RTHandleSystem.RTHandle m_VelocityBuffer;
+        RTHandleSystem.RTHandle m_DeferredShadowBuffer;
+        RTHandleSystem.RTHandle m_AmbientOcclusionBuffer;
+        RTHandleSystem.RTHandle m_DistortionBuffer;
 
         // The pass "SRPDefaultUnlit" is a fall back to legacy unlit rendering and is required to support unity 2d + unity UI that render in the scene.
         ShaderPassName[] m_ForwardAndForwardOnlyPassNames = { new ShaderPassName(), new ShaderPassName(), HDShaderPassNames.s_SRPDefaultUnlitName };
@@ -145,10 +147,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_CurrentHeight;
 
         // Use to detect frame changes
-        int m_FrameCount;
+        uint  m_FrameCount;
+        float m_LastTime, m_Time;
 
         public int GetCurrentShadowCount() { return m_LightLoop.GetCurrentShadowCount(); }
         public int GetShadowAtlasCount() { return m_LightLoop.GetShadowAtlasCount(); }
+        public int GetDecalAtlasMipCount()
+        {
+            int highestDim = Math.Max(renderPipelineSettings.decalSettings.atlasWidth, renderPipelineSettings.decalSettings.atlasHeight);
+            return (int)Math.Log(highestDim, 2);
+        }
+
         public int GetShadowSliceCount(uint atlasIndex) { return m_LightLoop.GetShadowSliceCount(atlasIndex); }
 
         readonly SkyManager m_SkyManager = new SkyManager();
@@ -162,14 +171,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public DebugDisplaySettings debugDisplaySettings { get { return m_DebugDisplaySettings; } }
         static DebugDisplaySettings s_NeutralDebugDisplaySettings = new DebugDisplaySettings();
         DebugDisplaySettings m_CurrentDebugDisplaySettings;
-        RTHandle                        m_DebugColorPickerBuffer;
-        RTHandle                        m_DebugFullScreenTempBuffer;
+        RTHandleSystem.RTHandle         m_DebugColorPickerBuffer;
+        RTHandleSystem.RTHandle         m_DebugFullScreenTempBuffer;
         bool                            m_FullScreenDebugPushed;
         bool                            m_ValidAPI; // False by default mean we render normally, true mean we don't render anything
 
         public Material GetBlitMaterial() { return m_Blit; }
 
         FrameSettings m_FrameSettings; // Init every frame
+
+        ComputeBuffer m_DebugScreenSpaceTracingData = null;
+        ScreenSpaceTracingDebug[] m_DebugScreenSpaceTracingDataArray = new ScreenSpaceTracingDebug[1];
 
         public HDRenderPipeline(HDRenderPipelineAsset asset)
         {
@@ -180,7 +192,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ValidAPI = false;
 
                 return ;
-            }            
+            }
 
             m_Asset = asset;
             m_GPUCopy = new GPUCopy(asset.renderPipelineResources.copyChannelCS);
@@ -245,6 +257,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // We don't need the debug of Scene View at runtime (each camera have its own debug settings)
             FrameSettings.RegisterDebug("Scene View", m_Asset.GetFrameSettings());
 #endif
+            m_DebugScreenSpaceTracingData = new ComputeBuffer(1, System.Runtime.InteropServices.Marshal.SizeOf(typeof(ScreenSpaceTracingDebug)));
 
             InitializeRenderTextures();
 
@@ -259,7 +272,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Initial state of the RTHandle system.
             // Tells the system that we will require MSAA or not so that we can avoid wasteful render texture allocation.
             // TODO: Might want to initialize to at least the window resolution to avoid un-necessary re-alloc in the player
-            RTHandle.Initialize(1, 1, m_Asset.renderPipelineSettings.supportMSAA, m_Asset.renderPipelineSettings.msaaSampleCount);
+            RTHandles.Initialize(1, 1, m_Asset.renderPipelineSettings.supportMSAA, m_Asset.renderPipelineSettings.msaaSampleCount);
 
             if(!m_Asset.renderPipelineSettings.supportForwardOnly)
                 m_GbufferManager.CreateBuffers();
@@ -267,42 +280,40 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_Asset.renderPipelineSettings.supportDBuffer)
                 m_DbufferManager.CreateBuffers();
 
-            m_BufferPyramid.CreateBuffers();
-
             m_SSSBufferManager.InitSSSBuffers(m_GbufferManager, m_Asset.renderPipelineSettings);
 
-            m_CameraColorBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB : false, enableRandomWrite: true, enableMSAA: true, name : "CameraColor");
-            m_CameraSssDiffuseLightingBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.RGB111110Float, sRGB: false, enableRandomWrite: true, enableMSAA: true, name: "CameraSSSDiffuseLighting");
+            m_CameraColorBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB : false, enableRandomWrite: true, enableMSAA: true, name : "CameraColor");
+            m_CameraSssDiffuseLightingBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.RGB111110Float, sRGB: false, enableRandomWrite: true, enableMSAA: true, name: "CameraSSSDiffuseLighting");
 
-            m_CameraDepthStencilBuffer = RTHandle.Alloc(Vector2.one, depthBufferBits: DepthBits.Depth24, colorFormat: RenderTextureFormat.Depth, filterMode: FilterMode.Point, bindTextureMS: true, enableMSAA: true, name: "CameraDepthStencil");
+            m_CameraDepthStencilBuffer = RTHandles.Alloc(Vector2.one, depthBufferBits: DepthBits.Depth24, colorFormat: RenderTextureFormat.Depth, filterMode: FilterMode.Point, bindTextureMS: true, enableMSAA: true, name: "CameraDepthStencil");
 
             if (NeedDepthBufferCopy())
             {
-                m_CameraDepthBufferCopy = RTHandle.Alloc(Vector2.one, depthBufferBits: DepthBits.Depth24, colorFormat: RenderTextureFormat.Depth, filterMode: FilterMode.Point, bindTextureMS: true, enableMSAA: true, name: "CameraDepthStencilCopy");
+                m_CameraDepthBufferCopy = RTHandles.Alloc(Vector2.one, depthBufferBits: DepthBits.Depth24, colorFormat: RenderTextureFormat.Depth, filterMode: FilterMode.Point, bindTextureMS: true, enableMSAA: true, name: "CameraDepthStencilCopy");
             }
 
             // Technically we won't need this buffer in some cases, but nothing that we can determine at init time.
-            m_CameraStencilBufferCopy = RTHandle.Alloc(Vector2.one, depthBufferBits: DepthBits.None, colorFormat: RenderTextureFormat.R8, sRGB: false, filterMode: FilterMode.Point, enableMSAA: true, name: "CameraStencilCopy"); // DXGI_FORMAT_R8_UINT is not supported by Unity
+            m_CameraStencilBufferCopy = RTHandles.Alloc(Vector2.one, depthBufferBits: DepthBits.None, colorFormat: RenderTextureFormat.R8, sRGB: false, filterMode: FilterMode.Point, enableMSAA: true, name: "CameraStencilCopy"); // DXGI_FORMAT_R8_UINT is not supported by Unity
 
             if (m_Asset.renderPipelineSettings.supportSSAO)
             {
-                m_AmbientOcclusionBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Bilinear, colorFormat: RenderTextureFormat.R8, sRGB: false, enableRandomWrite: true, name: "AmbientOcclusion");
+                m_AmbientOcclusionBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Bilinear, colorFormat: RenderTextureFormat.R8, sRGB: false, enableRandomWrite: true, name: "AmbientOcclusion");
             }
 
             if (m_Asset.renderPipelineSettings.supportMotionVectors)
             {
-                m_VelocityBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: Builtin.GetVelocityBufferFormat(), sRGB: Builtin.GetVelocityBufferSRGBFlag(), enableMSAA: true, name: "Velocity");
+                m_VelocityBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: Builtin.GetVelocityBufferFormat(), sRGB: Builtin.GetVelocityBufferSRGBFlag(), enableMSAA: true, name: "Velocity");
             }
 
-            m_DistortionBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: Builtin.GetDistortionBufferFormat(), sRGB: Builtin.GetDistortionBufferSRGBFlag(), name: "Distortion");
+            m_DistortionBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: Builtin.GetDistortionBufferFormat(), sRGB: Builtin.GetDistortionBufferSRGBFlag(), name: "Distortion");
 
             // TODO: For MSAA, we'll need to add a Draw path in order to support MSAA properly
-            m_DeferredShadowBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGB32, sRGB: false, enableRandomWrite: true, name: "DeferredShadow");
+            m_DeferredShadowBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGB32, sRGB: false, enableRandomWrite: true, name: "DeferredShadow");
 
             if (Debug.isDebugBuild)
             {
-                m_DebugColorPickerBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, name: "DebugColorPicker");
-                m_DebugFullScreenTempBuffer = RTHandle.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, name: "DebugFullScreen");
+                m_DebugColorPickerBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, name: "DebugColorPicker");
+                m_DebugFullScreenTempBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, name: "DebugFullScreen");
             }
         }
 
@@ -312,20 +323,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DbufferManager.DestroyBuffers();
             m_BufferPyramid.DestroyBuffers();
 
-            RTHandle.Release(m_CameraColorBuffer);
-            RTHandle.Release(m_CameraSssDiffuseLightingBuffer);
+            RTHandles.Release(m_CameraColorBuffer);
+            RTHandles.Release(m_CameraSssDiffuseLightingBuffer);
 
-            RTHandle.Release(m_CameraDepthStencilBuffer);
-            RTHandle.Release(m_CameraDepthBufferCopy);
-            RTHandle.Release(m_CameraStencilBufferCopy);
+            RTHandles.Release(m_CameraDepthStencilBuffer);
+            RTHandles.Release(m_CameraDepthBufferCopy);
+            RTHandles.Release(m_CameraStencilBufferCopy);
 
-            RTHandle.Release(m_AmbientOcclusionBuffer);
-            RTHandle.Release(m_VelocityBuffer);
-            RTHandle.Release(m_DistortionBuffer);
-            RTHandle.Release(m_DeferredShadowBuffer);
+            RTHandles.Release(m_AmbientOcclusionBuffer);
+            RTHandles.Release(m_VelocityBuffer);
+            RTHandles.Release(m_DistortionBuffer);
+            RTHandles.Release(m_DeferredShadowBuffer);
 
-            RTHandle.Release(m_DebugColorPickerBuffer);
-            RTHandle.Release(m_DebugFullScreenTempBuffer);
+            RTHandles.Release(m_DebugColorPickerBuffer);
+            RTHandles.Release(m_DebugFullScreenTempBuffer);
+
+            m_DebugScreenSpaceTracingData.Release();
+
+            HDCamera.CleanUnused();
         }
 
 
@@ -364,12 +379,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (!IsSupportedPlatform())
             {
-                Debug.LogError("Platform " + SystemInfo.operatingSystem + " with device " + SystemInfo.graphicsDeviceType.ToString() + " is not supported, no rendering will occur");
+                CoreUtils.DisplayUnsupportedAPIMessage();
 
-#if UNITY_EDITOR
-                foreach (UnityEditor.SceneView sv in Resources.FindObjectsOfTypeAll(typeof(UnityEditor.SceneView)))
-                    sv.ShowNotification(new GUIContent("Platform " + SystemInfo.operatingSystem + " with device " + SystemInfo.graphicsDeviceType.ToString() + " is not supported, no rendering will occur"));
-#endif                
+                return false;
+            }
+
+            // VR is not supported currently in HD
+            if (XRSettings.isDeviceActive)
+            {
+                CoreUtils.DisplayUnsupportedXRMessage();
 
                 return false;
             }
@@ -379,6 +397,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         bool IsSupportedPlatform()
         {
+            // Note: If you add new platform in this function, think about adding support when building the player to in HDRPCustomBuildProcessor.cs
+
             if (!SystemInfo.supportsComputeShaders)
                 return false;
 
@@ -516,7 +536,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Warning: (resolutionChanged == false) if you open a new Editor tab of the same size!
-            m_VolumetricLightingSystem.ResizeVBuffer(hdCamera, hdCamera.actualWidth, hdCamera.actualHeight);
+            m_VolumetricLightingSystem.ResizeVBufferAndUpdateProperties(hdCamera, m_FrameCount);
 
             // update recorded window resolution
             m_CurrentWidth = hdCamera.actualWidth;
@@ -527,15 +547,56 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             using (new ProfilingSample(cmd, "Push Global Parameters", CustomSamplerId.PushGlobalParameters.GetSampler()))
             {
-                hdCamera.SetupGlobalParams(cmd);
-                if (m_FrameSettings.enableStereo)
-                    hdCamera.SetupGlobalStereoParams(cmd);
-
+                // Set up UnityPerFrame CBuffer.
                 m_SSSBufferManager.PushGlobalParams(cmd, sssParameters, m_FrameSettings);
 
                 m_DbufferManager.PushGlobalParams(cmd, m_FrameSettings);
 
-                m_VolumetricLightingSystem.PushGlobalParams(hdCamera, cmd);
+                m_VolumetricLightingSystem.PushGlobalParams(hdCamera, cmd, m_FrameCount);
+
+                var ssRefraction = VolumeManager.instance.stack.GetComponent<ScreenSpaceRefraction>()
+                    ?? ScreenSpaceRefraction.@default;
+                ssRefraction.PushShaderParameters(cmd);
+
+                // Set up UnityPerView CBuffer.
+                hdCamera.SetupGlobalParams(cmd, m_Time, m_LastTime);
+                if (m_FrameSettings.enableStereo) hdCamera.SetupGlobalStereoParams(cmd);
+
+                var previousDepthPyramidRT = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.DepthPyramid);
+                if (previousDepthPyramidRT != null)
+                {
+                    cmd.SetGlobalTexture(HDShaderIDs._DepthPyramidTexture, previousDepthPyramidRT);
+                    cmd.SetGlobalVector(HDShaderIDs._DepthPyramidSize, new Vector4(
+                        previousDepthPyramidRT.referenceSize.x,
+                        previousDepthPyramidRT.referenceSize.y,
+                        1f / previousDepthPyramidRT.referenceSize.x,
+                        1f / previousDepthPyramidRT.referenceSize.y
+                    ));
+                    cmd.SetGlobalVector(HDShaderIDs._DepthPyramidScale, new Vector4(
+                        previousDepthPyramidRT.referenceSize.x / (float)previousDepthPyramidRT.rt.width,
+                        previousDepthPyramidRT.referenceSize.y / (float)previousDepthPyramidRT.rt.height,
+                        Mathf.Log(Mathf.Min(previousDepthPyramidRT.rt.width, previousDepthPyramidRT.rt.height), 2),
+                        0.0f
+                    ));
+                }
+
+                var previousColorPyramidRT = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorPyramid);
+                if (previousColorPyramidRT != null)
+                {
+                    cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, previousColorPyramidRT);
+                    cmd.SetGlobalVector(HDShaderIDs._ColorPyramidSize, new Vector4(
+                        previousColorPyramidRT.referenceSize.x,
+                        previousColorPyramidRT.referenceSize.y,
+                        1f / previousColorPyramidRT.referenceSize.x,
+                        1f / previousColorPyramidRT.referenceSize.y
+                    ));
+                    cmd.SetGlobalVector(HDShaderIDs._ColorPyramidScale, new Vector4(
+                        previousColorPyramidRT.referenceSize.x / (float)previousColorPyramidRT.rt.width,
+                        previousColorPyramidRT.referenceSize.y / (float)previousColorPyramidRT.rt.height,
+                        Mathf.Log(Mathf.Min(previousColorPyramidRT.rt.width, previousColorPyramidRT.rt.height), 2),
+                        0.0f
+                    ));
+                }
             }
         }
 
@@ -559,7 +620,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return m_LightLoop.GetFeatureVariantsEnabled();
         }
 
-        RTHandle GetDepthTexture()
+        RTHandleSystem.RTHandle GetDepthTexture()
         {
             return NeedDepthBufferCopy() ? m_CameraDepthBufferCopy : m_CameraDepthStencilBuffer;
         }
@@ -608,10 +669,39 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             base.Render(renderContext, cameras);
             RenderPipeline.BeginFrameRendering(cameras);
 
-            if (m_FrameCount != Time.frameCount)
             {
-                HDCamera.CleanUnused();
-                m_FrameCount = Time.frameCount;
+                // SRP.Render() can be called several times per frame.
+                // Also, most Time variables do not consistently update in the Scene View.
+                // This makes reliable detection of the start of the new frame VERY hard.
+                // One of the exceptions is 'Time.realtimeSinceStartup'.
+                // Therefore, outside of the Play Mode we update the time at 60 fps,
+                // and in the Play Mode we rely on 'Time.frameCount'.
+                float t = Time.realtimeSinceStartup;
+                uint  c = (uint)Time.frameCount;
+
+                bool newFrame;
+
+                if (Application.isPlaying)
+                {
+                    newFrame = m_FrameCount != c;
+
+                    m_FrameCount = c;
+                }
+                else
+                {
+                    newFrame = (t - m_Time) > 0.0166f;
+
+                    if (newFrame) m_FrameCount++;
+                }
+
+                if (newFrame)
+                {
+                    HDCamera.CleanUnused();
+
+                    // Make sure both are never 0.
+                    m_LastTime = (m_Time > 0) ? m_Time : t;
+                    m_Time  = t;
+                }
             }
 
             // TODO: Render only visible probes
@@ -630,10 +720,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     continue;
 
                 RenderPipeline.BeginCameraRendering(camera);
-
-                if (camera.cameraType != CameraType.Reflection)
-                    // TODO: Render only visible probes
-                    ReflectionSystem.RenderAllRealtimeViewerDependentProbesFor(ReflectionProbeType.PlanarReflection, camera);
 
                 // First, get aggregate of frame settings base on global settings, camera frame settings and debug settings
                 // Note: the SceneView camera will never have additionalCameraData
@@ -662,6 +748,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // This is the main command buffer used for the frame.
                 var cmd = CommandBufferPool.Get("");
+
+                // Specific pass to simply display the content of the camera buffer if users have fill it themselves (like video player)
+                if (additionalCameraData && additionalCameraData.renderingPath == HDAdditionalCameraData.RenderingPath.FullscreenPassthrough)
+                {
+                    renderContext.ExecuteCommandBuffer(cmd);
+                    CommandBufferPool.Release(cmd);
+                    renderContext.Submit();
+                    continue;
+                }
+
+                if (camera.cameraType != CameraType.Reflection)
+                    // TODO: Render only visible probes
+                    ReflectionSystem.RenderAllRealtimeViewerDependentProbesFor(ReflectionProbeType.PlanarReflection, camera);
 
                 // Init material if needed
                 // TODO: this should be move outside of the camera loop but we have no command buffer, ask details to Tim or Julien to do this
@@ -732,7 +831,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     var postProcessLayer = camera.GetComponent<PostProcessLayer>();
 
                     // Disable post process if we enable debug mode or if the post process layer is disabled
-                    if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() || !CoreUtils.IsPostProcessingActive(postProcessLayer))
+                    if (m_CurrentDebugDisplaySettings.IsDebugDisplayRemovePostprocess() || !CoreUtils.IsPostProcessingActive(postProcessLayer))
                     {
                         m_FrameSettings.enablePostprocess = false;
                     }
@@ -786,8 +885,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         {
                             DecalSystem.instance.EndCull();
                             m_DbufferManager.vsibleDecalCount = DecalSystem.m_DecalsVisibleThisFrame;
-                            DecalSystem.instance.UpdateCachedMaterialData(cmd);     // textures, alpha or fade distances could've changed
-                            DecalSystem.instance.CreateDrawData();                  // prepare data is separate from draw
+                            DecalSystem.instance.UpdateCachedMaterialData();    // textures, alpha or fade distances could've changed
+                            DecalSystem.instance.CreateDrawData();              // prepare data is separate from draw
+                            DecalSystem.instance.UpdateTextureAtlas(cmd);       // as this is only used for transparent pass, would've been nice not to have to do this if no transparent renderers are visible, needs to happen after CreateDrawData
                         }
                     }
                     renderContext.SetupCameraProperties(camera, m_FrameSettings.enableStereo);
@@ -797,24 +897,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // TODO: Find a correct place to bind these material textures
                     // We have to bind the material specific global parameters in this mode
                     m_MaterialList.ForEach(material => material.Bind());
-
-                    if (additionalCameraData && additionalCameraData.renderingPath == HDAdditionalCameraData.RenderingPath.Unlit)
-                    {
-                        // TODO: Add another path dedicated to planar reflection / real time cubemap that implement simpler lighting
-                        // It is up to the users to only send unlit object for this camera path
-
-                        using (new ProfilingSample(cmd, "Forward", CustomSamplerId.Forward.GetSampler()))
-                        {
-                            HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer, ClearFlag.Color | ClearFlag.Depth);
-                            RenderOpaqueRenderList(m_CullResults, camera, renderContext, cmd, HDShaderPassNames.s_ForwardName);
-                            RenderTransparentRenderList(m_CullResults, camera, renderContext, cmd, HDShaderPassNames.s_ForwardName);
-                        }
-
-                        renderContext.ExecuteCommandBuffer(cmd);
-                        CommandBufferPool.Release(cmd);
-                        renderContext.Submit();
-                        continue;
-                    }
 
                     // Frustum cull density volumes on the CPU. Can be performed as soon as the camera is set up.
                     DensityVolumeList densityVolumes = m_VolumetricLightingSystem.PrepareVisibleDensityVolumeList(hdCamera, cmd);
@@ -859,7 +941,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
                     UpdateSkyEnvironment(hdCamera, cmd);
 
-                    RenderPyramidDepth(hdCamera, cmd, renderContext, FullScreenDebugMode.DepthPyramid);
+                    RenderDepthPyramid(hdCamera, cmd, renderContext, FullScreenDebugMode.DepthPyramid);
 
                     StopStereoRendering(renderContext, hdCamera.camera);
 
@@ -909,9 +991,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         using (new ProfilingSample(cmd, "Render shadows", CustomSamplerId.RenderShadows.GetSampler()))
                         {
+                            // This call overwrites camera properties passed to the shader system.
                             m_LightLoop.RenderShadows(renderContext, cmd, m_CullResults);
-                            // TODO: check if statement below still apply
-                            renderContext.SetupCameraProperties(camera, m_FrameSettings.enableStereo); // Need to recall SetupCameraProperties after RenderShadows as it modify our view/proj matrix
+
+                            // Overwrite camera properties set during the shadow pass with the original camera properties.
+                            renderContext.SetupCameraProperties(camera, m_FrameSettings.enableStereo);
+                            hdCamera.SetupGlobalParams(cmd, m_Time, m_LastTime);
+                            if (m_FrameSettings.enableStereo) hdCamera.SetupGlobalStereoParams(cmd);
                         }
 
                         using (new ProfilingSample(cmd, "Deferred directional shadows", CustomSamplerId.RenderDeferredDirectionalShadow.GetSampler()))
@@ -938,13 +1024,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             }
                         }
 
+                        {
+                            // Set fog parameters for volumetric lighting.
+                            var visualEnv = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
+                            visualEnv.PushFogShaderParameters(cmd, m_FrameSettings);
+                        }
+
                         // Perform the voxelization step which fills the density 3D texture.
                         // Requires the clustered lighting data structure to be built, and can run async.
-                        m_VolumetricLightingSystem.VolumeVoxelizationPass(densityVolumes, hdCamera, cmd, m_FrameSettings);
+                        m_VolumetricLightingSystem.VolumeVoxelizationPass(densityVolumes, hdCamera, cmd, m_FrameSettings, m_FrameCount);
 
                         // Render the volumetric lighting.
                         // The pass requires the volume properties, the light list and the shadows, and can run async.
-                        m_VolumetricLightingSystem.VolumetricLightingPass(hdCamera, cmd, m_FrameSettings);
+                        m_VolumetricLightingSystem.VolumetricLightingPass(hdCamera, cmd, m_FrameSettings, m_FrameCount);
 
                         RenderDeferredLighting(hdCamera, cmd);
 
@@ -964,7 +1056,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         RenderForward(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.PreRefraction);
                         RenderForwardError(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.PreRefraction);
 
-                        RenderGaussianPyramidColor(hdCamera, cmd, renderContext, true);
+                        RenderColorPyramid(hdCamera, cmd, renderContext, true);
 
                         // Render all type of transparent forward (unlit, lit, complex (hair...)) to keep the sorting between transparent objects.
                         RenderForward(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.Transparent);
@@ -973,7 +1065,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Fill depth buffer to reduce artifact for transparent object during postprocess
                         RenderTransparentDepthPostpass(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.Transparent);
 
-                        RenderGaussianPyramidColor(hdCamera, cmd, renderContext, false);
+                        RenderColorPyramid(hdCamera, cmd, renderContext, false);
 
                         AccumulateDistortion(m_CullResults, hdCamera, renderContext, cmd);
                         RenderDistortion(cmd, m_Asset.renderPipelineResources, hdCamera);
@@ -1013,7 +1105,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // During rendering we use our own depth buffer instead of the one provided by the scene view (because we need to be able to control its life cycle)
                     // In order for scene view gizmos/icons etc to be depth test correctly, we need to copy the content of our own depth buffer into the scene view depth buffer.
                     // On subtlety here is that our buffer can be bigger than the camera one so we need to copy only the corresponding portion
-                    // (it's handled automatically by the copy shader because it uses a load in pxiel coordinates based on the target).
+                    // (it's handled automatically by the copy shader because it uses a load in pixel coordinates based on the target).
                     // This copy will also have the effect of re-binding this depth buffer correctly for subsequent editor rendering.
 
                     // NOTE: This needs to be done before the call to RenderDebug because debug overlays need to update the depth for the scene view as well.
@@ -1027,6 +1119,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                     }
 #endif
+                    PushFullScreenDebugTexture(cmd, m_CameraColorBuffer, hdCamera, FullScreenDebugMode.ScreenSpaceTracing);
                     // Caution: RenderDebug need to take into account that we have flip the screen (so anything capture before the flip will be flipped)
                     RenderDebug(hdCamera, cmd);
 
@@ -1041,6 +1134,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 CommandBufferPool.Release(cmd);
                 renderContext.Submit();
+
+                if (m_CurrentDebugDisplaySettings.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceTracing)
+                {
+                    m_DebugScreenSpaceTracingData.GetData(m_DebugScreenSpaceTracingDataArray);
+                    var data = m_DebugScreenSpaceTracingDataArray[0];
+                    m_CurrentDebugDisplaySettings.screenSpaceTracingDebugData = data;
+
+                    // Assign -1 in tracing model to notifiy we took the data.
+                    // When debugging in forward, we want only the first time the pixel is drawn
+                    data.tracingModel = (Lit.RefractionSSRayModel)(-1);
+                    m_DebugScreenSpaceTracingDataArray[0] = data;
+                    m_DebugScreenSpaceTracingData.SetData(m_DebugScreenSpaceTracingDataArray);
+                }
             } // For each camera
         }
 
@@ -1179,17 +1285,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new ProfilingSample(cmd, "ApplyDistortion", CustomSamplerId.ApplyDistortion.GetSampler()))
             {
-                Vector2 pyramidScale = m_BufferPyramid.GetPyramidToScreenScale(hdCamera);
+                var colorPyramidRT = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorPyramid);
+                var pyramidScale = m_BufferPyramid.GetPyramidToScreenScale(hdCamera, colorPyramidRT);
 
                 // Need to account for the fact that the gaussian pyramid is actually rendered inside the camera viewport in a square texture so we mutiply by the PyramidToScreen scale
                 var size = new Vector4(hdCamera.screenSize.x, hdCamera.screenSize.y, pyramidScale.x / hdCamera.screenSize.x, pyramidScale.y / hdCamera.screenSize.y);
                 uint x, y, z;
                 m_applyDistortionCS.GetKernelThreadGroupSizes(m_applyDistortionKernel, out x, out y, out z);
                 cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._DistortionTexture, m_DistortionBuffer);
-                cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._ColorPyramidTexture, m_BufferPyramid.colorPyramid);
+                cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._ColorPyramidTexture, colorPyramidRT);
                 cmd.SetComputeTextureParam(m_applyDistortionCS, m_applyDistortionKernel, HDShaderIDs._CameraColorTexture, m_CameraColorBuffer);
                 cmd.SetComputeVectorParam(m_applyDistortionCS, HDShaderIDs._Size, size);
-                cmd.SetComputeVectorParam(m_applyDistortionCS, HDShaderIDs._ZBufferParams, Shader.GetGlobalVector(HDShaderIDs._ZBufferParams));
 
                 cmd.DispatchCompute(m_applyDistortionCS, m_applyDistortionKernel, Mathf.CeilToInt(size.x / x), Mathf.CeilToInt(size.y / y), 1);
             }
@@ -1273,17 +1379,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // Depth texture is now ready, bind it.
                 cmd.SetGlobalTexture(HDShaderIDs._MainDepthTexture, GetDepthTexture());
-
-				// for alpha compositing, color is cleared to 0, alpha to 1
-				// https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-
-				Color clearColor = new Color(0.0f, 0.0f, 0.0f, 1.0f);
-				HDUtils.SetRenderTarget(cmd, camera, m_DbufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer, ClearFlag.Color, clearColor);
-
-				// we need to do a separate clear for normals, because they are cleared to a different color
-				Color clearColorNormal = new Color(0.5f, 0.5f, 0.5f, 1.0f); // for normals 0.5 is neutral
-				m_DbufferManager.ClearNormalTargetAndHTile(cmd, camera, clearColorNormal);
-
+                m_DbufferManager.ClearTargets(cmd, camera);
 				HDUtils.SetRenderTarget(cmd, camera, m_DbufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer); // do not clear anymore
                 m_DbufferManager.SetHTile(m_DbufferManager.bufferCount, cmd);
                 DecalSystem.instance.RenderIntoDBuffer(cmd);
@@ -1384,13 +1480,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void RenderSky(HDCamera hdCamera, CommandBuffer cmd)
         {
-            // Rendering the sky is the first time in the frame where we need fog parameters so we push them here for the whole frame.
             var visualEnv = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-            visualEnv.PushFogShaderParameters(cmd, m_FrameSettings);
 
             m_SkyManager.RenderSky(hdCamera, m_LightLoop.GetCurrentSunLight(), m_CameraColorBuffer, m_CameraDepthStencilBuffer, m_CurrentDebugDisplaySettings, cmd);
 
-            if (visualEnv.fogType != FogType.None || m_VolumetricLightingSystem.preset != VolumetricLightingSystem.VolumetricLightingPreset.Off)
+            if (visualEnv.fogType != FogType.None)
                 m_SkyManager.RenderOpaqueAtmosphericScattering(cmd);
         }
 
@@ -1424,6 +1518,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var camera = hdCamera.camera;
 
                 m_LightLoop.RenderForward(camera, cmd, pass == ForwardPass.Opaque);
+                var debugScreenSpaceTracing = m_CurrentDebugDisplaySettings.fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceTracing;
 
                 if (pass == ForwardPass.Opaque)
                 {
@@ -1453,16 +1548,33 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     var passNames = m_FrameSettings.enableForwardRenderingOnly
                         ? m_ForwardAndForwardOnlyPassNames
                         : m_ForwardOnlyPassNames;
+                    var debugSSTThisPass = debugScreenSpaceTracing && (m_CurrentDebugDisplaySettings.lightingDebugSettings.debugLightingMode == DebugLightingMode.ScreenSpaceTracingReflection);
+                    if (debugSSTThisPass)
+                    {
+                        cmd.SetGlobalBuffer(HDShaderIDs._DebugScreenSpaceTracingData, m_DebugScreenSpaceTracingData);
+                        cmd.SetRandomWriteTarget(7, m_DebugScreenSpaceTracingData);
+                    }
                     RenderOpaqueRenderList(cullResults, camera, renderContext, cmd, passNames, m_currentRendererConfigurationBakedLighting);
+                    if (debugSSTThisPass)
+                        cmd.ClearRandomWriteTargets();
                 }
                 else
                 {
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
-                    if (m_FrameSettings.enableDBuffer) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
+                    if ((m_FrameSettings.enableDBuffer) && (DecalSystem.m_DecalsVisibleThisFrame > 0)) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
                     {
                         DecalSystem.instance.SetAtlas(cmd); // for clustered decals
                     }
+
+                    var debugSSTThisPass = debugScreenSpaceTracing && (m_CurrentDebugDisplaySettings.lightingDebugSettings.debugLightingMode == DebugLightingMode.ScreenSpaceTracingRefraction);
+                    if (debugSSTThisPass)
+                    {
+                        cmd.SetGlobalBuffer(HDShaderIDs._DebugScreenSpaceTracingData, m_DebugScreenSpaceTracingData);
+                        cmd.SetRandomWriteTarget(7, m_DebugScreenSpaceTracingData);
+                    }
                     RenderTransparentRenderList(cullResults, camera, renderContext, cmd, m_AllTransparentPassNames, m_currentRendererConfigurationBakedLighting, pass == ForwardPass.PreRefraction ? HDRenderQueue.k_RenderQueue_PreRefraction : HDRenderQueue.k_RenderQueue_Transparent);
+                    if (debugSSTThisPass)
+                        cmd.ClearRandomWriteTargets();
                 }
             }
         }
@@ -1530,7 +1642,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderGaussianPyramidColor(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, bool isPreRefraction)
+        void RenderColorPyramid(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, bool isPreRefraction)
         {
             if (isPreRefraction)
             {
@@ -1544,23 +1656,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return;
             }
 
-            using (new ProfilingSample(cmd, "Gaussian Pyramid Color", CustomSamplerId.GaussianPyramidColor.GetSampler()))
-                m_BufferPyramid.RenderColorPyramid(hdCamera, cmd, renderContext, m_CameraColorBuffer);
+            var cameraRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorPyramid)
+                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ColorPyramid, m_BufferPyramid.AllocColorRT);
 
-            Vector2 pyramidScale = m_BufferPyramid.GetPyramidToScreenScale(hdCamera);
-            PushFullScreenDebugTextureMip(cmd, m_BufferPyramid.colorPyramid, m_BufferPyramid.GetPyramidLodCount(hdCamera), new Vector4(pyramidScale.x, pyramidScale.y, 0.0f, 0.0f), hdCamera, isPreRefraction ? FullScreenDebugMode.PreRefractionColorPyramid : FullScreenDebugMode.FinalColorPyramid);
+            using (new ProfilingSample(cmd, "Color Pyramid", CustomSamplerId.ColorPyramid.GetSampler()))
+                m_BufferPyramid.RenderColorPyramid(hdCamera, cmd, renderContext, m_CameraColorBuffer, cameraRT);
+
+            Vector2 pyramidScale = m_BufferPyramid.GetPyramidToScreenScale(hdCamera, cameraRT);
+            PushFullScreenDebugTextureMip(cmd, cameraRT, m_BufferPyramid.GetPyramidLodCount(new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight)), new Vector4(pyramidScale.x, pyramidScale.y, 0.0f, 0.0f), hdCamera, isPreRefraction ? FullScreenDebugMode.PreRefractionColorPyramid : FullScreenDebugMode.FinalColorPyramid);
         }
 
-        void RenderPyramidDepth(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
+        void RenderDepthPyramid(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, FullScreenDebugMode debugMode)
         {
             if (!m_FrameSettings.enableRoughRefraction)
                 return;
 
-            using (new ProfilingSample(cmd, "Pyramid Depth", CustomSamplerId.PyramidDepth.GetSampler()))
-                m_BufferPyramid.RenderDepthPyramid(hdCamera, cmd, renderContext, GetDepthTexture());
+            var cameraRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.DepthPyramid)
+                ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.DepthPyramid, m_BufferPyramid.AllocDepthRT);
 
-            Vector2 pyramidScale = m_BufferPyramid.GetPyramidToScreenScale(hdCamera);
-            PushFullScreenDebugTextureMip(cmd, m_BufferPyramid.depthPyramid, m_BufferPyramid.GetPyramidLodCount(hdCamera), new Vector4(pyramidScale.x, pyramidScale.y, 0.0f, 0.0f), hdCamera, debugMode);
+            using (new ProfilingSample(cmd, "Depth Pyramid", CustomSamplerId.DepthPyramid.GetSampler()))
+                m_BufferPyramid.RenderDepthPyramid(hdCamera, cmd, renderContext, GetDepthTexture(), cameraRT);
+
+            Vector2 pyramidScale = m_BufferPyramid.GetPyramidToScreenScale(hdCamera, cameraRT);
+            PushFullScreenDebugTextureMip(cmd, cameraRT, m_BufferPyramid.GetPyramidLodCount(new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight)), new Vector4(pyramidScale.x, pyramidScale.y, 0.0f, 0.0f), hdCamera, debugMode);
         }
 
         void RenderPostProcess(HDCamera hdcamera, CommandBuffer cmd, PostProcessLayer layer)
@@ -1633,6 +1751,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 cmd.SetGlobalInt(HDShaderIDs._DebugViewMaterial, (int)m_CurrentDebugDisplaySettings.GetDebugMaterialIndex());
                 cmd.SetGlobalInt(HDShaderIDs._DebugLightingMode, (int)m_CurrentDebugDisplaySettings.GetDebugLightingMode());
+                cmd.SetGlobalInt(HDShaderIDs._DebugLightingSubMode, (int)m_CurrentDebugDisplaySettings.GetDebugLightingSubMode());
                 cmd.SetGlobalInt(HDShaderIDs._DebugMipMapMode, (int)m_CurrentDebugDisplaySettings.GetDebugMipMapMode());
 
                 cmd.SetGlobalVector(HDShaderIDs._DebugLightingAlbedo, debugAlbedo);
@@ -1641,7 +1760,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalVector(HDShaderIDs._DebugLightingSpecularColor, debugSpecularColor);
 
                 cmd.SetGlobalVector(HDShaderIDs._MousePixelCoord, HDUtils.GetMouseCoordinates(hdCamera));
+                cmd.SetGlobalVector(HDShaderIDs._MouseClickPixelCoord, HDUtils.GetMouseClickCoordinates(hdCamera));
                 cmd.SetGlobalTexture(HDShaderIDs._DebugFont, m_Asset.renderPipelineResources.debugFontTexture);
+                cmd.SetGlobalInt(HDShaderIDs._DebugStep, HDUtils.debugStep);
+                cmd.SetGlobalInt(HDShaderIDs._ShowGrid, m_CurrentDebugDisplaySettings.showSSRayGrid ? 1 : 0);
+                cmd.SetGlobalInt(HDShaderIDs._ShowDepthPyramidDebug, m_CurrentDebugDisplaySettings.showSSRayDepthPyramid ? 1 : 0);
 
                 // The DebugNeedsExposure test allows us to set a neutral value if exposure is not needed. This way we don't need to make various tests inside shaders but only in this function.
                 cmd.SetGlobalFloat(HDShaderIDs._DebugExposure, m_CurrentDebugDisplaySettings.DebugNeedsExposure() ? lightingDebugSettings.debugExposure : 0.0f);
@@ -1653,7 +1776,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void PushColorPickerDebugTexture(CommandBuffer cmd, RTHandle textureID, HDCamera hdCamera)
+        public void PushColorPickerDebugTexture(CommandBuffer cmd, RTHandleSystem.RTHandle textureID, HDCamera hdCamera)
         {
             if (m_CurrentDebugDisplaySettings.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None)
             {
@@ -1676,7 +1799,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void PushFullScreenDebugTexture(CommandBuffer cmd, RTHandle textureID, HDCamera hdCamera, FullScreenDebugMode debugMode)
+        public void PushFullScreenDebugTexture(CommandBuffer cmd, RTHandleSystem.RTHandle textureID, HDCamera hdCamera, FullScreenDebugMode debugMode)
         {
             if (debugMode == m_CurrentDebugDisplaySettings.fullScreenDebugMode)
             {
@@ -1685,7 +1808,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void PushFullScreenDebugTextureMip(CommandBuffer cmd, RTHandle texture, int lodCount, Vector4 scaleBias, HDCamera hdCamera, FullScreenDebugMode debugMode)
+        void PushFullScreenDebugTextureMip(CommandBuffer cmd, RTHandleSystem.RTHandle texture, int lodCount, Vector4 scaleBias, HDCamera hdCamera, FullScreenDebugMode debugMode)
         {
             if (debugMode == m_CurrentDebugDisplaySettings.fullScreenDebugMode)
             {
@@ -1714,6 +1837,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Everything we have capture is flipped (as it happen before FinalPass/postprocess/Blit. So if we are not in SceneView
                     // (i.e. we have perform a flip, we need to flip the input texture)
                     m_DebugFullScreen.SetFloat(HDShaderIDs._RequireToFlipInputTexture, hdCamera.camera.cameraType != CameraType.SceneView ? 1.0f : 0.0f);
+                    m_DebugFullScreen.SetBuffer(HDShaderIDs._DebugScreenSpaceTracingData, m_DebugScreenSpaceTracingData);
+                    m_DebugFullScreen.SetTexture(HDShaderIDs._DepthPyramidTexture, hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.DepthPyramid));
                     HDUtils.DrawFullScreen(cmd, hdCamera, m_DebugFullScreen, (RenderTargetIdentifier)BuiltinRenderTextureType.CameraTarget);
 
                     PushColorPickerDebugTexture(cmd, (RenderTargetIdentifier)BuiltinRenderTextureType.CameraTarget, hdCamera);
@@ -1740,6 +1865,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 m_LightLoop.RenderDebugOverlay(hdCamera, cmd, m_CurrentDebugDisplaySettings, ref x, ref y, overlaySize, hdCamera.actualWidth);
+
+                DecalSystem.instance.RenderDebugOverlay(hdCamera, cmd, m_CurrentDebugDisplaySettings, ref x, ref y, overlaySize, hdCamera.actualWidth);
 
                 if (m_CurrentDebugDisplaySettings.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None)
                 {

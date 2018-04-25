@@ -35,6 +35,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float punctualIntensity      = 600.0f;   // Light default to 600 lumen, i.e ~48 candela
         public float areaIntensity          = 200.0f;   // Light default to 200 lumen to better match point light
 
+        // Only for Spotlight, should be hide for other light
+        public bool enableSpotReflector = false;
+
         [Range(0.0f, 100.0f)]
         public float m_InnerSpotPercent = 0.0f; // To display this field in the UI this need to be public
 
@@ -169,30 +172,54 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 switch (light.type)
                 {
                     case LightType.Directional:
-                        light.intensity = directionalIntensity;
+                        light.intensity = Mathf.Max(0, directionalIntensity);
                         break;
 
                     case LightType.Point:
-                        light.intensity = LightUtils.ConvertPointLightIntensity(punctualIntensity);
+                        light.intensity = LightUtils.ConvertPointLightIntensity(Mathf.Max(0, punctualIntensity));
                         break;
 
                     case LightType.Spot:
-                        // Spot should used conversion which take into account the angle, and thus the intensity vary with angle.
-                        // This is not easy to manipulate for lighter, so we simply consider any spot light as just occluded point light. So reuse the same code.
-                        light.intensity = LightUtils.ConvertPointLightIntensity(punctualIntensity);
-                        // TODO: What to do with box shape ?
-                        // var spotLightShape = (SpotLightShape)m_AdditionalspotLightShape.enumValueIndex;
+
+                        if (enableSpotReflector)
+                        {
+                            if (spotLightShape == SpotLightShape.Cone)
+                            {
+                                light.intensity = LightUtils.ConvertSpotLightIntensity(Mathf.Max(0, punctualIntensity), light.spotAngle * Mathf.Deg2Rad, true);
+                            }
+                            else if (spotLightShape == SpotLightShape.Pyramid)
+                            {
+                                float angleA, angleB;
+                                LightUtils.CalculateAnglesForPyramid(aspectRatio, light.spotAngle,
+                                                                        out angleA, out angleB);
+
+                                light.intensity = LightUtils.ConvertFrustrumLightIntensity(Mathf.Max(0, punctualIntensity), angleA, angleB);
+                            }
+                            else // Box shape, fallback to punctual light.
+                            {
+                                light.intensity = LightUtils.ConvertPointLightIntensity(Mathf.Max(0, punctualIntensity));
+                            }
+
+                        }
+                        else
+                        {
+                            // Spot should used conversion which take into account the angle, and thus the intensity vary with angle.
+                            // This is not easy to manipulate for lighter, so we simply consider any spot light as just occluded point light. So reuse the same code.
+                            light.intensity = LightUtils.ConvertPointLightIntensity(Mathf.Max(0, punctualIntensity));
+                            // TODO: What to do with box shape ?
+                            // var spotLightShape = (SpotLightShape)m_AdditionalspotLightShape.enumValueIndex;
+                        }
                         break;
 
                 }
             }
             else if (lightTypeExtent == LightTypeExtent.Rectangle)
             {
-                light.intensity = LightUtils.ConvertRectLightIntensity(areaIntensity, shapeWidth, shapeHeight);
+                light.intensity = LightUtils.ConvertRectLightIntensity(Mathf.Max(0, areaIntensity), shapeWidth, shapeHeight);
             }
             else if (lightTypeExtent == LightTypeExtent.Line)
             {
-                light.intensity = LightUtils.CalculateLineLightIntensity(areaIntensity, shapeWidth);
+                light.intensity = LightUtils.CalculateLineLightIntensity(Mathf.Max(0, areaIntensity), shapeWidth);
             }
         }
 

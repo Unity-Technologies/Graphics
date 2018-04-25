@@ -28,6 +28,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty directionalIntensity;
             public SerializedProperty punctualIntensity;
             public SerializedProperty areaIntensity;
+            public SerializedProperty enableSpotReflector;
             public SerializedProperty spotInnerPercent;
             public SerializedProperty lightDimmer;
             public SerializedProperty fadeDistance;
@@ -107,13 +108,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 directionalIntensity = o.Find(x => x.directionalIntensity),
                 punctualIntensity = o.Find(x => x.punctualIntensity),
                 areaIntensity = o.Find(x => x.areaIntensity),
+                enableSpotReflector = o.Find(x => x.enableSpotReflector),
                 spotInnerPercent = o.Find(x => x.m_InnerSpotPercent),
                 lightDimmer = o.Find(x => x.lightDimmer),
                 fadeDistance = o.Find(x => x.fadeDistance),
                 affectDiffuse = o.Find(x => x.affectDiffuse),
                 affectSpecular = o.Find(x => x.affectSpecular),
                 lightTypeExtent = o.Find(x => x.lightTypeExtent),
-                spotLightShape = o.Find(x => x.spotLightShape),
+                spotLightShape = o.Find(x => x.spotLightShape),              
                 shapeWidth = o.Find(x => x.shapeWidth),
                 shapeHeight = o.Find(x => x.shapeHeight),
                 aspectRatio = o.Find(x => x.aspectRatio),
@@ -330,7 +332,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_AdditionalLightData.directionalIntensity.floatValue = Mathf.Max(0, m_AdditionalLightData.directionalIntensity.floatValue);
             m_AdditionalLightData.punctualIntensity.floatValue    = Mathf.Max(0, m_AdditionalLightData.punctualIntensity.floatValue);
             m_AdditionalLightData.areaIntensity.floatValue        = Mathf.Max(0, m_AdditionalLightData.areaIntensity.floatValue);
-            
+
             switch (m_LightShape)
             {
                 case LightShape.Directional:
@@ -344,9 +346,32 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 case LightShape.Spot:
                     // Spot should used conversion which take into account the angle, and thus the intensity vary with angle.
                     // This is not easy to manipulate for lighter, so we simply consider any spot light as just occluded point light. So reuse the same code.
-                    settings.intensity.floatValue = LightUtils.ConvertPointLightIntensity(m_AdditionalLightData.punctualIntensity.floatValue);
-                    // TODO: What to do with box shape ?
-                    // var spotLightShape = (SpotLightShape)m_AdditionalLightData.spotLightShape.enumValueIndex;
+
+                    var spotLightShape = (SpotLightShape)m_AdditionalLightData.spotLightShape.enumValueIndex;
+
+                    if (m_AdditionalLightData.enableSpotReflector.boolValue)
+                    {
+                        if (spotLightShape == SpotLightShape.Cone)
+                        {
+                            settings.intensity.floatValue = LightUtils.ConvertSpotLightIntensity(m_AdditionalLightData.punctualIntensity.floatValue, settings.spotAngle.floatValue * Mathf.Deg2Rad, true );
+                        }
+                        else if (spotLightShape == SpotLightShape.Pyramid)
+                        {
+                            float angleA, angleB;
+                            LightUtils.CalculateAnglesForPyramid(   m_AdditionalLightData.aspectRatio.floatValue, settings.spotAngle.floatValue,
+                                                                    out angleA, out angleB);
+
+                            settings.intensity.floatValue = LightUtils.ConvertFrustrumLightIntensity(m_AdditionalLightData.punctualIntensity.floatValue, angleA, angleB );
+                        }
+                        else // Box shape, fallback to punctual light.
+                        {
+                            settings.intensity.floatValue = LightUtils.ConvertPointLightIntensity(m_AdditionalLightData.punctualIntensity.floatValue);
+                        }
+                    }
+                    else // Reflector disabled, fallback to punctual light.
+                    {
+                        settings.intensity.floatValue = LightUtils.ConvertPointLightIntensity(m_AdditionalLightData.punctualIntensity.floatValue);
+                    }
                     break;
 
                 case LightShape.Rectangle:
@@ -374,6 +399,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 case LightShape.Point:
                 case LightShape.Spot:
                     EditorGUILayout.PropertyField(m_AdditionalLightData.punctualIntensity, s_Styles.punctualIntensity);
+
+                    // Only display reflector option if it make sense
+                    if (m_LightShape == LightShape.Spot)
+                    {
+                        var spotLightShape = (SpotLightShape)m_AdditionalLightData.spotLightShape.enumValueIndex;
+                        if (spotLightShape == SpotLightShape.Cone || spotLightShape == SpotLightShape.Pyramid)
+                            EditorGUILayout.PropertyField(m_AdditionalLightData.enableSpotReflector, s_Styles.enableSpotReflector);
+                    }
                     break;
 
                 case LightShape.Rectangle:
@@ -499,7 +532,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // Internal utilities
         void ApplyAdditionalComponentsVisibility(bool hide)
         {
-            var flags = hide ? HideFlags.HideInInspector : HideFlags.None;
+            // UX team decided thta we should always show component in inspector.
+            // However already authored scene save this settings, so force the component to be visible
+            // var flags = hide ? HideFlags.HideInInspector : HideFlags.None;
+            var flags = HideFlags.None;
 
             foreach (var t in m_SerializedAdditionalLightData.targetObjects)
                 ((HDAdditionalLightData)t).hideFlags = flags;

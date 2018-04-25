@@ -15,7 +15,6 @@ Shader "Hidden/HDRenderPipeline/CopyStencilBuffer"
     #include "CoreRP/ShaderLibrary/Common.hlsl"
     #include "CoreRP/ShaderLibrary/Packing.hlsl"
     #include "../ShaderVariables.hlsl"
-    #include "../Lighting/LightDefinition.cs.hlsl"
 
     int _StencilRef;
     RW_TEXTURE2D(float, _HTile); // DXGI_FORMAT_R8_UINT is not supported by Unity
@@ -44,7 +43,7 @@ Shader "Hidden/HDRenderPipeline/CopyStencilBuffer"
     SubShader
     {
         Tags{ "RenderPipeline" = "HDRenderPipeline" }
-        
+
         Pass
         {
             Name "Pass 0 - Copy stencilRef to output"

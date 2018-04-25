@@ -5,8 +5,6 @@
 #define ENVMAP_FEATURE_PERFACEFADE
 #define ENVMAP_FEATURE_INFLUENCENORMAL
 
-#include "../LightDefinition.cs.hlsl"
-
 float3x3 WorldToProxySpace(EnvLightData lightData)
 {
     return transpose(
@@ -43,7 +41,7 @@ float IntersectBoxProxy(EnvLightData lightData, float3 dirPS, float3 positionPS)
     return projectionDistance;
 }
 
-float InfluenceSphereWeight(EnvLightData lightData, BSDFData bsdfData, float3 positionWS, float3 positionLS, float3 dirLS)
+float InfluenceSphereWeight(EnvLightData lightData, float3 normalWS, float3 positionWS, float3 positionLS, float3 dirLS)
 {
     float lengthPositionLS = length(positionLS);
     float sphereInfluenceDistance = lightData.influenceExtents.x - lightData.blendDistancePositive.x;
@@ -52,14 +50,14 @@ float InfluenceSphereWeight(EnvLightData lightData, BSDFData bsdfData, float3 po
 
 #if defined(ENVMAP_FEATURE_INFLUENCENORMAL)
     float insideInfluenceNormalVolume = lengthPositionLS <= (lightData.influenceExtents.x - lightData.blendNormalDistancePositive.x) ? 1.0 : 0.0;
-    float insideWeight = InfluenceFadeNormalWeight(bsdfData.normalWS, normalize(positionWS - lightData.capturePositionWS));
+    float insideWeight = InfluenceFadeNormalWeight(normalWS, normalize(positionWS - lightData.capturePositionWS));
     alpha *= insideInfluenceNormalVolume ? 1.0 : insideWeight;
 #endif
 
     return alpha;
 }
 
-float InfluenceBoxWeight(EnvLightData lightData, BSDFData bsdfData, float3 positionWS, float3 positionIS, float3 dirIS)
+float InfluenceBoxWeight(EnvLightData lightData, float3 normalWS, float3 positionWS, float3 positionIS, float3 dirIS)
 {
     float3 influenceExtents = lightData.influenceExtents;
     // 2. Process the position influence
@@ -92,7 +90,7 @@ float InfluenceBoxWeight(EnvLightData lightData, BSDFData bsdfData, float3 posit
     float3 belowPositiveInfluenceNormalVolume = positiveDistance / max(0.0001, lightData.blendNormalDistancePositive);
     float3 aboveNegativeInfluenceNormalVolume = negativeDistance / max(0.0001, lightData.blendNormalDistanceNegative);
     float insideInfluenceNormalVolume = all(belowPositiveInfluenceNormalVolume >= 1.0) && all(aboveNegativeInfluenceNormalVolume >= 1.0) ? 1.0 : 0;
-    float insideWeight = InfluenceFadeNormalWeight(bsdfData.normalWS, normalize(positionWS - lightData.capturePositionWS));
+    float insideWeight = InfluenceFadeNormalWeight(normalWS, normalize(positionWS - lightData.capturePositionWS));
     alpha *= insideInfluenceNormalVolume ? 1.0 : insideWeight;
 #endif
 
