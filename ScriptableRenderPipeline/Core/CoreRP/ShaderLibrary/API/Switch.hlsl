@@ -1,4 +1,4 @@
-﻿// This file assume SHADER_API_SWITCH is defined
+// This file assume SHADER_API_SWITCH is defined
 // TODO: This is a straight copy from D3D11.hlsl. Go through all this stuff and adjust where needed.
 
 #define UNITY_UV_STARTS_AT_TOP 1
