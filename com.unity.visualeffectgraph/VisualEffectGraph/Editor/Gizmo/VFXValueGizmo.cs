@@ -256,7 +256,7 @@ namespace UnityEditor.VFX.UI
             Handles.DrawWireArc(center, Vector3.up, Vector3.right, 360f, radius);
             Handles.DrawWireArc(center, Vector3.right, Vector3.forward, 360f, radius);
 
-            if (PositionGizmo(component, anchor.space, ref sphere.center.position)) //TODOPAUL
+            if (PositionGizmo(component, anchor.space, ref sphere.center))
             {
                 anchor.value = sphere;
             }
@@ -312,7 +312,7 @@ namespace UnityEditor.VFX.UI
             // Draw 3rd circle around the arc
             Handles.DrawWireArc(center, -Vector3.forward, Vector3.up, arc, radius);
 
-            if (PositionGizmo(component, anchor.space, ref sphere.center.position)) //TODOPAUL
+            if (PositionGizmo(component, anchor.space, ref sphere.center))
             {
                 arcSphere.sphere = sphere;
                 anchor.value = arcSphere;

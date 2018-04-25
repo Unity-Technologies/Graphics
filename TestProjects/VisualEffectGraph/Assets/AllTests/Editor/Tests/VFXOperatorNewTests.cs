@@ -295,9 +295,9 @@ namespace UnityEditor.VFX.Test
 
             Func<Sphere, Sphere, bool> fnCompareSphere = delegate(Sphere aS, Sphere bS)
                 {
-                    if (aS.center.position.x != bS.center.position.x) return false;
-                    if (aS.center.position.y != bS.center.position.y) return false;
-                    if (aS.center.position.z != bS.center.position.z) return false;
+                    if (aS.center.x != bS.center.x) return false;
+                    if (aS.center.y != bS.center.y) return false;
+                    if (aS.center.z != bS.center.z) return false;
                     if (aS.radius != bS.radius) return false;
                     return true;
                 };

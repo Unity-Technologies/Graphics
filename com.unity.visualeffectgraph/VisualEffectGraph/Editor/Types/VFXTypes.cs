@@ -66,7 +66,7 @@ namespace UnityEditor.VFX
     struct Sphere
     {
         [Tooltip("The centre of the sphere.")]
-        public Position center;
+        public Vector3 center;
         [Tooltip("The radius of the sphere.")]
         public float radius;
 
