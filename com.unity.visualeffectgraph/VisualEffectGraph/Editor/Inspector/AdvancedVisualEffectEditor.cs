@@ -226,6 +226,7 @@ namespace UnityEditor.VFX
                 {
                     context.context = new GizmoContext(new SerializedObject(target),m_GizmoedParameter);
                     context.gizmo = VFXGizmoUtility.CreateGizmoInstance(context.context);
+                    m_ContextsPerComponent.Add((VisualEffect)target,context);
                 }
                 else
                 {
@@ -257,8 +258,10 @@ namespace UnityEditor.VFX
             {
                 get
                 {
-                    m_Stack.Clear();
-                    m_Stack.Add(System.Activator.CreateInstance(portType));
+                    if( m_Stack.Count == 0)
+                        m_Stack.Add(System.Activator.CreateInstance(portType));
+                    else
+                        m_Stack.RemoveRange(1,m_Stack.Count-1);
                     int stackSize = m_Stack.Count;
 
                     foreach (var cmd in m_ValueCmdList)
