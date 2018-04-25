@@ -258,7 +258,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        VFXGroupNode GetPickedGroupNode(Vector2 panelPosition)
+        public VFXGroupNode GetPickedGroupNode(Vector2 panelPosition)
         {
             List<VisualElement> picked = new List<VisualElement>();
             panel.PickAll(panelPosition, picked);
@@ -360,25 +360,25 @@ namespace UnityEditor.VFX.UI
 
             m_ToggleCastShadows = new Toggle(OnToggleCastShadows);
             m_ToggleCastShadows.text = "Cast Shadows";
-            m_ToggleCastShadows.on = GetRendererSettings().shadowCastingMode != ShadowCastingMode.Off;
+            m_ToggleCastShadows.value = GetRendererSettings().shadowCastingMode != ShadowCastingMode.Off;
             toolbar.Add(m_ToggleCastShadows);
             m_ToggleCastShadows.AddToClassList("toolbarItem");
 
             m_ToggleMotionVectors = new Toggle(OnToggleMotionVectors);
             m_ToggleMotionVectors.text = "Use Motion Vectors";
-            m_ToggleMotionVectors.on = GetRendererSettings().motionVectorGenerationMode == MotionVectorGenerationMode.Object;
+            m_ToggleMotionVectors.value = GetRendererSettings().motionVectorGenerationMode == MotionVectorGenerationMode.Object;
             toolbar.Add(m_ToggleMotionVectors);
             m_ToggleMotionVectors.AddToClassList("toolbarItem");
 
             Toggle toggleRenderBounds = new Toggle(OnShowBounds);
             toggleRenderBounds.text = "Show Bounds";
-            toggleRenderBounds.on = VisualEffect.renderBounds;
+            toggleRenderBounds.value = VisualEffect.renderBounds;
             toolbar.Add(toggleRenderBounds);
             toggleRenderBounds.AddToClassList("toolbarItem");
 
             Toggle toggleAutoCompile = new Toggle(OnToggleCompile);
             toggleAutoCompile.text = "Auto Compile";
-            toggleAutoCompile.on = true;
+            toggleAutoCompile.value = true;
             toolbar.Add(toggleAutoCompile);
             toggleAutoCompile.AddToClassList("toolbarItem");
 
@@ -548,13 +548,13 @@ namespace UnityEditor.VFX.UI
 
                     m_DropDownButtonCullingMode.text = CullingMaskToString(cullingFlags);
 
-                    m_ToggleCastShadows.on = settings.shadowCastingMode != ShadowCastingMode.Off;
+                    m_ToggleCastShadows.value = settings.shadowCastingMode != ShadowCastingMode.Off;
                     m_ToggleCastShadows.SetEnabled(true);
 
-                    m_ToggleMotionVectors.on = settings.motionVectorGenerationMode == MotionVectorGenerationMode.Object;
+                    m_ToggleMotionVectors.value = settings.motionVectorGenerationMode == MotionVectorGenerationMode.Object;
                     m_ToggleMotionVectors.SetEnabled(true);
 
-                    m_ToggleDebug.on = controller.graph.displaySubAssets;
+                    m_ToggleDebug.value = controller.graph.displaySubAssets;
 
                     // if the asset dis destroy somehow, fox example if the user delete the asset, delete the controller and update the window.
                     VisualEffectAsset asset = controller.model;

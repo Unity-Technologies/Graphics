@@ -128,8 +128,6 @@ namespace UnityEditor.VFX.UI
 
         bool m_InNotify = false;
 
-        HashSet<ScriptableObject> removedDuringNotify = new HashSet<ScriptableObject>();
-
         public void NotifyUpdate()
         {
             m_InNotify = true;
@@ -528,6 +526,10 @@ namespace UnityEditor.VFX.UI
         public bool CreateLink(VFXDataAnchorController input, VFXDataAnchorController output)
         {
             if (input == null)
+            {
+                return false;
+            }
+            if (!input.CanLink(output))
             {
                 return false;
             }
@@ -931,7 +933,7 @@ namespace UnityEditor.VFX.UI
             m_FlowAnchorController.Remove(controller);
         }
 
-        private static void CollectParentOperator(IVFXSlotContainer operatorInput, HashSet<IVFXSlotContainer> hashParents)
+        public static void CollectParentOperator(IVFXSlotContainer operatorInput, HashSet<IVFXSlotContainer> hashParents)
         {
             if (hashParents.Contains(operatorInput))
                 return;
@@ -945,7 +947,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        private static void CollectChildOperator(IVFXSlotContainer operatorInput, HashSet<IVFXSlotContainer> hashChildren)
+        public static void CollectChildOperator(IVFXSlotContainer operatorInput, HashSet<IVFXSlotContainer> hashChildren)
         {
             if (hashChildren.Contains(operatorInput))
                 return;
@@ -968,29 +970,24 @@ namespace UnityEditor.VFX.UI
 
             if (startAnchorController.direction == Direction.Input)
             {
-                var startAnchorOperatorController = (startAnchorController as VFXDataAnchorController);
-                if (startAnchorOperatorController != null) // is is an input from another operator
-                {
-                    var currentOperator = startAnchorOperatorController.sourceNode.slotContainer;
-                    var childrenOperators = new HashSet<IVFXSlotContainer>();
-                    CollectChildOperator(currentOperator, childrenOperators);
+                var currentOperator = startAnchorController.sourceNode.slotContainer;
+                var childrenOperators = new HashSet<IVFXSlotContainer>();
+                CollectChildOperator(currentOperator, childrenOperators);
 
-                    allSlotContainerControllers = allSlotContainerControllers.Where(o => !childrenOperators.Contains(o.slotContainer));
+                allSlotContainerControllers = allSlotContainerControllers.Where(o => !childrenOperators.Contains(o.slotContainer));
 
-                    var toSlot = startAnchorOperatorController.model;
-                    allCandidates = allSlotContainerControllers.SelectMany(o => o.outputPorts).Where(o => startAnchorOperatorController.CanLink(o)).ToList();
-                }
+                var toSlot = startAnchorController.model;
+                allCandidates = allSlotContainerControllers.SelectMany(o => o.outputPorts).Where(o => startAnchorController.CanLink(o)).ToList();
             }
             else
             {
-                var startAnchorOperatorController = (startAnchorController as VFXDataAnchorController);
-                var currentOperator = startAnchorOperatorController.sourceNode.slotContainer;
+                var currentOperator = startAnchorController.sourceNode.slotContainer;
                 var parentOperators = new HashSet<IVFXSlotContainer>();
                 CollectParentOperator(currentOperator, parentOperators);
 
                 allSlotContainerControllers = allSlotContainerControllers.Where(o => !parentOperators.Contains(o.slotContainer));
 
-                allCandidates = allSlotContainerControllers.SelectMany(o => o.inputPorts).Where(i => startAnchorOperatorController.CanLink(i)).ToList();
+                allCandidates = allSlotContainerControllers.SelectMany(o => o.inputPorts).Where(i => startAnchorController.CanLink(i)).ToList();
             }
 
             return allCandidates.ToList();
@@ -1434,7 +1431,7 @@ namespace UnityEditor.VFX.UI
                 VFXParameter parameter = model as VFXParameter;
                 parameter.ValidateNodes();
 
-                var newController = m_ParameterControllers[parameter] = new VFXParameterController(parameter, this);
+                m_ParameterControllers[parameter] = new VFXParameterController(parameter, this);
 
                 m_SyncedModels[model] = new List<VFXNodeController>();
             }

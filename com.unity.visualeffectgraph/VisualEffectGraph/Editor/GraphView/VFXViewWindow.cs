@@ -54,7 +54,6 @@ namespace  UnityEditor.VFX.UI
             {
                 bool differentAsset = asset != m_DisplayedAsset;
 
-                m_AssetName = asset.name;
                 m_DisplayedAsset = asset;
                 graphView.controller = VFXViewController.GetController(asset, true);
 
@@ -200,7 +199,5 @@ namespace  UnityEditor.VFX.UI
 
         [SerializeField]
         Vector3 m_ViewScale;
-
-        private string m_AssetName;
     }
 }
