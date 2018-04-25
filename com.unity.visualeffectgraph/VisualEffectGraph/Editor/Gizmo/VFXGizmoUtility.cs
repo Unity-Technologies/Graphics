@@ -132,21 +132,36 @@ namespace UnityEditor.VFX.UI
             return null;
         }
 
+        public static VFXGizmo CreateGizmoInstance(Context context)
+        {
+            VFXGizmo gizmo;
+            if (s_DrawFunctions.TryGetValue(context.portType, out gizmo))
+            {
+                return (VFXGizmo)System.Activator.CreateInstance(gizmo.GetType());
+            }
+            return null;
+        }
+
         static internal void Draw(Context context, VisualEffect component)
         {
             VFXGizmo gizmo;
             if (s_DrawFunctions.TryGetValue(context.portType, out gizmo))
             {
-                if (context.Prepare())
-                {
-                    gizmo.RegisterEditableMembers(context);
-                }
-                if (!context.IsIndeterminate())
-                {
-                    gizmo.component = component;
-                    gizmo.CallDrawGizmo(context.value);
-                    gizmo.component = null;
-                }
+                Draw(context,component,gizmo);
+            }
+        }
+
+        static internal void Draw(Context context, VisualEffect component, VFXGizmo gizmo)
+        {
+            if (context.Prepare())
+            {
+                gizmo.RegisterEditableMembers(context);
+            }
+            if (!context.IsIndeterminate())
+            {
+                gizmo.component = component;
+                gizmo.CallDrawGizmo(context.value);
+                gizmo.component = null;
             }
         }
     }

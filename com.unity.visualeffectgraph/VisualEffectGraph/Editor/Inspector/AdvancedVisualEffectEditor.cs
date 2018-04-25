@@ -108,7 +108,7 @@ namespace UnityEditor.VFX
         {
             base.OnDisable();
 
-
+            m_ContextsPerComponent.Clear();
             EditMode.editModeStarted -= OnEditModeStart;
             EditMode.editModeEnded -= OnEditModeEnd;
         }
@@ -116,17 +116,6 @@ namespace UnityEditor.VFX
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
-            if (m_GizmoDisplayed && m_GizmoedParameter != null)
-            {
-                if (m_GizmoContext == null)
-                {
-                    m_GizmoContext = new GizmoContext(serializedObject, m_GizmoedParameter);
-                }
-                else
-                {
-                    m_GizmoContext.SetParameter(m_GizmoedParameter);
-                }
-            }
         }
 
         void OnEditModeStart(IToolModeOwner owner, EditMode.SceneViewEditMode mode)
@@ -183,26 +172,24 @@ namespace UnityEditor.VFX
             }
 
             GUILayout.BeginHorizontal();
-            bool hasMultipleValue = true;
+            /*bool hasMultipleValue = true;
             m_ParameterHasMultipleValues.TryGetValue(name, out hasMultipleValue);
             GUI.enabled = !hasMultipleValue;
 
             if (hasMultipleValue && m_GizmoedParameter == parameter)
             {
                 m_GizmoedParameter = null;
-            }
+            }*/
 
             if (GUILayout.Toggle(m_GizmoedParameter == parameter, new GUIContent(Resources.Load<Texture2D>(EditorGUIUtility.pixelsPerPoint > 1 ? "VFX/gizmos@2x" : "VFX/gizmos")), GUISkin.current.button, GUILayout.Width(overrideWidth)))
             {
                 m_GizmoedParameter = parameter;
             }
 
-            GUI.enabled = true;
+            //GUI.enabled = true;
             EditorGUILayout.LabelField(name);
             GUILayout.EndHorizontal();
         }
-
-        GizmoContext m_GizmoContext;
 
         bool m_EditJustStarted;
         bool m_GizmoDisplayed;
@@ -217,13 +204,35 @@ namespace UnityEditor.VFX
             m_GizmoDisplayed = false;
         }
 
+
+        struct ContextAndGizmo
+        {
+            public GizmoContext context;
+            public VFXGizmo gizmo;
+        }
+
+
+        Dictionary<VisualEffect,ContextAndGizmo> m_ContextsPerComponent = new Dictionary<VisualEffect,ContextAndGizmo>();
+
         new void OnSceneGUI()
         {
             base.OnSceneGUI();
 
-            if (m_GizmoDisplayed && m_GizmoedParameter != null && m_GizmoContext != null)
+            if (m_GizmoDisplayed && m_GizmoedParameter != null)
             {
-                VFXGizmoUtility.Draw(m_GizmoContext, (VisualEffect)target);
+                ContextAndGizmo context;
+                //Scene GUI is called every frame for each component in the selection so keep a context and gizmo instance per component
+                if( ! m_ContextsPerComponent.TryGetValue((VisualEffect)target,out context))
+                {
+                    context.context = new GizmoContext(new SerializedObject(target),m_GizmoedParameter);
+                    context.gizmo = VFXGizmoUtility.CreateGizmoInstance(context.context);
+                }
+                else
+                {
+                    context.context.SetParameter(m_GizmoedParameter);
+                }
+
+                VFXGizmoUtility.Draw(context.context, (VisualEffect)target,context.gizmo);
             }
         }
 
