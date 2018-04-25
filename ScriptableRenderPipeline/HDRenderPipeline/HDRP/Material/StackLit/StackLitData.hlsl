@@ -89,71 +89,106 @@ float3 GetNormalTS(FragInputs input, float2 texCoord, float3 detailNormalTS, flo
 #define TEXCOORD_INDEX_TRIPLANAR    (7)
 #define TEXCOORD_INDEX_COUNT        (TEXCOORD_INDEX_TRIPLANAR) // Triplanar is not consider as having mapping
 
+struct TextureUVMapping
+{
+    float2 texcoords[TEXCOORD_INDEX_COUNT][2];
+#ifdef _USE_TRIPLANAR
+    float3 triplanarWeights[2];
+#endif
+
+#ifdef SURFACE_GRADIENT
+   // float3 vertexTangentWS[4];
+   // float3 vertexBitangentWS[4];
+#endif
+};
+
+float4 SampleTexture2DPlanar(TEXTURE2D_ARGS(textureName, samplerName), float textureNameUV, float textureNameUVLocal, float4 textureNameST, TextureUVMapping uvMapping)
+{
+    return SAMPLE_TEXTURE2D(textureName, samplerName, (uvMapping.texcoords[textureNameUV][textureNameUVLocal] * textureNameST.xy + textureNameST.zw));
+}
+
 // If we use triplanar on any of the properties, then we enable the triplanar path
 #ifdef _USE_TRIPLANAR
-float4 SampleTexture2DTriplanar(TEXTURE2D_ARGS(textureName, samplerName), float textureNameUV, float4 textureNameST, float2 texcoords[TEXCOORD_INDEX_COUNT], float3 triplanarWeights)
+float4 SampleTexture2DTriplanar(TEXTURE2D_ARGS(textureName, samplerName), float textureNameUV, float textureNameUVLocal, float4 textureNameST, TextureUVMapping uvMapping)
 {
     if (textureNameUV == TEXCOORD_INDEX_TRIPLANAR)
     {
         float4 val = float4(0.0, 0.0, 0.0, 0.0);
 
-        if (triplanarWeights.x > 0.0)
-            val += triplanarWeights.x * SAMPLE_TEXTURE2D(textureName, samplerName, (texcoords[TEXCOORD_INDEX_PLANAR_YZ] * textureNameST.xy + textureNameST.zw));
-        if (triplanarWeights.y > 0.0)
-            val += triplanarWeights.y * SAMPLE_TEXTURE2D(textureName, samplerName, (texcoords[TEXCOORD_INDEX_PLANAR_ZX] * textureNameST.xy + textureNameST.zw));
-        if (triplanarWeights.z > 0.0)
-            val += triplanarWeights.z * SAMPLE_TEXTURE2D(textureName, samplerName, (texcoords[TEXCOORD_INDEX_PLANAR_XY] * textureNameST.xy + textureNameST.zw));
+        if (uvMapping.triplanarWeights[textureNameUVLocal].x > 0.0)
+            val += uvMapping.triplanarWeights[textureNameUVLocal].x * SAMPLE_TEXTURE2D(textureName, samplerName, (uvMapping.texcoords[TEXCOORD_INDEX_PLANAR_YZ][textureNameUVLocal] * textureNameST.xy + textureNameST.zw));
+        if (uvMapping.triplanarWeights[textureNameUVLocal].y > 0.0)
+            val += uvMapping.triplanarWeights[textureNameUVLocal].y * SAMPLE_TEXTURE2D(textureName, samplerName, (uvMapping.texcoords[TEXCOORD_INDEX_PLANAR_ZX][textureNameUVLocal] * textureNameST.xy + textureNameST.zw));
+        if (uvMapping.triplanarWeights[textureNameUVLocal].z > 0.0)
+            val += uvMapping.triplanarWeights[textureNameUVLocal].z * SAMPLE_TEXTURE2D(textureName, samplerName, (uvMapping.texcoords[TEXCOORD_INDEX_PLANAR_XY][textureNameUVLocal] * textureNameST.xy + textureNameST.zw));
 
         return val;
     }
     else
     {
-        return SAMPLE_TEXTURE2D(textureName, samplerName, (texcoords[textureNameUV] * textureNameST.xy + textureNameST.zw));
+        return SampleTexture2DPlanar(TEXTURE2D_PARAM(textureName, samplerName), textureNameUV, textureNameUVLocal, textureNameST, uvMapping);
     }
 }
 
-#define SAMPLE_TEXTURE2D_SCALE_BIAS(name) SampleTexture2DTriplanar(name, sampler##name, name##UV, name##_ST, texcoords, triplanarWeights)
-
+#define SAMPLE_TEXTURE2D_SCALE_BIAS(name) SampleTexture2DTriplanar(name, sampler##name, name##UV, name##UVLocal, name##_ST, uvMapping)
 #else
-#define SAMPLE_TEXTURE2D_SCALE_BIAS(name) SAMPLE_TEXTURE2D(name, sampler##name, (texcoords[name##UV] * name##_ST.xy + name##_ST.zw))
+#define SAMPLE_TEXTURE2D_SCALE_BIAS(name) SampleTexture2DPlanar(name, sampler##name, name##UV, name##UVLocal, name##_ST, uvMapping)
 #endif // _USE_TRIPLANAR
 
 
-void InitializeMappingData(FragInputs input, out float2 texcoords[TEXCOORD_INDEX_COUNT], out float3 triplanarWeights)
+void InitializeMappingData(FragInputs input, out TextureUVMapping uvMapping)
 {
     float3 position = GetAbsolutePositionWS(input.positionWS);
-    // If we use local planar mapping, convert to local space
-    position = _UseLocalPlanarMapping ? TransformWorldToObject(position) : position;
-    // planar/triplanar
     float2 uvXZ;
     float2 uvXY;
     float2 uvZY;
-    GetTriplanarCoordinate(position, uvXZ, uvXY, uvZY);
-
-#ifdef _USE_TRIPLANAR
-    float3 vertexNormal = input.worldToTangent[2].xyz; // normal in WS
-    vertexNormal = _UseLocalPlanarMapping ? TransformWorldToObjectDir(vertexNormal) : vertexNormal;
-    triplanarWeights = ComputeTriplanarWeights(vertexNormal);
-#else
-    triplanarWeights = float3(0.0, 0.0, 0.0);
-#endif
 
     // Build the texcoords array.
-    texcoords[TEXCOORD_INDEX_UV0] = input.texCoord0;
-    texcoords[TEXCOORD_INDEX_UV1] = input.texCoord1;
-#ifdef _USE_UV2
-    texcoords[TEXCOORD_INDEX_UV2] = input.texCoord2;
-#else
-    texcoords[TEXCOORD_INDEX_UV2] = float2(0.0, 0.0);
+    uvMapping.texcoords[TEXCOORD_INDEX_UV0][0] = uvMapping.texcoords[TEXCOORD_INDEX_UV0][1] = input.texCoord0.xy;
+    uvMapping.texcoords[TEXCOORD_INDEX_UV1][0] = uvMapping.texcoords[TEXCOORD_INDEX_UV1][1] = input.texCoord1.xy;
+    uvMapping.texcoords[TEXCOORD_INDEX_UV2][0] = uvMapping.texcoords[TEXCOORD_INDEX_UV2][1] = input.texCoord2.xy;
+    uvMapping.texcoords[TEXCOORD_INDEX_UV3][0] = uvMapping.texcoords[TEXCOORD_INDEX_UV3][1] = input.texCoord3.xy;
+
+    // planar/triplanar
+    GetTriplanarCoordinate(position, uvXZ, uvXY, uvZY);
+    uvMapping.texcoords[TEXCOORD_INDEX_PLANAR_XY][0] = uvXY;
+    uvMapping.texcoords[TEXCOORD_INDEX_PLANAR_YZ][0] = uvZY;
+    uvMapping.texcoords[TEXCOORD_INDEX_PLANAR_ZX][0] = uvXZ;
+
+    // If we use local planar mapping, convert to local space
+    position = TransformWorldToObject(position);
+    GetTriplanarCoordinate(position, uvXZ, uvXY, uvZY);
+    uvMapping.texcoords[TEXCOORD_INDEX_PLANAR_XY][1] = uvXY;
+    uvMapping.texcoords[TEXCOORD_INDEX_PLANAR_YZ][1] = uvZY;
+    uvMapping.texcoords[TEXCOORD_INDEX_PLANAR_ZX][1] = uvXZ;
+
+#ifdef _USE_TRIPLANAR
+    float3 vertexNormal = input.worldToTangent[2].xyz;
+    uvMapping.triplanarWeights[0] = ComputeTriplanarWeights(vertexNormal);
+    // If we use local planar mapping, convert to local space
+    vertexNormal = TransformWorldToObjectDir(vertexNormal);
+    uvMapping.triplanarWeights[1] = ComputeTriplanarWeights(vertexNormal);
 #endif
-#ifdef _USE_UV3
-    texcoords[TEXCOORD_INDEX_UV3] = input.texCoord3;
-#else
-    texcoords[TEXCOORD_INDEX_UV3] = float2(0.0, 0.0);
-#endif
-    texcoords[TEXCOORD_INDEX_PLANAR_XY] = uvXY;
-    texcoords[TEXCOORD_INDEX_PLANAR_YZ] = uvZY;
-    texcoords[TEXCOORD_INDEX_PLANAR_ZX] = uvXZ;
+
+    // Normal mapping with surface gradient
+#ifdef SURFACE_GRADIENT
+    float3 vertexNormalWS = input.worldToTangent[2];
+
+    uvMapping.vertexTangentWS[0] = input.worldToTangent[0];
+    uvMapping.vertexBitangentWS[0] = input.worldToTangent[1];
+
+    float3 dPdx = ddx_fine(input.positionWS);
+    float3 dPdy = ddy_fine(input.positionWS);
+
+    float3 sigmaX = dPdx - dot(dPdx, vertexNormalWS) * vertexNormalWS;
+    float3 sigmaY = dPdy - dot(dPdy, vertexNormalWS) * vertexNormalWS;
+    //float flipSign = dot(sigmaY, cross(vertexNormalWS, sigmaX) ) ? -1.0 : 1.0;
+    float flipSign = dot(dPdy, cross(vertexNormalWS, dPdx)) < 0.0 ? -1.0 : 1.0; // gives same as the commented out line above
+
+    SurfaceGradientGenBasisTB(vertexNormalWS, sigmaX, sigmaY, flipSign, input.texCoord1, uvMapping.vertexTangentWS[1], uvMapping.vertexBitangentWS[1]);
+    SurfaceGradientGenBasisTB(vertexNormalWS, sigmaX, sigmaY, flipSign, input.texCoord2, uvMapping.vertexTangentWS[2], uvMapping.vertexBitangentWS[2]);
+    SurfaceGradientGenBasisTB(vertexNormalWS, sigmaX, sigmaY, flipSign, input.texCoord3, uvMapping.vertexTangentWS[3], uvMapping.vertexBitangentWS[3]);
+#endif // SURFACE_GRADIENT
 }
 
 //-----------------------------------------------------------------------------
@@ -172,9 +207,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 {
     ApplyDoubleSidedFlipOrMirror(input); // Apply double sided flip on the vertex normal.
 
-    float2 texcoords[TEXCOORD_INDEX_COUNT];
-    float3 triplanarWeights;
-    InitializeMappingData(input, texcoords, triplanarWeights);
+    TextureUVMapping uvMapping;
+    InitializeMappingData(input, uvMapping);
 
     // -------------------------------------------------------------
     // Surface Data:
@@ -203,7 +237,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     //surfaceData.normalWS = float3(0.0, 0.0, 0.0);
 
-    normalTS = GetNormalTS(input, texcoords[_NormalMapUV], detailNormalTS, detailMask);
+    normalTS = float3(0, 0, 1); // GetNormalTS(input, texcoords[_NormalMapUV], detailNormalTS, detailMask);
     //TODO: bentNormalTS
 
     surfaceData.perceptualSmoothnessA = dot(SAMPLE_TEXTURE2D_SCALE_BIAS(_SmoothnessAMap), _SmoothnessAMapChannelMask);
