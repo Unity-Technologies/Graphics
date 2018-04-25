@@ -54,7 +54,7 @@ public struct DensityVolumeParameters
 {
     public Color albedo;       // Single scattering albedo: [0, 1]. Alpha is ignored
     public float meanFreePath; // In meters: [1, 1000000]. Should be chromatic - this is an optimization!
-    public float asymmetry;    // Controls the phase function: [-1, 1]
+    public float anisotropy;   // Controls the phase function: [-1, 1]
 
     public void Constrain()
     {
@@ -65,7 +65,7 @@ public struct DensityVolumeParameters
 
         meanFreePath = Mathf.Clamp(meanFreePath, 1.0f, float.MaxValue);
 
-        asymmetry = Mathf.Clamp(asymmetry, -1.0f, 1.0f);
+        anisotropy = Mathf.Clamp(anisotropy, -1.0f, 1.0f);
     }
 
     public DensityVolumeData GetData()
@@ -462,18 +462,18 @@ public class VolumetricLightingSystem
         return depthParams;
     }
 
-    void SetPreconvolvedAmbientLightProbe(CommandBuffer cmd, float asymmetry)
+    void SetPreconvolvedAmbientLightProbe(CommandBuffer cmd, float anisotropy)
     {
         SphericalHarmonicsL2 probeSH = SphericalHarmonicMath.UndoCosineRescaling(RenderSettings.ambientProbe);
-        ZonalHarmonicsL2     phaseZH = ZonalHarmonicsL2.GetCornetteShanksPhaseFunction(asymmetry);
+        ZonalHarmonicsL2     phaseZH = ZonalHarmonicsL2.GetCornetteShanksPhaseFunction(anisotropy);
         SphericalHarmonicsL2 finalSH = SphericalHarmonicMath.PremultiplyCoefficients(SphericalHarmonicMath.Convolve(probeSH, phaseZH));
 
         cmd.SetGlobalVectorArray(HDShaderIDs._AmbientProbeCoeffs, SphericalHarmonicMath.PackCoefficients(finalSH));
     }
 
-    float CornetteShanksPhasePartConstant(float asymmetry)
+    float CornetteShanksPhasePartConstant(float anisotropy)
     {
-        float g = asymmetry;
+        float g = anisotropy;
 
         return (1.0f / (4.0f * Mathf.PI)) * 1.5f * (1.0f - g * g) / (2.0f + g * g);
     }
@@ -485,7 +485,7 @@ public class VolumetricLightingSystem
         var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
         if (visualEnvironment.fogType != FogType.Volumetric) return;
 
-        // VisualEnvironment sets global fog parameters: _GlobalAsymmetry, _GlobalScattering, _GlobalExtinction.
+        // VisualEnvironment sets global fog parameters: _GlobalAnisotropy, _GlobalScattering, _GlobalExtinction.
 
         VBuffer vBuffer = FindVBuffer(camera.GetViewID());
         if (vBuffer == null)
@@ -495,10 +495,10 @@ public class VolumetricLightingSystem
             return;
         }
 
-        // Get the interpolated asymmetry value.
+        // Get the interpolated anisotropy value.
         var fog = VolumeManager.instance.stack.GetComponent<VolumetricFog>();
 
-        SetPreconvolvedAmbientLightProbe(cmd, fog.asymmetry);
+        SetPreconvolvedAmbientLightProbe(cmd, fog.anisotropy);
 
         var currFrameParams = vBuffer.GetParameters(frameIndex);
         var prevFrameParams = vBuffer.GetParameters(frameIndex - 1);
@@ -724,14 +724,14 @@ public class VolumetricLightingSystem
             // Currently, we assume that they are completely uncorrelated, but maybe we should correlate them somehow.
             Vector4 offset = new Vector4(xySeq[sampleIndex].x, xySeq[sampleIndex].y, zSeq[sampleIndex], frameIndex);
 
-            // Get the interpolated asymmetry value.
+            // Get the interpolated anisotropy value.
             var fog = VolumeManager.instance.stack.GetComponent<VolumetricFog>();
 
             // TODO: set 'm_VolumetricLightingPreset'.
             // TODO: set the constant buffer data only once.
             cmd.SetComputeMatrixParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferCoordToViewDirWS, transform);
             cmd.SetComputeVectorParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferSampleOffset,     offset);
-            cmd.SetComputeFloatParam(  m_VolumetricLightingCS,         HDShaderIDs._CornetteShanksConstant,  CornetteShanksPhasePartConstant(fog.asymmetry));
+            cmd.SetComputeFloatParam(  m_VolumetricLightingCS,         HDShaderIDs._CornetteShanksConstant,  CornetteShanksPhasePartConstant(fog.anisotropy));
             cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferDensity,          vBuffer.GetDensityBuffer());          // Read
             cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingIntegral, vBuffer.GetLightingIntegralBuffer()); // Write
             if (enableReprojection)

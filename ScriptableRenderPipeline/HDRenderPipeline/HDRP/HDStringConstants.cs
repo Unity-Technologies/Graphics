@@ -329,7 +329,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _AmbientProbeCoeffs             = Shader.PropertyToID("_AmbientProbeCoeffs");
         public static readonly int _GlobalExtinction               = Shader.PropertyToID("_GlobalExtinction");
         public static readonly int _GlobalScattering               = Shader.PropertyToID("_GlobalScattering");
-        public static readonly int _GlobalAsymmetry                = Shader.PropertyToID("_GlobalAsymmetry");
+        public static readonly int _GlobalAnisotropy               = Shader.PropertyToID("_GlobalAnisotropy");
         public static readonly int _CornetteShanksConstant         = Shader.PropertyToID("_CornetteShanksConstant");
         public static readonly int _VBufferResolution              = Shader.PropertyToID("_VBufferResolution");
         public static readonly int _VBufferSliceCount              = Shader.PropertyToID("_VBufferSliceCount");

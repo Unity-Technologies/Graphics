@@ -257,7 +257,7 @@ CBUFFER_START(UnityPerView)
 
     // Volumetric lighting.
     float4 _AmbientProbeCoeffs[7];      // 3 bands of SH, packed, rescaled and convolved with the phase function
-    float  _GlobalAsymmetry;
+    float  _GlobalAnisotropy;
     float3 _GlobalScattering;
     float  _GlobalExtinction;
     float4 _VBufferResolution;          // { w, h, 1/w, 1/h }
