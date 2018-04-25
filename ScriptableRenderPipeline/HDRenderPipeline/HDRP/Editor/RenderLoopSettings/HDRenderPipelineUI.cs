@@ -63,6 +63,8 @@ namespace UnityEditor.Experimental.Rendering
         {
             EditorGUILayout.PropertyField(d.renderPipelineResources, _.GetContent("Render Pipeline Resources|Set of resources that need to be loaded when creating stand alone"));
             EditorGUILayout.PropertyField(d.diffusionProfileSettings, _.GetContent("Diffusion Profile Settings"));
+            EditorGUILayout.PropertyField(d.allowShaderVariantStripping, _.GetContent("Enable Shader Variant Stripping (experimental)"));
+
         }
     }
 }

@@ -45,7 +45,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableMSAA = false;
         public MSAASamples msaaSampleCount { get; private set; }
 
-        public bool enableShadowMask = false;
+        public bool enableShadowMask = true;
 
         public LightLoopSettings lightLoopSettings = new LightLoopSettings();
 
@@ -124,6 +124,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.enableObjectMotionVectors = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableObjectMotionVectors && renderPipelineSettings.supportMotionVectors;
             aggregate.enableDBuffer = srcFrameSettings.enableDBuffer && renderPipelineSettings.supportDBuffer;
             aggregate.enableAtmosphericScattering = srcFrameSettings.enableAtmosphericScattering;
+            // We must take care of the scene view fog flags in the editor
+            if (!CoreUtils.IsSceneViewFogEnabled(camera))
+                aggregate.enableAtmosphericScattering = false;
             aggregate.enableRoughRefraction = srcFrameSettings.enableRoughRefraction;
             aggregate.enableTransparentPostpass = srcFrameSettings.enableTransparentPostpass;
             aggregate.enableDistortion = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableDistortion;

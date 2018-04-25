@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using UnityEngine.Rendering;
 
@@ -7,7 +7,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     // Keep this class first in the file. Otherwise it seems that the script type is not registered properly.
     public abstract class AtmosphericScattering : VolumeComponent
     {
-        static readonly int m_TypeParam = Shader.PropertyToID("_AtmosphericScatteringType");
         // Fog Color
         static readonly int m_ColorModeParam = Shader.PropertyToID("_FogColorMode");
         static readonly int m_FogColorDensityParam = Shader.PropertyToID("_FogColorDensity");
@@ -29,15 +28,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static void PushNeutralShaderParameters(CommandBuffer cmd)
         {
-            cmd.SetGlobalFloat(m_TypeParam, (float)FogType.None);
+            cmd.SetGlobalInt(HDShaderIDs._AtmosphericScatteringType, (int)FogType.None);
+
+            // In case volumetric lighting is enabled, we need to make sure that all rendering passes
+            // (not just the atmospheric scattering one) receive neutral parameters.
+            if (ShaderConfig.s_VolumetricLightingPreset != 0)
+            {
+                var data = DensityVolumeData.GetNeutralValues();
+
+                cmd.SetGlobalVector(HDShaderIDs._GlobalScattering, data.scattering);
+                cmd.SetGlobalFloat( HDShaderIDs._GlobalExtinction, data.extinction);
+                cmd.SetGlobalFloat( HDShaderIDs._GlobalAsymmetry,  0.0f);
+            }
         }
 
+        // Not used by the volumetric fog.
         public void PushShaderParametersCommon(CommandBuffer cmd, FogType type, FrameSettings frameSettings)
         {
-            if (frameSettings.enableAtmosphericScattering)
-                cmd.SetGlobalFloat(m_TypeParam, (float)type);
-            else
-                cmd.SetGlobalFloat(m_TypeParam, (float)FogType.None);
+            Debug.Assert(frameSettings.enableAtmosphericScattering);
+
+            cmd.SetGlobalInt(HDShaderIDs._AtmosphericScatteringType, (int)type);
 
             // Fog Color
             cmd.SetGlobalFloat(m_ColorModeParam, (float)colorMode.value);
@@ -51,7 +61,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         None,
         Linear,
-        Exponential
+        Exponential,
+        Volumetric
     }
 
     [GenerateHLSL]

@@ -45,7 +45,7 @@
 //--------------------------------------------------------------------------------------------------
 
 StructuredBuffer<OrientedBBox>            _VolumeBounds;
-StructuredBuffer<DensityVolumeProperties> _VolumeProperties;
+StructuredBuffer<DensityVolumeProperties> _VolumeData;
 
 RW_TEXTURE3D(float4, _VBufferDensity); // RGB = sqrt(scattering), A = sqrt(extinction)
 
@@ -215,8 +215,8 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, float3 rayOriginWS, fl
                 if (overlapFraction > 0)
                 {
                     // There is an overlap. Sample the 3D texture, or load the constant value.
-                    voxelScattering += overlapFraction * _VolumeProperties[volumeIndex].scattering;
-                    voxelExtinction += overlapFraction * _VolumeProperties[volumeIndex].extinction;
+                    voxelScattering += overlapFraction * _VolumeData[volumeIndex].scattering;
+                    voxelExtinction += overlapFraction * _VolumeData[volumeIndex].extinction;
                 }
 
     #ifndef USE_CLUSTERED_LIGHTLIST

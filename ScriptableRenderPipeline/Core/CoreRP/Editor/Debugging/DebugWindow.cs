@@ -128,6 +128,14 @@ namespace UnityEditor.Experimental.Rendering
             // First init
             m_DebugTreeState = DebugManager.instance.GetState();
             UpdateWidgetStates();
+
+            EditorApplication.update -= Repaint;
+            var panels = DebugManager.instance.panels;
+            var selectedPanelIndex = m_Settings.selectedPanel;
+            if (selectedPanelIndex >= 0 
+                && selectedPanelIndex < panels.Count 
+                && panels[selectedPanelIndex].editorForceUpdate)
+                EditorApplication.update += Repaint;
         }
 
         // Note: this won't get called if the window is opened when the editor itself is closed
@@ -348,6 +356,13 @@ namespace UnityEditor.Experimental.Rendering
                         if (EditorGUI.EndChangeCheck())
                         {
                             Undo.RegisterCompleteObjectUndo(m_Settings, "Debug Panel Selection");
+                            var previousPanel = m_Settings.selectedPanel >= 0 && m_Settings.selectedPanel < panels.Count
+                                ? panels[m_Settings.selectedPanel]
+                                : null;
+                            if (previousPanel != null && previousPanel.editorForceUpdate && !panel.editorForceUpdate)
+                                EditorApplication.update -= Repaint;
+                            else if ((previousPanel == null || !previousPanel.editorForceUpdate) && panel.editorForceUpdate)
+                                EditorApplication.update += Repaint;
                             m_Settings.selectedPanel = i;
                         }
                     }

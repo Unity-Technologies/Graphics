@@ -7,7 +7,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         public int vsibleDecalCount { get; set; }
 
-        RTHandle m_HTile;
+        RTHandleSystem.RTHandle m_HTile;
 
         public DBufferManager()
             : base(Decal.GetMaterialDBufferCount())
@@ -23,25 +23,31 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             for (int dbufferIndex = 0; dbufferIndex < m_BufferCount; ++dbufferIndex)
             {
-                m_RTs[dbufferIndex] = RTHandle.Alloc(Vector2.one, colorFormat: rtFormat[dbufferIndex], sRGB: sRGBFlags[dbufferIndex], filterMode: FilterMode.Point, name: string.Format("DBuffer{0}", dbufferIndex));
+                m_RTs[dbufferIndex] = RTHandles.Alloc(Vector2.one, colorFormat: rtFormat[dbufferIndex], sRGB: sRGBFlags[dbufferIndex], filterMode: FilterMode.Point, name: string.Format("DBuffer{0}", dbufferIndex));
                 m_RTIDs[dbufferIndex] = m_RTs[dbufferIndex].nameID;
                 m_TextureShaderIDs[dbufferIndex] = HDShaderIDs._DBufferTexture[dbufferIndex];
             }
 
             // We use 8x8 tiles in order to match the native GCN HTile as closely as possible.
-            m_HTile = RTHandle.Alloc(size => new Vector2Int((size.x + 7) / 8, (size.y + 7) / 8), filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.R8, sRGB: false, enableRandomWrite: true, name: "DBufferHTile"); // Enable UAV
+            m_HTile = RTHandles.Alloc(size => new Vector2Int((size.x + 7) / 8, (size.y + 7) / 8), filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.R8, sRGB: false, enableRandomWrite: true, name: "DBufferHTile"); // Enable UAV
         }
 
         override public void DestroyBuffers()
         {
             base.DestroyBuffers();
-            RTHandle.Release(m_HTile);
+            RTHandles.Release(m_HTile);
         }
 
-        public void ClearNormalTargetAndHTile(CommandBuffer cmd, HDCamera camera, Color clearColor)
+        public void ClearTargets(CommandBuffer cmd, HDCamera camera)
         {
-            // index 1 is normals
-            HDUtils.SetRenderTarget(cmd, camera, m_RTs[1], ClearFlag.Color, clearColor);
+            // for alpha compositing, color is cleared to 0, alpha to 1
+            // https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+
+            Color clearColor = new Color(0.0f, 0.0f, 0.0f, 1.0f);
+            Color clearColorNormal = new Color(0.5f, 0.5f, 0.5f, 1.0f); // for normals 0.5 is neutral
+            HDUtils.SetRenderTarget(cmd, camera, m_RTs[0], ClearFlag.Color, clearColor);
+            HDUtils.SetRenderTarget(cmd, camera, m_RTs[1], ClearFlag.Color, clearColorNormal);
+            HDUtils.SetRenderTarget(cmd, camera, m_RTs[2], ClearFlag.Color, clearColor);
             HDUtils.SetRenderTarget(cmd, camera, m_HTile, ClearFlag.Color, CoreUtils.clearColorAllBlack);
         }
 
@@ -65,7 +71,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (frameSettings.enableDBuffer)
             {
                 cmd.SetGlobalInt(HDShaderIDs._EnableDBuffer, vsibleDecalCount > 0 ? 1 : 0);
-                cmd.SetGlobalVector(HDShaderIDs._DecalAtlasResolution, new Vector2(DecalSystem.kDecalAtlasSize, DecalSystem.kDecalAtlasSize));
+                cmd.SetGlobalVector(HDShaderIDs._DecalAtlasResolution, new Vector2(HDUtils.hdrpSettings.decalSettings.atlasWidth, HDUtils.hdrpSettings.decalSettings.atlasHeight));
                 BindBufferAsTextures(cmd);
             }
             else
