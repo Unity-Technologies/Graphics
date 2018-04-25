@@ -62,6 +62,7 @@ Shader "LightweightPipeline/Particles/Standard (Simple Lighting)"
 
         Pass
         {
+            Name "ParticlesLit"
             Tags {"LightMode" = "LightweightForward"}
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
@@ -81,7 +82,6 @@ Shader "LightweightPipeline/Particles/Standard (Simple Lighting)"
             #pragma shader_feature _REQUIRE_UV2
 
             #define BUMP_SCALE_NOT_SUPPORTED 1
-            #define NO_SHADOWS 1
 
             #include "LWRP/ShaderLibrary/Particles.hlsl"
             #include "LWRP/ShaderLibrary/Lighting.hlsl"

@@ -1,5 +1,6 @@
 Pass
 {
+    Name "ShadowCaster"
 	Tags{"LightMode" = "ShadowCaster"}
 
 	ZWrite On
@@ -31,6 +32,7 @@ Pass
 
 Pass
 {
+    Name "DepthOnly"
 	Tags{"LightMode" = "DepthOnly"}
 
 	ZWrite On
@@ -61,6 +63,7 @@ Pass
 // This pass it not used during regular rendering, only for lightmap baking.
 Pass
 {
+    Name "Meta"
 	Tags{"LightMode" = "Meta"}
 
 	Cull Off

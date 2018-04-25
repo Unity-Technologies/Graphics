@@ -314,6 +314,10 @@ namespace UnityEngine.Experimental.Rendering
             };
             return mat;
         }
+        public static bool HasFlag<T>(T mask, T flag) where T : IConvertible
+        {
+            return (mask.ToUInt32(null) & flag.ToUInt32(null)) != 0;
+        }
 
         public static void SetKeyword(CommandBuffer cmd, string keyword, bool state)
         {
