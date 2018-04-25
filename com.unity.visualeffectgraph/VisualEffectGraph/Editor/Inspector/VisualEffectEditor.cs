@@ -286,9 +286,6 @@ namespace UnityEditor.VFX
             GUILayout.EndHorizontal();
         }
 
-        protected Dictionary<string, bool> m_ParameterHasMultipleValues = new Dictionary<string, bool>();
-
-
         public override void OnInspectorGUI()
         {
             InitializeGUI();
@@ -384,16 +381,6 @@ namespace UnityEditor.VFX
                             stack.RemoveAt(stack.Count - 1);
                         }
 
-                        if (stack.Count == 0)
-                        {
-                            if (lastRootParameter != null)
-                            {
-                                m_ParameterHasMultipleValues[lastRootParameter] = lastRootParameterHasMultipleValues;
-                            }
-                            lastRootParameter = parameter.name;
-                            lastRootParameterHasMultipleValues = false;
-                        }
-
                         if (parameter.descendantCount > 0)
                         {
                             stack.Add(currentCount);
@@ -450,10 +437,6 @@ namespace UnityEditor.VFX
                             }
                         }
                         EditorGUI.indentLevel = stack.Count;
-                    }
-                    if (lastRootParameter != null)
-                    {
-                        m_ParameterHasMultipleValues[lastRootParameter] = lastRootParameterHasMultipleValues;
                     }
                 }
             }
