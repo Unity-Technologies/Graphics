@@ -14,37 +14,57 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // Base
         protected const string k_BaseColor = "_BaseColor";
         protected const string k_BaseColorMap = "_BaseColorMap";
+        protected const string k_BaseColorMapUV = "_BaseColorMapUV";
 
         protected const string k_Metallic = "_Metallic";
         protected const string k_MetallicMap = "_MetallicMap";
-        protected const string k_MetallicRemapMin = "_MetallicRemap";
+        protected const string k_MetallicMapUV = "_MetallicMapUV";
+        protected const string k_MetallicRemap = "_MetallicRemap";
+        protected const string k_MetallicRemapInverted = "_MetallicRemapInverted";
+        protected const string k_MetallicRange = "_MetallicRange";
 
         protected const string k_Smoothness1 = "_SmoothnessA";
         protected const string k_Smoothness1Map = "_SmoothnessAMap";
-        protected const string k_Smoothness1RemapMin = "_SmoothnessARemap";
+        protected const string k_Smoothness1MapUV = "_SmoothnessAMapUV";
+        protected const string k_Smoothness1Remap = "_SmoothnessARemap";
+        protected const string k_Smoothness1RemapInverted = "_SmoothnessARemapInverted";
+        protected const string k_Smoothness1Range = "_SmoothnessARange";
 
         protected const string k_NormalMap = "_NormalMap";
+        protected const string k_NormalMapUV = "_NormalMapUV";
         protected const string k_NormalScale = "_NormalScale";
 
         // Emissive
         protected const string k_EmissiveColor = "_EmissiveColor";
         protected const string k_EmissiveColorMap = "_EmissiveColorMap";
+        protected const string k_EmissiveColorMapUV = "_EmissiveColorMapUV";
         protected const string k_EmissiveIntensity = "_EmissiveIntensity";
         protected const string k_AlbedoAffectEmissive = "_AlbedoAffectEmissive";
 
         // SSS
-        protected const string k_DiffusionProfileName = "_DiffusionProfile";
-        protected const string k_SubsurfaceMaskName = "_SubsurfaceMask";
+        protected const string k_DiffusionProfile = "_DiffusionProfile";
+        protected const string k_SubsurfaceMask = "_SubsurfaceMask";
         protected const string k_SubsurfaceMaskMap = "_SubsurfaceMaskMap";
+        protected const string k_SubsurfaceMaskMapUV = "_SubsurfaceMaskMapUV";
+        protected const string k_SubsurfaceMaskRemap = "_SubsurfaceMaskRemap";
+        protected const string k_SubsurfaceMaskRemapInverted = "_SubsurfaceMaskRemapInverted";
+        protected const string k_SubsurfaceMaskRange = "_SubsurfaceMaskRange";
 
-        protected const string k_ThicknessName = "_Thickness";
-        protected const string k_ThicknessMapName = "_ThicknessMap";
-        protected const string k_ThicknessRemapName = "_ThicknessRemap";
+        // Translucency
+        protected const string k_Thickness = "_Thickness";
+        protected const string k_ThicknessMap = "_ThicknessMap";
+        protected const string k_ThicknessMapUV = "_ThicknessMapUV";
+        protected const string k_ThicknessRemap = "_ThicknessRemap";
+        protected const string k_ThicknessRemapInverted = "_ThicknessRemapInverted";
+        protected const string k_ThicknessRange = "_ThicknessRange";
 
         // Second Lobe.
         protected const string k_Smoothness2 = "_SmoothnessB";
         protected const string k_Smoothness2Map = "_SmoothnessBMap";
-        protected const string k_SmoothnessRemap2Min = "_SmoothnessBRemap";
+        protected const string k_Smoothness2MapUV = "_SmoothnessBMapUV";
+        protected const string k_Smoothness2Remap = "_SmoothnessBRemap";
+        protected const string k_Smoothness2RemapInverted = "_SmoothnessBRemapInverted";
+        protected const string k_Smoothness2Range = "_SmoothnessBRange";
 
         protected const string k_LobeMix = "_LobeMix";
 
@@ -74,71 +94,71 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public StackLitGUI()
         {
-            _baseMaterialProperties = new GroupProperty(this, new BaseProperty[]
+            _baseMaterialProperties = new GroupProperty(this, "_BaseMaterial", new BaseProperty[]
             {
                 // JFFTODO: Find the proper condition, and proper way to display this.
                 new Property(this, k_DoubleSidedNormalMode, "Normal mode", "This will modify the normal base on the selected mode. Mirror: Mirror the normal with vertex normal plane, Flip: Flip the normal.", false), 
             });
 
-            _materialProperties = new GroupProperty(this, new BaseProperty[]
+            _materialProperties = new GroupProperty(this, "_Material", new BaseProperty[]
             {
-                new GroupProperty(this, "Standard", new BaseProperty[]
+                new GroupProperty(this, "_Standard", "Standard", new BaseProperty[]
                 {
-                    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Base Color + Opacity", "Albedo (RGB) and Opacity (A)", false),
-                    new TextureProperty(this, k_MetallicMap, k_Metallic, "Metallic", "Metallic", false), 
-                    new TextureProperty(this, k_Smoothness1Map, k_Smoothness1, "Smoothness", "Smoothness", false),
+                    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Base Color + Opacity", "Albedo (RGB) and Opacity (A)", true, false),
+                    new TextureProperty(this, k_MetallicMap, k_Metallic, "Metallic", "Metallic", false, false), 
+                    new TextureProperty(this, k_Smoothness1Map, k_Smoothness1, "Smoothness", "Smoothness", false, false),
                     // TODO: Special case for normal maps.
-                    new TextureProperty(this, k_NormalMap, k_NormalScale, "Normal TODO", "Normal Map", false, true),
+                    new TextureProperty(this, k_NormalMap, k_NormalScale, "Normal TODO", "Normal Map", false, false, true),
 
                     //new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Dielectric IoR", "Index of Refraction for Dielectric", false),
                 }),
 
-                new GroupProperty(this, "Emissive", new BaseProperty[]
+                new GroupProperty(this, "_Emissive", "Emissive", new BaseProperty[]
                 {
-                    new TextureProperty(this, k_EmissiveColorMap, k_EmissiveColor, "Emissive Color", "Emissive", false),
+                    new TextureProperty(this, k_EmissiveColorMap, k_EmissiveColor, "Emissive Color", "Emissive", true, false),
                     new Property(this, k_EmissiveIntensity, "Emissive Intensity", "Emissive", false),
                     new Property(this, k_AlbedoAffectEmissive, "Albedo Affect Emissive", "Specifies whether or not the emissive color is multiplied by the albedo.", false),
                 }),
 
-                //new GroupProperty(this, "Coat", new BaseProperty[]
+                //new GroupProperty(this, "_Coat", "Coat", new BaseProperty[]
                 //{
-                //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "SmoothnessCoat", "smoothnessCoat", false),
-                //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Index Of Refraction", "iorCoat", false),
-                //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Normal", "normal Coat", false),
+                //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "SmoothnessCoat", "smoothnessCoat", false, false),
+                //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Index Of Refraction", "iorCoat", false, false),
+                //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Normal", "normal Coat", false, false),
                 //}),
 
-                new GroupProperty(this, "Sub-Surface Scattering", new BaseProperty[]
+                new GroupProperty(this, "_SSS", "Sub-Surface Scattering", new BaseProperty[]
                 {
-                    new DiffusionProfileProperty(this, k_DiffusionProfileName, "Diffusion Profile", "A profile determines the shape of the SSS/transmission filter.", false),
-                    new TextureProperty(this, k_SubsurfaceMaskName, "Subsurface mask map (R)", "Determines the strength of the subsurface scattering effect.", false),
+                    new DiffusionProfileProperty(this, k_DiffusionProfile, "Diffusion Profile", "A profile determines the shape of the SSS/transmission filter.", false),
+                    new TextureProperty(this, k_SubsurfaceMaskMap, k_SubsurfaceMask, "Subsurface mask map (R)", "Determines the strength of the subsurface scattering effect.", false, false),
                 }/*, _ => _materialId == MaterialId.SubSurfaceScattering*/),
 
-                new GroupProperty(this, "Second Specular Lobe", new BaseProperty[]
+                new GroupProperty(this, "_Lobe2", "Second Specular Lobe", new BaseProperty[]
                 {
-                    new TextureProperty(this, k_Smoothness2Map, k_Smoothness2, "Smoothness2", "Smoothness2", false),
+                    new TextureProperty(this, k_Smoothness2Map, k_Smoothness2, "Smoothness2", "Smoothness2", false, false),
                     new Property(this, k_LobeMix, "Lobe Mix", "Lobe Mix", false), 
                 }),
 
-                //new GroupProperty(this, "Anisotropy", new BaseProperty[]
+                //new GroupProperty(this, "_Anisotropy", "Anisotropy", new BaseProperty[]
                 //{
                 //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Anisotropy Strength", "anisotropy strength", false),
                 //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Rotation", "rotation", false),
                 //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Tangent", "tangent", false),
                 //}),
 
-                new GroupProperty(this, "Transmission", new BaseProperty[]
+                new GroupProperty(this, "_Transmission", "Transmission", new BaseProperty[]
                 {
-                    new DiffusionProfileProperty(this, k_DiffusionProfileName, "Diffusion Profile", "A profile determines the shape of the SSS/transmission filter.", false),
-                    new TextureProperty(this, k_ThicknessName, "Thickness", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.", false),
+                    new DiffusionProfileProperty(this, k_DiffusionProfile, "Diffusion Profile", "A profile determines the shape of the SSS/transmission filter.", false),
+                    new TextureProperty(this, k_ThicknessMap, k_Thickness, "Thickness", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.", false),
                 }),
 
-                //new GroupProperty(this, "Iridescence", new BaseProperty[]
+                //new GroupProperty(this, "_Iridescence", "Iridescence", new BaseProperty[]
                 //{
                 //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Index of Refraction", "Index of Refraction for Iridescence", false),
                 //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Thickness", "Thickness", false),
                 //}),
 
-                //new GroupProperty(this, "Glint", new BaseProperty[]
+                //new GroupProperty(this, "_Glint", "Glint", new BaseProperty[]
                 //{
                 //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Density", "Density:", false),
                 //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Tint", "Tint", false),
@@ -187,8 +207,56 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetupMaterialKeywordsAndPass(material);
         }
 
+        protected static void SetupTextureMaterialProperty(Material material, string basePropertyName)
+        {
+            string useMapPropertyName = basePropertyName + "UseMap";
+            string mapPropertyName = basePropertyName + "Map";
+            string remapPropertyName = basePropertyName + "Remap";
+            string invertPropertyName = basePropertyName + "RemapInverted";
+            string rangePropertyName = basePropertyName + "Range";
+            string channelPropertyName = basePropertyName + "MapChannel";
+            string channelMaskPropertyName = basePropertyName + "MapChannelMask";
+
+            if (material.GetTexture(mapPropertyName))
+            {
+                Vector4 rangeVector = material.GetVector(remapPropertyName);
+                if (material.GetFloat(invertPropertyName) > 0.0f)
+                {
+                    float s = rangeVector.x;
+                    rangeVector.x = rangeVector.y;
+                    rangeVector.y = s;
+                }
+
+                material.SetFloat(useMapPropertyName, 1.0f);
+                material.SetVector(rangePropertyName, rangeVector);
+
+                int channel = (int)material.GetFloat(channelPropertyName);
+                switch (channel)
+                {
+                case 0:
+                    material.SetVector(channelMaskPropertyName, new Vector4(1.0f, 0.0f, 0.0f, 0.0f));
+                    break;
+                case 1:
+                    material.SetVector(channelMaskPropertyName, new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
+                    break;
+                case 2:
+                    material.SetVector(channelMaskPropertyName, new Vector4(0.0f, 0.0f, 1.0f, 0.0f));
+                    break;
+                case 3:
+                    material.SetVector(channelMaskPropertyName, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+                    break;
+                }
+            }
+            else
+            {
+                material.SetFloat(useMapPropertyName, 0.0f);
+                material.SetVector(rangePropertyName, new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
+                material.SetVector(channelMaskPropertyName, new Vector4(1.0f, 0.0f, 0.0f, 0.0f));
+            }
+        }
+
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
-        static public void SetupMaterialKeywordsAndPass(Material material)
+        public static void SetupMaterialKeywordsAndPass(Material material)
         {
             //TODO see BaseLitUI.cs:SetupBaseLitKeywords (stencil etc)
             SetupBaseUnlitKeywords(material);
@@ -226,31 +294,51 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             CoreUtils.SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", true);
             CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture(k_NormalMap));
-            CoreUtils.SetKeyword(material, "_SMOOTHNESSMASKMAPA", material.GetTexture(k_Smoothness1Map));
-            CoreUtils.SetKeyword(material, "_SMOOTHNESSMASKMAPB", material.GetTexture(k_Smoothness2Map));
-            CoreUtils.SetKeyword(material, "_METALLICMAP", material.GetTexture(k_MetallicMap));
-            CoreUtils.SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(k_EmissiveColorMap));
 
-            //bool needUV2 = (LitGUI.UVBaseMapping)material.GetFloat(k_UVBase) == LitGUI.UVBaseMapping.UV2;
-            //bool needUV3 = (LitGUI.UVBaseMapping)material.GetFloat(k_UVBase) == LitGUI.UVBaseMapping.UV3;
+            SetupTextureMaterialProperty(material, k_Metallic);
+            SetupTextureMaterialProperty(material, k_Smoothness1);
+            SetupTextureMaterialProperty(material, k_Smoothness2);
+            SetupTextureMaterialProperty(material, k_SubsurfaceMask);
+            SetupTextureMaterialProperty(material, k_Thickness);
 
-            //if (needUV3)
-            //{
-            //    material.DisableKeyword("_REQUIRE_UV2");
-            //    material.EnableKeyword("_REQUIRE_UV3");
-            //}
-            //else if (needUV2)
-            //{
-            //    material.EnableKeyword("_REQUIRE_UV2");
-            //    material.DisableKeyword("_REQUIRE_UV3");
-            //}
-            //else
-            //{
-            //    material.DisableKeyword("_REQUIRE_UV2");
-            //    material.DisableKeyword("_REQUIRE_UV3");
-            //}
+            // Check if we are using specific UVs.
+            TextureProperty.UVMapping[] uvIndices = new[]
+            {
+                (TextureProperty.UVMapping)material.GetFloat(k_BaseColorMapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_MetallicMapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_NormalMapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_Smoothness1MapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_Smoothness2MapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_EmissiveColorMapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_SubsurfaceMaskMapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_ThicknessMapUV),
+            };
 
-            CoreUtils.SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(k_EmissiveColorMap));
+            bool requireUv2 = false;
+            bool requireUv3 = false;
+            for (int i = 0; i < uvIndices.Length; ++i)
+            {
+                requireUv2 = requireUv2 || uvIndices[i] == TextureProperty.UVMapping.UV2;
+                requireUv3 = requireUv3 || uvIndices[i] == TextureProperty.UVMapping.UV3;
+            }
+
+            if (requireUv2)
+            {
+                material.EnableKeyword("_REQUIRE_UV2");
+            }
+            else
+            {
+                material.DisableKeyword("_REQUIRE_UV2");
+            }
+
+            if (requireUv3)
+            {
+                material.EnableKeyword("_REQUIRE_UV3");
+            }
+            else
+            {
+                material.DisableKeyword("_REQUIRE_UV3");
+            }
         }
     }
 } // namespace UnityEditor

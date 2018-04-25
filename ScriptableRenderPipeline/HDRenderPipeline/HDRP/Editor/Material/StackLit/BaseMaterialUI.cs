@@ -30,23 +30,26 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public string m_Title = string.Empty;
 
             private readonly BaseProperty[] m_ChildProperties;
+            private readonly Property m_Show;
 
-            public bool Foldout = false;
-
-            public GroupProperty(BaseMaterialGUI parent, BaseProperty[] childProperties, Func<object, bool> isVisible = null)
-                : this(parent, string.Empty, childProperties, isVisible)
+            public GroupProperty(BaseMaterialGUI parent, string groupName, BaseProperty[] childProperties, Func<object, bool> isVisible = null)
+                : this(parent, groupName, string.Empty, childProperties, isVisible)
             {
             }
 
-            public GroupProperty(BaseMaterialGUI parent, string groupTitle, BaseProperty[] childProperties, Func<object, bool> isVisible = null)
+            public GroupProperty(BaseMaterialGUI parent, string groupName, string groupTitle, BaseProperty[] childProperties, Func<object, bool> isVisible = null)
                 : base(parent, isVisible)
             {
+                m_Show = new Property(parent, groupName + "Show", "", false);
+
                 m_Title = groupTitle;
                 m_ChildProperties = childProperties;
             }
 
             public override void OnFindProperty(MaterialProperty[] props)
             {
+                m_Show.OnFindProperty(props);
+
                 foreach (var c in m_ChildProperties)
                 {
                     c.OnFindProperty(props);
@@ -59,14 +62,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     if (!string.IsNullOrEmpty(m_Title))
                     {
-                        Foldout = EditorGUILayout.Foldout(Foldout, m_Title);
+                        m_Show.BoolValue = EditorGUILayout.Foldout(m_Show.BoolValue, m_Title);
                     }
-                    else
+                    else if (m_Show.IsValid)
                     {
-                        Foldout = true;
+                        m_Show.BoolValue = true;
                     }
 
-                    if (Foldout)
+                    if (!m_Show.IsValid || m_Show.BoolValue)
                     {
                         EditorGUI.indentLevel++;
 
@@ -86,7 +89,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public string PropertyName;
             public string PropertyText;
 
-            protected MaterialProperty m_MaterialProperty = null;
+            public MaterialProperty m_MaterialProperty = null;
 
             protected readonly GUIContent m_GuiContent = null;
 
@@ -105,7 +108,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public bool BoolValue
             {
-                get { return Math.Abs(m_MaterialProperty.floatValue) > 0.0f; }
+                get { return m_MaterialProperty == null || Math.Abs(m_MaterialProperty.floatValue) > 0.0f; }
                 set { m_MaterialProperty.floatValue = value ? 1.0f : 0.0f; }
             }
 
@@ -347,13 +350,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Triplanar,
             }
 
+            public Property m_Show;
+
+            public Property m_ConstantProperty;
+
             public TextureOneLineProperty m_TextureProperty;
 
             public ComboProperty m_UvSetProperty;
 
             public Property m_LocalOrWorldProperty;
-
-            public ComboProperty m_TilingProperty;
 
             public Property m_ChannelProperty;
 
@@ -361,24 +366,27 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public Property m_InvertRemapProperty;
 
-            public bool Foldout = false;
-
-            public TextureProperty(BaseMaterialGUI parent, string propertyName, string constantPropertyName, string guiText, bool isMandatory = true, bool isNormalMap = false)
-                : this(parent, propertyName, constantPropertyName, guiText, string.Empty, isMandatory, isNormalMap)
+            public TextureProperty(BaseMaterialGUI parent, string propertyName, string constantPropertyName, string guiText, bool useConstantAsTint, bool isMandatory = true, bool isNormalMap = false)
+                : this(parent, propertyName, constantPropertyName, guiText, string.Empty, useConstantAsTint, isMandatory, isNormalMap)
             {
             }
 
-            public TextureProperty(BaseMaterialGUI parent, string propertyName, string constantPropertyName, string guiText, string toolTip, bool isMandatory = true, bool isNormalMap = false)
+            public TextureProperty(BaseMaterialGUI parent, string propertyName, string constantPropertyName, string guiText, string toolTip, bool useConstantAsTint, bool isMandatory = true, bool isNormalMap = false)
                 : base(parent, propertyName, guiText, toolTip, isMandatory)
             {
-                m_TextureProperty = new TextureOneLineProperty(parent, propertyName, constantPropertyName, guiText, toolTip, isMandatory);
+                m_Show = new Property(parent, propertyName + "Show", "", isMandatory);
+
+                if (useConstantAsTint == false)
+                {
+                    m_ConstantProperty = new Property(parent, constantPropertyName, guiText, toolTip, isMandatory);
+                }
+
+                m_TextureProperty = new TextureOneLineProperty(parent, propertyName, useConstantAsTint ? constantPropertyName : string.Empty, guiText, toolTip, isMandatory);
 
                 m_UvSetProperty = new ComboProperty(parent, propertyName + "UV", "UV Mapping", Enum.GetNames(typeof(UVMapping)), false);
                 m_LocalOrWorldProperty = new Property(parent, propertyName + "LocalOrWorld", "Local Space", "Whether Planar or Triplanar is using Local or World space.", false);
 
-                m_TilingProperty = new ComboProperty(parent, propertyName + "Tiling", "Tiling", Enum.GetNames(typeof(Tiling)), false);
-
-                m_ChannelProperty = new Property(parent, propertyName + "Channel", "Channel", false);
+                m_ChannelProperty = new ComboProperty(parent, propertyName + "Channel", "Channel", Enum.GetNames(typeof(Channel)), false);
 
                 m_RemapProperty = new Property(parent, constantPropertyName + "Remap", "Remapping", "Defines the range to remap/scale the values in texture", false);
                 m_InvertRemapProperty = new Property(parent, constantPropertyName + "RemapInverted", "Invert Remapping", "Whether the mapping values are inverted.", false);
@@ -388,10 +396,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 base.OnFindProperty(props);
 
+                m_Show.OnFindProperty(props);
+                if (m_ConstantProperty != null)
+                {
+                    m_ConstantProperty.OnFindProperty(props);
+                }
                 m_TextureProperty.OnFindProperty(props);
                 m_UvSetProperty.OnFindProperty(props);
                 m_LocalOrWorldProperty.OnFindProperty(props);
-                m_TilingProperty.OnFindProperty(props);
                 m_ChannelProperty.OnFindProperty(props);
                 m_RemapProperty.OnFindProperty(props);
                 m_InvertRemapProperty.OnFindProperty(props);
@@ -399,13 +411,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public override void OnGUI()
             {
-                if (m_TextureProperty.IsValid
-                    && (IsVisible == null || IsVisible(this)))
+                if ((IsVisible == null || IsVisible(this))
+                    && m_Show.IsValid
+                    && m_TextureProperty.IsValid)
                 {
-                    Foldout = EditorGUILayout.Foldout(Foldout, PropertyText);
-                    if (Foldout)
+                    m_Show.BoolValue = EditorGUILayout.Foldout(m_Show.BoolValue, PropertyText);
+
+                    if (m_Show.BoolValue)
                     {
                         EditorGUI.indentLevel++;
+                        if (m_ConstantProperty != null && m_ConstantProperty.IsValid
+                            && m_TextureProperty.TextureValue == null)
+                        {
+                            m_ConstantProperty.OnGUI();
+                        }
 
                         m_TextureProperty.OnGUI();
 
@@ -413,8 +432,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         {
                             m_UvSetProperty.OnGUI();
                             m_LocalOrWorldProperty.OnGUI();
-                            m_TilingProperty.OnGUI();
                             m_ChannelProperty.OnGUI();
+
+                            Parent.m_MaterialEditor.TextureScaleOffsetProperty(m_TextureProperty.m_MaterialProperty);
+
                             m_LocalOrWorldProperty.OnGUI();
 
                             if (m_RemapProperty.IsValid)
