@@ -387,6 +387,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var portInputView in m_PortInputContainer.OfType<PortInputView>())
                 portInputView.UpdateSlotType();
+
+            foreach (var control in m_ControlItems)
+            {
+                var listener = control as INodeModificationListener;
+                if (listener != null)
+                    listener.OnNodeModified(ModificationScope.Graph);
+            }
         }
 
         void OnResize(Vector2 deltaSize)
