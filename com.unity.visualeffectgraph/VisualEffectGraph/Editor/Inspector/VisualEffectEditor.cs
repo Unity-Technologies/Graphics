@@ -67,10 +67,12 @@ namespace UnityEditor.VFX
         }
 
         public static readonly GUIStyle toggleStyle;
+        public static readonly GUIStyle toggleMixedStyle;
 
         static VisualEffectEditorStyles()
         {
             toggleStyle = new GUIStyle("ShurikenCheckMark");
+            toggleMixedStyle = new GUIStyle("ShurikenCheckMarkMixed");
             m_Icons = new GUIContent[1 + (int)Icon.Stop];
             for (int i = 0; i <= (int)Icon.Stop; ++i)
             {
@@ -151,19 +153,14 @@ namespace UnityEditor.VFX
 
             GUIContent nameContent = EditorGUIUtility.TextContent(parameter.name);
 
-            if (!overrideProperty.hasMultipleDifferentValues)
+            //EditorGUI.showMixedValue = overrideProperty.hasMultipleDifferentValues;
+            EditorGUI.BeginChangeCheck();
+            bool result = EditorGUILayout.Toggle(overrideProperty.hasMultipleDifferentValues ? false : overrideProperty.boolValue, overrideProperty.hasMultipleDifferentValues ? VisualEffectEditorStyles.toggleMixedStyle : VisualEffectEditorStyles.toggleStyle, GUILayout.Width(overrideWidth));
+            if (EditorGUI.EndChangeCheck())
             {
-                bool result = EditorGUILayout.Toggle(overrideProperty.boolValue, VisualEffectEditorStyles.toggleStyle, GUILayout.Width(overrideWidth));
-
-                if (overrideProperty.boolValue != result)
-                {
-                    overrideProperty.boolValue = result;
-                }
+                overrideProperty.boolValue = result;
             }
-            else
-            {
-                //TODO what to do with multiple value
-            }
+            //EditorGUI.showMixedValue = false;
 
             EditorGUI.BeginChangeCheck();
             if (parameter.min != Mathf.NegativeInfinity && parameter.max != Mathf.Infinity)
@@ -291,6 +288,9 @@ namespace UnityEditor.VFX
             GUILayout.EndHorizontal();
         }
 
+        protected Dictionary<string, bool> m_ParameterHasMultipleValues = new Dictionary<string, bool>();
+
+
         public override void OnInspectorGUI()
         {
             InitializeGUI();
@@ -330,6 +330,20 @@ namespace UnityEditor.VFX
             EditorGUILayout.PropertyField(m_ReseedOnPlay, m_Contents.ReseedOnPlay);
             bool reinit = EditorGUI.EndChangeCheck();
 
+
+            //Display properties only if all the VisualEffects share the same graph
+            VisualEffectAsset asset = component.visualEffectAsset;
+            if (targets.Length > 1)
+            {
+                foreach (VisualEffect target in targets)
+                {
+                    if (target.visualEffectAsset != asset)
+                    {
+                        return;
+                    }
+                }
+            }
+
             //Field
             GUILayout.Label(m_Contents.HeaderParameters, m_Styles.InspectorHeader);
 
@@ -348,6 +362,7 @@ namespace UnityEditor.VFX
                     m_graph = m_asset.GetOrCreateGraph();
                 }
             }
+            GUI.enabled = true;
 
             if (m_graph != null)
             {
@@ -359,6 +374,9 @@ namespace UnityEditor.VFX
                 {
                     List<int> stack = new List<int>();
                     int currentCount = m_graph.m_ParameterInfo.Length;
+
+                    string lastRootParameter = null;
+                    bool lastRootParameterHasMultipleValues = false;
                     foreach (var parameter in m_graph.m_ParameterInfo)
                     {
                         --currentCount;
@@ -367,11 +385,23 @@ namespace UnityEditor.VFX
                             currentCount = stack.Last();
                             stack.RemoveAt(stack.Count - 1);
                         }
+
+                        if (stack.Count == 0)
+                        {
+                            if (lastRootParameter != null)
+                            {
+                                m_ParameterHasMultipleValues[lastRootParameter] = lastRootParameterHasMultipleValues;
+                            }
+                            lastRootParameter = parameter.name;
+                            lastRootParameterHasMultipleValues = false;
+                        }
+
                         if (parameter.descendantCount > 0)
                         {
                             stack.Add(currentCount);
                             currentCount = parameter.descendantCount;
                         }
+
 
                         if (string.IsNullOrEmpty(parameter.sheetType))
                         {
@@ -403,6 +433,9 @@ namespace UnityEditor.VFX
                                 property = property.FindPropertyRelative("m_Value");
                                 string firstpropName = property.name;
 
+                                lastRootParameterHasMultipleValues |= overrideProperty.hasMultipleDifferentValues;
+                                lastRootParameterHasMultipleValues |= property.hasMultipleDifferentValues;
+
                                 Color previousColor = GUI.color;
                                 var animated = AnimationMode.IsPropertyAnimated(target, property.propertyPath);
                                 if (animated)
@@ -419,6 +452,10 @@ namespace UnityEditor.VFX
                             }
                         }
                         EditorGUI.indentLevel = stack.Count;
+                    }
+                    if (lastRootParameter != null)
+                    {
+                        m_ParameterHasMultipleValues[lastRootParameter] = lastRootParameterHasMultipleValues;
                     }
                 }
             }

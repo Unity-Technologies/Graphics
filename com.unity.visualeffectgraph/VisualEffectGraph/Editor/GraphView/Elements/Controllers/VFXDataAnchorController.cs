@@ -338,7 +338,7 @@ namespace UnityEditor.VFX.UI
             if (direction == Direction.Output)
                 return;
             VFXSlot slot = model;
-            if (slot.HasLink(true))
+            if (!slot || slot.HasLink(true))
             {
                 m_Editable = false;
                 return;
@@ -583,7 +583,6 @@ namespace UnityEditor.VFX.UI
                         m_Indeterminate = true;
                         return;
                     }
-                    m_FullReadOnly = true;
                 }
                 BuildValue(m_Controller.model);
             }
@@ -632,7 +631,26 @@ namespace UnityEditor.VFX.UI
 
             if (controller != null && controller.portType == typeof(T))
             {
-                return new VFXGizmoUtility.Property<T>(controller, !controller.model.HasLink(true));
+                bool readOnly = false;
+                var slot = controller.model;
+                if (slot.HasLink(true))
+                    readOnly = true;
+                else
+                {
+                    slot = slot.GetParent();
+                    while (slot != null)
+                    {
+                        if (slot.HasLink(false))
+                        {
+                            readOnly = true;
+                            break;
+                        }
+                        slot = slot.GetParent();
+                    }
+                }
+
+
+                return new VFXGizmoUtility.Property<T>(controller, !readOnly);
             }
 
             return VFXGizmoUtility.NullProperty<T>.defaultProperty;
@@ -672,25 +690,6 @@ namespace UnityEditor.VFX.UI
                     return GetSubMemberController(memberPath.Substring(index + 1), subSlot);
                 }
                 return null;
-            }
-        }
-
-        protected bool m_FullReadOnly;
-        protected HashSet<string> m_ReadOnlyMembers = new HashSet<string>();
-
-        bool IsMemberEditable(string memberPath)
-        {
-            if (m_Indeterminate) return false;
-            if (m_FullReadOnly) return false;
-            while (true)
-            {
-                if (m_ReadOnlyMembers.Contains(memberPath))
-                    return false;
-                int index = memberPath.LastIndexOf(separator);
-                if (index == -1)
-                    return true;
-
-                memberPath = memberPath.Substring(0, index);
             }
         }
     }

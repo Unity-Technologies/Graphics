@@ -94,6 +94,7 @@ namespace UnityEditor.VFX
     }
 
     [CustomEditor(typeof(VisualEffect))]
+    [CanEditMultipleObjects]
     public class AdvancedVisualEffectEditor : VisualEffectEditor, IToolModeOwner
     {
         new void OnEnable()
@@ -110,6 +111,22 @@ namespace UnityEditor.VFX
 
             EditMode.editModeStarted -= OnEditModeStart;
             EditMode.editModeEnded -= OnEditModeEnd;
+        }
+
+        public override void OnInspectorGUI()
+        {
+            base.OnInspectorGUI();
+            if (m_GizmoDisplayed && m_GizmoedParameter != null)
+            {
+                if (m_GizmoContext == null)
+                {
+                    m_GizmoContext = new GizmoContext(serializedObject, m_GizmoedParameter);
+                }
+                else
+                {
+                    m_GizmoContext.SetParameter(m_GizmoedParameter);
+                }
+            }
         }
 
         void OnEditModeStart(IToolModeOwner owner, EditMode.SceneViewEditMode mode)
@@ -166,10 +183,21 @@ namespace UnityEditor.VFX
             }
 
             GUILayout.BeginHorizontal();
-            if (GUILayout.Toggle(m_GizmoedParameter == parameter, EditorGUIUtility.IconContent("EditCollider"), GUISkin.current.button, GUILayout.Width(overrideWidth)))
+            bool hasMultipleValue = true;
+            m_ParameterHasMultipleValues.TryGetValue(name, out hasMultipleValue);
+            GUI.enabled = !hasMultipleValue;
+
+            if (hasMultipleValue && m_GizmoedParameter == parameter)
+            {
+                m_GizmoedParameter = null;
+            }
+
+            if (GUILayout.Toggle(m_GizmoedParameter == parameter, new GUIContent(Resources.Load<Texture2D>(EditorGUIUtility.pixelsPerPoint > 1 ? "VFX/gizmos@2x" : "VFX/gizmos")), GUISkin.current.button, GUILayout.Width(overrideWidth)))
             {
                 m_GizmoedParameter = parameter;
             }
+
+            GUI.enabled = true;
             EditorGUILayout.LabelField(name);
             GUILayout.EndHorizontal();
         }
@@ -193,16 +221,8 @@ namespace UnityEditor.VFX
         {
             base.OnSceneGUI();
 
-            if (m_GizmoDisplayed && m_GizmoedParameter != null)
+            if (m_GizmoDisplayed && m_GizmoedParameter != null && m_GizmoContext != null)
             {
-                if (m_GizmoContext == null)
-                {
-                    m_GizmoContext = new GizmoContext(serializedObject, m_GizmoedParameter);
-                }
-                else
-                {
-                    m_GizmoContext.SetParameter(m_GizmoedParameter);
-                }
                 VFXGizmoUtility.Draw(m_GizmoContext, (VisualEffect)target);
             }
         }
@@ -249,7 +269,7 @@ namespace UnityEditor.VFX
             public override VFXGizmo.IProperty<T> RegisterProperty<T>(string memberPath)
             {
                 var cmdList = new List<Action<List<object>, object>>();
-                bool succeeded = BuildPropertyValue<T>(cmdList, m_Parameter.type, m_Parameter.exposedName, memberPath.Split(new char[]{separator[0]},StringSplitOptions.RemoveEmptyEntries), 0);
+                bool succeeded = BuildPropertyValue<T>(cmdList, m_Parameter.type, m_Parameter.exposedName, memberPath.Split(new char[] {separator[0]}, StringSplitOptions.RemoveEmptyEntries), 0);
                 if (succeeded)
                 {
                     return new Property<T>(m_SerializedObject, cmdList);
@@ -286,7 +306,6 @@ namespace UnityEditor.VFX
                     {
                         SerializedProperty overrideProperty = property.FindPropertyRelative("m_Overridden");
                         property = property.FindPropertyRelative("m_Value");
-
                         cmdList.Add((l, o) => overrideProperty.boolValue = true);
                     }
                     else
@@ -306,7 +325,7 @@ namespace UnityEditor.VFX
                     else
                     {
                         var currentValue = GetObjectValue(property);
-                        if( specialSpacableVector3CaseField != null)
+                        if (specialSpacableVector3CaseField != null)
                         {
                             cmdList.Add(
                                 (l, o) => {
@@ -333,16 +352,16 @@ namespace UnityEditor.VFX
                         return false;
                     return BuildPropertyValue<T>(cmdList, subField.FieldType, propertyPath + "_" + memberPath[depth], memberPath, depth + 1);
                 }
-                else if(typeof(Position) == type ||typeof(Vector) == type || typeof(DirectionType) == type)
+                else if (typeof(Position) == type || typeof(Vector) == type || typeof(DirectionType) == type)
                 {
                     if (typeof(T) != type)
                     {
                         return false;
                     }
 
-                    FieldInfo vector3Field = type.GetFields(BindingFlags.Instance | BindingFlags.Public).First(t=>t.FieldType == typeof(Vector3));
+                    FieldInfo vector3Field = type.GetFields(BindingFlags.Instance | BindingFlags.Public).First(t => t.FieldType == typeof(Vector3));
                     string name = vector3Field.Name;
-                    return BuildPropertyValue<T>(cmdList, typeof(Vector3), propertyPath + "_" + name, new string[]{name}, 1, vector3Field);
+                    return BuildPropertyValue<T>(cmdList, typeof(Vector3), propertyPath + "_" + name, new string[] {name}, 1, vector3Field);
                 }
                 Debug.LogError("Setting A value across multiple property is not yet supported");
 
