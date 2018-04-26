@@ -52,7 +52,14 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public string overrideReferenceName { get; set; }
+        [SerializeField]
+        string m_OverrideReferenceName;
+
+        public string overrideReferenceName
+        {
+            get { return m_OverrideReferenceName; }
+            set { m_OverrideReferenceName = value; }
+        }
 
         public abstract PropertyType propertyType { get; }
 
