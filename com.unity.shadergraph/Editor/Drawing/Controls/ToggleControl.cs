@@ -7,18 +7,18 @@ using UnityEngine.Experimental.UIElements;
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
     [Serializable]
-    public struct Toggle
+    public struct ToggleData
     {
         public bool isOn;
         public bool isEnabled;
 
-        public Toggle(bool on, bool enabled)
+        public ToggleData(bool on, bool enabled)
         {
             isOn = on;
             isEnabled = enabled;
         }
 
-        public Toggle(bool on)
+        public ToggleData(bool on)
         {
             isOn = on;
             isEnabled = true;
@@ -54,12 +54,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             m_PropertyInfo = propertyInfo;
             AddStyleSheetPath("Styles/Controls/ToggleControlView");
 
-            if (propertyInfo.PropertyType != typeof(Toggle))
+            if (propertyInfo.PropertyType != typeof(ToggleData))
                 throw new ArgumentException("Property must be a Toggle.", "propertyInfo");
 
             label = label ?? ObjectNames.NicifyVariableName(propertyInfo.Name);
 
-            var value = (Toggle)m_PropertyInfo.GetValue(m_Node, null);
+            var value = (ToggleData)m_PropertyInfo.GetValue(m_Node, null);
             var panel = new VisualElement { name = "togglePanel" };
             if (!string.IsNullOrEmpty(label))
                 panel.Add(new Label(label));
@@ -73,7 +73,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
         public void OnNodeModified(ModificationScope scope)
         {
-            var value = (Toggle)m_PropertyInfo.GetValue(m_Node, null);
+            var value = (ToggleData)m_PropertyInfo.GetValue(m_Node, null);
             m_Toggle.SetEnabled(value.isEnabled);
 
             if (scope == ModificationScope.Graph)
@@ -85,7 +85,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         void OnChangeToggle()
         {
             m_Node.owner.owner.RegisterCompleteObjectUndo("Toggle Change");
-            var value = (Toggle)m_PropertyInfo.GetValue(m_Node, null);
+            var value = (ToggleData)m_PropertyInfo.GetValue(m_Node, null);
             value.isOn = !value.isOn;
             m_PropertyInfo.SetValue(m_Node, value, null);
             this.MarkDirtyRepaint();

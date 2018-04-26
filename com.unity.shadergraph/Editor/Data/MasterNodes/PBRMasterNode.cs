@@ -2,8 +2,10 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine;
+using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -39,9 +41,8 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        private Model m_Model = Model.Metallic;
+        Model m_Model = Model.Metallic;
 
-        [EnumControl("Workflow")]
         public Model model
         {
             get { return m_Model; }
@@ -57,9 +58,8 @@ namespace UnityEditor.ShaderGraph
         }
 
         [SerializeField]
-        private SurfaceType m_SurfaceType;
+        SurfaceType m_SurfaceType;
 
-        [EnumControl("Surface")]
         public SurfaceType surfaceType
         {
             get { return m_SurfaceType; }
@@ -70,13 +70,13 @@ namespace UnityEditor.ShaderGraph
 
                 m_SurfaceType = value;
                 Dirty(ModificationScope.Graph);
+
             }
         }
 
         [SerializeField]
-        private AlphaMode m_AlphaMode;
+        AlphaMode m_AlphaMode;
 
-        [EnumControl("Blend")]
         public AlphaMode alphaMode
         {
             get { return m_AlphaMode; }
@@ -87,16 +87,16 @@ namespace UnityEditor.ShaderGraph
 
                 m_AlphaMode = value;
                 Dirty(ModificationScope.Graph);
+
             }
         }
 
         [SerializeField]
-        private bool m_TwoSided;
+        bool m_TwoSided;
 
-        [ToggleControl("Two Sided")]
-        public Toggle twoSided
+        public ToggleData twoSided
         {
-            get { return new Toggle(m_TwoSided); }
+            get { return new ToggleData(m_TwoSided); }
             set
             {
                 if (m_TwoSided == value.isOn)
@@ -153,6 +153,11 @@ namespace UnityEditor.ShaderGraph
             List<ISlot> slots = new List<ISlot>();
             GetSlots(slots);
             return slots.OfType<IMayRequireNormal>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresNormal());
+        }
+
+        protected override VisualElement CreateCommonSettingsElement()
+        {
+            return new PBRSettingsView(this);
         }
     }
 }

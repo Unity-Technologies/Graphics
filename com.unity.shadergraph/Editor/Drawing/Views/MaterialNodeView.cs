@@ -8,6 +8,7 @@ using UnityEngine.Experimental.UIElements;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine.Experimental.UIElements.StyleEnums;
+using UnityEngine.Experimental.UIElements.StyleSheets;
 using Node = UnityEditor.Experimental.UIElements.GraphView.Node;
 #if UNITY_2018_1
 using GeometryChangedEvent = UnityEngine.Experimental.UIElements.PostLayoutEvent;
@@ -25,6 +26,12 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_ControlsDivider;
         IEdgeConnectorListener m_ConnectorListener;
         VisualElement m_PortInputContainer;
+        VisualElement m_SettingsContainer;
+        bool m_ShowSettings = false;
+        VisualElement m_SettingsButton;
+        VisualElement m_Settings;
+        VisualElement m_NodeSettingsView;
+
 
         public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener)
         {
@@ -130,22 +137,60 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             SetPosition(new Rect(node.drawState.position.x, node.drawState.position.y, 0, 0));
 
-            /*if (node is PreviewNode)
-            {
-                var resizeHandle = new Label { name = "resize", text = "" };
-                resizeHandle.AddManipulator(new Draggable(OnResize));
-                Add(resizeHandle);
-                UpdateSize();
-            }*/
-
             if (node is SubGraphNode)
             {
                 RegisterCallback<MouseDownEvent>(OnSubGraphDoubleClick);
             }
 
             m_PortInputContainer.SendToBack();
-            if (node.hasPreview)
-                m_PreviewFiller.BringToFront();
+
+            // Remove this after updated to the correct API call has landed in trunk. ------------
+            VisualElement m_TitleContainer;
+            VisualElement m_ButtonContainer;
+            m_TitleContainer = this.Q("title");
+            // -----------------------------------------------------------------------------------
+
+            var settings = node as IHasSettings;
+            if (settings != null)
+            {
+                m_NodeSettingsView = new NodeSettingsView();
+                m_NodeSettingsView.visible = false;
+
+                Add(m_NodeSettingsView);
+
+                m_SettingsButton = new VisualElement {name = "settings-button"};
+                m_SettingsButton.Add(new VisualElement { name = "icon" });
+
+                m_Settings = settings.CreateSettingsElement();
+
+                m_SettingsButton.AddManipulator(new Clickable(() =>
+                {
+                    UpdateSettingsExpandedState();
+                }));
+
+                // Remove this after updated to the correct API call has landed in trunk. ------------
+                m_ButtonContainer = new VisualElement{ name = "button-container" };
+                m_ButtonContainer.style.flexDirection = StyleValue<FlexDirection>.Create(FlexDirection.Row);
+                m_ButtonContainer.Add(m_SettingsButton);
+                m_ButtonContainer.Add(m_CollapseButton);
+                m_TitleContainer.Add(m_ButtonContainer);
+                // -----------------------------------------------------------------------------------
+                //titleButtonContainer.Add(m_SettingsButton);
+                //titleButtonContainer.Add(m_CollapseButton);
+
+                RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+            }
+        }
+
+        void OnGeometryChanged(GeometryChangedEvent evt)
+        {
+            // style.positionTop and style.positionLeft are in relation to the parent,
+            // so we translate the layout of the settings button to be in the coordinate
+            // space of the settings view's parent.
+
+            var settingsButtonLayout = m_SettingsButton.ChangeCoordinatesTo(m_NodeSettingsView.parent, m_SettingsButton.layout);
+            m_NodeSettingsView.style.positionTop = settingsButtonLayout.yMax - 18f;
+            m_NodeSettingsView.style.positionLeft = settingsButtonLayout.xMin - 16f;
         }
 
         void OnSubGraphDoubleClick(MouseDownEvent evt)
@@ -178,8 +223,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 RefreshExpandedState(); //This should not be needed. GraphView needs to improve the extension api here
                 UpdatePortInputVisibilities();
-                if (node.hasPreview)
-                    m_PreviewFiller.BringToFront();
             }
         }
 
@@ -203,6 +246,25 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 var graph = (AbstractMaterialGraph)node.owner;
                 GUIUtility.systemCopyBuffer = graph.GetShader(node, GenerationMode.ForReals, node.name).shader;
+            }
+        }
+
+        void UpdateSettingsExpandedState()
+        {
+            m_ShowSettings = !m_ShowSettings;
+            if (m_ShowSettings)
+            {
+                m_NodeSettingsView.Add(m_Settings);
+                m_NodeSettingsView.visible = true;
+
+                m_SettingsButton.AddToClassList("clicked");
+            }
+            else
+            {
+                m_Settings.RemoveFromHierarchy();
+
+                m_NodeSettingsView.visible = false;
+                m_SettingsButton.RemoveFromClassList("clicked");
             }
         }
 
