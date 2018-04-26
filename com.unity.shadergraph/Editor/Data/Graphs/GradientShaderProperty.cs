@@ -82,12 +82,12 @@ namespace UnityEditor.ShaderGraph
 
         public static Vector4 ColorKeyToVector(GradientColorKey key)
         {
-            return new Vector4( key.color.r, key.color.g, key.color.b, key.time); 
+            return new Vector4( key.color.r, key.color.g, key.color.b, key.time);
         }
 
         public static Vector2 AlphaKeyToVector(GradientAlphaKey key)
         {
-            return new Vector2( key.alpha, key.time); 
+            return new Vector2( key.alpha, key.time);
         }
     }
 
@@ -124,7 +124,7 @@ namespace UnityEditor.ShaderGraph
             m_OverrideMembers = true;
             m_OverrideSlotName = slotName;
         }
-        
+
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
             if(m_OverrideMembers)
@@ -175,6 +175,14 @@ namespace UnityEditor.ShaderGraph
         public override INode ToConcreteNode()
         {
             return new GradientNode { gradient = value };
+        }
+
+        public override IShaderProperty Copy()
+        {
+            return new GradientShaderProperty
+            {
+                value = value
+            };
         }
     }
 }

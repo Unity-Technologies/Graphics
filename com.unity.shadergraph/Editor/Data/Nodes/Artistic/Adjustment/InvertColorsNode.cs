@@ -48,9 +48,9 @@ namespace UnityEditor.ShaderGraph
         private bool m_RedChannel;
 
         [ToggleControl("Red")]
-        public Toggle redChannel
+        public ToggleData redChannel
         {
-            get { return new Toggle(m_RedChannel, channelCount > 0); }
+            get { return new ToggleData(m_RedChannel, channelCount > 0); }
             set
             {
                 if (m_RedChannel == value.isOn)
@@ -64,9 +64,9 @@ namespace UnityEditor.ShaderGraph
         private bool m_GreenChannel;
 
         [ToggleControl("Green")]
-        public Toggle greenChannel
+        public ToggleData greenChannel
         {
-            get { return new Toggle(m_GreenChannel, channelCount > 1); }
+            get { return new ToggleData(m_GreenChannel, channelCount > 1); }
             set
             {
                 if (m_GreenChannel == value.isOn)
@@ -80,9 +80,9 @@ namespace UnityEditor.ShaderGraph
         private bool m_BlueChannel;
 
         [ToggleControl("Blue")]
-        public Toggle blueChannel
+        public ToggleData blueChannel
         {
-            get { return new Toggle(m_BlueChannel, channelCount > 2); }
+            get { return new ToggleData(m_BlueChannel, channelCount > 2); }
             set
             {
                 if (m_BlueChannel == value.isOn)
@@ -95,9 +95,9 @@ namespace UnityEditor.ShaderGraph
         private bool m_AlphaChannel;
 
         [ToggleControl("Alpha")]
-        public Toggle alphaChannel
+        public ToggleData alphaChannel
         {
-            get { return new Toggle(m_AlphaChannel, channelCount > 3); }
+            get { return new ToggleData(m_AlphaChannel, channelCount > 3); }
             set
             {
                 if (m_AlphaChannel == value.isOn)
