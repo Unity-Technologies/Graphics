@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
+using UnityEngine.XR;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
@@ -160,6 +161,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             if (CoreUtils.HasFlag(renderingConfiguration, FrameRenderingConfiguration.Stereo))
                 context.StopMultiEye(camera);
+        }
+
+        public static int GetRenderTargetDepthSlice(bool stereoRendering)
+        {
+            if (stereoRendering && XRSettings.eyeTextureDesc.dimension == TextureDimension.Tex2DArray)
+                return -1;
+            else
+                return 0;
         }
 
         public static void GetLightCookieMatrix(VisibleLight light, out Matrix4x4 cookieMatrix)
