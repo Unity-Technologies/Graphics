@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.ShaderGraph
@@ -93,6 +94,11 @@ namespace UnityEditor.ShaderGraph
 
             configuredTextures = shaderProperties.GetConfiguredTexutres();
             return finalShader.GetShaderString(0);
+        }
+
+        public bool IsPipelineCompatible(IRenderPipeline renderPipeline)
+        {
+            return true;
         }
 
         public override void OnBeforeSerialize()
