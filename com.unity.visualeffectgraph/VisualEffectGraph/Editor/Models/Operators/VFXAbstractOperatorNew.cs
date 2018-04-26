@@ -310,7 +310,7 @@ namespace UnityEditor.VFX
                     if (property.property.type == (Type)m_Type)
                         yield return property;
                     else
-                        yield return new VFXPropertyWithValue(new VFXProperty((Type)m_Type, property.property.name), GetDefaultValueForType(m_Type));
+                        yield return new VFXPropertyWithValue(new VFXProperty((Type)m_Type, property.property.name, property.property.attributes), GetDefaultValueForType(m_Type));
                 }
             }
         }
@@ -383,7 +383,7 @@ namespace UnityEditor.VFX
                     if (itSlot.Current.property.type == (Type)itType.Current)
                         yield return itSlot.Current;
                     else
-                        yield return new VFXPropertyWithValue(new VFXProperty((Type)itType.Current, itSlot.Current.property.name), GetDefaultValueForType(itType.Current));
+                        yield return new VFXPropertyWithValue(new VFXProperty((Type)itType.Current, itSlot.Current.property.name, itSlot.Current.property.attributes), GetDefaultValueForType(itType.Current));
                 }
             }
         }
