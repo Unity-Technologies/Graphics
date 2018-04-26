@@ -1,4 +1,4 @@
-﻿#pragma kernel MaterialFlagsGen_Write		MATERIALFLAGSGEN=MaterialFlagsGen_Write
+#pragma kernel MaterialFlagsGen_Write		MATERIALFLAGSGEN=MaterialFlagsGen_Write
 #pragma kernel MaterialFlagsGen_Or			MATERIALFLAGSGEN=MaterialFlagsGen_Or		USE_OR
 
 // #pragma enable_d3d11_debug_symbols
@@ -12,7 +12,7 @@
 #include "../../Material/Material.hlsl" // This includes Material.hlsl
 #include "../../Lighting/LightDefinition.cs.hlsl"
 
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 #define USE_MATERIAL_FEATURE_FLAGS
 #define NR_THREADS	64
