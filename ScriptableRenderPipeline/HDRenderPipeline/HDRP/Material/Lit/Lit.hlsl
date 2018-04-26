@@ -218,10 +218,8 @@ void FillMaterialTransmission(uint diffusionProfile, float thickness, inout BSDF
     // * the auto-thickness mode uses the baked (textured) thickness to compute transmission from
     // indirect lighting and non-shadow-casting lights; for shadowed lights, it calculates
     // the thickness using the distance to the closest occluder sampled from the shadow map.
-    // If the distance is large, it may indicate that the closest occluder is not a (back) face of
-    // the current object and thus shouldn't theorically be considered as defining its thickness
-    // (as long as the volume defined by the mesh is closed and well-behaved with no self-intersection). 
-    // That's not a problem here however since large thickness will result in low intensity.
+    // If the distance is large, it may indicate that the closest occluder is not the back face of
+    // the current object. That's not a problem, since large thickness will result in low intensity.
     bool useThinObjectMode = IsBitSet(asuint(_TransmissionFlags), diffusionProfile);
 
     bsdfData.materialFeatures |= useThinObjectMode ? 0 : MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS;
@@ -407,9 +405,6 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     // Note: Reuse thickness of transmission's property set
     FillMaterialTransparencyData( surfaceData.baseColor, surfaceData.metallic, surfaceData.ior, surfaceData.transmittanceColor, surfaceData.atDistance,
                                     surfaceData.thickness, surfaceData.transmittanceMask, bsdfData);
-
-    //slnote: bugbug fresnel0 will be overwritten if clear_coat in GetPreLightData even if we don't 
-    // evaluate its reflections in EvaluateBSDF_Env ! (see also FillMaterialTransparencyData)
 #endif
 
     ApplyDebugToBSDFData(bsdfData);
@@ -847,7 +842,7 @@ struct PreLightData
     // Clear coat
     float    coatPartLambdaV;
     float3   coatIblR;
-    float    coatIblF;               // Fresnel term for view vector: 
+    float    coatIblF;               // Fresnel term for view vector
     float3x3 ltcTransformCoat;       // Inverse transformation for GGX                                 (4x VGPRs)
     float    ltcMagnitudeCoatFresnel;
 
@@ -887,10 +882,6 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         }
     }
 
-    // slnote: bugbug fresnel0 will be overwritten if clear_coat in GetPreLightData even if we don't 
-    // evaluate its reflections in EvaluateBSDF_Env! (see also FillMaterialTransparencyData: we expect
-    // the calculated fresnel0 from IOR there to take over for transparency / refractions.)
-
     // We modify the bsdfData.fresnel0 here for clearCoat
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
@@ -901,7 +892,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 
         preLightData.coatPartLambdaV = GetSmithJointGGXPartLambdaV(NdotV, CLEAR_COAT_ROUGHNESS);
         preLightData.coatIblR = reflect(-V, N);
-        preLightData.coatIblF = F_Schlick(CLEAR_COAT_F0, NdotV) * bsdfData.coatMask; // slnote: apparently we do that so we don't have another FGD fetch for clearcoat
+        preLightData.coatIblF = F_Schlick(CLEAR_COAT_F0, NdotV) * bsdfData.coatMask;
     }
 
     float3 iblN, iblR;

@@ -348,15 +348,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             //CoreUtils.SetKeyword(material, "_USE_UV3", requireUv3);
             CoreUtils.SetKeyword(material, "_USE_TRIPLANAR", requireTriplanar);
 
-            bool clearCoatEnabled = material.HasProperty(k_CoatEnable) && (material.GetFloat(k_CoatEnable) > 0.0f);
             bool anisotropyEnabled = material.HasProperty(k_Anisotropy) && (material.GetFloat(k_Anisotropy) != 0.0f);
             // TODO: When we have a map, also test for map for enable. (This scheme doesn't allow enabling from
             // neutral value though, better to still have flag and uncheck it in UI code when reach neutral
             // value and re-enable otherwise).
+            bool coatEnabled = material.HasProperty(k_CoatEnable) && (material.GetFloat(k_CoatEnable) > 0.0f);
+            bool dualLobeEnabled = material.HasProperty(k_LobeMix) && (material.GetFloat(k_LobeMix) > 0.0f);
 
             // Note that we don't use the materialId (cf Lit.shader) mechanism in the UI 
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_ANISOTROPY", anisotropyEnabled);
-            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_CLEAR_COAT", clearCoatEnabled);
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_COAT", coatEnabled);
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_DUAL_LOBE", dualLobeEnabled);
 
         }
     }

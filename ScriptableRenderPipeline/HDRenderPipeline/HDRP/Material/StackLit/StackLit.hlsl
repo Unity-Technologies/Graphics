@@ -27,7 +27,7 @@
 #define DEFAULT_SPECULAR_VALUE 0.04
 
 //
-// Vertically Layered BSDF : "VLayering"
+// Vertically Layered BSDF : "vlayering"
 //
 
 //#define VLAYERED_RECOMPUTE_PERLIGHT // TODOTODO, and to test, make it a shader_features
@@ -36,8 +36,7 @@
 // Automatic:
 
 // Mostly for struct array declarations, not really loops:
-#ifdef _MATERIAL_FEATURE_CLEAR_COAT
-#    define VLAYERED_ENABLED
+#ifdef _MATERIAL_FEATURE_COAT
 #    define COAT_NB_LOBES 1
 #    define COAT_LOBE_IDX 0
 #else
@@ -95,7 +94,7 @@ bool HasFeatureFlag(uint featureFlags, uint flag)
 // The only way to get Coat now is with vlayering
 bool IsVLayeredEnabled(BSDFData bsdfData)
 {
-    return (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT));
+    return (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT));
 }
 
 float3 ComputeDiffuseColor(float3 baseColor, float metallic)
@@ -116,7 +115,7 @@ void FillMaterialAnisotropy(float anisotropy, float3 tangentWS, float3 bitangent
     bsdfData.bitangentWS = bitangentWS;
 }
 
-void FillMaterialClearCoatData(float coatPerceptualRoughness, float coatIor, float coatThickness, float3 coatExtinction, inout BSDFData bsdfData)
+void FillMaterialCoatData(float coatPerceptualRoughness, float coatIor, float coatThickness, float3 coatExtinction, inout BSDFData bsdfData)
 {
     bsdfData.coatPerceptualRoughness = coatPerceptualRoughness;
     bsdfData.coatIor        = coatIor;
@@ -124,7 +123,7 @@ void FillMaterialClearCoatData(float coatPerceptualRoughness, float coatIor, flo
     bsdfData.coatExtinction = coatExtinction;
 }
 
-float GetClearCoatEta(in BSDFData bsdfData)
+float GetCoatEta(in BSDFData bsdfData)
 {
     float eta = bsdfData.coatIor / 1.0;
     //ieta = 1.0 / eta;
@@ -258,15 +257,15 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 
     // Kind of obsolete without gbuffer, ie could use _MATERIAL_FEATURE* shader_features directly, but
     // if anything, makes the code more readable.
-    if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
+    if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_ANISOTROPY))
     {
         FillMaterialAnisotropy(surfaceData.anisotropy, surfaceData.tangentWS, cross(surfaceData.normalWS, surfaceData.tangentWS), bsdfData);
     }
 
-    if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
+    if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT))
     {
-        FillMaterialClearCoatData(PerceptualSmoothnessToPerceptualRoughness(surfaceData.coatPerceptualSmoothness),
-                                  surfaceData.coatIor, surfaceData.coatThickness, surfaceData.coatExtinction, bsdfData);
+        FillMaterialCoatData(PerceptualSmoothnessToPerceptualRoughness(surfaceData.coatPerceptualSmoothness),
+                             surfaceData.coatIor, surfaceData.coatThickness, surfaceData.coatExtinction, bsdfData);
 
         // vlayering:
         // We can't calculate final roughnesses including anisotropy right away in this case: we will either do it 
@@ -677,7 +676,7 @@ void ComputeStatistics(in  float  cti,   in  int    i, in BSDFData bsdfData,
         /* Update energy */
         float R0, n12;
 
-        n12 = GetClearCoatEta(bsdfData); //n2/n1;
+        n12 = GetCoatEta(bsdfData); //n2/n1;
         R0  = FresnelUnpolarized(cti, n12, 1.0); // TODO
 
         R12 = R0; // sltodo: FGD
@@ -800,19 +799,19 @@ void ComputeAdding(float _cti, in BSDFData bsdfData, inout PreLightData preLight
         ComputeStatistics(cti, i, bsdfData, ctt, R12, T12, R21, T21, s_r12, s_t12, j12, s_r21, s_t21, j21);
 
         /* Multiple scattering forms */
-        float3 denom = (float3(1.0, 1.0, 1.0) - Ri0*R12); //slok - i = new layer, 0 = cumulative top (lab3.1 to 3.4)
-        float3 m_R0i = (mean(denom) <= 0.0f)? float3(0.0, 0.0, 0.0) : (T0i*R12*Ti0) / denom; //slok (lab3.1)
-        float3 m_Ri0 = (mean(denom) <= 0.0f)? float3(0.0, 0.0, 0.0) : (T21*Ri0*T12) / denom; //slok (lab3.2)
+        float3 denom = (float3(1.0, 1.0, 1.0) - Ri0*R12); //i = new layer, 0 = cumulative top (llab3.1 to 3.4)
+        float3 m_R0i = (mean(denom) <= 0.0f)? float3(0.0, 0.0, 0.0) : (T0i*R12*Ti0) / denom; //(llab3.1)
+        float3 m_Ri0 = (mean(denom) <= 0.0f)? float3(0.0, 0.0, 0.0) : (T21*Ri0*T12) / denom; //(llab3.2)
         float3 m_Rr  = (mean(denom) <= 0.0f)? float3(0.0, 0.0, 0.0) : (Ri0*R12) / denom; 
         float  m_r0i = mean(m_R0i);
         float  m_ri0 = mean(m_Ri0);
         m_rr  = mean(m_Rr);
 
         /* Evaluate the adding operator on the energy */
-        float3 e_R0i = R0i + m_R0i; //slok (lab3.1)
-        float3 e_T0i = (T0i*T12) / denom; //slok (lab3.3)
-        float3 e_Ri0 = R21 + (T21*Ri0*T12) / denom; // slok (lab3.2) slnote: 2nd term = m_Ri0, why not use that
-        float3 e_Ti0 = (T21*Ti0) / denom; //slok (lab3.4)
+        float3 e_R0i = R0i + m_R0i; //(llab3.1)
+        float3 e_T0i = (T0i*T12) / denom; //(llab3.3)
+        float3 e_Ri0 = R21 + (T21*Ri0*T12) / denom; //(llab3.2)
+        float3 e_Ti0 = (T21*Ti0) / denom; //(llab3.4)
 
         /* Scalar forms for the energy */
         float r21   = mean(R21);
@@ -931,7 +930,7 @@ void ComputeAdding(float _cti, in BSDFData bsdfData, inout PreLightData preLight
         _s_r0m = s_ti0 + j0i*(s_t0i + s_r12 + m_rr*(s_r12+s_ri0));
         preLightData.layeredRoughnessT[1] = ClampRoughnessForAnalyticalLights(LinearVarianceToRoughness(_s_r0m));
 
-        if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
+        if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_ANISOTROPY))
         {
 
             // LOBEA roughness for analytical (B part)
@@ -1008,7 +1007,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     if( IsVLayeredEnabled(bsdfData) )
     {
         //preLightData.fresnel0[COAT_LOBE_IDX] = IorToFresnel0(bsdfData.coatIor);
-        preLightData.coatIeta = 1.0 / GetClearCoatEta(bsdfData);
+        preLightData.coatIeta = 1.0 / GetCoatEta(bsdfData);
 
         // First thing we need is compute the energy coefficients and new roughnesses.
         // Even if configured to do it also per analytical light, we need it for IBLs too.
@@ -1025,9 +1024,9 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         // Otherwise, the calculation of these is done for each light
         //
 
-        if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
+        if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_ANISOTROPY))
         {
-            // Note: there's no anisotropy possible on clearcoat.
+            // Note: there's no anisotropy possible on coat.
             float TdotV = dot(bsdfData.tangentWS,   V);
             float BdotV = dot(bsdfData.bitangentWS, V);
 
@@ -1047,7 +1046,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
             stretch[0] = abs(bsdfData.anisotropy) * saturate(5 * preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX]);
             stretch[1] = abs(bsdfData.anisotropy) * saturate(5 * preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX]);
 
-            iblN[COAT_LOBE_IDX] = N; // no anisotropy for clearcoat.
+            iblN[COAT_LOBE_IDX] = N; // no anisotropy for coat.
             iblN[BASE_LOBEA_IDX] = GetAnisotropicModifiedNormal(grainDirWS, N, V, stretch[0]);
             iblN[BASE_LOBEB_IDX] = GetAnisotropicModifiedNormal(grainDirWS, N, V, stretch[1]);
 
@@ -1171,7 +1170,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         preLightData.iblPerceptualRoughness[0] = bsdfData.perceptualRoughnessA;
         preLightData.iblPerceptualRoughness[1] = bsdfData.perceptualRoughnessB;
 
-        if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
+        if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_ANISOTROPY))
         {
             float TdotV = dot(bsdfData.tangentWS,   V);
             float BdotV = dot(bsdfData.bitangentWS, V);
