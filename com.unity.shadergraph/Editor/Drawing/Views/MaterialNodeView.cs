@@ -31,7 +31,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_SettingsButton;
         VisualElement m_Settings;
         VisualElement m_NodeSettingsView;
-        VisualElement m_CollapseButton;
 
 
         public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener)
@@ -144,8 +143,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             m_PortInputContainer.SendToBack();
-
-            m_CollapseButton = this.Q("collapse-button");
 
             // Remove this after updated to the correct API call has landed in trunk. ------------
             VisualElement m_TitleContainer;
