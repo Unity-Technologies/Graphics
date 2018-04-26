@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Slots;
@@ -63,16 +64,16 @@ namespace UnityEditor.ShaderGraph
 			m_ConcreteValueType = valueType;
 		}
 
-		public override PreviewProperty GetPreviewProperty(string name)
-		{
-			var propType = ConvertConcreteSlotValueTypeToPropertyType(concreteValueType);
+		public override void GetPreviewProperties(List<PreviewProperty> properties, string name)
+        {
+            var propType = ConvertConcreteSlotValueTypeToPropertyType(concreteValueType);
 			var pp = new PreviewProperty(propType) { name = name };
 			if (propType == PropertyType.Vector1)
 				pp.floatValue = value.m00;
 			else
 				pp.vector4Value = new Vector4(value.m00, value.m01, value.m02, value.m03);
-			return pp;
-		}
+            properties.Add(pp);
+        }
 
 		protected override string ConcreteSlotValueAsVariable(AbstractMaterialNode.OutputPrecision precision)
 		{

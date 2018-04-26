@@ -78,7 +78,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
             if (scope == ModificationScope.Graph)
             {
-                Dirty(ChangeType.Repaint);
+                this.MarkDirtyRepaint();
             }
         }
 
@@ -88,7 +88,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             var value = (Toggle)m_PropertyInfo.GetValue(m_Node, null);
             value.isOn = !value.isOn;
             m_PropertyInfo.SetValue(m_Node, value, null);
-            Dirty(ChangeType.Repaint);
+            this.MarkDirtyRepaint();
         }
     }
 }

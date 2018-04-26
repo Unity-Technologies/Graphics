@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public BlackboardProvider(string assetName, AbstractMaterialGraph graph)
         {
             m_Graph = graph;
-            m_ExposedIcon = Resources.Load("GraphView/Nodes/BlackboardFieldExposed") as Texture2D;
+            m_ExposedIcon = Resources.Load<Texture2D>("GraphView/Nodes/BlackboardFieldExposed");
             m_PropertyRows = new Dictionary<Guid, BlackboardRow>();
 
             blackboard = new Blackboard()

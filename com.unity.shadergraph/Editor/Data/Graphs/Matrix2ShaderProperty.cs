@@ -29,6 +29,14 @@ namespace UnityEditor.ShaderGraph
                 row0 = new Vector2(value.m00, value.m01), 
                 row1 = new Vector2(value.m10, value.m11)
             };
-        } 
+        }
+
+        public override IShaderProperty Copy()
+        {
+            var copied = new Matrix2ShaderProperty();
+            copied.displayName = displayName;
+            copied.value = value;
+            return copied;
+        }
     }
 }

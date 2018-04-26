@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Slots;
 using UnityEngine;
@@ -75,14 +76,14 @@ namespace UnityEditor.ShaderGraph
         public override SlotValueType valueType { get { return SlotValueType.Vector1; } }
         public override ConcreteSlotValueType concreteValueType { get { return ConcreteSlotValueType.Vector1; } }
 
-        public override PreviewProperty GetPreviewProperty(string name)
+        public override void GetPreviewProperties(List<PreviewProperty> properties, string name)
         {
             var pp = new PreviewProperty(PropertyType.Vector1)
             {
                 name = name,
-                floatValue = value
+                floatValue = value,
             };
-            return pp;
+            properties.Add(pp);
         }
 
         public override void CopyValuesFrom(MaterialSlot foundSlot)

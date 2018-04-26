@@ -7,6 +7,10 @@ using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEngine.Experimental.UIElements;
 using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
+using Node = UnityEditor.Experimental.UIElements.GraphView.Node;
+#if !UNITY_2018_1
+using UnityEditor.Graphs;
+#endif
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -19,6 +23,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             canPasteSerializedData = CanPasteSerializedDataImplementation;
             unserializeAndPaste = UnserializeAndPasteImplementation;
             deleteSelection = DeleteSelectionImplementation;
+        }
+
+        protected override bool canCopySelection
+        {
+            get { return selection.OfType<Node>().Any() || selection.OfType<GroupNode>().Any() || selection.OfType<BlackboardField>().Any(); }
         }
 
         public MaterialGraphView(AbstractMaterialGraph graph) : this()
@@ -232,7 +241,15 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         string SerializeGraphElementsImplementation(IEnumerable<GraphElement> elements)
         {
-            var graph = new CopyPasteGraph(elements.OfType<MaterialNodeView>().Select(x => (INode)x.node), elements.OfType<Edge>().Select(x => x.userData).OfType<IEdge>());
+            var nodes = elements.OfType<MaterialNodeView>().Select(x => (INode)x.node);
+            var edges = elements.OfType<Edge>().Select(x => x.userData).OfType<IEdge>();
+            var properties = selection.OfType<BlackboardField>().Select(x => x.userData as IShaderProperty);
+
+            // Collect the property nodes and get the corresponding properties
+            var propertyNodeGuids = nodes.OfType<PropertyNode>().Select(x => x.propertyGuid);
+            var metaProperties = this.graph.properties.Where(x => propertyNodeGuids.Contains(x.guid));
+
+            var graph = new CopyPasteGraph(nodes, edges, properties, metaProperties);
             return JsonUtility.ToJson(graph, true);
         }
 
@@ -322,6 +339,23 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (copyGraph == null)
                 return;
+
+            // Make new properties from the copied graph
+            foreach (IShaderProperty property in copyGraph.properties)
+            {
+                string propertyName = graphView.graph.SanitizePropertyName(property.displayName);
+                IShaderProperty copiedProperty = property.Copy();
+                copiedProperty.displayName = propertyName;
+                graphView.graph.AddShaderProperty(copiedProperty);
+
+                // Update the property nodes that depends on the copied node
+                var dependentPropertyNodes = copyGraph.GetNodes<PropertyNode>().Where(x => x.propertyGuid == property.guid);
+                foreach (var node in dependentPropertyNodes)
+                {
+                    node.owner = graphView.graph;
+                    node.propertyGuid = copiedProperty.guid;
+                }
+            }
 
             using (var remappedNodesDisposable = ListPool<INode>.GetDisposable())
                 using (var remappedEdgesDisposable = ListPool<IEdge>.GetDisposable())

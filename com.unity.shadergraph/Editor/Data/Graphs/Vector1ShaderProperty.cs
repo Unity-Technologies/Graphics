@@ -111,5 +111,13 @@ namespace UnityEditor.ShaderGraph
                     return node;
             }
         }
+
+        public override IShaderProperty Copy()
+        {
+            var copied = new Vector1ShaderProperty();
+            copied.displayName = displayName;
+            copied.value = value;
+            return copied;
+        }
     }
 }

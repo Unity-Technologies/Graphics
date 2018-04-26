@@ -40,17 +40,6 @@ namespace UnityEditor.ShaderGraph.UnitTests
         }
 
         [Test]
-        public void TestCanNotAddTestNodeToMaterialGraph()
-        {
-            TestableMGraph graph = new TestableMGraph();
-
-            var node = new TestNode();
-            graph.AddNode(node);
-            Assert.AreEqual(0, graph.edges.Count());
-            Assert.AreEqual(0, graph.GetNodes<AbstractMaterialNode>().Count());
-        }
-
-        [Test]
         public void TestCanGetMaterialNodeFromMaterialGraph()
         {
             TestableMGraph graph = new TestableMGraph();

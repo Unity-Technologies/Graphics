@@ -23,5 +23,6 @@ namespace UnityEditor.ShaderGraph
 
         PreviewProperty GetPreviewMaterialProperty();
         INode ToConcreteNode();
+        IShaderProperty Copy();
     }
 }

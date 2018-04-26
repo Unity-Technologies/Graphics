@@ -43,5 +43,13 @@ namespace UnityEditor.ShaderGraph
             node.FindInputSlot<Vector1MaterialSlot>(Vector2Node.InputSlotYId).value = value.y;
             return node;
         }
+
+        public override IShaderProperty Copy()
+        {
+            var copied = new Vector2ShaderProperty();
+            copied.displayName = displayName;
+            copied.value = value;
+            return copied;
+        }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEngine;
@@ -91,6 +92,8 @@ namespace UnityEditor.ShaderGraph
                     return "(T)";
                 case ConcreteSlotValueType.Cubemap:
                     return "(C)";
+                case ConcreteSlotValueType.Gradient:
+                    return "(G)";
                 default:
                     return "(E)";
             }
@@ -129,6 +132,10 @@ namespace UnityEditor.ShaderGraph
                     return slotType == SlotType.Input
                         ? new CubemapInputMaterialSlot(slotId, displayName, shaderOutputName, shaderStage, hidden)
                         : new CubemapMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden);
+                case SlotValueType.Gradient:
+                    return slotType == SlotType.Input
+                        ? new GradientInputMaterialSlot(slotId, displayName, shaderOutputName, shaderStage, hidden)
+                        : new GradientMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden);
                 case SlotValueType.DynamicVector:
                     return new DynamicVectorMaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue, shaderStage, hidden);
                 case SlotValueType.Vector4:
@@ -249,6 +256,8 @@ namespace UnityEditor.ShaderGraph
                     return inputType == SlotValueType.Texture2D;
                 case SlotValueType.Cubemap:
                     return inputType == SlotValueType.Cubemap;
+                case SlotValueType.Gradient:
+                    return inputType == SlotValueType.Gradient;
                 case SlotValueType.DynamicVector:
                 case SlotValueType.Vector4:
                 case SlotValueType.Vector3:
@@ -314,6 +323,8 @@ namespace UnityEditor.ShaderGraph
                     return PropertyType.Texture;
                 case ConcreteSlotValueType.Cubemap:
                     return PropertyType.Cubemap;
+                case ConcreteSlotValueType.Gradient:
+                    return PropertyType.Gradient;
                 case ConcreteSlotValueType.Boolean:
                     return PropertyType.Boolean;
                 case ConcreteSlotValueType.Vector1:
@@ -337,9 +348,9 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public virtual PreviewProperty GetPreviewProperty(string name)
+        public virtual void GetPreviewProperties(List<PreviewProperty> properties, string name)
         {
-            return default(PreviewProperty);
+            properties.Add(default(PreviewProperty));
         }
 
         public abstract void CopyValuesFrom(MaterialSlot foundSlot);
