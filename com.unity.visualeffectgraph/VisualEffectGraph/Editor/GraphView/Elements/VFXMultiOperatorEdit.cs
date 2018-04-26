@@ -121,15 +121,15 @@ namespace UnityEditor.VFX.UI
 
             IVFXOperatorNumericUnifiedConstrained constraintInterface = op as IVFXOperatorNumericUnifiedConstrained;
 
-            if( constraintInterface != null && constraintInterface.allowExceptionalScalarSlotIndex.Contains(index) )
+            if (constraintInterface != null && constraintInterface.allowExceptionalScalarSlotIndex.Contains(index))
             {
-                VFXSlot otherSlotWithConstraint = op.inputSlots.Where((t,i)=> constraintInterface.strictSameTypeSlotIndex.Contains(i) && ! constraintInterface.allowExceptionalScalarSlotIndex.Contains(i) ).FirstOrDefault();
+                VFXSlot otherSlotWithConstraint = op.inputSlots.Where((t, i) => constraintInterface.strictSameTypeSlotIndex.Contains(i) && !constraintInterface.allowExceptionalScalarSlotIndex.Contains(i)).FirstOrDefault();
 
                 foreach (var type in op.validTypes)
                 {
-                    if( otherSlotWithConstraint == null || otherSlotWithConstraint.property.type == type || VFXUnifiedConstraintOperatorController.GetMatchingScalar(otherSlotWithConstraint.property.type) == type )
+                    if (otherSlotWithConstraint == null || otherSlotWithConstraint.property.type == type || VFXUnifiedConstraintOperatorController.GetMatchingScalar(otherSlotWithConstraint.property.type) == type)
                         menu.AddItem(EditorGUIUtility.TrTextContent(type.UserFriendlyName()), selectedType == type, OnChangeType, type);
-                }    
+                }
             }
             else
             {
@@ -150,13 +150,13 @@ namespace UnityEditor.VFX.UI
 
             IVFXOperatorNumericUnifiedConstrained constraintInterface = op as IVFXOperatorNumericUnifiedConstrained;
 
-            if( constraintInterface != null)
+            if (constraintInterface != null)
             {
-                if(!constraintInterface.allowExceptionalScalarSlotIndex.Contains(m_CurrentIndex) )
+                if (!constraintInterface.allowExceptionalScalarSlotIndex.Contains(m_CurrentIndex))
                 {
-                    foreach(var index in constraintInterface.strictSameTypeSlotIndex)
+                    foreach (var index in constraintInterface.strictSameTypeSlotIndex)
                     {
-                        if( index != m_CurrentIndex && (! constraintInterface.allowExceptionalScalarSlotIndex.Contains(index) || VFXUnifiedConstraintOperatorController.GetMatchingScalar((Type)type) != op.GetOperandType(index)))
+                        if (index != m_CurrentIndex && (!constraintInterface.allowExceptionalScalarSlotIndex.Contains(index) || VFXUnifiedConstraintOperatorController.GetMatchingScalar((Type)type) != op.GetOperandType(index)))
                         {
                             op.SetOperandType(index, (Type)type);
                         }
