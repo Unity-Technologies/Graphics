@@ -892,8 +892,10 @@ namespace UnityEditor.VFX.UI
         void OnCreateNode(NodeCreationContext ctx)
         {
             Vector2 point = GUIUtility.ScreenToGUIPoint(ctx.screenMousePosition);
-            VisualElement picked = panel.Pick(point);
-            VFXContextUI context = picked.GetFirstOfType<VFXContextUI>();
+            List<VisualElement> picked = new List<VisualElement>();
+            panel.PickAll(point, picked);
+
+            VFXContextUI context = picked.OfType<VFXContextUI>().FirstOrDefault();
 
             if (context != null)
             {
