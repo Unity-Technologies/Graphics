@@ -5,15 +5,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     public abstract class ScriptableRenderPass
     {
-        public ScriptableRenderPass(RenderTextureFormat[] inputColorAttachments, RenderTextureFormat inputDepthAttachment)
+        public ScriptableRenderPass(RenderTextureFormat[] colorAttachments, RenderTextureFormat depthAttachment)
         {
-            colorAttachments = inputColorAttachments;
-            depthAttachment = inputDepthAttachment;
+            this.colorAttachments = colorAttachments;
+            this.depthAttachment = depthAttachment;
         }
 
         public abstract void BindSurface(CommandBuffer cmd, RenderTextureDescriptor attachmentDescriptor, int samples);
 
-        public abstract void Execute(ScriptableRenderContext context, Camera camera, ref CullResults cullResults, bool stereoRendering);
+        public abstract void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref LightData lightData,
+            Camera camera, bool stereoRendering);
 
         public abstract void Dispose(CommandBuffer cmd);
 

@@ -13,8 +13,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         bool m_Disposed;
         FilterRenderersSettings m_FilterSettings;
 
-        public DepthOnlyPass(RenderTextureFormat[] inputColorAttachments, RenderTextureFormat inputDepthAttachment) :
-            base(inputColorAttachments, inputDepthAttachment)
+        public DepthOnlyPass(RenderTextureFormat[] colorAttachments, RenderTextureFormat depthAttachment) :
+            base(colorAttachments, depthAttachment)
         {
             RegisterShaderPassName("DepthOnly");
             depthTextureID = Shader.PropertyToID("_CameraDepthTexture");
@@ -42,7 +42,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_Disposed = false;
         }
 
-        public override void Execute(ScriptableRenderContext context, Camera camera, ref CullResults cullResults, bool stereoRendering)
+        public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref LightData lightData,
+            Camera camera, bool stereoRendering)
         {
             CommandBuffer cmd = CommandBufferPool.Get(kCommandBufferTag);
             using (new ProfilingSample(cmd, kProfilerTag))
