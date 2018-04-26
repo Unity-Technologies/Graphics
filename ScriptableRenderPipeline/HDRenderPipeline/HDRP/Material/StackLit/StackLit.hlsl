@@ -463,10 +463,9 @@ float LinearVarianceToPerceptualRoughness(float v)
     return RoughnessToPerceptualRoughness(LinearVarianceToRoughness(v));
 }
 
-/* Return the unpolarized version of the complete dielectric Fresnel equations
- * from `FresnelDielectric` without accounting for wave phase shift.
- */
- // TODO: we have this in BSDF lib, just verify
+// Return the unpolarized version of the complete dielectric Fresnel equations
+// from `FresnelDielectric` without accounting for wave phase shift.
+// TODO: verify we have in BSDF lib
 float FresnelUnpolarized(in float ct1, in float n1, in float n2)
 {
     float cti = ct1;
@@ -654,13 +653,13 @@ float FresnelUnpolarized(in float ct1, in float n1, in float n2)
 
 
 
-/* Helper function that parses the BSDFData object to generate the current layer's
- * statistics.
- *
- * TODO: R12 Should be replace by a fetch to FGD.
- *       T12 should be multiplied by TIR. 
- *       (more like p8, T21 <- T21*TIR, R21 <- R21 + (1-TIR)*T21 )
- */
+///Helper function that parses the BSDFData object to generate the current layer's
+// statistics.
+// 
+// TODO: R12 Should be replace by a fetch to FGD.
+//       T12 should be multiplied by TIR. 
+//       (more like p8, T21 <- T21*TIR, R21 <- R21 + (1-TIR)*T21 )
+// 
 void ComputeStatistics(in  float  cti,   in  int    i, in BSDFData bsdfData,
                        out float  ctt,
                        out float3 R12,   out float3 T12,   out float3 R21,   out float3 T21,
@@ -671,20 +670,20 @@ void ComputeStatistics(in  float  cti,   in  int    i, in BSDFData bsdfData,
                        out float  s_r21, out float  s_t21, out float  j21) 
 {
 
-    /* Case of the dielectric coating */
+    // Case of the dielectric coating
     if(i==0) {
-        /* Update energy */
+        // Update energy
         float R0, n12;
 
         n12 = GetCoatEta(bsdfData); //n2/n1;
-        R0  = FresnelUnpolarized(cti, n12, 1.0); // TODO
+        R0  = FresnelUnpolarized(cti, n12, 1.0);
 
-        R12 = R0; // sltodo: FGD
+        R12 = R0; // TODO: FGD
         T12 = 1.0 - R12;
         R21 = R12;
         T21 = T12;
 
-        /* Update mean */
+        // Update mean
         float sti = sqrt(1.0 - Sq(cti));
         float stt = sti / n12;
         if(stt <= 1.0f) {
@@ -706,7 +705,7 @@ void ComputeStatistics(in  float  cti,   in  int    i, in BSDFData bsdfData,
             ctt = -1.0;
         }
 
-        /* Update variance */
+        // Update variance
         s_r12 = RoughnessToLinearVariance(bsdfData.coatRoughness);
         s_t12 = RoughnessToLinearVariance(bsdfData.coatRoughness * 0.5 * abs((ctt*n12 - cti)/(ctt*n12)));
         j12   = (ctt/cti)*n12;
@@ -715,18 +714,18 @@ void ComputeStatistics(in  float  cti,   in  int    i, in BSDFData bsdfData,
         s_t21 = RoughnessToLinearVariance(bsdfData.coatRoughness * 0.5 * abs((cti/n12 - ctt)/(cti/n12)));
         j21   = 1.0/j12;
 
-    /* Case of the media layer */
+    // Case of the media layer
     } else if(i ==1) {
-        /* Update energy */
+        // Update energy
         R12 = float3(0.0, 0.0, 0.0);
         T12 = exp(- bsdfData.coatThickness * bsdfData.coatExtinction / cti);
         R21 = R12;
         T21 = T12;
 
-        /* Update mean */
+        // Update mean
         ctt = cti;
 
-        /* Update variance */
+        // Update variance
         s_r12 = 0.0;
         s_t12 = 0.0;
         j12   = 1.0;
@@ -735,9 +734,9 @@ void ComputeStatistics(in  float  cti,   in  int    i, in BSDFData bsdfData,
         s_t21 = 0.0;
         j21   = 1.0;
 
-    /* Case of the dielectric / conductor base */
+    // Case of the dielectric / conductor base
     } else {
-        /* Update energy */
+        // Update energy
         R12 = F_Schlick(bsdfData.fresnel0, cti);
         T12 = 0.0;
 #ifdef VLAYERED_DIFFUSE_ENERGY_HACKED_TERM
@@ -747,10 +746,10 @@ void ComputeStatistics(in  float  cti,   in  int    i, in BSDFData bsdfData,
         R21 = R12;
         T21 = T12;
 
-        /* Update mean */
+        // Update mean
         ctt = cti;
 
-        /* Update variance */
+        // Update variance
         //
         // HACK: we will not propagate all needed last values, as we have 4,
         // but the adding cycle for the last layer can be shortcircuited for
@@ -777,7 +776,7 @@ void ComputeStatistics(in  float  cti,   in  int    i, in BSDFData bsdfData,
 
 void ComputeAdding(float _cti, in BSDFData bsdfData, inout PreLightData preLightData, bool perLightCaller = false)
 {
-    /* Global Variables */
+    // Global Variables
     float  cti  = _cti;
     float3 R0i = float3(0.0, 0.0, 0.0), Ri0 = float3(0.0, 0.0, 0.0),
            T0i = float3(1.0, 1.0, 1.0), Ti0 = float3(1.0, 1.0, 1.0);
@@ -786,19 +785,19 @@ void ComputeAdding(float _cti, in BSDFData bsdfData, inout PreLightData preLight
 
     float _s_r0m, s_r12, m_rr; // we will need these outside the loop for further calculations
 
-    /* Iterate over the layers */
+    // Iterate over the layers
     for(int i = 0; i < NB_VLAYERS; ++i)
     {
 
-        /* Variables for the adding step */
+        // Variables for the adding step
         float3 R12, T12, R21, T21;
         s_r12=0.0; 
         float s_r21=0.0, s_t12=0.0, s_t21=0.0, j12=1.0, j21=1.0, ctt;
 
-        /* Layer specific evaluation of the transmittance, reflectance, variance */
+        // Layer specific evaluation of the transmittance, reflectance, variance
         ComputeStatistics(cti, i, bsdfData, ctt, R12, T12, R21, T21, s_r12, s_t12, j12, s_r21, s_t21, j21);
 
-        /* Multiple scattering forms */
+        // Multiple scattering forms
         float3 denom = (float3(1.0, 1.0, 1.0) - Ri0*R12); //i = new layer, 0 = cumulative top (llab3.1 to 3.4)
         float3 m_R0i = (mean(denom) <= 0.0f)? float3(0.0, 0.0, 0.0) : (T0i*R12*Ti0) / denom; //(llab3.1)
         float3 m_Ri0 = (mean(denom) <= 0.0f)? float3(0.0, 0.0, 0.0) : (T21*Ri0*T12) / denom; //(llab3.2)
@@ -807,19 +806,19 @@ void ComputeAdding(float _cti, in BSDFData bsdfData, inout PreLightData preLight
         float  m_ri0 = mean(m_Ri0);
         m_rr  = mean(m_Rr);
 
-        /* Evaluate the adding operator on the energy */
+        // Evaluate the adding operator on the energy
         float3 e_R0i = R0i + m_R0i; //(llab3.1)
         float3 e_T0i = (T0i*T12) / denom; //(llab3.3)
         float3 e_Ri0 = R21 + (T21*Ri0*T12) / denom; //(llab3.2)
         float3 e_Ti0 = (T21*Ti0) / denom; //(llab3.4)
 
-        /* Scalar forms for the energy */
+        // Scalar forms for the energy
         float r21   = mean(R21);
         float r0i   = mean(R0i);
         float e_r0i = mean(e_R0i);
         float e_ri0 = mean(e_Ri0);
 
-        /* Evaluate the adding operator on the normalized variance */
+        // Evaluate the adding operator on the normalized variance
         _s_r0m = s_ti0 + j0i*(s_t0i + s_r12 + m_rr*(s_r12+s_ri0));
         float _s_r0i = (r0i*s_r0i + m_r0i*_s_r0m) / e_r0i;
         float _s_t0i = j12*s_t0i + s_t12 + j12*(s_r12 + s_ri0)*m_rr;
@@ -829,7 +828,7 @@ void ComputeAdding(float _cti, in BSDFData bsdfData, inout PreLightData preLight
         _s_r0i = (e_r0i > 0.0) ? _s_r0i/e_r0i : 0.0;
         _s_ri0 = (e_ri0 > 0.0) ? _s_ri0/e_ri0 : 0.0;
 
-        /* Store the coefficient and variance */
+        // Store the coefficient and variance
         if(m_r0i > 0.0) {
             // TODO: cleanup and check if unroll works, then need only top layer, can use an if
             // and the rest of the array is not needed
@@ -840,14 +839,14 @@ void ComputeAdding(float _cti, in BSDFData bsdfData, inout PreLightData preLight
             preLightData.vLayerPerceptualRoughness[i] = 0.0;
         }
 
-        /* Update energy */
+        // Update energy
         R0i = e_R0i;
         T0i = e_T0i;
         Ri0 = e_Ri0;
         Ti0 = e_Ti0; // upward transmittance: we need this fully computed "past" the last layer see below for diffuse
 
 
-        /* Update mean */
+        // Update mean
         cti = ctt;
 
         // We need to escape this update on the last vlayer iteration, 
@@ -856,13 +855,13 @@ void ComputeAdding(float _cti, in BSDFData bsdfData, inout PreLightData preLight
         // this out when the loop is unrolled anyway
         if( i < (NB_VLAYERS-1) ) 
         {
-            /* Update variance */
+            // Update variance
             s_r0i = _s_r0i;
             s_t0i = _s_t0i;
             s_ri0 = _s_ri0;
             s_ti0 = _s_ti0;
 
-            /* Update jacobian */
+            // Update jacobian
             j0i *= j12;
             ji0 *= j21;
         }
