@@ -491,10 +491,10 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         float4 reprojValue = SampleVBuffer(TEXTURE3D_PARAM(_VBufferLightingHistory, s_linear_clamp_sampler),
                                            centerWS,
                                            _PrevViewProjMatrix,
-                                           _VBufferResolution,
-                                           _VBufferSliceCount.xy,
-                                           _VBufferDepthEncodingParams,
-                                           _VBufferDepthDecodingParams,
+                                           _VBufferPrevResolution,
+                                           _VBufferPrevSliceCount.xy,
+                                           _VBufferPrevDepthEncodingParams,
+                                           _VBufferPrevDepthDecodingParams,
                                            false, false, true);
 
         // Compute the exponential moving average over 'n' frames:
@@ -543,8 +543,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // Store the feedback for the voxel.
         // TODO: dynamic lights (which update their position, rotation, cookie or shadow at runtime)
         // do not support reprojection and should neither read nor write to the history buffer.
-        // to the history buffer. This will cause them to alias, but it is the only way
-        // to prevent ghosting.
+        // This will cause them to alias, but it is the only way to prevent ghosting.
 
         _VBufferLightingFeedback[voxelCoord] = float4(blendedRadiance, centerTransmInt);
 

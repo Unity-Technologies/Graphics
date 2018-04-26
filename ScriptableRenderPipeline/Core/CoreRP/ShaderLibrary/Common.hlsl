@@ -490,10 +490,10 @@ uint GetMipCount(Texture2D tex)
     // Metal doesn't support high enough OpenGL version
 
 #if defined(MIP_COUNT_SUPPORTED)
-    uint width, height, depth, mipCount;
-    width = height = depth = mipCount = 0;
-    tex.GetDimensions(width, height, depth, mipCount);
-    return mipCount;
+    uint mipLevel, width, height, mipCount;
+    mipLevel = width = height = mipCount = 0;
+	tex.GetDimensions(mipLevel, width, height, mipCount);
+    return mipCount;	
 #else
     return 0;
 #endif
@@ -598,13 +598,13 @@ float EncodeLogarithmicDepthGeneralized(float z, float4 encodingParams)
 // saturate(d) to clamp the output of the function to the [n, f] range.
 // z = 1/c * (pow(c * (f - n) + 1, d) - 1) + n
 //   = 1/c * pow(c * (f - n) + 1, d) + n - 1/c
-//   = L * pow(M, d) + N
+//   = 1/c * exp2(d * log2(c * (f - n) + 1)) + (n - 1/c)
+//   = L * exp2(d * M) + N
 // decodingParams = { L, M, N, 0 }
 // Graph: https://www.desmos.com/calculator/qrtatrlrba
 float DecodeLogarithmicDepthGeneralized(float d, float4 decodingParams)
 {
-    // Use abs() to avoid the compiler warning.
-    return decodingParams.x * pow(abs(decodingParams.y), d) + decodingParams.z;
+    return decodingParams.x * exp2(d * decodingParams.y) + decodingParams.z;
 }
 
 // 'z' is the view-space Z position (linear depth).

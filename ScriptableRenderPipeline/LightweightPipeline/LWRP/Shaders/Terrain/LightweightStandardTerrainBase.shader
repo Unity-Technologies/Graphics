@@ -16,6 +16,7 @@ Shader "Hidden/LightweightPipeline/Terrain/Standard Terrain Base"
         //  Forward pass. Shades all light in a single pass. GI + emission + Fog
         Pass
         {
+            Name "TerrainBaseLit"
             // Lightmode matches the ShaderPassName set in LightweightPipeline.cs. SRPDefaultUnlit and passes with
             // no LightMode tag are also rendered by Lightweight Pipeline
             Tags{"LightMode" = "LightweightForward"}
@@ -38,9 +39,8 @@ Shader "Hidden/LightweightPipeline/Terrain/Standard Terrain Base"
             #pragma multi_compile _ _VERTEX_LIGHTS
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
             #pragma multi_compile _ _SHADOWS_ENABLED
-
-            // TODO: Enabled this when we have C# keyword stripping
-            //#pragma multi_compile _ _LOCAL_SHADOWS_ENABLED
+            #pragma multi_compile _ _LOCAL_SHADOWS_ENABLED
+            #pragma multi_compile _ _SHADOWS_SOFT
 
             // -------------------------------------
             // Unity defined keywords

@@ -8,20 +8,47 @@ Shader "HDRenderPipeline/StackLit"
         // Reminder. Color here are in linear but the UI (color picker) do the conversion sRGB to linear
         // Be careful, do not change the name here to _Color. It will conflict with the "fake" parameters (see end of properties) required for GI.
         _BaseColor("BaseColor", Color) = (1,1,1,1)
-        _BaseColorMap("BaseColorMap", 2D) = "white" {}
+        _BaseColorMap("BaseColor Map", 2D) = "white" {}
+        [HideInInspector] _BaseColorMapShow("BaseColor Map Show", Float) = 0
+        _BaseColorMapUV("BaseColor Map UV", Float) = 0.0
+        _BaseColorMapUVLocal("BaseColorMap UV Local", Float) = 0.0
 
+        [HideInInspector] _MetallicMapShow("Metallic Map Show", Float) = 0
         _Metallic("Metallic", Range(0.0, 1.0)) = 0
+        _MetallicMap("Metallic Map", 2D) = "black" {}
+        _MetallicUseMap("Metallic Use Map", Float) = 0
+        _MetallicMapUV("Metallic Map UV", Float) = 0.0
+        _MetallicMapUVLocal("Metallic Map UV Local", Float) = 0.0
+        _MetallicMapChannel("Metallic Map Channel", Float) = 0.0
+        _MetallicMapChannelMask("Metallic Map Channel Mask", Vector) = (1, 0, 0, 0)
+        _MetallicRemap("Metallic Remap", Vector) = (0, 1, 0, 0)
+        [ToggleUI] _MetallicRemapInverted("Invert Metallic Remap", Float) = 0.0
+        [HideInInspector] _MetallicRange("Metallic Range", Vector) = (0, 1, 0, 0)
 
-
+        [HideInInspector] _SmoothnessAMapShow("SmoothnessA Map Show", Float) = 0
         _SmoothnessA("SmoothnessA", Range(0.0, 1.0)) = 1.0
-        _SmoothnessARemapMin("SmoothnessARemapMin", Float) = 0.0
-        _SmoothnessARemapMax("SmoothnessARemapMax", Float) = 1.0
+        _SmoothnessAMap("SmoothnessA Map", 2D) = "white" {}
+        _SmoothnessAUseMap("SmoothnessA Use Map", Float) = 0
+        _SmoothnessAMapUV("SmoothnessA Map UV", Float) = 0.0
+        _SmoothnessAMapUVLocal("_SmoothnessA Map UV Local", Float) = 0.0
+        _SmoothnessAMapChannel("SmoothnessA Map Channel", Float) = 0.0
+        _SmoothnessAMapChannelMask("SmoothnessA Map Channel Mask", Vector) = (1, 0, 0, 0)
+        _SmoothnessARemap("SmoothnessA Remap", Vector)  = (0, 1, 0, 0)
+        [ToggleUI] _SmoothnessARemapInverted("Invert SmoothnessA Remap", Float) = 0.0
+        [HideInInspector] _SmoothnessARange("SmoothnessA Range", Vector) = (0, 1, 0, 0)
+
+        [HideInInspector] _SmoothnessBMapShow("SmoothnessB Map Show", Float) = 0
         _SmoothnessB("SmoothnessB", Range(0.0, 1.0)) = 1.0
-        _SmoothnessBRemapMin("SmoothnessBRemapMin", Float) = 0.0
-        _SmoothnessBRemapMax("SmoothnessBRemapMax", Float) = 1.0
-        _LobeMix("lobeMix", Range(0.0, 1.0)) = 0
-        _MaskMapA("MaskMapA", 2D) = "white" {}
-        _MaskMapB("MaskMapB", 2D) = "white" {}
+        _SmoothnessBMap("SmoothnessB Map", 2D) = "white" {}
+        _SmoothnessBUseMap("SmoothnessB Use Map", Float) = 0
+        _SmoothnessBMapUV("SmoothnessB Map UV", Float) = 0.0
+        _SmoothnessAMapUVLocal("_SmoothnessB Map UV Local", Float) = 0.0
+        _SmoothnessBMapChannel("SmoothnessB Map Channel", Float) = 0.0
+        _SmoothnessBMapChannelMask("SmoothnessB Map Channel Mask", Vector) = (1, 0, 0, 0)
+        _SmoothnessBRemap("SmoothnessB Remap", Vector) = (0, 1, 0, 0)
+        [ToggleUI] _SmoothnessBRemapInverted("Invert SmoothnessB Remap", Float) = 0.0
+        [HideInInspector] _SmoothnessBRange("SmoothnessB Range", Vector) = (0, 1, 0, 0)
+        _LobeMix("Lobe Mix", Range(0.0, 1.0)) = 0
 
         // TODO: TangentMap, AnisotropyMap and CoatIorMap (SmoothnessMap ?)
 
@@ -32,17 +59,40 @@ Shader "HDRenderPipeline/StackLit"
         _CoatThickness("Coat Thickness", Range(0.0, 0.99)) = 0.0
         _CoatExtinction("Coat Extinction Coefficient", Color) = (1,1,1,1) // in thickness^-1 units
 
+        [HideInInspector] _NormalMapShow("NormalMap Show", Float) = 0.0
         _NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
-        _NormalScale("_NormalScale", Range(0.0, 2.0)) = 1
+        _NormalMapUV("NormalMapUV", Float) = 0.0
+        _NormalScale("Normal Scale", Range(0.0, 2.0)) = 1
 
-        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3, Planar, 4, Triplanar, 5)] _UVBase("UV Set for base", Float) = 0
-        [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
-
-
-        _EmissiveColor("EmissiveColor", Color) = (1, 1, 1)
-        _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
-        _EmissiveIntensity("EmissiveIntensity", Float) = 0
+        [HideInInspector] _EmissiveColorMapShow("Emissive Color Map Show", Float) = 0.0
+        _EmissiveColor("Emissive Color", Color) = (1, 1, 1)
+        _EmissiveColorMap("Emissive Color Map", 2D) = "white" {}
+        _EmissiveColorMapUV("Emissive Color Map UV", Range(0.0, 1.0)) = 0
+        _EmissiveColorMapUVLocal("Emissive Color Map UV Local", Float) = 0.0
+        _EmissiveIntensity("Emissive Intensity", Float) = 0
         [ToggleUI] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
+
+        [HideInInspector] _SubsurfaceMaskMapShow("Subsurface Mask Map Show", Float) = 0
+        _SubsurfaceMask("Subsurface Mask", Range(0.0, 1.0)) = 1.0
+        _SubsurfaceMaskMap("Subsurface Mask Map", 2D) = "black" {}
+        _SubsurfaceMaskUSeMap("Subsurface Mask Use Map", Float) = 0
+        _SubsurfaceMaskMapUV("Subsurface Mask Map UV", Float) = 0.0
+        _SubsurfaceMaskMapChannel("Subsurface Mask Map Channel", Float) = 0.0
+        _SubsurfaceMaskMapChannelMask("Subsurface Mask Map Channel Mask", Vector) = (1, 0, 0, 0)
+        _SubsurfaceMaskRemap("Subsurface Mask Remap", Vector) = (0, 1, 0, 0)
+        [ToggleUI] _SubsurfaceMaskRemapInverted("Invert Subsurface Mask Remap", Float) = 0.0
+        [HideInInspector] _SubsurfaceMaskRange("Subsurface Mask Range", Vector) = (0, 1, 0, 0)
+
+        [HideInInspector] _ThicknessMapShow("Thickness Show", Float) = 0
+        _Thickness("Thickness", Range(0.0, 1.0)) = 1.0
+        _ThicknessMap("Thickness Map", 2D) = "black" {}
+        _ThicknessUseMap("Thickness Use Map", Float) = 0
+        _ThicknessMapUV("Thickness Map UV", Float) = 0.0
+        _ThicknessMapChannel("Thickness Map Channel", Float) = 0.0
+        _ThicknessMapChannelMask("Thickness Map Channel Mask", Vector) = (1, 0, 0, 0)
+        _ThicknessRemap("Thickness Remap", Vector) = (0, 1, 0, 0)
+        [ToggleUI] _ThicknessRemapInverted("Invert Thickness Remap", Float) = 0.0
+        [HideInInspector] _ThicknessRange("Thickness Range", Vector) = (0, 1, 0, 0)
 
         _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
         [ToggleUI] _DistortionEnable("Enable Distortion", Float) = 0.0
@@ -68,7 +118,6 @@ Shader "HDRenderPipeline/StackLit"
         _AlphaCutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
         _TransparentSortPriority("_TransparentSortPriority", Float) = 0
 
-
         // Stencil state
         [HideInInspector] _StencilRef("_StencilRef", Int) = 2 // StencilLightingUsage.RegularLighting  (fixed at compile time)
         [HideInInspector] _StencilWriteMask("_StencilWriteMask", Int) = 7 // StencilMask.Lighting  (fixed at compile time)
@@ -89,10 +138,22 @@ Shader "HDRenderPipeline/StackLit"
 
         [ToggleUI] _EnableFogOnTransparent("Enable Fog", Float) = 1.0
         [ToggleUI] _EnableBlendModePreserveSpecularLighting("Enable Blend Mode Preserve Specular Lighting", Float) = 1.0
-        
+
         [ToggleUI] _DoubleSidedEnable("Double sided enable", Float) = 0.0
         [Enum(Flip, 0, Mirror, 1, None, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1 // This is for the editor only, see BaseLitUI.cs: _DoubleSidedConstants will be set based on the mode.
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
+
+
+        // Sections show values.
+        [HideInInspector] _StandardShow("_StandardShow", Float) = 0.0
+        [HideInInspector] _EmissiveShow("_EmissiveShow", Float) = 0.0
+        [HideInInspector] _CoatShow("_CoatShow", Float) = 0.0
+        [HideInInspector] _SSSShow("_SSSShow", Float) = 0.0
+        [HideInInspector] _Lobe2Show("_Lobe2Show", Float) = 0.0
+        [HideInInspector] _AnisotropyShow("_AnisotropyShow", Float) = 0.0
+        [HideInInspector] _TransmissionShow("_TransmissionShow", Float) = 0.0
+        [HideInInspector] _IridescenceShow("_IridescenceShow", Float) = 0.0
+        [HideInInspector] _GlintShow("_GlintShow", Float) = 0.0
 
         // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
         // value that exist to identify if the GI emission need to be enabled.
@@ -119,9 +180,11 @@ Shader "HDRenderPipeline/StackLit"
     #pragma shader_feature _DOUBLESIDED_ON
 
     #pragma shader_feature _NORMALMAP_TANGENT_SPACE
-    #pragma shader_feature _ _REQUIRE_UV2 _REQUIRE_UV3 
-    // ...TODO: for surface gradient framework eg see litdata.hlsl, 
-    // but we need it right away for toggle with LayerTexCoord mapping so we might need them 
+    #pragma shader_feature _USE_UV2
+    #pragma shader_feature _USE_UV3
+    #pragma shader_feature _USE_TRIPLANAR
+    // ...TODO: for surface gradient framework eg see litdata.hlsl,
+    // but we need it right away for toggle with LayerTexCoord mapping so we might need them
     // from the Frag input right away. See also ShaderPass/StackLitSharePass.hlsl.
 
     #pragma shader_feature _NORMALMAP
@@ -291,7 +354,7 @@ Shader "HDRenderPipeline/StackLit"
             ZWrite [_ZWrite]
             Cull [_CullModeForward]
             //
-            // NOTE: For _CullModeForward, see BaseLitUI and the handling of TransparentBackfaceEnable: 
+            // NOTE: For _CullModeForward, see BaseLitUI and the handling of TransparentBackfaceEnable:
             // Basically, we need to use it to support a TransparentBackface pass before this pass
             // (and it should be placed just before this one) for separate backface and frontface rendering,
             // eg for "hair shader style" approximate sorting, see eg Thorsten Scheuermann writeups on this:
@@ -299,7 +362,7 @@ Shader "HDRenderPipeline/StackLit"
             // http://amd-dev.wpengine.netdna-cdn.com/wordpress/media/2012/10/Scheuermann_HairSketchSlides.pdf
             // http://web.engr.oregonstate.edu/~mjb/cs519/Projects/Papers/HairRendering.pdf
             //
-            // See Lit.shader and the order of the passes after a DistortionVectors, we have: 
+            // See Lit.shader and the order of the passes after a DistortionVectors, we have:
             // TransparentDepthPrepass, TransparentBackface, Forward, TransparentDepthPostpass
 
             HLSLPROGRAM

@@ -4,44 +4,42 @@
 #include "CoreRP/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
 #include "../MaterialUtilities.hlsl"
 
-//-----------------------------------------------------------------------------
-// Texture Mapping (think of LayerTexCoord as simply TexCoordMappings, 
-// ie no more layers here - cf Lit materials)
-//-----------------------------------------------------------------------------
+////-----------------------------------------------------------------------------
+//// Texture Mapping (think of LayerTexCoord as simply TexCoordMappings,
+//// ie no more layers here - cf Lit materials)
+////-----------------------------------------------------------------------------
+//
+////
+//// For easier copying of code for now use a LayerTexCoord wrapping struct.
+//// We don't have details yet.
+////
+//// NEWLITTODO: Eventually, we could quickly share GetBuiltinData of LitBuiltinData.hlsl
+//// in our GetSurfaceAndBuiltinData( ) here, since we will use the LayerTexCoord identifier,
+//// and an identical ComputeLayerTexCoord( ) prototype
+////
+//struct LayerTexCoord
+//{
+//    UVMapping base;
+//
+//    // Store information that will be share by all UVMapping
+//    float3 vertexNormalWS; // TODO: store also object normal map for object triplanar
+//};
+//
+//// Want to use only one sampler for normalmap/bentnormalmap either we use OS or TS. And either we have normal map or bent normal or both.
+////
+//// Note (compared to Lit shader):
+////
+//// We don't have a layered material with which we are sharing code here like the LayeredLit shader, but we can also save a couple of
+//// samplers later if we use bentnormals.
+////
+//// _IDX suffix is meaningless here, could use the name SAMPLER_NORMALMAP_ID instead of SAMPLER_NORMALMAP_IDX and replace all
+//// indirect #ifdef _NORMALMAP_TANGENT_SPACE_IDX #ifdef and _NORMALMAP_IDX tests with the more direct
+//// shader_feature keywords _NORMALMAP_TANGENT_SPACE and _NORMALMAP.
+////
+//// (Originally in the LayeredLit shader, shader_feature keywords like _NORMALMAP become _NORMALMAP0 but since files are shared,
+//// LitDataIndividualLayer will use a generic _NORMALMAP_IDX defined before its inclusion by the client LitData or LayeredLitData.
+//// That way, LitDataIndividualLayer supports multiple inclusions)
 
-//
-// For easier copying of code for now use a LayerTexCoord wrapping struct.
-// We don't have details yet.
-//
-// NEWLITTODO: Eventually, we could quickly share GetBuiltinData of LitBuiltinData.hlsl 
-// in our GetSurfaceAndBuiltinData( ) here, since we will use the LayerTexCoord identifier,
-// and an identical ComputeLayerTexCoord( ) prototype
-//
-struct LayerTexCoord
-{
-    UVMapping base;
-    UVMapping details;
-
-    // Store information that will be share by all UVMapping
-    float3 vertexNormalWS; // TODO: store also object normal map for object triplanar
-};
-
-// Want to use only one sampler for normalmap/bentnormalmap either we use OS or TS. And either we have normal map or bent normal or both.
-// 
-// Note (compared to Lit shader): 
-//
-// We don't have a layered material with which we are sharing code here like the LayeredLit shader, but we can also save a couple of 
-// samplers later if we use bentnormals.
-//
-// _IDX suffix is meaningless here, could use the name SAMPLER_NORMALMAP_ID instead of SAMPLER_NORMALMAP_IDX and replace all 
-// indirect #ifdef _NORMALMAP_TANGENT_SPACE_IDX #ifdef and _NORMALMAP_IDX tests with the more direct 
-// shader_feature keywords _NORMALMAP_TANGENT_SPACE and _NORMALMAP.
-//
-// (Originally in the LayeredLit shader, shader_feature keywords like _NORMALMAP become _NORMALMAP0 but since files are shared,
-// LitDataIndividualLayer will use a generic _NORMALMAP_IDX defined before its inclusion by the client LitData or LayeredLitData.
-// That way, LitDataIndividualLayer supports multiple inclusions)
-//
-// 
 #ifdef _NORMALMAP_TANGENT_SPACE
     #if defined(_NORMALMAP)
     #define SAMPLER_NORMALMAP_ID sampler_NormalMap
@@ -59,43 +57,17 @@ struct LayerTexCoord
     //#endif
 #endif
 
-void ComputeLayerTexCoord( // Uv related parameters
-                                    float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3, float4 uvMappingMask, 
-                                    // scale and bias for base 
-                                    float2 texScale, float2 texBias, 
-                                    // mapping type and output
-                                    int mappingType, inout LayerTexCoord layerTexCoord)
-{
-
-    //TODO: Planar, Triplanar, detail map, surface_gradient.
-
-    // Handle uv0, uv1, uv2, uv3 based on _UVMappingMask weight (exclusif 0..1)
-    float2 uvBase = uvMappingMask.x * texCoord0 +
-                    uvMappingMask.y * texCoord1 +
-                    uvMappingMask.z * texCoord2 +
-                    uvMappingMask.w * texCoord3;
-    
-    // Copy data in uvmapping fields: used by generic sampling code (see especially SampleUVMappingNormalInternal.hlsl)
-    layerTexCoord.base.mappingType = mappingType;
-    layerTexCoord.base.normalWS = layerTexCoord.vertexNormalWS;
-
-    // Apply tiling options
-    layerTexCoord.base.uv = uvBase * texScale + texBias;
-}
-
-
-
-float3 GetNormalTS(FragInputs input, LayerTexCoord layerTexCoord, float3 detailNormalTS, float detailMask)
+float3 GetNormalTS(FragInputs input, float2 texCoord, float3 detailNormalTS, float detailMask)
 {
     // TODO: different spaces (eg #ifdef _NORMALMAP_TANGENT_SPACE #elif object space, SURFACE_GRADIENT, etc.)
     // and use detail map
 
     float3 normalTS;
 
-    // Note we don't use the _NORMALMAP_IDX mechanism of the Lit shader, since we don't have "layers", we can 
+    // Note we don't use the _NORMALMAP_IDX mechanism of the Lit shader, since we don't have "layers", we can
     // directly use the shader_feature keyword:
 #ifdef _NORMALMAP
-        normalTS = SAMPLE_UVMAPPING_NORMALMAP(_NormalMap, SAMPLER_NORMALMAP_ID, layerTexCoord.base, _NormalScale);
+    normalTS = float3(0.0, 0.0, 1.0);  //normalTS = SAMPLE_UVMAPPING_NORMALMAP(_NormalMap, SAMPLER_NORMALMAP_ID, texCoord, _NormalScale);
 #else
     normalTS = float3(0.0, 0.0, 1.0);
 #endif
@@ -103,60 +75,140 @@ float3 GetNormalTS(FragInputs input, LayerTexCoord layerTexCoord, float3 detailN
     return normalTS;
 }
 
-// This maybe call directly by tessellation (domain) shader, thus all part regarding surface gradient must be done
-// in function with FragInputs input as parameters
-// layerTexCoord must have been initialize to 0 outside of this function
-void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3,
-                      float3 positionWS, float3 vertexNormalWS, inout LayerTexCoord layerTexCoord)
+//-----------------------------------------------------------------------------
+// Texture Mapping
+//-----------------------------------------------------------------------------
+
+#define TEXCOORD_INDEX_UV0          (0)
+#define TEXCOORD_INDEX_UV1          (1)
+#define TEXCOORD_INDEX_UV2          (2)
+#define TEXCOORD_INDEX_UV3          (3)
+#define TEXCOORD_INDEX_PLANAR_XY    (4)
+#define TEXCOORD_INDEX_PLANAR_YZ    (5)
+#define TEXCOORD_INDEX_PLANAR_ZX    (6)
+#define TEXCOORD_INDEX_TRIPLANAR    (7)
+#define TEXCOORD_INDEX_COUNT        (TEXCOORD_INDEX_TRIPLANAR) // Triplanar is not consider as having mapping
+
+struct TextureUVMapping
 {
-    layerTexCoord.vertexNormalWS = vertexNormalWS;
-    // TODO: 
-    //layerTexCoord.triplanarWeights = ComputeTriplanarWeights(vertexNormalWS);
+    float2 texcoords[TEXCOORD_INDEX_COUNT][2];
+#ifdef _USE_TRIPLANAR
+    float3 triplanarWeights[2];
+#endif
 
-    int mappingType = UV_MAPPING_UVSET;
+#ifdef SURFACE_GRADIENT
+   // float3 vertexTangentWS[4];
+   // float3 vertexBitangentWS[4];
+#endif
+};
 
-    //TODO: _MAPPING_PLANAR, _MAPPING_TRIPLANAR
-
-    // Be sure that the compiler is aware that we don't use UV1 to UV3 for main layer so it can optimize code
-    ComputeLayerTexCoord(   texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMask, /* TODO _UVDetailsMappingMask, */
-                            _BaseColorMap_ST.xy, _BaseColorMap_ST.zw, /* TODO _DetailMap_ST.xy, _DetailMap_ST.zw, 1.0, _LinkDetailsWithBase,
-                            /* TODO positionWS, _TexWorldScale, */
-                            mappingType, layerTexCoord);
+float4 SampleTexture2DPlanar(TEXTURE2D_ARGS(textureName, samplerName), float textureNameUV, float textureNameUVLocal, float4 textureNameST, TextureUVMapping uvMapping)
+{
+    return SAMPLE_TEXTURE2D(textureName, samplerName, (uvMapping.texcoords[textureNameUV][textureNameUVLocal] * textureNameST.xy + textureNameST.zw));
 }
 
-// This is call only in this file
-// layerTexCoord must have been initialize to 0 outside of this function
-void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
+// If we use triplanar on any of the properties, then we enable the triplanar path
+#ifdef _USE_TRIPLANAR
+float4 SampleTexture2DTriplanar(TEXTURE2D_ARGS(textureName, samplerName), float textureNameUV, float textureNameUVLocal, float4 textureNameST, TextureUVMapping uvMapping)
 {
-// TODO: SURFACE_GRADIENT
-//#ifdef SURFACE_GRADIENT
-    //GenerateLayerTexCoordBasisTB(input, layerTexCoord);
-//#endif
+    if (textureNameUV == TEXCOORD_INDEX_TRIPLANAR)
+    {
+        float4 val = float4(0.0, 0.0, 0.0, 0.0);
 
-    GetLayerTexCoord(   input.texCoord0, input.texCoord1, input.texCoord2, input.texCoord3,
-                        input.positionWS, input.worldToTangent[2].xyz, layerTexCoord);
+        if (uvMapping.triplanarWeights[textureNameUVLocal].x > 0.0)
+            val += uvMapping.triplanarWeights[textureNameUVLocal].x * SAMPLE_TEXTURE2D(textureName, samplerName, (uvMapping.texcoords[TEXCOORD_INDEX_PLANAR_YZ][textureNameUVLocal] * textureNameST.xy + textureNameST.zw));
+        if (uvMapping.triplanarWeights[textureNameUVLocal].y > 0.0)
+            val += uvMapping.triplanarWeights[textureNameUVLocal].y * SAMPLE_TEXTURE2D(textureName, samplerName, (uvMapping.texcoords[TEXCOORD_INDEX_PLANAR_ZX][textureNameUVLocal] * textureNameST.xy + textureNameST.zw));
+        if (uvMapping.triplanarWeights[textureNameUVLocal].z > 0.0)
+            val += uvMapping.triplanarWeights[textureNameUVLocal].z * SAMPLE_TEXTURE2D(textureName, samplerName, (uvMapping.texcoords[TEXCOORD_INDEX_PLANAR_XY][textureNameUVLocal] * textureNameST.xy + textureNameST.zw));
+
+        return val;
+    }
+    else
+    {
+        return SampleTexture2DPlanar(TEXTURE2D_PARAM(textureName, samplerName), textureNameUV, textureNameUVLocal, textureNameST, uvMapping);
+    }
+}
+
+#define SAMPLE_TEXTURE2D_SCALE_BIAS(name) SampleTexture2DTriplanar(name, sampler##name, name##UV, name##UVLocal, name##_ST, uvMapping)
+#else
+#define SAMPLE_TEXTURE2D_SCALE_BIAS(name) SampleTexture2DPlanar(name, sampler##name, name##UV, name##UVLocal, name##_ST, uvMapping)
+#endif // _USE_TRIPLANAR
+
+
+void InitializeMappingData(FragInputs input, out TextureUVMapping uvMapping)
+{
+    float3 position = GetAbsolutePositionWS(input.positionWS);
+    float2 uvXZ;
+    float2 uvXY;
+    float2 uvZY;
+
+    // Build the texcoords array.
+    uvMapping.texcoords[TEXCOORD_INDEX_UV0][0] = uvMapping.texcoords[TEXCOORD_INDEX_UV0][1] = input.texCoord0.xy;
+    uvMapping.texcoords[TEXCOORD_INDEX_UV1][0] = uvMapping.texcoords[TEXCOORD_INDEX_UV1][1] = input.texCoord1.xy;
+    uvMapping.texcoords[TEXCOORD_INDEX_UV2][0] = uvMapping.texcoords[TEXCOORD_INDEX_UV2][1] = input.texCoord2.xy;
+    uvMapping.texcoords[TEXCOORD_INDEX_UV3][0] = uvMapping.texcoords[TEXCOORD_INDEX_UV3][1] = input.texCoord3.xy;
+
+    // planar/triplanar
+    GetTriplanarCoordinate(position, uvXZ, uvXY, uvZY);
+    uvMapping.texcoords[TEXCOORD_INDEX_PLANAR_XY][0] = uvXY;
+    uvMapping.texcoords[TEXCOORD_INDEX_PLANAR_YZ][0] = uvZY;
+    uvMapping.texcoords[TEXCOORD_INDEX_PLANAR_ZX][0] = uvXZ;
+
+    // If we use local planar mapping, convert to local space
+    position = TransformWorldToObject(position);
+    GetTriplanarCoordinate(position, uvXZ, uvXY, uvZY);
+    uvMapping.texcoords[TEXCOORD_INDEX_PLANAR_XY][1] = uvXY;
+    uvMapping.texcoords[TEXCOORD_INDEX_PLANAR_YZ][1] = uvZY;
+    uvMapping.texcoords[TEXCOORD_INDEX_PLANAR_ZX][1] = uvXZ;
+
+#ifdef _USE_TRIPLANAR
+    float3 vertexNormal = input.worldToTangent[2].xyz;
+    uvMapping.triplanarWeights[0] = ComputeTriplanarWeights(vertexNormal);
+    // If we use local planar mapping, convert to local space
+    vertexNormal = TransformWorldToObjectDir(vertexNormal);
+    uvMapping.triplanarWeights[1] = ComputeTriplanarWeights(vertexNormal);
+#endif
+
+    // Normal mapping with surface gradient
+#ifdef SURFACE_GRADIENT
+    float3 vertexNormalWS = input.worldToTangent[2];
+
+    uvMapping.vertexTangentWS[0] = input.worldToTangent[0];
+    uvMapping.vertexBitangentWS[0] = input.worldToTangent[1];
+
+    float3 dPdx = ddx_fine(input.positionWS);
+    float3 dPdy = ddy_fine(input.positionWS);
+
+    float3 sigmaX = dPdx - dot(dPdx, vertexNormalWS) * vertexNormalWS;
+    float3 sigmaY = dPdy - dot(dPdy, vertexNormalWS) * vertexNormalWS;
+    //float flipSign = dot(sigmaY, cross(vertexNormalWS, sigmaX) ) ? -1.0 : 1.0;
+    float flipSign = dot(dPdy, cross(vertexNormalWS, dPdx)) < 0.0 ? -1.0 : 1.0; // gives same as the commented out line above
+
+    SurfaceGradientGenBasisTB(vertexNormalWS, sigmaX, sigmaY, flipSign, input.texCoord1, uvMapping.vertexTangentWS[1], uvMapping.vertexBitangentWS[1]);
+    SurfaceGradientGenBasisTB(vertexNormalWS, sigmaX, sigmaY, flipSign, input.texCoord2, uvMapping.vertexTangentWS[2], uvMapping.vertexBitangentWS[2]);
+    SurfaceGradientGenBasisTB(vertexNormalWS, sigmaX, sigmaY, flipSign, input.texCoord3, uvMapping.vertexTangentWS[3], uvMapping.vertexBitangentWS[3]);
+#endif // SURFACE_GRADIENT
 }
 
 //-----------------------------------------------------------------------------
-// ...Texture Mapping
+// GetSurfaceAndBuiltinData
 //-----------------------------------------------------------------------------
 
 //
-// cf with 
+// cf with
 //    LitData.hlsl:GetSurfaceAndBuiltinData()
 //    LitDataIndividualLayer.hlsl:GetSurfaceData( )
-//    LitBuiltinData.hlsl:GetBuiltinData() 
+//    LitBuiltinData.hlsl:GetBuiltinData()
 //
 // Here we can combine them
 //
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
-    ApplyDoubleSidedFlipOrMirror(input); // Apply double sided flip on the vertex normal
+    ApplyDoubleSidedFlipOrMirror(input); // Apply double sided flip on the vertex normal.
 
-
-    LayerTexCoord layerTexCoord;
-    ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
-    GetLayerTexCoord(input, layerTexCoord);
+    TextureUVMapping uvMapping;
+    InitializeMappingData(input, uvMapping);
 
     // -------------------------------------------------------------
     // Surface Data:
@@ -170,8 +222,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     //float3 bentNormalTS;
     //float3 bentNormalWS;
 
-    //float alpha = SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, baseColorMapUv).a * _BaseColor.a;
-    float alpha = SAMPLE_UVMAPPING_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, layerTexCoord.base).a * _BaseColor.a;
+    float alpha = SAMPLE_TEXTURE2D_SCALE_BIAS(_BaseColorMap).a * _BaseColor.a;
 #ifdef _ALPHATEST_ON
     //NEWLITTODO: Once we include those passes in the main StackLit.shader, add handling of CUTOFF_TRANSPARENT_DEPTH_PREPASS and _POSTPASS
     // and the related properties (in the .shader) and uniforms (in the StackLitProperties file) _AlphaCutoffPrepass, _AlphaCutoffPostpass
@@ -182,43 +233,32 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float3 detailNormalTS = float3(0.0, 0.0, 0.0);
     float detailMask = 0.0;
 
-    //TODO remove the following and use fetching macros that use uvmapping :
-    //float2 baseColorMapUv = TRANSFORM_TEX(input.texCoord0, _BaseColorMap);
-    //surfaceData.baseColor = SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, baseColorMapUv).rgb * _BaseColor.rgb;
-    surfaceData.baseColor = SAMPLE_UVMAPPING_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, layerTexCoord.base).rgb * _BaseColor.rgb;
+    surfaceData.baseColor = SAMPLE_TEXTURE2D_SCALE_BIAS(_BaseColorMap).rgb * _BaseColor.rgb;
 
+    //surfaceData.normalWS = float3(0.0, 0.0, 0.0);
 
-    normalTS = GetNormalTS(input, layerTexCoord, detailNormalTS, detailMask);
+    normalTS = float3(0, 0, 1); // GetNormalTS(input, texcoords[_NormalMapUV], detailNormalTS, detailMask);
     //TODO: bentNormalTS
 
-#if defined(_MASKMAPA)
-    surfaceData.perceptualSmoothnessA = SAMPLE_UVMAPPING_TEXTURE2D(_MaskMapA, sampler_MaskMapA, layerTexCoord.base).a;
-    surfaceData.perceptualSmoothnessA = lerp(_SmoothnessARemapMin, _SmoothnessARemapMax, surfaceData.perceptualSmoothnessA);
-#else
-    surfaceData.perceptualSmoothnessA = _SmoothnessA;
-#endif
+    surfaceData.perceptualSmoothnessA = dot(SAMPLE_TEXTURE2D_SCALE_BIAS(_SmoothnessAMap), _SmoothnessAMapChannelMask);
+    surfaceData.perceptualSmoothnessA = lerp(_SmoothnessARange.x, _SmoothnessARange.y, surfaceData.perceptualSmoothnessA);
+    surfaceData.perceptualSmoothnessA = lerp(_SmoothnessA, surfaceData.perceptualSmoothnessA, _SmoothnessAUseMap);
 
-#if defined(_MASKMAPB)
-    surfaceData.perceptualSmoothnessB = SAMPLE_UVMAPPING_TEXTURE2D(_MaskMapB, sampler_MaskMapB, layerTexCoord.base).a;
-    surfaceData.perceptualSmoothnessB = lerp(_SmoothnessBRemapMin, _SmoothnessBRemapMax, surfaceData.perceptualSmoothnessB);
-#else
-    surfaceData.perceptualSmoothnessB = _SmoothnessB;
-#endif
+    surfaceData.perceptualSmoothnessB = dot(SAMPLE_TEXTURE2D_SCALE_BIAS(_SmoothnessBMap), _SmoothnessBMapChannelMask);
+    surfaceData.perceptualSmoothnessB = lerp(_SmoothnessBRange.x, _SmoothnessBRange.y, surfaceData.perceptualSmoothnessB);
+    surfaceData.perceptualSmoothnessB = lerp(_SmoothnessB, surfaceData.perceptualSmoothnessB, _SmoothnessBUseMap);
+
     surfaceData.lobeMix = _LobeMix;
 
-    // MaskMapA is RGBA: Metallic, Ambient Occlusion (Optional), detail Mask (Optional), Smoothness
     // TODO: Ambient occlusion, detail mask.
-#ifdef _MASKMAPA
-    surfaceData.metallic = SAMPLE_UVMAPPING_TEXTURE2D(_MaskMapA, sampler_MaskMapA, layerTexCoord.base).r;
-#else
-    surfaceData.metallic = 1.0;
-#endif
-    surfaceData.metallic *= _Metallic;
+    surfaceData.metallic = dot(SAMPLE_TEXTURE2D_SCALE_BIAS(_MetallicMap), _MetallicMapChannelMask);
+    surfaceData.metallic = lerp(_MetallicRange.x, _MetallicRange.y, surfaceData.metallic);
+    surfaceData.metallic = lerp(_Metallic, surfaceData.metallic, _MetallicUseMap);
 
 
     // These static material feature allow compile time optimization
-    // TODO: As we add features, or-set the flags eg MATERIALFEATUREFLAGS_LIT_* with #ifdef 
-    // on corresponding _MATERIAL_FEATURE_* shader_feature kerwords (set by UI) so the compiler 
+    // TODO: As we add features, or-set the flags eg MATERIALFEATUREFLAGS_LIT_* with #ifdef
+    // on corresponding _MATERIAL_FEATURE_* shader_feature kerwords (set by UI) so the compiler
     // knows the value of surfaceData.materialFeatures.
     surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
 
@@ -260,13 +300,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     GetNormalWS(input, V, normalTS, surfaceData.normalWS); // MaterialUtilities.hlsl
 
-
     // TODO: decal etc.
 
 #if defined(DEBUG_DISPLAY)
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
-        surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, layerTexCoord.base.uv, _BaseColorMap, _BaseColorMap_TexelSize, _BaseColorMap_MipInfo, surfaceData.baseColor);
+        surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, texcoords[_BaseColorMapUV], _BaseColorMap, _BaseColorMap_TexelSize, _BaseColorMap_MipInfo, surfaceData.baseColor);
         surfaceData.metallic = 0;
     }
 #endif
@@ -275,7 +314,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Builtin Data:
     // -------------------------------------------------------------
 
-    // NEWLITTODO: for all BuiltinData, might need to just refactor and use a comon function like that 
+    // NEWLITTODO: for all BuiltinData, might need to just refactor and use a comon function like that
     // contained in LitBuiltinData.hlsl
 
     builtinData.opacity = alpha;
@@ -286,16 +325,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Emissive Intensity is only use here, but is part of BuiltinData to enforce UI parameters as we want the users to fill one color and one intensity
     builtinData.emissiveIntensity = _EmissiveIntensity; // We still store intensity here so we can reuse it with debug code
     builtinData.emissiveColor = _EmissiveColor * builtinData.emissiveIntensity * lerp(float3(1.0, 1.0, 1.0), surfaceData.baseColor.rgb, _AlbedoAffectEmissive);
-
-#ifdef _EMISSIVE_COLOR_MAP
-    builtinData.emissiveColor *= SAMPLE_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, TRANSFORM_TEX(input.texCoord0, _EmissiveColorMap)).rgb;
-#endif
+    builtinData.emissiveColor *= SAMPLE_TEXTURE2D_SCALE_BIAS(_EmissiveColorMap).rgb;
 
     // TODO:
     builtinData.velocity = float2(0.0, 0.0);
 
-    
-    //NEWLITTODO: shader feature SHADOWS_SHADOWMASK not there yet. 
+    //NEWLITTODO: shader feature SHADOWS_SHADOWMASK not there yet.
     builtinData.shadowMask0 = 0.0;
     builtinData.shadowMask1 = 0.0;
     builtinData.shadowMask2 = 0.0;
@@ -312,5 +347,4 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
 
     builtinData.depthOffset = 0.0;
-
 }

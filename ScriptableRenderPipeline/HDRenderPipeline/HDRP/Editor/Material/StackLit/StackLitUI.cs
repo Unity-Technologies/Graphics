@@ -1,327 +1,207 @@
-using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    class StackLitGUI : BaseUnlitGUI
+    class StackLitGUI : BaseMaterialGUI
     {
-        protected static class Styles
+        protected static class StylesStackLit
         {
-            public static string InputsText = "Inputs";
-            public static GUIContent doubleSidedNormalModeText = new GUIContent("Normal mode", "This will modify the normal base on the selected mode. Mirror: Mirror the normal with vertex normal plane, Flip: Flip the normal");
+            public static GUIContent useLocalPlanarMapping = new GUIContent("Use Local Planar Mapping", "Use local space for planar/triplanar mapping instead of world space");
+        };
 
-            public static GUIContent baseColorText = new GUIContent("Base Color + Opacity", "Albedo (RGB) and Opacity (A)");
+        #region Strings
 
+        protected const string k_DoubleSidedNormalMode = "_DoubleSidedNormalMode";
 
-            // Scalar scale factors for: metallic and the two lobe perceptual smoothness.
-            public static GUIContent metallicText = new GUIContent("Metallic", "Metallic scale factor");
-            public static GUIContent smoothnessAText = new GUIContent("Primary Lobe Smoothness", "Primary lobe smoothness scale factor");
-            public static GUIContent smoothnessBText = new GUIContent("Secondary Lobe Smoothness", "Secondary lobe smoothness scale factor");
-            public static GUIContent lobeMixText = new GUIContent("Lobe Mixing", "Lobe mixing factor");
+        protected const string k_UVBase = "_UVBase";
 
-            public static GUIContent smoothnessARemappingText = new GUIContent("Primary Lobe Smoothness Remapping", "Primary lobe smoothness remapping");
-            public static GUIContent smoothnessBRemappingText = new GUIContent("Secondary Lobe Smoothness Remapping", "Secondary  lobe smoothness remapping");
-            public static GUIContent maskMapASText = new GUIContent("Primary mask map - M(R), AO(G), D(B), S1(A)", "Primary mask map");
-            public static GUIContent maskMapBSText = new GUIContent("Secondary mask Map - (R), (G), (B), S2(A)", "Secondary mask map");
+        // Base
+        protected const string k_BaseColor = "_BaseColor";
+        protected const string k_BaseColorMap = "_BaseColorMap";
+        protected const string k_BaseColorMapUV = "_BaseColorMapUV";
 
+        protected const string k_Metallic = "_Metallic";
+        protected const string k_MetallicMap = "_MetallicMap";
+        protected const string k_MetallicMapUV = "_MetallicMapUV";
+        protected const string k_MetallicRemap = "_MetallicRemap";
+        protected const string k_MetallicRemapInverted = "_MetallicRemapInverted";
+        protected const string k_MetallicRange = "_MetallicRange";
 
-            public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (BC7/BC5/DXT5(nm))");
+        protected const string k_Smoothness1 = "_SmoothnessA";
+        protected const string k_Smoothness1Map = "_SmoothnessAMap";
+        protected const string k_Smoothness1MapUV = "_SmoothnessAMapUV";
+        protected const string k_Smoothness1Remap = "_SmoothnessARemap";
+        protected const string k_Smoothness1RemapInverted = "_SmoothnessARemapInverted";
+        protected const string k_Smoothness1Range = "_SmoothnessARange";
 
-            public static GUIContent UVBaseMappingText = new GUIContent("UV mapping usage", "");
+        protected const string k_NormalMap = "_NormalMap";
+        protected const string k_NormalMapUV = "_NormalMapUV";
+        protected const string k_NormalScale = "_NormalScale";
 
-            public static GUIContent anisotropyText = new GUIContent("Anisotropy", "Anisotropy scale factor");
-            public static GUIContent coatEnableText = new GUIContent("Clear Coat Enable", "Clear Coat Enable");
-            public static GUIContent coatSmoothnessText = new GUIContent("Clear Coat Smoothness", "Clear Coat Smoothness");
-            public static GUIContent coatIorText = new GUIContent("Clear Coat IOR", "Clear Coat IOR");
-            public static GUIContent coatThicknessText = new GUIContent("Clear Coat Thickness", "Clear Coat Thickness");
-            public static GUIContent coatExtinctionText = new GUIContent("Clear Coat Extinction", "Clear Coat Beer-Lambert Extinction");
+        // Emissive
+        protected const string k_EmissiveColor = "_EmissiveColor";
+        protected const string k_EmissiveColorMap = "_EmissiveColorMap";
+        protected const string k_EmissiveColorMapUV = "_EmissiveColorMapUV";
+        protected const string k_EmissiveIntensity = "_EmissiveIntensity";
+        protected const string k_AlbedoAffectEmissive = "_AlbedoAffectEmissive";
 
-            // Emissive
-            public static string emissiveLabelText = "Emissive Inputs";
-            public static GUIContent emissiveText = new GUIContent("Emissive Color", "Emissive");
-            public static GUIContent emissiveIntensityText = new GUIContent("Emissive Intensity", "Emissive");
-            public static GUIContent albedoAffectEmissiveText = new GUIContent("Albedo Affect Emissive", "Specifies whether or not the emissive color is multiplied by the albedo.");
+        // SSS
+        protected const string k_DiffusionProfile = "_DiffusionProfile";
+        protected const string k_SubsurfaceMask = "_SubsurfaceMask";
+        protected const string k_SubsurfaceMaskMap = "_SubsurfaceMaskMap";
+        protected const string k_SubsurfaceMaskMapUV = "_SubsurfaceMaskMapUV";
+        protected const string k_SubsurfaceMaskRemap = "_SubsurfaceMaskRemap";
+        protected const string k_SubsurfaceMaskRemapInverted = "_SubsurfaceMaskRemapInverted";
+        protected const string k_SubsurfaceMaskRange = "_SubsurfaceMaskRange";
 
+        // Translucency
+        protected const string k_Thickness = "_Thickness";
+        protected const string k_ThicknessMap = "_ThicknessMap";
+        protected const string k_ThicknessMapUV = "_ThicknessMapUV";
+        protected const string k_ThicknessRemap = "_ThicknessRemap";
+        protected const string k_ThicknessRemapInverted = "_ThicknessRemapInverted";
+        protected const string k_ThicknessRange = "_ThicknessRange";
+
+        // Second Lobe.
+        protected const string k_Smoothness2 = "_SmoothnessB";
+        protected const string k_Smoothness2Map = "_SmoothnessBMap";
+        protected const string k_Smoothness2MapUV = "_SmoothnessBMapUV";
+        protected const string k_Smoothness2Remap = "_SmoothnessBRemap";
+        protected const string k_Smoothness2RemapInverted = "_SmoothnessBRemapInverted";
+        protected const string k_Smoothness2Range = "_SmoothnessBRange";
+
+        protected const string k_LobeMix = "_LobeMix";
+
+        //// transparency params
+        //protected MaterialProperty transmissionEnable = null;
+        //protected const string kTransmissionEnable = "_TransmissionEnable";
+
+        //protected MaterialProperty ior = null;
+        //protected const string kIor = "_Ior";
+        //protected MaterialProperty transmittanceColor = null;
+        //protected const string kTransmittanceColor = "_TransmittanceColor";
+        //protected MaterialProperty transmittanceColorMap = null;
+        //protected const string kTransmittanceColorMap = "_TransmittanceColorMap";
+        //protected MaterialProperty atDistance = null;
+        //protected const string kATDistance = "_ATDistance";
+        //protected MaterialProperty thicknessMultiplier = null;
+        //protected const string kThicknessMultiplier = "_ThicknessMultiplier";
+        //protected MaterialProperty refractionModel = null;
+        //protected const string kRefractionModel = "_RefractionModel";
+        //protected MaterialProperty refractionSSRayModel = null;
+        //protected const string kRefractionSSRayModel = "_RefractionSSRayModel";
+        #endregion
+
+        // Add the properties into an array.
+        private readonly GroupProperty _baseMaterialProperties = null;
+        private readonly GroupProperty _materialProperties = null;
+
+        public StackLitGUI()
+        {
+            _baseMaterialProperties = new GroupProperty(this, "_BaseMaterial", new BaseProperty[]
+            {
+                // JFFTODO: Find the proper condition, and proper way to display this.
+                new Property(this, k_DoubleSidedNormalMode, "Normal mode", "This will modify the normal base on the selected mode. Mirror: Mirror the normal with vertex normal plane, Flip: Flip the normal.", false),
+            });
+
+            _materialProperties = new GroupProperty(this, "_Material", new BaseProperty[]
+            {
+                new GroupProperty(this, "_Standard", "Standard", new BaseProperty[]
+                {
+                    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Base Color + Opacity", "Albedo (RGB) and Opacity (A)", true, false),
+                    new TextureProperty(this, k_MetallicMap, k_Metallic, "Metallic", "Metallic", false, false),
+                    new TextureProperty(this, k_Smoothness1Map, k_Smoothness1, "Smoothness", "Smoothness", false, false),
+                    // TODO: Special case for normal maps.
+                    new TextureProperty(this, k_NormalMap, k_NormalScale, "Normal TODO", "Normal Map", false, false, true),
+
+                    //new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Dielectric IoR", "Index of Refraction for Dielectric", false),
+                }),
+
+                new GroupProperty(this, "_Emissive", "Emissive", new BaseProperty[]
+                {
+                    new TextureProperty(this, k_EmissiveColorMap, k_EmissiveColor, "Emissive Color", "Emissive", true, false),
+                    new Property(this, k_EmissiveIntensity, "Emissive Intensity", "Emissive", false),
+                    new Property(this, k_AlbedoAffectEmissive, "Albedo Affect Emissive", "Specifies whether or not the emissive color is multiplied by the albedo.", false),
+                }),
+
+                //new GroupProperty(this, "_Coat", "Coat", new BaseProperty[]
+                //{
+                //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "SmoothnessCoat", "smoothnessCoat", false, false),
+                //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Index Of Refraction", "iorCoat", false, false),
+                //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Normal", "normal Coat", false, false),
+                //}),
+
+                new GroupProperty(this, "_SSS", "Sub-Surface Scattering", new BaseProperty[]
+                {
+                    new DiffusionProfileProperty(this, k_DiffusionProfile, "Diffusion Profile", "A profile determines the shape of the SSS/transmission filter.", false),
+                    new TextureProperty(this, k_SubsurfaceMaskMap, k_SubsurfaceMask, "Subsurface mask map (R)", "Determines the strength of the subsurface scattering effect.", false, false),
+                }/*, _ => _materialId == MaterialId.SubSurfaceScattering*/),
+
+                new GroupProperty(this, "_Lobe2", "Second Specular Lobe", new BaseProperty[]
+                {
+                    new TextureProperty(this, k_Smoothness2Map, k_Smoothness2, "Smoothness2", "Smoothness2", false, false),
+                    new Property(this, k_LobeMix, "Lobe Mix", "Lobe Mix", false),
+                }),
+
+                //new GroupProperty(this, "_Anisotropy", "Anisotropy", new BaseProperty[]
+                //{
+                //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Anisotropy Strength", "anisotropy strength", false),
+                //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Rotation", "rotation", false),
+                //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Tangent", "tangent", false),
+                //}),
+
+                new GroupProperty(this, "_Transmission", "Transmission", new BaseProperty[]
+                {
+                    new DiffusionProfileProperty(this, k_DiffusionProfile, "Diffusion Profile", "A profile determines the shape of the SSS/transmission filter.", false),
+                    new TextureProperty(this, k_ThicknessMap, k_Thickness, "Thickness", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.", false),
+                }),
+
+                //new GroupProperty(this, "_Iridescence", "Iridescence", new BaseProperty[]
+                //{
+                //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Index of Refraction", "Index of Refraction for Iridescence", false),
+                //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Thickness", "Thickness", false),
+                //}),
+
+                //new GroupProperty(this, "_Glint", "Glint", new BaseProperty[]
+                //{
+                //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Density", "Density:", false),
+                //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Tint", "Tint", false),
+                //}),
+            });
         }
 
-        public enum DoubleSidedNormalMode
+        protected override bool ShouldEmissionBeEnabled(Material material)
         {
-            Flip,
-            Mirror,
-            None
+            return material.GetFloat(k_EmissiveIntensity) > 0.0f;
         }
-
-        public enum UVBaseMapping
-        {
-            UV0,
-            UV1,
-            UV2,
-            UV3,
-            Planar,
-            Triplanar
-        }
-
-        protected MaterialProperty doubleSidedNormalMode = null;
-        protected const string kDoubleSidedNormalMode = "_DoubleSidedNormalMode";
-
-        // Example UV mapping mask, TODO: could have for multiple maps, and channel mask for scalars
-        protected MaterialProperty UVBase = null;
-        protected const string kUVBase = "_UVBase";
-        protected MaterialProperty UVMappingMask = null;
-        protected const string kUVMappingMask = "_UVMappingMask"; // hidden, see enum material property drawer in .shader
-
-
-        protected MaterialProperty baseColor = null;
-        protected const string kBaseColor = "_BaseColor";
-        protected MaterialProperty baseColorMap = null;
-        protected const string kBaseColorMap = "_BaseColorMap";
-
-        protected const string kMetallic = "_Metallic";
-        protected MaterialProperty metallic = null;
-
-        // Primary lobe smoothness
-        protected MaterialProperty smoothnessA = null;
-        protected const string kSmoothnessA = "_SmoothnessA";
-        protected MaterialProperty smoothnessARemapMin = null;
-        protected const string kSmoothnessARemapMin = "_SmoothnessARemapMin";
-        protected MaterialProperty smoothnessARemapMax = null;
-        protected const string kSmoothnessARemapMax = "_SmoothnessARemapMax";
-        protected const string klobeMix = "_LobeMix";
-        protected MaterialProperty lobeMix = null;
-
-        // Secondary lobe smoothness
-        protected MaterialProperty smoothnessB = null;
-        protected const string kSmoothnessB = "_SmoothnessB";
-        protected MaterialProperty smoothnessBRemapMin = null;
-        protected const string kSmoothnessBRemapMin = "_SmoothnessBRemapMin";
-        protected MaterialProperty smoothnessBRemapMax = null;
-        protected const string kSmoothnessBRemapMax = "_SmoothnessBRemapMax";
-
-
-        // Two mask maps for the two smoothnesses
-        protected MaterialProperty maskMapA = null;
-        protected const string kMaskMapA = "_MaskMapA";
-        protected MaterialProperty maskMapB = null;
-        protected const string kMaskMapB = "_MaskMapB";
-
-        protected MaterialProperty normalScale = null;
-        protected const string kNormalScale = "_NormalScale";
-        protected MaterialProperty normalMap = null;
-        protected const string kNormalMap = "_NormalMap";
-
-        // Anisotropy
-        protected MaterialProperty anisotropy = null;
-        protected const string kAnisotropy = "_Anisotropy";
-
-        // Clear Coat
-        protected MaterialProperty coatEnable = null;
-        protected const string kCoatEnable = "_CoatEnable";
-
-        protected MaterialProperty coatSmoothness = null;
-        protected const string kCoatSmoothness = "_CoatSmoothness";
-        protected MaterialProperty coatIor = null;
-        protected const string kCoatIor = "_CoatIor";
-        protected MaterialProperty coatThickness = null;
-        protected const string kCoatThickness = "_CoatThickness";
-        protected MaterialProperty coatExtinction = null;
-        protected const string kCoatExtinction = "_CoatExtinction";
-
-        protected MaterialProperty emissiveColor = null;
-        protected const string kEmissiveColor = "_EmissiveColor";
-        protected MaterialProperty emissiveColorMap = null;
-        protected const string kEmissiveColorMap = "_EmissiveColorMap";
-        protected MaterialProperty emissiveIntensity = null;
-        protected const string kEmissiveIntensity = "_EmissiveIntensity";
-        protected MaterialProperty albedoAffectEmissive = null;
-        protected const string kAlbedoAffectEmissive = "_AlbedoAffectEmissive";
 
         protected override void FindBaseMaterialProperties(MaterialProperty[] props)
         {
             base.FindBaseMaterialProperties(props);
-
-            doubleSidedNormalMode = FindProperty(kDoubleSidedNormalMode, props);
+            _baseMaterialProperties.OnFindProperty(props);
         }
 
-        override protected void FindMaterialProperties(MaterialProperty[] props)
+        protected override void FindMaterialProperties(MaterialProperty[] props)
         {
-
-            UVBase = FindProperty(kUVBase, props);
-            UVMappingMask = FindProperty(kUVMappingMask, props);
-
-            baseColor = FindProperty(kBaseColor, props);
-            baseColorMap = FindProperty(kBaseColorMap, props);
-
-            metallic = FindProperty(kMetallic, props);
-
-            smoothnessA = FindProperty(kSmoothnessA, props);
-            smoothnessARemapMin = FindProperty(kSmoothnessARemapMin, props);
-            smoothnessARemapMax = FindProperty(kSmoothnessARemapMax, props);
-
-            smoothnessB = FindProperty(kSmoothnessB, props);
-            smoothnessBRemapMin = FindProperty(kSmoothnessBRemapMin, props);
-            smoothnessBRemapMax = FindProperty(kSmoothnessBRemapMax, props);
-
-            lobeMix = FindProperty(klobeMix, props);
-
-            maskMapA = FindProperty(kMaskMapA, props);
-            maskMapB = FindProperty(kMaskMapB, props);
-
-            normalMap = FindProperty(kNormalMap, props);
-            normalScale = FindProperty(kNormalScale, props);
-
-            anisotropy = FindProperty(kAnisotropy, props);
-
-            // Clear Coat
-            coatEnable = FindProperty(kCoatEnable, props);
-            coatSmoothness = FindProperty(kCoatSmoothness, props);
-            coatIor = FindProperty(kCoatIor, props);
-            coatThickness = FindProperty(kCoatThickness, props);
-            coatExtinction = FindProperty(kCoatExtinction, props);
-
-            emissiveColor = FindProperty(kEmissiveColor, props);
-            emissiveColorMap = FindProperty(kEmissiveColorMap, props);
-            emissiveIntensity = FindProperty(kEmissiveIntensity, props);
-            albedoAffectEmissive = FindProperty(kAlbedoAffectEmissive, props);
+            //base.FindMaterialProperties(props);
+            _materialProperties.OnFindProperty(props);
         }
-
 
         protected override void BaseMaterialPropertiesGUI()
         {
             base.BaseMaterialPropertiesGUI();
-
-            EditorGUI.indentLevel++;
-
-            // This follow double sided option, see BaseUnlitUI.BaseMaterialPropertiesGUI()
-            // Don't put anything between base.BaseMaterialPropertiesGUI(); above and this:
-            if (doubleSidedEnable.floatValue > 0.0f)
-            {
-                EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(doubleSidedNormalMode, Styles.doubleSidedNormalModeText);
-                EditorGUI.indentLevel--;
-            }
-
-            //TODO: m_MaterialEditor.ShaderProperty(enableMotionVectorForVertexAnimation, StylesBaseUnlit.enableMotionVectorForVertexAnimationText);
-            //refs to this ?
-
-            EditorGUI.indentLevel--;
-
+            _baseMaterialProperties.OnGUI();
         }
 
         protected override void MaterialPropertiesGUI(Material material)
         {
-            EditorGUILayout.LabelField(Styles.InputsText, EditorStyles.boldLabel);
-
-            EditorGUI.indentLevel++;
-
-            m_MaterialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap, baseColor);
-
-            m_MaterialEditor.ShaderProperty(metallic, Styles.metallicText);
-
-            // maskMaps and smoothness rescaling controls:
-            if(maskMapA.textureValue == null)
-            {
-                m_MaterialEditor.ShaderProperty(smoothnessA, Styles.smoothnessAText);
-            }
-            else
-            {
-                float remapMin = smoothnessARemapMin.floatValue;
-                float remapMax = smoothnessARemapMax.floatValue;
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.MinMaxSlider(Styles.smoothnessARemappingText, ref remapMin, ref remapMax, 0.0f, 1.0f);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    smoothnessARemapMin.floatValue = remapMin;
-                    smoothnessARemapMax.floatValue = remapMax;
-                }
-            }
-            if(maskMapB.textureValue == null)
-            {
-                m_MaterialEditor.ShaderProperty(smoothnessB, Styles.smoothnessBText);
-            }
-            else
-            {
-                float remapMin = smoothnessBRemapMin.floatValue;
-                float remapMax = smoothnessBRemapMax.floatValue;
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.MinMaxSlider(Styles.smoothnessBRemappingText, ref remapMin, ref remapMax, 0.0f, 1.0f);
-                if (EditorGUI.EndChangeCheck())
-                {
-                    smoothnessBRemapMin.floatValue = remapMin;
-                    smoothnessBRemapMax.floatValue = remapMax;
-                }
-            }
-            m_MaterialEditor.ShaderProperty(lobeMix, Styles.lobeMixText);
-            m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapASText, maskMapA);
-            m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapBSText, maskMapB);
-
-
-            // Normal map: 
-            m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap, normalScale);
-
-            m_MaterialEditor.ShaderProperty(anisotropy, Styles.anisotropyText);
-
-            // Clear Coat
-            m_MaterialEditor.ShaderProperty(coatEnable, Styles.coatEnableText);
-            m_MaterialEditor.ShaderProperty(coatSmoothness, Styles.coatSmoothnessText);
-            m_MaterialEditor.ShaderProperty(coatIor, Styles.coatIorText);
-            m_MaterialEditor.ShaderProperty(coatThickness, Styles.coatThicknessText);
-            m_MaterialEditor.ShaderProperty(coatExtinction, Styles.coatExtinctionText);
-
-
-
-            // UV Mapping:
-            EditorGUILayout.Space();
-
-            EditorGUI.BeginChangeCheck(); // UV mapping selection
-            m_MaterialEditor.ShaderProperty(UVBase, Styles.UVBaseMappingText);
-
-            UVBaseMapping uvBaseMapping = (UVBaseMapping)UVBase.floatValue;
-
-            float X, Y, Z, W;
-            X = (uvBaseMapping == UVBaseMapping.UV0) ? 1.0f : 0.0f;
-            Y = (uvBaseMapping == UVBaseMapping.UV1) ? 1.0f : 0.0f;
-            Z = (uvBaseMapping == UVBaseMapping.UV2) ? 1.0f : 0.0f;
-            W = (uvBaseMapping == UVBaseMapping.UV3) ? 1.0f : 0.0f;
-
-            UVMappingMask.colorValue = new Color(X, Y, Z, W);
-
-
-            //TODO:
-            //if ((uvBaseMapping == UVBaseMapping.Planar) || (uvBaseMapping == UVBaseMapping.Triplanar))
+            //if (GUILayout.Button("Generate All Properties"))
             //{
-            //    m_MaterialEditor.ShaderProperty(TexWorldScale, Styles.texWorldScaleText);
+            //    Debug.Log(_materialProperties.ToShaderPropertiesStringInternal());
             //}
-            m_MaterialEditor.TextureScaleOffsetProperty(baseColorMap);
-            if (EditorGUI.EndChangeCheck()) // ...UV mapping selection
-            {
-            }
 
-            EditorGUI.indentLevel--; // inputs
-            EditorGUILayout.Space();
-
-            // Surface type:
-            var surfaceTypeValue = (SurfaceType)surfaceType.floatValue;
-            if (surfaceTypeValue == SurfaceType.Transparent)
-            {
-                EditorGUILayout.Space();
-                EditorGUILayout.LabelField(StylesBaseUnlit.TransparencyInputsText, EditorStyles.boldLabel);
-                ++EditorGUI.indentLevel;
-
-                DoDistortionInputsGUI();
-
-                --EditorGUI.indentLevel;
-            }
-
-
-            // TODO: see DoEmissiveGUI( ) in LitUI.cs: custom uvmapping for emissive
-            EditorGUILayout.Space();
-            EditorGUILayout.LabelField(Styles.emissiveLabelText, EditorStyles.boldLabel);
-            EditorGUI.indentLevel++;
-            m_MaterialEditor.TexturePropertySingleLine(Styles.emissiveText, emissiveColorMap, emissiveColor);
-            m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
-            m_MaterialEditor.ShaderProperty(albedoAffectEmissive, Styles.albedoAffectEmissiveText);
-            EditorGUI.indentLevel--;
+            _materialProperties.OnGUI();
         }
 
         protected override void MaterialPropertiesAdvanceGUI(Material material)
@@ -330,12 +210,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override void VertexAnimationPropertiesGUI()
         {
-
-        }
-
-        protected override bool ShouldEmissionBeEnabled(Material mat)
-        {
-            return mat.GetFloat(kEmissiveIntensity) > 0.0f;
         }
 
         protected override void SetupMaterialKeywordsAndPassInternal(Material material)
@@ -343,8 +217,56 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetupMaterialKeywordsAndPass(material);
         }
 
+        protected static void SetupTextureMaterialProperty(Material material, string basePropertyName)
+        {
+            string useMapPropertyName = basePropertyName + "UseMap";
+            string mapPropertyName = basePropertyName + "Map";
+            string remapPropertyName = basePropertyName + "Remap";
+            string invertPropertyName = basePropertyName + "RemapInverted";
+            string rangePropertyName = basePropertyName + "Range";
+            string channelPropertyName = basePropertyName + "MapChannel";
+            string channelMaskPropertyName = basePropertyName + "MapChannelMask";
+
+            if (material.GetTexture(mapPropertyName))
+            {
+                Vector4 rangeVector = material.GetVector(remapPropertyName);
+                if (material.GetFloat(invertPropertyName) > 0.0f)
+                {
+                    float s = rangeVector.x;
+                    rangeVector.x = rangeVector.y;
+                    rangeVector.y = s;
+                }
+
+                material.SetFloat(useMapPropertyName, 1.0f);
+                material.SetVector(rangePropertyName, rangeVector);
+
+                int channel = (int)material.GetFloat(channelPropertyName);
+                switch (channel)
+                {
+                case 0:
+                    material.SetVector(channelMaskPropertyName, new Vector4(1.0f, 0.0f, 0.0f, 0.0f));
+                    break;
+                case 1:
+                    material.SetVector(channelMaskPropertyName, new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
+                    break;
+                case 2:
+                    material.SetVector(channelMaskPropertyName, new Vector4(0.0f, 0.0f, 1.0f, 0.0f));
+                    break;
+                case 3:
+                    material.SetVector(channelMaskPropertyName, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+                    break;
+                }
+            }
+            else
+            {
+                material.SetFloat(useMapPropertyName, 0.0f);
+                material.SetVector(rangePropertyName, new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
+                material.SetVector(channelMaskPropertyName, new Vector4(1.0f, 0.0f, 0.0f, 0.0f));
+            }
+        }
+
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
-        static public void SetupMaterialKeywordsAndPass(Material material)
+        public static void SetupMaterialKeywordsAndPass(Material material)
         {
             //TODO see BaseLitUI.cs:SetupBaseLitKeywords (stencil etc)
             SetupBaseUnlitKeywords(material);
@@ -354,69 +276,67 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (doubleSidedEnable)
             {
-                DoubleSidedNormalMode doubleSidedNormalMode = (DoubleSidedNormalMode)material.GetFloat(kDoubleSidedNormalMode);
+                BaseLitGUI.DoubleSidedNormalMode doubleSidedNormalMode = (BaseLitGUI.DoubleSidedNormalMode)material.GetFloat(k_DoubleSidedNormalMode);
                 switch (doubleSidedNormalMode)
                 {
-                    case DoubleSidedNormalMode.Mirror: // Mirror mode (in tangent space)
+                    case BaseLitGUI.DoubleSidedNormalMode.Mirror: // Mirror mode (in tangent space)
                         material.SetVector("_DoubleSidedConstants", new Vector4(1.0f, 1.0f, -1.0f, 0.0f));
                         break;
 
-                    case DoubleSidedNormalMode.Flip: // Flip mode (in tangent space)
+                    case BaseLitGUI.DoubleSidedNormalMode.Flip: // Flip mode (in tangent space)
                         material.SetVector("_DoubleSidedConstants", new Vector4(-1.0f, -1.0f, -1.0f, 0.0f));
                         break;
 
-                    case DoubleSidedNormalMode.None: // None mode (in tangent space)
+                    case BaseLitGUI.DoubleSidedNormalMode.None: // None mode (in tangent space)
                         material.SetVector("_DoubleSidedConstants", new Vector4(1.0f, 1.0f, 1.0f, 0.0f));
                         break;
                 }
             }
 
-            //NOTE: For SSS in forward and split lighting, obviously we don't have a gbuffer pass, 
+            //NOTE: For SSS in forward and split lighting, obviously we don't have a gbuffer pass,
             // so no stencil tagging there, but velocity? To check...
-            
-            //TODO: stencil state, displacement, wind, depthoffset, tesselation
+
+            //TODO: stencil state, displacement, wind, depthoffset, tessellation
 
             SetupMainTexForAlphaTestGI("_BaseColorMap", "_BaseColor", material);
 
             //TODO: disable DBUFFER
 
-
             CoreUtils.SetKeyword(material, "_NORMALMAP_TANGENT_SPACE", true);
-            CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap));
-            CoreUtils.SetKeyword(material, "_MASKMAPA", material.GetTexture(kMaskMapA));
-            CoreUtils.SetKeyword(material, "_MASKMAPB", material.GetTexture(kMaskMapB));
+            CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture(k_NormalMap));
 
-            bool needUV2 = (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV2;
-            bool needUV3 = (UVBaseMapping)material.GetFloat(kUVBase) == UVBaseMapping.UV3;
+            SetupTextureMaterialProperty(material, k_Metallic);
+            SetupTextureMaterialProperty(material, k_Smoothness1);
+            SetupTextureMaterialProperty(material, k_Smoothness2);
+            SetupTextureMaterialProperty(material, k_SubsurfaceMask);
+            SetupTextureMaterialProperty(material, k_Thickness);
 
-            if (needUV3)
+            // Check if we are using specific UVs.
+            TextureProperty.UVMapping[] uvIndices = new[]
             {
-                material.DisableKeyword("_REQUIRE_UV2");
-                material.EnableKeyword("_REQUIRE_UV3");
-            }
-            else if (needUV2)
+                (TextureProperty.UVMapping)material.GetFloat(k_BaseColorMapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_MetallicMapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_NormalMapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_Smoothness1MapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_Smoothness2MapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_EmissiveColorMapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_SubsurfaceMaskMapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_ThicknessMapUV),
+            };
+
+            bool requireUv2 = false;
+            bool requireUv3 = false;
+            bool requireTriplanar = false;
+            for (int i = 0; i < uvIndices.Length; ++i)
             {
-                material.EnableKeyword("_REQUIRE_UV2");
-                material.DisableKeyword("_REQUIRE_UV3");
-            }
-            else
-            {
-                material.DisableKeyword("_REQUIRE_UV2");
-                material.DisableKeyword("_REQUIRE_UV3");
+                requireUv2 = requireUv2 || uvIndices[i] == TextureProperty.UVMapping.UV2;
+                requireUv3 = requireUv3 || uvIndices[i] == TextureProperty.UVMapping.UV3;
+                requireTriplanar = requireTriplanar || uvIndices[i] == TextureProperty.UVMapping.Triplanar;
             }
 
-            CoreUtils.SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
-
-            bool clearCoatEnabled = material.HasProperty(kCoatEnable) && (material.GetFloat(kCoatEnable) > 0.0f);
-            bool anisotropyEnabled = material.HasProperty(kAnisotropy) && (material.GetFloat(kAnisotropy) != 0.0f);
-            // TODO: When we have a map, also test for map for enable. (This scheme doesn't allow enabling from
-            // neutral value though, better to still have flag and uncheck it in UI code when reach neutral
-            // value and re-enable otherwise).
-
-            // Note that we don't use the materialId (cf Lit.shader) mechanism in the UI 
-            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_ANISOTROPY", anisotropyEnabled);
-            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_CLEAR_COAT", clearCoatEnabled);
-
+            //CoreUtils.SetKeyword(material, "_USE_UV2", requireUv2);
+            //CoreUtils.SetKeyword(material, "_USE_UV3", requireUv3);
+            CoreUtils.SetKeyword(material, "_USE_TRIPLANAR", requireTriplanar);
         }
     }
 } // namespace UnityEditor
