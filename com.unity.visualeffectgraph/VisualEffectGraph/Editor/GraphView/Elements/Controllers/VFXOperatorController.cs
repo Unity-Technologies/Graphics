@@ -106,6 +106,97 @@ namespace UnityEditor.VFX.UI
         public VFXUnifiedOperatorController(VFXModel model, VFXViewController viewController) : base(model, viewController)
         {
         }
+
+
+    }
+    class VFXUnifiedConstraintOperatorController : VFXUnifiedOperatorController
+    {
+        public VFXUnifiedConstraintOperatorController(VFXModel model, VFXViewController viewController) : base(model, viewController)
+        {
+        }
+
+
+        protected override bool CouldLinkMyInputTo(VFXDataAnchorController myInput, VFXDataAnchorController otherOutput)
+        {
+            if(!myInput.model.IsMasterSlot())
+                return false;
+            if( otherOutput.direction == myInput.direction)
+                return false;
+
+            if( ! myInput.CanLinkToNode(otherOutput.sourceNode))
+                return false;
+
+            int inputIndex = model.GetSlotIndex(myInput.model);
+            IVFXOperatorNumericUnifiedConstrained constraintInterface = model as IVFXOperatorNumericUnifiedConstrained;
+
+
+            var bestAffinityType = model.GetBestAffinityType(otherOutput.portType);
+            if( bestAffinityType == null)
+                return false;
+            if( constraintInterface.allowExceptionalScalarSlotIndex.Contains(inputIndex) )
+            {
+                if( VFXTypeUtility.GetComponentCount(otherOutput.model) != 0 ) // If it is a vector or float type, then conversion to float exists
+                    return true;
+            }
+            
+            return model.GetBestAffinityType(otherOutput.portType) != null;
+        }
+
+
+        public static bool IsScalar(Type type)
+        {
+            return type == typeof(float) || type == typeof(int) || type == typeof(uint);
+        }
+
+        public override void WillCreateLink(ref VFXSlot myInput, ref VFXSlot otherOutput)
+        {
+            if( ! myInput.IsMasterSlot())
+                return;
+            int inputIndex = model.GetSlotIndex(myInput);
+            IVFXOperatorNumericUnifiedConstrained constraintInterface = model as IVFXOperatorNumericUnifiedConstrained;
+
+            if( !constraintInterface.strictSameTypeSlotIndex.Contains(inputIndex))
+            {
+                base.WillCreateLink(ref myInput,ref otherOutput);
+                return;
+            }
+
+            bool scalar = constraintInterface.allowExceptionalScalarSlotIndex.Contains(inputIndex);
+            if( scalar )
+            {
+                var bestAffinityType = model.GetBestAffinityType(otherOutput.property.type);
+
+                VFXSlot otherSlotWithConstraint = model.inputSlots.Where((t,i)=> constraintInterface.strictSameTypeSlotIndex.Contains(i) ).FirstOrDefault();
+                if( IsScalar(bestAffinityType) || otherSlotWithConstraint == null || otherSlotWithConstraint.property.type == bestAffinityType )
+                {
+                    model.SetOperandType(inputIndex, bestAffinityType);
+                    myInput = model.GetInputSlot(inputIndex);
+                    
+                }
+                return; // never change the type of other constraint if the linked slot is scalar
+            }
+
+            VFXSlot input = myInput;
+            
+            bool hasLinks = model.inputSlots.Where((t,i)=> t!= input && t.HasLink(true) && constraintInterface.strictSameTypeSlotIndex.Contains(i)).Count() > 0;
+
+            bool linkPossible = myInput.CanLink(otherOutput) && otherOutput.CanLink(myInput);
+
+            if( !hasLinks || ! linkPossible) //Change the type if other type having the same constraint have no link or if the link will fail if we don't
+            {
+                var bestAffinityType = model.GetBestAffinityType(otherOutput.property.type);
+                if (bestAffinityType != null)
+                {
+                    foreach(int slotIndex in constraintInterface.strictSameTypeSlotIndex)
+                    {
+                        if( ! constraintInterface.allowExceptionalScalarSlotIndex.Contains(slotIndex) || ! IsScalar(model.GetInputSlot(slotIndex).property.type))
+                            model.SetOperandType(slotIndex, bestAffinityType);
+                    }
+
+                    myInput = model.GetInputSlot(inputIndex);
+                }    
+            }
+        }
     }
 
     class VFXCascadedOperatorController : VFXUnifiedOperatorControllerBase<VFXOperatorNumericCascadedUnifiedNew>

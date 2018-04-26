@@ -131,6 +131,23 @@ namespace UnityEditor.VFX.UI
             var op = controller.model;
 
             op.SetOperandType(m_CurrentIndex, (Type)type);
+
+            IVFXOperatorNumericUnifiedConstrained constraintInterface = op as IVFXOperatorNumericUnifiedConstrained;
+
+            if( constraintInterface != null)
+            {
+                if(constraintInterface.strictSameTypeSlotIndex.Contains(m_CurrentIndex))
+                {
+                    foreach(var index in constraintInterface.strictSameTypeSlotIndex)
+                    {
+                        if( index != m_CurrentIndex)
+                        {
+                            if( ! constraintInterface.allowExceptionalScalarSlotIndex.Contains(index) || ! VFXUnifiedConstraintOperatorController.IsScalar(op.GetOperandType(index)))
+                                op.SetOperandType(index, (Type)type);
+                        }
+                    }
+                }
+            }
         }
 
         void OnChange(ControllerChangedEvent e)
