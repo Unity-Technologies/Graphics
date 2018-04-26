@@ -72,6 +72,8 @@ float _LobeMix;
 
 float _NormalScale;
 float _NormalMapUV;
+float _NormalMapUVLocal;
+float _NormalMapObjSpace;
 float4 _NormalMap_ST;
 float4 _NormalMap_TexelSize;
 float4 _NormalMap_MipInfo;
