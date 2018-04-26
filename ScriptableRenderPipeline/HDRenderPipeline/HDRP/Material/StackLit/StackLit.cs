@@ -9,9 +9,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL(PackingRules.Exact)]
         public enum MaterialFeatureFlags
         {
-            LitStandard             = 1 << 0,
-            LitAnisotropy           = 1 << 4,
-            LitClearCoat            = 1 << 6
+            StackLitStandard             = 1 << 0,
+            StackLitAnisotropy           = 1 << 4,
+            StackLitCoat                 = 1 << 6,
         };
 
         //-----------------------------------------------------------------------------

@@ -202,7 +202,8 @@ Shader "HDRenderPipeline/StackLit"
 
     // MaterialFeature are used as shader feature to allow compiler to optimize properly
     #pragma shader_feature _MATERIAL_FEATURE_ANISOTROPY
-    #pragma shader_feature _MATERIAL_FEATURE_CLEAR_COAT
+    #pragma shader_feature _MATERIAL_FEATURE_COAT
+    #pragma shader_feature _MATERIAL_FEATURE_DUAL_LOBE
 
     //enable GPU instancing support
     #pragma multi_compile_instancing
