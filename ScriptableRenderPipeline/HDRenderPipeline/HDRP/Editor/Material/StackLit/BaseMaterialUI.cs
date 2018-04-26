@@ -23,6 +23,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public abstract void OnFindProperty(MaterialProperty[] props);
 
             public abstract void OnGUI();
+
+            internal abstract string ToShaderPropertiesStringInternal();
         }
 
         public class GroupProperty : BaseProperty
@@ -81,6 +83,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         EditorGUI.indentLevel--;
                     }
                 }
+            }
+
+            internal override string ToShaderPropertiesStringInternal()
+            {
+                string outputString = string.Empty;
+
+                foreach (var c in m_ChildProperties)
+                {
+                    outputString += c.ToShaderPropertiesStringInternal() + "\n";
+                }
+
+                return outputString;
             }
         }
 
@@ -149,6 +163,40 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     && (IsVisible == null || IsVisible(this)))
                 {
                     Parent.m_MaterialEditor.ShaderProperty(m_MaterialProperty, m_GuiContent);
+                }
+            }
+
+            internal override string ToShaderPropertiesStringInternal()
+            {
+                if (IsValid
+                    && (IsVisible == null || IsVisible(this)))
+                {
+                    switch (m_MaterialProperty.type)
+                    {
+                        case MaterialProperty.PropType.Color:
+                            return string.Format("{0}(\"{1}\", Color) = (1, 1, 1, 1)", PropertyName, PropertyText);
+
+                        case MaterialProperty.PropType.Vector:
+                            return string.Format("{0}(\"{1}\", Vector) = (0, 0, 0, 0)", PropertyName, PropertyText);
+
+                        case MaterialProperty.PropType.Float:
+                            return string.Format("{0}(\"{1}\", Float) = 0.0", PropertyName, PropertyText);
+
+                        case MaterialProperty.PropType.Range:
+                            return string.Format("{0}(\"{1}\", Range({2:0.0###}, {3:0.0###})) = 0", PropertyName, PropertyText, m_MaterialProperty.rangeLimits.x, m_MaterialProperty.rangeLimits.y);
+
+                        case MaterialProperty.PropType.Texture:
+                            return string.Format("{0}(\"{1}\", 2D) = \"white\" {{}}", PropertyName, PropertyText);
+
+                        default:
+                            // Unknown type... default to outputting a float.
+                            return string.Format("{0}(\"{1}\", Float) = 0.0", PropertyName, PropertyText);
+                    }
+                }
+                else
+                {
+                    // Material property is not loaded, default to outputting a float.
+                    return string.Format("{0}(\"{1}\", Float) = 0.0", PropertyName, PropertyText);
                 }
             }
         }
@@ -321,6 +369,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     Parent.m_MaterialEditor.TexturePropertySingleLine(m_GuiContent, m_MaterialProperty, m_ExtraProperty);
                 }
             }
+
+            internal override string ToShaderPropertiesStringInternal()
+            {
+                return string.Format("{0}(\"{1}\", 2D) = \"white\" {{}}\n" +
+                                     "{2}(\"{3}\", Float) = 0.0",
+                                     PropertyName, PropertyText,
+                                     ExtraPropertyName, ExtraPropertyName);
+            }
         }
 
         public class TextureProperty : Property
@@ -372,6 +428,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public Property m_InvertRemapProperty;
 
+            public string m_ConstantPropertyName;
+
             public TextureProperty(BaseMaterialGUI parent, string propertyName, string constantPropertyName, string guiText, bool useConstantAsTint, bool isMandatory = true, bool isNormalMap = false)
                 : this(parent, propertyName, constantPropertyName, guiText, string.Empty, useConstantAsTint, isMandatory, isNormalMap)
             {
@@ -380,6 +438,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public TextureProperty(BaseMaterialGUI parent, string propertyName, string constantPropertyName, string guiText, string toolTip, bool useConstantAsTint, bool isMandatory = true, bool isNormalMap = false)
                 : base(parent, propertyName, guiText, toolTip, isMandatory)
             {
+                m_ConstantPropertyName = constantPropertyName;
+
                 m_Show = new Property(parent, propertyName + "Show", "", isMandatory);
 
                 if (useConstantAsTint == false)
@@ -466,7 +526,28 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     }
                 }
             }
-        }
+
+            internal override string ToShaderPropertiesStringInternal()
+            {
+                string constantName = m_ConstantPropertyName.StartsWith("_")
+                    ? m_ConstantPropertyName.Substring(1)
+                    : m_ConstantPropertyName;
+
+                return string.Format(
+                    "[HideInInspector] {0}MapShow(\"{1} Show\", Float) = 0\n" +
+                    "{0}(\"{1}\", Range(0.0, 1.0)) = 0\n" +
+                    "{2}(\"{1} Map\", 2D) = \"white\" {{ }}\n" +
+                    "{0}UseMap(\"{1} Use Map\", Float) = 0\n" +
+                    "{2}UV(\"{1} Map UV\", Float) = 0.0\n" +
+                    "{2}UVLocal(\"{1} Map UV Local\", Float) = 0.0\n" +
+                    "{2}Channel(\"{1} Map Channel\", Float) = 0.0\n" +
+                    "{2}ChannelMask(\"{1} Map Channel Mask\", Vector) = (1, 0, 0, 0)\n" +
+                    "{0}Remap(\"{1} Remap\", Vector) = (0, 1, 0, 0)\n" +
+                    "[ToggleUI] {0}RemapInverted(\"Invert {1} Remap\", Float) = 0.0\n" +
+                    "[HideInInspector] {0}Range(\"{1} Range\", Vector) = (0, 1, 0, 0)\n",
+                    m_ConstantPropertyName, constantName, PropertyName);
+            }
+    }
         #endregion
     }
 }

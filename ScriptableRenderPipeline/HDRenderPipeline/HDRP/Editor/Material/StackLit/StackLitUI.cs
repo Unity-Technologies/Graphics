@@ -196,6 +196,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override void MaterialPropertiesGUI(Material material)
         {
+            //if (GUILayout.Button("Generate All Properties"))
+            //{
+            //    Debug.Log(_materialProperties.ToShaderPropertiesStringInternal());
+            //}
+
             _materialProperties.OnGUI();
         }
 
