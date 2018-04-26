@@ -49,7 +49,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private readonly LightweightPipelineAsset m_Asset;
 
         DepthOnlyPass m_DepthOnlyPass;
-        private LightweightShadowPass m_ShadowPass;
+        private ShadowPass m_ShadowPass;
 
         // Maximum amount of visible lights the shader can process. This controls the constant global light buffer size.
         // It must match the MAX_VISIBLE_LIGHTS in LightweightInput.cginc
@@ -106,7 +106,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private bool m_UseComputeBuffer;
 
         // Pipeline pass names
-        private static readonly ShaderPassName m_DepthPrepass = new ShaderPassName("DepthOnly");
         private static readonly ShaderPassName m_LitPassName = new ShaderPassName("LightweightForward");
         private static readonly ShaderPassName m_UnlitPassName = new ShaderPassName("SRPDefaultUnlit"); // Renders all shaders without a lightmode tag
 
@@ -189,7 +188,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_LocalLightIndices = new List<int>(m_MaxLocalLightsShadedPerPass);
 
             m_DepthOnlyPass = new DepthOnlyPass(null, RenderTextureFormat.Depth);
-            m_ShadowPass = new LightweightShadowPass(m_Asset, kMaxVisibleLocalLights);
+
+            RenderTextureFormat shadowmapFormat =
+                (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.Shadowmap))
+                    ? RenderTextureFormat.Shadowmap
+                    : RenderTextureFormat.Depth;
+
+            m_ShadowPass = new ShadowPass(m_Asset, kMaxVisibleLocalLights, null, shadowmapFormat);
 
             // Let engine know we have MSAA on for cases where we support MSAA backbuffer
             if (QualitySettings.antiAliasing != m_Asset.MSAASampleCount)
@@ -290,7 +295,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 LightData lightData;
                 InitializeLightData(visibleLights, out lightData);
 
-                bool screenspaceShadows = m_ShadowPass.Execute(ref m_CullResults, ref lightData, ref context);
+                m_ShadowPass.Execute(ref context, ref m_CullResults, ref lightData, camera, false);
+                bool screenspaceShadows = m_ShadowPass.requireScreenSpaceResolve;
 
                 FrameRenderingConfiguration frameRenderingConfiguration;
                 SetupFrameRenderingConfiguration(out frameRenderingConfiguration, screenspaceShadows, stereoEnabled, sceneViewCamera);
@@ -307,7 +313,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 context.SetupCameraProperties(m_CurrCamera, stereoEnabled);
 
                 if (CoreUtils.HasFlag(frameRenderingConfiguration, FrameRenderingConfiguration.DepthPrePass))
-                    m_DepthOnlyPass.Execute(context, camera, ref m_CullResults, stereoEnabled);
+                    m_DepthOnlyPass.Execute(ref context, ref m_CullResults, ref lightData, camera, stereoEnabled);
 
                 if (screenspaceShadows)
                     m_ShadowPass.CollectShadows(m_CurrCamera, frameRenderingConfiguration, ref context);
@@ -650,7 +656,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     cmd.GetTemporaryRT(CameraRenderTargetID.depthCopy, depthRTDesc, FilterMode.Point);
                 }
 
-                m_ShadowPass.InitializeResources(cmd, baseDesc);
+                m_ShadowPass.BindSurface(cmd, baseDesc, 1);
             }
 
             var colorRTDesc = baseDesc;

@@ -65,7 +65,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         }
     }
 
-    public class LightweightShadowPass
+    public class ShadowPass : ScriptableRenderPass
     {
         public bool IsDirectionalShadowsEnabled { get { return m_ShadowSettings.supportsDirectionalShadows; } }
         public bool IsLocalShadowsEnabled { get { return m_ShadowSettings.supportsLocalShadows; } }
@@ -73,6 +73,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public bool DirectionalShadowsRendered { get { return m_DirectionalShadowmapQuality != LightShadows.None; } }
         public bool LocalShadowsRendered { get { return m_LocalShadowmapQuality != LightShadows.None; } }
         public bool IsSoftShadowsEnabled { get { return m_ShadowSettings.supportsSoftShadows; } }
+
+        // TODO: Remove this after we handle the passes dependencies
+        public bool requireScreenSpaceResolve { get; private set; }
 
         public float RenderingDistance { get { return m_ShadowSettings.maxShadowDistance; } }
 
@@ -106,9 +109,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private ShadowSliceData[] m_LocalLightSlices;
         private float[] m_LocalShadowStrength;
 
-        public LightweightShadowPass(LightweightPipelineAsset pipelineAsset, int maxLocalLightsCount)
+        public ShadowPass(LightweightPipelineAsset pipelineAsset, int maxLocalLightsCount,
+            RenderTextureFormat[] colorAttachments, RenderTextureFormat depthAttachment) :
+            base(colorAttachments, depthAttachment)
         {
             BuildShadowSettings(pipelineAsset);
+            RegisterShaderPassName("ShadowCaster");
 
             m_DirectionalShadowMatrices = new Matrix4x4[kMaxCascades + 1];
             m_CascadeSlices = new ShadowSliceData[kMaxCascades];
@@ -152,17 +158,31 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Clear();
         }
 
-        public void InitializeResources(CommandBuffer cmd, RenderTextureDescriptor renderTextureDesc)
+        public override void BindSurface(CommandBuffer cmd, RenderTextureDescriptor attachmentDescriptor, int samples)
         {
             if (RequireScreenSpaceShadowmap)
             {
-                renderTextureDesc.depthBufferBits = 0;
-                renderTextureDesc.colorFormat = m_ShadowSettings.screenspaceShadowmapTextureFormat;
-                cmd.GetTemporaryRT(m_ScreenSpaceShadowmapID, renderTextureDesc, FilterMode.Bilinear);
+                attachmentDescriptor.depthBufferBits = 0;
+                attachmentDescriptor.colorFormat = m_ShadowSettings.screenspaceShadowmapTextureFormat;
+                cmd.GetTemporaryRT(m_ScreenSpaceShadowmapID, attachmentDescriptor, FilterMode.Bilinear);
             }
         }
+        public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref LightData lightData,
+            Camera camera, bool stereoRendering)
+        {
+            Clear();
 
-        public void Dispose(CommandBuffer cmd)
+            bool directionalShadowmapRendered = false;
+            if (IsDirectionalShadowsEnabled)
+                directionalShadowmapRendered = RenderDirectionalCascadeShadowmap(ref cullResults, ref lightData, ref context);
+
+            if (IsLocalShadowsEnabled)
+                RenderLocalShadowmapAtlas(ref cullResults, ref lightData, ref context);
+
+            requireScreenSpaceResolve = directionalShadowmapRendered && m_ShadowSettings.screenSpace;
+        }
+
+        public override void Dispose(CommandBuffer cmd)
         {
             cmd.ReleaseTemporaryRT(m_ScreenSpaceShadowmapID);
 
@@ -177,20 +197,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 RenderTexture.ReleaseTemporary(m_LocalShadowmapTexture);
                 m_LocalShadowmapTexture = null;
             }
-        }
-
-        public bool Execute(ref CullResults cullResults, ref LightData lightData, ref ScriptableRenderContext context)
-        {
-            Clear();
-
-            bool directionalShadowmapRendered = false;
-            if (IsDirectionalShadowsEnabled)
-                directionalShadowmapRendered = RenderDirectionalCascadeShadowmap(ref cullResults, ref lightData, ref context);
-
-            if (IsLocalShadowsEnabled)
-                RenderLocalShadowmapAtlas(ref cullResults, ref lightData, ref context);
-
-            return directionalShadowmapRendered && m_ShadowSettings.screenSpace;
         }
 
         public void CollectShadows(Camera camera, FrameRenderingConfiguration frameRenderingConfiguration, ref ScriptableRenderContext context)
@@ -287,6 +293,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             for (int i = 0; i < m_LocalShadowStrength.Length; ++i)
                 m_LocalShadowStrength[i] = 0.0f;
+
+            requireScreenSpaceResolve = false;
         }
 
         private void SetShadowCollectPassKeywords(CommandBuffer cmd)
