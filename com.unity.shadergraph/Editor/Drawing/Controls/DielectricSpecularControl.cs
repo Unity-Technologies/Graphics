@@ -106,7 +106,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             m_PropertyInfo.SetValue(m_Node, m_DielectricMaterial, null);
             if(m_RangeField != null)
                 m_RangeField.value = newValue;
-            Dirty(ChangeType.Repaint);
+            this.MarkDirtyRepaint();
         }
 
         void OnChangeIORSlider(float newValue)
@@ -116,7 +116,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             m_PropertyInfo.SetValue(m_Node, m_DielectricMaterial, null);
             if(m_IORField != null)
                 m_IORField.value = newValue;
-            Dirty(ChangeType.Repaint);
+            this.MarkDirtyRepaint();
         }
 
         FloatField AddField(VisualElement panel, Slider slider, int index, DielectricSpecularNode.DielectricMaterial initMaterial)
@@ -128,7 +128,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 initValue = initMaterial.range;
 
             var field = new FloatField { userData = index, value = initValue };
-                
+
             field.RegisterCallback<MouseDownEvent>(Repaint);
             field.RegisterCallback<MouseMoveEvent>(Repaint);
             field.OnValueChanged(evt =>
@@ -147,7 +147,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     }
                     m_PropertyInfo.SetValue(m_Node, value, null);
                     m_UndoGroup = -1;
-                    Dirty(ChangeType.Repaint);
+                    this.MarkDirtyRepaint();
                 });
             field.RegisterCallback<InputEvent>(evt =>
                 {
@@ -165,7 +165,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     else
                         value.range = newValue;
                     m_PropertyInfo.SetValue(m_Node, value, null);
-                    Dirty(ChangeType.Repaint);
+                    this.MarkDirtyRepaint();
                 });
             field.RegisterCallback<KeyDownEvent>(evt =>
                 {
@@ -180,7 +180,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                             RedrawRangeControls(value.range);
                         evt.StopPropagation();
                     }
-                    Dirty(ChangeType.Repaint);
+                    this.MarkDirtyRepaint();
                 });
             panel.Add(field);
             return field;
@@ -215,7 +215,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         void Repaint<T>(MouseEventBase<T> evt) where T : MouseEventBase<T>, new()
         {
             evt.StopPropagation();
-            Dirty(ChangeType.Repaint);
+            this.MarkDirtyRepaint();
         }
     }
 }

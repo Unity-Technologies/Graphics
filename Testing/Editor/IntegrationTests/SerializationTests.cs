@@ -229,12 +229,12 @@ namespace UnityEditor.Graphing.IntegrationTests
             Assert.IsInstanceOf<MaterialSlot>(loaded[1]);
 
             Assert.AreEqual(0, loaded[0].id);
-            Assert.AreEqual("InSlot", loaded[0].displayName);
+            Assert.AreEqual("InSlot(4)", loaded[0].displayName);
             Assert.IsTrue(loaded[0].isInputSlot);
             Assert.AreEqual(0, loaded[0].priority);
 
             Assert.AreEqual(1, loaded[1].id);
-            Assert.AreEqual("OutSlot", loaded[1].displayName);
+            Assert.AreEqual("OutSlot(4)", loaded[1].displayName);
             Assert.IsTrue(loaded[1].isOutputSlot);
             Assert.AreEqual(5, loaded[1].priority);
         }

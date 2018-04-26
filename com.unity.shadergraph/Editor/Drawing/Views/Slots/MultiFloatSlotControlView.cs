@@ -67,7 +67,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
                         m_UndoGroup = -1;
                         evt.StopPropagation();
                     }
-                    Dirty(ChangeType.Repaint);
+                    this.MarkDirtyRepaint();
                 });
             Add(field);
         }

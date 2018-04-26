@@ -4,6 +4,8 @@ namespace UnityEditor.ShaderGraph
 {
     public class TestSlot : MaterialSlot
     {
+        public TestSlot() {}
+
         public TestSlot(int slotId, string displayName, SlotType slotType, ShaderStage shaderStage = ShaderStage.Dynamic, bool hidden = false)
             : base(slotId, displayName, displayName, slotType, shaderStage, hidden) {}
 
@@ -12,22 +14,20 @@ namespace UnityEditor.ShaderGraph
 
         public override SlotValueType valueType
         {
-            get { throw new System.NotImplementedException(); }
+            get { return SlotValueType.Vector4; }
         }
 
         public override ConcreteSlotValueType concreteValueType
         {
-            get { throw new System.NotImplementedException(); }
+            get { return ConcreteSlotValueType.Vector4; }
         }
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)
         {
-            throw new System.NotImplementedException();
         }
 
         public override void CopyValuesFrom(MaterialSlot foundSlot)
         {
-            throw new System.NotImplementedException();
         }
     }
 }

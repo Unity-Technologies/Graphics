@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Slots;
 using UnityEngine;
@@ -65,15 +66,15 @@ namespace UnityEditor.ShaderGraph
             };
             properties.AddShaderProperty(property);
         }
-
-        public override PreviewProperty GetPreviewProperty(string name)
+        
+        public override void GetPreviewProperties(List<PreviewProperty> properties, string name)
         {
             var pp = new PreviewProperty(PropertyType.Matrix3)
             {
                 name = name,
                 vector4Value = new Vector4(value.GetRow(0).x, value.GetRow(0).y, value.GetRow(0).z, 0)
             };
-            return pp;
+            properties.Add(pp);
         }
 
         public override SlotValueType valueType { get { return SlotValueType.Matrix3; } }

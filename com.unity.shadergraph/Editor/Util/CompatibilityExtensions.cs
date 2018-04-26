@@ -47,5 +47,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             toggle.value = value;
 #endif
         }
+
+#if !UNITY_2018_3_OR_NEWER
+        public static void MarkDirtyRepaint(this VisualElement element)
+        {
+            element.Dirty(ChangeType.Repaint);
+        }
+#endif
     }
 }

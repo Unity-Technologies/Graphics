@@ -38,16 +38,8 @@ namespace UnityEditor.ShaderGraph
 
         public void GenerateNodeCode(ShaderGenerator visitor, GenerationMode generationMode)
         {
-            if (generationMode.IsPreview())
-                return;
-
             var inputValue = GetSlotValue(InputSlotXId, generationMode);
-            visitor.AddShaderChunk(precision + " " + GetVariableNameForNode() + " = " + inputValue + ";", false);
-        }
-
-        public override string GetVariableNameForSlot(int slotId)
-        {
-            return GetVariableNameForNode();
+            visitor.AddShaderChunk(precision + " " + GetVariableNameForSlot(OutputSlotId) + " = " + inputValue + ";", false);
         }
 
         public IShaderProperty AsShaderProperty()
