@@ -37,9 +37,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         // we need use copyColor RT as a work RT.
         public static int copyColor;
 
-        // Camera depth target. Only used when post processing, soft particles, or screen space shadows are enabled.
-        public static int depth;
-
         // If soft particles are enabled and no depth prepass is performed we need to copy depth.
         public static int depthCopy;
 
@@ -51,6 +48,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     {
         private readonly LightweightPipelineAsset m_Asset;
 
+        DepthOnlyPass m_DepthOnlyPass;
         private LightweightShadowPass m_ShadowPass;
 
         // Maximum amount of visible lights the shader can process. This controls the constant global light buffer size.
@@ -166,7 +164,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             CameraRenderTargetID.color = Shader.PropertyToID("_CameraColorRT");
             CameraRenderTargetID.copyColor = Shader.PropertyToID("_CameraCopyColorRT");
-            CameraRenderTargetID.depth = Shader.PropertyToID("_CameraDepthTexture");
             CameraRenderTargetID.depthCopy = Shader.PropertyToID("_CameraCopyDepthTexture");
             CameraRenderTargetID.opaque = Shader.PropertyToID("_CameraOpaqueTexture");
 
@@ -175,7 +172,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             m_ColorRT = new RenderTargetIdentifier(CameraRenderTargetID.color);
             m_CopyColorRT = new RenderTargetIdentifier(CameraRenderTargetID.copyColor);
-            m_DepthRT = new RenderTargetIdentifier(CameraRenderTargetID.depth);
             m_CopyDepth = new RenderTargetIdentifier(CameraRenderTargetID.depthCopy);
             m_PostProcessRenderContext = new PostProcessRenderContext();
 
@@ -192,6 +188,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_MaxLocalLightsShadedPerPass = m_UseComputeBuffer ? kMaxVisibleLocalLights : kMaxNonIndexedLocalLights;
             m_LocalLightIndices = new List<int>(m_MaxLocalLightsShadedPerPass);
 
+            m_DepthOnlyPass = new DepthOnlyPass(null, RenderTextureFormat.Depth);
             m_ShadowPass = new LightweightShadowPass(m_Asset, kMaxVisibleLocalLights);
 
             // Let engine know we have MSAA on for cases where we support MSAA backbuffer
@@ -310,7 +307,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 context.SetupCameraProperties(m_CurrCamera, stereoEnabled);
 
                 if (CoreUtils.HasFlag(frameRenderingConfiguration, FrameRenderingConfiguration.DepthPrePass))
-                    DepthPass(ref context, frameRenderingConfiguration);
+                    m_DepthOnlyPass.Execute(context, camera, ref m_CullResults, stereoEnabled);
 
                 if (screenspaceShadows)
                     m_ShadowPass.CollectShadows(m_CurrCamera, frameRenderingConfiguration, ref context);
@@ -323,7 +320,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 {
                     cmd = CommandBufferPool.Get("Copy Depth to Camera");
                     cmd.DisableShaderKeyword(kMSAADepthKeyword);
-                    CopyTexture(cmd, CameraRenderTargetID.depth, BuiltinRenderTextureType.CameraTarget, m_CopyDepthMaterial, true);
+                    CopyTexture(cmd, m_DepthOnlyPass.depthTextureID, BuiltinRenderTextureType.CameraTarget, m_CopyDepthMaterial, true);
                     context.ExecuteCommandBuffer(cmd);
                     CommandBufferPool.Release(cmd);
                 }
@@ -331,40 +328,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 cmd = CommandBufferPool.Get("Dispose of Temporaries");
                 cmd.ReleaseTemporaryRT(CameraRenderTargetID.depthCopy);
-                cmd.ReleaseTemporaryRT(CameraRenderTargetID.depth);
                 cmd.ReleaseTemporaryRT(CameraRenderTargetID.color);
                 cmd.ReleaseTemporaryRT(CameraRenderTargetID.copyColor);
                 cmd.ReleaseTemporaryRT(CameraRenderTargetID.opaque);
 
                 m_ShadowPass.Dispose(cmd);
+                m_DepthOnlyPass.Dispose(cmd);
 
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
 
                 context.Submit();
             }
-        }
-
-        private void DepthPass(ref ScriptableRenderContext context, FrameRenderingConfiguration frameRenderingConfiguration)
-        {
-            CommandBuffer cmd = CommandBufferPool.Get("Depth Prepass");
-            SetRenderTarget(cmd, m_DepthRT, ClearFlag.Depth);
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
-
-            var opaqueDrawSettings = new DrawRendererSettings(m_CurrCamera, m_DepthPrepass);
-            opaqueDrawSettings.sorting.flags = SortFlags.CommonOpaque;
-
-            var opaqueFilterSettings = new FilterRenderersSettings(true)
-            {
-                renderQueueRange = RenderQueueRange.opaque
-            };
-
-            StartStereoRendering(m_CurrCamera, ref context, frameRenderingConfiguration);
-
-            context.DrawRenderers(m_CullResults.visibleRenderers, ref opaqueDrawSettings, opaqueFilterSettings);
-
-            StopStereoRendering(m_CurrCamera, ref context, frameRenderingConfiguration);
         }
 
         private void OpaqueTexturePass(ref ScriptableRenderContext context, FrameRenderingConfiguration frameRenderingConfiguration)
@@ -435,7 +410,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (m_RequireDepthTexture)
             {
                 CommandBuffer cmd = CommandBufferPool.Get("After Opaque");
-                cmd.SetGlobalTexture(CameraRenderTargetID.depth, m_DepthRT);
 
                 bool setRenderTarget = false;
                 RenderTargetIdentifier depthRT = m_DepthRT;
@@ -470,11 +444,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     }
                     else
                         cmd.DisableShaderKeyword(kMSAADepthKeyword);
-                    
+
                     CopyTexture(cmd, m_DepthRT, m_CopyDepth, m_CopyDepthMaterial, forceBlit);
                     depthRT = m_CopyDepth;
                     setRenderTarget = true;
-                    cmd.SetGlobalTexture(CameraRenderTargetID.depth, m_CopyDepth);
+                    cmd.SetGlobalTexture(m_DepthOnlyPass.depthTextureID, m_CopyDepth);
                 }
 
                 if (setRenderTarget)
@@ -658,13 +632,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 // This also means we don't do a depth copy
                 bool doesDepthPrepass = CoreUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.DepthPrePass);
-                if (!doesDepthPrepass)
-                {
-                    depthRTDesc.bindMS = msaaSamples > 1;
-                    depthRTDesc.msaaSamples = msaaSamples;
-                }
+                if (doesDepthPrepass)
+                    m_DepthOnlyPass.BindSurface(cmd, baseDesc, msaaSamples);
 
-                cmd.GetTemporaryRT(CameraRenderTargetID.depth, depthRTDesc, FilterMode.Point);
+                //if (!doesDepthPrepass)
+                //{
+                //    depthRTDesc.bindMS = msaaSamples > 1;
+                //    depthRTDesc.msaaSamples = msaaSamples;
+                //}
+
+                //cmd.GetTemporaryRT(CameraRenderTargetID.depth, depthRTDesc, FilterMode.Point);
 
                 if (!doesDepthPrepass)
                 {

@@ -65,7 +65,7 @@ float SampleDepth(float2 uv)
 
     for (int i = 0; i < samples; ++i)
         outDepth = DEPTH_OP(LOAD(uv, i), outDepth);
-    
+
     return outDepth;
 #else
     return SAMPLE(uv);
