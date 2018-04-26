@@ -33,8 +33,8 @@ namespace UnityEditor.VFX
         void SetSettingValue(string name, object value);
 
 
-        void TransferLinkOtherSlot(VFXSlot mySlot,VFXSlot prevOtherSlot,VFXSlot newOtherSlot);
-        void TransferLinkMySlot(VFXSlot myPrevSlot,VFXSlot myNewSlot,VFXSlot otherSlot);
+        void TransferLinkOtherSlot(VFXSlot mySlot, VFXSlot prevOtherSlot, VFXSlot newOtherSlot);
+        void TransferLinkMySlot(VFXSlot myPrevSlot, VFXSlot myNewSlot, VFXSlot otherSlot);
 
         bool collapsed { get; set; }
     }
@@ -138,15 +138,12 @@ namespace UnityEditor.VFX
             Invalidate(model, cause);
         }
 
-
-
-        public virtual void TransferLinkOtherSlot(VFXSlot mySlot,VFXSlot prevOtherSlot,VFXSlot newOtherSlot)
+        public virtual void TransferLinkOtherSlot(VFXSlot mySlot, VFXSlot prevOtherSlot, VFXSlot newOtherSlot)
         {
-
         }
-        public virtual void TransferLinkMySlot(VFXSlot myPrevSlot,VFXSlot myNewSlot,VFXSlot otherSlot)
-        {
 
+        public virtual void TransferLinkMySlot(VFXSlot myPrevSlot, VFXSlot myNewSlot, VFXSlot otherSlot)
+        {
         }
 
         public virtual void RemoveSlot(VFXSlot slot) { InnerRemoveSlot(slot, true); }
@@ -289,9 +286,9 @@ namespace UnityEditor.VFX
                     src.Unlink(link, notify);
 
 
-                    dst.owner.TransferLinkMySlot(src,dst,link);
-                    link.owner.TransferLinkOtherSlot(link,src,dst);
-                    
+                    dst.owner.TransferLinkMySlot(src, dst, link);
+                    link.owner.TransferLinkOtherSlot(link, src, dst);
+
                     oneLinkTransfered = true;
                 }
                 ++index;
