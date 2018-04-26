@@ -235,7 +235,7 @@ namespace UnityEditor.Experimental.Rendering
             Undo.RegisterCreatedObjectUndo(component, "Add Volume Component");
 
             // Store this new effect as a subasset so we can reference it safely afterwards
-            // Only when we're not dealing with an intantiated asset
+            // Only when we're not dealing with an instantiated asset
             if (EditorUtility.IsPersistent(asset))
                 AssetDatabase.AddObjectToAsset(component, asset);
 
