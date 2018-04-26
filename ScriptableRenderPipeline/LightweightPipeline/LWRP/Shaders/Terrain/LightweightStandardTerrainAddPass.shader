@@ -32,6 +32,7 @@ Shader "Hidden/LightweightPipeline/Terrain/Standard Terrain Add Pass"
 
         Pass
         {
+            Name "TerrainAddLit"
             Tags { "LightMode" = "LightweightForward" }
             Blend One One
             HLSLPROGRAM
@@ -49,6 +50,8 @@ Shader "Hidden/LightweightPipeline/Terrain/Standard Terrain Add Pass"
             #pragma multi_compile _ _VERTEX_LIGHTS
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
             #pragma multi_compile _ _SHADOWS_ENABLED
+            #pragma multi_compile _ _LOCAL_SHADOWS_ENABLED
+            #pragma multi_compile _ _SHADOWS_SOFT
 
             // -------------------------------------
             // Unity defined keywords
@@ -58,7 +61,7 @@ Shader "Hidden/LightweightPipeline/Terrain/Standard Terrain Add Pass"
 
             #pragma multi_compile __ _TERRAIN_NORMAL_MAP
             #define TERRAIN_SPLAT_ADDPASS 1
-            
+
             #include "LWRP/ShaderLibrary/Terrain/InputSurfaceTerrain.hlsl"
             #include "LWRP/ShaderLibrary/Terrain/LightweightPassLitTerrain.hlsl"
 

@@ -18,14 +18,15 @@ bool SolveQuadraticEquation(float a, float b, float c, out float2 roots)
 // Intersection functions
 //-----------------------------------------------------------------------------
 
-// This implementation does not attempt to explicitly handle NaNs.
-// Ref: https://tavianator.com/fast-branchless-raybounding-box-intersections-part-2-nans/
 bool IntersectRayAABB(float3 rayOrigin, float3 rayDirection,
                       float3 boxMin,    float3 boxMax,
                       float  tMin,       float tMax,
                   out float  tEntr,  out float tExit)
 {
-    float3 rayDirInv = rcp(rayDirection); // Could be precomputed
+    // Could be precomputed. Clamp to avoid INF. clamp() is a single ALU on GCN.
+    // rcp(FLT_EPS) = 16,777,216, which is large enough for our purposes,
+    // yet doesn't cause a lot of numerical issues associated with FLT_MAX.
+    float3 rayDirInv = clamp(rcp(rayDirection), -rcp(FLT_EPS), rcp(FLT_EPS));
 
     // Perform ray-slab intersection (component-wise).
     float3 t0 = boxMin * rayDirInv - (rayOrigin * rayDirInv);

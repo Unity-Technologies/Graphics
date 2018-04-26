@@ -152,7 +152,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (masterNode.IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId))
                 defines.AddShaderChunk("#define _AlphaClip 1", true);
 
-            if(masterNode.surfaceType == SurfaceType.Transparent && masterNode.alphaMode == AlphaMode.Premultiply)
+            if (masterNode.surfaceType == SurfaceType.Transparent && masterNode.alphaMode == AlphaMode.Premultiply)
                 defines.AddShaderChunk("#define _ALPHAPREMULTIPLY_ON 1", true);
 
             var templateLocation = GetTemplatePath(template);
