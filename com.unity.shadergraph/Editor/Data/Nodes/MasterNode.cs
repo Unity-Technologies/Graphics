@@ -104,6 +104,7 @@ namespace UnityEditor.ShaderGraph
         public override void OnAfterDeserialize()
         {
             m_SubShaders = SerializationHelper.Deserialize<T>(m_SerializableSubShaders, GraphUtil.GetLegacyTypeRemapping());
+            m_SubShaders.RemoveAll(x => x == null);
             m_SerializableSubShaders = null;
             base.OnAfterDeserialize();
 
