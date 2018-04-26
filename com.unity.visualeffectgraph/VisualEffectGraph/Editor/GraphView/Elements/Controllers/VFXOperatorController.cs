@@ -61,6 +61,11 @@ namespace UnityEditor.VFX.UI
 
         protected override bool CouldLinkMyInputTo(VFXDataAnchorController myInput, VFXDataAnchorController otherOutput)
         {
+            if( otherOutput.direction == myInput.direction)
+                return false;
+
+            if( ! myInput.CanLinkToNode(otherOutput.sourceNode))
+                return false;
             return model.GetBestAffinityType(otherOutput.portType) != null;
         }
 
@@ -85,6 +90,8 @@ namespace UnityEditor.VFX.UI
         }
         public override void WillCreateLink(ref VFXSlot myInput, ref VFXSlot otherOutput)
         {
+            if( ! myInput.IsMasterSlot())
+                return;
             var bestAffinityType = model.GetBestAffinityType(otherOutput.property.type);
             if (bestAffinityType != null)
             {
@@ -159,6 +166,8 @@ namespace UnityEditor.VFX.UI
 
         public override void WillCreateLink(ref VFXSlot myInput, ref VFXSlot otherOutput)
         {
+            if( ! myInput.IsMasterSlot())
+                return;
             //Since every input will change at the same time the metric to change is :
             // if we have no input links yet
 

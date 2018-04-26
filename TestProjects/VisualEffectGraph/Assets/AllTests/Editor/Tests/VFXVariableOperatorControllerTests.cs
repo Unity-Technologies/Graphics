@@ -70,12 +70,12 @@ namespace UnityEditor.VFX.Test
         }
 
         static private string[] variableOperators = { "AddNew", "DotProductNew", "ClampNew" };
+
         [Test]
         public void LinkingValidOutputSlotToVariableOperatorChangesType([ValueSource("variableOperators")] string operatorName)
         {
             var variableOperator = CreateNew(operatorName, new Vector2(1, 2));
-            var operatorModel = variableOperator.model as VFXOperatorNumericNew;
-
+            
             var vector2inline = CreateNew(typeof(Vector2).UserFriendlyName(), new Vector2(2, 2), typeof(VFXInlineOperator));
 
             var output = vector2inline.outputPorts[0];

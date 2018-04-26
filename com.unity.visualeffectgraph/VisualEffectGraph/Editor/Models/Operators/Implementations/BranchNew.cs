@@ -23,12 +23,13 @@ namespace UnityEditor.VFX.Operator
         {
             get
             {
-                return VFXLibrary.GetSlotsType().Where(o => !o.IsSubclassOf(typeof(Texture)));
+                var exclude = new[] { typeof(FloatN), typeof(GPUEvent) };
+                return VFXLibrary.GetSlotsType().Except(exclude).Where(o => !o.IsSubclassOf(typeof(Texture)));
             }
         }
     }
 
-    [VFXInfo(category = "Math", experimental = true)]
+    [VFXInfo(category = "Logic", experimental = true)]
     class BranchNew : VFXOperatorDynamicOperand, IVFXOperatorUniform
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]

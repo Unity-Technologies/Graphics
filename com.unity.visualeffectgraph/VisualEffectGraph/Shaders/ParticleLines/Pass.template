@@ -2,6 +2,9 @@
 #error VFX_VARYING_PS_INPUTS and VFX_VARYING_POSCS must be defined.
 #endif
 
+${VFXPerPassInclude}
+${VFXGeneratedBlockFunction}
+
 #pragma vertex vert
 
 VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
