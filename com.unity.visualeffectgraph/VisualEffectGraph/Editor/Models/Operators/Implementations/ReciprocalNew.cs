@@ -1,20 +1,28 @@
 using System;
-
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Arithmetic", experimental = true)]
-    class FractionalNew : VFXOperatorNumericUniformNew
+    class ReciprocalNew : VFXOperatorNumericUniformNew
     {
         public class InputProperties
         {
-            public float x = 0.0f;
+            public float x = 1.0f;
         }
 
-        public override sealed string name { get { return "FractionalNew"; } }
+        public override sealed string name { get { return "Reciprocal (1/x)New"; } }
+
+        protected override double defaultValueDouble
+        {
+            get
+            {
+                return 1.0;
+            }
+        }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new[] { VFXOperatorUtility.Frac(inputExpression[0]) };
+            var expression = inputExpression[0];
+            return new[] { VFXOperatorUtility.OneExpression[expression.valueType] / expression };
         }
 
         protected sealed override ValidTypeRule typeFilter
