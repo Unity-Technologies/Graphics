@@ -19,6 +19,11 @@ namespace UnityEditor.Experimental.Rendering
             get { return target as Volume; }
         }
 
+        VolumeProfile profileRef
+        {
+            get { return actualTarget.HasInstantiatedProfile() ? actualTarget.profile : actualTarget.sharedProfile; }
+        }
+
         void OnEnable()
         {
             var o = new PropertyFetcher<Volume>(serializedObject);
@@ -75,18 +80,26 @@ namespace UnityEditor.Experimental.Rendering
             var buttonNewRect = new Rect(fieldRect.xMax, lineRect.y, buttonWidth, lineRect.height);
             var buttonCopyRect = new Rect(buttonNewRect.xMax, lineRect.y, buttonWidth, lineRect.height);
 
-            EditorGUI.PrefixLabel(labelRect, CoreEditorUtils.GetContent("Profile|A reference to a profile asset."));
+            EditorGUI.PrefixLabel(labelRect, CoreEditorUtils.GetContent(actualTarget.HasInstantiatedProfile() ? "Profile (Instance)|A copy of a profile asset." : "Profile|A reference to a profile asset."));
 
             using (var scope = new EditorGUI.ChangeCheckScope())
             {
                 EditorGUI.BeginProperty(fieldRect, GUIContent.none, m_Profile);
 
-                var profile = (VolumeProfile)EditorGUI.ObjectField(fieldRect, m_Profile.objectReferenceValue, typeof(VolumeProfile), false);
+                VolumeProfile profile = null;
+
+                if (actualTarget.HasInstantiatedProfile())
+                    profile = (VolumeProfile)EditorGUI.ObjectField(fieldRect, actualTarget.profile, typeof(VolumeProfile), false);
+                else
+                    profile = (VolumeProfile)EditorGUI.ObjectField(fieldRect, m_Profile.objectReferenceValue, typeof(VolumeProfile), false);
 
                 if (scope.changed)
                 {
                     assetHasChanged = true;
                     m_Profile.objectReferenceValue = profile;
+
+                    if (actualTarget.HasInstantiatedProfile()) // Clear the instantiated profile, from now on we're using shared again
+                        actualTarget.profile = null;
                 }
 
                 EditorGUI.EndProperty();
@@ -102,14 +115,15 @@ namespace UnityEditor.Experimental.Rendering
                     var scene = actualTarget.gameObject.scene;
                     var asset = VolumeProfileFactory.CreateVolumeProfile(scene, targetName);
                     m_Profile.objectReferenceValue = asset;
+                    actualTarget.profile = null; // Make sure we're not using an instantiated profile anymore
                     assetHasChanged = true;
                 }
 
-                if (showCopy && GUI.Button(buttonCopyRect, CoreEditorUtils.GetContent("Clone|Create a new profile and copy the content of the currently assigned profile."), EditorStyles.miniButtonRight))
+                if (showCopy && GUI.Button(buttonCopyRect, CoreEditorUtils.GetContent(actualTarget.HasInstantiatedProfile() ? "Save|Save the instantiated profile" : "Clone|Create a new profile and copy the content of the currently assigned profile."), EditorStyles.miniButtonRight))
                 {
                     // Duplicate the currently assigned profile and save it as a new profile
-                    var origin = (VolumeProfile)m_Profile.objectReferenceValue;
-                    var path = AssetDatabase.GetAssetPath(origin);
+                    var origin = profileRef;
+                    var path = AssetDatabase.GetAssetPath(m_Profile.objectReferenceValue);
                     path = AssetDatabase.GenerateUniqueAssetPath(path);
 
                     var asset = Instantiate(origin);
@@ -129,21 +143,22 @@ namespace UnityEditor.Experimental.Rendering
                     AssetDatabase.Refresh();
 
                     m_Profile.objectReferenceValue = asset;
+                    actualTarget.profile = null; // Make sure we're not using an instantiated profile anymore
                     assetHasChanged = true;
                 }
             }
 
             EditorGUILayout.Space();
 
-            if (m_Profile.objectReferenceValue == null)
+            if (m_Profile.objectReferenceValue == null && !actualTarget.HasInstantiatedProfile())
             {
                 if (assetHasChanged)
                     m_ComponentList.Clear(); // Asset wasn't null before, do some cleanup
             }
             else
             {
-                if (assetHasChanged)
-                    RefreshEffectListEditor((VolumeProfile)m_Profile.objectReferenceValue);
+                if (assetHasChanged || profileRef != m_ComponentList.asset)
+                    RefreshEffectListEditor(profileRef);
 
                 if (!multiEdit)
                 {
