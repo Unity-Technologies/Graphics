@@ -399,6 +399,39 @@ namespace UnityEditor.VFX
             }
         }
 
+        public override void TransferLinkOtherSlot(VFXSlot mySlot,VFXSlot prevOtherSlot,VFXSlot newOtherSlot)
+        {
+            foreach(var node in m_Nodes)
+            {
+                for(int i = 0 ; i < node.linkedSlots.Count ; ++i)
+                {
+                    if( node.linkedSlots[i].outputSlot == mySlot && node.linkedSlots[i].inputSlot == prevOtherSlot)
+                    {
+                        node.linkedSlots[i] = new NodeLinkedSlot(){outputSlot = mySlot,inputSlot = newOtherSlot};
+                        return;
+                    }
+                }
+            }
+
+            Debug.LogError("An unknown link with a parameter was tranfered");
+        }
+        public override void TransferLinkMySlot(VFXSlot myPrevSlot,VFXSlot myNewSlot,VFXSlot otherSlot)
+        {
+            foreach(var node in m_Nodes)
+            {
+                for(int i = 0 ; i < node.linkedSlots.Count ; ++i)
+                {
+                    if( node.linkedSlots[i].outputSlot == myPrevSlot && node.linkedSlots[i].inputSlot == otherSlot)
+                    {
+                        node.linkedSlots[i] = new NodeLinkedSlot(){outputSlot = myNewSlot,inputSlot = otherSlot};
+                        return;
+                    }
+                }
+            }
+
+            Debug.LogError("An unknown link with a parameter was tranfered");
+        }
+
         private VFXValue.Mode valueMode
         {
             get
