@@ -4,11 +4,13 @@ using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
+using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public abstract class MasterNode<T> : AbstractMaterialNode, IMasterNode where T : class, ISubShader
+    public abstract class MasterNode<T> : AbstractMaterialNode, IMasterNode, IHasSettings
+        where T : class, ISubShader
     {
         [NonSerialized]
         List<T> m_SubShaders = new List<T>();
@@ -129,6 +131,21 @@ namespace UnityEditor.ShaderGraph
                     }
                 }
             }
+        }
+
+        public VisualElement CreateSettingsElement()
+        {
+            var container = new VisualElement();
+            var commonSettingsElement = CreateCommonSettingsElement();
+            if (commonSettingsElement != null)
+                container.Add(commonSettingsElement);
+
+            return container;
+        }
+
+        protected virtual VisualElement CreateCommonSettingsElement()
+        {
+            return null;
         }
     }
 }

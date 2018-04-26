@@ -52,7 +52,7 @@ namespace UnityEditor.ShaderGraph
 
         public override INode ToConcreteNode()
         {
-            return new BooleanNode { value = new Toggle(value) };
+            return new BooleanNode { value = new ToggleData(value) };
         }
 
         public override IShaderProperty Copy()

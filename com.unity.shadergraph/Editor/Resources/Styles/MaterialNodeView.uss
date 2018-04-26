@@ -113,34 +113,44 @@ MaterialNodeView > #portInputContainer {
 }
 
 MaterialNodeView > #settings-container {
-	position-type : absolute;
-	width : 200;
-	background-color : rgb(245, 155, 225);
-	position-left : 200;
+	background-color : rgb(63, 63, 63);
 }
 
-MaterialNodeView > #node-border > #title > #button-container{
-	flex-direction: row;
-	justify-content : space-between;
+#settings-button {
+    width: 16;
+    align-self: center;
+    justify-content: center;
+    padding-left: 8;
 }
 
-MaterialNodeView  > #node-border > #title > #button-container > #settings-button{
-	align-self : center;
-	width : 16;
+#settings-button > #icon {
+    width : 12;
+    height : 12;
+    align-self: center;
+    visibility: hidden;
+    background-image : resource("Icons/SettingsIcons");
 }
 
-MaterialNodeView  > #node-border > #title > #button-container > #settings-button:hover{
-	background-color: #2B2B2B;
+.node:hover #settings-button > #icon {
+    visibility: visible;
 }
 
-
-MaterialNodeView  > #node-border > #title > #button-container > #settings-button.clicked{
-	background-color: #2B2B2B;
+#settings-button:hover > #icon {
+    align-self: center;
+    background-color: #2B2B2B;
+    background-image : resource("Icons/SettingsIcons_hover");
 }
 
-MaterialNodeView  > #node-border > #title > #button-container > #settings-button > #icon{
-	align-self : center;
-	background-image : resource("Icons/settingsbutton");
-	width : 16;
-	height : 16;
+#settings-button.clicked > #icon{
+    background-color: #2B2B2B;
+    background-image : resource("Icons/SettingsIcons_hover");
+    visibility: visible;
+}
+
+.node.collapsed > #node-border > #title > #button-container > #collapse-button > #icon {
+    background-image: resource("GraphView/Nodes/NodeChevronLeft.png");
+}
+
+.node.expanded > #node-border > #title > #button-container > #collapse-button > #icon {
+    background-image : resource("GraphView/Nodes/NodeChevronDown.png");
 }

@@ -210,35 +210,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             onConvertToSubgraphClick();
         }
 
-        public delegate void OnSelectionChanged(IEnumerable<INode> nodes);
-
-        public OnSelectionChanged onSelectionChanged;
-
-        void SelectionChanged()
-        {
-            var selectedNodes = selection.OfType<MaterialNodeView>().Where(x => x.userData is INode);
-            if (onSelectionChanged != null)
-                onSelectionChanged(selectedNodes.Select(x => x.userData as INode));
-        }
-
-        public override void AddToSelection(ISelectable selectable)
-        {
-            base.AddToSelection(selectable);
-            SelectionChanged();
-        }
-
-        public override void RemoveFromSelection(ISelectable selectable)
-        {
-            base.RemoveFromSelection(selectable);
-            SelectionChanged();
-        }
-
-        public override void ClearSelection()
-        {
-            base.ClearSelection();
-            SelectionChanged();
-        }
-
         string SerializeGraphElementsImplementation(IEnumerable<GraphElement> elements)
         {
             var nodes = elements.OfType<MaterialNodeView>().Select(x => (INode)x.node);
