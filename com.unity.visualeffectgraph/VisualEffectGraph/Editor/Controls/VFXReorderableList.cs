@@ -1,14 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
-using UnityEngine.Experimental.UIElements.StyleSheets;
-using UnityEngine.Experimental.VFX;
-using UnityEditor.VFX.UIElements;
 
 namespace UnityEditor.VFX.UI
 {
@@ -35,9 +28,7 @@ namespace UnityEditor.VFX.UI
             target.UnregisterCallback<MouseUpEvent>(OnMouseUp);
         }
 
-        bool m_Dragging;
         Vector2 startPosition;
-
 
         object m_Ctx;
 
@@ -45,7 +36,6 @@ namespace UnityEditor.VFX.UI
         {
             target.UnregisterCallback<MouseMoveEvent>(OnMouseMove);
             target.ReleaseMouseCapture();
-            m_Dragging = false;
             m_Ctx = null;
         }
 
@@ -55,7 +45,6 @@ namespace UnityEditor.VFX.UI
             {
                 evt.StopPropagation();
                 target.TakeMouseCapture();
-                m_Dragging = true;
                 startPosition = m_Root.WorldToLocal(evt.mousePosition);
                 target.RegisterCallback<MouseMoveEvent>(OnMouseMove);
                 m_Ctx = m_Root.StartDragging(m_Line);

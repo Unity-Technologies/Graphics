@@ -1,8 +1,6 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using UnityEngine.Experimental.UIElements;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental.UIElements.GraphView;
@@ -106,12 +104,32 @@ namespace UnityEditor.VFX.UI
             return model.HasLink();
         }
 
+        public bool CanLinkToNode(VFXNodeController nodeController)
+        {
+            if (nodeController == sourceNode)
+                return false;
+            var childrenOperators = new HashSet<IVFXSlotContainer>();
+            if (direction != Direction.Input)
+            {
+                VFXViewController.CollectChildOperator(sourceNode.slotContainer, childrenOperators);
+                return !childrenOperators.Contains(nodeController.slotContainer);
+            }
+            else
+            {
+                VFXViewController.CollectParentOperator(nodeController.slotContainer, childrenOperators);
+                return !childrenOperators.Contains(sourceNode.slotContainer);
+            }
+        }
+
         public virtual bool CanLink(VFXDataAnchorController controller)
         {
             if (controller.model != null)
             {
                 if (model.CanLink(controller.model) && controller.model.CanLink(model))
                 {
+                    if (!CanLinkToNode(controller.sourceNode))
+                        return false;
+
                     return true;
                 }
                 return sourceNode.CouldLink(this, controller);
@@ -452,6 +470,12 @@ namespace UnityEditor.VFX.UI
             var op = (sourceNode as VFXCascadedOperatorController);
 
             if (op == null)
+                return false;
+
+            if (controller is VFXUpcommingDataAnchorController)
+                return false;
+
+            if (!CanLinkToNode(controller.sourceNode))
                 return false;
 
             return op.model.GetBestAffinityType(controller.model.property.type) != null;

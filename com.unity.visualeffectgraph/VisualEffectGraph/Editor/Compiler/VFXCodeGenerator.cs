@@ -480,6 +480,16 @@ namespace UnityEditor.VFX
             }
 
             //< Final composition
+            var renderPipePath = VFXManager.renderPipeSettingsPath;
+            string renderPipeCommon = "Assets/VFXEditor/Shaders/Common/VFXCommonCompute.cginc";
+            string renderPipePasses = null;
+
+            if (!context.codeGeneratorCompute && !string.IsNullOrEmpty(renderPipePath))
+            {
+                renderPipeCommon = "Assets/" + renderPipePath + "/VFXCommon.cginc";
+                renderPipePasses = "Assets/" + renderPipePath + "/VFXPasses.template";
+            }
+
             var globalIncludeContent = new VFXShaderWriter();
             globalIncludeContent.WriteLine("#include \"HLSLSupport.cginc\"");
             globalIncludeContent.WriteLine("#define NB_THREADS_PER_GROUP 64");
@@ -491,20 +501,8 @@ namespace UnityEditor.VFX
             foreach (var additionnalDefine in context.additionalDefines)
                 globalIncludeContent.WriteLineFormat("#define {0} 1", additionnalDefine);
 
-            var renderPipePath = VFXManager.renderPipeSettingsPath;
-
-            string renderPipeCommon = "Assets/VFXEditor/Shaders/Common/VFXCommonCompute.cginc";
-            string renderPipePasses = null;
-            if (!context.codeGeneratorCompute && !string.IsNullOrEmpty(renderPipePath))
-            {
-                renderPipeCommon = "Assets/" + renderPipePath + "/VFXCommon.cginc";
-                renderPipePasses = "Assets/" + renderPipePath + "/VFXPasses.template";
-            }
-
-            globalIncludeContent.WriteLine();
             if (renderPipePasses != null)
                 globalIncludeContent.Write(GetFlattenedTemplateContent(renderPipePasses, new List<string>(), context.additionalDefines));
-            globalIncludeContent.WriteLine("#include \"" + renderPipeCommon + "\"");
 
             if (context.GetData() is ISpaceable)
             {
@@ -512,7 +510,9 @@ namespace UnityEditor.VFX
                 globalIncludeContent.WriteLineFormat("#define {0} 1", spaceable.space == CoordinateSpace.Global ? "VFX_WORLD_SPACE" : "VFX_LOCAL_SPACE");
             }
 
-            globalIncludeContent.WriteLine("#include \"Assets/VFXEditor/Shaders/VFXCommon.cginc\"");
+            var perPassIncludeContent = new VFXShaderWriter();
+            perPassIncludeContent.WriteLine("#include \"" + renderPipeCommon + "\"");
+            perPassIncludeContent.WriteLine("#include \"Assets/VFXEditor/Shaders/VFXCommon.cginc\"");
 
             // Per-block includes
             var includes = Enumerable.Empty<string>();
@@ -520,12 +520,13 @@ namespace UnityEditor.VFX
                 includes = includes.Concat(block.includes);
             var uniqueIncludes = new HashSet<string>(includes);
             foreach (var includePath in uniqueIncludes)
-                globalIncludeContent.WriteLine(string.Format("#include \"{0}\"", includePath));
+                perPassIncludeContent.WriteLine(string.Format("#include \"{0}\"", includePath));
 
             stringBuilder.Append(templateContent);
 
             ReplaceMultiline(stringBuilder, "${VFXGlobalInclude}", globalIncludeContent.builder);
             ReplaceMultiline(stringBuilder, "${VFXGlobalDeclaration}", globalDeclaration.builder);
+            ReplaceMultiline(stringBuilder, "${VFXPerPassInclude}", perPassIncludeContent.builder);
             ReplaceMultiline(stringBuilder, "${VFXGeneratedBlockFunction}", blockFunction.builder);
             ReplaceMultiline(stringBuilder, "${VFXProcessBlocks}", blockCallFunction.builder);
 

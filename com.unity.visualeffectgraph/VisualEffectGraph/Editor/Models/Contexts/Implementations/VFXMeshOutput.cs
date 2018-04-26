@@ -52,7 +52,7 @@ namespace UnityEditor.VFX
             [Tooltip("Texture to be applied to the mesh.")]
             public Texture2D mainTexture = VFXResources.defaultResources.particleTexture;
             [Tooltip("Mesh to be used for particle rendering.")]
-            public Mesh mesh = VFXResources.defaultResources.particleMesh;
+            public Mesh mesh = VFXResources.defaultResources.mesh;
             [Tooltip("Define a bitmask to control which submeshes are rendered.")]
             public uint subMeshMask = 0xffffffff;
         }

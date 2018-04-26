@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math", experimental = true)]
+    [VFXInfo(category = "Math/Clamp", experimental = true)]
     class ClampNew : VFXOperatorNumericUnifiedNew, IVFXOperatorNumericUnifiedConstrained
     {
         public class InputProperties

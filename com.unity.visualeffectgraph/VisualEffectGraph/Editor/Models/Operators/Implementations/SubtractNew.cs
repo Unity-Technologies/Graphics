@@ -3,7 +3,7 @@ using UnityEditor.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math", experimental = true)]
+    [VFXInfo(category = "Math/Arithmetic", experimental = true)]
     class SubtractNew : VFXOperatorNumericCascadedUnifiedNew
     {
         public override sealed string name { get { return "SubtractNew"; } }

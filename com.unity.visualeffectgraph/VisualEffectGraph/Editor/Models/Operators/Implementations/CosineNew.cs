@@ -1,6 +1,6 @@
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math", experimental = true)]
+    [VFXInfo(category = "Math/Trigonometry", experimental = true)]
     class CosineNew : VFXOperatorNumericUniformNew
     {
         public class InputProperties

@@ -1,7 +1,5 @@
 #include "UnityCG.cginc"
 
-#define VFX_EPSILON 1e-5
-
 UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
 
 float4 VFXTransformPositionWorldToClip(float3 posWS)
@@ -12,6 +10,11 @@ float4 VFXTransformPositionWorldToClip(float3 posWS)
 float4 VFXTransformPositionObjectToClip(float3 posOS)
 {
     return UnityObjectToClipPos(posOS);
+}
+
+float3 VFXTransformPositionWorldToView(float3 posWS)
+{
+    return mul(UNITY_MATRIX_V, float4(posWS, 1.0f)).xyz;
 }
 
 float4x4 VFXGetObjectToWorldMatrix()
@@ -34,6 +37,11 @@ float3 VFXGetViewWorldPosition()
     // Not using _WorldSpaceCameraPos as it's not what expected for the shadow pass
     // (It remains primary camera position not view position)
     return UNITY_MATRIX_I_V._m03_m13_m23;
+}
+
+float4x4 VFXGetViewToWorldMatrix()
+{
+    return UNITY_MATRIX_I_V;
 }
 
 float4 VFXGetPOSSS(float4 posCS)
