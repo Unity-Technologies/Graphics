@@ -13,28 +13,37 @@ namespace UnityEditor.VFX
             public float VelocityThreshold = 50.0f;
         }
 
-        private Vector3 oldPosition;
+        private Vector3 m_OldPosition;
 
-        public override void OnPlay(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
+        static private readonly int positionPropertyId = Shader.PropertyToID("Position");
+        static private readonly int ratePerUnitPropertyId = Shader.PropertyToID("RatePerUnit");
+        static private readonly int velocityThresholdPropertyId = Shader.PropertyToID("VelocityThreshold");
+
+        static private readonly int positionAttributeId = Shader.PropertyToID("position");
+        static private readonly int oldPositionAttributeId = Shader.PropertyToID("oldPosition");
+
+        public sealed override void OnPlay(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
         {
-            oldPosition = vfxValues.GetVector3("Position");
+            m_OldPosition = vfxValues.GetVector3(positionPropertyId);
         }
 
-        public override void OnUpdate(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
+        public sealed override void OnUpdate(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
         {
-            Vector3 pos = vfxValues.GetVector3("Position");
-            float distance = Vector3.Distance(oldPosition, pos);
-            if (distance < vfxValues.GetFloat("VelocityThreshold") * state.deltaTime)
+            if (!state.playing || state.deltaTime == 0) return;
+
+            Vector3 pos = vfxValues.GetVector3(positionPropertyId);
+            float distance = Vector3.Distance(m_OldPosition, pos);
+            if (distance < vfxValues.GetFloat(velocityThresholdPropertyId) * state.deltaTime)
             {
-                state.spawnCount += distance * vfxValues.GetFloat("RatePerUnit");
+                state.spawnCount += distance * vfxValues.GetFloat(ratePerUnitPropertyId);
 
-                state.vfxEventAttribute.SetVector3("oldPosition", oldPosition);
-                state.vfxEventAttribute.SetVector3("position", pos);
+                state.vfxEventAttribute.SetVector3(oldPositionAttributeId, m_OldPosition);
+                state.vfxEventAttribute.SetVector3(positionAttributeId, pos);
             }
-            oldPosition = vfxValues.GetVector3("Position");
+            m_OldPosition = pos;
         }
 
-        public override void OnStop(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
+        public sealed override void OnStop(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
         {
         }
     }

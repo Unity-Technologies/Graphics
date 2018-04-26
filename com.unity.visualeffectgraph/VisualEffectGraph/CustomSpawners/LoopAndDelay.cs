@@ -13,46 +13,49 @@ namespace UnityEditor.VFX
             public float Delay = 1.0f;
         }
 
-        public bool waiting;
-        public float waitTTL;
-        public uint remainingLoops;
+        bool m_Waiting;
+        float m_WaitTTL;
+        uint m_RemainingLoops;
 
-        public override void OnPlay(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
+        static private readonly int numLoopsPropertyID = Shader.PropertyToID("NumLoops");
+        static private readonly int loopDurationPropertyID = Shader.PropertyToID("LoopDuration");
+        static private readonly int delayPropertyID = Shader.PropertyToID("Delay");
+
+        public sealed override void OnPlay(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
         {
-            remainingLoops = vfxValues.GetUInt("NumLoops");
+            m_RemainingLoops = vfxValues.GetUInt(numLoopsPropertyID);
         }
 
-        public override void OnUpdate(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
+        public sealed override void OnUpdate(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
         {
-            if (state.totalTime > vfxValues.GetFloat("LoopDuration"))
+            if (!state.playing) return;
+
+            if (state.totalTime > vfxValues.GetFloat(loopDurationPropertyID))
             {
-                if (!waiting)
+                if (!m_Waiting)
                 {
-                    waitTTL = vfxValues.GetFloat("Delay");
-                    waiting = true;
+                    m_WaitTTL = vfxValues.GetFloat(delayPropertyID);
+                    m_Waiting = true;
                 }
                 else
                 {
-                    waitTTL -= state.deltaTime;
+                    m_WaitTTL -= state.deltaTime;
 
-                    if (waitTTL < 0.0f && remainingLoops > 0)
+                    if (m_WaitTTL < 0.0f && m_RemainingLoops > 0)
                     {
-                        waiting = false;
+                        m_Waiting = false;
                         state.totalTime = 0.0f;
-                        remainingLoops--;
+                        m_RemainingLoops--;
                     }
                     else
                     {
-                        //state.Stop();
-                        // prevent spawning
-                        state.deltaTime = 0.0f; // if late
-                        state.spawnCount = 0; // if early
+                        state.playing = false; // Stop the Spawn context
                     }
                 }
             }
         }
 
-        public override void OnStop(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
+        public sealed override void OnStop(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
         {
         }
     }
