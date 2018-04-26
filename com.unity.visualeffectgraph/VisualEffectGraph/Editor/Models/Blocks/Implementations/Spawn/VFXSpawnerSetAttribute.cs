@@ -54,27 +54,34 @@ namespace UnityEditor.VFX.Block
                     case RandomMode.Off:
                         return base.parameters;
                     case RandomMode.PerComponent:
-
-                        VFXExpression[] members = new VFXExpression[size];
-                        for (int i = 0; i < size; i++)
+                        if (size == 1)
+                            random = new VFXExpressionRandom();
+                        else
                         {
-                            members[i] = new VFXExpressionRandom();
+                            VFXExpression[] members = new VFXExpression[size];
+                            for (int i = 0; i < size; i++)
+                            {
+                                members[i] = new VFXExpressionRandom();
+                            }
+                            random = new VFXExpressionCombine(members);
                         }
-                        random = new VFXExpressionCombine(members);
+
                         break;
                     case RandomMode.Uniform:
-                        random = new VFXExpressionCombine(Enumerable.Repeat(new VFXExpressionRandom(), size).ToArray());
+                        if (size == 1)
+                            random = new VFXExpressionRandom();
+                        else
+                            random = new VFXExpressionCombine(Enumerable.Repeat(new VFXExpressionRandom(), size).ToArray());
                         break;
                 }
 
                 var min = base.parameters.FirstOrDefault(o => o.name == "Min");
                 var max = base.parameters.FirstOrDefault(o => o.name == "Max");
-                return new [] { new VFXNamedExpression(VFXOperatorUtility.Lerp(min.exp, max.exp, random), currentAttribute.name)};
+                return new[] { new VFXNamedExpression(VFXOperatorUtility.Lerp(min.exp, max.exp, random), currentAttribute.name)};
             }
         }
 
         public override string name { get { return string.Format("Set SpawnEvent {0} {1}", ObjectNames.NicifyVariableName(attribute), VFXBlockUtility.GetNameString(randomMode)); } }
         public override VFXTaskType spawnerType { get { return VFXTaskType.SetAttributeSpawner; } }
-
     }
 }
