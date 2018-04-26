@@ -6,7 +6,7 @@
 //#include "../SubsurfaceScattering/SubsurfaceScattering.hlsl"
 //#include "CoreRP/ShaderLibrary/VolumeRendering.hlsl"
 
-//NEWLITTODO : wireup CBUFFERs for ambientocclusion, and other uniforms and samplers used: 
+//NEWLITTODO : wireup CBUFFERs for ambientocclusion, and other uniforms and samplers used:
 //
 // We need this for AO, Depth/Color pyramids, LTC lights data, FGD pre-integrated data.
 //
@@ -207,11 +207,11 @@ void ApplyDebugToSurfaceData(float3x3 worldToTangent, inout SurfaceData surfaceD
 
 // This function is similar to ApplyDebugToSurfaceData but for BSDFData
 //
-// NOTE: 
+// NOTE:
 //
-// This will be available and used in ShaderPassForward.hlsl since in StackLit.shader, 
-// just before including the core code of the pass (ShaderPassForward.hlsl) we include 
-// Material.hlsl (or Lighting.hlsl which includes it) which in turn includes us, 
+// This will be available and used in ShaderPassForward.hlsl since in StackLit.shader,
+// just before including the core code of the pass (ShaderPassForward.hlsl) we include
+// Material.hlsl (or Lighting.hlsl which includes it) which in turn includes us,
 // StackLit.shader, via the #if defined(UNITY_MATERIAL_*) glue mechanism.
 //
 void ApplyDebugToBSDFData(inout BSDFData bsdfData)
@@ -219,7 +219,7 @@ void ApplyDebugToBSDFData(inout BSDFData bsdfData)
 #ifdef DEBUG_DISPLAY
     // Override value if requested by user
     // this can be use also in case of debug lighting mode like specular only
-    
+
     //NEWLITTODO
     //bool overrideSpecularColor = _DebugLightingSpecularColor.x != 0.0;
 
@@ -334,8 +334,8 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
 
 
 //-----------------------------------------------------------------------------
-// PreLightData 
-// 
+// PreLightData
+//
 // Make sure we respect naming conventions to reuse ShaderPassForward as is,
 // ie struct (even if opaque to the ShaderPassForward) name is PreLightData,
 // GetPreLightData prototype.
@@ -1422,7 +1422,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     float  NdotL = dot(N, L);
     //float  LdotV = dot(L, V);
 
-    // color and attenuation are outputted  by EvaluateLight: 
+    // color and attenuation are outputted  by EvaluateLight:
     float3 color;
     float attenuation;
     EvaluateLight_Directional(lightLoopContext, posInput, lightData, bakeLightingData, N, L, color, attenuation);
@@ -1542,7 +1542,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     return lighting;
 }
 
-// NEWLITTODO: For a refence rendering option for area light, like LIT_DISPLAY_REFERENCE_AREA option in eg EvaluateBSDF_<area light type> : 
+// NEWLITTODO: For a refence rendering option for area light, like LIT_DISPLAY_REFERENCE_AREA option in eg EvaluateBSDF_<area light type> :
 //#include "LitReference.hlsl"
 
 //-----------------------------------------------------------------------------
@@ -1675,7 +1675,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // Steps are:
 
     // -Calculate influence weights from intersection with the proxies.
-    // Since the weights are influence blending weights, we can correctly 
+    // Since the weights are influence blending weights, we can correctly
     // use our lobe weight and mix them.
     // -Fudge the sampling direction to dampen boundary artefacts.
     // -Do early discard for planar reflections.
@@ -1686,7 +1686,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // (second part of the split-sum approx.,
     //  and common to all Env. Lights. using the same BSDF and
     //  we only have GGX thus only one FGD map for now)
-    // -Multiply the two split sum terms together for each lobe 
+    // -Multiply the two split sum terms together for each lobe
     // and lerp them and/or add them.
 
     // Note: using influenceShapeType and projectionShapeType instead of (lightData|proxyData).shapeType allow to make compiler optimization in case the type is know (like for sky)

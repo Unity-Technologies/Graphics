@@ -264,6 +264,14 @@ CBUFFER_START(UnityPerView)
     float4 _VBufferSliceCount;          // { count, 1/count, 0, 0 }
     float4 _VBufferDepthEncodingParams; // See the call site for description
     float4 _VBufferDepthDecodingParams; // See the call site for description
+
+    // TODO: these are only used for reprojection.
+    // Once reprojection is performed in a separate pass, we should probably
+    // move these to a dedicated CBuffer to avoid polluting the global one.
+    float4 _VBufferPrevResolution;
+    float4 _VBufferPrevSliceCount;
+    float4 _VBufferPrevDepthEncodingParams;
+    float4 _VBufferPrevDepthDecodingParams;
 CBUFFER_END
 
 CBUFFER_START(UnityLightingParameters)
