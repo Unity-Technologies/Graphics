@@ -110,10 +110,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.RegisterCallback<KeyDownEvent>(OnSpaceDown);
                 content.Add(m_GraphView);
 
-                // Uncomment to enable pixel caching profiler
-                // m_ProfilerView = new PixelCacheProfilerView(this);
-                // m_GraphView.Add(m_ProfilerView);
-
                 m_BlackboardProvider = new BlackboardProvider(assetName, graph);
                 m_GraphView.Add(m_BlackboardProvider.blackboard);
                 Rect blackboardLayout = m_BlackboardProvider.blackboard.layout;
@@ -325,9 +321,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 node.UpdatePortInputVisibilities();
 
             UpdateEdgeColors(nodesToUpdate);
-
-            if (m_ProfilerView != null)
-                m_ProfilerView.Profile();
         }
 
         void AddNode(INode node)
@@ -336,7 +329,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_GraphView.AddElement(nodeView);
             nodeView.Initialize(node as AbstractMaterialNode, m_PreviewManager, m_EdgeConnectorListener);
             node.RegisterCallback(OnNodeChanged);
-            nodeView.Dirty(ChangeType.Repaint);
+            nodeView.MarkDirtyRepaint();
 
             if (m_SearchWindowProvider.nodeNeedsRepositioning && m_SearchWindowProvider.targetSlotReference.nodeGuid.Equals(node.guid))
             {
@@ -371,8 +364,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             var drawState = nodeView.node.drawState;
             drawState.position = position;
             nodeView.node.drawState = drawState;
-            nodeView.Dirty(ChangeType.Repaint);
-            port.Dirty(ChangeType.Repaint);
+            nodeView.MarkDirtyRepaint();
+            port.MarkDirtyRepaint();
         }
 
         Edge AddEdge(IEdge edge)
@@ -422,7 +415,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         Stack<MaterialNodeView> m_NodeStack = new Stack<MaterialNodeView>();
-        PixelCacheProfilerView m_ProfilerView;
 
         void UpdateEdgeColors(HashSet<MaterialNodeView> nodeViews)
         {

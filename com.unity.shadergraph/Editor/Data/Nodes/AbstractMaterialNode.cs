@@ -11,6 +11,7 @@ namespace UnityEditor.ShaderGraph
     {
         protected static List<MaterialSlot> s_TempSlots = new List<MaterialSlot>();
         protected static List<IEdge> s_TempEdges = new List<IEdge>();
+        protected static List<PreviewProperty> s_TempPreviewProperties = new List<PreviewProperty>();
 
         public enum OutputPrecision
         {
@@ -131,7 +132,7 @@ namespace UnityEditor.ShaderGraph
         {
             get { return true; }
         }
-        
+
         public virtual bool allowedInMainGraph
         {
             get { return true; }
@@ -158,7 +159,7 @@ namespace UnityEditor.ShaderGraph
             {
                 if (m_NameForDefaultVariableName != name || m_GuidForDefaultVariableName != guid)
                 {
-                    m_DefaultVariableName = string.Format("{0}_{1}", NodeUtils.GetHLSLSafeName(name), GuidEncoder.Encode(guid));
+                    m_DefaultVariableName = string.Format("{0}_{1}", NodeUtils.GetHLSLSafeName(name ?? "node"), GuidEncoder.Encode(guid));
                     m_NameForDefaultVariableName = name;
                     m_GuidForDefaultVariableName = guid;
                 }
@@ -250,10 +251,10 @@ namespace UnityEditor.ShaderGraph
 
             var fromCount = SlotValueHelper.GetChannelCount(from);
             var toCount = SlotValueHelper.GetChannelCount(to);
-            
+
             if (toCount > 0 && fromCount > 0)
                 return true;
-            
+
             return false;
         }
 
@@ -464,16 +465,20 @@ namespace UnityEditor.ShaderGraph
             GetInputSlots(s_TempSlots);
             foreach (var s in s_TempSlots)
             {
+                s_TempPreviewProperties.Clear();
                 s_TempEdges.Clear();
                 owner.GetEdges(s.slotReference, s_TempEdges);
                 if (s_TempEdges.Any())
                     continue;
 
-                var item = s.GetPreviewProperty(GetVariableNameForSlot(s.id));
-                if (item.name == null)
-                    continue;
-
-                properties.Add(item);
+                s.GetPreviewProperties(s_TempPreviewProperties, GetVariableNameForSlot(s.id));
+                for(int i = 0; i < s_TempPreviewProperties.Count; i++)
+                {
+                    if (s_TempPreviewProperties[i].name == null)
+                        continue;
+                    
+                    properties.Add(s_TempPreviewProperties[i]);
+                }
             }
         }
 

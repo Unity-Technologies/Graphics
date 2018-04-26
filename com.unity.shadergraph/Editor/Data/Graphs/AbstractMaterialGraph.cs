@@ -148,6 +148,21 @@ namespace UnityEditor.ShaderGraph
             set { m_PreviewData = value; }
         }
 
+        [SerializeField]
+        string m_Path;
+
+        public string path
+        {
+            get { return m_Path; }
+            set
+            {
+                if (m_Path == value)
+                    return;
+                m_Path = value;
+                owner.RegisterCompleteObjectUndo("Change Path");
+            }
+        }
+
         public void ClearChanges()
         {
             m_AddedNodes.Clear();

@@ -192,6 +192,8 @@ namespace UnityEditor.Graphing
                     return "Texture2D";
                 case ConcreteSlotValueType.Cubemap:
                     return "Cubemap";
+                case ConcreteSlotValueType.Gradient:
+                    return "Gradient";
                 case ConcreteSlotValueType.Matrix2:
                     return p + "2x2";
                 case ConcreteSlotValueType.Matrix3:
@@ -222,11 +224,7 @@ namespace UnityEditor.Graphing
                 return "NAN";
             else
             {
-                decimal amount;
-                if( decimal.TryParse(value.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out amount) )
-                    return amount.ToString();
-                else
-                    return value.ToString();
+                 return value.ToString(CultureInfo.InvariantCulture);
             }
         }
     }
