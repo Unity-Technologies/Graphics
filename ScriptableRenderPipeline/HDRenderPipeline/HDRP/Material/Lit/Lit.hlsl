@@ -13,16 +13,8 @@ TEXTURE2D(_GBufferTexture1);
 TEXTURE2D(_GBufferTexture2);
 TEXTURE2D(_GBufferTexture3);
 
-// Area light textures
-// TODO: This one should be set into a constant Buffer at pass frequency (with _Screensize)
-TEXTURE2D(_PreIntegratedFGD);
-TEXTURE2D_ARRAY(_LtcData); // We pack the 3 Ltc data inside a texture array
-#define LTC_GGX_MATRIX_INDEX 0 // RGBA
-#define LTC_DISNEY_DIFFUSE_MATRIX_INDEX 1 // RGBA
-#define LTC_MULTI_GGX_FRESNEL_DISNEY_DIFFUSE_INDEX 2 // RGB, A unused
-#define LTC_LUT_SIZE   64
-#define LTC_LUT_SCALE  ((LTC_LUT_SIZE - 1) * rcp(LTC_LUT_SIZE))
-#define LTC_LUT_OFFSET (0.5 * rcp(LTC_LUT_SIZE))
+#include "../LTCAreaLight/LTCAreaLight.hlsl"
+#include "../PreIntegratedFGD/PreIntegratedFGD.hlsl"
 
 //-----------------------------------------------------------------------------
 // Definition
@@ -286,31 +278,6 @@ void FillMaterialTransparencyData(float3 baseColor, float metallic, float ior, f
     bsdfData.absorptionCoefficient = TransmittanceColorAtDistanceToAbsorption(transmittanceColor, atDistance);
     bsdfData.transmittanceMask = transmittanceMask;
     bsdfData.thickness = max(thickness, 0.0001);
-}
-
-// For image based lighting, a part of the BSDF is pre-integrated.
-// This is done both for specular and diffuse (in case of DisneyDiffuse)
-void GetPreIntegratedFGD(float NdotV, float perceptualRoughness, float3 fresnel0, out float3 specularFGD, out float diffuseFGD, out float reflectivity)
-{
-    // Pre-integrate GGX FGD
-    // Integral{BSDF * <N,L> dw} =
-    // Integral{(F0 + (1 - F0) * (1 - <V,H>)^5) * (BSDF / F) * <N,L> dw} =
-    // (1 - F0) * Integral{(1 - <V,H>)^5 * (BSDF / F) * <N,L> dw} + F0 * Integral{(BSDF / F) * <N,L> dw}=
-    // (1 - F0) * x + F0 * y = lerp(x, y, F0)
-    // Pre integrate DisneyDiffuse FGD:
-    // z = DisneyDiffuse
-    float3 preFGD = SAMPLE_TEXTURE2D_LOD(_PreIntegratedFGD, s_linear_clamp_sampler, float2(NdotV, perceptualRoughness), 0).xyz;
-
-    specularFGD = lerp(preFGD.xxx, preFGD.yyy, fresnel0);
-
-#ifdef LIT_DIFFUSE_LAMBERT_BRDF
-    diffuseFGD = 1.0;
-#else
-    // Remap from the [0, 1] to the [0.5, 1.5] range.
-    diffuseFGD = preFGD.z + 0.5;
-#endif
-
-    reflectivity = preFGD.y;
 }
 
 // This function is use to help with debugging and must be implemented by any lit material
@@ -960,8 +927,11 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     // IBL
 
     // Handle IBL +  multiscattering
-    float reflectivity;
-    GetPreIntegratedFGD(NdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, reflectivity);
+    float specularReflectivity;
+    GetPreIntegratedFGDGGXAndDisneyDiffuse(NdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, specularReflectivity);
+#ifdef LIT_DIFFUSE_LAMBERT_BRDF
+    preLightData.diffuseFGD = 1.0;
+#endif
 
     iblR = reflect(-V, iblN);
     // This is a ad-hoc tweak to better match reference of anisotropic GGX.
@@ -977,7 +947,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     // We deem the intensity difference of a couple of percent for high values of roughness
     // to not be worth the cost of another precomputed table.
     // Note: this formulation bakes the BSDF non-symmetric!
-    preLightData.energyCompensation = 1.0 / reflectivity - 1.0;
+    preLightData.energyCompensation = 1.0 / specularReflectivity - 1.0;
 #else
     preLightData.energyCompensation = 0.0;
 #endif // LIT_USE_GGX_ENERGY_COMPENSATION
@@ -1858,9 +1828,9 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
             UpdateLightingHierarchyWeights(hierarchyWeight, weight); // Shouldn't be needed, but safer in case we decide to change hierarchy priority
 
             float3 preLD = SAMPLE_TEXTURE2D_LOD(
-                _ColorPyramidTexture, 
-                s_trilinear_clamp_sampler, 
-                hit.positionNDC * _ColorPyramidScale.xy, 
+                _ColorPyramidTexture,
+                s_trilinear_clamp_sampler,
+                hit.positionNDC * _ColorPyramidScale.xy,
                 preLightData.transparentSSMipLevel
             ).rgb;
 
@@ -1945,10 +1915,6 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float roughness = PerceptualRoughnessToRoughness(preLightData.iblPerceptualRoughness);
     R = lerp(R, preLightData.iblR, saturate(smoothstep(0, 1, roughness * roughness)));
 
-    float3 sampleDirectionDiscardWS = lightData.sampleDirectionDiscardWS;
-    if (dot(sampleDirectionDiscardWS, R) < 0) // Use by planar reflection to early reject opposite plan reflection, neutral for reflection probe
-        return lighting;
-
     float3 F = preLightData.specularFGD;
     float iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness);
 
@@ -2028,7 +1994,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     diffuseLighting = modifiedDiffuseColor * lighting.direct.diffuse + bakeDiffuseLighting;
 
     // If refraction is enable we use the transmittanceMask to lerp between current diffuse lighting and refraction value
-    // Physically speaking, it should be transmittanceMask should be 1, but for artistic reasons, we let the value vary
+    // Physically speaking, transmittanceMask should be 1, but for artistic reasons, we let the value vary
 #if HAS_REFRACTION
     diffuseLighting = lerp(diffuseLighting, lighting.indirect.specularTransmitted, bsdfData.transmittanceMask);
 #endif
@@ -2038,7 +2004,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     specularLighting *= 1.0 + bsdfData.fresnel0 * preLightData.energyCompensation;
 
 #ifdef DEBUG_DISPLAY
- 
+
     if (_DebugLightingMode != 0)
     {
         specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting

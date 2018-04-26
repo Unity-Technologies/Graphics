@@ -78,7 +78,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 return new ReflectionSystemParameters
                 {
-                    maxPlanarReflectionProbes = renderPipelineSettings.lightLoopSettings.maxPlanarReflectionProbes,
+                    maxPlanarReflectionProbes = renderPipelineSettings.lightLoopSettings.planarReflectionProbeCacheSize,
                     planarReflectionProbeSize = renderPipelineSettings.lightLoopSettings.planarReflectionTextureSize
                 };
             }
@@ -92,6 +92,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             return renderPipelineSettings;
         }
+
+        public bool allowShaderVariantStripping = true;
 
         [SerializeField]
         public DiffusionProfileSettings diffusionProfileSettings;

@@ -48,19 +48,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void RenderDepthPyramid(
             int width, int height,
             CommandBuffer cmd,
-            RTHandle sourceTexture,
-            RTHandle targetTexture,
-            List<RTHandle> mips,
+            RTHandleSystem.RTHandle sourceTexture,
+            RTHandleSystem.RTHandle targetTexture,
+            List<RTHandleSystem.RTHandle> mips,
             int lodCount,
             Vector2 scale
         )
         {
             m_GPUCopy.SampleCopyChannel_xyzw2x(cmd, sourceTexture, targetTexture, new RectInt(0, 0, width, height));
 
-            RTHandle src = targetTexture;
+            var src = targetTexture;
             for (var i = 0; i < lodCount; i++)
             {
-                RTHandle dest = mips[i];
+                var dest = mips[i];
 
                 var srcMip = new RectInt(0, 0, width >> i, height >> i);
                 var dstMip = new RectInt(0, 0, srcMip.width >> 1, srcMip.height >> 1);
@@ -90,7 +90,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeTextureParam(m_DepthPyramidCS, kernel, _Result, dest);
                 cmd.SetComputeVectorParam(m_DepthPyramidCS, _SrcSize, new Vector4(
                     srcWorkMip.width, srcWorkMip.height,
-                    (1.0f / srcWorkMip.width) * scale.x, (1.0f / srcWorkMip.height) * scale.y)
+                    (1.0f / srcMip.width) * scale.x, (1.0f / srcMip.height) * scale.y)
                 );
 
                 cmd.DispatchCompute(
@@ -101,8 +101,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     1
                 );
 
-                var dstMipWidthToCopy = Mathf.Min(dest.rt.width, dstWorkMip.width);
-                var dstMipHeightToCopy = Mathf.Min(dest.rt.height, dstWorkMip.height);
+                var dstMipWidthToCopy = Mathf.Min(targetTexture.rt.width >> (i + 1), dstWorkMip.width);
+                var dstMipHeightToCopy = Mathf.Min(targetTexture.rt.height >> (i + 1), dstWorkMip.height);
 
                 // If we could bind texture mips as UAV we could avoid this copy...(which moreover copies more than the needed viewport if not fullscreen)
                 cmd.CopyTexture(mips[i], 0, 0, 0, 0, dstMipWidthToCopy, dstMipHeightToCopy, targetTexture, 0, i + 1, 0, 0);
@@ -113,9 +113,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void RenderColorPyramid(
             HDCamera hdCamera,
             CommandBuffer cmd,
-            RTHandle sourceTexture,
-            RTHandle targetTexture,
-            List<RTHandle> mips,
+            RTHandleSystem.RTHandle sourceTexture,
+            RTHandleSystem.RTHandle targetTexture,
+            List<RTHandleSystem.RTHandle> mips,
             int lodCount,
             Vector2 scale
         )
@@ -189,7 +189,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var dest = mips[i];
 
                 var srcMip = new RectInt(0, 0, srcRect.width >> i, srcRect.height >> i);
-                //var dstMip = new RectInt(0, 0, srcMip.width >> 1, srcMip.height >> 1);
                 var srcWorkMip = new RectInt(
                     0,
                     0,
@@ -218,8 +217,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     1
                 );
 
-                var dstMipWidthToCopy = Mathf.Min(dest.width, dstWorkMip.width);
-                var dstMipHeightToCopy = Mathf.Min(dest.height, dstWorkMip.height);
+                var dstMipWidthToCopy = Mathf.Min(targetTexture.width >> (i + 1), dstWorkMip.width);
+                var dstMipHeightToCopy = Mathf.Min(targetTexture.height >> (i + 1), dstWorkMip.height);
 
                 // If we could bind texture mips as UAV we could avoid this copy...(which moreover copies more than the needed viewport if not fullscreen)
                 cmd.CopyTexture(
