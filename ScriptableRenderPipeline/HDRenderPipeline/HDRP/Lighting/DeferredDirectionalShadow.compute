@@ -1,4 +1,4 @@
-﻿// Each #kernel tells which function to compile; you can have many kernels
+// Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel DeferredDirectionalShadow				    DEFERRED_DIRECTIONAL=DeferredDirectionalShadow
 #pragma kernel DeferredDirectionalShadow_Contact		    DEFERRED_DIRECTIONAL=DeferredDirectionalShadow_Contact	        ENABLE_CONTACT_SHADOWS
 #pragma kernel DeferredDirectionalShadow_Normals		    DEFERRED_DIRECTIONAL=DeferredDirectionalShadow_Normals          ENABLE_NORMALS
@@ -20,7 +20,7 @@
 #include "../ShaderVariables.hlsl"
 #include "Lighting.hlsl" 
 
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 //#pragma enable_d3d11_debug_symbols
 
