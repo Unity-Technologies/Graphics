@@ -1,11 +1,13 @@
 using System;
+using System.Linq;
 using UnityEngine;
 using UnityEditor.VFX;
+using System.Collections.Generic;
 
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Clamp", experimental = true)]
-    class ClampNew : VFXOperatorNumericUniformNew
+    class ClampNew : VFXOperatorNumericUnifiedNew, IVFXOperatorNumericUnifiedConstrained
     {
         public class InputProperties
         {
@@ -18,6 +20,22 @@ namespace UnityEditor.VFX.Operator
         }
 
         public override sealed string name { get { return "ClampNew"; } }
+
+        public IEnumerable<int> strictSameTypeSlotIndex
+        {
+            get
+            {
+                return Enumerable.Range(0, 3);
+            }
+        }
+
+        public IEnumerable<int> allowExceptionalScalarSlotIndex
+        {
+            get
+            {
+                return Enumerable.Range(1, 2);
+            }
+        }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

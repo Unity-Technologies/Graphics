@@ -84,16 +84,22 @@ namespace UnityEditor.VFX
         [Flags]
         protected enum ValidTypeRule
         {
-            allowVectorType = 1 << 1,
-            allowOneDimensionType = 1 << 2,
-            allowInteger = 1 << 3,
+            allowVector4Type = 1 << 1,
+            allowVector3Type = 1 << 2,
+            allowVector2Type = 1 << 3,
+            allowOneDimensionType = 1 << 4,
+            allowInteger = 1 << 5,
+            allowVectorType = allowVector4Type | allowVector3Type | allowVector2Type,
 
             allowEverything = allowVectorType | allowOneDimensionType | allowInteger,
             allowEverythingExceptInteger = allowEverything & ~allowInteger,
+            allowEverythingExceptIntegerAndVector4 = allowEverything & ~(allowInteger | allowVector4Type),
             allowEverythingExceptOneDimension = allowEverything & ~allowOneDimensionType
         };
 
-        private static readonly Type[] kVectorType = new Type[] { typeof(Vector4), typeof(Vector3), typeof(Vector2) };
+        private static readonly Type[] kVector4Type = new Type[] { typeof(Vector4) };
+        private static readonly Type[] kVector3Type = new Type[] { typeof(Vector3) };
+        private static readonly Type[] kVector2Type = new Type[] { typeof(Vector2) };
         private static readonly Type[] kOneDimensionType = new Type[] { typeof(float), typeof(uint), typeof(int) };
         private static readonly Type[] kIntegerType = new Type[] { typeof(uint), typeof(int) };
 
@@ -105,7 +111,13 @@ namespace UnityEditor.VFX
             {
                 IEnumerable<Type> types = kExpectedTypeOrdering;
                 if ((typeFilter & ValidTypeRule.allowVectorType) != ValidTypeRule.allowVectorType)
-                    types = types.Except(kVectorType);
+                    types = types.Except(kVector4Type);
+
+                if ((typeFilter & ValidTypeRule.allowVector3Type) != ValidTypeRule.allowVector3Type)
+                    types = types.Except(kVector3Type);
+
+                if ((typeFilter & ValidTypeRule.allowVector2Type) != ValidTypeRule.allowVector2Type)
+                    types = types.Except(kVector3Type);
 
                 if ((typeFilter & ValidTypeRule.allowOneDimensionType) != ValidTypeRule.allowOneDimensionType)
                     types = types.Except(kOneDimensionType);
