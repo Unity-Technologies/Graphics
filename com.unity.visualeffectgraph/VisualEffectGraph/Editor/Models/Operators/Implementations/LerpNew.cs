@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
@@ -22,12 +23,9 @@ namespace UnityEditor.VFX.Operator
         {
             get
             {
-                yield return 0;
-                yield return 1;
-                yield return 2;
+                return Enumerable.Range(0, 3);
             }
         }
-
         public IEnumerable<int> allowExceptionalScalarSlotIndex
         {
             get
@@ -35,6 +33,7 @@ namespace UnityEditor.VFX.Operator
                 yield return 2;
             }
         }
+
 
         protected override sealed ValidTypeRule typeFilter { get { return ValidTypeRule.allowEverythingExceptInteger; } }
 

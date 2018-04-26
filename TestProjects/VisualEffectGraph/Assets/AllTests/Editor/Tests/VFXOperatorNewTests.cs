@@ -155,7 +155,9 @@ namespace UnityEditor.VFX.Test
         public void ClampNewBehavior()
         {
             var clamp = ScriptableObject.CreateInstance<Operator.ClampNew>();
-            clamp.SetOperandType(typeof(int));
+            clamp.SetOperandType(0, typeof(int));
+            clamp.SetOperandType(1, typeof(int));
+            clamp.SetOperandType(2, typeof(int));
             Assert.AreEqual(VFXValueType.Int32, clamp.outputSlots[0].GetExpression().valueType);
 
             clamp.inputSlots[0].value = -6;
