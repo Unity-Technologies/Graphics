@@ -6,6 +6,8 @@
 
 The settings on master nodes now live in a small window that you can toggle on and off. The settings menu allows you to change various rendering settings for your shader.
 
-### Bug fixes
+### Bug fixes and minor changes
 
-- Fixed an issue where vector 1 node was not evaluating properly. (#334 and #337)
+- Fixed an issue where vector 1 node was not evaluating properly. ([#334](https://github.com/Unity-Technologies/ShaderGraph/issues/334) and [#337](https://github.com/Unity-Technologies/ShaderGraph/issues/337))
+- Properties can now be copied and pasted.
+- Pasting a property node into another graph will now convert it to a concrete node. ([#300](https://github.com/Unity-Technologies/ShaderGraph/issues/300))
