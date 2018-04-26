@@ -125,8 +125,8 @@ namespace UnityEditor.VFX.Block
                 {
                     if ((param.name == "Value" || param.name == "Min" || param.name == "Max") && Source == ValueSource.Source)
                         continue;
-                    else
-                        yield return param;
+
+                    yield return param;
                 }
 
                 if (Source == ValueSource.Source)

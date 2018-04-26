@@ -53,17 +53,18 @@ namespace UnityEditor.VFX
         public override void Sanitize()
         {
             var newBlock = ScriptableObject.CreateInstance<VFXSpawnerBurst>();
-            newBlock.Repeat = VFXSpawnerBurst.RepeatMode.Single;
+            newBlock.SetSettingValue("repeat", VFXSpawnerBurst.RepeatMode.Single);
+
 
             if(advanced)
             {
-                newBlock.SpawnMode = VFXSpawnerBurst.RandomMode.Random;
-                newBlock.DelayMode = VFXSpawnerBurst.RandomMode.Random;
+                newBlock.SetSettingValue("spawnMode", VFXSpawnerBurst.RandomMode.Random);
+                newBlock.SetSettingValue("delayMode", VFXSpawnerBurst.RandomMode.Random);
             }
             else
             {
-                newBlock.SpawnMode = VFXSpawnerBurst.RandomMode.Constant;
-                newBlock.DelayMode = VFXSpawnerBurst.RandomMode.Constant;
+                newBlock.SetSettingValue("spawnMode", VFXSpawnerBurst.RandomMode.Constant);
+                newBlock.SetSettingValue("delayMode", VFXSpawnerBurst.RandomMode.Constant);
             }
 
             // Count

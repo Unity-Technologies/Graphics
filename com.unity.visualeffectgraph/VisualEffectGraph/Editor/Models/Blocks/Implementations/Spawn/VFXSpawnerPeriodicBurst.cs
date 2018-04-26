@@ -18,9 +18,9 @@ namespace UnityEditor.VFX
         public override void Sanitize()
         {
             var newBlock = ScriptableObject.CreateInstance<VFXSpawnerBurst>();
-            newBlock.Repeat = VFXSpawnerBurst.RepeatMode.Periodic;
-            newBlock.DelayMode = VFXSpawnerBurst.RandomMode.Random;
-            newBlock.SpawnMode = VFXSpawnerBurst.RandomMode.Random;
+            newBlock.SetSettingValue("repeat", VFXSpawnerBurst.RepeatMode.Periodic);
+            newBlock.SetSettingValue("delayMode", VFXSpawnerBurst.RandomMode.Random);
+            newBlock.SetSettingValue("spawnMode", VFXSpawnerBurst.RandomMode.Random);
 
             VFXSlot.TransferLinksAndValue(newBlock.GetInputSlot(0), GetInputSlot(0), true);
             VFXSlot.TransferLinksAndValue(newBlock.GetInputSlot(1), GetInputSlot(1), true);

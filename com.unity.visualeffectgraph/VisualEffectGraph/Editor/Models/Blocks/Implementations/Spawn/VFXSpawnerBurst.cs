@@ -14,7 +14,7 @@ namespace UnityEditor.VFX
             {
                 return new Dictionary<string, object[]>
                 {
-                    { "repeat", new object[] { VFXSpawnerBurst.RepeatMode.Single, VFXSpawnerBurst.RepeatMode.Periodic } }
+                    { "repeat", Enum.GetValues(typeof(VFXSpawnerBurst.RepeatMode)).Cast<object>().ToArray() }
                 };
             }
         }
@@ -34,10 +34,6 @@ namespace UnityEditor.VFX
             Constant,
             Random,
         }
-
-        public RepeatMode Repeat { get { return repeat; } set { repeat = value; Invalidate(InvalidationCause.kSettingChanged); } }
-        public RandomMode SpawnMode { get { return spawnMode; } set { spawnMode = value; Invalidate(InvalidationCause.kSettingChanged); } }
-        public RandomMode DelayMode { get { return delayMode; } set { delayMode = value; Invalidate(InvalidationCause.kSettingChanged); } }
 
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
@@ -95,8 +91,8 @@ namespace UnityEditor.VFX
                 var namedExpressions = GetExpressionsFromSlots(this);
 
                 // Map Expressions based on Task Type (TODO: Fix names on C++ side)
-                string countName = Repeat == RepeatMode.Periodic ? "nb" : "Count";
-                string delayName = Repeat == RepeatMode.Periodic ? "period" : "Delay";
+                string countName = repeat == RepeatMode.Periodic ? "nb" : "Count";
+                string delayName = repeat == RepeatMode.Periodic ? "period" : "Delay";
 
                 // Process Counts
                 var countExp = namedExpressions.First(e => e.name == "Count").exp;
