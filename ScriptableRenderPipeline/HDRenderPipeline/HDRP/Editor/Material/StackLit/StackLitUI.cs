@@ -46,6 +46,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string k_EmissiveIntensity = "_EmissiveIntensity";
         protected const string k_AlbedoAffectEmissive = "_AlbedoAffectEmissive";
 
+        // Coat
+        protected const string k_CoatEnable = "_CoatEnable";
+        protected const string k_CoatSmoothness = "_CoatSmoothness";
+        protected const string k_CoatIor = "_CoatIor";
+        protected const string k_CoatThickness = "_CoatThickness";
+        protected const string k_CoatExtinction = "_CoatExtinction";
+
         // SSS
         protected const string k_DiffusionProfile = "_DiffusionProfile";
         protected const string k_SubsurfaceMask = "_SubsurfaceMask";
@@ -72,6 +79,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string k_Smoothness2Range = "_SmoothnessBRange";
 
         protected const string k_LobeMix = "_LobeMix";
+
+        // Anisotropy 
+        protected const string k_Anisotropy = "_Anisotropy";
 
         //// transparency params
         //protected MaterialProperty transmissionEnable = null;
@@ -125,12 +135,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     new Property(this, k_AlbedoAffectEmissive, "Albedo Affect Emissive", "Specifies whether or not the emissive color is multiplied by the albedo.", false),
                 }),
 
-                //new GroupProperty(this, "_Coat", "Coat", new BaseProperty[]
-                //{
-                //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "SmoothnessCoat", "smoothnessCoat", false, false),
-                //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Index Of Refraction", "iorCoat", false, false),
-                //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Normal", "normal Coat", false, false),
-                //}),
+                new GroupProperty(this, "_Coat", "Coat", new BaseProperty[]
+                {
+                    new Property(this, "_CoatEnable", "Coat Enable", "Enable coat layer with true vertical physically based BSDF mixing", false),
+                    new Property(this, "_CoatSmoothness", "Coat Smoothness", "Top layer smoothness", false),
+                    new Property(this, "_CoatIor", "Coat IOR", "Index of refraction", false),
+                    new Property(this, "_CoatThickness", "Coat Thickness", "Coat thickness", false),
+                    new Property(this, "_CoatExtinction", "Coat Absorption", "Coat absorption tint (the thicker the coat, the more that color is removed)", false),
+                }),
 
                 new GroupProperty(this, "_SSS", "Sub-Surface Scattering", new BaseProperty[]
                 {
@@ -144,12 +156,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     new Property(this, k_LobeMix, "Lobe Mix", "Lobe Mix", false),
                 }),
 
-                //new GroupProperty(this, "_Anisotropy", "Anisotropy", new BaseProperty[]
-                //{
-                //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Anisotropy Strength", "anisotropy strength", false),
-                //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Rotation", "rotation", false),
-                //    new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Tangent", "tangent", false),
-                //}),
+                new GroupProperty(this, "_Anisotropy", "Anisotropy", new BaseProperty[]
+                {
+                    new Property(this, k_Anisotropy, "Anisotropy", "Anisotropy of base layer", false),
+                }),
 
                 new GroupProperty(this, "_Transmission", "Transmission", new BaseProperty[]
                 {
@@ -337,6 +347,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             //CoreUtils.SetKeyword(material, "_USE_UV2", requireUv2);
             //CoreUtils.SetKeyword(material, "_USE_UV3", requireUv3);
             CoreUtils.SetKeyword(material, "_USE_TRIPLANAR", requireTriplanar);
+
+            bool clearCoatEnabled = material.HasProperty(k_CoatEnable) && (material.GetFloat(k_CoatEnable) > 0.0f);
+            bool anisotropyEnabled = material.HasProperty(k_Anisotropy) && (material.GetFloat(k_Anisotropy) != 0.0f);
+            // TODO: When we have a map, also test for map for enable. (This scheme doesn't allow enabling from
+            // neutral value though, better to still have flag and uncheck it in UI code when reach neutral
+            // value and re-enable otherwise).
+
+            // Note that we don't use the materialId (cf Lit.shader) mechanism in the UI 
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_ANISOTROPY", anisotropyEnabled);
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_CLEAR_COAT", clearCoatEnabled);
+
         }
     }
 } // namespace UnityEditor
