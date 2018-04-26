@@ -53,6 +53,8 @@ Shader "HDRenderPipeline/StackLit"
         [HideInInspector] _NormalMapShow("NormalMap Show", Float) = 0.0
         _NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
         _NormalMapUV("NormalMapUV", Float) = 0.0
+        _NormalMapUVLocal("NormalMapUV Local", Float) = 0.0
+        _NormalMapObjSpace("NormalMapUV Local", Float) = 0.0
         _NormalScale("Normal Scale", Range(0.0, 2.0)) = 1
 
         [HideInInspector] _EmissiveColorMapShow("Emissive Color Map Show", Float) = 0.0
