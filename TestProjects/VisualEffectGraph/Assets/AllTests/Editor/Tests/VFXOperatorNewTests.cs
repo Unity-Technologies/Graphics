@@ -191,13 +191,12 @@ namespace UnityEditor.VFX.Test
         public void DotProductNewBehavior()
         {
             var dot = ScriptableObject.CreateInstance<Operator.DotProductNew>();
-            dot.SetOperandType(0, typeof(Vector2));
-            dot.SetOperandType(1, typeof(Vector3));
+            dot.SetOperandType(typeof(Vector2));
 
             Assert.AreEqual(VFXValueType.Float, dot.outputSlots[0].GetExpression().valueType);
 
             var a = new Vector2(6, 7);
-            var b = new Vector3(2, 3, 4);
+            var b = new Vector3(2, 3);
 
             dot.inputSlots[0].value = a;
             dot.inputSlots[1].value = b;
@@ -206,7 +205,7 @@ namespace UnityEditor.VFX.Test
             var result = context.Compile(dot.outputSlots[0].GetExpression());
             var final = result.Get<float>();
 
-            Assert.AreEqual(Vector3.Dot(b, new Vector3(a.x, a.y, 0)), final);
+            Assert.AreEqual(Vector3.Dot(a, b), final);
         }
 
         [Test]
