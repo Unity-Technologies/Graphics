@@ -479,7 +479,8 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     // The sign of the Z component of the normal MUST round-trip through the G-Buffer, otherwise
     // the reconstruction of the tangent frame for anisotropic GGX creates a seam along the Z axis.
     // The constant was eye-balled to not cause artifacts.
-    // TODO: find a proper solution.
+    // TODO: find a proper solution. E.g. we could re-shuffle the faces of the octahedron
+    // s.t. the sign of the Z component round-trips.
     const float seamThreshold = 1.0/1024.0;
     surfaceData.normalWS.z = CopySign(max(seamThreshold, abs(surfaceData.normalWS.z)), surfaceData.normalWS.z);
 
