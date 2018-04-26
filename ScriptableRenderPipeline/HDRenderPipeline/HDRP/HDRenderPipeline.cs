@@ -195,7 +195,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             m_Asset = asset;
+
+            // Initial state of the RTHandle system.
+            // Tells the system that we will require MSAA or not so that we can avoid wasteful render texture allocation.
+            // TODO: Might want to initialize to at least the window resolution to avoid un-necessary re-alloc in the player
+            RTHandles.Initialize(1, 1, m_Asset.renderPipelineSettings.supportMSAA, m_Asset.renderPipelineSettings.msaaSampleCount);
+
             m_GPUCopy = new GPUCopy(asset.renderPipelineResources.copyChannelCS);
+
             var bufferPyramidProcessor = new BufferPyramidProcessor(
                 asset.renderPipelineResources.colorPyramidCS,
                 asset.renderPipelineResources.depthPyramidCS,
@@ -269,11 +276,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void InitializeRenderTextures()
         {
-            // Initial state of the RTHandle system.
-            // Tells the system that we will require MSAA or not so that we can avoid wasteful render texture allocation.
-            // TODO: Might want to initialize to at least the window resolution to avoid un-necessary re-alloc in the player
-            RTHandles.Initialize(1, 1, m_Asset.renderPipelineSettings.supportMSAA, m_Asset.renderPipelineSettings.msaaSampleCount);
-
             if(!m_Asset.renderPipelineSettings.supportForwardOnly)
                 m_GbufferManager.CreateBuffers();
 
@@ -309,6 +311,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // TODO: For MSAA, we'll need to add a Draw path in order to support MSAA properly
             m_DeferredShadowBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGB32, sRGB: false, enableRandomWrite: true, name: "DeferredShadow");
+
+            m_VolumetricLightingSystem.CreateBuffers();
 
             if (Debug.isDebugBuild)
             {

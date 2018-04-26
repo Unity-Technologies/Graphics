@@ -260,37 +260,80 @@ public class VolumetricLightingSystem
     static ComputeBuffer    s_VisibleVolumeBoundsBuffer = null;
     static ComputeBuffer    s_VisibleVolumeDataBuffer   = null;
 
+    // These two buffers do not depend on the frameID and are therefore shared by all views.
+    RTHandleSystem.RTHandle m_DensityBufferHandle;
+    RTHandleSystem.RTHandle m_LightingBufferHandle;
+
     public void Build(HDRenderPipelineAsset asset)
     {
         if (preset == VolumetricLightingPreset.Off) return;
 
-        m_VolumeVoxelizationCS      = asset.renderPipelineResources.volumeVoxelizationCS;
-        m_VolumetricLightingCS      = asset.renderPipelineResources.volumetricLightingCS;
+        m_VolumeVoxelizationCS = asset.renderPipelineResources.volumeVoxelizationCS;
+        m_VolumetricLightingCS = asset.renderPipelineResources.volumetricLightingCS;
+    }
+
+    public void CreateBuffers()
+    {
+        if (preset == VolumetricLightingPreset.Off) return;
+
+        Debug.Assert(m_VolumetricLightingCS != null);
+
         m_VBuffers                  = new List<VBuffer>();
         m_VisibleVolumeBounds       = new List<OrientedBBox>();
         m_VisibleVolumeData         = new List<DensityVolumeData>();
         s_VisibleVolumeBoundsBuffer = new ComputeBuffer(k_MaxVisibleVolumeCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(OrientedBBox)));
         s_VisibleVolumeDataBuffer   = new ComputeBuffer(k_MaxVisibleVolumeCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DensityVolumeData)));
+
+        int tileSize = ComputeVBufferTileSize(preset);
+        int depth    = ComputeVBufferSliceCount(preset);
+
+        m_DensityBufferHandle = RTHandles.Alloc(scaleFunc: size => new Vector2Int((size.x + (tileSize - 1)) / tileSize, (size.y + (tileSize - 1)) / tileSize),
+                                                slices:            depth,
+                                                dimension:         TextureDimension.Tex3D,
+                                                colorFormat:       RenderTextureFormat.ARGBHalf,
+                                                sRGB:              false,
+                                                enableRandomWrite: true,
+                                                enableMSAA:        false,
+                                                /* useDynamicScale: true, // <- TODO */
+                                                name:              "VBufferDensity");
+
+        m_LightingBufferHandle = RTHandles.Alloc(scaleFunc: size => new Vector2Int((size.x + (tileSize - 1)) / tileSize, (size.y + (tileSize - 1)) / tileSize),
+                                                 slices:            depth,
+                                                 dimension:         TextureDimension.Tex3D,
+                                                 colorFormat:       RenderTextureFormat.ARGBHalf,
+                                                 sRGB:              false,
+                                                 enableRandomWrite: true,
+                                                 enableMSAA:        false,
+                                                 /* useDynamicScale: true, // <- TODO */
+                                                 name:              "VBufferIntegral");
+    }
+
+    public void DestroyBuffers()
+    {
+        for (int i = 0, n = m_VBuffers.Count; i < n; i++)
+        {
+            m_VBuffers[i].Destroy();
+        }
+
+        RTHandles.Release(m_DensityBufferHandle);
+        RTHandles.Release(m_LightingBufferHandle);
+
+        CoreUtils.SafeRelease(s_VisibleVolumeBoundsBuffer);
+        CoreUtils.SafeRelease(s_VisibleVolumeDataBuffer);
+
+        m_VBuffers            = null;
+        m_VisibleVolumeBounds = null;
+        m_VisibleVolumeData   = null;
     }
 
     public void Cleanup()
     {
         if (preset == VolumetricLightingPreset.Off) return;
 
+        DestroyBuffers();
+
         m_VolumeVoxelizationCS = null;
         m_VolumetricLightingCS = null;
-
-        for (int i = 0, n = m_VBuffers.Count; i < n; i++)
-        {
-            m_VBuffers[i].Destroy();
-        }
-
-        m_VBuffers            = null;
-        m_VisibleVolumeBounds = null;
-        m_VisibleVolumeData   = null;
-
-        CoreUtils.SafeRelease(s_VisibleVolumeBoundsBuffer);
-        CoreUtils.SafeRelease(s_VisibleVolumeDataBuffer);
     }
 
     public void ResizeVBufferAndUpdateProperties(HDCamera camera, uint frameIndex)
@@ -511,7 +554,7 @@ public class VolumetricLightingSystem
         cmd.SetGlobalVector( HDShaderIDs._VBufferPrevSliceCount,          prevFrameParams.sliceCount);
         cmd.SetGlobalVector( HDShaderIDs._VBufferPrevDepthEncodingParams, prevFrameParams.depthEncodingParams);
         cmd.SetGlobalVector( HDShaderIDs._VBufferPrevDepthDecodingParams, prevFrameParams.depthDecodingParams);
-        cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting,                vBuffer.GetLightingIntegralBuffer());
+        cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting,                m_LightingBufferHandle);
     }
 
     public DensityVolumeList PrepareVisibleDensityVolumeList(HDCamera camera, CommandBuffer cmd)
@@ -553,6 +596,8 @@ public class VolumetricLightingSystem
                 obb.center -= camOffset;
 
                 // Frustum cull on the CPU for now. TODO: do it on the GPU.
+                // TODO: account for custom near and far planes of the V-Buffer's frustum.
+                // It's typically much shorter (along the Z axis) than the camera's frustum.
                 if (GeometryUtils.Overlap(obb, camera.frustum, 6, 8))
                 {
                     // TODO: cache these?
@@ -611,7 +656,7 @@ public class VolumetricLightingSystem
             // Compose the matrix which allows us to compute the world space view direction.
             Matrix4x4 transform   = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, resolution, camera.viewMatrix, false);
 
-            cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VBufferDensity, vBuffer.GetDensityBuffer());
+            cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VBufferDensity, m_DensityBufferHandle);
             cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeBounds,   s_VisibleVolumeBoundsBuffer);
             cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeData,     s_VisibleVolumeDataBuffer);
 
@@ -732,12 +777,12 @@ public class VolumetricLightingSystem
             cmd.SetComputeMatrixParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferCoordToViewDirWS, transform);
             cmd.SetComputeVectorParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferSampleOffset,     offset);
             cmd.SetComputeFloatParam(  m_VolumetricLightingCS,         HDShaderIDs._CornetteShanksConstant,  CornetteShanksPhasePartConstant(fog.anisotropy));
-            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferDensity,          vBuffer.GetDensityBuffer());          // Read
-            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingIntegral, vBuffer.GetLightingIntegralBuffer()); // Write
+            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferDensity,          m_DensityBufferHandle);  // Read
+            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingIntegral, m_LightingBufferHandle); // Write
             if (enableReprojection)
             {
-            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingFeedback, vBuffer.GetLightingFeedbackBuffer(frameIndex)); // Write
             cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingHistory,  vBuffer.GetLightingHistoryBuffer(frameIndex));  // Read
+            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingFeedback, vBuffer.GetLightingFeedbackBuffer(frameIndex)); // Write
             }
 
             int w = (int)resolution.x;
