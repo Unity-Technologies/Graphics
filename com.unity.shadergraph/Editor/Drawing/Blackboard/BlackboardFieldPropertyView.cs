@@ -12,6 +12,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public BlackboardFieldPropertyView(AbstractMaterialGraph graph, IShaderProperty property)
         {
+            AddStyleSheetPath("Styles/ShaderGraphBlackboard");
             m_Graph = graph;
             if (property is Vector1ShaderProperty)
             {
