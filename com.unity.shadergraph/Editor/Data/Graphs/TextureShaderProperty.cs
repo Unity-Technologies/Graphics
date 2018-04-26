@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using UnityEditor.Graphing;
 using UnityEngine;
@@ -71,6 +71,14 @@ namespace UnityEditor.ShaderGraph
         public override INode ToConcreteNode()
         {
             return new Texture2DAssetNode { texture = value.texture };
+        }
+
+        public override IShaderProperty Copy()
+        {
+            var copied = new TextureShaderProperty();
+            copied.displayName = displayName;
+            copied.value = value;
+            return copied;
         }
     }
 }

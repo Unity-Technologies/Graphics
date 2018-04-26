@@ -72,5 +72,13 @@ namespace UnityEditor.ShaderGraph
         {
             return new CubemapAssetNode { cubemap = value.cubemap };
         }
+
+        public override IShaderProperty Copy()
+        {
+            var copied = new CubemapShaderProperty();
+            copied.displayName = displayName;
+            copied.value = value;
+            return copied;
+        }
     }
 }

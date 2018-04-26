@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor.Graphing;
+using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -95,6 +96,7 @@ namespace UnityEditor.ShaderGraph
                 if (slot != null)
                     slots.Add(slot);
             }
+
             GraphUtil.GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, slots, true);
 
             var usedSlots = new List<MaterialSlot>();
@@ -147,8 +149,8 @@ namespace UnityEditor.ShaderGraph
             foreach (var slot in usedSlots)
             {
                 surfaceOutputRemap.AddShaderChunk(slot.shaderOutputName
-                                                  + " = surf."
-                                                  + slot.shaderOutputName + ";", true);
+                    + " = surf."
+                    + slot.shaderOutputName + ";", true);
             }
 
             if (!File.Exists(templateLocation))

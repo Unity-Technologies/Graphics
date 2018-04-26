@@ -403,35 +403,22 @@ namespace UnityEditor.ShaderGraph
         public string SanitizePropertyName(string displayName, Guid guid = default(Guid))
         {
             displayName = displayName.Trim();
-            if (m_Properties.Any(p => p.displayName == displayName && p.guid != guid))
-            {
-                // Strip out the " (n)" part of the name.
-                var baseRegex = new Regex(@"^(.*) \((\d+)\)$");
-                var baseMatch = baseRegex.Match(displayName);
-                if (baseMatch.Success)
-                    displayName = baseMatch.Groups[1].Value;
+            return GraphUtil.SanitizeName(m_Properties.Where(p => p.guid != guid).Select(p => p.displayName), "{0} ({1})", displayName);
+        }
 
-                var regex = new Regex(@"^" + Regex.Escape(displayName) + @" \((\d+)\)$");
-                var existingDuplicateNumbers = m_Properties.Where(p => p.guid != guid).Select(p => regex.Match(p.displayName)).Where(m => m.Success).Select(m => int.Parse(m.Groups[1].Value)).Where(n => n > 0).Distinct().ToList();
+        public string SanitizePropertyReferenceName(string referenceName, Guid guid = default(Guid))
+        {
+            referenceName = referenceName.Trim();
 
-                var duplicateNumber = 1;
-                existingDuplicateNumbers.Sort();
-                if (existingDuplicateNumbers.Any() && existingDuplicateNumbers.First() == 1)
-                {
-                    duplicateNumber = existingDuplicateNumbers.Last() + 1;
-                    for (var i = 1; i < existingDuplicateNumbers.Count; i++)
-                    {
-                        if (existingDuplicateNumbers[i - 1] != existingDuplicateNumbers[i] - 1)
-                        {
-                            duplicateNumber = existingDuplicateNumbers[i - 1] + 1;
-                            break;
-                        }
-                    }
-                }
-                displayName = string.Format("{0} ({1})", displayName, duplicateNumber);
-            }
+            if (string.IsNullOrEmpty(referenceName))
+                return null;
 
-            return displayName;
+            if (!referenceName.StartsWith("_"))
+                referenceName = "_" + referenceName;
+
+            referenceName = Regex.Replace(referenceName, @"(?:[^A-Za-z_0-9])|(?:\s)", "_");
+
+            return GraphUtil.SanitizeName(m_Properties.Where(p => p.guid != guid).Select(p => p.referenceName), "{0}_{1}", referenceName);
         }
 
         public void RemoveShaderProperty(Guid guid)
@@ -618,9 +605,31 @@ namespace UnityEditor.ShaderGraph
             var nodeGuidMap = new Dictionary<Guid, Guid>();
             foreach (var node in graphToPaste.GetNodes<INode>())
             {
+                INode pastedNode = node;
+
                 var oldGuid = node.guid;
                 var newGuid = node.RewriteGuid();
                 nodeGuidMap[oldGuid] = newGuid;
+
+                // Check if the property nodes need to be made into a concrete node.
+                if (node is PropertyNode)
+                {
+                    PropertyNode propertyNode = (PropertyNode)node;
+
+                    // If the property is not in the current graph, do check if the
+                    // property can be made into a concrete node.
+                    if (!m_Properties.Select(x => x.guid).Contains(propertyNode.propertyGuid))
+                    {
+                        // If the property is in the serialized paste graph, make the property node into a property node.
+                        var pastedGraphMetaProperties = graphToPaste.metaProperties.Where(x => x.guid == propertyNode.propertyGuid);
+                        if (pastedGraphMetaProperties.Any())
+                        {
+                            pastedNode = pastedGraphMetaProperties.FirstOrDefault().ToConcreteNode();
+                            pastedNode.drawState = node.drawState;
+                            nodeGuidMap[oldGuid] = pastedNode.guid;
+                        }
+                    }
+                }
 
                 var drawState = node.drawState;
                 var position = drawState.position;
@@ -628,11 +637,11 @@ namespace UnityEditor.ShaderGraph
                 position.y += 30;
                 drawState.position = position;
                 node.drawState = drawState;
-                remappedNodes.Add(node);
-                AddNode(node);
+                remappedNodes.Add(pastedNode);
+                AddNode(pastedNode);
 
                 // add the node to the pasted node list
-                m_PastedNodes.Add(node);
+                m_PastedNodes.Add(pastedNode);
             }
 
             // only connect edges within pasted elements, discard

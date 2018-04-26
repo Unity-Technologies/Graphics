@@ -1,8 +1,12 @@
 using System;
+using System.Linq;
 using UnityEditor.Experimental.UIElements;
 using UnityEditor.Graphing;
+using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
+using UnityEngine.Experimental.UIElements.StyleSheets;
+using Toggle = UnityEngine.Experimental.UIElements.Toggle;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -10,9 +14,51 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         readonly AbstractMaterialGraph m_Graph;
 
+        IShaderProperty m_Property;
+        Toggle m_ExposedToogle;
+        TextField m_ReferenceNameField;
+
+        static Type s_ContextualMenuManipulator = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEngine.Experimental.UIElements.ContextualMenuManipulator");
+
+        IManipulator m_ResetReferenceMenu;
+
         public BlackboardFieldPropertyView(AbstractMaterialGraph graph, IShaderProperty property)
         {
+            AddStyleSheetPath("Styles/ShaderGraphBlackboard");
             m_Graph = graph;
+            m_Property = property;
+
+            m_ExposedToogle = new Toggle(() =>
+            {
+                property.generatePropertyBlock = m_ExposedToogle.value;
+                DirtyNodes(ModificationScope.Graph);
+            });
+            m_ExposedToogle.value = property.generatePropertyBlock;
+            AddRow("Exposed", m_ExposedToogle);
+
+            m_ReferenceNameField = new TextField(512, false, false, ' ');
+            m_ReferenceNameField.AddStyleSheetPath("Styles/PropertyNameReferenceField");
+            AddRow("Reference", m_ReferenceNameField);
+            m_ReferenceNameField.value = property.referenceName;
+            m_ReferenceNameField.isDelayed = true;
+            m_ReferenceNameField.OnValueChanged(newName =>
+            {
+                string newReferenceName = m_Graph.SanitizePropertyReferenceName(newName.newValue, property.guid);
+                property.overrideReferenceName = newReferenceName;
+                m_ReferenceNameField.value = property.referenceName;
+
+                if (string.IsNullOrEmpty(property.overrideReferenceName))
+                    m_ReferenceNameField.RemoveFromClassList("modified");
+                else
+                    m_ReferenceNameField.AddToClassList("modified");
+
+                DirtyNodes(ModificationScope.Graph);
+                UpdateReferenceNameResetMenu();
+            });
+
+            if (!string.IsNullOrEmpty(property.overrideReferenceName))
+                m_ReferenceNameField.AddToClassList("modified");
+
             if (property is Vector1ShaderProperty)
             {
                 VisualElement floatRow = new VisualElement();
@@ -231,7 +277,35 @@ namespace UnityEditor.ShaderGraph.Drawing
 //            AddRow("Default", new TextField());
 //            AddRow("Tooltip", new TextField());
 
+
             AddToClassList("sgblackboardFieldPropertyView");
+
+            UpdateReferenceNameResetMenu();
+        }
+
+        void UpdateReferenceNameResetMenu()
+        {
+            if (string.IsNullOrEmpty(m_Property.overrideReferenceName))
+            {
+                this.RemoveManipulator(m_ResetReferenceMenu);
+                m_ResetReferenceMenu = null;
+            }
+            else
+            {
+                m_ResetReferenceMenu = (IManipulator)Activator.CreateInstance(s_ContextualMenuManipulator, (Action<ContextualMenuPopulateEvent>)BuildContextualMenu);
+                this.AddManipulator(m_ResetReferenceMenu);
+            }
+        }
+
+        void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        {
+            evt.menu.AppendAction("Reset reference", e =>
+            {
+                m_Property.overrideReferenceName = null;
+                m_ReferenceNameField.value = m_Property.referenceName;
+                m_ReferenceNameField.RemoveFromClassList("modified");
+                DirtyNodes(ModificationScope.Graph);
+            }, ContextualMenu.MenuAction.AlwaysEnabled);
         }
 
         VisualElement AddRow(string labelText, VisualElement control)
@@ -261,10 +335,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        void DirtyNodes()
+        void DirtyNodes(ModificationScope modificationScope = ModificationScope.Node)
         {
             foreach (var node in m_Graph.GetNodes<PropertyNode>())
-                node.Dirty(ModificationScope.Node);
+                node.Dirty(modificationScope);
         }
     }
 }
