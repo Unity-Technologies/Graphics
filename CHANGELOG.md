@@ -8,7 +8,7 @@ The settings on master nodes now live in a small window that you can toggle on a
 
 ### Editable property names
 
-![](.data/editable_property_references)
+![](.data/editable_property_references.gif)
 
 The property reference names are now editable. It is also now possible to make the properties not exposed.
 
