@@ -400,6 +400,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Local
             }
 
+            public enum NormalSpace
+            {
+                Tangent,
+                Object
+            }
+
             public enum UVMapping
             {
                 UV0,
@@ -422,6 +428,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public ComboProperty m_LocalOrWorldProperty;
 
+            public ComboProperty m_NormalSpaceProperty;
+
             public Property m_ChannelProperty;
 
             public Property m_RemapProperty;
@@ -429,6 +437,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public Property m_InvertRemapProperty;
 
             public string m_ConstantPropertyName;
+
+            public bool m_IsNormalMap;
 
             public TextureProperty(BaseMaterialGUI parent, string propertyName, string constantPropertyName, string guiText, bool useConstantAsTint, bool isMandatory = true, bool isNormalMap = false)
                 : this(parent, propertyName, constantPropertyName, guiText, string.Empty, useConstantAsTint, isMandatory, isNormalMap)
@@ -438,6 +448,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public TextureProperty(BaseMaterialGUI parent, string propertyName, string constantPropertyName, string guiText, string toolTip, bool useConstantAsTint, bool isMandatory = true, bool isNormalMap = false)
                 : base(parent, propertyName, guiText, toolTip, isMandatory)
             {
+                m_IsNormalMap = isNormalMap;
+
                 m_ConstantPropertyName = constantPropertyName;
 
                 m_Show = new Property(parent, propertyName + "Show", "", isMandatory);
@@ -451,6 +463,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 m_UvSetProperty = new ComboProperty(parent, propertyName + "UV", "UV Mapping", Enum.GetNames(typeof(UVMapping)), false);
                 m_LocalOrWorldProperty = new ComboProperty(parent, propertyName + "UVLocal", "Local or world", Enum.GetNames(typeof(PlanarSpace)), false);
+
+                m_NormalSpaceProperty = new ComboProperty(parent, propertyName + "ObjSpace", "Normal space", Enum.GetNames(typeof(NormalSpace)), false);
+
 
                 m_ChannelProperty = new ComboProperty(parent, propertyName + "Channel", "Channel", Enum.GetNames(typeof(Channel)), false);
 
@@ -470,6 +485,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_TextureProperty.OnFindProperty(props);
                 m_UvSetProperty.OnFindProperty(props);
                 m_LocalOrWorldProperty.OnFindProperty(props);
+                m_NormalSpaceProperty.OnFindProperty(props);
                 m_ChannelProperty.OnFindProperty(props);
                 m_RemapProperty.OnFindProperty(props);
                 m_InvertRemapProperty.OnFindProperty(props);
@@ -506,6 +522,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                 m_LocalOrWorldProperty.OnGUI();
                             }
 
+                            if (m_IsNormalMap)
+                            {
+                                m_NormalSpaceProperty.OnGUI();
+                            }
+
                             if (m_RemapProperty.IsValid)
                             {
                                 // Display the remap of texture values.
@@ -536,8 +557,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 return string.Format(
                     "[HideInInspector] {0}MapShow(\"{1} Show\", Float) = 0\n" +
                     "{0}(\"{1}\", Range(0.0, 1.0)) = 0\n" +
-                    "{2}(\"{1} Map\", 2D) = \"white\" {{ }}\n" +
+                    "{2}(\"{1} Map\", 2D) = " + (m_IsNormalMap ? "\"bump\"" : "\"white\"") + " {{ }}\n" +
                     "{0}UseMap(\"{1} Use Map\", Float) = 0\n" +
+                    (m_IsNormalMap ? "{0}ObjSpace(\"{1} Object Space\", Float) = 0\n" : "") +
                     "{2}UV(\"{1} Map UV\", Float) = 0.0\n" +
                     "{2}UVLocal(\"{1} Map UV Local\", Float) = 0.0\n" +
                     "{2}Channel(\"{1} Map Channel\", Float) = 0.0\n" +

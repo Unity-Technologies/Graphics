@@ -113,7 +113,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     new TextureProperty(this, k_MetallicMap, k_Metallic, "Metallic", "Metallic", false, false),
                     new TextureProperty(this, k_Smoothness1Map, k_Smoothness1, "Smoothness", "Smoothness", false, false),
                     // TODO: Special case for normal maps.
-                    new TextureProperty(this, k_NormalMap, k_NormalScale, "Normal TODO", "Normal Map", false, false, true),
+                    new TextureProperty(this, k_NormalMap, k_NormalScale, "Normal", "Normal Map", false, false, true),
 
                     //new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Dielectric IoR", "Index of Refraction for Dielectric", false),
                 }),
