@@ -16,23 +16,17 @@ Pass
 	
 	#define UNITY_MATERIAL_LIT
 	#define SHADERPASS SHADERPASS_GBUFFER
-	#ifdef DEBUG_DISPLAY
-	#include "HDRP/Debug/DebugDisplay.hlsl"
-	#endif
-	#include "HDRP/Material/Material.hlsl"
-	#include "HDRP/Material/BuiltIn/BuiltInData.cs.hlsl"
 		
 	struct ps_input
 	{
 		float4 pos : SV_POSITION;
 		float2 uv : TEXCOORD0;
-		float3 viewCenterPos : TEXCOORD1;
-		float4 viewPosAndSize : TEXCOORD2;
-		//float3 positionWS : TEXCOORD3; // For LPPV
+		float3 posWS : TEXCOORD1;
+		float4 sphereInfo : TEXCOORD2;
 
-		#if VFX_NEEDS_COLOR_INTERPOLATOR
+#if VFX_NEEDS_COLOR_INTERPOLATOR
 		nointerpolation float4 color : COLOR0;
-		#endif
+#endif
 		
 #if USE_SPECULAR_WORKFLOW	
 		nointerpolation float4 specularColor : COLOR1;
@@ -44,12 +38,12 @@ Pass
 	
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
-//#define VFX_VARYING_POSWS positionWS
 #define VFX_VARYING_COLOR color.rgb
 #define VFX_VARYING_UV uv
-#define VFX_VARYING_VIEWCENTERPOS viewCenterPos	
-#define VFX_VARYING_VIEWPOSANDSIZE viewPosAndSize	
-	
+#define VFX_VARYING_POSWS posWS	
+#define VFX_VARYING_SPHERECENTER sphereInfo.xyz
+#define VFX_VARYING_SPHERERADIUS sphereInfo.w
+
 ${VFXBegin:VFXVertexAdditionalProcess}
 ${VFXLoadParameter:{smoothness}}
 o.materialProperties.x = smoothness;
@@ -63,6 +57,12 @@ o.materialProperties.y = metallic;
 ${VFXEnd}
 	
 	${VFXInclude("Assets/VFXEditor/Shaders/ParticleSpheres/Pass.template")}	
+	
+	#ifdef DEBUG_DISPLAY
+	#include "HDRP/Debug/DebugDisplay.hlsl"
+	#endif
+	#include "HDRP/Material/Material.hlsl"
+	//#include "HDRP/Material/BuiltIn/BuiltInData.cs.hlsl"
 				
 	#pragma fragment frag
 	void frag(ps_input i, OUTPUT_GBUFFER(outGBuffer), out float oDepth : SV_DepthLessEqual)
@@ -70,8 +70,8 @@ ${VFXEnd}
 		SurfaceData surfaceData = (SurfaceData)0;
 		VFXClipSphereAndGetDepthOffsetAndNormal(oDepth, surfaceData.normalWS, i);
 		
-		BuiltinData builtinData = (BuiltinData)0;
-		builtinData.opacity = 1.0f;
+		//BuiltinData builtinData = (BuiltinData)0;
+		//builtinData.opacity = 1.0f;
 				
 		#if USE_SPECULAR_WORKFLOW
 		surfaceData.materialFeatures = 2;
@@ -85,6 +85,13 @@ ${VFXEnd}
 		surfaceData.specularOcclusion = 1.0f;
 		surfaceData.ambientOcclusion = 1.0f;
 		
+		#if USE_SSS
+		surfaceData.materialFeatures |= 8;
+		surfaceData.thickness = 1.0f;//i.viewPosAndSize.w; 
+		surfaceData.diffusionProfile = 1;
+		surfaceData.subsurfaceMask = 0.0f;
+		#endif
+
 		float3 ambient = SampleLightProbes(surfaceData.normalWS);
 		
 		ENCODE_INTO_GBUFFER(surfaceData, ambient, i.pos, outGBuffer);

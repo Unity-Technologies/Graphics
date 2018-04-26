@@ -1,4 +1,4 @@
-Shader "Hidden/VFX/ParticleQuads"
+Shader "Hidden/VFX/ParticleSpheres"
 {
 	SubShader
 	{	
@@ -6,5 +6,6 @@ Shader "Hidden/VFX/ParticleQuads"
 		
 		${VFXInclude("Assets/VFXEditor/Shaders/VFXParticleHeader.template")}
 		${VFXInclude("Assets/VFXEditor/Shaders/particleSpheres/PassGBuffer.template")}
+		${VFXInclude("Assets/VFXEditor/Shaders/particleSpheres/PassShadowCaster.template"),USE_CAST_SHADOWS_PASS}
 	}
 }

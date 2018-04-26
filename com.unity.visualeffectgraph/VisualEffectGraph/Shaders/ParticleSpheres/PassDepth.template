@@ -10,8 +10,8 @@ Pass
 	{
 		float4 pos : SV_POSITION;
 		float2 uv : TEXCOORD0;
-		float3 viewCenterPos : TEXCOORD1;
-		float4 viewPosAndSize : TEXCOORD2;
+		float3 posWS : TEXCOORD1;
+		float4 sphereInfo : TEXCOORD2;
 	};
 	
 	struct ps_output
@@ -22,11 +22,12 @@ Pass
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
 #define VFX_VARYING_UV uv
-#define VFX_VARYING_VIEWCENTERPOS viewCenterPos	
-#define VFX_VARYING_VIEWPOSANDSIZE viewPosAndSize	
+#define VFX_VARYING_POSWS posWS	
+#define VFX_VARYING_SPHERECENTER sphereInfo.xyz
+#define VFX_VARYING_SPHERERADIUS sphereInfo.w
 				
 	${VFXInclude("Assets/VFXEditor/Shaders/ParticleSpheres/Pass.template")}	
-		
+
 	#pragma fragment frag
 	ps_output frag(ps_input i)
 	{
