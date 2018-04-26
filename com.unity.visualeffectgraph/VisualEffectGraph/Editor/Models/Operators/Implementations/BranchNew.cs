@@ -40,9 +40,9 @@ namespace UnityEditor.VFX.Operator
             [Tooltip("The predicate")]
             public bool predicate = true;
             [Tooltip("The true branch")]
-            public Sphere True = Sphere.defaultValue;
+            public float True = 0.0f;
             [Tooltip("The false branch")]
-            public Sphere False = Sphere.defaultValue;
+            public float False = 1.0f;
         }
 
         public sealed override string name { get { return "BranchNew"; } }
@@ -81,7 +81,7 @@ namespace UnityEditor.VFX.Operator
         {
             get
             {
-                return typeof(Sphere);
+                return typeof(float);
             }
         }
 

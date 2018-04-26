@@ -1399,7 +1399,10 @@ namespace UnityEditor.VFX.UI
                 }
                 else if (model is VFXOperatorNumericUnifiedNew)
                 {
-                    newControllers.Add(new VFXUnifiedOperatorController(model, this));
+                    if (model is IVFXOperatorNumericUnifiedConstrained)
+                        newControllers.Add(new VFXUnifiedConstraintOperatorController(model, this));
+                    else
+                        newControllers.Add(new VFXUnifiedOperatorController(model, this));
                 }
                 else if (model is BranchNew)
                 {
