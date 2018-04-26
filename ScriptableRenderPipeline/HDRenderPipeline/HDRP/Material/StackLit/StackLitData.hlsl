@@ -182,14 +182,11 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float3 detailNormalTS = float3(0.0, 0.0, 0.0);
     float detailMask = 0.0;
 
-
     //TODO remove the following and use fetching macros that use uvmapping :
     //float2 baseColorMapUv = TRANSFORM_TEX(input.texCoord0, _BaseColorMap);
     //surfaceData.baseColor = SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, baseColorMapUv).rgb * _BaseColor.rgb;
     surfaceData.baseColor = SAMPLE_UVMAPPING_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, layerTexCoord.base).rgb * _BaseColor.rgb;
 
-
-    //surfaceData.normalWS = float3(0.0, 0.0, 0.0);
 
     normalTS = GetNormalTS(input, layerTexCoord, detailNormalTS, detailMask);
     //TODO: bentNormalTS
@@ -207,7 +204,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #else
     surfaceData.perceptualSmoothnessB = _SmoothnessB;
 #endif
-    // TODOSTACKLIT: lobe weighting
     surfaceData.lobeMix = _LobeMix;
 
     // MaskMapA is RGBA: Metallic, Ambient Occlusion (Optional), detail Mask (Optional), Smoothness
@@ -219,11 +215,44 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
     surfaceData.metallic *= _Metallic;
 
+
     // These static material feature allow compile time optimization
     // TODO: As we add features, or-set the flags eg MATERIALFEATUREFLAGS_LIT_* with #ifdef 
     // on corresponding _MATERIAL_FEATURE_* shader_feature kerwords (set by UI) so the compiler 
     // knows the value of surfaceData.materialFeatures.
     surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
+
+#ifdef _MATERIAL_FEATURE_ANISOTROPY
+    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_ANISOTROPY;
+#endif
+#ifdef _MATERIAL_FEATURE_CLEAR_COAT
+    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_CLEAR_COAT;
+#endif
+
+    // -------------------------------------------------------------
+    // Feature dependent data
+    // -------------------------------------------------------------
+
+// TODO: #ifdef _TANGENTMAP, object space, etc.
+    surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
+
+// TODO: #ifdef _ANISOTROPYMAP
+    surfaceData.anisotropy = 1.0;
+#ifdef _MATERIAL_FEATURE_ANISOTROPY
+    surfaceData.anisotropy *= _Anisotropy;
+#endif
+
+#ifdef _MATERIAL_FEATURE_CLEAR_COAT
+    surfaceData.coatPerceptualSmoothness = _CoatSmoothness;
+    surfaceData.coatIor = _CoatIor;
+    surfaceData.coatThickness = _CoatThickness;
+    surfaceData.coatExtinction = _CoatExtinction; // in thickness^-1 units
+#else
+    surfaceData.coatPerceptualSmoothness = 0.0;
+    surfaceData.coatIor = 1.0;
+    surfaceData.coatThickness = 0.0;
+    surfaceData.coatExtinction = float3(1.0, 1.0, 1.0);
+#endif
 
     // -------------------------------------------------------------
     // Surface Data Part 2 (outsite GetSurfaceData( ) in Lit shader):
@@ -251,6 +280,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     builtinData.opacity = alpha;
 
+    // TODO:
     builtinData.bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
 
     // Emissive Intensity is only use here, but is part of BuiltinData to enforce UI parameters as we want the users to fill one color and one intensity
@@ -261,6 +291,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     builtinData.emissiveColor *= SAMPLE_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, TRANSFORM_TEX(input.texCoord0, _EmissiveColorMap)).rgb;
 #endif
 
+    // TODO:
     builtinData.velocity = float2(0.0, 0.0);
 
     

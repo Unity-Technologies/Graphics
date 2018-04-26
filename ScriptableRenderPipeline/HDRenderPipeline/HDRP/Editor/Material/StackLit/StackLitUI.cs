@@ -25,10 +25,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent maskMapASText = new GUIContent("Primary mask map - M(R), AO(G), D(B), S1(A)", "Primary mask map");
             public static GUIContent maskMapBSText = new GUIContent("Secondary mask Map - (R), (G), (B), S2(A)", "Secondary mask map");
 
+
             public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (BC7/BC5/DXT5(nm))");
 
             public static GUIContent UVBaseMappingText = new GUIContent("UV mapping usage", "");
 
+            public static GUIContent anisotropyText = new GUIContent("Anisotropy", "Anisotropy scale factor");
+            public static GUIContent coatEnableText = new GUIContent("Clear Coat Enable", "Clear Coat Enable");
+            public static GUIContent coatSmoothnessText = new GUIContent("Clear Coat Smoothness", "Clear Coat Smoothness");
+            public static GUIContent coatIorText = new GUIContent("Clear Coat IOR", "Clear Coat IOR");
+            public static GUIContent coatThicknessText = new GUIContent("Clear Coat Thickness", "Clear Coat Thickness");
+            public static GUIContent coatExtinctionText = new GUIContent("Clear Coat Extinction", "Clear Coat Beer-Lambert Extinction");
 
             // Emissive
             public static string emissiveLabelText = "Emissive Inputs";
@@ -103,6 +110,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty normalMap = null;
         protected const string kNormalMap = "_NormalMap";
 
+        // Anisotropy
+        protected MaterialProperty anisotropy = null;
+        protected const string kAnisotropy = "_Anisotropy";
+
+        // Clear Coat
+        protected MaterialProperty coatEnable = null;
+        protected const string kCoatEnable = "_CoatEnable";
+
+        protected MaterialProperty coatSmoothness = null;
+        protected const string kCoatSmoothness = "_CoatSmoothness";
+        protected MaterialProperty coatIor = null;
+        protected const string kCoatIor = "_CoatIor";
+        protected MaterialProperty coatThickness = null;
+        protected const string kCoatThickness = "_CoatThickness";
+        protected MaterialProperty coatExtinction = null;
+        protected const string kCoatExtinction = "_CoatExtinction";
+
         protected MaterialProperty emissiveColor = null;
         protected const string kEmissiveColor = "_EmissiveColor";
         protected MaterialProperty emissiveColorMap = null;
@@ -145,6 +169,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             normalMap = FindProperty(kNormalMap, props);
             normalScale = FindProperty(kNormalScale, props);
+
+            anisotropy = FindProperty(kAnisotropy, props);
+
+            // Clear Coat
+            coatEnable = FindProperty(kCoatEnable, props);
+            coatSmoothness = FindProperty(kCoatSmoothness, props);
+            coatIor = FindProperty(kCoatIor, props);
+            coatThickness = FindProperty(kCoatThickness, props);
+            coatExtinction = FindProperty(kCoatExtinction, props);
 
             emissiveColor = FindProperty(kEmissiveColor, props);
             emissiveColorMap = FindProperty(kEmissiveColorMap, props);
@@ -225,6 +258,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Normal map: 
             m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap, normalScale);
+
+            m_MaterialEditor.ShaderProperty(anisotropy, Styles.anisotropyText);
+
+            // Clear Coat
+            m_MaterialEditor.ShaderProperty(coatEnable, Styles.coatEnableText);
+            m_MaterialEditor.ShaderProperty(coatSmoothness, Styles.coatSmoothnessText);
+            m_MaterialEditor.ShaderProperty(coatIor, Styles.coatIorText);
+            m_MaterialEditor.ShaderProperty(coatThickness, Styles.coatThicknessText);
+            m_MaterialEditor.ShaderProperty(coatExtinction, Styles.coatExtinctionText);
+
+
 
             // UV Mapping:
             EditorGUILayout.Space();
@@ -362,6 +406,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             CoreUtils.SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap));
+
+            bool clearCoatEnabled = material.HasProperty(kCoatEnable) && (material.GetFloat(kCoatEnable) > 0.0f);
+            bool anisotropyEnabled = material.HasProperty(kAnisotropy) && (material.GetFloat(kAnisotropy) != 0.0f);
+            // TODO: When we have a map, also test for map for enable. (This scheme doesn't allow enabling from
+            // neutral value though, better to still have flag and uncheck it in UI code when reach neutral
+            // value and re-enable otherwise).
+
+            // Note that we don't use the materialId (cf Lit.shader) mechanism in the UI 
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_ANISOTROPY", anisotropyEnabled);
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_CLEAR_COAT", clearCoatEnabled);
+
         }
     }
 } // namespace UnityEditor
