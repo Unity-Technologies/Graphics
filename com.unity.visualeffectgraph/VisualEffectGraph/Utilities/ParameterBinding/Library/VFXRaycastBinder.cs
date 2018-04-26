@@ -57,7 +57,6 @@ namespace UnityEngine.Experimental.VFX.Utility
             m_TargetNormal_direction = m_TargetNormal + "_direction";
         }
 
-
         public override bool IsValid(VisualEffect component)
         {
             return component.HasVector3(m_TargetPosition_position) && component.HasVector3(m_TargetNormal_direction) && component.HasBool(m_TargetHit) && RaycastSource != null;
@@ -65,7 +64,6 @@ namespace UnityEngine.Experimental.VFX.Utility
 
         public override void UpdateBinding(VisualEffect component)
         {
-
             Vector3 direction = RaycastDirectionSpace == Space.Local ? RaycastSource.transform.TransformDirection(RaycastDirection) : RaycastDirection;
             Ray ray = new Ray(RaycastSource.transform.position, direction);
 
@@ -79,7 +77,7 @@ namespace UnityEngine.Experimental.VFX.Utility
 
         public override string ToString()
         {
-            return string.Format(string.Format("Raycast : {0} -> {1} ({2})", RaycastSource == null? "null" : RaycastSource.name, RaycastDirection, RaycastDirectionSpace));
+            return string.Format(string.Format("Raycast : {0} -> {1} ({2})", RaycastSource == null ? "null" : RaycastSource.name, RaycastDirection, RaycastDirectionSpace));
         }
     }
 }

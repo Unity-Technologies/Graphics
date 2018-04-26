@@ -28,7 +28,7 @@ namespace UnityEditor.VFX.Operator
         }
     }
 
-    [VFXInfo(category = "Math", experimental = true)]
+    [VFXInfo(category = "Logic", experimental = true)]
     class BranchNew : VFXOperatorDynamicOperand, IVFXOperatorUniform
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
