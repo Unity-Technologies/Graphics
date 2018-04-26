@@ -618,9 +618,31 @@ namespace UnityEditor.ShaderGraph
             var nodeGuidMap = new Dictionary<Guid, Guid>();
             foreach (var node in graphToPaste.GetNodes<INode>())
             {
+                INode pastedNode = node;
+
                 var oldGuid = node.guid;
                 var newGuid = node.RewriteGuid();
                 nodeGuidMap[oldGuid] = newGuid;
+
+                // Check if the property nodes need to be made into a concrete node.
+                if (node is PropertyNode)
+                {
+                    PropertyNode propertyNode = (PropertyNode)node;
+
+                    // If the property is not in the current graph, do check if the
+                    // property can be made into a concrete node.
+                    if (!m_Properties.Select(x => x.guid).Contains(propertyNode.propertyGuid))
+                    {
+                        // If the property is in the serialized paste graph, make the property node into a property node.
+                        var pastedGraphMetaProperties = graphToPaste.metaProperties.Where(x => x.guid == propertyNode.propertyGuid);
+                        if (pastedGraphMetaProperties.Any())
+                        {
+                            pastedNode = pastedGraphMetaProperties.FirstOrDefault().ToConcreteNode();
+                            pastedNode.drawState = node.drawState;
+                            nodeGuidMap[oldGuid] = pastedNode.guid;
+                        }
+                    }
+                }
 
                 var drawState = node.drawState;
                 var position = drawState.position;
@@ -628,11 +650,11 @@ namespace UnityEditor.ShaderGraph
                 position.y += 30;
                 drawState.position = position;
                 node.drawState = drawState;
-                remappedNodes.Add(node);
-                AddNode(node);
+                remappedNodes.Add(pastedNode);
+                AddNode(pastedNode);
 
                 // add the node to the pasted node list
-                m_PastedNodes.Add(node);
+                m_PastedNodes.Add(pastedNode);
             }
 
             // only connect edges within pasted elements, discard

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor.Graphing;
 using UnityEngine;
 
@@ -34,6 +34,14 @@ namespace UnityEditor.ShaderGraph
         public override INode ToConcreteNode()
         {
             return new SamplerStateNode();
+        }
+
+        public override IShaderProperty Copy()
+        {
+            var copied = new SamplerStateShaderProperty();
+            copied.displayName = displayName;
+            copied.value = value;
+            return copied;
         }
     }
 }
