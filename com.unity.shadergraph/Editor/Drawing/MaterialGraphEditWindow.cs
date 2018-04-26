@@ -12,6 +12,7 @@ using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 #if UNITY_2018_1
 using GeometryChangedEvent = UnityEngine.Experimental.UIElements.PostLayoutEvent;
 #else
+using UnityEditor.Experimental.UIElements.GraphView;
 using GeometryChangedEvent = UnityEngine.Experimental.UIElements.GeometryChangedEvent;
 #endif
 
@@ -233,9 +234,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             var middle = bounds.center;
             bounds.center = Vector2.zero;
 
+            // Collect the property nodes and get the corresponding properties
+            var propertyNodeGuids = graphView.selection.OfType<MaterialNodeView>().Where(x => (x.node is PropertyNode)).Select(x => ((PropertyNode)x.node).propertyGuid);
+            var metaProperties = graphView.graph.properties.Where(x => propertyNodeGuids.Contains(x.guid));
+
             var copyPasteGraph = new CopyPasteGraph(
                     graphView.selection.OfType<MaterialNodeView>().Where(x => !(x.node is PropertyNode)).Select(x => x.node as INode),
-                    graphView.selection.OfType<Edge>().Select(x => x.userData as IEdge));
+                    graphView.selection.OfType<Edge>().Select(x => x.userData as IEdge),
+                    graphView.selection.OfType<BlackboardField>().Select(x => x.userData as IShaderProperty),
+                    metaProperties);
 
             var deserialized = CopyPasteGraph.FromJson(JsonUtility.ToJson(copyPasteGraph, false));
             if (deserialized == null)
