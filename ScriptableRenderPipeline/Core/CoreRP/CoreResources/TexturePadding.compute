@@ -8,7 +8,7 @@
 #pragma kernel KMainTop                 KERNEL_NAME=KMainTop        DIRECTION=DIRECTION_TOP
 #pragma kernel KMainRight               KERNEL_NAME=KMainRight      DIRECTION=DIRECTION_RIGHT
 
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 // ------------------------------------------------
 // Texture buffers

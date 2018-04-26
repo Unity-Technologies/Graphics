@@ -1,4 +1,4 @@
-// =============== Convolves transmitted radiance with the Disney diffusion profile ================
+﻿// =============== Convolves transmitted radiance with the Disney diffusion profile ================
 
 //--------------------------------------------------------------------------------------------------
 // Definitions
@@ -45,7 +45,7 @@
 #include "../../Lighting/LightDefinition.cs.hlsl"
 #include "SubsurfaceScattering.hlsl"
 
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 //--------------------------------------------------------------------------------------------------
 // Inputs & outputs
