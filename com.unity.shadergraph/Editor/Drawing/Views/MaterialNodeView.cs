@@ -372,7 +372,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var oldVisibility = portInputView.visible;
                 portInputView.visible = expanded && !node.owner.GetEdges(node.GetSlotReference(slot.id)).Any();
                 if (portInputView.visible != oldVisibility)
-                    m_PortInputContainer.Dirty(ChangeType.Repaint);
+                    m_PortInputContainer.MarkDirtyRepaint();
             }
         }
 
@@ -387,6 +387,13 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var portInputView in m_PortInputContainer.OfType<PortInputView>())
                 portInputView.UpdateSlotType();
+
+            foreach (var control in m_ControlItems)
+            {
+                var listener = control as INodeModificationListener;
+                if (listener != null)
+                    listener.OnNodeModified(ModificationScope.Graph);
+            }
         }
 
         void OnResize(Vector2 deltaSize)
@@ -417,7 +424,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (m_PreviewImage.image != m_PreviewRenderData.texture)
                     m_PreviewImage.image = m_PreviewRenderData.texture;
                 else
-                    m_PreviewImage.Dirty(ChangeType.Repaint);
+                    m_PreviewImage.MarkDirtyRepaint();
             }
         }
 

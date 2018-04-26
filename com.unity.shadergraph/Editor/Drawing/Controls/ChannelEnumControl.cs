@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEngine.Experimental.UIElements;
+using UnityEditor.Experimental.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing.Controls
 {
@@ -26,11 +28,14 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
 
     public class ChannelEnumControlView : VisualElement, INodeModificationListener
     {
-        GUIContent m_Label;
         AbstractMaterialNode m_Node;
         PropertyInfo m_PropertyInfo;
-        IMGUIContainer m_Container;
         int m_SlotId;
+
+        PopupField<string> m_PopupField;
+        string[] m_ValueNames;
+
+        int m_PreviousChannelCount = -1;
 
         public ChannelEnumControlView(string label, int slotId, AbstractMaterialNode node, PropertyInfo propertyInfo)
         {
@@ -40,41 +45,60 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             m_SlotId = slotId;
             if (!propertyInfo.PropertyType.IsEnum)
                 throw new ArgumentException("Property must be an enum.", "propertyInfo");
-            m_Label = new GUIContent(label ?? ObjectNames.NicifyVariableName(propertyInfo.Name));
-            m_Container = new IMGUIContainer(OnGUIHandler);
-            Add(m_Container);
+            Add(new Label(label ?? ObjectNames.NicifyVariableName(propertyInfo.Name)));
+
+            var value = (Enum)m_PropertyInfo.GetValue(m_Node, null);
+            m_ValueNames = Enum.GetNames(value.GetType());
+
+            CreatePopup();
         }
 
-        void OnGUIHandler()
+        void OnValueChanged(ChangeEvent<string> evt)
         {
-            UpdatePopup();
+            var index = m_PopupField.index;
+            var value = (int)m_PropertyInfo.GetValue(m_Node, null);
+            if (!index.Equals(value))
+            {
+                m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
+                m_PropertyInfo.SetValue(m_Node, index, null);
+            }
+
+            CreatePopup();
         }
 
         public void OnNodeModified(ModificationScope scope)
         {
-            if (scope == ModificationScope.Graph)
-                m_Container.Dirty(ChangeType.Repaint);
+            if (scope == ModificationScope.Node)
+            {
+                CreatePopup();
+                m_PopupField.MarkDirtyRepaint();
+            }
         }
 
-        private void UpdatePopup()
+        void CreatePopup()
         {
-            var value = (int)m_PropertyInfo.GetValue(m_Node, null);
-            using (var changeCheckScope = new EditorGUI.ChangeCheckScope())
-            {
-                int channelCount = SlotValueHelper.GetChannelCount(m_Node.FindSlot<MaterialSlot>(m_SlotId).concreteValueType);
-                var enumEntryCount = (Enum)m_PropertyInfo.GetValue(m_Node, null);
-                string[] enumEntryNames = Enum.GetNames(enumEntryCount.GetType());
-                string[] popupEntries = new string[channelCount];
-                for (int i = 0; i < popupEntries.Length; i++)
-                    popupEntries[i] = enumEntryNames[i];
-                value = EditorGUILayout.Popup(m_Label, value, popupEntries);
+            int channelCount = SlotValueHelper.GetChannelCount(m_Node.FindSlot<MaterialSlot>(m_SlotId).concreteValueType);
 
-                if (changeCheckScope.changed)
-                {
-                    m_Node.owner.owner.RegisterCompleteObjectUndo("Change " + m_Node.name);
-                    m_PropertyInfo.SetValue(m_Node, value, null);
-                }
+            if(m_PopupField != null)
+            {
+                if(channelCount == m_PreviousChannelCount)
+                    return;
+
+                Remove(m_PopupField);
             }
+
+            m_PreviousChannelCount = channelCount;
+            List<string> popupEntries = new List<string>();
+            for (int i = 0; i < channelCount; i++)
+                popupEntries.Add(m_ValueNames[i]);
+
+            var value = (int)m_PropertyInfo.GetValue(m_Node, null);
+            if(value >= channelCount)
+                value = 0;
+
+            m_PopupField = new PopupField<string>(popupEntries, value);
+            m_PopupField.OnValueChanged(OnValueChanged);
+            Add(m_PopupField);
         }
     }
 }

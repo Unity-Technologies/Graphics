@@ -25,6 +25,23 @@ namespace UnityEditor.ShaderGraph.UnitTests
             }
         }
 
+        class NotAMaterialSlot : ISlot
+        {
+            public bool Equals(ISlot other)
+            {
+                throw new NotImplementedException();
+            }
+
+            public int id { get; }
+            public string displayName { get; set; }
+            public bool isInputSlot { get; }
+            public bool isOutputSlot { get; }
+            public int priority { get; set; }
+            public SlotReference slotReference { get; }
+            public INode owner { get; set; }
+            public bool hidden { get; set; }
+        }
+
         [OneTimeSetUp]
         public void RunBeforeAnyTests()
         {
@@ -48,33 +65,35 @@ namespace UnityEditor.ShaderGraph.UnitTests
         [Test]
         public void AddingNonMaterialSlotToNodeThrows()
         {
-            Assert.Throws<ArgumentException>(() => m_NodeA.AddSlot(new TestSlot(0, string.Empty, SlotType.Input)));
+            Assert.Throws<ArgumentException>(() => m_NodeA.AddSlot(new NotAMaterialSlot()));
         }
 
         [Test]
         public void ReplacingMaterialSlotPreservesTheOldCurrentValue()
         {
-            m_NodeA.AddSlot(new Vector1MaterialSlot(TestNode.V1In, "V1In", "V1In", SlotType.Input, 0));
+            m_NodeA.AddSlot(new Vector1MaterialSlot(TestNode.V1In, "V1In", "V1In", SlotType.Input, 1));
             Assert.AreEqual(2, m_NodeA.GetSlots<MaterialSlot>().Count());
             Assert.AreEqual(1, m_NodeA.GetInputSlots<MaterialSlot>().Count());
 
             var slot = m_NodeA.GetInputSlots<Vector1MaterialSlot>().FirstOrDefault();
-            Assert.AreEqual(Vector4.one, slot.defaultValue);
-            Assert.AreEqual(Vector4.zero, slot.value);
+            Assert.AreEqual(1, slot.defaultValue);
+            Assert.AreEqual(0, slot.value);
         }
 
         [Test]
         public void CanConvertConcreteSlotValueTypeToOutputChunkProperly()
         {
-            Assert.AreEqual(string.Empty, NodeUtils.GetSlotDimension(ConcreteSlotValueType.Vector1));
-            Assert.AreEqual("2", NodeUtils.GetSlotDimension(ConcreteSlotValueType.Vector2));
-            Assert.AreEqual("3", NodeUtils.GetSlotDimension(ConcreteSlotValueType.Vector3));
-            Assert.AreEqual("4", NodeUtils.GetSlotDimension(ConcreteSlotValueType.Vector4));
-            Assert.AreEqual("Texture2D", NodeUtils.GetSlotDimension(ConcreteSlotValueType.Texture2D));
-            Assert.AreEqual("2x2", NodeUtils.GetSlotDimension(ConcreteSlotValueType.Matrix2));
-            Assert.AreEqual("3x3", NodeUtils.GetSlotDimension(ConcreteSlotValueType.Matrix3));
-            Assert.AreEqual("4x4", NodeUtils.GetSlotDimension(ConcreteSlotValueType.Matrix4));
-            Assert.AreEqual("SamplerState", NodeUtils.GetSlotDimension(ConcreteSlotValueType.SamplerState));
+            Assert.AreEqual("float", NodeUtils.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, ConcreteSlotValueType.Vector1));
+            Assert.AreEqual("float", NodeUtils.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, ConcreteSlotValueType.Boolean));
+            Assert.AreEqual("float2", NodeUtils.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, ConcreteSlotValueType.Vector2));
+            Assert.AreEqual("float3", NodeUtils.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, ConcreteSlotValueType.Vector3));
+            Assert.AreEqual("float4", NodeUtils.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, ConcreteSlotValueType.Vector4));
+            Assert.AreEqual("Texture2D", NodeUtils.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, ConcreteSlotValueType.Texture2D));
+            Assert.AreEqual("float2x2", NodeUtils.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, ConcreteSlotValueType.Matrix2));
+            Assert.AreEqual("float3x3", NodeUtils.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, ConcreteSlotValueType.Matrix3));
+            Assert.AreEqual("float4x4", NodeUtils.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, ConcreteSlotValueType.Matrix4));
+            Assert.AreEqual("SamplerState", NodeUtils.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, ConcreteSlotValueType.SamplerState));
+            Assert.AreEqual("Cubemap", NodeUtils.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, ConcreteSlotValueType.Cubemap));
         }
 
         [Test]
@@ -89,7 +108,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
 
             Assert.AreEqual(m_NodeA.GetVariableNameForSlot(slot.id), pp.name);
             Assert.AreEqual(PropertyType.Vector1, pp.propType);
-            Assert.AreEqual(slot.value, pp.vector4Value);
+            Assert.AreEqual(slot.value, pp.floatValue);
         }
 
         [Test]

@@ -78,19 +78,19 @@ namespace UnityEditor.ShaderGraph.UnitTests
         }
 
         [Test]
-        public void AdaptNodeOutput2To3Fails()
+        public void AdaptNodeOutput2To3Works()
         {
             var node = new TestNode();
             var result = ShaderGenerator.AdaptNodeOutput(node, TestNode.V2Out, ConcreteSlotValueType.Vector3);
-            Assert.AreEqual("ERROR!", result);
+            Assert.AreEqual(string.Format("({0}3({1}, 0.0))", node.precision, node.GetVariableNameForSlot(TestNode.V2Out)), result);
         }
 
         [Test]
-        public void AdaptNodeOutput2To4Fails()
+        public void AdaptNodeOutput2To4Works()
         {
             var node = new TestNode();
             var result = ShaderGenerator.AdaptNodeOutput(node, TestNode.V2Out, ConcreteSlotValueType.Vector4);
-            Assert.AreEqual("ERROR!", result);
+            Assert.AreEqual(string.Format("({0}4({1}, 0.0, 1.0))", node.precision, node.GetVariableNameForSlot(TestNode.V2Out)), result);
         }
 
         [Test]
@@ -122,7 +122,7 @@ namespace UnityEditor.ShaderGraph.UnitTests
         {
             var node = new TestNode();
             var result = ShaderGenerator.AdaptNodeOutput(node, TestNode.V3Out, ConcreteSlotValueType.Vector4);
-            Assert.AreEqual("ERROR!", result);
+            Assert.AreEqual(string.Format("({0}4({1}, 1.0))", node.precision, node.GetVariableNameForSlot(TestNode.V3Out)), result);
         }
 
         [Test]

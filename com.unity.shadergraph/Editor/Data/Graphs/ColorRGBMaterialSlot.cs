@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Slots;
 using UnityEngine;
@@ -54,14 +55,14 @@ namespace UnityEditor.ShaderGraph
             properties.AddShaderProperty(property);
         }
 
-        public override PreviewProperty GetPreviewProperty(string name)
+        public override void GetPreviewProperties(List<PreviewProperty> properties, string name)
         {
             var pp = new PreviewProperty(PropertyType.Color)
             {
                 name = name,
                 colorValue = new Color(value.x, value.y, value.z, 1),
             };
-            return pp;
+            properties.Add(pp);
         }
     }
 }

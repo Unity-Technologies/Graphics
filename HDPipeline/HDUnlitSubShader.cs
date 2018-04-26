@@ -7,7 +7,7 @@ using UnityEditor.Graphing;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class HDUnlitSubShader : IUnlitSubShader
+    public class HDUnlitSubShader
     {
         struct Pass
         {
