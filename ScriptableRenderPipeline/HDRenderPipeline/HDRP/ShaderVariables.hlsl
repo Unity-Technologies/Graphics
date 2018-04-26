@@ -190,9 +190,10 @@ SAMPLER(samplerunity_ProbeVolumeSH);
 
 // ----------------------------------------------------------------------------
 
-// TODO: all affine matrices should be 3x4.
-// Note: please use UNITY_MATRIX_X macros instead of referencing matrix variables directly.
+// Important: please use macros or functions to access the CBuffer data.
+// The member names and data layout can (and will) change!
 CBUFFER_START(UnityPerView)
+    // TODO: all affine matrices should be 3x4.
     float4x4 _ViewMatrix;
     float4x4 _InvViewMatrix;
     float4x4 _ProjMatrix;
@@ -211,7 +212,7 @@ CBUFFER_START(UnityPerView)
 #endif
     float  _DetViewMatrix;              // determinant(_ViewMatrix)
     float4 _ScreenSize;                 // { w, h, 1 / w, 1 / h }
-    float4 _ScreenToTargetScale;        // { w / RTHandle.maxWidth, h / RTHandle.maxHeight, 0, 0 }
+    float4 _ScreenToTargetScale;        // { w / RTHandle.maxWidth, h / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
 
     // Values used to linearize the Z buffer (http://www.humus.name/temp/Linearize%20depth.txt)
     // x = 1 - f/n

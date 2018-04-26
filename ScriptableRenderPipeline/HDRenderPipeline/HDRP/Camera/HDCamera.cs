@@ -48,14 +48,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // This is the size actually used for this camera (as it can be altered by VR for example)
         int m_ActualWidth;
         int m_ActualHeight;
-        // This is the scale and bias of the camera viewport compared to the reference size of our Render Targets (RHandle.maxSize)
-        Vector2 m_CameraScaleBias;
+        // This is the scale of the camera viewport compared to the reference size of our Render Targets (RTHandle.maxSize)
+        Vector2 m_ViewportScaleCurrentFrame;
+        Vector2 m_ViewportScalePreviousFrame;
         // Current mssa sample
         MSAASamples m_msaaSamples;
 
         public int actualWidth { get { return m_ActualWidth; } }
         public int actualHeight { get { return m_ActualHeight; } }
-        public Vector2 scaleBias { get { return m_CameraScaleBias; } }
+        public Vector2 viewportScale { get { return m_ViewportScaleCurrentFrame; } }
+        public Vector4 doubleBufferedViewportScale { get { return new Vector4(m_ViewportScaleCurrentFrame.x, m_ViewportScaleCurrentFrame.y, m_ViewportScalePreviousFrame.x, m_ViewportScalePreviousFrame.y); } }
         public MSAASamples msaaSamples { get { return m_msaaSamples; } }
 
         public Matrix4x4 viewProjMatrix
@@ -289,8 +291,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             int maxWidth = RTHandles.maxWidth;
             int maxHeight = RTHandles.maxHeight;
-            m_CameraScaleBias.x = (float)m_ActualWidth / maxWidth;
-            m_CameraScaleBias.y = (float)m_ActualHeight / maxHeight;
+            m_ViewportScalePreviousFrame = m_ViewportScaleCurrentFrame; // Double-buffer
+            m_ViewportScaleCurrentFrame.x = (float)m_ActualWidth / maxWidth;
+            m_ViewportScaleCurrentFrame.y = (float)m_ActualHeight / maxHeight;
 
             screenSize   = new Vector4(screenWidth, screenHeight, 1.0f / screenWidth, 1.0f / screenHeight);
             screenParams = new Vector4(screenSize.x, screenSize.y, 1 + screenSize.z, 1 + screenSize.w);
@@ -458,7 +461,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalVector(HDShaderIDs._WorldSpaceCameraPos,       worldSpaceCameraPos);
             cmd.SetGlobalFloat( HDShaderIDs._DetViewMatrix,             detViewMatrix);
             cmd.SetGlobalVector(HDShaderIDs._ScreenSize,                screenSize);
-            cmd.SetGlobalVector(HDShaderIDs._ScreenToTargetScale,       scaleBias);
+            cmd.SetGlobalVector(HDShaderIDs._ScreenToTargetScale,       doubleBufferedViewportScale);
             cmd.SetGlobalVector(HDShaderIDs._ZBufferParams,             zBufferParams);
             cmd.SetGlobalVector(HDShaderIDs._ProjectionParams,          projectionParams);
             cmd.SetGlobalVector(HDShaderIDs.unity_OrthoParams,          unity_OrthoParams);
