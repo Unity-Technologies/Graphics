@@ -148,6 +148,17 @@ namespace UnityEditor.VFX.UI
             return type == typeof(float) || type == typeof(int) || type == typeof(uint);
         }
 
+
+        public static Type GetMatchingScalar(Type otherType)
+        {
+            if( otherType == typeof(uint) || otherType == typeof(int))
+            {
+                return otherType;
+            }
+            //TODO int2,3,4 here
+            return typeof(float);
+        }
+
         public override void WillCreateLink(ref VFXSlot myInput, ref VFXSlot otherOutput)
         {
             if( ! myInput.IsMasterSlot())
@@ -167,18 +178,27 @@ namespace UnityEditor.VFX.UI
                 var bestAffinityType = model.GetBestAffinityType(otherOutput.property.type);
 
                 VFXSlot otherSlotWithConstraint = model.inputSlots.Where((t,i)=> constraintInterface.strictSameTypeSlotIndex.Contains(i) ).FirstOrDefault();
-                if( IsScalar(bestAffinityType) || otherSlotWithConstraint == null || otherSlotWithConstraint.property.type == bestAffinityType )
+
+                if( otherSlotWithConstraint == null || otherSlotWithConstraint.property.type == bestAffinityType)
                 {
                     model.SetOperandType(inputIndex, bestAffinityType);
-                    myInput = model.GetInputSlot(inputIndex);
-                    
+                    myInput = model.GetInputSlot(inputIndex);   
+                }
+                else if( !myInput.CanLink(otherOutput) || ! otherOutput.CanLink(myInput)) // if the link is invalid if we don't change the type, change the type to the matching scalar
+                {
+                    var bestScalarAffinityType = model.GetBestAffinityType( GetMatchingScalar(otherOutput.property.type));
+                    if( bestScalarAffinityType != null)
+                    {
+                        model.SetOperandType(inputIndex, bestScalarAffinityType);
+                        myInput = model.GetInputSlot(inputIndex);   
+                    }
                 }
                 return; // never change the type of other constraint if the linked slot is scalar
             }
 
             VFXSlot input = myInput;
             
-            bool hasLinks = model.inputSlots.Where((t,i)=> t!= input && t.HasLink(true) && constraintInterface.strictSameTypeSlotIndex.Contains(i)).Count() > 0;
+            bool hasLinks = model.inputSlots.Where((t,i)=> t!= input && t.HasLink(true) && constraintInterface.strictSameTypeSlotIndex.Contains(i) && !constraintInterface.allowExceptionalScalarSlotIndex.Contains(i) ).Count() > 0;
 
             bool linkPossible = myInput.CanLink(otherOutput) && otherOutput.CanLink(myInput);
 
@@ -189,7 +209,7 @@ namespace UnityEditor.VFX.UI
                 {
                     foreach(int slotIndex in constraintInterface.strictSameTypeSlotIndex)
                     {
-                        if( ! constraintInterface.allowExceptionalScalarSlotIndex.Contains(slotIndex) || ! IsScalar(model.GetInputSlot(slotIndex).property.type))
+                        if( ! constraintInterface.allowExceptionalScalarSlotIndex.Contains(slotIndex) || GetMatchingScalar(bestAffinityType) != model.GetInputSlot(slotIndex).property.type)
                             model.SetOperandType(slotIndex, bestAffinityType);
                     }
 
