@@ -106,21 +106,42 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             s_PipelineCapabilities = 0U;
 
-            if (pipelineAsset.MaxPixelLights > 1 || pipelineAsset.SupportsVertexLight)
-                s_PipelineCapabilities |= PipelineCapabilities.AdditionalLights;
+            // Strip variants based on selected pipeline features
+            if (!pipelineAsset.CustomShaderVariantStripping)
+            {
+                if (pipelineAsset.MaxPixelLights > 1 || pipelineAsset.SupportsVertexLight)
+                    s_PipelineCapabilities |= PipelineCapabilities.AdditionalLights;
 
-            if (pipelineAsset.SupportsVertexLight)
-                s_PipelineCapabilities |= PipelineCapabilities.VertexLights;
+                if (pipelineAsset.SupportsVertexLight)
+                    s_PipelineCapabilities |= PipelineCapabilities.VertexLights;
 
-            if (pipelineAsset.SupportsDirectionalShadows)
-                s_PipelineCapabilities |= PipelineCapabilities.DirectionalShadows;
+                if (pipelineAsset.SupportsDirectionalShadows)
+                    s_PipelineCapabilities |= PipelineCapabilities.DirectionalShadows;
 
-            if (pipelineAsset.SupportsLocalShadows)
-                s_PipelineCapabilities |= PipelineCapabilities.LocalShadows;
+                if (pipelineAsset.SupportsLocalShadows)
+                    s_PipelineCapabilities |= PipelineCapabilities.LocalShadows;
 
-            bool anyShadows = pipelineAsset.SupportsDirectionalShadows || pipelineAsset.SupportsLocalShadows;
-            if (pipelineAsset.SupportsSoftShadows && anyShadows)
-                s_PipelineCapabilities |= PipelineCapabilities.SoftShadows;
+                bool anyShadows = pipelineAsset.SupportsDirectionalShadows || pipelineAsset.SupportsLocalShadows;
+                if (pipelineAsset.SupportsSoftShadows && anyShadows)
+                    s_PipelineCapabilities |= PipelineCapabilities.SoftShadows;
+            }
+            else
+            {
+                if (pipelineAsset.KeepAdditionalLightVariants)
+                    s_PipelineCapabilities |= PipelineCapabilities.AdditionalLights;
+
+                if (pipelineAsset.KeepVertexLightVariants)
+                    s_PipelineCapabilities |= PipelineCapabilities.VertexLights;
+
+                if (pipelineAsset.KeepDirectionalShadowVariants)
+                    s_PipelineCapabilities |= PipelineCapabilities.DirectionalShadows;
+
+                if (pipelineAsset.KeepLocalShadowVariants)
+                    s_PipelineCapabilities |= PipelineCapabilities.LocalShadows;
+
+                if (pipelineAsset.KeepSoftShadowVariants)
+                    s_PipelineCapabilities |= PipelineCapabilities.SoftShadows;
+            }
         }
 
         public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,

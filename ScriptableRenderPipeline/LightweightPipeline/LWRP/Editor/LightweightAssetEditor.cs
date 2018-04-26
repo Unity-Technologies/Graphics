@@ -55,6 +55,19 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static string[] opaqueDownsamplingOptions = {"None", "2x (Bilinear)", "4x (Box)", "4x (Bilinear)"};
         }
 
+        public static class StrippingStyles
+        {
+            public static GUIContent strippingLabel = new GUIContent("Shader Stripping");
+            public static GUIContent pipelineCapabilitiesLabel = new GUIContent("Pipeline Capabilities", "Select pipeline capabilities variants to be kept in the build.");
+            public static string[] strippingOptions = {"Automatic", "Custom"};
+
+            public static GUIContent localLightsLabel = new GUIContent("Additional Lights", "If enabled additional lights variants won't be stripped from build.");
+            public static GUIContent vertexLightsLabel = new GUIContent("Vertex Lights", "If enabled vertex lights variants wont' be stripped from build.");
+            public static GUIContent directionalShadowsLabel = new GUIContent("Directional Shadows", "If enabled directional shadows variants won't be stripped from build.");
+            public static GUIContent localShadowsLabel = new GUIContent("Local Shadows", "If enabled local shadows variants won't be stripped from build.");
+            public static GUIContent softShadowsLabel = new GUIContent("Soft Shadows", "If enabled soft shadows variants won't be stripped from build.");
+        }
+
         AnimBool m_ShowSoftParticles = new AnimBool();
         AnimBool m_ShowOpaqueTextureScale = new AnimBool();
 
@@ -82,6 +95,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private SerializedProperty m_LocalShadowSupportedProp;
         private SerializedProperty m_LocalShadowsAtlasResolutionProp;
 
+        private SerializedProperty m_CustomShaderVariantStripSettingsProp;
+        private SerializedProperty m_KeepAdditionalLightsProp;
+        private SerializedProperty m_KeepVertexLightsProp;
+        private SerializedProperty m_KeepDirectionalShadowsProp;
+        private SerializedProperty m_KeepLocalShadowsProp;
+        private SerializedProperty m_KeepSoftShadowsProp;
+
         void OnEnable()
         {
             m_RenderScale = serializedObject.FindProperty("m_RenderScale");
@@ -103,6 +123,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_LocalShadowSupportedProp = serializedObject.FindProperty("m_LocalShadowsSupported");
             m_LocalShadowsAtlasResolutionProp = serializedObject.FindProperty("m_LocalShadowsAtlasResolution");
             m_SoftShadowsSupportedProp = serializedObject.FindProperty("m_SoftShadowsSupported");
+
+            m_CustomShaderVariantStripSettingsProp = serializedObject.FindProperty("m_CustomShaderVariantStrippingSettings");
+            m_KeepAdditionalLightsProp = serializedObject.FindProperty("m_KeepAdditionalLightVariants");
+            m_KeepVertexLightsProp = serializedObject.FindProperty("m_KeepVertexLightVariants");
+            m_KeepDirectionalShadowsProp = serializedObject.FindProperty("m_KeepDirectionalShadowVariants");
+            m_KeepLocalShadowsProp = serializedObject.FindProperty("m_KeepLocalShadowVariants");
+            m_KeepSoftShadowsProp = serializedObject.FindProperty("m_KeepSoftShadowVariants");
 
             m_ShowSoftParticles.valueChanged.AddListener(Repaint);
             m_ShowSoftParticles.value = m_RequireSoftParticlesProp.boolValue;
@@ -201,6 +228,28 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 EditorGUILayout.PropertyField(m_SoftShadowsSupportedProp, Styles.supportsSoftShadows);
 
             EditorGUI.indentLevel--;
+            EditorGUILayout.Space();
+            EditorGUILayout.Space();
+        }
+
+        void DrawStrippingSettings()
+        {
+            EditorGUILayout.LabelField(StrippingStyles.strippingLabel, EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
+            CoreEditorUtils.DrawPopup(StrippingStyles.pipelineCapabilitiesLabel, m_CustomShaderVariantStripSettingsProp, StrippingStyles.strippingOptions);
+            if (m_CustomShaderVariantStripSettingsProp.boolValue)
+            {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_KeepAdditionalLightsProp, StrippingStyles.localLightsLabel);
+                EditorGUILayout.PropertyField(m_KeepVertexLightsProp, StrippingStyles.vertexLightsLabel);
+                EditorGUILayout.PropertyField(m_KeepDirectionalShadowsProp, StrippingStyles.directionalShadowsLabel);
+                EditorGUILayout.PropertyField(m_KeepLocalShadowsProp, StrippingStyles.localShadowsLabel);
+                EditorGUILayout.PropertyField(m_KeepSoftShadowsProp, StrippingStyles.softShadowsLabel);
+                EditorGUI.indentLevel--;
+            }
+            EditorGUI.indentLevel--;
+            EditorGUILayout.Space();
+            EditorGUILayout.Space();
         }
 
         public override void OnInspectorGUI()
@@ -210,6 +259,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             UpdateAnimationValues();
             DrawRenderingSettings();
             DrawShadowSettings();
+            DrawStrippingSettings();
 
             serializedObject.ApplyModifiedProperties();
         }
