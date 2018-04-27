@@ -21,8 +21,10 @@ Pass
 
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
+#if USE_ALPHA_TEST
 #define VFX_VARYING_ALPHA builtInInterpolants.x
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
+#endif
 		
 ${VFXBegin:VFXVertexAdditionalProcess}
 o.pos = VFXApplyShadowBias(o.pos);

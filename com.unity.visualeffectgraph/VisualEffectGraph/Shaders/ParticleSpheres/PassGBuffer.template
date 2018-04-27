@@ -56,8 +56,6 @@ o.specularColor = specularColor;
 #elif HDRP_MATERIAL_TYPE_TRANSLUCENT
 ${VFXLoadParameter:{thickness}}
 o.materialProperties.y = thickness;
-#else
-	
 #endif
 ${VFXEnd}
 	
