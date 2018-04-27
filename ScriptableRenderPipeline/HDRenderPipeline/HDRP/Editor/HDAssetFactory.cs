@@ -53,6 +53,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 newAsset.defaultDiffuseMaterial = Load<Material>(HDRenderPipelinePath + "RenderPipelineResources/DefaultHDMaterial.mat");
                 newAsset.defaultDecalMaterial = Load<Material>(HDRenderPipelinePath + "RenderPipelineResources/DefaultHDDecalMaterial.mat");
+                newAsset.defaultTerrainMaterial = Load<Material>(HDRenderPipelinePath + "RenderPipelineResources/DefaultHDTerrainMaterial.mat");
                 newAsset.defaultShader = Load<Shader>(HDRenderPipelinePath + "Material/Lit/Lit.shader");
 
                 newAsset.debugFontTexture = Load<Texture2D>(HDRenderPipelinePath + "RenderPipelineResources/DebugFont.tga");
