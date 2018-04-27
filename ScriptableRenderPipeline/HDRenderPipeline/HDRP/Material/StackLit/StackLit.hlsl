@@ -39,18 +39,21 @@
 #ifdef _MATERIAL_FEATURE_COAT
 #    define COAT_NB_LOBES 1
 #    define COAT_LOBE_IDX 0
+#    define BASE_LOBEA_IDX (COAT_LOBE_IDX+1)
+#    define BASE_LOBEB_IDX (BASE_LOBEA_IDX+1)
 #else
 #    undef VLAYERED_RECOMPUTE_PERLIGHT
 #    define COAT_NB_LOBES 0
-#    define COAT_LOBE_IDX (-1)
+#    define COAT_LOBE_IDX 0
+#    define BASE_LOBEA_IDX 0
+#    define BASE_LOBEB_IDX (BASE_LOBEA_IDX+1)
 #endif
 
 // TODO: if dual lobe base
 //#define BASE_NB_LOBES 1
 #define BASE_NB_LOBES 2
-#define BASE_LOBEA_IDX (COAT_LOBE_IDX+1)
-#define BASE_LOBEB_IDX (BASE_LOBEA_IDX+1)
-#define TOTAL_NB_LOBES (BASE_NB_LOBES+COAT_NB_LOBES)
+//#define TOTAL_NB_LOBES (BASE_NB_LOBES+COAT_NB_LOBES)
+#define TOTAL_NB_LOBES 3 // TODO, for now, this will do (fix compilation errors before static pruning on some platforms)
 
 
 // TODO CLEANUP and put in proper define above
@@ -1066,7 +1069,8 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     //
     // Use loops and special case with IsVLayeredEnabled(bsdfData) which is statically known.
 
-    float3 iblN[TOTAL_NB_LOBES], iblR[TOTAL_NB_LOBES];
+    float3 iblN[TOTAL_NB_LOBES]; //ZERO_INITIALIZE(float3[TOTAL_NB_LOBES], iblN); 
+    float3 iblR[TOTAL_NB_LOBES]; //ZERO_INITIALIZE(float3[TOTAL_NB_LOBES], iblR); 
     // We will need hacked N for the stretch anisotropic hack later.
     float specularReflectivity[TOTAL_NB_LOBES];
     float diffuseFGD[BASE_NB_LOBES];
