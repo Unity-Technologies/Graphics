@@ -182,16 +182,6 @@ bool HasFeatureFlag(uint featureFlags, uint flag)
     return ((featureFlags & flag) != 0);
 }
 
-float3 ComputeDiffuseColor(float3 baseColor, float metallic)
-{
-    return baseColor * (1.0 - metallic);
-}
-
-float3 ComputeFresnel0(float3 baseColor, float metallic, float dielectricF0)
-{
-    return lerp(dielectricF0.xxx, baseColor, metallic);
-}
-
 // Assume that bsdfData.diffusionProfile is init
 void FillMaterialSSS(uint diffusionProfile, float subsurfaceMask, inout BSDFData bsdfData)
 {
@@ -1921,8 +1911,10 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // Specific case for Texture2Ds, their convolution is a gaussian one and not a GGX one.
     // So we use another roughness mip mapping.
     if (IsEnvIndexTexture2D(lightData.envIndex))
+    {
         // Empirical remapping
-        iblMipLevel = pow(preLightData.iblPerceptualRoughness, 0.8) * uint(max(_ColorPyramidScale.z - 1, 0));
+        iblMipLevel = PositivePow(preLightData.iblPerceptualRoughness, 0.8) * uint(max(_ColorPyramidScale.z - 1, 0));
+    }
 
     float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, iblMipLevel);
     weight *= preLD.a; // Used by planar reflection to discard pixel
@@ -1981,9 +1973,9 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     AmbientOcclusionFactor aoFactor;
     // Use GTAOMultiBounce approximation for ambient occlusion (allow to get a tint from the baseColor)
 #if 0
-    GetScreenSpaceAmbientOcclusion(posInput.positionSS, preLightData.NdotV, bsdfData.perceptualRoughness, bsdfData.specularOcclusion, aoFactor);
+    GetScreenSpaceAmbientOcclusion(posInput.positionSS, preLightData.NdotV, bsdfData.perceptualRoughness, 1.0, bsdfData.specularOcclusion, aoFactor);
 #else
-    GetScreenSpaceAmbientOcclusionMultibounce(posInput.positionSS, preLightData.NdotV, bsdfData.perceptualRoughness, bsdfData.specularOcclusion, bsdfData.diffuseColor, bsdfData.fresnel0, aoFactor);
+    GetScreenSpaceAmbientOcclusionMultibounce(posInput.positionSS, preLightData.NdotV, bsdfData.perceptualRoughness, 1.0, bsdfData.specularOcclusion, bsdfData.diffuseColor, bsdfData.fresnel0, aoFactor);
 #endif
 
     // Add indirect diffuse + emissive (if any) - Ambient occlusion is multiply by emissive which is wrong but not a big deal
