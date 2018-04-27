@@ -164,6 +164,8 @@ namespace  UnityEditor.VFX.UI
 
         void Update()
         {
+            if (graphView == null)
+                return;
             VFXViewController controller = graphView.controller;
             var filename = "No Asset";
             if (controller != null)
