@@ -46,37 +46,36 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                VFXExpression random;
-                int size = VFXExpression.TypeToSize(currentAttribute.type);
-                switch (randomMode)
-                {
-                    default:
-                    case RandomMode.Off:
-                        return base.parameters;
-                    case RandomMode.PerComponent:
-                        if (size == 1)
-                            random = new VFXExpressionRandom();
-                        else
-                        {
-                            VFXExpression[] members = new VFXExpression[size];
-                            for (int i = 0; i < size; i++)
-                            {
-                                members[i] = new VFXExpressionRandom();
-                            }
-                            random = new VFXExpressionCombine(members);
-                        }
 
-                        break;
-                    case RandomMode.Uniform:
-                        if (size == 1)
-                            random = new VFXExpressionRandom();
-                        else
-                            random = new VFXExpressionCombine(Enumerable.Repeat(new VFXExpressionRandom(), size).ToArray());
-                        break;
+                int size = VFXExpression.TypeToSize(currentAttribute.type);
+
+                if(randomMode == RandomMode.Off)
+                {
+                    return base.parameters;
                 }
 
-                var min = base.parameters.FirstOrDefault(o => o.name == "Min");
-                var max = base.parameters.FirstOrDefault(o => o.name == "Max");
+                VFXExpression random;
+
+                if (size == 1)
+                {
+                    random = new VFXExpressionRandom();
+                }
+                else
+                {
+                    switch (randomMode)
+                    {
+                        default:
+                        case RandomMode.PerComponent:
+                            random = new VFXExpressionCombine(Enumerable.Repeat(0, size).Select(_ => new VFXExpressionRandom()).ToArray());
+                            break;
+                        case RandomMode.Uniform:
+                            random = new VFXExpressionCombine(Enumerable.Repeat(new VFXExpressionRandom(), size).ToArray());
+                            break;
+                    }
+                }
+
+                var min = base.parameters.First(o => o.name == "Min");
+                var max = base.parameters.First(o => o.name == "Max");
                 return new[] { new VFXNamedExpression(VFXOperatorUtility.Lerp(min.exp, max.exp, random), currentAttribute.name)};
             }
         }
