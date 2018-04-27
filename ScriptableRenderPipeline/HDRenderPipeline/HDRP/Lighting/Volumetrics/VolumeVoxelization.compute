@@ -44,8 +44,8 @@
 // Inputs & outputs
 //--------------------------------------------------------------------------------------------------
 
-StructuredBuffer<OrientedBBox>            _VolumeBounds;
-StructuredBuffer<DensityVolumeProperties> _VolumeData;
+StructuredBuffer<OrientedBBox>      _VolumeBounds;
+StructuredBuffer<DensityVolumeData> _VolumeData;
 
 RW_TEXTURE3D(float4, _VBufferDensity); // RGB = sqrt(scattering), A = sqrt(extinction)
 
