@@ -176,7 +176,7 @@ float3 SampleTexture2DTriplanarNormalScaleBias(TEXTURE2D_ARGS(textureName, sampl
 
         // We forbid scale in case of object space as it make no sense
         // Decompress normal ourselve
-        float3 normalOS = SampleTexture2DTriplanarScaleBias(TEXTURE2D_PARAM(textureName, samplerName), textureNameUV, textureNameUVLocal, textureNameST, uvMapping) * 2.0 - 1.0;
+        float3 normalOS = SampleTexture2DTriplanarScaleBias(TEXTURE2D_PARAM(textureName, samplerName), textureNameUV, textureNameUVLocal, textureNameST, uvMapping).xyz * 2.0 - 1.0;
         // no need to renormalize normalOS for SurfaceGradientFromPerturbedNormal
         return SurfaceGradientFromPerturbedNormal(uvMapping.vertexNormalWS, TransformObjectToWorldDir(normalOS));
     }
@@ -266,23 +266,62 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.perceptualSmoothnessA = lerp(_SmoothnessARange.x, _SmoothnessARange.y, surfaceData.perceptualSmoothnessA);
     surfaceData.perceptualSmoothnessA = lerp(_SmoothnessA, surfaceData.perceptualSmoothnessA, _SmoothnessAUseMap);
 
-    surfaceData.perceptualSmoothnessB = dot(SAMPLE_TEXTURE2D_SCALE_BIAS(_SmoothnessBMap), _SmoothnessBMapChannelMask);
-    surfaceData.perceptualSmoothnessB = lerp(_SmoothnessBRange.x, _SmoothnessBRange.y, surfaceData.perceptualSmoothnessB);
-    surfaceData.perceptualSmoothnessB = lerp(_SmoothnessB, surfaceData.perceptualSmoothnessB, _SmoothnessBUseMap);
-
-    // TODOSTACKLIT: lobe weighting
-    surfaceData.lobeMix = _LobeMix;
-
     // TODO: Ambient occlusion, detail mask.
     surfaceData.metallic = dot(SAMPLE_TEXTURE2D_SCALE_BIAS(_MetallicMap), _MetallicMapChannelMask);
     surfaceData.metallic = lerp(_MetallicRange.x, _MetallicRange.y, surfaceData.metallic);
     surfaceData.metallic = lerp(_Metallic, surfaceData.metallic, _MetallicUseMap);
 
+
     // These static material feature allow compile time optimization
-    // TODO: As we add features, or-set the flags eg MATERIALFEATUREFLAGS_LIT_* with #ifdef
+    // TODO: As we add features, or-set the flags eg MATERIALFEATUREFLAGS_STACK_LIT_* with #ifdef
     // on corresponding _MATERIAL_FEATURE_* shader_feature kerwords (set by UI) so the compiler
     // knows the value of surfaceData.materialFeatures.
-    surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
+    surfaceData.materialFeatures = MATERIALFEATUREFLAGS_STACK_LIT_STANDARD;
+
+#ifdef _MATERIAL_FEATURE_ANISOTROPY
+    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_STACK_LIT_ANISOTROPY;
+#endif
+#ifdef _MATERIAL_FEATURE_COAT
+    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_STACK_LIT_COAT;
+#endif
+// Not used for now aside from here in GetSurfaceAndBuiltinData
+//#ifdef _MATERIAL_FEATURE_DUAL_LOBE
+//#endif
+
+    // -------------------------------------------------------------
+    // Feature dependent data
+    // -------------------------------------------------------------
+
+// TODO: #ifdef _TANGENTMAP, object space, etc.
+    surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
+
+#ifdef _MATERIAL_FEATURE_DUAL_LOBE
+    surfaceData.lobeMix = _LobeMix;
+    surfaceData.perceptualSmoothnessB = dot(SAMPLE_TEXTURE2D_SCALE_BIAS(_SmoothnessBMap), _SmoothnessBMapChannelMask);
+    surfaceData.perceptualSmoothnessB = lerp(_SmoothnessBRange.x, _SmoothnessBRange.y, surfaceData.perceptualSmoothnessB);
+    surfaceData.perceptualSmoothnessB = lerp(_SmoothnessB, surfaceData.perceptualSmoothnessB, _SmoothnessBUseMap);
+#else
+    surfaceData.lobeMix = 0.0;
+    surfaceData.perceptualSmoothnessB = 1.0;
+#endif
+
+// TODO: #ifdef _ANISOTROPYMAP
+    surfaceData.anisotropy = 1.0;
+#ifdef _MATERIAL_FEATURE_ANISOTROPY
+    surfaceData.anisotropy *= _Anisotropy;
+#endif
+
+#ifdef _MATERIAL_FEATURE_COAT
+    surfaceData.coatPerceptualSmoothness = _CoatSmoothness;
+    surfaceData.coatIor = _CoatIor;
+    surfaceData.coatThickness = _CoatThickness;
+    surfaceData.coatExtinction = _CoatExtinction; // in thickness^-1 units
+#else
+    surfaceData.coatPerceptualSmoothness = 0.0;
+    surfaceData.coatIor = 1.0;
+    surfaceData.coatThickness = 0.0;
+    surfaceData.coatExtinction = float3(1.0, 1.0, 1.0);
+#endif
 
     // -------------------------------------------------------------
     // Surface Data Part 2 (outsite GetSurfaceData( ) in Lit shader):
@@ -310,6 +349,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     builtinData.opacity = alpha;
 
+    // TODO:
     builtinData.bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
 
     // Emissive Intensity is only use here, but is part of BuiltinData to enforce UI parameters as we want the users to fill one color and one intensity
@@ -317,6 +357,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     builtinData.emissiveColor = _EmissiveColor * builtinData.emissiveIntensity * lerp(float3(1.0, 1.0, 1.0), surfaceData.baseColor.rgb, _AlbedoAffectEmissive);
     builtinData.emissiveColor *= SAMPLE_TEXTURE2D_SCALE_BIAS(_EmissiveColorMap).rgb;
 
+    // TODO:
     builtinData.velocity = float2(0.0, 0.0);
 
     //NEWLITTODO: shader feature SHADOWS_SHADOWMASK not there yet.

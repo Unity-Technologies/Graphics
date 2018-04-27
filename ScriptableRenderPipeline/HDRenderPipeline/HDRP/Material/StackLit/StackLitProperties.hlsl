@@ -70,6 +70,12 @@ float4 _SmoothnessBMapChannelMask;
 float4 _SmoothnessBRange;
 float _LobeMix;
 
+float _Anisotropy;
+float _CoatSmoothness;
+float _CoatIor;
+float _CoatThickness;
+float4 _CoatExtinction;
+
 float _NormalScale;
 float _NormalMapUV;
 float _NormalMapUVLocal;
