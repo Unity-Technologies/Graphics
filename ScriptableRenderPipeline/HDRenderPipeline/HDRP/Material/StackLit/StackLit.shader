@@ -22,7 +22,6 @@ Shader "HDRenderPipeline/StackLit"
         _MetallicMapChannel("Metallic Map Channel", Float) = 0.0
         _MetallicMapChannelMask("Metallic Map Channel Mask", Vector) = (1, 0, 0, 0)
         _MetallicRemap("Metallic Remap", Vector) = (0, 1, 0, 0)
-        [ToggleUI] _MetallicRemapInverted("Invert Metallic Remap", Float) = 0.0
         [HideInInspector] _MetallicRange("Metallic Range", Vector) = (0, 1, 0, 0)
 
         [HideInInspector] _SmoothnessAMapShow("SmoothnessA Map Show", Float) = 0
@@ -65,6 +64,17 @@ Shader "HDRenderPipeline/StackLit"
         _NormalMapUVLocal("NormalMapUV Local", Float) = 0.0
         _NormalMapObjSpace("NormalMapUV Local", Float) = 0.0
         _NormalScale("Normal Scale", Range(0.0, 2.0)) = 1
+
+        [HideInInspector] _AmbientOcclusionMapShow("AmbientOcclusion Map Show", Float) = 0
+        _AmbientOcclusion("AmbientOcclusion", Range(0.0, 1.0)) = 0
+        _AmbientOcclusionMap("AmbientOcclusion Map", 2D) = "black" {}
+        _AmbientOcclusionUseMap("AmbientOcclusion Use Map", Float) = 0
+        _AmbientOcclusionMapUV("AmbientOcclusion Map UV", Float) = 0.0
+        _AmbientOcclusionMapUVLocal("AmbientOcclusion Map UV Local", Float) = 0.0
+        _AmbientOcclusionMapChannel("AmbientOcclusion Map Channel", Float) = 0.0
+        _AmbientOcclusionMapChannelMask("AmbientOcclusion Map Channel Mask", Vector) = (1, 0, 0, 0)
+        _AmbientOcclusionRemap("AmbientOcclusion Remap", Vector) = (0, 1, 0, 0)
+        [HideInInspector] _AmbientOcclusionRange("AmbientOcclusion Range", Vector) = (0, 1, 0, 0)
 
         [HideInInspector] _EmissiveColorMapShow("Emissive Color Map Show", Float) = 0.0
         _EmissiveColor("Emissive Color", Color) = (1, 1, 1)

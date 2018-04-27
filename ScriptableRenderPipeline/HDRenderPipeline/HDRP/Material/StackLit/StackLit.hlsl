@@ -282,6 +282,8 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
         ConvertAnisotropyToClampRoughness(bsdfData.perceptualRoughnessB, bsdfData.anisotropy, bsdfData.roughnessBT, bsdfData.roughnessBB);
     }
 
+    bsdfData.ambientOcclusion = surfaceData.ambientOcclusion;
+
     ApplyDebugToBSDFData(bsdfData);
     return bsdfData;
 }
@@ -1339,7 +1341,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 // This function require the 3 structure surfaceData, builtinData, bsdfData because it may require both the engine side data, and data that will not be store inside the gbuffer.
 float3 GetBakedDiffuseLighting(SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData, PreLightData preLightData)
 {
-    //NEWLITTODO
+    // TODO: Handle SSS
 
 #ifdef DEBUG_DISPLAY
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
@@ -1348,10 +1350,9 @@ float3 GetBakedDiffuseLighting(SurfaceData surfaceData, BuiltinData builtinData,
         return builtinData.bakeDiffuseLighting * PI;
     }
 #endif
-    //NEWLITTODO
-    // Premultiply bake diffuse lighting information with DisneyDiffuse pre-integration
-    //return builtinData.bakeDiffuseLighting * preLightData.diffuseFGD * surfaceData.ambientOcclusion * bsdfData.diffuseColor + builtinData.emissiveColor;
-    return builtinData.bakeDiffuseLighting * bsdfData.diffuseColor; //...todo, just to return something for now, .bakeDiffuseLighting is bogus for now anyway.
+
+    // Premultiply bake diffuse lighting information
+    return builtinData.bakeDiffuseLighting * surfaceData.ambientOcclusion * bsdfData.diffuseColor + builtinData.emissiveColor;
 }
 
 
@@ -1820,23 +1821,29 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         PreLightData preLightData, BSDFData bsdfData, BakeLightingData bakeLightingData, AggregateLighting lighting,
                         out float3 diffuseLighting, out float3 specularLighting)
 {
-    // TODO: AO, SO, SSS, Refraction
+    float3 bakeDiffuseLighting = bakeLightingData.bakeDiffuseLighting;
+
+    AmbientOcclusionFactor aoFactor;
+    // Use GTAOMultiBounce approximation for ambient occlusion (allow to get a tint from the baseColor)
+    GetScreenSpaceAmbientOcclusionMultibounce(posInput.positionSS, preLightData.NdotV, lerp(bsdfData.perceptualRoughnessA, bsdfData.perceptualRoughnessB, bsdfData.lobeMix), bsdfData.ambientOcclusion, 1.0, bsdfData.diffuseColor, bsdfData.fresnel0, aoFactor);
+
+    // Add indirect diffuse + emissive (if any) - Ambient occlusion is multiply by emissive which is wrong but not a big deal
+    bakeDiffuseLighting                 *= aoFactor.indirectAmbientOcclusion;
+    lighting.direct.diffuse             *= aoFactor.directAmbientOcclusion;
 
     // diffuse lighting has already had the albedo applied in GetBakedDiffuseLighting().
-    diffuseLighting = bsdfData.diffuseColor * lighting.direct.diffuse + bakeLightingData.bakeDiffuseLighting;
+    diffuseLighting = bsdfData.diffuseColor * lighting.direct.diffuse + bakeDiffuseLighting;
 
     specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
 
-    if( !IsVLayeredEnabled(bsdfData) )
+    if (!IsVLayeredEnabled(bsdfData))
     {
         // Note that when we're vlayered, this can be different per lobe depending on
         // which interface generates it.
         // Apply the fudge factor (boost) to compensate for multiple scattering not accounted for in the BSDF.
         // This assumes all spec comes from a GGX BSDF.
-        //specularLighting = ApplyEnergyCompensationToSpecularLighting(specularLighting, bsdfData.fresnel0, preLightData.energyCompensation[0]);
         specularLighting = ApplyEnergyCompensationToSpecularLighting(specularLighting, bsdfData.fresnel0, preLightData.energyCompensation);
     }
-
 
 #ifdef DEBUG_DISPLAY
 
@@ -1851,7 +1858,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
             break;
 
         case DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_OCCLUSION:
-            //diffuseLighting = aoFactor.indirectAmbientOcclusion;
+            diffuseLighting = aoFactor.indirectAmbientOcclusion;
             break;
 
         case DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_OCCLUSION:
