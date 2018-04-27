@@ -154,7 +154,7 @@ namespace UnityEngine.Experimental.Rendering
             m_Shadowmap.hideFlags   = HideFlags.DontSaveInEditor | HideFlags.DontSaveInBuild;
             m_Shadowmap.dimension   = TextureDimension.Tex2DArray;
             m_Shadowmap.volumeDepth = (int) m_Slices;
-            m_Shadowmap.name = CoreUtils.GetRenderTargetAutoName(shadowmap.width, shadowmap.height, shadowmap.format, "Shadow", mips : shadowmap.useMipMap);
+            m_Shadowmap.name = CoreUtils.GetRenderTargetAutoName(shadowmap.width, shadowmap.height, 1, shadowmap.format, "Shadow", mips : shadowmap.useMipMap);
 
             m_ShadowmapId = new RenderTargetIdentifier( m_Shadowmap );
         }

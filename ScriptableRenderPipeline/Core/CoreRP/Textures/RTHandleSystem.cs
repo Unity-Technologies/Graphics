@@ -129,7 +129,7 @@ namespace UnityEngine.Experimental.Rendering
         public void DemandResize(RTHandle rth)
         {
             Assert.IsTrue(m_ResizeOnDemandRTs.Contains(rth), string.Format("The RTHandle {0} is not an resize on demand handle in this RTHandleSystem. Please call SwitchToResizeOnDemand(rth, true) before resizing on demand.", rth));
-            
+
             for (int i = 0, c = (int)RTCategory.Count; i < c; ++i)
             {
                 if (rth.m_RTs[i] == null)
@@ -157,6 +157,7 @@ namespace UnityEngine.Experimental.Rendering
                     rt.name = CoreUtils.GetRenderTargetAutoName(
                         rt.width,
                         rt.height,
+                        rt.volumeDepth,
                         rt.format,
                         rth.m_Name,
                         mips: rt.useMipMap,
@@ -228,7 +229,7 @@ namespace UnityEngine.Experimental.Rendering
                     if (category == RTCategory.MSAA)
                         rt.antiAliasing = (int)m_ScaledRTCurrentMSAASamples;
 
-                    rt.name = CoreUtils.GetRenderTargetAutoName(rt.width, rt.height, rt.format, rth.m_Name, mips: rt.useMipMap, enableMSAA : category == RTCategory.MSAA, msaaSamples: m_ScaledRTCurrentMSAASamples);
+                    rt.name = CoreUtils.GetRenderTargetAutoName(rt.width, rt.height, rt.volumeDepth, rt.format, rth.m_Name, mips: rt.useMipMap, enableMSAA : category == RTCategory.MSAA, msaaSamples: m_ScaledRTCurrentMSAASamples);
                     rt.Create();
                 }
             }
@@ -284,7 +285,7 @@ namespace UnityEngine.Experimental.Rendering
                 useDynamicScale = useDynamicScale,
                 vrUsage = vrUsage,
                 memorylessMode = memoryless,
-                name = CoreUtils.GetRenderTargetAutoName(width, height, colorFormat, name, mips: useMipMap, enableMSAA: enableMSAA, msaaSamples: msaaSamples)
+                name = CoreUtils.GetRenderTargetAutoName(width, height, slices, colorFormat, name, mips: useMipMap, enableMSAA: enableMSAA, msaaSamples: msaaSamples)
             };
             rt.Create();
 
@@ -495,7 +496,7 @@ namespace UnityEngine.Experimental.Rendering
                 useDynamicScale = useDynamicScale,
                 vrUsage = vrUsage,
                 memorylessMode = memoryless,
-                name = CoreUtils.GetRenderTargetAutoName(width, height, colorFormat, name, mips : useMipMap, enableMSAA: allocForMSAA, msaaSamples : m_ScaledRTCurrentMSAASamples)
+                name = CoreUtils.GetRenderTargetAutoName(width, height, slices, colorFormat, name, mips : useMipMap, enableMSAA: allocForMSAA, msaaSamples : m_ScaledRTCurrentMSAASamples)
             };
             rt.Create();
 
