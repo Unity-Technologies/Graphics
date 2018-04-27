@@ -149,6 +149,10 @@ namespace UnityEditor.VFX
             return kExpectedTypeOrdering[minIndex];
         }
 
+        protected virtual string expectedOutputName { get { return string.Empty; } }
+
+        protected virtual VFXPropertyAttribute[] expectedOutputAttributes { get { return null; } }
+
         protected override sealed IEnumerable<VFXPropertyWithValue> outputProperties
         {
             get
@@ -164,7 +168,7 @@ namespace UnityEditor.VFX
                     //Most common behavior : output of an operation depend of input type
                     var slotType = GetExpectedOutputTypeOfOperation(inputSlots.Select(o => o.property.type));
                     if (slotType != null)
-                        yield return new VFXPropertyWithValue(new VFXProperty(slotType, string.Empty));
+                        yield return new VFXPropertyWithValue(new VFXProperty(slotType, expectedOutputName, expectedOutputAttributes));
                 }
             }
         }

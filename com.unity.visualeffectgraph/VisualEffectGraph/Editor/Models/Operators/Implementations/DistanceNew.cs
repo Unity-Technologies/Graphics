@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Vector", experimental = true)]
-    class DistanceNew : VFXOperatorNumericUnifiedNew
+    class DistanceNew : VFXOperatorNumericUniformNew
     {
         public class InputProperties
         {
