@@ -380,7 +380,7 @@ void ComputeLayerWeights(FragInputs input, LayerTexCoord layerTexCoord, float4 i
     ComputeMaskWeights(blendMasks, outWeights);
 }
 
-#include "LayeredLitDataDisplacement.hlsl"
+#include "../LayeredLit/LayeredLitDataDisplacement.hlsl"
 #include "../Lit/LitBuiltinData.hlsl"
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
