@@ -230,7 +230,7 @@ Shader "HDRenderPipeline/TerrainLit"
             #include "../../Debug/DebugDisplay.hlsl"
             #endif
             #include "../../Material/Material.hlsl"
-            #include "../Lit/ShaderPass/LitSharePass.hlsl"
+            #include "TerrainLitSharePass.hlsl"
             #include "TerrainLitData.hlsl"
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
 
@@ -255,7 +255,7 @@ Shader "HDRenderPipeline/TerrainLit"
             #define SHADERPASS SHADERPASS_LIGHT_TRANSPORT
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
-            #include "../Lit/ShaderPass/LitSharePass.hlsl"
+            #include "TerrainLitSharePass.hlsl"
             #include "TerrainLitData.hlsl"
             #include "../../ShaderPass/ShaderPassLightTransport.hlsl"
 
@@ -381,7 +381,7 @@ Shader "HDRenderPipeline/TerrainLit"
             #include "../../Debug/DebugDisplay.hlsl"
             #endif
             #include "../../Lighting/Lighting.hlsl"
-            #include "../Lit/ShaderPass/LitSharePass.hlsl"
+            #include "TerrainLitSharePass.hlsl"
             #include "TerrainLitData.hlsl"
             #include "../../ShaderPass/ShaderPassForward.hlsl"
 

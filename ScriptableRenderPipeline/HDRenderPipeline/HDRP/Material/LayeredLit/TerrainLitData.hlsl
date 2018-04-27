@@ -385,6 +385,9 @@ void ComputeLayerWeights(FragInputs input, LayerTexCoord layerTexCoord, float4 i
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
+    // terrain lightmap uvs are always taken from uv0
+    input.texCoord1 = input.texCoord2 = input.texCoord0;
+
     ApplyDoubleSidedFlipOrMirror(input); // Apply double sided flip on the vertex normal
 
     LayerTexCoord layerTexCoord;
