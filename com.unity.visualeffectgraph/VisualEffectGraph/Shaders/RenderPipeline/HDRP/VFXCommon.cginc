@@ -14,6 +14,12 @@ float4 VFXTransformPositionObjectToClip(float3 posOS)
     return VFXTransformPositionWorldToClip(posWS);
 }
 
+float3 VFXTransformPositionWorldToView(float3 posWS)
+{
+    posWS = GetCameraRelativePositionWS(posWS);
+    return TransformWorldToView(posWS);
+}
+
 float4x4 VFXGetObjectToWorldMatrix()
 {
     return GetObjectToWorldMatrix();

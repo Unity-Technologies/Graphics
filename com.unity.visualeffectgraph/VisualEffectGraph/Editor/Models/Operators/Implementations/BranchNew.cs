@@ -23,12 +23,13 @@ namespace UnityEditor.VFX.Operator
         {
             get
             {
-                return VFXLibrary.GetSlotsType().Where(o => !o.IsSubclassOf(typeof(Texture)));
+                var exclude = new[] { typeof(FloatN), typeof(GPUEvent) };
+                return VFXLibrary.GetSlotsType().Except(exclude).Where(o => !o.IsSubclassOf(typeof(Texture)));
             }
         }
     }
 
-    [VFXInfo(category = "Math", experimental = true)]
+    [VFXInfo(category = "Logic", experimental = true)]
     class BranchNew : VFXOperatorDynamicOperand, IVFXOperatorUniform
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
@@ -39,9 +40,9 @@ namespace UnityEditor.VFX.Operator
             [Tooltip("The predicate")]
             public bool predicate = true;
             [Tooltip("The true branch")]
-            public Sphere True = Sphere.defaultValue;
+            public float True = 0.0f;
             [Tooltip("The false branch")]
-            public Sphere False = Sphere.defaultValue;
+            public float False = 1.0f;
         }
 
         public sealed override string name { get { return "BranchNew"; } }
@@ -80,7 +81,7 @@ namespace UnityEditor.VFX.Operator
         {
             get
             {
-                return typeof(Sphere);
+                return typeof(float);
             }
         }
 

@@ -16,6 +16,8 @@
 #define SAMPLE_SPLINE_TANGENT(v,u) sampleSpline(v.y,u)
 #define INVERSE(m) Inv##m
 
+#define VFX_EPSILON 1e-5
+
 struct VFXSampler2D
 {
     Texture2D t;
@@ -48,11 +50,13 @@ struct VFXSamplerCubeArray
 
 #ifdef VFX_WORLD_SPACE
 float3 TransformPositionVFXToWorld(float3 pos)  { return pos; }
+float3 TransformPositionVFXToView(float3 pos)   { return VFXTransformPositionWorldToView(pos); }
 float4 TransformPositionVFXToClip(float3 pos)   { return VFXTransformPositionWorldToClip(pos); }
 float3x3 GetVFXToViewRotMatrix()                { return VFXGetWorldToViewRotMatrix(); }
 float3 GetViewVFXPosition()                     { return VFXGetViewWorldPosition(); }
 #else
 float3 TransformPositionVFXToWorld(float3 pos)  { return mul(VFXGetObjectToWorldMatrix(),float4(pos,1.0f)).xyz; }
+float3 TransformPositionVFXToView(float3 pos)   { return VFXTransformPositionWorldToView(mul(VFXGetObjectToWorldMatrix(), float4(pos, 1.0f)).xyz); }
 float4 TransformPositionVFXToClip(float3 pos)   { return VFXTransformPositionObjectToClip(pos); }
 float3x3 GetVFXToViewRotMatrix()                { return mul(VFXGetWorldToViewRotMatrix(),(float3x3)VFXGetObjectToWorldMatrix()); }
 float3 GetViewVFXPosition()                     { return mul(VFXGetWorldToObjectMatrix(),float4(VFXGetViewWorldPosition(),1.0f)).xyz; }

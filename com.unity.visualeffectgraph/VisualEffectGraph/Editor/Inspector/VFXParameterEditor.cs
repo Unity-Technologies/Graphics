@@ -18,12 +18,10 @@ using System.Reflection;
 [CanEditMultipleObjects]
 public class VFXParameterEditor : VFXSlotContainerEditor
 {
-    SerializedProperty exposedNameproperty;
     VFXViewController controller;
     protected new void OnEnable()
     {
         base.OnEnable();
-        exposedNameproperty = serializedObject.FindProperty("m_exposedName");
 
         VFXViewWindow current = VFXViewWindow.currentWindow;
         if (current != null)

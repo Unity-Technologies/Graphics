@@ -15,9 +15,9 @@
 {
     -flex:1;
     width:16;
-	height:16;
-	margin-left:4;
-	margin-right:8;
+    height:16;
+    margin-left:4;
+    margin-right:8;
 }
 .propertyrm Button
 {
@@ -30,9 +30,9 @@
 .propertyrm #label
 {
     text-color: rgb(153,153,153);
-	height:16;
-	margin-left:0;
-	padding-left:1;
+    height:16;
+    margin-left:0;
+    padding-left:1;
 }
 
 .propertyrm VFXMatrix4x4Field.fieldContainer
@@ -43,20 +43,20 @@
 
 .spaceCamera
 {
-	background-image:resource("vfx/spacecamera");
+    background-image:resource("vfx/spacecamera");
 }
 .spaceLocal
 {
-	background-image:resource("vfx/spacelocal");
+    background-image:resource("vfx/spacelocal");
 }
 .spaceGlobal
 {
-	background-image:resource("vfx/spaceglobal");
+    background-image:resource("vfx/spaceglobal");
 }
 
 .propertyrm > VFXFloatField
 {
-	margin-bottom:3;
+    margin-bottom:3;
 }
 
 .propertyrm .fieldContainer > *
@@ -71,18 +71,18 @@
 .propertyrm .label
 {
     text-color:#888;
-	flex:0;
+    flex:0;
     padding-left:2;
     text-alignment:middle-center;
-	margin-left:0;
-	padding-left:4;
-	margin-right:2;
-	padding-right:0;
+    margin-left:0;
+    padding-left:4;
+    margin-right:2;
+    padding-right:0;
 }
 
 .propertyrm .label.first
 {
-	padding-left:0;
+    padding-left:0;
 }
 
 .propertyrm .fieldContainer, .propertyrm VFXFloatField
@@ -91,52 +91,52 @@
     flex-direction:row;
     flex:1;
 
-	margin-left:0;
-	margin-right:0;
-	margin-top:0;
-	margin-bottom:0;
-	height:16;
+    margin-left:0;
+    margin-right:0;
+    margin-top:0;
+    margin-bottom:0;
+    height:16;
 }
 
 BoolPropertyRM Toogle
 {
     margin-top:-4;
-	maring-left:2;
+    maring-left:2;
     width:17;
     height:17;
     border-color:#F00;
-    
-	border-left-width:2;
-	border-right-width:2;
-	border-top-width:2;
-	border-bottom-width:2;
+
+    border-left-width:2;
+    border-right-width:2;
+    border-top-width:2;
+    border-bottom-width:2;
 }
 
 .propertyrm  .maincontainer
 {
-	flex:1;
+    flex:1;
     flex-direction:column;
     align-items:stretch;
 }
 
 .propertyrm .colordisplay
 {
-	flex:1;
+    flex:1;
 }
 
 ColorPropertyRM
 {
-	flex-direction:row;
+    flex-direction:row;
     height:36;
 }
 
 ColorPropertyRM .colorcontainer, Vector3PropertyRM .colorcontainer
 {
-	flex:1;
-	border-left-width:1;
-	border-right-width:1;
-	border-top-width:1;
-	border-bottom-width:1;
+    flex:1;
+    border-left-width:1;
+    border-right-width:1;
+    border-top-width:1;
+    border-bottom-width:1;
     border-top:1;
     border-bottom:1;
     border-left:1;
@@ -148,7 +148,7 @@ ColorPropertyRM .colorcontainer, Vector3PropertyRM .colorcontainer
 
 ColorPropertyRM VFXFloatField
 {
-	flex:1;
+    flex:1;
 }
 
 FloatPropertyRM VFXFloatField
@@ -161,9 +161,9 @@ IntPropertyRM IntegerField
 {
     align-self:flex-end;
     margin-left:0;
-	margin-right:0;
-	margin-top:0;
-	margin-bottom:0;
+    margin-right:0;
+    margin-top:0;
+    margin-bottom:0;
     flex:1;
 }
 
@@ -171,9 +171,9 @@ UintPropertyRM LongField
 {
     align-self:flex-end;
     margin-left:0;
-	margin-right:0;
-	margin-top:0;
-	margin-bottom:0;
+    margin-right:0;
+    margin-top:0;
+    margin-bottom:0;
     flex:1;
 }
 
@@ -197,9 +197,9 @@ Matrix4x4PropertyRM.propertyrm > .fieldContainer
 .propertyrm > #indeterminate, .propertyrm VFXFlipBookField #indeterminate
 {
     flex:1;
-	slice-left: 3;
-	slice-top: 3;
-	slice-right: 3;
+    slice-left: 3;
+    slice-top: 3;
+    slice-right: 3;
     slice-bottom: 3;
     margin-top:0;
     margin-bottom:0;

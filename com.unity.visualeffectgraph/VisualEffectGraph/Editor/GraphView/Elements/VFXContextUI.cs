@@ -507,7 +507,6 @@ namespace UnityEditor.VFX.UI
         class GrowContext : IDisposable
         {
             VFXContextUI m_Context;
-            Dictionary<VFXContextUI, float> m_PrevSizes = new Dictionary<VFXContextUI, float>();
             float m_PrevSize;
             public GrowContext(VFXContextUI context)
             {

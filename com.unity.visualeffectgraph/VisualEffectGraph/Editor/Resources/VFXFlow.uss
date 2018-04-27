@@ -1,8 +1,8 @@
 
 
 VFXFlowAnchor #connector #hole #cap{
-	width:0;
-	height:0;
+    width:0;
+    height:0;
 }
 
 VFXFlowAnchor #connector.portHighlight #hole #cap{
@@ -11,45 +11,45 @@ VFXFlowAnchor #connector.portHighlight #hole #cap{
 
 VFXFlowAnchor.port.EdgeConnector
 {
-	padding-left:0;
+    padding-left:0;
     padding-right:0;
-	margin-left:12;
+    margin-left:12;
     margin-right:12;
-	width:100;
-	height:28;
+    width:100;
+    height:28;
     port-color:rgb(220, 220, 220);
-	flex-direction:column-reverse;
+    flex-direction:column-reverse;
 }
 
 VFXFlowAnchor.port.EdgeConnector.output
 {
-	flex-direction:column;
+    flex-direction:column;
 }
 
 
 VFXFlowAnchor.port.EdgeConnector #connector
 {
-	width:12;
-	height:12;
+    width:12;
+    height:12;
     margin-left:2;
     margin-right:2;
 }
 
 VFXFlowAnchor.port.EdgeConnector #type
 {
-	position-type:Absolute;
-	width:42;
-	position-top:1;
-	position-left:58;
-	margin-left:0;
-	margin-right:0;
+    position-type:Absolute;
+    width:42;
+    position-top:1;
+    position-left:58;
+    margin-left:0;
+    margin-right:0;
 }
 
 
 VFXFlowAnchor.port.EdgeConnector #connector #cap
 {
-	width:8;
-	height:8;
+    width:8;
+    height:8;
 }
 
 VFXFlowAnchor.connected #connector

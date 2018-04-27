@@ -421,9 +421,6 @@ namespace UnityEditor.VFX
         [SerializeField]
         private VFXContextSlot[] m_OutputFlowSlot;
 
-        [NonSerialized]
-        private bool m_Compiled = false;
-
         public CoordinateSpace space
         {
             get
