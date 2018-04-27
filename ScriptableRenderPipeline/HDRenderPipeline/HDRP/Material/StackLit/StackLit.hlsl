@@ -97,16 +97,6 @@ bool IsVLayeredEnabled(BSDFData bsdfData)
     return (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT));
 }
 
-float3 ComputeDiffuseColor(float3 baseColor, float metallic)
-{
-    return baseColor * (1.0 - metallic);
-}
-
-float3 ComputeFresnel0(float3 baseColor, float metallic, float dielectricF0)
-{
-    return lerp(dielectricF0.xxx, baseColor, metallic);
-}
-
 // Assume bsdfData.normalWS is init
 void FillMaterialAnisotropy(float anisotropy, float3 tangentWS, float3 bitangentWS, inout BSDFData bsdfData)
 {
@@ -944,7 +934,7 @@ void ComputeAdding(float _cti, in BSDFData bsdfData, inout PreLightData preLight
         _s_r0m = s_ti0 + j0i*(s_t0i + s_r12 + m_rr*(s_r12+s_ri0));
         float roughnessB = LinearVarianceToRoughness(_s_r0m);
 
-        //preLightData.iblAnisotropy[0] = RoughnessToAnisotropy(roughnessT, roughnessB);
+        //ConvertRoughnessToAnisotropy(roughnessT, roughnessB, preLightData.iblAnisotropy[0]);
         // TODOANISOTROPY
         preLightData.iblAnisotropy[0] = bsdfData.anisotropy;
         preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX] = RoughnessToPerceptualRoughness((roughnessT + roughnessB)/2.0);
@@ -971,7 +961,7 @@ void ComputeAdding(float _cti, in BSDFData bsdfData, inout PreLightData preLight
         _s_r0m = s_ti0 + j0i*(s_t0i + s_r12 + m_rr*(s_r12+s_ri0));
         roughnessB = LinearVarianceToRoughness(_s_r0m);
 
-        //preLightData.iblAnisotropy[1] = RoughnessToAnisotropy(roughnessT, roughnessB);
+        // ConvertRoughnessToAnisotropy(roughnessT, roughnessB, preLightData.iblAnisotropy[1]);
         // TODOANISOTROPY
         preLightData.iblAnisotropy[1] = bsdfData.anisotropy;
         preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX] = RoughnessToPerceptualRoughness((roughnessT + roughnessB)/2.0);

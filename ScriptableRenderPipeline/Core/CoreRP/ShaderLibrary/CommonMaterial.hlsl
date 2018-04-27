@@ -43,7 +43,7 @@ void ConvertAnisotropyToRoughness(real perceptualRoughness, real anisotropy, out
     roughnessB = roughness * (1 - anisotropy);
 }
 
-real RoughnessToAnisotropy(real roughnessT, real roughnessB)
+void ConvertRoughnessToAnisotropy(real roughnessT, real roughnessB, out real anisotropy)
 {
     return ((roughnessT - roughnessB) / (roughnessT + roughnessB + 0.0001));
 }
@@ -56,13 +56,6 @@ void ConvertAnisotropyToClampRoughness(real perceptualRoughness, real anisotropy
 
     roughnessT = ClampRoughnessForAnalyticalLights(roughnessT);
     roughnessB = ClampRoughnessForAnalyticalLights(roughnessB);
-}
-
-// Same as ConvertAnisotropyToClampRoughness, but without anisotropy.
-void ConvertPerceptualRoughnessToClampRoughness(real perceptualRoughness, out real roughness)
-{
-    roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
-    roughness = ClampRoughnessForAnalyticalLights(roughness);
 }
 
 // Use with stack BRDF (clear coat / coat)
