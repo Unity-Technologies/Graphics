@@ -16,11 +16,6 @@ MonoBehaviour:
   defaultTestSettings: {fileID: 0}
   defaultRenderPipeline: {fileID: 11400000, guid: d7fe5f39d2c099a4ea1f1f610af309d7,
     type: 2}
-  alternateSettings:
-  - renderPipeline: {fileID: 11400000, guid: e0b837a0b8013cb4380a2f1286170857, type: 2}
-    testSettings: {fileID: 0}
-  - renderPipeline: {fileID: 11400000, guid: ae88914339ad0504eaca3f858706b8ad, type: 2}
-    testSettings: {fileID: 0}
   groups:
   - groupName: 1xMaterials
     renderPipelineOverride: {fileID: 0}
@@ -224,6 +219,13 @@ MonoBehaviour:
       minimumUnityVersion: 4
       platforms: -1
       run: 0
+    - name: Assets/SRP/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2401_Light_on_Tesselation.unity
+      scene: {fileID: 102900000, guid: fde2b1b0825ef5f40a0e5069afcca848, type: 3}
+      scenePath: Assets/SRP/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2401_Light_on_Tesselation.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
     - name: Assets/SRP/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2301_Shadow_Mask.unity
       scene: {fileID: 102900000, guid: 1029947770f955b4290bbdd8b641f7f1, type: 3}
       scenePath: Assets/SRP/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2301_Shadow_Mask.unity
@@ -321,4 +323,4 @@ MonoBehaviour:
       minimumUnityVersion: 4
       platforms: -1
       run: 0
-  suiteVersion: 2
+  suiteVersion: 3
