@@ -17,3 +17,4 @@ The property reference names are now editable. It is also now possible to make t
 - Fixed an issue where vector 1 node was not evaluating properly. ([#334](https://github.com/Unity-Technologies/ShaderGraph/issues/334) and [#337](https://github.com/Unity-Technologies/ShaderGraph/issues/337))
 - Properties can now be copied and pasted.
 - Pasting a property node into another graph will now convert it to a concrete node. ([#300](https://github.com/Unity-Technologies/ShaderGraph/issues/300))
+- Make nodes that are copied from one graph to another spawn in the center of the current view. ([#333](https://github.com/Unity-Technologies/ShaderGraph/issues/333))
