@@ -342,6 +342,11 @@ namespace UnityEditor.VFX
                                 groupInfo.contents[i].model = dst;
             }
 
+            if(dst is VFXBlock && src is VFXBlock)
+            {
+                ((VFXBlock)dst).enabled = ((VFXBlock)src).enabled;
+            }
+
             // Replace model
             var parent = src.GetParent();
             src.Detach(notify);
