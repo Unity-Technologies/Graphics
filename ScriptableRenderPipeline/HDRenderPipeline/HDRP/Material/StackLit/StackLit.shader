@@ -66,8 +66,8 @@ Shader "HDRenderPipeline/StackLit"
         _NormalScale("Normal Scale", Range(0.0, 2.0)) = 1
 
         [HideInInspector] _AmbientOcclusionMapShow("AmbientOcclusion Map Show", Float) = 0
-        _AmbientOcclusion("AmbientOcclusion", Range(0.0, 1.0)) = 0
-        _AmbientOcclusionMap("AmbientOcclusion Map", 2D) = "black" {}
+        _AmbientOcclusion("AmbientOcclusion", Range(0.0, 1.0)) = 1
+        _AmbientOcclusionMap("AmbientOcclusion Map", 2D) = "white" {}
         _AmbientOcclusionUseMap("AmbientOcclusion Use Map", Float) = 0
         _AmbientOcclusionMapUV("AmbientOcclusion Map UV", Float) = 0.0
         _AmbientOcclusionMapUVLocal("AmbientOcclusion Map UV Local", Float) = 0.0

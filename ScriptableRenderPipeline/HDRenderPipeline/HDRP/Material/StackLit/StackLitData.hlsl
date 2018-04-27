@@ -275,7 +275,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.ambientOcclusion = lerp(_AmbientOcclusionRange.x, _AmbientOcclusionRange.y, surfaceData.ambientOcclusion);
     surfaceData.ambientOcclusion = lerp(_AmbientOcclusion, surfaceData.ambientOcclusion, _AmbientOcclusionUseMap);
 
-
     // These static material feature allow compile time optimization
     // TODO: As we add features, or-set the flags eg MATERIALFEATUREFLAGS_STACK_LIT_* with #ifdef
     // on corresponding _MATERIAL_FEATURE_* shader_feature kerwords (set by UI) so the compiler
@@ -339,8 +338,15 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #if defined(DEBUG_DISPLAY)
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
-        surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, texcoords[_BaseColorMapUV], _BaseColorMap, _BaseColorMap_TexelSize, _BaseColorMap_MipInfo, surfaceData.baseColor);
-        surfaceData.metallic = 0;
+        if (_BaseColorMapUV != TEXCOORD_INDEX_TRIPLANAR)
+        {
+            surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, uvMapping.texcoords[_BaseColorMapUV][_BaseColorMapUVLocal], _BaseColorMap, _BaseColorMap_TexelSize, _BaseColorMap_MipInfo, surfaceData.baseColor);
+        }
+        else
+        {
+            surfaceData.baseColor = float3(0.0, 0.0, 0.0);
+        }
+        surfaceData.metallic = 0.0;
     }
 #endif
 
