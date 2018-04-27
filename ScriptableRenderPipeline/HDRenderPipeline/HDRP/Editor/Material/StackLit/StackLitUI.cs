@@ -24,16 +24,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string k_Metallic = "_Metallic";
         protected const string k_MetallicMap = "_MetallicMap";
         protected const string k_MetallicMapUV = "_MetallicMapUV";
-        protected const string k_MetallicRemap = "_MetallicRemap";
-        protected const string k_MetallicRemapInverted = "_MetallicRemapInverted";
-        protected const string k_MetallicRange = "_MetallicRange";
 
         protected const string k_Smoothness1 = "_SmoothnessA";
         protected const string k_Smoothness1Map = "_SmoothnessAMap";
         protected const string k_Smoothness1MapUV = "_SmoothnessAMapUV";
-        protected const string k_Smoothness1Remap = "_SmoothnessARemap";
-        protected const string k_Smoothness1RemapInverted = "_SmoothnessARemapInverted";
-        protected const string k_Smoothness1Range = "_SmoothnessARange";
 
         protected const string k_NormalMap = "_NormalMap";
         protected const string k_NormalMapUV = "_NormalMapUV";
@@ -41,6 +35,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected const string k_AmbientOcclusion = "_AmbientOcclusion";
         protected const string k_AmbientOcclusionMap = "_AmbientOcclusionMap";
+        protected const string k_AmbientOcclusionMapUV = "_AmbientOcclusionMapUV";
 
         // Emissive
         protected const string k_EmissiveColor = "_EmissiveColor";
@@ -61,29 +56,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string k_SubsurfaceMask = "_SubsurfaceMask";
         protected const string k_SubsurfaceMaskMap = "_SubsurfaceMaskMap";
         protected const string k_SubsurfaceMaskMapUV = "_SubsurfaceMaskMapUV";
-        protected const string k_SubsurfaceMaskRemap = "_SubsurfaceMaskRemap";
-        protected const string k_SubsurfaceMaskRemapInverted = "_SubsurfaceMaskRemapInverted";
-        protected const string k_SubsurfaceMaskRange = "_SubsurfaceMaskRange";
 
         // Translucency
         protected const string k_Thickness = "_Thickness";
         protected const string k_ThicknessMap = "_ThicknessMap";
         protected const string k_ThicknessMapUV = "_ThicknessMapUV";
-        protected const string k_ThicknessRemap = "_ThicknessRemap";
-        protected const string k_ThicknessRemapInverted = "_ThicknessRemapInverted";
-        protected const string k_ThicknessRange = "_ThicknessRange";
 
         // Second Lobe.
         protected const string k_Smoothness2 = "_SmoothnessB";
         protected const string k_Smoothness2Map = "_SmoothnessBMap";
         protected const string k_Smoothness2MapUV = "_SmoothnessBMapUV";
-        protected const string k_Smoothness2Remap = "_SmoothnessBRemap";
-        protected const string k_Smoothness2RemapInverted = "_SmoothnessBRemapInverted";
-        protected const string k_Smoothness2Range = "_SmoothnessBRange";
 
         protected const string k_LobeMix = "_LobeMix";
 
-        // Anisotropy 
+        // Anisotropy
         protected const string k_Anisotropy = "_Anisotropy";
 
         //// transparency params
@@ -130,7 +116,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                     //new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Dielectric IoR", "Index of Refraction for Dielectric", false),
 
-                    new TextureProperty(this, k_AmbientOcclusionMap, k_AmbientOcclusion, "AmbientOcclusion", "AmbientOcclusion", false, false),
+                    new TextureProperty(this, k_AmbientOcclusionMap, k_AmbientOcclusion, "AmbientOcclusion", "AmbientOcclusion Map", false, false),
                 }),
 
                 new GroupProperty(this, "_Emissive", "Emissive", new BaseProperty[]
@@ -234,6 +220,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected static void SetupTextureMaterialProperty(Material material, string basePropertyName)
         {
+            // TODO: Caution this can generate a lot of garbage collection call ?
             string useMapPropertyName = basePropertyName + "UseMap";
             string mapPropertyName = basePropertyName + "Map";
             string remapPropertyName = basePropertyName + "Remap";
@@ -245,7 +232,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (material.GetTexture(mapPropertyName))
             {
                 Vector4 rangeVector = material.GetVector(remapPropertyName);
-                if (material.GetFloat(invertPropertyName) > 0.0f)
+                if (material.HasProperty(invertPropertyName) && material.GetFloat(invertPropertyName) > 0.0f)
                 {
                     float s = rangeVector.x;
                     rangeVector.x = rangeVector.y;
@@ -323,6 +310,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetupTextureMaterialProperty(material, k_Metallic);
             SetupTextureMaterialProperty(material, k_Smoothness1);
             SetupTextureMaterialProperty(material, k_Smoothness2);
+            SetupTextureMaterialProperty(material, k_AmbientOcclusion);
             SetupTextureMaterialProperty(material, k_SubsurfaceMask);
             SetupTextureMaterialProperty(material, k_Thickness);
 
@@ -334,6 +322,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 (TextureProperty.UVMapping)material.GetFloat(k_NormalMapUV),
                 (TextureProperty.UVMapping)material.GetFloat(k_Smoothness1MapUV),
                 (TextureProperty.UVMapping)material.GetFloat(k_Smoothness2MapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_AmbientOcclusionMapUV),
                 (TextureProperty.UVMapping)material.GetFloat(k_EmissiveColorMapUV),
                 (TextureProperty.UVMapping)material.GetFloat(k_SubsurfaceMaskMapUV),
                 (TextureProperty.UVMapping)material.GetFloat(k_ThicknessMapUV),
@@ -360,7 +349,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool coatEnabled = material.HasProperty(k_CoatEnable) && (material.GetFloat(k_CoatEnable) > 0.0f);
             bool dualLobeEnabled = material.HasProperty(k_LobeMix) && (material.GetFloat(k_LobeMix) > 0.0f);
 
-            // Note that we don't use the materialId (cf Lit.shader) mechanism in the UI 
+            // Note that we don't use the materialId (cf Lit.shader) mechanism in the UI
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_ANISOTROPY", anisotropyEnabled);
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_COAT", coatEnabled);
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_DUAL_LOBE", dualLobeEnabled);

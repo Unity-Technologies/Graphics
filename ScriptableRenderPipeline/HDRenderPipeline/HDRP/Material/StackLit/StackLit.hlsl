@@ -55,12 +55,12 @@
 
 // TODO CLEANUP and put in proper define above
 // Also, note that we have lobe-indexed arrays,
-// and vlayer indexed for the generic vlayer 
+// and vlayer indexed for the generic vlayer
 // ComputeAdding loop
 
 #define NB_VLAYERS 3
 //#define NB_TRUE_INTERFACES 2
-//#define INTERFACE_TOP_IDX 0 
+//#define INTERFACE_TOP_IDX 0
 //#define INTERFACE_BASE_IDX 1
 
 // Use these to index vLayerEnergyCoeff[] !
@@ -128,18 +128,18 @@ float3 ConvertF0ForAirInterfaceToF0ForNewTopIor(float3 fresnel0, float newTopIor
 
 float CalculateEnergyCompensationFromSpecularReflectivity(float specularReflectivity)
 {
-    // Ref: Practical multiple scattering compensation for microfacet models.    
+    // Ref: Practical multiple scattering compensation for microfacet models.
     // We only apply the formulation for metals.
     // For dielectrics, the change of reflectance is negligible.
     // We deem the intensity difference of a couple of percent for high values of roughness
     // to not be worth the cost of another precomputed table.
     // Note: this formulation bakes the BSDF non-symmetric!
 
-    // Note that using this factor for all specular lighting assumes all 
+    // Note that using this factor for all specular lighting assumes all
     // BSDFs are from GGX.
     // (That's the FGD we use above to get integral[BSDF/F (N.w) dw] )
 
-    // Make it roughly usable with a lerp factor with - 1.0, see ApplyEnergyCompensationToSpecularLighting() 
+    // Make it roughly usable with a lerp factor with - 1.0, see ApplyEnergyCompensationToSpecularLighting()
     // The "lerp factor" will be fresnel0
     float energyCompensation = 1.0 / specularReflectivity - 1.0;
     return energyCompensation;
@@ -166,8 +166,6 @@ float3 GetEnergyCompensationFactor(float specularReflectivity, float3 fresnel0)
 void ApplyDebugToSurfaceData(float3x3 worldToTangent, inout SurfaceData surfaceData)
 {
 #ifdef DEBUG_DISPLAY
-    // NOTE: THe _Debug* uniforms come from /HDRP/Debug/DebugDisplay.hlsl
-
     // Override value if requested by user
     // this can be use also in case of debug lighting mode like diffuse only
     bool overrideAlbedo = _DebugLightingAlbedo.x != 0.0;
@@ -182,9 +180,10 @@ void ApplyDebugToSurfaceData(float3x3 worldToTangent, inout SurfaceData surfaceD
 
     if (overrideSmoothness)
     {
-        //NEWLITTODO
-        //float overrideSmoothnessValue = _DebugLightingSmoothness.y;
-        //surfaceData.perceptualSmoothness = overrideSmoothnessValue;
+        float overrideSmoothnessValue = _DebugLightingSmoothness.y;
+        surfaceData.perceptualSmoothnessA = overrideSmoothnessValue;
+        surfaceData.perceptualSmoothnessB = overrideSmoothnessValue;
+        surfaceData.coatPerceptualSmoothness = overrideSmoothnessValue;
     }
 
     if (overrideNormal)
@@ -258,11 +257,11 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
                              surfaceData.coatIor, surfaceData.coatThickness, surfaceData.coatExtinction, bsdfData);
 
         // vlayering:
-        // We can't calculate final roughnesses including anisotropy right away in this case: we will either do it 
-        // one time at GetPreLightData or for each light depending on the configuration for accuracy of BSDF 
+        // We can't calculate final roughnesses including anisotropy right away in this case: we will either do it
+        // one time at GetPreLightData or for each light depending on the configuration for accuracy of BSDF
         // vlayering statistics (ie if VLAYERED_RECOMPUTE_PERLIGHT)
 
-        // We have a coat top layer: change the base fresnel0 accordingdly: 
+        // We have a coat top layer: change the base fresnel0 accordingdly:
         bsdfData.fresnel0 = ConvertF0ForAirInterfaceToF0ForNewTopIor(bsdfData.fresnel0, bsdfData.coatIor);
 
         // We just dont clamp the roughnesses for now, but after the ComputeAdding() which will use those:
@@ -277,7 +276,7 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     {
         // roughnessT and roughnessB are clamped, and are meant to be used with punctual and directional lights.
         // perceptualRoughness is not clamped, and is meant to be used for IBL.
-        // TODO: add ui inputs, +tangent map for anisotropy; 
+        // TODO: add ui inputs, +tangent map for anisotropy;
         ConvertAnisotropyToClampRoughness(bsdfData.perceptualRoughnessA, bsdfData.anisotropy, bsdfData.roughnessAT, bsdfData.roughnessAB);
         ConvertAnisotropyToClampRoughness(bsdfData.perceptualRoughnessB, bsdfData.anisotropy, bsdfData.roughnessBT, bsdfData.roughnessBB);
     }
@@ -339,8 +338,8 @@ struct PreLightData
     float3 iblR[TOTAL_NB_LOBES];              // Dominant specular direction, used for IBL in EvaluateBSDF_Env()
     float  iblPerceptualRoughness[TOTAL_NB_LOBES];
     // IBL precalculation code modifies the perceptual roughnesses, so we need those too.
-    // For analytical lights, clamping is needed (epsilon instead of 0 roughness, which 
-    // would be troublesome to use for perfectly smooth IBL reflections, and roughness 
+    // For analytical lights, clamping is needed (epsilon instead of 0 roughness, which
+    // would be troublesome to use for perfectly smooth IBL reflections, and roughness
     // is split by anisotropy, while IBL anisotropy is delt with a hack on the used iblR
     // vector, with the non-anisotropic roughness).
 
@@ -351,22 +350,22 @@ struct PreLightData
     // cf with Lit.hlsl: originally, it has a coat section with its own
     // iblR, iblF, PartLambdaV: this is due to the fact that it was the only
     // extra lobe, and simplified: we didn't want to pay the cost of an FGD fetch
-    // for it (hence the name iblF in Lit). Here, we will fold all data into 
+    // for it (hence the name iblF in Lit). Here, we will fold all data into
     // lobe-indexed arrays.
 
 
-    // For clarity, we will dump the base layer lobes roughnesses used by analytical lights 
+    // For clarity, we will dump the base layer lobes roughnesses used by analytical lights
     // here, to avoid confusion with the per-vlayer (vs per lobe) vLayerPerceptualRoughness
     // (also, those don't need to be anisotropic for all lobes but the non-separated
     // original roughnesses are still useful for all lobes because of the IBL hack)
     //
-    // We don't reuse the BSDFData roughnessAT/AB/BT/BB because we might need the original 
-    // values per light (ie not only once at GetPreLightData time) to recompute new roughnesses 
+    // We don't reuse the BSDFData roughnessAT/AB/BT/BB because we might need the original
+    // values per light (ie not only once at GetPreLightData time) to recompute new roughnesses
     // if we use VLAYERED_RECOMPUTE_PERLIGHT.
     float  layeredRoughnessT[BASE_NB_LOBES];
     float  layeredRoughnessB[BASE_NB_LOBES];
     float  layeredCoatRoughness;
-    // For consistency with nonperceptual anisotropic and clamped roughnessAT/AB/BT/BB 
+    // For consistency with nonperceptual anisotropic and clamped roughnessAT/AB/BT/BB
     // which are stored in BSDFData, coatRoughness (for analytical lights) will
     // also be stored in BSDFData.
 
@@ -380,12 +379,12 @@ struct PreLightData
     // (ComputeAdding changing roughness per light is what will make them change).
     //
     // This used to be strictly done in GetPreLightData, but since this is NOT useful
-    // for IBLs, if vlayering is enabled and we want the vlayer stats recomputation 
-    // per analytical light, we must NOT do it in GetPreLightData (will be wasted) and 
+    // for IBLs, if vlayering is enabled and we want the vlayer stats recomputation
+    // per analytical light, we must NOT do it in GetPreLightData (will be wasted) and
     // (in effect can't be precalculated for all analytical lights).
     //
     // In short: only valid and precalculated at GetPreLightData time if vlayering is disabled.
-    // 
+    //
 
     float coatIeta;
 
@@ -394,24 +393,24 @@ struct PreLightData
     float3 vLayerEnergyCoeff[NB_VLAYERS];
     float vLayerPerceptualRoughness[NB_VLAYERS];
 
-    // We will duplicate one entry to simplify the IBL loop 
-    // (In general it's either that or we add branches (if lobe from bottom interface or 
-    // top inteface) in the loop and make sure the compiler [unroll] - should be automatic 
-    // on a static loop - as then the compiler will remove these known branches as it unrolls. 
-    // All our loops for lobes are static so either way it should unroll and remove either 
+    // We will duplicate one entry to simplify the IBL loop
+    // (In general it's either that or we add branches (if lobe from bottom interface or
+    // top inteface) in the loop and make sure the compiler [unroll] - should be automatic
+    // on a static loop - as then the compiler will remove these known branches as it unrolls.
+    // All our loops for lobes are static so either way it should unroll and remove either
     // duplicated storage or the branch.)
     //float energyCompensation[TOTAL_NB_LOBES];
     float energyCompensation;
 
     // TODOENERGY: we actually can use a scalar for the non vlayered case to apply at
-    // PostEvaluateBSDF time, and for the vlayered case, fold compensation into FGD 
+    // PostEvaluateBSDF time, and for the vlayered case, fold compensation into FGD
     // terms during ComputeAdding (ie FGD becomes FGDinf) (but the approximation depends on f0,
     // our FGD is scalar, not rgb, see GetEnergyCompensationFactor.)
 
     // Same thing for the F0:
     // (see ApplyEnergyCompensationToSpecularLighting)
     // So we will compute float3 energy factors per lobe:
-    float3 energyFactor[TOTAL_NB_LOBES]; 
+    float3 energyFactor[TOTAL_NB_LOBES];
 
     //See VLAYERED_DIFFUSE_ENERGY_HACKED_TERM
     float3 diffuseEnergy;
@@ -476,148 +475,148 @@ float FresnelUnpolarized(in float ct1, in float n1, in float n2)
 
 //-----------------------------------------------------------------------------
 //  About layered BSDF statistical lobe data calculations:
-// 
-// 
+//
+//
 // ComputeAdding summary notes:
 // -----------------------------
 //
 // -(Point A) Any local BSDF function parameter that depends on an angle needs to
-// use the angle of directions at the interface that generated the output lobe 
+// use the angle of directions at the interface that generated the output lobe
 // (either refracted for bottom interface, or normal elevation at top interface).
 //
-// -(Point B) By symmetry of refractions top/down -> bottom/up, lobe directional 
-// stats stay the same for lighting calculations (so use original top interface 
+// -(Point B) By symmetry of refractions top/down -> bottom/up, lobe directional
+// stats stay the same for lighting calculations (so use original top interface
 // angles)
 //
-// -If we use energy coefficients for IBL, use FGD terms during ComputeAdding 
-// (FGDinf in fact, TODOENERGY) for all adding-equation operators. FGD is fetched 
-// during the algo, at the right angle. 
+// -If we use energy coefficients for IBL, use FGD terms during ComputeAdding
+// (FGDinf in fact, TODOENERGY) for all adding-equation operators. FGD is fetched
+// during the algo, at the right angle.
 //
 // -If we will use energy coefficients for analytical lights, still use FGD (especially
-// correct is a (1-FGD) term at the top), ie, for everything below the first interface, 
-// but use the actual Fresnel term for that light for R12 at the start 
+// correct is a (1-FGD) term at the top), ie, for everything below the first interface,
+// but use the actual Fresnel term for that light for R12 at the start
 // of the algo (top interface) and not FGD.
-// If you recompute everything per light, FGD fetches per light might be expensive, 
-// so could use the FGD used for IBLs, angle used will be more or less incorrect 
+// If you recompute everything per light, FGD fetches per light might be expensive,
+// so could use the FGD used for IBLs, angle used will be more or less incorrect
 // depending on light directions, but probably better than using F0 terms everywhere).
 //
-// -Right now the method uses Fresnel terms for everything. 
+// -Right now the method uses Fresnel terms for everything.
 //
 // -When using Fresnel term formulation, FGD fetches are deferred, need to take care
-// of points A and B. In particular, IBL fetches are light sample (ie don't refract 
+// of points A and B. In particular, IBL fetches are light sample (ie don't refract
 // directions of LD fetches). Also, while FGD table is meant to be used with F0,
 // averages are used instead (notice the difference: a chain of Fresnel terms instead) of
 // the F0 that modulates FGD(angle, roughness). This is another approximation, versus
-// doing the FGD fetches directly during ComputeAdding. Then the output energy terms 
+// doing the FGD fetches directly during ComputeAdding. Then the output energy terms
 // could be used directly as the "FGD" part of the split sum to multiply with IBL's LD.
 //
 // -This is still a local model (like BSDF), no SSS inferred, or inter-layer refractions
 // that could change the actual spatially-varying (non-local) data parametrizing the
 // BSDF.
-// 
-// 
+//
+//
 // More details:
 // -----------------------------
-// 
+//
 // There’s a couple of choices for formulating the adding equations in ComputeAdding( ).
 // I discuss that here along with some information on the whole method.
-// 
-// If the energy coefficients are intended to be used solely in a split sum IBL context, 
+//
+// If the energy coefficients are intended to be used solely in a split sum IBL context,
 // then it makes sense to always use FGD and actually fetch them here while doing adding.
-// 
-// If they are going to be used for analytical lights also, this gets a bit more tricky 
-// (see details below), as the first R12 need not be an average but can be the actual 
+//
+// If they are going to be used for analytical lights also, this gets a bit more tricky
+// (see details below), as the first R12 need not be an average but can be the actual
 // Fresnel term of each light since there's a finite number of rays contributing.
-// The application of analytical lights seems more natural as you could use your full 
+// The application of analytical lights seems more natural as you could use your full
 // BSDF with these energy coefficients.
 // Even in that case though, past the first interface, you need  FGD when calculating
 // the other terms (eg for transmission, past an interface, (1-FGD)).
-// 
-// (Also ComputeAdding in that case (for every analytical lights) can be done with 
-// LdotH ie in a half-vector reference frame for the adding calculations but still use 
+//
+// (Also ComputeAdding in that case (for every analytical lights) can be done with
+// LdotH ie in a half-vector reference frame for the adding calculations but still use
 // the original L direction and N when actually evaluating the BSDF corresponding to an
 // output lobe. See below.)
 //
-// If in ComputeAdding() you use FGD for reflection, you need to be aware that you are 
-// targeting more a split sum formulation for eg IBL, and the other part of the sum is 
-// integral(L) (or importance sampled L, ie integral(LD), the later is the one we use). 
-// This would mean using D_GGX() (for the equivalent of preLD) directly in analytical 
-// light evaluations instead of the full BSDF. However, test empirically, might still be 
-// better to use the full BSDF even then. 
-// (Using FGD means accounting an average omnidirectional-outgoing / unidirectional-incoming 
-// energy transfer, “directional albedo” form. But in analytical lights, dirac vanishes 
-// the first FGD integral, and the "LD" part will be very sparse and punctual, hence this 
+// If in ComputeAdding() you use FGD for reflection, you need to be aware that you are
+// targeting more a split sum formulation for eg IBL, and the other part of the sum is
+// integral(L) (or importance sampled L, ie integral(LD), the later is the one we use).
+// This would mean using D_GGX() (for the equivalent of preLD) directly in analytical
+// light evaluations instead of the full BSDF. However, test empirically, might still be
+// better to use the full BSDF even then.
+// (Using FGD means accounting an average omnidirectional-outgoing / unidirectional-incoming
+// energy transfer, “directional albedo” form. But in analytical lights, dirac vanishes
+// the first FGD integral, and the "LD" part will be very sparse and punctual, hence this
 // might justify using more than D_GGX() ?)
-// 
+//
 // Our current case:
-// 
-// However, if like done now ComputeAdding uses Fresnel terms directly, then IBLs 
-// need to fetch FGD using the Fresnel term chain (energy coefficients) as an F0 
+//
+// However, if like done now ComputeAdding uses Fresnel terms directly, then IBLs
+// need to fetch FGD using the Fresnel term chain (energy coefficients) as an F0
 // (approximation) *but with the angle the lobe propagation calculations in ComputeAdding
-// (eg through fake refraction) would have computed when having reached the interface that 
-// generated that output lobe* 
-// The reason is that the FGD term would have been fetched at that point, and accounted 
+// (eg through fake refraction) would have computed when having reached the interface that
+// generated that output lobe*
+// The reason is that the FGD term would have been fetched at that point, and accounted
 // with that direction. This has nothing to do with the actual orientation of the output
 // lobe (and hence the direction that we must use for the LD fetch).
-// 
+//
 // Reference frame for the stats:
 //
-// Another point: since ComputeAdding( ) uses angles for Fresnel energy terms, if we 
-// recalculate per light, we must use a parametrization (reference frame) according to H 
-// and NOT N. This also means we are making different assumptions about the way the 
-// propagation operators work: eg see p9 the Symmetric Model: it is as if roughness is not 
-// "injected" in the direction of the macrosurface but in the H direction. Although 
-// different, empirical results show that it is as valid. Note however that again, this 
+// Another point: since ComputeAdding( ) uses angles for Fresnel energy terms, if we
+// recalculate per light, we must use a parametrization (reference frame) according to H
+// and NOT N. This also means we are making different assumptions about the way the
+// propagation operators work: eg see p9 the Symmetric Model: it is as if roughness is not
+// "injected" in the direction of the macrosurface but in the H direction. Although
+// different, empirical results show that it is as valid. Note however that again, this
 // doesn’t change the lobe directions.
-// 
-// Offspecular effects: 
 //
-// Since the ComputeAdding() method doesn’t really track mean directions but assume symmetry in 
-// the incidence plane (perpendicular to the “up” vector of the parametrization - either N or H 
-// depending on the given cti param - cos theta incident), only elevation angles are used, but 
-// output lobe directions (by symmetry of reflection and symmetry of transmission top-to-bottom 
+// Offspecular effects:
+//
+// Since the ComputeAdding() method doesn’t really track mean directions but assume symmetry in
+// the incidence plane (perpendicular to the “up” vector of the parametrization - either N or H
+// depending on the given cti param - cos theta incident), only elevation angles are used, but
+// output lobe directions (by symmetry of reflection and symmetry of transmission top-to-bottom
 // + bottom-to-top), since only reflection lobes are outputted, are all in the same direction
-// and thus do not impose a deviation on the w_i_fake value we need to conceptually use when 
-// instantiating a BSDF from our statistical representation of a lobe (so we just need to use 
+// and thus do not impose a deviation on the w_i_fake value we need to conceptually use when
+// instantiating a BSDF from our statistical representation of a lobe (so we just need to use
 // original w_i).
-// 
-// Offspecular effects are also ignored in the computations (which would break symmetry of 
+//
+// Offspecular effects are also ignored in the computations (which would break symmetry of
 // reflections especially at high roughness and further complicates the adding equations between
-// interfaces of *different* roughnesses), but, in the end, it is assumed (and can be seen as an 
-// approximation to correct a bit for that) that the output lobes increase of roughness should 
-// indeed tilt the resulting instantiated BSDF lobe a bit toward the normal (ie an offspecular 
-// tilt still happens but after and based on the whole layered stack stats that have been 
+// interfaces of *different* roughnesses), but, in the end, it is assumed (and can be seen as an
+// approximation to correct a bit for that) that the output lobes increase of roughness should
+// indeed tilt the resulting instantiated BSDF lobe a bit toward the normal (ie an offspecular
+// tilt still happens but after and based on the whole layered stack stats that have been
 // computed).
-// 
-// Again, since we don’t change w_i when instantiating an analytic BSDF, the change in roughness 
-// will incur that additional offspecular deviation naturally. 
-// For IBLs however, we take the resulting output (vlayer) roughness and calculate a correction 
-// to fetch through the dominant (central direction of the lobe) through GetSpecularDominantDir( ) 
-// as usual, but using the refracted angle for the bottom interface because that is what specifies 
+//
+// Again, since we don’t change w_i when instantiating an analytic BSDF, the change in roughness
+// will incur that additional offspecular deviation naturally.
+// For IBLs however, we take the resulting output (vlayer) roughness and calculate a correction
+// to fetch through the dominant (central direction of the lobe) through GetSpecularDominantDir( )
+// as usual, but using the refracted angle for the bottom interface because that is what specifies
 // the "original" offspecular effect that the approximation uses to correct.
-// 
-// (Note also that offspecular effects are also outside the plane of reflection, as the later is 
-// defined by coplanar L, N and V while the tilt of the lobe is towards N. This adds to the 
+//
+// (Note also that offspecular effects are also outside the plane of reflection, as the later is
+// defined by coplanar L, N and V while the tilt of the lobe is towards N. This adds to the
 // complexity of handling the effect.)
-// 
+//
 // TODOENERGY:
-// EnergyCompensation: This term can no longer be used alone in our vlayered BSDF framework as it 
-// was applied only one time indiscriminately at PostEvaluateBSDF( ) on the specular lighting which 
-// would be wrong in our case, since the correction terms depend on the interface the lobe 
-// corresponds to and compensation must happen at each FGD use in ComputeAdding. However, our 
-// framework is exactly designed to handle that problem, in that if we calculate and apply proper 
-// energy coefficient terms (should be calculated from FGDinf) and modulate each specular calculations 
+// EnergyCompensation: This term can no longer be used alone in our vlayered BSDF framework as it
+// was applied only one time indiscriminately at PostEvaluateBSDF( ) on the specular lighting which
+// would be wrong in our case, since the correction terms depend on the interface the lobe
+// corresponds to and compensation must happen at each FGD use in ComputeAdding. However, our
+// framework is exactly designed to handle that problem, in that if we calculate and apply proper
+// energy coefficient terms (should be calculated from FGDinf) and modulate each specular calculations
 // with them, this will actually do compensation.
-   
+
 // TODO:
-// This creates another performance option: when in VLAYERED_RECOMPUTE_PERLIGHT mode, we 
-// don’t recompute for IBLs, but the coefficients for energy compensation would need to get FGD, 
-// and will require FGD fetches for each analytical light. (ie ComputeAdding( ) ideally should 
-// always do calculations with FGD and do the fetches, so that even in GetPreLightData, nothing 
-// would be done there). For now, and for performance reasons, we don’t provide the option. 
-// 
-// However, when VLAYERED_RECOMPUTE_PERLIGHT is not used, we actually get usable terms that we 
-// will apply to the specular lighting, but these are different, we have one per real interface 
+// This creates another performance option: when in VLAYERED_RECOMPUTE_PERLIGHT mode, we
+// don’t recompute for IBLs, but the coefficients for energy compensation would need to get FGD,
+// and will require FGD fetches for each analytical light. (ie ComputeAdding( ) ideally should
+// always do calculations with FGD and do the fetches, so that even in GetPreLightData, nothing
+// would be done there). For now, and for performance reasons, we don’t provide the option.
+//
+// However, when VLAYERED_RECOMPUTE_PERLIGHT is not used, we actually get usable terms that we
+// will apply to the specular lighting, but these are different, we have one per real interface
 // (so 2 vs the 3 “virtual” layer structure here).
 // (FGDinf can be obtained from our FGD)
 //
@@ -626,11 +625,11 @@ float FresnelUnpolarized(in float ct1, in float n1, in float n2)
 
 ///Helper function that parses the BSDFData object to generate the current layer's
 // statistics.
-// 
+//
 // TODO: R12 Should be replace by a fetch to FGD.
-//       T12 should be multiplied by TIR. 
+//       T12 should be multiplied by TIR.
 //       (more like p8, T21 <- T21*TIR, R21 <- R21 + (1-TIR)*T21 )
-// 
+//
 void ComputeStatistics(in  float  cti,   in  int    i, in BSDFData bsdfData,
                        out float  ctt,
                        out float3 R12,   out float3 T12,   out float3 R21,   out float3 T21,
@@ -638,7 +637,7 @@ void ComputeStatistics(in  float  cti,   in  int    i, in BSDFData bsdfData,
                        //
                        //out float  s_r12_lobeB,
                        //
-                       out float  s_r21, out float  s_t21, out float  j21) 
+                       out float  s_r21, out float  s_t21, out float  j21)
 {
 
     // Case of the dielectric coating
@@ -658,10 +657,10 @@ void ComputeStatistics(in  float  cti,   in  int    i, in BSDFData bsdfData,
         float sti = sqrt(1.0 - Sq(cti));
         float stt = sti / n12;
         if(stt <= 1.0f) {
-            // Hack: as roughness -> 1, remove the effect of changing angle also note: we never track means per se 
-            // because of symmetry, we have no azimuth, and don't consider offspecular effect as well as never 
+            // Hack: as roughness -> 1, remove the effect of changing angle also note: we never track means per se
+            // because of symmetry, we have no azimuth, and don't consider offspecular effect as well as never
             // outputting final downward lobes anyway.
-            // We just track cosines of angles for energy transfer calculations (should do with FGD but depends, 
+            // We just track cosines of angles for energy transfer calculations (should do with FGD but depends,
             // see comments above).
             const float alpha = bsdfData.coatRoughness;
             const float scale = clamp((1.0-alpha)*(sqrt(1.0-alpha) + alpha), 0.0, 1.0);
@@ -669,7 +668,7 @@ void ComputeStatistics(in  float  cti,   in  int    i, in BSDFData bsdfData,
             stt = scale*stt + (1.0-scale)*sti;
             ctt = sqrt(1.0 - stt*stt);
         } else {
-            // TER, flip sign: directions either reflected or transmitted always leave 
+            // TER, flip sign: directions either reflected or transmitted always leave
             // the surface. So here we have ctt instead of cti, we reverse dir by flipping sign.
             // Not accounted for though check implications of ctt = -1.0
             // TODO
@@ -724,8 +723,8 @@ void ComputeStatistics(in  float  cti,   in  int    i, in BSDFData bsdfData,
         //
         // HACK: we will not propagate all needed last values, as we have 4,
         // but the adding cycle for the last layer can be shortcircuited for
-        // the last lobes we need without computing the whole state of the 
-        // current stack (ie the i0 and 0i terms). 
+        // the last lobes we need without computing the whole state of the
+        // current stack (ie the i0 and 0i terms).
         //
         // We're only interested in _s_r0m and m_R0i.
         s_r12 = 0.0;
@@ -762,7 +761,7 @@ void ComputeAdding(float _cti, in BSDFData bsdfData, inout PreLightData preLight
 
         // Variables for the adding step
         float3 R12, T12, R21, T21;
-        s_r12=0.0; 
+        s_r12=0.0;
         float s_r21=0.0, s_t12=0.0, s_t21=0.0, j12=1.0, j21=1.0, ctt;
 
         // Layer specific evaluation of the transmittance, reflectance, variance
@@ -772,7 +771,7 @@ void ComputeAdding(float _cti, in BSDFData bsdfData, inout PreLightData preLight
         float3 denom = (float3(1.0, 1.0, 1.0) - Ri0*R12); //i = new layer, 0 = cumulative top (llab3.1 to 3.4)
         float3 m_R0i = (mean(denom) <= 0.0f)? float3(0.0, 0.0, 0.0) : (T0i*R12*Ti0) / denom; //(llab3.1)
         float3 m_Ri0 = (mean(denom) <= 0.0f)? float3(0.0, 0.0, 0.0) : (T21*Ri0*T12) / denom; //(llab3.2)
-        float3 m_Rr  = (mean(denom) <= 0.0f)? float3(0.0, 0.0, 0.0) : (Ri0*R12) / denom; 
+        float3 m_Rr  = (mean(denom) <= 0.0f)? float3(0.0, 0.0, 0.0) : (Ri0*R12) / denom;
         float  m_r0i = mean(m_R0i);
         float  m_ri0 = mean(m_Ri0);
         m_rr  = mean(m_Rr);
@@ -820,11 +819,11 @@ void ComputeAdding(float _cti, in BSDFData bsdfData, inout PreLightData preLight
         // Update mean
         cti = ctt;
 
-        // We need to escape this update on the last vlayer iteration, 
-        // as we will use a hack to compute all needed bottom layer 
+        // We need to escape this update on the last vlayer iteration,
+        // as we will use a hack to compute all needed bottom layer
         // anisotropic roughnesses. The compiler should easily factor
         // this out when the loop is unrolled anyway
-        if( i < (NB_VLAYERS-1) ) 
+        if( i < (NB_VLAYERS-1) )
         {
             // Update variance
             s_r0i = _s_r0i;
@@ -846,25 +845,25 @@ void ComputeAdding(float _cti, in BSDFData bsdfData, inout PreLightData preLight
     // Works because we're the last "layer" and all variables touched
     // above are in a state where these calculations will be valid:
     //
-    // We have 6 roughnesses to process; 
+    // We have 6 roughnesses to process;
     // TODO: We could probably optimize this a bit.
     //
-    // We need both bottom lobes 
+    // We need both bottom lobes
     // perceptualRoughnessA and perceptualRoughnessB
     // for IBLs (because anisotropy will use a hack)
     //
-    // Then we need anisotropic roughness updates again for the 2 
+    // Then we need anisotropic roughness updates again for the 2
     // bottom lobes, for analytical lights.
     //
     // TODO: VLAYERED_RECOMPUTE_PERLIGHT and calledPerLight bool
 
     // First, to be less messy, immediately transfer vLayerPerceptualRoughness
     // data into the iblPerceptualRoughness[] array
-    // (note that vLayer*[0] and vLayer*[2] contains useful data, 
+    // (note that vLayer*[0] and vLayer*[2] contains useful data,
     // but not vLayer*[1] - this is the media "layer")
 
     // Obviously coat roughness is given without ComputeAdding calculations (nothing on top)
-    // 
+    //
     //preLightData.iblPerceptualRoughness[COAT_LOBE_IDX] = preLightData.vLayerPerceptualRoughness[TOP_VLAYER_IDX];
 
 #ifdef VLAYERED_RECOMPUTE_PERLIGHT
@@ -874,27 +873,27 @@ void ComputeAdding(float _cti, in BSDFData bsdfData, inout PreLightData preLight
 #endif
     bool haveAnisotropy = HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_ANISOTROPY);
 
-    // calledPerLight and all of the bools above are static time known. 
+    // calledPerLight and all of the bools above are static time known.
     // What we have to calculate is a bit messy here.
     // Basically, If we're in a mode where we will compute the vlayer stats per analytical light,
-    // and our calling context here is per light, we shouldn't deal with the perceptual roughnesses 
-    // for IBLs, nor with their anisotropy parameter recalculation. So we only deal with the roughness 
+    // and our calling context here is per light, we shouldn't deal with the perceptual roughnesses
+    // for IBLs, nor with their anisotropy parameter recalculation. So we only deal with the roughness
     // used by analytical lights (no iblPerceptualRoughness)
     //
-    // Otherwise, depending on if we have anisotropy or not, we might still have to deal with 
+    // Otherwise, depending on if we have anisotropy or not, we might still have to deal with
     // the T and B terms to have isotropic modulation by the above layer and re-infer back a
     // a corrected anisotropy and scalar roughness for use with the IBL hack.
-    // That hack adds complexity because IBLs they can't use the T and B roughnesses but at the 
-    // same time we can't just update their scalar roughness because then it will only give them more 
-    // roughness in the anisotropic direction. 
+    // That hack adds complexity because IBLs they can't use the T and B roughnesses but at the
+    // same time we can't just update their scalar roughness because then it will only give them more
+    // roughness in the anisotropic direction.
 
     if( !calledPerLight && !haveAnisotropy)
     {
         // Calculate modified base lobe roughnesses T (no anisotropy)
 
-        // There's no anisotropy and we haven't clamped the roughness in the T and B fields, so 
-        // that we can use directly bsdfData.roughness?T == bsdfData.roughness?B 
-        // == PerceptualRoughnessToRoughness(bsdfData.perceptualRoughnessA)) : 
+        // There's no anisotropy and we haven't clamped the roughness in the T and B fields, so
+        // that we can use directly bsdfData.roughness?T == bsdfData.roughness?B
+        // == PerceptualRoughnessToRoughness(bsdfData.perceptualRoughnessA)) :
         //s_r12 = RoughnessToLinearVariance(PerceptualRoughnessToRoughness(bsdfData.perceptualRoughnessA));
         s_r12 = RoughnessToLinearVariance(bsdfData.roughnessAT);
         _s_r0m = s_ti0 + j0i*(s_t0i + s_r12 + m_rr*(s_r12+s_ri0));
@@ -918,9 +917,9 @@ void ComputeAdding(float _cti, in BSDFData bsdfData, inout PreLightData preLight
 
     if( !calledPerLight && haveAnisotropy)
     {
-        // We're in GetPreLightData context so we need to deal with IBL precalc, and 
-        // regardless of if we had the VLAYERED_RECOMPUTE_PERLIGHT option or not, we 
-        // still need to compute the full anistropic modification of variances. 
+        // We're in GetPreLightData context so we need to deal with IBL precalc, and
+        // regardless of if we had the VLAYERED_RECOMPUTE_PERLIGHT option or not, we
+        // still need to compute the full anistropic modification of variances.
 
         // We proceed as follow: Convert T & B roughnesses to variance, propagate the effect of layers,
         // infer back a new anisotropy parameter and roughness from them:
@@ -941,16 +940,16 @@ void ComputeAdding(float _cti, in BSDFData bsdfData, inout PreLightData preLight
         preLightData.iblAnisotropy[0] = bsdfData.anisotropy;
         preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX] = RoughnessToPerceptualRoughness((roughnessT + roughnessB)/2.0);
 
-        if( !perLightOption ) 
+        if( !perLightOption )
         {
 
             // We're not going to get called again per analytical light so store the result needed and used by them:
-            // LOBEA T and B part: 
+            // LOBEA T and B part:
             preLightData.layeredRoughnessT[0] = ClampRoughnessForAnalyticalLights(roughnessT);
             preLightData.layeredRoughnessB[0] = ClampRoughnessForAnalyticalLights(roughnessB);
         }
 
-        // We do the same for LOBEB: 
+        // We do the same for LOBEB:
         // -------------------------
 
         // LOBEB roughness for analytical lights (T part)
@@ -968,10 +967,10 @@ void ComputeAdding(float _cti, in BSDFData bsdfData, inout PreLightData preLight
         preLightData.iblAnisotropy[1] = bsdfData.anisotropy;
         preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX] = RoughnessToPerceptualRoughness((roughnessT + roughnessB)/2.0);
 
-        if( !perLightOption ) 
+        if( !perLightOption )
         {
             // We're not going to get called again per analytical light so store the result needed and used by them:
-            // LOBEB T and B part: 
+            // LOBEB T and B part:
             preLightData.layeredRoughnessT[1] = ClampRoughnessForAnalyticalLights(roughnessT);
             preLightData.layeredRoughnessB[1] = ClampRoughnessForAnalyticalLights(roughnessB);
         }
@@ -1037,24 +1036,24 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     preLightData.NdotV = dot(N, V);
     float NdotV = ClampNdotV(preLightData.NdotV);
 
-    // For eval IBL lights, we need: 
+    // For eval IBL lights, we need:
     //
-    // iblPerceptualRoughness for FGD, mip, etc 
+    // iblPerceptualRoughness for FGD, mip, etc
     // iblR (fetch direction compensated dominant spec)
     // specularFGD (coatIblF is now in there too)
-    // energyCompensation (for all light, apply everytime since with layering it becomes 
+    // energyCompensation (for all light, apply everytime since with layering it becomes
     // lobe specific)
     //
-    // We also need for analytical lights: 
+    // We also need for analytical lights:
     //
-    // coatRoughness, roughnessAT/AB/BT/BB (anisotropic, all are nonperceptual and *clamped*) 
+    // coatRoughness, roughnessAT/AB/BT/BB (anisotropic, all are nonperceptual and *clamped*)
     // partLambdaV
     //
-    // The later are done here only if we're not using VLAYERED_RECOMPUTE_PERLIGHT. 
+    // The later are done here only if we're not using VLAYERED_RECOMPUTE_PERLIGHT.
     //
 
 
-    // TODO this can now be refactored instead of having mostly duped code down here, 
+    // TODO this can now be refactored instead of having mostly duped code down here,
     //
     // Use loops and special case with IsVLayeredEnabled(bsdfData) which is statically known.
 
@@ -1080,14 +1079,14 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         // First thing we need is compute the energy coefficients and new roughnesses.
         // Even if configured to do it also per analytical light, we need it for IBLs too.
         ComputeAdding(NdotV, bsdfData, preLightData, false);
-        
-        // After ComputeAdding, these are done for all lobes: 
+
+        // After ComputeAdding, these are done for all lobes:
         //
-        //   preLightData.iblPerceptualRoughness[] 
+        //   preLightData.iblPerceptualRoughness[]
         //   preLightData.vLayerEnergyCoeff[]
         //   preLightData.iblAnisotropy[]           (only if anisotropy is enabled)
 
-        // If we're not using VLAYERED_RECOMPUTE_PERLIGHT we also have calculated 
+        // If we're not using VLAYERED_RECOMPUTE_PERLIGHT we also have calculated
         //   preLightData.layeredRoughnessT and B[],
         //   preLightData.layeredCoatRoughness
         // Otherwise, the calculation of these is done for each light
@@ -1138,43 +1137,43 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         // Handle IBL pre calculated data + GGX multiscattering energy loss compensation term
 
         // Here, we will fetch our actual FGD terms, see ComputeAdding for details: the F0 params
-        // will be replaced by our energy coefficients. Note that the way to do it depends on the 
+        // will be replaced by our energy coefficients. Note that the way to do it depends on the
         // formulation of ComputeAdding (with FGD fetches or only Fresnel terms).
 
         // Also note that while the fetch directions for the light samples (IBL) are the ones
-        // at the top interface, for the FGD terms (in fact, for all angle dependent BSDF 
+        // at the top interface, for the FGD terms (in fact, for all angle dependent BSDF
         // parametrization data), we need to use the actual interface angle a propagated direction
         // would have. So, for the base layer, this is a refracted direction through the coat.
         // Same for the top, but this is just NdotV.
         // This is because we should really have fetched FGD with the tracked cti (cos theta incoming)
         // at the bottom layer or top layer during ComputeAdding itself. We delayed the fetch after,
-        // because our ComputeAdding formulation is with "energy" coefficients calculated with a 
+        // because our ComputeAdding formulation is with "energy" coefficients calculated with a
         // chain of Fresnel terms instead of a correct chain computed with the true FGD.
 
-        baseLayerNdotV = sqrt(1 + Sq(preLightData.coatIeta)*(Sq(NdotV) - 1)); 
+        baseLayerNdotV = sqrt(1 + Sq(preLightData.coatIeta)*(Sq(NdotV) - 1));
         //TODO refactor with EvalIridescence, Lit::GetPreLightData
 
         float diffuseFGDTmp; // unused, for coat layer FGD fetch
 
-        GetPreIntegratedFGDGGXAndDisneyDiffuse(NdotV, 
-                                               preLightData.iblPerceptualRoughness[COAT_LOBE_IDX], 
-                                               preLightData.vLayerEnergyCoeff[TOP_VLAYER_IDX], 
-                                               preLightData.specularFGD[COAT_LOBE_IDX], 
-                                               diffuseFGDTmp, 
+        GetPreIntegratedFGDGGXAndDisneyDiffuse(NdotV,
+                                               preLightData.iblPerceptualRoughness[COAT_LOBE_IDX],
+                                               preLightData.vLayerEnergyCoeff[TOP_VLAYER_IDX],
+                                               preLightData.specularFGD[COAT_LOBE_IDX],
+                                               diffuseFGDTmp,
                                                specularReflectivity[COAT_LOBE_IDX]);
 
-        GetPreIntegratedFGDGGXAndDisneyDiffuse(baseLayerNdotV, 
-                                               preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX], 
+        GetPreIntegratedFGDGGXAndDisneyDiffuse(baseLayerNdotV,
+                                               preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX],
                                                preLightData.vLayerEnergyCoeff[BOTTOM_VLAYER_IDX],
-                                               preLightData.specularFGD[BASE_LOBEA_IDX], 
-                                               diffuseFGD[0], 
+                                               preLightData.specularFGD[BASE_LOBEA_IDX],
+                                               diffuseFGD[0],
                                                specularReflectivity[BASE_LOBEA_IDX]);
 
-        GetPreIntegratedFGDGGXAndDisneyDiffuse(baseLayerNdotV, 
-                                               preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX], 
-                                               preLightData.vLayerEnergyCoeff[BOTTOM_VLAYER_IDX], 
-                                               preLightData.specularFGD[BASE_LOBEB_IDX], 
-                                               diffuseFGD[1], 
+        GetPreIntegratedFGDGGXAndDisneyDiffuse(baseLayerNdotV,
+                                               preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX],
+                                               preLightData.vLayerEnergyCoeff[BOTTOM_VLAYER_IDX],
+                                               preLightData.specularFGD[BASE_LOBEB_IDX],
+                                               diffuseFGD[1],
                                                specularReflectivity[BASE_LOBEB_IDX]);
 
         iblR[0] = reflect(-V, iblN[0]);
@@ -1188,7 +1187,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         // Correction of reflected direction for better handling of rough material
 
         // Notice again that the roughness and iblR properly use the output lobe statistics, but baseLayerNdotV
-        // is used for the offspecular correction because the true original offspecular tilt is parametrized by 
+        // is used for the offspecular correction because the true original offspecular tilt is parametrized by
         // the angle at the base layer and the correction itself is influenced by that. See comments above.
         preLightData.iblR[COAT_LOBE_IDX] = GetSpecularDominantDir(N, iblR[COAT_LOBE_IDX], preLightData.iblPerceptualRoughness[COAT_LOBE_IDX], NdotV);
         preLightData.iblR[BASE_LOBEA_IDX] = GetSpecularDominantDir(N, iblR[BASE_LOBEA_IDX], preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX], baseLayerNdotV);
@@ -1196,13 +1195,13 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 
 #ifdef LIT_USE_GGX_ENERGY_COMPENSATION
         // TODOENERGY:
-        // This is actually changing FGD to FGDinf in the vlayering framework but this needs to be folded in the energy calculations 
+        // This is actually changing FGD to FGDinf in the vlayering framework but this needs to be folded in the energy calculations
         // during ComputeAdding. Also even analytical lights will need the energy terms, not just IBL.
         // (See also CalculateEnergyCompensationFromSpecularReflectivity and ApplyEnergyCompensationToSpecularLighting)
-        
+
         // Wrong to apply these here vs in ComputeAdding as compensation means replacing FGD with FGDinf but we have a chain of
         // them built by ComputeAdding with terms like (FGDinf), (1-FGDinf). Also, the compensation approximation depends on f0.
-        // See TODOENERGY [eg:  (a1*ef)(1-(a2*ef)) != ef (a1)(1-a2) ] 
+        // See TODOENERGY [eg:  (a1*ef)(1-(a2*ef)) != ef (a1)(1-a2) ]
 
         float specularReflectivityBase =  lerp(specularReflectivity[BASE_LOBEA_IDX], specularReflectivity[BASE_LOBEB_IDX], bsdfData.lobeMix);
 
@@ -1216,18 +1215,18 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 
 
 #else
-        //preLightData.energyCompensation[COAT_LOBE_IDX] = 
-        //preLightData.energyCompensation[BASE_LOBEA_IDX] = 
+        //preLightData.energyCompensation[COAT_LOBE_IDX] =
+        //preLightData.energyCompensation[BASE_LOBEA_IDX] =
         //preLightData.energyCompensation[BASE_LOBEB_IDX] = 0.0;
-        preLightData.energyFactor[BASE_LOBEA_IDX] = 
-        preLightData.energyFactor[BASE_LOBEB_IDX] = 
+        preLightData.energyFactor[BASE_LOBEA_IDX] =
+        preLightData.energyFactor[BASE_LOBEB_IDX] =
         preLightData.energyFactor[COAT_LOBE_IDX] = 1.0;
 #endif
 
     } //...if( IsVLayeredEnabled(BSDFData bsdfData) )
     else
     {
-        // NO VLAYERING: 
+        // NO VLAYERING:
 
         // To make BSDF( ) evaluation more generic, even if we're not vlayered,
         // we will use these:
@@ -1273,17 +1272,17 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         // Handle IBL pre calculated data + GGX multiscattering energy loss compensation term
 
         GetPreIntegratedFGDGGXAndDisneyDiffuse(baseLayerNdotV, // just NdotV here...
-                                               preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX], 
-                                               bsdfData.fresnel0, 
-                                               preLightData.specularFGD[BASE_LOBEA_IDX], 
-                                               diffuseFGD[0], 
+                                               preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX],
+                                               bsdfData.fresnel0,
+                                               preLightData.specularFGD[BASE_LOBEA_IDX],
+                                               diffuseFGD[0],
                                                specularReflectivity[BASE_LOBEA_IDX]);
 
-        GetPreIntegratedFGDGGXAndDisneyDiffuse(baseLayerNdotV, 
-                                               preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX], 
-                                               bsdfData.fresnel0, 
-                                               preLightData.specularFGD[BASE_LOBEB_IDX], 
-                                               diffuseFGD[1], 
+        GetPreIntegratedFGDGGXAndDisneyDiffuse(baseLayerNdotV,
+                                               preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX],
+                                               bsdfData.fresnel0,
+                                               preLightData.specularFGD[BASE_LOBEB_IDX],
+                                               diffuseFGD[1],
                                                specularReflectivity[BASE_LOBEB_IDX]);
 
 
@@ -1299,9 +1298,9 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         preLightData.iblR[1] = GetSpecularDominantDir(N, iblR[1], preLightData.iblPerceptualRoughness[1], NdotV);
 
 #ifdef LIT_USE_GGX_ENERGY_COMPENSATION
-        // Here, since this compensation term is already an average applied to a sum 
+        // Here, since this compensation term is already an average applied to a sum
         // (akin to a "split sum" approximation) we will just lerp our two "specularReflectivities".
-        // When in vlayering, the same split approximation idea is embedded in the whole aggregate statistical 
+        // When in vlayering, the same split approximation idea is embedded in the whole aggregate statistical
         // formulation. ie Compensation corresponds to using FGDinf instead of FGD.
         float specR =  lerp(specularReflectivity[0], specularReflectivity[1], bsdfData.lobeMix);
         //preLightData.energyCompensation[0] = CalculateEnergyCompensationFromSpecularReflectivity(specR);
@@ -1698,7 +1697,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // TODO: Refraction
     // There is no coat handling in Lit for refractions.
     // Here handle one lobe instead of all the others basically, or we could want it all.
-    // Could use proper transmission term T0i when vlayered and a total refraction lobe 
+    // Could use proper transmission term T0i when vlayered and a total refraction lobe
     // variance (need to get it in ComputeAdding, TODOTODO)
 
 #if !HAS_REFRACTION
@@ -1748,9 +1747,9 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // -Fudge the sampling direction to dampen boundary artefacts.
     // -Do early discard for planar reflections.
 
-    // -Fetch samples of preintegrated environment lighting 
+    // -Fetch samples of preintegrated environment lighting
     // (see preLD, first part of the split-sum approx.)
-    // -Use the BSDF preintegration terms we pre-fetched in preLightData 
+    // -Use the BSDF preintegration terms we pre-fetched in preLightData
     // (second part of the split-sum approx.,
     //  and common to all Env. Lights. using the same BSDF and
     //  we only have GGX thus only one FGD map for now)
@@ -1784,7 +1783,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
             // TODOENERGY: should be done in ComputeAdding with FGD formulation for IBL.
             // Note that when we're not vlayered, we apply it not at each light sample but at the end,
             // at PostEvaluateBSDF.
-            // Incorrect, but just for now: 
+            // Incorrect, but just for now:
             //L = ApplyEnergyCompensationToSpecularLighting(L, preLightData.fresnel0[i], preLightData.energyCompensation[i]);
             L *= preLightData.energyFactor[i];
         }

@@ -1911,8 +1911,10 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // Specific case for Texture2Ds, their convolution is a gaussian one and not a GGX one.
     // So we use another roughness mip mapping.
     if (IsEnvIndexTexture2D(lightData.envIndex))
+    {
         // Empirical remapping
-        iblMipLevel = pow(preLightData.iblPerceptualRoughness, 0.8) * uint(max(_ColorPyramidScale.z - 1, 0));
+        iblMipLevel = PositivePow(preLightData.iblPerceptualRoughness, 0.8) * uint(max(_ColorPyramidScale.z - 1, 0));
+    }
 
     float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, iblMipLevel);
     weight *= preLD.a; // Used by planar reflection to discard pixel
