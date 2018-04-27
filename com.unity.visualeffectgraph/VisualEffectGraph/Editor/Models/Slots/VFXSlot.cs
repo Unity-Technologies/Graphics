@@ -346,13 +346,18 @@ namespace UnityEditor.VFX
         {
             var links = src.LinkedSlots.ToArray();
             int index = 0;
+
             while (index < links.Count())
             {
                 var link = links[index];
                 if (dst.CanLink(link))
                 {
                     dst.Link(link, notify);
+
                     src.Unlink(link, notify);
+
+                    dst.owner.TransferLinkOtherSlot(src, dst, link);
+                    link.owner.TransferLinkMySlot(link, src, dst);
                 }
                 ++index;
             }

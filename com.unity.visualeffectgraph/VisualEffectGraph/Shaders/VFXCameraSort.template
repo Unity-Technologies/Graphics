@@ -1,6 +1,7 @@
 #pragma kernel CSMain
 ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
+${VFXPerPassInclude}
 
 CBUFFER_START(params)
     uint nbMax;
