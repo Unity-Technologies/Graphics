@@ -1235,7 +1235,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         // To make BSDF( ) evaluation more generic, even if we're not vlayered,
         // we will use these:
         // no coat here: preLightData.layeredCoatRoughness = bsdfData.coatRoughness;
-        preLightData.layeredRoughnessT[0] = bsdfData.roughnessAT;
+        preLightData.layeredRoughnessT[0] = bsdfData.roughnessAT; // the later are already clamped
         preLightData.layeredRoughnessB[0] = bsdfData.roughnessAB;
         preLightData.layeredRoughnessT[1] = bsdfData.roughnessBT;
         preLightData.layeredRoughnessB[1] = bsdfData.roughnessBB;
@@ -1439,6 +1439,16 @@ void AccumulateIndirectLighting(IndirectLighting src, inout AggregateLighting ds
 // BSDF share between directional light, punctual light and area light (reference)
 //-----------------------------------------------------------------------------
 
+void CalculateAnisoAngles(out float TdotH, out float TdotL, out float BdotH, out float BdotL)
+{
+    float3 H = (L + V) * invLenLV;
+
+    // For anisotropy we must not saturate these values
+    TdotH = dot(bsdfData.tangentWS, H);
+    TdotL = dot(bsdfData.tangentWS, L);
+    BdotH = dot(bsdfData.bitangentWS, H);
+    BdotL = dot(bsdfData.bitangentWS, L);
+}
 
 // This function apply BSDF. Assumes that NdotL is positive.
 void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
@@ -1454,26 +1464,106 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
     float LdotH    = saturate(invLenLV * LdotV + invLenLV);
     float NdotV    = ClampNdotV(preLightData.NdotV);
 
+    float3 DV[TOTAL_NB_LOBES];
+
     // TODO: Proper Fresnel
     float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
 
     // TODO: with iridescence, will be per light sample.
 
-    float DV[2];
 
-    DV[0] = DV_SmithJointGGX(NdotH, NdotL, NdotV, bsdfData.roughnessAT, preLightData.partLambdaV[0]);
-    DV[1] = DV_SmithJointGGX(NdotH, NdotL, NdotV, bsdfData.roughnessBT, preLightData.partLambdaV[1]);
+    if( IsVLayeredEnabled(bsdfData) )
+    {
+#if 0
+        // If we're going to do heavy calculations anyways, maybe we can even do that:
+        // Use the proper angle at the bottom interface for BSDF calculations:
+        // (tricky which one to choose, as we have the energy terms already, which are
+        // a bit like FGD, while at the same time, we have multiple-scattering, but 
+        // if we have anisotropy, we know the later isn't accounted for in ComputeAdding.
+        // In the IBL case, we don't have a specific incoming light direction but we 
+        // don't handle anisotropy correctly either anyway (ComputeAdding) in both case
+        // we need to work around it.
+        float3 H = (L + V) * invLenLV;
+        L = CoatRefract(L, H, preLightData.coatIeta); // H stays the same
+        // TODOWIP
+#endif
 
-    specularLighting = F * lerp(DV[0], DV[1], bsdfData.lobeMix);
+#ifndef VLAYERED_RECOMPUTE_PERLIGHT
+        // TODOWIP
+        // Must call ComputeAdding and update partLambdaV
+        ComputeAdding(LdotH, bsdfData, preLightData, true); // Notice LdotH as interface angle for energy calculations and roughness modifications
+        preLightData.partLambdaV[COAT_LOBE_IDX] = GetSmithJointGGXPartLambdaV(NdotV, preLightData.layeredCoatRoughness);
+        preLightData.partLambdaV[BASE_LOBEA_IDX] = GetSmithJointGGXAnisoPartLambdaV(TdotV, BdotV, NdotV, preLightData.layeredRoughnessT[0], preLightData.layeredRoughnessB[0]);
+        preLightData.partLambdaV[BASE_LOBEB_IDX] = GetSmithJointGGXAnisoPartLambdaV(TdotV, BdotV, NdotV, preLightData.layeredRoughnessT[1], preLightData.layeredRoughnessB[1]);
+#endif
 
+        // p9 eq(39): if we don't recompute per light, we just reuse the IBL energy terms as the fresnel terms
+        // for our LdotH, too bad, along with the "wrongly" calculated energy.
+        // Note that in any case, we should have used FGD terms (except for R12 at the start of the process) 
+        // for the analytical light case, see comments at the top of ComputeAdding
+
+        if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
+        {
+            //float3 H = (L + V) * invLenLV;
+            float TdotH, TdotL, BdotH, BdotL;
+            CalculateAnisoAngles(TdotH, TdotL, BdotH, BdotL);
+
+            DV[BASE_LOBEA_IDX] = DV_SmithJointGGXAniso(TdotH, BdotH, NdotH, NdotV, TdotL, BdotL, NdotL, 
+                                                      preLightData.layeredRoughnessT[0], preLightData.layeredRoughnessB[0], 
+                                                      preLightData.partLambdaV[BASE_LOBEA_IDX]);
+
+            DV[BASE_LOBEB_IDX] = DV_SmithJointGGXAniso(TdotH, BdotH, NdotH, NdotV, TdotL, BdotL, NdotL, 
+                                                      preLightData.layeredRoughnessT[1], preLightData.layeredRoughnessB[1], 
+                                                      preLightData.partLambdaV[BASE_LOBEB_IDX]);
+
+            DV[COAT_LOBE_IDX] = DV_SmithJointGGX(NdotH, NdotL, NdotV, preLightData.layeredCoatRoughness, preLightData.partLambdaV[COAT_LOBE_IDX]);
+        }
+        else 
+        {
+            DV[COAT_LOBE_IDX] = DV_SmithJointGGX(NdotH, NdotL, NdotV, preLightData.layeredCoatRoughness, preLightData.partLambdaV[COAT_LOBE_IDX]);
+            DV[BASE_LOBEA_IDX] = DV_SmithJointGGX(NdotH, NdotL, NdotV, preLightData.layeredRoughnessT[0], preLightData.partLambdaV[0]);
+            DV[BASE_LOBEB_IDX] = DV_SmithJointGGX(NdotH, NdotL, NdotV, preLightData.layeredRoughnessT[1], preLightData.partLambdaV[1]);
+        }
+
+        specularLighting =  preLightData.vLayerEnergyCoeff[TOP_VLAYER_IDX] 
+                          * preLightData.energyFactor[BASE_LOBEA_IDX] // either energyFactor index will do, same one.
+                          * lerp(DV[BASE_LOBEA_IDX], DV[BASE_LOBEB_IDX], bsdfData.lobeMix);
+
+        specularLighting +=  preLightData.vLayerEnergyCoeff[BOTTOM_VLAYER_IDX] 
+                           * preLightData.energyFactor[COAT_LOBE_IDX]
+                           * DV[COAT_LOBE_IDX];
+    }
+    else
+    {
+        // No vlayering : 
+        // ------------------------------------
+        if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
+        {
+            float3 H = (L + V) * invLenLV;
+            float TdotH, TdotL, BdotH, BdotL;
+            CalculateAnisoAngles(TdotH, TdotL, BdotH, BdotL);
+            DV[0] = DV_SmithJointGGXAniso(TdotH, BdotH, NdotH, NdotV, TdotL, BdotL, NdotL, 
+                                          bsdfData.roughnessAT, bsdfData.roughnessAB, preLightData.partLambdaV[0]);
+            DV[1] = DV_SmithJointGGXAniso(TdotH, BdotH, NdotH, NdotV, TdotL, BdotL, NdotL, 
+                                          bsdfData.roughnessBT, bsdfData.roughnessBB, preLightData.partLambdaV[1]);
+        }
+        else
+        {
+            DV[0] = DV_SmithJointGGX(NdotH, NdotL, NdotV, bsdfData.roughnessAT, preLightData.partLambdaV[0]);
+            DV[1] = DV_SmithJointGGX(NdotH, NdotL, NdotV, bsdfData.roughnessBT, preLightData.partLambdaV[1]);
+        }
+        specularLighting = F * lerp(DV[0], DV[1], bsdfData.lobeMix);
+    }
+
+
+    // TODOTODO: Energy when vlayered.
     // TODO: config option + diffuse GGX
     float  diffuseTerm = Lambert();
 
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
     diffuseLighting = diffuseTerm;
 
-    // TODO: coat
-}
+}//...BSDF
 
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Directional
