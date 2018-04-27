@@ -54,6 +54,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             param.albedo       = albedo;
             param.meanFreePath = meanFreePath;
             param.asymmetry    = asymmetry;
+            param.textureIndex = -1;
+            param.volumeMask = null;
 
             DensityVolumeData data = param.GetData();
 

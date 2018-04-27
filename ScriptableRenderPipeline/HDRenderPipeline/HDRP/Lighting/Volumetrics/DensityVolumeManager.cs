@@ -1,14 +1,11 @@
 using System.Collections.Generic;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class DensityVolumeManager 
     {
         static private DensityVolumeManager _instance = null;
-        private DensityVolumeManager()
-        {
-            volumes = new List<HomogeneousDensityVolume>();
-        }
 
         public static DensityVolumeManager manager
         {
@@ -22,11 +19,31 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        public VolumeTextureAtlas volumeAtlas = null;
+        private bool atlasNeedsRefresh = false;
+
+        private DensityVolumeManager()
+        {
+            volumes = new List<HomogeneousDensityVolume>();
+
+            //TODO: hardcoded size....:-(
+            volumeAtlas = new VolumeTextureAtlas(TextureFormat.RGBA32, 32);
+
+            volumeAtlas.OnAtlasUpdated += AtlasUpdated;
+        }
+
         private List<HomogeneousDensityVolume> volumes = null;
 
         public void RegisterVolume(HomogeneousDensityVolume volume)
         {
             volumes.Add(volume);
+
+            volume.OnTextureUpdated += TriggerVolumeAtlasRefresh;
+
+            if (volume.parameters.volumeMask != null) 
+            {
+                volumeAtlas.AddTexture(volume.parameters.volumeMask); 
+            }
         }
 
         public void DeRegisterVolume(HomogeneousDensityVolume volume)
@@ -35,11 +52,57 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 volumes.Remove(volume);
             }
+
+             volume.OnTextureUpdated -= TriggerVolumeAtlasRefresh;
+
+            if (volume.parameters.volumeMask != null) 
+            {
+                volumeAtlas.RemoveTexture(volume.parameters.volumeMask);
+            }
+        }
+        
+        public HomogeneousDensityVolume[] PrepareDensityVolumeData(CommandBuffer cmd)
+        {
+            //Update volumes
+            foreach (HomogeneousDensityVolume volume in volumes )
+            {
+                volume.PrepareParameters();
+            }
+
+            if (atlasNeedsRefresh)
+            {
+                atlasNeedsRefresh = false;
+                VolumeAtlasRefresh();
+            }
+
+            volumeAtlas.GenerateVolumeAtlas(cmd);
+
+          return volumes.ToArray();
         }
 
-        public HomogeneousDensityVolume[] GetAllVolumes()
+        private void VolumeAtlasRefresh()
         {
-            return volumes.ToArray();
+            volumeAtlas.ClearTextures();
+            foreach (HomogeneousDensityVolume volume in volumes )
+            {
+                if (volume.parameters.volumeMask != null) 
+                {
+                    volumeAtlas.AddTexture(volume.parameters.volumeMask);
+                }
+            }
+        }
+
+        private void TriggerVolumeAtlasRefresh()
+        {
+            atlasNeedsRefresh = true;
+        }
+
+        private void AtlasUpdated()
+        {
+            foreach(HomogeneousDensityVolume volume in volumes )
+            {
+                volume.parameters.textureIndex = volumeAtlas.GetTextureIndex(volume.parameters.volumeMask); 
+            }
         }
     }
 }
