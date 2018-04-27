@@ -45,7 +45,7 @@ void ConvertAnisotropyToRoughness(real perceptualRoughness, real anisotropy, out
 
 void ConvertRoughnessToAnisotropy(real roughnessT, real roughnessB, out real anisotropy)
 {
-    return ((roughnessT - roughnessB) / (roughnessT + roughnessB + 0.0001));
+    anisotropy = ((roughnessT - roughnessB) / (roughnessT + roughnessB + 0.0001));
 }
 
 // Same as ConvertAnisotropyToRoughness but

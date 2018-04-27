@@ -60,7 +60,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Coat Extinction Coefficient")]
             public Vector3 coatExtinction;
 
-
+            [SurfaceDataAttributes("Ambient Occlusion")]
+            public float ambientOcclusion;
         };
 
         //-----------------------------------------------------------------------------
@@ -102,13 +103,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float coatThickness;
             public Vector3 coatExtinction;
 
-            //public fixed float test[2];
-            //could use something like that:
-            //[MarshalAs(UnmanagedType.ByValArray, SizeConst=5)]
-            //public float[] test;
-
-
+            public float ambientOcclusion;
         };
+
         //-----------------------------------------------------------------------------
         // Init precomputed textures
         //-----------------------------------------------------------------------------

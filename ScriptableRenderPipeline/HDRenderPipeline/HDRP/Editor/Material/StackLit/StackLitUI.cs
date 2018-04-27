@@ -39,6 +39,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string k_NormalMapUV = "_NormalMapUV";
         protected const string k_NormalScale = "_NormalScale";
 
+        protected const string k_AmbientOcclusion = "_AmbientOcclusion";
+        protected const string k_AmbientOcclusionMap = "_AmbientOcclusionMap";
+
         // Emissive
         protected const string k_EmissiveColor = "_EmissiveColor";
         protected const string k_EmissiveColorMap = "_EmissiveColorMap";
@@ -126,6 +129,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     new TextureProperty(this, k_NormalMap, k_NormalScale, "Normal", "Normal Map", false, false, true),
 
                     //new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Dielectric IoR", "Index of Refraction for Dielectric", false),
+
+                    new TextureProperty(this, k_AmbientOcclusionMap, k_AmbientOcclusion, "AmbientOcclusion", "AmbientOcclusion", false, false),
                 }),
 
                 new GroupProperty(this, "_Emissive", "Emissive", new BaseProperty[]
