@@ -1471,7 +1471,7 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
 
     // TODO: with iridescence, will be per light sample.
 
-
+#if 0
     if( IsVLayeredEnabled(bsdfData) )
     {
 #if 0
@@ -1534,6 +1534,7 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
                            * DV[COAT_LOBE_IDX];
     }
     else
+#endif
     {
         // No vlayering : 
         // ------------------------------------
