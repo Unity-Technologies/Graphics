@@ -15,12 +15,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         internal ReflectionProbeCullResults(ReflectionSystemParameters parameters)
         {
-            Assert.IsTrue(parameters.maxPlanarReflectionProbePerRender >= 0, "Maximum number of planar reflection probe must be positive");
+            Assert.IsTrue(parameters.maxPlanarReflectionProbePerCamera >= 0, "Maximum number of planar reflection probe must be positive");
 
             visiblePlanarReflectionProbeCount = 0;
 
-            m_PlanarReflectionProbeIndices = new int[parameters.maxPlanarReflectionProbePerRender];
-            m_VisiblePlanarReflectionProbes = new PlanarReflectionProbe[parameters.maxPlanarReflectionProbePerRender];
+            m_PlanarReflectionProbeIndices = new int[parameters.maxPlanarReflectionProbePerCamera];
+            m_VisiblePlanarReflectionProbes = new PlanarReflectionProbe[parameters.maxPlanarReflectionProbePerCamera];
         }
 
         public void CullPlanarReflectionProbes(CullingGroup cullingGroup, PlanarReflectionProbe[] planarReflectionProbes)
