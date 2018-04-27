@@ -134,6 +134,13 @@ real3 getIorK2(real3 f0, real3 n)
     return nf0 / (1.0 - f0);
 }
 
+// same as regular refract except there is not the test for total internal reflection + the vector is flipped for processing
+real3 CoatRefract(real3 X, real3 N, real ieta)
+{
+    real XdotN = saturate(dot(N, X));
+    return ieta * X + (sqrt(1 + ieta * ieta * (XdotN * XdotN - 1)) - ieta * XdotN) * N;
+}
+
 //-----------------------------------------------------------------------------
 // Specular BRDF
 //-----------------------------------------------------------------------------
