@@ -4,11 +4,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         public static ReflectionSystemParameters Default = new ReflectionSystemParameters
         {
-            maxPlanarReflectionProbes = 512,
+            maxPlanarReflectionProbePerRender = 512,
+            maxActivePlanarReflectionProbe = 512,
             planarReflectionProbeSize = 128
         };
 
-        public int maxPlanarReflectionProbes;
+        public int maxPlanarReflectionProbePerRender;
+        public int maxActivePlanarReflectionProbe;
         public int planarReflectionProbeSize;
     }
 }
