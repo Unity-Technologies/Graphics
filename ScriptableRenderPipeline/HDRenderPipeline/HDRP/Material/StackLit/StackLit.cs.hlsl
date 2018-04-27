@@ -28,6 +28,7 @@
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_IOR (1311)
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_THICKNESS (1312)
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_EXTINCTION_COEFFICIENT (1313)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_AMBIENT_OCCLUSION (1314)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.StackLit+BSDFData:  static fields
@@ -52,6 +53,7 @@
 #define DEBUGVIEW_STACKLIT_BSDFDATA_COAT_IOR (1417)
 #define DEBUGVIEW_STACKLIT_BSDFDATA_COAT_THICKNESS (1418)
 #define DEBUGVIEW_STACKLIT_BSDFDATA_COAT_EXTINCTION (1419)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_AMBIENT_OCCLUSION (1420)
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.StackLit+SurfaceData
 // PackingRules = Exact
@@ -70,6 +72,7 @@ struct SurfaceData
     float coatIor;
     float coatThickness;
     float3 coatExtinction;
+    float ambientOcclusion;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.StackLit+BSDFData
@@ -95,6 +98,7 @@ struct BSDFData
     float coatIor;
     float coatThickness;
     float3 coatExtinction;
+    float ambientOcclusion;
 };
 
 //
@@ -146,6 +150,9 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             break;
         case DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_EXTINCTION_COEFFICIENT:
             result = surfacedata.coatExtinction;
+            break;
+        case DEBUGVIEW_STACKLIT_SURFACEDATA_AMBIENT_OCCLUSION:
+            result = surfacedata.ambientOcclusion.xxx;
             break;
     }
 }
@@ -217,6 +224,9 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_STACKLIT_BSDFDATA_COAT_EXTINCTION:
             result = bsdfdata.coatExtinction;
+            break;
+        case DEBUGVIEW_STACKLIT_BSDFDATA_AMBIENT_OCCLUSION:
+            result = bsdfdata.ambientOcclusion.xxx;
             break;
     }
 }
