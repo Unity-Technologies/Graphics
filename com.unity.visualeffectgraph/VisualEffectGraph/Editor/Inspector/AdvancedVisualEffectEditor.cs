@@ -204,7 +204,6 @@ namespace UnityEditor.VFX
             m_GizmoDisplayed = false;
         }
 
-
         struct ContextAndGizmo
         {
             public GizmoContext context;
@@ -212,7 +211,7 @@ namespace UnityEditor.VFX
         }
 
 
-        Dictionary<VisualEffect,ContextAndGizmo> m_ContextsPerComponent = new Dictionary<VisualEffect,ContextAndGizmo>();
+        Dictionary<VisualEffect, ContextAndGizmo> m_ContextsPerComponent = new Dictionary<VisualEffect, ContextAndGizmo>();
 
         new void OnSceneGUI()
         {
@@ -222,24 +221,24 @@ namespace UnityEditor.VFX
             {
                 ContextAndGizmo context;
                 //Scene GUI is called every frame for each component in the selection so keep a context and gizmo instance per component
-                if( ! m_ContextsPerComponent.TryGetValue((VisualEffect)target,out context))
+                if (!m_ContextsPerComponent.TryGetValue((VisualEffect)target, out context))
                 {
-                    context.context = new GizmoContext(new SerializedObject(target),m_GizmoedParameter);
+                    context.context = new GizmoContext(new SerializedObject(target), m_GizmoedParameter);
                     context.gizmo = VFXGizmoUtility.CreateGizmoInstance(context.context);
-                    m_ContextsPerComponent.Add((VisualEffect)target,context);
+                    m_ContextsPerComponent.Add((VisualEffect)target, context);
                 }
                 else
                 {
                     var prevType = context.context.portType;
                     context.context.SetParameter(m_GizmoedParameter);
-                    if( context.context.portType != prevType)
+                    if (context.context.portType != prevType)
                     {
                         context.gizmo = VFXGizmoUtility.CreateGizmoInstance(context.context);
                         m_ContextsPerComponent[(VisualEffect)target] = context;
                     }
                 }
 
-                VFXGizmoUtility.Draw(context.context, (VisualEffect)target,context.gizmo);
+                VFXGizmoUtility.Draw(context.context, (VisualEffect)target, context.gizmo);
             }
         }
 
@@ -264,10 +263,10 @@ namespace UnityEditor.VFX
             {
                 get
                 {
-                    if( m_Stack.Count == 0)
+                    if (m_Stack.Count == 0)
                         m_Stack.Add(System.Activator.CreateInstance(portType));
                     else
-                        m_Stack.RemoveRange(1,m_Stack.Count-1);
+                        m_Stack.RemoveRange(1, m_Stack.Count - 1);
                     int stackSize = m_Stack.Count;
 
                     foreach (var cmd in m_ValueCmdList)

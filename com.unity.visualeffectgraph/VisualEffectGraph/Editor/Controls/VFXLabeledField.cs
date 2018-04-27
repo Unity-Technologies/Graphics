@@ -31,7 +31,7 @@ namespace UnityEditor.VFX.UIElements
                 if (m_Indeterminate != value)
                 {
                     m_Indeterminate = value;
-                    if( value)
+                    if (value)
                     {
                         m_Control.RemoveFromHierarchy();
                         Add(m_IndeterminateLabel);

@@ -185,7 +185,7 @@ namespace UnityEditor.VFX.UI
         {
             if (m_PropertyRM != null && controller != null)
             {
-                if( ! valueOnly)
+                if (!valueOnly)
                 {
                     controller.UpdateInfos();
                     bool editable = controller.editable;
