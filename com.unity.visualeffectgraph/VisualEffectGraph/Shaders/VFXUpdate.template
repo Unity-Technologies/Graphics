@@ -1,7 +1,7 @@
 #pragma kernel CSMain
 ${VFXGlobalInclude}
 ${VFXGlobalDeclaration}
-${VFXGeneratedBlockFunction}
+${VFXPerPassInclude}
 
 RWByteAddressBuffer attributeBuffer;
 
@@ -17,6 +17,8 @@ CBUFFER_START(updateParams)
     uint nbMax;
 	uint systemSeed;
 CBUFFER_END
+
+${VFXGeneratedBlockFunction}
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
 void CSMain(uint3 id : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID)

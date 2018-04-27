@@ -223,6 +223,23 @@ namespace UnityEditor.VFX
             return false;
         }
 
+        public static Type GetMatchingScalar(Type type)
+        {
+            return TypeToType(GetMatchingScalar(GetVFXValueTypeFromType(type)));
+        }
+
+        public static VFXValueType GetMatchingScalar(VFXValueType type)
+        {
+            if (IsFloatValueType(type))
+                return VFXValueType.Float;
+            if (IsUIntValueType(type))
+                return VFXValueType.Uint32;
+            if (IsIntValueType(type))
+                return VFXValueType.Int32;
+
+            return VFXValueType.None;
+        }
+
         public static VFXValueType GetVFXValueTypeFromType(Type type)
         {
             if (type == typeof(float)) return VFXValueType.Float;

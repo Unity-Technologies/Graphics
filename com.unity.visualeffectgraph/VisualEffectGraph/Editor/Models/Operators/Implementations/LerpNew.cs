@@ -1,9 +1,11 @@
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Arithmetic", experimental = true)]
-    class LerpNew : VFXOperatorNumericUniformNew
+    class LerpNew : VFXOperatorNumericUnifiedNew, IVFXOperatorNumericUnifiedConstrained
     {
         public class InputProperties
         {
@@ -16,6 +18,30 @@ namespace UnityEditor.VFX.Operator
         }
 
         public override sealed string name { get { return "LerpNew"; } }
+
+        protected sealed override double defaultValueDouble
+        {
+            get
+            {
+                return 0.5;
+            }
+        }
+
+        public IEnumerable<int> strictSameTypeSlotIndex
+        {
+            get
+            {
+                return Enumerable.Range(0, 3);
+            }
+        }
+        public IEnumerable<int> allowExceptionalScalarSlotIndex
+        {
+            get
+            {
+                yield return 2;
+            }
+        }
+
 
         protected override sealed ValidTypeRule typeFilter { get { return ValidTypeRule.allowEverythingExceptInteger; } }
 

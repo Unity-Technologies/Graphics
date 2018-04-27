@@ -1,37 +1,37 @@
-VFXFloatField 
+VFXFloatField
 {
-	text-color: #111;
-	background-image: resource("Builtin Skins/LightSkin/Images/TextField.png");
-	cursor-color:#000;
+    text-color: #111;
+    background-image: resource("Builtin Skins/LightSkin/Images/TextField.png");
+    cursor-color:#000;
 }
 
 VFXFloatField:focus
 {
-	background-image: resource("Builtin Skins/LightSkin/Images/TextField focused.png");
+    background-image: resource("Builtin Skins/LightSkin/Images/TextField focused.png");
 }
 
 .PopupButton
 {
-	background-image: resource("Builtin Skins/LightSkin/Images/mini popup.png");
+    background-image: resource("Builtin Skins/LightSkin/Images/mini popup.png");
 }
 .PopupButton:hover:active
 {
-	background-image: resource("Builtin Skins/LightSkin/Images/mini popup act.png");
+    background-image: resource("Builtin Skins/LightSkin/Images/mini popup act.png");
 }
 
 .PopupButton:focus
 {
-	background-image: resource("Builtin Skins/LightSkin/Images/mini popup focus.png");
+    background-image: resource("Builtin Skins/LightSkin/Images/mini popup focus.png");
 }
 
 Button.MiniDropDown {
-	background-image: resource("Builtin Skins/LightSkin/Images/mini pulldown.png");
+    background-image: resource("Builtin Skins/LightSkin/Images/mini pulldown.png");
 }
 
 Button.MiniDropDown:hover {
-	background-image: resource("Builtin Skins/LightSkin/Images/mini pulldown focus.png");
+    background-image: resource("Builtin Skins/LightSkin/Images/mini pulldown focus.png");
 }
 
 Button.MiniDropDown:hover:active {
-	background-image: resource("Builtin Skins/LightSkin/Images/mini pulldown act.png");
+    background-image: resource("Builtin Skins/LightSkin/Images/mini pulldown act.png");
 }

@@ -342,11 +342,17 @@ namespace UnityEditor.VFX
 
         sealed protected override int ProcessBinaryOperation(int left, int right)
         {
+            if (right == 0)
+                return 0;
+
             return left / right;
         }
 
         sealed protected override uint ProcessBinaryOperation(uint left, uint right)
         {
+            if (right == 0u)
+                return 0u;
+
             return left / right;
         }
 
