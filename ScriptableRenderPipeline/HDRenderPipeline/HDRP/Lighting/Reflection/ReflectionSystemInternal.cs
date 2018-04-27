@@ -27,10 +27,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             m_Parameters = parameters;
 
             // Runtime collections
-            m_PlanarReflectionProbeBounds = new Dictionary<PlanarReflectionProbe, BoundingSphere>(parameters.maxPlanarReflectionProbes);
-            m_PlanarReflectionProbesArray = new PlanarReflectionProbe[parameters.maxPlanarReflectionProbes];
-            m_PlanarReflectionProbeBoundsArray = new BoundingSphere[parameters.maxPlanarReflectionProbes];
-            m_PlanarReflectionProbe_RealtimeUpdate_WorkArray = new PlanarReflectionProbe[parameters.maxPlanarReflectionProbes];
+            m_PlanarReflectionProbeBounds = new Dictionary<PlanarReflectionProbe, BoundingSphere>(parameters.maxActivePlanarReflectionProbe);
+            m_PlanarReflectionProbesArray = new PlanarReflectionProbe[parameters.maxActivePlanarReflectionProbe];
+            m_PlanarReflectionProbeBoundsArray = new BoundingSphere[parameters.maxActivePlanarReflectionProbe];
+            m_PlanarReflectionProbe_RealtimeUpdate_WorkArray = new PlanarReflectionProbe[parameters.maxPlanarReflectionProbePerRender];
 
             // Persistent collections
             m_PlanarReflectionProbes = new HashSet<PlanarReflectionProbe>();
@@ -95,7 +95,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             var cullingGroup = new CullingGroup();
             cullingGroup.targetCamera = camera;
             cullingGroup.SetBoundingSpheres(m_PlanarReflectionProbeBoundsArray);
-            cullingGroup.SetBoundingSphereCount(m_PlanarReflectionProbeBounds.Count);
+            cullingGroup.SetBoundingSphereCount(Mathf.Min(m_PlanarReflectionProbeBounds.Count, m_PlanarReflectionProbeBoundsArray.Length));
 
             results.PrepareCull(cullingGroup, m_PlanarReflectionProbesArray);
         }
@@ -105,7 +105,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             if ((probeType & ReflectionProbeType.PlanarReflection) != 0)
             {
                 var length = Mathf.Min(m_PlanarReflectionProbe_PerCamera_RealtimeUpdate.Count, m_PlanarReflectionProbe_RealtimeUpdate_WorkArray.Length);
-                m_PlanarReflectionProbe_PerCamera_RealtimeUpdate.CopyTo(m_PlanarReflectionProbe_RealtimeUpdate_WorkArray);
+                var index = 0;
+                foreach (var p in m_PlanarReflectionProbe_PerCamera_RealtimeUpdate)
+                {
+                    m_PlanarReflectionProbe_RealtimeUpdate_WorkArray[index] = p;
+                    if (++index >= length)
+                        break;
+                }
+#if DEBUG
+                var discarded = m_PlanarReflectionProbe_PerCamera_RealtimeUpdate.Count - length;
+                if (discarded > 0)
+                    Debug.LogWarningFormat("There are more planar probe than supported in a single rendering, {0} probes discardeds", discarded);
+#endif
 
                 // 1. Allocate if necessary target texture
                 var renderCamera = GetRenderCamera();
@@ -236,8 +247,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
                 foreach (var planarReflectionProbe in m_PlanarReflectionProbe_DirtyBounds)
                     UpdatePlanarReflectionProbeBounds(planarReflectionProbe);
 
-                m_PlanarReflectionProbeBounds.Values.CopyTo(m_PlanarReflectionProbeBoundsArray, 0);
-                m_PlanarReflectionProbeBounds.Keys.CopyTo(m_PlanarReflectionProbesArray, 0);
+                var length = m_PlanarReflectionProbeBoundsArray.Length;
+                var index = 0;
+                foreach (var k in m_PlanarReflectionProbeBounds)
+                {
+                    m_PlanarReflectionProbeBoundsArray[index] = k.Value;
+                    m_PlanarReflectionProbesArray[index] = k.Key;
+                    if (++index >= length)
+                        break;
+                }
             }
         }
 
