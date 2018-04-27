@@ -352,6 +352,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // HD use specific GraphicsSettings
             GraphicsSettings.lightsUseLinearIntensity = true;
             GraphicsSettings.lightsUseColorTemperature = true;
+            // HD should always use the new batcher
+            //GraphicsSettings.useScriptableRenderPipelineBatching = true;
 
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures()
             {
