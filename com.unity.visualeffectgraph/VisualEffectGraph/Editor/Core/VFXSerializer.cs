@@ -86,6 +86,10 @@ namespace UnityEditor.VFX
                     {
                         // Some object couldn't be loaded. just ignore it.
                     }
+                    else if (obj is Texture && typeof(Texture).IsAssignableFrom(type))
+                    {
+                        
+                    }
                     else
                     {
                         throw new ArgumentException(string.Format("Cannot assign an object of type {0} to VFXSerializedObject of type {1}", obj.GetType(), (Type)m_Type));
