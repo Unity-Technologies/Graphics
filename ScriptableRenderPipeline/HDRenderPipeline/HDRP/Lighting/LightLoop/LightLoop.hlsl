@@ -195,13 +195,6 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
             AccumulateIndirectLighting(lighting, aggregateLighting);
         }
 
-        if (featureFlags & LIGHTFEATUREFLAGS_SSREFRACTION)
-        {
-            IndirectLighting lighting = EvaluateBSDF_SSLighting(    context, V, posInput, preLightData, bsdfData, envLightData,
-                                                                    GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION, refractionHierarchyWeight);
-            AccumulateIndirectLighting(lighting, aggregateLighting);
-        }
-
         // Reflection probes are sorted by volume (in the increasing order).
         if (featureFlags & LIGHTFEATUREFLAGS_ENV)
         {
