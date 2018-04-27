@@ -77,6 +77,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     (s, d, o) => d.influenceVolume,
                     InfluenceVolumeUI.SectionFoldoutShape
                 ),
+                CED.Action(Drawer_DifferentShapeError),
                 SectionFoldoutInfluenceSettings,
                 SectionFoldoutCaptureSettings,
                 CED.Select(
@@ -110,6 +111,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             // EditorGUILayout.PropertyField(d.captureMirrorPlaneLocalPosition, _.GetContent("Plane Position"));
             // EditorGUILayout.PropertyField(d.captureMirrorPlaneLocalNormal, _.GetContent("Plane Normal"));
+        }
+
+        static void Drawer_DifferentShapeError(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
+        {
+            var proxy = d.proxyVolumeReference.objectReferenceValue as ReflectionProxyVolumeComponent;
+            if (proxy != null && (int)proxy.proxyVolume.shapeType != d.influenceVolume.shapeType.enumValueIndex)
+            {
+                EditorGUILayout.HelpBox(
+                    "Proxy volume and influence volume have different shape types, this is not supported.",
+                    MessageType.Error,
+                    true
+                );
+            }
         }
 
         static void Drawer_SectionCaptureSettings(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
