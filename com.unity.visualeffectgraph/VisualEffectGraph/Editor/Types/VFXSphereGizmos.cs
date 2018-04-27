@@ -7,6 +7,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
+    [VFXGizmo(typeof(Sphere))]
     class VFXSphereGizmo : VFXSpaceableGizmo<Sphere>
     {
         IProperty<Vector3> m_CenterProperty;
@@ -55,6 +56,7 @@ namespace UnityEditor.VFX
             DrawSphere(sphere, this, m_CenterProperty, m_RadiusProperty);
         }
     }
+    [VFXGizmo(typeof(ArcSphere))]
     class VFXArcSphereGizmo : VFXSpaceableGizmo<ArcSphere>
     {
         IProperty<Vector3> m_CenterProperty;

@@ -7,6 +7,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
+    [VFXGizmo(typeof(Cone))]
     class VFXConeGizmo : VFXSpaceableGizmo<Cone>
     {
         IProperty<Vector3> m_CenterProperty;
@@ -160,6 +161,7 @@ namespace UnityEditor.VFX
             DrawCone(cone, this, ref extremities, m_CenterProperty, m_Radius0Property, m_Radius1Property, m_HeightProperty);
         }
     }
+    [VFXGizmo(typeof(ArcCone))]
     class VFXArcConeGizmo : VFXSpaceableGizmo<ArcCone>
     {
         IProperty<Vector3> m_CenterProperty;

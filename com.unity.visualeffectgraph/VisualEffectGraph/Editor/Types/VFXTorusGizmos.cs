@@ -7,6 +7,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
+    [VFXGizmo(typeof(Torus))]
     class VFXTorusGizmo : VFXSpaceableGizmo<Torus>
     {
         IProperty<Vector3> m_CenterProperty;
@@ -99,6 +100,7 @@ namespace UnityEditor.VFX
             DrawTorus(torus, this, m_CenterProperty, m_MinorRadiusProperty, m_MajorRadiusProperty, angles);
         }
     }
+    [VFXGizmo(typeof(ArcTorus))]
     class VFXArcTorusGizmo : VFXSpaceableGizmo<ArcTorus>
     {
         IProperty<Vector3> m_CenterProperty;

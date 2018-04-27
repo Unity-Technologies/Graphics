@@ -7,6 +7,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
+    [VFXGizmo(typeof(OrientedBox))]
     class VFXOrientedBoxGizmo : VFXSpaceableGizmo<OrientedBox>
     {
         IProperty<Vector3> m_CenterProperty;
@@ -35,6 +36,7 @@ namespace UnityEditor.VFX
         }
     }
 
+    [VFXGizmo(typeof(AABox))]
     class VFXAABoxGizmo : VFXSpaceableGizmo<AABox>
     {
         IProperty<Vector3> m_CenterProperty;

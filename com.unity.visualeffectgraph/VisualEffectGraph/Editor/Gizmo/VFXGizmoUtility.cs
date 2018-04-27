@@ -102,11 +102,14 @@ namespace UnityEditor.VFX.UI
 
             foreach (Type type in typeof(VFXGizmoUtility).Assembly.GetTypes()) // TODO put all user assemblies instead
             {
-                Type gizmoedType = GetGizmoType(type);
-
-                if (gizmoedType != null)
+                var attributes = type.GetCustomAttributes(false);
+                if (attributes != null)
                 {
-                    s_DrawFunctions[gizmoedType] = new GizmoContext() { gizmo = (VFXGizmo)System.Activator.CreateInstance(type) };
+                    var gizmoAttribute = attributes.OfType<VFXGizmoAttribute>().FirstOrDefault();
+                    if (gizmoAttribute != null)
+                    {
+                        s_DrawFunctions[gizmoAttribute.type] = new GizmoContext() { gizmo = (VFXGizmo)System.Activator.CreateInstance(type) };
+                    }
                 }
             }
         }
@@ -154,12 +157,12 @@ namespace UnityEditor.VFX.UI
             if (s_DrawFunctions.TryGetValue(context.portType, out gizmo))
             {
                 bool forceRegister = false;
-                if( gizmo.lastContext != context)
+                if (gizmo.lastContext != context)
                 {
                     forceRegister = true;
                     s_DrawFunctions[context.portType] = new GizmoContext() { gizmo = gizmo.gizmo, lastContext = context };
                 }
-                Draw(context,component,gizmo.gizmo,forceRegister);
+                Draw(context, component, gizmo.gizmo, forceRegister);
             }
         }
 

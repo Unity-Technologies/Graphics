@@ -7,6 +7,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
+    [VFXGizmo(typeof(Cylinder))]
     class VFXCylinderGizmo : VFXSpaceableGizmo<Cylinder>
     {
         IProperty<Vector3> m_CenterProperty;

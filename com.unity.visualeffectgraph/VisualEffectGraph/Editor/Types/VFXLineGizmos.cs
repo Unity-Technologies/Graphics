@@ -7,11 +7,12 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
+    [VFXGizmo(typeof(Line))]
     class VFXLineGizmo : VFXSpaceableGizmo<Line>
     {
         IProperty<Vector3> m_StartProperty;
         IProperty<Vector3> m_EndProperty;
-        
+
         public override void RegisterEditableMembers(IContext context)
         {
             m_StartProperty = context.RegisterProperty<Vector3>("start");
@@ -20,10 +21,10 @@ namespace UnityEditor.VFX
 
         public override void OnDrawSpacedGizmo(Line line)
         {
-            Handles.DrawLine(line.start,line.end);
+            Handles.DrawLine(line.start, line.end);
 
-            PositionGizmo(line.start,m_StartProperty,true);
-            PositionGizmo(line.end,m_EndProperty,true);
+            PositionGizmo(line.start, m_StartProperty, true);
+            PositionGizmo(line.end, m_EndProperty, true);
         }
     }
 }

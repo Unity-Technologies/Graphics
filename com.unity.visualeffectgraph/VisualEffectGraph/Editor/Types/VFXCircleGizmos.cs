@@ -7,6 +7,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
+    [VFXGizmo(typeof(Circle))]
     class VFXCircleGizmo : VFXSpaceableGizmo<Circle>
     {
         IProperty<Vector3> m_CenterProperty;
@@ -54,6 +55,7 @@ namespace UnityEditor.VFX
             DrawCircle(circle, this, m_CenterProperty, m_RadiusProperty, radiusDirections);
         }
     }
+    [VFXGizmo(typeof(ArcCircle))]
     class VFXArcCircleGizmo : VFXSpaceableGizmo<ArcCircle>
     {
         IProperty<Vector3> m_CenterProperty;

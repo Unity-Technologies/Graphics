@@ -7,6 +7,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
+    [VFXGizmo(typeof(Plane))]
     class VFXPlaneGizmo : VFXSpaceableGizmo<Plane>
     {
         IProperty<Vector3> m_PositionProperty;

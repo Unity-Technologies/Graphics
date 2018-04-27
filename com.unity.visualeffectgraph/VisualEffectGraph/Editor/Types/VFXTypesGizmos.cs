@@ -7,6 +7,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
+    [VFXGizmo(typeof(Position))]
     class VFXPositionGizmo : VFXSpaceableGizmo<Position>
     {
         IProperty<Position> m_Property;
@@ -23,6 +24,7 @@ namespace UnityEditor.VFX
             }
         }
     }
+    [VFXGizmo(typeof(DirectionType))]
     class VFXDirectionGizmo : VFXSpaceableGizmo<DirectionType>
     {
         IProperty<DirectionType> m_Property;
@@ -57,6 +59,7 @@ namespace UnityEditor.VFX
             Handles.DrawLine(Vector3.zero, position);
         }
     }
+    [VFXGizmo(typeof(Vector))]
     class VFXVectorGizmo : VFXSpaceableGizmo<Vector>
     {
         IProperty<Vector> m_Property;

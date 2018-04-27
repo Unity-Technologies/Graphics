@@ -9,6 +9,16 @@ using Delegate = System.Delegate;
 
 namespace UnityEditor.VFX
 {
+    class VFXGizmoAttribute : System.Attribute
+    {
+        public VFXGizmoAttribute(Type type)
+        {
+            this.type = type;
+        }
+
+        public readonly Type type;
+    }
+
     public abstract class VFXGizmo
     {
         public interface IProperty<T>
@@ -41,17 +51,19 @@ namespace UnityEditor.VFX
             }
             return false;
         }
+
         public bool ScaleGizmo(Vector3 position, ref Vector3 scale, bool always)
         {
             if (always || Tools.current == Tool.Scale || Tools.current == Tool.Transform || Tools.current == Tool.None)
             {
                 EditorGUI.BeginChangeCheck();
-                scale = Handles.ScaleHandle(scale, position , Quaternion.identity,Tools.current == Tool.Transform || Tools.current == Tool.None ? HandleUtility.GetHandleSize(position)*0.75f : HandleUtility.GetHandleSize(position));
+                scale = Handles.ScaleHandle(scale, position , Quaternion.identity, Tools.current == Tool.Transform || Tools.current == Tool.None ? HandleUtility.GetHandleSize(position) * 0.75f : HandleUtility.GetHandleSize(position));
                 return EditorGUI.EndChangeCheck();
             }
             return false;
         }
-        public bool ScaleGizmo(Vector3 position,Vector3 scale, IProperty<Vector3> scaleProperty, bool always)
+
+        public bool ScaleGizmo(Vector3 position, Vector3 scale, IProperty<Vector3> scaleProperty, bool always)
         {
             if (scaleProperty.isEditable && ScaleGizmo(position, ref scale, always))
             {
