@@ -212,7 +212,7 @@ public class VolumetricLightingSystem
                 m_Textures[i].dimension         = TextureDimension.Tex3D; // TODO: request the thick 3D tiling layout
                 m_Textures[i].volumeDepth       = d;
                 m_Textures[i].enableRandomWrite = true;
-                m_Textures[i].name              = CoreUtils.GetRenderTargetAutoName(w, h, RenderTextureFormat.ARGBHalf, String.Format("VBuffer{0}", i));
+                m_Textures[i].name              = CoreUtils.GetRenderTargetAutoName(w, h, d, RenderTextureFormat.ARGBHalf, String.Format("VBuffer{0}", i));
                 m_Textures[i].Create();
 
                 // TODO: clear the texture. Clearing 3D textures does not appear to work right now.

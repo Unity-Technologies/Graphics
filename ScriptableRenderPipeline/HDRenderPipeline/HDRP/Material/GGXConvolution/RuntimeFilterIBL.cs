@@ -1,4 +1,4 @@
-﻿using UnityEngine.Rendering;
+using UnityEngine.Rendering;
 using System;
 using System.Collections.Generic;
 
@@ -64,7 +64,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_GgxIblSampleData.autoGenerateMips = false;
                 m_GgxIblSampleData.enableRandomWrite = true;
                 m_GgxIblSampleData.filterMode = FilterMode.Point;
-                m_GgxIblSampleData.name = CoreUtils.GetRenderTargetAutoName(m_GgxIblMaxSampleCount, k_GgxIblMipCountMinusOne, RenderTextureFormat.ARGBHalf, "GGXIblSampleData");
+                m_GgxIblSampleData.name = CoreUtils.GetRenderTargetAutoName(m_GgxIblMaxSampleCount, k_GgxIblMipCountMinusOne, 1, RenderTextureFormat.ARGBHalf, "GGXIblSampleData");
                 m_GgxIblSampleData.hideFlags = HideFlags.HideAndDontSave;
                 m_GgxIblSampleData.Create();
 
@@ -167,11 +167,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 var lodIsMissing = i >= m_PlanarColorMips.Count;
                 RenderTexture rt = null;
-                var createRT = lodIsMissing 
+                var createRT = lodIsMissing
                     || (rt = m_PlanarColorMips[i]) == null
                     || rtHash != HashRenderTextureProperties(
                         rt.width, rt.height, rt.depth, rt.format, rt.sRGB
-                            ? RenderTextureReadWrite.sRGB 
+                            ? RenderTextureReadWrite.sRGB
                             : RenderTextureReadWrite.Linear
                     );
 
@@ -236,10 +236,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         int HashRenderTextureProperties(
-            int width, 
+            int width,
             int height,
-            int depth, 
-            RenderTextureFormat format, 
+            int depth,
+            RenderTextureFormat format,
             RenderTextureReadWrite sRGB)
         {
             return  width.GetHashCode()

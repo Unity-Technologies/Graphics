@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 
@@ -171,7 +171,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             // No hide and don't save for this one
             rt.useMipMap = true;
             rt.autoGenerateMips = false;
-            rt.name = CoreUtils.GetRenderTargetAutoName(m_Parameters.planarReflectionProbeSize, m_Parameters.planarReflectionProbeSize, RenderTextureFormat.ARGBHalf, "PlanarProbeRT");
+            rt.name = CoreUtils.GetRenderTargetAutoName(m_Parameters.planarReflectionProbeSize, m_Parameters.planarReflectionProbeSize, 1, RenderTextureFormat.ARGBHalf, "PlanarProbeRT");
             rt.Create();
             return rt;
         }
