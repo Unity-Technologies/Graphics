@@ -43,6 +43,11 @@ void ConvertAnisotropyToRoughness(real perceptualRoughness, real anisotropy, out
     roughnessB = roughness * (1 - anisotropy);
 }
 
+real RoughnessToAnisotropy(real roughnessT, real roughnessB)
+{
+    return ((roughnessT - roughnessB) / (roughnessT + roughnessB + 0.0001));
+}
+
 // Same as ConvertAnisotropyToRoughness but
 // roughnessT and roughnessB are clamped, and are meant to be used with punctual and directional lights.
 void ConvertAnisotropyToClampRoughness(real perceptualRoughness, real anisotropy, out real roughnessT, out real roughnessB)
