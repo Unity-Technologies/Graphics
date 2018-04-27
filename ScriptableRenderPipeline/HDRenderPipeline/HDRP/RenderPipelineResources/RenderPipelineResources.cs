@@ -5,6 +5,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Default Material / Shader
         public Material defaultDiffuseMaterial;
         public Material defaultDecalMaterial;
+        public Material defaultTerrainMaterial;
         public Shader defaultShader;
 
         // Debug
