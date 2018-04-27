@@ -182,16 +182,6 @@ bool HasFeatureFlag(uint featureFlags, uint flag)
     return ((featureFlags & flag) != 0);
 }
 
-float3 ComputeDiffuseColor(float3 baseColor, float metallic)
-{
-    return baseColor * (1.0 - metallic);
-}
-
-float3 ComputeFresnel0(float3 baseColor, float metallic, float dielectricF0)
-{
-    return lerp(dielectricF0.xxx, baseColor, metallic);
-}
-
 // Assume that bsdfData.diffusionProfile is init
 void FillMaterialSSS(uint diffusionProfile, float subsurfaceMask, inout BSDFData bsdfData)
 {

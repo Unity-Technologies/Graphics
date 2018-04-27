@@ -64,15 +64,22 @@ real VarianceToRoughness(real variance)
     return sqrt(2.0 / (variance + 2.0));
 }
 
-// same as regular refract except there is not the test for total internal reflection + the vector is flipped for processing
-real3 CoatRefract(real3 X, real3 N, real ieta)
+// ----------------------------------------------------------------------------
+// Helper for Disney parametrization
+// ----------------------------------------------------------------------------
+
+float3 ComputeDiffuseColor(float3 baseColor, float metallic)
 {
-    real XdotN = saturate(dot(N, X));
-    return ieta * X + (sqrt(1 + ieta * ieta * (XdotN * XdotN - 1)) - ieta * XdotN) * N;
+    return baseColor * (1.0 - metallic);
+}
+
+float3 ComputeFresnel0(float3 baseColor, float metallic, float dielectricF0)
+{
+    return lerp(dielectricF0.xxx, baseColor, metallic);
 }
 
 // ----------------------------------------------------------------------------
-// Parallax mapping
+// Helper for normal blending
 // ----------------------------------------------------------------------------
 
 // ref https://www.gamedev.net/topic/678043-how-to-blend-world-space-normals/#entry5287707
@@ -107,6 +114,10 @@ real3 BlendNormal(real3 n1, real3 n2)
     return normalize(real3(n1.xy * n2.z + n2.xy * n1.z, n1.z * n2.z));
 }
 
+// ----------------------------------------------------------------------------
+// Helper for triplanar
+// ----------------------------------------------------------------------------
+
 // Ref: http://http.developer.nvidia.com/GPUGems3/gpugems3_ch01.html / http://www.slideshare.net/icastano/cascades-demo-secrets
 real3 ComputeTriplanarWeights(real3 normal)
 {
@@ -132,6 +143,10 @@ void GetTriplanarCoordinate(float3 position, out float2 uvXZ, out float2 uvXY, o
     uvZY = float2(position.z, position.y);
 }
 
+// ----------------------------------------------------------------------------
+// Helper for detail map operation
+// ----------------------------------------------------------------------------
+
 real LerpWhiteTo(real b, real t)
 {
     real oneMinusT = 1.0 - t;
@@ -143,6 +158,5 @@ real3 LerpWhiteTo(real3 b, real t)
     real oneMinusT = 1.0 - t;
     return real3(oneMinusT, oneMinusT, oneMinusT) + b * t;
 }
-
 
 #endif // UNITY_COMMON_MATERIAL_INCLUDED
