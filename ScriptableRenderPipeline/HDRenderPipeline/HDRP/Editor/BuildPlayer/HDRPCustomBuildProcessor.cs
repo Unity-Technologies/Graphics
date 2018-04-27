@@ -18,8 +18,8 @@ class HDRPCustomBuildProcessor : IPreprocessBuildWithReport
             report.summary.platform == BuildTarget.StandaloneLinuxUniversal ||
             report.summary.platform == BuildTarget.StandaloneOSX ||
             report.summary.platform == BuildTarget.XboxOne ||
-            report.summary.platform == BuildTarget.PS4 /* ||
-            report.summary.platform == BuildTarget.Switch */)
+            report.summary.platform == BuildTarget.PS4 ||
+            report.summary.platform == BuildTarget.Switch)
         {
             return ;
         }

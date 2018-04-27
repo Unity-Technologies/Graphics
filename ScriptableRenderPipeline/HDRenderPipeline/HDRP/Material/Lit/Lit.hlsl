@@ -1,4 +1,4 @@
-﻿// SurfaceData is define in Lit.cs which generate Lit.cs.hlsl
+// SurfaceData is define in Lit.cs which generate Lit.cs.hlsl
 #include "Lit.cs.hlsl"
 #include "../SubsurfaceScattering/SubsurfaceScattering.hlsl"
 #include "CoreRP/ShaderLibrary/VolumeRendering.hlsl"
@@ -1766,7 +1766,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
 
             float3 rayOriginWS      = preLightData.transparentPositionWS;
             float3 rayDirWS         = preLightData.transparentRefractV;
-#if DEBUG_DISPLAY
+#ifdef DEBUG_DISPLAY
             int debugMode           = DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFRACTION;
             bool debug              = _DebugLightingMode == debugMode
                 && !any(int2(_MouseClickPixelCoord.xy) - int2(posInput.positionSS));
@@ -1779,7 +1779,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
             // Common initialization
             ssRayInput.rayOriginWS = rayOriginWS;
             ssRayInput.rayDirWS = rayDirWS;
-#if DEBUG_DISPLAY
+#ifdef DEBUG_DISPLAY
             ssRayInput.debug = debug;
 #endif
             // Algorithm specific initialization
