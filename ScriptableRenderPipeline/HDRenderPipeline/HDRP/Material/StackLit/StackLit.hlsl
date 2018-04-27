@@ -275,12 +275,9 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
         // We have a coat top layer: change the base fresnel0 accordingdly: 
         bsdfData.fresnel0 = ConvertF0ForAirInterfaceToF0ForNewTopIor(bsdfData.fresnel0, bsdfData.coatIor);
 
-        // We just dont clamp the roughnesses now, but after the ComputeAdding() which will use those:
+        // We just dont clamp the roughnesses for now, but after the ComputeAdding() which will use those:
         // (don't forget to call ClampRoughnessForAnalyticalLights after though)
-        //
 
-        //bsdfData.roughnessAT = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughnessA);
-        //bsdfData.roughnessBT = PerceptualRoughnessToRoughness(bsdfData.perceptualRoughnessB);
         ConvertAnisotropyToRoughness(bsdfData.perceptualRoughnessA, bsdfData.anisotropy, bsdfData.roughnessAT, bsdfData.roughnessAB);
         ConvertAnisotropyToRoughness(bsdfData.perceptualRoughnessB, bsdfData.anisotropy, bsdfData.roughnessBT, bsdfData.roughnessBB);
         bsdfData.coatRoughness = PerceptualRoughnessToRoughness(bsdfData.coatPerceptualRoughness);
@@ -380,6 +377,8 @@ struct PreLightData
     // For consistency with nonperceptual anisotropic and clamped roughnessAT/AB/BT/BB 
     // which are stored in BSDFData, coatRoughness (for analytical lights) will
     // also be stored in BSDFData.
+
+    float  iblAnisotropy[BASE_NB_LOBES];
 
 
     // GGX
@@ -630,26 +629,6 @@ float FresnelUnpolarized(in float ct1, in float n1, in float n2)
 // (so 2 vs the 3 “virtual” layer structure here).
 // (FGDinf can be obtained from our FGD)
 //
-// Anisotropy: 
-// ------------
-// The argument for handling the anisotropy is as follow. (Note a good scalar measure for a 
-// covariance matrix is Sqrt(|C|)). Normally if all layers were anisotropic, this would mean 
-// tracking and updating covariance matrices. Here, we already exploit symmetries by having 
-// a single elevation angle, and doing all operations "as if" we were in the same incident plane.
-// Only the bottom interface is anisotropic. Since any reference frame can be used for the T and B
-// basis because of that, and all rebounds are wrt to those same T and B, we can align T to 
-// the incident plane. Isotropic roughness is decomposed on the diagonal of C and anisotropic 
-// roughness is also diagonal, just different for xx and yy. So we just use the same scalar 
-// variance updating equations (in a state that account for the whole stack) multiple times 
-// at the end for the different variances of the bottom layer. 
-//
-// Of course in practice these will only be useful for analytical lights, as IBLs use a hacked 
-// direction parametrized by the scalar roughness.
-//
-// Note that anisotropy_decomposition( variance_adding_operator( isotropic_roughness ) )
-// is not the same as variance_adding_operator( anisotropy_decomposition(isotropic_roughness ) ),
-// the anisotropic decomposition is done on rougness and roughness is transformed in linearized
-// variance.
 
 
 
@@ -774,7 +753,7 @@ void ComputeStatistics(in  float  cti,   in  int    i, in BSDFData bsdfData,
 } //...ComputeStatistics()
 
 
-void ComputeAdding(float _cti, in BSDFData bsdfData, inout PreLightData preLightData, bool perLightCaller = false)
+void ComputeAdding(float _cti, in BSDFData bsdfData, inout PreLightData preLightData, bool calledPerLight = false)
 {
     // Global Variables
     float  cti  = _cti;
@@ -885,41 +864,138 @@ void ComputeAdding(float _cti, in BSDFData bsdfData, inout PreLightData preLight
     // Then we need anisotropic roughness updates again for the 2 
     // bottom lobes, for analytical lights.
     //
-    // TODO: VLAYERED_RECOMPUTE_PERLIGHT and perLightCaller bool
+    // TODO: VLAYERED_RECOMPUTE_PERLIGHT and calledPerLight bool
 
     // First, to be less messy, immediately transfer vLayerPerceptualRoughness
     // data into the iblPerceptualRoughness[] array
     // (note that vLayer*[0] and vLayer*[2] contains useful data, 
     // but not vLayer*[1] - this is the media "layer")
 
-    preLightData.iblPerceptualRoughness[COAT_LOBE_IDX] = preLightData.vLayerPerceptualRoughness[TOP_VLAYER_IDX];
+    // Obviously coat roughness is given without ComputeAdding calculations (nothing on top)
+    // 
+    //preLightData.iblPerceptualRoughness[COAT_LOBE_IDX] = preLightData.vLayerPerceptualRoughness[TOP_VLAYER_IDX];
 
-    // We need to compute the rest here: 
-    // LOBEA roughness for IBL
-    s_r12 = RoughnessToLinearVariance(PerceptualRoughnessToRoughness(bsdfData.perceptualRoughnessA));
-    _s_r0m = s_ti0 + j0i*(s_t0i + s_r12 + m_rr*(s_r12+s_ri0));
-    preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX] = LinearVarianceToPerceptualRoughness(_s_r0m);
-
-    // LOBEB roughness for IBL
-    s_r12 = RoughnessToLinearVariance(PerceptualRoughnessToRoughness(bsdfData.perceptualRoughnessB));
-    _s_r0m = s_ti0 + j0i*(s_t0i + s_r12 + m_rr*(s_r12+s_ri0));
-    preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX] = LinearVarianceToPerceptualRoughness(_s_r0m);
-
-    // ANALYTICAL LIGHTS rougness:
-    //
-    // If we're in the mode where we will compute the vlayer stats per analytical light,
-    // and our calling context here is for IBLs, we will not compute the additional
-    // roughnesses (avoid waste, these wouldn't be used for any light then!):
 #ifdef VLAYERED_RECOMPUTE_PERLIGHT
-    if(perLightCaller)
+    bool perLightOption = true;
+#else
+    bool perLightOption = false;
 #endif
+    bool haveAnisotropy = HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_ANISOTROPY);
+
+    // calledPerLight and all of the bools above are static time known. 
+    // What we have to calculate is a bit messy here.
+    // Basically, If we're in a mode where we will compute the vlayer stats per analytical light,
+    // and our calling context here is per light, we shouldn't deal with the perceptual roughnesses 
+    // for IBLs, nor with their anisotropy parameter recalculation. So we only deal with the roughness 
+    // used by analytical lights (no iblPerceptualRoughness)
+    //
+    // Otherwise, depending on if we have anisotropy or not, we might still have to deal with 
+    // the T and B terms to have isotropic modulation by the above layer and re-infer back a
+    // a corrected anisotropy and scalar roughness for use with the IBL hack.
+    // That hack adds complexity because IBLs they can't use the T and B roughnesses but at the 
+    // same time we can't just update their scalar roughness because then it will only give them more 
+    // roughness in the anisotropic direction. 
+
+    if( !calledPerLight && !haveAnisotropy)
     {
-        // Coat lobe rougness for analytical lights
-        preLightData.layeredCoatRoughness = PerceptualRoughnessToRoughness(preLightData.vLayerPerceptualRoughness[TOP_VLAYER_IDX]);
-        preLightData.layeredCoatRoughness = ClampRoughnessForAnalyticalLights(preLightData.layeredCoatRoughness);
+        // Calculate modified base lobe roughnesses T (no anisotropy)
+
+        // There's no anisotropy and we haven't clamped the roughness in the T and B fields, so 
+        // that we can use directly bsdfData.roughness?T == bsdfData.roughness?B 
+        // == PerceptualRoughnessToRoughness(bsdfData.perceptualRoughnessA)) : 
+        //s_r12 = RoughnessToLinearVariance(PerceptualRoughnessToRoughness(bsdfData.perceptualRoughnessA));
+        s_r12 = RoughnessToLinearVariance(bsdfData.roughnessAT);
+        _s_r0m = s_ti0 + j0i*(s_t0i + s_r12 + m_rr*(s_r12+s_ri0));
+        float tmpA = _s_r0m;
+        preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX] = LinearVarianceToPerceptualRoughness(_s_r0m);
+
+        //s_r12 = RoughnessToLinearVariance(PerceptualRoughnessToRoughness(bsdfData.perceptualRoughnessB));
+        s_r12 = RoughnessToLinearVariance(bsdfData.roughnessBT);
+        _s_r0m = s_ti0 + j0i*(s_t0i + s_r12 + m_rr*(s_r12+s_ri0));
+        float tmpB = _s_r0m;
+        preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX] = LinearVarianceToPerceptualRoughness(_s_r0m);
+
+        if( !perLightOption )
+        {
+            // We're not going to get called again per analytical light so store the result needed and used by them:
+            // LOBEA and LOBEB but only the T part...
+            preLightData.layeredRoughnessT[0] = ClampRoughnessForAnalyticalLights(LinearVarianceToRoughness(tmpA));
+            preLightData.layeredRoughnessT[1] = ClampRoughnessForAnalyticalLights(LinearVarianceToRoughness(tmpB));
+        }
+    }
+
+    if( !calledPerLight && haveAnisotropy)
+    {
+        // We're in GetPreLightData context so we need to deal with IBL precalc, and 
+        // regardless of if we had the VLAYERED_RECOMPUTE_PERLIGHT option or not, we 
+        // still need to compute the full anistropic modification of variances. 
+
+        // We proceed as follow: Convert T & B roughnesses to variance, propagate the effect of layers,
+        // infer back a new anisotropy parameter and roughness from them:
+        // TODOANISOTROPY
 
         // LOBEA roughness for analytical lights (T part)
-        // (for 2 lobe structs, we still use numbers only)
+        s_r12 = RoughnessToLinearVariance(bsdfData.roughnessAT);
+        _s_r0m = s_ti0 + j0i*(s_t0i + s_r12 + m_rr*(s_r12+s_ri0));
+        float roughnessT = LinearVarianceToRoughness(_s_r0m);
+
+        // LOBEA roughness for analytical (B part)
+        s_r12 = RoughnessToLinearVariance(bsdfData.roughnessAB);
+        _s_r0m = s_ti0 + j0i*(s_t0i + s_r12 + m_rr*(s_r12+s_ri0));
+        float roughnessB = LinearVarianceToRoughness(_s_r0m);
+
+        //preLightData.iblAnisotropy[0] = RoughnessToAnisotropy(roughnessT, roughnessB);
+        // TODOANISOTROPY
+        preLightData.iblAnisotropy[0] = bsdfData.anisotropy;
+        preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX] = RoughnessToPerceptualRoughness((roughnessT + roughnessB)/2.0);
+
+        if( !perLightOption ) 
+        {
+
+            // We're not going to get called again per analytical light so store the result needed and used by them:
+            // LOBEA T and B part: 
+            preLightData.layeredRoughnessT[0] = ClampRoughnessForAnalyticalLights(roughnessT);
+            preLightData.layeredRoughnessB[0] = ClampRoughnessForAnalyticalLights(roughnessB);
+        }
+
+        // We do the same for LOBEB: 
+        // -------------------------
+
+        // LOBEB roughness for analytical lights (T part)
+        s_r12 = RoughnessToLinearVariance(bsdfData.roughnessBT);
+        _s_r0m = s_ti0 + j0i*(s_t0i + s_r12 + m_rr*(s_r12+s_ri0));
+        roughnessT = LinearVarianceToRoughness(_s_r0m);
+
+        // LOBEB roughness for analytical (B part)
+        s_r12 = RoughnessToLinearVariance(bsdfData.roughnessBB);
+        _s_r0m = s_ti0 + j0i*(s_t0i + s_r12 + m_rr*(s_r12+s_ri0));
+        roughnessB = LinearVarianceToRoughness(_s_r0m);
+
+        //preLightData.iblAnisotropy[1] = RoughnessToAnisotropy(roughnessT, roughnessB);
+        // TODOANISOTROPY
+        preLightData.iblAnisotropy[1] = bsdfData.anisotropy;
+        preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX] = RoughnessToPerceptualRoughness((roughnessT + roughnessB)/2.0);
+
+        if( !perLightOption ) 
+        {
+            // We're not going to get called again per analytical light so store the result needed and used by them:
+            // LOBEB T and B part: 
+            preLightData.layeredRoughnessT[1] = ClampRoughnessForAnalyticalLights(roughnessT);
+            preLightData.layeredRoughnessB[1] = ClampRoughnessForAnalyticalLights(roughnessB);
+        }
+
+    }
+
+    if( calledPerLight )
+    {
+#ifndef VLAYERED_RECOMPUTE_PERLIGHT
+    //error
+#endif
+        // Finally, if we're computing all this for one light, first the option should have been declared,
+        // and we don't compute anything IBL related, already done in GetPreLightData's context.
+        // We just need to propagate variance for LOBEA and LOBEB and clamp.
+
+        // LOBEA roughness for analytical lights (T part)
         s_r12 = RoughnessToLinearVariance(bsdfData.roughnessAT);
         _s_r0m = s_ti0 + j0i*(s_t0i + s_r12 + m_rr*(s_r12+s_ri0));
         preLightData.layeredRoughnessT[0] = ClampRoughnessForAnalyticalLights(LinearVarianceToRoughness(_s_r0m));
@@ -929,9 +1005,8 @@ void ComputeAdding(float _cti, in BSDFData bsdfData, inout PreLightData preLight
         _s_r0m = s_ti0 + j0i*(s_t0i + s_r12 + m_rr*(s_r12+s_ri0));
         preLightData.layeredRoughnessT[1] = ClampRoughnessForAnalyticalLights(LinearVarianceToRoughness(_s_r0m));
 
-        if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_ANISOTROPY))
+        if ( haveAnisotropy )
         {
-
             // LOBEA roughness for analytical (B part)
             s_r12 = RoughnessToLinearVariance(bsdfData.roughnessAB);
             _s_r0m = s_ti0 + j0i*(s_t0i + s_r12 + m_rr*(s_r12+s_ri0));
@@ -941,10 +1016,8 @@ void ComputeAdding(float _cti, in BSDFData bsdfData, inout PreLightData preLight
             s_r12 = RoughnessToLinearVariance(bsdfData.roughnessBB);
             _s_r0m = s_ti0 + j0i*(s_t0i + s_r12 + m_rr*(s_r12+s_ri0));
             preLightData.layeredRoughnessB[1] = ClampRoughnessForAnalyticalLights(LinearVarianceToRoughness(_s_r0m));
-
         }
-    } 
-
+    }
 
 #ifdef VLAYERED_DIFFUSE_ENERGY_HACKED_TERM
     // TODO
@@ -1008,6 +1081,10 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         //preLightData.fresnel0[COAT_LOBE_IDX] = IorToFresnel0(bsdfData.coatIor);
         preLightData.coatIeta = 1.0 / GetCoatEta(bsdfData);
 
+        // Obviously coat roughness is given without ComputeAdding calculations (nothing on top)
+        preLightData.iblPerceptualRoughness[COAT_LOBE_IDX] = bsdfData.coatPerceptualRoughness;
+        preLightData.layeredCoatRoughness = ClampRoughnessForAnalyticalLights(bsdfData.coatRoughness);
+
         // First thing we need is compute the energy coefficients and new roughnesses.
         // Even if configured to do it also per analytical light, we need it for IBLs too.
         ComputeAdding(NdotV, bsdfData, preLightData, false);
@@ -1016,6 +1093,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         //
         //   preLightData.iblPerceptualRoughness[] 
         //   preLightData.vLayerEnergyCoeff[]
+        //   preLightData.iblAnisotropy[]           (only if anisotropy is enabled)
 
         // If we're not using VLAYERED_RECOMPUTE_PERLIGHT we also have calculated 
         //   preLightData.layeredRoughnessT and B[],
@@ -1038,16 +1116,19 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
             // We use a single fetch, and we stretch the normal to use based on various criteria.
             // result are far away from the reference but better than nothing
             // For positive anisotropy values: tangent = highlight stretch (anisotropy) direction, bitangent = grain (brush) direction.
-            float3 grainDirWS = (bsdfData.anisotropy >= 0.0) ? bsdfData.bitangentWS : bsdfData.tangentWS;
+            float3 grainDirWS[2];
+            //grainDirWS[0] = (bsdfData.anisotropy >= 0.0) ? bsdfData.bitangentWS : bsdfData.tangentWS;
+            grainDirWS[0] = (preLightData.iblAnisotropy[0] >= 0.0) ? bsdfData.bitangentWS : bsdfData.tangentWS;
+            grainDirWS[1] = (preLightData.iblAnisotropy[1] >= 0.0) ? bsdfData.bitangentWS : bsdfData.tangentWS;
 
             // Reduce stretching for (perceptualRoughness < 0.2).
             float stretch[2];
-            stretch[0] = abs(bsdfData.anisotropy) * saturate(5 * preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX]);
-            stretch[1] = abs(bsdfData.anisotropy) * saturate(5 * preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX]);
+            stretch[0] = abs(preLightData.iblAnisotropy[0]) * saturate(5 * preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX]);
+            stretch[1] = abs(preLightData.iblAnisotropy[1]) * saturate(5 * preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX]);
 
             iblN[COAT_LOBE_IDX] = N; // no anisotropy for coat.
-            iblN[BASE_LOBEA_IDX] = GetAnisotropicModifiedNormal(grainDirWS, N, V, stretch[0]);
-            iblN[BASE_LOBEB_IDX] = GetAnisotropicModifiedNormal(grainDirWS, N, V, stretch[1]);
+            iblN[BASE_LOBEA_IDX] = GetAnisotropicModifiedNormal(grainDirWS[0], N, V, stretch[0]);
+            iblN[BASE_LOBEB_IDX] = GetAnisotropicModifiedNormal(grainDirWS[1], N, V, stretch[1]);
 
         }
         else
@@ -1109,10 +1190,8 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         iblR[2] = reflect(-V, iblN[2]);
         // This is a ad-hoc tweak to better match reference of anisotropic GGX.
         // TODO: We need a better hack.
-        float fact = saturate(1.2 - abs(bsdfData.anisotropy));
-        preLightData.iblPerceptualRoughness[0] *= fact;
-        preLightData.iblPerceptualRoughness[1] *= fact;
-        preLightData.iblPerceptualRoughness[2] *= fact;
+        preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX] *= saturate(1.2 - abs(preLightData.iblAnisotropy[0]));
+        preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX] *= saturate(1.2 - abs(preLightData.iblAnisotropy[1]));
 
         // Correction of reflected direction for better handling of rough material
 
