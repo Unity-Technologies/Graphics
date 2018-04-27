@@ -271,6 +271,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.metallic = lerp(_MetallicRange.x, _MetallicRange.y, surfaceData.metallic);
     surfaceData.metallic = lerp(_Metallic, surfaceData.metallic, _MetallicUseMap);
 
+    surfaceData.ambientOcclusion = dot(SAMPLE_TEXTURE2D_SCALE_BIAS(_AmbientOcclusionMap), _AmbientOcclusionMapChannelMask);
+    surfaceData.ambientOcclusion = lerp(_AmbientOcclusionRange.x, _AmbientOcclusionRange.y, surfaceData.ambientOcclusion);
+    surfaceData.ambientOcclusion = lerp(_AmbientOcclusion, surfaceData.ambientOcclusion, _AmbientOcclusionUseMap);
 
     // These static material feature allow compile time optimization
     // TODO: As we add features, or-set the flags eg MATERIALFEATUREFLAGS_STACK_LIT_* with #ifdef
@@ -335,8 +338,15 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #if defined(DEBUG_DISPLAY)
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
-        surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, texcoords[_BaseColorMapUV], _BaseColorMap, _BaseColorMap_TexelSize, _BaseColorMap_MipInfo, surfaceData.baseColor);
-        surfaceData.metallic = 0;
+        if (_BaseColorMapUV != TEXCOORD_INDEX_TRIPLANAR)
+        {
+            surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, uvMapping.texcoords[_BaseColorMapUV][_BaseColorMapUVLocal], _BaseColorMap, _BaseColorMap_TexelSize, _BaseColorMap_MipInfo, surfaceData.baseColor);
+        }
+        else
+        {
+            surfaceData.baseColor = float3(0.0, 0.0, 0.0);
+        }
+        surfaceData.metallic = 0.0;
     }
 #endif
 
@@ -349,8 +359,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     builtinData.opacity = alpha;
 
-    // TODO:
-    builtinData.bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
+    builtinData.bakeDiffuseLighting = SampleBakedGI(input.positionWS, surfaceData.normalWS, input.texCoord1, input.texCoord2);
 
     // Emissive Intensity is only use here, but is part of BuiltinData to enforce UI parameters as we want the users to fill one color and one intensity
     builtinData.emissiveIntensity = _EmissiveIntensity; // We still store intensity here so we can reuse it with debug code
@@ -360,11 +369,18 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // TODO:
     builtinData.velocity = float2(0.0, 0.0);
 
-    //NEWLITTODO: shader feature SHADOWS_SHADOWMASK not there yet.
+#ifdef SHADOWS_SHADOWMASK
+    float4 shadowMask = SampleShadowMask(input.positionWS, input.texCoord1);
+    builtinData.shadowMask0 = shadowMask.x;
+    builtinData.shadowMask1 = shadowMask.y;
+    builtinData.shadowMask2 = shadowMask.z;
+    builtinData.shadowMask3 = shadowMask.w;
+#else
     builtinData.shadowMask0 = 0.0;
     builtinData.shadowMask1 = 0.0;
     builtinData.shadowMask2 = 0.0;
     builtinData.shadowMask3 = 0.0;
+#endif
 
 #if (SHADERPASS == SHADERPASS_DISTORTION) || defined(DEBUG_DISPLAY)
     float3 distortion = SAMPLE_TEXTURE2D(_DistortionVectorMap, sampler_DistortionVectorMap, input.texCoord0).rgb;

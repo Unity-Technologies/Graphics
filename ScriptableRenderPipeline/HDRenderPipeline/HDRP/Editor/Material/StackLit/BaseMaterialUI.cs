@@ -532,14 +532,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                 // Display the remap of texture values.
                                 Vector2 remap = m_RemapProperty.VectorValue;
                                 EditorGUI.BeginChangeCheck();
-                                EditorGUILayout.MinMaxSlider(m_RemapProperty.PropertyText, ref remap.x, ref remap.y,
-                                    0.0f, 1.0f);
+                                EditorGUILayout.MinMaxSlider(m_RemapProperty.PropertyText, ref remap.x, ref remap.y, 0.0f, 1.0f);
                                 if (EditorGUI.EndChangeCheck())
                                 {
                                     m_RemapProperty.VectorValue = remap;
                                 }
 
-                                m_InvertRemapProperty.OnGUI();
+                                if (m_InvertRemapProperty.IsValid)
+                                {
+                                    m_InvertRemapProperty.OnGUI();
+                                }
                             }
                         }
 
