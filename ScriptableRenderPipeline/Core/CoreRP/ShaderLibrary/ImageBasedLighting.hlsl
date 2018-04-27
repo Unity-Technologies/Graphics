@@ -31,6 +31,11 @@ real PerceptualRoughnessToMipmapLevel(real perceptualRoughness)
     return PerceptualRoughnessToMipmapLevel(perceptualRoughness, UNITY_SPECCUBE_LOD_STEPS);
 }
 
+real PerceptualRoughnessToMipmapLevelFromGaussianConvolution(real perceptualRoughness, uint mipMapCount)
+{
+    return sqrt(perceptualRoughness) * mipMapCount;
+}
+
 // The *accurate* version of the non-linear remapping. It works by
 // approximating the cone of the specular lobe, and then computing the MIP map level
 // which (approximately) covers the footprint of the lobe with a single texel.
