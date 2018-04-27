@@ -4,24 +4,29 @@
 
 #ifndef VOLUMETRICLIGHTING_CS_HLSL
 #define VOLUMETRICLIGHTING_CS_HLSL
-// Generated from UnityEngine.Experimental.Rendering.HDPipeline.DensityVolumeProperties
+// Generated from UnityEngine.Experimental.Rendering.HDPipeline.DensityVolumeData
 // PackingRules = Exact
-struct DensityVolumeProperties
+struct DensityVolumeData
 {
     float3 scattering;
     float extinction;
+    int textureIndex;
 };
 
 //
-// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.DensityVolumeProperties
+// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.DensityVolumeData
 //
-float3 GetScattering(DensityVolumeProperties value)
+float3 GetScattering(DensityVolumeData value)
 {
 	return value.scattering;
 }
-float GetExtinction(DensityVolumeProperties value)
+float GetExtinction(DensityVolumeData value)
 {
 	return value.extinction;
+}
+int GetTextureIndex(DensityVolumeData value)
+{
+	return value.textureIndex;
 }
 
 

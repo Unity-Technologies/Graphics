@@ -45,7 +45,9 @@
 //--------------------------------------------------------------------------------------------------
 
 StructuredBuffer<OrientedBBox>            _VolumeBounds;
-StructuredBuffer<DensityVolumeProperties> _VolumeData;
+StructuredBuffer<DensityVolumeData>		  _VolumeData;
+
+TEXTURE3D(_VolumeMaskAtlas);
 
 RW_TEXTURE3D(float4, _VBufferDensity); // RGB = sqrt(scattering), A = sqrt(extinction)
 
@@ -55,11 +57,29 @@ CBUFFER_START(UnityVolumetricLighting)
     float4   _VBufferSampleOffset;     // Not used by this shader
     float    _CornetteShanksConstant;  // Not used by this shader
     uint     _NumVisibleDensityVolumes;
+    float2   _VolumeMaskDimensions;    //x = width , y = depth
 CBUFFER_END
 
 //--------------------------------------------------------------------------------------------------
 // Implementation
 //--------------------------------------------------------------------------------------------------
+float4 SampleVolumeMask(DensityVolumeData volumeData, float3 voxelCenterUV)
+{
+    //TODO: transform voxelCenterUV based on volume texture transform
+    float totalTextures = _VolumeMaskDimensions.y / _VolumeMaskDimensions.x;
+    float offset = volumeData.textureIndex / totalTextures;
+    float clampBorder = 0.5f / _VolumeMaskDimensions.x;
+
+    voxelCenterUV.z /= totalTextures;
+    voxelCenterUV.z += offset;
+
+    voxelCenterUV.z = clamp(voxelCenterUV.z, offset + clampBorder, offset + (1.0f / totalTextures) - clampBorder);
+
+    float4 maskValue = SAMPLE_TEXTURE3D_LOD(_VolumeMaskAtlas, s_linear_clamp_sampler, voxelCenterUV, 0);
+
+    return maskValue;
+}
+
 
 void FillVolumetricDensityBuffer(PositionInputs posInput, float3 rayOriginWS, float3 rayUnDirWS,
                                  float3 voxelAxisRight, float3 voxelAxisUp, float3 voxelAxisForward)
@@ -214,9 +234,16 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, float3 rayOriginWS, fl
 
                 if (overlapFraction > 0)
                 {
+                    float4 scatteringAndExtinctionMask = float4(1.0f, 1.0f, 1.0f, 1.0f);
+                    //Sample the volumeMask
+                    if (_VolumeData[volumeIndex].textureIndex != -1)
+                    {
+                        scatteringAndExtinctionMask = SampleVolumeMask(_VolumeData[volumeIndex], voxelCenterUV);
+                    }
+
                     // There is an overlap. Sample the 3D texture, or load the constant value.
-                    voxelScattering += overlapFraction * _VolumeData[volumeIndex].scattering;
-                    voxelExtinction += overlapFraction * _VolumeData[volumeIndex].extinction;
+                    voxelScattering += overlapFraction * _VolumeData[volumeIndex].scattering * scatteringAndExtinctionMask.rgb;
+                    voxelExtinction += overlapFraction * _VolumeData[volumeIndex].extinction * scatteringAndExtinctionMask.a;
                 }
 
     #ifndef USE_CLUSTERED_LIGHTLIST

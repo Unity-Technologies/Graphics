@@ -9,6 +9,7 @@ public struct DensityVolumeData
 {
     public Vector3 scattering; // [0, 1], prefer sRGB
     public float   extinction; // [0, 1], prefer sRGB
+    public int     textureIndex; //
 
     public static DensityVolumeData GetNeutralValues()
     {
@@ -16,6 +17,7 @@ public struct DensityVolumeData
 
         data.scattering = Vector3.zero;
         data.extinction = 0;
+        data.textureIndex = -1;
 
         return data;
     }
@@ -48,36 +50,6 @@ public class VolumeRenderingUtils
         return meanFreePath * scattering;
     }
 }
-
-[Serializable]
-public struct DensityVolumeParameters
-{
-    public Color albedo;       // Single scattering albedo [0, 1]. Alpha is ignored
-    public float meanFreePath; // In meters [1, inf]. Should be chromatic - this is an optimization!
-    public float asymmetry;    // Only used if (isLocal == false)
-
-    public void Constrain()
-    {
-        albedo.r = Mathf.Clamp01(albedo.r);
-        albedo.g = Mathf.Clamp01(albedo.g);
-        albedo.b = Mathf.Clamp01(albedo.b);
-        albedo.a = 1.0f;
-
-        meanFreePath = Mathf.Clamp(meanFreePath, 1.0f, float.MaxValue);
-
-        asymmetry = Mathf.Clamp(asymmetry, -1.0f, 1.0f);
-    }
-
-    public DensityVolumeData GetData()
-    {
-        DensityVolumeData data = new DensityVolumeData();
-
-        data.extinction = VolumeRenderingUtils.ExtinctionFromMeanFreePath(meanFreePath);
-        data.scattering = VolumeRenderingUtils.ScatteringFromExtinctionAndAlbedo(data.extinction, (Vector3)(Vector4)albedo);
-
-        return data;
-    }
-} // class VolumeParameters
 
 public struct DensityVolumeList
 {
@@ -461,7 +433,7 @@ public class VolumetricLightingSystem
             m_VisibleVolumeData.Clear();
 
             // Collect all visible finite volume data, and upload it to the GPU.
-            HomogeneousDensityVolume[] volumes = DensityVolumeManager.manager.GetAllVolumes();
+            HomogeneousDensityVolume[] volumes = DensityVolumeManager.manager.PrepareDensityVolumeData(cmd); 
 
             for (int i = 0; i < Math.Min(volumes.Length, k_MaxVisibleVolumeCount); i++)
             {
@@ -530,14 +502,24 @@ public class VolumetricLightingSystem
             float     vFoV       = camera.camera.fieldOfView * Mathf.Deg2Rad;
             Vector4   resolution = new Vector4(w, h, 1.0f / w, 1.0f / h);
             Matrix4x4 transform  = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, resolution, camera.viewMatrix, false);
+            Texture3D volumeAtlas = DensityVolumeManager.manager.volumeAtlas.volumeAtlas;
+            Vector2 volumeAtlasDimensions = new Vector2(0.0f, 0.0f);
+
+            if (volumeAtlas != null)
+            {
+                volumeAtlasDimensions.x = volumeAtlas.width;
+                volumeAtlasDimensions.y = volumeAtlas.depth;
+            }
 
             cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VBufferDensity, vBuffer.GetDensityBuffer());
             cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeBounds,   s_VisibleVolumeBoundsBuffer);
             cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeData,     s_VisibleVolumeDataBuffer);
+            cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeMaskAtlas, volumeAtlas);
 
             // TODO: set the constant buffer data only once.
             cmd.SetComputeMatrixParam( m_VolumeVoxelizationCS, HDShaderIDs._VBufferCoordToViewDirWS,  transform);
             cmd.SetComputeIntParam(    m_VolumeVoxelizationCS, HDShaderIDs._NumVisibleDensityVolumes, numVisibleVolumes);
+            cmd.SetComputeVectorParam(m_VolumeVoxelizationCS, HDShaderIDs._VolumeMaskDimensions, volumeAtlasDimensions);
 
             // The shader defines GROUP_SIZE_1D = 8.
             cmd.DispatchCompute(m_VolumeVoxelizationCS, kernel, (w + 7) / 8, (h + 7) / 8, 1);
