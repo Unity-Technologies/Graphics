@@ -28,11 +28,11 @@ Pass
 		nointerpolation float4 color : COLOR0;
 #endif
 		
-#if USE_SPECULAR_WORKFLOW	
+#if HDRP_MATERIAL_TYPE_SPECULAR	
 		nointerpolation float4 specularColor : COLOR1;
 #endif
 		// x: smoothness
-		// y: metallic
+		// y: metallic/thickness
 		nointerpolation float2 materialProperties : TEXCOORD4;
 	};
 	
@@ -47,12 +47,17 @@ Pass
 ${VFXBegin:VFXVertexAdditionalProcess}
 ${VFXLoadParameter:{smoothness}}
 o.materialProperties.x = smoothness;
-#if USE_SPECULAR_WORKFLOW
+#if HDRP_MATERIAL_TYPE_STANDARD
+${VFXLoadParameter:{metallic}}
+o.materialProperties.y = metallic;
+#elif HDRP_MATERIAL_TYPE_SPECULAR
 ${VFXLoadParameter:{specularColor}}
 o.specularColor = specularColor;
+#elif HDRP_MATERIAL_TYPE_TRANSLUCENT
+${VFXLoadParameter:{thickness}}
+o.materialProperties.y = thickness;
 #else
-${VFXLoadParameter:{metallic}}
-o.materialProperties.y = metallic;	
+	
 #endif
 ${VFXEnd}
 	
@@ -73,24 +78,24 @@ ${VFXEnd}
 		//BuiltinData builtinData = (BuiltinData)0;
 		//builtinData.opacity = 1.0f;
 				
-		#if USE_SPECULAR_WORKFLOW
-		surfaceData.materialFeatures = 2;
-		surfaceData.specularColor = i.specularColor;
-		#else
+		#if HDRP_MATERIAL_TYPE_STANDARD
 		surfaceData.materialFeatures = 1;
 		surfaceData.metallic = i.materialProperties.y;
+		#elif HDRP_MATERIAL_TYPE_SPECULAR
+		surfaceData.materialFeatures = 2;
+		surfaceData.specularColor = i.specularColor;
+		#elif HDRP_MATERIAL_TYPE_TRANSLUCENT
+		surfaceData.materialFeatures = 8;
+		surfaceData.thickness = i.materialProperties.y; 
+		${VFXLoadParameter:{diffusionProfile}}
+		surfaceData.diffusionProfile = diffusionProfile;
+		surfaceData.subsurfaceMask = 1.0f;
 		#endif
+		
 		surfaceData.baseColor = VFXGetFragmentColor(i).xyz;
 		surfaceData.perceptualSmoothness = i.materialProperties.x;
 		surfaceData.specularOcclusion = 1.0f;
 		surfaceData.ambientOcclusion = 1.0f;
-		
-		#if USE_SSS
-		surfaceData.materialFeatures |= 8;
-		surfaceData.thickness = 1.0f;//i.viewPosAndSize.w; 
-		surfaceData.diffusionProfile = 1;
-		surfaceData.subsurfaceMask = 0.0f;
-		#endif
 
 		float3 ambient = SampleLightProbes(surfaceData.normalWS);
 		
