@@ -1,8 +1,8 @@
 VFXOperatorUI.node #middle
 {
-	flex:1;
-	background-color:#363636;
-	
+    flex:1;
+    background-color:#363636;
+
 }
 
 VFXOperatorUI #title #edit
@@ -52,7 +52,7 @@ VFXUnifiedOperatorEdit OperandInfo .PopupButton
     position-type:Absolute;
     position-top:0;
     position-bottom:0;
-	position-right:0;
+    position-right:0;
     position-left:0;
     background-color:#282828;
 }
@@ -75,6 +75,6 @@ VFXUnifiedOperatorEdit OperandInfo .PopupButton
 
 VFXOperatorUI.superCollapsed.VFXNodeUI.node .mainContainer > #middle
 {
-	width:0;
-	height:0;
+    width:0;
+    height:0;
 }

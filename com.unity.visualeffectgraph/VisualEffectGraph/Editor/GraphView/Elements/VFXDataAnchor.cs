@@ -269,17 +269,17 @@ namespace UnityEditor.VFX.UI
                     IVFXSlotContainer slotContainer = nodeController.slotContainer;
                     if (controller.direction == Direction.Input)
                     {
-                        foreach(var output in nodeController.outputPorts.Where(t=>t.model == null || t.model.IsMasterSlot()))
+                        foreach (var output in nodeController.outputPorts.Where(t => t.model == null || t.model.IsMasterSlot()))
                         {
-                            if( viewController.CreateLink(controller,output) )
+                            if (viewController.CreateLink(controller, output))
                                 break;
                         }
                     }
                     else
                     {
-                        foreach(var input in nodeController.inputPorts.Where(t=>t.model == null || t.model.IsMasterSlot()))
+                        foreach (var input in nodeController.inputPorts.Where(t => t.model == null || t.model.IsMasterSlot()))
                         {
-                            if( viewController.CreateLink(input,controller) )
+                            if (viewController.CreateLink(input, controller))
                                 break;
                         }
                     }
@@ -361,7 +361,7 @@ namespace UnityEditor.VFX.UI
         void AddLinkedNode(VFXNodeProvider.Descriptor d, Vector2 mPos)
         {
             var mySlot = controller.model;
-            
+
             VFXView view = GetFirstAncestorOfType<VFXView>();
             VFXViewController viewController = controller.viewController;
             if (view == null) return;
@@ -374,7 +374,7 @@ namespace UnityEditor.VFX.UI
             VFXViewController viewController = controller.sourceNode.viewController;
             VFXNodeController newNode = viewController.AddNode(tPos, desc, null);*/
 
-            var newNodeController = view.AddNode(d,mPos);
+            var newNodeController = view.AddNode(d, mPos);
             //TODO manage if the newNode should be in a groupNode
 
             if (newNodeController == null)
@@ -415,7 +415,7 @@ namespace UnityEditor.VFX.UI
             }
 
             // If linking to a new parameter, copy the slot value
-            if (direction == Direction.Input)
+            if (direction == Direction.Input && controller.model != null) //model will be null for upcomming which won't have a value
             {
                 if (newNodeController is VFXParameterNodeController)
                 {
@@ -425,10 +425,17 @@ namespace UnityEditor.VFX.UI
                 else if (newNodeController is VFXOperatorController)
                 {
                     var inlineOperator = (newNodeController as VFXOperatorController).model as VFXInlineOperator;
-                    if (inlineOperator)
+                    if (inlineOperator && inlineOperator.type == controller.portType)
                     {
                         if (VFXConverter.CanConvert(inlineOperator.type))
-                            inlineOperator.inputSlots[0].value = VFXConverter.ConvertTo(controller.model.value, inlineOperator.type);
+                        {
+                            try
+                            {
+                                inlineOperator.inputSlots[0].value = VFXConverter.ConvertTo(controller.model.value, inlineOperator.type);
+                            }
+                            catch (System.InvalidCastException) // don't fail here
+                            {}
+                        }
                         else
                             inlineOperator.inputSlots[0].value = controller.model.value;
                     }

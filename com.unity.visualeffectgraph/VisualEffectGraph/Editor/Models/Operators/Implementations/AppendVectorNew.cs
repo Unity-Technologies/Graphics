@@ -6,14 +6,14 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Misc", experimental = true)]
+    [VFXInfo(category = "Math/Vector", experimental = true)]
     class AppendVectorNew : VFXOperatorNumericCascadedUnifiedNew
     {
         public override sealed string name { get { return "AppendVectorNew"; } }
 
         protected override sealed double defaultValueDouble { get { return 0.0f; } }
 
-        protected override sealed ValidTypeRule typeFilter { get { return ValidTypeRule.allowEverythingExceptInteger; } }
+        protected override sealed ValidTypeRule typeFilter { get { return ValidTypeRule.allowEverythingExceptIntegerAndVector4; } }
 
         protected override Type GetExpectedOutputTypeOfOperation(IEnumerable<Type> inputTypes)
         {

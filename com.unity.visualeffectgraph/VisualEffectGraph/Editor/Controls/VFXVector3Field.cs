@@ -118,13 +118,10 @@ namespace UnityEditor.VFX.UIElements
             {
                 case 0:
                     return value.x;
-                    break;
                 case 1:
                     return value.y;
-                    break;
                 default:
                     return value.z;
-                    break;
             }
         }
     }

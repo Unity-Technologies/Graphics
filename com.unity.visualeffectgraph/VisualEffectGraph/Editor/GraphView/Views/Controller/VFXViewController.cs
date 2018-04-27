@@ -128,8 +128,6 @@ namespace UnityEditor.VFX.UI
 
         bool m_InNotify = false;
 
-        HashSet<ScriptableObject> removedDuringNotify = new HashSet<ScriptableObject>();
-
         public void NotifyUpdate()
         {
             m_InNotify = true;
@@ -517,7 +515,7 @@ namespace UnityEditor.VFX.UI
             {
                 return false;
             }
-            if( ! input.CanLink(output) )
+            if (!input.CanLink(output))
             {
                 return false;
             }
@@ -1401,7 +1399,10 @@ namespace UnityEditor.VFX.UI
                 }
                 else if (model is VFXOperatorNumericUnifiedNew)
                 {
-                    newControllers.Add(new VFXUnifiedOperatorController(model, this));
+                    if (model is IVFXOperatorNumericUnifiedConstrained)
+                        newControllers.Add(new VFXUnifiedConstraintOperatorController(model, this));
+                    else
+                        newControllers.Add(new VFXUnifiedOperatorController(model, this));
                 }
                 else if (model is BranchNew)
                 {
@@ -1419,7 +1420,7 @@ namespace UnityEditor.VFX.UI
                 VFXParameter parameter = model as VFXParameter;
                 parameter.ValidateNodes();
 
-                var newController = m_ParameterControllers[parameter] = new VFXParameterController(parameter, this);
+                m_ParameterControllers[parameter] = new VFXParameterController(parameter, this);
 
                 m_SyncedModels[model] = new List<VFXNodeController>();
             }

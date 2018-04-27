@@ -1,7 +1,5 @@
 #include "UnityCG.cginc"
 
-#define VFX_EPSILON 1e-5
-
 UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
 
 float4 VFXTransformPositionWorldToClip(float3 posWS)
@@ -12,6 +10,11 @@ float4 VFXTransformPositionWorldToClip(float3 posWS)
 float4 VFXTransformPositionObjectToClip(float3 posOS)
 {
     return UnityObjectToClipPos(posOS);
+}
+
+float3 VFXTransformPositionWorldToView(float3 posWS)
+{
+    return mul(UNITY_MATRIX_V, float4(posWS, 1.0f)).xyz;
 }
 
 float4x4 VFXGetObjectToWorldMatrix()

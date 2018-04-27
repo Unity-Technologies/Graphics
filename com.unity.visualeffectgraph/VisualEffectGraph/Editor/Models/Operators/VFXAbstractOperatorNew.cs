@@ -64,6 +64,11 @@ namespace UnityEditor.VFX
         {
             return VFXTypeExtension.GetDefaultField(type);
         }
+
+        protected virtual object GetIdentityValueForType(Type type)
+        {
+            return GetDefaultValueForType(type);
+        }
     }
 
     abstract class VFXOperatorNumericNew : VFXOperatorDynamicOperand
@@ -79,16 +84,22 @@ namespace UnityEditor.VFX
         [Flags]
         protected enum ValidTypeRule
         {
-            allowVectorType = 1 << 1,
-            allowOneDimensionType = 1 << 2,
-            allowInteger = 1 << 3,
+            allowVector4Type = 1 << 1,
+            allowVector3Type = 1 << 2,
+            allowVector2Type = 1 << 3,
+            allowOneDimensionType = 1 << 4,
+            allowInteger = 1 << 5,
+            allowVectorType = allowVector4Type | allowVector3Type | allowVector2Type,
 
             allowEverything = allowVectorType | allowOneDimensionType | allowInteger,
             allowEverythingExceptInteger = allowEverything & ~allowInteger,
+            allowEverythingExceptIntegerAndVector4 = allowEverything & ~(allowInteger | allowVector4Type),
             allowEverythingExceptOneDimension = allowEverything & ~allowOneDimensionType
         };
 
-        private static readonly Type[] kVectorType = new Type[] { typeof(Vector4), typeof(Vector3), typeof(Vector2) };
+        private static readonly Type[] kVector4Type = new Type[] { typeof(Vector4) };
+        private static readonly Type[] kVector3Type = new Type[] { typeof(Vector3) };
+        private static readonly Type[] kVector2Type = new Type[] { typeof(Vector2) };
         private static readonly Type[] kOneDimensionType = new Type[] { typeof(float), typeof(uint), typeof(int) };
         private static readonly Type[] kIntegerType = new Type[] { typeof(uint), typeof(int) };
 
@@ -100,7 +111,13 @@ namespace UnityEditor.VFX
             {
                 IEnumerable<Type> types = kExpectedTypeOrdering;
                 if ((typeFilter & ValidTypeRule.allowVectorType) != ValidTypeRule.allowVectorType)
-                    types = types.Except(kVectorType);
+                    types = types.Except(kVector4Type);
+
+                if ((typeFilter & ValidTypeRule.allowVector3Type) != ValidTypeRule.allowVector3Type)
+                    types = types.Except(kVector3Type);
+
+                if ((typeFilter & ValidTypeRule.allowVector2Type) != ValidTypeRule.allowVector2Type)
+                    types = types.Except(kVector3Type);
 
                 if ((typeFilter & ValidTypeRule.allowOneDimensionType) != ValidTypeRule.allowOneDimensionType)
                     types = types.Except(kOneDimensionType);
@@ -190,7 +207,7 @@ namespace UnityEditor.VFX
                     {
                         currentExpression = new VFXExpressionCastIntToFloat(currentExpression);
                     }
-                    currentExpression = VFXOperatorUtility.CastFloat(currentExpression, unifiedType, defaultValueFloat);
+                    currentExpression = VFXOperatorUtility.CastFloat(currentExpression, unifiedType, identityValueFloat);
                 }
                 else if (VFXExpression.IsIntValueType(unifiedType))
                 {
@@ -222,6 +239,11 @@ namespace UnityEditor.VFX
         protected virtual float defaultValueFloat { get { return (float)defaultValueDouble; } }
         protected virtual int defaultValueInt { get { return (int)defaultValueDouble; } }
         protected virtual uint defaultValueUint { get { return (uint)defaultValueDouble; } }
+
+        protected virtual double identityValueDouble { get { return defaultValueDouble; } }
+        protected virtual float identityValueFloat { get { return defaultValueFloat; } }
+        protected virtual int identityValueInt { get { return defaultValueInt; } }
+        protected virtual uint identityValueUint { get { return defaultValueUint; } }
     }
 
     interface IVFXOperatorUniform
@@ -288,7 +310,7 @@ namespace UnityEditor.VFX
                     if (property.property.type == (Type)m_Type)
                         yield return property;
                     else
-                        yield return new VFXPropertyWithValue(new VFXProperty((Type)m_Type, property.property.name), GetDefaultValueForType(m_Type));
+                        yield return new VFXPropertyWithValue(new VFXProperty((Type)m_Type, property.property.name, property.property.attributes), GetDefaultValueForType(m_Type));
                 }
             }
         }
@@ -296,9 +318,15 @@ namespace UnityEditor.VFX
 
     interface IVFXOperatorNumericUnifiedNew
     {
-        int operandCount {get; }
+        int operandCount { get; }
         Type GetOperandType(int index);
         void SetOperandType(int index, Type type);
+    }
+
+    interface IVFXOperatorNumericUnifiedConstrained
+    {
+        IEnumerable<int> strictSameTypeSlotIndex { get; }
+        IEnumerable<int> allowExceptionalScalarSlotIndex { get; }
     }
 
     abstract class VFXOperatorNumericUnifiedNew : VFXOperatorNumericNew, IVFXOperatorNumericUnifiedNew
@@ -355,7 +383,7 @@ namespace UnityEditor.VFX
                     if (itSlot.Current.property.type == (Type)itType.Current)
                         yield return itSlot.Current;
                     else
-                        yield return new VFXPropertyWithValue(new VFXProperty((Type)itType.Current, itSlot.Current.property.name), GetDefaultValueForType(itType.Current));
+                        yield return new VFXPropertyWithValue(new VFXProperty((Type)itType.Current, itSlot.Current.property.name, itSlot.Current.property.attributes), GetDefaultValueForType(itType.Current));
                 }
             }
         }
@@ -389,11 +417,19 @@ namespace UnityEditor.VFX
             {
                 if (m_Operands == null) //Lazy init at this stage is suitable because inputProperties access is done with SyncSlot
                 {
-                    m_Operands = new Operand[] { GetDefaultOperand(0), GetDefaultOperand(1) };
+                    m_Operands = Enumerable.Range(0, MinimalOperandCount).Select(i => GetDefaultOperand(i)).ToArray();
                 }
 
                 foreach (var operand in m_Operands)
                     yield return new VFXPropertyWithValue(new VFXProperty(operand.type, operand.name), GetDefaultValueForType(operand.type));
+            }
+        }
+
+        public virtual int MinimalOperandCount
+        {
+            get
+            {
+                return 2;
             }
         }
 
@@ -497,6 +533,11 @@ namespace UnityEditor.VFX
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
+            if (inputExpression.Length == 0)
+            {
+                return new[] { VFXValue.Constant(defaultValueFloat) };
+            }
+
             //Process aggregate two by two element until result
             var outputExpression = new Stack<VFXExpression>(inputExpression.Reverse());
             while (outputExpression.Count > 1)

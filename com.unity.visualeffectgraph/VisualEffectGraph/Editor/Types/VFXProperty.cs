@@ -41,11 +41,11 @@ namespace UnityEditor.VFX
         [SerializeField]
         public VFXPropertyAttribute[] attributes;
 
-        public VFXProperty(Type type, string name)
+        public VFXProperty(Type type, string name, VFXPropertyAttribute[] attributes = null)
         {
             m_serializedType = type;
             this.name = name;
-            attributes = null;
+            this.attributes = attributes;
         }
 
         public VFXProperty(FieldInfo info)

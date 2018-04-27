@@ -1,13 +1,13 @@
 .PopupButton
 {
-	background-image: resource("Builtin Skins/LightSkin/Images/mini popup.png");
+    background-image: resource("Builtin Skins/LightSkin/Images/mini popup.png");
 }
 .PopupButton:hover:active
 {
-	background-image: resource("Builtin Skins/LightSkin/Images/mini popup act.png");
+    background-image: resource("Builtin Skins/LightSkin/Images/mini popup act.png");
 }
 
 .PopupButton:focus
 {
-	background-image: resource("Builtin Skins/LightSkin/Images/mini popup focus.png");
+    background-image: resource("Builtin Skins/LightSkin/Images/mini popup focus.png");
 }
