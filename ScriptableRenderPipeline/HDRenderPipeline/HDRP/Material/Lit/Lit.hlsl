@@ -1017,7 +1017,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     preLightData.transparentTransmittance = exp(-bsdfData.absorptionCoefficient * refraction.dist);
     // Empirical remap to try to match a bit the refraction probe blurring for the fallback
     // Use IblPerceptualRoughness so we can handle approx of clear coat.
-    preLightData.transparentSSMipLevel = PerceptualRoughnessToMipmapLevelFromGaussianConvolution(preLightData.iblPerceptualRoughness, uint(_ColorPyramidScale.z));
+    preLightData.transparentSSMipLevel = pow(preLightData.iblPerceptualRoughness, 1.3) * uint(max(_ColorPyramidScale.z - 1, 0));
 #endif
 
     return preLightData;
@@ -1921,7 +1921,8 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // Specific case for Texture2Ds, their convolution is a gaussian one and not a GGX one.
     // So we use another roughness mip mapping.
     if (IsEnvIndexTexture2D(lightData.envIndex))
-        iblMipLevel = PerceptualRoughnessToMipmapLevelFromGaussianConvolution(preLightData.iblPerceptualRoughness, uint(_ColorPyramidScale.z));
+        // Empirical remapping
+        iblMipLevel = pow(preLightData.iblPerceptualRoughness, 0.8) * uint(max(_ColorPyramidScale.z - 1, 0));
 
     float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, iblMipLevel);
     weight *= preLD.a; // Used by planar reflection to discard pixel
