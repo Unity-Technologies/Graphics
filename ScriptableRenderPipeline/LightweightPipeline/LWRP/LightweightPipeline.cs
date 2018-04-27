@@ -348,7 +348,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private void DepthPass(ref ScriptableRenderContext context, FrameRenderingConfiguration frameRenderingConfiguration)
         {
             CommandBuffer cmd = CommandBufferPool.Get("Depth Prepass");
-            SetRenderTarget(cmd, m_DepthRT, ClearFlag.Depth);
+            SetRenderTarget(cmd, m_DepthRT, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.Depth);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 
@@ -367,7 +367,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             StopStereoRendering(m_CurrCamera, ref context, frameRenderingConfiguration);
         }
 
-        private void OpaqueTexturePass(ref ScriptableRenderContext context, FrameRenderingConfiguration frameRenderingConfiguration)
+        private void OpaqueTexturePass(ref ScriptableRenderContext context, FrameRenderingConfiguration frameRenderingConfiguration, RenderTargetIdentifier depthRT)
         {
             var opaqueScaler = m_OpaqueScalerValues[(int)m_Asset.OpaqueDownsampling];
             RenderTextureDescriptor opaqueDesc = CreateRTDesc(frameRenderingConfiguration, opaqueScaler);
@@ -390,7 +390,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     cmd.Blit(m_CurrCameraColorRT, CameraRenderTargetID.opaque);
                     break;
             }
-            SetRenderTarget(cmd, m_CurrCameraColorRT, m_DepthRT);
+            SetRenderTarget(cmd, m_CurrCameraColorRT, depthRT, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
@@ -432,13 +432,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private void AfterOpaque(ref ScriptableRenderContext context, FrameRenderingConfiguration config)
         {
+            RenderTargetIdentifier depthRT = m_DepthRT;
+            bool doOpaqueCopy = m_Asset.RequireOpaqueTexture;
             if (m_RequireDepthTexture)
             {
                 CommandBuffer cmd = CommandBufferPool.Get("After Opaque");
                 cmd.SetGlobalTexture(CameraRenderTargetID.depth, m_DepthRT);
 
                 bool setRenderTarget = false;
-                RenderTargetIdentifier depthRT = m_DepthRT;
 
                 // TODO: There's currently an issue in the PostFX stack that has a one frame delay when an effect is enabled/disabled
                 // when an effect is disabled, HasOpaqueOnlyEffects returns true in the first frame, however inside render the effect
@@ -456,7 +457,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                         RenderPostProcess(cmd, m_CurrCameraColorRT, m_CurrCameraColorRT, true);
 
                     setRenderTarget = true;
-                    SetRenderTarget(cmd, m_CurrCameraColorRT, m_DepthRT);
                 }
 
                 if (CoreUtils.HasFlag(config, FrameRenderingConfiguration.DepthCopy))
@@ -477,15 +477,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     cmd.SetGlobalTexture(CameraRenderTargetID.depth, m_CopyDepth);
                 }
 
-                if (setRenderTarget)
-                    SetRenderTarget(cmd, m_CurrCameraColorRT, depthRT);
+                if (setRenderTarget && !doOpaqueCopy)
+                    SetRenderTarget(cmd, m_CurrCameraColorRT, depthRT, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
             }
 
-            if (m_Asset.RequireOpaqueTexture)
+            if (doOpaqueCopy)
             {
-                OpaqueTexturePass(ref context, config);
+                OpaqueTexturePass(ref context, config, depthRT);
             }
         }
 
@@ -1033,7 +1033,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     clearFlag |= ClearFlag.Color;
             }
 
-            SetRenderTarget(cmd, colorRT, depthRT, clearFlag);
+            SetRenderTarget(cmd, colorRT, depthRT, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, clearFlag);
 
             // If rendering to an intermediate RT we resolve viewport on blit due to offset not being supported
             // while rendering to a RT.
@@ -1051,9 +1051,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 return;
 
             var cmd = CommandBufferPool.Get("Blit");
+            bool skipSetRT = false;
             if (m_IntermediateTextureArray)
             {
                 cmd.Blit(m_CurrCameraColorRT, BuiltinRenderTextureType.CameraTarget);
+                skipSetRT = true;
             }
             else if (CoreUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture))
             {
@@ -1063,10 +1065,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 // If PostProcessing is enabled, it is already blit to CameraTarget.
                 if (!CoreUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.PostProcess))
+                {
                     Blit(cmd, renderingConfig, m_CurrCameraColorRT, BuiltinRenderTextureType.CameraTarget, blitMaterial);
+                    skipSetRT = true;
+                }
             }
 
-            SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget);
+            if (!skipSetRT)
+                SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -1130,22 +1136,32 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_CameraPostProcessLayer.Render(m_PostProcessRenderContext);
         }
 
-        private void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorRT, ClearFlag clearFlag = ClearFlag.None)
+        private void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorRT, RenderBufferLoadAction loadAction, RenderBufferStoreAction storeAction, ClearFlag clearFlag = ClearFlag.None)
         {
-            int depthSlice = (m_IntermediateTextureArray) ? -1 : 0;
-            CoreUtils.SetRenderTarget(cmd, colorRT, clearFlag, CoreUtils.ConvertSRGBToActiveColorSpace(m_CurrCamera.backgroundColor), 0, CubemapFace.Unknown, depthSlice);
+            if (m_IntermediateTextureArray)
+                CoreUtils.SetRenderTarget(cmd, colorRT, clearFlag, CoreUtils.ConvertSRGBToActiveColorSpace(m_CurrCamera.backgroundColor), 0, CubemapFace.Unknown, -1);
+            else
+                CoreUtils.SetRenderTarget(cmd, colorRT, loadAction, storeAction, clearFlag, CoreUtils.ConvertSRGBToActiveColorSpace(m_CurrCamera.backgroundColor));
         }
 
-        private void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorRT, RenderTargetIdentifier depthRT, ClearFlag clearFlag = ClearFlag.None)
+        private void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorRT, RenderBufferLoadAction colorLoadAction, RenderBufferStoreAction colorStoreAction,
+            RenderTargetIdentifier depthRT, RenderBufferLoadAction depthLoadAction, RenderBufferStoreAction depthStoreAction, ClearFlag clearFlag = ClearFlag.None)
         {
             if (depthRT == BuiltinRenderTextureType.None || !m_DepthRenderBuffer)
             {
-                SetRenderTarget(cmd, colorRT, clearFlag);
+                SetRenderTarget(cmd, colorRT, colorLoadAction, colorStoreAction, clearFlag);
                 return;
             }
 
-            int depthSlice = (m_IntermediateTextureArray) ? -1 : 0;
-            CoreUtils.SetRenderTarget(cmd, colorRT, depthRT, clearFlag, CoreUtils.ConvertSRGBToActiveColorSpace(m_CurrCamera.backgroundColor), 0, CubemapFace.Unknown, depthSlice);
+            if (m_IntermediateTextureArray)
+                CoreUtils.SetRenderTarget(cmd, colorRT, depthRT, clearFlag, CoreUtils.ConvertSRGBToActiveColorSpace(m_CurrCamera.backgroundColor), 0, CubemapFace.Unknown, -1);
+            else
+                CoreUtils.SetRenderTarget(cmd, colorRT, colorLoadAction, colorStoreAction, depthRT, depthLoadAction, depthStoreAction, clearFlag, CoreUtils.ConvertSRGBToActiveColorSpace(m_CurrCamera.backgroundColor));
+        }
+
+        private void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorRT, RenderTargetIdentifier depthRT, RenderBufferLoadAction loadAction, RenderBufferStoreAction storeAction, ClearFlag clearFlag = ClearFlag.None)
+        {
+            SetRenderTarget(cmd, colorRT, loadAction, storeAction, depthRT, loadAction, storeAction, clearFlag);
         }
 
         private void Blit(CommandBuffer cmd, FrameRenderingConfiguration renderingConfig, RenderTargetIdentifier sourceRT, RenderTargetIdentifier destRT, Material material = null)
@@ -1159,7 +1175,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 // Viewport doesn't work when rendering to an RT
                 // We have to manually blit by rendering a fullscreen quad
-                SetRenderTarget(cmd, destRT);
+                SetRenderTarget(cmd, destRT, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store);
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.SetViewport(m_CurrCamera.pixelRect);
                 DrawFullScreen(cmd, m_BlitMaterial);
