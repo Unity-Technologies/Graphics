@@ -220,7 +220,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var propertyNodeGuids = nodes.OfType<PropertyNode>().Select(x => x.propertyGuid);
             var metaProperties = this.graph.properties.Where(x => propertyNodeGuids.Contains(x.guid));
 
-            var graph = new CopyPasteGraph(nodes, edges, properties, metaProperties);
+            var graph = new CopyPasteGraph(this.graph.guid, nodes, edges, properties, metaProperties);
             return JsonUtility.ToJson(graph, true);
         }
 
@@ -329,25 +329,54 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             using (var remappedNodesDisposable = ListPool<INode>.GetDisposable())
+            {
                 using (var remappedEdgesDisposable = ListPool<IEdge>.GetDisposable())
                 {
                     var remappedNodes = remappedNodesDisposable.value;
                     var remappedEdges = remappedEdgesDisposable.value;
                     graphView.graph.PasteGraph(copyGraph, remappedNodes, remappedEdges);
+                    
+                    if (graphView.graph.guid != copyGraph.sourceGraphGuid)
+                    {
+                        // Compute the mean of the copied nodes.
+                        Vector2 centroid = Vector2.zero;
+                        var count = 1;
+                        foreach (var node in remappedNodes)
+                        {
+                            var position = node.drawState.position.position;
+                            centroid = centroid + (position - centroid) / count;
+                            ++count;
+                        }
+
+                        // Get the center of the current view
+                        var viewCenter = graphView.contentViewContainer.WorldToLocal(graphView.layout.center);
+
+                        foreach (var node in remappedNodes)
+                        {
+                            var drawState = node.drawState;
+                            var positionRect = drawState.position;
+                            var position = positionRect.position;
+                            position += viewCenter - centroid;
+                            positionRect.position = position;
+                            drawState.position = positionRect;
+                            node.drawState = drawState;
+                        }
+                    }
 
                     // Add new elements to selection
                     graphView.ClearSelection();
                     graphView.graphElements.ForEach(element =>
-                        {
-                            var edge = element as Edge;
-                            if (edge != null && remappedEdges.Contains(edge.userData as IEdge))
-                                graphView.AddToSelection(edge);
+                    {
+                        var edge = element as Edge;
+                        if (edge != null && remappedEdges.Contains(edge.userData as IEdge))
+                            graphView.AddToSelection(edge);
 
-                            var nodeView = element as MaterialNodeView;
-                            if (nodeView != null && remappedNodes.Contains(nodeView.node))
-                                graphView.AddToSelection(nodeView);
-                        });
+                        var nodeView = element as MaterialNodeView;
+                        if (nodeView != null && remappedNodes.Contains(nodeView.node))
+                            graphView.AddToSelection(nodeView);
+                    });
                 }
+            }
         }
     }
 }

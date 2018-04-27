@@ -24,6 +24,9 @@ namespace UnityEditor.Graphing.Util
         [NonSerialized]
         HashSet<IShaderProperty> m_MetaProperties = new HashSet<IShaderProperty>();
 
+        [NonSerialized]
+        SerializableGuid m_SourceGraphGuid;
+
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializableNodes = new List<SerializationHelper.JSONSerializedElement>();
 
@@ -36,10 +39,15 @@ namespace UnityEditor.Graphing.Util
         [SerializeField]
         List<SerializationHelper.JSONSerializedElement> m_SerializableMetaProperties = new List<SerializationHelper.JSONSerializedElement>();
 
+        [SerializeField]
+        SerializationHelper.JSONSerializedElement m_SerializeableSourceGraphGuid = new SerializationHelper.JSONSerializedElement();
+
         public CopyPasteGraph() {}
 
-        public CopyPasteGraph(IEnumerable<INode> nodes, IEnumerable<IEdge> edges, IEnumerable<IShaderProperty> properties, IEnumerable<IShaderProperty> metaProperties)
+        public CopyPasteGraph(Guid sourceGraphGuid, IEnumerable<INode> nodes, IEnumerable<IEdge> edges, IEnumerable<IShaderProperty> properties, IEnumerable<IShaderProperty> metaProperties)
         {
+            m_SourceGraphGuid = new SerializableGuid(sourceGraphGuid);
+
             foreach (var node in nodes)
             {
                 AddNode(node);
@@ -97,8 +105,14 @@ namespace UnityEditor.Graphing.Util
             get { return m_MetaProperties; }
         }
 
+        public Guid sourceGraphGuid
+        {
+            get { return m_SourceGraphGuid.guid; }
+        }
+
         public void OnBeforeSerialize()
         {
+            m_SerializeableSourceGraphGuid = SerializationHelper.Serialize(m_SourceGraphGuid);
             m_SerializableNodes = SerializationHelper.Serialize<INode>(m_Nodes);
             m_SerializableEdges = SerializationHelper.Serialize<IEdge>(m_Edges);
             m_SerilaizeableProperties = SerializationHelper.Serialize<IShaderProperty>(m_Properties);
@@ -107,6 +121,8 @@ namespace UnityEditor.Graphing.Util
 
         public void OnAfterDeserialize()
         {
+            m_SourceGraphGuid = SerializationHelper.Deserialize<SerializableGuid>(m_SerializeableSourceGraphGuid, GraphUtil.GetLegacyTypeRemapping());
+
             var nodes = SerializationHelper.Deserialize<INode>(m_SerializableNodes, GraphUtil.GetLegacyTypeRemapping());
             m_Nodes.Clear();
             foreach (var node in nodes)
