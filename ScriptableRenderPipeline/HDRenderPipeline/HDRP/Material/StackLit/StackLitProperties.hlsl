@@ -77,7 +77,7 @@ float _Anisotropy;
 float _CoatSmoothness;
 float _CoatIor;
 float _CoatThickness;
-float4 _CoatExtinction;
+float3 _CoatExtinction;
 
 float _NormalScale;
 float _NormalMapUV;
