@@ -54,9 +54,9 @@ Shader "HDRenderPipeline/StackLit"
         _Anisotropy("Anisotropy", Range(-1.0, 1.0)) = 0.0
         [ToggleUI] _CoatEnable("Coat Enable", Float) = 0.0 // UI only
         _CoatSmoothness("Coat Smoothness", Range(0.0, 1.0)) = 1.0
-        _CoatIor("Coat IOR", Range(1.0, 2.0)) = 1.5
+        _CoatIor("Coat IOR", Range(1.0001, 2.0)) = 1.5
         _CoatThickness("Coat Thickness", Range(0.0, 0.99)) = 0.0
-        _CoatExtinction("Coat Extinction Coefficient", Color) = (1,1,1,1) // in thickness^-1 units
+        _CoatExtinction("Coat Extinction Coefficient", Color) = (1,1,1) // in thickness^-1 units
 
         [HideInInspector] _NormalMapShow("NormalMap Show", Float) = 0.0
         _NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
