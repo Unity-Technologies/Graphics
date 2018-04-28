@@ -983,7 +983,7 @@ void ComputeAdding(float _cti, in BSDFData bsdfData, inout PreLightData preLight
         if( !perLightOption )
         {
             // We're not going to get called again per analytical light so store the result needed and used by them:
-            // LOBEA T and B part:
+            // LOBEB T and B part:
             preLightData.layeredRoughnessT[1] = ClampRoughnessForAnalyticalLights(roughnessT);
             preLightData.layeredRoughnessB[1] = ClampRoughnessForAnalyticalLights(roughnessB);
         }
