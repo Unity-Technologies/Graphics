@@ -49,9 +49,14 @@ Shader "HDRenderPipeline/StackLit"
         [HideInInspector] _SmoothnessBRange("SmoothnessB Range", Vector) = (0, 1, 0, 0)
         _LobeMix("Lobe Mix", Range(0.0, 1.0)) = 0
 
+        [ToggleUI] _DebugEnable("Debug Enable", Float) = 0.0 // UI only
+        _DebugLobeMask("DebugLobeMask", Vector) = (1, 1, 1, 1)
+        _DebugAniso("DebugAniso", Vector) = (1, 0, 0, 1000.0)
+
         // TODO: TangentMap, AnisotropyMap and CoatIorMap (SmoothnessMap ?)
 
         _Anisotropy("Anisotropy", Range(-1.0, 1.0)) = 0.0
+
         [ToggleUI] _CoatEnable("Coat Enable", Float) = 0.0 // UI only
         _CoatSmoothness("Coat Smoothness", Range(0.0, 1.0)) = 1.0
         _CoatIor("Coat IOR", Range(1.0001, 2.0)) = 1.5
@@ -160,6 +165,7 @@ Shader "HDRenderPipeline/StackLit"
         [HideInInspector] _StandardShow("_StandardShow", Float) = 0.0
         [HideInInspector] _EmissiveShow("_EmissiveShow", Float) = 0.0
         [HideInInspector] _CoatShow("_CoatShow", Float) = 0.0
+        [HideInInspector] _DebugShow("_DebugShow", Float) = 0.0
         [HideInInspector] _SSSShow("_SSSShow", Float) = 0.0
         [HideInInspector] _Lobe2Show("_Lobe2Show", Float) = 0.0
         [HideInInspector] _AnisotropyShow("_AnisotropyShow", Float) = 0.0
@@ -215,6 +221,7 @@ Shader "HDRenderPipeline/StackLit"
     #pragma shader_feature _MATERIAL_FEATURE_COAT
     #pragma shader_feature _MATERIAL_FEATURE_DUAL_LOBE
 
+    #pragma shader_feature _STACKLIT_DEBUG
     //enable GPU instancing support
     #pragma multi_compile_instancing
 

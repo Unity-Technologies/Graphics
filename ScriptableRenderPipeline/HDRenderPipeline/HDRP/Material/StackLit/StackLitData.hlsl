@@ -321,7 +321,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.coatExtinction = _CoatExtinction; // in thickness^-1 units
 #else
     surfaceData.coatPerceptualSmoothness = 0.0;
-    surfaceData.coatIor = 1.0;
+    surfaceData.coatIor = 1.0001;
     surfaceData.coatThickness = 0.0;
     surfaceData.coatExtinction = float3(1.0, 1.0, 1.0);
 #endif
