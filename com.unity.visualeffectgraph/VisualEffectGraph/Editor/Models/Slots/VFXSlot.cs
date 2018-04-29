@@ -354,8 +354,8 @@ namespace UnityEditor.VFX
 
                     src.Unlink(link, notify);
 
-                    dst.owner.TransferLinkOtherSlot(src, dst, link);
-                    link.owner.TransferLinkMySlot(link, src, dst);
+                    dst.owner.TransferLinkMySlot(src, dst, link);
+                    link.owner.TransferLinkOtherSlot(link, src, dst);
                 }
                 ++index;
             }

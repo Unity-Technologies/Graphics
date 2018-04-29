@@ -342,11 +342,17 @@ namespace UnityEditor.VFX
                                 groupInfo.contents[i].model = dst;
             }
 
+            if(dst is VFXBlock && src is VFXBlock)
+            {
+                ((VFXBlock)dst).enabled = ((VFXBlock)src).enabled;
+            }
+
             // Replace model
             var parent = src.GetParent();
+            int index = parent.GetIndex(src);
             src.Detach(notify);
             if (parent)
-                dst.Attach(parent, notify);
+                parent.AddChild(dst, index, notify);
         }
 
         [SerializeField]
