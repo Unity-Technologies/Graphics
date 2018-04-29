@@ -135,6 +135,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     new Property(this, "_CoatExtinction", "Coat Absorption", "Coat absorption tint (the thicker the coat, the more that color is removed)", false),
                 }),
 
+                new GroupProperty(this, "_Debug", "Debug", new BaseProperty[]
+                {
+                    new Property(this, "_DebugEnable", "Debug Enable", "Switch to a debug version of the shader", false),
+                    new Property(this, "_DebugLobeMask", "DebugLobeMask", "xyz is Lobe 0 1 2 Enable, w is Enable VLayering", false),
+                    new Property(this, "_DebugAniso", "DebugAniso", "x is Hack Enable, y is factor", false),
+                }),
+
                 new GroupProperty(this, "_SSS", "Sub-Surface Scattering", new BaseProperty[]
                 {
                     new DiffusionProfileProperty(this, k_DiffusionProfile, "Diffusion Profile", "A profile determines the shape of the SSS/transmission filter.", false),
@@ -348,11 +355,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // value and re-enable otherwise).
             bool coatEnabled = material.HasProperty(k_CoatEnable) && (material.GetFloat(k_CoatEnable) > 0.0f);
             bool dualLobeEnabled = material.HasProperty(k_LobeMix) && (material.GetFloat(k_LobeMix) > 0.0f);
+            bool debugEnabled = material.HasProperty("_DebugEnable") && (material.GetFloat("_DebugEnable") > 0.0f);
 
             // Note that we don't use the materialId (cf Lit.shader) mechanism in the UI
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_ANISOTROPY", anisotropyEnabled);
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_COAT", coatEnabled);
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_DUAL_LOBE", dualLobeEnabled);
+            CoreUtils.SetKeyword(material, "_STACKLIT_DEBUG", debugEnabled);
 
         }
     }

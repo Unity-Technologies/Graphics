@@ -73,6 +73,9 @@ float4 _SmoothnessBMapChannelMask;
 float4 _SmoothnessBRange;
 float _LobeMix;
 
+float4 _DebugLobeMask;
+float4 _DebugAniso;
+
 float _Anisotropy;
 float _CoatSmoothness;
 float _CoatIor;
