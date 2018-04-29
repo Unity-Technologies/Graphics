@@ -15,7 +15,6 @@ namespace UnityEditor.VFX
     {
         Position,
         Direction,
-        Normal
     }
 
     [AttributeUsage(AttributeTargets.Field)]
@@ -36,7 +35,7 @@ namespace UnityEditor.VFX
         public static readonly int SpaceCount = Enum.GetValues(typeof(CoordinateSpace)).Length;
     }
 
-    interface ISpaceable //WIP
+    interface ISpaceable //TODOPAUL WIP (remove this)
     {
         CoordinateSpace space { get; set; }
     }
@@ -224,16 +223,6 @@ namespace UnityEditor.VFX
         public Vector3 position;
 
         public static Position defaultValue = new Position { position = Vector3.zero };
-
-        public static implicit operator Position(Vector3 p)
-        {
-            return new Position() { position = p };
-        }
-
-        public static implicit operator Vector3(Position p)
-        {
-            return p.position;
-        }
     }
 
     [VFXType, Serializable]
