@@ -204,8 +204,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // stereo functionality, we use the screen-space shadow map as the source (until we have
             // a better solution).
             // An alternative would be DrawProcedural, but that would require further changes in the shader.
-            cmd.SetRenderTarget(m_ScreenSpaceShadowmapTexture);
-            cmd.ClearRenderTarget(true, true, Color.white);
+            CoreUtils.SetRenderTarget(cmd, m_ScreenSpaceShadowmapTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.Color | ClearFlag.Depth, Color.white);
             cmd.Blit(m_ScreenSpaceShadowmapTexture, m_ScreenSpaceShadowmapTexture, m_ScreenSpaceShadowsMaterial);
 
             LightweightPipeline.StartStereoRendering(camera, ref context, frameRenderingConfiguration);
@@ -325,7 +324,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_DirectionalShadowmapTexture.filterMode = FilterMode.Bilinear;
             m_DirectionalShadowmapTexture.wrapMode = TextureWrapMode.Clamp;
 
-            CoreUtils.SetRenderTarget(cmd, m_DirectionalShadowmapTexture, ClearFlag.Depth);
+            CoreUtils.SetRenderTarget(cmd, m_DirectionalShadowmapTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.Depth);
 
             bool success = false;
             for (int cascadeIndex = 0; cascadeIndex < m_ShadowCasterCascadesCount; ++cascadeIndex)
@@ -405,7 +404,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_LocalShadowmapTexture.filterMode = FilterMode.Bilinear;
             m_LocalShadowmapTexture.wrapMode = TextureWrapMode.Clamp;
 
-            CoreUtils.SetRenderTarget(cmd, m_LocalShadowmapTexture, ClearFlag.Depth);
+            CoreUtils.SetRenderTarget(cmd, m_LocalShadowmapTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.Depth);
 
             for (int i = 0; i < localLightsCount; ++i)
             {
