@@ -65,11 +65,13 @@ CBUFFER_END
 //--------------------------------------------------------------------------------------------------
 float4 SampleVolumeMask(DensityVolumeData volumeData, float3 voxelCenterUV)
 {
-    //TODO: transform voxelCenterUV based on volume texture transform
     float totalTextures = _VolumeMaskDimensions.y / _VolumeMaskDimensions.x;
     float offset = volumeData.textureIndex / totalTextures;
     float clampBorder = 0.5f / _VolumeMaskDimensions.x;
 
+    //scale and bias the UVs and then take fractional part, will be in [0,1] range
+    voxelCenterUV = frac(voxelCenterUV * volumeData.textureTiling + volumeData.textureScroll);
+    
     voxelCenterUV.z /= totalTextures;
     voxelCenterUV.z += offset;
 

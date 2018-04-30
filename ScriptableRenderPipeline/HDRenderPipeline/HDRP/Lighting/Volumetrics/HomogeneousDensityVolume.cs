@@ -12,6 +12,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public Texture3D volumeMask;
         public int textureIndex;
+        public Vector3 textureScrollingSpeed;
+        public Vector3 textureTiling;
+
+        private Vector3 volumeScrollingAmount;
+
+        public DensityVolumeParameters(Color color, float _meanFreePath, float _asymmetry)
+        {
+            albedo = color;
+            meanFreePath = _meanFreePath;
+            asymmetry = _asymmetry;
+
+            volumeMask = null;
+            textureIndex = -1;
+            textureScrollingSpeed = Vector3.zero;
+            textureTiling = Vector3.one;
+            volumeScrollingAmount = textureScrollingSpeed;
+        }
+
+        public void Update()
+        {
+            //Update scrolling based on deltaTime
+            if (volumeMask != null)
+            {
+                volumeScrollingAmount = volumeScrollingAmount + (textureScrollingSpeed * Time.deltaTime);
+            }
+        }
 
         public void Constrain()
         {
@@ -23,6 +49,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             meanFreePath = Mathf.Clamp(meanFreePath, 1.0f, float.MaxValue);
 
             asymmetry = Mathf.Clamp(asymmetry, -1.0f, 1.0f);
+
+            volumeScrollingAmount = Vector3.zero;
         }
 
         public DensityVolumeData GetData()
@@ -31,7 +59,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             data.extinction = VolumeRenderingUtils.ExtinctionFromMeanFreePath(meanFreePath);
             data.scattering = VolumeRenderingUtils.ScatteringFromExtinctionAndAlbedo(data.extinction, (Vector3)(Vector4)albedo);
+
+            //The UV coordinates are in -1,1 space so have to convert to 0,1 space before applying texture scrolling and tiling.
+            // uv = ((uv * 0.5) + 0.5) * tiling + scroll
+            // uv = (uv * 0.5 * tiling + (0.5 * tiling + scroll))
             data.textureIndex = textureIndex;
+            data.textureScroll = volumeScrollingAmount + new Vector3(0.5f * textureTiling.x, 0.5f * textureTiling.y, 0.5f * textureTiling.z);
+            data.textureTiling = textureTiling * 0.5f;
 
             return data;
         }
@@ -41,21 +75,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [AddComponentMenu("Rendering/Homogeneous Density Volume", 1100)]
     public class HomogeneousDensityVolume : MonoBehaviour
     {
-        public DensityVolumeParameters parameters;
+        public DensityVolumeParameters parameters = new DensityVolumeParameters(Color.grey, 10.0f, 0.0f);
 
         private Texture3D previousVolumeMask = null;
 
         public Action OnTextureUpdated;
-
-        public HomogeneousDensityVolume()
-        {
-            parameters.albedo       = new Color(0.5f, 0.5f, 0.5f);
-            parameters.meanFreePath = 10.0f;
-            parameters.asymmetry    = 0.0f;
-
-            parameters.volumeMask = null;
-            parameters.textureIndex = -1;
-        }
 
         //Gather and Update any parameters that may have changed
         public void PrepareParameters()
@@ -66,6 +90,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 NotifyUpdatedTexure();
                 previousVolumeMask = parameters.volumeMask;
             }
+
+            parameters.Update();
         }
 
         private void NotifyUpdatedTexure()
