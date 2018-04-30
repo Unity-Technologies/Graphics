@@ -33,6 +33,7 @@ namespace UnityEditor.VFX
             kParamChanged,          // Some parameter values have changed
             kParamPropagated,       // Some parameter values have change and was propagated from the parents
             kSettingChanged,        // A setting value has changed
+            kSpaceChanged,          // Space has been changed
             kConnectionChanged,     // Connection have changed
             kExpressionInvalidated, // No direct change to the model but a change in connection was propagated from the parents
             kExpressionGraphChanged,// Expression graph must be recomputed

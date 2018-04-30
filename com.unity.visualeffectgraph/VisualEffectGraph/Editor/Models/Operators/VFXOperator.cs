@@ -54,12 +54,36 @@ namespace UnityEditor.VFX
             return changed;
         }
 
+        private static CoordinateSpace GetSpaceFromSpaceableSlot(IEnumerable<VFXSlot> slots)
+        {
+            return slots.Select(o => o.space).Distinct().OrderByDescending(o => (int)o).First();
+        }
+
         protected override sealed void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
+            //Detect spaceable input slot & set output slot as a result (if one output slot is spaceable)
+            var inputSlotWithExpression = new List<VFXSlot>();
+            GetSlotPredicateRecursive(inputSlotWithExpression, inputSlots, s => s.DefaultExpr != null);
+
+            var inputSlotSpaceable = inputSlots.Where(o => o.spaceable);
+            if (inputSlotSpaceable.Any())
+            {
+                var outputSlotWithExpression = new List<VFXSlot>();
+                GetSlotPredicateRecursive(outputSlotWithExpression, outputSlots, s => s.DefaultExpr != null);
+
+                var outputSlotSpaceable = outputSlots.Where(o => o.spaceable);
+                if (outputSlotSpaceable.Any())
+                {
+                    var currentSpace = GetSpaceFromSpaceableSlot(inputSlots);
+                    foreach (var output in outputSlotSpaceable)
+                    {
+                        output.space = currentSpace;
+                    }
+                }
+            }
+
             if (cause == InvalidationCause.kConnectionChanged)
             {
-                //VFXSlot slot = model as VFXSlot;
-                //if (slot != null && slot.direction == VFXSlot.Direction.kInput)
                 ResyncSlots(true);
             }
 
@@ -73,14 +97,20 @@ namespace UnityEditor.VFX
             GetSlotPredicateRecursive(outputSlotWithExpression, outputSlots, s => s.DefaultExpr != null);
             GetSlotPredicateRecursive(inputSlotWithExpression, inputSlots, s => s.GetExpression() != null);
 
-            var currentSpace = CoordinateSpace.Local;
             var inputSlotSpaceable = inputSlots.Where(o => o.spaceable);
+            IEnumerable<VFXExpression> inputExpressions;
             if (inputSlotSpaceable.Any())
             {
-                currentSpace = inputSlots.Select(o => o.space).Distinct().OrderBy(o => (int)o).First();
+                var currentSpace = GetSpaceFromSpaceableSlot(inputSlotSpaceable);
+                //Actually, it will convert space only on spaceable slot
+                inputExpressions = inputSlotWithExpression.Select(o => ConvertSpace(o.GetExpression(), o, currentSpace));
+            }
+            else
+            {
+                //Simple path, doesn't require any transformation
+                inputExpressions = inputSlotWithExpression.Select(o => o.GetExpression());
             }
 
-            var inputExpressions = inputSlotWithExpression.Select(o => ConvertSpace(o.GetExpression(), o, currentSpace));
             inputExpressions = ApplyPatchInputExpression(inputExpressions);
 
             var outputExpressions = BuildExpression(inputExpressions.ToArray());
@@ -90,10 +120,6 @@ namespace UnityEditor.VFX
             for (int i = 0; i < outputSlotWithExpression.Count; ++i)
             {
                 var slot = outputSlotWithExpression[i];
-                if (slot.spaceable)
-                {
-                    slot.space = currentSpace;
-                }
                 slot.SetExpression(outputExpressions[i]);
             }
         }

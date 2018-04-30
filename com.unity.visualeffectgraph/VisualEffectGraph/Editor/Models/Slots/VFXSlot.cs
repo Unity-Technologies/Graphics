@@ -105,7 +105,8 @@ namespace UnityEditor.VFX
                     if (space != value)
                     {
                         GetMasterData().m_SpaceContainer.m_Space = value;
-                        Invalidate(InvalidationCause.kConnectionChanged);
+                        InvalidateExpressionTree();
+                        Invalidate(InvalidationCause.kSpaceChanged);
                     }
                 }
                 else
@@ -551,10 +552,6 @@ namespace UnityEditor.VFX
         {
             base.Invalidate(model, cause);
 
-            // TODO this breaks the rule that invalidate propagate upwards only
-            // Remove this and handle the downwards propagation in the delegate directly if needed!
-            InvalidateChildren(model, cause);
-
             var owner = this.owner;
             if (owner != null)
                 owner.Invalidate(this, cause);
@@ -772,14 +769,6 @@ namespace UnityEditor.VFX
             foreach (var startSlot in startSlots)
             {
                 startSlot.m_InExpression = startSlot.ConvertExpression(startSlot.m_LinkedInExpression, startSlot.m_LinkedInSlot); // TODO Handle structural modification
-                /* hacky */
-                if (startSlot.m_LinkedInSlot != null)
-                {
-                    if (startSlot.spaceable)
-                    {
-                        startSlot.space = startSlot.m_LinkedInSlot.space; //-_-'
-                    }
-                }
                 startSlot.PropagateToChildren(s =>
                     {
                         var exp = s.ExpressionToChildren(s.m_InExpression);
@@ -870,6 +859,38 @@ namespace UnityEditor.VFX
                 foreach (var slot in currentSlots)
                     Unlink(slot, notify);
             }
+        }
+
+        protected override sealed void OnInvalidate(VFXModel model, InvalidationCause cause)
+        {
+            if (cause == InvalidationCause.kConnectionChanged || cause == InvalidationCause.kSpaceChanged)
+            {
+                if (        IsMasterSlot()
+                        &&  direction == Direction.kInput
+                        &&  spaceable
+                        &&  HasLink())
+                {
+                    var linkedSlot = m_LinkedSlots.First();
+                    if (linkedSlot.spaceable)
+                    {
+                        space = linkedSlot.space;
+                    }
+                }
+            }
+
+            //Propagate space change to children
+            if (cause == InvalidationCause.kSpaceChanged)
+            {
+                if (direction == Direction.kOutput)
+                {
+                    PropagateToChildren(s =>
+                    {
+                        foreach (var slot in s.m_LinkedSlots)
+                            slot.Invalidate(cause);
+                    });
+                }
+            }
+            base.OnInvalidate(model, cause);
         }
 
         private static void InnerLink(VFXSlot output, VFXSlot input)

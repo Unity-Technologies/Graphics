@@ -33,7 +33,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void SpaceUniform()
+        public void SpaceUniformisation()
         {
             var add = ScriptableObject.CreateInstance<AddNew>();
             add.SetOperandType(0, typeof(Position));
@@ -45,7 +45,7 @@ namespace UnityEditor.VFX.Test
             add.inputSlots[0].space = CoordinateSpace.Global;
             Assert.AreEqual(add.inputSlots[0].space, CoordinateSpace.Global);
             Assert.AreEqual(add.inputSlots[1].space, CoordinateSpace.Local);
-            Assert.AreEqual(add.outputSlots[0].space, CoordinateSpace.Local);
+            Assert.AreEqual(add.outputSlots[0].space, CoordinateSpace.Global);
 
             var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
             var result = context.Compile(add.outputSlots[0].GetExpression());
@@ -53,8 +53,31 @@ namespace UnityEditor.VFX.Test
             var allExpr = CollectExpression(result).ToArray();
             Assert.IsTrue(allExpr.Any(o =>
             {
-                return o.operation == VFXExpressionOperation.WorldToLocal;
+                return o.operation == VFXExpressionOperation.LocalToWorld;
             }));
+        }
+
+        private static Type[] SpaceTransmissionType = { typeof(Position), typeof(Sphere) };
+        [Test]
+        public void SpaceTransmission([ValueSource("SpaceTransmissionType")] Type type)
+        {
+            var position_A = ScriptableObject.CreateInstance<VFXInlineOperator>();
+            var position_B = ScriptableObject.CreateInstance<VFXInlineOperator>();
+
+            position_A.SetSettingValue("m_Type", (SerializableType)type);
+            position_B.SetSettingValue("m_Type", (SerializableType)type);
+
+            position_A.inputSlots[0].space = CoordinateSpace.Global;
+            Assert.AreEqual(CoordinateSpace.Global, position_A.outputSlots[0].space);
+
+            position_B.inputSlots[0].space = CoordinateSpace.Local;
+            Assert.AreEqual(CoordinateSpace.Local, position_B.outputSlots[0].space);
+
+            position_B.inputSlots[0].Link(position_A.outputSlots[0]);
+            Assert.AreEqual(CoordinateSpace.Global, position_B.outputSlots[0].space);
+
+            position_A.inputSlots[0].space = CoordinateSpace.Local;
+            Assert.AreEqual(CoordinateSpace.Local, position_B.outputSlots[0].space);
         }
     }
 }

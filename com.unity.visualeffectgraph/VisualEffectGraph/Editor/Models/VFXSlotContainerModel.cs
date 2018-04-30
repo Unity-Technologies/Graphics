@@ -263,7 +263,7 @@ namespace UnityEditor.VFX
             {
                 if (targetSlot.space != space)
                 {
-                    if (targetSlot.property.type == typeof(Position))
+                    if (targetSlot.property.type == typeof(Position)) //TODOPAUL
                     {
                         var matrix = space == CoordinateSpace.Local ? VFXBuiltInExpression.WorldToLocal : VFXBuiltInExpression.LocalToWorld;
                         input = new VFXExpressionTransformPosition(matrix, input);
