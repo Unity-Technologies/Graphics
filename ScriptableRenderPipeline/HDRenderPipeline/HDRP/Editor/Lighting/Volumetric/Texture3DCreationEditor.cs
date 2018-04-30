@@ -87,11 +87,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             Color[] colorArray = new Color[0];
           
-            for(int i = 0; i < numXTiles; ++i)
+            for(int i = numYTiles - 1; i >= 0; --i)
             {
-                for(int j = 0; j < numYTiles; ++j)
+                for(int j = 0; j < numXTiles; ++j)
                 {
-                    Color[] texColor = sourceTexture.GetPixels(i*tileSize, j*tileSize, tileSize, tileSize);
+                    Color[] texColor = sourceTexture.GetPixels(j*tileSize, i*tileSize, tileSize, tileSize);
 
                     Array.Resize(ref colorArray, texColor.Length + colorArray.Length);
                     Array.Copy(texColor, 0, colorArray, colorArray.Length - texColor.Length, texColor.Length);
