@@ -26,6 +26,7 @@
 #define GROUP_SIZE_2D         (GROUP_SIZE_1D * GROUP_SIZE_1D)
 #define TEXTURE_CACHE_BORDER  2
 #define TEXTURE_CACHE_SIZE_1D (GROUP_SIZE_1D + 2 * TEXTURE_CACHE_BORDER)
+#define TEXTURE_CACHE_SIZE_2D (TEXTURE_CACHE_SIZE_1D * TEXTURE_CACHE_SIZE_1D)
 
 // Check for support of typed UAV loads from FORMAT_R16G16B16A16_FLOAT.
 // TODO: query the format support more precisely.
@@ -54,7 +55,7 @@
 float4 _FilterKernels[DIFFUSION_PROFILE_COUNT][SSS_N_SAMPLES_NEAR_FIELD]; // XY = near field, ZW = far field; 0 = radius, 1 = reciprocal of the PDF
 
 TEXTURE2D(_DepthTexture);                           // Z-buffer
-TEXTURE2D(_SSSHTile);                                  // DXGI_FORMAT_R8_UINT is not supported by Unity
+TEXTURE2D(_SSSHTile);                               // DXGI_FORMAT_R8_UINT is not supported by Unity
 TEXTURE2D(_IrradianceSource);                       // Includes transmitted light
 
 #ifdef USE_INTERMEDIATE_BUFFER
@@ -69,14 +70,26 @@ TEXTURE2D(_IrradianceSource);                       // Includes transmitted ligh
 
 // 6656 bytes used. It appears that the reserved LDS space must be a multiple of 512 bytes.
 #if SSS_USE_LDS_CACHE
-groupshared float4 textureCache[TEXTURE_CACHE_SIZE_1D * TEXTURE_CACHE_SIZE_1D]; // {irradiance, linearDepth}
+groupshared float2 textureCache0[TEXTURE_CACHE_SIZE_2D]; // {irradiance.rg}
+groupshared float2 textureCache1[TEXTURE_CACHE_SIZE_2D]; // {irradiance.b, linearDepth}
 #endif
 groupshared bool   processGroup;
 
 #if SSS_USE_LDS_CACHE
+void StoreSampleToCacheMemory(float4 value, int2 cacheCoord)
+{
+    int linearCoord = Mad24(TEXTURE_CACHE_SIZE_1D, cacheCoord.y, cacheCoord.x);
+
+    textureCache0[linearCoord] = value.rg;
+    textureCache1[linearCoord] = value.ba;
+}
+
 float4 LoadSampleFromCacheMemory(int2 cacheCoord)
 {
-    return textureCache[Mad24(TEXTURE_CACHE_SIZE_1D, cacheCoord.y, cacheCoord.x)];
+    int linearCoord = Mad24(TEXTURE_CACHE_SIZE_1D, cacheCoord.y, cacheCoord.x);
+
+    return float4(textureCache0[linearCoord],
+                  textureCache1[linearCoord]);
 }
 #endif
 
@@ -279,7 +292,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
 #if SSS_USE_LDS_CACHE
     uint2 cacheCoord = groupCoord + TEXTURE_CACHE_BORDER;
     // Populate the central region of the LDS cache.
-    textureCache[Mad24(TEXTURE_CACHE_SIZE_1D, cacheCoord.y, cacheCoord.x)] = float4(centerIrradiance, centerViewZ);
+    StoreSampleToCacheMemory(float4(centerIrradiance, centerViewZ), cacheCoord);
 
     uint numBorderQuadsPerWave = TEXTURE_CACHE_SIZE_1D / 2 - 1;
     uint halfCacheWidthInQuads = TEXTURE_CACHE_SIZE_1D / 4;
@@ -327,7 +340,7 @@ void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
         }
 
         // Populate the border region of the LDS cache.
-        textureCache[Mad24(TEXTURE_CACHE_SIZE_1D, cacheCoord2.y, cacheCoord2.x)] = float4(irradiance2, viewZ2);
+        StoreSampleToCacheMemory(float4(irradiance2, viewZ2), cacheCoord2);
     }
 
     // Wait for the LDS.
