@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleSheets;
@@ -348,7 +348,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_WindowDockingLayout.ApplyPosition(m_Container);
         }
 
-        public override void DoRepaint()
+        protected override void DoRepaint(IStylePainter painter)
         {
             if (m_StyleWidget == null)
             {
