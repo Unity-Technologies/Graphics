@@ -1050,34 +1050,24 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (m_IsOffscreenCamera)
                 return;
 
+            bool isStereo = CoreUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.Stereo);
+
             var cmd = CommandBufferPool.Get("Blit");
-            bool skipSetRT = false;
             if (m_IntermediateTextureArray)
-            {
                 cmd.Blit(m_CurrCameraColorRT, BuiltinRenderTextureType.CameraTarget);
-                skipSetRT = true;
-            }
-            else if (CoreUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture))
+            else if (CoreUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture) &&
+                !CoreUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.PostProcess))
+            // If PostProcessing is enabled, it is already blit to CameraTarget.
             {
-                Material blitMaterial = m_BlitMaterial;
-                if (CoreUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.Stereo))
-                    blitMaterial = null;
-
-                // If PostProcessing is enabled, it is already blit to CameraTarget.
-                if (!CoreUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.PostProcess))
-                {
-                    Blit(cmd, renderingConfig, m_CurrCameraColorRT, BuiltinRenderTextureType.CameraTarget, blitMaterial);
-                    skipSetRT = true;
-                }
+                Blit(cmd, renderingConfig, m_CurrCameraColorRT, BuiltinRenderTextureType.CameraTarget, isStereo ? null : m_BlitMaterial);
             }
-
-            if (!skipSetRT)
+            else
                 SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 
-            if (CoreUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.Stereo))
+            if (isStereo)
             {
                 context.StopMultiEye(m_CurrCamera);
                 context.StereoEndRender(m_CurrCamera);
