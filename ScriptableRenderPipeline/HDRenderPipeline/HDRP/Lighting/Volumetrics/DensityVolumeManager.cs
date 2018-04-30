@@ -22,12 +22,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public VolumeTextureAtlas volumeAtlas = null;
         private bool atlasNeedsRefresh = false;
 
+        //TODO: hardcoded size....:-(
+        public static int volumeTextureSize = 32;
+
         private DensityVolumeManager()
         {
             volumes = new List<HomogeneousDensityVolume>();
 
-            //TODO: hardcoded size....:-(
-            volumeAtlas = new VolumeTextureAtlas(TextureFormat.RGBA32, 32);
+            volumeAtlas = new VolumeTextureAtlas(TextureFormat.RGBA32, volumeTextureSize);
 
             volumeAtlas.OnAtlasUpdated += AtlasUpdated;
         }

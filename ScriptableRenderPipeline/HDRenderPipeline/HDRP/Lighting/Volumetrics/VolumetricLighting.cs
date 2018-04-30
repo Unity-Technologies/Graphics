@@ -10,6 +10,8 @@ public struct DensityVolumeData
     public Vector3 scattering; // [0, 1], prefer sRGB
     public float   extinction; // [0, 1], prefer sRGB
     public int     textureIndex; //
+    public Vector3 textureTiling;
+    public Vector3 textureScroll;
 
     public static DensityVolumeData GetNeutralValues()
     {
@@ -18,6 +20,9 @@ public struct DensityVolumeData
         data.scattering = Vector3.zero;
         data.extinction = 0;
         data.textureIndex = -1;
+
+        data.textureTiling = Vector3.one;
+        data.textureScroll = Vector3.zero;
 
         return data;
     }
