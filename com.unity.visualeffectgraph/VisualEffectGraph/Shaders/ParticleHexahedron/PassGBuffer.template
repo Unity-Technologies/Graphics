@@ -1,0 +1,94 @@
+// Forward pass
+Pass
+{		
+	Tags { "LightMode"="GBuffer" }
+	
+	Stencil
+	{
+		WriteMask 7
+		Ref  2
+		Comp Always
+		Pass Replace
+	}	
+		
+	HLSLPROGRAM
+	#pragma target 4.5
+	
+	#define UNITY_MATERIAL_LIT
+	#define SHADERPASS SHADERPASS_GBUFFER
+	
+	struct ps_input
+	{
+		float4 pos : SV_POSITION;
+
+		#if VFX_NEEDS_COLOR_INTERPOLATOR
+		nointerpolation float4 color : COLOR0;
+		#endif
+		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST
+		// x: inverse soft particles fade distance
+		// y: alpha threshold
+		nointerpolation float2 builtInInterpolants : TEXCOORD1;
+		#endif
+		#if USE_SOFT_PARTICLE
+		float4 projPos : TEXCOORD2;		
+		#endif
+		
+		float3 offsets : TEXCOORD3;
+		nointerpolation float3 rotX : TEXCOORD4;
+		nointerpolation float3 rotY : TEXCOORD5;
+		
+		#if HDRP_MATERIAL_TYPE_SPECULAR	
+		nointerpolation float4 specularColor : COLOR1;
+		#endif
+		// x: smoothness
+		// y: metallic/thickness
+		nointerpolation float2 materialProperties : TEXCOORD6;
+	};
+	
+	struct ps_output
+	{
+		float4 color : SV_Target0;
+	};
+
+#define VFX_VARYING_PS_INPUTS ps_input
+#define VFX_VARYING_POSCS pos
+#define VFX_VARYING_POSSS projPos
+#define VFX_VARYING_COLOR color.rgb
+#define VFX_VARYING_ALPHA color.a
+#define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
+#define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
+#define VFX_VARYING_OFFSETS offsets
+#define VFX_VARYING_ROTX rotX
+#define VFX_VARYING_ROTY rotY
+				
+${VFXBegin:VFXVertexAdditionalProcess}
+${VFXLoadParameter:{smoothness}}
+o.materialProperties.x = smoothness;
+#if HDRP_MATERIAL_TYPE_STANDARD
+${VFXLoadParameter:{metallic}}
+o.materialProperties.y = metallic;
+#elif HDRP_MATERIAL_TYPE_SPECULAR
+${VFXLoadParameter:{specularColor}}
+o.specularColor = specularColor;
+#elif HDRP_MATERIAL_TYPE_TRANSLUCENT
+${VFXLoadParameter:{thickness}}
+o.materialProperties.y = thickness;
+#endif
+${VFXEnd}
+
+	${VFXInclude("Assets/VFXEditor/Shaders/ParticleHexahedron/Pass.template")}	
+	${VFXInclude("Assets/VFXEditor/Shaders/RenderPipeline/HDRP/VFXLit.template")}		
+		
+	#pragma fragment frag
+	void frag(ps_input i, OUTPUT_GBUFFER(outGBuffer))
+	{
+		float3 normalWS = VFXCubeGetLocalNormal(i);;
+		normalWS = VFXCubeTransformNormalWS(i,normalWS);
+		
+		SurfaceData surfaceData = VFXGetSurfaceData(normalWS,i);
+		float3 ambient = VFXGetAmbient(normalWS);
+		
+		ENCODE_INTO_GBUFFER(surfaceData, ambient, i.pos, outGBuffer);
+	}
+	ENDHLSL
+}

@@ -69,21 +69,3 @@ float4 VFXApplyShadowBias(float4 posCS)
 {
     return posCS;
 }
-
-/////////////////
-// HD lighting //
-/////////////////
-
-float3 SampleLightProbes(float3 normalWS)
-{
-    real4 SHCoefficients[7];
-    SHCoefficients[0] = unity_SHAr;
-    SHCoefficients[1] = unity_SHAg;
-    SHCoefficients[2] = unity_SHAb;
-    SHCoefficients[3] = unity_SHBr;
-    SHCoefficients[4] = unity_SHBg;
-    SHCoefficients[5] = unity_SHBb;
-    SHCoefficients[6] = unity_SHC;
-
-    return SampleSH9(SHCoefficients, normalWS);
-}
