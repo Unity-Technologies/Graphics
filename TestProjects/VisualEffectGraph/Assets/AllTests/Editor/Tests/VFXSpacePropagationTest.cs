@@ -11,7 +11,6 @@ namespace UnityEditor.VFX.Test
     [TestFixture]
     public class VFXSpacePropagationTest
     {
-
         static IEnumerable<VFXExpression> CollectExpression(VFXExpression startExpression)
         {
             yield return startExpression;
@@ -26,6 +25,14 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void ExpectedTypeSpaceable()
+        {
+            var inline = ScriptableObject.CreateInstance<VFXInlineOperator>();
+            inline.SetSettingValue("m_Type", (SerializableType)typeof(Sphere));
+            Assert.IsTrue(inline.inputSlots[0].spaceable);
+        }
+
+        [Test]
         public void SpaceUniform()
         {
             var add = ScriptableObject.CreateInstance<AddNew>();
@@ -33,12 +40,12 @@ namespace UnityEditor.VFX.Test
             add.SetOperandType(1, typeof(Position));
 
             Assert.AreEqual(add.outputSlots[0].property.type, typeof(Position));
-            Assert.AreEqual(add.outputSlots[0].Space, CoordinateSpace.Local);
+            Assert.AreEqual(add.outputSlots[0].space, CoordinateSpace.Local);
 
-            add.inputSlots[0].Space = CoordinateSpace.Global;
-            Assert.AreEqual(add.inputSlots[0].Space, CoordinateSpace.Global);
-            Assert.AreEqual(add.inputSlots[1].Space, CoordinateSpace.Local);
-            Assert.AreEqual(add.outputSlots[0].Space, CoordinateSpace.Local);
+            add.inputSlots[0].space = CoordinateSpace.Global;
+            Assert.AreEqual(add.inputSlots[0].space, CoordinateSpace.Global);
+            Assert.AreEqual(add.inputSlots[1].space, CoordinateSpace.Local);
+            Assert.AreEqual(add.outputSlots[0].space, CoordinateSpace.Local);
 
             var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
             var result = context.Compile(add.outputSlots[0].GetExpression());

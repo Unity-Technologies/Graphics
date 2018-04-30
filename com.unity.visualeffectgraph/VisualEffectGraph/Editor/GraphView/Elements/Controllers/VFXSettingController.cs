@@ -102,15 +102,16 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                //TODOPAUL
-                return CoordinateSpace.Local;
+                throw new NotImplementedException();
             }
 
             set
             {
-                //TODOPAUL
+                throw new NotImplementedException();
             }
         }
+
+        public bool spaceable { get { return false; } }
 
         public void ExpandPath()
         {

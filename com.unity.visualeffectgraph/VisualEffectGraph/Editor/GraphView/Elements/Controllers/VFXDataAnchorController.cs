@@ -31,11 +31,19 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return model.Space;
+                return model.space;
             }
             set
             {
-                model.Space = value;
+                model.space = value;
+            }
+        }
+
+        public bool spaceable
+        {
+            get
+            {
+                return model.spaceable;
             }
         }
 
@@ -179,7 +187,7 @@ namespace UnityEditor.VFX.UI
 
                 var children = model.children;
 
-                if (model.Spaceable && model.children.Count() == 1)
+                if (model.spaceable && model.children.Count() == 1)
                 {
                     children = children.First().children;
                 }

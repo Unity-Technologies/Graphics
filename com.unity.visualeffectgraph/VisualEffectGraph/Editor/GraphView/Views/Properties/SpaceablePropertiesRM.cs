@@ -6,7 +6,7 @@ using VFXVector3Field = UnityEditor.VFX.UIElements.VFXVector3Field;
 
 namespace UnityEditor.VFX.UI
 {
-    abstract class SpaceablePropertyRM<T> : PropertyRM<T>
+    class SpaceablePropertyRM<T> : PropertyRM<T>
     {
         public SpaceablePropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
@@ -26,7 +26,7 @@ namespace UnityEditor.VFX.UI
             return base.GetPreferredLabelWidth() + spaceButtonWidth;
         }
 
-        private CoordinateSpace Space
+        private CoordinateSpace space
         {
             get
             {
@@ -41,22 +41,18 @@ namespace UnityEditor.VFX.UI
 
         void OnButtonClick()
         {
-            Space = (CoordinateSpace)((int)(Space + 1) % CoordinateSpaceInfo.SpaceCount);
-            NotifyValueChanged();
+            space = (CoordinateSpace)((int)(space + 1) % CoordinateSpaceInfo.SpaceCount);
         }
 
         public override void UpdateGUI(bool force)
         {
-            if (m_Value != null)
+            foreach (string name in System.Enum.GetNames(typeof(CoordinateSpace)))
             {
-                foreach (string name in System.Enum.GetNames(typeof(CoordinateSpace)))
-                {
-                    if (Space.ToString() != name)
-                        m_Button.RemoveFromClassList("space" + name);
-                }
-
-                m_Button.AddToClassList("space" + Space.ToString());
+                if (space.ToString() != name)
+                    m_Button.RemoveFromClassList("space" + name);
             }
+
+            m_Button.AddToClassList("space" + space.ToString());
         }
 
         VisualElement m_Button;

@@ -74,10 +74,10 @@ namespace UnityEditor.VFX
             GetSlotPredicateRecursive(inputSlotWithExpression, inputSlots, s => s.GetExpression() != null);
 
             var currentSpace = CoordinateSpace.Local;
-            var inputSlotSpaceable = inputSlots.Where(o => o.Spaceable);
+            var inputSlotSpaceable = inputSlots.Where(o => o.spaceable);
             if (inputSlotSpaceable.Any())
             {
-                currentSpace = inputSlots.Select(o => o.Space).Distinct().OrderBy(o => (int)o).First();
+                currentSpace = inputSlots.Select(o => o.space).Distinct().OrderBy(o => (int)o).First();
             }
 
             var inputExpressions = inputSlotWithExpression.Select(o => ConvertSpace(o.GetExpression(), o, currentSpace));
@@ -90,9 +90,9 @@ namespace UnityEditor.VFX
             for (int i = 0; i < outputSlotWithExpression.Count; ++i)
             {
                 var slot = outputSlotWithExpression[i];
-                if (slot.Spaceable)
+                if (slot.spaceable)
                 {
-                    slot.Space = currentSpace;
+                    slot.space = currentSpace;
                 }
                 slot.SetExpression(outputExpressions[i]);
             }

@@ -76,7 +76,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public bool Spaceable
+        public bool spaceable
         {
             get
             {
@@ -89,20 +89,20 @@ namespace UnityEditor.VFX
             }
         }
 
-        public CoordinateSpace Space
+        public CoordinateSpace space
         {
             get
             {
-                if (Spaceable)
+                if (spaceable)
                     return GetMasterData().m_SpaceContainer.m_Space;
                 return CoordinateSpace.Local;
             }
 
             set
             {
-                if (Spaceable)
+                if (spaceable)
                 {
-                    if (Space != value)
+                    if (space != value)
                     {
                         GetMasterData().m_SpaceContainer.m_Space = value;
                         Invalidate(InvalidationCause.kConnectionChanged);
@@ -775,9 +775,9 @@ namespace UnityEditor.VFX
                 /* hacky */
                 if (startSlot.m_LinkedInSlot != null)
                 {
-                    if (startSlot.Spaceable)
+                    if (startSlot.spaceable)
                     {
-                        startSlot.Space = startSlot.m_LinkedInSlot.Space; //-_-'
+                        startSlot.space = startSlot.m_LinkedInSlot.space; //-_-'
                     }
                 }
                 startSlot.PropagateToChildren(s =>

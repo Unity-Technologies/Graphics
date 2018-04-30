@@ -35,11 +35,6 @@ namespace UnityEditor.VFX
         public static readonly int SpaceCount = Enum.GetValues(typeof(CoordinateSpace)).Length;
     }
 
-    interface ISpaceable //TODOPAUL WIP (remove this)
-    {
-        CoordinateSpace space { get; set; }
-    }
-
     [VFXType, Serializable]
     struct Circle
     {
@@ -64,7 +59,7 @@ namespace UnityEditor.VFX
     [VFXType, Serializable]
     struct Sphere
     {
-        [Tooltip("The centre of the sphere.")]
+        [Tooltip("The centre of the sphere."), VFXSpace(SpaceableType.Position)]
         public Vector3 center;
         [Tooltip("The radius of the sphere.")]
         public float radius;

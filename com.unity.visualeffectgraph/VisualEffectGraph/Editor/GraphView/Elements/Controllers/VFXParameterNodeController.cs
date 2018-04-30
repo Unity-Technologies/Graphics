@@ -111,18 +111,6 @@ namespace UnityEditor.VFX.UI
             get { return m_Infos; }
         }
 
-        public CoordinateSpace space
-        {
-            get
-            {
-                return CoordinateSpace.Local;
-            }
-            set
-            {
-                //TODOPAUL
-            }
-        }
-
         protected override VFXDataAnchorController AddDataAnchor(VFXSlot slot, bool input, bool hidden)
         {
             var anchor = new VFXParameterOutputDataAnchorController(slot, this, hidden);
@@ -153,6 +141,28 @@ namespace UnityEditor.VFX.UI
             get
             {
                 return true;
+            }
+        }
+
+        public CoordinateSpace space
+        {
+            get
+            {
+                //TODOPAUL
+                return CoordinateSpace.Local;
+            }
+
+            set
+            {
+                //TODOPAUL
+            }
+        }
+
+        public bool spaceable
+        {
+            get
+            {
+                return false;
             }
         }
 

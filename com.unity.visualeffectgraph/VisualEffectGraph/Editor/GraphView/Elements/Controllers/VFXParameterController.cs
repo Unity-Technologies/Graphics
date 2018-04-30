@@ -24,20 +24,6 @@ namespace UnityEditor.VFX.UI
         object[] m_CustomAttributes;
         VFXPropertyAttribute[] m_Attributes;
 
-        public CoordinateSpace space
-        {
-            get
-            {
-                //TODOPAUL
-                return CoordinateSpace.Local;
-            }
-
-            set
-            {
-                //TODOPAUL
-            }
-        }
-
         public VFXSubParameterController(VFXParameterController parameter, IEnumerable<int> fieldPath)
         {
             m_Parameter = parameter;
@@ -67,6 +53,35 @@ namespace UnityEditor.VFX.UI
                     m_Children = m_Parameter.ComputeSubControllers(portType, m_FieldPath);
                 }
                 return m_Children;
+            }
+        }
+
+        CoordinateSpace IPropertyRMProvider.space
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        CoordinateSpace IValueController.space
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        bool IPropertyRMProvider.spaceable
+        {
+            get
+            {
+                return false;
             }
         }
 
@@ -218,13 +233,20 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                //TODOPAUL
-                return ((IPropertyRMProvider)m_Owner).space;
+                throw new NotImplementedException();
             }
 
             set
             {
-                ((IPropertyRMProvider)m_Owner).space = value;
+                throw new NotImplementedException();
+            }
+        }
+
+        public bool spaceable
+        {
+            get
+            {
+                return false;
             }
         }
 
@@ -647,12 +669,19 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return CoordinateSpace.Local;
+                return CoordinateSpace.Local; //TODOPAUL
             }
 
             set
             {
-                //TODODPAUL
+            }
+        }
+
+        public bool spaceable
+        {
+            get
+            {
+                return false;
             }
         }
 

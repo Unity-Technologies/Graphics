@@ -19,6 +19,7 @@ namespace UnityEditor.VFX.UI
         bool expanded { get; }
         bool expandable { get; }
         object value { get; set; }
+        bool spaceable { get; }
         CoordinateSpace space { get; set; }
         string name { get; }
         VFXPropertyAttribute[] attributes { get; }
@@ -45,6 +46,8 @@ namespace UnityEditor.VFX.UI
         }
 
         CoordinateSpace IPropertyRMProvider.space { get { return CoordinateSpace.Local; } set {} }
+
+        bool IPropertyRMProvider.spaceable { get { return false; } }
 
         bool IPropertyRMProvider.expanded { get { return false; } }
         bool IPropertyRMProvider.expandable { get { return false; } }
@@ -322,7 +325,6 @@ namespace UnityEditor.VFX.UI
             {typeof(string), typeof(StringPropertyRM)}
         };
 
-
         static Type GetPropertyType(IPropertyRMProvider controller)
         {
             Type propertyType = null;
@@ -334,11 +336,11 @@ namespace UnityEditor.VFX.UI
                 {
                     propertyType = typeof(EnumPropertyRM);
                 }
-                else if (typeof(ISpaceable).IsAssignableFrom(type))
+                else if (controller.spaceable)
                 {
                     if (!m_TypeDictionary.TryGetValue(type, out propertyType))
                     {
-                        propertyType = typeof(SpaceablePropertyRM<ISpaceable>);
+                        propertyType = typeof(SpaceablePropertyRM<object>);
                     }
                 }
                 else

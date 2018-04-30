@@ -259,9 +259,9 @@ namespace UnityEditor.VFX
 
         static protected VFXExpression ConvertSpace(VFXExpression input, VFXSlot targetSlot, CoordinateSpace space)
         {
-            if (targetSlot.Spaceable)
+            if (targetSlot.spaceable)
             {
-                if (targetSlot.Space != space)
+                if (targetSlot.space != space)
                 {
                     if (targetSlot.property.type == typeof(Position))
                     {
