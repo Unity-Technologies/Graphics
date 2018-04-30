@@ -19,8 +19,6 @@ namespace UnityEditor.VFX.Operator
 
         override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            int size = VFXExpression.TypeToSize(inputExpression[0].valueType);
-
             return new[] {
                 VFXOperatorUtility.Saturate(VFXOperatorUtility.Ceil(inputExpression[0] - inputExpression[1])),
 

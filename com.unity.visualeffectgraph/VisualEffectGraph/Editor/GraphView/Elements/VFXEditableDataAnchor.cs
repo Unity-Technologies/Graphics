@@ -169,18 +169,13 @@ namespace UnityEditor.VFX.UI
             Profiler.EndSample();
         }
 
-        Type m_EditedType;
-
         public override void SelfChange(int change)
         {
             Profiler.BeginSample("VFXEditableDataAnchor.SelfChange");
             base.SelfChange(change);
 
             if (m_PropertyRM == null || !m_PropertyRM.IsCompatible(controller))
-            {
                 BuildProperty();
-                m_EditedType = controller.portType;
-            }
 
             OnRecompile();
             Profiler.EndSample();

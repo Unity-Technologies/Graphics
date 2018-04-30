@@ -52,6 +52,7 @@ namespace UnityEditor.VFX.Test
 
             const int res = 256;
             var renderTexture = new RenderTexture(res, res, 16, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default) { hideFlags = HideFlags.HideAndDontSave };
+            renderTexture.name = "VFXGraphicTest";
             instance.camera.targetTexture = renderTexture;
 
             var ambientProbe = RenderSettings.ambientProbe;
@@ -161,7 +162,7 @@ namespace UnityEditor.VFX.Test
             {
                 get
                 {
-                    foreach (var file in Directory.GetFiles("Assets/VFXTests/", "*.unity"))
+                    foreach (var file in Directory.GetFiles("Assets/VFXTests/GraphicsTests/", "*.unity"))
                     {
                         if (file.Contains("MotionVectors")) continue; //disable explicitly instable test
                         yield return new SceneTest

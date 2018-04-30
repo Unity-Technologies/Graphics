@@ -13,6 +13,11 @@ namespace  UnityEditor.VFX.UI
 {
     class VFXBlackboardPropertyView : VisualElement, IControlledElement, IControlledElement<VFXParameterController>
     {
+        public VFXBlackboardPropertyView()
+        {
+            RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
+            
+        }
         public VFXBlackboardRow owner
         {
             get; set;
@@ -60,7 +65,7 @@ namespace  UnityEditor.VFX.UI
         {
             foreach (var port in allProperties)
             {
-                float portLabelWidth = port.GetPreferredLabelWidth();
+                float portLabelWidth = port.GetPreferredLabelWidth() + 5;
 
                 if (labelWidth < portLabelWidth)
                 {
@@ -85,7 +90,7 @@ namespace  UnityEditor.VFX.UI
             int cpt = 0;
             foreach (var subController in subControllers)
             {
-                PropertyRM prop = PropertyRM.Create(subController, 55);
+                PropertyRM prop = PropertyRM.Create(subController, 85);
                 if (prop != null)
                 {
                     m_SubProperties.Add(prop);
@@ -220,14 +225,28 @@ namespace  UnityEditor.VFX.UI
                 }
             }
 
-            float labelWidth = 70;
-            GetPreferedWidths(ref labelWidth);
-            ApplyWidths(labelWidth);
+            
 
             foreach (var prop in allProperties)
             {
                 prop.Update();
             }
+        }
+
+        void OnAttachToPanel(AttachToPanelEvent e)
+        {
+            RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+        }
+
+        void OnGeometryChanged(GeometryChangedEvent e)
+        {
+            if (panel != null)
+            {
+                float labelWidth = 70;
+                GetPreferedWidths(ref labelWidth);
+                ApplyWidths(labelWidth);
+            }
+            UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
         }
     }
     class VFXBlackboardField : BlackboardField, IControlledElement, IControlledElement<VFXParameterController>
@@ -335,9 +354,9 @@ namespace  UnityEditor.VFX.UI
             m_CurrentOrder = controller.order;
             m_CurrentExposed = controller.exposed;
 
-            m_Properties.SelfChange(e.change);
-
             expanded = controller.expanded;
+
+            m_Properties.SelfChange(e.change);
 
             m_Field.SelfChange();
         }

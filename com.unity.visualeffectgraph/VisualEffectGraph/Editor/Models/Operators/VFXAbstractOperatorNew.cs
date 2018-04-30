@@ -64,6 +64,11 @@ namespace UnityEditor.VFX
         {
             return VFXTypeExtension.GetDefaultField(type);
         }
+
+        protected virtual object GetIdentityValueForType(Type type)
+        {
+            return GetDefaultValueForType(type);
+        }
     }
 
     abstract class VFXOperatorNumericNew : VFXOperatorDynamicOperand
@@ -79,16 +84,22 @@ namespace UnityEditor.VFX
         [Flags]
         protected enum ValidTypeRule
         {
-            allowVectorType = 1 << 1,
-            allowOneDimensionType = 1 << 2,
-            allowInteger = 1 << 3,
+            allowVector4Type = 1 << 1,
+            allowVector3Type = 1 << 2,
+            allowVector2Type = 1 << 3,
+            allowOneDimensionType = 1 << 4,
+            allowInteger = 1 << 5,
+            allowVectorType = allowVector4Type | allowVector3Type | allowVector2Type,
 
             allowEverything = allowVectorType | allowOneDimensionType | allowInteger,
             allowEverythingExceptInteger = allowEverything & ~allowInteger,
+            allowEverythingExceptIntegerAndVector4 = allowEverything & ~(allowInteger | allowVector4Type),
             allowEverythingExceptOneDimension = allowEverything & ~allowOneDimensionType
         };
 
-        private static readonly Type[] kVectorType = new Type[] { typeof(Vector4), typeof(Vector3), typeof(Vector2) };
+        private static readonly Type[] kVector4Type = new Type[] { typeof(Vector4) };
+        private static readonly Type[] kVector3Type = new Type[] { typeof(Vector3) };
+        private static readonly Type[] kVector2Type = new Type[] { typeof(Vector2) };
         private static readonly Type[] kOneDimensionType = new Type[] { typeof(float), typeof(uint), typeof(int) };
         private static readonly Type[] kIntegerType = new Type[] { typeof(uint), typeof(int) };
 
@@ -100,7 +111,13 @@ namespace UnityEditor.VFX
             {
                 IEnumerable<Type> types = kExpectedTypeOrdering;
                 if ((typeFilter & ValidTypeRule.allowVectorType) != ValidTypeRule.allowVectorType)
-                    types = types.Except(kVectorType);
+                    types = types.Except(kVector4Type);
+
+                if ((typeFilter & ValidTypeRule.allowVector3Type) != ValidTypeRule.allowVector3Type)
+                    types = types.Except(kVector3Type);
+
+                if ((typeFilter & ValidTypeRule.allowVector2Type) != ValidTypeRule.allowVector2Type)
+                    types = types.Except(kVector3Type);
 
                 if ((typeFilter & ValidTypeRule.allowOneDimensionType) != ValidTypeRule.allowOneDimensionType)
                     types = types.Except(kOneDimensionType);
@@ -125,7 +142,7 @@ namespace UnityEditor.VFX
             return kExpectedTypeOrdering[minIndex];
         }
 
-        protected sealed override IEnumerable<VFXPropertyWithValue> outputProperties
+        protected override sealed IEnumerable<VFXPropertyWithValue> outputProperties
         {
             get
             {
@@ -138,15 +155,14 @@ namespace UnityEditor.VFX
                 else
                 {
                     //Most common behavior : output of an operation depend of input type
-                    const string outputName = "o";
                     var slotType = GetExpectedOutputTypeOfOperation(inputSlots.Select(o => o.property.type));
                     if (slotType != null)
-                        yield return new VFXPropertyWithValue(new VFXProperty(slotType, outputName));
+                        yield return new VFXPropertyWithValue(new VFXProperty(slotType, string.Empty));
                 }
             }
         }
 
-        protected sealed override object GetDefaultValueForType(Type vtype)
+        protected override sealed object GetDefaultValueForType(Type vtype)
         {
             var type = VFXExpression.GetVFXValueTypeFromType(vtype);
             switch (type)
@@ -167,7 +183,7 @@ namespace UnityEditor.VFX
             return null;
         }
 
-        protected IEnumerable<VFXExpression> UnifyExpression(IEnumerable<VFXExpression> inputExpression)
+        protected sealed override IEnumerable<VFXExpression> ApplyPatchInputExpression(IEnumerable<VFXExpression> inputExpression)
         {
             var minIndex = inputExpression.Select(o => Array.IndexOf(kExpectedTypeOrdering, VFXExpression.TypeToType(o.valueType))).Min();
             var unifiedType = VFXExpression.GetVFXValueTypeFromType(kExpectedTypeOrdering[minIndex]);
@@ -191,7 +207,7 @@ namespace UnityEditor.VFX
                     {
                         currentExpression = new VFXExpressionCastIntToFloat(currentExpression);
                     }
-                    currentExpression = VFXOperatorUtility.CastFloat(currentExpression, unifiedType, defaultValueFloat);
+                    currentExpression = VFXOperatorUtility.CastFloat(currentExpression, unifiedType, identityValueFloat);
                 }
                 else if (VFXExpression.IsIntValueType(unifiedType))
                 {
@@ -223,12 +239,18 @@ namespace UnityEditor.VFX
         protected virtual float defaultValueFloat { get { return (float)defaultValueDouble; } }
         protected virtual int defaultValueInt { get { return (int)defaultValueDouble; } }
         protected virtual uint defaultValueUint { get { return (uint)defaultValueDouble; } }
+
+        protected virtual double identityValueDouble { get { return defaultValueDouble; } }
+        protected virtual float identityValueFloat { get { return defaultValueFloat; } }
+        protected virtual int identityValueInt { get { return defaultValueInt; } }
+        protected virtual uint identityValueUint { get { return defaultValueUint; } }
     }
 
     interface IVFXOperatorUniform
     {
         Type GetOperandType();
         void SetOperandType(Type type);
+        IEnumerable<int> staticSlotIndex { get; }
     }
 
     abstract class VFXOperatorNumericUniformNew : VFXOperatorNumericNew, IVFXOperatorUniform
@@ -258,6 +280,14 @@ namespace UnityEditor.VFX
             Invalidate(InvalidationCause.kSettingChanged);
         }
 
+        public IEnumerable<int> staticSlotIndex
+        {
+            get
+            {
+                return Enumerable.Empty<int>();
+            }
+        }
+
         protected sealed override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
@@ -280,24 +310,23 @@ namespace UnityEditor.VFX
                     if (property.property.type == (Type)m_Type)
                         yield return property;
                     else
-                        yield return new VFXPropertyWithValue(new VFXProperty((Type)m_Type, property.property.name), GetDefaultValueForType(m_Type));
+                        yield return new VFXPropertyWithValue(new VFXProperty((Type)m_Type, property.property.name, property.property.attributes), GetDefaultValueForType(m_Type));
                 }
             }
-        }
-
-        public sealed override void UpdateOutputExpressions()
-        {
-            var inputExpression = GetInputExpressions();
-            var outputExpression = BuildExpression(inputExpression.ToArray());
-            SetOutputExpressions(outputExpression.ToArray());
         }
     }
 
     interface IVFXOperatorNumericUnifiedNew
     {
-        int operandCount {get; }
+        int operandCount { get; }
         Type GetOperandType(int index);
         void SetOperandType(int index, Type type);
+    }
+
+    interface IVFXOperatorNumericUnifiedConstrained
+    {
+        IEnumerable<int> strictSameTypeSlotIndex { get; }
+        IEnumerable<int> allowExceptionalScalarSlotIndex { get; }
     }
 
     abstract class VFXOperatorNumericUnifiedNew : VFXOperatorNumericNew, IVFXOperatorNumericUnifiedNew
@@ -354,17 +383,9 @@ namespace UnityEditor.VFX
                     if (itSlot.Current.property.type == (Type)itType.Current)
                         yield return itSlot.Current;
                     else
-                        yield return new VFXPropertyWithValue(new VFXProperty((Type)itType.Current, itSlot.Current.property.name), GetDefaultValueForType(itType.Current));
+                        yield return new VFXPropertyWithValue(new VFXProperty((Type)itType.Current, itSlot.Current.property.name, itSlot.Current.property.attributes), GetDefaultValueForType(itType.Current));
                 }
             }
-        }
-
-        public sealed override void UpdateOutputExpressions()
-        {
-            var inputExpression = GetInputExpressions();
-            inputExpression = UnifyExpression(inputExpression);
-            var outputExpression = BuildExpression(inputExpression.ToArray());
-            SetOutputExpressions(outputExpression.ToArray());
         }
     }
 
@@ -396,11 +417,19 @@ namespace UnityEditor.VFX
             {
                 if (m_Operands == null) //Lazy init at this stage is suitable because inputProperties access is done with SyncSlot
                 {
-                    m_Operands = new Operand[] { GetDefaultOperand(0), GetDefaultOperand(1) };
+                    m_Operands = Enumerable.Range(0, MinimalOperandCount).Select(i => GetDefaultOperand(i)).ToArray();
                 }
 
                 foreach (var operand in m_Operands)
                     yield return new VFXPropertyWithValue(new VFXProperty(operand.type, operand.name), GetDefaultValueForType(operand.type));
+            }
+        }
+
+        public virtual int MinimalOperandCount
+        {
+            get
+            {
+                return 2;
             }
         }
 
@@ -502,12 +531,12 @@ namespace UnityEditor.VFX
             Invalidate(InvalidationCause.kSettingChanged);
         }
 
-        public override void UpdateOutputExpressions()
+        protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            var inputExpression = GetInputExpressions();
-
-            //Unify behavior (actually, also temporary, since it should handle int to float conversion in some cases)
-            inputExpression = UnifyExpression(inputExpression);
+            if (inputExpression.Length == 0)
+            {
+                return new[] { VFXValue.Constant(defaultValueFloat) };
+            }
 
             //Process aggregate two by two element until result
             var outputExpression = new Stack<VFXExpression>(inputExpression.Reverse());
@@ -515,11 +544,12 @@ namespace UnityEditor.VFX
             {
                 var a = outputExpression.Pop();
                 var b = outputExpression.Pop();
-                var compose = BuildExpression(new[] { a, b })[0];
+                var compose = ComposeExpression(a, b);
                 outputExpression.Push(compose);
             }
-
-            SetOutputExpressions(outputExpression.ToArray());
+            return outputExpression.ToArray();
         }
+
+        protected abstract VFXExpression ComposeExpression(VFXExpression a, VFXExpression b);
     }
 }

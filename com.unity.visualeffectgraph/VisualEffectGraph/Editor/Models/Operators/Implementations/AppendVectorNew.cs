@@ -6,14 +6,14 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Misc", experimental = true)]
+    [VFXInfo(category = "Math/Vector", experimental = true)]
     class AppendVectorNew : VFXOperatorNumericCascadedUnifiedNew
     {
         public override sealed string name { get { return "AppendVectorNew"; } }
 
         protected override sealed double defaultValueDouble { get { return 0.0f; } }
 
-        protected override sealed ValidTypeRule typeFilter { get { return ValidTypeRule.allowEverythingExceptInteger; } }
+        protected override sealed ValidTypeRule typeFilter { get { return ValidTypeRule.allowEverythingExceptIntegerAndVector4; } }
 
         protected override Type GetExpectedOutputTypeOfOperation(IEnumerable<Type> inputTypes)
         {
@@ -26,14 +26,6 @@ namespace UnityEditor.VFX.Operator
                 case 4: return typeof(Vector4);
                 default: return typeof(float);
             }
-        }
-
-        public override void UpdateOutputExpressions()
-        {
-            //< Basic implementation without unified/cascaded behavior
-            var inputExpressions = GetInputExpressions();
-            var outputExpressions = BuildExpression(inputExpressions.ToArray());
-            SetOutputExpressions(outputExpressions);
         }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
@@ -51,6 +43,11 @@ namespace UnityEditor.VFX.Operator
                 return allComponent;
             }
             return new[] { new VFXExpressionCombine(allComponent) };
+        }
+
+        protected override VFXExpression ComposeExpression(VFXExpression a, VFXExpression b)
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -51,12 +51,10 @@ namespace UnityEditor.VFX.UI
 
         public bool CouldLink(VFXDataAnchorController myAnchor, VFXDataAnchorController otherAnchor)
         {
-            if (myAnchor.direction != Direction.Input)
-            {
+            if (myAnchor.direction == Direction.Input)
+                return CouldLinkMyInputTo(myAnchor, otherAnchor);
+            else
                 return otherAnchor.sourceNode.CouldLinkMyInputTo(otherAnchor, myAnchor);
-            }
-
-            return CouldLinkMyInputTo(myAnchor, otherAnchor);
         }
 
         protected virtual bool CouldLinkMyInputTo(VFXDataAnchorController myInput, VFXDataAnchorController otherOutput)

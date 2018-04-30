@@ -38,7 +38,7 @@ namespace  UnityEditor.VFX.UI
 
         public static VFXViewWindow currentWindow;
 
-        [MenuItem("VFX Editor/Window")]
+        [MenuItem("Window/Visual Effects/Visual Effect Graph", false, 3010)]
         public static void ShowWindow()
         {
             GetWindow<VFXViewWindow>();
@@ -54,7 +54,6 @@ namespace  UnityEditor.VFX.UI
             {
                 bool differentAsset = asset != m_DisplayedAsset;
 
-                m_AssetName = asset.name;
                 m_DisplayedAsset = asset;
                 graphView.controller = VFXViewController.GetController(asset, true);
 
@@ -165,6 +164,8 @@ namespace  UnityEditor.VFX.UI
 
         void Update()
         {
+            if (graphView == null)
+                return;
             VFXViewController controller = graphView.controller;
             var filename = "No Asset";
             if (controller != null)
@@ -196,7 +197,5 @@ namespace  UnityEditor.VFX.UI
 
         [SerializeField]
         Vector3 m_ViewScale;
-
-        private string m_AssetName;
     }
 }
