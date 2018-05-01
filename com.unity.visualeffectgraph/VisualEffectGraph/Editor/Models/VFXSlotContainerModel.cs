@@ -257,32 +257,6 @@ namespace UnityEditor.VFX
             base.OnInvalidate(model, cause);
         }
 
-        static protected VFXExpression ConvertSpace(VFXExpression input, VFXSlot targetSlot, CoordinateSpace space)
-        {
-            if (targetSlot.spaceable)
-            {
-                if (targetSlot.space != space)
-                {
-                    var spaceType = targetSlot.GetSpaceTransformationType();
-                    var matrix = space == CoordinateSpace.Local ? VFXBuiltInExpression.WorldToLocal : VFXBuiltInExpression.LocalToWorld;
-
-                    if (spaceType == SpaceableType.Position)
-                    {
-                        input = new VFXExpressionTransformPosition(matrix, input);
-                    }
-                    else if (spaceType == SpaceableType.Direction)
-                    {
-                        input = new VFXExpressionTransformDirection(matrix, input);
-                    }
-                    else
-                    {
-                        //Not a transformable subSlot
-                    }
-                }
-            }
-            return input;
-        }
-
         static public IEnumerable<VFXNamedExpression> GetExpressionsFromSlots(IVFXSlotContainer slotContainer)
         {
             foreach (var master in slotContainer.inputSlots)

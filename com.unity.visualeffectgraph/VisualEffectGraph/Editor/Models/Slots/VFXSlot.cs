@@ -787,10 +787,12 @@ namespace UnityEditor.VFX
             // First pass set in expression and propagate to children
             foreach (var startSlot in startSlots)
             {
-                startSlot.m_InExpression = startSlot.ConvertExpression(startSlot.m_LinkedInExpression, startSlot.m_LinkedInSlot); // TODO Handle structural modification
+                var linkInExpression = ApplySpaceConversion(startSlot.m_LinkedInExpression, startSlot.m_LinkedInSlot);
+                startSlot.m_InExpression = startSlot.ConvertExpression(linkInExpression, startSlot.m_LinkedInSlot); // TODO Handle structural modification
                 startSlot.PropagateToChildren(s =>
                     {
-                        var exp = s.ExpressionToChildren(s.m_InExpression);
+                        var baseExp = s.ApplySpaceConversion(s.m_InExpression, s.m_LinkedInSlot);
+                        var exp = s.ExpressionToChildren(baseExp);
                         for (int i = 0; i < s.GetNbChildren(); ++i)
                             s[i].m_InExpression = exp != null ? exp[i] : s.refSlot[i].GetExpression(); // Not sure about that
                     });
@@ -801,15 +803,45 @@ namespace UnityEditor.VFX
                 startSlot.PropagateToParent(s => s.m_InExpression = s.ExpressionFromChildren(s.children.Select(c => c.m_InExpression).ToArray()));
 
             var toInvalidate = new HashSet<VFXSlot>();
-            masterSlot.SetOutExpression(masterSlot.m_InExpression, toInvalidate);
-            masterSlot.PropagateToChildren(s => {
-                    var exp = s.ExpressionToChildren(s.m_OutExpression);
+            var baseMasterExp = ApplySpaceConversion(masterSlot.m_InExpression, masterSlot.m_LinkedInSlot); //TODOPAUL (verify)
+            masterSlot.SetOutExpression(baseMasterExp, toInvalidate);
+            masterSlot.PropagateToChildren(s =>
+                {
+                    var baseExp = s.ApplySpaceConversion(s.m_OutExpression, s.m_LinkedInSlot); //TODOPAUL (verify)
+                    var exp = s.ExpressionToChildren(baseExp);
                     for (int i = 0; i < s.GetNbChildren(); ++i)
                         s[i].SetOutExpression(exp != null ? exp[i] : s[i].m_InExpression, toInvalidate);
                 });
 
             foreach (var slot in toInvalidate)
                 slot.InvalidateExpressionTree();
+        }
+
+        private VFXExpression ApplySpaceConversion(VFXExpression exp, VFXSlot sourceSlot)
+        {
+            if (    sourceSlot != null
+                &&  sourceSlot.spaceable
+                &&  spaceable
+                &&  sourceSlot.space != space)
+            {
+                var currentSpaceableType = GetSpaceTransformationType();
+                var sourceSpaceableType = sourceSlot.GetSpaceTransformationType();
+
+                //Check if this slot is concerned by spaceable transform (e.g. radius of a sphere)
+                //+ is same kind of space (but should not happen since SlotDirection isn't compatible to SlotPosition)
+                if (currentSpaceableType != SpaceableType.None && sourceSpaceableType != SpaceableType.None)
+                {
+                    if (currentSpaceableType != sourceSpaceableType)
+                    {
+                        Debug.LogError("Unexpected spaceable type connection slot together, should be forbidden");
+                    }
+                    else
+                    {
+                        exp = ConvertSpace(exp, currentSpaceableType, space);
+                    }
+                }
+            }
+            return exp;
         }
 
         private void SetOutExpression(VFXExpression exp, HashSet<VFXSlot> toInvalidate)
@@ -884,7 +916,7 @@ namespace UnityEditor.VFX
         {
             if (cause == InvalidationCause.kConnectionChanged || cause == InvalidationCause.kSpaceChanged)
             {
-                if (IsMasterSlot()
+                if (    IsMasterSlot()
                     &&  direction == Direction.kInput
                     &&  spaceable
                     &&  HasLink())

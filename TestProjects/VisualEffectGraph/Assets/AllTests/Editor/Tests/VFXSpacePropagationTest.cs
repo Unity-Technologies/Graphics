@@ -118,7 +118,9 @@ namespace UnityEditor.VFX.Test
             sphere_A.SetSettingValue("m_Type", (SerializableType)typeof(Sphere));
             sphere_B.SetSettingValue("m_Type", (SerializableType)typeof(Sphere));
 
+            sphere_A.inputSlots[0][0].value = new Vector3(1, 2, 3);
             sphere_A.inputSlots[0].space = CoordinateSpace.Global;
+            sphere_B.inputSlots[0][0].value = new Vector3(4, 5, 6);
             sphere_B.inputSlots[0].space = CoordinateSpace.Local;
 
             Assert.AreEqual(CoordinateSpace.Global, sphere_A.outputSlots[0].space);
@@ -127,12 +129,8 @@ namespace UnityEditor.VFX.Test
             sphere_B.inputSlots[0][0].Link(sphere_A.outputSlots[0][0]); //link sphere center to other sphere center
             Assert.AreEqual(CoordinateSpace.Local, sphere_B.outputSlots[0].space);
 
-            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
-            var resultCenter = context.Compile(sphere_B.outputSlots[0][0].GetExpression());
-            var resultRadius = context.Compile(sphere_B.outputSlots[0][1].GetExpression());
-
-            var allExprCenter = CollectExpression(resultCenter).ToArray();
-            var allExprRadius = CollectExpression(resultRadius).ToArray();
+            var allExprCenter = CollectExpression(sphere_B.outputSlots[0][0].GetExpression()).ToArray();
+            var allExprRadius = CollectExpression(sphere_B.outputSlots[0][1].GetExpression()).ToArray();
 
             Assert.IsTrue(allExprCenter.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
             Assert.IsFalse(allExprRadius.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
