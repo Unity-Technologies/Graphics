@@ -8,6 +8,8 @@
 // UnityEngine.Experimental.Rendering.HDPipeline.StackLit+MaterialFeatureFlags:  static fields
 //
 #define MATERIALFEATUREFLAGS_STACK_LIT_STANDARD (1)
+#define MATERIALFEATUREFLAGS_STACK_LIT_SUBSURFACE_SCATTERING (4)
+#define MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION (8)
 #define MATERIALFEATUREFLAGS_STACK_LIT_ANISOTROPY (16)
 #define MATERIALFEATUREFLAGS_STACK_LIT_COAT (64)
 
@@ -22,12 +24,15 @@
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_SMOOTHNESS_B (1305)
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_LOBE_MIXING (1306)
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_METALLIC (1307)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_TANGENT (1308)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_ANISOTROPY (1309)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_ROUGHNESS (1310)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_IOR (1311)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_THICKNESS (1312)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_EXTINCTION_COEFFICIENT (1313)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_DIFFUSION_PROFILE (1308)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_SUBSURFACE_MASK (1309)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_THICKNESS (1310)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_TANGENT (1311)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_ANISOTROPY (1312)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_ROUGHNESS (1313)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_IOR (1314)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_THICKNESS (1315)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_EXTINCTION_COEFFICIENT (1316)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.StackLit+BSDFData:  static fields
@@ -52,6 +57,11 @@
 #define DEBUGVIEW_STACKLIT_BSDFDATA_COAT_IOR (1417)
 #define DEBUGVIEW_STACKLIT_BSDFDATA_COAT_THICKNESS (1418)
 #define DEBUGVIEW_STACKLIT_BSDFDATA_COAT_EXTINCTION (1419)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_DIFFUSION_PROFILE (1420)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_SUBSURFACE_MASK (1421)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_THICKNESS (1422)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_USE_THICK_OBJECT_MODE (1423)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_TRANSMITTANCE (1424)
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.StackLit+SurfaceData
 // PackingRules = Exact
@@ -64,6 +74,9 @@ struct SurfaceData
     float perceptualSmoothnessB;
     float lobeMix;
     float metallic;
+    uint diffusionProfile;
+    float subsurfaceMask;
+    float thickness;
     float3 tangentWS;
     float anisotropy;
     float coatPerceptualSmoothness;
@@ -95,6 +108,11 @@ struct BSDFData
     float coatIor;
     float coatThickness;
     float3 coatExtinction;
+    uint diffusionProfile;
+    float subsurfaceMask;
+    float thickness;
+    bool useThickObjectMode;
+    float3 transmittance;
 };
 
 //
@@ -128,6 +146,15 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             break;
         case DEBUGVIEW_STACKLIT_SURFACEDATA_METALLIC:
             result = surfacedata.metallic.xxx;
+            break;
+        case DEBUGVIEW_STACKLIT_SURFACEDATA_DIFFUSION_PROFILE:
+            result = GetIndexColor(surfacedata.diffusionProfile);
+            break;
+        case DEBUGVIEW_STACKLIT_SURFACEDATA_SUBSURFACE_MASK:
+            result = surfacedata.subsurfaceMask.xxx;
+            break;
+        case DEBUGVIEW_STACKLIT_SURFACEDATA_THICKNESS:
+            result = surfacedata.thickness.xxx;
             break;
         case DEBUGVIEW_STACKLIT_SURFACEDATA_TANGENT:
             result = surfacedata.tangentWS * 0.5 + 0.5;
@@ -217,6 +244,21 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_STACKLIT_BSDFDATA_COAT_EXTINCTION:
             result = bsdfdata.coatExtinction;
+            break;
+        case DEBUGVIEW_STACKLIT_BSDFDATA_DIFFUSION_PROFILE:
+            result = GetIndexColor(bsdfdata.diffusionProfile);
+            break;
+        case DEBUGVIEW_STACKLIT_BSDFDATA_SUBSURFACE_MASK:
+            result = bsdfdata.subsurfaceMask.xxx;
+            break;
+        case DEBUGVIEW_STACKLIT_BSDFDATA_THICKNESS:
+            result = bsdfdata.thickness.xxx;
+            break;
+        case DEBUGVIEW_STACKLIT_BSDFDATA_USE_THICK_OBJECT_MODE:
+            result = (bsdfdata.useThickObjectMode) ? float3(1.0, 1.0, 1.0) : float3(0.0, 0.0, 0.0);
+            break;
+        case DEBUGVIEW_STACKLIT_BSDFDATA_TRANSMITTANCE:
+            result = bsdfdata.transmittance;
             break;
     }
 }
