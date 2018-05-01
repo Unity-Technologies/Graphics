@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleSheets;
+
 #if UNITY_2018_1
 using GeometryChangedEvent = UnityEngine.Experimental.UIElements.PostLayoutEvent;
 #endif
@@ -36,17 +37,17 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             if (m_Handle == null)
                 m_Handle = target;
-            m_Handle.RegisterCallback(new EventCallback<MouseDownEvent>(OnMouseDown), Capture.NoCapture);
-            m_Handle.RegisterCallback(new EventCallback<MouseMoveEvent>(OnMouseMove), Capture.NoCapture);
-            m_Handle.RegisterCallback(new EventCallback<MouseUpEvent>(OnMouseUp), Capture.NoCapture);
+            m_Handle.RegisterCallback(new EventCallback<MouseDownEvent>(OnMouseDown), TrickleDownEnum.NoTrickleDown);
+            m_Handle.RegisterCallback(new EventCallback<MouseMoveEvent>(OnMouseMove), TrickleDownEnum.NoTrickleDown);
+            m_Handle.RegisterCallback(new EventCallback<MouseUpEvent>(OnMouseUp), TrickleDownEnum.NoTrickleDown);
             target.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
         }
 
         protected override void UnregisterCallbacksFromTarget()
         {
-            m_Handle.UnregisterCallback(new EventCallback<MouseDownEvent>(OnMouseDown), Capture.NoCapture);
-            m_Handle.UnregisterCallback(new EventCallback<MouseMoveEvent>(OnMouseMove), Capture.NoCapture);
-            m_Handle.UnregisterCallback(new EventCallback<MouseUpEvent>(OnMouseUp), Capture.NoCapture);
+            m_Handle.UnregisterCallback(new EventCallback<MouseDownEvent>(OnMouseDown), TrickleDownEnum.NoTrickleDown);
+            m_Handle.UnregisterCallback(new EventCallback<MouseMoveEvent>(OnMouseMove), TrickleDownEnum.NoTrickleDown);
+            m_Handle.UnregisterCallback(new EventCallback<MouseUpEvent>(OnMouseUp), TrickleDownEnum.NoTrickleDown);
             target.UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
             if (m_GraphView != null)
                 m_GraphView.UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
@@ -68,7 +69,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             // to the mouse position.
             m_LocalMosueOffset = m_Handle.WorldToLocal(evt.mousePosition);
 
-            m_Handle.TakeMouseCapture();
+            m_Handle.CaptureMouse();
             evt.StopImmediatePropagation();
         }
 
@@ -102,7 +103,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             if (m_Handle.HasMouseCapture())
             {
-                m_Handle.ReleaseMouseCapture();
+                m_Handle.ReleaseMouse();
             }
 
             evt.StopImmediatePropagation();
