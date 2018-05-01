@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.Operator
 
         override public string name { get { return "HSV to RGB"; } }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             VFXExpression[] rgb = VFXOperatorUtility.ExtractComponents(new VFXExpressionHSVtoRGB(inputExpression[0])).Take(3).ToArray();
             return new[] { new VFXExpressionCombine(new[] { rgb[0], rgb[1], rgb[2], VFXValue.Constant(1.0f) }) };

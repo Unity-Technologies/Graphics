@@ -3,28 +3,28 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Bitwise")]
-    class BitwiseXor : VFXOperator
+    [VFXInfo(category = "Logic")]
+    class LogicalOr : VFXOperator
     {
-        override public string name { get { return "Xor"; } }
+        override public string name { get { return "Or"; } }
 
         public class InputProperties
         {
-            static public uint FallbackValue = 0;
+            static public bool FallbackValue = false;
             [Tooltip("The first operand.")]
-            public uint a = FallbackValue;
+            public bool a = FallbackValue;
             [Tooltip("The second operand.")]
-            public uint b = FallbackValue;
+            public bool b = FallbackValue;
         }
 
         public class OutputProperties
         {
-            public uint o;
+            public bool o;
         }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new[] { new VFXExpressionBitwiseXor(inputExpression[0], inputExpression[1]) };
+            return new[] { new VFXExpressionLogicalOr(inputExpression[0], inputExpression[1]) };
         }
     }
 }

@@ -58,7 +58,7 @@ namespace UnityEditor.VFX.Operator
             return maskSize;
         }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var mask = new Component[4] { x, y, z, w };
             // var mask = new Component[4] { Component.X, Component.Y, Component.Z, Component.W };

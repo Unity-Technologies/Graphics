@@ -3,25 +3,26 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Bitwise")]
-    class BitwiseComplement : VFXOperator
+    [VFXInfo(category = "Logic")]
+    class LogicalNot : VFXOperator
     {
-        override public string name { get { return "Complement"; } }
+        override public string name { get { return "Not"; } }
 
         public class InputProperties
         {
+            static public bool FallbackValue = false;
             [Tooltip("The operand.")]
-            public uint x = 0;
+            public bool a = FallbackValue;
         }
 
         public class OutputProperties
         {
-            public uint o;
+            public bool o;
         }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new[] { new VFXExpressionBitwiseComplement(inputExpression[0]) };
+            return new[] { new VFXExpressionLogicalNot(inputExpression[0]) };
         }
     }
 }
