@@ -49,9 +49,11 @@ Shader "LightweightPipeline/Particles/Standard Unlit"
 
             Pass
             {
+                Name "ParticlesUnlit"
                 HLSLPROGRAM
                 // Required to compile gles 2.0 with standard srp library
                 #pragma prefer_hlslcc gles
+                #pragma exclude_renderers d3d11_9x
                 #pragma multi_compile __ SOFTPARTICLES_ON
                 #pragma multi_compile_fog
                 #pragma target 2.0
@@ -66,7 +68,6 @@ Shader "LightweightPipeline/Particles/Standard Unlit"
                 #pragma fragment fragParticleUnlit
 
                 #include "LWRP/ShaderLibrary/Particles.hlsl"
-                #include "LWRP/ShaderLibrary/Core.hlsl"
 
                 VertexOutputLit vertParticleUnlit(appdata_particles v)
                 {
@@ -76,9 +77,10 @@ Shader "LightweightPipeline/Particles/Standard Unlit"
                     o.posWS.xyz = TransformObjectToWorld(v.vertex.xyz);
                     o.posWS.w = ComputeFogFactor(o.clipPos.z);
                     o.clipPos = TransformWorldToHClip(o.posWS.xyz);
-                    o.color = v.color * _Color;
+                    o.color = v.color;
 
-                    vertColor(o.color);
+                    // TODO: Instancing
+                    //vertColor(o.color);
                     vertTexcoord(v, o);
                     vertFading(o, o.posWS, o.clipPos);
 
@@ -87,13 +89,12 @@ Shader "LightweightPipeline/Particles/Standard Unlit"
 
                 half4 fragParticleUnlit(VertexOutputLit IN) : SV_Target
                 {
-                    half4 albedo = Albedo(IN);
-                    half alpha = AlphaBlendAndTest(albedo.a);
-                    half3 emission = Emission(IN);
-                    half3 diffuse = AlphaModulate(albedo.rgb, alpha);
+                    half4 albedo = SampleAlbedo(IN, TEXTURE2D_PARAM(_MainTex, sampler_MainTex));
+                    half3 diffuse = AlphaModulate(albedo.rgb, albedo.a);
+                    half alpha = AlphaBlendAndTest(albedo.a, _Cutoff);
+                    half3 emission = SampleEmission(IN, _EmissionColor.rgb, TEXTURE2D_PARAM(_EmissionMap, sampler_EmissionMap));
 
                     half3 result = diffuse + emission;
-
                     half fogFactor = IN.posWS.w;
                     ApplyFogColor(result, half3(0, 0, 0), fogFactor);
                     return half4(result, alpha);

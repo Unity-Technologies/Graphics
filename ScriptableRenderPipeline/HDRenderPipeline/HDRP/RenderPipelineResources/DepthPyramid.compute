@@ -1,4 +1,4 @@
-﻿#include "CoreRP/ShaderLibrary/Common.hlsl"
+#include "CoreRP/ShaderLibrary/Common.hlsl"
 
 // ------------------------------------------------
 // Algorithm
@@ -12,7 +12,7 @@
 #pragma kernel KDepthDownSample8                  KERNEL_SIZE=8       KERNEL_NAME=KDepthDownSample8    
 #pragma kernel KDepthDownSample1                  KERNEL_SIZE=1       KERNEL_NAME=KDepthDownSample1
 
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 // ------------------------------------------------
 // Texture buffers

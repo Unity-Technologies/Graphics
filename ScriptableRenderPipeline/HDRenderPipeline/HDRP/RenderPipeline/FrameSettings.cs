@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine.XR;
 
@@ -45,7 +45,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableMSAA = false;
         public MSAASamples msaaSampleCount { get; private set; }
 
-        public bool enableShadowMask = false;
+        public bool enableShadowMask = true;
 
         public LightLoopSettings lightLoopSettings = new LightLoopSettings();
 
@@ -124,6 +124,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.enableObjectMotionVectors = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableObjectMotionVectors && renderPipelineSettings.supportMotionVectors;
             aggregate.enableDBuffer = srcFrameSettings.enableDBuffer && renderPipelineSettings.supportDBuffer;
             aggregate.enableAtmosphericScattering = srcFrameSettings.enableAtmosphericScattering;
+            // We must take care of the scene view fog flags in the editor
+            if (!CoreUtils.IsSceneViewFogEnabled(camera))
+                aggregate.enableAtmosphericScattering = false;
             aggregate.enableRoughRefraction = srcFrameSettings.enableRoughRefraction;
             aggregate.enableTransparentPostpass = srcFrameSettings.enableTransparentPostpass;
             aggregate.enableDistortion = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableDistortion;
@@ -131,7 +134,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Planar and real time cubemap doesn't need post process and render in FP16
             aggregate.enablePostprocess = camera.cameraType != CameraType.Reflection && srcFrameSettings.enablePostprocess;
 
+#if UNITY_SWITCH
+            aggregate.enableStereo = false;
+#else
             aggregate.enableStereo = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableStereo && XRSettings.isDeviceActive && (camera.stereoTargetEye == StereoTargetEyeMask.Both) && renderPipelineSettings.supportStereo;
+#endif
 
             aggregate.enableAsyncCompute = srcFrameSettings.enableAsyncCompute && SystemInfo.supportsAsyncCompute;
 

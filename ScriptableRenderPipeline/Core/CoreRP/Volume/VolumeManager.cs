@@ -11,26 +11,11 @@ namespace UnityEngine.Experimental.Rendering
     public sealed class VolumeManager
     {
         //>>> System.Lazy<T> is broken in Unity (legacy runtime) so we'll have to do it ourselves :|
-        static volatile VolumeManager s_Instance;
-        static object s_LockObj = new UnityObject();
+        static readonly VolumeManager s_Instance = new VolumeManager();
+        public static VolumeManager instance { get { return s_Instance; } }
 
-        public static VolumeManager instance
-        {
-            get
-            {
-                // Double-lock checking
-                if (s_Instance == null)
-                {
-                    lock (s_LockObj) // Lock on a separate object to avoid deadlocks
-                    {
-                        if (s_Instance == null)
-                            s_Instance = new VolumeManager();
-                    }
-                }
-
-                return s_Instance;
-            }
-        }
+        // Explicit static constructor to tell the C# compiler not to mark type as beforefieldinit
+        static VolumeManager() { }
         //<<<
 
         // Internal stack
@@ -178,20 +163,8 @@ namespace UnityEngine.Experimental.Rendering
                 if (!component.active)
                     continue;
 
-                var target = stack.GetComponent(component.GetType());
-                int count = component.parameters.Count;
-
-                for (int i = 0; i < count; i++)
-                {
-                    var fromParam = target.parameters[i];
-                    var toParam = component.parameters[i];
-
-                    // Keep track of the override state for debugging purpose
-                    fromParam.overrideState = toParam.overrideState;
-
-                    if (toParam.overrideState)
-                        fromParam.Interp(fromParam, toParam, interpFactor);
-                }
+                var state = stack.GetComponent(component.GetType());
+                component.Override(state, interpFactor);
             }
         }
 

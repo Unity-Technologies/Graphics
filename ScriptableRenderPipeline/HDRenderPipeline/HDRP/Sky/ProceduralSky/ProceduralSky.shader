@@ -11,7 +11,7 @@ Shader "Hidden/HDRenderPipeline/Sky/ProceduralSky"
     #pragma fragment Frag
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal
+    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
     #pragma multi_compile _ _ENABLE_SUN_DISK
 

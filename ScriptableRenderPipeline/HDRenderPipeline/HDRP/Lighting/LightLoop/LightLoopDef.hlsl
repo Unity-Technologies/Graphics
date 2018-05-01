@@ -106,14 +106,8 @@ float3 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, int ind
 #define SINGLE_PASS_CONTEXT_SAMPLE_REFLECTION_PROBES 0
 #define SINGLE_PASS_CONTEXT_SAMPLE_SKY 1
 
-#ifdef DEBUG_DISPLAY
-float4 ApplyDebugProjectionVolume(float4 color, float3 radiusToProxy, float scale)
-{
-    float l = length(radiusToProxy);
-    l = pow(l / (1 + l), scale);
-    return float4(l.xxx * 0.7 + color.rgb * 0.3, color.a);
-}
-#endif
+bool IsEnvIndexCubemap(int index)   { return (index & 1) == ENVCACHETYPE_CUBEMAP; }
+bool IsEnvIndexTexture2D(int index) { return (index & 1) == ENVCACHETYPE_TEXTURE2D; }
 
 // Note: index is whatever the lighting architecture want, it can contain information like in which texture to sample (in case we have a compressed BC6H texture and an uncompressed for real time reflection ?)
 // EnvIndex can also be use to fetch in another array of struct (to  atlas information etc...).
@@ -137,20 +131,10 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
 
             color.rgb = SAMPLE_TEXTURE2D_ARRAY_LOD(_Env2DTextures, s_trilinear_clamp_sampler, ndc.xy, index, lod).rgb;
             color.a = any(ndc.xyz < 0) || any(ndc.xyz > 1) ? 0.0 : 1.0;
-
-#ifdef DEBUG_DISPLAY
-            if (_DebugLightingMode == DEBUGLIGHTINGMODE_ENVIRONMENT_SAMPLE_COORDINATES)
-                color = float4(ndc.xy, 0, color.a);
-#endif
         }
         else if (cacheType == ENVCACHETYPE_CUBEMAP)
         {
             color.rgb = SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_EnvCubemapTextures, s_trilinear_clamp_sampler, texCoord, index, lod).rgb;
-
-#ifdef DEBUG_DISPLAY
-            if (_DebugLightingMode == DEBUGLIGHTINGMODE_ENVIRONMENT_SAMPLE_COORDINATES)
-                color = float4(texCoord.xyz * 0.5 + 0.5, color.a);
-#endif
         }
     }
     else // SINGLE_PASS_SAMPLE_SKY
