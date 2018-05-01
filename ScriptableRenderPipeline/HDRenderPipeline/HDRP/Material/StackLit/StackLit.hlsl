@@ -1246,8 +1246,8 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     // For eval IBL lights, we need:
     //
     // iblPerceptualRoughness (for FGD, mip, etc)
-    // iblR (fetch direction compensated dominant spec)
-    // specularFGD (coatIblF is now in there too)
+    // iblR                   (fetch direction compensated dominant spec)
+    // specularFGD            (coatIblF is now in there too)
     // energyCompensation     (to a apply for each light sample since with multiple roughnesses, it becomes lobe specific)
     //
     // We also need for analytical lights:
@@ -1823,8 +1823,8 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
         }
         else
         {
-    DV[0] = DV_SmithJointGGX(NdotH, NdotL, NdotV, bsdfData.roughnessAT, preLightData.partLambdaV[0]);
-    DV[1] = DV_SmithJointGGX(NdotH, NdotL, NdotV, bsdfData.roughnessBT, preLightData.partLambdaV[1]);
+            DV[0] = DV_SmithJointGGX(NdotH, NdotL, NdotV, bsdfData.roughnessAT, preLightData.partLambdaV[0]);
+            DV[1] = DV_SmithJointGGX(NdotH, NdotL, NdotV, bsdfData.roughnessBT, preLightData.partLambdaV[1]);
         }
         specularLighting = F * lerp(DV[0]*preLightData.energyCompensationFactor[BASE_LOBEA_IDX], 
                                     DV[1]*preLightData.energyCompensationFactor[BASE_LOBEB_IDX], 
