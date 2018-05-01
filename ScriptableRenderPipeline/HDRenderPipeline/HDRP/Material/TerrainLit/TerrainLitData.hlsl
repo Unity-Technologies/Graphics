@@ -395,22 +395,18 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     GetLayerTexCoord(input, layerTexCoord);
 
     float4 blendMasks = GetBlendMask(layerTexCoord, input.color);
-    float depthOffset = ApplyPerPixelDisplacement(input, V, layerTexCoord, blendMasks);
 
     SurfaceData surfaceData0, surfaceData1, surfaceData2, surfaceData3;
     float3 normalTS0, normalTS1, normalTS2, normalTS3;
     float3 bentNormalTS0, bentNormalTS1, bentNormalTS2, bentNormalTS3;
-    float alpha0 = GetSurfaceData0(input, layerTexCoord, surfaceData0, normalTS0, bentNormalTS0);
-    float alpha1 = GetSurfaceData1(input, layerTexCoord, surfaceData1, normalTS1, bentNormalTS1);
-    float alpha2 = GetSurfaceData2(input, layerTexCoord, surfaceData2, normalTS2, bentNormalTS2);
-    float alpha3 = GetSurfaceData3(input, layerTexCoord, surfaceData3, normalTS3, bentNormalTS3);
+    GetSurfaceData0(input, layerTexCoord, surfaceData0, normalTS0, bentNormalTS0);
+    GetSurfaceData1(input, layerTexCoord, surfaceData1, normalTS1, bentNormalTS1);
+    GetSurfaceData2(input, layerTexCoord, surfaceData2, normalTS2, bentNormalTS2);
+    GetSurfaceData3(input, layerTexCoord, surfaceData3, normalTS3, bentNormalTS3);
 
     // Note: If per pixel displacement is enabled it mean we will fetch again the various heightmaps at the intersection location. Not sure the compiler can optimize.
     float weights[_MAX_LAYER];
-    ComputeLayerWeights(input, layerTexCoord, float4(alpha0, alpha1, alpha2, alpha3), blendMasks, weights);
-
-    // For layered shader, alpha of base color is used as either an opacity mask, a composition mask for inheritance parameters or a density mask.
-    float alpha = PROP_BLEND_SCALAR(alpha, weights);
+    ComputeLayerWeights(input, layerTexCoord, float4(1, 1, 1, 1), blendMasks, weights);
 
     float3 normalTS;
     float3 bentNormalWS;
@@ -452,6 +448,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
 
 #ifndef _DISABLE_DBUFFER
+    float alpha = 1;
     AddDecalContribution(posInput, surfaceData, alpha);
 #endif
 
@@ -463,7 +460,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     }
 #endif
 
-    GetBuiltinData(input, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);
+    GetBuiltinData(input, surfaceData, 1, bentNormalWS, 0, builtinData);
 }
 
 #include "TerrainLitDataMeshModification.hlsl"
