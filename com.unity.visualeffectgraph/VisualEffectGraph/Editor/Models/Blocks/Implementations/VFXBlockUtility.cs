@@ -20,13 +20,6 @@ namespace UnityEditor.VFX.Block
         Signed
     }
 
-    enum ColorApplicationMode
-    {
-        Color = 1 << 0,
-        Alpha = 1 << 1,
-        ColorAndAlpha = Color | Alpha,
-    }
-
     enum RandomMode
     {
         Off,

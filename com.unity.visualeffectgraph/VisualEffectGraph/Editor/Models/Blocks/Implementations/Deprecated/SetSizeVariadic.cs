@@ -207,7 +207,6 @@ namespace UnityEditor.VFX.Block
 
             // Transfer links
             VFXSlot.TransferLinksAndValue(setAttribute.GetInputSlot(0), GetInputSlot(0), true);
-            VFXSlot.TransferLinksAndValue(setAttribute.GetOutputSlot(0), GetOutputSlot(0), true);
 
             ReplaceModel(setAttribute, this);
         }
