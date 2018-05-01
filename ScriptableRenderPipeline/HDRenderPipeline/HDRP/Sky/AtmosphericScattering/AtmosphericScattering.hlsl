@@ -14,7 +14,7 @@ TEXTURE3D(_VBufferLighting);
 #endif
 
 CBUFFER_START(AtmosphericScattering)
-float   _AtmosphericScatteringType;
+int     _AtmosphericScatteringType;
 // Common
 float   _FogColorMode;
 float4  _FogColorDensity; // color in rgb, density in alpha
@@ -64,33 +64,40 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput)
 	float3 fogColor = 0;
 	float  fogFactor = 0;
 
-#if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET != 0)
-	float4 volFog = SampleInScatteredRadianceAndTransmittance(TEXTURE3D_PARAM(_VBufferLighting, s_trilinear_clamp_sampler),
-															  posInput.positionNDC, posInput.linearDepth,
-															  _VBufferResolution,
-															  _VBufferSliceCount.xy,
-															  _VBufferDepthEncodingParams,
-															  _VBufferDepthDecodingParams);
-	fogColor = volFog.rgb;
-	fogFactor = 1 - volFog.a;
-#else
+	switch (_AtmosphericScatteringType)
+	{
+		case FOGTYPE_LINEAR:
+		{
+			fogColor = GetFogColor(posInput);
+			fogFactor = _FogDensity * saturate((posInput.linearDepth - _LinearFogStart) * _LinearFogOneOverRange) * saturate((_LinearFogHeightEnd - GetAbsolutePositionWS(posInput.positionWS).y) * _LinearFogHeightOneOverRange);
+			break;
+		}
+		case FOGTYPE_EXPONENTIAL:
+		{
+			fogColor = GetFogColor(posInput);
+			float distance = length(GetWorldSpaceViewDir(posInput.positionWS));
+			float fogHeight = max(0.0, GetAbsolutePositionWS(posInput.positionWS).y - _ExpFogBaseHeight);
+			fogFactor = _FogDensity * TransmittanceHomogeneousMedium(_ExpFogHeightAttenuation, fogHeight) * (1.0f - TransmittanceHomogeneousMedium(1.0f / _ExpFogDistance, distance));
+			break;
+		}
+		case FOGTYPE_VOLUMETRIC:
+		{
+		#if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET != 0)
+			float4 volFog = SampleVolumetricLighting(TEXTURE3D_PARAM(_VBufferLighting, s_linear_clamp_sampler),
+													 posInput.positionNDC,
+													 posInput.linearDepth,
+													 _VBufferResolution,
+													 _VBufferSliceCount.xy,
+													 _VBufferDepthEncodingParams,
+													 _VBufferDepthDecodingParams,
+													 true, true);
 
-	if (_AtmosphericScatteringType == FOGTYPE_EXPONENTIAL)
-	{
-		fogColor = GetFogColor(posInput);
-		float distance = length(GetWorldSpaceViewDir(posInput.positionWS));
-		float fogHeight = max(0.0, GetAbsolutePositionWS(posInput.positionWS).y - _ExpFogBaseHeight);
-		fogFactor = _FogDensity * TransmittanceHomogeneousMedium(_ExpFogHeightAttenuation, fogHeight) * (1.0f - TransmittanceHomogeneousMedium(1.0f / _ExpFogDistance, distance));
+			fogFactor = 1 - volFog.a;                              // Opacity from transmittance
+			fogColor  = volFog.rgb * min(rcp(fogFactor), FLT_MAX); // Un-premultiply, clamp to avoid (0 * INF = NaN)
+		#endif
+			break;
+		}
 	}
-	else if (_AtmosphericScatteringType == FOGTYPE_LINEAR)
-	{
-		fogColor = GetFogColor(posInput);
-		fogFactor = _FogDensity * saturate((posInput.linearDepth - _LinearFogStart) * _LinearFogOneOverRange) * saturate((_LinearFogHeightEnd - GetAbsolutePositionWS(posInput.positionWS).y) * _LinearFogHeightOneOverRange);
-	}
-	else // NONE
-	{
-	}
-#endif
 
 	return float4(fogColor, fogFactor);
 }

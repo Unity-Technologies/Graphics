@@ -1,0 +1,326 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 95285c6cacdfe25449799296c7d847ae, type: 3}
+  m_Name: HDRP_Deferred
+  m_EditorClassIdentifier: 
+  suiteName: HDRPDeferred
+  isDebugSuite: 0
+  defaultTestSettings: {fileID: 0}
+  defaultRenderPipeline: {fileID: 11400000, guid: d7fe5f39d2c099a4ea1f1f610af309d7,
+    type: 2}
+  groups:
+  - groupName: 1xMaterials
+    renderPipelineOverride: {fileID: 0}
+    tests:
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1101_Unlit.unity
+      scene: {fileID: 102900000, guid: 7fe3f9e94b4355641ba1534c54d5c356, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1101_Unlit.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1102_Unlit_Distortion.unity
+      scene: {fileID: 102900000, guid: a6e4a81e1988f24459f57a881905a465, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1102_Unlit_Distortion.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1103_Unlit_Distortion_DepthTest.unity
+      scene: {fileID: 102900000, guid: 27d04b0368c7fef4eb423d76cc0e48dc, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1103_Unlit_Distortion_DepthTest.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1201_Lit_Features.unity
+      scene: {fileID: 102900000, guid: 51392325eef9416439dc126a37256e6f, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1201_Lit_Features.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1202_Lit_DoubleSideNormalMode.unity
+      scene: {fileID: 102900000, guid: 653861b0fa3627049a20abf379b1258f, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1202_Lit_DoubleSideNormalMode.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1203_Lit_Transparent.unity
+      scene: {fileID: 102900000, guid: e86a25d7e98b1c74199eaa8dbcc2cd01, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1203_Lit_Transparent.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1204_Lit_Transparent_Fog.unity
+      scene: {fileID: 102900000, guid: bc3f6030b835ecd4c800561f9ff1af15, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1204_Lit_Transparent_Fog.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1205_Lit_Transparent_Refraction.unity
+      scene: {fileID: 102900000, guid: 530aef5d08a1569479cc65b219b8f9fb, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1205_Lit_Transparent_Refraction.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1206_Lit_Transparent_Distortion.unity
+      scene: {fileID: 102900000, guid: fc3cc4c68d873e64ca12fcfc828d7ee4, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1206_Lit_Transparent_Distortion.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1207_Lit_Displacement.unity
+      scene: {fileID: 102900000, guid: ac4701d765fa26b4f83d2fb9ed6b3c08, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1207_Lit_Displacement.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1208_Lit_Displacement_POM.unity
+      scene: {fileID: 102900000, guid: 40bca98d8a50ec14182c423a91470550, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1208_Lit_Displacement_POM.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1209_Lit_Displacement_Vertex.unity
+      scene: {fileID: 102900000, guid: 54145926a6315654b9e70a75a4b050ef, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1209_Lit_Displacement_Vertex.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1210_Lit_BentNormal.unity
+      scene: {fileID: 102900000, guid: 5f5bca2466b2a1d48ae818180ef308fb, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1210_Lit_BentNormal.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1211_Lit_Details.unity
+      scene: {fileID: 102900000, guid: 722bdd4c5dac1f145acd795543fae598, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1211_Lit_Details.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1212_Lit_Emission.unity
+      scene: {fileID: 102900000, guid: f465136a9ac4cb1429a4a1761d07c3c3, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1212_Lit_Emission.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1301_SubSurfaceScattering.unity
+      scene: {fileID: 102900000, guid: 201c29a239df4c74ea9e1ab47082abea, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1301_SubSurfaceScattering.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1302_SSS_MaxRadius.unity
+      scene: {fileID: 102900000, guid: 0277520b19264c24eac3041bd22ae564, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1302_SSS_MaxRadius.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1303_SSS_Pre-Post.unity
+      scene: {fileID: 102900000, guid: 6f2bc3028f3daba46ab0447a3e25ebc6, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/1x_Materials/1303_SSS_Pre-Post.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
+  - groupName: 2xLighting
+    renderPipelineOverride: {fileID: 0}
+    tests:
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2001_Dynamic_Directional.unity
+      scene: {fileID: 102900000, guid: 09baf18a7e1f6584f86675e6a2141c66, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2001_Dynamic_Directional.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2002_Dynamic_Mix.unity
+      scene: {fileID: 102900000, guid: bcbb964f739039045b7958a9b1489657, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2002_Dynamic_Mix.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2003_Light_Parameters.unity
+      scene: {fileID: 102900000, guid: ac9787fadf0b4ed4391bee6ba1d8e213, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2003_Light_Parameters.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2004_AnimatedCookie.unity
+      scene: {fileID: 102900000, guid: 9f03abfd8e9cc614c89458cbdb208e7c, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2004_AnimatedCookie.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 0
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2101_GI_Metapass.unity
+      scene: {fileID: 102900000, guid: 8747b43f8bcf2b44cbc3ece373da65a9, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2101_GI_Metapass.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2102_GI_Emission.unity
+      scene: {fileID: 102900000, guid: b8f49ca9a12abb4468116e9422139e63, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2102_GI_Emission.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2103_BakeMixed.unity
+      scene: {fileID: 102900000, guid: d8cfa4fd9319d2444b3bf6dd836ffe31, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2103_BakeMixed.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2201_ReflectionProbes_Priority.unity
+      scene: {fileID: 102900000, guid: d485acf0535eb4b42a9a3847f4a8274a, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2201_ReflectionProbes_Priority.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2202_ReflectionProbes_Volume.unity
+      scene: {fileID: 102900000, guid: 9b3132db666b3ae48aa17349ab100118, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2202_ReflectionProbes_Volume.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2203_PlanarProbes.unity
+      scene: {fileID: 102900000, guid: 359ded33a047fd540b5e19a98547f5e2, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2203_PlanarProbes.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 0
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2206_ProbeRoughness.unity
+      scene: {fileID: 102900000, guid: fde2b1b0825ef5f40a0e5069afcca848, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2206_ProbeRoughness.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 0
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2301_Shadow_Mask.unity
+      scene: {fileID: 102900000, guid: 1029947770f955b4290bbdd8b641f7f1, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2301_Shadow_Mask.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2401_Light_on_Tesselation.unity
+      scene: {fileID: 102900000, guid: 3f6529c22f7d2ca46814b2e7afd04ef9, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2401_Light_on_Tesselation.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
+  - groupName: 3xDebugView
+    renderPipelineOverride: {fileID: 0}
+    tests:
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/3x_DebugView/3001_DebugView.unity
+      scene: {fileID: 102900000, guid: 21522d96110c8dd41ab353d89fd740c3, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/3x_DebugView/3001_DebugView.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 0
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/3x_DebugView/3002_ObjectMotionVector.unity
+      scene: {fileID: 102900000, guid: 5fd66b494b9e057498e551fea7ab02fd, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/3x_DebugView/3002_ObjectMotionVector.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 0
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/3x_DebugView/3003_CameraMotionVector_TranslateX.unity
+      scene: {fileID: 102900000, guid: 32624e48cd276b5418513150e7abd682, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/3x_DebugView/3003_CameraMotionVector_TranslateX.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 0
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/3x_DebugView/3004_CameraMotionVector_TranslateY.unity
+      scene: {fileID: 102900000, guid: b8bed96a3181ffe49b8e54bc9a3c7687, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/3x_DebugView/3004_CameraMotionVector_TranslateY.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 0
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/3x_DebugView/3005_CameraMotionVector_TranslateZ.unity
+      scene: {fileID: 102900000, guid: 55881ec59ae8d414cb8a77aa120a45ed, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/3x_DebugView/3005_CameraMotionVector_TranslateZ.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 0
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/3x_DebugView/3006_CameraMotionVector_RotateX.unity
+      scene: {fileID: 102900000, guid: 0225322b58c79bb4d87afeb169e0d119, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/3x_DebugView/3006_CameraMotionVector_RotateX.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 0
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/3x_DebugView/3007_CameraMotionVector_RotateY.unity
+      scene: {fileID: 102900000, guid: 01e6660110220214782d0ebf364fe7c9, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/3x_DebugView/3007_CameraMotionVector_RotateY.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 0
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/3x_DebugView/3008_CameraMotionVector_RotateZ.unity
+      scene: {fileID: 102900000, guid: fabc53a9f87e8784580b4e75dc067ca3, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/3x_DebugView/3008_CameraMotionVector_RotateZ.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 0
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/3x_DebugView/3009_CameraMotionVector_FOV.unity
+      scene: {fileID: 102900000, guid: a5fb429214e9b2a4f8b3d258c0585630, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/3x_DebugView/3009_CameraMotionVector_FOV.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 0
+  - groupName: 9xOther
+    renderPipelineOverride: {fileID: 0}
+    tests:
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/9x_Other/9001_Decals.unity
+      scene: {fileID: 102900000, guid: a27cb5a638892574f99eb333bb3c7722, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/9x_Other/9001_Decals.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/9x_Other/9002_Deferred-and-Forward.unity
+      scene: {fileID: 102900000, guid: 7f93d4b757746d44a82005f71f597384, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/9x_Other/9002_Deferred-and-Forward.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 0
+  suiteVersion: 8

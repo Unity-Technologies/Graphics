@@ -149,6 +149,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         HDAdditionalCameraData m_AdditionalCameraData;
 
+        BufferedRTHandleSystem m_HistoryRTSystem = new BufferedRTHandleSystem();
+
         public HDCamera(Camera cam)
         {
             camera = cam;
@@ -267,6 +269,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ActualHeight = camera.pixelHeight;
             var screenWidth = m_ActualWidth;
             var screenHeight = m_ActualHeight;
+#if !UNITY_SWITCH
             if (frameSettings.enableStereo)
             {
                 screenWidth = XRSettings.eyeTextureWidth;
@@ -278,13 +281,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 ConfigureStereoMatrices();
             }
+#endif
 
             // Unfortunately sometime (like in the HDCameraEditor) HDUtils.hdrpSettings can be null because of scripts that change the current pipeline...
             m_msaaSamples = HDUtils.hdrpSettings != null ? HDUtils.hdrpSettings.msaaSampleCount : MSAASamples.None;
-            RTHandle.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, m_msaaSamples);
+            RTHandles.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, m_msaaSamples);
+            m_HistoryRTSystem.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, m_msaaSamples);
+            m_HistoryRTSystem.Swap();
 
-            int maxWidth = RTHandle.maxWidth;
-            int maxHeight = RTHandle.maxHeight;
+            int maxWidth = RTHandles.maxWidth;
+            int maxHeight = RTHandles.maxHeight;
             m_CameraScaleBias.x = (float)m_ActualWidth / maxWidth;
             m_CameraScaleBias.y = (float)m_ActualHeight / maxHeight;
 
@@ -379,18 +385,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Warning: different views can use the same camera!
         public long GetViewID()
         {
-            if (camera.cameraType == CameraType.Game)
-            {
-                long viewID = camera.GetInstanceID();
-                // Make it positive.
-                viewID += (-(long)int.MinValue) + 1;
-                Debug.Assert(viewID > 0);
-                return viewID;
-            }
-            else
-            {
-                return 0;
-            }
+            long viewID = camera.GetInstanceID();
+            // Make it positive.
+            viewID += (-(long)int.MinValue) + 1;
+            return viewID;
         }
 
         public void Reset()
@@ -414,6 +412,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return hdcam;
         }
 
+        public static void ClearAll()
+        {
+            foreach (var cam in s_Cameras)
+                cam.Value.ReleaseHistoryBuffer();
+
+            s_Cameras.Clear();
+            s_Cleanup.Clear();
+        }
+
         // Look for any camera that hasn't been used in the last frame and remove them for the pool.
         public static void CleanUnused()
         {
@@ -421,12 +428,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             foreach (var kvp in s_Cameras)
             {
-                if (kvp.Value.m_LastFrameActive != frameCheck)
+                if (kvp.Value.m_LastFrameActive < frameCheck)
                     s_Cleanup.Add(kvp.Key);
             }
 
             foreach (var cam in s_Cleanup)
+            {
+                var hdCam = s_Cameras[cam];
+                if (hdCam.m_HistoryRTSystem != null)
+                {
+                    hdCam.m_HistoryRTSystem.Dispose();
+                    hdCam.m_HistoryRTSystem = null;
+                }
                 s_Cameras.Remove(cam);
+            }
 
             s_Cleanup.Clear();
         }
@@ -495,6 +510,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalMatrixArray(HDShaderIDs._InvViewMatrixStereo, invViewStereo);
             cmd.SetGlobalMatrixArray(HDShaderIDs._InvProjMatrixStereo, invProjStereo);
             cmd.SetGlobalMatrixArray(HDShaderIDs._InvViewProjMatrixStereo, invViewProjStereo);
+        }
+
+        public RTHandleSystem.RTHandle GetPreviousFrameRT(int id)
+        {
+            return m_HistoryRTSystem.GetFrameRT(id, 1);
+        }
+
+        public RTHandleSystem.RTHandle GetCurrentFrameRT(int id)
+        {
+            return m_HistoryRTSystem.GetFrameRT(id, 0);
+        }
+
+        // Allocate buffers frames and return current frame
+        public RTHandleSystem.RTHandle AllocHistoryFrameRT(int id, Func<string, int, RTHandleSystem, RTHandleSystem.RTHandle> allocator)
+        {
+            m_HistoryRTSystem.AllocBuffer(id, (rts, i) => allocator(camera.name, i, rts), 2);
+            return m_HistoryRTSystem.GetFrameRT(id, 0);
+        }
+
+        void ReleaseHistoryBuffer()
+        {
+            m_HistoryRTSystem.ReleaseAll();
         }
     }
 }

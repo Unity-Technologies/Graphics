@@ -1,4 +1,4 @@
-// =============== Convolves transmitted radiance with the Disney diffusion profile ================
+﻿// =============== Convolves transmitted radiance with the Disney diffusion profile ================
 
 //--------------------------------------------------------------------------------------------------
 // Definitions
@@ -45,7 +45,7 @@
 #include "../../Lighting/LightDefinition.cs.hlsl"
 #include "SubsurfaceScattering.hlsl"
 
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 //--------------------------------------------------------------------------------------------------
 // Inputs & outputs
@@ -232,6 +232,8 @@ void StoreResult(uint2 pixelCoord, float3 irradiance)
 void SubsurfaceScattering(uint2 groupId       : SV_GroupID,
                           uint  groupThreadId : SV_GroupThreadID)
 {
+    groupThreadId &= GROUP_SIZE_2D - 1; // Help the compiler
+
     // Note: any factor of 64 is a suitable wave size for our algorithm.
     uint waveIndex = WaveReadFirstLane(groupThreadId / 64);
     uint laneIndex = groupThreadId % 64;

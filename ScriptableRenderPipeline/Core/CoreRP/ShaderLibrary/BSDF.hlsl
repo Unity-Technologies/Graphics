@@ -11,7 +11,7 @@
 
 real F_Schlick(real f0, real f90, real u)
 {
-    real x  = 1.0 - u;
+    real x = 1.0 - u;
     real x2 = x * x;
     real x5 = x * x2 * x2;
     return (f90 - f0) * x5 + f0;                // sub mul mul mul sub mad
@@ -24,7 +24,7 @@ real F_Schlick(real f0, real u)
 
 real3 F_Schlick(real3 f0, real f90, real u)
 {
-    real x  = 1.0 - u;
+    real x = 1.0 - u;
     real x2 = x * x;
     real x5 = x * x2 * x2;
     return f0 * (1.0 - x5) + (f90 * x5);        // sub mul mul mul sub mul mad*3
@@ -38,7 +38,7 @@ real3 F_Schlick(real3 f0, real u)
 // Does not handle TIR.
 real F_Transm_Schlick(real f0, real f90, real u)
 {
-    real x  = 1.0 - u;
+    real x = 1.0 - u;
     real x2 = x * x;
     real x5 = x * x2 * x2;
     return (1.0 - f90 * x5) - f0 * (1.0 - x5);  // sub mul mul mul mad sub mad
@@ -53,7 +53,7 @@ real F_Transm_Schlick(real f0, real u)
 // Does not handle TIR.
 real3 F_Transm_Schlick(real3 f0, real f90, real u)
 {
-    real x  = 1.0 - u;
+    real x = 1.0 - u;
     real x2 = x * x;
     real x5 = x * x2 * x2;
     return (1.0 - f90 * x5) - f0 * (1.0 - x5);  // sub mul mul mul mad sub mad*3
@@ -67,10 +67,80 @@ real3 F_Transm_Schlick(real3 f0, real u)
 
 // Ref: https://seblagarde.wordpress.com/2013/04/29/memo-on-fresnel-equations/
 // Fresnel dieletric / dielectric
-real F_Fresnel(real ior, real u)
+real F_FresnelDieletric(real ior, real u)
 {
     real g = sqrt(Sq(ior) + Sq(u) - 1.0);
     return 0.5 * Sq((g - u) / (g + u)) * (1.0 + Sq(((g + u) * u - 1.0) / ((g - u) * u + 1.0)));
+}
+
+// Fresnel dieletric / conductor
+// Note: etak2 = etak * etak (optimization for Artist Friendly Metallic Fresnel below)
+// eta = eta_t / eta_i and etak = k_t / n_i
+real3 F_FresnelConductor(real3 eta, real3 etak2, real cosTheta)
+{
+    real cosTheta2 = cosTheta * cosTheta;
+    real sinTheta2 = 1.0 - cosTheta2;
+    real3 eta2 = eta * eta;
+
+    real3 t0 = eta2 - etak2 - sinTheta2;
+    real3 a2plusb2 = sqrt(t0 * t0 + 4.0 * eta2 * etak2);
+    real3 t1 = a2plusb2 + cosTheta2;
+    real3 a = sqrt(0.5 * (a2plusb2 + t0));
+    real3 t2 = 2.0 * a * cosTheta;
+    real3 Rs = (t1 - t2) / (t1 + t2);
+
+    real3 t3 = cosTheta2 * a2plusb2 + sinTheta2 * sinTheta2;
+    real3 t4 = t2 * sinTheta2;
+    real3 Rp = Rs * (t3 - t4) / (t3 + t4);
+
+    return 0.5 * (Rp + Rs);
+}
+
+// Conversion FO/IOR
+
+TEMPLATE_2_REAL(IorToFresnel0, transmittedIor, incidentIor, return Sq((transmittedIor - incidentIor) / (transmittedIor + incidentIor)) )
+// ior is a value between 1.0 and 3.0. 1.0 is air interface
+real IorToFresnel0(real transmittedIor)
+{
+    return IorToFresnel0(transmittedIor, 1.0);
+}
+
+// Assume air interface for top
+// Note: We don't handle the case fresnel0 == 1
+//real Fresnel0ToIor(real fresnel0)
+//{
+//    real sqrtF0 = sqrt(fresnel0);
+//    return (1.0 + sqrtF0) / (1.0 - sqrtF0);
+//}
+TEMPLATE_1_REAL(Fresnel0ToIor, fresnel0, return ((1.0 + sqrt(fresnel0)) / (1.0 - sqrt(fresnel0))) )
+
+// This function is a coarse approximation of computing fresnel0 for a different top than air (here clear coat of IOR 1.5) when we only have fresnel0 with air interface
+// This function is equivalent to IorToFresnel0(Fresnel0ToIor(fresnel0), 1.5)
+// mean
+// real sqrtF0 = sqrt(fresnel0);
+// return Sq(1.0 - 5.0 * sqrtF0) / Sq(5.0 - sqrtF0);
+// Optimization: Fit of the function (3 mad) for range [0.04 (should return 0), 1 (should return 1)]
+TEMPLATE_1_REAL(ConvertF0ForAirInterfaceToF0ForClearCoat15, fresnel0, return saturate(-0.0256868 + fresnel0 * (0.326846 + (0.978946 - 0.283835 * fresnel0) * fresnel0)))
+
+// Artist Friendly Metallic Fresnel Ref: http://jcgt.org/published/0003/04/03/paper.pdf
+
+real3 GetIorN(real3 f0, real3 edgeTint)
+{
+    real3 sqrtF0 = sqrt(f0);
+    return lerp((1.0 - f0) / (1.0 + f0), (1.0 + sqrtF0) / (1.0 - sqrt(f0)), edgeTint);
+}
+
+real3 getIorK2(real3 f0, real3 n)
+{
+    real3 nf0 = Sq(n + 1.0) * f0 - Sq(f0 - 1.0);
+    return nf0 / (1.0 - f0);
+}
+
+// same as regular refract except there is not the test for total internal reflection + the vector is flipped for processing
+real3 CoatRefract(real3 X, real3 N, real ieta)
+{
+    real XdotN = saturate(dot(N, X));
+    return ieta * X + (sqrt(1 + ieta * ieta * (XdotN * XdotN - 1)) - ieta * XdotN) * N;
 }
 
 //-----------------------------------------------------------------------------
@@ -80,7 +150,7 @@ real F_Fresnel(real ior, real u)
 real D_GGXNoPI(real NdotH, real roughness)
 {
     real a2 = Sq(roughness);
-    real s  = (NdotH * a2 - NdotH) * NdotH + 1.0;
+    real s = (NdotH * a2 - NdotH) * NdotH + 1.0;
     return a2 / (s * s);
 }
 
@@ -144,7 +214,7 @@ real V_SmithJointGGX(real NdotL, real NdotV, real roughness)
 real DV_SmithJointGGX(real NdotH, real NdotL, real NdotV, real roughness, real partLambdaV)
 {
     real a2 = Sq(roughness);
-    real s  = (NdotH * a2 - NdotH) * NdotH + 1.0;
+    real s = (NdotH * a2 - NdotH) * NdotH + 1.0;
 
     real lambdaV = NdotL * partLambdaV;
     real lambdaL = NdotV * sqrt((-NdotL * a2 + NdotL) * NdotL + a2);
@@ -227,8 +297,8 @@ real V_SmithJointGGXAniso(real TdotV, real BdotV, real NdotV, real TdotL, real B
 
 // Inline D_GGXAniso() * V_SmithJointGGXAniso() together for better code generation.
 real DV_SmithJointGGXAniso(real TdotH, real BdotH, real NdotH, real NdotV,
-                           real TdotL, real BdotL, real NdotL,
-                           real roughnessT, real roughnessB, real partLambdaV)
+    real TdotL, real BdotL, real NdotL,
+    real roughnessT, real roughnessB, real partLambdaV)
 {
     real a2 = roughnessT * roughnessB;
     real3 v = real3(roughnessB * TdotH, roughnessT * BdotH, a2 * NdotH);
@@ -244,13 +314,13 @@ real DV_SmithJointGGXAniso(real TdotH, real BdotH, real NdotH, real NdotV,
 }
 
 real DV_SmithJointGGXAniso(real TdotH, real BdotH, real NdotH,
-                           real TdotV, real BdotV, real NdotV,
-                           real TdotL, real BdotL, real NdotL,
-                           real roughnessT, real roughnessB)
+    real TdotV, real BdotV, real NdotV,
+    real TdotL, real BdotL, real NdotL,
+    real roughnessT, real roughnessB)
 {
     real partLambdaV = GetSmithJointGGXAnisoPartLambdaV(TdotV, BdotV, NdotV, roughnessT, roughnessB);
     return DV_SmithJointGGXAniso(TdotH, BdotH, NdotH, NdotV, TdotL, BdotL, NdotL,
-                                 roughnessT, roughnessB, partLambdaV);
+        roughnessT, roughnessB, partLambdaV);
 }
 
 //-----------------------------------------------------------------------------
@@ -274,7 +344,7 @@ real DisneyDiffuseNoPI(real NdotV, real NdotL, real LdotV, real perceptualRoughn
     real fd90 = 0.5 + (perceptualRoughness + perceptualRoughness * LdotV);
     // Two schlick fresnel term
     real lightScatter = F_Schlick(1.0, fd90, NdotL);
-    real viewScatter  = F_Schlick(1.0, fd90, NdotV);
+    real viewScatter = F_Schlick(1.0, fd90, NdotV);
 
     // Normalize the BRDF for polar view angles of up to (Pi/4).
     // We use the worst case of (roughness = albedo = 1), and, for each view angle,
@@ -293,13 +363,13 @@ real DisneyDiffuse(real NdotV, real NdotL, real LdotV, real perceptualRoughness)
 // Ref: Diffuse Lighting for GGX + Smith Microsurfaces, p. 113.
 real3 DiffuseGGXNoPI(real3 albedo, real NdotV, real NdotL, real NdotH, real LdotV, real roughness)
 {
-    real facing    = 0.5 + 0.5 * LdotV;              // (LdotH)^2
-    real rough     = facing * (0.9 - 0.4 * facing) * (0.5 / NdotH + 1);
+    real facing = 0.5 + 0.5 * LdotV;              // (LdotH)^2
+    real rough = facing * (0.9 - 0.4 * facing) * (0.5 / NdotH + 1);
     real transmitL = F_Transm_Schlick(0, NdotL);
     real transmitV = F_Transm_Schlick(0, NdotV);
-    real smooth    = transmitL * transmitV * 1.05;   // Normalize F_t over the hemisphere
-    real single    = lerp(smooth, rough, roughness); // Rescaled by PI
-    real multiple  = roughness * (0.1159 * PI);      // Rescaled by PI
+    real smooth = transmitL * transmitV * 1.05;   // Normalize F_t over the hemisphere
+    real single = lerp(smooth, rough, roughness); // Rescaled by PI
+    real multiple = roughness * (0.1159 * PI);      // Rescaled by PI
 
     return single + albedo * multiple;
 }
@@ -309,32 +379,6 @@ real3 DiffuseGGX(real3 albedo, real NdotV, real NdotL, real NdotH, real LdotV, r
     // Note that we could save 2 cycles by inlining the multiplication by INV_PI.
     return INV_PI * DiffuseGGXNoPI(albedo, NdotV, NdotL, NdotH, LdotV, roughness);
 }
-
-//-----------------------------------------------------------------------------
-// Conversion FO/IOR
-//-----------------------------------------------------------------------------
-
-// ior is a value between 1.0 and 3.0. 1.0 is air interface
-real IorToFresnel0(real transmittedIor, real incidentIor = 1.0)
-{
-    return Sq((transmittedIor - incidentIor) / (transmittedIor + incidentIor));
-}
-
-// Assume air interface for top
-// Note: Don't handle the case fresnel0 == 1
-real Fresnel0ToIor(real fresnel0)
-{
-    real sqrtF0 = sqrt(fresnel0);
-    return (1.0 + sqrtF0) / (1.0 - sqrtF0);
-}
-
-// This function is a coarse approximation of computing fresnel0 for a different top than air (here clear coat of IOR 1.5) when we only have fresnel0 with air interface
-// This function is equivalent to IorToFresnel0(Fresnel0ToIor(fresnel0), 1.5)
-// mean
-// real sqrtF0 = sqrt(fresnel0);
-// return Sq(1.0 - 5.0 * sqrtF0) / Sq(5.0 - sqrtF0);
-// Optimization: Fit of the function (3 mad) for range [0.04 (should return 0), 1 (should return 1)]
-TEMPLATE_1_REAL(ConvertF0ForAirInterfaceToF0ForClearCoat15, fresnel0, return saturate(-0.0256868 + fresnel0 * (0.326846 + (0.978946 - 0.283835 * fresnel0) * fresnel0)))
 
 //-----------------------------------------------------------------------------
 // Iridescence

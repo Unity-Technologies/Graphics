@@ -121,8 +121,8 @@ namespace UnityEditor
             metallicMap = FindProperty("_MetallicGlossMap", props, false);
             metallic = FindProperty("_Metallic", props, false);
             smoothness = FindProperty("_Glossiness", props, false);
-            bumpScale = FindProperty("_BumpScale", props);
-            bumpMap = FindProperty("_BumpMap", props);
+            bumpScale = FindProperty("_BumpScale", props, false);
+            bumpMap = FindProperty("_BumpMap", props, false);
             emissionEnabled = FindProperty("_EmissionEnabled", props);
             emissionColorForRendering = FindProperty("_EmissionColor", props);
             emissionMap = FindProperty("_EmissionMap", props);

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -22,6 +22,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void PushFogShaderParameters(CommandBuffer cmd, FrameSettings frameSettings)
         {
+            if (!frameSettings.enableAtmosphericScattering)
+            {
+                AtmosphericScattering.PushNeutralShaderParameters(cmd);
+                return;
+            }
+
             switch (fogType.value)
             {
                 case FogType.None:
@@ -38,6 +44,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 case FogType.Exponential:
                     {
                         var fogSettings = VolumeManager.instance.stack.GetComponent<ExponentialFog>();
+                        fogSettings.PushShaderParameters(cmd, frameSettings);
+                        break;
+                    }
+                case FogType.Volumetric:
+                    {
+                        var fogSettings = VolumeManager.instance.stack.GetComponent<VolumetricFog>();
                         fogSettings.PushShaderParameters(cmd, frameSettings);
                         break;
                     }
