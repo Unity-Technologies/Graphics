@@ -79,6 +79,9 @@ float4 SampleVolumeMask(DensityVolumeData volumeData, float3 voxelCenterUV)
 
     float4 maskValue = SAMPLE_TEXTURE3D_LOD(_VolumeMaskAtlas, s_linear_clamp_sampler, voxelCenterUV, 0);
 
+    //Scattering is albedo * extinction
+    maskValue.rgb *= maskValue.a;
+
     return maskValue;
 }
 
