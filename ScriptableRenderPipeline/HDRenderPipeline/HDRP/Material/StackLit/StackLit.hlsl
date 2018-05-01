@@ -1703,6 +1703,7 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
         // VLAYERING:
         // --------------------------------------------------------------------
 
+        // Save top angles in case VLAYERED_USE_REFRACTED_ANGLES_FOR_BASE option is used 
         float topLdotH = LdotH; // == VdotH)
         float topNdotH = NdotH;
         float topNdotL = NdotL;
@@ -1742,7 +1743,7 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
         // Notice topLdotH as interface angle, symmetric model parametrization (see sec. 6 and comments
         // on ComputeAdding)
         // layered*Roughness* and vLayerEnergyCoeff are now updated for the proper light direction.
-        preLightData.partLambdaV[COAT_LOBE_IDX] = GetSmithJointGGXPartLambdaV(NdotV, preLightData.layeredCoatRoughness);
+        preLightData.partLambdaV[COAT_LOBE_IDX] = GetSmithJointGGXPartLambdaV(topNdotV, preLightData.layeredCoatRoughness);
 #endif
 
         // p9 eq(39): if we don't recompute per light, we just reuse the IBL energy terms as the fresnel terms
