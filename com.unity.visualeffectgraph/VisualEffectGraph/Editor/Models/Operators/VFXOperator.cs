@@ -54,7 +54,7 @@ namespace UnityEditor.VFX
             return changed;
         }
 
-        private static CoordinateSpace GetSpaceFromSpaceableSlot(IEnumerable<VFXSlot> slots)
+        private static CoordinateSpace GetCommonSpaceFromSpaceableSlot(IEnumerable<VFXSlot> slots)
         {
             return slots.Select(o => o.space).Distinct().OrderByDescending(o => (int)o).First();
         }
@@ -74,7 +74,7 @@ namespace UnityEditor.VFX
                 var outputSlotSpaceable = outputSlots.Where(o => o.spaceable);
                 if (outputSlotSpaceable.Any())
                 {
-                    var currentSpace = GetSpaceFromSpaceableSlot(inputSlots);
+                    var currentSpace = GetCommonSpaceFromSpaceableSlot(inputSlots);
                     foreach (var output in outputSlotSpaceable)
                     {
                         output.space = currentSpace;
@@ -101,7 +101,7 @@ namespace UnityEditor.VFX
             IEnumerable<VFXExpression> inputExpressions;
             if (inputSlotSpaceable.Any())
             {
-                var currentSpace = GetSpaceFromSpaceableSlot(inputSlotSpaceable);
+                var currentSpace = GetCommonSpaceFromSpaceableSlot(inputSlotSpaceable);
                 //Actually, it will convert space only on spaceable slot
                 inputExpressions = inputSlotWithExpression.Select(o => ConvertSpace(o.GetExpression(), o, currentSpace));
             }

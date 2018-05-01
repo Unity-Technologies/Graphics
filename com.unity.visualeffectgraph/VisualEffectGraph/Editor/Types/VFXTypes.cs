@@ -13,6 +13,7 @@ namespace UnityEditor.VFX
 
     public enum SpaceableType
     {
+        None,
         Position,
         Direction,
     }

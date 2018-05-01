@@ -116,6 +116,16 @@ namespace UnityEditor.VFX
             }
         }
 
+        public SpaceableType GetSpaceTransformationType()
+        {
+            if (!spaceable)
+                Debug.LogError("Unexpected call of GetSpaceTransformationType");
+
+            var masterSlot = GetMasterSlot();
+            var findSlot = masterSlot.m_SlotsSpaceable.Where(o => o.slot == this).FirstOrDefault();
+            return findSlot.slot == null ? SpaceableType.None : findSlot.type; //Explicitly return none (not really needed because is default of spaceableType)
+        }
+
         private void SetValueInternal(object value, bool notify)
         {
             if (!IsMasterSlot()) // Must be a master node
@@ -294,7 +304,7 @@ namespace UnityEditor.VFX
             {
                 m_Owner = null,
                 m_Value = new VFXSerializableObject(property.type, value),
-                m_SpaceContainer = null //lazy init
+                m_SpaceContainer = null //lazy initialization
             };
 
             slot.PropagateToChildren(s => {
@@ -506,9 +516,18 @@ namespace UnityEditor.VFX
                         var spaceAttribute = fields[fieldIndex].GetCustomAttributes(typeof(VFXSpaceAttribute), true).FirstOrDefault();
                         if (spaceAttribute != null)
                         {
+                            var slot = s.children.ElementAt(fieldIndex);
+
+                            if (slot.GetParent() is VFXSlotPosition
+                                ||  slot.GetParent() is VFXSlotDirection
+                                ||  slot.GetParent() is VFXSlotVector)
+                            {
+                                slot = slot.GetParent(); //TODOPAUL : it's a cheat...
+                            }
+
                             spaceableCollection.Add(new SpaceContainer.Concerned
                         {
-                            slot = s.children.ElementAt(fieldIndex),
+                            slot = slot,
                             type = (spaceAttribute as VFXSpaceAttribute).type
                         });
                         }
@@ -865,10 +884,10 @@ namespace UnityEditor.VFX
         {
             if (cause == InvalidationCause.kConnectionChanged || cause == InvalidationCause.kSpaceChanged)
             {
-                if (        IsMasterSlot()
-                        &&  direction == Direction.kInput
-                        &&  spaceable
-                        &&  HasLink())
+                if (IsMasterSlot()
+                    &&  direction == Direction.kInput
+                    &&  spaceable
+                    &&  HasLink())
                 {
                     var linkedSlot = m_LinkedSlots.First();
                     if (linkedSlot.spaceable)
@@ -884,10 +903,10 @@ namespace UnityEditor.VFX
                 if (direction == Direction.kOutput)
                 {
                     PropagateToChildren(s =>
-                    {
-                        foreach (var slot in s.m_LinkedSlots)
-                            slot.Invalidate(cause);
-                    });
+                        {
+                            foreach (var slot in s.m_LinkedSlots)
+                                slot.Invalidate(cause);
+                        });
                 }
             }
             base.OnInvalidate(model, cause);

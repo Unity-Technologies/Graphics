@@ -52,9 +52,9 @@ namespace UnityEditor.VFX.Test
 
             var allExpr = CollectExpression(result).ToArray();
             Assert.IsTrue(allExpr.Any(o =>
-            {
-                return o.operation == VFXExpressionOperation.LocalToWorld;
-            }));
+                {
+                    return o.operation == VFXExpressionOperation.LocalToWorld;
+                }));
         }
 
         private static Type[] SpaceTransmissionType = { typeof(Position), typeof(Sphere) };
@@ -78,6 +78,64 @@ namespace UnityEditor.VFX.Test
 
             position_A.inputSlots[0].space = CoordinateSpace.Local;
             Assert.AreEqual(CoordinateSpace.Local, position_B.outputSlots[0].space);
+        }
+
+        [Test]
+        public void SphereSpaceConversionUnexpected()
+        {
+            var sphere_A = ScriptableObject.CreateInstance<VFXInlineOperator>();
+            var sphere_B = ScriptableObject.CreateInstance<VFXInlineOperator>();
+
+            sphere_A.SetSettingValue("m_Type", (SerializableType)typeof(Sphere));
+            sphere_B.SetSettingValue("m_Type", (SerializableType)typeof(Sphere));
+
+            sphere_A.inputSlots[0].space = CoordinateSpace.Global;
+            sphere_B.inputSlots[0].space = CoordinateSpace.Local;
+
+            Assert.AreEqual(CoordinateSpace.Global, sphere_A.outputSlots[0].space);
+            Assert.AreEqual(CoordinateSpace.Local, sphere_B.outputSlots[0].space);
+
+            sphere_B.inputSlots[0][1].Link(sphere_A.outputSlots[0][1]); //link radius to other radius
+            Assert.AreEqual(CoordinateSpace.Local, sphere_B.outputSlots[0].space);
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+            var resultCenter = context.Compile(sphere_B.outputSlots[0][0].GetExpression());
+            var resultRadius = context.Compile(sphere_B.outputSlots[0][1].GetExpression());
+
+            var allExprCenter = CollectExpression(resultCenter).ToArray();
+            var allExprRadius = CollectExpression(resultRadius).ToArray();
+
+            Assert.IsFalse(allExprCenter.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
+            Assert.IsFalse(allExprRadius.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
+        }
+
+        [Test]
+        public void SphereSpaceConversionExpected()
+        {
+            var sphere_A = ScriptableObject.CreateInstance<VFXInlineOperator>();
+            var sphere_B = ScriptableObject.CreateInstance<VFXInlineOperator>();
+
+            sphere_A.SetSettingValue("m_Type", (SerializableType)typeof(Sphere));
+            sphere_B.SetSettingValue("m_Type", (SerializableType)typeof(Sphere));
+
+            sphere_A.inputSlots[0].space = CoordinateSpace.Global;
+            sphere_B.inputSlots[0].space = CoordinateSpace.Local;
+
+            Assert.AreEqual(CoordinateSpace.Global, sphere_A.outputSlots[0].space);
+            Assert.AreEqual(CoordinateSpace.Local, sphere_B.outputSlots[0].space);
+
+            sphere_B.inputSlots[0][0].Link(sphere_A.outputSlots[0][0]); //link sphere center to other sphere center
+            Assert.AreEqual(CoordinateSpace.Local, sphere_B.outputSlots[0].space);
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+            var resultCenter = context.Compile(sphere_B.outputSlots[0][0].GetExpression());
+            var resultRadius = context.Compile(sphere_B.outputSlots[0][1].GetExpression());
+
+            var allExprCenter = CollectExpression(resultCenter).ToArray();
+            var allExprRadius = CollectExpression(resultRadius).ToArray();
+
+            Assert.IsTrue(allExprCenter.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
+            Assert.IsFalse(allExprRadius.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
         }
     }
 }
