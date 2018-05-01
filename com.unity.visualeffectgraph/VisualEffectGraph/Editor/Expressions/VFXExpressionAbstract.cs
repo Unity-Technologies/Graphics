@@ -96,6 +96,11 @@ namespace UnityEditor.VFX
             return valueType == VFXValueType.Uint32;
         }
 
+        public static bool IsIntValueType(VFXValueType valueType)
+        {
+            return valueType == VFXValueType.Int32;
+        }
+
         public static int TypeToSize(VFXValueType type)
         {
             return VFXExpressionHelper.GetSizeOfType(type);
@@ -216,6 +221,23 @@ namespace UnityEditor.VFX
                     return true;
             }
             return false;
+        }
+
+        public static Type GetMatchingScalar(Type type)
+        {
+            return TypeToType(GetMatchingScalar(GetVFXValueTypeFromType(type)));
+        }
+
+        public static VFXValueType GetMatchingScalar(VFXValueType type)
+        {
+            if (IsFloatValueType(type))
+                return VFXValueType.Float;
+            if (IsUIntValueType(type))
+                return VFXValueType.Uint32;
+            if (IsIntValueType(type))
+                return VFXValueType.Int32;
+
+            return VFXValueType.None;
         }
 
         public static VFXValueType GetVFXValueTypeFromType(Type type)

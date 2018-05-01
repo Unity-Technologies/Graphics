@@ -2,31 +2,54 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.VFX
 {
     public class VFXResources : ScriptableObject
     {
-        public static VFXResources defaultResources { get { return s_Instance; } }
+        public static VFXResources defaultResources
+        {
+            get
+            {
+                if (s_Instance == null)
+                {
+                    Initialize();
+                }
+                return s_Instance;
+            }
+        }
         private static VFXResources s_Instance;
 
         private const string defaultFileName = "Editor/VFXDefaultResources.asset";
         private const string defaultPath = "Assets/VFXEditor/"; // Change this to a getter once we handle package mode paths
 
-        [InitializeOnLoadMethod]
-        public static void Initialize()
+        private static T SafeLoadAssetAtPath<T>(string assetPath) where T : Object
         {
-            var asset = AssetDatabase.LoadAssetAtPath<VFXResources>(defaultPath + defaultFileName);
+            var asset = AssetDatabase.LoadAssetAtPath<T>(assetPath);
+            if (asset == null)
+            {
+                AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceSynchronousImport | ImportAssetOptions.ForceUpdate);
+                asset = AssetDatabase.LoadAssetAtPath<T>(assetPath);
+            }
+            return asset;
+        }
 
+        private static void Initialize()
+        {
+            var asset = SafeLoadAssetAtPath<VFXResources>(defaultPath + defaultFileName);
             if (asset == null)
             {
                 Debug.LogWarning("Could not find " + defaultFileName + ", creating...");
                 VFXResources newAsset = CreateInstance<VFXResources>();
 
-                newAsset.particleTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(defaultPath + "Textures/DefaultParticle.tga");
-                newAsset.noiseTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(defaultPath + "Textures/Noise.tga");
-                newAsset.vectorField = AssetDatabase.LoadAssetAtPath<Texture3D>(defaultPath + "Textures/vectorfield.asset");
-                newAsset.particleMesh = Resources.GetBuiltinResource<Mesh>("New-Capsule.fbx");
+                newAsset.particleTexture = SafeLoadAssetAtPath<Texture2D>(defaultPath + "Textures/DefaultParticle.tga");
+                newAsset.noiseTexture = SafeLoadAssetAtPath<Texture2D>(defaultPath + "Textures/Noise.tga");
+                newAsset.vectorField = SafeLoadAssetAtPath<Texture3D>(defaultPath + "Textures/vectorfield.asset");
+                newAsset.mesh = Resources.GetBuiltinResource<Mesh>("New-Capsule.fbx");
+
+                newAsset.shader = Shader.Find("Hidden/Default StaticMeshOutput");
+
                 newAsset.animationCurve = new AnimationCurve(new Keyframe[]
                 {
                     new Keyframe(0.0f, 0.0f, 0.0f, 0.0f),
@@ -36,34 +59,31 @@ namespace UnityEditor.VFX
 
                 newAsset.gradient = new Gradient();
                 newAsset.gradient.colorKeys = new GradientColorKey[]
-                    {
-                        new GradientColorKey(Color.white, 0.0f),
-                        new GradientColorKey(Color.gray, 1.0f),
-
-                    };
+                {
+                    new GradientColorKey(Color.white, 0.0f),
+                    new GradientColorKey(Color.gray, 1.0f),
+                };
                 newAsset.gradient.alphaKeys = new GradientAlphaKey[]
-                    {
-                        new GradientAlphaKey(0.0f, 0.0f),
-                        new GradientAlphaKey(1.0f, 0.1f),
-                        new GradientAlphaKey(0.8f, 0.8f),
-                        new GradientAlphaKey(0.0f, 1.0f),
-                    };
+                {
+                    new GradientAlphaKey(0.0f, 0.0f),
+                    new GradientAlphaKey(1.0f, 0.1f),
+                    new GradientAlphaKey(0.8f, 0.8f),
+                    new GradientAlphaKey(0.0f, 1.0f),
+                };
 
                 AssetDatabase.CreateAsset(newAsset, defaultPath + defaultFileName);
-                asset = AssetDatabase.LoadAssetAtPath<VFXResources>(defaultPath + defaultFileName);
+                asset = SafeLoadAssetAtPath<VFXResources>(defaultPath + defaultFileName);
             }
-            else
-
             s_Instance = asset;
-
         }
 
         [Header("Default Resources")]
         public Texture2D particleTexture;
         public Texture2D noiseTexture;
         public Texture3D vectorField;
-        public Mesh particleMesh;
+        public Mesh mesh;
         public AnimationCurve animationCurve;
         public Gradient gradient;
+        public Shader shader;
     }
 }

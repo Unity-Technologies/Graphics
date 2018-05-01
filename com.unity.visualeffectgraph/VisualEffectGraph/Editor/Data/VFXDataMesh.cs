@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -10,6 +11,12 @@ namespace UnityEditor.VFX
         public Shader shader;
 
         public override VFXDataType type { get { return VFXDataType.kMesh; } }
+
+        public override void OnEnable()
+        {
+            base.OnEnable();
+            if (shader == null) shader = VFXResources.defaultResources.shader;
+        }
 
         public override void CopySettings<T>(T dst)
         {
@@ -33,7 +40,9 @@ namespace UnityEditor.VFX
             List<VFXSystemDesc> outSystemDescs,
             VFXExpressionGraph expressionGraph,
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
-            Dictionary<VFXContext, int> contextSpawnToBufferIndex)
+            Dictionary<VFXContext, int> contextSpawnToBufferIndex,
+            Dictionary<VFXData, int> attributeBuffer,
+            Dictionary<VFXData, int> eventBuffer)
         {
             var context = m_Owners[0];
             var contextData = contextToCompiledData[context];
@@ -75,6 +84,25 @@ namespace UnityEditor.VFX
                 type = VFXSystemType.Mesh,
                 layer = uint.MaxValue,
             });
+        }
+
+        public override void GenerateAttributeLayout()
+        {
+        }
+
+        public override string GetAttributeDataDeclaration(VFXAttributeMode mode)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override string GetLoadAttributeCode(VFXAttribute attrib, VFXAttributeLocation location)
+        {
+            throw new NotImplementedException();
+        }
+
+        public override string GetStoreAttributeCode(VFXAttribute attrib, string value)
+        {
+            throw new NotImplementedException();
         }
     }
 }

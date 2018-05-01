@@ -210,7 +210,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void AttributeEquality()
         {
-            foreach (var attribute in VFXAttribute.All)
+            foreach (var attribute in VFXAttribute.AllExpectLocalOnly)
             {
                 var referenceAttribute = VFXAttribute.Find(attribute);
                 if (referenceAttribute.variadic == VFXVariadic.BelongsToVariadic)

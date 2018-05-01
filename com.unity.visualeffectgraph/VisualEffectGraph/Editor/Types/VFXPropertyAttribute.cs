@@ -141,13 +141,14 @@ namespace UnityEditor.VFX
             return false;
         }
 
-        public static string ApplyRegex(VFXPropertyAttribute[] attributes, string str)
+        public static string ApplyRegex(VFXPropertyAttribute[] attributes, object obj)
         {
             if (attributes != null)
             {
                 var attrib = attributes.FirstOrDefault(o => o.m_Type == Type.kRegex);
                 if (attrib != null)
                 {
+                    string str = (string)obj;
                     str = Regex.Replace(str, attrib.m_Regex, "");
                     return str.Substring(0, Math.Min(str.Length, attrib.m_RegexMaxLength));
                 }

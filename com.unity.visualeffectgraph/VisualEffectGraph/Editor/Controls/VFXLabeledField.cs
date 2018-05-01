@@ -74,6 +74,11 @@ namespace UnityEditor.VFX.UIElements
                     var dragger = new FieldMouseDragger<long>((IValueField<long> )m_Control);
                     dragger.SetDragZone(m_Label);
                 }
+                else if (typeof(U) == typeof(int))
+                {
+                    var dragger = new FieldMouseDragger<int>((IValueField<int> )m_Control);
+                    dragger.SetDragZone(m_Label);
+                }
 
             m_IndeterminateLabel = new Label()
             {

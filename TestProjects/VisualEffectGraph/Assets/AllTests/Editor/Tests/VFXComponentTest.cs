@@ -119,7 +119,7 @@ namespace UnityEditor.VFX.Test
         [Timeout(1000 * 10)]
         public IEnumerator CreateComponentAndCheckDimensionConstraint()
         {
-            EditorApplication.ExecuteMenuItem("Window/Game");
+            EditorApplication.ExecuteMenuItem("Window/General/Game");
             var graph = ScriptableObject.CreateInstance<VFXGraph>();
 
             var contextInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();
@@ -517,7 +517,7 @@ namespace UnityEditor.VFX.Test
             Func<VFXValueType, VisualEffect, string, object> fnGet = bindingModes ? fnGet_UsingBindings : fnGet_UsingSerializedProperty;
             Action<VFXValueType, VisualEffect, string, object> fnSet = bindingModes ? fnSet_UsingBindings : fnSet_UsingSerializedProperty;
 
-            EditorApplication.ExecuteMenuItem("Window/Game");
+            EditorApplication.ExecuteMenuItem("Window/General/Game");
             var graph = ScriptableObject.CreateInstance<VFXGraph>();
 
             var contextInitialize = ScriptableObject.CreateInstance<VFXBasicInitialize>();

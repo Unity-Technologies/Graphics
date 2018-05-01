@@ -59,6 +59,7 @@ MonoBehaviour:
   flipbookMode: 0
   useSoftParticle: 0
   sortPriority: 0
+  sort: 0
   indirectDraw: 0
   preRefraction: 0
   useGeometryShader: 0
@@ -140,6 +141,7 @@ MonoBehaviour:
   m_Name: VFXUI
   m_EditorClassIdentifier: 
   groupInfos: []
+  stickyNoteInfos: []
   uiBounds:
     serializedVersion: 2
     x: 709
@@ -557,25 +559,31 @@ VisualEffectAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 1
+    - op: 9
       valueIndex: 6
+      data[0]: -1
+      data[1]: -1
+      data[2]: -1
+      data[3]: -1
+    - op: 1
+      valueIndex: 22
       data[0]: -1
       data[1]: -1
       data[2]: -1
       data[3]: 7
     - op: 3
-      valueIndex: 8
+      valueIndex: 24
       data[0]: 4
       data[1]: 5
       data[2]: 3
       data[3]: -1
     - op: 3
-      valueIndex: 11
-      data[0]: 1
-      data[1]: 2
-      data[2]: 0
+      valueIndex: 27
+      data[0]: 0
+      data[1]: 1
+      data[2]: 2
       data[3]: -1
-    m_NeedsLocalToWorld: 0
+    m_NeedsLocalToWorld: 1
     m_NeedsWorldToLocal: 0
   m_ExposedExpressions: []
   m_PropertySheet:
@@ -611,14 +619,13 @@ VisualEffectAsset:
       m_Array: []
     m_NamedObject:
       m_Array:
-      - m_ExpressionIndex: 6
+      - m_ExpressionIndex: 7
         m_Value: {fileID: 0}
     m_Bool:
       m_Array: []
   m_Buffers:
   - type: 1
     size: 1
-    capacity: 1
     layout:
     - name: spawnCount
       type: 1
@@ -626,6 +633,23 @@ VisualEffectAsset:
         bucket: 0
         structure: 1
         element: 0
+    capacity: 1
+    stride: 4
+  - type: 2
+    size: 128
+    layout: []
+    capacity: 0
+    stride: 4
+  - type: 0
+    size: 128
+    layout: []
+    capacity: 0
+    stride: 8
+  - type: 0
+    size: 128
+    layout: []
+    capacity: 0
+    stride: 8
   m_CPUBuffers:
   - capacity: 1
     stride: 1
@@ -660,7 +684,7 @@ VisualEffectAsset:
     values: []
     tasks: []
   - type: 1
-    flags: 0
+    flags: 2
     capacity: 128
     layer: 4294967295
     buffers:
@@ -668,11 +692,17 @@ VisualEffectAsset:
       index: 0
     - nameId: spawner_input
       index: 1
+    - nameId: indirectBuffer
+      index: 1
+    - nameId: sortBufferA
+      index: 2
+    - nameId: sortBufferB
+      index: 3
     values:
     - nameId: bounds_center
-      index: 7
-    - nameId: bounds_size
       index: 8
+    - nameId: bounds_size
+      index: 9
     tasks:
     - type: 536870912
       buffers:
@@ -681,24 +711,41 @@ VisualEffectAsset:
       values: []
       params:
       - nameId: bounds_center
-        index: 7
-      - nameId: bounds_size
         index: 8
-      processor: {fileID: 7200000, guid: 3a73e4b07aa5f5b479513bdd001d6fb7, type: 3}
+      - nameId: bounds_size
+        index: 9
+      processor: {fileID: 7200000, guid: e816ef0b67ab9ef46ba8f5cffbe47114, type: 3}
     - type: 805306368
-      buffers: []
+      buffers:
+      - nameId: indirectBuffer
+        index: 1
       values: []
       params: []
-      processor: {fileID: 7200000, guid: 2f263d4aaa2ac674c9a6c478e82e7e90, type: 3}
+      processor: {fileID: 7200000, guid: 499eb64de96406c469d0137b7e9ba83d, type: 3}
+    - type: 805306369
+      buffers:
+      - nameId: inputBuffer
+        index: 1
+      - nameId: outputBuffer
+        index: 2
+      values:
+      - nameId: localToWorld
+        index: 6
+      params: []
+      processor: {fileID: 7200000, guid: 89c4e84ed7100d048980fd63ded2e1ff, type: 3}
     - type: 1073741826
-      buffers: []
+      buffers:
+      - nameId: indirectBuffer
+        index: 1
       values:
       - nameId: mainTexture
-        index: 6
+        index: 7
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 91ffb3a919d5bb043a32ab68cf3a0e06, type: 3}
+      - nameId: indirectDraw
+        index: 1
+      processor: {fileID: 4800000, guid: 76c3f385dd36d6f48bd476644136add0, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
@@ -713,4 +760,4 @@ VisualEffectAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
-  m_RuntimeVersion: 3
+  m_RuntimeVersion: 4

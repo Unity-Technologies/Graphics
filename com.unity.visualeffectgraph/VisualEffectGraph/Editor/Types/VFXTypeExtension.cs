@@ -61,6 +61,30 @@ namespace UnityEditor.VFX
             {
                 return Matrix4x4.identity;
             }
+            else if (type == typeof(AnimationCurve))
+            {
+                return VFXResources.defaultResources.animationCurve;
+            }
+            else if (type == typeof(Gradient))
+            {
+                return VFXResources.defaultResources.gradient;
+            }
+            else if (type == typeof(Mesh))
+            {
+                return VFXResources.defaultResources.mesh;
+            }
+            else if (type == typeof(Shader))
+            {
+                return VFXResources.defaultResources.shader;
+            }
+            else if (type == typeof(Texture2D))
+            {
+                return VFXResources.defaultResources.particleTexture;
+            }
+            else if (type == typeof(Texture3D))
+            {
+                return VFXResources.defaultResources.vectorField;
+            }
 
             var defaultField = type.GetField("defaultValue", BindingFlags.Public | BindingFlags.Static);
             if (defaultField != null)
