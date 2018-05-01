@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 #if UNITY_EDITOR
 using UnityEditor.Experimental.Rendering.LightweightPipeline;
 #endif
@@ -18,6 +19,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public int mainLightIndex;
         public List<VisibleLight> visibleLights;
         public List<int> localLightIndices;
+    }
+
+    public struct CameraData
+    {
+        public Camera camera;
+        public bool isSceneViewCamera;
+        public bool stereoEnabled;
+        public bool shadowsEnabled;
     }
 
     public enum MixedLightingSetup
@@ -49,7 +58,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private readonly LightweightPipelineAsset m_Asset;
 
         DepthOnlyPass m_DepthOnlyPass;
-        private ShadowPass m_ShadowPass;
+        ShadowPass m_ShadowPass;
 
         // Maximum amount of visible lights the shader can process. This controls the constant global light buffer size.
         // It must match the MAX_VISIBLE_LIGHTS in LightweightInput.cginc
@@ -137,6 +146,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private CopyTextureSupport m_CopyTextureSupport;
 
+        ForwardRenderer m_Renderer;
+
         public LightweightPipeline(LightweightPipelineAsset asset)
         {
             m_Asset = asset;
@@ -187,14 +198,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_MaxLocalLightsShadedPerPass = m_UseComputeBuffer ? kMaxVisibleLocalLights : kMaxNonIndexedLocalLights;
             m_LocalLightIndices = new List<int>(m_MaxLocalLightsShadedPerPass);
 
-            m_DepthOnlyPass = new DepthOnlyPass(null, RenderTextureFormat.Depth);
-
-            RenderTextureFormat shadowmapFormat =
-                (SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.Shadowmap))
-                    ? RenderTextureFormat.Shadowmap
-                    : RenderTextureFormat.Depth;
-
-            m_ShadowPass = new ShadowPass(m_Asset, kMaxVisibleLocalLights, null, shadowmapFormat);
+            m_Renderer = new ForwardRenderer();
+            m_DepthOnlyPass = new DepthOnlyPass(m_Renderer, null, new[] {RenderTargetHandle.Depth});
+            m_ShadowPass = new ShadowPass(m_Renderer, null,
+                    new[] {RenderTargetHandle.DirectionalShadowmap, RenderTargetHandle.LocalShadowmap}, m_Asset,
+                    kMaxVisibleLocalLights);
 
             // Let engine know we have MSAA on for cases where we support MSAA backbuffer
             if (QualitySettings.antiAliasing != m_Asset.MSAASampleCount)
@@ -254,15 +262,19 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public override void Render(ScriptableRenderContext context, Camera[] cameras)
         {
             base.Render(context, cameras);
-            RenderPipeline.BeginFrameRendering(cameras);
+            BeginFrameRendering(cameras);
 
             GraphicsSettings.lightsUseLinearIntensity = true;
             SetupPerFrameShaderConstants();
 
             // Sort cameras array by camera depth
             Array.Sort(cameras, m_CameraComparer);
+
             foreach (Camera camera in cameras)
             {
+                CameraData cameraData;
+                InitializeCameraData(camera, out cameraData);
+
                 m_CurrCamera = camera;
                 bool sceneViewCamera = m_CurrCamera.cameraType == CameraType.SceneView;
                 bool stereoEnabled = IsStereoEnabled(m_CurrCamera);
@@ -275,13 +287,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_IsOffscreenCamera = m_CurrCamera.targetTexture != null && m_CurrCamera.cameraType != CameraType.SceneView;
 
                 SetupPerCameraShaderConstants();
-                RenderPipeline.BeginCameraRendering(m_CurrCamera);
+                BeginCameraRendering(m_CurrCamera);
 
                 ScriptableCullingParameters cullingParameters;
                 if (!CullResults.GetCullingParameters(m_CurrCamera, stereoEnabled, out cullingParameters))
                     continue;
 
-                cullingParameters.shadowDistance = Mathf.Min(m_ShadowPass.RenderingDistance, m_CurrCamera.farClipPlane);
+                cullingParameters.shadowDistance = Mathf.Min(m_ShadowPass.renderingDistance, m_CurrCamera.farClipPlane);
 
 #if UNITY_EDITOR
                 // Emit scene view UI
@@ -295,7 +307,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 LightData lightData;
                 InitializeLightData(visibleLights, out lightData);
 
-                m_ShadowPass.Execute(ref context, ref m_CullResults, ref lightData, camera, false);
+                PassData passData;
+                passData.lightData = lightData;
+                passData.cameraData = cameraData;
+
+                m_ShadowPass.Execute(ref context, ref m_CullResults, ref passData);
                 bool screenspaceShadows = m_ShadowPass.requireScreenSpaceResolve;
 
                 FrameRenderingConfiguration frameRenderingConfiguration;
@@ -313,7 +329,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 context.SetupCameraProperties(m_CurrCamera, stereoEnabled);
 
                 if (CoreUtils.HasFlag(frameRenderingConfiguration, FrameRenderingConfiguration.DepthPrePass))
-                    m_DepthOnlyPass.Execute(ref context, ref m_CullResults, ref lightData, camera, stereoEnabled);
+                    m_DepthOnlyPass.Execute(ref context, ref m_CullResults, ref passData);
 
                 if (screenspaceShadows)
                     m_ShadowPass.CollectShadows(m_CurrCamera, frameRenderingConfiguration, ref context);
@@ -326,7 +342,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 {
                     cmd = CommandBufferPool.Get("Copy Depth to Camera");
                     cmd.DisableShaderKeyword(kMSAADepthKeyword);
-                    CopyTexture(cmd, m_DepthOnlyPass.depthTextureID, BuiltinRenderTextureType.CameraTarget, m_CopyDepthMaterial, true);
+                    CopyTexture(cmd, RenderTargetHandle.Depth, BuiltinRenderTextureType.CameraTarget, m_CopyDepthMaterial, true);
                     context.ExecuteCommandBuffer(cmd);
                     CommandBufferPool.Release(cmd);
                 }
@@ -454,7 +470,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     CopyTexture(cmd, m_DepthRT, m_CopyDepth, m_CopyDepthMaterial, forceBlit);
                     depthRT = m_CopyDepth;
                     setRenderTarget = true;
-                    cmd.SetGlobalTexture(m_DepthOnlyPass.depthTextureID, m_CopyDepth);
+                    cmd.SetGlobalTexture(RenderTargetHandle.Depth, m_CopyDepth);
                 }
 
                 if (setRenderTarget)
@@ -686,6 +702,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             SetShaderKeywords(cmd, ref lightData);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+        }
+
+        void InitializeCameraData(Camera camera, out CameraData cameraData)
+        {
+            cameraData.camera = camera;
+            cameraData.isSceneViewCamera = camera.cameraType == CameraType.SceneView;
+            cameraData.stereoEnabled = IsStereoEnabled(camera);
+            cameraData.shadowsEnabled = true;
         }
 
         private void InitializeLightData(List<VisibleLight> visibleLights, out LightData lightData)
@@ -980,10 +1004,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // TODO: We have to discuss cookie approach on LWRP.
             // CoreUtils.SetKeyword(cmd, LightweightKeywords.MainLightCookieText, mainLightIndex != -1 && LightweightUtils.IsSupportedCookieType(visibleLights[mainLightIndex].lightType) && visibleLights[mainLightIndex].light.cookie != null);
 
-            bool anyShadowsEnabled = m_ShadowPass.IsDirectionalShadowsEnabled || m_ShadowPass.IsLocalShadowsEnabled;
-            CoreUtils.SetKeyword(cmd, LightweightKeywords.DirectionalShadowsText, m_ShadowPass.DirectionalShadowsRendered);
-            CoreUtils.SetKeyword(cmd, LightweightKeywords.LocalShadowsText, m_ShadowPass.LocalShadowsRendered);
-            CoreUtils.SetKeyword(cmd, LightweightKeywords.SoftShadowsText, m_ShadowPass.IsSoftShadowsEnabled && anyShadowsEnabled);
+            bool anyShadowsEnabled = m_ShadowPass.isDirectionalShadowsEnabled || m_ShadowPass.isLocalShadowsEnabled;
+            CoreUtils.SetKeyword(cmd, LightweightKeywords.DirectionalShadowsText, m_ShadowPass.directionalShadowsRendered);
+            CoreUtils.SetKeyword(cmd, LightweightKeywords.LocalShadowsText, m_ShadowPass.localShadowsRendered);
+            CoreUtils.SetKeyword(cmd, LightweightKeywords.SoftShadowsText, m_ShadowPass.isSoftShadowsEnabled && anyShadowsEnabled);
 
             // TODO: Remove this. legacy particles support will be removed from Unity in 2018.3. This should be a shader_feature instead with prop exposed in the Standard particles shader.
             CoreUtils.SetKeyword(cmd, "SOFTPARTICLES_ON", m_RequireDepthTexture && m_Asset.RequireSoftParticles);
