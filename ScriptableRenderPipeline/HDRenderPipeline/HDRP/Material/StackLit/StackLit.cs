@@ -9,9 +9,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL(PackingRules.Exact)]
         public enum MaterialFeatureFlags
         {
-            StackLitStandard             = 1 << 0,
-            StackLitAnisotropy           = 1 << 4,
-            StackLitCoat                 = 1 << 6,
+            StackLitStandard = 1 << 0,
+            StackLitSubsurfaceScattering = 1 << 2,
+            StackLitTransmission = 1 << 3,
+            StackLitAnisotropy = 1 << 4,
+            StackLitCoat = 1 << 6,
         };
 
         //-----------------------------------------------------------------------------
@@ -44,6 +46,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Metallic")]
             public float metallic;
 
+            // SSS
+            [SurfaceDataAttributes("Diffusion Profile")]
+            public uint diffusionProfile;
+            [SurfaceDataAttributes("Subsurface Mask")]
+            public float subsurfaceMask;
+
+            // Transmission
+            // + Diffusion Profile
+            [SurfaceDataAttributes("Thickness")]
+            public float thickness;
+
             // Anisotropic
             [SurfaceDataAttributes("Tangent", true)]
             public Vector3 tangentWS;
@@ -66,7 +79,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         //-----------------------------------------------------------------------------
         // BSDFData
         //-----------------------------------------------------------------------------
-
         [GenerateHLSL(PackingRules.Exact, false, true, 1400)]
         public struct BSDFData
         {
@@ -107,7 +119,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             //[MarshalAs(UnmanagedType.ByValArray, SizeConst=5)]
             //public float[] test;
 
+            // SSS
+            public uint diffusionProfile;
+            public float subsurfaceMask;
 
+            // Transmission
+            // + Diffusion Profile
+            public float thickness;
+            public bool useThickObjectMode; // Read from the diffusion profile
+            public Vector3 transmittance;   // Precomputation of transmittance
         };
         //-----------------------------------------------------------------------------
         // Init precomputed textures
