@@ -348,7 +348,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_WindowDockingLayout.ApplyPosition(m_Container);
         }
 
+#if UNITY_2018_3_OR_NEWER
         protected override void DoRepaint(IStylePainter painter)
+#else
+        public override void DoRepaint()
+#endif
         {
             if (m_StyleWidget == null)
             {
