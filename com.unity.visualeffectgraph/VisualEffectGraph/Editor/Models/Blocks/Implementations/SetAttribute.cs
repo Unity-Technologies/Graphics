@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.Block
             {
                 return new Dictionary<string, object[]>
                 {
-                    { "attribute", VFXAttribute.AllReadWritable.Cast<object>().ToArray() },
+                    { "attribute", VFXAttribute.AllIncludingVariadicReadWritable.Cast<object>().ToArray() },
                     { "Source", new object[] { SetAttribute.ValueSource.Slot, SetAttribute.ValueSource.Source } },
                 };
             }
