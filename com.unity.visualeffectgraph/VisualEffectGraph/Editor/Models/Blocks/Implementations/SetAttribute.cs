@@ -71,6 +71,9 @@ namespace UnityEditor.VFX.Block
                 if (Source != ValueSource.Slot)
                     yield return "Random";
 
+                if (currentAttribute.variadic == VFXVariadic.False)
+                    yield return "channels";
+
                 foreach (var setting in base.filteredOutSettings)
                     yield return setting;
             }
@@ -133,109 +136,101 @@ namespace UnityEditor.VFX.Block
                     }
                     else
                     {
-                        channelSource = VFXBlockUtility.GetRandomMacroString(RandomMode.Off, attribute, "Value");
+                        channelSource = VFXBlockUtility.GetRandomMacroString(RandomMode.Off, attributeSize, "Value");
+                    }
+
+                    if (Composition == AttributeCompositionMode.Blend)
+                        channelSource = VFXBlockUtility.GetComposeString(Composition, attrib.name + attributePostfix, channelSource, "Blend");
+                    else
+                        channelSource = VFXBlockUtility.GetComposeString(Composition, attrib.name + attributePostfix, channelSource);
+
+                    if (i < loopCount - 1)
+                        channelSource += "\n";
+
+                    source += channelSource;
+                }
+
+                return source;
+            }
+        }
+
+        public override IEnumerable<VFXNamedExpression> parameters
+        {
+            get
+            {
+                foreach (var param in base.parameters)
+                {
+                    if ((param.name == "Value" || param.name == "Min" || param.name == "Max") && Source == ValueSource.Source)
+                        continue;
+
+                    yield return param;
+                }
+
+                if (Source == ValueSource.Source)
+                {
+                    var attrib = VFXAttribute.Find(attribute);
+                    yield return new VFXNamedExpression(new VFXAttributeExpression(attrib, VFXAttributeLocation.Source), "Value");
+                }
+            }
+        }
+
+        protected override IEnumerable<VFXPropertyWithValue> inputProperties
+        {
+            get
+            {
+                var attrib = currentAttribute;
+
+                VFXPropertyAttribute[] attr = null;
+                if (attrib.Equals(VFXAttribute.Color))
+                    attr = VFXPropertyAttribute.Create(new ShowAsColorAttribute());
+
+                Type slotType = VFXExpression.TypeToType(attrib.type);
+                object content = attrib.value.GetContent();
+                if (attrib.variadic == VFXVariadic.True)
+                {
+                    switch (channels.ToString().Length)
+                    {
+                        case 1:
+                            slotType = typeof(float);
+                            content = ((Vector3)content).x;
+                            break;
+                        case 2:
+                            slotType = typeof(Vector2);
+                            content = (Vector2)(Vector3)content;
+                            break;
+                        case 3:
+                            slotType = typeof(Vector3);
+                            break;
+                        default:
+                            break;
                     }
                 }
+
+                if (Random == RandomMode.Off)
+                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, GenerateLocalAttributeName(attrib.name)) {
+                        attributes = attr
+                    }, content);
                 else
                 {
-                    source = VFXBlockUtility.GetRandomMacroString(RandomMode.Off, attribute, "Value");
+                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Min") {
+                        attributes = attr
+                    });
+                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Max") {
+                        attributes = attr
+                    }, content);
                 }
-
 
                 if (Composition == AttributeCompositionMode.Blend)
-                    channelSource = VFXBlockUtility.GetComposeString(Composition, attrib.name + attributePostfix, channelSource, "Blend");
-                else
-                    channelSource = VFXBlockUtility.GetComposeString(Composition, attrib.name + attributePostfix, channelSource);
-
-                if (i < loopCount - 1)
-                    channelSource += "\n";
-                source += channelSource;
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "Blend"));
             }
-
-            return source;
         }
-    }
 
-    public override IEnumerable<VFXNamedExpression> parameters
-    {
-        get
+        private VFXAttribute currentAttribute
         {
-            foreach (var param in base.parameters)
+            get
             {
-                if ((param.name == "Value" || param.name == "Min" || param.name == "Max") && Source == ValueSource.Source)
-                    continue;
-
-                yield return param;
-            }
-
-            if (attrib.variadic == VFXVariadic.False)
-                yield return "channels";
-
-            if (Source == ValueSource.Source)
-            {
-                var attribute = VFXAttribute.Find(this.attribute);
-                yield return new VFXNamedExpression(new VFXAttributeExpression(attribute, VFXAttributeLocation.Source), "Value");
+                return VFXAttribute.Find(attribute);
             }
         }
     }
-
-    protected override IEnumerable<VFXPropertyWithValue> inputProperties
-    {
-        get
-        {
-            var attrib = currentAttribute;
-
-            VFXPropertyAttribute[] attr = null;
-            if (attrib.Equals(VFXAttribute.Color))
-                attr = VFXPropertyAttribute.Create(new ShowAsColorAttribute());
-
-            Type slotType = VFXExpression.TypeToType(attrib.type);
-            object content = attrib.value.GetContent();
-            if (attrib.variadic == VFXVariadic.True)
-            {
-                switch (channels.ToString().Length)
-                {
-                    case 1:
-                        slotType = typeof(float);
-                        content = ((Vector3)content).x;
-                        break;
-                    case 2:
-                        slotType = typeof(Vector2);
-                        content = (Vector2)(Vector3)content;
-                        break;
-                    case 3:
-                        slotType = typeof(Vector3);
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            if (Random == RandomMode.Off)
-                yield return new VFXPropertyWithValue(new VFXProperty(slotType, GenerateLocalAttributeName(attrib.name)) {
-                    attributes = attr
-                }, content);
-            else
-            {
-                yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Min") {
-                    attributes = attr
-                });
-                yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Max") {
-                    attributes = attr
-                }, content);
-            }
-
-            if (Composition == AttributeCompositionMode.Blend)
-                yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "Blend"));
-        }
-    }
-
-    private VFXAttribute currentAttribute
-    {
-        get
-        {
-            return VFXAttribute.Find(attribute);
-        }
-    }
-}
 }
