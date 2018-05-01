@@ -141,13 +141,13 @@ namespace UnityEditor.VFX.Block
 
             if (mode == ComputeMode.Uniform)
             {
-                output += string.Format("float value = SampleCurve({0}, t);\n", localName);
+                output += string.Format("value = SampleCurve({0}, t);\n", localName);
             }
             else
             {
                 if (currentAttribute.Equals(VFXAttribute.Color))
                 {
-                    output += string.Format("float3 value = SampleGradient({0}, t).rgb;\n", localName);
+                    output += string.Format("value = SampleGradient({0}, t).rgb;\n", localName);
                 }
                 else
                 {
