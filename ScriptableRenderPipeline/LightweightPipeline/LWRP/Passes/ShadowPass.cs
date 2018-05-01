@@ -67,17 +67,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public class ShadowPass : ScriptableRenderPass
     {
-        public bool IsDirectionalShadowsEnabled { get { return m_ShadowSettings.supportsDirectionalShadows; } }
-        public bool IsLocalShadowsEnabled { get { return m_ShadowSettings.supportsLocalShadows; } }
-        public bool RequireScreenSpaceShadowmap { get { return IsDirectionalShadowsEnabled && m_ShadowSettings.screenSpace; } }
-        public bool DirectionalShadowsRendered { get { return m_DirectionalShadowmapQuality != LightShadows.None; } }
-        public bool LocalShadowsRendered { get { return m_LocalShadowmapQuality != LightShadows.None; } }
-        public bool IsSoftShadowsEnabled { get { return m_ShadowSettings.supportsSoftShadows; } }
+        public bool isDirectionalShadowsEnabled { get { return m_ShadowSettings.supportsDirectionalShadows; } }
+        public bool isLocalShadowsEnabled { get { return m_ShadowSettings.supportsLocalShadows; } }
+        public bool requireScreenSpaceShadowmap { get { return isDirectionalShadowsEnabled && m_ShadowSettings.screenSpace; } }
+        public bool directionalShadowsRendered { get { return m_DirectionalShadowmapQuality != LightShadows.None; } }
+        public bool localShadowsRendered { get { return m_LocalShadowmapQuality != LightShadows.None; } }
+        public bool isSoftShadowsEnabled { get { return m_ShadowSettings.supportsSoftShadows; } }
 
         // TODO: Remove this after we handle the passes dependencies
         public bool requireScreenSpaceResolve { get; private set; }
 
-        public float RenderingDistance { get { return m_ShadowSettings.maxShadowDistance; } }
+        public float renderingDistance { get { return m_ShadowSettings.maxShadowDistance; } }
 
         private const int kMaxCascades = 4;
 
@@ -109,9 +109,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private ShadowSliceData[] m_LocalLightSlices;
         private float[] m_LocalShadowStrength;
 
-        public ShadowPass(LightweightPipelineAsset pipelineAsset, int maxLocalLightsCount,
-            RenderTextureFormat[] colorAttachments, RenderTextureFormat depthAttachment) :
-            base(colorAttachments, depthAttachment)
+        public ShadowPass(ForwardRenderer renderer, int[] inputs, int[] targets,
+                          LightweightPipelineAsset pipelineAsset, int maxLocalLightsCount) :
+            base(renderer, inputs, targets)
         {
             BuildShadowSettings(pipelineAsset);
             RegisterShaderPassName("ShadowCaster");
@@ -160,24 +160,24 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public override void BindSurface(CommandBuffer cmd, RenderTextureDescriptor attachmentDescriptor, int samples)
         {
-            if (RequireScreenSpaceShadowmap)
+            if (requireScreenSpaceShadowmap)
             {
                 attachmentDescriptor.depthBufferBits = 0;
                 attachmentDescriptor.colorFormat = m_ShadowSettings.screenspaceShadowmapTextureFormat;
                 cmd.GetTemporaryRT(m_ScreenSpaceShadowmapID, attachmentDescriptor, FilterMode.Bilinear);
             }
         }
-        public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref LightData lightData,
-            Camera camera, bool stereoRendering)
+
+        public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref PassData passData)
         {
             Clear();
 
             bool directionalShadowmapRendered = false;
-            if (IsDirectionalShadowsEnabled)
-                directionalShadowmapRendered = RenderDirectionalCascadeShadowmap(ref cullResults, ref lightData, ref context);
+            if (isDirectionalShadowsEnabled)
+                directionalShadowmapRendered = RenderDirectionalCascadeShadowmap(ref context, ref cullResults, ref passData.lightData);
 
-            if (IsLocalShadowsEnabled)
-                RenderLocalShadowmapAtlas(ref cullResults, ref lightData, ref context);
+            if (isLocalShadowsEnabled)
+                RenderLocalShadowmapAtlas(ref context, ref cullResults, ref passData.lightData);
 
             requireScreenSpaceResolve = directionalShadowmapRendered && m_ShadowSettings.screenSpace;
         }
@@ -303,7 +303,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CoreUtils.SetKeyword(cmd, LightweightKeywords.CascadeShadowsText, m_ShadowSettings.directionalLightCascadeCount > 1);
         }
 
-        private bool RenderDirectionalCascadeShadowmap(ref CullResults cullResults, ref LightData lightData, ref ScriptableRenderContext context)
+        private bool RenderDirectionalCascadeShadowmap(ref ScriptableRenderContext context, ref CullResults cullResults, ref LightData lightData)
         {
             int shadowLightIndex = lightData.mainLightIndex;
             if (shadowLightIndex == -1)
@@ -365,7 +365,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             if (success)
             {
-                m_DirectionalShadowmapQuality = (IsSoftShadowsEnabled) ? light.shadows : LightShadows.Hard;
+                m_DirectionalShadowmapQuality = (isSoftShadowsEnabled) ? light.shadows : LightShadows.Hard;
 
                 // In order to avoid shader variants explosion we only do hard shadows when sampling shadowmap in the lit pass.
                 // GLES2 platform is forced to hard single cascade shadows.
@@ -380,7 +380,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return success;
         }
 
-        private void RenderLocalShadowmapAtlas(ref CullResults cullResults, ref LightData lightData, ref ScriptableRenderContext context)
+        private void RenderLocalShadowmapAtlas(ref ScriptableRenderContext context, ref CullResults cullResults, ref LightData lightData)
         {
             List<int> localLightIndices = lightData.localLightIndices;
             List<VisibleLight> visibleLights = lightData.visibleLights;
@@ -455,7 +455,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             SetupLocalLightsShadowReceiverConstants(cmd, ref context);
 
-            m_LocalShadowmapQuality = (IsSoftShadowsEnabled) ? (LightShadows)shadowSampling : LightShadows.Hard;
+            m_LocalShadowmapQuality = (isSoftShadowsEnabled) ? (LightShadows)shadowSampling : LightShadows.Hard;
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
