@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Size")]
+    //[VFXInfo(category = "Size")] DEPRECATED
     class SizeOverLife : VFXBlock
     {
         [Tooltip("How the new computed size is composed with its previous value")]
@@ -66,6 +66,22 @@ float sampledCurve = SampleCurve(curve, age/lifetime);
 
                 return outSource;
             }
+        }
+
+        public override void Sanitize()
+        {
+            Debug.Log("Sanitizing Graph: Automatically replace SizeOverLife with AttributeOverLife");
+
+            var attributeOverLife = CreateInstance<AttributeOverLife>();
+
+            attributeOverLife.SetSettingValue("attribute", "size");
+            attributeOverLife.SetSettingValue("Composition", composition);
+            attributeOverLife.SetSettingValue("channels", VariadicChannelOptions.X);
+
+            // Transfer links
+            VFXSlot.TransferLinksAndValue(attributeOverLife.GetInputSlot(0), GetInputSlot(0), true);
+
+            ReplaceModel(attributeOverLife, this);
         }
     }
 }

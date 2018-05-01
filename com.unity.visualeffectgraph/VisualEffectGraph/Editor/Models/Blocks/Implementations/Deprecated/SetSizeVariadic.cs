@@ -5,25 +5,33 @@ using System.Collections.Generic;
 
 namespace UnityEditor.VFX.Block
 {
-    class AttributeVariantVariadicSize : IVariantProvider
-    {
-        public Dictionary<string, object[]> variants
-        {
-            get
-            {
-                return new Dictionary<string, object[]>
-                {
-                    { "SizeMode", Enum.GetValues(typeof(VariadicSizeUtility.SizeMode)).Cast<object>().ToArray() },
-                };
-            }
-        }
-    }
-
-    [VFXInfo(category = "Size", variantProvider = typeof(AttributeVariantVariadicSize))]
+    //[VFXInfo(category = "Size")] DEPRECATED
     class SetSizeVariadic : VFXBlock
     {
+        public enum Mode
+        {
+            X = 0,
+            XY = 1,
+            XYZ = 2,
+        }
+
+        public static IEnumerable<VFXAttributeInfo> GetAttributes(Mode mode, VFXAttributeMode attrMode)
+        {
+            yield return new VFXAttributeInfo(VFXAttribute.SizeX, attrMode);
+
+            if ((int)mode > (int)Mode.X)
+                yield return new VFXAttributeInfo(VFXAttribute.SizeY, attrMode);
+
+            if ((int)mode > (int)Mode.XY)
+                yield return new VFXAttributeInfo(VFXAttribute.SizeZ, attrMode);
+        }
+
+        public static readonly VFXAttribute[] Attribute = new VFXAttribute[] { VFXAttribute.SizeX, VFXAttribute.SizeY, VFXAttribute.SizeZ };
+
+        public static readonly string[] ChannelName = { ".x", ".y", ".z" };
+
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("How the size should be handled (X = Square Sprites/Uniform 3D, XY = Rectangle Sprites, XYZ = 3D Particles")]
-        public VariadicSizeUtility.SizeMode SizeMode = VariadicSizeUtility.SizeMode.X;
+        public Mode SizeMode = Mode.X;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("How the new computed size is composed with its previous value")]
         public AttributeCompositionMode Composition;
@@ -46,7 +54,7 @@ namespace UnityEditor.VFX.Block
 
                 var attrMode = (Composition == AttributeCompositionMode.Overwrite) ? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite;
 
-                foreach (var info in VariadicSizeUtility.GetAttributes(SizeMode, attrMode))
+                foreach (var info in GetAttributes(SizeMode, attrMode))
                     yield return info;
             }
         }
@@ -75,11 +83,11 @@ namespace UnityEditor.VFX.Block
                 var typeName = string.Empty;
                 switch (SizeMode)
                 {
-                    case VariadicSizeUtility.SizeMode.X:
+                    case Mode.X:
                         typeName = "InputPropertiesX"; break;
-                    case VariadicSizeUtility.SizeMode.XY:
+                    case Mode.XY:
                         typeName = "InputPropertiesXY"; break;
-                    case VariadicSizeUtility.SizeMode.XYZ:
+                    case Mode.XYZ:
                         typeName = "InputPropertiesXYZ"; break;
                 }
 
@@ -158,7 +166,7 @@ namespace UnityEditor.VFX.Block
                     randomString = "RAND";
 
 
-                if (SizeMode == VariadicSizeUtility.SizeMode.X)
+                if (SizeMode == Mode.X)
                 {
                     outSource += GetVariadicSource(VFXAttribute.SizeX, randomString);
                 }
@@ -166,12 +174,41 @@ namespace UnityEditor.VFX.Block
                 {
                     for (int channel = 0; channel <= (int)SizeMode; ++channel)
                     {
-                        outSource += GetVariadicSource(VariadicSizeUtility.Attribute[channel], randomString, VariadicSizeUtility.ChannelName[channel]);
+                        outSource += GetVariadicSource(Attribute[channel], randomString, ChannelName[channel]);
                     }
                 }
 
                 return outSource;
             }
+        }
+
+        public override void Sanitize()
+        {
+            Debug.Log("Sanitizing Graph: Automatically replace SetSizeVariadic with SetAttribute");
+
+            var setAttribute = CreateInstance<SetAttribute>();
+
+            setAttribute.SetSettingValue("attribute", "size");
+            setAttribute.SetSettingValue("Composition", Composition);
+            setAttribute.SetSettingValue("Random", Random);
+
+            switch (SizeMode)
+            {
+                case Mode.X:
+                    setAttribute.SetSettingValue("channels", VariadicChannelOptions.X);
+                    break;
+                case Mode.XY:
+                    setAttribute.SetSettingValue("channels", VariadicChannelOptions.XY);
+                    break;
+                case Mode.XYZ:
+                    setAttribute.SetSettingValue("channels", VariadicChannelOptions.XYZ);
+                    break;
+            }
+
+            // Transfer links
+            VFXSlot.TransferLinksAndValue(setAttribute.GetInputSlot(0), GetInputSlot(0), true);
+
+            ReplaceModel(setAttribute, this);
         }
     }
 }

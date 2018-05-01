@@ -26,7 +26,6 @@ namespace UnityEditor.VFX
 
                 yield return new VFXNamedExpression(namedExpressions.First(e => e.name == "Rate").exp, "nb");
                 yield return new VFXNamedExpression(namedExpressions.First(e => e.name == "Period").exp, "period");
-
             }
         }
     }
