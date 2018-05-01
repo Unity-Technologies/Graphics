@@ -1,93 +1,7 @@
-Shader "HDRenderPipeline/TerrainLit"
+Shader "HDRenderPipeline/TerrainLit_Basemap"
 {
     Properties
     {
-        [HideInInspector] _Control("Control (RGBA)", 2D) = "red" {}
-
-        [HideInInspector] _Splat0("Layer 0", 2D) = "white" {}
-        [HideInInspector] _Splat1("Layer 1", 2D) = "white" {}
-        [HideInInspector] _Splat2("Layer 2", 2D) = "white" {}
-        [HideInInspector] _Splat3("Layer 3", 2D) = "white" {}
-
-        [HideInInspector] _Normal0("Normal 0", 2D) = "bump" {}
-        [HideInInspector] _Normal1("Normal 1", 2D) = "bump" {}
-        [HideInInspector] _Normal2("Normal 2", 2D) = "bump" {}
-        [HideInInspector] _Normal3("Normal 3", 2D) = "bump" {}
-
-        // Since we don't use a mask texture for getting the mask, we'll need the metallic property to be serialized as in sRGB space.
-        [HideInInspector] [Gamma] _Metallic0("Metallic 0", Range(0.0, 1.0)) = 0
-        [HideInInspector] [Gamma] _Metallic1("Metallic 1", Range(0.0, 1.0)) = 0
-        [HideInInspector] [Gamma] _Metallic2("Metallic 2", Range(0.0, 1.0)) = 0
-        [HideInInspector] [Gamma] _Metallic3("Metallic 3", Range(0.0, 1.0)) = 0
-        [HideInInspector] _Smoothness0("Smoothness0", Range(0.0, 1.0)) = 1.0
-        [HideInInspector] _Smoothness1("Smoothness1", Range(0.0, 1.0)) = 1.0
-        [HideInInspector] _Smoothness2("Smoothness2", Range(0.0, 1.0)) = 1.0
-        [HideInInspector] _Smoothness3("Smoothness3", Range(0.0, 1.0)) = 1.0
-
-        // TODO: route values from terrain layers. enable _DENSITY_MODE if any of these enabled.
-        [HideInInspector] [ToggleUI] _OpacityAsDensity0("_OpacityAsDensity0", Float) = 0.0
-        [HideInInspector] [ToggleUI] _OpacityAsDensity1("_OpacityAsDensity1", Float) = 0.0
-        [HideInInspector] [ToggleUI] _OpacityAsDensity2("_OpacityAsDensity2", Float) = 0.0
-        [HideInInspector] [ToggleUI] _OpacityAsDensity3("_OpacityAsDensity3", Float) = 0.0
-
-        // TODO: Allow heightmap?
-        [HideInInspector] _HeightMap0("HeightMap0", 2D) = "black" {}
-        [HideInInspector] _HeightMap1("HeightMap1", 2D) = "black" {}
-        [HideInInspector] _HeightMap2("HeightMap2", 2D) = "black" {}
-        [HideInInspector] _HeightMap3("HeightMap3", 2D) = "black" {}
-        // Caution: Default value of _HeightAmplitude must be (_HeightMax - _HeightMin) * 0.01
-        // Those two properties are computed from the ones exposed in the UI and depends on the displaement mode so they are separate because we don't want to lose information upon displacement mode change.
-        [HideInInspector] _HeightAmplitude0("Height Scale0", Float) = 0.02
-        [HideInInspector] _HeightAmplitude1("Height Scale1", Float) = 0.02
-        [HideInInspector] _HeightAmplitude2("Height Scale2", Float) = 0.02
-        [HideInInspector] _HeightAmplitude3("Height Scale3", Float) = 0.02
-        [HideInInspector] _HeightCenter0("Height Bias0", Range(0.0, 1.0)) = 0.5
-        [HideInInspector] _HeightCenter1("Height Bias1", Range(0.0, 1.0)) = 0.5
-        [HideInInspector] _HeightCenter2("Height Bias2", Range(0.0, 1.0)) = 0.5
-        [HideInInspector] _HeightCenter3("Height Bias3", Range(0.0, 1.0)) = 0.5
-
-        // TODO: support tri-planar?
-        [HideInInspector] _TexWorldScale0("Tiling", Float) = 1.0
-        [HideInInspector] _TexWorldScale1("Tiling", Float) = 1.0
-        [HideInInspector] _TexWorldScale2("Tiling", Float) = 1.0
-        [HideInInspector] _TexWorldScale3("Tiling", Float) = 1.0
-
-        // Following set of parameters represent the parameters node inside the MaterialGraph.
-        // They are use to fill a SurfaceData. With a MaterialGraph this should not exist.
-
-        // All the following properties are filled by the referenced lit shader.
-
-        _SmoothnessRemapMin0("SmoothnessRemapMin0", Range(0.0, 1.0)) = 0.0
-        _SmoothnessRemapMin1("SmoothnessRemapMin1", Range(0.0, 1.0)) = 0.0
-        _SmoothnessRemapMin2("SmoothnessRemapMin2", Range(0.0, 1.0)) = 0.0
-        _SmoothnessRemapMin3("SmoothnessRemapMin3", Range(0.0, 1.0)) = 0.0
-
-        _SmoothnessRemapMax0("SmoothnessRemapMax0", Range(0.0, 1.0)) = 1.0
-        _SmoothnessRemapMax1("SmoothnessRemapMax1", Range(0.0, 1.0)) = 1.0
-        _SmoothnessRemapMax2("SmoothnessRemapMax2", Range(0.0, 1.0)) = 1.0
-        _SmoothnessRemapMax3("SmoothnessRemapMax3", Range(0.0, 1.0)) = 1.0
-
-        _AORemapMin0("AORemapMin0", Range(0.0, 1.0)) = 0.0
-        _AORemapMin1("AORemapMin1", Range(0.0, 1.0)) = 0.0
-        _AORemapMin2("AORemapMin2", Range(0.0, 1.0)) = 0.0
-        _AORemapMin3("AORemapMin3", Range(0.0, 1.0)) = 0.0
-
-        _AORemapMax0("AORemapMax0", Range(0.0, 1.0)) = 1.0
-        _AORemapMax1("AORemapMax1", Range(0.0, 1.0)) = 1.0
-        _AORemapMax2("AORemapMax2", Range(0.0, 1.0)) = 1.0
-        _AORemapMax3("AORemapMax3", Range(0.0, 1.0)) = 1.0
-
-        _MaskMap0("MaskMap0", 2D) = "white" {}
-        _MaskMap1("MaskMap1", 2D) = "white" {}
-        _MaskMap2("MaskMap2", 2D) = "white" {}
-        _MaskMap3("MaskMap3", 2D) = "white" {}
-
-        // All the following properties exist only in layered lit material
-
-        // Layer blending options
-        [ToggleUI] _UseHeightBasedBlend("UseHeightBasedBlend", Float) = 0.0
-        _HeightTransition("Height Transition", Range(0, 1.0)) = 0.0
-
         // Following are builtin properties
 
         // Stencil state
@@ -112,6 +26,8 @@ Shader "HDRenderPipeline/TerrainLit"
         // TODO: Fix the code in legacy unity so we can customize the behavior for GI
         _EmissionColor("Color", Color) = (1, 1, 1)
 
+        _MetallicTex("Metallic (R)", 2D) = "white" {}
+
         // HACK: GI Baking system relies on some properties existing in the shader ("_MainTex", "_Cutoff" and "_Color") for opacity handling, so we need to store our version of those parameters in the hard-coded name the GI baking system recognizes.
         _MainTex("Albedo", 2D) = "white" {}
         _Color("Color", Color) = (1,1,1,1)
@@ -125,30 +41,6 @@ Shader "HDRenderPipeline/TerrainLit"
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
     #pragma shader_feature _DOUBLESIDED_ON
-
-    //#pragma shader_feature _ _LAYER_MAPPING_PLANAR0 _LAYER_MAPPING_TRIPLANAR0
-    //#pragma shader_feature _ _LAYER_MAPPING_PLANAR1 _LAYER_MAPPING_TRIPLANAR1
-    //#pragma shader_feature _ _LAYER_MAPPING_PLANAR2 _LAYER_MAPPING_TRIPLANAR2
-    //#pragma shader_feature _ _LAYER_MAPPING_PLANAR3 _LAYER_MAPPING_TRIPLANAR3
-
-    #pragma shader_feature _NORMALMAP0
-    #pragma shader_feature _NORMALMAP1
-    #pragma shader_feature _NORMALMAP2
-    #pragma shader_feature _NORMALMAP3
-    #pragma shader_feature _MASKMAP0
-    #pragma shader_feature _MASKMAP1
-    #pragma shader_feature _MASKMAP2
-    #pragma shader_feature _MASKMAP3
-    #pragma shader_feature _HEIGHTMAP0
-    #pragma shader_feature _HEIGHTMAP1
-    #pragma shader_feature _HEIGHTMAP2
-    #pragma shader_feature _HEIGHTMAP3
-
-    #pragma shader_feature _DENSITY_MODE
-    #pragma shader_feature _HEIGHT_BASED_BLEND
-
-    #pragma shader_feature _TERRAINLIT_1_LAYER _TERRAINLIT_2_LAYERS _TERRAINLIT_3_LAYERS _TERRAINLIT_4_LAYERS
-
     #pragma shader_feature _DISABLE_DBUFFER
 
     //enable GPU instancing support
@@ -177,10 +69,7 @@ Shader "HDRenderPipeline/TerrainLit"
     // variable declaration
     //-------------------------------------------------------------------------------------
 
-    #define _MAX_LAYER 4 // TODO: expand to 8?
-
-    // Explicitly said that we are a layered shader as we share code between lit and layered lit
-    #define LAYERED_LIT_SHADER
+    #define TERRAINLIT_BASEMAP_SHADER
 
     //-------------------------------------------------------------------------------------
     // variable declaration
@@ -231,7 +120,7 @@ Shader "HDRenderPipeline/TerrainLit"
             #endif
             #include "../../Material/Material.hlsl"
             #include "TerrainLitSharePass.hlsl"
-            #include "TerrainLitData.hlsl"
+            #include "TerrainLitData_Basemap.hlsl"
             #include "../../ShaderPass/ShaderPassGBuffer.hlsl"
 
             ENDHLSL
@@ -256,7 +145,7 @@ Shader "HDRenderPipeline/TerrainLit"
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "TerrainLitSharePass.hlsl"
-            #include "TerrainLitData.hlsl"
+            #include "TerrainLitData_Basemap.hlsl"
             #include "../../ShaderPass/ShaderPassLightTransport.hlsl"
 
             ENDHLSL
@@ -286,7 +175,7 @@ Shader "HDRenderPipeline/TerrainLit"
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitVelocityPass.hlsl"
-            #include "TerrainLitData.hlsl"
+            #include "TerrainLitData_Basemap.hlsl"
             #include "../../ShaderPass/ShaderPassVelocity.hlsl"
 
             ENDHLSL
@@ -312,7 +201,7 @@ Shader "HDRenderPipeline/TerrainLit"
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitDepthPass.hlsl"
-            #include "TerrainLitData.hlsl"
+            #include "TerrainLitData_Basemap.hlsl"
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
@@ -335,7 +224,7 @@ Shader "HDRenderPipeline/TerrainLit"
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
             #include "../Lit/ShaderPass/LitDepthPass.hlsl"
-            #include "TerrainLitData.hlsl"
+            #include "TerrainLitData_Basemap.hlsl"
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
@@ -382,7 +271,7 @@ Shader "HDRenderPipeline/TerrainLit"
             #endif
             #include "../../Lighting/Lighting.hlsl"
             #include "TerrainLitSharePass.hlsl"
-            #include "TerrainLitData.hlsl"
+            #include "TerrainLitData_Basemap.hlsl"
             #include "../../ShaderPass/ShaderPassForward.hlsl"
 
             ENDHLSL
@@ -390,7 +279,4 @@ Shader "HDRenderPipeline/TerrainLit"
 
         UsePass "Hidden/Nature/Terrain/Picking/TERRAINPICKING"
     }
-
-    Dependency "BaseMapShader" = "HDRenderPipeline/TerrainLit_Basemap"
-    CustomEditor "UnityEditor.Experimental.Rendering.HDPipeline.TerrainLitGUI"
 }
