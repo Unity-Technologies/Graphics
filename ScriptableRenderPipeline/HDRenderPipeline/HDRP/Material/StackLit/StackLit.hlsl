@@ -3,7 +3,7 @@
 //-----------------------------------------------------------------------------
 // SurfaceData is defined in StackLit.cs which generates StackLit.cs.hlsl
 #include "StackLit.cs.hlsl"
-//#include "../SubsurfaceScattering/SubsurfaceScattering.hlsl"
+#include "../SubsurfaceScattering/SubsurfaceScattering.hlsl"
 //#include "CoreRP/ShaderLibrary/VolumeRendering.hlsl"
 
 //NEWLITTODO : wireup CBUFFERs for ambientocclusion, and other uniforms and samplers used:
@@ -16,6 +16,9 @@
 // Texture and constant buffer declaration
 //-----------------------------------------------------------------------------
 
+// Required for SSS, GBuffer texture declaration
+TEXTURE2D(_GBufferTexture0);
+
 // Declare the BSDF specific FGD property and its fetching function
 #include "../PreIntegratedFGD/PreIntegratedFGD.hlsl"
 
@@ -23,8 +26,19 @@
 // Definition
 //-----------------------------------------------------------------------------
 
+// Required for SSS
+#define GBufferType0 float4
+
 #define HAS_REFRACTION (defined(_REFRACTION_PLANE) || defined(_REFRACTION_SPHERE)) && (defined(_REFRACTION_SSRAY_PROXY) || defined(_REFRACTION_SSRAY_HIZ))
 #define DEFAULT_SPECULAR_VALUE 0.04
+
+// Needed for MATERIAL_FEATURE_MASK_FLAGS.
+#include "../../Lighting/LightLoop/LightLoop.cs.hlsl"
+
+// Additional bits set in 'bsdfData.materialFeatures' to save registers and simplify feature tracking.
+#define MATERIAL_FEATURE_FLAGS_SSS_OUTPUT_SPLIT_LIGHTING         ((MATERIAL_FEATURE_MASK_FLAGS + 1) << 0)
+#define MATERIAL_FEATURE_FLAGS_SSS_TEXTURING_MODE_OFFSET FastLog2((MATERIAL_FEATURE_MASK_FLAGS + 1) << 1) // 2 bits
+#define MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS ((MATERIAL_FEATURE_MASK_FLAGS + 1) << 3)
 
 //
 // Vertically Layered BSDF : "vlayering"
@@ -114,6 +128,54 @@ bool HasFeatureFlag(uint featureFlags, uint flag)
 bool IsVLayeredEnabled(BSDFData bsdfData)
 {
     return (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT));
+}
+
+// Assume that bsdfData.diffusionProfile is init
+void FillMaterialSSS(uint diffusionProfile, float subsurfaceMask, inout BSDFData bsdfData)
+{
+    bsdfData.diffusionProfile = diffusionProfile;
+    bsdfData.fresnel0 = _TransmissionTintsAndFresnel0[diffusionProfile].a;
+    bsdfData.subsurfaceMask = subsurfaceMask;
+    bsdfData.materialFeatures |= MATERIAL_FEATURE_FLAGS_SSS_OUTPUT_SPLIT_LIGHTING;
+    bsdfData.materialFeatures |= GetSubsurfaceScatteringTexturingMode(bsdfData.diffusionProfile) << MATERIAL_FEATURE_FLAGS_SSS_TEXTURING_MODE_OFFSET;
+}
+
+// Assume that bsdfData.diffusionProfile is init
+void FillMaterialTransmission(uint diffusionProfile, float thickness, inout BSDFData bsdfData)
+{
+    bsdfData.diffusionProfile = diffusionProfile;
+    bsdfData.fresnel0 = _TransmissionTintsAndFresnel0[diffusionProfile].a;
+
+    bsdfData.thickness = _ThicknessRemaps[diffusionProfile].x + _ThicknessRemaps[diffusionProfile].y * thickness;
+
+    // The difference between the thin and the regular (a.k.a. auto-thickness) modes is the following:
+    // * in the thin object mode, we assume that the geometry is thin enough for us to safely share
+    // the shadowing information between the front and the back faces;
+    // * the thin mode uses baked (textured) thickness for all transmission calculations;
+    // * the thin mode uses wrapped diffuse lighting for the NdotL;
+    // * the auto-thickness mode uses the baked (textured) thickness to compute transmission from
+    // indirect lighting and non-shadow-casting lights; for shadowed lights, it calculates
+    // the thickness using the distance to the closest occluder sampled from the shadow map.
+    // If the distance is large, it may indicate that the closest occluder is not the back face of
+    // the current object. That's not a problem, since large thickness will result in low intensity.
+    bool useThinObjectMode = IsBitSet(asuint(_TransmissionFlags), diffusionProfile);
+
+    bsdfData.materialFeatures |= useThinObjectMode ? 0 : MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS;
+
+    // Compute transmittance using baked thickness here. It may be overridden for direct lighting
+    // in the auto-thickness mode (but is always be used for indirect lighting).
+#if SHADEROPTIONS_USE_DISNEY_SSS
+    bsdfData.transmittance = ComputeTransmittanceDisney(_ShapeParams[diffusionProfile].rgb,
+        _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
+        bsdfData.thickness);
+#else
+    bsdfData.transmittance = ComputeTransmittanceJimenez(_HalfRcpVariancesAndWeights[diffusionProfile][0].rgb,
+        _HalfRcpVariancesAndWeights[diffusionProfile][0].a,
+        _HalfRcpVariancesAndWeights[diffusionProfile][1].rgb,
+        _HalfRcpVariancesAndWeights[diffusionProfile][1].a,
+        _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
+        bsdfData.thickness);
+#endif
 }
 
 // Assume bsdfData.normalWS is init
@@ -239,6 +301,17 @@ void ApplyDebugToBSDFData(inout BSDFData bsdfData)
 #endif
 }
 
+SSSData ConvertSurfaceDataToSSSData(SurfaceData surfaceData)
+{
+    SSSData sssData;
+
+    sssData.diffuseColor = surfaceData.baseColor;
+    sssData.subsurfaceMask = surfaceData.subsurfaceMask;
+    sssData.diffusionProfile = surfaceData.diffusionProfile;
+
+    return sssData;
+}
+
 //-----------------------------------------------------------------------------
 // conversion function for forward
 //-----------------------------------------------------------------------------
@@ -258,14 +331,25 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     bsdfData.lobeMix = surfaceData.lobeMix;
 
     // There is no metallic with SSS and specular color mode
-    //todo: float metallic = HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION) ? 0.0 : surfaceData.metallic;
-    float metallic = surfaceData.metallic;
+    float metallic = HasFeatureFlag(surfaceData.materialFeatures, /*MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR |*/ MATERIALFEATUREFLAGS_STACK_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION) ? 0.0 : surfaceData.metallic;
 
     bsdfData.diffuseColor = ComputeDiffuseColor(surfaceData.baseColor, metallic);
     bsdfData.fresnel0 = ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, DEFAULT_SPECULAR_VALUE);
 
     // Kind of obsolete without gbuffer, ie could use _MATERIAL_FEATURE* shader_features directly, but
     // if anything, makes the code more readable.
+    if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_SUBSURFACE_SCATTERING))
+    {
+        // Assign profile id and overwrite fresnel0
+        FillMaterialSSS(surfaceData.diffusionProfile, surfaceData.subsurfaceMask, bsdfData);
+    }
+
+    if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION))
+    {
+        // Assign profile id and overwrite fresnel0
+        FillMaterialTransmission(surfaceData.diffusionProfile, surfaceData.thickness, bsdfData);
+    }
+
     if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_ANISOTROPY))
     {
         FillMaterialAnisotropy(surfaceData.anisotropy, surfaceData.tangentWS, cross(surfaceData.normalWS, surfaceData.tangentWS), bsdfData);
@@ -289,7 +373,6 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
         ConvertAnisotropyToRoughness(bsdfData.perceptualRoughnessA, bsdfData.anisotropy, bsdfData.roughnessAT, bsdfData.roughnessAB);
         ConvertAnisotropyToRoughness(bsdfData.perceptualRoughnessB, bsdfData.anisotropy, bsdfData.roughnessBT, bsdfData.roughnessBB);
         bsdfData.coatRoughness = PerceptualRoughnessToRoughness(bsdfData.coatPerceptualRoughness);
-
     }
     else
     {
@@ -1163,8 +1246,8 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     // For eval IBL lights, we need:
     //
     // iblPerceptualRoughness (for FGD, mip, etc)
-    // iblR                   (fetch direction compensated dominant spec)
-    // specularFGD            (coatIblF is now in there too)
+    // iblR (fetch direction compensated dominant spec)
+    // specularFGD (coatIblF is now in there too)
     // energyCompensation     (to a apply for each light sample since with multiple roughnesses, it becomes lobe specific)
     //
     // We also need for analytical lights:
@@ -1500,6 +1583,15 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 }
 
 //-----------------------------------------------------------------------------
+// Subsurface Scattering functions
+//-----------------------------------------------------------------------------
+
+bool ShouldOutputSplitLighting(BSDFData bsdfData)
+{
+    return HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_SSS_OUTPUT_SPLIT_LIGHTING);
+}
+
+//-----------------------------------------------------------------------------
 // LightLoop related function (Only include if required)
 // HAS_LIGHTLOOP is define in Lighting.hlsl
 //-----------------------------------------------------------------------------
@@ -1730,8 +1822,8 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
         }
         else
         {
-            DV[0] = DV_SmithJointGGX(NdotH, NdotL, NdotV, bsdfData.roughnessAT, preLightData.partLambdaV[0]);
-            DV[1] = DV_SmithJointGGX(NdotH, NdotL, NdotV, bsdfData.roughnessBT, preLightData.partLambdaV[1]);
+    DV[0] = DV_SmithJointGGX(NdotH, NdotL, NdotV, bsdfData.roughnessAT, preLightData.partLambdaV[0]);
+    DV[1] = DV_SmithJointGGX(NdotH, NdotL, NdotV, bsdfData.roughnessBT, preLightData.partLambdaV[1]);
         }
         specularLighting = F * lerp(DV[0]*preLightData.energyCompensationFactor[BASE_LOBEA_IDX], 
                                     DV[1]*preLightData.energyCompensationFactor[BASE_LOBEB_IDX], 
