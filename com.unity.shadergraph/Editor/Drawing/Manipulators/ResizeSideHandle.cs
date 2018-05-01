@@ -330,7 +330,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_ResizeBeginMousePosition = mouseDownEvent.mousePosition;
 
             m_Dragging = true;
-            this.TakeMouseCapture();
+            this.CaptureMouse();
             mouseDownEvent.StopPropagation();
         }
 
@@ -339,7 +339,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Dragging = false;
 
             if (this.HasMouseCapture())
-                this.ReleaseMouseCapture();
+                this.ReleaseMouse();
 
             if (OnResizeFinished != null)
                 OnResizeFinished();
