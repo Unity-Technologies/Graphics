@@ -42,14 +42,6 @@ float ComputeLerpPositionForLogEncoding(float  linearDepth,
 // if (clampToBorder), samples outside of the buffer return 0 (we perform a smooth fade).
 // Otherwise, the sampler simply clamps the texture coordinate to the edge of the texture.
 // Warning: clamping to border may not work as expected with the quadratic filter due to its extent.
-
-
-
-// TODO: clear the history buffer to black to avoid false positives from reprojection.
-// Fix clamp to border to clamp UVs rather clamp values to black.
-
-
-
 float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
                      float2 positionNDC,
                      float  linearDepth,
@@ -62,7 +54,7 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
                      bool   quadraticFilterXY,
                      bool   clampToBorder)
 {
-    float2 uv = positionNDC * viewportScale;
+    float2 uv = positionNDC;
     float  w;
 
     // The distance between slices is log-encoded.
@@ -81,12 +73,20 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
         w = d;
     }
 
+    // Always clamp UVs (clamp to edge) to avoid leaks due to suballocation and memory aliasing.
+    // clamp to (vp_dim - 0.5) / tex_dim = vp_scale - (0.5 / tex_dim) = vp_scale - 0.5 * vp_scale / tex_dim.
+    // Do not clamp along the W direction for now, it's not needed (our slice count is fixed).
+    // Warning: there will still be some leaks as long as the viewport, screen or texture size
+    // are not multiples of the V-Buffer tile size (8 or 4 pixels).
+    // TODO: precompute this in a uniform...
+    float2 maxUV = viewportScale * (1 - 0.5 * VBufferResolution.zw);
+
     float fadeWeight = 1;
 
     if (clampToBorder)
     {
         // Compute the distance to the edge, and remap it to the [0, 1] range.
-        // TODO: add support for the HW border clamp sampler.
+        // Smoothly fade from the center of the edge texel to the black border color.
         float weightU = saturate((1 - 2 * abs(uv.x - 0.5)) * VBufferResolution.x);
         float weightV = saturate((1 - 2 * abs(uv.y - 0.5)) * VBufferResolution.y);
         float weightW = saturate((1 - 2 * abs(w    - 0.5)) * VBufferSliceCount.x);
@@ -107,14 +107,15 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
             float2 weights[2], offsets[2];
             BiquadraticFilter(1 - fc, weights, offsets); // Inverse-translate the filter centered around 0.5
 
-            result = (weights[0].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3((ic + float2(offsets[0].x, offsets[0].y)) * VBufferResolution.zw, w), 0)  // Top left
-                   + (weights[1].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3((ic + float2(offsets[1].x, offsets[0].y)) * VBufferResolution.zw, w), 0)  // Top right
-                   + (weights[0].x * weights[1].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3((ic + float2(offsets[0].x, offsets[1].y)) * VBufferResolution.zw, w), 0)  // Bottom left
-                   + (weights[1].x * weights[1].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3((ic + float2(offsets[1].x, offsets[1].y)) * VBufferResolution.zw, w), 0); // Bottom right
+            // TODO: precompute (VBufferResolution.zw * viewportScale).
+            result = (weights[0].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min((ic + float2(offsets[0].x, offsets[0].y)) * (VBufferResolution.zw * viewportScale), maxUV), w), 0)  // Top left
+                   + (weights[1].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min((ic + float2(offsets[1].x, offsets[0].y)) * (VBufferResolution.zw * viewportScale), maxUV), w), 0)  // Top right
+                   + (weights[0].x * weights[1].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min((ic + float2(offsets[0].x, offsets[1].y)) * (VBufferResolution.zw * viewportScale), maxUV), w), 0)  // Bottom left
+                   + (weights[1].x * weights[1].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min((ic + float2(offsets[1].x, offsets[1].y)) * (VBufferResolution.zw * viewportScale), maxUV), w), 0); // Bottom right
         }
         else
         {
-            result = SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(uv, w), 0);
+            result = SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min(uv * viewportScale, maxUV), w), 0);
         }
 
         result *= fadeWeight;
