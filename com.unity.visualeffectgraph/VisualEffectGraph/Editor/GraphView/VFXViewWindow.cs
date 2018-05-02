@@ -22,24 +22,24 @@ namespace  UnityEditor.VFX.UI
             m_ShortcutHandler = new ShortcutHandler(
                     new Dictionary<Event, ShortcutDelegate>
             {
-                { Event.KeyboardEvent("a"), view.FrameAll },
-                { Event.KeyboardEvent("f"), view.FrameSelection },
-                { Event.KeyboardEvent("o"), view.FrameOrigin },
-                { Event.KeyboardEvent("^#>"), view.FramePrev },
-                { Event.KeyboardEvent("^>"), view.FrameNext },
+                {Event.KeyboardEvent("a"), view.FrameAll },
+                {Event.KeyboardEvent("f"), view.FrameSelection },
+                {Event.KeyboardEvent("o"), view.FrameOrigin },
+                {Event.KeyboardEvent("^#>"), view.FramePrev },
+                {Event.KeyboardEvent("^>"), view.FrameNext },
                 {Event.KeyboardEvent("#^r"), view.Resync},
                 {Event.KeyboardEvent("F7"), view.Compile},
                 {Event.KeyboardEvent("#d"), view.OutputToDot},
                 {Event.KeyboardEvent("^#d"), view.OutputToDotReduced},
                 {Event.KeyboardEvent("#c"), view.OutputToDotConstantFolding},
-                {Event.KeyboardEvent("#r"), view.ReinitComponents},
+                {Event.KeyboardEvent("^r"), view.ReinitComponents},
                 {Event.KeyboardEvent("F5"), view.ReinitComponents},
             });
         }
 
         public static VFXViewWindow currentWindow;
 
-        [MenuItem("VFX Editor/Window")]
+        [MenuItem("Window/Visual Effects/Visual Effect Graph", false, 3010)]
         public static void ShowWindow()
         {
             GetWindow<VFXViewWindow>();
@@ -73,7 +73,6 @@ namespace  UnityEditor.VFX.UI
 
                 m_DisplayedResource = resource;
                 graphView.controller = VFXViewController.GetController(resource, true);
-                m_AssetName = resource.name;
 
                 if (differentAsset)
                 {
@@ -149,10 +148,10 @@ namespace  UnityEditor.VFX.UI
 
             currentWindow = this;
 
-            if (m_ViewScale != Vector3.zero)
+            /*if (m_ViewScale != Vector3.zero)
             {
                 graphView.UpdateViewTransform(m_ViewPosition, m_ViewScale);
-            }
+            }*/
         }
 
         protected void OnDisable()
@@ -172,15 +171,19 @@ namespace  UnityEditor.VFX.UI
         void OnSelectionChange()
         {
             var objs = Selection.objects;
+            VFXViewController controller = graphView.controller;
+
             if (objs != null && objs.Length == 1 && objs[0] is VisualEffectAsset)
             {
-                VFXViewController controller = graphView.controller;
-
                 if (controller == null || controller.model != objs[0] as VisualEffectAsset)
                 {
                     LoadAsset(objs[0] as VisualEffectAsset);
                 }
             }
+            /*else if( controller != null && objs.All(t => t is VFXModel && (t as VFXModel).GetGraph() == controller.graph)
+            {
+                graphView.SelectMo
+            }*/
         }
 
         void OnEnterPanel(AttachToPanelEvent e)
@@ -199,19 +202,29 @@ namespace  UnityEditor.VFX.UI
 
         void Update()
         {
+            if (graphView == null)
+                return;
             VFXViewController controller = graphView.controller;
-            if (controller != null && controller.model != null && controller.graph != null)
+            var filename = "No Asset";
+            if (controller != null)
             {
-                var graph = controller.graph;
-                var filename = m_AssetName;
-                if (!graph.saved)
+                controller.NotifyUpdate();
+                if (controller.model != null)
                 {
-                    filename += "*";
+                    var graph = controller.graph;
+                    if (graph != null)
+                    {
+                        filename = controller.model.name;
+                        if (!graph.saved)
+                        {
+                            filename += "*";
+                        }
+                        graph.RecompileIfNeeded(!autoCompile);
+                        controller.RecompileExpressionGraphIfNeeded();
+                    }
                 }
-                titleContent.text = filename;
-                graph.RecompileIfNeeded(!autoCompile);
-                controller.RecompileExpressionGraphIfNeeded();
             }
+            titleContent.text = filename;
         }
 
         [SerializeField]
@@ -222,7 +235,5 @@ namespace  UnityEditor.VFX.UI
 
         [SerializeField]
         Vector3 m_ViewScale;
-
-        private string m_AssetName;
     }
 }

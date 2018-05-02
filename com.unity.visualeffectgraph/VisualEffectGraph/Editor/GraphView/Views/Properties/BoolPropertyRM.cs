@@ -21,7 +21,7 @@ namespace UnityEditor.VFX.UI
 
         void OnValueChanged()
         {
-            m_Value = m_Toggle.on;
+            m_Value = m_Toggle.value;
             NotifyValueChanged();
         }
 
@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.UI
 
         public override void UpdateGUI(bool force)
         {
-            m_Toggle.on = m_Value;
+            m_Toggle.value = m_Value;
         }
 
         Toggle m_Toggle;
@@ -40,6 +40,14 @@ namespace UnityEditor.VFX.UI
         protected override void UpdateEnabled()
         {
             m_Toggle.SetEnabled(propertyEnabled);
+        }
+
+        protected override void UpdateIndeterminate()
+        {
+            if (indeterminate)
+                m_Toggle.AddToClassList("indeterminate");
+            else
+                m_Toggle.RemoveFromClassList("indeterminate");
         }
 
         public override bool showsEverything { get { return true; } }

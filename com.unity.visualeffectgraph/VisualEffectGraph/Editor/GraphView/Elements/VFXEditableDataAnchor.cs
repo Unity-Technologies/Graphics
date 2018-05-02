@@ -94,9 +94,6 @@ namespace UnityEditor.VFX.UI
 
     partial class VFXEditableDataAnchor : VFXDataAnchor
     {
-        IMGUIContainer  m_Container;
-
-
         PropertyRM      m_PropertyRM;
 
         VFXView m_View;
@@ -106,8 +103,8 @@ namespace UnityEditor.VFX.UI
         public static new VFXEditableDataAnchor Create(VFXDataAnchorController controller, VFXNodeUI node)
         {
             Profiler.BeginSample("VFXEditableDataAnchor.Create");
-            var anchor = new VFXEditableDataAnchor(controller.orientation, controller.direction, controller.portType, node);
 
+            var anchor = new VFXEditableDataAnchor(controller.orientation, controller.direction, controller.portType, node);
             anchor.m_EdgeConnector = new EdgeConnector<VFXDataEdge>(anchor);
             anchor.controller = controller;
             anchor.AddManipulator(anchor.m_EdgeConnector);
@@ -117,8 +114,10 @@ namespace UnityEditor.VFX.UI
 
         protected VFXEditableDataAnchor(Orientation anchorOrientation, Direction anchorDirection, Type type, VFXNodeUI node) : base(anchorOrientation, anchorDirection, type, node)
         {
+            Profiler.BeginSample("VFXEditableDataAnchor.VFXEditableDataAnchor");
             RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
             RegisterCallback<DetachFromPanelEvent>(OnDetachFromPanel);
+            Profiler.EndSample();
         }
 
         void OnAttachToPanel(AttachToPanelEvent e)
@@ -157,34 +156,29 @@ namespace UnityEditor.VFX.UI
 
         void BuildProperty()
         {
+            Profiler.BeginSample("VFXNodeUI.BuildProperty");
             if (m_PropertyRM != null)
             {
                 Remove(m_PropertyRM);
             }
-
             m_PropertyRM = PropertyRM.Create(controller, 100);
             if (m_PropertyRM != null)
             {
                 Add(m_PropertyRM);
-                if (m_Container != null)
-                    Remove(m_Container);
-                m_Container = null;
             }
+            Profiler.EndSample();
         }
-
-        Type m_EditedType;
 
         public override void SelfChange(int change)
         {
+            Profiler.BeginSample("VFXEditableDataAnchor.SelfChange");
             base.SelfChange(change);
 
             if (m_PropertyRM == null || !m_PropertyRM.IsCompatible(controller))
-            {
                 BuildProperty();
-                m_EditedType = controller.portType;
-            }
 
             OnRecompile();
+            Profiler.EndSample();
         }
 
         public void OnRecompile()
@@ -192,7 +186,9 @@ namespace UnityEditor.VFX.UI
             if (m_PropertyRM != null && controller != null)
             {
                 controller.UpdateInfos();
-                m_PropertyRM.propertyEnabled = controller.editable && controller.expandedInHierachy;
+                bool editable = controller.editable;
+                m_PropertyRM.propertyEnabled = editable && controller.expandedInHierachy;
+                m_PropertyRM.indeterminate = !editable && controller.indeterminate;
                 m_PropertyRM.Update();
             }
         }

@@ -183,21 +183,6 @@ namespace UnityEditor.VFX.UI
 
         internal static bool Show(EditorWindow mainWindow, Vector2 position, IProvider provider)
         {
-            // If the window is already open, close it instead.
-            UnityEngine.Object[] wins = Resources.FindObjectsOfTypeAll(typeof(VFXFilterWindow));
-            if (wins.Length > 0)
-            {
-                try
-                {
-                    ((EditorWindow)wins[0]).Close();
-                    return false;
-                }
-                catch (Exception)
-                {
-                    s_FilterWindow = null;
-                }
-            }
-
             // We could not use realtimeSinceStartUp since it is set to 0 when entering/exitting playmode, we assume an increasing time when comparing time.
             long nowMilliSeconds = System.DateTime.Now.Ticks / System.TimeSpan.TicksPerMillisecond;
             bool justClosed = nowMilliSeconds < s_LastClosedTime + 50;
@@ -243,6 +228,7 @@ namespace UnityEditor.VFX.UI
         private void CreateComponentTree()
         {
             var tree = new List<Element>();
+            if (m_Provider == null) return;
             m_Provider.CreateComponentTree(tree);
 
 
@@ -300,6 +286,12 @@ namespace UnityEditor.VFX.UI
 
             if (s_DirtyList)
                 CreateComponentTree();
+
+            if (m_Tree == null)
+            {
+                Close();
+                return;
+            }
 
             // Keyboard
             HandleKeyboard();

@@ -15,8 +15,16 @@ namespace UnityEditor.VFX
             {
                 return new Dictionary<string, object[]>
                 {
-                    { "m_Type", VFXLibrary.GetSlotsType().Select(o => new SerializableType(o)).ToArray() }
+                    { "m_Type", validTypes.Select(o => new SerializableType(o)).ToArray() }
                 };
+            }
+        }
+        static public IEnumerable<Type> validTypes
+        {
+            get
+            {
+                var exclude = new[] { typeof(FloatN), typeof(GPUEvent) };
+                return VFXLibrary.GetSlotsType().Except(exclude);
             }
         }
     }
@@ -63,6 +71,22 @@ namespace UnityEditor.VFX
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return inputExpression;
+        }
+
+        public override void Sanitize()
+        {
+            if (type == null)
+            {
+                // First try to force deserialization
+                if (m_Type != null)
+                {
+                    m_Type.OnAfterDeserialize();
+                }
+                // if it doesn't work set it to int.
+                if (type == null)
+                    m_Type = new SerializableType(typeof(int));
+            }
+            base.Sanitize();
         }
     }
 }

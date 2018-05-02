@@ -6,11 +6,18 @@
     position-top:0;
     background-color:#282828;
 }
+
+.ReorderableList > #ListContainer
+{
+    background-color:#383838;
+    padding-top:2;
+    padding-bottom:4;
+}
+
 .ReorderableList > * > *
 {
     flex-direction:row;
     align-items:center;
-    background-color:#383838;
 }
 
 .ReorderableList > * > *:selected

@@ -1,10 +1,10 @@
 using System;
-using System.Collections.Generic;
-using UnityEngine.Experimental.UIElements;
 using System.Linq;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX.UI
 {
@@ -36,60 +36,120 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        IDataWatchHandle m_MasterSlotHandle;
+        VFXSlot m_MasterSlot;
 
         public Type portType { get; set; }
 
-        public VFXDataAnchorController(VFXSlot model, VFXNodeController sourceNode, bool hidden) : base(model)
+        public VFXDataAnchorController(VFXSlot model, VFXNodeController sourceNode, bool hidden) : base(sourceNode.viewController, model)
         {
             m_SourceNode = sourceNode;
             m_Hidden = hidden;
             m_Expanded = expandedSelf;
 
-            portType = model.property.type;
-
-            if (model.GetMasterSlot() != null && model.GetMasterSlot() != model)
+            if (model != null)
             {
-                m_MasterSlotHandle = DataWatchService.sharedInstance.AddWatch(model.GetMasterSlot(), MasterSlotChanged);
+                portType = model.property.type;
+
+                if (model.GetMasterSlot() != null && model.GetMasterSlot() != model)
+                {
+                    m_MasterSlot = model.GetMasterSlot();
+
+                    viewController.RegisterNotification(m_MasterSlot, MasterSlotChanged);
+                }
+                ModelChanged(model);
             }
-            ModelChanged(model);
         }
 
-        void MasterSlotChanged(UnityEngine.Object obj)
+        void MasterSlotChanged()
         {
-            if (m_MasterSlotHandle == null)
+            if (m_MasterSlot == null)
                 return;
-            ModelChanged(obj);
+            ModelChanged(m_MasterSlot);
         }
 
         bool m_Expanded;
 
         protected override void ModelChanged(UnityEngine.Object obj)
         {
+            Profiler.BeginSample("VFXDataAnchorController.ModelChanged");
             if (expandedSelf != m_Expanded)
             {
                 m_Expanded = expandedSelf;
                 UpdateHiddenRecursive(m_Hidden, true);
             }
+            Profiler.BeginSample("VFXDataAnchorController.ModelChanged:UpdateInfos");
             UpdateInfos();
+            Profiler.EndSample();
 
             sourceNode.DataEdgesMightHaveChanged();
+
+            Profiler.BeginSample("VFXDataAnchorController.NotifyChange");
             NotifyChange(AnyThing);
+            Profiler.EndSample();
+            Profiler.EndSample();
         }
 
         public override void OnDisable()
         {
-            if (m_MasterSlotHandle != null)
+            if (!object.ReferenceEquals(m_MasterSlot, null))
             {
-                DataWatchService.sharedInstance.RemoveWatch(m_MasterSlotHandle);
-                m_MasterSlotHandle = null;
+                viewController.UnRegisterNotification(m_MasterSlot, MasterSlotChanged);
+                m_MasterSlot = null;
             }
             base.OnDisable();
         }
 
-        public bool HasLink()
+        public virtual bool HasLink()
         {
             return model.HasLink();
+        }
+
+        public bool CanLinkToNode(VFXNodeController nodeController)
+        {
+            if (nodeController == sourceNode)
+                return false;
+            var childrenOperators = new HashSet<IVFXSlotContainer>();
+            if (direction != Direction.Input)
+            {
+                VFXViewController.CollectChildOperator(sourceNode.slotContainer, childrenOperators);
+                return !childrenOperators.Contains(nodeController.slotContainer);
+            }
+            else
+            {
+                VFXViewController.CollectParentOperator(nodeController.slotContainer, childrenOperators);
+                return !childrenOperators.Contains(sourceNode.slotContainer);
+            }
+        }
+
+        public virtual bool CanLink(VFXDataAnchorController controller)
+        {
+            if (controller.model != null)
+            {
+                if (model.CanLink(controller.model) && controller.model.CanLink(model))
+                {
+                    if (!CanLinkToNode(controller.sourceNode))
+                        return false;
+
+                    return true;
+                }
+                return sourceNode.CouldLink(this, controller);
+            }
+
+            return controller.CanLink(this);
+        }
+
+        public virtual VFXParameter.NodeLinkedSlot CreateLinkTo(VFXDataAnchorController output)
+        {
+            var slotOutput = output != null ? output.model : null;
+            var slotInput = model;
+            sourceNode.WillCreateLink(ref slotInput, ref slotOutput);
+
+            if (slotInput != null && slotOutput != null && slotInput.Link(slotOutput))
+            {
+                return new VFXParameter.NodeLinkedSlot() {inputSlot = slotInput, outputSlot = slotOutput};
+            }
+
+            return new VFXParameter.NodeLinkedSlot();
         }
 
         public class Change
@@ -135,7 +195,15 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public object value
+        public bool indeterminate
+        {
+            get
+            {
+                return !m_SourceNode.viewController.CanGetEvaluatedContent(model);
+            }
+        }
+
+        public virtual object value
         {
             get
             {
@@ -143,11 +211,18 @@ namespace UnityEditor.VFX.UI
                 {
                     if (!editable)
                     {
-                        VFXViewController controller = m_SourceNode.viewController;
+                        VFXViewController nodeController = m_SourceNode.viewController;
 
-                        if (controller.CanGetEvaluatedContent(model))
+                        try
                         {
-                            return VFXConverter.ConvertTo(controller.GetEvaluatedContent(model), portType);
+                            if (nodeController.CanGetEvaluatedContent(model))
+                            {
+                                return VFXConverter.ConvertTo(nodeController.GetEvaluatedContent(model), portType);
+                            }
+                        }
+                        catch (System.Exception e)
+                        {
+                            Debug.LogError("Trying to get the value from expressions threw." + e.Message + " In anchor : " + name + " from node :" + sourceNode.title);
                         }
                     }
 
@@ -203,7 +278,7 @@ namespace UnityEditor.VFX.UI
             get { return m_Attributes; }
         }
 
-        public int depth
+        public virtual int depth
         {
             get
             {
@@ -252,7 +327,7 @@ namespace UnityEditor.VFX.UI
             get { return expandedSelf; }
         }
 
-        public bool editable
+        public virtual bool editable
         {
             get
             {
@@ -265,7 +340,7 @@ namespace UnityEditor.VFX.UI
                     VFXSlot slot = model;
                     while (slot != null)
                     {
-                        if (slot.LinkedSlots.Count() > 0)
+                        if (slot.HasLink())
                         {
                             editable = false;
                             break;
@@ -276,7 +351,7 @@ namespace UnityEditor.VFX.UI
 
                     foreach (VFXSlot child in model.children)
                     {
-                        if (child.LinkedSlots.Count() > 0)
+                        if (child.HasLink())
                         {
                             editable = false;
                         }
@@ -319,6 +394,113 @@ namespace UnityEditor.VFX.UI
         public void DrawGizmo(VisualEffect component)
         {
             VFXValueGizmo.Draw(this, component);
+        }
+    }
+
+    class VFXUpcommingDataAnchorController : VFXDataAnchorController
+    {
+        public VFXUpcommingDataAnchorController(VFXNodeController sourceNode, bool hidden) : base(null, sourceNode, hidden)
+        {
+        }
+
+        public override void OnDisable()
+        {
+            base.OnDisable();
+        }
+
+        public override Direction direction
+        {
+            get
+            {
+                return Direction.Input;
+            }
+        }
+
+
+        public override bool editable
+        {
+            get {return true; }
+        }
+        public override bool expandedSelf
+        {
+            get
+            {
+                return false;
+            }
+        }
+        public override bool expandable
+        {
+            get {return false; }
+        }
+        public override bool HasLink()
+        {
+            return false;
+        }
+
+        public override void UpdateInfos()
+        {
+        }
+
+        public override object value
+        {
+            get
+            {
+                return null;
+            }
+            set
+            {
+            }
+        }
+        public override int depth
+        {
+            get
+            {
+                return 0;
+            }
+        }
+        public override string name
+        {
+            get
+            {
+                return "";
+            }
+        }
+        public override bool CanLink(VFXDataAnchorController controller)
+        {
+            var op = (sourceNode as VFXCascadedOperatorController);
+
+            if (op == null)
+                return false;
+
+            if (controller is VFXUpcommingDataAnchorController)
+                return false;
+
+            if (!CanLinkToNode(controller.sourceNode))
+                return false;
+
+            return op.model.GetBestAffinityType(controller.model.property.type) != null;
+        }
+
+        public new VFXCascadedOperatorController sourceNode
+        {
+            get { return base.sourceNode as VFXCascadedOperatorController; }
+        }
+
+        public override VFXParameter.NodeLinkedSlot CreateLinkTo(VFXDataAnchorController output)
+        {
+            var slotOutput = output != null ? output.model : null;
+
+            VFXOperatorNumericCascadedUnifiedNew op = sourceNode.model;
+
+            op.AddOperand(op.GetBestAffinityType(output.model.property.type));
+
+            var slotInput = op.GetInputSlot(op.GetNbInputSlots() - 1);
+            if (slotInput != null && slotOutput != null && slotInput.Link(slotOutput))
+            {
+                return new VFXParameter.NodeLinkedSlot() {inputSlot = slotInput, outputSlot = slotOutput};
+            }
+
+            return new VFXParameter.NodeLinkedSlot();
         }
     }
 }

@@ -49,7 +49,7 @@ namespace UnityEditor.VFX.Test
         [Timeout(1000 * 10)]
         public IEnumerator CreateAssetAndComponentSpawner()
         {
-            EditorApplication.ExecuteMenuItem("Window/Game");
+            EditorApplication.ExecuteMenuItem("Window/General/Game");
 
             var graph = MakeTemporaryGraph();
 
@@ -101,7 +101,7 @@ namespace UnityEditor.VFX.Test
         [Timeout(1000 * 10)]
         public IEnumerator CreateEventStartAndStop()
         {
-            EditorApplication.ExecuteMenuItem("Window/Game");
+            EditorApplication.ExecuteMenuItem("Window/General/Game");
             var graph = MakeTemporaryGraph();
 
             var eventStart = ScriptableObject.CreateInstance<VFXBasicEvent>();
@@ -176,7 +176,7 @@ namespace UnityEditor.VFX.Test
         [Timeout(1000 * 10)]
         public IEnumerator CreateEventAttributeAndStart()
         {
-            EditorApplication.ExecuteMenuItem("Window/Game");
+            EditorApplication.ExecuteMenuItem("Window/General/Game");
             var graph = ScriptableObject.CreateInstance<VFXGraph>();
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
@@ -218,7 +218,7 @@ namespace UnityEditor.VFX.Test
         [Timeout(1000 * 10)]
         public IEnumerator CreateCustomSpawnerAndComponent()
         {
-            EditorApplication.ExecuteMenuItem("Window/Game");
+            EditorApplication.ExecuteMenuItem("Window/General/Game");
             var graph = MakeTemporaryGraph();
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
@@ -231,7 +231,8 @@ namespace UnityEditor.VFX.Test
             blockSetAttribute.SetSettingValue("attribute", "lifetime");
             spawnerInit.AddChild(blockSetAttribute);
 
-            var blockAttributeSource = ScriptableObject.CreateInstance<VFXSourceAttributeParameter>();
+            var blockAttributeSource = ScriptableObject.CreateInstance<VFXAttributeParameter>();
+            blockAttributeSource.SetSettingValue("location", VFXAttributeLocation.Source);
             blockAttributeSource.SetSettingValue("attribute", "lifetime");
 
             spawnerContext.AddChild(blockCustomSpawner);
@@ -280,7 +281,7 @@ namespace UnityEditor.VFX.Test
         [Timeout(1000 * 10)]
         public IEnumerator CreateCustomSpawnerLinkedWithSourceAttribute()
         {
-            EditorApplication.ExecuteMenuItem("Window/Game");
+            EditorApplication.ExecuteMenuItem("Window/General/Game");
             var graph = ScriptableObject.CreateInstance<VFXGraph>();
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();

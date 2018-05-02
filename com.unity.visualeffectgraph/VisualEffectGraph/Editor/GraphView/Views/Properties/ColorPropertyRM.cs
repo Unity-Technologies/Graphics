@@ -69,27 +69,43 @@ namespace UnityEditor.VFX.UI
             m_MainContainer.SetEnabled(propertyEnabled);
         }
 
+        protected override void UpdateIndeterminate()
+        {
+            m_ColorField.indeterminate = indeterminate;
+            m_RFloatField.control.indeterminate = indeterminate;
+            m_GFloatField.control.indeterminate = indeterminate;
+            m_BFloatField.control.indeterminate = indeterminate;
+        }
+
         public void OnValueChanged(ChangeEvent<Color> e)
         {
-            OnValueChanged();
+            OnValueChanged(false);
         }
 
         public void OnValueChanged(ChangeEvent<float> e)
         {
-            OnValueChanged();
+            OnValueChanged(true);
         }
 
-        public void OnValueChanged()
+        void OnValueChanged()
         {
-            Color newValue = new Color(m_RFloatField.value, m_GFloatField.value, m_BFloatField.value, m_AFloatField.value);
-            if (newValue != m_Value)
+            OnValueChanged(false);
+        }
+
+        void OnValueChanged(bool fromField)
+        {
+            if (fromField)
             {
-                m_Value = newValue;
-                NotifyValueChanged();
+                Color newValue = new Color(m_RFloatField.value, m_GFloatField.value, m_BFloatField.value, m_AFloatField.value);
+                if (newValue != m_Value)
+                {
+                    m_Value = newValue;
+                    NotifyValueChanged();
+                }
             }
             else
             {
-                newValue = m_ColorField.value;
+                Color newValue = m_ColorField.value;
                 if (newValue != m_Value)
                 {
                     m_Value = newValue;

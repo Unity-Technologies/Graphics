@@ -33,11 +33,19 @@ namespace UnityEditor.VFX.UI
                     m_Controller.UnregisterHandler(this);
                 }
                 m_Controller = value;
+                OnNewController();
                 if (m_Controller != null)
                 {
                     m_Controller.RegisterHandler(this);
                 }
             }
+        }
+
+
+        protected virtual void OnNewController()
+        {
+            if (controller != null)
+                persistenceKey = string.Format("NodeID-{0}", controller.model.GetInstanceID());
         }
 
         public VisualElement settingsContainer {get; private set; }
@@ -207,10 +215,16 @@ namespace UnityEditor.VFX.UI
                 correctOrder[0].SendToBack();
                 for (int i = 1; i < correctOrder.Length; ++i)
                 {
-                    correctOrder[i].PlaceInFront(correctOrder[i - 1]);
+                    if (container.ElementAt(i) != correctOrder[i])
+                        correctOrder[i].PlaceInFront(correctOrder[i - 1]);
                 }
             }
             Profiler.EndSample();
+        }
+
+        public void ForceUpdate()
+        {
+            SelfChange();
         }
 
         protected virtual void SelfChange()
@@ -276,22 +290,22 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public IEnumerable<Port> GetPorts(bool input, bool output)
+        public IEnumerable<VFXDataAnchor> GetPorts(bool input, bool output)
         {
             if (input)
             {
                 foreach (var child in inputContainer)
                 {
-                    if (child is Port)
-                        yield return child as Port;
+                    if (child is VFXDataAnchor)
+                        yield return child as VFXDataAnchor;
                 }
             }
             if (output)
             {
                 foreach (var child in outputContainer)
                 {
-                    if (child is Port)
-                        yield return child as Port;
+                    if (child is VFXDataAnchor)
+                        yield return child as VFXDataAnchor;
                 }
             }
         }

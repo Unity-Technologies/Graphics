@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Test")]
+    [VFXInfo(category = "Implicit")]
     class EulerIntegration : VFXBlock
     {
         public override string name { get { return "EulerIntegration"; } }

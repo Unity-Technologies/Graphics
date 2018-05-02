@@ -3,6 +3,7 @@ using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Graphing;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
@@ -13,49 +14,20 @@ namespace UnityEditor.VFX
             m_UICollapsed = false;
         }
 
-        protected IEnumerable<VFXExpression> GetRawInputExpressions()
-        {
-            List<VFXExpression> results = new List<VFXExpression>();
-            GetInputExpressionsRecursive(results, inputSlots);
-            return results;
-        }
-
-        virtual protected IEnumerable<VFXExpression> GetInputExpressions()
-        {
-            return GetRawInputExpressions();
-        }
-
-        private static void GetInputExpressionsRecursive(List<VFXExpression> results, IEnumerable<VFXSlot> slots)
+        private static void GetSlotPredicateRecursive(List<VFXSlot> result, IEnumerable<VFXSlot> slots, Func<VFXSlot, bool> fnTest)
         {
             foreach (var s in slots)
             {
-                if (s.GetExpression() != null)
-                {
-                    results.Add(s.GetExpression());
-                }
-                else
-                {
-                    GetInputExpressionsRecursive(results, s.children);
-                }
-            }
-        }
-
-        private static void GetOutputWithExpressionSlotRecursive(List<VFXSlot> result, IEnumerable<VFXSlot> slots)
-        {
-            foreach (var s in slots)
-            {
-                if (s.DefaultExpr != null) /* actually GetExpression, but this way, we avoid a recursion  */
+                if (fnTest(s))
                 {
                     result.Add(s);
                 }
                 else
                 {
-                    GetOutputWithExpressionSlotRecursive(result, s.children);
+                    GetSlotPredicateRecursive(result, s.children, fnTest);
                 }
             }
         }
-
-        protected abstract VFXExpression[] BuildExpression(VFXExpression[] inputExpression);
 
         // As connections changed can be triggered from ResyncSlots, we need to make sure it is not reentrant
         [NonSerialized]
@@ -82,7 +54,7 @@ namespace UnityEditor.VFX
             return changed;
         }
 
-        sealed override protected void OnInvalidate(VFXModel model, InvalidationCause cause)
+        protected override sealed void OnInvalidate(VFXModel model, InvalidationCause cause)
         {
             if (cause == InvalidationCause.kConnectionChanged)
             {
@@ -94,22 +66,32 @@ namespace UnityEditor.VFX
             base.OnInvalidate(model, cause);
         }
 
-        protected void SetOutputExpressions(VFXExpression[] outputExpressions)
+        public override sealed void UpdateOutputExpressions()
         {
             var outputSlotWithExpression = new List<VFXSlot>();
-            GetOutputWithExpressionSlotRecursive(outputSlotWithExpression, outputSlots);
+            var inputSlotWithExpression = new List<VFXSlot>();
+            GetSlotPredicateRecursive(outputSlotWithExpression, outputSlots, s => s.DefaultExpr != null);
+            GetSlotPredicateRecursive(inputSlotWithExpression, inputSlots, s => s.GetExpression() != null);
+
+            var inputExpressions = inputSlotWithExpression.Select(o => o.GetExpression());
+            inputExpressions = ApplyPatchInputExpression(inputExpressions);
+
+            var outputExpressions = BuildExpression(inputExpressions.ToArray());
             if (outputExpressions.Length != outputSlotWithExpression.Count)
                 throw new Exception(string.Format("Numbers of output expressions ({0}) does not match number of output (with expression)s slots ({1})", outputExpressions.Length, outputSlotWithExpression.Count));
 
             for (int i = 0; i < outputSlotWithExpression.Count; ++i)
-                outputSlotWithExpression[i].SetExpression(outputExpressions[i]);
+            {
+                var slot = outputSlotWithExpression[i];
+                slot.SetExpression(outputExpressions[i]);
+            }
         }
 
-        public override void UpdateOutputExpressions()
+        protected virtual IEnumerable<VFXExpression> ApplyPatchInputExpression(IEnumerable<VFXExpression> inputExpression)
         {
-            var inputExpressions = GetInputExpressions();
-            var outputExpressions = BuildExpression(inputExpressions.ToArray());
-            SetOutputExpressions(outputExpressions);
+            return inputExpression;
         }
+
+        protected abstract VFXExpression[] BuildExpression(VFXExpression[] inputExpression);
     }
 }

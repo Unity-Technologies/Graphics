@@ -248,7 +248,6 @@ public class VisualEffectEditor : Editor
     SerializedProperty m_ReseedOnPlay;
     SerializedProperty m_RandomSeed;
     SerializedProperty m_VFXPropertySheet;
-    bool m_useNewSerializedField = false;
 
     private Contents m_Contents;
     private Styles m_Styles;
@@ -265,7 +264,7 @@ public class VisualEffectEditor : Editor
     //private List<SlotValueBinder> m_ValueBinders = new List<SlotValueBinder>();
 
     //private VisualEffectDebugPanel m_DebugPanel;
-    private bool m_ShowDebugStats = false;
+    //private bool m_ShowDebugStats = false;
 
     void OnEnable()
     {

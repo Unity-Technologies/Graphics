@@ -34,14 +34,14 @@ namespace UnityEditor.VFX.UI
 
         public override void UpdateGUI(bool force)
         {
-            foreach (string name in System.Enum.GetNames(typeof(CoordinateSpace)))
-            {
-                if (m_Value.space.ToString() != name)
-                    m_Button.RemoveFromClassList("space" + name);
-            }
-
             if (m_Value != null)
             {
+                foreach (string name in System.Enum.GetNames(typeof(CoordinateSpace)))
+                {
+                    if (m_Value.space.ToString() != name)
+                        m_Button.RemoveFromClassList("space" + name);
+                }
+
                 m_Button.AddToClassList("space" + m_Value.space.ToString());
             }
         }
@@ -50,6 +50,11 @@ namespace UnityEditor.VFX.UI
         protected override void UpdateEnabled()
         {
             m_Button.SetEnabled(propertyEnabled);
+        }
+
+        protected override void UpdateIndeterminate()
+        {
+            m_Button.visible = !indeterminate;
         }
 
         private float spaceButtonWidth
@@ -92,6 +97,12 @@ namespace UnityEditor.VFX.UI
         {
             base.UpdateEnabled();
             m_VectorField.SetEnabled(propertyEnabled);
+        }
+
+        protected override void UpdateIndeterminate()
+        {
+            base.UpdateEnabled();
+            m_VectorField.visible = !indeterminate;
         }
 
         public override bool showsEverything { get { return true; } }

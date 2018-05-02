@@ -13,11 +13,55 @@ namespace UnityEditor
     [InitializeOnLoad]
     public static class VisualEffectAssetEditorUtility
     {
-        public const string templatePath = "Assets/VFXEditor/Editor/Templates";
+        private static string m_TemplatePath = null;
+
+        public static string templatePath
+        {
+            get
+            {
+                if (m_TemplatePath == null)
+                {
+                    var guids = AssetDatabase.FindAssets("\"Simple Particle System\" t:VisualEffectAsset");
+                    if (guids.Length == 1)
+                    {
+                        string path = AssetDatabase.GUIDToAssetPath(guids[0]);
+                        m_TemplatePath = System.IO.Path.GetDirectoryName(path);
+                    }
+                    else
+                    {
+                        string usualPath = "Assets/VFXEditor/Editor/Templates";
+
+                        bool found = false;
+                        do
+                        {
+                            foreach (var guid in guids)
+                            {
+                                string path = AssetDatabase.GUIDToAssetPath(guid);
+                                m_TemplatePath = System.IO.Path.GetDirectoryName(path);
+                                if (m_TemplatePath.EndsWith(usualPath))
+                                {
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            int index = m_TemplatePath.IndexOf('/');
+                            if (index == -1)
+                            {
+                                break;
+                            }
+                            usualPath = usualPath.Substring(index + 1);
+                        }
+                        while (!found && m_TemplatePath.Length > 0);
+                    }
+                }
+                return m_TemplatePath;
+            }
+        }
+
 
         public const string templateAssetName = "Simple Particle System.vfx";
 
-        [MenuItem("GameObject/Effects/Visual Effect", false, 10)]
+        [MenuItem("GameObject/Visual Effects/Visual Effect", false, 10)]
         public static void CreateVisualEffectGameObject(MenuCommand menuCommand)
         {
             GameObject go = new GameObject("Visual Effect");
@@ -33,7 +77,7 @@ namespace UnityEditor
             Undo.RegisterCreatedObjectUndo(go, "Create " + go.name);
         }
 
-        [MenuItem("Assets/Create/Visual Effect", false, 306)]
+        [MenuItem("Assets/Create/Visual Effects/Visual Effect Graph", false, 306)]
         public static void CreateVisualEffectAsset()
         {
             string templateString = "";

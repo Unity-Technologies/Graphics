@@ -1,8 +1,8 @@
 VFXOperatorUI.node #middle
 {
-	flex:1;
-	background-color:#363636;
-	
+    flex:1;
+    background-color:#363636;
+
 }
 
 VFXOperatorUI #title #edit
@@ -34,21 +34,47 @@ OperandInfo VFXStringField .textfield
 }
 OperandInfo .PopupButton
 {
-    width:50;
+    flex:0;
+    width:55;
+}
+
+VFXUnifiedOperatorEdit OperandInfo Label
+{
+    flex:1;
+}
+VFXUnifiedOperatorEdit OperandInfo .PopupButton
+{
+    width:80;
 }
 
 #edit-container
 {
     position-type:Absolute;
-	position-top:0;
-	position-bottom:0;
-	position-right:0;
+    position-top:0;
+    position-bottom:0;
+    position-right:0;
     position-left:0;
+    background-color:#282828;
+}
+
+#edit-container.ReorderableList > #ListContainer
+{
+    flex:1;
+}
+
+.VFXUniformOperatorEdit#edit-container
+{
+    justify-content:center;
+}
+.VFXUniformOperatorEdit#edit-container Label
+{
+    margin-left:8;
+    margin-right:8;
 }
 
 
 VFXOperatorUI.superCollapsed.VFXNodeUI.node .mainContainer > #middle
 {
-	width:0;
-	height:0;
+    width:0;
+    height:0;
 }

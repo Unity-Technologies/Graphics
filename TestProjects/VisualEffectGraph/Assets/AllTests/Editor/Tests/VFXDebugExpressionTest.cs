@@ -49,7 +49,7 @@ namespace UnityEditor.VFX.Test
         [Timeout(1000 * 10)]
         public IEnumerator CreateAssetAndComponentTotalTime()
         {
-            EditorApplication.ExecuteMenuItem("Window/Game");
+            EditorApplication.ExecuteMenuItem("Window/General/Game");
             var graph = MakeTemporaryGraph();
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();

@@ -33,6 +33,13 @@ namespace UnityEditor.VFX.UI
 
             RegisterCallback<MouseDownEvent>(OnMouseDown, Capture.Capture);
             Profiler.EndSample();
+            style.positionType = PositionType.Relative;
+        }
+
+        public override void SetPosition(Rect newPos)
+        {
+            base.SetPosition(newPos);
+            style.positionType = PositionType.Relative;
         }
 
         void OnMouseDown(MouseDownEvent e)
@@ -109,7 +116,7 @@ namespace UnityEditor.VFX.UI
                 titleContainer.AddToClassList("disabled");
             }
 
-            m_EnableToggle.on = controller.block.enabled;
+            m_EnableToggle.value = controller.block.enabled;
             if (inputContainer != null)
                 inputContainer.SetEnabled(controller.block.enabled);
             if (settingsContainer != null)

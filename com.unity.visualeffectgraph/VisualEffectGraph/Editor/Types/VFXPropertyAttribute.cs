@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using UnityEngine;
 
 namespace UnityEditor.VFX
@@ -17,6 +18,16 @@ namespace UnityEditor.VFX
     {
     }
 
+    // Attribute used to constrain a property to a Regex query
+    [System.AttributeUsage(AttributeTargets.Field, Inherited = true, AllowMultiple = false)]
+    public sealed class RegexAttribute : PropertyAttribute
+    {
+        public RegexAttribute(string _pattern, int _maxLength = int.MaxValue) { pattern = _pattern; maxLength = _maxLength; }
+
+        public string pattern { get; set; }
+        public int maxLength { get; set; }
+    }
+
     [Serializable]
     class VFXPropertyAttribute
     {
@@ -25,9 +36,10 @@ namespace UnityEditor.VFX
             { typeof(RangeAttribute), o => new VFXPropertyAttribute(Type.kRange, (o as RangeAttribute).min, (o as RangeAttribute).max) },
             { typeof(MinAttribute), o => new VFXPropertyAttribute(Type.kMin, (o as MinAttribute).min) },
             { typeof(NormalizeAttribute), o => new VFXPropertyAttribute(Type.kNormalize) },
-            { typeof(TooltipAttribute), o => new VFXPropertyAttribute((o as TooltipAttribute).tooltip) },
+            { typeof(TooltipAttribute), o => new VFXPropertyAttribute(Type.kTooltip, (o as TooltipAttribute).tooltip) },
             { typeof(AngleAttribute), o => new VFXPropertyAttribute(Type.kAngle) },
             { typeof(ShowAsColorAttribute), o => new VFXPropertyAttribute(Type.kColor) },
+            { typeof(RegexAttribute), o => new VFXPropertyAttribute(Type.kRegex, (o as RegexAttribute).pattern, (o as RegexAttribute).maxLength) },
         };
 
         public static VFXPropertyAttribute[] Create(params object[] attributes)
@@ -56,6 +68,7 @@ namespace UnityEditor.VFX
                         case Type.kTooltip:
                         case Type.kAngle:
                         case Type.kColor:
+                        case Type.kRegex:
                             break;
                         default:
                             throw new NotImplementedException();
@@ -89,6 +102,7 @@ namespace UnityEditor.VFX
                             label += " (Angle)";
                             break;
                         case Type.kColor:
+                        case Type.kRegex:
                             break;
                         default:
                             throw new NotImplementedException();
@@ -127,6 +141,22 @@ namespace UnityEditor.VFX
             return false;
         }
 
+        public static string ApplyRegex(VFXPropertyAttribute[] attributes, object obj)
+        {
+            if (attributes != null)
+            {
+                var attrib = attributes.FirstOrDefault(o => o.m_Type == Type.kRegex);
+                if (attrib != null)
+                {
+                    string str = (string)obj;
+                    str = Regex.Replace(str, attrib.m_Regex, "");
+                    return str.Substring(0, Math.Min(str.Length, attrib.m_RegexMaxLength));
+                }
+            }
+
+            return null;
+        }
+
         private enum Type
         {
             kRange,
@@ -134,7 +164,8 @@ namespace UnityEditor.VFX
             kNormalize,
             kTooltip,
             kAngle,
-            kColor
+            kColor,
+            kRegex
         }
 
         private VFXPropertyAttribute(Type type, float min = -Mathf.Infinity, float max = Mathf.Infinity)
@@ -142,15 +173,23 @@ namespace UnityEditor.VFX
             m_Type = type;
             m_Min = min;
             m_Max = max;
-            m_Tooltip = null;
         }
 
-        private VFXPropertyAttribute(string tooltip)
+        private VFXPropertyAttribute(Type type, string str, int regexMaxLength = int.MaxValue)
         {
-            m_Type = Type.kTooltip;
+            m_Type = type;
             m_Min = -Mathf.Infinity;
             m_Max = Mathf.Infinity;
-            m_Tooltip = tooltip;
+
+            if (type == Type.kTooltip)
+            {
+                m_Tooltip = str;
+            }
+            else
+            {
+                m_Regex = str;
+                m_RegexMaxLength = regexMaxLength;
+            }
         }
 
         [SerializeField]
@@ -161,5 +200,9 @@ namespace UnityEditor.VFX
         private float m_Max;
         [SerializeField]
         private string m_Tooltip;
+        [SerializeField]
+        private string m_Regex;
+        [SerializeField]
+        private int m_RegexMaxLength;
     }
 }

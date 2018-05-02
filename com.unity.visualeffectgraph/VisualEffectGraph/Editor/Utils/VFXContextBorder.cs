@@ -24,11 +24,6 @@ namespace UnityEditor.VFX.UI
 
         static Mesh s_Mesh;
 
-        static VFXContextBorder()
-        {
-            Debug.Log("VFXContextBorder registered");
-        }
-
         public VFXContextBorder()
         {
             if (s_Mesh == null)
@@ -116,18 +111,20 @@ namespace UnityEditor.VFX.UI
             styles.ApplyCustomProperty("end-color", ref m_EndColor);
         }
 
-        internal override void DoRepaint(IStylePainter painter)
+        public override void DoRepaint()
         {
             VFXView view = GetFirstAncestorOfType<VFXView>();
             if (view != null && m_Mat != null)
             {
                 float radius = style.borderRadius;
 
+                float realBorder = style.borderLeftWidth.value * view.scale;
+
                 Vector4 size = new Vector4(layout.width * .5f, layout.height * 0.5f, 0, 0);
-                m_Mat.SetVector("_Size", size - new Vector4(radius, radius, 0, 0));
-                m_Mat.SetFloat("_Border", style.borderLeftWidth);
+                m_Mat.SetVector("_Size", size);
+                m_Mat.SetFloat("_Border", realBorder < 1.75f ?  1.75f / view.scale : style.borderLeftWidth.value);
                 m_Mat.SetFloat("_Radius", radius);
-                m_Mat.SetFloat("_PixelScale", view.scale);
+
                 m_Mat.SetColor("_ColorStart", (QualitySettings.activeColorSpace == ColorSpace.Linear) ? startColor.gamma : startColor);
                 m_Mat.SetColor("_ColorEnd", (QualitySettings.activeColorSpace == ColorSpace.Linear) ? endColor.gamma : endColor);
 

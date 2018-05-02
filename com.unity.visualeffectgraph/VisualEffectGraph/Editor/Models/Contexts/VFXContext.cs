@@ -20,11 +20,12 @@ namespace UnityEditor.VFX
         kUpdate = 1 << 2,
         kOutput = 1 << 3,
         kEvent = 1 << 4,
+        kSpawnerGPU = 1 << 5,
 
         kInitAndUpdate = kInit | kUpdate,
         kInitAndUpdateAndOutput = kInit | kUpdate | kOutput,
         kUpdateAndOutput = kUpdate | kOutput,
-        kAll = kInit | kUpdate | kOutput | kSpawner,
+        kAll = kInit | kUpdate | kOutput | kSpawner | kSpawnerGPU,
     };
 
     [Flags]
@@ -33,8 +34,7 @@ namespace UnityEditor.VFX
         kNone =         0,
         kSpawnEvent =   1 << 0,
         kParticle =     1 << 1,
-        kEvent =        1 << 2,
-        kMesh =         1 << 3,
+        kMesh =         1 << 2,
     };
 
     [Serializable]
@@ -68,6 +68,14 @@ namespace UnityEditor.VFX
 
         public VFXContext(VFXContextType contextType) : this(contextType, VFXDataType.kNone, VFXDataType.kNone)
         {}
+
+        // Called by VFXData
+        public static T CreateImplicitContext<T>(VFXData data) where T : VFXContext
+        {
+            var context = ScriptableObject.CreateInstance<T>();
+            context.m_Data = data;
+            return context;
+        }
 
         public override void OnEnable()
         {
@@ -239,6 +247,15 @@ namespace UnityEditor.VFX
                 ||  contextType == VFXContextType.kInit;
         }
 
+        private static bool IsExclusiveLink(VFXContextType from, VFXContextType to)
+        {
+            if (from == to)
+                return false;
+            if (from == VFXContextType.kSpawner)
+                return false;
+            return true;
+        }
+
         private static void InnerLink(VFXContext from, VFXContext to, int fromIndex, int toIndex, bool notify = true)
         {
             if (!CanLink(from, to, fromIndex, toIndex))
@@ -247,7 +264,7 @@ namespace UnityEditor.VFX
             // Handle constraints on connections
             foreach (var link in from.m_OutputFlowSlot[fromIndex].link.ToArray())
             {
-                if (!link.context.CanLinkFromMany() || link.context.contextType != to.contextType)
+                if (!link.context.CanLinkFromMany() || IsExclusiveLink(link.context.contextType, to.contextType))
                 {
                     InnerUnlink(from, link.context, fromIndex, toIndex, notify);
                 }
@@ -255,7 +272,7 @@ namespace UnityEditor.VFX
 
             foreach (var link in to.m_InputFlowSlot[toIndex].link.ToArray())
             {
-                if (!link.context.CanLinkToMany() || link.context.contextType != from.contextType)
+                if (!link.context.CanLinkToMany() || IsExclusiveLink(link.context.contextType, from.contextType))
                 {
                     InnerUnlink(link.context, to, fromIndex, toIndex, notify);
                 }
@@ -365,6 +382,30 @@ namespace UnityEditor.VFX
             }
         }
 
+        private IEnumerable<IVFXSlotContainer> allSlotContainer
+        {
+            get
+            {
+                return activeChildrenWithImplicit.OfType<IVFXSlotContainer>().Concat(Enumerable.Repeat(this as IVFXSlotContainer, 1));
+            }
+        }
+
+        public IEnumerable<VFXSlot> allLinkedOutputSlot
+        {
+            get
+            {
+                return allSlotContainer.SelectMany(o => o.outputSlots.SelectMany(s => s.LinkedSlots));
+            }
+        }
+
+        public IEnumerable<VFXSlot> allLinkedInputSlot
+        {
+            get
+            {
+                return allSlotContainer.SelectMany(o => o.inputSlots.SelectMany(s => s.LinkedSlots));
+            }
+        }
+
         // Not serialized nor exposed
         private VFXContextType m_ContextType;
         private VFXDataType m_InputType;
@@ -380,9 +421,6 @@ namespace UnityEditor.VFX
         private VFXContextSlot[] m_InputFlowSlot;
         [SerializeField]
         private VFXContextSlot[] m_OutputFlowSlot;
-
-        [NonSerialized]
-        private bool m_Compiled = false;
 
         public CoordinateSpace space
         {

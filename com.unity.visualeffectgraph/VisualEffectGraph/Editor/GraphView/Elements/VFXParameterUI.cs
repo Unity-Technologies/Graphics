@@ -81,11 +81,15 @@ namespace UnityEditor.VFX.UI
 
     class VFXParameterUI : VFXNodeUI
     {
-        Image m_Icon;
         public VFXParameterUI() : base(UXMLHelper.GetUXMLPath("uxml/VFXParameter.uxml"))
         {
             RemoveFromClassList("VFXNodeUI");
             AddStyleSheetPath("VFXParameter");
+
+            RegisterCallback<MouseEnterEvent>(OnMouseHover);
+            RegisterCallback<MouseLeaveEvent>(OnMouseHover);
+
+            m_ExposedIcon = this.Q<Image>("exposed-icon");
         }
 
         public new VFXParameterNodeController controller
@@ -103,9 +107,14 @@ namespace UnityEditor.VFX.UI
             return VFXParameterDataAnchor.Create(controller, node);
         }
 
+        Image m_ExposedIcon;
+
         protected override void SelfChange()
         {
             base.SelfChange();
+
+            if (m_ExposedIcon != null)
+                m_ExposedIcon.visible = controller.parentController.exposed;
 
             if (controller.parentController.exposed)
             {
@@ -117,24 +126,20 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        protected internal override void ExecuteDefaultAction(EventBase evt)
+        void OnMouseHover(EventBase evt)
         {
-            if (evt.GetEventTypeId() == MouseEnterEvent.TypeId() || evt.GetEventTypeId() == MouseLeaveEvent.TypeId())
+            VFXView view = GetFirstAncestorOfType<VFXView>();
+            if (view != null)
             {
-                VFXView view = GetFirstAncestorOfType<VFXView>();
-                if (view != null)
-                {
-                    VFXBlackboard blackboard = view.blackboard;
+                VFXBlackboard blackboard = view.blackboard;
 
-                    VFXBlackboardRow row = blackboard.GetRowFromController(controller.parentController);
+                VFXBlackboardRow row = blackboard.GetRowFromController(controller.parentController);
 
-                    if (evt.GetEventTypeId() == MouseEnterEvent.TypeId())
-                        row.AddToClassList("hovered");
-                    else
-                        row.RemoveFromClassList("hovered");
-                }
+                if (evt.GetEventTypeId() == MouseEnterEvent.TypeId())
+                    row.AddToClassList("hovered");
+                else
+                    row.RemoveFromClassList("hovered");
             }
-            base.ExecuteDefaultAction(evt);
         }
     }
 }

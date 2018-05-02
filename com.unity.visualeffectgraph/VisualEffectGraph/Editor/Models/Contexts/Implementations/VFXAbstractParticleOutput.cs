@@ -51,6 +51,13 @@ namespace UnityEditor.VFX
             Always
         }
 
+        public enum SortMode
+        {
+            Auto,
+            Off,
+            On
+        }
+
         [VFXSetting, SerializeField, Header("Render States")]
         protected BlendMode blendMode = BlendMode.Alpha;
 
@@ -73,12 +80,17 @@ namespace UnityEditor.VFX
         protected int sortPriority = 0;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected SortMode sort = SortMode.Auto;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool indirectDraw = false;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool preRefraction = false;
 
-        public bool HasIndirectDraw() { return indirectDraw; }
+        public bool HasIndirectDraw()   { return indirectDraw || HasSorting(); }
+        public bool HasSorting()        { return sort == SortMode.On || (sort == SortMode.Auto && (blendMode == BlendMode.Alpha || blendMode == BlendMode.AlphaPremultiplied)); }
+        public bool NeedsDeadListCount() { return HasIndirectDraw() && (taskType == VFXTaskType.ParticleQuadOutput || taskType == VFXTaskType.ParticleHexahedronOutput); } // Should take the capacity into account to avoid false positive
 
         protected VFXAbstractParticleOutput() : base(VFXContextType.kOutput, VFXDataType.kParticle, VFXDataType.kNone) {}
 
@@ -168,6 +180,9 @@ namespace UnityEditor.VFX
                     if (flipbookMode == FlipbookMode.FlipbookBlend)
                         yield return "USE_FLIPBOOK_INTERPOLATION";
                 }
+
+                if (NeedsDeadListCount())
+                    yield return "USE_DEAD_LIST_COUNT";
             }
         }
 

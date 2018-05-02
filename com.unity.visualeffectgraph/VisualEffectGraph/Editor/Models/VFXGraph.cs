@@ -13,8 +13,7 @@ namespace UnityEditor.VFX
 #if !USE_SHADER_AS_SUBASSET
     public class VFXCacheManager : EditorWindow
     {
-
-        [MenuItem("VFX Editor/Build All VFXs")]
+        //[MenuItem("VFX Editor/Build All VFXs")]
         public static void Build()
         {
             var vfxAssets = new List<VisualEffectAsset>();

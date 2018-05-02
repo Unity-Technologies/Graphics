@@ -38,18 +38,28 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute TexIndex            = new VFXAttribute("texIndex", VFXValueType.Float);
         public static readonly VFXAttribute Pivot               = new VFXAttribute("pivot", VFXValueType.Float3);
         public static readonly VFXAttribute ParticleId          = new VFXAttribute("particleId", VFXValueType.Uint32);
+        public static readonly VFXAttribute ParticleIndex       = new VFXAttribute("particleIndex", VFXValueType.Uint32);
         public static readonly VFXAttribute AxisX               = new VFXAttribute("axisX", VFXValue.Constant(Vector3.right));
         public static readonly VFXAttribute AxisY               = new VFXAttribute("axisY", VFXValue.Constant(Vector3.up));
         public static readonly VFXAttribute AxisZ               = new VFXAttribute("axisZ", VFXValue.Constant(Vector3.forward));
         public static readonly VFXAttribute Alive               = new VFXAttribute("alive", VFXValue.Constant(true));
         public static readonly VFXAttribute Mass                = new VFXAttribute("mass", VFXValue.Constant(1.0f));
         public static readonly VFXAttribute TargetPosition      = new VFXAttribute("targetPosition", VFXValueType.Float3);
-        public static readonly VFXAttribute[] AllAttributeReadOnly = new VFXAttribute[] { Seed, ParticleId };
-        public static readonly string[] AllReadOnly = AllAttributeReadOnly.Select(e => e.name).ToArray();
+        public static readonly VFXAttribute EventCount          = new VFXAttribute("eventCount", VFXValueType.Uint32);
 
         public static readonly VFXAttribute[] AllAttribute = VFXReflectionHelper.CollectStaticReadOnlyExpression<VFXAttribute>(typeof(VFXAttribute));
+        public static readonly VFXAttribute[] AllAttributeReadOnly = new VFXAttribute[] { Seed, ParticleId, ParticleIndex };
+        public static readonly VFXAttribute[] AllAttributeWriteOnly = new VFXAttribute[] { EventCount };
+        public static readonly VFXAttribute[] AllAttributeLocalOnly = new VFXAttribute[] { EventCount };
+
         public static readonly string[] All = AllAttribute.Select(e => e.name).ToArray();
+        public static readonly string[] AllReadOnly = AllAttributeReadOnly.Select(e => e.name).ToArray();
+        public static readonly string[] AllLocalOnly = AllAttributeLocalOnly.Select(e => e.name).ToArray();
+        public static readonly string[] AllWriteOnly = AllAttributeWriteOnly.Select(e => e.name).ToArray();
+
+        public static readonly string[] AllExpectLocalOnly = All.Except(AllLocalOnly).ToArray();
         public static readonly string[] AllWritable = All.Except(AllReadOnly).ToArray();
+        public static readonly string[] AllReadWritable = All.Except(AllReadOnly).Except(AllWriteOnly).ToArray();
 
         static private VFXValue GetValueFromType(VFXValueType type)
         {
@@ -80,25 +90,6 @@ namespace UnityEditor.VFX
 
         public static VFXAttribute Find(string attributeName)
         {
-            // TODO temp to avoid errors when loading graphs. Will be removed at some point
-            if (attributeName == "size")
-            {
-                Debug.LogWarning("Found an attribute size which is deprecated. Using sizeX instead. Please fix that!");
-                attributeName = "sizeX";
-            }
-
-            if (attributeName == "angle")
-            {
-                Debug.LogWarning("Found an attribute angle which is deprecated. Using angleZ instead. Please fix that!");
-                attributeName = "angleZ";
-            }
-
-            if (attributeName == "phase")
-            {
-                Debug.LogWarning("Found an attribute phase which is deprecated. Use random operator instead. Please fix that!");
-                return new VFXAttribute("phase", VFXValueType.Float);
-            }
-
             if (!AllAttribute.Any(e => e.name == attributeName))
             {
                 throw new Exception(string.Format("Unable to find attribute expression : {0}", attributeName));
@@ -135,6 +126,7 @@ namespace UnityEditor.VFX
     {
         Current = 0,
         Source = 1,
+        Initial = 2
     }
 
     sealed class VFXAttributeExpression : VFXExpression

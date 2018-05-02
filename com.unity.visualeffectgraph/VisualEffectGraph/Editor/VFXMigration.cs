@@ -20,8 +20,8 @@ public class VFXMigration
     }
     */
 
-    [MenuItem("VFX Editor/Resave All VFX assets")]
-    static void Resave()
+    //[MenuItem("VFX Editor/Resave All VFX assets")]
+    public static void Resave()
     {
         ResaveFolder("Assets");
 

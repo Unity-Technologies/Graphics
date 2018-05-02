@@ -8,8 +8,23 @@ using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX
 {
+    class VFXObject : ScriptableObject
+    {
+        public Action<VFXObject> onModified;
+        void OnValidate()
+        {
+            Modified();
+        }
+
+        public void Modified()
+        {
+            if (onModified != null)
+                onModified(this);
+        }
+    }
+
     [Serializable]
-    abstract class VFXModel : ScriptableObject
+    abstract class VFXModel : VFXObject
     {
         public enum InvalidationCause
         {
@@ -24,6 +39,7 @@ namespace UnityEditor.VFX
         }
 
         public new virtual string name  { get { return string.Empty; } }
+        public virtual string libraryName  { get { return name; } }
 
         public delegate void InvalidateEvent(VFXModel model, InvalidationCause cause);
 
@@ -129,6 +145,19 @@ namespace UnityEditor.VFX
             return m_Parent;
         }
 
+        public T GetFirstParentOfType<T>() where T : VFXModel
+        {
+            var parent = GetParent();
+
+            if (parent == null)
+                return null;
+
+            if (parent is T)
+                return parent as T;
+
+            return parent.GetFirstParentOfType<T>();
+        }
+
         public void Attach(VFXModel parent, bool notify = true)
         {
             parent.AddChild(this, -1, notify);
@@ -227,6 +256,7 @@ namespace UnityEditor.VFX
 
         public void Invalidate(InvalidationCause cause)
         {
+            Modified();
             string sampleName = GetType().Name + "-" + name + "-" + cause;
             Profiler.BeginSample("VFXEditor.Invalidate" + sampleName);
             try
@@ -288,6 +318,40 @@ namespace UnityEditor.VFX
             if (parent != null)
                 return parent.GetGraph();
             return null;
+        }
+
+        public static void ReplaceModel(VFXModel dst, VFXModel src, bool notify = true)
+        {
+            // UI
+            dst.m_UIPosition = src.m_UIPosition;
+            dst.m_UICollapsed = src.m_UICollapsed;
+            dst.m_UISuperCollapsed = src.m_UISuperCollapsed;
+
+            if (notify)
+                dst.Invalidate(InvalidationCause.kUIChanged);
+
+            VFXGraph graph = src.GetGraph();
+            if (graph != null && graph.UIInfos != null && graph.UIInfos.groupInfos != null)
+            {
+                // Update group nodes
+                foreach (var groupInfo in graph.UIInfos.groupInfos)
+                    if (groupInfo.contents != null)
+                        for (int i = 0; i < groupInfo.contents.Length; ++i)
+                            if (groupInfo.contents[i].model == src)
+                                groupInfo.contents[i].model = dst;
+            }
+
+            if (dst is VFXBlock && src is VFXBlock)
+            {
+                ((VFXBlock)dst).enabled = ((VFXBlock)src).enabled;
+            }
+
+            // Replace model
+            var parent = src.GetParent();
+            int index = parent.GetIndex(src);
+            src.Detach(notify);
+            if (parent)
+                parent.AddChild(dst, index, notify);
         }
 
         [SerializeField]

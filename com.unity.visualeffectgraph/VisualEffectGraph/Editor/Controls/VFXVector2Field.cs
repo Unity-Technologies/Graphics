@@ -8,55 +8,31 @@ using FloatField = UnityEditor.VFX.UIElements.VFXLabeledField<UnityEditor.VFX.UI
 
 namespace UnityEditor.VFX.UIElements
 {
-    class VFXVector2Field : VFXControl<Vector2>
+    class VFXVector2Field : VFXVectorNField<Vector2>
     {
-        FloatField m_X;
-        FloatField m_Y;
-        void CreateTextField()
+        protected override  int componentCount {get {return 2; }}
+        protected override void SetValueComponent(ref Vector2 value, int i, float componentValue)
         {
-            m_X = new FloatField("X");
-            m_Y = new FloatField("Y");
-
-            m_X.label.AddToClassList("first");
-            m_X.control.AddToClassList("fieldContainer");
-            m_Y.control.AddToClassList("fieldContainer");
-            m_X.AddToClassList("fieldContainer");
-            m_Y.AddToClassList("fieldContainer");
-
-            m_X.RegisterCallback<ChangeEvent<float>>(OnXValueChanged);
-            m_Y.RegisterCallback<ChangeEvent<float>>(OnYValueChanged);
+            switch (i)
+            {
+                case 0:
+                    value.x = componentValue;
+                    break;
+                default:
+                    value.y = componentValue;
+                    break;
+            }
         }
 
-        void OnXValueChanged(ChangeEvent<float> e)
+        protected override float GetValueComponent(ref Vector2 value, int i)
         {
-            Vector2 newValue = value;
-            newValue.x = (float)m_X.value;
-            SetValueAndNotify(newValue);
-        }
-
-        void OnYValueChanged(ChangeEvent<float> e)
-        {
-            Vector2 newValue = value;
-            newValue.y = (float)m_Y.value;
-            SetValueAndNotify(newValue);
-        }
-
-        public VFXVector2Field()
-        {
-            CreateTextField();
-
-            style.flexDirection = FlexDirection.Row;
-            Add(m_X);
-            Add(m_Y);
-        }
-
-        protected override void ValueToGUI(bool force)
-        {
-            if (!m_X.control.hasFocus || force)
-                m_X.value = value.x;
-
-            if (!m_Y.control.hasFocus || force)
-                m_Y.value = value.y;
+            switch (i)
+            {
+                case 0:
+                    return value.x;
+                default:
+                    return value.y;
+            }
         }
     }
 }

@@ -27,9 +27,10 @@ public class VisualEffectAssetEditor : Editor
 {
     ReorderableList outputList;
 
-    List<VFXAbstractParticleOutput> m_Outputs = new List<VFXAbstractParticleOutput>();
+    //List<VFXAbstractParticleOutput> m_Outputs = new List<VFXAbstractParticleOutput>();
     void OnEnable()
     {
+        /*
         VisualEffectAsset asset = (VisualEffectAsset)target;
         /*
         VFXGraph graph = asset.GetOrCreateGraph();
@@ -63,8 +64,8 @@ public class VisualEffectAssetEditor : Editor
 
 
         UnityObject[] objects = AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(asset));
-        
-        foreach (var shader in objects.Where(t=>t is Shader || t is ComputeShader))
+
+        foreach (var shader in objects.Where(t => t is Shader || t is ComputeShader))
         {
             {
                 GUILayout.BeginHorizontal();
@@ -91,16 +92,15 @@ public class VisualEffectAssetEditor : Editor
     {
         string source = GetShaderSource(shader);
 
-        if( ! string.IsNullOrEmpty(source))
+        if (!string.IsNullOrEmpty(source))
         {
             string path = AssetDatabase.GetAssetPath(target);
             string name = Path.GetFileNameWithoutExtension(path);
-            string fileName = "Temp/" + name + "_" + shader.name.Replace("/","_");
+            string fileName = "Temp/" + name + "_" + shader.name.Replace("/", "_");
             File.WriteAllText(fileName, source);
             EditorUtility.RevealInFinder(fileName);
         }
     }
-
 
     string GetShaderSource(UnityObject shader)
     {
@@ -108,7 +108,7 @@ public class VisualEffectAssetEditor : Editor
         VisualEffectResource resource = asset.GetResource();
 
         int index = resource.GetShaderIndex(shader);
-        if( index < 0 || index >= resource.shaderSources.Length)
+        if (index < 0 || index >= resource.shaderSources.Length)
             return "";
 
         return resource.shaderSources[index].source;

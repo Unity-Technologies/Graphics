@@ -56,13 +56,7 @@ namespace UnityEditor.VFX
                 try
                 {
                     if (IsMasterSlot())
-                    {
-                        GetMasterData().m_Value.Set(value);
-                        UpdateDefaultExpressionValue();
-
-                        if (owner != null)
-                            Invalidate(InvalidationCause.kParamChanged);
-                    }
+                        SetValueInternal(value, true);
                     else
                     {
                         object parentValue = GetParent().value;
@@ -80,6 +74,18 @@ namespace UnityEditor.VFX
                     Debug.LogError(string.Format("Exception while setting value for slot {0} of type {1}: {2}\n{3}", name, GetType(), e, e.StackTrace));
                 }
             }
+        }
+
+        private void SetValueInternal(object value, bool notify)
+        {
+            if (!IsMasterSlot()) // Must be a master node
+                throw new InvalidOperationException();
+
+            GetMasterData().m_Value.Set(value);
+            UpdateDefaultExpressionValue();
+
+            if (notify && owner != null)
+                Invalidate(InvalidationCause.kParamChanged);
         }
 
         public string path
@@ -283,17 +289,31 @@ namespace UnityEditor.VFX
             throw new InvalidOperationException(string.Format("Unable to create slot for property {0} of type {1}", property.name, property.type));
         }
 
+        public static void TransferLinksAndValue(VFXSlot dst, VFXSlot src, bool notify)
+        {
+            // Transfer value only if src can hold it (master slot)
+            if (dst.IsMasterSlot())
+                dst.SetValueInternal(src.value, notify);
+
+            TransferLinks(dst, src, notify);
+        }
+
         public static void TransferLinks(VFXSlot dst, VFXSlot src, bool notify)
         {
             var links = src.LinkedSlots.ToArray();
             int index = 0;
+
             while (index < links.Count())
             {
                 var link = links[index];
                 if (dst.CanLink(link))
                 {
                     dst.Link(link, notify);
+
                     src.Unlink(link, notify);
+
+                    dst.owner.TransferLinkMySlot(src, dst, link);
+                    link.owner.TransferLinkOtherSlot(link, src, dst);
                 }
                 ++index;
             }

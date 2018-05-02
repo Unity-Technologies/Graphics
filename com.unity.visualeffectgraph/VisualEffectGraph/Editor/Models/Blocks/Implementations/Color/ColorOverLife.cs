@@ -30,9 +30,9 @@ namespace UnityEditor.VFX.Block
                 yield return new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.Read);
 
                 if ((mode & ColorApplicationMode.Color) != 0)
-                    yield return new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.Write);
+                    yield return new VFXAttributeInfo(VFXAttribute.Color, ColorComposition == AttributeCompositionMode.Overwrite ? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite);
                 if ((mode & ColorApplicationMode.Alpha) != 0)
-                    yield return new VFXAttributeInfo(VFXAttribute.Alpha, VFXAttributeMode.Write);
+                    yield return new VFXAttributeInfo(VFXAttribute.Alpha, AlphaComposition == AttributeCompositionMode.Overwrite ? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite);
             }
         }
 
@@ -59,7 +59,7 @@ namespace UnityEditor.VFX.Block
         public class InputProperties
         {
             [Tooltip("The over-life Gradient")]
-            public Gradient gradient;
+            public Gradient gradient = VFXResources.defaultResources.gradient;
             [Tooltip("Color blending factor")]
             [Range(0.0f, 1.0f)]
             public float BlendColor = 0.5f;

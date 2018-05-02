@@ -41,11 +41,11 @@ namespace UnityEditor.VFX
         [SerializeField]
         public VFXPropertyAttribute[] attributes;
 
-        public VFXProperty(Type type, string name)
+        public VFXProperty(Type type, string name, VFXPropertyAttribute[] attributes = null)
         {
             m_serializedType = type;
             this.name = name;
-            attributes = null;
+            this.attributes = attributes;
         }
 
         public VFXProperty(FieldInfo info)
@@ -85,6 +85,7 @@ namespace UnityEditor.VFX
 
         public bool IsExpandable()
         {
+            if (type == null) return false;
             return !type.IsPrimitive && !typeof(UnityEngine.Object).IsAssignableFrom(type) && type != typeof(AnimationCurve) && type != typeof(Matrix4x4);
         }
     }

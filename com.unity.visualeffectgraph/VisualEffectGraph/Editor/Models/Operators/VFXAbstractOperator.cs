@@ -143,9 +143,8 @@ namespace UnityEditor.VFX
         }
 
         //Convert automatically input expression with diverging floatN size to floatMax
-        override protected IEnumerable<VFXExpression> GetInputExpressions()
+        protected override IEnumerable<VFXExpression> ApplyPatchInputExpression(IEnumerable<VFXExpression> inputExpression)
         {
-            var inputExpression = GetRawInputExpressions();
             return VFXOperatorUtility.UpcastAllFloatN(inputExpression, m_FallbackValue);
         }
     }
@@ -164,20 +163,6 @@ namespace UnityEditor.VFX
             }
         }
     }
-    abstract class VFXOperatorFloatUnifiedWithVariadicOutputNew : VFXOperatorFloatUnified
-    {
-        protected override IEnumerable<VFXPropertyWithValue> outputProperties
-        {
-            get
-            {
-                const string outputName = "o";
-
-                Type slotType = VFXTypeUtility.GetFloatTypeFromComponentCount(VFXTypeUtility.GetMaxComponentCountDirect(inputSlots));
-                if (slotType != null)
-                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, outputName));
-            }
-        }
-    }
 
     abstract class VFXOperatorUnaryFloatOperation : VFXOperatorFloatUnifiedWithVariadicOutput
     {
@@ -190,7 +175,7 @@ namespace UnityEditor.VFX
 
     abstract class VFXOperatorBinaryFloatCascadableOperation : VFXOperatorFloatUnifiedWithVariadicOutput
     {
-        protected override IEnumerable<VFXPropertyWithValue> inputProperties
+        protected override sealed IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
             {
@@ -206,20 +191,20 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override void UpdateOutputExpressions()
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            var inputExpression = GetInputExpressions();
-            //Process aggregate two by two element until result
             var outputExpression = new Stack<VFXExpression>(inputExpression.Reverse());
             while (outputExpression.Count > 1)
             {
                 var a = outputExpression.Pop();
                 var b = outputExpression.Pop();
-                var compose = BuildExpression(new[] { a, b })[0];
+                var compose = ComposeExpression(a, b);
                 outputExpression.Push(compose);
             }
-            SetOutputExpressions(outputExpression.ToArray());
+            return outputExpression.ToArray();
         }
+
+        protected abstract VFXExpression ComposeExpression(VFXExpression a, VFXExpression b);
     }
 
     abstract class VFXOperatorBinaryFloatOperationOne : VFXOperatorBinaryFloatCascadableOperation

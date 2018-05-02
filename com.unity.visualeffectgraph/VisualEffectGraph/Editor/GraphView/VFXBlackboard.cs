@@ -13,6 +13,11 @@ namespace  UnityEditor.VFX.UI
 {
     class VFXBlackboardPropertyView : VisualElement, IControlledElement, IControlledElement<VFXParameterController>
     {
+        public VFXBlackboardPropertyView()
+        {
+            RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
+        }
+
         public VFXBlackboardRow owner
         {
             get; set;
@@ -60,7 +65,7 @@ namespace  UnityEditor.VFX.UI
         {
             foreach (var port in allProperties)
             {
-                float portLabelWidth = port.GetPreferredLabelWidth();
+                float portLabelWidth = port.GetPreferredLabelWidth() + 5;
 
                 if (labelWidth < portLabelWidth)
                 {
@@ -85,7 +90,7 @@ namespace  UnityEditor.VFX.UI
             int cpt = 0;
             foreach (var subController in subControllers)
             {
-                PropertyRM prop = PropertyRM.Create(subController, 55);
+                PropertyRM prop = PropertyRM.Create(subController, 85);
                 if (prop != null)
                 {
                     m_SubProperties.Add(prop);
@@ -220,14 +225,27 @@ namespace  UnityEditor.VFX.UI
                 }
             }
 
-            float labelWidth = 70;
-            GetPreferedWidths(ref labelWidth);
-            ApplyWidths(labelWidth);
 
             foreach (var prop in allProperties)
             {
                 prop.Update();
             }
+        }
+
+        void OnAttachToPanel(AttachToPanelEvent e)
+        {
+            RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+        }
+
+        void OnGeometryChanged(GeometryChangedEvent e)
+        {
+            if (panel != null)
+            {
+                float labelWidth = 70;
+                GetPreferedWidths(ref labelWidth);
+                ApplyWidths(labelWidth);
+            }
+            UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
         }
     }
     class VFXBlackboardField : BlackboardField, IControlledElement, IControlledElement<VFXParameterController>
@@ -238,7 +256,10 @@ namespace  UnityEditor.VFX.UI
         }
 
         public VFXBlackboardField() : base()
-        {}
+        {
+            RegisterCallback<MouseEnterEvent>(OnMouseHover);
+            RegisterCallback<MouseLeaveEvent>(OnMouseHover);
+        }
 
         Controller IControlledElement.controller
         {
@@ -261,23 +282,19 @@ namespace  UnityEditor.VFX.UI
             }
         }
 
-        protected internal override void ExecuteDefaultAction(EventBase evt)
+        void OnMouseHover(EventBase evt)
         {
-            if (evt.GetEventTypeId() == MouseEnterEvent.TypeId() || evt.GetEventTypeId() == MouseLeaveEvent.TypeId())
+            VFXView view = GetFirstAncestorOfType<VFXView>();
+            if (view != null)
             {
-                VFXView view = GetFirstAncestorOfType<VFXView>();
-                if (view != null)
+                foreach (var parameter in view.graphElements.ToList().OfType<VFXParameterUI>().Where(t => t.controller.parentController == controller))
                 {
-                    foreach (var parameter in view.graphElements.ToList().OfType<VFXParameterUI>().Where(t => t.controller.parentController == controller))
-                    {
-                        if (evt.GetEventTypeId() == MouseEnterEvent.TypeId())
-                            parameter.pseudoStates |= PseudoStates.Hover;
-                        else
-                            parameter.pseudoStates &= ~PseudoStates.Hover;
-                    }
+                    if (evt.GetEventTypeId() == MouseEnterEvent.TypeId())
+                        parameter.pseudoStates |= PseudoStates.Hover;
+                    else
+                        parameter.pseudoStates &= ~PseudoStates.Hover;
                 }
             }
-            base.ExecuteDefaultAction(evt);
         }
     }
 
@@ -326,7 +343,7 @@ namespace  UnityEditor.VFX.UI
         void OnControllerChanged(ControllerChangedEvent e)
         {
             m_Field.text = controller.exposedName;
-            m_Field.typeText = controller.portType.UserFriendlyName();
+            m_Field.typeText = controller.portType != null ? controller.portType.UserFriendlyName() : "null";
 
             // if the order or exposed change, let the event be caught by the VFXBlackboard
             if (controller.order == m_CurrentOrder && controller.exposed == m_CurrentExposed)
@@ -336,9 +353,9 @@ namespace  UnityEditor.VFX.UI
             m_CurrentOrder = controller.order;
             m_CurrentExposed = controller.exposed;
 
-            m_Properties.SelfChange(e.change);
-
             expanded = controller.expanded;
+
+            m_Properties.SelfChange(e.change);
 
             m_Field.SelfChange();
         }
