@@ -10,6 +10,9 @@ struct DensityVolumeData
 {
     float3 scattering;
     float extinction;
+    float3 textureTiling;
+    int textureIndex;
+    float3 textureScroll;
 };
 
 //
@@ -22,6 +25,18 @@ float3 GetScattering(DensityVolumeData value)
 float GetExtinction(DensityVolumeData value)
 {
 	return value.extinction;
+}
+float3 GetTextureTiling(DensityVolumeData value)
+{
+	return value.textureTiling;
+}
+int GetTextureIndex(DensityVolumeData value)
+{
+	return value.textureIndex;
+}
+float3 GetTextureScroll(DensityVolumeData value)
+{
+	return value.textureScroll;
 }
 
 
