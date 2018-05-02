@@ -241,7 +241,7 @@ namespace UnityEditor.VFX.UI
 
         protected override INotifyValueChanged<float> CreateSimpleField(out TextValueField<float> textField)
         {
-            var field = new VFXLabeledField<VFXFloatField, float>(m_Label);
+            var field = new VFXLabeledField<FloatField, float>(m_Label);
             textField = field.control;
             return field;
         }
@@ -256,7 +256,10 @@ namespace UnityEditor.VFX.UI
         protected override void UpdateIndeterminate()
         {
             if (m_TextField != null)
-                (m_TextField as VFXFloatField).indeterminate = indeterminate;
+            {
+                (field as VFXLabeledField<FloatField, float>).indeterminate = indeterminate;
+            }
+                
             if (m_Slider != null)
                 (m_Slider as VFXFloatSliderField).indeterminate = indeterminate;
         }
