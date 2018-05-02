@@ -265,12 +265,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Shader.PropertyToID("_SSSBufferTexture3"),
         };
 
+        public static readonly int _SSRefractionRayLevel = Shader.PropertyToID("_SSRefractionRayLevel");
+        public static readonly int _SSRefractionRayMaxLinearIterations = Shader.PropertyToID("_SSRefractionRayMaxLinearIterations");
         public static readonly int _SSRefractionRayMinLevel = Shader.PropertyToID("_SSRefractionRayMinLevel");
         public static readonly int _SSRefractionRayMaxLevel = Shader.PropertyToID("_SSRefractionRayMaxLevel");
         public static readonly int _SSRefractionRayMaxIterations = Shader.PropertyToID("_SSRefractionRayMaxIterations");
         public static readonly int _SSRefractionRayDepthSuccessBias = Shader.PropertyToID("_SSRefractionRayDepthSuccessBias");
         public static readonly int _SSRefractionInvScreenWeightDistance = Shader.PropertyToID("_SSRefractionInvScreenWeightDistance");
 
+        public static readonly int _SSReflectionRayMaxLinearIterations = Shader.PropertyToID("_SSReflectionRayMaxLinearIterations");
+        public static readonly int _SSReflectionRayLevel = Shader.PropertyToID("_SSReflectionRayLevel");
         public static readonly int _SSReflectionRayMinLevel = Shader.PropertyToID("_SSReflectionRayMinLevel");
         public static readonly int _SSReflectionRayMaxLevel = Shader.PropertyToID("_SSReflectionRayMaxLevel");
         public static readonly int _SSReflectionRayMaxIterations = Shader.PropertyToID("_SSReflectionRayMaxIterations");

@@ -21,6 +21,7 @@
 #define PROJECTIONMODEL_NONE (0)
 #define PROJECTIONMODEL_PROXY (1)
 #define PROJECTIONMODEL_HI_Z (2)
+#define PROJECTIONMODEL_LINEAR (3)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+HiZIntersectionKind:  static fields

@@ -33,7 +33,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             None = 0,
             Proxy = 1,
-            HiZ = 2
+            HiZ = 2,
+            Linear = 3
         };
 
         [GenerateHLSL]

@@ -22,7 +22,7 @@ struct ScreenSpaceRayHit
 #endif
 };
 
-struct ScreenSpaceHiZRaymarchInput
+struct ScreenSpaceRaymarchInput
 {
     float3 rayOriginWS;         // Ray origin (WS)
     float3 rayDirWS;            // Ray direction (WS)
@@ -82,11 +82,11 @@ void CalculateRaySS(
 
 // Check whether the depth of the ray is above the sampled depth
 // Arguments are inversed linear depth
-bool IsPositionAboveDepth(float rayDepth, float invLinearDepth)
+bool IsPositionAboveDepth(float invRayDepth, float invLinearDepth)
 {
     // as depth is inverted, we must invert the check as well
     // rayZ > HiZ <=> 1/rayZ < 1/HiZ
-    return rayDepth > invLinearDepth;
+    return invRayDepth > invLinearDepth;
 }
 
 // Sample the Depth buffer at a specific mip and linear depth
@@ -224,10 +224,15 @@ void DebugComputeHiZOutput(
 #define SSRT_FUNC(name, SSRTID) name ## SSRTID
 
 CBUFFER_START(SSRT_FUNC(UnityScreenSpaceRaymarching, SSRTID))
+int SSRT_SETTING(RayLevel, SSRTID);
 int SSRT_SETTING(RayMinLevel, SSRTID);
 int SSRT_SETTING(RayMaxLevel, SSRTID);
+int SSRT_SETTING(RayMaxLinearIterations, SSRTID);
 int SSRT_SETTING(RayMaxIterations, SSRTID);
 float SSRT_SETTING(RayDepthSuccessBias, SSRTID);
+#ifdef DEBUG_DISPLAY
+int SSRT_SETTING(DebuggedAlgorithm, SSRTID);
+#endif
 CBUFFER_END
 
 bool SSRT_FUNC(ScreenSpaceProxyRaycast, SSRTID)(
@@ -272,7 +277,10 @@ bool SSRT_FUNC(ScreenSpaceProxyRaycast, SSRTID)(
 #ifdef DEBUG_DISPLAY
     DebugComputeCommonOutput(input.rayDirWS, hitSuccessful, hit);
     
-    if (input.debug && _DebugScreenSpaceTracingData[0].tracingModel == -1)
+    if (input.debug 
+        && _DebugScreenSpaceTracingData[0].tracingModel == -1
+        && SSRT_SETTING(DebuggedAlgorithm, SSRTID) == PROJECTIONMODEL_PROXY
+    )
     {
         ScreenSpaceTracingDebug debug;
         ZERO_INITIALIZE(ScreenSpaceTracingDebug, debug);
@@ -299,13 +307,149 @@ bool SSRT_FUNC(ScreenSpaceProxyRaycast, SSRTID)(
 }
 
 // -------------------------------------------------
+// Algorithm: Linear Raymarching
+// -------------------------------------------------
+
+// Based on Digital Differential Analyzer and Morgan McGuire's Screen Space Ray Tracing (http://casual-effects.blogspot.fr/2014/08/screen-space-ray-tracing.html)
+
+// Linear raymarching algorithm with precomputed properties
+bool SSRT_FUNC(_ScreenSpaceLinearRaymarch, SSRTID)(
+    ScreenSpaceRaymarchInput input,
+    uint inputMaxIterations,
+    float3 startPositionSS,
+    float3 raySS,
+    uint2 bufferSize,
+    out ScreenSpaceRayHit hit
+)
+{
+    ZERO_INITIALIZE(ScreenSpaceRayHit, hit);
+    bool hitSuccessful = true;
+    uint iteration = 0u;
+    int mipLevel = min(max(SSRT_SETTING(RayLevel, SSRTID), 0), int(_DepthPyramidScale.z));
+    uint maxIterations = min(inputMaxIterations, uint(SSRT_SETTING(RayMaxIterations, SSRTID)));
+
+    float3 positionSS = startPositionSS;
+    raySS /= max(abs(raySS.x), abs(raySS.y));
+    raySS.xy *= int2(1, 1) << mipLevel;
+
+    // Offset by half a texel
+    positionSS += raySS * 0.5;
+
+#ifdef DEBUG_DISPLAY
+    float3 debugIterationPositionSS = positionSS;
+    float debugIterationLinearDepthBuffer = 0;
+    uint debugIteration = iteration;
+#endif
+
+    float invHiZDepth = 0;
+
+    for (iteration = 0u; iteration < maxIterations; ++iteration)
+    {
+        positionSS += raySS;
+
+        // Sampled as 1/Z so it interpolate properly in screen space.
+        invHiZDepth = LoadInvDepth(positionSS.xy, mipLevel);
+
+#ifdef DEBUG_DISPLAY
+        // Fetch post iteration debug values
+        if (input.debug && _DebugStep >= iteration)
+        {
+            debugIterationPositionSS = positionSS;
+            debugIterationLinearDepthBuffer = 1 / invHiZDepth;
+            debugIteration = iteration;
+        }
+#endif
+
+        if (!IsPositionAboveDepth(positionSS.z, invHiZDepth))
+            break;
+
+        // Check if we are out of the buffer
+        if (any(int2(positionSS.xy) > int2(bufferSize))
+            || any(positionSS.xy < 0)
+            )
+        {
+            hitSuccessful = false;
+            break;
+        }
+    }
+
+    if (iteration >= maxIterations)
+        hitSuccessful = false;
+
+    hit.linearDepth = 1 / positionSS.z;
+    hit.positionNDC = float2(positionSS.xy) / float2(bufferSize);
+    hit.positionSS = uint2(positionSS.xy);
+
+#ifdef DEBUG_DISPLAY
+    DebugComputeCommonOutput(input.rayDirWS, hitSuccessful, hit);
+
+    if (input.debug 
+        && _DebugScreenSpaceTracingData[0].tracingModel == -1
+        && SSRT_SETTING(DebuggedAlgorithm, SSRTID) == PROJECTIONMODEL_LINEAR
+    )
+    {
+        // Build debug structure
+        ScreenSpaceTracingDebug debug;
+        ZERO_INITIALIZE(ScreenSpaceTracingDebug, debug);
+
+        debug.tracingModel                  = PROJECTIONMODEL_LINEAR;
+        debug.loopStartPositionSSX          = uint(startPositionSS.x);
+        debug.loopStartPositionSSY          = uint(startPositionSS.y);
+        debug.loopStartLinearDepth          = 1 / startPositionSS.z;
+        debug.loopRayDirectionSS            = raySS;
+        debug.loopIterationMax              = iteration;
+        debug.iterationPositionSS           = debugIterationPositionSS;
+        debug.iterationMipLevel             = mipLevel;
+        debug.iteration                     = debugIteration;
+        debug.iterationLinearDepthBuffer    = debugIterationLinearDepthBuffer;
+        debug.endHitSuccess                 = hitSuccessful;
+        debug.endLinearDepth                = hit.linearDepth;
+        debug.endPositionSSX                = hit.positionSS.x;
+        debug.endPositionSSY                = hit.positionSS.y;
+        debug.iterationCellSizeW            = 1 << mipLevel;
+        debug.iterationCellSizeH            = 1 << mipLevel;
+
+        _DebugScreenSpaceTracingData[0] = debug;
+    }
+#endif
+
+    return hitSuccessful;
+}
+
+bool SSRT_FUNC(ScreenSpaceLinearRaymarch, SSRTID)(
+    ScreenSpaceRaymarchInput input,
+    out ScreenSpaceRayHit hit
+)
+{
+    uint2 bufferSize = uint2(_DepthPyramidSize.xy);
+    float3 startPositionSS;
+    float3 raySS;
+    CalculateRaySS(
+        input.rayOriginWS,
+        input.rayDirWS,
+        bufferSize,
+        startPositionSS,
+        raySS
+    );
+
+    return SSRT_FUNC(_ScreenSpaceLinearRaymarch, SSRTID)(
+        input,
+        input.maxIterations,
+        startPositionSS,
+        raySS,
+        bufferSize,
+        hit
+    );
+}
+
+// -------------------------------------------------
 // Algorithm: HiZ raymarching
 // -------------------------------------------------
 
 // Based on Yasin Uludag, 2014. "Hi-Z Screen-Space Cone-Traced Reflections", GPU Pro5: Advanced Rendering Techniques
 
 bool SSRT_FUNC(ScreenSpaceHiZRaymarch, SSRTID)(
-    ScreenSpaceHiZRaymarchInput input,
+    ScreenSpaceRaymarchInput input,
     out ScreenSpaceRayHit hit
 )
 {
@@ -329,6 +473,18 @@ bool SSRT_FUNC(ScreenSpaceHiZRaymarch, SSRTID)(
         startPositionSS,
         raySS
     );
+
+    if (SSRT_FUNC(_ScreenSpaceLinearRaymarch, SSRTID)(
+            input,
+            SSRT_SETTING(RayMaxLinearIterations, SSRTID),
+            startPositionSS,
+            raySS,
+            bufferSize,
+            hit
+        ))
+        return true;
+    
+    startPositionSS = float3(hit.positionSS, 1 / hit.linearDepth);
 
 #ifdef DEBUG_DISPLAY
     // Initialize debug variables
@@ -461,7 +617,10 @@ bool SSRT_FUNC(ScreenSpaceHiZRaymarch, SSRTID)(
         hit
     );
 
-    if (input.debug && _DebugScreenSpaceTracingData[0].tracingModel == -1)
+    if (input.debug 
+        && _DebugScreenSpaceTracingData[0].tracingModel == -1
+        && SSRT_SETTING(DebuggedAlgorithm, SSRTID) == PROJECTIONMODEL_HI_Z
+    )
     {
         // Build debug structure
         ScreenSpaceTracingDebug debug;
