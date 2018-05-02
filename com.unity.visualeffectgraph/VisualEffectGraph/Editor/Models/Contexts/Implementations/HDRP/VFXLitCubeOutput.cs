@@ -15,7 +15,7 @@ namespace UnityEditor.VFX
 
         public override void OnEnable()
         {
-            blendMode = BlendMode.Opaque; // TODO use masked
+            blendMode = BlendMode.Opaque;
             base.OnEnable();
         }
 
@@ -46,7 +46,7 @@ namespace UnityEditor.VFX
                 foreach (var setting in base.filteredOutSettings)
                     yield return setting;
 
-                yield return "cullMode";
+                yield return "blendMode";
             }
         }
     }
