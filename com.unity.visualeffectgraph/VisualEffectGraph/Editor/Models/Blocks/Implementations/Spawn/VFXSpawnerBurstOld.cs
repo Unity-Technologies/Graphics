@@ -56,7 +56,7 @@ namespace UnityEditor.VFX
             newBlock.SetSettingValue("repeat", VFXSpawnerBurst.RepeatMode.Single);
 
 
-            if(advanced)
+            if (advanced)
             {
                 newBlock.SetSettingValue("spawnMode", VFXSpawnerBurst.RandomMode.Random);
                 newBlock.SetSettingValue("delayMode", VFXSpawnerBurst.RandomMode.Random);

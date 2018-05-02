@@ -375,7 +375,7 @@ namespace UnityEditor.VFX
                                 groupInfo.contents[i].model = dst;
             }
 
-            if(dst is VFXBlock && src is VFXBlock)
+            if (dst is VFXBlock && src is VFXBlock)
             {
                 ((VFXBlock)dst).enabled = ((VFXBlock)src).enabled;
             }

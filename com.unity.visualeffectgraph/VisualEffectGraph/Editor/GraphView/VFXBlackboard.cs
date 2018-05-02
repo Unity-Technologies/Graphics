@@ -16,8 +16,8 @@ namespace  UnityEditor.VFX.UI
         public VFXBlackboardPropertyView()
         {
             RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
-            
         }
+
         public VFXBlackboardRow owner
         {
             get; set;
@@ -225,7 +225,6 @@ namespace  UnityEditor.VFX.UI
                 }
             }
 
-            
 
             foreach (var prop in allProperties)
             {
