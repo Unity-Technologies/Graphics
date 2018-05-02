@@ -28,6 +28,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4   projectionParams;
         public Vector4   screenParams;
 
+        public VolumetricLightingSystem.VBufferParameters[] vBufferParams; // Double-buffered
+
         public PostProcessRenderContext postprocessRenderContext;
 
         public Matrix4x4[] viewMatrixStereo;
@@ -163,7 +165,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             projMatrixStereo = new Matrix4x4[2];
 
             postprocessRenderContext = new PostProcessRenderContext();
+
             m_AdditionalCameraData = cam.GetComponent<HDAdditionalCameraData>();
+
             Reset();
         }
 
@@ -398,19 +402,33 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             isFirstFrame = true;
         }
 
-        // Grab the HDCamera tied to a given Camera and update it.
-        public static HDCamera Get(Camera camera, PostProcessLayer postProcessLayer, FrameSettings frameSettings)
+        // Will return NULL if the camera does not exist.
+        public static HDCamera Get(Camera camera)
         {
-            HDCamera hdcam;
+            HDCamera hdCamera;
 
-            if (!s_Cameras.TryGetValue(camera, out hdcam))
+            if (!s_Cameras.TryGetValue(camera, out hdCamera))
             {
-                hdcam = new HDCamera(camera);
-                s_Cameras.Add(camera, hdcam);
+                hdCamera = null;
             }
 
-            hdcam.Update(postProcessLayer, frameSettings);
-            return hdcam;
+            return hdCamera;
+        }
+
+        // Pass all the systems that may want to initialize per-camera data here.
+        // That way you will never create an HDCamera and forget to initialize the data.
+        public static HDCamera Create(Camera camera, VolumetricLightingSystem vlSys)
+        {
+            HDCamera hdCamera = new HDCamera(camera);
+            s_Cameras.Add(camera, hdCamera);
+
+            if (vlSys != null)
+            {
+                // Have to perform a NULL check here because the Reflection System internally allocates HDCameras.
+                vlSys.InitializePerCameraData(hdCamera);
+            }
+
+            return hdCamera;
         }
 
         public static void ClearAll()
@@ -526,7 +544,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Allocate buffers frames and return current frame
         public RTHandleSystem.RTHandle AllocHistoryFrameRT(int id, Func<string, int, RTHandleSystem, RTHandleSystem.RTHandle> allocator)
         {
-            m_HistoryRTSystem.AllocBuffer(id, (rts, i) => allocator(camera.name, i, rts), 2);
+            const int bufferCount = 2; // Hard-coded for now. Will have to see if this is enough...
+            m_HistoryRTSystem.AllocBuffer(id, (rts, i) => allocator(camera.name, i, rts), bufferCount);
             return m_HistoryRTSystem.GetFrameRT(id, 0);
         }
 

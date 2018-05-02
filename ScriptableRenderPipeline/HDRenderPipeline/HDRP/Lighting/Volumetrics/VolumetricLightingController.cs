@@ -8,9 +8,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public VolumetricLightingController()
         {
-            parameters.vBufferNearPlane                 = 0.5f;
-            parameters.vBufferFarPlane                  = 64.0f;
-            parameters.depthSliceDistributionUniformity = 0.75f;
+            parameters = VolumetricLightingSystem.ControllerParameters.GetDefaults();
         }
 
         private void Awake()

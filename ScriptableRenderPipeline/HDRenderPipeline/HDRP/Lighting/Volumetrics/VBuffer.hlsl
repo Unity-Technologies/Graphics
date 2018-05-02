@@ -42,6 +42,14 @@ float ComputeLerpPositionForLogEncoding(float  linearDepth,
 // if (clampToBorder), samples outside of the buffer return 0 (we perform a smooth fade).
 // Otherwise, the sampler simply clamps the texture coordinate to the edge of the texture.
 // Warning: clamping to border may not work as expected with the quadratic filter due to its extent.
+
+
+
+// TODO: clear the history buffer to black to avoid false positives from reprojection.
+// Fix clamp to border to clamp UVs rather clamp values to black.
+
+
+
 float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
                      float2 positionNDC,
                      float  linearDepth,

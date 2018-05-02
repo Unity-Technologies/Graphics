@@ -312,8 +312,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // TODO: For MSAA, we'll need to add a Draw path in order to support MSAA properly
             m_DeferredShadowBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGB32, sRGB: false, enableRandomWrite: true, name: "DeferredShadow");
 
-            m_VolumetricLightingSystem.CreateBuffers();
-
             if (Debug.isDebugBuild)
             {
                 m_DebugColorPickerBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, name: "DebugColorPicker");
@@ -538,9 +536,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_LightLoop.AllocResolutionDependentBuffers((int)hdCamera.screenSize.x, (int)hdCamera.screenSize.y, m_FrameSettings.enableStereo);
             }
-
-            // Warning: (resolutionChanged == false) if you open a new Editor tab of the same size!
-            m_VolumetricLightingSystem.ResizeVBufferAndUpdateProperties(hdCamera, m_FrameCount);
 
             // update recorded window resolution
             m_CurrentWidth = hdCamera.actualWidth;
@@ -840,7 +835,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         m_FrameSettings.enablePostprocess = false;
                     }
 
-                    var hdCamera = HDCamera.Get(camera, postProcessLayer, m_FrameSettings);
+                    var hdCamera = HDCamera.Get(camera);
+
+                    if (hdCamera == null)
+                    {
+                        hdCamera = HDCamera.Create(camera, m_VolumetricLightingSystem);
+                    }
+
+                    hdCamera.Update(postProcessLayer, m_FrameSettings);
+                    m_VolumetricLightingSystem.UpdatePerCameraData(hdCamera);
 
                     Resize(hdCamera);
 
