@@ -149,3 +149,9 @@ VFXDataAnchor.Output #type
 {
     border-color:#787878;
 }
+
+
+*:disabled
+{
+    opacity:0.5;
+}
