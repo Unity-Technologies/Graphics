@@ -27,6 +27,9 @@ SAMPLER(sampler_SmoothnessBMap);
 TEXTURE2D(_AnisotropyMap);
 SAMPLER(sampler_AnisotropyMap);
 
+TEXTURE2D(_CoatSmoothnessMap);
+SAMPLER(sampler_CoatSmoothnessMap);
+
 TEXTURE2D(_IridescenceThicknessMap);
 SAMPLER(sampler_IridescenceThicknessMap);
 
