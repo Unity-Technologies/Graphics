@@ -7,9 +7,9 @@
 	url = https://github.com/Unity-Technologies/ShaderGraph
 [submodule "Tests/UTF_Core"]
 	path = Tests/UTF_Core
-url=https://github.com/Unity-Technologies/UTF_Core.git
+	url = https://github.com/Unity-Technologies/UTF_Core.git
 [submodule "Tests/UTF_Tests_HDRP"]
 
 	path = Tests/UTF_Tests_HDRP
 
-url=https://github.com/Unity-Technologies/UTF_Tests_HDRP.git
+	url = https://github.com/Unity-Technologies/UTF_Tests_HDRP.git

@@ -38,8 +38,8 @@ float4      _ShadowmapSize; // (xy: 1/width and 1/height, zw: width and height)
 CBUFFER_END
 
 CBUFFER_START(_LocalShadowBuffer)
-float4x4    _LocalWorldToShadowAtlas[4];
-half        _LocalShadowStrength[4];
+float4x4    _LocalWorldToShadowAtlas[MAX_VISIBLE_LIGHTS];
+half        _LocalShadowStrength[MAX_VISIBLE_LIGHTS];
 half4       _LocalShadowOffset0;
 half4       _LocalShadowOffset1;
 half4       _LocalShadowOffset2;
@@ -150,7 +150,7 @@ real SampleShadowmap(float4 shadowCoord, TEXTURE2D_SHADOW_ARGS(ShadowMap, sample
         #else
             float fetchesWeights[9];
             float2 fetchesUV[9];
-            SampleShadow_ComputeSamples_Tent_5x5(_ShadowmapSize, shadowCoord.xy, fetchesWeights, fetchesUV);
+            SampleShadow_ComputeSamples_Tent_5x5(samplingData.shadowmapSize, shadowCoord.xy, fetchesWeights, fetchesUV);
 
             attenuation  = fetchesWeights[0] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[0].xy, shadowCoord.z));
             attenuation += fetchesWeights[1] * SAMPLE_TEXTURE2D_SHADOW(ShadowMap, sampler_ShadowMap, float3(fetchesUV[1].xy, shadowCoord.z));
@@ -207,7 +207,7 @@ float4 ComputeShadowCoord(float4 clipPos)
 
 half MainLightRealtimeShadowAttenuation(float4 shadowCoord)
 {
-#if defined(NO_SHADOWS) || !defined(_SHADOWS_ENABLED)
+#if !defined(_SHADOWS_ENABLED)
     return 1.0h;
 #elif SHADOWS_SCREEN
     return SampleScreenSpaceShadowMap(shadowCoord);
@@ -221,12 +221,7 @@ half MainLightRealtimeShadowAttenuation(float4 shadowCoord)
 
 half LocalLightRealtimeShadowAttenuation(int lightIndex, float3 positionWS)
 {
-// TODO: We can't add more keywords to standard shaders. For now we use
-// same _SHADOWS_ENABLED keywords for local lights. In the future we can use
-// _LOCAL_SHADOWS_ENABLED keyword
-// For now disabling local shadows on mobile until we can get the keyword stripping
-//#if defined(NO_SHADOWS) || !defined(_LOCAL_SHADOWS_ENABLED)
-#if defined(NO_SHADOWS) || !defined(_SHADOWS_ENABLED) || defined(SHADER_API_MOBILE)
+#if !defined(_LOCAL_SHADOWS_ENABLED)
     return 1.0h;
 #else
     float4 shadowCoord = mul(_LocalWorldToShadowAtlas[lightIndex], float4(positionWS, 1.0));

@@ -100,6 +100,7 @@ float3 TransformViewToHClipDir(float3 directionVS)
 	return mul((float3x3)GetViewToHClipMatrix(), directionVS);
 }
 
+// This function always return the absolute position in WS either the CameraRelative mode is enabled or not
 float3 GetAbsolutePositionWS(float3 positionWS)
 {
 #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
@@ -108,6 +109,7 @@ float3 GetAbsolutePositionWS(float3 positionWS)
     return positionWS;
 }
 
+// This function always return the camera relative position in WS either the CameraRelative mode is enabled or not
 float3 GetCameraRelativePositionWS(float3 positionWS)
 {
 #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)

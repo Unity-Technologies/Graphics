@@ -8,13 +8,19 @@
 - Disable per-object culling that was executed in C++ in HD whereas it was not used (Optimization)
 - Enable texture streaming debugging (was not working before 2018.2)
 
+### Changed, Removals and deprecations
+- Removed GlobalLightLoopSettings.maxPlanarReflectionProbes and instead use value of GlobalLightLoopSettings.planarReflectionProbeCacheSize
+
 ## [2018.1 undecided]
 
 ### Improvements
 - Configure the volumetric lighting code path to be on by default
+- Trigger a build exception when trying to build an unsupported platform
+- Introduce the VolumetricLightingController component, which can (and should) be placed on the camera, and allows one to control the near and the far plane of the V-Buffer (volumetric "froxel" buffer) along with the depth distribution (from logarithmic to linear)
 
 ### Changed, Removals and deprecations
-- 
+- Remove Resource folder of PreIntegratedFGD and add the resource to RenderPipeline Asset
+- Default number of planar reflection change from 4 to 2
 
 ### Bug fixes
 - Fix ConvertPhysicalLightIntensityToLightIntensity() function used when creating light from script to match HDLightEditor behavior
@@ -46,6 +52,8 @@
 - Screen Space Refraction proxy model uses the proxy of the first environment light (Reflection probe/Planar probe) or the sky
 - Moved RTHandle static methods to RTHandles
 - Renamed RTHandle to RTHandleSystem.RTHandle
+- Move code for PreIntegratedFDG (Lit.shader) into its dedicated folder to be share with other material
+- Move code for LTCArea (Lit.shader) into its dedicated folder to be share with other material
  
 ### Bug fixes
 - Fix fog flags in scene view is now taken into account
@@ -54,6 +62,7 @@
 - Fix alpha blending of volumetric lighting with transparent objects.
 - Fix the near plane of the V-Buffer causing out-of-bounds look-ups in the clustered data structure.
 - Depth and color pyramid are properly computed and sampled when the camera renders inside a viewport of a RTHandle.
+- Fix decal atlas debug view to work correctly when shadow atlas view is also enabled
 
 ## [2018.1.0b13]
 
