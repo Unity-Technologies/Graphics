@@ -15,7 +15,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             StackLitCoat                    = 1 << 3,
             StackLitIridescence             = 1 << 4,
             StackLitSubsurfaceScattering    = 1 << 5,
-            StackLitTransmission            = 1 << 6, 
+            StackLitTransmission            = 1 << 6,
         };
 
         //-----------------------------------------------------------------------------
@@ -29,7 +29,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Material Features")]
             public uint materialFeatures;
 
-            // Bottom interface (2 lobes BSDF) 
+            // Bottom interface (2 lobes BSDF)
             // Standard parametrization
             [SurfaceDataAttributes("Base Color", false, true)]
             public Vector3 baseColor;
@@ -40,13 +40,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Metallic")]
             public float metallic;
 
+            [SurfaceDataAttributes("IOR")]
+            public float dielectricIor;
+
             [SurfaceDataAttributes(new string[]{"Normal", "Normal View Space"}, true)]
             public Vector3 normalWS;
 
             [SurfaceDataAttributes("Smoothness A")]
             public float perceptualSmoothnessA;
 
-            // Dual specular love
+            // Dual specular lobe
             [SurfaceDataAttributes("Smoothness B")]
             public float perceptualSmoothnessB;
 
@@ -96,7 +99,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             public uint materialFeatures;
 
-            // Bottom interface (2 lobes BSDF) 
+            // Bottom interface (2 lobes BSDF)
             // Standard parametrization
             [SurfaceDataAttributes("", false, true)]
             public Vector3 diffuseColor;

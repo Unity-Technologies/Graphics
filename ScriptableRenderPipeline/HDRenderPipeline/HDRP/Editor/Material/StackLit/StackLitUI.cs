@@ -26,6 +26,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string k_MetallicMap = "_MetallicMap";
         protected const string k_MetallicMapUV = "_MetallicMapUV";
 
+        protected const string k_DielectricIor = "_DielectricIor";
+
         protected const string k_Smoothness1 = "_SmoothnessA";
         protected const string k_Smoothness1Map = "_SmoothnessAMap";
         protected const string k_Smoothness1MapUV = "_SmoothnessAMapUV";
@@ -138,12 +140,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Base Color + Opacity", "Albedo (RGB) and Opacity (A)", true, false),
                     new TextureProperty(this, k_MetallicMap, k_Metallic, "Metallic", "Metallic", false, false),
+                    new Property(this, k_DielectricIor, "DieletricIor", "IOR use for dielectric material (i.e non metallic material)", false),
                     new TextureProperty(this, k_Smoothness1Map, k_Smoothness1, "Smoothness", "Smoothness", false, false),
-                    // TODO: Special case for normal maps.
                     new TextureProperty(this, k_NormalMap, k_NormalScale, "Normal", "Normal Map", false, false, true),
-
-                    //new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Dielectric IoR", "Index of Refraction for Dielectric", false),
-
                     new TextureProperty(this, k_AmbientOcclusionMap, k_AmbientOcclusion, "AmbientOcclusion", "AmbientOcclusion Map", false, false),
                 }),
 
