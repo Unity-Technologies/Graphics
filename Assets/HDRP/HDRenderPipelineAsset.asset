@@ -81,4 +81,5 @@ MonoBehaviour:
     decalSettings:
       drawDistance: 1000
       atlasSize: 8192
-  diffusionProfileSettings: {fileID: 0}
+  diffusionProfileSettings: {fileID: 11400000, guid: cbe1ee9036c47b84ba1b8b3dbcde2aff,
+    type: 2}
