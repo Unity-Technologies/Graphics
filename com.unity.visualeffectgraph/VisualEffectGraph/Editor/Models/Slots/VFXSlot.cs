@@ -791,7 +791,7 @@ namespace UnityEditor.VFX
                 startSlot.m_InExpression = startSlot.ConvertExpression(linkInExpression, startSlot.m_LinkedInSlot); // TODO Handle structural modification
                 startSlot.PropagateToChildren(s =>
                     {
-                        var baseExp = s.ApplySpaceConversion(s.m_InExpression, s.m_LinkedInSlot);
+                        var baseExp = s.m_InExpression;
                         var exp = s.ExpressionToChildren(baseExp);
                         for (int i = 0; i < s.GetNbChildren(); ++i)
                             s[i].m_InExpression = exp != null ? exp[i] : s.refSlot[i].GetExpression(); // Not sure about that
@@ -803,12 +803,10 @@ namespace UnityEditor.VFX
                 startSlot.PropagateToParent(s => s.m_InExpression = s.ExpressionFromChildren(s.children.Select(c => c.m_InExpression).ToArray()));
 
             var toInvalidate = new HashSet<VFXSlot>();
-            var baseMasterExp = ApplySpaceConversion(masterSlot.m_InExpression, masterSlot.m_LinkedInSlot); //TODOPAUL (verify)
-            masterSlot.SetOutExpression(baseMasterExp, toInvalidate);
+            masterSlot.SetOutExpression(masterSlot.m_InExpression, toInvalidate);
             masterSlot.PropagateToChildren(s =>
                 {
-                    var baseExp = s.ApplySpaceConversion(s.m_OutExpression, s.m_LinkedInSlot); //TODOPAUL (verify)
-                    var exp = s.ExpressionToChildren(baseExp);
+                    var exp = s.ExpressionToChildren(s.m_OutExpression);
                     for (int i = 0; i < s.GetNbChildren(); ++i)
                         s[i].SetOutExpression(exp != null ? exp[i] : s[i].m_InExpression, toInvalidate);
                 });
@@ -819,7 +817,7 @@ namespace UnityEditor.VFX
 
         private VFXExpression ApplySpaceConversion(VFXExpression exp, VFXSlot sourceSlot)
         {
-            if (    sourceSlot != null
+            if (sourceSlot != null
                 &&  sourceSlot.spaceable
                 &&  spaceable
                 &&  sourceSlot.space != space)
@@ -916,7 +914,7 @@ namespace UnityEditor.VFX
         {
             if (cause == InvalidationCause.kConnectionChanged || cause == InvalidationCause.kSpaceChanged)
             {
-                if (    IsMasterSlot()
+                if (IsMasterSlot()
                     &&  direction == Direction.kInput
                     &&  spaceable
                     &&  HasLink())

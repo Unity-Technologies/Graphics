@@ -129,10 +129,16 @@ namespace UnityEditor.VFX.Test
             sphere_B.inputSlots[0][0].Link(sphere_A.outputSlots[0][0]); //link sphere center to other sphere center
             Assert.AreEqual(CoordinateSpace.Local, sphere_B.outputSlots[0].space);
 
-            var allExprCenter = CollectExpression(sphere_B.outputSlots[0][0].GetExpression()).ToArray();
-            var allExprRadius = CollectExpression(sphere_B.outputSlots[0][1].GetExpression()).ToArray();
+            //Bug here !
+            //var allExprCenterC = CollectExpression(sphere_B.inputSlots[0][0].GetExpression()).ToArray(); //Uncomment will fix it
 
-            Assert.IsTrue(allExprCenter.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
+            var allExprCenterA = CollectExpression(sphere_B.outputSlots[0][0].GetExpression()).ToArray();
+            var allExprCenterB = CollectExpression(sphere_B.inputSlots[0][0].GetExpression()).ToArray();
+            Debug.Log("allExprCenterA : " + allExprCenterA.Select(o => o.ToString()).Aggregate((a, b) => a + ", " + b));
+            Debug.Log("allExprCenterB : " + allExprCenterB.Select(o => o.ToString()).Aggregate((a, b) => a + ", " + b));
+
+            var allExprRadius = CollectExpression(sphere_B.outputSlots[0][1].GetExpression()).ToArray();
+            Assert.IsTrue(allExprCenterA.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
             Assert.IsFalse(allExprRadius.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
         }
     }
