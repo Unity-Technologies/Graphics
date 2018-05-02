@@ -381,7 +381,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool iridescenceEnabled = material.HasProperty(k_EnableIridescence) && material.GetFloat(k_EnableIridescence) > 0.0f;
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_IRIDESCENCE", iridescenceEnabled);
 
-            bool transmissionEnabled = material.HasProperty(k_EnableAnisotropy) && material.GetFloat(k_EnableAnisotropy) > 0.0f;
+            bool transmissionEnabled = material.HasProperty(k_EnableTransmission) && material.GetFloat(k_EnableTransmission) > 0.0f;
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", transmissionEnabled);
 
             bool sssEnabled = material.HasProperty(k_EnableSubsurfaceScattering) && material.GetFloat(k_EnableSubsurfaceScattering) > 0.0f;
