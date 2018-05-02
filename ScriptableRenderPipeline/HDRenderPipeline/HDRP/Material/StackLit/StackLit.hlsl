@@ -56,7 +56,7 @@ TEXTURE2D(_GBufferTexture0);
 //#define VLAYERED_RECOMPUTE_PERLIGHT // TODO test more, make it a shader_features
 // probably too slow but just to check the difference it makes
 //#define VLAYERED_USE_REFRACTED_ANGLES_FOR_BASE
-//#define VLAYERED_DIFFUSE_ENERGY_HACKED_TERM
+#define VLAYERED_DIFFUSE_ENERGY_HACKED_TERM
 //#define VLAYERED_ANISOTROPY_IBL_DESTRETCH
 
 #define VLAYERED_ANISOTROPY_SCALAR_ROUGHNESS
