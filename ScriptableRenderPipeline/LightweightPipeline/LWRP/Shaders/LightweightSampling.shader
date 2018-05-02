@@ -54,6 +54,7 @@ Shader "Hidden/LightweightPipeline/Sampling"
         // 0 - Downsample - Box filtering
         Pass
         {
+            Name "Default"
             Tags { "LightMode" = "LightweightForward"}
 
             ZTest Always

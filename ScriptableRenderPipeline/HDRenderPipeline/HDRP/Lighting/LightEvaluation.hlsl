@@ -1,5 +1,5 @@
 // This files include various function uses to evaluate lights
-// To use deferred directional shadow with cascaded shadow map, 
+// To use deferred directional shadow with cascaded shadow map,
 // it is required to define USE_DEFERRED_DIRECTIONAL_SHADOWS before including this files
 
 //-----------------------------------------------------------------------------
@@ -229,7 +229,7 @@ struct AmbientOcclusionFactor
     float3 indirectSpecularOcclusion;
 };
 
-void GetScreenSpaceAmbientOcclusion(float2 positionSS, float NdotV, float perceptualRoughness, float specularOcclusionFromData, out AmbientOcclusionFactor aoFactor)
+void GetScreenSpaceAmbientOcclusion(float2 positionSS, float NdotV, float perceptualRoughness, float ambientOcclusionFromData, float specularOcclusionFromData, out AmbientOcclusionFactor aoFactor)
 {
     // Note: When we ImageLoad outside of texture size, the value returned by Load is 0 (Note: On Metal maybe it clamp to value of texture which is also fine)
     // We use this property to have a neutral value for AO that doesn't consume a sampler and work also with compute shader (i.e use ImageLoad)
@@ -248,12 +248,12 @@ void GetScreenSpaceAmbientOcclusion(float2 positionSS, float NdotV, float percep
     float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
     float specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(NdotV), indirectAmbientOcclusion, roughness);
 
-    aoFactor.indirectAmbientOcclusion   = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), indirectAmbientOcclusion);
-    aoFactor.directAmbientOcclusion     = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), directAmbientOcclusion);
     aoFactor.indirectSpecularOcclusion  = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), min(specularOcclusionFromData, specularOcclusion));
+    aoFactor.indirectAmbientOcclusion   = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), min(ambientOcclusionFromData, indirectAmbientOcclusion));
+    aoFactor.directAmbientOcclusion     = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), directAmbientOcclusion);
 }
 
-void GetScreenSpaceAmbientOcclusionMultibounce(float2 positionSS, float NdotV, float perceptualRoughness, float specularOcclusionFromData, float3 diffuseColor, float3 fresnel0, out AmbientOcclusionFactor aoFactor)
+void GetScreenSpaceAmbientOcclusionMultibounce(float2 positionSS, float NdotV, float perceptualRoughness, float ambientOcclusionFromData, float specularOcclusionFromData, float3 diffuseColor, float3 fresnel0, out AmbientOcclusionFactor aoFactor)
 {
     // Use GTAOMultiBounce approximation for ambient occlusion (allow to get a tint from the diffuseColor)
     // Note: When we ImageLoad outside of texture size, the value returned by Load is 0 (Note: On Metal maybe it clamp to value of texture which is also fine)
@@ -273,7 +273,7 @@ void GetScreenSpaceAmbientOcclusionMultibounce(float2 positionSS, float NdotV, f
     float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
     float specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(NdotV), indirectAmbientOcclusion, roughness);
 
-    aoFactor.indirectAmbientOcclusion   = GTAOMultiBounce(indirectAmbientOcclusion, diffuseColor);
-    aoFactor.directAmbientOcclusion     = GTAOMultiBounce(min(specularOcclusionFromData, specularOcclusion), fresnel0);
-    aoFactor.indirectSpecularOcclusion  = GTAOMultiBounce(directAmbientOcclusion, diffuseColor);
+    aoFactor.indirectSpecularOcclusion  = GTAOMultiBounce(min(specularOcclusionFromData, specularOcclusion), fresnel0);
+    aoFactor.indirectAmbientOcclusion   = GTAOMultiBounce(min(ambientOcclusionFromData, indirectAmbientOcclusion), diffuseColor);
+    aoFactor.directAmbientOcclusion     = GTAOMultiBounce(directAmbientOcclusion, diffuseColor);
 }
