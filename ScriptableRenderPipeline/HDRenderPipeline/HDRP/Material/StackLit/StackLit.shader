@@ -70,6 +70,7 @@ Shader "HDRenderPipeline/StackLit"
         [HideInInspector] _AnisotropyRange("Anisotropy Range", Vector) = (0, 1, 0, 0)
 
         [ToggleUI] _EnableCoat("Enable Coat", Float) = 0.0 // UI only
+        [HideInInspector] _CoatSmoothnessMapShow("CoatSmoothness Show", Float) = 0
         _CoatSmoothness("CoatSmoothness", Range(0.0, 1.0)) = 1.0
         _CoatSmoothnessMap("CoatSmoothness Map", 2D) = "white" {}
         _CoatSmoothnessUseMap("CoatSmoothness Use Map", Float) = 0

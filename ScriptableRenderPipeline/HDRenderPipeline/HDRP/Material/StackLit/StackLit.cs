@@ -70,7 +70,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float iridescenceThickness;
 
             // Top interface and media (clearcoat)
-            [SurfaceDataAttributes("Coat Roughness")]
+            [SurfaceDataAttributes("Coat Smoothness")]
             public float coatPerceptualSmoothness;
             [SurfaceDataAttributes("Coat IOR")]
             public float coatIor;
