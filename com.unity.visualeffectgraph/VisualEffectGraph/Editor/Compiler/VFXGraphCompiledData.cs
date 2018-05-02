@@ -603,7 +603,7 @@ namespace UnityEditor.VFX
                 foreach (var c in contexts) // Unflag all contexts
                     c.MarkAsCompiled(false);
 
-                var compilableContexts = models.OfType<VFXContext>().Where(c => c.CanBeCompiled()).ToArray();
+                var compilableContexts = models.OfType<VFXContext>().Where(c => c.CanBeCompiled());
                 var compilableData = models.OfType<VFXData>().Where(d => d.CanBeCompiled());
 
                 IEnumerable<VFXContext> implicitContexts = Enumerable.Empty<VFXContext>();

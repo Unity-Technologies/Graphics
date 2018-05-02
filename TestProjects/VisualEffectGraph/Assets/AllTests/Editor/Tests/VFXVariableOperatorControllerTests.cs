@@ -25,17 +25,24 @@ namespace UnityEditor.VFX.Test
         [SetUp]
         public void CreateTestAsset()
         {
-            VisualEffectAsset asset = new VisualEffectAsset();
-
             var directoryPath = Path.GetDirectoryName(testAssetName);
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);
             }
+            if (File.Exists(testAssetName))
+            {
+                AssetDatabase.DeleteAsset(testAssetName);
+            }
 
-            AssetDatabase.CreateAsset(asset, testAssetName);
+            System.IO.File.WriteAllText(testAssetName, "");
 
-            m_ViewController = VFXViewController.GetController(asset);
+            AssetDatabase.ImportAsset(testAssetName); // This will create the VisualEffectAsset.
+
+            var asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetName);
+            var resource = asset.GetResource(); // force resource creation
+
+            m_ViewController = VFXViewController.GetController(resource);
             m_ViewController.useCount++;
 
             m_StartUndoGroupId = Undo.GetCurrentGroup();
