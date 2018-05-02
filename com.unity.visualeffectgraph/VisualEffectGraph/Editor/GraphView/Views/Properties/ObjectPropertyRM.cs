@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.UI
         public ObjectPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
             m_ObjectField = new ObjectField(m_Label);
-            if( controller.portType == typeof(Texture2D) || controller.portType == typeof(Texture3D) || controller.portType == typeof(Cubemap) )
+            if (controller.portType == typeof(Texture2D) || controller.portType == typeof(Texture3D) || controller.portType == typeof(Cubemap))
                 m_ObjectField.control.objectType = typeof(Texture);
             else
                 m_ObjectField.control.objectType = controller.portType;
@@ -40,33 +40,33 @@ namespace UnityEditor.VFX.UI
         public void OnValueChanged(ChangeEvent<Object> onObjectChanged)
         {
             Object newValue = m_ObjectField.value;
-            if( typeof(Texture).IsAssignableFrom(m_Provider.portType) )
+            if (typeof(Texture).IsAssignableFrom(m_Provider.portType))
             {
                 Texture tex = newValue as Texture;
 
-                if( tex != null)
+                if (tex != null)
                 {
-                    if( m_Provider.portType == typeof(Texture2D) )
+                    if (m_Provider.portType == typeof(Texture2D))
                     {
-                        if( tex.dimension != TextureDimension.Tex2D)
+                        if (tex.dimension != TextureDimension.Tex2D)
                         {
                             Debug.LogError("Wrong Texture Dimension");
 
                             newValue = null;
                         }
                     }
-                    else if( m_Provider.portType == typeof(Texture3D))
+                    else if (m_Provider.portType == typeof(Texture3D))
                     {
-                        if( tex.dimension != TextureDimension.Tex3D)
+                        if (tex.dimension != TextureDimension.Tex3D)
                         {
                             Debug.LogError("Wrong Texture Dimension");
 
                             newValue = null;
                         }
                     }
-                    else if( m_Provider.portType == typeof(Cubemap))
+                    else if (m_Provider.portType == typeof(Cubemap))
                     {
-                        if( tex.dimension != TextureDimension.Cube)
+                        if (tex.dimension != TextureDimension.Cube)
                         {
                             Debug.LogError("Wrong Texture Dimension");
 
@@ -109,7 +109,7 @@ namespace UnityEditor.VFX.UI
         public ObjectPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
             m_ObjectField = new ObjectField(m_Label);
-            if( controller.portType == typeof(Texture2D) || controller.portType == typeof(Texture3D) || controller.portType == typeof(TextureCube) )
+            if (controller.portType == typeof(Texture2D) || controller.portType == typeof(Texture3D) || controller.portType == typeof(TextureCube))
                 m_ObjectField.editedType = typeof(Texture);
             else
                 m_ObjectField.editedType = controller.portType;
@@ -124,33 +124,33 @@ namespace UnityEditor.VFX.UI
         {
             Object newValue = m_ObjectField.GetValue();
 
-            if( typeof(Texture).IsAssignableFrom(controller.portType) )
+            if (typeof(Texture).IsAssignableFrom(controller.portType))
             {
                 Texture tex = newValue as Texture;
 
-                if( tex != null)
+                if (tex != null)
                 {
-                    if( controller.portType == typeof(Texture2D) )
+                    if (controller.portType == typeof(Texture2D))
                     {
-                        if( tex.dimension != TextureDimension.Tex2D)
+                        if (tex.dimension != TextureDimension.Tex2D)
                         {
                             Debug.LogError("Wrong Texture Dimension");
 
                             newValue = null;
                         }
                     }
-                    else if( controller.portType == typeof(Texture3D))
+                    else if (controller.portType == typeof(Texture3D))
                     {
-                        if( tex.dimension != TextureDimension.Tex3D)
+                        if (tex.dimension != TextureDimension.Tex3D)
                         {
                             Debug.LogError("Wrong Texture Dimension");
 
                             newValue = null;
                         }
                     }
-                    else if( controller.portType == typeof(Cubemap))
+                    else if (controller.portType == typeof(Cubemap))
                     {
-                        if( tex.dimension != TextureDimension.Cube)
+                        if (tex.dimension != TextureDimension.Cube)
                         {
                             Debug.LogError("Wrong Texture Dimension");
 

@@ -88,7 +88,6 @@ namespace UnityEditor.VFX
                     }
                     else if (obj is Texture && typeof(Texture).IsAssignableFrom(type))
                     {
-                        
                     }
                     else
                     {
