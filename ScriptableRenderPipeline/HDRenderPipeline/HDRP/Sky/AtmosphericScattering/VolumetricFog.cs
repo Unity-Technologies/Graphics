@@ -49,11 +49,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public override void PushShaderParameters(CommandBuffer cmd, FrameSettings frameSettings)
         {
-            DensityVolumeParameters param;
-
-            param.albedo       = albedo;
-            param.meanFreePath = meanFreePath;
-            param.asymmetry    = asymmetry;
+            DensityVolumeParameters param = new DensityVolumeParameters(albedo, meanFreePath, asymmetry);
 
             DensityVolumeData data = param.GetData();
 
