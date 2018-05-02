@@ -1862,8 +1862,8 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     // -------------------------------
     else if (projectionModel == PROJECTIONMODEL_HI_Z)
     {
-        ScreenSpaceHiZRaymarchInput ssRayInput;
-        ZERO_INITIALIZE(ScreenSpaceHiZRaymarchInput, ssRayInput);
+        ScreenSpaceRaymarchInput ssRayInput;
+        ZERO_INITIALIZE(ScreenSpaceRaymarchInput, ssRayInput);
 
         ssRayInput.rayOriginWS = rayOriginWS;
         ssRayInput.rayDirWS = rayDirWS;

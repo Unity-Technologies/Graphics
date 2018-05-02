@@ -41,7 +41,7 @@ struct ScreenSpaceTracingDebug
     uint iterationCellSizeH;
     int proxyShapeType;
     float projectionDistance;
-    bool endHitSuccess;
+    int endHitSuccess;
     float endLinearDepth;
     uint endPositionSSX;
     uint endPositionSSY;
@@ -114,7 +114,7 @@ float GetProjectionDistance(ScreenSpaceTracingDebug value)
 {
 	return value.projectionDistance;
 }
-bool GetEndHitSuccess(ScreenSpaceTracingDebug value)
+int GetEndHitSuccess(ScreenSpaceTracingDebug value)
 {
 	return value.endHitSuccess;
 }
