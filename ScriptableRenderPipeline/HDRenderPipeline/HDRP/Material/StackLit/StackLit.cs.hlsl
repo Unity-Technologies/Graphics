@@ -8,32 +8,36 @@
 // UnityEngine.Experimental.Rendering.HDPipeline.StackLit+MaterialFeatureFlags:  static fields
 //
 #define MATERIALFEATUREFLAGS_STACK_LIT_STANDARD (1)
-#define MATERIALFEATUREFLAGS_STACK_LIT_SUBSURFACE_SCATTERING (4)
-#define MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION (8)
-#define MATERIALFEATUREFLAGS_STACK_LIT_ANISOTROPY (16)
-#define MATERIALFEATUREFLAGS_STACK_LIT_COAT (64)
+#define MATERIALFEATUREFLAGS_STACK_LIT_DUAL_SPECULAR_LOBE (2)
+#define MATERIALFEATUREFLAGS_STACK_LIT_ANISOTROPY (4)
+#define MATERIALFEATUREFLAGS_STACK_LIT_COAT (8)
+#define MATERIALFEATUREFLAGS_STACK_LIT_IRIDESCENCE (16)
+#define MATERIALFEATUREFLAGS_STACK_LIT_SUBSURFACE_SCATTERING (32)
+#define MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION (64)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.StackLit+SurfaceData:  static fields
 //
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_MATERIAL_FEATURES (1300)
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_BASE_COLOR (1301)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_NORMAL (1302)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_NORMAL_VIEW_SPACE (1303)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_SMOOTHNESS_A (1304)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_SMOOTHNESS_B (1305)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_LOBE_MIXING (1306)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_METALLIC (1307)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_DIFFUSION_PROFILE (1308)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_SUBSURFACE_MASK (1309)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_THICKNESS (1310)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_TANGENT (1311)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_ANISOTROPY (1312)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_AMBIENT_OCCLUSION (1302)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_METALLIC (1303)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_NORMAL (1304)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_NORMAL_VIEW_SPACE (1305)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_SMOOTHNESS_A (1306)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_SMOOTHNESS_B (1307)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_LOBE_MIXING (1308)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_TANGENT (1309)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_ANISOTROPY (1310)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_IRIDESCENCE_IOR (1311)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_IRIDESCENCE_THICKNESS (1312)
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_ROUGHNESS (1313)
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_IOR (1314)
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_THICKNESS (1315)
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_EXTINCTION_COEFFICIENT (1316)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_AMBIENT_OCCLUSION (1317)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_DIFFUSION_PROFILE (1317)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_SUBSURFACE_MASK (1318)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_THICKNESS (1319)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.StackLit+BSDFData:  static fields
@@ -41,29 +45,31 @@
 #define DEBUGVIEW_STACKLIT_BSDFDATA_MATERIAL_FEATURES (1400)
 #define DEBUGVIEW_STACKLIT_BSDFDATA_DIFFUSE_COLOR (1401)
 #define DEBUGVIEW_STACKLIT_BSDFDATA_FRESNEL0 (1402)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_NORMAL_WS (1403)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_NORMAL_VIEW_SPACE (1404)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_PERCEPTUAL_ROUGHNESS_A (1405)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_PERCEPTUAL_ROUGHNESS_B (1406)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_LOBE_MIX (1407)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_TANGENT_WS (1408)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_BITANGENT_WS (1409)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_ROUGHNESS_AT (1410)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_ROUGHNESS_AB (1411)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_ROUGHNESS_BT (1412)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_ROUGHNESS_BB (1413)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_COAT_ROUGHNESS (1414)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_AMBIENT_OCCLUSION (1403)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_NORMAL_WS (1404)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_NORMAL_VIEW_SPACE (1405)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_PERCEPTUAL_ROUGHNESS_A (1406)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_PERCEPTUAL_ROUGHNESS_B (1407)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_LOBE_MIX (1408)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_TANGENT_WS (1409)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_BITANGENT_WS (1410)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_ROUGHNESS_AT (1411)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_ROUGHNESS_AB (1412)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_ROUGHNESS_BT (1413)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_ROUGHNESS_BB (1414)
 #define DEBUGVIEW_STACKLIT_BSDFDATA_ANISOTROPY (1415)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_COAT_PERCEPTUAL_ROUGHNESS (1416)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_COAT_IOR (1417)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_COAT_THICKNESS (1418)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_COAT_EXTINCTION (1419)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_DIFFUSION_PROFILE (1420)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_SUBSURFACE_MASK (1421)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_THICKNESS (1422)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_USE_THICK_OBJECT_MODE (1423)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_TRANSMITTANCE (1424)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_AMBIENT_OCCLUSION (1425)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_COAT_ROUGHNESS (1416)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_COAT_PERCEPTUAL_ROUGHNESS (1417)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_COAT_IOR (1418)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_COAT_THICKNESS (1419)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_COAT_EXTINCTION (1420)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_IRIDESCENCE_IOR (1421)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_IRIDESCENCE_THICKNESS (1422)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_DIFFUSION_PROFILE (1423)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_SUBSURFACE_MASK (1424)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_THICKNESS (1425)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_USE_THICK_OBJECT_MODE (1426)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_TRANSMITTANCE (1427)
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.StackLit+SurfaceData
 // PackingRules = Exact
@@ -71,21 +77,23 @@ struct SurfaceData
 {
     uint materialFeatures;
     float3 baseColor;
+    float ambientOcclusion;
+    float metallic;
     float3 normalWS;
     float perceptualSmoothnessA;
     float perceptualSmoothnessB;
     float lobeMix;
-    float metallic;
-    uint diffusionProfile;
-    float subsurfaceMask;
-    float thickness;
     float3 tangentWS;
     float anisotropy;
+    float iridescenceIor;
+    float iridescenceThickness;
     float coatPerceptualSmoothness;
     float coatIor;
     float coatThickness;
     float3 coatExtinction;
-    float ambientOcclusion;
+    uint diffusionProfile;
+    float subsurfaceMask;
+    float thickness;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.StackLit+BSDFData
@@ -95,6 +103,7 @@ struct BSDFData
     uint materialFeatures;
     float3 diffuseColor;
     float3 fresnel0;
+    float ambientOcclusion;
     float3 normalWS;
     float perceptualRoughnessA;
     float perceptualRoughnessB;
@@ -105,18 +114,19 @@ struct BSDFData
     float roughnessAB;
     float roughnessBT;
     float roughnessBB;
-    float coatRoughness;
     float anisotropy;
+    float coatRoughness;
     float coatPerceptualRoughness;
     float coatIor;
     float coatThickness;
     float3 coatExtinction;
+    float iridescenceIor;
+    float iridescenceThickness;
     uint diffusionProfile;
     float subsurfaceMask;
     float thickness;
     bool useThickObjectMode;
     float3 transmittance;
-    float ambientOcclusion;
 };
 
 //
@@ -133,6 +143,12 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             result = surfacedata.baseColor;
             needLinearToSRGB = true;
             break;
+        case DEBUGVIEW_STACKLIT_SURFACEDATA_AMBIENT_OCCLUSION:
+            result = surfacedata.ambientOcclusion.xxx;
+            break;
+        case DEBUGVIEW_STACKLIT_SURFACEDATA_METALLIC:
+            result = surfacedata.metallic.xxx;
+            break;
         case DEBUGVIEW_STACKLIT_SURFACEDATA_NORMAL:
             result = surfacedata.normalWS * 0.5 + 0.5;
             break;
@@ -148,23 +164,17 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
         case DEBUGVIEW_STACKLIT_SURFACEDATA_LOBE_MIXING:
             result = surfacedata.lobeMix.xxx;
             break;
-        case DEBUGVIEW_STACKLIT_SURFACEDATA_METALLIC:
-            result = surfacedata.metallic.xxx;
-            break;
-        case DEBUGVIEW_STACKLIT_SURFACEDATA_DIFFUSION_PROFILE:
-            result = GetIndexColor(surfacedata.diffusionProfile);
-            break;
-        case DEBUGVIEW_STACKLIT_SURFACEDATA_SUBSURFACE_MASK:
-            result = surfacedata.subsurfaceMask.xxx;
-            break;
-        case DEBUGVIEW_STACKLIT_SURFACEDATA_THICKNESS:
-            result = surfacedata.thickness.xxx;
-            break;
         case DEBUGVIEW_STACKLIT_SURFACEDATA_TANGENT:
             result = surfacedata.tangentWS * 0.5 + 0.5;
             break;
         case DEBUGVIEW_STACKLIT_SURFACEDATA_ANISOTROPY:
             result = surfacedata.anisotropy.xxx;
+            break;
+        case DEBUGVIEW_STACKLIT_SURFACEDATA_IRIDESCENCE_IOR:
+            result = surfacedata.iridescenceIor.xxx;
+            break;
+        case DEBUGVIEW_STACKLIT_SURFACEDATA_IRIDESCENCE_THICKNESS:
+            result = surfacedata.iridescenceThickness.xxx;
             break;
         case DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_ROUGHNESS:
             result = surfacedata.coatPerceptualSmoothness.xxx;
@@ -178,8 +188,14 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
         case DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_EXTINCTION_COEFFICIENT:
             result = surfacedata.coatExtinction;
             break;
-        case DEBUGVIEW_STACKLIT_SURFACEDATA_AMBIENT_OCCLUSION:
-            result = surfacedata.ambientOcclusion.xxx;
+        case DEBUGVIEW_STACKLIT_SURFACEDATA_DIFFUSION_PROFILE:
+            result = GetIndexColor(surfacedata.diffusionProfile);
+            break;
+        case DEBUGVIEW_STACKLIT_SURFACEDATA_SUBSURFACE_MASK:
+            result = surfacedata.subsurfaceMask.xxx;
+            break;
+        case DEBUGVIEW_STACKLIT_SURFACEDATA_THICKNESS:
+            result = surfacedata.thickness.xxx;
             break;
     }
 }
@@ -200,6 +216,9 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_STACKLIT_BSDFDATA_FRESNEL0:
             result = bsdfdata.fresnel0;
+            break;
+        case DEBUGVIEW_STACKLIT_BSDFDATA_AMBIENT_OCCLUSION:
+            result = bsdfdata.ambientOcclusion.xxx;
             break;
         case DEBUGVIEW_STACKLIT_BSDFDATA_NORMAL_WS:
             result = bsdfdata.normalWS * 0.5 + 0.5;
@@ -234,11 +253,11 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
         case DEBUGVIEW_STACKLIT_BSDFDATA_ROUGHNESS_BB:
             result = bsdfdata.roughnessBB.xxx;
             break;
-        case DEBUGVIEW_STACKLIT_BSDFDATA_COAT_ROUGHNESS:
-            result = bsdfdata.coatRoughness.xxx;
-            break;
         case DEBUGVIEW_STACKLIT_BSDFDATA_ANISOTROPY:
             result = bsdfdata.anisotropy.xxx;
+            break;
+        case DEBUGVIEW_STACKLIT_BSDFDATA_COAT_ROUGHNESS:
+            result = bsdfdata.coatRoughness.xxx;
             break;
         case DEBUGVIEW_STACKLIT_BSDFDATA_COAT_PERCEPTUAL_ROUGHNESS:
             result = bsdfdata.coatPerceptualRoughness.xxx;
@@ -251,6 +270,12 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_STACKLIT_BSDFDATA_COAT_EXTINCTION:
             result = bsdfdata.coatExtinction;
+            break;
+        case DEBUGVIEW_STACKLIT_BSDFDATA_IRIDESCENCE_IOR:
+            result = bsdfdata.iridescenceIor.xxx;
+            break;
+        case DEBUGVIEW_STACKLIT_BSDFDATA_IRIDESCENCE_THICKNESS:
+            result = bsdfdata.iridescenceThickness.xxx;
             break;
         case DEBUGVIEW_STACKLIT_BSDFDATA_DIFFUSION_PROFILE:
             result = GetIndexColor(bsdfdata.diffusionProfile);
@@ -266,9 +291,6 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_STACKLIT_BSDFDATA_TRANSMITTANCE:
             result = bsdfdata.transmittance;
-            break;
-        case DEBUGVIEW_STACKLIT_BSDFDATA_AMBIENT_OCCLUSION:
-            result = bsdfdata.ambientOcclusion.xxx;
             break;
     }
 }
