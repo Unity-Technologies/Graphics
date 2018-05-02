@@ -86,6 +86,23 @@ float3 VFXCubeTransformNormalTS(float3 faceNormal,float3 normal)
 	return mul(tbn,normal);
 }
 
+float3 VFXCubeTransformNormalTS(VFX_VARYING_PS_INPUTS i,float3 normal)
+{
+#if defined(VFX_VARYING_OFFSETS) && defined(VFX_VARYING_FACEID)
+	float3x3 tbn;
+	float3 faceNormal = VFXCubeGetLocalNormal(i);
+	if (i.VFX_VARYING_FACEID == 0)
+		tbn = float3x3(-faceNormal.zxy,faceNormal.yzx * faceNormal.yzx,faceNormal.xyz);
+	else if (i.VFX_VARYING_FACEID == 1)
+		tbn = float3x3(faceNormal.yxz, faceNormal.xzy, float3(0, 1, 0));
+	else
+		tbn = float3x3(faceNormal.yzx, float3(0,1,0),faceNormal.xyz);
+	return mul(tbn, normal);
+#else
+	return normal;
+#endif
+}
+
 float3 VFXCubeTransformNormalWS(VFX_VARYING_PS_INPUTS i,float3 normal)
 {
 #if defined(VFX_VARYING_ROTX) && defined(VFX_VARYING_ROTY)

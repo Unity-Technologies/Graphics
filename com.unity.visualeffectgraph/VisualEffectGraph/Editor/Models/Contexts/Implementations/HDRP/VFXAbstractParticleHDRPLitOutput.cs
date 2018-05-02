@@ -28,6 +28,17 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Range(1, 15)]
         protected uint diffusionProfile = 1;
 
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected bool useBaseColorMap = false;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected bool useMaskMap = false;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected bool useNormalMap = false;
+
+        protected virtual bool allowTextures { get { return true; }}
+
         public class HDRPLitInputProperties
         {
             [Range(0, 1)]
@@ -51,6 +62,24 @@ namespace UnityEditor.VFX
             public float thickness = 1.0f;
         }
 
+        public class BaseColorMapProperties
+        {
+            [Tooltip("Base Color (RGB) Opacity (A)")]
+            public Texture2D baseColor = VFXResources.defaultResources.particleTexture;
+        }
+
+        public class MaskMapProperties
+        {
+            [Tooltip("Metallic (R) AO (G) Smoothness (A)")]
+            public Texture2D maskMap = VFXResources.defaultResources.noiseTexture;
+        }
+
+        public class NormalMapProperties
+        {
+            [Tooltip("Normal in tangent space")]
+            public Texture2D normalMap;
+        }
+
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
@@ -58,6 +87,15 @@ namespace UnityEditor.VFX
                 var properties = base.inputProperties;
                 properties = properties.Concat(PropertiesFromType("HDRPLitInputProperties"));
                 properties = properties.Concat(PropertiesFromType(kMaterialTypeToName[(int)materialType]));
+                if (allowTextures)
+                {
+                    if (useBaseColorMap)
+                        properties = properties.Concat(PropertiesFromType("BaseColorMapProperties"));
+                    if (useMaskMap)
+                        properties = properties.Concat(PropertiesFromType("MaskMapProperties"));
+                    if (useNormalMap)
+                        properties = properties.Concat(PropertiesFromType("NormalMapProperties"));
+                }
 
                 return properties;
             }
@@ -87,6 +125,16 @@ namespace UnityEditor.VFX
 
                 default: break;
             }
+
+            if (allowTextures)
+            {
+                if (useBaseColorMap)
+                    yield return slotExpressions.First(o => o.name == "baseColor");
+                if (useMaskMap)
+                    yield return slotExpressions.First(o => o.name == "maskMap");
+                if (useNormalMap)
+                    yield return slotExpressions.First(o => o.name == "normalMap");
+            }
         }
 
         public override IEnumerable<string> additionalDefines
@@ -112,6 +160,16 @@ namespace UnityEditor.VFX
 
                     default: break;
                 }
+
+                if (allowTextures)
+                {
+                    if (useBaseColorMap)
+                        yield return "HDRP_USE_BASE_COLOR_MAP";
+                    if (useMaskMap)
+                        yield return "HDRP_USE_MASK_MAP";
+                    if (useNormalMap)
+                        yield return "HDRP_USE_NORMAL_MAP";
+                }
             }
         }
 
@@ -124,6 +182,13 @@ namespace UnityEditor.VFX
 
                 if (materialType != MaterialType.Translucent)
                     yield return "diffusionProfile";
+
+                if (!allowTextures)
+                {
+                    yield return "useBaseColorMap";
+                    yield return "useMaskMap";
+                    yield return "useNormalMap";
+                }
             }
         }
     }

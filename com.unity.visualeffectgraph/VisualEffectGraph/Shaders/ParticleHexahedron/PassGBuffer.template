@@ -16,6 +16,7 @@ Pass
 	
 	#define UNITY_MATERIAL_LIT
 	#define SHADERPASS SHADERPASS_GBUFFER
+	#define HDRP_NEEDS_UVS (HDRP_USE_BASE_COLOR_MAP || HDRP_USE_MASK_MAP || HDRP_USE_NORMAL_MAP)
 	
 	struct ps_input
 	{
@@ -43,6 +44,10 @@ Pass
 		// x: smoothness
 		// y: metallic/thickness
 		nointerpolation float2 materialProperties : TEXCOORD6;
+		
+		#if HDRP_NEEDS_UVS
+		nointerpolation uint faceID : TEXCOORD7;
+		#endif
 	};
 	
 	struct ps_output
@@ -60,6 +65,9 @@ Pass
 #define VFX_VARYING_OFFSETS offsets
 #define VFX_VARYING_ROTX rotX
 #define VFX_VARYING_ROTY rotY
+#if HDRP_NEEDS_UVS
+#define VFX_VARYING_FACEID faceID
+#endif
 				
 ${VFXBegin:VFXVertexAdditionalProcess}
 ${VFXLoadParameter:{smoothness}}
@@ -82,11 +90,17 @@ ${VFXEnd}
 	#pragma fragment frag
 	void frag(ps_input i, OUTPUT_GBUFFER(outGBuffer))
 	{
-		float3 normalWS = VFXCubeGetLocalNormal(i);;
+		float3 normalWS;
+		#if HDRP_USE_NORMAL_MAP
+		float3 n = VFXGetTextureNormal(VFX_SAMPLER(normalMap),VFXCubeGetUV(i));
+		normalWS = VFXCubeTransformNormalTS(i,n);
+		#else
+		normalWS = VFXCubeGetLocalNormal(i);
+		#endif
 		normalWS = VFXCubeTransformNormalWS(i,normalWS);
 		
-		SurfaceData surfaceData = VFXGetSurfaceData(normalWS,i);
-		float3 ambient = VFXGetAmbient(normalWS);
+		SurfaceData surfaceData = VFXGetSurfaceData(normalWS,i,VFXCubeGetUV(i));
+		float3 ambient = surfaceData.baseColor * VFXGetAmbient(normalWS);
 		
 		ENCODE_INTO_GBUFFER(surfaceData, ambient, i.pos, outGBuffer);
 	}

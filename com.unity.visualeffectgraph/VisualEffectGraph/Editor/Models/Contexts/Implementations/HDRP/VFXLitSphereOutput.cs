@@ -13,6 +13,8 @@ namespace UnityEditor.VFX
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleSphere"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleQuadOutput; } }
 
+        protected override bool allowTextures { get { return false; } }
+
         public override void OnEnable()
         {
             blendMode = BlendMode.Opaque; // TODO use masked
