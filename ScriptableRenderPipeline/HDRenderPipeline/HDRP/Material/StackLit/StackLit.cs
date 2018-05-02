@@ -9,11 +9,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL(PackingRules.Exact)]
         public enum MaterialFeatureFlags
         {
-            StackLitStandard             = 1 << 0,
-            StackLitSubsurfaceScattering = 1 << 2,
-            StackLitTransmission = 1 << 3,
-            StackLitAnisotropy           = 1 << 4,
-            StackLitCoat                 = 1 << 6,
+            StackLitStandard                = 1 << 0,
+            StackLitDualSpecularLobe        = 1 << 1,
+            StackLitAnisotropy              = 1 << 2,
+            StackLitCoat                    = 1 << 3,
+            StackLitIridescence             = 1 << 4,
+            StackLitSubsurfaceScattering    = 1 << 5,
+            StackLitTransmission            = 1 << 6,
         };
 
         //-----------------------------------------------------------------------------
@@ -27,41 +29,45 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Material Features")]
             public uint materialFeatures;
 
-            // Bottom interface (2 lobes BSDF) 
+            // Bottom interface (2 lobes BSDF)
             // Standard parametrization
             [SurfaceDataAttributes("Base Color", false, true)]
             public Vector3 baseColor;
-            
+
+            [SurfaceDataAttributes("Ambient Occlusion")]
+            public float ambientOcclusion;
+
+            [SurfaceDataAttributes("Metallic")]
+            public float metallic;
+
+            [SurfaceDataAttributes("IOR")]
+            public float dielectricIor;
+
             [SurfaceDataAttributes(new string[]{"Normal", "Normal View Space"}, true)]
             public Vector3 normalWS;
 
             [SurfaceDataAttributes("Smoothness A")]
             public float perceptualSmoothnessA;
+
+            // Dual specular lobe
             [SurfaceDataAttributes("Smoothness B")]
             public float perceptualSmoothnessB;
 
             [SurfaceDataAttributes("Lobe Mixing")]
             public float lobeMix;
 
-            [SurfaceDataAttributes("Metallic")]
-            public float metallic;
-
-            // SSS
-            [SurfaceDataAttributes("Diffusion Profile")]
-            public uint diffusionProfile;
-            [SurfaceDataAttributes("Subsurface Mask")]
-            public float subsurfaceMask;
-
-            // Transmission
-            // + Diffusion Profile
-            [SurfaceDataAttributes("Thickness")]
-            public float thickness;
-
             // Anisotropic
             [SurfaceDataAttributes("Tangent", true)]
             public Vector3 tangentWS;
+
             [SurfaceDataAttributes("Anisotropy")]
             public float anisotropy; // anisotropic ratio(0->no isotropic; 1->full anisotropy in tangent direction, -1->full anisotropy in bitangent direction)
+
+            // Iridescence
+            [SurfaceDataAttributes("IridescenceIor")]
+            public float iridescenceIor;
+            [SurfaceDataAttributes("IridescenceThickness")]
+            public float iridescenceThickness;
 
             // Top interface and media (clearcoat)
             [SurfaceDataAttributes("Coat Roughness")]
@@ -73,8 +79,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Coat Extinction Coefficient")]
             public Vector3 coatExtinction;
 
-            [SurfaceDataAttributes("Ambient Occlusion")]
-            public float ambientOcclusion;
+            // SSS
+            [SurfaceDataAttributes("Diffusion Profile")]
+            public uint diffusionProfile;
+            [SurfaceDataAttributes("Subsurface Mask")]
+            public float subsurfaceMask;
+
+            // Transmission
+            // + Diffusion Profile
+            [SurfaceDataAttributes("Thickness")]
+            public float thickness;
         };
 
         //-----------------------------------------------------------------------------
@@ -85,15 +99,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             public uint materialFeatures;
 
-            // Bottom interface (2 lobes BSDF) 
+            // Bottom interface (2 lobes BSDF)
             // Standard parametrization
             [SurfaceDataAttributes("", false, true)]
             public Vector3 diffuseColor;
             public Vector3 fresnel0;
 
+            public float ambientOcclusion;
+
             [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
             public Vector3 normalWS;
             public float perceptualRoughnessA;
+
+            // Dual specular lobe
             public float perceptualRoughnessB;
             public float lobeMix;
 
@@ -106,14 +124,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float roughnessAB;
             public float roughnessBT;
             public float roughnessBB;
-            public float coatRoughness;
             public float anisotropy;
 
             // Top interface and media (clearcoat)
+            public float coatRoughness;
             public float coatPerceptualRoughness;
             public float coatIor;
             public float coatThickness;
             public Vector3 coatExtinction;
+
+            // iridescence
+            public float iridescenceIor;
+            public float iridescenceThickness;
 
             // SSS
             public uint diffusionProfile;
@@ -124,8 +146,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float thickness;
             public bool useThickObjectMode; // Read from the diffusion profile
             public Vector3 transmittance;   // Precomputation of transmittance
-
-            public float ambientOcclusion;
         };
 
         //-----------------------------------------------------------------------------
