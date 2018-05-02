@@ -49,14 +49,19 @@ Shader "HDRenderPipeline/StackLit"
         [HideInInspector] _SmoothnessBRange("SmoothnessB Range", Vector) = (0, 1, 0, 0)
         _LobeMix("Lobe Mix", Range(0.0, 1.0)) = 0
 
+        [ToggleUI] _DebugEnable("Debug Enable", Float) = 0.0 // UI only
+        _DebugLobeMask("DebugLobeMask", Vector) = (1, 1, 1, 1)
+        _DebugAniso("DebugAniso", Vector) = (1, 0, 0, 1000.0)
+
         // TODO: TangentMap, AnisotropyMap and CoatIorMap (SmoothnessMap ?)
 
         _Anisotropy("Anisotropy", Range(-1.0, 1.0)) = 0.0
+
         [ToggleUI] _CoatEnable("Coat Enable", Float) = 0.0 // UI only
         _CoatSmoothness("Coat Smoothness", Range(0.0, 1.0)) = 1.0
-        _CoatIor("Coat IOR", Range(1.0, 2.0)) = 1.5
+        _CoatIor("Coat IOR", Range(1.0001, 2.0)) = 1.5
         _CoatThickness("Coat Thickness", Range(0.0, 0.99)) = 0.0
-        _CoatExtinction("Coat Extinction Coefficient", Color) = (1,1,1,1) // in thickness^-1 units
+        _CoatExtinction("Coat Extinction Coefficient", Color) = (1,1,1) // in thickness^-1 units
 
         [HideInInspector] _NormalMapShow("NormalMap Show", Float) = 0.0
         _NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
@@ -84,22 +89,27 @@ Shader "HDRenderPipeline/StackLit"
         _EmissiveIntensity("Emissive Intensity", Float) = 0
         [ToggleUI] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
 
+        [ToggleUI] _EnableSubsurfaceScattering("Enable Subsurface Scattering", Float) = 0.0
+        _DiffusionProfile("Diffusion Profile", Int) = 0
         [HideInInspector] _SubsurfaceMaskMapShow("Subsurface Mask Map Show", Float) = 0
         _SubsurfaceMask("Subsurface Mask", Range(0.0, 1.0)) = 1.0
         _SubsurfaceMaskMap("Subsurface Mask Map", 2D) = "black" {}
-        _SubsurfaceMaskUSeMap("Subsurface Mask Use Map", Float) = 0
+        _SubsurfaceMaskUseMap("Subsurface Mask Use Map", Float) = 0
         _SubsurfaceMaskMapUV("Subsurface Mask Map UV", Float) = 0.0
+        _SubsurfaceMaskMapUVLocal("Subsurface Mask UV Local", Float) = 0.0
         _SubsurfaceMaskMapChannel("Subsurface Mask Map Channel", Float) = 0.0
         _SubsurfaceMaskMapChannelMask("Subsurface Mask Map Channel Mask", Vector) = (1, 0, 0, 0)
         _SubsurfaceMaskRemap("Subsurface Mask Remap", Vector) = (0, 1, 0, 0)
         [ToggleUI] _SubsurfaceMaskRemapInverted("Invert Subsurface Mask Remap", Float) = 0.0
         [HideInInspector] _SubsurfaceMaskRange("Subsurface Mask Range", Vector) = (0, 1, 0, 0)
-
+            
+        [ToggleUI] _EnableTransmission("Enable Transmission", Float) = 0.0
         [HideInInspector] _ThicknessMapShow("Thickness Show", Float) = 0
         _Thickness("Thickness", Range(0.0, 1.0)) = 1.0
         _ThicknessMap("Thickness Map", 2D) = "black" {}
         _ThicknessUseMap("Thickness Use Map", Float) = 0
         _ThicknessMapUV("Thickness Map UV", Float) = 0.0
+        _ThicknessMapUVLocal("Thickness Map UV Local", Float) = 0.0
         _ThicknessMapChannel("Thickness Map Channel", Float) = 0.0
         _ThicknessMapChannelMask("Thickness Map Channel Mask", Vector) = (1, 0, 0, 0)
         _ThicknessRemap("Thickness Remap", Vector) = (0, 1, 0, 0)
@@ -157,9 +167,11 @@ Shader "HDRenderPipeline/StackLit"
 
 
         // Sections show values.
+        [HideInInspector] _MaterialFeaturesShow("_MaterialFeaturesShow", Float) = 1.0
         [HideInInspector] _StandardShow("_StandardShow", Float) = 0.0
         [HideInInspector] _EmissiveShow("_EmissiveShow", Float) = 0.0
         [HideInInspector] _CoatShow("_CoatShow", Float) = 0.0
+        [HideInInspector] _DebugShow("_DebugShow", Float) = 0.0
         [HideInInspector] _SSSShow("_SSSShow", Float) = 0.0
         [HideInInspector] _Lobe2Show("_Lobe2Show", Float) = 0.0
         [HideInInspector] _AnisotropyShow("_AnisotropyShow", Float) = 0.0
@@ -199,10 +211,9 @@ Shader "HDRenderPipeline/StackLit"
     // but we need it right away for toggle with LayerTexCoord mapping so we might need them
     // from the Frag input right away. See also ShaderPass/StackLitSharePass.hlsl.
 
-    #pragma shader_feature _NORMALMAP
-    #pragma shader_feature _MASKMAPA
-    #pragma shader_feature _MASKMAPB
-    #pragma shader_feature _EMISSIVE_COLOR_MAP
+    #pragma shader_feature _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
+    #pragma shader_feature _MATERIAL_FEATURE_TRANSMISSION
+    //#pragma shader_feature _EMISSIVE_COLOR_MAP
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
@@ -215,6 +226,7 @@ Shader "HDRenderPipeline/StackLit"
     #pragma shader_feature _MATERIAL_FEATURE_COAT
     #pragma shader_feature _MATERIAL_FEATURE_DUAL_LOBE
 
+    #pragma shader_feature _STACKLIT_DEBUG
     //enable GPU instancing support
     #pragma multi_compile_instancing
 
@@ -223,6 +235,11 @@ Shader "HDRenderPipeline/StackLit"
     //-------------------------------------------------------------------------------------
 
     #define UNITY_MATERIAL_STACKLIT // Need to be define before including Material.hlsl
+
+    // If we use subsurface scattering, enable output split lighting (for forward pass)
+    #if defined(_MATERIAL_FEATURE_SUBSURFACE_SCATTERING) && !defined(_SURFACE_TYPE_TRANSPARENT)
+    #define OUTPUT_SPLIT_LIGHTING
+    #endif
 
     //-------------------------------------------------------------------------------------
     // Include
