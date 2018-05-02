@@ -128,12 +128,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 new GroupProperty(this, "_MaterialFeatures", "Material Features", new BaseProperty[]
                 {
-                    EnableSSS,
-                    EnableTransmission,
-                    EnableCoat,
-                    EnableAnisotropy,
                     EnableDualSpecularLobe,
-                    EnableIridescence
+                    EnableAnisotropy,
+                    EnableCoat,
+                    EnableIridescence,
+                    EnableSSS,
+                    EnableTransmission
                 }),
 
                 new GroupProperty(this, "_Standard", "Standard", new BaseProperty[]
