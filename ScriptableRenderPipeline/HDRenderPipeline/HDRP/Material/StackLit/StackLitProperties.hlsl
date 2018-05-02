@@ -9,20 +9,26 @@ SAMPLER(sampler_DistortionVectorMap);
 TEXTURE2D(_BaseColorMap);
 SAMPLER(sampler_BaseColorMap);
 
+TEXTURE2D(_AmbientOcclusionMap);
+SAMPLER(sampler_AmbientOcclusionMap);
+
 TEXTURE2D(_MetallicMap);
 SAMPLER(sampler_MetallicMap);
 
 TEXTURE2D(_SmoothnessAMap);
 SAMPLER(sampler_SmoothnessAMap);
 
-TEXTURE2D(_SmoothnessBMap);
-SAMPLER(sampler_SmoothnessBMap);
-
 TEXTURE2D(_NormalMap);
 SAMPLER(sampler_NormalMap);
 
-TEXTURE2D(_AmbientOcclusionMap);
-SAMPLER(sampler_AmbientOcclusionMap);
+TEXTURE2D(_SmoothnessBMap);
+SAMPLER(sampler_SmoothnessBMap);
+
+TEXTURE2D(_AnisotropyMap);
+SAMPLER(sampler_AnisotropyMap);
+
+TEXTURE2D(_IridescenceThicknessMap);
+SAMPLER(sampler_IridescenceThicknessMap);
 
 TEXTURE2D(_SubsurfaceMaskMap);
 SAMPLER(sampler_SubsurfaceMaskMap);
@@ -32,7 +38,6 @@ SAMPLER(sampler_ThicknessMap);
 
 TEXTURE2D(_EmissiveColorMap);
 SAMPLER(sampler_EmissiveColorMap);
-
 
 CBUFFER_START(UnityPerMaterial)
 
@@ -53,6 +58,8 @@ float4 _MetallicMap_MipInfo;
 float4 _MetallicMapChannelMask;
 float4 _MetallicRange;
 
+float _DielectricIor;
+
 float _SmoothnessA;
 float _SmoothnessAUseMap;
 float _SmoothnessAMapUV;
@@ -63,25 +70,8 @@ float4 _SmoothnessAMap_MipInfo;
 float4 _SmoothnessAMapChannelMask;
 float4 _SmoothnessARange;
 
-float _SmoothnessB;
-float _SmoothnessBUseMap;
-float _SmoothnessBMapUV;
-float _SmoothnessBMapUVLocal;
-float4 _SmoothnessBMap_ST;
-float4 _SmoothnessBMap_TexelSize;
-float4 _SmoothnessBMap_MipInfo;
-float4 _SmoothnessBMapChannelMask;
-float4 _SmoothnessBRange;
-float _LobeMix;
-
 float4 _DebugLobeMask;
 float4 _DebugAniso;
-
-float _Anisotropy;
-float _CoatSmoothness;
-float _CoatIor;
-float _CoatThickness;
-float3 _CoatExtinction;
 
 float _NormalScale;
 float _NormalMapUV;
@@ -101,14 +91,50 @@ float4 _AmbientOcclusionMap_MipInfo;
 float4 _AmbientOcclusionMapChannelMask;
 float4 _AmbientOcclusionRange;
 
-float3 _EmissiveColor;
-float4 _EmissiveColorMap_ST;
-float4 _EmissiveColorMap_TexelSize;
-float4 _EmissiveColorMap_MipInfo;
-float _EmissiveColorMapUV;
-float _EmissiveColorMapUVLocal;
-float _EmissiveIntensity;
-float _AlbedoAffectEmissive;
+float _SmoothnessB;
+float _SmoothnessBUseMap;
+float _SmoothnessBMapUV;
+float _SmoothnessBMapUVLocal;
+float4 _SmoothnessBMap_ST;
+float4 _SmoothnessBMap_TexelSize;
+float4 _SmoothnessBMap_MipInfo;
+float4 _SmoothnessBMapChannelMask;
+float4 _SmoothnessBRange;
+float _LobeMix;
+
+float _Anisotropy;
+float _AnisotropyUseMap;
+float _AnisotropyMapUV;
+float _AnisotropyMapUVLocal;
+float4 _AnisotropyMap_ST;
+float4 _AnisotropyMap_TexelSize;
+float4 _AnisotropyMap_MipInfo;
+float4 _AnisotropyMapChannelMask;
+float4 _AnisotropyRange;
+
+float _CoatSmoothness;
+float _CoatSmoothnessUseMap;
+float _CoatSmoothnessMapUV;
+float _CoatSmoothnessMapUVLocal;
+float4 _CoatSmoothnessMap_ST;
+float4 _CoatSmoothnessMap_TexelSize;
+float4 _CoatSmoothnessMap_MipInfo;
+float4 _CoatSmoothnessMapChannelMask;
+float4 _CoatSmoothnessRange;
+float _CoatIor;
+float _CoatThickness;
+float3 _CoatExtinction;
+
+float _IridescenceThickness;
+float _IridescenceThicknessUseMap;
+float _IridescenceThicknessMapUV;
+float _IridescenceThicknessMapUVLocal;
+float4 _IridescenceThicknessMap_ST;
+float4 _IridescenceThicknessMap_TexelSize;
+float4 _IridescenceThicknessMap_MipInfo;
+float4 _IridescenceThicknessMapChannelMask;
+float4 _IridescenceThicknessRange;
+float _IridescenceIor;
 
 int _DiffusionProfile;
 float _SubsurfaceMask;
@@ -130,6 +156,15 @@ float4 _ThicknessMap_TexelSize;
 float4 _ThicknessMap_MipInfo;
 float4 _ThicknessMapChannelMask;
 float4 _ThicknessRange;
+
+float3 _EmissiveColor;
+float4 _EmissiveColorMap_ST;
+float4 _EmissiveColorMap_TexelSize;
+float4 _EmissiveColorMap_MipInfo;
+float _EmissiveColorMapUV;
+float _EmissiveColorMapUVLocal;
+float _EmissiveIntensity;
+float _AlbedoAffectEmissive;
 
 float _AlphaCutoff;
 float4 _DoubleSidedConstants;
