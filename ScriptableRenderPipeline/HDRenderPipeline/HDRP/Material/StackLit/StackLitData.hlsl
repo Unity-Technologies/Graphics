@@ -252,7 +252,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
 #ifdef _MATERIAL_FEATURE_COAT
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_STACK_LIT_COAT;
-    surfaceData.coatPerceptualSmoothness = _CoatSmoothness;
+    surfaceData.coatPerceptualSmoothness = dot(SAMPLE_TEXTURE2D_SCALE_BIAS(_CoatSmoothnessMap), _CoatSmoothnessMapChannelMask);
+    surfaceData.coatPerceptualSmoothness = lerp(_CoatSmoothnessRange.x, _CoatSmoothnessRange.y, surfaceData.coatPerceptualSmoothness);
+    surfaceData.coatPerceptualSmoothness = lerp(_CoatSmoothness, surfaceData.coatPerceptualSmoothness, _CoatSmoothnessUseMap);
     surfaceData.coatIor = _CoatIor;
     surfaceData.coatThickness = _CoatThickness;
     surfaceData.coatExtinction = _CoatExtinction; // in thickness^-1 units
@@ -266,8 +268,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #ifdef _MATERIAL_FEATURE_IRIDESCENCE
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_STACK_LIT_IRIDESCENCE;
     surfaceData.iridescenceIor = _IridescenceIor;
-    surfaceData.iridescenceThickness = dot(SAMPLE_TEXTURE2D_SCALE_BIAS(iridescenceThicknessMap), iridescenceThicknessMapChannelMask);
-    surfaceData.iridescenceThickness = lerp(iridescenceThicknessRange.x, iridescenceThicknessRange.y, surfaceData.iridescenceThickness);
+    surfaceData.iridescenceThickness = dot(SAMPLE_TEXTURE2D_SCALE_BIAS(_IridescenceThicknessMap), _IridescenceThicknessMapChannelMask);
+    surfaceData.iridescenceThickness = lerp(_IridescenceThicknessRange.x, _IridescenceThicknessRange.y, surfaceData.iridescenceThickness);
     surfaceData.iridescenceThickness = lerp(_IridescenceThickness, surfaceData.iridescenceThickness, _IridescenceThicknessUseMap);
 #else
     surfaceData.iridescenceIor = 1.0;

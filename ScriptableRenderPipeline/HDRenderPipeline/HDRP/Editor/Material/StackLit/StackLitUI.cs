@@ -28,9 +28,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected const string k_DielectricIor = "_DielectricIor";
 
-        protected const string k_Smoothness1 = "_SmoothnessA";
-        protected const string k_Smoothness1Map = "_SmoothnessAMap";
-        protected const string k_Smoothness1MapUV = "_SmoothnessAMapUV";
+        protected const string k_SmoothnessA = "_SmoothnessA";
+        protected const string k_SmoothnessAMap = "_SmoothnessAMap";
+        protected const string k_SmoothnessAMapUV = "_SmoothnessAMapUV";
 
         protected const string k_NormalMap = "_NormalMap";
         protected const string k_NormalMapUV = "_NormalMapUV";
@@ -50,6 +50,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // Coat
         protected const string k_EnableCoat = "_EnableCoat";
         protected const string k_CoatSmoothness = "_CoatSmoothness";
+        protected const string k_CoatSmoothnessMap = "_CoatSmoothnessMap";
+        protected const string k_CoatSmoothnessMapUV = "_CoatSmoothnessMapUV";
         protected const string k_CoatIor = "_CoatIor";
         protected const string k_CoatThickness = "_CoatThickness";
         protected const string k_CoatExtinction = "_CoatExtinction";
@@ -69,9 +71,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         // Second Lobe.
         protected const string k_EnableDualSpecularLobe = "_EnableDualSpecularLobe";
-        protected const string k_Smoothness2 = "_SmoothnessB";
-        protected const string k_Smoothness2Map = "_SmoothnessBMap";
-        protected const string k_Smoothness2MapUV = "_SmoothnessBMapUV";
+        protected const string k_SmoothnessB = "_SmoothnessB";
+        protected const string k_SmoothnessBMap = "_SmoothnessBMap";
+        protected const string k_SmoothnessBMapUV = "_SmoothnessBMapUV";
 
         protected const string k_LobeMix = "_LobeMix";
 
@@ -141,14 +143,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Base Color + Opacity", "Albedo (RGB) and Opacity (A)", true, false),
                     new TextureProperty(this, k_MetallicMap, k_Metallic, "Metallic", "Metallic", false, false),
                     new Property(this, k_DielectricIor, "DieletricIor", "IOR use for dielectric material (i.e non metallic material)", false),
-                    new TextureProperty(this, k_Smoothness1Map, k_Smoothness1, "Smoothness", "Smoothness", false, false),
+                    new TextureProperty(this, k_SmoothnessAMap, k_SmoothnessA, "Smoothness", "Smoothness", false, false),
                     new TextureProperty(this, k_NormalMap, k_NormalScale, "Normal", "Normal Map", false, false, true),
                     new TextureProperty(this, k_AmbientOcclusionMap, k_AmbientOcclusion, "AmbientOcclusion", "AmbientOcclusion Map", false, false),
                 }),
 
                 new GroupProperty(this, "_DualSpecularLobe", "Dual Specular Lobe", new BaseProperty[]
                 {
-                    new TextureProperty(this, k_Smoothness2Map, k_Smoothness2, "Smoothness2", "Smoothness2", false, false),
+                    new TextureProperty(this, k_SmoothnessBMap, k_SmoothnessB, "Smoothness B", "Smoothness B", false, false),
                     new Property(this, k_LobeMix, "Lobe Mix", "Lobe Mix", false),
                 }, _ => EnableDualSpecularLobe.BoolValue == true),
 
@@ -160,7 +162,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 new GroupProperty(this, "_Coat", "Coat", new BaseProperty[]
                 {
-                    new Property(this, "_CoatSmoothness", "Coat Smoothness", "Top layer smoothness", false),
+                    new TextureProperty(this, k_CoatSmoothnessMap, k_CoatSmoothness, "Coat smoothness", "Coat smoothness", false),
                     new Property(this, "_CoatIor", "Coat IOR", "Index of refraction", false),
                     new Property(this, "_CoatThickness", "Coat Thickness", "Coat thickness", false),
                     new Property(this, "_CoatExtinction", "Coat Absorption", "Coat absorption tint (the thicker the coat, the more that color is removed)", false),
@@ -331,13 +333,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             //TODO: disable DBUFFER
 
             SetupTextureMaterialProperty(material, k_Metallic);
-            SetupTextureMaterialProperty(material, k_Smoothness1);
-            SetupTextureMaterialProperty(material, k_Smoothness2);
+            SetupTextureMaterialProperty(material, k_SmoothnessA);
+            SetupTextureMaterialProperty(material, k_SmoothnessB);
             SetupTextureMaterialProperty(material, k_AmbientOcclusion);
             SetupTextureMaterialProperty(material, k_SubsurfaceMask);
             SetupTextureMaterialProperty(material, k_Thickness);
             SetupTextureMaterialProperty(material, k_Anisotropy);
             SetupTextureMaterialProperty(material, k_IridescenceThickness);
+            SetupTextureMaterialProperty(material, k_CoatSmoothness);
 
             // Check if we are using specific UVs.
             TextureProperty.UVMapping[] uvIndices = new[]
@@ -345,14 +348,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 (TextureProperty.UVMapping) material.GetFloat(k_BaseColorMapUV),
                 (TextureProperty.UVMapping) material.GetFloat(k_MetallicMapUV),
                 (TextureProperty.UVMapping) material.GetFloat(k_NormalMapUV),
-                (TextureProperty.UVMapping) material.GetFloat(k_Smoothness1MapUV),
-                (TextureProperty.UVMapping) material.GetFloat(k_Smoothness2MapUV),
+                (TextureProperty.UVMapping) material.GetFloat(k_SmoothnessAMapUV),
+                (TextureProperty.UVMapping) material.GetFloat(k_SmoothnessBMapUV),
                 (TextureProperty.UVMapping) material.GetFloat(k_AmbientOcclusionMapUV),
                 (TextureProperty.UVMapping) material.GetFloat(k_EmissiveColorMapUV),
                 (TextureProperty.UVMapping) material.GetFloat(k_SubsurfaceMaskMapUV),
                 (TextureProperty.UVMapping) material.GetFloat(k_ThicknessMapUV),
                 (TextureProperty.UVMapping) material.GetFloat(k_AnisotropyMapUV),
                 (TextureProperty.UVMapping) material.GetFloat(k_IridescenceThicknessMapUV),
+                (TextureProperty.UVMapping) material.GetFloat(k_CoatSmoothnessMapUV),
             };
 
             // Set keyword for mapping
@@ -382,6 +386,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             bool sssEnabled = material.HasProperty(k_EnableSubsurfaceScattering) && material.GetFloat(k_EnableSubsurfaceScattering) > 0.0f;
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", sssEnabled);
+
+            bool coatEnabled = material.HasProperty(k_EnableCoat) && material.GetFloat(k_EnableCoat) > 0.0f;
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_COAT", coatEnabled);
 
             // TEMP - Remove once dev is finish
             bool debugEnabled = material.HasProperty("_DebugEnable") && material.GetFloat("_DebugEnable") > 0.0f;
