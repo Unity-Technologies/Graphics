@@ -239,6 +239,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             var metaProperties = graphView.graph.properties.Where(x => propertyNodeGuids.Contains(x.guid));
 
             var copyPasteGraph = new CopyPasteGraph(
+                    graphView.graph.guid,
                     graphView.selection.OfType<MaterialNodeView>().Where(x => !(x.node is PropertyNode)).Select(x => x.node as INode),
                     graphView.selection.OfType<Edge>().Select(x => x.userData as IEdge),
                     graphView.selection.OfType<BlackboardField>().Select(x => x.userData as IShaderProperty),
