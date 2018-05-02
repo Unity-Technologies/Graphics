@@ -7,7 +7,7 @@ namespace UnityEditor.VFX.Operator
     {
         override public string name { get { return "Sine"; } }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { new VFXExpressionSin(inputExpression[0]) };
         }

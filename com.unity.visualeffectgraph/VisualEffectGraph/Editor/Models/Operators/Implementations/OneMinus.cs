@@ -7,7 +7,7 @@ namespace UnityEditor.VFX.Operator
     {
         override public string name { get { return "One Minus (1-x)"; } }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var input = inputExpression[0];
             var one = VFXOperatorUtility.OneExpression[input.valueType];

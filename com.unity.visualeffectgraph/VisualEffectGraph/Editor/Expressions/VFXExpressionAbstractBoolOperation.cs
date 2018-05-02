@@ -6,13 +6,13 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
-    abstract class VFXExpressionUnaryUIntOperation : VFXExpressionUnaryNumericOperation
+    abstract class VFXExpressionUnaryBoolOperation : VFXExpressionUnaryNumericOperation
     {
-        public VFXExpressionUnaryUIntOperation(VFXExpression parent, VFXExpressionOperation operation) : base(parent, operation)
+        public VFXExpressionUnaryBoolOperation(VFXExpression parent, VFXExpressionOperation operation) : base(parent, operation)
         {
-            if (!IsUIntValueType(parent.valueType))
+            if (!IsBoolValueType(parent.valueType))
             {
-                throw new ArgumentException("Incorrect VFXExpressionUnaryUIntOperation");
+                throw new ArgumentException("Incorrect VFXExpressionUnaryBoolOperation");
             }
         }
 
@@ -26,15 +26,15 @@ namespace UnityEditor.VFX
             throw new NotImplementedException();
         }
 
-        sealed protected override bool ProcessUnaryOperation(bool input)
+        sealed protected override uint ProcessUnaryOperation(uint input)
         {
             throw new NotImplementedException();
         }
 
         sealed protected override string GetUnaryOperationCode(string x, VFXValueType type)
         {
-            if (!IsUIntValueType(type))
-                throw new InvalidOperationException("VFXExpressionUnaryUIntOperation : Unexpected type");
+            if (!IsBoolValueType(type))
+                throw new InvalidOperationException("VFXExpressionUnaryBoolOperation : Unexpected type");
 
             return GetUnaryOperationCode(x);
         }
@@ -42,14 +42,14 @@ namespace UnityEditor.VFX
         abstract protected string GetUnaryOperationCode(string x);
     }
 
-    abstract class VFXExpressionBinaryUIntOperation : VFXExpressionBinaryNumericOperation
+    abstract class VFXExpressionBinaryBoolOperation : VFXExpressionBinaryNumericOperation
     {
-        protected VFXExpressionBinaryUIntOperation(VFXExpression parentLeft, VFXExpression parentRight, VFXExpressionOperation operation)
+        protected VFXExpressionBinaryBoolOperation(VFXExpression parentLeft, VFXExpression parentRight, VFXExpressionOperation operation)
             : base(parentLeft, parentRight, operation)
         {
-            if (!IsUIntValueType(parentLeft.valueType) || !IsUIntValueType(parentRight.valueType))
+            if (!IsBoolValueType(parentLeft.valueType) || !IsBoolValueType(parentRight.valueType))
             {
-                throw new ArgumentException("Incorrect VFXExpressionBinaryUIntOperation");
+                throw new ArgumentException("Incorrect VFXExpressionBinaryBoolOperation");
             }
         }
 
@@ -63,16 +63,16 @@ namespace UnityEditor.VFX
             throw new NotImplementedException();
         }
 
-        sealed protected override bool ProcessBinaryOperation(bool x, bool y)
+        sealed protected override uint ProcessBinaryOperation(uint x, uint y)
         {
             throw new NotImplementedException();
         }
 
         sealed protected override string GetBinaryOperationCode(string x, string y, VFXValueType type)
         {
-            if (!IsUIntValueType(type))
+            if (!IsBoolValueType(type))
             {
-                throw new InvalidOperationException("Invalid VFXExpressionBinaryUIntOperation");
+                throw new InvalidOperationException("Invalid VFXExpressionBinaryBoolOperation");
             }
 
             return GetBinaryOperationCode(x, y);

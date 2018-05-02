@@ -24,7 +24,7 @@ namespace UnityEditor.VFX.Operator
 
         override public string name { get { return "Rotate 2D"; } }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var posX = inputExpression[0].x - inputExpression[1].x;
             var posY = inputExpression[0].y - inputExpression[1].y;

@@ -101,6 +101,11 @@ namespace UnityEditor.VFX
             return valueType == VFXValueType.Int32;
         }
 
+        public static bool IsBoolValueType(VFXValueType valueType)
+        {
+            return valueType == VFXValueType.Boolean;
+        }
+
         public static int TypeToSize(VFXValueType type)
         {
             return VFXExpressionHelper.GetSizeOfType(type);

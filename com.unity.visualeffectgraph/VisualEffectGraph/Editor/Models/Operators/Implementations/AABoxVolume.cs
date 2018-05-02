@@ -21,7 +21,7 @@ namespace UnityEditor.VFX.Operator
 
         override public string name { get { return "Volume (Axis Aligned Box)"; } }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new VFXExpression[] { VFXOperatorUtility.BoxVolume(inputExpression[1]) };
         }
