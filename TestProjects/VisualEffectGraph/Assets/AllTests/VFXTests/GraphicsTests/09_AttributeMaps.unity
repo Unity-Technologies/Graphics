@@ -211,13 +211,13 @@ GameObject:
   m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!2083052967 &119120842
-VisualEffect:
+VFXComponent:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 119120841}
   m_Enabled: 1
-  m_Asset: {fileID: 8926484042661614526, guid: 4d0cd9b15f1fc0e4ca628531cdca8a1b, type: 3}
+  m_Asset: {fileID: 8926484042661614526, guid: 4d0cd9b15f1fc0e4ca628531cdca8a1b, type: 2}
   m_StartSeed: 0
   m_ResetSeedOnPlay: 0
   m_PropertySheet:

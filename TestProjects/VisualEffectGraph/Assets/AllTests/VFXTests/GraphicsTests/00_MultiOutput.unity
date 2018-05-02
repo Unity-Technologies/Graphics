@@ -232,6 +232,8 @@ Camera:
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
+  m_StreamingMipmapBias: 0
+  m_StreamingInfluence: 1
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -282,7 +284,7 @@ VisualEffect:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1481189722}
   m_Enabled: 1
-  m_Asset: {fileID: 8926484042661614526, guid: 4254560d3be1b8d4087dec7ab8170bb3, type: 3}
+  m_Asset: {fileID: 8926484042661614526, guid: 4254560d3be1b8d4087dec7ab8170bb3, type: 2}
   m_StartSeed: 0
   m_ResetSeedOnPlay: 0
   m_PropertySheet:

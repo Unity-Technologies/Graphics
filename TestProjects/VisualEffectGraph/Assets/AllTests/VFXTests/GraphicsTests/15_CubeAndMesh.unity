@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
+  m_IndirectSpecularColor: {r: 0.18282883, g: 0.2285301, b: 0.30698442, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -201,7 +201,7 @@ VisualEffect:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1360824435}
   m_Enabled: 1
-  m_Asset: {fileID: 8926484042661614526, guid: 8fd9ee67292583945ac79c1ec5a1224e, type: 3}
+  m_Asset: {fileID: 8926484042661614526, guid: 8fd9ee67292583945ac79c1ec5a1224e, type: 2}
   m_StartSeed: 0
   m_ResetSeedOnPlay: 0
   m_PropertySheet:
@@ -294,6 +294,8 @@ Camera:
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
+  m_StreamingMipmapBias: 0
+  m_StreamingInfluence: 1
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4294967295

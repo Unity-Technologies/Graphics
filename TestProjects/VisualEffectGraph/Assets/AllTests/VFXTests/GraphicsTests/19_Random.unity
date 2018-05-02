@@ -167,6 +167,8 @@ Camera:
   orthographic: 1
   orthographic size: 1
   m_Depth: -1
+  m_StreamingMipmapBias: 0
+  m_StreamingInfluence: 1
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -217,7 +219,7 @@ VisualEffect:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 905928359}
   m_Enabled: 1
-  m_Asset: {fileID: 8926484042661614526, guid: 5b941ea7665f8f34d9d0cc8189f91653, type: 3}
+  m_Asset: {fileID: 8926484042661614526, guid: 5b941ea7665f8f34d9d0cc8189f91653, type: 2}
   m_StartSeed: 568194827
   m_ResetSeedOnPlay: 0
   m_PropertySheet:
@@ -344,7 +346,7 @@ VisualEffect:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1568314589}
   m_Enabled: 1
-  m_Asset: {fileID: 8926484042661614526, guid: 5b941ea7665f8f34d9d0cc8189f91653, type: 3}
+  m_Asset: {fileID: 8926484042661614526, guid: 5b941ea7665f8f34d9d0cc8189f91653, type: 2}
   m_StartSeed: 568194827
   m_ResetSeedOnPlay: 0
   m_PropertySheet:
@@ -406,7 +408,7 @@ VisualEffect:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1634469065}
   m_Enabled: 1
-  m_Asset: {fileID: 8926484042661614526, guid: 5b941ea7665f8f34d9d0cc8189f91653, type: 3}
+  m_Asset: {fileID: 8926484042661614526, guid: 5b941ea7665f8f34d9d0cc8189f91653, type: 2}
   m_StartSeed: 1711446764
   m_ResetSeedOnPlay: 0
   m_PropertySheet:
@@ -468,7 +470,7 @@ VisualEffect:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1907786502}
   m_Enabled: 1
-  m_Asset: {fileID: 8926484042661614526, guid: 5b941ea7665f8f34d9d0cc8189f91653, type: 3}
+  m_Asset: {fileID: 8926484042661614526, guid: 5b941ea7665f8f34d9d0cc8189f91653, type: 2}
   m_StartSeed: 1711446764
   m_ResetSeedOnPlay: 0
   m_PropertySheet:

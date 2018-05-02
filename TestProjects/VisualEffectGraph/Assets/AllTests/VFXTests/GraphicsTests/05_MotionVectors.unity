@@ -235,8 +235,6 @@ MonoBehaviour:
     sharpness: 0.25
     stationaryBlending: 0.95
     motionBlending: 0.85
-  subpixelMorphologicalAntialiasing:
-    quality: 2
   fastApproximateAntialiasing:
     fastMode: 0
     keepAlpha: 0
@@ -639,6 +637,7 @@ MonoBehaviour:
     area: {fileID: 2800000, guid: 73ec4ae984a0a0f44a2be737e41a6f2f, type: 3}
     search: {fileID: 2800000, guid: d99701099481a2f489610e977df6dcbc, type: 3}
   shaders:
+    autoExposure: {fileID: 4800000, guid: c1894ea20b8588f4ba96b12377a36a9f, type: 3}
     bloom: {fileID: 4800000, guid: c1e1d3119c6fd4646aea0b4b74cacc1a, type: 3}
     copy: {fileID: 4800000, guid: cdbdb71de5f9c454b980f6d0e87f0afb, type: 3}
     copyStd: {fileID: 4800000, guid: 4bf4cff0d0bac3d43894e2e8839feb40, type: 3}
@@ -665,7 +664,6 @@ MonoBehaviour:
     screenSpaceReflections: {fileID: 4800000, guid: f997a3dc9254c44459323cced085150c,
       type: 3}
   computeShaders:
-    autoExposure: {fileID: 0}
     exposureHistogram: {fileID: 7200000, guid: 8c2fcbdf9bc58664f89917f7b9d79501, type: 3}
     lut3DBaker: {fileID: 7200000, guid: 42496b74c071f5749950ca1abe33e945, type: 3}
     texture3dLerp: {fileID: 7200000, guid: 31e9175024adfd44aba2530ff9b77494, type: 3}
@@ -699,13 +697,13 @@ GameObject:
   m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!2083052967 &1510541625
-VisualEffect:
+VFXComponent:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1510541624}
   m_Enabled: 1
-  m_Asset: {fileID: 8926484042661614526, guid: da0a04fa6ffd3ec46951c879a265aedf, type: 3}
+  m_Asset: {fileID: 8926484042661614526, guid: da0a04fa6ffd3ec46951c879a265aedf, type: 2}
   m_StartSeed: 0
   m_ResetSeedOnPlay: 0
   m_PropertySheet:
