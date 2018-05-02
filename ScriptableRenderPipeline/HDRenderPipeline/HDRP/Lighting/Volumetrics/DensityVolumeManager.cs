@@ -27,16 +27,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private DensityVolumeManager()
         {
-            volumes = new List<HomogeneousDensityVolume>();
+            volumes = new List<DensityVolume>();
 
-            volumeAtlas = new VolumeTextureAtlas(TextureFormat.RGBA32, volumeTextureSize);
+            volumeAtlas = new VolumeTextureAtlas(TextureFormat.Alpha8, volumeTextureSize);
 
             volumeAtlas.OnAtlasUpdated += AtlasUpdated;
         }
 
-        private List<HomogeneousDensityVolume> volumes = null;
+        private List<DensityVolume> volumes = null;
 
-        public void RegisterVolume(HomogeneousDensityVolume volume)
+        public void RegisterVolume(DensityVolume volume)
         {
             volumes.Add(volume);
 
@@ -48,7 +48,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void DeRegisterVolume(HomogeneousDensityVolume volume)
+        public void DeRegisterVolume(DensityVolume volume)
         {
             if (volumes.Contains(volume))
             {
@@ -63,10 +63,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
         
-        public HomogeneousDensityVolume[] PrepareDensityVolumeData(CommandBuffer cmd)
+        public DensityVolume[] PrepareDensityVolumeData(CommandBuffer cmd)
         {
             //Update volumes
-            foreach (HomogeneousDensityVolume volume in volumes )
+            foreach (DensityVolume volume in volumes )
             {
                 volume.PrepareParameters();
             }
@@ -85,7 +85,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private void VolumeAtlasRefresh()
         {
             volumeAtlas.ClearTextures();
-            foreach (HomogeneousDensityVolume volume in volumes )
+            foreach (DensityVolume volume in volumes )
             {
                 if (volume.parameters.volumeMask != null) 
                 {
@@ -101,7 +101,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private void AtlasUpdated()
         {
-            foreach(HomogeneousDensityVolume volume in volumes )
+            foreach(DensityVolume volume in volumes )
             {
                 volume.parameters.textureIndex = volumeAtlas.GetTextureIndex(volume.parameters.volumeMask); 
             }

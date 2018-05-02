@@ -97,21 +97,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     Color[] colorArray = new Color[0];
                     volumeAtlas = new Texture3D(requiredTextureSize, requiredTextureSize, requiredTextureSize * textures.Count, requiredTextureFormat, false);
 
-  //                  int volumeDepthOffset = 0;
-
                     foreach (Texture3D tex in textures)
                     {
-                        //UGGG this is awful...why you no working CopyTexture???
+                        //TODO: Need to have copy texture and convert texture working for Tex3D in order for this to be 
+                        //more robust
                         Color[] texColor = tex.GetPixels();
                         Array.Resize(ref colorArray, texColor.Length + colorArray.Length);
                         Array.Copy(texColor, 0, colorArray, colorArray.Length - texColor.Length, texColor.Length);
-                        for (int i = 0; i < requiredTextureSize; i++)
-                        {
-                            /*
-                            cmd.CopyTexture(tex, i, volumeAtlas, volumeDepthOffset);
-
-                            volumeDepthOffset++;*/
-                        }
                     }
 
                     volumeAtlas.SetPixels(colorArray);

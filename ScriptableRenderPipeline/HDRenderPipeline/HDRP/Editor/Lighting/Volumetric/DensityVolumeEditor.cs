@@ -5,12 +5,11 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     [CanEditMultipleObjects]
-    [CustomEditor(typeof(HomogeneousDensityVolume))]
-    class HomogeneousDensityVolumeEditor : Editor
+    [CustomEditor(typeof(DensityVolume))]
+    class DensityVolumeEditor : Editor
     {
         private static GUIContent albedoLabel = new GUIContent("Scattering Color");
         private static GUIContent meanFreePathLabel = new GUIContent("Mean Free Path");
-        private static GUIContent asymmetryLabel = new GUIContent("Asymmetry");
         private static GUIContent volumeTextureLabel = new GUIContent("Volume Texture Mask");
         private static GUIContent textureScrollLabel = new GUIContent("Texture Scroll Speed");
         private static GUIContent textureTileLabel = new GUIContent("Texture Tiling Amount");
@@ -21,7 +20,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedProperty densityParams;
         SerializedProperty albedo;
         SerializedProperty meanFreePath;
-        SerializedProperty asymmetry;
 
         SerializedProperty volumeTexture;
         SerializedProperty textureScroll;
@@ -32,7 +30,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             densityParams = serializedObject.FindProperty("parameters");
             albedo = densityParams.FindPropertyRelative("albedo");
             meanFreePath = densityParams.FindPropertyRelative("meanFreePath");
-            asymmetry = densityParams.FindPropertyRelative("asymmetry");
 
             volumeTexture = densityParams.FindPropertyRelative("volumeMask");
             textureScroll = densityParams.FindPropertyRelative("textureScrollingSpeed");
@@ -48,7 +45,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             albedo.colorValue = EditorGUILayout.ColorField(albedoLabel, albedo.colorValue, true, false, false);
             EditorGUILayout.PropertyField(meanFreePath, meanFreePathLabel);
-            EditorGUILayout.PropertyField(asymmetry, asymmetryLabel);
             EditorGUILayout.Space();
             
             showTextureParams = EditorGUILayout.Foldout(showTextureParams, textureSettingsTitle, true);
