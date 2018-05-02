@@ -710,7 +710,7 @@ namespace UnityEditor.VFX
             var expression = refSlot.GetExpression();
             if (expression != null)
             {
-                destSlot.m_LinkedInExpression = expression;
+                destSlot.m_LinkedInExpression = ApplySpaceConversion(expression, destSlot, refSlot);
                 destSlot.m_LinkedInSlot = refSlot;
             }
             else if (destSlot.GetType() == refSlot.GetType())
@@ -787,12 +787,9 @@ namespace UnityEditor.VFX
             // First pass set in expression and propagate to children
             foreach (var startSlot in startSlots)
             {
-                var linkInExpression = ApplySpaceConversion(startSlot.m_LinkedInExpression, startSlot.m_LinkedInSlot);
-                startSlot.m_InExpression = startSlot.ConvertExpression(linkInExpression, startSlot.m_LinkedInSlot); // TODO Handle structural modification
-                startSlot.PropagateToChildren(s =>
-                    {
-                        var baseExp = s.m_InExpression;
-                        var exp = s.ExpressionToChildren(baseExp);
+                startSlot.m_InExpression = startSlot.ConvertExpression(startSlot.m_LinkedInExpression, startSlot.m_LinkedInSlot); // TODO Handle structural modification
+                startSlot.PropagateToChildren(s => {
+                        var exp = s.ExpressionToChildren(s.m_InExpression);
                         for (int i = 0; i < s.GetNbChildren(); ++i)
                             s[i].m_InExpression = exp != null ? exp[i] : s.refSlot[i].GetExpression(); // Not sure about that
                     });
@@ -815,27 +812,25 @@ namespace UnityEditor.VFX
                 slot.InvalidateExpressionTree();
         }
 
-        private VFXExpression ApplySpaceConversion(VFXExpression exp, VFXSlot sourceSlot)
+        private static VFXExpression ApplySpaceConversion(VFXExpression exp, VFXSlot destSlot, VFXSlot sourceSlot)
         {
-            if (sourceSlot != null
-                &&  sourceSlot.spaceable
-                &&  spaceable
-                &&  sourceSlot.space != space)
+            if (    destSlot.spaceable && sourceSlot.spaceable
+                &&  destSlot.space != sourceSlot.space)
             {
-                var currentSpaceableType = GetSpaceTransformationType();
+                var destSpaceableType = destSlot.GetSpaceTransformationType();
                 var sourceSpaceableType = sourceSlot.GetSpaceTransformationType();
 
                 //Check if this slot is concerned by spaceable transform (e.g. radius of a sphere)
                 //+ is same kind of space (but should not happen since SlotDirection isn't compatible to SlotPosition)
-                if (currentSpaceableType != SpaceableType.None && sourceSpaceableType != SpaceableType.None)
+                if (destSpaceableType != SpaceableType.None && sourceSpaceableType != SpaceableType.None)
                 {
-                    if (currentSpaceableType != sourceSpaceableType)
+                    if (destSpaceableType != sourceSpaceableType)
                     {
                         Debug.LogError("Unexpected spaceable type connection slot together, should be forbidden");
                     }
                     else
                     {
-                        exp = ConvertSpace(exp, currentSpaceableType, space);
+                        exp = ConvertSpace(exp, destSpaceableType, destSlot.space);
                     }
                 }
             }
