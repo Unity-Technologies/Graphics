@@ -9,8 +9,8 @@ public struct DensityVolumeData
 {
     public Vector3 scattering; // [0, 1], prefer sRGB
     public float   extinction; // [0, 1], prefer sRGB
-    public int     textureIndex; //
     public Vector3 textureTiling;
+    public int     textureIndex; //
     public Vector3 textureScroll;
 
     public static DensityVolumeData GetNeutralValues()
@@ -517,11 +517,11 @@ public class VolumetricLightingSystem
             m_VisibleVolumeData.Clear();
 
             // Collect all visible finite volume data, and upload it to the GPU.
-            HomogeneousDensityVolume[] volumes = DensityVolumeManager.manager.PrepareDensityVolumeData(cmd); 
+            DensityVolume[] volumes = DensityVolumeManager.manager.PrepareDensityVolumeData(cmd); 
 
             for (int i = 0; i < Math.Min(volumes.Length, k_MaxVisibleVolumeCount); i++)
             {
-                HomogeneousDensityVolume volume = volumes[i];
+                DensityVolume volume = volumes[i];
 
                 // TODO: cache these?
                 var obb = OrientedBBox.Create(volume.transform);
@@ -593,8 +593,8 @@ public class VolumetricLightingSystem
 
             if (volumeAtlas != null)
             {
-                volumeAtlasDimensions.x = volumeAtlas.width;
-                volumeAtlasDimensions.y = volumeAtlas.depth;
+                volumeAtlasDimensions.x = volumeAtlas.width / volumeAtlas.depth; // 1 / number of textures
+                volumeAtlasDimensions.y = 1.0f / volumeAtlas.width;
             }
 
             cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VBufferDensity, vBuffer.GetDensityBuffer());

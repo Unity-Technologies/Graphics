@@ -60,20 +60,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             data.extinction = VolumeRenderingUtils.ExtinctionFromMeanFreePath(meanFreePath);
             data.scattering = VolumeRenderingUtils.ScatteringFromExtinctionAndAlbedo(data.extinction, (Vector3)(Vector4)albedo);
 
-            //The UV coordinates are in -1,1 space so have to convert to 0,1 space before applying texture scrolling and tiling.
-            // uv = ((uv * 0.5) + 0.5) * tiling + scroll
-            // uv = (uv * 0.5 * tiling + (0.5 * tiling + scroll))
             data.textureIndex = textureIndex;
-            data.textureScroll = volumeScrollingAmount + new Vector3(0.5f * textureTiling.x, 0.5f * textureTiling.y, 0.5f * textureTiling.z);
-            data.textureTiling = textureTiling * 0.5f;
+            data.textureScroll = volumeScrollingAmount;
+            data.textureTiling = textureTiling;
 
             return data;
         }
     } // class DensityVolumeParameters
 
     [ExecuteInEditMode]
-    [AddComponentMenu("Rendering/Homogeneous Density Volume", 1100)]
-    public class HomogeneousDensityVolume : MonoBehaviour
+    [AddComponentMenu("Rendering/Density Volume", 1100)]
+    public class DensityVolume : MonoBehaviour
     {
         public DensityVolumeParameters parameters = new DensityVolumeParameters(Color.grey, 10.0f, 0.0f);
 
