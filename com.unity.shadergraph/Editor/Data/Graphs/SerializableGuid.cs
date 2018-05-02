@@ -11,6 +11,11 @@ namespace UnityEditor.ShaderGraph
             m_Guid = Guid.NewGuid();
         }
 
+        public SerializableGuid(Guid guid)
+        {
+            m_Guid = guid;
+        }
+
         [NonSerialized]
         private Guid m_Guid;
 
