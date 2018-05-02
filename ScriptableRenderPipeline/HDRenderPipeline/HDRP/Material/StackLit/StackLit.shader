@@ -24,6 +24,8 @@ Shader "HDRenderPipeline/StackLit"
         _MetallicRemap("Metallic Remap", Vector) = (0, 1, 0, 0)
         [HideInInspector] _MetallicRange("Metallic Range", Vector) = (0, 1, 0, 0)
 
+        _DielectricIor("DielectricIor IOR", Range(1.0, 2.5)) = 1.5
+
         [HideInInspector] _SmoothnessAMapShow("SmoothnessA Map Show", Float) = 0
         _SmoothnessA("SmoothnessA", Range(0.0, 1.0)) = 1.0
         _SmoothnessAMap("SmoothnessA Map", 2D) = "white" {}
@@ -60,6 +62,7 @@ Shader "HDRenderPipeline/StackLit"
         _Anisotropy("Anisotropy", Range(-1.0, 1.0)) = 0.0
         _AnisotropyMap("Anisotropy Map", 2D) = "white" {}
         _AnisotropyUseMap("Anisotropy Use Map", Float) = 0
+        _AnisotropyMapUV("Anisotropy Map UV", Float) = 0.0
         _AnisotropyMapUVLocal("Anisotropy Map UV Local", Float) = 0.0
         _AnisotropyMapChannel("Anisotropy Map Channel", Float) = 0.0
         _AnisotropyMapChannelMask("Anisotropy Map Channel Mask", Vector) = (1, 0, 0, 0)
@@ -67,7 +70,17 @@ Shader "HDRenderPipeline/StackLit"
         [HideInInspector] _AnisotropyRange("Anisotropy Range", Vector) = (0, 1, 0, 0)
 
         [ToggleUI] _EnableCoat("Enable Coat", Float) = 0.0 // UI only
-        _CoatSmoothness("Coat Smoothness", Range(0.0, 1.0)) = 1.0
+        _CoatSmoothness("CoatSmoothness", Range(0.0, 1.0)) = 1.0
+        _CoatSmoothnessMap("CoatSmoothness Map", 2D) = "white" {}
+        _CoatSmoothnessUseMap("CoatSmoothness Use Map", Float) = 0
+        _CoatSmoothnessMapUV("CoatSmoothness Map UV", Float) = 0.0
+        _CoatSmoothnessMapUVLocal("CoatSmoothness Map UV Local", Float) = 0.0
+        _CoatSmoothnessMapChannel("CoatSmoothness Map Channel", Float) = 0.0
+        _CoatSmoothnessMapChannelMask("CoatSmoothness Map Channel Mask", Vector) = (1, 0, 0, 0)
+        _CoatSmoothnessRemap("CoatSmoothness Remap", Vector) = (0, 1, 0, 0)
+        [ToggleUI] _CoatSmoothnessRemapInverted("Invert CoatSmoothness Remap", Float) = 0.0
+        [HideInInspector] _CoatSmoothnessRange("CoatSmoothness Range", Vector) = (0, 1, 0, 0)
+
         _CoatIor("Coat IOR", Range(1.0001, 2.0)) = 1.5
         _CoatThickness("Coat Thickness", Range(0.0, 0.99)) = 0.0
         _CoatExtinction("Coat Extinction Coefficient", Color) = (1,1,1) // in thickness^-1 units
@@ -129,8 +142,8 @@ Shader "HDRenderPipeline/StackLit"
         _IridescenceThickness("_IridescenceThickness", Range(0.0, 1.0)) = 0.0
         _IridescenceThicknessMap("IridescenceThickness Color Map", 2D) = "black" {}
         _IridescenceThicknessUseMap("IridescenceThickness Use Map", Float) = 0
-        _IridescenceThicknessUV("IridescenceThickness Map UV", Float) = 0.0
-        _IridescenceThicknessLocal("IridescenceThickness Map UV Local", Float) = 0.0
+        _IridescenceThicknessMapUV("IridescenceThickness Map UV", Float) = 0.0
+        _IridescenceThicknessMapLocal("IridescenceThickness Map UV Local", Float) = 0.0
         _IridescenceThicknessMapChannel("IridescenceThickness Mask Map Channel", Float) = 0.0
         _IridescenceThicknessMapChannelMask("IridescenceThickness Mask Map Channel Mask", Vector) = (1, 0, 0, 0)
         [HideInInspector] _IridescenceThicknessRange("IridescenceThickness Range", Vector) = (0, 1, 0, 0)

@@ -218,6 +218,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.metallic = lerp(_MetallicRange.x, _MetallicRange.y, surfaceData.metallic);
     surfaceData.metallic = lerp(_Metallic, surfaceData.metallic, _MetallicUseMap);
 
+    surfaceData.dielectricIor = _DielectricIor;
+
     surfaceData.ambientOcclusion = dot(SAMPLE_TEXTURE2D_SCALE_BIAS(_AmbientOcclusionMap), _AmbientOcclusionMapChannelMask);
     surfaceData.ambientOcclusion = lerp(_AmbientOcclusionRange.x, _AmbientOcclusionRange.y, surfaceData.ambientOcclusion);
     surfaceData.ambientOcclusion = lerp(_AmbientOcclusion, surfaceData.ambientOcclusion, _AmbientOcclusionUseMap);
