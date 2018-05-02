@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -52,12 +53,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string k_CoatExtinction = "_CoatExtinction";
 
         // SSS
+        protected const string k_EnableSubsurfaceScattering = "_EnableSubsurfaceScattering";
         protected const string k_DiffusionProfile = "_DiffusionProfile";
         protected const string k_SubsurfaceMask = "_SubsurfaceMask";
         protected const string k_SubsurfaceMaskMap = "_SubsurfaceMaskMap";
         protected const string k_SubsurfaceMaskMapUV = "_SubsurfaceMaskMapUV";
 
         // Translucency
+        protected const string k_EnableTransmission = "_EnableTransmission";
         protected const string k_Thickness = "_Thickness";
         protected const string k_ThicknessMap = "_ThicknessMap";
         protected const string k_ThicknessMapUV = "_ThicknessMapUV";
@@ -71,6 +74,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         // Anisotropy
         protected const string k_Anisotropy = "_Anisotropy";
+
+        protected const string kStencilRef = "_StencilRef";
+        protected const string kStencilWriteMask = "_StencilWriteMask";
+        protected const string kStencilRefMV = "_StencilRefMV";
+        protected const string kStencilWriteMaskMV = "_StencilWriteMaskMV";
 
         //// transparency params
         //protected MaterialProperty transmissionEnable = null;
@@ -96,6 +104,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         private readonly GroupProperty _baseMaterialProperties = null;
         private readonly GroupProperty _materialProperties = null;
 
+        private Property EnableSSS;
+
+        private Property EnableTransmission;
+
+        private Property EnableCoat;
+
         public StackLitGUI()
         {
             _baseMaterialProperties = new GroupProperty(this, "_BaseMaterial", new BaseProperty[]
@@ -104,8 +118,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 new Property(this, k_DoubleSidedNormalMode, "Normal mode", "This will modify the normal base on the selected mode. Mirror: Mirror the normal with vertex normal plane, Flip: Flip the normal.", false),
             });
 
+            // 
+            EnableSSS = new Property(this, k_EnableSubsurfaceScattering, "Enable Subsurface Scattering", "Enable Subsurface Scattering", true);
+            EnableTransmission = new Property(this, k_EnableTransmission, "Enable Transmission", "Enable Transmission", true);
+            EnableCoat = new Property(this, k_CoatEnable, "Coat Enable", "Enable coat layer with true vertical physically based BSDF mixing", true);
+
+            // All material properties
             _materialProperties = new GroupProperty(this, "_Material", new BaseProperty[]
             {
+                new GroupProperty(this, "_MaterialFeatures", "Material Features", new BaseProperty[]
+                {
+                    EnableSSS,
+                    EnableTransmission,
+                    EnableCoat,
+                }),
+
                 new GroupProperty(this, "_Standard", "Standard", new BaseProperty[]
                 {
                     new TextureProperty(this, k_BaseColorMap, k_BaseColor, "Base Color + Opacity", "Albedo (RGB) and Opacity (A)", true, false),
@@ -128,18 +155,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 new GroupProperty(this, "_Coat", "Coat", new BaseProperty[]
                 {
-                    new Property(this, "_CoatEnable", "Coat Enable", "Enable coat layer with true vertical physically based BSDF mixing", false),
                     new Property(this, "_CoatSmoothness", "Coat Smoothness", "Top layer smoothness", false),
                     new Property(this, "_CoatIor", "Coat IOR", "Index of refraction", false),
                     new Property(this, "_CoatThickness", "Coat Thickness", "Coat thickness", false),
                     new Property(this, "_CoatExtinction", "Coat Absorption", "Coat absorption tint (the thicker the coat, the more that color is removed)", false),
+                }, _ =>EnableCoat.BoolValue == true),
+
+                new GroupProperty(this, "_Debug", "Debug", new BaseProperty[]
+                {
+                    new Property(this, "_DebugEnable", "Debug Enable", "Switch to a debug version of the shader", false),
+                    new Property(this, "_DebugLobeMask", "DebugLobeMask", "xyz is Lobe 0 1 2 Enable, w is Enable VLayering", false),
+                    new Property(this, "_DebugAniso", "DebugAniso", "x is Hack Enable, y is factor", false),
                 }),
 
                 new GroupProperty(this, "_SSS", "Sub-Surface Scattering", new BaseProperty[]
                 {
                     new DiffusionProfileProperty(this, k_DiffusionProfile, "Diffusion Profile", "A profile determines the shape of the SSS/transmission filter.", false),
                     new TextureProperty(this, k_SubsurfaceMaskMap, k_SubsurfaceMask, "Subsurface mask map (R)", "Determines the strength of the subsurface scattering effect.", false, false),
-                }/*, _ => _materialId == MaterialId.SubSurfaceScattering*/),
+                }, _ => EnableSSS.BoolValue == true ),
 
                 new GroupProperty(this, "_Lobe2", "Second Specular Lobe", new BaseProperty[]
                 {
@@ -154,9 +187,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 new GroupProperty(this, "_Transmission", "Transmission", new BaseProperty[]
                 {
-                    new DiffusionProfileProperty(this, k_DiffusionProfile, "Diffusion Profile", "A profile determines the shape of the SSS/transmission filter.", false),
+                    new DiffusionProfileProperty(this, k_DiffusionProfile, "Diffusion Profile", "A profile determines the shape of the SSS/transmission filter.", false, _ => EnableSSS.BoolValue == false),
                     new TextureProperty(this, k_ThicknessMap, k_Thickness, "Thickness", "If subsurface scattering is enabled, low values allow some light to be transmitted through the object.", false),
-                }),
+                }, _ => EnableTransmission.BoolValue == true),
 
                 //new GroupProperty(this, "_Iridescence", "Iridescence", new BaseProperty[]
                 //{
@@ -278,7 +311,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (doubleSidedEnable)
             {
-                BaseLitGUI.DoubleSidedNormalMode doubleSidedNormalMode = (BaseLitGUI.DoubleSidedNormalMode)material.GetFloat(k_DoubleSidedNormalMode);
+                BaseLitGUI.DoubleSidedNormalMode doubleSidedNormalMode =
+                    (BaseLitGUI.DoubleSidedNormalMode) material.GetFloat(k_DoubleSidedNormalMode);
                 switch (doubleSidedNormalMode)
                 {
                     case BaseLitGUI.DoubleSidedNormalMode.Mirror: // Mirror mode (in tangent space)
@@ -317,30 +351,46 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Check if we are using specific UVs.
             TextureProperty.UVMapping[] uvIndices = new[]
             {
-                (TextureProperty.UVMapping)material.GetFloat(k_BaseColorMapUV),
-                (TextureProperty.UVMapping)material.GetFloat(k_MetallicMapUV),
-                (TextureProperty.UVMapping)material.GetFloat(k_NormalMapUV),
-                (TextureProperty.UVMapping)material.GetFloat(k_Smoothness1MapUV),
-                (TextureProperty.UVMapping)material.GetFloat(k_Smoothness2MapUV),
-                (TextureProperty.UVMapping)material.GetFloat(k_AmbientOcclusionMapUV),
-                (TextureProperty.UVMapping)material.GetFloat(k_EmissiveColorMapUV),
-                (TextureProperty.UVMapping)material.GetFloat(k_SubsurfaceMaskMapUV),
-                (TextureProperty.UVMapping)material.GetFloat(k_ThicknessMapUV),
+                (TextureProperty.UVMapping) material.GetFloat(k_BaseColorMapUV),
+                (TextureProperty.UVMapping) material.GetFloat(k_MetallicMapUV),
+                (TextureProperty.UVMapping) material.GetFloat(k_NormalMapUV),
+                (TextureProperty.UVMapping) material.GetFloat(k_Smoothness1MapUV),
+                (TextureProperty.UVMapping) material.GetFloat(k_Smoothness2MapUV),
+                (TextureProperty.UVMapping) material.GetFloat(k_AmbientOcclusionMapUV),
+                (TextureProperty.UVMapping) material.GetFloat(k_EmissiveColorMapUV),
+                (TextureProperty.UVMapping) material.GetFloat(k_SubsurfaceMaskMapUV),
+                (TextureProperty.UVMapping) material.GetFloat(k_ThicknessMapUV),
             };
 
-            bool requireUv2 = false;
-            bool requireUv3 = false;
+            //bool requireUv2 = false;
+            //bool requireUv3 = false;
             bool requireTriplanar = false;
             for (int i = 0; i < uvIndices.Length; ++i)
             {
-                requireUv2 = requireUv2 || uvIndices[i] == TextureProperty.UVMapping.UV2;
-                requireUv3 = requireUv3 || uvIndices[i] == TextureProperty.UVMapping.UV3;
+                //requireUv2 = requireUv2 || uvIndices[i] == TextureProperty.UVMapping.UV2;
+                //requireUv3 = requireUv3 || uvIndices[i] == TextureProperty.UVMapping.UV3;
                 requireTriplanar = requireTriplanar || uvIndices[i] == TextureProperty.UVMapping.Triplanar;
             }
 
-            //CoreUtils.SetKeyword(material, "_USE_UV2", requireUv2);
-            //CoreUtils.SetKeyword(material, "_USE_UV3", requireUv3);
             CoreUtils.SetKeyword(material, "_USE_TRIPLANAR", requireTriplanar);
+
+            bool sssEnabled = material.GetFloat(k_EnableSubsurfaceScattering) > 0.0f;
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", sssEnabled);
+
+            bool transmissionEnabled = material.GetFloat(k_EnableTransmission) > 0.0f;
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", transmissionEnabled);
+
+            // Set the reference value for the stencil test.
+            int stencilRef = (int)StencilLightingUsage.RegularLighting;
+            if (sssEnabled)
+            {
+                stencilRef = (int)StencilLightingUsage.SplitLighting;
+            }
+            // As we tag both during velocity pass and Gbuffer pass we need a separate state and we need to use the write mask
+            material.SetInt(kStencilRef, stencilRef);
+            material.SetInt(kStencilWriteMask, (int)HDRenderPipeline.StencilBitMask.LightingMask);
+            material.SetInt(kStencilRefMV, (int)HDRenderPipeline.StencilBitMask.ObjectVelocity);
+            material.SetInt(kStencilWriteMaskMV, (int)HDRenderPipeline.StencilBitMask.ObjectVelocity);
 
             bool anisotropyEnabled = material.HasProperty(k_Anisotropy) && (material.GetFloat(k_Anisotropy) != 0.0f);
             // TODO: When we have a map, also test for map for enable. (This scheme doesn't allow enabling from
@@ -348,11 +398,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // value and re-enable otherwise).
             bool coatEnabled = material.HasProperty(k_CoatEnable) && (material.GetFloat(k_CoatEnable) > 0.0f);
             bool dualLobeEnabled = material.HasProperty(k_LobeMix) && (material.GetFloat(k_LobeMix) > 0.0f);
+            bool debugEnabled = material.HasProperty("_DebugEnable") && (material.GetFloat("_DebugEnable") > 0.0f);
 
             // Note that we don't use the materialId (cf Lit.shader) mechanism in the UI
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_ANISOTROPY", anisotropyEnabled);
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_COAT", coatEnabled);
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_DUAL_LOBE", dualLobeEnabled);
+            CoreUtils.SetKeyword(material, "_STACKLIT_DEBUG", debugEnabled);
 
         }
     }

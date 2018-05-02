@@ -62,6 +62,7 @@ float4 _SmoothnessAMap_TexelSize;
 float4 _SmoothnessAMap_MipInfo;
 float4 _SmoothnessAMapChannelMask;
 float4 _SmoothnessARange;
+
 float _SmoothnessB;
 float _SmoothnessBUseMap;
 float _SmoothnessBMapUV;
@@ -73,11 +74,14 @@ float4 _SmoothnessBMapChannelMask;
 float4 _SmoothnessBRange;
 float _LobeMix;
 
+float4 _DebugLobeMask;
+float4 _DebugAniso;
+
 float _Anisotropy;
 float _CoatSmoothness;
 float _CoatIor;
 float _CoatThickness;
-float4 _CoatExtinction;
+float3 _CoatExtinction;
 
 float _NormalScale;
 float _NormalMapUV;
@@ -106,9 +110,11 @@ float _EmissiveColorMapUVLocal;
 float _EmissiveIntensity;
 float _AlbedoAffectEmissive;
 
+int _DiffusionProfile;
 float _SubsurfaceMask;
 float _SubsurfaceMaskUseMap;
 float _SubsurfaceMaskMapUV;
+float _SubsurfaceMaskMapUVLocal;
 float4 _SubsurfaceMaskMap_ST;
 float4 _SubsurfaceMaskMap_TexelSize;
 float4 _SubsurfaceMaskMap_MipInfo;
@@ -118,6 +124,7 @@ float4 _SubsurfaceMaskRange;
 float _Thickness;
 float _ThicknessUseMap;
 float _ThicknessMapUV;
+float _ThicknessMapUVLocal;
 float4 _ThicknessMap_ST;
 float4 _ThicknessMap_TexelSize;
 float4 _ThicknessMap_MipInfo;
