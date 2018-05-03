@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
@@ -50,7 +51,7 @@ namespace UnityEditor.VFX.UI
         }
 
 
-        static Dictionary<System.Type,Dictionary<System.Type, System.Func<object,object> >> s_Converters = new Dictionary<System.Type,Dictionary<System.Type, System.Func<object,object> >>();
+        static readonly Dictionary<System.Type,Dictionary<System.Type, System.Func<object,object> >> s_Converters = new Dictionary<System.Type,Dictionary<System.Type, System.Func<object,object> >>();
 
         static VFXConverter()
         {
@@ -58,9 +59,16 @@ namespace UnityEditor.VFX.UI
             RegisterCustomConverter<Vector3,Vector4>(t=>new Vector4(t.x,t.y,t.z));
             RegisterCustomConverter<Vector2,Vector4>(t=>new Vector4(t.x,t.y,0));
             RegisterCustomConverter<Vector2,Vector3>(t=>new Vector3(t.x,t.y,0));
+            RegisterCustomConverter<Vector2,Color>(t=>new Color(t.x,t.y,0));
             RegisterCustomConverter<Vector3,Color>(t=>new Color(t.x,t.y,t.z));
             RegisterCustomConverter<Vector4,Color>(t=>new Color(t.x,t.y,t.z,t.w));
             RegisterCustomConverter<Matrix4x4,Transform>(MakeTransformFromMatrix4x4);
+            RegisterCustomConverter<Vector2,float>(t=>t.x);
+            RegisterCustomConverter<Vector3,float>(t=>t.x);
+            RegisterCustomConverter<Vector4,float>(t=>t.x);
+            RegisterCustomConverter<Color,Vector2>(t=>new Vector2(t.r,t.g));
+            RegisterCustomConverter<Color,Vector3>(t=>new Vector3(t.r,t.g,t.b));
+            RegisterCustomConverter<Color,float>(t=>t.a);
         }
 
 
@@ -68,7 +76,7 @@ namespace UnityEditor.VFX.UI
         {
             var result = new Transform
             {
-                position = new Vector3(mat.m03, mat.m13, mat.m23),
+                position = mat.MultiplyPoint(Vector3.zero),
                 angles = mat.rotation.eulerAngles,
                 scale = mat.lossyScale
             };
@@ -103,6 +111,23 @@ namespace UnityEditor.VFX.UI
             return value;
         }
 
+
+        static object TryConvertPrimitiveType(object value,Type toType)
+        {
+            try
+            {
+                return Convert.ChangeType(value, toType);
+            }
+            catch (InvalidCastException)
+            {
+            }
+            catch(OverflowException)
+            {
+            }
+
+            return System.Activator.CreateInstance(toType);
+        }
+
         static System.Func<object,object> GetConverter(Type fromType, Type toType)
         {
             if( typeof(UnityObject).IsAssignableFrom(fromType))
@@ -132,6 +157,31 @@ namespace UnityEditor.VFX.UI
                     if (implicitMethod != null)
                     {
                         converter = t=> implicitMethod.Invoke(null, new object[] { t });
+                    }
+                    else
+                    {
+                        implicitMethod = toType.GetMethods(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public)
+                            .FirstOrDefault(m => m.Name == "op_Implicit" && m.GetParameters()[0].ParameterType == fromType && m.ReturnType == toType);
+                        if (implicitMethod != null)
+                        {
+                            converter = t=> implicitMethod.Invoke(null, new object[] { t });
+                        }
+                    }
+                    if( converter == null)
+                    {
+                        if (toType.IsPrimitive)
+                        {
+                            if( fromType.IsPrimitive )
+                                converter = t => TryConvertPrimitiveType(t, toType);
+                            else if( toType != typeof(float))
+                            {
+                                var floatConverter = GetConverter(fromType,typeof(float));
+                                if( floatConverter != null)
+                                {
+                                    converter = t=> TryConvertPrimitiveType(floatConverter(t), toType);
+                                }
+                            }
+                        }
                     }
                 }
                 converters.Add(toType,converter);
