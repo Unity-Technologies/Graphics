@@ -6,13 +6,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class ScreenSpaceLightingEditor : VolumeComponentEditor
     {
-        SerializedDataParameter m_RayLevel;
-        SerializedDataParameter m_RayMaxLinearIterationsLevel;
-        SerializedDataParameter m_RayMinLevel;
-        SerializedDataParameter m_RayMaxLevel;
-        SerializedDataParameter m_RayMaxIterations;
-        SerializedDataParameter m_RayDepthSuccessBias;
-        SerializedDataParameter m_ScreenWeightDistance;
+        protected SerializedDataParameter m_RayLevel;
+        protected SerializedDataParameter m_RayMaxLinearIterationsLevel;
+        protected SerializedDataParameter m_RayMinLevel;
+        protected SerializedDataParameter m_RayMaxLevel;
+        protected SerializedDataParameter m_RayMaxIterations;
+        protected SerializedDataParameter m_RayDepthSuccessBias;
+        protected SerializedDataParameter m_ScreenWeightDistance;
 
         public override void OnEnable()
         {

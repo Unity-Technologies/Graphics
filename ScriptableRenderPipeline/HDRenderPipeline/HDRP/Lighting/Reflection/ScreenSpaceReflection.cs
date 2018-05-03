@@ -4,14 +4,22 @@ using UnityEngine.Rendering;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [Serializable]
-    public sealed class LitProjectionModelParameter : VolumeParameter<Lit.ProjectionModel> 
+    public sealed class LitProjectionModelParameter : VolumeParameter<ScreenSpaceReflection.AvailableProjectionModel> 
     {
-        public LitProjectionModelParameter() : base(Lit.ProjectionModel.Proxy, false) { }
+        public LitProjectionModelParameter() : base(ScreenSpaceReflection.AvailableProjectionModel.Proxy, false) { }
     }
 
     [Serializable]
     public class ScreenSpaceReflection : ScreenSpaceLighting
     {
+        // Values must be in sync with Lit.ProjectionModel
+        public enum AvailableProjectionModel
+        {
+            None = 0,
+            Proxy = 1,
+            HiZ = 2
+        }
+
         static ScreenSpaceReflection s_Default = null;
         public static ScreenSpaceReflection @default
         {
