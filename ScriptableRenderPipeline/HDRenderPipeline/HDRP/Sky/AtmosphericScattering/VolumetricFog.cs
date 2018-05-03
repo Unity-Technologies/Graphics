@@ -25,7 +25,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             float   blendExtinction =   Mathf.Lerp(otherExtinction,  thisExtinction, interpFactor);
             Vector3 blendScattering = Vector3.Lerp(otherScattering,  thisScattering, interpFactor);
-            float   blendAnisotropy =   Mathf.Lerp(other.anisotropy, anisotropy,     interpFactor);
+            float   blendAsymmetry  =   Mathf.Lerp(other.anisotropy, anisotropy,     interpFactor);
 
             float   blendMeanFreePath = VolumeRenderingUtils.MeanFreePathFromExtinction(blendExtinction);
             Color   blendAlbedo       = (Color)(Vector4)VolumeRenderingUtils.AlbedoFromMeanFreePathAndScattering(blendMeanFreePath, blendScattering);
@@ -43,17 +43,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (anisotropy.overrideState)
             {
-                other.anisotropy.value = blendAnisotropy;
+                other.anisotropy.value = blendAsymmetry;
             }
         }
 
         public override void PushShaderParameters(CommandBuffer cmd, FrameSettings frameSettings)
         {
-            DensityVolumeParameters param;
-
-            param.albedo       = albedo;
-            param.meanFreePath = meanFreePath;
-            param.anisotropy   = anisotropy;
+            DensityVolumeParameters param = new DensityVolumeParameters(albedo, meanFreePath, anisotropy);
 
             DensityVolumeData data = param.GetData();
 

@@ -1,4 +1,4 @@
-﻿// SurfaceData is define in Lit.cs which generate Lit.cs.hlsl
+// SurfaceData is define in Lit.cs which generate Lit.cs.hlsl
 #include "Lit.cs.hlsl"
 #include "../SubsurfaceScattering/SubsurfaceScattering.hlsl"
 #include "CoreRP/ShaderLibrary/VolumeRendering.hlsl"
@@ -180,16 +180,6 @@ uint TileVariantToFeatureFlags(uint variant, uint tileIndex)
 bool HasFeatureFlag(uint featureFlags, uint flag)
 {
     return ((featureFlags & flag) != 0);
-}
-
-float3 ComputeDiffuseColor(float3 baseColor, float metallic)
-{
-    return baseColor * (1.0 - metallic);
-}
-
-float3 ComputeFresnel0(float3 baseColor, float metallic, float dielectricF0)
-{
-    return lerp(dielectricF0.xxx, baseColor, metallic);
 }
 
 // Assume that bsdfData.diffusionProfile is init
@@ -1024,7 +1014,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     preLightData.transparentTransmittance = exp(-bsdfData.absorptionCoefficient * refraction.dist);
     // Empirical remap to try to match a bit the refraction probe blurring for the fallback
     // Use IblPerceptualRoughness so we can handle approx of clear coat.
-    preLightData.transparentSSMipLevel = sqrt(preLightData.iblPerceptualRoughness) * uint(_ColorPyramidScale.z);
+    preLightData.transparentSSMipLevel = pow(preLightData.iblPerceptualRoughness, 1.3) * uint(max(_ColorPyramidScale.z - 1, 0));
 #endif
 
     return preLightData;
@@ -1225,22 +1215,6 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
         // Very coarse attempt at doing energy conservation for the diffuse layer based on NdotL. No science.
         diffuseLighting *= lerp(1, 1.0 - coatF, bsdfData.coatMask);
     }
-}
-
-// In the "thin object" mode (for cards), we assume that the geometry is very thin.
-// We apply wrapped lighting to compensate for that, and do not modify the shading position.
-// Otherwise, in the "thick object" mode, we can have EITHER reflected (front) lighting
-// OR transmitted (back) lighting, never both at the same time. For transmitted lighting,
-// we need to push the shading position back to avoid self-shadowing problems.
-// Note: 'bsdfData.thickness' is in world units, and already accounts for the transmission mode.
-float3 ComputeThicknessDisplacement(BSDFData bsdfData, float3 L, float NdotL)
-{
-    // Compute the thickness in world units along the light vector.
-    // We need a max(x, 0) here, but the saturate() is free,
-    // and we don't expect the total displacement of over 1 meter.
-    float displacement = saturate(bsdfData.thickness / -NdotL);
-
-    return displacement * L;
 }
 
 // Currently, we only model diffuse transmission. Specular transmission is not yet supported.
@@ -1773,7 +1747,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
 
             float3 rayOriginWS      = preLightData.transparentPositionWS;
             float3 rayDirWS         = preLightData.transparentRefractV;
-#if DEBUG_DISPLAY
+#ifdef DEBUG_DISPLAY
             int debugMode           = DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFRACTION;
             bool debug              = _DebugLightingMode == debugMode
                 && !any(int2(_MouseClickPixelCoord.xy) - int2(posInput.positionSS));
@@ -1786,7 +1760,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
             // Common initialization
             ssRayInput.rayOriginWS = rayOriginWS;
             ssRayInput.rayDirWS = rayDirWS;
-#if DEBUG_DISPLAY
+#ifdef DEBUG_DISPLAY
             ssRayInput.debug = debug;
 #endif
             // Algorithm specific initialization
@@ -1925,6 +1899,14 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float3 F = preLightData.specularFGD;
     float iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness);
 
+    // Specific case for Texture2Ds, their convolution is a gaussian one and not a GGX one.
+    // So we use another roughness mip mapping.
+    if (IsEnvIndexTexture2D(lightData.envIndex))
+    {
+        // Empirical remapping
+        iblMipLevel = PositivePow(preLightData.iblPerceptualRoughness, 0.8) * uint(max(_ColorPyramidScale.z - 1, 0));
+    }
+
     float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, iblMipLevel);
     weight *= preLD.a; // Used by planar reflection to discard pixel
 
@@ -1982,9 +1964,9 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     AmbientOcclusionFactor aoFactor;
     // Use GTAOMultiBounce approximation for ambient occlusion (allow to get a tint from the baseColor)
 #if 0
-    GetScreenSpaceAmbientOcclusion(posInput.positionSS, preLightData.NdotV, bsdfData.perceptualRoughness, bsdfData.specularOcclusion, aoFactor);
+    GetScreenSpaceAmbientOcclusion(posInput.positionSS, preLightData.NdotV, bsdfData.perceptualRoughness, 1.0, bsdfData.specularOcclusion, aoFactor);
 #else
-    GetScreenSpaceAmbientOcclusionMultibounce(posInput.positionSS, preLightData.NdotV, bsdfData.perceptualRoughness, bsdfData.specularOcclusion, bsdfData.diffuseColor, bsdfData.fresnel0, aoFactor);
+    GetScreenSpaceAmbientOcclusionMultibounce(posInput.positionSS, preLightData.NdotV, bsdfData.perceptualRoughness, 1.0, bsdfData.specularOcclusion, bsdfData.diffuseColor, bsdfData.fresnel0, aoFactor);
 #endif
 
     // Add indirect diffuse + emissive (if any) - Ambient occlusion is multiply by emissive which is wrong but not a big deal
