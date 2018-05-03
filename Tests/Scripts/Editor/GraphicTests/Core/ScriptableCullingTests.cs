@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,6 +8,7 @@ using NUnit.Framework;
 using UnityEditor;
 using UnityEngine.TestTools;
 using UnityEditor.SceneManagement;
+using Unity.Collections;
 
 [TestFixture]
 public class ScriptableCullingTests
@@ -16,12 +18,21 @@ public class ScriptableCullingTests
 
     void Setup(string testName, string cameraName)
     {
-        string scenePath = string.Format("Assets/ScriptableRenderLoop/Tests/GraphicsTests/Core/Scenes/{0}.unity", testName);
+        SetupTestScene(testName);
+        SetupTestCamera(cameraName);
+    }
+
+    void SetupTestScene(string testSceneName)
+    {
+        string scenePath = string.Format("Assets/ScriptableRenderLoop/Tests/GraphicsTests/Core/Scenes/{0}.unity", testSceneName);
 
         BackupSceneManagerSetup();
         EditorSceneManager.OpenScene(scenePath);
+    }
 
-        string fullCameraName = string.Format("Camera_{0}", cameraName);
+    void SetupTestCamera(string cameraName)
+    {
+        string fullCameraName = string.Format(cameraName);
 
         var cameras = UnityEngine.Object.FindObjectsOfType(typeof(Camera)) as Camera[];
         m_TestCamera = Array.Find(cameras, (value) => value.name == fullCameraName);
@@ -29,7 +40,7 @@ public class ScriptableCullingTests
         if (m_TestCamera == null)
         {
             // Throw?
-            Assert.IsTrue(false, string.Format("Cannot find camera: {0}", cameraName) );
+            Assert.IsTrue(false, string.Format("Cannot find camera: {0}", cameraName));
         }
     }
 
@@ -60,51 +71,67 @@ public class ScriptableCullingTests
     [Test(Description = "Object simple frustum culling test")]
     public void ObjectFrustumCulling()
     {
-        Setup("FrustumCullingTest", "FrustumCullingTest");
+        Setup("FrustumCullingTest", "Camera_FrustumCullingTest");
 
         CullingParameters cullingParams = new CullingParameters();
         ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
 
-        CullingRequests requests = new CullingRequests();
-        requests.AddRequest(cullingParams);
+        CullingResult result = new CullingResult();
+        Culling.CullScene(cullingParams, result);
 
-        var results = Culling.ProcessRequests(requests);
-        CullingResult cullResult1 = results.GetResult(0);
-
-        Assert.AreEqual(3, cullResult1.GetVisibleObjectCount());
+        Assert.AreEqual(3, result.GetVisibleObjectCount());
 
         TearDown();
     }
 
+    //[Test(Description = "Scene not prepared before rendering error")]
+    //public void SceneNotPreparedError()
+    //{
+    //    Setup("FrustumCullingTest", "FrustumCullingTest");
+
+    //    CullingParameters cullingParams = new CullingParameters();
+    //    ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
+
+    //    CullingResult result = new CullingResult();
+    //    Culling.CullScene(cullingParams, result);
+
+    //    Culling.PrepareScene();
+
+    //    // DrawRenderers ?
+
+    //    Assert.AreEqual(3, 2);
+
+    //    TearDown();
+    //}
+
     [Test(Description = "Light simple frustum culling test")]
     public void LightFrustumCulling()
     {
-        Setup("FrustumCullingTest", "FrustumCullingTest");
+        Setup("FrustumCullingTest", "Camera_FrustumCullingTest");
 
         CullingParameters cullingParams = new CullingParameters();
         ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
 
-        CullingRequests requests = new CullingRequests();
-        requests.AddRequest(cullingParams);
+        LightCullingResult result = new LightCullingResult();
+        Culling.CullLights(cullingParams, result);
 
-        var lightCullResults = Culling.CullLights(requests);
-        var lightCullResult = lightCullResults.GetResult(0);
-        Assert.AreEqual(4, lightCullResult.visibleLights.Length);
-        Assert.IsTrue(Array.Exists(lightCullResult.visibleLights, (visibleLight) => visibleLight.light.gameObject.name == "Directional Light"));
-        Assert.IsTrue(Array.Exists(lightCullResult.visibleLights, (visibleLight) => visibleLight.light.gameObject.name == "Point Light Inside"));
-        Assert.IsTrue(Array.Exists(lightCullResult.visibleLights, (visibleLight) => visibleLight.light.gameObject.name == "Point Light 2 Inside"));
-        Assert.IsTrue(Array.Exists(lightCullResult.visibleLights, (visibleLight) => visibleLight.light.gameObject.name == "Spot Light Inside"));
+        Assert.AreEqual(4, result.visibleLights.Length);
 
-        Assert.AreEqual(1, lightCullResult.visibleShadowCastingLights.Length);
-        Assert.IsTrue(Array.Exists(lightCullResult.visibleShadowCastingLights, (visibleLight) => visibleLight.light.gameObject.name == "Point Light Partial"));
+        Assert.IsTrue(result.visibleLights.Any((visibleLight) => visibleLight.light.gameObject.name == "Directional Light"));
+        Assert.IsTrue(result.visibleLights.Any((visibleLight) => visibleLight.light.gameObject.name == "Point Light Inside"));
+        Assert.IsTrue(result.visibleLights.Any((visibleLight) => visibleLight.light.gameObject.name == "Point Light 2 Inside"));
+        Assert.IsTrue(result.visibleLights.Any((visibleLight) => visibleLight.light.gameObject.name == "Spot Light Inside"));
 
-        Assert.AreEqual(2, lightCullResult.visibleOffscreenVertexLights.Length);
-        Assert.IsTrue(Array.Exists(lightCullResult.visibleOffscreenVertexLights, (visibleLight) => visibleLight.light.gameObject.name == "Point Light Vertex"));
-        Assert.IsTrue(Array.Exists(lightCullResult.visibleOffscreenVertexLights, (visibleLight) => visibleLight.light.gameObject.name == "Point Light 2 Vertex"));
+        Assert.AreEqual(1, result.visibleShadowCastingLights.Length);
+        Assert.IsTrue(result.visibleShadowCastingLights.Any((visibleLight) => visibleLight.light.gameObject.name == "Point Light Partial"));
+
+        Assert.AreEqual(2, result.visibleOffscreenVertexLights.Length);
+        Assert.IsTrue(result.visibleOffscreenVertexLights.Any((visibleLight) => visibleLight.light.gameObject.name == "Point Light Vertex"));
+        Assert.IsTrue(result.visibleOffscreenVertexLights.Any((visibleLight) => visibleLight.light.gameObject.name == "Point Light 2 Vertex"));
 
         // The number here should actually be 1 but returns 3 because the off screen vertex light culling is wrong so we have false positives.
-        Assert.AreEqual(1, lightCullResult.visibleOffscreenShadowCastingVertexLights.Length);
-        Assert.IsTrue(Array.Exists(lightCullResult.visibleOffscreenShadowCastingVertexLights, (visibleLight) => visibleLight.light.gameObject.name == "Spot Light Vertex"));
+        Assert.AreEqual(1, result.visibleOffscreenShadowCastingVertexLights.Length);
+        Assert.IsTrue(result.visibleOffscreenShadowCastingVertexLights.Any((visibleLight) => visibleLight.light.gameObject.name == "Spot Light Vertex"));
 
         TearDown();
     }
@@ -112,21 +139,51 @@ public class ScriptableCullingTests
     [Test(Description = "Reflection Probe simple frustum culling test")]
     public void ReflectionProbeFrustumCulling()
     {
-        Setup("FrustumCullingTest", "FrustumCullingTest");
+        Setup("FrustumCullingTest", "Camera_FrustumCullingTest");
 
         CullingParameters cullingParams = new CullingParameters();
         ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
 
-        CullingRequests requests = new CullingRequests();
-        requests.AddRequest(cullingParams);
+        ReflectionProbeCullingResult result = new ReflectionProbeCullingResult();
+        Culling.CullReflectionProbes(cullingParams, result);
 
-        var reflectionCullingResults = Culling.CullReflectionProbes(requests);
+        var visibleProbes = result.visibleReflectionProbes;
 
-        var result = reflectionCullingResults.GetResult(0);
         Assert.AreEqual(2, result.visibleReflectionProbes.Length);
-        
-        Assert.IsTrue(Array.Exists(result.visibleReflectionProbes, (visibleProbe) => visibleProbe.probe.gameObject.name == "ReflectionProbe Inside"));
-        Assert.IsTrue(Array.Exists(result.visibleReflectionProbes, (visibleProbe) => visibleProbe.probe.gameObject.name == "ReflectionProbe Partial"));
+        Assert.IsTrue(result.visibleReflectionProbes.Any((visibleProbe) => visibleProbe.probe.gameObject.name == "ReflectionProbe Inside"));
+        Assert.IsTrue(result.visibleReflectionProbes.Any((visibleProbe) => visibleProbe.probe.gameObject.name == "ReflectionProbe Partial"));
+
+        TearDown();
+    }
+
+    [Test(Description = "Reuse Reflection Probe Result")]
+    public void ReuseReflectionProbeResult()
+    {
+        SetupTestScene("ReuseCullingResultTest");
+
+        CullingParameters cullingParams = new CullingParameters();
+        ReflectionProbeCullingResult result = new ReflectionProbeCullingResult();
+
+        SetupTestCamera("ReuseResultCamera 1");
+        ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
+
+        Culling.CullReflectionProbes(cullingParams, result);
+
+        var visibleProbes = result.visibleReflectionProbes;
+
+        Assert.AreEqual(2, result.visibleReflectionProbes.Length);
+        Assert.IsTrue(result.visibleReflectionProbes.Any((visibleProbe) => visibleProbe.probe.gameObject.name == "Reflection Probe 1"));
+        Assert.IsTrue(result.visibleReflectionProbes.Any((visibleProbe) => visibleProbe.probe.gameObject.name == "Reflection Probe 2"));
+
+        SetupTestCamera("ReuseResultCamera 2");
+        ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
+
+        Culling.CullReflectionProbes(cullingParams, result);
+
+        visibleProbes = result.visibleReflectionProbes;
+
+        Assert.AreEqual(1, result.visibleReflectionProbes.Length);
+        Assert.IsTrue(result.visibleReflectionProbes.Any((visibleProbe) => visibleProbe.probe.gameObject.name == "ReflectionProbe 2"));
 
         TearDown();
     }
