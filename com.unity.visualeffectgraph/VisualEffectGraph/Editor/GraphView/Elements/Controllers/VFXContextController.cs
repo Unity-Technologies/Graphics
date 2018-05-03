@@ -241,15 +241,5 @@ namespace UnityEditor.VFX.UI
         {
             return !type.IsPrimitive && !typeof(UnityObject).IsAssignableFrom(type) && type != typeof(AnimationCurve) && !type.IsEnum && type != typeof(Gradient);
         }
-
-        static bool ShouldSkipLevel(Type type)
-        {
-            return typeof(ISpaceable).IsAssignableFrom(type) && type.GetFields().Length == 2; // spaceable having only one member plus their space member. //TODOPAUL : wrong
-        }
-
-        bool ShouldIgnoreMember(Type type, FieldInfo field)
-        {
-            return typeof(ISpaceable).IsAssignableFrom(type) && field.Name == "space";
-        }
     }
 }

@@ -389,7 +389,7 @@ namespace UnityEditor.VFX.UI
 
         public static bool SlotShouldSkipFirstLevel(VFXSlot slot)
         {
-            return typeof(ISpaceable).IsAssignableFrom(slot.property.type) && slot.children.Count() == 1;
+            return slot.spaceable && slot.children.Count() == 1;
         }
 
         public virtual void ExpandPath()

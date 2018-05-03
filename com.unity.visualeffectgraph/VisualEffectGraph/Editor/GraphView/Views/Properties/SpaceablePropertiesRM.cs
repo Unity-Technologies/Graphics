@@ -58,7 +58,7 @@ namespace UnityEditor.VFX.UI
         VisualElement m_Button;
         protected override void UpdateEnabled()
         {
-			//TODOPAUL
+            //TODOPAUL
             //m_Button.SetEnabled(propertyEnabled);
         }
 

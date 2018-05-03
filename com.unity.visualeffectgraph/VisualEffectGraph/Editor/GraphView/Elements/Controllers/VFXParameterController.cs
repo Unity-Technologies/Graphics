@@ -308,25 +308,12 @@ namespace UnityEditor.VFX.UI
 
         public VFXSubParameterController[] ComputeSubControllers(Type type, IEnumerable<int> fieldPath)
         {
-            FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
-
-            int count = fields.Length;
-
-            bool spaceable = typeof(ISpaceable).IsAssignableFrom(type) && fields[0].FieldType == typeof(CoordinateSpace);
-            if (spaceable)
+            var fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
+            var subControllers = new VFXSubParameterController[fields.Length];
+            for (int i = 0; i < fields.Length; ++i)
             {
-                --count;
+                subControllers[i] = new VFXSubParameterController(this, fieldPath.Concat(Enumerable.Repeat(i, 1)));
             }
-
-            var subControllers = new VFXSubParameterController[count];
-
-            int startIndex = spaceable ? 1 : 0;
-
-            for (int i = startIndex; i < count + startIndex; ++i)
-            {
-                subControllers[i - startIndex] = new VFXSubParameterController(this, fieldPath.Concat(Enumerable.Repeat(i, 1)));
-            }
-
             return subControllers;
         }
 
@@ -669,11 +656,12 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return CoordinateSpace.Local; //TODOPAUL
+                return parameter.GetOutputSlot(0).space;
             }
 
             set
             {
+                parameter.GetOutputSlot(0).space = value;
             }
         }
 
@@ -681,8 +669,17 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return false;
+                return parameter.GetOutputSlot(0).spaceable;
             }
+        }
+
+        public override void OnDisable()
+        {
+            if (!object.ReferenceEquals(m_Slot, null))
+            {
+                viewController.UnRegisterNotification(m_Slot, OnSlotChanged);
+            }
+            base.OnDisable();
         }
 
         public void ExpandPath()
@@ -693,16 +690,6 @@ namespace UnityEditor.VFX.UI
         public void RetractPath()
         {
             throw new NotImplementedException();
-        }
-
-        public override void OnDisable()
-        {
-            if (!object.ReferenceEquals(m_Slot, null))
-            {
-                viewController.UnRegisterNotification(m_Slot, OnSlotChanged);
-            }
-
-            base.OnDisable();
         }
     }
 }

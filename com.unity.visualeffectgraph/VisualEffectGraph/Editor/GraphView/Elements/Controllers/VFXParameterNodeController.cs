@@ -148,13 +148,12 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                //TODOPAUL
-                return CoordinateSpace.Local;
+                return m_ParentController.space;
             }
 
             set
             {
-                //TODOPAUL
+                m_ParentController.space = value;
             }
         }
 
@@ -162,7 +161,7 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
-                return false;
+                return m_ParentController.spaceable;
             }
         }
 

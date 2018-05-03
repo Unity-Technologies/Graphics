@@ -39,7 +39,7 @@ namespace UnityEditor.VFX
     [VFXType, Serializable]
     struct Circle
     {
-        [Tooltip("The centre of the circle.")]
+        [Tooltip("The centre of the circle."), VFXSpace(SpaceableType.Position)]
         public Vector3 center;
         [Tooltip("The radius of the circle.")]
         public float radius;
@@ -81,7 +81,7 @@ namespace UnityEditor.VFX
     [VFXType, Serializable]
     struct OrientedBox
     {
-        [Tooltip("The centre of the box.")]
+        [Tooltip("The centre of the box."), VFXSpace(SpaceableType.Position)]
         public Vector3 center;
         [Angle, Tooltip("The orientation of the box.")]
         public Vector3 angles;
@@ -94,7 +94,7 @@ namespace UnityEditor.VFX
     [VFXType, Serializable]
     struct AABox
     {
-        [Tooltip("The centre of the box.")]
+        [Tooltip("The centre of the box."), VFXSpace(SpaceableType.Position)]
         public Vector3 center;
         [Tooltip("The size of the box along each axis.")]
         public Vector3 size;
@@ -107,9 +107,9 @@ namespace UnityEditor.VFX
     {
         public Plane(Vector3 direction) { position = Vector3.zero; normal = direction; }
 
-        [Tooltip("The position of the plane.")]
+        [Tooltip("The position of the plane."), VFXSpace(SpaceableType.Position)]
         public Vector3 position;
-        [Normalize, Tooltip("The direction of the plane.")]
+        [Normalize, Tooltip("The direction of the plane."), VFXSpace(SpaceableType.Direction)]
         public Vector3 normal;
 
         public static Plane defaultValue = new Plane { normal = Vector3.up };
@@ -118,7 +118,7 @@ namespace UnityEditor.VFX
     [VFXType, Serializable]
     struct Cylinder
     {
-        [Tooltip("The center of the cylinder.")]
+        [Tooltip("The center of the cylinder."), VFXSpace(SpaceableType.Position)]
         public Vector3 center;
         [Tooltip("The radius of the cylinder.")]
         public float radius;
@@ -131,7 +131,7 @@ namespace UnityEditor.VFX
     [VFXType, Serializable]
     struct Cone
     {
-        [Tooltip("The center of the cone.")]
+        [Tooltip("The center of the cone."), VFXSpace(SpaceableType.Position)]
         public Vector3 center;
         [Tooltip("The first radius of the cone.")]
         public float radius0;
@@ -146,7 +146,7 @@ namespace UnityEditor.VFX
     [VFXType, Serializable]
     struct ArcCone
     {
-        [Tooltip("The center of the cone.")]
+        [Tooltip("The center of the cone."), VFXSpace(SpaceableType.Position)]
         public Vector3 center;
         [Tooltip("The first radius of the cone.")]
         public float radius0;
@@ -163,7 +163,7 @@ namespace UnityEditor.VFX
     [VFXType, Serializable]
     struct Torus
     {
-        [Tooltip("The centre of the torus.")]
+        [Tooltip("The centre of the torus."), VFXSpace(SpaceableType.Position)]
         public Vector3 center;
         [Tooltip("The radius of the torus ring.")]
         public float majorRadius;
@@ -176,7 +176,7 @@ namespace UnityEditor.VFX
     [VFXType, Serializable]
     struct ArcTorus
     {
-        [Tooltip("The centre of the torus.")]
+        [Tooltip("The centre of the torus."), VFXSpace(SpaceableType.Position)]
         public Vector3 center;
         [Tooltip("The radius of the torus ring.")]
         public float majorRadius;
@@ -191,9 +191,9 @@ namespace UnityEditor.VFX
     [VFXType, Serializable]
     struct Line
     {
-        [Tooltip("The start position of the line.")]
+        [Tooltip("The start position of the line."), VFXSpace(SpaceableType.Position)]
         public Vector3 start;
-        [Tooltip("The end position of the line.")]
+        [Tooltip("The end position of the line."), VFXSpace(SpaceableType.Position)]
         public Vector3 end;
 
         public static Line defaultValue = new Line { start = Vector3.zero, end = Vector3.left };
@@ -202,7 +202,7 @@ namespace UnityEditor.VFX
     [VFXType, Serializable]
     struct Transform
     {
-        [Tooltip("The transform position.")]
+        [Tooltip("The transform position."), VFXSpace(SpaceableType.Position)]
         public Vector3 position;
         [Angle, Tooltip("The euler angles of the transform.")]
         public Vector3 angles;
@@ -224,7 +224,7 @@ namespace UnityEditor.VFX
     [VFXType, Serializable]
     struct DirectionType
     {
-        [Tooltip("The normalized direction.")]
+        [Tooltip("The normalized direction."), VFXSpace(SpaceableType.Direction)]
         public Vector3 direction;
 
         public static DirectionType defaultValue = new DirectionType { direction = Vector3.up };
@@ -233,7 +233,7 @@ namespace UnityEditor.VFX
     [VFXType, Serializable]
     struct Vector
     {
-        [Tooltip("The vector.")]
+        [Tooltip("The vector."), VFXSpace(SpaceableType.Direction)]
         public Vector3 vector;
 
         public Vector(float x, float y, float z)

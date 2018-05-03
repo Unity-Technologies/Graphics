@@ -11,15 +11,24 @@ namespace UnityEditor.VFX.Test
     [TestFixture]
     public class VFXSpacePropagationTest
     {
-        static IEnumerable<VFXExpression> CollectExpression(VFXExpression startExpression)
+        static IEnumerable<VFXExpression> CollectExpression(VFXExpression expression, HashSet<VFXExpression> hashSet = null)
         {
-            yield return startExpression;
-            foreach (var parent in startExpression.parents)
+            if (hashSet == null)
             {
-                var parents = CollectExpression(parent);
-                foreach (var exp in parents)
+                hashSet = new HashSet<VFXExpression>();
+            }
+
+            if (!hashSet.Contains(expression))
+            {
+                hashSet.Add(expression);
+                yield return expression;
+                foreach (var parent in expression.parents)
                 {
-                    yield return exp;
+                    var parents = CollectExpression(parent, hashSet);
+                    foreach (var exp in parents)
+                    {
+                        yield return exp;
+                    }
                 }
             }
         }
@@ -134,6 +143,68 @@ namespace UnityEditor.VFX.Test
 
             Assert.IsTrue(allExprCenter.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
             Assert.IsFalse(allExprRadius.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
+        }
+
+        [Test]
+        public void PositionSubSlotSpaceConversionUnexpected()
+        {
+            var position_A = ScriptableObject.CreateInstance<VFXInlineOperator>();
+            var position_B = ScriptableObject.CreateInstance<VFXInlineOperator>();
+
+            position_A.SetSettingValue("m_Type", (SerializableType)typeof(Position));
+            position_B.SetSettingValue("m_Type", (SerializableType)typeof(Position));
+
+            position_A.inputSlots[0][0].value = new Vector3(1, 2, 3);
+            position_A.inputSlots[0].space = CoordinateSpace.Global;
+            position_B.inputSlots[0][0].value = new Vector3(4, 5, 6);
+            position_B.inputSlots[0].space = CoordinateSpace.Local;
+
+            for (int i = 0; i < 3; ++i)
+            {
+                position_A.outputSlots[0][0][i].Link(position_B.inputSlots[0][0][i]);
+            }
+
+            var allExprPosition = CollectExpression(position_B.outputSlots[0][0].GetExpression()).ToArray();
+
+            Assert.AreEqual(CoordinateSpace.Global, position_A.outputSlots[0].space);
+            Assert.AreEqual(CoordinateSpace.Local, position_B.outputSlots[0].space);
+            Assert.IsFalse(allExprPosition.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
+        }
+
+        [Test]
+        public void PositionLinkToLineConversionExpected()
+        {
+            var position_A = ScriptableObject.CreateInstance<VFXInlineOperator>();
+            var position_B = ScriptableObject.CreateInstance<VFXInlineOperator>();
+
+            position_A.SetSettingValue("m_Type", (SerializableType)typeof(Position));
+            position_B.SetSettingValue("m_Type", (SerializableType)typeof(Position));
+
+            position_A.inputSlots[0][0].value = new Vector3(1, 2, 3);
+            position_A.inputSlots[0].space = CoordinateSpace.Global;
+            position_B.inputSlots[0][0].value = new Vector3(4, 5, 6);
+            position_B.inputSlots[0].space = CoordinateSpace.Local;
+
+            var line = ScriptableObject.CreateInstance<VFXInlineOperator>();
+            line.SetSettingValue("m_Type", (SerializableType)typeof(Line));
+
+            line.inputSlots[0].space = CoordinateSpace.Local;
+            line.inputSlots[0][0].Link(position_A.outputSlots[0]);
+            line.inputSlots[0][1].Link(position_B.outputSlots[0]);
+
+            var lineOutputSlotA = CollectExpression(line.outputSlots[0][0].GetExpression()).ToArray();
+            var lineOutputSlotB = CollectExpression(line.outputSlots[0][1].GetExpression()).ToArray();
+
+            Assert.AreEqual(line.inputSlots[0].space, CoordinateSpace.Local);
+            Assert.IsTrue(lineOutputSlotA.Any(o => o.operation == VFXExpressionOperation.WorldToLocal));
+            Assert.IsFalse(lineOutputSlotB.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
+
+            line.inputSlots[0].space = CoordinateSpace.Global;
+            lineOutputSlotA = CollectExpression(line.outputSlots[0][0].GetExpression()).ToArray();
+            lineOutputSlotB = CollectExpression(line.outputSlots[0][1].GetExpression()).ToArray();
+            Assert.AreEqual(line.inputSlots[0].space, CoordinateSpace.Global);
+            Assert.IsFalse(lineOutputSlotA.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
+            Assert.IsTrue(lineOutputSlotB.Any(o => o.operation == VFXExpressionOperation.LocalToWorld));
         }
     }
 }

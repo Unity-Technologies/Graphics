@@ -94,8 +94,8 @@ namespace UnityEditor.VFX
             get
             {
                 if (spaceable)
-                    return GetMasterData().m_SpaceContainer.m_Space;
-                return CoordinateSpace.Local;
+                    return GetMasterData().m_Space;
+                return (CoordinateSpace)int.MaxValue;
             }
 
             set
@@ -104,14 +104,14 @@ namespace UnityEditor.VFX
                 {
                     if (space != value)
                     {
-                        GetMasterData().m_SpaceContainer.m_Space = value;
+                        GetMasterData().m_Space = value;
                         InvalidateExpressionTree();
                         Invalidate(InvalidationCause.kSpaceChanged);
                     }
                 }
                 else
                 {
-                    Debug.LogError("TODOPAUL : Better message");
+                    Debug.LogError("Trying to modify space on a not spaceable slot : " + property.type);
                 }
             }
         }
@@ -119,7 +119,7 @@ namespace UnityEditor.VFX
         public SpaceableType GetSpaceTransformationType()
         {
             if (!spaceable)
-                Debug.LogError("Unexpected call of GetSpaceTransformationType");
+                Debug.LogError("Unexpected call of GetSpaceTransformationType : " + ToString());
 
             var masterSlot = GetMasterSlot();
             var findSlot = masterSlot.m_SlotsSpaceable.Where(o => o.slot == this).FirstOrDefault();
@@ -304,7 +304,7 @@ namespace UnityEditor.VFX
             {
                 m_Owner = null,
                 m_Value = new VFXSerializableObject(property.type, value),
-                m_SpaceContainer = null //lazy initialization
+                m_Space = (CoordinateSpace)int.MaxValue //Will be init with InitSpaceable
             };
 
             slot.PropagateToChildren(s => {
@@ -500,7 +500,7 @@ namespace UnityEditor.VFX
             if (!masterSlot.IsMasterSlot())
                 throw new InvalidOperationException("Trying to call init spaceable on a child slot");
 
-            var spaceableCollection = new List<SpaceContainer.Concerned>();
+            var spaceableCollection = new List<SpaceSlotConcerned>();
             masterSlot.PropagateToChildren(s =>
                 {
                     if (!s.property.IsExpandable())
@@ -525,7 +525,7 @@ namespace UnityEditor.VFX
                                 slot = slot.GetParent(); //TODOPAUL : it's a cheat...
                             }
 
-                            spaceableCollection.Add(new SpaceContainer.Concerned
+                            spaceableCollection.Add(new SpaceSlotConcerned()
                         {
                             slot = slot,
                             type = (spaceAttribute as VFXSpaceAttribute).type
@@ -537,17 +537,14 @@ namespace UnityEditor.VFX
             masterSlot.m_SlotsSpaceable = spaceableCollection.ToArray();
             if (masterSlot.m_SlotsSpaceable.Any())
             {
-                if (masterSlot.m_MasterData.m_SpaceContainer == null)
+                if (masterSlot.m_MasterData.m_Space == (CoordinateSpace)int.MaxValue)
                 {
-                    masterSlot.m_MasterData.m_SpaceContainer = new SpaceContainer()
-                    {
-                        m_Space = CoordinateSpace.Local
-                    };
+                    masterSlot.m_MasterData.m_Space = CoordinateSpace.Local;
                 }
             }
             else
             {
-                masterSlot.m_MasterData.m_SpaceContainer = null; //release useless SpaceContainer
+                masterSlot.m_MasterData.m_Space = (CoordinateSpace)int.MaxValue;
             }
         }
 
@@ -601,7 +598,7 @@ namespace UnityEditor.VFX
             {
                 m_Owner = null,
                 m_Value = new VFXSerializableObject(property.type, value),
-                m_SpaceContainer = null,
+                m_Space = (CoordinateSpace)int.MaxValue,
             };
 
             PropagateToChildren(s => {
@@ -814,7 +811,7 @@ namespace UnityEditor.VFX
 
         private static VFXExpression ApplySpaceConversion(VFXExpression exp, VFXSlot destSlot, VFXSlot sourceSlot)
         {
-            if (    destSlot.spaceable && sourceSlot.spaceable
+            if (destSlot.spaceable && sourceSlot.spaceable
                 &&  destSlot.space != sourceSlot.space)
             {
                 var destSpaceableType = destSlot.GetSpaceTransformationType();
@@ -909,10 +906,7 @@ namespace UnityEditor.VFX
         {
             if (cause == InvalidationCause.kConnectionChanged || cause == InvalidationCause.kSpaceChanged)
             {
-                if (IsMasterSlot()
-                    &&  direction == Direction.kInput
-                    &&  spaceable
-                    &&  HasLink())
+                if (IsMasterSlot() && direction == Direction.kInput && spaceable && HasLink())
                 {
                     var linkedSlot = m_LinkedSlots.First();
                     if (linkedSlot.spaceable)
@@ -985,18 +979,12 @@ namespace UnityEditor.VFX
         [NonSerialized]
         private bool m_DefaultExpressionInitialized = false;
         [NonSerialized]
-        private SpaceContainer.Concerned[] m_SlotsSpaceable;
+        private SpaceSlotConcerned[] m_SlotsSpaceable;
 
-        [Serializable]
-        private class SpaceContainer
+        public struct SpaceSlotConcerned
         {
-            public struct Concerned
-            {
-                public VFXSlot slot;
-                public SpaceableType type;
-            }
-
-            public CoordinateSpace m_Space;
+            public VFXSlot slot;
+            public SpaceableType type;
         }
 
         [Serializable]
@@ -1004,7 +992,7 @@ namespace UnityEditor.VFX
         {
             public VFXModel m_Owner;
             public VFXSerializableObject m_Value;
-            public SpaceContainer m_SpaceContainer;
+            public CoordinateSpace m_Space; //can be undefined
         }
 
         [SerializeField]
