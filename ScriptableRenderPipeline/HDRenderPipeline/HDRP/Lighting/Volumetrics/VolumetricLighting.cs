@@ -119,13 +119,29 @@ public class VolumetricLightingSystem
     {
         public Vector4 resolution;
         public Vector2 sliceCount;
+        public Vector4 uvScaleAndLimit;    // Necessary us to work with sub-allocation (resource aliasing) in the RTHandle system
         public Vector4 depthEncodingParams;
         public Vector4 depthDecodingParams;
 
-        public VBufferParameters(int w, int h, int d, ControllerParameters controlParams)
+        public VBufferParameters(Vector3Int viewportResolution, Vector3Int bufferResolution, ControllerParameters controlParams)
         {
+            int w = viewportResolution.x;
+            int h = viewportResolution.y;
+            int d = viewportResolution.z;
+
+            // The depth is fixed for now.
+            Vector2 uvScale = new Vector2((float)w / (float)bufferResolution.x,
+                                          (float)h / (float)bufferResolution.y);
+
+            // vp_scale = vp_dim / tex_dim.
+            // clamp to (vp_dim - 0.5) / tex_dim = vp_scale - 0.5 * (1 / tex_dim) =
+            // vp_scale - 0.5 * (vp_scale / vp_dim) = vp_scale * (1 - 0.5 / vp_dim).
+            Vector2 uvLimit = new Vector2((w - 0.5f) / (float)bufferResolution.x,
+                                          (h - 0.5f) / (float)bufferResolution.y);
+
             resolution          = new Vector4(w, h, 1.0f / w, 1.0f / h);
             sliceCount          = new Vector2(d, 1.0f / d);
+            uvScaleAndLimit     = new Vector4(uvScale.x, uvScale.y, uvLimit.x, uvLimit.y);
             depthEncodingParams = Vector4.zero; // C# doesn't allow function calls before all members have been init
             depthDecodingParams = Vector4.zero; // C# doesn't allow function calls before all members have been init
 
@@ -172,15 +188,20 @@ public class VolumetricLightingSystem
     }
 
     // RTHandleSystem API expects a function which computes the resolution. We define it here.
-    Vector2Int ComputeVBufferSizeXY(Vector2Int screenSize)
+    Vector2Int ComputeVBuffeResolutionXY(Vector2Int screenSize)
     {
-        int t = ComputeVBufferTileSize(preset);
+        Vector3Int resolution = ComputeVBufferResolution(preset, screenSize.x, screenSize.y);
 
-        // Ceil(ScreenSize / TileSize).
-        int w = (screenSize.x + (t - 1)) / t;
-        int h = (screenSize.y + (t - 1)) / t;
+        // Since the buffers owned by the VolumetricLightingSystem may have different lifetimes compared
+        // to those owned by the HDCamera, we need to make sure that the buffer resolution is the same
+        // (in order to share the UV scale and the UV limit).
+        if (m_LightingBufferHandle != null)
+        {
+            resolution.x = Math.Max(resolution.x, m_LightingBufferHandle.rt.width);
+            resolution.y = Math.Max(resolution.y, m_LightingBufferHandle.rt.height);
+        }
 
-        return new Vector2Int(w, h);
+        return new Vector2Int(resolution.x, resolution.y);
     }
 
     // BufferedRTHandleSystem API expects an allocator function. We define it here.
@@ -190,7 +211,7 @@ public class VolumetricLightingSystem
 
         int d = ComputeVBufferSliceCount(preset);
 
-        return rtHandleSystem.Alloc(scaleFunc:         ComputeVBufferSizeXY,
+        return rtHandleSystem.Alloc(scaleFunc:         ComputeVBuffeResolutionXY,
                                     slices:            d,
                                     dimension:         TextureDimension.Tex3D,
                                     colorFormat:       RenderTextureFormat.ARGBHalf,
@@ -213,7 +234,7 @@ public class VolumetricLightingSystem
 
         int d = ComputeVBufferSliceCount(preset);
 
-        m_DensityBufferHandle = RTHandles.Alloc(scaleFunc:         ComputeVBufferSizeXY,
+        m_DensityBufferHandle = RTHandles.Alloc(scaleFunc:         ComputeVBuffeResolutionXY,
                                                 slices:            d,
                                                 dimension:         TextureDimension.Tex3D,
                                                 colorFormat:       RenderTextureFormat.ARGBHalf,
@@ -223,7 +244,7 @@ public class VolumetricLightingSystem
                                                 /* useDynamicScale: true, // <- TODO */
                                                 name:              "VBufferDensity");
 
-        m_LightingBufferHandle = RTHandles.Alloc(scaleFunc:         ComputeVBufferSizeXY,
+        m_LightingBufferHandle = RTHandles.Alloc(scaleFunc:         ComputeVBuffeResolutionXY,
                                                  slices:            d,
                                                  dimension:         TextureDimension.Tex3D,
                                                  colorFormat:       RenderTextureFormat.ARGBHalf,
@@ -234,7 +255,8 @@ public class VolumetricLightingSystem
                                                  name:              "VBufferIntegral");
     }
 
-    VBufferParameters ComputeVBufferParameters(HDCamera camera)
+    // For the initial allocation, no suballocation happens (the texture is full size).
+    VBufferParameters ComputeVBufferParameters(HDCamera camera, bool isInitialAllocation)
     {
         ControllerParameters controlParams;
 
@@ -249,11 +271,21 @@ public class VolumetricLightingSystem
             controlParams = ControllerParameters.GetDefaults();
         }
 
-        int w = 0, h = 0, d = 0;
-        ComputeVBufferResolutionAndScale(preset, camera.camera.pixelWidth, camera.camera.pixelHeight, ref w, ref h, ref d);
+        Vector3Int viewportResolution = ComputeVBufferResolution(preset, camera.camera.pixelWidth, camera.camera.pixelHeight);
+        Vector3Int bufferResolution; // Could be higher due to sub-allocation (resource aliasing) in the RTHandle system
+
+        if (isInitialAllocation)
+        {
+            bufferResolution = viewportResolution;
+        }
+        else
+        {
+            // All V-Buffers of the current frame should have the same size (you have to double-buffer history, of course).
+            bufferResolution = new Vector3Int(m_LightingBufferHandle.rt.width, m_LightingBufferHandle.rt.height, m_LightingBufferHandle.rt.volumeDepth);
+        }
 
         // Start with the same parameters for both frames. Then update them one by one every frame.
-        return new VBufferParameters(w, h, d, controlParams);
+        return new VBufferParameters(viewportResolution, bufferResolution, controlParams);
     }
 
     public void InitializePerCameraData(HDCamera camera)
@@ -261,7 +293,7 @@ public class VolumetricLightingSystem
         if (preset == VolumetricLightingPreset.Off) return;
 
         // Start with the same parameters for both frames. Then update them one by one every frame.
-        var parameters          = ComputeVBufferParameters(camera);
+        var parameters          = ComputeVBufferParameters(camera, true);
         camera.vBufferParams    = new VBufferParameters[2];
         camera.vBufferParams[0] = parameters;
         camera.vBufferParams[1] = parameters;
@@ -280,7 +312,7 @@ public class VolumetricLightingSystem
     {
         if (preset == VolumetricLightingPreset.Off) return;
 
-        var parameters = ComputeVBufferParameters(camera);
+        var parameters = ComputeVBufferParameters(camera, false);
 
         // Double-buffer. I assume the cost of copying is negligible (don't want to use the frame index).
         camera.vBufferParams[1] = camera.vBufferParams[0];
@@ -343,22 +375,17 @@ public class VolumetricLightingSystem
         }
     }
 
-    // Since a single voxel corresponds to a tile (e.g. 8x8) of pixels,
-    // the VBuffer can potentially extend past the boundaries of the viewport.
-    // The function returns the fraction of the {width, height} of the VBuffer visible on screen.
-    // Note: for performance reasons, the scale is unused (implicitly 1). The error is typically under 1%.
-    static Vector2 ComputeVBufferResolutionAndScale(VolumetricLightingPreset preset,
-                                                    int screenWidth, int screenHeight,
-                                                    ref int w, ref int h, ref int d)
+    static Vector3Int ComputeVBufferResolution(VolumetricLightingPreset preset,
+                                               int screenWidth, int screenHeight)
     {
         int t = ComputeVBufferTileSize(preset);
 
-        // Ceil(ScreenSize / TileSize).
-        w = (screenWidth  + (t - 1)) / t;
-        h = (screenHeight + (t - 1)) / t;
-        d = ComputeVBufferSliceCount(preset);
+        // ceil(ScreenSize / TileSize).
+        int w = (screenWidth  + (t - 1)) / t;
+        int h = (screenHeight + (t - 1)) / t;
+        int d = ComputeVBufferSliceCount(preset);
 
-        return new Vector2((float)screenWidth / (float)(w * t), (float)screenHeight / (float)(h * t));
+        return new Vector3Int(w, h, d);
     }
 
     // See EncodeLogarithmicDepthGeneralized().
@@ -438,12 +465,16 @@ public class VolumetricLightingSystem
 
         cmd.SetGlobalVector( HDShaderIDs._VBufferResolution,              currFrameParams.resolution);
         cmd.SetGlobalVector( HDShaderIDs._VBufferSliceCount,              currFrameParams.sliceCount);
+        cmd.SetGlobalVector( HDShaderIDs._VBufferUvScaleAndLimit,         currFrameParams.uvScaleAndLimit);
         cmd.SetGlobalVector( HDShaderIDs._VBufferDepthEncodingParams,     currFrameParams.depthEncodingParams);
         cmd.SetGlobalVector( HDShaderIDs._VBufferDepthDecodingParams,     currFrameParams.depthDecodingParams);
+
         cmd.SetGlobalVector( HDShaderIDs._VBufferPrevResolution,          prevFrameParams.resolution);
         cmd.SetGlobalVector( HDShaderIDs._VBufferPrevSliceCount,          prevFrameParams.sliceCount);
+        cmd.SetGlobalVector( HDShaderIDs._VBufferPrevUvScaleAndLimit,     prevFrameParams.uvScaleAndLimit);
         cmd.SetGlobalVector( HDShaderIDs._VBufferPrevDepthEncodingParams, prevFrameParams.depthEncodingParams);
         cmd.SetGlobalVector( HDShaderIDs._VBufferPrevDepthDecodingParams, prevFrameParams.depthDecodingParams);
+
         cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting,                m_LightingBufferHandle);
     }
 

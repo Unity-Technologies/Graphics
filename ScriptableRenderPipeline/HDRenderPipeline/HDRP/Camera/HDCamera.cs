@@ -171,7 +171,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Reset();
         }
 
-        public void Update(PostProcessLayer postProcessLayer, FrameSettings frameSettings)
+        // Pass all the systems that may want to update per-camera data here.
+        // That way you will never update an HDCamera and forget to update the dependent system.
+        public void Update(PostProcessLayer postProcessLayer, FrameSettings frameSettings, VolumetricLightingSystem vlSys)
         {
             // If TAA is enabled projMatrix will hold a jittered projection matrix. The original,
             // non-jittered projection matrix can be accessed via nonJitteredProjMatrix.
@@ -301,6 +303,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             screenSize   = new Vector4(screenWidth, screenHeight, 1.0f / screenWidth, 1.0f / screenHeight);
             screenParams = new Vector4(screenSize.x, screenSize.y, 1 + screenSize.z, 1 + screenSize.w);
+
+            if (vlSys != null)
+            {
+                vlSys.UpdatePerCameraData(this);
+            }
         }
 
         // Stopgap method used to extract stereo combined matrix state.

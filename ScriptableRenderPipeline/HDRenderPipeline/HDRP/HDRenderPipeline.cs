@@ -842,8 +842,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         hdCamera = HDCamera.Create(camera, m_VolumetricLightingSystem);
                     }
 
-                    hdCamera.Update(postProcessLayer, m_FrameSettings);
-                    m_VolumetricLightingSystem.UpdatePerCameraData(hdCamera);
+                    hdCamera.Update(postProcessLayer, m_FrameSettings, m_VolumetricLightingSystem);
 
                     Resize(hdCamera);
 
