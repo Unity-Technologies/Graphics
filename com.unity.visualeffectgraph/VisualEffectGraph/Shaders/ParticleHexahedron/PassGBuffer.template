@@ -16,13 +16,14 @@ Pass
 	
 	#define UNITY_MATERIAL_LIT
 	#define SHADERPASS SHADERPASS_GBUFFER
-	#define HDRP_NEEDS_UVS (HDRP_USE_BASE_COLOR_MAP || HDRP_USE_MASK_MAP || HDRP_USE_NORMAL_MAP)
+	#define HDRP_NEEDS_UVS (HDRP_USE_BASE_COLOR_MAP || HDRP_USE_MASK_MAP || HDRP_USE_NORMAL_MAP || HDRP_USE_EMISSIVE_MAP)
+	#define HDRP_USE_EMISSIVE (HDRP_USE_EMISSIVE_MAP || HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR)
 	
 	struct ps_input
 	{
 		float4 pos : SV_POSITION;
 
-		#if VFX_NEEDS_COLOR_INTERPOLATOR
+		#if (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR
 		nointerpolation float4 color : COLOR0;
 		#endif
 		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST
@@ -39,11 +40,17 @@ Pass
 		nointerpolation float3 rotY : TEXCOORD5;
 		
 		#if HDRP_MATERIAL_TYPE_SPECULAR	
-		nointerpolation float4 specularColor : COLOR1;
+		nointerpolation float3 specularColor : COLOR1;
 		#endif
+		#if HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR	
+		nointerpolation float3 emissiveColor : COLOR2;
+		#endif
+		
 		// x: smoothness
 		// y: metallic/thickness
-		nointerpolation float2 materialProperties : TEXCOORD6;
+		// z: normal scale
+		// w: emissive scale
+		nointerpolation float4 materialProperties : TEXCOORD6;
 		
 		#if HDRP_NEEDS_UVS
 		nointerpolation uint faceID : TEXCOORD7;
@@ -58,8 +65,10 @@ Pass
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
 #define VFX_VARYING_POSSS projPos
+#if VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR
 #define VFX_VARYING_COLOR color.rgb
 #define VFX_VARYING_ALPHA color.a
+#endif
 #define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
 #define VFX_VARYING_OFFSETS offsets
@@ -82,6 +91,24 @@ o.specularColor = specularColor;
 ${VFXLoadParameter:{thickness}}
 o.materialProperties.y = thickness;
 #endif
+#if HDRP_USE_NORMAL_MAP
+${VFXLoadParameter:{normalScale}}
+o.materialProperties.z = normalScale;
+#endif
+#if HDRP_USE_EMISSIVE_MAP
+${VFXLoadParameter:{emissiveScale}}
+o.materialProperties.w = emissiveScale;
+#endif
+#if HDRP_USE_EMISSIVE_COLOR
+o.emissiveColor = color;
+#elif HDRP_USE_ADDITIONAL_EMISSIVE_COLOR
+${VFXLoadParameter:{emissiveColor}}
+o.emissiveColor = emissiveColor;
+#endif
+#if HDRP_USE_ADDITIONAL_BASE_COLOR
+${VFXLoadParameter:{baseColor}}
+o.color = baseColor;
+#endif
 ${VFXEnd}
 
 	${VFXInclude("Assets/VFXEditor/Shaders/ParticleHexahedron/Pass.template")}	
@@ -94,13 +121,26 @@ ${VFXEnd}
 		#if HDRP_USE_NORMAL_MAP
 		float3 n = VFXGetTextureNormal(VFX_SAMPLER(normalMap),VFXCubeGetUV(i));
 		normalWS = VFXCubeTransformNormalTS(i,n);
+		normalWS = lerp(VFXCubeGetLocalNormal(i),normalWS,i.materialProperties.z);
 		#else
 		normalWS = VFXCubeGetLocalNormal(i);
 		#endif
 		normalWS = VFXCubeTransformNormalWS(i,normalWS);
-		
+		normalWS = normalize(normalWS);
+
 		SurfaceData surfaceData = VFXGetSurfaceData(normalWS,i,VFXCubeGetUV(i));
 		float3 ambient = surfaceData.baseColor * VFXGetAmbient(normalWS);
+		
+		#if HDRP_USE_EMISSIVE
+		float3 emissive = float3(1,1,1);
+		#if HDRP_USE_EMISSIVE_MAP
+		emissive *= VFXGetTextureColorWithProceduralUV(VFX_SAMPLER(emissiveMap),i,VFXCubeGetUV(i)).rgb * i.materialProperties.w;
+		#endif
+		#if HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR
+		emissive *= i.emissiveColor;
+		#endif
+		ambient += emissive;
+		#endif
 		
 		ENCODE_INTO_GBUFFER(surfaceData, ambient, i.pos, outGBuffer);
 	}

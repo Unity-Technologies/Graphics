@@ -4,9 +4,14 @@ SurfaceData VFXGetSurfaceData(float3 normalWS,VFX_VARYING_PS_INPUTS i,float2 uvs
 {
 	SurfaceData surfaceData = (SurfaceData)0;
 	
-	float4 color = VFXGetFragmentColor(i);
-	surfaceData.baseColor = color.rgb;
+	float4 color = float4(1,1,1,1);
+	#if HDRP_USE_BASE_COLOR
+	color *= VFXGetFragmentColor(i);
 	VFXClipFragmentColor(color.a,i);
+	#elif HDRP_USE_ADDITIONAL_BASE_COLOR
+	color *= i.color;
+	#endif
+	surfaceData.baseColor = color.rgb;
 	
 	#if HDRP_MATERIAL_TYPE_STANDARD
 	surfaceData.materialFeatures = 1;
@@ -28,7 +33,7 @@ SurfaceData VFXGetSurfaceData(float3 normalWS,VFX_VARYING_PS_INPUTS i,float2 uvs
 	surfaceData.ambientOcclusion = 1.0f;
 	
 	#if HDRP_USE_BASE_COLOR_MAP
-	surfaceData.baseColor *= VFXGetTextureColorWithProceduralUV(VFX_SAMPLER(baseColor),i,uvs);
+	surfaceData.baseColor *= VFXGetTextureColorWithProceduralUV(VFX_SAMPLER(baseColorMap),i,uvs);
 	#endif
 	
 	#if HDRP_USE_MASK_MAP
