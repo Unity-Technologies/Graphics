@@ -269,12 +269,13 @@ bool ScreenSpaceLinearRaymarch(
     float rayEndDepth,                      // Linear depth of the end point used to calculate raySS.
     uint2 bufferSize,                       // Texture size of screen buffers
     // Out
-    out ScreenSpaceRayHit hit
+    out ScreenSpaceRayHit hit,
+    out uint iteration
 )
 {
     ZERO_INITIALIZE(ScreenSpaceRayHit, hit);
     bool hitSuccessful = true;
-    uint iteration = 0u;
+    iteration = 0u;
     int mipLevel = min(max(settingRayLevel, 0), int(_DepthPyramidScale.z));
     uint maxIterations = settingsRayMaxIterations;
 
@@ -457,10 +458,13 @@ bool ScreenSpaceLinearProxyRaycast(
     // Settings (linear)
     int settingRayLevel,                    // Mip level to use to ray march depth buffer
     uint settingsRayMaxIterations,          // Maximum number of iterations (= max number of depth samples)
+    uint settingsIterationBlending,         // Number of linear raymarching iterations to blend with proxy raycast
     // Settings (common)
     int settingsDebuggedAlgorithm,          // currently debugged algorithm (see PROJECTIONMODEL defines)
     // Out
-    out ScreenSpaceRayHit hit
+    out ScreenSpaceRayHit linearHit,        // Linear raymarching hit
+    out ScreenSpaceRayHit proxyHit,         // Proxy raycasting hit
+    float hitBlending                       // hit = linearHit * (1.0 - hitBlending) + proxyHit * hitBlending
 )
 {
     // Perform linear raymarch
@@ -486,6 +490,7 @@ bool ScreenSpaceLinearProxyRaycast(
         rayEndDepth
     );
 
+    uint iteration;
     bool hitSuccessful = ScreenSpaceLinearRaymarch(
         inputLinear,
         // Settings
@@ -498,18 +503,25 @@ bool ScreenSpaceLinearProxyRaycast(
         rayEndDepth,
         bufferSize,
         // Out
-        hit
+        linearHit,
+        iteration
     );
 
-    if (!hitSuccessful)
+    hitBlending = settingsIterationBlending > 0
+        ? 1.0 + (int(iteration) - int(settingsRayMaxIterations)) / float(settingsIterationBlending)
+        : 0;
+
+    if (!hitSuccessful || hitBlending > 0)
     {
-        hitSuccessful = ScreenSpaceProxyRaycast(
+        bool proxyHitSuccessful = ScreenSpaceProxyRaycast(
             input,
             // Settings
             settingsDebuggedAlgorithm,
             // Out
-            hit
+            proxyHit
         );
+
+        hitSuccessful = hitSuccessful && proxyHitSuccessful;
     }
 
     return hitSuccessful;
@@ -582,7 +594,8 @@ bool ScreenSpaceHiZRaymarch(
             rayEndDepth,
             bufferSize,
             // out
-            hit
+            hit,
+            iteration
         ))
         return true;
     
@@ -599,6 +612,7 @@ bool ScreenSpaceHiZRaymarch(
     float debugIterationLinearDepthBuffer = 0;
 #endif
 
+    iteration = 0u;
     int intersectionKind = 0;
     float raySSLength = length(raySS.xy);
     raySS /= raySSLength;
@@ -778,6 +792,7 @@ int SSRT_SETTING(RayMinLevel, SSRTID);
 int SSRT_SETTING(RayMaxLevel, SSRTID);
 int SSRT_SETTING(RayMaxLinearIterations, SSRTID);
 int SSRT_SETTING(RayMaxIterations, SSRTID);
+int SSRT_SETTING(RayIterationBlending, SSRTID);
 float SSRT_SETTING(RayDepthSuccessBias, SSRTID);
 
 #ifdef DEBUG_DISPLAY
@@ -806,6 +821,7 @@ bool MERGE_NAME(ScreenSpaceLinearRaymarch, SSRTID)(
         rayEndDepth
     );
 
+    uint iteration;
     return ScreenSpaceLinearRaymarch(
         input,
         // settings
@@ -822,7 +838,8 @@ bool MERGE_NAME(ScreenSpaceLinearRaymarch, SSRTID)(
         rayEndDepth,
         bufferSize,
         // out
-        hit
+        hit,
+        iteration
     );
 }
 
@@ -831,14 +848,18 @@ bool MERGE_NAME(ScreenSpaceLinearRaymarch, SSRTID)(
 // -------------------------------------------------
 bool MERGE_NAME(ScreenSpaceProxyRaycast, SSRTID)(
     ScreenSpaceProxyRaycastInput input,
-    out ScreenSpaceRayHit hit
+    out ScreenSpaceRayHit primaryHit,
+    out ScreenSpaceRayHit secondaryHit,
+    out float hitBlending
 )
 {
+    hitBlending = 0;
     return ScreenSpaceLinearProxyRaycast(
         input,
         // Settings (linear)
         SSRT_SETTING(RayLevel, SSRTID),
         SSRT_SETTING(RayMaxLinearIterations, SSRTID),
+        SSRT_SETTING(RayIterationBlending, SSRTID),
         // Settings (common)
 #if DEBUG_DISPLAY
         SSRT_SETTING(DebuggedAlgorithm, SSRTID),
@@ -846,7 +867,9 @@ bool MERGE_NAME(ScreenSpaceProxyRaycast, SSRTID)(
         PROJECTIONMODEL_NONE,
 #endif
         // Out
-        hit
+        primaryHit,
+        secondaryHit,
+        hitBlending
     );
 }
 

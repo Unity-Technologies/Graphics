@@ -30,9 +30,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     break;
                 case Lit.ProjectionModel.Proxy:
                     EditorGUILayout.Separator();
-                    PropertyField(m_RayLevel, CoreEditorUtils.GetContent("Linear Ray Level"));
-                    PropertyField(m_RayMaxLinearIterationsLevel, CoreEditorUtils.GetContent("Linear Iterations"));
-                    PropertyField(m_RayDepthSuccessBias, CoreEditorUtils.GetContent("Linear Ray Depth Success Bias"));
+                    OnProxyInspectorGUI();
                     break;
             }
         }

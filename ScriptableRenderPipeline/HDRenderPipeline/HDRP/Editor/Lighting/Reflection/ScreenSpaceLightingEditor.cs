@@ -8,6 +8,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         protected SerializedDataParameter m_RayLevel;
         protected SerializedDataParameter m_RayMaxLinearIterationsLevel;
+        protected SerializedDataParameter m_RayIterationBlending;
         protected SerializedDataParameter m_RayMinLevel;
         protected SerializedDataParameter m_RayMaxLevel;
         protected SerializedDataParameter m_RayMaxIterations;
@@ -20,6 +21,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             m_RayLevel = Unpack(o.Find(x => x.rayLevel));
             m_RayMaxLinearIterationsLevel = Unpack(o.Find(x => x.rayMaxLinearIterationsLevel));
+            m_RayIterationBlending = Unpack(o.Find(x => x.rayIterationBlending));
             m_RayMinLevel = Unpack(o.Find(x => x.rayMinLevel));
             m_RayMaxLevel = Unpack(o.Find(x => x.rayMaxLevel));
             m_RayMaxIterations = Unpack(o.Find(x => x.rayMaxIterations));
@@ -32,6 +34,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             OnCommonInspectorGUI();
             EditorGUILayout.Separator();
             OnHiZInspectorGUI();
+            EditorGUILayout.Separator();
+            OnProxyInspectorGUI();
         }
 
         protected virtual void OnHiZInspectorGUI()
@@ -43,6 +47,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PropertyField(m_RayMaxLevel, CoreEditorUtils.GetContent("Ray Max Level"));
             PropertyField(m_RayMaxIterations, CoreEditorUtils.GetContent("Ray Max Iterations"));
             PropertyField(m_RayDepthSuccessBias, CoreEditorUtils.GetContent("Ray Depth Success Bias"));
+        }
+
+        protected virtual void OnProxyInspectorGUI()
+        {
+            EditorGUILayout.LabelField(CoreEditorUtils.GetContent("Proxy Settings"));
+            PropertyField(m_RayLevel, CoreEditorUtils.GetContent("Linear Ray Level"));
+            PropertyField(m_RayMaxLinearIterationsLevel, CoreEditorUtils.GetContent("Linear Iterations"));
+            PropertyField(m_RayDepthSuccessBias, CoreEditorUtils.GetContent("Linear Ray Depth Success Bias"));
+            PropertyField(m_RayIterationBlending, CoreEditorUtils.GetContent("Linear Ray Iteration Blending"));
         }
 
         protected virtual void OnCommonInspectorGUI()

@@ -1829,8 +1829,10 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     // -------------------------------
     // Screen space tracing query
     // -------------------------------
-    ScreenSpaceRayHit hit;
-    ZERO_INITIALIZE(ScreenSpaceRayHit, hit);
+    ScreenSpaceRayHit primaryHit, secondaryHit;
+    float hitBlending = 0;
+    ZERO_INITIALIZE(ScreenSpaceRayHit, primaryHit);
+    ZERO_INITIALIZE(ScreenSpaceRayHit, secondaryHit);
     bool hitSuccessful = false;
 
     // -------------------------------
@@ -1850,11 +1852,11 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
 
 #if HAS_REFRACTION
         if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
-            hitSuccessful = ScreenSpaceProxyRaycastRefraction(ssRayInput, hit);
+            hitSuccessful = ScreenSpaceProxyRaycastRefraction(ssRayInput, primaryHit, secondaryHit, hitBlending);
         else
 #endif
         if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
-            hitSuccessful = ScreenSpaceProxyRaycastReflection(ssRayInput, hit);
+            hitSuccessful = ScreenSpaceProxyRaycastReflection(ssRayInput, primaryHit, secondaryHit, hitBlending);
     }
 
     // -------------------------------
@@ -1873,11 +1875,11 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
 
 #if HAS_REFRACTION
         if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
-            hitSuccessful = ScreenSpaceHiZRaymarchRefraction(ssRayInput, hit);
+            hitSuccessful = ScreenSpaceHiZRaymarchRefraction(ssRayInput, primaryHit);
         else 
 #endif
         if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
-            hitSuccessful = ScreenSpaceHiZRaymarchReflection(ssRayInput, hit);
+            hitSuccessful = ScreenSpaceHiZRaymarchReflection(ssRayInput, primaryHit);
     }
 
     // Debug screen space tracing
@@ -1888,9 +1890,9 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
         float weight = 1.0;
         UpdateLightingHierarchyWeights(hierarchyWeight, weight);
         if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
-            lighting.specularTransmitted = hit.debugOutput;
+            lighting.specularTransmitted = primaryHit.debugOutput;
         else if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
-            lighting.specularReflected = hit.debugOutput;
+            lighting.specularReflected = primaryHit.debugOutput;
         return lighting;
     }
 #endif
@@ -1901,11 +1903,11 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     // -------------------------------
     // Resolve weight and color
     // -------------------------------
-    float2 weightNDC = clamp(min(hit.positionNDC, 1 - hit.positionNDC) * invScreenWeightDistance, 0, 1);
+    float2 weightNDC = clamp(min(primaryHit.positionNDC, 1 - primaryHit.positionNDC) * invScreenWeightDistance, 0, 1);
     weightNDC = weightNDC * weightNDC * (3 - 2 * weightNDC);
     float weight = weightNDC.x * weightNDC.y;
 
-    float hitDeviceDepth = LOAD_TEXTURE2D_LOD(_DepthPyramidTexture, hit.positionSS, 0).r;
+    float hitDeviceDepth = LOAD_TEXTURE2D_LOD(_DepthPyramidTexture, primaryHit.positionSS, 0).r;
     float hitLinearDepth = LinearEyeDepth(hitDeviceDepth, _ZBufferParams);
 
     // Exit if texel is out of color buffer
@@ -1922,9 +1924,21 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     float3 preLD = SAMPLE_TEXTURE2D_LOD(
         _ColorPyramidTexture, 
         s_trilinear_clamp_sampler, 
-        hit.positionNDC * _ColorPyramidScale.xy, 
+        primaryHit.positionNDC * _ColorPyramidScale.xy, 
         mipLevel
     ).rgb;
+
+    if (hitBlending > 0)
+    {
+        float3 preLD2 = SAMPLE_TEXTURE2D_LOD(
+            _ColorPyramidTexture, 
+            s_trilinear_clamp_sampler, 
+            secondaryHit.positionNDC * _ColorPyramidScale.xy, 
+            mipLevel
+        ).rgb;
+
+        preLD = preLD * (1.0 - hitBlending) + preLD2 * hitBlending;
+    }
 
     // We use specularFGD as an approximation of the fresnel effect (that also handle smoothness)
     float3 F = preLightData.specularFGD;

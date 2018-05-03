@@ -22,7 +22,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         protected override void FetchIDs(
             out int rayLevelID,
-            out int rayMaxLinearIerationsID,
+            out int rayMaxLinearIterationsID,
+            out int rayIterationBlending,
             out int rayMinLevelID,
             out int rayMaxLevelID,
             out int rayMaxIterationsID,
@@ -31,7 +32,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         )
         {
             rayLevelID = HDShaderIDs._SSRefractionRayLevel;
-            rayMaxLinearIerationsID = HDShaderIDs._SSRefractionRayMaxLinearIterations;
+            rayMaxLinearIterationsID = HDShaderIDs._SSRefractionRayMaxLinearIterations;
+            rayIterationBlending = HDShaderIDs._SSRefractionRayIterationBlending;
             rayMinLevelID = HDShaderIDs._SSRefractionRayMinLevel;
             rayMaxLevelID = HDShaderIDs._SSRefractionRayMaxLevel;
             rayMaxIterationsID = HDShaderIDs._SSRefractionRayMaxIterations;
