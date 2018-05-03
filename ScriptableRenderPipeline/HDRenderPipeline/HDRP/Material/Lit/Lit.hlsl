@@ -1210,22 +1210,6 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
     }
 }
 
-// In the "thin object" mode (for cards), we assume that the geometry is very thin.
-// We apply wrapped lighting to compensate for that, and do not modify the shading position.
-// Otherwise, in the "thick object" mode, we can have EITHER reflected (front) lighting
-// OR transmitted (back) lighting, never both at the same time. For transmitted lighting,
-// we need to push the shading position back to avoid self-shadowing problems.
-// Note: 'bsdfData.thickness' is in world units, and already accounts for the transmission mode.
-float3 ComputeThicknessDisplacement(BSDFData bsdfData, float3 L, float NdotL)
-{
-    // Compute the thickness in world units along the light vector.
-    // We need a max(x, 0) here, but the saturate() is free,
-    // and we don't expect the total displacement of over 1 meter.
-    float displacement = saturate(bsdfData.thickness / -NdotL);
-
-    return displacement * L;
-}
-
 // Currently, we only model diffuse transmission. Specular transmission is not yet supported.
 // Transmitted lighting is computed as follows:
 // - we assume that the object is a thick plane (slab);
@@ -1906,14 +1890,18 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     R = lerp(R, preLightData.iblR, saturate(smoothstep(0, 1, roughness * roughness)));
 
     float3 F = preLightData.specularFGD;
-    float iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness);
 
-    // Specific case for Texture2Ds, their convolution is a gaussian one and not a GGX one.
-    // So we use another roughness mip mapping.
+    float iblMipLevel;
+    // TODO: We need to match the PerceptualRoughnessToMipmapLevel formula for planar, so we don't do this test (which is specific to our current lightloop)
+    // Specific case for Texture2Ds, their convolution is a gaussian one and not a GGX one - So we use another roughness mip mapping.
     if (IsEnvIndexTexture2D(lightData.envIndex))
     {
         // Empirical remapping
         iblMipLevel = PositivePow(preLightData.iblPerceptualRoughness, 0.8) * uint(max(_ColorPyramidScale.z - 1, 0));
+    }
+    else
+    {
+        iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness);
     }
 
     float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, iblMipLevel);
