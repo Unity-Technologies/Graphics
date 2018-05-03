@@ -1,19 +1,19 @@
 .port.typePosition
 {
-    port-color: #F6FF9A;
+    port-color: #FCD76E;
 }
 .port.typeVector
 {
-    port-color: #F6FF9A;
+    port-color: #FCD76E;
 }
 .port.typeDirection
 {
-    port-color: #F6FF9A;
+    port-color: #FCD76E;
 }
 
 .port.typeGradient
 {
-    port-color: #84e4e7;
+    port-color: #FFAA6B;
 }
 
 .port.typeobject
@@ -54,7 +54,7 @@
 }
 .port.typeanimationcurve
 {
-    port-color : #84e4e7;
+    port-color : #FFAA6B;
 }
 .port.typeGPUEvent
 {
