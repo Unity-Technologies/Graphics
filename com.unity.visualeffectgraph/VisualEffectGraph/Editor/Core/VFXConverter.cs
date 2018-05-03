@@ -4,6 +4,7 @@ using UnityEditor;
 using Type = System.Type;
 using Convert = System.Convert;
 using System.Linq;
+using UnityObject = UnityEngine.Object;
 
 
 namespace UnityEditor.VFX.UI
@@ -59,6 +60,20 @@ namespace UnityEditor.VFX.UI
             RegisterCustomConverter<Vector2,Vector3>(t=>new Vector3(t.x,t.y,0));
             RegisterCustomConverter<Vector3,Color>(t=>new Color(t.x,t.y,t.z));
             RegisterCustomConverter<Vector4,Color>(t=>new Color(t.x,t.y,t.z,t.w));
+            RegisterCustomConverter<Matrix4x4,Transform>(MakeTransformFromMatrix4x4);
+        }
+
+
+        static Transform MakeTransformFromMatrix4x4(Matrix4x4 mat)
+        {
+            var result = new Transform
+            {
+                position = new Vector3(mat.m03, mat.m13, mat.m23),
+                angles = mat.rotation.eulerAngles,
+                scale = mat.lossyScale
+            };
+
+            return result;
         }
 
         static void RegisterCustomConverter<TFrom,TTo>( System.Func<TFrom,TTo> func)
@@ -73,9 +88,28 @@ namespace UnityEditor.VFX.UI
             converters.Add(typeof(TTo), t=> func((TFrom)t));
         }
 
+        static object ConvertUnityObject(object value, Type toType)
+        {
+            var castedValue = (UnityObject)value;
+            if( castedValue == null) // null object don't have necessarly the correct type
+                return null;
+
+            if( ! toType.IsInstanceOfType(value))
+            {
+                Debug.LogErrorFormat("Cannot cast from {0} to {1}", value.GetType(), toType);
+                return null;
+            }
+
+            return value;
+        }
 
         static System.Func<object,object> GetConverter(Type fromType, Type toType)
         {
+            if( typeof(UnityObject).IsAssignableFrom(fromType))
+            {
+                return t=>ConvertUnityObject(t,toType);
+            }
+
             Dictionary<System.Type, System.Func<object,object>> converters = null;
             if( ! s_Converters.TryGetValue(fromType,out converters))
             {
@@ -111,7 +145,6 @@ namespace UnityEditor.VFX.UI
             if( value == null)
                 return null;
             var fromType = value.GetType();
-
 
             var converter = GetConverter(fromType,type);
 
