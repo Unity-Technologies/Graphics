@@ -45,7 +45,6 @@ struct ScreenSpaceRayHit
 {
     uint2 positionSS;           // Position of the hit point (SS)
     float2 positionNDC;         // Position of the hit point (NDC)
-    float3 positionWS;          // Position of the hit point (WS)
     float linearDepth;          // Linear depth of the hit point
 
 #ifdef DEBUG_DISPLAY
@@ -283,8 +282,8 @@ bool ScreenSpaceLinearRaymarch(
     raySS /= max(abs(raySS.x), abs(raySS.y));
     raySS *= 1 << mipLevel;
 
-    // Offset by half a texel
-    positionSS += raySS * 0.5;
+    // Offset by a texel
+    positionSS += raySS * 1.0;
 
 #ifdef DEBUG_DISPLAY
     float3 debugIterationPositionSS = positionSS;
@@ -330,8 +329,6 @@ bool ScreenSpaceLinearRaymarch(
     hit.linearDepth = 1 / positionSS.z;
     hit.positionNDC = float2(positionSS.xy) / float2(bufferSize);
     hit.positionSS = uint2(positionSS.xy);
-    float worldInterpolationFactor = (hit.linearDepth - rcp(startPositionSS.z)) / (rayEndDepth - rcp(startPositionSS.z));
-    hit.positionWS = input.rayOriginWS + input.rayDirWS * worldInterpolationFactor;
 
 #ifdef DEBUG_DISPLAY
     DebugComputeCommonOutput(input.rayDirWS, hitSuccessful, PROJECTIONMODEL_LINEAR, hit);
@@ -415,7 +412,6 @@ bool ScreenSpaceProxyRaycast(
     hit.positionNDC         = hitPositionNDC;
     hit.positionSS          = hitPositionSS;
     hit.linearDepth         = hitLinearDepth;
-    hit.positionWS          = hitPositionWS;
 
     bool hitSuccessful      = hitLinearDepth > 0;       // Negative means that the hit is behind the camera
 
@@ -706,8 +702,6 @@ bool ScreenSpaceHiZRaymarch(
     hit.linearDepth = 1 / positionSS.z;
     hit.positionNDC = float2(positionSS.xy) / float2(bufferSize);
     hit.positionSS = uint2(positionSS.xy);
-    float worldInterpolationFactor = (hit.linearDepth - rcp(startPositionSS.z)) / (rayEndDepth - rcp(startPositionSS.z));
-    hit.positionWS = input.rayOriginWS + input.rayDirWS * worldInterpolationFactor;
 
     if (hit.linearDepth > (1 / invHiZDepth) + settingsRayDepthSuccessBias)
         hitSuccessful = false;
@@ -844,12 +838,12 @@ bool MERGE_NAME(ScreenSpaceProxyRaycast, SSRTID)(
         input,
         // Settings (linear)
         SSRT_SETTING(RayLevel, SSRTID),
-        SSRT_SETTING(RayMaxIterations, SSRTID),
+        SSRT_SETTING(RayMaxLinearIterations, SSRTID),
         // Settings (common)
 #if DEBUG_DISPLAY
         SSRT_SETTING(DebuggedAlgorithm, SSRTID),
 #else
-        uint(PROJECTIONMODEL_NONE),
+        PROJECTIONMODEL_NONE,
 #endif
         // Out
         hit
