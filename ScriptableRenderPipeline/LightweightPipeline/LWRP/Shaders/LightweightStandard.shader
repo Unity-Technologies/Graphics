@@ -5,7 +5,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
         // Specular vs Metallic workflow
         [HideInInspector] _WorkflowMode("WorkflowMode", Float) = 1.0
 
-        _Color("Color", Color) = (1,1,1,1)
+        _Color("Color", Color) = (0.5,0.5,0.5,1)
         _MainTex("Albedo", 2D) = "white" {}
 
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
@@ -67,6 +67,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
         {
             // Lightmode matches the ShaderPassName set in LightweightPipeline.cs. SRPDefaultUnlit and passes with
             // no LightMode tag are also rendered by Lightweight Pipeline
+            Name "StandardLit"
             Tags{"LightMode" = "LightweightForward"}
 
             Blend[_SrcBlend][_DstBlend]
@@ -77,6 +78,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             // Required to compile gles 2.0 with standard SRP library
             // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
             #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             // -------------------------------------
@@ -99,6 +101,8 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             #pragma multi_compile _ _VERTEX_LIGHTS
             #pragma multi_compile _ _MIXED_LIGHTING_SUBTRACTIVE
             #pragma multi_compile _ _SHADOWS_ENABLED
+            #pragma multi_compile _ _LOCAL_SHADOWS_ENABLED
+            #pragma multi_compile _ _SHADOWS_SOFT
 
             // -------------------------------------
             // Unity defined keywords
@@ -113,12 +117,14 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             #pragma vertex LitPassVertex
             #pragma fragment LitPassFragment
 
+            #include "LWRP/ShaderLibrary/InputSurfacePBR.hlsl"
             #include "LWRP/ShaderLibrary/LightweightPassLit.hlsl"
             ENDHLSL
         }
 
         Pass
         {
+            Name "ShadowCaster"
             Tags{"LightMode" = "ShadowCaster"}
 
             ZWrite On
@@ -128,34 +134,39 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             // -------------------------------------
             // Material Keywords
             #pragma shader_feature _ALPHATEST_ON
-            #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
 
             //--------------------------------------
             // GPU Instancing
             #pragma multi_compile_instancing
+            #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
 
             #pragma vertex ShadowPassVertex
             #pragma fragment ShadowPassFragment
 
+            #include "LWRP/ShaderLibrary/InputSurfacePBR.hlsl"
             #include "LWRP/ShaderLibrary/LightweightPassShadow.hlsl"
             ENDHLSL
         }
 
         Pass
         {
+            Name "DepthOnly"
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
             ColorMask 0
+            Cull[_Cull]
 
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
             #pragma target 2.0
 
             #pragma vertex DepthOnlyVertex
@@ -170,6 +181,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             // GPU Instancing
             #pragma multi_compile_instancing
 
+            #include "LWRP/ShaderLibrary/InputSurfacePBR.hlsl"
             #include "LWRP/ShaderLibrary/LightweightPassDepthOnly.hlsl"
             ENDHLSL
         }
@@ -177,6 +189,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
         // This pass it not used during regular rendering, only for lightmap baking.
         Pass
         {
+            Name "Meta"
             Tags{"LightMode" = "Meta"}
 
             Cull Off
@@ -184,6 +197,7 @@ Shader "LightweightPipeline/Standard (Physically Based)"
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
+            #pragma exclude_renderers d3d11_9x
 
             #pragma vertex LightweightVertexMeta
             #pragma fragment LightweightFragmentMeta
@@ -196,7 +210,9 @@ Shader "LightweightPipeline/Standard (Physically Based)"
 
             #pragma shader_feature _SPECGLOSSMAP
 
-            #include "LWRP/ShaderLibrary/LightweightPassMeta.hlsl"
+            #include "LWRP/ShaderLibrary/InputSurfacePBR.hlsl"
+            #include "LWRP/ShaderLibrary/LightweightPassMetaPBR.hlsl"
+
             ENDHLSL
         }
 

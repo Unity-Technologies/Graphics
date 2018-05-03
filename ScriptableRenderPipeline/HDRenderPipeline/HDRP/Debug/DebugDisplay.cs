@@ -76,15 +76,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static string k_PanelRendering = "Rendering";
 
         public static string k_PanelScreenSpaceTracing = "Screen Space Tracing";
+        public static string k_PanelDecals = "Decals";
 
-        static readonly string[] k_HiZIntersectionKind = { "None", "Depth", "Cell" };
+        //static readonly string[] k_HiZIntersectionKind = { "None", "Depth", "Cell" };
 
         DebugUI.Widget[] m_DebugDisplayStatsItems;
         DebugUI.Widget[] m_DebugMaterialItems;
         DebugUI.Widget[] m_DebugLightingItems;
         DebugUI.Widget[] m_DebugRenderingItems;
         DebugUI.Widget[] m_DebugScreenSpaceTracingItems;
-        
+        DebugUI.Widget[] m_DebugDecalsItems;
+
 
         public float debugOverlayRatio = 0.33f;
         public FullScreenDebugMode  fullScreenDebugMode = FullScreenDebugMode.None;
@@ -96,6 +98,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public LightingDebugSettings lightingDebugSettings = new LightingDebugSettings();
         public MipMapDebugSettings mipMapDebugSettings = new MipMapDebugSettings();
         public ColorPickerDebugSettings colorPickerDebugSettings = new ColorPickerDebugSettings();
+        public DecalsDebugSettings decalsDebugSettings = new DecalsDebugSettings();
 
         public static GUIContent[] lightingFullScreenDebugStrings = null;
         public static int[] lightingFullScreenDebugValues = null;
@@ -108,12 +111,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         Lit.RefractionSSRayModel m_LastSSRayModel = Lit.RefractionSSRayModel.None;
         ScreenSpaceTracingDebug m_ScreenSpaceTracingDebugData;
-        public ScreenSpaceTracingDebug screenSpaceTracingDebugData 
+        public ScreenSpaceTracingDebug screenSpaceTracingDebugData
         {
             get { return m_ScreenSpaceTracingDebugData; }
-            internal set 
+            internal set
             {
-                m_ScreenSpaceTracingDebugData = value; 
+                m_ScreenSpaceTracingDebugData = value;
                 if (m_LastSSRayModel != m_ScreenSpaceTracingDebugData.tracingModel)
                 {
                     m_LastSSRayModel = m_ScreenSpaceTracingDebugData.tracingModel;
@@ -196,6 +199,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return materialDebugSettings.IsDebugDisplayEnabled() || lightingDebugSettings.IsDebugDisplayEnabled() || mipMapDebugSettings.IsDebugDisplayEnabled() || IsDebugFullScreenEnabled();
         }
 
+        public bool IsDebugDisplayRemovePostprocess()
+        {
+            // We want to keep post process when only the override more are enabled and none of the other
+            return materialDebugSettings.IsDebugDisplayEnabled() || lightingDebugSettings.IsDebugDisplayRemovePostprocess() || mipMapDebugSettings.IsDebugDisplayEnabled() || IsDebugFullScreenEnabled();
+        }
+
         public bool IsDebugMaterialDisplayEnabled()
         {
             return materialDebugSettings.IsDebugDisplayEnabled();
@@ -274,7 +283,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         bool IsScreenSpaceTracingRefractionDebugEnabled()
         {
-            return fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceTracing 
+            return fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceTracing
                 && lightingDebugSettings.debugLightingMode == DebugLightingMode.ScreenSpaceTracingRefraction;
         }
 
@@ -309,8 +318,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void UpdateMaterials()
         {
-            //if (mipMapDebugSettings.debugMipMapMode != 0)
-            //    Texture.SetStreamingTextureMaterialDebugProperties();
+#if UNITY_2018_2_OR_NEWER
+            if (mipMapDebugSettings.debugMipMapMode != 0)
+                Texture.SetStreamingTextureMaterialDebugProperties();
+#endif
         }
 
         public bool DebugNeedsExposure()
@@ -342,7 +353,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var refractionContainer = new DebugUI.Container
             {
                 displayName = "Refraction",
-                children = 
+                children =
                 {
                     new DebugUI.BoolField { displayName = "Debug Enabled", getter = IsScreenSpaceTracingRefractionDebugEnabled, setter = SetScreenSpaceTracingRefractionDebugEnabled, onValueChanged = RefreshScreenSpaceTracingDebug },
                 }
@@ -465,6 +476,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RegisterScreenSpaceTracingDebug();
         }
 
+        void RefreshDecalsDebug<T>(DebugUI.Field<T> field, T value)
+        {
+            UnregisterDebugItems(k_PanelDecals, m_DebugDecalsItems);
+            RegisterDecalsDebug();
+        }
+
         public void RegisterLightingDebug()
         {
             var list = new List<DebugUI.Widget>();
@@ -504,17 +521,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             list.Add(new DebugUI.FloatField { displayName = "Shadow Range Max Value", getter = () => lightingDebugSettings.shadowMaxValue, setter = value => lightingDebugSettings.shadowMaxValue = value });
 
             list.Add(new DebugUI.EnumField { displayName = "Lighting Debug Mode", getter = () => (int)lightingDebugSettings.debugLightingMode, setter = value => SetDebugLightingMode((DebugLightingMode)value), autoEnum = typeof(DebugLightingMode), onValueChanged = RefreshLightingDebug });
-            if (lightingDebugSettings.debugLightingMode == DebugLightingMode.EnvironmentProxyVolume)
-            {
-                list.Add(new DebugUI.Container
-                {
-                    children =
-                    {
-                        new DebugUI.FloatField { displayName = "Debug Environment Proxy Depth Scale", getter = () => lightingDebugSettings.environmentProxyDepthScale, setter = value => lightingDebugSettings.environmentProxyDepthScale = value, min = () => 0.1f, max = () => 50f }
-                    }
-                });
-            }
-
             list.Add(new DebugUI.EnumField { displayName = "Fullscreen Debug Mode", getter = () => (int)fullScreenDebugMode, setter = value => fullScreenDebugMode = (FullScreenDebugMode)value, enumNames = lightingFullScreenDebugStrings, enumValues = lightingFullScreenDebugValues, onValueChanged = RefreshLightingDebug });
             switch (fullScreenDebugMode)
             {
@@ -688,8 +694,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             panel.children.Add(m_DebugRenderingItems);
         }
 
+        public void RegisterDecalsDebug()
+        {
+            m_DebugDecalsItems = new DebugUI.Widget[]
+            {
+                new DebugUI.BoolField { displayName = "Display atlas", getter = () => decalsDebugSettings.m_DisplayAtlas, setter = value => decalsDebugSettings.m_DisplayAtlas = value},
+                new DebugUI.UIntField { displayName = "Mip Level", getter = () => decalsDebugSettings.m_MipLevel, setter = value => decalsDebugSettings.m_MipLevel = value, min = () => 0u, max = () => (uint)(RenderPipelineManager.currentPipeline as HDRenderPipeline).GetDecalAtlasMipCount() }
+            };
+
+            var panel = DebugManager.instance.GetPanel(k_PanelDecals, true);
+            panel.children.Add(m_DebugDecalsItems);
+        }
+
         public void RegisterDebug()
         {
+            RegisterDecalsDebug();
             RegisterDisplayStatsDebug();
             RegisterMaterialDebug();
             RegisterLightingDebug();
@@ -699,6 +718,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void UnregisterDebug()
         {
+            UnregisterDebugItems(k_PanelDecals, m_DebugDecalsItems);
             UnregisterDebugItems(k_PanelDisplayStats, m_DebugDisplayStatsItems);
             UnregisterDebugItems(k_PanelMaterials, m_DebugMaterialItems);
             UnregisterDebugItems(k_PanelLighting, m_DebugLightingItems);

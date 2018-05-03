@@ -102,18 +102,19 @@ real CornetteShanksPhaseFunction(real asymmetry, real cosTheta)
 // Samples the interval of homogeneous participating medium using the closed-form tracking approach
 // (proportionally to the transmittance).
 // Returns the offset from the start of the interval and the weight = (transmittance / pdf).
-// Ref: Production Volume Rendering, 3.6.1.
+// Ref: Monte Carlo Methods for Volumetric Light Transport Simulation, p. 5.
 void ImportanceSampleHomogeneousMedium(real rndVal, real extinction, real intervalLength,
                                       out real offset, out real weight)
 {
-    // pdf    = extinction * exp(-extinction * t) / (1 - exp(-intervalLength * extinction))
+    // pdf    = extinction * exp(extinction * (intervalLength - t)) / (exp(intervalLength * extinction - 1)
     // weight = exp(-extinction * t) / pdf
-    // weight = (1 - exp(-extinction * intervalLength)) / extinction;
+    // weight = (1 - exp(-extinction * intervalLength)) / extinction
 
     real x = 1 - exp(-extinction * intervalLength);
+    real c = rcp(extinction);
 
-    weight = x * rcp(extinction);
-    offset = -log(1 - rndVal * x) * rcp(extinction);
+    weight = x * c;
+    offset = -log(1 - rndVal * x) * c;
 }
 
 // Implements equiangular light sampling.

@@ -9,9 +9,10 @@ namespace UnityEditor.Experimental.Rendering
 {
     public sealed class VolumeComponentListEditor
     {
+        public VolumeProfile asset { get; private set; }
+
         Editor m_BaseEditor;
 
-        VolumeProfile m_Asset;
         SerializedObject m_SerializedObject;
         SerializedProperty m_ComponentsProperty;
 
@@ -31,7 +32,7 @@ namespace UnityEditor.Experimental.Rendering
             Assert.IsNotNull(asset);
             Assert.IsNotNull(serializedObject);
 
-            m_Asset = asset;
+            this.asset = asset;
             m_SerializedObject = serializedObject;
             m_ComponentsProperty = serializedObject.Find((VolumeProfile x) => x.components);
             Assert.IsNotNull(m_ComponentsProperty);
@@ -65,7 +66,7 @@ namespace UnityEditor.Experimental.Rendering
 
         void OnUndoRedoPerformed()
         {
-            m_Asset.isDirty = true;
+            asset.isDirty = true;
 
             // Dumb hack to make sure the serialized object is up to date on undo (else there'll be
             // a state mismatch when this class is used in a GameObject inspector).
@@ -109,8 +110,9 @@ namespace UnityEditor.Experimental.Rendering
             m_Editors.Clear();
 
             // Recreate editors for existing settings, if any
-            for (int i = 0; i < m_Asset.components.Count; i++)
-                CreateEditor(m_Asset.components[i], m_ComponentsProperty.GetArrayElementAtIndex(i));
+            var components = asset.components;
+            for (int i = 0; i < components.Count; i++)
+                CreateEditor(components[i], m_ComponentsProperty.GetArrayElementAtIndex(i));
         }
 
         public void Clear()
@@ -130,17 +132,17 @@ namespace UnityEditor.Experimental.Rendering
 
         public void OnGUI()
         {
-            if (m_Asset == null)
+            if (asset == null)
                 return;
 
-            if (m_Asset.isDirty)
+            if (asset.isDirty)
             {
                 RefreshEditors();
-                m_Asset.isDirty = false;
+                asset.isDirty = false;
             }
 
             bool isEditable = !VersionControl.Provider.isActive
-                || AssetDatabase.IsOpenForEdit(m_Asset, StatusQueryOptions.UseCachedIfPossible);
+                || AssetDatabase.IsOpenForEdit(asset, StatusQueryOptions.UseCachedIfPossible);
 
             using (new EditorGUI.DisabledScope(!isEditable))
             {
@@ -179,7 +181,7 @@ namespace UnityEditor.Experimental.Rendering
                     {
                         var r = hscope.rect;
                         var pos = new Vector2(r.x + r.width / 2f, r.yMax + 18f);
-                        FilterWindow.Show(pos, new VolumeComponentProvider(m_Asset, this));
+                        FilterWindow.Show(pos, new VolumeComponentProvider(asset, this));
                     }
                 }
             }
@@ -233,7 +235,9 @@ namespace UnityEditor.Experimental.Rendering
             Undo.RegisterCreatedObjectUndo(component, "Add Volume Component");
 
             // Store this new effect as a subasset so we can reference it safely afterwards
-            AssetDatabase.AddObjectToAsset(component, m_Asset);
+            // Only when we're not dealing with an instantiated asset
+            if (EditorUtility.IsPersistent(asset))
+                AssetDatabase.AddObjectToAsset(component, asset);
 
             // Grow the list first, then add - that's how serialized lists work in Unity
             m_ComponentsProperty.arraySize++;
@@ -241,8 +245,11 @@ namespace UnityEditor.Experimental.Rendering
             componentProp.objectReferenceValue = component;
 
             // Force save / refresh
-            EditorUtility.SetDirty(m_Asset);
-            AssetDatabase.SaveAssets();
+            if (EditorUtility.IsPersistent(asset))
+            {
+                EditorUtility.SetDirty(asset);
+                AssetDatabase.SaveAssets();
+            }
 
             // Create & store the internal editor object for this effect
             CreateEditor(component, componentProp, forceOpen: true);
@@ -288,7 +295,7 @@ namespace UnityEditor.Experimental.Rendering
             Undo.DestroyObjectImmediate(component);
 
             // Force save / refresh
-            EditorUtility.SetDirty(m_Asset);
+            EditorUtility.SetDirty(asset);
             AssetDatabase.SaveAssets();
         }
 
@@ -313,7 +320,7 @@ namespace UnityEditor.Experimental.Rendering
             Undo.RegisterCreatedObjectUndo(newComponent, "Reset Volume Component");
 
             // Store this new effect as a subasset so we can reference it safely afterwards
-            AssetDatabase.AddObjectToAsset(newComponent, m_Asset);
+            AssetDatabase.AddObjectToAsset(newComponent, asset);
 
             // Put it in the reserved space
             property.objectReferenceValue = newComponent;
@@ -328,7 +335,7 @@ namespace UnityEditor.Experimental.Rendering
             Undo.DestroyObjectImmediate(prevComponent);
 
             // Force save / refresh
-            EditorUtility.SetDirty(m_Asset);
+            EditorUtility.SetDirty(asset);
             AssetDatabase.SaveAssets();
         }
 

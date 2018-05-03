@@ -119,6 +119,23 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        static Texture3D m_BlackVolumeTexture;
+        public static Texture3D blackVolumeTexture
+        {
+            get
+            {
+                if (m_BlackVolumeTexture == null)
+                {
+                    Color[] colors = { Color.black };
+                    m_BlackVolumeTexture = new Texture3D(1, 1, 1, TextureFormat.ARGB32, false);
+                    m_BlackVolumeTexture.SetPixels(colors, 0);
+                    m_BlackVolumeTexture.Apply();
+                }
+
+                return m_BlackVolumeTexture;
+            }
+        }
+
         public static void ClearRenderTarget(CommandBuffer cmd, ClearFlag clearFlag, Color clearColor)
         {
             if (clearFlag != ClearFlag.None)
@@ -297,6 +314,10 @@ namespace UnityEngine.Experimental.Rendering
             };
             return mat;
         }
+        public static bool HasFlag<T>(T mask, T flag) where T : IConvertible
+        {
+            return (mask.ToUInt32(null) & flag.ToUInt32(null)) != 0;
+        }
 
         public static void SetKeyword(CommandBuffer cmd, string keyword, bool state)
         {
@@ -462,16 +483,110 @@ namespace UnityEngine.Experimental.Rendering
             return mesh;
         }
 
-        public static void DisplayUnsupportedAPIMessage()
+        public static void DisplayUnsupportedMessage(string msg)
         {
-            Debug.LogError("Platform " + SystemInfo.operatingSystem + " with device " + SystemInfo.graphicsDeviceType.ToString() + " is not supported, no rendering will occur");
+            Debug.LogError(msg);
 
 #if UNITY_EDITOR
             foreach (UnityEditor.SceneView sv in Resources.FindObjectsOfTypeAll(typeof(UnityEditor.SceneView)))
-                sv.ShowNotification(new GUIContent("Platform " + SystemInfo.operatingSystem + " with device " + SystemInfo.graphicsDeviceType.ToString() + " is not supported, no rendering will occur"));
+                sv.ShowNotification(new GUIContent(msg));
 #endif
 
         }
 
+        public static void DisplayUnsupportedAPIMessage()
+        {
+            string msg = "Platform " + SystemInfo.operatingSystem + " with device " + SystemInfo.graphicsDeviceType.ToString() + " is not supported, no rendering will occur";
+            DisplayUnsupportedMessage(msg);
+        }
+
+        public static void DisplayUnsupportedXRMessage()
+        {
+            string msg = "AR/VR devices are not supported, no rendering will occur";
+            DisplayUnsupportedMessage(msg);
+        }
+
+        // Returns 'true' if "Animated Materials" are enabled for the view associated with the given camera.
+        public static  bool AreAnimatedMaterialsEnabled(Camera camera)
+        {
+            bool animateMaterials = true;
+
+        #if UNITY_EDITOR
+            animateMaterials = Application.isPlaying;
+
+            if (camera.cameraType == CameraType.SceneView)
+            {
+                animateMaterials = false;
+
+                // Determine whether the "Animated Materials" checkbox is checked for the current view.
+                foreach (UnityEditor.SceneView sv in Resources.FindObjectsOfTypeAll(typeof(UnityEditor.SceneView)))
+                {
+                    if (sv.camera == camera && sv.sceneViewState.showMaterialUpdate)
+                    {
+                        animateMaterials = true;
+                        break;
+                    }
+                }
+            }
+            else if (camera.cameraType == CameraType.Preview)
+            {
+                animateMaterials = false;
+
+                // Determine whether the "Animated Materials" checkbox is checked for the current view.
+                foreach (UnityEditor.MaterialEditor med in Resources.FindObjectsOfTypeAll(typeof(UnityEditor.MaterialEditor)))
+                {
+                    // Warning: currently, there's no way to determine whether a given camera corresponds to this MaterialEditor.
+                    // Therefore, if at least one of the visible MaterialEditors is in Play Mode, all of them will play.
+                    if (med.isVisible && med.RequiresConstantRepaint())
+                    {
+                        animateMaterials = true;
+                        break;
+                    }
+                }
+            }
+
+            // TODO: how to handle reflection views? We don't know the parent window they are being rendered into,
+            // so we don't know whether we can animate them...
+            //
+            // IMHO, a better solution would be:
+            // A window invokes a camera render. The camera knows which window called it, so it can query its properies
+            // (such as animated materials). This camera provides the space-time position. It should also be able
+            // to access the rendering settings somehow. Using this information, it is then able to construct the
+            // primary view with information about camera-relative rendering, LOD, time, rendering passes/features
+            // enabled, etc. We then render this view. It can have multiple sub-views (shadows, reflections).
+            // They inherit all the properties of the primary view, but also have the ability to override them
+            // (e.g. primary cam pos and time are retained, matrices are modified, SSS and tessellation are disabled).
+            // These views can then have multiple sub-views (probably not practical for games),
+            // which simply amounts to a recursive call, and then the story repeats itself.
+            //
+            // TLDR: we need to know the caller and its status/properties to make decisions.
+        #endif
+
+            return animateMaterials;
+        }
+
+        public static bool IsSceneViewFogEnabled(Camera camera)
+        {
+            bool fogEnable = true;
+
+#if UNITY_EDITOR
+            if (camera.cameraType == CameraType.SceneView)
+            {
+                fogEnable = false;
+
+                // Determine whether the "Animated Materials" checkbox is checked for the current view.
+                foreach (UnityEditor.SceneView sv in Resources.FindObjectsOfTypeAll(typeof(UnityEditor.SceneView)))
+                {
+                    if (sv.camera == camera && sv.sceneViewState.showFog)
+                    {
+                        fogEnable = true;
+                        break;
+                    }
+                }
+            }
+#endif
+
+            return fogEnable;
+        }
     }
 }

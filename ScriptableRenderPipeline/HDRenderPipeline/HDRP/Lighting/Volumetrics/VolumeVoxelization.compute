@@ -45,7 +45,9 @@
 //--------------------------------------------------------------------------------------------------
 
 StructuredBuffer<OrientedBBox>            _VolumeBounds;
-StructuredBuffer<DensityVolumeProperties> _VolumeProperties;
+StructuredBuffer<DensityVolumeData>		  _VolumeData;
+
+TEXTURE3D(_VolumeMaskAtlas);
 
 RW_TEXTURE3D(float4, _VBufferDensity); // RGB = sqrt(scattering), A = sqrt(extinction)
 
@@ -55,11 +57,30 @@ CBUFFER_START(UnityVolumetricLighting)
     float4   _VBufferSampleOffset;     // Not used by this shader
     float    _CornetteShanksConstant;  // Not used by this shader
     uint     _NumVisibleDensityVolumes;
+    float2   _VolumeMaskDimensions;    //x = 1/totalTextures , y = 1/textureSize
 CBUFFER_END
 
 //--------------------------------------------------------------------------------------------------
 // Implementation
 //--------------------------------------------------------------------------------------------------
+float SampleVolumeMask(DensityVolumeData volumeData, float3 voxelCenterUV)
+{
+    float offset = volumeData.textureIndex * _VolumeMaskDimensions.x;
+    float clampBorder = 0.5f * _VolumeMaskDimensions.y;
+
+    //scale and bias the UVs and then take fractional part, will be in [0,1] range
+    voxelCenterUV = frac(voxelCenterUV * volumeData.textureTiling + volumeData.textureScroll);
+    
+    voxelCenterUV.z = voxelCenterUV.z * _VolumeMaskDimensions.x;
+    voxelCenterUV.z += offset;
+
+    voxelCenterUV.z = clamp(voxelCenterUV.z, offset + clampBorder, offset + _VolumeMaskDimensions.x - clampBorder);
+
+    float maskValue = SAMPLE_TEXTURE3D_LOD(_VolumeMaskAtlas, s_linear_clamp_sampler, voxelCenterUV, 0).a;
+
+    return maskValue;
+}
+
 
 void FillVolumetricDensityBuffer(PositionInputs posInput, float3 rayOriginWS, float3 rayUnDirWS,
                                  float3 voxelAxisRight, float3 voxelAxisUp, float3 voxelAxisForward)
@@ -142,7 +163,7 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, float3 rayOriginWS, fl
 
                 // Express the voxel center in the local coordinate system of the box.
                 float3 voxelCenterBS = mul(voxelCenterWS - obb.center, transpose(obbFrame));
-                float3 voxelCenterUV = voxelCenterBS / obbExtents;
+                float3 voxelCenterUV = (voxelCenterBS / obbExtents) * 0.5 + 0.5;
 
             #if SOFT_VOXELIZATION
                 // We need to determine which is the face closest to 'voxelCenterBS'.
@@ -214,9 +235,16 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, float3 rayOriginWS, fl
 
                 if (overlapFraction > 0)
                 {
+                    float scatteringAndExtinctionMask = 1.0f;
+                    //Sample the volumeMask
+                    if (_VolumeData[volumeIndex].textureIndex != -1)
+                    {
+                        scatteringAndExtinctionMask = SampleVolumeMask(_VolumeData[volumeIndex], voxelCenterUV);
+                    }
+
                     // There is an overlap. Sample the 3D texture, or load the constant value.
-                    voxelScattering += overlapFraction * _VolumeProperties[volumeIndex].scattering;
-                    voxelExtinction += overlapFraction * _VolumeProperties[volumeIndex].extinction;
+                    voxelScattering += overlapFraction * _VolumeData[volumeIndex].scattering * scatteringAndExtinctionMask;
+                    voxelExtinction += overlapFraction * _VolumeData[volumeIndex].extinction * scatteringAndExtinctionMask;
                 }
 
     #ifndef USE_CLUSTERED_LIGHTLIST

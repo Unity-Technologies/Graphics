@@ -11,7 +11,7 @@ Shader "Hidden/HDRenderPipeline/OpaqueAtmosphericScattering"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 xboxone vulkan metal
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -19,6 +19,7 @@ Shader "Hidden/HDRenderPipeline/OpaqueAtmosphericScattering"
             // #pragma enable_d3d11_debug_symbols
 
             #include "CoreRP/ShaderLibrary/Common.hlsl"
+            #include "CoreRP/ShaderLibrary/Color.hlsl"
             #include "../ShaderVariables.hlsl"
             #include "AtmosphericScattering/AtmosphericScattering.hlsl"
 
@@ -42,7 +43,7 @@ Shader "Hidden/HDRenderPipeline/OpaqueAtmosphericScattering"
             float4 Frag(Varyings input) : SV_Target
             {
                 float depth = LOAD_TEXTURE2D(_MainDepthTexture, input.positionCS.xy).x;
-                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP);
+                PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
                 if (depth == UNITY_RAW_FAR_CLIP_VALUE)
                 {

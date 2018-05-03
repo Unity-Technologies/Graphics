@@ -12,7 +12,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 xboxone vulkan metal
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -32,7 +32,6 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
             CBUFFER_END
 
             TEXTURE2D(_DebugFullScreenTexture);
-            TEXTURE2D(_DepthPyramidTexture);
             StructuredBuffer<ScreenSpaceTracingDebug> _DebugScreenSpaceTracingData;
 
             struct Attributes
@@ -148,16 +147,17 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                     const float kGrid = 64.0;
 
                     // Arrow grid (aspect ratio is kept)
-                    float rows = floor(kGrid * _ScreenParams.y / _ScreenParams.x);
+                    float aspect = _ScreenSize.y * _ScreenSize.z;
+                    float rows = floor(kGrid * aspect);
                     float cols = kGrid;
-                    float2 size = _ScreenParams.xy / float2(cols, rows);
+                    float2 size = _ScreenSize.xy / float2(cols, rows);
                     float body = min(size.x, size.y) / sqrt(2.0);
                     float2 texcoord = input.positionCS.xy;
                     float2 center = (floor(texcoord / size) + 0.5) * size;
                     texcoord -= center;
 
                     // Sample the center of the cell to get the current arrow vector
-                    float2 arrow_coord = center / _ScreenParams.xy;
+                    float2 arrow_coord = center * _ScreenSize.zw;
 
                     if (_RequireToFlipInputTexture > 0.0)
                     {
@@ -202,7 +202,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                 {
                     // Reuse depth display function from DebugViewMaterial
                     float depth = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord).r;
-                    PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP);
+                    PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
                     float linearDepth = frac(posInput.linearDepth * 0.1);
                     return float4(linearDepth.xxx, 1.0);
                 }

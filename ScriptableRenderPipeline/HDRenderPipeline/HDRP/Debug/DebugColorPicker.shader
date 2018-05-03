@@ -12,7 +12,7 @@ Shader "Hidden/HDRenderPipeline/DebugColorPicker"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 xboxone vulkan metal
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
             #pragma vertex Vert
             #pragma fragment Frag
@@ -149,7 +149,7 @@ Shader "Hidden/HDRenderPipeline/DebugColorPicker"
                 float4 mousePixelCoord = _MousePixelCoord;
                 if (_RequireToFlipInputTexture > 0.0)
                 {
-                    mousePixelCoord.y = _ScreenParams.y - mousePixelCoord.y;
+                    mousePixelCoord.y = _ScreenSize.y - mousePixelCoord.y;
                     // Note: We must not flip the mousePixelCoord.w coordinate
                 }
 
