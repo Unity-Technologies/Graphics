@@ -22,8 +22,9 @@ Shader "HDRenderPipeline/StackLit"
         _MetallicMapChannel("Metallic Map Channel", Float) = 0.0
         _MetallicMapChannelMask("Metallic Map Channel Mask", Vector) = (1, 0, 0, 0)
         _MetallicRemap("Metallic Remap", Vector) = (0, 1, 0, 0)
-        [ToggleUI] _MetallicRemapInverted("Invert Metallic Remap", Float) = 0.0
         [HideInInspector] _MetallicRange("Metallic Range", Vector) = (0, 1, 0, 0)
+
+        _DielectricIor("DielectricIor IOR", Range(1.0, 2.5)) = 1.5
 
         [HideInInspector] _SmoothnessAMapShow("SmoothnessA Map Show", Float) = 0
         _SmoothnessA("SmoothnessA", Range(0.0, 1.0)) = 1.0
@@ -37,6 +38,7 @@ Shader "HDRenderPipeline/StackLit"
         [ToggleUI] _SmoothnessARemapInverted("Invert SmoothnessA Remap", Float) = 0.0
         [HideInInspector] _SmoothnessARange("SmoothnessA Range", Vector) = (0, 1, 0, 0)
 
+        [ToggleUI] _EnableDualSpecularLobe("Enable Dual Specular Lobe", Float) = 0.0 // UI only
         [HideInInspector] _SmoothnessBMapShow("SmoothnessB Map Show", Float) = 0
         _SmoothnessB("SmoothnessB", Range(0.0, 1.0)) = 1.0
         _SmoothnessBMap("SmoothnessB Map", 2D) = "white" {}
@@ -50,12 +52,57 @@ Shader "HDRenderPipeline/StackLit"
         [HideInInspector] _SmoothnessBRange("SmoothnessB Range", Vector) = (0, 1, 0, 0)
         _LobeMix("Lobe Mix", Range(0.0, 1.0)) = 0
 
+        [ToggleUI] _DebugEnable("Debug Enable", Float) = 0.0 // UI only
+        _DebugLobeMask("DebugLobeMask", Vector) = (1, 1, 1, 1)
+        _DebugAniso("DebugAniso", Vector) = (1, 0, 0, 1000.0)
+
+        // TODO: TangentMap, AnisotropyMap and CoatIorMap (SmoothnessMap ?)
+
+        [ToggleUI] _EnableAnisotropy("Enable Anisotropy", Float) = 0.0 // UI only
+        _Anisotropy("Anisotropy", Range(-1.0, 1.0)) = 0.0
+        _AnisotropyMap("Anisotropy Map", 2D) = "white" {}
+        _AnisotropyUseMap("Anisotropy Use Map", Float) = 0
+        _AnisotropyMapUV("Anisotropy Map UV", Float) = 0.0
+        _AnisotropyMapUVLocal("Anisotropy Map UV Local", Float) = 0.0
+        _AnisotropyMapChannel("Anisotropy Map Channel", Float) = 0.0
+        _AnisotropyMapChannelMask("Anisotropy Map Channel Mask", Vector) = (1, 0, 0, 0)
+        _AnisotropyRemap("Anisotropy Remap", Vector) = (0, 1, 0, 0)
+        [HideInInspector] _AnisotropyRange("Anisotropy Range", Vector) = (0, 1, 0, 0)
+
+        [ToggleUI] _EnableCoat("Enable Coat", Float) = 0.0 // UI only
+        [HideInInspector] _CoatSmoothnessMapShow("CoatSmoothness Show", Float) = 0
+        _CoatSmoothness("CoatSmoothness", Range(0.0, 1.0)) = 1.0
+        _CoatSmoothnessMap("CoatSmoothness Map", 2D) = "white" {}
+        _CoatSmoothnessUseMap("CoatSmoothness Use Map", Float) = 0
+        _CoatSmoothnessMapUV("CoatSmoothness Map UV", Float) = 0.0
+        _CoatSmoothnessMapUVLocal("CoatSmoothness Map UV Local", Float) = 0.0
+        _CoatSmoothnessMapChannel("CoatSmoothness Map Channel", Float) = 0.0
+        _CoatSmoothnessMapChannelMask("CoatSmoothness Map Channel Mask", Vector) = (1, 0, 0, 0)
+        _CoatSmoothnessRemap("CoatSmoothness Remap", Vector) = (0, 1, 0, 0)
+        [ToggleUI] _CoatSmoothnessRemapInverted("Invert CoatSmoothness Remap", Float) = 0.0
+        [HideInInspector] _CoatSmoothnessRange("CoatSmoothness Range", Vector) = (0, 1, 0, 0)
+
+        _CoatIor("Coat IOR", Range(1.0001, 2.0)) = 1.5
+        _CoatThickness("Coat Thickness", Range(0.0, 0.99)) = 0.0
+        _CoatExtinction("Coat Extinction Coefficient", Color) = (1,1,1) // in thickness^-1 units
+
         [HideInInspector] _NormalMapShow("NormalMap Show", Float) = 0.0
         _NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
         _NormalMapUV("NormalMapUV", Float) = 0.0
         _NormalMapUVLocal("NormalMapUV Local", Float) = 0.0
         _NormalMapObjSpace("NormalMapUV Local", Float) = 0.0
         _NormalScale("Normal Scale", Range(0.0, 2.0)) = 1
+
+        [HideInInspector] _AmbientOcclusionMapShow("AmbientOcclusion Map Show", Float) = 0
+        _AmbientOcclusion("AmbientOcclusion", Range(0.0, 1.0)) = 1
+        _AmbientOcclusionMap("AmbientOcclusion Map", 2D) = "white" {}
+        _AmbientOcclusionUseMap("AmbientOcclusion Use Map", Float) = 0
+        _AmbientOcclusionMapUV("AmbientOcclusion Map UV", Float) = 0.0
+        _AmbientOcclusionMapUVLocal("AmbientOcclusion Map UV Local", Float) = 0.0
+        _AmbientOcclusionMapChannel("AmbientOcclusion Map Channel", Float) = 0.0
+        _AmbientOcclusionMapChannelMask("AmbientOcclusion Map Channel Mask", Vector) = (1, 0, 0, 0)
+        _AmbientOcclusionRemap("AmbientOcclusion Remap", Vector) = (0, 1, 0, 0)
+        [HideInInspector] _AmbientOcclusionRange("AmbientOcclusion Range", Vector) = (0, 1, 0, 0)
 
         [HideInInspector] _EmissiveColorMapShow("Emissive Color Map Show", Float) = 0.0
         _EmissiveColor("Emissive Color", Color) = (1, 1, 1)
@@ -65,27 +112,42 @@ Shader "HDRenderPipeline/StackLit"
         _EmissiveIntensity("Emissive Intensity", Float) = 0
         [ToggleUI] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
 
+        [ToggleUI] _EnableSubsurfaceScattering("Enable Subsurface Scattering", Float) = 0.0
+        _DiffusionProfile("Diffusion Profile", Int) = 0
         [HideInInspector] _SubsurfaceMaskMapShow("Subsurface Mask Map Show", Float) = 0
         _SubsurfaceMask("Subsurface Mask", Range(0.0, 1.0)) = 1.0
         _SubsurfaceMaskMap("Subsurface Mask Map", 2D) = "black" {}
-        _SubsurfaceMaskUSeMap("Subsurface Mask Use Map", Float) = 0
+        _SubsurfaceMaskUseMap("Subsurface Mask Use Map", Float) = 0
         _SubsurfaceMaskMapUV("Subsurface Mask Map UV", Float) = 0.0
+        _SubsurfaceMaskMapUVLocal("Subsurface Mask UV Local", Float) = 0.0
         _SubsurfaceMaskMapChannel("Subsurface Mask Map Channel", Float) = 0.0
         _SubsurfaceMaskMapChannelMask("Subsurface Mask Map Channel Mask", Vector) = (1, 0, 0, 0)
         _SubsurfaceMaskRemap("Subsurface Mask Remap", Vector) = (0, 1, 0, 0)
-        [ToggleUI] _SubsurfaceMaskRemapInverted("Invert Subsurface Mask Remap", Float) = 0.0
         [HideInInspector] _SubsurfaceMaskRange("Subsurface Mask Range", Vector) = (0, 1, 0, 0)
 
+        [ToggleUI] _EnableTransmission("Enable Transmission", Float) = 0.0
         [HideInInspector] _ThicknessMapShow("Thickness Show", Float) = 0
         _Thickness("Thickness", Range(0.0, 1.0)) = 1.0
         _ThicknessMap("Thickness Map", 2D) = "black" {}
         _ThicknessUseMap("Thickness Use Map", Float) = 0
         _ThicknessMapUV("Thickness Map UV", Float) = 0.0
+        _ThicknessMapUVLocal("Thickness Map UV Local", Float) = 0.0
         _ThicknessMapChannel("Thickness Map Channel", Float) = 0.0
         _ThicknessMapChannelMask("Thickness Map Channel Mask", Vector) = (1, 0, 0, 0)
         _ThicknessRemap("Thickness Remap", Vector) = (0, 1, 0, 0)
         [ToggleUI] _ThicknessRemapInverted("Invert Thickness Remap", Float) = 0.0
         [HideInInspector] _ThicknessRange("Thickness Range", Vector) = (0, 1, 0, 0)
+
+        [ToggleUI] _EnableIridescence("Enable Iridescence", Float) = 0.0 // UI only
+        _IridescenceIor("Coat IOR", Range(1.0, 2.0)) = 1.5
+        _IridescenceThickness("_IridescenceThickness", Range(0.0, 1.0)) = 0.0
+        _IridescenceThicknessMap("IridescenceThickness Color Map", 2D) = "black" {}
+        _IridescenceThicknessUseMap("IridescenceThickness Use Map", Float) = 0
+        _IridescenceThicknessMapUV("IridescenceThickness Map UV", Float) = 0.0
+        _IridescenceThicknessMapLocal("IridescenceThickness Map UV Local", Float) = 0.0
+        _IridescenceThicknessMapChannel("IridescenceThickness Mask Map Channel", Float) = 0.0
+        _IridescenceThicknessMapChannelMask("IridescenceThickness Mask Map Channel Mask", Vector) = (1, 0, 0, 0)
+        [HideInInspector] _IridescenceThicknessRange("IridescenceThickness Range", Vector) = (0, 1, 0, 0)
 
         _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
         [ToggleUI] _DistortionEnable("Enable Distortion", Float) = 0.0
@@ -138,15 +200,16 @@ Shader "HDRenderPipeline/StackLit"
 
 
         // Sections show values.
+        [HideInInspector] _MaterialFeaturesShow("_MaterialFeaturesShow", Float) = 1.0
         [HideInInspector] _StandardShow("_StandardShow", Float) = 0.0
         [HideInInspector] _EmissiveShow("_EmissiveShow", Float) = 0.0
         [HideInInspector] _CoatShow("_CoatShow", Float) = 0.0
+        [HideInInspector] _DebugShow("_DebugShow", Float) = 0.0
         [HideInInspector] _SSSShow("_SSSShow", Float) = 0.0
-        [HideInInspector] _Lobe2Show("_Lobe2Show", Float) = 0.0
+        [HideInInspector] _DualSpecularLobeShow("_DualSpecularLobeShow", Float) = 0.0
         [HideInInspector] _AnisotropyShow("_AnisotropyShow", Float) = 0.0
         [HideInInspector] _TransmissionShow("_TransmissionShow", Float) = 0.0
         [HideInInspector] _IridescenceShow("_IridescenceShow", Float) = 0.0
-        [HideInInspector] _GlintShow("_GlintShow", Float) = 0.0
 
         // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
         // value that exist to identify if the GI emission need to be enabled.
@@ -180,17 +243,22 @@ Shader "HDRenderPipeline/StackLit"
     // but we need it right away for toggle with LayerTexCoord mapping so we might need them
     // from the Frag input right away. See also ShaderPass/StackLitSharePass.hlsl.
 
-    #pragma shader_feature _NORMALMAP
-    #pragma shader_feature _MASKMAPA
-    #pragma shader_feature _MASKMAPB
-    #pragma shader_feature _EMISSIVE_COLOR_MAP
-
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
     #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
     #pragma shader_feature _BLENDMODE_PRESERVE_SPECULAR_LIGHTING // easily handled in material.hlsl, so adding this already.
     #pragma shader_feature _ENABLE_FOG_ON_TRANSPARENT
 
+    // MaterialFeature are used as shader feature to allow compiler to optimize properly
+    #pragma shader_feature _MATERIAL_FEATURE_DUAL_SPECULAR_LOBE
+    #pragma shader_feature _MATERIAL_FEATURE_ANISOTROPY
+    #pragma shader_feature _MATERIAL_FEATURE_COAT
+    #pragma shader_feature _MATERIAL_FEATURE_IRIDESCENCE
+    #pragma shader_feature _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
+    #pragma shader_feature _MATERIAL_FEATURE_TRANSMISSION
+
+
+    #pragma shader_feature _STACKLIT_DEBUG
     //enable GPU instancing support
     #pragma multi_compile_instancing
 
@@ -199,6 +267,11 @@ Shader "HDRenderPipeline/StackLit"
     //-------------------------------------------------------------------------------------
 
     #define UNITY_MATERIAL_STACKLIT // Need to be define before including Material.hlsl
+
+    // If we use subsurface scattering, enable output split lighting (for forward pass)
+    #if defined(_MATERIAL_FEATURE_SUBSURFACE_SCATTERING) && !defined(_SURFACE_TYPE_TRANSPARENT)
+    #define OUTPUT_SPLIT_LIGHTING
+    #endif
 
     //-------------------------------------------------------------------------------------
     // Include

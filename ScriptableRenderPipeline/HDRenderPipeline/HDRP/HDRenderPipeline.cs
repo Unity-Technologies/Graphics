@@ -352,6 +352,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // HD use specific GraphicsSettings
             GraphicsSettings.lightsUseLinearIntensity = true;
             GraphicsSettings.lightsUseColorTemperature = true;
+            // HD should always use the new batcher
+            //GraphicsSettings.useScriptableRenderPipelineBatching = true;
 
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures()
             {
@@ -761,9 +763,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     continue;
                 }
 
-                if (camera.cameraType != CameraType.Reflection)
-                    // TODO: Render only visible probes
-                    ReflectionSystem.RenderAllRealtimeViewerDependentProbesFor(ReflectionProbeType.PlanarReflection, camera);
+                if (camera.cameraType != CameraType.Reflection
+                    // Planar probes rendering is not currently supported for orthographic camera
+                    // Avoid rendering to prevent error log spamming
+                    && !camera.orthographic)
+                        // TODO: Render only visible probes
+                        ReflectionSystem.RenderAllRealtimeViewerDependentProbesFor(ReflectionProbeType.PlanarReflection, camera);
 
                 // Init material if needed
                 // TODO: this should be move outside of the camera loop but we have no command buffer, ask details to Tim or Julien to do this
