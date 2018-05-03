@@ -14,7 +14,7 @@ namespace UnityEditor.Experimental.Rendering
                 return false;
 
             var o = parameter.GetObjectRef<ColorParameter>();
-            value.colorValue = EditorGUILayout.ColorField(title, value.colorValue, o.showEyeDropper, o.showAlpha, o.showAlpha);
+            value.colorValue = EditorGUILayout.ColorField(title, value.colorValue, o.showEyeDropper, o.showAlpha, o.hdr);
             return true;
         }
     }

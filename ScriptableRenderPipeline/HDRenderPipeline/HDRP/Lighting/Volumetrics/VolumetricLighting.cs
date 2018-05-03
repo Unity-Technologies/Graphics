@@ -10,6 +10,9 @@ public struct DensityVolumeData
 {
     public Vector3 scattering; // [0, 1], prefer sRGB
     public float   extinction; // [0, 1], prefer sRGB
+    public Vector3 textureTiling;
+    public int     textureIndex; //
+    public Vector3 textureScroll;
 
     public static DensityVolumeData GetNeutralValues()
     {
@@ -17,6 +20,10 @@ public struct DensityVolumeData
 
         data.scattering = Vector3.zero;
         data.extinction = 0;
+        data.textureIndex = -1;
+
+        data.textureTiling = Vector3.one;
+        data.textureScroll = Vector3.zero;
 
         return data;
     }
@@ -49,36 +56,6 @@ public class VolumeRenderingUtils
         return meanFreePath * scattering;
     }
 }
-
-[Serializable]
-public struct DensityVolumeParameters
-{
-    public Color albedo;       // Single scattering albedo: [0, 1]. Alpha is ignored
-    public float meanFreePath; // In meters: [1, 1000000]. Should be chromatic - this is an optimization!
-    public float anisotropy;   // Controls the phase function: [-1, 1]
-
-    public void Constrain()
-    {
-        albedo.r = Mathf.Clamp01(albedo.r);
-        albedo.g = Mathf.Clamp01(albedo.g);
-        albedo.b = Mathf.Clamp01(albedo.b);
-        albedo.a = 1.0f;
-
-        meanFreePath = Mathf.Clamp(meanFreePath, 1.0f, float.MaxValue);
-
-        anisotropy = Mathf.Clamp(anisotropy, -1.0f, 1.0f);
-    }
-
-    public DensityVolumeData GetData()
-    {
-        DensityVolumeData data = new DensityVolumeData();
-
-        data.extinction = VolumeRenderingUtils.ExtinctionFromMeanFreePath(meanFreePath);
-        data.scattering = VolumeRenderingUtils.ScatteringFromExtinctionAndAlbedo(data.extinction, (Vector3)(Vector4)albedo);
-
-        return data;
-    }
-} // class VolumeParameters
 
 public struct DensityVolumeList
 {
@@ -501,11 +478,11 @@ public class VolumetricLightingSystem
             m_VisibleVolumeData.Clear();
 
             // Collect all visible finite volume data, and upload it to the GPU.
-            HomogeneousDensityVolume[] volumes = DensityVolumeManager.manager.GetAllVolumes();
+            DensityVolume[] volumes = DensityVolumeManager.manager.PrepareDensityVolumeData(cmd);
 
             for (int i = 0; i < Math.Min(volumes.Length, k_MaxVisibleVolumeCount); i++)
             {
-                HomogeneousDensityVolume volume = volumes[i];
+                DensityVolume volume = volumes[i];
 
                 // TODO: cache these?
                 var obb = OrientedBBox.Create(volume.transform);
@@ -571,13 +548,24 @@ public class VolumetricLightingSystem
             // Compose the matrix which allows us to compute the world space view direction.
             Matrix4x4 transform   = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, resolution, camera.viewMatrix, false);
 
+            Texture3D volumeAtlas = DensityVolumeManager.manager.volumeAtlas.volumeAtlas;
+            Vector2 volumeAtlasDimensions = new Vector2(0.0f, 0.0f);
+
+            if (volumeAtlas != null)
+            {
+                volumeAtlasDimensions.x = volumeAtlas.width / volumeAtlas.depth; // 1 / number of textures
+                volumeAtlasDimensions.y = 1.0f / volumeAtlas.width;
+            }
+
             cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VBufferDensity, m_DensityBufferHandle);
             cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeBounds,   s_VisibleVolumeBoundsBuffer);
             cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeData,     s_VisibleVolumeDataBuffer);
+            cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeMaskAtlas, volumeAtlas);
 
             // TODO: set the constant buffer data only once.
             cmd.SetComputeMatrixParam( m_VolumeVoxelizationCS, HDShaderIDs._VBufferCoordToViewDirWS,  transform);
             cmd.SetComputeIntParam(    m_VolumeVoxelizationCS, HDShaderIDs._NumVisibleDensityVolumes, numVisibleVolumes);
+            cmd.SetComputeVectorParam(m_VolumeVoxelizationCS, HDShaderIDs._VolumeMaskDimensions, volumeAtlasDimensions);
 
             int w = (int)resolution.x;
             int h = (int)resolution.y;
