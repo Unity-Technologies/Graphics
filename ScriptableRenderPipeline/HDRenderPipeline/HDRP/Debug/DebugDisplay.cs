@@ -125,7 +125,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     RefreshScreenSpaceTracingDebug<Lit.ProjectionModel>(null, m_LastProjectionModel);
                 }
 
-                if (m_ScreenSpaceTracingDebugData.tracingModel != Lit.ProjectionModel.HiZ)
+                if (m_ScreenSpaceTracingDebugData.tracingModel == Lit.ProjectionModel.Proxy)
                 {
                     showSSRayDepthPyramid = false;
                     showSSRayGrid = false;
@@ -500,8 +500,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     new DebugUI.Value { displayName = "Position SS", getter = () => new Vector2(screenSpaceTracingDebugData.iterationPositionSS.x, screenSpaceTracingDebugData.iterationPositionSS.y) },
                                     new DebugUI.Value { displayName = "Depth", getter = () => 1f / screenSpaceTracingDebugData.iterationPositionSS.z },
                                     new DebugUI.Value { displayName = "Depth Buffer", getter = () => screenSpaceTracingDebugData.iterationLinearDepthBuffer },
-                                    new DebugUI.Value { displayName = "Mip Level", getter = () => string.Format("{0}/{1}", screenSpaceTracingDebugData.iterationMipLevel, screenSpaceTracingDebugData.loopMipLevelMax) },
-                                    new DebugUI.Value { displayName = "Intersection kind", getter = () => screenSpaceTracingDebugData.iterationIntersectionKind },
+                                    new DebugUI.Value { displayName = "Mip Level", getter = () => screenSpaceTracingDebugData.iterationMipLevel },
                                     new DebugUI.Value { displayName = "Cell Id", getter = () => screenSpaceTracingDebugData.iterationCellId },
                                     new DebugUI.Value { displayName = "Cell Size", getter = () => screenSpaceTracingDebugData.iterationCellSize },
                                 }

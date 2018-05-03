@@ -24,6 +24,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RayDirWS,
         HitDepth,
         HitSuccess,
+        TracingModel,
         HiZPositionNDC,
         HiZRayDirNDC,
         HiZIterationCount,

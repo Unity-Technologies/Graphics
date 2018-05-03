@@ -1838,10 +1838,11 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     // -------------------------------
     if (projectionModel == PROJECTIONMODEL_PROXY)
     {
+        // Perform a linear raymarch to detect close range collisions
         ScreenSpaceProxyRaycastInput ssRayInput;
         ZERO_INITIALIZE(ScreenSpaceProxyRaycastInput, ssRayInput);
 
-        ssRayInput.rayOriginWS = rayOriginWS;
+        ssRayInput.rayOriginWS = hit.positionWS;
         ssRayInput.rayDirWS = rayDirWS;
 #if DEBUG_DISPLAY
         ssRayInput.debug = debug;
@@ -1870,7 +1871,6 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
 #if DEBUG_DISPLAY
         ssRayInput.debug = debug;
 #endif
-        ssRayInput.maxIterations = uint(-1);
 
 #if HAS_REFRACTION
         if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
