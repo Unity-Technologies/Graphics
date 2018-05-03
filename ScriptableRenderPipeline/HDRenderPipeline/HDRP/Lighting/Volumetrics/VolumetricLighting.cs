@@ -96,7 +96,7 @@ public class VolumetricLightingSystem
     {
         public Vector4 resolution;
         public Vector2 sliceCount;
-        public Vector4 uvScaleAndLimit;    // Necessary us to work with sub-allocation (resource aliasing) in the RTHandle system
+        public Vector4 uvScaleAndLimit;    // Necessary to work with sub-allocation (resource aliasing) in the RTHandle system
         public Vector4 depthEncodingParams;
         public Vector4 depthDecodingParams;
 
@@ -261,7 +261,6 @@ public class VolumetricLightingSystem
             bufferResolution = new Vector3Int(m_LightingBufferHandle.rt.width, m_LightingBufferHandle.rt.height, m_LightingBufferHandle.rt.volumeDepth);
         }
 
-        // Start with the same parameters for both frames. Then update them one by one every frame.
         return new VBufferParameters(viewportResolution, bufferResolution, controlParams);
     }
 
