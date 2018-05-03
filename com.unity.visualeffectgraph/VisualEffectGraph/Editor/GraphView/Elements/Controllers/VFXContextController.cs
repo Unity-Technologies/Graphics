@@ -145,6 +145,9 @@ namespace UnityEditor.VFX.UI
                 --index;
             }
 
+            if( index < 0 || index >= model.GetNbChildren())
+                index = -1;
+
             context.AddChild(block, index);
         }
 

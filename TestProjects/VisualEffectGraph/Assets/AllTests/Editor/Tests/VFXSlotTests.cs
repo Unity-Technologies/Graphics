@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using System.Collections.Generic;
@@ -145,6 +146,95 @@ namespace UnityEditor.VFX.Test
             Assert.IsInstanceOf<VFXExpressionExtractComponent>(expr);
             Assert.AreNotEqual(floatSlot.GetExpression(), expr.parents[0].parents[0]);
             Assert.AreNotEqual(floatSlot.GetExpression(), sphereSlot[1].GetExpression());
+        }
+
+        static void CollectExpression(VFXExpression expression, List<VFXExpression> collected)
+        {
+            if (collected.Contains(expression))
+                return;
+
+            collected.Add(expression);
+            foreach (var parent in expression.parents)
+                CollectExpression(parent, collected);
+        }
+
+        static string DumpCheckDeterministicBehaviorFromLazyGetExpression(bool linkOnlySubSlot, bool linkToDirection, int[] invalidation)
+        {
+            var vec3 = ScriptableObject.CreateInstance<VFXInlineOperator>();
+            var direction = ScriptableObject.CreateInstance<VFXInlineOperator>();
+
+            vec3.SetSettingValue("m_Type", (SerializableType)typeof(Vector3));
+            direction.SetSettingValue("m_Type", (SerializableType)typeof(DirectionType));
+
+            if (linkToDirection)
+            {
+                if (linkOnlySubSlot)
+                    vec3.outputSlots[0][1].Link(direction.inputSlots[0][0][1]);
+                else
+                    vec3.outputSlots[0].Link(direction.inputSlots[0]);
+            }
+            else
+            {
+                if (linkOnlySubSlot)
+                    direction.outputSlots[0][0][1].Link(vec3.inputSlots[0][1]);
+                
+                    direction.outputSlots[0].Link(vec3.inputSlots[0]);
+
+            }
+
+            Action<int> Invalidate = delegate (int i)
+            {
+                switch(i)
+                {
+                    case 0: direction.outputSlots[0].GetExpression(); break;
+                    case 1: direction.inputSlots[0].GetExpression(); break;
+                    case 2: vec3.inputSlots[0].GetExpression(); break;
+                    case 3: vec3.outputSlots[0].GetExpression(); break;
+                    default: break;
+                }
+            };
+
+            foreach (var i in invalidation)
+                Invalidate(i);
+
+            var allParentExpr = new List<VFXExpression>();
+            if (linkToDirection)
+            {
+                CollectExpression(direction.outputSlots[0].GetExpression(), allParentExpr);
+            }
+            else
+            {
+                CollectExpression(vec3.outputSlots[0].GetExpression(), allParentExpr);
+            }
+            string dump = allParentExpr.Select(o => o.GetType().Name).Aggregate((a, b) => a + ", " + b);
+            vec3.outputSlots[0].UnlinkAll();
+            ScriptableObject.DestroyImmediate(vec3);
+            ScriptableObject.DestroyImmediate(direction);
+            return dump;
+        }
+
+        private static bool[] linkSubSlotOnly = new[] { true, false };
+        private static bool[] linkToDirection = new[] { true, false };
+
+        [Test]
+        public void CheckDeterministicBehaviorFromLazyGetExpression([ValueSource("linkSubSlotOnly")] bool linkSubSlotOnly, [ValueSource("linkToDirection")] bool linkToDirection)
+        {
+            var arrVariants = Enumerable.Range(0,4).Select(o => Enumerable.Range(0,4));
+            IEnumerable<IEnumerable<int>> empty = new[] { Enumerable.Empty<int>() };
+            var combinations = arrVariants.Aggregate(empty, (x, y) => x.SelectMany(accSeq => y.Select(item => accSeq.Concat(new[] { item }))));
+
+            var result = combinations.Select(o =>
+            {
+                var combination = o.ToArray();
+                return new
+                {
+                    combination = combination,
+                    res = DumpCheckDeterministicBehaviorFromLazyGetExpression(linkSubSlotOnly, linkToDirection, combination),
+                };
+            });
+
+            var resultGroup = result.GroupBy(o => o.res);
+            Assert.AreEqual(1, resultGroup.Count());
         }
     }
 }

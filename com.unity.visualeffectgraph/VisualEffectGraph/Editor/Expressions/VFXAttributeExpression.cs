@@ -9,11 +9,11 @@ namespace UnityEditor.VFX
     [Flags]
     enum VFXAttributeMode
     {
-        None        = 0,
+        None = 0,
         Read = 1 << 0,
         Write = 1 << 1,
         ReadWrite = Read | Write,
-        ReadSource  = 1 << 2,
+        ReadSource = 1 << 2,
     }
 
     struct VFXAttribute
@@ -26,14 +26,14 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute Velocity            = new VFXAttribute("velocity", VFXValueType.Float3);
         public static readonly VFXAttribute Color               = new VFXAttribute("color", VFXValue.Constant(Vector3.one));
         public static readonly VFXAttribute Alpha               = new VFXAttribute("alpha", VFXValue.Constant(1.0f));
-        public static readonly VFXAttribute SizeX               = new VFXAttribute("sizeX", VFXValue.Constant(kDefaultSize));
-        public static readonly VFXAttribute SizeY               = new VFXAttribute("sizeY", VFXValue.Constant(kDefaultSize));
-        public static readonly VFXAttribute SizeZ               = new VFXAttribute("sizeZ", VFXValue.Constant(kDefaultSize));
+        public static readonly VFXAttribute SizeX               = new VFXAttribute("sizeX", VFXValue.Constant(kDefaultSize), VFXVariadic.BelongsToVariadic);
+        public static readonly VFXAttribute SizeY               = new VFXAttribute("sizeY", VFXValue.Constant(kDefaultSize), VFXVariadic.BelongsToVariadic);
+        public static readonly VFXAttribute SizeZ               = new VFXAttribute("sizeZ", VFXValue.Constant(kDefaultSize), VFXVariadic.BelongsToVariadic);
         public static readonly VFXAttribute Lifetime            = new VFXAttribute("lifetime", VFXValueType.Float);
         public static readonly VFXAttribute Age                 = new VFXAttribute("age", VFXValueType.Float);
-        public static readonly VFXAttribute AngleX              = new VFXAttribute("angleX", VFXValueType.Float);
-        public static readonly VFXAttribute AngleY              = new VFXAttribute("angleY", VFXValueType.Float);
-        public static readonly VFXAttribute AngleZ              = new VFXAttribute("angleZ", VFXValueType.Float);
+        public static readonly VFXAttribute AngleX              = new VFXAttribute("angleX", VFXValueType.Float, VFXVariadic.BelongsToVariadic);
+        public static readonly VFXAttribute AngleY              = new VFXAttribute("angleY", VFXValueType.Float, VFXVariadic.BelongsToVariadic);
+        public static readonly VFXAttribute AngleZ              = new VFXAttribute("angleZ", VFXValueType.Float, VFXVariadic.BelongsToVariadic);
         public static readonly VFXAttribute AngularVelocity     = new VFXAttribute("angularVelocity", VFXValueType.Float);
         public static readonly VFXAttribute TexIndex            = new VFXAttribute("texIndex", VFXValueType.Float);
         public static readonly VFXAttribute Pivot               = new VFXAttribute("pivot", VFXValueType.Float3);
@@ -57,9 +57,22 @@ namespace UnityEditor.VFX
         public static readonly string[] AllLocalOnly = AllAttributeLocalOnly.Select(e => e.name).ToArray();
         public static readonly string[] AllWriteOnly = AllAttributeWriteOnly.Select(e => e.name).ToArray();
 
-        public static readonly string[] AllExpectLocalOnly = All.Except(AllLocalOnly).ToArray();
+        public static readonly string[] AllExceptLocalOnly = All.Except(AllLocalOnly).ToArray();
         public static readonly string[] AllWritable = All.Except(AllReadOnly).ToArray();
         public static readonly string[] AllReadWritable = All.Except(AllReadOnly).Except(AllWriteOnly).ToArray();
+
+        public static readonly VFXAttribute[] AllVariadicAttribute = new VFXAttribute[]
+        {
+            new VFXAttribute("size", VFXValue.Constant(new Vector3(kDefaultSize, kDefaultSize, kDefaultSize)), VFXVariadic.True),
+            new VFXAttribute("angle", VFXValueType.Float3, VFXVariadic.True)
+        };
+
+        public static readonly string[] AllVariadic = AllVariadicAttribute.Select(e => e.name).ToArray();
+
+        public static readonly string[] AllIncludingVariadic = AllAttribute.Where(e => e.variadic != VFXVariadic.BelongsToVariadic).Select(e => e.name).ToArray().Concat(AllVariadic).ToArray();
+        public static readonly string[] AllIncludingVariadicExceptLocalOnly = AllIncludingVariadic.Except(AllLocalOnly).ToArray();
+        public static readonly string[] AllIncludingVariadicWritable = AllIncludingVariadic.Except(AllReadOnly).ToArray();
+        public static readonly string[] AllIncludingVariadicReadWritable = AllIncludingVariadic.Except(AllReadOnly).Except(AllWriteOnly).ToArray();
 
         static private VFXValue GetValueFromType(VFXValueType type)
         {
@@ -76,31 +89,37 @@ namespace UnityEditor.VFX
             }
         }
 
-        public VFXAttribute(string name, VFXValueType type)
+        public VFXAttribute(string name, VFXValueType type, VFXVariadic variadic = VFXVariadic.False)
         {
             this.name = name;
             this.value = GetValueFromType(type);
+            this.variadic = variadic;
         }
 
-        public VFXAttribute(string name, VFXValue value)
+        public VFXAttribute(string name, VFXValue value, VFXVariadic variadic = VFXVariadic.False)
         {
             this.name = name;
             this.value = value;
+            this.variadic = variadic;
         }
 
         public static VFXAttribute Find(string attributeName)
         {
-            if (!AllAttribute.Any(e => e.name == attributeName))
-            {
-                throw new Exception(string.Format("Unable to find attribute expression : {0}", attributeName));
-            }
+            int index = Array.FindIndex(AllAttribute, e => e.name == attributeName);
+            if (index != -1)
+                return AllAttribute[index];
 
-            var attribute = AllAttribute.First(e => e.name == attributeName);
-            return attribute;
+            index = Array.FindIndex(AllVariadicAttribute, e => e.name == attributeName);
+            if (index != -1)
+                return AllVariadicAttribute[index];
+
+            throw new Exception(string.Format("Unable to find attribute expression : {0}", attributeName));
         }
 
         public string name;
         public VFXValue value;
+        public VFXVariadic variadic;
+
         public VFXValueType type
         {
             get
@@ -128,6 +147,22 @@ namespace UnityEditor.VFX
         Source = 1,
         Initial = 2
     }
+
+    enum VFXVariadic
+    {
+        False = 0,
+        True = 1,
+        BelongsToVariadic = 2
+    }
+
+    enum VariadicChannelOptions
+    {
+        X = 0,
+        Y = 1,
+        Z = 2,
+        XY = 3,
+        XYZ = 4
+    };
 
     sealed class VFXAttributeExpression : VFXExpression
     {
