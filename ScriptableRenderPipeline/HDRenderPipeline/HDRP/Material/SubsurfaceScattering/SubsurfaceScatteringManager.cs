@@ -178,7 +178,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         HDUtils.SetRenderTarget(cmd, hdCamera, m_HTile, ClearFlag.Color, CoreUtils.clearColorAllBlack);
 
                         HDUtils.SetRenderTarget(cmd, hdCamera, depthStencilBufferRT); // No need for color buffer here
-                        cmd.SetRandomWriteTarget(1, m_HTile);
+                        cmd.SetRandomWriteTarget(1, m_HTile); // This need to be done AFTER SetRenderTarget
                         // Generate HTile for the split lighting stencil usage. Don't write into stencil texture (shaderPassId = 2)
                         // Use ShaderPassID 1 => "Pass 2 - Export HTILE for stencilRef to output"
                         CoreUtils.DrawFullScreen(cmd, m_CopyStencilForSplitLighting, null, 2);

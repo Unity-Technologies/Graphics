@@ -17,7 +17,6 @@
 #define HAS_LIGHTLOOP // Allow to not define LightLoop related function in Material.hlsl
 
 #include "../Lighting/LightDefinition.cs.hlsl"
-#include "../Lighting/LightUtilities.hlsl"
 
 #include "LightLoop/Shadow.hlsl"
 
