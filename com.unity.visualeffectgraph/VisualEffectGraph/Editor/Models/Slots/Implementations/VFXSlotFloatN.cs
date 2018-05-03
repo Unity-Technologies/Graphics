@@ -22,7 +22,7 @@ namespace UnityEditor.VFX
         {
             if (expression.valueType == VFXValueType.Uint32)
             {
-                var floatExpression = new VFXExpressionCastIntToFloat(expression);
+                var floatExpression = new VFXExpressionCastUintToFloat(expression);
                 return floatExpression;
             }
 
