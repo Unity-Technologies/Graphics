@@ -333,10 +333,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _CornetteShanksConstant         = Shader.PropertyToID("_CornetteShanksConstant");
         public static readonly int _VBufferResolution              = Shader.PropertyToID("_VBufferResolution");
         public static readonly int _VBufferSliceCount              = Shader.PropertyToID("_VBufferSliceCount");
+        public static readonly int _VBufferUvScaleAndLimit         = Shader.PropertyToID("_VBufferUvScaleAndLimit");
         public static readonly int _VBufferDepthEncodingParams     = Shader.PropertyToID("_VBufferDepthEncodingParams");
         public static readonly int _VBufferDepthDecodingParams     = Shader.PropertyToID("_VBufferDepthDecodingParams");
         public static readonly int _VBufferPrevResolution          = Shader.PropertyToID("_VBufferPrevResolution");
         public static readonly int _VBufferPrevSliceCount          = Shader.PropertyToID("_VBufferPrevSliceCount");
+        public static readonly int _VBufferPrevUvScaleAndLimit     = Shader.PropertyToID("_VBufferPrevUvScaleAndLimit");
         public static readonly int _VBufferPrevDepthEncodingParams = Shader.PropertyToID("_VBufferPrevDepthEncodingParams");
         public static readonly int _VBufferPrevDepthDecodingParams = Shader.PropertyToID("_VBufferPrevDepthDecodingParams");
         public static readonly int _VBufferCoordToViewDirWS        = Shader.PropertyToID("_VBufferCoordToViewDirWS");

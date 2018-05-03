@@ -88,6 +88,8 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput)
 													 posInput.linearDepth,
 													 _VBufferResolution,
 													 _VBufferSliceCount.xy,
+													 _VBufferUvScaleAndLimit.xy,
+													 _VBufferUvScaleAndLimit.zw,
 													 _VBufferDepthEncodingParams,
 													 _VBufferDepthDecodingParams,
 													 true, true);

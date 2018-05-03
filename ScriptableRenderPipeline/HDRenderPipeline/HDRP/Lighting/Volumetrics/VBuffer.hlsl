@@ -47,9 +47,10 @@ float ComputeLerpPositionForLogEncoding(float  linearDepth,
 float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
                      float2 positionNDC,
                      float  linearDepth,
-                     float2 viewportScale,
                      float4 VBufferResolution,
                      float2 VBufferSliceCount,
+                     float2 VBufferUvScale,
+                     float2 VBufferUvLimit,
                      float4 VBufferDepthEncodingParams,
                      float4 VBufferDepthDecodingParams,
                      bool   correctLinearInterpolation,
@@ -74,15 +75,6 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
         // The results are exact for a stationary camera, but can potentially cause some judder in motion.
         w = d;
     }
-
-    // Always clamp UVs (clamp to edge) to avoid leaks due to suballocation and memory aliasing.
-    // clamp to (vp_dim - 0.5) / tex_dim = vp_scale - (0.5 / tex_dim) = vp_scale - 0.5 * vp_scale / tex_dim.
-    // Do not clamp along the W direction for now, it's not necessary (our slice count is fixed).
-    // Warning: there will still be some leaks as long as the viewport, screen or texture size
-    // are not multiples of the V-Buffer tile size (8 or 4 pixels). We ignore them for now since
-    // it's not a problem in for a real game.
-    // TODO: precompute this in a uniform...
-    float2 maxUV = viewportScale * (1 - 0.5 * VBufferResolution.zw);
 
     float fadeWeight = 1;
 
@@ -111,16 +103,16 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
             BiquadraticFilter(1 - fc, weights, offsets); // Inverse-translate the filter centered around 0.5
 
             // Apply the viewport scale right at the end.
-            // TODO: precompute (VBufferResolution.zw * viewportScale).
-            result = (weights[0].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min((ic + float2(offsets[0].x, offsets[0].y)) * (VBufferResolution.zw * viewportScale), maxUV), w), 0)  // Top left
-                   + (weights[1].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min((ic + float2(offsets[1].x, offsets[0].y)) * (VBufferResolution.zw * viewportScale), maxUV), w), 0)  // Top right
-                   + (weights[0].x * weights[1].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min((ic + float2(offsets[0].x, offsets[1].y)) * (VBufferResolution.zw * viewportScale), maxUV), w), 0)  // Bottom left
-                   + (weights[1].x * weights[1].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min((ic + float2(offsets[1].x, offsets[1].y)) * (VBufferResolution.zw * viewportScale), maxUV), w), 0); // Bottom right
+            // TODO: precompute (VBufferResolution.zw * VBufferUvScale).
+            result = (weights[0].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min((ic + float2(offsets[0].x, offsets[0].y)) * (VBufferResolution.zw * VBufferUvScale), VBufferUvLimit), w), 0)  // Top left
+                   + (weights[1].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min((ic + float2(offsets[1].x, offsets[0].y)) * (VBufferResolution.zw * VBufferUvScale), VBufferUvLimit), w), 0)  // Top right
+                   + (weights[0].x * weights[1].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min((ic + float2(offsets[0].x, offsets[1].y)) * (VBufferResolution.zw * VBufferUvScale), VBufferUvLimit), w), 0)  // Bottom left
+                   + (weights[1].x * weights[1].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min((ic + float2(offsets[1].x, offsets[1].y)) * (VBufferResolution.zw * VBufferUvScale), VBufferUvLimit), w), 0); // Bottom right
         }
         else
         {
             // Apply the viewport scale right at the end.
-            result = SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min(uv * viewportScale, maxUV), w), 0);
+            result = SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min(uv * VBufferUvScale, VBufferUvLimit), w), 0);
         }
 
         result *= fadeWeight;
@@ -132,9 +124,10 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
 float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
                      float3   positionWS,
                      float4x4 viewProjMatrix,
-                     float2   viewportScale,
                      float4   VBufferResolution,
                      float2   VBufferSliceCount,
+                     float2   VBufferUvScale,
+                     float2   VBufferUvLimit,
                      float4   VBufferDepthEncodingParams,
                      float4   VBufferDepthDecodingParams,
                      bool     correctLinearInterpolation,
@@ -147,9 +140,10 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
     return SampleVBuffer(TEXTURE3D_PARAM(VBuffer, clampSampler),
                          positionNDC,
                          linearDepth,
-                         viewportScale,
                          VBufferResolution,
                          VBufferSliceCount,
+                         VBufferUvScale,
+                         VBufferUvLimit,
                          VBufferDepthEncodingParams,
                          VBufferDepthDecodingParams,
                          correctLinearInterpolation,
@@ -163,6 +157,8 @@ float4 SampleVolumetricLighting(TEXTURE3D_ARGS(VBufferLighting, clampSampler),
                                 float  linearDepth,
                                 float4 VBufferResolution,
                                 float2 VBufferSliceCount,
+                                float2 VBufferUvScale,
+                                float2 VBufferUvLimit,
                                 float4 VBufferDepthEncodingParams,
                                 float4 VBufferDepthDecodingParams,
                                 bool   correctLinearInterpolation,
@@ -172,9 +168,10 @@ float4 SampleVolumetricLighting(TEXTURE3D_ARGS(VBufferLighting, clampSampler),
     return FastTonemapInvert(SampleVBuffer(TEXTURE3D_PARAM(VBufferLighting, clampSampler),
                                            positionNDC,
                                            linearDepth,
-                                           GetViewportScaleCurrentFrame(),
                                            VBufferResolution,
                                            VBufferSliceCount,
+                                           VBufferUvScale,
+                                           VBufferUvLimit,
                                            VBufferDepthEncodingParams,
                                            VBufferDepthDecodingParams,
                                            correctLinearInterpolation,
