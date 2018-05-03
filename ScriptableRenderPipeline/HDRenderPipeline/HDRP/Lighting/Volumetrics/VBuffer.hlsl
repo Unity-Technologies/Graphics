@@ -25,6 +25,8 @@ float ComputeLerpPositionForLogEncoding(float  linearDepth,
 
     // Compute the linear interpolation weight.
     float t = saturate((z - z0) / (z1 - z0));
+
+    // Do not saturate here, we want to know whether we are outside of the near/far plane bounds.
     return d0 + t * rcpNumSlices;
 }
 
@@ -75,9 +77,10 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
 
     // Always clamp UVs (clamp to edge) to avoid leaks due to suballocation and memory aliasing.
     // clamp to (vp_dim - 0.5) / tex_dim = vp_scale - (0.5 / tex_dim) = vp_scale - 0.5 * vp_scale / tex_dim.
-    // Do not clamp along the W direction for now, it's not needed (our slice count is fixed).
+    // Do not clamp along the W direction for now, it's not necessary (our slice count is fixed).
     // Warning: there will still be some leaks as long as the viewport, screen or texture size
-    // are not multiples of the V-Buffer tile size (8 or 4 pixels).
+    // are not multiples of the V-Buffer tile size (8 or 4 pixels). We ignore them for now since
+    // it's not a problem in for a real game.
     // TODO: precompute this in a uniform...
     float2 maxUV = viewportScale * (1 - 0.5 * VBufferResolution.zw);
 
@@ -107,6 +110,7 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
             float2 weights[2], offsets[2];
             BiquadraticFilter(1 - fc, weights, offsets); // Inverse-translate the filter centered around 0.5
 
+            // Apply the viewport scale right at the end.
             // TODO: precompute (VBufferResolution.zw * viewportScale).
             result = (weights[0].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min((ic + float2(offsets[0].x, offsets[0].y)) * (VBufferResolution.zw * viewportScale), maxUV), w), 0)  // Top left
                    + (weights[1].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min((ic + float2(offsets[1].x, offsets[0].y)) * (VBufferResolution.zw * viewportScale), maxUV), w), 0)  // Top right
@@ -115,6 +119,7 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
         }
         else
         {
+            // Apply the viewport scale right at the end.
             result = SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min(uv * viewportScale, maxUV), w), 0);
         }
 
