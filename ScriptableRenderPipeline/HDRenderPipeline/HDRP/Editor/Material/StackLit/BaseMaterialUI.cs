@@ -138,13 +138,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 set { m_MaterialProperty.vectorValue = value; }
             }
 
-            public Property(BaseMaterialGUI parent, string propertyName, string guiText, bool isMandatory = true)
-                : this(parent, propertyName, guiText, string.Empty, isMandatory)
+            public Property(BaseMaterialGUI parent, string propertyName, string guiText, bool isMandatory = true, Func<object, bool> isVisible = null)
+                : this(parent, propertyName, guiText, string.Empty, isMandatory, isVisible)
             {
             }
 
-            public Property(BaseMaterialGUI parent, string propertyName, string guiText, string toolTip, bool isMandatory = true)
-                : base(parent)
+            public Property(BaseMaterialGUI parent, string propertyName, string guiText, string toolTip, bool isMandatory = true, Func<object, bool> isVisible = null)
+                : base(parent, isVisible)
             {
                 m_GuiContent = new GUIContent(guiText, toolTip);
                 PropertyName = propertyName;
@@ -206,26 +206,26 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             private readonly string[] m_Options;
             private readonly int[] m_Values = null;
 
-            public ComboProperty(BaseMaterialGUI parent, string propertyName, string guiText, string[] options, bool isMandatory = true)
-                : base(parent, propertyName, guiText, isMandatory)
+            public ComboProperty(BaseMaterialGUI parent, string propertyName, string guiText, string[] options, bool isMandatory = true, Func<object, bool> isVisible = null)
+                : base(parent, propertyName, guiText, isMandatory, isVisible)
             {
                 m_Options = options;
             }
 
-            public ComboProperty(BaseMaterialGUI parent, string propertyName, string guiText, string toolTip, string[] options, bool isMandatory = true)
-                : base(parent, propertyName, guiText, toolTip, isMandatory)
+            public ComboProperty(BaseMaterialGUI parent, string propertyName, string guiText, string toolTip, string[] options, bool isMandatory = true, Func<object, bool> isVisible = null)
+                : base(parent, propertyName, guiText, toolTip, isMandatory, isVisible)
             {
                 m_Options = options;
             }
-            public ComboProperty(BaseMaterialGUI parent, string propertyName, string guiText, string[] options, int[] values, bool isMandatory = true)
-                : base(parent, propertyName, guiText, isMandatory)
+            public ComboProperty(BaseMaterialGUI parent, string propertyName, string guiText, string[] options, int[] values, bool isMandatory = true, Func<object, bool> isVisible = null)
+                : base(parent, propertyName, guiText, isMandatory, isVisible)
             {
                 m_Options = options;
                 m_Values = values;
             }
 
-            public ComboProperty(BaseMaterialGUI parent, string propertyName, string guiText, string toolTip, string[] options, int[] values, bool isMandatory = true)
-                : base(parent, propertyName, guiText, toolTip, isMandatory)
+            public ComboProperty(BaseMaterialGUI parent, string propertyName, string guiText, string toolTip, string[] options, int[] values, bool isMandatory = true, Func<object, bool> isVisible = null)
+                : base(parent, propertyName, guiText, toolTip, isMandatory, isVisible)
             {
                 m_Options = options;
                 m_Values = values;
@@ -263,8 +263,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public class DiffusionProfileProperty : Property
         {
-            public DiffusionProfileProperty(BaseMaterialGUI parent, string propertyName, string guiText, string toolTip, bool isMandatory = true)
-                : base(parent, propertyName, guiText, toolTip, isMandatory)
+            public DiffusionProfileProperty(BaseMaterialGUI parent, string propertyName, string guiText, string toolTip, bool isMandatory = true, Func<object, bool> isVisible = null)
+                : base(parent, propertyName, guiText, toolTip, isMandatory, isVisible)
             {
             }
 
@@ -336,18 +336,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             private MaterialProperty m_ExtraProperty;
 
-            public TextureOneLineProperty(BaseMaterialGUI parent, string propertyName, string guiText, bool isMandatory = true)
-                : base(parent, propertyName, guiText, isMandatory)
+            public TextureOneLineProperty(BaseMaterialGUI parent, string propertyName, string guiText, bool isMandatory = true, Func<object, bool> isVisible = null)
+                : base(parent, propertyName, guiText, isMandatory, isVisible)
             {
             }
 
-            public TextureOneLineProperty(BaseMaterialGUI parent, string propertyName, string guiText, string toolTip, bool isMandatory = true)
-                : base(parent, propertyName, guiText, toolTip, isMandatory)
+            public TextureOneLineProperty(BaseMaterialGUI parent, string propertyName, string guiText, string toolTip, bool isMandatory = true, Func<object, bool> isVisible = null)
+                : base(parent, propertyName, guiText, toolTip, isMandatory, isVisible)
             {
             }
 
-            public TextureOneLineProperty(BaseMaterialGUI parent, string propertyName, string extraPropertyName, string guiText, string toolTip, bool isMandatory = true)
-                : base(parent, propertyName, guiText, toolTip, isMandatory)
+            public TextureOneLineProperty(BaseMaterialGUI parent, string propertyName, string extraPropertyName, string guiText, string toolTip, bool isMandatory = true, Func<object, bool> isVisible = null)
+                : base(parent, propertyName, guiText, toolTip, isMandatory, isVisible)
             {
                 ExtraPropertyName = extraPropertyName;
             }
@@ -440,13 +440,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public bool m_IsNormalMap;
 
-            public TextureProperty(BaseMaterialGUI parent, string propertyName, string constantPropertyName, string guiText, bool useConstantAsTint, bool isMandatory = true, bool isNormalMap = false)
-                : this(parent, propertyName, constantPropertyName, guiText, string.Empty, useConstantAsTint, isMandatory, isNormalMap)
+            public TextureProperty(BaseMaterialGUI parent, string propertyName, string constantPropertyName, string guiText, bool useConstantAsTint, bool isMandatory = true, bool isNormalMap = false, Func<object, bool> isVisible = null)
+                : this(parent, propertyName, constantPropertyName, guiText, string.Empty, useConstantAsTint, isMandatory, isNormalMap, isVisible)
             {
             }
 
-            public TextureProperty(BaseMaterialGUI parent, string propertyName, string constantPropertyName, string guiText, string toolTip, bool useConstantAsTint, bool isMandatory = true, bool isNormalMap = false)
-                : base(parent, propertyName, guiText, toolTip, isMandatory)
+            public TextureProperty(BaseMaterialGUI parent, string propertyName, string constantPropertyName, string guiText, string toolTip, bool useConstantAsTint, bool isMandatory = true, bool isNormalMap = false, Func<object, bool> isVisible = null)
+                : base(parent, propertyName, guiText, toolTip, isMandatory, isVisible)
             {
                 m_IsNormalMap = isNormalMap;
 
@@ -532,14 +532,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                 // Display the remap of texture values.
                                 Vector2 remap = m_RemapProperty.VectorValue;
                                 EditorGUI.BeginChangeCheck();
-                                EditorGUILayout.MinMaxSlider(m_RemapProperty.PropertyText, ref remap.x, ref remap.y,
-                                    0.0f, 1.0f);
+                                EditorGUILayout.MinMaxSlider(m_RemapProperty.PropertyText, ref remap.x, ref remap.y, 0.0f, 1.0f);
                                 if (EditorGUI.EndChangeCheck())
                                 {
                                     m_RemapProperty.VectorValue = remap;
                                 }
 
-                                m_InvertRemapProperty.OnGUI();
+                                if (m_InvertRemapProperty.IsValid)
+                                {
+                                    m_InvertRemapProperty.OnGUI();
+                                }
                             }
                         }
 
