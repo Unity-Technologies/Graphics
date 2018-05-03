@@ -1,14 +1,14 @@
 .port.typePosition
 {
-    port-color: #F6FF9A;
+    port-color: #FCD76E;
 }
 .port.typeVector
 {
-    port-color: #F6FF9A;
+    port-color: #FCD76E;
 }
 .port.typeDirection
 {
-    port-color: #F6FF9A;
+    port-color: #FCD76E;
 }
 
 .port.typeGradient
