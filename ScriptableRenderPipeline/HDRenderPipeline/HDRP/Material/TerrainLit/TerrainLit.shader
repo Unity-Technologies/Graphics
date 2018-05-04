@@ -2,49 +2,84 @@ Shader "HDRenderPipeline/TerrainLit"
 {
     Properties
     {
-        [HideInInspector] _Control("Control (RGBA)", 2D) = "red" {}
+        [HideInInspector] _Control0("Control 0 (RGBA)", 2D) = "red" {}
+        [HideInInspector] _Control1("Control 1 (RGBA)", 2D) = "black" {}
 
         [HideInInspector] _Splat0("Layer 0", 2D) = "white" {}
         [HideInInspector] _Splat1("Layer 1", 2D) = "white" {}
         [HideInInspector] _Splat2("Layer 2", 2D) = "white" {}
         [HideInInspector] _Splat3("Layer 3", 2D) = "white" {}
+        [HideInInspector] _Splat4("Layer 4", 2D) = "white" {}
+        [HideInInspector] _Splat5("Layer 5", 2D) = "white" {}
+        [HideInInspector] _Splat6("Layer 6", 2D) = "white" {}
+        [HideInInspector] _Splat7("Layer 7", 2D) = "white" {}
 
         [HideInInspector] _Normal0("Normal 0", 2D) = "bump" {}
         [HideInInspector] _Normal1("Normal 1", 2D) = "bump" {}
         [HideInInspector] _Normal2("Normal 2", 2D) = "bump" {}
         [HideInInspector] _Normal3("Normal 3", 2D) = "bump" {}
+        [HideInInspector] _Normal4("Normal 4", 2D) = "bump" {}
+        [HideInInspector] _Normal5("Normal 5", 2D) = "bump" {}
+        [HideInInspector] _Normal6("Normal 6", 2D) = "bump" {}
+        [HideInInspector] _Normal7("Normal 7", 2D) = "bump" {}
 
         // Since we don't use a mask texture for getting the mask, we'll need the metallic property to be serialized as in sRGB space.
         [HideInInspector] [Gamma] _Metallic0("Metallic 0", Range(0.0, 1.0)) = 0
         [HideInInspector] [Gamma] _Metallic1("Metallic 1", Range(0.0, 1.0)) = 0
         [HideInInspector] [Gamma] _Metallic2("Metallic 2", Range(0.0, 1.0)) = 0
         [HideInInspector] [Gamma] _Metallic3("Metallic 3", Range(0.0, 1.0)) = 0
+        [HideInInspector] [Gamma] _Metallic4("Metallic 4", Range(0.0, 1.0)) = 0
+        [HideInInspector] [Gamma] _Metallic5("Metallic 5", Range(0.0, 1.0)) = 0
+        [HideInInspector] [Gamma] _Metallic6("Metallic 6", Range(0.0, 1.0)) = 0
+        [HideInInspector] [Gamma] _Metallic7("Metallic 7", Range(0.0, 1.0)) = 0
         [HideInInspector] _Smoothness0("Smoothness0", Range(0.0, 1.0)) = 1.0
         [HideInInspector] _Smoothness1("Smoothness1", Range(0.0, 1.0)) = 1.0
         [HideInInspector] _Smoothness2("Smoothness2", Range(0.0, 1.0)) = 1.0
         [HideInInspector] _Smoothness3("Smoothness3", Range(0.0, 1.0)) = 1.0
+        [HideInInspector] _Smoothness4("Smoothness4", Range(0.0, 1.0)) = 1.0
+        [HideInInspector] _Smoothness5("Smoothness5", Range(0.0, 1.0)) = 1.0
+        [HideInInspector] _Smoothness6("Smoothness6", Range(0.0, 1.0)) = 1.0
+        [HideInInspector] _Smoothness7("Smoothness7", Range(0.0, 1.0)) = 1.0
 
         // TODO: route values from terrain layers. enable _DENSITY_MODE if any of these enabled.
         [HideInInspector] [ToggleUI] _OpacityAsDensity0("_OpacityAsDensity0", Float) = 0.0
         [HideInInspector] [ToggleUI] _OpacityAsDensity1("_OpacityAsDensity1", Float) = 0.0
         [HideInInspector] [ToggleUI] _OpacityAsDensity2("_OpacityAsDensity2", Float) = 0.0
         [HideInInspector] [ToggleUI] _OpacityAsDensity3("_OpacityAsDensity3", Float) = 0.0
+        [HideInInspector] [ToggleUI] _OpacityAsDensity4("_OpacityAsDensity4", Float) = 0.0
+        [HideInInspector] [ToggleUI] _OpacityAsDensity5("_OpacityAsDensity5", Float) = 0.0
+        [HideInInspector] [ToggleUI] _OpacityAsDensity6("_OpacityAsDensity6", Float) = 0.0
+        [HideInInspector] [ToggleUI] _OpacityAsDensity7("_OpacityAsDensity7", Float) = 0.0
 
         // TODO: Allow heightmap?
+        [HideInInspector] [ToggleUI] _UseHeightBasedBlend("UseHeightBasedBlend", Float) = 0.0
+        [HideInInspector] _HeightTransition("Height Transition", Range(0, 1.0)) = 0.0
         [HideInInspector] _HeightMap0("HeightMap0", 2D) = "black" {}
         [HideInInspector] _HeightMap1("HeightMap1", 2D) = "black" {}
         [HideInInspector] _HeightMap2("HeightMap2", 2D) = "black" {}
         [HideInInspector] _HeightMap3("HeightMap3", 2D) = "black" {}
+        [HideInInspector] _HeightMap4("HeightMap4", 2D) = "black" {}
+        [HideInInspector] _HeightMap5("HeightMap5", 2D) = "black" {}
+        [HideInInspector] _HeightMap6("HeightMap6", 2D) = "black" {}
+        [HideInInspector] _HeightMap7("HeightMap7", 2D) = "black" {}
         // Caution: Default value of _HeightAmplitude must be (_HeightMax - _HeightMin) * 0.01
         // Those two properties are computed from the ones exposed in the UI and depends on the displaement mode so they are separate because we don't want to lose information upon displacement mode change.
         [HideInInspector] _HeightAmplitude0("Height Scale0", Float) = 0.02
         [HideInInspector] _HeightAmplitude1("Height Scale1", Float) = 0.02
         [HideInInspector] _HeightAmplitude2("Height Scale2", Float) = 0.02
         [HideInInspector] _HeightAmplitude3("Height Scale3", Float) = 0.02
+        [HideInInspector] _HeightAmplitude4("Height Scale4", Float) = 0.02
+        [HideInInspector] _HeightAmplitude5("Height Scale5", Float) = 0.02
+        [HideInInspector] _HeightAmplitude6("Height Scale6", Float) = 0.02
+        [HideInInspector] _HeightAmplitude7("Height Scale7", Float) = 0.02
         [HideInInspector] _HeightCenter0("Height Bias0", Range(0.0, 1.0)) = 0.5
         [HideInInspector] _HeightCenter1("Height Bias1", Range(0.0, 1.0)) = 0.5
         [HideInInspector] _HeightCenter2("Height Bias2", Range(0.0, 1.0)) = 0.5
         [HideInInspector] _HeightCenter3("Height Bias3", Range(0.0, 1.0)) = 0.5
+        [HideInInspector] _HeightCenter4("Height Bias4", Range(0.0, 1.0)) = 0.5
+        [HideInInspector] _HeightCenter5("Height Bias5", Range(0.0, 1.0)) = 0.5
+        [HideInInspector] _HeightCenter6("Height Bias6", Range(0.0, 1.0)) = 0.5
+        [HideInInspector] _HeightCenter7("Height Bias7", Range(0.0, 1.0)) = 0.5
 
         // TODO: support tri-planar?
         [HideInInspector] _TexWorldScale0("Tiling", Float) = 1.0
@@ -83,10 +118,6 @@ Shader "HDRenderPipeline/TerrainLit"
         _MaskMap3("MaskMap3", 2D) = "white" {}
 
         // All the following properties exist only in layered lit material
-
-        // Layer blending options
-        [ToggleUI] _UseHeightBasedBlend("UseHeightBasedBlend", Float) = 0.0
-        _HeightTransition("Height Transition", Range(0, 1.0)) = 0.0
 
         // Following are builtin properties
 
@@ -131,23 +162,17 @@ Shader "HDRenderPipeline/TerrainLit"
     //#pragma shader_feature _ _LAYER_MAPPING_PLANAR2 _LAYER_MAPPING_TRIPLANAR2
     //#pragma shader_feature _ _LAYER_MAPPING_PLANAR3 _LAYER_MAPPING_TRIPLANAR3
 
-    #pragma shader_feature _NORMALMAP0
-    #pragma shader_feature _NORMALMAP1
-    #pragma shader_feature _NORMALMAP2
-    #pragma shader_feature _NORMALMAP3
+    #pragma shader_feature _TERRAIN_NORMAL_MAP
+    #pragma shader_feature _TERRAIN_HEIGHT_MAP
+    // #pragma shader_feature _HEIGHT_BASED_BLEND // _HEIGHT_BASED_BLEND is implied if heightmap is used. 
     #pragma shader_feature _MASKMAP0
     #pragma shader_feature _MASKMAP1
     #pragma shader_feature _MASKMAP2
     #pragma shader_feature _MASKMAP3
-    #pragma shader_feature _HEIGHTMAP0
-    #pragma shader_feature _HEIGHTMAP1
-    #pragma shader_feature _HEIGHTMAP2
-    #pragma shader_feature _HEIGHTMAP3
 
     #pragma shader_feature _DENSITY_MODE
-    #pragma shader_feature _HEIGHT_BASED_BLEND
 
-    #pragma shader_feature _TERRAINLIT_1_LAYER _TERRAINLIT_2_LAYERS _TERRAINLIT_3_LAYERS _TERRAINLIT_4_LAYERS
+    #pragma shader_feature _TERRAINLIT_1_LAYER _TERRAINLIT_2_LAYERS _TERRAINLIT_3_LAYERS _TERRAINLIT_4_LAYERS _TERRAINLIT_5_LAYERS _TERRAINLIT_6_LAYERS _TERRAINLIT_7_LAYERS _TERRAINLIT_8_LAYERS
 
     #pragma shader_feature _DISABLE_DBUFFER
 
@@ -177,10 +202,7 @@ Shader "HDRenderPipeline/TerrainLit"
     // variable declaration
     //-------------------------------------------------------------------------------------
 
-    #define _MAX_LAYER 4 // TODO: expand to 8?
-
-    // Explicitly said that we are a layered shader as we share code between lit and layered lit
-    #define LAYERED_LIT_SHADER
+    #define _MAX_LAYER 8
 
     //-------------------------------------------------------------------------------------
     // variable declaration
@@ -197,7 +219,7 @@ Shader "HDRenderPipeline/TerrainLit"
     SubShader
     {
         // This tags allow to use the shader replacement features
-        Tags{ "RenderPipeline" = "HDRenderPipeline" "RenderType" = "HDLitShader" }
+        Tags{ "RenderPipeline" = "HDRenderPipeline" "RenderType" = "HDLitShader" "SplatCount"="8" }
 
         // Caution: The outline selection in the editor use the vertex shader/hull/domain shader of the first pass declare. So it should not bethe  meta pass.
         Pass
