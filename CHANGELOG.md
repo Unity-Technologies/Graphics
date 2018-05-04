@@ -6,11 +6,11 @@
 
 The settings on master nodes now live in a small window that you can toggle on and off. The settings menu allows you to change various rendering settings for your shader.
 
-### Editable property names
+### Property reference names and exposed state
 
 ![](.data/editable_property_references.gif)
 
-The property reference names are now editable. It is also now possible to make the properties not exposed.
+The property reference names are now editable. Furthermore, it is now possible to control whether the properties are exposed.
 
 ### Editable paths for graphs
 
@@ -20,11 +20,11 @@ The property reference names are now editable. It is also now possible to make t
 Enables the user to change the path of Shader Graphs and Sub Graphs. Changing the path of a Shader Graph modifies the location it has in the shader selection list. Likewise changing the path of Sub Graph modifies its location in the node creation menu.
 
 
-### 2 new Gradient nodes
+### Gradient nodes
 
 ![](.data/gradient_node.png)
 
-This adds gradient functionality via two new nodes. Sample Gradient node, samples a gradient given a Time parameter. This gradient can be defined on the Gradient slot control view. The Gradient Asset node, defines a gradient that can be sampled by multiple Sample Gradient nodes using different Time parameters.
+This adds gradient functionality via two new nodes. Sample Gradient node samples a gradient given a Time parameter. This gradient can be defined on the Gradient slot control view. The Gradient Asset node defines a gradient that can be sampled by multiple Sample Gradient nodes using different Time parameters.
 
 
 
