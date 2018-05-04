@@ -68,8 +68,8 @@ public class ScriptableCullingTests
         m_TestCamera = null;
     }
 
-    [Test(Description = "Object simple frustum culling test")]
-    public void ObjectFrustumCulling()
+    [Test(Description = "Scene frustum culling test")]
+    public void SceneFrustumCulling()
     {
         Setup("FrustumCullingTest", "Camera_FrustumCullingTest");
 
@@ -104,7 +104,7 @@ public class ScriptableCullingTests
     //    TearDown();
     //}
 
-    [Test(Description = "Light simple frustum culling test")]
+    [Test(Description = "Light frustum culling test")]
     public void LightFrustumCulling()
     {
         Setup("FrustumCullingTest", "Camera_FrustumCullingTest");
@@ -129,14 +129,14 @@ public class ScriptableCullingTests
         Assert.IsTrue(result.visibleOffscreenVertexLights.Any((visibleLight) => visibleLight.light.gameObject.name == "Point Light Vertex"));
         Assert.IsTrue(result.visibleOffscreenVertexLights.Any((visibleLight) => visibleLight.light.gameObject.name == "Point Light 2 Vertex"));
 
-        // The number here should actually be 1 but returns 3 because the off screen vertex light culling is wrong so we have false positives.
+        // TODO: The number here should actually be 1 but returns 3 because the off screen vertex light culling is wrong so we have false positives.
         Assert.AreEqual(1, result.visibleOffscreenShadowCastingVertexLights.Length);
         Assert.IsTrue(result.visibleOffscreenShadowCastingVertexLights.Any((visibleLight) => visibleLight.light.gameObject.name == "Spot Light Vertex"));
 
         TearDown();
     }
 
-    [Test(Description = "Reflection Probe simple frustum culling test")]
+    [Test(Description = "Reflection Probe frustum culling test")]
     public void ReflectionProbeFrustumCulling()
     {
         Setup("FrustumCullingTest", "Camera_FrustumCullingTest");
@@ -157,7 +157,7 @@ public class ScriptableCullingTests
     }
 
     [Test(Description = "Reuse Reflection Probe Result")]
-    public void ReuseReflectionProbeResult()
+    public void ReuseReflectionProbeCullingResult()
     {
         SetupTestScene("ReuseCullingResultTest");
 
@@ -169,8 +169,6 @@ public class ScriptableCullingTests
 
         Culling.CullReflectionProbes(cullingParams, result);
 
-        var visibleProbes = result.visibleReflectionProbes;
-
         Assert.AreEqual(2, result.visibleReflectionProbes.Length);
         Assert.IsTrue(result.visibleReflectionProbes.Any((visibleProbe) => visibleProbe.probe.gameObject.name == "Reflection Probe 1"));
         Assert.IsTrue(result.visibleReflectionProbes.Any((visibleProbe) => visibleProbe.probe.gameObject.name == "Reflection Probe 2"));
@@ -180,10 +178,63 @@ public class ScriptableCullingTests
 
         Culling.CullReflectionProbes(cullingParams, result);
 
-        visibleProbes = result.visibleReflectionProbes;
-
         Assert.AreEqual(1, result.visibleReflectionProbes.Length);
-        Assert.IsTrue(result.visibleReflectionProbes.Any((visibleProbe) => visibleProbe.probe.gameObject.name == "ReflectionProbe 2"));
+        Assert.IsTrue(result.visibleReflectionProbes.Any((visibleProbe) => visibleProbe.probe.gameObject.name == "Reflection Probe 2"));
+
+        TearDown();
+    }
+
+    [Test(Description = "Reuse Lighting Result")]
+    public void ReuseLightCullingResult()
+    {
+        SetupTestScene("ReuseCullingResultTest");
+
+        CullingParameters cullingParams = new CullingParameters();
+        LightCullingResult result = new LightCullingResult();
+
+        SetupTestCamera("ReuseResultCamera 1");
+        ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
+
+        Culling.CullLights(cullingParams, result);
+
+        Assert.AreEqual(3, result.visibleLights.Length);
+        Assert.IsTrue(result.visibleLights.Any((visibleLight) => visibleLight.light.gameObject.name == "Point Light 1"));
+        Assert.IsTrue(result.visibleLights.Any((visibleLight) => visibleLight.light.gameObject.name == "Point Light 2"));
+        Assert.IsTrue(result.visibleLights.Any((visibleLight) => visibleLight.light.gameObject.name == "Directional Light"));
+
+        SetupTestCamera("ReuseResultCamera 2");
+        ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
+
+        Culling.CullLights(cullingParams, result);
+
+        Assert.AreEqual(2, result.visibleLights.Length);
+        Assert.IsTrue(result.visibleLights.Any((visibleLight) => visibleLight.light.gameObject.name == "Point Light 2"));
+        Assert.IsTrue(result.visibleLights.Any((visibleLight) => visibleLight.light.gameObject.name == "Directional Light"));
+
+        TearDown();
+    }
+
+    [Test(Description = "Reuse Scene Culling Result")]
+    public void ReuseSceneCullingResult()
+    {
+        SetupTestScene("ReuseCullingResultTest");
+
+        CullingParameters cullingParams = new CullingParameters();
+        CullingResult result = new CullingResult();
+
+        SetupTestCamera("ReuseResultCamera 1");
+        ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
+
+        Culling.CullScene (cullingParams, result);
+
+        Assert.AreEqual(2, result.GetVisibleObjectCount());
+
+        SetupTestCamera("ReuseResultCamera 2");
+        ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
+
+        Culling.CullScene(cullingParams, result);
+
+        Assert.AreEqual(1, result.GetVisibleObjectCount());
 
         TearDown();
     }
