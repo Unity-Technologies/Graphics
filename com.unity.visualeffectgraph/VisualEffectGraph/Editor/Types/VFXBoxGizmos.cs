@@ -58,13 +58,16 @@ namespace UnityEditor.VFX
 
         static bool TwoSidedSizeHandle(Color color, Vector3 otherMiddle, Vector3 middle, Vector3 center, IProperty<float> sizeProperty, IProperty<Vector3> centerProperty)
         {
+            bool result = false;
+            var savedColor = Handles.color;
             Handles.color = color;
             if (sizeProperty.isEditable)
             {
-                bool result = SizeHandle(otherMiddle, middle, center, sizeProperty, centerProperty);
-                return SizeHandle(middle, otherMiddle, center, sizeProperty, centerProperty) || result;
+                result = SizeHandle(otherMiddle, middle, center, sizeProperty, centerProperty);
+                result = SizeHandle(middle, otherMiddle, center, sizeProperty, centerProperty) || result;
             }
-            return false;
+            Handles.color = savedColor;
+            return result;
         }
 
         static bool SizeHandle(Vector3 otherMiddle, Vector3 middle, Vector3 center, IProperty<float> sizeProperty, IProperty<Vector3> centerProperty)
