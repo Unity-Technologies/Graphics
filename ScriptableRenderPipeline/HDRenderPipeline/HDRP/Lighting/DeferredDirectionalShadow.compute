@@ -94,7 +94,6 @@ float4 ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirection, float ra
 		float raySampleDepth = startDepth + rayDepth * sampleStep;
 
 		// Depth buffer depth for this sample
-		float sampleDepth = LOAD_TEXTURE2D(_CameraDepthTexture, sampleUV).x;
 
 		bool Hit = false;
 		float depthDiff = sampleDepth - raySampleDepth;
