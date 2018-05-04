@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Arithmetic", experimental = true)]
-    class LerpNew : VFXOperatorNumericUnifiedNew, IVFXOperatorNumericUnifiedConstrained
+    class SmoothstepNew : VFXOperatorNumericUnifiedNew, IVFXOperatorNumericUnifiedConstrained
     {
         public class InputProperties
         {
@@ -13,11 +13,11 @@ namespace UnityEditor.VFX.Operator
             public float x = 0.0f;
             [Tooltip("The end value.")]
             public float y = 1.0f;
-            [Tooltip("The amount to interpolate between x and y (0-1).")]
+            [Tooltip("Smoothstep returns a value between 0 and 1, and s is clamped between x and y.")]
             public float s = 0.5f;
         }
 
-        public override sealed string name { get { return "LerpNew"; } }
+        public override sealed string name { get { return "SmoothstepNew"; } }
 
         public IEnumerable<int> slotIndicesThatMustHaveSameType
         {
@@ -26,6 +26,7 @@ namespace UnityEditor.VFX.Operator
                 return Enumerable.Range(0, 3);
             }
         }
+
         public IEnumerable<int> slotIndicesThatCanBeScalar
         {
             get
@@ -34,12 +35,19 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
+        protected override sealed double defaultValueDouble
+        {
+            get
+            {
+                return 0.5;
+            }
+        }
 
         protected override sealed ValidTypeRule typeFilter { get { return ValidTypeRule.allowEverythingExceptInteger; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            return new[] { VFXOperatorUtility.Lerp(inputExpression[0], inputExpression[1], inputExpression[2]) };
+            return new[] { VFXOperatorUtility.Smoothstep(inputExpression[0], inputExpression[1], inputExpression[2]) };
         }
     }
 }

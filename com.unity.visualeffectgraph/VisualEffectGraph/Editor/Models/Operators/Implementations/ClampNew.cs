@@ -21,7 +21,7 @@ namespace UnityEditor.VFX.Operator
 
         public override sealed string name { get { return "ClampNew"; } }
 
-        public IEnumerable<int> strictSameTypeSlotIndex
+        public IEnumerable<int> slotIndicesThatMustHaveSameType
         {
             get
             {
@@ -29,7 +29,7 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        public IEnumerable<int> allowExceptionalScalarSlotIndex
+        public IEnumerable<int> slotIndicesThatCanBeScalar
         {
             get
             {
