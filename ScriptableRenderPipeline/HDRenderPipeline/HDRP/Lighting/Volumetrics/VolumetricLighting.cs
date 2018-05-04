@@ -73,25 +73,6 @@ public class VolumetricLightingSystem
         Count
     } // enum VolumetricLightingPreset
 
-    [Serializable]
-    public struct ControllerParameters
-    {
-        public float vBufferNearPlane;                 // Distance in meters
-        public float vBufferFarPlane;                  // Distance in meters
-        public float depthSliceDistributionUniformity; // Controls the exponential depth distribution: [0, 1]
-
-        public static ControllerParameters GetDefaults()
-        {
-            ControllerParameters parameters;
-
-            parameters.vBufferNearPlane                 = 0.5f;
-            parameters.vBufferFarPlane                  = 64.0f;
-            parameters.depthSliceDistributionUniformity = 0.75f;
-
-            return parameters;
-        }
-    } // struct ControllerParameters
-
     public struct VBufferParameters
     {
         public Vector4 resolution;
@@ -100,7 +81,7 @@ public class VolumetricLightingSystem
         public Vector4 depthEncodingParams;
         public Vector4 depthDecodingParams;
 
-        public VBufferParameters(Vector3Int viewportResolution, Vector3Int bufferResolution, ControllerParameters controlParams)
+        public VBufferParameters(Vector3Int viewportResolution, Vector3Int bufferResolution, Vector2 depthRange, float depthDistributionUniformity)
         {
             int w = viewportResolution.x;
             int h = viewportResolution.y;
@@ -119,22 +100,14 @@ public class VolumetricLightingSystem
             resolution          = new Vector4(w, h, 1.0f / w, 1.0f / h);
             sliceCount          = new Vector2(d, 1.0f / d);
             uvScaleAndLimit     = new Vector4(uvScale.x, uvScale.y, uvLimit.x, uvLimit.y);
-            depthEncodingParams = Vector4.zero; // C# doesn't allow function calls before all members have been init
-            depthDecodingParams = Vector4.zero; // C# doesn't allow function calls before all members have been init
 
-            Update(controlParams);
-        }
-
-        public void Update(ControllerParameters controlParams)
-        {
-            float n = controlParams.vBufferNearPlane;
-            float f = controlParams.vBufferFarPlane;
-            float c = 2 - 2 * controlParams.depthSliceDistributionUniformity; // remap [0, 1] -> [2, 0]
+            float n = depthRange.x;
+            float f = depthRange.y;
+            float c = 2 - 2 * depthDistributionUniformity; // remap [0, 1] -> [2, 0]
 
             depthEncodingParams = ComputeLogarithmicDepthEncodingParams(n, f, c);
             depthDecodingParams = ComputeLogarithmicDepthDecodingParams(n, f, c);
         }
-
     } // struct Parameters
 
     public VolumetricLightingPreset preset { get { return (VolumetricLightingPreset)Math.Min(ShaderConfig.s_VolumetricLightingPreset, (int)VolumetricLightingPreset.Count); } }
@@ -235,19 +208,6 @@ public class VolumetricLightingSystem
     // For the initial allocation, no suballocation happens (the texture is full size).
     VBufferParameters ComputeVBufferParameters(HDCamera camera, bool isInitialAllocation)
     {
-        ControllerParameters controlParams;
-
-        var controller = camera.camera.GetComponent<VolumetricLightingController>();
-
-        if (controller != null)
-        {
-            controlParams = controller.parameters;
-        }
-        else
-        {
-            controlParams = ControllerParameters.GetDefaults();
-        }
-
         Vector3Int viewportResolution = ComputeVBufferResolution(preset, camera.camera.pixelWidth, camera.camera.pixelHeight);
         Vector3Int bufferResolution; // Could be higher due to sub-allocation (resource aliasing) in the RTHandle system
 
@@ -261,7 +221,18 @@ public class VolumetricLightingSystem
             bufferResolution = new Vector3Int(m_LightingBufferHandle.rt.width, m_LightingBufferHandle.rt.height, m_LightingBufferHandle.rt.volumeDepth);
         }
 
-        return new VBufferParameters(viewportResolution, bufferResolution, controlParams);
+        var controller = VolumeManager.instance.stack.GetComponent<VolumetricLightingController>();
+
+        // We must not allow the V-Buffer to extend outside of the camera's frustum.
+        float n = camera.camera.nearClipPlane;
+        float f = camera.camera.farClipPlane;
+
+        Vector2 vBufferDepthRange = controller.depthRange.value;
+        vBufferDepthRange.y = Mathf.Clamp(vBufferDepthRange.y, n, f);                   // far
+        vBufferDepthRange.x = Mathf.Clamp(vBufferDepthRange.x, n, vBufferDepthRange.y); // near
+        float vBufferDepthDistributionUniformity = controller.depthDistributionUniformity.value;
+
+        return new VBufferParameters(viewportResolution, bufferResolution, vBufferDepthRange, vBufferDepthDistributionUniformity);
     }
 
     public void InitializePerCameraData(HDCamera camera)
