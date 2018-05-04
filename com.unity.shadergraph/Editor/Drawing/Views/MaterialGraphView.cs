@@ -14,7 +14,7 @@ using UnityEditor.Graphs;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    public sealed class MaterialGraphView : GraphView, IDropTarget
+    public sealed class MaterialGraphView : GraphView
     {
         public MaterialGraphView()
         {
@@ -264,44 +264,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             selection.Clear();
         }
-
-        public bool CanAcceptDrop(List<ISelectable> selection)
-        {
-            return selection.OfType<BlackboardField>().Any();
-        }
-
-#if UNITY_2018_1
-        public EventPropagation DragUpdated(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
-        {
-            return EventPropagation.Continue;
-        }
-
-        public EventPropagation DragPerform(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
-        {
-            return EventPropagation.Continue;
-        }
-
-        public EventPropagation DragExited()
-        {
-            return EventPropagation.Continue;
-        }
-#else
-        public bool DragUpdated(DragUpdatedEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
-        {
-            return true;
-        }
-
-        public bool DragPerform(DragPerformEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
-        {
-            return true;
-        }
-
-        bool IDropTarget.DragExited()
-        {
-            return true;
-        }
-#endif
-
     }
 
     public static class GraphViewExtensions
@@ -335,7 +297,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var remappedNodes = remappedNodesDisposable.value;
                     var remappedEdges = remappedEdgesDisposable.value;
                     graphView.graph.PasteGraph(copyGraph, remappedNodes, remappedEdges);
-                    
+
                     if (graphView.graph.guid != copyGraph.sourceGraphGuid)
                     {
                         // Compute the mean of the copied nodes.
