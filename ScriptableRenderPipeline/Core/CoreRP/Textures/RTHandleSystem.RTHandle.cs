@@ -104,7 +104,7 @@ namespace UnityEngine.Experimental.Rendering
                         useDynamicScale = refRT.useDynamicScale,
                         vrUsage = refRT.vrUsage,
                         memorylessMode = refRT.memorylessMode,
-                        name = CoreUtils.GetRenderTargetAutoName(refRT.width, refRT.height, refRT.format, m_Name, mips : refRT.useMipMap)
+                        name = CoreUtils.GetRenderTargetAutoName(refRT.width, refRT.height, refRT.volumeDepth, refRT.format, m_Name, mips : refRT.useMipMap)
                     };
                     newRT.Create();
 

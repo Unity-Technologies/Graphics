@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 
@@ -123,7 +123,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
                 for (var i = 0; i < length; i++)
                 {
                     var probe = m_PlanarReflectionProbe_RealtimeUpdate_WorkArray[i];
-                    var hdCamera = HDCamera.Get(renderCamera, null, probe.frameSettings);
+
+                    var hdCamera = HDCamera.Get(renderCamera);
+
+                    if (hdCamera == null)
+                    {
+                        // Warning: this is a bad design pattern.
+                        // An individual system should not create an HDCamera (which is a shared resource).
+                        hdCamera = HDCamera.Create(renderCamera, null);
+                    }
+
+                    hdCamera.Update(null, probe.frameSettings, null);
+
                     if (!IsRealtimeTextureValid(probe.realtimeTexture, hdCamera))
                     {
                         if (probe.realtimeTexture != null)
@@ -158,7 +169,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
                 for (var i = 0; i < length; i++)
                 {
                     var probe = m_PlanarReflectionProbe_RealtimeUpdate_WorkArray[i];
-                    var hdCamera = HDCamera.Get(camera, null, probe.frameSettings);
+
+                    var hdCamera = HDCamera.Get(camera);
+
+                    if (hdCamera == null)
+                    {
+                        // Warning: this is a bad design pattern.
+                        // An individual system should not create an HDCamera (which is a shared resource).
+                        hdCamera = HDCamera.Create(camera, null);
+                    }
+
+                    hdCamera.Update(null, probe.frameSettings, null);
+
                     if (!IsRealtimeTextureValid(probe.realtimeTexture, hdCamera))
                     {
                         if (probe.realtimeTexture != null)
@@ -182,7 +204,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             // No hide and don't save for this one
             rt.useMipMap = true;
             rt.autoGenerateMips = false;
-            rt.name = CoreUtils.GetRenderTargetAutoName(m_Parameters.planarReflectionProbeSize, m_Parameters.planarReflectionProbeSize, RenderTextureFormat.ARGBHalf, "PlanarProbeRT");
+            rt.name = CoreUtils.GetRenderTargetAutoName(m_Parameters.planarReflectionProbeSize, m_Parameters.planarReflectionProbeSize, 1, RenderTextureFormat.ARGBHalf, "PlanarProbeRT");
             rt.Create();
             return rt;
         }
@@ -377,7 +399,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
 
             probe.frameSettings.CopyTo(s_RenderCameraData.GetFrameSettings());
 
-            return HDCamera.Get(camera, null, probe.frameSettings);
+            var hdCamera = HDCamera.Get(camera);
+
+            if (hdCamera == null)
+            {
+                // Warning: this is a bad design pattern.
+                // An individual system should not create an HDCamera (which is a shared resource).
+                hdCamera = HDCamera.Create(camera, null);
+            }
+
+            hdCamera.Update(null, probe.frameSettings, null);
+
+            return hdCamera;
         }
 
         static Camera GetRenderCamera()

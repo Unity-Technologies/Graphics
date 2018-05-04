@@ -25,6 +25,8 @@ float ComputeLerpPositionForLogEncoding(float  linearDepth,
 
     // Compute the linear interpolation weight.
     float t = saturate((z - z0) / (z1 - z0));
+
+    // Do not saturate here, we want to know whether we are outside of the near/far plane bounds.
     return d0 + t * rcpNumSlices;
 }
 
@@ -47,6 +49,8 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
                      float  linearDepth,
                      float4 VBufferResolution,
                      float2 VBufferSliceCount,
+                     float2 VBufferUvScale,
+                     float2 VBufferUvLimit,
                      float4 VBufferDepthEncodingParams,
                      float4 VBufferDepthDecodingParams,
                      bool   correctLinearInterpolation,
@@ -77,7 +81,7 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
     if (clampToBorder)
     {
         // Compute the distance to the edge, and remap it to the [0, 1] range.
-        // TODO: add support for the HW border clamp sampler.
+        // Smoothly fade from the center of the edge texel to the black border color.
         float weightU = saturate((1 - 2 * abs(uv.x - 0.5)) * VBufferResolution.x);
         float weightV = saturate((1 - 2 * abs(uv.y - 0.5)) * VBufferResolution.y);
         float weightW = saturate((1 - 2 * abs(w    - 0.5)) * VBufferSliceCount.x);
@@ -98,14 +102,17 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
             float2 weights[2], offsets[2];
             BiquadraticFilter(1 - fc, weights, offsets); // Inverse-translate the filter centered around 0.5
 
-            result = (weights[0].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3((ic + float2(offsets[0].x, offsets[0].y)) * VBufferResolution.zw, w), 0)  // Top left
-                   + (weights[1].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3((ic + float2(offsets[1].x, offsets[0].y)) * VBufferResolution.zw, w), 0)  // Top right
-                   + (weights[0].x * weights[1].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3((ic + float2(offsets[0].x, offsets[1].y)) * VBufferResolution.zw, w), 0)  // Bottom left
-                   + (weights[1].x * weights[1].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3((ic + float2(offsets[1].x, offsets[1].y)) * VBufferResolution.zw, w), 0); // Bottom right
+            // Apply the viewport scale right at the end.
+            // TODO: precompute (VBufferResolution.zw * VBufferUvScale).
+            result = (weights[0].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min((ic + float2(offsets[0].x, offsets[0].y)) * (VBufferResolution.zw * VBufferUvScale), VBufferUvLimit), w), 0)  // Top left
+                   + (weights[1].x * weights[0].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min((ic + float2(offsets[1].x, offsets[0].y)) * (VBufferResolution.zw * VBufferUvScale), VBufferUvLimit), w), 0)  // Top right
+                   + (weights[0].x * weights[1].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min((ic + float2(offsets[0].x, offsets[1].y)) * (VBufferResolution.zw * VBufferUvScale), VBufferUvLimit), w), 0)  // Bottom left
+                   + (weights[1].x * weights[1].y) * SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min((ic + float2(offsets[1].x, offsets[1].y)) * (VBufferResolution.zw * VBufferUvScale), VBufferUvLimit), w), 0); // Bottom right
         }
         else
         {
-            result = SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(uv, w), 0);
+            // Apply the viewport scale right at the end.
+            result = SAMPLE_TEXTURE3D_LOD(VBuffer, clampSampler, float3(min(uv * VBufferUvScale, VBufferUvLimit), w), 0);
         }
 
         result *= fadeWeight;
@@ -119,6 +126,8 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
                      float4x4 viewProjMatrix,
                      float4   VBufferResolution,
                      float2   VBufferSliceCount,
+                     float2   VBufferUvScale,
+                     float2   VBufferUvLimit,
                      float4   VBufferDepthEncodingParams,
                      float4   VBufferDepthDecodingParams,
                      bool     correctLinearInterpolation,
@@ -133,6 +142,8 @@ float4 SampleVBuffer(TEXTURE3D_ARGS(VBuffer, clampSampler),
                          linearDepth,
                          VBufferResolution,
                          VBufferSliceCount,
+                         VBufferUvScale,
+                         VBufferUvLimit,
                          VBufferDepthEncodingParams,
                          VBufferDepthDecodingParams,
                          correctLinearInterpolation,
@@ -146,6 +157,8 @@ float4 SampleVolumetricLighting(TEXTURE3D_ARGS(VBufferLighting, clampSampler),
                                 float  linearDepth,
                                 float4 VBufferResolution,
                                 float2 VBufferSliceCount,
+                                float2 VBufferUvScale,
+                                float2 VBufferUvLimit,
                                 float4 VBufferDepthEncodingParams,
                                 float4 VBufferDepthDecodingParams,
                                 bool   correctLinearInterpolation,
@@ -157,6 +170,8 @@ float4 SampleVolumetricLighting(TEXTURE3D_ARGS(VBufferLighting, clampSampler),
                                            linearDepth,
                                            VBufferResolution,
                                            VBufferSliceCount,
+                                           VBufferUvScale,
+                                           VBufferUvLimit,
                                            VBufferDepthEncodingParams,
                                            VBufferDepthDecodingParams,
                                            correctLinearInterpolation,

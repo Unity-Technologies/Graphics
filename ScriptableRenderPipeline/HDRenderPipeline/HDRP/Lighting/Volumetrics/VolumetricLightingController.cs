@@ -1,52 +1,10 @@
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [ExecuteInEditMode]
-    [AddComponentMenu("Rendering/Volumetric Lighting Controller", 1101)]
-    public class VolumetricLightingController : MonoBehaviour
+    public class VolumetricLightingController : VolumeComponent
     {
-        public VolumetricLightingSystem.ControllerParameters parameters;
-
-        public VolumetricLightingController()
-        {
-            parameters.vBufferNearPlane                 = 0.5f;
-            parameters.vBufferFarPlane                  = 64.0f;
-            parameters.depthSliceDistributionUniformity = 0.75f;
-        }
-
-        private void Awake()
-        {
-        }
-
-        private void OnEnable()
-        {
-        }
-
-        private void OnDisable()
-        {
-        }
-
-        private void Update()
-        {
-        }
-
-        private void OnValidate()
-        {
-            var camera = GetComponent<Camera>();
-
-            if (camera != null)
-            {
-                // We must not allow the V-Buffer to extend past the camera's frustum.
-                float n = camera.nearClipPlane;
-                float f = camera.farClipPlane;
-
-                parameters.vBufferFarPlane  = Mathf.Clamp(parameters.vBufferFarPlane,  n, f);
-                parameters.vBufferNearPlane = Mathf.Clamp(parameters.vBufferNearPlane, n, parameters.vBufferFarPlane);
-                parameters.depthSliceDistributionUniformity = Mathf.Clamp01(parameters.depthSliceDistributionUniformity);
-            }
-            else
-            {
-                Debug.Log("Volumetric Lighting Controller must be attached to a camera!");
-            }
-        }
+        [Tooltip("Near and far planes of camera's volumetric lighting buffers (in meters).")]
+        public FloatRangeParameter depthRange = new FloatRangeParameter(new Vector2(0.5f, 64.0f), 0.01f, 10000.0f);
+        [Tooltip("Controls the slice distribution: 0 = exponential (more slices near the camera, fewer slices far away), 1 = linear (uniform spacing).")]
+        public ClampedFloatParameter depthDistributionUniformity = new ClampedFloatParameter(0.75f, 0, 1);
     }
 } // UnityEngine.Experimental.Rendering.HDPipeline

@@ -195,7 +195,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             m_Asset = asset;
+
+            // Initial state of the RTHandle system.
+            // Tells the system that we will require MSAA or not so that we can avoid wasteful render texture allocation.
+            // TODO: Might want to initialize to at least the window resolution to avoid un-necessary re-alloc in the player
+            RTHandles.Initialize(1, 1, m_Asset.renderPipelineSettings.supportMSAA, m_Asset.renderPipelineSettings.msaaSampleCount);
+
             m_GPUCopy = new GPUCopy(asset.renderPipelineResources.copyChannelCS);
+
             var bufferPyramidProcessor = new BufferPyramidProcessor(
                 asset.renderPipelineResources.colorPyramidCS,
                 asset.renderPipelineResources.depthPyramidCS,
@@ -269,11 +276,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void InitializeRenderTextures()
         {
-            // Initial state of the RTHandle system.
-            // Tells the system that we will require MSAA or not so that we can avoid wasteful render texture allocation.
-            // TODO: Might want to initialize to at least the window resolution to avoid un-necessary re-alloc in the player
-            RTHandles.Initialize(1, 1, m_Asset.renderPipelineSettings.supportMSAA, m_Asset.renderPipelineSettings.msaaSampleCount);
-
             if(!m_Asset.renderPipelineSettings.supportForwardOnly)
                 m_GbufferManager.CreateBuffers();
 
@@ -539,9 +541,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_LightLoop.AllocResolutionDependentBuffers((int)hdCamera.screenSize.x, (int)hdCamera.screenSize.y, m_FrameSettings.enableStereo);
             }
-
-            // Warning: (resolutionChanged == false) if you open a new Editor tab of the same size!
-            m_VolumetricLightingSystem.ResizeVBufferAndUpdateProperties(hdCamera, m_FrameCount);
 
             // update recorded window resolution
             m_CurrentWidth = hdCamera.actualWidth;
@@ -844,7 +843,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         m_FrameSettings.enablePostprocess = false;
                     }
 
-                    var hdCamera = HDCamera.Get(camera, postProcessLayer, m_FrameSettings);
+                    var hdCamera = HDCamera.Get(camera);
+
+                    if (hdCamera == null)
+                    {
+                        hdCamera = HDCamera.Create(camera, m_VolumetricLightingSystem);
+                    }
+
+                    hdCamera.Update(postProcessLayer, m_FrameSettings, m_VolumetricLightingSystem);
 
                     Resize(hdCamera);
 
