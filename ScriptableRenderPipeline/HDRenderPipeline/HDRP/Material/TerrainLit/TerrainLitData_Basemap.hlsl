@@ -68,7 +68,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     }
 #endif
 
-    GetBuiltinData(input, surfaceData, alpha, bentNormalWS, 0, builtinData);
+    GetBuiltinData(input, surfaceData, 1, bentNormalWS, 0, builtinData);
 }
 
 #include "TerrainLitDataMeshModification.hlsl"
