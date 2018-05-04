@@ -18,7 +18,7 @@ namespace UnityEditor.VFX.Operator
             public float Threshold = 0.5f;
         }
 
-        public IEnumerable<int> strictSameTypeSlotIndex
+        public IEnumerable<int> slotIndicesThatMustHaveSameType
         {
             get
             {
@@ -26,7 +26,7 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        public IEnumerable<int> allowExceptionalScalarSlotIndex
+        public IEnumerable<int> slotIndicesThatCanBeScalar
         {
             get
             {

@@ -21,8 +21,8 @@ namespace UnityEditor.VFX.Operator
         {
             var type = inputExpression[0].valueType;
 
-            var zerofive = VFXOperatorUtility.HalfExpression[type];
-            var expression = VFXOperatorUtility.Mad(inputExpression[0], zerofive, zerofive);
+            var half = VFXOperatorUtility.HalfExpression[type];
+            var expression = VFXOperatorUtility.Mad(inputExpression[0], half, half);
 
             if (m_Clamp)
                 return new[] { VFXOperatorUtility.Saturate(expression) };

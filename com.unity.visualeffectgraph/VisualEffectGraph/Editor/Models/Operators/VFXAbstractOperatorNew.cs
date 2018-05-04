@@ -336,8 +336,8 @@ namespace UnityEditor.VFX
 
     interface IVFXOperatorNumericUnifiedConstrained
     {
-        IEnumerable<int> strictSameTypeSlotIndex { get; }
-        IEnumerable<int> allowExceptionalScalarSlotIndex { get; }
+        IEnumerable<int> slotIndicesThatMustHaveSameType { get; }
+        IEnumerable<int> slotIndicesThatCanBeScalar { get; }
     }
 
     abstract class VFXOperatorNumericUnifiedNew : VFXOperatorNumericNew, IVFXOperatorNumericUnifiedNew
