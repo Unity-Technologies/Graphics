@@ -69,19 +69,24 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        CoordinateSpace IValueController.space
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
-
         bool IPropertyRMProvider.spaceable
         {
             get
             {
                 return false;
+            }
+        }
+
+        bool IPropertyRMProvider.IsSpaceInherited()
+        {
+            throw new NotImplementedException();
+        }
+
+        CoordinateSpace IValueController.space
+        {
+            get
+            {
+                throw new NotImplementedException();
             }
         }
 
@@ -248,6 +253,11 @@ namespace UnityEditor.VFX.UI
             {
                 return false;
             }
+        }
+
+        public bool IsSpaceInherited()
+        {
+            return false;
         }
 
         public void ExpandPath()
@@ -671,6 +681,11 @@ namespace UnityEditor.VFX.UI
             {
                 return parameter.GetOutputSlot(0).spaceable;
             }
+        }
+
+        public bool IsSpaceInherited()
+        {
+            return parameter.GetOutputSlot(0).IsSpaceInherited();
         }
 
         public override void OnDisable()

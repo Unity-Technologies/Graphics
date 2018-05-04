@@ -457,5 +457,30 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(e.y, r.y);
             Assert.AreEqual(e.z, r.z);
         }
+
+        [Test]
+        public void AddNewMixingType()
+        {
+            var add = ScriptableObject.CreateInstance<Operator.AddNew>();
+            add.SetOperandType(0, typeof(Vector));
+            add.SetOperandType(1, typeof(DirectionType));
+
+            var a = new Vector3(1, 2, 3);
+            var b = new Vector3(6, 5, 4);
+
+            add.inputSlots[0].value = new Vector() { vector = a };
+            add.inputSlots[1].value = new DirectionType() { direction = b };
+
+            Assert.AreEqual(typeof(Vector), add.outputSlots[0].property.type);
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+            var resultVector3Expression = context.Compile(add.outputSlots[0].GetExpression());
+            var r = resultVector3Expression.Get<Vector3>();
+
+            var e = a + b.normalized;
+            Assert.AreEqual(e.x, r.x);
+            Assert.AreEqual(e.y, r.y);
+            Assert.AreEqual(e.z, r.z);
+        }
     }
 }

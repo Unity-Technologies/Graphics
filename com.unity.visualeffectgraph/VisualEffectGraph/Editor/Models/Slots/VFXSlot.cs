@@ -116,6 +116,20 @@ namespace UnityEditor.VFX
             }
         }
 
+        public bool IsSpaceInherited()
+        {
+            if (!spaceable)
+            {
+                Debug.LogError("Unexpected call of IsSpaceInherited : " + ToString());
+                return true;
+            }
+
+            if (!HasLink() || direction == Direction.kOutput)
+                return false;
+
+            return m_LinkedSlots.First().spaceable;
+        }
+
         public SpaceableType GetSpaceTransformationType()
         {
             if (!spaceable)
@@ -304,7 +318,7 @@ namespace UnityEditor.VFX
             {
                 m_Owner = null,
                 m_Value = new VFXSerializableObject(property.type, value),
-                m_Space = (CoordinateSpace)int.MaxValue //Will be init with InitSpaceable
+                m_Space = (CoordinateSpace)int.MaxValue //Will be lazy init with InitSpaceable
             };
 
             slot.PropagateToChildren(s => {
@@ -517,12 +531,9 @@ namespace UnityEditor.VFX
                         if (spaceAttribute != null)
                         {
                             var slot = s.children.ElementAt(fieldIndex);
-
-                            if (slot.GetParent() is VFXSlotPosition
-                                ||  slot.GetParent() is VFXSlotDirection
-                                ||  slot.GetParent() is VFXSlotVector)
+                            if (slot.GetParent() is VFXSlotPImpl)
                             {
-                                slot = slot.GetParent(); //TODOPAUL : it's a cheat...
+                                slot = slot.GetParent();
                             }
 
                             spaceableCollection.Add(new SpaceSlotConcerned()

@@ -47,6 +47,11 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public bool IsSpaceInherited()
+        {
+            return model.IsSpaceInherited();
+        }
+
         public override string name
         {
             get

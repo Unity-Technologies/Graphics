@@ -56,16 +56,14 @@ namespace UnityEditor.VFX.UI
         }
 
         VisualElement m_Button;
+
         protected override void UpdateEnabled()
         {
-            //TODOPAUL
-            //m_Button.SetEnabled(propertyEnabled);
+            m_Button.SetEnabled(!m_Provider.IsSpaceInherited());
         }
 
         protected override void UpdateIndeterminate()
         {
-            //TODOPAUL
-            //m_Button.visible = !indeterminate;
         }
 
         private float spaceButtonWidth

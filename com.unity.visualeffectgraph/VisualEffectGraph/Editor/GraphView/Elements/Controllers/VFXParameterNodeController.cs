@@ -165,6 +165,11 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public bool IsSpaceInherited()
+        {
+            return m_ParentController.IsSpaceInherited();
+        }
+
         bool IPropertyRMProvider.expanded
         {
             get

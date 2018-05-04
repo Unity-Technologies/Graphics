@@ -113,6 +113,11 @@ namespace UnityEditor.VFX.UI
 
         public bool spaceable { get { return false; } }
 
+        public bool IsSpaceInherited()
+        {
+            throw new NotImplementedException();
+        }
+
         public void ExpandPath()
         {
         }

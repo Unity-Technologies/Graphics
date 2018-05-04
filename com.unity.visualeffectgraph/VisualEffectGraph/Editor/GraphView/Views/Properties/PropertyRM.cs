@@ -21,6 +21,7 @@ namespace UnityEditor.VFX.UI
         object value { get; set; }
         bool spaceable { get; }
         CoordinateSpace space { get; set; }
+        bool IsSpaceInherited();
         string name { get; }
         VFXPropertyAttribute[] attributes { get; }
         object[] customAttributes { get; }
@@ -46,6 +47,8 @@ namespace UnityEditor.VFX.UI
         }
 
         CoordinateSpace IPropertyRMProvider.space { get { return CoordinateSpace.Local; } set {} }
+
+        bool IPropertyRMProvider.IsSpaceInherited() { return false; }
 
         bool IPropertyRMProvider.spaceable { get { return false; } }
 
