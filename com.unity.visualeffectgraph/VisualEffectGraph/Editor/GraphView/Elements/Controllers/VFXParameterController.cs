@@ -88,14 +88,6 @@ namespace UnityEditor.VFX.UI
             throw new NotImplementedException();
         }
 
-        CoordinateSpace IValueController.space
-        {
-            get
-            {
-                throw new NotImplementedException();
-            }
-        }
-
 
         bool IPropertyRMProvider.expanded
         {
@@ -333,8 +325,8 @@ namespace UnityEditor.VFX.UI
             for (int i = 0; i < fields.Length; ++i)
             {
                 string path = string.IsNullOrEmpty(memberPath) ? fields[i].Name : memberPath + VFXGizmoUtility.Context.separator + fields[i].Name;
-                subControllers[i - startIndex] = new VFXSubParameterController(this, fieldPath.Concat(Enumerable.Repeat(i, 1)), path);
-                m_ChildrenByPath[path] = subControllers[i - startIndex];
+                subControllers[i] = new VFXSubParameterController(this, fieldPath.Concat(Enumerable.Repeat(i, 1)), path);
+                m_ChildrenByPath[path] = subControllers[i];
             }
             return subControllers;
         }
@@ -648,7 +640,6 @@ namespace UnityEditor.VFX.UI
         object m_CachedMinValue;
         object m_CachedMaxValue;
 
-
         public object value
         {
             get
@@ -842,6 +833,13 @@ namespace UnityEditor.VFX.UI
             get { return m_Controller.value; }
         }
 
+        public override CoordinateSpace space
+        {
+            get
+            {
+                return m_Controller.space;
+            }
+        }
 
         protected override void InternalPrepare() {}
 

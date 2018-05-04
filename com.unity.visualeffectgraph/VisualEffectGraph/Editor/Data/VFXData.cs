@@ -7,7 +7,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
-    interface ISpaceable
+    public interface ISpaceable
     {
         CoordinateSpace space { get; set; }
     }

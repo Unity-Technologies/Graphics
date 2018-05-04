@@ -38,7 +38,7 @@ namespace UnityEditor.VFX
         protected const float handleSize = 0.1f;
         protected const float arcHandleSizeMultiplier = 1.25f;
 
-        protected CoordinateSpace m_CurrentSpace;
+        public CoordinateSpace currentSpace { get; set; }
         public VisualEffect component {get; set; }
 
         public bool PositionGizmo(ref Vector3 position, bool always)
@@ -192,21 +192,18 @@ namespace UnityEditor.VFX
     {
         public override void CallDrawGizmo(object value)
         {
-            m_CurrentSpace = CoordinateSpace.Global;
-
             OnDrawGizmo((T)value);
         }
 
         public abstract void OnDrawGizmo(T value);
     }
-    public abstract class VFXSpaceableGizmo<T> : VFXGizmo<T> where T : ISpaceable
+    public abstract class VFXSpaceableGizmo<T> : VFXGizmo<T>
     {
         public override void OnDrawGizmo(T value)
         {
-            m_CurrentSpace = value.space;
             Matrix4x4 oldMatrix = Handles.matrix;
 
-            if (value.space == CoordinateSpace.Local)
+            if (currentSpace == CoordinateSpace.Local)
             {
                 if (component == null) return;
                 Handles.matrix = component.transform.localToWorldMatrix;

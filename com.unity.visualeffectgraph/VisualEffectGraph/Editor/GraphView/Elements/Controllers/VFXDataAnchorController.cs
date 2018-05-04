@@ -589,6 +589,13 @@ namespace UnityEditor.VFX.UI
                 return stack.First();
             }
         }
+        public override CoordinateSpace space
+        {
+            get
+            {
+                return m_Controller.space;
+            }
+        }
 
         List<Action<List<object>>> m_ValueBuilder = new List<Action<List<object>>>();
 
