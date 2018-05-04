@@ -29,8 +29,8 @@ Shader "Hidden/HDRenderPipeline/CameraMotionVectors"
 
         float4 Frag(Varyings input) : SV_Target
         {
-            float depth = LOAD_TEXTURE2D(_MainDepthTexture, input.positionCS.xy).x;
-        
+            float depth = LOAD_TEXTURE2D(_CameraDepthTexture, input.positionCS.xy).x;
+
             PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
             float4 worldPos = float4(posInput.positionWS, 1.0);
@@ -57,7 +57,7 @@ Shader "Hidden/HDRenderPipeline/CameraMotionVectors"
     SubShader
     {
         Tags{ "RenderPipeline" = "HDRenderPipeline" }
-        
+
         Pass
         {
             // We will perform camera motion velocity only where there is no object velocity
