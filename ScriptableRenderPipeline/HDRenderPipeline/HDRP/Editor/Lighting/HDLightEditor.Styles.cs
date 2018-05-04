@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using UnityEngine;
 
@@ -29,6 +29,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent affectDiffuse = new GUIContent("Affect Diffuse", "This will disable diffuse lighting for this light. Doesn't save performance, diffuse lighting is still computed.");
             public readonly GUIContent affectSpecular = new GUIContent("Affect Specular", "This will disable specular lighting for this light. Doesn't save performance, specular lighting is still computed.");
             public readonly GUIContent lightDimmer = new GUIContent("Dimmer", "Aim to be used with script, timeline or animation. It allows dimming one or multiple lights of heterogeneous intensity easily (without needing to know the intensity of each light).");
+            public readonly GUIContent volumetricDimmer = new GUIContent("Volumetric Dimmer", "Allows to reduce the intensity of the scattered volumetric lighting.");
             public readonly GUIContent fadeDistance = new GUIContent("Fade Distance", "The distance at which the light will smoothly fade before being culled to minimize popping.");
             public readonly GUIContent spotInnerPercent = new GUIContent("Inner Percent", "Controls size of the angular attenuation in percent of the base angle of the Spot light's cone.");
             public readonly GUIContent spotLightShape = new GUIContent("Shape", "The shape use for the spotlight. Has an impact on the cookie transformation and light angular attenuation.");
