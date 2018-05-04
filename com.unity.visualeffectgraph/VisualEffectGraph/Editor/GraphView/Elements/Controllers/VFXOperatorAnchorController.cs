@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.UI
         {
             System.Type newAnchorType = null;
 
-            if (slot.property.type == typeof(FloatN))
+            if (slot.property.type == typeof(FloatN) && slot.refSlot != null)
             {
                 newAnchorType = VFXTypeUtility.GetFloatTypeFromComponentCount(VFXTypeUtility.GetComponentCount(slot.refSlot));
                 if (newAnchorType == null)

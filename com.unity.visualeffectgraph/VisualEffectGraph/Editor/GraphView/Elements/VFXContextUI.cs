@@ -217,12 +217,6 @@ namespace UnityEditor.VFX.UI
         }
 
         bool m_CanHaveBlocks = false;
-
-        public void OnMoved()
-        {
-            controller.position = GetPosition().position;
-        }
-
         void OnSpace()
         {
             controller.context.space = (CoordinateSpace)(((int)controller.context.space + 1) % (CoordinateSpaceInfo.SpaceCount));

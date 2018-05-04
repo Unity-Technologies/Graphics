@@ -3,7 +3,7 @@ using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEditor.Experimental.UIElements;
 
-using FloatField = UnityEditor.VFX.UIElements.VFXLabeledField<UnityEditor.VFX.UIElements.VFXFloatField, float>;
+using FloatField = UnityEditor.VFX.UIElements.VFXLabeledField<UnityEditor.Experimental.UIElements.FloatField, float>;
 
 namespace UnityEditor.VFX.UIElements
 {
@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.UIElements
         {
             get
             {
-                return m_FloatFields[0, 0].control.indeterminate;
+                return m_FloatFields[0, 0].indeterminate;
             }
             set
             {
@@ -40,7 +40,7 @@ namespace UnityEditor.VFX.UIElements
                 {
                     for (int j = 0; j < m_FloatFields.GetLength(1); ++j)
                     {
-                        m_FloatFields[i, j].control.indeterminate = value;
+                        m_FloatFields[i, j].indeterminate = value;
                     }
                 }
             }

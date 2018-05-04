@@ -1,4 +1,4 @@
-.propertyrm > #indeterminate, .propertyrm VFXFlipBookField #indeterminate
+.propertyrm #indeterminate
 {
     background-image: resource("Builtin Skins/LightSkin/Images/TextField.png");
 }

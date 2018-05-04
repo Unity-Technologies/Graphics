@@ -170,6 +170,13 @@ namespace UnityEditor.VFX.UI
 
         public abstract void UpdateGUI(bool force);
 
+
+        public void UpdateValue()
+        {
+            object value = m_Provider.value;
+            SetValue(value);
+        }
+
         public void Update()
         {
             Profiler.BeginSample("PropertyRM.Update");
@@ -179,9 +186,11 @@ namespace UnityEditor.VFX.UI
                 SetMultiplier(Mathf.PI / 180.0f);
             Profiler.EndSample();
 
-            Profiler.BeginSample("PropertyRM.Update:Regex");
 
+            Profiler.BeginSample("PropertyRM.Update:GetValue:");
             object value = m_Provider.value;
+            Profiler.EndSample();
+            Profiler.BeginSample("PropertyRM.Update:Regex");
 
             if (value != null)
             {
@@ -433,6 +442,10 @@ namespace UnityEditor.VFX.UI
                 if (obj is FloatN)
                 {
                     m_Value = ((IFloatNAffector<T>)FloatNAffector.Default).GetValue(obj);
+                }
+                else if (m_Provider.portType == typeof(Transform) && obj is Matrix4x4)
+                {
+                    // do nothing
                 }
                 else
                 {

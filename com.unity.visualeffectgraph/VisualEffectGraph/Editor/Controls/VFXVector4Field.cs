@@ -3,8 +3,6 @@ using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEditor.Experimental.UIElements;
 
-using FloatField = UnityEditor.VFX.UIElements.VFXLabeledField<UnityEditor.VFX.UIElements.VFXFloatField, float>;
-
 namespace UnityEditor.VFX.UIElements
 {
     class VFXVector4Field : VFXVectorNField<Vector4>

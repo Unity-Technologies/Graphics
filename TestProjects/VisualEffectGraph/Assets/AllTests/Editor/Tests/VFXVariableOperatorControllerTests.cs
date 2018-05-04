@@ -66,7 +66,7 @@ namespace UnityEditor.VFX.Test
             var op = m_ViewController.AddVFXOperator(position, desc);
             m_ViewController.LightApplyChanges();
 
-            return m_ViewController.GetControllerFromModel(op, 0);
+            return m_ViewController.GetRootNodeController(op, 0);
         }
 
         static private string[] variableOperators = { "AddNew", "DotProductNew", "ClampNew" };

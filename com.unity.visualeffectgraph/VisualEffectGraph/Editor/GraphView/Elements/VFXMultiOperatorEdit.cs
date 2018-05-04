@@ -181,19 +181,16 @@ namespace UnityEditor.VFX.UI
             var op = controller.model;
             int count = op.operandCount;
 
-            bool sizeChanged = false;
 
             while (itemCount < count)
             {
                 OperandInfoBase item = CreateOperandInfo(itemCount);
                 item.Set(op);
                 AddItem(item);
-                sizeChanged = true;
             }
             while (itemCount > count)
             {
                 RemoveItemAt(itemCount - 1);
-                sizeChanged = true;
             }
 
             for (int i = 0; i < count; ++i)

@@ -3,7 +3,6 @@ using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEditor.Experimental.UIElements;
 using System.Collections.Generic;
-using FloatField = UnityEditor.VFX.UIElements.VFXFloatField;
 
 namespace UnityEditor.VFX.UIElements
 {
@@ -119,15 +118,25 @@ namespace UnityEditor.VFX.UIElements
             m_Slider.AddToClassList("textfield");
             m_Slider.valueChanged += ValueChanged;
 
-            var doubleField = new FloatField();
-            doubleField.RegisterCallback<ChangeEvent<float>>(ValueChanged);
-            doubleField.name = "Field";
-            m_Field = doubleField;
+            m_FloatField = new FloatField();
+            m_FloatField.RegisterCallback<ChangeEvent<float>>(ValueChanged);
+            m_FloatField.name = "Field";
+            m_Field = m_FloatField;
+
+            m_IndeterminateLabel = new Label()
+            {
+                name = "indeterminate",
+                text = VFXControlConstants.indeterminateText
+            };
+            m_IndeterminateLabel.SetEnabled(false);
 
             Add(m_Slider);
-            Add(doubleField);
+            Add(m_FloatField);
             RegisterCallBack();
         }
+
+        VisualElement m_IndeterminateLabel;
+        FloatField m_FloatField;
 
         public override bool HasFocus()
         {
@@ -147,12 +156,24 @@ namespace UnityEditor.VFX.UIElements
 
         public bool indeterminate
         {
-            get {return (m_Field as FloatField).indeterminate; }
+            get {return m_FloatField.parent == null; }
 
             set
             {
-                (m_Field as FloatField).indeterminate = value;
-                m_Slider.SetEnabled(!value);
+                if (indeterminate != value)
+                {
+                    if (value)
+                    {
+                        m_FloatField.RemoveFromHierarchy();
+                        Add(m_IndeterminateLabel);
+                    }
+                    else
+                    {
+                        m_IndeterminateLabel.RemoveFromHierarchy();
+                        Add(m_FloatField);
+                    }
+                    m_Slider.SetEnabled(!value);
+                }
             }
         }
     }

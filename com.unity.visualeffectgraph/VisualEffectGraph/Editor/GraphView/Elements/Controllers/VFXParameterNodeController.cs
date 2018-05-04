@@ -84,7 +84,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXParameterNodeController : VFXNodeController, IPropertyRMProvider, IValueController
+    class VFXParameterNodeController : VFXNodeController, IPropertyRMProvider
     {
         VFXParameterController m_ParentController;
 
@@ -225,8 +225,6 @@ namespace UnityEditor.VFX.UI
 
         public override void DrawGizmos(VisualEffect component)
         {
-            VFXValueGizmo.Draw(this, component);
-
             m_ParentController.DrawGizmos(component);
         }
 

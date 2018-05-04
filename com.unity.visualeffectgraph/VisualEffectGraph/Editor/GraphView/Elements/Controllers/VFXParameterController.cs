@@ -6,13 +6,14 @@ using System.Reflection;
 using UnityEditor.Experimental.UIElements.GraphView;
 
 using UnityEngine;
+using UnityEngine.Profiling;
 using UnityEngine.Experimental.VFX;
 using UnityEngine.Experimental.UIElements;
 
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXSubParameterController : IPropertyRMProvider, IValueController
+    class VFXSubParameterController : IPropertyRMProvider
     {
         VFXParameterController m_Parameter;
         //int m_Field;
@@ -21,12 +22,17 @@ namespace UnityEditor.VFX.UI
 
         VFXSubParameterController[] m_Children;
 
+
         object[] m_CustomAttributes;
         VFXPropertyAttribute[] m_Attributes;
 
-        public VFXSubParameterController(VFXParameterController parameter, IEnumerable<int> fieldPath)
+        string m_MemberPath;
+
+
+        public VFXSubParameterController(VFXParameterController parameter, IEnumerable<int> fieldPath, string memberPath)
         {
             m_Parameter = parameter;
+            m_MemberPath = memberPath;
             //m_Field = field;
 
             System.Type type = m_Parameter.portType;
@@ -50,7 +56,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (m_Children == null)
                 {
-                    m_Children = m_Parameter.ComputeSubControllers(portType, m_FieldPath);
+                    m_Children = m_Parameter.ComputeSubControllers(portType, m_FieldPath, m_MemberPath);
                 }
                 return m_Children;
             }
@@ -105,7 +111,7 @@ namespace UnityEditor.VFX.UI
 
         bool IPropertyRMProvider.expandable { get { return false; } }
 
-        string IPropertyRMProvider.name
+        public string name
         {
             get { return m_FieldInfos[m_FieldInfos.Length - 1].Name; }
         }
@@ -138,12 +144,14 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
+                Profiler.BeginSample("VFXDataAnchorController.value.get");
                 object value = m_Parameter.value;
 
                 foreach (var fieldInfo in m_FieldInfos)
                 {
                     value = fieldInfo.GetValue(value);
                 }
+                Profiler.EndSample();
 
                 return value;
             }
@@ -316,13 +324,17 @@ namespace UnityEditor.VFX.UI
             NotifyChange(ValueChanged);
         }
 
-        public VFXSubParameterController[] ComputeSubControllers(Type type, IEnumerable<int> fieldPath)
+        Dictionary<string, VFXSubParameterController> m_ChildrenByPath = new Dictionary<string, VFXSubParameterController>();
+
+        public VFXSubParameterController[] ComputeSubControllers(Type type, IEnumerable<int> fieldPath, string memberPath)
         {
             var fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
             var subControllers = new VFXSubParameterController[fields.Length];
             for (int i = 0; i < fields.Length; ++i)
             {
-                subControllers[i] = new VFXSubParameterController(this, fieldPath.Concat(Enumerable.Repeat(i, 1)));
+                string path = string.IsNullOrEmpty(memberPath) ? fields[i].Name : memberPath + VFXGizmoUtility.Context.separator + fields[i].Name;
+                subControllers[i - startIndex] = new VFXSubParameterController(this, fieldPath.Concat(Enumerable.Repeat(i, 1)), path);
+                m_ChildrenByPath[path] = subControllers[i - startIndex];
             }
             return subControllers;
         }
@@ -333,7 +345,7 @@ namespace UnityEditor.VFX.UI
         {
             if (m_SubControllers == null)
             {
-                m_SubControllers = ComputeSubControllers(portType, fieldPath);
+                m_SubControllers = ComputeSubControllers(portType, new List<int>(), "");
             }
             VFXSubParameterController[] currentArray = m_SubControllers;
 
@@ -360,6 +372,108 @@ namespace UnityEditor.VFX.UI
             HashSet<string> allNames = new HashSet<string>(viewController.parameterControllers.Where((t, i) => t != this).Select(t => t.exposedName));
 
             return MakeNameUnique(name, allNames);
+        }
+
+        public IPropertyRMProvider GetMemberController(string memberPath)
+        {
+            if (string.IsNullOrEmpty(memberPath))
+            {
+                return this;
+            }
+            if (m_SubControllers == null)
+            {
+                m_SubControllers = ComputeSubControllers(portType, new List<int>(), "");
+            }
+            VFXSubParameterController subParameterController = null;
+            if (m_ChildrenByPath.TryGetValue(memberPath, out subParameterController))
+            {
+                return subParameterController;
+            }
+            else
+            {
+                string parentMemberPath = memberPath;
+
+                List<string> members = new List<string>();
+
+                while (true)
+                {
+                    int index = parentMemberPath.LastIndexOf(VFXGizmoUtility.Context.separator);
+                    if (index == -1)
+                    {
+                        Debug.LogError("Coulnd't find SubParameter path " + memberPath);
+                        return null;
+                    }
+
+                    members.Add(parentMemberPath.Substring(index + 1));
+                    parentMemberPath = parentMemberPath.Substring(0, index);
+                    if (m_ChildrenByPath.TryGetValue(parentMemberPath, out subParameterController))
+                    {
+                        break;
+                    }
+                }
+
+                foreach (var member in members)
+                {
+                    subParameterController = subParameterController.children.FirstOrDefault(t => t.name == member);
+                    if (subParameterController == null)
+                    {
+                        Debug.LogError("Coulnd't find SubParameter path " + memberPath);
+                        return null;
+                    }
+                }
+                return subParameterController;
+            }
+        }
+
+        public void SetMemberValue(string memberPath, object value)
+        {
+            if (string.IsNullOrEmpty(memberPath))
+            {
+                this.value = value;
+                return;
+            }
+            if (m_SubControllers == null)
+            {
+                m_SubControllers = ComputeSubControllers(portType, new List<int>(), "");
+            }
+            VFXSubParameterController subParameterController = null;
+            if (m_ChildrenByPath.TryGetValue(memberPath, out subParameterController))
+            {
+                subParameterController.value = value;
+            }
+            else
+            {
+                string parentMemberPath = memberPath;
+
+                List<string> members = new List<string>();
+
+                while (true)
+                {
+                    int index = parentMemberPath.LastIndexOf(VFXGizmoUtility.Context.separator);
+                    if (index == -1)
+                    {
+                        Debug.LogError("Coulnd't find SubParameter path " + memberPath);
+                        return;
+                    }
+
+                    members.Add(parentMemberPath.Substring(index + 1));
+                    parentMemberPath = parentMemberPath.Substring(0, index);
+                    if (m_ChildrenByPath.TryGetValue(parentMemberPath, out subParameterController))
+                    {
+                        break;
+                    }
+                }
+
+                foreach (var member in members)
+                {
+                    subParameterController = subParameterController.children.FirstOrDefault(t => t.name == member);
+                    if (subParameterController == null)
+                    {
+                        Debug.LogError("Coulnd't find SubParameter path " + memberPath);
+                        return;
+                    }
+                }
+            }
         }
 
         public static string MakeNameUnique(string name, HashSet<string> allNames)
@@ -572,15 +686,16 @@ namespace UnityEditor.VFX.UI
                 return model.GetOutputSlot(0).property.type;
             }
         }
+
+
+        ParameterGizmoContext m_Context;
         public void DrawGizmos(VisualEffect component)
         {
-            if (m_SubControllers != null)
+            if (m_Context == null)
             {
-                foreach (var controller in m_SubControllers)
-                {
-                    VFXValueGizmo.Draw(controller, component);
-                }
+                m_Context = new ParameterGizmoContext(this);
             }
+            VFXGizmoUtility.Draw(m_Context, component);
         }
 
         Dictionary<int, VFXParameterNodeController> m_Controllers = new Dictionary<int, VFXParameterNodeController>();
@@ -645,7 +760,7 @@ namespace UnityEditor.VFX.UI
 
         public bool expandable { get { return false; } }
 
-        public string name { get { return "Value"; } }
+        public override string name { get { return "Value"; } }
 
         public object[] customAttributes { get { return new object[] {}; } }
 
@@ -705,6 +820,49 @@ namespace UnityEditor.VFX.UI
         public void RetractPath()
         {
             throw new NotImplementedException();
+        }
+    }
+
+    public class ParameterGizmoContext : VFXGizmoUtility.Context
+    {
+        internal ParameterGizmoContext(VFXParameterController controller)
+        {
+            m_Controller = controller;
+        }
+
+        VFXParameterController m_Controller;
+
+        public override Type portType
+        {
+            get {return m_Controller.portType; }
+        }
+
+        public override object value
+        {
+            get { return m_Controller.value; }
+        }
+
+
+        protected override void InternalPrepare() {}
+
+        public override VFXGizmo.IProperty<T> RegisterProperty<T>(string member)
+        {
+            object result;
+            if (m_PropertyCache.TryGetValue(member, out result))
+            {
+                if (result is VFXGizmo.IProperty<T> )
+                    return result as VFXGizmo.IProperty<T>;
+                else
+                    return VFXGizmoUtility.NullProperty<T>.defaultProperty;
+            }
+            var controller = m_Controller.GetMemberController(member);
+
+            if (controller != null && controller.portType == typeof(T))
+            {
+                return new VFXGizmoUtility.Property<T>(controller, true);
+            }
+
+            return VFXGizmoUtility.NullProperty<T>.defaultProperty;
         }
     }
 }
