@@ -11,7 +11,7 @@ namespace UnityEditor.VFX
         {
             if (expr.Length != 1)
                 throw new InvalidOperationException("Incorrect VFXSlotPImpl");
-            return expr[0];
+            return ApplyPatchExpression(expr[0]);
         }
 
         protected override sealed VFXExpression[] ExpressionToChildren(VFXExpression expr)

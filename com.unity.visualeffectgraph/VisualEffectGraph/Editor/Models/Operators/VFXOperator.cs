@@ -63,13 +63,13 @@ namespace UnityEditor.VFX
         {
             //Detect spaceable input slot & set output slot as a result (if one output slot is spaceable)
             var inputSlotWithExpression = new List<VFXSlot>();
-            GetSlotPredicateRecursive(inputSlotWithExpression, inputSlots, s => s.DefaultExpr != null);
+            GetSlotPredicateRecursive(inputSlotWithExpression, inputSlots, s => s.IsMasterSlot());
 
             var inputSlotSpaceable = inputSlots.Where(o => o.spaceable);
             if (inputSlotSpaceable.Any())
             {
                 var outputSlotWithExpression = new List<VFXSlot>();
-                GetSlotPredicateRecursive(outputSlotWithExpression, outputSlots, s => s.DefaultExpr != null);
+                GetSlotPredicateRecursive(outputSlotWithExpression, outputSlots, s => s.IsMasterSlot());
 
                 var outputSlotSpaceable = outputSlots.Where(o => o.spaceable);
                 if (outputSlotSpaceable.Any())

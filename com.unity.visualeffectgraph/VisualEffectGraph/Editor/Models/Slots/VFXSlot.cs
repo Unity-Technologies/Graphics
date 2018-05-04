@@ -318,7 +318,6 @@ namespace UnityEditor.VFX
             {
                 m_Owner = null,
                 m_Value = new VFXSerializableObject(property.type, value),
-                m_Space = (CoordinateSpace)int.MaxValue //Will be lazy init with InitSpaceable
             };
 
             slot.PropagateToChildren(s => {
@@ -399,6 +398,7 @@ namespace UnityEditor.VFX
 
             m_ExpressionTreeUpToDate = false;
             m_DefaultExpressionInitialized = false;
+            m_SlotsSpaceable = null;
         }
 
         public override void OnEnable()
@@ -413,6 +413,8 @@ namespace UnityEditor.VFX
                 Debug.Log(String.Format("Remove {0} linked slot(s) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
 
             m_ExpressionTreeUpToDate = false;
+            m_DefaultExpressionInitialized = false;
+            m_SlotsSpaceable = null;
 
             if (!IsMasterSlot())
                 m_MasterData = null; // Non master slot will always have a null master data
@@ -784,7 +786,8 @@ namespace UnityEditor.VFX
             }
 
             List<VFXSlot> startSlots = new List<VFXSlot>();
-            masterSlot.PropagateToChildren(s => {
+            masterSlot.PropagateToChildren(s =>
+                {
                     if (s.m_LinkedInExpression != null)
                         startSlots.Add(s);
 
@@ -1001,6 +1004,11 @@ namespace UnityEditor.VFX
         [Serializable]
         private class MasterData
         {
+            public MasterData()
+            {
+                m_Space = (CoordinateSpace)int.MaxValue;
+            }
+
             public VFXModel m_Owner;
             public VFXSerializableObject m_Value;
             public CoordinateSpace m_Space; //can be undefined
