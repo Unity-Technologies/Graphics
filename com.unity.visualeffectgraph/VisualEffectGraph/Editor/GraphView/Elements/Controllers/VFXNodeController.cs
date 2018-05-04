@@ -62,6 +62,14 @@ namespace UnityEditor.VFX.UI
             return false;
         }
 
+        public void UpdateAllEditable()
+        {
+            foreach (var port in inputPorts)
+            {
+                port.UpdateEditable();
+            }
+        }
+
         protected override void ModelChanged(UnityEngine.Object obj)
         {
             var inputs = inputPorts;
@@ -236,9 +244,10 @@ namespace UnityEditor.VFX.UI
 
         public virtual void DrawGizmos(VisualEffect component)
         {
-            foreach (VFXDataAnchorController controller in inputPorts.Cast<VFXDataAnchorController>())
+            foreach (VFXDataAnchorController controller in inputPorts)
             {
-                controller.DrawGizmo(component);
+                if (controller.model.IsMasterSlot())
+                    controller.DrawGizmo(component);
             }
         }
 
