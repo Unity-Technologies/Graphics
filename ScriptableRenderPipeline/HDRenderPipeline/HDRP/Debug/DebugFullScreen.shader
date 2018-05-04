@@ -235,7 +235,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                     const float raySegmentSDF = clamp(1 - distanceToRaySegment, 0, 1);
 
                     float cellSDF = 0;
-                    float debugLinearDepth = 0;
+                    float debugLinearDepth = LinearEyeDepth(deviceDepth, _ZBufferParams);;
                     if (debug.tracingModel == PROJECTIONMODEL_HI_Z
                         || debug.tracingModel == PROJECTIONMODEL_LINEAR)
                     {
@@ -251,8 +251,6 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                         distanceToCell = min(distanceToCell, float2(iterationCellSize) - distanceToCell);
                         distanceToCell = clamp(1 - distanceToCell, 0, 1);
                         cellSDF = max(distanceToCell.x, distanceToCell.y) * _ShowGrid;
-
-                        debugLinearDepth = posInput.linearDepth;
                     }
 
                     col = float4(
@@ -274,7 +272,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                     col.rgb = col.rgb * w + float3(1, 1, 1) * (1 - w);
 
                     if (_ShowDepthPyramidDebug == 1)
-                        color.rgb = frac(float3(debugLinearDepth, debugLinearDepth, debugLinearDepth) * 0.1);
+                        color.rgb = frac(debugLinearDepth * 0.1);
 
                     col = float4(col.rgb * col.a + color.rgb, 1);
 
