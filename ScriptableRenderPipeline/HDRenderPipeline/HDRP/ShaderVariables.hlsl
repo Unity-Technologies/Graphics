@@ -166,8 +166,7 @@ SAMPLER(s_trilinear_clamp_sampler);
 
 // ----------------------------------------------------------------------------
 
-TEXTURE2D(_MainDepthTexture);
-SAMPLER(sampler_MainDepthTexture);
+TEXTURE2D(_CameraDepthTexture);
 
 // Main lightmap
 TEXTURE2D(unity_Lightmap);
