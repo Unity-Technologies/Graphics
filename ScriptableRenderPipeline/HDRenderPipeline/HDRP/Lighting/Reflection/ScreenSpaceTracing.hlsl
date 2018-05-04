@@ -168,17 +168,14 @@ float3 IntersectCellPlanes(
     float2 crossOffset              // Offset to use to ensure cell boundary crossing
 )
 {
-    const float SQRT_2 = sqrt(2);
-    const float CellPlaneBias = 1E-2;
-
     // Planes to check
     int2 planes = (cellId + cellPlanes) * cellSize;
     // Hit distance to each planes
     float2 distanceToCellAxes = float2(planes - positionSS.xy) * invRaySS; // (distance to x axis, distance to y axis)
     float t = min(distanceToCellAxes.x, distanceToCellAxes.y)
-        // Offset by 1E-3 to ensure cell boundary crossing
+        // Offset to ensure cell crossing
         // This assume that length(raySS.xy) == 1;
-        + CellPlaneBias;
+        + 0.1;
     // Interpolate screen space to get next test point
     float3 testHitPositionSS = positionSS + raySS * t;
 
