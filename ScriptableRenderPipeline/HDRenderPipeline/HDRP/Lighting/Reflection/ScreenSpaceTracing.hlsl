@@ -262,8 +262,8 @@ bool ScreenSpaceLinearRaymarch(
     // Settings
     int settingRayLevel,                    // Mip level to use to ray march depth buffer
     uint settingsRayMaxIterations,          // Maximum number of iterations (= max number of depth samples)
-    int settingsDebuggedAlgorithm,          // currently debugged algorithm (see PROJECTIONMODEL defines)
     float settingsRayDepthSuccessBias,      // Bias to use when trying to detect whenever we raymarch behind a surface
+    int settingsDebuggedAlgorithm,          // currently debugged algorithm (see PROJECTIONMODEL defines)
     // Precomputed properties
     float3 startPositionSS,                 // Start position in Screen Space (x in pixel, y in pixel, z = 1/linearDepth)
     float3 raySS,                           // Ray direction in Screen Space (dx in pixel, dy in pixel, z = 1/endPointLinearDepth - 1/startPointLinearDepth)
@@ -501,8 +501,8 @@ bool ScreenSpaceLinearProxyRaycast(
         // Settings
         settingRayLevel,
         settingsRayMaxIterations,
-        settingsDebuggedAlgorithm,
         settingsRayDepthSuccessBias,
+        settingsDebuggedAlgorithm,
         // Precomputed properties
         startPositionSS,
         raySS,
@@ -584,11 +584,7 @@ bool ScreenSpaceHiZRaymarch(
             settingsRayLevel,
             settingsRayMaxLinearIterations,
             settingsRayDepthSuccessBias,
-#ifdef DEBUG_DISPLAY
             settingsDebuggedAlgorithm,
-#else
-            PROJECTIONMODEL_NONE,
-#endif
             // precomputed
             startPositionSS,
             raySS,
@@ -857,7 +853,7 @@ bool MERGE_NAME(ScreenSpaceProxyRaycast, SSRTID)(
         input,
         // Settings
 #if DEBUG_DISPLAY
-        SSRT_SETTING(DebuggedAlgorithm, SSRTID),
+        int(SSRT_SETTING(DebuggedAlgorithm, SSRTID)),
 #else
         int(PROJECTIONMODEL_NONE),
 #endif
