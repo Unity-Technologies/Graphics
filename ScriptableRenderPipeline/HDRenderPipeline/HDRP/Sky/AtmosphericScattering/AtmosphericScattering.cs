@@ -38,7 +38,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 cmd.SetGlobalVector(HDShaderIDs._GlobalScattering, data.scattering);
                 cmd.SetGlobalFloat( HDShaderIDs._GlobalExtinction, data.extinction);
-                cmd.SetGlobalFloat( HDShaderIDs._GlobalAsymmetry,  0.0f);
+                cmd.SetGlobalFloat( HDShaderIDs._GlobalAnisotropy, 0.0f);
             }
         }
 
