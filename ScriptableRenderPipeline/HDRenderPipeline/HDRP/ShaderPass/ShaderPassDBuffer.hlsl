@@ -18,7 +18,7 @@ void Frag(  PackedVaryingsToPS packedInput,
 {
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
 
-    float depth = LOAD_TEXTURE2D(_MainDepthTexture, input.positionSS.xy).x;
+    float depth = LOAD_TEXTURE2D(_CameraDepthTexture, input.positionSS.xy).x;
     PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
     // Transform from world space to decal space (DS) to clip the decal.
