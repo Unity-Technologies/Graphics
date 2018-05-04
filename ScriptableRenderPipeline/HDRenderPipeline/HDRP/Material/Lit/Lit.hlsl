@@ -1806,6 +1806,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     ScreenSpaceRayHit hit;
     ZERO_INITIALIZE(ScreenSpaceRayHit, hit);
     bool hitSuccessful = false;
+    float hitWeight = 1;
 
     // -------------------------------
     // Proxy raycasting
@@ -1847,11 +1848,11 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
 
 #if HAS_REFRACTION
         if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
-            hitSuccessful = ScreenSpaceHiZRaymarchRefraction(ssRayInput, hit);
+            hitSuccessful = ScreenSpaceHiZRaymarchRefraction(ssRayInput, hit, hitWeight);
         else 
 #endif
         if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
-            hitSuccessful = ScreenSpaceHiZRaymarchReflection(ssRayInput, hit);
+            hitSuccessful = ScreenSpaceHiZRaymarchReflection(ssRayInput, hit, hitWeight);
     }
 
     // Debug screen space tracing
@@ -1877,7 +1878,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     // -------------------------------
     float2 weightNDC = clamp(min(hit.positionNDC, 1 - hit.positionNDC) * invScreenWeightDistance, 0, 1);
     weightNDC = weightNDC * weightNDC * (3 - 2 * weightNDC);
-    float weight = weightNDC.x * weightNDC.y;
+    float weight = weightNDC.x * weightNDC.y * hitWeight;
 
     float hitDeviceDepth = LOAD_TEXTURE2D_LOD(_DepthPyramidTexture, hit.positionSS, 0).r;
     float hitLinearDepth = LinearEyeDepth(hitDeviceDepth, _ZBufferParams);

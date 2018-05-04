@@ -182,6 +182,35 @@ float3 IntersectCellPlanes(
     return testHitPositionSS;
 }
 
+float CalculateHitWeight(
+    ScreenSpaceRayHit hit,
+    float2 startPositionSS,
+    float invLinearDepth, 
+    float settingsRayDepthSuccessBias
+)
+{
+    const float maxScreenDistance = 0.3;
+    const float blendedScreenDistance = 0.05;
+
+    // Blend when the hit is near the thickness of the object
+    float thicknessWeight = (1 + ((1 / invLinearDepth) - hit.linearDepth) / settingsRayDepthSuccessBias);
+
+    // Blend when the ray when the raymarched distance is too long
+    float2 screenDistanceNDC = abs(hit.positionSS.xy - startPositionSS) * _ScreenSize.zw;
+    float2 screenDistanceWeights = clamp((maxScreenDistance - screenDistanceNDC) / blendedScreenDistance, 0, 1);
+    float screenDistanceWeight = min(screenDistanceWeights.x, screenDistanceWeights.y);
+
+    return thicknessWeight * screenDistanceWeight;
+}
+
+bool IsRaymarchingTooFar(
+    float2 startPositionSS,
+    float2 positionSS
+)
+{
+
+}
+
 #ifdef DEBUG_DISPLAY
 // -------------------------------------------------
 // Debug Utilities
@@ -268,12 +297,14 @@ bool ScreenSpaceLinearRaymarch(
     uint2 bufferSize,                       // Texture size of screen buffers
     // Out
     out ScreenSpaceRayHit hit,
+    out float hitWeight,
     out uint iteration
 )
 {
     ZERO_INITIALIZE(ScreenSpaceRayHit, hit);
     bool hitSuccessful = false;
     iteration = 0u;
+    hitWeight = 0;
     int mipLevel = min(max(settingRayLevel, 0), int(_DepthPyramidScale.z));
     uint maxIterations = settingsRayMaxIterations;
 
@@ -332,7 +363,14 @@ bool ScreenSpaceLinearRaymarch(
     hit.positionNDC = float2(positionSS.xy) / float2(bufferSize);
     hit.positionSS = uint2(positionSS.xy);
 
-    if (hit.linearDepth > (1 / invLinearDepth) + settingsRayDepthSuccessBias)
+    // Detect when we go behind an object given a thickness
+    hitWeight = CalculateHitWeight(
+        hit,
+        startPositionSS.xy,
+        invLinearDepth,
+        settingsRayDepthSuccessBias
+    );
+    if (hitWeight <= 0)
         hitSuccessful = false;
 
 #ifdef DEBUG_DISPLAY
@@ -493,6 +531,7 @@ bool ScreenSpaceLinearProxyRaycast(
     );
 
     uint iteration;
+    float hitWeight;
     bool hitSuccessful = ScreenSpaceLinearRaymarch(
         inputLinear,
         // Settings
@@ -507,6 +546,7 @@ bool ScreenSpaceLinearProxyRaycast(
         bufferSize,
         // Out
         hit,
+        hitWeight,
         iteration
     );
 
@@ -547,13 +587,15 @@ bool ScreenSpaceHiZRaymarch(
     float settingsRayDepthSuccessBias,              // Bias to use when trying to detect whenever we raymarch behind a surface
     int settingsDebuggedAlgorithm,                  // currently debugged algorithm (see PROJECTIONMODEL defines)
     // out
-    out ScreenSpaceRayHit hit
+    out ScreenSpaceRayHit hit,
+    out float hitWeight
 )
 {
     const float2 CROSS_OFFSET = float2(1, 1);
 
     // Initialize loop
     ZERO_INITIALIZE(ScreenSpaceRayHit, hit);
+    hitWeight = 0;
     bool hitSuccessful = false;
     uint iteration = 0u;
     int minMipLevel = max(settingsRayMinLevel, 0u);
@@ -589,6 +631,7 @@ bool ScreenSpaceHiZRaymarch(
             bufferSize,
             // out
             hit,
+            hitWeight,
             iteration
         ))
         return true;
@@ -623,7 +666,7 @@ bool ScreenSpaceHiZRaymarch(
     uint2 cellSize = uint2(1, 1) << currentLevel;
 
     float3 positionSS = startPositionSS;
-    float invHiZDepth = 0;
+    float invLinearDepth = 0;
 
     while (currentLevel >= minMipLevel)
     {
@@ -648,12 +691,12 @@ bool ScreenSpaceHiZRaymarch(
         int mipLevelDelta = -1;
 
         // Sampled as 1/Z so it interpolate properly in screen space.
-        invHiZDepth = LoadInvDepth(positionSS.xy, currentLevel);
+        invLinearDepth = LoadInvDepth(positionSS.xy, currentLevel);
         intersectionKind = HIZINTERSECTIONKIND_NONE;
 
-        if (IsPositionAboveDepth(positionSS.z, invHiZDepth))
+        if (IsPositionAboveDepth(positionSS.z, invLinearDepth))
         {
-            float3 candidatePositionSS = IntersectDepthPlane(positionSS, raySS, invHiZDepth);
+            float3 candidatePositionSS = IntersectDepthPlane(positionSS, raySS, invLinearDepth);
 
             intersectionKind = HIZINTERSECTIONKIND_DEPTH;
 
@@ -689,7 +732,7 @@ bool ScreenSpaceHiZRaymarch(
         {
             debugLoopMipMaxUsedLevel = max(debugLoopMipMaxUsedLevel, currentLevel);
             debugIterationPositionSS = positionSS;
-            debugIterationLinearDepthBuffer = 1 / invHiZDepth;
+            debugIterationLinearDepthBuffer = 1 / invLinearDepth;
             debugIteration = iteration;
             debugIterationIntersectionKind = intersectionKind;
             debugIterationCellSize = cellSize;
@@ -698,8 +741,7 @@ bool ScreenSpaceHiZRaymarch(
 
         // Check if we are out of the buffer
         if (any(int2(positionSS.xy) > int2(bufferSize))
-            || any(positionSS.xy < 0)
-            )
+            || any(positionSS.xy < 0))
         {
             hitSuccessful = false;
             break;
@@ -712,7 +754,14 @@ bool ScreenSpaceHiZRaymarch(
     hit.positionNDC = float2(positionSS.xy) / float2(bufferSize);
     hit.positionSS = uint2(positionSS.xy);
 
-    if (hit.linearDepth > (1 / invHiZDepth) + settingsRayDepthSuccessBias)
+    // Detect when we go behind an object given a thickness
+    hitWeight = CalculateHitWeight(
+        hit,
+        startPositionSS.xy,
+        invLinearDepth, 
+        settingsRayDepthSuccessBias
+    );
+    if (hitWeight <= 0)
         hitSuccessful = false;
 
 #ifdef DEBUG_DISPLAY
@@ -799,7 +848,8 @@ CBUFFER_END
 // -------------------------------------------------
 bool MERGE_NAME(ScreenSpaceLinearRaymarch, SSRTID)(
     ScreenSpaceRaymarchInput input,
-    out ScreenSpaceRayHit hit
+    out ScreenSpaceRayHit hit,
+    out float hitWeight
 )
 {
     uint2 bufferSize = uint2(_DepthPyramidSize.xy);
@@ -821,7 +871,7 @@ bool MERGE_NAME(ScreenSpaceLinearRaymarch, SSRTID)(
         // settings
         SSRT_SETTING(RayLevel, SSRTID),
         SSRT_SETTING(RayMaxIterations, SSRTID),
-        SSRT_SETTING(RayDepthSuccessBias, SSRTID),
+        max(0.01, SSRT_SETTING(RayDepthSuccessBias, SSRTID)),
 #ifdef DEBUG_DISPLAY
         SSRT_SETTING(DebuggedAlgorithm, SSRTID),
 #else
@@ -834,6 +884,7 @@ bool MERGE_NAME(ScreenSpaceLinearRaymarch, SSRTID)(
         bufferSize,
         // out
         hit,
+        hitWeight,
         iteration
     );
 }
@@ -864,7 +915,8 @@ bool MERGE_NAME(ScreenSpaceProxyRaycast, SSRTID)(
 // -------------------------------------------------
 bool MERGE_NAME(ScreenSpaceHiZRaymarch, SSRTID)(
     ScreenSpaceRaymarchInput input,
-    out ScreenSpaceRayHit hit
+    out ScreenSpaceRayHit hit,
+    out float hitWeight
 )
 {
     return ScreenSpaceHiZRaymarch(
@@ -875,14 +927,15 @@ bool MERGE_NAME(ScreenSpaceHiZRaymarch, SSRTID)(
         SSRT_SETTING(RayMaxLevel, SSRTID),
         SSRT_SETTING(RayMaxIterations, SSRTID),
         SSRT_SETTING(RayMaxLinearIterations, SSRTID),
-        SSRT_SETTING(RayDepthSuccessBias, SSRTID),
+        max(0.01, SSRT_SETTING(RayDepthSuccessBias, SSRTID)),
 #ifdef DEBUG_DISPLAY
         SSRT_SETTING(DebuggedAlgorithm, SSRTID),
 #else
         PROJECTIONMODEL_NONE,
 #endif
         // out
-        hit
+        hit,
+        hitWeight
     );
 }
 
