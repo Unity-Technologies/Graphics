@@ -40,27 +40,24 @@
 
 // Varying - Use for pixel shader
 // This second set of define allow to say which varyings will be output in the vertex (no more tesselation)
-#define VARYINGS_NEED_POSITION_WS
+#define VARYINGS_NEED_POSITION_WS // Can be require if we have planar or triplanar distortion
 
 #if REQUIRE_TANGENT_TO_WORLD
 #define VARYINGS_NEED_TANGENT_TO_WORLD
 #endif
 
 #if REQUIRE_TANGENT_TO_WORLD || defined(_ALPHATEST_ON)
-#define VARYINGS_NEED_TEXCOORD0
-    #ifdef LAYERED_LIT_SHADER
+    #define VARYINGS_NEED_TEXCOORD0
     #define VARYINGS_NEED_TEXCOORD1
-        #if defined(_REQUIRE_UV2) || defined(_REQUIRE_UV3)
-        #define VARYINGS_NEED_TEXCOORD2
-        #endif
-        #if defined(_REQUIRE_UV3)
-        #define VARYINGS_NEED_TEXCOORD3
-        #endif
+    #ifdef ATTRIBUTES_NEED_TEXCOORD2
+    #define VARYINGS_NEED_TEXCOORD2
     #endif
-#endif
-
-#if REQUIRE_VERTEX_COLOR
-#define VARYINGS_NEED_COLOR
+    #ifdef ATTRIBUTES_NEED_TEXCOORD3
+    #define VARYINGS_NEED_TEXCOORD3
+    #endif
+    #ifdef ATTRIBUTES_NEED_COLOR
+    #define VARYINGS_NEED_COLOR
+    #endif
 #endif
 
 // This include will define the various Attributes/Varyings structure

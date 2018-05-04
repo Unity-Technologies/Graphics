@@ -114,6 +114,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public int callbackOrder { get { return 0; } }
         public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> inputData)
         {
+            // This test will also return if we are not using HDRenderPipelineAsset
             if (m_CurrentHDRPAsset == null || !m_CurrentHDRPAsset.allowShaderVariantStripping)
                 return;
 
