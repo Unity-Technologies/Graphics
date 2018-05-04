@@ -53,7 +53,7 @@ namespace UnityEditor.VFX
     {
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
-            foreach (var path in importedAssets)
+            foreach (var path in importedAssets.Where(t => t.EndsWith(".vfx")))
             {
                 VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
                 if (asset != null)
