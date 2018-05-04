@@ -2337,7 +2337,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeIntParam(deferredDirectionalShadowComputeShader, HDShaderIDs._DirectionalShadowIndex, m_CurrentSunLightShadowIndex);
                 cmd.SetComputeVectorParam(deferredDirectionalShadowComputeShader, HDShaderIDs._DirectionalLightDirection, -m_CurrentSunLight.transform.forward);
                 cmd.SetComputeTextureParam(deferredDirectionalShadowComputeShader, kernel, HDShaderIDs._DeferredShadowTextureUAV, deferredShadowRT);
-                cmd.SetComputeTextureParam(deferredDirectionalShadowComputeShader, kernel, HDShaderIDs._MainDepthTexture, depthTexture);
+                cmd.SetComputeTextureParam(deferredDirectionalShadowComputeShader, kernel, HDShaderIDs._CameraDepthTexture, depthTexture);
 
                 int deferredShadowTileSize = 16; // Must match DeferreDirectionalShadow.compute
                 int numTilesX = (hdCamera.actualWidth + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
@@ -2415,7 +2415,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             }
                         }
 
-                        cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._MainDepthTexture, depthTexture);
+                        cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._CameraDepthTexture, depthTexture);
 
                         // TODO: Is it possible to setup this outside the loop ? Can figure out how, get this: Property (specularLightingUAV) at kernel index (21) is not set
                         cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.specularLightingUAV, colorBuffers[0]);

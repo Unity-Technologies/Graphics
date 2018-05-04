@@ -939,6 +939,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     RenderObjectsVelocity(m_CullResults, hdCamera, renderContext, cmd);
 
+                    // This will bind the depth buffer if needed for DBuffer)
                     RenderDBuffer(hdCamera, cmd);
 
 					RenderGBuffer(m_CullResults, hdCamera, enableBakeShadowMask, renderContext, cmd);
@@ -948,8 +949,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     RenderCameraVelocity(m_CullResults, hdCamera, renderContext, cmd);
 
-                    // Depth texture is now ready, bind it.
-                    cmd.SetGlobalTexture(HDShaderIDs._MainDepthTexture, GetDepthTexture());
+                    // Depth texture is now ready, bind it (Depth buffer could have been bind before if DBuffer is enable)
+                    cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, GetDepthTexture());
 
                     // Caution: We require sun light here as some skies use the sun light to render, it means that UpdateSkyEnvironment must be called after PrepareLightsForGPU.
                     // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
@@ -1392,7 +1393,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 CopyDepthBufferIfNeeded(cmd);
 
                 // Depth texture is now ready, bind it.
-                cmd.SetGlobalTexture(HDShaderIDs._MainDepthTexture, GetDepthTexture());
+                cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, GetDepthTexture());
                 m_DbufferManager.ClearTargets(cmd, camera);
 				HDUtils.SetRenderTarget(cmd, camera, m_DbufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer); // do not clear anymore
                 m_DbufferManager.SetHTile(m_DbufferManager.bufferCount, cmd);
