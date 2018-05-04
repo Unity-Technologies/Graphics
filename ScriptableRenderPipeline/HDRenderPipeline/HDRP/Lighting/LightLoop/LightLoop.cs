@@ -985,6 +985,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             lightData.diffuseScale = additionalLightData.affectDiffuse ? lightScale * m_FrameSettings.diffuseGlobalDimmer : 0.0f;
             lightData.specularScale = additionalLightData.affectSpecular ? lightScale * m_FrameSettings.specularGlobalDimmer : 0.0f;
 
+            lightData.volumetricDimmer = additionalLightData.volumetricDimmer;
+
             if (lightData.diffuseScale <= 0.0f && lightData.specularScale <= 0.0f)
                 return false;
 
