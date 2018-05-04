@@ -1,6 +1,7 @@
 using System;
 using UnityEngine.Rendering;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -72,163 +73,48 @@ public class VolumetricLightingSystem
         Count
     } // enum VolumetricLightingPreset
 
-    [Serializable]
-    public struct ControllerParameters
+    public struct VBufferParameters
     {
-        public float vBufferNearPlane;                 // Distance in meters
-        public float vBufferFarPlane;                  // Distance in meters
-        public float depthSliceDistributionUniformity; // Controls the exponential depth distribution: [0, 1]
-    } // struct ControllerParameters
+        public Vector4 resolution;
+        public Vector2 sliceCount;
+        public Vector4 uvScaleAndLimit;    // Necessary to work with sub-allocation (resource aliasing) in the RTHandle system
+        public Vector4 depthEncodingParams;
+        public Vector4 depthDecodingParams;
 
-    public class VBuffer
-    {
-        public struct Parameters
+        public VBufferParameters(Vector3Int viewportResolution, Vector3Int bufferResolution, Vector2 depthRange, float depthDistributionUniformity)
         {
-            public Vector4 resolution;
-            public Vector2 sliceCount;
-            public Vector4 depthEncodingParams;
-            public Vector4 depthDecodingParams;
+            int w = viewportResolution.x;
+            int h = viewportResolution.y;
+            int d = viewportResolution.z;
 
-            public Parameters(int w, int h, int d, ControllerParameters controlParams)
-            {
-                resolution          = new Vector4(w, h, 1.0f / w, 1.0f / h);
-                sliceCount          = new Vector2(d, 1.0f / d);
-                depthEncodingParams = Vector4.zero; // C# doesn't allow function calls before all members have been init
-                depthDecodingParams = Vector4.zero; // C# doesn't allow function calls before all members have been init
+            // The depth is fixed for now.
+            Vector2 uvScale = new Vector2((float)w / (float)bufferResolution.x,
+                                          (float)h / (float)bufferResolution.y);
 
-                Update(controlParams);
-            }
+            // vp_scale = vp_dim / tex_dim.
+            // clamp to (vp_dim - 0.5) / tex_dim = vp_scale - 0.5 * (1 / tex_dim) =
+            // vp_scale - 0.5 * (vp_scale / vp_dim) = vp_scale * (1 - 0.5 / vp_dim).
+            Vector2 uvLimit = new Vector2((w - 0.5f) / (float)bufferResolution.x,
+                                          (h - 0.5f) / (float)bufferResolution.y);
 
-            public void Update(ControllerParameters controlParams)
-            {
-                float n = controlParams.vBufferNearPlane;
-                float f = controlParams.vBufferFarPlane;
-                float c = 2 - 2 * controlParams.depthSliceDistributionUniformity; // remap [0, 1] -> [2, 0]
+            resolution          = new Vector4(w, h, 1.0f / w, 1.0f / h);
+            sliceCount          = new Vector2(d, 1.0f / d);
+            uvScaleAndLimit     = new Vector4(uvScale.x, uvScale.y, uvLimit.x, uvLimit.y);
 
-                depthEncodingParams = ComputeLogarithmicDepthEncodingParams(n, f, c);
-                depthDecodingParams = ComputeLogarithmicDepthDecodingParams(n, f, c);
-            }
+            float n = depthRange.x;
+            float f = depthRange.y;
+            float c = 2 - 2 * depthDistributionUniformity; // remap [0, 1] -> [2, 0]
 
-        } // struct Parameters
-
-        const int k_NumFrames     = 2; // Double-buffer history and feedback
-        const int k_NumBuffers    = 4; // See the list below
-
-        const int k_IndexDensity  = 0;
-        const int k_IndexIntegral = 1;
-        const int k_IndexHistory  = 2; // Depends on frame ID
-        const int k_IndexFeedback = 3; // Depends on frame ID
-
-        long                     m_ViewID      =   -1; // (m_ViewID > 0) if valid
-        RenderTexture[]          m_Textures    = null;
-        RenderTargetIdentifier[] m_Identifiers = null;
-        Parameters[]             m_Params      = null; // For the current and the previous frame
-
-        public long GetViewID()
-        {
-            return m_ViewID;
+            depthEncodingParams = ComputeLogarithmicDepthEncodingParams(n, f, c);
+            depthDecodingParams = ComputeLogarithmicDepthDecodingParams(n, f, c);
         }
-
-        public bool IsValid()
-        {
-            return m_ViewID > 0 && m_Textures != null && m_Textures[0] != null;
-        }
-
-        public Parameters GetParameters(uint frameIndex)
-        {
-            return m_Params[frameIndex & 1];
-        }
-
-        public void SetParameters(Parameters parameters, uint frameIndex)
-        {
-            m_Params[frameIndex & 1] = parameters;
-        }
-
-        public RenderTargetIdentifier GetDensityBuffer()
-        {
-            Debug.Assert(IsValid());
-            return m_Identifiers[k_IndexDensity];
-        }
-
-        public RenderTargetIdentifier GetLightingIntegralBuffer() // Of the current frame
-        {
-            Debug.Assert(IsValid());
-            return m_Identifiers[k_IndexIntegral];
-        }
-
-        public RenderTargetIdentifier GetLightingHistoryBuffer(uint frameIndex) // From the previous frame
-        {
-            Debug.Assert(IsValid());
-            return m_Identifiers[k_IndexHistory + (frameIndex & 1)];
-        }
-
-        public RenderTargetIdentifier GetLightingFeedbackBuffer(uint frameIndex) // For the next frame
-        {
-            Debug.Assert(IsValid());
-            return m_Identifiers[k_IndexFeedback - (frameIndex & 1)];
-        }
-
-        public void Create(long viewID, int w, int h, int d, ControllerParameters controlParams)
-        {
-            Debug.Assert(viewID > 0);
-            Debug.Assert(w > 0 && h > 0 && d > 0);
-
-            // Clean up first.
-            Destroy();
-
-            m_ViewID      = viewID;
-            m_Textures    = new RenderTexture[k_NumBuffers];
-            m_Identifiers = new RenderTargetIdentifier[k_NumBuffers];
-            m_Params      = new Parameters[k_NumFrames];
-
-            for (int i = 0; i < k_NumBuffers; i++)
-            {
-                m_Textures[i]                   = new RenderTexture(w, h, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
-                m_Textures[i].hideFlags         = HideFlags.HideAndDontSave;
-                m_Textures[i].filterMode        = FilterMode.Trilinear;   // Custom
-                m_Textures[i].dimension         = TextureDimension.Tex3D; // TODO: request the thick 3D tiling layout
-                m_Textures[i].volumeDepth       = d;
-                m_Textures[i].enableRandomWrite = true;
-                m_Textures[i].name              = CoreUtils.GetRenderTargetAutoName(w, h, RenderTextureFormat.ARGBHalf, String.Format("VBuffer{0}", i));
-                m_Textures[i].Create();
-
-                // TODO: clear the texture. Clearing 3D textures does not appear to work right now.
-
-                m_Identifiers[i] = new RenderTargetIdentifier(m_Textures[i]);
-            }
-
-            // Start with the same parameters for both frames. Then incrementally update them.
-            Parameters parameters = new Parameters(w, h, d, controlParams);
-            m_Params[0] = parameters;
-            m_Params[1] = parameters;
-        }
-
-        public void Destroy()
-        {
-            if (m_Textures != null)
-            {
-                for (int i = 0; i < k_NumBuffers; i++)
-                {
-                    if (m_Textures[i] != null)
-                    {
-                        m_Textures[i].Release();
-                    }
-                }
-            }
-
-            m_ViewID      =   -1;
-            m_Textures    = null;
-            m_Identifiers = null;
-            m_Params      = null;
-        }
-    } // class VBuffer
+    } // struct Parameters
 
     public VolumetricLightingPreset preset { get { return (VolumetricLightingPreset)Math.Min(ShaderConfig.s_VolumetricLightingPreset, (int)VolumetricLightingPreset.Count); } }
 
     static ComputeShader    m_VolumeVoxelizationCS      = null;
     static ComputeShader    m_VolumetricLightingCS      = null;
 
-    List<VBuffer>           m_VBuffers                  = null;
     List<OrientedBBox>      m_VisibleVolumeBounds       = null;
     List<DensityVolumeData> m_VisibleVolumeData         = null;
     public const int        k_MaxVisibleVolumeCount     = 512;
@@ -237,120 +123,171 @@ public class VolumetricLightingSystem
     static ComputeBuffer    s_VisibleVolumeBoundsBuffer = null;
     static ComputeBuffer    s_VisibleVolumeDataBuffer   = null;
 
+    // These two buffers do not depend on the frameID and are therefore shared by all views.
+    RTHandleSystem.RTHandle m_DensityBufferHandle;
+    RTHandleSystem.RTHandle m_LightingBufferHandle;
+
     public void Build(HDRenderPipelineAsset asset)
     {
         if (preset == VolumetricLightingPreset.Off) return;
 
-        m_VolumeVoxelizationCS      = asset.renderPipelineResources.volumeVoxelizationCS;
-        m_VolumetricLightingCS      = asset.renderPipelineResources.volumetricLightingCS;
-        m_VBuffers                  = new List<VBuffer>();
+        m_VolumeVoxelizationCS = asset.renderPipelineResources.volumeVoxelizationCS;
+        m_VolumetricLightingCS = asset.renderPipelineResources.volumetricLightingCS;
+
+        CreateBuffers();
+    }
+
+    // RTHandleSystem API expects a function which computes the resolution. We define it here.
+    Vector2Int ComputeVBuffeResolutionXY(Vector2Int screenSize)
+    {
+        Vector3Int resolution = ComputeVBufferResolution(preset, screenSize.x, screenSize.y);
+
+        // Since the buffers owned by the VolumetricLightingSystem may have different lifetimes compared
+        // to those owned by the HDCamera, we need to make sure that the buffer resolution is the same
+        // (in order to share the UV scale and the UV limit).
+        if (m_LightingBufferHandle != null)
+        {
+            resolution.x = Math.Max(resolution.x, m_LightingBufferHandle.rt.width);
+            resolution.y = Math.Max(resolution.y, m_LightingBufferHandle.rt.height);
+        }
+
+        return new Vector2Int(resolution.x, resolution.y);
+    }
+
+    // BufferedRTHandleSystem API expects an allocator function. We define it here.
+    RTHandleSystem.RTHandle HistoryBufferAllocatorFunction(string viewName, int frameIndex, RTHandleSystem rtHandleSystem)
+    {
+        frameIndex &= 1;
+
+        int d = ComputeVBufferSliceCount(preset);
+
+        return rtHandleSystem.Alloc(scaleFunc:         ComputeVBuffeResolutionXY,
+                                    slices:            d,
+                                    dimension:         TextureDimension.Tex3D,
+                                    colorFormat:       RenderTextureFormat.ARGBHalf,
+                                    sRGB:              false,
+                                    enableRandomWrite: true,
+                                    enableMSAA:        false,
+                                    /* useDynamicScale: true, // <- TODO */
+                                    name: string.Format("{0}_VBufferHistory{1}", viewName, frameIndex)
+        );
+    }
+
+    void CreateBuffers()
+    {
+        Debug.Assert(m_VolumetricLightingCS != null);
+
         m_VisibleVolumeBounds       = new List<OrientedBBox>();
         m_VisibleVolumeData         = new List<DensityVolumeData>();
-        s_VisibleVolumeBoundsBuffer = new ComputeBuffer(k_MaxVisibleVolumeCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(OrientedBBox)));
-        s_VisibleVolumeDataBuffer   = new ComputeBuffer(k_MaxVisibleVolumeCount, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DensityVolumeData)));
+        s_VisibleVolumeBoundsBuffer = new ComputeBuffer(k_MaxVisibleVolumeCount, Marshal.SizeOf(typeof(OrientedBBox)));
+        s_VisibleVolumeDataBuffer   = new ComputeBuffer(k_MaxVisibleVolumeCount, Marshal.SizeOf(typeof(DensityVolumeData)));
+
+        int d = ComputeVBufferSliceCount(preset);
+
+        m_DensityBufferHandle = RTHandles.Alloc(scaleFunc:         ComputeVBuffeResolutionXY,
+                                                slices:            d,
+                                                dimension:         TextureDimension.Tex3D,
+                                                colorFormat:       RenderTextureFormat.ARGBHalf,
+                                                sRGB:              false,
+                                                enableRandomWrite: true,
+                                                enableMSAA:        false,
+                                                /* useDynamicScale: true, // <- TODO */
+                                                name:              "VBufferDensity");
+
+        m_LightingBufferHandle = RTHandles.Alloc(scaleFunc:         ComputeVBuffeResolutionXY,
+                                                 slices:            d,
+                                                 dimension:         TextureDimension.Tex3D,
+                                                 colorFormat:       RenderTextureFormat.ARGBHalf,
+                                                 sRGB:              false,
+                                                 enableRandomWrite: true,
+                                                 enableMSAA:        false,
+                                                 /* useDynamicScale: true, // <- TODO */
+                                                 name:              "VBufferIntegral");
+    }
+
+    // For the initial allocation, no suballocation happens (the texture is full size).
+    VBufferParameters ComputeVBufferParameters(HDCamera camera, bool isInitialAllocation)
+    {
+        Vector3Int viewportResolution = ComputeVBufferResolution(preset, camera.camera.pixelWidth, camera.camera.pixelHeight);
+        Vector3Int bufferResolution; // Could be higher due to sub-allocation (resource aliasing) in the RTHandle system
+
+        if (isInitialAllocation)
+        {
+            bufferResolution = viewportResolution;
+        }
+        else
+        {
+            // All V-Buffers of the current frame should have the same size (you have to double-buffer history, of course).
+            bufferResolution = new Vector3Int(m_LightingBufferHandle.rt.width, m_LightingBufferHandle.rt.height, m_LightingBufferHandle.rt.volumeDepth);
+        }
+
+        var controller = VolumeManager.instance.stack.GetComponent<VolumetricLightingController>();
+
+        // We must not allow the V-Buffer to extend outside of the camera's frustum.
+        float n = camera.camera.nearClipPlane;
+        float f = camera.camera.farClipPlane;
+
+        Vector2 vBufferDepthRange = controller.depthRange.value;
+        vBufferDepthRange.y = Mathf.Clamp(vBufferDepthRange.y, n, f);                   // far
+        vBufferDepthRange.x = Mathf.Clamp(vBufferDepthRange.x, n, vBufferDepthRange.y); // near
+        float vBufferDepthDistributionUniformity = controller.depthDistributionUniformity.value;
+
+        return new VBufferParameters(viewportResolution, bufferResolution, vBufferDepthRange, vBufferDepthDistributionUniformity);
+    }
+
+    public void InitializePerCameraData(HDCamera camera)
+    {
+        if (preset == VolumetricLightingPreset.Off) return;
+
+        // Start with the same parameters for both frames. Then update them one by one every frame.
+        var parameters          = ComputeVBufferParameters(camera, true);
+        camera.vBufferParams    = new VBufferParameters[2];
+        camera.vBufferParams[0] = parameters;
+        camera.vBufferParams[1] = parameters;
+
+        if (camera.camera.cameraType == CameraType.Game ||
+            camera.camera.cameraType == CameraType.SceneView)
+        {
+            // We don't need reprojection for other view types, such as reflection and preview.
+            camera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting, HistoryBufferAllocatorFunction);
+        }
+    }
+
+    // This function relies on being called once per camera per frame.
+    // The results are undefined otherwise.
+    public void UpdatePerCameraData(HDCamera camera)
+    {
+        if (preset == VolumetricLightingPreset.Off) return;
+
+        var parameters = ComputeVBufferParameters(camera, false);
+
+        // Double-buffer. I assume the cost of copying is negligible (don't want to use the frame index).
+        camera.vBufferParams[1] = camera.vBufferParams[0];
+        camera.vBufferParams[0] = parameters;
+
+        // Note: resizing of history buffer is automatic (handled by the BufferedRTHandleSystem).
+    }
+
+    void DestroyBuffers()
+    {
+        RTHandles.Release(m_DensityBufferHandle);
+        RTHandles.Release(m_LightingBufferHandle);
+
+        CoreUtils.SafeRelease(s_VisibleVolumeBoundsBuffer);
+        CoreUtils.SafeRelease(s_VisibleVolumeDataBuffer);
+
+        m_VisibleVolumeBounds = null;
+        m_VisibleVolumeData   = null;
     }
 
     public void Cleanup()
     {
         if (preset == VolumetricLightingPreset.Off) return;
 
+        DestroyBuffers();
+
         m_VolumeVoxelizationCS = null;
         m_VolumetricLightingCS = null;
-
-        for (int i = 0, n = m_VBuffers.Count; i < n; i++)
-        {
-            m_VBuffers[i].Destroy();
-        }
-
-        m_VBuffers            = null;
-        m_VisibleVolumeBounds = null;
-        m_VisibleVolumeData   = null;
-
-        CoreUtils.SafeRelease(s_VisibleVolumeBoundsBuffer);
-        CoreUtils.SafeRelease(s_VisibleVolumeDataBuffer);
-    }
-
-    public void ResizeVBufferAndUpdateProperties(HDCamera camera, uint frameIndex)
-    {
-        if (preset == VolumetricLightingPreset.Off) return;
-        var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-        if (visualEnvironment == null || visualEnvironment.fogType != FogType.Volumetric) return;
-
-        var controller = camera.camera.GetComponent<VolumetricLightingController>();
-
-        if (camera.camera.cameraType == CameraType.SceneView)
-        {
-            // HACK: since it's not possible to add a component to a scene camera,
-            // we take one from the "main" camera (if present).
-            Camera mainCamera = Camera.main;
-
-            if (mainCamera != null)
-            {
-                controller = mainCamera.GetComponent<VolumetricLightingController>();
-            }
-        }
-
-        if (controller == null) return;
-
-        int  screenWidth  = (int)camera.screenSize.x;
-        int  screenHeight = (int)camera.screenSize.y;
-        long viewID       = camera.GetViewID();
-
-        Debug.Assert(viewID > 0);
-
-        int w = 0, h = 0, d = 0;
-        ComputeVBufferResolutionAndScale(preset, screenWidth, screenHeight, ref w, ref h, ref d);
-
-        VBuffer vBuffer = FindVBuffer(viewID);
-
-        if (vBuffer != null)
-        {
-            VBuffer.Parameters frameParams = vBuffer.GetParameters(frameIndex);
-
-            // Found, check resolution.
-            if (w == frameParams.resolution.x &&
-                h == frameParams.resolution.y &&
-                d == frameParams.sliceCount.x)
-            {
-                // The resolution matches.
-                // Depth parameters may have changed, so update those.
-                frameParams.Update(controller.parameters);
-                vBuffer.SetParameters(frameParams, frameIndex);
-
-                return;
-            }
-        }
-        else
-        {
-            // Not found - grow the array.
-            vBuffer = new VBuffer();
-            m_VBuffers.Add(vBuffer);
-        }
-
-        vBuffer.Create(viewID, w, h, d, controller.parameters);
-    }
-
-    VBuffer FindVBuffer(long viewID)
-    {
-        Debug.Assert(viewID > 0);
-
-        VBuffer vBuffer = null;
-
-        if (m_VBuffers != null)
-        {
-            int n = m_VBuffers.Count;
-
-            for (int i = 0; i < n; i++)
-            {
-                // Check whether domain reload killed it...
-                if (viewID == m_VBuffers[i].GetViewID() && m_VBuffers[i].IsValid())
-                {
-                    vBuffer = m_VBuffers[i];
-                }
-            }
-        }
-
-        return vBuffer;
     }
 
     static int ComputeVBufferTileSize(VolumetricLightingPreset preset)
@@ -385,22 +322,17 @@ public class VolumetricLightingSystem
         }
     }
 
-    // Since a single voxel corresponds to a tile (e.g. 8x8) of pixels,
-    // the VBuffer can potentially extend past the boundaries of the viewport.
-    // The function returns the fraction of the {width, height} of the VBuffer visible on screen.
-    // Note: for performance reasons, the scale is unused (implicitly 1). The error is typically under 1%.
-    static Vector2 ComputeVBufferResolutionAndScale(VolumetricLightingPreset preset,
-                                                    int screenWidth, int screenHeight,
-                                                    ref int w, ref int h, ref int d)
+    static Vector3Int ComputeVBufferResolution(VolumetricLightingPreset preset,
+                                               int screenWidth, int screenHeight)
     {
         int t = ComputeVBufferTileSize(preset);
 
-        // Ceil(ScreenSize / TileSize).
-        w = (screenWidth  + t - 1) / t;
-        h = (screenHeight + t - 1) / t;
-        d = ComputeVBufferSliceCount(preset);
+        // ceil(ScreenSize / TileSize).
+        int w = (screenWidth  + (t - 1)) / t;
+        int h = (screenHeight + (t - 1)) / t;
+        int d = ComputeVBufferSliceCount(preset);
 
-        return new Vector2((float)screenWidth / (float)(w * t), (float)screenHeight / (float)(h * t));
+        return new Vector3Int(w, h, d);
     }
 
     // See EncodeLogarithmicDepthGeneralized().
@@ -439,18 +371,18 @@ public class VolumetricLightingSystem
         return depthParams;
     }
 
-    void SetPreconvolvedAmbientLightProbe(CommandBuffer cmd, float asymmetry)
+    void SetPreconvolvedAmbientLightProbe(CommandBuffer cmd, float anisotropy)
     {
         SphericalHarmonicsL2 probeSH = SphericalHarmonicMath.UndoCosineRescaling(RenderSettings.ambientProbe);
-        ZonalHarmonicsL2     phaseZH = ZonalHarmonicsL2.GetCornetteShanksPhaseFunction(asymmetry);
+        ZonalHarmonicsL2     phaseZH = ZonalHarmonicsL2.GetCornetteShanksPhaseFunction(anisotropy);
         SphericalHarmonicsL2 finalSH = SphericalHarmonicMath.PremultiplyCoefficients(SphericalHarmonicMath.Convolve(probeSH, phaseZH));
 
         cmd.SetGlobalVectorArray(HDShaderIDs._AmbientProbeCoeffs, SphericalHarmonicMath.PackCoefficients(finalSH));
     }
 
-    float CornetteShanksPhasePartConstant(float asymmetry)
+    float CornetteShanksPhasePartConstant(float anisotropy)
     {
-        float g = asymmetry;
+        float g = anisotropy;
 
         return (1.0f / (4.0f * Mathf.PI)) * 1.5f * (1.0f - g * g) / (2.0f + g * g);
     }
@@ -460,35 +392,37 @@ public class VolumetricLightingSystem
         if (preset == VolumetricLightingPreset.Off) return;
 
         var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-        if (visualEnvironment.fogType != FogType.Volumetric) return;
 
-        // VisualEnvironment sets global fog parameters: _GlobalAsymmetry, _GlobalScattering, _GlobalExtinction.
+        // VisualEnvironment sets global fog parameters: _GlobalAnisotropy, _GlobalScattering, _GlobalExtinction.
 
-        VBuffer vBuffer = FindVBuffer(camera.GetViewID());
-        if (vBuffer == null)
+        if (visualEnvironment.fogType != FogType.Volumetric)
         {
             // Set the neutral black texture.
             cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting, CoreUtils.blackVolumeTexture);
             return;
         }
 
-        // Get the interpolated asymmetry value.
+        // Get the interpolated anisotropy value.
         var fog = VolumeManager.instance.stack.GetComponent<VolumetricFog>();
 
-        SetPreconvolvedAmbientLightProbe(cmd, fog.asymmetry);
+        SetPreconvolvedAmbientLightProbe(cmd, fog.anisotropy);
 
-        var currFrameParams = vBuffer.GetParameters(frameIndex);
-        var prevFrameParams = vBuffer.GetParameters(frameIndex - 1);
+        var currFrameParams = camera.vBufferParams[0];
+        var prevFrameParams = camera.vBufferParams[1];
 
         cmd.SetGlobalVector( HDShaderIDs._VBufferResolution,              currFrameParams.resolution);
         cmd.SetGlobalVector( HDShaderIDs._VBufferSliceCount,              currFrameParams.sliceCount);
+        cmd.SetGlobalVector( HDShaderIDs._VBufferUvScaleAndLimit,         currFrameParams.uvScaleAndLimit);
         cmd.SetGlobalVector( HDShaderIDs._VBufferDepthEncodingParams,     currFrameParams.depthEncodingParams);
         cmd.SetGlobalVector( HDShaderIDs._VBufferDepthDecodingParams,     currFrameParams.depthDecodingParams);
+
         cmd.SetGlobalVector( HDShaderIDs._VBufferPrevResolution,          prevFrameParams.resolution);
         cmd.SetGlobalVector( HDShaderIDs._VBufferPrevSliceCount,          prevFrameParams.sliceCount);
+        cmd.SetGlobalVector( HDShaderIDs._VBufferPrevUvScaleAndLimit,     prevFrameParams.uvScaleAndLimit);
         cmd.SetGlobalVector( HDShaderIDs._VBufferPrevDepthEncodingParams, prevFrameParams.depthEncodingParams);
         cmd.SetGlobalVector( HDShaderIDs._VBufferPrevDepthDecodingParams, prevFrameParams.depthDecodingParams);
-        cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting,                vBuffer.GetLightingIntegralBuffer());
+
+        cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting,                m_LightingBufferHandle);
     }
 
     public DensityVolumeList PrepareVisibleDensityVolumeList(HDCamera camera, CommandBuffer cmd)
@@ -499,9 +433,6 @@ public class VolumetricLightingSystem
 
         var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
         if (visualEnvironment.fogType != FogType.Volumetric) return densityVolumes;
-
-        VBuffer vBuffer = FindVBuffer(camera.GetViewID());
-        if (vBuffer == null) return densityVolumes;
 
         using (new ProfilingSample(cmd, "Prepare Visible Density Volume List"))
         {
@@ -517,7 +448,7 @@ public class VolumetricLightingSystem
             m_VisibleVolumeData.Clear();
 
             // Collect all visible finite volume data, and upload it to the GPU.
-            DensityVolume[] volumes = DensityVolumeManager.manager.PrepareDensityVolumeData(cmd); 
+            DensityVolume[] volumes = DensityVolumeManager.manager.PrepareDensityVolumeData(cmd);
 
             for (int i = 0; i < Math.Min(volumes.Length, k_MaxVisibleVolumeCount); i++)
             {
@@ -530,6 +461,8 @@ public class VolumetricLightingSystem
                 obb.center -= camOffset;
 
                 // Frustum cull on the CPU for now. TODO: do it on the GPU.
+                // TODO: account for custom near and far planes of the V-Buffer's frustum.
+                // It's typically much shorter (along the Z axis) than the camera's frustum.
                 if (GeometryUtils.Overlap(obb, camera.frustum, 6, 8))
                 {
                     // TODO: cache these?
@@ -558,9 +491,6 @@ public class VolumetricLightingSystem
         var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
         if (visualEnvironment.fogType != FogType.Volumetric) return;
 
-        VBuffer vBuffer = FindVBuffer(camera.GetViewID());
-        if (vBuffer == null) return;
-
         using (new ProfilingSample(cmd, "Volume Voxelization"))
         {
             int numVisibleVolumes = m_VisibleVolumeBounds.Count;
@@ -581,7 +511,7 @@ public class VolumetricLightingSystem
             int kernel = m_VolumeVoxelizationCS.FindKernel(enableClustered ? "VolumeVoxelizationClustered"
                                                                            : "VolumeVoxelizationBruteforce");
 
-            var     frameParams = vBuffer.GetParameters(frameIndex);
+            var     frameParams = camera.vBufferParams[0];
             Vector4 resolution  = frameParams.resolution;
             float   vFoV        = camera.camera.fieldOfView * Mathf.Deg2Rad;
 
@@ -597,7 +527,7 @@ public class VolumetricLightingSystem
                 volumeAtlasDimensions.y = 1.0f / volumeAtlas.width;
             }
 
-            cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VBufferDensity, vBuffer.GetDensityBuffer());
+            cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VBufferDensity, m_DensityBufferHandle);
             cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeBounds,   s_VisibleVolumeBoundsBuffer);
             cmd.SetComputeBufferParam( m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeData,     s_VisibleVolumeDataBuffer);
             cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeMaskAtlas, volumeAtlas);
@@ -661,9 +591,6 @@ public class VolumetricLightingSystem
         var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
         if (visualEnvironment.fogType != FogType.Volumetric) return;
 
-        VBuffer vBuffer = FindVBuffer(camera.GetViewID());
-        if (vBuffer == null) return;
-
         using (new ProfilingSample(cmd, "Volumetric Lighting"))
         {
             // Only available in the Play Mode because all the frame counters in the Edit Mode are broken.
@@ -683,7 +610,7 @@ public class VolumetricLightingSystem
                                                                            : "VolumetricLightingBruteforce");
             }
 
-            var       frameParams = vBuffer.GetParameters(frameIndex);
+            var       frameParams = camera.vBufferParams[0];
             Vector4   resolution  = frameParams.resolution;
             float     vFoV        = camera.camera.fieldOfView * Mathf.Deg2Rad;
             // Compose the matrix which allows us to compute the world space view direction.
@@ -712,20 +639,20 @@ public class VolumetricLightingSystem
             // Currently, we assume that they are completely uncorrelated, but maybe we should correlate them somehow.
             Vector4 offset = new Vector4(xySeq[sampleIndex].x, xySeq[sampleIndex].y, zSeq[sampleIndex], frameIndex);
 
-            // Get the interpolated asymmetry value.
+            // Get the interpolated anisotropy value.
             var fog = VolumeManager.instance.stack.GetComponent<VolumetricFog>();
 
             // TODO: set 'm_VolumetricLightingPreset'.
             // TODO: set the constant buffer data only once.
             cmd.SetComputeMatrixParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferCoordToViewDirWS, transform);
             cmd.SetComputeVectorParam( m_VolumetricLightingCS,         HDShaderIDs._VBufferSampleOffset,     offset);
-            cmd.SetComputeFloatParam(  m_VolumetricLightingCS,         HDShaderIDs._CornetteShanksConstant,  CornetteShanksPhasePartConstant(fog.asymmetry));
-            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferDensity,          vBuffer.GetDensityBuffer());          // Read
-            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingIntegral, vBuffer.GetLightingIntegralBuffer()); // Write
+            cmd.SetComputeFloatParam(  m_VolumetricLightingCS,         HDShaderIDs._CornetteShanksConstant,  CornetteShanksPhasePartConstant(fog.anisotropy));
+            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferDensity,          m_DensityBufferHandle);  // Read
+            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingIntegral, m_LightingBufferHandle); // Write
             if (enableReprojection)
             {
-            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingFeedback, vBuffer.GetLightingFeedbackBuffer(frameIndex)); // Write
-            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingHistory,  vBuffer.GetLightingHistoryBuffer(frameIndex));  // Read
+            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingHistory,  camera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting)); // Read
+            cmd.SetComputeTextureParam(m_VolumetricLightingCS, kernel, HDShaderIDs._VBufferLightingFeedback, camera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.VolumetricLighting));  // Write
             }
 
             int w = (int)resolution.x;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
@@ -57,7 +57,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_TempRenderTexture.dimension = TextureDimension.Tex2D;
                 m_TempRenderTexture.useMipMap = true;
                 m_TempRenderTexture.autoGenerateMips = false;
-                m_TempRenderTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, RenderTextureFormat.ARGBHalf, "PlanarReflectionTemp", mips : true);
+                m_TempRenderTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf, "PlanarReflectionTemp", mips : true);
                 m_TempRenderTexture.Create();
 
                 m_ConvolutionTargetTexture = new RenderTexture(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf);
@@ -65,7 +65,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ConvolutionTargetTexture.dimension = TextureDimension.Tex2D;
                 m_ConvolutionTargetTexture.useMipMap = true;
                 m_ConvolutionTargetTexture.autoGenerateMips = false;
-                m_ConvolutionTargetTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, RenderTextureFormat.ARGBHalf, "PlanarReflectionConvolution", mips: true);
+                m_ConvolutionTargetTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf, "PlanarReflectionConvolution", mips: true);
                 m_ConvolutionTargetTexture.Create();
 
                 InitializeProbeBakingStates();
