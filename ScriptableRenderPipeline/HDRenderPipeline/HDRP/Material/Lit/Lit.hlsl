@@ -1897,14 +1897,18 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     R = lerp(R, preLightData.iblR, saturate(smoothstep(0, 1, roughness * roughness)));
 
     float3 F = preLightData.specularFGD;
-    float iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness);
 
-    // Specific case for Texture2Ds, their convolution is a gaussian one and not a GGX one.
-    // So we use another roughness mip mapping.
+    float iblMipLevel;
+    // TODO: We need to match the PerceptualRoughnessToMipmapLevel formula for planar, so we don't do this test (which is specific to our current lightloop)
+    // Specific case for Texture2Ds, their convolution is a gaussian one and not a GGX one - So we use another roughness mip mapping.
     if (IsEnvIndexTexture2D(lightData.envIndex))
     {
         // Empirical remapping
         iblMipLevel = PositivePow(preLightData.iblPerceptualRoughness, 0.8) * uint(max(_ColorPyramidScale.z - 1, 0));
+    }
+    else
+    {
+        iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness);
     }
 
     float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, iblMipLevel);
