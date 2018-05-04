@@ -78,7 +78,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static string k_PanelScreenSpaceTracing = "Screen Space Tracing";
         public static string k_PanelDecals = "Decals";
 
-        static readonly string[] k_HiZIntersectionKind = { "None", "Depth", "Cell" };
+        static readonly string[] k_HiZIntersectionKind = { "None", "Cell", "Depth" };
 
         DebugUI.Widget[] m_DebugDisplayStatsItems;
         DebugUI.Widget[] m_DebugMaterialItems;
