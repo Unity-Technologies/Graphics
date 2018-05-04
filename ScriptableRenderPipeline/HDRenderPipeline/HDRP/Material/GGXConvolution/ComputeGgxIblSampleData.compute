@@ -3,7 +3,7 @@
 #include "CoreRP/ShaderLibrary/Common.hlsl"
 #include "CoreRP/ShaderLibrary/ImageBasedLighting.hlsl"
 
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 #ifdef SHADER_API_MOBILE
 #define MAX_IBL_SAMPLE_CNT 34

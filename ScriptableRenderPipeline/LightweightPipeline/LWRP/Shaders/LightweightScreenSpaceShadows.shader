@@ -93,6 +93,7 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
 
         Pass
         {
+            Name "Default"
             ZTest Always
             ZWrite Off
             Cull Off

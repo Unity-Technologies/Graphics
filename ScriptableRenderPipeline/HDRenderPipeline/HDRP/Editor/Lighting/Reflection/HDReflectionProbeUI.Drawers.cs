@@ -242,6 +242,17 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUI.showMixedValue = false;
             if (EditorGUI.EndChangeCheck())
                 s.SetShapeTarget(p.influenceShape.intValue);
+
+            if (p.proxyVolumeComponent.objectReferenceValue != null)
+            {
+                var proxy = (ReflectionProxyVolumeComponent)p.proxyVolumeComponent.objectReferenceValue;
+                if ((int)proxy.proxyVolume.shapeType != p.influenceShape.enumValueIndex)
+                    EditorGUILayout.HelpBox(
+                        "Proxy volume and influence volume have different shape types, this is not supported.",
+                        MessageType.Error,
+                        true
+                    );
+            }
         }
 
         static void Drawer_IntensityMultiplier(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)

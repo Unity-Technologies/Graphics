@@ -337,7 +337,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             RTHandles.Release(m_DebugColorPickerBuffer);
             RTHandles.Release(m_DebugFullScreenTempBuffer);
-            
+
             m_DebugScreenSpaceTracingData.Release();
 
             HDCamera.ClearAll();
@@ -352,6 +352,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // HD use specific GraphicsSettings
             GraphicsSettings.lightsUseLinearIntensity = true;
             GraphicsSettings.lightsUseColorTemperature = true;
+            // HD should always use the new batcher
+            //GraphicsSettings.useScriptableRenderPipelineBatching = true;
 
             SupportedRenderingFeatures.active = new SupportedRenderingFeatures()
             {
@@ -384,6 +386,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return false;
             }
 
+#if !UNITY_SWITCH
             // VR is not supported currently in HD
             if (XRSettings.isDeviceActive)
             {
@@ -391,6 +394,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 return false;
             }
+#endif
 
             return true;
         }
@@ -407,7 +411,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
                 SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12 ||
-                SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan)
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan ||
+                SystemInfo.graphicsDeviceType == (GraphicsDeviceType)22 /*GraphicsDeviceType.Switch*/)
             {
                 return true;
             }
@@ -572,15 +577,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     cmd.SetGlobalTexture(HDShaderIDs._DepthPyramidTexture, previousDepthPyramidRT);
                     cmd.SetGlobalVector(HDShaderIDs._DepthPyramidSize, new Vector4(
-                        previousDepthPyramidRT.referenceSize.x, 
-                        previousDepthPyramidRT.referenceSize.y, 
-                        1f / previousDepthPyramidRT.referenceSize.x, 
+                        previousDepthPyramidRT.referenceSize.x,
+                        previousDepthPyramidRT.referenceSize.y,
+                        1f / previousDepthPyramidRT.referenceSize.x,
                         1f / previousDepthPyramidRT.referenceSize.y
                     ));
                     cmd.SetGlobalVector(HDShaderIDs._DepthPyramidScale, new Vector4(
-                        previousDepthPyramidRT.referenceSize.x / (float)previousDepthPyramidRT.rt.width, 
-                        previousDepthPyramidRT.referenceSize.y / (float)previousDepthPyramidRT.rt.height, 
-                        Mathf.Log(Mathf.Min(previousDepthPyramidRT.rt.width, previousDepthPyramidRT.rt.height), 2), 
+                        previousDepthPyramidRT.referenceSize.x / (float)previousDepthPyramidRT.rt.width,
+                        previousDepthPyramidRT.referenceSize.y / (float)previousDepthPyramidRT.rt.height,
+                        Mathf.Log(Mathf.Min(previousDepthPyramidRT.rt.width, previousDepthPyramidRT.rt.height), 2),
                         0.0f
                     ));
                 }
@@ -590,21 +595,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetGlobalVector(HDShaderIDs._DepthPyramidSize, Vector4.one);
                     cmd.SetGlobalVector(HDShaderIDs._DepthPyramidScale, Vector4.one);
                 }
-                    
+
                 var previousColorPyramidRT = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorPyramid);
                 if (previousColorPyramidRT != null)
                 {
                     cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, previousColorPyramidRT);
                     cmd.SetGlobalVector(HDShaderIDs._ColorPyramidSize, new Vector4(
-                        previousColorPyramidRT.referenceSize.x, 
-                        previousColorPyramidRT.referenceSize.y, 
-                        1f / previousColorPyramidRT.referenceSize.x, 
+                        previousColorPyramidRT.referenceSize.x,
+                        previousColorPyramidRT.referenceSize.y,
+                        1f / previousColorPyramidRT.referenceSize.x,
                         1f / previousColorPyramidRT.referenceSize.y
                     ));
                     cmd.SetGlobalVector(HDShaderIDs._ColorPyramidScale, new Vector4(
-                        previousColorPyramidRT.referenceSize.x / (float)previousColorPyramidRT.rt.width, 
-                        previousColorPyramidRT.referenceSize.y / (float)previousColorPyramidRT.rt.height, 
-                        Mathf.Log(Mathf.Min(previousColorPyramidRT.rt.width, previousColorPyramidRT.rt.height), 2), 
+                        previousColorPyramidRT.referenceSize.x / (float)previousColorPyramidRT.rt.width,
+                        previousColorPyramidRT.referenceSize.y / (float)previousColorPyramidRT.rt.height,
+                        Mathf.Log(Mathf.Min(previousColorPyramidRT.rt.width, previousColorPyramidRT.rt.height), 2),
                         0.0f
                     ));
                 }
@@ -614,7 +619,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetGlobalVector(HDShaderIDs._ColorPyramidSize, Vector4.one);
                     cmd.SetGlobalVector(HDShaderIDs._ColorPyramidScale, Vector4.one);
             }
-        }
+            }
         }
 
         bool IsConsolePlatform()
@@ -775,7 +780,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     continue;
                 }
 
-                if (camera.cameraType != CameraType.Reflection)
+                if (camera.cameraType != CameraType.Reflection
+                    // Planar probes rendering is not currently supported for orthographic camera
+                    // Avoid rendering to prevent error log spamming
+                    && !camera.orthographic)
                 {
                     // TODO: Render only visible probes
                     ReflectionSystem.RenderAllRealtimeViewerDependentProbesFor(ReflectionProbeType.PlanarReflection, camera);

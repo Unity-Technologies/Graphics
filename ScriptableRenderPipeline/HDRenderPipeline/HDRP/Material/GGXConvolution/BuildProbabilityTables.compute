@@ -8,7 +8,7 @@
 #include "CoreRP/ShaderLibrary/ImageBasedLighting.hlsl"
 #include "../../ShaderVariables.hlsl"
 
-#pragma only_renderers d3d11 ps4 xboxone vulkan metal
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
 
 /* --- Input --- */
 

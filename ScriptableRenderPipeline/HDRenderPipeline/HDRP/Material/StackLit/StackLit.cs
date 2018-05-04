@@ -1,5 +1,6 @@
 using System;
 using UnityEngine.Rendering;
+//using System.Runtime.InteropServices;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -8,7 +9,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [GenerateHLSL(PackingRules.Exact)]
         public enum MaterialFeatureFlags
         {
-            LitStandard             = 1 << 0
+            StackLitStandard                = 1 << 0,
+            StackLitDualSpecularLobe        = 1 << 1,
+            StackLitAnisotropy              = 1 << 2,
+            StackLitCoat                    = 1 << 3,
+            StackLitIridescence             = 1 << 4,
+            StackLitSubsurfaceScattering    = 1 << 5,
+            StackLitTransmission            = 1 << 6,
         };
 
         //-----------------------------------------------------------------------------
@@ -22,53 +29,125 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Material Features")]
             public uint materialFeatures;
 
-            // Standard
+            // Bottom interface (2 lobes BSDF)
+            // Standard parametrization
             [SurfaceDataAttributes("Base Color", false, true)]
             public Vector3 baseColor;
-            
+
+            [SurfaceDataAttributes("Ambient Occlusion")]
+            public float ambientOcclusion;
+
+            [SurfaceDataAttributes("Metallic")]
+            public float metallic;
+
+            [SurfaceDataAttributes("IOR")]
+            public float dielectricIor;
+
             [SurfaceDataAttributes(new string[]{"Normal", "Normal View Space"}, true)]
             public Vector3 normalWS;
 
             [SurfaceDataAttributes("Smoothness A")]
             public float perceptualSmoothnessA;
+
+            // Dual specular lobe
             [SurfaceDataAttributes("Smoothness B")]
             public float perceptualSmoothnessB;
 
             [SurfaceDataAttributes("Lobe Mixing")]
             public float lobeMix;
 
-            [SurfaceDataAttributes("Metallic")]
-            public float metallic;
+            // Anisotropic
+            [SurfaceDataAttributes("Tangent", true)]
+            public Vector3 tangentWS;
 
+            [SurfaceDataAttributes("Anisotropy")]
+            public float anisotropy; // anisotropic ratio(0->no isotropic; 1->full anisotropy in tangent direction, -1->full anisotropy in bitangent direction)
+
+            // Iridescence
+            [SurfaceDataAttributes("IridescenceIor")]
+            public float iridescenceIor;
+            [SurfaceDataAttributes("IridescenceThickness")]
+            public float iridescenceThickness;
+
+            // Top interface and media (clearcoat)
+            [SurfaceDataAttributes("Coat Smoothness")]
+            public float coatPerceptualSmoothness;
+            [SurfaceDataAttributes("Coat IOR")]
+            public float coatIor;
+            [SurfaceDataAttributes("Coat Thickness")]
+            public float coatThickness;
+            [SurfaceDataAttributes("Coat Extinction Coefficient")]
+            public Vector3 coatExtinction;
+
+            // SSS
+            [SurfaceDataAttributes("Diffusion Profile")]
+            public uint diffusionProfile;
+            [SurfaceDataAttributes("Subsurface Mask")]
+            public float subsurfaceMask;
+
+            // Transmission
+            // + Diffusion Profile
+            [SurfaceDataAttributes("Thickness")]
+            public float thickness;
         };
 
         //-----------------------------------------------------------------------------
         // BSDFData
         //-----------------------------------------------------------------------------
-
         [GenerateHLSL(PackingRules.Exact, false, true, 1400)]
         public struct BSDFData
         {
             public uint materialFeatures;
 
+            // Bottom interface (2 lobes BSDF)
+            // Standard parametrization
             [SurfaceDataAttributes("", false, true)]
             public Vector3 diffuseColor;
             public Vector3 fresnel0;
 
+            public float ambientOcclusion;
+
             [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
             public Vector3 normalWS;
             public float perceptualRoughnessA;
+
+            // Dual specular lobe
             public float perceptualRoughnessB;
             public float lobeMix;
+
+            // Anisotropic
+            [SurfaceDataAttributes("", true)]
+            public Vector3 tangentWS;
+            [SurfaceDataAttributes("", true)]
+            public Vector3 bitangentWS;
             public float roughnessAT;
             public float roughnessAB;
             public float roughnessBT;
             public float roughnessBB;
             public float anisotropy;
-            //public fixed float test[2];
 
+            // Top interface and media (clearcoat)
+            public float coatRoughness;
+            public float coatPerceptualRoughness;
+            public float coatIor;
+            public float coatThickness;
+            public Vector3 coatExtinction;
 
+            // iridescence
+            public float iridescenceIor;
+            public float iridescenceThickness;
+
+            // SSS
+            public uint diffusionProfile;
+            public float subsurfaceMask;
+
+            // Transmission
+            // + Diffusion Profile
+            public float thickness;
+            public bool useThickObjectMode; // Read from the diffusion profile
+            public Vector3 transmittance;   // Precomputation of transmittance
         };
+
         //-----------------------------------------------------------------------------
         // Init precomputed textures
         //-----------------------------------------------------------------------------

@@ -16,7 +16,6 @@ MonoBehaviour:
   defaultTestSettings: {fileID: 0}
   defaultRenderPipeline: {fileID: 11400000, guid: d206727e1fcd98842b54b98db4dfce28,
     type: 2}
-  alternateSettings: []
   groups:
   - groupName: 1xMaterials
     renderPipelineOverride: {fileID: 0}
@@ -227,6 +226,13 @@ MonoBehaviour:
       minimumUnityVersion: 4
       platforms: -1
       run: 1
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2206_ProbeRoughness.unity
+      scene: {fileID: 102900000, guid: fde2b1b0825ef5f40a0e5069afcca848, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2206_ProbeRoughness.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 0
     - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2205_ScreenSpaceReflectionProxySphere.unity
       scene: {fileID: 102900000, guid: 3a4f431f1be840b45945d9ec965b621c, type: 3}
       scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2205_ScreenSpaceReflectionProxySphere.unity
@@ -331,4 +337,4 @@ MonoBehaviour:
       minimumUnityVersion: 4
       platforms: -1
       run: 0
-  suiteVersion: 5
+  suiteVersion: 4
