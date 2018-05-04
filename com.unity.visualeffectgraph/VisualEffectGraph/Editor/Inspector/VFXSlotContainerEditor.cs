@@ -94,6 +94,10 @@ public class VFXSlotContainerEditor : Editor
                 }
             }
         }
+        catch(System.Exception e )
+        {
+            Debug.LogException(e);
+        }
         finally
         {
         }
