@@ -1,0 +1,75 @@
+// Unlit shader always render in forward
+Pass
+{
+    Name "ForwardUnlit"
+    Tags { "LightMode" = "${LightMode}" }
+
+    ${Tags}
+    ${Blending}
+    ${Culling}
+    ${ZTest}
+    ${ZWrite}
+
+    HLSLPROGRAM
+    
+    #pragma target 4.5
+    #pragma only_renderers d3d11 ps4 vulkan metal // TEMP: until we go further in dev
+    //#pragma enable_d3d11_debug_symbols
+
+    #pragma vertex Vert
+    #pragma fragment Frag
+
+    #define UNITY_MATERIAL_UNLIT // Need to be define before including Material.hlsl
+
+    #include "CoreRP/ShaderLibrary/common.hlsl"
+    #include "HDRP/ShaderVariables.hlsl"
+    #include "HDRP/ShaderPass/FragInputs.hlsl"
+    #include "HDRP/ShaderPass/ShaderPass.cs.hlsl"
+    #include "ShaderGraphLibrary/Functions.hlsl"
+
+    ${Defines}
+    
+    #include "HDRP/Material/Material.hlsl"
+
+    // This include will define the various Attributes/Varyings structure
+    #include "HDRP/ShaderPass/VaryingMesh.hlsl"
+
+    ${Graph}
+
+    void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
+    {
+        ${LocalPixelShader}
+
+        SurfaceInputs surfaceInput;
+        ${SurfaceInputs}
+
+        SurfaceDescription surf = PopulateSurfaceData(surfaceInput);
+        float3 Color = 0;
+        float Alpha = 0;
+        ${SurfaceOutputRemap}
+        
+        surfaceData.color = Color;
+
+    #ifdef _ALPHATEST_ON
+        DoAlphaTest(Alpha, _AlphaCutoff);
+    #endif
+
+        // Builtin Data
+        builtinData.opacity = Alpha;
+        builtinData.bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
+        builtinData.emissiveIntensity = 0; 
+        builtinData.emissiveColor = 0;
+        builtinData.velocity = float2(0.0, 0.0);
+        builtinData.shadowMask0 = 0.0;
+        builtinData.shadowMask1 = 0.0;
+        builtinData.shadowMask2 = 0.0;
+        builtinData.shadowMask3 = 0.0;
+        builtinData.distortion = float2(0.0, 0.0);
+        builtinData.distortionBlur = 0.0;
+        builtinData.depthOffset = 0.0;
+    }
+
+    #include "HDRP/ShaderPass/${ShaderPassInclude}.hlsl"
+
+    ENDHLSL
+}
