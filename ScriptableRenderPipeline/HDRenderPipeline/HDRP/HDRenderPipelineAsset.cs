@@ -80,7 +80,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     maxPlanarReflectionProbePerCamera = renderPipelineSettings.lightLoopSettings.planarReflectionProbeCacheSize,
                     maxActivePlanarReflectionProbe = 512,
-                    planarReflectionProbeSize = renderPipelineSettings.lightLoopSettings.planarReflectionTextureSize
+                    planarReflectionProbeSize = (int)renderPipelineSettings.lightLoopSettings.planarReflectionTextureSize
                 };
             }
         }
