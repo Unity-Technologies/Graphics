@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using UnityEngine;
 using NUnit.Framework;
 using UnityEditor.VFX.UI;
@@ -23,54 +24,143 @@ namespace UnityEditor.VFX.Test
         }
 
 
-        static Texture2D texture = new Texture2D(16,16);
+        static Texture2D s_Texture;
 
-        public static Conversion[] conversions =
+        static Conversion[] s_Conversions;
+
+        static Conversion[] s_FailingConversions;
+
+        static Conversion[] conversions
         {
-            // Vector3
-            new Conversion{value = new Vector3(1,2,3),targetType=typeof(Vector2),expectedResult = new Vector2(1,2)},
-            new Conversion{value = new Vector3(1,2,3),targetType=typeof(Vector3),expectedResult = new Vector3(1,2,3)},
-            new Conversion{value = new Vector3(1,2,3),targetType=typeof(Vector4),expectedResult = new Vector4(1,2,3,0)},
-            new Conversion{value = new Vector3(1,2,3),targetType=typeof(float),expectedResult = 1.0f},
-            new Conversion{value = new Vector3(1,2,3),targetType=typeof(int),expectedResult = 1},
-            new Conversion{value = new Vector3(1,2,3),targetType=typeof(uint),expectedResult = 1u},
-            new Conversion{value = new Vector3(0.1f,0.2f,0.3f),targetType=typeof(Color),expectedResult = new Color(0.1f,0.2f,0.3f)},
-            // Vector2
-            new Conversion{value = new Vector2(1,2),targetType=typeof(Vector2),expectedResult = new Vector2(1,2)},
-            new Conversion{value = new Vector2(1,2),targetType=typeof(Vector3),expectedResult = new Vector3(1,2,0)},
-            new Conversion{value = new Vector2(1,2),targetType=typeof(Vector4),expectedResult = new Vector4(1,2,0,0)},
-            new Conversion{value = new Vector2(1,2),targetType=typeof(float),expectedResult = 1.0f},
-            new Conversion{value = new Vector2(1,2),targetType=typeof(int),expectedResult = 1},
-            new Conversion{value = new Vector2(1,2),targetType=typeof(uint),expectedResult = 1u},
-            new Conversion{value = new Vector2(0.1f,0.2f),targetType=typeof(Color),expectedResult = new Color(0.1f,0.2f,0.0f)},
-            // Vector4
-            new Conversion{value = new Vector4(1,2,3,4),targetType=typeof(Vector2),expectedResult = new Vector2(1,2)},
-            new Conversion{value = new Vector4(1,2,3,4),targetType=typeof(Vector3),expectedResult = new Vector3(1,2,3)},
-            new Conversion{value = new Vector4(1,2,3,4),targetType=typeof(Vector4),expectedResult = new Vector4(1,2,3,4)},
-            new Conversion{value = new Vector4(1,2,3,4),targetType=typeof(float),expectedResult = 1.0f},
-            new Conversion{value = new Vector4(1,2,3,4),targetType=typeof(int),expectedResult = 1},
-            new Conversion{value = new Vector4(1,2,3,4),targetType=typeof(uint),expectedResult = 1u},
-            new Conversion{value = new Vector4(0.1f,0.2f,0.3f,0.4f),targetType=typeof(Color),expectedResult = new Color(0.1f,0.2f,0.3f,0.4f)},
-            // Color
-            new Conversion{value = new Color(0.1f,0.2f,0.3f,0.4f),targetType=typeof(Vector2),expectedResult = new Vector2(0.1f,0.2f)},
-            new Conversion{value = new Color(0.1f,0.2f,0.3f,0.4f),targetType=typeof(Vector3),expectedResult = new Vector3(0.1f,0.2f,0.3f)},
-            new Conversion{value = new Color(0.1f,0.2f,0.3f,0.4f),targetType=typeof(Vector4),expectedResult = new Vector4(0.1f,0.2f,0.3f,0.4f)},
-            new Conversion{value = new Color(0.1f,0.2f,0.3f,0.4f),targetType=typeof(float),expectedResult = 0.4f},
-            new Conversion{value = new Color(0.1f,0.2f,0.3f,0.4f),targetType=typeof(Color),expectedResult = new Color(0.1f,0.2f,0.3f,0.4f)},
+            get { BuildValueSources(); return s_Conversions;}
+        }
+        static Conversion[] failingConversions
+        {
+            get { BuildValueSources(); return s_FailingConversions;}
+        }
 
-            new Conversion{value = texture,targetType=typeof(Texture2D),expectedResult = texture},
-            new Conversion{value = texture,targetType=typeof(Texture),expectedResult = texture},
+        static void BuildValueSources()
+        {
+            if (s_Texture == null)
+            {
+                s_Texture = new Texture2D(16, 16);
 
-            new Conversion{value = 1.1f,targetType=typeof(int),expectedResult = 1},
-            new Conversion{value = 1.1f,targetType=typeof(uint),expectedResult = 1u},
-            new Conversion{value = -1.1f,targetType=typeof(uint),expectedResult = 0u},
-            new Conversion{value = (uint)int.MaxValue + 2u,targetType=typeof(int),expectedResult = 0},
-            new Conversion{value = (uint)int.MaxValue + 2u,targetType=typeof(uint),expectedResult = (uint)int.MaxValue + 2u},
-            new Conversion{value = null,targetType=typeof(uint),expectedResult = null},
-            new Conversion{value = null,targetType=typeof(Texture2D),expectedResult = null},
-            new Conversion{value = null,targetType=typeof(Vector3),expectedResult = null},
+                s_Conversions = new Conversion[]
+                {
+                    // Vector3
+                    new Conversion {value = new Vector3(1, 2, 3), targetType = typeof(Vector2), expectedResult = new Vector2(1, 2)},
+                    new Conversion {value = new Vector3(1, 2, 3), targetType = typeof(Vector3), expectedResult = new Vector3(1, 2, 3)},
+                    new Conversion
+                    {
+                        value = new Vector3(1, 2, 3),
+                        targetType = typeof(Vector4),
+                        expectedResult = new Vector4(1, 2, 3, 0)
+                    },
+                    new Conversion {value = new Vector3(1, 2, 3), targetType = typeof(float), expectedResult = 1.0f},
+                    new Conversion {value = new Vector3(1, 2, 3), targetType = typeof(int), expectedResult = 1},
+                    new Conversion {value = new Vector3(1, 2, 3), targetType = typeof(uint), expectedResult = 1u},
+                    new Conversion
+                    {
+                        value = new Vector3(0.1f, 0.2f, 0.3f),
+                        targetType = typeof(Color),
+                        expectedResult = new Color(0.1f, 0.2f, 0.3f)
+                    },
+                    // Vector2
+                    new Conversion {value = new Vector2(1, 2), targetType = typeof(Vector2), expectedResult = new Vector2(1, 2)},
+                    new Conversion {value = new Vector2(1, 2), targetType = typeof(Vector3), expectedResult = new Vector3(1, 2, 0)},
+                    new Conversion {value = new Vector2(1, 2), targetType = typeof(Vector4), expectedResult = new Vector4(1, 2, 0, 0)},
+                    new Conversion {value = new Vector2(1, 2), targetType = typeof(float), expectedResult = 1.0f},
+                    new Conversion {value = new Vector2(1, 2), targetType = typeof(int), expectedResult = 1},
+                    new Conversion {value = new Vector2(1, 2), targetType = typeof(uint), expectedResult = 1u},
+                    new Conversion
+                    {
+                        value = new Vector2(0.1f, 0.2f),
+                        targetType = typeof(Color),
+                        expectedResult = new Color(0.1f, 0.2f, 0.0f)
+                    },
+                    // Vector4
+                    new Conversion {value = new Vector4(1, 2, 3, 4), targetType = typeof(Vector2), expectedResult = new Vector2(1, 2)},
+                    new Conversion
+                    {
+                        value = new Vector4(1, 2, 3, 4),
+                        targetType = typeof(Vector3),
+                        expectedResult = new Vector3(1, 2, 3)
+                    },
+                    new Conversion
+                    {
+                        value = new Vector4(1, 2, 3, 4),
+                        targetType = typeof(Vector4),
+                        expectedResult = new Vector4(1, 2, 3, 4)
+                    },
+                    new Conversion {value = new Vector4(1, 2, 3, 4), targetType = typeof(float), expectedResult = 1.0f},
+                    new Conversion {value = new Vector4(1, 2, 3, 4), targetType = typeof(int), expectedResult = 1},
+                    new Conversion {value = new Vector4(1, 2, 3, 4), targetType = typeof(uint), expectedResult = 1u},
+                    new Conversion
+                    {
+                        value = new Vector4(0.1f, 0.2f, 0.3f, 0.4f),
+                        targetType = typeof(Color),
+                        expectedResult = new Color(0.1f, 0.2f, 0.3f, 0.4f)
+                    },
+                    // Color
+                    new Conversion
+                    {
+                        value = new Color(0.1f, 0.2f, 0.3f, 0.4f),
+                        targetType = typeof(Vector2),
+                        expectedResult = new Vector2(0.1f, 0.2f)
+                    },
+                    new Conversion
+                    {
+                        value = new Color(0.1f, 0.2f, 0.3f, 0.4f),
+                        targetType = typeof(Vector3),
+                        expectedResult = new Vector3(0.1f, 0.2f, 0.3f)
+                    },
+                    new Conversion
+                    {
+                        value = new Color(0.1f, 0.2f, 0.3f, 0.4f),
+                        targetType = typeof(Vector4),
+                        expectedResult = new Vector4(0.1f, 0.2f, 0.3f, 0.4f)
+                    },
+                    new Conversion {value = new Color(0.1f, 0.2f, 0.3f, 0.4f), targetType = typeof(float), expectedResult = 0.4f},
+                    new Conversion
+                    {
+                        value = new Color(0.1f, 0.2f, 0.3f, 0.4f),
+                        targetType = typeof(Color),
+                        expectedResult = new Color(0.1f, 0.2f, 0.3f, 0.4f)
+                    },
 
-        };
+                    new Conversion {value = s_Texture, targetType = typeof(Texture2D), expectedResult = s_Texture},
+                    new Conversion {value = s_Texture, targetType = typeof(Texture), expectedResult = s_Texture},
+
+                    new Conversion {value = 1.1f, targetType = typeof(int), expectedResult = 1},
+                    new Conversion {value = 1.1f, targetType = typeof(uint), expectedResult = 1u},
+                    new Conversion {value = -1.1f, targetType = typeof(uint), expectedResult = 0u},
+                    new Conversion {value = (uint) int.MaxValue + 2u, targetType = typeof(int), expectedResult = 0},
+                    new Conversion
+                    {
+                        value = (uint) int.MaxValue + 2u,
+                        targetType = typeof(uint),
+                        expectedResult = (uint) int.MaxValue + 2u
+                    },
+                    new Conversion {value = null, targetType = typeof(uint), expectedResult = null},
+                    new Conversion {value = null, targetType = typeof(Texture2D), expectedResult = null},
+                    new Conversion {value = null, targetType = typeof(Vector3), expectedResult = null},
+                };
+
+                s_FailingConversions = new Conversion[]
+                {
+                    new Conversion {value = s_Texture, targetType = typeof(Mesh), expectedResult = null},
+                    new Conversion {value = s_Texture, targetType = typeof(float), expectedResult = null},
+                    new Conversion {value = s_Texture, targetType = typeof(int), expectedResult = null},
+                    new Conversion {value = s_Texture, targetType = typeof(Vector3), expectedResult = null},
+                    new Conversion
+                    {
+                        value = Matrix4x4.TRS(new Vector3(1, 2, 3), Quaternion.Euler(10, 20, 30), new Vector3(4, 5, 6)),
+                        targetType = typeof(float),
+                        expectedResult = null
+                    },
+                };
+            }
+        }
 
         [Test]
         public void SimpleConvertTest([ValueSource("conversions")] Conversion conversion)
@@ -79,14 +169,6 @@ namespace UnityEditor.VFX.Test
         }
 
 
-        public static Conversion[] failingConversions =
-        {
-            new Conversion{value = texture,targetType=typeof(Mesh),expectedResult = null},
-            new Conversion{value = texture,targetType=typeof(float),expectedResult = null},
-            new Conversion{value = texture,targetType=typeof(int),expectedResult = null},
-            new Conversion{value = texture,targetType=typeof(Vector3),expectedResult = null},
-            new Conversion{value =  Matrix4x4.TRS(new Vector3(1,2,3),Quaternion.Euler(10,20,30),new Vector3(4,5,6)),targetType=typeof(float),expectedResult = null},
-        };
         [Test]
         public void FailingConvertTest([ValueSource("failingConversions")] Conversion conversion)
         {

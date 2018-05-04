@@ -148,7 +148,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (fromType == toType || toType.IsAssignableFrom(fromType))
                 {
-                    converter = t => Convert.ChangeType(t, toType);
+                    converter = t => t;
                 }
                 else
                 {
