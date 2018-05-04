@@ -50,7 +50,7 @@
     #ifdef ATTRIBUTES_NEED_TEXCOORD3
     #define VARYINGS_NEED_TEXCOORD3
     #endif
-    #if ATTRIBUTES_NEED_COLOR
+    #ifdef ATTRIBUTES_NEED_COLOR
     #define VARYINGS_NEED_COLOR
     #endif
 #endif
