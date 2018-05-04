@@ -1,2 +1,2 @@
-*.png filter=lfs diff=lfs merge=lfs -text
-*.gif filter=lfs diff=lfs merge=lfs -text
+ShaderGraph/**/*.png filter=lfs diff=lfs merge=lfs -text
+ShaderGraph/**/*.gif filter=lfs diff=lfs merge=lfs -text
