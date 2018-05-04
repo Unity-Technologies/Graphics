@@ -16,16 +16,15 @@ Pass
 	
 	#define UNITY_MATERIAL_LIT
 	#define SHADERPASS SHADERPASS_GBUFFER
-	#define HDRP_NEEDS_UVS (HDRP_USE_BASE_COLOR_MAP || HDRP_USE_MASK_MAP || HDRP_USE_NORMAL_MAP || HDRP_USE_EMISSIVE_MAP)
-	#define HDRP_USE_EMISSIVE (HDRP_USE_EMISSIVE_MAP || HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR)
+	
+	${VFXInclude("Assets/VFXEditor/Shaders/RenderPipeline/HDRP/VFXLitVaryings.template")}	
 	
 	struct ps_input
 	{
 		float4 pos : SV_POSITION;
+		
+		${VFXHDRPLitDeclareVaryings}
 
-		#if (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR
-		nointerpolation float4 color : COLOR0;
-		#endif
 		#if USE_SOFT_PARTICLE || USE_ALPHA_TEST
 		// x: inverse soft particles fade distance
 		// y: alpha threshold
@@ -37,23 +36,10 @@ Pass
 		
 		float3 offsets : TEXCOORD3;
 		nointerpolation float3 rotX : TEXCOORD4;
-		nointerpolation float3 rotY : TEXCOORD5;
-		
-		#if HDRP_MATERIAL_TYPE_SPECULAR	
-		nointerpolation float3 specularColor : COLOR1;
-		#endif
-		#if HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR	
-		nointerpolation float3 emissiveColor : COLOR2;
-		#endif
-		
-		// x: smoothness
-		// y: metallic/thickness
-		// z: normal scale
-		// w: emissive scale
-		nointerpolation float4 materialProperties : TEXCOORD6;
+		nointerpolation float3 rotY : TEXCOORD5;		
 		
 		#if HDRP_NEEDS_UVS
-		nointerpolation uint faceID : TEXCOORD7;
+		nointerpolation uint faceID : TEXCOORD6;
 		#endif
 	};
 	
@@ -65,10 +51,6 @@ Pass
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
 #define VFX_VARYING_POSSS projPos
-#if VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR
-#define VFX_VARYING_COLOR color.rgb
-#define VFX_VARYING_ALPHA color.a
-#endif
 #define VFX_VARYING_INVSOFTPARTICLEFADEDISTANCE builtInInterpolants.x
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
 #define VFX_VARYING_OFFSETS offsets
@@ -79,68 +61,38 @@ Pass
 #endif
 				
 ${VFXBegin:VFXVertexAdditionalProcess}
-${VFXLoadParameter:{smoothness}}
-o.materialProperties.x = smoothness;
-#if HDRP_MATERIAL_TYPE_STANDARD
-${VFXLoadParameter:{metallic}}
-o.materialProperties.y = metallic;
-#elif HDRP_MATERIAL_TYPE_SPECULAR
-${VFXLoadParameter:{specularColor}}
-o.specularColor = specularColor;
-#elif HDRP_MATERIAL_TYPE_TRANSLUCENT
-${VFXLoadParameter:{thickness}}
-o.materialProperties.y = thickness;
-#endif
-#if HDRP_USE_NORMAL_MAP
-${VFXLoadParameter:{normalScale}}
-o.materialProperties.z = normalScale;
-#endif
-#if HDRP_USE_EMISSIVE_MAP
-${VFXLoadParameter:{emissiveScale}}
-o.materialProperties.w = emissiveScale;
-#endif
-#if HDRP_USE_EMISSIVE_COLOR
-o.emissiveColor = color;
-#elif HDRP_USE_ADDITIONAL_EMISSIVE_COLOR
-${VFXLoadParameter:{emissiveColor}}
-o.emissiveColor = emissiveColor;
-#endif
-#if HDRP_USE_ADDITIONAL_BASE_COLOR
-${VFXLoadParameter:{baseColor}}
-o.color = baseColor;
-#endif
+${VFXHDRPLitFillVaryings}
 ${VFXEnd}
 
-	${VFXInclude("Assets/VFXEditor/Shaders/ParticleHexahedron/Pass.template")}	
-	${VFXInclude("Assets/VFXEditor/Shaders/RenderPipeline/HDRP/VFXLit.template")}		
+	${VFXInclude("Assets/VFXEditor/Shaders/ParticleHexahedron/Pass.template")}		
+	${VFXInclude("Assets/VFXEditor/Shaders/RenderPipeline/HDRP/VFXLit.template")}	
 		
 	#pragma fragment frag
-	void frag(ps_input i, OUTPUT_GBUFFER(outGBuffer))
+	void frag(ps_input i, OUTPUT_GBUFFER(outGBuffer)
+#if USE_DOUBLE_SIDED
+	, bool frontFace : SV_IsFrontFace
+#endif
+	)
 	{
+#if !USE_DOUBLE_SIDED	
+		const bool frontFace = true;
+#endif
 		float3 normalWS;
+		float2 uvs = VFXCubeGetUV(i);
+		
 		#if HDRP_USE_NORMAL_MAP
-		float3 n = VFXGetTextureNormal(VFX_SAMPLER(normalMap),VFXCubeGetUV(i));
-		normalWS = VFXCubeTransformNormalTS(i,n);
+		float3 n = VFXGetTextureNormal(VFX_SAMPLER(normalMap),uvs);
+		normalWS = VFXCubeTransformNormalTS(i,n,frontFace);
 		normalWS = lerp(VFXCubeGetLocalNormal(i),normalWS,i.materialProperties.z);
 		#else
-		normalWS = VFXCubeGetLocalNormal(i);
+		normalWS = VFXCubeGetLocalNormal(i) * (frontFace ? 1.0f : -1.0f);
 		#endif
 		normalWS = VFXCubeTransformNormalWS(i,normalWS);
 		normalWS = normalize(normalWS);
 
-		SurfaceData surfaceData = VFXGetSurfaceData(normalWS,i,VFXCubeGetUV(i));
-		float3 ambient = surfaceData.baseColor * VFXGetAmbient(normalWS);
-		
-		#if HDRP_USE_EMISSIVE
-		float3 emissive = float3(1,1,1);
-		#if HDRP_USE_EMISSIVE_MAP
-		emissive *= VFXGetTextureColorWithProceduralUV(VFX_SAMPLER(emissiveMap),i,VFXCubeGetUV(i)).rgb * i.materialProperties.w;
-		#endif
-		#if HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR
-		emissive *= i.emissiveColor;
-		#endif
-		ambient += emissive;
-		#endif
+		SurfaceData surfaceData;
+		float3 ambient;
+		VFXGetHDRPLitData(surfaceData,ambient,i,normalWS,uvs);
 		
 		ENCODE_INTO_GBUFFER(surfaceData, ambient, i.pos, outGBuffer);
 	}

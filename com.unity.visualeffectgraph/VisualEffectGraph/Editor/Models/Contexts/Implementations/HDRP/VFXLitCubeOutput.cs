@@ -16,6 +16,7 @@ namespace UnityEditor.VFX
         public override void OnEnable()
         {
             blendMode = BlendMode.Opaque;
+            doubleSided = false;
             base.OnEnable();
         }
 
@@ -24,7 +25,8 @@ namespace UnityEditor.VFX
             get
             {
                 yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
-                yield return new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.Read);
+                if (colorMode != ColorMode.None)
+                    yield return new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Alpha, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.AxisX, VFXAttributeMode.Read);
@@ -47,6 +49,7 @@ namespace UnityEditor.VFX
                     yield return setting;
 
                 yield return "blendMode";
+                yield return "doubleSided";
             }
         }
     }

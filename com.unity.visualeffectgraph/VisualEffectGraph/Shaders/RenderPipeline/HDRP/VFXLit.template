@@ -1,48 +1,13 @@
 #include "Assets/VFXEditor/Shaders/RenderPipeline/HDRP/VFXLit.cginc"
 
-SurfaceData VFXGetSurfaceData(float3 normalWS,VFX_VARYING_PS_INPUTS i,float2 uvs = float2(0,0))
+void VFXGetHDRPLitData(out SurfaceData surfaceData, out float3 ambient, VFX_VARYING_PS_INPUTS i, float3 normalWS, float2 uvs = float2(0,0))
 {
-	SurfaceData surfaceData = (SurfaceData)0;
-	
-	float4 color = float4(1,1,1,1);
-	#if HDRP_USE_BASE_COLOR
-	color *= VFXGetFragmentColor(i);
-	VFXClipFragmentColor(color.a,i);
-	#elif HDRP_USE_ADDITIONAL_BASE_COLOR
-	color *= i.color;
-	#endif
-	surfaceData.baseColor = color.rgb;
-	
-	#if HDRP_MATERIAL_TYPE_STANDARD
-	surfaceData.materialFeatures = 1;
-	surfaceData.metallic = i.materialProperties.y;
-	#elif HDRP_MATERIAL_TYPE_SPECULAR
-	surfaceData.materialFeatures = 2;
-	surfaceData.specularColor = i.specularColor;
-	#elif HDRP_MATERIAL_TYPE_TRANSLUCENT
-	surfaceData.materialFeatures = 8;
-	surfaceData.thickness = i.materialProperties.y; 
-	${VFXLoadParameter:{diffusionProfile}}
-	surfaceData.diffusionProfile = diffusionProfile;
-	surfaceData.subsurfaceMask = 1.0f;
+	#if HDRP_MATERIAL_TYPE_TRANSLUCENT
+	${VFXLoadParameter:{diffusionProfile}} // Loads diffusion profile
+	#else
+	const uint diffusionProfile = 0;
 	#endif
 	
-	surfaceData.normalWS = normalWS;
-	surfaceData.perceptualSmoothness = i.materialProperties.x;
-	surfaceData.specularOcclusion = 1.0f;
-	surfaceData.ambientOcclusion = 1.0f;
-	
-	#if HDRP_USE_BASE_COLOR_MAP
-	surfaceData.baseColor *= VFXGetTextureColorWithProceduralUV(VFX_SAMPLER(baseColorMap),i,uvs);
-	#endif
-	
-	#if HDRP_USE_MASK_MAP
-	float4 mask = VFXGetTextureColorWithProceduralUV(VFX_SAMPLER(maskMap),i,uvs);
-	surfaceData.metallic *= mask.r;
-	surfaceData.ambientOcclusion *= mask.g;
-	surfaceData.perceptualSmoothness *= mask.a;
-	#endif
-	
-	return surfaceData;
+	surfaceData = VFXGetSurfaceData(i,normalWS,uvs,diffusionProfile);
+	ambient = VFXGetAmbient(i,surfaceData);
 }
-

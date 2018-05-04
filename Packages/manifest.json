@@ -4,6 +4,6 @@
     "com.unity.ads": "exclude",
     "com.unity.purchasing": "exclude",
     "com.unity.analytics": "exclude",
-    "com.unity.render-pipelines.high-definition": "1.1.4-preview"
+    "com.unity.render-pipelines.high-definition": "1.1.5-preview"
   }
 }

@@ -55,6 +55,9 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool useEmissive = false;
 
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected bool doubleSided = false;
+
         protected virtual bool allowTextures { get { return true; }}
 
         public class HDRPLitInputProperties
@@ -246,6 +249,9 @@ namespace UnityEditor.VFX
                     yield return "HDRP_USE_EMISSIVE_COLOR";
                 else if (useEmissive)
                     yield return "HDRP_USE_ADDITIONAL_EMISSIVE_COLOR";
+
+                if (doubleSided)
+                    yield return "USE_DOUBLE_SIDED";
             }
         }
 

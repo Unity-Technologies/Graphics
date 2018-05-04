@@ -86,7 +86,7 @@ float3 VFXCubeTransformNormalTS(float3 faceNormal,float3 normal)
 	return mul(tbn,normal);
 }
 
-float3 VFXCubeTransformNormalTS(VFX_VARYING_PS_INPUTS i,float3 normal)
+float3 VFXCubeTransformNormalTS(VFX_VARYING_PS_INPUTS i,float3 normal,bool frontFace = true)
 {
 #if defined(VFX_VARYING_OFFSETS) && defined(VFX_VARYING_FACEID)
 	float3x3 tbn;
@@ -97,6 +97,11 @@ float3 VFXCubeTransformNormalTS(VFX_VARYING_PS_INPUTS i,float3 normal)
 		tbn = float3x3(faceNormal.yxz, faceNormal.xzy, float3(0, 1, 0));
 	else
 		tbn = float3x3(faceNormal.yzx, float3(0,1,0),faceNormal.xyz);
+#ifdef USE_DOUBLE_SIDED
+	float multiplier = frontFace ? 1.0f : -1.0f;
+	tbn[0] *= multiplier;
+	tbn[2] *= multiplier;
+#endif
 	return mul(tbn, normal);
 #else
 	return normal;
