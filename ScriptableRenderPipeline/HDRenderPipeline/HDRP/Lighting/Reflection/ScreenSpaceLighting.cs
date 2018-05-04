@@ -13,6 +13,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_RayMaxIterationsID;
         int m_RayDepthSuccessBiasID;
         int m_InvScreenWeightDistanceID;
+        int m_RayMaxScreenDistanceID;
+        int m_RayBlendScreenDistanceID;
 
         public IntParameter                 rayLevel = new IntParameter(2);
         public IntParameter                 rayMaxLinearIterationsLevel = new IntParameter(2);
@@ -21,6 +23,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public IntParameter                 rayMaxIterations = new IntParameter(32);
         public FloatParameter               rayDepthSuccessBias = new FloatParameter(0.1f);
         public ClampedFloatParameter        screenWeightDistance = new ClampedFloatParameter(0.1f, 0, 1);
+        public FloatParameter               rayMaxScreenDistance = new FloatParameter(0.3f);
+        public FloatParameter               rayBlendScreenDistance = new FloatParameter(0.1f);
 
         public virtual void PushShaderParameters(CommandBuffer cmd)
         {
@@ -31,6 +35,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalInt(m_RayMaxIterationsID, rayMaxIterations.value);
             cmd.SetGlobalFloat(m_RayDepthSuccessBiasID, rayDepthSuccessBias.value);
             cmd.SetGlobalFloat(m_InvScreenWeightDistanceID, 1f / screenWeightDistance.value);
+            cmd.SetGlobalFloat(m_RayMaxScreenDistanceID, rayMaxScreenDistance.value);
+            cmd.SetGlobalFloat(m_RayBlendScreenDistanceID, rayBlendScreenDistance.value);
         }
 
         protected abstract void FetchIDs(
@@ -40,7 +46,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             out int rayMaxLevelID,
             out int rayMaxIterationsID,
             out int rayDepthSuccessBiasID,
-            out int invScreenWeightDistanceID
+            out int invScreenWeightDistanceID,
+            out int rayMaxScreenDistanceID,
+            out int rayBlendScreenDistanceID
         );
 
         void Awake()
@@ -52,7 +60,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 out m_RayMaxLevelID,
                 out m_RayMaxIterationsID,
                 out m_RayDepthSuccessBiasID,
-                out m_InvScreenWeightDistanceID
+                out m_InvScreenWeightDistanceID,
+                out m_RayMaxScreenDistanceID,
+                out m_RayBlendScreenDistanceID
             );
         }
     }

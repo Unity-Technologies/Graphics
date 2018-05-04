@@ -45,7 +45,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             out int rayMaxLevelID,
             out int rayMaxIterationsID,
             out int rayDepthSuccessBiasID,
-            out int screenWeightDistanceID
+            out int screenWeightDistanceID,
+            out int rayMaxScreenDistanceID,
+            out int rayBlendScreenDistanceID
         )
         {
             rayLevelID = HDShaderIDs._SSReflectionRayLevel;
@@ -55,6 +57,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             rayMaxIterationsID = HDShaderIDs._SSReflectionRayMaxIterations;
             rayDepthSuccessBiasID = HDShaderIDs._SSReflectionRayDepthSuccessBias;
             screenWeightDistanceID = HDShaderIDs._SSReflectionInvScreenWeightDistance;
+            rayMaxScreenDistanceID = HDShaderIDs._SSReflectionInvScreenWeightDistance;
+            rayBlendScreenDistanceID = HDShaderIDs._SSReflectionInvScreenWeightDistance;
         }
 
         public override void PushShaderParameters(CommandBuffer cmd)
