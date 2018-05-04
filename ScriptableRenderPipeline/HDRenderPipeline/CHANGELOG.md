@@ -27,6 +27,7 @@
 - Default number of planar reflection change from 4 to 2
 - Rename _MainDepthTexture to _CameraDepthTexture
 - The VolumetricLightingController has been moved to the Interpolation Volume framework and now functions similarly to the VolumetricFog settings
+- Update of UI of cookie, CubeCookie, Reflection probe and planar reflection probe to combo box
 
 ### Bug fixes
 - Fix ConvertPhysicalLightIntensityToLightIntensity() function used when creating light from script to match HDLightEditor behavior
