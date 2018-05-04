@@ -23,6 +23,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             canPasteSerializedData = CanPasteSerializedDataImplementation;
             unserializeAndPaste = UnserializeAndPasteImplementation;
             deleteSelection = DeleteSelectionImplementation;
+            RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
+            RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
         }
 
         protected override bool canCopySelection
@@ -264,6 +266,53 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             selection.Clear();
         }
+
+        #region Drag and drop
+
+        static void OnDragUpdatedEvent(DragUpdatedEvent e)
+        {
+            var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
+
+            if (selection != null && (selection.OfType<BlackboardField>().Any() ))
+            {
+                DragAndDrop.visualMode = e.ctrlKey ? DragAndDropVisualMode.Copy : DragAndDropVisualMode.Move;
+            }
+        }
+
+        void OnDragPerformEvent(DragPerformEvent e)
+        {
+            var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
+            if (selection == null)
+                return;
+
+            IEnumerable<BlackboardField> fields = selection.OfType<BlackboardField>();
+            if (!fields.Any())
+                return;
+
+            Vector2 localPos = (e.currentTarget as VisualElement).ChangeCoordinatesTo(contentViewContainer, e.localMousePosition);
+
+            foreach (BlackboardField field in fields)
+            {
+                IShaderProperty property = field.userData as IShaderProperty;
+                if (property == null)
+                    continue;
+
+                var node = new PropertyNode();
+
+                var drawState = node.drawState;
+                var position = drawState.position;
+                position.x = localPos.x;
+                position.y = localPos.y;
+                drawState.position = position;
+                node.drawState = drawState;
+
+                graph.owner.RegisterCompleteObjectUndo("Added Property");
+                graph.AddNode(node);
+                node.propertyGuid = property.guid;
+            }
+        }
+
+        #endregion
     }
 
     public static class GraphViewExtensions
