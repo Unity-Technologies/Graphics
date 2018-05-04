@@ -172,10 +172,10 @@ namespace UnityEditor.VFX.UIElements
                         m_IndeterminateLabel.RemoveFromHierarchy();
                         Add(m_FloatField);
                     }
-                    m_Slider.SetEnabled(!value);
-                }
+                m_Slider.SetEnabled(!value);
             }
         }
+    }
     }
     class VFXIntSliderField : VFXBaseSliderField<int>
     {
