@@ -94,7 +94,7 @@ public class VFXSlotContainerEditor : Editor
                 }
             }
         }
-        catch(System.Exception e )
+        catch (System.Exception e)
         {
             Debug.LogException(e);
         }
