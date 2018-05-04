@@ -156,7 +156,7 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
             float phase    = CornetteShanksPhasePartVarying(anisotropy, cosTheta);
 
             // Note: the 'weight' accounts for transmittance from 't0' to 't'.
-            float intensity = attenuation * weight;
+            float intensity = light.volumetricDimmer * attenuation * weight;
 
             // Compute the amount of in-scattered radiance.
             lighting.radianceNoPhase  += intensity * color;
@@ -287,7 +287,7 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                     float  cosTheta = dot(centerL, ray.centerDirWS) * rsqrt(dot(centerL, centerL));
                     float  phase    = CornetteShanksPhasePartVarying(anisotropy, cosTheta);
 
-                    float intensity = attenuation * rcpPdf;
+                    float intensity = light.volumetricDimmer * attenuation * rcpPdf;
 
                     // Compute transmittance from 't0' to 't'.
                     intensity *= TransmittanceHomogeneousMedium(extinction, t - t0);
@@ -376,7 +376,7 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                     float  phase    = CornetteShanksPhasePartVarying(anisotropy, cosTheta);
 
                     // Note: the 'weight' accounts for transmittance from 'tEntr' to 't'.
-                    float intensity = attenuation * weight;
+                    float intensity = light.volumetricDimmer * attenuation * weight;
 
                     // Compute transmittance from 't0' to 'tEntr'.
                     intensity *= TransmittanceHomogeneousMedium(extinction, tEntr - t0);

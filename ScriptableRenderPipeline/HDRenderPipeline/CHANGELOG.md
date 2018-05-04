@@ -20,6 +20,7 @@
 - Add 3D texture support for DensityVolumes
 - Add a better mapping of roughness to mipmap for planar reflection
 - The VolumetricLightingSystem now uses RTHandles, which allows to save memory by sharing buffers between different cameras (history buffers are not shared), and reduce reallocation frequency by reallocating buffers only if the rendering resolution increases (and suballocating within existing buffers if the rendering resolution decreases)
+- Add a Volumetric Dimmer slider to lights to control the intensity of the scattered volumetric lighting
 
 ### Changed, Removals and deprecations
 - Remove Resource folder of PreIntegratedFGD and add the resource to RenderPipeline Asset

@@ -42,6 +42,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty shapeRadius;
             public SerializedProperty maxSmoothness;
             public SerializedProperty applyRangeAttenuation;
+            public SerializedProperty volumetricDimmer;
 
             // Editor stuff
             public SerializedProperty useOldInspector;
@@ -111,11 +112,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 enableSpotReflector = o.Find(x => x.enableSpotReflector),
                 spotInnerPercent = o.Find(x => x.m_InnerSpotPercent),
                 lightDimmer = o.Find(x => x.lightDimmer),
+                volumetricDimmer = o.Find(x => x.volumetricDimmer),
                 fadeDistance = o.Find(x => x.fadeDistance),
                 affectDiffuse = o.Find(x => x.affectDiffuse),
                 affectSpecular = o.Find(x => x.affectSpecular),
                 lightTypeExtent = o.Find(x => x.lightTypeExtent),
-                spotLightShape = o.Find(x => x.spotLightShape),              
+                spotLightShape = o.Find(x => x.spotLightShape),
                 shapeWidth = o.Find(x => x.shapeWidth),
                 shapeHeight = o.Find(x => x.shapeHeight),
                 aspectRatio = o.Find(x => x.aspectRatio),
@@ -450,6 +452,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.PropertyField(m_AdditionalLightData.affectSpecular, s_Styles.affectSpecular);
                 EditorGUILayout.PropertyField(m_AdditionalLightData.fadeDistance, s_Styles.fadeDistance);
                 EditorGUILayout.PropertyField(m_AdditionalLightData.lightDimmer, s_Styles.lightDimmer);
+                EditorGUILayout.PropertyField(m_AdditionalLightData.volumetricDimmer, s_Styles.volumetricDimmer);
                 EditorGUILayout.PropertyField(m_AdditionalLightData.applyRangeAttenuation, s_Styles.applyRangeAttenuation);
                 EditorGUI.indentLevel--;
             }
