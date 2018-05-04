@@ -17,15 +17,19 @@
 - Configure the volumetric lighting code path to be on by default
 - Trigger a build exception when trying to build an unsupported platform
 - Introduce the VolumetricLightingController component, which can (and should) be placed on the camera, and allows one to control the near and the far plane of the V-Buffer (volumetric "froxel" buffer) along with the depth distribution (from logarithmic to linear)
+- Add 3D texture support for density volume
+- Add a better mapping of roughness to mipmap for planar reflection
 
 ### Changed, Removals and deprecations
 - Remove Resource folder of PreIntegratedFGD and add the resource to RenderPipeline Asset
 - Default number of planar reflection change from 4 to 2
+- Rename _MainDepthTexture to _CameraDepthTexture
 
 ### Bug fixes
 - Fix ConvertPhysicalLightIntensityToLightIntensity() function used when creating light from script to match HDLightEditor behavior
 - Fix numerical issues with the default value of mean free path of volumetric fog 
-- Fix the bug preventing decals from coexisting with density volumes 
+- Fix the bug preventing decals from coexisting with density volumes
+- Fix issue with alpha tested geometry using planar/triplanar mapping not render correctly or flickering (due to being wrongly alpha tested in depth prepass)
 
 ## [2018.1.0f2]
 
