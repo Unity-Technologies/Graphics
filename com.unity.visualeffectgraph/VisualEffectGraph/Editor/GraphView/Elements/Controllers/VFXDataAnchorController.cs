@@ -202,54 +202,36 @@ namespace UnityEditor.VFX.UI
                 return !m_SourceNode.viewController.CanGetEvaluatedContent(model);
             }
         }
-
-
-        class ProfilerScope : System.IDisposable
-        {
-            public ProfilerScope(string name)
-            {
-                UnityEngine.Profiling.Profiler.BeginSample(name);
-            }
-
-            void System.IDisposable.Dispose()
-            {
-                UnityEngine.Profiling.Profiler.EndSample();
-            }
-        }
-
         public virtual object value
         {
             get
             {
-                using (var scope = new ProfilerScope("VFXDataAnchorController.value.get"))
+                if (portType != null)
                 {
-                    if (portType != null)
+                    if (!editable)
                     {
-                        if (!editable)
-                        {
-                            VFXViewController nodeController = m_SourceNode.viewController;
+                        VFXViewController nodeController = m_SourceNode.viewController;
 
-                            try
+                        try
+                        {
+                            Profiler.BeginSample("GetEvaluatedContent");
+                            var evaluatedValue = nodeController.GetEvaluatedContent(model);
+                            Profiler.EndSample();
+                            if (evaluatedValue != null)
                             {
-                                Profiler.BeginSample("GetEvaluatedContent");
-                                var evaluatedValue = nodeController.GetEvaluatedContent(model);
-                                Profiler.EndSample();
-                                if (evaluatedValue != null)
-                                {
-                                    return VFXConverter.ConvertTo(evaluatedValue, portType);
-                                }
-                            }
-                            catch (System.Exception e)
-                            {
-                                Debug.LogError("Trying to get the value from expressions threw." + e.Message + " In anchor : " + name + " from node :" + sourceNode.title);
+                                return VFXConverter.ConvertTo(evaluatedValue, portType);
                             }
                         }
-                        return VFXConverter.ConvertTo(model.value, portType);
+                        catch (System.Exception e)
+                        {
+                            Debug.LogError("Trying to get the value from expressions threw." + e.Message + " In anchor : " + name + " from node :" + sourceNode.title);
+                        }
                     }
-                    else
-                    {
-                        return null;
-                    }
+                    return VFXConverter.ConvertTo(model.value, portType);
+                }
+                else
+                {
+                    return null;
                 }
             }
 

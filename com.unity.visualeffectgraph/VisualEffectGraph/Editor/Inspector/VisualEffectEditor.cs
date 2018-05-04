@@ -145,7 +145,7 @@ namespace UnityEditor.VFX
 
         protected const float overrideWidth = 16;
 
-        void DisplayProperty(VFXGraph.ParameterInfo parameter, SerializedProperty overrideProperty, SerializedProperty property)
+        void DisplayProperty(VFXParameterInfo parameter, SerializedProperty overrideProperty, SerializedProperty property)
         {
             EditorGUILayout.BeginHorizontal();
 
