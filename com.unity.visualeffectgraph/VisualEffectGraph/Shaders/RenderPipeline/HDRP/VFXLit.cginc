@@ -4,6 +4,7 @@
 #endif
 #include "HDRP/Material/Material.hlsl"
 //#include "HDRP/Material/BuiltIn/BuiltInData.cs.hlsl"
+//#include "HDRP/Material/Lit/Lit.hlsl"
 
 float3 VFXSampleLightProbes(float3 normalWS)
 {
@@ -19,22 +20,24 @@ float3 VFXSampleLightProbes(float3 normalWS)
     return SampleSH9(SHCoefficients, normalWS);
 }
 
-float3 VFXGetAmbient(VFX_VARYING_PS_INPUTS i,const SurfaceData surfaceData)
+BuiltinData VFXGetBuiltinData(VFX_VARYING_PS_INPUTS i,const SurfaceData surfaceData, float2 uvs)
 {
-    float3 ambient = surfaceData.baseColor * VFXSampleLightProbes(surfaceData.normalWS);
+    BuiltinData builtinData = (BuiltinData)0;
+    builtinData.opacity = 1.0f;
+    builtinData.bakeDiffuseLighting = VFXSampleLightProbes(surfaceData.normalWS);
 
     #if HDRP_USE_EMISSIVE
-    float3 emissive = float3(1,1,1);
+    builtinData.emissiveColor = float3(1,1,1);
     #if HDRP_USE_EMISSIVE_MAP
-    emissive *= VFXGetTextureColorWithProceduralUV(VFX_SAMPLER(emissiveMap),i,uvs).rgb * i.materialProperties.w;
+    builtinData.emissiveColor *= VFXGetTextureColorWithProceduralUV(VFX_SAMPLER(emissiveMap),i,uvs).rgb * i.materialProperties.w;
     #endif
     #if HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR
-    emissive *= i.emissiveColor;
+    builtinData.emissiveColor *= i.emissiveColor;
     #endif
-    ambient += emissive;
+    builtinData.emissiveIntensity = 1.0f;
     #endif
 
-    return ambient;
+    return builtinData;
 }
 
 SurfaceData VFXGetSurfaceData(VFX_VARYING_PS_INPUTS i, float3 normalWS,float2 uvs, uint diffusionProfile)

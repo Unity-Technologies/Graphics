@@ -49,7 +49,6 @@ namespace UnityEditor.VFX
                     yield return setting;
 
                 yield return "blendMode";
-                yield return "doubleSided";
             }
         }
     }

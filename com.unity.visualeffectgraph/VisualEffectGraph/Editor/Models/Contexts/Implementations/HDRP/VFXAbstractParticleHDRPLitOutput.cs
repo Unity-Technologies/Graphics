@@ -270,6 +270,7 @@ namespace UnityEditor.VFX
                     yield return "useBaseColorMap";
                     yield return "useMaskMap";
                     yield return "useNormalMap";
+                    yield return "useEmissiveMap";
                 }
 
                 if ((colorMode & ColorMode.Emissive) != 0)

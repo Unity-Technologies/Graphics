@@ -9,5 +9,11 @@ void VFXGetHDRPLitData(out SurfaceData surfaceData, out float3 ambient, VFX_VARY
 	#endif
 	
 	surfaceData = VFXGetSurfaceData(i,normalWS,uvs,diffusionProfile);
-	ambient = VFXGetAmbient(i,surfaceData);
+	BuiltinData builtinData = VFXGetBuiltinData(i,surfaceData,uvs);
+	BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
+	
+	PreLightData preLightData = (PreLightData)0;
+	preLightData.diffuseFGD = 1.0f; 
+	
+	ambient = GetBakedDiffuseLighting(surfaceData,builtinData,bsdfData,preLightData);
 }
