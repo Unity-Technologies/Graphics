@@ -10,6 +10,7 @@ using UnityEditor;
 using System.Linq;
 using System.Text;
 using UnityEditor.SceneManagement;
+using UnityEngine.Experimental.UIElements.StyleEnums;
 
 namespace  UnityEditor.VFX.UI
 {
@@ -146,7 +147,22 @@ namespace  UnityEditor.VFX.UI
 
             RegisterCallback<MouseDownEvent>(OnMouseClick, Capture.Capture);
 
+            style.positionType = PositionType.Absolute;
+
             SetPosition(BoardPreferenceHelper.LoadPosition(BoardPreferenceHelper.Board.componentBoard, new Rect(200, 100, 300, 300)));
+        }
+
+        public override Rect GetPosition()
+        {
+            return new Rect(style.positionLeft,style.positionTop,style.width,style.height);
+        }
+
+        public override void SetPosition(Rect newPos)
+        {
+            style.positionLeft = newPos.xMin;
+            style.positionTop = newPos.yMin;
+            style.width = newPos.width;
+            style.height = newPos.height;
         }
 
         void OnMouseClick(MouseDownEvent e)
