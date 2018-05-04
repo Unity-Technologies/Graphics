@@ -14,7 +14,7 @@ using UnityEditor.Graphs;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
-    public sealed class MaterialGraphView : GraphView, IDropTarget
+    public sealed class MaterialGraphView : GraphView
     {
         public MaterialGraphView()
         {
@@ -23,6 +23,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             canPasteSerializedData = CanPasteSerializedDataImplementation;
             unserializeAndPaste = UnserializeAndPasteImplementation;
             deleteSelection = DeleteSelectionImplementation;
+            RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
+            RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
         }
 
         protected override bool canCopySelection
@@ -265,43 +267,52 @@ namespace UnityEditor.ShaderGraph.Drawing
             selection.Clear();
         }
 
-        public bool CanAcceptDrop(List<ISelectable> selection)
+        #region Drag and drop
+
+        static void OnDragUpdatedEvent(DragUpdatedEvent e)
         {
-            return selection.OfType<BlackboardField>().Any();
+            var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
+
+            if (selection != null && (selection.OfType<BlackboardField>().Any() ))
+            {
+                DragAndDrop.visualMode = e.ctrlKey ? DragAndDropVisualMode.Copy : DragAndDropVisualMode.Move;
+            }
         }
 
-#if UNITY_2018_1
-        public EventPropagation DragUpdated(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
+        void OnDragPerformEvent(DragPerformEvent e)
         {
-            return EventPropagation.Continue;
+            var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
+            if (selection == null)
+                return;
+
+            IEnumerable<BlackboardField> fields = selection.OfType<BlackboardField>();
+            if (!fields.Any())
+                return;
+
+            Vector2 localPos = (e.currentTarget as VisualElement).ChangeCoordinatesTo(contentViewContainer, e.localMousePosition);
+
+            foreach (BlackboardField field in fields)
+            {
+                IShaderProperty property = field.userData as IShaderProperty;
+                if (property == null)
+                    continue;
+
+                var node = new PropertyNode();
+
+                var drawState = node.drawState;
+                var position = drawState.position;
+                position.x = localPos.x;
+                position.y = localPos.y;
+                drawState.position = position;
+                node.drawState = drawState;
+
+                graph.owner.RegisterCompleteObjectUndo("Added Property");
+                graph.AddNode(node);
+                node.propertyGuid = property.guid;
+            }
         }
 
-        public EventPropagation DragPerform(IMGUIEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
-        {
-            return EventPropagation.Continue;
-        }
-
-        public EventPropagation DragExited()
-        {
-            return EventPropagation.Continue;
-        }
-#else
-        public bool DragUpdated(DragUpdatedEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
-        {
-            return true;
-        }
-
-        public bool DragPerform(DragPerformEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
-        {
-            return true;
-        }
-
-        bool IDropTarget.DragExited()
-        {
-            return true;
-        }
-#endif
-
+        #endregion
     }
 
     public static class GraphViewExtensions
@@ -335,7 +346,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var remappedNodes = remappedNodesDisposable.value;
                     var remappedEdges = remappedEdgesDisposable.value;
                     graphView.graph.PasteGraph(copyGraph, remappedNodes, remappedEdges);
-                    
+
                     if (graphView.graph.guid != copyGraph.sourceGraphGuid)
                     {
                         // Compute the mean of the copied nodes.
