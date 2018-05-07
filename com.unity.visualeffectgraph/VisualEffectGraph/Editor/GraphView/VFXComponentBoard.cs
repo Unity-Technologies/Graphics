@@ -63,6 +63,51 @@ namespace  UnityEditor.VFX.UI
         {
             EditorPrefs.SetString(string.Format(rectPreferenceFormat, board), string.Format("{0},{1},{2},{3}", r.x, r.y, r.width, r.height));
         }
+
+        public static readonly Vector2 sizeMargin = Vector2.one * 30;
+
+        public static bool ValidatePosition(GraphElement element, VFXView view, Rect defaultPosition)
+        {
+            Rect viewrect = view.contentRect;
+            Rect rect = element.GetPosition();
+            bool changed = false;
+
+            if (!viewrect.Contains(rect.position))
+            {
+                Vector2 newPosition = defaultPosition.position;
+                if (!viewrect.Contains(defaultPosition.position))
+                {
+                    newPosition = sizeMargin;
+                }
+
+                rect.position = newPosition;
+
+                changed = true;
+            }
+
+            Vector2 maxSizeInView = viewrect.max - rect.position - sizeMargin;
+            float newWidth = Mathf.Max(element.style.minWidth, Mathf.Min(rect.width, maxSizeInView.x));
+            float newHeight = Mathf.Max(element.style.minHeight, Mathf.Min(rect.height, maxSizeInView.y));
+
+            if (Mathf.Abs(newWidth - rect.width) > 1)
+            {
+                rect.width = newWidth;
+                changed = true;
+            }
+
+            if (Mathf.Abs(newHeight - rect.height) > 1)
+            {
+                rect.height = newHeight;
+                changed = true;
+            }
+
+            if (changed)
+            {
+                element.SetPosition(rect);
+            }
+
+            return false;
+        }
     }
 
 
@@ -149,12 +194,19 @@ namespace  UnityEditor.VFX.UI
 
             style.positionType = PositionType.Absolute;
 
-            SetPosition(BoardPreferenceHelper.LoadPosition(BoardPreferenceHelper.Board.componentBoard, new Rect(200, 100, 300, 300)));
+            SetPosition(BoardPreferenceHelper.LoadPosition(BoardPreferenceHelper.Board.componentBoard, defaultRect));
         }
+
+        public void ValidatePosition()
+        {
+            BoardPreferenceHelper.ValidatePosition(this, m_View, defaultRect);
+        }
+
+        static readonly Rect defaultRect = new Rect(200, 100, 300, 300);
 
         public override Rect GetPosition()
         {
-            return new Rect(style.positionLeft,style.positionTop,style.width,style.height);
+            return new Rect(style.positionLeft, style.positionTop, style.width, style.height);
         }
 
         public override void SetPosition(Rect newPos)
