@@ -424,10 +424,13 @@ namespace  UnityEditor.VFX.UI
 
         new void Clear()
         {
-            foreach (var param in m_ExposedParameters.Values)
+            m_DefaultCategory.Clear();
+
+            foreach (var cat in m_Categories)
             {
-                param.RemoveFromHierarchy();
+                cat.Value.RemoveFromHierarchy();
             }
+            m_Categories.Clear();
         }
 
         VFXView m_View;
@@ -445,8 +448,8 @@ namespace  UnityEditor.VFX.UI
 
             SetPosition(BoardPreferenceHelper.LoadPosition(BoardPreferenceHelper.Board.blackboard, defaultRect));
 
-            m_ExposedSection = new BlackboardSection() { title = "parameters"};
-            Add(m_ExposedSection);
+            m_DefaultCategory = new VFXBlackboardCategory() { title = "parameters"};
+            Add(m_DefaultCategory);
 
             AddStyleSheetPath("VFXBlackboard");
 
@@ -468,7 +471,6 @@ namespace  UnityEditor.VFX.UI
             m_View.SetBoardToFront(this);
         }
 
-        BlackboardSection m_ExposedSection;
 
         void OnAddParameter(object parameter)
         {
@@ -507,61 +509,81 @@ namespace  UnityEditor.VFX.UI
             }
         }
 
-        Dictionary<VFXParameterController, VFXBlackboardRow> m_ExposedParameters = new Dictionary<VFXParameterController, VFXBlackboardRow>();
+
+        public void OnMoveParameter(IEnumerable<VFXBlackboardRow> rows, VFXBlackboardCategory category, int index)
+        {
+            //TODO sort elements
+            foreach(var row in rows)
+            {
+                controller.SetParametersOrder(row.controller, index++);
+            }
+        }
+
+
+        VFXBlackboardCategory m_DefaultCategory;
+        Dictionary<string,VFXBlackboardCategory> m_Categories = new Dictionary<string,VFXBlackboardCategory>();
+
 
 
         public VFXBlackboardRow GetRowFromController(VFXParameterController controller)
         {
+            VFXBlackboardCategory cat = null;
             VFXBlackboardRow row = null;
-            m_ExposedParameters.TryGetValue(controller, out row);
+            if( m_Categories.TryGetValue(controller.model.category,out cat ))
+            {
+                row = cat.GetRowFromController(controller);
+            }
 
             return row;
         }
 
-        void SyncParameters(BlackboardSection section, HashSet<VFXParameterController> actualControllers , Dictionary<VFXParameterController, VFXBlackboardRow> parameters)
+
+        struct CategoryNOrder
         {
-            foreach (var removedControllers in parameters.Where(t => !actualControllers.Contains(t.Key)).ToArray())
-            {
-                removedControllers.Value.RemoveFromHierarchy();
-                parameters.Remove(removedControllers.Key);
-            }
-
-            foreach (var addedController in actualControllers.Where(t => !parameters.ContainsKey(t)).ToArray())
-            {
-                VFXBlackboardRow row = new VFXBlackboardRow();
-
-                section.Add(row);
-
-                row.controller = addedController;
-
-                parameters[addedController] = row;
-            }
-
-            if (parameters.Count > 0)
-            {
-                var orderedParameters = parameters.OrderBy(t => t.Key.order).Select(t => t.Value).ToArray();
-
-                if (section.ElementAt(0) != orderedParameters[0])
-                {
-                    orderedParameters[0].SendToBack();
-                }
-
-                for (int i = 1; i < orderedParameters.Length; ++i)
-                {
-                    if (section.ElementAt(i) != orderedParameters[i])
-                    {
-                        orderedParameters[i].PlaceInFront(orderedParameters[i - 1]);
-                    }
-                }
-            }
+            public string category;
+            public int order;
         }
 
         void OnControllerChanged(ControllerChangedEvent e)
         {
             if (e.controller == controller || e.controller is VFXParameterController) //optim : reorder only is only the order has changed
             {
-                HashSet<VFXParameterController> actualControllers = new HashSet<VFXParameterController>(controller.parameterControllers);
-                SyncParameters(m_ExposedSection, actualControllers, m_ExposedParameters);
+                var orderedCategories = controller.parameterControllers.GroupBy(t=>t.model.category).Where(t=>!string.IsNullOrEmpty(t.Key)).OrderBy(t=>t.Min(u=>u.order)).Select(t=>t.Key);
+
+                var newCategories = new List<VFXBlackboardCategory>();
+
+                foreach(var catName in orderedCategories)
+                {
+                    VFXBlackboardCategory cat = null;
+                    if( ! m_Categories.TryGetValue(catName,out cat))
+                    {
+                        cat = new VFXBlackboardCategory(){title =  catName};
+                        m_Categories.Add(catName,cat);
+                    }
+
+                    newCategories.Add(cat);
+                }
+
+                var prevCat = m_DefaultCategory;
+
+                foreach(var cat in newCategories)
+                {
+                    if(cat.parent == null)
+                        Insert(IndexOf(prevCat),cat);
+                    else
+                        cat.PlaceInFront(prevCat);
+                    prevCat = cat;
+                }
+
+                HashSet<VFXParameterController> actualControllers = new HashSet<VFXParameterController>(controller.parameterControllers.Where(t=>string.IsNullOrEmpty(t.model.category)));
+                m_DefaultCategory.SyncParameters(actualControllers);
+
+
+                foreach(var cat in newCategories)
+                {
+                    actualControllers = new HashSet<VFXParameterController>(controller.parameterControllers.Where(t=>t.model.category == cat.title));
+                    cat.SyncParameters(actualControllers);
+                }
             }
         }
 

@@ -22,6 +22,8 @@ namespace UnityEditor.VFX
         private bool m_exposed;
         [SerializeField]
         private int m_Order;
+        [SerializeField]
+        private string m_Category;
         [VFXSetting, SerializeField]
         public VFXSerializableObject m_Min;
         [VFXSetting, SerializeField]
@@ -120,6 +122,19 @@ namespace UnityEditor.VFX
                 if (m_Order != value)
                 {
                     m_Order = value;
+                    Invalidate(InvalidationCause.kUIChanged);
+                }
+            }
+        }
+
+        public string category
+        {
+            get { return m_Category; }
+            set
+            {
+                if (m_Category != value)
+                {
+                    m_Category = value;
                     Invalidate(InvalidationCause.kUIChanged);
                 }
             }
