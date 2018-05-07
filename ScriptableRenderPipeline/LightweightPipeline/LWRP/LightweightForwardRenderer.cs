@@ -60,6 +60,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public ComputeBuffer perObjectLightIndices { get; private set; }
 
+        public FilterRenderersSettings opaqueFilterSettings { get; private set; }
+        public FilterRenderersSettings transparentFilterSettings { get; private set; }
+
         //RenderGraphNode m_RenderGraph;
         List<ScriptableRenderPass> m_ShadowPassList = new List<ScriptableRenderPass>();
         List<ScriptableRenderPass> m_RenderPassList = new List<ScriptableRenderPass>();
@@ -103,6 +106,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             forwardLitPass = new ForwardLitPass(this);
 
             postProcessRenderContext = new PostProcessRenderContext();
+
+            opaqueFilterSettings = new FilterRenderersSettings(true)
+            {
+                renderQueueRange = RenderQueueRange.opaque,
+            };
+
+            transparentFilterSettings = new FilterRenderersSettings(true)
+            {
+                renderQueueRange = RenderQueueRange.transparent,
+            };
         }
 
         public void Dispose()
@@ -235,10 +248,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             for (int i = 0; i < m_RenderPassList.Count; ++i)
                 m_RenderPassList[i].Execute(ref context, ref cullResults, ref cameraData, ref lightData);
 
-            #if UNITY_EDITOR
+#if UNITY_EDITOR
             if (cameraData.isSceneViewCamera)
                 CopyDepth(ref context);
-            #endif
+#endif
 
             DisposePasses(ref context);
         }
