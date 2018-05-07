@@ -71,22 +71,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public LightShadows renderedLocalShadowQuality;
     }
 
-    public struct ShadowSliceData
-    {
-        public Matrix4x4 shadowTransform;
-        public int offsetX;
-        public int offsetY;
-        public int resolution;
-
-        public void Clear()
-        {
-            shadowTransform = Matrix4x4.identity;
-            offsetX = offsetY = 0;
-            resolution = 1024;
-        }
-    }
-
-
     public class CameraComparer : IComparer<Camera>
     {
         public int Compare(Camera lhs, Camera rhs)
