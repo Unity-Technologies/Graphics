@@ -58,6 +58,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             frameSettings.enableSSAO = this.enableSSAO;
             frameSettings.enableSubsurfaceScattering = this.enableSubsurfaceScattering;
             frameSettings.enableTransmission = this.enableTransmission;
+            frameSettings.enableVolumetric = this.enableVolumetric;
 
             frameSettings.diffuseGlobalDimmer = this.diffuseGlobalDimmer;
             frameSettings.specularGlobalDimmer = this.specularGlobalDimmer;
@@ -279,6 +280,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         new DebugUI.BoolField { displayName = "Enable SSAO", getter = () => frameSettings.enableSSAO, setter = value => frameSettings.enableSSAO = value },
                         new DebugUI.BoolField { displayName = "Enable SubsurfaceScattering", getter = () => frameSettings.enableSubsurfaceScattering, setter = value => frameSettings.enableSubsurfaceScattering = value },
                         new DebugUI.BoolField { displayName = "Enable Transmission", getter = () => frameSettings.enableTransmission, setter = value => frameSettings.enableTransmission = value },
+                        new DebugUI.BoolField { displayName = "Enable volumetric", getter = () => frameSettings.enableVolumetric, setter = value => frameSettings.enableVolumetric = value },
                         new DebugUI.BoolField { displayName = "Enable Shadows", getter = () => frameSettings.enableShadow, setter = value => frameSettings.enableShadow = value },
                         new DebugUI.BoolField { displayName = "Enable Contact Shadows", getter = () => frameSettings.enableContactShadows, setter = value => frameSettings.enableContactShadows = value },
                         new DebugUI.BoolField { displayName = "Enable ShadowMask", getter = () => frameSettings.enableShadowMask, setter = value => frameSettings.enableShadowMask = value },
