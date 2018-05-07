@@ -3,7 +3,7 @@
     font-size:11;
 }
 
-.blackboard #vfx-properties .propertyrm
+ #vfx-properties .propertyrm
 {
     flex:0;
 }
@@ -20,4 +20,12 @@ VFXBlackboardRow.hovered #pill #selection-border
     position-right:1;
     position-top:1;
     position-bottom:1;
+}
+
+
+.blackboard > #dragIndicator {
+    background-color: #44C0FF;
+    min-height: 4;
+    position-left:0;
+    position-right:0;
 }

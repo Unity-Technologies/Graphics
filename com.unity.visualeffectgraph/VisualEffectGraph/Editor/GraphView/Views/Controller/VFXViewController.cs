@@ -1402,6 +1402,22 @@ namespace UnityEditor.VFX.UI
             get { return m_ParameterControllers.Values; }
         }
 
+
+        public void MoveCategory(string category, int index)
+        {
+            int oldIndex = graph.UIInfos.categories.IndexOf(category);
+
+            if( oldIndex == -1 || oldIndex == index)
+                return;
+            graph.UIInfos.categories.RemoveAt(oldIndex);
+            if( index < graph.UIInfos.categories.Count)
+                graph.UIInfos.categories.Insert(index,category);
+            else
+                graph.UIInfos.categories.Add(category);
+
+            graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
+        }
+
         public void SetParametersOrder(VFXParameterController controller, int index, string category)
         {
             var orderedParameters = m_ParameterControllers.Where(t=>t.Key.category == category).OrderBy(t => t.Value.order).Select(t => t.Value).ToList();

@@ -4,6 +4,8 @@ using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 using UnityEngine.Experimental.UIElements;
+
+using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEditor.VFX;
 using System.Collections.Generic;
 using UnityEditor;
@@ -445,18 +447,164 @@ namespace  UnityEditor.VFX.UI
 
             this.scrollable = true;
 
-
             SetPosition(BoardPreferenceHelper.LoadPosition(BoardPreferenceHelper.Board.blackboard, defaultRect));
 
             m_DefaultCategory = new VFXBlackboardCategory() { title = "parameters"};
             Add(m_DefaultCategory);
+            m_DefaultCategory.headerVisible = false;
 
             AddStyleSheetPath("VFXBlackboard");
 
             RegisterCallback<MouseDownEvent>(OnMouseClick, Capture.Capture);
 
 
+            RegisterCallback<DragUpdatedEvent>(OnDragUpdatedEvent);
+            RegisterCallback<DragPerformEvent>(OnDragPerformEvent);
+            RegisterCallback<DragLeaveEvent>(OnDragLeaveEvent);
+
+
+            m_DragIndicator = new VisualElement();
+
+            m_DragIndicator.name = "dragIndicator";
+            m_DragIndicator.style.positionType = PositionType.Absolute;
+            shadow.Add(m_DragIndicator);
+
             clippingOptions = ClippingOptions.ClipContents;
+            SetDragIndicatorVisible(false);
+        }
+
+        private void SetDragIndicatorVisible(bool visible)
+        {
+            if (visible && (m_DragIndicator.parent == null))
+            {
+                shadow.Add(m_DragIndicator);
+                m_DragIndicator.visible = true;
+            }
+            else if ((visible == false) && (m_DragIndicator.parent != null))
+            {
+                shadow.Remove(m_DragIndicator);
+            }
+        }
+
+        VisualElement m_DragIndicator;
+
+
+        int InsertionIndex(Vector2 pos)
+        {
+            VisualElement owner = contentContainer != null ? contentContainer : this;
+            Vector2 localPos = this.ChangeCoordinatesTo(owner, pos);
+
+            if (owner.ContainsPoint(localPos))
+            {
+                int defaultCatIndex = IndexOf(m_DefaultCategory);
+
+                for(int i = defaultCatIndex +1 ; i< childCount; ++i)
+                {
+                    VFXBlackboardCategory cat = ElementAt(i) as VFXBlackboardCategory;
+                    if(cat == null)
+                    {
+                        return i;
+                    }
+
+                    Rect rect = cat.layout;
+
+                    if (localPos.y <= (rect.y + rect.height / 2))
+                    {
+                        return i;
+                    }
+                }
+                return childCount;
+            }
+            return -1;
+        }
+          int m_InsertIndex;
+
+        void OnDragUpdatedEvent(DragUpdatedEvent e)
+        {
+            var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
+
+            if (selection == null)
+            {
+                SetDragIndicatorVisible(false);
+                return;
+            }
+
+            if( selection.Any(t=> ! (t is VFXBlackboardCategory)))
+            {
+                SetDragIndicatorVisible(false);
+                return;
+            }
+
+            Vector2 localPosition = e.localMousePosition;
+
+            m_InsertIndex = InsertionIndex(localPosition);
+
+            if (m_InsertIndex != -1)
+            {
+                float indicatorY = 0;
+
+                if (m_InsertIndex == childCount)
+                {
+                    if( childCount > 0)
+                    {
+                        VisualElement lastChild = this[childCount - 1];
+
+                        indicatorY = lastChild.ChangeCoordinatesTo(this, new Vector2(0, lastChild.layout.height + lastChild.style.marginBottom)).y;
+                    }
+                    else
+                    {
+                        indicatorY = this.contentRect.height;
+                    }
+                }
+                else
+                {
+                    VisualElement childAtInsertIndex = this[m_InsertIndex];
+
+                    indicatorY = childAtInsertIndex.ChangeCoordinatesTo(this, new Vector2(0, -childAtInsertIndex.style.marginTop)).y;
+                }
+
+                SetDragIndicatorVisible(true);
+
+                m_DragIndicator.style.positionTop =  indicatorY - m_DragIndicator.style.height * 0.5f;
+
+                DragAndDrop.visualMode = DragAndDropVisualMode.Move;
+            }
+            else
+            {
+                SetDragIndicatorVisible(false);
+            }
+            e.StopPropagation();
+        }
+
+        void OnDragPerformEvent(DragPerformEvent e)
+        {
+            SetDragIndicatorVisible(false);
+            var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
+            if (selection == null)
+            {
+                return;
+            }
+
+            var category = selection.OfType<VFXBlackboardCategory>().FirstOrDefault();
+            if( category == null)
+            {
+                return;
+            }
+
+            if (m_InsertIndex != -1)
+            {
+                if( m_InsertIndex > IndexOf(category) )
+                       --m_InsertIndex;
+                controller.MoveCategory(category.title,m_InsertIndex - IndexOf(m_DefaultCategory) - 1);
+            }
+
+            SetDragIndicatorVisible(false);
+            e.StopPropagation();
+        }
+
+        void OnDragLeaveEvent(DragLeaveEvent e)
+        {
+            SetDragIndicatorVisible(false);
         }
 
         public void ValidatePosition()
@@ -483,6 +631,7 @@ namespace  UnityEditor.VFX.UI
 
 
             menu.AddItem(EditorGUIUtility.TrTextContent("category"),false,OnAddCategory);
+            menu.AddSeparator(string.Empty);
 
             foreach (var parameter in VFXLibrary.GetParameters())
             {
@@ -565,6 +714,7 @@ namespace  UnityEditor.VFX.UI
                     if( ! m_Categories.TryGetValue(catName,out cat))
                     {
                         cat = new VFXBlackboardCategory(){title =  catName};
+                        cat.SetSelectable();
                         m_Categories.Add(catName,cat);
                     }
 
