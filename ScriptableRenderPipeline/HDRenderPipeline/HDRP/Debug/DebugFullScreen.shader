@@ -215,8 +215,8 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                     ScreenSpaceTracingDebug debug = _DebugScreenSpaceTracingData[0];
 
                     // Fetch Depth Buffer and Position Inputs
-                    const float deviceDepth = LOAD_TEXTURE2D_LOD(_DepthPyramidTexture, int2(input.positionCS.xy) >> debug.iterationMipLevel, debug.iterationMipLevel).r;
-                    PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, deviceDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP);
+                    const float2 deviceDepth = LOAD_TEXTURE2D_LOD(_DepthPyramidTexture, int2(input.positionCS.xy) >> debug.iterationMipLevel, debug.iterationMipLevel).rg;
+                    PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, deviceDepth.r, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP);
 
                     float4 col = float4(0, 0, 0, 1);
 
@@ -235,7 +235,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                     const float raySegmentSDF = clamp(1 - distanceToRaySegment, 0, 1);
 
                     float cellSDF = 0;
-                    float debugLinearDepth = LinearEyeDepth(deviceDepth, _ZBufferParams);;
+                    float2 debugLinearDepth = float2(LinearEyeDepth(deviceDepth.r, _ZBufferParams), LinearEyeDepth(deviceDepth.g, _ZBufferParams));
                     if (debug.tracingModel == PROJECTIONMODEL_HI_Z
                         || debug.tracingModel == PROJECTIONMODEL_LINEAR)
                     {
@@ -272,7 +272,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                     col.rgb = col.rgb * w + float3(1, 1, 1) * (1 - w);
 
                     if (_ShowDepthPyramidDebug == 1)
-                        color.rgb = frac(debugLinearDepth * 0.1);
+                        color.rgb = float3(frac(debugLinearDepth * 0.1), 0.0);
 
                     col = float4(col.rgb * col.a + color.rgb, 1);
 

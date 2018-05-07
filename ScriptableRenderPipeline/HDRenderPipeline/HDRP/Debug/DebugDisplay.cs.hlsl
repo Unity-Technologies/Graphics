@@ -35,7 +35,9 @@ struct ScreenSpaceTracingDebug
     float3 iterationPositionSS;
     uint iterationMipLevel;
     uint iteration;
-    float iterationLinearDepthBuffer;
+    float iterationLinearDepthBufferMin;
+    float iterationLinearDepthBufferMax;
+    float iterationLinearDepthBufferMinThickness;
     int iterationIntersectionKind;
     uint iterationCellSizeW;
     uint iterationCellSizeH;
@@ -45,6 +47,7 @@ struct ScreenSpaceTracingDebug
     float endLinearDepth;
     uint endPositionSSX;
     uint endPositionSSY;
+    float2 padding;
 };
 
 //
@@ -90,9 +93,17 @@ uint GetIteration(ScreenSpaceTracingDebug value)
 {
 	return value.iteration;
 }
-float GetIterationLinearDepthBuffer(ScreenSpaceTracingDebug value)
+float GetIterationLinearDepthBufferMin(ScreenSpaceTracingDebug value)
 {
-	return value.iterationLinearDepthBuffer;
+	return value.iterationLinearDepthBufferMin;
+}
+float GetIterationLinearDepthBufferMax(ScreenSpaceTracingDebug value)
+{
+	return value.iterationLinearDepthBufferMax;
+}
+float GetIterationLinearDepthBufferMinThickness(ScreenSpaceTracingDebug value)
+{
+	return value.iterationLinearDepthBufferMinThickness;
 }
 int GetIterationIntersectionKind(ScreenSpaceTracingDebug value)
 {
@@ -129,6 +140,10 @@ uint GetEndPositionSSX(ScreenSpaceTracingDebug value)
 uint GetEndPositionSSY(ScreenSpaceTracingDebug value)
 {
 	return value.endPositionSSY;
+}
+float2 GetPadding(ScreenSpaceTracingDebug value)
+{
+	return value.padding;
 }
 
 
