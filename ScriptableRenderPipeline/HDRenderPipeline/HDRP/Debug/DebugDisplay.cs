@@ -31,41 +31,45 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [GenerateHLSL]
     public struct ScreenSpaceTracingDebug
     {
-                                                        // Used to debug SSRay model
+        // Used to debug SSRay model
         // 1x32 bits
         public Lit.ProjectionModel tracingModel;
 
         // 6x32 bits
-        public uint loopStartPositionSSX;                           // Proxy, HiZ
-        public uint loopStartPositionSSY;                           // Proxy, HiZ
-        public float loopStartLinearDepth;                          // Proxy, HiZ
-        public Vector3 loopRayDirectionSS;                          // HiZ
+        public uint loopStartPositionSSX;                           // Proxy, HiZ, Linear
+        public uint loopStartPositionSSY;                           // Proxy, HiZ, Linear
+        public float loopStartLinearDepth;                          // Proxy, HiZ, Linear
+        public Vector3 loopRayDirectionSS;                          // HiZ, Linear
         public uint loopMipLevelMax;                                // HiZ
-        public uint loopIterationMax;                               // HiZ
+        public uint loopIterationMax;                               // HiZ, Linear
 
-        // 9x32 bits
-        public Vector3 iterationPositionSS;                         // HiZ
-        public uint iterationMipLevel;                              // HiZ
-        public uint iteration;                                      // HiZ
-        public float iterationLinearDepthBuffer;                    // HiZ
+        // 11x32 bits
+        public Vector3 iterationPositionSS;                         // HiZ, Linear
+        public uint iterationMipLevel;                              // HiZ, Linear
+        public uint iteration;                                      // HiZ, Linear
+        public float iterationLinearDepthBufferMin;                 // HiZ, Linear
+        public float iterationLinearDepthBufferMax;                 // HiZ, Linear
+        public float iterationLinearDepthBufferMinThickness;        // HiZ, Linear
         public Lit.HiZIntersectionKind iterationIntersectionKind;   // HiZ
-        public uint iterationCellSizeW;                             // HiZ
-        public uint iterationCellSizeH;                             // HiZ
+        public uint iterationCellSizeW;                             // HiZ, Linear
+        public uint iterationCellSizeH;                             // HiZ, Linear
         public EnvShapeType proxyShapeType;                         // Proxy
         public float projectionDistance;                            // Proxy
 
         // 4x32 bits
-        public int endHitSuccess;                                   // Proxy, HiZ
-        public float endLinearDepth;                                // Proxy, HiZ
-        public uint endPositionSSX;                                 // Proxy, HiZ
-        public uint endPositionSSY;                                 // Proxy, HiZ
+        public int endHitSuccess;                                   // Proxy, HiZ, Linear
+        public float endLinearDepth;                                // Proxy, HiZ, Linear
+        public uint endPositionSSX;                                 // Proxy, HiZ, Linear
+        public uint endPositionSSY;                                 // Proxy, HiZ, Linear
 
-        // 0x32 bits (padding)
+        // 2x32 bits (padding)
+        public Vector2 padding;
 
         public Vector2 loopStartPositionSS { get { return new Vector2(loopStartPositionSSX, loopStartPositionSSY); } }
         public Vector2 endPositionSS { get { return new Vector2(endPositionSSX, endPositionSSY); } }
         public Vector2 iterationCellId { get { return new Vector2(((int)iterationPositionSS.x) >> (int)iterationMipLevel, ((int)iterationPositionSS.y) >> (int)iterationMipLevel); } }
         public Vector2 iterationCellSize { get { return new Vector2(iterationCellSizeW, iterationCellSizeH); } }
+        public bool intersectDepthBuffer { get { return (1.0f / iterationPositionSS.z) >= iterationLinearDepthBufferMin && (1.0f / iterationPositionSS.z) <= iterationLinearDepthBufferMinThickness; } }
     }
 
     public class DebugDisplaySettings
@@ -460,7 +464,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     new DebugUI.Value { displayName = "Iteration", getter = () => string.Format("{0}/{1}", screenSpaceTracingDebugData.iteration, screenSpaceTracingDebugData.loopIterationMax) },
                                     new DebugUI.Value { displayName = "Position SS", getter = () => new Vector2(screenSpaceTracingDebugData.iterationPositionSS.x, screenSpaceTracingDebugData.iterationPositionSS.y) },
                                     new DebugUI.Value { displayName = "Depth", getter = () => 1f / screenSpaceTracingDebugData.iterationPositionSS.z },
-                                    new DebugUI.Value { displayName = "Depth Buffer", getter = () => screenSpaceTracingDebugData.iterationLinearDepthBuffer },
+                                    new DebugUI.Value { displayName = "Depth Buffer Min/Min + Thickness/Max", getter = () => string.Format("{0}/{1}/{2}", screenSpaceTracingDebugData.iterationLinearDepthBufferMin, screenSpaceTracingDebugData.iterationLinearDepthBufferMinThickness, screenSpaceTracingDebugData.iterationLinearDepthBufferMax) },
+                                    new DebugUI.Value { displayName = "Intersect Depth Buffer", getter = () => screenSpaceTracingDebugData.intersectDepthBuffer },
                                     new DebugUI.Value { displayName = "Mip Level", getter = () => screenSpaceTracingDebugData.iterationMipLevel },
                                     new DebugUI.Value { displayName = "Cell Id", getter = () => screenSpaceTracingDebugData.iterationCellId },
                                     new DebugUI.Value { displayName = "Cell Size", getter = () => screenSpaceTracingDebugData.iterationCellSize },
@@ -500,7 +505,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     new DebugUI.Value { displayName = "Iteration", getter = () => string.Format("{0}/{1}", screenSpaceTracingDebugData.iteration, screenSpaceTracingDebugData.loopIterationMax) },
                                     new DebugUI.Value { displayName = "Position SS", getter = () => new Vector2(screenSpaceTracingDebugData.iterationPositionSS.x, screenSpaceTracingDebugData.iterationPositionSS.y) },
                                     new DebugUI.Value { displayName = "Depth", getter = () => 1f / screenSpaceTracingDebugData.iterationPositionSS.z },
-                                    new DebugUI.Value { displayName = "Depth Buffer", getter = () => screenSpaceTracingDebugData.iterationLinearDepthBuffer },
+                                    new DebugUI.Value { displayName = "Depth Buffer Min/Min + Thickness/Max", getter = () => string.Format("{0}/{1}/{2}", screenSpaceTracingDebugData.iterationLinearDepthBufferMin, screenSpaceTracingDebugData.iterationLinearDepthBufferMinThickness, screenSpaceTracingDebugData.iterationLinearDepthBufferMax) },
+                                    new DebugUI.Value { displayName = "Intersect Depth Buffer", getter = () => screenSpaceTracingDebugData.intersectDepthBuffer },
                                     new DebugUI.Value { displayName = "Mip Level", getter = () => screenSpaceTracingDebugData.iterationMipLevel },
                                     new DebugUI.Value { displayName = "Cell Id", getter = () => screenSpaceTracingDebugData.iterationCellId },
                                     new DebugUI.Value { displayName = "Cell Size", getter = () => screenSpaceTracingDebugData.iterationCellSize },
