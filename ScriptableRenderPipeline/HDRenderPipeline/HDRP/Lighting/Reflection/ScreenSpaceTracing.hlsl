@@ -88,7 +88,7 @@ void CalculateRaySS(
 )
 {
     float3 positionWS = rayOriginWS;
-    float3 rayEndWS = rayOriginWS + rayDirWS * 10;
+    float3 rayEndWS = rayOriginWS + rayDirWS * 1;
 
     float4 positionCS = ComputeClipSpacePosition(positionWS, GetWorldToHClipMatrix());
     float4 rayEndCS = ComputeClipSpacePosition(rayEndWS, GetWorldToHClipMatrix());
@@ -264,9 +264,6 @@ bool ScreenSpaceLinearRaymarch(
     float3 positionSS = startPositionSS;
     raySS /= max(abs(raySS.x), abs(raySS.y));
     raySS *= 1 << mipLevel;
-
-    // Offset by a texel
-    //positionSS += raySS * 1.0;
 
 #ifdef DEBUG_DISPLAY
     float3 debugIterationPositionSS = positionSS;
@@ -672,6 +669,16 @@ bool ScreenSpaceHiZRaymarch(
     float minLinearDepth                = 0;
     float minLinearDepthWithThickness   = 0;
 
+    positionSS = IntersectCellPlanes(
+        positionSS,
+        raySS,
+        invRaySS,
+        int2(positionSS.xy) / cellSize,
+        cellSize,
+        cellPlanes,
+        crossOffset
+    );
+
     while (currentLevel >= minMipLevel)
     {
         hitSuccessful = true;
@@ -727,7 +734,8 @@ bool ScreenSpaceHiZRaymarch(
                     cellId,
                     cellSize,
                     cellPlanes,
-                    crossOffset);
+                    crossOffset
+                );
 
                 intersectionKind = HIZINTERSECTIONKIND_CELL;
 
