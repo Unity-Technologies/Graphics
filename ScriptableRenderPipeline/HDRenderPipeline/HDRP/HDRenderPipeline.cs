@@ -1334,8 +1334,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // If a forward material have no depth prepass, then lighting can be incorrect (deferred sahdowing, SSAO), this may be acceptable depends on usage
             bool addFullDepthPrepass = forcePrepass || hdCamera.frameSettings.enableForwardRenderingOnly || hdCamera.frameSettings.enableDepthPrepassWithDeferredRendering;
 
-            var camera = hdCamera.camera;
-
             using (new ProfilingSample(cmd, !addFullDepthPrepass ? "Depth Prepass alpha test" : "Depth Prepass", CustomSamplerId.DepthPrepass.GetSampler()))
             {
                 HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraDepthStencilBuffer);
@@ -1372,8 +1370,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (hdCamera.frameSettings.enableForwardRenderingOnly)
                 return;
-
-            var camera = hdCamera.camera;
 
             using (new ProfilingSample(cmd, m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() ? "GBuffer Debug" : "GBuffer", CustomSamplerId.GBuffer.GetSampler()))
             {
