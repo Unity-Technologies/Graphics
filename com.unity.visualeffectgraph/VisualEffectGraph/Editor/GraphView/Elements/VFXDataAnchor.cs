@@ -419,25 +419,20 @@ namespace UnityEditor.VFX.UI
             {
                 if (newNodeController is VFXParameterNodeController)
                 {
-                    VFXParameter parameter = (newNodeController as VFXParameterNodeController).parentController.model;
+                    var parameter = (newNodeController as VFXParameterNodeController).parentController.model;
                     CopyValueToParameter(parameter);
                 }
                 else if (newNodeController is VFXOperatorController)
                 {
                     var inlineOperator = (newNodeController as VFXOperatorController).model as VFXInlineOperator;
-                    if (inlineOperator && inlineOperator.type == controller.portType)
+                    if (inlineOperator != null)
                     {
-                        if (VFXConverter.CanConvert(inlineOperator.type))
+                        var value = controller.model.value;
+                        object convertedValue = null;
+                        if (VFXConverter.TryConvertTo(value, inlineOperator.type, out convertedValue))
                         {
-                            try
-                            {
-                                inlineOperator.inputSlots[0].value = VFXConverter.ConvertTo(controller.model.value, inlineOperator.type);
-                            }
-                            catch (System.InvalidCastException) // don't fail here
-                            {}
+                            inlineOperator.inputSlots[0].value = convertedValue;
                         }
-                        else
-                            inlineOperator.inputSlots[0].value = controller.model.value;
                     }
                 }
             }
@@ -445,12 +440,11 @@ namespace UnityEditor.VFX.UI
 
         void CopyValueToParameter(VFXParameter parameter)
         {
-            if (parameter.type == portType)
+            var value = controller.model.value;
+            object convertedValue = null;
+            if (VFXConverter.TryConvertTo(value, parameter.type, out convertedValue))
             {
-                if (VFXConverter.CanConvert(parameter.type))
-                    parameter.value = VFXConverter.ConvertTo(controller.model.value, parameter.type);
-                else
-                    parameter.value = controller.model.value;
+                parameter.value = convertedValue;
             }
         }
 
