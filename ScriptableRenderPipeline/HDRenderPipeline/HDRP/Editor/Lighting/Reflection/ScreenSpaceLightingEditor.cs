@@ -11,7 +11,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected SerializedDataParameter m_RayMinLevel;
         protected SerializedDataParameter m_RayMaxLevel;
         protected SerializedDataParameter m_RayMaxIterations;
-        protected SerializedDataParameter m_RayDepthSuccessBias;
+        protected SerializedDataParameter m_DepthBufferThickness;
         protected SerializedDataParameter m_ScreenWeightDistance;
         protected SerializedDataParameter m_RayMaxScreenDistance;
         protected SerializedDataParameter m_RayBlendScreenDistance;
@@ -25,7 +25,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_RayMinLevel = Unpack(o.Find(x => x.rayMinLevel));
             m_RayMaxLevel = Unpack(o.Find(x => x.rayMaxLevel));
             m_RayMaxIterations = Unpack(o.Find(x => x.rayMaxIterations));
-            m_RayDepthSuccessBias = Unpack(o.Find(x => x.rayDepthSuccessBias));
+            m_DepthBufferThickness = Unpack(o.Find(x => x.depthBufferThickness));
             m_ScreenWeightDistance = Unpack(o.Find(x => x.screenWeightDistance));
             m_RayMaxScreenDistance = Unpack(o.Find(x => x.rayMaxScreenDistance));
             m_RayBlendScreenDistance = Unpack(o.Find(x => x.rayBlendScreenDistance));
@@ -48,16 +48,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PropertyField(m_RayMinLevel, CoreEditorUtils.GetContent("Ray Min Level"));
             PropertyField(m_RayMaxLevel, CoreEditorUtils.GetContent("Ray Max Level"));
             PropertyField(m_RayMaxIterations, CoreEditorUtils.GetContent("Ray Max Iterations"));
-            PropertyField(m_RayDepthSuccessBias, CoreEditorUtils.GetContent("Ray Depth Success Bias"));
-            PropertyField(m_RayMaxScreenDistance, CoreEditorUtils.GetContent("Ray Maximum Raymarched Screen Distance"));
-            PropertyField(m_RayBlendScreenDistance, CoreEditorUtils.GetContent("Ray Blended Raymarched Screen Distance"));
+            PropertyField(m_DepthBufferThickness, CoreEditorUtils.GetContent("Depth Buffer Thickness"));
+            PropertyField(m_RayMaxScreenDistance, CoreEditorUtils.GetContent("Max Raymarched Distance (NDC)"));
+            PropertyField(m_RayBlendScreenDistance, CoreEditorUtils.GetContent("Blended Raymarched Distance (NDC)"));
 
             m_RayLevel.value.intValue = Mathf.Max(0, m_RayLevel.value.intValue);
             m_RayMaxLinearIterationsLevel.value.intValue = Mathf.Max(0, m_RayMaxLinearIterationsLevel.value.intValue);
             m_RayMinLevel.value.intValue = Mathf.Clamp(m_RayMinLevel.value.intValue, 0, m_RayMaxLevel.value.intValue);
             m_RayMaxLevel.value.intValue = Mathf.Max(0, m_RayMaxLevel.value.intValue);
             m_RayMaxIterations.value.intValue = Mathf.Max(0, m_RayMaxIterations.value.intValue);
-            m_RayDepthSuccessBias.value.floatValue = Mathf.Max(0.001f, m_RayDepthSuccessBias.value.floatValue);
+            m_DepthBufferThickness.value.floatValue = Mathf.Max(0.001f, m_DepthBufferThickness.value.floatValue);
             m_RayMaxScreenDistance.value.floatValue = Mathf.Clamp(m_RayMaxScreenDistance.value.floatValue, 0.001f, 1.0f);
             m_RayBlendScreenDistance.value.floatValue = Mathf.Clamp(m_RayBlendScreenDistance.value.floatValue, 0.0f, m_RayMaxScreenDistance.value.floatValue);
         }

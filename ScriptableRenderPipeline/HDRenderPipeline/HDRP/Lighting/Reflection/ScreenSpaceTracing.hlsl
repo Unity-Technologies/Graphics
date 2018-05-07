@@ -177,21 +177,20 @@ float CalculateHitWeight(
     ScreenSpaceRayHit hit,
     float2 startPositionSS,
     float minLinearDepth, 
-    float settingsRayDepthSuccessBias,
+    float settingsDepthBufferThickness,
     float settingsRayMaxScreenDistance,
     float settingsRayBlendScreenDistance
 )
 {
     // Blend when the hit is near the thickness of the object
-    float thicknessWeight = clamp(1 - (hit.linearDepth - minLinearDepth) / settingsRayDepthSuccessBias, 0, 1);
-    return thicknessWeight;
+    float thicknessWeight = clamp(1 - (hit.linearDepth - minLinearDepth) / settingsDepthBufferThickness, 0, 1);
 
     // Blend when the ray when the raymarched distance is too long
-    // float2 screenDistanceNDC = abs(hit.positionSS.xy - startPositionSS) * _ScreenSize.zw;
-    // float2 screenDistanceWeights = clamp((settingsRayMaxScreenDistance - screenDistanceNDC) / settingsRayBlendScreenDistance, 0, 1);
-    // float screenDistanceWeight = min(screenDistanceWeights.x, screenDistanceWeights.y);
+    float2 screenDistanceNDC = abs(hit.positionSS.xy - startPositionSS) * _ScreenSize.zw;
+    float2 screenDistanceWeights = clamp((settingsRayMaxScreenDistance - screenDistanceNDC) / settingsRayBlendScreenDistance, 0, 1);
+    float screenDistanceWeight = min(screenDistanceWeights.x, screenDistanceWeights.y);
 
-    // return thicknessWeight * screenDistanceWeight;
+    return thicknessWeight * screenDistanceWeight;
 }
 
 #ifdef DEBUG_DISPLAY
@@ -240,7 +239,7 @@ bool ScreenSpaceLinearRaymarch(
     // Settings
     int settingRayLevel,                            // Mip level to use to ray march depth buffer
     uint settingsRayMaxIterations,                  // Maximum number of iterations (= max number of depth samples)
-    float settingsRayDepthSuccessBias,              // Bias to use when trying to detect whenever we raymarch behind a surface
+    float settingsDepthBufferThickness,              // Bias to use when trying to detect whenever we raymarch behind a surface
     float settingsRayMaxScreenDistance,             // Maximum screen distance raymarched
     float settingsRayBlendScreenDistance,           // Distance to blend before maximum screen distance is reached
     int settingsDebuggedAlgorithm,                  // currently debugged algorithm (see PROJECTIONMODEL defines)
@@ -291,7 +290,7 @@ bool ScreenSpaceLinearRaymarch(
         invLinearDepth = LoadInvDepth(positionSS.xy, mipLevel);
 
         minLinearDepth                  = 1 / invLinearDepth.r;
-        minLinearDepthWithThickness     = minLinearDepth + settingsRayDepthSuccessBias;
+        minLinearDepthWithThickness     = minLinearDepth + settingsDepthBufferThickness;
         positionLinearDepth             = 1 / positionSS.z;
         bool isAboveDepth               = positionLinearDepth < minLinearDepth;
         bool isAboveThickness           = positionLinearDepth < minLinearDepthWithThickness;
@@ -338,7 +337,7 @@ bool ScreenSpaceLinearRaymarch(
         hit,
         startPositionSS.xy,
         invLinearDepth,
-        settingsRayDepthSuccessBias,
+        settingsDepthBufferThickness,
         settingsRayMaxScreenDistance,
         settingsRayBlendScreenDistance
     );
@@ -491,7 +490,7 @@ bool ScreenSpaceLinearProxyRaycast(
     // Settings (linear)
     int settingRayLevel,                    // Mip level to use to ray march depth buffer
     uint settingsRayMaxIterations,          // Maximum number of iterations (= max number of depth samples)
-    float settingsRayDepthSuccessBias,      // Bias to use when trying to detect whenever we raymarch behind a surface
+    float settingsDepthBufferThickness,      // Bias to use when trying to detect whenever we raymarch behind a surface
     float settingsRayMaxScreenDistance,     // Maximum screen distance raymarched
     float settingsRayBlendScreenDistance,   // Distance to blend before maximum screen distance is reached
     // Settings (common)
@@ -530,7 +529,7 @@ bool ScreenSpaceLinearProxyRaycast(
         // Settings
         settingRayLevel,
         settingsRayMaxIterations,
-        settingsRayDepthSuccessBias,
+        settingsDepthBufferThickness,
         settingsRayMaxScreenDistance,
         settingsRayBlendScreenDistance,
         settingsDebuggedAlgorithm,
@@ -579,7 +578,7 @@ bool ScreenSpaceHiZRaymarch(
     uint settingsRayMaxLevel,                       // Maximum mip level to use for ray marching the depth buffer in HiZ
     uint settingsRayMaxIterations,                  // Maximum number of iteration for the HiZ raymarching (= number of depth sample for HiZ)
     uint settingsRayMaxLinearIterations,            // Maximum number of iteration for the linear raymarching (= number of depth sample for linear)
-    float settingsRayDepthSuccessBias,              // Bias to use when trying to detect whenever we raymarch behind a surface
+    float settingsDepthBufferThickness,              // Bias to use when trying to detect whenever we raymarch behind a surface
     float settingsRayMaxScreenDistance,             // Maximum screen distance raymarched
     float settingsRayBlendScreenDistance,           // Distance to blend before maximum screen distance is reached
     int settingsDebuggedAlgorithm,                  // currently debugged algorithm (see PROJECTIONMODEL defines)
@@ -619,7 +618,7 @@ bool ScreenSpaceHiZRaymarch(
             // settings
             settingsRayLevel,
             settingsRayMaxLinearIterations,
-            settingsRayDepthSuccessBias,
+            settingsDepthBufferThickness,
             settingsRayMaxScreenDistance,
             settingsRayBlendScreenDistance,
             settingsDebuggedAlgorithm,
@@ -700,7 +699,7 @@ bool ScreenSpaceHiZRaymarch(
 
         positionLinearDepth                 = 1 / positionSS.z;
         minLinearDepth                      = 1 / invLinearDepth.r;
-        minLinearDepthWithThickness         = minLinearDepth + settingsRayDepthSuccessBias;
+        minLinearDepthWithThickness         = minLinearDepth + settingsDepthBufferThickness;
         bool isAboveDepth                   = positionLinearDepth < minLinearDepth;
         bool isAboveThickness               = positionLinearDepth < minLinearDepthWithThickness;
         bool isBehindDepth                  = !isAboveThickness;
@@ -767,7 +766,7 @@ bool ScreenSpaceHiZRaymarch(
             debugLoopMipMaxUsedLevel = max(debugLoopMipMaxUsedLevel, currentLevel);
             debugIterationPositionSS = positionSS;
             debugIterationLinearDepthBufferMin = 1 / invLinearDepth.r;
-            debugIterationLinearDepthBufferMinThickness = 1 / invLinearDepth.r + settingsRayDepthSuccessBias;
+            debugIterationLinearDepthBufferMinThickness = 1 / invLinearDepth.r + settingsDepthBufferThickness;
             debugIterationLinearDepthBufferMax = 1 / invLinearDepth.g;
             debugIteration = iteration;
             debugIterationIntersectionKind = intersectionKind;
@@ -795,7 +794,7 @@ bool ScreenSpaceHiZRaymarch(
     //     hit,
     //     startPositionSS.xy,
     //     invLinearDepth, 
-    //     settingsRayDepthSuccessBias,
+    //     settingsDepthBufferThickness,
     //     settingsRayMaxScreenDistance,
     //     settingsRayBlendScreenDistance
     // );
@@ -804,7 +803,7 @@ bool ScreenSpaceHiZRaymarch(
         hit,
         startPositionSS.xy,
         minLinearDepth,
-        settingsRayDepthSuccessBias,
+        settingsDepthBufferThickness,
         settingsRayMaxScreenDistance,
         settingsRayBlendScreenDistance
     );
@@ -898,7 +897,7 @@ int SSRT_SETTING(RayMinLevel, SSRTID);
 int SSRT_SETTING(RayMaxLevel, SSRTID);
 int SSRT_SETTING(RayMaxLinearIterations, SSRTID);
 int SSRT_SETTING(RayMaxIterations, SSRTID);
-float SSRT_SETTING(RayDepthSuccessBias, SSRTID);
+float SSRT_SETTING(DepthBufferThickness, SSRTID);
 float SSRT_SETTING(RayMaxScreenDistance, SSRTID);
 float SSRT_SETTING(RayBlendScreenDistance, SSRTID);
 
@@ -935,7 +934,7 @@ bool MERGE_NAME(ScreenSpaceLinearRaymarch, SSRTID)(
         // settings
         SSRT_SETTING(RayLevel, SSRTID),
         SSRT_SETTING(RayMaxIterations, SSRTID),
-        max(0.01, SSRT_SETTING(RayDepthSuccessBias, SSRTID)),
+        max(0.01, SSRT_SETTING(DepthBufferThickness, SSRTID)),
         SSRT_SETTING(RayMaxScreenDistance, SSRTID),
         SSRT_SETTING(RayBlendScreenDistance, SSRTID),
 #ifdef DEBUG_DISPLAY
@@ -995,7 +994,7 @@ bool MERGE_NAME(ScreenSpaceHiZRaymarch, SSRTID)(
         SSRT_SETTING(RayMaxLevel, SSRTID),
         SSRT_SETTING(RayMaxIterations, SSRTID),
         SSRT_SETTING(RayMaxLinearIterations, SSRTID),
-        max(0.01, SSRT_SETTING(RayDepthSuccessBias, SSRTID)),
+        max(0.01, SSRT_SETTING(DepthBufferThickness, SSRTID)),
         SSRT_SETTING(RayMaxScreenDistance, SSRTID),
         SSRT_SETTING(RayBlendScreenDistance, SSRTID),
 #ifdef DEBUG_DISPLAY
