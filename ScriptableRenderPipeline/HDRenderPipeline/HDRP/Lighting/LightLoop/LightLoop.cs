@@ -831,6 +831,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             directionalLightData.diffuseScale = additionalData.affectDiffuse ? diffuseDimmer : 0.0f;
             directionalLightData.specularScale = additionalData.affectSpecular ? specularDimmer : 0.0f;
+            directionalLightData.volumetricDimmer = additionalData.volumetricDimmer;
             directionalLightData.shadowIndex = directionalLightData.cookieIndex = -1;
 
             if (light.light.cookie != null)
