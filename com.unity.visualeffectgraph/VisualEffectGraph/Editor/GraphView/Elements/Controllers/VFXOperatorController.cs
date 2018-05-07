@@ -107,6 +107,102 @@ namespace UnityEditor.VFX.UI
         {
         }
     }
+    class VFXUnifiedConstraintOperatorController : VFXUnifiedOperatorController
+    {
+        public VFXUnifiedConstraintOperatorController(VFXModel model, VFXViewController viewController) : base(model, viewController)
+        {
+        }
+
+        protected override bool CouldLinkMyInputTo(VFXDataAnchorController myInput, VFXDataAnchorController otherOutput)
+        {
+            if (!myInput.model.IsMasterSlot())
+                return false;
+            if (otherOutput.direction == myInput.direction)
+                return false;
+
+            if (!myInput.CanLinkToNode(otherOutput.sourceNode))
+                return false;
+
+            int inputIndex = model.GetSlotIndex(myInput.model);
+            IVFXOperatorNumericUnifiedConstrained constraintInterface = model as IVFXOperatorNumericUnifiedConstrained;
+
+
+            var bestAffinityType = model.GetBestAffinityType(otherOutput.portType);
+            if (bestAffinityType == null)
+                return false;
+            if (constraintInterface.slotIndicesThatCanBeScalar.Contains(inputIndex))
+            {
+                if (VFXTypeUtility.GetComponentCount(otherOutput.model) != 0)  // If it is a vector or float type, then conversion to float exists
+                    return true;
+            }
+
+            return model.GetBestAffinityType(otherOutput.portType) != null;
+        }
+
+        public static Type GetMatchingScalar(Type otherType)
+        {
+            return VFXExpression.GetMatchingScalar(otherType);
+        }
+
+        public override void WillCreateLink(ref VFXSlot myInput, ref VFXSlot otherOutput)
+        {
+            if (!myInput.IsMasterSlot())
+                return;
+            int inputIndex = model.GetSlotIndex(myInput);
+            IVFXOperatorNumericUnifiedConstrained constraintInterface = model as IVFXOperatorNumericUnifiedConstrained;
+
+            if (!constraintInterface.slotIndicesThatMustHaveSameType.Contains(inputIndex))
+            {
+                base.WillCreateLink(ref myInput, ref otherOutput);
+                return;
+            }
+
+            bool scalar = constraintInterface.slotIndicesThatCanBeScalar.Contains(inputIndex);
+            if (scalar)
+            {
+                var bestAffinityType = model.GetBestAffinityType(otherOutput.property.type);
+
+                VFXSlot otherSlotWithConstraint = model.inputSlots.Where((t, i) => constraintInterface.slotIndicesThatMustHaveSameType.Contains(i)).FirstOrDefault();
+
+                if (otherSlotWithConstraint == null || otherSlotWithConstraint.property.type == bestAffinityType)
+                {
+                    model.SetOperandType(inputIndex, bestAffinityType);
+                    myInput = model.GetInputSlot(inputIndex);
+                }
+                else if (!myInput.CanLink(otherOutput) || !otherOutput.CanLink(myInput))  // if the link is invalid if we don't change the type, change the type to the matching scalar
+                {
+                    var bestScalarAffinityType = model.GetBestAffinityType(GetMatchingScalar(otherOutput.property.type));
+                    if (bestScalarAffinityType != null)
+                    {
+                        model.SetOperandType(inputIndex, bestScalarAffinityType);
+                        myInput = model.GetInputSlot(inputIndex);
+                    }
+                }
+                return; // never change the type of other constraint if the linked slot is scalar
+            }
+
+            VFXSlot input = myInput;
+
+            bool hasLinks = model.inputSlots.Where((t, i) => t != input && t.HasLink(true) && constraintInterface.slotIndicesThatMustHaveSameType.Contains(i) && !constraintInterface.slotIndicesThatCanBeScalar.Contains(i)).Count() > 0;
+
+            bool linkPossible = myInput.CanLink(otherOutput) && otherOutput.CanLink(myInput);
+
+            if (!hasLinks || !linkPossible)  //Change the type if other type having the same constraint have no link or if the link will fail if we don't
+            {
+                var bestAffinityType = model.GetBestAffinityType(otherOutput.property.type);
+                if (bestAffinityType != null)
+                {
+                    foreach (int slotIndex in constraintInterface.slotIndicesThatMustHaveSameType)
+                    {
+                        if (!constraintInterface.slotIndicesThatCanBeScalar.Contains(slotIndex) || GetMatchingScalar(bestAffinityType) != model.GetInputSlot(slotIndex).property.type)
+                            model.SetOperandType(slotIndex, bestAffinityType);
+                    }
+
+                    myInput = model.GetInputSlot(inputIndex);
+                }
+            }
+        }
+    }
 
     class VFXCascadedOperatorController : VFXUnifiedOperatorControllerBase<VFXOperatorNumericCascadedUnifiedNew>
     {
@@ -133,7 +229,7 @@ namespace UnityEditor.VFX.UI
 
         public bool CanRemove()
         {
-            return model.operandCount > 2;
+            return model.operandCount > model.MinimalOperandCount;
         }
 
         public void RemoveOperand(VFXDataAnchorController myInput)

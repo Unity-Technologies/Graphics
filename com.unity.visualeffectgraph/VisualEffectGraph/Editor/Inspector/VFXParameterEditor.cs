@@ -32,13 +32,14 @@ public class VFXParameterEditor : VFXSlotContainerEditor
         }
     }
 
-    protected void OnDisable()
+    protected new void OnDisable()
     {
         if (controller != null)
         {
             controller.useCount--;
             controller = null;
         }
+        base.OnDisable();
     }
 
     public override void DoInspectorGUI()

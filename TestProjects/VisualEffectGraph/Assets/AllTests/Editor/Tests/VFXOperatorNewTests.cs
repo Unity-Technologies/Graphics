@@ -155,7 +155,9 @@ namespace UnityEditor.VFX.Test
         public void ClampNewBehavior()
         {
             var clamp = ScriptableObject.CreateInstance<Operator.ClampNew>();
-            clamp.SetOperandType(typeof(int));
+            clamp.SetOperandType(0, typeof(int));
+            clamp.SetOperandType(1, typeof(int));
+            clamp.SetOperandType(2, typeof(int));
             Assert.AreEqual(VFXValueType.Int32, clamp.outputSlots[0].GetExpression().valueType);
 
             clamp.inputSlots[0].value = -6;
@@ -189,13 +191,12 @@ namespace UnityEditor.VFX.Test
         public void DotProductNewBehavior()
         {
             var dot = ScriptableObject.CreateInstance<Operator.DotProductNew>();
-            dot.SetOperandType(0, typeof(Vector2));
-            dot.SetOperandType(1, typeof(Vector3));
+            dot.SetOperandType(typeof(Vector2));
 
             Assert.AreEqual(VFXValueType.Float, dot.outputSlots[0].GetExpression().valueType);
 
             var a = new Vector2(6, 7);
-            var b = new Vector3(2, 3, 4);
+            var b = new Vector2(2, 3);
 
             dot.inputSlots[0].value = a;
             dot.inputSlots[1].value = b;
@@ -204,7 +205,7 @@ namespace UnityEditor.VFX.Test
             var result = context.Compile(dot.outputSlots[0].GetExpression());
             var final = result.Get<float>();
 
-            Assert.AreEqual(Vector3.Dot(b, new Vector3(a.x, a.y, 0)), final);
+            Assert.AreEqual(Vector2.Dot(a, b), final);
         }
 
         [Test]
@@ -430,9 +431,31 @@ namespace UnityEditor.VFX.Test
             var resultUInt = context.Compile(moduloUInt.outputSlots[0].GetExpression());
             var resultFloat = context.Compile(moduloFloat.outputSlots[0].GetExpression());
 
-
             Assert.AreEqual(a % b, resultUInt.Get<uint>());
             Assert.AreEqual(Mathf.Repeat(a, b), resultFloat.Get<float>());
+        }
+
+        [Test]
+        public void MinimumNewWithIdenityValue()
+        {
+            var a = new Vector2(2, 2);
+            var b = new Vector3(3, 3, 3);
+            var e = new Vector3(2, 2, 3);
+
+            var min = ScriptableObject.CreateInstance<Operator.MinimumNew>();
+            min.SetOperandType(0, a.GetType());
+            min.SetOperandType(1, b.GetType());
+
+            min.inputSlots[0].value = a;
+            min.inputSlots[1].value = b;
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+            var resultVector3Expression = context.Compile(min.outputSlots[0].GetExpression());
+            var r = resultVector3Expression.Get<Vector3>();
+
+            Assert.AreEqual(e.x, r.x);
+            Assert.AreEqual(e.y, r.y);
+            Assert.AreEqual(e.z, r.z);
         }
     }
 }

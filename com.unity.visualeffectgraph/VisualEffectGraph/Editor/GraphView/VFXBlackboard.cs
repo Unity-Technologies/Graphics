@@ -8,11 +8,18 @@ using UnityEditor.VFX;
 using System.Collections.Generic;
 using UnityEditor;
 using System.Linq;
+using System.Text;
+using UnityEditor.SceneManagement;
 
 namespace  UnityEditor.VFX.UI
 {
     class VFXBlackboardPropertyView : VisualElement, IControlledElement, IControlledElement<VFXParameterController>
     {
+        public VFXBlackboardPropertyView()
+        {
+            RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
+        }
+
         public VFXBlackboardRow owner
         {
             get; set;
@@ -60,7 +67,7 @@ namespace  UnityEditor.VFX.UI
         {
             foreach (var port in allProperties)
             {
-                float portLabelWidth = port.GetPreferredLabelWidth();
+                float portLabelWidth = port.GetPreferredLabelWidth() + 5;
 
                 if (labelWidth < portLabelWidth)
                 {
@@ -85,7 +92,7 @@ namespace  UnityEditor.VFX.UI
             int cpt = 0;
             foreach (var subController in subControllers)
             {
-                PropertyRM prop = PropertyRM.Create(subController, 55);
+                PropertyRM prop = PropertyRM.Create(subController, 85);
                 if (prop != null)
                 {
                     m_SubProperties.Add(prop);
@@ -107,7 +114,7 @@ namespace  UnityEditor.VFX.UI
 
         IPropertyRMProvider m_RangeProvider;
 
-        public void Clear()
+        public new void Clear()
         {
             m_ExposedProperty = null;
             m_RangeProperty = null;
@@ -220,14 +227,27 @@ namespace  UnityEditor.VFX.UI
                 }
             }
 
-            float labelWidth = 70;
-            GetPreferedWidths(ref labelWidth);
-            ApplyWidths(labelWidth);
 
             foreach (var prop in allProperties)
             {
                 prop.Update();
             }
+        }
+
+        void OnAttachToPanel(AttachToPanelEvent e)
+        {
+            RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
+        }
+
+        void OnGeometryChanged(GeometryChangedEvent e)
+        {
+            if (panel != null)
+            {
+                float labelWidth = 70;
+                GetPreferedWidths(ref labelWidth);
+                ApplyWidths(labelWidth);
+            }
+            UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
         }
     }
     class VFXBlackboardField : BlackboardField, IControlledElement, IControlledElement<VFXParameterController>
@@ -293,6 +313,8 @@ namespace  UnityEditor.VFX.UI
             {
                 button.clickable.clicked += OnExpand;
             }
+
+            clippingOptions = ClippingOptions.ClipAndCacheContents;
         }
 
         void OnExpand()
@@ -335,9 +357,9 @@ namespace  UnityEditor.VFX.UI
             m_CurrentOrder = controller.order;
             m_CurrentExposed = controller.exposed;
 
-            m_Properties.SelfChange(e.change);
-
             expanded = controller.expanded;
+
+            m_Properties.SelfChange(e.change);
 
             m_Field.SelfChange();
         }
@@ -408,37 +430,11 @@ namespace  UnityEditor.VFX.UI
             }
         }
 
-        const string blackBoardPositionPref = "VFXBlackboardRect";
+        VFXView m_View;
 
-
-        Rect LoadBlackBoardPosition()
+        public VFXBlackboard(VFXView view)
         {
-            string str = EditorPrefs.GetString(blackBoardPositionPref);
-            Rect blackBoardPosition = new Rect(100, 100, 300, 500);
-            if (!string.IsNullOrEmpty(str))
-            {
-                var rectValues = str.Split(',');
-
-                if (rectValues.Length == 4)
-                {
-                    float x, y, width, height;
-                    if (float.TryParse(rectValues[0], out x) && float.TryParse(rectValues[1], out y) && float.TryParse(rectValues[2], out width) && float.TryParse(rectValues[3], out height))
-                    {
-                        blackBoardPosition = new Rect(x, y, width, height);
-                    }
-                }
-            }
-
-            return blackBoardPosition;
-        }
-
-        void SaveBlackboardPosition(Rect r)
-        {
-            EditorPrefs.SetString(blackBoardPositionPref, string.Format("{0},{1},{2},{3}", r.x, r.y, r.width, r.height));
-        }
-
-        public VFXBlackboard()
-        {
+            m_View = view;
             RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
             editTextRequested = OnEditName;
             moveItemRequested = OnMoveItem;
@@ -447,12 +443,22 @@ namespace  UnityEditor.VFX.UI
             this.scrollable = true;
 
 
-            SetPosition(LoadBlackBoardPosition());
+            SetPosition(BoardPreferenceHelper.LoadPosition(BoardPreferenceHelper.Board.blackboard, new Rect(100, 100, 300, 500)));
 
             m_ExposedSection = new BlackboardSection() { title = "parameters"};
             Add(m_ExposedSection);
 
             AddStyleSheetPath("VFXBlackboard");
+
+            RegisterCallback<MouseDownEvent>(OnMouseClick, Capture.Capture);
+
+
+            clippingOptions = ClippingOptions.ClipContents;
+        }
+
+        void OnMouseClick(MouseDownEvent e)
+        {
+            m_View.SetBoardToFront(this);
         }
 
         BlackboardSection m_ExposedSection;
@@ -554,7 +560,7 @@ namespace  UnityEditor.VFX.UI
 
         public void OnMoved()
         {
-            SaveBlackboardPosition(GetPosition());
+            BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.blackboard, GetPosition());
         }
     }
 }

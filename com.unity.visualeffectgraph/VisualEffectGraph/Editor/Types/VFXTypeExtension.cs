@@ -32,6 +32,8 @@ namespace UnityEditor.VFX
 
         public static string UserFriendlyName(this Type type)
         {
+            if (type == null)
+                return "null";
             string result;
             if (s_FriendlyName.TryGetValue(type, out result))
             {

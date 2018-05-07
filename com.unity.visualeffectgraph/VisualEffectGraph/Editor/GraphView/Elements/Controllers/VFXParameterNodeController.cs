@@ -45,13 +45,25 @@ namespace UnityEditor.VFX.UI
         {
             if (sourceNode.infos.expandedSlots == null)
                 sourceNode.infos.expandedSlots = new List<VFXSlot>();
+            bool changed = false;
             if (!sourceNode.infos.expandedSlots.Contains(model))
+            {
                 sourceNode.infos.expandedSlots.Add(model);
+                changed = true;
+            }
+
             if (SlotShouldSkipFirstLevel(model))
             {
                 VFXSlot firstChild = model.children.First();
                 if (!sourceNode.infos.expandedSlots.Contains(firstChild))
+                {
                     sourceNode.infos.expandedSlots.Add(firstChild);
+                    changed = true;
+                }
+            }
+            if (changed)
+            {
+                sourceNode.model.Invalidate(VFXModel.InvalidationCause.kUIChanged);
             }
         }
 
@@ -59,16 +71,20 @@ namespace UnityEditor.VFX.UI
         {
             if (sourceNode.infos.expandedSlots != null)
             {
-                sourceNode.infos.expandedSlots.Remove(model);
+                bool changed = sourceNode.infos.expandedSlots.Remove(model);
                 if (SlotShouldSkipFirstLevel(model))
                 {
-                    sourceNode.infos.expandedSlots.Remove(model.children.First());
+                    changed |= sourceNode.infos.expandedSlots.Remove(model.children.First());
+                }
+                if (changed)
+                {
+                    sourceNode.model.Invalidate(VFXModel.InvalidationCause.kUIChanged);
                 }
             }
         }
     }
 
-    class VFXParameterNodeController : VFXNodeController, IPropertyRMProvider, IValueController
+    class VFXParameterNodeController : VFXNodeController, IPropertyRMProvider
     {
         VFXParameterController m_ParentController;
 
@@ -183,8 +199,6 @@ namespace UnityEditor.VFX.UI
 
         public override void DrawGizmos(VisualEffect component)
         {
-            VFXValueGizmo.Draw(this, component);
-
             m_ParentController.DrawGizmos(component);
         }
 

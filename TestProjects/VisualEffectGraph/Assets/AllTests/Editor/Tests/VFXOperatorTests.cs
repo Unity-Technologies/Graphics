@@ -210,8 +210,12 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void AttributeEquality()
         {
-            foreach (var attribute in VFXAttribute.AllExpectLocalOnly)
+            foreach (var attribute in VFXAttribute.AllExceptLocalOnly)
             {
+                var referenceAttribute = VFXAttribute.Find(attribute);
+                if (referenceAttribute.variadic == VFXVariadic.BelongsToVariadic)
+                    continue;
+
                 var desc = VFXLibrary.GetOperators().First(p => p.name.Contains(attribute) && p.modelType == typeof(VFXAttributeParameter));
                 var a = desc.CreateInstance();
                 var b = desc.CreateInstance();
@@ -219,7 +223,6 @@ namespace UnityEditor.VFX.Test
                 Assert.IsNotNull(b);
                 Assert.AreNotEqual(a, b);
 
-                var referenceAttribute = VFXAttribute.Find(attribute);
                 var reference = new VFXAttributeExpression(referenceAttribute);
                 Assert.AreEqual(reference, a.outputSlots[0].GetExpression());
                 Assert.AreEqual(reference, b.outputSlots[0].GetExpression());
@@ -244,13 +247,19 @@ namespace UnityEditor.VFX.Test
             }
         }
 
+        private static Type[] swizzleType = new Type[] { typeof(Operator.Swizzle), typeof(Operator.SwizzleNew) };
         [Test]
-        public void SwizzleOperator()
+        public void SwizzleOperator([ValueSource("swizzleType")] Type swizzleType)
         {
             // check basic swizzle
             {
                 var inputVec = ScriptableObject.CreateInstance<VFXOperatorVector2>();
-                var swizzle = ScriptableObject.CreateInstance<Operator.Swizzle>();
+                var swizzle = ScriptableObject.CreateInstance(swizzleType) as VFXOperator;
+                if (swizzleType == typeof(Operator.SwizzleNew))
+                {
+                    (swizzle as Operator.SwizzleNew).SetOperandType(typeof(Vector2));
+                }
+
                 swizzle.inputSlots[0].Link(inputVec.outputSlots.First());
                 swizzle.SetSettingValue("mask", "xxy");
 
@@ -266,7 +275,11 @@ namespace UnityEditor.VFX.Test
             // check out of bounds mask is clamped correctly
             {
                 var inputVec = ScriptableObject.CreateInstance<VFXOperatorVector2>();
-                var swizzle = ScriptableObject.CreateInstance<Operator.Swizzle>();
+                var swizzle = ScriptableObject.CreateInstance(swizzleType) as VFXOperator;
+                if (swizzleType == typeof(Operator.SwizzleNew))
+                {
+                    (swizzle as Operator.SwizzleNew).SetOperandType(typeof(Vector2));
+                }
                 swizzle.inputSlots[0].Link(inputVec.outputSlots.First());
                 swizzle.SetSettingValue("mask", "yzx");
 

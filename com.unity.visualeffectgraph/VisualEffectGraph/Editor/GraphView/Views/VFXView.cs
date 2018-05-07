@@ -31,8 +31,7 @@ namespace UnityEditor.VFX.UI
 
         void OnMouseUp(MouseUpEvent evt)
         {
-            if (!VisualEffectEditor.s_IsEditingAsset)
-                Selection.activeObject = m_View.controller.model;
+            Selection.activeObject = m_View.controller.model;
         }
     }
 
@@ -170,7 +169,7 @@ namespace UnityEditor.VFX.UI
         {
             foreach (var anchor in allDataAnchors)
             {
-                anchor.OnRecompile();
+                anchor.OnRecompile(e.valueOnly);
             }
         }
 
@@ -228,6 +227,14 @@ namespace UnityEditor.VFX.UI
             elementAddedToGroup = ElementAddedToGroupNode;
             elementRemovedFromGroup = ElementRemovedFromGroupNode;
             groupTitleChanged = GroupNodeTitleChanged;
+        }
+
+        public VisualEffect attachedComponent
+        {
+            get
+            {
+                return m_ComponentBoard != null ? m_ComponentBoard.GetAttachedComponent() : null;
+            }
         }
 
         public VFXViewController controller
@@ -314,10 +321,15 @@ namespace UnityEditor.VFX.UI
             button.AddToClassList("toolbarItem");
             toolbar.Add(button);
 
-            Button toggleBlackboard = new Button(() => { ToggleBlackboard(); });
+            Button toggleBlackboard = new Button(ToggleBlackboard);
             toggleBlackboard.text = "Blackboard";
             toggleBlackboard.AddToClassList("toolbarItem");
             toolbar.Add(toggleBlackboard);
+
+            Button toggleComponentBoard = new Button(ToggleComponentBoard);
+            toggleComponentBoard.text = "Component board";
+            toggleComponentBoard.AddToClassList("toolbarItem");
+            toolbar.Add(toggleComponentBoard);
 
 
             VisualElement spacer = new VisualElement();
@@ -391,12 +403,17 @@ namespace UnityEditor.VFX.UI
             RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
             RegisterCallback<VFXRecompileEvent>(OnRecompile);
 
-            m_Blackboard = new VFXBlackboard();
+            m_Blackboard = new VFXBlackboard(this);
 
 
-            bool blackboardVisible = EditorPrefs.GetBool("vfx-blackboard-visible", true);
+            bool blackboardVisible = BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.blackboard, true);
             if (blackboardVisible)
                 Add(m_Blackboard);
+
+
+            bool componentBoardVisible = BoardPreferenceHelper.IsVisible(BoardPreferenceHelper.Board.blackboard, false);
+            if (componentBoardVisible)
+                ShowComponentBoard();
 
             Add(toolbar);
 
@@ -414,6 +431,12 @@ namespace UnityEditor.VFX.UI
             persistenceKey = "VFXView";
         }
 
+        public void SetBoardToFront(GraphElement board)
+        {
+            if (ElementAt(childCount - 1) != board)
+                Insert(childCount - 1, board);
+        }
+
         void OnUndoPerformed()
         {
             foreach (var anchor in allDataAnchors)
@@ -427,12 +450,38 @@ namespace UnityEditor.VFX.UI
             if (m_Blackboard.parent == null)
             {
                 Insert(childCount - 1, m_Blackboard);
-                EditorPrefs.SetBool("vfx-blackboard-visible", true);
+                BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
             }
             else
             {
                 m_Blackboard.RemoveFromHierarchy();
-                EditorPrefs.SetBool("vfx-blackboard-visible", false);
+                BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, false);
+            }
+        }
+
+        void ShowComponentBoard()
+        {
+            if (m_ComponentBoard == null)
+            {
+                m_ComponentBoard = new VFXComponentBoard(this);
+
+                m_ComponentBoard.controller = controller;
+            }
+            Insert(childCount - 1, m_ComponentBoard);
+
+            BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.componentBoard, true);
+        }
+
+        void ToggleComponentBoard()
+        {
+            if (m_ComponentBoard == null || m_ComponentBoard.parent == null)
+            {
+                ShowComponentBoard();
+            }
+            else
+            {
+                m_ComponentBoard.RemoveFromHierarchy();
+                BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.componentBoard, false);
             }
         }
 
@@ -523,8 +572,6 @@ namespace UnityEditor.VFX.UI
                 m_ToggleMotionVectors.SetEnabled(false);
             }
 
-            // needed if some or all the selection has been deleted, so we no longer show the deleted object in the inspector.
-            SelectionUpdated();
             Profiler.EndSample();
             m_InControllerChanged = false;
             if (m_UpdateUIBounds)
@@ -542,6 +589,11 @@ namespace UnityEditor.VFX.UI
         void NewControllerSet()
         {
             m_Blackboard.controller = controller;
+
+            if (m_ComponentBoard != null)
+            {
+                m_ComponentBoard.controller = controller;
+            }
             if (controller != null)
             {
                 m_NoAssetLabel.RemoveFromHierarchy();
@@ -638,14 +690,12 @@ namespace UnityEditor.VFX.UI
                 elementRemovedFromGroup = null;
 
                 var deletedControllers = rootNodes.Keys.Except(controller.nodes).ToArray();
-                bool changed = false;
 
                 foreach (var deletedController in deletedControllers)
                 {
                     SafeRemoveElement(rootNodes[deletedController]);
                     rootNodes.Remove(deletedController);
                     rootGroupNodeElements.Remove(deletedController);
-                    changed = true;
                 }
 
                 bool needOneListenToGeometry = !m_GeometrySet;
@@ -669,7 +719,6 @@ namespace UnityEditor.VFX.UI
                     {
                         throw new InvalidOperationException("Can't find right ui for controller" + newController.GetType().Name);
                     }
-                    changed = true;
                     AddElement(newElement);
                     rootNodes[newController] = newElement;
                     rootGroupNodeElements[newController] = newElement;
@@ -892,8 +941,10 @@ namespace UnityEditor.VFX.UI
         void OnCreateNode(NodeCreationContext ctx)
         {
             Vector2 point = GUIUtility.ScreenToGUIPoint(ctx.screenMousePosition);
-            VisualElement picked = panel.Pick(point);
-            VFXContextUI context = picked.GetFirstOfType<VFXContextUI>();
+            List<VisualElement> picked = new List<VisualElement>();
+            panel.PickAll(point, picked);
+
+            VFXContextUI context = picked.OfType<VFXContextUI>().FirstOrDefault();
 
             if (context != null)
             {
@@ -1285,32 +1336,29 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void SelectionUpdated()
+        public void UpdateGlobalSelection()
         {
             if (controller == null) return;
 
-            if (!VisualEffectEditor.s_IsEditingAsset)
+            var objectSelected = selection.OfType<VFXNodeUI>().Select(t => t.controller.model).Concat(selection.OfType<VFXContextUI>().Select(t => t.controller.model)).Where(t => t != null).ToArray();
+
+            if (objectSelected.Length > 0)
             {
-                var objectSelected = selection.OfType<VFXNodeUI>().Select(t => t.controller.model).Concat(selection.OfType<VFXContextUI>().Select(t => t.controller.model)).Where(t => t != null).ToArray();
+                Selection.objects = objectSelected;
+                return;
+            }
 
-                if (objectSelected.Length > 0)
-                {
-                    Selection.objects = objectSelected;
-                    return;
-                }
+            var blackBoardSelected = selection.OfType<BlackboardField>().Select(t => t.GetFirstAncestorOfType<VFXBlackboardRow>().controller.model).ToArray();
 
-                var blackBoardSelected = selection.OfType<BlackboardField>().Select(t => t.GetFirstAncestorOfType<VFXBlackboardRow>().controller.model).ToArray();
+            if (blackBoardSelected.Length > 0)
+            {
+                Selection.objects = blackBoardSelected;
+                return;
+            }
 
-                if (blackBoardSelected.Length > 0)
-                {
-                    Selection.objects = blackBoardSelected;
-                    return;
-                }
-
-                if (Selection.activeObject != controller.model)
-                {
-                    Selection.activeObject = controller.model;
-                }
+            if (Selection.activeObject != controller.model)
+            {
+                Selection.activeObject = controller.model;
             }
         }
 
@@ -1332,13 +1380,13 @@ namespace UnityEditor.VFX.UI
         public override void AddToSelection(ISelectable selectable)
         {
             base.AddToSelection(selectable);
-            SelectionUpdated();
+            UpdateGlobalSelection();
         }
 
         public override void RemoveFromSelection(ISelectable selectable)
         {
             base.RemoveFromSelection(selectable);
-            SelectionUpdated();
+            UpdateGlobalSelection();
         }
 
         public override void ClearSelection()
@@ -1346,10 +1394,13 @@ namespace UnityEditor.VFX.UI
             bool selectionEmpty = selection.Count() == 0;
             base.ClearSelection();
             if (!selectionEmpty)
-                SelectionUpdated();
+                UpdateGlobalSelection();
         }
 
         VFXBlackboard m_Blackboard;
+
+
+        VFXComponentBoard m_ComponentBoard;
 
         private Label m_DropDownButtonCullingMode;
         private Toggle m_ToggleCastShadows;
@@ -1362,6 +1413,7 @@ namespace UnityEditor.VFX.UI
         {
             get { return m_Blackboard; }
         }
+
 
         protected internal override bool canCopySelection
         {

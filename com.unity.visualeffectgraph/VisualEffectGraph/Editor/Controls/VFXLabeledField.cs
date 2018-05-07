@@ -24,19 +24,23 @@ namespace UnityEditor.VFX.UIElements
 
         public bool indeterminate
         {
-            get {return m_Indeterminate; }
+            get {return m_Control.parent == null; }
 
             set
             {
                 if (m_Indeterminate != value)
                 {
-                    m_Control.RemoveFromHierarchy();
-                    Add(m_IndeterminateLabel);
-                }
-                else
-                {
-                    m_IndeterminateLabel.RemoveFromHierarchy();
-                    Add(m_Control);
+                    m_Indeterminate = value;
+                    if (value)
+                    {
+                        m_Control.RemoveFromHierarchy();
+                        Add(m_IndeterminateLabel);
+                    }
+                    else
+                    {
+                        m_IndeterminateLabel.RemoveFromHierarchy();
+                        Add(m_Control);
+                    }
                 }
             }
         }

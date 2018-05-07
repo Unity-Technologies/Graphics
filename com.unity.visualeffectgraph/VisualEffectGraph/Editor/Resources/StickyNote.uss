@@ -35,7 +35,7 @@
     margin-right:6;
 }
 
-.sticky-note * 
+.sticky-note *
 {
     text-color:#584308;
 }
@@ -63,7 +63,7 @@
 {
     flex:1;
     flex-direction:column;
-    align-items:stretch;   
+    align-items:stretch;
     border-left-width:2;
     border-top-width:2;
     border-bottom-width:2;
@@ -76,7 +76,7 @@
 }
 
 
-* #title, * #title-field 
+* #title, * #title-field
 {
     font-size:20;
     word-wrap: true;
@@ -90,7 +90,7 @@
     padding-bottom:0;
 }
 
-* #contents, * #contents * 
+* #contents, * #contents *
 {
     font-size:11;
     word-wrap:true;
@@ -156,26 +156,26 @@
 {
     font-size:40;
 }
-.size-medium #contents, .size-medium #contents * 
+.size-medium #contents, .size-medium #contents *
 {
     font-size:24;
 }
 
-.size-large #title, .size-large #title-field 
+.size-large #title, .size-large #title-field
 {
     font-size:60;
 }
-.size-large #contents, .size-large #contents * 
+.size-large #contents, .size-large #contents *
 {
     font-size:36;
 }
 
-.size-huge #title, .size-huge #title-field 
+.size-huge #title, .size-huge #title-field
 {
     font-size:80;
 }
 
-.size-huge #contents, .size-huge #contents * 
+.size-huge #contents, .size-huge #contents *
 {
     font-size:56;
 }
@@ -208,7 +208,7 @@
     background-color:#FCD76E;
 }
 
-.sticky-note.theme-orange * 
+.sticky-note.theme-orange *
 {
     text-color:#000000;
 }

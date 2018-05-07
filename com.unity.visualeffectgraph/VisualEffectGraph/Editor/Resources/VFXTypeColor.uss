@@ -1,24 +1,8 @@
-.port.typePosition
-{
-    port-color: #F6FF9A;
-}
-.port.typeVector
-{
-    port-color: #F6FF9A;
-}
-.port.typeDirection
-{
-    port-color: #F6FF9A;
-}
+
 
 .port.typeGradient
 {
-    port-color: #84e4e7;
-}
-
-.port.typeobject
-{
-    port-color : #787878;
+    port-color: #FFAA6B;
 }
 .port.typetexture3d
 {
@@ -54,10 +38,21 @@
 }
 .port.typeanimationcurve
 {
-    port-color : #84e4e7;
+    port-color : #FFAA6B;
 }
 .port.typeGPUEvent
 {
     port-color : #17AB6A;
 }
-
+.port.typePosition
+{
+    port-color: #FCD76E;
+}
+.port.typeVector
+{
+    port-color: #FCD76E;
+}
+.port.typeDirectionType
+{
+    port-color: #FCD76E;
+}
