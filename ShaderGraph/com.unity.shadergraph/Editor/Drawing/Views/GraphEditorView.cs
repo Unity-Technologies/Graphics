@@ -481,8 +481,19 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_MasterPreviewView.previewTextureView.style.width = StyleValue<float>.Create(m_FloatingWindowsLayout.masterPreviewSize.x);
                 m_MasterPreviewView.previewTextureView.style.height = StyleValue<float>.Create(m_FloatingWindowsLayout.masterPreviewSize.y);
 
-                // Restore blackboard layout
-                m_BlackboardProvider.blackboard.layout = m_FloatingWindowsLayout.blackboardLayout.GetLayout(this.layout);
+                // Restore blackboard layout, and make sure that it remains in the view.
+                Rect blackboardRect = m_FloatingWindowsLayout.blackboardLayout.GetLayout(this.layout);
+
+                // Make sure the dimensions are sufficiently large.
+                blackboardRect.width = Mathf.Clamp(blackboardRect.width, 160f, m_GraphView.contentContainer.layout.width);
+                blackboardRect.height = Mathf.Clamp(blackboardRect.height, 160f, m_GraphView.contentContainer.layout.height);
+
+                // Make sure that the positionining is on screen.
+                blackboardRect.x = Mathf.Clamp(blackboardRect.x, 0f, Mathf.Max(1f, m_GraphView.contentContainer.layout.width - blackboardRect.width - blackboardRect.width));
+                blackboardRect.y = Mathf.Clamp(blackboardRect.y, 0f, Mathf.Max(1f, m_GraphView.contentContainer.layout.height - blackboardRect.height - blackboardRect.height));
+
+                // Set the processed blackboard layout.
+                m_BlackboardProvider.blackboard.layout = blackboardRect;
 
                 previewManager.ResizeMasterPreview(m_FloatingWindowsLayout.masterPreviewSize);
             }
