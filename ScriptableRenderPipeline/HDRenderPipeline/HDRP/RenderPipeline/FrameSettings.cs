@@ -17,6 +17,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableSSAO = true;
         public bool enableSubsurfaceScattering = true;
         public bool enableTransmission = true;  // Caution: this is only for debug, it doesn't save the cost of Transmission execution
+        public bool enableVolumetric = true;
 
         // Setup by system
         public float diffuseGlobalDimmer = 1.0f;
@@ -113,6 +114,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.enableSSAO = srcFrameSettings.enableSSAO && renderPipelineSettings.supportSSAO;
             aggregate.enableSubsurfaceScattering = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableSubsurfaceScattering && renderPipelineSettings.supportSubsurfaceScattering;
             aggregate.enableTransmission = srcFrameSettings.enableTransmission;
+            aggregate.enableVolumetric = srcFrameSettings.enableVolumetric && renderPipelineSettings.supportVolumetric;
+
+            // TODO: Add support of volumetric in planar reflection
+            if (camera.cameraType == CameraType.Reflection)
+                aggregate.enableVolumetric = false;
 
             // We have to fall back to forward-only rendering when scene view is using wireframe rendering mode
             // as rendering everything in wireframe + deferred do not play well together
@@ -169,6 +175,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 aggregate.enablePostprocess = false;
                 aggregate.enableStereo = false;
                 aggregate.enableShadowMask = false;
+                aggregate.enableVolumetric = false;
             }
 
             LightLoopSettings.InitializeLightLoopSettings(camera, aggregate, renderPipelineSettings, srcFrameSettings, ref aggregate.lightLoopSettings);

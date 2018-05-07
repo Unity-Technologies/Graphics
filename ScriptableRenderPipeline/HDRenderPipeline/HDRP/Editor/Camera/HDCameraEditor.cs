@@ -43,7 +43,7 @@ namespace UnityEditor.Experimental.Rendering
             m_PreviewAdditionalCameraData = m_PreviewCamera.gameObject.AddComponent<HDAdditionalCameraData>();
             m_PreviewPostProcessLayer = m_PreviewCamera.gameObject.AddComponent<PostProcessLayer>();
             m_PreviewHDCamera = new HDCamera(m_PreviewCamera);
-            m_PreviewHDCamera.Update(m_PreviewPostProcessLayer, m_PreviewAdditionalCameraData.GetFrameSettings(), null);
+            m_PreviewHDCamera.Update(m_PreviewAdditionalCameraData.GetFrameSettings(), m_PreviewPostProcessLayer, null);
         }
 
         void OnDisable()

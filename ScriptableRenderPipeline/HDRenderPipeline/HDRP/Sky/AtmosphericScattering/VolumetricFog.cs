@@ -47,7 +47,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public override void PushShaderParameters(CommandBuffer cmd, FrameSettings frameSettings)
+        public override void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
         {
             DensityVolumeParameters param = new DensityVolumeParameters(albedo, meanFreePath, anisotropy);
 
