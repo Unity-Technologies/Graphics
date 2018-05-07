@@ -20,9 +20,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public IntParameter skyType = new IntParameter(0);
         public FogTypeParameter fogType = new FogTypeParameter(FogType.None);
 
-        public void PushFogShaderParameters(CommandBuffer cmd, FrameSettings frameSettings)
+        public void PushFogShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
         {
-            if (!frameSettings.enableAtmosphericScattering)
+            if (!hdCamera.frameSettings.enableAtmosphericScattering)
             {
                 AtmosphericScattering.PushNeutralShaderParameters(cmd);
                 return;
@@ -38,19 +38,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 case FogType.Linear:
                     {
                         var fogSettings = VolumeManager.instance.stack.GetComponent<LinearFog>();
-                        fogSettings.PushShaderParameters(cmd, frameSettings);
+                        fogSettings.PushShaderParameters(hdCamera, cmd);
                         break;
                     }
                 case FogType.Exponential:
                     {
                         var fogSettings = VolumeManager.instance.stack.GetComponent<ExponentialFog>();
-                        fogSettings.PushShaderParameters(cmd, frameSettings);
+                        fogSettings.PushShaderParameters(hdCamera, cmd);
                         break;
                     }
                 case FogType.Volumetric:
                     {
                         var fogSettings = VolumeManager.instance.stack.GetComponent<VolumetricFog>();
-                        fogSettings.PushShaderParameters(cmd, frameSettings);
+                        fogSettings.PushShaderParameters(hdCamera, cmd);
                         break;
                     }
             }

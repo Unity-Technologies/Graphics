@@ -54,37 +54,37 @@ real IsotropicPhaseFunction()
     return INV_FOUR_PI;
 }
 
-real HenyeyGreensteinPhasePartConstant(real asymmetry)
+real HenyeyGreensteinPhasePartConstant(real anisotropy)
 {
-    real g = asymmetry;
+    real g = anisotropy;
 
     return INV_FOUR_PI * (1 - g * g);
 }
 
-real HenyeyGreensteinPhasePartVarying(real asymmetry, real cosTheta)
+real HenyeyGreensteinPhasePartVarying(real anisotropy, real cosTheta)
 {
-    real g = asymmetry;
+    real g = anisotropy;
     real f = rsqrt(1 + g * g - 2 * g * cosTheta); // x^(-1/2)
 
     return f * f * f; // x^(-3/2)
 }
 
-real HenyeyGreensteinPhaseFunction(real asymmetry, real cosTheta)
+real HenyeyGreensteinPhaseFunction(real anisotropy, real cosTheta)
 {
-    return HenyeyGreensteinPhasePartConstant(asymmetry) *
-           HenyeyGreensteinPhasePartVarying(asymmetry, cosTheta);
+    return HenyeyGreensteinPhasePartConstant(anisotropy) *
+           HenyeyGreensteinPhasePartVarying(anisotropy, cosTheta);
 }
 
-real CornetteShanksPhasePartConstant(real asymmetry)
+real CornetteShanksPhasePartConstant(real anisotropy)
 {
-    real g = asymmetry;
+    real g = anisotropy;
 
     return INV_FOUR_PI * 1.5 * (1 - g * g) / (2 + g * g);
 }
 
-real CornetteShanksPhasePartVarying(real asymmetry, real cosTheta)
+real CornetteShanksPhasePartVarying(real anisotropy, real cosTheta)
 {
-    real g = asymmetry;
+    real g = anisotropy;
     real f = rsqrt(1 + g * g - 2 * g * cosTheta); // x^(-1/2)
     real h = (1 + cosTheta * cosTheta);
 
@@ -93,10 +93,10 @@ real CornetteShanksPhasePartVarying(real asymmetry, real cosTheta)
 
 // A better approximation of the Mie phase function.
 // Ref: Henyey–Greenstein and Mie phase functions in Monte Carlo radiative transfer computations
-real CornetteShanksPhaseFunction(real asymmetry, real cosTheta)
+real CornetteShanksPhaseFunction(real anisotropy, real cosTheta)
 {
-    return CornetteShanksPhasePartConstant(asymmetry) *
-           CornetteShanksPhasePartVarying(asymmetry, cosTheta);
+    return CornetteShanksPhasePartConstant(anisotropy) *
+           CornetteShanksPhasePartVarying(anisotropy, cosTheta);
 }
 
 // Samples the interval of homogeneous participating medium using the closed-form tracking approach

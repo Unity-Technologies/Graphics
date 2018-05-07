@@ -46,7 +46,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_PreIntegratedFGD.filterMode = FilterMode.Bilinear;
                 m_PreIntegratedFGD.wrapMode = TextureWrapMode.Clamp;
                 m_PreIntegratedFGD.hideFlags = HideFlags.DontSave;
-                m_PreIntegratedFGD.name = CoreUtils.GetRenderTargetAutoName(128, 128, RenderTextureFormat.ARGB2101010, "PreIntegratedFGD");
+                m_PreIntegratedFGD.name = CoreUtils.GetRenderTargetAutoName(128, 128, 1, RenderTextureFormat.ARGB2101010, "PreIntegratedFGD");
                 m_PreIntegratedFGD.Create();
 
                 m_isInit = false;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -44,7 +44,7 @@ namespace UnityEditor.Experimental.Rendering
             // And then to copy the runtime frame settings
             // So this includes the runtime frame settings properly
             cameraData.GetFrameSettings().CopyTo(m_PreviewAdditionalCameraData.GetFrameSettings());
-            m_PreviewHDCamera.Update(m_PreviewPostProcessLayer, m_PreviewAdditionalCameraData.GetFrameSettings());
+            m_PreviewHDCamera.Update(m_PreviewAdditionalCameraData.GetFrameSettings(), m_PreviewPostProcessLayer, null);
 
             var previewTexture = GetPreviewTextureWithSize((int)previewSize.x, (int)previewSize.y);
             m_PreviewCamera.targetTexture = previewTexture;
