@@ -5,7 +5,7 @@ Shader "Hidden/VFX/ParticleSpheres"
 		Cull Off
 		
 		${VFXInclude("Assets/VFXEditor/Shaders/VFXParticleHeader.template")}
-		${VFXInclude("Assets/VFXEditor/Shaders/particleSpheres/PassGBuffer.template")}
+		${VFXInclude("Assets/VFXEditor/Shaders/RenderPipeline/HDRP/Templates/Sphere/PassGBuffer.template")}
 		${VFXInclude("Assets/VFXEditor/Shaders/particleSpheres/PassShadowCaster.template"),USE_CAST_SHADOWS_PASS}
 	}
 }

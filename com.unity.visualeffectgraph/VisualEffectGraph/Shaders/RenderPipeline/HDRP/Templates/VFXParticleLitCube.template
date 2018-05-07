@@ -6,7 +6,7 @@ Shader "Hidden/VFX/ParticleCubes"
 		
 		${VFXInclude("Assets/VFXEditor/Shaders/VFXParticleHeader.template")}
 		${VFXInclude("Assets/VFXEditor/Shaders/ParticleHexahedron/PassDepth.template"),IS_OPAQUE_PARTICLE}
-		${VFXInclude("Assets/VFXEditor/Shaders/ParticleHexahedron/PassGBuffer.template")}
+		${VFXInclude("Assets/VFXEditor/Shaders/RenderPipeline/HDRP/Templates/Hexahedron/PassGBuffer.template")}
 		${VFXInclude("Assets/VFXEditor/Shaders/ParticleHexahedron/PassShadowCaster.template"),USE_CAST_SHADOWS_PASS}
 	}
 }

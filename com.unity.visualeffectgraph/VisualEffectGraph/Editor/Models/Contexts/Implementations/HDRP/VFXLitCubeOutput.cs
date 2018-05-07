@@ -16,7 +16,6 @@ namespace UnityEditor.VFX
         public override void OnEnable()
         {
             blendMode = BlendMode.Opaque;
-            doubleSided = false;
             base.OnEnable();
         }
 
