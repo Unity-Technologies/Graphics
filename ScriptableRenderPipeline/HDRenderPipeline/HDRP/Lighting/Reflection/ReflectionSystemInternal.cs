@@ -133,7 +133,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
                         hdCamera = HDCamera.Create(renderCamera, null);
                     }
 
-                    hdCamera.Update(null, probe.frameSettings, null);
+                    hdCamera.Update(probe.frameSettings, null, null);
 
                     if (!IsRealtimeTextureValid(probe.realtimeTexture, hdCamera))
                     {
@@ -179,7 +179,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
                         hdCamera = HDCamera.Create(camera, null);
                     }
 
-                    hdCamera.Update(null, probe.frameSettings, null);
+                    hdCamera.Update(probe.frameSettings, null, null);
 
                     if (!IsRealtimeTextureValid(probe.realtimeTexture, hdCamera))
                     {
@@ -408,7 +408,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
                 hdCamera = HDCamera.Create(camera, null);
             }
 
-            hdCamera.Update(null, probe.frameSettings, null);
+            hdCamera.Update(probe.frameSettings, null, null);
 
             return hdCamera;
         }
