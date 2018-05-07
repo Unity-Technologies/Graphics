@@ -56,14 +56,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public EnvShapeType proxyShapeType;                         // Proxy
         public float projectionDistance;                            // Proxy
 
-        // 4x32 bits
+        // 5x32 bits
         public int endHitSuccess;                                   // Proxy, HiZ, Linear
         public float endLinearDepth;                                // Proxy, HiZ, Linear
         public uint endPositionSSX;                                 // Proxy, HiZ, Linear
         public uint endPositionSSY;                                 // Proxy, HiZ, Linear
+        public float endHitWeight;                                  // HiZ, Linear
 
-        // 2x32 bits (padding)
-        public Vector2 padding;
+        // 1x32 bits (padding)
+        public float padding;
 
         public Vector2 loopStartPositionSS { get { return new Vector2(loopStartPositionSSX, loopStartPositionSSY); } }
         public Vector2 endPositionSS { get { return new Vector2(endPositionSSX, endPositionSSY); } }
@@ -112,6 +113,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static int[] debugScreenSpaceTracingProxyValues = null;
         public static GUIContent[] debugScreenSpaceTracingHiZStrings = null;
         public static int[] debugScreenSpaceTracingHiZValues = null;
+        public static GUIContent[] debugScreenSpaceTracingLinearStrings = null;
+        public static int[] debugScreenSpaceTracingLinearValues = null;
         public static GUIContent[] debuggedAlgorithmStrings = null;
         public static int[] debuggedAlgorithmValues = null;
 
@@ -149,21 +152,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             var debugScreenSpaceTracingHiZStringsList = new List<GUIContent>();
             var debugScreenSpaceTracingProxyStringsList = new List<GUIContent>();
+            var debugScreenSpaceTracingLinearStringsList = new List<GUIContent>();
             var debugScreenSpaceTracingHiZValueList = new List<int>();
             var debugScreenSpaceTracingProxyValueList = new List<int>();
+            var debugScreenSpaceTracingLinearValueList = new List<int>();
             for (int i = 0, c = debugScreenSpaceTracingStrings.Length; i < c; ++i)
             {
                 var g = debugScreenSpaceTracingStrings[i];
                 var v = debugScreenSpaceTracingValues[i];
-                if (!g.text.StartsWith("Proxy"))
+                if (!g.text.StartsWith("Proxy") && !g.text.StartsWith("Linear"))
                 {
                     debugScreenSpaceTracingHiZStringsList.Add(g);
                     debugScreenSpaceTracingHiZValueList.Add(v);
                 }
-                if (!g.text.StartsWith("HiZ"))
+                if (!g.text.StartsWith("HiZ") && !g.text.StartsWith("Linear"))
                 {
                     debugScreenSpaceTracingProxyStringsList.Add(g);
                     debugScreenSpaceTracingProxyValueList.Add(v);
+                }
+                if (!g.text.StartsWith("Proxy") && !g.text.StartsWith("HiZ"))
+                {
+                    debugScreenSpaceTracingLinearStringsList.Add(g);
+                    debugScreenSpaceTracingLinearValueList.Add(v);
                 }
             }
 
@@ -171,6 +181,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             debugScreenSpaceTracingHiZValues = debugScreenSpaceTracingHiZValueList.ToArray();
             debugScreenSpaceTracingProxyStrings = debugScreenSpaceTracingProxyStringsList.ToArray();
             debugScreenSpaceTracingProxyValues = debugScreenSpaceTracingProxyValueList.ToArray();
+            debugScreenSpaceTracingLinearStrings = debugScreenSpaceTracingLinearStringsList.ToArray();
+            debugScreenSpaceTracingLinearValues = debugScreenSpaceTracingLinearValueList.ToArray();
             debuggedAlgorithmStrings = Enum.GetNames(typeof(Lit.ProjectionModel))
                 .Select(t => new GUIContent(t))
                 .ToArray();
@@ -454,6 +466,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     new DebugUI.Value { displayName = "Ray Depth", getter = () => 1f / screenSpaceTracingDebugData.loopRayDirectionSS.z },
                                     new DebugUI.Value { displayName = "End Position", getter = () => screenSpaceTracingDebugData.endPositionSS },
                                     new DebugUI.Value { displayName = "End Linear Depth", getter = () => screenSpaceTracingDebugData.endLinearDepth },
+                                    new DebugUI.Value { displayName = "Hit Weight", getter = () => screenSpaceTracingDebugData.endHitWeight.ToString("F4") },
                                 }
                             },
                             new DebugUI.Container
@@ -478,7 +491,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     case Lit.ProjectionModel.Linear:
                     {
                         debugSettingsContainer.children.Add(
-                            new DebugUI.EnumField { displayName = "Debug Mode", getter = GetDebugLightingSubMode, setter = SetScreenSpaceTracingDebugMode, enumNames = debugScreenSpaceTracingHiZStrings, enumValues = debugScreenSpaceTracingHiZValues, onValueChanged = RefreshScreenSpaceTracingDebug },
+                            new DebugUI.EnumField { displayName = "Debug Mode", getter = GetDebugLightingSubMode, setter = SetScreenSpaceTracingDebugMode, enumNames = debugScreenSpaceTracingLinearStrings, enumValues = debugScreenSpaceTracingLinearValues, onValueChanged = RefreshScreenSpaceTracingDebug },
                             new DebugUI.BoolField { displayName = "Display Grid", getter = () => showSSRayGrid, setter = v => showSSRayGrid = v },
                             new DebugUI.BoolField { displayName = "Display Depth", getter = () => showSSRayDepthPyramid, setter = v => showSSRayDepthPyramid = v }
                         );
@@ -495,6 +508,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     new DebugUI.Value { displayName = "Ray Depth", getter = () => 1f / screenSpaceTracingDebugData.loopRayDirectionSS.z },
                                     new DebugUI.Value { displayName = "End Position", getter = () => screenSpaceTracingDebugData.endPositionSS },
                                     new DebugUI.Value { displayName = "End Linear Depth", getter = () => screenSpaceTracingDebugData.endLinearDepth },
+                                    new DebugUI.Value { displayName = "Hit Weight", getter = () => screenSpaceTracingDebugData.endHitWeight.ToString("F4") },
                                 }
                             },
                             new DebugUI.Container

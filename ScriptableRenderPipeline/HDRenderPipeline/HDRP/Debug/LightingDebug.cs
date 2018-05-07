@@ -29,7 +29,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         HiZRayDirNDC,
         HiZIterationCount,
         HiZMaxUsedMipLevel,
-        HiZIntersectionKind
+        HiZIntersectionKind,
+        HiZHitWeight,
+        LinearPositionNDC,
+        LinearRayDirNDC,
+        LinearIterationCount,
+        LinearHitWeight
     }
 
     public enum ShadowMapDebugMode

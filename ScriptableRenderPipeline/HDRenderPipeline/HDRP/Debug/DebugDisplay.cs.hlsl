@@ -47,7 +47,8 @@ struct ScreenSpaceTracingDebug
     float endLinearDepth;
     uint endPositionSSX;
     uint endPositionSSY;
-    float2 padding;
+    float endHitWeight;
+    float padding;
 };
 
 //
@@ -141,7 +142,11 @@ uint GetEndPositionSSY(ScreenSpaceTracingDebug value)
 {
 	return value.endPositionSSY;
 }
-float2 GetPadding(ScreenSpaceTracingDebug value)
+float GetEndHitWeight(ScreenSpaceTracingDebug value)
+{
+	return value.endHitWeight;
+}
+float GetPadding(ScreenSpaceTracingDebug value)
 {
 	return value.padding;
 }
