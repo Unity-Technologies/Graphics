@@ -9,6 +9,8 @@
 
 // #pragma enable_d3d11_debug_symbols
 
+#define SHADOW_USE_ONLY_VIEW_BASED_BIASING 1 // We don't use normal biasing as it is not available when doing volumetric
+
 #include "../../ShaderPass/ShaderPass.cs.hlsl"
 #define SHADERPASS SHADERPASS_VOLUMETRIC_LIGHTING
 
