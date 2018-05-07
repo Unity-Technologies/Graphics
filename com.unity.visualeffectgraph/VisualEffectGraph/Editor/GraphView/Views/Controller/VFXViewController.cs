@@ -1237,70 +1237,99 @@ namespace UnityEditor.VFX.UI
             bool changed = false;
             var ui = graph.UIInfos;
 
-
-            if (ui != null)
+            if (ui.groupInfos != null)
             {
-                if (ui.groupInfos != null)
-                {
-                    HashSet<VFXNodeID> usedNodeIds = new HashSet<VFXNodeID>();
-                    // first make sure that nodesID are at most in one groupnode.
+                HashSet<VFXNodeID> usedNodeIds = new HashSet<VFXNodeID>();
+                // first make sure that nodesID are at most in one groupnode.
 
-                    for (int i = 0; i < ui.groupInfos.Length; ++i)
+                for (int i = 0; i < ui.groupInfos.Length; ++i)
+                {
+                    if (ui.groupInfos[i].contents != null)
                     {
-                        if (ui.groupInfos[i].contents != null)
+                        for (int j = 0; j < ui.groupInfos[i].contents.Length; ++j)
                         {
-                            for (int j = 0; j < ui.groupInfos[i].contents.Length; ++j)
+                            if (usedNodeIds.Contains(ui.groupInfos[i].contents[j]))
                             {
-                                if (usedNodeIds.Contains(ui.groupInfos[i].contents[j]))
-                                {
-                                    Debug.Log("Element present in multiple groupnodes");
-                                    --j;
-                                    ui.groupInfos[i].contents = ui.groupInfos[i].contents.Where((t, k) => k != j).ToArray();
-                                }
-                                else
-                                {
-                                    usedNodeIds.Add(ui.groupInfos[i].contents[j]);
-                                }
+                                Debug.Log("Element present in multiple groupnodes");
+                                --j;
+                                ui.groupInfos[i].contents = ui.groupInfos[i].contents.Where((t, k) => k != j).ToArray();
+                            }
+                            else
+                            {
+                                usedNodeIds.Add(ui.groupInfos[i].contents[j]);
                             }
                         }
                     }
-
-                    for (int i = m_GroupNodeControllers.Count; i < ui.groupInfos.Length; ++i)
-                    {
-                        VFXGroupNodeController groupNodeController = new VFXGroupNodeController(this, ui, i);
-                        m_GroupNodeControllers.Add(groupNodeController);
-                        changed = true;
-                        groupNodeChanged = true;
-                    }
-
-                    while (ui.groupInfos.Length < m_GroupNodeControllers.Count)
-                    {
-                        m_GroupNodeControllers.Last().OnDisable();
-                        m_GroupNodeControllers.RemoveAt(m_GroupNodeControllers.Count - 1);
-                        changed = true;
-                        groupNodeChanged = true;
-                    }
                 }
-                if (ui.stickyNoteInfos != null)
-                {
-                    for (int i = m_StickyNoteControllers.Count; i < ui.stickyNoteInfos.Length; ++i)
-                    {
-                        VFXStickyNoteController stickyNoteController = new VFXStickyNoteController(this, ui, i);
-                        m_StickyNoteControllers.Add(stickyNoteController);
-                        stickyNoteController.ApplyChanges();
-                        changed = true;
-                    }
 
-                    while (ui.stickyNoteInfos.Length < m_StickyNoteControllers.Count)
-                    {
-                        m_StickyNoteControllers.Last().OnDisable();
-                        m_StickyNoteControllers.RemoveAt(m_StickyNoteControllers.Count - 1);
-                        changed = true;
-                    }
+                for (int i = m_GroupNodeControllers.Count; i < ui.groupInfos.Length; ++i)
+                {
+                    VFXGroupNodeController groupNodeController = new VFXGroupNodeController(this, ui, i);
+                    m_GroupNodeControllers.Add(groupNodeController);
+                    changed = true;
+                    groupNodeChanged = true;
+                }
+
+                while (ui.groupInfos.Length < m_GroupNodeControllers.Count)
+                {
+                    m_GroupNodeControllers.Last().OnDisable();
+                    m_GroupNodeControllers.RemoveAt(m_GroupNodeControllers.Count - 1);
+                    changed = true;
+                    groupNodeChanged = true;
+                }
+            }
+            if (ui.stickyNoteInfos != null)
+            {
+                for (int i = m_StickyNoteControllers.Count; i < ui.stickyNoteInfos.Length; ++i)
+                {
+                    VFXStickyNoteController stickyNoteController = new VFXStickyNoteController(this, ui, i);
+                    m_StickyNoteControllers.Add(stickyNoteController);
+                    stickyNoteController.ApplyChanges();
+                    changed = true;
+                }
+
+                while (ui.stickyNoteInfos.Length < m_StickyNoteControllers.Count)
+                {
+                    m_StickyNoteControllers.Last().OnDisable();
+                    m_StickyNoteControllers.RemoveAt(m_StickyNoteControllers.Count - 1);
+                    changed = true;
                 }
             }
 
             return changed;
+        }
+
+
+        public void ValidateCategoryList()
+        {
+            if( ! m_Syncing )
+            {
+                var ui = graph.UIInfos;
+                // Validate category list
+                List<string> categories = ui.categories != null ? ui.categories : new List<string>();
+
+                string[] missingCategories = m_ParameterControllers.Select(t=>t.Key.category).Where(t=>!string.IsNullOrEmpty(t)).Except(categories).ToArray();
+
+                HashSet<string> foundCategories = new HashSet<string>();
+
+                for(int i = 0 ; i < categories.Count ; ++i)
+                {
+                    string category = categories[i];
+                    if( string.IsNullOrEmpty(category) || foundCategories.Contains(category))
+                    {
+                        categories.RemoveAt(i);
+                        --i;
+                    }
+                    foundCategories.Add(category);
+                }
+
+                if(missingCategories.Length > 0)
+                {
+                    categories.AddRange(missingCategories);
+                    ui.categories = categories;
+                    ui.Modified();
+                }
+            }
         }
 
         public void ForceReload()
@@ -1360,6 +1389,8 @@ namespace UnityEditor.VFX.UI
 
             changed |= RecreateUI(ref groupNodeChanged);
 
+            ValidateCategoryList();
+
             m_Syncing = false;
             return changed;
         }
@@ -1371,18 +1402,24 @@ namespace UnityEditor.VFX.UI
             get { return m_ParameterControllers.Values; }
         }
 
-        public void SetParametersOrder(VFXParameterController controller, int index)
+        public void SetParametersOrder(VFXParameterController controller, int index, string category)
         {
-            var orderedParameters = m_ParameterControllers.OrderBy(t => t.Value.order).Select(t => t.Value).ToList();
+            var orderedParameters = m_ParameterControllers.Where(t=>t.Key.category == category).OrderBy(t => t.Value.order).Select(t => t.Value).ToList();
 
             int oldIndex = orderedParameters.IndexOf(controller);
 
-            orderedParameters.RemoveAt(oldIndex);
 
-            if (oldIndex < index)
+            if( oldIndex != -1)
             {
-                --index;
+                orderedParameters.RemoveAt(oldIndex);
+
+                if (oldIndex < index)
+                {
+                    --index;
+                }
             }
+
+            controller.model.category = category;
 
             if (index < orderedParameters.Count)
             {

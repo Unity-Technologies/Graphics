@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using UnityEditor;
 using System.Linq;
 using System.Text;
+using UnityEditor.Graphs;
 using UnityEditor.SceneManagement;
 
 namespace  UnityEditor.VFX.UI
@@ -440,7 +441,6 @@ namespace  UnityEditor.VFX.UI
             m_View = view;
             RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
             editTextRequested = OnEditName;
-            moveItemRequested = OnMoveItem;
             addItemRequested = OnAddItem;
 
             this.scrollable = true;
@@ -481,6 +481,9 @@ namespace  UnityEditor.VFX.UI
         {
             GenericMenu menu = new GenericMenu();
 
+
+            menu.AddItem(EditorGUIUtility.TrTextContent("category"),false,OnAddCategory);
+
             foreach (var parameter in VFXLibrary.GetParameters())
             {
                 VFXParameter model = parameter.model as VFXParameter;
@@ -493,6 +496,19 @@ namespace  UnityEditor.VFX.UI
             menu.ShowAsContext();
         }
 
+        void OnAddCategory()
+        {
+            string newCategoryName = EditorGUIUtility.TrTextContent("new category").text;
+            int cpt = 1;
+            while( controller.graph.UIInfos.categories.Contains(newCategoryName))
+            {
+                newCategoryName = string.Format(EditorGUIUtility.TrTextContent("new category {0}").text,cpt++);
+            }
+
+            controller.graph.UIInfos.categories.Add(newCategoryName);
+            controller.graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
+        }
+
         void OnEditName(Blackboard bb, VisualElement element, string value)
         {
             if (element is VFXBlackboardField)
@@ -501,21 +517,12 @@ namespace  UnityEditor.VFX.UI
             }
         }
 
-        void OnMoveItem(Blackboard bb, int index, VisualElement element)
-        {
-            if (element is BlackboardField)
-            {
-                controller.SetParametersOrder((element as VFXBlackboardField).controller, index);
-            }
-        }
-
-
         public void OnMoveParameter(IEnumerable<VFXBlackboardRow> rows, VFXBlackboardCategory category, int index)
         {
             //TODO sort elements
             foreach(var row in rows)
             {
-                controller.SetParametersOrder(row.controller, index++);
+                controller.SetParametersOrder(row.controller, index++,category == m_DefaultCategory ? "" : category.title);
             }
         }
 
@@ -548,11 +555,11 @@ namespace  UnityEditor.VFX.UI
         {
             if (e.controller == controller || e.controller is VFXParameterController) //optim : reorder only is only the order has changed
             {
-                var orderedCategories = controller.parameterControllers.GroupBy(t=>t.model.category).Where(t=>!string.IsNullOrEmpty(t.Key)).OrderBy(t=>t.Min(u=>u.order)).Select(t=>t.Key);
+                var orderedCategories = controller.graph.UIInfos.categories;
 
                 var newCategories = new List<VFXBlackboardCategory>();
 
-                foreach(var catName in orderedCategories)
+                foreach(var catName in controller.graph.UIInfos.categories)
                 {
                     VFXBlackboardCategory cat = null;
                     if( ! m_Categories.TryGetValue(catName,out cat))
@@ -564,18 +571,24 @@ namespace  UnityEditor.VFX.UI
                     newCategories.Add(cat);
                 }
 
+                foreach( var category in m_Categories.Keys.Except(orderedCategories).ToArray() )
+                {
+                    m_Categories[category].RemoveFromHierarchy();
+                    m_Categories.Remove(category);
+                }
+
                 var prevCat = m_DefaultCategory;
 
                 foreach(var cat in newCategories)
                 {
                     if(cat.parent == null)
-                        Insert(IndexOf(prevCat),cat);
+                        Insert(IndexOf(prevCat)+1,cat);
                     else
                         cat.PlaceInFront(prevCat);
                     prevCat = cat;
                 }
 
-                HashSet<VFXParameterController> actualControllers = new HashSet<VFXParameterController>(controller.parameterControllers.Where(t=>string.IsNullOrEmpty(t.model.category)));
+                var actualControllers = new HashSet<VFXParameterController>(controller.parameterControllers.Where(t=>string.IsNullOrEmpty(t.model.category)));
                 m_DefaultCategory.SyncParameters(actualControllers);
 
 
