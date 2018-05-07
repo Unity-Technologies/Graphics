@@ -24,7 +24,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (!hdCamera.frameSettings.enableAtmosphericScattering)
             {
-                AtmosphericScattering.PushNeutralShaderParameters(cmd);
+                AtmosphericScattering.PushNeutralShaderParameters(hdCamera, cmd);
                 return;
             }
 
@@ -32,7 +32,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 case FogType.None:
                     {
-                        AtmosphericScattering.PushNeutralShaderParameters(cmd);
+                        AtmosphericScattering.PushNeutralShaderParameters(hdCamera, cmd);
                         break;
                     }
                 case FogType.Linear:
