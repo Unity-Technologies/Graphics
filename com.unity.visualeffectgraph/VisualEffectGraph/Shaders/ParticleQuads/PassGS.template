@@ -25,7 +25,7 @@ void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_P
 	
 	${VFXLoadSize}
 	
-	float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);
+	const float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);
 	
 	[unroll]
 	for (int id = 0; id < 4; ++id)
@@ -35,7 +35,8 @@ void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_P
 		o.VFX_VARYING_UV.x = float((id & 2) >> 1);
 		o.VFX_VARYING_UV.y = float(id & 1);
 						
-		float3 vPos = mul(elementToVFX,float4(o.VFX_VARYING_UV.xy * 2.0f - 1.0f,0.0f,1.0f)).xyz;
+		const float2 vOffsets = o.VFX_VARYING_UV.xy * 2.0f - 1.0f;
+		const float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;
 		o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
 
 		${VFXVertexCommonProcess}
