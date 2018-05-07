@@ -6,12 +6,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     {
         const string kProfilerTag = "Depth Prepass Setup";
         const string kCommandBufferTag = "Depth Prepass";
+
         int kDepthBufferBits = 32;
-        bool m_Disposed;
         FilterRenderersSettings m_FilterSettings;
 
-        public DepthOnlyPass(ForwardRenderer renderer, int[] inputs, int[] targets) :
-            base(renderer, inputs, targets)
+        public DepthOnlyPass(LightweightForwardRenderer renderer) : base(renderer)
         {
             RegisterShaderPassName("DepthOnly");
 
@@ -19,40 +18,38 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 renderQueueRange = RenderQueueRange.opaque
             };
-
-            m_Disposed = true;
         }
 
-        public override void BindSurface(CommandBuffer cmd, RenderTextureDescriptor attachmentDescriptor, int samples)
+        public override void Setup(CommandBuffer cmd, RenderTextureDescriptor baseDescriptor, int samples)
         {
-            attachmentDescriptor.colorFormat = RenderTextureFormat.Depth;
-            attachmentDescriptor.depthBufferBits = kDepthBufferBits;
+            baseDescriptor.colorFormat = RenderTextureFormat.Depth;
+            baseDescriptor.depthBufferBits = kDepthBufferBits;
 
             if (samples > 1)
             {
-                attachmentDescriptor.bindMS = samples > 1;
-                attachmentDescriptor.msaaSamples = samples;
+                baseDescriptor.bindMS = samples > 1;
+                baseDescriptor.msaaSamples = samples;
             }
 
-            cmd.GetTemporaryRT(targetHandles[0], attachmentDescriptor, FilterMode.Point);
+            cmd.GetTemporaryRT(RenderTargetHandles.Depth, baseDescriptor, FilterMode.Point);
             m_Disposed = false;
         }
 
-        public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref PassData passData)
+        public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref CameraData cameraData, ref LightData lightData)
         {
-            CameraData cameraData = passData.cameraData;
             CommandBuffer cmd = CommandBufferPool.Get(kCommandBufferTag);
             using (new ProfilingSample(cmd, kProfilerTag))
             {
-                int depthSlice = LightweightPipeline.GetRenderTargetDepthSlice(cameraData.stereoEnabled);
-                CoreUtils.SetRenderTarget(cmd, attachments[0], ClearFlag.Depth, 0, CubemapFace.Unknown, depthSlice);
+                int depthSlice = LightweightPipeline.GetRenderTargetDepthSlice(cameraData.isStereoEnabled);
+                CoreUtils.SetRenderTarget(cmd, GetSurface(RenderTargetHandles.Depth), ClearFlag.Depth, 0, CubemapFace.Unknown, depthSlice);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
                 var opaqueDrawSettings = new DrawRendererSettings(cameraData.camera, m_ShaderPassNames[0]);
                 opaqueDrawSettings.sorting.flags = SortFlags.CommonOpaque;
+                opaqueDrawSettings.rendererConfiguration = RendererConfiguration.None;
 
-                if (cameraData.stereoEnabled)
+                if (cameraData.isStereoEnabled)
                 {
                     context.StartMultiEye(cameraData.camera);
                     context.DrawRenderers(cullResults.visibleRenderers, ref opaqueDrawSettings, m_FilterSettings);
@@ -69,7 +66,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public override void Dispose(CommandBuffer cmd)
         {
             if (!m_Disposed)
-                cmd.ReleaseTemporaryRT(targetHandles[0]);
+            {
+                cmd.ReleaseTemporaryRT(RenderTargetHandles.Depth);
+                m_Disposed = true;
+            }
         }
     }
 }

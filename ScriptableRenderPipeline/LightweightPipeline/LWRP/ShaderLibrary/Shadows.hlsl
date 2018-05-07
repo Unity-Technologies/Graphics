@@ -13,14 +13,14 @@
 #define SHADOWS_SCREEN 1
 #endif
 
-SCREENSPACE_TEXTURE(_ScreenSpaceShadowMap);
-SAMPLER(sampler_ScreenSpaceShadowMap);
+SCREENSPACE_TEXTURE(_ScreenSpaceShadowMapTexture);
+SAMPLER(sampler_ScreenSpaceShadowMapTexture);
 
-TEXTURE2D_SHADOW(_ShadowMap);
-SAMPLER_CMP(sampler_ShadowMap);
+TEXTURE2D_SHADOW(_DirectionalShadowmapTexture);
+SAMPLER_CMP(sampler_DirectionalShadowmapTexture);
 
-TEXTURE2D_SHADOW(_LocalShadowMapAtlas);
-SAMPLER_CMP(sampler_LocalShadowMapAtlas);
+TEXTURE2D_SHADOW(_LocalShadowmapTexture);
+SAMPLER_CMP(sampler_LocalShadowmapTexture);
 
 CBUFFER_START(_DirectionalShadowBuffer)
 // Last cascade is initialized with a no-op matrix. It always transforms
@@ -102,9 +102,9 @@ half SampleScreenSpaceShadowMap(float4 shadowCoord)
     shadowCoord.xy = UnityStereoTransformScreenSpaceTex(shadowCoord.xy);
 
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-    half attenuation = SAMPLE_TEXTURE2D_ARRAY(_ScreenSpaceShadowMap, sampler_ScreenSpaceShadowMap, shadowCoord.xy, unity_StereoEyeIndex).x;
+    half attenuation = SAMPLE_TEXTURE2D_ARRAY(_ScreenSpaceShadowMapTexture, sampler_ScreenSpaceShadowMapTexture, shadowCoord.xy, unity_StereoEyeIndex).x;
 #else
-    half attenuation = SAMPLE_TEXTURE2D(_ScreenSpaceShadowMap, sampler_ScreenSpaceShadowMap, shadowCoord.xy).x;
+    half attenuation = SAMPLE_TEXTURE2D(_ScreenSpaceShadowMapTexture, sampler_ScreenSpaceShadowMapTexture, shadowCoord.xy).x;
 #endif
 
     return attenuation;
@@ -214,7 +214,7 @@ half MainLightRealtimeShadowAttenuation(float4 shadowCoord)
 #else
     ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
     half shadowStrength = GetMainLightShadowStrength();
-    return SampleShadowmap(shadowCoord, TEXTURE2D_PARAM(_ShadowMap, sampler_ShadowMap), shadowSamplingData, shadowStrength);
+    return SampleShadowmap(shadowCoord, TEXTURE2D_PARAM(_DirectionalShadowmapTexture, sampler_DirectionalShadowmapTexture), shadowSamplingData, shadowStrength);
 #endif
 
 }
@@ -227,7 +227,7 @@ half LocalLightRealtimeShadowAttenuation(int lightIndex, float3 positionWS)
     float4 shadowCoord = mul(_LocalWorldToShadowAtlas[lightIndex], float4(positionWS, 1.0));
     ShadowSamplingData shadowSamplingData = GetLocalLightShadowSamplingData();
     half shadowStrength = GetLocalLightShadowStrenth(lightIndex);
-    return SampleShadowmap(shadowCoord, TEXTURE2D_PARAM(_LocalShadowMapAtlas, sampler_LocalShadowMapAtlas), shadowSamplingData, shadowStrength);
+    return SampleShadowmap(shadowCoord, TEXTURE2D_PARAM(_LocalShadowmapTexture, sampler_LocalShadowmapTexture), shadowSamplingData, shadowStrength);
 #endif
 }
 

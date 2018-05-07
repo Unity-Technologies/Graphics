@@ -1,24 +1,11 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.XR;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
-    [Flags]
-    public enum FrameRenderingConfiguration
-    {
-        None                             = (0 << 0),
-        Stereo                           = (1 << 0),
-        Msaa                             = (1 << 1),
-        BeforeTransparentPostProcess     = (1 << 2),
-        PostProcess                      = (1 << 3),
-        DepthPrePass                     = (1 << 4),
-        DepthCopy                        = (1 << 5),
-        DefaultViewport                  = (1 << 6),
-        IntermediateTexture              = (1 << 7)
-    }
-
     [Flags]
     public enum PipelineCapabilities
     {
@@ -28,6 +15,77 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         LocalShadows        = (1 << 3),
         SoftShadows         = (1 << 4),
     }
+    public enum MixedLightingSetup
+    {
+        None = 0,
+        ShadowMask,
+        Subtractive,
+    };
+
+    public struct LightData
+    {
+        public int pixelAdditionalLightsCount;
+        public int totalAdditionalLightsCount;
+        public int mainLightIndex;
+        public List<VisibleLight> visibleLights;
+        public List<int> visibleLocalLightIndices;
+        public ShadowData shadowData;
+    }
+
+    public struct CameraData
+    {
+        public Camera camera;
+        public float renderScale;
+        public int msaaSamples;
+        public bool isSceneViewCamera;
+        public bool isDefaultViewport;
+        public bool isOffscreenRender;
+        public bool isHdrEnabled;
+        public bool requiresDepthTexture;
+        public bool requiresSoftParticles;
+        public bool requiresOpaqueTexture;
+        public Downsampling opaqueTextureDownsampling;
+
+        public bool isStereoEnabled;
+
+        public float maxShadowDistance;
+        public bool postProcessEnabled;
+        public PostProcessLayer postProcessLayer;
+    }
+
+    public struct ShadowData
+    {
+        public bool supportsDirectionalShadows;
+        public bool requiresScreenSpaceOcclusion;
+        public int directionalShadowAtlasWidth;
+        public int directionalShadowAtlasHeight;
+        public int directionalLightCascadeCount;
+        public Vector3 directionalLightCascades;
+        public bool supportsLocalShadows;
+        public int localShadowAtlasWidth;
+        public int localShadowAtlasHeight;
+        public bool supportsSoftShadows;
+        public int bufferBitCount;
+
+        public LightShadows renderedDirectionalShadowQuality;
+        public LightShadows renderedLocalShadowQuality;
+    }
+
+    public struct ShadowSliceData
+    {
+        public Matrix4x4 shadowTransform;
+        public int offsetX;
+        public int offsetY;
+        public int resolution;
+
+        public void Clear()
+        {
+            shadowTransform = Matrix4x4.identity;
+            offsetX = offsetY = 0;
+            resolution = 1024;
+        }
+    }
+
 
     public class CameraComparer : IComparer<Camera>
     {
@@ -151,24 +209,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             commandBuffer.DrawMesh(fullscreenMesh, Matrix4x4.identity, material, 0, shaderPassId, properties);
         }
 
-        public static void StartStereoRendering(Camera camera, ref ScriptableRenderContext context, FrameRenderingConfiguration renderingConfiguration)
-        {
-            if (CoreUtils.HasFlag(renderingConfiguration, FrameRenderingConfiguration.Stereo))
-                context.StartMultiEye(camera);
-        }
-
-        public static void StopStereoRendering(Camera camera, ref ScriptableRenderContext context, FrameRenderingConfiguration renderingConfiguration)
-        {
-            if (CoreUtils.HasFlag(renderingConfiguration, FrameRenderingConfiguration.Stereo))
-                context.StopMultiEye(camera);
-        }
-
         public static int GetRenderTargetDepthSlice(bool stereoRendering)
         {
             if (stereoRendering && XRSettings.eyeTextureDesc.dimension == TextureDimension.Tex2DArray)
                 return -1;
-            else
-                return 0;
+
+            return 0;
         }
 
         public static void GetLightCookieMatrix(VisibleLight light, out Matrix4x4 cookieMatrix)
