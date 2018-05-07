@@ -109,15 +109,6 @@ void CalculateRaySS(
     raySS = rayEndSS - rayStartSS;
 }
 
-// Check whether the depth of the ray is above the sampled depth
-// Arguments are inversed linear depth
-bool IsPositionAboveDepth(float invRayDepth, float2 invLinearDepth)
-{
-    // as depth is inverted, we must invert the check as well
-    // rayZ > HiZ <=> 1/rayZ < 1/HiZ
-    return invRayDepth > invLinearDepth.r;
-}
-
 // Sample the Depth buffer at a specific mip and linear depth
 float2 LoadDepth(float2 positionSS, int level)
 {
@@ -185,14 +176,14 @@ float3 IntersectCellPlanes(
 float CalculateHitWeight(
     ScreenSpaceRayHit hit,
     float2 startPositionSS,
-    float2 invLinearDepth, 
+    float minLinearDepth, 
     float settingsRayDepthSuccessBias,
     float settingsRayMaxScreenDistance,
     float settingsRayBlendScreenDistance
 )
 {
     // Blend when the hit is near the thickness of the object
-    float thicknessWeight = (1 + ((1 / invLinearDepth.r) - hit.linearDepth) / settingsRayDepthSuccessBias);
+    float thicknessWeight = clamp(1 - (hit.linearDepth - minLinearDepth) / settingsRayDepthSuccessBias, 0, 1);
     return thicknessWeight;
 
     // Blend when the ray when the raymarched distance is too long
@@ -228,37 +219,6 @@ void DebugComputeCommonOutput(
         break;
     case DEBUGSCREENSPACETRACING_TRACING_MODEL:
         hit.debugOutput =  GetIndexColor(tracingModel);
-        break;
-    }
-}
-
-void DebugComputeHiZOutput(
-    int iteration,
-    float3 startPositionSS,
-    float3 rayDirSS,
-    int maxIterations,
-    int maxUsedLevel,
-    int maxMipLevel,
-    int intersectionKind,
-    inout ScreenSpaceRayHit hit
-)
-{
-    switch (_DebugLightingSubMode)
-    {
-    case DEBUGSCREENSPACETRACING_HI_ZPOSITION_NDC:
-        hit.debugOutput =  float3(float2(startPositionSS.xy) * _ScreenSize.zw, 0);
-        break;
-    case DEBUGSCREENSPACETRACING_HI_ZITERATION_COUNT:
-        hit.debugOutput =  float(iteration) / float(maxIterations);
-        break;
-    case DEBUGSCREENSPACETRACING_HI_ZRAY_DIR_NDC:
-        hit.debugOutput =  float3(rayDirSS.xy * 0.5 + 0.5, frac(0.1 / rayDirSS.z));
-        break;
-    case DEBUGSCREENSPACETRACING_HI_ZMAX_USED_MIP_LEVEL:
-        hit.debugOutput =  float(maxUsedLevel) / float(maxMipLevel);
-        break;
-    case DEBUGSCREENSPACETRACING_HI_ZINTERSECTION_KIND:
-        hit.debugOutput =  GetIndexColor(intersectionKind);
         break;
     }
 }
@@ -307,7 +267,7 @@ bool ScreenSpaceLinearRaymarch(
     raySS *= 1 << mipLevel;
 
     // Offset by a texel
-    positionSS += raySS * 1.0;
+    //positionSS += raySS * 1.0;
 
 #ifdef DEBUG_DISPLAY
     float3 debugIterationPositionSS = positionSS;
@@ -319,6 +279,10 @@ bool ScreenSpaceLinearRaymarch(
 
     float2 invLinearDepth = float2(0.0, 0.0);
 
+    float minLinearDepth                = 0;
+    float minLinearDepthWithThickness   = 0;
+    float positionLinearDepth           = 0;
+
     for (iteration = 0u; iteration < maxIterations; ++iteration)
     {
         positionSS += raySS;
@@ -326,19 +290,27 @@ bool ScreenSpaceLinearRaymarch(
         // Sampled as 1/Z so it interpolate properly in screen space.
         invLinearDepth = LoadInvDepth(positionSS.xy, mipLevel);
 
+        minLinearDepth                  = 1 / invLinearDepth.r;
+        minLinearDepthWithThickness     = minLinearDepth + settingsRayDepthSuccessBias;
+        positionLinearDepth             = 1 / positionSS.z;
+        bool isAboveDepth               = positionLinearDepth < minLinearDepth;
+        bool isAboveThickness           = positionLinearDepth < minLinearDepthWithThickness;
+        bool isBehindDepth              = !isAboveThickness;
+        bool intersectWithDepth         = !isAboveDepth && isAboveThickness;
+
 #ifdef DEBUG_DISPLAY
         // Fetch post iteration debug values
         if (input.debug && _DebugStep >= int(iteration))
         {
-            debugIterationPositionSS = positionSS;
-            debugIterationLinearDepthBufferMin = 1 / invLinearDepth.r;
-            debugIterationLinearDepthBufferMinThickness = 1 / invLinearDepth.r + settingsRayDepthSuccessBias;
-            debugIterationLinearDepthBufferMax = 1 / invLinearDepth.g;
-            debugIteration = iteration;
+            debugIterationPositionSS                        = positionSS;
+            debugIterationLinearDepthBufferMin              = minLinearDepth;
+            debugIterationLinearDepthBufferMinThickness     = minLinearDepthWithThickness;
+            debugIterationLinearDepthBufferMax              = 1 / invLinearDepth.g;
+            debugIteration                                  = iteration;
         }
 #endif
 
-        if (!IsPositionAboveDepth(positionSS.z, invLinearDepth))
+        if (intersectWithDepth)
         {
             hitSuccessful = true;
             break;
@@ -370,11 +342,27 @@ bool ScreenSpaceLinearRaymarch(
         settingsRayMaxScreenDistance,
         settingsRayBlendScreenDistance
     );
+
     if (hitWeight <= 0)
         hitSuccessful = false;
 
 #ifdef DEBUG_DISPLAY
     DebugComputeCommonOutput(input.rayDirWS, hitSuccessful, PROJECTIONMODEL_LINEAR, hit);
+    switch (_DebugLightingSubMode)
+    {
+    case DEBUGSCREENSPACETRACING_LINEAR_POSITION_NDC:
+        hit.debugOutput =  float3(float2(startPositionSS.xy) * _ScreenSize.zw, 0);
+        break;
+    case DEBUGSCREENSPACETRACING_LINEAR_ITERATION_COUNT:
+        hit.debugOutput =  float(iteration) / float(settingsRayMaxIterations);
+        break;
+    case DEBUGSCREENSPACETRACING_LINEAR_RAY_DIR_NDC:
+        hit.debugOutput =  float3(raySS.xy * 0.5 + 0.5, frac(0.1 / raySS.z));
+        break;
+    case DEBUGSCREENSPACETRACING_LINEAR_HIT_WEIGHT:
+        hit.debugOutput =  float3(hitWeight, hitWeight, hitWeight);
+        break;
+    }
 
     if (input.debug 
         && _DebugScreenSpaceTracingData[0].tracingModel == -1
@@ -403,6 +391,7 @@ bool ScreenSpaceLinearRaymarch(
         debug.endPositionSSY                            = hit.positionSS.y;
         debug.iterationCellSizeW                        = 1 << mipLevel;
         debug.iterationCellSizeH                        = 1 << mipLevel;
+        debug.endHitWeight                              = hitWeight;
 
         _DebugScreenSpaceTracingData[0] = debug;
     }
@@ -680,6 +669,10 @@ bool ScreenSpaceHiZRaymarch(
     float3 positionSS = startPositionSS;
     float2 invLinearDepth = float2(0.0, 0.0);
 
+    float positionLinearDepth           = 0;
+    float minLinearDepth                = 0;
+    float minLinearDepthWithThickness   = 0;
+
     while (currentLevel >= minMipLevel)
     {
         hitSuccessful = true;
@@ -705,14 +698,13 @@ bool ScreenSpaceHiZRaymarch(
         // Sampled as 1/Z so it interpolate properly in screen space.
         invLinearDepth = LoadInvDepth(positionSS.xy, currentLevel);
 
-        float positionLinearDepth = 1 / positionSS.z;
-        float minLinearDepth = 1 / invLinearDepth.r;
-        float maxLinearDepth = minLinearDepth + settingsRayDepthSuccessBias;
-
-        bool isAboveDepth       = positionLinearDepth <= minLinearDepth;
-        bool isAboveThickness   = positionLinearDepth <= maxLinearDepth;
-        bool isBehindDepth      = !isAboveThickness;
-        bool intersectWithDepth = minLinearDepth >= positionLinearDepth && isAboveThickness;
+        positionLinearDepth                 = 1 / positionSS.z;
+        minLinearDepth                      = 1 / invLinearDepth.r;
+        minLinearDepthWithThickness         = minLinearDepth + settingsRayDepthSuccessBias;
+        bool isAboveDepth                   = positionLinearDepth < minLinearDepth;
+        bool isAboveThickness               = positionLinearDepth < minLinearDepthWithThickness;
+        bool isBehindDepth                  = !isAboveThickness;
+        bool intersectWithDepth             = minLinearDepth >= positionLinearDepth && isAboveThickness;
 
         intersectionKind = HIZINTERSECTIONKIND_NONE;
 
@@ -794,34 +786,55 @@ bool ScreenSpaceHiZRaymarch(
         ++iteration;
     }
 
-    hit.linearDepth = 1 / positionSS.z;
+    hit.linearDepth = positionLinearDepth;
     hit.positionNDC = float2(positionSS.xy) / float2(bufferSize);
     hit.positionSS = uint2(positionSS.xy);
 
     // Detect when we go behind an object given a thickness
+    // hitWeight = CalculateHitWeight(
+    //     hit,
+    //     startPositionSS.xy,
+    //     invLinearDepth, 
+    //     settingsRayDepthSuccessBias,
+    //     settingsRayMaxScreenDistance,
+    //     settingsRayBlendScreenDistance
+    // );
+
     hitWeight = CalculateHitWeight(
         hit,
         startPositionSS.xy,
-        invLinearDepth, 
+        minLinearDepth,
         settingsRayDepthSuccessBias,
         settingsRayMaxScreenDistance,
         settingsRayBlendScreenDistance
     );
+
     if (hitWeight <= 0)
         hitSuccessful = false;
 
 #ifdef DEBUG_DISPLAY
     DebugComputeCommonOutput(input.rayDirWS, hitSuccessful, PROJECTIONMODEL_HI_Z, hit);
-    DebugComputeHiZOutput(
-        iteration,
-        startPositionSS,
-        raySS,
-        settingsRayMaxIterations,
-        debugLoopMipMaxUsedLevel,
-        maxMipLevel,
-        intersectionKind,
-        hit
-    );
+    switch (_DebugLightingSubMode)
+    {
+    case DEBUGSCREENSPACETRACING_HI_ZPOSITION_NDC:
+        hit.debugOutput =  float3(float2(startPositionSS.xy) * _ScreenSize.zw, 0);
+        break;
+    case DEBUGSCREENSPACETRACING_HI_ZITERATION_COUNT:
+        hit.debugOutput =  float(iteration) / float(settingsRayMaxIterations);
+        break;
+    case DEBUGSCREENSPACETRACING_HI_ZRAY_DIR_NDC:
+        hit.debugOutput =  float3(raySS.xy * 0.5 + 0.5, frac(0.1 / raySS.z));
+        break;
+    case DEBUGSCREENSPACETRACING_HI_ZMAX_USED_MIP_LEVEL:
+        hit.debugOutput =  float(debugLoopMipMaxUsedLevel) / float(maxMipLevel);
+        break;
+    case DEBUGSCREENSPACETRACING_HI_ZINTERSECTION_KIND:
+        hit.debugOutput =  GetIndexColor(intersectionKind);
+        break;
+    case DEBUGSCREENSPACETRACING_HI_ZHIT_WEIGHT:
+        hit.debugOutput =  float3(hitWeight, hitWeight, hitWeight);
+        break;
+    }
 
     if (input.debug 
         && _DebugScreenSpaceTracingData[0].tracingModel == -1
@@ -852,6 +865,7 @@ bool ScreenSpaceHiZRaymarch(
         debug.endLinearDepth                            = hit.linearDepth;
         debug.endPositionSSX                            = hit.positionSS.x;
         debug.endPositionSSY                            = hit.positionSS.y;
+        debug.endHitWeight                              = hitWeight;
 
         _DebugScreenSpaceTracingData[0] = debug;
     }
