@@ -341,8 +341,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandles.Release(m_DebugFullScreenTempBuffer);
 
             m_DebugScreenSpaceTracingData.Release();
-
-            HDCamera.CleanUnused();
         }
 
 
@@ -521,6 +519,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyManager.Cleanup();
             m_VolumetricLightingSystem.Cleanup();
             m_IBLFilterGGX.Cleanup();
+
+            HDCamera.ClearAll();
 
             DestroyRenderTextures();
 

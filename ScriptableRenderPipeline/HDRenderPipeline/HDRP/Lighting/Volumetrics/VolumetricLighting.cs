@@ -138,9 +138,17 @@ public class VolumetricLightingSystem
     }
 
     // RTHandleSystem API expects a function which computes the resolution. We define it here.
-    Vector2Int ComputeVBuffeResolutionXY(Vector2Int screenSize)
+    Vector2Int ComputeVBufferResolutionXY(Vector2Int screenSize)
     {
         Vector3Int resolution = ComputeVBufferResolution(preset, screenSize.x, screenSize.y);
+
+        return new Vector2Int(resolution.x, resolution.y);
+    }
+
+    // RTHandleSystem API expects a function which computes the resolution. We define it here.
+    Vector2Int ComputeHistoryVBufferResolutionXY(Vector2Int screenSize)
+    {
+        Vector2Int resolution = ComputeVBufferResolutionXY(screenSize);
 
         // Since the buffers owned by the VolumetricLightingSystem may have different lifetimes compared
         // to those owned by the HDCamera, we need to make sure that the buffer resolution is the same
@@ -151,7 +159,7 @@ public class VolumetricLightingSystem
             resolution.y = Math.Max(resolution.y, m_LightingBufferHandle.rt.height);
         }
 
-        return new Vector2Int(resolution.x, resolution.y);
+        return resolution;
     }
 
     // BufferedRTHandleSystem API expects an allocator function. We define it here.
@@ -161,7 +169,7 @@ public class VolumetricLightingSystem
 
         int d = ComputeVBufferSliceCount(preset);
 
-        return rtHandleSystem.Alloc(scaleFunc:         ComputeVBuffeResolutionXY,
+        return rtHandleSystem.Alloc(scaleFunc:         ComputeHistoryVBufferResolutionXY,
                                     slices:            d,
                                     dimension:         TextureDimension.Tex3D,
                                     colorFormat:       RenderTextureFormat.ARGBHalf,
@@ -184,7 +192,7 @@ public class VolumetricLightingSystem
 
         int d = ComputeVBufferSliceCount(preset);
 
-        m_DensityBufferHandle = RTHandles.Alloc(scaleFunc:         ComputeVBuffeResolutionXY,
+        m_DensityBufferHandle = RTHandles.Alloc(scaleFunc:         ComputeVBufferResolutionXY,
                                                 slices:            d,
                                                 dimension:         TextureDimension.Tex3D,
                                                 colorFormat:       RenderTextureFormat.ARGBHalf,
@@ -194,7 +202,7 @@ public class VolumetricLightingSystem
                                                 /* useDynamicScale: true, // <- TODO */
                                                 name:              "VBufferDensity");
 
-        m_LightingBufferHandle = RTHandles.Alloc(scaleFunc:         ComputeVBuffeResolutionXY,
+        m_LightingBufferHandle = RTHandles.Alloc(scaleFunc:         ComputeVBufferResolutionXY,
                                                  slices:            d,
                                                  dimension:         TextureDimension.Tex3D,
                                                  colorFormat:       RenderTextureFormat.ARGBHalf,
