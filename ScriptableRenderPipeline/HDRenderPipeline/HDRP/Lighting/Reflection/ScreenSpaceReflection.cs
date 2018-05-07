@@ -44,7 +44,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             out int rayMinLevelID,
             out int rayMaxLevelID,
             out int rayMaxIterationsID,
-            out int rayDepthSuccessBiasID,
+            out int depthBufferThicknessID,
             out int screenWeightDistanceID,
             out int rayMaxScreenDistanceID,
             out int rayBlendScreenDistanceID
@@ -55,7 +55,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             rayMinLevelID = HDShaderIDs._SSReflectionRayMinLevel;
             rayMaxLevelID = HDShaderIDs._SSReflectionRayMaxLevel;
             rayMaxIterationsID = HDShaderIDs._SSReflectionRayMaxIterations;
-            rayDepthSuccessBiasID = HDShaderIDs._SSReflectionRayDepthSuccessBias;
+            depthBufferThicknessID = HDShaderIDs._SSReflectionDepthBufferThickness;
             screenWeightDistanceID = HDShaderIDs._SSReflectionInvScreenWeightDistance;
             rayMaxScreenDistanceID = HDShaderIDs._SSReflectionRayMaxScreenDistance;
             rayBlendScreenDistanceID = HDShaderIDs._SSReflectionRayBlendScreenDistance;

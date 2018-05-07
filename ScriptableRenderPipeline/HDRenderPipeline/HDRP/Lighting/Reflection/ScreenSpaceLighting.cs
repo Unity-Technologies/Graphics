@@ -11,7 +11,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_RayMinLevelID;
         int m_RayMaxLevelID;
         int m_RayMaxIterationsID;
-        int m_RayDepthSuccessBiasID;
+        int m_DepthBufferThicknessID;
         int m_InvScreenWeightDistanceID;
         int m_RayMaxScreenDistanceID;
         int m_RayBlendScreenDistanceID;
@@ -21,10 +21,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public IntParameter                 rayMinLevel = new IntParameter(2);
         public IntParameter                 rayMaxLevel = new IntParameter(6);
         public IntParameter                 rayMaxIterations = new IntParameter(32);
-        public FloatParameter               rayDepthSuccessBias = new FloatParameter(0.1f);
+        public FloatParameter               depthBufferThickness = new FloatParameter(1f);
         public ClampedFloatParameter        screenWeightDistance = new ClampedFloatParameter(0.1f, 0, 1);
-        public FloatParameter               rayMaxScreenDistance = new FloatParameter(0.3f);
-        public FloatParameter               rayBlendScreenDistance = new FloatParameter(0.1f);
+        public ClampedFloatParameter        rayMaxScreenDistance = new ClampedFloatParameter(0.3f, 0, 1);
+        public ClampedFloatParameter        rayBlendScreenDistance = new ClampedFloatParameter(0.1f, 0, 1);
 
         public virtual void PushShaderParameters(CommandBuffer cmd)
         {
@@ -33,7 +33,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalInt(m_RayMinLevelID, rayMinLevel.value);
             cmd.SetGlobalInt(m_RayMaxLevelID, rayMaxLevel.value);
             cmd.SetGlobalInt(m_RayMaxIterationsID, rayMaxIterations.value);
-            cmd.SetGlobalFloat(m_RayDepthSuccessBiasID, rayDepthSuccessBias.value);
+            cmd.SetGlobalFloat(m_DepthBufferThicknessID, depthBufferThickness.value);
             cmd.SetGlobalFloat(m_InvScreenWeightDistanceID, 1f / screenWeightDistance.value);
             cmd.SetGlobalFloat(m_RayMaxScreenDistanceID, rayMaxScreenDistance.value);
             cmd.SetGlobalFloat(m_RayBlendScreenDistanceID, rayBlendScreenDistance.value);
@@ -45,7 +45,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             out int rayMinLevelID,
             out int rayMaxLevelID,
             out int rayMaxIterationsID,
-            out int rayDepthSuccessBiasID,
+            out int DepthBufferThicknessID,
             out int invScreenWeightDistanceID,
             out int rayMaxScreenDistanceID,
             out int rayBlendScreenDistanceID
@@ -59,7 +59,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 out m_RayMinLevelID,
                 out m_RayMaxLevelID,
                 out m_RayMaxIterationsID,
-                out m_RayDepthSuccessBiasID,
+                out m_DepthBufferThicknessID,
                 out m_InvScreenWeightDistanceID,
                 out m_RayMaxScreenDistanceID,
                 out m_RayBlendScreenDistanceID
