@@ -8,16 +8,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         const string kCommandBufferTag = "Depth Prepass";
 
         int kDepthBufferBits = 32;
-        FilterRenderersSettings m_FilterSettings;
 
         public DepthOnlyPass(LightweightForwardRenderer renderer) : base(renderer)
         {
             RegisterShaderPassName("DepthOnly");
-
-            m_FilterSettings = new FilterRenderersSettings(true)
-            {
-                renderQueueRange = RenderQueueRange.opaque
-            };
         }
 
         public override void Setup(CommandBuffer cmd, RenderTextureDescriptor baseDescriptor, int samples)
@@ -45,18 +39,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                var opaqueDrawSettings = new DrawRendererSettings(cameraData.camera, m_ShaderPassNames[0]);
-                opaqueDrawSettings.sorting.flags = SortFlags.CommonOpaque;
-                opaqueDrawSettings.rendererConfiguration = RendererConfiguration.None;
-
+                var drawSettings = CreateDrawRendererSettings(cameraData.camera, SortFlags.CommonOpaque, RendererConfiguration.None);
                 if (cameraData.isStereoEnabled)
                 {
                     context.StartMultiEye(cameraData.camera);
-                    context.DrawRenderers(cullResults.visibleRenderers, ref opaqueDrawSettings, m_FilterSettings);
+                    context.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, renderer.opaqueFilterSettings);
                     context.StopMultiEye(cameraData.camera);
                 }
                 else
-                    context.DrawRenderers(cullResults.visibleRenderers, ref opaqueDrawSettings, m_FilterSettings);
+                    context.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, renderer.opaqueFilterSettings);
             }
             //cmd.SetGlobalTexture(depthTextureID, depthTexture);
             context.ExecuteCommandBuffer(cmd);

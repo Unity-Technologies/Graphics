@@ -324,7 +324,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
-        void RenderOpaques(ref ScriptableRenderContext context, ref CullResults cullResults, ref CameraData cameraData, RendererConfiguration settings)
+        void RenderOpaques(ref ScriptableRenderContext context, ref CullResults cullResults, ref CameraData cameraData, RendererConfiguration rendererConfiguration)
         {
             CommandBuffer cmd = CommandBufferPool.Get("Render Opaques");
             Camera camera = cameraData.camera;
@@ -339,27 +339,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (colorHandles[0] == -1 && cameraData.isDefaultViewport)
                 cmd.SetViewport(camera.pixelRect);
 
-            var opaqueDrawSettings = new DrawRendererSettings(camera, m_ShaderPassNames[0]);
-            for (int i = 1; i < m_ShaderPassNames.Count; ++i)
-                opaqueDrawSettings.SetShaderPassName(1, m_ShaderPassNames[1]);
-            opaqueDrawSettings.sorting.flags = SortFlags.CommonOpaque;
-            opaqueDrawSettings.rendererConfiguration = settings;
-
-            var opaqueFilterSettings = new FilterRenderersSettings(true)
-            {
-                renderQueueRange = RenderQueueRange.opaque
-            };
-
-            context.DrawRenderers(cullResults.visibleRenderers, ref opaqueDrawSettings, opaqueFilterSettings);
+            var drawSettings = CreateDrawRendererSettings(camera, SortFlags.CommonOpaque, rendererConfiguration);
+            context.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, renderer.opaqueFilterSettings);
 
             // Render objects that did not match any shader pass with error shader
-            RenderObjectsWithError(ref context, ref cullResults, camera, opaqueFilterSettings, SortFlags.None);
+            RenderObjectsWithError(ref context, ref cullResults, camera, renderer.opaqueFilterSettings, SortFlags.None);
 
             if (camera.clearFlags == CameraClearFlags.Skybox)
                 context.DrawSkybox(camera);
         }
 
-        void RenderTransparents(ref ScriptableRenderContext context, ref CullResults cullResults, ref CameraData cameraData, RendererConfiguration config)
+        void RenderTransparents(ref ScriptableRenderContext context, ref CullResults cullResults, ref CameraData cameraData, RendererConfiguration rendererConfiguration)
         {
             CommandBuffer cmd = CommandBufferPool.Get("Render Opaques");
             Camera camera = cameraData.camera;
@@ -367,21 +357,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 
-            var transparentSettings = new DrawRendererSettings(camera, m_ShaderPassNames[0]);
-            for (int i = 1; i < m_ShaderPassNames.Count; ++i)
-                transparentSettings.SetShaderPassName(1, m_ShaderPassNames[1]);
-            transparentSettings.sorting.flags = SortFlags.CommonTransparent;
-            transparentSettings.rendererConfiguration = config;
-
-            var transparentFilterSettings = new FilterRenderersSettings(true)
-            {
-                renderQueueRange = RenderQueueRange.transparent
-            };
-
-            context.DrawRenderers(cullResults.visibleRenderers, ref transparentSettings, transparentFilterSettings);
+            var drawSettings = CreateDrawRendererSettings(camera, SortFlags.CommonTransparent, rendererConfiguration);
+            context.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, renderer.transparentFilterSettings);
 
             // Render objects that did not match any shader pass with error shader
-            RenderObjectsWithError(ref context, ref cullResults, camera, transparentFilterSettings, SortFlags.None);
+            RenderObjectsWithError(ref context, ref cullResults, camera, renderer.transparentFilterSettings, SortFlags.None);
         }
 
         void FinalBlitPass(ref ScriptableRenderContext context, ref CameraData cameraData)

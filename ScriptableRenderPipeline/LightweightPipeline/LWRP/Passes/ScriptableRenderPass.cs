@@ -45,5 +45,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             m_ShaderPassNames.Add(new ShaderPassName(passName));
         }
+
+        public DrawRendererSettings CreateDrawRendererSettings(Camera camera, SortFlags sortFlags, RendererConfiguration rendererConfiguration)
+        {
+            DrawRendererSettings settings = new DrawRendererSettings(camera, m_ShaderPassNames[0]);
+            for (int i = 1; i < m_ShaderPassNames.Count; ++i)
+                settings.SetShaderPassName(i, m_ShaderPassNames[i]);
+            settings.sorting.flags = sortFlags;
+            settings.rendererConfiguration = rendererConfiguration;
+            return settings;
+        }
     }
 }
