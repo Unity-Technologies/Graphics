@@ -241,6 +241,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // Remaining light types don't support cookies
         }
 
+        public static void CopyTexture(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier dest, Material material)
+        {
+            if (SystemInfo.copyTextureSupport != CopyTextureSupport.None)
+                cmd.CopyTexture(source, dest);
+            else
+                cmd.Blit(source, dest, material);
+        }
+
         public static bool IsSupportedShadowType(LightType lightType)
         {
             return lightType == LightType.Directional || lightType == LightType.Spot;

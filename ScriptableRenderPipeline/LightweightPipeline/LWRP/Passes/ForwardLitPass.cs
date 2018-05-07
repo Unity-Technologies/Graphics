@@ -29,7 +29,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         // Depth Copy Pass
         Material m_DepthCopyMaterial;
-        const string k_MSAADepthKeyword = "_MSAA_DEPTH";
+        const string k_MsaaDepthKeyword = "_MSAA_DEPTH";
         int m_SampleCountShaderHandle;
 
         // Opaque Copy Pass
@@ -105,7 +105,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 descriptor.depthBufferBits = k_DepthStencilBufferBits;
                 descriptor.msaaSamples = samples;
                 descriptor.bindMS = samples > 1;
-                cmd.GetTemporaryRT(colorHandles[1], descriptor, FilterMode.Point);
+                cmd.GetTemporaryRT(depthHandle, descriptor, FilterMode.Point);
             }
             m_Disposed = false;
         }
@@ -123,16 +123,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             if (cameraData.postProcessEnabled &&
                 cameraData.postProcessLayer.HasOpaqueOnlyEffects(renderer.postProcessRenderContext))
-                OpaquePostProcessPass(ref context, ref cameraData);
+                OpaquePostProcessSubPass(ref context, ref cameraData);
 
-            if (cameraData.requiresDepthTexture)
-                CopyDepthPass(ref context, ref cameraData);
+            if (depthHandle != -1 && cameraData.requiresDepthTexture)
+                CopyDepthSubPass(ref context, ref cameraData);
 
             if (cameraData.requiresOpaqueTexture)
-                OpaqueTexturePass(ref context, ref cameraData);
+                CopyColorSubpass(ref context, ref cameraData);
 
             RenderTransparents(ref context, ref cullResults, ref cameraData, rendererConfiguration);
 
+            // TODO: Move these to separate passes
             if (cameraData.postProcessEnabled)
                 PostProcessPass(ref context, ref cameraData);
 
@@ -543,7 +544,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
-        void OpaquePostProcessPass(ref ScriptableRenderContext context, ref CameraData cameraData)
+        void OpaquePostProcessSubPass(ref ScriptableRenderContext context, ref CameraData cameraData)
         {
             CommandBuffer cmd = CommandBufferPool.Get("Render Opaque PostProcess Effects");
 
@@ -564,40 +565,34 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CommandBufferPool.Release(cmd);
         }
 
-        void CopyDepthPass(ref ScriptableRenderContext context, ref CameraData cameraData)
+        void CopyDepthSubPass(ref ScriptableRenderContext context, ref CameraData cameraData)
         {
             CommandBuffer cmd = CommandBufferPool.Get("Depth Copy");
-            if (depthHandle == RenderTargetHandles.DepthMS)
+            RenderTargetIdentifier depthSurface = GetSurface(RenderTargetHandles.Depth);
+            RenderTargetIdentifier copyDepthSurface = GetSurface(RenderTargetHandles.DepthCopy);
+
+            RenderTextureDescriptor descriptor = renderer.CreateRTDesc(ref cameraData);
+            descriptor.colorFormat = RenderTextureFormat.Depth;
+            descriptor.depthBufferBits = k_DepthStencilBufferBits;
+            cmd.GetTemporaryRT(RenderTargetHandles.DepthCopy, descriptor, FilterMode.Point);
+
+            if (cameraData.msaaSamples > 1)
             {
                 cmd.SetGlobalFloat(m_SampleCountShaderHandle, cameraData.msaaSamples);
-                cmd.EnableShaderKeyword(k_MSAADepthKeyword);
-                cmd.Blit(GetSurface(RenderTargetHandles.DepthMS), GetSurface(RenderTargetHandles.Depth), m_DepthCopyMaterial);
+                cmd.EnableShaderKeyword(k_MsaaDepthKeyword);
+                cmd.Blit(depthSurface, copyDepthSurface, m_DepthCopyMaterial);
             }
             else
             {
-                // TODO:
-                //cmd.Blit(GetSurface(RenderTargetHandle.Depth), depthCopy, m_DepthCopyMaterial);
+                cmd.DisableShaderKeyword(k_MsaaDepthKeyword);
+                LightweightPipeline.CopyTexture(cmd, depthSurface, copyDepthSurface, m_DepthCopyMaterial);
             }
-            cmd.DisableShaderKeyword(k_MSAADepthKeyword);
+            cmd.SetGlobalTexture(RenderTargetHandles.Depth, copyDepthSurface);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
-            //        bool forceBlit = false;
-            //        if (m_MSAASamples > 1)
-            //        {
-            //            cmd.SetGlobalFloat(m_SampleCount, (float)m_MSAASamples);
-            //            cmd.EnableShaderKeyword(kMSAADepthKeyword);
-            //            forceBlit = true;
-            //        }
-            //        else
-            //            cmd.DisableShaderKeyword(kMSAADepthKeyword);
-
-            //        CopyTexture(cmd, m_DepthRT, m_CopyDepth, m_CopyDepthMaterial, forceBlit);
-            //        depthRT = m_CopyDepth;
-            //        setRenderTarget = true;
-            //        cmd.SetGlobalTexture(RenderTargetHandle.Depth, m_CopyDepth);
         }
 
-        void OpaqueTexturePass(ref ScriptableRenderContext context, ref CameraData cameraData)
+        void CopyColorSubpass(ref ScriptableRenderContext context, ref CameraData cameraData)
         {
             CommandBuffer cmd = CommandBufferPool.Get("Copy Opaque Color");
             Downsampling downsampling = cameraData.opaqueTextureDownsampling;
@@ -624,7 +619,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     cmd.Blit(colorRT, opaqueColorRT);
                     break;
             }
-            //SetRenderTarget(cmd, m_CurrCameraColorRT, m_DepthRT);
+
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }

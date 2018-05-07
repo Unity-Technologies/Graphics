@@ -156,12 +156,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cameraData.postProcessEnabled = cameraData.postProcessLayer != null && cameraData.postProcessLayer.isActiveAndEnabled;
         }
 
-        void InitializeShadowData(out ShadowData shadowData)
+        void InitializeShadowData(bool hasDirectionalShadowCastingLight, bool hasLocalShadowCastingLight, out ShadowData shadowData)
         {
             // Until we can have keyword stripping forcing single cascade hard shadows on gles2
             bool supportsScreenSpaceShadows = SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
-            shadowData.supportsDirectionalShadows = pipelineAsset.SupportsDirectionalShadows;
+            shadowData.supportsDirectionalShadows = pipelineAsset.SupportsDirectionalShadows && hasDirectionalShadowCastingLight;
             shadowData.requiresScreenSpaceOcclusion = shadowData.supportsDirectionalShadows && supportsScreenSpaceShadows;
             shadowData.directionalLightCascadeCount = (shadowData.requiresScreenSpaceOcclusion) ? pipelineAsset.CascadeCount : 1;
             shadowData.directionalShadowAtlasWidth = pipelineAsset.DirectionalShadowAtlasResolution;
@@ -182,7 +182,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     break;
             }
 
-            shadowData.supportsLocalShadows = pipelineAsset.SupportsLocalShadows;
+            shadowData.supportsLocalShadows = pipelineAsset.SupportsLocalShadows && hasLocalShadowCastingLight;
             shadowData.localShadowAtlasWidth = shadowData.localShadowAtlasHeight = pipelineAsset.LocalShadowAtlasResolution;
             shadowData.supportsSoftShadows = pipelineAsset.SupportsSoftShadows;
             shadowData.bufferBitCount = 16;
@@ -194,10 +194,21 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         void InitializeLightData(List<VisibleLight> visibleLights, int maxSupportedLocalLightsPerPass, int maxSupportedVertexLights, out LightData lightData)
         {
             m_LocalLightIndices.Clear();
+
+            bool hasDirectionalShadowCastingLight = false;
+            bool hasLocalShadowCastingLight = false;
             for (int i = 0; i < visibleLights.Count; ++i)
             {
-                if (visibleLights[i].lightType != LightType.Directional)
+                bool castShadows = visibleLights[i].light.shadows != LightShadows.None;
+                if (visibleLights[i].lightType == LightType.Directional)
+                {
+                    hasDirectionalShadowCastingLight |= castShadows;
+                }
+                else
+                {
+                    hasLocalShadowCastingLight |= castShadows;
                     m_LocalLightIndices.Add(i);
+                }
             }
 
             int visibleLightsCount = Math.Min(visibleLights.Count, pipelineAsset.MaxPixelLights);
@@ -213,7 +224,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             lightData.totalAdditionalLightsCount = additionalPixelLightsCount + vertexLightCount;
             lightData.visibleLights = visibleLights;
             lightData.visibleLocalLightIndices = m_LocalLightIndices;
-            InitializeShadowData(out lightData.shadowData);
+            InitializeShadowData(hasDirectionalShadowCastingLight, hasLocalShadowCastingLight, out lightData.shadowData);
         }
 
         // Main Light is always a directional light
