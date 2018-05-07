@@ -24,7 +24,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Tooltip("Distance at which maximum mip of blurred sky texture is used as fog color.")]
         public MinFloatParameter       mipFogFar = new MinFloatParameter(1000.0f, 0.0f);
 
-        public abstract void PushShaderParameters(CommandBuffer cmd, FrameSettings frameSettings);
+        public abstract void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd);
 
         public static void PushNeutralShaderParameters(CommandBuffer cmd)
         {
@@ -38,14 +38,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 cmd.SetGlobalVector(HDShaderIDs._GlobalScattering, data.scattering);
                 cmd.SetGlobalFloat( HDShaderIDs._GlobalExtinction, data.extinction);
-                cmd.SetGlobalFloat( HDShaderIDs._GlobalAsymmetry,  0.0f);
+                cmd.SetGlobalFloat( HDShaderIDs._GlobalAnisotropy, 0.0f);
             }
         }
 
         // Not used by the volumetric fog.
-        public void PushShaderParametersCommon(CommandBuffer cmd, FogType type, FrameSettings frameSettings)
+        public void PushShaderParametersCommon(HDCamera hdCamera, CommandBuffer cmd, FogType type)
         {
-            Debug.Assert(frameSettings.enableAtmosphericScattering);
+            Debug.Assert(hdCamera.frameSettings.enableAtmosphericScattering);
 
             cmd.SetGlobalInt(HDShaderIDs._AtmosphericScatteringType, (int)type);
 

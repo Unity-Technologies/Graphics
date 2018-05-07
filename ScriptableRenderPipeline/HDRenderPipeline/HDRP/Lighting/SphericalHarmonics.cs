@@ -6,9 +6,9 @@ public struct ZonalHarmonicsL2
 {
     public float[] coeffs; // Must have the size of 3
 
-	public static ZonalHarmonicsL2 GetHenyeyGreensteinPhaseFunction(float asymmetry)
+	public static ZonalHarmonicsL2 GetHenyeyGreensteinPhaseFunction(float anisotropy)
 	{
-	    float g = asymmetry;
+	    float g = anisotropy;
 
 	    var zh    = new ZonalHarmonicsL2();
 	    zh.coeffs = new float[3];
@@ -20,9 +20,9 @@ public struct ZonalHarmonicsL2
 	    return zh;
 	}
 
-	public static ZonalHarmonicsL2 GetCornetteShanksPhaseFunction(float asymmetry)
+	public static ZonalHarmonicsL2 GetCornetteShanksPhaseFunction(float anisotropy)
 	{
-	    float g = asymmetry;
+	    float g = anisotropy;
 
 	    var zh    = new ZonalHarmonicsL2();
 	    zh.coeffs = new float[3];

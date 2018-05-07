@@ -61,6 +61,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 volumeAtlas.RemoveTexture(volume.parameters.volumeMask);
             }
+
+            //Upon removal we have to refresh the texture list.
+            TriggerVolumeAtlasRefresh();
         }
         
         public DensityVolume[] PrepareDensityVolumeData(CommandBuffer cmd)

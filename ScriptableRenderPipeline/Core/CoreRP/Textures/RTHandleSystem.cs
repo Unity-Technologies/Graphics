@@ -129,7 +129,7 @@ namespace UnityEngine.Experimental.Rendering
         public void DemandResize(RTHandle rth)
         {
             Assert.IsTrue(m_ResizeOnDemandRTs.Contains(rth), string.Format("The RTHandle {0} is not an resize on demand handle in this RTHandleSystem. Please call SwitchToResizeOnDemand(rth, true) before resizing on demand.", rth));
-            
+
             for (int i = 0, c = (int)RTCategory.Count; i < c; ++i)
             {
                 if (rth.m_RTs[i] == null)
@@ -155,12 +155,13 @@ namespace UnityEngine.Experimental.Rendering
                     rt.height = scaledSize.y;
 
                     rt.name = CoreUtils.GetRenderTargetAutoName(
-                        rt.width, 
-                        rt.height, 
-                        rt.format, 
-                        rth.m_Name, 
-                        mips: rt.useMipMap, 
-                        enableMSAA : enableMSAA, 
+                        rt.width,
+                        rt.height,
+                        rt.volumeDepth,
+                        rt.format,
+                        rth.m_Name,
+                        mips: rt.useMipMap,
+                        enableMSAA : enableMSAA,
                         msaaSamples: m_ScaledRTCurrentMSAASamples
                     );
                     rt.Create();
@@ -211,7 +212,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 var rth = m_AutoSizedRTsArray[i];
                 rth.referenceSize = maxSize;
-                
+
                 var rt = rth.m_RTs[(int)category];
 
                 // This can happen if you create a RTH for MSAA. By default we only create the MSAA version of the target.
@@ -228,7 +229,7 @@ namespace UnityEngine.Experimental.Rendering
                     if (category == RTCategory.MSAA)
                         rt.antiAliasing = (int)m_ScaledRTCurrentMSAASamples;
 
-                    rt.name = CoreUtils.GetRenderTargetAutoName(rt.width, rt.height, rt.format, rth.m_Name, mips: rt.useMipMap, enableMSAA : category == RTCategory.MSAA, msaaSamples: m_ScaledRTCurrentMSAASamples);
+                    rt.name = CoreUtils.GetRenderTargetAutoName(rt.width, rt.height, rt.volumeDepth, rt.format, rth.m_Name, mips: rt.useMipMap, enableMSAA : category == RTCategory.MSAA, msaaSamples: m_ScaledRTCurrentMSAASamples);
                     rt.Create();
                 }
             }
@@ -284,7 +285,7 @@ namespace UnityEngine.Experimental.Rendering
                 useDynamicScale = useDynamicScale,
                 vrUsage = vrUsage,
                 memorylessMode = memoryless,
-                name = CoreUtils.GetRenderTargetAutoName(width, height, colorFormat, name, mips: useMipMap, enableMSAA: enableMSAA, msaaSamples: msaaSamples)
+                name = CoreUtils.GetRenderTargetAutoName(width, height, slices, colorFormat, name, mips: useMipMap, enableMSAA: enableMSAA, msaaSamples: msaaSamples)
             };
             rt.Create();
 
@@ -297,7 +298,7 @@ namespace UnityEngine.Experimental.Rendering
             newRT.m_Name = name;
 
             newRT.referenceSize = new Vector2Int(width, height);
-            
+
             return newRT;
         }
 
@@ -308,6 +309,7 @@ namespace UnityEngine.Experimental.Rendering
         // Since MSAA cannot be changed on the fly for a given RenderTexture, a separate instance will be created if the user requires it. This instance will be the one used after the next call of SetReferenceSize if MSAA is required.
         public RTHandle Alloc(
                 Vector2 scaleFactor,
+                int slices = 1,
                 DepthBits depthBufferBits = DepthBits.None,
                 RenderTextureFormat colorFormat = RenderTextureFormat.Default,
                 FilterMode filterMode = FilterMode.Point,
@@ -335,7 +337,7 @@ namespace UnityEngine.Experimental.Rendering
 
             var rth = AllocAutoSizedRenderTexture(width,
                 height,
-                1,
+                slices,
                 depthBufferBits,
                 colorFormat,
                 filterMode,
@@ -373,6 +375,7 @@ namespace UnityEngine.Experimental.Rendering
         //
         public RTHandle Alloc(
                 ScaleFunc scaleFunc,
+                int slices = 1,
                 DepthBits depthBufferBits = DepthBits.None,
                 RenderTextureFormat colorFormat = RenderTextureFormat.Default,
                 FilterMode filterMode = FilterMode.Point,
@@ -401,7 +404,7 @@ namespace UnityEngine.Experimental.Rendering
 
             var rth = AllocAutoSizedRenderTexture(width,
                 height,
-                1,
+                slices,
                 depthBufferBits,
                 colorFormat,
                 filterMode,
@@ -493,7 +496,7 @@ namespace UnityEngine.Experimental.Rendering
                 useDynamicScale = useDynamicScale,
                 vrUsage = vrUsage,
                 memorylessMode = memoryless,
-                name = CoreUtils.GetRenderTargetAutoName(width, height, colorFormat, name, mips : useMipMap, enableMSAA: allocForMSAA, msaaSamples : m_ScaledRTCurrentMSAASamples)
+                name = CoreUtils.GetRenderTargetAutoName(width, height, slices, colorFormat, name, mips : useMipMap, enableMSAA: allocForMSAA, msaaSamples : m_ScaledRTCurrentMSAASamples)
             };
             rt.Create();
 

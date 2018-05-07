@@ -466,10 +466,17 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     // Warning: the contents are later overwritten for Standard and SSS!
     outGBuffer0 = float4(surfaceData.baseColor, surfaceData.specularOcclusion);
 
+    // The sign of the Z component of the normal MUST round-trip through the G-Buffer, otherwise
+    // the reconstruction of the tangent frame for anisotropic GGX creates a seam along the Z axis.
+    // The constant was eye-balled to not cause artifacts.
+    // TODO: find a proper solution. E.g. we could re-shuffle the faces of the octahedron
+    // s.t. the sign of the Z component round-trips.
+    const float seamThreshold = 1.0/1024.0;
+    surfaceData.normalWS.z = CopySign(max(seamThreshold, abs(surfaceData.normalWS.z)), surfaceData.normalWS.z);
+
     // RT1 - 8:8:8:8
     // Our tangent encoding is based on our normal.
-    // With octahedral quad packing we get an artifact for reconstructed tangent at the center of this quad. We use rect packing instead to avoid it.
-    float2 octNormalWS = PackNormalOctRectEncode(surfaceData.normalWS);
+    float2 octNormalWS = PackNormalOctQuadEncode(surfaceData.normalWS);
     float3 packNormalWS = PackFloat2To888(saturate(octNormalWS * 0.5 + 0.5));
     // We store perceptualRoughness instead of roughness because it is perceptually linear.
     outGBuffer1 = float4(packNormalWS, PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness));
@@ -629,7 +636,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
 
     float3 packNormalWS = inGBuffer1.rgb;
     float2 octNormalWS = Unpack888ToFloat2(packNormalWS);
-    bsdfData.normalWS = UnpackNormalOctRectEncode(octNormalWS * 2.0 - 1.0);
+    bsdfData.normalWS = UnpackNormalOctQuadEncode(octNormalWS * 2.0 - 1.0);
     bsdfData.perceptualRoughness = inGBuffer1.a;
 
     bakeDiffuseLighting = inGBuffer3.rgb;
@@ -836,17 +843,19 @@ struct PreLightData
     float3x3 ltcTransformCoat;       // Inverse transformation for GGX                                 (4x VGPRs)
     float    ltcMagnitudeCoatFresnel;
 
+#if HAS_REFRACTION
     // Refraction
     float3 transparentRefractV;      // refracted view vector after exiting the shape
     float3 transparentPositionWS;    // start of the refracted ray after exiting the shape
     float3 transparentTransmittance; // transmittance due to absorption
     float transparentSSMipLevel;     // mip level of the screen space gaussian pyramid for rough refraction
+#endif
 };
 
 PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData bsdfData)
 {
     PreLightData preLightData;
-    ZERO_INITIALIZE(PreLightData, preLightData);
+    // Don't init to zero to allow to track warning about uninitialized data
 
     float3 N = bsdfData.normalWS;
     preLightData.NdotV = dot(N, V);
@@ -998,9 +1007,14 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         ltcGGXFresnelMagnitude      = ltcMagnitude.g;
         preLightData.ltcMagnitudeCoatFresnel = (CLEAR_COAT_F0 * ltcGGXFresnelMagnitudeDiff + ltcGGXFresnelMagnitude) * bsdfData.coatMask;
     }
+    else
+    {
+        preLightData.ltcTransformCoat = 0.0;
+        preLightData.ltcMagnitudeCoatFresnel = 0.0;
+    }
 
     // refraction (forward only)
-#ifdef REFRACTION_MODEL
+#if HAS_REFRACTION
     RefractionModelResult refraction = REFRACTION_MODEL(V, posInput, bsdfData);
     preLightData.transparentRefractV = refraction.rayWS;
     preLightData.transparentPositionWS = refraction.positionWS;
@@ -1208,22 +1222,6 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
         // Very coarse attempt at doing energy conservation for the diffuse layer based on NdotL. No science.
         diffuseLighting *= lerp(1, 1.0 - coatF, bsdfData.coatMask);
     }
-}
-
-// In the "thin object" mode (for cards), we assume that the geometry is very thin.
-// We apply wrapped lighting to compensate for that, and do not modify the shading position.
-// Otherwise, in the "thick object" mode, we can have EITHER reflected (front) lighting
-// OR transmitted (back) lighting, never both at the same time. For transmitted lighting,
-// we need to push the shading position back to avoid self-shadowing problems.
-// Note: 'bsdfData.thickness' is in world units, and already accounts for the transmission mode.
-float3 ComputeThicknessDisplacement(BSDFData bsdfData, float3 L, float NdotL)
-{
-    // Compute the thickness in world units along the light vector.
-    // We need a max(x, 0) here, but the saturate() is free,
-    // and we don't expect the total displacement of over 1 meter.
-    float displacement = saturate(bsdfData.thickness / -NdotL);
-
-    return displacement * L;
 }
 
 // Currently, we only model diffuse transmission. Specular transmission is not yet supported.
@@ -1882,11 +1880,13 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     float3 R = preLightData.iblR;
 
+#if HAS_REFRACTION
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
     {
         positionWS = preLightData.transparentPositionWS;
         R = preLightData.transparentRefractV;
     }
+#endif
 
     // Note: using influenceShapeType and projectionShapeType instead of (lightData|proxyData).shapeType allow to make compiler optimization in case the type is know (like for sky)
     EvaluateLight_EnvIntersection(positionWS, bsdfData.normalWS, lightData, influenceShapeType, R, weight);
@@ -1906,14 +1906,18 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     R = lerp(R, preLightData.iblR, saturate(smoothstep(0, 1, roughness * roughness)));
 
     float3 F = preLightData.specularFGD;
-    float iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness);
 
-    // Specific case for Texture2Ds, their convolution is a gaussian one and not a GGX one.
-    // So we use another roughness mip mapping.
+    float iblMipLevel;
+    // TODO: We need to match the PerceptualRoughnessToMipmapLevel formula for planar, so we don't do this test (which is specific to our current lightloop)
+    // Specific case for Texture2Ds, their convolution is a gaussian one and not a GGX one - So we use another roughness mip mapping.
     if (IsEnvIndexTexture2D(lightData.envIndex))
     {
         // Empirical remapping
         iblMipLevel = PositivePow(preLightData.iblPerceptualRoughness, 0.8) * uint(max(_ColorPyramidScale.z - 1, 0));
+    }
+    else
+    {
+        iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness);
     }
 
     float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, iblMipLevel);
@@ -1937,6 +1941,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
             // Can't attenuate diffuse lighting here, may try to apply something on bakeLighting in PostEvaluateBSDF
         }
     }
+#if HAS_REFRACTION
     else
     {
         // No clear coat support with refraction
@@ -1945,6 +1950,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         // With refraction, we don't care about the clear coat value, only about the Fresnel, thus why we use 'envLighting ='
         envLighting = (1.0 - F) * preLD.rgb * preLightData.transparentTransmittance;
     }
+#endif
 
 #endif // LIT_DISPLAY_REFERENCE_IBL
 
@@ -1953,8 +1959,10 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
         lighting.specularReflected = envLighting;
+#if HAS_REFRACTION
     else
         lighting.specularTransmitted = envLighting * preLightData.transparentTransmittance;
+#endif
 
     return lighting;
 }
