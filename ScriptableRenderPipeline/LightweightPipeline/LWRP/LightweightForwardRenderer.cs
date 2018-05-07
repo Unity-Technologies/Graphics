@@ -19,7 +19,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     {
         public static int Color;
         public static int Depth;
-        public static int DepthMS;
+        public static int DepthCopy;
         public static int OpaqueColor;
         public static int DirectionalShadowmap;
         public static int LocalShadowmap;
@@ -85,7 +85,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // Samples (MSAA) depend on camera and pipeline
             AddSurface("_CameraColorTexture", out RenderTargetHandles.Color);
             AddSurface("_CameraDepthTexture", out RenderTargetHandles.Depth);
-            AddSurface("_CameraDepthMSTexture", out RenderTargetHandles.DepthMS);
+            AddSurface("_CameraDepthTextureCopy", out RenderTargetHandles.DepthCopy);
             AddSurface("_CameraOpaqueTexture", out RenderTargetHandles.OpaqueColor);
             AddSurface("_DirectionalShadowmapTexture", out RenderTargetHandles.DirectionalShadowmap);
             AddSurface("_LocalShadowmapTexture", out RenderTargetHandles.LocalShadowmap);
@@ -169,26 +169,28 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             SetupPerObjectLightIndices(ref cullResults, ref lightData);
             RenderTextureDescriptor baseDescriptor = CreateRTDesc(ref cameraData);
 
+            bool requiresCameraDepth = cameraData.requiresDepthTexture || cameraData.postProcessEnabled || cameraData.isSceneViewCamera;
             bool shadowsEnabledForCamera = cameraData.maxShadowDistance > 0.0f;
             bool msaaEnabledForCamera = cameraData.msaaSamples > 1;
             bool supportsTexture2DMS = SystemInfo.supportsMultisampledTextures != 0;
             bool supportsTextureCopy = SystemInfo.copyTextureSupport != CopyTextureSupport.None;
             bool copyShaderSupported = GetMaterial(MaterialHandles.DepthCopy).shader.isSupported && (msaaEnabledForCamera == supportsTexture2DMS);
             bool supportsDepthCopy = copyShaderSupported || supportsTextureCopy;
-            bool requiresCameraDepth = cameraData.requiresDepthTexture || cameraData.postProcessEnabled;
             bool requiresDepthPrepassToResolveMsaa = msaaEnabledForCamera && !supportsTexture2DMS;
             bool renderDirectionalShadows = shadowsEnabledForCamera && lightData.shadowData.supportsDirectionalShadows;
             bool requiresScreenSpaceOcclusion = renderDirectionalShadows && lightData.shadowData.requiresScreenSpaceOcclusion;
-            bool requiresDepthPrepass = requiresCameraDepth && !supportsDepthCopy || requiresScreenSpaceOcclusion || requiresDepthPrepassToResolveMsaa;
+            bool requiresDepthPrepass = requiresCameraDepth && (!supportsDepthCopy || requiresScreenSpaceOcclusion || requiresDepthPrepassToResolveMsaa);
 
+            bool needsMsaaResolve = (msaaEnabledForCamera && !LightweightPipeline.PlatformSupportsMSAABackBuffer());
+            bool depthRenderBuffer = requiresCameraDepth && !requiresDepthPrepass;
             bool intermediateRenderTexture = cameraData.isSceneViewCamera ||
                 !Mathf.Approximately(cameraData.renderScale, 1.0f) ||
                 cameraData.isHdrEnabled ||
                 baseDescriptor.dimension == TextureDimension.Tex2DArray ||
                 cameraData.postProcessEnabled ||
-                (msaaEnabledForCamera &&
-                 !LightweightPipeline.PlatformSupportsMSAABackBuffer());
-
+                needsMsaaResolve ||
+                depthRenderBuffer ||
+                cameraData.requiresOpaqueTexture;
 
             if (requiresDepthPrepass)
             {
@@ -214,10 +216,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
 
             int colorHandle = (intermediateRenderTexture) ? RenderTargetHandles.Color : -1;
-
-            int depthHandle = (requiresCameraDepth && !requiresDepthPrepass)
-                ? ((msaaEnabledForCamera) ? RenderTargetHandles.DepthMS : RenderTargetHandles.Depth)
-                : -1;
+            int depthHandle = (depthRenderBuffer) ? RenderTargetHandles.Depth : -1;
 
             forwardLitPass.colorHandles = new[] { colorHandle };
             forwardLitPass.depthHandle = depthHandle;
