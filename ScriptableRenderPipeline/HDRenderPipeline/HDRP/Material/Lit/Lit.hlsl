@@ -1858,7 +1858,10 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     // Debug screen space tracing
 #ifdef DEBUG_DISPLAY
     if (_DebugLightingMode == debugMode
-        && _DebugLightingSubMode != DEBUGSCREENSPACETRACING_COLOR)
+        && _DebugLightingSubMode != DEBUGSCREENSPACETRACING_COLOR
+        && _DebugLightingSubMode != DEBUGSCREENSPACETRACING_LINEAR_SAMPLED_COLOR
+        && _DebugLightingSubMode != DEBUGSCREENSPACETRACING_HI_ZSAMPLED_COLOR
+        )
     {
         float weight = 1.0;
         UpdateLightingHierarchyWeights(hierarchyWeight, weight);
@@ -1911,6 +1914,21 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
         lighting.specularTransmitted = (1.0 - F) * preLD.rgb * preLightData.transparentTransmittance * weight;
     else if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
         lighting.specularReflected = F * preLD.rgb * weight;
+
+#ifdef DEBUG_DISPLAY
+    if (_DebugLightingMode == debugMode
+        && (_DebugLightingSubMode == DEBUGSCREENSPACETRACING_LINEAR_SAMPLED_COLOR
+            || _DebugLightingSubMode == DEBUGSCREENSPACETRACING_HI_ZSAMPLED_COLOR))
+    {
+        float weight = 1.0;
+        UpdateLightingHierarchyWeights(hierarchyWeight, weight);
+        if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
+            lighting.specularTransmitted = preLD.rgb;
+        else if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
+            lighting.specularReflected = preLD.rgb;
+        return lighting;
+    }
+#endif
 
     return lighting;
 }
