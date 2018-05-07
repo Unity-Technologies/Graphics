@@ -259,7 +259,7 @@ namespace UnityEditor.VFX.UI
             {
                 (field as VFXLabeledField<FloatField, float>).indeterminate = indeterminate;
             }
-                
+
             if (m_Slider != null)
                 (m_Slider as VFXFloatSliderField).indeterminate = indeterminate;
         }

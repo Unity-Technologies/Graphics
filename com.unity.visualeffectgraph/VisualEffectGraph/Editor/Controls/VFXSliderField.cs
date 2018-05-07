@@ -154,15 +154,13 @@ namespace UnityEditor.VFX.UIElements
                 SetValueAndNotify(newValue);
         }
 
-        
-
         public bool indeterminate
         {
             get {return m_FloatField.parent == null; }
 
             set
             {
-                if( indeterminate != value)
+                if (indeterminate != value)
                 {
                     if (value)
                     {
