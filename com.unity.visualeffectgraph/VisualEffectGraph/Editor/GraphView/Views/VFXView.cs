@@ -290,6 +290,8 @@ namespace UnityEditor.VFX.UI
 
         VFXNodeProvider m_NodeProvider;
 
+        VisualElement m_Toolbar;
+
         public VFXView()
         {
             SetupZoom(0.125f, 8);
@@ -312,19 +314,24 @@ namespace UnityEditor.VFX.UI
 
             focusIndex = 0;
 
-            VisualElement toolbar = new VisualElement();
-            toolbar.AddToClassList("toolbar");
+            m_Toolbar = new VisualElement();
+            m_Toolbar.AddToClassList("toolbar");
 
 
             Button button = new Button(() => { Resync(); });
             button.text = "Refresh";
             button.AddToClassList("toolbarItem");
-            toolbar.Add(button);
+            m_Toolbar.Add(button);
 
             Button toggleBlackboard = new Button(ToggleBlackboard);
             toggleBlackboard.text = "Blackboard";
             toggleBlackboard.AddToClassList("toolbarItem");
-            toolbar.Add(toggleBlackboard);
+            m_Toolbar.Add(toggleBlackboard);
+
+            Button toggleComponentBoard = new Button(ToggleComponentBoard);
+            toggleComponentBoard.text = "Component board";
+            toggleComponentBoard.AddToClassList("toolbarItem");
+            m_Toolbar.Add(toggleComponentBoard);
 
             Button toggleComponentBoard = new Button(ToggleComponentBoard);
             toggleComponentBoard.text = "Component board";
@@ -334,10 +341,10 @@ namespace UnityEditor.VFX.UI
 
             VisualElement spacer = new VisualElement();
             spacer.style.flex = 1;
-            toolbar.Add(spacer);
+            m_Toolbar.Add(spacer);
             m_ToggleDebug = new Toggle(OnToggleDebug);
             m_ToggleDebug.text = "Debug";
-            toolbar.Add(m_ToggleDebug);
+            m_Toolbar.Add(m_ToggleDebug);
             m_ToggleDebug.AddToClassList("toolbarItem");
 
             m_DropDownButtonCullingMode = new Label();
@@ -355,37 +362,37 @@ namespace UnityEditor.VFX.UI
                     }
                     menu.DropDown(m_DropDownButtonCullingMode.worldBound);
                 }));
-            toolbar.Add(m_DropDownButtonCullingMode);
+            m_Toolbar.Add(m_DropDownButtonCullingMode);
             m_DropDownButtonCullingMode.AddToClassList("toolbarItem");
 
             m_ToggleCastShadows = new Toggle(OnToggleCastShadows);
             m_ToggleCastShadows.text = "Cast Shadows";
             m_ToggleCastShadows.value = GetRendererSettings().shadowCastingMode != ShadowCastingMode.Off;
-            toolbar.Add(m_ToggleCastShadows);
+            m_Toolbar.Add(m_ToggleCastShadows);
             m_ToggleCastShadows.AddToClassList("toolbarItem");
 
             m_ToggleMotionVectors = new Toggle(OnToggleMotionVectors);
             m_ToggleMotionVectors.text = "Use Motion Vectors";
             m_ToggleMotionVectors.value = GetRendererSettings().motionVectorGenerationMode == MotionVectorGenerationMode.Object;
-            toolbar.Add(m_ToggleMotionVectors);
+            m_Toolbar.Add(m_ToggleMotionVectors);
             m_ToggleMotionVectors.AddToClassList("toolbarItem");
 
             Toggle toggleRenderBounds = new Toggle(OnShowBounds);
             toggleRenderBounds.text = "Show Bounds";
             toggleRenderBounds.value = VisualEffect.renderBounds;
-            toolbar.Add(toggleRenderBounds);
+            m_Toolbar.Add(toggleRenderBounds);
             toggleRenderBounds.AddToClassList("toolbarItem");
 
             Toggle toggleAutoCompile = new Toggle(OnToggleCompile);
             toggleAutoCompile.text = "Auto Compile";
             toggleAutoCompile.value = true;
-            toolbar.Add(toggleAutoCompile);
+            m_Toolbar.Add(toggleAutoCompile);
             toggleAutoCompile.AddToClassList("toolbarItem");
 
             button = new Button(OnCompile);
             button.text = "Compile";
             button.AddToClassList("toolbarItem");
-            toolbar.Add(button);
+            m_Toolbar.Add(button);
 
 
             m_NoAssetLabel = new Label("Please Select An Asset");
@@ -415,7 +422,7 @@ namespace UnityEditor.VFX.UI
             if (componentBoardVisible)
                 ShowComponentBoard();
 
-            Add(toolbar);
+            Add(m_Toolbar);
 
             RegisterCallback<DragUpdatedEvent>(OnDragUpdated);
             RegisterCallback<DragPerformEvent>(OnDragPerform);
@@ -429,6 +436,28 @@ namespace UnityEditor.VFX.UI
             Undo.undoRedoPerformed = OnUndoPerformed;
 
             persistenceKey = "VFXView";
+
+
+            RegisterCallback<GeometryChangedEvent>(ValidateBoards);
+        }
+
+        void ValidateBoards(GeometryChangedEvent e)
+        {
+            if (m_Blackboard != null)
+                m_Blackboard.ValidatePosition();
+
+            if (m_ComponentBoard != null)
+            {
+                m_ComponentBoard.ValidatePosition();
+            }
+
+            UnregisterCallback<GeometryChangedEvent>(ValidateBoards);
+        }
+
+        public void SetBoardToFront(GraphElement board)
+        {
+            board.SendToBack();
+            board.PlaceBehind(m_Toolbar);
         }
 
         public void SetBoardToFront(GraphElement board)
@@ -451,6 +480,7 @@ namespace UnityEditor.VFX.UI
             {
                 Insert(childCount - 1, m_Blackboard);
                 BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
+                m_Blackboard.ValidatePosition();
             }
             else
             {
@@ -477,6 +507,8 @@ namespace UnityEditor.VFX.UI
             if (m_ComponentBoard == null || m_ComponentBoard.parent == null)
             {
                 ShowComponentBoard();
+
+                m_ComponentBoard.ValidatePosition();
             }
             else
             {

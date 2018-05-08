@@ -370,8 +370,6 @@ namespace UnityEditor.VFX
                     List<int> stack = new List<int>();
                     int currentCount = m_graph.m_ParameterInfo.Length;
 
-                    string lastRootParameter = null;
-                    bool lastRootParameterHasMultipleValues = false;
                     foreach (var parameter in m_graph.m_ParameterInfo)
                     {
                         --currentCount;
@@ -417,9 +415,6 @@ namespace UnityEditor.VFX
                                 SerializedProperty overrideProperty = property.FindPropertyRelative("m_Overridden");
                                 property = property.FindPropertyRelative("m_Value");
                                 string firstpropName = property.name;
-
-                                lastRootParameterHasMultipleValues |= overrideProperty.hasMultipleDifferentValues;
-                                lastRootParameterHasMultipleValues |= property.hasMultipleDifferentValues;
 
                                 Color previousColor = GUI.color;
                                 var animated = AnimationMode.IsPropertyAnimated(target, property.propertyPath);

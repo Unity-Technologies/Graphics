@@ -49,7 +49,7 @@ namespace UnityEditor.VFX
                 }
                 try
                 {
-                    m_IsValueCached = true;
+                    // m_IsValueCached = true; // TODO Reactivate once invalidation is fixed
                     if (IsMasterSlot())
                     {
                         m_CachedValue = GetMasterData().m_Value.Get();
