@@ -158,10 +158,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.ConfigureMSAADependentSettings();
             aggregate.ConfigureStereoDependentSettings();
 
-            // Note: Camera preview is both the preview of a material and the preview of a camera (Unity doesn't make a distinction here)
-            if (camera.cameraType == CameraType.Preview)
+            // Disable various option for the preview except if we are a Camera Editor preview
+            if (HDUtils.IsRegularPreviewCamera(camera))
             {
-                // remove undesired feature in preview
                 aggregate.enableShadow = false;
                 aggregate.enableContactShadows = false;
                 aggregate.enableSSR = false;

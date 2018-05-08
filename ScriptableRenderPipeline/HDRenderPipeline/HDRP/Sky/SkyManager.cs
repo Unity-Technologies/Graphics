@@ -139,12 +139,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void UpdateCurrentSkySettings(HDCamera camera)
+        public void UpdateCurrentSkySettings(HDCamera hdCamera)
         {
             m_VisualSky.skySettings = GetSkySetting(VolumeManager.instance.stack);
 
 #if UNITY_EDITOR
-            if (camera.camera.cameraType == CameraType.Preview)
+            if (HDUtils.IsRegularPreviewCamera(hdCamera.camera))
             {
                 m_VisualSky.skySettings = GetDefaultPreviewSkyInstance();
             }
@@ -153,7 +153,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_BakingSky.skySettings = SkyManager.GetBakingSkySettings();
 
             // Update needs to happen before testing if the component is active other internal data structure are not properly updated yet.
-            VolumeManager.instance.Update(m_LightingOverrideVolumeStack, camera.camera.transform, m_LightingOverrideLayerMask);
+            VolumeManager.instance.Update(m_LightingOverrideVolumeStack, hdCamera.camera.transform, m_LightingOverrideLayerMask);
             if(VolumeManager.instance.IsComponentActiveInMask<VisualEnvironment>(m_LightingOverrideLayerMask))
             {
                 SkySettings newSkyOverride = GetSkySetting(m_LightingOverrideVolumeStack);
