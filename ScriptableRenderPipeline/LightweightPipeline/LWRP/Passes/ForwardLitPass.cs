@@ -525,20 +525,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             if (cameraData.msaaSamples > 1)
             {
-                m_DepthCopyMaterial.SetFloat(m_SampleCountShaderHandle, cameraData.msaaSamples);
-                m_DepthCopyMaterial.EnableKeyword(k_MsaaDepthKeyword);
+                cmd.SetGlobalFloat(m_SampleCountShaderHandle, cameraData.msaaSamples);
+                cmd.EnableShaderKeyword(k_MsaaDepthKeyword);
                 cmd.EnableShaderKeyword(k_MsaaDepthKeyword);
                 cmd.Blit(depthSurface, copyDepthSurface, m_DepthCopyMaterial);
             }
             else
             {
-                m_DepthCopyMaterial.DisableKeyword(k_MsaaDepthKeyword);
+                cmd.DisableShaderKeyword(k_MsaaDepthKeyword);
                 LightweightPipeline.CopyTexture(cmd, depthSurface, copyDepthSurface, m_DepthCopyMaterial);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
-
-            m_DepthCopyMaterial.DisableKeyword(k_MsaaDepthKeyword);
         }
 
         void CopyColorSubpass(ref ScriptableRenderContext context, ref CameraData cameraData)
