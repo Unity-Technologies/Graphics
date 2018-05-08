@@ -53,8 +53,12 @@ TEXTURE2D(_GBufferTexture0);
 
 // Vlayer config options:
 
-//#define VLAYERED_RECOMPUTE_PERLIGHT // TODO test more, make it a shader_features
+#ifdef _VLAYERED_RECOMPUTE_PERLIGHT
+#    define VLAYERED_RECOMPUTE_PERLIGHT 
+// Now a shader_features
 // probably too slow but just to check the difference it makes
+#endif
+
 //#define VLAYERED_USE_REFRACTED_ANGLES_FOR_BASE
 #define VLAYERED_DIFFUSE_ENERGY_HACKED_TERM
 //#define VLAYERED_ANISOTROPY_IBL_DESTRETCH
@@ -1230,7 +1234,7 @@ void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightDat
     }
 #endif
 
-    if( !perLightOption )
+    if( !perLightOption || calledPerLight)
     {
         ConvertAnisotropyToClampRoughness(preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX], preLightData.iblAnisotropy[0],
                                           preLightData.layeredRoughnessT[0], preLightData.layeredRoughnessB[0]);

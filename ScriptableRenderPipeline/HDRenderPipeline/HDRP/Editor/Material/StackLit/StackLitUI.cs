@@ -212,6 +212,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 new GroupProperty(this, "_Debug", "Debug", new BaseProperty[]
                 {
+                    new Property(this, "_VlayerRecomputePerLight", "Vlayer Recompute Per Light", "", false),
                     new Property(this, "_DebugEnable", "Debug Enable", "Switch to a debug version of the shader", false),
                     new Property(this, "_DebugLobeMask", "DebugLobeMask", "xyz is Lobe 0 1 2 Enable, w is Enable VLayering", false),
                     new Property(this, "_DebugAniso", "DebugAniso", "x is Hack Enable, y is factor", false),
@@ -424,6 +425,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // TEMP - Remove once dev is finish
             bool debugEnabled = material.HasProperty("_DebugEnable") && material.GetFloat("_DebugEnable") > 0.0f;
             CoreUtils.SetKeyword(material, "_STACKLIT_DEBUG", debugEnabled);
+
+            bool vlayerRecomputePerLight = material.HasProperty("_VlayerRecomputePerLight") && material.GetFloat("_VlayerRecomputePerLight") > 0.0f;
+            CoreUtils.SetKeyword(material, "_VLAYERED_RECOMPUTE_PERLIGHT", vlayerRecomputePerLight);
 
 
             // Set the reference value for the stencil test - required for SSS
