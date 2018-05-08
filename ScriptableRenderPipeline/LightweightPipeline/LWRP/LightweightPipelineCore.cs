@@ -55,13 +55,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public struct ShadowData
     {
-        public bool supportsDirectionalShadows;
-        public bool requiresScreenSpaceOcclusion;
+        public bool renderDirectionalShadows;
+        public bool requiresScreenSpaceShadowResolve;
         public int directionalShadowAtlasWidth;
         public int directionalShadowAtlasHeight;
         public int directionalLightCascadeCount;
         public Vector3 directionalLightCascades;
-        public bool supportsLocalShadows;
+        public bool renderLocalShadows;
         public int localShadowAtlasWidth;
         public int localShadowAtlasHeight;
         public bool supportsSoftShadows;

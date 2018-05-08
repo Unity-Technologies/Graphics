@@ -109,7 +109,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 List<VisibleLight> visibleLights = m_CullResults.visibleLights;
 
                 LightData lightData;
-                InitializeLightData(visibleLights, m_Renderer.maxSupportedLocalLightsPerPass, m_Renderer.maxSupportedVertexLights, out lightData);
+                InitializeLightData(ref cameraData, visibleLights, m_Renderer.maxSupportedLocalLightsPerPass, m_Renderer.maxSupportedVertexLights, out lightData);
 
                 m_Renderer.Setup(ref context, ref m_CullResults, ref cameraData, ref lightData);
                 m_Renderer.Execute(ref context, ref m_CullResults, ref cameraData, ref lightData);
@@ -129,14 +129,19 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cameraData.msaaSamples = 1;
 
             cameraData.isSceneViewCamera = camera.cameraType == CameraType.SceneView;
+            cameraData.isOffscreenRender = camera.targetTexture != null && !cameraData.isSceneViewCamera;
+            cameraData.isStereoEnabled = IsStereoEnabled(camera);
+            cameraData.isHdrEnabled = camera.allowHDR && pipelineAsset.SupportsHDR;
+
+            cameraData.postProcessLayer = camera.GetComponent<PostProcessLayer>();
+            cameraData.postProcessEnabled = cameraData.postProcessLayer != null && cameraData.postProcessLayer.isActiveAndEnabled;
+
+            // PostProcess for VR is not working atm. Disable it for now.
+            cameraData.postProcessEnabled &= !cameraData.isStereoEnabled;
 
             Rect cameraRect = camera.rect;
             cameraData.isDefaultViewport = (!(Math.Abs(cameraRect.x) > 0.0f || Math.Abs(cameraRect.y) > 0.0f ||
                                               Math.Abs(cameraRect.width) < 1.0f || Math.Abs(cameraRect.height) < 1.0f));
-
-            cameraData.isOffscreenRender = camera.targetTexture != null && !cameraData.isSceneViewCamera;
-            cameraData.isStereoEnabled = IsStereoEnabled(camera);
-            cameraData.isHdrEnabled = camera.allowHDR && pipelineAsset.SupportsHDR;
 
             // Discard variations lesser than kRenderScaleThreshold.
             // Scale is only enabled for gameview
@@ -144,16 +149,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cameraData.renderScale = (Mathf.Abs(1.0f - pipelineAsset.RenderScale) < kRenderScaleThreshold) ? 1.0f : pipelineAsset.RenderScale;
             cameraData.renderScale = (camera.cameraType == CameraType.Game && !cameraData.isStereoEnabled) ? cameraData.renderScale : 1.0f;
 
-            cameraData.requiresDepthTexture = pipelineAsset.RequireDepthTexture;
+            cameraData.requiresDepthTexture = pipelineAsset.RequireDepthTexture || cameraData.postProcessEnabled || cameraData.isSceneViewCamera;
             cameraData.requiresSoftParticles = pipelineAsset.RequireSoftParticles;
             cameraData.requiresOpaqueTexture = pipelineAsset.RequireOpaqueTexture;
             cameraData.opaqueTextureDownsampling = pipelineAsset.OpaqueDownsampling;
 
             bool anyShadowsEnabled = pipelineAsset.SupportsDirectionalShadows || pipelineAsset.SupportsLocalShadows;
             cameraData.maxShadowDistance = (anyShadowsEnabled) ? pipelineAsset.ShadowDistance : 0.0f;
-
-            cameraData.postProcessLayer = camera.GetComponent<PostProcessLayer>();
-            cameraData.postProcessEnabled = cameraData.postProcessLayer != null && cameraData.postProcessLayer.isActiveAndEnabled;
         }
 
         void InitializeShadowData(bool hasDirectionalShadowCastingLight, bool hasLocalShadowCastingLight, out ShadowData shadowData)
@@ -161,9 +163,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // Until we can have keyword stripping forcing single cascade hard shadows on gles2
             bool supportsScreenSpaceShadows = SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
-            shadowData.supportsDirectionalShadows = pipelineAsset.SupportsDirectionalShadows && hasDirectionalShadowCastingLight;
-            shadowData.requiresScreenSpaceOcclusion = shadowData.supportsDirectionalShadows && supportsScreenSpaceShadows;
-            shadowData.directionalLightCascadeCount = (shadowData.requiresScreenSpaceOcclusion) ? pipelineAsset.CascadeCount : 1;
+            shadowData.renderDirectionalShadows = pipelineAsset.SupportsDirectionalShadows && hasDirectionalShadowCastingLight;
+            shadowData.requiresScreenSpaceShadowResolve = shadowData.renderDirectionalShadows && supportsScreenSpaceShadows;
+            shadowData.directionalLightCascadeCount = (shadowData.requiresScreenSpaceShadowResolve) ? pipelineAsset.CascadeCount : 1;
             shadowData.directionalShadowAtlasWidth = pipelineAsset.DirectionalShadowAtlasResolution;
             shadowData.directionalShadowAtlasHeight = pipelineAsset.DirectionalShadowAtlasResolution;
 
@@ -182,7 +184,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     break;
             }
 
-            shadowData.supportsLocalShadows = pipelineAsset.SupportsLocalShadows && hasLocalShadowCastingLight;
+            shadowData.renderLocalShadows = pipelineAsset.SupportsLocalShadows && hasLocalShadowCastingLight;
             shadowData.localShadowAtlasWidth = shadowData.localShadowAtlasHeight = pipelineAsset.LocalShadowAtlasResolution;
             shadowData.supportsSoftShadows = pipelineAsset.SupportsSoftShadows;
             shadowData.bufferBitCount = 16;
@@ -191,23 +193,27 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             shadowData.renderedLocalShadowQuality = LightShadows.None;
         }
 
-        void InitializeLightData(List<VisibleLight> visibleLights, int maxSupportedLocalLightsPerPass, int maxSupportedVertexLights, out LightData lightData)
+        void InitializeLightData(ref CameraData cameraData, List<VisibleLight> visibleLights, int maxSupportedLocalLightsPerPass, int maxSupportedVertexLights, out LightData lightData)
         {
             m_LocalLightIndices.Clear();
 
             bool hasDirectionalShadowCastingLight = false;
             bool hasLocalShadowCastingLight = false;
-            for (int i = 0; i < visibleLights.Count; ++i)
+
+            if (cameraData.maxShadowDistance > 0.0f)
             {
-                bool castShadows = visibleLights[i].light.shadows != LightShadows.None;
-                if (visibleLights[i].lightType == LightType.Directional)
+                for (int i = 0; i < visibleLights.Count; ++i)
                 {
-                    hasDirectionalShadowCastingLight |= castShadows;
-                }
-                else
-                {
-                    hasLocalShadowCastingLight |= castShadows;
-                    m_LocalLightIndices.Add(i);
+                    bool castShadows = visibleLights[i].light.shadows != LightShadows.None;
+                    if (visibleLights[i].lightType == LightType.Directional)
+                    {
+                        hasDirectionalShadowCastingLight |= castShadows;
+                    }
+                    else
+                    {
+                        hasLocalShadowCastingLight |= castShadows;
+                        m_LocalLightIndices.Add(i);
+                    }
                 }
             }
 
@@ -293,172 +299,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             else
                 cameraData.postProcessLayer.Render(context);
         }
-
-        //private void SetupFrameRenderingConfiguration(out FrameRenderingConfiguration configuration, bool screenspaceShadows, bool stereoEnabled, bool sceneViewCamera)
-        //{
-        //configuration = (stereoEnabled) ? FrameRenderingConfiguration.Stereo : FrameRenderingConfiguration.None;
-        //if (stereoEnabled && XRSettings.eyeTextureDesc.dimension == TextureDimension.Tex2DArray)
-        //    m_IntermediateTextureArray = true;
-        //else
-        //    m_IntermediateTextureArray = false;
-
-        //bool hdrEnabled = m_Asset.SupportsHDR && m_CurrCamera.allowHDR;
-
-        //bool defaultRenderScale = Mathf.Approximately(GetRenderScale(), 1.0f);
-        //bool intermediateTexture = m_CurrCamera.targetTexture != null || m_CurrCamera.cameraType == CameraType.SceneView ||
-        //    !defaultRenderScale || hdrEnabled;
-
-        //m_ColorFormat = hdrEnabled ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default;
-        //m_RequireCopyColor = false;
-        //m_DepthRenderBuffer = false;
-        //m_CameraPostProcessLayer = m_CurrCamera.GetComponent<PostProcessLayer>();
-
-        //bool msaaEnabled = m_CurrCamera.allowMSAA && m_Asset.MsaaSampleCount > 1 && (m_CurrCamera.targetTexture == null || m_CurrCamera.targetTexture.antiAliasing > 1);
-
-        // TODO: PostProcessing and SoftParticles are currently not support for VR
-        //bool postProcessEnabled = m_CameraPostProcessLayer != null && m_CameraPostProcessLayer.enabled && !stereoEnabled;
-        //m_RequireDepthTexture = m_Asset.RequireDepthTexture && !stereoEnabled;
-        //bool canSkipDepthCopy = !m_RequireDepthTexture;
-        //if (postProcessEnabled)
-        //{
-        //    m_RequireDepthTexture = true;
-        //    intermediateTexture = true;
-
-        //    configuration |= FrameRenderingConfiguration.PostProcess;
-        //    if (m_CameraPostProcessLayer.HasOpaqueOnlyEffects(m_PostProcessRenderContext))
-        //    {
-        //        configuration |= FrameRenderingConfiguration.BeforeTransparentPostProcess;
-        //        if (m_CameraPostProcessLayer.sortedBundles[PostProcessEvent.BeforeTransparent].Count == 1)
-        //            m_RequireCopyColor = true;
-        //    }
-        //}
-
-        //if (sceneViewCamera)
-        //{
-        //    m_RequireDepthTexture = true;
-        //    canSkipDepthCopy = false;
-        //}
-
-        //m_RequireDepthTexture = m_RequireDepthTexture || screenspaceShadows;
-        //canSkipDepthCopy = canSkipDepthCopy && !screenspaceShadows;
-
-        //if (msaaEnabled)
-        //{
-        //    configuration |= FrameRenderingConfiguration.Msaa;
-        //    intermediateTexture = intermediateTexture || !PlatformSupportsMSAABackBuffer();
-        //    canSkipDepthCopy = false;
-        //}
-
-        //if (m_RequireDepthTexture)
-        //{
-        //    bool hasTex2DMS = SystemInfo.supportsMultisampledTextures != 0;
-        //    bool copyShaderSupported = m_Asset.CopyDepthShader.isSupported && (msaaEnabled == hasTex2DMS);
-        //    bool supportsDepthCopy = m_CopyTextureSupport != CopyTextureSupport.None || copyShaderSupported;
-        //    bool requiresDepthPrepassToResolveMSAA = msaaEnabled && !hasTex2DMS;
-        //    bool requiresDepthPrepass = !supportsDepthCopy || screenspaceShadows || requiresDepthPrepassToResolveMSAA;
-
-        //    m_DepthRenderBuffer = !requiresDepthPrepass;
-        //    intermediateTexture = intermediateTexture || m_DepthRenderBuffer;
-
-        //    if (requiresDepthPrepass)
-        //        configuration |= FrameRenderingConfiguration.DepthPrePass;
-        //    else if (supportsDepthCopy && !canSkipDepthCopy)
-        //        configuration |= FrameRenderingConfiguration.DepthCopy;
-        //}
-
-        //Rect cameraRect = m_CurrCamera.rect;
-        //if (!(Math.Abs(cameraRect.x) > 0.0f || Math.Abs(cameraRect.y) > 0.0f || Math.Abs(cameraRect.width) < 1.0f || Math.Abs(cameraRect.height) < 1.0f))
-        //    configuration |= FrameRenderingConfiguration.DefaultViewport;
-        //else
-        //    intermediateTexture = true;
-
-        //if (intermediateTexture)
-        //    configuration |= FrameRenderingConfiguration.IntermediateTexture;
-        //}
-
-        //private void SetupIntermediateResources(FrameRenderingConfiguration renderingConfig, bool shadows, ref ScriptableRenderContext context)
-        //{
-        //    CommandBuffer cmd = CommandBufferPool.Get("Setup Intermediate Resources");
-
-        //    m_CurrCameraColorRT = BuiltinRenderTextureType.CameraTarget;
-
-        //    if (CoreUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.IntermediateTexture) || m_RequireDepthTexture)
-        //        SetupIntermediateRenderTextures(cmd, renderingConfig, shadows, msaaSamples);
-
-        //    context.ExecuteCommandBuffer(cmd);
-        //    CommandBufferPool.Release(cmd);
-        //}
-
-        //private void SetupIntermediateRenderTextures(CommandBuffer cmd, FrameRenderingConfiguration renderingConfig, bool shadows, int msaaSamples)
-        //{
-        //    RenderTextureDescriptor baseDesc = CreateRTDesc(renderingConfig);
-
-        //    if (m_RequireDepthTexture)
-        //    {
-        //        var depthRTDesc = baseDesc;
-        //        depthRTDesc.colorFormat = RenderTextureFormat.Depth;
-        //        depthRTDesc.depthBufferBits = kDepthStencilBufferBits;
-
-        //        // This also means we don't do a depth copy
-        //        bool doesDepthPrepass = CoreUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.DepthPrePass);
-        //        if (doesDepthPrepass)
-        //            m_DepthOnlyPass.BindSurface(cmd, baseDesc, msaaSamples);
-
-        //        //if (!doesDepthPrepass)
-        //        //{
-        //        //    depthRTDesc.bindMS = msaaSamples > 1;
-        //        //    depthRTDesc.msaaSamples = msaaSamples;
-        //        //}
-
-        //        //cmd.GetTemporaryRT(CameraRenderTargetID.depth, depthRTDesc, FilterMode.Point);
-
-        //        if (!doesDepthPrepass)
-        //        {
-        //            depthRTDesc.bindMS = false;
-        //            depthRTDesc.msaaSamples = 1;
-        //            cmd.GetTemporaryRT(CameraRenderTargetID.depthCopy, depthRTDesc, FilterMode.Point);
-        //        }
-
-        //        m_ShadowPass.BindSurface(cmd, baseDesc, 1);
-        //    }
-
-        //    var colorRTDesc = baseDesc;
-        //    colorRTDesc.colorFormat = m_ColorFormat;
-        //    colorRTDesc.depthBufferBits = kDepthStencilBufferBits; // TODO: does the color RT always need depth?
-        //    colorRTDesc.sRGB = true;
-        //    colorRTDesc.msaaSamples = msaaSamples;
-        //    colorRTDesc.enableRandomWrite = false;
-
-        //    // When offscreen camera current rendertarget is CameraTarget
-        //    if (!m_IsOffscreenCamera)
-        //    {
-        //        cmd.GetTemporaryRT(CameraRenderTargetID.color, colorRTDesc, FilterMode.Bilinear);
-        //        m_CurrCameraColorRT = m_ColorRT;
-        //    }
-
-        //    // When BeforeTransparent PostFX is enabled and only one effect is in the stack we need to create a temp
-        //    // color RT to blit the effect.
-        //    if (m_RequireCopyColor)
-        //        cmd.GetTemporaryRT(CameraRenderTargetID.copyColor, colorRTDesc, FilterMode.Point);
-        //}
-
-        //public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorRT, ClearFlag clearFlag = ClearFlag.None)
-        //{
-        //    int depthSlice = (m_IntermediateTextureArray) ? -1 : 0;
-        //    CoreUtils.SetRenderTarget(cmd, colorRT, clearFlag, CoreUtils.ConvertSRGBToActiveColorSpace(m_CurrCamera.backgroundColor), 0, CubemapFace.Unknown, depthSlice);
-        //}
-
-        //public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorRT, RenderTargetIdentifier depthRT, ClearFlag clearFlag = ClearFlag.None)
-        //{
-        //    if (depthRT == BuiltinRenderTextureType.None || !m_DepthRenderBuffer)
-        //    {
-        //        SetRenderTarget(cmd, colorRT, clearFlag);
-        //        return;
-        //    }
-
-        //    int depthSlice = (m_IntermediateTextureArray) ? -1 : 0;
-        //    CoreUtils.SetRenderTarget(cmd, colorRT, depthRT, clearFlag, CoreUtils.ConvertSRGBToActiveColorSpace(m_CurrCamera.backgroundColor), 0, CubemapFace.Unknown, depthSlice);
-        //}
 
         public static void Blit(CommandBuffer cmd, ref CameraData cameraData, RenderTargetIdentifier sourceRT, RenderTargetIdentifier destRT, Material material = null)
         {

@@ -44,7 +44,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             Clear();
             ShadowData shadowData = lightData.shadowData;
-            if (shadowData.supportsLocalShadows)
+            if (shadowData.renderLocalShadows)
                 lightData.shadowData.renderedLocalShadowQuality = RenderLocalShadowmapAtlas(ref context, ref cullResults, ref lightData, ref shadowData);
         }
 

@@ -450,59 +450,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
-        void AfterOpaque(ref ScriptableRenderContext context, ref CameraData cameraData)
-        {
-            //if (m_RequireDepthTexture)
-            //{
-            //    CommandBuffer cmd = CommandBufferPool.Get("After Opaque");
-
-            //    bool setRenderTarget = false;
-            //    RenderTargetIdentifier depthRT = m_DepthRT;
-
-            //    // TODO: There's currently an issue in the PostFX stack that has a one frame delay when an effect is enabled/disabled
-            //    // when an effect is disabled, HasOpaqueOnlyEffects returns true in the first frame, however inside render the effect
-            //    // state is update, causing RenderPostProcess here to not blit to FinalColorRT. Until the next frame the RT will have garbage.
-            //    if (CoreUtils.HasFlag(config, FrameRenderingConfiguration.BeforeTransparentPostProcess))
-            //    {
-            //        // When only have one effect in the stack we blit to a work RT then blit it back to active color RT.
-            //        // This seems like an extra blit but it saves us a depth copy/blit which has some corner cases like msaa depth resolve.
-            //        if (m_RequireCopyColor)
-            //        {
-            //            RenderPostProcess(cmd, m_CurrCameraColorRT, m_CopyColorRT, true);
-            //            cmd.Blit(m_CopyColorRT, m_CurrCameraColorRT);
-            //        }
-            //        else
-            //            RenderPostProcess(cmd, m_CurrCameraColorRT, m_CurrCameraColorRT, true);
-
-            //        setRenderTarget = true;
-            //        SetRenderTarget(cmd, m_CurrCameraColorRT, m_DepthRT);
-            //    }
-
-            //    if (CoreUtils.HasFlag(config, FrameRenderingConfiguration.DepthCopy))
-            //    {
-            //        bool forceBlit = false;
-            //        if (m_MSAASamples > 1)
-            //        {
-            //            cmd.SetGlobalFloat(m_SampleCount, (float)m_MSAASamples);
-            //            cmd.EnableShaderKeyword(kMSAADepthKeyword);
-            //            forceBlit = true;
-            //        }
-            //        else
-            //            cmd.DisableShaderKeyword(kMSAADepthKeyword);
-
-            //        CopyTexture(cmd, m_DepthRT, m_CopyDepth, m_CopyDepthMaterial, forceBlit);
-            //        depthRT = m_CopyDepth;
-            //        setRenderTarget = true;
-            //        cmd.SetGlobalTexture(RenderTargetHandle.Depth, m_CopyDepth);
-            //    }
-
-            //    if (setRenderTarget)
-            //        SetRenderTarget(cmd, m_CurrCameraColorRT, depthRT);
-            //    context.ExecuteCommandBuffer(cmd);
-            //    CommandBufferPool.Release(cmd);
-            //}
-        }
-
         // TODO: move to postfx pass
         void PostProcessPass(ref ScriptableRenderContext context, ref CameraData cameraData)
         {
@@ -553,27 +500,29 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             CommandBuffer cmd = CommandBufferPool.Get("Depth Copy");
             RenderTargetIdentifier depthSurface = GetSurface(depthAttachmentHandle);
-            RenderTargetIdentifier copyDepthSurface = GetSurface(RenderTargetHandles.DepthCopy);
+            RenderTargetIdentifier copyDepthSurface = GetSurface(RenderTargetHandles.DepthTexture);
 
             RenderTextureDescriptor descriptor = renderer.CreateRTDesc(ref cameraData);
             descriptor.colorFormat = RenderTextureFormat.Depth;
             descriptor.depthBufferBits = k_DepthStencilBufferBits;
-            cmd.GetTemporaryRT(RenderTargetHandles.DepthCopy, descriptor, FilterMode.Point);
+            cmd.GetTemporaryRT(RenderTargetHandles.DepthTexture, descriptor, FilterMode.Point);
 
             if (cameraData.msaaSamples > 1)
             {
-                cmd.SetGlobalFloat(m_SampleCountShaderHandle, cameraData.msaaSamples);
+                m_DepthCopyMaterial.SetFloat(m_SampleCountShaderHandle, cameraData.msaaSamples);
+                m_DepthCopyMaterial.EnableKeyword(k_MsaaDepthKeyword);
                 cmd.EnableShaderKeyword(k_MsaaDepthKeyword);
                 cmd.Blit(depthSurface, copyDepthSurface, m_DepthCopyMaterial);
             }
             else
             {
-                cmd.DisableShaderKeyword(k_MsaaDepthKeyword);
+                m_DepthCopyMaterial.DisableKeyword(k_MsaaDepthKeyword);
                 LightweightPipeline.CopyTexture(cmd, depthSurface, copyDepthSurface, m_DepthCopyMaterial);
             }
-            //cmd.SetGlobalTexture(RenderTargetHandles.Depth, copyDepthSurface);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+
+            m_DepthCopyMaterial.DisableKeyword(k_MsaaDepthKeyword);
         }
 
         void CopyColorSubpass(ref ScriptableRenderContext context, ref CameraData cameraData)
