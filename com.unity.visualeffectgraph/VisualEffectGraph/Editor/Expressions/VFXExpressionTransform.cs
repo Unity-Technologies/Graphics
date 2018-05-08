@@ -299,7 +299,7 @@ namespace UnityEditor.VFX
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("float4x4(float4({0}, 0.0), float4({0}, 0.0), float4({0}, 0.0), float4({0}, 1.0));", parents[0], parents[1], parents[2], parents[3]);
+            return string.Format("float4x4(float4({0}, 0.0), float4({1}, 0.0), float4({2}, 0.0), float4({3}, 1.0));", parents[0], parents[1], parents[2], parents[3]);
         }
     }
 
@@ -344,7 +344,7 @@ namespace UnityEditor.VFX
 
         public override string GetCodeString(string[] parents)
         {
-            return string.Format("float4x4({0}, {0}, {0}, {0});", parents[0], parents[1], parents[2], parents[3]);
+            return string.Format("float4x4({0}, {1}, {2}, {3});", parents[0], parents[1], parents[2], parents[3]);
         }
     }
 
