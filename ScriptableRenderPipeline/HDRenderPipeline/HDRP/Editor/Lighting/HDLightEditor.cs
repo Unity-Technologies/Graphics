@@ -202,9 +202,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         void DrawFeatures()
         {
-            bool disabledScope = settings.isCompletelyBaked
-                || m_LightShape == LightShape.Line
-                || m_LightShape == LightShape.Rectangle;
+            bool disabledScope = m_LightShape == LightShape.Line || (m_LightShape == LightShape.Rectangle && settings.isRealtime);
 
             using (new EditorGUI.DisabledScope(disabledScope))
             {
@@ -276,7 +274,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     m_AdditionalLightData.shapeHeight.floatValue = Mathf.Max(m_AdditionalLightData.shapeHeight.floatValue, k_MinAreaWidth);
                     settings.areaSizeX.floatValue = m_AdditionalLightData.shapeWidth.floatValue;
                     settings.areaSizeY.floatValue = m_AdditionalLightData.shapeHeight.floatValue;
-                    settings.shadowsType.enumValueIndex = (int)LightShadows.None;
+                    if (settings.isRealtime)
+                        settings.shadowsType.enumValueIndex = (int)LightShadows.None;
                     break;
 
                 case LightShape.Line:
