@@ -52,6 +52,7 @@ Shader "HDRenderPipeline/StackLit"
         [HideInInspector] _SmoothnessBRange("SmoothnessB Range", Vector) = (0, 1, 0, 0)
         _LobeMix("Lobe Mix", Range(0.0, 1.0)) = 0
 
+        [ToggleUI] _VlayerRecomputePerLight("Vlayer Recompute Per Light", Float) = 0.0 // UI only
         [ToggleUI] _DebugEnable("Debug Enable", Float) = 0.0 // UI only
         _DebugLobeMask("DebugLobeMask", Vector) = (1, 1, 1, 1)
         _DebugAniso("DebugAniso", Vector) = (1, 0, 0, 1000.0)
@@ -85,6 +86,14 @@ Shader "HDRenderPipeline/StackLit"
         _CoatIor("Coat IOR", Range(1.0001, 2.0)) = 1.5
         _CoatThickness("Coat Thickness", Range(0.0, 0.99)) = 0.0
         _CoatExtinction("Coat Extinction Coefficient", Color) = (1,1,1) // in thickness^-1 units
+
+        [ToggleUI] _EnableCoatNormalMap("Enable Coat Normal Map", Float) = 0.0 // UI only
+        [HideInInspector] _CoatNormalMapShow("Coat NormalMap Show", Float) = 0.0
+        _CoatNormalMap("Coat NormalMap", 2D) = "bump" {}     // Tangent space normal map
+        _CoatNormalMapUV("Coat NormalMapUV", Float) = 0.0
+        _CoatNormalMapUVLocal("Coat NormalMapUV Local", Float) = 0.0
+        _CoatNormalMapObjSpace("Coat NormalMap ObjSpace", Float) = 0.0
+        _CoatNormalScale("Coat NormalMap Scale", Range(0.0, 2.0)) = 1
 
         [HideInInspector] _NormalMapShow("NormalMap Show", Float) = 0.0
         _NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
@@ -190,6 +199,14 @@ Shader "HDRenderPipeline/StackLit"
         [HideInInspector] _ZTestDepthEqualForOpaque("_ZTestDepthEqualForOpaque", Int) = 4 // Less equal
         [HideInInspector] _ZTestModeDistortion("_ZTestModeDistortion", Int) = 8
 
+        [ToggleUI] _SpecularAntiAliasingEnabled("Specular Anti Aliasing Enabled", Float) = 0.0
+        _SpecularAntiAliasingScreenSpaceVariance("SpecularAntiAliasingScreenSpaceVariance", Range(0.0, 1.0)) = 1.0
+        _SpecularAntiAliasingThreshold("SpecularAntiAliasingThreshold", Range(0.0, 1.0)) = 0.18
+
+        [ToggleUI] _NormalCurvatureToRoughnessEnabled("_NormalCurvatureToRoughnessEnabled", Float) = 0.0
+        _NormalCurvatureToRoughnessScale("_NormalCurvatureToRoughnessScale", Range(0.0, 2.0)) = 1.0
+        _NormalCurvatureToRoughnessBias("_NormalCurvatureToRoughnessBias", Range(-1.0, 1.0)) = 0.0
+        _NormalCurvatureToRoughnessExponent("_NormalCurvatureToRoughnessExponent", Range(0.05, 20.0)) = 0.333
 
         [ToggleUI] _EnableFogOnTransparent("Enable Fog", Float) = 1.0
         [ToggleUI] _EnableBlendModePreserveSpecularLighting("Enable Blend Mode Preserve Specular Lighting", Float) = 1.0
@@ -253,9 +270,12 @@ Shader "HDRenderPipeline/StackLit"
     #pragma shader_feature _MATERIAL_FEATURE_DUAL_SPECULAR_LOBE
     #pragma shader_feature _MATERIAL_FEATURE_ANISOTROPY
     #pragma shader_feature _MATERIAL_FEATURE_COAT
+    #pragma shader_feature _MATERIAL_FEATURE_COAT_NORMALMAP
     #pragma shader_feature _MATERIAL_FEATURE_IRIDESCENCE
     #pragma shader_feature _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
     #pragma shader_feature _MATERIAL_FEATURE_TRANSMISSION
+
+    #pragma shader_feature _VLAYERED_RECOMPUTE_PERLIGHT
 
 
     #pragma shader_feature _STACKLIT_DEBUG
