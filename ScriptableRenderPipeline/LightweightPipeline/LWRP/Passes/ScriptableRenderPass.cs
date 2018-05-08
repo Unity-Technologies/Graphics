@@ -51,6 +51,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             DrawRendererSettings settings = new DrawRendererSettings(camera, m_ShaderPassNames[0]);
             for (int i = 1; i < m_ShaderPassNames.Count; ++i)
                 settings.SetShaderPassName(i, m_ShaderPassNames[i]);
+            settings.flags = DrawRendererFlags.EnableDynamicBatching | DrawRendererFlags.EnableInstancing;
             settings.sorting.flags = sortFlags;
             settings.rendererConfiguration = rendererConfiguration;
             return settings;
