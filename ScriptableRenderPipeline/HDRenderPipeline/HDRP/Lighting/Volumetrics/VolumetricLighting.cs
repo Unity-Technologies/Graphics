@@ -67,6 +67,7 @@ public class VolumetricLightingSystem
 {
     public enum VolumetricLightingPreset
     {
+        Off,
         Normal,
         Ultra,
         Count
@@ -316,6 +317,8 @@ public class VolumetricLightingSystem
                 return 8;
             case VolumetricLightingPreset.Ultra:
                 return 4;
+            case VolumetricLightingPreset.Off:
+                return 0;
             default:
                 Debug.Assert(false, "Encountered an unexpected VolumetricLightingPreset.");
                 return 0;
@@ -330,6 +333,8 @@ public class VolumetricLightingSystem
                 return 64;
             case VolumetricLightingPreset.Ultra:
                 return 128;
+            case VolumetricLightingPreset.Off:
+                return 0;
             default:
                 Debug.Assert(false, "Encountered an unexpected VolumetricLightingPreset.");
                 return 0;
