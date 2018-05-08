@@ -453,7 +453,8 @@ public class VolumetricLightingSystem
             return densityVolumes;
 
         var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-        if (visualEnvironment.fogType != FogType.Volumetric) return densityVolumes;
+        if (visualEnvironment.fogType != FogType.Volumetric)
+            return densityVolumes;
 
         using (new ProfilingSample(cmd, "Prepare Visible Density Volume List"))
         {
@@ -511,7 +512,8 @@ public class VolumetricLightingSystem
             return;
 
         var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-        if (visualEnvironment.fogType != FogType.Volumetric) return;
+        if (visualEnvironment.fogType != FogType.Volumetric)
+            return;
 
         using (new ProfilingSample(cmd, "Volume Voxelization"))
         {

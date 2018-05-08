@@ -12,6 +12,7 @@ namespace UnityEditor.Experimental.Rendering
         public SerializedProperty enableSSAO;
         public SerializedProperty enableSubsurfaceScattering;
         public SerializedProperty enableTransmission;
+        public SerializedProperty enableAtmosphericScattering;
         public SerializedProperty enableVolumetric;
 
         public SerializedProperty diffuseGlobalDimmer;
@@ -24,7 +25,6 @@ namespace UnityEditor.Experimental.Rendering
         public SerializedProperty enableMotionVectors;
         public SerializedProperty enableObjectMotionVectors;
         public SerializedProperty enableDBuffer;
-        public SerializedProperty enableAtmosphericScattering;
         public SerializedProperty enableRoughRefraction;
         public SerializedProperty enableTransparentPostpass;
         public SerializedProperty enableDistortion;
@@ -53,6 +53,7 @@ namespace UnityEditor.Experimental.Rendering
             enableSSAO = root.Find((FrameSettings d) => d.enableSSAO);
             enableSubsurfaceScattering = root.Find((FrameSettings d) => d.enableSubsurfaceScattering);
             enableTransmission = root.Find((FrameSettings d) => d.enableTransmission);
+            enableAtmosphericScattering = root.Find((FrameSettings d) => d.enableAtmosphericScattering);
             enableVolumetric = root.Find((FrameSettings d) => d.enableVolumetric);
             diffuseGlobalDimmer = root.Find((FrameSettings d) => d.diffuseGlobalDimmer);
             specularGlobalDimmer = root.Find((FrameSettings d) => d.specularGlobalDimmer);
@@ -62,7 +63,6 @@ namespace UnityEditor.Experimental.Rendering
             enableMotionVectors = root.Find((FrameSettings d) => d.enableMotionVectors);
             enableObjectMotionVectors = root.Find((FrameSettings d) => d.enableObjectMotionVectors);
             enableDBuffer = root.Find((FrameSettings d) => d.enableDBuffer);
-            enableAtmosphericScattering = root.Find((FrameSettings d) => d.enableAtmosphericScattering);
             enableRoughRefraction = root.Find((FrameSettings d) => d.enableRoughRefraction);
             enableTransparentPostpass = root.Find((FrameSettings d) => d.enableTransparentPostpass);
             enableDistortion = root.Find((FrameSettings d) => d.enableDistortion);
