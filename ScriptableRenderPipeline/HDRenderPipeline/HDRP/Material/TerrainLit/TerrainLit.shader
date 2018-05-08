@@ -413,6 +413,7 @@ Shader "HDRenderPipeline/TerrainLit"
         UsePass "Hidden/Nature/Terrain/Picking/TERRAINPICKING"
     }
 
-    Dependency "BaseMapShader" = "HDRenderPipeline/TerrainLit_Basemap"
+    Dependency "BaseMapShader" = "Hidden/HDRenderPipeline/TerrainLit_Basemap"
+    Dependency "BaseMapGenShader" = "Hidden/HDRenderPipeline/TerrainLit_Basemap_Gen"
     CustomEditor "UnityEditor.Experimental.Rendering.HDPipeline.TerrainLitGUI"
 }

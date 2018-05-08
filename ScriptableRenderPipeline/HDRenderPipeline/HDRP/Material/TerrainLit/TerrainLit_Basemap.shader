@@ -1,4 +1,4 @@
-Shader "HDRenderPipeline/TerrainLit_Basemap"
+Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap"
 {
     Properties
     {
