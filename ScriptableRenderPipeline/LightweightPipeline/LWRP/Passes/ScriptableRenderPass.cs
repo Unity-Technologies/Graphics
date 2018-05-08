@@ -15,7 +15,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public TextureDimension textureDimension { get; private set; }
 
         protected List<ShaderPassName> m_ShaderPassNames = new List<ShaderPassName>();
-        
+
         int samples;
 
         public ScriptableRenderPass(LightweightForwardRenderer renderer)
@@ -81,9 +81,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             RenderBufferStoreAction colorStoreAction, ClearFlag clearFlag, Color clearColor)
         {
             if (textureDimension == TextureDimension.Tex2DArray)
-                CoreUtils.SetRenderTarget(cmd, colorAttachmentHandle, clearFlag, clearColor, 0, CubemapFace.Unknown, -1);
+                CoreUtils.SetRenderTarget(cmd, colorAttachment, clearFlag, clearColor, 0, CubemapFace.Unknown, -1);
             else
-                CoreUtils.SetRenderTarget(cmd, colorAttachmentHandle, colorLoadAction, colorStoreAction, clearFlag, clearColor);
+                CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction, clearFlag, clearColor);
         }
 
         public void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderBufferLoadAction colorLoadAction,
@@ -91,11 +91,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             RenderBufferStoreAction depthStoreAction, ClearFlag clearFlag, Color clearColor)
         {
             if (textureDimension == TextureDimension.Tex2DArray)
-                CoreUtils.SetRenderTarget(cmd, colorAttachmentHandle, depthAttachmentHandle,
+                CoreUtils.SetRenderTarget(cmd, colorAttachment, depthAttachment,
                     clearFlag, clearColor, 0, CubemapFace.Unknown, -1);
             else
-                CoreUtils.SetRenderTarget(cmd, colorAttachmentHandle, colorLoadAction, colorStoreAction,
-                    depthAttachmentHandle, depthLoadAction, depthStoreAction, clearFlag, clearColor);
+                CoreUtils.SetRenderTarget(cmd, colorAttachment, colorLoadAction, colorStoreAction,
+                    depthAttachment, depthLoadAction, depthStoreAction, clearFlag, clearColor);
         }
     }
 }
