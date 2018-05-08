@@ -489,10 +489,38 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(expected, current);
         }
 
-        [Test]
-        public void SanitizeBehavior([ValueSource("allOperatorUsingFloatN")] Type op)
-        {
+        public static bool[] linkedSlot = new bool[] { true, false };
 
+        [Test]
+        public void SanitizeBehavior([ValueSource("allOperatorUsingFloatN")] Type op, [ValueSource("linkedSlot")] bool linkedSlot)
+        {
+            var graph = ScriptableObject.CreateInstance<VFXGraph>();
+            var currentOperator = ScriptableObject.CreateInstance(op) as VFXOperator;
+
+            graph.AddChild(currentOperator);
+            if (linkedSlot)
+            {
+                foreach (var slot in currentOperator.inputSlots)
+                {
+                    var vec2 = ScriptableObject.CreateInstance<VFXInlineOperator>();
+                    vec2.SetSettingValue("m_Type", (SerializableType)typeof(Vector2));
+                    graph.AddChild(vec2);
+
+                    slot.Link(vec2.outputSlots.FirstOrDefault());
+                }
+
+                foreach (var slot in currentOperator.outputSlots)
+                {
+                    var vec2 = ScriptableObject.CreateInstance<VFXInlineOperator>();
+                    vec2.SetSettingValue("m_Type", (SerializableType)typeof(Vector2));
+                    graph.AddChild(vec2);
+
+                    slot.Link(vec2.inputSlots.FirstOrDefault());
+                }
+            }
+
+            graph.SanitizeGraph();
+            //TODOPAUL
         }
 
 
