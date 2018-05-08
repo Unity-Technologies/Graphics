@@ -35,6 +35,8 @@
 - Fix the bug preventing decals from coexisting with density volumes
 - Fix issue with alpha tested geometry using planar/triplanar mapping not render correctly or flickering (due to being wrongly alpha tested in depth prepass)
 - Fix meta pass with triplanar (was not handling correctly the normal)
+- Fix preview when a planar reflection is present
+- Fix Camera preview, it is now a Preview cameraType (was a SceneView)
 
 ## [2018.1.0f2]
 
