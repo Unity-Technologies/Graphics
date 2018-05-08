@@ -86,6 +86,14 @@ Shader "HDRenderPipeline/StackLit"
         _CoatThickness("Coat Thickness", Range(0.0, 0.99)) = 0.0
         _CoatExtinction("Coat Extinction Coefficient", Color) = (1,1,1) // in thickness^-1 units
 
+        [ToggleUI] _EnableCoatNormalMap("Enable Coat Normal Map", Float) = 0.0 // UI only
+        [HideInInspector] _CoatNormalMapShow("Coat NormalMap Show", Float) = 0.0
+        _CoatNormalMap("Coat NormalMap", 2D) = "bump" {}     // Tangent space normal map
+        _CoatNormalMapUV("Coat NormalMapUV", Float) = 0.0
+        _CoatNormalMapUVLocal("Coat NormalMapUV Local", Float) = 0.0
+        _CoatNormalMapObjSpace("Coat NormalMap ObjSpace", Float) = 0.0
+        _CoatNormalScale("Coat NormalMap Scale", Range(0.0, 2.0)) = 1
+
         [HideInInspector] _NormalMapShow("NormalMap Show", Float) = 0.0
         _NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
         _NormalMapUV("NormalMapUV", Float) = 0.0
@@ -253,6 +261,7 @@ Shader "HDRenderPipeline/StackLit"
     #pragma shader_feature _MATERIAL_FEATURE_DUAL_SPECULAR_LOBE
     #pragma shader_feature _MATERIAL_FEATURE_ANISOTROPY
     #pragma shader_feature _MATERIAL_FEATURE_COAT
+    #pragma shader_feature _MATERIAL_FEATURE_COAT_NORMALMAP
     #pragma shader_feature _MATERIAL_FEATURE_IRIDESCENCE
     #pragma shader_feature _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
     #pragma shader_feature _MATERIAL_FEATURE_TRANSMISSION
