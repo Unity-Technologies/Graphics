@@ -8,6 +8,7 @@ using UnityEditor.Graphing;
 using UnityEngine.Experimental.UIElements;
 using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 using Node = UnityEditor.Experimental.UIElements.GraphView.Node;
+using Object = UnityEngine.Object;
 #if !UNITY_2018_1
 using UnityEditor.Graphs;
 #endif
@@ -269,46 +270,149 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         #region Drag and drop
 
+        static bool ValidateObjectForDrop(Object obj)
+        {
+            return EditorUtility.IsPersistent(obj) && (obj is Texture2D || obj is Cubemap || obj is MaterialSubGraphAsset);
+        }
+
         static void OnDragUpdatedEvent(DragUpdatedEvent e)
         {
             var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
-
-            if (selection != null && (selection.OfType<BlackboardField>().Any() ))
+            bool dragging = false;
+            if (selection != null)
             {
-                DragAndDrop.visualMode = e.ctrlKey ? DragAndDropVisualMode.Copy : DragAndDropVisualMode.Move;
+                // Blackboard
+                if (selection.OfType<BlackboardField>().Any())
+                    dragging = true;
+            }
+            else
+            {
+                // Handle unity objects
+                var objects = DragAndDrop.objectReferences;
+                foreach (Object obj in objects)
+                {
+                    if (ValidateObjectForDrop(obj))
+                    {
+                        dragging = true;
+                        break;
+                    }
+                }
+            }
+
+            if (dragging)
+            {
+                DragAndDrop.visualMode = DragAndDropVisualMode.Generic;
             }
         }
 
         void OnDragPerformEvent(DragPerformEvent e)
         {
-            var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
-            if (selection == null)
-                return;
-
-            IEnumerable<BlackboardField> fields = selection.OfType<BlackboardField>();
-            if (!fields.Any())
-                return;
-
             Vector2 localPos = (e.currentTarget as VisualElement).ChangeCoordinatesTo(contentViewContainer, e.localMousePosition);
 
-            foreach (BlackboardField field in fields)
+            var selection = DragAndDrop.GetGenericData("DragSelection") as List<ISelectable>;
+            if (selection != null)
             {
-                IShaderProperty property = field.userData as IShaderProperty;
-                if (property == null)
-                    continue;
+                // Blackboard
+                if (selection.OfType<BlackboardField>().Any())
+                {
+                    IEnumerable<BlackboardField> fields = selection.OfType<BlackboardField>();
+                    foreach (BlackboardField field in fields)
+                    {
+                        CreateNode(field, localPos);
+                    }
+                }
+            }
+            else
+            {
+                // Handle unity objects
+                var objects = DragAndDrop.objectReferences;
+                foreach (Object obj in objects)
+                {
+                    if (ValidateObjectForDrop(obj))
+                    {
+                        CreateNode(obj, localPos);
+                    }
+                }
+            }
+        }
 
-                var node = new PropertyNode();
+        void CreateNode(object obj, Vector2 nodePosition)
+        {
+            var texture2D = obj as Texture2D;
+            if (texture2D != null)
+            {
+                graph.owner.RegisterCompleteObjectUndo("Drag Texture");
+
+                bool isNormalMap = false;
+                if (EditorUtility.IsPersistent(texture2D) && !string.IsNullOrEmpty(AssetDatabase.GetAssetPath(texture2D)))
+                {
+                    var importer = AssetImporter.GetAtPath(AssetDatabase.GetAssetPath(texture2D)) as TextureImporter;
+                    if (importer != null)
+                        isNormalMap = importer.textureType == TextureImporterType.NormalMap;
+                }
+
+                var node = new SampleTexture2DNode();
+                if (isNormalMap)
+                    node.textureType = TextureType.Normal;
 
                 var drawState = node.drawState;
-                var position = drawState.position;
-                position.x = localPos.x;
-                position.y = localPos.y;
-                drawState.position = position;
+                drawState.position = new Rect(nodePosition, drawState.position.size);
                 node.drawState = drawState;
-
-                graph.owner.RegisterCompleteObjectUndo("Added Property");
                 graph.AddNode(node);
-                node.propertyGuid = property.guid;
+
+                var inputslot = node.FindInputSlot<Texture2DInputMaterialSlot>(SampleTexture2DNode.TextureInputId);
+                if (inputslot != null)
+                    inputslot.texture = texture2D;
+
+            }
+
+            var cubemap = obj as Cubemap;
+            if (cubemap != null)
+            {
+                graph.owner.RegisterCompleteObjectUndo("Drag Cubemap");
+                var property = new CubemapShaderProperty { displayName = cubemap.name, value = { cubemap = cubemap } };
+                graph.AddShaderProperty(property);
+                var node = new SampleCubemapNode();
+
+                var drawState = node.drawState;
+                drawState.position = new Rect(nodePosition, drawState.position.size);
+                node.drawState = drawState;
+                graph.AddNode(node);
+
+                var inputslot = node.FindInputSlot<CubemapInputMaterialSlot>(SampleCubemapNode.CubemapInputId);
+                if (inputslot != null)
+                    inputslot.cubemap = cubemap;
+            }
+
+            var subGraphAsset = obj as MaterialSubGraphAsset;
+            if (subGraphAsset != null)
+            {
+                graph.owner.RegisterCompleteObjectUndo("Drag Sub-Graph");
+                var node = new SubGraphNode();
+
+                var drawState = node.drawState;
+                drawState.position = new Rect(nodePosition, drawState.position.size);
+                node.drawState = drawState;
+                node.subGraphAsset = subGraphAsset;
+                graph.AddNode(node);
+            }
+
+            var blackboardField = obj as BlackboardField;
+            if (blackboardField != null)
+            {
+                IShaderProperty property = blackboardField.userData as IShaderProperty;
+                if (property != null)
+                {
+                    graph.owner.RegisterCompleteObjectUndo("Drag Property");
+                    var node = new PropertyNode();
+
+                    var drawState = node.drawState;
+                    drawState.position =  new Rect(nodePosition, drawState.position.size);
+                    node.drawState = drawState;
+                    graph.AddNode(node);
+
+                    node.propertyGuid = property.guid;
+                }
             }
         }
 
