@@ -8,6 +8,8 @@ using UnityEditor.VFX;
 using System.Collections.Generic;
 using UnityEditor;
 using System.Linq;
+using System.Text;
+using UnityEditor.SceneManagement;
 
 namespace  UnityEditor.VFX.UI
 {
@@ -112,7 +114,7 @@ namespace  UnityEditor.VFX.UI
 
         IPropertyRMProvider m_RangeProvider;
 
-        public void Clear()
+        public new void Clear()
         {
             m_ExposedProperty = null;
             m_RangeProperty = null;
@@ -311,6 +313,8 @@ namespace  UnityEditor.VFX.UI
             {
                 button.clickable.clicked += OnExpand;
             }
+
+            clippingOptions = ClippingOptions.ClipAndCacheContents;
         }
 
         void OnExpand()
@@ -426,37 +430,11 @@ namespace  UnityEditor.VFX.UI
             }
         }
 
-        const string blackBoardPositionPref = "VFXBlackboardRect";
+        VFXView m_View;
 
-
-        Rect LoadBlackBoardPosition()
+        public VFXBlackboard(VFXView view)
         {
-            string str = EditorPrefs.GetString(blackBoardPositionPref);
-            Rect blackBoardPosition = new Rect(100, 100, 300, 500);
-            if (!string.IsNullOrEmpty(str))
-            {
-                var rectValues = str.Split(',');
-
-                if (rectValues.Length == 4)
-                {
-                    float x, y, width, height;
-                    if (float.TryParse(rectValues[0], out x) && float.TryParse(rectValues[1], out y) && float.TryParse(rectValues[2], out width) && float.TryParse(rectValues[3], out height))
-                    {
-                        blackBoardPosition = new Rect(x, y, width, height);
-                    }
-                }
-            }
-
-            return blackBoardPosition;
-        }
-
-        void SaveBlackboardPosition(Rect r)
-        {
-            EditorPrefs.SetString(blackBoardPositionPref, string.Format("{0},{1},{2},{3}", r.x, r.y, r.width, r.height));
-        }
-
-        public VFXBlackboard()
-        {
+            m_View = view;
             RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
             editTextRequested = OnEditName;
             moveItemRequested = OnMoveItem;
@@ -465,12 +443,29 @@ namespace  UnityEditor.VFX.UI
             this.scrollable = true;
 
 
-            SetPosition(LoadBlackBoardPosition());
+            SetPosition(BoardPreferenceHelper.LoadPosition(BoardPreferenceHelper.Board.blackboard, defaultRect));
 
             m_ExposedSection = new BlackboardSection() { title = "parameters"};
             Add(m_ExposedSection);
 
             AddStyleSheetPath("VFXBlackboard");
+
+            RegisterCallback<MouseDownEvent>(OnMouseClick, Capture.Capture);
+
+
+            clippingOptions = ClippingOptions.ClipContents;
+        }
+
+        public void ValidatePosition()
+        {
+            BoardPreferenceHelper.ValidatePosition(this, m_View, defaultRect);
+        }
+
+        static readonly Rect defaultRect = new Rect(100, 100, 300, 500);
+
+        void OnMouseClick(MouseDownEvent e)
+        {
+            m_View.SetBoardToFront(this);
         }
 
         BlackboardSection m_ExposedSection;
@@ -572,7 +567,7 @@ namespace  UnityEditor.VFX.UI
 
         public void OnMoved()
         {
-            SaveBlackboardPosition(GetPosition());
+            BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.blackboard, GetPosition());
         }
     }
 }

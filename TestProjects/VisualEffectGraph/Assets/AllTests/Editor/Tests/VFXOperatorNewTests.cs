@@ -196,7 +196,7 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(VFXValueType.Float, dot.outputSlots[0].GetExpression().valueType);
 
             var a = new Vector2(6, 7);
-            var b = new Vector3(2, 3);
+            var b = new Vector2(2, 3);
 
             dot.inputSlots[0].value = a;
             dot.inputSlots[1].value = b;
@@ -205,7 +205,7 @@ namespace UnityEditor.VFX.Test
             var result = context.Compile(dot.outputSlots[0].GetExpression());
             var final = result.Get<float>();
 
-            Assert.AreEqual(Vector3.Dot(a, b), final);
+            Assert.AreEqual(Vector2.Dot(a, b), final);
         }
 
         [Test]
