@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.Operator
 
         override public string name { get { return "Squared Length"; } }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { VFXOperatorUtility.Dot(inputExpression[0], inputExpression[0]) };
         }

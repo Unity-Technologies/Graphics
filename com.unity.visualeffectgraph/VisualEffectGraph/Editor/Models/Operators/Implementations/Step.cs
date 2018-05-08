@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.Operator
             public FloatN Threshold = 0.5f;
         }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] {
                 VFXOperatorUtility.Saturate(VFXOperatorUtility.Ceil(inputExpression[0] - inputExpression[1])),

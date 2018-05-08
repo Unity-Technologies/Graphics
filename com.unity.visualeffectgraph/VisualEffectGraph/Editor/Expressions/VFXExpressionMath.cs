@@ -166,6 +166,11 @@ namespace UnityEditor.VFX
             return Mathf.Abs(input);
         }
 
+        protected override bool ProcessUnaryOperation(bool input)
+        {
+            throw new NotImplementedException();
+        }
+
         sealed protected override float ProcessUnaryOperation(float input)
         {
             return Mathf.Abs(input);
@@ -202,6 +207,11 @@ namespace UnityEditor.VFX
         sealed protected override float ProcessUnaryOperation(float input)
         {
             return Mathf.Sign(input);
+        }
+
+        protected override bool ProcessUnaryOperation(bool input)
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -264,6 +274,11 @@ namespace UnityEditor.VFX
         {
             return left + right;
         }
+
+        protected override bool ProcessBinaryOperation(bool left, bool right)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     class VFXExpressionMul : VFXExpressionBinaryNumericOperation
@@ -304,6 +319,11 @@ namespace UnityEditor.VFX
         sealed protected override uint ProcessBinaryOperation(uint left, uint right)
         {
             return left * right;
+        }
+
+        protected override bool ProcessBinaryOperation(bool left, bool right)
+        {
+            throw new NotImplementedException();
         }
 
         sealed protected override string GetBinaryOperationCode(string left, string right, VFXValueType type)
@@ -356,6 +376,11 @@ namespace UnityEditor.VFX
             return left / right;
         }
 
+        protected override bool ProcessBinaryOperation(bool left, bool right)
+        {
+            throw new NotImplementedException();
+        }
+
         sealed protected override string GetBinaryOperationCode(string left, string right, VFXValueType type)
         {
             return string.Format("{0} / {1}", left, right);
@@ -396,6 +421,11 @@ namespace UnityEditor.VFX
             return left - right;
         }
 
+        protected override bool ProcessBinaryOperation(bool left, bool right)
+        {
+            throw new NotImplementedException();
+        }
+
         sealed protected override string GetBinaryOperationCode(string left, string right, VFXValueType type)
         {
             return string.Format("{0} - {1}", left, right);
@@ -425,6 +455,11 @@ namespace UnityEditor.VFX
         protected override uint ProcessBinaryOperation(uint left, uint right)
         {
             return left < right ? left : right;
+        }
+
+        protected override bool ProcessBinaryOperation(bool left, bool right)
+        {
+            return left ? right : left;
         }
 
         sealed protected override string GetBinaryOperationCode(string left, string right, VFXValueType type)
@@ -458,6 +493,11 @@ namespace UnityEditor.VFX
         protected override uint ProcessBinaryOperation(uint left, uint right)
         {
             return left > right ? left : right;
+        }
+
+        protected override bool ProcessBinaryOperation(bool left, bool right)
+        {
+            return left ? left : right;
         }
 
         protected override string GetBinaryOperationCode(string left, string right, VFXValueType type)
@@ -634,6 +674,69 @@ namespace UnityEditor.VFX
         sealed protected override string GetUnaryOperationCode(string x)
         {
             return string.Format("~{0}", x);
+        }
+    }
+
+    class VFXExpressionLogicalAnd : VFXExpressionBinaryBoolOperation
+    {
+        public VFXExpressionLogicalAnd() : this(VFXValue<bool>.Default, VFXValue<bool>.Default)
+        {
+        }
+
+        public VFXExpressionLogicalAnd(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOperation.LogicalAnd)
+        {
+        }
+
+        sealed protected override bool ProcessBinaryOperation(bool left, bool right)
+        {
+            return left && right;
+        }
+
+        sealed protected override string GetBinaryOperationCode(string left, string right)
+        {
+            return string.Format("{0} && {1}", left, right);
+        }
+    }
+
+    class VFXExpressionLogicalOr : VFXExpressionBinaryBoolOperation
+    {
+        public VFXExpressionLogicalOr() : this(VFXValue<bool>.Default, VFXValue<bool>.Default)
+        {
+        }
+
+        public VFXExpressionLogicalOr(VFXExpression parentLeft, VFXExpression parentRight) : base(parentLeft, parentRight, VFXExpressionOperation.LogicalOr)
+        {
+        }
+
+        sealed protected override bool ProcessBinaryOperation(bool left, bool right)
+        {
+            return left || right;
+        }
+
+        sealed protected override string GetBinaryOperationCode(string left, string right)
+        {
+            return string.Format("{0} || {1}", left, right);
+        }
+    }
+
+    class VFXExpressionLogicalNot : VFXExpressionUnaryBoolOperation
+    {
+        public VFXExpressionLogicalNot() : this(VFXValue<bool>.Default)
+        {
+        }
+
+        public VFXExpressionLogicalNot(VFXExpression parent) : base(parent, VFXExpressionOperation.LogicalNot)
+        {
+        }
+
+        sealed protected override bool ProcessUnaryOperation(bool input)
+        {
+            return !input;
+        }
+
+        sealed protected override string GetUnaryOperationCode(string x)
+        {
+            return string.Format("!{0}", x);
         }
     }
 }

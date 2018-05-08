@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.Operator
 
         override public string name { get { return "Discretize"; } }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { VFXOperatorUtility.Discretize(inputExpression[0], inputExpression[1]) };
         }

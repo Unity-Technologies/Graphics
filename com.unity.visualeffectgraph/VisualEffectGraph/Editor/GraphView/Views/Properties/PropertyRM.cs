@@ -216,7 +216,7 @@ namespace UnityEditor.VFX.UI
             VFXPropertyAttribute.ApplyToGUI(m_Provider.attributes, ref text, ref tooltip);
             m_Label.text = text;
 
-            TooltipExtension.AddTooltip(m_Label, tooltip);
+            m_Label.tooltip = tooltip;
             Profiler.EndSample();
             Profiler.EndSample();
         }
@@ -275,7 +275,7 @@ namespace UnityEditor.VFX.UI
             string labelTooltip = null;
             VFXPropertyAttribute.ApplyToGUI(provider.attributes, ref labelText, ref labelTooltip);
             m_Label = new Label() { name = "label", text = labelText };
-            m_Label.AddTooltip(labelTooltip);
+            m_Label.tooltip = labelTooltip;
 
             if (provider.depth != 0)
             {

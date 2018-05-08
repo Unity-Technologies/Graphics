@@ -940,7 +940,11 @@ namespace UnityEditor.VFX.UI
 
         void OnCreateNode(NodeCreationContext ctx)
         {
-            Vector2 point = GUIUtility.ScreenToGUIPoint(ctx.screenMousePosition);
+            GUIView guiView = elementPanel.ownerObject as GUIView;
+            if (guiView == null)
+                return;
+
+            Vector2 point = ctx.screenMousePosition - guiView.screenPosition.position;//GUIUtility.ScreenToGUIPoint(ctx.screenMousePosition);
             List<VisualElement> picked = new List<VisualElement>();
             panel.PickAll(point, picked);
 

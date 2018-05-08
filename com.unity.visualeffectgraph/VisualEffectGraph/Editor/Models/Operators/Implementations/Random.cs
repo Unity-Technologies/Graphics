@@ -52,7 +52,7 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             VFXExpression rand = null;
             if (constant)

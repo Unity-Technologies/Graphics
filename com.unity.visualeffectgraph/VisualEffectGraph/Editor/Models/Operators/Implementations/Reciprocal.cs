@@ -6,7 +6,7 @@ namespace UnityEditor.VFX.Operator
     {
         override public string name { get { return "Reciprocal (1/x)"; } }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var expression = inputExpression[0];
             return new[] { VFXOperatorUtility.OneExpression[expression.valueType] / expression };

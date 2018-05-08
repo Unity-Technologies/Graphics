@@ -18,7 +18,7 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { VFXOperatorUtility.EpsilonExpression[VFXValueType.Float] };
         }
