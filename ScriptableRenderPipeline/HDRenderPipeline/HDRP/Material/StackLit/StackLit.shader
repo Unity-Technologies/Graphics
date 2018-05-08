@@ -52,6 +52,7 @@ Shader "HDRenderPipeline/StackLit"
         [HideInInspector] _SmoothnessBRange("SmoothnessB Range", Vector) = (0, 1, 0, 0)
         _LobeMix("Lobe Mix", Range(0.0, 1.0)) = 0
 
+        [ToggleUI] _VlayerRecomputePerLight("Vlayer Recompute Per Light", Float) = 0.0 // UI only
         [ToggleUI] _DebugEnable("Debug Enable", Float) = 0.0 // UI only
         _DebugLobeMask("DebugLobeMask", Vector) = (1, 1, 1, 1)
         _DebugAniso("DebugAniso", Vector) = (1, 0, 0, 1000.0)
@@ -273,6 +274,8 @@ Shader "HDRenderPipeline/StackLit"
     #pragma shader_feature _MATERIAL_FEATURE_IRIDESCENCE
     #pragma shader_feature _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
     #pragma shader_feature _MATERIAL_FEATURE_TRANSMISSION
+
+    #pragma shader_feature _VLAYERED_RECOMPUTE_PERLIGHT
 
 
     #pragma shader_feature _STACKLIT_DEBUG
