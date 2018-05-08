@@ -294,18 +294,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CoreUtils.SetKeyword(cmd, "SOFTPARTICLES_ON", cameraData.requiresSoftParticles);
         }
 
-        void SetRenderTarget(CommandBuffer cmd, ClearFlag clearFlag)
+        void SetRenderTarget(CommandBuffer cmd, RenderBufferLoadAction loadOp, RenderBufferStoreAction storeOp, ClearFlag clearFlag, Color clearColor)
         {
             if (colorAttachmentHandle != -1)
             {
                 if (depthAttachmentHandle != -1)
-                    CoreUtils.SetRenderTarget(cmd, GetSurface(colorAttachmentHandle), GetSurface(depthAttachmentHandle), clearFlag);
+                    SetRenderTarget(cmd, GetSurface(colorAttachmentHandle), loadOp, storeOp, GetSurface(depthAttachmentHandle), loadOp, storeOp, clearFlag, clearColor);
                 else
-                    CoreUtils.SetRenderTarget(cmd, GetSurface(colorAttachmentHandle), clearFlag);
+                    SetRenderTarget(cmd, GetSurface(colorAttachmentHandle), loadOp, storeOp, clearFlag, clearColor);
             }
             else
             {
-                CoreUtils.SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget, clearFlag);
+                SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget, loadOp, storeOp, clearFlag, clearColor);
             }
         }
 
@@ -315,7 +315,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Camera camera = cameraData.camera;
 
             ClearFlag clearFlag = GetCameraClearFlag(camera);
-            SetRenderTarget(cmd, clearFlag);
+
+            // TODO: This was merged from previous LOAD/STORE PR. It seems this should not be DontCare
+            // and instead we should check clearFlags to wheter set to Clear or DontCare
+            // Same in screenspace shadow resolve pass. Also we should check for the msaa resolve actions.
+            SetRenderTarget(cmd, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, clearFlag, CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 
@@ -338,7 +342,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             CommandBuffer cmd = CommandBufferPool.Get("Render Opaques");
             Camera camera = cameraData.camera;
-            SetRenderTarget(cmd, ClearFlag.None);
+            SetRenderTarget(cmd, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None, Color.black);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 
@@ -351,11 +355,23 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         void FinalBlitPass(ref ScriptableRenderContext context, ref CameraData cameraData)
         {
-            var cmd = CommandBufferPool.Get("Final Blit Pass");
-            if (cameraData.isStereoEnabled && XRSettings.eyeTextureDesc.dimension == TextureDimension.Tex2DArray)
-                cmd.Blit(GetSurface(colorAttachmentHandle), BuiltinRenderTextureType.CameraTarget);
+            Material material = cameraData.isStereoEnabled ? null : m_BlitMaterial;
+            RenderTargetIdentifier sourceRT = GetSurface(colorAttachmentHandle);
+
+            CommandBuffer cmd = CommandBufferPool.Get("Final Blit Pass");
+            cmd.SetGlobalTexture("_BlitTex", sourceRT);
+
+            if (cameraData.isStereoEnabled || cameraData.isDefaultViewport)
+            {
+                cmd.Blit(GetSurface(colorAttachmentHandle), BuiltinRenderTextureType.CameraTarget, material);
+            }
             else
-                LightweightPipeline.Blit(cmd, ref cameraData, GetSurface(colorAttachmentHandle), BuiltinRenderTextureType.CameraTarget, cameraData.isStereoEnabled ? null : m_BlitMaterial);
+            {
+                SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.All, Color.black);
+                cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
+                cmd.SetViewport(cameraData.camera.pixelRect);
+                LightweightPipeline.DrawFullScreen(cmd, material);
+            }
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

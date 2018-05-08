@@ -41,8 +41,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // a better solution).
             // An alternative would be DrawProcedural, but that would require further changes in the shader.
             RenderTargetIdentifier screenSpaceOcclusionTexture = GetSurface(colorAttachmentHandle);
-            cmd.SetRenderTarget(screenSpaceOcclusionTexture);
-            cmd.ClearRenderTarget(true, true, Color.white);
+            SetRenderTarget(cmd, screenSpaceOcclusionTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                ClearFlag.Color | ClearFlag.Depth, Color.white);
             cmd.Blit(screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, m_ScreenSpaceShadowsMaterial);
 
             if (cameraData.isStereoEnabled)

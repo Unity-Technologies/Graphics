@@ -34,8 +34,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CommandBuffer cmd = CommandBufferPool.Get(kCommandBufferTag);
             using (new ProfilingSample(cmd, kProfilerTag))
             {
-                int depthSlice = LightweightPipeline.GetRenderTargetDepthSlice(cameraData.isStereoEnabled);
-                CoreUtils.SetRenderTarget(cmd, GetSurface(depthAttachmentHandle), ClearFlag.Depth, 0, CubemapFace.Unknown, depthSlice);
+                SetRenderTarget(cmd, GetSurface(depthAttachmentHandle), RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                    ClearFlag.Depth, Color.black);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 

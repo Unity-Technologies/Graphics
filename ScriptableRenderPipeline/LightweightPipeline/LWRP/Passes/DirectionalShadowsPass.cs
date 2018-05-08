@@ -105,7 +105,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_DirectionalShadowmapTexture = RenderTexture.GetTemporary(m_DirectionalShadowmapDescriptor);
             m_DirectionalShadowmapTexture.filterMode = FilterMode.Bilinear;
             m_DirectionalShadowmapTexture.wrapMode = TextureWrapMode.Clamp;
-            CoreUtils.SetRenderTarget(cmd, m_DirectionalShadowmapTexture, ClearFlag.Depth);
+            SetRenderTarget(cmd, m_DirectionalShadowmapTexture, RenderBufferLoadAction.DontCare,
+                RenderBufferStoreAction.Store, ClearFlag.Depth, Color.black);
 
             bool success = false;
             for (int cascadeIndex = 0; cascadeIndex < m_ShadowCasterCascadesCount; ++cascadeIndex)
