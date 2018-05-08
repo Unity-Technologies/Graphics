@@ -85,9 +85,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_SampleOffsetShaderHandle = Shader.PropertyToID("_SampleOffset");
         }
 
-        public override void Setup(CommandBuffer cmd, RenderTextureDescriptor baseDescriptor, int samples)
+        public override void Setup(CommandBuffer cmd, RenderTextureDescriptor baseDescriptor, int[] colorAttachmentHandles, int depthAttachmentHandle = -1, int samples = 1)
         {
-            if (colorHandles[0] != -1)
+            base.Setup(cmd, baseDescriptor, colorAttachmentHandles, depthAttachmentHandle, samples);
+            if (colorAttachmentHandle != -1)
             {
                 var descriptor = baseDescriptor;
                 descriptor.colorFormat = m_ColorFormat;
@@ -95,19 +96,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 descriptor.sRGB = true;
                 descriptor.msaaSamples = samples;
                 descriptor.enableRandomWrite = false;
-                cmd.GetTemporaryRT(colorHandles[0], descriptor, FilterMode.Bilinear);
+                cmd.GetTemporaryRT(colorAttachmentHandle, descriptor, FilterMode.Bilinear);
             }
 
-            if (depthHandle != -1)
+            if (depthAttachmentHandle != -1)
             {
                 var descriptor = baseDescriptor;
                 descriptor.colorFormat = RenderTextureFormat.Depth;
                 descriptor.depthBufferBits = k_DepthStencilBufferBits;
                 descriptor.msaaSamples = samples;
                 descriptor.bindMS = samples > 1;
-                cmd.GetTemporaryRT(depthHandle, descriptor, FilterMode.Point);
+                cmd.GetTemporaryRT(depthAttachmentHandle, descriptor, FilterMode.Point);
             }
-            m_Disposed = false;
         }
 
         public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref CameraData cameraData, ref LightData lightData)
@@ -125,7 +125,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cameraData.postProcessLayer.HasOpaqueOnlyEffects(renderer.postProcessRenderContext))
                 OpaquePostProcessSubPass(ref context, ref cameraData);
 
-            if (depthHandle != -1 && cameraData.requiresDepthTexture)
+            if (depthAttachmentHandle != -1 && cameraData.requiresDepthTexture)
                 CopyDepthSubPass(ref context, ref cameraData);
 
             if (cameraData.requiresOpaqueTexture)
@@ -138,29 +138,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 PostProcessPass(ref context, ref cameraData);
 
             // No blit to backbuffer if camera is offscreen render.
-            if (!cameraData.isOffscreenRender && !cameraData.postProcessEnabled && colorHandles[0] != -1)
+            if (!cameraData.isOffscreenRender && !cameraData.postProcessEnabled && colorAttachmentHandle != -1)
                 FinalBlitPass(ref context, ref cameraData);
 
             if (cameraData.isStereoEnabled)
             {
                 context.StopMultiEye(cameraData.camera);
                 context.StereoEndRender(cameraData.camera);
-            }
-        }
-
-        public override void Dispose(CommandBuffer cmd)
-        {
-            if (!m_Disposed)
-            {
-                for (int i = 0; i < colorHandles.Length; ++i)
-                {
-                    if (colorHandles[i] != -1)
-                        cmd.ReleaseTemporaryRT(colorHandles[i]);
-                }
-
-                if (depthHandle != -1)
-                    cmd.ReleaseTemporaryRT(depthHandle);
-                m_Disposed = true;
             }
         }
 
@@ -312,12 +296,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         void SetRenderTarget(CommandBuffer cmd, ClearFlag clearFlag)
         {
-            if (colorHandles[0] != -1)
+            if (colorAttachmentHandle != -1)
             {
-                if (depthHandle != -1)
-                    CoreUtils.SetRenderTarget(cmd, GetSurface(colorHandles[0]), GetSurface(depthHandle), clearFlag);
+                if (depthAttachmentHandle != -1)
+                    CoreUtils.SetRenderTarget(cmd, GetSurface(colorAttachmentHandle), GetSurface(depthAttachmentHandle), clearFlag);
                 else
-                    CoreUtils.SetRenderTarget(cmd, GetSurface(colorHandles[0]), clearFlag);
+                    CoreUtils.SetRenderTarget(cmd, GetSurface(colorAttachmentHandle), clearFlag);
             }
             else
             {
@@ -337,7 +321,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             // If rendering to an intermediate RT we resolve viewport on blit due to offset not being supported
             // while rendering to a RT.
-            if (colorHandles[0] == -1 && cameraData.isDefaultViewport)
+            if (colorAttachmentHandle == -1 && cameraData.isDefaultViewport)
                 cmd.SetViewport(camera.pixelRect);
 
             var drawSettings = CreateDrawRendererSettings(camera, SortFlags.CommonOpaque, rendererConfiguration);
@@ -369,9 +353,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             var cmd = CommandBufferPool.Get("Final Blit Pass");
             if (cameraData.isStereoEnabled && XRSettings.eyeTextureDesc.dimension == TextureDimension.Tex2DArray)
-                cmd.Blit(GetSurface(colorHandles[0]), BuiltinRenderTextureType.CameraTarget);
+                cmd.Blit(GetSurface(colorAttachmentHandle), BuiltinRenderTextureType.CameraTarget);
             else
-                LightweightPipeline.Blit(cmd, ref cameraData, GetSurface(colorHandles[0]), BuiltinRenderTextureType.CameraTarget, cameraData.isStereoEnabled ? null : m_BlitMaterial);
+                LightweightPipeline.Blit(cmd, ref cameraData, GetSurface(colorAttachmentHandle), BuiltinRenderTextureType.CameraTarget, cameraData.isStereoEnabled ? null : m_BlitMaterial);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
@@ -523,7 +507,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         void PostProcessPass(ref ScriptableRenderContext context, ref CameraData cameraData)
         {
             CommandBuffer cmd = CommandBufferPool.Get("Render PostProcess Effects");
-            LightweightPipeline.RenderPostProcess(cmd, renderer.postProcessRenderContext, ref cameraData, m_ColorFormat, GetSurface(colorHandles[0]), BuiltinRenderTextureType.CameraTarget, false);
+            LightweightPipeline.RenderPostProcess(cmd, renderer.postProcessRenderContext, ref cameraData, m_ColorFormat, GetSurface(colorAttachmentHandle), BuiltinRenderTextureType.CameraTarget, false);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
@@ -555,12 +539,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 // TODO:
                 // cmd.GetTemporaryRT();
-                source = GetSurface(colorHandles[0]);
+                source = GetSurface(colorAttachmentHandle);
             }
             else
-                source = GetSurface(colorHandles[0]);
+                source = GetSurface(colorAttachmentHandle);
 
-            LightweightPipeline.RenderPostProcess(cmd, renderer.postProcessRenderContext, ref cameraData, m_ColorFormat, source, GetSurface(colorHandles[0]), true);
+            LightweightPipeline.RenderPostProcess(cmd, renderer.postProcessRenderContext, ref cameraData, m_ColorFormat, source, GetSurface(colorAttachmentHandle), true);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
@@ -568,7 +552,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         void CopyDepthSubPass(ref ScriptableRenderContext context, ref CameraData cameraData)
         {
             CommandBuffer cmd = CommandBufferPool.Get("Depth Copy");
-            RenderTargetIdentifier depthSurface = GetSurface(RenderTargetHandles.Depth);
+            RenderTargetIdentifier depthSurface = GetSurface(depthAttachmentHandle);
             RenderTargetIdentifier copyDepthSurface = GetSurface(RenderTargetHandles.DepthCopy);
 
             RenderTextureDescriptor descriptor = renderer.CreateRTDesc(ref cameraData);
@@ -587,7 +571,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cmd.DisableShaderKeyword(k_MsaaDepthKeyword);
                 LightweightPipeline.CopyTexture(cmd, depthSurface, copyDepthSurface, m_DepthCopyMaterial);
             }
-            cmd.SetGlobalTexture(RenderTargetHandles.Depth, copyDepthSurface);
+            //cmd.SetGlobalTexture(RenderTargetHandles.Depth, copyDepthSurface);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
@@ -599,7 +583,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             float opaqueScaler = m_OpaqueScalerValues[(int)downsampling];
 
             RenderTextureDescriptor opaqueDesc = renderer.CreateRTDesc(ref cameraData, opaqueScaler);
-            RenderTargetIdentifier colorRT = GetSurface(colorHandles[0]);
+            RenderTargetIdentifier colorRT = GetSurface(colorAttachmentHandle);
             RenderTargetIdentifier opaqueColorRT = GetSurface(RenderTargetHandles.OpaqueColor);
 
             cmd.GetTemporaryRT(RenderTargetHandles.OpaqueColor, opaqueDesc, cameraData.opaqueTextureDownsampling == Downsampling.None ? FilterMode.Point : FilterMode.Bilinear);

@@ -17,15 +17,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             m_ScreenSpaceShadowsMaterial = renderer.GetMaterial(MaterialHandles.ScrenSpaceShadow);
             softShadows = false;
-            m_Disposed = true;
         }
 
-        public override void Setup(CommandBuffer cmd, RenderTextureDescriptor baseDescriptor, int samples)
+        public override void Setup(CommandBuffer cmd, RenderTextureDescriptor baseDescriptor, int[] colorAttachmentHandles, int depthAttachmentHandle = -1, int samples = 1)
         {
+            base.Setup(cmd, baseDescriptor, colorAttachmentHandles, depthAttachmentHandle, samples);
             baseDescriptor.depthBufferBits = 0;
             baseDescriptor.colorFormat = m_ColorFormat;
-            cmd.GetTemporaryRT(RenderTargetHandles.ScreenSpaceOcclusion, baseDescriptor, FilterMode.Bilinear);
-            m_Disposed = false;
+            cmd.GetTemporaryRT(colorAttachmentHandle, baseDescriptor, FilterMode.Bilinear);
         }
 
         public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref CameraData cameraData, ref LightData lightData)
@@ -41,7 +40,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // stereo functionality, we use the screen-space shadow map as the source (until we have
             // a better solution).
             // An alternative would be DrawProcedural, but that would require further changes in the shader.
-            RenderTargetIdentifier screenSpaceOcclusionTexture = GetSurface(RenderTargetHandles.ScreenSpaceOcclusion);
+            RenderTargetIdentifier screenSpaceOcclusionTexture = GetSurface(colorAttachmentHandle);
             cmd.SetRenderTarget(screenSpaceOcclusionTexture);
             cmd.ClearRenderTarget(true, true, Color.white);
             cmd.Blit(screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, m_ScreenSpaceShadowsMaterial);
@@ -55,15 +54,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             else
                 context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
-        }
-
-        public override void Dispose(CommandBuffer cmd)
-        {
-            if (!m_Disposed)
-            {
-                cmd.ReleaseTemporaryRT(RenderTargetHandles.ScreenSpaceOcclusion);
-                m_Disposed = true;
-            }
         }
 
         void SetShadowCollectPassKeywords(CommandBuffer cmd, int cascadeCount)

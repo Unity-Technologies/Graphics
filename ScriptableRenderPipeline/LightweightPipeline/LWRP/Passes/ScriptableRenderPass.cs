@@ -3,32 +3,45 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
-    public struct PassData
-    {
-        public LightData lightData;
-        public CameraData cameraData;
-    }
-
     public abstract class ScriptableRenderPass
     {
         public LightweightForwardRenderer renderer { get; private set; }
-        public int[] colorHandles { get; set; }
-        public int depthHandle;
+        public int[] colorAttachmentHandles { get; private set; }
 
-        protected bool m_Disposed;
+        public int colorAttachmentHandle { get; private set; }
+
+        public int depthAttachmentHandle { get; private set; }
+
         protected List<ShaderPassName> m_ShaderPassNames = new List<ShaderPassName>();
 
         public ScriptableRenderPass(LightweightForwardRenderer renderer)
         {
             this.renderer = renderer;
-            m_Disposed = true;
         }
 
-        public abstract void Setup(CommandBuffer cmd, RenderTextureDescriptor baseDescriptor, int samples);
+        public virtual void Setup(CommandBuffer cmd, RenderTextureDescriptor baseDescriptor, int[] colorAttachmentHandles = null, int depthAttachmentHandle = -1, int samples = 1)
+        {
+            this.colorAttachmentHandles = colorAttachmentHandles;
+            this.depthAttachmentHandle = depthAttachmentHandle;
+            colorAttachmentHandle = (colorAttachmentHandles != null && colorAttachmentHandles.Length > 0)
+                ? colorAttachmentHandles[0]
+                : -1;
+        }
+
+        public virtual void Dispose(CommandBuffer cmd)
+        {
+            if (colorAttachmentHandles != null)
+            {
+                for (int i = 0; i < colorAttachmentHandles.Length; ++i)
+                    if (colorAttachmentHandles[i] != -1)
+                        cmd.ReleaseTemporaryRT(colorAttachmentHandles[i]);
+            }
+
+            if (depthAttachmentHandle != -1)
+                cmd.ReleaseTemporaryRT(depthAttachmentHandle);
+        }
 
         public abstract void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref CameraData cameraData, ref LightData lightData);
-
-        public abstract void Dispose(CommandBuffer cmd);
 
         public RenderTargetIdentifier GetSurface(int handle)
         {

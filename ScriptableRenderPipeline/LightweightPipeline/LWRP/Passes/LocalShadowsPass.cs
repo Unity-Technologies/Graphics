@@ -40,10 +40,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Clear();
         }
 
-        public override void Setup(CommandBuffer cmd, RenderTextureDescriptor baseDescriptor, int samples)
-        {
-        }
-
         public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref CameraData cameraData, ref LightData lightData)
         {
             Clear();
@@ -59,8 +55,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 RenderTexture.ReleaseTemporary(m_LocalShadowmapTexture);
                 m_LocalShadowmapTexture = null;
             }
-
-            m_Disposed = true;
         }
 
         void Clear()
@@ -110,7 +104,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_LocalShadowmapTexture = RenderTexture.GetTemporary(m_LocalShadowmapDescriptor);
             m_LocalShadowmapTexture.filterMode = FilterMode.Bilinear;
             m_LocalShadowmapTexture.wrapMode = TextureWrapMode.Clamp;
-            m_Disposed = false;
 
             CoreUtils.SetRenderTarget(cmd, m_LocalShadowmapTexture, ClearFlag.Depth);
 
