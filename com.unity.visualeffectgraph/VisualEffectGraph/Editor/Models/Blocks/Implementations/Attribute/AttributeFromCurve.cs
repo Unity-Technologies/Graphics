@@ -41,7 +41,8 @@ namespace UnityEditor.VFX.Block
             OverLife,
             BySpeed,
             Random,
-            RandomUniformPerParticle
+            RandomUniformPerParticle,
+            Custom
         }
 
         public enum ComputeMode
@@ -85,13 +86,14 @@ namespace UnityEditor.VFX.Block
                     case CurveSampleMode.BySpeed: return n + " by Speed";
                     case CurveSampleMode.Random: return n + " randomized";
                     case CurveSampleMode.RandomUniformPerParticle: return n + " randomized";
+                    case CurveSampleMode.Custom: return n + " custom";
                     default:
                         throw new NotImplementedException("Invalid CurveSampleMode");
                 }
             }
         }
 
-        public override VFXContextType compatibleContexts { get { return VFXContextType.kUpdateAndOutput; } }
+        public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdateAndOutput; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
 
         public override IEnumerable<VFXAttributeInfo> attributes
@@ -189,6 +191,7 @@ namespace UnityEditor.VFX.Block
                 case CurveSampleMode.BySpeed: output = "float t = saturate((length(velocity) - SpeedRange.x) * SpeedRange.y);\n"; break;
                 case CurveSampleMode.Random: output = "float t = RAND;\n"; break;
                 case CurveSampleMode.RandomUniformPerParticle: output = "float t = FIXED_RAND(0x34634bc2);\n"; break;
+                case CurveSampleMode.Custom: output = "float t = SampleTime;\n"; break;
                 default:
                     throw new NotImplementedException("Invalid CurveSampleMode");
             }
@@ -229,6 +232,8 @@ namespace UnityEditor.VFX.Block
 
                 if (SampleMode == CurveSampleMode.BySpeed)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "SpeedRange"));
+                else if (SampleMode == CurveSampleMode.Custom)
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "SampleTime"));
 
                 string localName = GenerateLocalAttributeName(attrib.name);
                 if (Mode == ComputeMode.Uniform || size == 1)
