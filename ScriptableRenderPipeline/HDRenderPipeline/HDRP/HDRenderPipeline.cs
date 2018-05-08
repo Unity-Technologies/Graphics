@@ -763,7 +763,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     continue;
                 }
 
-                if (camera.cameraType != CameraType.Reflection
+                // Don't render reflection in Preview, it prevent them to display
+                if (camera.cameraType != CameraType.Reflection && camera.cameraType != CameraType.Preview
                     // Planar probes rendering is not currently supported for orthographic camera
                     // Avoid rendering to prevent error log spamming
                     && !camera.orthographic)
@@ -1930,7 +1931,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         (hdCamera.clearColorMode == HDAdditionalCameraData.ClearColorMode.Sky && !m_SkyManager.IsVisualSkyValid()) ||
                         // Special handling for Preview we force to clear with background color (i.e black)
                         // Note that the sky use in this case is the last one setup. If there is no scene or game, there is no sky use as reflection in the preview
-                        hdCamera.camera.cameraType == CameraType.Preview
+                        HDUtils.IsRegularPreviewCamera(hdCamera.camera)
                         )
                     {
                         Color clearColor = hdCamera.backgroundColorHDR;
