@@ -49,7 +49,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 else
                     context.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, renderer.opaqueFilterSettings);
             }
-            //cmd.SetGlobalTexture(depthTextureID, depthTexture);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
