@@ -186,7 +186,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         return;
                     colorProperty.colorMode = (ColorMode)evt.newValue;
                     colorField.hdr = colorProperty.colorMode == ColorMode.HDR;
-                    colorField.DoRepaint();
+                    colorField.MarkDirtyRepaint();
                     DirtyNodes();
                 });
                 AddRow("Mode", colorModeField);
