@@ -100,6 +100,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kStencilRefMV = "_StencilRefMV";
         protected const string kStencilWriteMaskMV = "_StencilWriteMaskMV";
 
+        protected const string k_SpecularAntiAliasingEnabled = "_SpecularAntiAliasingEnabled";
+        protected const string k_NormalCurvatureToRoughnessEnabled = "_NormalCurvatureToRoughnessEnabled";
+
         #endregion
 
         // Add the properties into an array.
@@ -113,6 +116,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         private Property EnableAnisotropy;
         private Property EnableDualSpecularLobe;
         private Property EnableIridescence;
+
+        private Property EnableSpecularAA;
+        private Property EnableNormalCurvatureToRoughness;
 
         public StackLitGUI()
         {
@@ -130,6 +136,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EnableAnisotropy = new Property(this, k_EnableAnisotropy, "Enable Anisotropy", "Enable anisotropy, correct anisotropy for punctual light but very coarse approximated for reflection", true);
             EnableDualSpecularLobe = new Property(this, k_EnableDualSpecularLobe, "Enable Dual Specular Lobe", "Enable a second specular lobe, aim to simulate a mix of a narrow and a haze lobe that better match measured material", true);
             EnableIridescence = new Property(this, k_EnableIridescence, "Enable Iridescence", "Enable physically based iridescence layer", true);
+
+            EnableSpecularAA = new Property(this, k_SpecularAntiAliasingEnabled, k_SpecularAntiAliasingEnabled, k_SpecularAntiAliasingEnabled, true);
+            EnableNormalCurvatureToRoughness = new Property(this, k_NormalCurvatureToRoughnessEnabled, k_NormalCurvatureToRoughnessEnabled, k_NormalCurvatureToRoughnessEnabled, true);
 
             // All material properties
             _materialProperties = new GroupProperty(this, "_Material", new BaseProperty[]
@@ -206,6 +215,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     new Property(this, "_DebugEnable", "Debug Enable", "Switch to a debug version of the shader", false),
                     new Property(this, "_DebugLobeMask", "DebugLobeMask", "xyz is Lobe 0 1 2 Enable, w is Enable VLayering", false),
                     new Property(this, "_DebugAniso", "DebugAniso", "x is Hack Enable, y is factor", false),
+
+                    EnableSpecularAA,
+                    new Property(this, "_SpecularAntiAliasingScreenSpaceVariance", "Specular Aliasing Enable", "Specular Aliasing Enable", false, _ => EnableSpecularAA.BoolValue == true),
+                    new Property(this, "_SpecularAntiAliasingThreshold", "Specular Aliasing Enable", "Specular Aliasing Enable", false, _ => EnableSpecularAA.BoolValue == true),
+
+                    EnableNormalCurvatureToRoughness,
+                    new Property(this, "_NormalCurvatureToRoughnessScale", "Normal Curvature To Roughness Scale", "Normal Curvature To Roughness Scale", false, _ => EnableNormalCurvatureToRoughness.BoolValue == true),
+                    new Property(this, "_NormalCurvatureToRoughnessBias", "Normal Curvature To Roughness Bias", "Normal Curvature To Roughness Bias", false, _ => EnableNormalCurvatureToRoughness.BoolValue == true),
+                    new Property(this, "_NormalCurvatureToRoughnessExponent", "Normal Curvature To Roughness Exponent", "Normal Curvature To Roughness Exponent", false, _ => EnableNormalCurvatureToRoughness.BoolValue == true),
+
                 }),
             });
         }

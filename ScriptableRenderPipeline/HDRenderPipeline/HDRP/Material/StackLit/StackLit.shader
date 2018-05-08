@@ -198,6 +198,14 @@ Shader "HDRenderPipeline/StackLit"
         [HideInInspector] _ZTestDepthEqualForOpaque("_ZTestDepthEqualForOpaque", Int) = 4 // Less equal
         [HideInInspector] _ZTestModeDistortion("_ZTestModeDistortion", Int) = 8
 
+        [ToggleUI] _SpecularAntiAliasingEnabled("Specular Anti Aliasing Enabled", Float) = 0.0
+        _SpecularAntiAliasingScreenSpaceVariance("SpecularAntiAliasingScreenSpaceVariance", Range(0.0, 1.0)) = 1.0
+        _SpecularAntiAliasingThreshold("SpecularAntiAliasingThreshold", Range(0.0, 1.0)) = 0.18
+
+        [ToggleUI] _NormalCurvatureToRoughnessEnabled("_NormalCurvatureToRoughnessEnabled", Float) = 0.0
+        _NormalCurvatureToRoughnessScale("_NormalCurvatureToRoughnessScale", Range(0.0, 2.0)) = 1.0
+        _NormalCurvatureToRoughnessBias("_NormalCurvatureToRoughnessBias", Range(-1.0, 1.0)) = 0.0
+        _NormalCurvatureToRoughnessExponent("_NormalCurvatureToRoughnessExponent", Range(0.05, 20.0)) = 0.333
 
         [ToggleUI] _EnableFogOnTransparent("Enable Fog", Float) = 1.0
         [ToggleUI] _EnableBlendModePreserveSpecularLighting("Enable Blend Mode Preserve Specular Lighting", Float) = 1.0
