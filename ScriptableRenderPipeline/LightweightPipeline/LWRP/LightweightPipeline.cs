@@ -299,23 +299,5 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             else
                 cameraData.postProcessLayer.Render(context);
         }
-
-        public static void Blit(CommandBuffer cmd, ref CameraData cameraData, RenderTargetIdentifier sourceRT, RenderTargetIdentifier destRT, Material material = null)
-        {
-            cmd.SetGlobalTexture("_BlitTex", sourceRT);
-            if (cameraData.isDefaultViewport)
-            {
-                cmd.Blit(sourceRT, destRT, material);
-            }
-            else
-            {
-                // Viewport doesn't work when rendering to an RT
-                // We have to manually blit by rendering a fullscreen quad
-                CoreUtils.SetRenderTarget(cmd, destRT);
-                cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
-                cmd.SetViewport(cameraData.camera.pixelRect);
-                DrawFullScreen(cmd, material);
-            }
-        }
     }
 }

@@ -12,7 +12,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public int depthAttachmentHandle { get; private set; }
 
+        public TextureDimension textureDimension { get; private set; }
+
         protected List<ShaderPassName> m_ShaderPassNames = new List<ShaderPassName>();
+        
+        int samples;
 
         public ScriptableRenderPass(LightweightForwardRenderer renderer)
         {
@@ -23,9 +27,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             this.colorAttachmentHandles = colorAttachmentHandles;
             this.depthAttachmentHandle = depthAttachmentHandle;
+            this.samples = samples;
             colorAttachmentHandle = (colorAttachmentHandles != null && colorAttachmentHandles.Length > 0)
                 ? colorAttachmentHandles[0]
                 : -1;
+
+            textureDimension = baseDescriptor.dimension;
         }
 
         public virtual void Dispose(CommandBuffer cmd)
@@ -68,6 +75,27 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             settings.sorting.flags = sortFlags;
             settings.rendererConfiguration = rendererConfiguration;
             return settings;
+        }
+
+        public void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderBufferLoadAction colorLoadAction,
+            RenderBufferStoreAction colorStoreAction, ClearFlag clearFlag, Color clearColor)
+        {
+            if (textureDimension == TextureDimension.Tex2DArray)
+                CoreUtils.SetRenderTarget(cmd, colorAttachmentHandle, clearFlag, clearColor, 0, CubemapFace.Unknown, -1);
+            else
+                CoreUtils.SetRenderTarget(cmd, colorAttachmentHandle, colorLoadAction, colorStoreAction, clearFlag, clearColor);
+        }
+
+        public void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorAttachment, RenderBufferLoadAction colorLoadAction,
+            RenderBufferStoreAction colorStoreAction, RenderTargetIdentifier depthAttachment, RenderBufferLoadAction depthLoadAction,
+            RenderBufferStoreAction depthStoreAction, ClearFlag clearFlag, Color clearColor)
+        {
+            if (textureDimension == TextureDimension.Tex2DArray)
+                CoreUtils.SetRenderTarget(cmd, colorAttachmentHandle, depthAttachmentHandle,
+                    clearFlag, clearColor, 0, CubemapFace.Unknown, -1);
+            else
+                CoreUtils.SetRenderTarget(cmd, colorAttachmentHandle, colorLoadAction, colorStoreAction,
+                    depthAttachmentHandle, depthLoadAction, depthStoreAction, clearFlag, clearColor);
         }
     }
 }

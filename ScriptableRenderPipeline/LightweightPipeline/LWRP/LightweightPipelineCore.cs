@@ -193,14 +193,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             commandBuffer.DrawMesh(fullscreenMesh, Matrix4x4.identity, material, 0, shaderPassId, properties);
         }
 
-        public static int GetRenderTargetDepthSlice(bool stereoRendering)
-        {
-            if (stereoRendering && XRSettings.eyeTextureDesc.dimension == TextureDimension.Tex2DArray)
-                return -1;
-
-            return 0;
-        }
-
         public static void GetLightCookieMatrix(VisibleLight light, out Matrix4x4 cookieMatrix)
         {
             cookieMatrix = Matrix4x4.Inverse(light.localToWorld);
