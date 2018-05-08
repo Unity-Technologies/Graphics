@@ -333,11 +333,6 @@ namespace UnityEditor.VFX.UI
             toggleComponentBoard.AddToClassList("toolbarItem");
             m_Toolbar.Add(toggleComponentBoard);
 
-            Button toggleComponentBoard = new Button(ToggleComponentBoard);
-            toggleComponentBoard.text = "Component board";
-            toggleComponentBoard.AddToClassList("toolbarItem");
-            toolbar.Add(toggleComponentBoard);
-
 
             VisualElement spacer = new VisualElement();
             spacer.style.flex = 1;
@@ -458,12 +453,6 @@ namespace UnityEditor.VFX.UI
         {
             board.SendToBack();
             board.PlaceBehind(m_Toolbar);
-        }
-
-        public void SetBoardToFront(GraphElement board)
-        {
-            if (ElementAt(childCount - 1) != board)
-                Insert(childCount - 1, board);
         }
 
         void OnUndoPerformed()
@@ -972,11 +961,7 @@ namespace UnityEditor.VFX.UI
 
         void OnCreateNode(NodeCreationContext ctx)
         {
-            GUIView guiView = elementPanel.ownerObject as GUIView;
-            if (guiView == null)
-                return;
-
-            Vector2 point = ctx.screenMousePosition - guiView.screenPosition.position;//GUIUtility.ScreenToGUIPoint(ctx.screenMousePosition);
+            Vector2 point = GUIUtility.ScreenToGUIPoint(ctx.screenMousePosition);
             List<VisualElement> picked = new List<VisualElement>();
             panel.PickAll(point, picked);
 
