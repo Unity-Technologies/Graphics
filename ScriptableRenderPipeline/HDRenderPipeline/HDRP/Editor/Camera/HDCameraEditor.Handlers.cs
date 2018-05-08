@@ -37,7 +37,6 @@ namespace UnityEditor.Experimental.Rendering
             EditorUtility.CopySerialized(cameraData, m_PreviewAdditionalCameraData);
             var layer = c.GetComponent<PostProcessLayer>() ?? ComponentSingleton<PostProcessLayer>.instance;
             EditorUtility.CopySerialized(layer, m_PreviewPostProcessLayer);
-            m_PreviewCamera.cameraType = CameraType.Preview;
 
             var previewTexture = GetPreviewTextureWithSize((int)previewSize.x, (int)previewSize.y);
             m_PreviewCamera.targetTexture = previewTexture;
