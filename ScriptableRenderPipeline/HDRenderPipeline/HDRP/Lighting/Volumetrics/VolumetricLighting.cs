@@ -127,9 +127,15 @@ public class VolumetricLightingSystem
     RTHandleSystem.RTHandle m_DensityBufferHandle;
     RTHandleSystem.RTHandle m_LightingBufferHandle;
 
+    // Do we support volumetric or not?
+    bool m_supportVolumetric = false;
+
     public void Build(HDRenderPipelineAsset asset)
     {
-        if (preset == VolumetricLightingPreset.Off) return;
+        m_supportVolumetric = asset.renderPipelineSettings.supportVolumetric;
+
+        if (!m_supportVolumetric)
+            return;
 
         m_VolumeVoxelizationCS = asset.renderPipelineResources.volumeVoxelizationCS;
         m_VolumetricLightingCS = asset.renderPipelineResources.volumetricLightingCS;
@@ -245,7 +251,10 @@ public class VolumetricLightingSystem
 
     public void InitializePerCameraData(HDCamera hdCamera)
     {
-        if (preset == VolumetricLightingPreset.Off) return;
+        // Note: Here we can't test framesettings as they are not initialize yet
+        // TODO: Here we allocate history even for camera that may not use volumetric
+        if (!m_supportVolumetric)
+            return;
 
         // Start with the same parameters for both frames. Then update them one by one every frame.
         var parameters          = ComputeVBufferParameters(hdCamera, true);
@@ -265,7 +274,8 @@ public class VolumetricLightingSystem
     // The results are undefined otherwise.
     public void UpdatePerCameraData(HDCamera hdCamera)
     {
-        if (preset == VolumetricLightingPreset.Off) return;
+        if (!hdCamera.frameSettings.enableVolumetric)
+            return;
 
         var parameters = ComputeVBufferParameters(hdCamera, false);
 
@@ -278,8 +288,10 @@ public class VolumetricLightingSystem
 
     void DestroyBuffers()
     {
-        RTHandles.Release(m_DensityBufferHandle);
-        RTHandles.Release(m_LightingBufferHandle);
+        if (m_DensityBufferHandle != null)
+            RTHandles.Release(m_DensityBufferHandle);
+        if (m_LightingBufferHandle != null)
+            RTHandles.Release(m_LightingBufferHandle);
 
         CoreUtils.SafeRelease(s_VisibleVolumeBoundsBuffer);
         CoreUtils.SafeRelease(s_VisibleVolumeDataBuffer);
@@ -290,8 +302,7 @@ public class VolumetricLightingSystem
 
     public void Cleanup()
     {
-        if (preset == VolumetricLightingPreset.Off) return;
-
+        // Note: No need to test for support volumetric here, we do saferelease and null assignation
         DestroyBuffers();
 
         m_VolumeVoxelizationCS = null;
@@ -397,7 +408,8 @@ public class VolumetricLightingSystem
 
     public void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd, uint frameIndex)
     {
-        if (preset == VolumetricLightingPreset.Off) return;
+        if (!hdCamera.frameSettings.enableVolumetric)
+            return;
 
         var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
 
@@ -437,10 +449,12 @@ public class VolumetricLightingSystem
     {
         DensityVolumeList densityVolumes = new DensityVolumeList();
 
-        if (preset == VolumetricLightingPreset.Off) return densityVolumes;
+        if (!hdCamera.frameSettings.enableVolumetric)
+            return densityVolumes;
 
         var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-        if (visualEnvironment.fogType != FogType.Volumetric) return densityVolumes;
+        if (visualEnvironment.fogType != FogType.Volumetric)
+            return densityVolumes;
 
         using (new ProfilingSample(cmd, "Prepare Visible Density Volume List"))
         {
@@ -494,10 +508,12 @@ public class VolumetricLightingSystem
 
     public void VolumeVoxelizationPass(HDCamera hdCamera, CommandBuffer cmd, uint frameIndex, DensityVolumeList densityVolumes)
     {
-        if (preset == VolumetricLightingPreset.Off) return;
+        if (!hdCamera.frameSettings.enableVolumetric)
+            return;
 
         var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-        if (visualEnvironment.fogType != FogType.Volumetric) return;
+        if (visualEnvironment.fogType != FogType.Volumetric)
+            return;
 
         using (new ProfilingSample(cmd, "Volume Voxelization"))
         {
@@ -594,10 +610,12 @@ public class VolumetricLightingSystem
 
     public void VolumetricLightingPass(HDCamera hdCamera, CommandBuffer cmd, uint frameIndex)
     {
-        if (preset == VolumetricLightingPreset.Off) return;
+        if (!hdCamera.frameSettings.enableVolumetric)
+            return;
 
         var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-        if (visualEnvironment.fogType != FogType.Volumetric) return;
+        if (visualEnvironment.fogType != FogType.Volumetric)
+            return;
 
         using (new ProfilingSample(cmd, "Volumetric Lighting"))
         {

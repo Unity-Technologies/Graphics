@@ -26,13 +26,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public abstract void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd);
 
-        public static void PushNeutralShaderParameters(CommandBuffer cmd)
+        public static void PushNeutralShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
         {
             cmd.SetGlobalInt(HDShaderIDs._AtmosphericScatteringType, (int)FogType.None);
 
             // In case volumetric lighting is enabled, we need to make sure that all rendering passes
             // (not just the atmospheric scattering one) receive neutral parameters.
-            if (ShaderConfig.s_VolumetricLightingPreset != 0)
+            if (hdCamera.frameSettings.enableVolumetric)
             {
                 var data = DensityVolumeData.GetNeutralValues();
 
