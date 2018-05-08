@@ -181,6 +181,14 @@ float _EmissiveColorMapUVLocal;
 float _EmissiveIntensity;
 float _AlbedoAffectEmissive;
 
+float _SpecularAntiAliasingEnabled;
+float _SpecularAntiAliasingScreenSpaceVariance;
+float _SpecularAntiAliasingThreshold;
+float _NormalCurvatureToRoughnessEnabled;
+float _NormalCurvatureToRoughnessScale;
+float _NormalCurvatureToRoughnessBias;
+float _NormalCurvatureToRoughnessExponent;
+
 float _AlphaCutoff;
 float4 _DoubleSidedConstants;
 
