@@ -265,6 +265,13 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.coatExtinction = float3(1.0, 1.0, 1.0);
 #endif
 
+    float3 coatGradient = float3(0.0, 0.0, 0.0);
+#ifdef _MATERIAL_FEATURE_COAT_NORMALMAP
+    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_STACK_LIT_COAT_NORMAL_MAP;
+    coatGradient = SAMPLE_TEXTURE2D_NORMAL_SCALE_BIAS(_CoatNormalMap, _CoatNormalScale);
+#endif
+
+
 #ifdef _MATERIAL_FEATURE_IRIDESCENCE
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_STACK_LIT_IRIDESCENCE;
     surfaceData.iridescenceIor = _IridescenceIor;
@@ -304,8 +311,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Surface Data Part 2 (outsite GetSurfaceData( ) in Lit shader):
     // -------------------------------------------------------------
 
+    surfaceData.geomNormalWS = input.worldToTangent[2];
     // Convert back to world space normal
     surfaceData.normalWS = SurfaceGradientResolveNormal(input.worldToTangent[2], gradient);
+    surfaceData.coatNormalWS = SurfaceGradientResolveNormal(input.worldToTangent[2], coatGradient);
 
     // TODO: decal etc.
 
