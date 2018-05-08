@@ -258,14 +258,5 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             return lightType == LightType.Directional || lightType == LightType.Spot;
         }
-
-        public static bool PlatformSupportsMSAABackBuffer()
-        {
-#if UNITY_ANDROID || UNITY_IPHONE || UNITY_TVOS || UNITY_SAMSUNGTV
-            return true;
-#else
-            return false;
-#endif
-        }
     }
 }

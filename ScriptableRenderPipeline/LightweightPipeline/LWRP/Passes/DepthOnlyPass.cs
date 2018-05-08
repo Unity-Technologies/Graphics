@@ -14,8 +14,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             RegisterShaderPassName("DepthOnly");
         }
 
-        public override void Setup(CommandBuffer cmd, RenderTextureDescriptor baseDescriptor, int samples)
+        public override void Setup(CommandBuffer cmd, RenderTextureDescriptor baseDescriptor, int[] colorAttachmentHandles, int depthAttachmentHandle = -1, int samples = 1)
         {
+            base.Setup(cmd, baseDescriptor, colorAttachmentHandles, depthAttachmentHandle, samples);
             baseDescriptor.colorFormat = RenderTextureFormat.Depth;
             baseDescriptor.depthBufferBits = kDepthBufferBits;
 
@@ -25,8 +26,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 baseDescriptor.msaaSamples = samples;
             }
 
-            cmd.GetTemporaryRT(RenderTargetHandles.Depth, baseDescriptor, FilterMode.Point);
-            m_Disposed = false;
+            cmd.GetTemporaryRT(depthAttachmentHandle, baseDescriptor, FilterMode.Point);
         }
 
         public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref CameraData cameraData, ref LightData lightData)
@@ -35,7 +35,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             using (new ProfilingSample(cmd, kProfilerTag))
             {
                 int depthSlice = LightweightPipeline.GetRenderTargetDepthSlice(cameraData.isStereoEnabled);
-                CoreUtils.SetRenderTarget(cmd, GetSurface(RenderTargetHandles.Depth), ClearFlag.Depth, 0, CubemapFace.Unknown, depthSlice);
+                CoreUtils.SetRenderTarget(cmd, GetSurface(depthAttachmentHandle), ClearFlag.Depth, 0, CubemapFace.Unknown, depthSlice);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
@@ -52,15 +52,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             //cmd.SetGlobalTexture(depthTextureID, depthTexture);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
-        }
-
-        public override void Dispose(CommandBuffer cmd)
-        {
-            if (!m_Disposed)
-            {
-                cmd.ReleaseTemporaryRT(RenderTargetHandles.Depth);
-                m_Disposed = true;
-            }
         }
     }
 }

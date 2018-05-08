@@ -178,50 +178,44 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             bool supportsDepthCopy = copyShaderSupported || supportsTextureCopy;
             bool requiresDepthPrepassToResolveMsaa = msaaEnabledForCamera && !supportsTexture2DMS;
             bool renderDirectionalShadows = shadowsEnabledForCamera && lightData.shadowData.supportsDirectionalShadows;
-            bool requiresScreenSpaceOcclusion = renderDirectionalShadows && lightData.shadowData.requiresScreenSpaceOcclusion;
-            bool requiresDepthPrepass = requiresCameraDepth && (!supportsDepthCopy || requiresScreenSpaceOcclusion || requiresDepthPrepassToResolveMsaa);
+            bool requiresScreenSpaceShadows = renderDirectionalShadows && lightData.shadowData.requiresScreenSpaceOcclusion;
+            bool requiresDepthPrepass = requiresScreenSpaceShadows || (requiresCameraDepth && (!supportsDepthCopy || requiresDepthPrepassToResolveMsaa));
 
-            bool needsMsaaResolve = (msaaEnabledForCamera && !LightweightPipeline.PlatformSupportsMSAABackBuffer());
             bool depthRenderBuffer = requiresCameraDepth && !requiresDepthPrepass;
             bool intermediateRenderTexture = cameraData.isSceneViewCamera ||
                 !Mathf.Approximately(cameraData.renderScale, 1.0f) ||
                 cameraData.isHdrEnabled ||
                 baseDescriptor.dimension == TextureDimension.Tex2DArray ||
                 cameraData.postProcessEnabled ||
-                needsMsaaResolve ||
                 depthRenderBuffer ||
                 cameraData.requiresOpaqueTexture;
 
             if (requiresDepthPrepass)
             {
-                depthOnlyPass.Setup(cmd, baseDescriptor, 1);
+                depthOnlyPass.Setup(cmd, baseDescriptor, null, RenderTargetHandles.Depth);
                 m_RenderPassList.Add(depthOnlyPass);
             }
 
             if (renderDirectionalShadows)
             {
-                directionalShadowPass.Setup(cmd, baseDescriptor, 1);
+                directionalShadowPass.Setup(cmd, baseDescriptor);
                 m_ShadowPassList.Add(directionalShadowPass);
-                if (requiresScreenSpaceOcclusion)
+                if (requiresScreenSpaceShadows)
                 {
-                    screenSpaceShadowOcclusionPass.Setup(cmd, baseDescriptor, 1);
+                    screenSpaceShadowOcclusionPass.Setup(cmd, baseDescriptor, new[] {RenderTargetHandles.ScreenSpaceOcclusion});
                     m_RenderPassList.Add(screenSpaceShadowOcclusionPass);
                 }
             }
 
             if (shadowsEnabledForCamera && lightData.shadowData.supportsLocalShadows)
             {
-                localShadowsPass.Setup(cmd, baseDescriptor, 1);
+                localShadowsPass.Setup(cmd, baseDescriptor);
                 m_ShadowPassList.Add(localShadowsPass);
             }
 
-            int colorHandle = (intermediateRenderTexture) ? RenderTargetHandles.Color : -1;
+            int[] colorHandles = (intermediateRenderTexture) ? new[] {RenderTargetHandles.Color} : null;
             int depthHandle = (depthRenderBuffer) ? RenderTargetHandles.Depth : -1;
-
-            forwardLitPass.colorHandles = new[] { colorHandle };
-            forwardLitPass.depthHandle = depthHandle;
-            forwardLitPass.Setup(cmd, baseDescriptor, cameraData.msaaSamples);
-
+            forwardLitPass.Setup(cmd, baseDescriptor, colorHandles, depthHandle, cameraData.msaaSamples);
             m_RenderPassList.Add(forwardLitPass);
 
             context.ExecuteCommandBuffer(cmd);
