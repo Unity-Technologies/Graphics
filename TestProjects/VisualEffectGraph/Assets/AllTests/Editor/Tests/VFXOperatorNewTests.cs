@@ -9,6 +9,7 @@ using UnityEngine.Graphing;
 using Object = UnityEngine.Object;
 using UnityEngine.Experimental.VFX;
 using System.Text;
+using UnityEditor.VFX.Operator;
 
 namespace UnityEditor.VFX.Test
 {
@@ -457,5 +458,43 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(e.y, r.y);
             Assert.AreEqual(e.z, r.z);
         }
+
+        private static Type[] allOperatorUsingFloatN = new Type[] { typeof(Absolute), typeof(Add), typeof(AppendVector), typeof(Branch), typeof(Ceiling), typeof(Clamp), typeof(Cosine), typeof(ComponentMask), typeof(FitClamped), typeof(Discretize), typeof(Distance), typeof(Divide), typeof(DotProduct), typeof(Floor), typeof(Fraction), typeof(Length), typeof(Lerp), typeof(Maximum), typeof(Minimum), typeof(Modulo), typeof(Multiply), typeof(Normalize), typeof(OneMinus), typeof(Power), typeof(Operator.Random), typeof(Reciprocal), typeof(Remap), typeof(RemapToNegOnePosOne), typeof(RemapToZeroOne), typeof(Round), typeof(Saturate), typeof(SawtoothWave), typeof(Sign), typeof(Sine), typeof(SineWave), typeof(Smoothstep), typeof(SquaredDistance), typeof(SquaredLength), typeof(SquareRoot), typeof(SquareWave), typeof(Step), typeof(Subtract), typeof(Swizzle), typeof(Tangent), typeof(TriangleWave) }; 
+        [Test]
+        public void VerifyAllOperatorUsingFloatNAreRegistered()
+        {
+            //Use reflexion only in test to avoid slowing down domain reload due to huge reflection
+            var allClasses = VFXLibrary.FindConcreteSubclasses(typeof(VFXOperator)); //even without attribute
+
+            var typeWithFloatN = new List<Type>();
+            foreach (var op in allClasses)
+            {
+                var currentOp = ScriptableObject.CreateInstance(op) as VFXOperator;
+                if (currentOp.inputSlots.Any(o => o.property.type == typeof(FloatN)))
+                {
+                    typeWithFloatN.Add(op);
+                }
+            }
+
+            Func<IEnumerable<Type>, string> fnDumpList = delegate (IEnumerable<Type> input)
+            {
+                if (!input.Any())
+                    return "new Type[] { }";
+
+                return "new Type[] { " + input.Select(o => string.Format("typeof({0})", o.Name)).Aggregate((a, b) => a + ", " + b) + " }";
+            };
+            var expected = fnDumpList(typeWithFloatN);
+            var current = fnDumpList(allOperatorUsingFloatN);
+
+            Assert.AreEqual(expected, current);
+        }
+
+        [Test]
+        public void SanitizeBehavior([ValueSource("allOperatorUsingFloatN")] Type op)
+        {
+
+        }
+
+
     }
 }
