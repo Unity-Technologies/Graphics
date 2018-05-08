@@ -48,7 +48,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Clear();
 
             ShadowData shadowData = lightData.shadowData;
-            if (shadowData.supportsDirectionalShadows)
+            if (shadowData.renderDirectionalShadows)
                 lightData.shadowData.renderedDirectionalShadowQuality = RenderDirectionalCascadeShadowmap(ref context, ref cullResults, ref lightData, ref shadowData);
         }
 
@@ -125,7 +125,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 // In order to avoid shader variants explosion we only do hard shadows when sampling shadowmap in the lit pass.
                 // GLES2 platform is forced to hard single cascade shadows.
-                if (!shadowData.requiresScreenSpaceOcclusion)
+                if (!shadowData.requiresScreenSpaceShadowResolve)
                     shadowQuality = LightShadows.Hard;
 
                 SetupDirectionalShadowReceiverConstants(ref context, cmd, ref shadowData, shadowLight);

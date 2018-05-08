@@ -2,14 +2,14 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
-    public class ScreenSpaceShadowOcclusionPass : ScriptableRenderPass
+    public class ScreenSpaceShadowResolvePass : ScriptableRenderPass
     {
         public bool softShadows { get; set; }
 
         RenderTextureFormat m_ColorFormat;
         Material m_ScreenSpaceShadowsMaterial;
 
-        public ScreenSpaceShadowOcclusionPass(LightweightForwardRenderer renderer) : base(renderer)
+        public ScreenSpaceShadowResolvePass(LightweightForwardRenderer renderer) : base(renderer)
         {
             m_ColorFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.R8)
                 ? RenderTextureFormat.R8
