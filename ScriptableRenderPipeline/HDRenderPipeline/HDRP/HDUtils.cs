@@ -326,5 +326,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Vector2 mousePixelCoord = MousePositionDebug.instance.GetMouseClickPosition(camera.screenSize.y);
             return new Vector4(mousePixelCoord.x, mousePixelCoord.y, camera.viewportScale.x * mousePixelCoord.x / camera.screenSize.x, camera.viewportScale.y * mousePixelCoord.y / camera.screenSize.y);
         }
+
+        // This function check if camera is a CameraPreview, then check if this preview is a regular preview (i.e not a preview from the camera editor)
+        public static bool IsRegularPreviewCamera(Camera camera)
+        {
+            var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
+            return camera.cameraType == CameraType.Preview && ((additionalCameraData == null) || (additionalCameraData && !additionalCameraData.isEditorCameraPreview));
+        }
     }
 }

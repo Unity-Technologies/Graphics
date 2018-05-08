@@ -23,27 +23,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ld.color = add.affectDiffuse ? LinearColor.Convert(l.color, l.intensity) : LinearColor.Black();
             ld.indirectColor = add.affectDiffuse ? LightmapperUtils.ExtractIndirect(l) : LinearColor.Black();
 
-            // For HDRP we need to divide the analytic light color by PI (HDRP do explicit PI division for Lambert, but built in Unity and the GI don't)
-            // We apply it on both direct and indirect are they are separated, seems that direct is no used if we used mixed mode with indirect or shadowmask bake.
-            ld.color.red /= Mathf.PI;
-            ld.color.green /= Mathf.PI;
-            ld.color.blue /= Mathf.PI;
-
-            ld.indirectColor.red /= Mathf.PI;
-            ld.indirectColor.green /= Mathf.PI;
-            ld.indirectColor.blue /= Mathf.PI;
-
             // Note that the HDRI is correctly integrated in the GlobalIllumination system, we don't need to do anything regarding it.
 
-#if UNITY_EDITOR
             ld.mode = LightmapperUtils.Extract(l.lightmapBakeType);
-#else
-            ld.mode = LightMode.Realtime;
-#endif
+
             ld.shadow = (byte)(l.shadows != LightShadows.None ? 1 : 0);
 
             if (add.lightTypeExtent == LightTypeExtent.Punctual)
             {
+                // For HDRP we need to divide the analytic light color by PI (HDRP do explicit PI division for Lambert, but built in Unity and the GI don't for punctual lights)
+                // We apply it on both direct and indirect are they are separated, seems that direct is no used if we used mixed mode with indirect or shadowmask bake.
+                ld.color.intensity          /= Mathf.PI;
+                ld.indirectColor.intensity  /= Mathf.PI;
+
                 switch (l.type)
                 {
                     case LightType.Directional:
@@ -149,13 +141,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 ld.shape1 = 0.0f;
 #endif
                 // TEMP: for now, if we bake a rectangle type this will disable the light for runtime, need to speak with GI team about it!
-                // ld.type = UnityEngine.Experimental.GlobalIllumination.LightType.Rectangle;
-                ld.type = UnityEngine.Experimental.GlobalIllumination.LightType.Point;
+                ld.type = UnityEngine.Experimental.GlobalIllumination.LightType.Rectangle;
                 ld.falloff = add.applyRangeAttenuation ? FalloffType.InverseSquared : FalloffType.InverseSquaredNoRangeAttenuation;
             }
             else if (add.lightTypeExtent == LightTypeExtent.Line)
             {
-
+                ld.InitNoBake(ld.instanceID);
             }
             else
             {
@@ -172,7 +163,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             for (int i = 0; i < requests.Length; i++)
             {
                 Light l = requests[i];
-                LightDataGIExtract(l, ref ld);
+#if UNITY_EDITOR
+                if (LightmapperUtils.Extract(l.lightmapBakeType) == LightMode.Realtime)
+                    ld.InitNoBake(l.GetInstanceID());
+                else
+                    LightDataGIExtract(l, ref ld);
+#else
+                ld.InitNoBake(l.GetInstanceID());
+#endif
+
                 lightsOutput[i] = ld;
             }
         };

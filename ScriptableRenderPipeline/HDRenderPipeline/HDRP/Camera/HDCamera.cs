@@ -454,7 +454,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_Cleanup.Clear();
         }
 
-        // Look for any camera that hasn't been used in the last frame and remove them for the pool.
+        // Look for any camera that hasn't been used in the last frame and remove them from the pool.
         public static void CleanUnused()
         {
             int frameCheck = Time.frameCount - 1;
