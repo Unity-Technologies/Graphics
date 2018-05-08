@@ -321,6 +321,8 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     // IMPORTANT: In our forward only case, all enable flags are statically know at compile time, so the compiler can do compile time optimization
     bsdfData.materialFeatures = surfaceData.materialFeatures;
 
+    bsdfData.geomNormalWS = surfaceData.geomNormalWS; // We should always have this whether we enable coat normals or not.
+
     // Two lobe base material
     bsdfData.normalWS = surfaceData.normalWS;
     bsdfData.perceptualRoughnessA = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothnessA);
@@ -354,6 +356,11 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 
     if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT))
     {
+        if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT_NORMAL_MAP))
+        {
+            bsdfData.coatNormalWS = surfaceData.coatNormalWS;
+        }
+
         FillMaterialCoatData(PerceptualSmoothnessToPerceptualRoughness(surfaceData.coatPerceptualSmoothness),
                              surfaceData.coatIor, surfaceData.coatThickness, surfaceData.coatExtinction, bsdfData);
 
@@ -1705,7 +1712,7 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
         float topNdotH = NdotH;
         float topNdotL = NdotL;
         float topNdotV = NdotV;
-#if VLAYERED_USE_REFRACTED_ANGLES_FOR_BASE
+#ifdef VLAYERED_USE_REFRACTED_ANGLES_FOR_BASE
         // TODOWIP
 
         // Use the refracted angle at the bottom interface for BSDF calculations:
@@ -1713,11 +1720,20 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
         // coefficients already (vLayerEnergyCoeff), which are like FGD (but no deferred
         // FGD fetch to do here for analytical lights), so normally, we should use
         // an output lobe parametrization, but multiple-scattering is not accounted fully
-        // byt ComputeAdding (by deriving azimuth dependent covariance operators).
+        // by ComputeAdding (for anisotropy by deriving azimuth dependent covariance operators).
         // In the IBL case, we don't have a specific incoming light direction so the light
         // representation matches more the correct context of a split sum approximation,
         // though we don't handle anisotropy correctly either anyway.
-        // In both cases we need to work around it, so just to test:
+        // In both cases we need to work around it.
+        //
+        // Using refracted angles for BSDF eval for the base in the case of analytical lights 
+        // must be seen as a hack on top of the ComputeAdding method in which we consider that 
+        // even though the output (energy coefficients) of the method are statistical averages 
+        // over all incoming light directions and so to be used in the context of a split sum 
+        // approximation, the analytical lights have all their energy in a specific ray direction 
+        // and moreover, currently, the output coefficients of the method are formed from straight 
+        // Fresnel terms, and not FGD terms.
+        //
         float3 H = (L + V) * invLenLV;
         // H stays the same so calculate it one time
         V = CoatRefract(V, H, preLightData.coatIeta);
@@ -1731,7 +1747,7 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
         //NdotV    = ClampNdotV(dot(N, V));
         CalculateAngles(L, V, NdotL, dot(N, V), LdotV, invLenLV, NdotH, LdotH, NdotV);
 
-#endif // #if VLAYERED_USE_REFRACTED_ANGLES_FOR_BASE
+#endif // #ifdef VLAYERED_USE_REFRACTED_ANGLES_FOR_BASE
 
 #ifdef VLAYERED_RECOMPUTE_PERLIGHT
         // TODOWIP
@@ -2206,8 +2222,6 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     // Since the weights are influence blending weights, we can correctly
     // use our lobe weight and mix them.
     // -Fudge the sampling direction to dampen boundary artefacts.
-    // -Do early discard for planar reflections.
-
     // -Fetch samples of preintegrated environment lighting
     // (see preLD, first part of the split-sum approx.)
     // -Use the BSDF preintegration terms we pre-fetched in preLightData
