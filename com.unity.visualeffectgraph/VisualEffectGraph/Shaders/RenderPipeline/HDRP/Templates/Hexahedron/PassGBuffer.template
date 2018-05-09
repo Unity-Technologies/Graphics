@@ -78,10 +78,10 @@ ${VFXEnd}
 		const bool frontFace = true;
 #endif
 		float3 normalWS;
-		float2 uvs = VFXCubeGetUV(i);
+		const VFXUVData uvData = GetUVData(i,VFXCubeGetUV(i));
 		
 		#if HDRP_USE_NORMAL_MAP
-		float3 n = VFXGetTextureNormal(VFX_SAMPLER(normalMap),uvs);
+		float3 n = SampleNormalMap(VFX_SAMPLER(normalMap),uvData);
 		normalWS = VFXCubeTransformNormalTS(i,n,frontFace);
 		normalWS = lerp(VFXCubeGetLocalNormal(i),normalWS,i.materialProperties.z);
 		#else
@@ -92,7 +92,7 @@ ${VFXEnd}
 
 		SurfaceData surfaceData;
 		float3 ambient;
-		VFXGetHDRPLitData(surfaceData,ambient,i,normalWS,uvs);
+		VFXGetHDRPLitData(surfaceData,ambient,i,normalWS,uvData);
 		
 		ENCODE_INTO_GBUFFER(surfaceData, ambient, i.pos, outGBuffer);
 	}

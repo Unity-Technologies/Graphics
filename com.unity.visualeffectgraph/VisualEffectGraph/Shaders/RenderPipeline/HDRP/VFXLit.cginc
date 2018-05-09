@@ -20,7 +20,7 @@ float3 VFXSampleLightProbes(float3 normalWS)
     return SampleSH9(SHCoefficients, normalWS);
 }
 
-BuiltinData VFXGetBuiltinData(VFX_VARYING_PS_INPUTS i,const SurfaceData surfaceData, float2 uvs)
+BuiltinData VFXGetBuiltinData(VFX_VARYING_PS_INPUTS i,const SurfaceData surfaceData, const VFXUVData uvData)
 {
     BuiltinData builtinData = (BuiltinData)0;
     builtinData.opacity = 1.0f;
@@ -29,7 +29,7 @@ BuiltinData VFXGetBuiltinData(VFX_VARYING_PS_INPUTS i,const SurfaceData surfaceD
     #if HDRP_USE_EMISSIVE
     builtinData.emissiveColor = float3(1,1,1);
     #if HDRP_USE_EMISSIVE_MAP
-    builtinData.emissiveColor *= VFXGetTextureColorWithProceduralUV(VFX_SAMPLER(emissiveMap),i,uvs).rgb * i.materialProperties.w;
+    builtinData.emissiveColor *= SampleTexture(VFX_SAMPLER(emissiveMap),uvData).rgb * i.materialProperties.w;
     #endif
     #if HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR
     builtinData.emissiveColor *= i.emissiveColor;
@@ -40,17 +40,20 @@ BuiltinData VFXGetBuiltinData(VFX_VARYING_PS_INPUTS i,const SurfaceData surfaceD
     return builtinData;
 }
 
-SurfaceData VFXGetSurfaceData(VFX_VARYING_PS_INPUTS i, float3 normalWS,float2 uvs, uint diffusionProfile)
+SurfaceData VFXGetSurfaceData(VFX_VARYING_PS_INPUTS i, float3 normalWS,const VFXUVData uvData, uint diffusionProfile)
 {
     SurfaceData surfaceData = (SurfaceData)0;
 
     float4 color = float4(1,1,1,1);
     #if HDRP_USE_BASE_COLOR
     color *= VFXGetFragmentColor(i);
-    VFXClipFragmentColor(color.a,i);
     #elif HDRP_USE_ADDITIONAL_BASE_COLOR
     color *= i.color;
     #endif
+    #if HDRP_USE_BASE_COLOR_MAP
+    color *= SampleTexture(VFX_SAMPLER(baseColorMap),uvData);
+    #endif
+    VFXClipFragmentColor(color.a,i);
     surfaceData.baseColor = color.rgb;
 
     #if HDRP_MATERIAL_TYPE_STANDARD
@@ -71,12 +74,8 @@ SurfaceData VFXGetSurfaceData(VFX_VARYING_PS_INPUTS i, float3 normalWS,float2 uv
     surfaceData.specularOcclusion = 1.0f;
     surfaceData.ambientOcclusion = 1.0f;
 
-    #if HDRP_USE_BASE_COLOR_MAP
-    surfaceData.baseColor *= VFXGetTextureColorWithProceduralUV(VFX_SAMPLER(baseColorMap),i,uvs);
-    #endif
-
     #if HDRP_USE_MASK_MAP
-    float4 mask = VFXGetTextureColorWithProceduralUV(VFX_SAMPLER(maskMap),i,uvs);
+    float4 mask = SampleTexture(VFX_SAMPLER(maskMap),uvData);
     surfaceData.metallic *= mask.r;
     surfaceData.ambientOcclusion *= mask.g;
     surfaceData.perceptualSmoothness *= mask.a;

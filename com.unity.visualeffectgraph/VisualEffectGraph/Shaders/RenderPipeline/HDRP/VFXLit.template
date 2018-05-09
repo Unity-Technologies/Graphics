@@ -1,6 +1,6 @@
 #include "Assets/VFXEditor/Shaders/RenderPipeline/HDRP/VFXLit.cginc"
 
-void VFXGetHDRPLitData(out SurfaceData surfaceData, out float3 ambient, VFX_VARYING_PS_INPUTS i, float3 normalWS, float2 uvs = float2(0,0))
+void VFXGetHDRPLitData(out SurfaceData surfaceData, out float3 ambient, VFX_VARYING_PS_INPUTS i, float3 normalWS, const VFXUVData uvData)
 {
 	#if HDRP_MATERIAL_TYPE_TRANSLUCENT
 	${VFXLoadParameter:{diffusionProfile}} // Loads diffusion profile
@@ -8,8 +8,8 @@ void VFXGetHDRPLitData(out SurfaceData surfaceData, out float3 ambient, VFX_VARY
 	const uint diffusionProfile = 0;
 	#endif
 	
-	surfaceData = VFXGetSurfaceData(i,normalWS,uvs,diffusionProfile);
-	BuiltinData builtinData = VFXGetBuiltinData(i,surfaceData,uvs);
+	surfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile);
+	BuiltinData builtinData = VFXGetBuiltinData(i,surfaceData,uvData);
 	BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
 	
 	PreLightData preLightData = (PreLightData)0;

@@ -52,7 +52,8 @@ ${VFXEnd}
 				
 		SurfaceData surfaceData;
 		float3 ambient;
-		VFXGetHDRPLitData(surfaceData,ambient,i,normalWS);
+		VFXUVData dummy;
+		VFXGetHDRPLitData(surfaceData,ambient,i,normalWS,dummy);
 		
 		ENCODE_INTO_GBUFFER(surfaceData, ambient, i.pos, outGBuffer);
 	}
