@@ -21,6 +21,9 @@ SAMPLER(sampler_SmoothnessAMap);
 TEXTURE2D(_NormalMap);
 SAMPLER(sampler_NormalMap);
 
+TEXTURE2D(_CoatNormalMap);
+SAMPLER(sampler_CoatNormalMap);
+
 TEXTURE2D(_SmoothnessBMap);
 SAMPLER(sampler_SmoothnessBMap);
 
@@ -128,6 +131,15 @@ float _CoatIor;
 float _CoatThickness;
 float3 _CoatExtinction;
 
+float _CoatNormalScale;
+float _CoatNormalMapUV;
+float _CoatNormalMapUVLocal;
+float _CoatNormalMapObjSpace;
+float4 _CoatNormalMap_ST;
+float4 _CoatNormalMap_TexelSize;
+float4 _CoatNormalMap_MipInfo;
+
+
 float _IridescenceThickness;
 float _IridescenceThicknessUseMap;
 float _IridescenceThicknessMapUV;
@@ -168,6 +180,14 @@ float _EmissiveColorMapUV;
 float _EmissiveColorMapUVLocal;
 float _EmissiveIntensity;
 float _AlbedoAffectEmissive;
+
+float _SpecularAntiAliasingEnabled;
+float _SpecularAntiAliasingScreenSpaceVariance;
+float _SpecularAntiAliasingThreshold;
+float _NormalCurvatureToRoughnessEnabled;
+float _NormalCurvatureToRoughnessScale;
+float _NormalCurvatureToRoughnessBias;
+float _NormalCurvatureToRoughnessExponent;
 
 float _AlphaCutoff;
 float4 _DoubleSidedConstants;

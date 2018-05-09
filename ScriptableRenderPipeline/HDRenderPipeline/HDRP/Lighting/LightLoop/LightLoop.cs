@@ -515,15 +515,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             GlobalLightLoopSettings gLightLoopSettings = hdAsset.GetRenderPipelineSettings().lightLoopSettings;
             m_CookieTexArray = new TextureCache2D("Cookie");
-            m_CookieTexArray.AllocTextureArray(gLightLoopSettings.cookieTexArraySize, gLightLoopSettings.cookieSize, gLightLoopSettings.cookieSize, TextureFormat.RGBA32, true);
+            m_CookieTexArray.AllocTextureArray(gLightLoopSettings.cookieTexArraySize, (int)gLightLoopSettings.cookieSize, (int)gLightLoopSettings.cookieSize, TextureFormat.RGBA32, true);
             m_CubeCookieTexArray = new TextureCacheCubemap("Cookie");
-            m_CubeCookieTexArray.AllocTextureArray(gLightLoopSettings.cubeCookieTexArraySize, gLightLoopSettings.pointCookieSize, TextureFormat.RGBA32, true, m_CubeToPanoMaterial);
+            m_CubeCookieTexArray.AllocTextureArray(gLightLoopSettings.cubeCookieTexArraySize, (int)gLightLoopSettings.pointCookieSize, TextureFormat.RGBA32, true, m_CubeToPanoMaterial);
 
             TextureFormat probeCacheFormat = gLightLoopSettings.reflectionCacheCompressed ? TextureFormat.BC6H : TextureFormat.RGBAHalf;
-            m_ReflectionProbeCache = new ReflectionProbeCache(hdAsset, iblFilterGGX, gLightLoopSettings.reflectionProbeCacheSize, gLightLoopSettings.reflectionCubemapSize, probeCacheFormat, true);
+            m_ReflectionProbeCache = new ReflectionProbeCache(hdAsset, iblFilterGGX, gLightLoopSettings.reflectionProbeCacheSize, (int)gLightLoopSettings.reflectionCubemapSize, probeCacheFormat, true);
 
             TextureFormat planarProbeCacheFormat = gLightLoopSettings.planarReflectionCacheCompressed ? TextureFormat.BC6H : TextureFormat.RGBAHalf;
-            m_ReflectionPlanarProbeCache = new PlanarReflectionProbeCache(hdAsset, iblFilterGGX, gLightLoopSettings.planarReflectionProbeCacheSize, gLightLoopSettings.planarReflectionTextureSize, planarProbeCacheFormat, true);
+            m_ReflectionPlanarProbeCache = new PlanarReflectionProbeCache(hdAsset, iblFilterGGX, gLightLoopSettings.planarReflectionProbeCacheSize, (int)gLightLoopSettings.planarReflectionTextureSize, planarProbeCacheFormat, true);
 
             s_GenAABBKernel = buildScreenAABBShader.FindKernel("ScreenBoundsAABB");
 
@@ -831,6 +831,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             directionalLightData.diffuseScale = additionalData.affectDiffuse ? diffuseDimmer : 0.0f;
             directionalLightData.specularScale = additionalData.affectSpecular ? specularDimmer : 0.0f;
+            directionalLightData.volumetricDimmer = additionalData.volumetricDimmer;
             directionalLightData.shadowIndex = directionalLightData.cookieIndex = -1;
 
             if (light.light.cookie != null)
@@ -984,6 +985,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             lightData.diffuseScale = additionalLightData.affectDiffuse ? lightScale * m_FrameSettings.diffuseGlobalDimmer : 0.0f;
             lightData.specularScale = additionalLightData.affectSpecular ? lightScale * m_FrameSettings.specularGlobalDimmer : 0.0f;
+
+            lightData.volumetricDimmer = additionalLightData.volumetricDimmer;
 
             if (lightData.diffuseScale <= 0.0f && lightData.specularScale <= 0.0f)
                 return false;

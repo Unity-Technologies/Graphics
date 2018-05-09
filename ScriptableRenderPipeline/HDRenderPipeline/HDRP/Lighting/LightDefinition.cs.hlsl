@@ -65,6 +65,7 @@ struct DirectionalLightData
     float unused0;
     int dynamicShadowCasterOnly;
     float4 shadowMaskSelector;
+    float volumetricDimmer;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.LightData
@@ -89,6 +90,7 @@ struct LightData
     float2 size;
     int lightType;
     float minRoughness;
+    float volumetricDimmer;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.EnvLightData
@@ -179,6 +181,10 @@ float4 GetShadowMaskSelector(DirectionalLightData value)
 {
 	return value.shadowMaskSelector;
 }
+float GetVolumetricDimmer(DirectionalLightData value)
+{
+	return value.volumetricDimmer;
+}
 
 //
 // Accessors for UnityEngine.Experimental.Rendering.HDPipeline.LightData
@@ -254,6 +260,10 @@ int GetLightType(LightData value)
 float GetMinRoughness(LightData value)
 {
 	return value.minRoughness;
+}
+float GetVolumetricDimmer(LightData value)
+{
+	return value.volumetricDimmer;
 }
 
 //

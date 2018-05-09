@@ -55,12 +55,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Vector2 m_ViewportScalePreviousFrame;
         // Current mssa sample
         MSAASamples m_msaaSamples;
+        FrameSettings m_frameSettings;
 
         public int actualWidth { get { return m_ActualWidth; } }
         public int actualHeight { get { return m_ActualHeight; } }
         public Vector2 viewportScale { get { return m_ViewportScaleCurrentFrame; } }
         public Vector4 doubleBufferedViewportScale { get { return new Vector4(m_ViewportScaleCurrentFrame.x, m_ViewportScaleCurrentFrame.y, m_ViewportScalePreviousFrame.x, m_ViewportScalePreviousFrame.y); } }
         public MSAASamples msaaSamples { get { return m_msaaSamples; } }
+
+        public FrameSettings frameSettings { get { return m_frameSettings; } }
 
         public Matrix4x4 viewProjMatrix
         {
@@ -173,13 +176,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Pass all the systems that may want to update per-camera data here.
         // That way you will never update an HDCamera and forget to update the dependent system.
-        public void Update(PostProcessLayer postProcessLayer, FrameSettings frameSettings, VolumetricLightingSystem vlSys)
+        public void Update(FrameSettings currentFrameSettings, PostProcessLayer postProcessLayer, VolumetricLightingSystem vlSys)
         {
+            m_frameSettings = currentFrameSettings;
+
             // If TAA is enabled projMatrix will hold a jittered projection matrix. The original,
             // non-jittered projection matrix can be accessed via nonJitteredProjMatrix.
             bool taaEnabled = camera.cameraType == CameraType.Game &&
                 CoreUtils.IsTemporalAntialiasingActive(postProcessLayer) &&
-                frameSettings.enablePostprocess;
+                m_frameSettings.enablePostprocess;
 
             var nonJitteredCameraProj = camera.projectionMatrix;
             var cameraProj = taaEnabled
@@ -278,7 +283,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var screenWidth = m_ActualWidth;
             var screenHeight = m_ActualHeight;
 #if !UNITY_SWITCH
-            if (frameSettings.enableStereo)
+            if (m_frameSettings.enableStereo)
             {
                 screenWidth = XRSettings.eyeTextureWidth;
                 screenHeight = XRSettings.eyeTextureHeight;
@@ -293,8 +298,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Unfortunately sometime (like in the HDCameraEditor) HDUtils.hdrpSettings can be null because of scripts that change the current pipeline...
             m_msaaSamples = HDUtils.hdrpSettings != null ? HDUtils.hdrpSettings.msaaSampleCount : MSAASamples.None;
-            RTHandles.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, m_msaaSamples);
-            m_HistoryRTSystem.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, m_msaaSamples);
+            RTHandles.SetReferenceSize(m_ActualWidth, m_ActualHeight, m_frameSettings.enableMSAA, m_msaaSamples);
+            m_HistoryRTSystem.SetReferenceSize(m_ActualWidth, m_ActualHeight, m_frameSettings.enableMSAA, m_msaaSamples);
             m_HistoryRTSystem.Swap();
 
             int maxWidth = RTHandles.maxWidth;
@@ -313,9 +318,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Stopgap method used to extract stereo combined matrix state.
-        public void UpdateStereoDependentState(FrameSettings frameSettings, ref ScriptableCullingParameters cullingParams)
+        public void UpdateStereoDependentState(ref ScriptableCullingParameters cullingParams)
         {
-            if (!frameSettings.enableStereo)
+            if (!m_frameSettings.enableStereo)
                 return;
 
             // What constants in UnityPerPass need updating for stereo considerations?
@@ -449,7 +454,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_Cleanup.Clear();
         }
 
-        // Look for any camera that hasn't been used in the last frame and remove them for the pool.
+        // Look for any camera that hasn't been used in the last frame and remove them from the pool.
         public static void CleanUnused()
         {
             int frameCheck = Time.frameCount - 1;
