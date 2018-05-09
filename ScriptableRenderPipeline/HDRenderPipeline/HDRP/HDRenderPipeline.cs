@@ -183,6 +183,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public HDRenderPipeline(HDRenderPipelineAsset asset)
         {
+#if UNITY_EDITOR
+            // HACK: Make debug windows work correctly with FrameSettings in Editor
+            DebugManager.renderPipelineIsRecreated = true;
+#endif
+
             m_ValidAPI = true;
 
             if (!SetRenderingFeatures())
