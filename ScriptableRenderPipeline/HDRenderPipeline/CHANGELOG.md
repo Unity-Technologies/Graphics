@@ -42,6 +42,7 @@
 - Fix area light shapes sent as point lights to the baking backends when they are set to baked.
 - Fix unnecessary division by PI for baked area lights.
 - Fix line lights sent to the lightmappers. The backends don't support this light type.
+- Fix issue with shadow mask framesettings not correctly taken into account when shadow mask is enabled for lighting.
 
 ## [2018.1.0f2]
 
