@@ -2,9 +2,6 @@
 	path = PostProcessing
 	url = https://github.com/Unity-Technologies/PostProcessing
 	branch = v2
-[submodule "ShaderGraph"]
-	path = ShaderGraph
-	url = https://github.com/Unity-Technologies/ShaderGraph
 [submodule "Tests/UTF_Core"]
 	path = Tests/UTF_Core
 	url = https://github.com/Unity-Technologies/UTF_Core.git
