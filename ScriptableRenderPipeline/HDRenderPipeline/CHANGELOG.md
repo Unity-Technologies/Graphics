@@ -29,6 +29,7 @@
 - The VolumetricLightingController has been moved to the Interpolation Volume framework and now functions similarly to the VolumetricFog settings
 - Update of UI of cookie, CubeCookie, Reflection probe and planar reflection probe to combo box
 - Allow enabling/disabling shadows for area lights when they are set to baked.
+- Hide applyRangeAttenuation and FadeDistance for directional shadow as they are not used
 
 ### Bug fixes
 - Fix ConvertPhysicalLightIntensityToLightIntensity() function used when creating light from script to match HDLightEditor behavior
