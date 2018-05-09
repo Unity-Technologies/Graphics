@@ -66,9 +66,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalTexture(HDShaderIDs._DecalHTileTexture, m_HTile);
         }
 
-        public void PushGlobalParams(CommandBuffer cmd, FrameSettings frameSettings)
+        public void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd)
         {
-            if (frameSettings.enableDBuffer)
+            if (hdCamera.frameSettings.enableDBuffer)
             {
                 cmd.SetGlobalInt(HDShaderIDs._EnableDBuffer, vsibleDecalCount > 0 ? 1 : 0);
                 cmd.SetGlobalVector(HDShaderIDs._DecalAtlasResolution, new Vector2(HDUtils.hdrpSettings.decalSettings.atlasWidth, HDUtils.hdrpSettings.decalSettings.atlasHeight));

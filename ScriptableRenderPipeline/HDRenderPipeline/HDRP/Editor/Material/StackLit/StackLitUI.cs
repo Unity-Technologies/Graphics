@@ -55,6 +55,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string k_CoatIor = "_CoatIor";
         protected const string k_CoatThickness = "_CoatThickness";
         protected const string k_CoatExtinction = "_CoatExtinction";
+        protected const string k_EnableCoatNormalMap = "_EnableCoatNormalMap";
+        protected const string k_CoatNormalMap = "_CoatNormalMap";
+        protected const string k_CoatNormalMapUV = "_CoatNormalMapUV";
+        protected const string k_CoatNormalScale = "_CoatNormalScale";
 
         // SSS
         protected const string k_EnableSubsurfaceScattering = "_EnableSubsurfaceScattering";
@@ -96,6 +100,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kStencilRefMV = "_StencilRefMV";
         protected const string kStencilWriteMaskMV = "_StencilWriteMaskMV";
 
+        protected const string k_SpecularAntiAliasingEnabled = "_SpecularAntiAliasingEnabled";
+        protected const string k_NormalCurvatureToRoughnessEnabled = "_NormalCurvatureToRoughnessEnabled";
+
         #endregion
 
         // Add the properties into an array.
@@ -105,9 +112,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         private Property EnableSSS;
         private Property EnableTransmission;
         private Property EnableCoat;
+        private Property EnableCoatNormalMap;
         private Property EnableAnisotropy;
         private Property EnableDualSpecularLobe;
         private Property EnableIridescence;
+
+        private Property EnableSpecularAA;
+        private Property EnableNormalCurvatureToRoughness;
 
         public StackLitGUI()
         {
@@ -121,9 +132,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EnableSSS = new Property(this, k_EnableSubsurfaceScattering, "Enable Subsurface Scattering", "Enable Subsurface Scattering", true);
             EnableTransmission = new Property(this, k_EnableTransmission, "Enable Transmission", "Enable Transmission", true);
             EnableCoat = new Property(this, k_EnableCoat, "Enable Coat", "Enable coat layer with true vertical physically based BSDF mixing", true);
+            EnableCoatNormalMap = new Property(this, k_EnableCoatNormalMap, "Enable Coat Normal Map", "Enable separate top coat normal map", true);
             EnableAnisotropy = new Property(this, k_EnableAnisotropy, "Enable Anisotropy", "Enable anisotropy, correct anisotropy for punctual light but very coarse approximated for reflection", true);
             EnableDualSpecularLobe = new Property(this, k_EnableDualSpecularLobe, "Enable Dual Specular Lobe", "Enable a second specular lobe, aim to simulate a mix of a narrow and a haze lobe that better match measured material", true);
             EnableIridescence = new Property(this, k_EnableIridescence, "Enable Iridescence", "Enable physically based iridescence layer", true);
+
+            EnableSpecularAA = new Property(this, k_SpecularAntiAliasingEnabled, k_SpecularAntiAliasingEnabled, k_SpecularAntiAliasingEnabled, true);
+            EnableNormalCurvatureToRoughness = new Property(this, k_NormalCurvatureToRoughnessEnabled, k_NormalCurvatureToRoughnessEnabled, k_NormalCurvatureToRoughnessEnabled, true);
 
             // All material properties
             _materialProperties = new GroupProperty(this, "_Material", new BaseProperty[]
@@ -133,6 +148,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     EnableDualSpecularLobe,
                     EnableAnisotropy,
                     EnableCoat,
+                    EnableCoatNormalMap,
                     EnableIridescence,
                     EnableSSS,
                     EnableTransmission
@@ -144,7 +160,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     new TextureProperty(this, k_MetallicMap, k_Metallic, "Metallic", "Metallic", false, false),
                     new Property(this, k_DielectricIor, "DieletricIor", "IOR use for dielectric material (i.e non metallic material)", false),
                     new TextureProperty(this, k_SmoothnessAMap, k_SmoothnessA, "Smoothness", "Smoothness", false, false),
-                    new TextureProperty(this, k_NormalMap, k_NormalScale, "Normal", "Normal Map", false, false, true),
+                    new TextureProperty(this, k_NormalMap, k_NormalScale, "Normal", "Normal Map", true, false, true),
                     new TextureProperty(this, k_AmbientOcclusionMap, k_AmbientOcclusion, "AmbientOcclusion", "AmbientOcclusion Map", false, false),
                 }),
 
@@ -163,6 +179,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 new GroupProperty(this, "_Coat", "Coat", new BaseProperty[]
                 {
                     new TextureProperty(this, k_CoatSmoothnessMap, k_CoatSmoothness, "Coat smoothness", "Coat smoothness", false),
+                    new TextureProperty(this, k_CoatNormalMap, k_CoatNormalScale, "Coat Normal Map", "Coat Normal Map", true, false, true,  _ => EnableCoatNormalMap.BoolValue == true),
                     new Property(this, "_CoatIor", "Coat IOR", "Index of refraction", false),
                     new Property(this, "_CoatThickness", "Coat Thickness", "Coat thickness", false),
                     new Property(this, "_CoatExtinction", "Coat Absorption", "Coat absorption tint (the thicker the coat, the more that color is removed)", false),
@@ -195,9 +212,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 new GroupProperty(this, "_Debug", "Debug", new BaseProperty[]
                 {
+                    new Property(this, "_VlayerRecomputePerLight", "Vlayer Recompute Per Light", "", false),
                     new Property(this, "_DebugEnable", "Debug Enable", "Switch to a debug version of the shader", false),
                     new Property(this, "_DebugLobeMask", "DebugLobeMask", "xyz is Lobe 0 1 2 Enable, w is Enable VLayering", false),
                     new Property(this, "_DebugAniso", "DebugAniso", "x is Hack Enable, y is factor", false),
+
+                    EnableSpecularAA,
+                    new Property(this, "_SpecularAntiAliasingScreenSpaceVariance", "Specular Aliasing Enable", "Specular Aliasing Enable", false, _ => EnableSpecularAA.BoolValue == true),
+                    new Property(this, "_SpecularAntiAliasingThreshold", "Specular Aliasing Enable", "Specular Aliasing Enable", false, _ => EnableSpecularAA.BoolValue == true),
+
+                    EnableNormalCurvatureToRoughness,
+                    new Property(this, "_NormalCurvatureToRoughnessScale", "Normal Curvature To Roughness Scale", "Normal Curvature To Roughness Scale", false, _ => EnableNormalCurvatureToRoughness.BoolValue == true),
+                    new Property(this, "_NormalCurvatureToRoughnessBias", "Normal Curvature To Roughness Bias", "Normal Curvature To Roughness Bias", false, _ => EnableNormalCurvatureToRoughness.BoolValue == true),
+                    new Property(this, "_NormalCurvatureToRoughnessExponent", "Normal Curvature To Roughness Exponent", "Normal Curvature To Roughness Exponent", false, _ => EnableNormalCurvatureToRoughness.BoolValue == true),
+
                 }),
             });
         }
@@ -357,6 +385,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 (TextureProperty.UVMapping) material.GetFloat(k_AnisotropyMapUV),
                 (TextureProperty.UVMapping) material.GetFloat(k_IridescenceThicknessMapUV),
                 (TextureProperty.UVMapping) material.GetFloat(k_CoatSmoothnessMapUV),
+                (TextureProperty.UVMapping) material.GetFloat(k_CoatNormalMapUV),
             };
 
             // Set keyword for mapping
@@ -390,9 +419,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool coatEnabled = material.HasProperty(k_EnableCoat) && material.GetFloat(k_EnableCoat) > 0.0f;
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_COAT", coatEnabled);
 
+            bool coatNormalMapEnabled = material.HasProperty(k_EnableCoatNormalMap) && material.GetFloat(k_EnableCoatNormalMap) > 0.0f;
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_COAT_NORMALMAP", coatNormalMapEnabled);
+
             // TEMP - Remove once dev is finish
             bool debugEnabled = material.HasProperty("_DebugEnable") && material.GetFloat("_DebugEnable") > 0.0f;
             CoreUtils.SetKeyword(material, "_STACKLIT_DEBUG", debugEnabled);
+
+            bool vlayerRecomputePerLight = material.HasProperty("_VlayerRecomputePerLight") && material.GetFloat("_VlayerRecomputePerLight") > 0.0f;
+            CoreUtils.SetKeyword(material, "_VLAYERED_RECOMPUTE_PERLIGHT", vlayerRecomputePerLight);
 
 
             // Set the reference value for the stencil test - required for SSS

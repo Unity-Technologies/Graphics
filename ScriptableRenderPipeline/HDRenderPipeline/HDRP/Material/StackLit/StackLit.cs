@@ -16,6 +16,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             StackLitIridescence             = 1 << 4,
             StackLitSubsurfaceScattering    = 1 << 5,
             StackLitTransmission            = 1 << 6,
+            StackLitCoatNormalMap           = 1 << 7,
         };
 
         //-----------------------------------------------------------------------------
@@ -45,6 +46,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             [SurfaceDataAttributes(new string[]{"Normal", "Normal View Space"}, true)]
             public Vector3 normalWS;
+
+            [SurfaceDataAttributes(new string[]{"Geometric Normal", "Geometric Normal View Space"}, true)]
+            public Vector3 geomNormalWS;
+
+            [SurfaceDataAttributes(new string[]{"Coat Normal", "Coat Normal View Space"}, true)]
+            public Vector3 coatNormalWS;
 
             [SurfaceDataAttributes("Smoothness A")]
             public float perceptualSmoothnessA;
@@ -109,6 +116,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
             public Vector3 normalWS;
+
+            [SurfaceDataAttributes(new string[]{"Geometric Normal", "Geometric Normal View Space"}, true)]
+            public Vector3 geomNormalWS;
+
+            [SurfaceDataAttributes(new string[]{"Coat Normal", "Coat Normal View Space"}, true)]
+            public Vector3 coatNormalWS;
+
             public float perceptualRoughnessA;
 
             // Dual specular lobe
