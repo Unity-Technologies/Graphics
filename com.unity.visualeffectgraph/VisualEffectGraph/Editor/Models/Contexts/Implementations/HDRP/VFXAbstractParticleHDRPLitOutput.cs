@@ -271,6 +271,7 @@ namespace UnityEditor.VFX
                     yield return "useMaskMap";
                     yield return "useNormalMap";
                     yield return "useEmissiveMap";
+                    yield return "alphaMask";
                 }
 
                 if ((colorMode & ColorMode.Emissive) != 0)

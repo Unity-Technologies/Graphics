@@ -25,7 +25,7 @@ namespace UnityEditor.VFX
 
         public override void OnEnable()
         {
-            blendMode = BlendMode.Opaque;
+            blendMode = BlendMode.Masked;
             base.OnEnable();
         }
 
@@ -57,8 +57,12 @@ namespace UnityEditor.VFX
                 yield return new VFXAttributeInfo(VFXAttribute.AngleY, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.AngleZ, VFXAttributeMode.Read);
                 yield return new VFXAttributeInfo(VFXAttribute.Pivot, VFXAttributeMode.Read);
+
                 foreach (var size in VFXBlockUtility.GetReadableSizeAttributes(GetData()))
                     yield return size;
+
+                if (flipbookMode != FlipbookMode.Off)
+                    yield return new VFXAttributeInfo(VFXAttribute.TexIndex, VFXAttributeMode.Read);
             }
         }
 
