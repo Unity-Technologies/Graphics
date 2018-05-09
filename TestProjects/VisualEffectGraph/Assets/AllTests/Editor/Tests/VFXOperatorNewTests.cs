@@ -641,7 +641,7 @@ namespace UnityEditor.VFX.Test
                 var newInputSlot = newOperator.inputSlots[0];
                 if (currentInputSlot.HasLink())
                 {
-                    Assert.IsTrue(newInputSlot.HasLink());
+                    Assert.IsTrue(newInputSlot.HasLink(true));
                 }
                 else
                 {

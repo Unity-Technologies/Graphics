@@ -51,13 +51,13 @@ namespace UnityEditor.VFX
             if (output is IVFXOperatorUniform)
             {
                 var uniform = output as IVFXOperatorUniform;
-                var minType = realTypeAndValue.Where(o => o.wasFloatN).Select(o => o.type)
+                var maxType = realTypeAndValue.Where(o => o.wasFloatN).Select(o => o.type)
                     .OrderBy(o => VFXExpression.TypeToSize(VFXExpression.GetVFXValueTypeFromType(o)))
-                    .First();
+                    .Last();
                 //ignore int/uint while sanitizing
-                if (minType == typeof(int) || minType == typeof(uint))
-                    minType = typeof(float);
-                uniform.SetOperandType(minType);
+                if (maxType == typeof(int) || maxType == typeof(uint))
+                    maxType = typeof(float);
+                uniform.SetOperandType(maxType);
             }
             else if (output is VFXOperatorNumericCascadedUnifiedNew)
             {
@@ -89,7 +89,23 @@ namespace UnityEditor.VFX
                 {
                     if (current.value == null)
                     {
-                        VFXSlot.TransferLinks(output.inputSlots[i], input.inputSlots[i], true);
+                        var slotDst = output.inputSlots[i];
+                        var slotSrc = input.inputSlots[i].LinkedSlots.First();
+                        if (slotSrc.CanLink(slotDst))
+                        {
+                            //Main path (most common case)
+                            VFXSlot.TransferLinks(output.inputSlots[i], input.inputSlots[i], true);
+                        }
+                        else
+                        {
+                            //Trying to connect by subslot (e.g. : Vector4 to Vector3)
+                            var itSubSlotSrc = slotSrc.children.GetEnumerator();
+                            var itSubSlotDst = slotDst.children.GetEnumerator();
+                            while (itSubSlotDst.MoveNext() && itSubSlotSrc.MoveNext())
+                            {
+                                itSubSlotSrc.Current.Link(itSubSlotDst.Current);
+                            }
+                        }
                     }
                     else
                     {

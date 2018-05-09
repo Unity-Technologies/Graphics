@@ -343,8 +343,6 @@ namespace UnityEditor.VFX
                 {
                     dst.Link(link, notify);
 
-                    src.Unlink(link, notify);
-
                     dst.owner.TransferLinkMySlot(src, dst, link);
                     link.owner.TransferLinkOtherSlot(link, src, dst);
                 }

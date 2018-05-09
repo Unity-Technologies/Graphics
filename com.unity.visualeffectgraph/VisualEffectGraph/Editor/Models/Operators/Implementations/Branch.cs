@@ -6,7 +6,6 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Logic")]
     class Branch : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         public class InputProperties
@@ -19,7 +18,7 @@ namespace UnityEditor.VFX.Operator
             public FloatN False = 0.0f;
         }
 
-        public sealed override string name { get { return "Branch (deprecated)"; } }
+        public sealed override string name { get { return "Branch (deprecated) "; } }
 
         protected sealed override IEnumerable<VFXExpression> ApplyPatchInputExpression(IEnumerable<VFXExpression> inputExpression)
         {
@@ -36,7 +35,7 @@ namespace UnityEditor.VFX.Operator
 
         public sealed override void Sanitize()
         {
-            //SanitizeHelper.SanitizeToOperatorNew(this, typeof(BranchNew));
+            SanitizeHelper.SanitizeToOperatorNew(this, typeof(BranchNew));
         }
     }
 }
