@@ -99,7 +99,6 @@ namespace UnityEditor.VFX.Test
 
             var vector2inline = CreateNew(typeof(Vector2).UserFriendlyName(), new Vector2(2, 2), typeof(VFXInlineOperator));
             var vector3inline = CreateNew(typeof(Vector3).UserFriendlyName(), new Vector2(2, 2), typeof(VFXInlineOperator));
-            var vector4inline = CreateNew(typeof(Vector4).UserFriendlyName(), new Vector2(2, 2), typeof(VFXInlineOperator));
 
             var output = vector3inline.outputPorts[0];
             var input = variableOperator.inputPorts[0];

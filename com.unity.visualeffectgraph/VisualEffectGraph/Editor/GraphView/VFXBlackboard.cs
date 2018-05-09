@@ -443,7 +443,7 @@ namespace  UnityEditor.VFX.UI
             this.scrollable = true;
 
 
-            SetPosition(BoardPreferenceHelper.LoadPosition(BoardPreferenceHelper.Board.blackboard, new Rect(100, 100, 300, 500)));
+            SetPosition(BoardPreferenceHelper.LoadPosition(BoardPreferenceHelper.Board.blackboard, defaultRect));
 
             m_ExposedSection = new BlackboardSection() { title = "parameters"};
             Add(m_ExposedSection);
@@ -455,6 +455,13 @@ namespace  UnityEditor.VFX.UI
 
             clippingOptions = ClippingOptions.ClipContents;
         }
+
+        public void ValidatePosition()
+        {
+            BoardPreferenceHelper.ValidatePosition(this, m_View, defaultRect);
+        }
+
+        static readonly Rect defaultRect = new Rect(100, 100, 300, 500);
 
         void OnMouseClick(MouseDownEvent e)
         {
