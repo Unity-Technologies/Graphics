@@ -3,10 +3,10 @@ using UnityEditor.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Arithmetic", experimental = true)]
+    [VFXInfo(category = "Math/Arithmetic")]
     class AddNew : VFXOperatorNumericCascadedUnifiedNew
     {
-        public override sealed string name { get { return "AddNew"; } }
+        public override sealed string name { get { return "Add"; } }
         protected override sealed double defaultValueDouble { get { return 0.0; } }
         protected override sealed VFXExpression ComposeExpression(VFXExpression a, VFXExpression b)
         {

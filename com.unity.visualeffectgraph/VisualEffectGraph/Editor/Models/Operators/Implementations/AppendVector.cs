@@ -6,10 +6,9 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Vector")]
     class AppendVector : VFXOperator
     {
-        override public string name { get { return "AppendVector"; } }
+        override public string name { get { return "AppendVector (deprecated)"; } }
 
         private int outputComponentCount
         {
@@ -79,6 +78,11 @@ namespace UnityEditor.VFX.Operator
                 return allComponent;
             }
             return new[] { new VFXExpressionCombine(allComponent) };
+        }
+
+        public sealed override void Sanitize()
+        {
+            SanitizeHelper.SanitizeToOperatorNew(this, typeof(AppendVectorNew));
         }
     }
 }

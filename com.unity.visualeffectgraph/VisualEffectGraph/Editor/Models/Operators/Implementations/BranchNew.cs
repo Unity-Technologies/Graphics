@@ -29,7 +29,7 @@ namespace UnityEditor.VFX.Operator
         }
     }
 
-    [VFXInfo(category = "Logic", experimental = true)]
+    [VFXInfo(category = "Logic")]
     class BranchNew : VFXOperatorDynamicOperand, IVFXOperatorUniform
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
@@ -45,7 +45,7 @@ namespace UnityEditor.VFX.Operator
             public float False = 1.0f;
         }
 
-        public sealed override string name { get { return "BranchNew"; } }
+        public sealed override string name { get { return "Branch"; } }
 
         public Type GetOperandType()
         {

@@ -459,70 +459,226 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(e.z, r.z);
         }
 
-        private static Type[] allOperatorUsingFloatN = new Type[] { typeof(Absolute), typeof(Add), typeof(AppendVector), typeof(Branch), typeof(Ceiling), typeof(Clamp), typeof(Cosine), typeof(ComponentMask), typeof(FitClamped), typeof(Discretize), typeof(Distance), typeof(Divide), typeof(DotProduct), typeof(Floor), typeof(Fraction), typeof(Length), typeof(Lerp), typeof(Maximum), typeof(Minimum), typeof(Modulo), typeof(Multiply), typeof(Normalize), typeof(OneMinus), typeof(Power), typeof(Operator.Random), typeof(Reciprocal), typeof(Remap), typeof(RemapToNegOnePosOne), typeof(RemapToZeroOne), typeof(Round), typeof(Saturate), typeof(SawtoothWave), typeof(Sign), typeof(Sine), typeof(SineWave), typeof(Smoothstep), typeof(SquaredDistance), typeof(SquaredLength), typeof(SquareRoot), typeof(SquareWave), typeof(Step), typeof(Subtract), typeof(Swizzle), typeof(Tangent), typeof(TriangleWave) }; 
+        private static KeyValuePair<Type, int>[] allOperatorUsingFloatN = new KeyValuePair<Type, int>[] {
+            new KeyValuePair<Type, int>(typeof(Absolute), 1),
+            new KeyValuePair<Type, int>(typeof(Add), 2),
+            new KeyValuePair<Type, int>(typeof(AppendVector), 1),
+            new KeyValuePair<Type, int>(typeof(Branch), 2),
+            new KeyValuePair<Type, int>(typeof(Ceiling), 1),
+            new KeyValuePair<Type, int>(typeof(Clamp), 3),
+            new KeyValuePair<Type, int>(typeof(Cosine), 1),
+            new KeyValuePair<Type, int>(typeof(ComponentMask), 1),
+            new KeyValuePair<Type, int>(typeof(FitClamped), 5),
+            new KeyValuePair<Type, int>(typeof(Discretize), 2),
+            new KeyValuePair<Type, int>(typeof(Distance), 2),
+            new KeyValuePair<Type, int>(typeof(Divide), 2),
+            new KeyValuePair<Type, int>(typeof(DotProduct), 2),
+            new KeyValuePair<Type, int>(typeof(Floor), 1),
+            new KeyValuePair<Type, int>(typeof(Fraction), 1),
+            new KeyValuePair<Type, int>(typeof(Length), 1),
+            new KeyValuePair<Type, int>(typeof(Lerp), 3),
+            new KeyValuePair<Type, int>(typeof(Maximum), 2),
+            new KeyValuePair<Type, int>(typeof(Minimum), 2),
+            new KeyValuePair<Type, int>(typeof(Modulo), 2),
+            new KeyValuePair<Type, int>(typeof(Multiply), 2),
+            new KeyValuePair<Type, int>(typeof(Normalize), 1),
+            new KeyValuePair<Type, int>(typeof(OneMinus), 1),
+            new KeyValuePair<Type, int>(typeof(Power), 2),
+            new KeyValuePair<Type, int>(typeof(Operator.Random), 2),
+            new KeyValuePair<Type, int>(typeof(Reciprocal), 1),
+            new KeyValuePair<Type, int>(typeof(Remap), 5),
+            new KeyValuePair<Type, int>(typeof(RemapToNegOnePosOne), 1),
+            new KeyValuePair<Type, int>(typeof(RemapToZeroOne), 1),
+            new KeyValuePair<Type, int>(typeof(Round), 1),
+            new KeyValuePair<Type, int>(typeof(Saturate), 1),
+            new KeyValuePair<Type, int>(typeof(SawtoothWave), 2),
+            new KeyValuePair<Type, int>(typeof(Sign), 1),
+            new KeyValuePair<Type, int>(typeof(Sine), 1),
+            new KeyValuePair<Type, int>(typeof(SineWave), 2),
+            new KeyValuePair<Type, int>(typeof(Smoothstep), 3),
+            new KeyValuePair<Type, int>(typeof(SquaredDistance), 2),
+            new KeyValuePair<Type, int>(typeof(SquaredLength), 1),
+            new KeyValuePair<Type, int>(typeof(SquareRoot), 1),
+            new KeyValuePair<Type, int>(typeof(SquareWave), 2),
+            new KeyValuePair<Type, int>(typeof(Step), 2),
+            new KeyValuePair<Type, int>(typeof(Subtract), 2),
+            new KeyValuePair<Type, int>(typeof(Swizzle), 1),
+            new KeyValuePair<Type, int>(typeof(Tangent), 1),
+            new KeyValuePair<Type, int>(typeof(TriangleWave), 2)
+        };
+
         [Test]
         public void VerifyAllOperatorUsingFloatNAreRegistered()
         {
             //Use reflexion only in test to avoid slowing down domain reload due to huge reflection
             var allClasses = VFXLibrary.FindConcreteSubclasses(typeof(VFXOperator)); //even without attribute
 
-            var typeWithFloatN = new List<Type>();
+            var typeWithFloatN = new List<KeyValuePair<Type, int>>();
             foreach (var op in allClasses)
             {
                 var currentOp = ScriptableObject.CreateInstance(op) as VFXOperator;
-                if (currentOp.inputSlots.Any(o => o.property.type == typeof(FloatN)))
+                var floatNCount = currentOp.inputSlots.Where(o => o.property.type == typeof(FloatN)).Count();
+                if (floatNCount > 0)
                 {
-                    typeWithFloatN.Add(op);
+                    typeWithFloatN.Add(new KeyValuePair<Type, int>(op, floatNCount));
                 }
             }
 
-            Func<IEnumerable<Type>, string> fnDumpList = delegate (IEnumerable<Type> input)
-            {
-                if (!input.Any())
-                    return "new Type[] { }";
+            Func<IEnumerable<KeyValuePair<Type, int>>, string> fnDumpList = delegate(IEnumerable<KeyValuePair<Type, int>> input)
+                {
+                    if (!input.Any())
+                        return "new KeyValuePair<Type, int>[] { }";
 
-                return "new Type[] { " + input.Select(o => string.Format("typeof({0})", o.Name)).Aggregate((a, b) => a + ", " + b) + " }";
-            };
+                    return "new KeyValuePair<Type, int>[] { " + input.Select(o => string.Format("new KeyValuePair<Type, int>(typeof({0}), {1})", o.Key.Name, o.Value)).Aggregate((a, b) => a + ",\n " + b) + " };";
+                };
+
             var expected = fnDumpList(typeWithFloatN);
             var current = fnDumpList(allOperatorUsingFloatN);
+
+            var test = allSanitizeTest;
 
             Assert.AreEqual(expected, current);
         }
 
         public static bool[] linkedSlot = new bool[] { true, false };
 
+        public class SanitizeParam
+        {
+            public Type type;
+            public Type[] inputSlotType;
+
+            public override string ToString()
+            {
+                var list = inputSlotType == null || inputSlotType.Length == 0 ? string.Empty : inputSlotType.Select(o => o == null ? "None" : o.UserFriendlyName()).Aggregate((a, b) => a + ", " + b);
+                return string.Format("{0} with {1}", type.Name, list);
+            }
+        }
+
+        private static SanitizeParam[] s_allSanitizeTest;
+        public static SanitizeParam[] allSanitizeTest
+        {
+            get
+            {
+                if (s_allSanitizeTest != null)
+                    return s_allSanitizeTest;
+
+                var availableInputType = new Type[] { null, typeof(float), typeof(Vector2), typeof(Vector3), typeof(Vector4) };
+                var maxShuffleCount = 3; //actual max : maxShuffleCount * maxShuffleCount
+
+                UnityEngine.Random.InitState(42);
+                var sanitizeTest = new List<SanitizeParam>();
+                foreach (var type in allOperatorUsingFloatN)
+                {
+                    for (int i = 0; i < maxShuffleCount * Mathf.Min(type.Value, maxShuffleCount); ++i)
+                    {
+                        var param = new SanitizeParam()
+                        {
+                            type = type.Key,
+                            inputSlotType = Enumerable.Repeat((Type)null, type.Value).ToArray()
+                        };
+
+                        for (int j = 0; j < type.Value; ++j)
+                        {
+                            param.inputSlotType[j] = availableInputType[UnityEngine.Random.Range(0, availableInputType.Length)];
+                        }
+                        sanitizeTest.Add(param);
+                    }
+                }
+                s_allSanitizeTest = sanitizeTest.GroupBy(o => o.ToString()).Select(o => o.First()).ToArray();
+                return s_allSanitizeTest;
+            }
+        }
+
         [Test]
-        public void SanitizeBehavior([ValueSource("allOperatorUsingFloatN")] Type op, [ValueSource("linkedSlot")] bool linkedSlot)
+        public void SanitizeBehavior([ValueSource("allSanitizeTest")] SanitizeParam op)
         {
             var graph = ScriptableObject.CreateInstance<VFXGraph>();
-            var currentOperator = ScriptableObject.CreateInstance(op) as VFXOperator;
+            var currentOperator = ScriptableObject.CreateInstance(op.type) as VFXOperator;
 
             graph.AddChild(currentOperator);
-            if (linkedSlot)
+
+            var slotInput = currentOperator.inputSlots.Where(o => o.property.type == typeof(FloatN));
+
+            for (int i = 0; i < op.inputSlotType.Length; ++i)
             {
-                foreach (var slot in currentOperator.inputSlots)
-                {
-                    var vec2 = ScriptableObject.CreateInstance<VFXInlineOperator>();
-                    vec2.SetSettingValue("m_Type", (SerializableType)typeof(Vector2));
-                    graph.AddChild(vec2);
+                Type type = op.inputSlotType[i];
+                if (type == null)
+                    continue;
 
-                    slot.Link(vec2.outputSlots.FirstOrDefault());
+                var inlineOperator = ScriptableObject.CreateInstance<VFXInlineOperator>();
+                inlineOperator.SetSettingValue("m_Type", (SerializableType)type);
+                graph.AddChild(inlineOperator);
+
+                slotInput.ElementAt(i).Link(inlineOperator.outputSlots.FirstOrDefault());
+            }
+
+            //Always connect output slot
+            foreach (var slot in currentOperator.outputSlots)
+            {
+                var inlineOperator = ScriptableObject.CreateInstance<VFXInlineOperator>();
+                inlineOperator.SetSettingValue("m_Type", (SerializableType)currentOperator.outputSlots[0].property.type);
+                graph.AddChild(inlineOperator);
+
+                slot.Link(inlineOperator.inputSlots.FirstOrDefault());
+            }
+
+            foreach (var slot in currentOperator.inputSlots.Where(o => o.property.type == typeof(FloatN) && !o.HasLink()))
+            {
+                slot.value = UnityEngine.Random.Range(-10, 10);
+            }
+
+            //Let's do it !
+            graph.SanitizeGraph();
+
+            //And verify equivalence...
+            var newOperator = graph.children.Where(o => !(o is VFXInlineOperator)).FirstOrDefault() as VFXOperator;
+            Assert.AreNotEqual(currentOperator, newOperator);
+            Assert.IsNotNull(newOperator);
+
+            for (int i = 0; i < currentOperator.inputSlots.Count; ++i)
+            {
+                var currentInputSlot = currentOperator.inputSlots[0];
+                var newInputSlot = newOperator.inputSlots[0];
+                if (currentInputSlot.HasLink())
+                {
+                    Assert.IsTrue(newInputSlot.HasLink());
                 }
-
-                foreach (var slot in currentOperator.outputSlots)
+                else
                 {
-                    var vec2 = ScriptableObject.CreateInstance<VFXInlineOperator>();
-                    vec2.SetSettingValue("m_Type", (SerializableType)typeof(Vector2));
-                    graph.AddChild(vec2);
-
-                    slot.Link(vec2.inputSlots.FirstOrDefault());
+                    if (currentInputSlot.property.type == typeof(FloatN))
+                    {
+                        object value = null;
+                        var floatN = (FloatN)currentInputSlot.value;
+                        var newType = newInputSlot.property.type;
+                        if (newType == typeof(float))
+                        {
+                            value = (float)floatN;
+                        }
+                        else if (newType == typeof(Vector2))
+                        {
+                            value = (Vector2)floatN;
+                        }
+                        else if (newType == typeof(Vector3))
+                        {
+                            value = (Vector3)floatN;
+                        }
+                        else if (newType == typeof(Vector4))
+                        {
+                            value = (Vector4)floatN;
+                        }
+                        Assert.AreEqual(value, newInputSlot.value);
+                    }
+                    else
+                    {
+                        Assert.AreEqual(currentInputSlot.value, newInputSlot.value);
+                    }
                 }
             }
 
-            graph.SanitizeGraph();
-            //TODOPAUL
+            for (int i = 0; i < currentOperator.outputSlots.Count; ++i)
+            {
+                Assert.IsTrue(newOperator.outputSlots[i].HasLink());
+            }
         }
-
-
     }
 }

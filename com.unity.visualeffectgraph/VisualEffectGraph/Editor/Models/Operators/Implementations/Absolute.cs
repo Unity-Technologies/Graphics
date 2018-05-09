@@ -1,14 +1,18 @@
 using System;
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Arithmetic")]
     class Absolute : VFXOperatorUnaryFloatOperation
     {
-        override public string name { get { return "Absolute"; } }
+        override public string name { get { return "Absolute (deprecated)"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { new VFXExpressionAbs(inputExpression[0]) };
+        }
+
+        public sealed override void Sanitize()
+        {
+            SanitizeHelper.SanitizeToOperatorNew(this, typeof(AbsoluteNew));
         }
     }
 }

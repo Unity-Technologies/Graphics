@@ -1,7 +1,7 @@
 using System;
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Arithmetic", experimental = true)]
+    [VFXInfo(category = "Math/Arithmetic")]
     class AbsoluteNew : VFXOperatorNumericUniformNew
     {
         public class InputProperties
@@ -9,7 +9,7 @@ namespace UnityEditor.VFX.Operator
             public float x;
         }
 
-        public override sealed string name { get { return "AbsoluteNew"; } }
+        public override sealed string name { get { return "Absolute"; } }
 
         protected override sealed ValidTypeRule typeFilter
         {

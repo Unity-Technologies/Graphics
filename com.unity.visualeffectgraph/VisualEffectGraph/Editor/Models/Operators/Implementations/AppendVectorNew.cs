@@ -9,7 +9,7 @@ namespace UnityEditor.VFX.Operator
     [VFXInfo(category = "Math/Vector", experimental = true)]
     class AppendVectorNew : VFXOperatorNumericCascadedUnifiedNew
     {
-        public override sealed string name { get { return "AppendVectorNew"; } }
+        public override sealed string name { get { return "AppendVector"; } }
 
         protected override sealed double defaultValueDouble { get { return 0.0f; } }
 

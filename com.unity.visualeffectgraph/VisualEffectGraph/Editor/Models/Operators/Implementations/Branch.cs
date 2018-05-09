@@ -19,7 +19,7 @@ namespace UnityEditor.VFX.Operator
             public FloatN False = 0.0f;
         }
 
-        public sealed override string name { get { return "Branch"; } }
+        public sealed override string name { get { return "Branch (deprecated)"; } }
 
         protected sealed override IEnumerable<VFXExpression> ApplyPatchInputExpression(IEnumerable<VFXExpression> inputExpression)
         {
@@ -32,6 +32,11 @@ namespace UnityEditor.VFX.Operator
         protected sealed override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { new VFXExpressionBranch(inputExpression[0], inputExpression[1], inputExpression[2]) };
+        }
+
+        public sealed override void Sanitize()
+        {
+            //SanitizeHelper.SanitizeToOperatorNew(this, typeof(BranchNew));
         }
     }
 }
