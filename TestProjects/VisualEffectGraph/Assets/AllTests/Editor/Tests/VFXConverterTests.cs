@@ -143,6 +143,14 @@ namespace UnityEditor.VFX.Test
                     new Conversion {value = null, targetType = typeof(uint), expectedResult = null},
                     new Conversion {value = null, targetType = typeof(Texture2D), expectedResult = null},
                     new Conversion {value = null, targetType = typeof(Vector3), expectedResult = null},
+
+                    new Conversion {value = new Vector3(1, 2, 3), targetType = typeof(DirectionType), expectedResult = new DirectionType() { direction = new Vector3(1, 2, 3) } },
+                    new Conversion {value = new Vector3(4, 5, 6), targetType = typeof(Vector), expectedResult = new Vector() { vector = new Vector3(4, 5, 6) } },
+                    new Conversion {value = new Vector3(7, 8, 9), targetType = typeof(Position), expectedResult = new Position() { position = new Vector3(7, 8, 9) } },
+
+                    new Conversion {value = new DirectionType() { direction = new Vector3(1, 2, 3) }, targetType = typeof(Vector3), expectedResult = new Vector3(1, 2, 3) },
+                    new Conversion {value = new Vector() { vector = new Vector3(4, 5, 6) }, targetType = typeof(Vector3), expectedResult = new Vector3(4, 5, 6) },
+                    new Conversion {value = new Position() { position = new Vector3(7, 8, 9) }, targetType = typeof(Vector3), expectedResult = new Vector3(7, 8, 9) },
                 };
 
                 s_FailingConversions = new Conversion[]
