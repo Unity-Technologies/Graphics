@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Clamp")]
     class Clamp : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         public class InputProperties
@@ -16,11 +15,16 @@ namespace UnityEditor.VFX.Operator
             public FloatN max = new FloatN(1.0f);
         }
 
-        override public string name { get { return "Clamp"; } }
+        override public string name { get { return "Clamp (deprecated)"; } }
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { VFXOperatorUtility.Clamp(inputExpression[0], inputExpression[1], inputExpression[2]) };
+        }
+
+        public sealed override void Sanitize()
+        {
+            SanitizeHelper.SanitizeToOperatorNew(this, typeof(ClampNew));
         }
     }
 }

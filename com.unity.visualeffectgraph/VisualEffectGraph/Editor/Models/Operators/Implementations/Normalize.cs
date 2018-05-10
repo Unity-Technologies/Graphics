@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Vector")]
     class Normalize : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         public class InputProperties
@@ -12,11 +11,16 @@ namespace UnityEditor.VFX.Operator
             public FloatN x = Vector3.one;
         }
 
-        override public string name { get { return "Normalize"; } }
+        override public string name { get { return "Normalize (deprecated)"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { VFXOperatorUtility.Normalize(inputExpression[0]) };
+        }
+
+        public sealed override void Sanitize()
+        {
+            SanitizeHelper.SanitizeToOperatorNew(this, typeof(NormalizeNew));
         }
     }
 }

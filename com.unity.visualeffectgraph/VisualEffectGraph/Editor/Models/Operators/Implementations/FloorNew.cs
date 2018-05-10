@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Clamp", experimental = true)]
+    [VFXInfo(category = "Math/Clamp")]
     class FloorNew : VFXOperatorNumericUniformNew
     {
         public class InputProperties
@@ -10,7 +10,7 @@ namespace UnityEditor.VFX.Operator
             public float x = 0.0f;
         }
 
-        public override sealed string name { get { return "FloorNew"; } }
+        public override sealed string name { get { return "Floor"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

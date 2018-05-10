@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Arithmetic", experimental = true)]
+    [VFXInfo(category = "Math/Arithmetic")]
     class ModuloNew : VFXOperatorNumericUniformNew
     {
         public class InputProperties
@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.Operator
             public float b = 1.0f;
         }
 
-        override public string name { get { return "ModuloNew"; } }
+        override public string name { get { return "Modulo"; } }
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

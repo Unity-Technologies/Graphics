@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Clamp", experimental = true)]
+    [VFXInfo(category = "Math/Clamp")]
     class ClampNew : VFXOperatorNumericUnifiedNew, IVFXOperatorNumericUnifiedConstrained
     {
         public class InputProperties
@@ -19,7 +19,7 @@ namespace UnityEditor.VFX.Operator
             public float max = 1.0f;
         }
 
-        public override sealed string name { get { return "ClampNew"; } }
+        public override sealed string name { get { return "Clamp"; } }
 
         public IEnumerable<int> slotIndicesThatMustHaveSameType
         {

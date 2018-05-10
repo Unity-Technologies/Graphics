@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Remap")]
     class Remap : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         [VFXSetting, Tooltip("Whether the values are clamped to the input/output range")]
@@ -23,7 +22,7 @@ namespace UnityEditor.VFX.Operator
             public FloatN newRangeMax = new FloatN(10.0f);
         }
 
-        override public string name { get { return "Remap"; } }
+        override public string name { get { return "Remap (deprecated)"; } }
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
@@ -34,6 +33,11 @@ namespace UnityEditor.VFX.Operator
                 input = inputExpression[0];
 
             return new[] { VFXOperatorUtility.Fit(input, inputExpression[1], inputExpression[2], inputExpression[3], inputExpression[4]) };
+        }
+
+        public sealed override void Sanitize()
+        {
+            //SanitizeHelper.SanitizeToOperatorNew(this, typeof(RemapNew)); //TODOPAUL : Transfer settings
         }
     }
 }

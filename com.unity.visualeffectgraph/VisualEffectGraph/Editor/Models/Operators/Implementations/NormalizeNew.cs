@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Vector", experimental = true)]
+    [VFXInfo(category = "Math/Vector")]
     class NormalizeNew : VFXOperatorNumericUniformNew
     {
         public class InputProperties
@@ -11,7 +11,7 @@ namespace UnityEditor.VFX.Operator
             public Vector3 x = Vector3.one;
         }
 
-        public override sealed string name { get { return "NormalizeNew"; } }
+        public override sealed string name { get { return "Normalize"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

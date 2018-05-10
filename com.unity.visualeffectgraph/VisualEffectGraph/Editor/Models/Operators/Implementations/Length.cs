@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Vector")]
     class Length : VFXOperatorFloatUnified
     {
         public class InputProperties
@@ -18,11 +17,16 @@ namespace UnityEditor.VFX.Operator
             public float l;
         }
 
-        override public string name { get { return "Length"; } }
+        override public string name { get { return "Length (deprecated)"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { VFXOperatorUtility.Length(inputExpression[0]) };
+        }
+
+        public sealed override void Sanitize()
+        {
+            SanitizeHelper.SanitizeToOperatorNew(this, typeof(LengthNew));
         }
     }
 }

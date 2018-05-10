@@ -2,14 +2,18 @@ using System;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Trigonometry")]
     class Cosine : VFXOperatorUnaryFloatOperation
     {
-        override public string name { get { return "Cosine"; } }
+        override public string name { get { return "Cosine (deprecated)"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { new VFXExpressionCos(inputExpression[0]) };
+        }
+
+        public override sealed void Sanitize()
+        {
+            SanitizeHelper.SanitizeToOperatorNew(this, typeof(CosineNew));
         }
     }
 }

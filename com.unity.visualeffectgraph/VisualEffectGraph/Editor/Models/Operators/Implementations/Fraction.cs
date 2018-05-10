@@ -2,14 +2,18 @@ using System;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Arithmetic")]
     class Fraction : VFXOperatorUnaryFloatOperation
     {
-        override public string name { get { return "Fraction"; } }
+        override public string name { get { return "Fraction (deprecated)"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { VFXOperatorUtility.Frac(inputExpression[0]) };
+        }
+
+        public sealed override void Sanitize()
+        {
+            SanitizeHelper.SanitizeToOperatorNew(this, typeof(FractionalNew));
         }
     }
 }

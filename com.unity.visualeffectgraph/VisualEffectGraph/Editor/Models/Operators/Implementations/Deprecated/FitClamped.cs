@@ -41,6 +41,7 @@ namespace UnityEditor.VFX.Operator
             VFXSlot.TransferLinksAndValue(remap.GetOutputSlot(0), GetOutputSlot(0), true);
 
             ReplaceModel(remap, this);
+            remap.Sanitize();
         }
     }
 }

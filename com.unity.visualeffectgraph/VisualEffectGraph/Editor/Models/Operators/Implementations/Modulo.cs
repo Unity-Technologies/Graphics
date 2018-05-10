@@ -14,11 +14,16 @@ namespace UnityEditor.VFX.Operator
             public FloatN b = new FloatN(1.0f);
         }
 
-        override public string name { get { return "Modulo"; } }
+        override public string name { get { return "Modulo (deprecated)"; } }
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { VFXOperatorUtility.Modulo(inputExpression[0], inputExpression[1]) };
+        }
+
+        public sealed override void Sanitize()
+        {
+            SanitizeHelper.SanitizeToOperatorNew(this, typeof(ModuloNew));
         }
     }
 }

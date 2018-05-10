@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Remap", experimental = true)]
+    [VFXInfo(category = "Math/Remap")]
     class RemapNew : VFXOperatorNumericUnifiedNew, IVFXOperatorNumericUnifiedConstrained
     {
         [VFXSetting, SerializeField, Tooltip("Whether the values are clamped to the input/output range")]
@@ -25,7 +25,7 @@ namespace UnityEditor.VFX.Operator
             public float newRangeMax = 10.0f;
         }
 
-        public override sealed string name { get { return "RemapNew"; } }
+        public override sealed string name { get { return "Remap"; } }
 
         public IEnumerable<int> slotIndicesThatMustHaveSameType
         {

@@ -72,6 +72,48 @@ namespace UnityEditor.VFX
                     cascaded.SetOperandType(i, realTypeAndValue[i].type);
                 }
             }
+            else if (output is VFXOperatorNumericUnifiedNew)
+            {
+                var unified = output as VFXOperatorNumericUnifiedNew;
+                var slotIndiceThatShouldHaveSameType = Enumerable.Empty<int>();
+                var slotIndiceThatCanBeScale = Enumerable.Empty<int>();
+                if (output is IVFXOperatorNumericUnifiedConstrained)
+                {
+                    slotIndiceThatShouldHaveSameType = (output as IVFXOperatorNumericUnifiedConstrained).slotIndicesThatMustHaveSameType;
+                    slotIndiceThatCanBeScale = (output as IVFXOperatorNumericUnifiedConstrained).slotIndicesThatCanBeScalar;
+                }
+
+                Type maxTypeConstrained = null;
+                if (slotIndiceThatShouldHaveSameType.Any())
+                {
+                    var typeConstrained = slotIndiceThatShouldHaveSameType.Select(i =>
+                        {
+                            if (i < realTypeAndValue.Length)
+                            {
+                                return realTypeAndValue[i].type;
+                            }
+                            return (Type)null;
+                        }).Where(o => o != null);
+
+                    if (!typeConstrained.Any())
+                    {
+                        Debug.LogError("Unexpected behavior while sanitizing to unified constrained");
+                        return;
+                    }
+                    maxTypeConstrained = typeConstrained.OrderBy(o => VFXExpression.TypeToSize(VFXExpression.GetVFXValueTypeFromType(o))).Last();
+                }
+
+                for (int i = 0; i < realTypeAndValue.Length; ++i)
+                {
+                    var currentType = realTypeAndValue[i].type;
+                    if (slotIndiceThatShouldHaveSameType.Contains(i)
+                        && !(slotIndiceThatCanBeScale.Contains(i) && VFXExpression.GetMatchingScalar(currentType) == currentType))
+                    {
+                        currentType = maxTypeConstrained;
+                    }
+                    unified.SetOperandType(i, currentType);
+                }
+            }
             else
             {
                 Debug.LogError("Unable to determine what kind of " + output.GetType());

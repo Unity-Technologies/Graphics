@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Vector")]
     class DotProduct : VFXOperatorFloatUnified
     {
         public class InputProperties
@@ -20,11 +19,16 @@ namespace UnityEditor.VFX.Operator
             public float d;
         }
 
-        override public string name { get { return "Dot Product"; } }
+        override public string name { get { return "Dot Product (deprecated)"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { VFXOperatorUtility.Dot(inputExpression[0], inputExpression[1]) };
+        }
+
+        public sealed override void Sanitize()
+        {
+            SanitizeHelper.SanitizeToOperatorNew(this, typeof(DotProductNew));
         }
     }
 }

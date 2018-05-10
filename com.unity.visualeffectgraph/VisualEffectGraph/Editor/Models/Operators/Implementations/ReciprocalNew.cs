@@ -1,7 +1,7 @@
 using System;
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Arithmetic", experimental = true)]
+    [VFXInfo(category = "Math/Arithmetic")]
     class ReciprocalNew : VFXOperatorNumericUniformNew
     {
         public class InputProperties
@@ -9,7 +9,7 @@ namespace UnityEditor.VFX.Operator
             public float x = 1.0f;
         }
 
-        public override sealed string name { get { return "Reciprocal (1/x)New"; } }
+        public override sealed string name { get { return "Reciprocal (1/x)"; } }
 
         protected override double defaultValueDouble
         {

@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Clamp", experimental = true)]
+    [VFXInfo(category = "Math/Clamp")]
     class DiscretizeNew : VFXOperatorNumericUnifiedNew, IVFXOperatorNumericUnifiedConstrained
     {
         public class InputProperties
@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.Operator
             public float b = 1.0f;
         }
 
-        public override sealed string name { get { return "DiscretizeNew"; } }
+        public override sealed string name { get { return "Discretize"; } }
 
         public IEnumerable<int> slotIndicesThatMustHaveSameType
         {

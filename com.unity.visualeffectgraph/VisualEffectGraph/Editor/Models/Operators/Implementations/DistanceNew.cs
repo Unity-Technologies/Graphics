@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Vector", experimental = true)]
+    [VFXInfo(category = "Math/Vector")]
     class DistanceNew : VFXOperatorNumericUniformNew
     {
         public class InputProperties
@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.Operator
             public float d;
         }
 
-        public override sealed string name { get { return "DistanceNew"; } }
+        public override sealed string name { get { return "Distance"; } }
 
         protected override ValidTypeRule typeFilter
         {

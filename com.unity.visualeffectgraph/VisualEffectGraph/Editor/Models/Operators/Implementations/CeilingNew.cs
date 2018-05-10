@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Clamp", experimental = true)]
+    [VFXInfo(category = "Math/Clamp")]
     class CeilingNew : VFXOperatorNumericUniformNew
     {
         public class InputProperties
@@ -10,7 +10,7 @@ namespace UnityEditor.VFX.Operator
             public float x;
         }
 
-        public override sealed string name { get { return "CeilingNew"; } }
+        public override sealed string name { get { return "Ceiling"; } }
 
         protected override sealed ValidTypeRule typeFilter
         {

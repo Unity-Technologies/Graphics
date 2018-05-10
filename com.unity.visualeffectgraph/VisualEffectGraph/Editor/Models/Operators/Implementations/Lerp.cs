@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Arithmetic")]
     class Lerp : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         public class InputProperties
@@ -16,11 +15,16 @@ namespace UnityEditor.VFX.Operator
             public FloatN s = new FloatN(0.5f);
         }
 
-        override public string name { get { return "Lerp"; } }
+        override public string name { get { return "Lerp (deprecated)"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { VFXOperatorUtility.Lerp(inputExpression[0], inputExpression[1], inputExpression[2]) };
+        }
+
+        public sealed override void Sanitize()
+        {
+            SanitizeHelper.SanitizeToOperatorNew(this, typeof(LerpNew));
         }
     }
 }

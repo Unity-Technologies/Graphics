@@ -3,10 +3,10 @@ using UnityEditor.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Clamp", experimental = true)]
+    [VFXInfo(category = "Math/Clamp")]
     class MaximumNew : VFXOperatorNumericCascadedUnifiedNew
     {
-        public override sealed string name { get { return "MaximumNew"; } }
+        public override sealed string name { get { return "Maximum"; } }
 
         protected override sealed double defaultValueDouble { get { return 0.0; } }
         protected override sealed float identityValueFloat { get { return float.MinValue; } }
