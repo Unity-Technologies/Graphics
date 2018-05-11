@@ -848,10 +848,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_CurrentSunLightShadowIndex = shadowIdx;
             }
 
-            float scale;
-            float bias;
-            GetScaleAndBiasForLinearDistanceFade(m_maxShadowDistance, out scale, out bias);
-            directionalLightData.fadeDistanceScaleAndBias = new Vector2(scale, bias);
             directionalLightData.shadowMaskSelector = Vector4.zero;
 
             if (IsBakedShadowMaskLight(light.light))
