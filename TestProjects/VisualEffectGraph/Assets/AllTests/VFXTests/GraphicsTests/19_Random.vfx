@@ -103,44 +103,6 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
---- !u!114 &114011831546823808
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87c154e0feeee864da39ba7591cf27e7, type: 3}
-  m_Name: VFXSlotFloatN
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114011831546823808}
-  m_MasterData:
-    m_Owner: {fileID: 114141481520590690}
-    m_Value:
-      m_Type:
-        m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"m_Components":[5.0]}'
-  m_Property:
-    name: max
-    m_serializedType:
-      m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: The maximum value to be generated.
-      m_Regex: 
-      m_RegexMaxLength: 0
-  m_Direction: 0
-  m_LinkedSlots: []
 --- !u!114 &114021375629313542
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -231,6 +193,44 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
+--- !u!114 &114030431747322730
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87c154e0feeee864da39ba7591cf27e7, type: 3}
+  m_Name: VFXSlotFloatN
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 114030431747322730}
+  m_MasterData:
+    m_Owner: {fileID: 114647256529599658}
+    m_Value:
+      m_Type:
+        m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      m_SerializableObject: '{"m_Components":[1.0]}'
+  m_Property:
+    name: max
+    m_serializedType:
+      m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    attributes:
+    - m_Type: 3
+      m_Min: -Infinity
+      m_Max: Infinity
+      m_Tooltip: The maximum value to be generated.
+      m_Regex: 
+      m_RegexMaxLength: 0
+  m_Direction: 0
+  m_LinkedSlots: []
 --- !u!114 &114032893624721438
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -295,44 +295,6 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
---- !u!114 &114068416879092658
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87c154e0feeee864da39ba7591cf27e7, type: 3}
-  m_Name: VFXSlotFloatN
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114068416879092658}
-  m_MasterData:
-    m_Owner: {fileID: 114985235925502318}
-    m_Value:
-      m_Type:
-        m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"m_Components":[0.0]}'
-  m_Property:
-    name: min
-    m_serializedType:
-      m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: The minimum value to be generated.
-      m_Regex: 
-      m_RegexMaxLength: 0
-  m_Direction: 0
-  m_LinkedSlots: []
 --- !u!114 &114077158269611242
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -355,47 +317,7 @@ MonoBehaviour:
   m_Disabled: 0
   attribute: color
   Composition: 0
-  Source: 0
   Random: 0
-  channels: 4
---- !u!114 &114078176468927296
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87c154e0feeee864da39ba7591cf27e7, type: 3}
-  m_Name: VFXSlotFloatN
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114078176468927296}
-  m_MasterData:
-    m_Owner: {fileID: 114505278114450404}
-    m_Value:
-      m_Type:
-        m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"m_Components":[1.0]}'
-  m_Property:
-    name: min
-    m_serializedType:
-      m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: The minimum value to be generated.
-      m_Regex: 
-      m_RegexMaxLength: 0
-  m_Direction: 0
-  m_LinkedSlots: []
 --- !u!114 &114086217117080280
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -455,44 +377,6 @@ MonoBehaviour:
   m_Direction: 0
   m_LinkedSlots:
   - {fileID: 114594378946256154}
---- !u!114 &114094832959418494
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87c154e0feeee864da39ba7591cf27e7, type: 3}
-  m_Name: VFXSlotFloatN
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114094832959418494}
-  m_MasterData:
-    m_Owner: {fileID: 114141481520590690}
-    m_Value:
-      m_Type:
-        m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"m_Components":[4.0]}'
-  m_Property:
-    name: min
-    m_serializedType:
-      m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: The minimum value to be generated.
-      m_Regex: 
-      m_RegexMaxLength: 0
-  m_Direction: 0
-  m_LinkedSlots: []
 --- !u!114 &114097051935242724
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -554,12 +438,6 @@ MonoBehaviour:
       m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
     attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: Spawn Rate (in number per seconds)
-      m_Regex: 
-      m_RegexMaxLength: 0
     - m_Type: 1
       m_Min: 0
       m_Max: Infinity
@@ -568,7 +446,7 @@ MonoBehaviour:
       m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
---- !u!114 &114135744040470250
+--- !u!114 &114144676826267114
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
@@ -584,9 +462,9 @@ MonoBehaviour:
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114135744040470250}
+  m_MasterSlot: {fileID: 114144676826267114}
   m_MasterData:
-    m_Owner: {fileID: 114647256529599658}
+    m_Owner: {fileID: 114202074989874694}
     m_Value:
       m_Type:
         m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
@@ -606,68 +484,6 @@ MonoBehaviour:
       m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
---- !u!114 &114138655409136966
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c52d920e7fff73b498050a6b3c4404ca, type: 3}
-  m_Name: VFXSlotUint
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114138655409136966}
-  m_MasterData:
-    m_Owner: {fileID: 114141481520590690}
-    m_Value:
-      m_Type:
-        m_SerializableType: System.UInt32, mscorlib, Version=2.0.0.0, Culture=neutral,
-          PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 6
-  m_Property:
-    name: hash
-    m_serializedType:
-      m_SerializableType: System.UInt32, mscorlib, Version=2.0.0.0, Culture=neutral,
-        PublicKeyToken=b77a5c561934e089
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: An optional additional hash.
-      m_Regex: 
-      m_RegexMaxLength: 0
-  m_Direction: 0
-  m_LinkedSlots: []
---- !u!114 &114141481520590690
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c42128e17c583714a909b4997c80c916, type: 3}
-  m_Name: Random
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114860976365752148}
-  m_Children: []
-  m_UIPosition: {x: 674.0695, y: -130.25429}
-  m_UICollapsed: 0
-  m_UISuperCollapsed: 0
-  m_InputSlots:
-  - {fileID: 114094832959418494}
-  - {fileID: 114011831546823808}
-  - {fileID: 114138655409136966}
-  m_OutputSlots:
-  - {fileID: 114545532141641326}
-  seed: 0
-  constant: 1
 --- !u!114 &114147748268126260
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -842,8 +658,8 @@ MonoBehaviour:
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
-  - {fileID: 114976501467496062}
-  - {fileID: 114776938712676404}
+  - {fileID: 114888890146707038}
+  - {fileID: 114511040642271288}
   m_OutputSlots:
   - {fileID: 114252513914906706}
   seed: 0
@@ -865,8 +681,8 @@ MonoBehaviour:
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
-  - {fileID: 114384087932572244}
-  - {fileID: 114998146003199084}
+  - {fileID: 114144676826267114}
+  - {fileID: 114819490465690742}
   m_OutputSlots:
   - {fileID: 114964563188439966}
   seed: 1
@@ -1033,9 +849,7 @@ MonoBehaviour:
   m_Disabled: 0
   attribute: position
   Composition: 0
-  Source: 0
   Random: 0
-  channels: 4
 --- !u!114 &114221531464920314
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1111,9 +925,7 @@ MonoBehaviour:
   m_Disabled: 0
   attribute: lifetime
   Composition: 0
-  Source: 0
   Random: 0
-  channels: 4
 --- !u!114 &114238316278941324
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1315,6 +1127,44 @@ MonoBehaviour:
   m_Direction: 0
   m_LinkedSlots:
   - {fileID: 114252513914906706}
+--- !u!114 &114268506196348502
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87c154e0feeee864da39ba7591cf27e7, type: 3}
+  m_Name: VFXSlotFloatN
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 114268506196348502}
+  m_MasterData:
+    m_Owner: {fileID: 114616033668644914}
+    m_Value:
+      m_Type:
+        m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      m_SerializableObject: '{"m_Components":[1.0]}'
+  m_Property:
+    name: max
+    m_serializedType:
+      m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    attributes:
+    - m_Type: 3
+      m_Min: -Infinity
+      m_Max: Infinity
+      m_Tooltip: The maximum value to be generated.
+      m_Regex: 
+      m_RegexMaxLength: 0
+  m_Direction: 0
+  m_LinkedSlots: []
 --- !u!114 &114280784735439508
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1334,82 +1184,6 @@ MonoBehaviour:
   m_Owners:
   - {fileID: 114086217117080280}
   shader: {fileID: 10755, guid: 0000000000000000f000000000000000, type: 0}
---- !u!114 &114299890133258284
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87c154e0feeee864da39ba7591cf27e7, type: 3}
-  m_Name: VFXSlotFloatN
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114299890133258284}
-  m_MasterData:
-    m_Owner: {fileID: 114445897794752898}
-    m_Value:
-      m_Type:
-        m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"m_Components":[7.0]}'
-  m_Property:
-    name: min
-    m_serializedType:
-      m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: The minimum value to be generated.
-      m_Regex: 
-      m_RegexMaxLength: 0
-  m_Direction: 0
-  m_LinkedSlots: []
---- !u!114 &114301034321228722
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c52d920e7fff73b498050a6b3c4404ca, type: 3}
-  m_Name: VFXSlotUint
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114301034321228722}
-  m_MasterData:
-    m_Owner: {fileID: 114505278114450404}
-    m_Value:
-      m_Type:
-        m_SerializableType: System.UInt32, mscorlib, Version=2.0.0.0, Culture=neutral,
-          PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 3
-  m_Property:
-    name: hash
-    m_serializedType:
-      m_SerializableType: System.UInt32, mscorlib, Version=2.0.0.0, Culture=neutral,
-        PublicKeyToken=b77a5c561934e089
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: An optional additional hash.
-      m_Regex: 
-      m_RegexMaxLength: 0
-  m_Direction: 0
-  m_LinkedSlots: []
 --- !u!114 &114306459418205222
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1549,44 +1323,6 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
---- !u!114 &114351359053984068
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87c154e0feeee864da39ba7591cf27e7, type: 3}
-  m_Name: VFXSlotFloatN
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114351359053984068}
-  m_MasterData:
-    m_Owner: {fileID: 114647256529599658}
-    m_Value:
-      m_Type:
-        m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"m_Components":[1.0]}'
-  m_Property:
-    name: max
-    m_serializedType:
-      m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: The maximum value to be generated.
-      m_Regex: 
-      m_RegexMaxLength: 0
-  m_Direction: 0
-  m_LinkedSlots: []
 --- !u!114 &114355646307886528
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1627,7 +1363,7 @@ MonoBehaviour:
       m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
---- !u!114 &114365766954909828
+--- !u!114 &114368794217369164
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1643,14 +1379,14 @@ MonoBehaviour:
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114365766954909828}
+  m_MasterSlot: {fileID: 114368794217369164}
   m_MasterData:
-    m_Owner: {fileID: 114445897794752898}
+    m_Owner: {fileID: 114985235925502318}
     m_Value:
       m_Type:
         m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
           Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"m_Components":[8.0]}'
+      m_SerializableObject: '{"m_Components":[1.0]}'
   m_Property:
     name: max
     m_serializedType:
@@ -1661,44 +1397,6 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: The maximum value to be generated.
-      m_Regex: 
-      m_RegexMaxLength: 0
-  m_Direction: 0
-  m_LinkedSlots: []
---- !u!114 &114384087932572244
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87c154e0feeee864da39ba7591cf27e7, type: 3}
-  m_Name: VFXSlotFloatN
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114384087932572244}
-  m_MasterData:
-    m_Owner: {fileID: 114202074989874694}
-    m_Value:
-      m_Type:
-        m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"m_Components":[0.0]}'
-  m_Property:
-    name: min
-    m_serializedType:
-      m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: The minimum value to be generated.
       m_Regex: 
       m_RegexMaxLength: 0
   m_Direction: 0
@@ -1842,6 +1540,44 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
+--- !u!114 &114438916103597936
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87c154e0feeee864da39ba7591cf27e7, type: 3}
+  m_Name: VFXSlotFloatN
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 114438916103597936}
+  m_MasterData:
+    m_Owner: {fileID: 114616033668644914}
+    m_Value:
+      m_Type:
+        m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      m_SerializableObject: '{"m_Components":[0.0]}'
+  m_Property:
+    name: min
+    m_serializedType:
+      m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    attributes:
+    - m_Type: 3
+      m_Min: -Infinity
+      m_Max: Infinity
+      m_Tooltip: The minimum value to be generated.
+      m_Regex: 
+      m_RegexMaxLength: 0
+  m_Direction: 0
+  m_LinkedSlots: []
 --- !u!114 &114443705085104674
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1873,7 +1609,7 @@ MonoBehaviour:
     attributes: []
   m_Direction: 1
   m_LinkedSlots: []
---- !u!114 &114445897794752898
+--- !u!114 &114452578331692224
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1881,59 +1617,35 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c42128e17c583714a909b4997c80c916, type: 3}
-  m_Name: Random
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114860976365752148}
-  m_Children: []
-  m_UIPosition: {x: 676.78436, y: 43.819927}
-  m_UICollapsed: 0
-  m_UISuperCollapsed: 0
-  m_InputSlots:
-  - {fileID: 114299890133258284}
-  - {fileID: 114365766954909828}
-  - {fileID: 114840608858918986}
-  m_OutputSlots:
-  - {fileID: 114473090733889698}
-  seed: 0
-  constant: 1
---- !u!114 &114473090733889698
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
-  m_Name: VFXSlotFloat
+  m_Script: {fileID: 11500000, guid: 87c154e0feeee864da39ba7591cf27e7, type: 3}
+  m_Name: VFXSlotFloatN
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 0}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114473090733889698}
+  m_MasterSlot: {fileID: 114452578331692224}
   m_MasterData:
-    m_Owner: {fileID: 114445897794752898}
+    m_Owner: {fileID: 114985235925502318}
     m_Value:
       m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
-          PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 0
+        m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      m_SerializableObject: '{"m_Components":[0.0]}'
   m_Property:
-    name: r
+    name: min
     m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
-        PublicKeyToken=b77a5c561934e089
+      m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
     attributes:
     - m_Type: 3
       m_Min: -Infinity
       m_Max: Infinity
-      m_Tooltip: A random number between 0 and 1.
+      m_Tooltip: The minimum value to be generated.
       m_Regex: 
       m_RegexMaxLength: 0
-  m_Direction: 1
+  m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114474769383934804
 MonoBehaviour:
@@ -1997,7 +1709,7 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
---- !u!114 &114505278114450404
+--- !u!114 &114511040642271288
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
@@ -2005,22 +1717,36 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c42128e17c583714a909b4997c80c916, type: 3}
-  m_Name: Random
+  m_Script: {fileID: 11500000, guid: 87c154e0feeee864da39ba7591cf27e7, type: 3}
+  m_Name: VFXSlotFloatN
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114860976365752148}
+  m_Parent: {fileID: 0}
   m_Children: []
-  m_UIPosition: {x: 676.69684, y: -305.65927}
-  m_UICollapsed: 0
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
   m_UISuperCollapsed: 0
-  m_InputSlots:
-  - {fileID: 114078176468927296}
-  - {fileID: 114904965791994092}
-  - {fileID: 114301034321228722}
-  m_OutputSlots:
-  - {fileID: 114963601947315588}
-  seed: 0
-  constant: 1
+  m_MasterSlot: {fileID: 114511040642271288}
+  m_MasterData:
+    m_Owner: {fileID: 114197684020777404}
+    m_Value:
+      m_Type:
+        m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      m_SerializableObject: '{"m_Components":[1.0]}'
+  m_Property:
+    name: max
+    m_serializedType:
+      m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    attributes:
+    - m_Type: 3
+      m_Min: -Infinity
+      m_Max: Infinity
+      m_Tooltip: The maximum value to be generated.
+      m_Regex: 
+      m_RegexMaxLength: 0
+  m_Direction: 0
+  m_LinkedSlots: []
 --- !u!114 &114516048903986308
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2085,6 +1811,44 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
+--- !u!114 &114525458568279438
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87c154e0feeee864da39ba7591cf27e7, type: 3}
+  m_Name: VFXSlotFloatN
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 114525458568279438}
+  m_MasterData:
+    m_Owner: {fileID: 114647256529599658}
+    m_Value:
+      m_Type:
+        m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      m_SerializableObject: '{"m_Components":[0.0]}'
+  m_Property:
+    name: min
+    m_serializedType:
+      m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    attributes:
+    - m_Type: 3
+      m_Min: -Infinity
+      m_Max: Infinity
+      m_Tooltip: The minimum value to be generated.
+      m_Regex: 
+      m_RegexMaxLength: 0
+  m_Direction: 0
+  m_LinkedSlots: []
 --- !u!114 &114536254170934970
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2122,44 +1886,6 @@ MonoBehaviour:
       m_Regex: 
       m_RegexMaxLength: 0
   m_Direction: 0
-  m_LinkedSlots: []
---- !u!114 &114545532141641326
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
-  m_Name: VFXSlotFloat
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114545532141641326}
-  m_MasterData:
-    m_Owner: {fileID: 114141481520590690}
-    m_Value:
-      m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
-          PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 0
-  m_Property:
-    name: r
-    m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
-        PublicKeyToken=b77a5c561934e089
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: A random number between 0 and 1.
-      m_Regex: 
-      m_RegexMaxLength: 0
-  m_Direction: 1
   m_LinkedSlots: []
 --- !u!114 &114552771254788820
 MonoBehaviour:
@@ -2492,8 +2218,8 @@ MonoBehaviour:
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
-  - {fileID: 114723948157890914}
-  - {fileID: 114990960695286502}
+  - {fileID: 114438916103597936}
+  - {fileID: 114268506196348502}
   - {fileID: 114536254170934970}
   m_OutputSlots:
   - {fileID: 114152796109532948}
@@ -2548,8 +2274,8 @@ MonoBehaviour:
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
-  - {fileID: 114135744040470250}
-  - {fileID: 114351359053984068}
+  - {fileID: 114525458568279438}
+  - {fileID: 114030431747322730}
   - {fileID: 114772155971813490}
   m_OutputSlots:
   - {fileID: 114594378946256154}
@@ -2584,44 +2310,6 @@ MonoBehaviour:
       m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
     attributes: []
-  m_Direction: 0
-  m_LinkedSlots: []
---- !u!114 &114723948157890914
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87c154e0feeee864da39ba7591cf27e7, type: 3}
-  m_Name: VFXSlotFloatN
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114723948157890914}
-  m_MasterData:
-    m_Owner: {fileID: 114616033668644914}
-    m_Value:
-      m_Type:
-        m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"m_Components":[0.0]}'
-  m_Property:
-    name: min
-    m_serializedType:
-      m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: The minimum value to be generated.
-      m_Regex: 
-      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114731095946555038
@@ -2787,44 +2475,6 @@ MonoBehaviour:
       m_Min: -Infinity
       m_Max: Infinity
       m_Tooltip: An optional additional hash.
-      m_Regex: 
-      m_RegexMaxLength: 0
-  m_Direction: 0
-  m_LinkedSlots: []
---- !u!114 &114776938712676404
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87c154e0feeee864da39ba7591cf27e7, type: 3}
-  m_Name: VFXSlotFloatN
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114776938712676404}
-  m_MasterData:
-    m_Owner: {fileID: 114197684020777404}
-    m_Value:
-      m_Type:
-        m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"m_Components":[1.0]}'
-  m_Property:
-    name: max
-    m_serializedType:
-      m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: The maximum value to be generated.
       m_Regex: 
       m_RegexMaxLength: 0
   m_Direction: 0
@@ -3016,6 +2666,44 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
+--- !u!114 &114819490465690742
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87c154e0feeee864da39ba7591cf27e7, type: 3}
+  m_Name: VFXSlotFloatN
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 114819490465690742}
+  m_MasterData:
+    m_Owner: {fileID: 114202074989874694}
+    m_Value:
+      m_Type:
+        m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      m_SerializableObject: '{"m_Components":[1.0]}'
+  m_Property:
+    name: max
+    m_serializedType:
+      m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    attributes:
+    - m_Type: 3
+      m_Min: -Infinity
+      m_Max: Infinity
+      m_Tooltip: The maximum value to be generated.
+      m_Regex: 
+      m_RegexMaxLength: 0
+  m_Direction: 0
+  m_LinkedSlots: []
 --- !u!114 &114823909028336932
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3031,10 +2719,10 @@ MonoBehaviour:
   stickyNoteInfos: []
   uiBounds:
     serializedVersion: 2
-    x: 672
-    y: -482
-    width: 1564.0002
-    height: 1461.0001
+    x: 0
+    y: 0
+    width: 0
+    height: 0
 --- !u!114 &114833589730317984
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3068,44 +2756,6 @@ MonoBehaviour:
       m_SerializableType: UnityEditor.VFX.Transform, Assembly-CSharp-Editor-testable,
         Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
     attributes: []
-  m_Direction: 0
-  m_LinkedSlots: []
---- !u!114 &114840608858918986
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c52d920e7fff73b498050a6b3c4404ca, type: 3}
-  m_Name: VFXSlotUint
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114840608858918986}
-  m_MasterData:
-    m_Owner: {fileID: 114445897794752898}
-    m_Value:
-      m_Type:
-        m_SerializableType: System.UInt32, mscorlib, Version=2.0.0.0, Culture=neutral,
-          PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 9
-  m_Property:
-    name: hash
-    m_serializedType:
-      m_SerializableType: System.UInt32, mscorlib, Version=2.0.0.0, Culture=neutral,
-        PublicKeyToken=b77a5c561934e089
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: An optional additional hash.
-      m_Regex: 
-      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114850673920943566
@@ -3235,14 +2885,10 @@ MonoBehaviour:
   - {fileID: 114616033668644914}
   - {fileID: 114202074989874694}
   - {fileID: 114000160793542438}
-  - {fileID: 114505278114450404}
-  - {fileID: 114141481520590690}
-  - {fileID: 114445897794752898}
   m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_UIInfos: {fileID: 114823909028336932}
-  m_ParameterInfo: []
   m_saved: 1
 --- !u!114 &114875043527088574
 MonoBehaviour:
@@ -3264,6 +2910,44 @@ MonoBehaviour:
   - {fileID: 114850673920943566}
   m_OutputSlots:
   - {fileID: 114559468295946172}
+--- !u!114 &114888890146707038
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 87c154e0feeee864da39ba7591cf27e7, type: 3}
+  m_Name: VFXSlotFloatN
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 0}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 1
+  m_UISuperCollapsed: 0
+  m_MasterSlot: {fileID: 114888890146707038}
+  m_MasterData:
+    m_Owner: {fileID: 114197684020777404}
+    m_Value:
+      m_Type:
+        m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
+          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      m_SerializableObject: '{"m_Components":[0.0]}'
+  m_Property:
+    name: min
+    m_serializedType:
+      m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
+        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    attributes:
+    - m_Type: 3
+      m_Min: -Infinity
+      m_Max: Infinity
+      m_Tooltip: The minimum value to be generated.
+      m_Regex: 
+      m_RegexMaxLength: 0
+  m_Direction: 0
+  m_LinkedSlots: []
 --- !u!114 &114891937085233552
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3294,44 +2978,6 @@ MonoBehaviour:
       m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
     attributes: []
-  m_Direction: 0
-  m_LinkedSlots: []
---- !u!114 &114904965791994092
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87c154e0feeee864da39ba7591cf27e7, type: 3}
-  m_Name: VFXSlotFloatN
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114904965791994092}
-  m_MasterData:
-    m_Owner: {fileID: 114505278114450404}
-    m_Value:
-      m_Type:
-        m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"m_Components":[2.0]}'
-  m_Property:
-    name: max
-    m_serializedType:
-      m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: The maximum value to be generated.
-      m_Regex: 
-      m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
 --- !u!114 &114913032055927298
@@ -3428,82 +3074,6 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
---- !u!114 &114950444710941108
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87c154e0feeee864da39ba7591cf27e7, type: 3}
-  m_Name: VFXSlotFloatN
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114950444710941108}
-  m_MasterData:
-    m_Owner: {fileID: 114985235925502318}
-    m_Value:
-      m_Type:
-        m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"m_Components":[1.0]}'
-  m_Property:
-    name: max
-    m_serializedType:
-      m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: The maximum value to be generated.
-      m_Regex: 
-      m_RegexMaxLength: 0
-  m_Direction: 0
-  m_LinkedSlots: []
---- !u!114 &114963601947315588
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f780aa281814f9842a7c076d436932e7, type: 3}
-  m_Name: VFXSlotFloat
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114963601947315588}
-  m_MasterData:
-    m_Owner: {fileID: 114505278114450404}
-    m_Value:
-      m_Type:
-        m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
-          PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 0
-  m_Property:
-    name: r
-    m_serializedType:
-      m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
-        PublicKeyToken=b77a5c561934e089
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: A random number between 0 and 1.
-      m_Regex: 
-      m_RegexMaxLength: 0
-  m_Direction: 1
-  m_LinkedSlots: []
 --- !u!114 &114964563188439966
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3584,44 +3154,6 @@ MonoBehaviour:
       m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
---- !u!114 &114976501467496062
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87c154e0feeee864da39ba7591cf27e7, type: 3}
-  m_Name: VFXSlotFloatN
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114976501467496062}
-  m_MasterData:
-    m_Owner: {fileID: 114197684020777404}
-    m_Value:
-      m_Type:
-        m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"m_Components":[0.0]}'
-  m_Property:
-    name: min
-    m_serializedType:
-      m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: The minimum value to be generated.
-      m_Regex: 
-      m_RegexMaxLength: 0
-  m_Direction: 0
-  m_LinkedSlots: []
 --- !u!114 &114978939162786976
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3644,9 +3176,7 @@ MonoBehaviour:
   m_Disabled: 0
   attribute: sizeX
   Composition: 0
-  Source: 0
   Random: 0
-  channels: 4
 --- !u!114 &114985235925502318
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3664,89 +3194,13 @@ MonoBehaviour:
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
-  - {fileID: 114068416879092658}
-  - {fileID: 114950444710941108}
+  - {fileID: 114452578331692224}
+  - {fileID: 114368794217369164}
   - {fileID: 114418470293028250}
   m_OutputSlots:
   - {fileID: 114418448733725326}
   seed: 0
   constant: 1
---- !u!114 &114990960695286502
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87c154e0feeee864da39ba7591cf27e7, type: 3}
-  m_Name: VFXSlotFloatN
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114990960695286502}
-  m_MasterData:
-    m_Owner: {fileID: 114616033668644914}
-    m_Value:
-      m_Type:
-        m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"m_Components":[1.0]}'
-  m_Property:
-    name: max
-    m_serializedType:
-      m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: The maximum value to be generated.
-      m_Regex: 
-      m_RegexMaxLength: 0
-  m_Direction: 0
-  m_LinkedSlots: []
---- !u!114 &114998146003199084
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 87c154e0feeee864da39ba7591cf27e7, type: 3}
-  m_Name: VFXSlotFloatN
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114998146003199084}
-  m_MasterData:
-    m_Owner: {fileID: 114202074989874694}
-    m_Value:
-      m_Type:
-        m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-          Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"m_Components":[1.0]}'
-  m_Property:
-    name: max
-    m_serializedType:
-      m_SerializableType: UnityEditor.VFX.FloatN, Assembly-CSharp-Editor-testable,
-        Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: The maximum value to be generated.
-      m_Regex: 
-      m_RegexMaxLength: 0
-  m_Direction: 0
-  m_LinkedSlots: []
 --- !u!2058629509 &8926484042661614526
 VisualEffectAsset:
   m_ObjectHideFlags: 0
@@ -3840,7 +3294,7 @@ VisualEffectAsset:
       data[1]: 6
       data[2]: -1
       data[3]: 3
-    - op: 50
+    - op: 46
       valueIndex: 22
       data[0]: 8
       data[1]: 9
@@ -3930,7 +3384,7 @@ VisualEffectAsset:
       data[1]: 16
       data[2]: -1
       data[3]: 1
-    - op: 50
+    - op: 46
       valueIndex: 37
       data[0]: 15
       data[1]: 9
@@ -3942,7 +3396,7 @@ VisualEffectAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 50
+    - op: 46
       valueIndex: 39
       data[0]: 21
       data[1]: 9
@@ -4002,7 +3456,7 @@ VisualEffectAsset:
       data[1]: -1
       data[2]: -1
       data[3]: 1
-    - op: 62
+    - op: 58
       valueIndex: 49
       data[0]: -1
       data[1]: -1
@@ -4014,7 +3468,7 @@ VisualEffectAsset:
       data[1]: 23
       data[2]: -1
       data[3]: 1
-    - op: 63
+    - op: 59
       valueIndex: 51
       data[0]: 29
       data[1]: -1
@@ -4631,7 +4085,7 @@ VisualEffectAsset:
         index: 82
       - nameId: bounds_size
         index: 88
-      processor: {fileID: 7200000, guid: 4f4fd3a9a3717a94a8abbfdd1d772ffd, type: 3}
+      processor: {fileID: 7200000, guid: bb9f60123802e7f42b051756071e3e44, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -4642,7 +4096,7 @@ VisualEffectAsset:
       - nameId: deltaTime_a
         index: 84
       params: []
-      processor: {fileID: 7200000, guid: 9213acc07dfc30847b7296f0febd6f06, type: 3}
+      processor: {fileID: 7200000, guid: 6eef6705fab8ea0489f3da99c1569aef, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -4669,7 +4123,7 @@ VisualEffectAsset:
       params:
       - nameId: sortPriority
         index: 0
-      processor: {fileID: 4800000, guid: 7d5fa01df0e41bf4aaeb0ec113f675b1, type: 3}
+      processor: {fileID: 4800000, guid: f80b3b5f14dc6844e98f9a2c6b643f0a, type: 3}
   - type: 2
     flags: 0
     capacity: 0
@@ -4706,4 +4160,4 @@ VisualEffectAsset:
     reflectionProbeUsage: 0
     lightProbeUsage: 0
   m_CullingFlags: 3
-  m_RuntimeVersion: 5
+  m_RuntimeVersion: 4
