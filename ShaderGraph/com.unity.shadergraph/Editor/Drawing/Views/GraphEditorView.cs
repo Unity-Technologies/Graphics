@@ -51,6 +51,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public Action showInProjectRequested { get; set; }
 
+        public Action showGeneratedCode { get; set; }
+
         public MaterialGraphView graphView
         {
             get { return m_GraphView; }
@@ -92,6 +94,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     if (showInProjectRequested != null)
                         showInProjectRequested();
+                }
+                GUILayout.Space(6);
+                if (GUILayout.Button("Show Generated Code", EditorStyles.toolbarButton))
+                {
+                    if (showGeneratedCode != null)
+                        showGeneratedCode();
                 }
                 GUILayout.FlexibleSpace();
                 GUILayout.EndHorizontal();
