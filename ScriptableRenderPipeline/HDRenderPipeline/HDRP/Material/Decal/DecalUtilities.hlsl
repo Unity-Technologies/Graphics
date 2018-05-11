@@ -80,6 +80,11 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
 			positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.0f, 0.5);	// decal clip space
 			if ((all(positionDS.xyz > 0.0f) && all(1.0f - positionDS.xyz > 0.0f)))
 			{
+				float2 uvScale = float2(decalData.normalToWorld[3][0], decalData.normalToWorld[3][1]);
+				float2 uvBias = float2(decalData.normalToWorld[3][2], decalData.normalToWorld[3][3]);
+				positionDS.xz = positionDS.xz * uvScale + uvBias;
+				positionDS.xz = frac(positionDS.xz);
+
 				// clamp by half a texel to avoid sampling neighboring textures in the atlas
 				float2 clampAmount = float2(0.5f / _DecalAtlasResolution.x, 0.5f / _DecalAtlasResolution.y);
 
