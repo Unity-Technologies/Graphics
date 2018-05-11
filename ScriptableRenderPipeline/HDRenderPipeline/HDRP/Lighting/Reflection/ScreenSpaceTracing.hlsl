@@ -148,6 +148,21 @@ float3 IntersectDepthPlane(float3 positionSS, float3 raySS, float invDepth)
     return positionSS + raySS * t;
 }
 
+float2 CalculateDistanceToCellPlanes(
+    float3 positionSS,              // Ray Origin (Screen Space, 1/LinearDepth)
+    float2 invRaySS,                // 1/RayDirection
+    int2 cellId,                    // (Row, Colum) of the cell
+    uint2 cellSize,                 // Size of the cell in pixel
+    int2 cellPlanes                 // Planes to intersect (one of (0,0), (1, 0), (0, 1), (1, 1))
+)
+{
+    // Planes to check
+    int2 planes = (cellId + cellPlanes) * cellSize;
+    // Hit distance to each planes
+    float2 distanceToCellAxes = float2(planes - positionSS.xy) * invRaySS; // (distance to x axis, distance to y axis)
+    return distanceToCellAxes;
+}
+
 // Calculate intersection between a ray and a cell
 float3 IntersectCellPlanes(
     float3 positionSS,              // Ray Origin (Screen Space, 1/LinearDepth)
@@ -159,10 +174,14 @@ float3 IntersectCellPlanes(
     float2 crossOffset              // Offset to use to ensure cell boundary crossing
 )
 {
-    // Planes to check
-    int2 planes = (cellId + cellPlanes) * cellSize;
-    // Hit distance to each planes
-    float2 distanceToCellAxes = float2(planes - positionSS.xy) * invRaySS; // (distance to x axis, distance to y axis)
+    float2 distanceToCellAxes = CalculateDistanceToCellPlanes(
+        positionSS,
+        invRaySS,
+        cellId,
+        cellSize,
+        cellPlanes
+    );
+
     float t = min(distanceToCellAxes.x, distanceToCellAxes.y)
         // Offset to ensure cell crossing
         // This assume that length(raySS.xy) == 1;
@@ -564,17 +583,13 @@ bool ScreenSpaceLinearProxyRaycast(
 // We do this for two reasons:
 //  - It is cheaper in case of close hit than starting with HiZ
 //  - It will start the HiZ algorithm with an offset, preventing false positive hit at ray origin.
-//
-// NB: Maximum of depth samples = settingsRayMaxIterations + settingsRayMaxLinearIterations
 // -------------------------------------------------
 bool ScreenSpaceHiZRaymarch(
     ScreenSpaceRaymarchInput input,
     // Settings
-    uint settingsRayLevel,                          // Mip level to use for linear ray marching in depth buffer
     uint settingsRayMinLevel,                       // Minimum mip level to use for ray marching the depth buffer in HiZ
     uint settingsRayMaxLevel,                       // Maximum mip level to use for ray marching the depth buffer in HiZ
     uint settingsRayMaxIterations,                  // Maximum number of iteration for the HiZ raymarching (= number of depth sample for HiZ)
-    uint settingsRayMaxLinearIterations,            // Maximum number of iteration for the linear raymarching (= number of depth sample for linear)
     float settingsDepthBufferThickness,              // Bias to use when trying to detect whenever we raymarch behind a surface
     float settingsRayMaxScreenDistance,             // Maximum screen distance raymarched
     float settingsRayBlendScreenDistance,           // Distance to blend before maximum screen distance is reached
@@ -607,31 +622,6 @@ bool ScreenSpaceHiZRaymarch(
         raySS,
         rayEndDepth
     );
-
-    // We perform first a linear raymarching
-    // It is more performant for short distance than HiZ raymarching
-    if (ScreenSpaceLinearRaymarch(
-            input,
-            // settings
-            settingsRayLevel,
-            settingsRayMaxLinearIterations,
-            settingsDepthBufferThickness,
-            settingsRayMaxScreenDistance,
-            settingsRayBlendScreenDistance,
-            settingsDebuggedAlgorithm,
-            // precomputed
-            startPositionSS,
-            raySS,
-            rayEndDepth,
-            bufferSize,
-            // out
-            hit,
-            hitWeight,
-            iteration
-        ))
-        return true;
-    
-    startPositionSS = float3(hit.positionSS, 1 / hit.linearDepth);
 
 #ifdef DEBUG_DISPLAY
     // Initialize debug variables
@@ -669,15 +659,22 @@ bool ScreenSpaceHiZRaymarch(
     float minLinearDepth                = 0;
     float minLinearDepthWithThickness   = 0;
 
-    positionSS = IntersectCellPlanes(
-        positionSS,
-        raySS,
-        invRaySS,
-        int2(positionSS.xy) / cellSize,
-        cellSize,
-        cellPlanes,
-        crossOffset
-    );
+    // Intersect with first cell and add an offsot to avoid HiZ raymarching to stuck at the origin
+    {
+        const float epsilon = 1E-3;
+        const float minTraversal = 2 << currentLevel;
+
+        float2 distanceToCellAxes = CalculateDistanceToCellPlanes(
+            positionSS,
+            invRaySS,
+            int2(positionSS.xy) / cellSize,
+            cellSize,
+            cellPlanes
+        );
+
+        float t = min(distanceToCellAxes.x * minTraversal + epsilon, distanceToCellAxes.y * minTraversal + epsilon);
+        positionSS = positionSS + raySS * t;
+    }
 
     while (currentLevel >= minMipLevel)
     {
@@ -903,7 +900,6 @@ CBUFFER_START(MERGE_NAME(UnityScreenSpaceRaymarching, SSRTID))
 int SSRT_SETTING(RayLevel, SSRTID);
 int SSRT_SETTING(RayMinLevel, SSRTID);
 int SSRT_SETTING(RayMaxLevel, SSRTID);
-int SSRT_SETTING(RayMaxLinearIterations, SSRTID);
 int SSRT_SETTING(RayMaxIterations, SSRTID);
 float SSRT_SETTING(DepthBufferThickness, SSRTID);
 float SSRT_SETTING(RayMaxScreenDistance, SSRTID);
@@ -997,11 +993,9 @@ bool MERGE_NAME(ScreenSpaceHiZRaymarch, SSRTID)(
     return ScreenSpaceHiZRaymarch(
         input,
         // Settings
-        SSRT_SETTING(RayLevel, SSRTID),
         SSRT_SETTING(RayMinLevel, SSRTID),
         SSRT_SETTING(RayMaxLevel, SSRTID),
         SSRT_SETTING(RayMaxIterations, SSRTID),
-        SSRT_SETTING(RayMaxLinearIterations, SSRTID),
         max(0.01, SSRT_SETTING(DepthBufferThickness, SSRTID)),
         SSRT_SETTING(RayMaxScreenDistance, SSRTID),
         SSRT_SETTING(RayBlendScreenDistance, SSRTID),
