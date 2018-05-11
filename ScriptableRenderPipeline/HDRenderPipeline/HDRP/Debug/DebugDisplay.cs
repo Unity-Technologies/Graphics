@@ -478,6 +478,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     new DebugUI.Value { displayName = "Position SS", getter = () => new Vector2(screenSpaceTracingDebugData.iterationPositionSS.x, screenSpaceTracingDebugData.iterationPositionSS.y) },
                                     new DebugUI.Value { displayName = "Depth", getter = () => 1f / screenSpaceTracingDebugData.iterationPositionSS.z },
                                     new DebugUI.Value { displayName = "Depth Buffer Min/Min + Thickness/Max", getter = () => string.Format("{0}/{1}/{2}", screenSpaceTracingDebugData.iterationLinearDepthBufferMin, screenSpaceTracingDebugData.iterationLinearDepthBufferMinThickness, screenSpaceTracingDebugData.iterationLinearDepthBufferMax) },
+                                    new DebugUI.Value { displayName = "Depth Buffer Diff (Max - Min)", getter = () => (screenSpaceTracingDebugData.iterationLinearDepthBufferMax - screenSpaceTracingDebugData.iterationLinearDepthBufferMin).ToString("F6") },
                                     new DebugUI.Value { displayName = "Intersect Depth Buffer", getter = () => screenSpaceTracingDebugData.intersectDepthBuffer },
                                     new DebugUI.Value { displayName = "Mip Level", getter = () => screenSpaceTracingDebugData.iterationMipLevel },
                                     new DebugUI.Value { displayName = "Cell Id", getter = () => screenSpaceTracingDebugData.iterationCellId },
