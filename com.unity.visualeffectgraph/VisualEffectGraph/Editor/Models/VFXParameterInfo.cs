@@ -41,9 +41,32 @@ namespace UnityEditor.VFX
 
         public static VFXParameterInfo[] BuildParameterInfo(VFXGraph graph)
         {
-            var parameters = graph.children.OfType<VFXParameter>().Where(t => t.exposed).OrderBy(t => t.order).ToArray();
+            var categories = graph.UIInfos.categories;
+            if(categories == null)
+                categories = new List<string>();
+
+
+            var parameters = graph.children.OfType<VFXParameter>().Where(t => t.exposed && (string.IsNullOrEmpty(t.category) || ! categories.Contains(t.category))).OrderBy(t => t.order).ToArray();
 
             var infos = new List<VFXParameterInfo>();
+            BuildCategoryParameterInfo(parameters, infos);
+
+            foreach(var cat in categories)
+            {
+                VFXParameterInfo paramInfo = new VFXParameterInfo(cat, "");
+
+                parameters = graph.children.OfType<VFXParameter>().Where(t => t.exposed && t.category == cat).OrderBy(t => t.order).ToArray();
+                paramInfo.descendantCount = parameters.Length;
+                infos.Add(paramInfo);
+                BuildCategoryParameterInfo(parameters,infos);
+            }
+
+
+            return infos.ToArray();
+        }
+
+        static void BuildCategoryParameterInfo(VFXParameter[] parameters, List<VFXParameterInfo> infos)
+        {
             var subList = new List<VFXParameterInfo>();
             foreach (var parameter in parameters)
             {
@@ -56,11 +79,12 @@ namespace UnityEditor.VFX
                     paramInfo.path = paramInfo.name;
                     if (parameter.hasRange)
                     {
-                        float min = (float)System.Convert.ChangeType(parameter.m_Min.Get(), typeof(float));
-                        float max = (float)System.Convert.ChangeType(parameter.m_Max.Get(), typeof(float));
+                        float min = (float) System.Convert.ChangeType(parameter.m_Min.Get(), typeof(float));
+                        float max = (float) System.Convert.ChangeType(parameter.m_Max.Get(), typeof(float));
                         paramInfo.min = min;
                         paramInfo.max = max;
                     }
+
                     paramInfo.descendantCount = 0;
                 }
                 else
@@ -73,7 +97,6 @@ namespace UnityEditor.VFX
                 infos.AddRange(subList);
                 subList.Clear();
             }
-            return infos.ToArray();
         }
 
         static int RecurseBuildParameterInfo(List<VFXParameterInfo> infos, System.Type type, string path)

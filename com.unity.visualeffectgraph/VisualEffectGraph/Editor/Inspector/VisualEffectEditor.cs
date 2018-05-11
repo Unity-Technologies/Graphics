@@ -55,6 +55,31 @@ namespace UnityEditor.VFX
 
     static class VisualEffectEditorStyles
     {
+        public static readonly GUIStyle toggleStyle;
+        public static readonly GUIStyle toggleMixedStyle;
+
+        public static readonly GUIStyle categoryHeader;
+
+        public static readonly GUILayoutOption MiniButtonWidth = GUILayout.Width(48);
+        public static readonly GUILayoutOption PlayControlsHeight = GUILayout.Height(24);
+
+        static VisualEffectEditorStyles()
+        {
+            toggleStyle = GUISkin.current.GetStyle("ShurikenCheckMark");
+            toggleMixedStyle = GUISkin.current.GetStyle("ShurikenCheckMarkMixed");
+            categoryHeader = new GUIStyle(GUISkin.current.label);
+            categoryHeader.fontStyle = FontStyle.Bold;
+            categoryHeader.margin.top = 8;
+            categoryHeader.padding.left = 14;
+            //TODO change to editor resources calls
+            categoryHeader.normal.background = Resources.Load<Texture2D>(EditorGUIUtility.isProSkin ? "VFX/cat-background-dark" : "VFX/cat-background-light");
+
+        }
+    }
+
+    // Need to separate stuff from SceneGUI as ProSkin is set during OnSceneGUI
+    static class VisualEffectEditorSceneGUIStyles
+    {
         static GUIContent[] m_Icons;
 
         public enum Icon
@@ -65,14 +90,8 @@ namespace UnityEditor.VFX
             Step,
             Stop
         }
-
-        public static readonly GUIStyle toggleStyle;
-        public static readonly GUIStyle toggleMixedStyle;
-
-        static VisualEffectEditorStyles()
+        static VisualEffectEditorSceneGUIStyles()
         {
-            toggleStyle = new GUIStyle("ShurikenCheckMark");
-            toggleMixedStyle = new GUIStyle("ShurikenCheckMarkMixed");
             m_Icons = new GUIContent[1 + (int)Icon.Stop];
             for (int i = 0; i <= (int)Icon.Stop; ++i)
             {
@@ -105,7 +124,6 @@ namespace UnityEditor.VFX
         SerializedProperty m_VFXPropertySheet;
 
         private Contents m_Contents;
-        private Styles m_Styles;
 
         protected void OnEnable()
         {
@@ -202,9 +220,6 @@ namespace UnityEditor.VFX
         {
             if (m_Contents == null)
                 m_Contents = new Contents();
-
-            if (m_Styles == null)
-                m_Styles = new Styles();
         }
 
         private void SceneViewGUICallback(UnityObject target, SceneView sceneView)
@@ -213,31 +228,31 @@ namespace UnityEditor.VFX
 
             var buttonWidth = GUILayout.Width(50);
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Stop), buttonWidth))
+            if (GUILayout.Button(VisualEffectEditorSceneGUIStyles.GetIcon(VisualEffectEditorSceneGUIStyles.Icon.Stop), buttonWidth))
             {
                 effect.ControlStop();
             }
             if (effect.pause)
             {
-                if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Play), buttonWidth))
+                if (GUILayout.Button(VisualEffectEditorSceneGUIStyles.GetIcon(VisualEffectEditorSceneGUIStyles.Icon.Play), buttonWidth))
                 {
                     effect.ControlPlayPause();
                 }
             }
             else
             {
-                if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Pause), buttonWidth))
+                if (GUILayout.Button(VisualEffectEditorSceneGUIStyles.GetIcon(VisualEffectEditorSceneGUIStyles.Icon.Pause), buttonWidth))
                 {
                     effect.ControlPlayPause();
                 }
             }
 
 
-            if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Step), buttonWidth))
+            if (GUILayout.Button(VisualEffectEditorSceneGUIStyles.GetIcon(VisualEffectEditorSceneGUIStyles.Icon.Step), buttonWidth))
             {
                 effect.ControlStep();
             }
-            if (GUILayout.Button(VisualEffectEditorStyles.GetIcon(VisualEffectEditorStyles.Icon.Restart), buttonWidth))
+            if (GUILayout.Button(VisualEffectEditorSceneGUIStyles.GetIcon(VisualEffectEditorSceneGUIStyles.Icon.Restart), buttonWidth))
             {
                 effect.ControlRestart();
             }
@@ -292,15 +307,12 @@ namespace UnityEditor.VFX
 
             var component = (VisualEffect)target;
 
-            //Asset
-            GUILayout.Label(m_Contents.HeaderMain, m_Styles.InspectorHeader);
-
             using (new GUILayout.HorizontalScope())
             {
                 EditorGUILayout.PropertyField(m_VisualEffectAsset, m_Contents.AssetPath);
 
                 GUI.enabled = component.visualEffectAsset != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
-                if (GUILayout.Button(m_Contents.OpenEditor, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
+                if (GUILayout.Button(m_Contents.OpenEditor, EditorStyles.miniButton, VisualEffectEditorStyles.MiniButtonWidth))
                 {
                     VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
 
@@ -315,7 +327,7 @@ namespace UnityEditor.VFX
                 using (new EditorGUI.DisabledGroupScope(m_ReseedOnPlay.boolValue))
                 {
                     EditorGUILayout.PropertyField(m_RandomSeed, m_Contents.RandomSeed);
-                    if (GUILayout.Button(m_Contents.SetRandomSeed, EditorStyles.miniButton, m_Styles.MiniButtonWidth))
+                    if (GUILayout.Button(m_Contents.SetRandomSeed, EditorStyles.miniButton, VisualEffectEditorStyles.MiniButtonWidth))
                     {
                         m_RandomSeed.intValue = UnityEngine.Random.Range(0, int.MaxValue);
                         component.startSeed = (uint)m_RandomSeed.intValue; // As accessors are bypassed with serialized properties...
@@ -338,9 +350,6 @@ namespace UnityEditor.VFX
                     }
                 }
             }
-
-            //Field
-            GUILayout.Label(m_Contents.HeaderParameters, m_Styles.InspectorHeader);
 
             EditMode.DoEditModeInspectorModeButton(
                 EditMode.SceneViewEditMode.Collider,
@@ -373,11 +382,6 @@ namespace UnityEditor.VFX
                     foreach (var parameter in m_graph.m_ParameterInfo)
                     {
                         --currentCount;
-                        if (currentCount == 0 && stack.Count > 0)
-                        {
-                            currentCount = stack.Last();
-                            stack.RemoveAt(stack.Count - 1);
-                        }
 
                         if (parameter.descendantCount > 0)
                         {
@@ -385,15 +389,38 @@ namespace UnityEditor.VFX
                             currentCount = parameter.descendantCount;
                         }
 
+                        if (currentCount == 0 && stack.Count > 0)
+                        {
+                            do
+                            {
+                                currentCount = stack.Last();
+                                stack.RemoveAt(stack.Count - 1);
+                            } while (currentCount == 0);
+                        }
+
+
 
                         if (string.IsNullOrEmpty(parameter.sheetType))
                         {
-                            if (parameter.name != null)
+                            if (!string.IsNullOrEmpty(parameter.name) )
                             {
-                                EmptyLineControl(parameter.name, stack.Count);
+                                if( string.IsNullOrEmpty(parameter.realType)) // This is a category
+                                {
+                                    var nameContent = new GUIContent(parameter.name);
+
+                                    float height = VisualEffectEditorStyles.categoryHeader.CalcHeight(nameContent,4000);
+                                    Rect rect = GUILayoutUtility.GetRect(1,height);
+
+                                    rect.width += rect.x;
+                                    rect.x = 0;
+                                    if( Event.current.type == EventType.Repaint)
+                                        VisualEffectEditorStyles.categoryHeader.Draw(rect,nameContent,false,true,true,false );
+                                }
+                                else
+                                    EmptyLineControl(parameter.name, stack.Count);
                             }
                         }
-                        else if (parameter.sheetType != null)
+                        else
                         {
                             var vfxField = m_VFXPropertySheet.FindPropertyRelative(parameter.sheetType + ".m_Array");
                             SerializedProperty property = null;
@@ -443,40 +470,6 @@ namespace UnityEditor.VFX
             }
 
             GUI.enabled = true;
-        }
-
-        private class Styles
-        {
-            public GUIStyle InspectorHeader;
-            public GUIStyle ToggleGizmo;
-
-            public GUILayoutOption MiniButtonWidth = GUILayout.Width(48);
-            public GUILayoutOption PlayControlsHeight = GUILayout.Height(24);
-
-            public Styles()
-            {
-                InspectorHeader = new GUIStyle("ShurikenModuleTitle");
-                InspectorHeader.fontSize = 12;
-                InspectorHeader.fontStyle = FontStyle.Bold;
-                InspectorHeader.contentOffset = new Vector2(2, -2);
-                InspectorHeader.border = new RectOffset(4, 4, 4, 4);
-                InspectorHeader.overflow = new RectOffset(4, 4, 4, 4);
-                InspectorHeader.margin = new RectOffset(4, 4, 16, 8);
-
-                Texture2D showIcon = EditorGUIUtility.Load("VisibilityIcon.png") as Texture2D;
-                Texture2D hideIcon = EditorGUIUtility.Load("VisibilityIconDisabled.png") as Texture2D;
-
-                ToggleGizmo = new GUIStyle();
-                ToggleGizmo.margin = new RectOffset(0, 0, 4, 0);
-                ToggleGizmo.active.background = hideIcon;
-                ToggleGizmo.onActive.background = showIcon;
-                ToggleGizmo.normal.background = hideIcon;
-                ToggleGizmo.onNormal.background = showIcon;
-                ToggleGizmo.focused.background = hideIcon;
-                ToggleGizmo.onFocused.background = showIcon;
-                ToggleGizmo.hover.background = hideIcon;
-                ToggleGizmo.onHover.background = showIcon;
-            }
         }
 
         private class Contents
