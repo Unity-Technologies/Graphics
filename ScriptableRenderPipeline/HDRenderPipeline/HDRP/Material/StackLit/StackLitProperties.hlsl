@@ -76,6 +76,7 @@ float4 _SmoothnessAMap_MipInfo;
 float4 _SmoothnessAMapChannelMask;
 float4 _SmoothnessARange;
 
+float4 _DebugEnvLobeMask;
 float4 _DebugLobeMask;
 float4 _DebugAniso;
 

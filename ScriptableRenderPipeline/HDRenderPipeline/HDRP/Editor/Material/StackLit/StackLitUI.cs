@@ -213,8 +213,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 new GroupProperty(this, "_Debug", "Debug", new BaseProperty[]
                 {
                     new Property(this, "_VlayerRecomputePerLight", "Vlayer Recompute Per Light", "", false),
+                    new Property(this, "_VlayerUseRefractedAnglesForBase", "Vlayer Use Refracted Angles For Base", "", false),
                     new Property(this, "_DebugEnable", "Debug Enable", "Switch to a debug version of the shader", false),
-                    new Property(this, "_DebugLobeMask", "DebugLobeMask", "xyz is Lobe 0 1 2 Enable, w is Enable VLayering", false),
+                    new Property(this, "_DebugEnvLobeMask", "DebugEnvLobeMask", "xyz is Environments Lobe 0 1 2 Enable, w is Enable VLayering", false),
+                    new Property(this, "_DebugLobeMask", "DebugLobeMask", "xyz is Analytical Lobe 0 1 2 Enable", false),
                     new Property(this, "_DebugAniso", "DebugAniso", "x is Hack Enable, y is factor", false),
 
                     EnableSpecularAA,
@@ -428,6 +430,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             bool vlayerRecomputePerLight = material.HasProperty("_VlayerRecomputePerLight") && material.GetFloat("_VlayerRecomputePerLight") > 0.0f;
             CoreUtils.SetKeyword(material, "_VLAYERED_RECOMPUTE_PERLIGHT", vlayerRecomputePerLight);
+
+            bool vlayerUseRefractedAnglesForBase = material.HasProperty("_VlayerUseRefractedAnglesForBase") && material.GetFloat("_VlayerUseRefractedAnglesForBase") > 0.0f;
+            CoreUtils.SetKeyword(material, "_VLAYERED_USE_REFRACTED_ANGLES_FOR_BASE", vlayerUseRefractedAnglesForBase);
 
 
             // Set the reference value for the stencil test - required for SSS
