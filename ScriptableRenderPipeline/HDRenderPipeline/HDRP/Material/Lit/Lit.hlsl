@@ -1788,7 +1788,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     {
         rayOriginWS             = posInput.positionWS;
         rayDirWS                = preLightData.iblR;
-        mipLevel                = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness);
+        mipLevel                = PositivePow(preLightData.iblPerceptualRoughness, 0.8) * uint(max(_ColorPyramidScale.z - 1, 0));
         invScreenWeightDistance = _SSReflectionInvScreenWeightDistance;
 #if DEBUG_DISPLAY
         debugMode               = DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFLECTION;
@@ -1897,10 +1897,21 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
 
     UpdateLightingHierarchyWeights(hierarchyWeight, weight); // Shouldn't be needed, but safer in case we decide to change hierarchy priority
 
+    // Reproject color pyramid
+    float4 velocityBuffer = SAMPLE_TEXTURE2D_LOD(
+        _CameraMotionVectorsTexture,
+        s_linear_clamp_sampler,
+        hit.positionNDC * _CameraMotionVectorsScale.xy,
+        0.0
+    );
+
+    float2 velocityNDC;
+    DecodeVelocity(velocityBuffer, velocityNDC);
+
     float3 preLD = SAMPLE_TEXTURE2D_LOD(
         _ColorPyramidTexture,
         s_trilinear_clamp_sampler,
-        hit.positionNDC * _ColorPyramidScale.xy,
+        (hit.positionNDC - velocityNDC) * _ColorPyramidScale.xy,
         mipLevel
     ).rgb;
 

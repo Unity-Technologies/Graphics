@@ -32,6 +32,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         HiZIntersectionKind,
         HiZHitWeight,
         HiZSampledColor,
+        HiZDiff,
         LinearPositionNDC,
         LinearRayDirNDC,
         LinearIterationCount,
