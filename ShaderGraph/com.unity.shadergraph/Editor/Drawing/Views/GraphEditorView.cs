@@ -51,8 +51,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public Action showInProjectRequested { get; set; }
 
-        public Action showGeneratedCode { get; set; }
-
         public MaterialGraphView graphView
         {
             get { return m_GraphView; }
@@ -95,19 +93,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (showInProjectRequested != null)
                         showInProjectRequested();
                 }
-                GUILayout.Space(6);
-                if (GUILayout.Button("Show Generated Code", EditorStyles.toolbarButton))
-                {
-                    if (showGeneratedCode != null)
-                        showGeneratedCode();
-                }
-                GUILayout.FlexibleSpace();
-                GUILayout.EndHorizontal();
             });
             Add(toolbar);
 
             var content = new VisualElement { name = "content" };
             {
+                graph.name = assetName;
                 m_GraphView = new MaterialGraphView(graph) { name = "GraphView", persistenceKey = "MaterialGraphView" };
                 m_GraphView.SetupZoom(0.05f, ContentZoomer.DefaultMaxScale);
                 m_GraphView.AddManipulator(new ContentDragger());

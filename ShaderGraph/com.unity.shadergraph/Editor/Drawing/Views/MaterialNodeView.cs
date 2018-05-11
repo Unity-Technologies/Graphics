@@ -243,24 +243,43 @@ namespace UnityEditor.ShaderGraph.Drawing
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             if (evt.target is Node)
-                evt.menu.AppendAction("Copy shader", ConvertToShader, node.hasPreview ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Hidden);
+            {
+                evt.menu.AppendAction("Copy shader", CopyToClipboard, node.hasPreview ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Hidden);
+                evt.menu.AppendAction("Show Generated Code", ShowGeneratedCode, node.hasPreview ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Hidden);
+            }
+
             base.BuildContextualMenu(evt);
         }
 
-        void ConvertToShader()
+        void CopyToClipboard()
+        {
+            GUIUtility.systemCopyBuffer = ConvertToShader();
+        }
+
+        public string SanitizeName(string name)
+        {
+            return new string(name.Where( c => !Char.IsWhiteSpace(c) ).ToArray());
+        }
+
+        public void ShowGeneratedCode()
+        {
+            var graph = (AbstractMaterialGraph)node.owner;
+
+            string path = String.Format("Temp/GeneratedFromGraph-{0}-{1}-{2}.shader", SanitizeName(graph.name), SanitizeName(node.name), node.guid );
+
+            if( GraphUtil.WriteToFile(path, ConvertToShader()) )
+                GraphUtil.OpenFile(path);
+        }
+
+        string ConvertToShader()
         {
             List<PropertyCollector.TextureInfo> textureInfo;
             var masterNode = node as IMasterNode;
             if (masterNode != null)
-            {
-                var shader = masterNode.GetShader(GenerationMode.ForReals, node.name, out textureInfo);
-                GUIUtility.systemCopyBuffer = shader;
-            }
-            else
-            {
-                var graph = (AbstractMaterialGraph)node.owner;
-                GUIUtility.systemCopyBuffer = graph.GetShader(node, GenerationMode.ForReals, node.name).shader;
-            }
+                return masterNode.GetShader(GenerationMode.ForReals, node.name, out textureInfo);
+
+            var graph = (AbstractMaterialGraph)node.owner;
+            return graph.GetShader(node, GenerationMode.ForReals, node.name).shader;
         }
 
         void UpdateSettingsExpandedState()
