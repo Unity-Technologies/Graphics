@@ -7,7 +7,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public abstract class ScreenSpaceLighting : VolumeComponent
     {
         int m_RayLevelID;
-        int m_RayMaxLinearIterationsID;
         int m_RayMinLevelID;
         int m_RayMaxLevelID;
         int m_RayMaxIterationsID;
@@ -17,7 +16,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_RayBlendScreenDistanceID;
 
         public IntParameter                 rayLevel = new IntParameter(2);
-        public IntParameter                 rayMaxLinearIterationsLevel = new IntParameter(2);
         public IntParameter                 rayMinLevel = new IntParameter(2);
         public IntParameter                 rayMaxLevel = new IntParameter(6);
         public IntParameter                 rayMaxIterations = new IntParameter(32);
@@ -29,7 +27,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public virtual void PushShaderParameters(CommandBuffer cmd)
         {
             cmd.SetGlobalInt(m_RayLevelID, rayLevel.value);
-            cmd.SetGlobalInt(m_RayMaxLinearIterationsID, rayMaxLinearIterationsLevel.value);
             cmd.SetGlobalInt(m_RayMinLevelID, rayMinLevel.value);
             cmd.SetGlobalInt(m_RayMaxLevelID, rayMaxLevel.value);
             cmd.SetGlobalInt(m_RayMaxIterationsID, rayMaxIterations.value);
@@ -41,7 +38,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         protected abstract void FetchIDs(
             out int rayLevelID,
-            out int rayMaxLinearIterationsLevelID,
             out int rayMinLevelID,
             out int rayMaxLevelID,
             out int rayMaxIterationsID,
@@ -55,7 +51,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             FetchIDs(
                 out m_RayLevelID,
-                out m_RayMaxLinearIterationsID,
                 out m_RayMinLevelID,
                 out m_RayMaxLevelID,
                 out m_RayMaxIterationsID,
