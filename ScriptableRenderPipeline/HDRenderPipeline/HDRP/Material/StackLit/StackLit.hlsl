@@ -367,11 +367,35 @@ float FilterRoughness_TOKUYOSHI(float3 n, float r)
 
     float variance = _SpecularAntiAliasingScreenSpaceVariance * (dot(deltaU, deltaU) + dot(deltaV, deltaV));
 
-    float squaredRoughness = saturate(r * r + min(2.0 * variance, _SpecularAntiAliasingThreshold));
-
-    return sqrt(squaredRoughness);
+    return variance;
 }
 
+// Based on The Order : 1886 SIGGRAPH course notes implementation.
+float AdjustRoughness(float avgNormalLength)
+{
+    if (avgNormalLength < 1.0)
+    {
+        float avgNormLen2 = avgNormalLength * avgNormalLength;
+        float kappa = (3 * avgNormalLength - avgNormalLength * avgNormLen2) / (1 - avgNormLen2);
+
+        return 1.0 / (2.0 * kappa);
+    }
+
+    return 0.0f;
+}
+
+float FilterRoughness(float r, float3 geomNormalWS, float averageNormalLength)
+{
+    // Specular AA: NormalCurvatureToRoughness
+    r = lerp(r, max(NormalCurvatureToRoughness(geomNormalWS), r), _NormalCurvatureToRoughnessEnabled);
+
+    // Specular AA: Tokuyoshi Filtering + 1866 normal filtering.
+    float varianceGeom = FilterRoughness_TOKUYOSHI(geomNormalWS, r);
+    float varianceNorm = AdjustRoughness(averageNormalLength);
+    float filteredRoughness = sqrt(saturate(r * r + min(2.0 * (varianceGeom + varianceNorm), _SpecularAntiAliasingThreshold)));
+
+    return lerp(r, filteredRoughness, _SpecularAntiAliasingEnabled);
+}
 
 //-----------------------------------------------------------------------------
 // conversion function for forward
@@ -392,18 +416,10 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     bsdfData.perceptualRoughnessA = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothnessA);
     bsdfData.perceptualRoughnessB = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothnessB);
 
-    // Specular AA: NormalCurvatureToRoughness
-    float normalCurvatureToRoughnessA = max(NormalCurvatureToRoughness(bsdfData.normalWS), bsdfData.perceptualRoughnessA);
-    float normalCurvatureToRoughnessB = max(NormalCurvatureToRoughness(bsdfData.normalWS), bsdfData.perceptualRoughnessB);
-    bsdfData.perceptualRoughnessA = lerp(bsdfData.perceptualRoughnessA, normalCurvatureToRoughnessA, _NormalCurvatureToRoughnessEnabled);
-    bsdfData.perceptualRoughnessB = lerp(bsdfData.perceptualRoughnessB, normalCurvatureToRoughnessB, _NormalCurvatureToRoughnessEnabled);
-
-    // Specular AA: Tokuyoshi Filtering.
-    float filterRoughnessA = FilterRoughness_TOKUYOSHI(bsdfData.normalWS, bsdfData.perceptualRoughnessA);
-    float filterRoughnessB = FilterRoughness_TOKUYOSHI(bsdfData.normalWS, bsdfData.perceptualRoughnessB);
-    bsdfData.perceptualRoughnessA = lerp(bsdfData.perceptualRoughnessA, filterRoughnessA, _SpecularAntiAliasingEnabled);
-    bsdfData.perceptualRoughnessB = lerp(bsdfData.perceptualRoughnessB, filterRoughnessB, _SpecularAntiAliasingEnabled);
-
+    // Specular AA / Filtering.
+    bsdfData.perceptualRoughnessA = FilterRoughness(bsdfData.perceptualRoughnessA, bsdfData.geomNormalWS, surfaceData.averageNormalLengthA);
+    bsdfData.perceptualRoughnessB = FilterRoughness(bsdfData.perceptualRoughnessB, bsdfData.geomNormalWS, surfaceData.averageNormalLengthB);
+    
     bsdfData.lobeMix = surfaceData.lobeMix;
 
     // There is no metallic with SSS and specular color mode
