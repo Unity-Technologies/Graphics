@@ -1037,6 +1037,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
 
             SetRenderTarget(cmd, colorRT, depthRT, clearFlag);
+            m_CurrCameraColorRT = colorRT;
 
             // If rendering to an intermediate RT we resolve viewport on blit due to offset not being supported
             // while rendering to a RT.

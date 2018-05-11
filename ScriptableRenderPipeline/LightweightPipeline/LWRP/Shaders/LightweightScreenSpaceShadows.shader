@@ -59,12 +59,7 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
         half4 Fragment(Interpolators i) : SV_Target
         {
             UNITY_SETUP_INSTANCE_ID(i);
-#if !defined(UNITY_STEREO_INSTANCING_ENABLED)
-            // Completely unclear why i.stereoTargetEyeIndex doesn't work here, considering
-            // this has to be correct in order for the texture array slices to be rasterized to
-            // We can limit this workaround to stereo instancing for now.
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
-#endif
 
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
             float deviceDepth = SAMPLE_TEXTURE2D_ARRAY(_CameraDepthTexture, sampler_CameraDepthTexture, i.texcoord.xy, unity_StereoEyeIndex).r;
