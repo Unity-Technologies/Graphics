@@ -1446,12 +1446,12 @@ namespace UnityEngine.Experimental.Rendering
                 int requestIdx        = shadowRequests[i];
                 VisibleLight vl       = lights[requestIdx];
                 int facecount         = 0;
-                GPUShadowType shadowType = GPUShadowType.Point;
+                GPUShadowType shadowType = GetShadowLightType( vl.light );
 
                 AdditionalShadowData asd = vl.light.GetComponent<AdditionalShadowData>();
                 Vector3 lpos            = vl.light.transform.position;
                 float   distToCam       = (campos - lpos).magnitude;
-                bool    add             = (distToCam < asd.shadowFadeDistance || vl.lightType == LightType.Directional) && m_ShadowSettings.enabled;
+                bool    add             = shadowType != GPUShadowType.Unknown && (distToCam < asd.shadowFadeDistance || vl.lightType == LightType.Directional) && m_ShadowSettings.enabled;
 
                 if( add )
                 {
@@ -1459,17 +1459,14 @@ namespace UnityEngine.Experimental.Rendering
                     {
                         case LightType.Directional:
                             add = --m_MaxShadows[(int)GPUShadowType.Directional, 0] >= 0;
-                            shadowType = GPUShadowType.Directional;
                             facecount = asd.cascadeCount;
                             break;
                         case LightType.Point:
                             add = --m_MaxShadows[(int)GPUShadowType.Point, 0] >= 0;
-                            shadowType = GPUShadowType.Point;
                             facecount = 6;
                             break;
                         case LightType.Spot:
                             add = --m_MaxShadows[(int)GPUShadowType.Spot, 0] >= 0;
-                            shadowType = GPUShadowType.Spot;
                             facecount = 1;
                             break;
                     }
