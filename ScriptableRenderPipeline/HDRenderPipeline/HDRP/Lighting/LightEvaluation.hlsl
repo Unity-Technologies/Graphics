@@ -61,11 +61,23 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 #endif
 
 #ifdef SHADOWS_SHADOWMASK
-        float fade = saturate(posInput.linearDepth * lightData.fadeDistanceScaleAndBias.x + lightData.fadeDistanceScaleAndBias.y);
+
+        // TODO: Optimize this code! Currently it is a bit like brute force to get the last transistion and fade to shadow mask, but there is
+        // certainly more efficient to do
+        // We reuse the transition from the cascade system to fade between shadow mask at max distance
+        uint  payloadOffset;
+        real  fade;
+        int cascadeCount;
+        int shadowSplitIndex = EvalShadow_GetSplitIndex(lightLoopContext.shadowContext, lightData.shadowIndex, positionWS, payloadOffset, fade, cascadeCount);
+        // we have a fade caclulation for each cascade but we must lerp with shadow mask only for the last one
+        fade = ((shadowSplitIndex + 1) == cascadeCount || shadowSplitIndex == -1.0) ? fade : 0.0;
 
         // See comment in EvaluateBSDF_Punctual
         shadow = lightData.dynamicShadowCasterOnly ? min(shadowMask, shadow) : shadow;
-        shadow = lerp(shadow, shadowMask, fade); // Caution to lerp parameter: fade is the reverse of shadowDimmer
+        // In the transition code (both dithering and blend) we use shadow = lerp( shadow, 1.0, fade ) for last transition
+        // mean if we expend the code we have (shadow * (1 - fade) + fade). Here to make transition with shadow mask
+        // we will remove fade and add fade * shadowMask which mean we do a lerp with shadow mask
+        shadow = shadow - fade + fade * shadowMask;
 
         // Note: There is no shadowDimmer when there is no shadow mask
 #endif
