@@ -29,6 +29,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
             float _RequireToFlipInputTexture;
             float _ShowGrid;
             float _ShowDepthPyramidDebug;
+            float _ShowSSRaySampledColor;
             CBUFFER_END
 
             TEXTURE2D(_DebugFullScreenTexture);
@@ -271,10 +272,27 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                     const float w = clamp(1 - startPositionRingSDF - positionRingSDF, 0, 1);
                     col.rgb = col.rgb * w + float3(1, 1, 1) * (1 - w);
 
+                    // Draw sampled color
+                    if (_ShowSSRaySampledColor == 1)
+                    {
+                        const float4 rect = float4(endPositionSS + float2(10, 10), endPositionSS + float2(60, 60));
+                        const float4 distToRects = float4(rect.zw - posInput.positionSS,  posInput.positionSS - rect.xy);
+                        if (all(distToRects > 0))
+                        {
+                            const float distToRect = min(min(distToRects.x, distToRects.y), min(distToRects.z, distToRects.w));
+                            const float sdf = clamp(distToRect * 0.5, 0, 1);
+                            col = float4(
+                                lerp(float3(1, 1, 1), debug.lightingSampledColor, sdf),
+                                1.0
+                            );
+                            color.a = 0;
+                        }
+                    }
+
                     if (_ShowDepthPyramidDebug == 1)
                         color.rgb = float3(frac(debugLinearDepth * 0.1), 0.0);
 
-                    col = float4(col.rgb * col.a + color.rgb, 1);
+                    col = float4(col.rgb * col.a + color.rgb * color.a, 1);
 
                     return col;
                 }

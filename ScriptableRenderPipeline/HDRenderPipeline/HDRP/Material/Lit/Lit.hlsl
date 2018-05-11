@@ -1927,6 +1927,13 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
         lighting.specularReflected = F * preLD.rgb * weight;
 
 #ifdef DEBUG_DISPLAY
+    if (debug)
+    {
+        ScreenSpaceTracingDebug debug = _DebugScreenSpaceTracingData[0];
+        debug.lightingSampledColor = preLD;
+        _DebugScreenSpaceTracingData[0] = debug;
+    }
+
     if (_DebugLightingMode == debugMode
         && (_DebugLightingSubMode == DEBUGSCREENSPACETRACING_LINEAR_SAMPLED_COLOR
             || _DebugLightingSubMode == DEBUGSCREENSPACETRACING_HI_ZSAMPLED_COLOR))

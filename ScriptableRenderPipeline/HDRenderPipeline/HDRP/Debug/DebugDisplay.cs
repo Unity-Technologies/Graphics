@@ -63,8 +63,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public uint endPositionSSY;                                 // Proxy, HiZ, Linear
         public float endHitWeight;                                  // HiZ, Linear
 
-        // 1x32 bits (padding)
-        public float padding;
+        // 3x32 Lighting
+        public Vector3 lightingSampledColor;                        // All
+
+        // 2x32 bits (padding)
+        public Vector2 padding;
 
         public Vector2 loopStartPositionSS { get { return new Vector2(loopStartPositionSSX, loopStartPositionSSY); } }
         public Vector2 endPositionSS { get { return new Vector2(endPositionSSX, endPositionSSY); } }
@@ -96,8 +99,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float debugOverlayRatio = 0.33f;
         public FullScreenDebugMode  fullScreenDebugMode = FullScreenDebugMode.None;
         public float fullscreenDebugMip = 0.0f;
-        public bool showSSRayGrid = true;
-        public bool showSSRayDepthPyramid = true;
+        public bool showSSRayGrid = false;
+        public bool showSSRayDepthPyramid = false;
+        public bool showSSSampledColor = false;
 
         public MaterialDebugSettings materialDebugSettings = new MaterialDebugSettings();
         public LightingDebugSettings lightingDebugSettings = new LightingDebugSettings();
@@ -441,6 +445,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     new DebugUI.Value { displayName = "End Linear Depth", getter = () => screenSpaceTracingDebugData.endLinearDepth },
                                     new DebugUI.Value { displayName = "End Position", getter = () => screenSpaceTracingDebugData.endPositionSS },
                                 }
+                            },
+                            new DebugUI.Container
+                            {
+                                displayName = "Lighting",
+                                children =
+                                {
+                                    new DebugUI.Value { displayName = "Sampled Color", getter = () => string.Format("({0:F6}, {1:F6}, {2:F6})", screenSpaceTracingDebugData.lightingSampledColor.x, screenSpaceTracingDebugData.lightingSampledColor.y, screenSpaceTracingDebugData.lightingSampledColor.z) },
+                                }
                             }
                         );
                         break;
@@ -451,7 +463,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         debugSettingsContainer.children.Add(
                             new DebugUI.EnumField { displayName = "Debug Mode", getter = GetDebugLightingSubMode, setter = SetScreenSpaceTracingDebugMode, enumNames = debugScreenSpaceTracingHiZStrings, enumValues = debugScreenSpaceTracingHiZValues, onValueChanged = RefreshScreenSpaceTracingDebug },
                             new DebugUI.BoolField { displayName = "Display Grid", getter = () => showSSRayGrid, setter = v => showSSRayGrid = v },
-                            new DebugUI.BoolField { displayName = "Display Depth", getter = () => showSSRayDepthPyramid, setter = v => showSSRayDepthPyramid = v }
+                            new DebugUI.BoolField { displayName = "Display Depth", getter = () => showSSRayDepthPyramid, setter = v => showSSRayDepthPyramid = v },
+                            new DebugUI.BoolField { displayName = "Display Sampled Color", getter = () => showSSSampledColor, setter = v => showSSSampledColor = v }
                         );
                         settingsContainer.children.Add(
                             new DebugUI.Container
@@ -484,6 +497,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     new DebugUI.Value { displayName = "Cell Id", getter = () => screenSpaceTracingDebugData.iterationCellId },
                                     new DebugUI.Value { displayName = "Cell Size", getter = () => screenSpaceTracingDebugData.iterationCellSize },
                                     new DebugUI.Value { displayName = "Intersection Kind", getter = () => k_HiZIntersectionKind[(int)screenSpaceTracingDebugData.iterationIntersectionKind] },
+                                }
+                            },
+                            new DebugUI.Container
+                            {
+                                displayName = "Lighting",
+                                children =
+                                {
+                                    new DebugUI.Value { displayName = "Sampled Color", getter = () => string.Format("({0:F6}, {1:F6}, {2:F6})", screenSpaceTracingDebugData.lightingSampledColor.x, screenSpaceTracingDebugData.lightingSampledColor.y, screenSpaceTracingDebugData.lightingSampledColor.z) },
                                 }
                             }
                         );
@@ -525,6 +546,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     new DebugUI.Value { displayName = "Mip Level", getter = () => screenSpaceTracingDebugData.iterationMipLevel },
                                     new DebugUI.Value { displayName = "Cell Id", getter = () => screenSpaceTracingDebugData.iterationCellId },
                                     new DebugUI.Value { displayName = "Cell Size", getter = () => screenSpaceTracingDebugData.iterationCellSize },
+                                }
+                            },
+                            new DebugUI.Container
+                            {
+                                displayName = "Lighting",
+                                children =
+                                {
+                                    new DebugUI.Value { displayName = "Sampled Color", getter = () => string.Format("({0:F6}, {1:F6}, {2:F6})", screenSpaceTracingDebugData.lightingSampledColor.x, screenSpaceTracingDebugData.lightingSampledColor.y, screenSpaceTracingDebugData.lightingSampledColor.z) },
                                 }
                             }
                         );

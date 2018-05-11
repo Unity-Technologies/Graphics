@@ -48,7 +48,8 @@ struct ScreenSpaceTracingDebug
     uint endPositionSSX;
     uint endPositionSSY;
     float endHitWeight;
-    float padding;
+    float3 lightingSampledColor;
+    float2 padding;
 };
 
 //
@@ -146,7 +147,11 @@ float GetEndHitWeight(ScreenSpaceTracingDebug value)
 {
 	return value.endHitWeight;
 }
-float GetPadding(ScreenSpaceTracingDebug value)
+float3 GetLightingSampledColor(ScreenSpaceTracingDebug value)
+{
+	return value.lightingSampledColor;
+}
+float2 GetPadding(ScreenSpaceTracingDebug value)
 {
 	return value.padding;
 }
