@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Wave")]
     class SineWave : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         public class InputProperties
@@ -12,7 +11,7 @@ namespace UnityEditor.VFX.Operator
             public FloatN frequency = 1.0f;
         }
 
-        override public string name { get { return "Sine Wave"; } }
+        override public string name { get { return "Sine Wave (deprecated)"; } }
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
@@ -23,6 +22,12 @@ namespace UnityEditor.VFX.Operator
             var two = VFXOperatorUtility.TwoExpression[type];
 
             return new[] { new VFXExpressionDivide(one - new VFXExpressionCos(inputExpression[0] * inputExpression[1] * tau), two) };
+        }
+
+        public sealed override void Sanitize()
+        {
+            base.Sanitize();
+            SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(SineWaveNew));
         }
     }
 }

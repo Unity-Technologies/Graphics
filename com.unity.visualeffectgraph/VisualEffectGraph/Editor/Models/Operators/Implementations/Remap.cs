@@ -37,7 +37,8 @@ namespace UnityEditor.VFX.Operator
 
         public sealed override void Sanitize()
         {
-            //SanitizeHelper.SanitizeToOperatorNew(this, typeof(RemapNew)); //TODOPAUL : Transfer settings
+            base.Sanitize();
+            SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(RemapNew));
         }
     }
 }

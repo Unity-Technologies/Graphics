@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Vector", experimental = true)]
+    [VFXInfo(category = "Math/Vector")]
     class SquaredLengthNew : VFXOperatorNumericUniformNew
     {
         public class InputProperties
@@ -41,7 +41,7 @@ namespace UnityEditor.VFX.Operator
         {
             get
             {
-                return "Squared LengthNew";
+                return "Squared Length";
             }
         }
 

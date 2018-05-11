@@ -5,10 +5,10 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Arithmetic", experimental = true)]
+    [VFXInfo(category = "Math/Arithmetic")]
     class StepNew : VFXOperatorNumericUnifiedNew, IVFXOperatorNumericUnifiedConstrained
     {
-        public override sealed string name { get { return "StepNew"; } }
+        public override sealed string name { get { return "Step"; } }
 
         public class InputProperties
         {

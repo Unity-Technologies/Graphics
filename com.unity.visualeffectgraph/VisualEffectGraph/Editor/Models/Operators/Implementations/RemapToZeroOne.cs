@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Remap")]
     class RemapToZeroOne : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         [VFXSetting, Tooltip("Whether the values are clamped to the input/output range")]
@@ -15,7 +14,7 @@ namespace UnityEditor.VFX.Operator
             public FloatN input = new FloatN(0.0f);
         }
 
-        override public string name { get { return "Remap [-1..1] => [0..1]"; } }
+        override public string name { get { return "Remap [-1..1] => [0..1] (deprecated)"; } }
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
@@ -28,6 +27,12 @@ namespace UnityEditor.VFX.Operator
                 return new[] { VFXOperatorUtility.Saturate(expression) };
             else
                 return new[] { expression };
+        }
+
+        public sealed override void Sanitize()
+        {
+            base.Sanitize();
+            SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(RemapToZeroOneNew));
         }
     }
 }

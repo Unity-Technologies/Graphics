@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Trigonometry", experimental = true)]
+    [VFXInfo(category = "Math/Trigonometry")]
     class TangentNew : VFXOperatorNumericUniformNew
     {
         public class InputProperties
@@ -10,7 +10,7 @@ namespace UnityEditor.VFX.Operator
             public float x = 0.0f;
         }
 
-        public override sealed string name { get { return "TangentNew"; } }
+        public override sealed string name { get { return "Tangent"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

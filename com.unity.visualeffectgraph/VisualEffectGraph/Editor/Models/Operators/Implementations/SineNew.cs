@@ -10,7 +10,7 @@ namespace UnityEditor.VFX.Operator
             public float x = 0.0f;
         }
 
-        public override sealed string name { get { return "SineNew"; } }
+        public override sealed string name { get { return "Sine"; } }
 
         protected override sealed ValidTypeRule typeFilter { get { return ValidTypeRule.allowEverythingExceptInteger; } }
 

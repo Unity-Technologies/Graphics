@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Arithmetic")]
     class Smoothstep : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         public class InputProperties
@@ -16,11 +15,17 @@ namespace UnityEditor.VFX.Operator
             public FloatN s = new FloatN(0.5f);
         }
 
-        override public string name { get { return "Smoothstep"; } }
+        override public string name { get { return "Smoothstep (deprecated)"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { VFXOperatorUtility.Smoothstep(inputExpression[0], inputExpression[1], inputExpression[2]) };
+        }
+
+        public sealed override void Sanitize()
+        {
+            base.Sanitize();
+            SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(SmoothstepNew));
         }
     }
 }

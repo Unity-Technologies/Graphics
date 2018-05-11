@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Remap", experimental = true)]
+    [VFXInfo(category = "Math/Remap")]
     class RemapToZeroOneNew : VFXOperatorNumericUniformNew
     {
         [VFXSetting, SerializeField, Tooltip("Whether the values are clamped to the input/output range")]
@@ -15,7 +15,7 @@ namespace UnityEditor.VFX.Operator
             public float input = 0.0f;
         }
 
-        public override sealed string name { get { return "Remap [-1..1] => [0..1]New"; } }
+        public override sealed string name { get { return "Remap [-1..1] => [0..1]"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

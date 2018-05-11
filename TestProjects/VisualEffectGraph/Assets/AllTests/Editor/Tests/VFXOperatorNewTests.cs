@@ -583,6 +583,16 @@ namespace UnityEditor.VFX.Test
                         }
                         sanitizeTest.Add(param);
                     }
+
+                    if (type.Key == typeof(DotProduct)) //Add know tricky issue
+                    {
+                        var param = new SanitizeParam()
+                        {
+                            type = type.Key,
+                            inputSlotType = Enumerable.Repeat(typeof(float), 2).ToArray()
+                        };
+                        sanitizeTest.Add(param);
+                    }
                 }
                 s_allSanitizeTest = sanitizeTest.GroupBy(o => o.ToString()).Select(o => o.First()).ToArray();
                 return s_allSanitizeTest;
@@ -592,12 +602,16 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void SanitizeBehavior([ValueSource("allSanitizeTest")] SanitizeParam op)
         {
+            UnityEngine.Random.InitState(87);
+
             var graph = ScriptableObject.CreateInstance<VFXGraph>();
             var currentOperator = ScriptableObject.CreateInstance(op.type) as VFXOperator;
 
             graph.AddChild(currentOperator);
 
-            var slotInput = currentOperator.inputSlots.Where(o => o.property.type == typeof(FloatN));
+            //Ignore not FloatN (expected first)
+            var skipCount = currentOperator.inputSlots.TakeWhile(o => o.property.type != typeof(FloatN)).Count();
+            op.inputSlotType = Enumerable.Repeat((Type)null, skipCount).Concat(op.inputSlotType).ToArray();
 
             for (int i = 0; i < op.inputSlotType.Length; ++i)
             {
@@ -609,7 +623,7 @@ namespace UnityEditor.VFX.Test
                 inlineOperator.SetSettingValue("m_Type", (SerializableType)type);
                 graph.AddChild(inlineOperator);
 
-                slotInput.ElementAt(i).Link(inlineOperator.outputSlots.FirstOrDefault());
+                currentOperator.inputSlots.ElementAt(i).Link(inlineOperator.outputSlots.FirstOrDefault());
             }
 
             //Always connect output slot
@@ -624,7 +638,8 @@ namespace UnityEditor.VFX.Test
 
             foreach (var slot in currentOperator.inputSlots.Where(o => o.property.type == typeof(FloatN) && !o.HasLink()))
             {
-                slot.value = UnityEngine.Random.Range(-10, 10);
+                var floatN = (FloatN)slot.value;
+                slot.value = new FloatN(Enumerable.Repeat(0, floatN.realSize).Select(_ => UnityEngine.Random.Range(-10.0f, 10.0f)).ToArray());
             }
 
             //Let's do it !
@@ -637,9 +652,9 @@ namespace UnityEditor.VFX.Test
 
             for (int i = 0; i < currentOperator.inputSlots.Count; ++i)
             {
-                var currentInputSlot = currentOperator.inputSlots[0];
-                var newInputSlot = newOperator.inputSlots[0];
-                if (currentInputSlot.HasLink())
+                var currentInputSlot = currentOperator.inputSlots[i];
+                var newInputSlot = newOperator.inputSlots[i];
+                if (i < op.inputSlotType.Length && op.inputSlotType[i] != null) //Cannot test currentInputSlot.HasLink because replace model clean connected slot
                 {
                     Assert.IsTrue(newInputSlot.HasLink(true));
                 }
@@ -647,26 +662,41 @@ namespace UnityEditor.VFX.Test
                 {
                     if (currentInputSlot.property.type == typeof(FloatN))
                     {
-                        object value = null;
                         var floatN = (FloatN)currentInputSlot.value;
                         var newType = newInputSlot.property.type;
                         if (newType == typeof(float))
                         {
-                            value = (float)floatN;
+                            var expected = (float)floatN;
+                            Assert.AreEqual((double)expected, (float)newInputSlot.value, 0.0001);
                         }
                         else if (newType == typeof(Vector2))
                         {
-                            value = (Vector2)floatN;
+                            var expected = (Vector2)floatN;
+                            var current = (Vector2)newInputSlot.value;
+                            Assert.AreEqual((double)expected.x, (double)current.x, 0.0001);
+                            Assert.AreEqual((double)expected.y, (double)current.y, 0.0001);
                         }
                         else if (newType == typeof(Vector3))
                         {
-                            value = (Vector3)floatN;
+                            var expected = (Vector3)floatN;
+                            var current = (Vector3)newInputSlot.value;
+                            Assert.AreEqual((double)expected.x, (double)current.x, 0.0001);
+                            Assert.AreEqual((double)expected.y, (double)current.y, 0.0001);
+                            Assert.AreEqual((double)expected.z, (double)current.z, 0.0001);
                         }
                         else if (newType == typeof(Vector4))
                         {
-                            value = (Vector4)floatN;
+                            var expected = (Vector4)floatN;
+                            var current = (Vector4)newInputSlot.value;
+                            Assert.AreEqual((double)expected.x, (double)current.x, 0.0001);
+                            Assert.AreEqual((double)expected.y, (double)current.y, 0.0001);
+                            Assert.AreEqual((double)expected.z, (double)current.z, 0.0001);
+                            Assert.AreEqual((double)expected.w, (double)current.w, 0.0001);
                         }
-                        Assert.AreEqual(value, newInputSlot.value);
+                        else
+                        {
+                            Assert.Fail();
+                        }
                     }
                     else
                     {

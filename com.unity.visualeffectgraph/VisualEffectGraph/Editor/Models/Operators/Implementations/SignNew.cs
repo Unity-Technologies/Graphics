@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Arithmetic", experimental = true)]
+    [VFXInfo(category = "Math/Arithmetic")]
     class SignNew : VFXOperatorNumericUniformNew
     {
         public class InputProperties
@@ -10,7 +10,7 @@ namespace UnityEditor.VFX.Operator
             public float x = 0.0f;
         }
 
-        public override sealed string name { get { return "SignNew"; } }
+        public override sealed string name { get { return "Sign"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

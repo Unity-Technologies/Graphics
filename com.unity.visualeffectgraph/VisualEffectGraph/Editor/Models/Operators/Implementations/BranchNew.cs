@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.Operator
     [VFXInfo(category = "Logic")]
     class BranchNew : VFXOperatorDynamicOperand, IVFXOperatorUniform
     {
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField]
         SerializableType m_Type;
 
         public class InputProperties

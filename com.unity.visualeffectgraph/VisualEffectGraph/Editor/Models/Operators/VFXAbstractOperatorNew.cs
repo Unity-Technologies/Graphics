@@ -266,7 +266,7 @@ namespace UnityEditor.VFX
 
     abstract class VFXOperatorNumericUniformNew : VFXOperatorNumericNew, IVFXOperatorUniform
     {
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField]
         SerializableType m_Type;
 
         protected override double defaultValueDouble //Most common case for this kind of operator (still overridable)
@@ -342,7 +342,7 @@ namespace UnityEditor.VFX
 
     abstract class VFXOperatorNumericUnifiedNew : VFXOperatorNumericNew, IVFXOperatorNumericUnifiedNew
     {
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField]
         SerializableType[] m_Type;
 
         protected override double defaultValueDouble //Most common case for this kind of operator (still overridable)
@@ -409,7 +409,7 @@ namespace UnityEditor.VFX
             public SerializableType type;
         }
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField]
         Operand[] m_Operands;
 
         protected string GetDefaultName(int index)

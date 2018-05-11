@@ -4,14 +4,19 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Arithmetic")]
     class SquareRoot : VFXOperatorUnaryFloatOperation
     {
-        override public string name { get { return "Square Root"; } }
+        override public string name { get { return "Square Root (deprecated)"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { VFXOperatorUtility.Sqrt(inputExpression[0]) };
+        }
+
+        public sealed override void Sanitize()
+        {
+            base.Sanitize();
+            SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(SquareRootNew));
         }
     }
 }

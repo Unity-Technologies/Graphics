@@ -4,10 +4,9 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Arithmetic")]
     class Step : VFXOperatorFloatUnifiedWithVariadicOutput
     {
-        override public string name { get { return "Step"; } }
+        override public string name { get { return "Step (deprecated)"; } }
 
         public class InputProperties
         {
@@ -25,6 +24,12 @@ namespace UnityEditor.VFX.Operator
                 // TODO : It would be nice to have inverted step output (1 if below threshold), but we need to be able to define multiple FloatN output slots.
                 //VFXOperatorUtility.Clamp( new VFXExpressionFloor(inputExpression[0])-inputExpression[1], VFXValue.Constant(0.0f), VFXValue.Constant(1.0f)),
             };
+        }
+
+        public sealed override void Sanitize()
+        {
+            base.Sanitize();
+            SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(StepNew));
         }
     }
 }

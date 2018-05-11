@@ -20,7 +20,8 @@ namespace UnityEditor.VFX.Operator
 
         public sealed override void Sanitize()
         {
-            SanitizeHelper.SanitizeToOperatorNew(this, typeof(NormalizeNew));
+            base.Sanitize();
+            SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(NormalizeNew));
         }
     }
 }

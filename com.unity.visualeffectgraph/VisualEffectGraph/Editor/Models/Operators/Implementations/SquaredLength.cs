@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Vector")]
     class SquaredLength : VFXOperatorFloatUnified
     {
         public class InputProperties
@@ -18,11 +17,17 @@ namespace UnityEditor.VFX.Operator
             public float l;
         }
 
-        override public string name { get { return "Squared Length"; } }
+        override public string name { get { return "Squared Length (deprecated)"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { VFXOperatorUtility.Dot(inputExpression[0], inputExpression[0]) };
+        }
+
+        public sealed override void Sanitize()
+        {
+            base.Sanitize();
+            SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(SquaredLengthNew));
         }
     }
 }

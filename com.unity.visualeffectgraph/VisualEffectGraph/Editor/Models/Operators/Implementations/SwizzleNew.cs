@@ -6,10 +6,11 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Vector", experimental = true)]
+    [VFXInfo(category = "Math/Vector")]
     class SwizzleNew : VFXOperatorNumericUniformNew
     {
-        public override sealed string name { get { return "SwizzleNew"; } }
+        public override sealed string libraryName { get { return "Swizzle"; } }
+        public override sealed string name { get { return "Swizzle." + mask; } }
 
         public class InputProperties
         {

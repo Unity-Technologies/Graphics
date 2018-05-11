@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
 {
     static class SanitizeHelper
     {
-        public static void SanitizeToOperatorNew(VFXOperator input, Type outputType)
+        public static void ToOperatorWithoutFloatN(VFXOperator input, Type outputType)
         {
             if (!input.inputSlots.Where(o => o.property.type == typeof(FloatN)).Any())
             {
@@ -47,17 +47,47 @@ namespace UnityEditor.VFX
                     };
                 }).ToArray();
 
-            var output = ScriptableObject.CreateInstance(outputType) as VFXOperator;
+            var output = ScriptableObject.CreateInstance(outputType) as VFXOperatorDynamicOperand;
+
+            //Transfer settings
+            var settingsIn = input.GetSettings(true).Where(o => o.FieldType != typeof(SerializableType));
+            var settingsOut = output.GetSettings(true).Where(o => o.FieldType != typeof(SerializableType));
+            if (settingsIn.Count() != settingsOut.Count())
+            {
+                Debug.LogError("Settings has been changed, unable to automatically transfer them");
+                return;
+            }
+
+            var itSettingIn = settingsIn.GetEnumerator();
+            var itSettingOut = settingsOut.GetEnumerator();
+            while (itSettingIn.MoveNext() && itSettingOut.MoveNext())
+            {
+                if (itSettingIn.Current.Name != itSettingOut.Current.Name.Replace("m_", string.Empty))
+                {
+                    Debug.Log(string.Format("Unexpected settings : {0} vs {1}", itSettingIn.Current.Name, itSettingOut.Current.Name));
+                    return;
+                }
+                output.SetSettingValue(itSettingOut.Current.Name, itSettingIn.Current.GetValue(input));
+            }
+
+            //Apply dynamic type behavior
             if (output is IVFXOperatorUniform)
             {
                 var uniform = output as IVFXOperatorUniform;
-                var maxType = realTypeAndValue.Where(o => o.wasFloatN).Select(o => o.type)
+                var maxType = realTypeAndValue.Where(o => o.wasFloatN && o.type != typeof(FloatN))
+                    .Select(o => o.type)
                     .OrderBy(o => VFXExpression.TypeToSize(VFXExpression.GetVFXValueTypeFromType(o)))
-                    .Last();
-                //ignore int/uint while sanitizing
-                if (maxType == typeof(int) || maxType == typeof(uint))
-                    maxType = typeof(float);
-                uniform.SetOperandType(maxType);
+                    .LastOrDefault();
+
+                if (maxType != null)
+                {
+                    //ignore int/uint while sanitizing
+                    if (maxType == typeof(int) || maxType == typeof(uint))
+                        maxType = typeof(float);
+
+                    maxType = output.GetBestAffinityType(maxType);
+                    uniform.SetOperandType(maxType);
+                }
             }
             else if (output is VFXOperatorNumericCascadedUnifiedNew)
             {
@@ -69,7 +99,11 @@ namespace UnityEditor.VFX
 
                 for (int i = 0; i < realTypeAndValue.Length; ++i)
                 {
-                    cascaded.SetOperandType(i, realTypeAndValue[i].type);
+                    var currentType = cascaded.GetBestAffinityType(realTypeAndValue[i].type);
+                    if (currentType != null)
+                    {
+                        cascaded.SetOperandType(i, currentType);
+                    }
                 }
             }
             else if (output is VFXOperatorNumericUnifiedNew)
@@ -100,7 +134,7 @@ namespace UnityEditor.VFX
                         Debug.LogError("Unexpected behavior while sanitizing to unified constrained");
                         return;
                     }
-                    maxTypeConstrained = typeConstrained.OrderBy(o => VFXExpression.TypeToSize(VFXExpression.GetVFXValueTypeFromType(o))).Last();
+                    maxTypeConstrained = typeConstrained.OrderBy(o => VFXExpression.TypeToSize(VFXExpression.GetVFXValueTypeFromType(o))).LastOrDefault();
                 }
 
                 for (int i = 0; i < realTypeAndValue.Length; ++i)
@@ -111,7 +145,11 @@ namespace UnityEditor.VFX
                     {
                         currentType = maxTypeConstrained;
                     }
-                    unified.SetOperandType(i, currentType);
+                    currentType = output.GetBestAffinityType(currentType);
+                    if (currentType != null)
+                    {
+                        unified.SetOperandType(i, currentType);
+                    }
                 }
             }
             else
@@ -184,7 +222,6 @@ namespace UnityEditor.VFX
             {
                 VFXSlot.TransferLinks(output.outputSlots[i], input.outputSlots[i], true);
             }
-
             VFXModel.ReplaceModel(output, input);
         }
     }

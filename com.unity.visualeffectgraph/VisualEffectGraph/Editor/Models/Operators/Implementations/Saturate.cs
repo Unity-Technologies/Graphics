@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Clamp")]
     class Saturate : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         public class InputProperties
@@ -17,6 +16,12 @@ namespace UnityEditor.VFX.Operator
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { VFXOperatorUtility.Saturate(inputExpression[0]) };
+        }
+
+        public sealed override void Sanitize()
+        {
+            base.Sanitize();
+            SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(SaturateNew));
         }
     }
 }

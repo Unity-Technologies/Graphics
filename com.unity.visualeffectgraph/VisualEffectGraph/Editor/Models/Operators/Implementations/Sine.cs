@@ -2,14 +2,19 @@ using System;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Trigonometry")]
     class Sine : VFXOperatorUnaryFloatOperation
     {
-        override public string name { get { return "Sine"; } }
+        override public string name { get { return "Sine (deprecated)"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { new VFXExpressionSin(inputExpression[0]) };
+        }
+
+        public sealed override void Sanitize()
+        {
+            base.Sanitize();
+            SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(SineNew));
         }
     }
 }

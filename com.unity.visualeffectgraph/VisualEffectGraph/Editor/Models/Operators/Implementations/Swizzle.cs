@@ -5,11 +5,10 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Vector")]
     class Swizzle : VFXOperatorUnaryFloatOperation
     {
-        override public string libraryName { get { return "Swizzle"; } }
-        override public string name { get { return "Swizzle." + mask; } }
+        override public string libraryName { get { return "Swizzle (deprecated)"; } }
+        override public string name { get { return "Swizzle." + mask + " (deprecated)"; } }
 
         [VFXSetting, Regex("[^w-zW-Z]", 4)]
         public string mask = "xyzw";
@@ -82,6 +81,12 @@ namespace UnityEditor.VFX.Operator
                 finalExpression = new VFXExpressionCombine(componentStack.Reverse().ToArray());
             }
             return new[] { finalExpression };
+        }
+
+        public sealed override void Sanitize()
+        {
+            base.Sanitize();
+            SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(SwizzleNew));
         }
     }
 }

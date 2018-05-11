@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Arithmetic", experimental = true)]
+    [VFXInfo(category = "Math/Arithmetic")]
     class SquareRootNew : VFXOperatorNumericUniformNew
     {
         public class InputProperties
@@ -11,7 +11,7 @@ namespace UnityEditor.VFX.Operator
             public float x = 0.0f;
         }
 
-        public override sealed string name { get { return "Square RootNew"; } }
+        public override sealed string name { get { return "Square Root"; } }
 
         protected override sealed ValidTypeRule typeFilter { get { return ValidTypeRule.allowEverythingExceptInteger; } }
 

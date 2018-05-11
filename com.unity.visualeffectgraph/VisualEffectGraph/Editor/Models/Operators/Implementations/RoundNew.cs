@@ -2,7 +2,7 @@ using System;
 using UnityEditor.VFX;
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Clamp", experimental = true)]
+    [VFXInfo(category = "Math/Clamp")]
     class RoundNew : VFXOperatorNumericUniformNew
     {
         public class InputProperties
@@ -10,7 +10,7 @@ namespace UnityEditor.VFX.Operator
             public float x = 0.5f;
         }
 
-        public override sealed string name { get { return "RoundNew"; } }
+        public override sealed string name { get { return "Round"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

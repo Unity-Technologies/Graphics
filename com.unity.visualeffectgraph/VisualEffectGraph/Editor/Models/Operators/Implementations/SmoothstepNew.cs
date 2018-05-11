@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Arithmetic", experimental = true)]
+    [VFXInfo(category = "Math/Arithmetic")]
     class SmoothstepNew : VFXOperatorNumericUnifiedNew, IVFXOperatorNumericUnifiedConstrained
     {
         public class InputProperties
@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.Operator
             public float s = 0.5f;
         }
 
-        public override sealed string name { get { return "SmoothstepNew"; } }
+        public override sealed string name { get { return "Smoothstep"; } }
 
         public IEnumerable<int> slotIndicesThatMustHaveSameType
         {

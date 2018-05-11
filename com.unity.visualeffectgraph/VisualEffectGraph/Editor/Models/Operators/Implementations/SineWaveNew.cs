@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Wave", experimental = true)]
+    [VFXInfo(category = "Math/Wave")]
     class SineWaveNew : VFXOperatorNumericUnifiedNew, IVFXOperatorNumericUnifiedConstrained
     {
         public class InputProperties
@@ -16,7 +16,7 @@ namespace UnityEditor.VFX.Operator
             public float max = 1.0f;
         }
 
-        public override sealed string name { get { return "Sine WaveNew"; } }
+        public override sealed string name { get { return "Sine Wave"; } }
 
         public IEnumerable<int> slotIndicesThatMustHaveSameType
         {

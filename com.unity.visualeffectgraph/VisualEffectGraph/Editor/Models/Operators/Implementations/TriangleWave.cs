@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Wave")]
     class TriangleWave : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         public class InputProperties
@@ -12,7 +11,7 @@ namespace UnityEditor.VFX.Operator
             public FloatN frequency = 1.0f;
         }
 
-        override public string name { get { return "Triangle Wave"; } }
+        override public string name { get { return "Triangle Wave (deprecated)"; } }
 
         protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
@@ -22,6 +21,12 @@ namespace UnityEditor.VFX.Operator
             var slope = VFXOperatorUtility.Round(dX);
             var two = VFXOperatorUtility.TwoExpression[expression.valueType];
             return new[] { two * (new VFXExpressionAbs(slope - dX)) };
+        }
+
+        public sealed override void Sanitize()
+        {
+            base.Sanitize();
+            SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(TriangleWaveNew));
         }
     }
 }

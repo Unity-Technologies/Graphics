@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Vector", experimental = true)]
+    [VFXInfo(category = "Math/Vector")]
     class SquaredDistanceNew : VFXOperatorNumericUniformNew
     {
         public class InputProperties
@@ -38,7 +38,7 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        public override sealed string name { get { return "Squared DistanceNew"; } }
+        public override sealed string name { get { return "Squared Distance"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

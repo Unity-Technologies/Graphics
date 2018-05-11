@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Vector")]
     class SquaredDistance : VFXOperatorFloatUnified
     {
         public class InputProperties
@@ -20,11 +19,17 @@ namespace UnityEditor.VFX.Operator
             public float d;
         }
 
-        override public string name { get { return "Squared Distance"; } }
+        override public string name { get { return "Squared Distance (deprecated)"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { VFXOperatorUtility.SqrDistance(inputExpression[0], inputExpression[1]) };
+        }
+
+        public sealed override void Sanitize()
+        {
+            base.Sanitize();
+            SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(SquaredDistanceNew));
         }
     }
 }
