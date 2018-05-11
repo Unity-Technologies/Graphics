@@ -56,7 +56,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_GraphEditorView.saveRequested += UpdateAsset;
                     m_GraphEditorView.convertToSubgraphRequested += ToSubGraph;
                     m_GraphEditorView.showInProjectRequested += PingAsset;
-                    m_GraphEditorView.showGeneratedCode += ShowGeneratedCode;
                     this.GetRootVisualContainer().Add(graphEditorView);
                 }
             }
@@ -212,89 +211,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     materialGraphEditWindow.Rebuild();
                 }
             }
-        }
-
-        public void ShowGeneratedCode()
-        {
-
-            var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(selectedGuid));
-
-            Debug.Log(asset.name);
-            string path = String.Format("Temp/GeneratedFromGraph-{0}.shader", asset.name);
-            //Debug.Log(path);
-
-            WriteStringToFile(path);
-
-            /*
-            if (!WriteStringToFile(compiledShader, path, kNotAtomic, kFileFlagDontIndex | kFileFlagTemporary))
-                return;
-
-            path = PathToAbsolutePath(path);
-            if (!OpenScriptFile(path, 0))
-                WarningStringWithoutStacktrace("Unable to open " + path + ": Check external editor in preferences");
-            */
-
-            //core::string path = Format("Temp/GeneratedFromSurface-%s.shader", shader->GetOutputFilename().c_str());
-        }
-
-        private void WriteStringToFile(string path)
-        {
-            List<PropertyCollector.TextureInfo> textureInfo;
-            var graphView = graphEditorView.graphView;
-
-            foreach (AbstractMaterialNode node in graphView.graph.GetNodes<AbstractMaterialNode>())
-            {
-                var masterNode = node as IMasterNode;
-                if (masterNode != null)
-                {
-                    Debug.Log(path);
-                    var shader = masterNode.GetShader(GenerationMode.ForReals, node.name, out textureInfo);
-                    Debug.Log(shader);
-                    //GUIUtility.systemCopyBuffer = shader;
-                    File.WriteAllText(path, shader);
-
-
-
-
-                    Debug.Log(ScriptEditorUtility.GetExternalScriptEditor());
-
-
-
-                    string file = Path.GetFullPath(path);
-                    ProcessStartInfo pi = new ProcessStartInfo(file);
-                    pi.Arguments = Path.GetFileName(file);
-                    pi.UseShellExecute = true;
-                    pi.WorkingDirectory = Path.GetDirectoryName(file);
-                    pi.FileName = ScriptEditorUtility.GetExternalScriptEditor();
-                    pi.Verb = "OPEN";
-                    Process.Start(pi);
-                }
-            }
-//            var nodes = graphView.selection.OfType<MaterialNodeView>().Where(x => (x.node is AbstractMaterialNode));
-//            Debug.Log(nodes.Length);
-//            foreach (var node in nodes)
-//            {
-//                var masterNode = node as IMasterNode;
-//                if (masterNode != null)
-//                {
-//                    Debug.Log(path);
-//                    var shader = masterNode.GetShader(GenerationMode.ForReals, node.name, out textureInfo);
-//                    Debug.Log(shader);
-//                    //GUIUtility.systemCopyBuffer = shader;
-//                    File.WriteAllText(path, shader);
-//                //}
-//            }
-
-
-
-
-            //File tmpFile = new File;
-
-//            else if (atomicMode == kNotAtomic)
-//            {
-//                DeleteFile(path);
-//                tmpFilePath = path;
-//            }
         }
 
         public void ToSubGraph()
