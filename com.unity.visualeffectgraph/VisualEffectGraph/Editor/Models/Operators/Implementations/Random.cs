@@ -65,7 +65,7 @@ namespace UnityEditor.VFX.Operator
 
         public sealed override void Sanitize()
         {
-            /* This operator was base on FloatN at first */
+            //This operator was based on FloatN for min/max
             float[] valueToRestore = null;
             if (inputSlots[0].property.type == typeof(FloatN) && inputSlots[1].property.type == typeof(FloatN))
             {
@@ -76,13 +76,15 @@ namespace UnityEditor.VFX.Operator
                 }
             }
 
-            base.Sanitize();
+            base.Sanitize(); //if FloatN, value are reseted with ResyncSlot
+
             if (valueToRestore != null)
             {
                 for (int i = 0; i < 2; i++)
                 {
                     inputSlots[i].value = valueToRestore[i];
                 }
+                Debug.Log(string.Format("Random Operator Sanitize has restored min/max value : {0}, {1}", valueToRestore[0], valueToRestore[1]));
             }
         }
     }
