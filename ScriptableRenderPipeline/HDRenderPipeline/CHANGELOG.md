@@ -21,6 +21,7 @@
 - Add a better mapping of roughness to mipmap for planar reflection
 - The VolumetricLightingSystem now uses RTHandles, which allows to save memory by sharing buffers between different cameras (history buffers are not shared), and reduce reallocation frequency by reallocating buffers only if the rendering resolution increases (and suballocating within existing buffers if the rendering resolution decreases)
 - Add a Volumetric Dimmer slider to lights to control the intensity of the scattered volumetric lighting
+- Add UV tiling and offset support for decals.
 
 ### Changed, Removals and deprecations
 - Remove Resource folder of PreIntegratedFGD and add the resource to RenderPipeline Asset
@@ -29,6 +30,7 @@
 - The VolumetricLightingController has been moved to the Interpolation Volume framework and now functions similarly to the VolumetricFog settings
 - Update of UI of cookie, CubeCookie, Reflection probe and planar reflection probe to combo box
 - Allow enabling/disabling shadows for area lights when they are set to baked.
+- Hide applyRangeAttenuation and FadeDistance for directional shadow as they are not used
 
 ### Bug fixes
 - Fix ConvertPhysicalLightIntensityToLightIntensity() function used when creating light from script to match HDLightEditor behavior
@@ -42,6 +44,7 @@
 - Fix area light shapes sent as point lights to the baking backends when they are set to baked.
 - Fix unnecessary division by PI for baked area lights.
 - Fix line lights sent to the lightmappers. The backends don't support this light type.
+- Fix issue with shadow mask framesettings not correctly taken into account when shadow mask is enabled for lighting.
 
 ## [2018.1.0f2]
 
