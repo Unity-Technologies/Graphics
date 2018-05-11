@@ -29,3 +29,13 @@ VFXBlackboardRow.hovered #pill #selection-border
     position-left:0;
     position-right:0;
 }
+
+
+VFXBlackboardCategory #name-field
+{
+    position-type:absolute;
+    position-left:0;
+    position-right:0;
+    position-top:0;
+    position-bottom:0;
+}

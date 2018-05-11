@@ -471,6 +471,7 @@ namespace  UnityEditor.VFX.UI
 
             clippingOptions = ClippingOptions.ClipContents;
             SetDragIndicatorVisible(false);
+
         }
 
         private void SetDragIndicatorVisible(bool visible)
@@ -576,6 +577,12 @@ namespace  UnityEditor.VFX.UI
             e.StopPropagation();
         }
 
+
+        public int GetCategoryIndex(VFXBlackboardCategory cat)
+        {
+            return IndexOf(cat) - IndexOf(m_DefaultCategory) - 1;
+        }
+
         void OnDragPerformEvent(DragPerformEvent e)
         {
             SetDragIndicatorVisible(false);
@@ -643,6 +650,21 @@ namespace  UnityEditor.VFX.UI
             }
 
             menu.ShowAsContext();
+        }
+
+
+        public void SetCategoryName(VFXBlackboardCategory cat,string newName)
+        {
+            int index = GetCategoryIndex(cat);
+
+            bool succeeded = controller.SetCategoryName(index,newName);
+
+            if( succeeded)
+            {
+                m_Categories.Remove(cat.title);
+                cat.title = newName;
+                m_Categories.Add(newName,cat);
+            }
         }
 
         void OnAddCategory()
@@ -748,6 +770,11 @@ namespace  UnityEditor.VFX.UI
                     cat.SyncParameters(actualControllers);
                 }
             }
+        }
+
+        public override void UpdatePresenterPosition()
+        {
+            BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.blackboard, GetPosition());
         }
 
         public void OnMoved()

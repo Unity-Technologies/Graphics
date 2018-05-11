@@ -579,7 +579,7 @@ namespace UnityEditor.VFX.UI
             var removedContexts = new HashSet<VFXContextController>(removedControllers.OfType<VFXContextController>());
 
             //remove all blocks that are in a removed context.
-            var removed = removedControllers.Where(t => !(t is VFXBlockController) || !removedContexts.Contains((t as VFXBlockController).contextController)).ToArray();
+            var removed = removedControllers.Where(t => !(t is VFXBlockController) || !removedContexts.Contains((t as VFXBlockController).contextController)).Distinct().ToArray();
 
             foreach (var controller in removed)
             {
@@ -1218,6 +1218,30 @@ namespace UnityEditor.VFX.UI
 
             InitializeUndoStack();
             GraphChanged();
+
+            Sanitize();
+        }
+
+        void Sanitize()
+        {
+            VFXParameter[] parameters = m_ParameterControllers.Keys.OrderBy(t => t.order).ToArray();
+            if (parameters.Length > 0)
+            {
+                var existingNames = new HashSet<string>();
+
+                existingNames.Add(parameters[0].exposedName);
+                m_ParameterControllers[parameters[0]].order = 0;
+
+                for (int i = 1; i < parameters.Length; ++i)
+                {
+                    var controller = m_ParameterControllers[parameters[i]];
+                    controller.order = i;
+
+                    controller.CheckNameUnique(existingNames);
+
+                    existingNames.Add(parameters[i].exposedName);
+                }
+            }
         }
 
         public ReadOnlyCollection<VFXGroupNodeController> groupNodes
@@ -1359,24 +1383,6 @@ namespace UnityEditor.VFX.UI
                 changed = true;
             }
 
-            VFXParameter[] parameters = m_ParameterControllers.Keys.OrderBy(t => t.order).ToArray();
-            if (parameters.Length > 0)
-            {
-                var existingNames = new HashSet<string>();
-
-                existingNames.Add(parameters[0].exposedName);
-                m_ParameterControllers[parameters[0]].order = 0;
-
-                for (int i = 1; i < parameters.Length; ++i)
-                {
-                    var controller = m_ParameterControllers[parameters[i]];
-                    controller.order = i;
-
-                    controller.CheckNameUnique(existingNames);
-
-                    existingNames.Add(parameters[i].exposedName);
-                }
-            }
 
             // make sure every parameter instance is created before we look for edges
             foreach (var parameter in m_ParameterControllers.Values)
@@ -1416,6 +1422,60 @@ namespace UnityEditor.VFX.UI
                 graph.UIInfos.categories.Add(category);
 
             graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
+        }
+
+
+        public bool SetCategoryName(int category, string newName)
+        {
+            if( category >= 0 && graph.UIInfos.categories != null && category < graph.UIInfos.categories.Count)
+            {
+                if( graph.UIInfos.categories[category] == newName)
+                {
+                    return false;
+                }
+                if( ! graph.UIInfos.categories.Contains(newName))
+                {
+                    string oldName = graph.UIInfos.categories[category];
+
+                    foreach(var parameter in m_ParameterControllers)
+                    {
+                        if( parameter.Key.category == oldName )
+                        {
+                            parameter.Key.category = newName;
+                        }
+                    }
+
+                    graph.UIInfos.categories[category] = newName;
+
+                    graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
+                    return true;
+                }
+                else
+                {
+                    Debug.LogError("Can't change name, category with the same name already exists");
+                }
+            }
+            else
+            {
+                Debug.LogError("Can't change name, category not found");
+            }
+
+            return false;
+        }
+
+
+        public IEnumerable<VFXParameterController> RemoveCategory(int category)
+        {
+            if( category >= 0 && graph.UIInfos.categories != null && category < graph.UIInfos.categories.Count)
+            {
+                string name = graph.UIInfos.categories[category];
+
+                graph.UIInfos.categories.RemoveAt(category);
+                graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
+
+                return m_ParameterControllers.Values.Where(t=>t.model.category == name);
+            }
+            return Enumerable.Empty<VFXParameterController>();
         }
 
         public void SetParametersOrder(VFXParameterController controller, int index, string category)
