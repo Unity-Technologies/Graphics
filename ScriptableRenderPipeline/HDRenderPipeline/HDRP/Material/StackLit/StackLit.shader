@@ -53,7 +53,9 @@ Shader "HDRenderPipeline/StackLit"
         _LobeMix("Lobe Mix", Range(0.0, 1.0)) = 0
 
         [ToggleUI] _VlayerRecomputePerLight("Vlayer Recompute Per Light", Float) = 0.0 // UI only
+        [ToggleUI] _VlayerUseRefractedAnglesForBase("Vlayer Use Refracted Angles For Base", Float) = 0.0 // UI only
         [ToggleUI] _DebugEnable("Debug Enable", Float) = 0.0 // UI only
+        _DebugEnvLobeMask("DebugEnvLobeMask", Vector) = (1, 1, 1, 1)
         _DebugLobeMask("DebugLobeMask", Vector) = (1, 1, 1, 1)
         _DebugAniso("DebugAniso", Vector) = (1, 0, 0, 1000.0)
 
@@ -276,6 +278,7 @@ Shader "HDRenderPipeline/StackLit"
     #pragma shader_feature _MATERIAL_FEATURE_TRANSMISSION
 
     #pragma shader_feature _VLAYERED_RECOMPUTE_PERLIGHT
+    #pragma shader_feature _VLAYERED_USE_REFRACTED_ANGLES_FOR_BASE
 
 
     #pragma shader_feature _STACKLIT_DEBUG
