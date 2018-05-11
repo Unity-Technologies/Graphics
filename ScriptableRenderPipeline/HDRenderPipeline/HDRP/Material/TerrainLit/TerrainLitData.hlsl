@@ -7,19 +7,19 @@
 #include "../Lit/LitBuiltinData.hlsl"
 #include "../Decal/DecalUtilities.hlsl"
 
-#if defined(_TERRAINLIT_8_LAYERS)
+#if defined(_TERRAIN_8_SPLATS)
     #define _LAYER_COUNT 8
-#elif defined(_TERRAINLIT_7_LAYERS)
+#elif defined(_TERRAIN_7_SPLATS)
     #define _LAYER_COUNT 7
-#elif defined(_TERRAINLIT_6_LAYERS)
+#elif defined(_TERRAIN_6_SPLATS)
     #define _LAYER_COUNT 6
-#elif defined(_TERRAINLIT_5_LAYERS)
+#elif defined(_TERRAIN_5_SPLATS)
     #define _LAYER_COUNT 5
-#elif defined(_TERRAINLIT_4_LAYERS)
+#elif defined(_TERRAIN_4_SPLATS)
     #define _LAYER_COUNT 4
-#elif defined(_TERRAINLIT_3_LAYERS)
+#elif defined(_TERRAIN_3_SPLATS)
     #define _LAYER_COUNT 3
-#elif defined(_TERRAINLIT_2_LAYERS)
+#elif defined(_TERRAIN_2_SPLATS)
     #define _LAYER_COUNT 2
 #else
     #define _LAYER_COUNT 1
