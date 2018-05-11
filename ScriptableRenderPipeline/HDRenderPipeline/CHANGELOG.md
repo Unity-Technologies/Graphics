@@ -45,6 +45,7 @@
 - Fix unnecessary division by PI for baked area lights.
 - Fix line lights sent to the lightmappers. The backends don't support this light type.
 - Fix issue with shadow mask framesettings not correctly taken into account when shadow mask is enabled for lighting.
+- Fix directional light and shadow mask transition, they are now matching making smooth transition
 
 ## [2018.1.0f2]
 
