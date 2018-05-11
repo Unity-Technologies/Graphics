@@ -246,7 +246,7 @@ namespace UnityEditor.VFX.UI
         {
             foreach (VFXDataAnchorController controller in inputPorts)
             {
-                if (controller.model.IsMasterSlot())
+                if (controller.model != null && controller.model.IsMasterSlot())
                     controller.DrawGizmo(component);
             }
         }
