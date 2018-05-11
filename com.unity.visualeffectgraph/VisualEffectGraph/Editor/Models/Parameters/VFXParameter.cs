@@ -412,8 +412,6 @@ namespace UnityEditor.VFX
                     }
                 }
             }
-
-            Debug.LogError("An unknown link with a parameter was tranfered");
         }
 
         public override void TransferLinkMySlot(VFXSlot myPrevSlot, VFXSlot myNewSlot, VFXSlot otherSlot)
@@ -429,8 +427,6 @@ namespace UnityEditor.VFX
                     }
                 }
             }
-
-            Debug.LogError("An unknown link with a parameter was tranfered");
         }
 
         private VFXValue.Mode valueMode
