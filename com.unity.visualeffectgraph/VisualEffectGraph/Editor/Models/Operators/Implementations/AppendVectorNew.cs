@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Vector", experimental = true)]
+    [VFXInfo(category = "Math/Vector")]
     class AppendVectorNew : VFXOperatorNumericCascadedUnifiedNew
     {
         public override sealed string name { get { return "AppendVector"; } }
@@ -26,6 +26,11 @@ namespace UnityEditor.VFX.Operator
                 case 4: return typeof(Vector4);
                 default: return typeof(float);
             }
+        }
+
+        protected override sealed IEnumerable<VFXExpression> ApplyPatchInputExpression(IEnumerable<VFXExpression> inputExpression)
+        {
+            return inputExpression; //remove explicitly unified behavior
         }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

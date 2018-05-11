@@ -92,6 +92,9 @@ namespace UnityEditor.VFX
             else if (output is VFXOperatorNumericCascadedUnifiedNew)
             {
                 var cascaded = output as VFXOperatorNumericCascadedUnifiedNew;
+                //Remove all empty last operand (has influence of output type for append)
+                realTypeAndValue = realTypeAndValue.Reverse().SkipWhile(o => o.type == typeof(FloatN)).Reverse().ToArray();
+
                 while (cascaded.inputSlots.Count < realTypeAndValue.Length)
                 {
                     cascaded.AddOperand();

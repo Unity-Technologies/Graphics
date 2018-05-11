@@ -194,7 +194,7 @@ namespace UnityEditor.VFX
             return null;
         }
 
-        protected sealed override IEnumerable<VFXExpression> ApplyPatchInputExpression(IEnumerable<VFXExpression> inputExpression)
+        protected override IEnumerable<VFXExpression> ApplyPatchInputExpression(IEnumerable<VFXExpression> inputExpression)
         {
             var minIndex = inputExpression.Select(o => Array.IndexOf(kExpectedTypeOrdering, VFXExpression.TypeToType(o.valueType))).Min();
             var unifiedType = VFXExpression.GetVFXValueTypeFromType(kExpectedTypeOrdering[minIndex]);
