@@ -3,7 +3,6 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Arithmetic")]
     class Modulo : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         public class InputProperties

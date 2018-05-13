@@ -540,7 +540,25 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(expected, current);
         }
 
-        public static bool[] linkedSlot = new bool[] { true, false };
+        [Test]
+        public void VerifyThereIsNoMoreOperatorOrBlockUsingFloatN()
+        {
+            var contextList = VFXLibrary.GetContexts().Select(o => o.CreateInstance() as IVFXSlotContainer);
+            var operatorList = VFXLibrary.GetOperators().Select(o => o.CreateInstance() as IVFXSlotContainer);
+            var blockList = VFXLibrary.GetBlocks().Select(o => o.CreateInstance() as IVFXSlotContainer);
+            var all = contextList.Concat(operatorList).Concat(blockList);
+
+            var searchFloatN = all.Where(o =>
+                {
+                    return o.inputSlots.Concat(o.outputSlots).Any(s => s.property.type == typeof(FloatN));
+                }).ToArray();
+
+            if (searchFloatN.Length != 0)
+            {
+                Assert.Fail("There is still not deprecated slot container which are using FloatN : {0}",
+                    searchFloatN.Select(o => o.GetType().ToString()).Aggregate((a, b) => a + ", " + b));
+            }
+        }
 
         public class SanitizeParam
         {
