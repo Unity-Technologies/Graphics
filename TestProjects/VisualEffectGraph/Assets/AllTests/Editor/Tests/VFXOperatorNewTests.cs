@@ -617,6 +617,52 @@ namespace UnityEditor.VFX.Test
             }
         }
 
+        private static Type[] swizzleType = new Type[] { typeof(Operator.Swizzle) };
+        [Test]
+        public void SwizzleOperator([ValueSource("swizzleType")] Type swizzleType)
+        {
+            // check basic swizzle
+            {
+                var inputVec = ScriptableObject.CreateInstance<VFXOperatorVector2>();
+                var swizzle = ScriptableObject.CreateInstance(swizzleType) as VFXOperator;
+                if (swizzleType == typeof(Operator.Swizzle))
+                {
+                    (swizzle as Operator.Swizzle).SetOperandType(typeof(Vector2));
+                }
+
+                swizzle.inputSlots[0].Link(inputVec.outputSlots.First());
+                swizzle.SetSettingValue("mask", "xxy");
+
+                var finalExpr = swizzle.outputSlots.First().GetExpression();
+
+                var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+                var result = context.Compile(finalExpr);
+                var vec = result.Get<Vector3>();
+
+                Assert.AreEqual(new Vector3(1.0f, 1.0f, 2.0f), vec);
+            }
+
+            // check out of bounds mask is clamped correctly
+            {
+                var inputVec = ScriptableObject.CreateInstance<VFXOperatorVector2>();
+                var swizzle = ScriptableObject.CreateInstance(swizzleType) as VFXOperator;
+                if (swizzleType == typeof(Operator.Swizzle))
+                {
+                    (swizzle as Operator.Swizzle).SetOperandType(typeof(Vector2));
+                }
+                swizzle.inputSlots[0].Link(inputVec.outputSlots.First());
+                swizzle.SetSettingValue("mask", "yzx");
+
+                var finalExpr = swizzle.outputSlots.First().GetExpression();
+
+                var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+                var result = context.Compile(finalExpr);
+                var vec = result.Get<Vector3>();
+
+                Assert.AreEqual(new Vector3(2.0f, 2.0f, 1.0f), vec);
+            }
+        }
+
         [Test]
         public void SanitizeBehavior([ValueSource("allSanitizeTest")] SanitizeParam op)
         {
