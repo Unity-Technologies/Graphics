@@ -7,7 +7,7 @@ using UnityEngine.Experimental.VFX;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Arithmetic")]
-    class Multiply : VFXOperatorNumericCascadedUnifiedNew
+    class Multiply : VFXOperatorNumericCascadedUnified
     {
         public override sealed string name { get { return "Multiply"; } }
 

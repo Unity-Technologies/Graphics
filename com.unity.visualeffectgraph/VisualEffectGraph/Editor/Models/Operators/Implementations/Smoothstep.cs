@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Arithmetic")]
-    class Smoothstep : VFXOperatorNumericUnifiedNew, IVFXOperatorNumericUnifiedConstrained
+    class Smoothstep : VFXOperatorNumericUnified, IVFXOperatorNumericUnifiedConstrained
     {
         public class InputProperties
         {

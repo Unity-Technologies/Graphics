@@ -17,10 +17,10 @@ namespace UnityEditor.VFX.Test
     public class VFXOperatorNewTests
     {
         [Test]
-        public void CascadedAddNewOperatorCascadedBehavior()
+        public void CascadedAddOperatorCascadedBehavior()
         {
             var one = ScriptableObject.CreateInstance<VFXInlineOperator>();
-            var add = ScriptableObject.CreateInstance<Operator.AddNew>();
+            var add = ScriptableObject.CreateInstance<Operator.Add>();
 
             one.SetSettingValue("m_Type", (SerializableType)typeof(float));
             one.inputSlots[0].value = 1.0f;
@@ -86,7 +86,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void CascadedMulNewOperatorDifferentFloatSizes()
+        public void CascadedMulOperatorDifferentFloatSizes()
         {
             var vec2_Two = ScriptableObject.CreateInstance<VFXInlineOperator>();
             var vec3_Two = ScriptableObject.CreateInstance<VFXInlineOperator>();
@@ -97,7 +97,7 @@ namespace UnityEditor.VFX.Test
             vec3_Two.SetSettingValue("m_Type", (SerializableType)typeof(Vector3));
             vec3_Two.inputSlots[0].value = Vector3.one * 2.0f;
 
-            var mul = ScriptableObject.CreateInstance<Operator.MultiplyNew>();
+            var mul = ScriptableObject.CreateInstance<Operator.Multiply>();
             mul.SetOperandType(0, typeof(Vector2));
             mul.inputSlots[0].Link(vec2_Two.outputSlots[0]);
             mul.SetOperandType(1, typeof(Vector3));
@@ -113,7 +113,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CascadedSubstractIntegerBehavior()
         {
-            var subtract = ScriptableObject.CreateInstance<Operator.SubtractNew>();
+            var subtract = ScriptableObject.CreateInstance<Operator.Subtract>();
             subtract.SetOperandType(0, typeof(float));
             subtract.SetOperandType(1, typeof(float));
 
@@ -153,9 +153,9 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void ClampNewBehavior()
+        public void ClampBehavior()
         {
-            var clamp = ScriptableObject.CreateInstance<Operator.ClampNew>();
+            var clamp = ScriptableObject.CreateInstance<Operator.Clamp>();
             clamp.SetOperandType(0, typeof(int));
             clamp.SetOperandType(1, typeof(int));
             clamp.SetOperandType(2, typeof(int));
@@ -172,9 +172,9 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void LengthNewBehavior()
+        public void LengthBehavior()
         {
-            var length = ScriptableObject.CreateInstance<Operator.LengthNew>();
+            var length = ScriptableObject.CreateInstance<Operator.Length>();
             length.SetOperandType(typeof(Vector2));
             Assert.AreEqual(VFXValueType.Float, length.outputSlots[0].GetExpression().valueType);
 
@@ -189,9 +189,9 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void DotProductNewBehavior()
+        public void DotProductBehavior()
         {
-            var dot = ScriptableObject.CreateInstance<Operator.DotProductNew>();
+            var dot = ScriptableObject.CreateInstance<Operator.DotProduct>();
             dot.SetOperandType(typeof(Vector2));
 
             Assert.AreEqual(VFXValueType.Float, dot.outputSlots[0].GetExpression().valueType);
@@ -210,9 +210,9 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void CosineNewBehavior()
+        public void CosineBehavior()
         {
-            var cos = ScriptableObject.CreateInstance<Operator.CosineNew>();
+            var cos = ScriptableObject.CreateInstance<Operator.Cosine>();
             cos.SetOperandType(typeof(Vector2));
 
             Assert.AreEqual(VFXValueType.Float2, cos.outputSlots[0].GetExpression().valueType);
@@ -229,11 +229,11 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void KeepConnectionNewBehavior()
+        public void KeepConnectionBehavior()
         {
-            var cos_A = ScriptableObject.CreateInstance<Operator.CosineNew>();
+            var cos_A = ScriptableObject.CreateInstance<Operator.Cosine>();
             cos_A.SetOperandType(typeof(Vector3));
-            var cos_B = ScriptableObject.CreateInstance<Operator.CosineNew>();
+            var cos_B = ScriptableObject.CreateInstance<Operator.Cosine>();
             cos_B.SetOperandType(typeof(float));
 
             Assert.AreEqual(VFXValueType.Float3, cos_A.outputSlots[0].GetExpression().valueType);
@@ -263,9 +263,9 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void AppendNewBehavior()
+        public void AppendBehavior()
         {
-            var append = ScriptableObject.CreateInstance<Operator.AppendVectorNew>();
+            var append = ScriptableObject.CreateInstance<Operator.AppendVector>();
             Assert.AreEqual(VFXValueType.Float2, append.outputSlots[0].GetExpression().valueType);
             append.AddOperand();
             Assert.AreEqual(VFXValueType.Float3, append.outputSlots[0].GetExpression().valueType);
@@ -283,9 +283,9 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void BranchNewBehavior()
+        public void BranchBehavior()
         {
-            var branch = ScriptableObject.CreateInstance<Operator.BranchNew>();
+            var branch = ScriptableObject.CreateInstance<Operator.Branch>();
             branch.SetOperandType(typeof(Sphere));
 
             var sphereA = new Sphere() { center = new Vector3(1.0f, 2.0f, 3.0f), radius = 4.0f };
@@ -403,15 +403,15 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void ModuloNewWithInteger()
+        public void ModuloWithInteger()
         {
             var a = 1610612737u;
             var b = 805306361u;
 
-            var moduloUInt = ScriptableObject.CreateInstance<Operator.ModuloNew>();
+            var moduloUInt = ScriptableObject.CreateInstance<Operator.Modulo>();
             moduloUInt.SetOperandType(typeof(uint));
 
-            var moduloFloat = ScriptableObject.CreateInstance<Operator.ModuloNew>();
+            var moduloFloat = ScriptableObject.CreateInstance<Operator.Modulo>();
             moduloFloat.SetOperandType(typeof(float));
 
             var aOperator = ScriptableObject.CreateInstance<VFXInlineOperator>();
@@ -437,13 +437,13 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void MinimumNewWithIdenityValue()
+        public void MinimumWithIdenityValue()
         {
             var a = new Vector2(2, 2);
             var b = new Vector3(3, 3, 3);
             var e = new Vector3(2, 2, 3);
 
-            var min = ScriptableObject.CreateInstance<Operator.MinimumNew>();
+            var min = ScriptableObject.CreateInstance<Operator.Minimum>();
             min.SetOperandType(0, a.GetType());
             min.SetOperandType(1, b.GetType());
 
@@ -460,51 +460,51 @@ namespace UnityEditor.VFX.Test
         }
 
         private static KeyValuePair<Type, int>[] allOperatorUsingFloatN = new KeyValuePair<Type, int>[] {
-            new KeyValuePair<Type, int>(typeof(Absolute), 1),
-            new KeyValuePair<Type, int>(typeof(Add), 2),
-            new KeyValuePair<Type, int>(typeof(AppendVector), 1),
-            new KeyValuePair<Type, int>(typeof(Branch), 2),
-            new KeyValuePair<Type, int>(typeof(Ceiling), 1),
-            new KeyValuePair<Type, int>(typeof(Clamp), 3),
-            new KeyValuePair<Type, int>(typeof(Cosine), 1),
-            new KeyValuePair<Type, int>(typeof(ComponentMask), 1),
-            new KeyValuePair<Type, int>(typeof(FitClamped), 5),
-            new KeyValuePair<Type, int>(typeof(Discretize), 2),
-            new KeyValuePair<Type, int>(typeof(Distance), 2),
-            new KeyValuePair<Type, int>(typeof(Divide), 2),
-            new KeyValuePair<Type, int>(typeof(DotProduct), 2),
-            new KeyValuePair<Type, int>(typeof(Floor), 1),
-            new KeyValuePair<Type, int>(typeof(Fraction), 1),
-            new KeyValuePair<Type, int>(typeof(Length), 1),
-            new KeyValuePair<Type, int>(typeof(Lerp), 3),
-            new KeyValuePair<Type, int>(typeof(Maximum), 2),
-            new KeyValuePair<Type, int>(typeof(Minimum), 2),
-            new KeyValuePair<Type, int>(typeof(Modulo), 2),
-            new KeyValuePair<Type, int>(typeof(Multiply), 2),
-            new KeyValuePair<Type, int>(typeof(Normalize), 1),
-            new KeyValuePair<Type, int>(typeof(OneMinus), 1),
-            new KeyValuePair<Type, int>(typeof(Power), 2),
-            new KeyValuePair<Type, int>(typeof(Operator.Random), 2),
-            new KeyValuePair<Type, int>(typeof(Reciprocal), 1),
-            new KeyValuePair<Type, int>(typeof(Remap), 5),
-            new KeyValuePair<Type, int>(typeof(RemapToNegOnePosOne), 1),
-            new KeyValuePair<Type, int>(typeof(RemapToZeroOne), 1),
-            new KeyValuePair<Type, int>(typeof(Round), 1),
-            new KeyValuePair<Type, int>(typeof(Saturate), 1),
-            new KeyValuePair<Type, int>(typeof(SawtoothWave), 2),
-            new KeyValuePair<Type, int>(typeof(Sign), 1),
-            new KeyValuePair<Type, int>(typeof(Sine), 1),
-            new KeyValuePair<Type, int>(typeof(SineWave), 2),
-            new KeyValuePair<Type, int>(typeof(Smoothstep), 3),
-            new KeyValuePair<Type, int>(typeof(SquaredDistance), 2),
-            new KeyValuePair<Type, int>(typeof(SquaredLength), 1),
-            new KeyValuePair<Type, int>(typeof(SquareRoot), 1),
-            new KeyValuePair<Type, int>(typeof(SquareWave), 2),
-            new KeyValuePair<Type, int>(typeof(Step), 2),
-            new KeyValuePair<Type, int>(typeof(Subtract), 2),
-            new KeyValuePair<Type, int>(typeof(Swizzle), 1),
-            new KeyValuePair<Type, int>(typeof(Tangent), 1),
-            new KeyValuePair<Type, int>(typeof(TriangleWave), 2)
+            new KeyValuePair<Type, int>(typeof(AbsoluteDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(AddDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(AppendVectorDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(BranchDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(CeilingDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(ClampDeprecated), 3),
+             new KeyValuePair<Type, int>(typeof(ComponentMask), 1),
+             new KeyValuePair<Type, int>(typeof(CosineDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(DiscretizeDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(DistanceDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(DivideDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(DotProductDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(FitClamped), 5),
+             new KeyValuePair<Type, int>(typeof(FloorDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(FractionDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(LengthDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(LerpDeprecated), 3),
+             new KeyValuePair<Type, int>(typeof(MaximumDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(MinimumDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(ModuloDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(MultiplyDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(NormalizeDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(OneMinusDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(PowerDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(ReciprocalDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(RemapDeprecated), 5),
+             new KeyValuePair<Type, int>(typeof(RemapToNegOnePosOneDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(RemapToZeroOneDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(RoundDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(SaturateDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(SawtoothWaveDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(SignDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(SineDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(SineWaveDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(SmoothstepDeprecated), 3),
+             new KeyValuePair<Type, int>(typeof(SquaredDistanceDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(SquaredLengthDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(SquareRootDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(SquareWaveDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(StepDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(SubtractDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(SwizzleDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(TangentDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(TriangleWaveDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(Operator.Random), 2)
         };
 
         [Test]

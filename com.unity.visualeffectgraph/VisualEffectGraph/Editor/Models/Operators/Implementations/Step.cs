@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Arithmetic")]
-    class Step : VFXOperatorNumericUnifiedNew, IVFXOperatorNumericUnifiedConstrained
+    class Step : VFXOperatorNumericUnified, IVFXOperatorNumericUnifiedConstrained
     {
         public override sealed string name { get { return "Step"; } }
 

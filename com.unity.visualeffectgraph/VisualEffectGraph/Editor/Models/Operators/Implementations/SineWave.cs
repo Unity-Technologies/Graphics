@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Wave")]
-    class SineWave : VFXOperatorNumericUnifiedNew, IVFXOperatorNumericUnifiedConstrained
+    class SineWave : VFXOperatorNumericUnified, IVFXOperatorNumericUnifiedConstrained
     {
         public class InputProperties
         {

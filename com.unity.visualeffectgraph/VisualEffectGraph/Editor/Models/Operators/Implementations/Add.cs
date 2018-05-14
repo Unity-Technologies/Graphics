@@ -4,7 +4,7 @@ using UnityEditor.VFX;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Arithmetic")]
-    class Add : VFXOperatorNumericCascadedUnifiedNew
+    class Add : VFXOperatorNumericCascadedUnified
     {
         public override sealed string name { get { return "Add"; } }
         protected override sealed double defaultValueDouble { get { return 0.0; } }

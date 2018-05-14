@@ -2,7 +2,7 @@ using System;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Arithmetic")]
-    class Absolute : VFXOperatorNumericUniformNew
+    class Absolute : VFXOperatorNumericUniform
     {
         public class InputProperties
         {

@@ -3,7 +3,7 @@ using System;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Arithmetic")]
-    class Divide : VFXOperatorNumericCascadedUnifiedNew
+    class Divide : VFXOperatorNumericCascadedUnified
     {
         public override sealed string name { get { return "Divide"; } }
 

@@ -7,7 +7,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Vector")]
-    class SquaredLength : VFXOperatorNumericUniformNew
+    class SquaredLength : VFXOperatorNumericUniform
     {
         public class InputProperties
         {
@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.Operator
 
         protected override sealed Type GetExpectedOutputTypeOfOperation(IEnumerable<Type> inputTypes)
         {
-            var type = inputTypes.First(); //derive from VFXOperatorNumericUniformNew, First is suitable
+            var type = inputTypes.First(); //derive from VFXOperatorNumericUniform, First is suitable
             return VFXExpression.GetMatchingScalar(type);
         }
 

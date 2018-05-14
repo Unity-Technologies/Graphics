@@ -7,7 +7,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Vector")]
-    class AppendVector : VFXOperatorNumericCascadedUnifiedNew
+    class AppendVector : VFXOperatorNumericCascadedUnified
     {
         public override sealed string name { get { return "AppendVector"; } }
 

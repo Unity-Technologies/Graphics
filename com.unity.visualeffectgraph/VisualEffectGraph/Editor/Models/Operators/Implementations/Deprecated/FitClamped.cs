@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.Operator
         {
             Debug.Log("Sanitizing Graph: Automatically replace FitClamped with Remap");
 
-            var remap = CreateInstance<Remap>();
+            var remap = CreateInstance<RemapDeprecated>();
             remap.SetSettingValue("Clamp", true);
 
             // Transfer links

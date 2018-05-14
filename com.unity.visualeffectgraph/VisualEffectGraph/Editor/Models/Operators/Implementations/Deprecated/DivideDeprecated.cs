@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.Operator
         public sealed override void Sanitize()
         {
             base.Sanitize();
-            SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(DivideNew));
+            SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(Divide));
         }
     }
 }

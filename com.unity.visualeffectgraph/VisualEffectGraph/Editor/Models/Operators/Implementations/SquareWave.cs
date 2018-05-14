@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Wave")]
-    class SquareWave : VFXOperatorNumericUnifiedNew, IVFXOperatorNumericUnifiedConstrained
+    class SquareWave : VFXOperatorNumericUnified, IVFXOperatorNumericUnifiedConstrained
     {
         public class InputProperties
         {

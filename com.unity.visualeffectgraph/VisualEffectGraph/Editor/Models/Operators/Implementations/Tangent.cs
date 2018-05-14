@@ -3,7 +3,7 @@ using System;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Trigonometry")]
-    class Tangent : VFXOperatorNumericUniformNew
+    class Tangent : VFXOperatorNumericUniform
     {
         public class InputProperties
         {

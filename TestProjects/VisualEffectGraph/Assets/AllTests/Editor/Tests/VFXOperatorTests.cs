@@ -247,7 +247,7 @@ namespace UnityEditor.VFX.Test
             }
         }
 
-        private static Type[] swizzleType = new Type[] { typeof(Operator.Swizzle), typeof(Operator.SwizzleNew) };
+        private static Type[] swizzleType = new Type[] { typeof(Operator.SwizzleDeprecated), typeof(Operator.Swizzle) };
         [Test]
         public void SwizzleOperator([ValueSource("swizzleType")] Type swizzleType)
         {
@@ -255,9 +255,9 @@ namespace UnityEditor.VFX.Test
             {
                 var inputVec = ScriptableObject.CreateInstance<VFXOperatorVector2>();
                 var swizzle = ScriptableObject.CreateInstance(swizzleType) as VFXOperator;
-                if (swizzleType == typeof(Operator.SwizzleNew))
+                if (swizzleType == typeof(Operator.Swizzle))
                 {
-                    (swizzle as Operator.SwizzleNew).SetOperandType(typeof(Vector2));
+                    (swizzle as Operator.Swizzle).SetOperandType(typeof(Vector2));
                 }
 
                 swizzle.inputSlots[0].Link(inputVec.outputSlots.First());
@@ -276,9 +276,9 @@ namespace UnityEditor.VFX.Test
             {
                 var inputVec = ScriptableObject.CreateInstance<VFXOperatorVector2>();
                 var swizzle = ScriptableObject.CreateInstance(swizzleType) as VFXOperator;
-                if (swizzleType == typeof(Operator.SwizzleNew))
+                if (swizzleType == typeof(Operator.Swizzle))
                 {
-                    (swizzle as Operator.SwizzleNew).SetOperandType(typeof(Vector2));
+                    (swizzle as Operator.Swizzle).SetOperandType(typeof(Vector2));
                 }
                 swizzle.inputSlots[0].Link(inputVec.outputSlots.First());
                 swizzle.SetSettingValue("mask", "yzx");

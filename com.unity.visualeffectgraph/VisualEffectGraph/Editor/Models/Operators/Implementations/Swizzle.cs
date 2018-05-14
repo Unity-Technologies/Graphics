@@ -7,7 +7,7 @@ using UnityEngine.Experimental.VFX;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Vector")]
-    class Swizzle : VFXOperatorNumericUniformNew
+    class Swizzle : VFXOperatorNumericUniform
     {
         public override sealed string libraryName { get { return "Swizzle"; } }
         public override sealed string name { get { return "Swizzle." + mask; } }

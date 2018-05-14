@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Wave")]
-    class SawtoothWave : VFXOperatorNumericUnifiedNew, IVFXOperatorNumericUnifiedConstrained
+    class SawtoothWave : VFXOperatorNumericUnified, IVFXOperatorNumericUnifiedConstrained
     {
         public class InputProperties
         {

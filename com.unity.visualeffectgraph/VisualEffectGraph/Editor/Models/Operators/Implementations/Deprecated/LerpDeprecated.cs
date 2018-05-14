@@ -25,7 +25,7 @@ namespace UnityEditor.VFX.Operator
         public sealed override void Sanitize()
         {
             base.Sanitize();
-            SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(LerpNew));
+            SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(Lerp));
         }
     }
 }

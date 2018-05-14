@@ -3,7 +3,7 @@ using System;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Clamp")]
-    class Ceiling : VFXOperatorNumericUniformNew
+    class Ceiling : VFXOperatorNumericUniform
     {
         public class InputProperties
         {

@@ -13,7 +13,7 @@ namespace UnityEditor.VFX.Operator
         public sealed override void Sanitize()
         {
             base.Sanitize();
-            SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(AbsoluteNew));
+            SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(Absolute));
         }
     }
 }

@@ -98,7 +98,7 @@ namespace UnityEditor.VFX.Operator
         {
             Debug.Log("Sanitizing Graph: Automatically replace ComponentMask with Swizzle");
 
-            var swizzle = CreateInstance<Swizzle>();
+            var swizzle = CreateInstance<SwizzleDeprecated>();
             var mask = new Component[4] { x, y, z, w };
 
             string result = "";

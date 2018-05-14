@@ -95,7 +95,7 @@ namespace UnityEditor.VFX.Test
         public void LinkingValidOutputSlotToUniformOperatorChangesTypeIfNoLinkOrMandatory()
         {
             var variableOperator = CreateNew("DistanceNew", new Vector2(1, 2));
-            var operatorModel = variableOperator.model as VFXOperatorNumericNew;
+            var operatorModel = variableOperator.model as VFXOperatorNumeric;
 
             var vector2inline = CreateNew(typeof(Vector2).UserFriendlyName(), new Vector2(2, 2), typeof(VFXInlineOperator));
             var vector3inline = CreateNew(typeof(Vector3).UserFriendlyName(), new Vector2(2, 2), typeof(VFXInlineOperator));
@@ -122,7 +122,7 @@ namespace UnityEditor.VFX.Test
         public void CascadedOperatorTests()
         {
             var variableOperator = CreateNew("AddNew", new Vector2(1, 2)) as VFXCascadedOperatorController;
-            var operatorModel = variableOperator.model as VFXOperatorNumericNew;
+            var operatorModel = variableOperator.model as VFXOperatorNumeric;
 
             var vector2inline = CreateNew(typeof(Vector2).UserFriendlyName(), new Vector2(2, 2), typeof(VFXInlineOperator));
             var vector3inline = CreateNew(typeof(Vector3).UserFriendlyName(), new Vector2(2, 2), typeof(VFXInlineOperator));

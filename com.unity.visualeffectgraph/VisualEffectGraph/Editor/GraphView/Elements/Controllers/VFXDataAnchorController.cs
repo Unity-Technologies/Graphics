@@ -519,7 +519,7 @@ namespace UnityEditor.VFX.UI
         {
             var slotOutput = output != null ? output.model : null;
 
-            VFXOperatorNumericCascadedUnifiedNew op = sourceNode.model;
+            VFXOperatorNumericCascadedUnified op = sourceNode.model;
 
             op.AddOperand(op.GetBestAffinityType(output.model.property.type));
 

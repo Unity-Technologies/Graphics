@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Vector")]
-    class Normalize : VFXOperatorNumericUniformNew
+    class Normalize : VFXOperatorNumericUniform
     {
         public class InputProperties
         {

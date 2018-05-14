@@ -89,9 +89,9 @@ namespace UnityEditor.VFX
                     uniform.SetOperandType(maxType);
                 }
             }
-            else if (output is VFXOperatorNumericCascadedUnifiedNew)
+            else if (output is VFXOperatorNumericCascadedUnified)
             {
-                var cascaded = output as VFXOperatorNumericCascadedUnifiedNew;
+                var cascaded = output as VFXOperatorNumericCascadedUnified;
                 //Remove all empty last operand (has influence of output type for append)
                 realTypeAndValue = realTypeAndValue.Reverse().SkipWhile(o => o.type == typeof(FloatN)).Reverse().ToArray();
 
@@ -109,9 +109,9 @@ namespace UnityEditor.VFX
                     }
                 }
             }
-            else if (output is VFXOperatorNumericUnifiedNew)
+            else if (output is VFXOperatorNumericUnified)
             {
-                var unified = output as VFXOperatorNumericUnifiedNew;
+                var unified = output as VFXOperatorNumericUnified;
                 var slotIndiceThatShouldHaveSameType = Enumerable.Empty<int>();
                 var slotIndiceThatCanBeScale = Enumerable.Empty<int>();
                 if (output is IVFXOperatorNumericUnifiedConstrained)

@@ -264,7 +264,7 @@ namespace UnityEditor.VFX
         IEnumerable<int> staticSlotIndex { get; }
     }
 
-    abstract class VFXOperatorNumericUniform : VFXOperatorNumericNew, IVFXOperatorUniform
+    abstract class VFXOperatorNumericUniform : VFXOperatorNumeric, IVFXOperatorUniform
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField]
         SerializableType m_Type;
@@ -327,7 +327,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    interface IVFXOperatorNumericUnifiedNew
+    interface IVFXOperatorNumericUnified
     {
         int operandCount { get; }
         Type GetOperandType(int index);
@@ -340,7 +340,7 @@ namespace UnityEditor.VFX
         IEnumerable<int> slotIndicesThatCanBeScalar { get; }
     }
 
-    abstract class VFXOperatorNumericUnified : VFXOperatorNumericNew, IVFXOperatorNumericUnifiedNew
+    abstract class VFXOperatorNumericUnified : VFXOperatorNumeric, IVFXOperatorNumericUnified
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField]
         SerializableType[] m_Type;
@@ -400,7 +400,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    abstract class VFXOperatorNumericCascadedUnified : VFXOperatorNumericNew, IVFXOperatorNumericUnifiedNew
+    abstract class VFXOperatorNumericCascadedUnified : VFXOperatorNumeric, IVFXOperatorNumericUnified
     {
         [Serializable]
         public struct Operand

@@ -83,7 +83,7 @@ namespace UnityEditor.VFX.Operator
         public sealed override void Sanitize()
         {
             base.Sanitize();
-            SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(AppendVectorNew));
+            SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(AppendVector));
         }
     }
 }

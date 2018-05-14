@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.Operator
         public override sealed void Sanitize()
         {
             base.Sanitize();
-            SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(CeilingNew));
+            SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(Ceiling));
         }
     }
 }

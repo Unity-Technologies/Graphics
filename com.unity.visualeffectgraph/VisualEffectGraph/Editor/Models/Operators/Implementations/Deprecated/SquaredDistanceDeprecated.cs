@@ -29,7 +29,7 @@ namespace UnityEditor.VFX.Operator
         public sealed override void Sanitize()
         {
             base.Sanitize();
-            SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(SquaredDistanceNew));
+            SanitizeHelper.ToOperatorWithoutFloatN(this, typeof(SquaredDistance));
         }
     }
 }
