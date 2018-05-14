@@ -1931,6 +1931,11 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     {
         ScreenSpaceTracingDebug debug = _DebugScreenSpaceTracingData[0];
         debug.lightingSampledColor = preLD;
+        if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
+            debug.lightingSpecularFGD = 1.0 - F;
+        else if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
+            debug.lightingSpecularFGD = F;
+        debug.lightingWeight = weight;
         _DebugScreenSpaceTracingData[0] = debug;
     }
 

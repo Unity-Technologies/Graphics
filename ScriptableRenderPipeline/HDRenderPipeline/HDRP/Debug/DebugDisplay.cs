@@ -63,8 +63,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public uint endPositionSSY;                                 // Proxy, HiZ, Linear
         public float endHitWeight;                                  // HiZ, Linear
 
-        // 3x32 Lighting
+        // 7x32 Lighting
         public Vector3 lightingSampledColor;                        // All
+        public Vector3 lightingSpecularFGD;                         // All
+        public float lightingWeight;                                // All
 
         // 2x32 bits (padding)
         public Vector2 padding;
@@ -424,6 +426,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 };
                 settingsContainer.children.Add(debugSettingsContainer);
 
+                var lightingDebug = new DebugUI.Container
+                {
+                    displayName = "Lighting",
+                    children =
+                    {
+                        new DebugUI.Value { displayName = "Sampled Color", getter = () => FormatVector(screenSpaceTracingDebugData.lightingSampledColor) },
+                        new DebugUI.Value { displayName = "Specular FGD", getter = () => FormatVector(screenSpaceTracingDebugData.lightingSpecularFGD) },
+                        new DebugUI.Value { displayName = "Weight", getter = () => screenSpaceTracingDebugData.lightingWeight.ToString("F6") },
+                        new DebugUI.Value { displayName = "Weighted Color", getter = () => FormatVector(Vector3.Scale(screenSpaceTracingDebugData.lightingSpecularFGD, screenSpaceTracingDebugData.lightingSampledColor) * screenSpaceTracingDebugData.lightingWeight) },
+                    }
+                };
+
                 switch (screenSpaceTracingDebugData.tracingModel)
                 {
                     case Lit.ProjectionModel.Proxy:
@@ -446,14 +460,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     new DebugUI.Value { displayName = "End Position", getter = () => screenSpaceTracingDebugData.endPositionSS },
                                 }
                             },
-                            new DebugUI.Container
-                            {
-                                displayName = "Lighting",
-                                children =
-                                {
-                                    new DebugUI.Value { displayName = "Sampled Color", getter = () => string.Format("({0:F6}, {1:F6}, {2:F6})", screenSpaceTracingDebugData.lightingSampledColor.x, screenSpaceTracingDebugData.lightingSampledColor.y, screenSpaceTracingDebugData.lightingSampledColor.z) },
-                                }
-                            }
+                            lightingDebug
                         );
                         break;
                     }
@@ -499,14 +506,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     new DebugUI.Value { displayName = "Intersection Kind", getter = () => k_HiZIntersectionKind[(int)screenSpaceTracingDebugData.iterationIntersectionKind] },
                                 }
                             },
-                            new DebugUI.Container
-                            {
-                                displayName = "Lighting",
-                                children =
-                                {
-                                    new DebugUI.Value { displayName = "Sampled Color", getter = () => string.Format("({0:F6}, {1:F6}, {2:F6})", screenSpaceTracingDebugData.lightingSampledColor.x, screenSpaceTracingDebugData.lightingSampledColor.y, screenSpaceTracingDebugData.lightingSampledColor.z) },
-                                }
-                            }
+                            lightingDebug
                         );
                         break;
                     }
@@ -548,14 +548,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     new DebugUI.Value { displayName = "Cell Size", getter = () => screenSpaceTracingDebugData.iterationCellSize },
                                 }
                             },
-                            new DebugUI.Container
-                            {
-                                displayName = "Lighting",
-                                children =
-                                {
-                                    new DebugUI.Value { displayName = "Sampled Color", getter = () => string.Format("({0:F6}, {1:F6}, {2:F6})", screenSpaceTracingDebugData.lightingSampledColor.x, screenSpaceTracingDebugData.lightingSampledColor.y, screenSpaceTracingDebugData.lightingSampledColor.z) },
-                                }
-                            }
+                            lightingDebug
                         );
                         break;
                     }
@@ -867,6 +860,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 values[index] = i;
                 index++;
             }
+        }
+
+        static string FormatVector(Vector3 v)
+        {
+            return string.Format("({0:F6}, {1:F6}, {2:F6})", v.x, v.y, v.z);
         }
     }
 }

@@ -87,8 +87,18 @@ void CalculateRaySS(
     out float rayEndDepth           // Linear depth of the end point used to calculate raySS
 )
 {
+    const float kNearClipPlane = -0.01;
+    const float kMaxRayTraceDistance = 1000;
+
+    float3 rayOriginVS = mul(GetWorldToViewMatrix(), float4(rayOriginWS, 1.0)).xyz;
+    float3 rayDirVS = mul((float3x3)GetWorldToViewMatrix(), rayDirWS);
+    // Clip ray to near plane to avoid raymarching behind camera
+    float rayLength = ((rayOriginVS.z + rayDirVS.z * kMaxRayTraceDistance) > kNearClipPlane)
+        ? ((kNearClipPlane - rayOriginVS.z) / rayDirVS.z)
+        : kMaxRayTraceDistance;
+
     float3 positionWS = rayOriginWS;
-    float3 rayEndWS = rayOriginWS + rayDirWS * 1;
+    float3 rayEndWS = rayOriginWS + rayDirWS * rayLength;
 
     float4 positionCS = ComputeClipSpacePosition(positionWS, GetWorldToHClipMatrix());
     float4 rayEndCS = ComputeClipSpacePosition(rayEndWS, GetWorldToHClipMatrix());
