@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    class Swizzle : VFXOperatorUnaryFloatOperation
+    class SwizzleDeprecated : VFXOperatorUnaryFloatOperation
     {
         override public string libraryName { get { return "Swizzle (deprecated)"; } }
         override public string name { get { return "Swizzle." + mask + " (deprecated)"; } }

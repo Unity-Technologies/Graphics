@@ -3,7 +3,7 @@ using System;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Trigonometry")]
-    class SineNew : VFXOperatorNumericUniformNew
+    class Sine : VFXOperatorNumericUniformNew
     {
         public class InputProperties
         {

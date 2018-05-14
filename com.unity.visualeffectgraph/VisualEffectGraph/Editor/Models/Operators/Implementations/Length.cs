@@ -5,7 +5,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Vector")]
-    class LengthNew : VFXOperatorNumericUniformNew
+    class Length : VFXOperatorNumericUniformNew
     {
         public class InputProperties
         {

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    class Normalize : VFXOperatorFloatUnifiedWithVariadicOutput
+    class NormalizeDeprecated : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         public class InputProperties
         {

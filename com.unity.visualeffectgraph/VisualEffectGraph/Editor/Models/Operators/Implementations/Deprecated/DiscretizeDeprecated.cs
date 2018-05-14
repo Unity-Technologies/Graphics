@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    class Discretize : VFXOperatorFloatUnifiedWithVariadicOutput
+    class DiscretizeDeprecated : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         public class InputProperties
         {

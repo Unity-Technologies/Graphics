@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Arithmetic")]
-    class ModuloNew : VFXOperatorNumericUniformNew
+    class Modulo : VFXOperatorNumericUniformNew
     {
         public class InputProperties
         {

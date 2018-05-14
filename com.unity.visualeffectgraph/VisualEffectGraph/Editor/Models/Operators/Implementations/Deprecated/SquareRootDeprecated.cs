@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    class SquareRoot : VFXOperatorUnaryFloatOperation
+    class SquareRootDeprecated : VFXOperatorUnaryFloatOperation
     {
         override public string name { get { return "Square Root (deprecated)"; } }
 

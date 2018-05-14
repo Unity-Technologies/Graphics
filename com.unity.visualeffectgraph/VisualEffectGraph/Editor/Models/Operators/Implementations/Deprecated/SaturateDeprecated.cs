@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    class Saturate : VFXOperatorFloatUnifiedWithVariadicOutput
+    class SaturateDeprecated : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         public class InputProperties
         {

@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.VFX.Operator
 {
-    class Maximum : VFXOperatorBinaryFloatOperationOne
+    class MaximumDeprecated : VFXOperatorBinaryFloatOperationOne
     {
         override public string name { get { return "Maximum (deprecated)"; } }
 

@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.VFX.Operator
 {
-    class Power : VFXOperatorBinaryFloatOperationOne
+    class PowerDeprecated : VFXOperatorBinaryFloatOperationOne
     {
         override public string name { get { return "Power (deprecated)"; } }
 

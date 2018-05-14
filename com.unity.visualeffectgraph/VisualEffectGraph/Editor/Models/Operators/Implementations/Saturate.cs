@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Clamp", experimental = true)]
-    class SaturateNew : VFXOperatorNumericUniformNew
+    class Saturate : VFXOperatorNumericUniformNew
     {
         public class InputProperties
         {

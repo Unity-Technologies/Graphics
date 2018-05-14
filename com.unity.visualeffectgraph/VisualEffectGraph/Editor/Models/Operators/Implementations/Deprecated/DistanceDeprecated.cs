@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    class Distance : VFXOperatorFloatUnified
+    class DistanceDeprecated : VFXOperatorFloatUnified
     {
         public class InputProperties
         {

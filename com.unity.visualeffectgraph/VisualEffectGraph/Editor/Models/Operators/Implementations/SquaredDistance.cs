@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Vector")]
-    class SquaredDistanceNew : VFXOperatorNumericUniformNew
+    class SquaredDistance : VFXOperatorNumericUniformNew
     {
         public class InputProperties
         {

@@ -4,7 +4,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Remap")]
-    class RemapToNegOnePosOneNew : VFXOperatorNumericUniformNew
+    class RemapToNegOnePosOne : VFXOperatorNumericUniformNew
     {
         [VFXSetting, SerializeField, Tooltip("Whether the values are clamped to the input/output range")]
         private bool m_Clamp = false;

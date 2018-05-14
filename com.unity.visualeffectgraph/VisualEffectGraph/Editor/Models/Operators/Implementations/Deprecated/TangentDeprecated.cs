@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.VFX.Operator
 {
-    class Tangent : VFXOperatorUnaryFloatOperation
+    class TangentDeprecated : VFXOperatorUnaryFloatOperation
     {
         override public string name { get { return "Tangent (deprecated)"; } }
 

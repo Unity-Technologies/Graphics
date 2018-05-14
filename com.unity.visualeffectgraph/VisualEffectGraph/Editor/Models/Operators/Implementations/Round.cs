@@ -3,7 +3,7 @@ using UnityEditor.VFX;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Clamp")]
-    class RoundNew : VFXOperatorNumericUniformNew
+    class Round : VFXOperatorNumericUniformNew
     {
         public class InputProperties
         {

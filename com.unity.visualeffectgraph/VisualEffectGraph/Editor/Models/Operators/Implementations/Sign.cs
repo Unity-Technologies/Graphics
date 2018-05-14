@@ -3,7 +3,7 @@ using System;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Arithmetic")]
-    class SignNew : VFXOperatorNumericUniformNew
+    class Sign : VFXOperatorNumericUniformNew
     {
         public class InputProperties
         {

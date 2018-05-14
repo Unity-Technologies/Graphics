@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    class SquareWave : VFXOperatorFloatUnifiedWithVariadicOutput
+    class SquareWaveDeprecated : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         public class InputProperties
         {

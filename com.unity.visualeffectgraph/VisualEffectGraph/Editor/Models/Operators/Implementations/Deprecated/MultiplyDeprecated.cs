@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.VFX.Operator
 {
-    class Multiply : VFXOperatorBinaryFloatOperationOne
+    class MultiplyDeprecated : VFXOperatorBinaryFloatOperationOne
     {
         override public string name { get { return "Multiply (deprecated)"; } }
 

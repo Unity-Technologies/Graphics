@@ -71,7 +71,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    abstract class VFXOperatorNumericNew : VFXOperatorDynamicOperand
+    abstract class VFXOperatorNumeric : VFXOperatorDynamicOperand
     {
         protected sealed override Type defaultValueType
         {
@@ -264,7 +264,7 @@ namespace UnityEditor.VFX
         IEnumerable<int> staticSlotIndex { get; }
     }
 
-    abstract class VFXOperatorNumericUniformNew : VFXOperatorNumericNew, IVFXOperatorUniform
+    abstract class VFXOperatorNumericUniform : VFXOperatorNumericNew, IVFXOperatorUniform
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField]
         SerializableType m_Type;
@@ -340,7 +340,7 @@ namespace UnityEditor.VFX
         IEnumerable<int> slotIndicesThatCanBeScalar { get; }
     }
 
-    abstract class VFXOperatorNumericUnifiedNew : VFXOperatorNumericNew, IVFXOperatorNumericUnifiedNew
+    abstract class VFXOperatorNumericUnified : VFXOperatorNumericNew, IVFXOperatorNumericUnifiedNew
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField]
         SerializableType[] m_Type;
@@ -400,7 +400,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    abstract class VFXOperatorNumericCascadedUnifiedNew : VFXOperatorNumericNew, IVFXOperatorNumericUnifiedNew
+    abstract class VFXOperatorNumericCascadedUnified : VFXOperatorNumericNew, IVFXOperatorNumericUnifiedNew
     {
         [Serializable]
         public struct Operand

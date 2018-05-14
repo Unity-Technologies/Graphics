@@ -1,7 +1,7 @@
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Arithmetic")]
-    class PowerNew : VFXOperatorNumericCascadedUnifiedNew
+    class Power : VFXOperatorNumericCascadedUnifiedNew
     {
         public override sealed string name { get { return "Power"; } }
         protected override sealed double defaultValueDouble { get { return 1.0; } }

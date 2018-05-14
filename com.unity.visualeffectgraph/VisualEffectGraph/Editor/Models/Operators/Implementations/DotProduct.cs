@@ -3,7 +3,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math")]
-    class DotProductNew : VFXOperatorNumericUniformNew
+    class DotProduct : VFXOperatorNumericUniformNew
     {
         public class InputProperties
         {

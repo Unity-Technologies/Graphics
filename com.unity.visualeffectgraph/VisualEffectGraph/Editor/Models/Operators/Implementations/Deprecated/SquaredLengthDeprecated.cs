@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    class SquaredLength : VFXOperatorFloatUnified
+    class SquaredLengthDeprecated : VFXOperatorFloatUnified
     {
         public class InputProperties
         {

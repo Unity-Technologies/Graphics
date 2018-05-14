@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.VFX.Operator
 {
-    class Fraction : VFXOperatorUnaryFloatOperation
+    class FractionDeprecated : VFXOperatorUnaryFloatOperation
     {
         override public string name { get { return "Fraction (deprecated)"; } }
 

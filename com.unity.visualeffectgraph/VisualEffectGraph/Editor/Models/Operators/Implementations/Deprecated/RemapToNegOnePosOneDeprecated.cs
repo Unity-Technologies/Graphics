@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    class RemapToNegOnePosOne : VFXOperatorFloatUnifiedWithVariadicOutput
+    class RemapToNegOnePosOneDeprecated : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         [VFXSetting, Tooltip("Whether the values are clamped to the input/output range")]
         public bool Clamp = false;

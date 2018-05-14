@@ -1,7 +1,7 @@
 using System;
 namespace UnityEditor.VFX.Operator
 {
-    class Absolute : VFXOperatorUnaryFloatOperation
+    class AbsoluteDeprecated : VFXOperatorUnaryFloatOperation
     {
         override public string name { get { return "Absolute (deprecated)"; } }
 

@@ -2,7 +2,7 @@ using System;
 using UnityEditor.VFX;
 namespace UnityEditor.VFX.Operator
 {
-    class Round : VFXOperatorUnaryFloatOperation
+    class RoundDeprecated : VFXOperatorUnaryFloatOperation
     {
         override public string name { get { return "Round (deprecated)"; } }
 

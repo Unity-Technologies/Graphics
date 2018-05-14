@@ -6,7 +6,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
-    class Branch : VFXOperatorFloatUnifiedWithVariadicOutput
+    class BranchDeprecated : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         public class InputProperties
         {

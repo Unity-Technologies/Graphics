@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    class AppendVector : VFXOperator
+    class AppendVectorDeprecated : VFXOperator
     {
         override public string name { get { return "AppendVector (deprecated)"; } }
 

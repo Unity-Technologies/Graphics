@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Wave")]
-    class TriangleWaveNew : VFXOperatorNumericUnifiedNew, IVFXOperatorNumericUnifiedConstrained
+    class TriangleWave : VFXOperatorNumericUnifiedNew, IVFXOperatorNumericUnifiedConstrained
     {
         public class InputProperties
         {

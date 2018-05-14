@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.VFX.Operator
 {
-    class Floor : VFXOperatorUnaryFloatOperation
+    class FloorDeprecated : VFXOperatorUnaryFloatOperation
     {
         override public string name { get { return "Floor (deprecated)"; } }
 

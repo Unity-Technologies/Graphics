@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.VFX.Operator
 {
-    class Divide : VFXOperatorBinaryFloatOperationOne
+    class DivideDeprecated : VFXOperatorBinaryFloatOperationOne
     {
         override public string name { get { return "Divide (deprecated)"; } }
 

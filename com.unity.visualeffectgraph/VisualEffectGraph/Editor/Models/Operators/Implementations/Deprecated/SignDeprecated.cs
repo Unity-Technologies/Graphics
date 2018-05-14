@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.VFX.Operator
 {
-    class Sign : VFXOperatorUnaryFloatOperation
+    class SignDeprecated : VFXOperatorUnaryFloatOperation
     {
         override public string name { get { return "Sign (deprecated)"; } }
 

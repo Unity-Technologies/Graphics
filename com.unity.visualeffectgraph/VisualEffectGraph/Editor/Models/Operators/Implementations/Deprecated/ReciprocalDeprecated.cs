@@ -1,7 +1,7 @@
 using System;
 namespace UnityEditor.VFX.Operator
 {
-    class Reciprocal : VFXOperatorUnaryFloatOperation
+    class ReciprocalDeprecated : VFXOperatorUnaryFloatOperation
     {
         override public string name { get { return "Reciprocal (1/x) (deprecated)"; } }
 

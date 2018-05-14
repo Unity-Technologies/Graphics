@@ -30,7 +30,7 @@ namespace UnityEditor.VFX.Operator
     }
 
     [VFXInfo(category = "Logic")]
-    class BranchNew : VFXOperatorDynamicOperand, IVFXOperatorUniform
+    class Branch : VFXOperatorDynamicOperand, IVFXOperatorUniform
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField]
         SerializableType m_Type;

@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.VFX.Operator
 {
-    class Sine : VFXOperatorUnaryFloatOperation
+    class SineDeprecated : VFXOperatorUnaryFloatOperation
     {
         override public string name { get { return "Sine (deprecated)"; } }
 

@@ -4,7 +4,7 @@ using UnityEditor.VFX;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Clamp")]
-    class MinimumNew : VFXOperatorNumericCascadedUnifiedNew
+    class Minimum : VFXOperatorNumericCascadedUnifiedNew
     {
         public override sealed string name { get { return "Minimum"; } }
 

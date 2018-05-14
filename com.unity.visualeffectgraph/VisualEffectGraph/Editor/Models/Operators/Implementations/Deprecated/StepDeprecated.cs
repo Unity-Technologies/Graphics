@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    class Step : VFXOperatorFloatUnifiedWithVariadicOutput
+    class StepDeprecated : VFXOperatorFloatUnifiedWithVariadicOutput
     {
         override public string name { get { return "Step (deprecated)"; } }
 

@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.VFX.Operator
 {
-    class Cosine : VFXOperatorUnaryFloatOperation
+    class CosineDeprecated : VFXOperatorUnaryFloatOperation
     {
         override public string name { get { return "Cosine (deprecated)"; } }
 

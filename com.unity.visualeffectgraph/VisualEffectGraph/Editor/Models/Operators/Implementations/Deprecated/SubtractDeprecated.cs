@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.VFX.Operator
 {
-    class Subtract : VFXOperatorBinaryFloatOperationZero
+    class SubtractDeprecated : VFXOperatorBinaryFloatOperationZero
     {
         override public string name { get { return "Subtract (deprecated)"; } }
 
