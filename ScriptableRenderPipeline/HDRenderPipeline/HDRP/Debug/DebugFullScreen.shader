@@ -76,6 +76,28 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                 return max(dist1, dist2);
             }
 
+            void ColorWidget(
+                int2 positionSS, 
+                float4 rect, 
+                float3 borderColor, 
+                float3 innerColor, 
+                inout float4 debugColor,
+                inout float4 backgroundColor
+            )
+            {
+                const float4 distToRects = float4(rect.zw - positionSS,  positionSS - rect.xy);
+                if (all(distToRects > 0))
+                {
+                    const float distToRect = min(min(distToRects.x, distToRects.y), min(distToRects.z, distToRects.w));
+                    const float sdf = clamp(distToRect * 0.5, 0, 1);
+                    debugColor = float4(
+                        lerp(borderColor, innerColor, sdf),
+                        1.0
+                    );
+                    backgroundColor.a = 0;
+                }
+            }
+
             float DrawArrow(float2 texcoord, float body, float head, float height, float linewidth, float antialias)
             {
                 float w = linewidth / 2.0 + antialias;
@@ -272,21 +294,35 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                     const float w = clamp(1 - startPositionRingSDF - positionRingSDF, 0, 1);
                     col.rgb = col.rgb * w + float3(1, 1, 1) * (1 - w);
 
-                    // Draw sampled color
+                    // Draw color widgets
                     if (_ShowSSRaySampledColor == 1)
                     {
-                        const float4 rect = float4(endPositionSS + float2(10, 10), endPositionSS + float2(60, 60));
-                        const float4 distToRects = float4(rect.zw - posInput.positionSS,  posInput.positionSS - rect.xy);
-                        if (all(distToRects > 0))
-                        {
-                            const float distToRect = min(min(distToRects.x, distToRects.y), min(distToRects.z, distToRects.w));
-                            const float sdf = clamp(distToRect * 0.5, 0, 1);
-                            col = float4(
-                                lerp(float3(1, 1, 1), debug.lightingSampledColor, sdf),
-                                1.0
-                            );
-                            color.a = 0;
-                        }
+                        // Sampled color
+                        ColorWidget(
+                            posInput.positionSS,
+                            float4(10, 10, 50, 50) + endPositionSS.xyxy,
+                            float3(1, 0, 0), debug.lightingSampledColor,
+                            col,
+                            color
+                        );
+
+                        // Specular FGD
+                         ColorWidget(
+                            posInput.positionSS,
+                            float4(-50, 10, -10, 50) + endPositionSS.xyxy,
+                            float3(0, 1, 0), debug.lightingSpecularFGD,
+                            col,
+                            color
+                        );
+
+                        // Weighted
+                         ColorWidget(
+                            posInput.positionSS,
+                            float4(-50, -50, -10, -10) + endPositionSS.xyxy,
+                            float3(0, 0, 1), debug.lightingSampledColor * debug.lightingSpecularFGD * debug.lightingWeight,
+                            col,
+                            color
+                        );
                     }
 
                     if (_ShowDepthPyramidDebug == 1)
