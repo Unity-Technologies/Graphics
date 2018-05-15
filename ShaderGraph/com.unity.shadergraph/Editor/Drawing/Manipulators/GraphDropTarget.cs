@@ -65,6 +65,38 @@ namespace UnityEditor.ShaderGraph.Drawing
                     inputslot.texture = texture2D;
             }
 
+            var textureArray = obj as Texture2DArray;
+            if (textureArray != null)
+            {
+                m_Graph.owner.RegisterCompleteObjectUndo("Drag Texture Array");
+                var property = new Texture2DArrayShaderProperty { displayName = textureArray.name, value = { textureArray = textureArray } };
+                m_Graph.AddShaderProperty(property);
+                var node = new SampleTexture2DArrayNode();
+                var drawState = node.drawState;
+                drawState.position = new Rect(nodePosition, drawState.position.size);
+                node.drawState = drawState;
+                m_Graph.AddNode(node);
+                var inputslot = node.FindSlot<Texture2DArrayInputMaterialSlot>(SampleTexture2DArrayNode.TextureInputId);
+                if (inputslot != null)
+                    inputslot.textureArray = textureArray;
+            }
+
+            var texture3D = obj as Texture3D;
+            if (texture3D != null)
+            {
+                m_Graph.owner.RegisterCompleteObjectUndo("Drag Texture 3D");
+                var property = new Texture3DShaderProperty { displayName = texture3D.name, value = { texture = texture3D } };
+                m_Graph.AddShaderProperty(property);
+                var node = new SampleTexture3DNode();
+                var drawState = node.drawState;
+                drawState.position = new Rect(nodePosition, drawState.position.size);
+                node.drawState = drawState;
+                m_Graph.AddNode(node);
+                var inputslot = node.FindSlot<Texture3DInputMaterialSlot>(SampleTexture3DNode.TextureInputId);
+                if (inputslot != null)
+                    inputslot.texture = texture3D;
+            }
+
             var cubemap = obj as Cubemap;
             if (cubemap != null)
             {

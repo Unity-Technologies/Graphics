@@ -4,6 +4,8 @@ namespace UnityEditor.ShaderGraph
     {
         Color,
         Texture,
+        Texture2DArray,
+        Texture3D,
         Cubemap,
         Gradient,
         Boolean,
