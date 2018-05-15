@@ -176,7 +176,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             gm.AddItem(new GUIContent("Vector3"), false, () => AddProperty(new Vector3ShaderProperty(), true));
             gm.AddItem(new GUIContent("Vector4"), false, () => AddProperty(new Vector4ShaderProperty(), true));
             gm.AddItem(new GUIContent("Color"), false, () => AddProperty(new ColorShaderProperty(), true));
-            gm.AddItem(new GUIContent("Texture"), false, () => AddProperty(new TextureShaderProperty(), true));
+            gm.AddItem(new GUIContent("Texture2D"), false, () => AddProperty(new TextureShaderProperty(), true));
+            gm.AddItem(new GUIContent("Texture2D Array"), false, () => AddProperty(new Texture2DArrayShaderProperty(), true));
+            gm.AddItem(new GUIContent("Texture3D"), false, () => AddProperty(new Texture3DShaderProperty(), true));
             gm.AddItem(new GUIContent("Cubemap"), false, () => AddProperty(new CubemapShaderProperty(), true));
             gm.AddItem(new GUIContent("Boolean"), false, () => AddProperty(new BooleanShaderProperty(), true));
             gm.ShowAsContext();
