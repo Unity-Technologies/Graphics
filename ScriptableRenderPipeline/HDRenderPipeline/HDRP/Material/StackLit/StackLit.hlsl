@@ -532,7 +532,7 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
 struct PreLightData
 {
     float NdotV[NB_NORMALS];                  // Could be negative due to normal mapping, use ClampNdotV()
-    //float NdotV;
+    float geomNdotV;
     float bottomAngleFGD;
     float TdotV;                              // Stored only when VLAYERED_RECOMPUTE_PERLIGHT
     float BdotV;
@@ -1422,7 +1422,6 @@ void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightDat
 
 
 
-// slnote dual map
 float PreLightData_GetBaseNdotVForFGD(BSDFData bsdfData, PreLightData preLightData, float NdotV[NB_NORMALS])
 {
     float baseLayerNdotV;
@@ -1440,7 +1439,6 @@ float PreLightData_GetBaseNdotVForFGD(BSDFData bsdfData, PreLightData preLightDa
     return baseLayerNdotV;
 }
 
-// slnote dual map
 void PreLightData_SetupNormals(BSDFData bsdfData, inout PreLightData preLightData, float3 V, out float3 N[NB_NORMALS], out float NdotV[NB_NORMALS])
 {
     N[BASE_NORMAL_IDX] = bsdfData.normalWS;
@@ -1453,6 +1451,8 @@ void PreLightData_SetupNormals(BSDFData bsdfData, inout PreLightData preLightDat
         N[COAT_NORMAL_IDX] = bsdfData.coatNormalWS;
         preLightData.NdotV[COAT_NORMAL_IDX] = dot(N[COAT_NORMAL_IDX], V);
         NdotV[COAT_NORMAL_IDX] = ClampNdotV(preLightData.NdotV[COAT_NORMAL_IDX]);
+
+        preLightData.geomNdotV = dot(bsdfData.geomNormalWS, V);
     }
 #endif
 }
@@ -2170,12 +2170,12 @@ void BSDF(float3 inV, float3 inL, float inNdotL, float3 positionWS, PreLightData
         IF_DEBUG( if(_DebugLobeMask.y == 0.0) DV[BASE_LOBEA_IDX] = (float3)0; )
         IF_DEBUG( if(_DebugLobeMask.z == 0.0) DV[BASE_LOBEB_IDX] = (float3)0; )
 
-        specularLighting =  preLightData.vLayerEnergyCoeff[BOTTOM_VLAYER_IDX]
+        specularLighting =  max(0, NdotL[DNLV_BASE_IDX]) * preLightData.vLayerEnergyCoeff[BOTTOM_VLAYER_IDX]
                           * lerp(DV[BASE_LOBEA_IDX] * preLightData.energyCompensationFactor[BASE_LOBEA_IDX],
                                  DV[BASE_LOBEB_IDX] * preLightData.energyCompensationFactor[BASE_LOBEB_IDX],
                                  bsdfData.lobeMix);
 
-        specularLighting +=  preLightData.vLayerEnergyCoeff[TOP_VLAYER_IDX]
+        specularLighting +=  max(0, NdotL[DNLV_COAT_IDX]) * preLightData.vLayerEnergyCoeff[TOP_VLAYER_IDX]
                            * preLightData.energyCompensationFactor[COAT_LOBE_IDX]
                            * DV[COAT_LOBE_IDX];
 
@@ -2209,15 +2209,15 @@ void BSDF(float3 inV, float3 inL, float inNdotL, float3 positionWS, PreLightData
         IF_DEBUG( if(_DebugLobeMask.y == 0.0) DV[BASE_LOBEA_IDX] = (float3)0; )
         IF_DEBUG( if(_DebugLobeMask.z == 0.0) DV[BASE_LOBEB_IDX] = (float3)0; )
 
-        specularLighting = F * lerp(DV[0]*preLightData.energyCompensationFactor[BASE_LOBEA_IDX],
-                                    DV[1]*preLightData.energyCompensationFactor[BASE_LOBEB_IDX],
-                                    bsdfData.lobeMix);
+        specularLighting = max(0, NdotL[0]) * F * lerp(DV[0]*preLightData.energyCompensationFactor[BASE_LOBEA_IDX],
+                                                       DV[1]*preLightData.energyCompensationFactor[BASE_LOBEB_IDX],
+                                                       bsdfData.lobeMix);
         //...and energy compensation is applied at PostEvaluateBSDF when no vlayering.
     }
 
 
     // TODO: config option + diffuse GGX
-    float3 diffuseTerm = Lambert();
+    float3 diffuseTerm = Lambert() * max(0, NdotL[DNLV_BASE_IDX]);
 
 #ifdef VLAYERED_DIFFUSE_ENERGY_HACKED_TERM
     // TODOTODO: Energy when vlayered.
@@ -2248,20 +2248,28 @@ float3 EvaluateTransmission(BSDFData bsdfData, float3 transmittance, float NdotL
 
 void EvaluateBSDF_GetNormalUnclampedNdotV(BSDFData bsdfData, PreLightData preLightData, float3 V, out float3 N, out float unclampedNdotV)
 {
+    //TODO: This affects transmission and SSS, choose the normal the use when we have 
+    // both. For now, just use the base:
+    N = bsdfData.normalWS;
+    unclampedNdotV = preLightData.NdotV[BASE_NORMAL_IDX];
+
 #ifdef _MATERIAL_FEATURE_COAT_NORMALMAP
-    //TODOWIP for now just return geometric normal: 
     if ( IsCoatNormalMapEnabled(bsdfData) )
     {
-        N = bsdfData.geomNormalWS;
-        unclampedNdotV = dot(N, V);
-    }
-    else 
+#ifdef _STACKLIT_DEBUG
+        if(_DebugLobeMask.w == 2.0)
+        {
+            N = bsdfData.coatNormalWS;
+            unclampedNdotV = preLightData.NdotV[COAT_NORMAL_IDX];
+        }
+        else if(_DebugLobeMask.w == 3.0)
+        {
+            N = bsdfData.geomNormalWS;
+            unclampedNdotV = preLightData.geomNdotV;
+        }
 #endif
-    {
-        // TODOWIP, for now, preserve previous behavior
-        N = bsdfData.normalWS;
-        unclampedNdotV = preLightData.NdotV[BASE_NORMAL_IDX];
     }
+#endif // _MATERIAL_FEATURE_COAT_NORMALMAP
 }
 
 //-----------------------------------------------------------------------------
@@ -2276,12 +2284,10 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
 
-    //slnote dual map
     float3 N; float unclampedNdotV;
     EvaluateBSDF_GetNormalUnclampedNdotV(bsdfData, preLightData, V, N, unclampedNdotV);
-    //float3 N     = bsdfData.normalWS;
+
     float3 L     = -lightData.forward; // Lights point backward in Unity
-    //float  NdotV = ClampNdotV(preLightData.NdotV);
     float  NdotV = ClampNdotV(unclampedNdotV);
     float  NdotL = dot(N, L);
     float  LdotV = dot(L, V);
@@ -2289,11 +2295,13 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     // color and attenuation are outputted  by EvaluateLight:
     float3 color;
     float attenuation;
-    EvaluateLight_Directional(lightLoopContext, posInput, lightData, bakeLightingData, N, L, color, attenuation);
 
-    float intensity = max(0, attenuation * NdotL); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
+    // For shadow attenuation (ie receiver bias), always use the geometric normal:
+    EvaluateLight_Directional(lightLoopContext, posInput, lightData, bakeLightingData, bsdfData.geomNormalWS, L, color, attenuation);
 
-    // Note: We use NdotL here to early out, but in case of coat this is not correct. But we are ok with this
+    float intensity = max(0, attenuation); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
+
+    // Note: the NdotL term is now applied in the BSDF() eval itself to account for different normals.
     UNITY_BRANCH if (intensity > 0.0)
     {
         BSDF(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, lighting.diffuse, lighting.specular);
@@ -2319,6 +2327,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
     {
         // Only lighting, not BSDF
+        intensity = max(0, attenuation * NdotL);
         lighting.diffuse = color * intensity * lightData.diffuseScale;
     }
 #endif
@@ -2360,12 +2369,9 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
         distances.xyz = float3(dist, distSq, distRcp);
     }
 
-    //slnote dual map
     float3 N; float unclampedNdotV;
     EvaluateBSDF_GetNormalUnclampedNdotV(bsdfData, preLightData, V, N, unclampedNdotV);
 
-    //float3 N     = bsdfData.normalWS;
-    //float  NdotV = ClampNdotV(preLightData.NdotV);
     float  NdotV = ClampNdotV(unclampedNdotV);
     float  NdotL = dot(N, L);
     float  LdotV = dot(L, V);
@@ -2384,15 +2390,17 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
 
     float3 color;
     float attenuation;
-    EvaluateLight_Punctual(lightLoopContext, posInput, lightData, bakeLightingData, N, L,
+
+    // For shadow attenuation (ie receiver bias), always use the geometric normal:
+    EvaluateLight_Punctual(lightLoopContext, posInput, lightData, bakeLightingData, bsdfData.geomNormalWS, L,
                            lightToSample, distances, color, attenuation);
 
     // Restore the original shadow index.
     lightData.shadowIndex = originalShadowIndex;
 
-    float intensity = max(0, attenuation * NdotL); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
+    float intensity = max(0, attenuation); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
 
-    // Note: We use NdotL here to early out, but in case of coat this is not correct. But we are ok with this
+    // Note: the NdotL term is now applied in the BSDF() eval itself to account for different normals.
     UNITY_BRANCH if (intensity > 0.0)
     {
         // Simulate a sphere light with this hack
@@ -2477,6 +2485,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
     {
         // Only lighting, not BSDF
+        intensity = max(0, attenuation * NdotL);
         lighting.diffuse = color * intensity * lightData.diffuseScale;
     }
 #endif
@@ -2644,8 +2653,6 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         if( (i == (0 IF_FEATURE_COAT(+1))) && _DebugEnvLobeMask.y == 0.0) continue;
         if( (i == (1 IF_FEATURE_COAT(+1))) && _DebugEnvLobeMask.z == 0.0) continue;
 #endif
-        //slnote dual map
-        //EvaluateLight_EnvIntersection(positionWS, bsdfData.normalWS, lightData, influenceShapeType, R[i], tempWeight[i]);
         EvaluateLight_EnvIntersection(positionWS, influenceNormal, lightData, influenceShapeType, R[i], tempWeight[i]);
 
         // When we are rough, we tend to see outward shifting of the reflection when at the boundary of the projection volume
