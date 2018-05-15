@@ -1,4 +1,5 @@
 {
 	"name": "com.unity.render-pipelines.core",
+	"displayName": "SRP Core",
 	"description": "Core library for Unity render pipelines."
 }
