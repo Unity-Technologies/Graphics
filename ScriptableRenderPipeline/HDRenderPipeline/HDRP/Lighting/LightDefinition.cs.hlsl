@@ -61,11 +61,9 @@ struct DirectionalLightData
     float specularScale;
     float3 up;
     float diffuseScale;
-    float2 fadeDistanceScaleAndBias;
-    float unused0;
+    float volumetricDimmer;
     int dynamicShadowCasterOnly;
     float4 shadowMaskSelector;
-    float volumetricDimmer;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.LightData
@@ -165,13 +163,9 @@ float GetDiffuseScale(DirectionalLightData value)
 {
 	return value.diffuseScale;
 }
-float2 GetFadeDistanceScaleAndBias(DirectionalLightData value)
+float GetVolumetricDimmer(DirectionalLightData value)
 {
-	return value.fadeDistanceScaleAndBias;
-}
-float GetUnused0(DirectionalLightData value)
-{
-	return value.unused0;
+	return value.volumetricDimmer;
 }
 int GetDynamicShadowCasterOnly(DirectionalLightData value)
 {
@@ -180,10 +174,6 @@ int GetDynamicShadowCasterOnly(DirectionalLightData value)
 float4 GetShadowMaskSelector(DirectionalLightData value)
 {
 	return value.shadowMaskSelector;
-}
-float GetVolumetricDimmer(DirectionalLightData value)
-{
-	return value.volumetricDimmer;
 }
 
 //

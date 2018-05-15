@@ -342,7 +342,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_lightCount = 0;
         int m_densityVolumeCount = 0;
         bool m_enableBakeShadowMask = false; // Track if any light require shadow mask. In this case we will need to enable the keyword shadow mask
-        float m_maxShadowDistance = 0.0f; // Save value from shadow settings
 
         private ComputeShader buildScreenAABBShader { get { return m_Resources.buildScreenAABBShader; } }
         private ComputeShader buildPerTileLightListShader { get { return m_Resources.buildPerTileLightListShader; } }
@@ -848,10 +847,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_CurrentSunLightShadowIndex = shadowIdx;
             }
 
-            float scale;
-            float bias;
-            GetScaleAndBiasForLinearDistanceFade(m_maxShadowDistance, out scale, out bias);
-            directionalLightData.fadeDistanceScaleAndBias = new Vector2(scale, bias);
             directionalLightData.shadowMaskSelector = Vector4.zero;
 
             if (IsBakedShadowMaskLight(light.light))
@@ -1472,8 +1467,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // If any light require it, we need to enabled bake shadow mask feature
                 m_enableBakeShadowMask = false;
-                m_maxShadowDistance = shadowSettings.maxShadowDistance;
-
+ 
                 m_lightList.Clear();
 
                 // We need to properly reset this here otherwise if we go from 1 light to no visible light we would keep the old reference active.
