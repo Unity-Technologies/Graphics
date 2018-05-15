@@ -36,3 +36,4 @@ This adds gradient functionality via two new nodes. Sample Gradient node samples
 - Pasting a property node into another graph will now convert it to a concrete node. ([#300](https://github.com/Unity-Technologies/ShaderGraph/issues/300) and [#307](https://github.com/Unity-Technologies/ShaderGraph/pull/307))
 - Make nodes that are copied from one graph to another spawn in the center of the current view. ([#333](https://github.com/Unity-Technologies/ShaderGraph/issues/333))
 - Fixed an issue with editable sub graph paths, causing the search window to sometimes yield a null reference exception.
+- Ensure that the blackboard is within view when deserialized.
