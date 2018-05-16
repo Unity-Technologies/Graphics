@@ -297,6 +297,31 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             return EventPropagation.Continue;
         }
+#elif UNITY_2018_3_OR_NEWER
+        public bool DragUpdated(DragUpdatedEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget, ISelection dragSource)
+        {
+            return true;
+        }
+
+        public bool DragPerform(DragPerformEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget, ISelection dragSource)
+        {
+            return true;
+        }
+
+        public bool DragEnter(DragEnterEvent evt, IEnumerable<ISelectable> selection, IDropTarget enteredTarget, ISelection dragSource)
+        {
+            return true;
+        }
+
+        public bool DragLeave(DragLeaveEvent evt, IEnumerable<ISelectable> selection, IDropTarget leftTarget, ISelection dragSource)
+        {
+            return true;
+        }
+
+        public bool DragExited()
+        {
+            return true;
+        }
 #else
         public bool DragUpdated(DragUpdatedEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
         {
