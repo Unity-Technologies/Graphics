@@ -22,37 +22,67 @@ namespace UnityEditor.VFX
         public VFXProperty property     { get { return m_Property; } }
         public override string name     { get { return m_Property.name; } }
 
-        protected VFXSlot() {}
+        protected VFXSlot() {onModified += t => ValueModified(); }
+
+
+        FieldInfo m_FieldInfoCache;
+
+        void ValueModified()
+        {
+            m_IsValueCached = false;
+            PropagateToChildren(t => t.m_IsValueCached = false);
+        }
+
+        [System.NonSerialized]
+        bool m_IsValueCached;
+
+        [System.NonSerialized]
+        object m_CachedValue;
 
         public object value
         {
             get
             {
+                if (m_IsValueCached)
+                {
+                    return m_CachedValue;
+                }
                 try
                 {
+                    // m_IsValueCached = true; // TODO Reactivate once invalidation is fixed
                     if (IsMasterSlot())
                     {
-                        return GetMasterData().m_Value.Get();
+                        m_CachedValue = GetMasterData().m_Value.Get();
                     }
                     else
                     {
                         object parentValue = GetParent().value;
 
-                        Type type = GetParent().property.type;
-                        FieldInfo info = type.GetField(name);
+                        if (m_FieldInfoCache == null)
+                        {
+                            Type type = GetParent().property.type;
+                            m_FieldInfoCache = type.GetField(name);
+                        }
 
-                        return info.GetValue(parentValue);
+                        m_CachedValue = m_FieldInfoCache.GetValue(parentValue);
+                    }
+
+                    if (m_CachedValue == null && !typeof(UnityEngine.Object).IsAssignableFrom(property.type))
+                    {
+                        Debug.Log("null value in slot of type" + property.type.UserFriendlyName());
                     }
                 }
                 catch (Exception e)
                 {
                     Debug.LogError(string.Format("Exception while getting value for slot {0} of type {1}: {2}\n{3}", name, GetType(), e, e.StackTrace));
                     // TODO Initialize to default value (try to call static default static method defaultValue from type)
+                    m_CachedValue = null;
                 }
-                return null;
+                return m_CachedValue;
             }
             set
             {
+                m_IsValueCached = false;
                 try
                 {
                     if (IsMasterSlot())
@@ -61,10 +91,13 @@ namespace UnityEditor.VFX
                     {
                         object parentValue = GetParent().value;
 
-                        Type type = GetParent().property.type;
-                        FieldInfo info = type.GetField(name);
+                        if (m_FieldInfoCache == null)
+                        {
+                            Type type = GetParent().property.type;
+                            m_FieldInfoCache = type.GetField(name);
+                        }
 
-                        info.SetValue(parentValue, value);
+                        m_FieldInfoCache.SetValue(parentValue, value);
 
                         GetParent().value = parentValue;
                     }
@@ -302,13 +335,18 @@ namespace UnityEditor.VFX
         {
             var links = src.LinkedSlots.ToArray();
             int index = 0;
+
             while (index < links.Count())
             {
                 var link = links[index];
                 if (dst.CanLink(link))
                 {
                     dst.Link(link, notify);
+
                     src.Unlink(link, notify);
+
+                    dst.owner.TransferLinkMySlot(src, dst, link);
+                    link.owner.TransferLinkOtherSlot(link, src, dst);
                 }
                 ++index;
             }
@@ -468,6 +506,7 @@ namespace UnityEditor.VFX
 
         public void UpdateAttributes(VFXPropertyAttribute[] attributes)
         {
+            m_FieldInfoCache = null; // this is call by syncslot. at this point the type of our master slot might have changed.
             m_Property.attributes = attributes;
         }
 

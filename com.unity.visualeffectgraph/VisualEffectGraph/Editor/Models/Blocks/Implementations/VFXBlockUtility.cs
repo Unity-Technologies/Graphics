@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Block
@@ -17,13 +18,6 @@ namespace UnityEditor.VFX.Block
     {
         UnsignedNormalized,
         Signed
-    }
-
-    enum ColorApplicationMode
-    {
-        Color = 1 << 0,
-        Alpha = 1 << 1,
-        ColorAndAlpha = Color | Alpha,
     }
 
     enum RandomMode
@@ -70,17 +64,17 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        public static string GetRandomMacroString(RandomMode mode , VFXAttribute attribute, params string[] parameters)
+        public static string GetRandomMacroString(RandomMode mode, int attributeSize, string postfix, params string[] parameters)
         {
             switch (mode)
             {
                 case RandomMode.Off:
-                    return parameters[0];
+                    return parameters[0] + postfix;
                 case RandomMode.Uniform:
-                    return string.Format("lerp({0},{1},RAND)", parameters);
+                    return string.Format("lerp({0},{1},RAND)", parameters.Select(s => s + postfix).ToArray());
                 case RandomMode.PerComponent:
-                    string rand = GetRandStringFromSize(VFXExpression.TypeToSize(attribute.type));
-                    return string.Format("lerp({0},{1}," + rand + ")", parameters);
+                    string rand = GetRandStringFromSize(attributeSize);
+                    return string.Format("lerp({0},{1}," + rand + ")", parameters.Select(s => s + postfix).ToArray());
                 default: throw new System.NotImplementedException("VFXBlockUtility.GetRandomMacroString() does not implement return string for RandomMode : " + mode.ToString());
             }
         }

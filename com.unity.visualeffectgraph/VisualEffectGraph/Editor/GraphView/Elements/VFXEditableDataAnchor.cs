@@ -169,32 +169,32 @@ namespace UnityEditor.VFX.UI
             Profiler.EndSample();
         }
 
-        Type m_EditedType;
-
         public override void SelfChange(int change)
         {
             Profiler.BeginSample("VFXEditableDataAnchor.SelfChange");
             base.SelfChange(change);
 
             if (m_PropertyRM == null || !m_PropertyRM.IsCompatible(controller))
-            {
                 BuildProperty();
-                m_EditedType = controller.portType;
-            }
 
-            OnRecompile();
+            OnRecompile(false);
             Profiler.EndSample();
         }
 
-        public void OnRecompile()
+        public void OnRecompile(bool valueOnly)
         {
             if (m_PropertyRM != null && controller != null)
             {
-                controller.UpdateInfos();
-                bool editable = controller.editable;
-                m_PropertyRM.propertyEnabled = editable && controller.expandedInHierachy;
-                m_PropertyRM.indeterminate = !editable && controller.indeterminate;
-                m_PropertyRM.Update();
+                if (!valueOnly)
+                {
+                    controller.UpdateInfos();
+                    bool editable = controller.editable;
+                    m_PropertyRM.propertyEnabled = editable && controller.expandedInHierachy;
+                    m_PropertyRM.indeterminate = !editable && controller.indeterminate;
+                    m_PropertyRM.Update();
+                }
+                else
+                    m_PropertyRM.UpdateValue();
             }
         }
 

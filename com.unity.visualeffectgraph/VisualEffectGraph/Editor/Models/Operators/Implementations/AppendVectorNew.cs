@@ -13,7 +13,7 @@ namespace UnityEditor.VFX.Operator
 
         protected override sealed double defaultValueDouble { get { return 0.0f; } }
 
-        protected override sealed ValidTypeRule typeFilter { get { return ValidTypeRule.allowEverythingExceptInteger; } }
+        protected override sealed ValidTypeRule typeFilter { get { return ValidTypeRule.allowEverythingExceptIntegerAndVector4; } }
 
         protected override Type GetExpectedOutputTypeOfOperation(IEnumerable<Type> inputTypes)
         {

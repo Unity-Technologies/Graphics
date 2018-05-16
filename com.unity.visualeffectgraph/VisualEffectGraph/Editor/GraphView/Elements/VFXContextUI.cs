@@ -217,12 +217,6 @@ namespace UnityEditor.VFX.UI
         }
 
         bool m_CanHaveBlocks = false;
-
-        public void OnMoved()
-        {
-            controller.position = GetPosition().position;
-        }
-
         void OnSpace()
         {
             controller.context.space = (CoordinateSpace)(((int)controller.context.space + 1) % (CoordinateSpaceInfo.SpaceCount));
@@ -507,7 +501,6 @@ namespace UnityEditor.VFX.UI
         class GrowContext : IDisposable
         {
             VFXContextUI m_Context;
-            Dictionary<VFXContextUI, float> m_PrevSizes = new Dictionary<VFXContextUI, float>();
             float m_PrevSize;
             public GrowContext(VFXContextUI context)
             {

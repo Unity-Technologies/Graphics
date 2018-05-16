@@ -5,9 +5,16 @@ using System.Collections.Generic;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Color")]
+    //[VFXInfo(category = "Color")] DEPRECATED
     class ColorOverLife : VFXBlock
     {
+        public enum ColorApplicationMode
+        {
+            Color = 1 << 0,
+            Alpha = 1 << 1,
+            ColorAndAlpha = Color | Alpha,
+        }
+
         [Tooltip("Whether the color is applied to RGB, alpha or both")]
         [VFXSetting]
         public ColorApplicationMode mode = ColorApplicationMode.ColorAndAlpha;
@@ -91,5 +98,37 @@ float4 sampledColor = SampleGradient(gradient, age/lifetime);
                 return outSource;
             }
         }
+
+        // TODO - requires santizing Gradient -> Curve for Alpha. Needs fixing.
+        /*public override void Sanitize()
+        {
+            Debug.Log("Sanitizing Graph: Automatically replace ColorOverLife with AttributeOverLife");
+
+            if ((mode & ColorApplicationMode.Color) != 0)
+            {
+                var attributeOverLifeColor = CreateInstance<AttributeOverLife>();
+
+                attributeOverLifeColor.SetSettingValue("attribute", "color");
+                attributeOverLifeColor.SetSettingValue("Composition", ColorComposition);
+
+                // Transfer links
+                VFXSlot.TransferLinksAndValue(attributeOverLifeColor.GetInputSlot(0), GetInputSlot(0), true);
+
+                ReplaceModel(attributeOverLifeColor, this);
+            }
+
+            if ((mode & ColorApplicationMode.Alpha) != 0)
+            {
+                var attributeOverLifeAlpha = CreateInstance<AttributeOverLife>();
+
+                attributeOverLifeAlpha.SetSettingValue("attribute", "alpha");
+                attributeOverLifeAlpha.SetSettingValue("Composition", AlphaComposition);
+
+                // Transfer links
+                VFXSlot.TransferLinksAndValue(attributeOverLifeAlpha.GetInputSlot(0), GetInputSlot(0), true);
+
+                ReplaceModel(attributeOverLifeAlpha, this);
+            }
+        }*/
     }
 }

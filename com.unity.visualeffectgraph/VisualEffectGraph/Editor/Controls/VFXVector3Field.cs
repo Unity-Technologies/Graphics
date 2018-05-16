@@ -3,7 +3,7 @@ using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEditor.Experimental.UIElements;
 
-using FloatField = UnityEditor.VFX.UIElements.VFXLabeledField<UnityEditor.VFX.UIElements.VFXFloatField, float>;
+using FloatField = UnityEditor.VFX.UIElements.VFXLabeledField<UnityEditor.Experimental.UIElements.FloatField, float>;
 namespace UnityEditor.VFX.UIElements
 {
     abstract class VFXVectorNField<T> : VFXControl<T>
@@ -48,13 +48,13 @@ namespace UnityEditor.VFX.UIElements
         {
             get
             {
-                return m_Fields[0].control.indeterminate;
+                return m_Fields[0].indeterminate;
             }
             set
             {
                 foreach (var field in m_Fields)
                 {
-                    field.control.indeterminate = value;
+                    field.indeterminate = value;
                 }
             }
         }
@@ -118,13 +118,10 @@ namespace UnityEditor.VFX.UIElements
             {
                 case 0:
                     return value.x;
-                    break;
                 case 1:
                     return value.y;
-                    break;
                 default:
                     return value.z;
-                    break;
             }
         }
     }

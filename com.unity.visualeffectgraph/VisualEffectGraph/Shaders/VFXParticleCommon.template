@@ -34,6 +34,19 @@ size.z = min(size.x,size.y);
 #endif
 ${VFXEnd}
 
+${VFXBegin:VFXVertexSetFlipbooksInterpolants}
+#if USE_FLIPBOOK
+${VFXLoadParameter:{flipBookSize}}
+${VFXLoadParameter:{invFlipBookSize}}
+VFXUVData uvData = GetUVData(flipBookSize, invFlipBookSize, o.VFX_VARYING_UV.xy, texIndex);
+o.VFX_VARYING_UV.xy = uvData.uvs.xy;
+#if USE_FLIPBOOK_INTERPOLATION
+o.VFX_VARYING_UV.zw = uvData.uvs.zw;
+o.VFX_VARYING_FRAMEBLEND = uvData.blend;
+#endif
+#endif
+${VFXEnd}
+
 ${VFXBegin:VFXFragmentCommonFunctions}#include "Assets/VFXEditor/Shaders/VFXCommonOutput.cginc"${VFXEnd}
 
 ${VFXBegin:VFXLoadAttributesOrCull}

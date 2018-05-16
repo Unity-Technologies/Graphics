@@ -199,10 +199,6 @@ namespace UnityEditor.VFX.UI
             copyData.dataEdges = new DataEdge[dataEdges.Count()];
             int cpt = 0;
 
-
-            //order edge so that they are from left to right ( edge linking node with the no linked input first)
-            Dictionary<VFXNodeController, int> useCount = new Dictionary<VFXNodeController, int>();
-
             var orderedEdges = new List<VFXDataEdgeController>();
 
             var edges = new HashSet<VFXDataEdgeController>(dataEdges);
@@ -281,7 +277,7 @@ namespace UnityEditor.VFX.UI
                 if (outputController.model.owner is VFXParameter)
                 {
                     copyPasteEdge.outputParameter = true;
-                    copyPasteEdge.outputParameterIndex = System.Array.FindIndex(copyData.parameters, t => t.parameter == outputController.model.owner);
+                    copyPasteEdge.outputParameterIndex = System.Array.FindIndex(copyData.parameters, t => (IVFXSlotContainer)t.parameter == outputController.model.owner);
                     copyPasteEdge.outputParameterNodeIndex = System.Array.IndexOf(copyData.parameters[copyPasteEdge.outputParameterIndex].infos, (outputController.sourceNode as VFXParameterNodeController).infos);
                 }
                 else

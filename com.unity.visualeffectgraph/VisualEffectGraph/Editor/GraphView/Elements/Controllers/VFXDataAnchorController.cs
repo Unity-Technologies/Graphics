@@ -1,8 +1,6 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using UnityEngine.Experimental.UIElements;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental.UIElements.GraphView;
@@ -18,7 +16,7 @@ namespace UnityEditor.VFX.UI
         Direction direction {get; }
     }
 
-    abstract class VFXDataAnchorController : VFXController<VFXSlot>, IVFXAnchorController, IPropertyRMProvider, IValueController
+    abstract class VFXDataAnchorController : VFXController<VFXSlot>, IVFXAnchorController, IPropertyRMProvider
     {
         private VFXNodeController m_SourceNode;
 
@@ -204,7 +202,6 @@ namespace UnityEditor.VFX.UI
                 return !m_SourceNode.viewController.CanGetEvaluatedContent(model);
             }
         }
-
         public virtual object value
         {
             get
@@ -217,9 +214,12 @@ namespace UnityEditor.VFX.UI
 
                         try
                         {
-                            if (nodeController.CanGetEvaluatedContent(model))
+                            Profiler.BeginSample("GetEvaluatedContent");
+                            var evaluatedValue = nodeController.GetEvaluatedContent(model);
+                            Profiler.EndSample();
+                            if (evaluatedValue != null)
                             {
-                                return VFXConverter.ConvertTo(nodeController.GetEvaluatedContent(model), portType);
+                                return VFXConverter.ConvertTo(evaluatedValue, portType);
                             }
                         }
                         catch (System.Exception e)
@@ -227,7 +227,6 @@ namespace UnityEditor.VFX.UI
                             Debug.LogError("Trying to get the value from expressions threw." + e.Message + " In anchor : " + name + " from node :" + sourceNode.title);
                         }
                     }
-
                     return VFXConverter.ConvertTo(model.value, portType);
                 }
                 else
@@ -245,11 +244,13 @@ namespace UnityEditor.VFX.UI
         public virtual void Connect(VFXEdgeController edgeController)
         {
             m_Connections.Add(edgeController as VFXDataEdgeController);
+            RefreshGizmo();
         }
 
         public virtual void Disconnect(VFXEdgeController edgeController)
         {
             m_Connections.Remove(edgeController as VFXDataEdgeController);
+            RefreshGizmo();
         }
 
         public bool connected
@@ -329,38 +330,36 @@ namespace UnityEditor.VFX.UI
             get { return expandedSelf; }
         }
 
+        public bool m_Editable = true;
+
+        public void UpdateEditable()
+        {
+            m_Editable = true;
+            if (direction == Direction.Output)
+                return;
+            VFXSlot slot = model;
+            if (!slot || slot.HasLink(true))
+            {
+                m_Editable = false;
+                return;
+            }
+
+            while (slot != null)
+            {
+                if (slot.HasLink())
+                {
+                    m_Editable = false;
+                    return;
+                }
+                slot = slot.GetParent();
+            }
+        }
+
         public virtual bool editable
         {
             get
             {
-                if (direction == Direction.Output)
-                    return true;
-                bool editable = m_SourceNode.enabled;
-
-                if (editable)
-                {
-                    VFXSlot slot = model;
-                    while (slot != null)
-                    {
-                        if (slot.HasLink())
-                        {
-                            editable = false;
-                            break;
-                        }
-                        slot = slot.GetParent();
-                    }
-
-
-                    foreach (VFXSlot child in model.children)
-                    {
-                        if (child.HasLink())
-                        {
-                            editable = false;
-                        }
-                    }
-                }
-
-                return editable;
+                return m_SourceNode.enabled && m_Editable;
             }
         }
 
@@ -393,9 +392,37 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        void RefreshGizmo()
+        {
+            if (m_GizmoContext != null) m_GizmoContext.Unprepare();
+
+            if (!model.IsMasterSlot())
+            {
+                var parentController = sourceNode.inputPorts.FirstOrDefault(t => t.model == model.GetParent());
+                if (parentController != null)
+                {
+                    parentController.RefreshGizmo();
+                }
+                else if (model.GetParent()) // Try with grand parent for Vector3 spacable types
+                {
+                    parentController = sourceNode.inputPorts.FirstOrDefault(t => t.model == model.GetParent().GetParent());
+                    if (parentController != null)
+                    {
+                        parentController.RefreshGizmo();
+                    }
+                }
+            }
+        }
+
+        VFXDataAnchorGizmoContext m_GizmoContext;
+
         public void DrawGizmo(VisualEffect component)
         {
-            VFXValueGizmo.Draw(this, component);
+            if (m_GizmoContext == null)
+            {
+                m_GizmoContext = new VFXDataAnchorGizmoContext(this);
+            }
+            VFXGizmoUtility.Draw(m_GizmoContext, component);
         }
     }
 
@@ -503,6 +530,173 @@ namespace UnityEditor.VFX.UI
             }
 
             return new VFXParameter.NodeLinkedSlot();
+        }
+    }
+
+    public class VFXDataAnchorGizmoContext : VFXGizmoUtility.Context
+    {
+        // Provider
+        internal VFXDataAnchorGizmoContext(VFXDataAnchorController controller)
+        {
+            m_Controller = controller;
+        }
+
+        VFXDataAnchorController m_Controller;
+
+        public override Type portType
+        {
+            get {return m_Controller.portType; }
+        }
+
+
+        List<object> stack = new List<object>();
+        public override object value
+        {
+            get
+            {
+                stack.Clear();
+                int stackSize = stack.Count;
+                foreach (var action in m_ValueBuilder)
+                {
+                    action(stack);
+                    stackSize = stack.Count;
+                }
+
+                return stack.First();
+            }
+        }
+
+        List<Action<List<object>>> m_ValueBuilder = new List<Action<List<object>>>();
+
+        protected override void InternalPrepare()
+        {
+            var type = m_Controller.portType;
+
+            if (!type.IsValueType)
+            {
+                Debug.LogError("No support for class types in Gizmos");
+                return;
+            }
+            m_ValueBuilder.Clear();
+            m_ValueBuilder.Add(o => o.Add(m_Controller.value));
+
+            if (!m_Controller.viewController.CanGetEvaluatedContent(m_Controller.model))
+            {
+                if (m_Controller.model.HasLink(false))
+                {
+                    if (VFXTypeUtility.GetComponentCount(m_Controller.model) != 0)
+                    {
+                        m_Indeterminate = true;
+                        return;
+                    }
+                }
+                BuildValue(m_Controller.model);
+            }
+        }
+
+        void BuildValue(VFXSlot slot)
+        {
+            foreach (var field in slot.property.type.GetFields())
+            {
+                VFXSlot subSlot = slot.children.FirstOrDefault<VFXSlot>(t => t.name == field.Name);
+
+                if (subSlot != null)
+                {
+                    if (m_Controller.viewController.CanGetEvaluatedContent(subSlot))
+                    {
+                        m_ValueBuilder.Add(o => o.Add(m_Controller.viewController.GetEvaluatedContent(subSlot)));
+                    }
+                    else if (subSlot.HasLink(false) && VFXTypeUtility.GetComponentCount(subSlot) != 0) // replace by is VFXType
+                    {
+                        m_Indeterminate = true;
+                        return;
+                    }
+                    else
+                    {
+                        m_ValueBuilder.Add(o => o.Add(subSlot.value));
+                        BuildValue(subSlot);
+                        if (m_Indeterminate) return;
+                    }
+                    m_ValueBuilder.Add(o => field.SetValue(o[o.Count - 2], o[o.Count - 1]));
+                    m_ValueBuilder.Add(o => o.RemoveAt(o.Count - 1));
+                }
+            }
+        }
+
+        public override VFXGizmo.IProperty<T> RegisterProperty<T>(string member)
+        {
+            object result;
+            if (m_PropertyCache.TryGetValue(member, out result))
+            {
+                if (result is VFXGizmo.IProperty<T> )
+                    return result as VFXGizmo.IProperty<T>;
+                else
+                    return VFXGizmoUtility.NullProperty<T>.defaultProperty;
+            }
+            var controller = GetMemberController(member);
+
+            if (controller != null && controller.portType == typeof(T))
+            {
+                bool readOnly = false;
+                var slot = controller.model;
+                if (slot.HasLink(true))
+                    readOnly = true;
+                else
+                {
+                    slot = slot.GetParent();
+                    while (slot != null)
+                    {
+                        if (slot.HasLink(false))
+                        {
+                            readOnly = true;
+                            break;
+                        }
+                        slot = slot.GetParent();
+                    }
+                }
+
+
+                return new VFXGizmoUtility.Property<T>(controller, !readOnly);
+            }
+
+            return VFXGizmoUtility.NullProperty<T>.defaultProperty;
+        }
+
+        VFXDataAnchorController GetMemberController(string memberPath)
+        {
+            if (string.IsNullOrEmpty(memberPath))
+            {
+                return m_Controller;
+            }
+
+            return GetSubMemberController(memberPath, m_Controller.model);
+        }
+
+        VFXDataAnchorController GetSubMemberController(string memberPath, VFXSlot slot)
+        {
+            int index = memberPath.IndexOf(separator);
+
+            if (index == -1)
+            {
+                VFXSlot subSlot = slot.children.FirstOrDefault(t => t.name == memberPath);
+                if (subSlot != null)
+                {
+                    var subController = m_Controller.sourceNode.inputPorts.FirstOrDefault(t => t.model == subSlot);
+                    return subController;
+                }
+                return null;
+            }
+            else
+            {
+                string memberName = memberPath.Substring(0, index);
+
+                VFXSlot subSlot = slot.children.FirstOrDefault(t => t.name == memberName);
+                if (subSlot != null)
+                {
+                    return GetSubMemberController(memberPath.Substring(index + 1), subSlot);
+                }
+                return null;
+            }
         }
     }
 }

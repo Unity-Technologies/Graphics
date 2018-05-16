@@ -16,6 +16,8 @@
 #define SAMPLE_SPLINE_TANGENT(v,u) sampleSpline(v.y,u)
 #define INVERSE(m) Inv##m
 
+#define VFX_EPSILON 1e-5
+
 struct VFXSampler2D
 {
     Texture2D t;
@@ -48,11 +50,13 @@ struct VFXSamplerCubeArray
 
 #ifdef VFX_WORLD_SPACE
 float3 TransformPositionVFXToWorld(float3 pos)  { return pos; }
+float3 TransformPositionVFXToView(float3 pos)   { return VFXTransformPositionWorldToView(pos); }
 float4 TransformPositionVFXToClip(float3 pos)   { return VFXTransformPositionWorldToClip(pos); }
 float3x3 GetVFXToViewRotMatrix()                { return VFXGetWorldToViewRotMatrix(); }
 float3 GetViewVFXPosition()                     { return VFXGetViewWorldPosition(); }
 #else
 float3 TransformPositionVFXToWorld(float3 pos)  { return mul(VFXGetObjectToWorldMatrix(),float4(pos,1.0f)).xyz; }
+float3 TransformPositionVFXToView(float3 pos)   { return VFXTransformPositionWorldToView(mul(VFXGetObjectToWorldMatrix(), float4(pos, 1.0f)).xyz); }
 float4 TransformPositionVFXToClip(float3 pos)   { return VFXTransformPositionObjectToClip(pos); }
 float3x3 GetVFXToViewRotMatrix()                { return mul(VFXGetWorldToViewRotMatrix(),(float3x3)VFXGetObjectToWorldMatrix()); }
 float3 GetViewVFXPosition()                     { return mul(VFXGetWorldToObjectMatrix(),float4(VFXGetViewWorldPosition(),1.0f)).xyz; }
@@ -356,29 +360,63 @@ float4x4 GetVFXToElementMatrix(float3 axisX,float3 axisY,float3 axisZ,float3 ang
         float4(0,0,0,1));
 }
 
-float2 GetSubUV(int flipBookIndex,float2 uv,float2 dim,float2 invDim)
+/////////////////////
+// flipbooks utils //
+/////////////////////
+
+struct VFXUVData
 {
-    float2 tile = float2(fmod(flipBookIndex,dim.x),dim.y - 1.0 - floor(flipBookIndex * invDim.x));
+    float4 uvs;
+    float  blend;
+};
+
+float4 SampleTexture(VFXSampler2D s, VFXUVData uvData)
+{
+    float4 s0 = s.t.Sample(s.s, uvData.uvs.xy);
+    float4 s1 = s.t.Sample(s.s, uvData.uvs.zw);
+    return lerp(s0, s1, uvData.blend);
+}
+
+float3 SampleNormalMap(VFXSampler2D s, VFXUVData uvData)
+{
+    float4 packedNormal = SampleTexture(s, uvData);
+    packedNormal.w *= packedNormal.x;
+    float3 normal;
+    normal.xy = packedNormal.wy * 2.0 - 1.0;
+    normal.z = sqrt(1.0 - saturate(dot(normal.xy, normal.xy)));
+    return normal;
+}
+
+float2 GetSubUV(int flipBookIndex, float2 uv, float2 dim, float2 invDim)
+{
+    float2 tile = float2(fmod(flipBookIndex, dim.x), dim.y - 1.0 - floor(flipBookIndex * invDim.x));
     return (tile + uv) * invDim;
 }
 
-#if USE_FLIPBOOK
-#if USE_FLIPBOOK_INTERPOLATION
-void ProcessFlipBookUV(float2 flipBookSize, float2 invFlipBookSize, float texIndex, inout float4 uv, out float blend)
-#else
-void ProcessFlipBookUV(float2 flipBookSize, float2 invFlipBookSize, float texIndex, inout float2 uv)
-#endif
+VFXUVData GetUVData(float2 uv) // no flipbooks
 {
+    VFXUVData data = (VFXUVData)0;
+    data.uvs.xy = uv;
+    return data;
+}
+
+VFXUVData GetUVData(float2 flipBookSize, float2 invFlipBookSize, float2 uv, float texIndex) // with flipbooks
+{
+    VFXUVData data = (VFXUVData)0;
+
     float frameBlend = frac(texIndex);
     float frameIndex = texIndex - frameBlend;
 
-#if USE_FLIPBOOK_INTERPOLATION
-    blend = frameBlend;
-    uv.zw = GetSubUV(frameIndex + 1, uv.xy, flipBookSize, invFlipBookSize);
-#endif
-    uv.xy = GetSubUV(frameIndex, uv.xy, flipBookSize, invFlipBookSize);
+    data.uvs.xy = GetSubUV(frameIndex, uv, flipBookSize, invFlipBookSize);
+    data.uvs.zw = GetSubUV(frameIndex + 1, uv, flipBookSize, invFlipBookSize);
+    data.blend = frameBlend;
+    return data;
 }
-#endif
+
+VFXUVData GetUVData(float2 flipBookSize, float2 uv, float texIndex)
+{
+    return GetUVData(flipBookSize, 1.0f / flipBookSize, uv, texIndex);
+}
 
 ///////////////
 // 3D Noise  //

@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEditor.Experimental.VFX;
 using UnityEngine.Experimental.VFX;
 using UnityEngine.Profiling;
+using System.Reflection;
 
 using Object = UnityEngine.Object;
 
@@ -52,7 +53,7 @@ namespace UnityEditor.VFX
     {
         static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
-            foreach (var path in importedAssets)
+            foreach (var path in importedAssets.Where(t => t.EndsWith(".vfx")))
             {
                 VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
                 if (asset != null)
@@ -137,6 +138,13 @@ namespace UnityEditor.VFX
                 }
                 return m_UIInfos;
             }
+        }
+
+        public VFXParameterInfo[] m_ParameterInfo;
+
+        public void BuildParameterInfo()
+        {
+            m_ParameterInfo = VFXParameterInfo.BuildParameterInfo(this);
         }
 
         public override bool AcceptChild(VFXModel model, int index = -1)
@@ -272,7 +280,6 @@ namespace UnityEditor.VFX
                 {
                     Debug.LogError(string.Format("Exception while sanitizing VFXUI: : {0} {1}", e , e.StackTrace));
                 }
-
             m_GraphSanitized = true;
         }
 
@@ -402,6 +409,11 @@ namespace UnityEditor.VFX
         {
             m_saved = false;
             base.OnInvalidate(model, cause);
+
+            if (model is VFXParameter)
+            {
+                BuildParameterInfo();
+            }
 
             if (cause == VFXModel.InvalidationCause.kStructureChanged)
             {

@@ -62,5 +62,5 @@ VFXParameterUI.node.exposed > #node-border > #title > #exposed-icon
 }
 #line
 {
-	background-color:#999;
+    background-color:#999;
 }
