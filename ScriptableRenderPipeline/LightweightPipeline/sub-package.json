@@ -6,6 +6,6 @@
         "com.unity.render-pipelines.core"
     ],
     "dependencies": {
-        "com.unity.shadergraph": "1.1.7-preview"
+        "com.unity.shadergraph": "1.1.8-preview"
     }
 }

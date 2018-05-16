@@ -1,10 +1,11 @@
 {
     "name": "com.unity.render-pipelines.high-definition",
     "description": "HD Render Pipeline for Unity.",
-    "version": "1.1.6-preview",
+    "displayName": "High Definition Render Pipeline",
+    "version": "1.1.8-preview",
     "unity": "2018.1",
     "dependencies": {
         "com.unity.postprocessing": "2.0.5-preview",
-        "com.unity.render-pipelines.core": "1.1.6-preview"
+        "com.unity.render-pipelines.core": "1.1.8-preview"
     }
 }
