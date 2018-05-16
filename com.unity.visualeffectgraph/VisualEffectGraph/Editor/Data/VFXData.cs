@@ -147,6 +147,17 @@ namespace UnityEditor.VFX
             }
         }
 
+        public IEnumerable<VFXAttributeInfo> GetAttributesForContext(VFXContext context)
+        {
+            foreach(var attrib in m_ContextsToAttributes[context])
+            {
+                VFXAttributeInfo info;
+                info.attrib = attrib.Key;
+                info.mode = attrib.Value;
+                yield return info;
+            }
+        }
+
         private struct VFXAttributeInfoContext
         {
             public VFXAttributeInfo[] attributes;
@@ -502,14 +513,6 @@ namespace UnityEditor.VFX
                 return m_DependenciesOut;
             }
         }
-
-
-        public Dictionary<VFXContext, Dictionary<VFXAttribute, VFXAttributeMode>> contextsToAttributes { get { return m_ContextsToAttributes; } }
-        public Dictionary<VFXAttribute, Dictionary<VFXContext, VFXAttributeMode>> attributesToContexts { get { return m_AttributesToContexts; } }
-
-        public Dictionary<VFXAttribute, int> storedCurrentAttributes { get { return m_StoredCurrentAttributes; } }
-        public HashSet<VFXAttribute> localCurrentAttributes { get { return m_LocalCurrentAttributes; } }
-
 
         [SerializeField]
         protected List<VFXContext> m_Owners;

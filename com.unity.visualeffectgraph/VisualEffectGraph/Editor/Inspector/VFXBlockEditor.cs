@@ -18,37 +18,16 @@ using System.Reflection;
 [CanEditMultipleObjects]
 public class VFXBlockEditor : VFXSlotContainerEditor
 {
-    SerializedObject dataObject;
-
-    protected new void OnEnable()
-    {
-        UnityEngine.Object[] allData = targets.Cast<VFXBlock>().Cast<UnityEngine.Object>().ToArray();
-        if (allData.Length > 0)
-        {
-            dataObject = new SerializedObject(allData);
-        }
-        else
-        {
-            dataObject = null;
-        }
-
-        base.OnEnable();
-    }
-
     public override void OnInspectorGUI()
     {
-        if (dataObject != null)
-            dataObject.Update();
-
         base.OnInspectorGUI();
-
 
         if (VFXViewPreference.displayExtraDebugInfo)
         {
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Attributes", EditorStyles.boldLabel);
 
-            VFXBlock block = dataObject.targetObject as VFXBlock;
+            VFXBlock block = serializedObject.targetObject as VFXBlock;
 
             using (new GUILayout.HorizontalScope())
             {

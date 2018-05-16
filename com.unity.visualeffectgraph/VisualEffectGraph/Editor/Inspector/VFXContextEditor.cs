@@ -81,17 +81,19 @@ public class VFXContextEditor : VFXSlotContainerEditor
 
                 EditorGUILayout.Space();
 
-                if (data.storedCurrentAttributes.Count > 0)
+                var attributes = data.GetAttributes();
+
+                if (attributes.Count() > 0)
                 {
                     EditorGUILayout.LabelField("Attribute Layout", Styles.header);
 
-                    foreach (var kvp in data.storedCurrentAttributes)
+                    foreach (var attr in attributes)
                     {
                         using (new EditorGUILayout.HorizontalScope())
                         {
-                            EditorGUILayout.LabelField(kvp.Key.name, Styles.cell);
-                            Styles.DataTypeLabel(kvp.Key.type.ToString(), kvp.Key.type, Styles.cell, GUILayout.Width(80));
-                            int size = VFXExpressionHelper.GetSizeOfType(kvp.Key.type);
+                            EditorGUILayout.LabelField(attr.attrib.name, Styles.cell);
+                            Styles.DataTypeLabel(attr.attrib.type.ToString(), attr.attrib.type, Styles.cell, GUILayout.Width(80));
+                            int size = VFXExpressionHelper.GetSizeOfType(attr.attrib.type);
                             EditorGUILayout.LabelField(size + " byte" + (size > 1? "s":"") , Styles.cell, GUILayout.Width(80));
                         }
                     }
@@ -113,19 +115,18 @@ public class VFXContextEditor : VFXSlotContainerEditor
                 Styles.Row(Styles.cell, "Can Be Compiled", context.CanBeCompiled().ToString());
 
                 EditorGUILayout.Space();
-                Dictionary<VFXAttribute, VFXAttributeMode> attributeInfos;
-                if (data.contextsToAttributes.TryGetValue(context, out attributeInfos))
-                {
-                    EditorGUILayout.LabelField("Attributes used by Context", Styles.header);
 
-                    foreach (var kvp in attributeInfos)
+                var attributeInfos = data.GetAttributesForContext(context);
+
+                EditorGUILayout.LabelField("Attributes used by Context", Styles.header);
+
+                foreach (var info in attributeInfos)
+                {
+                    using (new EditorGUILayout.HorizontalScope())
                     {
-                        using (new EditorGUILayout.HorizontalScope())
-                        {
-                            EditorGUILayout.LabelField(kvp.Key.name, Styles.cell);
-                            Styles.DataTypeLabel(kvp.Key.type.ToString(), kvp.Key.type, Styles.cell, GUILayout.Width(80));
-                            Styles.AttributeModeLabel(kvp.Value.ToString(), kvp.Value, Styles.cell, GUILayout.Width(80));
-                        }
+                        EditorGUILayout.LabelField(info.attrib.name, Styles.cell);
+                        Styles.DataTypeLabel(info.attrib.type.ToString(), info.attrib.type, Styles.cell, GUILayout.Width(80));
+                        Styles.AttributeModeLabel(info.mode.ToString(), info.mode, Styles.cell, GUILayout.Width(80));
                     }
                 }
 
