@@ -238,7 +238,7 @@ namespace UnityEditor.VFX.Block
                 string localName = GenerateLocalAttributeName(attrib.name);
                 if (Mode == ComputeMode.Uniform || size == 1)
                 {
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(AnimationCurve), localName));
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(AnimationCurve), localName), VFXResources.defaultResources.animationCurve);
                 }
                 else
                 {
