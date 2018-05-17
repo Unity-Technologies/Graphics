@@ -27,7 +27,7 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
 
             HLSLPROGRAM
             #pragma target 4.5
-            #pragma only_renderers d3d11 ps4 xboxone vulkan metal
+            #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
             // #pragma enable_d3d11_debug_symbols
 
             #pragma vertex Vert
@@ -97,7 +97,7 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
                 // Reconstruct the view-space position.
                 float2 centerPosSS = posInput.positionNDC;
                 float2 cornerPosSS = centerPosSS + 0.5 * _ScreenSize.zw;
-                float  centerDepth = LOAD_TEXTURE2D(_MainDepthTexture, centerPosition).r;
+                float  centerDepth = LOAD_TEXTURE2D(_CameraDepthTexture, centerPosition).r;
                 float3 centerPosVS = ComputeViewSpacePosition(centerPosSS, centerDepth, UNITY_MATRIX_I_P);
                 float3 cornerPosVS = ComputeViewSpacePosition(cornerPosSS, centerDepth, UNITY_MATRIX_I_P);
 
@@ -174,7 +174,7 @@ Shader "Hidden/HDRenderPipeline/SubsurfaceScattering"
                         // Apply bilateral weighting.
                         // Ref #1: Skin Rendering by Pseudo–Separable Cross Bilateral Filtering.
                         // Ref #2: Separable SSS, Supplementary Materials, Section E.
-                        float rawDepth    = LOAD_TEXTURE2D(_MainDepthTexture, samplePosition).r;
+                        float rawDepth    = LOAD_TEXTURE2D(_CameraDepthTexture, samplePosition).r;
                         float sampleDepth = LinearEyeDepth(rawDepth, _ZBufferParams);
                         float zDistance   = centimPerUnit * sampleDepth - (centimPerUnit * centerPosVS.z);
                         sampleWeight     *= exp(-zDistance * zDistance * halfRcpVariance);

@@ -236,7 +236,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             // Will set the correct camera viewport as well.
             SetRenderTarget(cmd, camera, destination);
-            BlitTexture(cmd, source, destination, camera.scaleBias, mipLevel, bilinear);
+            BlitTexture(cmd, source, destination, camera.viewportScale, mipLevel, bilinear);
         }
 
         // This case, both source and destination are camera-scaled but we want to override the scale/bias parameter.
@@ -251,13 +251,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             SetRenderTarget(cmd, camera, destination);
             cmd.SetViewport(destViewport);
-            BlitTexture(cmd, source, destination, camera.scaleBias, mipLevel, bilinear);
+            BlitTexture(cmd, source, destination, camera.viewportScale, mipLevel, bilinear);
         }
 
         // This particular case is for blitting a camera-scaled texture into a non scaling texture. So we setup the full viewport (implicit in cmd.Blit) but have to scale the input UVs.
         public static void BlitCameraTexture(CommandBuffer cmd, HDCamera camera, RTHandleSystem.RTHandle source, RenderTargetIdentifier destination)
         {
-            cmd.Blit(source, destination, new Vector2(camera.scaleBias.x, camera.scaleBias.y), Vector2.zero);
+            cmd.Blit(source, destination, new Vector2(camera.viewportScale.x, camera.viewportScale.y), Vector2.zero);
         }
 
         // This particular case is for blitting a non-scaled texture into a scaled texture. So we setup the partial viewport but don't scale the input UVs.
@@ -282,7 +282,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
             HDUtils.SetRenderTarget(commandBuffer, camera, colorBuffer);
-            commandBuffer.SetGlobalVector(HDShaderIDs._ScreenToTargetScale, camera.scaleBias);
+            commandBuffer.SetGlobalVector(HDShaderIDs._ScreenToTargetScale, camera.doubleBufferedViewportScale);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
@@ -291,7 +291,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
             HDUtils.SetRenderTarget(commandBuffer, camera, colorBuffer, depthStencilBuffer);
-            commandBuffer.SetGlobalVector(HDShaderIDs._ScreenToTargetScale, camera.scaleBias);
+            commandBuffer.SetGlobalVector(HDShaderIDs._ScreenToTargetScale, camera.doubleBufferedViewportScale);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
@@ -300,7 +300,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
             HDUtils.SetRenderTarget(commandBuffer, camera, colorBuffers, depthStencilBuffer);
-            commandBuffer.SetGlobalVector(HDShaderIDs._ScreenToTargetScale, camera.scaleBias);
+            commandBuffer.SetGlobalVector(HDShaderIDs._ScreenToTargetScale, camera.doubleBufferedViewportScale);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
@@ -309,7 +309,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                             MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
             CoreUtils.SetRenderTarget(commandBuffer, colorBuffer);
-            commandBuffer.SetGlobalVector(HDShaderIDs._ScreenToTargetScale, camera.scaleBias);
+            commandBuffer.SetGlobalVector(HDShaderIDs._ScreenToTargetScale, camera.doubleBufferedViewportScale);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
@@ -317,14 +317,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static Vector4 GetMouseCoordinates(HDCamera camera)
         {
             Vector2 mousePixelCoord = MousePositionDebug.instance.GetMousePosition(camera.screenSize.y);
-            return new Vector4(mousePixelCoord.x, mousePixelCoord.y, camera.scaleBias.x * mousePixelCoord.x / camera.screenSize.x, camera.scaleBias.y * mousePixelCoord.y / camera.screenSize.y);
+            return new Vector4(mousePixelCoord.x, mousePixelCoord.y, camera.viewportScale.x * mousePixelCoord.x / camera.screenSize.x, camera.viewportScale.y * mousePixelCoord.y / camera.screenSize.y);
         }
 
         // Returns mouse click coordinates: (x,y) in pixels and (z,w) normalized inside the render target (not the viewport)
         public static Vector4 GetMouseClickCoordinates(HDCamera camera)
         {
             Vector2 mousePixelCoord = MousePositionDebug.instance.GetMouseClickPosition(camera.screenSize.y);
-            return new Vector4(mousePixelCoord.x, mousePixelCoord.y, camera.scaleBias.x * mousePixelCoord.x / camera.screenSize.x, camera.scaleBias.y * mousePixelCoord.y / camera.screenSize.y);
+            return new Vector4(mousePixelCoord.x, mousePixelCoord.y, camera.viewportScale.x * mousePixelCoord.x / camera.screenSize.x, camera.viewportScale.y * mousePixelCoord.y / camera.screenSize.y);
+        }
+
+        // This function check if camera is a CameraPreview, then check if this preview is a regular preview (i.e not a preview from the camera editor)
+        public static bool IsRegularPreviewCamera(Camera camera)
+        {
+            var additionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
+            return camera.cameraType == CameraType.Preview && ((additionalCameraData == null) || (additionalCameraData && !additionalCameraData.isEditorCameraPreview));
         }
     }
 }

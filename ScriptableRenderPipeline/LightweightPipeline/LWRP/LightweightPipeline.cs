@@ -90,7 +90,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private RenderTargetIdentifier m_CopyColorRT;
         private RenderTargetIdentifier m_DepthRT;
         private RenderTargetIdentifier m_CopyDepth;
-        private RenderTargetIdentifier m_Color;
         private float[] m_OpaqueScalerValues = {1.0f, 0.5f, 0.25f, 0.25f};
 
         private float m_RenderScale;
@@ -470,7 +469,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     }
                     else
                         cmd.DisableShaderKeyword(kMSAADepthKeyword);
-                    
+
                     CopyTexture(cmd, m_DepthRT, m_CopyDepth, m_CopyDepthMaterial, forceBlit);
                     depthRT = m_CopyDepth;
                     setRenderTarget = true;
@@ -537,9 +536,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private void SetupFrameRenderingConfiguration(out FrameRenderingConfiguration configuration, bool screenspaceShadows, bool stereoEnabled, bool sceneViewCamera)
         {
             configuration = (stereoEnabled) ? FrameRenderingConfiguration.Stereo : FrameRenderingConfiguration.None;
+#if !UNITY_SWITCH
             if (stereoEnabled && XRSettings.eyeTextureDesc.dimension == TextureDimension.Tex2DArray)
                 m_IntermediateTextureArray = true;
             else
+#endif
                 m_IntermediateTextureArray = false;
 
             bool hdrEnabled = m_Asset.SupportsHDR && m_CurrCamera.allowHDR;
@@ -619,9 +620,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private RenderTextureDescriptor CreateRTDesc(FrameRenderingConfiguration renderingConfig, float scaler = 1.0f)
         {
             RenderTextureDescriptor desc;
+#if !UNITY_SWITCH
             if (CoreUtils.HasFlag(renderingConfig, FrameRenderingConfiguration.Stereo))
                 desc = XRSettings.eyeTextureDesc;
             else
+#endif
                 desc = new RenderTextureDescriptor(m_CurrCamera.pixelWidth, m_CurrCamera.pixelHeight);
 
             float renderScale = GetRenderScale();
@@ -1034,6 +1037,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
 
             SetRenderTarget(cmd, colorRT, depthRT, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, clearFlag);
+            m_CurrCameraColorRT = colorRT;
 
             // If rendering to an intermediate RT we resolve viewport on blit due to offset not being supported
             // while rendering to a RT.
@@ -1076,8 +1080,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private bool IsStereoEnabled(Camera camera)
         {
+#if !UNITY_SWITCH
             bool isSceneViewCamera = camera.cameraType == CameraType.SceneView;
             return XRSettings.isDeviceActive && !isSceneViewCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
+#else
+            return false;
+#endif
         }
 
         private float GetRenderScale()

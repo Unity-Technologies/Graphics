@@ -30,7 +30,7 @@ namespace UnityEditor.Experimental.Rendering
         public static readonly CED.IDrawer[] Inspector;
 
         public static readonly CED.IDrawer SectionPrimarySettings = CED.Group(
-        
+
             CED.Action(Drawer_ReflectionProbeMode),
             CED.FadeGroup((s, p, o, i) => s.IsSectionExpandedMode((ReflectionProbeMode)i),
                 FadeOption.Indent,
@@ -95,7 +95,7 @@ namespace UnityEditor.Experimental.Rendering
         static void Drawer_CaptureSettings(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
             var renderPipelineAsset = (HDRenderPipelineAsset)GraphicsSettings.renderPipelineAsset;
-            p.resolution.intValue = renderPipelineAsset.GetRenderPipelineSettings().lightLoopSettings.reflectionCubemapSize;
+            p.resolution.intValue = (int)renderPipelineAsset.GetRenderPipelineSettings().lightLoopSettings.reflectionCubemapSize;
             EditorGUILayout.LabelField(CoreEditorUtils.GetContent("Resolution"), CoreEditorUtils.GetContent(p.resolution.intValue.ToString()));
 
             EditorGUILayout.PropertyField(p.shadowDistance, CoreEditorUtils.GetContent("Shadow Distance"));
@@ -242,6 +242,17 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUI.showMixedValue = false;
             if (EditorGUI.EndChangeCheck())
                 s.SetShapeTarget(p.influenceShape.intValue);
+
+            if (p.proxyVolumeComponent.objectReferenceValue != null)
+            {
+                var proxy = (ReflectionProxyVolumeComponent)p.proxyVolumeComponent.objectReferenceValue;
+                if ((int)proxy.proxyVolume.shapeType != p.influenceShape.enumValueIndex)
+                    EditorGUILayout.HelpBox(
+                        "Proxy volume and influence volume have different shape types, this is not supported.",
+                        MessageType.Error,
+                        true
+                    );
+            }
         }
 
         static void Drawer_IntensityMultiplier(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
