@@ -12,6 +12,7 @@ using LightweightRP = UnityEngine.Experimental.Rendering.LightweightPipeline.Lig
 
 namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 {
+#if UNITY_2018_2_OR_NEWER
     public class ShaderPreprocessor : IPreprocessShaders
     {
 #if LOG_VARIANTS
@@ -135,6 +136,10 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
         public void OnProcessShader(Shader shader, ShaderSnippetData snippetData, IList<ShaderCompilerData> compilerDataList)
         {
+            LightweightRP lw = RenderPipelineManager.currentPipeline as LightweightRP;
+            if (lw == null)
+                return;
+
             PipelineCapabilities capabilities = LightweightRP.GetPipelineCapabilities();
             int prevVariantCount = compilerDataList.Count;
 
@@ -155,4 +160,5 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 #endif
         }
     }
+#endif // UNITY_2018_2_OR_NEWER
 }

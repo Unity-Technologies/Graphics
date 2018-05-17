@@ -78,8 +78,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 return new ReflectionSystemParameters
                 {
-                    maxPlanarReflectionProbes = renderPipelineSettings.lightLoopSettings.maxPlanarReflectionProbes,
-                    planarReflectionProbeSize = renderPipelineSettings.lightLoopSettings.planarReflectionTextureSize
+                    maxPlanarReflectionProbePerCamera = renderPipelineSettings.lightLoopSettings.planarReflectionProbeCacheSize,
+                    maxActivePlanarReflectionProbe = 512,
+                    planarReflectionProbeSize = (int)renderPipelineSettings.lightLoopSettings.planarReflectionTextureSize
                 };
             }
         }

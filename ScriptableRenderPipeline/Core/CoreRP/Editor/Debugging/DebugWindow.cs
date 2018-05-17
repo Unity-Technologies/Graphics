@@ -144,6 +144,11 @@ namespace UnityEditor.Experimental.Rendering
             DebugManager.instance.onSetDirty -= MarkDirty;
             Undo.ClearUndo(m_Settings);
 
+            DestroyWidgetStates();
+        }
+
+        public void DestroyWidgetStates()
+        {
             if (m_WidgetStates != null)
             {
                 // Clear all the states from memory
@@ -282,6 +287,18 @@ namespace UnityEditor.Experimental.Rendering
 
         void Update()
         {
+            // HACK: Make debug windows work correctly with FrameSettings in Editor
+            // When we manipulate the framesettings on HDRenderPipelineAsset, the debug windows is not
+            // refresh, it keep the old state of the runtime framesettings in memory and thus overwrite
+            // our freshly edited value. To ensure debug windows is aware of framesettings change we need to
+            // destroy its internal widget state.
+            if (DebugManager.renderPipelineIsRecreated)
+            {
+                DestroyWidgetStates();
+                DebugManager.renderPipelineIsRecreated = false;
+            }
+            // END HACK
+
             int treeState = DebugManager.instance.GetState();
 
             if (m_DebugTreeState != treeState || m_IsDirty)

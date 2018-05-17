@@ -30,7 +30,6 @@ namespace UnityEditor.Experimental.Rendering
         Camera m_PreviewCamera;
         HDAdditionalCameraData m_PreviewAdditionalCameraData;
         PostProcessLayer m_PreviewPostProcessLayer;
-        HDCamera m_PreviewHDCamera;
 
         void OnEnable()
         {
@@ -41,9 +40,9 @@ namespace UnityEditor.Experimental.Rendering
             m_PreviewCamera.enabled = false;
             m_PreviewCamera.cameraType = CameraType.Preview; // Must be init before adding HDAdditionalCameraData
             m_PreviewAdditionalCameraData = m_PreviewCamera.gameObject.AddComponent<HDAdditionalCameraData>();
+            // Say that we are a camera editor preview and not just a regular preview
+            m_PreviewAdditionalCameraData.isEditorCameraPreview = true;
             m_PreviewPostProcessLayer = m_PreviewCamera.gameObject.AddComponent<PostProcessLayer>();
-            m_PreviewHDCamera = new HDCamera(m_PreviewCamera);
-            m_PreviewHDCamera.Update(m_PreviewPostProcessLayer, m_PreviewAdditionalCameraData.GetFrameSettings());
         }
 
         void OnDisable()
