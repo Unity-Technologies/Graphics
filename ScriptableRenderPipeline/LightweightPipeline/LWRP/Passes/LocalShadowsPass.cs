@@ -8,13 +8,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     {
         const int k_ShadowmapBufferBits = 16;
         RenderTexture m_LocalShadowmapTexture;
-        RenderTextureDescriptor m_LocalShadowmapDescriptor;
+        RenderTextureFormat m_LocalShadowmapFormat;
 
         Matrix4x4[] m_LocalShadowMatrices;
         ShadowSliceData[] m_LocalLightSlices;
         float[] m_LocalShadowStrength;
 
-        public LocalShadowsPass(LightweightForwardRenderer renderer, int atlasResolution) : base(renderer)
+        public LocalShadowsPass(LightweightForwardRenderer renderer) : base(renderer)
         {
             RegisterShaderPassName("ShadowCaster");
 
@@ -31,11 +31,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             LocalShadowConstantBuffer._LocalShadowOffset3 = Shader.PropertyToID("_LocalShadowOffset3");
             LocalShadowConstantBuffer._LocalShadowmapSize = Shader.PropertyToID("_LocalShadowmapSize");
 
-            RenderTextureFormat shadowmapFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.Shadowmap)
+            m_LocalShadowmapFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.Shadowmap)
                 ? RenderTextureFormat.Shadowmap
                 : RenderTextureFormat.Depth;
-
-            m_LocalShadowmapDescriptor = new RenderTextureDescriptor(atlasResolution, atlasResolution, shadowmapFormat, k_ShadowmapBufferBits);
         }
 
         public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref CameraData cameraData, ref LightData lightData)
@@ -99,7 +97,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             int sliceResolution = LightweightShadowUtils.GetMaxTileResolutionInAtlas(atlasWidth, atlasHeight, shadowCastingLightsCount);
             int shadowSampling = 0;
 
-            m_LocalShadowmapTexture = RenderTexture.GetTemporary(m_LocalShadowmapDescriptor);
+            m_LocalShadowmapTexture = RenderTexture.GetTemporary(shadowData.localShadowAtlasWidth,
+             shadowData.localShadowAtlasHeight, k_ShadowmapBufferBits, m_LocalShadowmapFormat);
             m_LocalShadowmapTexture.filterMode = FilterMode.Bilinear;
             m_LocalShadowmapTexture.wrapMode = TextureWrapMode.Clamp;
 

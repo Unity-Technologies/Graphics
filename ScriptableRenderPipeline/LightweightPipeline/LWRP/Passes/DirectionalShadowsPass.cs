@@ -9,13 +9,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         int m_ShadowCasterCascadesCount;
 
         RenderTexture m_DirectionalShadowmapTexture;
+        RenderTextureFormat m_ShadowmapFormat;
         RenderTextureDescriptor m_DirectionalShadowmapDescriptor;
 
         Matrix4x4[] m_DirectionalShadowMatrices;
         ShadowSliceData[] m_CascadeSlices;
         Vector4[] m_CascadeSplitDistances;
 
-        public DirectionalShadowsPass(LightweightForwardRenderer renderer, int atlasResolution) : base(renderer)
+        public DirectionalShadowsPass(LightweightForwardRenderer renderer) : base(renderer)
         {
             RegisterShaderPassName("ShadowCaster");
 
@@ -33,12 +34,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             DirectionalShadowConstantBuffer._ShadowOffset3 = Shader.PropertyToID("_ShadowOffset3");
             DirectionalShadowConstantBuffer._ShadowmapSize = Shader.PropertyToID("_ShadowmapSize");
 
-            RenderTextureFormat shadowmapFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.Shadowmap)
+            m_ShadowmapFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.Shadowmap)
                 ? RenderTextureFormat.Shadowmap
                 : RenderTextureFormat.Depth;
-
-            m_DirectionalShadowmapDescriptor = new RenderTextureDescriptor(atlasResolution,
-                    atlasResolution, shadowmapFormat, k_ShadowmapBufferBits);
         }
 
         public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref CameraData cameraData, ref LightData lightData)
@@ -100,7 +98,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Matrix4x4 view, proj;
             var settings = new DrawShadowsSettings(cullResults, shadowLightIndex);
 
-            m_DirectionalShadowmapTexture = RenderTexture.GetTemporary(m_DirectionalShadowmapDescriptor);
+            m_DirectionalShadowmapTexture = RenderTexture.GetTemporary(shadowData.directionalShadowAtlasWidth,
+                shadowData.directionalShadowAtlasHeight, k_ShadowmapBufferBits, m_ShadowmapFormat);
             m_DirectionalShadowmapTexture.filterMode = FilterMode.Bilinear;
             m_DirectionalShadowmapTexture.wrapMode = TextureWrapMode.Clamp;
             SetRenderTarget(cmd, m_DirectionalShadowmapTexture, RenderBufferLoadAction.DontCare,
