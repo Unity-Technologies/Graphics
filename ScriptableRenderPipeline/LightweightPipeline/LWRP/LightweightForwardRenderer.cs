@@ -106,8 +106,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_RenderPassSet = new ScriptableRenderPass[(int)RenderPassHandles.Count]
             {
                 new DepthOnlyPass(this),
-                new DirectionalShadowsPass(this, pipelineAsset.DirectionalShadowAtlasResolution),
-                new LocalShadowsPass(this, pipelineAsset.LocalShadowAtlasResolution),
+                new DirectionalShadowsPass(this),
+                new LocalShadowsPass(this),
                 new ScreenSpaceShadowResolvePass(this),
                 new ForwardLitPass(this),
             };
