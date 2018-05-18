@@ -39,8 +39,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             m_DirectionalShadowmapDescriptor = new RenderTextureDescriptor(atlasResolution,
                     atlasResolution, shadowmapFormat, k_ShadowmapBufferBits);
-
-            Clear();
         }
 
         public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref CameraData cameraData, ref LightData lightData)

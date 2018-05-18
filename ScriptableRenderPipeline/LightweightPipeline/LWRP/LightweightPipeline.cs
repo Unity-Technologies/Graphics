@@ -14,10 +14,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public LightweightPipelineAsset pipelineAsset { get; private set; }
 
         CameraComparer m_CameraComparer = new CameraComparer();
-        Material m_BlitMaterial;
-        Material m_CopyDepthMaterial;
-        Material m_ErrorMaterial;
-        Material m_SamplingMaterial;
 
         LightweightForwardRenderer m_Renderer;
         CullResults m_CullResults;

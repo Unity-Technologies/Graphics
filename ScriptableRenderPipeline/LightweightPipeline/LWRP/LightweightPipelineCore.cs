@@ -89,6 +89,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static readonly string LocalShadowsText = "_LOCAL_SHADOWS_ENABLED";
         public static readonly string SoftShadowsText = "_SHADOWS_SOFT";
         public static readonly string CascadeShadowsText = "_SHADOWS_CASCADE";
+        public static readonly string MsaaDepthResolve = "_MSAA_DEPTH";
 
         public static readonly ShaderKeyword AdditionalLights = new ShaderKeyword(AdditionalLightsText);
         public static readonly ShaderKeyword VertexLights = new ShaderKeyword(VertexLightsText);

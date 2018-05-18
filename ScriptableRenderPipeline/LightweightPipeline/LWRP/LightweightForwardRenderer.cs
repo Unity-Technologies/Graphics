@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
@@ -33,7 +34,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static int OpaqueColor;
         public static int DirectionalShadowmap;
         public static int LocalShadowmap;
-        public static int ScreenSpaceOcclusion;
+        public static int ScreenSpaceShadowmap;
     }
 
     public class LightweightForwardRenderer
@@ -56,10 +57,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
-        // TODO: Profile performance of using ComputeBuffer on mobiles that support it vs
+        // TODO: Profile performance of using ComputeBuffer on mobiles that support it
         public bool useComputeBufferForPerObjectLightIndices
         {
-            get { return !Application.isMobilePlatform && Application.platform != RuntimePlatform.WebGLPlayer; }
+            get { return SystemInfo.supportsComputeShaders &&
+                !Application.isMobilePlatform && Application.platform != RuntimePlatform.WebGLPlayer; }
         }
 
         public int maxVisibleLocalLights { get { return k_MaxVisibleLocalLights; } }
@@ -73,12 +75,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public FilterRenderersSettings opaqueFilterSettings { get; private set; }
         public FilterRenderersSettings transparentFilterSettings { get; private set; }
 
-        Dictionary<int, Material> m_Materials = new Dictionary<int, Material>();
         Dictionary<int, RenderTargetIdentifier> m_ResourceMap = new Dictionary<int, RenderTargetIdentifier>();
-        Dictionary<RenderPassHandles, ScriptableRenderPass> m_RenderPassSet = new Dictionary<RenderPassHandles, ScriptableRenderPass>();
-
         List<ScriptableRenderPass> m_ActiveShadowQueue = new List<ScriptableRenderPass>();
         List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>();
+
+        Material[] m_Materials;
+        ScriptableRenderPass[] m_RenderPassSet = new ScriptableRenderPass[(int)RenderPassHandles.Count];
 
         public LightweightForwardRenderer(LightweightPipelineAsset pipelineAsset)
         {
@@ -90,22 +92,26 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             RegisterSurface("_CameraOpaqueTexture", out RenderTargetHandles.OpaqueColor);
             RegisterSurface("_DirectionalShadowmapTexture", out RenderTargetHandles.DirectionalShadowmap);
             RegisterSurface("_LocalShadowmapTexture", out RenderTargetHandles.LocalShadowmap);
-            RegisterSurface("_ScreenSpaceShadowMapTexture", out RenderTargetHandles.ScreenSpaceOcclusion);
+            RegisterSurface("_ScreenSpaceShadowMapTexture", out RenderTargetHandles.ScreenSpaceShadowmap);
+            
+            m_Materials = new Material[(int)MaterialHandles.Count]
+            {
+                CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader"),
+                CoreUtils.CreateEngineMaterial(pipelineAsset.CopyDepthShader),
+                CoreUtils.CreateEngineMaterial(pipelineAsset.SamplingShader),
+                CoreUtils.CreateEngineMaterial(pipelineAsset.BlitShader),
+                CoreUtils.CreateEngineMaterial(pipelineAsset.ScreenSpaceShadowShader),
+            };    
 
-            RegisterMaterial(MaterialHandles.Error, CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader"));
-            RegisterMaterial(MaterialHandles.DepthCopy, CoreUtils.CreateEngineMaterial(pipelineAsset.CopyDepthShader));
-            RegisterMaterial(MaterialHandles.Sampling, CoreUtils.CreateEngineMaterial(pipelineAsset.SamplingShader));
-            RegisterMaterial(MaterialHandles.Blit, CoreUtils.CreateEngineMaterial(pipelineAsset.BlitShader));
-            RegisterMaterial(MaterialHandles.ScrenSpaceShadow, CoreUtils.CreateEngineMaterial(pipelineAsset.ScreenSpaceShadowShader));
-            Debug.Assert(m_Materials.Count == (int)MaterialHandles.Count, "All materials in MaterialHandles should be registered in the renderer.");
-
-            RegisterPass(RenderPassHandles.DepthPrepass, new DepthOnlyPass(this));
-            RegisterPass(RenderPassHandles.DirectionalShadows, new DirectionalShadowsPass(this, pipelineAsset.DirectionalShadowAtlasResolution));
-            RegisterPass(RenderPassHandles.LocalShadows, new LocalShadowsPass(this, pipelineAsset.LocalShadowAtlasResolution));
-            RegisterPass(RenderPassHandles.ScreenSpaceShadowResolve, new ScreenSpaceShadowResolvePass(this));
-            RegisterPass(RenderPassHandles.ForwardLit, new ForwardLitPass(this));
-            Debug.Assert(m_RenderPassSet.Count == (int)RenderPassHandles.Count, "All render passes in Passes should be registered in the renderer");
-
+            m_RenderPassSet = new ScriptableRenderPass[(int)RenderPassHandles.Count]
+            {
+                new DepthOnlyPass(this),
+                new DirectionalShadowsPass(this, pipelineAsset.DirectionalShadowAtlasResolution),
+                new LocalShadowsPass(this, pipelineAsset.LocalShadowAtlasResolution),
+                new ScreenSpaceShadowResolvePass(this),
+                new ForwardLitPass(this),
+            };
+        
             postProcessRenderContext = new PostProcessRenderContext();
 
             opaqueFilterSettings = new FilterRenderersSettings(true)
@@ -127,18 +133,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 perObjectLightIndices = null;
             }
 
-            for (int i = 0; i < m_Materials.Count; ++i)
+            for (int i = 0; i < m_Materials.Length; ++i)
                 CoreUtils.Destroy(m_Materials[i]);
-            m_Materials.Clear();
-        }
-
-        public Material GetMaterial(MaterialHandles resourceHandle)
-        {
-            int resourceHandleID = (int)resourceHandle;
-            if (resourceHandleID < 0 || resourceHandleID >= m_Materials.Count)
-                return null;
-
-            return m_Materials[resourceHandleID];
         }
 
         public RenderTextureDescriptor CreateRTDesc(ref CameraData cameraData, float scaler = 1.0f)
@@ -175,7 +171,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 EnqueuePass(cmd, RenderPassHandles.DirectionalShadows, baseDescriptor);
                 if (shadowData.requiresScreenSpaceShadowResolve)
-                    EnqueuePass(cmd, RenderPassHandles.ScreenSpaceShadowResolve, baseDescriptor, new[] {RenderTargetHandles.ScreenSpaceOcclusion});
+                    EnqueuePass(cmd, RenderPassHandles.ScreenSpaceShadowResolve, baseDescriptor, new[] {RenderTargetHandles.ScreenSpaceShadowmap});
             }
 
             if (shadowData.renderLocalShadows)
@@ -215,10 +211,57 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
 #if UNITY_EDITOR
             if (cameraData.isSceneViewCamera)
-                CopyDepth(ref context);
+            {
+                // Restore Render target for additional editor rendering.
+                // Note: Scene view camera always perform depth prepass
+                CommandBuffer cmd = CommandBufferPool.Get("Copy Depth to Camera");
+                CoreUtils.SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget);
+                cmd.DisableShaderKeyword(LightweightKeywords.MsaaDepthResolve);
+                cmd.Blit(GetSurface(RenderTargetHandles.DepthTexture), BuiltinRenderTextureType.CameraTarget, GetMaterial(MaterialHandles.DepthCopy));
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
+            }
 #endif
 
             DisposePasses(ref context);
+        }
+
+        public RenderTargetIdentifier GetSurface(int handle)
+        {
+            RenderTargetIdentifier renderTargetID;
+            if (handle < 0 || !m_ResourceMap.TryGetValue(handle, out renderTargetID))
+            {
+                Debug.LogError(string.Format("Handle {0} has not any surface registered to it.", handle));
+                return new RenderTargetIdentifier();
+            }
+            
+            return renderTargetID;
+        }
+
+        public Material GetMaterial(MaterialHandles handle)
+        {
+            int handleID = (int)handle;
+            if (handleID >= m_Materials.Length)
+            {
+                Debug.LogError(string.Format("Material {0} is not registered.",
+                 Enum.GetName(typeof(MaterialHandles), handleID)));
+                return null;
+            }
+
+            return m_Materials[handleID];
+        }
+
+        ScriptableRenderPass GetPass(RenderPassHandles handle)
+        {
+            int handleID = (int)handle;
+            if (handleID >= m_RenderPassSet.Length)
+            {
+                Debug.LogError(string.Format("Render Pass {0} is not registered.", 
+                 Enum.GetName(typeof(RenderPassHandles), handleID)));
+                return null;
+            }
+
+            return m_RenderPassSet[handleID];
         }
 
         void Clear()
@@ -233,21 +276,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_ResourceMap.Add(handle, new RenderTargetIdentifier(handle));
         }
 
-        void RegisterMaterial(MaterialHandles handle, Material material)
-        {
-            m_Materials.Add((int)handle, material);
-        }
-
-        void RegisterPass(RenderPassHandles passHandle, ScriptableRenderPass pass)
-        {
-            m_RenderPassSet.Add(passHandle, pass);
-        }
-
         void EnqueuePass(CommandBuffer cmd, RenderPassHandles passHandle, RenderTextureDescriptor baseDescriptor,
             int[] colorAttachmentHandles = null, int depthAttachmentHandle = -1, int samples = 1)
         {
-            Debug.Assert((int)passHandle < m_RenderPassSet.Count, "Trying to add an invalid pass to renderer's frame");
-            ScriptableRenderPass pass = m_RenderPassSet[passHandle];
+            ScriptableRenderPass pass = GetPass(passHandle);
             pass.Setup(cmd, baseDescriptor, colorAttachmentHandles, depthAttachmentHandle, samples);
 
             if (passHandle == RenderPassHandles.DirectionalShadows || passHandle == RenderPassHandles.LocalShadows)
@@ -274,17 +306,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return supportsDepthCopy || msaaDepthResolve;
         }
 
-        void CopyDepth(ref ScriptableRenderContext context)
-        {
-            // Restore Render target for additional editor rendering.
-            // Note: Scene view camera always perform depth prepass
-            CommandBuffer cmd = CommandBufferPool.Get("Copy Depth to Camera");
-            CoreUtils.SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget);
-            cmd.Blit(GetSurface(RenderTargetHandles.DepthTexture), BuiltinRenderTextureType.CameraTarget, GetMaterial(MaterialHandles.DepthCopy));
-            context.ExecuteCommandBuffer(cmd);
-            CommandBufferPool.Release(cmd);
-        }
-
         void DisposePasses(ref ScriptableRenderContext context)
         {
             CommandBuffer cmd = CommandBufferPool.Get("Release Resources");
@@ -300,59 +321,48 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         void SetupPerObjectLightIndices(ref CullResults cullResults, ref LightData lightData)
         {
-            if (lightData.totalAdditionalLightsCount > 0)
+            if (lightData.totalAdditionalLightsCount == 0)
+                return;
+
+            List<VisibleLight> visibleLights = lightData.visibleLights;
+            int[] perObjectLightIndexMap = cullResults.GetLightIndexMap();
+            int directionalLightCount = 0;
+
+            // Disable all directional lights from the perobject light indices
+            // Pipeline handles them globally
+            for (int i = 0; i < visibleLights.Count; ++i)
             {
-                List<VisibleLight> visibleLights = lightData.visibleLights;
-                int[] perObjectLightIndexMap = cullResults.GetLightIndexMap();
-                int directionalLightCount = 0;
-
-                // Disable all directional lights from the perobject light indices
-                // Pipeline handles them globally
-                for (int i = 0; i < visibleLights.Count; ++i)
+                VisibleLight light = visibleLights[i];
+                if (light.lightType == LightType.Directional)
                 {
-                    VisibleLight light = visibleLights[i];
-                    if (light.lightType == LightType.Directional)
-                    {
-                        perObjectLightIndexMap[i] = -1;
-                        ++directionalLightCount;
-                    }
-                    else
-                        perObjectLightIndexMap[i] -= directionalLightCount;
+                    perObjectLightIndexMap[i] = -1;
+                    ++directionalLightCount;
                 }
-                cullResults.SetLightIndexMap(perObjectLightIndexMap);
+                else
+                    perObjectLightIndexMap[i] -= directionalLightCount;
+            }
+            cullResults.SetLightIndexMap(perObjectLightIndexMap);
 
-                // if not using a compute buffer, engine will set indices in 2 vec4 constants
-                // unity_4LightIndices0 and unity_4LightIndices1
-                if (useComputeBufferForPerObjectLightIndices)
+            // if not using a compute buffer, engine will set indices in 2 vec4 constants
+            // unity_4LightIndices0 and unity_4LightIndices1
+            if (useComputeBufferForPerObjectLightIndices)
+            {
+                int lightIndicesCount = cullResults.GetLightIndicesCount();
+                if (lightIndicesCount > 0)
                 {
-                    int lightIndicesCount = cullResults.GetLightIndicesCount();
-                    if (lightIndicesCount > 0)
+                    if (perObjectLightIndices == null)
                     {
-                        if (perObjectLightIndices == null)
-                        {
-                            perObjectLightIndices = new ComputeBuffer(lightIndicesCount, sizeof(int));
-                        }
-                        else if (perObjectLightIndices.count < lightIndicesCount)
-                        {
-                            perObjectLightIndices.Release();
-                            perObjectLightIndices = new ComputeBuffer(lightIndicesCount, sizeof(int));
-                        }
-
-                        cullResults.FillLightIndices(perObjectLightIndices);
+                        perObjectLightIndices = new ComputeBuffer(lightIndicesCount, sizeof(int));
                     }
+                    else if (perObjectLightIndices.count < lightIndicesCount)
+                    {
+                        perObjectLightIndices.Release();
+                        perObjectLightIndices = new ComputeBuffer(lightIndicesCount, sizeof(int));
+                    }
+
+                    cullResults.FillLightIndices(perObjectLightIndices);
                 }
             }
-        }
-
-        public RenderTargetIdentifier GetSurface(int handle)
-        {
-            if (handle < 0)
-            {
-                Debug.LogError(string.Format("Handle {0} has not any surface registered to it.", handle));
-                return new RenderTargetIdentifier();
-            }
-
-            return m_ResourceMap[handle];
         }
     }
 }
