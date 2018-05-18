@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -11,9 +12,9 @@ namespace UnityEditor.VFX.Block
         {
             PixelAbsolute,
             PixelRelativeToResolution,
-            HeightRelative,
-            WidthRelative,
-            WidthHeightRelative
+            RatioRelativeToHeight,
+            RatioRelativeToWidth,
+            RatioRelativeToHeightAndWidth
         }
 
         public class InputPropertiesAbsolute
@@ -46,8 +47,12 @@ namespace UnityEditor.VFX.Block
                 {
                     case SizeMode.PixelAbsolute: return PropertiesFromType("InputPropertiesAbsolute");
                     case SizeMode.PixelRelativeToResolution: return PropertiesFromType("InputPropertiesResolution").Concat(PropertiesFromType("InputPropertiesAbsolute"));
-                    default:
+                    case SizeMode.RatioRelativeToHeight:
+                    case SizeMode.RatioRelativeToHeightAndWidth:
+                    case SizeMode.RatioRelativeToWidth:
                         return PropertiesFromType("InputPropertiesRelative");
+                    default:
+                        throw new NotImplementedException(string.Format("Not Implemented SizeMode: {0}", sizeMode));
                 }
             }
         }
@@ -61,7 +66,7 @@ namespace UnityEditor.VFX.Block
 
                 yield return new VFXAttributeInfo(VFXAttribute.SizeX, VFXAttributeMode.ReadWrite);
 
-                if (GetData().IsCurrentAttributeWritten(VFXAttribute.SizeY) || sizeMode == SizeMode.WidthHeightRelative || sizeMode == SizeMode.PixelRelativeToResolution)
+                if (GetData().IsCurrentAttributeWritten(VFXAttribute.SizeY) || sizeMode == SizeMode.RatioRelativeToHeightAndWidth || sizeMode == SizeMode.PixelRelativeToResolution)
                     yield return new VFXAttributeInfo(VFXAttribute.SizeY, VFXAttributeMode.ReadWrite);
             }
         }
@@ -71,13 +76,14 @@ namespace UnityEditor.VFX.Block
             get
             {
                 string sizeString = string.Empty;
-                switch(sizeMode)
+                switch (sizeMode)
                 {
-                    case SizeMode.PixelAbsolute:                sizeString = "float2(PixelSize, PixelSize)";                                            break;
-                    case SizeMode.PixelRelativeToResolution:    sizeString = "float2(PixelSize, PixelSize) * (_ScreenParams.xy/ReferenceResolution)";   break;
-                    case SizeMode.WidthRelative:                sizeString = "float2(_ScreenParams.x, _ScreenParams.x) * RelativeSize";                 break;
-                    case SizeMode.HeightRelative:               sizeString = "float2(_ScreenParams.y, _ScreenParams.y) * RelativeSize";                 break;
-                    case SizeMode.WidthHeightRelative:          sizeString = "float2(_ScreenParams.x, _ScreenParams.y) * RelativeSize";                 break;
+                    case SizeMode.PixelAbsolute:                          sizeString = "float2(PixelSize, PixelSize)";                                            break;
+                    case SizeMode.PixelRelativeToResolution:              sizeString = "float2(PixelSize, PixelSize) * (_ScreenParams.xy/ReferenceResolution)";   break;
+                    case SizeMode.RatioRelativeToWidth:                   sizeString = "float2(_ScreenParams.x, _ScreenParams.x) * RelativeSize";                 break;
+                    case SizeMode.RatioRelativeToHeight:                  sizeString = "float2(_ScreenParams.y, _ScreenParams.y) * RelativeSize";                 break;
+                    case SizeMode.RatioRelativeToHeightAndWidth:          sizeString = "float2(_ScreenParams.x, _ScreenParams.y) * RelativeSize";                 break;
+                    default: throw new NotImplementedException(string.Format("Not Implemented SizeMode: {0}", sizeMode));
                 }
 
                 return string.Format(@"
