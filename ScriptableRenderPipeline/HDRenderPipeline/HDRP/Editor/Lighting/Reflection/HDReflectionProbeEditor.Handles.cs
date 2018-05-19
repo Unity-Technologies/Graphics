@@ -315,6 +315,10 @@ namespace UnityEditor.Experimental.Rendering
         [DrawGizmo(GizmoType.Selected)]
         static void DrawSelectedGizmo(ReflectionProbe reflectionProbe, GizmoType gizmoType)
         {
+            var e = GetEditorFor(reflectionProbe);
+            if (e == null || !e.sceneViewEditing)
+                return;
+
             var reflectionData = reflectionProbe.GetComponent<HDAdditionalReflectionData>();
 
             Gizmos_Influence(reflectionProbe, reflectionData, null, false);
@@ -328,6 +332,10 @@ namespace UnityEditor.Experimental.Rendering
         [DrawGizmo(GizmoType.NonSelected)]
         static void DrawNonSelectedGizmo(ReflectionProbe reflectionProbe, GizmoType gizmoType)
         {
+            var e = GetEditorFor(reflectionProbe);
+            if (e == null || !e.sceneViewEditing)
+                return;
+                
             var reflectionData = reflectionProbe.GetComponent<HDAdditionalReflectionData>();
             if (reflectionData != null)
                 HDReflectionProbeEditorUtility.ChangeVisibility(reflectionProbe, false);

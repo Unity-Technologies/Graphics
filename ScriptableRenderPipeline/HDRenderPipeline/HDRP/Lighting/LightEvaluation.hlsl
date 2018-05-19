@@ -1,5 +1,5 @@
 // This files include various function uses to evaluate lights
-// To use deferred directional shadow with cascaded shadow map, 
+// To use deferred directional shadow with cascaded shadow map,
 // it is required to define USE_DEFERRED_DIRECTIONAL_SHADOWS before including this files
 
 //-----------------------------------------------------------------------------
@@ -61,11 +61,23 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 #endif
 
 #ifdef SHADOWS_SHADOWMASK
-        float fade = saturate(posInput.linearDepth * lightData.fadeDistanceScaleAndBias.x + lightData.fadeDistanceScaleAndBias.y);
+
+        // TODO: Optimize this code! Currently it is a bit like brute force to get the last transistion and fade to shadow mask, but there is
+        // certainly more efficient to do
+        // We reuse the transition from the cascade system to fade between shadow mask at max distance
+        uint  payloadOffset;
+        real  fade;
+        int cascadeCount;
+        int shadowSplitIndex = EvalShadow_GetSplitIndex(lightLoopContext.shadowContext, lightData.shadowIndex, positionWS, payloadOffset, fade, cascadeCount);
+        // we have a fade caclulation for each cascade but we must lerp with shadow mask only for the last one
+        fade = ((shadowSplitIndex + 1) == cascadeCount || shadowSplitIndex == -1.0) ? fade : 0.0;
 
         // See comment in EvaluateBSDF_Punctual
         shadow = lightData.dynamicShadowCasterOnly ? min(shadowMask, shadow) : shadow;
-        shadow = lerp(shadow, shadowMask, fade); // Caution to lerp parameter: fade is the reverse of shadowDimmer
+        // In the transition code (both dithering and blend) we use shadow = lerp( shadow, 1.0, fade ) for last transition
+        // mean if we expend the code we have (shadow * (1 - fade) + fade). Here to make transition with shadow mask
+        // we will remove fade and add fade * shadowMask which mean we do a lerp with shadow mask
+        shadow = shadow - fade + fade * shadowMask;
 
         // Note: There is no shadowDimmer when there is no shadow mask
 #endif
@@ -229,7 +241,7 @@ struct AmbientOcclusionFactor
     float3 indirectSpecularOcclusion;
 };
 
-void GetScreenSpaceAmbientOcclusion(float2 positionSS, float NdotV, float perceptualRoughness, float specularOcclusionFromData, out AmbientOcclusionFactor aoFactor)
+void GetScreenSpaceAmbientOcclusion(float2 positionSS, float NdotV, float perceptualRoughness, float ambientOcclusionFromData, float specularOcclusionFromData, out AmbientOcclusionFactor aoFactor)
 {
     // Note: When we ImageLoad outside of texture size, the value returned by Load is 0 (Note: On Metal maybe it clamp to value of texture which is also fine)
     // We use this property to have a neutral value for AO that doesn't consume a sampler and work also with compute shader (i.e use ImageLoad)
@@ -248,12 +260,12 @@ void GetScreenSpaceAmbientOcclusion(float2 positionSS, float NdotV, float percep
     float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
     float specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(NdotV), indirectAmbientOcclusion, roughness);
 
-    aoFactor.indirectAmbientOcclusion   = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), indirectAmbientOcclusion);
-    aoFactor.directAmbientOcclusion     = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), directAmbientOcclusion);
     aoFactor.indirectSpecularOcclusion  = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), min(specularOcclusionFromData, specularOcclusion));
+    aoFactor.indirectAmbientOcclusion   = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), min(ambientOcclusionFromData, indirectAmbientOcclusion));
+    aoFactor.directAmbientOcclusion     = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), directAmbientOcclusion);
 }
 
-void GetScreenSpaceAmbientOcclusionMultibounce(float2 positionSS, float NdotV, float perceptualRoughness, float specularOcclusionFromData, float3 diffuseColor, float3 fresnel0, out AmbientOcclusionFactor aoFactor)
+void GetScreenSpaceAmbientOcclusionMultibounce(float2 positionSS, float NdotV, float perceptualRoughness, float ambientOcclusionFromData, float specularOcclusionFromData, float3 diffuseColor, float3 fresnel0, out AmbientOcclusionFactor aoFactor)
 {
     // Use GTAOMultiBounce approximation for ambient occlusion (allow to get a tint from the diffuseColor)
     // Note: When we ImageLoad outside of texture size, the value returned by Load is 0 (Note: On Metal maybe it clamp to value of texture which is also fine)
@@ -273,7 +285,7 @@ void GetScreenSpaceAmbientOcclusionMultibounce(float2 positionSS, float NdotV, f
     float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
     float specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(NdotV), indirectAmbientOcclusion, roughness);
 
-    aoFactor.indirectAmbientOcclusion   = GTAOMultiBounce(indirectAmbientOcclusion, diffuseColor);
-    aoFactor.directAmbientOcclusion     = GTAOMultiBounce(min(specularOcclusionFromData, specularOcclusion), fresnel0);
-    aoFactor.indirectSpecularOcclusion  = GTAOMultiBounce(directAmbientOcclusion, diffuseColor);
+    aoFactor.indirectSpecularOcclusion  = GTAOMultiBounce(min(specularOcclusionFromData, specularOcclusion), fresnel0);
+    aoFactor.indirectAmbientOcclusion   = GTAOMultiBounce(min(ambientOcclusionFromData, indirectAmbientOcclusion), diffuseColor);
+    aoFactor.directAmbientOcclusion     = GTAOMultiBounce(directAmbientOcclusion, diffuseColor);
 }

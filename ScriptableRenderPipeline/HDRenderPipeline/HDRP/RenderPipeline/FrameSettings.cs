@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine.XR;
 
@@ -17,6 +17,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableSSAO = true;
         public bool enableSubsurfaceScattering = true;
         public bool enableTransmission = true;  // Caution: this is only for debug, it doesn't save the cost of Transmission execution
+        public bool enableAtmosphericScattering = true;
+        public bool enableVolumetric = true;
 
         // Setup by system
         public float diffuseGlobalDimmer = 1.0f;
@@ -30,7 +32,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableMotionVectors = true; // Enable/disable whole motion vectors pass (Camera + Object).
         public bool enableObjectMotionVectors = true;
         public bool enableDBuffer = true;
-        public bool enableAtmosphericScattering = true;
         public bool enableRoughRefraction = true; // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable rough refraction ?
         public bool enableTransparentPostpass = true;
         public bool enableDistortion = true;
@@ -57,6 +58,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             frameSettings.enableSSAO = this.enableSSAO;
             frameSettings.enableSubsurfaceScattering = this.enableSubsurfaceScattering;
             frameSettings.enableTransmission = this.enableTransmission;
+            frameSettings.enableAtmosphericScattering = this.enableAtmosphericScattering;
+            frameSettings.enableVolumetric = this.enableVolumetric;
 
             frameSettings.diffuseGlobalDimmer = this.diffuseGlobalDimmer;
             frameSettings.specularGlobalDimmer = this.specularGlobalDimmer;
@@ -68,7 +71,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             frameSettings.enableMotionVectors = this.enableMotionVectors;
             frameSettings.enableObjectMotionVectors = this.enableObjectMotionVectors;
             frameSettings.enableDBuffer = this.enableDBuffer;
-            frameSettings.enableAtmosphericScattering = this.enableAtmosphericScattering;
             frameSettings.enableRoughRefraction = this.enableRoughRefraction;
             frameSettings.enableTransparentPostpass = this.enableTransparentPostpass;
             frameSettings.enableDistortion = this.enableDistortion;
@@ -113,6 +115,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.enableSSAO = srcFrameSettings.enableSSAO && renderPipelineSettings.supportSSAO;
             aggregate.enableSubsurfaceScattering = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableSubsurfaceScattering && renderPipelineSettings.supportSubsurfaceScattering;
             aggregate.enableTransmission = srcFrameSettings.enableTransmission;
+            aggregate.enableAtmosphericScattering = srcFrameSettings.enableAtmosphericScattering;
+            // We must take care of the scene view fog flags in the editor
+            if (!CoreUtils.IsSceneViewFogEnabled(camera))
+                aggregate.enableAtmosphericScattering = false;
+            // Volumetric are disabled if there is no atmospheric scattering
+            aggregate.enableVolumetric = srcFrameSettings.enableVolumetric && renderPipelineSettings.supportVolumetric && aggregate.enableAtmosphericScattering;
+
+            // TODO: Add support of volumetric in planar reflection
+            if (camera.cameraType == CameraType.Reflection)
+                aggregate.enableVolumetric = false;
 
             // We have to fall back to forward-only rendering when scene view is using wireframe rendering mode
             // as rendering everything in wireframe + deferred do not play well together
@@ -123,10 +135,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.enableMotionVectors = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableMotionVectors && renderPipelineSettings.supportMotionVectors;
             aggregate.enableObjectMotionVectors = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableObjectMotionVectors && renderPipelineSettings.supportMotionVectors;
             aggregate.enableDBuffer = srcFrameSettings.enableDBuffer && renderPipelineSettings.supportDBuffer;
-            aggregate.enableAtmosphericScattering = srcFrameSettings.enableAtmosphericScattering;
-            // We must take care of the scene view fog flags in the editor
-            if (!CoreUtils.IsSceneViewFogEnabled(camera))
-                aggregate.enableAtmosphericScattering = false;
             aggregate.enableRoughRefraction = srcFrameSettings.enableRoughRefraction;
             aggregate.enableTransparentPostpass = srcFrameSettings.enableTransparentPostpass;
             aggregate.enableDistortion = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableDistortion;
@@ -134,7 +142,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Planar and real time cubemap doesn't need post process and render in FP16
             aggregate.enablePostprocess = camera.cameraType != CameraType.Reflection && srcFrameSettings.enablePostprocess;
 
+#if UNITY_SWITCH
+            aggregate.enableStereo = false;
+#else
             aggregate.enableStereo = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableStereo && XRSettings.isDeviceActive && (camera.stereoTargetEye == StereoTargetEyeMask.Both) && renderPipelineSettings.supportStereo;
+#endif
 
             aggregate.enableAsyncCompute = srcFrameSettings.enableAsyncCompute && SystemInfo.supportsAsyncCompute;
 
@@ -148,18 +160,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.ConfigureMSAADependentSettings();
             aggregate.ConfigureStereoDependentSettings();
 
-            if (camera.cameraType == CameraType.Preview)
+            // Disable various option for the preview except if we are a Camera Editor preview
+            if (HDUtils.IsRegularPreviewCamera(camera))
             {
-                // remove undesired feature in preview
                 aggregate.enableShadow = false;
                 aggregate.enableContactShadows = false;
                 aggregate.enableSSR = false;
                 aggregate.enableSSAO = false;
+                aggregate.enableAtmosphericScattering = false;
+                aggregate.enableVolumetric = false;
                 aggregate.enableTransparentPrepass = false;
                 aggregate.enableMotionVectors = false;
                 aggregate.enableObjectMotionVectors = false;
                 aggregate.enableDBuffer = false;
-                aggregate.enableAtmosphericScattering = false;
                 aggregate.enableTransparentPostpass = false;
                 aggregate.enableDistortion = false;
                 aggregate.enablePostprocess = false;
@@ -232,7 +245,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         new DebugUI.BoolField { displayName = "Enable Motion Vectors", getter = () => frameSettings.enableMotionVectors, setter = value => frameSettings.enableMotionVectors = value },
                         new DebugUI.BoolField { displayName = "Enable Object Motion Vectors", getter = () => frameSettings.enableObjectMotionVectors, setter = value => frameSettings.enableObjectMotionVectors = value },
                         new DebugUI.BoolField { displayName = "Enable DBuffer", getter = () => frameSettings.enableDBuffer, setter = value => frameSettings.enableDBuffer = value },
-                        new DebugUI.BoolField { displayName = "Enable Atmospheric Scattering", getter = () => frameSettings.enableAtmosphericScattering, setter = value => frameSettings.enableAtmosphericScattering = value },
                         new DebugUI.BoolField { displayName = "Enable Rough Refraction", getter = () => frameSettings.enableRoughRefraction, setter = value => frameSettings.enableRoughRefraction = value },
                         new DebugUI.BoolField { displayName = "Enable Distortion", getter = () => frameSettings.enableDistortion, setter = value => frameSettings.enableDistortion = value },
                         new DebugUI.BoolField { displayName = "Enable Postprocess", getter = () => frameSettings.enablePostprocess, setter = value => frameSettings.enablePostprocess = value },
@@ -271,6 +283,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         new DebugUI.BoolField { displayName = "Enable Shadows", getter = () => frameSettings.enableShadow, setter = value => frameSettings.enableShadow = value },
                         new DebugUI.BoolField { displayName = "Enable Contact Shadows", getter = () => frameSettings.enableContactShadows, setter = value => frameSettings.enableContactShadows = value },
                         new DebugUI.BoolField { displayName = "Enable ShadowMask", getter = () => frameSettings.enableShadowMask, setter = value => frameSettings.enableShadowMask = value },
+                        new DebugUI.BoolField { displayName = "Enable Atmospheric Scattering", getter = () => frameSettings.enableAtmosphericScattering, setter = value => frameSettings.enableAtmosphericScattering = value },
+                        new DebugUI.BoolField { displayName = "    Enable volumetric", getter = () => frameSettings.enableVolumetric, setter = value => frameSettings.enableVolumetric = value },
                     }
                 }
             });

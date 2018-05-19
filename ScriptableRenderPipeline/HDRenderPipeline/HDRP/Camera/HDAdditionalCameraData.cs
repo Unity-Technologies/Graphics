@@ -44,9 +44,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Color backgroundColorHDR = new Color(0.025f, 0.07f, 0.19f, 0.0f);
         public bool clearDepth = true;
 
-        public RenderingPath    renderingPath;
+        public RenderingPath renderingPath;
         [Tooltip("Layer Mask used for the volume interpolation for this camera.")]
-        public LayerMask        volumeLayerMask = -1;
+        public LayerMask volumeLayerMask = -1;
 
         // Physical parameters
         public float aperture = 8f;
@@ -57,7 +57,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // we create a runtime copy (m_ActiveFrameSettings that is used, and any parametrization is done on serialized frameSettings)
         [SerializeField]
         [FormerlySerializedAs("serializedFrameSettings")]
-        FrameSettings    m_FrameSettings = new FrameSettings(); // Serialize frameSettings
+        FrameSettings m_FrameSettings = new FrameSettings(); // Serialize frameSettings
 
         // Not serialized, visible only in the debug windows
         FrameSettings m_FrameSettingsRuntime = new FrameSettings();
@@ -67,8 +67,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Use for debug windows
         // When camera name change we need to update the name in DebugWindows.
         // This is the purpose of this class
-        bool    m_IsDebugRegistered = false;
-        string  m_CameraRegisterName;
+        bool m_IsDebugRegistered = false;
+        string m_CameraRegisterName;
+
+        // When we are a preview, there is no way inside Unity to make a disctinctoin between camera preview and material preview.
+        // This property allow to say that we are an editor camera preview when the type is preview.
+        public bool isEditorCameraPreview { get; set; }
 
         // This is the function use outside to access FrameSettings. It return the current state of FrameSettings for the camera
         // taking into account the customization via the debug menu

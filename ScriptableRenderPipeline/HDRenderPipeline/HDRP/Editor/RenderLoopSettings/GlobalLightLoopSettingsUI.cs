@@ -54,8 +54,6 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUILayout.PropertyField(d.planarReflectionCacheCompressed, _.GetContent("Compress Planar Reflection Probe Cache"));
             EditorGUILayout.PropertyField(d.planarReflectionCubemapSize, _.GetContent("Planar Reflection Texture Size"));
             EditorGUILayout.PropertyField(d.planarReflectionProbeCacheSize, _.GetContent("Planar Probe Cache Size"));
-            EditorGUILayout.PropertyField(d.maxPlanarReflectionProbes, _.GetContent("Max Planar Probe Per Frame"));
-            d.maxPlanarReflectionProbes.intValue = Mathf.Max(1, d.maxPlanarReflectionProbes.intValue);
             --EditorGUI.indentLevel;
         }
 

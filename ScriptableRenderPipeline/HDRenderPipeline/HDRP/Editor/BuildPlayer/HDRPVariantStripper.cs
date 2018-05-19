@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.Build;
 using UnityEditor.Rendering;
@@ -25,7 +25,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         ShaderKeyword m_TileLighting;
         ShaderKeyword m_ClusterLighting;
 
-        ShaderKeyword m_FeatureSSS;
+        //ShaderKeyword m_FeatureSSS;
 
         public HDRPVariantStripper()
         {
@@ -45,7 +45,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_TileLighting = new ShaderKeyword("USE_FPTL_LIGHTLIST");
             m_ClusterLighting = new ShaderKeyword("USE_CLUSTERED_LIGHTLIST");
 
-            m_FeatureSSS = new ShaderKeyword("_MATERIAL_FEATURE_SUBSURFACE_SCATTERING");
+            //m_FeatureSSS = new ShaderKeyword("_MATERIAL_FEATURE_SUBSURFACE_SCATTERING");
         }
 
         bool LitShaderStripper(Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
@@ -114,6 +114,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public int callbackOrder { get { return 0; } }
         public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> inputData)
         {
+            // This test will also return if we are not using HDRenderPipelineAsset
             if (m_CurrentHDRPAsset == null || !m_CurrentHDRPAsset.allowShaderVariantStripping)
                 return;
 
