@@ -2,7 +2,7 @@
 artifacts/**
 build/**
 DataSource/*
-Library/*
+**/Library/**
 obj/*
 Temp/*
 .vs
