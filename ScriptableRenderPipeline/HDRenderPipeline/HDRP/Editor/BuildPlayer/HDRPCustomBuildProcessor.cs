@@ -2,6 +2,8 @@ using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 class HDRPCustomBuildProcessor : IPreprocessBuildWithReport
 {
@@ -9,6 +11,11 @@ class HDRPCustomBuildProcessor : IPreprocessBuildWithReport
 
     public void OnPreprocessBuild(BuildReport report)
     {
+        // Don't execute the preprocess if we are not HDRenderPipeline
+        HDRenderPipeline hdrp = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+        if (hdrp == null)
+            return;
+
         // Note: If you add new platform in this function, think about adding support in IsSupportedPlatform() function in HDRenderPipeline.cs
 
         // If platform is supported all good
@@ -18,8 +25,8 @@ class HDRPCustomBuildProcessor : IPreprocessBuildWithReport
             report.summary.platform == BuildTarget.StandaloneLinuxUniversal ||
             report.summary.platform == BuildTarget.StandaloneOSX ||
             report.summary.platform == BuildTarget.XboxOne ||
-            report.summary.platform == BuildTarget.PS4 /* ||
-            report.summary.platform == BuildTarget.Switch */)
+            report.summary.platform == BuildTarget.PS4 ||
+            report.summary.platform == BuildTarget.Switch)
         {
             return ;
         }

@@ -9,7 +9,7 @@
     #define UNITY_SUPPORT_INSTANCING
 #endif
 
-#if defined(SHADER_API_D3D11)
+#if defined(SHADER_API_D3D11) || defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3)
     #define UNITY_SUPPORT_STEREO_INSTANCING
 #endif
 
@@ -92,8 +92,13 @@
 // - UNITY_TRANSFER_VERTEX_OUTPUT_STEREO    Copy stero target from input struct to output struct. Used in vertex shader.
 // - UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX
 #ifdef UNITY_STEREO_INSTANCING_ENABLED
+#if defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE)
+    #define DEFAULT_UNITY_VERTEX_OUTPUT_STEREO                          uint stereoTargetEyeIndexSV : SV_RenderTargetArrayIndex; uint stereoTargetEyeIndex : BLENDINDICES0;
+    #define DEFAULT_UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output)       output.stereoTargetEyeIndexSV = unity_StereoEyeIndex; output.stereoTargetEyeIndex = unity_StereoEyeIndex;
+#else
     #define DEFAULT_UNITY_VERTEX_OUTPUT_STEREO                          uint stereoTargetEyeIndex : SV_RenderTargetArrayIndex;
     #define DEFAULT_UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(output)       output.stereoTargetEyeIndex = unity_StereoEyeIndex
+#endif
     #define DEFAULT_UNITY_TRANSFER_VERTEX_OUTPUT_STEREO(input, output)  output.stereoTargetEyeIndex = input.stereoTargetEyeIndex;
     #define DEFAULT_UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input) unity_StereoEyeIndex = input.stereoTargetEyeIndex;
 #elif defined(UNITY_STEREO_MULTIVIEW_ENABLED)
@@ -137,9 +142,21 @@
     void UnitySetupInstanceID(uint inputInstanceID)
     {
         #ifdef UNITY_STEREO_INSTANCING_ENABLED
-            // stereo eye index is automatically figured out from the instance ID
-            unity_StereoEyeIndex = inputInstanceID & 0x01;
-            unity_InstanceID = unity_BaseInstanceID + (inputInstanceID >> 1);
+            #if defined(SHADER_API_GLES3)
+                // We must calculate the stereo eye index differently for GLES3
+                // because otherwise,  the unity shader compiler will emit a bitfieldInsert function.
+                // bitfieldInsert requires support for glsl version 400 or later.  Therefore the
+                // generated glsl code will fail to compile on lower end devices.  By changing the
+                // way we calculate the stereo eye index,  we can help the shader compiler to avoid
+                // emitting the bitfieldInsert function and thereby increase the number of devices we
+                // can run stereo instancing on.
+                unity_StereoEyeIndex = round(fmod(inputInstanceID, 2.0));
+                unity_InstanceID = unity_BaseInstanceID + (inputInstanceID >> 1);
+            #else
+                // stereo eye index is automatically figured out from the instance ID
+                unity_StereoEyeIndex = inputInstanceID & 0x01;
+                unity_InstanceID = unity_BaseInstanceID + (inputInstanceID >> 1);
+            #endif
         #else
             unity_InstanceID = inputInstanceID + unity_BaseInstanceID;
         #endif
@@ -230,9 +247,8 @@
             UNITY_DEFINE_INSTANCED_PROP(float4x4, unity_WorldToObjectArray)
         #endif
         #if defined(UNITY_USE_LODFADE_ARRAY) && defined(UNITY_INSTANCING_SUPPORT_FLEXIBLE_ARRAY_SIZE)
-            UNITY_DEFINE_INSTANCED_PROP(float, unity_LODFadeArray)
-            // the quantized fade value (unity_LODFade.y) is automatically used for cross-fading instances
-            #define unity_LODFade UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_LODFadeArray).xxxx
+            UNITY_DEFINE_INSTANCED_PROP(float2, unity_LODFadeArray)
+            #define unity_LODFade UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_LODFadeArray).xyxx
         #endif
     UNITY_INSTANCING_BUFFER_END(unity_Builtins0)
 
@@ -241,9 +257,8 @@
             UNITY_DEFINE_INSTANCED_PROP(float4x4, unity_WorldToObjectArray)
         #endif
         #if defined(UNITY_USE_LODFADE_ARRAY) && !defined(UNITY_INSTANCING_SUPPORT_FLEXIBLE_ARRAY_SIZE)
-            UNITY_DEFINE_INSTANCED_PROP(float, unity_LODFadeArray)
-            // the quantized fade value (unity_LODFade.y) is automatically used for cross-fading instances
-            #define unity_LODFade UNITY_ACCESS_INSTANCED_PROP(unity_Builtins1, unity_LODFadeArray).xxxx
+            UNITY_DEFINE_INSTANCED_PROP(float2, unity_LODFadeArray)
+            #define unity_LODFade UNITY_ACCESS_INSTANCED_PROP(unity_Builtins1, unity_LODFadeArray).xyxx
         #endif
     UNITY_INSTANCING_BUFFER_END(unity_Builtins1)
 

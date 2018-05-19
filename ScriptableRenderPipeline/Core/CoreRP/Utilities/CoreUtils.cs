@@ -213,26 +213,31 @@ namespace UnityEngine.Experimental.Rendering
             SetRenderTarget(cmd, colorBuffer, colorLoadAction, colorStoreAction, depthBuffer, depthLoadAction, depthStoreAction, clearFlag, clearColorAllBlack);
         }
 
-        public static string GetRenderTargetAutoName(int width, int height, RenderTextureFormat format, string name = "", bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
+        public static string GetRenderTargetAutoName(int width, int height, int depth, RenderTextureFormat format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
         {
-            string temp;
+            string result = string.Format("{0}_{1}x{2}", name, width, height);
+
+            if (depth > 1)
+                result = string.Format("{0}x{1}", result, depth);
+
+            if (mips)
+                result = string.Format("{0}_{1}", result, "Mips");
+
+            result = string.Format("{0}_{1}", result, format);
+
             if (enableMSAA)
-                temp = string.Format("{0}x{1}_{2}{3}_{4}", width, height, format, mips ? "_Mips"  : "", msaaSamples.ToString());
-            else
-                temp = string.Format("{0}x{1}_{2}{3}", width, height, format, mips ? "_Mips" : "");
+                result = string.Format("{0}_{1}", result, msaaSamples.ToString());
 
-            temp = String.Format("{0}_{1}", name == "" ? "RenderTarget" : name, temp);
-
-            return temp;
+            return result;
         }
 
         public static string GetTextureAutoName(int width, int height, TextureFormat format, TextureDimension dim = TextureDimension.None, string name = "", bool mips = false, int depth = 0)
         {
             string temp;
             if(depth == 0)
-                temp = string.Format("{0}x{1}_{2}{3}", width, height, format, mips ? "_Mips" : "");
+                temp = string.Format("{0}x{1}{2}_{3}", width, height, mips ? "_Mips" : "", format);
             else
-                temp = string.Format("{0}x{1}x{2}_{3}{4}", width, height, depth, format, mips ? "_Mips" : "");
+                temp = string.Format("{0}x{1}x{2}{3}_{4}", width, height, depth, mips ? "_Mips" : "", format);
             temp = String.Format("{0}_{1}_{2}", name == "" ? "Texture" : name, (dim == TextureDimension.None) ? "" : dim.ToString(), temp);
 
             return temp;

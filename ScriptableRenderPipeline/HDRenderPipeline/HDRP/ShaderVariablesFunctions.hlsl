@@ -100,6 +100,7 @@ float3 TransformViewToHClipDir(float3 directionVS)
 	return mul((float3x3)GetViewToHClipMatrix(), directionVS);
 }
 
+// This function always return the absolute position in WS either the CameraRelative mode is enabled or not
 float3 GetAbsolutePositionWS(float3 positionWS)
 {
 #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
@@ -108,6 +109,7 @@ float3 GetAbsolutePositionWS(float3 positionWS)
     return positionWS;
 }
 
+// This function always return the camera relative position in WS either the CameraRelative mode is enabled or not
 float3 GetCameraRelativePositionWS(float3 positionWS)
 {
 #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
@@ -227,6 +229,20 @@ void GetLeftHandedViewSpaceMatrices(out float4x4 viewMatrix, out float4x4 projMa
 float2 GetNormalizedFullScreenTriangleTexCoord(uint vertexID)
 {
     return GetFullScreenTriangleTexCoord(vertexID) * _ScreenToTargetScale.xy;
+}
+
+// The size of the render target can be larger than the size of the viewport.
+// This function returns the fraction of the render target covered by the viewport:
+// ViewportScale = ViewportResolution / RenderTargetResolution.
+// Do not assume that their size is the same, or that sampling outside of the viewport returns 0.
+float2 GetViewportScaleCurrentFrame()
+{
+    return _ScreenToTargetScale.xy;
+}
+
+float2 GetViewportScalePreviousFrame()
+{
+    return _ScreenToTargetScale.zw;
 }
 
 #endif // UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
