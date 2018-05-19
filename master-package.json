@@ -5,8 +5,8 @@
         "com.unity.postprocessing": "2.0.2-preview"
     },
     "subPackages": [
-        "Core",
-        "HDRenderPipeline",
-        "LightweightPipeline"
+        "com.unity.render-pipelines.core",
+        "com.unity.render-pipelines.high-definition",
+        "com.unity.render-pipelines.lightweight"
     ]
 }

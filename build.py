@@ -13,13 +13,13 @@ publish_order = []
 
 def packages_list():
     return [
-        ("com.unity.render-pipelines.core", os.path.join("ScriptableRenderPipeline", "Core")),
-        ("com.unity.render-pipelines.high-definition", os.path.join("ScriptableRenderPipeline", "HDRenderPipeline")),
-        ("com.unity.render-pipelines.lightweight", os.path.join("ScriptableRenderPipeline", "LightweightPipeline"))
+        ("com.unity.render-pipelines.core", "com.unity.render-pipelines.core"),
+        ("com.unity.render-pipelines.high-definition", "com.unity.render-pipelines.high-definition"),
+        ("com.unity.render-pipelines.lightweight", "com.unity.render-pipelines.lightweight")
     ]
 
 def prepare(logger):
-    file_path = os.path.join("./ScriptableRenderPipeline", "master-package.json")
+    file_path = os.path.join(".", "master-package.json")
     if os.path.isfile(file_path):
         logger.info("Found master package file: {}".format(file_path))
         with open(file_path) as file:
@@ -31,7 +31,7 @@ def prepare(logger):
 
     potential_folders = master_package["subPackages"] if "subPackages" in master_package else []
     for item in potential_folders:
-        file_path = os.path.join("./ScriptableRenderPipeline", item, "sub-package.json")
+        file_path = os.path.join(".", item, "sub-package.json")
         if os.path.isfile(file_path):
             logger.info("Found sub-package file: {}".format(file_path))
             with open(file_path) as file:
@@ -39,7 +39,7 @@ def prepare(logger):
                     sub_package = json.load(file)
                     sub_packages[sub_package["name"]] = sub_package
                     sub_package_folders[sub_package["name"]
-                                       ] = os.path.join("./ScriptableRenderPipeline", item)
+                                       ] = os.path.join(".", item)
                 except json.JSONDecodeError as e:
                     logger.critical("Error: {}".format(e))
 
@@ -136,13 +136,16 @@ def prepare(logger):
 
 def cleanup(logger):
     logger.info("Reverting temporary file changes:")
+    revert_list = [ "package.json", "LICENSE.md", "CHANGELOG.md" ]
     files = []
     for name in publish_order:
         folder = sub_package_folders[name]
-        files.append(os.path.join(folder, "package.json"))
+        for item in revert_list:
+            files.append(os.path.join(folder, item))
     for file in files:
         logger.info("  {}".format(file))
         subprocess.call(["git", "checkout", file], cwd=".")
+
 
 # Prepare an empty project for editor tests
 def prepare_editor_test_project(repo_path, project_path, logger):
