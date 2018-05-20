@@ -331,7 +331,14 @@ namespace UnityEngine.Experimental.Rendering
         // Unity specifics
         public static Material CreateEngineMaterial(string shaderPath)
         {
-            var mat = new Material(Shader.Find(shaderPath))
+            Shader shader = Shader.Find(shaderPath);
+            if (shader == null)
+            {
+                Debug.LogError("Cannot create required material because shader " + shaderPath + " could not be found");
+                return null;
+            }
+
+            var mat = new Material(shader)
             {
                 hideFlags = HideFlags.HideAndDontSave
             };
@@ -340,6 +347,12 @@ namespace UnityEngine.Experimental.Rendering
 
         public static Material CreateEngineMaterial(Shader shader)
         {
+            if (shader == null)
+            {
+                Debug.LogError("Cannot create required material because shader is null");
+                return null;
+            }
+            
             var mat = new Material(shader)
             {
                 hideFlags = HideFlags.HideAndDontSave
