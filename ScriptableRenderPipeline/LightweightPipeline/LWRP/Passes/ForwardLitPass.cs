@@ -135,9 +135,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // TODO: Move these to separate passes
             if (cameraData.postProcessEnabled)
                 PostProcessPass(ref context, ref cameraData);
-
-            // No blit to backbuffer if camera is offscreen render.
-            if (!cameraData.isOffscreenRender && !cameraData.postProcessEnabled && colorAttachmentHandle != -1)
+            else if (!cameraData.isOffscreenRender && colorAttachmentHandle != -1) 
                 FinalBlitPass(ref context, ref cameraData);
 
             if (cameraData.isStereoEnabled)
@@ -359,17 +357,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             CommandBuffer cmd = CommandBufferPool.Get("Final Blit Pass");
             cmd.SetGlobalTexture("_BlitTex", sourceRT);
-
-            if (cameraData.isStereoEnabled || cameraData.isDefaultViewport)
-            {
-                cmd.Blit(GetSurface(colorAttachmentHandle), BuiltinRenderTextureType.CameraTarget, material);
-            }
-            else
+            
+            if (!cameraData.isDefaultViewport)
             {
                 SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.All, Color.black);
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.SetViewport(cameraData.camera.pixelRect);
                 LightweightPipeline.DrawFullScreen(cmd, material);
+            }
+            else
+            {
+                cmd.Blit(GetSurface(colorAttachmentHandle), BuiltinRenderTextureType.CameraTarget, material);
             }
 
             context.ExecuteCommandBuffer(cmd);
