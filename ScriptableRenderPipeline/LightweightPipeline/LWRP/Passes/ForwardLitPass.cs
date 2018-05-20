@@ -490,18 +490,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             CommandBuffer cmd = CommandBufferPool.Get("Render Opaque PostProcess Effects");
 
-            RenderTargetIdentifier source;
-            // If have a single opaque postfx we need to create a temp texture as otherwise source and target
-            // would be the same
-            if (cameraData.postProcessLayer.sortedBundles[PostProcessEvent.BeforeTransparent].Count == 1)
-            {
-                // TODO:
-                // cmd.GetTemporaryRT();
-                source = GetSurface(colorAttachmentHandle);
-            }
-            else
-                source = GetSurface(colorAttachmentHandle);
-
+            RenderTargetIdentifier source = GetSurface(colorAttachmentHandle);
             LightweightPipeline.RenderPostProcess(cmd, renderer.postProcessRenderContext, ref cameraData, m_ColorFormat, source, GetSurface(colorAttachmentHandle), true);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
