@@ -147,6 +147,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
 
             float renderScale = cameraData.renderScale;
+            desc.colorFormat = cameraData.isHdrEnabled ? RenderTextureFormat.DefaultHDR :
+                RenderTextureFormat.Default;
+            desc.enableRandomWrite = false;
             desc.width = (int)((float)desc.width * renderScale * scaler);
             desc.height = (int)((float)desc.height * renderScale * scaler);
             return desc;
