@@ -70,7 +70,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_LightSpotDirections = new Vector4[maxVisibleLocalLights];
             m_LightSpotAttenuations = new Vector4[maxVisibleLocalLights];
 
-            // TODO: HDR
             m_ColorFormat = RenderTextureFormat.Default;
             m_BlitMaterial = renderer.GetMaterial(MaterialHandles.Blit);
             m_ErrorMaterial = renderer.GetMaterial(MaterialHandles.Error);
@@ -87,14 +86,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public override void Setup(CommandBuffer cmd, RenderTextureDescriptor baseDescriptor, int[] colorAttachmentHandles, int depthAttachmentHandle = -1, int samples = 1)
         {
             base.Setup(cmd, baseDescriptor, colorAttachmentHandles, depthAttachmentHandle, samples);
+
+            m_ColorFormat = baseDescriptor.colorFormat;
             if (colorAttachmentHandle != -1)
             {
                 var descriptor = baseDescriptor;
-                descriptor.colorFormat = m_ColorFormat;
                 descriptor.depthBufferBits = k_DepthStencilBufferBits;  // TODO: does the color RT always need depth?
                 descriptor.sRGB = true;
                 descriptor.msaaSamples = samples;
-                descriptor.enableRandomWrite = false;
                 cmd.GetTemporaryRT(colorAttachmentHandle, descriptor, FilterMode.Bilinear);
             }
 
