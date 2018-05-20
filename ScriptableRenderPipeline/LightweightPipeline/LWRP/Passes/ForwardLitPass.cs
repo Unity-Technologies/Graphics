@@ -123,7 +123,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cameraData.postProcessLayer.HasOpaqueOnlyEffects(renderer.postProcessRenderContext))
                 OpaquePostProcessSubPass(ref context, ref cameraData);
 
-            if (depthAttachmentHandle != -1 && cameraData.requiresDepthTexture)
+            if (depthAttachmentHandle != -1)
                 CopyDepthSubPass(ref context, ref cameraData);
 
             if (cameraData.requiresOpaqueTexture)
@@ -131,7 +131,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             RenderTransparents(ref context, ref cullResults, ref cameraData, rendererConfiguration);
 
-            // TODO: Move these to separate passes
             if (cameraData.postProcessEnabled)
                 PostProcessPass(ref context, ref cameraData);
             else if (!cameraData.isOffscreenRender && colorAttachmentHandle != -1) 
@@ -517,6 +516,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             RenderTextureDescriptor descriptor = renderer.CreateRTDesc(ref cameraData);
             descriptor.colorFormat = RenderTextureFormat.Depth;
             descriptor.depthBufferBits = k_DepthStencilBufferBits;
+            descriptor.msaaSamples = 1;
+            descriptor.bindMS = false;
             cmd.GetTemporaryRT(RenderTargetHandles.DepthTexture, descriptor, FilterMode.Point);
 
             if (cameraData.msaaSamples > 1)
