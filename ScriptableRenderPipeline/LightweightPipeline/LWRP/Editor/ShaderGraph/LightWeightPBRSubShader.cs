@@ -505,7 +505,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
                 dummyBuilder,
                 ShaderGraphRequirements.none,
                 ShaderGraphRequirements.none,
-                ShaderGraphRequirements.none,
+                modelRequiements,
                 vertexRequirements,
                 CoordinateSpace.World);
 
