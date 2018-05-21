@@ -32,28 +32,28 @@ VertexOutput vert(VertexInput i)
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
 #define DEPTH_TEXTURE_MS Texture2DMSArray
 #define DEPTH_TEXTURE(name) TEXTURE2D_ARRAY(name)
-#define LOAD(uv, sampleIndex) LOAD_TEXTURE2D_ARRAY_MSAA(_CameraDepthTexture, uv, unity_StereoEyeIndex, sampleIndex)
-#define SAMPLE(uv) SAMPLE_TEXTURE2D_ARRAY(_CameraDepthTexture, sampler_CameraDepthTexture, uv, unity_StereoEyeIndex).r
+#define LOAD(uv, sampleIndex) LOAD_TEXTURE2D_ARRAY_MSAA(_CameraDepthAttachment, uv, unity_StereoEyeIndex, sampleIndex)
+#define SAMPLE(uv) SAMPLE_TEXTURE2D_ARRAY(_CameraDepthAttachment, sampler_CameraDepthAttachment, uv, unity_StereoEyeIndex).r
 #else
 #define DEPTH_TEXTURE_MS Texture2DMS
 #define DEPTH_TEXTURE(name) TEXTURE2D(name)
-#define LOAD(uv, sampleIndex) LOAD_TEXTURE2D_MSAA(_CameraDepthTexture, uv, sampleIndex)
-#define SAMPLE(uv) SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, uv)
+#define LOAD(uv, sampleIndex) LOAD_TEXTURE2D_MSAA(_CameraDepthAttachment, uv, sampleIndex)
+#define SAMPLE(uv) SAMPLE_DEPTH_TEXTURE(_CameraDepthAttachment, sampler_CameraDepthAttachment, uv)
 #endif
 
 #ifdef _MSAA_DEPTH
-    DEPTH_TEXTURE_MS<float> _CameraDepthTexture;
+    DEPTH_TEXTURE_MS<float> _CameraDepthAttachment;
     float _SampleCount;
-    float4 _CameraDepthTexture_TexelSize;
+    float4 _CameraDepthAttachment_TexelSize;
 #else
-    DEPTH_TEXTURE(_CameraDepthTexture);
-    SAMPLER(sampler_CameraDepthTexture);
+    DEPTH_TEXTURE(_CameraDepthAttachment);
+    SAMPLER(sampler_CameraDepthAttachment);
 #endif
 
 float SampleDepth(float2 uv)
 {
 #ifdef _MSAA_DEPTH
-    int2 coord = int2(uv * _CameraDepthTexture_TexelSize.zw);
+    int2 coord = int2(uv * _CameraDepthAttachment_TexelSize.zw);
     int samples = (int)_SampleCount;
     #if UNITY_REVERSED_Z
         float outDepth = 1.0;
@@ -65,7 +65,7 @@ float SampleDepth(float2 uv)
 
     for (int i = 0; i < samples; ++i)
         outDepth = DEPTH_OP(LOAD(uv, i), outDepth);
-    
+
     return outDepth;
 #else
     return SAMPLE(uv);
