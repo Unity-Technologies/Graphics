@@ -70,6 +70,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private bool m_SupportsHDR = false;
         [SerializeField] private MSAAQuality m_MSAA = MSAAQuality._4x;
         [SerializeField] private float m_RenderScale = 1.0f;
+        [SerializeField] private bool m_SupportsDynamicBatching = true;
 
         [SerializeField] private bool m_DirectionalShadowsSupported = true;
         [SerializeField] private ShadowResolution m_ShadowAtlasResolution = ShadowResolution._2048;
@@ -255,6 +256,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             get { return m_RenderScale; }
             set { m_RenderScale = value; }
         }
+
+        public bool SupportsDynamicBatching { get { return m_SupportsDynamicBatching; } }
 
         public bool SupportsDirectionalShadows
         {

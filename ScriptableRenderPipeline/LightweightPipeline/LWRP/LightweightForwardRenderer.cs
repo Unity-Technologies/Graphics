@@ -155,49 +155,48 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return desc;
         }
 
-        public void Setup(ref ScriptableRenderContext context, ref CullResults cullResults, ref CameraData cameraData, ref LightData lightData)
+        public void Setup(ref ScriptableRenderContext context, ref CullResults cullResults, ref RenderingData renderingData)
         {
             Clear();
-            SetupPerObjectLightIndices(ref cullResults, ref lightData);
-            RenderTextureDescriptor baseDescriptor = CreateRTDesc(ref cameraData);
+            
+            SetupPerObjectLightIndices(ref cullResults, ref renderingData.lightData);
+            RenderTextureDescriptor baseDescriptor = CreateRTDesc(ref renderingData.cameraData);
 
-            bool requiresCameraDepth = cameraData.requiresDepthTexture;
-
-            ShadowData shadowData = lightData.shadowData;
-            bool requiresDepthPrepass = shadowData.requiresScreenSpaceShadowResolve || cameraData.isSceneViewCamera || (requiresCameraDepth && !CanCopyDepth(ref cameraData));
+            bool requiresCameraDepth = renderingData.cameraData.requiresDepthTexture;
+            bool requiresDepthPrepass = renderingData.shadowData.requiresScreenSpaceShadowResolve ||
+                renderingData.cameraData.isSceneViewCamera || (requiresCameraDepth && !CanCopyDepth(ref renderingData.cameraData));
 
             CommandBuffer cmd = CommandBufferPool.Get("Setup Rendering");
             if (requiresDepthPrepass)
                 EnqueuePass(cmd, RenderPassHandles.DepthPrepass, baseDescriptor, null, RenderTargetHandles.DepthTexture);
 
-            if (shadowData.renderDirectionalShadows)
+            if (renderingData.shadowData.renderDirectionalShadows)
             {
                 EnqueuePass(cmd, RenderPassHandles.DirectionalShadows, baseDescriptor);
-                if (shadowData.requiresScreenSpaceShadowResolve)
+                if (renderingData.shadowData.requiresScreenSpaceShadowResolve)
                     EnqueuePass(cmd, RenderPassHandles.ScreenSpaceShadowResolve, baseDescriptor, new[] {RenderTargetHandles.ScreenSpaceShadowmap});
             }
 
-            if (shadowData.renderLocalShadows)
+            if (renderingData.shadowData.renderLocalShadows)
                 EnqueuePass(cmd, RenderPassHandles.LocalShadows, baseDescriptor);
 
             bool requiresDepthAttachment = requiresCameraDepth && !requiresDepthPrepass;
-            bool requiresColorAttachment = RequiresColorAttachment(ref cameraData, baseDescriptor) || requiresDepthAttachment;
+            bool requiresColorAttachment = RequiresColorAttachment(ref renderingData.cameraData, baseDescriptor) || requiresDepthAttachment;
             int[] colorHandles = (requiresColorAttachment) ? new[] {RenderTargetHandles.Color} : null;
             int depthHandle = (requiresColorAttachment) ? RenderTargetHandles.DepthAttachment : -1;
-            EnqueuePass(cmd, RenderPassHandles.ForwardLit, baseDescriptor, colorHandles, depthHandle, cameraData.msaaSamples);
+            EnqueuePass(cmd, RenderPassHandles.ForwardLit, baseDescriptor, colorHandles, depthHandle, renderingData.cameraData.msaaSamples);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
 
-        public void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref CameraData cameraData,
-            ref LightData lightData)
+        public void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref RenderingData renderingData)
         {
             // TODO: The reason we have to separate passes into two queues is because shadows require different camera
             // context. We need to take a look at approaches to effectively share shadow between cameras, then we
             // can move this out
             for (int i = 0; i < m_ActiveShadowQueue.Count; ++i)
-                m_ActiveShadowQueue[i].Execute(ref context, ref cullResults, ref cameraData, ref lightData);
+                m_ActiveShadowQueue[i].Execute(ref context, ref cullResults, ref renderingData);
 
             // SetupCameraProperties does the following:
             // Setup Camera RenderTarget and Viewport
@@ -207,13 +206,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // Setup camera world clip planes props
             // setup HDR keyword
             // Setup global time properties (_Time, _SinTime, _CosTime)
-            context.SetupCameraProperties(cameraData.camera, cameraData.isStereoEnabled);
+            context.SetupCameraProperties(renderingData.cameraData.camera, renderingData.cameraData.isStereoEnabled);
 
             for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
-                m_ActiveRenderPassQueue[i].Execute(ref context, ref cullResults, ref cameraData, ref lightData);
+                m_ActiveRenderPassQueue[i].Execute(ref context, ref cullResults, ref renderingData);
 
 #if UNITY_EDITOR
-            if (cameraData.isSceneViewCamera)
+            if (renderingData.cameraData.isSceneViewCamera)
             {
                 // Restore Render target for additional editor rendering.
                 // Note: Scene view camera always perform depth prepass
