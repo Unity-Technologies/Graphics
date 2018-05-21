@@ -244,7 +244,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             get { return m_SupportsHDR; }
         }
 
-        public int MSAASampleCount
+        public int MsaaSampleCount
         {
             get { return (int)m_MSAA; }
             set { m_MSAA = (MSAAQuality)value; }
