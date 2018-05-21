@@ -2,35 +2,61 @@ Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap_Gen"
 {
     Properties
     {
-        [HideInInspector] _Control0 ("AlphaMap", 2D) = "" {}
-        [HideInInspector] _Control1 ("AlphaMap", 2D) = "" {}
+        [HideInInspector] _Control0("AlphaMap", 2D) = "" {}
+        [HideInInspector] _Control1("AlphaMap", 2D) = "" {}
 
-        [HideInInspector] _Splat0 ("Layer 0 (R)", 2D) = "white" {}
-        [HideInInspector] _Splat1 ("Layer 1 (G)", 2D) = "white" {}
-        [HideInInspector] _Splat2 ("Layer 2 (B)", 2D) = "white" {}
-        [HideInInspector] _Splat3 ("Layer 3 (A)", 2D) = "white" {}
-        [HideInInspector] _Splat4 ("Layer 0 (R)", 2D) = "white" {}
-        [HideInInspector] _Splat5 ("Layer 1 (G)", 2D) = "white" {}
-        [HideInInspector] _Splat6 ("Layer 2 (B)", 2D) = "white" {}
-        [HideInInspector] _Splat7 ("Layer 3 (A)", 2D) = "white" {}
+        [HideInInspector] _Splat0("Layer 0", 2D) = "white" {}
+        [HideInInspector] _Splat1("Layer 1", 2D) = "white" {}
+        [HideInInspector] _Splat2("Layer 2", 2D) = "white" {}
+        [HideInInspector] _Splat3("Layer 3", 2D) = "white" {}
+        [HideInInspector] _Splat4("Layer 4", 2D) = "white" {}
+        [HideInInspector] _Splat5("Layer 5", 2D) = "white" {}
+        [HideInInspector] _Splat6("Layer 6", 2D) = "white" {}
+        [HideInInspector] _Splat7("Layer 7", 2D) = "white" {}
 
-        [HideInInspector] _Smoothness0 ("Smoothness0", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] _Smoothness1 ("Smoothness1", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] _Smoothness2 ("Smoothness2", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] _Smoothness3 ("Smoothness3", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] _Smoothness4 ("Smoothness0", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] _Smoothness5 ("Smoothness1", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] _Smoothness6 ("Smoothness2", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] _Smoothness7 ("Smoothness3", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] _Height0("Height 0", 2D) = "black" {}
+        [HideInInspector] _Height1("Height 1", 2D) = "black" {}
+        [HideInInspector] _Height2("Height 2", 2D) = "black" {}
+        [HideInInspector] _Height3("Height 3", 2D) = "black" {}
+        [HideInInspector] _Height4("Height 4", 2D) = "black" {}
+        [HideInInspector] _Height5("Height 5", 2D) = "black" {}
+        [HideInInspector] _Height6("Height 6", 2D) = "black" {}
+        [HideInInspector] _Height7("Height 7", 2D) = "black" {}
 
-        [HideInInspector] _Metallic0 ("Metallic0", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] _Metallic1 ("Metallic1", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] _Metallic2 ("Metallic2", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] _Metallic3 ("Metallic3", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] _Metallic4 ("Metallic0", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] _Metallic5 ("Metallic1", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] _Metallic6 ("Metallic2", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] _Metallic7 ("Metallic3", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] _HeightAmplitude0("Height Scale0", Float) = 0.02
+        [HideInInspector] _HeightAmplitude1("Height Scale1", Float) = 0.02
+        [HideInInspector] _HeightAmplitude2("Height Scale2", Float) = 0.02
+        [HideInInspector] _HeightAmplitude3("Height Scale3", Float) = 0.02
+        [HideInInspector] _HeightAmplitude4("Height Scale4", Float) = 0.02
+        [HideInInspector] _HeightAmplitude5("Height Scale5", Float) = 0.02
+        [HideInInspector] _HeightAmplitude6("Height Scale6", Float) = 0.02
+        [HideInInspector] _HeightAmplitude7("Height Scale7", Float) = 0.02
+        [HideInInspector] _HeightCenter0("Height Bias0", Range(0.0, 1.0)) = 0.5
+        [HideInInspector] _HeightCenter1("Height Bias1", Range(0.0, 1.0)) = 0.5
+        [HideInInspector] _HeightCenter2("Height Bias2", Range(0.0, 1.0)) = 0.5
+        [HideInInspector] _HeightCenter3("Height Bias3", Range(0.0, 1.0)) = 0.5
+        [HideInInspector] _HeightCenter4("Height Bias4", Range(0.0, 1.0)) = 0.5
+        [HideInInspector] _HeightCenter5("Height Bias5", Range(0.0, 1.0)) = 0.5
+        [HideInInspector] _HeightCenter6("Height Bias6", Range(0.0, 1.0)) = 0.5
+        [HideInInspector] _HeightCenter7("Height Bias7", Range(0.0, 1.0)) = 0.5
+
+        [HideInInspector] _Smoothness0("Smoothness 0", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] _Smoothness1("Smoothness 1", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] _Smoothness2("Smoothness 2", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] _Smoothness3("Smoothness 3", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] _Smoothness4("Smoothness 4", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] _Smoothness5("Smoothness 5", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] _Smoothness6("Smoothness 6", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] _Smoothness7("Smoothness 7", Range(0.0, 1.0)) = 0.0
+
+        [HideInInspector] [Gamma] _Metallic0("Metallic 0", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] [Gamma] _Metallic1("Metallic 1", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] [Gamma] _Metallic2("Metallic 2", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] [Gamma] _Metallic3("Metallic 3", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] [Gamma] _Metallic4("Metallic 4", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] [Gamma] _Metallic5("Metallic 5", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] [Gamma] _Metallic6("Metallic 6", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] [Gamma] _Metallic7("Metallic 7", Range(0.0, 1.0)) = 0.0
     }
     SubShader
     {
@@ -41,10 +67,34 @@ Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap_Gen"
         #define USE_LEGACY_UNITY_MATRIX_VARIABLES
         #include "CoreRP/ShaderLibrary/Common.hlsl"
         #include "../../ShaderVariables.hlsl"
+        #define _TERRAIN_8_SPLATS
+        #include "TerrainLitSplatCommon.hlsl"
 
-        TEXTURE2D(_Control0);
-        TEXTURE2D(_Control1);
-        SAMPLER(sampler_Control0);
+        #pragma shader_feature _TERRAIN_HEIGHT_MAP
+        // Needed because unity tries to match the name of the used textures to samplers. Heights can be used without splats.
+        SAMPLER(sampler_Height0);
+
+        void FetchWeights(float2 uv, out float4 weights0, out float4 weights1)
+        {
+            weights0 = SAMPLE_TEXTURE2D(_Control0, sampler_Control0, uv);
+            weights1 = SAMPLE_TEXTURE2D(_Control1, sampler_Control0, uv);
+
+            #ifdef _TERRAIN_HEIGHT_MAP
+                float4 weightedHeights0;
+                float4 weightedHeights1;
+                weightedHeights0.r = (SAMPLE_TEXTURE2D(_Height0, sampler_Height0, TRANSFORM_TEX(uv, _Splat0)).r * weights0.r - _HeightCenter0) * _HeightAmplitude0;
+                weightedHeights0.g = (SAMPLE_TEXTURE2D(_Height1, sampler_Height0, TRANSFORM_TEX(uv, _Splat1)).r * weights0.g - _HeightCenter1) * _HeightAmplitude1;
+                weightedHeights0.b = (SAMPLE_TEXTURE2D(_Height2, sampler_Height0, TRANSFORM_TEX(uv, _Splat2)).r * weights0.b - _HeightCenter2) * _HeightAmplitude2;
+                weightedHeights0.a = (SAMPLE_TEXTURE2D(_Height3, sampler_Height0, TRANSFORM_TEX(uv, _Splat3)).r * weights0.a - _HeightCenter3) * _HeightAmplitude3;
+                weightedHeights1.r = (SAMPLE_TEXTURE2D(_Height4, sampler_Height0, TRANSFORM_TEX(uv, _Splat4)).r * weights1.r - _HeightCenter4) * _HeightAmplitude4;
+                weightedHeights1.g = (SAMPLE_TEXTURE2D(_Height5, sampler_Height0, TRANSFORM_TEX(uv, _Splat5)).r * weights1.g - _HeightCenter5) * _HeightAmplitude5;
+                weightedHeights1.b = (SAMPLE_TEXTURE2D(_Height6, sampler_Height0, TRANSFORM_TEX(uv, _Splat6)).r * weights1.b - _HeightCenter6) * _HeightAmplitude6;
+                weightedHeights1.a = (SAMPLE_TEXTURE2D(_Height7, sampler_Height0, TRANSFORM_TEX(uv, _Splat7)).r * weights1.a - _HeightCenter7) * _HeightAmplitude7;
+
+                // Modify blendMask to take into account the height of the layer. Higher height should be more visible.
+                ApplyHeightBlend(weightedHeights0, weightedHeights1, weights0, weights1);
+            #endif
+        }
 
         struct appdata_t {
             float3 vertex : POSITION;
@@ -73,34 +123,6 @@ Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap_Gen"
 
             HLSLPROGRAM
 
-            TEXTURE2D(_Splat0);
-            TEXTURE2D(_Splat1);
-            TEXTURE2D(_Splat2);
-            TEXTURE2D(_Splat3);
-            TEXTURE2D(_Splat4);
-            TEXTURE2D(_Splat5);
-            TEXTURE2D(_Splat6);
-            TEXTURE2D(_Splat7);
-            SAMPLER(sampler_Splat0);
-
-            float _Smoothness0;
-            float _Smoothness1;
-            float _Smoothness2;
-            float _Smoothness3;
-            float _Smoothness4;
-            float _Smoothness5;
-            float _Smoothness6;
-            float _Smoothness7;
-
-            float4 _Splat0_ST;
-            float4 _Splat1_ST;
-            float4 _Splat2_ST;
-            float4 _Splat3_ST;
-            float4 _Splat4_ST;
-            float4 _Splat5_ST;
-            float4 _Splat6_ST;
-            float4 _Splat7_ST;
-
             #pragma vertex vert
             #pragma fragment frag
 
@@ -115,8 +137,8 @@ Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap_Gen"
 
             float4 frag(v2f i) : SV_Target
             {
-                float4 weights0 = SAMPLE_TEXTURE2D(_Control0, sampler_Control0, i.texcoord);
-                float4 weights1 = SAMPLE_TEXTURE2D(_Control1, sampler_Control0, i.texcoord);
+                float4 weights0, weights1;
+                FetchWeights(i.texcoord, weights0, weights1);
 
                 float4 splat0 = SAMPLE_TEXTURE2D(_Splat0, sampler_Splat0, TRANSFORM_TEX(i.texcoord, _Splat0));
                 float4 splat1 = SAMPLE_TEXTURE2D(_Splat1, sampler_Splat0, TRANSFORM_TEX(i.texcoord, _Splat1));
@@ -164,15 +186,6 @@ Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap_Gen"
 
             HLSLPROGRAM
 
-            float _Metallic0;
-            float _Metallic1;
-            float _Metallic2;
-            float _Metallic3;
-            float _Metallic4;
-            float _Metallic5;
-            float _Metallic6;
-            float _Metallic7;
-
             #pragma vertex vert
             #pragma fragment frag
 
@@ -187,8 +200,8 @@ Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap_Gen"
 
             float4 frag(v2f i) : SV_Target
             {
-                float4 weights0 = SAMPLE_TEXTURE2D(_Control0, sampler_Control0, i.texcoord);
-                float4 weights1 = SAMPLE_TEXTURE2D(_Control1, sampler_Control0, i.texcoord);
+                float4 weights0, weights1;
+                FetchWeights(i.texcoord, weights0, weights1);
 
                 float4 metallic = { _Metallic0 * weights0.x, 0, 0, 0 };
                 metallic.r += _Metallic1 * weights0.y;

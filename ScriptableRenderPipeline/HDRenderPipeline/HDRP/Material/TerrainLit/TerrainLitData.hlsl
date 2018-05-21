@@ -7,151 +7,7 @@
 #include "../Lit/LitBuiltinData.hlsl"
 #include "../Decal/DecalUtilities.hlsl"
 
-#if defined(_TERRAIN_8_SPLATS)
-    #define _LAYER_COUNT 8
-#elif defined(_TERRAIN_7_SPLATS)
-    #define _LAYER_COUNT 7
-#elif defined(_TERRAIN_6_SPLATS)
-    #define _LAYER_COUNT 6
-#elif defined(_TERRAIN_5_SPLATS)
-    #define _LAYER_COUNT 5
-#elif defined(_TERRAIN_4_SPLATS)
-    #define _LAYER_COUNT 4
-#elif defined(_TERRAIN_3_SPLATS)
-    #define _LAYER_COUNT 3
-#elif defined(_TERRAIN_2_SPLATS)
-    #define _LAYER_COUNT 2
-#else
-    #define _LAYER_COUNT 1
-#endif
-
-TEXTURE2D(_Splat0);
-TEXTURE2D(_Normal0);
-float4 _Splat0_ST;
-float _Metallic0;
-float _Smoothness0;
-
-TEXTURE2D(_Splat1);
-TEXTURE2D(_Normal1);
-float4 _Splat1_ST;
-float _Metallic1;
-float _Smoothness1;
-
-TEXTURE2D(_Splat2);
-TEXTURE2D(_Normal2);
-float4 _Splat2_ST;
-float _Metallic2;
-float _Smoothness2;
-
-TEXTURE2D(_Splat3);
-TEXTURE2D(_Normal3);
-float4 _Splat3_ST;
-float _Metallic3;
-float _Smoothness3;
-
-TEXTURE2D(_Splat4);
-TEXTURE2D(_Normal4);
-float4 _Splat4_ST;
-float _Metallic4;
-float _Smoothness4;
-
-TEXTURE2D(_Splat5);
-TEXTURE2D(_Normal5);
-float4 _Splat5_ST;
-float _Metallic5;
-float _Smoothness5;
-
-TEXTURE2D(_Splat6);
-TEXTURE2D(_Normal6);
-float4 _Splat6_ST;
-float _Metallic6;
-float _Smoothness6;
-
-TEXTURE2D(_Splat7);
-TEXTURE2D(_Normal7);
-float4 _Splat7_ST;
-float _Metallic7;
-float _Smoothness7;
-
-TEXTURE2D(_Control0);
-TEXTURE2D(_Control1);
-
-SAMPLER(sampler_Splat0);
-SAMPLER(sampler_Control0);
-
-float GetMaxHeight(float4 heights0
-#if _LAYER_COUNT > 4
-    , float4 heights1
-#endif
-)
-{
-    float maxHeight = heights0.r;
-#if _LAYER_COUNT > 1
-    maxHeight = max(maxHeight, heights0.g);
-#endif
-#if _LAYER_COUNT > 2
-    maxHeight = max(maxHeight, heights0.b);
-#endif
-#if _LAYER_COUNT > 3
-    maxHeight = max(maxHeight, heights0.a);
-#endif
-#if _LAYER_COUNT > 4
-    maxHeight = max(maxHeight, heights1.r);
-#endif
-#if _LAYER_COUNT > 5
-    maxHeight = max(maxHeight, heights1.g);
-#endif
-#if _LAYER_COUNT > 6
-    maxHeight = max(maxHeight, heights1.b);
-#endif
-#if _LAYER_COUNT > 7
-    maxHeight = max(maxHeight, heights1.a);
-#endif
-    return maxHeight;
-}
-
-float _HeightTransition;
-
-// Returns layering blend mask after application of height based blend.
-void ApplyHeightBlend(float4 heights0, float4 heights1, inout float4 blendMasks0, inout float4 blendMasks1)
-{
-    // We need to mask out inactive layers so that their height does not impact the result.
-    float4 maskedHeights0 = heights0 * blendMasks0;
-#if _LAYER_COUNT > 4
-    float4 maskedHeights1 = heights1 * blendMasks1;
-#endif
-
-    float maxHeight = GetMaxHeight(maskedHeights0
-#if _LAYER_COUNT > 4
-        , maskedHeights1
-#endif
-    );
-    // Make sure that transition is not zero otherwise the next computation will be wrong.
-    // The epsilon here also has to be bigger than the epsilon in the next computation.
-    float transition = max(_HeightTransition, 1e-5);
-
-    // The goal here is to have all but the highest layer at negative heights, then we add the transition so that if the next highest layer is near transition it will have a positive value.
-    // Then we clamp this to zero and normalize everything so that highest layer has a value of 1.
-    maskedHeights0 = maskedHeights0 - maxHeight.xxxx;
-    // We need to add an epsilon here for active layers (hence the blendMask again) so that at least a layer shows up if everything's too low.
-    maskedHeights0 = (max(0, maskedHeights0 + transition) + 1e-6) * blendMasks0;
-
-#if _LAYER_COUNT > 4
-    maskedHeights1 = maskedHeights1 - maxHeight.xxxx;
-    maskedHeights1 = (max(0, maskedHeights1 + transition) + 1e-6) * blendMasks1;
-#endif
-
-    // Normalize
-    maxHeight = GetMaxHeight(maskedHeights0
-#if _LAYER_COUNT > 4
-        , maskedHeights1
-#endif
-    );
-    blendMasks0 = maskedHeights0 / maxHeight.xxxx;
-#if _LAYER_COUNT > 4
-    blendMasks1 = maskedHeights1 / maxHeight.xxxx;
-#endif
-}
+#include "TerrainLitSplatCommon.hlsl"
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
@@ -213,27 +69,27 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #ifdef _TERRAIN_HEIGHT_MAP
     float4 heights0 = float4(0, 0, 0, 0);
     float4 heights1 = float4(0, 0, 0, 0);
-    heights0.r = (SAMPLE_TEXTURE2D(_HeightMap0, sampler_Splat0, uvSplats[0]).r - _HeightCenter0) * _HeightAmplitude0;
+    heights0.r = (SAMPLE_TEXTURE2D(_Height0, sampler_Splat0, uvSplats[0]).r * blendMasks0.r - _HeightCenter0) * _HeightAmplitude0;
     #if _LAYER_COUNT > 1
-        heights0.g = (SAMPLE_TEXTURE2D(_HeightMap1, sampler_Splat0, uvSplats[1]).r - _HeightCenter1) * _HeightAmplitude1;
+        heights0.g = (SAMPLE_TEXTURE2D(_Height1, sampler_Splat0, uvSplats[1]).r * blendMasks0.g - _HeightCenter1) * _HeightAmplitude1;
     #endif
     #if _LAYER_COUNT > 2
-        heights0.b = (SAMPLE_TEXTURE2D(_HeightMap2, sampler_Splat0, uvSplats[2]).r - _HeightCenter2) * _HeightAmplitude2;
+        heights0.b = (SAMPLE_TEXTURE2D(_Height2, sampler_Splat0, uvSplats[2]).r * blendMasks0.b - _HeightCenter2) * _HeightAmplitude2;
     #endif
     #if _LAYER_COUNT > 3
-        heights0.a = (SAMPLE_TEXTURE2D(_HeightMap3, sampler_Splat0, uvSplats[3]).r - _HeightCenter3) * _HeightAmplitude3;
+        heights0.a = (SAMPLE_TEXTURE2D(_Height3, sampler_Splat0, uvSplats[3]).r * blendMasks0.a - _HeightCenter3) * _HeightAmplitude3;
     #endif
     #if _LAYER_COUNT > 4
-        heights1.r = (SAMPLE_TEXTURE2D(_HeightMap3, sampler_Splat0, uvSplats[4]).r - _HeightCenter4) * _HeightAmplitude4;
+        heights1.r = (SAMPLE_TEXTURE2D(_Height4, sampler_Splat0, uvSplats[4]).r * blendMasks1.r - _HeightCenter4) * _HeightAmplitude4;
     #endif
     #if _LAYER_COUNT > 5
-        heights1.g = (SAMPLE_TEXTURE2D(_HeightMap3, sampler_Splat0, uvSplats[5]).r - _HeightCenter5) * _HeightAmplitude5;
+        heights1.g = (SAMPLE_TEXTURE2D(_Height5, sampler_Splat0, uvSplats[5]).r * blendMasks1.g - _HeightCenter5) * _HeightAmplitude5;
     #endif
     #if _LAYER_COUNT > 6
-        heights1.b = (SAMPLE_TEXTURE2D(_HeightMap3, sampler_Splat0, uvSplats[6]).r - _HeightCenter6) * _HeightAmplitude6;
+        heights1.b = (SAMPLE_TEXTURE2D(_Height6, sampler_Splat0, uvSplats[6]).r * blendMasks1.b - _HeightCenter6) * _HeightAmplitude6;
     #endif
     #if _LAYER_COUNT > 7
-        heights1.a = (SAMPLE_TEXTURE2D(_HeightMap3, sampler_Splat0, uvSplats[7]).r - _HeightCenter7) * _HeightAmplitude7;
+        heights1.a = (SAMPLE_TEXTURE2D(_Height7, sampler_Splat0, uvSplats[7]).r * blendMasks1.a - _HeightCenter7) * _HeightAmplitude7;
     #endif
 
     // Modify blendMask to take into account the height of the layer. Higher height should be more visible.
@@ -242,40 +98,52 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     float weights[_MAX_LAYER];
     ZERO_INITIALIZE_ARRAY(float, weights, _MAX_LAYER);
+
+#if defined(_DENSITY_MODE)
     // calculate weight of each layers
     // Algorithm is like this:
     // Top layer have priority on others layers
     // If a top layer doesn't use the full weight, the remaining can be use by the following layer.
     float weightsSum = 0.0f;
-#if _LAYER_COUNT > 7
-    weights[7] = min(blendMasks1.a, (1.0f - weightsSum));
-    weightsSum = saturate(weightsSum + weights[7]);
-#endif
-#if _LAYER_COUNT > 6
-    weights[6] = min(blendMasks1.b, (1.0f - weightsSum));
-    weightsSum = saturate(weightsSum + weights[6]);
-#endif
-#if _LAYER_COUNT > 5
-    weights[5] = min(blendMasks1.g, (1.0f - weightsSum));
-    weightsSum = saturate(weightsSum + weights[5]);
-#endif
-#if _LAYER_COUNT > 4
-    weights[4] = min(blendMasks1.r, (1.0f - weightsSum));
-    weightsSum = saturate(weightsSum + weights[4]);
-#endif
-#if _LAYER_COUNT > 3
-    weights[3] = min(blendMasks0.a, (1.0f - weightsSum));
-    weightsSum = saturate(weightsSum + weights[3]);
-#endif
-#if _LAYER_COUNT > 2
-    weights[2] = min(blendMasks0.b, (1.0f - weightsSum));
-    weightsSum = saturate(weightsSum + weights[2]);
-#endif
-#if _LAYER_COUNT > 1
-    weights[1] = min(blendMasks0.g, (1.0f - weightsSum));
-    weightsSum = saturate(weightsSum + weights[1]);
-#endif
+    #if _LAYER_COUNT > 7
+        weights[7] = min(blendMasks1.a, (1.0f - weightsSum));
+        weightsSum = saturate(weightsSum + weights[7]);
+    #endif
+    #if _LAYER_COUNT > 6
+        weights[6] = min(blendMasks1.b, (1.0f - weightsSum));
+        weightsSum = saturate(weightsSum + weights[6]);
+    #endif
+    #if _LAYER_COUNT > 5
+        weights[5] = min(blendMasks1.g, (1.0f - weightsSum));
+        weightsSum = saturate(weightsSum + weights[5]);
+    #endif
+    #if _LAYER_COUNT > 4
+        weights[4] = min(blendMasks1.r, (1.0f - weightsSum));
+        weightsSum = saturate(weightsSum + weights[4]);
+    #endif
+    #if _LAYER_COUNT > 3
+        weights[3] = min(blendMasks0.a, (1.0f - weightsSum));
+        weightsSum = saturate(weightsSum + weights[3]);
+    #endif
+    #if _LAYER_COUNT > 2
+        weights[2] = min(blendMasks0.b, (1.0f - weightsSum));
+        weightsSum = saturate(weightsSum + weights[2]);
+    #endif
+    #if _LAYER_COUNT > 1
+        weights[1] = min(blendMasks0.g, (1.0f - weightsSum));
+        weightsSum = saturate(weightsSum + weights[1]);
+    #endif
     weights[0] = min(blendMasks0.r, (1.0f - weightsSum));
+#else
+    weights[0] = blendMasks0.r;
+    weights[1] = blendMasks0.g;
+    weights[2] = blendMasks0.b;
+    weights[3] = blendMasks0.a;
+    weights[4] = blendMasks1.r;
+    weights[5] = blendMasks1.g;
+    weights[6] = blendMasks1.b;
+    weights[7] = blendMasks1.a;
+#endif
 
     // TODO: conditional samplings
     surfaceData.baseColor = SAMPLE_TEXTURE2D(_Splat0, sampler_Splat0, uvSplats[0]).rgb * weights[0];

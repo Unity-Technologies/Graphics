@@ -13,7 +13,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             public readonly GUIContent layersText = new GUIContent("Inputs");
             public readonly GUIContent layerMapMaskText = new GUIContent("Layer Mask", "Layer mask");
-            public readonly GUIContent useHeightBasedBlendText = new GUIContent("Use Height Based Blend", "Layer will be blended with the underlying layer based on the height.");
             public readonly GUIContent heightTransition = new GUIContent("Height Transition", "Size in world units of the smooth transition between layers.");
         }
 
@@ -28,10 +27,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_PropertySuffixes[3] = "3";
         }
 
-        // Layer options
-        MaterialProperty useHeightBasedBlend = null;
-        const string kUseHeightBasedBlend = "_UseHeightBasedBlend";
-
         // Density/opacity mode
         MaterialProperty[] opacityAsDensity = new MaterialProperty[kMaxLayerCount];
         const string kOpacityAsDensity = "_OpacityAsDensity";
@@ -40,13 +35,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         MaterialProperty heightTransition = null;
         const string kHeightTransition = "_HeightTransition";
 
-        bool m_UseHeightBasedBlend;
-
         protected override void FindMaterialProperties(MaterialProperty[] props)
         {
-            useHeightBasedBlend = FindProperty(kUseHeightBasedBlend, props);
-            heightTransition = FindProperty(kHeightTransition, props);
-
+            heightTransition = FindProperty(kHeightTransition, props, false);
             for (int i = 0; i < kMaxLayerCount; ++i)
             {
                 // Density/opacity mode
@@ -61,20 +52,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel++;
             GUILayout.Label(styles.layersText, EditorStyles.boldLabel);
 
-            EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = useHeightBasedBlend.hasMixedValue;
-            m_UseHeightBasedBlend = EditorGUILayout.Toggle(styles.useHeightBasedBlendText, useHeightBasedBlend.floatValue > 0.0f);
-            if (EditorGUI.EndChangeCheck())
-            {
-                useHeightBasedBlend.floatValue = m_UseHeightBasedBlend ? 1.0f : 0.0f;
-            }
+            EditorGUI.indentLevel++;
+            m_MaterialEditor.ShaderProperty(heightTransition, styles.heightTransition);
+            EditorGUI.indentLevel--;
 
-            if (m_UseHeightBasedBlend)
-            {
-                EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(heightTransition, styles.heightTransition);
-                EditorGUI.indentLevel--;
-            }
             EditorGUI.indentLevel--;
         }
 
@@ -128,20 +109,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // TODO: planar/triplannar supprt
             //SetupLayersMappingKeywords(material);
-
-            for (int i = 0; i < kMaxLayerCount; ++i)
-            {
-                CoreUtils.SetKeyword(material, "_NORMALMAP" + i, material.GetTexture(kNormalMap + i) || material.GetTexture(kDetailMap + i));
-
-                CoreUtils.SetKeyword(material, "_MASKMAP" + i, material.GetTexture(kMaskMap + i));
-
-                CoreUtils.SetKeyword(material, "_HEIGHTMAP" + i, material.GetTexture(kHeightMap + i));
-
-                CoreUtils.SetKeyword(material, "_THICKNESSMAP" + i, material.GetTexture(kThicknessMap + i));
-            }
-
-            bool useHeightBasedBlend = material.GetFloat(kUseHeightBasedBlend) != 0.0f;
-            CoreUtils.SetKeyword(material, "_HEIGHT_BASED_BLEND", useHeightBasedBlend);
         }
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)

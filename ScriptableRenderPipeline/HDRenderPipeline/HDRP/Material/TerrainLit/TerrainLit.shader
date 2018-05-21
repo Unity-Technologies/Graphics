@@ -2,8 +2,8 @@ Shader "HDRenderPipeline/TerrainLit"
 {
     Properties
     {
-        [HideInInspector] _Control0("Control 0 (RGBA)", 2D) = "red" {}
-        [HideInInspector] _Control1("Control 1 (RGBA)", 2D) = "black" {}
+        [HideInInspector] _Control0("Control 0 (RGBA)", 2D) = "" {}
+        [HideInInspector] _Control1("Control 1 (RGBA)", 2D) = "" {}
 
         [HideInInspector] _Splat0("Layer 0", 2D) = "white" {}
         [HideInInspector] _Splat1("Layer 1", 2D) = "white" {}
@@ -24,22 +24,22 @@ Shader "HDRenderPipeline/TerrainLit"
         [HideInInspector] _Normal7("Normal 7", 2D) = "bump" {}
 
         // Since we don't use a mask texture for getting the mask, we'll need the metallic property to be serialized as in sRGB space.
-        [HideInInspector] [Gamma] _Metallic0("Metallic 0", Range(0.0, 1.0)) = 0
-        [HideInInspector] [Gamma] _Metallic1("Metallic 1", Range(0.0, 1.0)) = 0
-        [HideInInspector] [Gamma] _Metallic2("Metallic 2", Range(0.0, 1.0)) = 0
-        [HideInInspector] [Gamma] _Metallic3("Metallic 3", Range(0.0, 1.0)) = 0
-        [HideInInspector] [Gamma] _Metallic4("Metallic 4", Range(0.0, 1.0)) = 0
-        [HideInInspector] [Gamma] _Metallic5("Metallic 5", Range(0.0, 1.0)) = 0
-        [HideInInspector] [Gamma] _Metallic6("Metallic 6", Range(0.0, 1.0)) = 0
-        [HideInInspector] [Gamma] _Metallic7("Metallic 7", Range(0.0, 1.0)) = 0
-        [HideInInspector] _Smoothness0("Smoothness0", Range(0.0, 1.0)) = 1.0
-        [HideInInspector] _Smoothness1("Smoothness1", Range(0.0, 1.0)) = 1.0
-        [HideInInspector] _Smoothness2("Smoothness2", Range(0.0, 1.0)) = 1.0
-        [HideInInspector] _Smoothness3("Smoothness3", Range(0.0, 1.0)) = 1.0
-        [HideInInspector] _Smoothness4("Smoothness4", Range(0.0, 1.0)) = 1.0
-        [HideInInspector] _Smoothness5("Smoothness5", Range(0.0, 1.0)) = 1.0
-        [HideInInspector] _Smoothness6("Smoothness6", Range(0.0, 1.0)) = 1.0
-        [HideInInspector] _Smoothness7("Smoothness7", Range(0.0, 1.0)) = 1.0
+        [HideInInspector] [Gamma] _Metallic0("Metallic 0", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] [Gamma] _Metallic1("Metallic 1", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] [Gamma] _Metallic2("Metallic 2", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] [Gamma] _Metallic3("Metallic 3", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] [Gamma] _Metallic4("Metallic 4", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] [Gamma] _Metallic5("Metallic 5", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] [Gamma] _Metallic6("Metallic 6", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] [Gamma] _Metallic7("Metallic 7", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] _Smoothness0("Smoothness 0", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] _Smoothness1("Smoothness 1", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] _Smoothness2("Smoothness 2", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] _Smoothness3("Smoothness 3", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] _Smoothness4("Smoothness 4", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] _Smoothness5("Smoothness 5", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] _Smoothness6("Smoothness 6", Range(0.0, 1.0)) = 0.0
+        [HideInInspector] _Smoothness7("Smoothness 7", Range(0.0, 1.0)) = 0.0
 
         // TODO: route values from terrain layers. enable _DENSITY_MODE if any of these enabled.
         [HideInInspector] [ToggleUI] _OpacityAsDensity0("_OpacityAsDensity0", Float) = 0.0
@@ -51,19 +51,15 @@ Shader "HDRenderPipeline/TerrainLit"
         [HideInInspector] [ToggleUI] _OpacityAsDensity6("_OpacityAsDensity6", Float) = 0.0
         [HideInInspector] [ToggleUI] _OpacityAsDensity7("_OpacityAsDensity7", Float) = 0.0
 
-        // TODO: Allow heightmap?
-        [HideInInspector] [ToggleUI] _UseHeightBasedBlend("UseHeightBasedBlend", Float) = 0.0
-        [HideInInspector] _HeightTransition("Height Transition", Range(0, 1.0)) = 0.0
-        [HideInInspector] _HeightMap0("HeightMap0", 2D) = "black" {}
-        [HideInInspector] _HeightMap1("HeightMap1", 2D) = "black" {}
-        [HideInInspector] _HeightMap2("HeightMap2", 2D) = "black" {}
-        [HideInInspector] _HeightMap3("HeightMap3", 2D) = "black" {}
-        [HideInInspector] _HeightMap4("HeightMap4", 2D) = "black" {}
-        [HideInInspector] _HeightMap5("HeightMap5", 2D) = "black" {}
-        [HideInInspector] _HeightMap6("HeightMap6", 2D) = "black" {}
-        [HideInInspector] _HeightMap7("HeightMap7", 2D) = "black" {}
-        // Caution: Default value of _HeightAmplitude must be (_HeightMax - _HeightMin) * 0.01
-        // Those two properties are computed from the ones exposed in the UI and depends on the displaement mode so they are separate because we don't want to lose information upon displacement mode change.
+        _HeightTransition("Height Transition", Range(0, 1.0)) = 0.0
+        [HideInInspector] _Height0("Height 0", 2D) = "black" {}
+        [HideInInspector] _Height1("Height 1", 2D) = "black" {}
+        [HideInInspector] _Height2("Height 2", 2D) = "black" {}
+        [HideInInspector] _Height3("Height 3", 2D) = "black" {}
+        [HideInInspector] _Height4("Height 4", 2D) = "black" {}
+        [HideInInspector] _Height5("Height 5", 2D) = "black" {}
+        [HideInInspector] _Height6("Height 6", 2D) = "black" {}
+        [HideInInspector] _Height7("Height 7", 2D) = "black" {}
         [HideInInspector] _HeightAmplitude0("Height Scale0", Float) = 0.02
         [HideInInspector] _HeightAmplitude1("Height Scale1", Float) = 0.02
         [HideInInspector] _HeightAmplitude2("Height Scale2", Float) = 0.02
@@ -82,6 +78,8 @@ Shader "HDRenderPipeline/TerrainLit"
         [HideInInspector] _HeightCenter7("Height Bias7", Range(0.0, 1.0)) = 0.5
 
         // TODO: support tri-planar?
+        // TODO: support more maps?
+        /*
         [HideInInspector] _TexWorldScale0("Tiling", Float) = 1.0
         [HideInInspector] _TexWorldScale1("Tiling", Float) = 1.0
         [HideInInspector] _TexWorldScale2("Tiling", Float) = 1.0
@@ -116,7 +114,7 @@ Shader "HDRenderPipeline/TerrainLit"
         _MaskMap1("MaskMap1", 2D) = "white" {}
         _MaskMap2("MaskMap2", 2D) = "white" {}
         _MaskMap3("MaskMap3", 2D) = "white" {}
-
+        */
         // All the following properties exist only in layered lit material
 
         // Following are builtin properties
