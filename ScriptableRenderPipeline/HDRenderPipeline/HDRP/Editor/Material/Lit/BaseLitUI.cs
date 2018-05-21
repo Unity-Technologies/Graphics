@@ -169,8 +169,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty supportDBuffer = null;
         protected const string kSupportDBuffer = "_SupportDBuffer";
 
-        protected virtual MaterialId defaultMaterialID { get { return MaterialId.LitStandard; } }
-
         protected override void FindBaseMaterialProperties(MaterialProperty[] props)
         {
             base.FindBaseMaterialProperties(props);
