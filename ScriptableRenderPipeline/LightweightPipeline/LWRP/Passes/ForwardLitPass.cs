@@ -108,38 +108,39 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
-        public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref CameraData cameraData, ref LightData lightData)
+        public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref RenderingData renderingData)
         {
-            Camera camera = cameraData.camera;
-            SetupShaderConstants(ref context, ref cameraData, ref lightData);
-            RendererConfiguration rendererConfiguration = GetRendererConfiguration(lightData.totalAdditionalLightsCount);
+            Camera camera = renderingData.cameraData.camera;
+            bool dynamicBatching = renderingData.supportsDynamicBatching;
+            SetupShaderConstants(ref context, ref renderingData.cameraData, ref renderingData.lightData, ref renderingData.shadowData);
+            RendererConfiguration rendererConfiguration = GetRendererConfiguration(renderingData.lightData.totalAdditionalLightsCount);
 
-            if (cameraData.isStereoEnabled)
+            if (renderingData.cameraData.isStereoEnabled)
                 context.StartMultiEye(camera);
 
-            RenderOpaques(ref context, ref cullResults, ref cameraData, rendererConfiguration);
+            RenderOpaques(ref context, ref cullResults, ref renderingData.cameraData, rendererConfiguration, dynamicBatching);
 
-            if (cameraData.postProcessEnabled &&
-                cameraData.postProcessLayer.HasOpaqueOnlyEffects(renderer.postProcessRenderContext))
-                OpaquePostProcessSubPass(ref context, ref cameraData);
+            if (renderingData.cameraData.postProcessEnabled &&
+                renderingData.cameraData.postProcessLayer.HasOpaqueOnlyEffects(renderer.postProcessRenderContext))
+                OpaquePostProcessSubPass(ref context, ref renderingData.cameraData);
 
             if (depthAttachmentHandle != -1)
-                CopyDepthSubPass(ref context, ref cameraData);
+                CopyDepthSubPass(ref context, ref renderingData.cameraData);
 
-            if (cameraData.requiresOpaqueTexture)
-                CopyColorSubpass(ref context, ref cameraData);
+            if (renderingData.cameraData.requiresOpaqueTexture)
+                CopyColorSubpass(ref context, ref renderingData.cameraData);
 
-            RenderTransparents(ref context, ref cullResults, ref cameraData, rendererConfiguration);
+            RenderTransparents(ref context, ref cullResults, ref renderingData.cameraData, rendererConfiguration, dynamicBatching);
 
-            if (cameraData.postProcessEnabled)
-                PostProcessPass(ref context, ref cameraData);
-            else if (!cameraData.isOffscreenRender && colorAttachmentHandle != -1) 
-                FinalBlitPass(ref context, ref cameraData);
+            if (renderingData.cameraData.postProcessEnabled)
+                PostProcessPass(ref context, ref renderingData.cameraData);
+            else if (!renderingData.cameraData.isOffscreenRender && colorAttachmentHandle != -1) 
+                FinalBlitPass(ref context, ref renderingData.cameraData);
 
-            if (cameraData.isStereoEnabled)
+            if (renderingData.cameraData.isStereoEnabled)
             {
-                context.StopMultiEye(cameraData.camera);
-                context.StereoEndRender(cameraData.camera);
+                context.StopMultiEye(camera);
+                context.StereoEndRender(camera);
             }
         }
 
@@ -157,11 +158,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return configuration;
         }
 
-        void SetupShaderConstants(ref ScriptableRenderContext context, ref CameraData cameraData, ref LightData lightData)
+        void SetupShaderConstants(ref ScriptableRenderContext context, ref CameraData cameraData, ref LightData lightData, ref ShadowData shadowData)
         {
             CommandBuffer cmd = CommandBufferPool.Get("SetupShaderConstants");
             SetupShaderLightConstants(cmd, ref lightData);
-            SetShaderKeywords(cmd, ref cameraData, ref lightData);
+            SetShaderKeywords(cmd, ref cameraData, ref lightData, ref shadowData);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
@@ -263,7 +264,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return clearFlag;
         }
 
-        void SetShaderKeywords(CommandBuffer cmd, ref CameraData cameraData, ref LightData lightData)
+        void SetShaderKeywords(CommandBuffer cmd, ref CameraData cameraData, ref LightData lightData, ref ShadowData shadowData)
         {
             int vertexLightsCount = lightData.totalAdditionalLightsCount - lightData.pixelAdditionalLightsCount;
 
@@ -274,12 +275,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // TODO: We have to discuss cookie approach on LWRP.
             // CoreUtils.SetKeyword(cmd, LightweightKeywords.MainLightCookieText, mainLightIndex != -1 && LightweightUtils.IsSupportedCookieType(visibleLights[mainLightIndex].lightType) && visibleLights[mainLightIndex].light.cookie != null);
 
-            LightShadows directionalShadowQuality = lightData.shadowData.renderedDirectionalShadowQuality;
-            LightShadows localShadowQuality = lightData.shadowData.renderedLocalShadowQuality;
+            LightShadows directionalShadowQuality = shadowData.renderedDirectionalShadowQuality;
+            LightShadows localShadowQuality = shadowData.renderedLocalShadowQuality;
 
             // Currently shadow filtering keyword is shared between local and directional shadows.
             bool hasSoftShadows = (directionalShadowQuality == LightShadows.Soft || localShadowQuality == LightShadows.Soft) &&
-                lightData.shadowData.supportsSoftShadows;
+                shadowData.supportsSoftShadows;
 
             CoreUtils.SetKeyword(cmd, LightweightKeywords.DirectionalShadowsText, directionalShadowQuality != LightShadows.None);
             CoreUtils.SetKeyword(cmd, LightweightKeywords.LocalShadowsText, localShadowQuality != LightShadows.None);
@@ -304,7 +305,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
-        void RenderOpaques(ref ScriptableRenderContext context, ref CullResults cullResults, ref CameraData cameraData, RendererConfiguration rendererConfiguration)
+        void RenderOpaques(ref ScriptableRenderContext context, ref CullResults cullResults, ref CameraData cameraData, RendererConfiguration rendererConfiguration, bool dynamicBatching)
         {
             CommandBuffer cmd = CommandBufferPool.Get("Render Opaques");
             Camera camera = cameraData.camera;
@@ -323,7 +324,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (colorAttachmentHandle == -1 && cameraData.isDefaultViewport)
                 cmd.SetViewport(camera.pixelRect);
 
-            var drawSettings = CreateDrawRendererSettings(camera, SortFlags.CommonOpaque, rendererConfiguration);
+            var drawSettings = CreateDrawRendererSettings(camera, SortFlags.CommonOpaque, rendererConfiguration, dynamicBatching);
             context.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, renderer.opaqueFilterSettings);
 
             // Render objects that did not match any shader pass with error shader
@@ -333,7 +334,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 context.DrawSkybox(camera);
         }
 
-        void RenderTransparents(ref ScriptableRenderContext context, ref CullResults cullResults, ref CameraData cameraData, RendererConfiguration rendererConfiguration)
+        void RenderTransparents(ref ScriptableRenderContext context, ref CullResults cullResults, ref CameraData cameraData, RendererConfiguration rendererConfiguration, bool dynamicBatching)
         {
             CommandBuffer cmd = CommandBufferPool.Get("Render Transparents");
             Camera camera = cameraData.camera;
@@ -341,7 +342,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 
-            var drawSettings = CreateDrawRendererSettings(camera, SortFlags.CommonTransparent, rendererConfiguration);
+            var drawSettings = CreateDrawRendererSettings(camera, SortFlags.CommonTransparent, rendererConfiguration, dynamicBatching);
             context.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, renderer.transparentFilterSettings);
 
             // Render objects that did not match any shader pass with error shader

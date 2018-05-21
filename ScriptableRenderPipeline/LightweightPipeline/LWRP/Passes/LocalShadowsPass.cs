@@ -36,12 +36,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 : RenderTextureFormat.Depth;
         }
 
-        public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref CameraData cameraData, ref LightData lightData)
+        public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref RenderingData renderingData)
         {
-            Clear();
-            ShadowData shadowData = lightData.shadowData;
-            if (shadowData.renderLocalShadows)
-                lightData.shadowData.renderedLocalShadowQuality = RenderLocalShadowmapAtlas(ref context, ref cullResults, ref lightData, ref shadowData);
+            if (renderingData.shadowData.renderLocalShadows)
+            {
+                Clear();
+                RenderLocalShadowmapAtlas(ref context, ref cullResults, ref renderingData.lightData, ref renderingData.shadowData);
+            }
         }
 
         public override void Dispose(CommandBuffer cmd)
@@ -67,9 +68,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_LocalShadowStrength[i] = 0.0f;
         }
 
-        LightShadows RenderLocalShadowmapAtlas(ref ScriptableRenderContext context, ref CullResults cullResults, ref LightData lightData, ref ShadowData shadowData)
+        void RenderLocalShadowmapAtlas(ref ScriptableRenderContext context, ref CullResults cullResults, ref LightData lightData, ref ShadowData shadowData)
         {
-            LightShadows shadowQuality = LightShadows.None;
             List<int> localLightIndices = lightData.visibleLocalLightIndices;
             List<VisibleLight> visibleLights = lightData.visibleLights;
 
@@ -84,7 +84,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
 
             if (shadowCastingLightsCount == 0)
-                return shadowQuality;
+                return;
 
             CommandBuffer cmd = CommandBufferPool.Get("Prepare Local Lights Shadowmap");
             Matrix4x4 view, proj;
@@ -149,10 +149,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
 
             SetupLocalLightsShadowReceiverConstants(ref context, cmd, ref shadowData);
-            shadowQuality = (shadowData.supportsSoftShadows) ? (LightShadows)shadowSampling : LightShadows.Hard;
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
-            return shadowQuality;
+
+            // TODO: We should have RenderingData as a readonly but currently we need this to pass shadow rendering to litpass
+            shadowData.renderedLocalShadowQuality = (shadowData.supportsSoftShadows) ? (LightShadows)shadowSampling : LightShadows.Hard; ;
         }
 
         void SetupLocalLightsShadowReceiverConstants(ref ScriptableRenderContext context, CommandBuffer cmd, ref ShadowData shadowData)

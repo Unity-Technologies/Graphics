@@ -29,7 +29,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.GetTemporaryRT(depthAttachmentHandle, baseDescriptor, FilterMode.Point);
         }
 
-        public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref CameraData cameraData, ref LightData lightData)
+        public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get(kCommandBufferTag);
             using (new ProfilingSample(cmd, kProfilerTag))
@@ -39,12 +39,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
-                var drawSettings = CreateDrawRendererSettings(cameraData.camera, SortFlags.CommonOpaque, RendererConfiguration.None);
-                if (cameraData.isStereoEnabled)
+                var drawSettings = CreateDrawRendererSettings(renderingData.cameraData.camera, SortFlags.CommonOpaque, RendererConfiguration.None, renderingData.supportsDynamicBatching);
+                if (renderingData.cameraData.isStereoEnabled)
                 {
-                    context.StartMultiEye(cameraData.camera);
+                    Camera camera = renderingData.cameraData.camera;
+                    context.StartMultiEye(camera);
                     context.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, renderer.opaqueFilterSettings);
-                    context.StopMultiEye(cameraData.camera);
+                    context.StopMultiEye(camera);
                 }
                 else
                     context.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, renderer.opaqueFilterSettings);
