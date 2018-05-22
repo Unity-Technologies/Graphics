@@ -335,7 +335,7 @@ namespace UnityEditor.VFX.UI
 
 
             VisualElement spacer = new VisualElement();
-            spacer.style.flex = 1;
+            spacer.style.flex = new Flex(1);
             m_Toolbar.Add(spacer);
             m_ToggleDebug = new Toggle(OnToggleDebug);
             m_ToggleDebug.text = "Debug";
@@ -1702,7 +1702,17 @@ namespace UnityEditor.VFX.UI
             return true;
         }
 
-        bool IDropTarget.DragPerform(DragPerformEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
+        bool IDropTarget.DragEnter(DragEnterEvent evt, IEnumerable<ISelectable> selection, IDropTarget enteredTarget, ISelection dragSource)
+        {
+            return true;
+        }
+
+        bool IDropTarget.DragLeave(DragLeaveEvent evt, IEnumerable<ISelectable> selection, IDropTarget leftTarget, ISelection dragSource)
+        {
+            return true;
+        }
+
+        bool IDropTarget.DragPerform(DragPerformEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget, ISelection dragSource)
         {
             var rows = selection.OfType<BlackboardField>().Select(t => t.GetFirstAncestorOfType<VFXBlackboardRow>()).Where(t => t != null).ToArray();
 
@@ -1717,7 +1727,7 @@ namespace UnityEditor.VFX.UI
             return true;
         }
 
-        bool IDropTarget.DragUpdated(DragUpdatedEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
+        bool IDropTarget.DragUpdated(DragUpdatedEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget, ISelection dragSource)
         {
             DragAndDrop.visualMode = DragAndDropVisualMode.Link;
 

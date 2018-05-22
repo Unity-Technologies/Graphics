@@ -445,10 +445,5 @@ namespace UnityEditor.VFX.UI
                 parameter.value = convertedValue;
             }
         }
-
-        public override void DoRepaint()
-        {
-            base.DoRepaint();
-        }
     }
 }
