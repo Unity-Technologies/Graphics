@@ -52,7 +52,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float diffuseScale;
 
         public float volumetricDimmer;
-        public int dynamicShadowCasterOnly; // Use with ShadowMask feature // TODO: make it a bool
+        public int nonLightmappedOnly; // Use with ShadowMask feature // TODO: make it a bool
 
         public Vector4 shadowMaskSelector; // Use with ShadowMask feature
     };
@@ -78,7 +78,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float angleScale;  // Spot light
         public float angleOffset; // Spot light
         public float shadowDimmer;
-        public int dynamicShadowCasterOnly; // Use with ShadowMask feature // TODO: make it a bool
+        public int nonLightmappedOnly; // Use with ShadowMask feature // TODO: make it a bool
 
         public Vector4 shadowMaskSelector; // Use with ShadowMask feature
 
