@@ -245,8 +245,16 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
 
                     // Common Pre Specific
                     // Fetch debug data
-                    const uint2 loopStartPositionSS = uint2(debug.loopStartPositionSSX, debug.loopStartPositionSSY);
-                    const uint2 endPositionSS = uint2(debug.endPositionSSX, debug.endPositionSSY);
+                    uint2 loopStartPositionSS = uint2(debug.loopStartPositionSSX, debug.loopStartPositionSSY);
+                    uint2 endPositionSS = uint2(debug.endPositionSSX, debug.endPositionSSY);
+                    float3 iterationPositionSS = debug.iterationPositionSS;
+
+                    if (_RequireToFlipInputTexture > 0)
+                    {
+                        loopStartPositionSS.y = uint(_ScreenSize.y) - loopStartPositionSS.y;
+                        endPositionSS.y = uint(_ScreenSize.y) - endPositionSS.y;
+                        iterationPositionSS.y = _ScreenSize.y - iterationPositionSS.y;
+                    }
 
                     float distanceToPosition = FLT_MAX;
                     float positionSDF = 0;
@@ -266,7 +274,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                         const float hasData = iterationCellSize.x != 0 || iterationCellSize.y != 0;
 
                         // Position dot rendering
-                        distanceToPosition = length(int2(posInput.positionSS) - int2(debug.iterationPositionSS.xy));
+                        distanceToPosition = length(int2(posInput.positionSS) - int2(iterationPositionSS.xy));
                         positionSDF = clamp(circleRadius - distanceToPosition, 0, 1);
 
                         // Grid rendering
