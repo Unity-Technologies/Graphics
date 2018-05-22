@@ -42,23 +42,26 @@ namespace UnityEditor.VFX
         public static VFXParameterInfo[] BuildParameterInfo(VFXGraph graph)
         {
             var categories = graph.UIInfos.categories;
-            if(categories == null)
+            if (categories == null)
                 categories = new List<string>();
 
 
-            var parameters = graph.children.OfType<VFXParameter>().Where(t => t.exposed && (string.IsNullOrEmpty(t.category) || ! categories.Contains(t.category))).OrderBy(t => t.order).ToArray();
+            var parameters = graph.children.OfType<VFXParameter>().Where(t => t.exposed && (string.IsNullOrEmpty(t.category) || !categories.Contains(t.category))).OrderBy(t => t.order).ToArray();
 
             var infos = new List<VFXParameterInfo>();
             BuildCategoryParameterInfo(parameters, infos);
 
-            foreach(var cat in categories)
+            foreach (var cat in categories)
             {
-                VFXParameterInfo paramInfo = new VFXParameterInfo(cat, "");
-
                 parameters = graph.children.OfType<VFXParameter>().Where(t => t.exposed && t.category == cat).OrderBy(t => t.order).ToArray();
-                paramInfo.descendantCount = parameters.Length;
-                infos.Add(paramInfo);
-                BuildCategoryParameterInfo(parameters,infos);
+                if (parameters.Count() > 0)
+                {
+                    VFXParameterInfo paramInfo = new VFXParameterInfo(cat, "");
+
+                    paramInfo.descendantCount = parameters.Length;
+                    infos.Add(paramInfo);
+                    BuildCategoryParameterInfo(parameters, infos);
+                }
             }
 
 
@@ -79,8 +82,8 @@ namespace UnityEditor.VFX
                     paramInfo.path = paramInfo.name;
                     if (parameter.hasRange)
                     {
-                        float min = (float) System.Convert.ChangeType(parameter.m_Min.Get(), typeof(float));
-                        float max = (float) System.Convert.ChangeType(parameter.m_Max.Get(), typeof(float));
+                        float min = (float)System.Convert.ChangeType(parameter.m_Min.Get(), typeof(float));
+                        float max = (float)System.Convert.ChangeType(parameter.m_Max.Get(), typeof(float));
                         paramInfo.min = min;
                         paramInfo.max = max;
                     }
