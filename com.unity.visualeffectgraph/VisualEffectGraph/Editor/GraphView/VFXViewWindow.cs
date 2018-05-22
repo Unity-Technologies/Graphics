@@ -106,7 +106,7 @@ namespace  UnityEditor.VFX.UI
                 {
                     string path = AssetDatabase.GetAssetPath(instanceID);
                     if (path.EndsWith(".vfx"))
-                    {
+            {
                         selectedResource = VisualEffectResource.GetResourceAtPath(path);
                     }
                 }
@@ -158,14 +158,17 @@ namespace  UnityEditor.VFX.UI
         {
             if (graphView != null)
             {
-                m_ViewScale = graphView.contentViewContainer.transform.scale;
-                m_ViewPosition = graphView.contentViewContainer.transform.position;
-
                 graphView.UnregisterCallback<AttachToPanelEvent>(OnEnterPanel);
                 graphView.UnregisterCallback<DetachFromPanelEvent>(OnLeavePanel);
                 graphView.controller = null;
             }
             currentWindow = null;
+        }
+
+        void OnFocus()
+        {
+            if (graphView != null)
+                graphView.UpdateGlobalSelection();
         }
 
         void OnSelectionChange()
@@ -180,10 +183,6 @@ namespace  UnityEditor.VFX.UI
                     LoadAsset(objs[0] as VisualEffectAsset);
                 }
             }
-            /*else if( controller != null && objs.All(t => t is VFXModel && (t as VFXModel).GetGraph() == controller.graph)
-            {
-                graphView.SelectMo
-            }*/
         }
 
         void OnEnterPanel(AttachToPanelEvent e)
@@ -229,11 +228,5 @@ namespace  UnityEditor.VFX.UI
 
         [SerializeField]
         private VisualEffectResource m_DisplayedResource;
-
-        [SerializeField]
-        Vector3 m_ViewPosition;
-
-        [SerializeField]
-        Vector3 m_ViewScale;
     }
 }

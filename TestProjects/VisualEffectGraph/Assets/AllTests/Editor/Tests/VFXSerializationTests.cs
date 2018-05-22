@@ -393,7 +393,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void SerializeAttributeParameter()
         {
-            var testAttribute = "sizeX";
+            var testAttribute = "lifetime";
             Action<VFXAttributeParameter, VFXAttributeLocation> test = delegate(VFXAttributeParameter parameter, VFXAttributeLocation location)
                 {
                     Assert.AreEqual(VFXExpressionOperation.None, parameter.outputSlots[0].GetExpression().operation);

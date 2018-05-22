@@ -1,6 +1,11 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using Type = System.Type;
+using Convert = System.Convert;
+using System.Linq;
+using UnityObject = UnityEngine.Object;
 
 
 namespace UnityEditor.VFX.UI
@@ -45,302 +50,180 @@ namespace UnityEditor.VFX.UI
             return (T)ConvertTo(value, typeof(T));
         }
 
+        static readonly Dictionary<System.Type, Dictionary<System.Type, System.Func<object, object>>> s_Converters = new Dictionary<System.Type, Dictionary<System.Type, System.Func<object, object>>>();
+
+        static VFXConverter()
+        {
+            //Register conversion that you only want in the UI here
+            RegisterCustomConverter<Vector3, Vector4>(t => new Vector4(t.x, t.y, t.z));
+            RegisterCustomConverter<Vector2, Vector4>(t => new Vector4(t.x, t.y, 0));
+            RegisterCustomConverter<Vector2, Vector3>(t => new Vector3(t.x, t.y, 0));
+            RegisterCustomConverter<Vector2, Color>(t => new Color(t.x, t.y, 0));
+            RegisterCustomConverter<Vector3, Color>(t => new Color(t.x, t.y, t.z));
+            RegisterCustomConverter<Vector4, Color>(t => new Color(t.x, t.y, t.z, t.w));
+            RegisterCustomConverter<Matrix4x4, Transform>(MakeTransformFromMatrix4x4);
+            RegisterCustomConverter<Vector2, float>(t => t.x);
+            RegisterCustomConverter<Vector3, float>(t => t.x);
+            RegisterCustomConverter<Vector4, float>(t => t.x);
+            RegisterCustomConverter<Color, Vector2>(t => new Vector2(t.r, t.g));
+            RegisterCustomConverter<Color, Vector3>(t => new Vector3(t.r, t.g, t.b));
+            RegisterCustomConverter<Color, float>(t => t.a);
+        }
+
+        static Transform MakeTransformFromMatrix4x4(Matrix4x4 mat)
+        {
+            var result = new Transform
+            {
+                position = mat.MultiplyPoint(Vector3.zero),
+                angles = mat.rotation.eulerAngles,
+                scale = mat.lossyScale
+            };
+
+            return result;
+        }
+
+        static void RegisterCustomConverter<TFrom, TTo>(System.Func<TFrom, TTo> func)
+        {
+            Dictionary<System.Type, System.Func<object, object>> converters = null;
+            if (!s_Converters.TryGetValue(typeof(TFrom), out converters))
+            {
+                converters = new Dictionary<System.Type, System.Func<object, object>>();
+                s_Converters.Add(typeof(TFrom), converters);
+            }
+
+            converters.Add(typeof(TTo), t => func((TFrom)t));
+        }
+
+        static object ConvertUnityObject(object value, Type toType)
+        {
+            var castedValue = (UnityObject)value;
+            if (castedValue == null) // null object don't have necessarly the correct type
+                return null;
+
+            if (!toType.IsInstanceOfType(value))
+            {
+                Debug.LogErrorFormat("Cannot cast from {0} to {1}", value.GetType(), toType);
+                return null;
+            }
+
+            return value;
+        }
+
+        static object TryConvertPrimitiveType(object value, Type toType)
+        {
+            try
+            {
+                return Convert.ChangeType(value, toType);
+            }
+            catch (InvalidCastException)
+            {
+            }
+            catch (OverflowException)
+            {
+            }
+
+            return System.Activator.CreateInstance(toType);
+        }
+
+        static System.Func<object, object> GetConverter(Type fromType, Type toType)
+        {
+            if (typeof(UnityObject).IsAssignableFrom(fromType))
+            {
+                return t => ConvertUnityObject(t, toType);
+            }
+
+            Dictionary<System.Type, System.Func<object, object>> converters = null;
+            if (!s_Converters.TryGetValue(fromType, out converters))
+            {
+                converters = new Dictionary<System.Type, System.Func<object, object>>();
+                s_Converters.Add(fromType, converters);
+            }
+
+
+            System.Func<object, object> converter = null;
+            if (!converters.TryGetValue(toType, out converter))
+            {
+                if (fromType == toType || toType.IsAssignableFrom(fromType))
+                {
+                    converter = t => t;
+                }
+                else
+                {
+                    var implicitMethod = fromType.GetMethods(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public)
+                        .FirstOrDefault(m => m.Name == "op_Implicit" && m.ReturnType == toType);
+                    if (implicitMethod != null)
+                    {
+                        converter = t => implicitMethod.Invoke(null, new object[] { t });
+                    }
+                    else
+                    {
+                        implicitMethod = toType.GetMethods(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public)
+                            .FirstOrDefault(m => m.Name == "op_Implicit" && m.GetParameters()[0].ParameterType == fromType && m.ReturnType == toType);
+                        if (implicitMethod != null)
+                        {
+                            converter = t => implicitMethod.Invoke(null, new object[] { t });
+                        }
+                    }
+                    if (converter == null)
+                    {
+                        if (toType.IsPrimitive)
+                        {
+                            if (fromType.IsPrimitive)
+                                converter = t => TryConvertPrimitiveType(t, toType);
+                            else if (toType != typeof(float))
+                            {
+                                var floatConverter = GetConverter(fromType, typeof(float));
+                                if (floatConverter != null)
+                                {
+                                    converter = t => TryConvertPrimitiveType(floatConverter(t), toType);
+                                }
+                            }
+                        }
+                    }
+                }
+                converters.Add(toType, converter);
+            }
+
+            return converter;
+        }
+
         public static object ConvertTo(object value, Type type)
         {
-            if (value == null || value.GetType() == type)
+            if (value == null)
+                return null;
+            var fromType = value.GetType();
+
+            var converter = GetConverter(fromType, type);
+
+            if (converter == null)
             {
-                return value;
+                Debug.LogErrorFormat("Cannot cast from {0} to {1}", fromType, type);
+                return null;
             }
-            if (type == typeof(Color))
-            {
-                return ConvertToColor(value);
-            }
-            else if (type == typeof(Vector4))
-            {
-                return ConvertToVector4(value);
-            }
-            else if (type == typeof(Vector3))
-            {
-                return ConvertToVector3(value);
-            }
-            else if (type == typeof(Position))
-            {
-                return ConvertToPosition(value);
-            }
-            else if (type == typeof(Vector))
-            {
-                return ConvertToVector(value);
-            }
-            else if (type == typeof(Vector2))
-            {
-                return ConvertToVector2(value);
-            }
-            else if (type == typeof(float))
-            {
-                return ConvertToFloat(value);
-            }
-            else
-            {
-                return value;
-            }
+
+            return converter(value);
         }
 
-        public static Color ConvertToColor(object value)
+        public static bool TryConvertTo(object value, Type type, out object result)
         {
-            if (value is Vector4)
+            if (value == null)
             {
-                Vector4 val = (Vector4)value;
-                return new Color(val.x, val.y, val.z, val.w);
+                result = null;
+                return true;
             }
-            else if (value is Vector3)
-            {
-                Vector3 val = (Vector3)value;
-                return new Color(val.x, val.y, val.z);
-            }
-            else if (value is FloatN)
-            {
-                FloatN val = (FloatN)value;
-                if (val.realSize == 4)
-                {
-                    return new Color(val[0], val[1], val[2], val[3]);
-                }
-                else if (val.realSize == 3)
-                {
-                    return new Color(val[0], val[1], val[2]);
-                }
-            }
-            return (Color)value;
-        }
+            var fromType = value.GetType();
 
-        public static Vector4 ConvertToVector4(object value)
-        {
-            if (value is Color)
-            {
-                Color val = (Color)value;
-                return new Vector4(val.r, val.g, val.b, val.a);
-            }
-            else if (value is float)
-            {
-                float val = (float)value;
-                return new Vector4(val, val, val, val);
-            }
-            else if (value is int)
-            {
-                float val = (float)(int)value;
-                return new Vector4(val, val, val, val);
-            }
-            else if (value is Position)
-            {
-                Position val = (Position)value;
-                return new Vector4(val.position.x, val.position.y, val.position.z, 1);
-            }
-            else if (value is Vector)
-            {
-                Vector val = (Vector)value;
-                return new Vector4(val.vector.x, val.vector.y, val.vector.z, 0);
-            }
-            else if (value is FloatN)
-            {
-                FloatN val = (FloatN)value;
+            var converter = GetConverter(fromType, type);
 
-                return val;
+            if (converter == null)
+            {
+                result = null;
+                return false;
             }
-            return (Vector4)value;
-        }
 
-        public static Vector3 ConvertToVector3(object value)
-        {
-            if (value is Color)
-            {
-                Color val = (Color)value;
-                return new Vector3(val.r, val.g, val.b);
-            }
-            else if (value is Vector4)
-            {
-                Vector4 val = (Vector4)value;
-                return new Vector3(val.x, val.y, val.z);
-            }
-            else if (value is float)
-            {
-                float val = (float)value;
-                return new Vector3(val, val, val);
-            }
-            else if (value is int)
-            {
-                float val = (float)(int)value;
-                return new Vector3(val, val, val);
-            }
-            else if (value is Position)
-            {
-                Position val = (Position)value;
-                return val.position;
-            }
-            else if (value is Vector)
-            {
-                Vector val = (Vector)value;
-                return val.vector;
-            }
-            else if (value is DirectionType)
-            {
-                DirectionType val = (DirectionType)value;
-                return val.direction;
-            }
-            else if (value is FloatN)
-            {
-                FloatN val = (FloatN)value;
+            result = converter(value);
 
-                return val;
-            }
-            return (Vector3)value;
-        }
-
-        public static Vector4 ConvertToVector2(object value)
-        {
-            if (value is Color)
-            {
-                Color val = (Color)value;
-                return new Vector3(val.r, val.g);
-            }
-            else if (value is Vector4)
-            {
-                Vector4 val = (Vector4)value;
-                return new Vector2(val.x, val.y);
-            }
-            else if (value is Vector3)
-            {
-                Vector3 val = (Vector3)value;
-                return new Vector2(val.x, val.y);
-            }
-            else if (value is float)
-            {
-                float val = (float)value;
-                return new Vector2(val, val);
-            }
-            else if (value is int)
-            {
-                float val = (float)(int)value;
-                return new Vector2(val, val);
-            }
-            else if (value is FloatN)
-            {
-                FloatN val = (FloatN)value;
-
-                return val;
-            }
-            return (Vector2)value;
-        }
-
-        public static float ConvertToFloat(object value)
-        {
-            if (value is int)
-            {
-                return (float)(int)value;
-            }
-            else if (value is uint)
-            {
-                return (float)(uint)value;
-            }
-            else if (value is FloatN)
-            {
-                FloatN val = (FloatN)value;
-
-                return val;
-            }
-            else if (value is Vector4)
-            {
-                return ((Vector4)value).x;
-            }
-            else if (value is Vector3)
-            {
-                return ((Vector3)value).x;
-            }
-            else if (value is Vector2)
-            {
-                return ((Vector2)value).x;
-            }
-            return (float)value;
-        }
-
-        public static Position ConvertToPosition(object value)
-        {
-            if (value is Color)
-            {
-                Color val = (Color)value;
-                return new Position { position = new Vector3(val.r, val.g, val.b) };
-            }
-            else if (value is Vector4)
-            {
-                Vector4 val = (Vector4)value;
-                return new Position { position = val };
-            }
-            else if (value is Vector3)
-            {
-                Vector3 val = (Vector3)value;
-                return new Position { position = val };
-            }
-            else if (value is float)
-            {
-                float val = (float)value;
-                return new Position { position = new Vector3(val, val, val) };
-            }
-            else if (value is int)
-            {
-                float val = (float)(int)value;
-                return new Position { position = new Vector3(val, val, val) };
-            }
-            else if (value is Vector)
-            {
-                Vector val = (Vector)value;
-                return new Position { position = val.vector };
-            }
-            else if (value is FloatN)
-            {
-                FloatN val = (FloatN)value;
-
-                return new Position {position = val};
-            }
-            return (Position)value;
-        }
-
-        public static Vector ConvertToVector(object value)
-        {
-            if (value is Color)
-            {
-                Color val = (Color)value;
-                return new Vector { vector = new Vector3(val.r, val.g, val.b) };
-            }
-            else if (value is Vector4)
-            {
-                Vector4 val = (Vector4)value;
-                return new Vector { vector = val };
-            }
-            else if (value is Vector3)
-            {
-                Vector3 val = (Vector3)value;
-                return new Vector { vector = val };
-            }
-            else if (value is float)
-            {
-                float val = (float)value;
-                return new Vector { vector = new Vector3(val, val, val) };
-            }
-            else if (value is int)
-            {
-                float val = (float)(int)value;
-                return new Vector { vector = new Vector3(val, val, val) };
-            }
-            else if (value is Vector)
-            {
-                Vector val = (Vector)value;
-                return new Vector { vector = val.vector };
-            }
-            else if (value is FloatN)
-            {
-                FloatN val = (FloatN)value;
-
-                return new Vector { vector = val };
-            }
-            return (Vector)value;
+            return true;
         }
     }
 }

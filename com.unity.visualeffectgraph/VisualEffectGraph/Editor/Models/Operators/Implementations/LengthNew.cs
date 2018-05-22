@@ -27,7 +27,7 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        protected override sealed ValidTypeRule typeFilter { get { return ValidTypeRule.allowVectorType; } }
+        protected override sealed ValidTypeRule typeFilter { get { return ValidTypeRule.allowEverythingExceptInteger; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

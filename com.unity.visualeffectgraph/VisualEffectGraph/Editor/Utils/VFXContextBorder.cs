@@ -26,10 +26,14 @@ namespace UnityEditor.VFX.UI
 
         public VFXContextBorder()
         {
+            RecreateResources();
+        }
+
+        void RecreateResources()
+        {
             if (s_Mesh == null)
             {
                 s_Mesh = new Mesh();
-                s_Mesh.hideFlags = HideFlags.HideAndDontSave;
                 int verticeCount = 16;
 
                 var vertices = new Vector3[verticeCount];
@@ -70,7 +74,6 @@ namespace UnityEditor.VFX.UI
             }
 
             m_Mat = new Material(Shader.Find("Hidden/VFX/GradientBorder"));
-            m_Mat.hideFlags = HideFlags.HideAndDontSave;
         }
 
         void IDisposable.Dispose()
@@ -111,8 +114,9 @@ namespace UnityEditor.VFX.UI
             styles.ApplyCustomProperty("end-color", ref m_EndColor);
         }
 
-        public override void DoRepaint()
+        protected override void DoRepaint(IStylePainter sp)
         {
+            RecreateResources();
             VFXView view = GetFirstAncestorOfType<VFXView>();
             if (view != null && m_Mat != null)
             {

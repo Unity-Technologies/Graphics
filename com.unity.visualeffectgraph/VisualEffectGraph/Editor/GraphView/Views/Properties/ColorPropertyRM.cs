@@ -10,7 +10,7 @@ using UnityEditor.VFX;
 using UnityEditor.VFX.UIElements;
 using Object = UnityEngine.Object;
 using Type = System.Type;
-using FloatField = UnityEditor.VFX.UIElements.VFXLabeledField<UnityEditor.VFX.UIElements.VFXFloatField, float>;
+using FloatField = UnityEditor.VFX.UIElements.VFXLabeledField<UnityEditor.Experimental.UIElements.FloatField, float>;
 
 
 namespace UnityEditor.VFX.UI
@@ -72,9 +72,10 @@ namespace UnityEditor.VFX.UI
         protected override void UpdateIndeterminate()
         {
             m_ColorField.indeterminate = indeterminate;
-            m_RFloatField.control.indeterminate = indeterminate;
-            m_GFloatField.control.indeterminate = indeterminate;
-            m_BFloatField.control.indeterminate = indeterminate;
+            m_RFloatField.indeterminate = indeterminate;
+            m_GFloatField.indeterminate = indeterminate;
+            m_BFloatField.indeterminate = indeterminate;
+            m_AFloatField.indeterminate = indeterminate;
         }
 
         public void OnValueChanged(ChangeEvent<Color> e)

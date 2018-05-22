@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Attribute")]
+    [VFXInfo(category = "Attribute/Derived")]
     class AttributeMassFromVolume : VFXBlock
     {
         public override string name { get { return "Calculate Mass From Volume"; } }

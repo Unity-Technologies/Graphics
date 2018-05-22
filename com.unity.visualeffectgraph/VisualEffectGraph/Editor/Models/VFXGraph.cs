@@ -6,6 +6,8 @@ using UnityEditor.Experimental.VFX;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 using UnityEngine.Profiling;
+using System.Reflection;
+
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX
@@ -75,7 +77,7 @@ namespace UnityEditor.VFX
         {
             ScriptableObject g = resource.graph;
             if (g == null)
-            {
+        {
                 string assetPath = AssetDatabase.GetAssetPath(resource);
                 AssetDatabase.ImportAsset(assetPath);
 
@@ -150,6 +152,13 @@ namespace UnityEditor.VFX
                 }
                 return m_UIInfos;
             }
+        }
+
+        public VFXParameterInfo[] m_ParameterInfo;
+
+        public void BuildParameterInfo()
+        {
+            m_ParameterInfo = VFXParameterInfo.BuildParameterInfo(this);
         }
 
         public override bool AcceptChild(VFXModel model, int index = -1)
@@ -246,18 +255,20 @@ namespace UnityEditor.VFX
                     Debug.LogError(string.Format("Exception while sanitizing VFXUI: : {0} {1}", e , e.StackTrace));
                 }
 
-            if (m_UIInfos != null)
-                try
-                {
+            m_GraphSanitized = true;
+        }
+
+        IEnumerable<Object> allAssets
+        {
                     m_UIInfos.Sanitize(this);
-                }
+        }
                 catch (Exception e)
-                {
+            {
                     Debug.LogError(string.Format("Exception while sanitizing VFXUI: : {0}", e.StackTrace));
                 }
 
             m_GraphSanitized = true;
-        }
+                    }
 
         public void ClearCompileData()
         {
@@ -271,40 +282,40 @@ namespace UnityEditor.VFX
         {
             bool modified = false;
 
-            Profiler.BeginSample("VFXEditor.UpdateSubAssets");
+                Profiler.BeginSample("VFXEditor.UpdateSubAssets");
 
-            try
-            {
-                var currentObjects = new HashSet<ScriptableObject>();
-                currentObjects.Add(this);
-                CollectDependencies(currentObjects);
-
-                if (m_UIInfos != null)
-                    currentObjects.Add(m_UIInfos);
-
-                // Add sub assets that are not already present
-                foreach (var obj in currentObjects)
+                try
                 {
+                    var currentObjects = new HashSet<ScriptableObject>();
+                currentObjects.Add(this);
+                    CollectDependencies(currentObjects);
+
+                    if (m_UIInfos != null)
+                        currentObjects.Add(m_UIInfos);
+
+                    // Add sub assets that are not already present
+                    foreach (var obj in currentObjects)
+                        {
                     if (obj.hideFlags != hideFlags)
                     {
-                        obj.hideFlags = hideFlags;
-                        modified = true;
-                    }
+                            obj.hideFlags = hideFlags;
+                            modified = true;
+                        }
                 }
 
                 visualEffectResource.SetDependencies(currentObjects.Cast<Object>().ToArray());
-            }
-            catch (Exception e)
-            {
-                Debug.Log(e);
-            }
-            finally
-            {
-                Profiler.EndSample();
-            }
+                }
+                catch (Exception e)
+                {
+                    Debug.Log(e);
+                }
+                finally
+                {
+                    Profiler.EndSample();
+                }
 
-            if (modified)
-                EditorUtility.SetDirty(this);
+                if (modified)
+                    EditorUtility.SetDirty(this);
 
             return modified;
         }
@@ -313,6 +324,11 @@ namespace UnityEditor.VFX
         {
             m_saved = false;
             base.OnInvalidate(model, cause);
+
+            if (model is VFXParameter)
+            {
+                BuildParameterInfo();
+            }
 
             if (cause == VFXModel.InvalidationCause.kStructureChanged)
             {

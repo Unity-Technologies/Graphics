@@ -23,7 +23,7 @@ namespace UnityEditor.VFX.UI
 
             m_CurveField.style.flexDirection = FlexDirection.Column;
             m_CurveField.style.alignItems = Align.Stretch;
-            m_CurveField.style.flex = 1;
+            m_CurveField.style.flex = new Flex(1,0);
 
             Add(m_CurveField);
         }

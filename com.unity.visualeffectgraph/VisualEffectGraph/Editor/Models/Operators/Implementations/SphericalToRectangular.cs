@@ -19,7 +19,7 @@ namespace UnityEditor.VFX.Operator
 
         public class OutputProperties
         {
-            public Vector2 coord;
+            public Vector3 coord;
         }
 
         override public string name { get { return "Spherical to Rectangular"; } }

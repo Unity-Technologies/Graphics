@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.UI
 
             m_GradientField.style.flexDirection = FlexDirection.Column;
             m_GradientField.style.alignItems = Align.Stretch;
-            m_GradientField.style.flex = 1;
+            m_GradientField.style.flex = new Flex(1,0);
 
             Add(m_GradientField);
         }

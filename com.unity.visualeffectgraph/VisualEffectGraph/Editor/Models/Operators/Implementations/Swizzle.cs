@@ -8,7 +8,8 @@ namespace UnityEditor.VFX.Operator
     [VFXInfo(category = "Math/Vector")]
     class Swizzle : VFXOperatorUnaryFloatOperation
     {
-        override public string name { get { return "Swizzle"; } }
+        override public string libraryName { get { return "Swizzle"; } }
+        override public string name { get { return "Swizzle." + mask; } }
 
         [VFXSetting, Regex("[^w-zW-Z]", 4)]
         public string mask = "xyzw";
@@ -32,7 +33,7 @@ namespace UnityEditor.VFX.Operator
             get
             {
                 Type slotType = null;
-                switch (GetMaskSize())
+                switch (mask.Length)
                 {
                     case 1: slotType = typeof(float); break;
                     case 2: slotType = typeof(Vector2); break;
@@ -44,11 +45,6 @@ namespace UnityEditor.VFX.Operator
                 if (slotType != null)
                     yield return new VFXPropertyWithValue(new VFXProperty(slotType, "o"));
             }
-        }
-
-        private int GetMaskSize()
-        {
-            return Math.Min(4, mask.Length);
         }
 
         private static int CharToComponentIndex(char componentChar)
@@ -68,12 +64,12 @@ namespace UnityEditor.VFX.Operator
             var inputComponents = (inputExpression.Length > 0) ? VFXOperatorUtility.ExtractComponents(inputExpression[0]).ToArray() : new VFXExpression[0];
 
             var componentStack = new Stack<VFXExpression>();
-            int outputSize = GetMaskSize();
+            int outputSize = mask.Length;
             for (int iComponent = 0; iComponent < outputSize; iComponent++)
             {
                 char componentChar = char.ToLower(mask[iComponent]);
                 int currentComponent = Math.Min(CharToComponentIndex(componentChar), inputComponents.Length - 1);
-                componentStack.Push(inputComponents[(int)currentComponent]);
+                componentStack.Push(inputComponents[currentComponent]);
             }
 
             VFXExpression finalExpression = null;

@@ -19,22 +19,14 @@ namespace UnityEditor.VFX.Operator
 
         public override sealed string name { get { return "LerpNew"; } }
 
-        protected sealed override double defaultValueDouble
-        {
-            get
-            {
-                return 0.5;
-            }
-        }
-
-        public IEnumerable<int> strictSameTypeSlotIndex
+        public IEnumerable<int> slotIndicesThatMustHaveSameType
         {
             get
             {
                 return Enumerable.Range(0, 3);
             }
         }
-        public IEnumerable<int> allowExceptionalScalarSlotIndex
+        public IEnumerable<int> slotIndicesThatCanBeScalar
         {
             get
             {

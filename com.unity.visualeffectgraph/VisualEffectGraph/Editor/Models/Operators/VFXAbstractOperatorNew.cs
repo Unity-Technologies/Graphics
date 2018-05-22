@@ -88,11 +88,14 @@ namespace UnityEditor.VFX
             allowVector3Type = 1 << 2,
             allowVector2Type = 1 << 3,
             allowOneDimensionType = 1 << 4,
-            allowInteger = 1 << 5,
+            allowSignedInteger = 1 << 5,
+            allowUnsignedInteger = 1 << 6,
+            allowInteger = allowSignedInteger | allowUnsignedInteger,
             allowVectorType = allowVector4Type | allowVector3Type | allowVector2Type,
 
             allowEverything = allowVectorType | allowOneDimensionType | allowInteger,
             allowEverythingExceptInteger = allowEverything & ~allowInteger,
+            allowEverythingExceptUnsignedInteger = allowEverything & ~allowUnsignedInteger,
             allowEverythingExceptIntegerAndVector4 = allowEverything & ~(allowInteger | allowVector4Type),
             allowEverythingExceptOneDimension = allowEverything & ~allowOneDimensionType
         };
@@ -101,7 +104,8 @@ namespace UnityEditor.VFX
         private static readonly Type[] kVector3Type = new Type[] { typeof(Vector3) };
         private static readonly Type[] kVector2Type = new Type[] { typeof(Vector2) };
         private static readonly Type[] kOneDimensionType = new Type[] { typeof(float), typeof(uint), typeof(int) };
-        private static readonly Type[] kIntegerType = new Type[] { typeof(uint), typeof(int) };
+        private static readonly Type[] kSIntegerType = new Type[] { typeof(int) };
+        private static readonly Type[] kUIntegerType = new Type[] { typeof(uint) };
 
         protected virtual ValidTypeRule typeFilter { get { return ValidTypeRule.allowEverything; } }
 
@@ -122,8 +126,11 @@ namespace UnityEditor.VFX
                 if ((typeFilter & ValidTypeRule.allowOneDimensionType) != ValidTypeRule.allowOneDimensionType)
                     types = types.Except(kOneDimensionType);
 
-                if ((typeFilter & ValidTypeRule.allowInteger) != ValidTypeRule.allowInteger)
-                    types = types.Except(kIntegerType);
+                if ((typeFilter & ValidTypeRule.allowSignedInteger) != ValidTypeRule.allowSignedInteger)
+                    types = types.Except(kSIntegerType);
+
+                if ((typeFilter & ValidTypeRule.allowUnsignedInteger) != ValidTypeRule.allowUnsignedInteger)
+                    types = types.Except(kUIntegerType);
 
                 return types;
             }
@@ -142,6 +149,10 @@ namespace UnityEditor.VFX
             return kExpectedTypeOrdering[minIndex];
         }
 
+        protected virtual string expectedOutputName { get { return string.Empty; } }
+
+        protected virtual VFXPropertyAttribute[] expectedOutputAttributes { get { return null; } }
+
         protected override sealed IEnumerable<VFXPropertyWithValue> outputProperties
         {
             get
@@ -157,7 +168,7 @@ namespace UnityEditor.VFX
                     //Most common behavior : output of an operation depend of input type
                     var slotType = GetExpectedOutputTypeOfOperation(inputSlots.Select(o => o.property.type));
                     if (slotType != null)
-                        yield return new VFXPropertyWithValue(new VFXProperty(slotType, string.Empty));
+                        yield return new VFXPropertyWithValue(new VFXProperty(slotType, expectedOutputName, expectedOutputAttributes));
                 }
             }
         }
@@ -325,8 +336,8 @@ namespace UnityEditor.VFX
 
     interface IVFXOperatorNumericUnifiedConstrained
     {
-        IEnumerable<int> strictSameTypeSlotIndex { get; }
-        IEnumerable<int> allowExceptionalScalarSlotIndex { get; }
+        IEnumerable<int> slotIndicesThatMustHaveSameType { get; }
+        IEnumerable<int> slotIndicesThatCanBeScalar { get; }
     }
 
     abstract class VFXOperatorNumericUnifiedNew : VFXOperatorNumericNew, IVFXOperatorNumericUnifiedNew

@@ -30,15 +30,15 @@ namespace UnityEditor.VFX.Block.Test
             public Texture3D aTexture3D = null;
             public Cubemap aTextureCube = null;
             public CubemapArray aTextureCubeArray = null;
-            public Sphere aSphere;
+            public Sphere aSphere = new Sphere();
             public Vector aVector = new Vector { space = CoordinateSpace.Local, vector = Vector3.one };
             public Position aPosition = new Position { space = CoordinateSpace.Local, position = Vector3.forward };
             public int anInt = 123;
             public uint anUint = 321;
-            public FlipBook aFlipBook;
+            public FlipBook aFlipBook = new FlipBook();
             public bool aBool = true;
             public AnimationCurve curve = new AnimationCurve(new Keyframe[] { new Keyframe(0, 0), new Keyframe(1, 1)});
-            public Mesh aMesh;
+            public Mesh aMesh = null;
         }
 
 

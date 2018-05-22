@@ -130,7 +130,7 @@ namespace UnityEditor.VFX.UI
             var bestAffinityType = model.GetBestAffinityType(otherOutput.portType);
             if (bestAffinityType == null)
                 return false;
-            if (constraintInterface.allowExceptionalScalarSlotIndex.Contains(inputIndex))
+            if (constraintInterface.slotIndicesThatCanBeScalar.Contains(inputIndex))
             {
                 if (VFXTypeUtility.GetComponentCount(otherOutput.model) != 0)  // If it is a vector or float type, then conversion to float exists
                     return true;
@@ -151,18 +151,18 @@ namespace UnityEditor.VFX.UI
             int inputIndex = model.GetSlotIndex(myInput);
             IVFXOperatorNumericUnifiedConstrained constraintInterface = model as IVFXOperatorNumericUnifiedConstrained;
 
-            if (!constraintInterface.strictSameTypeSlotIndex.Contains(inputIndex))
+            if (!constraintInterface.slotIndicesThatMustHaveSameType.Contains(inputIndex))
             {
                 base.WillCreateLink(ref myInput, ref otherOutput);
                 return;
             }
 
-            bool scalar = constraintInterface.allowExceptionalScalarSlotIndex.Contains(inputIndex);
+            bool scalar = constraintInterface.slotIndicesThatCanBeScalar.Contains(inputIndex);
             if (scalar)
             {
                 var bestAffinityType = model.GetBestAffinityType(otherOutput.property.type);
 
-                VFXSlot otherSlotWithConstraint = model.inputSlots.Where((t, i) => constraintInterface.strictSameTypeSlotIndex.Contains(i)).FirstOrDefault();
+                VFXSlot otherSlotWithConstraint = model.inputSlots.Where((t, i) => constraintInterface.slotIndicesThatMustHaveSameType.Contains(i)).FirstOrDefault();
 
                 if (otherSlotWithConstraint == null || otherSlotWithConstraint.property.type == bestAffinityType)
                 {
@@ -183,7 +183,7 @@ namespace UnityEditor.VFX.UI
 
             VFXSlot input = myInput;
 
-            bool hasLinks = model.inputSlots.Where((t, i) => t != input && t.HasLink(true) && constraintInterface.strictSameTypeSlotIndex.Contains(i) && !constraintInterface.allowExceptionalScalarSlotIndex.Contains(i)).Count() > 0;
+            bool hasLinks = model.inputSlots.Where((t, i) => t != input && t.HasLink(true) && constraintInterface.slotIndicesThatMustHaveSameType.Contains(i) && !constraintInterface.slotIndicesThatCanBeScalar.Contains(i)).Count() > 0;
 
             bool linkPossible = myInput.CanLink(otherOutput) && otherOutput.CanLink(myInput);
 
@@ -192,9 +192,9 @@ namespace UnityEditor.VFX.UI
                 var bestAffinityType = model.GetBestAffinityType(otherOutput.property.type);
                 if (bestAffinityType != null)
                 {
-                    foreach (int slotIndex in constraintInterface.strictSameTypeSlotIndex)
+                    foreach (int slotIndex in constraintInterface.slotIndicesThatMustHaveSameType)
                     {
-                        if (!constraintInterface.allowExceptionalScalarSlotIndex.Contains(slotIndex) || GetMatchingScalar(bestAffinityType) != model.GetInputSlot(slotIndex).property.type)
+                        if (!constraintInterface.slotIndicesThatCanBeScalar.Contains(slotIndex) || GetMatchingScalar(bestAffinityType) != model.GetInputSlot(slotIndex).property.type)
                             model.SetOperandType(slotIndex, bestAffinityType);
                     }
 

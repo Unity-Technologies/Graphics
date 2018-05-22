@@ -73,7 +73,7 @@ namespace UnityEditor.VFX.Test
             var op = m_ViewController.AddVFXOperator(position, desc);
             m_ViewController.LightApplyChanges();
 
-            return m_ViewController.GetControllerFromModel(op, 0);
+            return m_ViewController.GetRootNodeController(op, 0);
         }
 
         static private string[] variableOperators = { "AddNew", "DotProductNew", "ClampNew" };
@@ -101,12 +101,11 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void LinkingValidOutputSlotToUniformOperatorChangesTypeIfNoLinkOrMandatory()
         {
-            var variableOperator = CreateNew("ClampNew", new Vector2(1, 2));
+            var variableOperator = CreateNew("DistanceNew", new Vector2(1, 2));
             var operatorModel = variableOperator.model as VFXOperatorNumericNew;
 
             var vector2inline = CreateNew(typeof(Vector2).UserFriendlyName(), new Vector2(2, 2), typeof(VFXInlineOperator));
             var vector3inline = CreateNew(typeof(Vector3).UserFriendlyName(), new Vector2(2, 2), typeof(VFXInlineOperator));
-            var vector4inline = CreateNew(typeof(Vector4).UserFriendlyName(), new Vector2(2, 2), typeof(VFXInlineOperator));
 
             var output = vector3inline.outputPorts[0];
             var input = variableOperator.inputPorts[0];
@@ -121,14 +120,6 @@ namespace UnityEditor.VFX.Test
             output = vector2inline.outputPorts[0];
 
             m_ViewController.CreateLink(input, output); // this should not change type because link is not possible without change
-            variableOperator.ApplyChanges();
-
-            Assert.AreEqual(typeof(Vector2), variableOperator.inputPorts[0].portType);
-
-            input = variableOperator.inputPorts.First(t => t.model == operatorModel.inputSlots[2]);
-            output = vector4inline.outputPorts[0];
-
-            m_ViewController.CreateLink(input, output); // this should not change type because link is possible and Clamp already linked
             variableOperator.ApplyChanges();
 
             Assert.AreEqual(typeof(Vector2), variableOperator.inputPorts[0].portType);

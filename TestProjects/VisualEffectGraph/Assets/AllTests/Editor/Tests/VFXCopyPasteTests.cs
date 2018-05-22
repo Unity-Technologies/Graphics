@@ -247,8 +247,6 @@ namespace UnityEditor.VFX.Test
 
             Assert.AreEqual(dataEdges.Length, 4);
 
-            VFXOperator[] operatorModels = operators.Select(u => u.controller.model).ToArray();
-
             Assert.IsNotNull(dataEdges.Where(t =>
                     t.output.GetFirstAncestorOfType<VFXNodeUI>() == parameters[1] &&
                     operators.Contains(t.input.GetFirstAncestorOfType<VFXOperatorUI>())

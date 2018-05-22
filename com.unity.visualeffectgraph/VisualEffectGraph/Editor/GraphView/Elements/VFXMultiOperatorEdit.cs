@@ -121,9 +121,9 @@ namespace UnityEditor.VFX.UI
 
             IVFXOperatorNumericUnifiedConstrained constraintInterface = op as IVFXOperatorNumericUnifiedConstrained;
 
-            if (constraintInterface != null && constraintInterface.allowExceptionalScalarSlotIndex.Contains(index))
+            if (constraintInterface != null && constraintInterface.slotIndicesThatCanBeScalar.Contains(index))
             {
-                VFXSlot otherSlotWithConstraint = op.inputSlots.Where((t, i) => constraintInterface.strictSameTypeSlotIndex.Contains(i) && !constraintInterface.allowExceptionalScalarSlotIndex.Contains(i)).FirstOrDefault();
+                VFXSlot otherSlotWithConstraint = op.inputSlots.Where((t, i) => constraintInterface.slotIndicesThatMustHaveSameType.Contains(i) && !constraintInterface.slotIndicesThatCanBeScalar.Contains(i)).FirstOrDefault();
 
                 foreach (var type in op.validTypes)
                 {
@@ -152,11 +152,11 @@ namespace UnityEditor.VFX.UI
 
             if (constraintInterface != null)
             {
-                if (!constraintInterface.allowExceptionalScalarSlotIndex.Contains(m_CurrentIndex))
+                if (!constraintInterface.slotIndicesThatCanBeScalar.Contains(m_CurrentIndex))
                 {
-                    foreach (var index in constraintInterface.strictSameTypeSlotIndex)
+                    foreach (var index in constraintInterface.slotIndicesThatMustHaveSameType)
                     {
-                        if (index != m_CurrentIndex && (!constraintInterface.allowExceptionalScalarSlotIndex.Contains(index) || VFXUnifiedConstraintOperatorController.GetMatchingScalar((Type)type) != op.GetOperandType(index)))
+                        if (index != m_CurrentIndex && (!constraintInterface.slotIndicesThatCanBeScalar.Contains(index) || VFXUnifiedConstraintOperatorController.GetMatchingScalar((Type)type) != op.GetOperandType(index)))
                         {
                             op.SetOperandType(index, (Type)type);
                         }
@@ -181,19 +181,16 @@ namespace UnityEditor.VFX.UI
             var op = controller.model;
             int count = op.operandCount;
 
-            bool sizeChanged = false;
 
             while (itemCount < count)
             {
                 OperandInfoBase item = CreateOperandInfo(itemCount);
                 item.Set(op);
                 AddItem(item);
-                sizeChanged = true;
             }
             while (itemCount > count)
             {
                 RemoveItemAt(itemCount - 1);
-                sizeChanged = true;
             }
 
             for (int i = 0; i < count; ++i)
