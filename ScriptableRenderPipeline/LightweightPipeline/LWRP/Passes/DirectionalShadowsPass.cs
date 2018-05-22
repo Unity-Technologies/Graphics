@@ -39,13 +39,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 : RenderTextureFormat.Depth;
         }
 
-        public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref CameraData cameraData, ref LightData lightData)
+        public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref RenderingData renderingData)
         {
-            Clear();
-
-            ShadowData shadowData = lightData.shadowData;
-            if (shadowData.renderDirectionalShadows)
-                lightData.shadowData.renderedDirectionalShadowQuality = RenderDirectionalCascadeShadowmap(ref context, ref cullResults, ref lightData, ref shadowData);
+            if (renderingData.shadowData.renderDirectionalShadows)
+            {
+                Clear();
+                RenderDirectionalCascadeShadowmap(ref context, ref cullResults, ref renderingData.lightData, ref renderingData.shadowData);
+            }
         }
 
         public override void Dispose(CommandBuffer cmd)
@@ -71,23 +71,23 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_CascadeSlices[i].Clear();
         }
 
-        LightShadows RenderDirectionalCascadeShadowmap(ref ScriptableRenderContext context, ref CullResults cullResults, ref LightData lightData, ref ShadowData shadowData)
+        void RenderDirectionalCascadeShadowmap(ref ScriptableRenderContext context, ref CullResults cullResults, ref LightData lightData, ref ShadowData shadowData)
         {
             LightShadows shadowQuality = LightShadows.None;
             int shadowLightIndex = lightData.mainLightIndex;
             if (shadowLightIndex == -1)
-                return shadowQuality;
+                return;
 
             VisibleLight shadowLight = lightData.visibleLights[shadowLightIndex];
             Light light = shadowLight.light;
             Debug.Assert(shadowLight.lightType == LightType.Directional);
 
             if (light.shadows == LightShadows.None)
-                return shadowQuality;
+                return;
 
             Bounds bounds;
             if (!cullResults.GetShadowCasterBounds(shadowLightIndex, out bounds))
-                return shadowQuality;
+                return;
 
             CommandBuffer cmd = CommandBufferPool.Get("Prepare Directional Shadowmap");
             m_ShadowCasterCascadesCount = shadowData.directionalLightCascadeCount;
@@ -131,7 +131,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
-            return shadowQuality;
+
+            // TODO: We should have RenderingData as a readonly but currently we need this to pass shadow rendering to litpass
+            shadowData.renderedDirectionalShadowQuality = shadowQuality;
         }
 
         void SetupDirectionalShadowReceiverConstants(ref ScriptableRenderContext context, CommandBuffer cmd, ref ShadowData shadowData, VisibleLight shadowLight)

@@ -27,13 +27,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.GetTemporaryRT(colorAttachmentHandle, baseDescriptor, FilterMode.Bilinear);
         }
 
-        public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref CameraData cameraData, ref LightData lightData)
+        public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref RenderingData renderingData)
         {
-            if (lightData.shadowData.renderedDirectionalShadowQuality == LightShadows.None)
+            if (renderingData.shadowData.renderedDirectionalShadowQuality == LightShadows.None)
                 return;
 
             CommandBuffer cmd = CommandBufferPool.Get("Collect Shadows");
-            SetShadowCollectPassKeywords(cmd, lightData.shadowData.directionalLightCascadeCount);
+            SetShadowCollectPassKeywords(cmd, renderingData.shadowData.directionalLightCascadeCount);
 
             // Note: The source isn't actually 'used', but there's an engine peculiarity (bug) that
             // doesn't like null sources when trying to determine a stereo-ized blit.  So for proper
@@ -45,11 +45,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 ClearFlag.Color | ClearFlag.Depth, Color.white);
             cmd.Blit(screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, m_ScreenSpaceShadowsMaterial);
 
-            if (cameraData.isStereoEnabled)
-            {
-                context.StartMultiEye(cameraData.camera);
+            if (renderingData.cameraData.isStereoEnabled)
+            { 
+                Camera camera = renderingData.cameraData.camera;
+                context.StartMultiEye(camera);
                 context.ExecuteCommandBuffer(cmd);
-                context.StopMultiEye(cameraData.camera);
+                context.StopMultiEye(camera);
             }
             else
                 context.ExecuteCommandBuffer(cmd);

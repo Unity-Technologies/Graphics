@@ -22,6 +22,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         Subtractive,
     };
 
+    public struct RenderingData
+    {
+        public CameraData cameraData;
+        public LightData lightData;
+        public ShadowData shadowData;
+        public bool supportsDynamicBatching;
+    }
+
     public struct LightData
     {
         public int pixelAdditionalLightsCount;
@@ -29,7 +37,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public int mainLightIndex;
         public List<VisibleLight> visibleLights;
         public List<int> visibleLocalLightIndices;
-        public ShadowData shadowData;
     }
 
     public struct CameraData

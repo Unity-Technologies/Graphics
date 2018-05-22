@@ -30,7 +30,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static GUIContent opaqueDownsampling = new GUIContent("Opaque Downsampling", "The downsampling method that is used for the opaque texture");
             public static GUIContent hdrContent = new GUIContent("HDR", "Controls the global HDR settings.");
             public static GUIContent msaaContent = new GUIContent("Anti Aliasing (MSAA)", "Controls the global anti aliasing settings.");
-
+            public static GUIContent dynamicBatching = new GUIContent("Dynamic Batching", "If enabled the pipeline will batch drawcalls with few triangles together by copying their vertex buffers into a shared buffer on a per-frame basis.");
 
             public static GUIContent supportsSoftShadows = new GUIContent("Soft Shadows", "If enabled pipeline will perform shadow filtering. Otherwise all lights that cast shadows will fallback to perform a single shadow sample.");
             public static GUIContent supportsDirectionalShadows = new GUIContent("Directional Shadows", "If enabled shadows will be supported for directional lights.");
@@ -84,6 +84,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private SerializedProperty m_OpaqueDownsamplingProp;
         private SerializedProperty m_HDR;
         private SerializedProperty m_MSAA;
+        private SerializedProperty m_SupportsDynamicBatching;
 
         private SerializedProperty m_SoftShadowsSupportedProp;
         private SerializedProperty m_DirectionalShadowsSupportedProp;
@@ -113,6 +114,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_OpaqueDownsamplingProp = serializedObject.FindProperty("m_OpaqueDownsampling");
             m_HDR = serializedObject.FindProperty("m_SupportsHDR");
             m_MSAA = serializedObject.FindProperty("m_MSAA");
+            m_SupportsDynamicBatching = serializedObject.FindProperty("m_SupportsDynamicBatching");
 
             m_DirectionalShadowsSupportedProp = serializedObject.FindProperty("m_DirectionalShadowsSupported");
             m_ShadowDistanceProp = serializedObject.FindProperty("m_ShadowDistance");
@@ -183,6 +185,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             DrawAnimatedPopup(m_OpaqueDownsamplingProp, Styles.opaqueDownsampling, Styles.opaqueDownsamplingOptions, m_ShowOpaqueTextureScale);
             EditorGUILayout.PropertyField(m_HDR, Styles.hdrContent);
             EditorGUILayout.PropertyField(m_MSAA, Styles.msaaContent);
+            EditorGUILayout.PropertyField(m_SupportsDynamicBatching, Styles.dynamicBatching);
 
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
