@@ -13,6 +13,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             public readonly GUIContent layersText = new GUIContent("Inputs");
             public readonly GUIContent layerMapMaskText = new GUIContent("Layer Mask", "Layer mask");
+            public readonly GUIContent enableHeightBlending = new GUIContent("Enable Height Blending", "Enables layer blending using heightmaps.");
             public readonly GUIContent heightTransition = new GUIContent("Height Transition", "Size in world units of the smooth transition between layers.");
         }
 
@@ -21,10 +22,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public TerrainLitGUI()
         {
-            m_PropertySuffixes[0] = "0";
-            m_PropertySuffixes[1] = "1";
-            m_PropertySuffixes[2] = "2";
-            m_PropertySuffixes[3] = "3";
         }
 
         // Density/opacity mode
@@ -32,11 +29,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const string kOpacityAsDensity = "_OpacityAsDensity";
 
         // Height blend
+        MaterialProperty enableHeightBlending = null;
+        const string kEnableHeightBlending = "_EnableHeightBlending";
         MaterialProperty heightTransition = null;
         const string kHeightTransition = "_HeightTransition";
 
         protected override void FindMaterialProperties(MaterialProperty[] props)
         {
+            enableHeightBlending = FindProperty(kEnableHeightBlending, props, false);
             heightTransition = FindProperty(kHeightTransition, props, false);
             for (int i = 0; i < kMaxLayerCount; ++i)
             {
@@ -52,9 +52,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel++;
             GUILayout.Label(styles.layersText, EditorStyles.boldLabel);
 
-            EditorGUI.indentLevel++;
-            m_MaterialEditor.ShaderProperty(heightTransition, styles.heightTransition);
-            EditorGUI.indentLevel--;
+            if (enableHeightBlending != null)
+            {
+                m_MaterialEditor.ShaderProperty(enableHeightBlending, styles.enableHeightBlending);
+                if (enableHeightBlending.floatValue > 0)
+                {
+                    EditorGUI.indentLevel++;
+                    m_MaterialEditor.ShaderProperty(heightTransition, styles.heightTransition);
+                    EditorGUI.indentLevel--;
+                }
+            }
 
             EditorGUI.indentLevel--;
         }
