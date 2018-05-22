@@ -91,7 +91,13 @@ ${VertexShaderOutputs}
 	    o.fogFactorAndVertexLight = half4(fogFactor, vertexLight);
 	    o.clipPos = clipPos;
 
-	    o.shadowCoord = ComputeShadowCoord(o.clipPos);
+	#ifdef _SHADOWS_ENABLED
+	#if SHADOWS_SCREEN
+		o.shadowCoord = ComputeShadowCoord(clipPos);
+	#else
+		o.shadowCoord = TransformWorldToShadowCoord(lwWorldPos);
+	#endif
+	#endif
 		return o;
 	}
 

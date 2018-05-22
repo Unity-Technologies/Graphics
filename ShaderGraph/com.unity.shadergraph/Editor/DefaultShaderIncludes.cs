@@ -25,7 +25,7 @@ namespace UnityEditor
             var path = GetRepositoryPath();
             if (path == null)
                 return null;
-            path = Application.dataPath + "/DebugOutput";// Path.Combine(path, "DebugOutput");
+            path = Path.Combine(path, "DebugOutput");
             return Directory.Exists(path) ? path : null;
         }
 
