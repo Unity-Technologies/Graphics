@@ -93,7 +93,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    [CustomEditor(typeof(VisualEffect))]
+    //[CustomEditor(typeof(VisualEffect))]
     [CanEditMultipleObjects]
     public class AdvancedVisualEffectEditor : VisualEffectEditor, IToolModeOwner
     {
@@ -128,6 +128,16 @@ namespace UnityEditor.VFX
         {
             if (owner == (IToolModeOwner)this)
                 OnEditEnd();
+        }
+
+        protected override void EditorModeInspectorButton()
+        {
+            EditMode.DoEditModeInspectorModeButton(
+                EditMode.SceneViewEditMode.Collider,
+                "Show Parameters",
+                EditorGUIUtility.IconContent("EditCollider"),
+                this
+                );
         }
 
         VFXParameter GetParameter(string name)

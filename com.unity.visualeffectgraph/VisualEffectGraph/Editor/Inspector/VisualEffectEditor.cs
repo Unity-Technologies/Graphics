@@ -53,77 +53,14 @@ namespace UnityEditor.VFX
         public static readonly int[] setPlaybackValues = new int[] { 1, 10, 50, 100, 200, 500, 1000, 4000 };
     }
 
-    static class VisualEffectEditorStyles
-    {
-        public static readonly GUIStyle toggleStyle;
-        public static readonly GUIStyle toggleMixedStyle;
 
-        public static readonly GUIStyle categoryHeader;
-
-        public static readonly GUILayoutOption MiniButtonWidth = GUILayout.Width(48);
-        public static readonly GUILayoutOption PlayControlsHeight = GUILayout.Height(24);
-
-        static VisualEffectEditorStyles()
-        {
-            toggleStyle = GUISkin.current.GetStyle("ShurikenCheckMark");
-            toggleMixedStyle = GUISkin.current.GetStyle("ShurikenCheckMarkMixed");
-            categoryHeader = new GUIStyle(GUISkin.current.label);
-            categoryHeader.fontStyle = FontStyle.Bold;
-            categoryHeader.margin.top = 8;
-            categoryHeader.padding.left = 14;
-            //TODO change to editor resources calls
-            categoryHeader.normal.background = Resources.Load<Texture2D>(EditorGUIUtility.isProSkin ? "VFX/cat-background-dark" : "VFX/cat-background-light");
-
-        }
-    }
-
-    // Need to separate stuff from SceneGUI as ProSkin is set during OnSceneGUI
-    static class VisualEffectEditorSceneGUIStyles
-    {
-        static GUIContent[] m_Icons;
-
-        public enum Icon
-        {
-            Pause,
-            Play,
-            Restart,
-            Step,
-            Stop
-        }
-        static VisualEffectEditorSceneGUIStyles()
-        {
-            m_Icons = new GUIContent[1 + (int)Icon.Stop];
-            for (int i = 0; i <= (int)Icon.Stop; ++i)
-            {
-                Icon icon = (Icon)i;
-                string name = icon.ToString();
-
-                //TODO replace with editor default resource call when going to trunk
-                Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/VFXEditor/Editor/SceneWindow/Textures/" + name + ".png");
-                if (texture == null)
-                {
-                    Debug.LogError("Can't find icon for " + name + " in VisualEffectEditorStyles");
-                    continue;
-                }
-                m_Icons[i] = new GUIContent(texture);
-            }
-        }
-
-        public static GUIContent GetIcon(Icon icon)
-        {
-            return m_Icons[(int)icon];
-        }
-    }
+    [CustomEditor(typeof(VisualEffect))]
     public class VisualEffectEditor : Editor
     {
-        public static bool CanSetOverride = false;
-
         SerializedProperty m_VisualEffectAsset;
         SerializedProperty m_ReseedOnPlay;
         SerializedProperty m_RandomSeed;
         SerializedProperty m_VFXPropertySheet;
-
-        private Contents m_Contents;
 
         protected void OnEnable()
         {
@@ -131,8 +68,6 @@ namespace UnityEditor.VFX
             m_ReseedOnPlay = serializedObject.FindProperty("m_ResetSeedOnPlay");
             m_VisualEffectAsset = serializedObject.FindProperty("m_Asset");
             m_VFXPropertySheet = serializedObject.FindProperty("m_PropertySheet");
-
-            m_Infos.Clear();
         }
 
         protected void OnDisable()
@@ -145,22 +80,6 @@ namespace UnityEditor.VFX
             }
         }
 
-        struct Infos
-        {
-            public VFXPropertyIM propertyIM;
-            public Type type;
-        }
-
-        Dictionary<VFXParameterNodeController, Infos> m_Infos = new Dictionary<VFXParameterNodeController, Infos>();
-
-        struct FieldData
-        {
-            public System.Type type;
-            public string exposedName;
-            public string fieldName;
-            public RangeAttribute rangeAttribute;
-        }
-
         protected const float overrideWidth = 16;
 
         void DisplayProperty(VFXParameterInfo parameter, SerializedProperty overrideProperty, SerializedProperty property)
@@ -171,7 +90,7 @@ namespace UnityEditor.VFX
 
             //EditorGUI.showMixedValue = overrideProperty.hasMultipleDifferentValues;
             EditorGUI.BeginChangeCheck();
-            bool result = EditorGUILayout.Toggle(overrideProperty.hasMultipleDifferentValues ? false : overrideProperty.boolValue, overrideProperty.hasMultipleDifferentValues ? VisualEffectEditorStyles.toggleMixedStyle : VisualEffectEditorStyles.toggleStyle, GUILayout.Width(overrideWidth));
+            bool result = EditorGUILayout.Toggle(overrideProperty.hasMultipleDifferentValues ? false : overrideProperty.boolValue, overrideProperty.hasMultipleDifferentValues ? Styles.toggleMixedStyle : Styles.toggleStyle, GUILayout.Width(overrideWidth));
             if (EditorGUI.EndChangeCheck())
             {
                 overrideProperty.boolValue = result;
@@ -216,43 +135,37 @@ namespace UnityEditor.VFX
             EditorGUILayout.EndHorizontal();
         }
 
-        public void InitializeGUI()
-        {
-            if (m_Contents == null)
-                m_Contents = new Contents();
-        }
-
         private void SceneViewGUICallback(UnityObject target, SceneView sceneView)
         {
             VisualEffect effect = ((VisualEffect)targets[0]);
 
             var buttonWidth = GUILayout.Width(50);
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button(VisualEffectEditorSceneGUIStyles.GetIcon(VisualEffectEditorSceneGUIStyles.Icon.Stop), buttonWidth))
+            if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Stop), buttonWidth))
             {
                 effect.ControlStop();
             }
             if (effect.pause)
             {
-                if (GUILayout.Button(VisualEffectEditorSceneGUIStyles.GetIcon(VisualEffectEditorSceneGUIStyles.Icon.Play), buttonWidth))
+                if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Play), buttonWidth))
                 {
                     effect.ControlPlayPause();
                 }
             }
             else
             {
-                if (GUILayout.Button(VisualEffectEditorSceneGUIStyles.GetIcon(VisualEffectEditorSceneGUIStyles.Icon.Pause), buttonWidth))
+                if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Pause), buttonWidth))
                 {
                     effect.ControlPlayPause();
                 }
             }
 
 
-            if (GUILayout.Button(VisualEffectEditorSceneGUIStyles.GetIcon(VisualEffectEditorSceneGUIStyles.Icon.Step), buttonWidth))
+            if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Step), buttonWidth))
             {
                 effect.ControlStep();
             }
-            if (GUILayout.Button(VisualEffectEditorSceneGUIStyles.GetIcon(VisualEffectEditorSceneGUIStyles.Icon.Restart), buttonWidth))
+            if (GUILayout.Button(Contents.GetIcon(Contents.Icon.Restart), buttonWidth))
             {
                 effect.ControlRestart();
             }
@@ -261,10 +174,10 @@ namespace UnityEditor.VFX
             float playRate = effect.playRate * VisualEffectControl.playRateToValue;
 
             GUILayout.BeginHorizontal();
-            GUILayout.Label("Playback Rate", GUILayout.Width(84));
+            GUILayout.Label(Contents.playRate, GUILayout.Width(44));
             playRate = EditorGUILayout.PowerSlider("", playRate, VisualEffectControl.minSlider, VisualEffectControl.maxSlider, VisualEffectControl.sliderPower, GUILayout.Width(138));
             effect.playRate = playRate * VisualEffectControl.valueToPlayRate;
-            if (EditorGUILayout.DropdownButton(EditorGUIUtility.TextContent("Set"), FocusType.Passive, GUILayout.Width(36)))
+            if (EditorGUILayout.DropdownButton(Contents.setPlayRate, FocusType.Passive, GUILayout.Width(36)))
             {
                 GenericMenu menu = new GenericMenu();
                 Rect buttonRect = GUILayoutUtility.topLevel.GetLast();
@@ -286,7 +199,7 @@ namespace UnityEditor.VFX
 
         protected virtual void OnSceneGUI()
         {
-            SceneViewOverlay.Window(ParticleSystemInspector.playBackTitle, SceneViewGUICallback, (int)SceneViewOverlay.Ordering.ParticleEffect, SceneViewOverlay.WindowDisplayOption.OneWindowPerTitle);
+            SceneViewOverlay.Window(Contents.headerPlayControls, SceneViewGUICallback, (int)SceneViewOverlay.Ordering.ParticleEffect, SceneViewOverlay.WindowDisplayOption.OneWindowPerTitle);
         }
 
         private VisualEffectAsset m_asset;
@@ -301,63 +214,101 @@ namespace UnityEditor.VFX
             GUILayout.EndHorizontal();
         }
 
-        public override void OnInspectorGUI()
+
+        protected virtual void EditorModeInspectorButton()
         {
-            InitializeGUI();
+        }
 
+
+        protected void ShowHeader(GUIContent nameContent)
+        {
+            float height = Styles.categoryHeader.CalcHeight(nameContent,4000);
+            Rect rect = GUILayoutUtility.GetRect(1,height + Styles.headerTopMargin + Styles.headerBottomMargin);
+
+            rect.width += rect.x;
+            rect.x = 0;
+            rect.y += Styles.headerTopMargin;
+            rect.height -= Styles.headerTopMargin + Styles.headerBottomMargin;
+            if( Event.current.type == EventType.Repaint)
+                Styles.categoryHeader.Draw(rect,nameContent,false,true,true,false );
+        }
+
+
+
+        protected virtual void AssetField()
+        {
             var component = (VisualEffect)target;
-
             using (new GUILayout.HorizontalScope())
             {
-                EditorGUILayout.PropertyField(m_VisualEffectAsset, m_Contents.AssetPath);
+                EditorGUILayout.PropertyField(m_VisualEffectAsset, Contents.assetPath);
 
                 GUI.enabled = component.visualEffectAsset != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
-                if (GUILayout.Button(m_Contents.OpenEditor, EditorStyles.miniButton, VisualEffectEditorStyles.MiniButtonWidth))
+                if (GUILayout.Button(Contents.openEditor, EditorStyles.miniButton, Styles.MiniButtonWidth))
                 {
                     VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
 
                     window.LoadAsset(component.visualEffectAsset);
                 }
             }
+        }
 
+        protected virtual bool SeedField()
+        {
+            var component = (VisualEffect)target;
             //Seed
             EditorGUI.BeginChangeCheck();
             using (new GUILayout.HorizontalScope())
             {
                 using (new EditorGUI.DisabledGroupScope(m_ReseedOnPlay.boolValue))
                 {
-                    EditorGUILayout.PropertyField(m_RandomSeed, m_Contents.RandomSeed);
-                    if (GUILayout.Button(m_Contents.SetRandomSeed, EditorStyles.miniButton, VisualEffectEditorStyles.MiniButtonWidth))
+                    EditorGUILayout.PropertyField(m_RandomSeed, Contents.randomSeed);
+                    if (GUILayout.Button(Contents.setRandomSeed, EditorStyles.miniButton, Styles.MiniButtonWidth))
                     {
                         m_RandomSeed.intValue = UnityEngine.Random.Range(0, int.MaxValue);
                         component.startSeed = (uint)m_RandomSeed.intValue; // As accessors are bypassed with serialized properties...
                     }
                 }
             }
-            EditorGUILayout.PropertyField(m_ReseedOnPlay, m_Contents.ReseedOnPlay);
-            bool reinit = EditorGUI.EndChangeCheck();
+            EditorGUILayout.PropertyField(m_ReseedOnPlay, Contents.reseedOnPlay);
+            return EditorGUI.EndChangeCheck();
+        }
+
+        public override void OnInspectorGUI()
+        {
+            AssetField();
+            bool reinit = SeedField();
 
 
+            var component = (VisualEffect)target;
             //Display properties only if all the VisualEffects share the same graph
             VisualEffectAsset asset = component.visualEffectAsset;
             if (targets.Length > 1)
             {
-                foreach (VisualEffect target in targets)
+                foreach (VisualEffect effect in targets)
                 {
-                    if (target.visualEffectAsset != asset)
+                    if (effect.visualEffectAsset != asset)
                     {
                         return;
                     }
                 }
             }
 
-            EditMode.DoEditModeInspectorModeButton(
-                EditMode.SceneViewEditMode.Collider,
-                "Show Parameters",
-                EditorGUIUtility.IconContent("EditCollider"),
-                this
-                );
+            EditorModeInspectorButton();
 
+            DrawParameters();
+
+            serializedObject.ApplyModifiedProperties();
+            if (reinit)
+            {
+                component.Reinit();
+            }
+
+            GUI.enabled = true;
+        }
+
+        protected virtual void DrawParameters()
+        {
+            var component = (VisualEffect)target;
             if (m_graph == null || m_asset != component.visualEffectAsset)
             {
                 m_asset = component.visualEffectAsset;
@@ -366,6 +317,7 @@ namespace UnityEditor.VFX
                     m_graph = m_asset.GetOrCreateGraph();
                 }
             }
+
             GUI.enabled = true;
 
             if (m_graph != null)
@@ -374,8 +326,10 @@ namespace UnityEditor.VFX
                 {
                     m_graph.BuildParameterInfo();
                 }
+
                 if (m_graph.m_ParameterInfo != null)
                 {
+                    ShowHeader(Contents.headerParameters);
                     List<int> stack = new List<int>();
                     int currentCount = m_graph.m_ParameterInfo.Length;
 
@@ -399,22 +353,14 @@ namespace UnityEditor.VFX
                         }
 
 
-
                         if (string.IsNullOrEmpty(parameter.sheetType))
                         {
-                            if (!string.IsNullOrEmpty(parameter.name) )
+                            if (!string.IsNullOrEmpty(parameter.name))
                             {
-                                if( string.IsNullOrEmpty(parameter.realType)) // This is a category
+                                if (string.IsNullOrEmpty(parameter.realType)) // This is a category
                                 {
                                     var nameContent = new GUIContent(parameter.name);
-
-                                    float height = VisualEffectEditorStyles.categoryHeader.CalcHeight(nameContent,4000);
-                                    Rect rect = GUILayoutUtility.GetRect(1,height);
-
-                                    rect.width += rect.x;
-                                    rect.x = 0;
-                                    if( Event.current.type == EventType.Repaint)
-                                        VisualEffectEditorStyles.categoryHeader.Draw(rect,nameContent,false,true,true,false );
+                                    ShowHeader(nameContent);
                                 }
                                 else
                                     EmptyLineControl(parameter.name, stack.Count);
@@ -434,9 +380,11 @@ namespace UnityEditor.VFX
                                     {
                                         break;
                                     }
+
                                     property = null;
                                 }
                             }
+
                             if (property != null)
                             {
                                 SerializedProperty overrideProperty = property.FindPropertyRelative("m_Overridden");
@@ -458,44 +406,86 @@ namespace UnityEditor.VFX
                                 }
                             }
                         }
+
                         EditorGUI.indentLevel = stack.Count;
                     }
                 }
             }
-
-            serializedObject.ApplyModifiedProperties();
-            if (reinit)
-            {
-                component.Reinit();
-            }
-
-            GUI.enabled = true;
         }
 
-        private class Contents
+        protected static class Contents
         {
-            public GUIContent HeaderMain = new GUIContent("VFX Asset");
-            public GUIContent HeaderPlayControls = new GUIContent("Play Controls");
-            public GUIContent HeaderParameters = new GUIContent("Parameters");
+            public static readonly GUIContent headerPlayControls = EditorGUIUtility.TrTextContent("Play Controls");
+            public static readonly GUIContent headerParameters = EditorGUIUtility.TrTextContent("Parameters");
 
-            public GUIContent AssetPath = new GUIContent("Asset Template");
-            public GUIContent RandomSeed = new GUIContent("Random Seed");
-            public GUIContent ReseedOnPlay = new GUIContent("Reseed on play");
-            public GUIContent OpenEditor = new GUIContent("Edit");
-            public GUIContent SetRandomSeed = new GUIContent("Reseed");
-            public GUIContent SetPlayRate = new GUIContent("Set");
-            public GUIContent PlayRate = new GUIContent("PlayRate");
-            public GUIContent ResetOverrides = new GUIContent("Reset");
+            public static readonly GUIContent assetPath = EditorGUIUtility.TrTextContent("Asset Template");
+            public static readonly GUIContent randomSeed = EditorGUIUtility.TrTextContent("Random Seed");
+            public static readonly GUIContent reseedOnPlay = EditorGUIUtility.TrTextContent("Reseed on play");
+            public static readonly GUIContent openEditor = EditorGUIUtility.TrTextContent("Edit");
+            public static readonly GUIContent setRandomSeed = EditorGUIUtility.TrTextContent("Reseed");
+            public static readonly GUIContent setPlayRate = EditorGUIUtility.TrTextContent("Set");
+            public static readonly GUIContent playRate = EditorGUIUtility.TrTextContent("PlayRate");
 
-            public GUIContent ButtonRestart = new GUIContent();
-            public GUIContent ButtonPlay = new GUIContent();
-            public GUIContent ButtonPause = new GUIContent();
-            public GUIContent ButtonStop = new GUIContent();
-            public GUIContent ButtonFrameAdvance = new GUIContent();
+            static readonly GUIContent[] m_Icons;
 
-            public GUIContent ToggleWidget = new GUIContent();
+            public enum Icon
+            {
+                Pause,
+                Play,
+                Restart,
+                Step,
+                Stop
+            }
+            static Contents()
+            {
+                m_Icons = new GUIContent[1 + (int)Icon.Stop];
+                for (int i = 0; i <= (int)Icon.Stop; ++i)
+                {
+                    Icon icon = (Icon)i;
+                    string name = icon.ToString();
 
-            public GUIContent infoButton = new GUIContent("Debug", EditorGUIUtility.IconContent("console.infoicon").image);
+                    //TODO replace with editor default resource call when going to trunk
+                    Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/VFXEditor/Editor/SceneWindow/Textures/" + name + ".png");
+                    if (texture == null)
+                    {
+                        Debug.LogError("Can't find icon for " + name + " in Styles");
+                        continue;
+                    }
+                    m_Icons[i] = new GUIContent(texture);
+                }
+            }
+
+            public static GUIContent GetIcon(Icon icon)
+            {
+                return m_Icons[(int)icon];
+            }
+        }
+
+        protected static class Styles
+        {
+            public static readonly GUIStyle toggleStyle;
+            public static readonly GUIStyle toggleMixedStyle;
+
+            public static readonly GUIStyle categoryHeader;
+            public const float headerTopMargin = 8;
+            public const float headerBottomMargin = 4;
+
+            public static readonly GUILayoutOption MiniButtonWidth = GUILayout.Width(48);
+            public static readonly GUILayoutOption PlayControlsHeight = GUILayout.Height(24);
+
+            static Styles()
+            {
+                toggleStyle = GUISkin.current.GetStyle("ShurikenCheckMark");
+                toggleMixedStyle = GUISkin.current.GetStyle("ShurikenCheckMarkMixed");
+                categoryHeader = new GUIStyle(GUISkin.current.label);
+                categoryHeader.fontStyle = FontStyle.Bold;
+                categoryHeader.border.left = 2;
+                categoryHeader.padding.left = 14;
+                categoryHeader.border.right = 2;
+                //TODO change to editor resources calls
+                categoryHeader.normal.background = Resources.Load<Texture2D>(EditorGUIUtility.isProSkin ? "VFX/cat-background-dark" : "VFX/cat-background-light");
+
+            }
         }
     }
 }

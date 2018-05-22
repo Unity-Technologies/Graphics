@@ -54,11 +54,11 @@ namespace UnityEditor.VFX
             foreach (var cat in categories)
             {
                 parameters = graph.children.OfType<VFXParameter>().Where(t => t.exposed && t.category == cat).OrderBy(t => t.order).ToArray();
-                if (parameters.Count() > 0)
+                if (parameters.Length > 0)
                 {
                     VFXParameterInfo paramInfo = new VFXParameterInfo(cat, "");
 
-                    paramInfo.descendantCount = parameters.Length;
+                    paramInfo.descendantCount = 0;//parameters.Length;
                     infos.Add(paramInfo);
                     BuildCategoryParameterInfo(parameters, infos);
                 }
