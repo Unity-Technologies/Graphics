@@ -165,7 +165,8 @@ float4 SampleVolumetricLighting(TEXTURE3D_ARGS(VBufferLighting, clampSampler),
                                 bool   quadraticFilterXY)
 {
     // TODO: add some slowly animated noise to the reconstructed value.
-    return FastTonemapInvert(SampleVBuffer(TEXTURE3D_PARAM(VBufferLighting, clampSampler),
+    // TODO: re-enable tone mapping after implementing pre-exposure.
+    return /*FastTonemapInvert*/(SampleVBuffer(TEXTURE3D_PARAM(VBufferLighting, clampSampler),
                                            positionNDC,
                                            linearDepth,
                                            VBufferResolution,
