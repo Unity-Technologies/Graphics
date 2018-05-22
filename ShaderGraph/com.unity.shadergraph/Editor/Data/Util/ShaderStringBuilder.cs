@@ -18,7 +18,8 @@ namespace UnityEditor.ShaderGraph
         enum ScopeType
         {
             Indent,
-            Block
+            Block,
+            BlockSemicolon
         }
 
         StringBuilder m_StringBuilder;
@@ -49,6 +50,12 @@ namespace UnityEditor.ShaderGraph
             m_ScopeStack = new Stack<ScopeType>();
             m_Mappings = new List<ShaderStringMapping>();
             m_CurrentMapping = new ShaderStringMapping();
+        }
+
+        public ShaderStringBuilder(int indentationLevel)
+            : this()
+        {
+            IncreaseIndent(indentationLevel);
         }
 
         public void AppendNewLine()
@@ -119,14 +126,34 @@ namespace UnityEditor.ShaderGraph
             return this;
         }
 
+        public IDisposable BlockSemicolonScope()
+        {
+            AppendLine("{");
+            IncreaseIndent();
+            m_ScopeStack.Push(ScopeType.BlockSemicolon);
+            return this;
+        }
+
         public void IncreaseIndent()
         {
             m_IndentationLevel++;
         }
 
+        public void IncreaseIndent(int level)
+        {
+            for (var i = 0; i < level; i++)
+                IncreaseIndent();
+        }
+
         public void DecreaseIndent()
         {
             m_IndentationLevel--;
+        }
+
+        public void DecreaseIndent(int level)
+        {
+            for (var i = 0; i < level; i++)
+                DecreaseIndent();
         }
 
         public void Dispose()
@@ -139,6 +166,10 @@ namespace UnityEditor.ShaderGraph
                 case ScopeType.Block:
                     DecreaseIndent();
                     AppendLine("}");
+                    break;
+                case ScopeType.BlockSemicolon:
+                    DecreaseIndent();
+                    AppendLine("};");
                     break;
             }
         }
