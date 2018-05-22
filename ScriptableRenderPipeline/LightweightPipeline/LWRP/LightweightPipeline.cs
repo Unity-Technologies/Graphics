@@ -19,6 +19,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         CullResults m_CullResults;
         List<int> m_LocalLightIndices = new List<int>();
 
+        bool m_IsCameraRendering;
+
         public LightweightPipeline(LightweightPipelineAsset asset)
         {
             pipelineAsset = asset;
@@ -37,6 +39,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 QualitySettings.antiAliasing = pipelineAsset.MsaaSampleCount;
 
             Shader.globalRenderPipeline = "LightweightPipeline";
+            m_IsCameraRendering = false;
         }
 
         public override void Dispose()
@@ -73,6 +76,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public override void Render(ScriptableRenderContext context, Camera[] cameras)
         {
+            if (m_IsCameraRendering)
+            {
+                Debug.LogWarning("Nested camera rendering is forbidden. If you are calling camera.Render inside OnWillRenderObject callback, use BeginCameraRender callback instead.");
+                return;
+            }
+
             base.Render(context, cameras);
             BeginFrameRendering(cameras);
 
@@ -81,15 +90,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             // Sort cameras array by camera depth
             Array.Sort(cameras, m_CameraComparer);
-
+            
             foreach (Camera camera in cameras)
             {
+                BeginCameraRendering(camera);
+                m_IsCameraRendering = true;
+
                 CameraData cameraData;
                 InitializeCameraData(camera, out cameraData);
                 SetupPerCameraShaderConstants(cameraData);
-
-                BeginCameraRendering(camera);
-
+                
                 ScriptableCullingParameters cullingParameters;
                 if (!CullResults.GetCullingParameters(camera, cameraData.isStereoEnabled, out cullingParameters))
                     continue;
@@ -109,7 +119,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_Renderer.Setup(ref context, ref m_CullResults, ref renderingData);
                 m_Renderer.Execute(ref context, ref m_CullResults, ref renderingData);
                 context.Submit();
+
+                m_IsCameraRendering = false;
             }
+
         }
 
         void InitializeCameraData(Camera camera, out CameraData cameraData)
