@@ -4,7 +4,7 @@ namespace UnityEditor.ShaderGraph
 {
     public interface IMayRequireBitangent
     {
-        NeededCoordinateSpace RequiresBitangent();
+        NeededCoordinateSpace RequiresBitangent(ShaderStageCapability stageCapability = ShaderStageCapability.All);
     }
 
     public static class MayRequireBitangentExtensions

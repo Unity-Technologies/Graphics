@@ -4,7 +4,7 @@ namespace UnityEditor.ShaderGraph
 {
     interface IMayRequireVertexColor
     {
-        bool RequiresVertexColor();
+        bool RequiresVertexColor(ShaderStageCapability stageCapability = ShaderStageCapability.All);
     }
 
     public static class MayRequireVertexColorExtensions

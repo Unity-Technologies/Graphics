@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
@@ -10,16 +11,17 @@ namespace UnityEditor.ShaderGraph
 {
     [Serializable]
     [Title("Master", "Unlit")]
-    public class UnlitMasterNode : MasterNode<IUnlitSubShader>
+    public class UnlitMasterNode : MasterNode<IUnlitSubShader>, IMayRequirePosition
     {
         public const string ColorSlotName = "Color";
         public const string AlphaSlotName = "Alpha";
         public const string AlphaClipThresholdSlotName = "AlphaClipThreshold";
-        public const string VertexOffsetName = "VertexPosition";
+        public const string PositionName = "Position";
 
         public const int ColorSlotId = 0;
         public const int AlphaSlotId = 7;
         public const int AlphaThresholdSlotId = 8;
+        public const int PositionSlotId = 9;
 
         [SerializeField]
         SurfaceType m_SurfaceType;
@@ -82,15 +84,17 @@ namespace UnityEditor.ShaderGraph
         {
             base.UpdateNodeAfterDeserialization();
             name = "Unlit Master";
-            AddSlot(new ColorRGBMaterialSlot(ColorSlotId, ColorSlotName, ColorSlotName, SlotType.Input, Color.grey, ShaderStage.Fragment));
-            AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 1, ShaderStage.Fragment));
-            AddSlot(new Vector1MaterialSlot(AlphaThresholdSlotId, AlphaClipThresholdSlotName, AlphaClipThresholdSlotName, SlotType.Input, 0f, ShaderStage.Fragment));
+            AddSlot(new PositionMaterialSlot(PositionSlotId, PositionName, PositionName, CoordinateSpace.Object, ShaderStageCapability.Vertex));
+            AddSlot(new ColorRGBMaterialSlot(ColorSlotId, ColorSlotName, ColorSlotName, SlotType.Input, Color.grey, ShaderStageCapability.Fragment));
+            AddSlot(new Vector1MaterialSlot(AlphaSlotId, AlphaSlotName, AlphaSlotName, SlotType.Input, 1, ShaderStageCapability.Fragment));
+            AddSlot(new Vector1MaterialSlot(AlphaThresholdSlotId, AlphaClipThresholdSlotName, AlphaClipThresholdSlotName, SlotType.Input, 0f, ShaderStageCapability.Fragment));
 
             // clear out slot names that do not match the slots
             // we support
             RemoveSlotsNameNotMatching(
                 new[]
             {
+                PositionSlotId,
                 ColorSlotId,
                 AlphaSlotId,
                 AlphaThresholdSlotId
@@ -100,6 +104,22 @@ namespace UnityEditor.ShaderGraph
         protected override VisualElement CreateCommonSettingsElement()
         {
             return new UnlitSettingsView(this);
+        }
+
+        public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability)
+        {
+            List<MaterialSlot> slots = new List<MaterialSlot>();
+            GetSlots(slots);
+            
+            List<MaterialSlot> validSlots = new List<MaterialSlot>();
+            for(int i = 0; i < slots.Count; i++)
+            {
+                if(slots[i].stageCapability != ShaderStageCapability.All && slots[i].stageCapability != stageCapability)
+                    continue;
+                
+                validSlots.Add(slots[i]);
+            }
+            return validSlots.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition(stageCapability));
         }
     }
 }

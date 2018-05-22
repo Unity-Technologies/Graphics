@@ -10,8 +10,8 @@ namespace UnityEditor.ShaderGraph
     public class VertexColorMaterialSlot : Vector4MaterialSlot, IMayRequireScreenPosition
     {
         public VertexColorMaterialSlot(int slotId, string displayName, string shaderOutputName,
-                                       ShaderStage shaderStage = ShaderStage.Dynamic, bool hidden = false)
-            : base(slotId, displayName, shaderOutputName, SlotType.Input, Vector3.zero, shaderStage, hidden: hidden)
+                                       ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)
+            : base(slotId, displayName, shaderOutputName, SlotType.Input, Vector3.zero, stageCapability, hidden: hidden)
         {}
 
         public override VisualElement InstantiateControl()
@@ -24,7 +24,7 @@ namespace UnityEditor.ShaderGraph
             return string.Format("IN.{0}", ShaderGeneratorNames.VertexColor);
         }
 
-        public bool RequiresScreenPosition()
+        public bool RequiresScreenPosition(ShaderStageCapability stageCapability)
         {
             return !isConnected;
         }

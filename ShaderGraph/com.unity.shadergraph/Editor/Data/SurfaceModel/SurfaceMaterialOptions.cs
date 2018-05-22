@@ -97,55 +97,35 @@ namespace UnityEditor.ShaderGraph
             lod = 200;
         }
 
-        public void GetTags(ShaderGenerator visitor)
+        public void GetTags(ShaderStringBuilder builder)
         {
-            visitor.AddShaderChunk("Tags", false);
-            visitor.AddShaderChunk("{", false);
-            visitor.Indent();
-            visitor.AddShaderChunk("\"RenderType\"=\"" + renderType + "\"", false);
-            visitor.AddShaderChunk("\"Queue\"=\"" + renderQueue + "\"", false);
-            visitor.Deindent();
-            visitor.AddShaderChunk("}", false);
-        }
-
-        public void GetBlend(ShaderGenerator visitor)
-        {
-            visitor.AddShaderChunk("Blend " + srcBlend + " " + dstBlend, false);
-        }
-
-        public void GetCull(ShaderGenerator visitor)
-        {
-            visitor.AddShaderChunk("Cull " + cullMode, false);
-        }
-
-        public void GetDepthWrite(ShaderGenerator visitor)
-        {
-            visitor.AddShaderChunk("ZWrite " + zWrite, false);
-        }
-
-        public void GetDepthTest(ShaderGenerator visitor)
-        {
-            visitor.AddShaderChunk("ZTest " + zTest, false);
-        }
-
-        /*private Vector2 m_ScrollPos;
-        public void DoGUI()
-        {
-            GUILayout.BeginVertical();
-            m_Expanded = MaterialGraphStyles.Header("Options", m_Expanded);
-
-            if (m_Expanded)
+            builder.AppendLine("Tags");
+            using (builder.BlockScope())
             {
-                srcBlend = (BlendMode) EditorGUILayout.EnumPopup("Src Blend", srcBlend);
-                dstBlend = (BlendMode) EditorGUILayout.EnumPopup("Dst Blend", dstBlend);
-                cullMode = (CullMode) EditorGUILayout.EnumPopup("Cull Mode", cullMode);
-                zTest = (ZTest) EditorGUILayout.EnumPopup("Z Test", zTest);
-                zWrite = (ZWrite) EditorGUILayout.EnumPopup("Z Write", zWrite);
-                renderQueue = (RenderQueue) EditorGUILayout.EnumPopup("Render Queue", renderQueue);
-                renderType = (RenderType) EditorGUILayout.EnumPopup("Render Type", renderType);
+                builder.AppendLine("\"RenderType\"=\"{0}\"", renderType);
+                builder.AppendLine("\"Queue\"=\"{0}\"", renderQueue);
             }
-            GUILayout.EndVertical();
-        }*/
+        }
+
+        public void GetBlend(ShaderStringBuilder builder)
+        {
+            builder.AppendLine("Blend {0} {1}", srcBlend, dstBlend);
+        }
+
+        public void GetCull(ShaderStringBuilder builder)
+        {
+            builder.AppendLine("Cull {0}", cullMode);
+        }
+
+        public void GetDepthWrite(ShaderStringBuilder builder)
+        {
+            builder.AppendLine("ZWrite {0}", zWrite);
+        }
+
+        public void GetDepthTest(ShaderStringBuilder builder)
+        {
+            builder.AppendLine("ZTest {0}", zTest);
+        }
 
         public BlendMode srcBlend { get { return m_SrcBlend; } set { m_SrcBlend = value; } }
         public BlendMode dstBlend { get { return m_DstBlend; } set { m_DstBlend = value; } }

@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(0, Binding.MeshUV0)] Vector2 UV,
             [Slot(1, Binding.None, 0.5f, 0, 0, 0)] Vector1 Width,
             [Slot(2, Binding.None, 0.5f, 0, 0, 0)] Vector1 Height,
-            [Slot(3, Binding.None)] out Vector1 Out)
+            [Slot(3, Binding.None, ShaderStageCapability.Fragment)] out Vector1 Out)
         {
             return
                 @"
