@@ -5,5 +5,5 @@ build/**
 .idea
 .DS_Store
 .npmrc
-DebugOutput.meta
-DebugOutput/**
+ShaderGraph/DebugOutput.meta
+ShaderGraph/DebugOutput/**
