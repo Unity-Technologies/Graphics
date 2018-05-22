@@ -727,26 +727,27 @@ namespace  UnityEditor.VFX.UI
             if (e.controller == controller || e.controller is VFXParameterController) //optim : reorder only is only the order has changed
             {
                 var orderedCategories = controller.graph.UIInfos.categories;
-
                 var newCategories = new List<VFXBlackboardCategory>();
-
-                foreach(var catName in controller.graph.UIInfos.categories)
+                if( orderedCategories != null)
                 {
-                    VFXBlackboardCategory cat = null;
-                    if( ! m_Categories.TryGetValue(catName,out cat))
+                    foreach(var catName in controller.graph.UIInfos.categories)
                     {
-                        cat = new VFXBlackboardCategory(){title =  catName};
-                        cat.SetSelectable();
-                        m_Categories.Add(catName,cat);
+                        VFXBlackboardCategory cat = null;
+                        if( ! m_Categories.TryGetValue(catName,out cat))
+                        {
+                            cat = new VFXBlackboardCategory(){title =  catName};
+                            cat.SetSelectable();
+                            m_Categories.Add(catName,cat);
+                        }
+
+                        newCategories.Add(cat);
                     }
 
-                    newCategories.Add(cat);
-                }
-
-                foreach( var category in m_Categories.Keys.Except(orderedCategories).ToArray() )
-                {
-                    m_Categories[category].RemoveFromHierarchy();
-                    m_Categories.Remove(category);
+                    foreach( var category in m_Categories.Keys.Except(orderedCategories).ToArray() )
+                    {
+                        m_Categories[category].RemoveFromHierarchy();
+                        m_Categories.Remove(category);
+                    }
                 }
 
                 var prevCat = m_DefaultCategory;

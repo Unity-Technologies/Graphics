@@ -1411,6 +1411,8 @@ namespace UnityEditor.VFX.UI
 
         public void MoveCategory(string category, int index)
         {
+            if( graph.UIInfos.categories == null)
+                return;
             int oldIndex = graph.UIInfos.categories.IndexOf(category);
 
             if( oldIndex == -1 || oldIndex == index)
