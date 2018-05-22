@@ -18,43 +18,43 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
-    - _Control:
+    - _Control0:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _HeightMap0:
+    - _Control1:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _HeightMap1:
+    - _Height0:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _HeightMap2:
+    - _Height1:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _HeightMap3:
+    - _Height2:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _MainTex:
+    - _Height3:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _MaskMap0:
+    - _Height4:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _MaskMap1:
+    - _Height5:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _MaskMap2:
+    - _Height6:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _MaskMap3:
+    - _Height7:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -74,6 +74,22 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _Normal4:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Normal5:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Normal6:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Normal7:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _Splat0:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -90,58 +106,75 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _Splat4:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Splat5:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Splat6:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Splat7:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _AORemapMax0: 1
-    - _AORemapMax1: 1
-    - _AORemapMax2: 1
-    - _AORemapMax3: 1
-    - _AORemapMin0: 0
-    - _AORemapMin1: 0
-    - _AORemapMin2: 0
-    - _AORemapMin3: 0
     - _CullMode: 2
     - _DoubleSidedEnable: 0
     - _DoubleSidedNormalMode: 1
+    - _EnableHeightBlending: 1
     - _HeightAmplitude0: 0.02
     - _HeightAmplitude1: 0.02
     - _HeightAmplitude2: 0.02
     - _HeightAmplitude3: 0.02
+    - _HeightAmplitude4: 0.02
+    - _HeightAmplitude5: 0.02
+    - _HeightAmplitude6: 0.02
+    - _HeightAmplitude7: 0.02
     - _HeightCenter0: 0.5
     - _HeightCenter1: 0.5
     - _HeightCenter2: 0.5
     - _HeightCenter3: 0.5
-    - _HeightTransition: 0
+    - _HeightCenter4: 0.5
+    - _HeightCenter5: 0.5
+    - _HeightCenter6: 0.5
+    - _HeightCenter7: 0.5
+    - _HeightTransition: 0.004
     - _Metallic0: 0
     - _Metallic1: 0
     - _Metallic2: 0
     - _Metallic3: 0
+    - _Metallic4: 0
+    - _Metallic5: 0
+    - _Metallic6: 0
+    - _Metallic7: 0
     - _OpacityAsDensity0: 0
     - _OpacityAsDensity1: 0
     - _OpacityAsDensity2: 0
     - _OpacityAsDensity3: 0
+    - _OpacityAsDensity4: 0
+    - _OpacityAsDensity5: 0
+    - _OpacityAsDensity6: 0
+    - _OpacityAsDensity7: 0
     - _Smoothness0: 1
     - _Smoothness1: 1
     - _Smoothness2: 1
     - _Smoothness3: 1
-    - _SmoothnessRemapMax0: 1
-    - _SmoothnessRemapMax1: 1
-    - _SmoothnessRemapMax2: 1
-    - _SmoothnessRemapMax3: 1
-    - _SmoothnessRemapMin0: 0
-    - _SmoothnessRemapMin1: 0
-    - _SmoothnessRemapMin2: 0
-    - _SmoothnessRemapMin3: 0
+    - _Smoothness4: 0
+    - _Smoothness5: 0
+    - _Smoothness6: 0
+    - _Smoothness7: 0
     - _StencilRef: 2
     - _StencilRefMV: 128
     - _StencilWriteMask: 7
     - _StencilWriteMaskMV: 128
     - _SupportDBuffer: 1
-    - _TexWorldScale0: 1
-    - _TexWorldScale1: 1
-    - _TexWorldScale2: 1
-    - _TexWorldScale3: 1
     - _UseHeightBasedBlend: 0
-    - _ZTestDepthEqualForOpaque: 4
+    - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZWrite: 1
     m_Colors:

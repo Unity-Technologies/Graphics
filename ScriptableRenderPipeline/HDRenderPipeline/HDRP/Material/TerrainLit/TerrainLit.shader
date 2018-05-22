@@ -51,6 +51,7 @@ Shader "HDRenderPipeline/TerrainLit"
         [HideInInspector] [ToggleUI] _OpacityAsDensity6("_OpacityAsDensity6", Float) = 0.0
         [HideInInspector] [ToggleUI] _OpacityAsDensity7("_OpacityAsDensity7", Float) = 0.0
 
+        [ToggleUI] _EnableHeightBlending("Enable Height Blending", Float) = 1.0 // Hint Unity if heightmaps are ever used
         _HeightTransition("Height Transition", Range(0, 1.0)) = 0.0
         [HideInInspector] _Height0("Height 0", 2D) = "black" {}
         [HideInInspector] _Height1("Height 1", 2D) = "black" {}
@@ -162,11 +163,12 @@ Shader "HDRenderPipeline/TerrainLit"
 
     #pragma shader_feature _TERRAIN_NORMAL_MAP
     #pragma shader_feature _TERRAIN_HEIGHT_MAP
-    // #pragma shader_feature _HEIGHT_BASED_BLEND // _HEIGHT_BASED_BLEND is implied if heightmap is used. 
-    #pragma shader_feature _MASKMAP0
-    #pragma shader_feature _MASKMAP1
-    #pragma shader_feature _MASKMAP2
-    #pragma shader_feature _MASKMAP3
+    // #pragma shader_feature _HEIGHT_BASED_BLEND // _HEIGHT_BASED_BLEND is implied if heightmap is used.
+
+    //#pragma shader_feature _MASKMAP0
+    //#pragma shader_feature _MASKMAP1
+    //#pragma shader_feature _MASKMAP2
+    //#pragma shader_feature _MASKMAP3
 
     #pragma shader_feature _DENSITY_MODE
 
