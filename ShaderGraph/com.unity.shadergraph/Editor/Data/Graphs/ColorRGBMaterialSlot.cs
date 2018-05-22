@@ -32,9 +32,9 @@ namespace UnityEditor.ShaderGraph
         {
             return string.Format("IsGammaSpace() ? {0}3({1}, {2}, {3}) : SRGBToLinear({0}3({1}, {2}, {3}))"
                 , precision
-                , value.x
-                , value.y
-                , value.z);
+                , NodeUtils.FloatToShaderValue(value.x)
+                , NodeUtils.FloatToShaderValue(value.y)
+                , NodeUtils.FloatToShaderValue(value.z));
         }
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)

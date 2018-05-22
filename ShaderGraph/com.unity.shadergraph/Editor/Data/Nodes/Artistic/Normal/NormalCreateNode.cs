@@ -89,9 +89,9 @@ namespace UnityEditor.ShaderGraph
                 sb.AppendLine("{0}2 offsetU = float2(UV.x + Offset, UV.y);", precision);
                 sb.AppendLine("{0}2 offsetV = float2(UV.x, UV.y + Offset);", precision);
 
-                sb.AppendLine("{0} normalSample = Texture.Sample(Sampler, UV);", precision);
-                sb.AppendLine("{0} uSample = Texture.Sample(Sampler, offsetU);", precision);
-                sb.AppendLine("{0} vSample = Texture.Sample(Sampler, offsetV);", precision);
+                sb.AppendLine("{0} normalSample = Texture.Sample(Sampler, UV).x;", precision);
+                sb.AppendLine("{0} uSample = Texture.Sample(Sampler, offsetU).x;", precision);
+                sb.AppendLine("{0} vSample = Texture.Sample(Sampler, offsetV).x;", precision);
 
                 sb.AppendLine("{0}3 va = float3(1, 0, (uSample - normalSample) * Strength);", precision);
                 sb.AppendLine("{0}3 vb = float3(0, 1, (vSample - normalSample) * Strength);", precision);
