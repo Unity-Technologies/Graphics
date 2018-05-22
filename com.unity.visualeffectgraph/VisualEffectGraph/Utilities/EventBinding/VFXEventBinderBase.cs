@@ -9,55 +9,29 @@ namespace UnityEngine.Experimental.VFX.Utility
     public abstract class VFXEventBinderBase : MonoBehaviour
     {
         [SerializeField]
-        protected List<VisualEffect> m_targets = new List<VisualEffect>();
+        protected VisualEffect target;
         public string EventName = "Event";
 
         [SerializeField, HideInInspector]
-        protected List<VFXEventAttribute> m_EventAttributes = new List<VFXEventAttribute>();
+        protected VFXEventAttribute eventAttribute;
 
         private void OnValidate()
         {
-            m_EventAttributes.Clear();
-            foreach (var target in m_targets)
-                m_EventAttributes.Add(target.CreateVFXEventAttribute());
+            if (target != null)
+                eventAttribute = target.CreateVFXEventAttribute();
+            else
+                eventAttribute = null;
         }
 
-        public void AddVisualEffect(VisualEffect target)
+        protected abstract void SetEventAttribute(Object[] parameters = null);
+
+        protected void SendEventToVisualEffect(params Object[] parameters)
         {
-            if(target != null && !m_targets.Contains(target))
+            if (target != null)
             {
-                m_targets.Add(target);
-                m_EventAttributes.Add(target.CreateVFXEventAttribute());
-            }
-        }
-
-        public void RemoveVisualEffect(VisualEffect target)
-        {
-            int index = m_targets.IndexOf(target);
-            if(index >= 0)
-            {
-                m_targets.RemoveAt(index);
-                m_EventAttributes.RemoveAt(index);
-            }
-        }
-
-        public void ClearVisualEffects()
-        {
-            m_targets.Clear();
-            m_EventAttributes.Clear();
-        }
-
-        protected abstract void SetEventAttribute(VisualEffect target, VFXEventAttribute attribute, Object[] parameters = null);
-
-        protected void SendEventToVisualEffects(params Object[] parameters)
-        {
-            for (int i = 0; i < m_targets.Count; i++)
-            {
-                SetEventAttribute(m_targets[i], m_EventAttributes[i], parameters);
-                m_targets[i].SendEvent(EventName, m_EventAttributes[i]);
+                SetEventAttribute(parameters);
+                target.SendEvent(EventName, eventAttribute);
             }
         }
     }
 }
-
-
