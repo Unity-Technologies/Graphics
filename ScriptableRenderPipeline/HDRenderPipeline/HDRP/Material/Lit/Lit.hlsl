@@ -1840,7 +1840,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
         ScreenSpaceRaymarchInput ssRayInput;
         ZERO_INITIALIZE(ScreenSpaceRaymarchInput, ssRayInput);
 
-        ssRayInput.rayOriginWS = rayOriginWS;
+        ssRayInput.rayOriginWS = rayOriginWS + rayDirWS * SampleBayer4(posInput.positionSS + _FrameCount) * 0.1;
         ssRayInput.rayDirWS = rayDirWS;
 #if DEBUG_DISPLAY
         ssRayInput.debug = debug;
