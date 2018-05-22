@@ -1898,10 +1898,9 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     UpdateLightingHierarchyWeights(hierarchyWeight, weight); // Shouldn't be needed, but safer in case we decide to change hierarchy priority
 
     // Reproject color pyramid
-    float4 velocityBuffer = SAMPLE_TEXTURE2D_LOD(
+    float4 velocityBuffer = LOAD_TEXTURE2D_LOD(
         _CameraMotionVectorsTexture,
-        s_linear_clamp_sampler,
-        hit.positionNDC * _CameraMotionVectorsScale.xy,
+        hit.positionSS,
         0.0
     );
 
@@ -1911,7 +1910,8 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     float3 preLD = SAMPLE_TEXTURE2D_LOD(
         _ColorPyramidTexture,
         s_trilinear_clamp_sampler,
-        (hit.positionNDC - velocityNDC) * _ColorPyramidScale.xy,
+        // Offset by half a texel to properly interpolate between this pixel and its mips
+        (hit.positionNDC - velocityNDC) * _ColorPyramidScale.xy + _ColorPyramidSize.zw * 0.5,
         mipLevel
     ).rgb;
 

@@ -842,8 +842,11 @@ bool ScreenSpaceHiZRaymarch(
     }
 
     hit.linearDepth = positionLinearDepth;
-    hit.positionNDC = float2(positionSS.xy) / float2(bufferSize);
     hit.positionSS = uint2(positionSS.xy);
+    // Move one pixel in the ray direction
+    // This is where the ray actually hit
+    hit.positionSS += int2(raySS.xy * abs(invRaySS));
+    hit.positionNDC = float2(hit.positionSS) / float2(bufferSize);
 
     // Detect when we go behind an object given a thickness
 
