@@ -212,14 +212,15 @@ float CalculateHitWeight(
 )
 {
     // Blend when the hit is near the thickness of the object
-    float thicknessWeight = clamp(1 - (hit.linearDepth - minLinearDepth) / settingsDepthBufferThickness, 0, 1);
+    //float thicknessWeight = clamp(1 - (hit.linearDepth - minLinearDepth) / settingsDepthBufferThickness, 0, 1);
 
     // Blend when the ray when the raymarched distance is too long
     float2 screenDistanceNDC = abs(hit.positionSS.xy - startPositionSS) * _ScreenSize.zw;
     float2 screenDistanceWeights = clamp((settingsRayMaxScreenDistance - screenDistanceNDC) / settingsRayBlendScreenDistance, 0, 1);
     float screenDistanceWeight = min(screenDistanceWeights.x, screenDistanceWeights.y);
 
-    return thicknessWeight * screenDistanceWeight;
+//    return thicknessWeight * screenDistanceWeight;
+    return screenDistanceWeight;
 }
 
 #ifdef DEBUG_DISPLAY
@@ -773,6 +774,10 @@ bool ScreenSpaceHiZRaymarch(
         }
 
         currentLevel = min(currentLevel + mipLevelDelta, maxMipLevel);
+        float4 distancesToBorders = float4(positionSS.xy, bufferSize - positionSS.xy);
+        float distanceToBorders = min(min(distancesToBorders.x, distancesToBorders.y), min(distancesToBorders.z, distancesToBorders.w));
+        int minLevelForBorders = int(log2(distanceToBorders));
+        currentLevel = min(currentLevel, minLevelForBorders);
         
 #ifdef DEBUG_DISPLAY
         // Fetch post iteration debug values
@@ -805,14 +810,6 @@ bool ScreenSpaceHiZRaymarch(
     hit.positionSS = uint2(positionSS.xy);
 
     // Detect when we go behind an object given a thickness
-    // hitWeight = CalculateHitWeight(
-    //     hit,
-    //     startPositionSS.xy,
-    //     invLinearDepth, 
-    //     settingsDepthBufferThickness,
-    //     settingsRayMaxScreenDistance,
-    //     settingsRayBlendScreenDistance
-    // );
 
     hitWeight = CalculateHitWeight(
         hit,
