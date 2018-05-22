@@ -91,7 +91,7 @@ namespace UnityEditor.ShaderGraph
                     arguments.Add(string.Format("{0}", prop.GetPropertyAsArgumentString()));
 
                 // now pass surface inputs
-                arguments.Add("SurfaceInputs IN");
+                arguments.Add("SurfaceDescriptionInputs IN");
 
                 // Now generate outputs
                 foreach (var slot in graphOutputs)
