@@ -8,6 +8,7 @@
 - Add stripper of shader variant when building a player. Save shader compile time.
 - Disable per-object culling that was executed in C++ in HD whereas it was not used (Optimization)
 - Enable texture streaming debugging (was not working before 2018.2)
+- Support correctly scene selection for alpha tested object
 
 ### Changed, Removals and deprecations
 - Removed GlobalLightLoopSettings.maxPlanarReflectionProbes and instead use value of GlobalLightLoopSettings.planarReflectionProbeCacheSize
