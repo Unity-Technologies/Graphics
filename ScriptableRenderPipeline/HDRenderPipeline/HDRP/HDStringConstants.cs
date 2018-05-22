@@ -143,6 +143,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int _UseTileLightList = Shader.PropertyToID("_UseTileLightList");
 
+        public static readonly int _FrameCount     = Shader.PropertyToID("_FrameCount");
         public static readonly int _Time           = Shader.PropertyToID("_Time");
         public static readonly int _LastTime       = Shader.PropertyToID("_LastTime");
         public static readonly int _SinTime        = Shader.PropertyToID("_SinTime");

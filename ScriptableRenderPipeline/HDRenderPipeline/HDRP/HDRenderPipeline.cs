@@ -560,7 +560,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 ssReflection.PushShaderParameters(cmd);
 
                 // Set up UnityPerView CBuffer.
-                hdCamera.SetupGlobalParams(cmd, m_Time, m_LastTime);
+                hdCamera.SetupGlobalParams(cmd, m_Time, m_LastTime, m_FrameCount);
                 if (m_FrameSettings.enableStereo) hdCamera.SetupGlobalStereoParams(cmd);
 
                 cmd.SetGlobalInt(HDShaderIDs._SSReflectionEnabled, m_FrameSettings.enableSSR ? 1 : 0);
@@ -1043,7 +1043,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                             // Overwrite camera properties set during the shadow pass with the original camera properties.
                             renderContext.SetupCameraProperties(camera, m_FrameSettings.enableStereo);
-                            hdCamera.SetupGlobalParams(cmd, m_Time, m_LastTime);
+                            hdCamera.SetupGlobalParams(cmd, m_Time, m_LastTime, m_FrameCount);
                             if (m_FrameSettings.enableStereo) hdCamera.SetupGlobalStereoParams(cmd);
                         }
 

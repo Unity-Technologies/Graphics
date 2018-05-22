@@ -26,6 +26,32 @@
 //
 // Use library here, like ScreenSpaceProxyRaycastReflection(...)
 
+// #################################################
+// Notes
+// #################################################
+// Some banding issues can occurs when raymarching the depth buffer.
+//
+// This can be hidden by offsetting the ray origin with a jitter.
+// Combined with a temporal filtering, the banding artifact will be smoothed.
+// This will trade banding for noise.
+// 
+// This happens when we raymarch with a ray direction that is quite different from the view vector.
+// Exemple when raymarching with a direction perpendicular to the view vector:
+// 
+// Depth buffer  far
+//                |
+//                v
+//               near
+//
+//         --------
+//  hit ==>xx
+//         xx
+//           
+//  fail ===>
+//           xx
+//  hit  ===>xx
+//              
+//              xx
 
 
 // #################################################
@@ -252,6 +278,16 @@ void DebugComputeCommonOutput(
     }
 }
 #endif
+
+float SampleBayer4(uint2 positionSS)
+{
+    const float4x4 Bayer4 = float4x4(0,  8,  2,  10,
+                                         12, 4,  14, 6,
+                                         3,  11, 1,  9,
+                                         15, 7,  13, 5) / 16;
+
+    return Bayer4[positionSS.x % 4][positionSS.y % 4];
+}
 
 // -------------------------------------------------
 // Algorithms
