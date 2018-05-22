@@ -400,157 +400,297 @@ namespace UnityEditor.ShaderGraph
         public static void GenerateSpaceTranslationSurfaceInputs(
             NeededCoordinateSpace neededSpaces,
             InterpolatorType interpolatorType,
-            ShaderGenerator surfaceInputs,
-            string toReplace = "float3 {0};")
+            ShaderStringBuilder builder,
+            string format = "float3 {0};")
         {
             if ((neededSpaces & NeededCoordinateSpace.Object) > 0)
-                surfaceInputs.AddShaderChunk(string.Format(toReplace, CoordinateSpace.Object.ToVariableName(interpolatorType)), false);
+                builder.AppendLine(format, CoordinateSpace.Object.ToVariableName(interpolatorType));
 
             if ((neededSpaces & NeededCoordinateSpace.World) > 0)
-                surfaceInputs.AddShaderChunk(string.Format(toReplace, CoordinateSpace.World.ToVariableName(interpolatorType)), false);
+                builder.AppendLine(format, CoordinateSpace.World.ToVariableName(interpolatorType));
 
             if ((neededSpaces & NeededCoordinateSpace.View) > 0)
-                surfaceInputs.AddShaderChunk(string.Format(toReplace, CoordinateSpace.View.ToVariableName(interpolatorType)), false);
+                builder.AppendLine(format, CoordinateSpace.View.ToVariableName(interpolatorType));
 
             if ((neededSpaces & NeededCoordinateSpace.Tangent) > 0)
-                surfaceInputs.AddShaderChunk(string.Format(toReplace, CoordinateSpace.Tangent.ToVariableName(interpolatorType)), false);
+                builder.AppendLine(format, CoordinateSpace.Tangent.ToVariableName(interpolatorType));
         }
 
         public static void GenerateStandardTransforms(
             int interpolatorStartIndex,
             int maxInterpolators,
-            ShaderGenerator interpolators,
-            ShaderGenerator vertexShader,
-            ShaderGenerator pixelShader,
-            ShaderGenerator surfaceInputs,
-            ShaderGraphRequirements graphRequiements,
+            ShaderStringBuilder vertexOutputStruct,
+            ShaderStringBuilder vertexShader,
+            ShaderStringBuilder vertexShaderDescriptionInputs,
+            ShaderStringBuilder vertexShaderOutputs,
+            ShaderStringBuilder pixelShader,
+            ShaderStringBuilder pixelShaderSurfaceInputs,
+            ShaderGraphRequirements pixelRequirements,
+            ShaderGraphRequirements surfaceRequirements,
             ShaderGraphRequirements modelRequiements,
-            CoordinateSpace preferedCoordinateSpace)
+            ShaderGraphRequirements vertexRequirements,
+            CoordinateSpace preferredCoordinateSpace)
         {
-            if (preferedCoordinateSpace == CoordinateSpace.Tangent)
-                preferedCoordinateSpace = CoordinateSpace.World;
+            // ----------------------------------------------------- //
+            //                         SETUP                         //
+            // ----------------------------------------------------- //
 
-            // step 1:
-            // *generate needed interpolators
-            // *generate output from the vertex shader that writes into these interpolators
-            // *generate the pixel shader code that declares needed variables in the local scope
-            var combinedRequierments = graphRequiements.Union(modelRequiements);
+            // -------------------------------------
+            // Tangent space requires going via World space
 
+            if (preferredCoordinateSpace == CoordinateSpace.Tangent)
+                preferredCoordinateSpace = CoordinateSpace.World;
+
+            // -------------------------------------
+            // Generate combined graph requirements
+
+            var graphModelRequirements = pixelRequirements.Union(modelRequiements);
+            var combinedRequirements = vertexRequirements.Union(graphModelRequirements);
             int interpolatorIndex = interpolatorStartIndex;
 
-            // bitangent needs normal for x product
-            if (combinedRequierments.requiresNormal > 0 || combinedRequierments.requiresBitangent > 0)
+            // ----------------------------------------------------- //
+            //           GENERATE VERTEX > PIXEL PIPELINE            //
+            // ----------------------------------------------------- //
+
+            // -------------------------------------
+            // If any stage requires component write into vertex stage
+            // If model or pixel requires component write into interpolators and pixel stage
+
+            // -------------------------------------
+            // Position
+
+            if (combinedRequirements.requiresPosition > 0)
             {
-                var name = preferedCoordinateSpace.ToVariableName(InterpolatorType.Normal);
-                interpolators.AddShaderChunk(string.Format("float3 {0} : TEXCOORD{1};", name, interpolatorIndex), false);
-                vertexShader.AddShaderChunk(string.Format("o.{0} = {1};", name, ConvertBetweenSpace("v.normal", CoordinateSpace.Object, preferedCoordinateSpace, InputType.Normal)), false);
-                pixelShader.AddShaderChunk(string.Format("float3 {0} = normalize(IN.{0});", name), false);
-                interpolatorIndex++;
+                var name = preferredCoordinateSpace.ToVariableName(InterpolatorType.Position);
+                var preferredSpacePosition = ConvertBetweenSpace("v.vertex", CoordinateSpace.Object, preferredCoordinateSpace, InputType.Position);
+                vertexShader.AppendLine("float3 {0} = {1};", name, preferredSpacePosition);
+                if (graphModelRequirements.requiresPosition > 0)
+                {
+                    vertexOutputStruct.AppendLine("float3 {0} : TEXCOORD{1};", name, interpolatorIndex);
+                    vertexShaderOutputs.AppendLine("o.{0} = {0};", name);
+                    pixelShader.AppendLine("float3 {0} = IN.{0};", name);
+                    interpolatorIndex++;
+                }
             }
 
-            if (combinedRequierments.requiresTangent > 0 || combinedRequierments.requiresBitangent > 0)
+            // -------------------------------------
+            // Normal
+            // Bitangent needs Normal for x product
+
+            if (combinedRequirements.requiresNormal > 0 || combinedRequirements.requiresBitangent > 0)
             {
-                var name = preferedCoordinateSpace.ToVariableName(InterpolatorType.Tangent);
-                interpolators.AddShaderChunk(string.Format("float3 {0} : TEXCOORD{1};", name, interpolatorIndex), false);
-                vertexShader.AddShaderChunk(string.Format("o.{0} = {1};", name, ConvertBetweenSpace("v.tangent.xyz", CoordinateSpace.Object, preferedCoordinateSpace, InputType.Vector)), false);
-                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", name), false);
-                interpolatorIndex++;
+                var name = preferredCoordinateSpace.ToVariableName(InterpolatorType.Normal);
+                vertexShader.AppendLine("float3 {0} = {1};", name, ConvertBetweenSpace("v.normal", CoordinateSpace.Object, preferredCoordinateSpace, InputType.Normal));
+                if (graphModelRequirements.requiresNormal > 0 || graphModelRequirements.requiresBitangent > 0)
+                {
+                    vertexOutputStruct.AppendLine("float3 {0} : TEXCOORD{1};", name, interpolatorIndex);
+                    vertexShaderOutputs.AppendLine("o.{0} = {0};", name);
+                    pixelShader.AppendLine("float3 {0} = normalize(IN.{0});", name);
+                    interpolatorIndex++;
+                }
             }
 
-            if (combinedRequierments.requiresBitangent > 0)
+            // -------------------------------------
+            // Tangent
+
+            if (combinedRequirements.requiresTangent > 0 || combinedRequirements.requiresBitangent > 0)
             {
-                var name = preferedCoordinateSpace.ToVariableName(InterpolatorType.BiTangent);
-                interpolators.AddShaderChunk(string.Format("float3 {0} : TEXCOORD{1};", name, interpolatorIndex), false);
-                vertexShader.AddShaderChunk(string.Format("o.{0} = normalize(cross(o.{1}, o.{2}.xyz) * {3});",
+                var name = preferredCoordinateSpace.ToVariableName(InterpolatorType.Tangent);
+                vertexShader.AppendLine("float3 {0} = {1};", name, ConvertBetweenSpace("v.tangent.xyz", CoordinateSpace.Object, preferredCoordinateSpace, InputType.Vector));
+                if (graphModelRequirements.requiresTangent > 0 || graphModelRequirements.requiresBitangent > 0)
+                {
+                    vertexOutputStruct.AppendLine("float3 {0} : TEXCOORD{1};", name, interpolatorIndex);
+                    vertexShaderOutputs.AppendLine("o.{0} = {0};", name);
+                    pixelShader.AppendLine("float3 {0} = IN.{0};", name);
+                    interpolatorIndex++;
+                }
+            }
+
+            // -------------------------------------
+            // Bitangent
+
+            if (combinedRequirements.requiresBitangent > 0)
+            {
+                var name = preferredCoordinateSpace.ToVariableName(InterpolatorType.BiTangent);
+                vertexShader.AppendLine("float3 {0} = normalize(cross({1}, {2}.xyz) * {3});",
                         name,
-                        preferedCoordinateSpace.ToVariableName(InterpolatorType.Normal),
-                        preferedCoordinateSpace.ToVariableName(InterpolatorType.Tangent),
-                        "v.tangent.w"), false);
-                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", name), false);
+                        preferredCoordinateSpace.ToVariableName(InterpolatorType.Normal),
+                        preferredCoordinateSpace.ToVariableName(InterpolatorType.Tangent),
+                        "v.tangent.w");
+                if (graphModelRequirements.requiresBitangent > 0)
+                {
+                    vertexOutputStruct.AppendLine("float3 {0} : TEXCOORD{1};", name, interpolatorIndex);
+                    vertexShaderOutputs.AppendLine("o.{0} = {0};", name);
+                    pixelShader.AppendLine("float3 {0} = IN.{0};", name);
+                    interpolatorIndex++;
+                }
+            }
+
+            // -------------------------------------
+            // View Direction
+
+            if (combinedRequirements.requiresViewDir > 0)
+            {
+                var name = preferredCoordinateSpace.ToVariableName(InterpolatorType.ViewDirection);
+                const string worldSpaceViewDir = "SafeNormalize(_WorldSpaceCameraPos.xyz - mul(GetObjectToWorldMatrix(), float4(v.vertex.xyz, 1.0)).xyz)";
+                var preferredSpaceViewDir = ConvertBetweenSpace(worldSpaceViewDir, CoordinateSpace.World, preferredCoordinateSpace, InputType.Vector);
+                vertexShader.AppendLine("float3 {0} = {1};", name, preferredSpaceViewDir);
+                if (graphModelRequirements.requiresViewDir > 0)
+                {
+                    vertexOutputStruct.AppendLine("float3 {0} : TEXCOORD{1};", name, interpolatorIndex);
+                    vertexShaderOutputs.AppendLine("o.{0} = {0};", name);
+                    pixelShader.AppendLine("float3 {0} = normalize(IN.{0});", name);
+                    interpolatorIndex++;
+                }
+            }
+
+            // -------------------------------------
+            // Tangent space transform matrix
+
+            if (combinedRequirements.NeedsTangentSpace())
+            {
+                var tangent = preferredCoordinateSpace.ToVariableName(InterpolatorType.Tangent);
+                var bitangent = preferredCoordinateSpace.ToVariableName(InterpolatorType.BiTangent);
+                var normal = preferredCoordinateSpace.ToVariableName(InterpolatorType.Normal);
+                if (vertexRequirements.NeedsTangentSpace())
+                    vertexShader.AppendLine("float3x3 tangentSpaceTransform = float3x3({0},{1},{2});",
+                        tangent, bitangent, normal);
+                if (graphModelRequirements.NeedsTangentSpace())
+                    pixelShader.AppendLine("float3x3 tangentSpaceTransform = float3x3({0},{1},{2});",
+                        tangent, bitangent, normal);
+            }
+
+            // -------------------------------------
+            // Vertex Color
+
+            if (combinedRequirements.requiresVertexColor)
+            {
+                var vertexColor = "v.color";
+                vertexShader.AppendLine("float4 {0} = {1};", ShaderGeneratorNames.VertexColor, vertexColor);
+                if (graphModelRequirements.requiresVertexColor)
+                {
+                    vertexOutputStruct.AppendLine("float4 {0} : COLOR;", ShaderGeneratorNames.VertexColor);
+                    vertexShaderOutputs.AppendLine("o.{0} = {0};", ShaderGeneratorNames.VertexColor);
+                    pixelShader.AppendLine("float4 {0} = IN.{0};", ShaderGeneratorNames.VertexColor);
+                }
+            }
+
+            // -------------------------------------
+            // Screen Position
+
+            if (combinedRequirements.requiresScreenPosition)
+            {
+                var screenPosition = "ComputeScreenPos(mul(GetWorldToHClipMatrix(), mul(GetObjectToWorldMatrix(), v.vertex.xyz)), _ProjectionParams.x)";
+                    vertexShader.AppendLine("float4 {0} = {1};", ShaderGeneratorNames.ScreenPosition, screenPosition);
+                if (graphModelRequirements.requiresScreenPosition)
+                {
+                    vertexOutputStruct.AppendLine("float4 {0} : TEXCOORD{1};", ShaderGeneratorNames.ScreenPosition, interpolatorIndex);
+                    vertexShaderOutputs.AppendLine("o.{0} = {0};", ShaderGeneratorNames.ScreenPosition);
+                    pixelShader.AppendLine("float4 {0} = IN.{0};", ShaderGeneratorNames.ScreenPosition);
+                    interpolatorIndex++;
+                }
+            }
+
+            // -------------------------------------
+            // UV
+
+            foreach (var channel in combinedRequirements.requiresMeshUVs.Distinct())
+                vertexShader.AppendLine("float4 {0} = v.texcoord{1};", channel.GetUVName(), (int)channel);
+            foreach (var channel in graphModelRequirements.requiresMeshUVs.Distinct())
+            {
+                vertexOutputStruct.AppendLine("half4 {0} : TEXCOORD{1};", channel.GetUVName(), interpolatorIndex == 0 ? "" : interpolatorIndex.ToString());
+                vertexShaderOutputs.AppendLine("o.{0} = {0};", channel.GetUVName());
+                pixelShader.AppendLine("float4 {0} = IN.{0};", channel.GetUVName());
                 interpolatorIndex++;
             }
 
-            if (combinedRequierments.requiresViewDir > 0)
-            {
-                var name = preferedCoordinateSpace.ToVariableName(InterpolatorType.ViewDirection);
-                interpolators.AddShaderChunk(string.Format("float3 {0} : TEXCOORD{1};", name, interpolatorIndex), false);
+            // ----------------------------------------------------- //
+            //                TRANSLATE NEEDED SPACES                //
+            // ----------------------------------------------------- //
 
-                var worldSpaceViewDir = "SafeNormalize(_WorldSpaceCameraPos.xyz - mul(GetObjectToWorldMatrix(), float4(v.vertex.xyz, 1.0)).xyz)";
-                vertexShader.AddShaderChunk(string.Format("o.{0} = {1};", name, ConvertBetweenSpace(worldSpaceViewDir, CoordinateSpace.World, preferedCoordinateSpace, InputType.Vector)), false);
-                pixelShader.AddShaderChunk(string.Format("float3 {0} = normalize(IN.{0});", name), false);
-                interpolatorIndex++;
-            }
+            // -------------------------------------
+            // Generate the space translations needed by the vertex description
 
-            if (combinedRequierments.requiresPosition > 0)
-            {
-                var name = preferedCoordinateSpace.ToVariableName(InterpolatorType.Position);
-                interpolators.AddShaderChunk(string.Format("float3 {0} : TEXCOORD{1};", name, interpolatorIndex), false);
-                vertexShader.AddShaderChunk(string.Format("o.{0} = {1}.xyz;", name, ConvertBetweenSpace("v.vertex", CoordinateSpace.Object, preferedCoordinateSpace, InputType.Position)), false);
-                pixelShader.AddShaderChunk(string.Format("float3 {0} = IN.{0};", name), false);
-                interpolatorIndex++;
-            }
+            GenerateSpaceTranslations(vertexRequirements.requiresNormal, InterpolatorType.Normal, preferredCoordinateSpace,
+                InputType.Normal, vertexShader, Dimension.Three);
+            GenerateSpaceTranslations(vertexRequirements.requiresTangent, InterpolatorType.Tangent, preferredCoordinateSpace,
+                InputType.Vector, vertexShader, Dimension.Three);
+            GenerateSpaceTranslations(vertexRequirements.requiresBitangent, InterpolatorType.BiTangent, preferredCoordinateSpace,
+                InputType.Vector, vertexShader, Dimension.Three);
+            GenerateSpaceTranslations(vertexRequirements.requiresViewDir, InterpolatorType.ViewDirection, preferredCoordinateSpace,
+                InputType.Vector, vertexShader, Dimension.Three);
+            GenerateSpaceTranslations(vertexRequirements.requiresPosition, InterpolatorType.Position, preferredCoordinateSpace,
+                InputType.Position, vertexShader, Dimension.Three);
 
-            if (combinedRequierments.NeedsTangentSpace())
-            {
-                pixelShader.AddShaderChunk(string.Format("float3x3 tangentSpaceTransform = float3x3({0},{1},{2});",
-                        preferedCoordinateSpace.ToVariableName(InterpolatorType.Tangent), preferedCoordinateSpace.ToVariableName(InterpolatorType.BiTangent), preferedCoordinateSpace.ToVariableName(InterpolatorType.Normal)), false);
-            }
+            // -------------------------------------
+            // Generate the space translations needed by the surface description and model
 
-            ShaderGenerator.GenerateSpaceTranslationPixelShader(combinedRequierments.requiresNormal, InterpolatorType.Normal, preferedCoordinateSpace,
+            GenerateSpaceTranslations(graphModelRequirements.requiresNormal, InterpolatorType.Normal, preferredCoordinateSpace,
                 InputType.Normal, pixelShader, Dimension.Three);
-            ShaderGenerator.GenerateSpaceTranslationPixelShader(combinedRequierments.requiresTangent, InterpolatorType.Tangent, preferedCoordinateSpace,
+            GenerateSpaceTranslations(graphModelRequirements.requiresTangent, InterpolatorType.Tangent, preferredCoordinateSpace,
                 InputType.Vector, pixelShader, Dimension.Three);
-            ShaderGenerator.GenerateSpaceTranslationPixelShader(combinedRequierments.requiresBitangent, InterpolatorType.BiTangent, preferedCoordinateSpace,
+            GenerateSpaceTranslations(graphModelRequirements.requiresBitangent, InterpolatorType.BiTangent, preferredCoordinateSpace,
                 InputType.Vector, pixelShader, Dimension.Three);
-
-            ShaderGenerator.GenerateSpaceTranslationPixelShader(combinedRequierments.requiresViewDir, InterpolatorType.ViewDirection, preferedCoordinateSpace,
+            GenerateSpaceTranslations(graphModelRequirements.requiresViewDir, InterpolatorType.ViewDirection, preferredCoordinateSpace,
                 InputType.Vector, pixelShader, Dimension.Three);
-            ShaderGenerator.GenerateSpaceTranslationPixelShader(combinedRequierments.requiresPosition, InterpolatorType.Position, preferedCoordinateSpace,
+            GenerateSpaceTranslations(graphModelRequirements.requiresPosition, InterpolatorType.Position, preferredCoordinateSpace,
                 InputType.Position, pixelShader, Dimension.Three);
+            
+            // ----------------------------------------------------- //
+            //               START SURFACE DESCRIPTION               //
+            // ----------------------------------------------------- //
 
-            if (combinedRequierments.requiresVertexColor)
-            {
-                interpolators.AddShaderChunk(string.Format("float4 {0} : COLOR;", ShaderGeneratorNames.VertexColor), false);
-                vertexShader.AddShaderChunk(string.Format("o.{0} = v.color;", ShaderGeneratorNames.VertexColor), false);
-                pixelShader.AddShaderChunk(string.Format("float4 {0} = IN.{0};", ShaderGeneratorNames.VertexColor), false);
-            }
-
-            if (combinedRequierments.requiresScreenPosition)
-            {
-                interpolators.AddShaderChunk(string.Format("float4 {0} : TEXCOORD{1};", ShaderGeneratorNames.ScreenPosition, interpolatorIndex), false);
-                vertexShader.AddShaderChunk(string.Format("o.{0} = ComputeScreenPos(mul(GetWorldToHClipMatrix(), mul(GetObjectToWorldMatrix(), v.vertex)), _ProjectionParams.x);", ShaderGeneratorNames.ScreenPosition), false);
-                pixelShader.AddShaderChunk(string.Format("float4 {0} = IN.{0};", ShaderGeneratorNames.ScreenPosition), false);
-                interpolatorIndex++;
-            }
-
-            foreach (var channel in combinedRequierments.requiresMeshUVs.Distinct())
-            {
-                interpolators.AddShaderChunk(string.Format("half4 {0} : TEXCOORD{1};", channel.GetUVName(), interpolatorIndex == 0 ? "" : interpolatorIndex.ToString()), false);
-                vertexShader.AddShaderChunk(string.Format("o.{0} = v.texcoord{1};", channel.GetUVName(), (int)channel), false);
-                pixelShader.AddShaderChunk(string.Format("float4 {0} = IN.{0};", channel.GetUVName()), false);
-                interpolatorIndex++;
-            }
-
-            // step 2
-            // copy the locally defined values into the surface description
-            // structure using the requirements for ONLY the shader graph
+            // -------------------------------------
+            // Copy the locally defined values into the surface description
+            // structure using the requirements for ONLY the shader graph pixel stage
             // additional requirements have come from the lighting model
             // and are not needed in the shader graph
-            var replaceString = "surfaceInput.{0} = {0};";
-            GenerateSpaceTranslationSurfaceInputs(graphRequiements.requiresNormal, InterpolatorType.Normal, surfaceInputs, replaceString);
-            GenerateSpaceTranslationSurfaceInputs(graphRequiements.requiresTangent, InterpolatorType.Tangent, surfaceInputs, replaceString);
-            GenerateSpaceTranslationSurfaceInputs(graphRequiements.requiresBitangent, InterpolatorType.BiTangent, surfaceInputs, replaceString);
-            GenerateSpaceTranslationSurfaceInputs(graphRequiements.requiresViewDir, InterpolatorType.ViewDirection, surfaceInputs, replaceString);
-            GenerateSpaceTranslationSurfaceInputs(graphRequiements.requiresPosition, InterpolatorType.Position, surfaceInputs, replaceString);
 
-            if (graphRequiements.requiresVertexColor)
-                surfaceInputs.AddShaderChunk(string.Format("surfaceInput.{0} = {0};", ShaderGeneratorNames.VertexColor), false);
+            {
+                var replaceString = "surfaceInput.{0} = {0};";
+                GenerateSpaceTranslationSurfaceInputs(surfaceRequirements.requiresNormal, InterpolatorType.Normal, pixelShaderSurfaceInputs, replaceString);
+                GenerateSpaceTranslationSurfaceInputs(surfaceRequirements.requiresTangent, InterpolatorType.Tangent, pixelShaderSurfaceInputs, replaceString);
+                GenerateSpaceTranslationSurfaceInputs(surfaceRequirements.requiresBitangent, InterpolatorType.BiTangent, pixelShaderSurfaceInputs, replaceString);
+                GenerateSpaceTranslationSurfaceInputs(surfaceRequirements.requiresViewDir, InterpolatorType.ViewDirection, pixelShaderSurfaceInputs, replaceString);
+                GenerateSpaceTranslationSurfaceInputs(surfaceRequirements.requiresPosition, InterpolatorType.Position, pixelShaderSurfaceInputs, replaceString);
+            }
 
-            if (graphRequiements.requiresScreenPosition)
-                surfaceInputs.AddShaderChunk(string.Format("surfaceInput.{0} = {0};", ShaderGeneratorNames.ScreenPosition), false);
+            if (pixelRequirements.requiresVertexColor)
+                pixelShaderSurfaceInputs.AppendLine("surfaceInput.{0} = {0};", ShaderGeneratorNames.VertexColor);
 
-            foreach (var channel in graphRequiements.requiresMeshUVs.Distinct())
-                surfaceInputs.AddShaderChunk(string.Format("surfaceInput.{0} = {0};", channel.GetUVName()), false);
+            if (pixelRequirements.requiresScreenPosition)
+                pixelShaderSurfaceInputs.AppendLine("surfaceInput.{0} = {0};", ShaderGeneratorNames.ScreenPosition);
+
+            foreach (var channel in pixelRequirements.requiresMeshUVs.Distinct())
+                pixelShaderSurfaceInputs.AppendLine("surfaceInput.{0} = {0};", ShaderGeneratorNames.GetUVName(channel));
+
+            // ----------------------------------------------------- //
+            //                START VERTEX DESCRIPTION               //
+            // ----------------------------------------------------- //
+
+            // -------------------------------------
+            // Copy the locally defined values into the vertex description
+            // structure using the requirements for ONLY the shader graph vertex stage
+            // additional requirements have come from the lighting model
+            // and are not needed in the shader graph
+
+            {
+                var replaceString = "vdi.{0} = {0};";
+                GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresNormal, InterpolatorType.Normal, vertexShaderDescriptionInputs, replaceString);
+                GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresTangent, InterpolatorType.Tangent, vertexShaderDescriptionInputs, replaceString);
+                GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresBitangent, InterpolatorType.BiTangent, vertexShaderDescriptionInputs, replaceString);
+                GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresViewDir, InterpolatorType.ViewDirection, vertexShaderDescriptionInputs, replaceString);
+                GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresPosition, InterpolatorType.Position, vertexShaderDescriptionInputs, replaceString);
+            }
+
+            if (vertexRequirements.requiresVertexColor)
+                vertexShaderDescriptionInputs.AppendLine("vdi.{0} = {0};", ShaderGeneratorNames.VertexColor);
+
+            if (vertexRequirements.requiresScreenPosition)
+                vertexShaderDescriptionInputs.AppendLine("vdi.{0} = {0};", ShaderGeneratorNames.ScreenPosition);
+
+            foreach (var channel in vertexRequirements.requiresMeshUVs.Distinct())
+                vertexShaderDescriptionInputs.AppendLine("vdi.{0} = {0};", channel.GetUVName(), (int)channel);
         }
 
         public enum Dimension
@@ -577,77 +717,84 @@ namespace UnityEditor.ShaderGraph
             return "error";
         }
 
-        public static void GenerateSpaceTranslationPixelShader(
+        public static void GenerateSpaceTranslations(
             NeededCoordinateSpace neededSpaces,
             InterpolatorType type,
             CoordinateSpace from,
             InputType inputType,
-            ShaderGenerator pixelShader,
+            ShaderStringBuilder pixelShader,
             Dimension dimension)
         {
             if ((neededSpaces & NeededCoordinateSpace.Object) > 0 && from != CoordinateSpace.Object)
-                pixelShader.AddShaderChunk(
-                    string.Format("float{0} {1} = {2};", DimensionToString(dimension),
-                        CoordinateSpace.Object.ToVariableName(type), ConvertBetweenSpace(from.ToVariableName(type), from, CoordinateSpace.Object, inputType, from)), false);
+                pixelShader.AppendLine("float{0} {1} = {2};", DimensionToString(dimension),
+                        CoordinateSpace.Object.ToVariableName(type), ConvertBetweenSpace(from.ToVariableName(type), from, CoordinateSpace.Object, inputType, from));
 
             if ((neededSpaces & NeededCoordinateSpace.World) > 0 && from != CoordinateSpace.World)
-                pixelShader.AddShaderChunk(
-                    string.Format("float{0} {1} = {2};", DimensionToString(dimension),
-                        CoordinateSpace.World.ToVariableName(type), ConvertBetweenSpace(from.ToVariableName(type), from, CoordinateSpace.World, inputType, from)), false);
+                pixelShader.AppendLine("float{0} {1} = {2};", DimensionToString(dimension),
+                        CoordinateSpace.World.ToVariableName(type), ConvertBetweenSpace(from.ToVariableName(type), from, CoordinateSpace.World, inputType, from));
 
             if ((neededSpaces & NeededCoordinateSpace.View) > 0 && from != CoordinateSpace.View)
-                pixelShader.AddShaderChunk(
-                    string.Format("float{0} {1} = {2};", DimensionToString(dimension),
+                pixelShader.AppendLine("float{0} {1} = {2};", DimensionToString(dimension),
                         CoordinateSpace.View.ToVariableName(type),
-                        ConvertBetweenSpace(from.ToVariableName(type), from, CoordinateSpace.View, inputType, from)), false);
+                        ConvertBetweenSpace(from.ToVariableName(type), from, CoordinateSpace.View, inputType, from));
 
             if ((neededSpaces & NeededCoordinateSpace.Tangent) > 0 && from != CoordinateSpace.Tangent)
-                pixelShader.AddShaderChunk(
-                    string.Format("float{0} {1} = {2};", DimensionToString(dimension),
+                pixelShader.AppendLine("float{0} {1} = {2};", DimensionToString(dimension),
                         CoordinateSpace.Tangent.ToVariableName(type),
-                        ConvertBetweenSpace(from.ToVariableName(type), from, CoordinateSpace.Tangent, inputType, from)), false);
+                        ConvertBetweenSpace(from.ToVariableName(type), from, CoordinateSpace.Tangent, inputType, from));
         }
 
         public static string GetPreviewSubShader(AbstractMaterialNode node, ShaderGraphRequirements shaderGraphRequirements)
         {
-            var interpolators = new ShaderGenerator();
-            var vertexShader = new ShaderGenerator();
-            var pixelShader = new ShaderGenerator();
-            var surfaceInputs = new ShaderGenerator();
+            var vertexOutputStruct = new ShaderStringBuilder(2);
+
+            var vertexShader = new ShaderStringBuilder(2);
+            var vertexShaderDescriptionInputs = new ShaderStringBuilder(2);
+            var vertexShaderOutputs = new ShaderStringBuilder(1);
+
+            var pixelShader = new ShaderStringBuilder(2);
+            var pixelShaderSurfaceInputs = new ShaderStringBuilder(2);
+            var pixelShaderSurfaceRemap = new ShaderStringBuilder(2);
 
             ShaderGenerator.GenerateStandardTransforms(
                 0,
                 16,
-                interpolators,
+                vertexOutputStruct,
                 vertexShader,
+                vertexShaderDescriptionInputs,
+                vertexShaderOutputs,
                 pixelShader,
-                surfaceInputs,
+                pixelShaderSurfaceInputs,
+                shaderGraphRequirements,
                 shaderGraphRequirements,
                 ShaderGraphRequirements.none,
+                ShaderGraphRequirements.none,
                 CoordinateSpace.World);
+            
+            vertexShader.AppendLines(vertexShaderDescriptionInputs.ToString());
+            vertexShader.AppendLines(vertexShaderOutputs.ToString());
 
-            var outputs = new ShaderGenerator();
             if (node != null)
             {
                 var outputSlot = node.GetOutputSlots<MaterialSlot>().FirstOrDefault();
                 if (outputSlot != null)
                 {
                     var result = string.Format("surf.{0}", node.GetVariableNameForSlot(outputSlot.id));
-                    outputs.AddShaderChunk(string.Format("return {0};", AdaptNodeOutputForPreview(node, outputSlot.id, result)), true);
+                    pixelShaderSurfaceRemap.AppendLine("return {0};", AdaptNodeOutputForPreview(node, outputSlot.id, result));
                 }
                 else
-                    outputs.AddShaderChunk("return 0;", true);
+                    pixelShaderSurfaceRemap.AppendLine("return 0;");
             }
             else
             {
-                outputs.AddShaderChunk("return surf.PreviewOutput;", false);
+                pixelShaderSurfaceRemap.AppendLine("return surf.PreviewOutput;");
             }
 
-            var res = subShaderTemplate.Replace("${Interpolators}", interpolators.GetShaderString(0));
-            res = res.Replace("${VertexShader}", vertexShader.GetShaderString(0));
-            res = res.Replace("${LocalPixelShader}", pixelShader.GetShaderString(0));
-            res = res.Replace("${SurfaceInputs}", surfaceInputs.GetShaderString(0));
-            res = res.Replace("${SurfaceOutputRemap}", outputs.GetShaderString(0));
+            var res = subShaderTemplate.Replace("${Interpolators}", vertexOutputStruct.ToString());
+            res = res.Replace("${VertexShader}", vertexShader.ToString());
+            res = res.Replace("${LocalPixelShader}", pixelShader.ToString());
+            res = res.Replace("${SurfaceInputs}", pixelShaderSurfaceInputs.ToString());
+            res = res.Replace("${SurfaceOutputRemap}", pixelShaderSurfaceRemap.ToString());
             return res;
         }
 
@@ -726,7 +873,7 @@ SubShader
         struct GraphVertexOutput
         {
             float4 position : POSITION;
-            ${Interpolators}
+    ${Interpolators}
         };
 
         GraphVertexOutput vert (GraphVertexInput v)
@@ -736,19 +883,17 @@ SubShader
             GraphVertexOutput o;
             float3 positionWS = TransformObjectToWorld(v.vertex);
             o.position = TransformWorldToHClip(positionWS);
-            ${VertexShader}
+    ${VertexShader}
             return o;
         }
 
         float4 frag (GraphVertexOutput IN) : SV_Target
         {
-            ${LocalPixelShader}
-
-            SurfaceInputs surfaceInput = (SurfaceInputs)0;;
-            ${SurfaceInputs}
-
+    ${LocalPixelShader}
+            SurfaceDescriptionInputs surfaceInput = (SurfaceDescriptionInputs)0;;
+    ${SurfaceInputs}
             SurfaceDescription surf = PopulateSurfaceData(surfaceInput);
-            ${SurfaceOutputRemap}
+    ${SurfaceOutputRemap}
         }
         ENDHLSL
     }

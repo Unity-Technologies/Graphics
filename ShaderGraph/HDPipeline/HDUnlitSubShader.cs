@@ -10,6 +10,9 @@ namespace UnityEditor.ShaderGraph
     [Serializable]
     public class HDUnlitSubShader
     {
+        static NeededCoordinateSpace m_VertexCoordinateSpace = NeededCoordinateSpace.Object;
+        static NeededCoordinateSpace m_PixelCoordinateSpace = NeededCoordinateSpace.World;
+
         struct Pass
         {
             public string Name;
@@ -27,7 +30,8 @@ namespace UnityEditor.ShaderGraph
             PixelShaderSlots = new List<int>()
             {
                 UnlitMasterNode.ColorSlotId,
-                UnlitMasterNode.AlphaSlotId
+                UnlitMasterNode.AlphaSlotId,
+                UnlitMasterNode.AlphaThresholdSlotId
             }
         };
 
@@ -39,168 +43,229 @@ namespace UnityEditor.ShaderGraph
             PixelShaderSlots = new List<int>()
             {
                 UnlitMasterNode.ColorSlotId,
-                UnlitMasterNode.AlphaSlotId
+                UnlitMasterNode.AlphaSlotId,
+                UnlitMasterNode.AlphaThresholdSlotId
             }
         };
 
-        private static string GetShaderPassFromTemplate(UnlitMasterNode masterNode, Pass pass, GenerationMode mode)
+        public string GetSubshader(IMasterNode inMasterNode, GenerationMode mode)
         {
-            var builder = new ShaderStringBuilder();
-            builder.IncreaseIndent();
-            builder.IncreaseIndent();
+            var templatePath = GetTemplatePath("HDUnlitPassForward.template");
+            if (!File.Exists(templatePath))
+                return string.Empty;
 
-            var surfaceDescriptionFunction = new ShaderGenerator();
-            var surfaceDescriptionStruct = new ShaderGenerator();
-            var surfaceInputs = new ShaderGenerator();
-            var functionRegistry = new FunctionRegistry(builder);
+            string passTemplate = File.ReadAllText(templatePath);
+
+            var masterNode = inMasterNode as UnlitMasterNode;
+            var subShader = new ShaderStringBuilder();
+            subShader.AppendLine("SubShader");
+            using(subShader.BlockScope())
+            {
+                subShader.AppendLine("Tags{ \"RenderPipeline\" = \"HDRenderPipeline\"}");
+                subShader.AppendLine("Tags{ \"RenderType\" = \"Opaque\" }");
+
+                subShader.AppendLines(
+                    GetShaderPassFromTemplate(
+                        passTemplate,
+                        masterNode,
+                        m_UnlitPassForwardDepthOnly,
+                        mode));
+
+                subShader.AppendLines(
+                    GetShaderPassFromTemplate(
+                        passTemplate,
+                        masterNode,
+                        m_UnlitPassForwardOnly,
+                        mode));
+            }
+            
+            return subShader.ToString();
+        }
+
+        static string GetTemplatePath(string templateName)
+        {
+            var templatePath = ShaderGenerator.GetTemplatePath(templateName);
+                if (File.Exists(templatePath))
+                    return templatePath;
+
+            throw new FileNotFoundException(string.Format(@"Cannot find a template with name ""{0}"".", templateName));
+        }
+
+        private static string GetShaderPassFromTemplate(string template, UnlitMasterNode masterNode, Pass pass, GenerationMode mode)
+        {
+            // ----------------------------------------------------- //
+            //                         SETUP                         //
+            // ----------------------------------------------------- //
+
+            // -------------------------------------
+            // String builders
 
             var shaderProperties = new PropertyCollector();
+            var functionBuilder = new ShaderStringBuilder(1);
+            var functionRegistry = new FunctionRegistry(functionBuilder);
 
-            surfaceInputs.AddShaderChunk("struct SurfaceInputs{", false);
-            surfaceInputs.Indent();
+            var defines = new ShaderStringBuilder(1);
+            var graph = new ShaderStringBuilder(0);
 
-            var activeNodeList = ListPool<INode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots);
+            var surfaceDescriptionInputStruct = new ShaderStringBuilder(1);
+            var surfaceDescriptionFunction = new ShaderStringBuilder(1);
+            var surfaceDescriptionStruct = new ShaderStringBuilder(1); 
 
-            var requirements = ShaderGraphRequirements.FromNodes(activeNodeList);
+            var pixelShader = new ShaderStringBuilder(2);
+            var pixelShaderSurfaceInputs = new ShaderStringBuilder(2);
+            var pixelShaderSurfaceRemap = new ShaderStringBuilder(2);
 
-            ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, surfaceInputs);
-            ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresTangent, InterpolatorType.Tangent, surfaceInputs);
-            ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresBitangent, InterpolatorType.BiTangent, surfaceInputs);
-            ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresViewDir, InterpolatorType.ViewDirection, surfaceInputs);
-            ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresPosition, InterpolatorType.Position, surfaceInputs);
+            // -------------------------------------
+            // Get Slot and Node lists per stage
 
-            ShaderGenerator defines = new ShaderGenerator();
-            defines.AddShaderChunk(string.Format("#define SHADERPASS {0}", pass.ShaderPassName), true);
+            var pixelSlots = pass.PixelShaderSlots.Select(masterNode.FindSlot<MaterialSlot>).ToList();
+            var pixelNodes = ListPool<INode>.Get();
+            NodeUtils.DepthFirstCollectNodesFromNode(pixelNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots);
 
-            if (requirements.requiresVertexColor)
-                surfaceInputs.AddShaderChunk(string.Format("float4 {0};", ShaderGeneratorNames.VertexColor), false);
+            // -------------------------------------
+            // Get Requirements
 
-            if (requirements.requiresScreenPosition)
-                surfaceInputs.AddShaderChunk(string.Format("float4 {0};", ShaderGeneratorNames.ScreenPosition), false);
+            var pixelRequirements = ShaderGraphRequirements.FromNodes(pixelNodes);
 
-            foreach (var channel in requirements.requiresMeshUVs.Distinct())
+            // ----------------------------------------------------- //
+            //                START SHADER GENERATION                //
+            // ----------------------------------------------------- //
+
+            // -------------------------------------
+            // Calculate material options
+
+            var tagsBuilder = new ShaderStringBuilder(1);
+            var blendingBuilder = new ShaderStringBuilder(1);
+            var cullingBuilder = new ShaderStringBuilder(1);
+            var zTestBuilder = new ShaderStringBuilder(1);
+            var zWriteBuilder = new ShaderStringBuilder(1);
+
+            var materialOptions = new SurfaceMaterialOptions();
+            materialOptions.GetTags(tagsBuilder);
+            materialOptions.GetBlend(blendingBuilder);
+            materialOptions.GetCull(cullingBuilder);
+            materialOptions.GetDepthTest(zTestBuilder);
+            materialOptions.GetDepthWrite(zWriteBuilder);
+
+            // -------------------------------------
+            // Generate defines
+
+            defines.AppendLine("#define SHADERPASS {0}", pass.ShaderPassName);
+            foreach (var channel in pixelRequirements.requiresMeshUVs.Distinct())
             {
-                surfaceInputs.AddShaderChunk(string.Format("half4 {0};", channel.GetUVName()), false);
-                defines.AddShaderChunk(string.Format("#define ATTRIBUTES_NEED_TEXCOORD{0}", (int)channel), true);
-                defines.AddShaderChunk(string.Format("#define VARYINGS_NEED_TEXCOORD{0}", (int)channel), true);
+                defines.AppendLine("#define ATTRIBUTES_NEED_TEXCOORD{0}", (int)channel);
+                defines.AppendLine("#define VARYINGS_NEED_TEXCOORD{0}", (int)channel);
             }
 
-            surfaceInputs.Deindent();
-            surfaceInputs.AddShaderChunk("};", false);
+            if (masterNode.IsSlotConnected(PBRMasterNode.AlphaThresholdSlotId))
+                defines.AppendLine("#define _ALPHATEST_ON");
 
-            var slots = new List<MaterialSlot>();
-            foreach (var id in pass.PixelShaderSlots)
+            // ----------------------------------------------------- //
+            //               START SURFACE DESCRIPTION               //
+            // ----------------------------------------------------- //
+
+            // -------------------------------------
+            // Generate Input structure for Surface Description function
+            // Surface Description Input requirements are needed to exclude intermediate translation spaces
+
+            surfaceDescriptionInputStruct.AppendLine("struct SurfaceDescriptionInputs", false);
+            using(surfaceDescriptionInputStruct.BlockSemicolonScope())
             {
-                var slot = masterNode.FindSlot<MaterialSlot>(id);
-                if (slot != null)
-                    slots.Add(slot);
+                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(pixelRequirements.requiresNormal, InterpolatorType.Normal, surfaceDescriptionInputStruct);
+                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(pixelRequirements.requiresTangent, InterpolatorType.Tangent, surfaceDescriptionInputStruct);
+                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(pixelRequirements.requiresBitangent, InterpolatorType.BiTangent, surfaceDescriptionInputStruct);
+                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(pixelRequirements.requiresViewDir, InterpolatorType.ViewDirection, surfaceDescriptionInputStruct);
+                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(pixelRequirements.requiresPosition, InterpolatorType.Position, surfaceDescriptionInputStruct);
+
+                if (pixelRequirements.requiresVertexColor)
+                    surfaceDescriptionInputStruct.AppendLine("float4 {0};", ShaderGeneratorNames.VertexColor);
+
+                if (pixelRequirements.requiresScreenPosition)
+                    surfaceDescriptionInputStruct.AppendLine("float4 {0};", ShaderGeneratorNames.ScreenPosition);
+
+                foreach (var channel in pixelRequirements.requiresMeshUVs.Distinct())
+            {
+                    surfaceDescriptionInputStruct.AppendLine("half4 {0};", channel.GetUVName());
+                }
             }
 
-            GraphUtil.GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, slots, true);
+            // -------------------------------------
+            // Generate Output structure for Surface Description function
 
-            var usedSlots = new List<MaterialSlot>();
-            foreach (var id in pass.PixelShaderSlots)
-                usedSlots.Add(masterNode.FindSlot<MaterialSlot>(id));
+            GraphUtil.GenerateSurfaceDescriptionStruct(surfaceDescriptionStruct, pixelSlots, true);
+            
+            // -------------------------------------
+            // Generate Surface Description function
 
-            GraphUtil.GenerateSurfaceDescription(
-                activeNodeList,
+            GraphUtil.GenerateSurfaceDescriptionFunction(
+                pixelNodes,
                 masterNode,
                 masterNode.owner as AbstractMaterialGraph,
                 surfaceDescriptionFunction,
                 functionRegistry,
                 shaderProperties,
-                requirements,
+                pixelRequirements,
                 mode,
                 "PopulateSurfaceData",
                 "SurfaceDescription",
                 null,
-                usedSlots);
+                pixelSlots);
 
-            var graph = new ShaderGenerator();
-            graph.AddShaderChunk(shaderProperties.GetPropertiesDeclaration(2), false);
-            graph.AddShaderChunk(surfaceInputs.GetShaderString(2), false);
-            graph.AddShaderChunk(builder.ToString(), false);
-            graph.AddShaderChunk(surfaceDescriptionStruct.GetShaderString(2), false);
-            graph.AddShaderChunk(surfaceDescriptionFunction.GetShaderString(2), false);
+            // ----------------------------------------------------- //
+            //           GENERATE VERTEX > PIXEL PIPELINE            //
+            // ----------------------------------------------------- //
 
-            var tagsVisitor = new ShaderGenerator();
-            var blendingVisitor = new ShaderGenerator();
-            var cullingVisitor = new ShaderGenerator();
-            var zTestVisitor = new ShaderGenerator();
-            var zWriteVisitor = new ShaderGenerator();
+            // -------------------------------------
+            // TODO - Why is this not a full generation?
+            // Generate standard transformations
 
-            var materialOptions = new SurfaceMaterialOptions();
-            materialOptions.GetTags(tagsVisitor);
-            materialOptions.GetBlend(blendingVisitor);
-            materialOptions.GetCull(cullingVisitor);
-            materialOptions.GetDepthTest(zTestVisitor);
-            materialOptions.GetDepthWrite(zWriteVisitor);
+            foreach (var channel in pixelRequirements.requiresMeshUVs.Distinct())
+                pixelShaderSurfaceInputs.AppendLine("surfaceInput.{0} = {1};", channel.GetUVName(), string.Format("half4(input.texCoord{0}, 0, 0)", (int)channel));
 
-            var localPixelShader = new ShaderGenerator();
-            var localSurfaceInputs = new ShaderGenerator();
-            var surfaceOutputRemap = new ShaderGenerator();
+            // -------------------------------------
+            // Generate pixel shader surface remap
 
-            foreach (var channel in requirements.requiresMeshUVs.Distinct())
-                localSurfaceInputs.AddShaderChunk(string.Format("surfaceInput.{0} = {1};", channel.GetUVName(), string.Format("half4(input.texCoord{0}, 0, 0)", (int)channel)), false);
-
-            var templateLocation = ShaderGenerator.GetTemplatePath("HDUnlitPassForward.template");
-
-            foreach (var slot in usedSlots)
+            foreach (var slot in pixelSlots)
             {
-                surfaceOutputRemap.AddShaderChunk(slot.shaderOutputName
-                    + " = surf."
-                    + slot.shaderOutputName + ";", true);
+                pixelShaderSurfaceRemap.AppendLine("{0} = surf.{0};", slot.shaderOutputName);
             }
 
-            if (!File.Exists(templateLocation))
-                return string.Empty;
+            // ----------------------------------------------------- //
+            //                      FINALIZE                         //
+            // ----------------------------------------------------- //
 
-            var subShaderTemplate = File.ReadAllText(templateLocation);
-            var resultPass = subShaderTemplate.Replace("${Defines}", defines.GetShaderString(3));
-            resultPass = resultPass.Replace("${Graph}", graph.GetShaderString(3));
-            resultPass = resultPass.Replace("${LocalPixelShader}", localPixelShader.GetShaderString(3));
-            resultPass = resultPass.Replace("${SurfaceInputs}", localSurfaceInputs.GetShaderString(3));
-            resultPass = resultPass.Replace("${SurfaceOutputRemap}", surfaceOutputRemap.GetShaderString(3));
+            // -------------------------------------
+            // Combine Graph sections
+            
+            graph.AppendLine(shaderProperties.GetPropertiesDeclaration(1));
+
+            graph.AppendLine(functionBuilder.ToString());
+
+            graph.AppendLine(surfaceDescriptionInputStruct.ToString());
+            graph.AppendLine(surfaceDescriptionStruct.ToString());
+            graph.AppendLine(surfaceDescriptionFunction.ToString());
+
+            // -------------------------------------
+            // Generate final subshader
+
+            var resultPass = template.Replace("${Tags}", tagsBuilder.ToString());
+            resultPass = resultPass.Replace("${Blending}", blendingBuilder.ToString());
+            resultPass = resultPass.Replace("${Culling}", cullingBuilder.ToString());
+            resultPass = resultPass.Replace("${ZTest}", zTestBuilder.ToString());
+            resultPass = resultPass.Replace("${ZWrite}", zWriteBuilder.ToString());
+            resultPass = resultPass.Replace("${Defines}", defines.ToString());
+            resultPass = resultPass.Replace("${LOD}", "" + materialOptions.lod);
+
             resultPass = resultPass.Replace("${LightMode}", pass.Name);
             resultPass = resultPass.Replace("${ShaderPassInclude}", pass.ShaderPassInclude);
+            
+            resultPass = resultPass.Replace("${Graph}", graph.ToString());
 
-            resultPass = resultPass.Replace("${Tags}", tagsVisitor.GetShaderString(2));
-            resultPass = resultPass.Replace("${Blending}", blendingVisitor.GetShaderString(2));
-            resultPass = resultPass.Replace("${Culling}", cullingVisitor.GetShaderString(2));
-            resultPass = resultPass.Replace("${ZTest}", zTestVisitor.GetShaderString(2));
-            resultPass = resultPass.Replace("${ZWrite}", zWriteVisitor.GetShaderString(2));
-            resultPass = resultPass.Replace("${LOD}", "" + materialOptions.lod);
+            resultPass = resultPass.Replace("${PixelShader}", pixelShader.ToString());
+            resultPass = resultPass.Replace("${PixelShaderSurfaceInputs}", pixelShaderSurfaceInputs.ToString());
+            resultPass = resultPass.Replace("${PixelShaderSurfaceRemap}", pixelShaderSurfaceRemap.ToString());
+            
             return resultPass;
-        }
-
-        public string GetSubshader(IMasterNode inMasterNode, GenerationMode mode)
-        {
-            var masterNode = inMasterNode as UnlitMasterNode;
-            var subShader = new ShaderGenerator();
-            subShader.AddShaderChunk("SubShader", true);
-            subShader.AddShaderChunk("{", true);
-            subShader.Indent();
-            subShader.AddShaderChunk("Tags{ \"RenderType\" = \"Opaque\" }", true);
-
-            subShader.AddShaderChunk(
-                GetShaderPassFromTemplate(
-                    masterNode,
-                    m_UnlitPassForwardDepthOnly,
-                    mode),
-                true);
-
-            subShader.AddShaderChunk(
-                GetShaderPassFromTemplate(
-                    masterNode,
-                    m_UnlitPassForwardOnly,
-                    mode),
-                true);
-
-            subShader.Deindent();
-            subShader.AddShaderChunk("}", true);
-
-            return subShader.GetShaderString(0);
         }
     }
 }
