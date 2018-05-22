@@ -58,6 +58,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool affectDiffuse = true;
         public bool affectSpecular = true;
 
+        // This property work only with shadow mask and allow to say we don't render any lightMapped object in the shadow map
+        public bool nonLightmappedOnly = false;
+
         public LightTypeExtent lightTypeExtent = LightTypeExtent.Punctual;
 
         // Only for Spotlight, should be hide for other light
@@ -241,6 +244,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 light.lightmapBakeType = LightmapBakeType.Realtime;
 #endif
             }
+
+            // We don't use the global settings of shadow mask by default
+            light.lightShadowCasterMode = LightShadowCasterMode.Everything;
 
             // At first init we need to initialize correctly the default value
             lightData.ConvertPhysicalLightIntensityToLightIntensity();
