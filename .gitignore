@@ -19,3 +19,10 @@ Temp/*
 *.sln
 *.suo
 *.userprefs
+.vs
+.vscode
+.idea
+.DS_Store
+.npmrc
+ShaderGraph/DebugOutput.meta
+ShaderGraph/DebugOutput/**
