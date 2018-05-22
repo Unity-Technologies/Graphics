@@ -39,6 +39,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_StripperFuncs.Add("HDRenderPipeline/LitTessellation", LitShaderStripper);
             m_StripperFuncs.Add("HDRenderPipeline/LayeredLit", LitShaderStripper);
             m_StripperFuncs.Add("HDRenderPipeline/LayeredLitTessellation", LitShaderStripper);
+            m_StripperFuncs.Add("HDRenderPipeline/Unlit", UnlitShaderStripper);
 
             m_Transparent = new ShaderKeyword("_SURFACE_TYPE_TRANSPARENT");
             m_DebugDisplay = new ShaderKeyword("DEBUG_DISPLAY");
@@ -48,8 +49,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             //m_FeatureSSS = new ShaderKeyword("_MATERIAL_FEATURE_SUBSURFACE_SCATTERING");
         }
 
+        bool UnlitShaderStripper(Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
+        {
+            bool isSceneSelectionPass = snippet.passName == "SceneSelectionPass";
+
+            if (isSceneSelectionPass)
+                return true;
+
+            return false;
+        }
+
         bool LitShaderStripper(Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
         {
+            bool isSceneSelectionPass = snippet.passName == "SceneSelectionPass";
+
+            if (isSceneSelectionPass)
+                return true;
+
             bool isGBufferPass = snippet.passName == "GBuffer";
             bool isForwardPass = snippet.passName == "Forward";
             bool isTransparentForwardPass = snippet.passName == "TransparentDepthPostpass" || snippet.passName == "TransparentBackface" || snippet.passName == "TransparentDepthPrepass";
