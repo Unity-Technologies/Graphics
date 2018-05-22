@@ -258,18 +258,6 @@ namespace UnityEditor.VFX
             m_GraphSanitized = true;
         }
 
-        IEnumerable<Object> allAssets
-        {
-                    m_UIInfos.Sanitize(this);
-        }
-                catch (Exception e)
-            {
-                    Debug.LogError(string.Format("Exception while sanitizing VFXUI: : {0}", e.StackTrace));
-                }
-
-            m_GraphSanitized = true;
-                    }
-
         public void ClearCompileData()
         {
             m_CompiledData = null;
