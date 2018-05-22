@@ -48,7 +48,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 cmd.ReleaseTemporaryRT(depthAttachmentHandle);
         }
 
-        public abstract void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref CameraData cameraData, ref LightData lightData);
+        public abstract void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref RenderingData renderingData);
 
         public RenderTargetIdentifier GetSurface(int handle)
         {
@@ -66,13 +66,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_ShaderPassNames.Add(new ShaderPassName(passName));
         }
 
-        public DrawRendererSettings CreateDrawRendererSettings(Camera camera, SortFlags sortFlags, RendererConfiguration rendererConfiguration)
+        public DrawRendererSettings CreateDrawRendererSettings(Camera camera, SortFlags sortFlags, RendererConfiguration rendererConfiguration, bool supportsDynamicBatching)
         {
             DrawRendererSettings settings = new DrawRendererSettings(camera, m_ShaderPassNames[0]);
             for (int i = 1; i < m_ShaderPassNames.Count; ++i)
                 settings.SetShaderPassName(i, m_ShaderPassNames[i]);
             settings.sorting.flags = sortFlags;
             settings.rendererConfiguration = rendererConfiguration;
+            settings.flags = DrawRendererFlags.EnableInstancing;
+            if (supportsDynamicBatching)
+                settings.flags |= DrawRendererFlags.EnableDynamicBatching;
             return settings;
         }
 
