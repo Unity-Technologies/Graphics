@@ -30,45 +30,51 @@ VertexOutput vert(VertexInput i)
 }
 
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-#define DEPTH_TEXTURE_MS Texture2DMSArray
+#define DEPTH_TEXTURE_MS(name, samples) Texture2DMSArray<float, samples> name
 #define DEPTH_TEXTURE(name) TEXTURE2D_ARRAY(name)
 #define LOAD(uv, sampleIndex) LOAD_TEXTURE2D_ARRAY_MSAA(_CameraDepthAttachment, uv, unity_StereoEyeIndex, sampleIndex)
 #define SAMPLE(uv) SAMPLE_TEXTURE2D_ARRAY(_CameraDepthAttachment, sampler_CameraDepthAttachment, uv, unity_StereoEyeIndex).r
 #else
-#define DEPTH_TEXTURE_MS Texture2DMS
+#define DEPTH_TEXTURE_MS(name, samples) Texture2DMS<float, samples> name
 #define DEPTH_TEXTURE(name) TEXTURE2D(name)
 #define LOAD(uv, sampleIndex) LOAD_TEXTURE2D_MSAA(_CameraDepthAttachment, uv, sampleIndex)
 #define SAMPLE(uv) SAMPLE_DEPTH_TEXTURE(_CameraDepthAttachment, sampler_CameraDepthAttachment, uv)
 #endif
 
-#ifdef _MSAA_DEPTH
-    DEPTH_TEXTURE_MS<float> _CameraDepthAttachment;
-    float _SampleCount;
-    float4 _CameraDepthAttachment_TexelSize;
-#else
+#ifdef _DEPTH_MSAA_2
+    #define MSAA_SAMPLES 2
+#elif _DEPTH_MSAA_4
+    #define MSAA_SAMPLES 4
+#endif
+
+#ifdef _DEPTH_NO_MSAA
     DEPTH_TEXTURE(_CameraDepthAttachment);
     SAMPLER(sampler_CameraDepthAttachment);
+#else
+    DEPTH_TEXTURE_MS(_CameraDepthAttachment, MSAA_SAMPLES);
+    float4 _CameraDepthAttachment_TexelSize;
+#endif
+
+#if UNITY_REVERSED_Z
+    #define DEPTH_DEFAULT_VALUE 1.0
+    #define DEPTH_OP min
+#else
+    #define DEPTH_DEFAULT_VALUE 0.0
+    #define DEPTH_OP max
 #endif
 
 float SampleDepth(float2 uv)
 {
-#ifdef _MSAA_DEPTH
-    int2 coord = int2(uv * _CameraDepthAttachment_TexelSize.zw);
-    int samples = (int)_SampleCount;
-    #if UNITY_REVERSED_Z
-        float outDepth = 1.0;
-        #define DEPTH_OP min
-    #else
-        float outDepth = 0.0;
-        #define DEPTH_OP max
-    #endif
-
-    for (int i = 0; i < samples; ++i)
-        outDepth = DEPTH_OP(LOAD(uv, i), outDepth);
-
-    return outDepth;
-#else
+#ifdef _DEPTH_NO_MSAA
     return SAMPLE(uv);
+#else
+    int2 coord = int2(uv * _CameraDepthAttachment_TexelSize.zw);
+    float outDepth = DEPTH_DEFAULT_VALUE;
+
+    [unroll]
+    for (int i = 0; i < MSAA_SAMPLES; ++i)
+        outDepth = DEPTH_OP(LOAD(coord, i), outDepth);
+    return outDepth;
 #endif
 }
 

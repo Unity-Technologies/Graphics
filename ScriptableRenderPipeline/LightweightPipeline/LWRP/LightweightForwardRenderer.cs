@@ -166,6 +166,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             bool requiresDepthPrepass = renderingData.shadowData.requiresScreenSpaceShadowResolve ||
                 renderingData.cameraData.isSceneViewCamera || (requiresCameraDepth && !CanCopyDepth(ref renderingData.cameraData));
 
+            // For now VR requires a depth prepass until we figure out how to properly resolve texture2DMS in stereo
+            requiresDepthPrepass |= renderingData.cameraData.isStereoEnabled;
+
             CommandBuffer cmd = CommandBufferPool.Get("Setup Rendering");
             if (requiresDepthPrepass)
                 EnqueuePass(cmd, RenderPassHandles.DepthPrepass, baseDescriptor, null, RenderTargetHandles.DepthTexture);
@@ -218,7 +221,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 // Note: Scene view camera always perform depth prepass
                 CommandBuffer cmd = CommandBufferPool.Get("Copy Depth to Camera");
                 CoreUtils.SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget);
-                cmd.DisableShaderKeyword(LightweightKeywords.MsaaDepthResolve);
+                cmd.EnableShaderKeyword(LightweightKeywords.DepthNoMsaa);
+                cmd.DisableShaderKeyword(LightweightKeywords.DepthMsaa2);
+                cmd.DisableShaderKeyword(LightweightKeywords.DepthMsaa4);
                 cmd.Blit(GetSurface(RenderTargetHandles.DepthTexture), BuiltinRenderTextureType.CameraTarget, GetMaterial(MaterialHandles.DepthCopy));
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
