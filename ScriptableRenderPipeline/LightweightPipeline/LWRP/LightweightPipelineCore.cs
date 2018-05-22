@@ -96,7 +96,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static readonly string LocalShadowsText = "_LOCAL_SHADOWS_ENABLED";
         public static readonly string SoftShadowsText = "_SHADOWS_SOFT";
         public static readonly string CascadeShadowsText = "_SHADOWS_CASCADE";
-        public static readonly string MsaaDepthResolve = "_MSAA_DEPTH";
+        public static readonly string DepthNoMsaa = "_DEPTH_NO_MSAA";
+        public static readonly string DepthMsaa2 = "_DEPTH_MSAA_2";
+        public static readonly string DepthMsaa4 = "_DEPTH_MSAA_4";
 
 #if UNITY_2018_2_OR_NEWER
         public static readonly ShaderKeyword AdditionalLights = new ShaderKeyword(AdditionalLightsText);

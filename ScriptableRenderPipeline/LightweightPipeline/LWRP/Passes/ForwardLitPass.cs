@@ -29,7 +29,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         // Depth Copy Pass
         Material m_DepthCopyMaterial;
-        int m_SampleCountShaderHandle;
 
         // Opaque Copy Pass
         Material m_SamplingMaterial;
@@ -76,7 +75,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             // Copy Depth Pass
             m_DepthCopyMaterial = renderer.GetMaterial(MaterialHandles.DepthCopy);
-            m_SampleCountShaderHandle = Shader.PropertyToID("_SampleCount");
 
             // Copy Opaque Color Pass
             m_SamplingMaterial = renderer.GetMaterial(MaterialHandles.Sampling);
@@ -512,13 +510,24 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             if (cameraData.msaaSamples > 1)
             {
-                cmd.SetGlobalFloat(m_SampleCountShaderHandle, cameraData.msaaSamples);
-                cmd.EnableShaderKeyword(LightweightKeywords.MsaaDepthResolve);
+                cmd.DisableShaderKeyword(LightweightKeywords.DepthNoMsaa);
+                if (cameraData.msaaSamples == 4)
+                {
+                    cmd.DisableShaderKeyword(LightweightKeywords.DepthMsaa2);
+                    cmd.EnableShaderKeyword(LightweightKeywords.DepthMsaa4);
+                }
+                else
+                {
+                    cmd.EnableShaderKeyword(LightweightKeywords.DepthMsaa2);
+                    cmd.DisableShaderKeyword(LightweightKeywords.DepthMsaa4);
+                }
                 cmd.Blit(depthSurface, copyDepthSurface, m_DepthCopyMaterial);
             }
             else
             {
-                cmd.DisableShaderKeyword(LightweightKeywords.MsaaDepthResolve);
+                cmd.EnableShaderKeyword(LightweightKeywords.DepthNoMsaa);
+                cmd.DisableShaderKeyword(LightweightKeywords.DepthMsaa2);
+                cmd.DisableShaderKeyword(LightweightKeywords.DepthMsaa4);
                 LightweightPipeline.CopyTexture(cmd, depthSurface, copyDepthSurface, m_DepthCopyMaterial);
             }
             context.ExecuteCommandBuffer(cmd);
