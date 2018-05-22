@@ -5,6 +5,7 @@
     "unity": "2018.1",
     "dependencies": {
         "com.unity.postprocessing": "2.0.2-preview",
-        "com.unity.render-pipelines.core": "0.1.33"
+        "com.unity.render-pipelines.core": "0.1.33",
+        "com.unity.shadergraph": "0.1.19"
     }
 }
