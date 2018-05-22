@@ -96,7 +96,6 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUILayout.PropertyField(p.enableMotionVectors, _.GetContent("Enable Motion Vectors"));
             EditorGUILayout.PropertyField(p.enableObjectMotionVectors, _.GetContent("Enable Object Motion Vectors"));
             EditorGUILayout.PropertyField(p.enableDBuffer, _.GetContent("Enable DBuffer"));
-            EditorGUILayout.PropertyField(p.enableAtmosphericScattering, _.GetContent("Enable Atmospheric Scattering"));
             EditorGUILayout.PropertyField(p.enableRoughRefraction, _.GetContent("Enable Rough Refraction"));
             EditorGUILayout.PropertyField(p.enableDistortion, _.GetContent("Enable Distortion"));
             EditorGUILayout.PropertyField(p.enablePostprocess, _.GetContent("Enable Postprocess"));
@@ -133,6 +132,8 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUILayout.PropertyField(p.enableSSAO, _.GetContent("Enable SSAO"));
             EditorGUILayout.PropertyField(p.enableSubsurfaceScattering, _.GetContent("Enable Subsurface Scattering"));
             EditorGUILayout.PropertyField(p.enableTransmission, _.GetContent("Enable Transmission"));
+            EditorGUILayout.PropertyField(p.enableAtmosphericScattering, _.GetContent("Enable Atmospheric Scattering"));
+            EditorGUILayout.PropertyField(p.enableVolumetric, _.GetContent("    Enable Volumetric"));
             EditorGUILayout.PropertyField(p.enableShadow, _.GetContent("Enable Shadow"));
             EditorGUILayout.PropertyField(p.enableContactShadow, _.GetContent("Enable Contact Shadows"));
             EditorGUILayout.PropertyField(p.enableShadowMask, _.GetContent("Enable Shadow Masks"));

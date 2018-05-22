@@ -90,7 +90,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private RenderTargetIdentifier m_CopyColorRT;
         private RenderTargetIdentifier m_DepthRT;
         private RenderTargetIdentifier m_CopyDepth;
-        private RenderTargetIdentifier m_Color;
         private float[] m_OpaqueScalerValues = {1.0f, 0.5f, 0.25f, 0.25f};
 
         private float m_RenderScale;
@@ -1038,6 +1037,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
 
             SetRenderTarget(cmd, colorRT, depthRT, clearFlag);
+            m_CurrCameraColorRT = colorRT;
 
             // If rendering to an intermediate RT we resolve viewport on blit due to offset not being supported
             // while rendering to a RT.

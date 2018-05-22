@@ -14,9 +14,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public FloatParameter           fogBaseHeight = new FloatParameter(0.0f);
         public ClampedFloatParameter    fogHeightAttenuation = new ClampedFloatParameter(0.2f, 0.0f, 1.0f);
 
-        public override void PushShaderParameters(CommandBuffer cmd, FrameSettings frameSettings)
+        public override void PushShaderParameters(HDCamera hdCamera, CommandBuffer cmd)
         {
-            PushShaderParametersCommon(cmd, FogType.Exponential, frameSettings);
+            PushShaderParametersCommon(hdCamera, cmd, FogType.Exponential);
             cmd.SetGlobalVector(m_ExpFogParam, new Vector4(Mathf.Max(1e-6f, fogDistance), fogBaseHeight, fogHeightAttenuation, 0.0f));
         }
     }

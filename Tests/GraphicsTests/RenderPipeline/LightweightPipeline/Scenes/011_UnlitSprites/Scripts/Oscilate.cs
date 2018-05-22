@@ -10,7 +10,6 @@ public class Oscilate : MonoBehaviour
 
     private float elapsed;
     Vector3 startPosition;
-    private float time;
 
     void Start()
     {
