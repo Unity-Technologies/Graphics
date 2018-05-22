@@ -1,4 +1,5 @@
 using System;
+using UnityEditor;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -17,6 +18,48 @@ namespace UnityEngine.Experimental.Rendering
                 }
 
                 return s_Instance;
+            }
+        }
+
+        [ExecuteInEditMode]
+        class GameViewEventCatcher : MonoBehaviour
+        {
+            public static GameViewEventCatcher s_Instance = null;
+            public static void Cleanup()
+            {
+                if (s_Instance != null)
+                    DestroyImmediate(s_Instance.gameObject);
+            }
+
+            public static void Build()
+            {
+                Cleanup();
+                var go = new GameObject("__GameViewEventCatcher");
+                go.hideFlags = HideFlags.HideAndDontSave;
+                s_Instance = go.AddComponent<GameViewEventCatcher>();
+
+            }
+
+            void Update()
+            {
+                Debug.Log(Input.mousePosition);
+                Debug.Log(Screen.width);
+                Debug.Log(Screen.height);
+                if (Input.mousePosition.x < 0
+                    || Input.mousePosition.y < 0
+                    || Input.mousePosition.x > Screen.width
+                    || Input.mousePosition.y > Screen.height)
+                    return;
+
+                instance.m_mousePosition = Input.mousePosition;
+                if (Input.GetMouseButtonDown(0))
+                    instance.m_MouseClickPosition = Input.mousePosition;
+                if (Input.GetKeyDown(KeyCode.PageUp))
+                    ++instance.m_DebugStep;
+                if (Input.GetKeyDown(KeyCode.PageDown))
+                    instance.m_DebugStep = Mathf.Max(0, instance.m_DebugStep - 1);
+                if (Input.GetKey(KeyCode.End))
+                    instance.m_MouseClickPosition = instance.m_mousePosition;
             }
         }
 
@@ -72,6 +115,7 @@ namespace UnityEngine.Experimental.Rendering
 #if UNITY_EDITOR
             UnityEditor.SceneView.onSceneGUIDelegate -= OnSceneGUI;
             UnityEditor.SceneView.onSceneGUIDelegate += OnSceneGUI;
+            GameViewEventCatcher.Build();
 #endif
         }
 
@@ -79,6 +123,7 @@ namespace UnityEngine.Experimental.Rendering
         {
 #if UNITY_EDITOR
             UnityEditor.SceneView.onSceneGUIDelegate -= OnSceneGUI;
+            GameViewEventCatcher.Cleanup();
 #endif
         }
 
