@@ -42,9 +42,6 @@ namespace UnityEngine.Experimental.Rendering
 
             void Update()
             {
-                Debug.Log(Input.mousePosition);
-                Debug.Log(Screen.width);
-                Debug.Log(Screen.height);
                 if (Input.mousePosition.x < 0
                     || Input.mousePosition.y < 0
                     || Input.mousePosition.x > Screen.width
@@ -52,11 +49,12 @@ namespace UnityEngine.Experimental.Rendering
                     return;
 
                 instance.m_mousePosition = Input.mousePosition;
-                if (Input.GetMouseButtonDown(0))
+                instance.m_mousePosition.y = Screen.height - instance.m_mousePosition.y;
+                if (Input.GetMouseButtonDown(1))
                     instance.m_MouseClickPosition = Input.mousePosition;
-                if (Input.GetKeyDown(KeyCode.PageUp))
+                if (Input.GetKey(KeyCode.PageUp))
                     ++instance.m_DebugStep;
-                if (Input.GetKeyDown(KeyCode.PageDown))
+                if (Input.GetKey(KeyCode.PageDown))
                     instance.m_DebugStep = Mathf.Max(0, instance.m_DebugStep - 1);
                 if (Input.GetKey(KeyCode.End))
                     instance.m_MouseClickPosition = instance.m_mousePosition;
