@@ -68,7 +68,8 @@ namespace UnityEditor.Graphing
             Exclude
         }
 
-        public static void DepthFirstCollectNodesFromNode(List<INode> nodeList, INode node, IncludeSelf includeSelf = IncludeSelf.Include, List<int> slotIds = null)
+        public static void DepthFirstCollectNodesFromNode<T>(List<T> nodeList, T node, IncludeSelf includeSelf = IncludeSelf.Include, List<int> slotIds = null)
+            where T : class, INode
         {
             // no where to start
             if (node == null)
@@ -86,7 +87,8 @@ namespace UnityEditor.Graphing
             {
                 foreach (var edge in node.owner.GetEdges(node.GetSlotReference(slot)))
                 {
-                    var outputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                    var outputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid) as T;
+                    if (outputNode != null)
                     DepthFirstCollectNodesFromNode(nodeList, outputNode);
                 }
             }
@@ -115,40 +117,92 @@ namespace UnityEditor.Graphing
                 nodeList.Add(node);
         }
 
-        static Stack<INode> s_NodeStack = new Stack<INode>();
+        static Stack<MaterialSlot> s_SlotStack = new Stack<MaterialSlot>();
 
-        public static ShaderStage FindEffectiveShaderStage(INode initialNode, bool goingBackwards)
+        public static ShaderStage GetEffectiveShaderStage(MaterialSlot initialSlot, bool goingBackwards)
         {
-            var shaderStage = ShaderStage.Dynamic;
-            s_NodeStack.Clear();
-            s_NodeStack.Push(initialNode);
-            while (s_NodeStack.Any() && shaderStage == ShaderStage.Dynamic)
+            var graph = initialSlot.owner.owner;
+            s_SlotStack.Clear();
+            s_SlotStack.Push(initialSlot);
+            while (s_SlotStack.Any())
             {
-                var node = s_NodeStack.Pop();
-                foreach (var slot in goingBackwards ? node.GetInputSlots<MaterialSlot>() : node.GetOutputSlots<MaterialSlot>())
+                var slot = s_SlotStack.Pop();
+                ShaderStage stage;
+                if (slot.stageCapability.TryGetShaderStage(out stage))
+                    return stage;
+
+                if (goingBackwards && slot.isInputSlot)
                 {
-                    if (shaderStage != ShaderStage.Dynamic)
-                        break;
-                    if (slot.shaderStage == ShaderStage.Dynamic)
+                    foreach (var edge in graph.GetEdges(slot.slotReference))
+                {
+                        var node = graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                        s_SlotStack.Push(node.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId));
+                    }
+                }
+                else if (!goingBackwards && slot.isOutputSlot)
                     {
-                        foreach (var edge in node.owner.GetEdges(slot.slotReference))
+                    foreach (var edge in graph.GetEdges(slot.slotReference))
                         {
-                            var connectedNode = node.owner.GetNodeFromGuid(goingBackwards ? edge.outputSlot.nodeGuid : edge.inputSlot.nodeGuid);
-                            var connectedSlot = goingBackwards ? connectedNode.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId) : connectedNode.FindInputSlot<MaterialSlot>(edge.inputSlot.slotId);
-                            if (connectedSlot.shaderStage == ShaderStage.Dynamic)
-                                s_NodeStack.Push(connectedNode);
+                        var node = graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
+                        s_SlotStack.Push(node.FindInputSlot<MaterialSlot>(edge.inputSlot.slotId));
+                    }
+                }
                             else
                             {
-                                shaderStage = connectedSlot.shaderStage;
-                                break;
+                    var ownerSlots = Enumerable.Empty<MaterialSlot>();
+                    if (goingBackwards && slot.isOutputSlot)
+                        ownerSlots = slot.owner.GetInputSlots<MaterialSlot>();
+                    else if (!goingBackwards && slot.isInputSlot)
+                        ownerSlots = slot.owner.GetOutputSlots<MaterialSlot>();
+                    foreach (var ownerSlot in ownerSlots)
+                        s_SlotStack.Push(ownerSlot);
                             }
                         }
+            // We default to fragment shader stage if all connected nodes were compatible with both.
+            return ShaderStage.Fragment;
+        }
+
+        public static ShaderStageCapability GetEffectiveShaderStageCapability(MaterialSlot initialSlot, bool goingBackwards)
+        {
+            var graph = initialSlot.owner.owner;
+            s_SlotStack.Clear();
+            s_SlotStack.Push(initialSlot);
+            while (s_SlotStack.Any())
+            {
+                var slot = s_SlotStack.Pop();
+                ShaderStage stage;
+                if (slot.stageCapability.TryGetShaderStage(out stage))
+                    return slot.stageCapability;
+
+                if (goingBackwards && slot.isInputSlot)
+                {
+                    foreach (var edge in graph.GetEdges(slot.slotReference))
+                    {
+                        var node = graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
+                        s_SlotStack.Push(node.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId));
+                    }
+                }
+                else if (!goingBackwards && slot.isOutputSlot)
+                {
+                    foreach (var edge in graph.GetEdges(slot.slotReference))
+                    {
+                        var node = graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
+                        s_SlotStack.Push(node.FindInputSlot<MaterialSlot>(edge.inputSlot.slotId));
+                    }
                     }
                     else
-                        shaderStage = slot.shaderStage;
+                {
+                    var ownerSlots = Enumerable.Empty<MaterialSlot>();
+                    if (goingBackwards && slot.isOutputSlot)
+                        ownerSlots = slot.owner.GetInputSlots<MaterialSlot>();
+                    else if (!goingBackwards && slot.isInputSlot)
+                        ownerSlots = slot.owner.GetOutputSlots<MaterialSlot>();
+                    foreach (var ownerSlot in ownerSlots)
+                        s_SlotStack.Push(ownerSlot);
                 }
             }
-            return shaderStage;
+
+            return ShaderStageCapability.All;
         }
 
         public static string GetSlotDimension(ConcreteSlotValueType slotValue)

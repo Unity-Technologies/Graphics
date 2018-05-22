@@ -90,7 +90,7 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        public NeededCoordinateSpace RequiresPosition()
+        public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability)
         {
             return CoordinateSpace.Object.ToNeededCoordinateSpace();
         }

@@ -4,7 +4,7 @@ namespace UnityEditor.ShaderGraph
 {
     public interface IMayRequireScreenPosition
     {
-        bool RequiresScreenPosition();
+        bool RequiresScreenPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All);
     }
 
     public static class MayRequireScreenPositionExtensions

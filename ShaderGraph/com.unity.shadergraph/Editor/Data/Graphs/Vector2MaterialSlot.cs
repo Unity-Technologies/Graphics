@@ -27,11 +27,11 @@ namespace UnityEditor.ShaderGraph
             string shaderOutputName,
             SlotType slotType,
             Vector2 value,
-            ShaderStage shaderStage = ShaderStage.Dynamic,
+            ShaderStageCapability stageCapability = ShaderStageCapability.All,
             string label1 = "X",
             string label2 = "Y",
             bool hidden = false)
-            : base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
+            : base(slotId, displayName, shaderOutputName, slotType, stageCapability, hidden)
         {
             m_Value = value;
             m_Labels = new[] { label1, label2 };

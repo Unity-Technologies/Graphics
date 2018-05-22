@@ -59,7 +59,7 @@ namespace UnityEditor.ShaderGraph
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new Vector4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero));
+            AddSlot(new Vector4MaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Vector4.zero, ShaderStageCapability.Fragment));
             AddSlot(new Texture2DInputMaterialSlot(TextureInputId, kTextureInputName, kTextureInputName));
             AddSlot(new SamplerStateMaterialSlot(SamplerInputId, kSamplerInputName, kSamplerInputName, SlotType.Input));
             AddSlot(new PositionMaterialSlot(PositionInputId, kPositionInputName, kPositionInputName, CoordinateSpace.World));
@@ -163,17 +163,17 @@ namespace UnityEditor.ShaderGraph
             visitor.AddShaderChunk(sb.ToString(), false);
         }
         
-        public NeededCoordinateSpace RequiresPosition()
+        public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability)
         {
             return CoordinateSpace.World.ToNeededCoordinateSpace();
         }
 
-        public NeededCoordinateSpace RequiresNormal()
+        public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
         {
             return CoordinateSpace.World.ToNeededCoordinateSpace();
         }
 
-        public NeededCoordinateSpace RequiresTangent()
+        public NeededCoordinateSpace RequiresTangent(ShaderStageCapability stageCapability)
         {
             switch(m_TextureType)
             {
@@ -184,7 +184,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public NeededCoordinateSpace RequiresBitangent()
+        public NeededCoordinateSpace RequiresBitangent(ShaderStageCapability stageCapability)
         {
             switch(m_TextureType)
             {

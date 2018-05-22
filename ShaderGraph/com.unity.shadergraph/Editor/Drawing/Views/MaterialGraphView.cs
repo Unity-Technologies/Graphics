@@ -47,9 +47,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (startSlot == null)
                 return compatibleAnchors;
 
-            var startStage = startSlot.shaderStage;
-            if (startStage == ShaderStage.Dynamic)
-                startStage = NodeUtils.FindEffectiveShaderStage(startSlot.owner, startSlot.isOutputSlot);
+            var startStage = startSlot.stageCapability;
+            if (startStage == ShaderStageCapability.All)
+                startStage = NodeUtils.GetEffectiveShaderStageCapability(startSlot, true) & NodeUtils.GetEffectiveShaderStageCapability(startSlot, false);
 
             foreach (var candidateAnchor in ports.ToList())
             {
@@ -57,12 +57,13 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (!startSlot.IsCompatibleWith(candidateSlot))
                     continue;
 
-                if (startStage != ShaderStage.Dynamic)
+                if (startStage != ShaderStageCapability.All)
                 {
-                    var candidateStage = candidateSlot.shaderStage;
-                    if (candidateStage == ShaderStage.Dynamic)
-                        candidateStage = NodeUtils.FindEffectiveShaderStage(candidateSlot.owner, !startSlot.isOutputSlot);
-                    if (candidateStage != ShaderStage.Dynamic && candidateStage != startStage)
+                    var candidateStage = candidateSlot.stageCapability;
+                    if (candidateStage == ShaderStageCapability.All)
+                        candidateStage = NodeUtils.GetEffectiveShaderStageCapability(candidateSlot, true)
+                            & NodeUtils.GetEffectiveShaderStageCapability(candidateSlot, false);
+                    if (candidateStage != ShaderStageCapability.All && candidateStage != startStage)
                         continue;
                 }
 
