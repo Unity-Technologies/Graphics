@@ -577,7 +577,8 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // Note: for correct filtering, the data has to be stored in the perceptual space.
         // This means storing the tone mapped radiance and transmittance instead of optical depth.
         // See "A Fresh Look at Generalized Sampling", p. 51.
-        _VBufferLightingIntegral[voxelCoord] = float4(FastTonemap(totalRadiance), Transmittance(opticalDepth));
+        // TODO: re-enable tone mapping after implementing pre-exposure.
+        _VBufferLightingIntegral[voxelCoord] = float4(/*FastTonemap*/(totalRadiance), Transmittance(opticalDepth));
 
         // Compute the optical depth up to the end of the interval.
         opticalDepth += 0.5 * extinction * dt;

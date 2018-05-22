@@ -4,7 +4,7 @@ namespace UnityEditor.ShaderGraph
 {
     interface IMayRequireViewDirection
     {
-        NeededCoordinateSpace RequiresViewDirection();
+        NeededCoordinateSpace RequiresViewDirection(ShaderStageCapability stageCapability = ShaderStageCapability.All);
     }
 
     public static class MayRequireViewDirectionExtensions

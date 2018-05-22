@@ -22,8 +22,8 @@ namespace UnityEditor.ShaderGraph
         {}
 
         public UVMaterialSlot(int slotId, string displayName, string shaderOutputName, UVChannel channel,
-                              ShaderStage shaderStage = ShaderStage.Dynamic, bool hidden = false)
-            : base(slotId, displayName, shaderOutputName, SlotType.Input, Vector2.zero, shaderStage, hidden: hidden)
+                                ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)
+            : base(slotId, displayName, shaderOutputName, SlotType.Input, Vector2.zero, stageCapability, hidden: hidden)
         {
             this.channel = channel;
         }
@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph
             return string.Format("IN.{0}.xy", channel.GetUVName());
         }
 
-        public bool RequiresMeshUV(UVChannel channel)
+        public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
         {
             if (isConnected)
                 return false;

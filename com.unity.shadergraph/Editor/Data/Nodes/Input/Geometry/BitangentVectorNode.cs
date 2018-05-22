@@ -31,7 +31,7 @@ namespace UnityEditor.ShaderGraph
             return string.Format("IN.{0}", space.ToVariableName(InterpolatorType.BiTangent));
         }
 
-        public NeededCoordinateSpace RequiresBitangent()
+        public NeededCoordinateSpace RequiresBitangent(ShaderStageCapability stageCapability)
         {
             return space.ToNeededCoordinateSpace();
         }

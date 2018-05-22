@@ -4,7 +4,7 @@ namespace UnityEditor.ShaderGraph
 {
     public interface IMayRequirePosition
     {
-        NeededCoordinateSpace RequiresPosition();
+        NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability = ShaderStageCapability.All);
     }
 
     public static class MayRequirePositionExtensions
