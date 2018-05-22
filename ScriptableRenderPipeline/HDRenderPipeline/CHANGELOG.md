@@ -2,6 +2,7 @@
 # Changelog
 
 ## [2018.2 undecided]
+- Fix issue with LOD transition and instancing
 
 ### Improvements
 - Add stripper of shader variant when building a player. Save shader compile time.
