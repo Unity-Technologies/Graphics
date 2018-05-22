@@ -80,6 +80,7 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUILayout.PropertyField(d.supportMotionVectors, _.GetContent("Support Motion Vectors"));
             EditorGUILayout.PropertyField(d.supportStereo, _.GetContent("Support Stereo Rendering"));
             EditorGUILayout.PropertyField(d.enableUltraQualitySSS, _.GetContent("Increase SSS Sample Count"));
+            EditorGUILayout.PropertyField(d.supportVolumetric, _.GetContent("Support volumetric"));
             --EditorGUI.indentLevel;
         }
     }

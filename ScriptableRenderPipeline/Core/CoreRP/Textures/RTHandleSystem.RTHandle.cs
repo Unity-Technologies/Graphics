@@ -24,7 +24,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 get
                 {
-                    if(!useScaling)
+                    if (!useScaling)
                     {
                         return m_EnableMSAA ? m_RTs[(int)RTCategory.MSAA] : m_RTs[(int)RTCategory.Regular];
                     }

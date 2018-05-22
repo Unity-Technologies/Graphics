@@ -150,7 +150,7 @@ float3 SampleTexture2DTriplanarNormalScaleBias(TEXTURE2D_ARGS(textureName, sampl
         }
 #endif
 
-        float2 deriv = UnpackDerivativeNormalRGorAG(SampleTexture2DScaleBias(TEXTURE2D_PARAM(textureName, samplerName), textureNameUV, textureNameUVLocal, textureNameST, uvMapping));
+        float2 deriv = UnpackDerivativeNormalRGorAG(SampleTexture2DScaleBias(TEXTURE2D_PARAM(textureName, samplerName), textureNameUV, textureNameUVLocal, textureNameST, uvMapping), scale);
 
         if (textureNameUV <= TEXCOORD_INDEX_UV3)
         {
@@ -250,6 +250,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
     surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
 
+    float3 coatGradient = float3(0.0, 0.0, 0.0);
 #ifdef _MATERIAL_FEATURE_COAT
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_STACK_LIT_COAT;
     surfaceData.coatPerceptualSmoothness = dot(SAMPLE_TEXTURE2D_SCALE_BIAS(_CoatSmoothnessMap), _CoatSmoothnessMapChannelMask);
@@ -258,12 +259,18 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.coatIor = _CoatIor;
     surfaceData.coatThickness = _CoatThickness;
     surfaceData.coatExtinction = _CoatExtinction; // in thickness^-1 units
+
+#ifdef _MATERIAL_FEATURE_COAT_NORMALMAP
+    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_STACK_LIT_COAT_NORMAL_MAP;
+    coatGradient = SAMPLE_TEXTURE2D_NORMAL_SCALE_BIAS(_CoatNormalMap, _CoatNormalScale);
+#endif
+
 #else
     surfaceData.coatPerceptualSmoothness = 0.0;
     surfaceData.coatIor = 1.0001;
     surfaceData.coatThickness = 0.0;
     surfaceData.coatExtinction = float3(1.0, 1.0, 1.0);
-#endif
+#endif // _MATERIAL_FEATURE_COAT
 
 #ifdef _MATERIAL_FEATURE_IRIDESCENCE
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_STACK_LIT_IRIDESCENCE;
@@ -304,8 +311,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Surface Data Part 2 (outsite GetSurfaceData( ) in Lit shader):
     // -------------------------------------------------------------
 
+    surfaceData.geomNormalWS = input.worldToTangent[2];
     // Convert back to world space normal
     surfaceData.normalWS = SurfaceGradientResolveNormal(input.worldToTangent[2], gradient);
+    surfaceData.coatNormalWS = SurfaceGradientResolveNormal(input.worldToTangent[2], coatGradient);
 
     // TODO: decal etc.
 

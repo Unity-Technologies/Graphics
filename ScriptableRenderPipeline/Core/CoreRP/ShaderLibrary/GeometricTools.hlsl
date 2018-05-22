@@ -50,7 +50,7 @@ bool IntersectRayAABB(float3 rayOrigin, float3 rayDirection,
 // This simplified version assume that we care about the result only when we are inside the box
 float IntersectRayAABBSimple(float3 start, float3 dir, float3 boxMin, float3 boxMax)
 {
-    float3 invDir = 1.0 / dir;
+    float3 invDir = rcp(dir);
 
     // Find the ray intersection with box plane
     float3 rbmin = (boxMin - start) * invDir;
