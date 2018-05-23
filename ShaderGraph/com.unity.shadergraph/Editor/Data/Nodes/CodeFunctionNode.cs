@@ -42,6 +42,12 @@ namespace UnityEditor.ShaderGraph
         protected struct Texture2D
         {}
 
+        protected struct Texture2DArray
+        {}
+
+        protected struct Texture3D
+        {}
+
         protected struct SamplerState
         {}
 
@@ -175,6 +181,14 @@ namespace UnityEditor.ShaderGraph
             if (t == typeof(Texture2D))
             {
                 return SlotValueType.Texture2D;
+            }
+            if (t == typeof(Texture2DArray))
+            {
+                return SlotValueType.Texture2DArray;
+            }
+            if (t == typeof(Texture3D))
+            {
+                return SlotValueType.Texture3D;
             }
             if (t == typeof(Cubemap))
             {

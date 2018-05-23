@@ -8,32 +8,32 @@ using UnityEngine.Experimental.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class Texture2DInputMaterialSlot : Texture2DMaterialSlot
+    public class Texture2DArrayInputMaterialSlot : Texture2DArrayMaterialSlot
     {
         [SerializeField]
-        private SerializableTexture m_Texture = new SerializableTexture();
+        private SerializableTextureArray m_TextureArray = new SerializableTextureArray();
 
-        public Texture texture
+        public Texture2DArray textureArray
         {
-            get { return m_Texture.texture; }
-            set { m_Texture.texture = value; }
+            get { return m_TextureArray.textureArray; }
+            set { m_TextureArray.textureArray = value; }
         }
 
-        public Texture2DInputMaterialSlot()
+        public Texture2DArrayInputMaterialSlot()
         {}
 
-        public Texture2DInputMaterialSlot(
+        public Texture2DArrayInputMaterialSlot(
             int slotId,
             string displayName,
             string shaderOutputName,
-            ShaderStageCapability stageCapability = ShaderStageCapability.All,
+            ShaderStageCapability shaderStageCapability = ShaderStageCapability.All,
             bool hidden = false)
-            : base(slotId, displayName, shaderOutputName, SlotType.Input, stageCapability, hidden)
+            : base(slotId, displayName, shaderOutputName, SlotType.Input, shaderStageCapability, hidden)
         {}
 
         public override VisualElement InstantiateControl()
         {
-            return new TextureSlotControlView(this);
+            return new TextureArraySlotControlView(this);
         }
 
         public override string GetDefaultValue(GenerationMode generationMode)
@@ -51,29 +51,29 @@ namespace UnityEditor.ShaderGraph
             if (matOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
-            var prop = new TextureShaderProperty();
+            var prop = new Texture2DArrayShaderProperty();
             prop.overrideReferenceName = matOwner.GetVariableNameForSlot(id);
             prop.modifiable = false;
             prop.generatePropertyBlock = true;
-            prop.value.texture = texture;
+            prop.value.textureArray = textureArray;
             properties.AddShaderProperty(prop);
         }
 
         public override void GetPreviewProperties(List<PreviewProperty> properties, string name)
         {
-            var pp = new PreviewProperty(PropertyType.Texture2D)
+            var pp = new PreviewProperty(PropertyType.Texture2DArray)
             {
                 name = name,
-                textureValue = texture,
+                textureValue = textureArray,
             };
             properties.Add(pp);
         }
 
         public override void CopyValuesFrom(MaterialSlot foundSlot)
         {
-            var slot = foundSlot as Texture2DInputMaterialSlot;
+            var slot = foundSlot as Texture2DArrayInputMaterialSlot;
             if (slot != null)
-                m_Texture = slot.m_Texture;
+                m_TextureArray = slot.m_TextureArray;
         }
     }
 }

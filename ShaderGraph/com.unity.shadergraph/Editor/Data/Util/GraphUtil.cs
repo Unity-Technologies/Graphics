@@ -7,7 +7,6 @@ using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
 using System.Reflection;
-using System.Text.RegularExpressions;
 
 namespace UnityEditor.ShaderGraph
 {

@@ -8,7 +8,7 @@ using UnityEngine.Experimental.UIElements;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public class Texture2DInputMaterialSlot : Texture2DMaterialSlot
+    public class Texture3DInputMaterialSlot : Texture3DMaterialSlot
     {
         [SerializeField]
         private SerializableTexture m_Texture = new SerializableTexture();
@@ -19,21 +19,21 @@ namespace UnityEditor.ShaderGraph
             set { m_Texture.texture = value; }
         }
 
-        public Texture2DInputMaterialSlot()
+        public Texture3DInputMaterialSlot()
         {}
 
-        public Texture2DInputMaterialSlot(
+        public Texture3DInputMaterialSlot(
             int slotId,
             string displayName,
             string shaderOutputName,
-            ShaderStageCapability stageCapability = ShaderStageCapability.All,
+            ShaderStageCapability shaderStageCapability = ShaderStageCapability.All,
             bool hidden = false)
-            : base(slotId, displayName, shaderOutputName, SlotType.Input, stageCapability, hidden)
+            : base(slotId, displayName, shaderOutputName, SlotType.Input, shaderStageCapability, hidden)
         {}
 
         public override VisualElement InstantiateControl()
         {
-            return new TextureSlotControlView(this);
+            return new Texture3DSlotControlView(this);
         }
 
         public override string GetDefaultValue(GenerationMode generationMode)
@@ -51,7 +51,7 @@ namespace UnityEditor.ShaderGraph
             if (matOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
-            var prop = new TextureShaderProperty();
+            var prop = new Texture3DShaderProperty();
             prop.overrideReferenceName = matOwner.GetVariableNameForSlot(id);
             prop.modifiable = false;
             prop.generatePropertyBlock = true;
@@ -61,7 +61,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void GetPreviewProperties(List<PreviewProperty> properties, string name)
         {
-            var pp = new PreviewProperty(PropertyType.Texture2D)
+            var pp = new PreviewProperty(PropertyType.Texture3D)
             {
                 name = name,
                 textureValue = texture,
@@ -71,7 +71,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void CopyValuesFrom(MaterialSlot foundSlot)
         {
-            var slot = foundSlot as Texture2DInputMaterialSlot;
+            var slot = foundSlot as Texture3DInputMaterialSlot;
             if (slot != null)
                 m_Texture = slot.m_Texture;
         }

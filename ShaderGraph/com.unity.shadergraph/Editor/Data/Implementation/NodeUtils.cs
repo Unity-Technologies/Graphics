@@ -244,6 +244,10 @@ namespace UnityEditor.Graphing
                     return p + "4";
                 case ConcreteSlotValueType.Texture2D:
                     return "Texture2D";
+                case ConcreteSlotValueType.Texture2DArray:
+                    return "Texture2DArray";
+                case ConcreteSlotValueType.Texture3D:
+                    return "Texture3D";
                 case ConcreteSlotValueType.Cubemap:
                     return "Cubemap";
                 case ConcreteSlotValueType.Gradient:

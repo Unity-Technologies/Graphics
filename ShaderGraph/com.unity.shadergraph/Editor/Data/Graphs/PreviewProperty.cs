@@ -55,14 +55,14 @@ namespace UnityEditor.ShaderGraph
         {
             get
             {
-                if (propType != PropertyType.Texture)
-                    throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Texture, propType));
+                if (propType != PropertyType.Texture2D && propType != PropertyType.Texture2DArray && propType != PropertyType.Texture3D)
+                    throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Texture2D, propType));
                 return m_Data.textureValue;
             }
             set
             {
-                if (propType != PropertyType.Texture)
-                    throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Texture, propType));
+                if (propType != PropertyType.Texture2D && propType != PropertyType.Texture2DArray && propType != PropertyType.Texture3D)
+                    throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Texture2D, propType));
                 m_Data.textureValue = value;
             }
         }
@@ -109,7 +109,7 @@ namespace UnityEditor.ShaderGraph
             }
             set
             {
-                if (propType != PropertyType.Vector2 && propType != PropertyType.Vector3 && propType != PropertyType.Vector4 
+                if (propType != PropertyType.Vector2 && propType != PropertyType.Vector3 && propType != PropertyType.Vector4
                     && propType != PropertyType.Matrix2 && propType != PropertyType.Matrix3 && propType != PropertyType.Matrix4)
                     throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Vector4, propType));
                 m_Data.vector4Value = value;
@@ -153,7 +153,7 @@ namespace UnityEditor.ShaderGraph
 
         public void SetMaterialPropertyBlockValue(MaterialPropertyBlock block)
         {
-            if (propType == PropertyType.Texture && textureValue != null)
+            if ((propType == PropertyType.Texture2D || propType == PropertyType.Texture2DArray || propType == PropertyType.Texture3D) && textureValue != null)
                 block.SetTexture(name, m_Data.textureValue);
             else if (propType == PropertyType.Cubemap && cubemapValue != null)
                 block.SetTexture(name, m_Data.cubemapValue);
