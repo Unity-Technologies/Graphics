@@ -145,6 +145,11 @@ float _Drag;
 float _ShiverDrag;
 float _ShiverDirectionality;
 
+// Specular AA
+float _EnableGeometricSpecularAA;
+float _SpecularAAScreenSpaceVariance;
+float _SpecularAAThreshold;
+
 #ifndef LAYERED_LIT_SHADER
 
 // Set of users variables

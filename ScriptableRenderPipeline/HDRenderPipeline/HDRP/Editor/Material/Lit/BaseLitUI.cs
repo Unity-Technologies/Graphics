@@ -58,6 +58,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent windShiverDirectionalityText = new GUIContent("Shiver Directionality");
 
             public static GUIContent supportDBufferText = new GUIContent("Enable Decal", "Allow to specify if the material can receive decal or not");
+
+            public static GUIContent enableGeometricSpecularAAText = new GUIContent("Enable geometric specular AA", "This reduce specular aliasing on highly dense mesh (Particularly useful when they don't use using normal map)");
+            public static GUIContent specularAAScreenSpaceVarianceText = new GUIContent("Screen space variance", "Allow to control the strength of the specular AA reduction. Higher mean more blurry result and less aliasing");
+            public static GUIContent specularAAThresholdText = new GUIContent("Threshold", "Allow to limit the effect of specular AA reduction. 0 mean don't apply reduction, higher value mean allow higher reduction");
         }
 
         public enum DoubleSidedNormalMode
@@ -168,7 +172,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // Decal
         protected MaterialProperty supportDBuffer = null;
         protected const string kSupportDBuffer = "_SupportDBuffer";
-
+        protected MaterialProperty enableGeometricSpecularAA = null;
+        protected const string kEnableGeometricSpecularAA = "_EnableGeometricSpecularAA";
+        protected MaterialProperty specularAAScreenSpaceVariance = null;
+        protected const string kSpecularAAScreenSpaceVariance = "_SpecularAAScreenSpaceVariance";
+        protected MaterialProperty specularAAThreshold = null;
+        protected const string kSpecularAAThreshold = "_SpecularAAThreshold";
 
         protected override void FindBaseMaterialProperties(MaterialProperty[] props)
         {
@@ -212,6 +221,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Decal
             supportDBuffer = FindProperty(kSupportDBuffer, props);
+
+            // specular AA
+            enableGeometricSpecularAA = FindProperty(kEnableGeometricSpecularAA, props, false);
+            specularAAScreenSpaceVariance = FindProperty(kSpecularAAScreenSpaceVariance, props, false);
+            specularAAThreshold = FindProperty(kSpecularAAThreshold, props, false);
         }
 
         void TessellationModePopup()
@@ -256,6 +270,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             m_MaterialEditor.ShaderProperty(supportDBuffer, StylesBaseLit.supportDBufferText);
+
+            m_MaterialEditor.ShaderProperty(enableGeometricSpecularAA, StylesBaseLit.enableGeometricSpecularAAText);
+
+            if (enableGeometricSpecularAA.floatValue > 0.0)
+            {
+                EditorGUI.indentLevel++;
+                m_MaterialEditor.ShaderProperty(specularAAScreenSpaceVariance, StylesBaseLit.specularAAScreenSpaceVarianceText);
+                m_MaterialEditor.ShaderProperty(specularAAThreshold, StylesBaseLit.specularAAThresholdText);
+                EditorGUI.indentLevel--;
+            }
 
             m_MaterialEditor.ShaderProperty(enableMotionVectorForVertexAnimation, StylesBaseUnlit.enableMotionVectorForVertexAnimationText);
 
@@ -411,6 +435,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Use negation so we don't create keyword by default
             CoreUtils.SetKeyword(material, "_DISABLE_DBUFFER", material.GetFloat(kSupportDBuffer) == 0.0);
+
+            CoreUtils.SetKeyword(material, "_ENABLE_GEOMETRIC_SPECULAR_AA", material.GetFloat(kEnableGeometricSpecularAA) == 1.0);
         }
 
         static public void SetupBaseLitMaterialPass(Material material)
