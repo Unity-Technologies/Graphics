@@ -16,9 +16,9 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
         #include "LWRP/ShaderLibrary/Shadows.hlsl"
 
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-        TEXTURE2D_ARRAY(_CameraDepthTexture);
+        TEXTURE2D_ARRAY_FLOAT(_CameraDepthTexture);
 #else
-        TEXTURE2D(_CameraDepthTexture);
+        TEXTURE2D_FLOAT(_CameraDepthTexture);
 #endif
 
         SAMPLER(sampler_CameraDepthTexture);
