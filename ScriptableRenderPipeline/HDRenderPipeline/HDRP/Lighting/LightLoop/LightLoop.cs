@@ -342,7 +342,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_lightCount = 0;
         int m_densityVolumeCount = 0;
         bool m_enableBakeShadowMask = false; // Track if any light require shadow mask. In this case we will need to enable the keyword shadow mask
-        float m_maxShadowDistance = 0.0f; // Save value from shadow settings
 
         private ComputeShader buildScreenAABBShader { get { return m_Resources.buildScreenAABBShader; } }
         private ComputeShader buildPerTileLightListShader { get { return m_Resources.buildPerTileLightListShader; } }
@@ -853,14 +852,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (IsBakedShadowMaskLight(light.light))
             {
                 directionalLightData.shadowMaskSelector[light.light.bakingOutput.occlusionMaskChannel] = 1.0f;
-                // TODO: make this option per light, not global
-                directionalLightData.dynamicShadowCasterOnly = QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask ? 1 : 0;
+                directionalLightData.nonLightmappedOnly = light.light.lightShadowCasterMode == LightShadowCasterMode.NonLightmappedOnly ? 1 : 0;
             }
             else
             {
                 // use -1 to say that we don't use shadow mask
                 directionalLightData.shadowMaskSelector.x = -1.0f;
-                directionalLightData.dynamicShadowCasterOnly = 0;
+                directionalLightData.nonLightmappedOnly = 0;
             }
 
             // Fallback to the first non shadow casting directional light.
@@ -1036,13 +1034,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 lightData.shadowMaskSelector[light.light.bakingOutput.occlusionMaskChannel] = 1.0f;
                 // TODO: make this option per light, not global
-                lightData.dynamicShadowCasterOnly = QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask ? 1 : 0;
+                lightData.nonLightmappedOnly = light.light.lightShadowCasterMode == LightShadowCasterMode.NonLightmappedOnly ? 1 : 0;
             }
             else
             {
                 // use -1 to say that we don't use shadow mask
                 lightData.shadowMaskSelector.x = -1.0f;
-                lightData.dynamicShadowCasterOnly = 0;
+                lightData.nonLightmappedOnly = 0;
             }
 
             m_lightList.lights.Add(lightData);
@@ -1468,7 +1466,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // If any light require it, we need to enabled bake shadow mask feature
                 m_enableBakeShadowMask = false;
-                m_maxShadowDistance = shadowSettings.maxShadowDistance;
 
                 m_lightList.Clear();
 

@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph
             return "{ Out = unity_gradientNoise(UV * Scale) + 0.5; }";
         }
 
-        public override void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
+        public override void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
         {
             registry.ProvideFunction("unity_gradientNoise_dir", s => s.Append(@"
 float2 unity_gradientNoise_dir(float2 p)
@@ -57,7 +57,7 @@ float unity_gradientNoise(float2 p)
 }
 "));
 
-            base.GenerateNodeFunction(registry, generationMode);
+            base.GenerateNodeFunction(registry, graphContext, generationMode);
         }
     }
 }

@@ -189,21 +189,21 @@ namespace UnityEditor.ShaderGraph
                 return false;
         }
 
-        public NeededCoordinateSpace RequiresTangent()
+        public NeededCoordinateSpace RequiresTangent(ShaderStageCapability stageCapability)
         {
             if(RequiresWorldSpaceTangentTransform())
                 return NeededCoordinateSpace.World;
             return conversion.from.ToNeededCoordinateSpace();
         }
 
-        public NeededCoordinateSpace RequiresBitangent()
+        public NeededCoordinateSpace RequiresBitangent(ShaderStageCapability stageCapability)
         {
             if (RequiresWorldSpaceTangentTransform())
                 return NeededCoordinateSpace.World;
             return conversion.from.ToNeededCoordinateSpace();
         }
 
-        public NeededCoordinateSpace RequiresNormal()
+        public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
         {
             if (RequiresWorldSpaceTangentTransform())
                 return NeededCoordinateSpace.World;

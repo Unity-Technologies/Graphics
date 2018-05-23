@@ -4,7 +4,7 @@ namespace UnityEditor.ShaderGraph
 {
     public interface IMayRequireMeshUV
     {
-        bool RequiresMeshUV(UVChannel channel);
+        bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability = ShaderStageCapability.All);
     }
 
     public static class MayRequireMeshUVExtensions

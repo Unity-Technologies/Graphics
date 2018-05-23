@@ -46,7 +46,7 @@ namespace UnityEditor.ShaderGraph
             AddSlot(new SamplerStateMaterialSlot(SamplerInputId, k_SamplerInputName, k_SamplerInputName, SlotType.Input));
             AddSlot(new Vector1MaterialSlot(OffsetInputId, k_OffsetInputName, k_OffsetInputName, SlotType.Input, 0.5f));
             AddSlot(new Vector1MaterialSlot(StrengthInputId, k_StrengthInputName, k_StrengthInputName, SlotType.Input, 8f));
-            AddSlot(new Vector3MaterialSlot(OutputSlotId, k_OutputSlotName, k_OutputSlotName, SlotType.Output, Vector3.zero));
+            AddSlot(new Vector3MaterialSlot(OutputSlotId, k_OutputSlotName, k_OutputSlotName, SlotType.Output, Vector3.zero, ShaderStageCapability.Fragment));
             RemoveSlotsNameNotMatching(new[] { TextureInputId, UVInputId, SamplerInputId, OffsetInputId, StrengthInputId, OutputSlotId });
         }
 
@@ -89,9 +89,9 @@ namespace UnityEditor.ShaderGraph
                 sb.AppendLine("{0}2 offsetU = float2(UV.x + Offset, UV.y);", precision);
                 sb.AppendLine("{0}2 offsetV = float2(UV.x, UV.y + Offset);", precision);
 
-                sb.AppendLine("{0} normalSample = Texture.Sample(Sampler, UV);", precision);
-                sb.AppendLine("{0} uSample = Texture.Sample(Sampler, offsetU);", precision);
-                sb.AppendLine("{0} vSample = Texture.Sample(Sampler, offsetV);", precision);
+                sb.AppendLine("{0} normalSample = Texture.Sample(Sampler, UV).x;", precision);
+                sb.AppendLine("{0} uSample = Texture.Sample(Sampler, offsetU).x;", precision);
+                sb.AppendLine("{0} vSample = Texture.Sample(Sampler, offsetV).x;", precision);
 
                 sb.AppendLine("{0}3 va = float3(1, 0, (uSample - normalSample) * Strength);", precision);
                 sb.AppendLine("{0}3 vb = float3(0, 1, (vSample - normalSample) * Strength);", precision);
@@ -101,7 +101,7 @@ namespace UnityEditor.ShaderGraph
             visitor.AddShaderChunk(sb.ToString(), true);
         }
 
-        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
+        public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
         {
             registry.ProvideFunction(GetFunctionName(), s =>
             {
@@ -129,7 +129,7 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        public bool RequiresMeshUV(UVChannel channel)
+        public bool RequiresMeshUV(UVChannel channel, ShaderStageCapability stageCapability)
         {
             foreach (var slot in this.GetInputSlots<MaterialSlot>().OfType<IMayRequireMeshUV>())
             {

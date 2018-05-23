@@ -34,6 +34,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty fadeDistance;
             public SerializedProperty affectDiffuse;
             public SerializedProperty affectSpecular;
+            public SerializedProperty nonLightmappedOnly;
             public SerializedProperty lightTypeExtent;
             public SerializedProperty spotLightShape;
             public SerializedProperty shapeWidth;
@@ -116,6 +117,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 fadeDistance = o.Find(x => x.fadeDistance),
                 affectDiffuse = o.Find(x => x.affectDiffuse),
                 affectSpecular = o.Find(x => x.affectSpecular),
+                nonLightmappedOnly = o.Find(x => x.nonLightmappedOnly),
                 lightTypeExtent = o.Find(x => x.lightTypeExtent),
                 spotLightShape = o.Find(x => x.spotLightShape),
                 shapeWidth = o.Find(x => x.shapeWidth),
@@ -476,6 +478,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 case LightType.Point:
                     EditorGUILayout.PropertyField(settings.bakedShadowRadiusProp, s_Styles.bakedShadowRadius);
                     break;
+            }
+
+
+            if (settings.isMixed)
+            {
+                EditorGUI.BeginChangeCheck();
+
+                EditorGUILayout.PropertyField(m_AdditionalLightData.nonLightmappedOnly, s_Styles.nonLightmappedOnly);
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    ((Light)target).lightShadowCasterMode = m_AdditionalLightData.nonLightmappedOnly.boolValue ? LightShadowCasterMode.NonLightmappedOnly : LightShadowCasterMode.Everything;
+                }
             }
         }
 
