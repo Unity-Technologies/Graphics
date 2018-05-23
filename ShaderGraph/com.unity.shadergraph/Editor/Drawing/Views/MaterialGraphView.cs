@@ -273,7 +273,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         static bool ValidateObjectForDrop(Object obj)
         {
-            return EditorUtility.IsPersistent(obj) && (obj is Texture2D || obj is Cubemap || obj is MaterialSubGraphAsset);
+            return EditorUtility.IsPersistent(obj) && (obj is Texture2D || obj is Cubemap || obj is MaterialSubGraphAsset || obj is Texture2DArray || obj is Texture3D);
         }
 
         static void OnDragUpdatedEvent(DragUpdatedEvent e)
@@ -365,6 +365,38 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (inputslot != null)
                     inputslot.texture = texture2D;
 
+            }
+
+            var textureArray = obj as Texture2DArray;
+            if (textureArray != null)
+            {
+                graph.owner.RegisterCompleteObjectUndo("Drag Texture Array");
+                var property = new Texture2DArrayShaderProperty { displayName = textureArray.name, value = { textureArray = textureArray } };
+                graph.AddShaderProperty(property);
+                var node = new SampleTexture2DArrayNode();
+                var drawState = node.drawState;
+                drawState.position = new Rect(nodePosition, drawState.position.size);
+                node.drawState = drawState;
+                graph.AddNode(node);
+                var inputslot = node.FindSlot<Texture2DArrayInputMaterialSlot>(SampleTexture2DArrayNode.TextureInputId);
+                if (inputslot != null)
+                    inputslot.textureArray = textureArray;
+            }
+
+            var texture3D = obj as Texture3D;
+            if (texture3D != null)
+            {
+                graph.owner.RegisterCompleteObjectUndo("Drag Texture 3D");
+                var property = new Texture3DShaderProperty { displayName = texture3D.name, value = { texture = texture3D } };
+                graph.AddShaderProperty(property);
+                var node = new SampleTexture3DNode();
+                var drawState = node.drawState;
+                drawState.position = new Rect(nodePosition, drawState.position.size);
+                node.drawState = drawState;
+                graph.AddNode(node);
+                var inputslot = node.FindSlot<Texture3DInputMaterialSlot>(SampleTexture3DNode.TextureInputId);
+                if (inputslot != null)
+                    inputslot.texture = texture3D;
             }
 
             var cubemap = obj as Cubemap;
