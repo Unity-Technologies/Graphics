@@ -9,11 +9,6 @@ namespace UnityEngine.Experimental.Rendering
 
     public sealed partial class DebugManager
     {
-#if UNITY_EDITOR
-        // HACK: Make debug windows work correctly with FrameSettings in Editor
-        public static bool renderPipelineIsRecreated = false;
-#endif
-
         static readonly DebugManager s_Instance = new DebugManager();
         public static DebugManager instance { get { return s_Instance; } }
 
@@ -36,6 +31,8 @@ namespace UnityEngine.Experimental.Rendering
 
         public event Action<bool> onDisplayRuntimeUIChanged = delegate { };
         public event Action onSetDirty = delegate { };
+
+        public bool refreshEditorRequested;
 
         GameObject m_Root;
         DebugUIHandlerCanvas m_RootUICanvas;
@@ -96,6 +93,11 @@ namespace UnityEngine.Experimental.Rendering
         {
             RegisterInputs();
             RegisterActions();
+        }
+
+        public void RefreshEditor()
+        {
+            refreshEditorRequested = true;
         }
 
         public void Reset()
