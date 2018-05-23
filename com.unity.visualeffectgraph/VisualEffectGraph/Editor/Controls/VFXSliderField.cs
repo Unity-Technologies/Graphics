@@ -103,6 +103,11 @@ namespace UnityEditor.VFX.UIElements
             }
         }
 
+        public void SetValueWithoutNotify(T newValue)
+        {
+            value = newValue;
+        }
+
         protected void ValueChanged(ChangeEvent<T> e)
         {
             e.StopPropagation();

@@ -38,6 +38,11 @@ namespace UnityEditor.VFX.UIElements
             }
         }
 
+        public void SetValueWithoutNotify(T newValue)
+        {
+            value = newValue;
+        }
+
         public void ForceUpdate()
         {
             ValueToGUI(true);
