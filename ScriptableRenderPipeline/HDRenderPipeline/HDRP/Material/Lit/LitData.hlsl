@@ -231,6 +231,11 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     }
 #endif
 
+#ifdef _ENABLE_GEOMETRIC_SPECULAR_AA
+    // Specular AA
+    surfaceData.perceptualSmoothness = GeometricFilterPerceptualSmoothness(surfaceData.perceptualSmoothness, input.worldToTangent[2], _SpecularAAScreenSpaceVariance, _SpecularAAThreshold);
+#endif
+
     // Caution: surfaceData must be fully initialize before calling GetBuiltinData
     GetBuiltinData(input, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);
 }
