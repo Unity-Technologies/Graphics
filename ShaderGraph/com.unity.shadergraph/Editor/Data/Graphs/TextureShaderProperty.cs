@@ -19,7 +19,7 @@ namespace UnityEditor.ShaderGraph
 
         public override PropertyType propertyType
         {
-            get { return PropertyType.Texture; }
+            get { return PropertyType.Texture2D; }
         }
 
         public bool modifiable
@@ -61,7 +61,7 @@ namespace UnityEditor.ShaderGraph
 
         public override PreviewProperty GetPreviewMaterialProperty()
         {
-            return new PreviewProperty(PropertyType.Texture)
+            return new PreviewProperty(PropertyType.Texture2D)
             {
                 name = referenceName,
                 textureValue = value.texture
