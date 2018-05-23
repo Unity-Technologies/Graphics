@@ -573,9 +573,16 @@ namespace UnityEditor.VFX.Test
             m_ViewController.AddVFXContext(new Vector2(2, 2), contextUpdateDesc);
             var blockAttribute = blockAttributeDesc.CreateInstance();
             blockAttribute.SetSettingValue("attribute", "color");
+            blockAttribute.SetSettingValue("Source", Block.SetAttribute.ValueSource.Slot);
             fnFirstContextController().AddBlock(0, blockAttribute);
 
-            var edgeController = new VFXDataEdgeController(fnFirstBlockController().inputPorts[0], fnFindController(typeof(Operator.Cosine)).outputPorts[0]);
+            var firstBlockController = fnFirstBlockController();
+            var cosController = fnFindController(typeof(Operator.Cosine));
+
+            var blockInputPorts = firstBlockController.inputPorts.ToArray();
+            var cosOutputPorts = cosController.outputPorts.ToArray();
+
+            var edgeController = new VFXDataEdgeController(blockInputPorts[0], cosOutputPorts[0]);
             m_ViewController.AddElement(edgeController);
             Undo.IncrementCurrentGroup();
 

@@ -43,9 +43,11 @@ Pass
 #define VFX_VARYING_COLOR color.rgb
 #define VFX_VARYING_ALPHA color.a
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x
+#if USE_FLIPBOOK
 #define VFX_VARYING_TEXINDEX builtInInterpolants.y
 #define VFX_VARYING_FLIPBOOKSIZE flipbookSize.xy
 #define VFX_VARYING_INVFLIPBOOKSIZE flipbookSize.zw
+#endif
 				
 	${VFXBegin:VFXVertexAdditionalProcess}
 float4x4 viewToDecal = GetVFXToElementMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);

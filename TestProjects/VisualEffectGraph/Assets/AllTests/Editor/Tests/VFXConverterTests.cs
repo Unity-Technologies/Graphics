@@ -38,11 +38,20 @@ namespace UnityEditor.VFX.Test
             get { BuildValueSources(); return s_FailingConversions; }
         }
 
+
+        [OneTimeTearDown]
+        public void TearDown()
+        {
+            Object.DestroyImmediate(s_Texture);
+            s_Texture = null;
+        }
+
         static void BuildValueSources()
         {
             if (s_Texture == null)
             {
                 s_Texture = new Texture2D(16, 16);
+                s_Texture.hideFlags = HideFlags.HideAndDontSave;
 
                 s_Conversions = new Conversion[]
                 {
