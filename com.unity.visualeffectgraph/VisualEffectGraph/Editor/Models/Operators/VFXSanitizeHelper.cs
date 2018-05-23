@@ -166,7 +166,7 @@ namespace UnityEditor.VFX
                 var current = realTypeAndValue[i];
                 if (!current.wasFloatN)
                 {
-                    VFXSlot.TransferLinksAndValue(output.inputSlots[i], input.inputSlots[i], true);
+                    VFXSlot.CopyLinksAndValues(output.inputSlots[i], input.inputSlots[i], true);
                 }
                 else
                 {
@@ -177,7 +177,7 @@ namespace UnityEditor.VFX
                         if (slotSrc.CanLink(slotDst))
                         {
                             //Main path (most common case)
-                            VFXSlot.TransferLinks(output.inputSlots[i], input.inputSlots[i], true);
+                            VFXSlot.CopyLinks(output.inputSlots[i], input.inputSlots[i], true);
                         }
                         else
                         {
@@ -223,7 +223,7 @@ namespace UnityEditor.VFX
 
             for (int i = 0; i < input.outputSlots.Count; ++i)
             {
-                VFXSlot.TransferLinks(output.outputSlots[i], input.outputSlots[i], true);
+                VFXSlot.CopyLinks(output.outputSlots[i], input.outputSlots[i], true);
             }
             VFXModel.ReplaceModel(output, input);
         }

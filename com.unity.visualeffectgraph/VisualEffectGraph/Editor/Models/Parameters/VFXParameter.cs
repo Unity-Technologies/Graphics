@@ -399,7 +399,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override void TransferLinkOtherSlot(VFXSlot mySlot, VFXSlot prevOtherSlot, VFXSlot newOtherSlot)
+        public override void CopyLinkOtherSlot(VFXSlot mySlot, VFXSlot prevOtherSlot, VFXSlot newOtherSlot)
         {
             foreach (var node in m_Nodes)
             {
@@ -414,7 +414,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override void TransferLinkMySlot(VFXSlot myPrevSlot, VFXSlot myNewSlot, VFXSlot otherSlot)
+        public override void CopyLinkMySlot(VFXSlot myPrevSlot, VFXSlot myNewSlot, VFXSlot otherSlot)
         {
             foreach (var node in m_Nodes)
             {

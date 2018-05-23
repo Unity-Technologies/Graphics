@@ -263,6 +263,7 @@ namespace UnityEditor.VFX
             CollectDependencies(objs);
 
             //Compute safe order of SlotContainer to minimize invalidation while removing old operators
+            //TODO : this behavior is only needed, simply replace with a objs.OfType<VFXModel> once FloatN has been completely remove
             var remainingSlotContainers = objs.Where(o => o is IVFXSlotContainer).ToList();
             var sortedSlotContainers = new List<ScriptableObject>();
             while (remainingSlotContainers.Any())

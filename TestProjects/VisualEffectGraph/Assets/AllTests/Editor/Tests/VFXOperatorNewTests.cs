@@ -504,7 +504,6 @@ namespace UnityEditor.VFX.Test
              new KeyValuePair<Type, int>(typeof(SwizzleDeprecated), 1),
              new KeyValuePair<Type, int>(typeof(TangentDeprecated), 1),
              new KeyValuePair<Type, int>(typeof(TriangleWaveDeprecated), 2),
-             new KeyValuePair<Type, int>(typeof(Operator.Random), 2)
         };
 
         [Test]

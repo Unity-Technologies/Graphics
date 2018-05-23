@@ -322,16 +322,16 @@ namespace UnityEditor.VFX
             throw new InvalidOperationException(string.Format("Unable to create slot for property {0} of type {1}", property.name, property.type));
         }
 
-        public static void TransferLinksAndValue(VFXSlot dst, VFXSlot src, bool notify)
+        public static void CopyLinksAndValues(VFXSlot dst, VFXSlot src, bool notify)
         {
             // Transfer value only if src can hold it (master slot)
             if (dst.IsMasterSlot())
                 dst.SetValueInternal(src.value, notify);
 
-            TransferLinks(dst, src, notify);
+            CopyLinks(dst, src, notify);
         }
 
-        public static void TransferLinks(VFXSlot dst, VFXSlot src, bool notify)
+        public static void CopyLinks(VFXSlot dst, VFXSlot src, bool notify)
         {
             var links = src.LinkedSlots.ToArray();
             int index = 0;
@@ -343,8 +343,8 @@ namespace UnityEditor.VFX
                 {
                     dst.Link(link, notify);
 
-                    dst.owner.TransferLinkMySlot(src, dst, link);
-                    link.owner.TransferLinkOtherSlot(link, src, dst);
+                    dst.owner.CopyLinkMySlot(src, dst, link);
+                    link.owner.CopyLinkOtherSlot(link, src, dst);
                 }
                 ++index;
             }
@@ -353,7 +353,7 @@ namespace UnityEditor.VFX
             {
                 int nbSubSlots = src.GetNbChildren();
                 for (int i = 0; i < nbSubSlots; ++i)
-                    TransferLinks(dst[i], src[i], notify);
+                    CopyLinks(dst[i], src[i], notify);
             }
         }
 
@@ -443,7 +443,7 @@ namespace UnityEditor.VFX
                     parent.AddChild(newSlot, index);
                 }
 
-                TransferLinks(newSlot, this, true);
+                CopyLinks(newSlot, this, true);
                 UnlinkAll(true);
             }
         }

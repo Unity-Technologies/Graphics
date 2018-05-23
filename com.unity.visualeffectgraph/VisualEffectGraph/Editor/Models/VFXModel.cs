@@ -279,7 +279,7 @@ namespace UnityEditor.VFX
 
         public IEnumerable<FieldInfo> GetSettings(bool listHidden, VFXSettingAttribute.VisibleFlags flags = VFXSettingAttribute.VisibleFlags.All)
         {
-            return GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.FlattenHierarchy).Where(f =>
+            return GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).Where(f =>
                 {
                     var attrArray = f.GetCustomAttributes(typeof(VFXSettingAttribute), true);
                     if (attrArray.Length == 1)
