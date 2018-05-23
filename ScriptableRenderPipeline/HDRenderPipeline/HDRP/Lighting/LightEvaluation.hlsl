@@ -70,14 +70,16 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
         int cascadeCount;
         int shadowSplitIndex = EvalShadow_GetSplitIndex(lightLoopContext.shadowContext, lightData.shadowIndex, positionWS, payloadOffset, fade, cascadeCount);
         // we have a fade caclulation for each cascade but we must lerp with shadow mask only for the last one
-        fade = ((shadowSplitIndex + 1) == cascadeCount || shadowSplitIndex == -1.0) ? fade : 0.0;
+        // if shadowSplitIndex is -1 it mean we are outside cascade and should return 1.0 to use shadowmask: saturate(-shadowSplitIndex) return 0 for >= 0 and 1 for -1
+        fade = ((shadowSplitIndex + 1) == cascadeCount) ? fade : saturate(-shadowSplitIndex);
 
-        // See comment in EvaluateBSDF_Punctual
-        shadow = lightData.dynamicShadowCasterOnly ? min(shadowMask, shadow) : shadow;
         // In the transition code (both dithering and blend) we use shadow = lerp( shadow, 1.0, fade ) for last transition
         // mean if we expend the code we have (shadow * (1 - fade) + fade). Here to make transition with shadow mask
         // we will remove fade and add fade * shadowMask which mean we do a lerp with shadow mask
         shadow = shadow - fade + fade * shadowMask;
+
+        // See comment in EvaluateBSDF_Punctual
+        shadow = lightData.nonLightmappedOnly ? min(shadowMask, shadow) : shadow;
 
         // Note: There is no shadowDimmer when there is no shadow mask
 #endif
@@ -173,7 +175,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
         // The min handle the case of having only dynamic objects in the ShadowMap
         // The second case for blend with distance is handled with ShadowDimmer. ShadowDimmer is define manually and by shadowDistance by light.
         // With distance, ShadowDimmer become one and only the ShadowMask appear, we get the blend with distance behavior.
-        shadow = lightData.dynamicShadowCasterOnly ? min(shadowMask, shadow) : shadow;
+        shadow = lightData.nonLightmappedOnly ? min(shadowMask, shadow) : shadow;
         shadow = lerp(shadowMask, shadow, lightData.shadowDimmer);
 #else
         shadow = lerp(1.0, shadow, lightData.shadowDimmer);

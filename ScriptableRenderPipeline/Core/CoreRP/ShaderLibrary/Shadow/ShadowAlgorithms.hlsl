@@ -432,7 +432,7 @@ int EvalShadow_GetSplitIndex( ShadowContext shadowContext, int index, real3 posi
 	payloadOffset++;
 		  alpha      = border <= 0.0 ? 0.0 : saturate( (relDistance - (1.0 - border)) / border );
 	real  cascDot    = dot( cascadeDir, wposDir );
-		  alpha      = cascDot > 0.0 ? alpha : lerp( alpha, 0.0, saturate( -cascDot * 4.0 ) );
+		  alpha      = lerp( alpha, 0.0, saturate( -cascDot * 4.0 ) );
 
 	return shadowSplitIndex;
 }
