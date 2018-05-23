@@ -60,8 +60,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         // TODO: Profile performance of using ComputeBuffer on mobiles that support it
         public bool useComputeBufferForPerObjectLightIndices
         {
-            get { return SystemInfo.supportsComputeShaders &&
-                !Application.isMobilePlatform && Application.platform != RuntimePlatform.WebGLPlayer; }
+            get
+            {
+                return SystemInfo.supportsComputeShaders &&
+                    !Application.isMobilePlatform && Application.platform != RuntimePlatform.WebGLPlayer;
+            }
         }
 
         public int maxVisibleLocalLights { get { return k_MaxVisibleLocalLights; } }
@@ -93,7 +96,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             RegisterSurface("_DirectionalShadowmapTexture", out RenderTargetHandles.DirectionalShadowmap);
             RegisterSurface("_LocalShadowmapTexture", out RenderTargetHandles.LocalShadowmap);
             RegisterSurface("_ScreenSpaceShadowMapTexture", out RenderTargetHandles.ScreenSpaceShadowmap);
-            
+
             m_Materials = new Material[(int)MaterialHandles.Count]
             {
                 CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader"),
@@ -101,7 +104,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 CoreUtils.CreateEngineMaterial(pipelineAsset.SamplingShader),
                 CoreUtils.CreateEngineMaterial(pipelineAsset.BlitShader),
                 CoreUtils.CreateEngineMaterial(pipelineAsset.ScreenSpaceShadowShader),
-            };    
+            };
 
             m_RenderPassSet = new ScriptableRenderPass[(int)RenderPassHandles.Count]
             {
@@ -111,7 +114,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 new ScreenSpaceShadowResolvePass(this),
                 new ForwardLitPass(this),
             };
-        
+
             postProcessRenderContext = new PostProcessRenderContext();
 
             opaqueFilterSettings = new FilterRenderersSettings(true)
@@ -158,7 +161,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public void Setup(ref ScriptableRenderContext context, ref CullResults cullResults, ref RenderingData renderingData)
         {
             Clear();
-            
+
             SetupPerObjectLightIndices(ref cullResults, ref renderingData.lightData);
             RenderTextureDescriptor baseDescriptor = CreateRTDesc(ref renderingData.cameraData);
 
@@ -241,7 +244,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 Debug.LogError(string.Format("Handle {0} has not any surface registered to it.", handle));
                 return new RenderTargetIdentifier();
             }
-            
+
             return renderTargetID;
         }
 
@@ -251,7 +254,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (handleID >= m_Materials.Length)
             {
                 Debug.LogError(string.Format("Material {0} is not registered.",
-                 Enum.GetName(typeof(MaterialHandles), handleID)));
+                        Enum.GetName(typeof(MaterialHandles), handleID)));
                 return null;
             }
 
@@ -263,8 +266,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             int handleID = (int)handle;
             if (handleID >= m_RenderPassSet.Length)
             {
-                Debug.LogError(string.Format("Render Pass {0} is not registered.", 
-                 Enum.GetName(typeof(RenderPassHandles), handleID)));
+                Debug.LogError(string.Format("Render Pass {0} is not registered.",
+                        Enum.GetName(typeof(RenderPassHandles), handleID)));
                 return null;
             }
 

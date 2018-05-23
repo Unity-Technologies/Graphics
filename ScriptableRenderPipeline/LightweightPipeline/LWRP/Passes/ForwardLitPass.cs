@@ -132,7 +132,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             if (renderingData.cameraData.postProcessEnabled)
                 PostProcessPass(ref context, ref renderingData.cameraData);
-            else if (!renderingData.cameraData.isOffscreenRender && colorAttachmentHandle != -1) 
+            else if (!renderingData.cameraData.isOffscreenRender && colorAttachmentHandle != -1)
                 FinalBlitPass(ref context, ref renderingData.cameraData);
 
             if (renderingData.cameraData.isStereoEnabled)
@@ -354,7 +354,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             CommandBuffer cmd = CommandBufferPool.Get("Final Blit Pass");
             cmd.SetGlobalTexture("_BlitTex", sourceRT);
-            
+
             if (!cameraData.isDefaultViewport)
             {
                 SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.All, Color.black);

@@ -98,7 +98,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             int shadowSampling = 0;
 
             m_LocalShadowmapTexture = RenderTexture.GetTemporary(shadowData.localShadowAtlasWidth,
-             shadowData.localShadowAtlasHeight, k_ShadowmapBufferBits, m_LocalShadowmapFormat);
+                    shadowData.localShadowAtlasHeight, k_ShadowmapBufferBits, m_LocalShadowmapFormat);
             m_LocalShadowmapTexture.filterMode = FilterMode.Bilinear;
             m_LocalShadowmapTexture.wrapMode = TextureWrapMode.Clamp;
 
@@ -153,7 +153,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CommandBufferPool.Release(cmd);
 
             // TODO: We should have RenderingData as a readonly but currently we need this to pass shadow rendering to litpass
-            shadowData.renderedLocalShadowQuality = (shadowData.supportsSoftShadows) ? (LightShadows)shadowSampling : LightShadows.Hard; ;
+            shadowData.renderedLocalShadowQuality = (shadowData.supportsSoftShadows) ? (LightShadows)shadowSampling : LightShadows.Hard;
         }
 
         void SetupLocalLightsShadowReceiverConstants(ref ScriptableRenderContext context, CommandBuffer cmd, ref ShadowData shadowData)

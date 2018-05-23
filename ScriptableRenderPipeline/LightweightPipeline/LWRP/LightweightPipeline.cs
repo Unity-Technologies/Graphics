@@ -90,7 +90,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             // Sort cameras array by camera depth
             Array.Sort(cameras, m_CameraComparer);
-            
+
             foreach (Camera camera in cameras)
             {
                 BeginCameraRendering(camera);
@@ -99,7 +99,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 CameraData cameraData;
                 InitializeCameraData(camera, out cameraData);
                 SetupPerCameraShaderConstants(cameraData);
-                
+
                 ScriptableCullingParameters cullingParameters;
                 if (!CullResults.GetCullingParameters(camera, cameraData.isStereoEnabled, out cullingParameters))
                     continue;
@@ -122,7 +122,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 m_IsCameraRendering = false;
             }
-
         }
 
         void InitializeCameraData(Camera camera, out CameraData cameraData)
