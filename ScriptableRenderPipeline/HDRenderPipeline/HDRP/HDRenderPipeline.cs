@@ -102,6 +102,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RTHandleSystem.RTHandle m_CameraDepthBufferCopy;
         RTHandleSystem.RTHandle m_CameraStencilBufferCopy;
 
+        RTHandleSystem.RTHandle m_VelocityBuffer;
         RTHandleSystem.RTHandle m_DeferredShadowBuffer;
         RTHandleSystem.RTHandle m_AmbientOcclusionBuffer;
         RTHandleSystem.RTHandle m_DistortionBuffer;
@@ -301,6 +302,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_AmbientOcclusionBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Bilinear, colorFormat: RenderTextureFormat.R8, sRGB: false, enableRandomWrite: true, name: "AmbientOcclusion");
             }
 
+            if (m_Asset.renderPipelineSettings.supportMotionVectors)
+            {
+                m_VelocityBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: Builtin.GetVelocityBufferFormat(), sRGB: Builtin.GetVelocityBufferSRGBFlag(), enableMSAA: true, name: "Velocity");
+            }
+
             m_DistortionBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: Builtin.GetDistortionBufferFormat(), sRGB: Builtin.GetDistortionBufferSRGBFlag(), name: "Distortion");
 
             // TODO: For MSAA, we'll need to add a Draw path in order to support MSAA properly
@@ -327,6 +333,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandles.Release(m_CameraStencilBufferCopy);
 
             RTHandles.Release(m_AmbientOcclusionBuffer);
+            RTHandles.Release(m_VelocityBuffer);
             RTHandles.Release(m_DistortionBuffer);
             RTHandles.Release(m_DeferredShadowBuffer);
 
@@ -614,29 +621,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetGlobalVector(HDShaderIDs._ColorPyramidSize, Vector4.one);
                     cmd.SetGlobalVector(HDShaderIDs._ColorPyramidScale, Vector4.one);
                 }
-
-                var previousMotionVectorsRT = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.MotionVectors);
-                if (previousMotionVectorsRT != null)
-                {
-                    cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, previousMotionVectorsRT);
-                    cmd.SetGlobalVector(HDShaderIDs._CameraMotionVectorsSize, new Vector4(
-                        previousMotionVectorsRT.referenceSize.x,
-                        previousMotionVectorsRT.referenceSize.y,
-                        1f / previousMotionVectorsRT.referenceSize.x,
-                        1f / previousMotionVectorsRT.referenceSize.y
-                    ));
-                    cmd.SetGlobalVector(HDShaderIDs._CameraMotionVectorsScale, new Vector4(
-                        previousMotionVectorsRT.referenceSize.x / (float)previousMotionVectorsRT.rt.width,
-                        previousMotionVectorsRT.referenceSize.y / (float)previousMotionVectorsRT.rt.height,
-                        1, 0.0f
-                    ));
-                }
-                else
-                {
-                    cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, Texture2D.blackTexture);
-                    cmd.SetGlobalVector(HDShaderIDs._CameraMotionVectorsSize, Vector4.one);
-                    cmd.SetGlobalVector(HDShaderIDs._CameraMotionVectorsScale, Vector4.one);
-                }
             }
         }
 
@@ -805,13 +789,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Planar probes rendering is not currently supported for orthographic camera
                     // Avoid rendering to prevent error log spamming
                     && !camera.orthographic)
-                {
                         // TODO: Render only visible probes
                         ReflectionSystem.RenderAllRealtimeViewerDependentProbesFor(ReflectionProbeType.PlanarReflection, camera);
-                    // Frame settings state was updated by previous render, we must recalculate it
-                    FrameSettings.InitializeFrameSettings(camera, m_Asset.GetRenderPipelineSettings(), srcFrameSettings, ref currentFrameSettings);
-                }
-
 
                 // Init material if needed
                 // TODO: this should be move outside of the camera loop but we have no command buffer, ask details to Tim or Julien to do this
@@ -1001,8 +980,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Caution: We require sun light here as some skies use the sun light to render, it means that UpdateSkyEnvironment must be called after PrepareLightsForGPU.
                     // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
                     UpdateSkyEnvironment(hdCamera, cmd);
-
-                    RenderDepthPyramid(hdCamera, cmd, renderContext, FullScreenDebugMode.DepthPyramid);
 
                     StopStereoRendering(renderContext, hdCamera);
 
@@ -1679,10 +1656,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
                 hdCamera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
 
-                var velocityBufferRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.MotionVectors)
-                    ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.MotionVectors, AllocMotionVectorRT);
-                HDUtils.SetRenderTarget(cmd, hdCamera, velocityBufferRT, m_CameraDepthStencilBuffer);
+                HDUtils.SetRenderTarget(cmd, hdCamera, m_VelocityBuffer, m_CameraDepthStencilBuffer);
                 RenderOpaqueRenderList(cullResults, hdCamera, renderContext, cmd, HDShaderPassNames.s_MotionVectorsName, RendererConfiguration.PerObjectMotionVectors);
+
+                cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, m_VelocityBuffer);
+                cmd.SetGlobalVector(HDShaderIDs._CameraMotionVectorsSize, new Vector4(
+                    m_VelocityBuffer.referenceSize.x,
+                    m_VelocityBuffer.referenceSize.y,
+                    1f / m_VelocityBuffer.referenceSize.x,
+                    1f / m_VelocityBuffer.referenceSize.y
+                ));
+                cmd.SetGlobalVector(HDShaderIDs._CameraMotionVectorsScale, new Vector4(
+                    m_VelocityBuffer.referenceSize.x / (float)m_VelocityBuffer.rt.width,
+                    m_VelocityBuffer.referenceSize.y / (float)m_VelocityBuffer.rt.height,
+                    1, 0.0f
+                ));
             }
         }
 
@@ -1697,17 +1685,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
                 hdCamera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
 
-                var velocityBufferRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.MotionVectors)
-                    ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.MotionVectors, AllocMotionVectorRT);
-                HDUtils.DrawFullScreen(cmd, hdCamera, m_CameraMotionVectorsMaterial, velocityBufferRT, m_CameraDepthStencilBuffer, null, 0);
-                PushFullScreenDebugTexture(hdCamera, cmd, velocityBufferRT, FullScreenDebugMode.MotionVectors);
-                
-                var scale = new Vector2((float)hdCamera.actualWidth / velocityBufferRT.rt.width, (float)hdCamera.actualHeight / velocityBufferRT.rt.height);
-                cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, velocityBufferRT);
-                cmd.SetGlobalVector(HDShaderIDs._CameraMotionVectorsSize, new Vector4(
-                    hdCamera.actualWidth, hdCamera.actualHeight, 
-                    1f / hdCamera.actualWidth, 1f / hdCamera.actualHeight));
-                cmd.SetGlobalVector(HDShaderIDs._CameraMotionVectorsScale, new Vector4(scale.x, scale.y, 1, 0.0f));
             }
         }
 
@@ -1750,7 +1727,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             PushFullScreenDebugTextureMip(hdCamera, cmd, cameraRT, m_BufferPyramid.GetPyramidLodCount(new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight)), new Vector4(pyramidScale.x, pyramidScale.y, 0.0f, 0.0f), debugMode);
         }
 
-        static readonly int _CameraMotionVectorsTexture_PostHack = Shader.PropertyToID("_CameraMotionVectorsTexture_PostHack");
         void RenderPostProcess(HDCamera hdcamera, CommandBuffer cmd, PostProcessLayer layer)
         {
             using (new ProfilingSample(cmd, "Post-processing", CustomSamplerId.PostProcessing.GetSampler()))
@@ -1766,18 +1742,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Since we don't render to the full render textures, we need to feed the post processing stack with the right scale/bias.
                     // This feature not being implemented yet, we'll just copy the relevant buffers into an appropriately sized RT.
                     cmd.ReleaseTemporaryRT(HDShaderIDs._CameraDepthTexture);
-                    cmd.ReleaseTemporaryRT(_CameraMotionVectorsTexture_PostHack);
+                    cmd.ReleaseTemporaryRT(HDShaderIDs._CameraMotionVectorsTexture);
                     cmd.ReleaseTemporaryRT(HDShaderIDs._CameraColorTexture);
 
                     cmd.GetTemporaryRT(HDShaderIDs._CameraDepthTexture, hdcamera.actualWidth, hdcamera.actualHeight, m_CameraDepthStencilBuffer.rt.depth, FilterMode.Point, m_CameraDepthStencilBuffer.rt.format);
                     m_CopyDepth.SetTexture(HDShaderIDs._InputDepth, m_CameraDepthStencilBuffer);
                     cmd.Blit(null, HDShaderIDs._CameraDepthTexture, m_CopyDepth);
-                    var velocityBufferRT = hdcamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.MotionVectors);
-                    if (velocityBufferRT != null)
+                    if (m_VelocityBuffer != null)
                     {
-                        cmd.GetTemporaryRT(_CameraMotionVectorsTexture_PostHack, hdcamera.actualWidth, hdcamera.actualHeight, 0, FilterMode.Point, velocityBufferRT.rt.format);
-                        HDUtils.BlitCameraTexture(cmd, hdcamera, velocityBufferRT, _CameraMotionVectorsTexture_PostHack);
-                        cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, _CameraMotionVectorsTexture_PostHack);
+                        cmd.GetTemporaryRT(HDShaderIDs._CameraMotionVectorsTexture, hdcamera.actualWidth, hdcamera.actualHeight, 0, FilterMode.Point, m_VelocityBuffer.rt.format);
+                        HDUtils.BlitCameraTexture(cmd, hdcamera, m_VelocityBuffer, HDShaderIDs._CameraMotionVectorsTexture);
                     }
                     cmd.GetTemporaryRT(HDShaderIDs._CameraColorTexture, hdcamera.actualWidth, hdcamera.actualHeight, 0, FilterMode.Point, m_CameraColorBuffer.rt.format);
                     HDUtils.BlitCameraTexture(cmd, hdcamera, m_CameraColorBuffer, HDShaderIDs._CameraColorTexture);
@@ -1787,9 +1761,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     // Note: Here we don't use GetDepthTexture() to get the depth texture but m_CameraDepthStencilBuffer as the Forward transparent pass can
                     // write extra data to deal with DOF/MB
-                    var velocityBufferRT = hdcamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.MotionVectors);
                     cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, m_CameraDepthStencilBuffer);
-                    cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, velocityBufferRT);
+                    cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, m_VelocityBuffer);
                 }
 
                 var context = hdcamera.postprocessRenderContext;
@@ -2028,18 +2001,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (hdCamera.frameSettings.enableStereo)
                 renderContext.StopMultiEye(hdCamera.camera);
-        }
-
-        RTHandleSystem.RTHandle AllocMotionVectorRT(string id, int frameIndex, RTHandleSystem rtHandleSystem)
-        {
-            return rtHandleSystem.Alloc(
-                Vector2.one, 
-                filterMode: FilterMode.Point, 
-                colorFormat: Builtin.GetVelocityBufferFormat(), 
-                sRGB: Builtin.GetVelocityBufferSRGBFlag(), 
-                enableMSAA: true, 
-                name: string.Format("Velocity-{0}-{1}", id, frameIndex)
-            );
         }
     }
 }
