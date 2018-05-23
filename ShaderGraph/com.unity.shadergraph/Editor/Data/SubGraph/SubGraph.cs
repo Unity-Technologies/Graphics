@@ -56,13 +56,13 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
+        public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
         {
             foreach (var node in activeNodes)
             {
                 node.ValidateNode();
                 if (node is IGeneratesFunction)
-                    (node as IGeneratesFunction).GenerateNodeFunction(registry, generationMode);
+                    (node as IGeneratesFunction).GenerateNodeFunction(registry, graphContext, generationMode);
             }
         }
 
@@ -79,7 +79,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void GenerateSubGraphFunction(string functionName, FunctionRegistry registry, ShaderGraphRequirements reqs, GenerationMode generationMode)
+        public void GenerateSubGraphFunction(string functionName, FunctionRegistry registry, GraphContext graphContext, ShaderGraphRequirements reqs, GenerationMode generationMode)
         {
             registry.ProvideFunction(functionName, s =>
             {

@@ -28,7 +28,13 @@ MonoBehaviour:
   m_Cascade2Split: 0.25
   m_Cascade4Split: {x: 0.067, y: 0.2, z: 0.467}
   m_LocalShadowsSupported: 1
-  m_LocalShadowsAtlasResolution: 256
+  m_LocalShadowsAtlasResolution: 512
   m_SoftShadowsSupported: 1
+  m_CustomShaderVariantStrippingSettings: 0
+  m_KeepAdditionalLightVariants: 1
+  m_KeepVertexLightVariants: 1
+  m_KeepDirectionalShadowVariants: 1
+  m_KeepLocalShadowVariants: 1
+  m_KeepSoftShadowVariants: 1
   m_ResourcesAsset: {fileID: 11400000, guid: aac5a08c32552a14c89394b703f1978a, type: 2}
   m_ShadowType: 0
