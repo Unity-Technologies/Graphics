@@ -852,14 +852,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (IsBakedShadowMaskLight(light.light))
             {
                 directionalLightData.shadowMaskSelector[light.light.bakingOutput.occlusionMaskChannel] = 1.0f;
-                // TODO: make this option per light, not global
-                directionalLightData.dynamicShadowCasterOnly = QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask ? 1 : 0;
+                directionalLightData.nonLightmappedOnly = light.light.lightShadowCasterMode == LightShadowCasterMode.NonLightmappedOnly ? 1 : 0;
             }
             else
             {
                 // use -1 to say that we don't use shadow mask
                 directionalLightData.shadowMaskSelector.x = -1.0f;
-                directionalLightData.dynamicShadowCasterOnly = 0;
+                directionalLightData.nonLightmappedOnly = 0;
             }
 
             // Fallback to the first non shadow casting directional light.
@@ -1035,13 +1034,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 lightData.shadowMaskSelector[light.light.bakingOutput.occlusionMaskChannel] = 1.0f;
                 // TODO: make this option per light, not global
-                lightData.dynamicShadowCasterOnly = QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask ? 1 : 0;
+                lightData.nonLightmappedOnly = light.light.lightShadowCasterMode == LightShadowCasterMode.NonLightmappedOnly ? 1 : 0;
             }
             else
             {
                 // use -1 to say that we don't use shadow mask
                 lightData.shadowMaskSelector.x = -1.0f;
-                lightData.dynamicShadowCasterOnly = 0;
+                lightData.nonLightmappedOnly = 0;
             }
 
             m_lightList.lights.Add(lightData);
@@ -1467,7 +1466,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // If any light require it, we need to enabled bake shadow mask feature
                 m_enableBakeShadowMask = false;
- 
+
                 m_lightList.Clear();
 
                 // We need to properly reset this here otherwise if we go from 1 light to no visible light we would keep the old reference active.
