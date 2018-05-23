@@ -14,6 +14,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_InvScreenWeightDistanceID;
         int m_RayMaxScreenDistanceID;
         int m_RayBlendScreenDistanceID;
+        int m_RayMarchBehindObjectsID;
 
         public IntParameter                 rayLevel = new IntParameter(2);
         public IntParameter                 rayMinLevel = new IntParameter(2);
@@ -23,6 +24,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ClampedFloatParameter        screenWeightDistance = new ClampedFloatParameter(0.1f, 0, 1);
         public ClampedFloatParameter        rayMaxScreenDistance = new ClampedFloatParameter(0.3f, 0, 1);
         public ClampedFloatParameter        rayBlendScreenDistance = new ClampedFloatParameter(0.1f, 0, 1);
+        public BoolParameter                rayMarchBehindObjects = new BoolParameter(true);
 
         public virtual void PushShaderParameters(CommandBuffer cmd)
         {
@@ -34,6 +36,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalFloat(m_InvScreenWeightDistanceID, 1f / screenWeightDistance.value);
             cmd.SetGlobalFloat(m_RayMaxScreenDistanceID, rayMaxScreenDistance.value);
             cmd.SetGlobalFloat(m_RayBlendScreenDistanceID, rayBlendScreenDistance.value);
+            cmd.SetGlobalInt(m_RayMarchBehindObjectsID, rayMarchBehindObjects.value ? 1 : 0);
         }
 
         protected abstract void FetchIDs(
@@ -44,7 +47,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             out int DepthBufferThicknessID,
             out int invScreenWeightDistanceID,
             out int rayMaxScreenDistanceID,
-            out int rayBlendScreenDistanceID
+            out int rayBlendScreenDistanceID,
+            out int rayMarchBehindObjectsID
         );
 
         void Awake()
@@ -57,7 +61,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 out m_DepthBufferThicknessID,
                 out m_InvScreenWeightDistanceID,
                 out m_RayMaxScreenDistanceID,
-                out m_RayBlendScreenDistanceID
+                out m_RayBlendScreenDistanceID,
+                out m_RayMarchBehindObjectsID
             );
         }
     }

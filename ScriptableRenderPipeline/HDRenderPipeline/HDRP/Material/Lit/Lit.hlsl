@@ -1881,17 +1881,18 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     // -------------------------------
     // Resolve weight and color
     // -------------------------------
+    // Fade pixels near the texture buffers' borders
     float2 weightNDC = clamp(min(hit.positionNDC, 1 - hit.positionNDC) * invScreenWeightDistance, 0, 1);
     weightNDC = weightNDC * weightNDC * (3 - 2 * weightNDC);
+    // TODO: Fade pixels with normal non facing the ray direction
+    // TODO: Fade pixels marked as foreground in stencil
     float weight = weightNDC.x * weightNDC.y * hitWeight;
 
     float hitDeviceDepth = LOAD_TEXTURE2D_LOD(_DepthPyramidTexture, hit.positionSS, 0).r;
     float hitLinearDepth = LinearEyeDepth(hitDeviceDepth, _ZBufferParams);
 
-    // Exit if texel is out of color buffer
-    // Or if the texel is from an object in front of the object
-    if (hitLinearDepth < posInput.linearDepth
-        || weight == 0)
+    // Exit if texel is discarded
+    if (weight == 0)
     {
         // Do nothing and don't update the hierarchy weight so we can fall back on refraction probe
         return lighting;

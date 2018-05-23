@@ -28,7 +28,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             out int depthBufferThicknessID,
             out int invScreenWeightDistanceID,
             out int rayMaxScreenDistanceID,
-            out int rayBlendScreenDistanceID
+            out int rayBlendScreenDistanceID,
+            out int rayMarchBehindObjectsID
         )
         {
             rayLevelID = HDShaderIDs._SSRefractionRayLevel;
@@ -39,6 +40,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             invScreenWeightDistanceID = HDShaderIDs._SSRefractionInvScreenWeightDistance;
             rayMaxScreenDistanceID = HDShaderIDs._SSRefractionRayMaxScreenDistance;
             rayBlendScreenDistanceID = HDShaderIDs._SSRefractionRayBlendScreenDistance;
+            rayMarchBehindObjectsID = HDShaderIDs._SSRefractionRayMarchBehindObjects;
         }
     }
 }

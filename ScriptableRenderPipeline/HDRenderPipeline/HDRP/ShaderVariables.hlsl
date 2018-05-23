@@ -289,6 +289,8 @@ float   _SSRefractionInvScreenWeightDistance;     // Distance for screen space s
 float   _SSReflectionInvScreenWeightDistance;     // Distance for screen space smoothstep with fallback
 int     _SSReflectionEnabled;
 int     _SSReflectionProjectionModel;
+int     _SSReflectionHiZRayMarchBehindObject;
+int     _SSRefractionHiZRayMarchBehindObject;
 
                                                 // Ambiant occlusion
 float4 _AmbientOcclusionParam; // xyz occlusion color, w directLightStrenght

@@ -267,6 +267,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Shader.PropertyToID("_SSSBufferTexture3"),
         };
 
+        public static readonly int _SSRefractionRayMarchBehindObjects = Shader.PropertyToID("_SSRefractionRayMarchBehindObjects");
         public static readonly int _SSRefractionRayMaxScreenDistance = Shader.PropertyToID("_SSRefractionRayMaxScreenDistance");
         public static readonly int _SSRefractionRayBlendScreenDistance = Shader.PropertyToID("_SSRefractionRayBlendScreenDistance");
         public static readonly int _SSRefractionRayLevel = Shader.PropertyToID("_SSRefractionRayLevel");
@@ -276,6 +277,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _SSRefractionDepthBufferThickness = Shader.PropertyToID("_SSRefractionDepthBufferThickness");
         public static readonly int _SSRefractionInvScreenWeightDistance = Shader.PropertyToID("_SSRefractionInvScreenWeightDistance");
 
+        public static readonly int _SSReflectionRayMarchBehindObjects = Shader.PropertyToID("_SSReflectionRayMarchBehindObjects");
         public static readonly int _SSReflectionRayMaxScreenDistance = Shader.PropertyToID("_SSReflectionRayMaxScreenDistance");
         public static readonly int _SSReflectionRayBlendScreenDistance = Shader.PropertyToID("_SSReflectionRayBlendScreenDistance");
         public static readonly int _SSReflectionRayLevel = Shader.PropertyToID("_SSReflectionRayLevel");

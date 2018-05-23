@@ -14,6 +14,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected SerializedDataParameter m_ScreenWeightDistance;
         protected SerializedDataParameter m_RayMaxScreenDistance;
         protected SerializedDataParameter m_RayBlendScreenDistance;
+        protected SerializedDataParameter m_RayMarchBehindObjects;
 
         public override void OnEnable()
         {
@@ -27,6 +28,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_ScreenWeightDistance = Unpack(o.Find(x => x.screenWeightDistance));
             m_RayMaxScreenDistance = Unpack(o.Find(x => x.rayMaxScreenDistance));
             m_RayBlendScreenDistance = Unpack(o.Find(x => x.rayBlendScreenDistance));
+            m_RayMarchBehindObjects = Unpack(o.Find(x => x.rayMarchBehindObjects));
         }
 
         public override void OnInspectorGUI()
@@ -47,6 +49,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PropertyField(m_DepthBufferThickness, CoreEditorUtils.GetContent("Depth Buffer Thickness"));
             PropertyField(m_RayMaxScreenDistance, CoreEditorUtils.GetContent("Max Raymarched Distance (NDC)"));
             PropertyField(m_RayBlendScreenDistance, CoreEditorUtils.GetContent("Blended Raymarched Distance (NDC)"));
+            PropertyField(m_RayMarchBehindObjects, CoreEditorUtils.GetContent("Ray March Behind Objects"));
 
             m_RayMinLevel.value.intValue = Mathf.Clamp(m_RayMinLevel.value.intValue, 0, m_RayMaxLevel.value.intValue);
             m_RayMaxLevel.value.intValue = Mathf.Max(0, m_RayMaxLevel.value.intValue);
