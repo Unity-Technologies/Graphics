@@ -70,6 +70,10 @@ TEXTURE2D(_GBufferTexture3);
 // If a user do a lighting architecture without material classification, this can be remove
 #include "../../Lighting/LightLoop/LightLoop.cs.hlsl"
 
+// Currently disable SSR until critical editor fix is available
+#undef LIGHTFEATUREFLAGS_SSREFLECTION
+#define LIGHTFEATUREFLAGS_SSREFLECTION 0
+
 // Combination need to be define in increasing "comlexity" order as define by FeatureFlagsToTileVariant
 static const uint kFeatureVariantFlags[NUM_FEATURE_VARIANTS] =
 {
