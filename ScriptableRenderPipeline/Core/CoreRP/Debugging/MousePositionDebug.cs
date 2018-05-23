@@ -50,8 +50,8 @@ namespace UnityEngine.Experimental.Rendering
 
                 instance.m_mousePosition = Input.mousePosition;
                 instance.m_mousePosition.y = Screen.height - instance.m_mousePosition.y;
-                if (Input.GetMouseButtonDown(1))
-                    instance.m_MouseClickPosition = Input.mousePosition;
+                if (Input.GetMouseButton(1))
+                    instance.m_MouseClickPosition = instance.m_mousePosition;
                 if (Input.GetKey(KeyCode.PageUp))
                     ++instance.m_DebugStep;
                 if (Input.GetKey(KeyCode.PageDown))
