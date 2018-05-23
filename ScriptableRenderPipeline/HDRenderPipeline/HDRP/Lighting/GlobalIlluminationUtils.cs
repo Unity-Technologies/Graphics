@@ -24,9 +24,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ld.indirectColor = add.affectDiffuse ? LightmapperUtils.ExtractIndirect(l) : LinearColor.Black();
 
             // Note that the HDRI is correctly integrated in the GlobalIllumination system, we don't need to do anything regarding it.
-
+#if UNITY_EDITOR
             ld.mode = LightmapperUtils.Extract(l.lightmapBakeType);
-
+#endif
             ld.shadow = (byte)(l.shadows != LightShadows.None ? 1 : 0);
 
             if (add.lightTypeExtent == LightTypeExtent.Punctual)
