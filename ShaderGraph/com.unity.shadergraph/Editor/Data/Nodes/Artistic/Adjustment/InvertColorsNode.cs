@@ -160,7 +160,7 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        public void GenerateNodeFunction(ShaderGenerator visitor, GenerationMode generationMode)
+        public void GenerateNodeFunction(ShaderGenerator visitor, GraphContext graphContext, GenerationMode generationMode)
         {
             var sb = new ShaderStringBuilder();
             sb.AppendLine("void {0}({1} In, {2} InvertColors, out {3} Out)",
@@ -175,7 +175,7 @@ namespace UnityEditor.ShaderGraph
             visitor.AddShaderChunk(sb.ToString(), true);
         }
 
-        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
+        public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
         {
             registry.ProvideFunction(GetFunctionName(), s =>
             {

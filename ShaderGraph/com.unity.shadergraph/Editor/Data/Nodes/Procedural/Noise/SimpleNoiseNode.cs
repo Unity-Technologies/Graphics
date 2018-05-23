@@ -41,7 +41,7 @@ namespace UnityEditor.ShaderGraph
 ";
         }
 
-        public override void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
+        public override void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
         {
             registry.ProvideFunction("unity_noise_randomValue", s => s.Append(@"
 inline float unity_noise_randomValue (float2 uv)
@@ -79,7 +79,7 @@ inline float unity_valueNoise (float2 uv)
     return t;
 }"));
 
-            base.GenerateNodeFunction(registry, generationMode);
+            base.GenerateNodeFunction(registry, graphContext, generationMode);
         }
     }
 }

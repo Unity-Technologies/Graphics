@@ -103,7 +103,7 @@ namespace UnityEditor.ShaderGraph
             return GetFunctionName() + " (" + inputValue + ", " + outputValue + ");";
         }
 
-        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
+        public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
         {
             ValidateChannelCount();
             registry.ProvideFunction(GetFunctionName(), s =>

@@ -54,7 +54,7 @@ namespace UnityEditor.ShaderGraph
             return newReqs;
         }
 
-        public static ShaderGraphRequirements FromNodes<T>(List<T> nodes, ShaderStageCapability stageCapability = ShaderStageCapability.All, bool includeIntermediateSpaces = true)
+        public static ShaderGraphRequirements FromNodes<T>(List<T> nodes, ShaderStageCapability stageCapability = ShaderStageCapability.All, bool includeIntermediateSpaces = true, bool HDRPBehavior = false)
             where T : class, INode
         {
             NeededCoordinateSpace requiresNormal = nodes.OfType<IMayRequireNormal>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresNormal(stageCapability));
@@ -82,7 +82,7 @@ namespace UnityEditor.ShaderGraph
                 | requiresNormal;
 
                 var needsTangentSpace = (compoundSpaces & NeededCoordinateSpace.Tangent) > 0;
-                if (needsTangentSpace)
+                if (needsTangentSpace && !HDRPBehavior)
                 {
                     requiresBitangent |= NeededCoordinateSpace.World;
                     requiresNormal |= NeededCoordinateSpace.World;
