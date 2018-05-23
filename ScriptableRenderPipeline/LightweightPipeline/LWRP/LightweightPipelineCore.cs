@@ -247,9 +247,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public static void CopyTexture(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier dest, Material material)
         {
-            if (SystemInfo.copyTextureSupport != CopyTextureSupport.None)
-                cmd.CopyTexture(source, dest);
-            else
+            // TODO: In order to issue a copyTexture we need to also check if source and dest have same size
+            //if (SystemInfo.copyTextureSupport != CopyTextureSupport.None)
+            //    cmd.CopyTexture(source, dest);
+            //else
                 cmd.Blit(source, dest, material);
         }
 
