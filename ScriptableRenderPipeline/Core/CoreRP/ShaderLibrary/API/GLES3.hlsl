@@ -50,6 +50,18 @@
 #define TEXTURECUBE_ARRAY(textureName)          TextureCubeArray textureName
 #define TEXTURE3D(textureName)                  Texture3D textureName
 
+#define TEXTURE2D_FLOAT(textureName)            Texture2D_float textureName
+#define TEXTURE2D_ARRAY_FLOAT(textureName)      Texture2DArray textureName    // no support to _float on Array, it's being added
+#define TEXTURECUBE_FLOAT(textureName)          TextureCube_float textureName
+#define TEXTURECUBE_ARRAY_FLOAT(textureName)    TextureCubeArray textureName  // no support to _float on Array, it's being added
+#define TEXTURE3D_FLOAT(textureName)            Texture3D_float textureName
+
+#define TEXTURE2D_HALF(textureName)             Texture2D_half textureName
+#define TEXTURE2D_ARRAY_HALF(textureName)       Texture2DArray textureName    // no support to _float on Array, it's being added
+#define TEXTURECUBE_HALF(textureName)           TextureCube_half textureName
+#define TEXTURECUBE_ARRAY_HALF(textureName)     TextureCubeArray textureName  // no support to _float on Array, it's being added
+#define TEXTURE3D_HALF(textureName)             Texture3D_half textureName
+
 #define TEXTURE2D_SHADOW(textureName)           TEXTURE2D(textureName)
 #define TEXTURE2D_ARRAY_SHADOW(textureName)     TEXTURE2D_ARRAY(textureName)
 #define TEXTURECUBE_SHADOW(textureName)         TEXTURECUBE(textureName)
@@ -132,4 +144,3 @@
 #define GATHER_TEXTURECUBE(textureName, samplerName, coord3)                ERROR_ON_UNSUPPORTED_FUNCTION(GATHER_TEXTURECUBE)
 #define GATHER_TEXTURECUBE_ARRAY(textureName, samplerName, coord3, index)   ERROR_ON_UNSUPPORTED_FUNCTION(GATHER_TEXTURECUBE_ARRAY)
 #endif
-
