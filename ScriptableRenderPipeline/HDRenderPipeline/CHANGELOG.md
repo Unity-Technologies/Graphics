@@ -49,6 +49,7 @@
 - Fix issue with shadow mask framesettings not correctly taken into account when shadow mask is enabled for lighting.
 - Fix directional light and shadow mask transition, they are now matching making smooth transition
 - Fix banding issues caused by high intensity volumetric lighting
+- Fix the debug window being emptied on SRP asset reload
 
 ## [2018.1.0f2]
 
