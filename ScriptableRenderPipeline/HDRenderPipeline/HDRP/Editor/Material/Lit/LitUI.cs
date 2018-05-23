@@ -88,7 +88,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Transparency
             public static string refractionModelText = "Refraction Model";
-            public static GUIContent refractionSSRayModelText = new GUIContent("SSRay Model", "Screen Space Ray Model");
+            public static GUIContent refractionProjectionModelText = new GUIContent("SSRay Model", "Screen Space Ray Model");
             public static GUIContent refractionIorText = new GUIContent("Index of refraction", "Index of refraction");
             public static GUIContent refractionThicknessText = new GUIContent("Refraction Thickness", "Thickness for rough refraction");
             public static GUIContent refractionThicknessMultiplierText = new GUIContent("Refraction Thickness multiplier (m)", "Thickness multiplier");
@@ -290,8 +290,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kThicknessMultiplier = "_ThicknessMultiplier";
         protected MaterialProperty refractionModel = null;
         protected const string kRefractionModel = "_RefractionModel";
-        protected MaterialProperty refractionSSRayModel = null;
-        protected const string kRefractionSSRayModel = "_RefractionSSRayModel";
+        protected MaterialProperty ssrefractionProjectionModel = null;
+        protected const string kSSRefractionProjectionModel = "_SSRefractionProjectionModel";
 
         protected override bool showBlendModePopup
         {
@@ -400,7 +400,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Transparency
             refractionModel = FindProperty(kRefractionModel, props, false);
-            refractionSSRayModel = FindProperty(kRefractionSSRayModel, props, false);
+            ssrefractionProjectionModel = FindProperty(kSSRefractionProjectionModel, props, false);
             transmittanceColor = FindProperty(kTransmittanceColor, props, false);
             transmittanceColorMap = FindProperty(kTransmittanceColorMap, props, false);
             atDistance = FindProperty(kATDistance, props, false);
@@ -809,7 +809,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     var mode = (Lit.RefractionModel)refractionModel.floatValue;
                     if (mode != Lit.RefractionModel.None)
                     {
-                        m_MaterialEditor.ShaderProperty(refractionSSRayModel, Styles.refractionSSRayModelText);
+                        m_MaterialEditor.ShaderProperty(ssrefractionProjectionModel, Styles.refractionProjectionModelText);
                         m_MaterialEditor.ShaderProperty(ior, Styles.refractionIorText);
 
                         blendMode.floatValue = (float)BlendMode.Alpha;
@@ -973,14 +973,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SPECULAR_COLOR", materialId == BaseLitGUI.MaterialId.LitSpecular);
 
             var refractionModelValue = (Lit.RefractionModel)material.GetFloat(kRefractionModel);
-            var refractionSSRayModelValue = (Lit.RefractionSSRayModel)material.GetFloat(kRefractionSSRayModel);
+            var refractionProjectionModelValue = (Lit.ProjectionModel)material.GetFloat(kSSRefractionProjectionModel);
             // We can't have refraction in pre-refraction queue
             var canHaveRefraction = !material.HasProperty(kPreRefractionPass) || material.GetFloat(kPreRefractionPass) <= 0.0;
             CoreUtils.SetKeyword(material, "_REFRACTION_PLANE", (refractionModelValue == Lit.RefractionModel.Plane) && canHaveRefraction);
             CoreUtils.SetKeyword(material, "_REFRACTION_SPHERE", (refractionModelValue == Lit.RefractionModel.Sphere) && canHaveRefraction);
             CoreUtils.SetKeyword(material, "_TRANSMITTANCECOLORMAP", material.GetTexture(kTransmittanceColorMap) && canHaveRefraction);
-            CoreUtils.SetKeyword(material, "_REFRACTION_SSRAY_PROXY", (refractionSSRayModelValue == Lit.RefractionSSRayModel.Proxy) && canHaveRefraction);
-            CoreUtils.SetKeyword(material, "_REFRACTION_SSRAY_HIZ", (refractionSSRayModelValue == Lit.RefractionSSRayModel.HiZ) && canHaveRefraction);
+            CoreUtils.SetKeyword(material, "_REFRACTION_SSRAY_PROXY", (refractionProjectionModelValue == Lit.ProjectionModel.Proxy) && canHaveRefraction);
+            CoreUtils.SetKeyword(material, "_REFRACTION_SSRAY_HIZ", (refractionProjectionModelValue == Lit.ProjectionModel.HiZ) && canHaveRefraction);
         }
     }
 } // namespace UnityEditor

@@ -2350,7 +2350,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void RenderDeferredLighting( HDCamera hdCamera, CommandBuffer cmd, DebugDisplaySettings debugDisplaySettings,
                                             RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer, RenderTargetIdentifier depthTexture,
-                                            LightingPassOptions options)
+                                            LightingPassOptions options, ComputeBuffer debugSSTBuffer)
         {
             cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, s_LightList);
 
@@ -2374,6 +2374,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new ProfilingSample(cmd, sLabel, CustomSamplerId.TPRenderDeferredLighting.GetSampler()))
             {
                 var camera = hdCamera.camera;
+
+                var ssReflection = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>() ?? ScreenSpaceReflection.@default;
 
                 // Compute path
                 if (m_FrameSettings.lightLoopSettings.enableTileAndCluster && m_FrameSettings.lightLoopSettings.enableComputeLightEvaluation)
@@ -2419,6 +2421,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.specularLightingUAV, colorBuffers[0]);
                         cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.diffuseLightingUAV,  colorBuffers[1]);
 
+                        if (debugDisplaySettings.lightingDebugSettings.debugLightingMode == DebugLightingMode.ScreenSpaceTracingReflection)
+                            cmd.SetComputeBufferParam(deferredComputeShader, kernel, HDShaderIDs._DebugScreenSpaceTracingData, debugSSTBuffer);
+
                         // always do deferred lighting in blocks of 16x16 (not same as tiled light size)
 
                         if (enableFeatureVariants)
@@ -2462,7 +2467,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             currentLightingMaterial.SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.Equal);
                         }
 
+                        var debugSSTThisFrame = debugDisplaySettings.lightingDebugSettings.debugLightingMode == DebugLightingMode.ScreenSpaceTracingReflection;
+                        if (debugSSTThisFrame)
+                            cmd.SetRandomWriteTarget(7, debugSSTBuffer);
                         CoreUtils.DrawFullScreen(cmd, currentLightingMaterial, colorBuffers[0], depthStencilBuffer);
+                        if (debugSSTThisFrame)
+                            cmd.ClearRandomWriteTargets();
                     }
                 }
             } // End profiling

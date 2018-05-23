@@ -70,44 +70,48 @@ TEXTURE2D(_GBufferTexture3);
 // If a user do a lighting architecture without material classification, this can be remove
 #include "../../Lighting/LightLoop/LightLoop.cs.hlsl"
 
+// Currently disable SSR until critical editor fix is available
+#undef LIGHTFEATUREFLAGS_SSREFLECTION
+#define LIGHTFEATUREFLAGS_SSREFLECTION 0
+
 // Combination need to be define in increasing "comlexity" order as define by FeatureFlagsToTileVariant
 static const uint kFeatureVariantFlags[NUM_FEATURE_VARIANTS] =
 {
     // Precomputed illumination (no dynamic lights) for all material types
-    /*  0 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_ENV | MATERIAL_FEATURE_MASK_FLAGS,
+    /*  0 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIAL_FEATURE_MASK_FLAGS,
 
     /*  1 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_STANDARD,
     /*  2 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /*  3 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /*  4 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /*  3 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /*  4 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_STANDARD,
     /*  5 */ LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_LIT_STANDARD,
 
     // Standard with SSS and Transmission
     /*  6 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION | MATERIALFEATUREFLAGS_LIT_STANDARD,
     /*  7 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /*  8 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /*  9 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /*  8 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /*  9 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION | MATERIALFEATUREFLAGS_LIT_STANDARD,
     /* 10 */ LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION | MATERIALFEATUREFLAGS_LIT_STANDARD,
 
     // Anisotropy
     /* 11 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_ANISOTROPY | MATERIALFEATUREFLAGS_LIT_STANDARD,
     /* 12 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_ANISOTROPY | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /* 13 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_ANISOTROPY | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /* 14 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_ANISOTROPY | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 13 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_ANISOTROPY | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 14 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_ANISOTROPY | MATERIALFEATUREFLAGS_LIT_STANDARD,
     /* 15 */ LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_LIT_ANISOTROPY | MATERIALFEATUREFLAGS_LIT_STANDARD,
 
     // Standard with clear coat
     /* 16 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT | MATERIALFEATUREFLAGS_LIT_STANDARD,
     /* 17 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /* 18 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /* 19 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 18 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 19 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT | MATERIALFEATUREFLAGS_LIT_STANDARD,
     /* 20 */ LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_LIT_CLEAR_COAT | MATERIALFEATUREFLAGS_LIT_STANDARD,
 
     // Standard with Iridescence
     /* 21 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE | MATERIALFEATUREFLAGS_LIT_STANDARD,
     /* 22 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_AREA | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /* 23 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE | MATERIALFEATUREFLAGS_LIT_STANDARD,
-    /* 24 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 23 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE | MATERIALFEATUREFLAGS_LIT_STANDARD,
+    /* 24 */ LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_DIRECTIONAL | LIGHTFEATUREFLAGS_PUNCTUAL | LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SSREFLECTION | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE | MATERIALFEATUREFLAGS_LIT_STANDARD,
     /* 25 */ LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIALFEATUREFLAGS_LIT_IRIDESCENCE | MATERIALFEATUREFLAGS_LIT_STANDARD,
 
     /* 26 */ LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIAL_FEATURE_MASK_FLAGS, // Catch all case with MATERIAL_FEATURE_MASK_FLAGS is needed in case we disable material classification
@@ -152,10 +156,16 @@ uint TileVariantToFeatureFlags(uint variant, uint tileIndex)
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
 
+// SSReflection
+#include "HDRP/Lighting/LightDefinition.cs.hlsl"
+#include "HDRP/Lighting/Reflection/VolumeProjection.hlsl"
+
+#define SSRTID Reflection
+#include "HDRP/Lighting/Reflection/ScreenSpaceTracing.hlsl"
+#undef SSRTID
+
 #if HAS_REFRACTION
     #include "CoreRP/ShaderLibrary/Refraction.hlsl"
-    #include "HDRP/Lighting/LightDefinition.cs.hlsl"
-    #include "HDRP/Lighting/Reflection/VolumeProjection.hlsl"
     #define SSRTID Refraction
     #include "HDRP/Lighting/Reflection/ScreenSpaceTracing.hlsl"
     #undef SSRTID
@@ -164,14 +174,6 @@ uint TileVariantToFeatureFlags(uint variant, uint tileIndex)
     #define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelPlane(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
     #elif defined(_REFRACTION_SPHERE)
     #define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelSphere(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
-    #endif
-
-    #if defined(_REFRACTION_SSRAY_PROXY)
-    #define REFRACTION_SSRAY_IN ScreenSpaceProxyRaycastInput
-    #define REFRACTION_SSRAY_QUERY(input, hit) ScreenSpaceProxyRaycastRefraction(input, hit)
-    #elif defined(_REFRACTION_SSRAY_HIZ)
-    #define REFRACTION_SSRAY_IN ScreenSpaceHiZRaymarchInput
-    #define REFRACTION_SSRAY_QUERY(input, hit) ScreenSpaceHiZRaymarchRefraction(input, hit)
     #endif
 #endif
 
@@ -937,7 +939,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     // TODO: We need a better hack.
     preLightData.iblPerceptualRoughness *= saturate(1.2 - abs(bsdfData.anisotropy));
     // Corretion of reflected direction for better handling of rough material
-    preLightData.iblR = GetSpecularDominantDir(N, iblR, preLightData.iblPerceptualRoughness, NdotV);
+    preLightData.iblR = iblR;
 
 #ifdef LIT_USE_GGX_ENERGY_COMPENSATION
     // Ref: Practical multiple scattering compensation for microfacet models.
@@ -1739,103 +1741,262 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     IndirectLighting lighting;
     ZERO_INITIALIZE(IndirectLighting, lighting);
 
-    switch (GPUImageBasedLightingType)
+    // -------------------------------
+    // Early out
+    // -------------------------------
+#if !HAS_REFRACTION
+    if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
     {
-        case GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION:
-        {
+         // No refraction, no need to go further
+        hierarchyWeight = 1.0;
+        return lighting;
+    }
+#endif
+
+    // -------------------------------
+    // Choose projection model
+    // -------------------------------
+    int projectionModel = PROJECTIONMODEL_NONE;
 #if HAS_REFRACTION
+    if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
+    {
+    #if defined(_REFRACTION_SSRAY_HIZ)
+        projectionModel = PROJECTIONMODEL_HI_Z;
+    #elif defined(_REFRACTION_SSRAY_PROXY)
+        projectionModel = PROJECTIONMODEL_PROXY;
+    #endif
+    }
+#else
+    if (_SSReflectionEnabled != 0)
+        projectionModel = _SSReflectionProjectionModel;
+#endif
 
-            // Refraction process:
-            //  1. Depending on the shape model, we calculate the refracted point in world space and the optical depth
-            //  2. We calculate the screen space position of the refracted point
-            //  3. If this point is available (ie: in color buffer and point is not in front of the object)
-            //    a. Get the corresponding color depending on the roughness from the gaussian pyramid of the color buffer
-            //    b. Multiply by the transmittance for absorption (depends on the optical depth)
+    if (projectionModel == PROJECTIONMODEL_NONE)
+       return lighting;
 
-            float3 rayOriginWS      = preLightData.transparentPositionWS;
-            float3 rayDirWS         = preLightData.transparentRefractV;
-#ifdef DEBUG_DISPLAY
-            int debugMode           = DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFRACTION;
+    // -------------------------------
+    // Initialize screen space tracing
+    // -------------------------------
+    float3 rayOriginWS              = float3(0, 0, 0);
+    float3 rayDirWS                 = float3(0, 0, 0);
+    float mipLevel                  = 0;
+#if DEBUG_DISPLAY
+    int debugMode                   = 0;
+#endif
+    float invScreenWeightDistance   = 0;
+    float temporalFilteringWeight   = 0.1;
+
+#if HAS_REFRACTION
+    if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
+    {
+        // Refraction process:
+        //  1. Depending on the shape model, we calculate the refracted point in world space and the optical depth
+        //  2. We calculate the screen space position of the refracted point
+        //  3. If this point is available (ie: in color buffer and point is not in front of the object)
+        //    a. Get the corresponding color depending on the roughness from the gaussian pyramid of the color buffer
+        //    b. Multiply by the transmittance for absorption (depends on the optical depth)
+
+        rayOriginWS             = preLightData.transparentPositionWS;
+        rayDirWS                = preLightData.transparentRefractV;
+        mipLevel                = preLightData.transparentSSMipLevel;
+        invScreenWeightDistance = _SSRefractionInvScreenWeightDistance;
+#if DEBUG_DISPLAY
+        debugMode               = DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFRACTION;
+#endif 
+    }
+    else
+#endif
+    if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
+    {
+        rayOriginWS             = posInput.positionWS;
+        rayDirWS                = preLightData.iblR;
+        mipLevel                = PositivePow(preLightData.iblPerceptualRoughness, 0.8) * uint(max(_ColorPyramidScale.z - 1, 0));
+        invScreenWeightDistance = _SSReflectionInvScreenWeightDistance;
+#if DEBUG_DISPLAY
+        debugMode               = DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFLECTION;
+#endif 
+    }
+
+#if DEBUG_DISPLAY
             bool debug              = _DebugLightingMode == debugMode
                 && !any(int2(_MouseClickPixelCoord.xy) - int2(posInput.positionSS));
 #endif
 
-            // Initialize screen space tracing
-            REFRACTION_SSRAY_IN ssRayInput;
-            ZERO_INITIALIZE(REFRACTION_SSRAY_IN, ssRayInput);
+    // -------------------------------
+    // Screen space tracing query
+    // -------------------------------
+    ScreenSpaceRayHit hit;
+    ZERO_INITIALIZE(ScreenSpaceRayHit, hit);
+    bool hitSuccessful = false;
+    float hitWeight = 1;
 
-            // Common initialization
+    // -------------------------------
+    // Proxy raycasting
+    // -------------------------------
+    if (projectionModel == PROJECTIONMODEL_PROXY)
+    {
+        ScreenSpaceProxyRaycastInput ssRayInput;
+        ZERO_INITIALIZE(ScreenSpaceProxyRaycastInput, ssRayInput);
+
             ssRayInput.rayOriginWS = rayOriginWS;
             ssRayInput.rayDirWS = rayDirWS;
 #ifdef DEBUG_DISPLAY
             ssRayInput.debug = debug;
 #endif
-            // Algorithm specific initialization
-#ifdef _REFRACTION_SSRAY_HIZ
-            ssRayInput.maxIterations = uint(-1);
-#elif _REFRACTION_SSRAY_PROXY
             ssRayInput.proxyData = envLightData;
+
+#if HAS_REFRACTION
+        if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
+            hitSuccessful = ScreenSpaceProxyRaycastRefraction(ssRayInput, hit);
+        else
+#endif
+        if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
+            hitSuccessful = ScreenSpaceProxyRaycastReflection(ssRayInput, hit);
+    }
+
+    // -------------------------------
+    // HiZ raymarching
+    // -------------------------------
+    else if (projectionModel == PROJECTIONMODEL_HI_Z)
+    {
+        ScreenSpaceRaymarchInput ssRayInput;
+        ZERO_INITIALIZE(ScreenSpaceRaymarchInput, ssRayInput);
+
+        // Jitter the ray origin to trade some noise instead of banding effect
+        ssRayInput.rayOriginWS = rayOriginWS + rayDirWS * SampleBayer4(posInput.positionSS + uint2(_FrameCount, uint(_FrameCount) / 4u)) * 0.1;
+        ssRayInput.rayDirWS = rayDirWS;
+#if DEBUG_DISPLAY
+        ssRayInput.debug = debug;
 #endif
 
-            // Perform ray query
-            ScreenSpaceRayHit hit;
-            ZERO_INITIALIZE(ScreenSpaceRayHit, hit);
-            bool hitSuccessful = REFRACTION_SSRAY_QUERY(ssRayInput, hit);
+#if HAS_REFRACTION
+        if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
+            hitSuccessful = ScreenSpaceHiZRaymarchRefraction(ssRayInput, hit, hitWeight);
+        else 
+#endif
+        if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
+            hitSuccessful = ScreenSpaceHiZRaymarchReflection(ssRayInput, hit, hitWeight);
+    }
 
             // Debug screen space tracing
 #ifdef DEBUG_DISPLAY
-            if (_DebugLightingMode == debugMode
-                && _DebugLightingSubMode != DEBUGSCREENSPACETRACING_COLOR)
-            {
-                float weight = 1.0;
-                UpdateLightingHierarchyWeights(hierarchyWeight, weight);
-                lighting.specularTransmitted = hit.debugOutput;
-                return lighting;
-            }
-#endif
-
-            if (!hitSuccessful)
-                return lighting;
-
-            float2 weightNDC = clamp(min(hit.positionNDC, 1 - hit.positionNDC) * _SSRefractionInvScreenWeightDistance, 0, 1);
-            weightNDC = weightNDC * weightNDC * (3 - 2 * weightNDC);
-            float weight = weightNDC.x * weightNDC.y;
-
-            float hitDeviceDepth = LOAD_TEXTURE2D_LOD(_DepthPyramidTexture, hit.positionSS, 0).r;
-            float hitLinearDepth = LinearEyeDepth(hitDeviceDepth, _ZBufferParams);
-
-            // Exit if texel is out of color buffer
-            // Or if the texel is from an object in front of the object
-            if (hitLinearDepth < posInput.linearDepth
-                || weight == 0)
-            {
-                // Do nothing and don't update the hierarchy weight so we can fall back on refraction probe
-                return lighting;
-            }
-
-            UpdateLightingHierarchyWeights(hierarchyWeight, weight); // Shouldn't be needed, but safer in case we decide to change hierarchy priority
-
-            float3 preLD = SAMPLE_TEXTURE2D_LOD(
-                _ColorPyramidTexture,
-                s_trilinear_clamp_sampler,
-                hit.positionNDC * _ColorPyramidScale.xy,
-                preLightData.transparentSSMipLevel
-            ).rgb;
-
-                                                                     // We use specularFGD as an approximation of the fresnel effect (that also handle smoothness), so take the remaining for transmission
-            float3 F = preLightData.specularFGD;
-            lighting.specularTransmitted = (1.0 - F) * preLD.rgb * preLightData.transparentTransmittance * weight;
-#else
-            // No refraction, no need to go further
-            hierarchyWeight = 1.0;
-#endif
-            break;
-        }
-        case GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION:
-        {
-            break;
-        }
+    if (_DebugLightingMode == debugMode
+        && _DebugLightingSubMode != DEBUGSCREENSPACETRACING_COLOR
+        && _DebugLightingSubMode != DEBUGSCREENSPACETRACING_LINEAR_SAMPLED_COLOR
+        && _DebugLightingSubMode != DEBUGSCREENSPACETRACING_HI_ZSAMPLED_COLOR
+        )
+    {
+        float weight = 1.0;
+        UpdateLightingHierarchyWeights(hierarchyWeight, weight);
+        if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
+            lighting.specularTransmitted = hit.debugOutput;
+        else if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
+            lighting.specularReflected = hit.debugOutput;
+        return lighting;
     }
+#endif
+
+    if (!hitSuccessful)
+        return lighting;
+
+    // -------------------------------
+    // Resolve weight and color
+    // -------------------------------
+    // Fade pixels near the texture buffers' borders
+    float2 weightNDC = clamp(min(hit.positionNDC, 1 - hit.positionNDC) * invScreenWeightDistance, 0, 1);
+            weightNDC = weightNDC * weightNDC * (3 - 2 * weightNDC);
+    // TODO: Fade pixels with normal non facing the ray direction
+    // TODO: Fade pixels marked as foreground in stencil
+    float weight = weightNDC.x * weightNDC.y * hitWeight;
+
+    float hitDeviceDepth = LOAD_TEXTURE2D_LOD(_DepthPyramidTexture, hit.positionSS, 0).r;
+    float hitLinearDepth = LinearEyeDepth(hitDeviceDepth, _ZBufferParams);
+
+    // Exit if texel is discarded
+    if (weight == 0)
+        // Do nothing and don't update the hierarchy weight so we can fall back on refraction probe
+        return lighting;
+
+    UpdateLightingHierarchyWeights(hierarchyWeight, weight); // Shouldn't be needed, but safer in case we decide to change hierarchy priority
+
+    // Reproject color pyramid
+    float4 hitVelocityBuffer = LOAD_TEXTURE2D_LOD(
+        _CameraMotionVectorsTexture,
+        hit.positionSS,
+        0.0
+    );
+
+    float2 hitVelocityNDC;
+    DecodeVelocity(hitVelocityBuffer, hitVelocityNDC);
+
+    float3 preLD = SAMPLE_TEXTURE2D_LOD(
+        _ColorPyramidTexture,
+        s_trilinear_clamp_sampler,
+        // Offset by half a texel to properly interpolate between this pixel and its mips
+        (hit.positionNDC - hitVelocityNDC) * _ColorPyramidScale.xy + _ColorPyramidSize.zw * 0.5,
+        mipLevel
+    ).rgb;
+
+    // With HiZ, we use a temporal filtering to reduce the noise from the ray origin jittering
+    if (projectionModel == PROJECTIONMODEL_HI_Z)
+    {
+        float4 currentVelocityBuffer = LOAD_TEXTURE2D_LOD(
+            _CameraMotionVectorsTexture,
+            posInput.positionSS,
+            0.0
+        );
+
+        float2 currentVelocityNDC;
+        DecodeVelocity(currentVelocityBuffer, currentVelocityNDC);
+
+        float3 currentLD = LOAD_TEXTURE2D_LOD(
+            _ColorPyramidTexture,
+            int2(posInput.positionSS) - int2(currentVelocityNDC * _ScreenSize.xy),
+            0
+        ).rgb;
+        preLD = preLD * (1.0 - temporalFilteringWeight) + currentLD * temporalFilteringWeight;
+    }
+
+    // We use specularFGD as an approximation of the fresnel effect (that also handle smoothness)
+    float3 F = preLightData.specularFGD;
+
+    // -------------------------------
+    // Assign color
+    // -------------------------------
+#if HAS_REFRACTION
+    if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
+        lighting.specularTransmitted = (1.0 - F) * preLD.rgb * preLightData.transparentTransmittance * weight;
+    else 
+#endif
+    if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
+        lighting.specularReflected = F * preLD.rgb * weight;
+
+#ifdef DEBUG_DISPLAY
+    if (debug)
+    {
+        ScreenSpaceTracingDebug debug = _DebugScreenSpaceTracingData[0];
+        debug.lightingSampledColor = preLD;
+        if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
+            debug.lightingSpecularFGD = 1.0 - F;
+        else if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
+            debug.lightingSpecularFGD = F;
+        debug.lightingWeight = weight;
+        _DebugScreenSpaceTracingData[0] = debug;
+    }
+
+    if (_DebugLightingMode == debugMode
+        && (_DebugLightingSubMode == DEBUGSCREENSPACETRACING_LINEAR_SAMPLED_COLOR
+            || _DebugLightingSubMode == DEBUGSCREENSPACETRACING_HI_ZSAMPLED_COLOR))
+    {
+        float weight = 1.0;
+        UpdateLightingHierarchyWeights(hierarchyWeight, weight);
+        if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
+            lighting.specularTransmitted = preLD.rgb;
+        else if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
+            lighting.specularReflected = preLD.rgb;
+        return lighting;
+    }
+#endif
 
     return lighting;
 }
@@ -1886,7 +2047,19 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         positionWS = preLightData.transparentPositionWS;
         R = preLightData.transparentRefractV;
     }
+    else
 #endif
+    {
+        if ((lightData.envIndex & 1) == ENVCACHETYPE_CUBEMAP)
+        {
+            R = GetSpecularDominantDir(bsdfData.normalWS, R, preLightData.iblPerceptualRoughness, ClampNdotV(preLightData.NdotV));
+            // When we are rough, we tend to see outward shifting of the reflection when at the boundary of the projection volume
+            // Also it appear like more sharp. To avoid these artifact and at the same time get better match to reference we lerp to original unmodified reflection.
+            // Formula is empirical.
+            float roughness = PerceptualRoughnessToRoughness(preLightData.iblPerceptualRoughness);
+            R = lerp(R, preLightData.iblR, saturate(smoothstep(0, 1, roughness * roughness)));
+        }
+    }
 
     // Note: using influenceShapeType and projectionShapeType instead of (lightData|proxyData).shapeType allow to make compiler optimization in case the type is know (like for sky)
     EvaluateLight_EnvIntersection(positionWS, bsdfData.normalWS, lightData, influenceShapeType, R, weight);
@@ -1898,12 +2071,6 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         float unusedWeight = 0.0;
         EvaluateLight_EnvIntersection(positionWS, bsdfData.normalWS, lightData, influenceShapeType, coatR, unusedWeight);
     }
-
-    // When we are rough, we tend to see outward shifting of the reflection when at the boundary of the projection volume
-    // Also it appear like more sharp. To avoid these artifact and at the same time get better match to reference we lerp to original unmodified reflection.
-    // Formula is empirical.
-    float roughness = PerceptualRoughnessToRoughness(preLightData.iblPerceptualRoughness);
-    R = lerp(R, preLightData.iblR, saturate(smoothstep(0, 1, roughness * roughness)));
 
     float3 F = preLightData.specularFGD;
 
@@ -2013,7 +2180,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 
     if (_DebugLightingMode != 0)
     {
-        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+        bool keepSpecular = false;
 
         switch (_DebugLightingMode)
         {
@@ -2032,8 +2199,20 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
         case DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFRACTION:
             if (_DebugLightingSubMode != DEBUGSCREENSPACETRACING_COLOR)
                 diffuseLighting = lighting.indirect.specularTransmitted;
+            else
+                keepSpecular = true;
+            break;
+
+        case DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFLECTION:
+            if (_DebugLightingSubMode != DEBUGSCREENSPACETRACING_COLOR)
+                diffuseLighting = lighting.indirect.specularReflected;
+            else
+                keepSpecular = true;
             break;
         }
+
+        if (!keepSpecular)
+            specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
     }
     else if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {

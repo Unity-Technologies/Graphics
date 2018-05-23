@@ -129,7 +129,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get
             {
                 return additional.proxyVolumeComponent != null
-                    ? additional.proxyVolumeComponent.proxyVolume.boxSize * 0.5f
+                    ? additional.proxyVolumeComponent.proxyVolume.extents
                     : influenceExtents;
             }
         }
