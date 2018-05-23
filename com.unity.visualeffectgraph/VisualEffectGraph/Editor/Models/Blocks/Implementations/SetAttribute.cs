@@ -136,7 +136,7 @@ namespace UnityEditor.VFX.Block
                     }
                     else
                     {
-                        channelSource = VFXBlockUtility.GetRandomMacroString(RandomMode.Off, attributeSize, "Value");
+                        channelSource = VFXBlockUtility.GetRandomMacroString(RandomMode.Off, attributeSize, paramPostfix, "Value");
                     }
 
                     if (Composition == AttributeCompositionMode.Blend)
