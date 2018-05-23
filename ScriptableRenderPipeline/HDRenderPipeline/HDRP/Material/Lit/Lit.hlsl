@@ -1766,6 +1766,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     int debugMode                   = 0;
 #endif
     float invScreenWeightDistance   = 0;
+    float temporalFilteringWeight   = 0.2;
 
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
     {
@@ -1840,7 +1841,8 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
         ScreenSpaceRaymarchInput ssRayInput;
         ZERO_INITIALIZE(ScreenSpaceRaymarchInput, ssRayInput);
 
-        ssRayInput.rayOriginWS = rayOriginWS + rayDirWS * SampleBayer4(posInput.positionSS + _FrameCount) * 0.1;
+        // Jitter the ray origin to trade some noise instead of banding effect
+        ssRayInput.rayOriginWS = rayOriginWS + rayDirWS * SampleBayer4(posInput.positionSS + uint2(_FrameCount, _FrameCount / 4)) * 0.1;
         ssRayInput.rayDirWS = rayDirWS;
 #if DEBUG_DISPLAY
         ssRayInput.debug = debug;
@@ -1898,22 +1900,42 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     UpdateLightingHierarchyWeights(hierarchyWeight, weight); // Shouldn't be needed, but safer in case we decide to change hierarchy priority
 
     // Reproject color pyramid
-    float4 velocityBuffer = LOAD_TEXTURE2D_LOD(
+    float4 hitVelocityBuffer = LOAD_TEXTURE2D_LOD(
         _CameraMotionVectorsTexture,
         hit.positionSS,
         0.0
     );
 
-    float2 velocityNDC;
-    DecodeVelocity(velocityBuffer, velocityNDC);
+    float2 hitVelocityNDC;
+    DecodeVelocity(hitVelocityBuffer, hitVelocityNDC);
 
     float3 preLD = SAMPLE_TEXTURE2D_LOD(
         _ColorPyramidTexture,
         s_trilinear_clamp_sampler,
         // Offset by half a texel to properly interpolate between this pixel and its mips
-        (hit.positionNDC - velocityNDC) * _ColorPyramidScale.xy + _ColorPyramidSize.zw * 0.5,
+        (hit.positionNDC - hitVelocityNDC) * _ColorPyramidScale.xy + _ColorPyramidSize.zw * 0.5,
         mipLevel
     ).rgb;
+
+    // With HiZ, we use a temporal filtering to reduce the noise from the ray origin jittering
+    if (projectionModel == PROJECTIONMODEL_HI_Z)
+    {
+        float4 currentVelocityBuffer = LOAD_TEXTURE2D_LOD(
+            _CameraMotionVectorsTexture,
+            posInput.positionSS,
+            0.0
+        );
+
+        float2 currentVelocityNDC;
+        DecodeVelocity(currentVelocityBuffer, currentVelocityNDC);
+
+        float3 currentLD = LOAD_TEXTURE2D_LOD(
+            _ColorPyramidTexture,
+            int2(posInput.positionSS) - int2(currentVelocityNDC * _ScreenSize.xy),
+            0
+        ).rgb;
+        preLD = preLD * (1.0 - temporalFilteringWeight) + currentLD * temporalFilteringWeight;
+    }
 
     // We use specularFGD as an approximation of the fresnel effect (that also handle smoothness)
     float3 F = preLightData.specularFGD;
