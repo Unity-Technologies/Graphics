@@ -5,37 +5,37 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Title("Input", "Texture", "Texture 2D Asset")]
-    public class Texture2DAssetNode : AbstractMaterialNode, IPropertyFromNode
+    [Title("Input", "Texture", "Texture 3D Asset")]
+    public class Texture3DAssetNode : AbstractMaterialNode, IPropertyFromNode
     {
         public const int OutputSlotId = 0;
 
         const string kOutputSlotName = "Out";
 
-        public Texture2DAssetNode()
+        public Texture3DAssetNode()
         {
-            name = "Texture 2D Asset";
+            name = "Texture 3D Asset";
             UpdateNodeAfterDeserialization();
         }
 
         public override string documentationURL
         {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Texture-2D-Asset-Node"; }
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Texture-3D-Asset-Node"; }
         }
 
         public sealed override void UpdateNodeAfterDeserialization()
         {
-            AddSlot(new Texture2DMaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));
+            AddSlot(new Texture3DMaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output));
             RemoveSlotsNameNotMatching(new[] { OutputSlotId });
         }
 
         [SerializeField]
         private SerializableTexture m_Texture = new SerializableTexture();
 
-        [TextureControl("")]
-        public Texture texture
+        [Texture3DControl("")]
+        public Texture3D texture
         {
-            get { return m_Texture.texture; }
+            get { return (Texture3D)m_Texture.texture; }
             set
             {
                 if (m_Texture.texture == value)
@@ -47,7 +47,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void CollectShaderProperties(PropertyCollector properties, GenerationMode generationMode)
         {
-            properties.AddShaderProperty(new TextureShaderProperty()
+            properties.AddShaderProperty(new Texture3DShaderProperty()
             {
                 overrideReferenceName = GetVariableNameForSlot(OutputSlotId),
                 generatePropertyBlock = true,
@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderGraph
 
         public override void CollectPreviewMaterialProperties(List<PreviewProperty> properties)
         {
-            properties.Add(new PreviewProperty(PropertyType.Texture2D)
+            properties.Add(new PreviewProperty(PropertyType.Texture3D)
             {
                 name = GetVariableNameForSlot(OutputSlotId),
                 textureValue = texture
@@ -67,7 +67,7 @@ namespace UnityEditor.ShaderGraph
 
         public IShaderProperty AsShaderProperty()
         {
-            var prop = new TextureShaderProperty { value = m_Texture };
+            var prop = new Texture3DShaderProperty { value = m_Texture };
             if (texture != null)
                 prop.displayName = texture.name;
             return prop;

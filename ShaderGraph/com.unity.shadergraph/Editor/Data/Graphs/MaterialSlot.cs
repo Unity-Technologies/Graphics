@@ -89,7 +89,11 @@ namespace UnityEditor.ShaderGraph
                 case ConcreteSlotValueType.SamplerState:
                     return "(SS)";
                 case ConcreteSlotValueType.Texture2D:
-                    return "(T)";
+                    return "(T2)";
+                case ConcreteSlotValueType.Texture2DArray:
+                    return "(T2A)";
+                case ConcreteSlotValueType.Texture3D:
+                    return "(T3)";
                 case ConcreteSlotValueType.Cubemap:
                     return "(C)";
                 case ConcreteSlotValueType.Gradient:
@@ -128,6 +132,14 @@ namespace UnityEditor.ShaderGraph
                     return slotType == SlotType.Input
                         ? new Texture2DInputMaterialSlot(slotId, displayName, shaderOutputName, shaderStageCapability, hidden)
                         : new Texture2DMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStageCapability, hidden);
+                case SlotValueType.Texture2DArray:
+                    return slotType == SlotType.Input
+                        ? new Texture2DArrayInputMaterialSlot(slotId, displayName, shaderOutputName, shaderStageCapability, hidden)
+                        : new Texture2DArrayMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStageCapability, hidden);
+                case SlotValueType.Texture3D:
+                    return slotType == SlotType.Input
+                        ? new Texture3DInputMaterialSlot(slotId, displayName, shaderOutputName, shaderStageCapability, hidden)
+                        : new Texture3DMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStageCapability, hidden);
                 case SlotValueType.Cubemap:
                     return slotType == SlotType.Input
                         ? new CubemapInputMaterialSlot(slotId, displayName, shaderOutputName, shaderStageCapability, hidden)
@@ -254,6 +266,10 @@ namespace UnityEditor.ShaderGraph
                         || inputType == SlotValueType.Dynamic;
                 case SlotValueType.Texture2D:
                     return inputType == SlotValueType.Texture2D;
+                case SlotValueType.Texture2DArray:
+                    return inputType == SlotValueType.Texture2DArray;
+                case SlotValueType.Texture3D:
+                    return inputType == SlotValueType.Texture3D;
                 case SlotValueType.Cubemap:
                     return inputType == SlotValueType.Cubemap;
                 case SlotValueType.Gradient:
@@ -326,7 +342,11 @@ namespace UnityEditor.ShaderGraph
             switch (slotValue)
             {
                 case ConcreteSlotValueType.Texture2D:
-                    return PropertyType.Texture;
+                    return PropertyType.Texture2D;
+                case ConcreteSlotValueType.Texture2DArray:
+                    return PropertyType.Texture2DArray;
+                case ConcreteSlotValueType.Texture3D:
+                    return PropertyType.Texture3D;
                 case ConcreteSlotValueType.Cubemap:
                     return PropertyType.Cubemap;
                 case ConcreteSlotValueType.Gradient:
