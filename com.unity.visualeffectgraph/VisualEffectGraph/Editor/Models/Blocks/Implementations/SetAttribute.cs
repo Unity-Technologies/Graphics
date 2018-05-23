@@ -178,6 +178,8 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
+                if (Source == ValueSource.Source) yield break;
+
                 var attrib = currentAttribute;
 
                 VFXPropertyAttribute[] attr = null;
