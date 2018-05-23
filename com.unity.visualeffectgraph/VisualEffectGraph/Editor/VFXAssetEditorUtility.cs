@@ -92,22 +92,5 @@ namespace UnityEditor
 
             ProjectWindowUtil.CreateAssetWithContent("New VFX.vfx", templateString);
         }
-
-        [MenuItem("VFX Editor/Make All Assets Visible")]
-        public static void MakeAllVisible()
-        {
-            string path = AssetDatabase.GetAssetPath(Selection.activeInstanceID);
-
-            if (!string.IsNullOrEmpty(path))
-            {
-                foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(path))
-                {
-                    if (asset != null)
-                        asset.hideFlags = HideFlags.None;
-                }
-            }
-
-            AssetDatabase.ImportAsset(path);
-        }
     }
 }

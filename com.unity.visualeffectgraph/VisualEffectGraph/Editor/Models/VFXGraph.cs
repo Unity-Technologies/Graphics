@@ -77,11 +77,11 @@ namespace UnityEditor.VFX
         {
             ScriptableObject g = resource.graph;
             if (g == null)
-        {
+            {
                 string assetPath = AssetDatabase.GetAssetPath(resource);
                 AssetDatabase.ImportAsset(assetPath);
 
-                g = AssetDatabase.LoadAllAssetsAtPath(assetPath).OfType<VFXGraph>().FirstOrDefault();
+                g = resource.GetDependencies().OfType<VFXGraph>().FirstOrDefault();
             }
 
             if (g == null)
@@ -270,40 +270,40 @@ namespace UnityEditor.VFX
         {
             bool modified = false;
 
-                Profiler.BeginSample("VFXEditor.UpdateSubAssets");
+            Profiler.BeginSample("VFXEditor.UpdateSubAssets");
 
-                try
-                {
-                    var currentObjects = new HashSet<ScriptableObject>();
+            try
+            {
+                var currentObjects = new HashSet<ScriptableObject>();
                 currentObjects.Add(this);
-                    CollectDependencies(currentObjects);
+                CollectDependencies(currentObjects);
 
-                    if (m_UIInfos != null)
-                        currentObjects.Add(m_UIInfos);
+                if (m_UIInfos != null)
+                    currentObjects.Add(m_UIInfos);
 
-                    // Add sub assets that are not already present
-                    foreach (var obj in currentObjects)
-                        {
+                // Add sub assets that are not already present
+                foreach (var obj in currentObjects)
+                {
                     if (obj.hideFlags != hideFlags)
                     {
-                            obj.hideFlags = hideFlags;
-                            modified = true;
-                        }
+                        obj.hideFlags = hideFlags;
+                        modified = true;
+                    }
                 }
 
                 visualEffectResource.SetDependencies(currentObjects.Cast<Object>().ToArray());
-                }
-                catch (Exception e)
-                {
-                    Debug.Log(e);
-                }
-                finally
-                {
-                    Profiler.EndSample();
-                }
+            }
+            catch (Exception e)
+            {
+                Debug.Log(e);
+            }
+            finally
+            {
+                Profiler.EndSample();
+            }
 
-                if (modified)
-                    EditorUtility.SetDirty(this);
+            if (modified)
+                EditorUtility.SetDirty(this);
 
             return modified;
         }

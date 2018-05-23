@@ -214,8 +214,6 @@ public class VFXMigration
             Debug.Log("Found prefab : " + AssetDatabase.GetAssetPath(prefab));
         }
 
-        return;
-
         foreach (var path in components.componentPaths.Values.Union(prefabsInfos.SelectMany(t => t.componentPaths.Values)).Distinct())
         {
             VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path.assetPath);
@@ -225,9 +223,9 @@ public class VFXMigration
                 asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path.assetPath);
             }
 
-            var resource = asset.GetResource();
             if (asset != null)
             {
+                var resource = asset.GetResource();
                 resource.ValidateAsset();
                 try
                 {

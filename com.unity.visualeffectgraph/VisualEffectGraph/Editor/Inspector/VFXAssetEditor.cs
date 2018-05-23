@@ -63,7 +63,7 @@ public class VisualEffectAssetEditor : Editor
         if (resource == null) return;
 
 
-        UnityObject[] objects = AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(asset));
+        UnityObject[] objects = resource.GetDependencies();
 
         foreach (var shader in objects.Where(t => t is Shader || t is ComputeShader))
         {
