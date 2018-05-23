@@ -47,7 +47,7 @@ namespace UnityEditor.ShaderGraph
             return m_Pragma;
         }
 
-        public void AddShaderChunk(string s, bool unique)
+        public void AddShaderChunk(string s, bool unique = false)
         {
             if (string.IsNullOrEmpty(s))
                 return;
@@ -56,6 +56,14 @@ namespace UnityEditor.ShaderGraph
                 return;
 
             m_ShaderChunks.Add(new ShaderChunk(m_IndentLevel, s));
+        }
+
+        public void AddGenerator(ShaderGenerator generator)
+        {
+            foreach (ShaderChunk chunk in generator.m_ShaderChunks)
+            {
+                m_ShaderChunks.Add(new ShaderChunk(m_IndentLevel + chunk.chunkIndentLevel, chunk.chunkString));
+            }
         }
 
         public void Indent()
@@ -68,11 +76,13 @@ namespace UnityEditor.ShaderGraph
             m_IndentLevel = Math.Max(0, m_IndentLevel - 1);
         }
 
-        public string GetShaderString(int baseIndentLevel)
+        public string GetShaderString(int baseIndentLevel, bool finalNewline = true)
         {
+            bool appendedNewline = false;
             var sb = new StringBuilder();
             foreach (var shaderChunk in m_ShaderChunks)
             {
+                // TODO: regex split is a slow way to handle this .. should build an iterator instead
                 var lines = Regex.Split(shaderChunk.chunkString, Environment.NewLine);
                 for (int index = 0; index < lines.Length; index++)
                 {
@@ -81,7 +91,13 @@ namespace UnityEditor.ShaderGraph
                         sb.Append("\t");
 
                     sb.AppendLine(line);
+                    appendedNewline = true;
                 }
+            }
+            if (appendedNewline && !finalNewline)
+            {
+                // remove last newline if we didn't want it
+                sb.Length -= Environment.NewLine.Length;
             }
             return sb.ToString();
         }

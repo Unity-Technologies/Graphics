@@ -281,13 +281,13 @@ namespace UnityEditor.ShaderGraph
             return string.Format("sg_{0}_{1}", functionName, GuidEncoder.Encode(referencedGraph.guid));
         }
 
-        public virtual void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
+        public virtual void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
         {
             if (subGraphAsset == null || referencedGraph == null)
                 return;
 
-            referencedGraph.GenerateNodeFunction(registry, GenerationMode.ForReals);
-            referencedGraph.GenerateSubGraphFunction(SubGraphFunctionName(), registry, ShaderGraphRequirements.FromNodes(new List<INode> {this}), GenerationMode.ForReals);
+            referencedGraph.GenerateNodeFunction(registry, graphContext, GenerationMode.ForReals);
+            referencedGraph.GenerateSubGraphFunction(SubGraphFunctionName(), registry, graphContext, ShaderGraphRequirements.FromNodes(new List<INode> {this}), GenerationMode.ForReals);
         }
 
         public NeededCoordinateSpace RequiresNormal(ShaderStageCapability stageCapability)
