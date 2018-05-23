@@ -19,7 +19,7 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
         TEXTURE2D_ARRAY(_CameraDepthTexture);
 #else
         TEXTURE2D(_CameraDepthTexture);
-#endif // defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+#endif
 
         SAMPLER(sampler_CameraDepthTexture);
 
@@ -81,7 +81,7 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
             // Screenspace shadowmap is only used for directional lights which use orthogonal projection.
             ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
             half shadowStrength = GetMainLightShadowStrength();
-            return SampleShadowmap(coords, TEXTURE2D_PARAM(_ShadowMap, sampler_ShadowMap), shadowSamplingData, shadowStrength);
+            return SampleShadowmap(coords, TEXTURE2D_PARAM(_DirectionalShadowmapTexture, sampler_DirectionalShadowmapTexture), shadowSamplingData, shadowStrength);
         }
 
         ENDHLSL
