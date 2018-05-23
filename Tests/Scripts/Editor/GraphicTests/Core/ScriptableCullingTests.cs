@@ -80,29 +80,100 @@ public class ScriptableCullingTests
         Culling.CullScene(cullingParams, result);
 
         Assert.AreEqual(3, result.GetVisibleObjectCount());
+        TearDown();
+    }
+
+    [Test(Description = "Renderer List Test")]
+    public void PrepareRendererList()
+    {
+        Setup("RendererListTest", "Camera_RendererListTest");
+
+        CullingParameters cullingParams = new CullingParameters();
+        ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
+
+        CullingResult result = new CullingResult();
+        Culling.CullScene(cullingParams, result);
+
+        Assert.AreEqual(4, result.GetVisibleObjectCount());
+
+        Culling.PrepareRendererScene(result, null, null);
+
+        List<PrepareRendererListSettings> settingsList = new List<PrepareRendererListSettings>();
+        PrepareRendererListSettings settingsOpaque = new PrepareRendererListSettings(m_TestCamera);
+        settingsOpaque.renderQueueRange = RenderQueueRange.opaque;
+        settingsOpaque.SetShaderTag(0, new ShaderPassName("GBuffer"));
+        PrepareRendererListSettings settingsTransparent = new PrepareRendererListSettings(m_TestCamera);
+        settingsTransparent.renderQueueRange = RenderQueueRange.transparent;
+        settingsTransparent.SetShaderTag(0, new ShaderPassName("Forward"));
+        settingsList.Add(settingsOpaque);
+        settingsList.Add(settingsTransparent);
+
+        List<RendererList> listOut = new List<RendererList>();
+        var listOpaque = new RendererList();
+        var listTransparent = new RendererList();
+        listOut.Add(listOpaque);
+        listOut.Add(listTransparent);
+
+        RendererList.PrepareRendererLists(result, settingsList.ToArray(), listOut.ToArray());
+        Assert.AreEqual(3, listOut[0].GetRendererCount());
+        Assert.AreEqual(1, listOut[1].GetRendererCount());
 
         TearDown();
     }
 
-    //[Test(Description = "Scene not prepared before rendering error")]
-    //public void SceneNotPreparedError()
-    //{
-    //    Setup("FrustumCullingTest", "FrustumCullingTest");
+    [Test(Description = "Renderer List Test")]
+    public void MismatchPrepareRendererListArguments()
+    {
+        Setup("RendererListTest", "Camera_RendererListTest");
 
-    //    CullingParameters cullingParams = new CullingParameters();
-    //    ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
+        CullingParameters cullingParams = new CullingParameters();
+        ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
 
-    //    CullingResult result = new CullingResult();
-    //    Culling.CullScene(cullingParams, result);
+        CullingResult result = new CullingResult();
+        Culling.CullScene(cullingParams, result);
 
-    //    Culling.PrepareScene();
+        Assert.AreEqual(4, result.GetVisibleObjectCount());
 
-    //    // DrawRenderers ?
+        Culling.PrepareRendererScene(result, null, null);
 
-    //    Assert.AreEqual(3, 2);
+        List<PrepareRendererListSettings> settingsList = new List<PrepareRendererListSettings>();
+        PrepareRendererListSettings settings1 = new PrepareRendererListSettings(m_TestCamera);
+        settingsList.Add(settings1);
 
-    //    TearDown();
-    //}
+        List<RendererList> listOut = new List<RendererList>();
+        var list1 = new RendererList();
+        var list2 = new RendererList();
+        listOut.Add(list1);
+        listOut.Add(list2);
+
+        Assert.Throws<ArgumentException>(() => RendererList.PrepareRendererLists(result, settingsList.ToArray(), listOut.ToArray()));
+
+        TearDown();
+    }
+
+    [Test(Description = "Scene not prepared before rendering error")]
+    public void SceneNotPreparedError()
+    {
+        Setup("FrustumCullingTest", "Camera_FrustumCullingTest");
+
+        CullingParameters cullingParams = new CullingParameters();
+        ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
+
+        CullingResult result = new CullingResult();
+        Culling.CullScene(cullingParams, result);
+
+        List<PrepareRendererListSettings> settingsList = new List<PrepareRendererListSettings>();
+        PrepareRendererListSettings settings1 = new PrepareRendererListSettings(m_TestCamera);
+        settingsList.Add(settings1);
+
+        List<RendererList> listOut = new List<RendererList>();
+        var list1 = new RendererList();
+        listOut.Add(list1);
+
+        Assert.Throws<ArgumentException>(() => RendererList.PrepareRendererLists(result, settingsList.ToArray(), listOut.ToArray()));
+
+        TearDown();
+    }
 
     [Test(Description = "Light frustum culling test")]
     public void LightFrustumCulling()
@@ -224,18 +295,36 @@ public class ScriptableCullingTests
 
         SetupTestCamera("ReuseResultCamera 1");
         ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
-
         Culling.CullScene (cullingParams, result);
-
         Assert.AreEqual(2, result.GetVisibleObjectCount());
 
         SetupTestCamera("ReuseResultCamera 2");
         ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
-
         Culling.CullScene(cullingParams, result);
-
         Assert.AreEqual(1, result.GetVisibleObjectCount());
 
         TearDown();
     }
+
+    //[Test(Description = "Per Object Light Culling")]
+    //public void PerObjectLightCulling()
+    //{
+    //    Setup("ReuseCullingResultTest", "ReuseResultCamera 1");
+
+    //    CullingParameters cullingParams = new CullingParameters();
+    //    ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
+
+    //    CullingResult result = new CullingResult();
+    //    Culling.CullScene(cullingParams, result);
+
+    //    LightCullingResult lightResult = new LightCullingResult();
+    //    Culling.CullLights(cullingParams, lightResult);
+
+    //    Culling.PrepareRendererScene(result, lightResult, null);
+
+    //     // egzserghz
+    //    Assert.AreEqual(3, 2);
+
+    //    TearDown();
+    //}
 }
