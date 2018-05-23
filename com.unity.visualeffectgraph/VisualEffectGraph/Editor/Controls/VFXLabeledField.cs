@@ -107,7 +107,7 @@ namespace UnityEditor.VFX.UIElements
             using (ChangeEvent<U> evt = ChangeEvent<U>.GetPooled(e.previousValue, e.newValue))
             {
                 evt.target = this;
-                value = e.newValue;
+                SetValueWithoutNotify(e.newValue);
                 UIElementsUtility.eventDispatcher.DispatchEvent(evt, panel);
             }
         }

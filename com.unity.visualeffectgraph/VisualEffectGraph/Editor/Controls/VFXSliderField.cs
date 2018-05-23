@@ -43,11 +43,7 @@ namespace UnityEditor.VFX.UIElements
 
             set
             {
-                m_IgnoreNotification = true;
-                m_Value = value;
-                m_Field.value = value;
-                m_Slider.value = ValueToFloat(value);
-                m_IgnoreNotification = false;
+                SetValueAndNotify(value);
             }
         }
 
@@ -97,7 +93,7 @@ namespace UnityEditor.VFX.UIElements
                 using (ChangeEvent<T> evt = ChangeEvent<T>.GetPooled(value, newValue))
                 {
                     evt.target = this;
-                    value = newValue;
+                    SetValueWithoutNotify(newValue);
                     UIElementsUtility.eventDispatcher.DispatchEvent(evt, panel);
                 }
             }
@@ -105,7 +101,11 @@ namespace UnityEditor.VFX.UIElements
 
         public void SetValueWithoutNotify(T newValue)
         {
-            value = newValue;
+            m_IgnoreNotification = true;
+            m_Value = value;
+            m_Field.value = value;
+            m_Slider.value = ValueToFloat(value);
+            m_IgnoreNotification = false;
         }
 
         protected void ValueChanged(ChangeEvent<T> e)
