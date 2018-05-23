@@ -92,7 +92,7 @@ namespace UnityEditor.ShaderGraph
             visitor.AddShaderChunk(sb.ToString(), false);
         }
 
-        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
+        public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
         {
             registry.ProvideFunction(GetFunctionName(), s =>
             {

@@ -60,7 +60,7 @@ namespace UnityEditor.ShaderGraph
 ";
         }
 
-        public override void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
+        public override void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
         {
             registry.ProvideFunction("unity_voronoi_noise_randomVector", s => s.Append(@"
 inline float2 unity_voronoi_noise_randomVector (float2 UV, float offset)
@@ -70,7 +70,7 @@ inline float2 unity_voronoi_noise_randomVector (float2 UV, float offset)
     return float2(sin(UV.y*+offset)*0.5+0.5, cos(UV.x*offset)*0.5+0.5);
 }
 "));
-            base.GenerateNodeFunction(registry, generationMode);
+            base.GenerateNodeFunction(registry, graphContext, generationMode);
         }
     }
 }
