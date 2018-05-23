@@ -1,6 +1,6 @@
 Pass
 {
-    // based on HDUnlitPassForward.template
+    // based on HDPBRPass.template
     Name "${PassName}"
     Tags { "LightMode" = "${LightMode}" }
 
@@ -34,10 +34,25 @@ ${VariantDefines}
     #pragma vertex Vert
     #pragma fragment Frag
 
-    #define UNITY_MATERIAL_UNLIT // Need to be define before including Material.hlsl
+    #define UNITY_MATERIAL_LIT      // Need to be define before including Material.hlsl
+
+    // Use surface gradient normal mapping as it handle correctly triplanar normal mapping and multiple UVSet
+    // this modifies the normal calculation
+    // #define SURFACE_GRADIENT
+
+    // This shader support vertex modification (or not)
+    // TODO - move to PBR shader control
+    // #define HAVE_VERTEX_MODIFICATION
+
+    // If we use subsurface scattering, enable output split lighting (for forward pass)
+    #if defined(_MATID_SSS) && !defined(_SURFACE_TYPE_TRANSPARENT)
+    #define OUTPUT_SPLIT_LIGHTING
+    #endif
 
     #include "CoreRP/ShaderLibrary/Common.hlsl"
-//    #include "CoreRP/ShaderLibrary/Wind.hlsl"
+    #include "CoreRP/ShaderLibrary/Wind.hlsl"
+
+    #include "CoreRP/ShaderLibrary/NormalSurfaceGradient.hlsl"
 
     #include "ShaderGraphLibrary/Functions.hlsl"
 
@@ -161,7 +176,7 @@ ${Graph}
             $SurfaceDescriptionInputs.ViewSpaceNormal:           output.ViewSpaceNormal =             mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_I_V);         // transposed multiplication by inverse matrix to handle normal scale
             $SurfaceDescriptionInputs.TangentSpaceNormal:        output.TangentSpaceNormal =          float3(0.0f, 0.0f, 1.0f);
 
-            $SurfaceDescriptionInputs.WorldSpaceTangent:		    output.WorldSpaceTangent =           input.worldToTangent[0].xyz;
+            $SurfaceDescriptionInputs.WorldSpaceTangent:		 output.WorldSpaceTangent =           input.worldToTangent[0].xyz;
             $SurfaceDescriptionInputs.ObjectSpaceTangent:        output.ObjectSpaceTangent =          mul((float3x3) unity_WorldToObject, output.WorldSpaceTangent);
             $SurfaceDescriptionInputs.ViewSpaceTangent:          output.ViewSpaceTangent =            mul((float3x3) UNITY_MATRIX_V, output.WorldSpaceTangent);
             $SurfaceDescriptionInputs.TangentSpaceTangent:       output.TangentSpaceTangent =         float3(1.0f, 0.0f, 0.0f);
@@ -178,12 +193,14 @@ ${Graph}
             $SurfaceDescriptionInputs.TangentSpaceViewDirection: output.TangentSpaceViewDirection =   mul(tangentSpaceTransform, output.WorldSpaceViewDirection);
 
             // TODO: FragInputs.positionWS is badly named -- it's camera relative, not in world space
+            // we have to fix it up here to match graph input expectations
             $SurfaceDescriptionInputs.WorldSpacePosition:        output.WorldSpacePosition =          input.positionWS + _WorldSpaceCameraPos;
             $SurfaceDescriptionInputs.ObjectSpacePosition:       output.ObjectSpacePosition =         mul(unity_WorldToObject, float4(input.positionWS + _WorldSpaceCameraPos, 1.0f)).xyz;
             $SurfaceDescriptionInputs.ViewSpacePosition:         float4 posViewSpace =                mul(UNITY_MATRIX_V, float4(input.positionWS, 1.0f));
             $SurfaceDescriptionInputs.ViewSpacePosition:         output.ViewSpacePosition =           posViewSpace.xyz / posViewSpace.w;
             $SurfaceDescriptionInputs.TangentSpacePosition:      output.TangentSpacePosition =        float3(0.0f, 0.0f, 0.0f);
-            
+
+            // TODO: positionSS is SV_Position, graph input expects screenPosition to be 0..1 across the active viewport (?)
             $SurfaceDescriptionInputs.screenPosition:            output.screenPosition = input.positionSS;
             
             $SurfaceDescriptionInputs.uv0:                       output.uv0 =    float4(input.texCoord0, 0.0f, 0.0f);
@@ -207,9 +224,73 @@ ${Graph}
     {
         // setup defaults -- these are used if the graph doesn't output a value
         ZERO_INITIALIZE(SurfaceData, surfaceData);
+        surfaceData.ambientOcclusion =      1.0f;
+        surfaceData.subsurfaceMask =        1.0f;
 
         // copy across graph values, if defined
-        $SurfaceDescription.Color:               surfaceData.color = surfaceDescription.Color;
+        $SurfaceDescription.Albedo:               surfaceData.baseColor =             surfaceDescription.Albedo;
+        $SurfaceDescription.Smoothness:           surfaceData.perceptualSmoothness =  surfaceDescription.Smoothness;
+        $SurfaceDescription.Occlusion:            surfaceData.ambientOcclusion =      surfaceDescription.Occlusion;
+        $SurfaceDescription.Metallic:             surfaceData.metallic =              surfaceDescription.Metallic;
+        //                                  surfaceData.thickness =             surfaceDescription.Thickness;
+        //                                  surfaceData.diffusionProfile =      surfaceDescription.DiffusionProfile;
+        //                                  surfaceData.subsurfaceMask =        surfaceDescription.SubsurfaceMask;
+        $SurfaceDescription.Specular:             surfaceData.specularColor =         surfaceDescription.Specular;
+
+        // These static material feature allow compile time optimization
+        surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_STANDARD;
+#ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
+        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING;
+#endif
+#ifdef _MATERIAL_FEATURE_TRANSMISSION
+        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_TRANSMISSION;
+#endif
+#ifdef _MATERIAL_FEATURE_ANISOTROPY
+        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_ANISOTROPY;
+#endif
+#ifdef _MATERIAL_FEATURE_CLEAR_COAT
+        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_CLEAR_COAT;
+#endif
+#ifdef _MATERIAL_FEATURE_IRIDESCENCE
+        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_IRIDESCENCE;
+#endif
+#ifdef _MATERIAL_FEATURE_SPECULAR_COLOR
+        surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR;
+#endif
+
+        // tangent-space normal
+        float3 normalTS =                   float3(0.0f, 0.0f, 1.0f);
+        $SurfaceDescription.Normal:       normalTS =                   surfaceDescription.Normal;
+
+        // compute world space normal
+        GetNormalWS(fragInputs, V, normalTS, surfaceData.normalWS);
+
+        // TODO: use surfaceDescription tangent definition for anisotropy
+        surfaceData.tangentWS = normalize(fragInputs.worldToTangent[0].xyz);    // The tangent is not normalize in worldToTangent for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
+        surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
+
+        // Init other parameters
+        surfaceData.anisotropy = 0;
+        surfaceData.coatMask = 0.0f;
+        surfaceData.iridescenceThickness = 0.0;
+        surfaceData.iridescenceMask = 1.0;
+
+        // Transparency parameters
+        // Use thickness from SSS
+        surfaceData.ior = 1.0;
+        surfaceData.transmittanceColor = float3(1.0, 1.0, 1.0);
+        surfaceData.atDistance = 1000000.0;
+        surfaceData.transmittanceMask = 0.0;
+
+        // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
+        // If user provide bent normal then we process a better term
+        surfaceData.specularOcclusion = 1.0;
+#if defined(_BENTNORMALMAP) && defined(_ENABLESPECULAROCCLUSION)
+        // If we have bent normal and ambient occlusion, process a specular occlusion
+        surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAO(V, bentNormalWS, surfaceData);
+#elif defined(_MASKMAP)
+        surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(NdotV, surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
+#endif
     }
 
     void GetSurfaceAndBuiltinData(FragInputs fragInputs, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
@@ -236,18 +317,38 @@ ${Graph}
         // that function assumes there are specific global properties defined
         // for shadergraph shaders, we fill it out here instead
         ZERO_INITIALIZE(BuiltinData, builtinData);
+        float3 bentNormalWS =                   surfaceData.normalWS;           // TODO : make bent normals work
 
         builtinData.opacity =                   surfaceDescription.Alpha;
-        builtinData.bakeDiffuseLighting =       float3(0.0, 0.0, 0.0);
+        builtinData.bakeDiffuseLighting =       SampleBakedGI(fragInputs.positionWS, bentNormalWS, fragInputs.texCoord1, fragInputs.texCoord2);    // see GetBuiltinData()
      
+        // It is safe to call this function here as surfaceData have been filled
+        // We want to know if we must enable transmission on GI for SSS material, if the material have no SSS, this code will be remove by the compiler.
+        BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
+        if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
+        {
+            // For now simply recall the function with inverted normal, the compiler should be able to optimize the lightmap case to not resample the directional lightmap
+            // however it will not optimize the lightprobe case due to the proxy volume relying on dynamic if (we rely must get right of this dynamic if), not a problem for SH9, but a problem for proxy volume.
+            // TODO: optimize more this code.
+            // Add GI transmission contribution by resampling the GI for inverted vertex normal
+            builtinData.bakeDiffuseLighting += SampleBakedGI(fragInputs.positionWS, -fragInputs.worldToTangent[2], fragInputs.texCoord1, fragInputs.texCoord2) * bsdfData.transmittance;
+        }
+
         builtinData.emissiveIntensity =         1.0f;
 $SurfaceDescription.Emission:     builtinData.emissiveColor =             surfaceDescription.Emission;
         builtinData.velocity =                  float2(0.0, 0.0);
+#ifdef SHADOWS_SHADOWMASK
+        float4 shadowMask = SampleShadowMask(fragInputs.positionWS, fragInputs.texCoord1);
+        builtinData.shadowMask0 = shadowMask.x;
+        builtinData.shadowMask1 = shadowMask.y;
+        builtinData.shadowMask2 = shadowMask.z;
+        builtinData.shadowMask3 = shadowMask.w;
+#else
         builtinData.shadowMask0 = 0.0;
         builtinData.shadowMask1 = 0.0;
         builtinData.shadowMask2 = 0.0;
         builtinData.shadowMask3 = 0.0;
-
+#endif
         builtinData.distortion =                float2(0.0, 0.0);           // surfaceDescription.Distortion -- if distortion pass
         builtinData.distortionBlur =            0.0;                        // surfaceDescription.DistortionBlur -- if distortion pass
         builtinData.depthOffset =               0.0;                        // ApplyPerPixelDisplacement(input, V, layerTexCoord, blendMasks); #ifdef _DEPTHOFFSET_ON : ApplyDepthOffsetPositionInput(V, depthOffset, GetWorldToHClipMatrix(), posInput);
