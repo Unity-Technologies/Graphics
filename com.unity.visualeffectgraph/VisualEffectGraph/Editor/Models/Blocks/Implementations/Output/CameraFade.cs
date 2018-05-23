@@ -14,13 +14,6 @@ namespace UnityEditor.VFX.Block
             ColorAndAlpha = Color | Alpha,
         }
 
-        public enum CameraMode
-        {
-            AllCameras,
-            MainCamera,
-            CustomCamera
-        }
-
         public class InputProperties
         {
             [Tooltip("Distance to camera at which the particle will be fully faded")]
@@ -29,24 +22,15 @@ namespace UnityEditor.VFX.Block
             public float VisibleDistance = 2.0f;
         }
 
-        public class InputPropertiesCustomCamera
-        {
-            [Tooltip("Custom camera used for fading")]
-            public CameraType Camera;
-        }
-
         [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Hide the particle when fully faded")]
         private bool hideWhenFaded = true;
 
         [SerializeField, VFXSetting, Tooltip("Whether fading should be applied to Color, Alpha or both")]
         private ColorApplicationMode fadeMode = ColorApplicationMode.Alpha;
 
-        [SerializeField, VFXSetting, Tooltip("Which camera to use for fading? (All Cameras is for Output Contexts Only)")]
-        private CameraMode cameraMode = CameraMode.MainCamera;
-
         public override string libraryName { get { return "Camera Fade"; } }
         public override string name { get { return string.Format("Camera Fade ({0})", ObjectNames.NicifyVariableName(fadeMode.ToString())); } }
-        public override VFXContextType compatibleContexts { get { return VFXContextType.kUpdateAndOutput; } }
+        public override VFXContextType compatibleContexts { get { return VFXContextType.kOutput; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
 
         public override IEnumerable<VFXAttributeInfo> attributes
@@ -65,20 +49,6 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-
-        protected override IEnumerable<VFXPropertyWithValue> inputProperties
-        {
-            get
-            {
-                var properties = PropertiesFromType("InputProperties");
-
-                if (cameraMode == CameraMode.CustomCamera)
-                    properties = properties.Concat(PropertiesFromType("InputPropertiesCustomCamera"));
-
-                return properties;
-            }
-        }
-
         public override IEnumerable<VFXNamedExpression> parameters
         {
             get
@@ -88,10 +58,6 @@ namespace UnityEditor.VFX.Block
 
                 foreach (var param in base.parameters)
                 {
-                    // Do not transfer camera, we don't need it
-                    if (param.name.StartsWith("Camera_"))
-                        continue;
-
                     if (param.name == "VisibleDistance")
                     {
                         visibleDistExp = param.exp;
@@ -105,20 +71,6 @@ namespace UnityEditor.VFX.Block
                 }
 
                 yield return new VFXNamedExpression(new VFXExpressionDivide(VFXValue.Constant(1.0f), new VFXExpressionSubtract(visibleDistExp, fadedDistExp)), "InvFadeDistance");
-
-                if(cameraMode == CameraMode.CustomCamera || cameraMode == CameraMode.MainCamera)
-                {
-                    VFXExpression cameraTransform;
-
-                    if(cameraMode == CameraMode.CustomCamera)
-                        cameraTransform = base.parameters.Where(o => o.name == "Camera_transform").First().exp;
-                    else
-                        cameraTransform = new VFXExpressionExtractMatrixFromMainCamera();
-
-                    yield return new VFXNamedExpression(new VFXExpressionTransformPosition(cameraTransform, VFXValue.Constant(new Vector3(0, 0, 0))), "CameraPos");
-                    yield return new VFXNamedExpression(new VFXExpressionTransformDirection(cameraTransform, VFXValue.Constant(new Vector3(0, 0, -1))), "CameraFront");
-                }
-
             }
         }
 
@@ -126,26 +78,15 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                string clipPosW = string.Empty;
-                switch (cameraMode)
-                {
-                    case CameraMode.AllCameras: clipPosW = "TransformPositionVFXToClip(position).w"; break;
-
-                    case CameraMode.MainCamera:
-                    case CameraMode.CustomCamera: clipPosW = "dot(position-CameraPos, CameraFront);"; break;
-                }
-
-
                 return string.Format(@"
-float clipPosW = {0};
+float clipPosW = TransformPositionVFXToClip(position).w;
 float fade = saturate((clipPosW - FadedDistance) * InvFadeDistance);
+{0}
 {1}
-{2}
-{3}"
-                    , clipPosW
+{2}"
                     , ((fadeMode & ColorApplicationMode.Color) != 0) ? "color *= fade;" : ""
                     , ((fadeMode & ColorApplicationMode.Alpha) != 0) ? "alpha *= fade;" : ""
-                    , hideWhenFaded ? "if(fade == 0.0) alive=false;" : "");
+                    , hideWhenFaded && GetParent().contextType == VFXContextType.kOutput ? "if(fade == 0.0) alive=false;" : "");
             }
         }
     }
