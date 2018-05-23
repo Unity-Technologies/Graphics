@@ -399,7 +399,7 @@ bool ScreenSpaceLinearRaymarch(
     hitWeight = CalculateHitWeight(
         hit,
         startPositionSS.xy,
-        invLinearDepth,
+        invLinearDepth.r,
         settingsDepthBufferThickness,
         settingsRayMaxScreenDistance,
         settingsRayBlendScreenDistance

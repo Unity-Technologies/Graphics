@@ -1859,7 +1859,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
         ZERO_INITIALIZE(ScreenSpaceRaymarchInput, ssRayInput);
 
         // Jitter the ray origin to trade some noise instead of banding effect
-        ssRayInput.rayOriginWS = rayOriginWS + rayDirWS * SampleBayer4(posInput.positionSS + uint2(_FrameCount, _FrameCount / 4)) * 0.1;
+        ssRayInput.rayOriginWS = rayOriginWS + rayDirWS * SampleBayer4(posInput.positionSS + uint2(_FrameCount, uint(_FrameCount) / 4u)) * 0.1;
         ssRayInput.rayDirWS = rayDirWS;
 #if DEBUG_DISPLAY
         ssRayInput.debug = debug;
