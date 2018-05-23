@@ -26,9 +26,9 @@ namespace UnityEditor.ShaderGraph
             int slotId,
             string displayName,
             string shaderOutputName,
-            ShaderStage shaderStage = ShaderStage.Dynamic,
+            ShaderStageCapability shaderStageCapability = ShaderStageCapability.All,
             bool hidden = false)
-            : base(slotId, displayName, shaderOutputName, SlotType.Input, shaderStage, hidden)
+            : base(slotId, displayName, shaderOutputName, SlotType.Input, shaderStageCapability, hidden)
         {}
 
         public override VisualElement InstantiateControl()

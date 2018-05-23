@@ -24,9 +24,9 @@ namespace UnityEditor.ShaderGraph
             int slotId,
             string displayName,
             string shaderOutputName,
-            ShaderStage shaderStage = ShaderStage.Dynamic,
+            ShaderStageCapability stageCapability = ShaderStageCapability.All,
             bool hidden = false)
-            : base(slotId, displayName, shaderOutputName, SlotType.Input, shaderStage, hidden)
+            : base(slotId, displayName, shaderOutputName, SlotType.Input, stageCapability, hidden)
         {
         }
 
@@ -90,7 +90,7 @@ namespace UnityEditor.ShaderGraph
                         generatePropertyBlock = false
                     });
                 }
-                
+
                 for(int i = 0; i < 8; i++)
                 {
                     properties.AddShaderProperty(new Vector4ShaderProperty()
@@ -99,7 +99,7 @@ namespace UnityEditor.ShaderGraph
                         value = i < value.alphaKeys.Length ? GradientUtils.AlphaKeyToVector(value.alphaKeys[i]) : Vector2.zero,
                         generatePropertyBlock = false
                     });
-                } 
+                }
             }
 
             var prop = new GradientShaderProperty();
@@ -141,7 +141,7 @@ namespace UnityEditor.ShaderGraph
                     vector4Value = i < value.colorKeys.Length ? GradientUtils.ColorKeyToVector(value.colorKeys[i]) : Vector4.zero
                 });
             }
-            
+
             for(int i = 0; i < 8; i++)
             {
                 properties.Add(new PreviewProperty(PropertyType.Vector2)

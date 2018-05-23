@@ -27,10 +27,10 @@ namespace UnityEditor.ShaderGraph
             string shaderOutputName,
             SlotType slotType,
             float value,
-            ShaderStage shaderStage = ShaderStage.Dynamic,
+            ShaderStageCapability stageCapability = ShaderStageCapability.All,
             string label1 = "X",
             bool hidden = false)
-            : base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
+            : base(slotId, displayName, shaderOutputName, slotType, stageCapability, hidden)
         {
             m_DefaultValue = value;
             m_Value = value;
