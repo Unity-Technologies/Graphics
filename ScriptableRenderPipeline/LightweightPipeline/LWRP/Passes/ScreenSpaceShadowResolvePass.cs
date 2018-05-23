@@ -46,7 +46,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.Blit(screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, m_ScreenSpaceShadowsMaterial);
 
             if (renderingData.cameraData.isStereoEnabled)
-            { 
+            {
                 Camera camera = renderingData.cameraData.camera;
                 context.StartMultiEye(camera);
                 context.ExecuteCommandBuffer(cmd);
