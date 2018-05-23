@@ -17,9 +17,9 @@ namespace UnityEditor.ShaderGraph
             string shaderOutputName,
             SlotType slotType,
             Vector4 value,
-            ShaderStage shaderStage = ShaderStage.Dynamic,
+            ShaderStageCapability stageCapability = ShaderStageCapability.All,
             bool hidden = false)
-            : base(slotId, displayName, shaderOutputName, slotType, value, shaderStage, hidden: hidden)
+            : base(slotId, displayName, shaderOutputName, slotType, value, stageCapability, hidden: hidden)
         {
         }
 
@@ -32,10 +32,10 @@ namespace UnityEditor.ShaderGraph
         {
             return string.Format("IsGammaSpace() ? {0}4({1}, {2}, {3}, {4}) : {0}4 (SRGBToLinear({0}3({1}, {2}, {3})), {4})"
                 , precision
-                , value.x
-                , value.y
-                , value.z
-                , value.w);
+                , NodeUtils.FloatToShaderValue(value.x)
+                , NodeUtils.FloatToShaderValue(value.y)
+                , NodeUtils.FloatToShaderValue(value.z)
+                , NodeUtils.FloatToShaderValue(value.w));
         }
 
         public override void AddDefaultProperty(PropertyCollector properties, GenerationMode generationMode)

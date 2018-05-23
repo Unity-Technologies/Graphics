@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph
             return string.Format("IN.{0}", ShaderGeneratorNames.VertexColor);
         }
 
-        public bool RequiresVertexColor()
+        public bool RequiresVertexColor(ShaderStageCapability stageCapability)
         {
             return true;
         }

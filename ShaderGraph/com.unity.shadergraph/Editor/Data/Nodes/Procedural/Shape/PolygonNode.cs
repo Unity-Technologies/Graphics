@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None, 6, 0, 0, 0)] Vector1 Sides,
             [Slot(2, Binding.None, 0.5f, 0, 0, 0)] Vector1 Width,
             [Slot(3, Binding.None, 0.5f, 0, 0, 0)] Vector1 Height,
-            [Slot(4, Binding.None)] out DynamicDimensionVector Out)
+            [Slot(4, Binding.None, ShaderStageCapability.Fragment)] out DynamicDimensionVector Out)
         {
             return
                 @"
