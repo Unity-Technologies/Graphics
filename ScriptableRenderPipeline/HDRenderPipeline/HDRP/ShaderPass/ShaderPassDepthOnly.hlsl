@@ -52,4 +52,9 @@ void Frag(  PackedVaryingsToPS packedInput,
 #ifdef _DEPTHOFFSET_ON
     outputDepth = posInput.deviceDepth;
 #endif
+
+    // We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
+#ifdef SCENESELECTIONPASS
+    outColor = float4(_ObjectId, _PassValue, 1, 1);
+#endif
 }

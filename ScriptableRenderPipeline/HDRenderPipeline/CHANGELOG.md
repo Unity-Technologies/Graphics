@@ -8,6 +8,7 @@
 - Add stripper of shader variant when building a player. Save shader compile time.
 - Disable per-object culling that was executed in C++ in HD whereas it was not used (Optimization)
 - Enable texture streaming debugging (was not working before 2018.2)
+- Support correctly scene selection for alpha tested object
 - Add per light shadow mask mode control (i.e shadow mask distance and shadow mask). It use the option NonLightmappedOnly
 
 ### Changed, Removals and deprecations
@@ -49,6 +50,7 @@
 - Fix issue with shadow mask framesettings not correctly taken into account when shadow mask is enabled for lighting.
 - Fix directional light and shadow mask transition, they are now matching making smooth transition
 - Fix banding issues caused by high intensity volumetric lighting
+- Fix the debug window being emptied on SRP asset reload
 
 ## [2018.1.0f2]
 

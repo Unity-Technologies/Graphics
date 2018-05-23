@@ -106,7 +106,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.AddManipulator(new SelectionDragger());
                 m_GraphView.AddManipulator(new RectangleSelector());
                 m_GraphView.AddManipulator(new ClickSelector());
-                m_GraphView.AddManipulator(new GraphDropTarget(graph));
                 m_GraphView.RegisterCallback<KeyDownEvent>(OnSpaceDown);
                 content.Add(m_GraphView);
 

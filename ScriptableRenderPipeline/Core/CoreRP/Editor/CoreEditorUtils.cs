@@ -169,10 +169,16 @@ namespace UnityEditor.Experimental.Rendering
             var backgroundRect = GUILayoutUtility.GetRect(1f, 17f);
 
             var labelRect = backgroundRect;
-            labelRect.xMin += 16f;
+            labelRect.xMin += 32f;
             labelRect.xMax -= 20f;
 
+            var foldoutRect = backgroundRect;
+            foldoutRect.y += 1f;
+            foldoutRect.width = 13f;
+            foldoutRect.height = 13f;
+
             var toggleRect = backgroundRect;
+            toggleRect.x += 16f;
             toggleRect.y += 2f;
             toggleRect.width = 13f;
             toggleRect.height = 13f;
@@ -189,16 +195,18 @@ namespace UnityEditor.Experimental.Rendering
             using (new EditorGUI.DisabledScope(!activeField.boolValue))
                 EditorGUI.LabelField(labelRect, GetContent(title), EditorStyles.boldLabel);
 
+            // Foldout
+            group.serializedObject.Update();
+            group.isExpanded = GUI.Toggle(foldoutRect, group.isExpanded, GUIContent.none, EditorStyles.foldout);
+            group.serializedObject.ApplyModifiedProperties();
+
             // Active checkbox
             activeField.serializedObject.Update();
             activeField.boolValue = GUI.Toggle(toggleRect, activeField.boolValue, GUIContent.none, CoreEditorStyles.smallTickbox);
             activeField.serializedObject.ApplyModifiedProperties();
 
             // Context menu
-            var menuIcon = EditorGUIUtility.isProSkin
-                ? CoreEditorStyles.paneOptionsIconDark
-                : CoreEditorStyles.paneOptionsIconLight;
-
+            var menuIcon = CoreEditorStyles.paneOptionsIcon;
             var menuRect = new Rect(labelRect.xMax + 4f, labelRect.y + 4f, menuIcon.width, menuIcon.height);
 
             if (contextAction != null)

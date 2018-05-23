@@ -489,6 +489,30 @@ Shader "HDRenderPipeline/LayeredLit"
         // This tags allow to use the shader replacement features
         Tags{ "RenderPipeline" = "HDRenderPipeline" "RenderType" = "HDLitShader" }
 
+        Pass
+        {
+            Name "SceneSelectionPass"
+            Tags{ "LightMode" = "SceneSelectionPass" }
+
+            Cull[_CullMode]
+
+            ZWrite On
+
+            ColorMask 0
+
+            HLSLPROGRAM
+
+            #define SHADERPASS SHADERPASS_DEPTH_ONLY
+            #define SCENESELECTIONPASS // This will drive the output of the scene selection shader
+            #include "../../ShaderVariables.hlsl"
+            #include "../../Material/Material.hlsl"
+            #include "../Lit/ShaderPass/LitDepthPass.hlsl"
+            #include "LayeredLitData.hlsl"
+            #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
+
+            ENDHLSL
+        }
+
         // Caution: The outline selection in the editor use the vertex shader/hull/domain shader of the first pass declare. So it should not bethe  meta pass.
         Pass
         {
@@ -516,7 +540,7 @@ Shader "HDRenderPipeline/LayeredLit"
 
         #ifdef _ALPHATEST_ON
             // When we have alpha test, we will force a depth prepass so we always bypass the clip instruction in the GBuffer
-            #define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST 
+            #define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST
         #endif
 
             #define SHADERPASS SHADERPASS_GBUFFER
