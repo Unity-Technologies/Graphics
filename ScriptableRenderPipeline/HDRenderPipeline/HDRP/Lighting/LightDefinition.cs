@@ -51,8 +51,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector3 up;      // Rescaled by (2 / shapeHeight)
         public float diffuseScale;
 
-        public Vector2 fadeDistanceScaleAndBias; // Use with ShadowMask feature
-        public float unused0;
+        public float volumetricDimmer;
         public int dynamicShadowCasterOnly; // Use with ShadowMask feature // TODO: make it a bool
 
         public Vector4 shadowMaskSelector; // Use with ShadowMask feature
@@ -86,6 +85,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector2 size;        // Used by area (X = length or width, Y = height) and box projector lights (X = range (depth))
         public GPULightType lightType;
         public float minRoughness;  // This is use to give a small "area" to punctual light, as if we have a light with a radius.
+
+        public float volumetricDimmer; // TODO: improve the cache locality
     };
 
 

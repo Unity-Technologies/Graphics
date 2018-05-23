@@ -16,10 +16,10 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
         #include "LWRP/ShaderLibrary/Shadows.hlsl"
 
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-        TEXTURE2D_ARRAY(_CameraDepthTexture);
+        TEXTURE2D_ARRAY_FLOAT(_CameraDepthTexture);
 #else
-        TEXTURE2D(_CameraDepthTexture);
-#endif // defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
+        TEXTURE2D_FLOAT(_CameraDepthTexture);
+#endif
 
         SAMPLER(sampler_CameraDepthTexture);
 
@@ -59,12 +59,7 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
         half4 Fragment(Interpolators i) : SV_Target
         {
             UNITY_SETUP_INSTANCE_ID(i);
-#if !defined(UNITY_STEREO_INSTANCING_ENABLED)
-            // Completely unclear why i.stereoTargetEyeIndex doesn't work here, considering
-            // this has to be correct in order for the texture array slices to be rasterized to
-            // We can limit this workaround to stereo instancing for now.
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
-#endif
 
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
             float deviceDepth = SAMPLE_TEXTURE2D_ARRAY(_CameraDepthTexture, sampler_CameraDepthTexture, i.texcoord.xy, unity_StereoEyeIndex).r;
@@ -86,7 +81,7 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
             // Screenspace shadowmap is only used for directional lights which use orthogonal projection.
             ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
             half shadowStrength = GetMainLightShadowStrength();
-            return SampleShadowmap(coords, TEXTURE2D_PARAM(_ShadowMap, sampler_ShadowMap), shadowSamplingData, shadowStrength);
+            return SampleShadowmap(coords, TEXTURE2D_PARAM(_DirectionalShadowmapTexture, sampler_DirectionalShadowmapTexture), shadowSamplingData, shadowStrength);
         }
 
         ENDHLSL

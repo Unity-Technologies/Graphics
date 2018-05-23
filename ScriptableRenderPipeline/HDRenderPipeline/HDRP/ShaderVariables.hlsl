@@ -166,8 +166,8 @@ SAMPLER(s_trilinear_clamp_sampler);
 
 // ----------------------------------------------------------------------------
 
-TEXTURE2D(_MainDepthTexture);
-SAMPLER(sampler_MainDepthTexture);
+TEXTURE2D(_CameraDepthTexture);
+SAMPLER(sampler_CameraDepthTexture);
 
 // Main lightmap
 TEXTURE2D(unity_Lightmap);
@@ -190,9 +190,10 @@ SAMPLER(samplerunity_ProbeVolumeSH);
 
 // ----------------------------------------------------------------------------
 
-// TODO: all affine matrices should be 3x4.
-// Note: please use UNITY_MATRIX_X macros instead of referencing matrix variables directly.
+// Important: please use macros or functions to access the CBuffer data.
+// The member names and data layout can (and will) change!
 CBUFFER_START(UnityPerView)
+    // TODO: all affine matrices should be 3x4.
     float4x4 _ViewMatrix;
     float4x4 _InvViewMatrix;
     float4x4 _ProjMatrix;
@@ -211,7 +212,7 @@ CBUFFER_START(UnityPerView)
 #endif
     float  _DetViewMatrix;              // determinant(_ViewMatrix)
     float4 _ScreenSize;                 // { w, h, 1 / w, 1 / h }
-    float4 _ScreenToTargetScale;        // { w / RTHandle.maxWidth, h / RTHandle.maxHeight, 0, 0 }
+    float4 _ScreenToTargetScale;        // { w / RTHandle.maxWidth, h / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
 
     // Values used to linearize the Z buffer (http://www.humus.name/temp/Linearize%20depth.txt)
     // x = 1 - f/n
@@ -246,7 +247,6 @@ CBUFFER_START(UnityPerView)
     float4 _FrustumPlanes[6];           // { (a, b, c) = N, d = -dot(N, P) } [L, R, T, B, N, F]
 
     // TAA Frame Index ranges from 0 to 7. This gives you two rotations per cycle.
-
     float4 _TaaFrameRotation;           // { sin(taaFrame * PI/2), cos(taaFrame * PI/2), 0, 0 }
     // t = animateMaterials ? Time.realtimeSinceStartup : 0.
     float4 _Time;                       // { t/20, t, t*2, t*3 }
@@ -258,11 +258,12 @@ CBUFFER_START(UnityPerView)
 
     // Volumetric lighting.
     float4 _AmbientProbeCoeffs[7];      // 3 bands of SH, packed, rescaled and convolved with the phase function
-    float  _GlobalAsymmetry;
+    float  _GlobalAnisotropy;
     float3 _GlobalScattering;
     float  _GlobalExtinction;
     float4 _VBufferResolution;          // { w, h, 1/w, 1/h }
     float4 _VBufferSliceCount;          // { count, 1/count, 0, 0 }
+    float4 _VBufferUvScaleAndLimit;     // Necessary us to work with sub-allocation (resource aliasing) in the RTHandle system
     float4 _VBufferDepthEncodingParams; // See the call site for description
     float4 _VBufferDepthDecodingParams; // See the call site for description
 
@@ -271,6 +272,7 @@ CBUFFER_START(UnityPerView)
     // move these to a dedicated CBuffer to avoid polluting the global one.
     float4 _VBufferPrevResolution;
     float4 _VBufferPrevSliceCount;
+    float4 _VBufferPrevUvScaleAndLimit;
     float4 _VBufferPrevDepthEncodingParams;
     float4 _VBufferPrevDepthDecodingParams;
 CBUFFER_END

@@ -16,6 +16,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         private SerializedProperty m_MaterialProperty;
         private SerializedProperty m_DrawDistanceProperty;
         private SerializedProperty m_FadeScaleProperty;
+        private SerializedProperty m_UVScaleProperty;
+        private SerializedProperty m_UVBiasProperty;
 
         public class DecalBoundsHandle :  BoxBoundsHandle
         {
@@ -67,6 +69,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialProperty = serializedObject.FindProperty("m_Material");
             m_DrawDistanceProperty = serializedObject.FindProperty("m_DrawDistance");
             m_FadeScaleProperty = serializedObject.FindProperty("m_FadeScale");
+            m_UVScaleProperty = serializedObject.FindProperty("m_UVScale");
+            m_UVBiasProperty = serializedObject.FindProperty("m_UVBias");
         }
 
 		private void OnDisable()
@@ -112,6 +116,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(m_MaterialProperty);
             EditorGUILayout.PropertyField(m_DrawDistanceProperty);
             EditorGUILayout.Slider(m_FadeScaleProperty, 0.0f, 1.0f, new GUIContent("Fade scale"));
+            EditorGUILayout.PropertyField(m_UVScaleProperty);
+            EditorGUILayout.PropertyField(m_UVBiasProperty);
             if (EditorGUI.EndChangeCheck())
             {
                 serializedObject.ApplyModifiedProperties();

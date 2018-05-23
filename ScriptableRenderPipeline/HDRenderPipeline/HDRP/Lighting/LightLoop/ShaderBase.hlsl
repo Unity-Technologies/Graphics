@@ -1,11 +1,6 @@
 #ifndef __SHADERBASE_H__
 #define __SHADERBASE_H__
 
-// can't use UNITY_REVERSED_Z since it's not enabled in compute shaders
-#if !defined(SHADER_API_GLES3) && !defined(SHADER_API_GLCORE)
-    #define REVERSE_ZBUF
-#endif
-
 #ifdef SHADER_API_PSSL
 
 #ifndef Texture2DMS
@@ -25,7 +20,7 @@
 float FetchDepth(Texture2D depthTexture, uint2 pixCoord)
 {
     float zdpth = LOAD_TEXTURE2D(depthTexture, pixCoord.xy).x;
-#ifdef REVERSE_ZBUF
+#if UNITY_REVERSED_Z
     zdpth = 1.0 - zdpth;
 #endif
     return zdpth;
@@ -34,7 +29,7 @@ float FetchDepth(Texture2D depthTexture, uint2 pixCoord)
 float FetchDepthMSAA(Texture2DMS<float> depthTexture, uint2 pixCoord, uint sampleIdx)
 {
     float zdpth = LOAD_TEXTURE2D_MSAA(depthTexture, pixCoord.xy, sampleIdx).x;
-#ifdef REVERSE_ZBUF
+#if UNITY_REVERSED_Z
     zdpth = 1.0 - zdpth;
 #endif
     return zdpth;

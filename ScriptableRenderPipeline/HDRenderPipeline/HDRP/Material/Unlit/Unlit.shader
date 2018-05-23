@@ -122,6 +122,27 @@ Shader "HDRenderPipeline/Unlit"
 
         Pass
         {
+            Name "SceneSelectionPass"
+            Tags{ "LightMode" = "SceneSelectionPass" }
+
+            Cull[_CullMode]
+
+            ZWrite On
+
+            HLSLPROGRAM
+
+            #define SHADERPASS SHADERPASS_DEPTH_ONLY
+            #define SCENESELECTIONPASS // This will drive the output of the scene selection shader
+            #include "../../Material/Material.hlsl"
+            #include "ShaderPass/UnlitDepthPass.hlsl"
+            #include "UnlitData.hlsl"
+            #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
+
+            ENDHLSL
+        }
+
+        Pass
+        {
             Name "Depth prepass"
             Tags{ "LightMode" = "DepthForwardOnly" }
 

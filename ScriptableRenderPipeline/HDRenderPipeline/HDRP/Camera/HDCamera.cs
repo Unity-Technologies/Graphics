@@ -28,6 +28,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4   projectionParams;
         public Vector4   screenParams;
 
+        public VolumetricLightingSystem.VBufferParameters[] vBufferParams; // Double-buffered
+
         public PostProcessRenderContext postprocessRenderContext;
 
         public Matrix4x4[] viewMatrixStereo;
@@ -48,15 +50,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // This is the size actually used for this camera (as it can be altered by VR for example)
         int m_ActualWidth;
         int m_ActualHeight;
-        // This is the scale and bias of the camera viewport compared to the reference size of our Render Targets (RHandle.maxSize)
-        Vector2 m_CameraScaleBias;
+        // This is the scale of the camera viewport compared to the reference size of our Render Targets (RTHandle.maxSize)
+        Vector2 m_ViewportScaleCurrentFrame;
+        Vector2 m_ViewportScalePreviousFrame;
         // Current mssa sample
         MSAASamples m_msaaSamples;
+        FrameSettings m_frameSettings;
 
         public int actualWidth { get { return m_ActualWidth; } }
         public int actualHeight { get { return m_ActualHeight; } }
-        public Vector2 scaleBias { get { return m_CameraScaleBias; } }
+        public Vector2 viewportScale { get { return m_ViewportScaleCurrentFrame; } }
+        public Vector4 doubleBufferedViewportScale { get { return new Vector4(m_ViewportScaleCurrentFrame.x, m_ViewportScaleCurrentFrame.y, m_ViewportScalePreviousFrame.x, m_ViewportScalePreviousFrame.y); } }
         public MSAASamples msaaSamples { get { return m_msaaSamples; } }
+
+        public FrameSettings frameSettings { get { return m_frameSettings; } }
 
         public Matrix4x4 viewProjMatrix
         {
@@ -161,17 +168,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             projMatrixStereo = new Matrix4x4[2];
 
             postprocessRenderContext = new PostProcessRenderContext();
+
             m_AdditionalCameraData = cam.GetComponent<HDAdditionalCameraData>();
+
             Reset();
         }
 
-        public void Update(PostProcessLayer postProcessLayer, FrameSettings frameSettings)
+        // Pass all the systems that may want to update per-camera data here.
+        // That way you will never update an HDCamera and forget to update the dependent system.
+        public void Update(FrameSettings currentFrameSettings, PostProcessLayer postProcessLayer, VolumetricLightingSystem vlSys)
         {
+            m_frameSettings = currentFrameSettings;
+
             // If TAA is enabled projMatrix will hold a jittered projection matrix. The original,
             // non-jittered projection matrix can be accessed via nonJitteredProjMatrix.
             bool taaEnabled = camera.cameraType == CameraType.Game &&
                 CoreUtils.IsTemporalAntialiasingActive(postProcessLayer) &&
-                frameSettings.enablePostprocess;
+                m_frameSettings.enablePostprocess;
 
             var nonJitteredCameraProj = camera.projectionMatrix;
             var cameraProj = taaEnabled
@@ -270,7 +283,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var screenWidth = m_ActualWidth;
             var screenHeight = m_ActualHeight;
 #if !UNITY_SWITCH
-            if (frameSettings.enableStereo)
+            if (m_frameSettings.enableStereo)
             {
                 screenWidth = XRSettings.eyeTextureWidth;
                 screenHeight = XRSettings.eyeTextureHeight;
@@ -285,23 +298,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Unfortunately sometime (like in the HDCameraEditor) HDUtils.hdrpSettings can be null because of scripts that change the current pipeline...
             m_msaaSamples = HDUtils.hdrpSettings != null ? HDUtils.hdrpSettings.msaaSampleCount : MSAASamples.None;
-            RTHandles.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, m_msaaSamples);
-            m_HistoryRTSystem.SetReferenceSize(m_ActualWidth, m_ActualHeight, frameSettings.enableMSAA, m_msaaSamples);
+            RTHandles.SetReferenceSize(m_ActualWidth, m_ActualHeight, m_frameSettings.enableMSAA, m_msaaSamples);
+            m_HistoryRTSystem.SetReferenceSize(m_ActualWidth, m_ActualHeight, m_frameSettings.enableMSAA, m_msaaSamples);
             m_HistoryRTSystem.Swap();
 
             int maxWidth = RTHandles.maxWidth;
             int maxHeight = RTHandles.maxHeight;
-            m_CameraScaleBias.x = (float)m_ActualWidth / maxWidth;
-            m_CameraScaleBias.y = (float)m_ActualHeight / maxHeight;
+            m_ViewportScalePreviousFrame = m_ViewportScaleCurrentFrame; // Double-buffer
+            m_ViewportScaleCurrentFrame.x = (float)m_ActualWidth / maxWidth;
+            m_ViewportScaleCurrentFrame.y = (float)m_ActualHeight / maxHeight;
 
             screenSize   = new Vector4(screenWidth, screenHeight, 1.0f / screenWidth, 1.0f / screenHeight);
             screenParams = new Vector4(screenSize.x, screenSize.y, 1 + screenSize.z, 1 + screenSize.w);
+
+            if (vlSys != null)
+            {
+                vlSys.UpdatePerCameraData(this);
+            }
         }
 
         // Stopgap method used to extract stereo combined matrix state.
-        public void UpdateStereoDependentState(FrameSettings frameSettings, ref ScriptableCullingParameters cullingParams)
+        public void UpdateStereoDependentState(ref ScriptableCullingParameters cullingParams)
         {
-            if (!frameSettings.enableStereo)
+            if (!m_frameSettings.enableStereo)
                 return;
 
             // What constants in UnityPerPass need updating for stereo considerations?
@@ -397,19 +416,33 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             isFirstFrame = true;
         }
 
-        // Grab the HDCamera tied to a given Camera and update it.
-        public static HDCamera Get(Camera camera, PostProcessLayer postProcessLayer, FrameSettings frameSettings)
+        // Will return NULL if the camera does not exist.
+        public static HDCamera Get(Camera camera)
         {
-            HDCamera hdcam;
+            HDCamera hdCamera;
 
-            if (!s_Cameras.TryGetValue(camera, out hdcam))
+            if (!s_Cameras.TryGetValue(camera, out hdCamera))
             {
-                hdcam = new HDCamera(camera);
-                s_Cameras.Add(camera, hdcam);
+                hdCamera = null;
             }
 
-            hdcam.Update(postProcessLayer, frameSettings);
-            return hdcam;
+            return hdCamera;
+        }
+
+        // Pass all the systems that may want to initialize per-camera data here.
+        // That way you will never create an HDCamera and forget to initialize the data.
+        public static HDCamera Create(Camera camera, VolumetricLightingSystem vlSys)
+        {
+            HDCamera hdCamera = new HDCamera(camera);
+            s_Cameras.Add(camera, hdCamera);
+
+            if (vlSys != null)
+            {
+                // Have to perform a NULL check here because the Reflection System internally allocates HDCameras.
+                vlSys.InitializePerCameraData(hdCamera);
+            }
+
+            return hdCamera;
         }
 
         public static void ClearAll()
@@ -421,7 +454,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_Cleanup.Clear();
         }
 
-        // Look for any camera that hasn't been used in the last frame and remove them for the pool.
+        // Look for any camera that hasn't been used in the last frame and remove them from the pool.
         public static void CleanUnused()
         {
             int frameCheck = Time.frameCount - 1;
@@ -460,7 +493,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalVector(HDShaderIDs._WorldSpaceCameraPos,       worldSpaceCameraPos);
             cmd.SetGlobalFloat( HDShaderIDs._DetViewMatrix,             detViewMatrix);
             cmd.SetGlobalVector(HDShaderIDs._ScreenSize,                screenSize);
-            cmd.SetGlobalVector(HDShaderIDs._ScreenToTargetScale,       scaleBias);
+            cmd.SetGlobalVector(HDShaderIDs._ScreenToTargetScale,       doubleBufferedViewportScale);
             cmd.SetGlobalVector(HDShaderIDs._ZBufferParams,             zBufferParams);
             cmd.SetGlobalVector(HDShaderIDs._ProjectionParams,          projectionParams);
             cmd.SetGlobalVector(HDShaderIDs.unity_OrthoParams,          unity_OrthoParams);
@@ -526,7 +559,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Allocate buffers frames and return current frame
         public RTHandleSystem.RTHandle AllocHistoryFrameRT(int id, Func<string, int, RTHandleSystem, RTHandleSystem.RTHandle> allocator)
         {
-            m_HistoryRTSystem.AllocBuffer(id, (rts, i) => allocator(camera.name, i, rts), 2);
+            const int bufferCount = 2; // Hard-coded for now. Will have to see if this is enough...
+            m_HistoryRTSystem.AllocBuffer(id, (rts, i) => allocator(camera.name, i, rts), bufferCount);
             return m_HistoryRTSystem.GetFrameRT(id, 0);
         }
 
