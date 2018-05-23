@@ -17,12 +17,7 @@ void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_P
 			
 	if (!alive)
 		return;
-	
-	#if USE_FLIPBOOK
-	${VFXLoadParameter:{flipBookSize}}
-	${VFXLoadParameter:{invFlipBookSize}}
-	#endif
-	
+		
 	${VFXLoadSize}
 	
 	float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);
@@ -40,13 +35,7 @@ void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_P
 
 		${VFXVertexCommonProcess}
 		
-		#if USE_FLIPBOOK
-		#if USE_FLIPBOOK_INTERPOLATION
-		ProcessFlipBookUV(flipBookSize, invFlipBookSize, texIndex, o.VFX_VARYING_UV, o.VFX_VARYING_FRAMEBLEND);
-		#else
-		ProcessFlipBookUV(flipBookSize, invFlipBookSize, texIndex, o.VFX_VARYING_UV);
-		#endif
-		#endif
+		${VFXVertexSetFlipbooksInterpolants}
 		
 		${VFXVertexAdditionalProcess}
 		

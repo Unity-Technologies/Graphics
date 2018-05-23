@@ -21,8 +21,7 @@ namespace UnityEditor.VFX.UIElements
             get { return m_Value; }
             set
             {
-                m_Value = value;
-                ValueToGUI(false);
+                SetValueAndNotify(value);
             }
         }
         public void SetValueAndNotify(T newValue)
@@ -32,10 +31,16 @@ namespace UnityEditor.VFX.UIElements
                 using (ChangeEvent<T> evt = ChangeEvent<T>.GetPooled(value, newValue))
                 {
                     evt.target = this;
-                    value = newValue;
+                    SetValueWithoutNotify(newValue);
                     UIElementsUtility.eventDispatcher.DispatchEvent(evt, panel);
                 }
             }
+        }
+
+        public void SetValueWithoutNotify(T newValue)
+        {
+            m_Value = newValue;
+            ValueToGUI(false);
         }
 
         public void ForceUpdate()
