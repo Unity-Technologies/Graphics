@@ -53,6 +53,11 @@ namespace UnityEditor.VFX
             return (minusOne * input);
         }
 
+        static public VFXExpression Reciprocal(VFXExpression input)
+        {
+            return OneExpression[input.valueType] / input;
+        }
+
         static public VFXExpression Mad(VFXExpression input, VFXExpression scale, VFXExpression bias)
         {
             return input * scale + bias;
