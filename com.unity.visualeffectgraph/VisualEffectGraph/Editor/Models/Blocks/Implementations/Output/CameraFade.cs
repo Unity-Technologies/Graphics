@@ -1,6 +1,7 @@
 using System.Collections.Generic;
-using System.Linq;
+using System;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.Block
 {
@@ -22,8 +23,8 @@ namespace UnityEditor.VFX.Block
             public float VisibleDistance = 2.0f;
         }
 
-        [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Hide the particle when fully faded")]
-        private bool hideWhenFaded = true;
+        [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Cull the particle when fully faded, to reduce overdraw")]
+        private bool cullWhenFaded = true;
 
         [SerializeField, VFXSetting, Tooltip("Whether fading should be applied to Color, Alpha or both")]
         private ColorApplicationMode fadeMode = ColorApplicationMode.Alpha;
@@ -44,7 +45,7 @@ namespace UnityEditor.VFX.Block
                 if ((fadeMode & ColorApplicationMode.Color) != 0)
                     yield return new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.ReadWrite);
 
-                if (hideWhenFaded)
+                if (cullWhenFaded)
                     yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.ReadWrite);
             }
         }
@@ -53,8 +54,8 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                VFXExpression fadedDistExp = VFXValue.Constant(1.0f);
-                VFXExpression visibleDistExp = VFXValue.Constant(1.0f);
+                VFXExpression fadedDistExp = null;
+                VFXExpression visibleDistExp = null;
 
                 foreach (var param in base.parameters)
                 {
@@ -70,7 +71,13 @@ namespace UnityEditor.VFX.Block
                     yield return param;
                 }
 
-                yield return new VFXNamedExpression(new VFXExpressionDivide(VFXValue.Constant(1.0f), new VFXExpressionSubtract(visibleDistExp, fadedDistExp)), "InvFadeDistance");
+                if (visibleDistExp == null)
+                    throw new Exception("Could not find VisibleDistance inputProperty");
+
+                if (fadedDistExp == null)
+                    throw new Exception("Could not find FadedDistance inputProperty");
+
+                yield return new VFXNamedExpression(new VFXExpressionDivide(VFXOperatorUtility.OneExpression[VFXValueType.Float], new VFXExpressionSubtract(visibleDistExp, fadedDistExp)), "InvFadeDistance");
             }
         }
 
@@ -86,7 +93,7 @@ float fade = saturate((clipPosW - FadedDistance) * InvFadeDistance);
 {2}"
                     , ((fadeMode & ColorApplicationMode.Color) != 0) ? "color *= fade;" : ""
                     , ((fadeMode & ColorApplicationMode.Alpha) != 0) ? "alpha *= fade;" : ""
-                    , hideWhenFaded && GetParent().contextType == VFXContextType.kOutput ? "if(fade == 0.0) alive=false;" : "");
+                    , cullWhenFaded && GetParent().contextType == VFXContextType.kOutput ? "if(fade == 0.0) alive=false;" : "");
             }
         }
     }
