@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph
                 GetVariableNameForSlot(OutputSlotId), GetVariableNameForSlot(OutputSlot1Id)), false);
         }
 
-        public void GenerateNodeFunction(FunctionRegistry registry, GenerationMode generationMode)
+        public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
         {
             registry.ProvideFunction(GetFunctionName(), s =>
             {
@@ -90,7 +90,7 @@ namespace UnityEditor.ShaderGraph
             });
         }
 
-        public NeededCoordinateSpace RequiresPosition()
+        public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability)
         {
             return CoordinateSpace.Object.ToNeededCoordinateSpace();
         }

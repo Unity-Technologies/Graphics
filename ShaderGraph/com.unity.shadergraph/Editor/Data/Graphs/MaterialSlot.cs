@@ -34,23 +34,23 @@ namespace UnityEditor.ShaderGraph
         string m_ShaderOutputName;
 
         [SerializeField]
-        ShaderStage m_ShaderStage;
+        ShaderStageCapability m_StageCapability;
 
         bool m_HasError;
 
         protected MaterialSlot() {}
 
-        protected MaterialSlot(int slotId, string displayName, string shaderOutputName, SlotType slotType, ShaderStage shaderStage = ShaderStage.Dynamic, bool hidden = false)
+        protected MaterialSlot(int slotId, string displayName, string shaderOutputName, SlotType slotType, ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)
         {
             m_Id = slotId;
             m_DisplayName = displayName;
             m_SlotType = slotType;
             m_Hidden = hidden;
             m_ShaderOutputName = shaderOutputName;
-            this.shaderStage = shaderStage;
+            this.stageCapability = stageCapability;
         }
 
-        protected MaterialSlot(int slotId, string displayName, string shaderOutputName, SlotType slotType, int priority, ShaderStage shaderStage = ShaderStage.Dynamic, bool hidden = false)
+        protected MaterialSlot(int slotId, string displayName, string shaderOutputName, SlotType slotType, int priority, ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)
         {
             m_Id = slotId;
             m_DisplayName = displayName;
@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderGraph
             m_Priority = priority;
             m_Hidden = hidden;
             m_ShaderOutputName = shaderOutputName;
-            this.shaderStage = shaderStage;
+            this.stageCapability = stageCapability;
         }
 
         public virtual VisualElement InstantiateControl()
@@ -110,46 +110,46 @@ namespace UnityEditor.ShaderGraph
             return m_DisplayName;
         }
 
-        public static MaterialSlot CreateMaterialSlot(SlotValueType type, int slotId, string displayName, string shaderOutputName, SlotType slotType, Vector4 defaultValue, ShaderStage shaderStage = ShaderStage.Dynamic, bool hidden = false)
+        public static MaterialSlot CreateMaterialSlot(SlotValueType type, int slotId, string displayName, string shaderOutputName, SlotType slotType, Vector4 defaultValue, ShaderStageCapability shaderStageCapability = ShaderStageCapability.All, bool hidden = false)
         {
             switch (type)
             {
                 case SlotValueType.SamplerState:
-                    return new SamplerStateMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden);
+                    return new SamplerStateMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStageCapability, hidden);
                 case SlotValueType.DynamicMatrix:
-                    return new DynamicMatrixMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden);
+                    return new DynamicMatrixMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStageCapability, hidden);
                 case SlotValueType.Matrix4:
-                    return new Matrix4MaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden);
+                    return new Matrix4MaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStageCapability, hidden);
                 case SlotValueType.Matrix3:
-                    return new Matrix3MaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden);
+                    return new Matrix3MaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStageCapability, hidden);
                 case SlotValueType.Matrix2:
-                    return new Matrix2MaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden);
+                    return new Matrix2MaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStageCapability, hidden);
                 case SlotValueType.Texture2D:
                     return slotType == SlotType.Input
-                        ? new Texture2DInputMaterialSlot(slotId, displayName, shaderOutputName, shaderStage, hidden)
-                        : new Texture2DMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden);
+                        ? new Texture2DInputMaterialSlot(slotId, displayName, shaderOutputName, shaderStageCapability, hidden)
+                        : new Texture2DMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStageCapability, hidden);
                 case SlotValueType.Cubemap:
                     return slotType == SlotType.Input
-                        ? new CubemapInputMaterialSlot(slotId, displayName, shaderOutputName, shaderStage, hidden)
-                        : new CubemapMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden);
+                        ? new CubemapInputMaterialSlot(slotId, displayName, shaderOutputName, shaderStageCapability, hidden)
+                        : new CubemapMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStageCapability, hidden);
                 case SlotValueType.Gradient:
                     return slotType == SlotType.Input
-                        ? new GradientInputMaterialSlot(slotId, displayName, shaderOutputName, shaderStage, hidden)
-                        : new GradientMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden);
+                        ? new GradientInputMaterialSlot(slotId, displayName, shaderOutputName, shaderStageCapability, hidden)
+                        : new GradientMaterialSlot(slotId, displayName, shaderOutputName, slotType, shaderStageCapability, hidden);
                 case SlotValueType.DynamicVector:
-                    return new DynamicVectorMaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue, shaderStage, hidden);
+                    return new DynamicVectorMaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue, shaderStageCapability, hidden);
                 case SlotValueType.Vector4:
-                    return new Vector4MaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue, shaderStage, hidden: hidden);
+                    return new Vector4MaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue, shaderStageCapability, hidden: hidden);
                 case SlotValueType.Vector3:
-                    return new Vector3MaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue, shaderStage, hidden: hidden);
+                    return new Vector3MaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue, shaderStageCapability, hidden: hidden);
                 case SlotValueType.Vector2:
-                    return new Vector2MaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue, shaderStage, hidden: hidden);
+                    return new Vector2MaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue, shaderStageCapability, hidden: hidden);
                 case SlotValueType.Vector1:
-                    return new Vector1MaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue.x, shaderStage, hidden: hidden);
+                    return new Vector1MaterialSlot(slotId, displayName, shaderOutputName, slotType, defaultValue.x, shaderStageCapability, hidden: hidden);
                 case SlotValueType.Dynamic:
-                    return new DynamicValueMaterialSlot(slotId, displayName, shaderOutputName, slotType, new Matrix4x4(defaultValue, Vector4.zero, Vector4.zero, Vector4.zero), shaderStage, hidden);
+                    return new DynamicValueMaterialSlot(slotId, displayName, shaderOutputName, slotType, new Matrix4x4(defaultValue, Vector4.zero, Vector4.zero, Vector4.zero), shaderStageCapability, hidden);
                 case SlotValueType.Boolean:
-                    return new BooleanMaterialSlot(slotId, displayName, shaderOutputName, slotType, false, shaderStage, hidden);
+                    return new BooleanMaterialSlot(slotId, displayName, shaderOutputName, slotType, false, shaderStageCapability, hidden);
             }
 
             throw new ArgumentOutOfRangeException("type", type, null);
@@ -218,10 +218,10 @@ namespace UnityEditor.ShaderGraph
             private set { m_ShaderOutputName = value; }
         }
 
-        public ShaderStage shaderStage
+        public ShaderStageCapability stageCapability
         {
-            get { return m_ShaderStage; }
-            set { m_ShaderStage = value; }
+            get { return m_StageCapability; }
+            set { m_StageCapability = value; }
         }
 
         public bool hasError
@@ -294,6 +294,12 @@ namespace UnityEditor.ShaderGraph
                 && ((isInputSlot
                      ? otherSlot.IsCompatibleWithInputSlotType(valueType)
                      : IsCompatibleWithInputSlotType(otherSlot.valueType)));
+        }
+
+        public bool IsCompatibleStageWith(MaterialSlot otherSlot)
+        {
+            var candidateStage = otherSlot.stageCapability;
+            return stageCapability == ShaderStageCapability.All || candidateStage == stageCapability;
         }
 
         public virtual string GetDefaultValue(GenerationMode generationMode)

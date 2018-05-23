@@ -11,8 +11,8 @@ namespace UnityEditor.ShaderGraph
         {}
 
         public PositionMaterialSlot(int slotId, string displayName, string shaderOutputName, CoordinateSpace space,
-                                    ShaderStage shaderStage = ShaderStage.Dynamic, bool hidden = false)
-            : base(slotId, displayName, shaderOutputName, space, shaderStage, hidden)
+                                    ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)
+            : base(slotId, displayName, shaderOutputName, space, stageCapability, hidden)
         {}
 
         public override VisualElement InstantiateControl()
@@ -25,7 +25,7 @@ namespace UnityEditor.ShaderGraph
             return string.Format("IN.{0}", space.ToVariableName(InterpolatorType.Position));
         }
 
-        public NeededCoordinateSpace RequiresPosition()
+        public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability)
         {
             if (isConnected)
                 return NeededCoordinateSpace.None;

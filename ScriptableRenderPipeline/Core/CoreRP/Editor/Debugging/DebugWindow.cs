@@ -108,6 +108,8 @@ namespace UnityEditor.Experimental.Rendering
 
         void OnEnable()
         {
+            DebugManager.instance.refreshEditorRequested = false;
+
             hideFlags = HideFlags.HideAndDontSave;
             autoRepaintOnSceneChange = true;
 
@@ -132,8 +134,8 @@ namespace UnityEditor.Experimental.Rendering
             EditorApplication.update -= Repaint;
             var panels = DebugManager.instance.panels;
             var selectedPanelIndex = m_Settings.selectedPanel;
-            if (selectedPanelIndex >= 0 
-                && selectedPanelIndex < panels.Count 
+            if (selectedPanelIndex >= 0
+                && selectedPanelIndex < panels.Count
                 && panels[selectedPanelIndex].editorForceUpdate)
                 EditorApplication.update += Repaint;
         }
@@ -287,17 +289,13 @@ namespace UnityEditor.Experimental.Rendering
 
         void Update()
         {
-            // HACK: Make debug windows work correctly with FrameSettings in Editor
-            // When we manipulate the framesettings on HDRenderPipelineAsset, the debug windows is not
-            // refresh, it keep the old state of the runtime framesettings in memory and thus overwrite
-            // our freshly edited value. To ensure debug windows is aware of framesettings change we need to
-            // destroy its internal widget state.
-            if (DebugManager.renderPipelineIsRecreated)
+            // If the render pipeline asset has been reloaded we force-refresh widget states in case
+            // some debug values need to be refresh/recreated as well (e.g. frame settings on HD)
+            if (DebugManager.instance.refreshEditorRequested)
             {
                 DestroyWidgetStates();
-                DebugManager.renderPipelineIsRecreated = false;
+                DebugManager.instance.refreshEditorRequested = false;
             }
-            // END HACK
 
             int treeState = DebugManager.instance.GetState();
 

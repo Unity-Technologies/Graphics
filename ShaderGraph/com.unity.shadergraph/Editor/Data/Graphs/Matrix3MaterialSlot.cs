@@ -25,9 +25,9 @@ namespace UnityEditor.ShaderGraph
             string displayName,
             string shaderOutputName,
             SlotType slotType,
-            ShaderStage shaderStage = ShaderStage.Dynamic,
+            ShaderStageCapability stageCapability = ShaderStageCapability.All,
             bool hidden = false)
-            : base(slotId, displayName, shaderOutputName, slotType, shaderStage, hidden)
+            : base(slotId, displayName, shaderOutputName, slotType, stageCapability, hidden)
         {
         }
 

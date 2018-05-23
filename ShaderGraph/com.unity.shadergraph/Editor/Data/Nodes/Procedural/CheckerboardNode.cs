@@ -26,7 +26,7 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None, 0.2f, 0.2f, 0.2f, 1f)] ColorRGB ColorA,
             [Slot(2, Binding.None, 0.7f, 0.7f, 0.7f, 1f)] ColorRGB ColorB,
             [Slot(3, Binding.None, 1f, 1f, 1f, 1f)] Vector2 Frequency,
-            [Slot(4, Binding.None)] out Vector3 Out)
+            [Slot(4, Binding.None, ShaderStageCapability.Fragment)] out Vector3 Out)
         {
             Out = Vector2.zero;
             return

@@ -56,7 +56,7 @@ namespace UnityEditor.ShaderGraph
             visitor.AddShaderChunk(string.Format("{0}4 {1} = {2};", precision, GetVariableNameForSlot(kOutputSlotId), m_ScreenSpaceType.ToValueAsVariable()), true);
         }
 
-        public bool RequiresScreenPosition()
+        public bool RequiresScreenPosition(ShaderStageCapability stageCapability)
         {
             return true;
         }
