@@ -17,9 +17,9 @@ namespace UnityEditor.VFX.Operator
         public class InputProperties
         {
             [Tooltip("The minimum value to be generated.")]
-            public FloatN min = new FloatN(0.0f);
+            public float min = 0.0f;
             [Tooltip("The maximum value to be generated.")]
-            public FloatN max = new FloatN(1.0f);
+            public float max = 1.0f;
         }
 
         public class ConstantInputProperties
@@ -61,6 +61,31 @@ namespace UnityEditor.VFX.Operator
                 rand = new VFXExpressionRandom(seed == SeedMode.PerParticle);
 
             return new[] { VFXOperatorUtility.Lerp(inputExpression[0], inputExpression[1], rand) };
+        }
+
+        public sealed override void Sanitize()
+        {
+            //This operator was based on FloatN for min/max
+            float[] valueToRestore = null;
+            if (inputSlots[0].property.type == typeof(FloatN) && inputSlots[1].property.type == typeof(FloatN))
+            {
+                valueToRestore = new float[2];
+                for (int i = 0; i < 2; i++)
+                {
+                    valueToRestore[i] = ((FloatN)inputSlots[i].value);
+                }
+            }
+
+            base.Sanitize(); //if FloatN, value are reseted with ResyncSlot
+
+            if (valueToRestore != null)
+            {
+                for (int i = 0; i < 2; i++)
+                {
+                    inputSlots[i].value = valueToRestore[i];
+                }
+                Debug.Log(string.Format("Random Operator Sanitize has restored min/max value : {0}, {1}", valueToRestore[0], valueToRestore[1]));
+            }
         }
     }
 }

@@ -136,7 +136,7 @@ namespace UnityEditor.VFX.Block
                     }
                     else
                     {
-                        channelSource = VFXBlockUtility.GetRandomMacroString(RandomMode.Off, attributeSize, "Value");
+                        channelSource = VFXBlockUtility.GetRandomMacroString(RandomMode.Off, attributeSize, paramPostfix, "Value");
                     }
 
                     if (Composition == AttributeCompositionMode.Blend)
@@ -178,6 +178,8 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
+                if (Source == ValueSource.Source) yield break;
+
                 var attrib = currentAttribute;
 
                 VFXPropertyAttribute[] attr = null;

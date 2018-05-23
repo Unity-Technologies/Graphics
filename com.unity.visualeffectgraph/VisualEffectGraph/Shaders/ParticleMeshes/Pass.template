@@ -34,15 +34,7 @@ VFX_VARYING_PS_INPUTS vert(vs_input i, uint instanceID : SV_InstanceID)
 
 	${VFXVertexCommonProcess}
 	
-	#if USE_FLIPBOOK
-	${VFXLoadParameter:{flipBookSize}}
-	${VFXLoadParameter:{invFlipBookSize}}
-	#if USE_FLIPBOOK_INTERPOLATION
-	ProcessFlipBookUV(flipBookSize, invFlipBookSize, texIndex, o.VFX_VARYING_UV, o.VFX_VARYING_FRAMEBLEND);
-	#else
-	ProcessFlipBookUV(flipBookSize, invFlipBookSize, texIndex, o.VFX_VARYING_UV);
-	#endif
-	#endif
+	${VFXVertexSetFlipbooksInterpolants}
 
 	${VFXVertexAdditionalProcess}
 			
