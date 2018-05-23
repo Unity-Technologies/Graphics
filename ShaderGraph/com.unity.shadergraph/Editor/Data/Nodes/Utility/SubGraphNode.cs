@@ -176,7 +176,7 @@ namespace UnityEditor.ShaderGraph
                     case PropertyType.Color:
                         slotType = SlotValueType.Vector4;
                         break;
-                    case PropertyType.Texture:
+                    case PropertyType.Texture2D:
                         slotType = SlotValueType.Texture2D;
                         break;
                     case PropertyType.Texture2DArray:
@@ -219,7 +219,7 @@ namespace UnityEditor.ShaderGraph
                 var id = prop.guid.GetHashCode();
                 MaterialSlot slot = MaterialSlot.CreateMaterialSlot(slotType, id, prop.displayName, prop.referenceName, SlotType.Input, prop.defaultValue, ShaderStageCapability.Fragment);
                 // copy default for texture for niceness
-                if (slotType == SlotValueType.Texture2D && propType == PropertyType.Texture)
+                if (slotType == SlotValueType.Texture2D && propType == PropertyType.Texture2D)
                 {
                     var tSlot = slot as Texture2DInputMaterialSlot;
                     var tProp = prop as TextureShaderProperty;

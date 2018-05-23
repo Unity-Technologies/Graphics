@@ -342,7 +342,7 @@ namespace UnityEditor.ShaderGraph
             switch (slotValue)
             {
                 case ConcreteSlotValueType.Texture2D:
-                    return PropertyType.Texture;
+                    return PropertyType.Texture2D;
                 case ConcreteSlotValueType.Texture2DArray:
                     return PropertyType.Texture2DArray;
                 case ConcreteSlotValueType.Texture3D:
