@@ -52,6 +52,18 @@
 #define TEXTURECUBE_ARRAY(textureName)        TextureCubeArray textureName
 #define TEXTURE3D(textureName)                Texture3D textureName
 
+#define TEXTURE2D_FLOAT(textureName)          TEXTURE2D(textureName)
+#define TEXTURE2D_ARRAY_FLOAT(textureName)    TEXTURE2D_ARRAY(textureName)
+#define TEXTURECUBE_FLOAT(textureName)        TEXTURECUBE(textureName)
+#define TEXTURECUBE_ARRAY_FLOAT(textureName)  TEXTURECUBE_ARRAY(textureName)
+#define TEXTURE3D_FLOAT(textureName)          TEXTURE3D(textureName)
+
+#define TEXTURE2D_HALF(textureName)           TEXTURE2D(textureName)
+#define TEXTURE2D_ARRAY_HALF(textureName)     TEXTURE2D_ARRAY(textureName)
+#define TEXTURECUBE_HALF(textureName)         TEXTURECUBE(textureName)
+#define TEXTURECUBE_ARRAY_HALF(textureName)   TEXTURECUBE_ARRAY(textureName)
+#define TEXTURE3D_HALF(textureName)           TEXTURE3D(textureName)
+
 #define TEXTURE2D_SHADOW(textureName)         TEXTURE2D(textureName)
 #define TEXTURE2D_ARRAY_SHADOW(textureName)   TEXTURE2D_ARRAY(textureName)
 #define TEXTURECUBE_SHADOW(textureName)       TEXTURECUBE(textureName)
