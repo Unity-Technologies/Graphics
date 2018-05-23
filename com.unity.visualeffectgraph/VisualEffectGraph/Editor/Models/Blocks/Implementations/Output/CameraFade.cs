@@ -85,15 +85,20 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                return string.Format(@"
+                string outCode = @"
 float clipPosW = TransformPositionVFXToClip(position).w;
 float fade = saturate((clipPosW - FadedDistance) * InvFadeDistance);
-{0}
-{1}
-{2}"
-                    , ((fadeMode & ColorApplicationMode.Color) != 0) ? "color *= fade;" : ""
-                    , ((fadeMode & ColorApplicationMode.Alpha) != 0) ? "alpha *= fade;" : ""
-                    , cullWhenFaded && GetParent().contextType == VFXContextType.kOutput ? "if(fade == 0.0) alive=false;" : "");
+";
+                if ((fadeMode & ColorApplicationMode.Color) != 0)
+                    outCode += "color *= fade;\n";
+
+                if ((fadeMode & ColorApplicationMode.Alpha) != 0)
+                    outCode += "alpha *= fade;\n";
+
+                if (cullWhenFaded)
+                    outCode += "if(fade == 0.0) alive=false;";
+
+                return outCode;
             }
         }
     }
