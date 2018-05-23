@@ -17,6 +17,13 @@
 #define CBUFFER_START(name)
 #define CBUFFER_END
 
+// flow control attributes
+#define UNITY_BRANCH
+#define UNITY_FLATTEN
+#define UNITY_UNROLL
+#define UNITY_UNROLLX(_x)
+#define UNITY_LOOP
+
 #define uint int
 
 #define rcp(x) 1.0 / x
@@ -59,6 +66,18 @@
 #define TEXTURECUBE(textureName)                        samplerCUBE textureName
 #define TEXTURECUBE_ARRAY(textureName)                  samplerCUBE textureName // No supoport to textureCubeArray and can't emulate with texture2DArray
 #define TEXTURE3D(textureName)                          sampler3D textureName
+
+#define TEXTURE2D_FLOAT(textureName)                    sampler2D_float textureName
+#define TEXTURE2D_ARRAY_FLOAT(textureName)              TEXTURECUBE_FLOAT(textureName) // No support to texture2DArray
+#define TEXTURECUBE_FLOAT(textureName)                  samplerCUBE_float textureName
+#define TEXTURECUBE_ARRAY_FLOAT(textureName)            TEXTURECUBE_FLOAT(textureName) // No support to textureCubeArray
+#define TEXTURE3D_FLOAT(textureName)                    sampler3D_float textureName
+
+#define TEXTURE2D_HALF(textureName)                     sampler2D_half textureName
+#define TEXTURE2D_ARRAY_HALF(textureName)               TEXTURECUBE_HALF(textureName) // No support to texture2DArray
+#define TEXTURECUBE_HALF(textureName)                   samplerCUBE_half textureName
+#define TEXTURECUBE_ARRAY_HALF(textureName)             TEXTURECUBE_HALF(textureName) // No support to textureCubeArray
+#define TEXTURE3D_HALF(textureName)                     sampler3D_half textureName
 
 #define TEXTURE2D_SHADOW(textureName)                   SHADOW2D_TEXTURE_AND_SAMPLER textureName
 #define TEXTURE2D_ARRAY_SHADOW(textureName)             TEXTURECUBE_SHADOW(textureName) // No support to texture array
