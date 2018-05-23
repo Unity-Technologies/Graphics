@@ -21,6 +21,19 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        public int debugStep
+        {
+            get
+            {
+#if UNITY_EDITOR
+                return m_DebugStep;
+#else
+                return 0;
+#endif
+            }
+        }
+
+#if UNITY_EDITOR
         [ExecuteInEditMode]
         class GameViewEventCatcher : MonoBehaviour
         {
@@ -61,19 +74,6 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public int debugStep
-        {
-            get
-            {
-#if UNITY_EDITOR
-                return m_DebugStep;
-#else
-                return 0;
-#endif
-            }
-        }
-
-#if UNITY_EDITOR
         private Vector2 m_mousePosition = Vector2.zero;
         Vector2 m_MouseClickPosition = Vector2.zero;
         int m_DebugStep = 0;
