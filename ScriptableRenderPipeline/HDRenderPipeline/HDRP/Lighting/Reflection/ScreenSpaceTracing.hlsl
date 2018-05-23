@@ -637,9 +637,10 @@ bool ScreenSpaceHiZRaymarch(
     uint settingsRayMinLevel,                       // Minimum mip level to use for ray marching the depth buffer in HiZ
     uint settingsRayMaxLevel,                       // Maximum mip level to use for ray marching the depth buffer in HiZ
     uint settingsRayMaxIterations,                  // Maximum number of iteration for the HiZ raymarching (= number of depth sample for HiZ)
-    float settingsDepthBufferThickness,              // Bias to use when trying to detect whenever we raymarch behind a surface
+    float settingsDepthBufferThickness,             // Bias to use when trying to detect whenever we raymarch behind a surface
     float settingsRayMaxScreenDistance,             // Maximum screen distance raymarched
     float settingsRayBlendScreenDistance,           // Distance to blend before maximum screen distance is reached
+    bool settingsRayMarchBehindObjects,             // Whether to raymarch behind objects
     int settingsDebuggedAlgorithm,                  // currently debugged algorithm (see PROJECTIONMODEL defines)
     // out
     out ScreenSpaceRayHit hit,
@@ -723,6 +724,7 @@ bool ScreenSpaceHiZRaymarch(
         positionSS = positionSS + raySS * t;
     }
 
+    bool isBehindDepth = false;
     while (currentLevel >= minMipLevel)
     {
         hitSuccessful = true;
@@ -753,7 +755,7 @@ bool ScreenSpaceHiZRaymarch(
         minLinearDepthWithThickness         = minLinearDepth + settingsDepthBufferThickness;
         bool isAboveDepth                   = positionLinearDepth < minLinearDepth;
         bool isAboveThickness               = positionLinearDepth < minLinearDepthWithThickness;
-        bool isBehindDepth                  = !isAboveThickness;
+        isBehindDepth                       = !isAboveThickness;
         bool intersectWithDepth             = minLinearDepth >= positionLinearDepth && isAboveThickness;
 
         intersectionKind = HIZINTERSECTIONKIND_NONE;
@@ -790,7 +792,7 @@ bool ScreenSpaceHiZRaymarch(
             positionSS = candidatePositionSS;
         }
         // Raymarching behind object in depth buffer, this case degenerate into a linear search
-        else if (isBehindDepth && currentLevel <= (minMipLevel + 1))
+        else if (settingsRayMarchBehindObjects && isBehindDepth && currentLevel <= (minMipLevel + 1))
         {
             const int2 cellId = int2(positionSS.xy) / cellSize;
 
@@ -843,9 +845,6 @@ bool ScreenSpaceHiZRaymarch(
 
     hit.linearDepth = positionLinearDepth;
     hit.positionSS = uint2(positionSS.xy);
-    // Move one pixel in the ray direction
-    // This is where the ray actually hit
-    hit.positionSS += int2(raySS.xy * abs(invRaySS));
     hit.positionNDC = float2(hit.positionSS) / float2(bufferSize);
 
     // Detect when we go behind an object given a thickness
@@ -859,7 +858,7 @@ bool ScreenSpaceHiZRaymarch(
         settingsRayBlendScreenDistance
     );
 
-    if (hitWeight <= 0)
+    if (hitWeight <= 0 || isBehindDepth)
         hitSuccessful = false;
 
 #ifdef DEBUG_DISPLAY
@@ -950,6 +949,7 @@ int SSRT_SETTING(RayMaxIterations, SSRTID);
 float SSRT_SETTING(DepthBufferThickness, SSRTID);
 float SSRT_SETTING(RayMaxScreenDistance, SSRTID);
 float SSRT_SETTING(RayBlendScreenDistance, SSRTID);
+int SSRT_SETTING(RayMarchBehindObjects, SSRTID);
 
 #ifdef DEBUG_DISPLAY
 int SSRT_SETTING(DebuggedAlgorithm, SSRTID);
@@ -1045,6 +1045,7 @@ bool MERGE_NAME(ScreenSpaceHiZRaymarch, SSRTID)(
         max(0.01, SSRT_SETTING(DepthBufferThickness, SSRTID)),
         SSRT_SETTING(RayMaxScreenDistance, SSRTID),
         SSRT_SETTING(RayBlendScreenDistance, SSRTID),
+        SSRT_SETTING(RayMarchBehindObjects, SSRTID) == 1,
 #ifdef DEBUG_DISPLAY
         SSRT_SETTING(DebuggedAlgorithm, SSRTID),
 #else
