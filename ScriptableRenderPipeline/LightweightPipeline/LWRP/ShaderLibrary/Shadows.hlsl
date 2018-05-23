@@ -7,10 +7,12 @@
 
 #define MAX_SHADOW_CASCADES 4
 
+#ifndef SHADOWS_SCREEN
 #ifdef SHADER_API_GLES
 #define SHADOWS_SCREEN 0
 #else
 #define SHADOWS_SCREEN 1
+#endif
 #endif
 
 SCREENSPACE_TEXTURE(_ScreenSpaceShadowMapTexture);
@@ -209,7 +211,9 @@ half MainLightRealtimeShadowAttenuation(float4 shadowCoord)
 {
 #if !defined(_SHADOWS_ENABLED)
     return 1.0h;
-#elif SHADOWS_SCREEN
+#endif
+
+#if SHADOWS_SCREEN
     return SampleScreenSpaceShadowMap(shadowCoord);
 #else
     ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
