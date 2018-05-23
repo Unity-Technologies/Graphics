@@ -148,8 +148,6 @@ namespace UnityEditor.ShaderGraph
             set { m_PreviewData = value; }
         }
 
-        [NonSerialized]
-        string m_Name;
         public string name { get; set; }
 
         [SerializeField]
