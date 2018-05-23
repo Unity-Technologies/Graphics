@@ -153,7 +153,7 @@ namespace UnityEditor.ShaderGraph
 
         public void SetMaterialPropertyBlockValue(MaterialPropertyBlock block)
         {
-            if (propType == PropertyType.Texture && textureValue != null || propType == PropertyType.Texture2DArray && textureValue != null || propType == PropertyType.Texture3D && textureValue != null)
+            if ((propType == PropertyType.Texture || propType == PropertyType.Texture2DArray || propType == PropertyType.Texture3D) && textureValue != null)
                 block.SetTexture(name, m_Data.textureValue);
             else if (propType == PropertyType.Cubemap && cubemapValue != null)
                 block.SetTexture(name, m_Data.cubemapValue);
