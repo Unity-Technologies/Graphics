@@ -75,25 +75,26 @@ namespace UnityEditor.VFX
     {
         public static VFXGraph GetOrCreateGraph(this VisualEffectResource resource)
         {
-            ScriptableObject g = resource.graph;
-            if (g == null)
+            VFXGraph graph = resource.graph as VFXGraph;
+
+            if (graph == null)
             {
                 string assetPath = AssetDatabase.GetAssetPath(resource);
                 AssetDatabase.ImportAsset(assetPath);
 
-                g = resource.GetDependencies().OfType<VFXGraph>().FirstOrDefault();
+                graph = resource.GetDependencies().OfType<VFXGraph>().FirstOrDefault();
             }
 
-            if (g == null)
+            if (graph == null)
             {
-                g = ScriptableObject.CreateInstance<VFXGraph>();
-                g.name = "VFXGraph";
-                resource.graph = g;
-                g.hideFlags |= HideFlags.HideInHierarchy;
-                ((VFXGraph)g).UpdateSubAssets();
+                graph = ScriptableObject.CreateInstance<VFXGraph>();
+                resource.graph = graph;
+                graph.hideFlags |= HideFlags.HideInHierarchy;
+                graph.visualEffectResource = resource;
+                // in this case we must update the subassets so that the graph is added to the resource dependencies
+                graph.UpdateSubAssets();
             }
 
-            VFXGraph graph = (VFXGraph)g;
             graph.visualEffectResource = resource;
             return graph;
         }

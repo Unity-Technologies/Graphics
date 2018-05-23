@@ -123,9 +123,8 @@ namespace UnityEditor.VFX.Test
                 Directory.CreateDirectory(directoryPath);
             }
 
-            System.IO.File.WriteAllText(filePath, "");
-            AssetDatabase.ImportAsset(filePath);
-            m_Asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(filePath);
+
+            m_Asset = VisualEffectAsset.Create(filePath);
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
             window.Close();
             window = EditorWindow.GetWindow<VFXViewWindow>();
@@ -137,7 +136,6 @@ namespace UnityEditor.VFX.Test
         {
             var filePath = string.Format(testAssetName, name);
             AssetDatabase.DeleteAsset(filePath);
-            UnityEngine.Object.DestroyImmediate(m_Asset);
 
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
             window.Close();

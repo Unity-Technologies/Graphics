@@ -137,7 +137,7 @@ namespace UnityEditor.VFX.UI
                 // In this case the asset has been destroyed or reimported after having changed outside.
                 // Lets rebuild everything and clear the undo stack.
                 Clear();
-                if (model != null)
+                if (model != null && model.graph != null)
                     InitializeUndoStack();
                 Debug.LogWarning("ModelChanged");
                 ModelChanged(model);

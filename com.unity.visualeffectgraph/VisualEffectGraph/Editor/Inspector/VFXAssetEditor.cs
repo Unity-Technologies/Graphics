@@ -65,8 +65,9 @@ public class VisualEffectAssetEditor : Editor
 
         UnityObject[] objects = resource.GetDependencies();
 
-        foreach (var shader in objects.Where(t => t is Shader || t is ComputeShader))
+        foreach (var shader in objects)
         {
+            if(shader is Shader || shader is ComputeShader)
             {
                 GUILayout.BeginHorizontal();
                 GUILayout.FlexibleSpace();

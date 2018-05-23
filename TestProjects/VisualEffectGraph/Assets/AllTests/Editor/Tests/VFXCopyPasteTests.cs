@@ -35,11 +35,8 @@ namespace UnityEditor.VFX.Test
                 AssetDatabase.DeleteAsset(testAssetName);
             }
 
-            System.IO.File.WriteAllText(testAssetName, "");
+            var asset = VisualEffectAsset.Create(testAssetName);
 
-            AssetDatabase.ImportAsset(testAssetName); // This will create the VisualEffectAsset.
-
-            VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(testAssetName);
             VisualEffectResource resource = asset.GetResource(); // force resource creation
 
             m_ViewController = VFXViewController.GetController(resource);
