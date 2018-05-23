@@ -95,7 +95,7 @@ namespace UnityEditor
             if (!settings.targetTexture.hasMultipleDifferentValues)
             {
                 var texture = settings.targetTexture.objectReferenceValue as RenderTexture;
-                int pipelineSamplesCount = lightweightPipeline.MSAASampleCount;
+                int pipelineSamplesCount = lightweightPipeline.MsaaSampleCount;
 
                 if (texture && texture.antiAliasing > pipelineSamplesCount)
                 {
@@ -106,7 +106,7 @@ namespace UnityEditor
                         MessageType.Warning, true);
 
                     if (GUILayout.Button(s_Styles.fixNow))
-                        lightweightPipeline.MSAASampleCount = texture.antiAliasing;
+                        lightweightPipeline.MsaaSampleCount = texture.antiAliasing;
                 }
             }
         }
@@ -114,11 +114,11 @@ namespace UnityEditor
         private void DrawMSAA()
         {
             EditorGUILayout.PropertyField(settings.allowMSAA);
-            if (settings.allowMSAA.boolValue && lightweightPipeline.MSAASampleCount <= 1)
+            if (settings.allowMSAA.boolValue && lightweightPipeline.MsaaSampleCount <= 1)
             {
                 EditorGUILayout.HelpBox(s_Styles.mssaDisabledWarning, MessageType.Warning);
                 if (GUILayout.Button(s_Styles.fixNow))
-                    lightweightPipeline.MSAASampleCount = 4;
+                    lightweightPipeline.MsaaSampleCount = 4;
             }
         }
 

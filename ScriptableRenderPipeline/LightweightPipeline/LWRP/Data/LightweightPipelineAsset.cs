@@ -70,6 +70,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private bool m_SupportsHDR = false;
         [SerializeField] private MSAAQuality m_MSAA = MSAAQuality._4x;
         [SerializeField] private float m_RenderScale = 1.0f;
+        [SerializeField] private bool m_SupportsDynamicBatching = true;
 
         [SerializeField] private bool m_DirectionalShadowsSupported = true;
         [SerializeField] private ShadowResolution m_ShadowAtlasResolution = ShadowResolution._2048;
@@ -80,6 +81,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] private bool m_LocalShadowsSupported = true;
         [SerializeField] private ShadowResolution m_LocalShadowsAtlasResolution = ShadowResolution._512;
         [SerializeField] private bool m_SoftShadowsSupported = false;
+        [SerializeField] private bool m_CustomShaderVariantStrippingSettings = false;
+        [SerializeField] private bool m_KeepAdditionalLightVariants = true;
+        [SerializeField] private bool m_KeepVertexLightVariants = true;
+        [SerializeField] private bool m_KeepDirectionalShadowVariants = true;
+        [SerializeField] private bool m_KeepLocalShadowVariants = true;
+        [SerializeField] private bool m_KeepSoftShadowVariants = true;
 
         [SerializeField]
         private LightweightPipelineResources m_ResourcesAsset;
@@ -238,7 +245,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             get { return m_SupportsHDR; }
         }
 
-        public int MSAASampleCount
+        public int MsaaSampleCount
         {
             get { return (int)m_MSAA; }
             set { m_MSAA = (MSAAQuality)value; }
@@ -249,6 +256,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             get { return m_RenderScale; }
             set { m_RenderScale = value; }
         }
+
+        public bool SupportsDynamicBatching { get { return m_SupportsDynamicBatching; } }
 
         public bool SupportsDirectionalShadows
         {
@@ -304,6 +313,36 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public bool SupportsSoftShadows
         {
             get { return m_SoftShadowsSupported; }
+        }
+
+        public bool CustomShaderVariantStripping
+        {
+            get { return m_CustomShaderVariantStrippingSettings; }
+        }
+
+        public bool KeepAdditionalLightVariants
+        {
+            get { return m_KeepAdditionalLightVariants; }
+        }
+
+        public bool KeepVertexLightVariants
+        {
+            get { return m_KeepVertexLightVariants; }
+        }
+
+        public bool KeepDirectionalShadowVariants
+        {
+            get { return m_KeepDirectionalShadowVariants; }
+        }
+
+        public bool KeepLocalShadowVariants
+        {
+            get { return m_KeepLocalShadowVariants; }
+        }
+
+        public bool KeepSoftShadowVariants
+        {
+            get { return m_KeepSoftShadowVariants; }
         }
 
         public override Material GetDefaultMaterial()

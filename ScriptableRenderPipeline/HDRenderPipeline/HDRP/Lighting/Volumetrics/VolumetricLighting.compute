@@ -9,6 +9,8 @@
 
 // #pragma enable_d3d11_debug_symbols
 
+#define SHADOW_USE_ONLY_VIEW_BASED_BIASING 1 // We don't use normal biasing as it is not available when doing volumetric
+
 #include "../../ShaderPass/ShaderPass.cs.hlsl"
 #define SHADERPASS SHADERPASS_VOLUMETRIC_LIGHTING
 
@@ -111,7 +113,7 @@ struct VoxelLighting
 // Computes the light integral (in-scattered radiance) within the voxel.
 // Multiplication by the scattering coefficient and the phase function is performed outside.
 VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags, PositionInputs posInput, float3 centerWS,
-                                    DualRay ray, float t0, float t1, float dt, float rndVal, float extinction, float asymmetry
+                                    DualRay ray, float t0, float t1, float dt, float rndVal, float extinction, float anisotropy
                                 #ifdef USE_CLUSTERED_LIGHTLIST
                                     , uint lightClusters[2])
                                 #else
@@ -148,15 +150,15 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
             // function) is not possible. We work around this issue by reprojecting
             // lighting not affected by the phase function. This basically removes
             // the phase function from the temporal integration process. It is a hack.
-            // The downside is that asymmetry no longer benefits from temporal averaging,
-            // and any temporal instability of asymmetry causes causes visible jitter.
+            // The downside is that anisotropy no longer benefits from temporal averaging,
+            // and any temporal instability of anisotropy causes causes visible jitter.
             // In order to stabilize the image, we use the voxel center for all
-            // asymmetry-related calculations.
+            // anisotropy-related calculations.
             float cosTheta = dot(L, ray.centerDirWS);
-            float phase    = CornetteShanksPhasePartVarying(asymmetry, cosTheta);
+            float phase    = CornetteShanksPhasePartVarying(anisotropy, cosTheta);
 
             // Note: the 'weight' accounts for transmittance from 't0' to 't'.
-            float intensity = attenuation * weight;
+            float intensity = light.volumetricDimmer * attenuation * weight;
 
             // Compute the amount of in-scattered radiance.
             lighting.radianceNoPhase  += intensity * color;
@@ -279,15 +281,15 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                     // function) is not possible. We work around this issue by reprojecting
                     // lighting not affected by the phase function. This basically removes
                     // the phase function from the temporal integration process. It is a hack.
-                    // The downside is that asymmetry no longer benefits from temporal averaging,
-                    // and any temporal instability of asymmetry causes causes visible jitter.
+                    // The downside is that anisotropy no longer benefits from temporal averaging,
+                    // and any temporal instability of anisotropy causes causes visible jitter.
                     // In order to stabilize the image, we use the voxel center for all
-                    // asymmetry-related calculations.
+                    // anisotropy-related calculations.
                     float3 centerL = light.positionWS - centerWS;
                     float  cosTheta = dot(centerL, ray.centerDirWS) * rsqrt(dot(centerL, centerL));
-                    float  phase    = CornetteShanksPhasePartVarying(asymmetry, cosTheta);
+                    float  phase    = CornetteShanksPhasePartVarying(anisotropy, cosTheta);
 
-                    float intensity = attenuation * rcpPdf;
+                    float intensity = light.volumetricDimmer * attenuation * rcpPdf;
 
                     // Compute transmittance from 't0' to 't'.
                     intensity *= TransmittanceHomogeneousMedium(extinction, t - t0);
@@ -367,16 +369,16 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                     // function) is not possible. We work around this issue by reprojecting
                     // lighting not affected by the phase function. This basically removes
                     // the phase function from the temporal integration process. It is a hack.
-                    // The downside is that asymmetry no longer benefits from temporal averaging,
-                    // and any temporal instability of asymmetry causes causes visible jitter.
+                    // The downside is that anisotropy no longer benefits from temporal averaging,
+                    // and any temporal instability of anisotropy causes causes visible jitter.
                     // In order to stabilize the image, we use the voxel center for all
-                    // asymmetry-related calculations.
-                    float3 centerL = light.positionWS - centerWS;
+                    // anisotropy-related calculations.
+                    float3 centerL  = light.positionWS - centerWS;
                     float  cosTheta = dot(centerL, ray.centerDirWS) * rsqrt(dot(centerL, centerL));
-                    float  phase    = CornetteShanksPhasePartVarying(asymmetry, cosTheta);
+                    float  phase    = CornetteShanksPhasePartVarying(anisotropy, cosTheta);
 
                     // Note: the 'weight' accounts for transmittance from 'tEntr' to 't'.
-                    float intensity = attenuation * weight;
+                    float intensity = light.volumetricDimmer * attenuation * weight;
 
                     // Compute transmittance from 't0' to 'tEntr'.
                     intensity *= TransmittanceHomogeneousMedium(extinction, tEntr - t0);
@@ -465,7 +467,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // TODO: piecewise linear.
         float3 scattering = LOAD_TEXTURE3D(_VBufferDensity, voxelCoord).rgb;
         float  extinction = LOAD_TEXTURE3D(_VBufferDensity, voxelCoord).a;
-        float  asymmetry  = _GlobalAsymmetry;
+        float  anisotropy = _GlobalAnisotropy;
 
         // Prevent division by 0.
         extinction = max(extinction, FLT_MIN);
@@ -479,7 +481,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     #endif
 
         VoxelLighting lighting = EvaluateVoxelLighting(context, featureFlags, posInput, centerWS,
-                                                       ray, t0, t1, dt, rndVal, extinction, asymmetry
+                                                       ray, t0, t1, dt, rndVal, extinction, anisotropy
                                                    #ifdef USE_CLUSTERED_LIGHTLIST
                                                        , lightClusters);
                                                    #else
@@ -493,6 +495,8 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                                            _PrevViewProjMatrix,
                                            _VBufferPrevResolution,
                                            _VBufferPrevSliceCount.xy,
+                                           _VBufferPrevUvScaleAndLimit.xy,
+                                           _VBufferPrevUvScaleAndLimit.zw,
                                            _VBufferPrevDepthEncodingParams,
                                            _VBufferPrevDepthDecodingParams,
                                            false, false, true);
@@ -573,7 +577,8 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
         // Note: for correct filtering, the data has to be stored in the perceptual space.
         // This means storing the tone mapped radiance and transmittance instead of optical depth.
         // See "A Fresh Look at Generalized Sampling", p. 51.
-        _VBufferLightingIntegral[voxelCoord] = float4(FastTonemap(totalRadiance), Transmittance(opticalDepth));
+        // TODO: re-enable tone mapping after implementing pre-exposure.
+        _VBufferLightingIntegral[voxelCoord] = float4(/*FastTonemap*/(totalRadiance), Transmittance(opticalDepth));
 
         // Compute the optical depth up to the end of the interval.
         opticalDepth += 0.5 * extinction * dt;

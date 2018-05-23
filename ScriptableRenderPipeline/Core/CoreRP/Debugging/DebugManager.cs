@@ -32,6 +32,8 @@ namespace UnityEngine.Experimental.Rendering
         public event Action<bool> onDisplayRuntimeUIChanged = delegate { };
         public event Action onSetDirty = delegate { };
 
+        public bool refreshEditorRequested;
+
         GameObject m_Root;
         DebugUIHandlerCanvas m_RootUICanvas;
 
@@ -91,6 +93,11 @@ namespace UnityEngine.Experimental.Rendering
         {
             RegisterInputs();
             RegisterActions();
+        }
+
+        public void RefreshEditor()
+        {
+            refreshEditorRequested = true;
         }
 
         public void Reset()

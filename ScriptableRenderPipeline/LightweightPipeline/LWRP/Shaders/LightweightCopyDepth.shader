@@ -1,10 +1,5 @@
 Shader "Hidden/LightweightPipeline/CopyDepth"
 {
-    Properties
-    {
-        [HideInInspector] _SampleCount("MSAA sample count", Float) = 1.0
-    }
-
     SubShader
     {
         Tags { "RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline"}
@@ -21,7 +16,7 @@ Shader "Hidden/LightweightPipeline/CopyDepth"
             #pragma vertex vert
             #pragma fragment frag
 
-            #pragma multi_compile __ _MSAA_DEPTH
+            #pragma multi_compile _DEPTH_NO_MSAA _DEPTH_MSAA_2 _DEPTH_MSAA_4
 
             #include "LWRP/ShaderLibrary/DepthCopy.hlsl"
 

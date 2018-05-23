@@ -464,10 +464,17 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     // Warning: the contents are later overwritten for Standard and SSS!
     outGBuffer0 = float4(surfaceData.baseColor, surfaceData.specularOcclusion);
 
+    // The sign of the Z component of the normal MUST round-trip through the G-Buffer, otherwise
+    // the reconstruction of the tangent frame for anisotropic GGX creates a seam along the Z axis.
+    // The constant was eye-balled to not cause artifacts.
+    // TODO: find a proper solution. E.g. we could re-shuffle the faces of the octahedron
+    // s.t. the sign of the Z component round-trips.
+    const float seamThreshold = 1.0/1024.0;
+    surfaceData.normalWS.z = CopySign(max(seamThreshold, abs(surfaceData.normalWS.z)), surfaceData.normalWS.z);
+
     // RT1 - 8:8:8:8
     // Our tangent encoding is based on our normal.
-    // With octahedral quad packing we get an artifact for reconstructed tangent at the center of this quad. We use rect packing instead to avoid it.
-    float2 octNormalWS = PackNormalOctRectEncode(surfaceData.normalWS);
+    float2 octNormalWS = PackNormalOctQuadEncode(surfaceData.normalWS);
     float3 packNormalWS = PackFloat2To888(saturate(octNormalWS * 0.5 + 0.5));
     // We store perceptualRoughness instead of roughness because it is perceptually linear.
     outGBuffer1 = float4(packNormalWS, PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness));
@@ -627,7 +634,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
 
     float3 packNormalWS = inGBuffer1.rgb;
     float2 octNormalWS = Unpack888ToFloat2(packNormalWS);
-    bsdfData.normalWS = UnpackNormalOctRectEncode(octNormalWS * 2.0 - 1.0);
+    bsdfData.normalWS = UnpackNormalOctQuadEncode(octNormalWS * 2.0 - 1.0);
     bsdfData.perceptualRoughness = inGBuffer1.a;
 
     bakeDiffuseLighting = inGBuffer3.rgb;
@@ -834,17 +841,19 @@ struct PreLightData
     float3x3 ltcTransformCoat;       // Inverse transformation for GGX                                 (4x VGPRs)
     float    ltcMagnitudeCoatFresnel;
 
+#if HAS_REFRACTION
     // Refraction
     float3 transparentRefractV;      // refracted view vector after exiting the shape
     float3 transparentPositionWS;    // start of the refracted ray after exiting the shape
     float3 transparentTransmittance; // transmittance due to absorption
     float transparentSSMipLevel;     // mip level of the screen space gaussian pyramid for rough refraction
+#endif
 };
 
 PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData bsdfData)
 {
     PreLightData preLightData;
-    ZERO_INITIALIZE(PreLightData, preLightData);
+    // Don't init to zero to allow to track warning about uninitialized data
 
     float3 N = bsdfData.normalWS;
     preLightData.NdotV = dot(N, V);
@@ -996,9 +1005,14 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         ltcGGXFresnelMagnitude      = ltcMagnitude.g;
         preLightData.ltcMagnitudeCoatFresnel = (CLEAR_COAT_F0 * ltcGGXFresnelMagnitudeDiff + ltcGGXFresnelMagnitude) * bsdfData.coatMask;
     }
+    else
+    {
+        preLightData.ltcTransformCoat = 0.0;
+        preLightData.ltcMagnitudeCoatFresnel = 0.0;
+    }
 
     // refraction (forward only)
-#ifdef REFRACTION_MODEL
+#if HAS_REFRACTION
     RefractionModelResult refraction = REFRACTION_MODEL(V, posInput, bsdfData);
     preLightData.transparentRefractV = refraction.rayWS;
     preLightData.transparentPositionWS = refraction.positionWS;
@@ -1741,7 +1755,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     int projectionModel = PROJECTIONMODEL_NONE;
 #if HAS_REFRACTION
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
-    {
+        {
     #if defined(_REFRACTION_SSRAY_HIZ)
         projectionModel = PROJECTIONMODEL_HI_Z;
     #elif defined(_REFRACTION_SSRAY_PROXY)
@@ -1768,14 +1782,15 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     float invScreenWeightDistance   = 0;
     float temporalFilteringWeight   = 0.2;
 
+#if HAS_REFRACTION
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
     {
-        // Refraction process:
-        //  1. Depending on the shape model, we calculate the refracted point in world space and the optical depth
-        //  2. We calculate the screen space position of the refracted point
-        //  3. If this point is available (ie: in color buffer and point is not in front of the object)
-        //    a. Get the corresponding color depending on the roughness from the gaussian pyramid of the color buffer
-        //    b. Multiply by the transmittance for absorption (depends on the optical depth)
+            // Refraction process:
+            //  1. Depending on the shape model, we calculate the refracted point in world space and the optical depth
+            //  2. We calculate the screen space position of the refracted point
+            //  3. If this point is available (ie: in color buffer and point is not in front of the object)
+            //    a. Get the corresponding color depending on the roughness from the gaussian pyramid of the color buffer
+            //    b. Multiply by the transmittance for absorption (depends on the optical depth)
 
         rayOriginWS             = preLightData.transparentPositionWS;
         rayDirWS                = preLightData.transparentRefractV;
@@ -1785,7 +1800,9 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
         debugMode               = DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFRACTION;
 #endif 
     }
-    else if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
+    else
+#endif
+    if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
     {
         rayOriginWS             = posInput.positionWS;
         rayDirWS                = preLightData.iblR;
@@ -1797,8 +1814,8 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     }
 
 #if DEBUG_DISPLAY
-    bool debug                  = _DebugLightingMode == debugMode
-                                && !any(int2(_MouseClickPixelCoord.xy) - int2(posInput.positionSS));
+            bool debug              = _DebugLightingMode == debugMode
+                && !any(int2(_MouseClickPixelCoord.xy) - int2(posInput.positionSS));
 #endif
 
     // -------------------------------
@@ -1857,48 +1874,48 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
             hitSuccessful = ScreenSpaceHiZRaymarchReflection(ssRayInput, hit, hitWeight);
     }
 
-    // Debug screen space tracing
+            // Debug screen space tracing
 #ifdef DEBUG_DISPLAY
-    if (_DebugLightingMode == debugMode
+            if (_DebugLightingMode == debugMode
         && _DebugLightingSubMode != DEBUGSCREENSPACETRACING_COLOR
         && _DebugLightingSubMode != DEBUGSCREENSPACETRACING_LINEAR_SAMPLED_COLOR
         && _DebugLightingSubMode != DEBUGSCREENSPACETRACING_HI_ZSAMPLED_COLOR
         )
-    {
-        float weight = 1.0;
-        UpdateLightingHierarchyWeights(hierarchyWeight, weight);
+            {
+                float weight = 1.0;
+                UpdateLightingHierarchyWeights(hierarchyWeight, weight);
         if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
-            lighting.specularTransmitted = hit.debugOutput;
+                lighting.specularTransmitted = hit.debugOutput;
         else if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
             lighting.specularReflected = hit.debugOutput;
-        return lighting;
-    }
+                return lighting;
+            }
 #endif
 
-    if (!hitSuccessful)
-        return lighting;
+            if (!hitSuccessful)
+                return lighting;
 
     // -------------------------------
     // Resolve weight and color
     // -------------------------------
     // Fade pixels near the texture buffers' borders
     float2 weightNDC = clamp(min(hit.positionNDC, 1 - hit.positionNDC) * invScreenWeightDistance, 0, 1);
-    weightNDC = weightNDC * weightNDC * (3 - 2 * weightNDC);
+            weightNDC = weightNDC * weightNDC * (3 - 2 * weightNDC);
     // TODO: Fade pixels with normal non facing the ray direction
     // TODO: Fade pixels marked as foreground in stencil
     float weight = weightNDC.x * weightNDC.y * hitWeight;
 
-    float hitDeviceDepth = LOAD_TEXTURE2D_LOD(_DepthPyramidTexture, hit.positionSS, 0).r;
-    float hitLinearDepth = LinearEyeDepth(hitDeviceDepth, _ZBufferParams);
+            float hitDeviceDepth = LOAD_TEXTURE2D_LOD(_DepthPyramidTexture, hit.positionSS, 0).r;
+            float hitLinearDepth = LinearEyeDepth(hitDeviceDepth, _ZBufferParams);
 
     // Exit if texel is discarded
     if (weight == 0)
-    {
-        // Do nothing and don't update the hierarchy weight so we can fall back on refraction probe
-        return lighting;
-    }
+            {
+                // Do nothing and don't update the hierarchy weight so we can fall back on refraction probe
+                return lighting;
+            }
 
-    UpdateLightingHierarchyWeights(hierarchyWeight, weight); // Shouldn't be needed, but safer in case we decide to change hierarchy priority
+            UpdateLightingHierarchyWeights(hierarchyWeight, weight); // Shouldn't be needed, but safer in case we decide to change hierarchy priority
 
     // Reproject color pyramid
     float4 hitVelocityBuffer = LOAD_TEXTURE2D_LOD(
@@ -1910,13 +1927,13 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     float2 hitVelocityNDC;
     DecodeVelocity(hitVelocityBuffer, hitVelocityNDC);
 
-    float3 preLD = SAMPLE_TEXTURE2D_LOD(
-        _ColorPyramidTexture,
-        s_trilinear_clamp_sampler,
+            float3 preLD = SAMPLE_TEXTURE2D_LOD(
+                _ColorPyramidTexture,
+                s_trilinear_clamp_sampler,
         // Offset by half a texel to properly interpolate between this pixel and its mips
         (hit.positionNDC - hitVelocityNDC) * _ColorPyramidScale.xy + _ColorPyramidSize.zw * 0.5,
         mipLevel
-    ).rgb;
+            ).rgb;
 
     // With HiZ, we use a temporal filtering to reduce the noise from the ray origin jittering
     if (projectionModel == PROJECTIONMODEL_HI_Z)
@@ -1939,14 +1956,17 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     }
 
     // We use specularFGD as an approximation of the fresnel effect (that also handle smoothness)
-    float3 F = preLightData.specularFGD;
+            float3 F = preLightData.specularFGD;
 
     // -------------------------------
     // Assign color
     // -------------------------------
+#if HAS_REFRACTION
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
         lighting.specularTransmitted = (1.0 - F) * preLD.rgb * preLightData.transparentTransmittance * weight;
-    else if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
+    else 
+#endif
+    if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
         lighting.specularReflected = F * preLD.rgb * weight;
 
 #ifdef DEBUG_DISPLAY
@@ -1960,12 +1980,12 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
             debug.lightingSpecularFGD = F;
         debug.lightingWeight = weight;
         _DebugScreenSpaceTracingData[0] = debug;
-    }
+        }
 
     if (_DebugLightingMode == debugMode
         && (_DebugLightingSubMode == DEBUGSCREENSPACETRACING_LINEAR_SAMPLED_COLOR
             || _DebugLightingSubMode == DEBUGSCREENSPACETRACING_HI_ZSAMPLED_COLOR))
-    {
+        {
         float weight = 1.0;
         UpdateLightingHierarchyWeights(hierarchyWeight, weight);
         if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
@@ -1973,7 +1993,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
         else if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
             lighting.specularReflected = preLD.rgb;
         return lighting;
-    }
+        }
 #endif
 
     return lighting;
@@ -2019,12 +2039,14 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     float3 R = preLightData.iblR;
 
+#if HAS_REFRACTION
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
     {
         positionWS = preLightData.transparentPositionWS;
         R = preLightData.transparentRefractV;
     }
     else
+#endif
     {
         if ((lightData.envIndex & 1) == ENVCACHETYPE_CUBEMAP)
         {
@@ -2084,6 +2106,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
             // Can't attenuate diffuse lighting here, may try to apply something on bakeLighting in PostEvaluateBSDF
         }
     }
+#if HAS_REFRACTION
     else
     {
         // No clear coat support with refraction
@@ -2092,6 +2115,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
         // With refraction, we don't care about the clear coat value, only about the Fresnel, thus why we use 'envLighting ='
         envLighting = (1.0 - F) * preLD.rgb * preLightData.transparentTransmittance;
     }
+#endif
 
 #endif // LIT_DISPLAY_REFERENCE_IBL
 
@@ -2100,8 +2124,10 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
         lighting.specularReflected = envLighting;
+#if HAS_REFRACTION
     else
         lighting.specularTransmitted = envLighting * preLightData.transparentTransmittance;
+#endif
 
     return lighting;
 }

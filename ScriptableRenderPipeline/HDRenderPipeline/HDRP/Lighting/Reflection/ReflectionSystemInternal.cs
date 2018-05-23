@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 
@@ -119,12 +119,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
 #endif
 
                 // 1. Allocate if necessary target texture
-                var renderCamera = GetRenderCamera();
                 for (var i = 0; i < length; i++)
                 {
                     var probe = m_PlanarReflectionProbe_RealtimeUpdate_WorkArray[i];
-                    var hdCamera = HDCamera.Get(renderCamera, null, probe.frameSettings);
-                    if (!IsRealtimeTextureValid(probe.realtimeTexture, hdCamera))
+
+                    if (!IsRealtimeTextureValid(probe.realtimeTexture))
                     {
                         if (probe.realtimeTexture != null)
                             probe.realtimeTexture.Release();
@@ -154,12 +153,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
                 m_PlanarReflectionProbe_RequestRealtimeRender.Clear();
 
                 // 1. Allocate if necessary target texture
-                var camera = GetRenderCamera();
                 for (var i = 0; i < length; i++)
                 {
                     var probe = m_PlanarReflectionProbe_RealtimeUpdate_WorkArray[i];
-                    var hdCamera = HDCamera.Get(camera, null, probe.frameSettings);
-                    if (!IsRealtimeTextureValid(probe.realtimeTexture, hdCamera))
+
+                    if (!IsRealtimeTextureValid(probe.realtimeTexture))
                     {
                         if (probe.realtimeTexture != null)
                             probe.realtimeTexture.Release();
@@ -182,7 +180,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             // No hide and don't save for this one
             rt.useMipMap = true;
             rt.autoGenerateMips = false;
-            rt.name = CoreUtils.GetRenderTargetAutoName(m_Parameters.planarReflectionProbeSize, m_Parameters.planarReflectionProbeSize, RenderTextureFormat.ARGBHalf, "PlanarProbeRT");
+            rt.name = CoreUtils.GetRenderTargetAutoName(m_Parameters.planarReflectionProbeSize, m_Parameters.planarReflectionProbeSize, 1, RenderTextureFormat.ARGBHalf, "PlanarProbeRT");
             rt.Create();
             return rt;
         }
@@ -207,7 +205,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
         //    }
         //}
 
-        bool IsRealtimeTextureValid(RenderTexture renderTexture, HDCamera hdCamera)
+        bool IsRealtimeTextureValid(RenderTexture renderTexture)
         {
             return renderTexture != null
                 && renderTexture.width == m_Parameters.planarReflectionProbeSize
@@ -223,14 +221,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
 
         public void Render(PlanarReflectionProbe probe, RenderTexture target, Camera viewerCamera = null)
         {
-            var renderCamera = GetRenderHDCamera(probe);
-            renderCamera.camera.targetTexture = target;
+            var renderCamera = GetRenderCamera();
 
-            SetupCameraForRender(renderCamera.camera, probe, viewerCamera);
+            // Copy current frameSettings of this probe to the HDAdditionalData of the render camera
+            probe.frameSettings.CopyTo(s_RenderCameraData.GetFrameSettings());
+
+            renderCamera.targetTexture = target;
+
+            SetupCameraForRender(renderCamera, probe, viewerCamera);
             GL.invertCulling = IsProbeCaptureMirrored(probe, viewerCamera);
-            renderCamera.camera.Render();
+            renderCamera.Render();
             GL.invertCulling = false;
-            renderCamera.camera.targetTexture = null;
+            renderCamera.targetTexture = null;
             target.IncrementUpdateCount();
         }
 
@@ -369,15 +371,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             var forward = reflectionMatrix.MultiplyVector(viewerCamera.transform.forward);
             var up = reflectionMatrix.MultiplyVector(viewerCamera.transform.up);
             captureRotation = Quaternion.LookRotation(forward, up);
-        }
-
-        public static HDCamera GetRenderHDCamera(PlanarReflectionProbe probe)
-        {
-            var camera = GetRenderCamera();
-
-            probe.frameSettings.CopyTo(s_RenderCameraData.GetFrameSettings());
-
-            return HDCamera.Get(camera, null, probe.frameSettings);
         }
 
         static Camera GetRenderCamera()

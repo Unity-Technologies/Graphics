@@ -108,6 +108,8 @@ namespace UnityEditor.Experimental.Rendering
 
         void OnEnable()
         {
+            DebugManager.instance.refreshEditorRequested = false;
+
             hideFlags = HideFlags.HideAndDontSave;
             autoRepaintOnSceneChange = true;
 
@@ -132,8 +134,8 @@ namespace UnityEditor.Experimental.Rendering
             EditorApplication.update -= Repaint;
             var panels = DebugManager.instance.panels;
             var selectedPanelIndex = m_Settings.selectedPanel;
-            if (selectedPanelIndex >= 0 
-                && selectedPanelIndex < panels.Count 
+            if (selectedPanelIndex >= 0
+                && selectedPanelIndex < panels.Count
                 && panels[selectedPanelIndex].editorForceUpdate)
                 EditorApplication.update += Repaint;
         }
@@ -144,6 +146,11 @@ namespace UnityEditor.Experimental.Rendering
             DebugManager.instance.onSetDirty -= MarkDirty;
             Undo.ClearUndo(m_Settings);
 
+            DestroyWidgetStates();
+        }
+
+        public void DestroyWidgetStates()
+        {
             if (m_WidgetStates != null)
             {
                 // Clear all the states from memory
@@ -282,6 +289,14 @@ namespace UnityEditor.Experimental.Rendering
 
         void Update()
         {
+            // If the render pipeline asset has been reloaded we force-refresh widget states in case
+            // some debug values need to be refresh/recreated as well (e.g. frame settings on HD)
+            if (DebugManager.instance.refreshEditorRequested)
+            {
+                DestroyWidgetStates();
+                DebugManager.instance.refreshEditorRequested = false;
+            }
+
             int treeState = DebugManager.instance.GetState();
 
             if (m_DebugTreeState != treeState || m_IsDirty)

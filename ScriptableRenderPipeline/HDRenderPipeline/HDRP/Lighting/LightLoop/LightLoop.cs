@@ -342,7 +342,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_lightCount = 0;
         int m_densityVolumeCount = 0;
         bool m_enableBakeShadowMask = false; // Track if any light require shadow mask. In this case we will need to enable the keyword shadow mask
-        float m_maxShadowDistance = 0.0f; // Save value from shadow settings
 
         private ComputeShader buildScreenAABBShader { get { return m_Resources.buildScreenAABBShader; } }
         private ComputeShader buildPerTileLightListShader { get { return m_Resources.buildPerTileLightListShader; } }
@@ -515,15 +514,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             GlobalLightLoopSettings gLightLoopSettings = hdAsset.GetRenderPipelineSettings().lightLoopSettings;
             m_CookieTexArray = new TextureCache2D("Cookie");
-            m_CookieTexArray.AllocTextureArray(gLightLoopSettings.cookieTexArraySize, gLightLoopSettings.cookieSize, gLightLoopSettings.cookieSize, TextureFormat.RGBA32, true);
+            m_CookieTexArray.AllocTextureArray(gLightLoopSettings.cookieTexArraySize, (int)gLightLoopSettings.cookieSize, (int)gLightLoopSettings.cookieSize, TextureFormat.RGBA32, true);
             m_CubeCookieTexArray = new TextureCacheCubemap("Cookie");
-            m_CubeCookieTexArray.AllocTextureArray(gLightLoopSettings.cubeCookieTexArraySize, gLightLoopSettings.pointCookieSize, TextureFormat.RGBA32, true, m_CubeToPanoMaterial);
+            m_CubeCookieTexArray.AllocTextureArray(gLightLoopSettings.cubeCookieTexArraySize, (int)gLightLoopSettings.pointCookieSize, TextureFormat.RGBA32, true, m_CubeToPanoMaterial);
 
             TextureFormat probeCacheFormat = gLightLoopSettings.reflectionCacheCompressed ? TextureFormat.BC6H : TextureFormat.RGBAHalf;
-            m_ReflectionProbeCache = new ReflectionProbeCache(hdAsset, iblFilterGGX, gLightLoopSettings.reflectionProbeCacheSize, gLightLoopSettings.reflectionCubemapSize, probeCacheFormat, true);
+            m_ReflectionProbeCache = new ReflectionProbeCache(hdAsset, iblFilterGGX, gLightLoopSettings.reflectionProbeCacheSize, (int)gLightLoopSettings.reflectionCubemapSize, probeCacheFormat, true);
 
             TextureFormat planarProbeCacheFormat = gLightLoopSettings.planarReflectionCacheCompressed ? TextureFormat.BC6H : TextureFormat.RGBAHalf;
-            m_ReflectionPlanarProbeCache = new PlanarReflectionProbeCache(hdAsset, iblFilterGGX, gLightLoopSettings.planarReflectionProbeCacheSize, gLightLoopSettings.planarReflectionTextureSize, planarProbeCacheFormat, true);
+            m_ReflectionPlanarProbeCache = new PlanarReflectionProbeCache(hdAsset, iblFilterGGX, gLightLoopSettings.planarReflectionProbeCacheSize, (int)gLightLoopSettings.planarReflectionTextureSize, planarProbeCacheFormat, true);
 
             s_GenAABBKernel = buildScreenAABBShader.FindKernel("ScreenBoundsAABB");
 
@@ -831,6 +830,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             directionalLightData.diffuseScale = additionalData.affectDiffuse ? diffuseDimmer : 0.0f;
             directionalLightData.specularScale = additionalData.affectSpecular ? specularDimmer : 0.0f;
+            directionalLightData.volumetricDimmer = additionalData.volumetricDimmer;
             directionalLightData.shadowIndex = directionalLightData.cookieIndex = -1;
 
             if (light.light.cookie != null)
@@ -847,10 +847,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_CurrentSunLightShadowIndex = shadowIdx;
             }
 
-            float scale;
-            float bias;
-            GetScaleAndBiasForLinearDistanceFade(m_maxShadowDistance, out scale, out bias);
-            directionalLightData.fadeDistanceScaleAndBias = new Vector2(scale, bias);
             directionalLightData.shadowMaskSelector = Vector4.zero;
 
             if (IsBakedShadowMaskLight(light.light))
@@ -984,6 +980,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             lightData.diffuseScale = additionalLightData.affectDiffuse ? lightScale * m_FrameSettings.diffuseGlobalDimmer : 0.0f;
             lightData.specularScale = additionalLightData.affectSpecular ? lightScale * m_FrameSettings.specularGlobalDimmer : 0.0f;
+
+            lightData.volumetricDimmer = additionalLightData.volumetricDimmer;
 
             if (lightData.diffuseScale <= 0.0f && lightData.specularScale <= 0.0f)
                 return false;
@@ -1460,15 +1458,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Return true if BakedShadowMask are enabled
-        public bool PrepareLightsForGPU(CommandBuffer cmd, Camera camera, ShadowSettings shadowSettings, CullResults cullResults,
+        public bool PrepareLightsForGPU(CommandBuffer cmd, HDCamera hdCamera, ShadowSettings shadowSettings, CullResults cullResults,
                                         ReflectionProbeCullResults reflectionProbeCullResults, DensityVolumeList densityVolumes)
         {
             using (new ProfilingSample(cmd, "Prepare Lights For GPU"))
             {
+                Camera camera = hdCamera.camera;
+
                 // If any light require it, we need to enabled bake shadow mask feature
                 m_enableBakeShadowMask = false;
-                m_maxShadowDistance = shadowSettings.maxShadowDistance;
-
+ 
                 m_lightList.Clear();
 
                 // We need to properly reset this here otherwise if we go from 1 light to no visible light we would keep the old reference active.
@@ -1881,9 +1880,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 UpdateDataBuffers();
-
-                return m_enableBakeShadowMask;
             }
+
+            m_enableBakeShadowMask = m_enableBakeShadowMask && hdCamera.frameSettings.enableShadowMask;
+
+            return m_enableBakeShadowMask;
         }
 
         static float CalculateProbeLogVolume(Bounds bounds)
@@ -2335,7 +2336,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeIntParam(deferredDirectionalShadowComputeShader, HDShaderIDs._DirectionalShadowIndex, m_CurrentSunLightShadowIndex);
                 cmd.SetComputeVectorParam(deferredDirectionalShadowComputeShader, HDShaderIDs._DirectionalLightDirection, -m_CurrentSunLight.transform.forward);
                 cmd.SetComputeTextureParam(deferredDirectionalShadowComputeShader, kernel, HDShaderIDs._DeferredShadowTextureUAV, deferredShadowRT);
-                cmd.SetComputeTextureParam(deferredDirectionalShadowComputeShader, kernel, HDShaderIDs._MainDepthTexture, depthTexture);
+                cmd.SetComputeTextureParam(deferredDirectionalShadowComputeShader, kernel, HDShaderIDs._CameraDepthTexture, depthTexture);
 
                 int deferredShadowTileSize = 16; // Must match DeferreDirectionalShadow.compute
                 int numTilesX = (hdCamera.actualWidth + (deferredShadowTileSize - 1)) / deferredShadowTileSize;
@@ -2415,7 +2416,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             }
                         }
 
-                        cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._MainDepthTexture, depthTexture);
+                        cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs._CameraDepthTexture, depthTexture);
 
                         // TODO: Is it possible to setup this outside the loop ? Can figure out how, get this: Property (specularLightingUAV) at kernel index (21) is not set
                         cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.specularLightingUAV, colorBuffers[0]);
