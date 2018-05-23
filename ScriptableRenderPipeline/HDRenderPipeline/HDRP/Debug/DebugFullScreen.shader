@@ -29,6 +29,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
             float _RequireToFlipInputTexture;
             float _ShowGrid;
             float _ShowDepthPyramidDebug;
+            float _ShowSSRaySampledColor;
             CBUFFER_END
 
             TEXTURE2D(_DebugFullScreenTexture);
@@ -73,6 +74,28 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                 float dist1 = abs(dot(rel_p, float2(dir.y, -dir.x)));
                 float dist2 = abs(dot(rel_p, dir)) - 0.5 * len;
                 return max(dist1, dist2);
+            }
+
+            void ColorWidget(
+                int2 positionSS, 
+                float4 rect, 
+                float3 borderColor, 
+                float3 innerColor, 
+                inout float4 debugColor,
+                inout float4 backgroundColor
+            )
+            {
+                const float4 distToRects = float4(rect.zw - positionSS,  positionSS - rect.xy);
+                if (all(distToRects > 0))
+                {
+                    const float distToRect = min(min(distToRects.x, distToRects.y), min(distToRects.z, distToRects.w));
+                    const float sdf = clamp(distToRect * 0.5, 0, 1);
+                    debugColor = float4(
+                        lerp(borderColor, innerColor, sdf),
+                        1.0
+                    );
+                    backgroundColor.a = 0;
+                }
             }
 
             float DrawArrow(float2 texcoord, float body, float head, float height, float linewidth, float antialias)
@@ -215,15 +238,23 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                     ScreenSpaceTracingDebug debug = _DebugScreenSpaceTracingData[0];
 
                     // Fetch Depth Buffer and Position Inputs
-                    const float deviceDepth = LOAD_TEXTURE2D_LOD(_DepthPyramidTexture, int2(input.positionCS.xy) >> debug.iterationMipLevel, debug.iterationMipLevel).r;
-                    PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, deviceDepth, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP);
+                    const float2 deviceDepth = LOAD_TEXTURE2D_LOD(_DepthPyramidTexture, int2(input.positionCS.xy) >> debug.iterationMipLevel, debug.iterationMipLevel).rg;
+                    PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, deviceDepth.r, UNITY_MATRIX_I_VP, UNITY_MATRIX_VP);
 
                     float4 col = float4(0, 0, 0, 1);
 
                     // Common Pre Specific
                     // Fetch debug data
-                    const uint2 loopStartPositionSS = uint2(debug.loopStartPositionSSX, debug.loopStartPositionSSY);
-                    const uint2 endPositionSS = uint2(debug.endPositionSSX, debug.endPositionSSY);
+                    uint2 loopStartPositionSS = uint2(debug.loopStartPositionSSX, debug.loopStartPositionSSY);
+                    uint2 endPositionSS = uint2(debug.endPositionSSX, debug.endPositionSSY);
+                    float3 iterationPositionSS = debug.iterationPositionSS;
+
+                    if (_RequireToFlipInputTexture > 0)
+                    {
+                        loopStartPositionSS.y = uint(_ScreenSize.y) - loopStartPositionSS.y;
+                        endPositionSS.y = uint(_ScreenSize.y) - endPositionSS.y;
+                        iterationPositionSS.y = _ScreenSize.y - iterationPositionSS.y;
+                    }
 
                     float distanceToPosition = FLT_MAX;
                     float positionSDF = 0;
@@ -235,14 +266,15 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                     const float raySegmentSDF = clamp(1 - distanceToRaySegment, 0, 1);
 
                     float cellSDF = 0;
-                    float debugLinearDepth = 0;
-                    if (debug.tracingModel == REFRACTIONSSRAYMODEL_HI_Z)
+                    float2 debugLinearDepth = float2(LinearEyeDepth(deviceDepth.r, _ZBufferParams), LinearEyeDepth(deviceDepth.g, _ZBufferParams));
+                    if (debug.tracingModel == PROJECTIONMODEL_HI_Z
+                        || debug.tracingModel == PROJECTIONMODEL_LINEAR)
                     {
                         const uint2 iterationCellSize = uint2(debug.iterationCellSizeW, debug.iterationCellSizeH);
                         const float hasData = iterationCellSize.x != 0 || iterationCellSize.y != 0;
 
                         // Position dot rendering
-                        distanceToPosition = length(int2(posInput.positionSS) - int2(debug.iterationPositionSS.xy));
+                        distanceToPosition = length(int2(posInput.positionSS) - int2(iterationPositionSS.xy));
                         positionSDF = clamp(circleRadius - distanceToPosition, 0, 1);
 
                         // Grid rendering
@@ -250,8 +282,6 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                         distanceToCell = min(distanceToCell, float2(iterationCellSize) - distanceToCell);
                         distanceToCell = clamp(1 - distanceToCell, 0, 1);
                         cellSDF = max(distanceToCell.x, distanceToCell.y) * _ShowGrid;
-
-                        debugLinearDepth = posInput.linearDepth;
                     }
 
                     col = float4(
@@ -272,10 +302,41 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                     const float w = clamp(1 - startPositionRingSDF - positionRingSDF, 0, 1);
                     col.rgb = col.rgb * w + float3(1, 1, 1) * (1 - w);
 
-                    if (_ShowDepthPyramidDebug == 1)
-                        color.rgb = frac(float3(debugLinearDepth, debugLinearDepth, debugLinearDepth) * 0.1);
+                    // Draw color widgets
+                    if (_ShowSSRaySampledColor == 1)
+                    {
+                        // Sampled color
+                        ColorWidget(
+                            posInput.positionSS,
+                            float4(10, 10, 50, 50) + endPositionSS.xyxy,
+                            float3(1, 0, 0), debug.lightingSampledColor,
+                            col,
+                            color
+                        );
 
-                    col = float4(col.rgb * col.a + color.rgb, 1);
+                        // Specular FGD
+                         ColorWidget(
+                            posInput.positionSS,
+                            float4(-50, 10, -10, 50) + endPositionSS.xyxy,
+                            float3(0, 1, 0), debug.lightingSpecularFGD,
+                            col,
+                            color
+                        );
+
+                        // Weighted
+                         ColorWidget(
+                            posInput.positionSS,
+                            float4(-50, -50, -10, -10) + endPositionSS.xyxy,
+                            float3(0, 0, 1), debug.lightingSampledColor * debug.lightingSpecularFGD * debug.lightingWeight,
+                            col,
+                            color
+                        );
+                    }
+
+                    if (_ShowDepthPyramidDebug == 1)
+                        color.rgb = float3(frac(debugLinearDepth * 0.1), 0.0);
+
+                    col = float4(col.rgb * col.a + color.rgb * color.a, 1);
 
                     return col;
                 }

@@ -31,41 +31,51 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [GenerateHLSL]
     public struct ScreenSpaceTracingDebug
     {
-                                                        // Used to debug SSRay model
+        // Used to debug SSRay model
         // 1x32 bits
-        public Lit.RefractionSSRayModel tracingModel;
+        public Lit.ProjectionModel tracingModel;
 
         // 6x32 bits
-        public uint loopStartPositionSSX;                           // Proxy, HiZ
-        public uint loopStartPositionSSY;                           // Proxy, HiZ
-        public float loopStartLinearDepth;                          // Proxy, HiZ
-        public Vector3 loopRayDirectionSS;                          // HiZ
+        public uint loopStartPositionSSX;                           // Proxy, HiZ, Linear
+        public uint loopStartPositionSSY;                           // Proxy, HiZ, Linear
+        public float loopStartLinearDepth;                          // Proxy, HiZ, Linear
+        public Vector3 loopRayDirectionSS;                          // HiZ, Linear
         public uint loopMipLevelMax;                                // HiZ
-        public uint loopIterationMax;                               // HiZ
+        public uint loopIterationMax;                               // HiZ, Linear
 
-        // 9x32 bits
-        public Vector3 iterationPositionSS;                         // HiZ
-        public uint iterationMipLevel;                              // HiZ
-        public uint iteration;                                      // HiZ
-        public float iterationLinearDepthBuffer;                    // HiZ
+        // 11x32 bits
+        public Vector3 iterationPositionSS;                         // HiZ, Linear
+        public uint iterationMipLevel;                              // HiZ, Linear
+        public uint iteration;                                      // HiZ, Linear
+        public float iterationLinearDepthBufferMin;                 // HiZ, Linear
+        public float iterationLinearDepthBufferMax;                 // HiZ, Linear
+        public float iterationLinearDepthBufferMinThickness;        // HiZ, Linear
         public Lit.HiZIntersectionKind iterationIntersectionKind;   // HiZ
-        public uint iterationCellSizeW;                             // HiZ
-        public uint iterationCellSizeH;                             // HiZ
+        public uint iterationCellSizeW;                             // HiZ, Linear
+        public uint iterationCellSizeH;                             // HiZ, Linear
         public EnvShapeType proxyShapeType;                         // Proxy
         public float projectionDistance;                            // Proxy
 
-        // 4x32 bits
-        public bool endHitSuccess;                                  // Proxy, HiZ
-        public float endLinearDepth;                                // Proxy, HiZ
-        public uint endPositionSSX;                                 // Proxy, HiZ
-        public uint endPositionSSY;                                 // Proxy, HiZ
+        // 5x32 bits
+        public int endHitSuccess;                                   // Proxy, HiZ, Linear
+        public float endLinearDepth;                                // Proxy, HiZ, Linear
+        public uint endPositionSSX;                                 // Proxy, HiZ, Linear
+        public uint endPositionSSY;                                 // Proxy, HiZ, Linear
+        public float endHitWeight;                                  // HiZ, Linear
 
-        // 0x32 bits (padding)
+        // 7x32 Lighting
+        public Vector3 lightingSampledColor;                        // All
+        public Vector3 lightingSpecularFGD;                         // All
+        public float lightingWeight;                                // All
+
+        // 2x32 bits (padding)
+        public Vector2 padding;
 
         public Vector2 loopStartPositionSS { get { return new Vector2(loopStartPositionSSX, loopStartPositionSSY); } }
         public Vector2 endPositionSS { get { return new Vector2(endPositionSSX, endPositionSSY); } }
         public Vector2 iterationCellId { get { return new Vector2(((int)iterationPositionSS.x) >> (int)iterationMipLevel, ((int)iterationPositionSS.y) >> (int)iterationMipLevel); } }
         public Vector2 iterationCellSize { get { return new Vector2(iterationCellSizeW, iterationCellSizeH); } }
+        public bool intersectDepthBuffer { get { return (1.0f / iterationPositionSS.z) >= iterationLinearDepthBufferMin && (1.0f / iterationPositionSS.z) <= iterationLinearDepthBufferMinThickness; } }
     }
 
     public class DebugDisplaySettings
@@ -78,7 +88,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static string k_PanelScreenSpaceTracing = "Screen Space Tracing";
         public static string k_PanelDecals = "Decals";
 
-        //static readonly string[] k_HiZIntersectionKind = { "None", "Depth", "Cell" };
+        static readonly string[] k_HiZIntersectionKind = { "None", "Cell", "Depth" };
 
         DebugUI.Widget[] m_DebugDisplayStatsItems;
         DebugUI.Widget[] m_DebugMaterialItems;
@@ -91,8 +101,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float debugOverlayRatio = 0.33f;
         public FullScreenDebugMode  fullScreenDebugMode = FullScreenDebugMode.None;
         public float fullscreenDebugMip = 0.0f;
-        public bool showSSRayGrid = true;
-        public bool showSSRayDepthPyramid = true;
+        public bool showSSRayGrid = false;
+        public bool showSSRayDepthPyramid = false;
+        public bool showSSSampledColor = false;
 
         public MaterialDebugSettings materialDebugSettings = new MaterialDebugSettings();
         public LightingDebugSettings lightingDebugSettings = new LightingDebugSettings();
@@ -108,22 +119,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static int[] debugScreenSpaceTracingProxyValues = null;
         public static GUIContent[] debugScreenSpaceTracingHiZStrings = null;
         public static int[] debugScreenSpaceTracingHiZValues = null;
+        public static GUIContent[] debugScreenSpaceTracingLinearStrings = null;
+        public static int[] debugScreenSpaceTracingLinearValues = null;
+        public static GUIContent[] debuggedAlgorithmStrings = null;
+        public static int[] debuggedAlgorithmValues = null;
 
-        Lit.RefractionSSRayModel m_LastSSRayModel = Lit.RefractionSSRayModel.None;
+        Lit.ProjectionModel m_LastProjectionModel = Lit.ProjectionModel.None;
         ScreenSpaceTracingDebug m_ScreenSpaceTracingDebugData;
         public ScreenSpaceTracingDebug screenSpaceTracingDebugData
         {
             get { return m_ScreenSpaceTracingDebugData; }
             internal set
             {
-                m_ScreenSpaceTracingDebugData = value;
-                if (m_LastSSRayModel != m_ScreenSpaceTracingDebugData.tracingModel)
+                m_ScreenSpaceTracingDebugData = value; 
+                if (m_LastProjectionModel != m_ScreenSpaceTracingDebugData.tracingModel)
                 {
-                    m_LastSSRayModel = m_ScreenSpaceTracingDebugData.tracingModel;
-                    RefreshScreenSpaceTracingDebug<Lit.RefractionSSRayModel>(null, m_LastSSRayModel);
+                    m_LastProjectionModel = m_ScreenSpaceTracingDebugData.tracingModel;
+                    RefreshScreenSpaceTracingDebug<Lit.ProjectionModel>(null, m_LastProjectionModel);
                 }
 
-                if (m_ScreenSpaceTracingDebugData.tracingModel != Lit.RefractionSSRayModel.HiZ)
+                if (m_ScreenSpaceTracingDebugData.tracingModel == Lit.ProjectionModel.Proxy)
                 {
                     showSSRayDepthPyramid = false;
                     showSSRayGrid = false;
@@ -143,21 +158,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             var debugScreenSpaceTracingHiZStringsList = new List<GUIContent>();
             var debugScreenSpaceTracingProxyStringsList = new List<GUIContent>();
+            var debugScreenSpaceTracingLinearStringsList = new List<GUIContent>();
             var debugScreenSpaceTracingHiZValueList = new List<int>();
             var debugScreenSpaceTracingProxyValueList = new List<int>();
+            var debugScreenSpaceTracingLinearValueList = new List<int>();
             for (int i = 0, c = debugScreenSpaceTracingStrings.Length; i < c; ++i)
             {
                 var g = debugScreenSpaceTracingStrings[i];
                 var v = debugScreenSpaceTracingValues[i];
-                if (!g.text.StartsWith("Proxy"))
+                if (!g.text.StartsWith("Proxy") && !g.text.StartsWith("Linear"))
                 {
                     debugScreenSpaceTracingHiZStringsList.Add(g);
                     debugScreenSpaceTracingHiZValueList.Add(v);
                 }
-                if (!g.text.StartsWith("HiZ"))
+                if (!g.text.StartsWith("HiZ") && !g.text.StartsWith("Linear"))
                 {
                     debugScreenSpaceTracingProxyStringsList.Add(g);
                     debugScreenSpaceTracingProxyValueList.Add(v);
+                }
+                if (!g.text.StartsWith("Proxy") && !g.text.StartsWith("HiZ"))
+                {
+                    debugScreenSpaceTracingLinearStringsList.Add(g);
+                    debugScreenSpaceTracingLinearValueList.Add(v);
                 }
             }
 
@@ -165,6 +187,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             debugScreenSpaceTracingHiZValues = debugScreenSpaceTracingHiZValueList.ToArray();
             debugScreenSpaceTracingProxyStrings = debugScreenSpaceTracingProxyStringsList.ToArray();
             debugScreenSpaceTracingProxyValues = debugScreenSpaceTracingProxyValueList.ToArray();
+            debugScreenSpaceTracingLinearStrings = debugScreenSpaceTracingLinearStringsList.ToArray();
+            debugScreenSpaceTracingLinearValues = debugScreenSpaceTracingLinearValueList.ToArray();
+            debuggedAlgorithmStrings = Enum.GetNames(typeof(Lit.ProjectionModel))
+                .Select(t => new GUIContent(t))
+                .ToArray();
+            debuggedAlgorithmValues = (int[])Enum.GetValues(typeof(Lit.ProjectionModel));
         }
 
         public int GetDebugMaterialIndex()
@@ -301,12 +329,31 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void SetScreenSpaceTracingRefractionDebugMode(int value)
+        bool IsScreenSpaceTracingReflectionDebugEnabled()
+        {
+            return fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceTracing 
+                && lightingDebugSettings.debugLightingMode == DebugLightingMode.ScreenSpaceTracingReflection;
+        }
+
+        void SetScreenSpaceTracingReflectionDebugEnabled(bool value)
+        {
+            if (value)
+            {
+                lightingDebugSettings.debugLightingMode = DebugLightingMode.ScreenSpaceTracingReflection;
+                fullScreenDebugMode = FullScreenDebugMode.ScreenSpaceTracing;
+            }
+            else
+            {
+                lightingDebugSettings.debugLightingMode = DebugLightingMode.None;
+                fullScreenDebugMode = FullScreenDebugMode.None;
+            }
+        }
+
+        void SetScreenSpaceTracingDebugMode(int value)
         {
             var val = (DebugScreenSpaceTracing)value;
             if (val != DebugScreenSpaceTracing.None)
             {
-                lightingDebugSettings.debugLightingMode = DebugLightingMode.ScreenSpaceTracingRefraction;
                 lightingDebugSettings.debugScreenSpaceTracingMode = (DebugScreenSpaceTracing)value;
             }
             else
@@ -350,43 +397,61 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             var list = new List<DebugUI.Container>();
 
-            var refractionContainer = new DebugUI.Container
+            var settingsContainer = new DebugUI.Container
             {
-                displayName = "Refraction",
-                children =
+                displayName = "Refraction / Reflection",
+                children = 
                 {
-                    new DebugUI.BoolField { displayName = "Debug Enabled", getter = IsScreenSpaceTracingRefractionDebugEnabled, setter = SetScreenSpaceTracingRefractionDebugEnabled, onValueChanged = RefreshScreenSpaceTracingDebug },
+                    new DebugUI.BoolField { displayName = "Debug Refraction Enabled", getter = IsScreenSpaceTracingRefractionDebugEnabled, setter = SetScreenSpaceTracingRefractionDebugEnabled, onValueChanged = RefreshScreenSpaceTracingDebug },
+                    new DebugUI.BoolField { displayName = "Debug Reflection Enabled", getter = IsScreenSpaceTracingReflectionDebugEnabled, setter = SetScreenSpaceTracingReflectionDebugEnabled, onValueChanged = RefreshScreenSpaceTracingDebug },
                 }
             };
-            list.Add(refractionContainer);
+            list.Add(settingsContainer);
 
-            if (IsScreenSpaceTracingRefractionDebugEnabled())
+            if (IsScreenSpaceTracingRefractionDebugEnabled()
+                || IsScreenSpaceTracingReflectionDebugEnabled())
             {
+                var debuggedAlgorithmCBName = string.Format("_SS{0}DebuggedAlgorithm", IsScreenSpaceTracingRefractionDebugEnabled() ? "Refraction" : "Reflection");
+
                 var debugSettingsContainer = new DebugUI.Container
                 {
                     displayName = "Debug Settings",
                     children =
                     {
                         new DebugUI.Value { displayName = string.Empty, getter = () => "Click in the scene view, or press 'End' key to select the pixel under the mouse in the scene view to debug." },
-                        new DebugUI.Value { displayName = "SSRay Model", getter = () => screenSpaceTracingDebugData.tracingModel }
+                        new DebugUI.Value { displayName = string.Empty, getter = () => "Warning: In forward only mode, debugging information may not be representative of the rendered pixel." },
+                        new DebugUI.Value { displayName = "SSRay Model", getter = () => screenSpaceTracingDebugData.tracingModel },
+                        new DebugUI.EnumField { displayName = "Debugged Algorithm", getter = () => Shader.GetGlobalInt(debuggedAlgorithmCBName), setter = v => Shader.SetGlobalInt(debuggedAlgorithmCBName, v), enumValues = debuggedAlgorithmValues, enumNames = debuggedAlgorithmStrings },
                     }
                 };
-                refractionContainer.children.Add(debugSettingsContainer);
+                settingsContainer.children.Add(debugSettingsContainer);
+
+                var lightingDebug = new DebugUI.Container
+                {
+                    displayName = "Lighting",
+                    children =
+                    {
+                        new DebugUI.Value { displayName = "Sampled Color", getter = () => FormatVector(screenSpaceTracingDebugData.lightingSampledColor) },
+                        new DebugUI.Value { displayName = "Specular FGD", getter = () => FormatVector(screenSpaceTracingDebugData.lightingSpecularFGD) },
+                        new DebugUI.Value { displayName = "Weight", getter = () => screenSpaceTracingDebugData.lightingWeight.ToString("F6") },
+                        new DebugUI.Value { displayName = "Weighted Color", getter = () => FormatVector(Vector3.Scale(screenSpaceTracingDebugData.lightingSpecularFGD, screenSpaceTracingDebugData.lightingSampledColor) * screenSpaceTracingDebugData.lightingWeight) },
+                    }
+                };
 
                 switch (screenSpaceTracingDebugData.tracingModel)
                 {
-                    case Lit.RefractionSSRayModel.Proxy:
+                    case Lit.ProjectionModel.Proxy:
                     {
                         debugSettingsContainer.children.Add(
-                            new DebugUI.EnumField { displayName = "Debug Mode", getter = GetDebugLightingSubMode, setter = SetScreenSpaceTracingRefractionDebugMode, enumNames = debugScreenSpaceTracingProxyStrings, enumValues = debugScreenSpaceTracingProxyValues, onValueChanged = RefreshScreenSpaceTracingDebug }
+                            new DebugUI.EnumField { displayName = "Debug Mode", getter = GetDebugLightingSubMode, setter = SetScreenSpaceTracingDebugMode, enumNames = debugScreenSpaceTracingProxyStrings, enumValues = debugScreenSpaceTracingProxyValues, onValueChanged = RefreshScreenSpaceTracingDebug }
                         );
-                        refractionContainer.children.Add(
+                        settingsContainer.children.Add(
                             new DebugUI.Container
                             {
                                 displayName = "Debug Values",
                                 children =
                                 {
-                                    new DebugUI.Value { displayName = "Hit Success", getter = () => screenSpaceTracingDebugData.endHitSuccess },
+                                    new DebugUI.Value { displayName = "Hit Success", getter = () => screenSpaceTracingDebugData.endHitSuccess != 0 },
                                     new DebugUI.Value { displayName = "Proxy Shape", getter = () => screenSpaceTracingDebugData.proxyShapeType },
                                     new DebugUI.Value { displayName = "Projection Distance", getter = () => screenSpaceTracingDebugData.projectionDistance },
                                     new DebugUI.Value { displayName = "Start Position", getter = () => screenSpaceTracingDebugData.loopStartPositionSS },
@@ -394,31 +459,34 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     new DebugUI.Value { displayName = "End Linear Depth", getter = () => screenSpaceTracingDebugData.endLinearDepth },
                                     new DebugUI.Value { displayName = "End Position", getter = () => screenSpaceTracingDebugData.endPositionSS },
                                 }
-                            }
+                            },
+                            lightingDebug
                         );
                         break;
                     }
-                    case Lit.RefractionSSRayModel.HiZ:
+                    case Lit.ProjectionModel.HiZ:
                     {
                         debugSettingsContainer.children.Insert(1, new DebugUI.Value { displayName = string.Empty, getter = () => "Press PageUp/PageDown to Increase/Decrease the HiZ step." });
                         debugSettingsContainer.children.Add(
-                            new DebugUI.EnumField { displayName = "Debug Mode", getter = GetDebugLightingSubMode, setter = SetScreenSpaceTracingRefractionDebugMode, enumNames = debugScreenSpaceTracingHiZStrings, enumValues = debugScreenSpaceTracingHiZValues, onValueChanged = RefreshScreenSpaceTracingDebug },
+                            new DebugUI.EnumField { displayName = "Debug Mode", getter = GetDebugLightingSubMode, setter = SetScreenSpaceTracingDebugMode, enumNames = debugScreenSpaceTracingHiZStrings, enumValues = debugScreenSpaceTracingHiZValues, onValueChanged = RefreshScreenSpaceTracingDebug },
                             new DebugUI.BoolField { displayName = "Display Grid", getter = () => showSSRayGrid, setter = v => showSSRayGrid = v },
-                            new DebugUI.BoolField { displayName = "Display Depth", getter = () => showSSRayDepthPyramid, setter = v => showSSRayDepthPyramid = v }
+                            new DebugUI.BoolField { displayName = "Display Depth", getter = () => showSSRayDepthPyramid, setter = v => showSSRayDepthPyramid = v },
+                            new DebugUI.BoolField { displayName = "Display Sampled Color", getter = () => showSSSampledColor, setter = v => showSSSampledColor = v }
                         );
-                        refractionContainer.children.Add(
+                        settingsContainer.children.Add(
                             new DebugUI.Container
                             {
                                 displayName = "Debug Values (loop)",
                                 children =
                                 {
-                                    new DebugUI.Value { displayName = "Hit Success", getter = () => screenSpaceTracingDebugData.endHitSuccess },
+                                    new DebugUI.Value { displayName = "Hit Success", getter = () => screenSpaceTracingDebugData.endHitSuccess != 0 },
                                     new DebugUI.Value { displayName = "Start Position", getter = () => screenSpaceTracingDebugData.loopStartPositionSS },
                                     new DebugUI.Value { displayName = "Start Linear Depth", getter = () => screenSpaceTracingDebugData.loopStartLinearDepth },
                                     new DebugUI.Value { displayName = "Ray Direction SS", getter = () => new Vector2(screenSpaceTracingDebugData.loopRayDirectionSS.x, screenSpaceTracingDebugData.loopRayDirectionSS.y) },
                                     new DebugUI.Value { displayName = "Ray Depth", getter = () => 1f / screenSpaceTracingDebugData.loopRayDirectionSS.z },
                                     new DebugUI.Value { displayName = "End Position", getter = () => screenSpaceTracingDebugData.endPositionSS },
                                     new DebugUI.Value { displayName = "End Linear Depth", getter = () => screenSpaceTracingDebugData.endLinearDepth },
+                                    new DebugUI.Value { displayName = "Hit Weight", getter = () => screenSpaceTracingDebugData.endHitWeight.ToString("F4") },
                                 }
                             },
                             new DebugUI.Container
@@ -429,13 +497,60 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     new DebugUI.Value { displayName = "Iteration", getter = () => string.Format("{0}/{1}", screenSpaceTracingDebugData.iteration, screenSpaceTracingDebugData.loopIterationMax) },
                                     new DebugUI.Value { displayName = "Position SS", getter = () => new Vector2(screenSpaceTracingDebugData.iterationPositionSS.x, screenSpaceTracingDebugData.iterationPositionSS.y) },
                                     new DebugUI.Value { displayName = "Depth", getter = () => 1f / screenSpaceTracingDebugData.iterationPositionSS.z },
-                                    new DebugUI.Value { displayName = "Depth Buffer", getter = () => screenSpaceTracingDebugData.iterationLinearDepthBuffer },
-                                    new DebugUI.Value { displayName = "Mip Level", getter = () => string.Format("{0}/{1}", screenSpaceTracingDebugData.iterationMipLevel, screenSpaceTracingDebugData.loopMipLevelMax) },
-                                    new DebugUI.Value { displayName = "Intersection kind", getter = () => screenSpaceTracingDebugData.iterationIntersectionKind },
+                                    new DebugUI.Value { displayName = "Depth Buffer Min/Min + Thickness/Max", getter = () => string.Format("{0}/{1}/{2}", screenSpaceTracingDebugData.iterationLinearDepthBufferMin, screenSpaceTracingDebugData.iterationLinearDepthBufferMinThickness, screenSpaceTracingDebugData.iterationLinearDepthBufferMax) },
+                                    new DebugUI.Value { displayName = "Intersection Thickness", getter = () => (screenSpaceTracingDebugData.iterationLinearDepthBufferMinThickness - 1f / screenSpaceTracingDebugData.iterationPositionSS.z).ToString("F6") },
+                                    new DebugUI.Value { displayName = "Depth Buffer Diff (Max - Min)", getter = () => (screenSpaceTracingDebugData.iterationLinearDepthBufferMax - screenSpaceTracingDebugData.iterationLinearDepthBufferMin).ToString("F6") },
+                                    new DebugUI.Value { displayName = "Intersect Depth Buffer", getter = () => screenSpaceTracingDebugData.intersectDepthBuffer },
+                                    new DebugUI.Value { displayName = "Mip Level", getter = () => screenSpaceTracingDebugData.iterationMipLevel },
+                                    new DebugUI.Value { displayName = "Cell Id", getter = () => screenSpaceTracingDebugData.iterationCellId },
+                                    new DebugUI.Value { displayName = "Cell Size", getter = () => screenSpaceTracingDebugData.iterationCellSize },
+                                    new DebugUI.Value { displayName = "Intersection Kind", getter = () => k_HiZIntersectionKind[(int)screenSpaceTracingDebugData.iterationIntersectionKind] },
+                                }
+                            },
+                            lightingDebug
+                        );
+                        break;
+                    }
+                    case Lit.ProjectionModel.Linear:
+                    {
+                        debugSettingsContainer.children.Add(
+                            new DebugUI.EnumField { displayName = "Debug Mode", getter = GetDebugLightingSubMode, setter = SetScreenSpaceTracingDebugMode, enumNames = debugScreenSpaceTracingLinearStrings, enumValues = debugScreenSpaceTracingLinearValues, onValueChanged = RefreshScreenSpaceTracingDebug },
+                            new DebugUI.BoolField { displayName = "Display Grid", getter = () => showSSRayGrid, setter = v => showSSRayGrid = v },
+                            new DebugUI.BoolField { displayName = "Display Depth", getter = () => showSSRayDepthPyramid, setter = v => showSSRayDepthPyramid = v }
+                        );
+                        settingsContainer.children.Add(
+                            new DebugUI.Container
+                            {
+                                displayName = "Debug Values (loop)",
+                                children =
+                                {
+                                    new DebugUI.Value { displayName = "Hit Success", getter = () => screenSpaceTracingDebugData.endHitSuccess != 0 },
+                                    new DebugUI.Value { displayName = "Start Position", getter = () => screenSpaceTracingDebugData.loopStartPositionSS },
+                                    new DebugUI.Value { displayName = "Start Linear Depth", getter = () => screenSpaceTracingDebugData.loopStartLinearDepth },
+                                    new DebugUI.Value { displayName = "Ray Direction SS", getter = () => new Vector2(screenSpaceTracingDebugData.loopRayDirectionSS.x, screenSpaceTracingDebugData.loopRayDirectionSS.y) },
+                                    new DebugUI.Value { displayName = "Ray Depth", getter = () => 1f / screenSpaceTracingDebugData.loopRayDirectionSS.z },
+                                    new DebugUI.Value { displayName = "End Position", getter = () => screenSpaceTracingDebugData.endPositionSS },
+                                    new DebugUI.Value { displayName = "End Linear Depth", getter = () => screenSpaceTracingDebugData.endLinearDepth },
+                                    new DebugUI.Value { displayName = "Hit Weight", getter = () => screenSpaceTracingDebugData.endHitWeight.ToString("F4") },
+                                }
+                            },
+                            new DebugUI.Container
+                            {
+                                displayName = "Debug Values (iteration)",
+                                children =
+                                {
+                                    new DebugUI.Value { displayName = "Iteration", getter = () => string.Format("{0}/{1}", screenSpaceTracingDebugData.iteration, screenSpaceTracingDebugData.loopIterationMax) },
+                                    new DebugUI.Value { displayName = "Position SS", getter = () => new Vector2(screenSpaceTracingDebugData.iterationPositionSS.x, screenSpaceTracingDebugData.iterationPositionSS.y) },
+                                    new DebugUI.Value { displayName = "Depth", getter = () => 1f / screenSpaceTracingDebugData.iterationPositionSS.z },
+                                    new DebugUI.Value { displayName = "Intersection Thickness", getter = () => (screenSpaceTracingDebugData.iterationLinearDepthBufferMinThickness - 1f / screenSpaceTracingDebugData.iterationPositionSS.z).ToString("F6") },
+                                    new DebugUI.Value { displayName = "Depth Buffer Min/Min + Thickness/Max", getter = () => string.Format("{0}/{1}/{2}", screenSpaceTracingDebugData.iterationLinearDepthBufferMin, screenSpaceTracingDebugData.iterationLinearDepthBufferMinThickness, screenSpaceTracingDebugData.iterationLinearDepthBufferMax) },
+                                    new DebugUI.Value { displayName = "Intersect Depth Buffer", getter = () => screenSpaceTracingDebugData.intersectDepthBuffer },
+                                    new DebugUI.Value { displayName = "Mip Level", getter = () => screenSpaceTracingDebugData.iterationMipLevel },
                                     new DebugUI.Value { displayName = "Cell Id", getter = () => screenSpaceTracingDebugData.iterationCellId },
                                     new DebugUI.Value { displayName = "Cell Size", getter = () => screenSpaceTracingDebugData.iterationCellSize },
                                 }
-                            }
+                            },
+                            lightingDebug
                         );
                         break;
                     }
@@ -747,6 +862,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 values[index] = i;
                 index++;
             }
+        }
+
+        static string FormatVector(Vector3 v)
+        {
+            return string.Format("({0:F6}, {1:F6}, {2:F6})", v.x, v.y, v.z);
         }
     }
 }
