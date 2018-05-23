@@ -6,7 +6,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         DepthPyramid,
         ColorPyramid,
-        MotionVectors,
         VolumetricLighting,
         Count
     }
