@@ -8,7 +8,6 @@ using UnityEditor.Experimental.UIElements;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEditor.Graphing;
-using UnityEditorInternal;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
