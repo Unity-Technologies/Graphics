@@ -16,12 +16,12 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
         #include "LWRP/ShaderLibrary/Shadows.hlsl"
 
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-        TEXTURE2D_ARRAY(_CameraDepthTexture);
+        TEXTURE2D_ARRAY_FLOAT(_CameraDepth);
 #else
-        TEXTURE2D(_CameraDepthTexture);
+        TEXTURE2D_FLOAT(_CameraDepth);
 #endif
 
-        SAMPLER(sampler_CameraDepthTexture);
+        SAMPLER(sampler_CameraDepth);
 
         struct VertexInput
         {
@@ -62,9 +62,9 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-            float deviceDepth = SAMPLE_TEXTURE2D_ARRAY(_CameraDepthTexture, sampler_CameraDepthTexture, i.texcoord.xy, unity_StereoEyeIndex).r;
+            float deviceDepth = SAMPLE_TEXTURE2D_ARRAY(_CameraDepth, sampler_CameraDepth, i.texcoord.xy, unity_StereoEyeIndex).r;
 #else
-            float deviceDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture, i.texcoord.xy);
+            float deviceDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepth, sampler_CameraDepth, i.texcoord.xy);
 #endif
 
 #if UNITY_REVERSED_Z
