@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using UnityEngine;
 using NUnit.Framework;
 using UnityEditor.VFX.UI;
+using UnityEngine.Experimental.VFX;
 using UnityEngine.TestTools;
 
 namespace UnityEditor.VFX.Test
@@ -160,6 +161,11 @@ namespace UnityEditor.VFX.Test
                     new Conversion {value = new DirectionType() { direction = new Vector3(1, 2, 3) }, targetType = typeof(Vector3), expectedResult = new Vector3(1, 2, 3) },
                     new Conversion {value = new Vector() { vector = new Vector3(4, 5, 6) }, targetType = typeof(Vector3), expectedResult = new Vector3(4, 5, 6) },
                     new Conversion {value = new Position() { position = new Vector3(7, 8, 9) }, targetType = typeof(Vector3), expectedResult = new Vector3(7, 8, 9) },
+
+                    new Conversion {value = 3, targetType = typeof(VFXValueType), expectedResult = VFXValueType.Float3},
+                    new Conversion {value = 3u, targetType = typeof(VFXValueType), expectedResult = VFXValueType.Float3},
+                    new Conversion {value = VFXValueType.Float3, targetType = typeof(int), expectedResult = 3},
+                    new Conversion {value = VFXValueType.Float3, targetType = typeof(uint), expectedResult = 3u}
                 };
 
                 s_FailingConversions = new Conversion[]

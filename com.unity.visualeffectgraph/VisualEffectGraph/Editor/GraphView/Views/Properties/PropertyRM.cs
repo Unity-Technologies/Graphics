@@ -585,7 +585,7 @@ namespace UnityEditor.VFX.UI
                     {
                         try
                         {
-                            m_Field.value = (U)System.Convert.ChangeType(m_Value, typeof(U));
+                            m_Field.SetValueWithoutNotify((U)System.Convert.ChangeType(m_Value, typeof(U)));
                         }
                         catch (System.Exception ex)
                         {
