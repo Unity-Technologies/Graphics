@@ -147,6 +147,17 @@ namespace UnityEditor.VFX
                 {
                     converter = t => t;
                 }
+                else if(toType.IsEnum && (fromType == typeof(uint) || fromType == typeof(int)))
+                {
+                    if ( fromType == typeof(uint) )
+                        converter = t => Enum.ToObject(toType,(uint)t);
+                    else
+                        converter = t => Enum.ToObject(toType,(int)t);
+                }
+                else if(fromType.IsEnum && (toType == typeof(uint) || toType == typeof(int)))
+                {
+                    converter = t => Convert.ChangeType(t,toType);
+                }
                 else
                 {
                     var implicitMethod = fromType.GetMethods(System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public)
