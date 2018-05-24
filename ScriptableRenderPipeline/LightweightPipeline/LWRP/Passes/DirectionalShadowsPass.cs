@@ -16,6 +16,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         ShadowSliceData[] m_CascadeSlices;
         Vector4[] m_CascadeSplitDistances;
 
+        const string k_SetupRenderTargetTag = "Setup Render Target";
+        const string k_RenderDirectionalShadowmapTag = "Render Directional Shadowmap";
+
         public DirectionalShadowsPass(LightweightForwardRenderer renderer) : base(renderer)
         {
             RegisterShaderPassName("ShadowCaster");
@@ -89,46 +92,48 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (!cullResults.GetShadowCasterBounds(shadowLightIndex, out bounds))
                 return;
 
-            CommandBuffer cmd = CommandBufferPool.Get("Prepare Directional Shadowmap");
-            m_ShadowCasterCascadesCount = shadowData.directionalLightCascadeCount;
-
-            int shadowResolution = LightweightShadowUtils.GetMaxTileResolutionInAtlas(shadowData.directionalShadowAtlasWidth, shadowData.directionalShadowAtlasHeight, m_ShadowCasterCascadesCount);
-            float shadowNearPlane = light.shadowNearPlane;
-
-            Matrix4x4 view, proj;
-            var settings = new DrawShadowsSettings(cullResults, shadowLightIndex);
-
-            m_DirectionalShadowmapTexture = RenderTexture.GetTemporary(shadowData.directionalShadowAtlasWidth,
-                    shadowData.directionalShadowAtlasHeight, k_ShadowmapBufferBits, m_ShadowmapFormat);
-            m_DirectionalShadowmapTexture.filterMode = FilterMode.Bilinear;
-            m_DirectionalShadowmapTexture.wrapMode = TextureWrapMode.Clamp;
-            SetRenderTarget(cmd, m_DirectionalShadowmapTexture, RenderBufferLoadAction.DontCare,
-                RenderBufferStoreAction.Store, ClearFlag.Depth, Color.black);
-
-            bool success = false;
-            for (int cascadeIndex = 0; cascadeIndex < m_ShadowCasterCascadesCount; ++cascadeIndex)
+            CommandBuffer cmd = CommandBufferPool.Get(k_RenderDirectionalShadowmapTag);
+            using (new ProfilingSample(cmd, k_SetupRenderTargetTag))
             {
-                success = LightweightShadowUtils.ExtractDirectionalLightMatrix(ref cullResults, ref shadowData, shadowLightIndex, cascadeIndex, shadowResolution, shadowNearPlane, out m_CascadeSplitDistances[cascadeIndex], out m_CascadeSlices[cascadeIndex], out view, out proj);
+                m_ShadowCasterCascadesCount = shadowData.directionalLightCascadeCount;
+
+                int shadowResolution = LightweightShadowUtils.GetMaxTileResolutionInAtlas(shadowData.directionalShadowAtlasWidth, shadowData.directionalShadowAtlasHeight, m_ShadowCasterCascadesCount);
+                float shadowNearPlane = light.shadowNearPlane;
+
+                Matrix4x4 view, proj;
+                var settings = new DrawShadowsSettings(cullResults, shadowLightIndex);
+
+                m_DirectionalShadowmapTexture = RenderTexture.GetTemporary(shadowData.directionalShadowAtlasWidth,
+                        shadowData.directionalShadowAtlasHeight, k_ShadowmapBufferBits, m_ShadowmapFormat);
+                m_DirectionalShadowmapTexture.filterMode = FilterMode.Bilinear;
+                m_DirectionalShadowmapTexture.wrapMode = TextureWrapMode.Clamp;
+                SetRenderTarget(cmd, m_DirectionalShadowmapTexture, RenderBufferLoadAction.DontCare,
+                    RenderBufferStoreAction.Store, ClearFlag.Depth, Color.black);
+
+                bool success = false;
+                for (int cascadeIndex = 0; cascadeIndex < m_ShadowCasterCascadesCount; ++cascadeIndex)
+                {
+                    success = LightweightShadowUtils.ExtractDirectionalLightMatrix(ref cullResults, ref shadowData, shadowLightIndex, cascadeIndex, shadowResolution, shadowNearPlane, out m_CascadeSplitDistances[cascadeIndex], out m_CascadeSlices[cascadeIndex], out view, out proj);
+                    if (success)
+                    {
+                        LightweightShadowUtils.SetupShadowCasterConstants(cmd, ref shadowLight, proj, shadowResolution);
+                        LightweightShadowUtils.RenderShadowSlice(cmd, ref context, ref m_CascadeSlices[cascadeIndex], proj,
+                            view, settings);
+                    }
+                }
+
                 if (success)
                 {
-                    LightweightShadowUtils.SetupShadowCasterConstants(cmd, ref shadowLight, proj, shadowResolution);
-                    LightweightShadowUtils.RenderShadowSlice(cmd, ref context, ref m_CascadeSlices[cascadeIndex], proj,
-                        view, settings);
+                    shadowQuality = (shadowData.supportsSoftShadows) ? light.shadows : LightShadows.Hard;
+
+                    // In order to avoid shader variants explosion we only do hard shadows when sampling shadowmap in the lit pass.
+                    // GLES2 platform is forced to hard single cascade shadows.
+                    if (!shadowData.requiresScreenSpaceShadowResolve)
+                        shadowQuality = LightShadows.Hard;
+
+                    SetupDirectionalShadowReceiverConstants(ref context, cmd, ref shadowData, shadowLight);
                 }
             }
-
-            if (success)
-            {
-                shadowQuality = (shadowData.supportsSoftShadows) ? light.shadows : LightShadows.Hard;
-
-                // In order to avoid shader variants explosion we only do hard shadows when sampling shadowmap in the lit pass.
-                // GLES2 platform is forced to hard single cascade shadows.
-                if (!shadowData.requiresScreenSpaceShadowResolve)
-                    shadowQuality = LightShadows.Hard;
-
-                SetupDirectionalShadowReceiverConstants(ref context, cmd, ref shadowData, shadowLight);
-            }
-
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 
@@ -166,8 +171,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.SetGlobalVector(DirectionalShadowConstantBuffer._ShadowOffset3, new Vector4(invHalfShadowAtlasWidth, invHalfShadowAtlasHeight, 0.0f, 0.0f));
             cmd.SetGlobalVector(DirectionalShadowConstantBuffer._ShadowmapSize, new Vector4(invShadowAtlasWidth, invShadowAtlasHeight,
                     shadowData.directionalShadowAtlasWidth, shadowData.directionalShadowAtlasHeight));
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
         }
     };
 }

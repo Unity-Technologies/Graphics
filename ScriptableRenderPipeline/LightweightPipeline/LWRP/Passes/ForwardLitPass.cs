@@ -35,6 +35,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         float[] m_OpaqueScalerValues = {1.0f, 0.5f, 0.25f, 0.25f};
         int m_SampleOffsetShaderHandle;
 
+        const string k_SetupRenderTargetTag = "Setup Render Target";
+        const string k_RenderOpaquesTag = "Render Opaques";
+        const string k_RenderTransparentsTag = "Render Transparents";
+
         List<ShaderPassName> m_LegacyShaderPassNames;
 
         public ForwardLitPass(LightweightForwardRenderer renderer) : base(renderer)
@@ -305,46 +309,52 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         void RenderOpaques(ref ScriptableRenderContext context, ref CullResults cullResults, ref CameraData cameraData, RendererConfiguration rendererConfiguration, bool dynamicBatching)
         {
-            CommandBuffer cmd = CommandBufferPool.Get("Render Opaques");
-            Camera camera = cameraData.camera;
+            CommandBuffer cmd = CommandBufferPool.Get(k_RenderOpaquesTag);
+            using (new ProfilingSample(cmd, k_SetupRenderTargetTag))
+            {
+                Camera camera = cameraData.camera;
+                ClearFlag clearFlag = GetCameraClearFlag(camera);
+                SetRenderTarget(cmd, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, clearFlag, CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
 
-            ClearFlag clearFlag = GetCameraClearFlag(camera);
+                // If rendering to an intermediate RT we resolve viewport on blit due to offset not being supported
+                // while rendering to a RT.
+                if (colorAttachmentHandle == -1 && cameraData.isDefaultViewport)
+                    cmd.SetViewport(camera.pixelRect);
 
-            // TODO: This was merged from previous LOAD/STORE PR. It seems this should not be DontCare
-            // and instead we should check clearFlags to wheter set to Clear or DontCare
-            // Same in screenspace shadow resolve pass. Also we should check for the msaa resolve actions.
-            SetRenderTarget(cmd, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, clearFlag, CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+
+                var drawSettings = CreateDrawRendererSettings(camera, SortFlags.CommonOpaque, rendererConfiguration, dynamicBatching);
+                context.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, renderer.opaqueFilterSettings);
+
+                // Render objects that did not match any shader pass with error shader
+                RenderObjectsWithError(ref context, ref cullResults, camera, renderer.opaqueFilterSettings, SortFlags.None);
+
+                if (camera.clearFlags == CameraClearFlags.Skybox)
+                    context.DrawSkybox(camera);
+            }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
-
-            // If rendering to an intermediate RT we resolve viewport on blit due to offset not being supported
-            // while rendering to a RT.
-            if (colorAttachmentHandle == -1 && cameraData.isDefaultViewport)
-                cmd.SetViewport(camera.pixelRect);
-
-            var drawSettings = CreateDrawRendererSettings(camera, SortFlags.CommonOpaque, rendererConfiguration, dynamicBatching);
-            context.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, renderer.opaqueFilterSettings);
-
-            // Render objects that did not match any shader pass with error shader
-            RenderObjectsWithError(ref context, ref cullResults, camera, renderer.opaqueFilterSettings, SortFlags.None);
-
-            if (camera.clearFlags == CameraClearFlags.Skybox)
-                context.DrawSkybox(camera);
         }
 
         void RenderTransparents(ref ScriptableRenderContext context, ref CullResults cullResults, ref CameraData cameraData, RendererConfiguration rendererConfiguration, bool dynamicBatching)
         {
-            CommandBuffer cmd = CommandBufferPool.Get("Render Transparents");
-            Camera camera = cameraData.camera;
-            SetRenderTarget(cmd, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None, Color.black);
+            CommandBuffer cmd = CommandBufferPool.Get(k_RenderTransparentsTag);
+            using (new ProfilingSample(cmd, k_SetupRenderTargetTag))
+            {
+                Camera camera = cameraData.camera;
+                SetRenderTarget(cmd, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None, Color.black);
+                context.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+                
+                var drawSettings = CreateDrawRendererSettings(camera, SortFlags.CommonTransparent, rendererConfiguration, dynamicBatching);
+                context.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, renderer.transparentFilterSettings);
+
+                // Render objects that did not match any shader pass with error shader
+                RenderObjectsWithError(ref context, ref cullResults, camera, renderer.transparentFilterSettings, SortFlags.None);
+            }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
-
-            var drawSettings = CreateDrawRendererSettings(camera, SortFlags.CommonTransparent, rendererConfiguration, dynamicBatching);
-            context.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, renderer.transparentFilterSettings);
-
-            // Render objects that did not match any shader pass with error shader
-            RenderObjectsWithError(ref context, ref cullResults, camera, renderer.transparentFilterSettings, SortFlags.None);
         }
 
         void FinalBlitPass(ref ScriptableRenderContext context, ref CameraData cameraData)
