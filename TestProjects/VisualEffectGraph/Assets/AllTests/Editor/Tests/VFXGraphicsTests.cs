@@ -156,20 +156,26 @@ namespace UnityEditor.VFX.Test
             }
         }
 
+        static readonly string[] ExcludedTests =
+        {
+            "05_MotionVectors", // Cannot use test with postprocess effects
+            "20_SpawnerChaining", // Unstable. TODO investigate why
+        };
+
+
         static class CollectScene
         {
             public static IEnumerable scenes
             {
                 get
                 {
-                    foreach (var file in Directory.GetFiles("Assets/VFXTests/GraphicsTests/", "*.unity"))
-                    {
-                        if (file.Contains("MotionVectors")) continue; //disable explicitly instable test
-                        yield return new SceneTest
+                    return Directory.GetFiles("Assets/VFXTests/GraphicsTests/", "*.unity").Where(p => !ExcludedTests.Contains(Path.GetFileNameWithoutExtension(p))).Select(p =>
                         {
-                            path = file
-                        };
-                    }
+                            return new SceneTest
+                            {
+                                path = p
+                            };
+                        });
                 }
             }
         }
