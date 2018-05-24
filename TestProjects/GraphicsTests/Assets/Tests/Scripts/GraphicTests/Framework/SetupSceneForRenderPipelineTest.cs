@@ -8,16 +8,16 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEngine.Experimental.Rendering
 {
-	public class SetupSceneForRenderPipelineTest : MonoBehaviour, IMonoBehaviourTest
-	{
-		private RenderPipelineAsset m_OriginalAsset;
-	    public RenderPipelineAsset[] renderPipelines;
+    public class SetupSceneForRenderPipelineTest : MonoBehaviour, IMonoBehaviourTest
+    {
+        private RenderPipelineAsset m_OriginalAsset;
+        public RenderPipelineAsset[] renderPipelines;
         public Camera cameraToUse;
-		public bool hdr = false;
-	    public int msaaSamples = 1;
+        public bool hdr = false;
+        public int msaaSamples = 1;
 
-		public int width = 1280;
-		public int height = 720;
+        public int width = 1280;
+        public int height = 720;
 
         public UnityEvent thingToDoBeforeTest;
 
@@ -30,7 +30,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public void Update()
         {
-            if ( waitedFrames < waitForFrames )
+            if (waitedFrames < waitForFrames)
             {
                 ++waitedFrames;
             }
@@ -40,31 +40,31 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-	    public void Setup()
-	    {
-	        m_OriginalAsset = GraphicsSettings.renderPipelineAsset;
+        public void Setup()
+        {
+            m_OriginalAsset = GraphicsSettings.renderPipelineAsset;
             Setup(0);
         }
 
         public void Setup(int index)
-		{
-		    if (m_OriginalAsset != renderPipelines[index])
-		    {
+        {
+            if (m_OriginalAsset != renderPipelines[index])
+            {
                 //Debug.Log("Set Render Pipeline: "+ renderPipelines[index]);
-		        GraphicsSettings.renderPipelineAsset = renderPipelines[index];
+                GraphicsSettings.renderPipelineAsset = renderPipelines[index];
 
                 // Update Camera Frame Settings (HDRP)
                 HDAdditionalCameraData additionalCameraData = cameraToUse.gameObject.GetComponent<HDAdditionalCameraData>();
                 if (additionalCameraData != null)
                 {
-                    HDRenderPipelineAsset m_Asset = (HDRenderPipelineAsset) renderPipelines[index];
-                    additionalCameraData.UpdateDirtyFrameSettings(true, m_Asset.GetFrameSettings() );
+                    HDRenderPipelineAsset m_Asset = (HDRenderPipelineAsset)renderPipelines[index];
+                    additionalCameraData.UpdateDirtyFrameSettings(true, m_Asset.GetFrameSettings());
                 }
             }
         }
 
-		public void TearDown()
-		{
+        public void TearDown()
+        {
             if (GraphicsSettings.renderPipelineAsset != m_OriginalAsset)
             {
                 GraphicsSettings.renderPipelineAsset = m_OriginalAsset;
@@ -72,7 +72,7 @@ namespace UnityEngine.Experimental.Rendering
 
             //EditorApplication.isPaused = false;
             //EditorApplication.isPlaying = false;
-		}
+        }
 
         public bool IsTestFinished
         {
@@ -81,5 +81,5 @@ namespace UnityEngine.Experimental.Rendering
                 return _readyForCapture;
             }
         }
-	}
+    }
 }

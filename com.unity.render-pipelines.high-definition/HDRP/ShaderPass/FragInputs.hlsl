@@ -63,4 +63,3 @@ void GetVaryingsDataDebug(uint paramId, FragInputs input, inout float3 result, i
         break;
     }
 }
-

@@ -10,7 +10,7 @@ float GetScaleFromBase(float base)
 
 float LogBase(float x, float b)
 {
-	return log2(x) / log2(b);
+    return log2(x) / log2(b);
 }
 
 int SnapToClusterIdxFlex(float z_in, float suggestedBase, bool logBasePerTile)
@@ -29,8 +29,8 @@ int SnapToClusterIdxFlex(float z_in, float suggestedBase, bool logBasePerTile)
     //const float dist = max(0, z - g_fNearPlane);
     //return (int)clamp(log2(dist * userscale * (suggestedBase - 1.0f) + 1) / log2(suggestedBase), 0.0, (float)((1 << g_iLog2NumClusters) - 1));
 
-	const int C = 1 << g_iLog2NumClusters;
-	const float rangeFittedDistance = max(0, z - g_fNearPlane) / (g_fFarPlane - g_fNearPlane);
+    const int C = 1 << g_iLog2NumClusters;
+    const float rangeFittedDistance = max(0, z - g_fNearPlane) / (g_fFarPlane - g_fNearPlane);
     return (int)clamp( LogBase( lerp(1.0, PositivePow(suggestedBase, (float) C), rangeFittedDistance), suggestedBase), 0.0, (float)(C - 1));
 }
 
@@ -56,9 +56,9 @@ float ClusterIdxToZFlex(int k, float suggestedBase, bool logBasePerTile)
     //float dist = (PositivePow(suggestedBase, (float)k) - 1.0) / (userscale * (suggestedBase - 1.0f));
     //res = dist + g_fNearPlane;
 
-	const float C = (float)(1 << g_iLog2NumClusters);
-	float rangeFittedDistance = (PositivePow(suggestedBase, (float)k) - 1.0) / (PositivePow(suggestedBase, C) - 1.0);
-	res = lerp(g_fNearPlane, g_fFarPlane, rangeFittedDistance);
+    const float C = (float)(1 << g_iLog2NumClusters);
+    float rangeFittedDistance = (PositivePow(suggestedBase, (float)k) - 1.0) / (PositivePow(suggestedBase, C) - 1.0);
+    res = lerp(g_fNearPlane, g_fFarPlane, rangeFittedDistance);
 
 
 #if USE_LEFT_HAND_CAMERA_SPACE

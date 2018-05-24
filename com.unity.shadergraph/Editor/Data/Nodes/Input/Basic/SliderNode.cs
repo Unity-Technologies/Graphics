@@ -85,11 +85,11 @@ namespace UnityEditor.ShaderGraph
 
         public IShaderProperty AsShaderProperty()
         {
-            return new Vector1ShaderProperty 
-            { 
-                value = value.x, 
-                rangeValues = new Vector2(value.y, value.z), 
-                floatType = FloatType.Slider 
+            return new Vector1ShaderProperty
+            {
+                value = value.x,
+                rangeValues = new Vector2(value.y, value.z),
+                floatType = FloatType.Slider
             };
         }
 

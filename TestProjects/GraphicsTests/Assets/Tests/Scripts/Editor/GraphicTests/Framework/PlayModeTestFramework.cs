@@ -7,7 +7,7 @@ public class PlayModeTestFramework : EditorWindow
 {
     static string scenesRootPath = "/Tests/GraphicsTests/RenderPipeline/HDRenderPipeline/Scenes";
 
-    enum Platforms { PC, PS4};
+    enum Platforms { PC, PS4 };
     Platforms platform = Platforms.PC;
 
     bool developmentBuild = false;
@@ -19,7 +19,7 @@ public class PlayModeTestFramework : EditorWindow
         PlayModeTestFramework window = GetWindow<PlayModeTestFramework>();
 
         // find all the scenes
-        window.allPaths = System.IO.Directory.GetFiles(Application.dataPath+scenesRootPath, "*.unity", System.IO.SearchOption.AllDirectories);
+        window.allPaths = System.IO.Directory.GetFiles(Application.dataPath + scenesRootPath, "*.unity", System.IO.SearchOption.AllDirectories);
 
         for (int i = 0; i < window.allPaths.Length; ++i)
         {
@@ -55,13 +55,13 @@ public class PlayModeTestFramework : EditorWindow
         {
             EditorBuildSettingsScene[] prevScenes = EditorBuildSettings.scenes;
 
-            EditorBuildSettingsScene[] testScenes = new EditorBuildSettingsScene[allPaths.Length+1];
+            EditorBuildSettingsScene[] testScenes = new EditorBuildSettingsScene[allPaths.Length + 1];
 
-            testScenes[0] = new EditorBuildSettingsScene(Application.dataPath+ "/Tests/GraphicsTests/RenderPipeline/HDRenderPipeline/PlayModeTest/PlayModeTests.unity", true);
+            testScenes[0] = new EditorBuildSettingsScene(Application.dataPath + "/Tests/GraphicsTests/RenderPipeline/HDRenderPipeline/PlayModeTest/PlayModeTests.unity", true);
 
-            for (int i=0; i<allPaths.Length;++i)
+            for (int i = 0; i < allPaths.Length; ++i)
             {
-                testScenes[i+1] = new EditorBuildSettingsScene(allPaths[i], true);
+                testScenes[i + 1] = new EditorBuildSettingsScene(allPaths[i], true);
             }
 
             Debug.Log("Do build in : " + Application.dataPath + "/../Builds/GraphicTests/GraphicTestBuildPC.exe");
@@ -76,10 +76,10 @@ public class PlayModeTestFramework : EditorWindow
 
             if (!AssetDatabase.IsValidFolder("Assets/Resources")) AssetDatabase.CreateFolder("Assets", "Resources");
 
-            for (int i=0; i<templates.Length;++i)
+            for (int i = 0; i < templates.Length; ++i)
             {
                 oldPaths[i] = AssetDatabase.GUIDToAssetPath(templates[i]);
-                newPaths[i] = "Assets/Resources/" + System.IO.Path.GetFileName( oldPaths[i] );
+                newPaths[i] = "Assets/Resources/" + System.IO.Path.GetFileName(oldPaths[i]);
 
                 //Debug.Log("Move " + oldPaths[i] + " to " + newPaths[i]);
 

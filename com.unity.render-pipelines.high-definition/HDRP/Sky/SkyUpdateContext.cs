@@ -1,11 +1,10 @@
-﻿using UnityEngine.Rendering;
+using UnityEngine.Rendering;
 using System;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     internal class SkyUpdateContext
     {
-
         SkySettings m_SkySettings;
         SkyRenderer m_Renderer;
 
@@ -53,6 +52,5 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_Renderer != null)
                 m_Renderer.Cleanup();
         }
-
     }
 }

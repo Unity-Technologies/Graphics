@@ -70,7 +70,7 @@ namespace UnityEditor.ShaderGraph
         {}
 
         protected struct DynamicDimensionMatrix
-        { }
+        {}
 
         protected enum Binding
         {
@@ -264,7 +264,7 @@ namespace UnityEditor.ShaderGraph
                             par.Name,
                             par.IsOut ? SlotType.Output : SlotType.Input,
                             attribute.defaultValue ?? Vector4.zero,
-                            shaderStageCapability: attribute.stageCapability, 
+                            shaderStageCapability: attribute.stageCapability,
                             hidden: attribute.hidden);
                 else
                     s = CreateBoundSlot(attribute.binding, attribute.slotId, name, par.Name, attribute.stageCapability, attribute.hidden);
@@ -439,12 +439,12 @@ namespace UnityEditor.ShaderGraph
         public virtual void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
         {
             registry.ProvideFunction(GetFunctionName(), s =>
-            {
-                s.AppendLine(GetFunctionHeader());
-                var functionBody = GetFunctionBody(GetFunctionToConvert());
-                var lines = functionBody.Trim('\r', '\n', '\t', ' ');
-                s.AppendLines(lines);
-            });
+                {
+                    s.AppendLine(GetFunctionHeader());
+                    var functionBody = GetFunctionBody(GetFunctionToConvert());
+                    var lines = functionBody.Trim('\r', '\n', '\t', ' ');
+                    s.AppendLines(lines);
+                });
         }
 
         private static SlotAttribute GetSlotAttribute([NotNull] ParameterInfo info)

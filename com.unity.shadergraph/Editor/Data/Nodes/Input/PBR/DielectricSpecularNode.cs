@@ -59,7 +59,7 @@ namespace UnityEditor.ShaderGraph
                     return;
                 DielectricMaterialType previousType = m_Material.type;
                 m_Material = value;
-                if(value.type != previousType)
+                if (value.type != previousType)
                     Dirty(ModificationScope.Graph);
                 else
                     Dirty(ModificationScope.Node);
@@ -126,7 +126,7 @@ namespace UnityEditor.ShaderGraph
         {
             base.CollectPreviewMaterialProperties(properties);
 
-            if(material.type == DielectricMaterialType.Common)
+            if (material.type == DielectricMaterialType.Common)
             {
                 properties.Add(new PreviewProperty(PropertyType.Vector1)
                 {
@@ -150,7 +150,7 @@ namespace UnityEditor.ShaderGraph
                 return;
 
             base.CollectShaderProperties(properties, generationMode);
-            
+
             if (material.type == DielectricMaterialType.Common)
             {
                 properties.AddShaderProperty(new Vector1ShaderProperty()

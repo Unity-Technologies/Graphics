@@ -129,7 +129,7 @@ CBUFFER_START(UnityPerDraw : register(b0))
 
     // This contain occlusion factor from 0 to 1 for dynamic objects (no SH here)
     float4 unity_ProbesOcclusion;
-    
+
     // HDR environment map decode instructions
     half4 unity_SpecCube0_HDR;
 CBUFFER_END
@@ -235,7 +235,7 @@ CBUFFER_START(UnityVelocityPass)
     float4x4 unity_MatrixNonJitteredVP;
     float4x4 unity_MatrixPreviousVP;
     float4x4 unity_MatrixPreviousM;
-	float4x4 unity_MatrixPreviousMI;
+    float4x4 unity_MatrixPreviousMI;
     //X : Use last frame positions (right now skinned meshes are the only objects that use this
     //Y : Force No Motion
     //Z : Z bias value

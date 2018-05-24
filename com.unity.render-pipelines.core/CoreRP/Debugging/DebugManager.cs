@@ -13,7 +13,7 @@ namespace UnityEngine.Experimental.Rendering
         public static DebugManager instance { get { return s_Instance; } }
 
         // Explicit static constructor to tell the C# compiler not to mark type as beforefieldinit
-        static DebugManager() { }
+        static DebugManager() {}
 
         ReadOnlyCollection<DebugUI.Panel> m_ReadOnlyPanels;
         readonly List<DebugUI.Panel> m_Panels = new List<DebugUI.Panel>();
@@ -29,8 +29,8 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public event Action<bool> onDisplayRuntimeUIChanged = delegate { };
-        public event Action onSetDirty = delegate { };
+        public event Action<bool> onDisplayRuntimeUIChanged = delegate {};
+        public event Action onSetDirty = delegate {};
 
         public bool refreshEditorRequested;
 

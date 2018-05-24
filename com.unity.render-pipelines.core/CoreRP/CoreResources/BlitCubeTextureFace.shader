@@ -1,4 +1,4 @@
-﻿Shader "Hidden/SRP/BlitCubeTextureFace"
+Shader "Hidden/SRP/BlitCubeTextureFace"
 {
     SubShader
     {

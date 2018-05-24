@@ -51,7 +51,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             Color sunColor = Color.white;
             Vector3 sunDirection = Vector3.zero;
-            if(builtinParams.sunLight != null)
+            if (builtinParams.sunLight != null)
             {
                 sunColor = builtinParams.sunLight.color * builtinParams.sunLight.intensity;
                 sunDirection = -builtinParams.sunLight.transform.forward;

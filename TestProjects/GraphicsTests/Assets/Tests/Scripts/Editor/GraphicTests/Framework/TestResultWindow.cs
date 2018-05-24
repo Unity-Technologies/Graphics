@@ -161,23 +161,23 @@ namespace UnityEngine.Experimental.Rendering
                 diffMaterial = new Material(Shader.Find("GraphicTests/ComparerShader"));
                 diffMaterial.hideFlags = HideFlags.HideAndDontSave;
 
-                switch(TestFrameworkTools.comparisonMethod)
+                switch (TestFrameworkTools.comparisonMethod)
                 {
                     case TestFrameworkTools.ComparisonMethod.RMSE:
                         diffMaterial.EnableKeyword("Comparison_RGB");
                         diffMaterial.DisableKeyword("Comparison_Lab");
                         diffMaterial.DisableKeyword("Comparison_Jab");
-                    break;
+                        break;
                     case TestFrameworkTools.ComparisonMethod.Lab:
                         diffMaterial.DisableKeyword("Comparison_RGB");
                         diffMaterial.EnableKeyword("Comparison_Lab");
                         diffMaterial.DisableKeyword("Comparison_Jab");
-                    break;
+                        break;
                     case TestFrameworkTools.ComparisonMethod.Jzazbz:
                         diffMaterial.DisableKeyword("Comparison_RGB");
                         diffMaterial.DisableKeyword("Comparison_Lab");
                         diffMaterial.EnableKeyword("Comparison_Jab");
-                    break;
+                        break;
                 }
 
                 DontDestroyOnLoad(diffMaterial);
@@ -194,7 +194,7 @@ namespace UnityEngine.Experimental.Rendering
             tmpPath = "";
             GetTemplateImage();
 
-            string templatePath = Path.Combine( TestFrameworkTools.s_RootPath, "ImageTemplates");
+            string templatePath = Path.Combine(TestFrameworkTools.s_RootPath, "ImageTemplates");
             templateLocation = Path.Combine(templatePath, string.Format("{0}.{1}", tmpPath, "png"));
 
             GetDiffMaterial();
@@ -234,7 +234,7 @@ namespace UnityEngine.Experimental.Rendering
                     GUILayout.BeginHorizontal(GUILayout.Height(topBarHeight));
                     {
                         if (GUILayout.Button(reloadContent))
-                            Reload(sceneAsset.name+".unity");
+                            Reload(sceneAsset.name + ".unity");
 
                         if (GUILayout.Button(wipeResultContent))
                         {
@@ -301,7 +301,7 @@ namespace UnityEngine.Experimental.Rendering
 
                         GUILayout.Label("Diff. type: ");
                         diffStyle = EditorGUILayout.IntPopup(diffStyle, diffStylesList, diffStylesValues,
-                            GUILayout.Width(200f));
+                                GUILayout.Width(200f));
                     }
                     GUILayout.EndHorizontal();
 
@@ -320,7 +320,7 @@ namespace UnityEngine.Experimental.Rendering
                     GUI.color = Color.green;
                     if (rect1.width > 0) GUI.Box(rect1, "Template");
                     GUI.color = Color.black;
-                    if (rect2.width > 0) GUI.Box(rect2,  "Diff" );
+                    if (rect2.width > 0) GUI.Box(rect2,  "Diff");
                     GUI.color = Color.blue;
                     if (rect3.width > 0) GUI.Box(rect3, "Result");
 
@@ -328,7 +328,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
                 GUILayout.EndArea();
 
-                Rect textureRect = new Rect(leftBarWidth, topBarHeight * 3, position.width - leftBarWidth,position.height - topBarHeight * 3);
+                Rect textureRect = new Rect(leftBarWidth, topBarHeight * 3, position.width - leftBarWidth, position.height - topBarHeight * 3);
                 GUI.enabled = true;
 
                 CheckDataObjects();
@@ -378,7 +378,7 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     TreeViewItem parent = hdrpParent;
 
-                    string folder = Path.GetDirectoryName( info.templatePath ).Split("\\"[0]).Last();
+                    string folder = Path.GetDirectoryName(info.templatePath).Split("\\"[0]).Last();
                     if (hdrpFolders.ContainsKey(folder))
                     {
                         parent = hdrpFolders[folder];
@@ -395,7 +395,7 @@ namespace UnityEngine.Experimental.Rendering
                     var prjRelativeGraphsPath = TestFrameworkTools.s_Path.Aggregate(TestFrameworkTools.s_RootPath, Path.Combine);
                     var filePath = Path.Combine(prjRelativeGraphsPath, info.relativePath);
 
-                    filePath = string.Format("Assets{0}", filePath.Replace(Application.dataPath, "") );
+                    filePath = string.Format("Assets{0}", filePath.Replace(Application.dataPath, ""));
 
                     SceneAsset sceneObject = AssetDatabase.LoadAssetAtPath<SceneAsset>(filePath);
 
@@ -410,7 +410,7 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     TreeViewItem parent = lwrpParent;
 
-                    string folder = Path.GetDirectoryName( info.templatePath ).Split("\\"[0]).Last();
+                    string folder = Path.GetDirectoryName(info.templatePath).Split("\\"[0]).Last();
                     if (lwrpFolders.ContainsKey(folder))
                     {
                         parent = lwrpFolders[folder];
@@ -445,11 +445,11 @@ namespace UnityEngine.Experimental.Rendering
 
             protected override void SelectionChanged(IList<int> selectedIds)
             {
-                if (selectedIds.Count < 1 ) return;
+                if (selectedIds.Count < 1) return;
 
                 TreeViewItem item = FindItem(selectedIds[0], rootItem);
 
-                if ( item.hasChildren ) return; // not a scene (final) item
+                if (item.hasChildren) return;   // not a scene (final) item
 
                 //TestResultViewItem testItem = (TestResultViewItem)item;
 

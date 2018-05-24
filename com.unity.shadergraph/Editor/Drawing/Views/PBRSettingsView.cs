@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements;
@@ -19,40 +19,40 @@ namespace UnityEditor.ShaderGraph.Drawing
             PropertySheet ps = new PropertySheet();
 
             ps.Add(new PropertyRow(new Label("Workflow")), (row) =>
-            {
-                row.Add(new EnumField(PBRMasterNode.Model.Metallic), (field) =>
                 {
-                    field.value = m_Node.model;
-                    field.OnValueChanged(ChangeWorkFlow);
+                    row.Add(new EnumField(PBRMasterNode.Model.Metallic), (field) =>
+                    {
+                        field.value = m_Node.model;
+                        field.OnValueChanged(ChangeWorkFlow);
+                    });
                 });
-            });
 
             ps.Add(new PropertyRow(new Label("Surface")), (row) =>
-            {
-                row.Add(new EnumField(SurfaceType.Opaque), (field) =>
                 {
-                    field.value = m_Node.surfaceType;
-                    field.OnValueChanged(ChangeSurface);
+                    row.Add(new EnumField(SurfaceType.Opaque), (field) =>
+                    {
+                        field.value = m_Node.surfaceType;
+                        field.OnValueChanged(ChangeSurface);
+                    });
                 });
-            });
 
             ps.Add(new PropertyRow(new Label("Blend")), (row) =>
-            {
-                row.Add(new EnumField(AlphaMode.Additive), (field) =>
                 {
-                    field.value = m_Node.alphaMode;
-                    field.OnValueChanged(ChangeAlphaMode);
+                    row.Add(new EnumField(AlphaMode.Additive), (field) =>
+                    {
+                        field.value = m_Node.alphaMode;
+                        field.OnValueChanged(ChangeAlphaMode);
+                    });
                 });
-            });
 
             ps.Add(new PropertyRow(new Label("Two Sided")), (row) =>
-            {
-                row.Add(new Toggle(null), (toggle) =>
                 {
-                    toggle.value = m_Node.twoSided.isOn;
-                    toggle.OnToggle(ChangeTwoSided);
+                    row.Add(new Toggle(null), (toggle) =>
+                    {
+                        toggle.value = m_Node.twoSided.isOn;
+                        toggle.OnToggle(ChangeTwoSided);
+                    });
                 });
-            });
 
             Add(ps);
         }

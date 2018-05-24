@@ -1,4 +1,4 @@
-﻿// Ref: https://github.com/knarkowicz/GPURealTimeBC6H/blob/master/bin/compress.hlsl
+// Ref: https://github.com/knarkowicz/GPURealTimeBC6H/blob/master/bin/compress.hlsl
 // Doc: https://msdn.microsoft.com/en-us/library/windows/desktop/hh308952(v=vs.85).aspx
 
 // Measure compression error

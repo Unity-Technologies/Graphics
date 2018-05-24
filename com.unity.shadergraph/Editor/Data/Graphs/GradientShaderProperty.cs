@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,15 +13,15 @@ namespace UnityEditor.ShaderGraph
         public static void GetGradientDeclaration(Gradient gradient, ref ShaderStringBuilder s)
         {
             string[] colors = new string[8];
-            for(int i = 0; i < colors.Length; i++)
+            for (int i = 0; i < colors.Length; i++)
                 colors[i] = string.Format("g.colors[{0}] = float4(0, 0, 0, 0);", i.ToString());
-            for(int i = 0; i < gradient.colorKeys.Length; i++)
+            for (int i = 0; i < gradient.colorKeys.Length; i++)
                 colors[i] = GetColorKey(i, gradient.colorKeys[i].color, gradient.colorKeys[i].time);
 
             string[] alphas = new string[8];
-            for(int i = 0; i < colors.Length; i++)
+            for (int i = 0; i < colors.Length; i++)
                 alphas[i] = string.Format("g.alphas[{0}] = float2(0, 0);", i.ToString());
-            for(int i = 0; i < gradient.alphaKeys.Length; i++)
+            for (int i = 0; i < gradient.alphaKeys.Length; i++)
                 alphas[i] = GetAlphaKey(i, gradient.alphaKeys[i].alpha, gradient.alphaKeys[i].time);
 
             s.AppendLine("Gradient g;");
@@ -32,10 +32,10 @@ namespace UnityEditor.ShaderGraph
             s.AppendLine("g.alphasLength = {0};",
                 gradient.alphaKeys.Length);
 
-            for(int i = 0; i < colors.Length; i++)
+            for (int i = 0; i < colors.Length; i++)
                 s.AppendLine(colors[i]);
 
-            for(int i = 0; i < alphas.Length; i++)
+            for (int i = 0; i < alphas.Length; i++)
                 s.AppendLine(alphas[i]);
         }
 
@@ -82,12 +82,12 @@ namespace UnityEditor.ShaderGraph
 
         public static Vector4 ColorKeyToVector(GradientColorKey key)
         {
-            return new Vector4( key.color.r, key.color.g, key.color.b, key.time);
+            return new Vector4(key.color.r, key.color.g, key.color.b, key.time);
         }
 
         public static Vector2 AlphaKeyToVector(GradientAlphaKey key)
         {
-            return new Vector2( key.alpha, key.time);
+            return new Vector2(key.alpha, key.time);
         }
     }
 
@@ -127,22 +127,22 @@ namespace UnityEditor.ShaderGraph
 
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
-            if(m_OverrideMembers)
+            if (m_OverrideMembers)
             {
                 ShaderStringBuilder s = new ShaderStringBuilder();
                 s.AppendLine("Gradient Unity{0} ()",
-                referenceName);
+                    referenceName);
                 using (s.BlockScope())
                 {
                     s.AppendLine("Gradient g;");
                     s.AppendLine("g.type = {0}_Type;", m_OverrideSlotName);
                     s.AppendLine("g.colorsLength = {0}_ColorsLength;", m_OverrideSlotName);
                     s.AppendLine("g.alphasLength = {0}_AlphasLength;", m_OverrideSlotName);
-                    for(int i = 0; i < 8; i++)
+                    for (int i = 0; i < 8; i++)
                     {
                         s.AppendLine("g.colors[{0}] = {1}_ColorKey{0};", i, m_OverrideSlotName);
                     }
-                    for(int i = 0; i < 8; i++)
+                    for (int i = 0; i < 8; i++)
                     {
                         s.AppendLine("g.alphas[{0}] = {1}_AlphaKey{0};", i, m_OverrideSlotName);
                     }

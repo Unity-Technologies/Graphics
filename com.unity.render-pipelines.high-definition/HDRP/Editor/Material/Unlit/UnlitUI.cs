@@ -67,7 +67,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override void VertexAnimationPropertiesGUI()
         {
-
         }
 
         protected override bool ShouldEmissionBeEnabled(Material mat)

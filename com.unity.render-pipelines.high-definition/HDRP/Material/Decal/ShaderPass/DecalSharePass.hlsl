@@ -1,4 +1,4 @@
-﻿#ifndef SHADERPASS
+#ifndef SHADERPASS
 #error Undefine_SHADERPASS
 #endif
 

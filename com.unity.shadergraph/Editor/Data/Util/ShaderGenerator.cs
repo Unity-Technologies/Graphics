@@ -529,10 +529,10 @@ namespace UnityEditor.ShaderGraph
             {
                 var name = preferredCoordinateSpace.ToVariableName(InterpolatorType.BiTangent);
                 vertexShader.AppendLine("float3 {0} = normalize(cross({1}, {2}.xyz) * {3});",
-                        name,
-                        preferredCoordinateSpace.ToVariableName(InterpolatorType.Normal),
-                        preferredCoordinateSpace.ToVariableName(InterpolatorType.Tangent),
-                        "v.tangent.w");
+                    name,
+                    preferredCoordinateSpace.ToVariableName(InterpolatorType.Normal),
+                    preferredCoordinateSpace.ToVariableName(InterpolatorType.Tangent),
+                    "v.tangent.w");
                 if (graphModelRequirements.requiresBitangent > 0)
                 {
                     vertexOutputStruct.AppendLine("float3 {0} : TEXCOORD{1};", name, interpolatorIndex);
@@ -597,7 +597,7 @@ namespace UnityEditor.ShaderGraph
             if (combinedRequirements.requiresScreenPosition)
             {
                 var screenPosition = "ComputeScreenPos(mul(GetWorldToHClipMatrix(), mul(GetObjectToWorldMatrix(), v.vertex.xyz)), _ProjectionParams.x)";
-                    vertexShader.AppendLine("float4 {0} = {1};", ShaderGeneratorNames.ScreenPosition, screenPosition);
+                vertexShader.AppendLine("float4 {0} = {1};", ShaderGeneratorNames.ScreenPosition, screenPosition);
                 if (graphModelRequirements.requiresScreenPosition)
                 {
                     vertexOutputStruct.AppendLine("float4 {0} : TEXCOORD{1};", ShaderGeneratorNames.ScreenPosition, interpolatorIndex);
@@ -651,7 +651,7 @@ namespace UnityEditor.ShaderGraph
                 InputType.Vector, pixelShader, Dimension.Three);
             GenerateSpaceTranslations(graphModelRequirements.requiresPosition, InterpolatorType.Position, preferredCoordinateSpace,
                 InputType.Position, pixelShader, Dimension.Three);
-            
+
             // ----------------------------------------------------- //
             //               START SURFACE DESCRIPTION               //
             // ----------------------------------------------------- //
@@ -743,21 +743,21 @@ namespace UnityEditor.ShaderGraph
         {
             if ((neededSpaces & NeededCoordinateSpace.Object) > 0 && from != CoordinateSpace.Object)
                 pixelShader.AppendLine("float{0} {1} = {2};", DimensionToString(dimension),
-                        CoordinateSpace.Object.ToVariableName(type), ConvertBetweenSpace(from.ToVariableName(type), from, CoordinateSpace.Object, inputType, from));
+                    CoordinateSpace.Object.ToVariableName(type), ConvertBetweenSpace(from.ToVariableName(type), from, CoordinateSpace.Object, inputType, from));
 
             if ((neededSpaces & NeededCoordinateSpace.World) > 0 && from != CoordinateSpace.World)
                 pixelShader.AppendLine("float{0} {1} = {2};", DimensionToString(dimension),
-                        CoordinateSpace.World.ToVariableName(type), ConvertBetweenSpace(from.ToVariableName(type), from, CoordinateSpace.World, inputType, from));
+                    CoordinateSpace.World.ToVariableName(type), ConvertBetweenSpace(from.ToVariableName(type), from, CoordinateSpace.World, inputType, from));
 
             if ((neededSpaces & NeededCoordinateSpace.View) > 0 && from != CoordinateSpace.View)
                 pixelShader.AppendLine("float{0} {1} = {2};", DimensionToString(dimension),
-                        CoordinateSpace.View.ToVariableName(type),
-                        ConvertBetweenSpace(from.ToVariableName(type), from, CoordinateSpace.View, inputType, from));
+                    CoordinateSpace.View.ToVariableName(type),
+                    ConvertBetweenSpace(from.ToVariableName(type), from, CoordinateSpace.View, inputType, from));
 
             if ((neededSpaces & NeededCoordinateSpace.Tangent) > 0 && from != CoordinateSpace.Tangent)
                 pixelShader.AppendLine("float{0} {1} = {2};", DimensionToString(dimension),
-                        CoordinateSpace.Tangent.ToVariableName(type),
-                        ConvertBetweenSpace(from.ToVariableName(type), from, CoordinateSpace.Tangent, inputType, from));
+                    CoordinateSpace.Tangent.ToVariableName(type),
+                    ConvertBetweenSpace(from.ToVariableName(type), from, CoordinateSpace.Tangent, inputType, from));
         }
 
         public static string GetPreviewSubShader(AbstractMaterialNode node, ShaderGraphRequirements shaderGraphRequirements)
@@ -786,7 +786,7 @@ namespace UnityEditor.ShaderGraph
                 ShaderGraphRequirements.none,
                 ShaderGraphRequirements.none,
                 CoordinateSpace.World);
-            
+
             vertexShader.AppendLines(vertexShaderDescriptionInputs.ToString());
             vertexShader.AppendLines(vertexShaderOutputs.ToString());
 
@@ -915,6 +915,4 @@ SubShader
     }
 }";
     }
-
-
 }

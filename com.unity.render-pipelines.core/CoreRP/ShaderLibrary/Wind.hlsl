@@ -120,5 +120,3 @@ void ApplyWindDisplacement( inout float3    positionWS,
     }
 
 }
-
-

@@ -17,14 +17,14 @@ namespace UnityEditor.Experimental.Rendering
         // Change the SRP before a full batch of tests
         public virtual string _SRP_ID { get { return "NONE"; } }
 
-        [MenuItem("Internal/GraphicTest Tools/Set Tests Pipelines",false, 0)]
+        [MenuItem("Internal/GraphicTest Tools/Set Tests Pipelines", false, 0)]
         public static void SetTestsPipelines()
         {
             _doOnlyFirstRenderPipelineAsset = !EditorUtility.DisplayDialog(
-                "Graphic Tests",
-                "Do you want to run the test(s) on all available Render Pipeline assets or only the first (main) one ?",
-                "Hell YEAH, go for it !",
-                "No thanks, just one please.");
+                    "Graphic Tests",
+                    "Do you want to run the test(s) on all available Render Pipeline assets or only the first (main) one ?",
+                    "Hell YEAH, go for it !",
+                    "No thanks, just one please.");
         }
 
         private static bool? _doOnlyFirstRenderPipelineAsset;
@@ -58,7 +58,7 @@ namespace UnityEditor.Experimental.Rendering
         {
             string absolutePath = TestFrameworkTools.s_Path.Aggregate(TestFrameworkTools.s_RootPath, Path.Combine);
 
-            string filePath = Path.Combine(absolutePath, TestFrameworkTools.renderPipelineAssets[_SRP_ID] );
+            string filePath = Path.Combine(absolutePath, TestFrameworkTools.renderPipelineAssets[_SRP_ID]);
 
             filePath = filePath.Replace(Application.dataPath, "");
 
@@ -84,7 +84,6 @@ namespace UnityEditor.Experimental.Rendering
             wantedTestsRenderPipeAsset = GetRenderPipelineAsset(_SRP_ID);
 
             if (wantedTestsRenderPipeAsset != beforeTestsRenderPipeAsset)
-
                 UnityEngine.Rendering.GraphicsSettings.renderPipelineAsset = wantedTestsRenderPipeAsset;
         }
 
@@ -107,7 +106,7 @@ namespace UnityEditor.Experimental.Rendering
 
         public void RestoreSceneManagerSetup()
         {
-            if ( (sceneManagerSetupBeforeTest == null) || ( sceneManagerSetupBeforeTest.Length == 0 ) )
+            if ((sceneManagerSetupBeforeTest == null) || (sceneManagerSetupBeforeTest.Length == 0))
             {
                 EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
             }
@@ -116,7 +115,6 @@ namespace UnityEditor.Experimental.Rendering
                 EditorSceneManager.RestoreSceneManagerSetup(sceneManagerSetupBeforeTest);
             }
         }
-
 
         public int qualityLevel = 0;
         public void SetupQualitySettings()
@@ -130,7 +128,7 @@ namespace UnityEditor.Experimental.Rendering
                 throw new Exception("Missing QualitySetting");
             }
 
-            QualitySettings.SetQualityLevel( qualityNames.IndexOf("Graphic Tests"));
+            QualitySettings.SetQualityLevel(qualityNames.IndexOf("Graphic Tests"));
 
             QualitySettings.masterTextureLimit = 0;
             QualitySettings.anisotropicFiltering = AnisotropicFiltering.ForceEnable;
@@ -147,7 +145,7 @@ namespace UnityEditor.Experimental.Rendering
             QualitySettings.asyncUploadBufferSize = 4;
             QualitySettings.antiAliasing = 0;
 
-            QualitySettings.SetQualityLevel( qualityNames.IndexOf("Graphic Tests"), true);
+            QualitySettings.SetQualityLevel(qualityNames.IndexOf("Graphic Tests"), true);
         }
 
         public void RestoreQualitySettings()
@@ -158,22 +156,22 @@ namespace UnityEditor.Experimental.Rendering
         // the actual test
         public static IEnumerator TestScene(TestFrameworkTools.TestInfo testInfo)
         {
-			var prjRelativeGraphsPath = TestFrameworkTools.s_Path.Aggregate(TestFrameworkTools.s_RootPath, Path.Combine);
-			var filePath = Path.Combine(prjRelativeGraphsPath, testInfo.relativePath);
+            var prjRelativeGraphsPath = TestFrameworkTools.s_Path.Aggregate(TestFrameworkTools.s_RootPath, Path.Combine);
+            var filePath = Path.Combine(prjRelativeGraphsPath, testInfo.relativePath);
 
-			// open the scene
+            // open the scene
             EditorSceneManager.OpenScene(filePath);
 
-            SetupSceneForRenderPipelineTest testSetup = Object.FindObjectOfType<SetupSceneForRenderPipelineTest> ();
-			Assert.IsNotNull(testSetup, "No SetupSceneForRenderPipelineTest in scene " + testInfo.name);
-			Assert.IsNotNull(testSetup.cameraToUse, "No configured camera in <SetupSceneForRenderPipelineTest>");
+            SetupSceneForRenderPipelineTest testSetup = Object.FindObjectOfType<SetupSceneForRenderPipelineTest>();
+            Assert.IsNotNull(testSetup, "No SetupSceneForRenderPipelineTest in scene " + testInfo.name);
+            Assert.IsNotNull(testSetup.cameraToUse, "No configured camera in <SetupSceneForRenderPipelineTest>");
 
             if (testSetup.renderPipelines == null || testSetup.renderPipelines.Length == 0)
                 yield break;
 
-            for (int r = 0; r < (doOnlyFirstRenderPipelineAsset?1:testSetup.renderPipelines.Length); ++r)
+            for (int r = 0; r < (doOnlyFirstRenderPipelineAsset ? 1 : testSetup.renderPipelines.Length); ++r)
             {
-                if (r==0)
+                if (r == 0)
                     testSetup.Setup();
                 else
                     testSetup.Setup(r);
@@ -229,7 +227,7 @@ namespace UnityEditor.Experimental.Rendering
 
                     // Add associated renderpipeline label image if it exists
                     string rpLabelPath = AssetDatabase.GetAssetPath(testSetup.renderPipelines[r]);
-                    Texture2D rpLabel = AssetDatabase.LoadAssetAtPath<Texture2D>(rpLabelPath.Remove(rpLabelPath.Length - 5)+"png");
+                    Texture2D rpLabel = AssetDatabase.LoadAssetAtPath<Texture2D>(rpLabelPath.Remove(rpLabelPath.Length - 5) + "png");
                     if (rpLabel != null)
                     {
                         Color[] rpLabelPixels = rpLabel.GetPixels();
@@ -270,7 +268,7 @@ namespace UnityEditor.Experimental.Rendering
             public override string _SRP_ID { get { return "HDRP"; } }
 
             [UnityTest]
-            public IEnumerator HDRP_Test([ValueSource(typeof(TestFrameworkTools.CollectScenes), "HDRP")]TestFrameworkTools.TestInfo testInfo)
+            public IEnumerator HDRP_Test([ValueSource(typeof(TestFrameworkTools.CollectScenes), "HDRP")] TestFrameworkTools.TestInfo testInfo)
             {
                 return TestScene(testInfo);
             }
@@ -281,7 +279,7 @@ namespace UnityEditor.Experimental.Rendering
             public override string _SRP_ID { get { return "LWRP"; } }
 
             [UnityTest]
-            public IEnumerator LWRP_Test([ValueSource(typeof(TestFrameworkTools.CollectScenes), "LWRP")]TestFrameworkTools.TestInfo testInfo)
+            public IEnumerator LWRP_Test([ValueSource(typeof(TestFrameworkTools.CollectScenes), "LWRP")] TestFrameworkTools.TestInfo testInfo)
             {
                 return TestScene(testInfo);
             }

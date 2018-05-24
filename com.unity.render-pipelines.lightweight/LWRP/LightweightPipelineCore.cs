@@ -251,7 +251,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             //if (SystemInfo.copyTextureSupport != CopyTextureSupport.None)
             //    cmd.CopyTexture(source, dest);
             //else
-                cmd.Blit(source, dest, material);
+            cmd.Blit(source, dest, material);
         }
 
         public static bool IsSupportedShadowType(LightType lightType)

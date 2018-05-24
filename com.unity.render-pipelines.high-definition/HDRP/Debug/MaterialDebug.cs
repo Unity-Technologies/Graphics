@@ -300,6 +300,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 DisableMaterialDebug();
             m_DebugViewVarying = value;
         }
+
         public void SetDebugViewProperties(DebugViewProperties value)
         {
             if (value != 0)
@@ -313,7 +314,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 DisableMaterialDebug();
             m_DebugViewGBuffer = value;
         }
-
 
         public bool IsDebugGBufferEnabled()
         {

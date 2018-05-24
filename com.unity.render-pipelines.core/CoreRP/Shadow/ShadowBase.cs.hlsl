@@ -57,71 +57,71 @@ struct ShadowData
 //
 float4 GetProj(ShadowData value)
 {
-	return value.proj;
+    return value.proj;
 }
 float3 GetPos(ShadowData value)
 {
-	return value.pos;
+    return value.pos;
 }
 float3 GetRot0(ShadowData value)
 {
-	return value.rot0;
+    return value.rot0;
 }
 float3 GetRot1(ShadowData value)
 {
-	return value.rot1;
+    return value.rot1;
 }
 float3 GetRot2(ShadowData value)
 {
-	return value.rot2;
+    return value.rot2;
 }
 float4 GetScaleOffset(ShadowData value)
 {
-	return value.scaleOffset;
+    return value.scaleOffset;
 }
 float4 GetTextureSize(ShadowData value)
 {
-	return value.textureSize;
+    return value.textureSize;
 }
 float4 GetTexelSizeRcp(ShadowData value)
 {
-	return value.texelSizeRcp;
+    return value.texelSizeRcp;
 }
 uint GetId(ShadowData value)
 {
-	return value.id;
+    return value.id;
 }
 uint GetShadowType(ShadowData value)
 {
-	return value.shadowType;
+    return value.shadowType;
 }
 uint GetPayloadOffset(ShadowData value)
 {
-	return value.payloadOffset;
+    return value.payloadOffset;
 }
 float GetSlice(ShadowData value)
 {
-	return value.slice;
+    return value.slice;
 }
 float4 GetViewBias(ShadowData value)
 {
-	return value.viewBias;
+    return value.viewBias;
 }
 float4 GetNormalBias(ShadowData value)
 {
-	return value.normalBias;
+    return value.normalBias;
 }
 float GetEdgeTolerance(ShadowData value)
 {
-	return value.edgeTolerance;
+    return value.edgeTolerance;
 }
 float3 Get_pad(ShadowData value)
 {
-	return value._pad;
+    return value._pad;
 }
 float4x4 GetShadowToWorld(ShadowData value)
 {
-	return value.shadowToWorld;
+    return value.shadowToWorld;
 }
 
 

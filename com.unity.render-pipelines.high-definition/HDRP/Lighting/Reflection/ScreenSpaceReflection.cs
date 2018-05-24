@@ -4,9 +4,9 @@ using UnityEngine.Rendering;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [Serializable]
-    public sealed class LitProjectionModelParameter : VolumeParameter<ScreenSpaceReflection.AvailableProjectionModel> 
+    public sealed class LitProjectionModelParameter : VolumeParameter<ScreenSpaceReflection.AvailableProjectionModel>
     {
-        public LitProjectionModelParameter() : base(ScreenSpaceReflection.AvailableProjectionModel.Proxy, false) { }
+        public LitProjectionModelParameter() : base(ScreenSpaceReflection.AvailableProjectionModel.Proxy, false) {}
     }
 
     [Serializable]
@@ -48,7 +48,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             out int rayMaxScreenDistanceID,
             out int rayBlendScreenDistanceID,
             out int rayMarchBehindObjectsID
-        )
+            )
         {
             rayLevelID = HDShaderIDs._SSReflectionRayLevel;
             rayMinLevelID = HDShaderIDs._SSReflectionRayMinLevel;

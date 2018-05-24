@@ -1,7 +1,7 @@
 Shader "GraphicTests/ComparerShader"
 {
-	Properties
-	{
+    Properties
+    {
         _MainTex("Texture", 2D) = "white" {}
         _CompareTex("Texture", 2D) = "white" {}
         [Enum(Red, 0, Green, 1, Blue, 2, Color, 3, Greyscale, 4, Heatmap, 5)]
@@ -10,33 +10,33 @@ Shader "GraphicTests/ComparerShader"
         _Split("Split", Range(0,1)) = 0.5
         _ResultSplit ("Result Split", Range(0,1)) = 0.1
         _LineWidth("Line Width", float) = 0.001
-	}
-	SubShader
-	{
-		Tags { "RenderType"="Opaque" }
-		LOD 100
+    }
+    SubShader
+    {
+        Tags { "RenderType"="Opaque" }
+        LOD 100
 
-		Pass
-		{
-			CGPROGRAM
-			#pragma vertex vert
-			#pragma fragment frag
-			
+        Pass
+        {
+            CGPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+
             #pragma multi_compile Compare_RGB Compare_Lab Compare_Jab
 
-			#include "UnityCG.cginc"
+            #include "UnityCG.cginc"
 
-			struct appdata
-			{
-				float4 vertex : POSITION;
-				float2 uv : TEXCOORD0;
-			};
+            struct appdata
+            {
+                float4 vertex : POSITION;
+                float2 uv : TEXCOORD0;
+            };
 
-			struct v2f
-			{
-				float2 uv : TEXCOORD0;
-				float4 vertex : SV_POSITION;
-			};
+            struct v2f
+            {
+                float2 uv : TEXCOORD0;
+                float4 vertex : SV_POSITION;
+            };
 
             sampler2D _MainTex;
             sampler2D _CompareTex;
@@ -46,14 +46,14 @@ Shader "GraphicTests/ComparerShader"
             float _CorrectGamma = 0;
 
             float _Split, _ResultSplit, _LineWidth;
-			
-			v2f vert (appdata v)
-			{
-				v2f o;
-				o.vertex = UnityObjectToClipPos(v.vertex);
-				o.uv = v.uv;
-				return o;
-			}
+
+            v2f vert (appdata v)
+            {
+                v2f o;
+                o.vertex = UnityObjectToClipPos(v.vertex);
+                o.uv = v.uv;
+                return o;
+            }
 
             // Folowing color conversion code source : https://github.com/nschloe/colorio
 
@@ -154,9 +154,9 @@ Shader "GraphicTests/ComparerShader"
                     200. * (XYZ2LabFunc(xyz.y / yn) - XYZ2LabFunc(xyz.z / zn))
                 );
             }
-			
-			fixed4 frag (v2f i) : SV_Target
-			{
+
+            fixed4 frag (v2f i) : SV_Target
+            {
                 fixed4 c1 = tex2D(_MainTex, i.uv);
                 float2 uv2 = i.uv;
                 if (_FlipV2 > 0) uv2.y = 1 - uv2.y;
@@ -237,8 +237,8 @@ Shader "GraphicTests/ComparerShader"
                     o.rgb = pow(o.rgb, 0.4545454545);
 
                 return o;
-			}
-			ENDCG
-		}
-	}
+            }
+            ENDCG
+        }
+    }
 }

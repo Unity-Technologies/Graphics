@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -47,7 +47,7 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         public ObservableList()
-            : this(0) { }
+            : this(0) {}
 
         public ObservableList(int capacity)
         {

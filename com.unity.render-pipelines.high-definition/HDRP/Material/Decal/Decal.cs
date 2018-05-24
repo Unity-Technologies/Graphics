@@ -1,4 +1,4 @@
-﻿using UnityEngine.Rendering;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -14,8 +14,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector4 normalWS;
             [SurfaceDataAttributes("Mask", true)]
             public Vector4 mask;
-			[SurfaceDataAttributes("HTileMask")]
-			public uint HTileMask; 
+            [SurfaceDataAttributes("HTileMask")]
+            public uint HTileMask;
         };
 
         [GenerateHLSL(PackingRules.Exact)]
@@ -27,7 +27,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         [GenerateHLSL(PackingRules.Exact)]
         public enum DBufferHTileBit
-        {            
+        {
             Diffuse = 1,
             Normal = 2,
             Mask = 4
@@ -37,17 +37,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // DBuffer management
         //-----------------------------------------------------------------------------
 
-		// should this be combined into common class shared with Lit.cs???
-       static public int GetMaterialDBufferCount() { return (int)DBufferMaterial.Count; }
+        // should this be combined into common class shared with Lit.cs???
+        static public int GetMaterialDBufferCount() { return (int)DBufferMaterial.Count; }
 
-	   static RenderTextureFormat[] m_RTFormat = { RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB32 };
-	   static bool[] m_sRGBFlags= { true, false, false };
+        static RenderTextureFormat[] m_RTFormat = { RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB32 };
+        static bool[] m_sRGBFlags = { true, false, false };
 
-       static public void GetMaterialDBufferDescription(out RenderTextureFormat[] RTFormat, out bool[] sRGBFlags)
-       {
+        static public void GetMaterialDBufferDescription(out RenderTextureFormat[] RTFormat, out bool[] sRGBFlags)
+        {
             RTFormat = m_RTFormat;
             sRGBFlags = m_sRGBFlags;
-       }
+        }
     }
 
     // normalToWorld.m03 - total blend factor

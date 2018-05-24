@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 
@@ -78,26 +78,26 @@ namespace UnityEditor.Experimental.Rendering
 
     // Builtins
     [Serializable, DebugState(typeof(DebugUI.BoolField), typeof(DebugUI.Foldout))]
-    public sealed class DebugStateBool : DebugState<bool> { }
+    public sealed class DebugStateBool : DebugState<bool> {}
 
     [Serializable, DebugState(typeof(DebugUI.IntField), typeof(DebugUI.EnumField))]
-    public sealed class DebugStateInt : DebugState<int> { }
+    public sealed class DebugStateInt : DebugState<int> {}
 
     [Serializable, DebugState(typeof(DebugUI.UIntField))]
-    public sealed class DebugStateUInt : DebugState<uint> { }
+    public sealed class DebugStateUInt : DebugState<uint> {}
 
     [Serializable, DebugState(typeof(DebugUI.FloatField))]
-    public sealed class DebugStateFloat : DebugState<float> { }
+    public sealed class DebugStateFloat : DebugState<float> {}
 
     [Serializable, DebugState(typeof(DebugUI.ColorField))]
-    public sealed class DebugStateColor : DebugState<Color> { }
+    public sealed class DebugStateColor : DebugState<Color> {}
 
     [Serializable, DebugState(typeof(DebugUI.Vector2Field))]
-    public sealed class DebugStateVector2 : DebugState<Vector2> { }
+    public sealed class DebugStateVector2 : DebugState<Vector2> {}
 
     [Serializable, DebugState(typeof(DebugUI.Vector3Field))]
-    public sealed class DebugStateVector3 : DebugState<Vector3> { }
+    public sealed class DebugStateVector3 : DebugState<Vector3> {}
 
     [Serializable, DebugState(typeof(DebugUI.Vector4Field))]
-    public sealed class DebugStateVector4 : DebugState<Vector4> { }
+    public sealed class DebugStateVector4 : DebugState<Vector4> {}
 }

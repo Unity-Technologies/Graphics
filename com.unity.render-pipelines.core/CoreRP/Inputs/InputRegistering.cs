@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace UnityEngine.Experimental
 {
@@ -11,25 +11,24 @@ namespace UnityEngine.Experimental
         public enum Axis { X, Y, Third, Fourth, Fifth, Sixth, Seventh, Eigth }
         public enum Joy { All, First, Second }
 
-        public string	name = "";
-        public string	desc = "";
-        public string	btnNegative = "";
-        public string	btnPositive = "";
-        public string	altBtnNegative = "";
-        public string	altBtnPositive = "";
-        public float	gravity = 0.0f;
-        public float	deadZone = 0.0f;
-        public float	sensitivity = 0.0f;
-        public bool		snap = false;
-        public bool		invert = false;
-        public Kind		kind = Kind.Axis;
-        public Axis		axis = Axis.X;
-        public Joy		joystick = Joy.All;
+        public string   name = "";
+        public string   desc = "";
+        public string   btnNegative = "";
+        public string   btnPositive = "";
+        public string   altBtnNegative = "";
+        public string   altBtnPositive = "";
+        public float    gravity = 0.0f;
+        public float    deadZone = 0.0f;
+        public float    sensitivity = 0.0f;
+        public bool     snap = false;
+        public bool     invert = false;
+        public Kind     kind = Kind.Axis;
+        public Axis     axis = Axis.X;
+        public Joy      joystick = Joy.All;
     }
 
     public class InputRegistering
     {
-
         static bool InputAlreadyRegistered(string name, InputManagerEntry.Kind kind, SerializedProperty spAxes)
         {
             for (var i = 0; i < spAxes.arraySize; ++i)
@@ -76,7 +75,7 @@ namespace UnityEngine.Experimental
             var soInputManager = new SerializedObject(inputManager);
             var spAxes = soInputManager.FindProperty("m_Axes");
 
-            foreach(InputManagerEntry entry in entries)
+            foreach (InputManagerEntry entry in entries)
             {
                 WriteEntry(spAxes, entry);
             }

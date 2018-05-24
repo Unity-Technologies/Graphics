@@ -54,7 +54,7 @@ TEXTURE2D(_GBufferTexture0);
 // Vlayer config options:
 
 #ifdef _VLAYERED_RECOMPUTE_PERLIGHT
-#define VLAYERED_RECOMPUTE_PERLIGHT 
+#define VLAYERED_RECOMPUTE_PERLIGHT
 // Now a shader_features
 // probably too slow but just to check the difference it makes
 #endif
@@ -419,7 +419,7 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     // Specular AA / Filtering.
     bsdfData.perceptualRoughnessA = FilterRoughness(bsdfData.perceptualRoughnessA, bsdfData.geomNormalWS, surfaceData.averageNormalLengthA);
     bsdfData.perceptualRoughnessB = FilterRoughness(bsdfData.perceptualRoughnessB, bsdfData.geomNormalWS, surfaceData.averageNormalLengthB);
-    
+
     bsdfData.lobeMix = surfaceData.lobeMix;
 
     // There is no metallic with SSS and specular color mode
@@ -717,31 +717,31 @@ void ComputeAdding_GetVOrthoGeomN(BSDFData bsdfData, float3 V, bool calledPerLig
 
     if( !calledPerLight && IsCoatNormalMapEnabled(bsdfData) )
     {
-        // In that case, since we have 2 normal maps we need to decide on a common orientation 
+        // In that case, since we have 2 normal maps we need to decide on a common orientation
         // for our parallel interface model, otherwise the series expression doesn't make any
-        // sense. We will settle on using the geometric normal. It will be used for 
+        // sense. We will settle on using the geometric normal. It will be used for
         // average mean propagation but all FGD or Fresnel terms will use the corresponding
-        // interface's normal map's normal for calculation. IBL fetches and lighting 
-        // calculations (shading) for analytical lights should also use these. 
+        // interface's normal map's normal for calculation. IBL fetches and lighting
+        // calculations (shading) for analytical lights should also use these.
         // The rational for the later is that the resulting stats are still a local model, so
-        // all scattered rays should exit back up with the same normal as the ray that spawned 
+        // all scattered rays should exit back up with the same normal as the ray that spawned
         // them had on entry on top. So we assume bending is cancelled out.
         //
-        // Also, since we are using a fake (and adjusted / lerped depending on roughness) 
-        // refraction for the top (coat) interface, and this will be done, like stated, 
-        // using the geometric normal, we will reconstruct a direction for the bottom 
-        // interface using the "V and geomNormalWS" plane as a plane of incidence. So we 
+        // Also, since we are using a fake (and adjusted / lerped depending on roughness)
+        // refraction for the top (coat) interface, and this will be done, like stated,
+        // using the geometric normal, we will reconstruct a direction for the bottom
+        // interface using the "V and geomNormalWS" plane as a plane of incidence. So we
         // calculate a pseudo-refracted angle in this plane, and with an orthogonal basis
-        // of it (2D basis embedded in 3D, ie basis formed by two 3D vectors) 
+        // of it (2D basis embedded in 3D, ie basis formed by two 3D vectors)
         // (using the orthogonal complement of V vs geomNormalWS), we will reconstruct
-        // the "V at the bottom interface". This V will then in turn be usable for further 
-        // FGD / Fresnel calculations with the bottom interface normal (from the bottom 
+        // the "V at the bottom interface". This V will then in turn be usable for further
+        // FGD / Fresnel calculations with the bottom interface normal (from the bottom
         // normal map), which is not necessarily coplanar with V and geomNormalWS, hence
         // this method.
         //
         // In all other cases: we either don't have a dual normal map, or we recompute the
-        // stats per light and in that case, the H vector serves as a common orientation 
-        // and we calculate everything with it anyway (symmetric parametrization), so no 
+        // stats per light and in that case, the H vector serves as a common orientation
+        // and we calculate everything with it anyway (symmetric parametrization), so no
         // normal map is involved.
 
         vOrthoGeomN = GetOrthogonalComponent(V, bsdfData.geomNormalWS);
@@ -930,7 +930,7 @@ void ComputeStatistics(in  float  cti, in float3 V, in float3 vOrthoGeomN, in bo
         // In the special case where we do have a coat normal, we will propagate a different angle than
         // (coatNormalWS dot V) and vOrthoGeomN will be used.
         // vOrthoGeomN is the orthogonal complement of V wrt geomNormalWS.
-        if (useGeomN) 
+        if (useGeomN)
         {
             cti = ClampNdotV(dot(bsdfData.geomNormalWS, V));
         }
@@ -1002,17 +1002,17 @@ void ComputeStatistics(in  float  cti, in float3 V, in float3 vOrthoGeomN, in bo
     {
         float ctiForFGD = cti;
 
-        // If we use the geometric normal propagation hack, we want to calculate FGD / Fresnel with 
+        // If we use the geometric normal propagation hack, we want to calculate FGD / Fresnel with
         // an angle at the bottom interface between the average propagated direction and the normal from
         // the bottom normal map. For that, we will recover a direction from the angle we propagated in
-        // the "V and geomNormalWS" plane of incidence. That direction will then serve to calculate an 
+        // the "V and geomNormalWS" plane of incidence. That direction will then serve to calculate an
         // angle with the non-coplanar bottom normal from the normal map.
         if (useGeomN)
         {
             float3 bottomDir = GetDirFromAngleAndOrthoFrame(vOrthoGeomN, bsdfData.geomNormalWS, cti);
             ctiForFGD = ClampNdotV(dot(bsdfData.normalWS, bottomDir));
         }
-        // We will also save this average bottom angle: 
+        // We will also save this average bottom angle:
         preLightData.bottomAngleFGD = ctiForFGD;
 
         // Update energy
@@ -1085,7 +1085,7 @@ void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightDat
     bool useGeomN;
     float3 vOrthoGeomN; // only valid if useGeomN == true
     ComputeAdding_GetVOrthoGeomN(bsdfData, V, calledPerLight, vOrthoGeomN, useGeomN);
-    
+
     float  cti  = _cti;
     float3 R0i = float3(0.0, 0.0, 0.0), Ri0 = float3(0.0, 0.0, 0.0),
            T0i = float3(1.0, 1.0, 1.0), Ti0 = float3(1.0, 1.0, 1.0);
@@ -1931,9 +1931,9 @@ void BSDF_SetupNormalsAndAngles(BSDFData bsdfData, inout PreLightData preLightDa
 #endif
 
     // preLightData.NdotV is sized with NB_NORMALS, not NDOTLV_SIZE, because the only useful
-    // precalculation that is not per light is NdotV with the coat normal (if it exists) and 
+    // precalculation that is not per light is NdotV with the coat normal (if it exists) and
     // NdotV with the base normal (if coat normal exists), with the same V.
-    // But if VLAYERED_USE_REFRACTED_ANGLES_FOR_BASE is used, V is different at the bottom, 
+    // But if VLAYERED_USE_REFRACTED_ANGLES_FOR_BASE is used, V is different at the bottom,
     // and we will recalculate a refracted (along H) V here, per light, and the resulting base
     // NdotV.
     float unclampedNdotV[NB_NORMALS] = preLightData.NdotV;
@@ -1965,9 +1965,9 @@ void BSDF_SetupNormalsAndAngles(BSDFData bsdfData, inout PreLightData preLightDa
         // NdotH[] is size 2 only if we have two normal maps, but it doesn't change if we refract along
         // H itself, so refracted angles considerations don't matter for it. Still we need to calculate
         // it if we have two normal maps. Note we don't even test _MATERIAL_FEATURE_COAT_NORMALMAP, as
-        // BASE_NORMAL_IDX should alias COAT_NORMAL_IDX if there's no coat normalmap, and this line 
+        // BASE_NORMAL_IDX should alias COAT_NORMAL_IDX if there's no coat normalmap, and this line
         // becomes a nop.
-        // We still reuse the top directions to be able to reuse computations above, regardless of 
+        // We still reuse the top directions to be able to reuse computations above, regardless of
         // refracted angle option since NdotH is invariant to it.
         NdotH[BASE_NORMAL_IDX] = saturate((dot(N[BASE_NORMAL_IDX], L[TOP_DIR_IDX]) + unclampedNdotV[BASE_NORMAL_IDX]) * invLenLV); // Do not clamp NdotV here
 
@@ -1986,10 +1986,10 @@ void BSDF_SetupNormalsAndAngles(BSDFData bsdfData, inout PreLightData preLightDa
 
         // !Updates to PartLambdaV are now needed, will be done later when we consider anisotropy.
 
-        // Note (see p9 eq(39)): if we don't recompute per light, we just reuse the IBL energy terms as the fresnel 
-        // terms for our LdotH, too bad (similar to what we do with iridescence), along with the "wrongly" calculated 
+        // Note (see p9 eq(39)): if we don't recompute per light, we just reuse the IBL energy terms as the fresnel
+        // terms for our LdotH, too bad (similar to what we do with iridescence), along with the "wrongly" calculated
         // energy.
-        // In any case, we should have used FGD terms (except for R12 at the start of the process) for the analytical 
+        // In any case, we should have used FGD terms (except for R12 at the start of the process) for the analytical
         // light case, see comments at the top of ComputeAdding
 #endif //...VLAYERED_RECOMPUTE_PERLIGHT
 
@@ -2012,12 +2012,12 @@ void BSDF_SetupNormalsAndAngles(BSDFData bsdfData, inout PreLightData preLightDa
         // though we don't handle anisotropy correctly either anyway.
         // In both cases we need to work around it.
         //
-        // Using refracted angles for BSDF eval for the base in the case of analytical lights 
-        // must be seen as a hack on top of the ComputeAdding method in which we consider that 
-        // even though the output (energy coefficients) of the method are statistical averages 
-        // over all incoming light directions and so to be used in the context of a split sum 
-        // approximation, the analytical lights have all their energy in a specific ray direction 
-        // and moreover, currently, the output coefficients of the method are formed from straight 
+        // Using refracted angles for BSDF eval for the base in the case of analytical lights
+        // must be seen as a hack on top of the ComputeAdding method in which we consider that
+        // even though the output (energy coefficients) of the method are statistical averages
+        // over all incoming light directions and so to be used in the context of a split sum
+        // approximation, the analytical lights have all their energy in a specific ray direction
+        // and moreover, currently, the output coefficients of the method are formed from straight
         // Fresnel terms, and not FGD terms.
         //
         V[BOTTOM_DIR_IDX] = CoatRefract(V[TOP_DIR_IDX], H, preLightData.coatIeta);
@@ -2035,7 +2035,7 @@ void BSDF_SetupNormalsAndAngles(BSDFData bsdfData, inout PreLightData preLightDa
         if ( IsCoatNormalMapEnabled(bsdfData) )
         {
             // Just to be clean we test the above, but since BASE_NORMAL_IDX should alias COAT_NORMAL_IDX
-            // if we don't have coat normals and no refracted angle to account, this is already computed 
+            // if we don't have coat normals and no refracted angle to account, this is already computed
             // and the compiler would remove this.
             NdotL[DNLV_BASE_IDX] = dot(N[BASE_NORMAL_IDX], L[BOTTOM_DIR_IDX]);
             //NdotH[BASE_NORMAL_IDX] = saturate((NdotL[DNLV_BASE_IDX] + unclampedNdotV[BASE_NORMAL_IDX]) * invLenLV); // Do not clamp NdotV here
@@ -2105,16 +2105,16 @@ void BSDF(float3 inV, float3 inL, float inNdotL, float3 positionWS, PreLightData
 {
     float NdotL[NDOTLV_SIZE];
     float NdotV[NDOTLV_SIZE];
-    // IMPORTANT: use DNLV_COAT_IDX and DNLV_BASE_IDX to index NdotL and NdotV since they can be sized 2 
+    // IMPORTANT: use DNLV_COAT_IDX and DNLV_BASE_IDX to index NdotL and NdotV since they can be sized 2
     // either if we have to deal with refraction or if we use dual normal maps: NB_LV_DIR is for L or V,
-    // while NB_NORMALS is for N, but in the cases of NdotL, NdotV, they will be sized 
+    // while NB_NORMALS is for N, but in the cases of NdotL, NdotV, they will be sized
     // max(NB_LV_DIR, NB_NORMALS)
 
     float3 L[NB_LV_DIR], V[NB_LV_DIR];
     float3 N[NB_NORMALS];
 
-    float savedLdotH; 
-    // ...only one needed: when vlayered, only top needed for input to ComputeAdding and even then, only if we recompute per light, 
+    float savedLdotH;
+    // ...only one needed: when vlayered, only top needed for input to ComputeAdding and even then, only if we recompute per light,
     // otherwise, no vlayered and base one is used for a standard Fresnel calculation.
     float3 H = (float3)0; // might not be needed if no refracted_angles option and no anisotropy...
 
@@ -2123,7 +2123,7 @@ void BSDF(float3 inV, float3 inL, float inNdotL, float3 positionWS, PreLightData
     float3 DV[TOTAL_NB_LOBES]; // BSDF results per lobe
 
     // Note that we're never missing an initialization for the following as the arrays are sized 1 in the cases
-    // we use only the "bottom" parts (which are the same as the top: ie in case we have dual normal maps but no 
+    // we use only the "bottom" parts (which are the same as the top: ie in case we have dual normal maps but no
     // refracted angles to account for).
     L[TOP_DIR_IDX] = inL;
     V[TOP_DIR_IDX] = inV;
@@ -2248,7 +2248,7 @@ float3 EvaluateTransmission(BSDFData bsdfData, float3 transmittance, float NdotL
 
 void EvaluateBSDF_GetNormalUnclampedNdotV(BSDFData bsdfData, PreLightData preLightData, float3 V, out float3 N, out float unclampedNdotV)
 {
-    //TODO: This affects transmission and SSS, choose the normal the use when we have 
+    //TODO: This affects transmission and SSS, choose the normal the use when we have
     // both. For now, just use the base:
     N = bsdfData.normalWS;
     unclampedNdotV = preLightData.NdotV[BASE_NORMAL_IDX];

@@ -34,10 +34,10 @@
 // This can be hidden by offsetting the ray origin with a jitter.
 // Combined with a temporal filtering, the banding artifact will be smoothed.
 // This will trade banding for noise.
-// 
+//
 // This happens when we raymarch with a ray direction that is quite different from the view vector.
 // Exemple when raymarching with a direction perpendicular to the view vector:
-// 
+//
 // Depth buffer  far
 //                |
 //                v
@@ -46,11 +46,11 @@
 //         --------
 //  hit ==>xx
 //         xx
-//           
+//
 //  fail ===>
 //           xx
 //  hit  ===>xx
-//              
+//
 //              xx
 
 
@@ -231,7 +231,7 @@ float3 IntersectCellPlanes(
 float CalculateHitWeight(
     ScreenSpaceRayHit hit,
     float2 startPositionSS,
-    float minLinearDepth, 
+    float minLinearDepth,
     float settingsDepthBufferThickness,
     float settingsRayMaxScreenDistance,
     float settingsRayBlendScreenDistance
@@ -426,7 +426,7 @@ bool ScreenSpaceLinearRaymarch(
         break;
     }
 
-    if (input.debug 
+    if (input.debug
         && _DebugScreenSpaceTracingData[0].tracingModel == -1
         && settingsDebuggedAlgorithm == PROJECTIONMODEL_LINEAR
     )
@@ -513,8 +513,8 @@ bool ScreenSpaceProxyRaycast(
 
 #ifdef DEBUG_DISPLAY
     DebugComputeCommonOutput(input.rayDirWS, hitSuccessful, PROJECTIONMODEL_PROXY, hit);
-    
-    if (input.debug 
+
+    if (input.debug
         && _DebugScreenSpaceTracingData[0].tracingModel == -1
         && settingsDebuggedAlgorithm == PROJECTIONMODEL_PROXY
     )
@@ -535,7 +535,7 @@ bool ScreenSpaceProxyRaycast(
         debug.endPositionSSY        = hitPositionSS.y;
         debug.proxyShapeType        = input.proxyData.influenceShapeType;
         debug.projectionDistance    = projectionDistance;
-        
+
         _DebugScreenSpaceTracingData[0] = debug;
     }
 #endif
@@ -816,7 +816,7 @@ bool ScreenSpaceHiZRaymarch(
         float distanceToBorders = min(min(distancesToBorders.x, distancesToBorders.y), min(distancesToBorders.z, distancesToBorders.w));
         int minLevelForBorders = int(log2(distanceToBorders));
         currentLevel = min(currentLevel, minLevelForBorders);
-        
+
 #ifdef DEBUG_DISPLAY
         // Fetch post iteration debug values
         if (input.debug && _DebugStep >= int(iteration))
@@ -885,7 +885,7 @@ bool ScreenSpaceHiZRaymarch(
         break;
     }
 
-    if (input.debug 
+    if (input.debug
         && _DebugScreenSpaceTracingData[0].tracingModel == -1
         && settingsDebuggedAlgorithm == PROJECTIONMODEL_HI_Z
     )

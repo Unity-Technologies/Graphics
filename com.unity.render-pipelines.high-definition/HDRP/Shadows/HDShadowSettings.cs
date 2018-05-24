@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -10,7 +10,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public float[] cascadeShadowSplits
         {
-            get 
+            get
             {
                 m_CascadeShadowSplits[0] = cascadeShadowSplit0;
                 m_CascadeShadowSplits[1] = cascadeShadowSplit1;
@@ -29,10 +29,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_CascadeShadowBorders[3] = cascadeShadowBorder3;
 
                 // For now we don't use shadow cascade borders but we still want to have the last split fading out.
-                if(!LightLoop.s_UseCascadeBorders)
+                if (!LightLoop.s_UseCascadeBorders)
                 {
                     m_CascadeShadowBorders[cascadeShadowSplitCount - 1] = 0.2f;
-                }                
+                }
                 return m_CascadeShadowBorders;
             }
         }

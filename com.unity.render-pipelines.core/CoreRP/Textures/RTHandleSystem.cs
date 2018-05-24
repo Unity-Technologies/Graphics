@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
@@ -75,7 +75,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public void Release(RTHandle rth)
         {
-            if(rth != null)
+            if (rth != null)
             {
                 Assert.AreEqual(this, rth.m_Owner);
                 rth.Release();
@@ -155,15 +155,15 @@ namespace UnityEngine.Experimental.Rendering
                     rt.height = scaledSize.y;
 
                     rt.name = CoreUtils.GetRenderTargetAutoName(
-                        rt.width,
-                        rt.height,
-                        rt.volumeDepth,
-                        rt.format,
-                        rth.m_Name,
-                        mips: rt.useMipMap,
-                        enableMSAA : enableMSAA,
-                        msaaSamples: m_ScaledRTCurrentMSAASamples
-                    );
+                            rt.width,
+                            rt.height,
+                            rt.volumeDepth,
+                            rt.format,
+                            rth.m_Name,
+                            mips: rt.useMipMap,
+                            enableMSAA: enableMSAA,
+                            msaaSamples: m_ScaledRTCurrentMSAASamples
+                            );
                     rt.Create();
                 }
             }
@@ -229,36 +229,35 @@ namespace UnityEngine.Experimental.Rendering
                     if (category == RTCategory.MSAA)
                         rt.antiAliasing = (int)m_ScaledRTCurrentMSAASamples;
 
-                    rt.name = CoreUtils.GetRenderTargetAutoName(rt.width, rt.height, rt.volumeDepth, rt.format, rth.m_Name, mips: rt.useMipMap, enableMSAA : category == RTCategory.MSAA, msaaSamples: m_ScaledRTCurrentMSAASamples);
+                    rt.name = CoreUtils.GetRenderTargetAutoName(rt.width, rt.height, rt.volumeDepth, rt.format, rth.m_Name, mips: rt.useMipMap, enableMSAA: category == RTCategory.MSAA, msaaSamples: m_ScaledRTCurrentMSAASamples);
                     rt.Create();
                 }
             }
         }
 
-
         // This method wraps around regular RenderTexture creation.
         // There is no specific logic applied to RenderTextures created this way.
         public RTHandle Alloc(
-                int width,
-                int height,
-                int slices = 1,
-                DepthBits depthBufferBits = DepthBits.None,
-                RenderTextureFormat colorFormat = RenderTextureFormat.Default,
-                FilterMode filterMode = FilterMode.Point,
-                TextureWrapMode wrapMode = TextureWrapMode.Repeat,
-                TextureDimension dimension = TextureDimension.Tex2D,
-                bool sRGB = true,
-                bool enableRandomWrite = false,
-                bool useMipMap = false,
-                bool autoGenerateMips = true,
-                int anisoLevel = 1,
-                float mipMapBias = 0f,
-                MSAASamples msaaSamples = MSAASamples.None,
-                bool bindTextureMS = false,
-                bool useDynamicScale = false,
-                VRTextureUsage vrUsage = VRTextureUsage.None,
-                RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
-                string name = ""
+            int width,
+            int height,
+            int slices = 1,
+            DepthBits depthBufferBits = DepthBits.None,
+            RenderTextureFormat colorFormat = RenderTextureFormat.Default,
+            FilterMode filterMode = FilterMode.Point,
+            TextureWrapMode wrapMode = TextureWrapMode.Repeat,
+            TextureDimension dimension = TextureDimension.Tex2D,
+            bool sRGB = true,
+            bool enableRandomWrite = false,
+            bool useMipMap = false,
+            bool autoGenerateMips = true,
+            int anisoLevel = 1,
+            float mipMapBias = 0f,
+            MSAASamples msaaSamples = MSAASamples.None,
+            bool bindTextureMS = false,
+            bool useDynamicScale = false,
+            VRTextureUsage vrUsage = VRTextureUsage.None,
+            RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
+            string name = ""
             )
         {
             bool enableMSAA = msaaSamples != MSAASamples.None;
@@ -302,31 +301,30 @@ namespace UnityEngine.Experimental.Rendering
             return newRT;
         }
 
-
         // Next two methods are used to allocate RenderTexture that depend on the frame settings (resolution and msaa for now)
         // RenderTextures allocated this way are meant to be defined by a scale of camera resolution (full/half/quarter resolution for example).
         // The idea is that internally the system will scale up the size of all render texture so that it amortizes with time and not reallocate when a smaller size is required (which is what happens with TemporaryRTs).
         // Since MSAA cannot be changed on the fly for a given RenderTexture, a separate instance will be created if the user requires it. This instance will be the one used after the next call of SetReferenceSize if MSAA is required.
         public RTHandle Alloc(
-                Vector2 scaleFactor,
-                int slices = 1,
-                DepthBits depthBufferBits = DepthBits.None,
-                RenderTextureFormat colorFormat = RenderTextureFormat.Default,
-                FilterMode filterMode = FilterMode.Point,
-                TextureWrapMode wrapMode = TextureWrapMode.Repeat,
-                TextureDimension dimension = TextureDimension.Tex2D,
-                bool sRGB = true,
-                bool enableRandomWrite = false,
-                bool useMipMap = false,
-                bool autoGenerateMips = true,
-                int anisoLevel = 1,
-                float mipMapBias = 0f,
-                bool enableMSAA = false,
-                bool bindTextureMS = false,
-                bool useDynamicScale = false,
-                VRTextureUsage vrUsage = VRTextureUsage.None,
-                RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
-                string name = ""
+            Vector2 scaleFactor,
+            int slices = 1,
+            DepthBits depthBufferBits = DepthBits.None,
+            RenderTextureFormat colorFormat = RenderTextureFormat.Default,
+            FilterMode filterMode = FilterMode.Point,
+            TextureWrapMode wrapMode = TextureWrapMode.Repeat,
+            TextureDimension dimension = TextureDimension.Tex2D,
+            bool sRGB = true,
+            bool enableRandomWrite = false,
+            bool useMipMap = false,
+            bool autoGenerateMips = true,
+            int anisoLevel = 1,
+            float mipMapBias = 0f,
+            bool enableMSAA = false,
+            bool bindTextureMS = false,
+            bool useDynamicScale = false,
+            VRTextureUsage vrUsage = VRTextureUsage.None,
+            RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
+            string name = ""
             )
         {
             bool allocForMSAA = m_ScaledRTSupportsMSAA ? enableMSAA : false;
@@ -336,26 +334,26 @@ namespace UnityEngine.Experimental.Rendering
             int height = Mathf.Max(Mathf.RoundToInt(scaleFactor.y * GetMaxHeight(category)), 1);
 
             var rth = AllocAutoSizedRenderTexture(width,
-                height,
-                slices,
-                depthBufferBits,
-                colorFormat,
-                filterMode,
-                wrapMode,
-                dimension,
-                sRGB,
-                enableRandomWrite,
-                useMipMap,
-                autoGenerateMips,
-                anisoLevel,
-                mipMapBias,
-                enableMSAA,
-                bindTextureMS,
-                useDynamicScale,
-                vrUsage,
-                memoryless,
-                name
-            );
+                    height,
+                    slices,
+                    depthBufferBits,
+                    colorFormat,
+                    filterMode,
+                    wrapMode,
+                    dimension,
+                    sRGB,
+                    enableRandomWrite,
+                    useMipMap,
+                    autoGenerateMips,
+                    anisoLevel,
+                    mipMapBias,
+                    enableMSAA,
+                    bindTextureMS,
+                    useDynamicScale,
+                    vrUsage,
+                    memoryless,
+                    name
+                    );
 
             rth.referenceSize = new Vector2Int(width, height);
 
@@ -374,25 +372,25 @@ namespace UnityEngine.Experimental.Rendering
         // );
         //
         public RTHandle Alloc(
-                ScaleFunc scaleFunc,
-                int slices = 1,
-                DepthBits depthBufferBits = DepthBits.None,
-                RenderTextureFormat colorFormat = RenderTextureFormat.Default,
-                FilterMode filterMode = FilterMode.Point,
-                TextureWrapMode wrapMode = TextureWrapMode.Repeat,
-                TextureDimension dimension = TextureDimension.Tex2D,
-                bool sRGB = true,
-                bool enableRandomWrite = false,
-                bool useMipMap = false,
-                bool autoGenerateMips = true,
-                int anisoLevel = 1,
-                float mipMapBias = 0f,
-                bool enableMSAA = false,
-                bool bindTextureMS = false,
-                bool useDynamicScale = false,
-                VRTextureUsage vrUsage = VRTextureUsage.None,
-                RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
-                string name = ""
+            ScaleFunc scaleFunc,
+            int slices = 1,
+            DepthBits depthBufferBits = DepthBits.None,
+            RenderTextureFormat colorFormat = RenderTextureFormat.Default,
+            FilterMode filterMode = FilterMode.Point,
+            TextureWrapMode wrapMode = TextureWrapMode.Repeat,
+            TextureDimension dimension = TextureDimension.Tex2D,
+            bool sRGB = true,
+            bool enableRandomWrite = false,
+            bool useMipMap = false,
+            bool autoGenerateMips = true,
+            int anisoLevel = 1,
+            float mipMapBias = 0f,
+            bool enableMSAA = false,
+            bool bindTextureMS = false,
+            bool useDynamicScale = false,
+            VRTextureUsage vrUsage = VRTextureUsage.None,
+            RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
+            string name = ""
             )
         {
             bool allocForMSAA = m_ScaledRTSupportsMSAA ? enableMSAA : false;
@@ -403,26 +401,26 @@ namespace UnityEngine.Experimental.Rendering
             int height = Mathf.Max(scaleFactor.y, 1);
 
             var rth = AllocAutoSizedRenderTexture(width,
-                height,
-                slices,
-                depthBufferBits,
-                colorFormat,
-                filterMode,
-                wrapMode,
-                dimension,
-                sRGB,
-                enableRandomWrite,
-                useMipMap,
-                autoGenerateMips,
-                anisoLevel,
-                mipMapBias,
-                enableMSAA,
-                bindTextureMS,
-                useDynamicScale,
-                vrUsage,
-                memoryless,
-                name
-            );
+                    height,
+                    slices,
+                    depthBufferBits,
+                    colorFormat,
+                    filterMode,
+                    wrapMode,
+                    dimension,
+                    sRGB,
+                    enableRandomWrite,
+                    useMipMap,
+                    autoGenerateMips,
+                    anisoLevel,
+                    mipMapBias,
+                    enableMSAA,
+                    bindTextureMS,
+                    useDynamicScale,
+                    vrUsage,
+                    memoryless,
+                    name
+                    );
 
             rth.referenceSize = new Vector2Int(width, height);
 
@@ -432,26 +430,26 @@ namespace UnityEngine.Experimental.Rendering
 
         // Internal function
         RTHandle AllocAutoSizedRenderTexture(
-                int width,
-                int height,
-                int slices,
-                DepthBits depthBufferBits,
-                RenderTextureFormat colorFormat,
-                FilterMode filterMode,
-                TextureWrapMode wrapMode,
-                TextureDimension dimension,
-                bool sRGB,
-                bool enableRandomWrite,
-                bool useMipMap,
-                bool autoGenerateMips,
-                int anisoLevel,
-                float mipMapBias,
-                bool enableMSAA,
-                bool bindTextureMS,
-                bool useDynamicScale,
-                VRTextureUsage vrUsage,
-                RenderTextureMemoryless memoryless,
-                string name
+            int width,
+            int height,
+            int slices,
+            DepthBits depthBufferBits,
+            RenderTextureFormat colorFormat,
+            FilterMode filterMode,
+            TextureWrapMode wrapMode,
+            TextureDimension dimension,
+            bool sRGB,
+            bool enableRandomWrite,
+            bool useMipMap,
+            bool autoGenerateMips,
+            int anisoLevel,
+            float mipMapBias,
+            bool enableMSAA,
+            bool bindTextureMS,
+            bool useDynamicScale,
+            VRTextureUsage vrUsage,
+            RenderTextureMemoryless memoryless,
+            string name
             )
         {
             // Here user made a mistake in setting up msaa/bindMS, hence the warning
@@ -496,7 +494,7 @@ namespace UnityEngine.Experimental.Rendering
                 useDynamicScale = useDynamicScale,
                 vrUsage = vrUsage,
                 memorylessMode = memoryless,
-                name = CoreUtils.GetRenderTargetAutoName(width, height, slices, colorFormat, name, mips : useMipMap, enableMSAA: allocForMSAA, msaaSamples : m_ScaledRTCurrentMSAASamples)
+                name = CoreUtils.GetRenderTargetAutoName(width, height, slices, colorFormat, name, mips: useMipMap, enableMSAA: allocForMSAA, msaaSamples: m_ScaledRTCurrentMSAASamples)
             };
             rt.Create();
 
@@ -518,7 +516,7 @@ namespace UnityEngine.Experimental.Rendering
             for (int i = 0, c = m_AutoSizedRTsArray.Length; i < c; ++i)
             {
                 var rt = m_AutoSizedRTsArray[i].rt;
-                result = string.Format("{0}\nRT ({1})\t Format: {2} W: {3} H {4}\n", result, i, rt.format, rt.width, rt.height );
+                result = string.Format("{0}\nRT ({1})\t Format: {2} W: {3} H {4}\n", result, i, rt.format, rt.width, rt.height);
             }
 
             return result;

@@ -123,7 +123,7 @@ namespace UnityEngine.Experimental
         }
 
         // Add obj and reallocate if necessary. Returns the index where the object was added.
-        public uint Add( T obj )
+        public uint Add(T obj)
         {
             Reserve(1);
             uint idx = m_count;
@@ -146,26 +146,26 @@ namespace UnityEngine.Experimental
         }
 
         // Adds the object if it does not exist in the container, yet
-        public uint AddUnique( T obj )
+        public uint AddUnique(T obj)
         {
-            Reserve( 1 );
-            return AddUniqueUnchecked( obj );
+            Reserve(1);
+            return AddUniqueUnchecked(obj);
         }
 
-        public uint AddUnique( T[] objs, uint count )
+        public uint AddUnique(T[] objs, uint count)
         {
-            Reserve( count );
-            return AddUniqueUnchecked( objs, count );
+            Reserve(count);
+            return AddUniqueUnchecked(objs, count);
         }
 
-        public uint AddUnique( ref VectorArray<T> vec )
+        public uint AddUnique(ref VectorArray<T> vec)
         {
-            Reserve( vec.Count() );
-            return AddUniqueUnchecked( ref vec );
+            Reserve(vec.Count());
+            return AddUniqueUnchecked(ref vec);
         }
 
         // Add an object without doing size checks. Make sure to call Reserve( capacity ) before using this.
-        public uint AddUnchecked( T obj )
+        public uint AddUnchecked(T obj)
         {
             uint idx = m_count;
             this[idx] = obj;
@@ -192,35 +192,34 @@ namespace UnityEngine.Experimental
         }
 
         // Adds the object if it does not exist in the container, yet
-        public uint AddUniqueUnchecked( T obj )
+        public uint AddUniqueUnchecked(T obj)
         {
-            if( !Contains( obj ) )
-                return Add( obj );
+            if (!Contains(obj))
+                return Add(obj);
             return k_InvalidIdx;
         }
 
-        public uint AddUniqueUnchecked( T[] objs, uint count )
+        public uint AddUniqueUnchecked(T[] objs, uint count)
         {
             uint res = k_InvalidIdx;
-            for( uint i = 0; i < count; ++i )
+            for (uint i = 0; i < count; ++i)
             {
-                uint tmp = AddUniqueUnchecked( objs[i] );
+                uint tmp = AddUniqueUnchecked(objs[i]);
                 res = res <= tmp ? res : tmp;
             }
             return res;
         }
 
-        public uint AddUniqueUnchecked( ref VectorArray<T> vec )
+        public uint AddUniqueUnchecked(ref VectorArray<T> vec)
         {
             uint res = k_InvalidIdx;
-            for( uint i = 0, cnt = vec.Count(); i < cnt; ++i )
+            for (uint i = 0, cnt = vec.Count(); i < cnt; ++i)
             {
-                uint tmp = AddUniqueUnchecked( vec[i] );
+                uint tmp = AddUniqueUnchecked(vec[i]);
                 res = res <= tmp ? res : tmp;
             }
             return res;
         }
-
 
         // Purge count number of elements from the end of the array.
         public void Purge(uint count)
@@ -324,7 +323,6 @@ namespace UnityEngine.Experimental
         // Sort according to some comparer
         public void Sort(System.Collections.Generic.IComparer<T> comparer)
         {
-
             Debug.Assert(m_count <= int.MaxValue && m_offset <= int.MaxValue);
             Array.Sort(m_array, (int)m_offset, (int)m_count, comparer);
         }
@@ -353,18 +351,21 @@ namespace UnityEngine.Experimental
             idx = k_InvalidIdx;
             return false;
         }
+
         // Returns true if the container already contains the element
-        public bool Contains( T designator )
+        public bool Contains(T designator)
         {
             uint idx;
-            return FindFirst( out idx, ref designator );
+            return FindFirst(out idx, ref designator);
         }
+
         // Returns true if the container already contains the element
-        public bool Contains<U>( U designator, Comparator<U> compareDelegate )
+        public bool Contains<U>(U designator, Comparator<U> compareDelegate)
         {
             uint idx;
-            return FindFirst( out idx, ref designator, compareDelegate );
+            return FindFirst(out idx, ref designator, compareDelegate);
         }
+
         // Returns a vector representing a subrange. Contents are shared, not duplicated.
         public VectorArray<T> Subrange(uint offset, uint count)
         {

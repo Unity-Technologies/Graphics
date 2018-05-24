@@ -81,7 +81,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 m_DielectricMaterial.type = (DielectricMaterialType)evt.newValue;
                 m_PropertyInfo.SetValue(m_Node, m_DielectricMaterial, null);
 
-                switch(m_DielectricMaterial.type)
+                switch (m_DielectricMaterial.type)
                 {
                     case DielectricMaterialType.Common:
                         m_RangePanel.SetEnabled(true);
@@ -104,7 +104,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             m_Node.owner.owner.RegisterCompleteObjectUndo("Slider Change");
             m_DielectricMaterial.range = newValue;
             m_PropertyInfo.SetValue(m_Node, m_DielectricMaterial, null);
-            if(m_RangeField != null)
+            if (m_RangeField != null)
                 m_RangeField.value = newValue;
             this.MarkDirtyRepaint();
         }
@@ -114,7 +114,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             m_Node.owner.owner.RegisterCompleteObjectUndo("Slider Change");
             m_DielectricMaterial.indexOfRefraction = newValue;
             m_PropertyInfo.SetValue(m_Node, m_DielectricMaterial, null);
-            if(m_IORField != null)
+            if (m_IORField != null)
                 m_IORField.value = newValue;
             this.MarkDirtyRepaint();
         }
@@ -122,7 +122,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         FloatField AddField(VisualElement panel, Slider slider, int index, DielectricSpecularNode.DielectricMaterial initMaterial)
         {
             float initValue;
-            if(index == 1)
+            if (index == 1)
                 initValue = initMaterial.indexOfRefraction;
             else
                 initValue = initMaterial.range;
@@ -135,7 +135,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 {
                     var value = (DielectricSpecularNode.DielectricMaterial)m_PropertyInfo.GetValue(m_Node, null);
                     var fieldValue = (float)evt.newValue;
-                    if(index == 1)
+                    if (index == 1)
                     {
                         value.indexOfRefraction = fieldValue;
                         RedrawIORControls(fieldValue);
@@ -160,7 +160,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                     if (!float.TryParse(evt.newData, out newValue))
                         newValue = 0f;
                     var value = (DielectricSpecularNode.DielectricMaterial)m_PropertyInfo.GetValue(m_Node, null);
-                    if(index == 1)
+                    if (index == 1)
                         value.indexOfRefraction = newValue;
                     else
                         value.range = newValue;
@@ -174,7 +174,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                         Undo.RevertAllDownToGroup(m_UndoGroup);
                         m_UndoGroup = -1;
                         var value = (DielectricSpecularNode.DielectricMaterial)m_PropertyInfo.GetValue(m_Node, null);
-                        if(index == 1)
+                        if (index == 1)
                             RedrawIORControls(value.indexOfRefraction);
                         else
                             RedrawRangeControls(value.range);

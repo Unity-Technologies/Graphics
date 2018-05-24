@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using UnityEditor.Experimental.Rendering.HDPipeline;
 using UnityEditorInternal;
@@ -31,64 +31,64 @@ namespace UnityEditor.Experimental.Rendering
 
         public static readonly CED.IDrawer SectionPrimarySettings = CED.Group(
 
-            CED.Action(Drawer_ReflectionProbeMode),
-            CED.FadeGroup((s, p, o, i) => s.IsSectionExpandedMode((ReflectionProbeMode)i),
-                FadeOption.Indent,
-                CED.noop,                                      // Baked
-                CED.Action(Drawer_ModeSettingsRealtime),      // Realtime
-                CED.Action(Drawer_ModeSettingsCustom)         // Custom
-            ),
-            CED.space,
-            CED.Action(Drawer_InfluenceShape),
-            //CED.Action(Drawer_IntensityMultiplier),
-            CED.space,
-            CED.Action(Drawer_Toolbar),
-            CED.space,
-            CED.Action((s, d, o) => EditorGUILayout.PropertyField(d.proxyVolumeComponent, _.GetContent("Proxy Volume")))
-        );
+                CED.Action(Drawer_ReflectionProbeMode),
+                CED.FadeGroup((s, p, o, i) => s.IsSectionExpandedMode((ReflectionProbeMode)i),
+                    FadeOption.Indent,
+                    CED.noop,                                  // Baked
+                    CED.Action(Drawer_ModeSettingsRealtime),  // Realtime
+                    CED.Action(Drawer_ModeSettingsCustom)     // Custom
+                    ),
+                CED.space,
+                CED.Action(Drawer_InfluenceShape),
+                //CED.Action(Drawer_IntensityMultiplier),
+                CED.space,
+                CED.Action(Drawer_Toolbar),
+                CED.space,
+                CED.Action((s, d, o) => EditorGUILayout.PropertyField(d.proxyVolumeComponent, _.GetContent("Proxy Volume")))
+                );
 
         public static readonly CED.IDrawer SectionInfluenceVolumeSettings = CED.FoldoutGroup(
-            "Influence volume settings",
-            (s, p, o) => s.isSectionExpandedInfluenceVolume,
-            FoldoutOption.Indent,
-            CED.FadeGroup(
-                (s, p, o, i) => s.IsSectionExpandedShape((ShapeType)i),
-                FadeOption.None,
-                CED.Action(Drawer_InfluenceBoxSettings),      // Box
-                CED.Action(Drawer_InfluenceSphereSettings)    // Sphere
-            )/*,
-            CED.Action(Drawer_UseSeparateProjectionVolume)*/
-        );
-
-        public static readonly CED.IDrawer SectionSeparateProjectionVolumeSettings = CED.FadeGroup(
-            (s, p, o, i) => s.isSectionExpandedSeparateProjection,
-            FadeOption.None,
-            CED.FoldoutGroup(
-                "Reprojection volume settings",
-                (s, p, o) => s.isSectionExpandedSeparateProjection,
+                "Influence volume settings",
+                (s, p, o) => s.isSectionExpandedInfluenceVolume,
                 FoldoutOption.Indent,
                 CED.FadeGroup(
                     (s, p, o, i) => s.IsSectionExpandedShape((ShapeType)i),
                     FadeOption.None,
-                    CED.Action(Drawer_ProjectionBoxSettings), // Box
-                    CED.Action(Drawer_ProjectionSphereSettings) // Sphere
-                )
-            )
-        );
+                    CED.Action(Drawer_InfluenceBoxSettings),  // Box
+                    CED.Action(Drawer_InfluenceSphereSettings) // Sphere
+                    )/*,
+            CED.Action(Drawer_UseSeparateProjectionVolume)*/
+                );
+
+        public static readonly CED.IDrawer SectionSeparateProjectionVolumeSettings = CED.FadeGroup(
+                (s, p, o, i) => s.isSectionExpandedSeparateProjection,
+                FadeOption.None,
+                CED.FoldoutGroup(
+                    "Reprojection volume settings",
+                    (s, p, o) => s.isSectionExpandedSeparateProjection,
+                    FoldoutOption.Indent,
+                    CED.FadeGroup(
+                        (s, p, o, i) => s.IsSectionExpandedShape((ShapeType)i),
+                        FadeOption.None,
+                        CED.Action(Drawer_ProjectionBoxSettings), // Box
+                        CED.Action(Drawer_ProjectionSphereSettings) // Sphere
+                        )
+                    )
+                );
 
         public static readonly CED.IDrawer SectionCaptureSettings = CED.FoldoutGroup(
-            "Capture settings",
-            (s, p, o) => s.isSectionExpandedCaptureSettings,
-            FoldoutOption.Indent,
-            CED.Action(Drawer_CaptureSettings)
-        );
+                "Capture settings",
+                (s, p, o) => s.isSectionExpandedCaptureSettings,
+                FoldoutOption.Indent,
+                CED.Action(Drawer_CaptureSettings)
+                );
 
         public static readonly CED.IDrawer SectionAdditionalSettings = CED.FoldoutGroup(
-            "Additional settings",
-            (s, p, o) => s.isSectionExpandedAdditional,
-            FoldoutOption.Indent,
-            CED.Action(Drawer_AdditionalSettings)
-        );
+                "Additional settings",
+                (s, p, o) => s.isSectionExpandedAdditional,
+                FoldoutOption.Indent,
+                CED.Action(Drawer_AdditionalSettings)
+                );
 
         public static readonly CED.IDrawer ButtonBake = CED.Action(Drawer_BakeActions);
 
@@ -196,6 +196,7 @@ namespace UnityEditor.Experimental.Rendering
 
             EditorGUILayout.PropertyField(p.boxProjection, CoreEditorUtils.GetContent("Sphere Projection|Sphere projection causes reflections to appear to change based on the object's position within the probe's sphere, while still using a single probe as the source of the reflection. This works well for reflections on objects that are moving through enclosed spaces such as corridors and rooms. Setting sphere projection to False and the cubemap reflection will be treated as coming from infinitely far away. Note that this feature can be globally disabled from Graphics Settings -> Tier Settings"));
         }
+
         #endregion
 
         #region Projection Volume
@@ -215,6 +216,7 @@ namespace UnityEditor.Experimental.Rendering
         {
             EditorGUILayout.PropertyField(p.sphereReprojectionVolumeRadius);
         }
+
         #endregion
 
         #region Field Drawers
@@ -251,7 +253,7 @@ namespace UnityEditor.Experimental.Rendering
                         "Proxy volume and influence volume have different shape types, this is not supported.",
                         MessageType.Error,
                         true
-                    );
+                        );
             }
         }
 
@@ -259,6 +261,7 @@ namespace UnityEditor.Experimental.Rendering
         {
             EditorGUILayout.PropertyField(p.intensityMultiplier, CoreEditorUtils.GetContent("Intensity"));
         }
+
         #endregion
 
         #region Toolbar
@@ -316,16 +319,16 @@ namespace UnityEditor.Experimental.Rendering
         static Func<Bounds> GetBoundsGetter(SerializedHDReflectionProbe p)
         {
             return () =>
-            {
-                var bounds = new Bounds();
-                foreach (var targetObject in p.so.targetObjects)
                 {
-                    var rp = (ReflectionProbe)targetObject;
-                    var b = rp.bounds;
-                    bounds.Encapsulate(b);
-                }
-                return bounds;
-            };
+                    var bounds = new Bounds();
+                    foreach (var targetObject in p.so.targetObjects)
+                    {
+                        var rp = (ReflectionProbe)targetObject;
+                        var b = rp.bounds;
+                        bounds.Encapsulate(b);
+                    }
+                    return bounds;
+                };
         }
 
         static readonly KeyCode[] k_ShortCutKeys =
@@ -353,6 +356,7 @@ namespace UnityEditor.Experimental.Rendering
                 }
             }
         }
+
         #endregion
 
         #region Mode Specific Settings
@@ -373,6 +377,7 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUILayout.PropertyField(p.refreshMode, CoreEditorUtils.GetContent("Refresh Mode|Controls how this probe refreshes in the Player"));
             EditorGUILayout.PropertyField(p.timeSlicingMode, CoreEditorUtils.GetContent("Time Slicing|If enabled this probe will update over several frames, to help reduce the impact on the frame rate"));
         }
+
         #endregion
 
         static MethodInfo k_EditorGUI_ButtonWithDropdownList = typeof(EditorGUI).GetMethod("ButtonWithDropdownList", BindingFlags.Static | BindingFlags.NonPublic, null, CallingConventions.Any, new[] { typeof(GUIContent), typeof(string[]), typeof(GenericMenu.MenuFunction2), typeof(GUILayoutOption[]) }, new ParameterModifier[0]);

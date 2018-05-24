@@ -50,11 +50,11 @@ namespace UnityEditor.Experimental.Rendering
 
             // Look for all the valid parameter drawers
             var types = CoreUtils.GetAllAssemblyTypes()
-                            .Where(
-                                t => t.IsSubclassOf(typeof(VolumeParameterDrawer))
-                                  && t.IsDefined(typeof(VolumeParameterDrawerAttribute), false)
-                                  && !t.IsAbstract
-                            );
+                .Where(
+                    t => t.IsSubclassOf(typeof(VolumeParameterDrawer))
+                    && t.IsDefined(typeof(VolumeParameterDrawerAttribute), false)
+                    && !t.IsAbstract
+                    );
 
             // Store them
             foreach (var type in types)
@@ -90,7 +90,7 @@ namespace UnityEditor.Experimental.Rendering
                 .Where(t =>
                     (t.IsPublic && t.GetCustomAttributes(typeof(NonSerializedAttribute), false).Length == 0) ||
                     (t.GetCustomAttributes(typeof(SerializeField), false).Length > 0)
-                )
+                    )
                 .Where(t => t.GetCustomAttributes(typeof(HideInInspector), false).Length == 0)
                 .ToList();
 

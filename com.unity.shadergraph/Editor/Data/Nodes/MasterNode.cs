@@ -75,17 +75,17 @@ namespace UnityEditor.ShaderGraph
 
             var finalShader = new ShaderStringBuilder();
             finalShader.AppendLine(@"Shader ""{0}""", outputName);
-            using(finalShader.BlockScope())
+            using (finalShader.BlockScope())
             {
                 finalShader.AppendLine("Properties");
-                using(finalShader.BlockScope())
+                using (finalShader.BlockScope())
                 {
                     finalShader.AppendLine(shaderProperties.GetPropertiesBlock(0));
                 }
 
                 foreach (var subShader in m_SubShaders)
                     finalShader.AppendLines(subShader.GetSubshader(this, mode));
-                
+
                 finalShader.AppendLine(@"FallBack ""Hidden/InternalErrorShader""");
             }
             configuredTextures = shaderProperties.GetConfiguredTexutres();
@@ -109,7 +109,6 @@ namespace UnityEditor.ShaderGraph
             m_SubShaders.RemoveAll(x => x == null);
             m_SerializableSubShaders = null;
             base.OnAfterDeserialize();
-
         }
 
         public override void UpdateNodeAfterDeserialization()

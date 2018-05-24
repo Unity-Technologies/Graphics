@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -51,7 +51,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector3 boxInfluenceSizeOffset { get { return -(boxInfluencePositiveFade + boxInfluenceNegativeFade); } }
         public Vector3 boxInfluenceNormalOffset { get { return (boxInfluenceNormalNegativeFade - boxInfluenceNormalPositiveFade) * 0.5f; } }
         public Vector3 boxInfluenceNormalSizeOffset { get { return -(boxInfluenceNormalPositiveFade + boxInfluenceNormalNegativeFade); } }
-
 
 
         public float sphereBaseRadius { get { return m_SphereBaseRadius; } set { m_SphereBaseRadius = value; } }

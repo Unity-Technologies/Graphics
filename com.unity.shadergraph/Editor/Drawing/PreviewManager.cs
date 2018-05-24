@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -165,7 +165,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 }
             }
         }
-
 
         public void HandleGraphChanges()
         {
@@ -349,7 +348,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var masterNode = node as IMasterNode;
                     if (masterNode != null)
                         masterNodes.Add(node);
-                    else if(node.previewMode == PreviewMode.Wireframe)
+                    else if (node.previewMode == PreviewMode.Wireframe)
                         wireframeNodes.Add(node);
                     else
                         colorNodes.Add(node);

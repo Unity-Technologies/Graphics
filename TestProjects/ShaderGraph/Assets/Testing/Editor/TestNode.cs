@@ -1,7 +1,6 @@
-﻿namespace UnityEditor.ShaderGraph
+namespace UnityEditor.ShaderGraph
 {
     public class TestNode : AbstractMaterialNode
     {
-
     }
 }

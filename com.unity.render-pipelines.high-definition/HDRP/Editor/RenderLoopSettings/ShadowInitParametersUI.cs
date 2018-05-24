@@ -1,4 +1,4 @@
-﻿using UnityEditor.AnimatedValues;
+using UnityEditor.AnimatedValues;
 using UnityEngine.Events;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
@@ -14,7 +14,6 @@ namespace UnityEditor.Experimental.Rendering
         public ShadowInitParametersUI()
             : base(0)
         {
-            
         }
 
         static void Drawer_FieldShadowSize(ShadowInitParametersUI s, SerializedShadowInitParameters d, Editor o)

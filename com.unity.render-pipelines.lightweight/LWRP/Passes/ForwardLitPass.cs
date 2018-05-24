@@ -346,7 +346,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 SetRenderTarget(cmd, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None, Color.black);
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
-                
+
                 var drawSettings = CreateDrawRendererSettings(camera, SortFlags.CommonTransparent, rendererConfiguration, dynamicBatching);
                 context.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, renderer.transparentFilterSettings);
 

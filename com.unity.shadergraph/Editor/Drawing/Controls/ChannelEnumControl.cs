@@ -79,9 +79,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         {
             int channelCount = SlotValueHelper.GetChannelCount(m_Node.FindSlot<MaterialSlot>(m_SlotId).concreteValueType);
 
-            if(m_PopupField != null)
+            if (m_PopupField != null)
             {
-                if(channelCount == m_PreviousChannelCount)
+                if (channelCount == m_PreviousChannelCount)
                     return;
 
                 Remove(m_PopupField);
@@ -93,7 +93,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
                 popupEntries.Add(m_ValueNames[i]);
 
             var value = (int)m_PropertyInfo.GetValue(m_Node, null);
-            if(value >= channelCount)
+            if (value >= channelCount)
                 value = 0;
 
             m_PopupField = new PopupField<string>(popupEntries, value);

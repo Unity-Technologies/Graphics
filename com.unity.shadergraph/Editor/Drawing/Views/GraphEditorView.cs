@@ -80,20 +80,20 @@ namespace UnityEditor.ShaderGraph.Drawing
             previewManager.RenderPreviews();
 
             var toolbar = new IMGUIContainer(() =>
-            {
-                GUILayout.BeginHorizontal(EditorStyles.toolbar);
-                if (GUILayout.Button("Save Asset", EditorStyles.toolbarButton))
                 {
-                    if (saveRequested != null)
-                        saveRequested();
-                }
-                GUILayout.Space(6);
-                if (GUILayout.Button("Show In Project", EditorStyles.toolbarButton))
-                {
-                    if (showInProjectRequested != null)
-                        showInProjectRequested();
-                }
-            });
+                    GUILayout.BeginHorizontal(EditorStyles.toolbar);
+                    if (GUILayout.Button("Save Asset", EditorStyles.toolbarButton))
+                    {
+                        if (saveRequested != null)
+                            saveRequested();
+                    }
+                    GUILayout.Space(6);
+                    if (GUILayout.Button("Show In Project", EditorStyles.toolbarButton))
+                    {
+                        if (showInProjectRequested != null)
+                            showInProjectRequested();
+                    }
+                });
             Add(toolbar);
 
             var content = new VisualElement { name = "content" };
@@ -134,10 +134,10 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_SearchWindowProvider = ScriptableObject.CreateInstance<SearchWindowProvider>();
             m_SearchWindowProvider.Initialize(editorWindow, m_Graph, m_GraphView);
             m_GraphView.nodeCreationRequest = (c) =>
-            {
-                m_SearchWindowProvider.connectedPort = null;
-                SearchWindow.Open(new SearchWindowContext(c.screenMousePosition), m_SearchWindowProvider);
-            };
+                {
+                    m_SearchWindowProvider.connectedPort = null;
+                    SearchWindow.Open(new SearchWindowContext(c.screenMousePosition), m_SearchWindowProvider);
+                };
 
             m_EdgeConnectorListener = new EdgeConnectorListener(m_Graph, m_SearchWindowProvider);
 
@@ -152,7 +152,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnSpaceDown(KeyDownEvent evt)
         {
-            if(evt.keyCode == KeyCode.Space && !evt.shiftKey && !evt.altKey && !evt.ctrlKey && !evt.commandKey)
+            if (evt.keyCode == KeyCode.Space && !evt.shiftKey && !evt.altKey && !evt.ctrlKey && !evt.commandKey)
             {
                 if (graphView.nodeCreationRequest == null)
                     return;
@@ -168,7 +168,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (m_GraphView.selection.OfType<MaterialNodeView>().Count() == 1)
                 {
                     var nodeView = (MaterialNodeView)graphView.selection.First();
-                    if(nodeView.node.documentationURL != null)
+                    if (nodeView.node.documentationURL != null)
                         System.Diagnostics.Process.Start(nodeView.node.documentationURL);
                 }
             }
@@ -211,8 +211,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (graphViewChange.elementsToRemove != null)
             {
                 m_Graph.owner.RegisterCompleteObjectUndo("Remove Elements");
-                m_Graph.RemoveElements(graphViewChange.elementsToRemove.OfType<MaterialNodeView>().Select(v => (INode) v.node),
-                    graphViewChange.elementsToRemove.OfType<Edge>().Select(e => (IEdge) e.userData));
+                m_Graph.RemoveElements(graphViewChange.elementsToRemove.OfType<MaterialNodeView>().Select(v => (INode)v.node),
+                    graphViewChange.elementsToRemove.OfType<Edge>().Select(e => (IEdge)e.userData));
                 foreach (var edge in graphViewChange.elementsToRemove.OfType<Edge>())
                 {
                     if (edge.input != null)

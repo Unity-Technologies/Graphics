@@ -26,7 +26,6 @@ namespace UnityEditor.ShaderGraph
             [Slot(1, Binding.None, 0, 1, 0, 0)] DynamicDimensionVector Normal,
             [Slot(2, Binding.None)] out DynamicDimensionVector Out)
         {
-
             return @"
 {
     Out = reflect(In, Normal);

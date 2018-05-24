@@ -108,7 +108,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             get
             {
-                if(m_EmptyUAV == null)
+                if (m_EmptyUAV == null)
                 {
                     m_EmptyUAV = new RenderTexture(1, 1, 0);
                     m_EmptyUAV.enableRandomWrite = true;
@@ -234,7 +234,7 @@ namespace UnityEngine.Experimental.Rendering
         public static string GetTextureAutoName(int width, int height, TextureFormat format, TextureDimension dim = TextureDimension.None, string name = "", bool mips = false, int depth = 0)
         {
             string temp;
-            if(depth == 0)
+            if (depth == 0)
                 temp = string.Format("{0}x{1}{2}_{3}", width, height, mips ? "_Mips" : "", format);
             else
                 temp = string.Format("{0}x{1}x{2}{3}_{4}", width, height, depth, mips ? "_Mips" : "", format);
@@ -352,13 +352,14 @@ namespace UnityEngine.Experimental.Rendering
                 Debug.LogError("Cannot create required material because shader is null");
                 return null;
             }
-            
+
             var mat = new Material(shader)
             {
                 hideFlags = HideFlags.HideAndDontSave
             };
             return mat;
         }
+
         public static bool HasFlag<T>(T mask, T flag) where T : IConvertible
         {
             return (mask.ToUInt32(null) & flag.ToUInt32(null)) != 0;
@@ -428,7 +429,7 @@ namespace UnityEngine.Experimental.Rendering
                         {
                             innerTypes = t.GetTypes();
                         }
-                        catch { }
+                        catch {}
                         return innerTypes;
                     });
             }
@@ -536,7 +537,6 @@ namespace UnityEngine.Experimental.Rendering
             foreach (UnityEditor.SceneView sv in Resources.FindObjectsOfTypeAll(typeof(UnityEditor.SceneView)))
                 sv.ShowNotification(new GUIContent(msg));
 #endif
-
         }
 
         public static void DisplayUnsupportedAPIMessage()

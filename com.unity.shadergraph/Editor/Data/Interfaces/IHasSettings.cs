@@ -1,4 +1,4 @@
-﻿using UnityEngine.Experimental.UIElements;
+using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.Graphing
 {
@@ -7,4 +7,3 @@ namespace UnityEditor.Graphing
         VisualElement CreateSettingsElement();
     }
 }
-

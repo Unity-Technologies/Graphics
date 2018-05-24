@@ -79,7 +79,7 @@ namespace UnityEditor.ShaderGraph
 
         public static ConcreteSlotValueType ConvertMatrixToVectorType(ConcreteSlotValueType matrixType)
         {
-            switch(matrixType)
+            switch (matrixType)
             {
                 case ConcreteSlotValueType.Matrix4:
                     return ConcreteSlotValueType.Vector4;

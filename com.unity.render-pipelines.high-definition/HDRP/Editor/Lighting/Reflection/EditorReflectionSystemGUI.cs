@@ -47,8 +47,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 case ReflectionProbeMode.Custom:
                 {
                     if (ButtonWithDropdownList(
-                        _.GetContent("Bake|Bakes Reflection Probe's cubemap, overwriting the existing cubemap texture asset (if any)."), k_BakeCustomOptionText,
-                        data =>
+                            _.GetContent("Bake|Bakes Reflection Probe's cubemap, overwriting the existing cubemap texture asset (if any)."), k_BakeCustomOptionText,
+                            data =>
                         {
                             var mode = (int)data;
 
@@ -66,7 +66,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                 }
                             }
                         },
-                        GUILayout.ExpandWidth(true)))
+                            GUILayout.ExpandWidth(true)))
                     {
                         if (probe != null)
                         {
@@ -86,19 +86,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 case ReflectionProbeMode.Baked:
                 {
                     GUI.enabled = probe != null && probe.enabled
-                            || planarProbe != null && planarProbe.enabled;
+                        || planarProbe != null && planarProbe.enabled;
 
                     // Bake button in non-continous mode
                     if (ButtonWithDropdownList(
-                        _.GetContent("Bake"),
-                        k_BakeButtonsText,
-                        data =>
+                            _.GetContent("Bake"),
+                            k_BakeButtonsText,
+                            data =>
                         {
                             var mode = (int)data;
                             if (mode == 0)
                                 EditorReflectionSystem.BakeAllReflectionProbesSnapshots();
                         },
-                        GUILayout.ExpandWidth(true)))
+                            GUILayout.ExpandWidth(true)))
                     {
                         if (probe != null)
                         {

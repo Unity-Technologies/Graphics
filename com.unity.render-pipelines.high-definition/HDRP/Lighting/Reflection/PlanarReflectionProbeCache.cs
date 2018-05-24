@@ -57,7 +57,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_TempRenderTexture.dimension = TextureDimension.Tex2D;
                 m_TempRenderTexture.useMipMap = true;
                 m_TempRenderTexture.autoGenerateMips = false;
-                m_TempRenderTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf, "PlanarReflectionTemp", mips : true);
+                m_TempRenderTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf, "PlanarReflectionTemp", mips: true);
                 m_TempRenderTexture.Create();
 
                 m_ConvolutionTargetTexture = new RenderTexture(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf);
@@ -173,7 +173,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var sliceIndex = m_TextureCache.ReserveSlice(texture, out needUpdate);
             if (sliceIndex != -1)
             {
-                if(needUpdate || m_ProbeBakingState[sliceIndex] != ProbeFilteringState.Ready)
+                if (needUpdate || m_ProbeBakingState[sliceIndex] != ProbeFilteringState.Ready)
                 {
                     using (new ProfilingSample(cmd, "Convolve Planar Reflection Probe"))
                     {

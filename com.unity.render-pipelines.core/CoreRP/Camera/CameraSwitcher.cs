@@ -22,7 +22,7 @@ namespace UnityEngine.Experimental.Rendering
             m_OriginalCamera = GetComponent<Camera>();
             m_CurrentCamera = m_OriginalCamera;
 
-            if(m_OriginalCamera == null)
+            if (m_OriginalCamera == null)
             {
                 Debug.LogError("Camera Switcher needs a Camera component attached");
                 return;
@@ -79,7 +79,7 @@ namespace UnityEngine.Experimental.Rendering
 
         void SetCameraIndex(int index)
         {
-            if(index > 0 || index < GetCameraCount())
+            if (index > 0 || index < GetCameraCount())
             {
                 m_CurrentCameraIndex = index;
 

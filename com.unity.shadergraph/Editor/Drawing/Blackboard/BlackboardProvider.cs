@@ -55,7 +55,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_PathLabel.RegisterCallback<MouseDownEvent>(OnMouseDownEvent);
 
             m_PathLabelTextField = new TextField { visible = false };
-            m_PathLabelTextField.RegisterCallback<FocusOutEvent>(e => { OnEditPathTextFinished();});
+            m_PathLabelTextField.RegisterCallback<FocusOutEvent>(e => { OnEditPathTextFinished(); });
             m_PathLabelTextField.RegisterCallback<KeyDownEvent>(OnPathTextFieldKeyPressed);
             blackboard.shadow.Add(m_PathLabelTextField);
 
@@ -100,7 +100,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             m_PathLabelTextField.Focus();
             m_PathLabelTextField.SelectAll();
-
         }
 
         void OnPathTextFieldKeyPressed(KeyDownEvent evt)
@@ -197,8 +196,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 DirtyNodes();
             }
         }
-
-
 
         public void HandleGraphChanges()
         {

@@ -89,6 +89,7 @@ namespace UnityEngine.Experimental.Rendering
             shadowDatas[idx].format = format;
             shadowDatas[idx].data = data != null ? data : new int[0];
         }
+
         // Load a specific shadow data. Returns null if requested data is not present.
         public int[] GetShadowData(int shadowDataFormat)
         {
@@ -98,18 +99,21 @@ namespace UnityEngine.Experimental.Rendering
             int idx = FindShadowData(shadowDataFormat);
             return idx >= 0 ? shadowDatas[idx].data : null;
         }
+
         // Returns the currently set shadow data and format. Can return null.
         public int[] GetShadowData(out int shadowDataFormat)
         {
             shadowDataFormat = shadowData.format;
             return shadowData.data;
         }
+
 #if UNITY_EDITOR
         public void CompactShadowData()
         {
             shadowDatas = new ShadowData[0];
             UnityEditor.EditorUtility.SetDirty(this);
         }
+
 #endif
         private int FindShadowData(int shadowDataFormat)
         {
@@ -139,62 +143,63 @@ namespace UnityEngine.Experimental.Rendering
         UnityEditor.SerializedProperty m_ShadowCascadeRatios;
         UnityEditor.SerializedProperty m_ShadowCascadeBorders;
 
-        public static void SetRegistry( ShadowRegistry registry ) { m_ShadowRegistry = registry; }
+        public static void SetRegistry(ShadowRegistry registry) { m_ShadowRegistry = registry; }
 
         void OnEnable()
         {
-            m_ShadowAlgorithm = serializedObject.FindProperty( "shadowAlgorithm" );
-            m_ShadowVariant   = serializedObject.FindProperty( "shadowVariant" );
-            m_ShadowData      = serializedObject.FindProperty( "shadowData" );
-            m_ShadowDatas     = serializedObject.FindProperty( "shadowDatas" );
-            m_ShadowCascadeCount  = serializedObject.FindProperty( "shadowCascadeCount" );
-            m_ShadowCascadeRatios = serializedObject.FindProperty( "shadowCascadeRatios" );
-            m_ShadowCascadeBorders = serializedObject.FindProperty( "shadowCascadeBorders" );
+            m_ShadowAlgorithm = serializedObject.FindProperty("shadowAlgorithm");
+            m_ShadowVariant   = serializedObject.FindProperty("shadowVariant");
+            m_ShadowData      = serializedObject.FindProperty("shadowData");
+            m_ShadowDatas     = serializedObject.FindProperty("shadowDatas");
+            m_ShadowCascadeCount  = serializedObject.FindProperty("shadowCascadeCount");
+            m_ShadowCascadeRatios = serializedObject.FindProperty("shadowCascadeRatios");
+            m_ShadowCascadeBorders = serializedObject.FindProperty("shadowCascadeBorders");
         }
+
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
 
-            if( m_ShadowRegistry == null )
+            if (m_ShadowRegistry == null)
                 return;
 
-            AdditionalShadowData asd = (AdditionalShadowData) target;
-            if( asd == null )
+            AdditionalShadowData asd = (AdditionalShadowData)target;
+            if (asd == null)
                 return;
 
             UnityEditor.EditorGUI.BeginChangeCheck();
 
-            m_ShadowRegistry.Draw( asd.gameObject.GetComponent<Light>() );
+            m_ShadowRegistry.Draw(asd.gameObject.GetComponent<Light>());
             serializedObject.Update();
 
             // cascade code
-            if( asd.gameObject.GetComponent<Light>().type == LightType.Directional )
+            if (asd.gameObject.GetComponent<Light>().type == LightType.Directional)
             {
                 UnityEditor.EditorGUI.BeginChangeCheck();
-                UnityEditor.EditorGUILayout.PropertyField( m_ShadowCascadeCount );
-                if( UnityEditor.EditorGUI.EndChangeCheck() )
+                UnityEditor.EditorGUILayout.PropertyField(m_ShadowCascadeCount);
+                if (UnityEditor.EditorGUI.EndChangeCheck())
                 {
-                    const int kMaxCascades = (int) ShadowAtlas.k_MaxCascadesInShader; // depending on where you look this is either 32 or 4, so we're limiting it to 4 for now
+                    const int kMaxCascades = (int)ShadowAtlas.k_MaxCascadesInShader;  // depending on where you look this is either 32 or 4, so we're limiting it to 4 for now
                     int newcnt = m_ShadowCascadeCount.intValue <= 0 ? 1 : (m_ShadowCascadeCount.intValue > kMaxCascades ? kMaxCascades : m_ShadowCascadeCount.intValue);
                     m_ShadowCascadeCount.intValue = newcnt;
-                    m_ShadowCascadeRatios.arraySize = newcnt-1;
+                    m_ShadowCascadeRatios.arraySize = newcnt - 1;
                     m_ShadowCascadeBorders.arraySize = newcnt;
                 }
                 UnityEditor.EditorGUI.indentLevel++;
-                for( int i = 0; i < m_ShadowCascadeRatios.arraySize; i++ )
+                for (int i = 0; i < m_ShadowCascadeRatios.arraySize; i++)
                 {
-                    UnityEditor.EditorGUILayout.Slider( m_ShadowCascadeRatios.GetArrayElementAtIndex( i ), 0.0f, 1.0f, new GUIContent( "Cascade " + i ) );
+                    UnityEditor.EditorGUILayout.Slider(m_ShadowCascadeRatios.GetArrayElementAtIndex(i), 0.0f, 1.0f, new GUIContent("Cascade " + i));
                 }
                 for (int i = 0; i < m_ShadowCascadeBorders.arraySize; i++)
                 {
-                    UnityEditor.EditorGUILayout.Slider( m_ShadowCascadeBorders.GetArrayElementAtIndex( i ), 0.0f, 1.0f, new GUIContent( "Transition " + i ) );
+                    UnityEditor.EditorGUILayout.Slider(m_ShadowCascadeBorders.GetArrayElementAtIndex(i), 0.0f, 1.0f, new GUIContent("Transition " + i));
                 }
                 UnityEditor.EditorGUI.indentLevel--;
             }
 
-            if( UnityEditor.EditorGUI.EndChangeCheck() )
+            if (UnityEditor.EditorGUI.EndChangeCheck())
             {
-                UnityEditor.EditorUtility.SetDirty( asd );
+                UnityEditor.EditorUtility.SetDirty(asd);
                 UnityEditor.SceneManagement.EditorSceneManager.MarkAllScenesDirty();
                 UnityEditor.SceneView.RepaintAll();
             }

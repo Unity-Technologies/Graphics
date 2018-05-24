@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEditor.Graphing;
@@ -32,8 +32,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             [Optional]                          Vector2 texCoord2;
             [Optional]                          Vector2 texCoord3;
             [Optional]                          Vector4 color;
-            [Optional] [Semantic("FRONT_FACE_SEMANTIC")] [OverrideType("FRONT_FACE_TYPE")] [PreprocessorIf("SHADER_STAGE_FRAGMENT")]
-                                                bool cullFace;
+            [Optional][Semantic("FRONT_FACE_SEMANTIC")][OverrideType("FRONT_FACE_TYPE")][PreprocessorIf("SHADER_STAGE_FRAGMENT")]
+            bool cullFace;
 
             public static Dependency[] tessellationDependencies = new Dependency[]
             {
@@ -287,11 +287,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 ShaderSpliceUtil.ApplyDependencies(
                     activeFields,
                     new List<Dependency[]>()
-                    {
-                        FragInputs.dependencies,
-                        VaryingsMeshToPS.standardDependencies,
-                        SurfaceDescriptionInputs.dependencies,
-                    });
+                {
+                    FragInputs.dependencies,
+                    VaryingsMeshToPS.standardDependencies,
+                    SurfaceDescriptionInputs.dependencies,
+                });
             }
 
             // generate code based on requirements

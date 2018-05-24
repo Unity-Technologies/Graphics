@@ -11,7 +11,7 @@ namespace UnityEditor.ShaderGraph
         {}
 
         public ViewDirectionMaterialSlot(int slotId, string displayName, string shaderOutputName, CoordinateSpace space,
-                                            ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)
+                                         ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)
             : base(slotId, displayName, shaderOutputName, space, stageCapability, hidden)
         {}
         public override VisualElement InstantiateControl()

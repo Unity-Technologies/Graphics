@@ -1,11 +1,11 @@
-﻿using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering
 {
     class SerializedHDRenderPipelineAsset
     {
         public SerializedObject serializedObject;
-        
+
         public SerializedProperty renderPipelineResources;
         public SerializedProperty diffusionProfileSettings;
         public SerializedProperty allowShaderVariantStripping;

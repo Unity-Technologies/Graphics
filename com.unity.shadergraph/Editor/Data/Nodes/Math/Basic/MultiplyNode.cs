@@ -50,7 +50,7 @@ namespace UnityEditor.ShaderGraph
         public sealed override void UpdateNodeAfterDeserialization()
         {
             AddSlot(new DynamicValueMaterialSlot(Input1SlotId, kInput1SlotName, kInput1SlotName, SlotType.Input, Matrix4x4.zero));
-            AddSlot(new DynamicValueMaterialSlot(Input2SlotId, kInput2SlotName, kInput2SlotName, SlotType.Input, new Matrix4x4(new Vector4(2,2,2,2), new Vector4(2,2,2,2), new Vector4(2,2,2,2), new Vector4(2,2,2,2))));
+            AddSlot(new DynamicValueMaterialSlot(Input2SlotId, kInput2SlotName, kInput2SlotName, SlotType.Input, new Matrix4x4(new Vector4(2, 2, 2, 2), new Vector4(2, 2, 2, 2), new Vector4(2, 2, 2, 2), new Vector4(2, 2, 2, 2))));
             AddSlot(new DynamicValueMaterialSlot(OutputSlotId, kOutputSlotName, kOutputSlotName, SlotType.Output, Matrix4x4.zero));
             RemoveSlotsNameNotMatching(new[] { Input1SlotId, Input2SlotId, OutputSlotId });
         }
@@ -71,7 +71,7 @@ namespace UnityEditor.ShaderGraph
         string GetFunctionName()
         {
             return string.Format("{0}_{1}_{2}",
-                GetFunctionHeader(), 
+                GetFunctionHeader(),
                 FindInputSlot<MaterialSlot>(Input1SlotId).concreteValueType.ToString(precision),
                 FindInputSlot<MaterialSlot>(Input2SlotId).concreteValueType.ToString(precision));
         }
@@ -79,25 +79,25 @@ namespace UnityEditor.ShaderGraph
         public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
         {
             registry.ProvideFunction(GetFunctionName(), s =>
-            {
-                s.AppendLine("void {0} ({1} A, {2} B, out {3} Out)",
-                    GetFunctionHeader(),
-                    FindInputSlot<MaterialSlot>(Input1SlotId).concreteValueType.ToString(precision),
-                    FindInputSlot<MaterialSlot>(Input2SlotId).concreteValueType.ToString(precision),
-                    FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision));
-                using (s.BlockScope())
                 {
-                    switch(m_MultiplyType)
+                    s.AppendLine("void {0} ({1} A, {2} B, out {3} Out)",
+                        GetFunctionHeader(),
+                        FindInputSlot<MaterialSlot>(Input1SlotId).concreteValueType.ToString(precision),
+                        FindInputSlot<MaterialSlot>(Input2SlotId).concreteValueType.ToString(precision),
+                        FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision));
+                    using (s.BlockScope())
                     {
-                        case MultiplyType.Vector:
-                            s.AppendLine("Out = A * B;");
-                            break;
-                        default:
-                            s.AppendLine("Out = mul(A, B);");
-                            break; 
+                        switch (m_MultiplyType)
+                        {
+                            case MultiplyType.Vector:
+                                s.AppendLine("Out = A * B;");
+                                break;
+                            default:
+                                s.AppendLine("Out = mul(A, B);");
+                                break;
+                        }
                     }
-                }
-            });
+                });
         }
 
         // Internal validation
@@ -181,7 +181,7 @@ namespace UnityEditor.ShaderGraph
             m_MultiplyType = GetMultiplyType(dynamicInputSlotsToCompare.Values);
 
             // Resolve dynamics depending on matrix/vector configuration
-            switch(m_MultiplyType)
+            switch (m_MultiplyType)
             {
                 // If all matrix resolve as per dynamic matrix
                 case MultiplyType.Matrix:
@@ -204,7 +204,7 @@ namespace UnityEditor.ShaderGraph
                     ConcreteSlotValueType vectorType = SlotValueHelper.ConvertMatrixToVectorType(matrixSlot.concreteValueType);
                     foreach (var dynamicKvP in dynamicInputSlotsToCompare)
                     {
-                        if(dynamicKvP.Key != matrixSlot)
+                        if (dynamicKvP.Key != matrixSlot)
                             dynamicKvP.Key.SetConcreteType(vectorType);
                     }
                     foreach (var skippedSlot in skippedDynamicSlots)
@@ -245,7 +245,7 @@ namespace UnityEditor.ShaderGraph
                 if (outputSlot is DynamicValueMaterialSlot)
                 {
                     // Apply similar logic to output slot
-                    switch(m_MultiplyType)
+                    switch (m_MultiplyType)
                     {
                         // As per dynamic matrix
                         case MultiplyType.Matrix:
@@ -288,7 +288,7 @@ namespace UnityEditor.ShaderGraph
 
         protected override bool CalculateNodeHasError()
         {
-            if(m_MultiplyType == MultiplyType.Matrix)
+            if (m_MultiplyType == MultiplyType.Matrix)
             {
                 foreach (var slot in this.GetOutputSlots<ISlot>())
                 {
@@ -297,19 +297,19 @@ namespace UnityEditor.ShaderGraph
                         var inputNode = owner.GetNodeFromGuid(edge.inputSlot.nodeGuid);
                         List<MaterialSlot> slots = new List<MaterialSlot>();
                         inputNode.GetInputSlots(slots);
-                        foreach(var s in slots)
+                        foreach (var s in slots)
                         {
-                            foreach(var inputEdge in inputNode.owner.GetEdges(s.slotReference))
+                            foreach (var inputEdge in inputNode.owner.GetEdges(s.slotReference))
                             {
-                                if(inputEdge == edge)
+                                if (inputEdge == edge)
                                 {
-                                    if(s as DynamicValueMaterialSlot == null)
+                                    if (s as DynamicValueMaterialSlot == null)
                                     {
-                                        if(s.concreteValueType != ConcreteSlotValueType.Matrix4
-                                        && s.concreteValueType != ConcreteSlotValueType.Matrix3
-                                        && s.concreteValueType != ConcreteSlotValueType.Matrix2)
+                                        if (s.concreteValueType != ConcreteSlotValueType.Matrix4
+                                            && s.concreteValueType != ConcreteSlotValueType.Matrix3
+                                            && s.concreteValueType != ConcreteSlotValueType.Matrix2)
                                         {
-                                            Debug.Log("ERROR: slot "+s.displayName+" cannot accept a Matrix type input");
+                                            Debug.Log("ERROR: slot " + s.displayName + " cannot accept a Matrix type input");
                                             return true;
                                         }
                                     }
@@ -329,25 +329,25 @@ namespace UnityEditor.ShaderGraph
             int vectorCount = 0;
             for (int i = 0; i < concreteSlotValueTypes.Count; i++)
             {
-                if(concreteSlotValueTypes[i] == ConcreteSlotValueType.Vector4
+                if (concreteSlotValueTypes[i] == ConcreteSlotValueType.Vector4
                     || concreteSlotValueTypes[i] == ConcreteSlotValueType.Vector3
                     || concreteSlotValueTypes[i] == ConcreteSlotValueType.Vector2
                     || concreteSlotValueTypes[i] == ConcreteSlotValueType.Vector1)
                 {
                     vectorCount++;
                 }
-                else if(concreteSlotValueTypes[i] == ConcreteSlotValueType.Matrix4
-                    || concreteSlotValueTypes[i] == ConcreteSlotValueType.Matrix3
-                    || concreteSlotValueTypes[i] == ConcreteSlotValueType.Matrix2)
+                else if (concreteSlotValueTypes[i] == ConcreteSlotValueType.Matrix4
+                         || concreteSlotValueTypes[i] == ConcreteSlotValueType.Matrix3
+                         || concreteSlotValueTypes[i] == ConcreteSlotValueType.Matrix2)
                 {
                     matrixCount++;
                 }
             }
-            if(matrixCount == 2)
+            if (matrixCount == 2)
                 return MultiplyType.Matrix;
-            else if(vectorCount == 2)
+            else if (vectorCount == 2)
                 return MultiplyType.Vector;
-            else if(matrixCount == 1)
+            else if (matrixCount == 1)
                 return MultiplyType.Mixed;
             else
                 return MultiplyType.Vector;
@@ -360,14 +360,14 @@ namespace UnityEditor.ShaderGraph
             for (int i = 0; i < slots.Count; i++)
             {
                 var edges = owner.GetEdges(slots[i].slotReference).ToList();
-                if(!edges.Any())
+                if (!edges.Any())
                     continue;
                 var outputNode = owner.GetNodeFromGuid(edges[0].outputSlot.nodeGuid);
                 var outputSlot = outputNode.FindOutputSlot<MaterialSlot>(edges[0].outputSlot.slotId);
-                if(outputSlot.concreteValueType == ConcreteSlotValueType.Matrix4
+                if (outputSlot.concreteValueType == ConcreteSlotValueType.Matrix4
                     || outputSlot.concreteValueType == ConcreteSlotValueType.Matrix3
                     || outputSlot.concreteValueType == ConcreteSlotValueType.Matrix2)
-                return slots[i];
+                    return slots[i];
             }
             return null;
         }
@@ -375,7 +375,7 @@ namespace UnityEditor.ShaderGraph
         private void SetConcreteValueTypeFromEdge(DynamicValueMaterialSlot slot)
         {
             var edges = owner.GetEdges(slot.slotReference).ToList();
-            if(!edges.Any())
+            if (!edges.Any())
                 return;
             var outputNode = owner.GetNodeFromGuid(edges[0].outputSlot.nodeGuid);
             var outputSlot = outputNode.FindOutputSlot<MaterialSlot>(edges[0].outputSlot.slotId);

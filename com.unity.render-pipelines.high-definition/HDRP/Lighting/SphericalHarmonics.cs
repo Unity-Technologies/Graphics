@@ -6,33 +6,33 @@ public struct ZonalHarmonicsL2
 {
     public float[] coeffs; // Must have the size of 3
 
-	public static ZonalHarmonicsL2 GetHenyeyGreensteinPhaseFunction(float anisotropy)
-	{
-	    float g = anisotropy;
+    public static ZonalHarmonicsL2 GetHenyeyGreensteinPhaseFunction(float anisotropy)
+    {
+        float g = anisotropy;
 
-	    var zh    = new ZonalHarmonicsL2();
-	    zh.coeffs = new float[3];
+        var zh    = new ZonalHarmonicsL2();
+        zh.coeffs = new float[3];
 
-	    zh.coeffs[0] = 0.5f * Mathf.Sqrt(1.0f / Mathf.PI);
-	    zh.coeffs[1] = 0.5f * Mathf.Sqrt(3.0f / Mathf.PI) * g;
-	    zh.coeffs[2] = 0.5f * Mathf.Sqrt(5.0f / Mathf.PI) * g * g;
+        zh.coeffs[0] = 0.5f * Mathf.Sqrt(1.0f / Mathf.PI);
+        zh.coeffs[1] = 0.5f * Mathf.Sqrt(3.0f / Mathf.PI) * g;
+        zh.coeffs[2] = 0.5f * Mathf.Sqrt(5.0f / Mathf.PI) * g * g;
 
-	    return zh;
-	}
+        return zh;
+    }
 
-	public static ZonalHarmonicsL2 GetCornetteShanksPhaseFunction(float anisotropy)
-	{
-	    float g = anisotropy;
+    public static ZonalHarmonicsL2 GetCornetteShanksPhaseFunction(float anisotropy)
+    {
+        float g = anisotropy;
 
-	    var zh    = new ZonalHarmonicsL2();
-	    zh.coeffs = new float[3];
+        var zh    = new ZonalHarmonicsL2();
+        zh.coeffs = new float[3];
 
-	    zh.coeffs[0] = 0.282095f;
-	    zh.coeffs[1] = 0.293162f * g * (4.0f + (g * g)) / (2.0f + (g * g));
-	    zh.coeffs[2] = (0.126157f + 1.44179f * (g * g) + 0.324403f * (g * g) * (g * g)) / (2.0f + (g * g));
+        zh.coeffs[0] = 0.282095f;
+        zh.coeffs[1] = 0.293162f * g * (4.0f + (g * g)) / (2.0f + (g * g));
+        zh.coeffs[2] = (0.126157f + 1.44179f * (g * g) + 0.324403f * (g * g) * (g * g)) / (2.0f + (g * g));
 
-	    return zh;
-	}
+        return zh;
+    }
 }
 
 public class SphericalHarmonicMath
@@ -72,7 +72,7 @@ public class SphericalHarmonicMath
 
         // Compute the inverse of SphericalHarmonicsL2::kNormalizationConstants.
         // See SetSHEMapConstants() in "Stupid Spherical Harmonics Tricks".
-        float[] invNormConsts = { 1/c0, -1/c1, 1/c1, -1/c1, 1/c2, -1/c2, 1/c3, -1/c2, 1/c4 };
+        float[] invNormConsts = { 1 / c0, -1 / c1, 1 / c1, -1 / c1, 1 / c2, -1 / c2, 1 / c3, -1 / c2, 1 / c4 };
 
         for (int c = 0; c < 3; c++)
         {

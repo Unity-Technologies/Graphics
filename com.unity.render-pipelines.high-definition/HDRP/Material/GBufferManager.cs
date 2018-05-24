@@ -60,7 +60,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public RenderTargetIdentifier[] GetBuffersRTI(bool enableShadowMask)
         {
-            if(!enableShadowMask)
+            if (!enableShadowMask)
             {
                 // nameID can change from one frame to another depending on the msaa flag so so we need to update this array to be sure it's up to date.
                 // Moreover, if we don't have shadow masks we only need to bind the first GBuffers
@@ -70,7 +70,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_RTIDsNoShadowMask[i] = m_RTs[i].nameID;
                 }
                 return m_RTIDsNoShadowMask;
-
             }
             else
             {

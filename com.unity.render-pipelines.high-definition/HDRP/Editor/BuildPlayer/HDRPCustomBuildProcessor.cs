@@ -28,7 +28,7 @@ class HDRPCustomBuildProcessor : IPreprocessBuildWithReport
             report.summary.platform == BuildTarget.PS4 ||
             report.summary.platform == BuildTarget.Switch)
         {
-            return ;
+            return;
         }
 
         string msg = "The platform " + report.summary.platform.ToString() + " is not supported with Hight Definition Render Pipeline";

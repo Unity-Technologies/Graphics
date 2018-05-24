@@ -262,7 +262,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                 case ShaderUtil.ShaderPropertyType.TexEnv:
                                 {
                                     material.SetTexture(layerPropertyName, layerMaterial.GetTexture(propertyName));
-                                    if(!excludeUVMappingProperties)
+                                    if (!excludeUVMappingProperties)
                                     {
                                         material.SetTextureOffset(layerPropertyName, layerMaterial.GetTextureOffset(propertyName));
                                         material.SetTextureScale(layerPropertyName, layerMaterial.GetTextureScale(propertyName));
@@ -363,7 +363,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             return result;
         }
-
 
         void DoLayeringInputGUI()
         {
@@ -655,7 +654,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_HEIGHT_BASED_BLEND", useHeightBasedBlend);
 
             bool useDensityModeEnable = false;
-            for (int i = 0; i < material.GetInt(kLayerCount); ++i )
+            for (int i = 0; i < material.GetInt(kLayerCount); ++i)
             {
                 useDensityModeEnable |= material.GetFloat(kOpacityAsDensity + i) != 0.0f;
             }

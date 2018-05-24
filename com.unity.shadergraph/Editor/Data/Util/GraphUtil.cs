@@ -147,7 +147,7 @@ namespace UnityEditor.ShaderGraph
             object[] semantics = field.GetCustomAttributes(typeof(Semantic), false);
             if (semantics.Length > 0)
             {
-                Semantic firstSemantic = (Semantic) semantics[0];
+                Semantic firstSemantic = (Semantic)semantics[0];
                 semanticString = " : " + firstSemantic.semantic;
             }
             return semanticString;
@@ -171,21 +171,24 @@ namespace UnityEditor.ShaderGraph
             }
             return fieldType;
         }
+
         private static bool IsFloatVectorType(string type)
         {
             return GetFloatVectorCount(type) != 0;
         }
+
         private static string GetFieldConditional(FieldInfo field)
         {
             string conditional = null;
             object[] overrideType = field.GetCustomAttributes(typeof(PreprocessorIf), false);
             if (overrideType.Length > 0)
             {
-                PreprocessorIf first = (PreprocessorIf) overrideType[0];
+                PreprocessorIf first = (PreprocessorIf)overrideType[0];
                 conditional = first.conditional;
             }
             return conditional;
         }
+
         public static void BuildType(System.Type t, HashSet<string> activeFields, ShaderGenerator result)
         {
             result.AddShaderChunk("struct " + t.Name + " {");
@@ -544,7 +547,7 @@ namespace UnityEditor.ShaderGraph
                 if (char.IsUpper(text[i]))
                     if ((text[i - 1] != ' ' && !char.IsUpper(text[i - 1])) ||
                         (preserveAcronyms && char.IsUpper(text[i - 1]) &&
-                        i < text.Length - 1 && !char.IsUpper(text[i + 1])))
+                         i < text.Length - 1 && !char.IsUpper(text[i + 1])))
                         newText.Append(' ');
                 newText.Append(text[i]);
             }
@@ -597,18 +600,18 @@ namespace UnityEditor.ShaderGraph
             var finalShader = new ShaderStringBuilder();
             var results = new GenerationResults();
             bool isUber = node == null;
-            
+
             var shaderProperties = new PropertyCollector();
             var functionBuilder = new ShaderStringBuilder();
             var functionRegistry = new FunctionRegistry(functionBuilder);
 
-            var vertexDescriptionFunction = new ShaderStringBuilder(0);    
+            var vertexDescriptionFunction = new ShaderStringBuilder(0);
 
             var surfaceDescriptionInputStruct = new ShaderStringBuilder(0);
             var surfaceDescriptionStruct = new ShaderStringBuilder(0);
             var surfaceDescriptionFunction = new ShaderStringBuilder(0);
 
-            var vertexInputs = new ShaderStringBuilder(0);        
+            var vertexInputs = new ShaderStringBuilder(0);
 
             // -------------------------------------
             // Get Slot and Node lists
@@ -644,7 +647,7 @@ namespace UnityEditor.ShaderGraph
 
             // -------------------------------------
             // Add preview shader output property
-            
+
             results.outputIdProperty = new Vector1ShaderProperty
             {
                 displayName = "OutputId",
@@ -660,9 +663,9 @@ namespace UnityEditor.ShaderGraph
 
             // -------------------------------------
             // Generate Vertex Description function
-            
+
             vertexDescriptionFunction.AppendLine("GraphVertexInput PopulateVertexData(GraphVertexInput v)");
-            using(vertexDescriptionFunction.BlockScope())
+            using (vertexDescriptionFunction.BlockScope())
             {
                 vertexDescriptionFunction.AppendLine("return v;");
             }
@@ -674,9 +677,9 @@ namespace UnityEditor.ShaderGraph
             // -------------------------------------
             // Generate Input structure for Surface Description function
             // Surface Description Input requirements are needed to exclude intermediate translation spaces
-            
+
             surfaceDescriptionInputStruct.AppendLine("struct SurfaceDescriptionInputs");
-            using(surfaceDescriptionInputStruct.BlockSemicolonScope())
+            using (surfaceDescriptionInputStruct.BlockSemicolonScope())
             {
                 ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresNormal, InterpolatorType.Normal, surfaceDescriptionInputStruct);
                 ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(requirements.requiresTangent, InterpolatorType.Tangent, surfaceDescriptionInputStruct);
@@ -801,13 +804,13 @@ namespace UnityEditor.ShaderGraph
         public static void GenerateSurfaceDescriptionStruct(ShaderStringBuilder surfaceDescriptionStruct, List<MaterialSlot> slots, bool isMaster)
         {
             surfaceDescriptionStruct.AppendLine("struct SurfaceDescription");
-            using(surfaceDescriptionStruct.BlockSemicolonScope())
+            using (surfaceDescriptionStruct.BlockSemicolonScope())
             {
                 if (isMaster)
                 {
                     foreach (var slot in slots)
-                        surfaceDescriptionStruct.AppendLine("{0} {1};", 
-                            NodeUtils.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType), 
+                        surfaceDescriptionStruct.AppendLine("{0} {1};",
+                            NodeUtils.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType),
                             NodeUtils.GetHLSLSafeName(slot.shaderOutputName));
                     //surfaceDescriptionStruct.Deindent();
                 }
@@ -841,7 +844,7 @@ namespace UnityEditor.ShaderGraph
             graph.CollectShaderProperties(shaderProperties, mode);
 
             surfaceDescriptionFunction.AppendLine(String.Format("{0} {1}(SurfaceDescriptionInputs IN)", surfaceDescriptionName, functionName), false);
-            using(surfaceDescriptionFunction.BlockScope())
+            using (surfaceDescriptionFunction.BlockScope())
             {
                 ShaderGenerator sg = new ShaderGenerator();
                 surfaceDescriptionFunction.AppendLine("{0} surface = ({0})0;", surfaceDescriptionName);
@@ -918,6 +921,7 @@ namespace UnityEditor.ShaderGraph
                     builder.AppendLine("{0} {1};", NodeUtils.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType), NodeUtils.GetHLSLSafeName(slot.shaderOutputName));
             }
         }
+
         public static void GenerateVertexDescriptionFunction(
             AbstractMaterialGraph graph,
             ShaderStringBuilder builder,
@@ -951,7 +955,7 @@ namespace UnityEditor.ShaderGraph
                     var generatesBodyCode = node as IGeneratesBodyCode;
                     if (generatesBodyCode != null)
                     {
-                        generatesBodyCode.GenerateNodeCode(sg, mode);               
+                        generatesBodyCode.GenerateNodeCode(sg, mode);
                     }
                     node.CollectShaderProperties(shaderProperties, mode);
                 }
@@ -1039,7 +1043,7 @@ namespace UnityEditor.ShaderGraph
             if (baseMatch.Success)
                 name = baseMatch.Groups[1].Value;
 
-            string baseNameExpression= string.Format(@"^{0}", Regex.Escape(name));
+            string baseNameExpression = string.Format(@"^{0}", Regex.Escape(name));
             var regex = new Regex(string.Format(escapedDuplicateFormat, baseNameExpression, @"(\d+)") + "$");
 
             var existingDuplicateNumbers = existingNames.Select(existingName => regex.Match(existingName)).Where(m => m.Success).Select(m => int.Parse(m.Groups[1].Value)).Where(n => n > 0).Distinct().ToList();

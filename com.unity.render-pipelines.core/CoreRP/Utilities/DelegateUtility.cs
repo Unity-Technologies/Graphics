@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -15,7 +15,7 @@ namespace UnityEngine.Experimental.Rendering
             Delegate[] delegatesDest = new Delegate[delegates.Length];
             for (int nDelegate = 0; nDelegate < delegates.Length; nDelegate++)
                 delegatesDest[nDelegate] = Delegate.CreateDelegate(type,
-                    delegates[nDelegate].Target, delegates[nDelegate].Method);
+                        delegates[nDelegate].Target, delegates[nDelegate].Method);
             return Delegate.Combine(delegatesDest);
         }
     }

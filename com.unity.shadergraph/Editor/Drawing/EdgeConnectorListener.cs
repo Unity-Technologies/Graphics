@@ -1,4 +1,4 @@
-﻿using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 
@@ -18,7 +18,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public void OnDropOutsidePort(Edge edge, Vector2 position)
         {
             var draggedPort = (edge.output != null ? edge.output.edgeConnector.edgeDragHelper.draggedPort : null) ?? (edge.input != null ? edge.input.edgeConnector.edgeDragHelper.draggedPort : null);
-            m_SearchWindowProvider.connectedPort = (ShaderPort) draggedPort;
+            m_SearchWindowProvider.connectedPort = (ShaderPort)draggedPort;
             SearchWindow.Open(new SearchWindowContext(GUIUtility.GUIToScreenPoint(Event.current.mousePosition)), m_SearchWindowProvider);
         }
 

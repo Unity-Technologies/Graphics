@@ -109,7 +109,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     InitializeRenderingData(ref cameraData, visibleLights, m_Renderer.maxSupportedLocalLightsPerPass, m_Renderer.maxSupportedVertexLights, out renderingData);
                     m_Renderer.Setup(ref context, ref m_CullResults, ref renderingData);
                     m_Renderer.Execute(ref context, ref m_CullResults, ref renderingData);
-                    
+
                     m_IsCameraRendering = false;
                 }
                 context.ExecuteCommandBuffer(cmd);

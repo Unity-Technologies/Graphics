@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Reflection;
 using UnityEditor.Experimental.UIElements;
@@ -42,7 +42,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             AddStyleSheetPath("Styles/Controls/EnumConversionControlView");
             var currentValue = value;
 
-            var ec = (IEnumConversion) propertyInfo.GetValue(m_Node, null);
+            var ec = (IEnumConversion)propertyInfo.GetValue(m_Node, null);
             propertyInfo.SetValue(m_Node, ec, null);
 
             var fromField = new EnumField(currentValue.from);

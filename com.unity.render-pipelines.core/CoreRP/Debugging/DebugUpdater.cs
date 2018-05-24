@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Experimental.Rendering
 {
     public class DebugUpdater : MonoBehaviour
     {

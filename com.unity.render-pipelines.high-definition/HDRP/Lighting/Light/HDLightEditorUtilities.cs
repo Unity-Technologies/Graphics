@@ -45,7 +45,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 //Inner Cone
                 var additionalLightData = spotlight.GetComponent<HDAdditionalLightData>();
-                DrawInnerCone(spotlight,additionalLightData);
+                DrawInnerCone(spotlight, additionalLightData);
             }
         }
 
@@ -79,7 +79,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public static void DrawArealightGizmo(Light arealight)
         {
-
             var RectangleSize = new Vector3(arealight.areaSize.x, arealight.areaSize.y, 0);
             // Remove scale for light, not take into account
             var localToWorldMatrix = Matrix4x4.TRS(arealight.transform.position, arealight.transform.rotation, Vector3.one);
@@ -211,7 +210,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Gizmos.DrawLine(s3, e3);
             Gizmos.DrawLine(s4, e4);
         }
-
 
         public static void DrawFrustumlightGizmo(Light frustumlight)
         {

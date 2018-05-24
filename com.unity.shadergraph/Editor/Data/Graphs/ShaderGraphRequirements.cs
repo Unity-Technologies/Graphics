@@ -75,11 +75,11 @@ namespace UnityEditor.ShaderGraph
 
             // if anything needs tangentspace we have make
             // sure to have our othonormal basis!
-            if(includeIntermediateSpaces)
+            if (includeIntermediateSpaces)
             {
                 var compoundSpaces = requiresBitangent | requiresNormal | requiresPosition
-                | requiresTangent | requiresViewDir | requiresPosition
-                | requiresNormal;
+                    | requiresTangent | requiresViewDir | requiresPosition
+                    | requiresNormal;
 
                 var needsTangentSpace = (compoundSpaces & NeededCoordinateSpace.Tangent) > 0;
                 if (needsTangentSpace && !HDRPBehavior)

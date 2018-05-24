@@ -229,26 +229,26 @@ PropertyControlView {
 /* TEMP STUFF THAT SHOULD ACTUALLY STAY IN GRAPHVIEW */
 
 FloatField {
-	min-height: 15;
-	margin-left: 4;
-	margin-top: 2;
-	margin-right: 4;
-	margin-bottom: 2;
-	padding-left: 3;
-	padding-top: 1;
-	padding-right: 3;
-	padding-bottom: 2;
-	slice-left: 3;
-	slice-top: 3;
-	slice-right: 3;
-	slice-bottom: 3;
-	selection-color: rgba(61,128,223,166);
-	cursor: text;
-	text-color: #B4B4B4;
-	background-image: resource("Builtin Skins/DarkSkin/Images/TextField.png");
-	cursor-color:#B4B4B4;
+    min-height: 15;
+    margin-left: 4;
+    margin-top: 2;
+    margin-right: 4;
+    margin-bottom: 2;
+    padding-left: 3;
+    padding-top: 1;
+    padding-right: 3;
+    padding-bottom: 2;
+    slice-left: 3;
+    slice-top: 3;
+    slice-right: 3;
+    slice-bottom: 3;
+    selection-color: rgba(61,128,223,166);
+    cursor: text;
+    text-color: #B4B4B4;
+    background-image: resource("Builtin Skins/DarkSkin/Images/TextField.png");
+    cursor-color:#B4B4B4;
 }
 
 FloatField:focus {
-	background-image: resource("Builtin Skins/DarkSkin/Images/TextField focused.png");
+    background-image: resource("Builtin Skins/DarkSkin/Images/TextField focused.png");
 }

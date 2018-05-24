@@ -11,7 +11,7 @@ public class PlayModeTestsUI : MonoBehaviour
     {
         get
         {
-            if (_instance == null )
+            if (_instance == null)
             {
                 _instance = FindObjectOfType<PlayModeTestsUI>();
             }
@@ -48,11 +48,13 @@ public class PlayModeTestsUI : MonoBehaviour
     [SerializeField] RawImage resultImage;
     Material resultComparerMaterial;
 
-    [SerializeField] Gradient fillGradient = new Gradient() { colorKeys = new GradientColorKey[] {
-        new GradientColorKey( Color.red, 0.5f),
-        new GradientColorKey( Color.yellow, 0.75f),
-        new GradientColorKey( Color.green, 0.97f),
-            } };
+    [SerializeField] Gradient fillGradient = new Gradient() {
+        colorKeys = new GradientColorKey[] {
+            new GradientColorKey(Color.red, 0.5f),
+            new GradientColorKey(Color.yellow, 0.75f),
+            new GradientColorKey(Color.green, 0.97f),
+        }
+    };
 
     int numOfResults = 1;
     List<GameObject> testResults;
@@ -76,7 +78,7 @@ public class PlayModeTestsUI : MonoBehaviour
     Image waitingImage;
 
     // Use this for initialization
-    void Start ()
+    void Start()
     {
         // kill itself if already in scene.
         if (Exists)
@@ -93,7 +95,7 @@ public class PlayModeTestsUI : MonoBehaviour
         // Set scroll view content to fit all results
         scrollView.content.anchorMin = new Vector2(0f, 0f);
         scrollView.content.anchorMax = new Vector2(1f, 0f);
-        scrollView.content.offsetMin = new Vector2(0f, - (UnityEngine.SceneManagement.SceneManager.sceneCountInBuildSettings - 1f) * 200f);
+        scrollView.content.offsetMin = new Vector2(0f, -(UnityEngine.SceneManagement.SceneManager.sceneCountInBuildSettings - 1f) * 200f);
         scrollView.content.offsetMax = new Vector2(0f, 0f);
 
         // Init results arrays
@@ -126,14 +128,14 @@ public class PlayModeTestsUI : MonoBehaviour
             singleTestResult.offsetMax = new Vector2(0, singleTestResult.offsetMin.y + 200f);
 
             int sceneIndex = i;
-            singleTestResult.GetComponent<Button>().onClick.AddListener(delegate () { LoadSceneResult(sceneIndex); });
+            singleTestResult.GetComponent<Button>().onClick.AddListener(delegate() { LoadSceneResult(sceneIndex); });
 
             //* Test the values
             SetResult(i, 1.0f * i / (numOfResults - 1), 0.5f);
         }
         CalculateOverall();
 
-        scrollView.Rebuild( UnityEngine.UI.CanvasUpdate.PostLayout );
+        scrollView.Rebuild(UnityEngine.UI.CanvasUpdate.PostLayout);
 
         eventSystem = GetComponentInChildren<EventSystem>();
         eventSystem.SetSelectedGameObject(testResults[0]);
@@ -142,7 +144,7 @@ public class PlayModeTestsUI : MonoBehaviour
         waitingPanel.SetActive(false);
         scenePanel.SetActive(false);
 
-        resultComparerMaterial = Instantiate( resultImage.material );
+        resultComparerMaterial = Instantiate(resultImage.material);
         resultImage.material = resultComparerMaterial;
 
         // Initialize render textures
@@ -168,14 +170,14 @@ public class PlayModeTestsUI : MonoBehaviour
 
         resultsMaxValue[_index].text = maxResults[_index].ToString() + "%";
         resultsMaxFill[_index].localScale = new Vector3(_maxValue, 1f, 1f);
-        resultsAvgFill[_index].GetComponent<Image>().color = fillGradient.Evaluate(1f-_maxValue);
+        resultsAvgFill[_index].GetComponent<Image>().color = fillGradient.Evaluate(1f - _maxValue);
     }
 
     void CalculateOverall()
     {
         float overallAvgResult = 0f;
         float overallMaxResult = 0f;
-        for (int i=0; i<numOfResults; ++i)
+        for (int i = 0; i < numOfResults; ++i)
         {
             overallAvgResult += 1.0f * avgResults[i];
             overallMaxResult += 1.0f * maxResults[i];
@@ -189,7 +191,7 @@ public class PlayModeTestsUI : MonoBehaviour
 
         overallMaxFill.localScale = new Vector3(overallMaxResult * 0.01f, 1f, 1f);
         overallMaxText.text = Mathf.RoundToInt(overallMaxResult).ToString() + "%";
-        overallMaxFill.GetComponent<Image>().color = fillGradient.Evaluate(1f- overallMaxResult * 0.01f);
+        overallMaxFill.GetComponent<Image>().color = fillGradient.Evaluate(1f - overallMaxResult * 0.01f);
     }
 
     IEnumerator CalculateAllResults()
@@ -200,11 +202,11 @@ public class PlayModeTestsUI : MonoBehaviour
 
         waitingImage.fillAmount = 0f;
 
-        for (int i=0; i<numOfResults;++i)
+        for (int i = 0; i < numOfResults; ++i)
         {
             yield return CalculateResult(i);
-            
-            waitingImage.fillAmount = 1f * (1f+i) / numOfResults;
+
+            waitingImage.fillAmount = 1f * (1f + i) / numOfResults;
             waitingImage.color = Color.Lerp(Color.blue, Color.green, 1f * i / (numOfResults - 1));
         }
 
@@ -345,12 +347,12 @@ public class PlayModeTestsUI : MonoBehaviour
             sumOfSquaredColorDistances += (diff.r + diff.g + diff.b) / 3.0f;
         }
 
-        return new Vector2( Mathf.Sqrt(sumOfSquaredColorDistances / numberOfPixels), maxSquaredColorDistance );
+        return new Vector2(Mathf.Sqrt(sumOfSquaredColorDistances / numberOfPixels), maxSquaredColorDistance);
     }
 
     void LoadSceneResult(int _index)
     {
-        if ((_index <0 ) || (_index >= ( UnityEngine.SceneManagement.SceneManager.sceneCountInBuildSettings-1))) return;
+        if ((_index < 0) || (_index >= (UnityEngine.SceneManagement.SceneManager.sceneCountInBuildSettings - 1))) return;
 
         Debug.Log("Load Scene Results : " + _index);
 
@@ -365,7 +367,7 @@ public class PlayModeTestsUI : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update ()
+    void Update()
     {
         if (resultsPanel.activeSelf)
         {
@@ -408,5 +410,5 @@ public class PlayModeTestsUI : MonoBehaviour
                 scenePanel.SetActive(false);
             }
         }
-	}
+    }
 }

@@ -39,7 +39,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             m_PropertyInfo = propertyInfo;
             m_SlotId = slotId;
             //if (!propertyInfo.PropertyType.IsEnum)
-                //throw new ArgumentException("Property must be an enum.", "propertyInfo");
+            //throw new ArgumentException("Property must be an enum.", "propertyInfo");
             m_Label = new GUIContent(label ?? ObjectNames.NicifyVariableName(propertyInfo.Name));
             m_Container = new IMGUIContainer(OnGUIHandler);
             Add(m_Container);

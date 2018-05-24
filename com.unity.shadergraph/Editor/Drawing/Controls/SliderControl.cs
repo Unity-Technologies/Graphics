@@ -59,7 +59,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             m_SliderInput = AddField(m_SliderPanel, "", 0, m_Value);
             Add(m_SliderPanel);
 
-            if(m_DisplayMinMax)
+            if (m_DisplayMinMax)
             {
                 var fieldsPanel = new VisualElement { name = "FieldsPanel" };
                 AddField(fieldsPanel, "Min", 1, m_Value);
@@ -82,7 +82,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             var value = (Vector3)m_PropertyInfo.GetValue(m_Node, null);
             value.x = newValue;
             m_PropertyInfo.SetValue(m_Node, value, null);
-            if(m_SliderInput != null)
+            if (m_SliderInput != null)
                 m_SliderInput.value = newValue;
             this.MarkDirtyRepaint();
         }
@@ -91,7 +91,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         {
             var field = new FloatField { userData = index, value = initValiue[index] };
 
-            if(label != "")
+            if (label != "")
             {
                 var l = new Label(label);
                 panel.Add(l);
@@ -153,7 +153,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             panel.Add(m_Slider);
 
             panel.Remove(m_SliderInput);
-            if(index != 0)
+            if (index != 0)
                 m_SliderInput = AddField(panel, "", 0, value);
             m_SliderInput.value = value.x;
             panel.Add(m_SliderInput);

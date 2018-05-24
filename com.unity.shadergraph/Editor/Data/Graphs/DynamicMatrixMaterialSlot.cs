@@ -67,7 +67,7 @@ namespace UnityEditor.ShaderGraph
             {
                 for (var c = 0; c < channelCount; c++)
                 {
-                    if(!isFirst)
+                    if (!isFirst)
                         values += ", ";
                     isFirst = false;
                     values += value.GetRow(r)[c];

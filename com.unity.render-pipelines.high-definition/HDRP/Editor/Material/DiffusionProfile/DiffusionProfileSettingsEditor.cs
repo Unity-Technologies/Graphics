@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
@@ -36,7 +36,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             internal Profile()
             {
                 profileRT       = new RenderTexture(256, 256, 0, RenderTextureFormat.DefaultHDR);
-                transmittanceRT = new RenderTexture( 16, 256, 0, RenderTextureFormat.DefaultHDR);
+                transmittanceRT = new RenderTexture(16, 256, 0, RenderTextureFormat.DefaultHDR);
             }
 
             internal void Release()
@@ -220,7 +220,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var scatterDist1 = profile.scatterDistance1.colorValue;
             var scatterDist2 = profile.scatterDistance2.colorValue;
             float rMax = Mathf.Max(scatterDist1.r, scatterDist1.g, scatterDist1.b,
-                                    scatterDist2.r, scatterDist2.g, scatterDist2.b);
+                    scatterDist2.r, scatterDist2.g, scatterDist2.b);
             var stdDev1 = s * (Vector4)scatterDist1;
             var stdDev2 = s * (Vector4)scatterDist2;
             m_ProfileMaterial.SetVector(HDShaderIDs._StdDev1, stdDev1);

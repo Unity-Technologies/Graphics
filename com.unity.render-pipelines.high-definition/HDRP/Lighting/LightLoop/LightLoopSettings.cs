@@ -34,8 +34,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // aggregateFrameSettings already contain the aggregation of RenderPipelineSettings and FrameSettings (regular and/or debug)
         public static void InitializeLightLoopSettings(Camera camera, FrameSettings aggregateFrameSettings,
-                                                                    RenderPipelineSettings renderPipelineSettings, FrameSettings frameSettings,
-                                                                    ref LightLoopSettings aggregate)
+            RenderPipelineSettings renderPipelineSettings, FrameSettings frameSettings,
+            ref LightLoopSettings aggregate)
         {
             if (aggregate == null)
                 aggregate = new LightLoopSettings();
@@ -61,7 +61,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static void RegisterDebug(LightLoopSettings lightLoopSettings, List<DebugUI.Widget> widgets)
         {
-            widgets.AddRange(new []
+            widgets.AddRange(new[]
             {
                 new DebugUI.Container
                 {

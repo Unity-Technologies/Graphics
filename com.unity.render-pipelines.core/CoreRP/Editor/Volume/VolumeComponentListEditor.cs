@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -42,11 +42,11 @@ namespace UnityEditor.Experimental.Rendering
 
             // Gets the list of all available component editors
             var editorTypes = CoreUtils.GetAllAssemblyTypes()
-                                .Where(
-                                    t => t.IsSubclassOf(typeof(VolumeComponentEditor))
-                                      && t.IsDefined(typeof(VolumeComponentEditorAttribute), false)
-                                      && !t.IsAbstract
-                                );
+                .Where(
+                    t => t.IsSubclassOf(typeof(VolumeComponentEditor))
+                    && t.IsDefined(typeof(VolumeComponentEditorAttribute), false)
+                    && !t.IsAbstract
+                    );
 
             // Map them to their corresponding component type
             foreach (var editorType in editorTypes)
@@ -155,11 +155,11 @@ namespace UnityEditor.Experimental.Rendering
 
                     CoreEditorUtils.DrawSplitter();
                     bool displayContent = CoreEditorUtils.DrawHeaderToggle(
-                        title,
-                        editor.baseProperty,
-                        editor.activeProperty,
-                        pos => OnContextClick(pos, editor.target, id)
-                    );
+                            title,
+                            editor.baseProperty,
+                            editor.activeProperty,
+                            pos => OnContextClick(pos, editor.target, id)
+                            );
 
                     if (displayContent)
                     {

@@ -24,11 +24,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
         {
             m_Slot = slot;
             AddStyleSheetPath("Styles/Controls/GradientSlotControlView");
-            
+
             m_GradientObject = ScriptableObject.CreateInstance<GradientObject>();
             m_GradientObject.gradient = new Gradient();
             m_SerializedObject = new SerializedObject(m_GradientObject);
-            
+
             m_GradientObject.gradient.SetKeys(m_Slot.value.colorKeys, m_Slot.value.alphaKeys);
             m_GradientObject.gradient.mode = m_Slot.value.mode;
 

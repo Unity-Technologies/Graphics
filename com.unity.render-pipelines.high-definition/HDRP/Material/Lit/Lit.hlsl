@@ -411,35 +411,35 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 // GBuffer layout.
 // GBuffer2 and GBuffer0.a interpretation depends on material feature enabled
 
-//GBuffer0  	RGBA8 sRGB  Gbuffer0 encode baseColor and so is sRGB to save precision. Alpha is not affected.
-//GBuffer1  	RGBA8
-//GBuffer2  	RGBA8
-//GBuffer3  	RGBA8
+//GBuffer0      RGBA8 sRGB  Gbuffer0 encode baseColor and so is sRGB to save precision. Alpha is not affected.
+//GBuffer1      RGBA8
+//GBuffer2      RGBA8
+//GBuffer3      RGBA8
 
 
 //FeatureName   Standard
-//GBuffer0  	baseColor.r,    baseColor.g,    baseColor.b,    specularOcclusion
-//GBuffer1  	normal.xy (1212),   perceptualRoughness
-//GBuffer2  	f0.r,   f0.g,   f0.b,   featureID(3) / coatMask(5)
-//GBuffer3  	bakedDiffuseLighting.rgb
+//GBuffer0      baseColor.r,    baseColor.g,    baseColor.b,    specularOcclusion
+//GBuffer1      normal.xy (1212),   perceptualRoughness
+//GBuffer2      f0.r,   f0.g,   f0.b,   featureID(3) / coatMask(5)
+//GBuffer3      bakedDiffuseLighting.rgb
 
 //FeatureName   Subsurface Scattering + Transmission
-//GBuffer0  	baseColor.r,    baseColor.g,    baseColor.b,   diffusionProfile(4) / subsurfaceMask(4)
-//GBuffer1  	normal.xy (1212),   perceptualRoughness
-//GBuffer2  	specularOcclusion,  thickness,  diffusionProfile(4) / subsurfaceMask(4), featureID(3) / coatMask(5)
-//GBuffer3  	bakedDiffuseLighting.rgb
+//GBuffer0      baseColor.r,    baseColor.g,    baseColor.b,   diffusionProfile(4) / subsurfaceMask(4)
+//GBuffer1      normal.xy (1212),   perceptualRoughness
+//GBuffer2      specularOcclusion,  thickness,  diffusionProfile(4) / subsurfaceMask(4), featureID(3) / coatMask(5)
+//GBuffer3      bakedDiffuseLighting.rgb
 
 //FeatureName   Anisotropic
-//GBuffer0  	baseColor.r,    baseColor.g,    baseColor.b,    specularOcclusion
-//GBuffer1  	normal.xy (1212),   perceptualRoughness
-//GBuffer2  	anisotropy, tangent.x,  tangent.y(3) / metallic(5), featureID(3) / coatMask(5)
-//GBuffer3  	bakedDiffuseLighting.rgb
+//GBuffer0      baseColor.r,    baseColor.g,    baseColor.b,    specularOcclusion
+//GBuffer1      normal.xy (1212),   perceptualRoughness
+//GBuffer2      anisotropy, tangent.x,  tangent.y(3) / metallic(5), featureID(3) / coatMask(5)
+//GBuffer3      bakedDiffuseLighting.rgb
 
 //FeatureName   Irridescence
-//GBuffer0  	baseColor.r,    baseColor.g,    baseColor.b,    specularOcclusion
-//GBuffer1  	normal.xy (1212),   perceptualRoughness
-//GBuffer2  	IOR,    thickness,  unused(3bit) / metallic(5), featureID(3) / coatMask(5)
-//GBuffer3  	bakedDiffuseLighting.rgb
+//GBuffer0      baseColor.r,    baseColor.g,    baseColor.b,    specularOcclusion
+//GBuffer1      normal.xy (1212),   perceptualRoughness
+//GBuffer2      IOR,    thickness,  unused(3bit) / metallic(5), featureID(3) / coatMask(5)
+//GBuffer3      bakedDiffuseLighting.rgb
 
 // Note:
 // For standard we have chose to always encode fresnel0. Even when we use metal/baseColor parametrization. This avoid
@@ -1802,7 +1802,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
         invScreenWeightDistance = _SSRefractionInvScreenWeightDistance;
 #if DEBUG_DISPLAY
         debugMode               = DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFRACTION;
-#endif 
+#endif
     }
     else
 #endif
@@ -1814,7 +1814,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
         invScreenWeightDistance = _SSReflectionInvScreenWeightDistance;
 #if DEBUG_DISPLAY
         debugMode               = DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFLECTION;
-#endif 
+#endif
     }
 
 #if DEBUG_DISPLAY
@@ -1872,7 +1872,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
 #if HAS_REFRACTION
         if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
             hitSuccessful = ScreenSpaceHiZRaymarchRefraction(ssRayInput, hit, hitWeight);
-        else 
+        else
 #endif
         if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
             hitSuccessful = ScreenSpaceHiZRaymarchReflection(ssRayInput, hit, hitWeight);
@@ -1966,7 +1966,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
 #if HAS_REFRACTION
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
         lighting.specularTransmitted = (1.0 - F) * preLD.rgb * preLightData.transparentTransmittance * weight;
-    else 
+    else
 #endif
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
         lighting.specularReflected = F * preLD.rgb * weight;

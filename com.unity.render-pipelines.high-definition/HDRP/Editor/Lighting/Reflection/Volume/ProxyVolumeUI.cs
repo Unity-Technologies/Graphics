@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor.AnimatedValues;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -27,14 +27,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static ProxyVolumeUI()
         {
             SectionShape = CED.Group(
-                CED.Action(Drawer_FieldShapeType),
-                CED.FadeGroup(
-                    (s, d, o, i) => s.IsSectionExpanded_Shape((ShapeType)i),
-                    FadeOption.Indent,
-                    SectionShapeBox,
-                    SectionShapeSphere
-                )
-            );
+                    CED.Action(Drawer_FieldShapeType),
+                    CED.FadeGroup(
+                        (s, d, o, i) => s.IsSectionExpanded_Shape((ShapeType)i),
+                        FadeOption.Indent,
+                        SectionShapeBox,
+                        SectionShapeSphere
+                        )
+                    );
         }
 
         public BoxBoundsHandle boxProjectionHandle = new BoxBoundsHandle();
@@ -43,7 +43,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public ProxyVolumeUI()
             : base(k_ShapeCount)
         {
-            
         }
 
         public override void Update()
@@ -98,7 +97,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public static void DrawHandles_EditNone(Transform transform, ProxyVolume proxyVolume, ProxyVolumeUI ui, Object sourceAsset)
         {
-
         }
 
         static void Handles_EditBase_Sphere(Transform transform, ProxyVolume proxyVolume, ProxyVolumeUI s, Object sourceAsset)

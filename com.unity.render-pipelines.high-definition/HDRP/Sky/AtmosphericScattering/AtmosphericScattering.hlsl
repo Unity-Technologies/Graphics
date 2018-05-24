@@ -25,21 +25,21 @@ float4  _LinearFogParameters;
 float4  _ExpFogParameters;
 CBUFFER_END
 
-#define _MipFogNear						_MipFogParameters.x
-#define _MipFogFar						_MipFogParameters.y
-#define _MipFogMaxMip					_MipFogParameters.z
+#define _MipFogNear                     _MipFogParameters.x
+#define _MipFogFar                      _MipFogParameters.y
+#define _MipFogMaxMip                   _MipFogParameters.z
 
-#define _FogDensity						_FogColorDensity.w
-#define _FogColor						_FogColorDensity
+#define _FogDensity                     _FogColorDensity.w
+#define _FogColor                       _FogColorDensity
 
-#define _LinearFogStart					_LinearFogParameters.x
-#define _LinearFogOneOverRange			_LinearFogParameters.y
-#define _LinearFogHeightEnd				_LinearFogParameters.z
-#define _LinearFogHeightOneOverRange	_LinearFogParameters.w
+#define _LinearFogStart                 _LinearFogParameters.x
+#define _LinearFogOneOverRange          _LinearFogParameters.y
+#define _LinearFogHeightEnd             _LinearFogParameters.z
+#define _LinearFogHeightOneOverRange    _LinearFogParameters.w
 
-#define _ExpFogDistance					_ExpFogParameters.x
-#define _ExpFogBaseHeight				_ExpFogParameters.y
-#define _ExpFogHeightAttenuation		_ExpFogParameters.z
+#define _ExpFogDistance                 _ExpFogParameters.x
+#define _ExpFogBaseHeight               _ExpFogParameters.y
+#define _ExpFogHeightAttenuation        _ExpFogParameters.z
 
 float3 GetFogColor(PositionInputs posInput)
 {
@@ -61,47 +61,47 @@ float3 GetFogColor(PositionInputs posInput)
 // Returns fog color in rgb and fog factor in alpha.
 float4 EvaluateAtmosphericScattering(PositionInputs posInput)
 {
-	float3 fogColor = 0;
-	float  fogFactor = 0;
+    float3 fogColor = 0;
+    float  fogFactor = 0;
 
-	switch (_AtmosphericScatteringType)
-	{
-		case FOGTYPE_LINEAR:
-		{
-			fogColor = GetFogColor(posInput);
-			fogFactor = _FogDensity * saturate((posInput.linearDepth - _LinearFogStart) * _LinearFogOneOverRange) * saturate((_LinearFogHeightEnd - GetAbsolutePositionWS(posInput.positionWS).y) * _LinearFogHeightOneOverRange);
-			break;
-		}
-		case FOGTYPE_EXPONENTIAL:
-		{
-			fogColor = GetFogColor(posInput);
-			float distance = length(GetWorldSpaceViewDir(posInput.positionWS));
-			float fogHeight = max(0.0, GetAbsolutePositionWS(posInput.positionWS).y - _ExpFogBaseHeight);
-			fogFactor = _FogDensity * TransmittanceHomogeneousMedium(_ExpFogHeightAttenuation, fogHeight) * (1.0f - TransmittanceHomogeneousMedium(1.0f / _ExpFogDistance, distance));
-			break;
-		}
-		case FOGTYPE_VOLUMETRIC:
-		{
-		#if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET != 0)
-			float4 volFog = SampleVolumetricLighting(TEXTURE3D_PARAM(_VBufferLighting, s_linear_clamp_sampler),
-													 posInput.positionNDC,
-													 posInput.linearDepth,
-													 _VBufferResolution,
-													 _VBufferSliceCount.xy,
-													 _VBufferUvScaleAndLimit.xy,
-													 _VBufferUvScaleAndLimit.zw,
-													 _VBufferDepthEncodingParams,
-													 _VBufferDepthDecodingParams,
-													 true, true);
+    switch (_AtmosphericScatteringType)
+    {
+        case FOGTYPE_LINEAR:
+        {
+            fogColor = GetFogColor(posInput);
+            fogFactor = _FogDensity * saturate((posInput.linearDepth - _LinearFogStart) * _LinearFogOneOverRange) * saturate((_LinearFogHeightEnd - GetAbsolutePositionWS(posInput.positionWS).y) * _LinearFogHeightOneOverRange);
+            break;
+        }
+        case FOGTYPE_EXPONENTIAL:
+        {
+            fogColor = GetFogColor(posInput);
+            float distance = length(GetWorldSpaceViewDir(posInput.positionWS));
+            float fogHeight = max(0.0, GetAbsolutePositionWS(posInput.positionWS).y - _ExpFogBaseHeight);
+            fogFactor = _FogDensity * TransmittanceHomogeneousMedium(_ExpFogHeightAttenuation, fogHeight) * (1.0f - TransmittanceHomogeneousMedium(1.0f / _ExpFogDistance, distance));
+            break;
+        }
+        case FOGTYPE_VOLUMETRIC:
+        {
+        #if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET != 0)
+            float4 volFog = SampleVolumetricLighting(TEXTURE3D_PARAM(_VBufferLighting, s_linear_clamp_sampler),
+                                                     posInput.positionNDC,
+                                                     posInput.linearDepth,
+                                                     _VBufferResolution,
+                                                     _VBufferSliceCount.xy,
+                                                     _VBufferUvScaleAndLimit.xy,
+                                                     _VBufferUvScaleAndLimit.zw,
+                                                     _VBufferDepthEncodingParams,
+                                                     _VBufferDepthDecodingParams,
+                                                     true, true);
 
-			fogFactor = 1 - volFog.a;                              // Opacity from transmittance
-			fogColor  = volFog.rgb * min(rcp(fogFactor), FLT_MAX); // Un-premultiply, clamp to avoid (0 * INF = NaN)
-		#endif
-			break;
-		}
-	}
+            fogFactor = 1 - volFog.a;                              // Opacity from transmittance
+            fogColor  = volFog.rgb * min(rcp(fogFactor), FLT_MAX); // Un-premultiply, clamp to avoid (0 * INF = NaN)
+        #endif
+            break;
+        }
+    }
 
-	return float4(fogColor, fogFactor);
+    return float4(fogColor, fogFactor);
 }
 
 #endif

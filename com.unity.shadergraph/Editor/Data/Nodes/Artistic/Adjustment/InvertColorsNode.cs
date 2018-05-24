@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
@@ -178,17 +178,17 @@ namespace UnityEditor.ShaderGraph
         public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
         {
             registry.ProvideFunction(GetFunctionName(), s =>
-            {
-                s.AppendLine("void {0}({1} In, {2} InvertColors, out {3} Out)",
-                    GetFunctionName(),
-                    FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToString(precision),
-                    FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToString(precision),
-                    FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision));
-                using (s.BlockScope())
                 {
-                    s.AppendLine("Out = abs(InvertColors - In);");
-                }
-            });
+                    s.AppendLine("void {0}({1} In, {2} InvertColors, out {3} Out)",
+                        GetFunctionName(),
+                        FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToString(precision),
+                        FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToString(precision),
+                        FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision));
+                    using (s.BlockScope())
+                    {
+                        s.AppendLine("Out = abs(InvertColors - In);");
+                    }
+                });
         }
     }
 }

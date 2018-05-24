@@ -101,7 +101,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 int atlasWidth = shadowData.localShadowAtlasWidth;
                 int atlasHeight = shadowData.localShadowAtlasHeight;
                 int sliceResolution = LightweightShadowUtils.GetMaxTileResolutionInAtlas(atlasWidth, atlasHeight, shadowCastingLightsCount);
-                
+
                 m_LocalShadowmapTexture = RenderTexture.GetTemporary(shadowData.localShadowAtlasWidth,
                         shadowData.localShadowAtlasHeight, k_ShadowmapBufferBits, m_LocalShadowmapFormat);
                 m_LocalShadowmapTexture.filterMode = FilterMode.Bilinear;

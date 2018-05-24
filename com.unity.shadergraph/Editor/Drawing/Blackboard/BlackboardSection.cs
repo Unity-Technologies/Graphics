@@ -198,7 +198,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 return EventPropagation.Continue;
             }
-
         }
 
         int IndexOf(VisualElement element)

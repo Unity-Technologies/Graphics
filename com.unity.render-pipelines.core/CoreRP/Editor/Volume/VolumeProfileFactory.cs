@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEditor.ProjectWindowCallback;
 using System.IO;
 using UnityEngine.Experimental.Rendering;
@@ -17,7 +17,7 @@ namespace UnityEditor.Experimental.Rendering
                 "New Volume Profile.asset",
                 null,
                 null
-            );
+                );
         }
 
         public static VolumeProfile CreateVolumeProfileAtPath(string path)

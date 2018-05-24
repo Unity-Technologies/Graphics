@@ -53,7 +53,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         public BlackboardField()
-            : this(null, "", "") { }
+            : this(null, "", "") {}
 
         static Type s_ContextualMenuManipulator = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEngine.Experimental.UIElements.ContextualMenuManipulator");
 

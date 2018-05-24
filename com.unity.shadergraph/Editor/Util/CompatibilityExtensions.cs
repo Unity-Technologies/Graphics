@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 
@@ -15,6 +15,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             field.RenameGo();
         }
+
 #endif
 
         public static void AppendAction(this ContextualMenu contextualMenu, string actionName, Action action, Func<ContextualMenu.MenuAction.StatusFlags> actionStatusCallback)
@@ -53,6 +54,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             element.Dirty(ChangeType.Repaint);
         }
+
 #endif
 
 #if !UNITY_2018_3_OR_NEWER
@@ -65,6 +67,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             element.ReleaseMouseCapture();
         }
+
 #endif
     }
 

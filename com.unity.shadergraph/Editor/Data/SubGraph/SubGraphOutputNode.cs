@@ -92,7 +92,7 @@ namespace UnityEditor.ShaderGraph
         {
             get
             {
-                return NodeExtensions.GetInputSlots<MaterialSlot>(this).OrderBy(x=>x.id);
+                return NodeExtensions.GetInputSlots<MaterialSlot>(this).OrderBy(x => x.id);
             }
         }
     }

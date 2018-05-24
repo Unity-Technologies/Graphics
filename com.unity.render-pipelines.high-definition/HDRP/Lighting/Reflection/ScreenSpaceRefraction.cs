@@ -30,7 +30,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             out int rayMaxScreenDistanceID,
             out int rayBlendScreenDistanceID,
             out int rayMarchBehindObjectsID
-        )
+            )
         {
             rayLevelID = HDShaderIDs._SSRefractionRayLevel;
             rayMinLevelID = HDShaderIDs._SSRefractionRayMinLevel;

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 
@@ -29,7 +29,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ComputeShader depthPyramidCS,
             GPUCopy gpuCopy,
             TexturePadding texturePadding
-        )
+            )
         {
             m_ColorPyramidCS = colorPyramidCS;
             m_ColorPyramidKernel = m_ColorPyramidCS.FindKernel("KMain");
@@ -53,7 +53,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             List<RTHandleSystem.RTHandle> mips,
             int lodCount,
             Vector2 scale
-        )
+            )
         {
             m_GPUCopy.SampleCopyChannel_xyzw2x(cmd, sourceTexture, targetTexture, new RectInt(0, 0, width, height));
 
@@ -91,9 +91,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // The compute shader work in texture space
                 // So we must provide the texture's size
                 cmd.SetComputeVectorParam(m_DepthPyramidCS, _SrcSize, new Vector4(
-                    src.rt.width, src.rt.height,
-                    (1.0f / src.rt.width), (1.0f / src.rt.height))
-                );
+                        src.rt.width, src.rt.height,
+                        (1.0f / src.rt.width), (1.0f / src.rt.height))
+                    );
 
                 cmd.DispatchCompute(
                     m_DepthPyramidCS,
@@ -101,7 +101,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     Mathf.CeilToInt(dstWorkMip.width / (float)kernelSize),
                     Mathf.CeilToInt(dstWorkMip.height / (float)kernelSize),
                     1
-                );
+                    );
 
                 var dstMipWidthToCopy = Mathf.Min(Mathf.Min(targetTexture.rt.width >> (i + 1), dstWorkMip.width), mips[i].rt.width);
                 var dstMipHeightToCopy = Mathf.Min(Mathf.Min(targetTexture.rt.height >> (i + 1), dstWorkMip.height), mips[i].rt.height);
@@ -120,7 +120,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             List<RTHandleSystem.RTHandle> mips,
             int lodCount,
             Vector2 scale
-        )
+            )
         {
             // Copy mip 0
             // Here we blit a "camera space" texture into a square texture but we want to keep the original viewport.
@@ -128,7 +128,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             HDUtils.BlitCameraTexture(cmd, hdCamera, sourceTexture, targetTexture, new Rect(0.0f, 0.0f, hdCamera.actualWidth, hdCamera.actualHeight));
 
             m_RenderColorPyramid_CastTmp.Clear();
-            for (var i = 0 ; i < mips.Count; ++i)
+            for (var i = 0; i < mips.Count; ++i)
                 m_RenderColorPyramid_CastTmp.Add(mips[i]);
             RenderColorPyramidMips(
                 new RectInt(0, 0, hdCamera.actualWidth, hdCamera.actualHeight),
@@ -137,7 +137,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_RenderColorPyramid_CastTmp,
                 lodCount,
                 scale
-            );
+                );
         }
 
         public void RenderColorPyramid(
@@ -147,7 +147,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RenderTexture targetTexture,
             List<RenderTexture> mips,
             int lodCount
-        )
+            )
         {
             Assert.AreEqual(0, srcRect.x, "Offset are not supported");
             Assert.AreEqual(0, srcRect.y, "Offset are not supported");
@@ -155,9 +155,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Assert.IsTrue(srcRect.height > 0);
 
             var scale = new Vector2(
-                sourceTexture.width / (float)srcRect.width,
-                sourceTexture.height / (float)srcRect.height
-            );
+                    sourceTexture.width / (float)srcRect.width,
+                    sourceTexture.height / (float)srcRect.height
+                    );
 
             cmd.Blit(sourceTexture, targetTexture, scale, Vector2.zero);
 
@@ -168,7 +168,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 mips,
                 lodCount,
                 scale
-            );
+                );
         }
 
         void RenderColorPyramidMips(
@@ -178,7 +178,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             List<RenderTexture> mips,
             int lodCount,
             Vector2 scale
-        )
+            )
         {
             Assert.AreEqual(0, srcRect.x, "Offset are not supported");
             Assert.AreEqual(0, srcRect.y, "Offset are not supported");
@@ -192,11 +192,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 var srcMip = new RectInt(0, 0, srcRect.width >> i, srcRect.height >> i);
                 var srcWorkMip = new RectInt(
-                    0,
-                    0,
-                    Mathf.CeilToInt(srcMip.width / 16.0f) * 16,
-                    Mathf.CeilToInt(srcMip.height / 16.0f) * 16
-                );
+                        0,
+                        0,
+                        Mathf.CeilToInt(srcMip.width / 16.0f) * 16,
+                        Mathf.CeilToInt(srcMip.height / 16.0f) * 16
+                        );
                 var dstWorkMip = new RectInt(0, 0, srcWorkMip.width >> 1, srcWorkMip.height >> 1);
 
                 m_TexturePadding.Pad(cmd, src, srcMip, srcWorkMip);
@@ -210,14 +210,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_ColorPyramidCS,
                     _Size,
                     new Vector4(src.width >> 1, src.height >> 1, 1f / (src.width >> 1), 1f / (src.height >> 1))
-                );
+                    );
                 cmd.DispatchCompute(
                     m_ColorPyramidCS,
                     m_ColorPyramidKernel,
                     dstWorkMip.width / 8,
                     dstWorkMip.height / 8,
                     1
-                );
+                    );
 
                 var dstMipWidthToCopy = Mathf.Min(Mathf.Min(targetTexture.width >> (i + 1), dstWorkMip.width), mips[i].width);
                 var dstMipHeightToCopy = Mathf.Min(Mathf.Min(targetTexture.height >> (i + 1), dstWorkMip.height), mips[i].height);
@@ -227,7 +227,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     mips[i],
                     0, 0, 0, 0,
                     dstMipWidthToCopy, dstMipHeightToCopy, targetTexture, 0, i + 1, 0, 0
-                );
+                    );
 
                 src = dest;
             }

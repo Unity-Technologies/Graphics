@@ -202,11 +202,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cameraData.clearDepth = camera.clearFlags != CameraClearFlags.Nothing;
 
             if (camera.clearFlags == CameraClearFlags.Skybox)
-                    cameraData.clearColorMode = ClearColorMode.Sky;
-                else if (camera.clearFlags == CameraClearFlags.SolidColor)
-                    cameraData.clearColorMode = ClearColorMode.BackgroundColor;
-                else // None
-                    cameraData.clearColorMode = ClearColorMode.None;
+                cameraData.clearColorMode = ClearColorMode.Sky;
+            else if (camera.clearFlags == CameraClearFlags.SolidColor)
+                cameraData.clearColorMode = ClearColorMode.BackgroundColor;
+            else     // None
+                cameraData.clearColorMode = ClearColorMode.None;
         }
     }
 }

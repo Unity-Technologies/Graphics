@@ -82,39 +82,39 @@ namespace UnityEditor.ShaderGraph
         public void GenerateSubGraphFunction(string functionName, FunctionRegistry registry, GraphContext graphContext, ShaderGraphRequirements reqs, GenerationMode generationMode)
         {
             registry.ProvideFunction(functionName, s =>
-            {
-                s.AppendLine("// Subgraph function");
-
-                // Generate arguments... first INPUTS
-                var arguments = new List<string>();
-                foreach (var prop in graphInputs)
-                    arguments.Add(string.Format("{0}", prop.GetPropertyAsArgumentString()));
-
-                // now pass surface inputs
-                arguments.Add("SurfaceDescriptionInputs IN");
-
-                // Now generate outputs
-                foreach (var slot in graphOutputs)
-                    arguments.Add(string.Format("out {0} {1}", slot.concreteValueType.ToString(outputNode.precision), slot.shaderOutputName));
-
-                // Create the function protoype from the arguments
-                s.AppendLine("void {0}({1})"
-                    , functionName
-                    , arguments.Aggregate((current, next) => string.Format("{0}, {1}", current, next)));
-
-                // now generate the function
-                using (s.BlockScope())
                 {
-                    // Just grab the body from the active nodes
-                    var bodyGenerator = new ShaderGenerator();
-                    GenerateNodeCode(bodyGenerator, GenerationMode.ForReals);
+                    s.AppendLine("// Subgraph function");
 
-                    if (outputNode != null)
-                        outputNode.RemapOutputs(bodyGenerator, GenerationMode.ForReals);
+                    // Generate arguments... first INPUTS
+                    var arguments = new List<string>();
+                    foreach (var prop in graphInputs)
+                        arguments.Add(string.Format("{0}", prop.GetPropertyAsArgumentString()));
 
-                    s.Append(bodyGenerator.GetShaderString(1));
-                }
-            });
+                    // now pass surface inputs
+                    arguments.Add("SurfaceDescriptionInputs IN");
+
+                    // Now generate outputs
+                    foreach (var slot in graphOutputs)
+                        arguments.Add(string.Format("out {0} {1}", slot.concreteValueType.ToString(outputNode.precision), slot.shaderOutputName));
+
+                    // Create the function protoype from the arguments
+                    s.AppendLine("void {0}({1})"
+                        , functionName
+                        , arguments.Aggregate((current, next) => string.Format("{0}, {1}", current, next)));
+
+                    // now generate the function
+                    using (s.BlockScope())
+                    {
+                        // Just grab the body from the active nodes
+                        var bodyGenerator = new ShaderGenerator();
+                        GenerateNodeCode(bodyGenerator, GenerationMode.ForReals);
+
+                        if (outputNode != null)
+                            outputNode.RemapOutputs(bodyGenerator, GenerationMode.ForReals);
+
+                        s.Append(bodyGenerator.GetShaderString(1));
+                    }
+                });
         }
 
         public override void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)

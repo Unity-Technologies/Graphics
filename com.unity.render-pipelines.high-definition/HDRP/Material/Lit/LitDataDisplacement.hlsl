@@ -217,4 +217,3 @@ float3 ComputePerVertexDisplacement(LayerTexCoord layerTexCoord, float4 vertexCo
 }
 
 #endif // #ifndef LAYERED_LIT_SHADER
-

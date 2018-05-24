@@ -96,7 +96,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     p.m21 / (p.m11 * p.m23),
                     -1f / p.m23,
                     (-p.m22 + p.m20 * p.m02 / p.m00 + p.m21 * p.m12 / p.m11) / p.m23
-                );
+                    );
             }
         }
 
@@ -228,7 +228,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             taaFrameIndex = taaEnabled ? (uint)postProcessLayer.temporalAntialiasing.sampleIndex : 0;
             taaFrameRotation = new Vector2(Mathf.Sin(taaFrameIndex * (0.5f * Mathf.PI)),
-                                           Mathf.Cos(taaFrameIndex * (0.5f * Mathf.PI)));
+                    Mathf.Cos(taaFrameIndex * (0.5f * Mathf.PI)));
 
             viewMatrix = gpuView;
             projMatrix = gpuProj;
@@ -255,11 +255,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // http://www.humus.name/temp/Linearize%20depth.txt
             if (reverseZ)
             {
-                zBufferParams = new Vector4(-1 + f/n, 1, -1/f + 1/n, 1/f);
+                zBufferParams = new Vector4(-1 + f / n, 1, -1 / f + 1 / n, 1 / f);
             }
             else
             {
-                zBufferParams = new Vector4(1 - f/n, f/n, 1/f - 1/n, 1/n);
+                zBufferParams = new Vector4(1 - f / n, f / n, 1 / f - 1 / n, 1 / n);
             }
 
             projectionParams = new Vector4(flipProj ? -1 : 1, n, f, 1.0f / f);
@@ -491,7 +491,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalMatrix(HDShaderIDs._NonJitteredViewProjMatrix, nonJitteredViewProjMatrix);
             cmd.SetGlobalMatrix(HDShaderIDs._PrevViewProjMatrix,        prevViewProjMatrix);
             cmd.SetGlobalVector(HDShaderIDs._WorldSpaceCameraPos,       worldSpaceCameraPos);
-            cmd.SetGlobalFloat( HDShaderIDs._DetViewMatrix,             detViewMatrix);
+            cmd.SetGlobalFloat(HDShaderIDs._DetViewMatrix,             detViewMatrix);
             cmd.SetGlobalVector(HDShaderIDs._ScreenSize,                screenSize);
             cmd.SetGlobalVector(HDShaderIDs._ScreenToTargetScale,       doubleBufferedViewportScale);
             cmd.SetGlobalVector(HDShaderIDs._ZBufferParams,             zBufferParams);

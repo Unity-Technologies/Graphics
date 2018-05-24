@@ -217,6 +217,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 m_Options = options;
             }
+
             public ComboProperty(BaseMaterialGUI parent, string propertyName, string guiText, string[] options, int[] values, bool isMandatory = true, Func<object, bool> isVisible = null)
                 : base(parent, propertyName, guiText, isMandatory, isVisible)
             {
@@ -304,7 +305,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                     using (var scope = new EditorGUI.ChangeCheckScope())
                     {
-                        int profileID = (int) FloatValue;
+                        int profileID = (int)FloatValue;
 
                         using (new EditorGUILayout.HorizontalScope())
                         {
@@ -373,9 +374,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             internal override string ToShaderPropertiesStringInternal()
             {
                 return string.Format("{0}(\"{1}\", 2D) = \"white\" {{}}\n" +
-                                     "{2}(\"{3}\", Float) = 0.0",
-                                     PropertyName, PropertyText,
-                                     ExtraPropertyName, ExtraPropertyName);
+                    "{2}(\"{3}\", Float) = 0.0",
+                    PropertyName, PropertyText,
+                    ExtraPropertyName, ExtraPropertyName);
             }
         }
 
@@ -571,7 +572,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     "[HideInInspector] {0}Range(\"{1} Range\", Vector) = (0, 1, 0, 0)\n",
                     m_ConstantPropertyName, constantName, PropertyName);
             }
-    }
+        }
         #endregion
     }
 }

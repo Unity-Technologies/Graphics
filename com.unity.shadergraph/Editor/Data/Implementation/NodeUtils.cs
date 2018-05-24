@@ -89,7 +89,7 @@ namespace UnityEditor.Graphing
                 {
                     var outputNode = node.owner.GetNodeFromGuid(edge.outputSlot.nodeGuid) as T;
                     if (outputNode != null)
-                    DepthFirstCollectNodesFromNode(nodeList, outputNode);
+                        DepthFirstCollectNodesFromNode(nodeList, outputNode);
                 }
             }
 
@@ -134,21 +134,21 @@ namespace UnityEditor.Graphing
                 if (goingBackwards && slot.isInputSlot)
                 {
                     foreach (var edge in graph.GetEdges(slot.slotReference))
-                {
+                    {
                         var node = graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
                         s_SlotStack.Push(node.FindOutputSlot<MaterialSlot>(edge.outputSlot.slotId));
                     }
                 }
                 else if (!goingBackwards && slot.isOutputSlot)
-                    {
+                {
                     foreach (var edge in graph.GetEdges(slot.slotReference))
-                        {
+                    {
                         var node = graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
                         s_SlotStack.Push(node.FindInputSlot<MaterialSlot>(edge.inputSlot.slotId));
                     }
                 }
-                            else
-                            {
+                else
+                {
                     var ownerSlots = Enumerable.Empty<MaterialSlot>();
                     if (goingBackwards && slot.isOutputSlot)
                         ownerSlots = slot.owner.GetInputSlots<MaterialSlot>();
@@ -156,8 +156,8 @@ namespace UnityEditor.Graphing
                         ownerSlots = slot.owner.GetOutputSlots<MaterialSlot>();
                     foreach (var ownerSlot in ownerSlots)
                         s_SlotStack.Push(ownerSlot);
-                            }
-                        }
+                }
+            }
             // We default to fragment shader stage if all connected nodes were compatible with both.
             return ShaderStage.Fragment;
         }
@@ -189,8 +189,8 @@ namespace UnityEditor.Graphing
                         var node = graph.GetNodeFromGuid(edge.inputSlot.nodeGuid);
                         s_SlotStack.Push(node.FindInputSlot<MaterialSlot>(edge.inputSlot.slotId));
                     }
-                    }
-                    else
+                }
+                else
                 {
                     var ownerSlots = Enumerable.Empty<MaterialSlot>();
                     if (goingBackwards && slot.isOutputSlot)
@@ -282,7 +282,7 @@ namespace UnityEditor.Graphing
                 return "NAN";
             else
             {
-                 return value.ToString(CultureInfo.InvariantCulture);
+                return value.ToString(CultureInfo.InvariantCulture);
             }
         }
     }

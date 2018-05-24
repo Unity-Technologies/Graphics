@@ -1,7 +1,7 @@
 #ifndef __LIGHTCULLUTILS_H__
 #define __LIGHTCULLUTILS_H__
 
-// Used to index into our SFiniteLightBound (g_data) and 
+// Used to index into our SFiniteLightBound (g_data) and
 // LightVolumeData (_LightVolumeData) buffers.
 int GenerateLightCullDataIndex(int lightIndex, uint numVisibleLights, uint eyeIndex)
 {

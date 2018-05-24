@@ -61,11 +61,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 subShader.AppendLines(tagsBuilder.ToString());
 
                 subShader.AppendLines(GetShaderPassFromTemplate(
-                    forwardTemplate,
-                    masterNode,
-                    pass,
-                    mode,
-                    materialOptions));
+                        forwardTemplate,
+                        masterNode,
+                        pass,
+                        mode,
+                        materialOptions));
 
                 subShader.AppendLines(GetExtraPassesFromTemplate(extraTemplate, masterNode, pass, mode, materialOptions));
             }
@@ -169,7 +169,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (masterNode.IsSlotConnected(UnlitMasterNode.AlphaThresholdSlotId))
                 defines.AppendLine("#define _AlphaClip 1");
 
-            if(masterNode.surfaceType == SurfaceType.Transparent && masterNode.alphaMode == AlphaMode.Premultiply)
+            if (masterNode.surfaceType == SurfaceType.Transparent && masterNode.alphaMode == AlphaMode.Premultiply)
                 defines.AppendLine("#define _ALPHAPREMULTIPLY_ON 1");
 
             // ----------------------------------------------------- //
@@ -209,11 +209,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             GraphUtil.GenerateVertexDescriptionFunction(
                 masterNode.owner as AbstractMaterialGraph,
-                vertexDescriptionFunction, 
-                functionRegistry, 
-                shaderProperties, 
-                mode, 
-                vertexNodes, 
+                vertexDescriptionFunction,
+                functionRegistry,
+                shaderProperties,
+                mode,
+                vertexNodes,
                 vertexSlots);
 
             // ----------------------------------------------------- //
@@ -223,7 +223,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // -------------------------------------
             // Generate Input structure for Surface Description function
             // Surface Description Input requirements are needed to exclude intermediate translation spaces
-            
+
             surfaceDescriptionInputStruct.AppendLine("struct SurfaceDescriptionInputs");
             using (surfaceDescriptionInputStruct.BlockSemicolonScope())
             {
@@ -317,7 +317,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             graph.AppendLine(vertexDescriptionStruct.ToString());
             graph.AppendLine(vertexDescriptionFunction.ToString());
-        
+
             graph.AppendLine(surfaceDescriptionStruct.ToString());
             graph.AppendLine(surfaceDescriptionFunction.ToString());
 
@@ -372,7 +372,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             var vertexShader = new ShaderStringBuilder(2);
             var vertexDescriptionInputs = new ShaderStringBuilder(2);
-            
+
             // -------------------------------------
             // Get Slot and Node lists per stage
 
@@ -444,11 +444,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             GraphUtil.GenerateVertexDescriptionFunction(
                 masterNode.owner as AbstractMaterialGraph,
-                vertexDescriptionFunction, 
-                functionRegistry, 
-                shaderProperties, 
-                mode, 
-                vertexNodes, 
+                vertexDescriptionFunction,
+                functionRegistry,
+                shaderProperties,
+                mode,
+                vertexNodes,
                 vertexSlots);
 
             // ----------------------------------------------------- //
@@ -457,7 +457,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             // -------------------------------------
             // Generate Input structure for Vertex shader
-            
+
             GraphUtil.GenerateApplicationVertexInputs(vertexRequirements.Union(modelRequiements), vertexInputStruct);
 
             // -------------------------------------

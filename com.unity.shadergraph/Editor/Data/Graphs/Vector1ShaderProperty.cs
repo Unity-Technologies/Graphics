@@ -65,7 +65,7 @@ namespace UnityEditor.ShaderGraph
             result.Append(referenceName);
             result.Append("(\"");
             result.Append(displayName);
-            switch(floatType)
+            switch (floatType)
             {
                 case FloatType.Slider:
                     result.Append("\", Range(");
@@ -99,7 +99,7 @@ namespace UnityEditor.ShaderGraph
 
         public override INode ToConcreteNode()
         {
-            switch(m_FloatType)
+            switch (m_FloatType)
             {
                 case FloatType.Slider:
                     return new SliderNode { value = new Vector3(value, m_RangeValues.x, m_RangeValues.y) };

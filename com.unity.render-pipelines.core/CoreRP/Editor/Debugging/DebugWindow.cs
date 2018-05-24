@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Callbacks;
@@ -10,7 +10,7 @@ namespace UnityEditor.Experimental.Rendering
     #pragma warning disable 414
 
     [Serializable]
-    sealed class WidgetStateDictionary : SerializedDictionary<string, DebugState> { }
+    sealed class WidgetStateDictionary : SerializedDictionary<string, DebugState> {}
 
     sealed class DebugWindowSettings : ScriptableObject
     {
@@ -61,11 +61,11 @@ namespace UnityEditor.Experimental.Rendering
             // serialize is the same)
             var attrType = typeof(DebugStateAttribute);
             var stateTypes = assemblyTypes
-                                .Where(
-                                    t => t.IsSubclassOf(typeof(DebugState))
-                                      && t.IsDefined(attrType, false)
-                                      && !t.IsAbstract
-                                );
+                .Where(
+                    t => t.IsSubclassOf(typeof(DebugState))
+                    && t.IsDefined(attrType, false)
+                    && !t.IsAbstract
+                    );
 
             s_WidgetStateMap = new Dictionary<Type, Type>();
 
@@ -80,11 +80,11 @@ namespace UnityEditor.Experimental.Rendering
             // Drawers
             attrType = typeof(DebugUIDrawerAttribute);
             var types = assemblyTypes
-                            .Where(
-                                t => t.IsSubclassOf(typeof(DebugUIDrawer))
-                                  && t.IsDefined(attrType, false)
-                                  && !t.IsAbstract
-                            );
+                .Where(
+                    t => t.IsSubclassOf(typeof(DebugUIDrawer))
+                    && t.IsDefined(attrType, false)
+                    && !t.IsAbstract
+                    );
 
             s_WidgetDrawerMap = new Dictionary<Type, DebugUIDrawer>();
 
@@ -169,7 +169,7 @@ namespace UnityEditor.Experimental.Rendering
         {
             foreach (var state in m_WidgetStates)
             {
-                if(state.Value == null)
+                if (state.Value == null)
                 {
                     return false;
                 }

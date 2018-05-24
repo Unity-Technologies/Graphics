@@ -50,7 +50,6 @@ namespace UnityEngine.Experimental.Rendering
                 var go = new GameObject("__GameViewEventCatcher");
                 go.hideFlags = HideFlags.HideAndDontSave;
                 s_Instance = go.AddComponent<GameViewEventCatcher>();
-
             }
 
             void Update()
@@ -106,6 +105,7 @@ namespace UnityEngine.Experimental.Rendering
                     break;
             }
         }
+
 #endif
 
         public void Build()

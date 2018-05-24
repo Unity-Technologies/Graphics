@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -28,7 +28,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         void UpdateSkyIntPopupData()
         {
-            if(m_SkyClassNames == null)
+            if (m_SkyClassNames == null)
             {
                 m_SkyClassNames = new List<GUIContent>();
                 m_SkyUniqueIDs = new List<int>();

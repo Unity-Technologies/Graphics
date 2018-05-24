@@ -494,8 +494,8 @@ uint GetMipCount(Texture2D tex)
 #if defined(MIP_COUNT_SUPPORTED)
     uint mipLevel, width, height, mipCount;
     mipLevel = width = height = mipCount = 0;
-	tex.GetDimensions(mipLevel, width, height, mipCount);
-    return mipCount;	
+    tex.GetDimensions(mipLevel, width, height, mipCount);
+    return mipCount;
 #else
     return 0;
 #endif
@@ -844,14 +844,14 @@ float4 GetFullScreenTriangleVertexPosition(uint vertexID, float z = UNITY_NEAR_C
 
 float2 GetQuadTexCoord(uint vertexID)
 {
-	uint topBit = vertexID >> 1;
-	uint botBit = (vertexID & 1);
-	float u = topBit;
-	float v = (topBit + botBit) & 1; // produces 0 for indices 0,3 and 1 for 1,2
+    uint topBit = vertexID >> 1;
+    uint botBit = (vertexID & 1);
+    float u = topBit;
+    float v = (topBit + botBit) & 1; // produces 0 for indices 0,3 and 1 for 1,2
 #if UNITY_UV_STARTS_AT_TOP
-	v = 1.0 - v;
+    v = 1.0 - v;
 #endif
-	return float2(u, v);
+    return float2(u, v);
 }
 
 // 0 - 0,1
@@ -860,11 +860,11 @@ float2 GetQuadTexCoord(uint vertexID)
 // 3 - 1,1
 float4 GetQuadVertexPosition(uint vertexID, float z = UNITY_NEAR_CLIP_VALUE)
 {
-	uint topBit = vertexID >> 1;
-	uint botBit = (vertexID & 1);
-	float x = topBit;
-	float y = 1 - (topBit + botBit) & 1; // produces 1 for indices 0,3 and 0 for 1,2
-	return float4(x, y, z, 1.0);
+    uint topBit = vertexID >> 1;
+    uint botBit = (vertexID & 1);
+    float x = topBit;
+    float y = 1 - (topBit + botBit) & 1; // produces 1 for indices 0,3 and 0 for 1,2
+    return float4(x, y, z, 1.0);
 }
 
 #if !defined(SHADER_API_GLES)

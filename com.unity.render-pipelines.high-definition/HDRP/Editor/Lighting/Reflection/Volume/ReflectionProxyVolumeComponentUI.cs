@@ -1,4 +1,4 @@
-﻿using UnityEngine.Events;
+using UnityEngine.Events;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -12,10 +12,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static ReflectionProxyVolumeComponentUI()
         {
             Inspector = CED.Select(
-                (s, d, o) => s.proxyVolume,
-                (s, d, o) => d.proxyVolume,
-                ProxyVolumeUI.SectionShape
-            );
+                    (s, d, o) => s.proxyVolume,
+                    (s, d, o) => d.proxyVolume,
+                    ProxyVolumeUI.SectionShape
+                    );
         }
 
         public ProxyVolumeUI proxyVolume = new ProxyVolumeUI();
@@ -23,7 +23,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public ReflectionProxyVolumeComponentUI()
             : base(0)
         {
-            
         }
 
         public override void Reset(SerializedReflectionProxyVolumeComponent data, UnityAction repaint)

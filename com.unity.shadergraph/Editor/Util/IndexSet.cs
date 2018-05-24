@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         List<uint> m_Masks = new List<uint>();
 
-        public IndexSet() { }
+        public IndexSet() {}
 
         public IndexSet(IEnumerable<int> indices)
         {

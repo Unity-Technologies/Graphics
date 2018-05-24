@@ -77,10 +77,10 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
             }
 
             void ColorWidget(
-                int2 positionSS, 
-                float4 rect, 
-                float3 borderColor, 
-                float3 innerColor, 
+                int2 positionSS,
+                float4 rect,
+                float3 borderColor,
+                float3 innerColor,
                 inout float4 debugColor,
                 inout float4 backgroundColor
             )
@@ -138,7 +138,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
                 if (_FullScreenDebugMode == FULLSCREENDEBUGMODE_NAN_TRACKER)
                 {
                     float4 color = SAMPLE_TEXTURE2D(_DebugFullScreenTexture, s_point_clamp_sampler, input.texcoord);
-                    
+
                     if (AnyIsNan(color) || any(isinf(color)))
                     {
                         color = float4(1.0, 0.0, 0.0, 1.0);

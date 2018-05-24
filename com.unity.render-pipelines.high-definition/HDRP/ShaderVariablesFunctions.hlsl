@@ -19,7 +19,7 @@ float4x4 GetWorldToObjectMatrix()
 // Transform to homogenous clip space
 float4x4 GetViewToHClipMatrix()
 {
-	return UNITY_MATRIX_P;
+    return UNITY_MATRIX_P;
 }
 
 float4x4 GetWorldToHClipMatrix()
@@ -84,19 +84,19 @@ float4 TransformWorldToHClip(float3 positionWS)
 // Tranforms vector from world space to homogenous space
 float3 TransformWorldToHClipDir(float3 directionWS)
 {
-	return mul((float3x3)GetWorldToHClipMatrix(), directionWS);
+    return mul((float3x3)GetWorldToHClipMatrix(), directionWS);
 }
 
 // Tranforms position from view space to homogenous space
 float4 TransformWViewToHClip(float3 positionVS)
 {
-	return mul(GetViewToHClipMatrix(), float4(positionVS, 1.0));
+    return mul(GetViewToHClipMatrix(), float4(positionVS, 1.0));
 }
 
 // Tranforms vector from world space to homogenous space
 float3 TransformViewToHClipDir(float3 directionVS)
 {
-	return mul((float3x3)GetViewToHClipMatrix(), directionVS);
+    return mul((float3x3)GetViewToHClipMatrix(), directionVS);
 }
 
 // This function always return the absolute position in WS either the CameraRelative mode is enabled or not
@@ -162,16 +162,16 @@ bool IsPerspectiveProjection()
 // Computes the world space view direction (pointing towards the viewer).
 float3 GetWorldSpaceViewDir(float3 positionWS)
 {
-	if (IsPerspectiveProjection())
-	{
-		// Perspective
-		return GetCurrentViewPosition() - positionWS;
-	}
-	else
-	{
-		// Orthographic
-		return -GetViewForwardDir();
-	}
+    if (IsPerspectiveProjection())
+    {
+        // Perspective
+        return GetCurrentViewPosition() - positionWS;
+    }
+    else
+    {
+        // Orthographic
+        return -GetViewForwardDir();
+    }
 }
 
 float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleSheets;

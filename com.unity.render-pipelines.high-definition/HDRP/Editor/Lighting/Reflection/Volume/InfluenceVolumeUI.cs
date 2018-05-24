@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor.AnimatedValues;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
@@ -35,7 +35,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public InfluenceVolumeUI()
             : base(k_ShapeCount + 1)
         {
-
         }
 
         public override void Update()

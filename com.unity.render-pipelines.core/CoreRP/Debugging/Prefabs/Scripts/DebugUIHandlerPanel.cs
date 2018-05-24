@@ -51,10 +51,10 @@ namespace UnityEngine.Experimental.Rendering.UI
         float GetYPosInScroll(RectTransform target)
         {
             var pivotOffset = new Vector3(
-                (0.5f - target.pivot.x) * target.rect.size.x,
-                (0.5f - target.pivot.y) * target.rect.size.y,
-                 0f
-            );
+                    (0.5f - target.pivot.x) * target.rect.size.x,
+                    (0.5f - target.pivot.y) * target.rect.size.y,
+                    0f
+                    );
             var localPos = target.localPosition + pivotOffset;
             var worldPos = target.parent.TransformPoint(localPos);
             return m_ScrollTransform.TransformPoint(worldPos).y;

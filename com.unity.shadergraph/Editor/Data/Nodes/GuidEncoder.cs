@@ -1,6 +1,7 @@
 using System;
 
-namespace UnityEditor.ShaderGraph {
+namespace UnityEditor.ShaderGraph
+{
     public static class GuidEncoder
     {
         public static string Encode(Guid guid)

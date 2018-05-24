@@ -10,10 +10,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     [CustomEditorForRenderPipeline(typeof(Light), typeof(HDRenderPipelineAsset))]
     sealed partial class HDLightEditor : LightEditor
     {
-        [MenuItem("CONTEXT/Light/Remove HD Light", false,0)]
+        [MenuItem("CONTEXT/Light/Remove HD Light", false, 0)]
         static void RemoveLight(MenuCommand menuCommand)
         {
-            GameObject go = ( (Light) menuCommand.context ).gameObject;
+            GameObject go = ((Light)menuCommand.context).gameObject;
 
             Assert.IsNotNull(go);
 
@@ -105,53 +105,53 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_SerializedAdditionalShadowData = new SerializedObject(shadowData);
 
             using (var o = new PropertyFetcher<HDAdditionalLightData>(m_SerializedAdditionalLightData))
-            m_AdditionalLightData = new SerializedLightData
-            {
-                directionalIntensity = o.Find(x => x.directionalIntensity),
-                punctualIntensity = o.Find(x => x.punctualIntensity),
-                areaIntensity = o.Find(x => x.areaIntensity),
-                enableSpotReflector = o.Find(x => x.enableSpotReflector),
-                spotInnerPercent = o.Find(x => x.m_InnerSpotPercent),
-                lightDimmer = o.Find(x => x.lightDimmer),
-                volumetricDimmer = o.Find(x => x.volumetricDimmer),
-                fadeDistance = o.Find(x => x.fadeDistance),
-                affectDiffuse = o.Find(x => x.affectDiffuse),
-                affectSpecular = o.Find(x => x.affectSpecular),
-                nonLightmappedOnly = o.Find(x => x.nonLightmappedOnly),
-                lightTypeExtent = o.Find(x => x.lightTypeExtent),
-                spotLightShape = o.Find(x => x.spotLightShape),
-                shapeWidth = o.Find(x => x.shapeWidth),
-                shapeHeight = o.Find(x => x.shapeHeight),
-                aspectRatio = o.Find(x => x.aspectRatio),
-                shapeRadius = o.Find(x => x.shapeRadius),
-                maxSmoothness = o.Find(x => x.maxSmoothness),
-                applyRangeAttenuation = o.Find(x => x.applyRangeAttenuation),
+                m_AdditionalLightData = new SerializedLightData
+                {
+                    directionalIntensity = o.Find(x => x.directionalIntensity),
+                    punctualIntensity = o.Find(x => x.punctualIntensity),
+                    areaIntensity = o.Find(x => x.areaIntensity),
+                    enableSpotReflector = o.Find(x => x.enableSpotReflector),
+                    spotInnerPercent = o.Find(x => x.m_InnerSpotPercent),
+                    lightDimmer = o.Find(x => x.lightDimmer),
+                    volumetricDimmer = o.Find(x => x.volumetricDimmer),
+                    fadeDistance = o.Find(x => x.fadeDistance),
+                    affectDiffuse = o.Find(x => x.affectDiffuse),
+                    affectSpecular = o.Find(x => x.affectSpecular),
+                    nonLightmappedOnly = o.Find(x => x.nonLightmappedOnly),
+                    lightTypeExtent = o.Find(x => x.lightTypeExtent),
+                    spotLightShape = o.Find(x => x.spotLightShape),
+                    shapeWidth = o.Find(x => x.shapeWidth),
+                    shapeHeight = o.Find(x => x.shapeHeight),
+                    aspectRatio = o.Find(x => x.aspectRatio),
+                    shapeRadius = o.Find(x => x.shapeRadius),
+                    maxSmoothness = o.Find(x => x.maxSmoothness),
+                    applyRangeAttenuation = o.Find(x => x.applyRangeAttenuation),
 
-                // Editor stuff
-                useOldInspector = o.Find(x => x.useOldInspector),
-                showFeatures = o.Find(x => x.featuresFoldout),
-                showAdditionalSettings = o.Find(x => x.showAdditionalSettings)
-            };
+                    // Editor stuff
+                    useOldInspector = o.Find(x => x.useOldInspector),
+                    showFeatures = o.Find(x => x.featuresFoldout),
+                    showAdditionalSettings = o.Find(x => x.showAdditionalSettings)
+                };
 
             // TODO: Review this once AdditionalShadowData is refactored
             using (var o = new PropertyFetcher<AdditionalShadowData>(m_SerializedAdditionalShadowData))
-            m_AdditionalShadowData = new SerializedShadowData
-            {
-                dimmer = o.Find(x => x.shadowDimmer),
-                fadeDistance = o.Find(x => x.shadowFadeDistance),
-                resolution = o.Find(x => x.shadowResolution),
+                m_AdditionalShadowData = new SerializedShadowData
+                {
+                    dimmer = o.Find(x => x.shadowDimmer),
+                    fadeDistance = o.Find(x => x.shadowFadeDistance),
+                    resolution = o.Find(x => x.shadowResolution),
 
-                viewBiasMin = o.Find(x => x.viewBiasMin),
-                viewBiasMax = o.Find(x => x.viewBiasMax),
-                viewBiasScale = o.Find(x => x.viewBiasScale),
-                normalBiasMin = o.Find(x => x.normalBiasMin),
-                normalBiasMax = o.Find(x => x.normalBiasMax),
-                normalBiasScale = o.Find(x => x.normalBiasScale),
-                sampleBiasScale = o.Find(x => x.sampleBiasScale),
-                edgeLeakFixup = o.Find(x => x.edgeLeakFixup),
-                edgeToleranceNormal = o.Find(x => x.edgeToleranceNormal),
-                edgeTolerance = o.Find(x => x.edgeTolerance)
-            };
+                    viewBiasMin = o.Find(x => x.viewBiasMin),
+                    viewBiasMax = o.Find(x => x.viewBiasMax),
+                    viewBiasScale = o.Find(x => x.viewBiasScale),
+                    normalBiasMin = o.Find(x => x.normalBiasMin),
+                    normalBiasMax = o.Find(x => x.normalBiasMax),
+                    normalBiasScale = o.Find(x => x.normalBiasScale),
+                    sampleBiasScale = o.Find(x => x.sampleBiasScale),
+                    edgeLeakFixup = o.Find(x => x.edgeLeakFixup),
+                    edgeToleranceNormal = o.Find(x => x.edgeToleranceNormal),
+                    edgeTolerance = o.Find(x => x.edgeTolerance)
+                };
         }
 
         public override void OnInspectorGUI()
@@ -356,15 +356,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     {
                         if (spotLightShape == SpotLightShape.Cone)
                         {
-                            settings.intensity.floatValue = LightUtils.ConvertSpotLightIntensity(m_AdditionalLightData.punctualIntensity.floatValue, settings.spotAngle.floatValue * Mathf.Deg2Rad, true );
+                            settings.intensity.floatValue = LightUtils.ConvertSpotLightIntensity(m_AdditionalLightData.punctualIntensity.floatValue, settings.spotAngle.floatValue * Mathf.Deg2Rad, true);
                         }
                         else if (spotLightShape == SpotLightShape.Pyramid)
                         {
                             float angleA, angleB;
-                            LightUtils.CalculateAnglesForPyramid(   m_AdditionalLightData.aspectRatio.floatValue, settings.spotAngle.floatValue,
-                                                                    out angleA, out angleB);
+                            LightUtils.CalculateAnglesForPyramid(m_AdditionalLightData.aspectRatio.floatValue, settings.spotAngle.floatValue,
+                                out angleA, out angleB);
 
-                            settings.intensity.floatValue = LightUtils.ConvertFrustrumLightIntensity(m_AdditionalLightData.punctualIntensity.floatValue, angleA, angleB );
+                            settings.intensity.floatValue = LightUtils.ConvertFrustrumLightIntensity(m_AdditionalLightData.punctualIntensity.floatValue, angleA, angleB);
                         }
                         else // Box shape, fallback to punctual light.
                         {

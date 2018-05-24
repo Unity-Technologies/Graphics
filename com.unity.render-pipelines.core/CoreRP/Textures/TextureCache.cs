@@ -147,7 +147,6 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     m_CubeMipLevelPropName = Shader.PropertyToID("_cubeMipLvl");
                     m_cubeSrcTexPropName = Shader.PropertyToID("_srcCubeTexture");
-
                 }
             }
             else
@@ -299,7 +298,7 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             // If no existing copy found in the array
-            if(sliceIndex == -1)
+            if (sliceIndex == -1)
             {
                 // look for first non zero entry. Will by the least recently used entry
                 // since the array was pre-sorted (in linear time) in NewFrame()
@@ -330,14 +329,13 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
 
-            if(sliceIndex != -1)
+            if (sliceIndex != -1)
             {
                 m_SliceArray[sliceIndex].countLRU = 0;      // mark slice as in use this frame
             }
 
             return sliceIndex;
         }
-
 
         // In case the texture content with which we update the cache is not the input texture, we need to provide the right update count.
         public void UpdateSlice(CommandBuffer cmd, int sliceIndex, Texture content, uint textureHash)
@@ -358,7 +356,7 @@ namespace UnityEngine.Experimental.Rendering
             UpdateSlice(cmd, sliceIndex, content, GetTextureHash(content));
         }
 
-        public int FetchSlice(CommandBuffer cmd, Texture texture, bool forceReinject=false)
+        public int FetchSlice(CommandBuffer cmd, Texture texture, bool forceReinject = false)
         {
             bool needUpdate = false;
             var sliceIndex = ReserveSlice(texture, out needUpdate);

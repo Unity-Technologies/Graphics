@@ -98,17 +98,17 @@ namespace UnityEditor.ShaderGraph
             var sb = new ShaderStringBuilder();
             if (!generationMode.IsPreview())
             {
-                sb.AppendLine("{0}3 _{1}_m0 = {0}3 ({2}, {3}, {4});", precision, GetVariableNameForNode(), 
-                    NodeUtils.FloatToShaderValue(m_Row0.x), 
-                    NodeUtils.FloatToShaderValue(m_Row0.y), 
+                sb.AppendLine("{0}3 _{1}_m0 = {0}3 ({2}, {3}, {4});", precision, GetVariableNameForNode(),
+                    NodeUtils.FloatToShaderValue(m_Row0.x),
+                    NodeUtils.FloatToShaderValue(m_Row0.y),
                     NodeUtils.FloatToShaderValue(m_Row0.z));
-                sb.AppendLine("{0}3 _{1}_m1 = {0}3 ({2}, {3}, {4});", precision, GetVariableNameForNode(), 
-                    NodeUtils.FloatToShaderValue(m_Row1.x), 
-                    NodeUtils.FloatToShaderValue(m_Row1.y), 
+                sb.AppendLine("{0}3 _{1}_m1 = {0}3 ({2}, {3}, {4});", precision, GetVariableNameForNode(),
+                    NodeUtils.FloatToShaderValue(m_Row1.x),
+                    NodeUtils.FloatToShaderValue(m_Row1.y),
                     NodeUtils.FloatToShaderValue(m_Row1.z));
-                sb.AppendLine("{0}3 _{1}_m2 = {0}3 ({2}, {3}, {4});", precision, GetVariableNameForNode(), 
-                    NodeUtils.FloatToShaderValue(m_Row2.x), 
-                    NodeUtils.FloatToShaderValue(m_Row2.y), 
+                sb.AppendLine("{0}3 _{1}_m2 = {0}3 ({2}, {3}, {4});", precision, GetVariableNameForNode(),
+                    NodeUtils.FloatToShaderValue(m_Row2.x),
+                    NodeUtils.FloatToShaderValue(m_Row2.y),
                     NodeUtils.FloatToShaderValue(m_Row2.z));
             }
             sb.AppendLine("{0}3x3 {1} = {0}3x3 (_{1}_m0.x, _{1}_m0.y, _{1}_m0.z, _{1}_m1.x, _{1}_m1.y, _{1}_m1.z, _{1}_m2.x, _{1}_m2.y, _{1}_m2.z);",

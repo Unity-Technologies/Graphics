@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using UnityEngine;
 
 namespace UnityEditor.ShaderGraph
@@ -21,6 +21,7 @@ namespace UnityEditor.ShaderGraph
         {
             return GetType().GetMethod("Unity_Dither", BindingFlags.Static | BindingFlags.NonPublic);
         }
+
         static string Unity_Dither(
             [Slot(0, Binding.None)] DynamicDimensionVector In,
             [Slot(1, Binding.ScreenPosition)] Vector2 ScreenPosition,

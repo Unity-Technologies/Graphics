@@ -1,4 +1,4 @@
-﻿using UnityEngine.Experimental.Rendering.UI;
+using UnityEngine.Experimental.Rendering.UI;
 
 namespace UnityEditor.Experimental.Rendering.UI
 {

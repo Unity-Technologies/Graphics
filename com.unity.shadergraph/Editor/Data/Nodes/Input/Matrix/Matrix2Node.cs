@@ -81,11 +81,11 @@ namespace UnityEditor.ShaderGraph
             var sb = new ShaderStringBuilder();
             if (!generationMode.IsPreview())
             {
-                sb.AppendLine("{0}2 _{1}_m0 = {0}2 ({2}, {3});", precision, GetVariableNameForNode(), 
-                    NodeUtils.FloatToShaderValue(m_Row0.x), 
+                sb.AppendLine("{0}2 _{1}_m0 = {0}2 ({2}, {3});", precision, GetVariableNameForNode(),
+                    NodeUtils.FloatToShaderValue(m_Row0.x),
                     NodeUtils.FloatToShaderValue(m_Row0.y));
-                sb.AppendLine("{0}2 _{1}_m1 = {0}2 ({2}, {3});", precision, GetVariableNameForNode(), 
-                    NodeUtils.FloatToShaderValue(m_Row1.x), 
+                sb.AppendLine("{0}2 _{1}_m1 = {0}2 ({2}, {3});", precision, GetVariableNameForNode(),
+                    NodeUtils.FloatToShaderValue(m_Row1.x),
                     NodeUtils.FloatToShaderValue(m_Row1.y));
             }
             sb.AppendLine("{0}2x2 {1} = {0}2x2 (_{1}_m0.x, _{1}_m0.y, _{1}_m1.x, _{1}_m1.y);",

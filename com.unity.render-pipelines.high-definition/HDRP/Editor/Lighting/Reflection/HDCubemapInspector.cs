@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEditor;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
@@ -67,7 +67,7 @@ class HDCubemapInspector : Editor
             m_ReflectiveMaterial.SetFloat("_MipLevel", mipLevelPreview);
         }
 
-        if(m_PreviewUtility == null)
+        if (m_PreviewUtility == null)
             InitPreview();
 
         UpdateCamera();

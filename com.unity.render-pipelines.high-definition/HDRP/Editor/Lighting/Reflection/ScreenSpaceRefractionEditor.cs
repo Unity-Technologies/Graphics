@@ -8,6 +8,5 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     [VolumeComponentEditor(typeof(ScreenSpaceRefraction))]
     public class ScreenSpaceRefractionEditor : ScreenSpaceLightingEditor
     {
-        
     }
 }

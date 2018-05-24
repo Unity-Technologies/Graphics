@@ -44,13 +44,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("IOR")]
             public float dielectricIor;
 
-            [SurfaceDataAttributes(new string[]{"Normal", "Normal View Space"}, true)]
+            [SurfaceDataAttributes(new string[] {"Normal", "Normal View Space"}, true)]
             public Vector3 normalWS;
 
-            [SurfaceDataAttributes(new string[]{"Geometric Normal", "Geometric Normal View Space"}, true)]
+            [SurfaceDataAttributes(new string[] {"Geometric Normal", "Geometric Normal View Space"}, true)]
             public Vector3 geomNormalWS;
 
-            [SurfaceDataAttributes(new string[]{"Coat Normal", "Coat Normal View Space"}, true)]
+            [SurfaceDataAttributes(new string[] {"Coat Normal", "Coat Normal View Space"}, true)]
             public Vector3 coatNormalWS;
 
             [SurfaceDataAttributes("Average Normal Length A")]
@@ -123,10 +123,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
             public Vector3 normalWS;
 
-            [SurfaceDataAttributes(new string[]{"Geometric Normal", "Geometric Normal View Space"}, true)]
+            [SurfaceDataAttributes(new string[] {"Geometric Normal", "Geometric Normal View Space"}, true)]
             public Vector3 geomNormalWS;
 
-            [SurfaceDataAttributes(new string[]{"Coat Normal", "Coat Normal View Space"}, true)]
+            [SurfaceDataAttributes(new string[] {"Coat Normal", "Coat Normal View Space"}, true)]
             public Vector3 coatNormalWS;
 
             public float perceptualRoughnessA;
@@ -207,6 +207,5 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             PreIntegratedFGD.instance.Bind();
             //LTCAreaLight.instance.Bind();
         }
-
     }
 }

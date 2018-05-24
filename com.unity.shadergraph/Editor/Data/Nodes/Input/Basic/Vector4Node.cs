@@ -54,12 +54,12 @@ namespace UnityEditor.ShaderGraph
             var outputName = GetVariableNameForSlot(outputSlotId);
 
             var s = string.Format("{0}4 {1} = {0}4({2},{3},{4},{5});",
-                precision,
-                outputName,
-                inputXValue,
-                inputYValue,
-                inputZValue,
-                inputWValue);
+                    precision,
+                    outputName,
+                    inputXValue,
+                    inputYValue,
+                    inputZValue,
+                    inputWValue);
             visitor.AddShaderChunk(s, true);
         }
 

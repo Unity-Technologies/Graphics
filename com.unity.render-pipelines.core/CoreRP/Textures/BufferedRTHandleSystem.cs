@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine.Assertions;
 using UnityEngine.Rendering;
@@ -13,21 +13,21 @@ namespace UnityEngine.Experimental.Rendering
     /// enum BufferType
     /// {
     ///     Color,
-    ///     Depth    
+    ///     Depth
     /// }
-    /// 
+    ///
     /// void Render()
     /// {
     ///     var camera = GetCamera();
     ///     var buffers = GetFrameHistoryBuffersFor(camera);
-    ///     
+    ///
     ///     // Set reference size in case the rendering size changed this frame
     ///     buffers.SetReferenceSize(
-    ///         GetCameraWidth(camera), GetCameraHeight(camera), 
+    ///         GetCameraWidth(camera), GetCameraHeight(camera),
     ///         GetCameraUseMSAA(camera), GetCameraMSAASamples(camera)
     ///     );
     ///     buffers.Swap();
-    /// 
+    ///
     ///     var currentColor = buffer.GetFrameRT((int)BufferType.Color, 0);
     ///     if (currentColor == null) // Buffer was not allocated
     ///     {
@@ -38,9 +38,9 @@ namespace UnityEngine.Experimental.Rendering
     ///         );
     ///         currentColor = buffer.GetFrameRT((int)BufferType.Color, 0);
     ///     }
-    /// 
+    ///
     ///     var previousColor = buffers.GetFrameRT((int)BufferType.Color, 1);
-    /// 
+    ///
     ///     // Use previousColor and write into currentColor
     /// }
     /// </code>
@@ -75,10 +75,10 @@ namespace UnityEngine.Experimental.Rendering
         /// <param name="allocator">The functor to use for allocation.</param>
         /// <param name="bufferCount">The number of RT handles for this buffer.</param>
         public void AllocBuffer(
-            int bufferId, 
+            int bufferId,
             Func<RTHandleSystem, int, RTHandleSystem.RTHandle> allocator,
             int bufferCount
-        )
+            )
         {
             var buffer = new RTHandleSystem.RTHandle[bufferCount];
             m_RTHandles.Add(bufferId, buffer);
@@ -108,7 +108,7 @@ namespace UnityEngine.Experimental.Rendering
 
         /// <summary>
         /// Swap the buffers.
-        /// 
+        ///
         /// Take care that if the new current frame needs resizing, it will occurs during the this call.
         /// </summary>
         public void Swap()

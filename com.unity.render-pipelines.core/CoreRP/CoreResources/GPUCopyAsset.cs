@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -7,19 +7,19 @@ namespace UnityEngine.Experimental.Rendering
     /// <summary>
     /// Declares what should be generated in utility code.
     /// It will generate a compute shader and a C# class to use the compute shader with a ComputeBuffer
-    /// 
+    ///
     /// Exemple:
     ///  - I add a CopyOperation { sourceChannel = 4, targetChannel = 2, subscript = "zx" }
     ///  => a Kernel will be generated to copy from a TextureRGBA the AR channels into a TextureRG
     ///  => A method will be added to call the kernel in the C# class GPUCopy (SampleCopy_xyzw2zx)
-    /// 
+    ///
     /// C# Exemple:
     ///  // Initialize the gpucopy
     ///  var gpuCopy = new CPUCopy(generatedComputeShaderAsset);
-    /// 
+    ///
     ///  CommandBuffer cmb = ...
     ///   gpuCopy.SampleCopyChannel_xyzw2x(cmb, _SourceTexture, _TargetTexture, new Vector2(targetWidth, targetHeight));
-    /// 
+    ///
     /// Initialization:
     ///  - You must set the generated ComputeShader as argument of the constructor of the generated GPUCopy C# class
     /// </summary>
@@ -79,27 +79,27 @@ namespace UnityEngine.Experimental.Rendering
             }
 
             csm.AppendLine(@"        void SampleCopyChannel(
-            CommandBuffer cmd, 
+            CommandBuffer cmd,
             RectInt rect,
             int _source,
-            RenderTargetIdentifier source, 
+            RenderTargetIdentifier source,
             int _target,
             RenderTargetIdentifier target,
             int kernel8,
             int kernel1)
         {
             RectInt main, topRow, rightCol, topRight;
-            unsafe 
+            unsafe
             {
                 RectInt* dispatch1Rects = stackalloc RectInt[3];
                 int dispatch1RectCount = 0;
                 RectInt dispatch8Rect = RectInt.zero;
 
                 if (TileLayoutUtils.TryLayoutByTiles(
-                    rect, 
+                    rect,
                     8,
                     out main,
-                    out topRow, 
+                    out topRow,
                     out rightCol,
                     out topRight))
                 {
@@ -137,7 +137,7 @@ namespace UnityEngine.Experimental.Rendering
                     cmd.SetComputeIntParams(m_Shader, _RectOffset, (int)r.x, (int)r.y);
                     cmd.DispatchCompute(m_Shader, kernel8, (int)Mathf.Max(r.width / 8, 1), (int)Mathf.Max(r.height / 8, 1), 1);
                 }
-                
+
                 for (int i = 0, c = dispatch1RectCount; i < c; ++i)
                 {
                     var r = dispatch1Rects[i];
@@ -163,7 +163,7 @@ namespace UnityEngine.Experimental.Rendering
                 cck.AppendLine(@"void KERNEL_NAME(uint2 dispatchThreadId : SV_DispatchThreadID)");
                 cck.AppendLine("{");
                 cck.AppendLine(string.Format("    _Result{0}[_RectOffset + dispatchThreadId] = LOAD_TEXTURE2D(_Source{1}, _RectOffset + dispatchThreadId).{2};",
-                    o.targetChannel.ToString(), o.sourceChannel.ToString(), o.subscript));
+                        o.targetChannel.ToString(), o.sourceChannel.ToString(), o.subscript));
                 cck.AppendLine("}");
                 cck.AppendLine();
 
@@ -180,9 +180,9 @@ namespace UnityEngine.Experimental.Rendering
 
                 // CSharp method
                 csm.AppendLine(string.Format(@"        public void SampleCopyChannel_{0}2{1}(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier target, RectInt rect)", channelName, o.subscript));
-                csm.AppendLine              ("          {");
+                csm.AppendLine("          {");
                 csm.AppendLine(string.Format("                 SampleCopyChannel(cmd, rect, _Source{0}, source, _Result{1}, target, {2}, {3});", o.sourceChannel.ToString(), o.targetChannel.ToString(), kernelIndexName8, kernelIndexName1));
-                csm.AppendLine              ("          }");
+                csm.AppendLine("          }");
             }
             csc.AppendLine("        }");
 

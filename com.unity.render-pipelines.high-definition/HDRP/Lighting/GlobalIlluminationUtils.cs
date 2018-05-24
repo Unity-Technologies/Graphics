@@ -116,8 +116,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         ld.shape0 = l.areaSize.x;
                         ld.shape1 = l.areaSize.y;
 #else
-                ld.shape0 = 0.0f;
-                ld.shape1 = 0.0f;
+                        ld.shape0 = 0.0f;
+                        ld.shape1 = 0.0f;
 #endif
                         ld.type = UnityEngine.Experimental.GlobalIllumination.LightType.Rectangle;
                         ld.falloff = FalloffType.Undefined;
@@ -159,23 +159,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         static public Lightmapping.RequestLightsDelegate hdLightsDelegate = (Light[] requests, NativeArray<LightDataGI> lightsOutput) =>
-        {
-            // Get all lights in the scene
-            LightDataGI ld = new LightDataGI();
-            for (int i = 0; i < requests.Length; i++)
             {
-                Light l = requests[i];
+                // Get all lights in the scene
+                LightDataGI ld = new LightDataGI();
+                for (int i = 0; i < requests.Length; i++)
+                {
+                    Light l = requests[i];
 #if UNITY_EDITOR
-                if (LightmapperUtils.Extract(l.lightmapBakeType) == LightMode.Realtime)
-                    ld.InitNoBake(l.GetInstanceID());
-                else
-                    LightDataGIExtract(l, ref ld);
+                    if (LightmapperUtils.Extract(l.lightmapBakeType) == LightMode.Realtime)
+                        ld.InitNoBake(l.GetInstanceID());
+                    else
+                        LightDataGIExtract(l, ref ld);
 #else
-                ld.InitNoBake(l.GetInstanceID());
+                    ld.InitNoBake(l.GetInstanceID());
 #endif
 
-                lightsOutput[i] = ld;
-            }
-        };
+                    lightsOutput[i] = ld;
+                }
+            };
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         public bool expanded
         {
-            get { return m_Expanded;}
+            get { return m_Expanded; }
         }
 
         bool m_RecalculateLayout;
@@ -61,7 +61,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             get { return m_Preview; }
         }
 
-        List<string> m_DoNotShowPrimitives = new List<string>( new string[] {PrimitiveType.Plane.ToString()});
+        List<string> m_DoNotShowPrimitives = new List<string>(new string[] {PrimitiveType.Plane.ToString()});
 
         static Type s_ContextualMenuManipulator = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEngine.Experimental.UIElements.ContextualMenuManipulator");
         static Type s_ObjectSelector = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEditor.ObjectSelector");
@@ -87,12 +87,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 m_CollapsePreviewButton.AddToClassList("icon");
                 m_CollapsePreviewContainer.Add(m_CollapsePreviewButton);
                 m_CollapsePreviewContainer.AddManipulator(new Clickable(() =>
-                {
-                    m_Graph.owner.RegisterCompleteObjectUndo("Collapse Preview");
-                    m_Expanded ^= true;
-                    UpdateExpandedButtonState();
-                    UpdatePreviewVisibility();
-                }));
+                    {
+                        m_Graph.owner.RegisterCompleteObjectUndo("Collapse Preview");
+                        m_Expanded ^= true;
+                        UpdateExpandedButtonState();
+                        UpdatePreviewVisibility();
+                    }));
 
                 topContainer.Add(title);
                 topContainer.Add(m_CollapsePreviewContainer);
@@ -171,9 +171,9 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         {
             foreach (var primitiveTypeName in Enum.GetNames(typeof(PrimitiveType)))
             {
-                if(m_DoNotShowPrimitives.Contains(primitiveTypeName))
+                if (m_DoNotShowPrimitives.Contains(primitiveTypeName))
                     continue;
-                evt.menu.AppendAction(primitiveTypeName, e => ChangePrimitiveMesh( primitiveTypeName ), ContextualMenu.MenuAction.AlwaysEnabled);
+                evt.menu.AppendAction(primitiveTypeName, e => ChangePrimitiveMesh(primitiveTypeName), ContextualMenu.MenuAction.AlwaysEnabled);
             }
 
             evt.menu.AppendAction("Custom Mesh", e => ChangeMeshCustom(), ContextualMenu.MenuAction.AlwaysEnabled);
@@ -229,7 +229,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         private static EditorWindow Get()
         {
             PropertyInfo P = s_ObjectSelector.GetProperty("get", BindingFlags.Public | BindingFlags.Static);
-            return P.GetValue(null,null) as EditorWindow;
+            return P.GetValue(null, null) as EditorWindow;
         }
 
         void OnMeshChanged(Object obj)

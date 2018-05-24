@@ -12,7 +12,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         protected float GetExposure(SkySettings skySettings, DebugDisplaySettings debugSettings)
         {
             float debugExposure = 0.0f;
-            if(debugSettings != null && debugSettings.DebugNeedsExposure())
+            if (debugSettings != null && debugSettings.DebugNeedsExposure())
             {
                 debugExposure = debugSettings.lightingDebugSettings.debugExposure;
             }

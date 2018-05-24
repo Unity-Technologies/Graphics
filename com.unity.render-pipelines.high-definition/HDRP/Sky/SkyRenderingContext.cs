@@ -1,4 +1,4 @@
-﻿using UnityEngine.Rendering;
+using UnityEngine.Rendering;
 using System;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
@@ -86,7 +86,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-
         public void RebuildSkyMatrices(int resolution)
         {
             var cubeProj = Matrix4x4.Perspective(90.0f, 1.0f, 0.01f, 1.0f);
@@ -100,6 +99,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_faceCameraInvViewProjectionMatrix[i] = HDUtils.GetViewProjectionMatrix(lookAt, cubeProj).inverse;
             }
         }
+
         public void Cleanup()
         {
             RTHandles.Release(m_SkyboxCubemapRT);

@@ -92,9 +92,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_PlanarColorMips.Clear();
         }
 
-        void FilterCubemapCommon(   CommandBuffer cmd,
-                                    Texture source, RenderTexture target,
-                                    Matrix4x4[] worldToViewMatrices)
+        void FilterCubemapCommon(CommandBuffer cmd,
+            Texture source, RenderTexture target,
+            Matrix4x4[] worldToViewMatrices)
         {
             int mipCount = 1 + (int)Mathf.Log(source.width, 2.0f);
             if (mipCount < ((int)EnvConstants.SpecCubeLodStep + 1))
@@ -153,17 +153,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             var lodCount = Mathf.Max(Mathf.FloorToInt(Mathf.Log(Mathf.Min(source.width, source.height), 2f)), 0);
 
-            for (var i = 0 ; i < lodCount - 0; ++i)
+            for (var i = 0; i < lodCount - 0; ++i)
             {
                 var width = target.width >> (i + 1);
                 var height = target.height >> (i + 1);
                 var rtHash = HashRenderTextureProperties(
-                    width,
-                    height,
-                    target.depth,
-                    target.format,
-                    target.sRGB ? RenderTextureReadWrite.sRGB : RenderTextureReadWrite.Linear
-                );
+                        width,
+                        height,
+                        target.depth,
+                        target.format,
+                        target.sRGB ? RenderTextureReadWrite.sRGB : RenderTextureReadWrite.Linear
+                        );
 
                 var lodIsMissing = i >= m_PlanarColorMips.Count;
                 RenderTexture rt = null;
@@ -171,21 +171,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     || (rt = m_PlanarColorMips[i]) == null
                     || rtHash != HashRenderTextureProperties(
                         rt.width, rt.height, rt.depth, rt.format, rt.sRGB
-                            ? RenderTextureReadWrite.sRGB
-                            : RenderTextureReadWrite.Linear
-                    );
+                        ? RenderTextureReadWrite.sRGB
+                        : RenderTextureReadWrite.Linear
+                        );
 
                 if (createRT && rt)
                     rt.Release();
                 if (createRT)
                 {
                     rt = new RenderTexture(
-                        width,
-                        height,
-                        target.depth,
-                        target.format,
-                        target.sRGB ? RenderTextureReadWrite.sRGB : RenderTextureReadWrite.Linear
-                    );
+                            width,
+                            height,
+                            target.depth,
+                            target.format,
+                            target.sRGB ? RenderTextureReadWrite.sRGB : RenderTextureReadWrite.Linear
+                            );
                     rt.enableRandomWrite = true;
                     rt.name = "Planar Convolution Tmp RT";
                     rt.hideFlags = HideFlags.HideAndDontSave;
@@ -204,13 +204,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 target,
                 m_PlanarColorMips,
                 lodCount
-            );
+                );
         }
 
         // Filters MIP map levels (other than 0) with GGX using multiple importance sampling.
-        public void FilterCubemapMIS(   CommandBuffer cmd,
-                                        Texture source, RenderTexture target,
-                                        RenderTexture conditionalCdf, RenderTexture marginalRowCdf)
+        public void FilterCubemapMIS(CommandBuffer cmd,
+            Texture source, RenderTexture target,
+            RenderTexture conditionalCdf, RenderTexture marginalRowCdf)
         {
             // Bind the input cubemap.
             m_BuildProbabilityTablesCS.SetTexture(m_ConditionalDensitiesKernel, "envMap", source);
@@ -242,11 +242,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RenderTextureFormat format,
             RenderTextureReadWrite sRGB)
         {
-            return  width.GetHashCode()
-                  ^ height.GetHashCode()
-                  ^ depth.GetHashCode()
-                  ^ format.GetHashCode()
-                  ^ sRGB.GetHashCode();
+            return width.GetHashCode()
+                ^ height.GetHashCode()
+                ^ depth.GetHashCode()
+                ^ format.GetHashCode()
+                ^ sRGB.GetHashCode();
         }
     }
 }

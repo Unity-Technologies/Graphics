@@ -166,6 +166,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             DrawGizmos(true);
         }
+
 #endif
 
         // Caution: this function must match the one in HDLightEditor.UpdateLightIntensity - any change need to be replicated
@@ -197,7 +198,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             {
                                 float angleA, angleB;
                                 LightUtils.CalculateAnglesForPyramid(aspectRatio, light.spotAngle,
-                                                                        out angleA, out angleB);
+                                    out angleA, out angleB);
 
                                 light.intensity = LightUtils.ConvertFrustrumLightIntensity(Mathf.Max(0, punctualIntensity), angleA, angleB);
                             }
@@ -205,7 +206,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             {
                                 light.intensity = LightUtils.ConvertPointLightIntensity(Mathf.Max(0, punctualIntensity));
                             }
-
                         }
                         else
                         {
@@ -216,7 +216,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             // var spotLightShape = (SpotLightShape)m_AdditionalspotLightShape.enumValueIndex;
                         }
                         break;
-
                 }
             }
             else if (lightTypeExtent == LightTypeExtent.Rectangle)
@@ -251,6 +250,5 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // At first init we need to initialize correctly the default value
             lightData.ConvertPhysicalLightIntensityToLightIntensity();
         }
-
     }
 }

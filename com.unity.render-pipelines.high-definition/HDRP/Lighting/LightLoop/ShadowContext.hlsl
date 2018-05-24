@@ -23,29 +23,29 @@ SAMPLER(sampler_ShadowmapExp_VSM_2);
 TEXTURE2D_ARRAY(_ShadowmapExp_PCF);
 SAMPLER_CMP(sampler_ShadowmapExp_PCF);
 
-StructuredBuffer<ShadowData>	_ShadowDatasExp;
-StructuredBuffer<int4>			_ShadowPayloads;
+StructuredBuffer<ShadowData>    _ShadowDatasExp;
+StructuredBuffer<int4>          _ShadowPayloads;
 
 // Currently we only use the PCF atlas.
 // Keeping all other bindings for reference and for future PC dynamic shadow configuration as it's harmless anyway.
 ShadowContext InitShadowContext()
 {
-	ShadowContext sc;
-	sc.shadowDatas     = _ShadowDatasExp;
-	sc.payloads        = _ShadowPayloads;
-	sc.tex2DArray[0]   = _ShadowmapExp_PCF;
-	sc.compSamplers[0] = sampler_ShadowmapExp_PCF;
+    ShadowContext sc;
+    sc.shadowDatas     = _ShadowDatasExp;
+    sc.payloads        = _ShadowPayloads;
+    sc.tex2DArray[0]   = _ShadowmapExp_PCF;
+    sc.compSamplers[0] = sampler_ShadowmapExp_PCF;
 #if SHADOWCONTEXT_MAX_TEX2DARRAY == 4
-	sc.tex2DArray[1]   = _ShadowmapExp_VSM_0;
-	sc.tex2DArray[2]   = _ShadowmapExp_VSM_1;
-	sc.tex2DArray[3]   = _ShadowmapExp_VSM_2;
+    sc.tex2DArray[1]   = _ShadowmapExp_VSM_0;
+    sc.tex2DArray[2]   = _ShadowmapExp_VSM_1;
+    sc.tex2DArray[3]   = _ShadowmapExp_VSM_2;
 #endif
 #if SHADOWCONTEXT_MAX_SAMPLER == 3
-	sc.samplers[0]	   = sampler_ShadowmapExp_VSM_0;
-	sc.samplers[1]	   = sampler_ShadowmapExp_VSM_1;
-	sc.samplers[2]	   = sampler_ShadowmapExp_VSM_2;
+    sc.samplers[0]     = sampler_ShadowmapExp_VSM_0;
+    sc.samplers[1]     = sampler_ShadowmapExp_VSM_1;
+    sc.samplers[2]     = sampler_ShadowmapExp_VSM_2;
 #endif
-	return sc;
+    return sc;
 }
 
 #endif // LIGHTLOOP_SHADOW_CONTEXT_HLSL

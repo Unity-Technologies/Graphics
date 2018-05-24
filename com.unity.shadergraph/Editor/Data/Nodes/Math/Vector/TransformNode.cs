@@ -191,7 +191,7 @@ namespace UnityEditor.ShaderGraph
 
         public NeededCoordinateSpace RequiresTangent(ShaderStageCapability stageCapability)
         {
-            if(RequiresWorldSpaceTangentTransform())
+            if (RequiresWorldSpaceTangentTransform())
                 return NeededCoordinateSpace.World;
             return conversion.from.ToNeededCoordinateSpace();
         }

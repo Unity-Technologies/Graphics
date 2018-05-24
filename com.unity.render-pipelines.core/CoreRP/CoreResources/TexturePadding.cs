@@ -21,6 +21,7 @@ namespace UnityEngine.Experimental.Rendering
             m_KMainTop          = m_CS.FindKernel("KMainTop");
             m_KMainRight        = m_CS.FindKernel("KMainRight");
         }
+
         public void Pad(CommandBuffer cmd, RenderTexture inOutTexture, RectInt from, RectInt to)
         {
             if (from.width < to.width)

@@ -16,12 +16,12 @@ def test_packages_list():
         "com.unity.render-pipelines.lightweight",
         "com.unity.render-pipelines.high-definition",
         "com.unity.shadergraph"
-    ]    
+    ]
 
 if __name__ == "__main__":
     import sys
     sys.path.insert(0, os.path.abspath(os.path.join("..", "automation-tools")))
-    
+
     try:
         import unity_package_build
         build_log = unity_package_build.setup()

@@ -3,11 +3,11 @@ namespace UnityEngine.Experimental.Rendering
     public static class TileLayoutUtils
     {
         public static bool TryLayoutByTiles(
-            RectInt src, 
-            uint tileSize, 
-            out RectInt main, 
-            out RectInt topRow, 
-            out RectInt rightCol, 
+            RectInt src,
+            uint tileSize,
+            out RectInt main,
+            out RectInt topRow,
+            out RectInt rightCol,
             out RectInt topRight)
         {
             if (src.width < tileSize || src.height < tileSize)
@@ -57,9 +57,9 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         public static bool TryLayoutByRow(
-            RectInt src, 
-            uint tileSize, 
-            out RectInt main, 
+            RectInt src,
+            uint tileSize,
+            out RectInt main,
             out RectInt other)
         {
             if (src.height < tileSize)
@@ -91,9 +91,9 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         public static bool TryLayoutByCol(
-            RectInt src, 
-            uint tileSize, 
-            out RectInt main, 
+            RectInt src,
+            uint tileSize,
+            out RectInt main,
             out RectInt other)
         {
             if (src.width < tileSize)

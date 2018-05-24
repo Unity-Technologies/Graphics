@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 
@@ -29,7 +29,7 @@ namespace UnityEditor.Experimental.Rendering
         }
 
         public virtual void Begin(DebugUI.Widget widget, DebugState state)
-        { }
+        {}
 
         public virtual bool OnGUI(DebugUI.Widget widget, DebugState state)
         {
@@ -37,7 +37,7 @@ namespace UnityEditor.Experimental.Rendering
         }
 
         public virtual void End(DebugUI.Widget widget, DebugState state)
-        { }
+        {}
 
         protected void Apply(DebugUI.IValueField widget, DebugState state, object value)
         {

@@ -31,8 +31,8 @@ namespace UnityEditor.Experimental.Rendering
         static HDReflectionProbeEditor GetEditorFor(ReflectionProbe p)
         {
             HDReflectionProbeEditor e;
-            if (s_ReflectionProbeEditors.TryGetValue(p, out e) 
-                && e != null 
+            if (s_ReflectionProbeEditors.TryGetValue(p, out e)
+                && e != null
                 && !e.Equals(null)
                 && ArrayUtility.IndexOf(e.targets, p) != -1)
                 return e;
@@ -105,14 +105,13 @@ namespace UnityEditor.Experimental.Rendering
 
         static void PerformOperations(HDReflectionProbeUI s, SerializedHDReflectionProbe p, HDReflectionProbeEditor o)
         {
-            
         }
 
         void HideAdditionalComponents(bool visible)
         {
             var adds = CoreEditorUtils.GetAdditionalData<HDAdditionalReflectionData>(targets);
             var flags = visible ? HideFlags.None : HideFlags.HideInInspector;
-            for (var i = 0 ; i < targets.Length; ++i)
+            for (var i = 0; i < targets.Length; ++i)
             {
                 var target = targets[i];
                 var addData = adds[i];
@@ -153,8 +152,6 @@ namespace UnityEditor.Experimental.Rendering
                 }
             }
         }
-
-        
 
         static void InspectColorsGUI()
         {

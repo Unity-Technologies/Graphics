@@ -27,7 +27,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         ref size);
                     d.boxBaseOffset = center;
                     d.boxBaseSize = size;
-                        break;
+                    break;
                 }
                 case ShapeType.Sphere:
                 {
@@ -40,7 +40,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         ref radius);
                     d.sphereBaseOffset = center;
                     d.sphereBaseRadius = radius;
-                        break;
+                    break;
                 }
             }
             Handles.matrix = mat;

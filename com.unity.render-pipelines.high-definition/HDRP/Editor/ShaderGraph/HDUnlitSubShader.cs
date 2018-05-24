@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -294,7 +294,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 foreach (var slotId in pass.PixelShaderSlots)
                 {
                     var slot = masterNode.FindSlot<MaterialSlot>(slotId);
-                    if(slot != null)
+                    if (slot != null)
                     {
                         var rawSlotName = slot.RawDisplayName().ToString();
                         var descriptionVar = string.Format("{0}.{1}", graphOutputStructName, rawSlotName);
@@ -345,25 +345,25 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // build graph code
             var graph = new ShaderGenerator();
             graph.AddShaderChunk("// Graph Inputs");
-                graph.Indent();
-                graph.AddGenerator(graphInputs);
-                graph.Deindent();
+            graph.Indent();
+            graph.AddGenerator(graphInputs);
+            graph.Deindent();
             graph.AddShaderChunk("// Graph Outputs");
-                graph.Indent();
-                graph.AddShaderChunk(graphOutputs.ToString());
-                //graph.AddGenerator(graphOutputs);
-                graph.Deindent();
+            graph.Indent();
+            graph.AddShaderChunk(graphOutputs.ToString());
+            //graph.AddGenerator(graphOutputs);
+            graph.Deindent();
             graph.AddShaderChunk("// Graph Properties (uniform inputs)");
-                graph.AddShaderChunk(graphProperties.GetPropertiesDeclaration(1));
+            graph.AddShaderChunk(graphProperties.GetPropertiesDeclaration(1));
             graph.AddShaderChunk("// Graph Node Functions");
-                graph.AddShaderChunk(graphNodeFunctions.ToString());
+            graph.AddShaderChunk(graphNodeFunctions.ToString());
             graph.AddShaderChunk("// Graph Evaluation");
-                graph.Indent();
-                graph.AddShaderChunk(graphEvalFunction.ToString());
-                //graph.AddGenerator(graphEvalFunction);
-                graph.Deindent();
+            graph.Indent();
+            graph.AddShaderChunk(graphEvalFunction.ToString());
+            //graph.AddGenerator(graphEvalFunction);
+            graph.Deindent();
 
-            // build the hash table of all named fragments		TODO: could make this Dictionary<string, ShaderGenerator / string>  ?
+            // build the hash table of all named fragments      TODO: could make this Dictionary<string, ShaderGenerator / string>  ?
             Dictionary<string, string> namedFragments = new Dictionary<string, string>();
             namedFragments.Add("${Defines}",                defines.GetShaderString(2, false));
             namedFragments.Add("${Graph}",                  graph.GetShaderString(2, false));
@@ -380,7 +380,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             namedFragments.Add("${LOD}",                    materialOptions.lod.ToString());
             namedFragments.Add("${VariantDefines}",         GetVariantDefines(masterNode));
 
-            // process the template to generate the shader code for this pass	TODO: could make this a shared function
+            // process the template to generate the shader code for this pass   TODO: could make this a shared function
             string[] templateLines = File.ReadAllLines(templateLocation);
             System.Text.StringBuilder builder = new System.Text.StringBuilder();
             foreach (string line in templateLines)

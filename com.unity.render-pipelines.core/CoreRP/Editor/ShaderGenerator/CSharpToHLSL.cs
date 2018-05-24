@@ -62,8 +62,8 @@ namespace UnityEditor.Experimental.Rendering
                             ShaderTypeGenerator gen;
                             if (s_TypeName.TryGetValue(type.FullName, out gen))
                             {
-                                Debug.LogError( "Duplicate typename with the GenerateHLSL attribute detected: " + type.FullName +
-                                                " declared in both " + gen.type.Assembly.FullName + " and " + type.Assembly.FullName + ".  Skipping the second instance.");
+                                Debug.LogError("Duplicate typename with the GenerateHLSL attribute detected: " + type.FullName +
+                                    " declared in both " + gen.type.Assembly.FullName + " and " + type.Assembly.FullName + ".  Skipping the second instance.");
                             }
                             s_TypeName[type.FullName] = new ShaderTypeGenerator(type, attr as GenerateHLSL);
                         }

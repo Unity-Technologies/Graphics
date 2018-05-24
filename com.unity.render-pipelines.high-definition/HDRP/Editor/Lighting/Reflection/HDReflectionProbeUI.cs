@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor.AnimatedValues;
 using UnityEditor.IMGUI.Controls;
 using UnityEditorInternal;

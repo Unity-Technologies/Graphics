@@ -285,7 +285,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUI.BeginChangeCheck();
             m_MaterialEditor.ShaderProperty(displacementMode, StylesBaseLit.displacementModeText);
-            if(EditorGUI.EndChangeCheck())
+            if (EditorGUI.EndChangeCheck())
             {
                 UpdateDisplacement();
             }
