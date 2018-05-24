@@ -147,16 +147,16 @@ namespace UnityEditor.VFX
                 {
                     converter = t => t;
                 }
-                else if(toType.IsEnum && (fromType == typeof(uint) || fromType == typeof(int)))
+                else if (toType.IsEnum && (fromType == typeof(uint) || fromType == typeof(int)))
                 {
-                    if ( fromType == typeof(uint) )
-                        converter = t => Enum.ToObject(toType,(uint)t);
+                    if (fromType == typeof(uint))
+                        converter = t => Enum.ToObject(toType, (uint)t);
                     else
-                        converter = t => Enum.ToObject(toType,(int)t);
+                        converter = t => Enum.ToObject(toType, (int)t);
                 }
-                else if(fromType.IsEnum && (toType == typeof(uint) || toType == typeof(int)))
+                else if (fromType.IsEnum && (toType == typeof(uint) || toType == typeof(int)))
                 {
-                    converter = t => Convert.ChangeType(t,toType);
+                    converter = t => Convert.ChangeType(t, toType);
                 }
                 else
                 {
