@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.UI
 
             m_GradientField.style.flexDirection = FlexDirection.Column;
             m_GradientField.style.alignItems = Align.Stretch;
-            m_GradientField.style.flex = new Flex(1,0);
+            m_GradientField.style.flex = new Flex(1, 0);
 
             Add(m_GradientField);
         }
@@ -53,7 +53,7 @@ namespace UnityEditor.VFX.UI
 
         public override void UpdateGUI(bool force)
         {
-            m_GradientField.value = m_Value;
+            m_GradientField.SetValueWithoutNotify(m_Value);
         }
 
         public override bool showsEverything { get { return true; } }
