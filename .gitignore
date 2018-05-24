@@ -2,7 +2,7 @@
 artifacts/**
 build/**
 DataSource/*
-Library/*
+**/Library/**
 obj/*
 Temp/*
 .vs
@@ -29,3 +29,5 @@ Temp/*
 ShaderGraph/DebugOutput.meta
 ShaderGraph/DebugOutput/**
 ShaderGraph/Testing/IntegrationTests/.Failed
+TestProjects/GraphicsTests/Temp/
+TestProjects/LWRP/GraphicsTests/Temp/
