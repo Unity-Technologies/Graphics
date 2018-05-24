@@ -21,7 +21,7 @@ namespace UnityEditor.VFX.Test
 
         private VisualEffectAsset CreateAssetAtPath(string path)
         {
-            return VisualEffectAsset.Create(path);
+            return VisualEffectResource.CreateNewAsset(path);
         }
 
         [OneTimeSetUpAttribute]

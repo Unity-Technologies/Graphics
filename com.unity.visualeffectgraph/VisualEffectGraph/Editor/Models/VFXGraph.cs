@@ -82,7 +82,7 @@ namespace UnityEditor.VFX
                 string assetPath = AssetDatabase.GetAssetPath(resource);
                 AssetDatabase.ImportAsset(assetPath);
 
-                graph = resource.GetDependencies().OfType<VFXGraph>().FirstOrDefault();
+                graph = resource.GetContents().OfType<VFXGraph>().FirstOrDefault();
             }
 
             if (graph == null)
@@ -292,7 +292,7 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                visualEffectResource.SetDependencies(currentObjects.Cast<Object>().ToArray());
+                visualEffectResource.SetContents(currentObjects.Cast<Object>().ToArray());
             }
             catch (Exception e)
             {

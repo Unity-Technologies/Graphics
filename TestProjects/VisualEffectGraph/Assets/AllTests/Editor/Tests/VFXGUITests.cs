@@ -2,6 +2,7 @@ using System;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
+using UnityEditor.Experimental.VFX;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.VFX.UI;
@@ -124,7 +125,7 @@ namespace UnityEditor.VFX.Test
             }
 
 
-            m_Asset = VisualEffectAsset.Create(filePath);
+            m_Asset = VisualEffectResource.CreateNewAsset(filePath);
             VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
             window.Close();
             window = EditorWindow.GetWindow<VFXViewWindow>();
