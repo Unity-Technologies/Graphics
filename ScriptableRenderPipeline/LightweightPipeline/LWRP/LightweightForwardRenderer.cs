@@ -100,10 +100,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_Materials = new Material[(int)MaterialHandles.Count]
             {
                 CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader"),
-                CoreUtils.CreateEngineMaterial(pipelineAsset.CopyDepthShader),
-                CoreUtils.CreateEngineMaterial(pipelineAsset.SamplingShader),
-                CoreUtils.CreateEngineMaterial(pipelineAsset.BlitShader),
-                CoreUtils.CreateEngineMaterial(pipelineAsset.ScreenSpaceShadowShader),
+                CoreUtils.CreateEngineMaterial(pipelineAsset.copyDepthShader),
+                CoreUtils.CreateEngineMaterial(pipelineAsset.samplingShader),
+                CoreUtils.CreateEngineMaterial(pipelineAsset.blitShader),
+                CoreUtils.CreateEngineMaterial(pipelineAsset.screenSpaceShadowShader),
             };
 
             m_RenderPassSet = new ScriptableRenderPass[(int)RenderPassHandles.Count]
