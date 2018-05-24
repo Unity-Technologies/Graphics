@@ -20,6 +20,9 @@ public class VFXContextEditor : VFXSlotContainerEditor
 {
     SerializedProperty spaceProperty;
     SerializedObject dataObject;
+
+    float m_Width;
+
     protected new void OnEnable()
     {
         UnityEngine.Object[] allData = targets.Cast<VFXContext>().Select(t => t.GetData()).Distinct().Where(t => t != null).Cast<UnityEngine.Object>().ToArray();
@@ -44,6 +47,48 @@ public class VFXContextEditor : VFXSlotContainerEditor
             EditorGUILayout.PropertyField(spaceProperty);
 
         base.DoInspectorGUI();
+    }
+
+    void DoAttributeLayoutGUI(string label, StructureOfArrayProvider.BucketInfo[] layout)
+    {
+        GUILayout.Label(label, Styles.header);
+
+        if (Event.current.type == EventType.Repaint)
+            m_Width = GUILayoutUtility.GetLastRect().width - 16;
+
+        int i = 0;
+        int maxSize = 0;
+
+        foreach (StructureOfArrayProvider.BucketInfo bucket in layout)
+            maxSize = Math.Max(maxSize, bucket.size);
+
+        foreach (var bucket in layout)
+        {
+            using (new GUILayout.HorizontalScope())
+            {
+                GUILayout.Label(i.ToString(), Styles.cell, GUILayout.Width(16));
+
+                int bucketSize = bucket.size;
+                int usedSize = bucket.usedSize;
+
+                for (int j = 0; j < maxSize; j++)
+                {
+                    if (j < usedSize)
+                    {
+                        var attrib = bucket.attributes[j];
+                        Styles.DataTypeLabel(attrib.name, attrib.type, Styles.cell, GUILayout.Width(m_Width / maxSize));
+                    }
+                    else
+                    {
+                        if (j < bucketSize)
+                            Styles.DataTypeLabel("", VFXValueType.None, Styles.cell, GUILayout.Width(m_Width / maxSize));
+                        else
+                            GUILayout.Space(m_Width / maxSize);
+                    }
+                }
+            }
+            i++;
+        }
     }
 
     public override void OnInspectorGUI()
@@ -101,41 +146,19 @@ public class VFXContextEditor : VFXSlotContainerEditor
                     }
                 }
 
-                var layout = particleData.GetCurrentAttributeLayout();
-                if (layout.Length > 0)
+                StructureOfArrayProvider.BucketInfo[] current = particleData.GetCurrentAttributeLayout();
+                StructureOfArrayProvider.BucketInfo[] source = particleData.GetSourceAttributeLayout();
+
+                if (current.Length > 0)
                 {
-                    EditorGUILayout.LabelField("Attribute Memory Layout", Styles.header);
+                    GUILayout.Space(24);
+                    DoAttributeLayoutGUI("Current Attribute Layout", current);
+                }
 
-                    int i = 0;
-
-                    int maxSize = 0;
-
-                    foreach (StructureOfArrayProvider.BucketInfo bucket in layout)
-                    {
-                        maxSize = Math.Max(maxSize, bucket.size);
-                    }
-                    foreach (var bucket in layout)
-                    {
-                        using (new GUILayout.HorizontalScope())
-                        {
-                            GUILayout.Label(i.ToString(), Styles.cell, GUILayout.Width(20));
-                            int usedSize = bucket.usedSize;
-
-                            for (int j = 0; j < maxSize; j++)
-                            {
-                                if (j < usedSize)
-                                {
-                                    var attrib = bucket.attributes[j];
-                                    Styles.DataTypeLabel(attrib.name, attrib.type, Styles.cell);
-                                }
-                                else
-                                {
-                                    Styles.DataTypeLabel("", VFXValueType.None, Styles.cell);
-                                }
-                            }
-                        }
-                        i++;
-                    }
+                if (source.Length > 0)
+                {
+                    GUILayout.Space(12);
+                    DoAttributeLayoutGUI("Source Attribute Layout", source);
                 }
             }
         }
