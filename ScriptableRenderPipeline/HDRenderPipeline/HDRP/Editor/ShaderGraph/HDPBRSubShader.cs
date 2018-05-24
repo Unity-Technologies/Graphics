@@ -1,59 +1,116 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Collections;
 using System.IO;
 using System.Linq;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph;
 
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-//    [Serializable] ??
-    public class HDUnlitSubShader : IUnlitSubShader
+    public class HDPBRSubShader : IPBRSubShader
     {
-        Pass m_PassDepthOnly = new Pass()
+        Pass m_PassGBuffer = new Pass()
         {
-            Name = "Depth prepass",
-            LightMode = "DepthForwardOnly",
-            TemplateName = "HDUnlitPassForward.template",
-            ShaderPassName = "SHADERPASS_DEPTH_ONLY",
-            ZWriteOverride = "ZWrite On",
-            Includes = new List<string>()
+            Name = "GBuffer",
+            LightMode = "GBuffer",
+            TemplateName = "HDPBRPass.template",
+            ShaderPassName = "SHADERPASS_GBUFFER",
+            StencilOverride = new List<string>()
             {
-                "#include \"HDRP/ShaderPass/ShaderPassDepthOnly.hlsl\"",
+                "// Stencil setup for gbuffer",
+                "Stencil",
+                "{",
+                "   WriteMask 7",       // [_StencilWriteMask]    // default: StencilMask.Lighting  (fixed at compile time)
+                "   Ref  2",            // [_StencilRef]          // default: StencilLightingUsage.RegularLighting  (fixed at compile time)
+                "   Comp Always",
+                "   Pass Replace",
+                "}"
             },
-            PixelShaderSlots = new List<int>()
-            {
-                UnlitMasterNode.AlphaSlotId,
-                UnlitMasterNode.AlphaThresholdSlotId
-            }
-        };
-
-        Pass m_PassForward = new Pass()
-        {
-            Name = "Forward Unlit",
-            LightMode = "ForwardOnly",
-            TemplateName = "HDUnlitPassForward.template",
-            ShaderPassName = "SHADERPASS_FORWARD_UNLIT",
             ExtraDefines = new List<string>()
             {
-                "#pragma multi_compile _ DEBUG_DISPLAY"
+                "#pragma multi_compile _ DEBUG_DISPLAY",
+                "#pragma multi_compile _ LIGHTMAP_ON",
+                "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
+                "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
+                "#pragma multi_compile _ SHADOWS_SHADOWMASK",
             },
             Includes = new List<string>()
             {
-                "#include \"HDRP/ShaderPass/ShaderPassForwardUnlit.hlsl\"",
+                "#include \"HDRP/ShaderPass/ShaderPassGBuffer.hlsl\"",
+            },
+            RequiredFields = new List<string>()
+            {
+                "FragInputs.worldToTangent",
+                "FragInputs.positionWS",
             },
             PixelShaderSlots = new List<int>()
             {
-                UnlitMasterNode.ColorSlotId,
-                UnlitMasterNode.AlphaSlotId,
-                UnlitMasterNode.AlphaThresholdSlotId
-            }
+                PBRMasterNode.AlbedoSlotId,
+                PBRMasterNode.NormalSlotId,
+                PBRMasterNode.MetallicSlotId,
+                PBRMasterNode.SpecularSlotId,
+                PBRMasterNode.EmissionSlotId,
+                PBRMasterNode.SmoothnessSlotId,
+                PBRMasterNode.OcclusionSlotId,
+                PBRMasterNode.AlphaSlotId,
+                PBRMasterNode.AlphaThresholdSlotId
+            },
+        };
+
+        Pass m_PassGBufferWithPrepass = new Pass()
+        {
+            Name = "GBufferWithPrepass",
+            LightMode = "GBufferWithPrepass",
+            TemplateName = "HDPBRPass.template",
+            ShaderPassName = "SHADERPASS_GBUFFER",
+            StencilOverride = new List<string>()
+            {
+                "// Stencil setup for GBufferWithPrepass",
+                "Stencil",
+                "{",
+                "   WriteMask 7",       // _StencilWriteMask    // StencilMask.Lighting  (fixed at compile time)
+                "   Ref  2",            // _StencilRef          // StencilLightingUsage.RegularLighting  (fixed at compile time)
+                "   Comp Always",
+                "   Pass Replace",
+                "}"
+            },
+            ExtraDefines = new List<string>()
+            {
+                "#pragma multi_compile _ DEBUG_DISPLAY",
+                "#pragma multi_compile _ LIGHTMAP_ON",
+                "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
+                "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
+                "#pragma multi_compile _ SHADOWS_SHADOWMASK",
+                "#define SHADERPASS_GBUFFER_BYPASS_ALPHA_TEST",
+            },
+            Includes = new List<string>()
+            {
+                "#include \"HDRP/ShaderPass/ShaderPassGBuffer.hlsl\"",
+            },
+            RequiredFields = new List<string>()
+            {
+//                "FragInputs.worldToTangent",
+//                "FragInputs.positionWS",
+            },
+            PixelShaderSlots = new List<int>()
+            {
+                PBRMasterNode.AlbedoSlotId,
+                PBRMasterNode.NormalSlotId,
+                PBRMasterNode.MetallicSlotId,
+                PBRMasterNode.SpecularSlotId,
+                PBRMasterNode.EmissionSlotId,
+                PBRMasterNode.SmoothnessSlotId,
+                PBRMasterNode.OcclusionSlotId,
+                PBRMasterNode.AlphaSlotId,
+                PBRMasterNode.AlphaThresholdSlotId
+            },
         };
 
         Pass m_PassMETA = new Pass()
         {
             Name = "META",
             LightMode = "Meta",
-            TemplateName = "HDUnlitPassForward.template",
+            TemplateName = "HDPBRPass.template",
             ShaderPassName = "SHADERPASS_LIGHT_TRANSPORT",
             CullOverride = "Cull Off",
             Includes = new List<string>()
@@ -68,12 +125,102 @@ namespace UnityEditor.ShaderGraph
                 "AttributesMesh.uv1",
                 "AttributesMesh.color",
                 "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
+//                "FragInputs.worldToTangent",
+//                "FragInputs.positionWS",
             },
             PixelShaderSlots = new List<int>()
             {
-                UnlitMasterNode.ColorSlotId,
-                UnlitMasterNode.AlphaSlotId,
-                UnlitMasterNode.AlphaThresholdSlotId
+                PBRMasterNode.AlbedoSlotId,
+                PBRMasterNode.NormalSlotId,
+                PBRMasterNode.MetallicSlotId,
+                PBRMasterNode.SpecularSlotId,
+                PBRMasterNode.EmissionSlotId,
+                PBRMasterNode.SmoothnessSlotId,
+                PBRMasterNode.OcclusionSlotId,
+                PBRMasterNode.AlphaSlotId,
+                PBRMasterNode.AlphaThresholdSlotId
+            }
+        };
+
+        Pass m_PassShadowCaster = new Pass()
+        {
+            Name = "ShadowCaster",
+            LightMode = "ShadowCaster",
+            TemplateName = "HDPBRPass.template",
+            ShaderPassName = "SHADERPASS_SHADOWS",
+            ColorMaskOverride = "ColorMask 0",
+            ExtraDefines = new List<string>()
+            {
+                "#define USE_LEGACY_UNITY_MATRIX_VARIABLES",
+            },
+            Includes = new List<string>()
+            {
+                "#include \"HDRP/ShaderPass/ShaderPassDepthOnly.hlsl\"",
+            },
+            RequiredFields = new List<string>()
+            {
+//                "FragInputs.worldToTangent",
+//                "FragInputs.positionWS",
+            },
+            PixelShaderSlots = new List<int>()
+            {
+                PBRMasterNode.AlphaSlotId,
+                PBRMasterNode.AlphaThresholdSlotId
+            }
+        };
+
+        Pass m_PassDepthOnly = new Pass()
+        {
+            Name = "DepthOnly",
+            LightMode = "DepthOnly",
+            TemplateName = "HDPBRPass.template",
+            ShaderPassName = "SHADERPASS_DEPTH_ONLY",
+            ColorMaskOverride = "ColorMask 0",
+            Includes = new List<string>()
+            {
+                "#include \"HDRP/ShaderPass/ShaderPassDepthOnly.hlsl\"",
+            },
+            RequiredFields = new List<string>()
+            {
+//                "FragInputs.worldToTangent",
+//                "FragInputs.positionWS",
+            },
+            PixelShaderSlots = new List<int>()
+            {
+                PBRMasterNode.AlphaSlotId,
+                PBRMasterNode.AlphaThresholdSlotId
+            }
+        };
+
+        Pass m_PassMotionVectors = new Pass()
+        {
+            Name = "Motion Vectors",
+            LightMode = "MotionVectors",
+            TemplateName = "HDPBRPass.template",
+            ShaderPassName = "SHADERPASS_VELOCITY",
+            Includes = new List<string>()
+            {
+                "#include \"HDRP/ShaderPass/ShaderPassVelocity.hlsl\"",
+            },
+            RequiredFields = new List<string>()
+            {
+                "FragInputs.positionWS",
+            },
+            PixelShaderSlots = new List<int>()
+            {
+                PBRMasterNode.AlphaSlotId,
+                PBRMasterNode.AlphaThresholdSlotId
+            },
+            StencilOverride = new List<string>()
+            {
+                "// If velocity pass (motion vectors) is enabled we tag the stencil so it don't perform CameraMotionVelocity",
+                "Stencil",
+                "{",
+                "   WriteMask 128",         // [_StencilWriteMaskMV]        (int) HDRenderPipeline.StencilBitMask.ObjectVelocity   // this requires us to pull in the HD Pipeline assembly...
+                "   Ref 128",               // [_StencilRefMV]
+                "   Comp Always",
+                "   Pass Replace",
+                "}"
             }
         };
 
@@ -81,7 +228,7 @@ namespace UnityEditor.ShaderGraph
         {
             Name = "Distortion",
             LightMode = "DistortionVectors",
-            TemplateName = "HDUnlitPassForward.template",
+            TemplateName = "HDPBRPass.template",
             ShaderPassName = "SHADERPASS_DISTORTION",
             BlendOverride = "Blend One One, One One",   // [_DistortionSrcBlend] [_DistortionDstBlend], [_DistortionBlurSrcBlend] [_DistortionBlurDstBlend]
             BlendOpOverride = "BlendOp Add, Add",       // Add, [_DistortionBlurBlendOp]
@@ -91,6 +238,11 @@ namespace UnityEditor.ShaderGraph
             {
                 "#include \"HDRP/ShaderPass/ShaderPassDistortion.hlsl\"",
             },
+            RequiredFields = new List<string>()
+            {
+//                "FragInputs.worldToTangent",
+//                "FragInputs.positionWS",
+            },
             PixelShaderSlots = new List<int>()
             {
                 PBRMasterNode.AlphaSlotId,
@@ -98,9 +250,172 @@ namespace UnityEditor.ShaderGraph
             }
         };
 
-        private static string GetVariantDefines(UnlitMasterNode masterNode)
+        Pass m_PassTransparentDepthPrepass = new Pass()
+        {
+            Name = "TransparentDepthPrepass",
+            LightMode = "TransparentDepthPrepass",
+            TemplateName = "HDPBRPass.template",
+            ShaderPassName = "SHADERPASS_DEPTH_ONLY",
+            ColorMaskOverride = "ColorMask 0",
+            ExtraDefines = new List<string>()
+            {
+                "#define CUTOFF_TRANSPARENT_DEPTH_PREPASS",
+            },
+            Includes = new List<string>()
+            {
+                "#include \"HDRP/ShaderPass/ShaderPassDepthOnly.hlsl\"",
+            },
+            RequiredFields = new List<string>()
+            {
+//                "FragInputs.worldToTangent",
+//                "FragInputs.positionWS",
+            },
+            PixelShaderSlots = new List<int>()
+            {
+                PBRMasterNode.AlphaSlotId,
+                PBRMasterNode.AlphaThresholdSlotId
+            }
+        };
+
+        Pass m_PassTransparentBackface = new Pass()
+        {
+            Name = "TransparentBackface",
+            LightMode = "TransparentBackface",
+            TemplateName = "HDPBRPass.template",
+            ShaderPassName = "SHADERPASS_FORWARD",
+            CullOverride = "Cull Front",
+            ExtraDefines = new List<string>()
+            {
+                "#pragma multi_compile _ DEBUG_DISPLAY",
+                "#pragma multi_compile _ LIGHTMAP_ON",
+                "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
+                "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
+                "#pragma multi_compile _ SHADOWS_SHADOWMASK",
+                "#pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS",
+                "#pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST",
+            },
+            Includes = new List<string>()
+            {
+                "#include \"HDRP/ShaderPass/ShaderPassForward.hlsl\"",
+            },
+            RequiredFields = new List<string>()
+            {
+//                "FragInputs.worldToTangent",
+//                "FragInputs.positionWS",
+            },
+            PixelShaderSlots = new List<int>()
+            {
+                PBRMasterNode.AlbedoSlotId,
+                PBRMasterNode.NormalSlotId,
+                PBRMasterNode.MetallicSlotId,
+                PBRMasterNode.SpecularSlotId,
+                PBRMasterNode.EmissionSlotId,
+                PBRMasterNode.SmoothnessSlotId,
+                PBRMasterNode.OcclusionSlotId,
+                PBRMasterNode.AlphaSlotId,
+                PBRMasterNode.AlphaThresholdSlotId
+            }
+        };
+
+        Pass m_PassForward = new Pass()
+        {
+            Name = "Forward",
+            LightMode = "Forward",
+            TemplateName = "HDPBRPass.template",
+            ShaderPassName = "SHADERPASS_FORWARD",
+            ExtraDefines = new List<string>()
+            {
+                "#pragma multi_compile _ DEBUG_DISPLAY",
+                "#pragma multi_compile _ LIGHTMAP_ON",
+                "#pragma multi_compile _ DIRLIGHTMAP_COMBINED",
+                "#pragma multi_compile _ DYNAMICLIGHTMAP_ON",
+                "#pragma multi_compile _ SHADOWS_SHADOWMASK",
+                "#pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS",
+                "#pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST"
+            },
+            StencilOverride = new List<string>()
+            {
+                "// Stencil setup for forward",
+                "Stencil",
+                "{",
+                "   WriteMask 7",       // [_StencilWriteMask]    // default: StencilMask.Lighting  (fixed at compile time)
+                "   Ref  2",            // [_StencilRef]          // default: StencilLightingUsage.RegularLighting  (fixed at compile time)
+                "   Comp Always",
+                "   Pass Replace",
+                "}"
+            },
+            Includes = new List<string>()
+            {
+                "#include \"HDRP/ShaderPass/ShaderPassForward.hlsl\"",
+            },
+            RequiredFields = new List<string>()
+            {
+                "FragInputs.worldToTangent",
+//                "FragInputs.positionWS",
+            },
+            PixelShaderSlots = new List<int>()
+            {
+                PBRMasterNode.AlbedoSlotId,
+                PBRMasterNode.NormalSlotId,
+                PBRMasterNode.MetallicSlotId,
+                PBRMasterNode.SpecularSlotId,
+                PBRMasterNode.EmissionSlotId,
+                PBRMasterNode.SmoothnessSlotId,
+                PBRMasterNode.OcclusionSlotId,
+                PBRMasterNode.AlphaSlotId,
+                PBRMasterNode.AlphaThresholdSlotId
+            }
+        };
+
+        Pass m_PassTransparentDepthPostpass = new Pass()
+        {
+            Name = "TransparentDepthPostpass",
+            LightMode = "TransparentDepthPostpass",
+            TemplateName = "HDPBRPass.template",
+            ShaderPassName = "SHADERPASS_DEPTH_ONLY",
+            ColorMaskOverride = "ColorMask 0",
+            ExtraDefines = new List<string>()
+            {
+                "#define CUTOFF_TRANSPARENT_DEPTH_POSTPASS",
+            },
+            Includes = new List<string>()
+            {
+                "#include \"HDRP/ShaderPass/ShaderPassDepthOnly.hlsl\"",
+            },
+            RequiredFields = new List<string>()
+            {
+//                "FragInputs.worldToTangent",
+//                "FragInputs.positionWS",
+            },
+            PixelShaderSlots = new List<int>()
+            {
+                PBRMasterNode.AlphaSlotId,
+                PBRMasterNode.AlphaThresholdSlotId
+            }
+        };
+
+        private static string GetVariantDefines(PBRMasterNode masterNode)
         {
             ShaderGenerator defines = new ShaderGenerator();
+
+            // TODO:
+            // _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
+            // _MATERIAL_FEATURE_TRANSMISSION
+            // _MATERIAL_FEATURE_ANISOTROPY
+            // _MATERIAL_FEATURE_CLEAR_COAT
+            // _MATERIAL_FEATURE_IRIDESCENCE
+
+            switch (masterNode.model)
+            {
+                case PBRMasterNode.Model.Metallic:
+                    break;
+                case PBRMasterNode.Model.Specular:
+                    defines.AddShaderChunk("#define _MATERIAL_FEATURE_SPECULAR_COLOR 1", true);
+                    break;
+                default:
+                    // TODO: error!
+                    break;
+            }
 
             // #pragma shader_feature _ALPHATEST_ON
             float constantAlpha = 0.0f;
@@ -149,6 +464,12 @@ namespace UnityEditor.ShaderGraph
             // #pragma shader_feature _ _MAPPING_PLANAR _MAPPING_TRIPLANAR          // MOVE to a node
             // #pragma shader_feature _NORMALMAP_TANGENT_SPACE
             // #pragma shader_feature _ _REQUIRE_UV2 _REQUIRE_UV3
+            //
+            // #pragma shader_feature _NORMALMAP
+            if (masterNode.IsSlotConnected(PBRMasterNode.NormalSlotId))
+            {
+                defines.AddShaderChunk("#define _NORMALMAP 1", true);
+            }
 
             // #pragma shader_feature _MASKMAP
             // #pragma shader_feature _BENTNORMALMAP
@@ -201,6 +522,10 @@ namespace UnityEditor.ShaderGraph
                 // opaque-only defines
             }
 
+            // MaterialId are used as shader feature to allow compiler to optimize properly
+            // Note _MATID_STANDARD is not define as there is always the default case "_". We assign default as _MATID_STANDARD, so we never test _MATID_STANDARD
+            // #pragma shader_feature _ _MATID_SSS _MATID_ANISO _MATID_SPECULAR _MATID_CLEARCOAT
+
             // enable dithering LOD crossfade
             // #pragma multi_compile _ LOD_FADE_CROSSFADE
             // TODO: We should have this keyword only if VelocityInGBuffer is enable, how to do that ?
@@ -209,9 +534,9 @@ namespace UnityEditor.ShaderGraph
             return defines.GetShaderString(2);
         }
 
-        private static bool GenerateShaderPass(UnlitMasterNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions, ShaderGenerator result)
+        private static bool GenerateShaderPass(PBRMasterNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions, ShaderGenerator result)
         {
-            var templateLocation = ShaderGenerator.GetTemplatePath(pass.TemplateName);
+            var templateLocation = Path.Combine(Path.Combine(Path.Combine(HDEditorUtils.GetHDRenderPipelinePath(), "Editor"), "ShaderGraph"), pass.TemplateName);
             if (!File.Exists(templateLocation))
             {
                 // TODO: produce error here
@@ -223,7 +548,7 @@ namespace UnityEditor.ShaderGraph
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots);
 
             // graph requirements describe what the graph itself requires
-            var graphRequirements = ShaderGraphRequirements.FromNodes(activeNodeList, ShaderStageCapability.All, true, true);
+            var graphRequirements = ShaderGraphRequirements.FromNodes(activeNodeList, ShaderStageCapability.Fragment);
 
             ShaderStringBuilder graphNodeFunctions = new ShaderStringBuilder();
             graphNodeFunctions.IncreaseIndent();
@@ -245,13 +570,14 @@ namespace UnityEditor.ShaderGraph
             string graphInputStructName = "SurfaceDescriptionInputs";
             string graphOutputStructName = "SurfaceDescription";
             string graphEvalFunctionName = "SurfaceDescriptionFunction";
-            var graphEvalFunction = new ShaderStringBuilder();
-            var graphOutputs = new ShaderStringBuilder();
+            ShaderStringBuilder graphEvalFunction = new ShaderStringBuilder();
+            ShaderStringBuilder graphOutputs = new ShaderStringBuilder();
             PropertyCollector graphProperties = new PropertyCollector();
 
             // build the graph outputs structure, and populate activeFields with the fields of that structure
             HashSet<string> activeFields = new HashSet<string>();
             GraphUtil.GenerateSurfaceDescriptionStruct(graphOutputs, activeSlots, true);
+            //GraphUtil.GenerateSurfaceDescriptionStruct(graphOutputs, activeSlots, true, graphOutputStructName, activeFields);
 
             // Build the graph evaluation code, to evaluate the specified slots
             GraphUtil.GenerateSurfaceDescriptionFunction(
@@ -393,9 +719,9 @@ namespace UnityEditor.ShaderGraph
             return true;
         }
 
-        public string GetSubshader(IMasterNode inMasterNode, GenerationMode mode)
+        public string GetSubshader(IMasterNode iMasterNode, GenerationMode mode)
         {
-            var masterNode = inMasterNode as UnlitMasterNode;
+            var masterNode = iMasterNode as PBRMasterNode;
             var subShader = new ShaderGenerator();
             subShader.AddShaderChunk("SubShader", true);
             subShader.AddShaderChunk("{", true);
@@ -411,16 +737,48 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 // generate the necessary shader passes
-//                bool opaque = (masterNode.surfaceType == SurfaceType.Opaque);
-//                bool transparent = (masterNode.surfaceType != SurfaceType.Opaque);
+                bool opaque = (masterNode.surfaceType == SurfaceType.Opaque);
+                bool transparent = (masterNode.surfaceType != SurfaceType.Opaque);
                 bool distortionActive = false;
+                bool transparentDepthPrepassActive = transparent && false;
+                bool transparentBackfaceActive = transparent && false;
+                bool transparentDepthPostpassActive = transparent && false;
 
-                GenerateShaderPass(masterNode, m_PassDepthOnly, mode, materialOptions, subShader);
-                GenerateShaderPass(masterNode, m_PassForward, mode, materialOptions, subShader);
+                if (opaque)
+                {
+                    GenerateShaderPass(masterNode, m_PassGBuffer, mode, materialOptions, subShader);
+                    GenerateShaderPass(masterNode, m_PassGBufferWithPrepass, mode, materialOptions, subShader);
+                }
+
                 GenerateShaderPass(masterNode, m_PassMETA, mode, materialOptions, subShader);
+                GenerateShaderPass(masterNode, m_PassShadowCaster, mode, materialOptions, subShader);
+
+                if (opaque)
+                {
+                    GenerateShaderPass(masterNode, m_PassDepthOnly, mode, materialOptions, subShader);
+                    GenerateShaderPass(masterNode, m_PassMotionVectors, mode, materialOptions, subShader);
+                }
+
                 if (distortionActive)
                 {
                     GenerateShaderPass(masterNode, m_PassDistortion, mode, materialOptions, subShader);
+                }
+
+                if (transparentDepthPrepassActive)
+                {
+                    GenerateShaderPass(masterNode, m_PassTransparentDepthPrepass, mode, materialOptions, subShader);
+                }
+
+                if (transparentBackfaceActive)
+                {
+                    GenerateShaderPass(masterNode, m_PassTransparentBackface, mode, materialOptions, subShader);
+                }
+
+                GenerateShaderPass(masterNode, m_PassForward, mode, materialOptions, subShader);
+
+                if (transparentDepthPostpassActive)
+                {
+                    GenerateShaderPass(masterNode, m_PassTransparentDepthPostpass, mode, materialOptions, subShader);
                 }
             }
             subShader.Deindent();
