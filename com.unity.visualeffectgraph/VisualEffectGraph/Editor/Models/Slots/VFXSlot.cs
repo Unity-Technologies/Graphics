@@ -322,9 +322,15 @@ namespace UnityEditor.VFX
             throw new InvalidOperationException(string.Format("Unable to create slot for property {0} of type {1}", property.name, property.type));
         }
 
-        public static bool TransferLinksAndValue(VFXSlot dst, VFXSlot src, bool notify)
+        public static void TransferLinksAndValue(VFXSlot dst, VFXSlot src, bool notify)
         {
-            // Transfer value only if src can hold it (master slot)
+            CopyValue(dst, src, notify);
+            TransferLinks(dst, src, notify);
+        }
+
+        public static void CopyValue(VFXSlot dst, VFXSlot src, bool notify)
+        {
+            // Transfer value only if dst can hold it (master slot)
             if (dst.IsMasterSlot())
             {
                 if (src.property.type == dst.property.type)
@@ -341,13 +347,10 @@ namespace UnityEditor.VFX
                     }
                 }
             }
-
-            return TransferLinks(dst, src, notify);
         }
 
-        public static bool TransferLinks(VFXSlot dst, VFXSlot src, bool notify)
+        public static void TransferLinks(VFXSlot dst, VFXSlot src, bool notify)
         {
-            bool oneLinkTransfered = false;
             var links = src.LinkedSlots.ToArray();
             int index = 0;
             while (index < links.Count())
@@ -358,11 +361,9 @@ namespace UnityEditor.VFX
                     dst.Link(link, notify);
                     src.Unlink(link, notify);
 
-
-                    dst.owner.TransferLinkMySlot(src, dst, link);
-                    link.owner.TransferLinkOtherSlot(link, src, dst);
-
-                    oneLinkTransfered = true;
+                    // TODO Remove the callbacks after VFXParameter refactor
+                    //dst.owner.OnTransferLinkMySlot(src, dst, link);
+                    //link.owner.OnTransferLinkOtherSlot(link, src, dst);
                 }
                 ++index;
             }
@@ -371,10 +372,8 @@ namespace UnityEditor.VFX
             {
                 int nbSubSlots = src.GetNbChildren();
                 for (int i = 0; i < nbSubSlots; ++i)
-                    oneLinkTransfered |= TransferLinks(dst[i], src[i], notify);
+                    TransferLinks(dst[i], src[i], notify);
             }
-
-            return oneLinkTransfered;
         }
 
         public override void OnUnknownChange()

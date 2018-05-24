@@ -33,8 +33,8 @@ namespace UnityEditor.VFX
         void SetSettingValue(string name, object value);
 
 
-        void TransferLinkOtherSlot(VFXSlot mySlot, VFXSlot prevOtherSlot, VFXSlot newOtherSlot);
-        void TransferLinkMySlot(VFXSlot myPrevSlot, VFXSlot myNewSlot, VFXSlot otherSlot);
+        void OnTransferLinkOtherSlot(VFXSlot mySlot, VFXSlot prevOtherSlot, VFXSlot newOtherSlot);
+        void OnTransferLinkMySlot(VFXSlot myPrevSlot, VFXSlot myNewSlot, VFXSlot otherSlot);
 
         bool collapsed { get; set; }
     }
@@ -116,7 +116,6 @@ namespace UnityEditor.VFX
         {
             var slotList = slot.direction == VFXSlot.Direction.kInput ? m_InputSlots : m_OutputSlots;
 
-
             if (!slot.IsMasterSlot())
                 throw new ArgumentException("InnerAddSlot expect only a masterSlot");
 
@@ -138,11 +137,11 @@ namespace UnityEditor.VFX
             Invalidate(model, cause);
         }
 
-        public virtual void TransferLinkOtherSlot(VFXSlot mySlot, VFXSlot prevOtherSlot, VFXSlot newOtherSlot)
+        public virtual void OnTransferLinkOtherSlot(VFXSlot mySlot, VFXSlot prevOtherSlot, VFXSlot newOtherSlot)
         {
         }
 
-        public virtual void TransferLinkMySlot(VFXSlot myPrevSlot, VFXSlot myNewSlot, VFXSlot otherSlot)
+        public virtual void OnTransferLinkMySlot(VFXSlot myPrevSlot, VFXSlot myNewSlot, VFXSlot otherSlot)
         {
         }
 
@@ -288,7 +287,7 @@ namespace UnityEditor.VFX
                 if (slotOwner != this)
                 {
                     Debug.LogError("Slot :" + slot.name + " of Container" + name + "Has a wrong owner.");
-                    slot.SetOwner(this); // make sure everythiing work even if the owner was lost for some reason.
+                    slot.SetOwner(this); // make sure everything works even if the owner was lost for some reason.
                 }
             }
 
@@ -307,86 +306,72 @@ namespace UnityEditor.VFX
 
             if (recreate)
             {
-                var existingSlots = new List<VFXSlot>(nbSlots);
+                var existingSlots = new List<VFXSlot>(currentSlots);
 
-                // First remove and register all existing slots
+                // Remove all slots
                 for (int i = nbSlots - 1; i >= 0; --i)
-                {
-                    VFXSlot slot = currentSlots[i];
-                    existingSlots.Add(slot);
-                    InnerRemoveSlot(slot, false);
-                }
-                existingSlots.Reverse();
+                    InnerRemoveSlot(currentSlots[i], false);
+
+                var newSlotCount = expectedProperties.Length;
+                var newSlots = new VFXSlot[newSlotCount];
 
                 // Reuse slots that already exists or create a new one if not
-                foreach (var p in expectedProperties)
+                for (int i = 0; i < newSlotCount; ++i)
                 {
+                    var p = expectedProperties[i];
                     var slot = existingSlots.Find(s => p.property.Equals(s.property));
                     if (slot != null)
+                    {
+                        slot.UpdateAttributes(p.property.attributes);
                         existingSlots.Remove(slot);
+                    }
                     else
                         slot = VFXSlot.Create(p, direction);
-                    InnerAddSlot(slot, -1, false);
+
+                    newSlots[i] = slot;
                 }
 
-                nbSlots = isInput ? GetNbInputSlots() : GetNbOutputSlots();
+                // List of candidate to copy existing slots content from
+                var candidateSlots = new VFXSlot[existingSlots.Count];
 
-                if (nbSlots != expectedProperties.Length)
-                {
-                    Debug.LogError("Something wrong");
-                }
-
-                // Try to keep links and value for slots of same name and compatible types
                 for (int i = 0; i < existingSlots.Count; ++i)
                 {
-                    var slot = existingSlots[i];
-                    //first check at the same index
-                    if (currentSlots.Count > i && currentSlots[i].property.name == slot.property.name && VFXSlot.TransferLinksAndValue(currentSlots[i], slot, notify))
-                    {
-                        break;
-                    }
-                    var candidates = currentSlots.Where(s => s.property.name == slot.property.name);
-                    foreach (var candidate in candidates)
-                        if (VFXSlot.TransferLinksAndValue(candidate, slot, notify))
-                            break;
+                    var srcSlot = existingSlots[i];
+
+                    // Try to keep links and value for slots of same name and compatible types
+                    candidateSlots[i] = newSlots.FirstOrDefault(s => s.property.name == srcSlot.property.name && s.CanLink(srcSlot) && !candidateSlots.Contains(s));
+
+                    // Find the first slot with same type (should perform a more clever selection based on name distance)
+                    if (candidateSlots[i] == null)
+                        candidateSlots[i] = newSlots.FirstOrDefault(s => s.property.type == srcSlot.property.type && !candidateSlots.Contains(s));
+
+                    if (candidateSlots[i] != null)
+                        VFXSlot.TransferLinksAndValue(candidateSlots[i], srcSlot, notify);
                 }
 
-                // Keep link and value for slots of same types and different names
-                foreach (var slot in existingSlots)
-                {
-                    if (slot.HasLink(true))
-                    {
-                        var candidate = currentSlots.FirstOrDefault(s => !s.HasLink(true) && s.property.type == slot.property.type);
-                        if (candidate != null)
-                            VFXSlot.TransferLinks(candidate, slot, notify);
-                    }
-                }
-
-                // Finally remove all remaining links
+                // Remove all remaining links
                 foreach (var slot in existingSlots)
                     slot.UnlinkAll(true, notify);
 
+                // Add all slots
+                foreach (var s in newSlots)
+                    InnerAddSlot(s, -1, false);
+
                 if (notify)
-                    Invalidate(InvalidationCause.kStructureChanged);
-            }
-
-            currentSlots = isInput ? inputSlots : outputSlots;
-
-            var currentSlotsCpy = currentSlots.ToArray();
-            nbSlots = isInput ? GetNbInputSlots() : GetNbOutputSlots();
-
-
-            for (int i = 0; i < nbSlots; ++i)
-            {
-                if (currentSlots.Count != nbSlots)
                 {
-                    Debug.Log("Collection changed while iterating");
+                    Invalidate(InvalidationCause.kConnectionChanged);
+                    Invalidate(InvalidationCause.kStructureChanged);
                 }
-                VFXProperty prop = currentSlotsCpy[i].property;
-
-                currentSlotsCpy[i].UpdateAttributes(expectedProperties[i].property.attributes);
             }
-
+            else
+            {
+                // Update properties
+                for (int i = 0; i < nbSlots; ++i)
+                {
+                    VFXProperty prop = currentSlots[i].property;
+                    currentSlots[i].UpdateAttributes(expectedProperties[i].property.attributes);
+                }
+            }
 
             return recreate;
         }
