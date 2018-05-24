@@ -24,7 +24,7 @@ ResizableElement #left
 }
 ResizableElement #middle
 {
-    flex:1;
+    flex:1 0;
     flex-direction: column;
     align-items: stretch;
 }
@@ -38,7 +38,7 @@ ResizableElement #left #top-left-resize
 
 ResizableElement #left #left-resize
 {
-    flex:1;
+    flex:1 0;
     cursor: resize-horizontal;
 }
 
@@ -56,7 +56,7 @@ ResizableElement #middle #top-resize
 
 ResizableElement #middle #middle-center
 {
-    flex:1;
+    flex:1 0;
 }
 
 ResizableElement #middle #bottom-resize
