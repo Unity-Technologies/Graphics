@@ -73,7 +73,7 @@ ResizableElement #right #top-right-resize
 
 ResizableElement #right #right-resize
 {
-    flex:1;
+    flex:1 0;
     cursor: resize-horizontal;
 }
 
