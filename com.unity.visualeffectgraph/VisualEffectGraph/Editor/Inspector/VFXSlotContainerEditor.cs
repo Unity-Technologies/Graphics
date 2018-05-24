@@ -120,9 +120,9 @@ public class VFXSlotContainerEditor : Editor
 
     protected class Contents
     {
-        public static GUIContent name = new GUIContent("Name");
-        public static GUIContent type = new GUIContent("Type");
-        public static GUIContent mode = new GUIContent("Mode");
+        public static GUIContent name = EditorGUIUtility.TrTextContent("Name");
+        public static GUIContent type = EditorGUIUtility.TrTextContent("Type");
+        public static GUIContent mode = EditorGUIUtility.TrTextContent("Mode");
     }
 
     protected class Styles

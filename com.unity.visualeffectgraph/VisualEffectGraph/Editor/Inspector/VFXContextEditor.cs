@@ -85,6 +85,7 @@ public class VFXContextEditor : VFXSlotContainerEditor
                         else
                             GUILayout.Space(m_Width / maxSize);
                     }
+
                 }
             }
             i++;
@@ -108,7 +109,7 @@ public class VFXContextEditor : VFXSlotContainerEditor
                 }
             }
 
-        if (targets.Length > 1) return; // Summary Only visible for single selection
+        if (serializedObject.isEditingMultipleObjects) return; // Summary Only visible for single selection
 
         // Context / SystemData
         if (dataObject == null) return;

@@ -22,7 +22,7 @@ public class VFXBlockEditor : VFXSlotContainerEditor
     {
         base.OnInspectorGUI();
 
-        if (VFXViewPreference.displayExtraDebugInfo)
+        if (VFXViewPreference.displayExtraDebugInfo && !serializedObject.isEditingMultipleObjects)
         {
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Attributes", EditorStyles.boldLabel);
@@ -64,7 +64,7 @@ public class VFXBlockEditor : VFXSlotContainerEditor
                 }
             }
 
-            if (block.source != string.Empty)
+            if (!string.IsNullOrEmpty(block.source))
             {
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Computed Source Code", EditorStyles.boldLabel);

@@ -149,16 +149,19 @@ namespace UnityEditor.VFX
 
         public IEnumerable<VFXAttributeInfo> GetAttributesForContext(VFXContext context)
         {
-            if (context == null)
-                throw new ArgumentException("Context does not exist");
-
-            foreach (var attrib in m_ContextsToAttributes[context])
+            Dictionary<VFXAttribute, VFXAttributeMode> attribs;
+            if (m_ContextsToAttributes.TryGetValue(context, out attribs))
             {
-                VFXAttributeInfo info;
-                info.attrib = attrib.Key;
-                info.mode = attrib.Value;
-                yield return info;
+                foreach (var attrib in attribs)
+                {
+                    VFXAttributeInfo info;
+                    info.attrib = attrib.Key;
+                    info.mode = attrib.Value;
+                    yield return info;
+                }
             }
+            else
+                throw new ArgumentException("Context does not exist");
         }
 
         private struct VFXAttributeInfoContext
