@@ -6,9 +6,9 @@ using Type = System.Type;
 using Convert = System.Convert;
 using System.Linq;
 using UnityObject = UnityEngine.Object;
+using UnityEditor.VFX.UI;
 
-
-namespace UnityEditor.VFX.UI
+namespace UnityEditor.VFX
 {
     class FloatNAffector : IFloatNAffector<float>, IFloatNAffector<Vector2>, IFloatNAffector<Vector3>, IFloatNAffector<Vector4>
     {
@@ -146,6 +146,17 @@ namespace UnityEditor.VFX.UI
                 if (fromType == toType || toType.IsAssignableFrom(fromType))
                 {
                     converter = t => t;
+                }
+                else if (toType.IsEnum && (fromType == typeof(uint) || fromType == typeof(int)))
+                {
+                    if (fromType == typeof(uint))
+                        converter = t => Enum.ToObject(toType, (uint)t);
+                    else
+                        converter = t => Enum.ToObject(toType, (int)t);
+                }
+                else if (fromType.IsEnum && (toType == typeof(uint) || toType == typeof(int)))
+                {
+                    converter = t => Convert.ChangeType(t, toType);
                 }
                 else
                 {

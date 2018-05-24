@@ -160,8 +160,9 @@ namespace UnityEditor.VFX.Test
         {
             "05_MotionVectors", // Cannot use test with postprocess effects
             "20_SpawnerChaining", // Unstable. TODO investigate why
+            "RenderStates" // Unstable. There is an instability with shadow rendering. TODO Fix that
         };
-  
+
 
         static class CollectScene
         {
@@ -170,12 +171,12 @@ namespace UnityEditor.VFX.Test
                 get
                 {
                     return Directory.GetFiles("Assets/VFXTests/GraphicsTests/", "*.unity").Where(p => !ExcludedTests.Contains(Path.GetFileNameWithoutExtension(p))).Select(p =>
-                    {
-                        return new SceneTest
                         {
-                            path = p
-                        };
-                    });
+                            return new SceneTest
+                            {
+                                path = p
+                            };
+                        });
                 }
             }
         }

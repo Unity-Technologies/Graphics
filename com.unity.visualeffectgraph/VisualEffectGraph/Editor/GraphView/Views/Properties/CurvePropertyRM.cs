@@ -23,7 +23,7 @@ namespace UnityEditor.VFX.UI
 
             m_CurveField.style.flexDirection = FlexDirection.Column;
             m_CurveField.style.alignItems = Align.Stretch;
-            m_CurveField.style.flex = new Flex(1,0);
+            m_CurveField.style.flex = new Flex(1, 0);
 
             Add(m_CurveField);
         }
@@ -54,7 +54,7 @@ namespace UnityEditor.VFX.UI
 
         public override void UpdateGUI(bool force)
         {
-            m_CurveField.value = m_Value;
+            m_CurveField.SetValueWithoutNotify(m_Value);
         }
 
         public override bool showsEverything { get { return true; } }

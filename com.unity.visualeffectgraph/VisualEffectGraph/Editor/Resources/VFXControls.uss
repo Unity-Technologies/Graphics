@@ -18,7 +18,7 @@
 
 VFXColorField
 {
-    flex:1;
+    flex:1 0;
     flex-direction:row;
     margin-left:0;
     margin-right:0;
@@ -46,7 +46,7 @@ CurveField
 }
 .sliderField Slider
 {
-    flex:1;
+    flex:1 0;
 }
 .sliderField #Field
 {

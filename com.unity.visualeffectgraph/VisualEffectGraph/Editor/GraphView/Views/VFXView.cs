@@ -208,6 +208,14 @@ namespace UnityEditor.VFX.UI
             {
                 RemoveElement(element);
             }
+            foreach (var element in dataEdges.Values)
+            {
+                RemoveElement(element);
+            }
+            foreach (var element in flowEdges.Values)
+            {
+                RemoveElement(element);
+            }
 
             groupNodes.Clear();
             stickyNotes.Clear();
