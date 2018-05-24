@@ -982,6 +982,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     RenderDepthPyramid(hdCamera, cmd, renderContext, FullScreenDebugMode.DepthPyramid);
 
                     RenderCameraVelocity(m_CullResults, hdCamera, renderContext, cmd);
+                    PushVelocityBufferIntoGlobals(hdCamera, renderContext, cmd);
 
                     // Depth texture is now ready, bind it (Depth buffer could have been bind before if DBuffer is enable)
                     cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, GetDepthTexture());
@@ -1594,7 +1595,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     var passNames = hdCamera.frameSettings.enableForwardRenderingOnly
                         ? m_ForwardAndForwardOnlyPassNames
                         : m_ForwardOnlyPassNames;
-                    var debugSSTThisPass = debugScreenSpaceTracing && (m_CurrentDebugDisplaySettings.lightingDebugSettings.debugLightingMode == DebugLightingMode.ScreenSpaceTracingReflection);
+                    var debugSSTThisPass = debugDisplaySettings.IsDebugDisplayEnabled();
                     if (debugSSTThisPass)
                     {
                         cmd.SetGlobalBuffer(HDShaderIDs._DebugScreenSpaceTracingData, m_DebugScreenSpaceTracingData);
@@ -1612,7 +1613,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         DecalSystem.instance.SetAtlas(cmd); // for clustered decals
                     }
 
-                    var debugSSTThisPass = debugScreenSpaceTracing && (m_CurrentDebugDisplaySettings.lightingDebugSettings.debugLightingMode == DebugLightingMode.ScreenSpaceTracingRefraction);
+                    var debugSSTThisPass = debugDisplaySettings.IsDebugDisplayEnabled();
                     if (debugSSTThisPass)
                     {
                         cmd.SetGlobalBuffer(HDShaderIDs._DebugScreenSpaceTracingData, m_DebugScreenSpaceTracingData);
@@ -1669,19 +1670,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 HDUtils.SetRenderTarget(cmd, hdCamera, m_VelocityBuffer, m_CameraDepthStencilBuffer);
                 RenderOpaqueRenderList(cullResults, hdCamera, renderContext, cmd, HDShaderPassNames.s_MotionVectorsName, RendererConfiguration.PerObjectMotionVectors);
-
-                cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, m_VelocityBuffer);
-                cmd.SetGlobalVector(HDShaderIDs._CameraMotionVectorsSize, new Vector4(
-                    m_VelocityBuffer.referenceSize.x,
-                    m_VelocityBuffer.referenceSize.y,
-                    1f / m_VelocityBuffer.referenceSize.x,
-                    1f / m_VelocityBuffer.referenceSize.y
-                ));
-                cmd.SetGlobalVector(HDShaderIDs._CameraMotionVectorsScale, new Vector4(
-                    m_VelocityBuffer.referenceSize.x / (float)m_VelocityBuffer.rt.width,
-                    m_VelocityBuffer.referenceSize.y / (float)m_VelocityBuffer.rt.height,
-                    1, 0.0f
-                ));
             }
         }
 
@@ -1831,6 +1819,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // TODO: Be sure that if there is no change in the state of this keyword, it doesn't imply any work on CPU side! else we will need to save the sate somewher
                 cmd.DisableShaderKeyword("DEBUG_DISPLAY");
+            }
+        }
+
+        void PushVelocityBufferIntoGlobals(HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        {
+            if (!hdCamera.frameSettings.enableMotionVectors && !hdCamera.frameSettings.enableObjectMotionVectors)
+                return;
+
+            using (new ProfilingSample(cmd, "Push Velocity Buffer", CustomSamplerId.PushVelocityBufferParameters.GetSampler()))
+            {
+                cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, m_VelocityBuffer);
+                cmd.SetGlobalVector(HDShaderIDs._CameraMotionVectorsSize, new Vector4(
+                    m_VelocityBuffer.referenceSize.x,
+                    m_VelocityBuffer.referenceSize.y,
+                    1f / m_VelocityBuffer.referenceSize.x,
+                    1f / m_VelocityBuffer.referenceSize.y
+                ));
+                cmd.SetGlobalVector(HDShaderIDs._CameraMotionVectorsScale, new Vector4(
+                    m_VelocityBuffer.referenceSize.x / (float)m_VelocityBuffer.rt.width,
+                    m_VelocityBuffer.referenceSize.y / (float)m_VelocityBuffer.rt.height,
+                    1, 0.0f
+                ));
             }
         }
 
