@@ -85,25 +85,63 @@ public class VFXContextEditor : VFXSlotContainerEditor
 
                 if (attributes.Count() > 0)
                 {
-                    EditorGUILayout.LabelField("Attribute Layout", Styles.header);
+                    EditorGUILayout.LabelField("System Attribute Summary", Styles.header);
 
                     foreach (var attr in attributes)
                     {
                         using (new EditorGUILayout.HorizontalScope())
                         {
-                            EditorGUILayout.LabelField(attr.attrib.name, Styles.cell);
-                            Styles.DataTypeLabel(attr.attrib.type.ToString(), attr.attrib.type, Styles.cell, GUILayout.Width(80));
-                            int size = VFXExpressionHelper.GetSizeOfType(attr.attrib.type);
-                            EditorGUILayout.LabelField(size + " byte" + (size > 1? "s":"") , Styles.cell, GUILayout.Width(80));
+                            GUILayout.Label(attr.attrib.name, Styles.cell);
+                            Styles.DataTypeLabel(attr.attrib.type.ToString(), attr.attrib.type, Styles.cell, GUILayout.Width(64));
+                            int size = VFXExpressionHelper.GetSizeOfType(attr.attrib.type) * 4;
+                            GUILayout.Label(size + " byte" + (size > 1 ? "s" : "") , Styles.cell, GUILayout.Width(64));
+                            var mode = attr.mode;
+                            GUILayout.Label(mode.ToString(), Styles.cell, GUILayout.Width(64));
                         }
+                    }
+                }
+
+                var layout = particleData.GetCurrentAttributeLayout();
+                if (layout.Length > 0)
+                {
+                    EditorGUILayout.LabelField("Attribute Memory Layout", Styles.header);
+
+                    int i = 0;
+
+                    int maxSize = 0;
+
+                    foreach (StructureOfArrayProvider.BucketInfo bucket in layout)
+                    {
+                        maxSize = Math.Max(maxSize, bucket.size);
+                    }
+                    foreach (var bucket in layout)
+                    {
+                        using (new GUILayout.HorizontalScope())
+                        {
+                            GUILayout.Label(i.ToString(), Styles.cell, GUILayout.Width(20));
+                            int usedSize = bucket.usedSize;
+
+                            for (int j = 0; j < maxSize; j++)
+                            {
+                                if (j < usedSize)
+                                {
+                                    var attrib = bucket.attributes[j];
+                                    Styles.DataTypeLabel(attrib.name, attrib.type, Styles.cell);
+                                }
+                                else
+                                {
+                                    Styles.DataTypeLabel("", VFXValueType.None, Styles.cell);
+                                }
+                            }
+                        }
+                        i++;
                     }
                 }
             }
         }
 
-        if(VFXViewPreference.displayExtraDebugInfo)
+        if (VFXViewPreference.displayExtraDebugInfo)
         {
-
             // Extra debug data
             EditorGUILayout.Space();
             {
@@ -138,8 +176,6 @@ public class VFXContextEditor : VFXSlotContainerEditor
 
                 EditorGUILayout.Space();
             }
-
         }
-
     }
 }

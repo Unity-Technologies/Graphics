@@ -144,6 +144,44 @@ namespace UnityEditor.VFX
             };
         }
 
+        public struct BucketInfo
+        {
+            public int size;
+            public int usedSize;
+            public VFXAttribute[] attributes;
+            public int[] channels;
+        }
+
+        public BucketInfo[] GetBucketLayoutInfo()
+        {
+            int count = m_BucketSizes.Count;
+            BucketInfo[] buckets = new BucketInfo[count];
+            for (int i = 0; i < count; i++)
+            {
+                int size = m_BucketSizes[i];
+                buckets[i].size = size;
+                buckets[i].usedSize = 0;
+                buckets[i].attributes = new VFXAttribute[size];
+                buckets[i].channels = new int[size];
+            }
+
+            foreach (var kvp in m_AttributeLayout)
+            {
+                var attrib = kvp.Key;
+                var bucket = buckets[kvp.Value.bucket];
+                int size = VFXValue.TypeToSize(attrib.type);
+                int offset = kvp.Value.offset;
+                for (int i = 0; i < size; i++)
+                {
+                    buckets[kvp.Value.bucket].attributes[i + offset] = attrib;
+                    buckets[kvp.Value.bucket].channels[i + offset] = i;
+                    buckets[kvp.Value.bucket].usedSize = Math.Max(buckets[kvp.Value.bucket].usedSize, i + offset + 1);
+                }
+            }
+
+            return buckets;
+        }
+
         private Dictionary<VFXAttribute, AttributeLayout> m_AttributeLayout = new Dictionary<VFXAttribute, AttributeLayout>();
         private List<int> m_BucketSizes = new List<int>();
         private List<int> m_BucketOffsets = new List<int>();
@@ -577,6 +615,16 @@ namespace UnityEditor.VFX
             var instance = dst as VFXDataParticle;
             instance.m_Capacity = m_Capacity;
             instance.m_Space = m_Space;
+        }
+
+        public StructureOfArrayProvider.BucketInfo[] GetCurrentAttributeLayout()
+        {
+            return m_layoutAttributeCurrent.GetBucketLayoutInfo();
+        }
+
+        public StructureOfArrayProvider.BucketInfo[] GetSourceAttributeLayout()
+        {
+            return m_layoutAttributeSource.GetBucketLayoutInfo();
         }
 
         [SerializeField]

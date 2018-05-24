@@ -189,7 +189,7 @@ public class VFXSlotContainerEditor : Editor
         {
             Color backup = GUI.color;
             GUI.color = valueTypeColors[type];
-            EditorGUILayout.LabelField(Label, style, options);
+            GUILayout.Label(Label, style, options);
             GUI.color = backup;
         }
 
