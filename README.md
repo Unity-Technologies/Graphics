@@ -1,11 +1,11 @@
 # Unity Scriptable Render Pipeline
-The Scriptable Render Pipeline (SRP) is a new Unity feature in active development. SRP has been designed to give artists and developers the tools they need to create modern, high-fidelity graphics in Unity. Including a built-in Lightweight Render Pipeline for use on all platforms, and a High Definition Render Pipeline (HDRP) for use on compute shader compatible platforms. We hope to release both of these versions in beta with Unity version 2018.1.
+The Scriptable Render Pipeline (SRP) is a new Unity feature in active development. SRP has been designed to give artists and developers the tools they need to create modern, high-fidelity graphics in Unity. Including a built-in Lightweight Render Pipeline for use on all platforms, and a High Definition Render Pipeline (HDRP) for use on compute shader compatible platforms. These features are available in Unity 2018.1+.
 
-We are committed to an open and transparent development process, and as such you are welcome to take a look around if you are really curious, but we cannot provide support for this feature yet.
+We are committed to an open and transparent development process, and as such you are welcome to take a look around if you are really curious.
 
 For a more detailed overview of the planned features and philosophy behind SRP, refer to the following Gdoc: [ScriptableRenderPipeline](https://docs.google.com/document/d/1e2jkr_-v5iaZRuHdnMrSv978LuJKYZhsIYnrDkNAuvQ/edit?usp=sharing)
 
-This feature is currently a work in progress. We cannot promise that features will work as expected in their current state. Some features may change or be removed before we move to a full release.  
+This feature is currently in preview. Some features may change or be removed before we move to a full release.  
 
 [Lightweight Pipeline Blogpost](https://blogs.unity3d.com/2018/02/21/the-lightweight-render-pipeline-optimizing-real-time-performance/)
 
@@ -15,7 +15,11 @@ This feature is currently a work in progress. We cannot promise that features wi
 __Note: The Master branch is our current development branch and may not work on the latest publicly available version of Unity. You should always use the latest release tag and latest Unity beta version for testing purposes.__
 To use the latest version of the SRP, follow the instructions below:
 
-This repository consists of a folder that needs to be placed in the Assets\ folder of your Unity project. We recommend creating a new project to test SRP. Do not clone this repo into an existing project unless you want to break it, or unless you are updating to a newer version of the SRP repo. Your project's `packages.json` file (in either `UnityPackageManager/` or `Packages/`) does not have a dependency on any of the packages in this repository or the contained submodules.
+This repository consists of a folder that should be cloned outside the Assets\ folder of your Unity project. We recommend creating a new project to test SRP. Do not clone this repo into an existing project unless you want to break it, or unless you are updating to a newer version of the SRP repo.
+
+After cloning you will need to edit your project's `packages.json` file (in either `UnityPackageManager/` or `Packages/`) to point to the SRP submodules you wish to use. See: https://github.com/Unity-Technologies/ScriptableRenderPipeline/blob/build/automation/TestProjects/GraphicsTests/Packages/manifest.json
+
+This will link your project to the specific version of SRP you have cloned.
 
 You can use the GitHub desktop app to clone the latest version of the SRP repo or you can use GitHub console commands.
 
@@ -23,7 +27,7 @@ You can use the GitHub desktop app to clone the latest version of the SRP repo o
 1. Open the GitHub Desktop App and click __Clone a Repository__.
 2. Click the __URL__ tab in the __Clone a Repository__ window
 3. Enter the following URL: https://github.com/Unity-Technologies/ScriptableRenderPipeline
-4. Click the __Choose…__ button to navigate to your project’s Asset folder.
+4. Click the __Choose…__ button to navigate to your project’s base folder.
 5. Click the __Clone__ button.
 
 After the repo has been cloned you will need to run the following console commands from the ScriptableRenderPipeline folder:
@@ -37,7 +41,7 @@ After the repo has been cloned you will need to run the following console comman
 Enter the following commands in your console application of choice:  
 
 ```
-> cd <Path to your Unity project>/Assets
+> cd <Path to your Unity project>
 > git clone https://github.com/Unity-Technologies/ScriptableRenderPipeline
 > cd ScriptableRenderPipeline
 > git checkout Unity-2018.1.0b2 (or the latest tag)
