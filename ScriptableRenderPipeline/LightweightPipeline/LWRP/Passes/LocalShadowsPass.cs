@@ -14,6 +14,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         ShadowSliceData[] m_LocalLightSlices;
         float[] m_LocalShadowStrength;
 
+        const string k_SetupRenderTargetTag = "Setup Render Target";
+        const string k_RenderLocalShadows = "Render Local Shadows";
+
         public LocalShadowsPass(LightweightForwardRenderer renderer) : base(renderer)
         {
             RegisterShaderPassName("ShadowCaster");
@@ -86,69 +89,71 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (shadowCastingLightsCount == 0)
                 return;
 
-            CommandBuffer cmd = CommandBufferPool.Get("Prepare Local Lights Shadowmap");
             Matrix4x4 view, proj;
             Bounds bounds;
-
-            // TODO: Add support to point light shadows. We make a simplification here that only works
-            // for spot lights and with max spot shadows per pass.
-            int atlasWidth = shadowData.localShadowAtlasWidth;
-            int atlasHeight = shadowData.localShadowAtlasHeight;
-            int sliceResolution = LightweightShadowUtils.GetMaxTileResolutionInAtlas(atlasWidth, atlasHeight, shadowCastingLightsCount);
             int shadowSampling = 0;
 
-            m_LocalShadowmapTexture = RenderTexture.GetTemporary(shadowData.localShadowAtlasWidth,
-                    shadowData.localShadowAtlasHeight, k_ShadowmapBufferBits, m_LocalShadowmapFormat);
-            m_LocalShadowmapTexture.filterMode = FilterMode.Bilinear;
-            m_LocalShadowmapTexture.wrapMode = TextureWrapMode.Clamp;
-
-            SetRenderTarget(cmd, m_LocalShadowmapTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                ClearFlag.Depth, Color.black);
-
-            for (int i = 0; i < localLightsCount; ++i)
+            CommandBuffer cmd = CommandBufferPool.Get(k_RenderLocalShadows);
+            using (new ProfilingSample(cmd, k_SetupRenderTargetTag))
             {
-                int shadowLightIndex = localLightIndices[i];
-                VisibleLight shadowLight = visibleLights[shadowLightIndex];
-                Light light = shadowLight.light;
+                // TODO: Add support to point light shadows. We make a simplification here that only works
+                // for spot lights and with max spot shadows per pass.
+                int atlasWidth = shadowData.localShadowAtlasWidth;
+                int atlasHeight = shadowData.localShadowAtlasHeight;
+                int sliceResolution = LightweightShadowUtils.GetMaxTileResolutionInAtlas(atlasWidth, atlasHeight, shadowCastingLightsCount);
+                
+                m_LocalShadowmapTexture = RenderTexture.GetTemporary(shadowData.localShadowAtlasWidth,
+                        shadowData.localShadowAtlasHeight, k_ShadowmapBufferBits, m_LocalShadowmapFormat);
+                m_LocalShadowmapTexture.filterMode = FilterMode.Bilinear;
+                m_LocalShadowmapTexture.wrapMode = TextureWrapMode.Clamp;
 
-                // TODO: Add support to point light shadows
-                if (shadowLight.lightType != LightType.Spot || shadowLight.light.shadows == LightShadows.None)
-                    continue;
+                SetRenderTarget(cmd, m_LocalShadowmapTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
+                    ClearFlag.Depth, Color.black);
 
-                if (!cullResults.GetShadowCasterBounds(shadowLightIndex, out bounds))
-                    continue;
-
-                Matrix4x4 shadowTransform;
-                bool success = LightweightShadowUtils.ExtractSpotLightMatrix(ref cullResults, ref shadowData,
-                        shadowLightIndex, out shadowTransform, out view, out proj);
-
-                if (success)
+                for (int i = 0; i < localLightsCount; ++i)
                 {
-                    // This way of computing the shadow slice only work for spots and with most 4 shadow casting lights per pass
-                    // Change this when point lights are supported.
-                    Debug.Assert(localLightsCount <= 4 && shadowLight.lightType == LightType.Spot);
+                    int shadowLightIndex = localLightIndices[i];
+                    VisibleLight shadowLight = visibleLights[shadowLightIndex];
+                    Light light = shadowLight.light;
 
-                    // TODO: We need to pass bias and scale list to shader to be able to support multiple
-                    // shadow casting local lights.
-                    m_LocalLightSlices[i].offsetX = (i % 2) * sliceResolution;
-                    m_LocalLightSlices[i].offsetY = (i / 2) * sliceResolution;
-                    m_LocalLightSlices[i].resolution = sliceResolution;
-                    m_LocalLightSlices[i].shadowTransform = shadowTransform;
+                    // TODO: Add support to point light shadows
+                    if (shadowLight.lightType != LightType.Spot || shadowLight.light.shadows == LightShadows.None)
+                        continue;
 
-                    m_LocalShadowStrength[i] = light.shadowStrength;
-                    shadowSampling = Math.Max(shadowSampling, (int)light.shadows);
+                    if (!cullResults.GetShadowCasterBounds(shadowLightIndex, out bounds))
+                        continue;
 
-                    if (shadowCastingLightsCount > 1)
-                        LightweightShadowUtils.ApplySliceTransform(ref m_LocalLightSlices[i], atlasWidth, atlasHeight);
+                    Matrix4x4 shadowTransform;
+                    bool success = LightweightShadowUtils.ExtractSpotLightMatrix(ref cullResults, ref shadowData,
+                            shadowLightIndex, out shadowTransform, out view, out proj);
 
-                    LightweightShadowUtils.SetupShadowCasterConstants(cmd, ref shadowLight, proj, sliceResolution);
+                    if (success)
+                    {
+                        // This way of computing the shadow slice only work for spots and with most 4 shadow casting lights per pass
+                        // Change this when point lights are supported.
+                        Debug.Assert(localLightsCount <= 4 && shadowLight.lightType == LightType.Spot);
 
-                    var settings = new DrawShadowsSettings(cullResults, shadowLightIndex);
-                    LightweightShadowUtils.RenderShadowSlice(cmd, ref context, ref m_LocalLightSlices[i], proj, view, settings);
+                        // TODO: We need to pass bias and scale list to shader to be able to support multiple
+                        // shadow casting local lights.
+                        m_LocalLightSlices[i].offsetX = (i % 2) * sliceResolution;
+                        m_LocalLightSlices[i].offsetY = (i / 2) * sliceResolution;
+                        m_LocalLightSlices[i].resolution = sliceResolution;
+                        m_LocalLightSlices[i].shadowTransform = shadowTransform;
+
+                        m_LocalShadowStrength[i] = light.shadowStrength;
+                        shadowSampling = Math.Max(shadowSampling, (int)light.shadows);
+
+                        if (shadowCastingLightsCount > 1)
+                            LightweightShadowUtils.ApplySliceTransform(ref m_LocalLightSlices[i], atlasWidth, atlasHeight);
+
+                        var settings = new DrawShadowsSettings(cullResults, shadowLightIndex);
+                        LightweightShadowUtils.SetupShadowCasterConstants(cmd, ref shadowLight, proj, sliceResolution);
+                        LightweightShadowUtils.RenderShadowSlice(cmd, ref context, ref m_LocalLightSlices[i], proj, view, settings);
+                    }
                 }
-            }
 
-            SetupLocalLightsShadowReceiverConstants(ref context, cmd, ref shadowData);
+                SetupLocalLightsShadowReceiverConstants(ref context, cmd, ref shadowData);
+            }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
 
@@ -175,8 +180,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.SetGlobalVector(LocalShadowConstantBuffer._LocalShadowOffset3, new Vector4(invHalfShadowAtlasWidth, invHalfShadowAtlasHeight, 0.0f, 0.0f));
             cmd.SetGlobalVector(LocalShadowConstantBuffer._LocalShadowmapSize, new Vector4(invShadowAtlasWidth, invShadowAtlasHeight,
                     shadowData.localShadowAtlasWidth, shadowData.localShadowAtlasHeight));
-            context.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
         }
     }
 }

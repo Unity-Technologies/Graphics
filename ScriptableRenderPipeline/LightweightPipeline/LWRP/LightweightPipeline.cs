@@ -75,33 +75,46 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             foreach (Camera camera in cameras)
             {
                 BeginCameraRendering(camera);
-                m_IsCameraRendering = true;
+                string renderCameraTag = "Render " + camera.name;
+                CommandBuffer cmd = CommandBufferPool.Get(renderCameraTag);
+                using (new ProfilingSample(cmd, renderCameraTag))
+                {
+                    m_IsCameraRendering = true;
 
-                CameraData cameraData;
-                InitializeCameraData(camera, out cameraData);
-                SetupPerCameraShaderConstants(cameraData);
+                    CameraData cameraData;
+                    InitializeCameraData(camera, out cameraData);
+                    SetupPerCameraShaderConstants(cameraData);
 
-                ScriptableCullingParameters cullingParameters;
-                if (!CullResults.GetCullingParameters(camera, cameraData.isStereoEnabled, out cullingParameters))
-                    continue;
+                    ScriptableCullingParameters cullingParameters;
+                    if (!CullResults.GetCullingParameters(camera, cameraData.isStereoEnabled, out cullingParameters))
+                    {
+                        CommandBufferPool.Release(cmd);
+                        continue;
+                    }
 
-                cullingParameters.shadowDistance = Mathf.Min(cameraData.maxShadowDistance, camera.farClipPlane);
+                    cullingParameters.shadowDistance = Mathf.Min(cameraData.maxShadowDistance, camera.farClipPlane);
+
+                    context.ExecuteCommandBuffer(cmd);
+                    cmd.Clear();
 
 #if UNITY_EDITOR
-                // Emit scene view UI
-                if (cameraData.isSceneViewCamera)
-                    ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
+                    // Emit scene view UI
+                    if (cameraData.isSceneViewCamera)
+                        ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
 #endif
-                CullResults.Cull(ref cullingParameters, context, ref m_CullResults);
-                List<VisibleLight> visibleLights = m_CullResults.visibleLights;
+                    CullResults.Cull(ref cullingParameters, context, ref m_CullResults);
+                    List<VisibleLight> visibleLights = m_CullResults.visibleLights;
 
-                RenderingData renderingData;
-                InitializeRenderingData(ref cameraData, visibleLights, m_Renderer.maxSupportedLocalLightsPerPass, m_Renderer.maxSupportedVertexLights, out renderingData);
-                m_Renderer.Setup(ref context, ref m_CullResults, ref renderingData);
-                m_Renderer.Execute(ref context, ref m_CullResults, ref renderingData);
+                    RenderingData renderingData;
+                    InitializeRenderingData(ref cameraData, visibleLights, m_Renderer.maxSupportedLocalLightsPerPass, m_Renderer.maxSupportedVertexLights, out renderingData);
+                    m_Renderer.Setup(ref context, ref m_CullResults, ref renderingData);
+                    m_Renderer.Execute(ref context, ref m_CullResults, ref renderingData);
+                    
+                    m_IsCameraRendering = false;
+                }
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
                 context.Submit();
-
-                m_IsCameraRendering = false;
             }
         }
 
