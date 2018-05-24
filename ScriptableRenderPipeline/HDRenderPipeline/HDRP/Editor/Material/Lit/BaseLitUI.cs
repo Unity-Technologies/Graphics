@@ -59,7 +59,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public static GUIContent supportDBufferText = new GUIContent("Enable Decal", "Allow to specify if the material can receive decal or not");
 
-            public static GUIContent enableGeometricSpecularAAText = new GUIContent("Enable geometric specular AA", "This reduce specular aliasing on highly dense mesh (Particularly useful when they don't use using normal map)");
+            public static GUIContent enableGeometricSpecularAAText = new GUIContent("Enable geometric specular AA", "This reduce specular aliasing on highly dense mesh (Particularly useful when they don't use normal map)");
             public static GUIContent specularAAScreenSpaceVarianceText = new GUIContent("Screen space variance", "Allow to control the strength of the specular AA reduction. Higher mean more blurry result and less aliasing");
             public static GUIContent specularAAThresholdText = new GUIContent("Threshold", "Allow to limit the effect of specular AA reduction. 0 mean don't apply reduction, higher value mean allow higher reduction");
         }
