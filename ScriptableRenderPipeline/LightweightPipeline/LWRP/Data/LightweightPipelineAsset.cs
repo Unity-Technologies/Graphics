@@ -55,48 +55,48 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public class LightweightPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
-        private Shader m_DefaultShader;
-        public static readonly string m_SearchPathProject = "Assets";
-        public static readonly string m_SearchPathPackage = "Packages/com.unity.render-pipelines.lightweight";
+        public static readonly string s_SearchPathProject = "Assets";
+        public static readonly string s_SearchPathPackage = "Packages/com.unity.render-pipelines.lightweight";
+
+        Shader m_DefaultShader;
 
         // Default values set when a new LightweightPipeline asset is created
-        [SerializeField] private int kAssetVersion = 3;
-        [SerializeField] private int m_MaxPixelLights = 4;
-        [SerializeField] private bool m_SupportsVertexLight = false;
-        [SerializeField] private bool m_RequireDepthTexture = false;
-        [SerializeField] private bool m_RequireSoftParticles = false;
-        [SerializeField] private bool m_RequireOpaqueTexture = false;
-        [SerializeField] private Downsampling m_OpaqueDownsampling = Downsampling._2xBilinear;
-        [SerializeField] private bool m_SupportsHDR = false;
-        [SerializeField] private MSAAQuality m_MSAA = MSAAQuality._4x;
-        [SerializeField] private float m_RenderScale = 1.0f;
-        [SerializeField] private bool m_SupportsDynamicBatching = true;
+        [SerializeField] int k_AssetVersion = 3;
+        [SerializeField] int m_MaxPixelLights = 4;
+        [SerializeField] bool m_SupportsVertexLight = false;
+        [SerializeField] bool m_RequireDepthTexture = false;
+        [SerializeField] bool m_RequireSoftParticles = false;
+        [SerializeField] bool m_RequireOpaqueTexture = false;
+        [SerializeField] Downsampling m_OpaqueDownsampling = Downsampling._2xBilinear;
+        [SerializeField] bool m_SupportsHDR = false;
+        [SerializeField] MSAAQuality m_MSAA = MSAAQuality._4x;
+        [SerializeField] float m_RenderScale = 1.0f;
+        [SerializeField] bool m_SupportsDynamicBatching = true;
 
-        [SerializeField] private bool m_DirectionalShadowsSupported = true;
-        [SerializeField] private ShadowResolution m_ShadowAtlasResolution = ShadowResolution._2048;
-        [SerializeField] private float m_ShadowDistance = 50.0f;
-        [SerializeField] private ShadowCascades m_ShadowCascades = ShadowCascades.FOUR_CASCADES;
-        [SerializeField] private float m_Cascade2Split = 0.25f;
-        [SerializeField] private Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
-        [SerializeField] private bool m_LocalShadowsSupported = true;
-        [SerializeField] private ShadowResolution m_LocalShadowsAtlasResolution = ShadowResolution._512;
-        [SerializeField] private bool m_SoftShadowsSupported = false;
-        [SerializeField] private bool m_CustomShaderVariantStrippingSettings = false;
-        [SerializeField] private bool m_KeepAdditionalLightVariants = true;
-        [SerializeField] private bool m_KeepVertexLightVariants = true;
-        [SerializeField] private bool m_KeepDirectionalShadowVariants = true;
-        [SerializeField] private bool m_KeepLocalShadowVariants = true;
-        [SerializeField] private bool m_KeepSoftShadowVariants = true;
+        [SerializeField] bool m_DirectionalShadowsSupported = true;
+        [SerializeField] ShadowResolution m_ShadowAtlasResolution = ShadowResolution._2048;
+        [SerializeField] float m_ShadowDistance = 50.0f;
+        [SerializeField] ShadowCascades m_ShadowCascades = ShadowCascades.FOUR_CASCADES;
+        [SerializeField] float m_Cascade2Split = 0.25f;
+        [SerializeField] Vector3 m_Cascade4Split = new Vector3(0.067f, 0.2f, 0.467f);
+        [SerializeField] bool m_LocalShadowsSupported = true;
+        [SerializeField] ShadowResolution m_LocalShadowsAtlasResolution = ShadowResolution._512;
+        [SerializeField] bool m_SoftShadowsSupported = false;
+        [SerializeField] bool m_CustomShaderVariantStrippingSettings = false;
+        [SerializeField] bool m_KeepAdditionalLightVariants = true;
+        [SerializeField] bool m_KeepVertexLightVariants = true;
+        [SerializeField] bool m_KeepDirectionalShadowVariants = true;
+        [SerializeField] bool m_KeepLocalShadowVariants = true;
+        [SerializeField] bool m_KeepSoftShadowVariants = true;
 
-        [SerializeField]
-        private LightweightPipelineResources m_ResourcesAsset;
+        [SerializeField] LightweightPipelineResources m_ResourcesAsset;
 
         // Deprecated
-        [SerializeField] private ShadowType m_ShadowType = ShadowType.HARD_SHADOWS;
+        [SerializeField] ShadowType m_ShadowType = ShadowType.HARD_SHADOWS;
 
 #if UNITY_EDITOR
         [NonSerialized]
-        private LightweightPipelineEditorResources m_EditorResourcesAsset;
+        LightweightPipelineEditorResources m_EditorResourcesAsset;
 
         [MenuItem("Assets/Create/Rendering/Lightweight Pipeline Asset", priority = CoreUtils.assetCreateMenuPriority1)]
         static void CreateLightweightPipeline()
@@ -130,10 +130,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
-        private static T LoadResourceFile<T>() where T : ScriptableObject
+        static T LoadResourceFile<T>() where T : ScriptableObject
         {
             T resourceAsset = null;
-            var guids = AssetDatabase.FindAssets(typeof(T).Name + " t:scriptableobject", new[] {m_SearchPathProject});
+            var guids = AssetDatabase.FindAssets(typeof(T).Name + " t:scriptableobject", new[] {s_SearchPathProject});
             foreach (string guid in guids)
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
@@ -145,7 +145,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // There's currently an issue that prevents FindAssets from find resources withing the package folder.
             if (resourceAsset == null)
             {
-                string path = m_SearchPathPackage + "/LWRP/Data/" + typeof(T).Name + ".asset";
+                string path = s_SearchPathPackage + "/LWRP/Data/" + typeof(T).Name + ".asset";
                 resourceAsset = AssetDatabase.LoadAssetAtPath<T>(path);
             }
             return resourceAsset;
@@ -179,7 +179,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return new LightweightPipeline(this);
         }
 
-        private Material GetMaterial(DefaultMaterialType materialType)
+        Material GetMaterial(DefaultMaterialType materialType)
         {
 #if UNITY_EDITOR
             if (editorResources == null)
@@ -207,75 +207,76 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public int GetAssetVersion()
         {
-            return kAssetVersion;
+            return k_AssetVersion;
         }
 
-        public int MaxPixelLights
+        public int maxPixelLights
         {
             get { return m_MaxPixelLights; }
         }
 
-        public bool SupportsVertexLight
+        public bool supportsVertexLight
         {
             get { return m_SupportsVertexLight; }
         }
 
-        public bool RequireDepthTexture
+        public bool supportsCameraDepthTexture
         {
             get { return m_RequireDepthTexture; }
         }
 
-        public bool RequireSoftParticles
+        public bool supportsSoftParticles
         {
             get { return m_RequireSoftParticles; }
         }
 
-        public bool RequireOpaqueTexture
+        public bool supportsCameraOpaqueTexture
         {
             get { return m_RequireOpaqueTexture; }
         }
 
-        public Downsampling OpaqueDownsampling
+        public Downsampling opaqueDownsampling
         {
             get { return m_OpaqueDownsampling; }
         }
 
-        public bool SupportsHDR
+        public bool supportsHDR
         {
             get { return m_SupportsHDR; }
         }
 
-        public int MsaaSampleCount
+        public int msaaSampleCount
         {
             get { return (int)m_MSAA; }
             set { m_MSAA = (MSAAQuality)value; }
         }
 
-        public float RenderScale
+        public float renderScale
         {
             get { return m_RenderScale; }
-            set { m_RenderScale = value; }
         }
 
-        public bool SupportsDynamicBatching { get { return m_SupportsDynamicBatching; } }
+        public bool supportsDynamicBatching
+        {
+            get { return m_SupportsDynamicBatching; }
+        }
 
-        public bool SupportsDirectionalShadows
+        public bool supportsDirectionalShadows
         {
             get { return m_DirectionalShadowsSupported; }
         }
 
-        public int DirectionalShadowAtlasResolution
+        public int directionalShadowAtlasResolution
         {
             get { return (int)m_ShadowAtlasResolution; }
         }
 
-        public float ShadowDistance
+        public float shadowDistance
         {
             get { return m_ShadowDistance; }
-            set { m_ShadowDistance = value; }
         }
 
-        public int CascadeCount
+        public int cascadeCount
         {
             get
             {
@@ -291,56 +292,56 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
-        public float Cascade2Split
+        public float cascade2Split
         {
             get { return m_Cascade2Split; }
         }
 
-        public Vector3 Cascade4Split
+        public Vector3 cascade4Split
         {
             get { return m_Cascade4Split; }
         }
 
-        public bool SupportsLocalShadows
+        public bool supportsLocalShadows
         {
             get { return m_LocalShadowsSupported; }
         }
 
-        public int LocalShadowAtlasResolution
+        public int localShadowAtlasResolution
         {
             get { return (int)m_LocalShadowsAtlasResolution; }
         }
-        public bool SupportsSoftShadows
+        public bool supportsSoftShadows
         {
             get { return m_SoftShadowsSupported; }
         }
 
-        public bool CustomShaderVariantStripping
+        public bool customShaderVariantStripping
         {
             get { return m_CustomShaderVariantStrippingSettings; }
         }
 
-        public bool KeepAdditionalLightVariants
+        public bool keepAdditionalLightVariants
         {
             get { return m_KeepAdditionalLightVariants; }
         }
 
-        public bool KeepVertexLightVariants
+        public bool keepVertexLightVariants
         {
             get { return m_KeepVertexLightVariants; }
         }
 
-        public bool KeepDirectionalShadowVariants
+        public bool keepDirectionalShadowVariants
         {
             get { return m_KeepDirectionalShadowVariants; }
         }
 
-        public bool KeepLocalShadowVariants
+        public bool keepLocalShadowVariants
         {
             get { return m_KeepLocalShadowVariants; }
         }
 
-        public bool KeepSoftShadowVariants
+        public bool keepSoftShadowVariants
         {
             get { return m_KeepSoftShadowVariants; }
         }
@@ -392,22 +393,22 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return m_DefaultShader;
         }
 
-        public Shader BlitShader
+        public Shader blitShader
         {
             get { return resources != null ? resources.BlitShader : null; }
         }
 
-        public Shader CopyDepthShader
+        public Shader copyDepthShader
         {
             get { return resources != null ? resources.CopyDepthShader : null; }
         }
 
-        public Shader ScreenSpaceShadowShader
+        public Shader screenSpaceShadowShader
         {
             get { return resources != null ? resources.ScreenSpaceShadowShader : null; }
         }
 
-        public Shader SamplingShader
+        public Shader samplingShader
         {
             get { return resources != null ? resources.SamplingShader : null; }
         }
@@ -418,9 +419,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public void OnAfterDeserialize()
         {
-            if (kAssetVersion < 3)
+            if (k_AssetVersion < 3)
             {
-                kAssetVersion = 3;
+                k_AssetVersion = 3;
                 m_SoftShadowsSupported = (m_ShadowType == ShadowType.SOFT_SHADOWS);
             }
         }

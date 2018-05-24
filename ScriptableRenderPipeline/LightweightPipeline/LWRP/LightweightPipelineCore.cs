@@ -17,7 +17,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     }
     public enum MixedLightingSetup
     {
-        None = 0,
+        None,
         ShadowMask,
         Subtractive,
     };
@@ -86,7 +86,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         }
     }
 
-    public class LightweightKeywords
+    public static class LightweightKeywords
     {
         public static readonly string AdditionalLightsText = "_ADDITIONAL_LIGHTS";
         public static readonly string VertexLightsText = "_VERTEX_LIGHTS";
@@ -162,39 +162,39 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             s_PipelineCapabilities = 0U;
 
             // Strip variants based on selected pipeline features
-            if (!pipelineAsset.CustomShaderVariantStripping)
+            if (!pipelineAsset.customShaderVariantStripping)
             {
-                if (pipelineAsset.MaxPixelLights > 1 || pipelineAsset.SupportsVertexLight)
+                if (pipelineAsset.maxPixelLights > 1 || pipelineAsset.supportsVertexLight)
                     s_PipelineCapabilities |= PipelineCapabilities.AdditionalLights;
 
-                if (pipelineAsset.SupportsVertexLight)
+                if (pipelineAsset.supportsVertexLight)
                     s_PipelineCapabilities |= PipelineCapabilities.VertexLights;
 
-                if (pipelineAsset.SupportsDirectionalShadows)
+                if (pipelineAsset.supportsDirectionalShadows)
                     s_PipelineCapabilities |= PipelineCapabilities.DirectionalShadows;
 
-                if (pipelineAsset.SupportsLocalShadows)
+                if (pipelineAsset.supportsLocalShadows)
                     s_PipelineCapabilities |= PipelineCapabilities.LocalShadows;
 
-                bool anyShadows = pipelineAsset.SupportsDirectionalShadows || pipelineAsset.SupportsLocalShadows;
-                if (pipelineAsset.SupportsSoftShadows && anyShadows)
+                bool anyShadows = pipelineAsset.supportsDirectionalShadows || pipelineAsset.supportsLocalShadows;
+                if (pipelineAsset.supportsSoftShadows && anyShadows)
                     s_PipelineCapabilities |= PipelineCapabilities.SoftShadows;
             }
             else
             {
-                if (pipelineAsset.KeepAdditionalLightVariants)
+                if (pipelineAsset.keepAdditionalLightVariants)
                     s_PipelineCapabilities |= PipelineCapabilities.AdditionalLights;
 
-                if (pipelineAsset.KeepVertexLightVariants)
+                if (pipelineAsset.keepVertexLightVariants)
                     s_PipelineCapabilities |= PipelineCapabilities.VertexLights;
 
-                if (pipelineAsset.KeepDirectionalShadowVariants)
+                if (pipelineAsset.keepDirectionalShadowVariants)
                     s_PipelineCapabilities |= PipelineCapabilities.DirectionalShadows;
 
-                if (pipelineAsset.KeepLocalShadowVariants)
+                if (pipelineAsset.keepLocalShadowVariants)
                     s_PipelineCapabilities |= PipelineCapabilities.LocalShadows;
 
-                if (pipelineAsset.KeepSoftShadowVariants)
+                if (pipelineAsset.keepSoftShadowVariants)
                     s_PipelineCapabilities |= PipelineCapabilities.SoftShadows;
             }
         }
