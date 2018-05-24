@@ -55,7 +55,7 @@ namespace UnityEditor.VFX.UI
             if (m_ColorField != null)
                 m_ColorField.value = new Color(m_Value.x, m_Value.y, m_Value.z);
 
-            m_VectorField.value = m_Value;
+            m_VectorField.SetValueWithoutNotify(m_Value);
             if (force)
                 m_VectorField.ForceUpdate();
         }
