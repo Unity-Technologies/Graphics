@@ -6,9 +6,9 @@ using Type = System.Type;
 using Convert = System.Convert;
 using System.Linq;
 using UnityObject = UnityEngine.Object;
+using UnityEditor.VFX.UI;
 
-
-namespace UnityEditor.VFX.UI
+namespace UnityEditor.VFX
 {
     class FloatNAffector : IFloatNAffector<float>, IFloatNAffector<Vector2>, IFloatNAffector<Vector3>, IFloatNAffector<Vector4>
     {
