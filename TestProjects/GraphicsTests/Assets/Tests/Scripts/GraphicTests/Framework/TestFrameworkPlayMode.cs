@@ -16,16 +16,17 @@ public class GraphicTestsPlayMode : IPrebuildSetup
 #if UNITY_EDITOR
     UnityEditor.EditorBuildSettingsScene[] oldScenes;
 #endif
-    
+
     public void Setup()
     {
 #if UNITY_EDITOR
         oldScenes = UnityEditor.EditorBuildSettings.scenes;
 
         List<UnityEditor.EditorBuildSettingsScene> sceneSetups = new List<UnityEditor.EditorBuildSettingsScene>();
-        foreach ( TestFrameworkTools.TestInfo testInfo in TestFrameworkTools.CollectScenesPlayMode.GetScenesForPipelineID(pipelineID))
+        foreach (TestFrameworkTools.TestInfo testInfo in TestFrameworkTools.CollectScenesPlayMode.GetScenesForPipelineID(pipelineID))
         {
-            sceneSetups.Add(new UnityEditor.EditorBuildSettingsScene {
+            sceneSetups.Add(new UnityEditor.EditorBuildSettingsScene
+            {
                 path = testInfo.relativePath,
                 enabled = true
             });
@@ -46,7 +47,7 @@ public class GraphicTestsPlayMode : IPrebuildSetup
     public IEnumerator TestScene(TestFrameworkTools.TestInfo testInfo)
     {
         // open the scene
-        UnityEngine.SceneManagement.SceneManager.LoadScene( testInfo.sceneListIndex , UnityEngine.SceneManagement.LoadSceneMode.Single);
+        UnityEngine.SceneManagement.SceneManager.LoadScene(testInfo.sceneListIndex , UnityEngine.SceneManagement.LoadSceneMode.Single);
 
         yield return null; // wait one "frame" to let the scene load
 
@@ -66,10 +67,10 @@ public class GraphicTestsPlayMode : IPrebuildSetup
         // Setup Render Target
         Camera testCamera = testSetup.cameraToUse;
         var rtDesc = new RenderTextureDescriptor(
-                         testSetup.width,
-                         testSetup.height,
-                         (testSetup.hdr && testCamera.allowHDR) ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.ARGB32,
-                         24);
+                testSetup.width,
+                testSetup.height,
+                (testSetup.hdr && testCamera.allowHDR) ? RenderTextureFormat.ARGBHalf : RenderTextureFormat.ARGB32,
+                24);
         //rtDesc.sRGB = PlayerSettings.colorSpace == ColorSpace.Linear;
         rtDesc.msaaSamples = testSetup.msaaSamples;
 
@@ -129,7 +130,7 @@ public class GraphicTestsPlayMode : IPrebuildSetup
         public override string pipelineID { get { return "HDRP"; } }
 
         [UnityTest]
-        new public IEnumerator TestScene([ValueSource(typeof(TestFrameworkTools.CollectScenesPlayMode), "HDRP")]TestFrameworkTools.TestInfo testInfo)
+        new public IEnumerator TestScene([ValueSource(typeof(TestFrameworkTools.CollectScenesPlayMode), "HDRP")] TestFrameworkTools.TestInfo testInfo)
         {
             return base.TestScene(testInfo);
         }

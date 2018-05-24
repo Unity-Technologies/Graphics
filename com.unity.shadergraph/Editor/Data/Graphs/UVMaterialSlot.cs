@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph
         {}
 
         public UVMaterialSlot(int slotId, string displayName, string shaderOutputName, UVChannel channel,
-                                ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)
+                              ShaderStageCapability stageCapability = ShaderStageCapability.All, bool hidden = false)
             : base(slotId, displayName, shaderOutputName, SlotType.Input, Vector2.zero, stageCapability, hidden: hidden)
         {
             this.channel = channel;

@@ -59,14 +59,14 @@
 #   pragma warning( disable : 3557 ) // loop only executes for 1 iteration(s)
 #endif
 
-#include "CoreRP/Shadow/ShadowBase.cs.hlsl"	// ShadowData definition, auto generated (don't modify)
-#include "ShadowTexFetch.hlsl"				// Resource sampling definitions (don't modify)
+#include "CoreRP/Shadow/ShadowBase.cs.hlsl" // ShadowData definition, auto generated (don't modify)
+#include "ShadowTexFetch.hlsl"              // Resource sampling definitions (don't modify)
 
 struct ShadowContext
 {
-	StructuredBuffer<ShadowData>	shadowDatas;
-	StructuredBuffer<int4>			payloads;
-	SHADOWCONTEXT_DECLARE_TEXTURES( SHADOWCONTEXT_MAX_TEX2DARRAY, SHADOWCONTEXT_MAX_TEXCUBEARRAY, SHADOWCONTEXT_MAX_COMPSAMPLER, SHADOWCONTEXT_MAX_SAMPLER )
+    StructuredBuffer<ShadowData>    shadowDatas;
+    StructuredBuffer<int4>          payloads;
+    SHADOWCONTEXT_DECLARE_TEXTURES( SHADOWCONTEXT_MAX_TEX2DARRAY, SHADOWCONTEXT_MAX_TEXCUBEARRAY, SHADOWCONTEXT_MAX_COMPSAMPLER, SHADOWCONTEXT_MAX_SAMPLER )
 };
 
 SHADOW_DEFINE_SAMPLING_FUNCS( SHADOWCONTEXT_MAX_TEX2DARRAY, SHADOWCONTEXT_MAX_TEXCUBEARRAY, SHADOWCONTEXT_MAX_COMPSAMPLER, SHADOWCONTEXT_MAX_SAMPLER )
@@ -74,18 +74,18 @@ SHADOW_DEFINE_SAMPLING_FUNCS( SHADOWCONTEXT_MAX_TEX2DARRAY, SHADOWCONTEXT_MAX_TE
 // helper function to extract shadowmap data from the ShadowData struct
 void UnpackShadowmapId( uint shadowmapId, out uint texIdx, out uint sampIdx )
 {
-	texIdx  = (shadowmapId >> 24) & 0xff;
-	sampIdx = (shadowmapId >> 16) & 0xff;
+    texIdx  = (shadowmapId >> 24) & 0xff;
+    sampIdx = (shadowmapId >> 16) & 0xff;
 }
 void UnpackShadowType( uint packedShadowType, out uint shadowType, out uint shadowAlgorithm )
 {
-	shadowType		= packedShadowType >> 10;
-	shadowAlgorithm = packedShadowType & 0x1ff;
+    shadowType      = packedShadowType >> 10;
+    shadowAlgorithm = packedShadowType & 0x1ff;
 }
 
 void UnpackShadowType( uint packedShadowType, out uint shadowType )
 {
-	shadowType = packedShadowType >> 10;
+    shadowType = packedShadowType >> 10;
 }
 
 // shadow sampling prototypes
@@ -96,30 +96,30 @@ real GetPunctualShadowAttenuation( ShadowContext shadowContext, real3 positionWS
 real GetDirectionalShadowAttenuation( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int shadowDataIndex, real3 L );
 real GetDirectionalShadowAttenuation( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int shadowDataIndex, real3 L, real2 positionSS );
 
-#include "ShadowSampling.hlsl"			// sampling patterns (don't modify)
-#include "ShadowAlgorithms.hlsl"		// engine default algorithms (don't modify)
+#include "ShadowSampling.hlsl"          // sampling patterns (don't modify)
+#include "ShadowAlgorithms.hlsl"        // engine default algorithms (don't modify)
 
 #ifndef SHADOW_DISPATCH_USE_CUSTOM_PUNCTUAL
 real GetPunctualShadowAttenuation( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int shadowDataIndex, real3 L, real L_dist )
 {
-	return EvalShadow_PunctualDepth( shadowContext, positionWS, normalWS, shadowDataIndex, L, L_dist );
+    return EvalShadow_PunctualDepth( shadowContext, positionWS, normalWS, shadowDataIndex, L, L_dist );
 }
 
 real GetPunctualShadowAttenuation( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int shadowDataIndex, real3 L, real L_dist, real2 positionSS )
 {
-	return GetPunctualShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, L, L_dist );
+    return GetPunctualShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, L, L_dist );
 }
 #endif
 
 #ifndef SHADOW_DISPATCH_USE_CUSTOM_DIRECTIONAL
 real GetDirectionalShadowAttenuation( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int shadowDataIndex, real3 L )
 {
-	return EvalShadow_CascadedDepth_Blend( shadowContext, positionWS, normalWS, shadowDataIndex, L );
+    return EvalShadow_CascadedDepth_Blend( shadowContext, positionWS, normalWS, shadowDataIndex, L );
 }
 
 real GetDirectionalShadowAttenuation( ShadowContext shadowContext, real3 positionWS, real3 normalWS, int shadowDataIndex, real3 L, real2 positionSS )
 {
-	return GetDirectionalShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, L );
+    return GetDirectionalShadowAttenuation( shadowContext, positionWS, normalWS, shadowDataIndex, L );
 }
 #endif
 

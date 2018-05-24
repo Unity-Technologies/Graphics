@@ -50,11 +50,11 @@ namespace UnityEditor.ShaderGraph
             var outputName = GetVariableNameForSlot(outputSlotId);
 
             var s = string.Format("{0}3 {1} = {0}3({2},{3},{4});",
-                precision,
-                outputName,
-                inputXValue,
-                inputYValue,
-                inputZValue);
+                    precision,
+                    outputName,
+                    inputXValue,
+                    inputYValue,
+                    inputZValue);
             visitor.AddShaderChunk(s, false);
         }
 

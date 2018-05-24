@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
@@ -154,10 +154,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Update needs to happen before testing if the component is active other internal data structure are not properly updated yet.
             VolumeManager.instance.Update(m_LightingOverrideVolumeStack, hdCamera.camera.transform, m_LightingOverrideLayerMask);
-            if(VolumeManager.instance.IsComponentActiveInMask<VisualEnvironment>(m_LightingOverrideLayerMask))
+            if (VolumeManager.instance.IsComponentActiveInMask<VisualEnvironment>(m_LightingOverrideLayerMask))
             {
                 SkySettings newSkyOverride = GetSkySetting(m_LightingOverrideVolumeStack);
-                if(m_LightingOverrideSky.skySettings != null && newSkyOverride == null)
+                if (m_LightingOverrideSky.skySettings != null && newSkyOverride == null)
                 {
                     // When we switch from override to no override, we need to make sure that the visual sky will actually be properly re-rendered.
                     // Resetting the visual sky hash will ensure that.
@@ -190,6 +190,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             return m_DefaultPreviewSky;
         }
+
 #endif
 
         public void Build(HDRenderPipelineAsset hdAsset, IBLFilterGGX iblFilterGGX)
@@ -207,7 +208,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void Cleanup()
         {
-
 #if UNITY_EDITOR
             CoreUtils.Destroy(m_DefaultPreviewSky);
 #endif
@@ -254,7 +254,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             m_UpdateRequired = true;
         }
-
 
         public void UpdateEnvironment(HDCamera camera, Light sunLight, CommandBuffer cmd)
         {

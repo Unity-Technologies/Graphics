@@ -48,7 +48,7 @@ namespace UnityEditor.ShaderGraph
             result.Append("\", CUBE) = \"\" {}");
             return result.ToString();
         }
-        
+
         public override string GetPropertyDeclarationString(string delimiter = ";")
         {
             return string.Format("TEXTURECUBE({0}){1} SAMPLER(sampler{0}){1}", referenceName, delimiter);

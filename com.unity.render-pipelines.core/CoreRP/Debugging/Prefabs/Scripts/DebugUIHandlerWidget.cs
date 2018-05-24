@@ -16,7 +16,7 @@ namespace UnityEngine.Experimental.Rendering.UI
 
         protected DebugUI.Widget m_Widget;
 
-        protected virtual void OnEnable() { }
+        protected virtual void OnEnable() {}
 
         internal virtual void SetWidget(DebugUI.Widget widget)
         {
@@ -46,13 +46,13 @@ namespace UnityEngine.Experimental.Rendering.UI
             return true;
         }
 
-        public virtual void OnDeselection() { }
+        public virtual void OnDeselection() {}
 
-        public virtual void OnAction() { }
+        public virtual void OnAction() {}
 
-        public virtual void OnIncrement(bool fast) { }
+        public virtual void OnIncrement(bool fast) {}
 
-        public virtual void OnDecrement(bool fast) { }
+        public virtual void OnDecrement(bool fast) {}
 
         public virtual DebugUIHandlerWidget Previous()
         {

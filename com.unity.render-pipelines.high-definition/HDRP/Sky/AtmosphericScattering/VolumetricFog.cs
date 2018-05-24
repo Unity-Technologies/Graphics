@@ -29,7 +29,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             float   blendMeanFreePath = VolumeRenderingUtils.MeanFreePathFromExtinction(blendExtinction);
             Color   blendAlbedo       = (Color)(Vector4)VolumeRenderingUtils.AlbedoFromMeanFreePathAndScattering(blendMeanFreePath, blendScattering);
-                    blendAlbedo.a     = 1.0f;
+            blendAlbedo.a     = 1.0f;
 
             if (meanFreePath.overrideState)
             {
@@ -56,8 +56,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalInt(HDShaderIDs._AtmosphericScatteringType, (int)FogType.Volumetric);
 
             cmd.SetGlobalVector(HDShaderIDs._GlobalScattering, data.scattering);
-            cmd.SetGlobalFloat( HDShaderIDs._GlobalExtinction, data.extinction);
-            cmd.SetGlobalFloat( HDShaderIDs._GlobalAnisotropy, anisotropy);
+            cmd.SetGlobalFloat(HDShaderIDs._GlobalExtinction, data.extinction);
+            cmd.SetGlobalFloat(HDShaderIDs._GlobalAnisotropy, anisotropy);
         }
     }
 }

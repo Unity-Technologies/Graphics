@@ -76,7 +76,7 @@ void GetHullPlane(out float3 p0, out float3 n0, const float3 boxX, const float3 
 
     if (bIsSideQuad) { vA2 *= (iAbsSide == 0 ? scaleXY.x : scaleXY.y); vB2 *= (iAbsSide == 0 ? scaleXY.y : scaleXY.x); }
 
-	float3 vN = cross(vB2, 0.5 * (vA - vA2) - vC);	// +/- normal
+    float3 vN = cross(vB2, 0.5 * (vA - vA2) - vC);  // +/- normal
     float3 v0 = vA + vB - vC;   // vector from center to p0
     p0 = center + v0;           // center + vA is center of face when scaleXY is 1.0
     n0 = dot(vN,v0) < 0.0 ? (-vN) : vN;

@@ -8,7 +8,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
     {
         public LabelSlotControlView(string label)
         {
-            var labelField = new Label (label);
+            var labelField = new Label(label);
             Add(labelField);
         }
     }

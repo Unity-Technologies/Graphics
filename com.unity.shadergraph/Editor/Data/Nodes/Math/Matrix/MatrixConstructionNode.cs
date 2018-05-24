@@ -79,8 +79,8 @@ namespace UnityEditor.ShaderGraph
             sb.AppendLine("{0} {1};", NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(Output4x4SlotId).concreteValueType), GetVariableNameForSlot(Output4x4SlotId));
             sb.AppendLine("{0} {1};", NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(Output3x3SlotId).concreteValueType), GetVariableNameForSlot(Output3x3SlotId));
             sb.AppendLine("{0} {1};", NodeUtils.ConvertConcreteSlotValueTypeToString(precision, FindOutputSlot<MaterialSlot>(Output2x2SlotId).concreteValueType), GetVariableNameForSlot(Output2x2SlotId));
-            sb.AppendLine("{0}({1}, {2}, {3}, {4}, {5}, {6}, {7});", 
-                GetFunctionName(), 
+            sb.AppendLine("{0}({1}, {2}, {3}, {4}, {5}, {6}, {7});",
+                GetFunctionName(),
                 inputM0Value,
                 inputM1Value,
                 inputM2Value,
@@ -95,30 +95,30 @@ namespace UnityEditor.ShaderGraph
         public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
         {
             registry.ProvideFunction(GetFunctionName(), s =>
-            {
-                s.AppendLine("void {0} ({1} M0, {1} M1, {1} M2, {1} M3, out {2} Out4x4, out {3} Out3x3, out {4} Out2x2)",
-                    GetFunctionName(),
-                    FindInputSlot<MaterialSlot>(InputSlotM0Id).concreteValueType.ToString(precision),
-                    FindOutputSlot<MaterialSlot>(Output4x4SlotId).concreteValueType.ToString(precision),
-                    FindOutputSlot<MaterialSlot>(Output3x3SlotId).concreteValueType.ToString(precision),
-                    FindOutputSlot<MaterialSlot>(Output2x2SlotId).concreteValueType.ToString(precision));
-                using (s.BlockScope())
                 {
-                    switch(m_Axis)
+                    s.AppendLine("void {0} ({1} M0, {1} M1, {1} M2, {1} M3, out {2} Out4x4, out {3} Out3x3, out {4} Out2x2)",
+                        GetFunctionName(),
+                        FindInputSlot<MaterialSlot>(InputSlotM0Id).concreteValueType.ToString(precision),
+                        FindOutputSlot<MaterialSlot>(Output4x4SlotId).concreteValueType.ToString(precision),
+                        FindOutputSlot<MaterialSlot>(Output3x3SlotId).concreteValueType.ToString(precision),
+                        FindOutputSlot<MaterialSlot>(Output2x2SlotId).concreteValueType.ToString(precision));
+                    using (s.BlockScope())
                     {
-                        case MatrixAxis.Column:
-                            s.AppendLine("Out4x4 = {0}4x4(M0.x, M1.x, M2.x, M3.x, M0.y, M1.y, M2.y, M3.y, M0.z, M1.z, M2.z, M3.z, M0.w, M1.w, M2.w, M3.w);", precision);
-                            s.AppendLine("Out3x3 = {0}3x3(M0.x, M1.x, M2.x, M0.y, M1.y, M2.y, M0.z, M1.z, M2.z);", precision);
-                            s.AppendLine("Out2x2 = {0}2x2(M0.x, M1.x, M0.y, M1.y);", precision);
-                            break;
-                        default:
-                            s.AppendLine("Out4x4 = {0}4x4(M0.x, M0.y, M0.z, M0.w, M1.x, M1.y, M1.z, M1.w, M2.x, M2.y, M2.z, M2.w, M3.x, M3.y, M3.z, M3.w);", precision);
-                            s.AppendLine("Out3x3 = {0}3x3(M0.x, M0.y, M0.z, M1.x, M1.y, M1.z, M2.x, M2.y, M2.z);", precision);
-                            s.AppendLine("Out2x2 = {0}2x2(M0.x, M0.y, M1.x, M1.y);", precision);
-                            break;
+                        switch (m_Axis)
+                        {
+                            case MatrixAxis.Column:
+                                s.AppendLine("Out4x4 = {0}4x4(M0.x, M1.x, M2.x, M3.x, M0.y, M1.y, M2.y, M3.y, M0.z, M1.z, M2.z, M3.z, M0.w, M1.w, M2.w, M3.w);", precision);
+                                s.AppendLine("Out3x3 = {0}3x3(M0.x, M1.x, M2.x, M0.y, M1.y, M2.y, M0.z, M1.z, M2.z);", precision);
+                                s.AppendLine("Out2x2 = {0}2x2(M0.x, M1.x, M0.y, M1.y);", precision);
+                                break;
+                            default:
+                                s.AppendLine("Out4x4 = {0}4x4(M0.x, M0.y, M0.z, M0.w, M1.x, M1.y, M1.z, M1.w, M2.x, M2.y, M2.z, M2.w, M3.x, M3.y, M3.z, M3.w);", precision);
+                                s.AppendLine("Out3x3 = {0}3x3(M0.x, M0.y, M0.z, M1.x, M1.y, M1.z, M2.x, M2.y, M2.z);", precision);
+                                s.AppendLine("Out2x2 = {0}2x2(M0.x, M0.y, M1.x, M1.y);", precision);
+                                break;
+                        }
                     }
-                }
-            });
+                });
         }
     }
 }

@@ -215,7 +215,7 @@ real GetHorizonOcclusion(real3 V, real3 normalWS, real3 vertexNormal, real horiz
 // Return specular occlusion based on ambient occlusion (usually get from SSAO) and view/roughness info
 real GetSpecularOcclusionFromAmbientOcclusion(real NdotV, real ambientOcclusion, real roughness)
 {
-	return saturate(PositivePow(NdotV + ambientOcclusion, exp2(-16.0 * roughness - 1.0)) - 1.0 + ambientOcclusion);
+    return saturate(PositivePow(NdotV + ambientOcclusion, exp2(-16.0 * roughness - 1.0)) - 1.0 + ambientOcclusion);
 }
 
 // ref: Practical Realtime Strategies for Accurate Indirect Occlusion

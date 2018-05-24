@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace UnityEditor.Experimental.Rendering
 {
@@ -10,12 +10,12 @@ namespace UnityEditor.Experimental.Rendering
         static GlobalLightLoopSettingsUI()
         {
             Inspector = CED.Group(
-                SectionCookies,
-                CED.space,
-                SectionReflection,
-                CED.space,
-                SectionSky
-            );
+                    SectionCookies,
+                    CED.space,
+                    SectionReflection,
+                    CED.space,
+                    SectionSky
+                    );
         }
 
         public static readonly CED.IDrawer Inspector;
@@ -27,7 +27,6 @@ namespace UnityEditor.Experimental.Rendering
         public GlobalLightLoopSettingsUI()
             : base(0)
         {
-
         }
 
         static void Drawer_SectionCookies(GlobalLightLoopSettingsUI s, SerializedGlobalLightLoopSettings d, Editor o)
@@ -63,7 +62,7 @@ namespace UnityEditor.Experimental.Rendering
             ++EditorGUI.indentLevel;
             EditorGUILayout.PropertyField(d.skyReflectionSize, _.GetContent("Sky Reflection Size"));
             EditorGUILayout.PropertyField(d.skyLightingOverrideLayerMask, _.GetContent("Sky Lighting Override Mask|This layer mask will define in which layers the sky system will look for sky settings volumes for lighting override"));
-            if(d.skyLightingOverrideLayerMask.intValue == -1)
+            if (d.skyLightingOverrideLayerMask.intValue == -1)
             {
                 EditorGUILayout.HelpBox("Be careful, Sky Lighting Override Mask is set to Everything. This is most likely a mistake as it serves no purpose.", MessageType.Warning);
             }

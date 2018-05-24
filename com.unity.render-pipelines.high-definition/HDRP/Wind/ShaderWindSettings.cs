@@ -5,7 +5,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [ExecuteInEditMode]
     public class ShaderWindSettings : MonoBehaviour
     {
-
         [Header("General Parameters")]
         [Tooltip("Wind Speed in Kilometers per hour")]
         public float WindSpeed = 30;

@@ -17,5 +17,3 @@ void KERNEL_NAME(uint2 dispatchThreadId : SV_DispatchThreadID)
 {
     _Result1[_RectOffset + dispatchThreadId] = LOAD_TEXTURE2D(_Source4, _RectOffset + dispatchThreadId).x;
 }
-
-

@@ -9,7 +9,7 @@ Shader "Hidden/HDRenderPipeline/CopyDepthBuffer"
     SubShader
     {
         Tags{ "RenderPipeline" = "HDRenderPipeline" }
-        
+
         Pass
         {
             Name "Copy Depth"

@@ -1,6 +1,7 @@
 using System;
 
-namespace UnityEditor.ShaderGraph {
+namespace UnityEditor.ShaderGraph
+{
     public static class ShaderGeneratorNames
     {
         private static string[] UV = {"uv0", "uv1", "uv2", "uv3"};

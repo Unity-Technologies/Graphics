@@ -1,6 +1,6 @@
 namespace UnityEngine.Experimental.Rendering
 {
-    public struct RectInt 
+    public struct RectInt
     {
         public static readonly RectInt zero = new RectInt(0, 0, 0, 0);
 

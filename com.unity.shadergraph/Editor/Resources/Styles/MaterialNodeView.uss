@@ -113,7 +113,7 @@ MaterialNodeView > #portInputContainer {
 }
 
 MaterialNodeView > #settings-container {
-	background-color : rgb(63, 63, 63);
+    background-color : rgb(63, 63, 63);
 }
 
 #settings-button {

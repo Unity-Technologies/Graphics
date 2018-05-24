@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -21,7 +21,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             m_VolumeProfile = serializedObject.FindProperty("m_Profile");
             m_SkyUniqueID = serializedObject.FindProperty("m_BakingSkyUniqueID");
-
         }
 
         void UpdateSkyIntPopupData(bool reset = false)
@@ -41,7 +40,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_SkyUniqueIDs.Add(0);
 
             VolumeProfile profile = m_VolumeProfile.objectReferenceValue as VolumeProfile;
-            if(profile != null)
+            if (profile != null)
             {
                 var skyTypesDict = SkyManager.skyTypesDict;
 
@@ -60,11 +59,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             InitializeProperties();
 
-            if(m_VolumeProfile.objectReferenceValue == null)
+            if (m_VolumeProfile.objectReferenceValue == null)
             {
                 BakingSky bakingSky = (BakingSky)target;
                 Volume volume = bakingSky.GetComponent<Volume>();
-                if(volume != null)
+                if (volume != null)
                 {
                     bakingSky.profile = volume.sharedProfile;
                 }

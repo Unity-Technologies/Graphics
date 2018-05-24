@@ -91,7 +91,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-
         public static Matrix4x4 ComputePixelCoordToWorldSpaceViewDirectionMatrix(float verticalFoV, Vector4 screenSize, Matrix4x4 worldToViewMatrix, bool renderToCubemap)
         {
             // Compose the view space version first.
@@ -116,9 +115,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             var viewSpaceRasterTransform = new Matrix4x4(new Vector4(m00, 0.0f, 0.0f, 0.0f),
-                                                         new Vector4(0.0f, m11, 0.0f, 0.0f),
-                                                         new Vector4(m20, m21, m33, 0.0f),
-                                                         new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+                    new Vector4(0.0f, m11, 0.0f, 0.0f),
+                    new Vector4(m20, m21, m33, 0.0f),
+                    new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
 
             // Remove the translation component.
             var homogeneousZero = new Vector4(0, 0, 0, 1);
@@ -277,36 +276,36 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // These method should be used to render full screen triangles sampling auto-scaling RTs.
         // This will set the proper viewport and UV scale.
-        public static void DrawFullScreen(  CommandBuffer commandBuffer, HDCamera camera, Material material,
-                                            RTHandleSystem.RTHandle colorBuffer,
-                                            MaterialPropertyBlock properties = null, int shaderPassId = 0)
+        public static void DrawFullScreen(CommandBuffer commandBuffer, HDCamera camera, Material material,
+            RTHandleSystem.RTHandle colorBuffer,
+            MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
             HDUtils.SetRenderTarget(commandBuffer, camera, colorBuffer);
             commandBuffer.SetGlobalVector(HDShaderIDs._ScreenToTargetScale, camera.doubleBufferedViewportScale);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
-        public static void DrawFullScreen(  CommandBuffer commandBuffer, HDCamera camera, Material material,
-                                            RTHandleSystem.RTHandle colorBuffer, RTHandleSystem.RTHandle depthStencilBuffer,
-                                            MaterialPropertyBlock properties = null, int shaderPassId = 0)
+        public static void DrawFullScreen(CommandBuffer commandBuffer, HDCamera camera, Material material,
+            RTHandleSystem.RTHandle colorBuffer, RTHandleSystem.RTHandle depthStencilBuffer,
+            MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
             HDUtils.SetRenderTarget(commandBuffer, camera, colorBuffer, depthStencilBuffer);
             commandBuffer.SetGlobalVector(HDShaderIDs._ScreenToTargetScale, camera.doubleBufferedViewportScale);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
-        public static void DrawFullScreen(  CommandBuffer commandBuffer, HDCamera camera, Material material,
-                                            RenderTargetIdentifier[] colorBuffers, RTHandleSystem.RTHandle depthStencilBuffer,
-                                            MaterialPropertyBlock properties = null, int shaderPassId = 0)
+        public static void DrawFullScreen(CommandBuffer commandBuffer, HDCamera camera, Material material,
+            RenderTargetIdentifier[] colorBuffers, RTHandleSystem.RTHandle depthStencilBuffer,
+            MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
             HDUtils.SetRenderTarget(commandBuffer, camera, colorBuffers, depthStencilBuffer);
             commandBuffer.SetGlobalVector(HDShaderIDs._ScreenToTargetScale, camera.doubleBufferedViewportScale);
             commandBuffer.DrawProcedural(Matrix4x4.identity, material, shaderPassId, MeshTopology.Triangles, 3, 1, properties);
         }
 
-        public static void DrawFullScreen(  CommandBuffer commandBuffer, HDCamera camera, Material material,
-                                            RenderTargetIdentifier colorBuffer,
-                                            MaterialPropertyBlock properties = null, int shaderPassId = 0)
+        public static void DrawFullScreen(CommandBuffer commandBuffer, HDCamera camera, Material material,
+            RenderTargetIdentifier colorBuffer,
+            MaterialPropertyBlock properties = null, int shaderPassId = 0)
         {
             CoreUtils.SetRenderTarget(commandBuffer, colorBuffer);
             commandBuffer.SetGlobalVector(HDShaderIDs._ScreenToTargetScale, camera.doubleBufferedViewportScale);

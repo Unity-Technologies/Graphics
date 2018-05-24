@@ -59,7 +59,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_TempRenderTexture.dimension = TextureDimension.Cube;
                 m_TempRenderTexture.useMipMap = true;
                 m_TempRenderTexture.autoGenerateMips = false;
-                m_TempRenderTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf, "ReflectionProbeTemp", mips : true);
+                m_TempRenderTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf, "ReflectionProbeTemp", mips: true);
                 m_TempRenderTexture.Create();
 
                 m_ConvolutionTargetTexture = new RenderTexture(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf);
@@ -67,7 +67,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ConvolutionTargetTexture.dimension = TextureDimension.Cube;
                 m_ConvolutionTargetTexture.useMipMap = true;
                 m_ConvolutionTargetTexture.autoGenerateMips = false;
-                m_ConvolutionTargetTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf, "ReflectionProbeConvolution", mips : true);
+                m_ConvolutionTargetTexture.name = CoreUtils.GetRenderTargetAutoName(m_ProbeSize, m_ProbeSize, 1, RenderTextureFormat.ARGBHalf, "ReflectionProbeConvolution", mips: true);
                 m_ConvolutionTargetTexture.Create();
 
                 InitializeProbeBakingStates();
@@ -105,7 +105,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             m_ConvertTextureMPB.SetTexture(s_InputTexID, input);
             m_ConvertTextureMPB.SetFloat(s_LoDID, 0.0f); // We want to convert mip 0 to whatever the size of the destination cache is.
-            for (int f = 0 ; f < 6 ; ++f)
+            for (int f = 0; f < 6; ++f)
             {
                 m_ConvertTextureMPB.SetFloat(s_FaceIndexID, (float)f);
                 CoreUtils.SetRenderTarget(cmd, target, ClearFlag.None, Color.black, 0, (CubemapFace)f);
@@ -188,7 +188,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var sliceIndex = m_TextureCache.ReserveSlice(texture, out needUpdate);
             if (sliceIndex != -1)
             {
-                if(needUpdate || m_ProbeBakingState[sliceIndex] != ProbeFilteringState.Ready)
+                if (needUpdate || m_ProbeBakingState[sliceIndex] != ProbeFilteringState.Ready)
                 {
                     using (new ProfilingSample(cmd, "Convolve Reflection Probe"))
                     {

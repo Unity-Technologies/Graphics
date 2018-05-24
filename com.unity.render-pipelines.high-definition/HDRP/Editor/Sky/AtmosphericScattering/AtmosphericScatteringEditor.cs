@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
@@ -35,7 +35,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PropertyField(m_Density);
             PropertyField(m_ColorMode);
             EditorGUI.indentLevel++;
-            if(!m_ColorMode.value.hasMultipleDifferentValues && (FogColorMode)m_ColorMode.value.intValue == FogColorMode.ConstantColor)
+            if (!m_ColorMode.value.hasMultipleDifferentValues && (FogColorMode)m_ColorMode.value.intValue == FogColorMode.ConstantColor)
             {
                 PropertyField(m_Color);
             }

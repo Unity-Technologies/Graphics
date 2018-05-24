@@ -84,13 +84,13 @@ namespace UnityEditor.ShaderGraph
                 return;
 
             visitor.AddShaderChunk(string.Format(
-                @"{0}4 {1} = IsGammaSpace() ? {0}4({2}, {3}, {4}, {5}) : {0}4(SRGBToLinear({0}3({2}, {3}, {4})), {5});"
-                , precision
-                , GetVariableNameForNode()
-                , NodeUtils.FloatToShaderValue(color.color.r)
-                , NodeUtils.FloatToShaderValue(color.color.g)
-                , NodeUtils.FloatToShaderValue(color.color.b)
-                , NodeUtils.FloatToShaderValue(color.color.a)), true);
+                    @"{0}4 {1} = IsGammaSpace() ? {0}4({2}, {3}, {4}, {5}) : {0}4(SRGBToLinear({0}3({2}, {3}, {4})), {5});"
+                    , precision
+                    , GetVariableNameForNode()
+                    , NodeUtils.FloatToShaderValue(color.color.r)
+                    , NodeUtils.FloatToShaderValue(color.color.g)
+                    , NodeUtils.FloatToShaderValue(color.color.b)
+                    , NodeUtils.FloatToShaderValue(color.color.a)), true);
         }
 
         public override string GetVariableNameForSlot(int slotId)

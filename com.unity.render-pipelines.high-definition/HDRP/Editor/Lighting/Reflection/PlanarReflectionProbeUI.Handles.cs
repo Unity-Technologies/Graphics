@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -30,51 +30,51 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     InfluenceVolumeUI.DrawHandles_EditInfluenceNormal(s.influenceVolume, d.influenceVolume, o, mat, d);
                     break;
                 case EditMirrorPosition:
+                {
+                    EditorGUI.BeginChangeCheck();
+                    var m = Handles.matrix;
+                    Handles.matrix = mat;
+                    var p = Handles.PositionHandle(d.captureMirrorPlaneLocalPosition, d.transform.rotation);
+                    if (EditorGUI.EndChangeCheck())
                     {
-                        EditorGUI.BeginChangeCheck();
-                        var m = Handles.matrix;
-                        Handles.matrix = mat;
-                        var p = Handles.PositionHandle(d.captureMirrorPlaneLocalPosition, d.transform.rotation);
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            Undo.RecordObject(d, "Translate Mirror Plane");
-                            d.captureMirrorPlaneLocalPosition = p;
-                            EditorUtility.SetDirty(d);
-                        }
-                        Handles.matrix = m;
-                        break;
+                        Undo.RecordObject(d, "Translate Mirror Plane");
+                        d.captureMirrorPlaneLocalPosition = p;
+                        EditorUtility.SetDirty(d);
                     }
+                    Handles.matrix = m;
+                    break;
+                }
                 case EditMirrorRotation:
+                {
+                    EditorGUI.BeginChangeCheck();
+                    var m = Handles.matrix;
+                    Handles.matrix = mat;
+                    var q = Quaternion.LookRotation(d.captureMirrorPlaneLocalNormal, Vector3.up);
+                    q = Handles.RotationHandle(q, d.captureMirrorPlaneLocalPosition);
+                    if (EditorGUI.EndChangeCheck())
                     {
-                        EditorGUI.BeginChangeCheck();
-                        var m = Handles.matrix;
-                        Handles.matrix = mat;
-                        var q = Quaternion.LookRotation(d.captureMirrorPlaneLocalNormal, Vector3.up);
-                        q = Handles.RotationHandle(q, d.captureMirrorPlaneLocalPosition);
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            Undo.RecordObject(d, "Rotate Mirror Plane");
-                            d.captureMirrorPlaneLocalNormal = q * Vector3.forward;
-                            EditorUtility.SetDirty(d);
-                        }
-                        Handles.matrix = m;
-                        break;
+                        Undo.RecordObject(d, "Rotate Mirror Plane");
+                        d.captureMirrorPlaneLocalNormal = q * Vector3.forward;
+                        EditorUtility.SetDirty(d);
                     }
+                    Handles.matrix = m;
+                    break;
+                }
                 case EditCenter:
+                {
+                    EditorGUI.BeginChangeCheck();
+                    var m = Handles.matrix;
+                    Handles.matrix = mat;
+                    var p = Handles.PositionHandle(d.captureLocalPosition, d.transform.rotation);
+                    if (EditorGUI.EndChangeCheck())
                     {
-                        EditorGUI.BeginChangeCheck();
-                        var m = Handles.matrix;
-                        Handles.matrix = mat;
-                        var p = Handles.PositionHandle(d.captureLocalPosition, d.transform.rotation);
-                        if (EditorGUI.EndChangeCheck())
-                        {
-                            Undo.RecordObject(d, "Translate Capture Position");
-                            d.captureLocalPosition = p;
-                            EditorUtility.SetDirty(d);
-                        }
-                        Handles.matrix = m;
-                        break;
+                        Undo.RecordObject(d, "Translate Capture Position");
+                        d.captureLocalPosition = p;
+                        EditorUtility.SetDirty(d);
                     }
+                    Handles.matrix = m;
+                    break;
+                }
             }
 
             if (d.useMirrorPlane)
@@ -83,12 +83,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Handles.matrix = mat;
                 Handles.color = k_GizmoMirrorPlaneCamera;
                 Handles.ArrowHandleCap(
-                    0, 
-                    d.captureMirrorPlaneLocalPosition, 
+                    0,
+                    d.captureMirrorPlaneLocalPosition,
                     Quaternion.LookRotation(d.captureMirrorPlaneLocalNormal),
                     HandleUtility.GetHandleSize(d.captureMirrorPlaneLocalPosition),
                     Event.current.type
-                );
+                    );
                 Handles.matrix = m;
             }
 
@@ -109,41 +109,41 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 case EditBaseShape:
                     InfluenceVolumeUI.DrawGizmos(
-                        s.influenceVolume,
-                        d.influenceVolume,
-                        mat,
-                        InfluenceVolumeUI.HandleType.Base,
-                        InfluenceVolumeUI.HandleType.All);
+                    s.influenceVolume,
+                    d.influenceVolume,
+                    mat,
+                    InfluenceVolumeUI.HandleType.Base,
+                    InfluenceVolumeUI.HandleType.All);
                     break;
                 case EditInfluenceShape:
                     InfluenceVolumeUI.DrawGizmos(
-                        s.influenceVolume,
-                        d.influenceVolume,
-                        mat,
-                        InfluenceVolumeUI.HandleType.Influence,
-                        InfluenceVolumeUI.HandleType.All);
+                    s.influenceVolume,
+                    d.influenceVolume,
+                    mat,
+                    InfluenceVolumeUI.HandleType.Influence,
+                    InfluenceVolumeUI.HandleType.All);
                     break;
                 case EditInfluenceNormalShape:
+                    InfluenceVolumeUI.DrawGizmos(
+                    s.influenceVolume,
+                    d.influenceVolume,
+                    mat,
+                    InfluenceVolumeUI.HandleType.InfluenceNormal,
+                    InfluenceVolumeUI.HandleType.All);
+                    break;
+                default:
+                {
+                    var showedHandles = s.influenceVolume.showInfluenceHandles
+                        ? InfluenceVolumeUI.HandleType.All
+                        : InfluenceVolumeUI.HandleType.Base;
                     InfluenceVolumeUI.DrawGizmos(
                         s.influenceVolume,
                         d.influenceVolume,
                         mat,
-                        InfluenceVolumeUI.HandleType.InfluenceNormal,
-                        InfluenceVolumeUI.HandleType.All);
+                        InfluenceVolumeUI.HandleType.None,
+                        showedHandles);
                     break;
-                default:
-                    {
-                        var showedHandles = s.influenceVolume.showInfluenceHandles
-                            ? InfluenceVolumeUI.HandleType.All
-                            : InfluenceVolumeUI.HandleType.Base;
-                        InfluenceVolumeUI.DrawGizmos(
-                            s.influenceVolume,
-                            d.influenceVolume,
-                            mat,
-                            InfluenceVolumeUI.HandleType.None,
-                            showedHandles);
-                        break;
-                    }
+                }
             }
 
             if (d.proxyVolumeReference != null)
@@ -167,9 +167,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var c = Gizmos.color;
             var m = Gizmos.matrix;
             Gizmos.matrix = Matrix4x4.TRS(
-                d.captureMirrorPlanePosition,
-                Quaternion.LookRotation(d.captureMirrorPlaneNormal, Vector3.up),
-                Vector3.one);
+                    d.captureMirrorPlanePosition,
+                    Quaternion.LookRotation(d.captureMirrorPlaneNormal, Vector3.up),
+                    Vector3.one);
             Gizmos.color = k_GizmoMirrorPlaneCamera;
 
             Gizmos.DrawCube(Vector3.zero, new Vector3(1, 1, 0));

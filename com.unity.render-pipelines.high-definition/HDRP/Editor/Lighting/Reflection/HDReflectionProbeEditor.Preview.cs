@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace UnityEditor.Experimental.Rendering
 {
@@ -51,7 +51,6 @@ namespace UnityEditor.Experimental.Rendering
             var p = target as ReflectionProbe;
             if (p != null && p.texture != null && targets.Length == 1)
                 m_CubemapEditor.DrawPreview(position);
-
         }
 
         bool ValidPreviewSetup()

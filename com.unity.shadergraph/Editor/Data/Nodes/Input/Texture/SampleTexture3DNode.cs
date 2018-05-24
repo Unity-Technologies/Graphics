@@ -51,11 +51,11 @@ namespace UnityEditor.ShaderGraph
 
             var id = GetSlotValue(TextureInputId, generationMode);
             var result = string.Format("{0}4 {1} = SAMPLE_TEXTURE3D({2}, {3}, {4});"
-                , precision
-                , GetVariableNameForSlot(OutputSlotId)
-                , id
-                , edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : "sampler" + id
-                , uvName);
+                    , precision
+                    , GetVariableNameForSlot(OutputSlotId)
+                    , id
+                    , edgesSampler.Any() ? GetSlotValue(SamplerInput, generationMode) : "sampler" + id
+                    , uvName);
 
             visitor.AddShaderChunk(result, true);
         }

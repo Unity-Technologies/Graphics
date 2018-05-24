@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.Experimental.Rendering;
@@ -47,7 +47,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     PropertyField(m_CascadeShadowSplits[i], CoreEditorUtils.GetContent(string.Format("Split {0}", i + 1)));
                 }
 
-                if(LightLoop.s_UseCascadeBorders)
+                if (LightLoop.s_UseCascadeBorders)
                 {
                     EditorGUILayout.Space();
 

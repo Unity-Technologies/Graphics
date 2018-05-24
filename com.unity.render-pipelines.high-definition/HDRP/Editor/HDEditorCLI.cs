@@ -42,7 +42,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
 
                         if (HDEditorUtils.ResetMaterialKeywords(mat))
-                                Console.WriteLine("[HDEditorCLI][ResetMaterialKeywords] " + path);
+                            Console.WriteLine("[HDEditorCLI][ResetMaterialKeywords] " + path);
                     }
                     break;
                 }

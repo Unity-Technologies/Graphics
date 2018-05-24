@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental.UIElements;
@@ -94,7 +94,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 node.owner = m_Graph;
                 node.propertyGuid = property1.guid;
                 node.owner = null;
-                AddEntries(node, new [] { "Properties", "Property: " + property.displayName }, nodeEntries);
+                AddEntries(node, new[] { "Properties", "Property: " + property.displayName }, nodeEntries);
             }
 
             // Sort the entries lexicographically by group then title with the requirement that items always comes before sub-groups in the same group.
@@ -103,22 +103,22 @@ namespace UnityEditor.ShaderGraph.Drawing
             // - Art/Adjustments/ColorBalance
             // - Art/Adjustments/Contrast
             nodeEntries.Sort((entry1, entry2) =>
-            {
-                for (var i = 0; i < entry1.title.Length; i++)
                 {
-                    if (i >= entry2.title.Length)
-                        return 1;
-                    var value = entry1.title[i].CompareTo(entry2.title[i]);
-                    if (value != 0)
+                    for (var i = 0; i < entry1.title.Length; i++)
                     {
-                        // Make sure that leaves go before nodes
-                        if (entry1.title.Length != entry2.title.Length && (i == entry1.title.Length - 1 || i == entry2.title.Length - 1))
-                            return entry1.title.Length < entry2.title.Length ? -1 : 1;
-                        return value;
+                        if (i >= entry2.title.Length)
+                            return 1;
+                        var value = entry1.title[i].CompareTo(entry2.title[i]);
+                        if (value != 0)
+                        {
+                            // Make sure that leaves go before nodes
+                            if (entry1.title.Length != entry2.title.Length && (i == entry1.title.Length - 1 || i == entry2.title.Length - 1))
+                                return entry1.title.Length < entry2.title.Length ? -1 : 1;
+                            return value;
+                        }
                     }
-                }
-                return 0;
-            });
+                    return 0;
+                });
 
             //* Build up the data structure needed by SearchWindow.
 
@@ -196,16 +196,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             node.GetSlots(m_Slots);
             var hasSingleSlot = m_Slots.Count(s => s.isOutputSlot != connectedSlot.isOutputSlot) == 1;
             m_Slots.RemoveAll(slot =>
-            {
-                var materialSlot = (MaterialSlot)slot;
-                return !materialSlot.IsCompatibleWith(connectedSlot);
-            });
+                {
+                    var materialSlot = (MaterialSlot)slot;
+                    return !materialSlot.IsCompatibleWith(connectedSlot);
+                });
 
             m_Slots.RemoveAll(slot =>
-            {
-                var materialSlot = (MaterialSlot)slot;
-                return !materialSlot.IsCompatibleStageWith(connectedSlot);
-            });
+                {
+                    var materialSlot = (MaterialSlot)slot;
+                    return !materialSlot.IsCompatibleStageWith(connectedSlot);
+                });
 
             if (hasSingleSlot && m_Slots.Count == 1)
             {

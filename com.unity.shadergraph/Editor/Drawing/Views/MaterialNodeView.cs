@@ -34,7 +34,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         VisualElement m_NodeSettingsView;
 
 
-
         public void Initialize(AbstractMaterialNode inNode, PreviewManager previewManager, IEdgeConnectorListener connectorListener)
         {
             AddStyleSheetPath("Styles/MaterialNodeView");
@@ -61,8 +60,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
                 // Instantiate control views from node
                 foreach (var propertyInfo in node.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic))
-                foreach (IControlAttribute attribute in propertyInfo.GetCustomAttributes(typeof(IControlAttribute), false))
-                    m_ControlItems.Add(attribute.InstantiateControl(node, propertyInfo));
+                    foreach (IControlAttribute attribute in propertyInfo.GetCustomAttributes(typeof(IControlAttribute), false))
+                        m_ControlItems.Add(attribute.InstantiateControl(node, propertyInfo));
             }
             if (m_ControlItems.childCount > 0)
                 contents.Add(controlsContainer);
@@ -87,10 +86,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var collapsePreviewButton = new VisualElement { name = "collapse" };
                     collapsePreviewButton.Add(new VisualElement { name = "icon" });
                     collapsePreviewButton.AddManipulator(new Clickable(() =>
-                    {
-                        node.owner.owner.RegisterCompleteObjectUndo("Collapse Preview");
-                        UpdatePreviewExpandedState(false);
-                    }));
+                        {
+                            node.owner.owner.RegisterCompleteObjectUndo("Collapse Preview");
+                            UpdatePreviewExpandedState(false);
+                        }));
                     m_PreviewImage.Add(collapsePreviewButton);
                 }
                 m_PreviewContainer.Add(m_PreviewImage);
@@ -111,10 +110,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var expandPreviewButton = new VisualElement { name = "expand" };
                     expandPreviewButton.Add(new VisualElement { name = "icon" });
                     expandPreviewButton.AddManipulator(new Clickable(() =>
-                    {
-                        node.owner.owner.RegisterCompleteObjectUndo("Expand Preview");
-                        UpdatePreviewExpandedState(true);
-                    }));
+                        {
+                            node.owner.owner.RegisterCompleteObjectUndo("Expand Preview");
+                            UpdatePreviewExpandedState(true);
+                        }));
                     m_PreviewFiller.Add(expandPreviewButton);
                 }
                 contents.Add(m_PreviewFiller);
@@ -178,12 +177,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_Settings = settings.CreateSettingsElement();
 
                 m_SettingsButton.AddManipulator(new Clickable(() =>
-                {
-                    UpdateSettingsExpandedState();
-                }));
+                    {
+                        UpdateSettingsExpandedState();
+                    }));
 
                 // Remove this after updated to the correct API call has landed in trunk. ------------
-                m_ButtonContainer = new VisualElement{ name = "button-container" };
+                m_ButtonContainer = new VisualElement { name = "button-container" };
                 m_ButtonContainer.style.flexDirection = StyleValue<FlexDirection>.Create(FlexDirection.Row);
                 m_ButtonContainer.Add(m_SettingsButton);
                 m_ButtonContainer.Add(m_CollapseButton);
@@ -258,16 +257,16 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public string SanitizeName(string name)
         {
-            return new string(name.Where( c => !Char.IsWhiteSpace(c) ).ToArray());
+            return new string(name.Where(c => !Char.IsWhiteSpace(c)).ToArray());
         }
 
         public void ShowGeneratedCode()
         {
             var graph = (AbstractMaterialGraph)node.owner;
 
-            string path = String.Format("Temp/GeneratedFromGraph-{0}-{1}-{2}.shader", SanitizeName(graph.name), SanitizeName(node.name), node.guid );
+            string path = String.Format("Temp/GeneratedFromGraph-{0}-{1}-{2}.shader", SanitizeName(graph.name), SanitizeName(node.name), node.guid);
 
-            if( GraphUtil.WriteToFile(path, ConvertToShader()) )
+            if (GraphUtil.WriteToFile(path, ConvertToShader()))
                 GraphUtil.OpenFile(path);
         }
 

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
@@ -80,7 +80,7 @@ namespace UnityEngine.Experimental.Rendering
             {
                 // If a RT was first created for MSAA then the regular one might be null, in this case we create it.
                 // That's why we never test the MSAA version: It should always be there if RT was declared correctly.
-                if(category == RTCategory.Regular && m_RTs[(int)RTCategory.Regular] == null)
+                if (category == RTCategory.Regular && m_RTs[(int)RTCategory.Regular] == null)
                 {
                     var refRT = m_RTs[(int)RTCategory.MSAA];
                     Debug.Assert(refRT != null);
@@ -104,7 +104,7 @@ namespace UnityEngine.Experimental.Rendering
                         useDynamicScale = refRT.useDynamicScale,
                         vrUsage = refRT.vrUsage,
                         memorylessMode = refRT.memorylessMode,
-                        name = CoreUtils.GetRenderTargetAutoName(refRT.width, refRT.height, refRT.volumeDepth, refRT.format, m_Name, mips : refRT.useMipMap)
+                        name = CoreUtils.GetRenderTargetAutoName(refRT.width, refRT.height, refRT.volumeDepth, refRT.format, m_Name, mips: refRT.useMipMap)
                     };
                     newRT.Create();
 
@@ -135,7 +135,7 @@ namespace UnityEngine.Experimental.Rendering
                     return new Vector2Int(
                         x: Mathf.RoundToInt(scaleFactor.x * refSize.x),
                         y: Mathf.RoundToInt(scaleFactor.y * refSize.y)
-                    );
+                        );
                 }
             }
         }

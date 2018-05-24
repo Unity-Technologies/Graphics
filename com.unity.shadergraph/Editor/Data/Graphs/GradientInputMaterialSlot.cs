@@ -58,7 +58,7 @@ namespace UnityEditor.ShaderGraph
             if (matOwner == null)
                 throw new Exception(string.Format("Slot {0} either has no owner, or the owner is not a {1}", this, typeof(AbstractMaterialNode)));
 
-            if(generationMode == GenerationMode.Preview)
+            if (generationMode == GenerationMode.Preview)
             {
                 properties.AddShaderProperty(new Vector1ShaderProperty()
                 {
@@ -81,7 +81,7 @@ namespace UnityEditor.ShaderGraph
                     generatePropertyBlock = false
                 });
 
-                for(int i = 0; i < 8; i++)
+                for (int i = 0; i < 8; i++)
                 {
                     properties.AddShaderProperty(new Vector4ShaderProperty()
                     {
@@ -91,7 +91,7 @@ namespace UnityEditor.ShaderGraph
                     });
                 }
 
-                for(int i = 0; i < 8; i++)
+                for (int i = 0; i < 8; i++)
                 {
                     properties.AddShaderProperty(new Vector4ShaderProperty()
                     {
@@ -107,7 +107,7 @@ namespace UnityEditor.ShaderGraph
             prop.generatePropertyBlock = false;
             prop.value = value;
 
-            if(generationMode == GenerationMode.Preview)
+            if (generationMode == GenerationMode.Preview)
                 prop.OverrideMembers(matOwner.GetVariableNameForSlot(id));
 
             properties.AddShaderProperty(prop);
@@ -133,7 +133,7 @@ namespace UnityEditor.ShaderGraph
                 floatValue = value.alphaKeys.Length
             });
 
-            for(int i = 0; i < 8; i++)
+            for (int i = 0; i < 8; i++)
             {
                 properties.Add(new PreviewProperty(PropertyType.Vector4)
                 {
@@ -142,7 +142,7 @@ namespace UnityEditor.ShaderGraph
                 });
             }
 
-            for(int i = 0; i < 8; i++)
+            for (int i = 0; i < 8; i++)
             {
                 properties.Add(new PreviewProperty(PropertyType.Vector2)
                 {

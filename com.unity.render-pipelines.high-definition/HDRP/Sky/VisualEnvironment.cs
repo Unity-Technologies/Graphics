@@ -31,28 +31,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             switch (fogType.value)
             {
                 case FogType.None:
-                    {
-                        AtmosphericScattering.PushNeutralShaderParameters(hdCamera, cmd);
-                        break;
-                    }
+                {
+                    AtmosphericScattering.PushNeutralShaderParameters(hdCamera, cmd);
+                    break;
+                }
                 case FogType.Linear:
-                    {
-                        var fogSettings = VolumeManager.instance.stack.GetComponent<LinearFog>();
-                        fogSettings.PushShaderParameters(hdCamera, cmd);
-                        break;
-                    }
+                {
+                    var fogSettings = VolumeManager.instance.stack.GetComponent<LinearFog>();
+                    fogSettings.PushShaderParameters(hdCamera, cmd);
+                    break;
+                }
                 case FogType.Exponential:
-                    {
-                        var fogSettings = VolumeManager.instance.stack.GetComponent<ExponentialFog>();
-                        fogSettings.PushShaderParameters(hdCamera, cmd);
-                        break;
-                    }
+                {
+                    var fogSettings = VolumeManager.instance.stack.GetComponent<ExponentialFog>();
+                    fogSettings.PushShaderParameters(hdCamera, cmd);
+                    break;
+                }
                 case FogType.Volumetric:
-                    {
-                        var fogSettings = VolumeManager.instance.stack.GetComponent<VolumetricFog>();
-                        fogSettings.PushShaderParameters(hdCamera, cmd);
-                        break;
-                    }
+                {
+                    var fogSettings = VolumeManager.instance.stack.GetComponent<VolumetricFog>();
+                    fogSettings.PushShaderParameters(hdCamera, cmd);
+                    break;
+                }
             }
         }
     }

@@ -42,13 +42,13 @@ namespace UnityEngine.Experimental.Rendering
 
             // Unproject 8 frustum points.
             frustum.corners[0] = invViewProjMatrix.MultiplyPoint(new Vector3(-1, -1, 1));
-            frustum.corners[1] = invViewProjMatrix.MultiplyPoint(new Vector3( 1, -1, 1));
+            frustum.corners[1] = invViewProjMatrix.MultiplyPoint(new Vector3(1, -1, 1));
             frustum.corners[2] = invViewProjMatrix.MultiplyPoint(new Vector3(-1,  1, 1));
-            frustum.corners[3] = invViewProjMatrix.MultiplyPoint(new Vector3( 1,  1, 1));
+            frustum.corners[3] = invViewProjMatrix.MultiplyPoint(new Vector3(1,  1, 1));
             frustum.corners[4] = invViewProjMatrix.MultiplyPoint(new Vector3(-1, -1, nd));
-            frustum.corners[5] = invViewProjMatrix.MultiplyPoint(new Vector3( 1, -1, nd));
+            frustum.corners[5] = invViewProjMatrix.MultiplyPoint(new Vector3(1, -1, nd));
             frustum.corners[6] = invViewProjMatrix.MultiplyPoint(new Vector3(-1,  1, nd));
-            frustum.corners[7] = invViewProjMatrix.MultiplyPoint(new Vector3( 1,  1, nd));
+            frustum.corners[7] = invViewProjMatrix.MultiplyPoint(new Vector3(1,  1, nd));
 
             return frustum;
         }
@@ -105,8 +105,8 @@ namespace UnityEngine.Experimental.Rendering
 
                 // Max projection of the half-diagonal onto the normal (always positive).
                 float maxHalfDiagProj = obb.extentX * Mathf.Abs(Vector3.Dot(n, obb.right))
-                                      + obb.extentY * Mathf.Abs(Vector3.Dot(n, obb.up)) 
-                                      + obb.extentZ * Mathf.Abs(Vector3.Dot(n, obb.forward));
+                    + obb.extentY * Mathf.Abs(Vector3.Dot(n, obb.up))
+                    + obb.extentZ * Mathf.Abs(Vector3.Dot(n, obb.forward));
 
                 // Positive distance -> center in front of the plane.
                 // Negative distance -> center behind the plane (outside).
@@ -145,7 +145,7 @@ namespace UnityEngine.Experimental.Rendering
                 for (int j = 0; j < numCorners; j++)
                 {
                     float proj = Vector3.Dot(plane.normal, frustum.corners[j] - obb.center);
-                    outsidePos = outsidePos && ( proj > plane.distance);
+                    outsidePos = outsidePos && (proj > plane.distance);
                     outsideNeg = outsideNeg && (-proj > plane.distance);
                 }
 
@@ -189,10 +189,10 @@ namespace UnityEngine.Experimental.Rendering
             var inversion = sourceProjection.inverse;
 
             var cps = new Vector4(
-                Mathf.Sign(clipPlane.x), 
-                Mathf.Sign(clipPlane.y), 
-                1.0f, 
-                1.0f);
+                    Mathf.Sign(clipPlane.x),
+                    Mathf.Sign(clipPlane.y),
+                    1.0f,
+                    1.0f);
             var q = inversion * cps;
             var c = clipPlane * (2.0f / Vector4.Dot(clipPlane, q));
 

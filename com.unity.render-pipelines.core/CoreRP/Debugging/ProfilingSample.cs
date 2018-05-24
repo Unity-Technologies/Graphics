@@ -12,7 +12,7 @@ namespace UnityEngine.Experimental.Rendering
         bool m_Disposed;
         CustomSampler m_Sampler;
 
-        public ProfilingSample(CommandBuffer cmd, string name,CustomSampler sampler = null)
+        public ProfilingSample(CommandBuffer cmd, string name, CustomSampler sampler = null)
         {
             m_Cmd = cmd;
             m_Name = name;
@@ -24,13 +24,13 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         // Shortcut to string.Format() using only one argument (reduces Gen0 GC pressure)
-        public ProfilingSample(CommandBuffer cmd, string format, object arg) : this(cmd,string.Format(format, arg))
+        public ProfilingSample(CommandBuffer cmd, string format, object arg) : this(cmd, string.Format(format, arg))
         {
         }
 
         // Shortcut to string.Format() with variable amount of arguments - for performance critical
         // code you should pre-build & cache the marker name instead of using this
-        public ProfilingSample(CommandBuffer cmd, string format, params object[] args) : this(cmd,string.Format(format, args))
+        public ProfilingSample(CommandBuffer cmd, string format, params object[] args) : this(cmd, string.Format(format, args))
         {
         }
 

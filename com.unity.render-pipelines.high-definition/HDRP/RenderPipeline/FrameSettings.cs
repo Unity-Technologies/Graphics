@@ -233,7 +233,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             List<DebugUI.Widget> widgets = new List<DebugUI.Widget>();
             widgets.AddRange(
-            new DebugUI.Widget[]
+                new DebugUI.Widget[]
             {
                 new DebugUI.Container
                 {

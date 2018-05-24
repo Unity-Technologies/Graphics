@@ -1,4 +1,4 @@
-﻿using UnityEngine.Serialization;
+using UnityEngine.Serialization;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEngine.Experimental.Rendering

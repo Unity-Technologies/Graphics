@@ -1,4 +1,4 @@
-﻿#ifndef UNITY_DECALPROPERTIES_INCLUDED
+#ifndef UNITY_DECALPROPERTIES_INCLUDED
 #define UNITY_DECALPROPERTIES_INCLUDED
 
 TEXTURE2D(_BaseColorMap);
@@ -10,4 +10,4 @@ SAMPLER(sampler_MaskMap);
 
 float _DecalBlend;
 
-#endif 
+#endif

@@ -37,7 +37,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public VolumeTextureAtlas(TextureFormat atlasFormat, int atlasSize )
+        public VolumeTextureAtlas(TextureFormat atlasFormat, int atlasSize)
         {
             requiredTextureSize = atlasSize;
 
@@ -57,13 +57,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void AddTexture(Texture3D volumeTexture)
         {
             //TODO:  we should really just convert the texture to the right size and format...HOWEVER, we dont' support 3D textures at the moment in the ConvertTexture call
-            if (volumeTexture.width != requiredTextureSize || volumeTexture.height != requiredTextureSize || volumeTexture.depth != requiredTextureSize) 
+            if (volumeTexture.width != requiredTextureSize || volumeTexture.height != requiredTextureSize || volumeTexture.depth != requiredTextureSize)
             {
                 Debug.LogError(string.Format("VolumeTextureAtlas: Dimensions of texture {0} does not match expected dimensions of {1}", volumeTexture, requiredTextureSize));
                 return;
             }
 
-            if (volumeTexture.format != requiredTextureFormat) 
+            if (volumeTexture.format != requiredTextureFormat)
             {
                 Debug.LogError(string.Format("VolumeTextureAtlas: Texture format of texture {0} : {1} does not match expected format of {2}", volumeTexture, volumeTexture.format, requiredTextureSize));
                 return;
@@ -99,7 +99,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     foreach (Texture3D tex in textures)
                     {
-                        //TODO: Need to have copy texture and convert texture working for Tex3D in order for this to be 
+                        //TODO: Need to have copy texture and convert texture working for Tex3D in order for this to be
                         //more robust
                         Color[] texColor = tex.GetPixels();
                         Array.Resize(ref colorArray, texColor.Length + colorArray.Length);

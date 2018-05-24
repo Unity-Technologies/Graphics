@@ -1,5 +1,5 @@
 #ifdef UNITY_SHADER_VARIABLES_MATRIX_DEFS_HDCAMERA_INCLUDED
-	#error Mixing HDCamera and legacy Unity matrix definitions
+    #error Mixing HDCamera and legacy Unity matrix definitions
 #endif
 
 #ifndef UNITY_SHADER_VARIABLES_MATRIX_DEFS_LEGACY_UNITY_INCLUDED

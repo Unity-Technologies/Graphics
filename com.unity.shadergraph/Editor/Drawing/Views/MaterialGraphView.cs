@@ -364,7 +364,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var inputslot = node.FindInputSlot<Texture2DInputMaterialSlot>(SampleTexture2DNode.TextureInputId);
                 if (inputslot != null)
                     inputslot.texture = texture2D;
-
             }
 
             var textureArray = obj as Texture2DArray;
@@ -514,15 +513,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                     // Add new elements to selection
                     graphView.ClearSelection();
                     graphView.graphElements.ForEach(element =>
-                    {
-                        var edge = element as Edge;
-                        if (edge != null && remappedEdges.Contains(edge.userData as IEdge))
-                            graphView.AddToSelection(edge);
+                        {
+                            var edge = element as Edge;
+                            if (edge != null && remappedEdges.Contains(edge.userData as IEdge))
+                                graphView.AddToSelection(edge);
 
-                        var nodeView = element as MaterialNodeView;
-                        if (nodeView != null && remappedNodes.Contains(nodeView.node))
-                            graphView.AddToSelection(nodeView);
-                    });
+                            var nodeView = element as MaterialNodeView;
+                            if (nodeView != null && remappedNodes.Contains(nodeView.node))
+                                graphView.AddToSelection(nodeView);
+                        });
                 }
             }
         }

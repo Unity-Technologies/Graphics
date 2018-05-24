@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 
@@ -12,7 +12,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         BufferPyramidProcessor m_Processor;
 
         public BufferPyramid(BufferPyramidProcessor processor)
-            {
+        {
             m_Processor = processor;
         }
 
@@ -81,9 +81,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandleSystem.RTHandle targetDepthTexture)
         {
             int lodCount = Mathf.Min(
-                GetPyramidLodCount(targetDepthTexture.referenceSize),
-                GetPyramidLodCount(new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight))
-            );
+                    GetPyramidLodCount(targetDepthTexture.referenceSize),
+                    GetPyramidLodCount(new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight))
+                    );
             if (lodCount == 0)
             {
                 Debug.LogWarning("The target for the pyramid buffer has an invalid size. Skipping DepthPyramid calculation.");
@@ -111,15 +111,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void RenderColorPyramid(
             HDCamera hdCamera,
-            CommandBuffer cmd, 
+            CommandBuffer cmd,
             ScriptableRenderContext renderContext,
             RTHandleSystem.RTHandle sourceColorTexture,
             RTHandleSystem.RTHandle targetColorTexture)
         {
             int lodCount = Mathf.Min(
-                GetPyramidLodCount(targetColorTexture.referenceSize),
-                GetPyramidLodCount(new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight))
-            );
+                    GetPyramidLodCount(targetColorTexture.referenceSize),
+                    GetPyramidLodCount(new Vector2Int(hdCamera.actualWidth, hdCamera.actualHeight))
+                    );
             if (lodCount == 0)
             {
                 Debug.LogWarning("The target for the pyramid buffer has an invalid size. Skipping ColorPyramid calculation.");
@@ -148,29 +148,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public RTHandleSystem.RTHandle AllocColorRT(string id, int frameIndex, RTHandleSystem rtHandleSystem)
         {
             return rtHandleSystem.Alloc(
-                size => CalculatePyramidSize(size), 
-                filterMode: FilterMode.Trilinear, 
-                colorFormat: RenderTextureFormat.ARGBHalf, 
-                sRGB: false, 
-                useMipMap: true, 
-                autoGenerateMips: false, 
-                enableRandomWrite: true, 
+                size => CalculatePyramidSize(size),
+                filterMode: FilterMode.Trilinear,
+                colorFormat: RenderTextureFormat.ARGBHalf,
+                sRGB: false,
+                useMipMap: true,
+                autoGenerateMips: false,
+                enableRandomWrite: true,
                 name: string.Format("ColorPyramid-{0}-{1}", id, frameIndex)
-            );
+                );
         }
 
         public RTHandleSystem.RTHandle AllocDepthRT(string id, int frameIndex, RTHandleSystem rtHandleSystem)
         {
             return rtHandleSystem.Alloc(
-                size => CalculatePyramidSize(size), 
-                filterMode: FilterMode.Trilinear, 
-                colorFormat: RenderTextureFormat.RGFloat, 
-                sRGB: false, 
-                useMipMap: true, 
-                autoGenerateMips: false, 
+                size => CalculatePyramidSize(size),
+                filterMode: FilterMode.Trilinear,
+                colorFormat: RenderTextureFormat.RGFloat,
+                sRGB: false,
+                useMipMap: true,
+                autoGenerateMips: false,
                 enableRandomWrite: true, // Need randomReadWrite because we downsample the first mip with a compute shader.
                 name: string.Format("DepthPyramid-{0}-{1}", id, frameIndex)
-            );
+                );
         }
     }
 }

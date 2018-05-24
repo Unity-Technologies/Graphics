@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
@@ -81,8 +81,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             reflectionProxyVolume = objs.Count > 0
-                    ? new SerializedReflectionProxyVolumeComponent(new SerializedObject(objs.ToArray()))
-                    : null;
+                ? new SerializedReflectionProxyVolumeComponent(new SerializedObject(objs.ToArray()))
+                : null;
         }
 
         public void Update()

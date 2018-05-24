@@ -183,7 +183,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     new Property(this, "_CoatIor", "Coat IOR", "Index of refraction", false),
                     new Property(this, "_CoatThickness", "Coat Thickness", "Coat thickness", false),
                     new Property(this, "_CoatExtinction", "Coat Absorption", "Coat absorption tint (the thicker the coat, the more that color is removed)", false),
-                }, _ =>EnableCoat.BoolValue == true),
+                }, _ => EnableCoat.BoolValue == true),
 
                 new GroupProperty(this, "_Iridescence", "Iridescence", new BaseProperty[]
                 {
@@ -195,7 +195,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     new DiffusionProfileProperty(this, k_DiffusionProfile, "Diffusion Profile", "A profile determines the shape of the SSS/transmission filter.", false),
                     new TextureProperty(this, k_SubsurfaceMaskMap, k_SubsurfaceMask, "Subsurface mask map (R)", "Determines the strength of the subsurface scattering effect.", false, false),
-                }, _ => EnableSSS.BoolValue == true ),
+                }, _ => EnableSSS.BoolValue == true),
 
                 new GroupProperty(this, "_Transmission", "Transmission", new BaseProperty[]
                 {
@@ -227,7 +227,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     new Property(this, "_NormalCurvatureToRoughnessScale", "Normal Curvature To Roughness Scale", "Normal Curvature To Roughness Scale", false, _ => EnableNormalCurvatureToRoughness.BoolValue == true),
                     new Property(this, "_NormalCurvatureToRoughnessBias", "Normal Curvature To Roughness Bias", "Normal Curvature To Roughness Bias", false, _ => EnableNormalCurvatureToRoughness.BoolValue == true),
                     new Property(this, "_NormalCurvatureToRoughnessExponent", "Normal Curvature To Roughness Exponent", "Normal Curvature To Roughness Exponent", false, _ => EnableNormalCurvatureToRoughness.BoolValue == true),
-
                 }),
             });
         }
@@ -305,18 +304,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 int channel = (int)material.GetFloat(channelPropertyName);
                 switch (channel)
                 {
-                case 0:
-                    material.SetVector(channelMaskPropertyName, new Vector4(1.0f, 0.0f, 0.0f, 0.0f));
-                    break;
-                case 1:
-                    material.SetVector(channelMaskPropertyName, new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
-                    break;
-                case 2:
-                    material.SetVector(channelMaskPropertyName, new Vector4(0.0f, 0.0f, 1.0f, 0.0f));
-                    break;
-                case 3:
-                    material.SetVector(channelMaskPropertyName, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-                    break;
+                    case 0:
+                        material.SetVector(channelMaskPropertyName, new Vector4(1.0f, 0.0f, 0.0f, 0.0f));
+                        break;
+                    case 1:
+                        material.SetVector(channelMaskPropertyName, new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
+                        break;
+                    case 2:
+                        material.SetVector(channelMaskPropertyName, new Vector4(0.0f, 0.0f, 1.0f, 0.0f));
+                        break;
+                    case 3:
+                        material.SetVector(channelMaskPropertyName, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+                        break;
                 }
             }
             else
@@ -339,7 +338,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (doubleSidedEnable)
             {
                 BaseLitGUI.DoubleSidedNormalMode doubleSidedNormalMode =
-                    (BaseLitGUI.DoubleSidedNormalMode) material.GetFloat(k_DoubleSidedNormalMode);
+                    (BaseLitGUI.DoubleSidedNormalMode)material.GetFloat(k_DoubleSidedNormalMode);
                 switch (doubleSidedNormalMode)
                 {
                     case BaseLitGUI.DoubleSidedNormalMode.Mirror: // Mirror mode (in tangent space)
@@ -375,19 +374,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Check if we are using specific UVs.
             TextureProperty.UVMapping[] uvIndices = new[]
             {
-                (TextureProperty.UVMapping) material.GetFloat(k_BaseColorMapUV),
-                (TextureProperty.UVMapping) material.GetFloat(k_MetallicMapUV),
-                (TextureProperty.UVMapping) material.GetFloat(k_NormalMapUV),
-                (TextureProperty.UVMapping) material.GetFloat(k_SmoothnessAMapUV),
-                (TextureProperty.UVMapping) material.GetFloat(k_SmoothnessBMapUV),
-                (TextureProperty.UVMapping) material.GetFloat(k_AmbientOcclusionMapUV),
-                (TextureProperty.UVMapping) material.GetFloat(k_EmissiveColorMapUV),
-                (TextureProperty.UVMapping) material.GetFloat(k_SubsurfaceMaskMapUV),
-                (TextureProperty.UVMapping) material.GetFloat(k_ThicknessMapUV),
-                (TextureProperty.UVMapping) material.GetFloat(k_AnisotropyMapUV),
-                (TextureProperty.UVMapping) material.GetFloat(k_IridescenceThicknessMapUV),
-                (TextureProperty.UVMapping) material.GetFloat(k_CoatSmoothnessMapUV),
-                (TextureProperty.UVMapping) material.GetFloat(k_CoatNormalMapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_BaseColorMapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_MetallicMapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_NormalMapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_SmoothnessAMapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_SmoothnessBMapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_AmbientOcclusionMapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_EmissiveColorMapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_SubsurfaceMaskMapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_ThicknessMapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_AnisotropyMapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_IridescenceThicknessMapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_CoatSmoothnessMapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_CoatNormalMapUV),
             };
 
             // Set keyword for mapping

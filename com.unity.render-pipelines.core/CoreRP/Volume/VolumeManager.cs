@@ -15,7 +15,7 @@ namespace UnityEngine.Experimental.Rendering
         public static VolumeManager instance { get { return s_Instance; } }
 
         // Explicit static constructor to tell the C# compiler not to mark type as beforefieldinit
-        static VolumeManager() { }
+        static VolumeManager() {}
         //<<<
 
         // Internal stack
@@ -72,7 +72,7 @@ namespace UnityEngine.Experimental.Rendering
 
             // Grab all the component types we can find
             baseComponentTypes = CoreUtils.GetAllAssemblyTypes()
-                            .Where(t => t.IsSubclassOf(typeof(VolumeComponent)) && !t.IsAbstract);
+                .Where(t => t.IsSubclassOf(typeof(VolumeComponent)) && !t.IsAbstract);
 
             // Keep an instance of each type to be used in a virtual lowest priority global volume
             // so that we have a default state to fallback to when exiting volumes

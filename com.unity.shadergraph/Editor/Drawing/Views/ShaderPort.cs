@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
@@ -24,9 +24,9 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var port = new ShaderPort(Orientation.Horizontal, slot.isInputSlot ? Direction.Input : Direction.Output,
 #if !UNITY_2018_1
-                slot.isInputSlot ? Capacity.Single : Capacity.Multi,
+                    slot.isInputSlot ? Capacity.Single : Capacity.Multi,
 #endif
-                null)
+                    null)
             {
                 m_EdgeConnector = new EdgeConnector<Edge>(connectorListener),
             };

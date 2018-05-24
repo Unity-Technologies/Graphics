@@ -18,20 +18,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         private int numXTiles
         {
-            get { return sourceTexture != null ? sourceTexture.width / tileSize : 0;}
+            get { return sourceTexture != null ? sourceTexture.width / tileSize : 0; }
             set {}
         }
 
         private int numYTiles
         {
-            get{ return sourceTexture != null ? sourceTexture.height / tileSize : 0; }
+            get { return sourceTexture != null ? sourceTexture.height / tileSize : 0; }
             set {}
         }
 
-        private bool validData 
+        private bool validData
         {
             get { return numXTiles * numYTiles >= tileSize; }
-            set{}
+            set {}
         }
 
         [MenuItem("Window/Render Pipeline/Create 3D Texture")]
@@ -45,17 +45,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         private void OnGUI()
         {
             EditorGUILayout.BeginVertical(EditorStyles.miniButton);
-            GUILayout.Button(new GUIContent(" Create Texture3D Asset", ""), EditorStyles.centeredGreyMiniLabel); 
+            GUILayout.Button(new GUIContent(" Create Texture3D Asset", ""), EditorStyles.centeredGreyMiniLabel);
 
             EditorGUILayout.Separator();
 
             EditorGUILayout.LabelField("Source Texture");
             sourceTexture = (Texture2D)EditorGUILayout.ObjectField(sourceTexture, typeof(Texture2D), false);
-            EditorGUILayout.HelpBox(String.Format("Volumetric system requires textures of size {0}x{0}x{0} so please ensure the source texture is at least this many pixels.", tileSize), MessageType.Info); 
+            EditorGUILayout.HelpBox(String.Format("Volumetric system requires textures of size {0}x{0}x{0} so please ensure the source texture is at least this many pixels.", tileSize), MessageType.Info);
 
             EditorGUILayout.Separator();
 
-            if(sourceTexture != null)
+            if (sourceTexture != null)
             {
                 sourcePath = AssetDatabase.GetAssetPath(sourceTexture);
                 if (validData)
@@ -71,7 +71,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
-            EditorGUILayout.EndVertical(); 
+            EditorGUILayout.EndVertical();
         }
 
         private void Generate3DTexture()
@@ -86,18 +86,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             texture.anisoLevel = 0;
 
             Color[] colorArray = new Color[0];
-          
-            for(int i = numYTiles - 1; i >= 0; --i)
+
+            for (int i = numYTiles - 1; i >= 0; --i)
             {
-                for(int j = 0; j < numXTiles; ++j)
+                for (int j = 0; j < numXTiles; ++j)
                 {
-                    Color[] texColor = sourceTexture.GetPixels(j*tileSize, i*tileSize, tileSize, tileSize);
+                    Color[] texColor = sourceTexture.GetPixels(j * tileSize, i * tileSize, tileSize, tileSize);
 
                     Array.Resize(ref colorArray, texColor.Length + colorArray.Length);
                     Array.Copy(texColor, 0, colorArray, colorArray.Length - texColor.Length, texColor.Length);
                 }
             }
-                    
+
 
             texture.SetPixels(colorArray);
             texture.Apply();

@@ -1,4 +1,4 @@
-﻿// Note: This shader is supposed to be removed at some point when Graphics.ConvertTexture can take a RenderTexture as a destination (it's only used by sky manager for now).
+// Note: This shader is supposed to be removed at some point when Graphics.ConvertTexture can take a RenderTexture as a destination (it's only used by sky manager for now).
 Shader "Hidden/BlitCubemap" {
     SubShader {
         // Cubemap blit.  Takes a face index.

@@ -18,29 +18,29 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static InfluenceVolumeUI()
         {
             SectionShape = CED.Group(
-                CED.Action(Drawer_FieldShapeType),
-                CED.FadeGroup(
-                    (s, d, o, i) => s.IsSectionExpanded_Shape((ShapeType)i),
-                    FadeOption.Indent,
-                    SectionShapeBox,
-                    SectionShapeSphere
-                )
-            );
-
-            SectionFoldoutShape = CED.Group(
-                CED.FoldoutGroup(
-                    "Influence Volume",
-                    (s, d, o) => s.isSectionExpandedShape,
-                    FoldoutOption.Indent,
                     CED.Action(Drawer_FieldShapeType),
                     CED.FadeGroup(
                         (s, d, o, i) => s.IsSectionExpanded_Shape((ShapeType)i),
-                        FadeOption.None,
+                        FadeOption.Indent,
                         SectionShapeBox,
                         SectionShapeSphere
-                    )
-                )
-            );
+                        )
+                    );
+
+            SectionFoldoutShape = CED.Group(
+                    CED.FoldoutGroup(
+                        "Influence Volume",
+                        (s, d, o) => s.isSectionExpandedShape,
+                        FoldoutOption.Indent,
+                        CED.Action(Drawer_FieldShapeType),
+                        CED.FadeGroup(
+                            (s, d, o, i) => s.IsSectionExpanded_Shape((ShapeType)i),
+                            FadeOption.None,
+                            SectionShapeBox,
+                            SectionShapeSphere
+                            )
+                        )
+                    );
         }
 
         static void Drawer_FieldShapeType(InfluenceVolumeUI s, SerializedInfluenceVolume d, Editor o)
@@ -59,8 +59,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.Space();
 
             _.DrawVector6Slider(
-                _.GetContent("Influence Fade"), 
-                d.boxInfluencePositiveFade, d.boxInfluenceNegativeFade, 
+                _.GetContent("Influence Fade"),
+                d.boxInfluencePositiveFade, d.boxInfluenceNegativeFade,
                 minFadeDistance, maxFadeDistance);
 
             EditorGUILayout.Space();

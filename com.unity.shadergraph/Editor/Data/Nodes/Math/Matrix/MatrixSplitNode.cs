@@ -75,7 +75,7 @@ namespace UnityEditor.ShaderGraph
             var inputSlot = FindInputSlot<MaterialSlot>(InputSlotId);
             var numInputRows = 0;
             bool useIndentity = false;
-            
+
             if (inputSlot != null)
             {
                 numInputRows = SlotValueHelper.GetMatrixDimension(inputSlot.concreteValueType);
@@ -94,12 +94,12 @@ namespace UnityEditor.ShaderGraph
             for (var r = 0; r < 4; r++)
             {
                 string outputValue;
-                if(r >= numInputRows)
+                if (r >= numInputRows)
                 {
                     outputValue = string.Format("{0}{1}(", precision, concreteRowCount);
-                    for(int c = 0; c < concreteRowCount; c++)
+                    for (int c = 0; c < concreteRowCount; c++)
                     {
-                        if(c!= 0)
+                        if (c != 0)
                             outputValue += ", ";
                         outputValue += Matrix4x4.identity.GetRow(r)[c];
                     }
@@ -107,13 +107,13 @@ namespace UnityEditor.ShaderGraph
                 }
                 else
                 {
-                    switch(m_Axis)
+                    switch (m_Axis)
                     {
                         case MatrixAxis.Column:
                             outputValue = string.Format("{0}{1}(", precision, numInputRows);
-                            for(int c = 0; c < numInputRows; c++)
+                            for (int c = 0; c < numInputRows; c++)
                             {
-                                if(c!= 0)
+                                if (c != 0)
                                     outputValue += ", ";
                                 outputValue += string.Format("{0}[{1}].{2}", inputValue, c, s_ComponentList[r]);
                             }

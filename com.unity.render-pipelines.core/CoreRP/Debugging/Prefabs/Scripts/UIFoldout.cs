@@ -1,4 +1,4 @@
-﻿using UnityEngine.UI;
+using UnityEngine.UI;
 
 namespace UnityEngine.Experimental.Rendering.UI
 {
@@ -21,6 +21,7 @@ namespace UnityEngine.Experimental.Rendering.UI
         {
             SetState(isOn, false);
         }
+
 #pragma warning restore 108,114
 
         public void SetState(bool state)

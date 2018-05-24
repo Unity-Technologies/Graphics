@@ -53,13 +53,13 @@ namespace UnityEditor.ShaderGraph
         {
             var id = GetSlotValue(CubemapInputId, generationMode);
             string result = string.Format("{0}4 {1} = SAMPLE_TEXTURECUBE_LOD({2}, {3}, reflect(-{4}, {5}), {6});"
-                , precision
-                , GetVariableNameForSlot(OutputSlotId)
-                , id
-                , "sampler" + id
-                , GetSlotValue(ViewDirInputId, generationMode)
-                , GetSlotValue(NormalInputId, generationMode)
-                , GetSlotValue(LODInputId, generationMode));
+                    , precision
+                    , GetVariableNameForSlot(OutputSlotId)
+                    , id
+                    , "sampler" + id
+                    , GetSlotValue(ViewDirInputId, generationMode)
+                    , GetSlotValue(NormalInputId, generationMode)
+                    , GetSlotValue(LODInputId, generationMode));
 
             visitor.AddShaderChunk(result, true);
         }

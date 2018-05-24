@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Rendering;
@@ -24,6 +24,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return false;
                 return true;
             }
+
             public int m_MaterialID;    // identifies decal set
             public int m_Index;         // identifies decal within the set
         }
@@ -77,7 +78,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // cube mesh bounds for decal
         static Vector4 kMin = new Vector4(-0.5f, -1.0f, -0.5f, 1.0f);
-        static Vector4 kMax = new Vector4( 0.5f,  0.0f,  0.5f, 1.0f);
+        static Vector4 kMax = new Vector4(0.5f,  0.0f,  0.5f, 1.0f);
 
         static public Mesh m_DecalMesh = null;
 
@@ -87,7 +88,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static public LightVolumeData[] m_LightVolumes = new LightVolumeData[kDecalBlockSize];
         static public int m_DecalDatasCount = 0;
 
-		static public float[] m_BoundingDistances = new float[1];
+        static public float[] m_BoundingDistances = new float[1];
 
         private Dictionary<int, DecalSet> m_DecalSets = new Dictionary<int, DecalSet>();
 
@@ -121,18 +122,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 TextureScaleBias other = obj as TextureScaleBias;
                 int size = m_Texture.width * m_Texture.height;
                 int otherSize = other.m_Texture.width * other.m_Texture.height;
-                if(size > otherSize)
+                if (size > otherSize)
                 {
                     return -1;
                 }
-                else if( size < otherSize)
+                else if (size < otherSize)
                 {
                     return 1;
                 }
                 else
                 {
                     return 0;
-                }                
+                }
             }
         }
 
@@ -162,11 +163,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 max = decalToWorld * kMax;
                 BoundingSphere res = new BoundingSphere();
                 res.position = (max + min) / 2;
-                res.radius = ((Vector3) (max - min)).magnitude / 2;
+                res.radius = ((Vector3)(max - min)).magnitude / 2;
                 return res;
             }
 
-            public void UpdateCachedData(Transform transform, float drawDistance, float fadeScale, Vector4 uvScaleBias, DecalHandle handle) 
+            public void UpdateCachedData(Transform transform, float drawDistance, float fadeScale, Vector4 uvScaleBias, DecalHandle handle)
             {
                 int index = handle.m_Index;
                 m_CachedDecalToWorld[index] = transform.localToWorldMatrix;
@@ -258,7 +259,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_NumResults = 0;
                 m_CullingGroup = new CullingGroup();
                 m_CullingGroup.targetCamera = instance.CurrentCamera;
-                m_CullingGroup.SetDistanceReferencePoint( m_CullingGroup.targetCamera.transform.position);
+                m_CullingGroup.SetDistanceReferencePoint(m_CullingGroup.targetCamera.transform.position);
                 m_CullingGroup.SetBoundingDistances(m_BoundingDistances);
                 m_CullingGroup.SetBoundingSpheres(m_BoundingSpheres);
                 m_CullingGroup.SetBoundingSphereCount(m_DecalsCount);
@@ -306,7 +307,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_LightVolumes[m_DecalDatasCount].lightAxisY = influenceUpVS;
                 m_LightVolumes[m_DecalDatasCount].lightAxisZ = influenceForwardVS;
                 m_LightVolumes[m_DecalDatasCount].boxInnerDist = influenceExtents - LightLoop.k_BoxCullingExtentThreshold;
-                m_LightVolumes[m_DecalDatasCount].boxInvRange.Set(1.0f / LightLoop.k_BoxCullingExtentThreshold.x, 1.0f /LightLoop. k_BoxCullingExtentThreshold.y, 1.0f / LightLoop.k_BoxCullingExtentThreshold.z);
+                m_LightVolumes[m_DecalDatasCount].boxInvRange.Set(1.0f / LightLoop.k_BoxCullingExtentThreshold.x, 1.0f / LightLoop.k_BoxCullingExtentThreshold.y, 1.0f / LightLoop.k_BoxCullingExtentThreshold.z);
             }
 
             private void AssignCurrentBatches(ref Matrix4x4[] decalToWorldBatch, ref Matrix4x4[] normalToWorldBatch, int batchCount)
@@ -390,7 +391,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public void AddToTextureList(ref List<TextureScaleBias> textureList)
             {
-                if(m_Diffuse.m_Texture != null)
+                if (m_Diffuse.m_Texture != null)
                 {
                     textureList.Add(m_Diffuse);
                 }
@@ -406,7 +407,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public void RenderIntoDBuffer(CommandBuffer cmd)
             {
-                if(m_NumResults == 0)
+                if (m_NumResults == 0)
                     return;
                 int batchIndex = 0;
                 int totalToDraw = m_NumResults;
@@ -417,7 +418,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     totalToDraw -= kDrawIndexedBatchSize;
                 }
 
-                if(totalToDraw > 0)
+                if (totalToDraw > 0)
                 {
                     m_PropertyBlock.SetMatrixArray(HDShaderIDs._NormalToWorldID, m_NormalToWorld[batchIndex]);
                     cmd.DrawMeshInstanced(m_DecalMesh, 0, KeyMaterial, 0, m_DecalToWorld[batchIndex], totalToDraw, m_PropertyBlock);
@@ -451,7 +452,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             private int m_DecalsCount = 0;
             private Matrix4x4[] m_CachedDecalToWorld = new Matrix4x4[kDecalBlockSize];
             private Matrix4x4[] m_CachedNormalToWorld = new Matrix4x4[kDecalBlockSize];
-			private Vector2[] m_CachedDrawDistances = new Vector2[kDecalBlockSize]; // x - draw distance, y - fade scale
+            private Vector2[] m_CachedDrawDistances = new Vector2[kDecalBlockSize]; // x - draw distance, y - fade scale
             private Vector4[] m_CachedUVScaleBias = new Vector4[kDecalBlockSize]; // xy - scale, zw bias
             private Material m_Material;
             private float m_Blend = 0;
@@ -462,7 +463,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         public DecalHandle AddDecal(Transform transform, float drawDistance, float fadeScale, Vector4 uvScaleBias, Material material)
-        {			
+        {
             DecalSet decalSet = null;
             int key = material.GetInstanceID();
             if (!m_DecalSets.TryGetValue(key, out decalSet))
@@ -492,7 +493,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void UpdateCachedData(Transform transform, float drawDistance, float fadeScale, Vector4 uvScaleBias, DecalHandle handle)
         {
-            if(!DecalHandle.IsValid(handle))
+            if (!DecalHandle.IsValid(handle))
                 return;
 
             DecalSet decalSet = null;
@@ -511,15 +512,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-		private int QueryCullResults()
-		{
-		    int totalVisibleDecals = 0;
+        private int QueryCullResults()
+        {
+            int totalVisibleDecals = 0;
             foreach (var pair in m_DecalSets)
             {
                 totalVisibleDecals += pair.Value.QueryCullResults();
             }
-		    return totalVisibleDecals;
-		}
+            return totalVisibleDecals;
+        }
 
         public void EndCull()
         {
@@ -529,7 +530,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 pair.Value.EndCull();
             }
         }
-       
+
         public void RenderIntoDBuffer(CommandBuffer cmd)
         {
             if (m_DecalMesh == null)
@@ -546,11 +547,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalTexture(HDShaderIDs._DecalAtlas2DID, Atlas.AtlasTexture);
         }
 
-        public void AddTexture(CommandBuffer cmd, TextureScaleBias textureScaleBias) 
+        public void AddTexture(CommandBuffer cmd, TextureScaleBias textureScaleBias)
         {
             if (textureScaleBias.m_Texture != null)
             {
-                if (!Atlas.AddTexture(cmd, ref textureScaleBias.m_ScaleBias,textureScaleBias.m_Texture))
+                if (!Atlas.AddTexture(cmd, ref textureScaleBias.m_ScaleBias, textureScaleBias.m_Texture))
                 {
                     m_AllocationSuccess = false;
                 }
@@ -567,12 +568,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_TextureList.Clear();
             foreach (var pair in m_DecalSets)
             {
-                pair.Value.InitializeMaterialValues();                
+                pair.Value.InitializeMaterialValues();
             }
         }
 
         public void UpdateTextureAtlas(CommandBuffer cmd)
-        { 
+        {
             m_AllocationSuccess = true;
             foreach (TextureScaleBias textureScaleBias in m_TextureList)
             {
@@ -582,15 +583,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_AllocationSuccess) // texture failed to find space in the atlas
             {
                 m_TextureList.Sort();   // sort the texture list largest to smallest for better packing
-                Atlas.ResetAllocator(); // clear all allocations 
-                // try again                
+                Atlas.ResetAllocator(); // clear all allocations
+                // try again
                 m_AllocationSuccess = true;
                 foreach (TextureScaleBias textureScaleBias in m_TextureList)
                 {
                     AddTexture(cmd, textureScaleBias);
                 }
 
-                if(!m_AllocationSuccess && m_PrevAllocationSuccess) // still failed to allocate, decal atlas size needs to increase, debounce so that we don't spam the console with warnings
+                if (!m_AllocationSuccess && m_PrevAllocationSuccess) // still failed to allocate, decal atlas size needs to increase, debounce so that we don't spam the console with warnings
                 {
                     Debug.LogWarning("Decal texture atlas out of space, decals on transparent geometry might not render correctly, atlas size can be changed in HDRenderPipelineAsset");
                 }
@@ -606,7 +607,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 int newDecalDatasSize = ((m_DecalsVisibleThisFrame + kDecalBlockSize - 1) / kDecalBlockSize) * kDecalBlockSize;
                 m_DecalDatas = new DecalData[newDecalDatasSize];
-                m_Bounds = new  SFiniteLightBound[newDecalDatasSize];
+                m_Bounds = new SFiniteLightBound[newDecalDatasSize];
                 m_LightVolumes = new LightVolumeData[newDecalDatasSize];
             }
             foreach (var pair in m_DecalSets)
@@ -627,12 +628,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void RenderDebugOverlay(HDCamera hdCamera, CommandBuffer cmd, DebugDisplaySettings debugDisplaySettings, ref float x, ref float y, float overlaySize, float width)
         {
-            if(debugDisplaySettings.decalsDebugSettings.m_DisplayAtlas)
-            { 
+            if (debugDisplaySettings.decalsDebugSettings.m_DisplayAtlas)
+            {
                 using (new ProfilingSample(cmd, "Display Decal Atlas", CustomSamplerId.DisplayDebugDecalsAtlas.GetSampler()))
                 {
                     cmd.SetViewport(new Rect(x, y, overlaySize, overlaySize));
-                    HDUtils.BlitQuad(cmd, Atlas.AtlasTexture, new Vector4(1, 1, 0 ,0), new Vector4(1, 1, 0, 0), (int)debugDisplaySettings.decalsDebugSettings.m_MipLevel, true);
+                    HDUtils.BlitQuad(cmd, Atlas.AtlasTexture, new Vector4(1, 1, 0 , 0), new Vector4(1, 1, 0, 0), (int)debugDisplaySettings.decalsDebugSettings.m_MipLevel, true);
                     HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera.actualWidth);
                 }
             }

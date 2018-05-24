@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
@@ -20,11 +20,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public static readonly CED.IDrawer SectionBakeButton = CED.Action(Drawer_SectionBakeButton);
 
         public static readonly CED.IDrawer SectionFoldoutInfluenceSettings = CED.FoldoutGroup(
-            "Influence Settings",
-            (s, d, o) => s.isSectionExpandedInfluenceSettings,
-            FoldoutOption.Indent,
-            CED.Action(Drawer_SectionInfluenceSettings)
-        );
+                "Influence Settings",
+                (s, d, o) => s.isSectionExpandedInfluenceSettings,
+                FoldoutOption.Indent,
+                CED.Action(Drawer_SectionInfluenceSettings)
+                );
 
         public static readonly CED.IDrawer SectionFoldoutCaptureSettings;
 
@@ -34,60 +34,60 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static PlanarReflectionProbeUI()
         {
             SectionFoldoutCaptureSettings = CED.FoldoutGroup(
-                "Capture Settings",
-                (s, d, o) => s.isSectionExpandedCaptureSettings,
-                FoldoutOption.Indent,
-                CED.Action(Drawer_SectionCaptureSettings),
-                CED.FadeGroup(
-                    (s, d, o, i) =>
+                    "Capture Settings",
+                    (s, d, o) => s.isSectionExpandedCaptureSettings,
+                    FoldoutOption.Indent,
+                    CED.Action(Drawer_SectionCaptureSettings),
+                    CED.FadeGroup(
+                        (s, d, o, i) =>
+                {
+                    switch (i)
                     {
-                        switch (i)
-                        {
-                            default:
-                            case 0: return s.isSectionExpandedCaptureMirrorSettings;
-                            case 1: return s.isSectionExpandedCaptureStaticSettings;
-                        }
-                    },
-                    FadeOption.None,
-                    SectionCaptureMirrorSettings,
-                    SectionCaptureStaticSettings)
-            );
+                        default:
+                        case 0: return s.isSectionExpandedCaptureMirrorSettings;
+                        case 1: return s.isSectionExpandedCaptureStaticSettings;
+                    }
+                },
+                        FadeOption.None,
+                        SectionCaptureMirrorSettings,
+                        SectionCaptureStaticSettings)
+                    );
 
             SectionProbeModeSettings = CED.Group(
-                CED.Action(Drawer_FieldCaptureType),
-                CED.FadeGroup(
-                    (s, d, o, i) => s.IsSectionExpandedReflectionProbeMode((ReflectionProbeMode)i),
-                    FadeOption.Indent,
-                    SectionProbeModeBakedSettings,
-                    SectionProbeModeRealtimeSettings,
-                    SectionProbeModeCustomSettings
-                )
-            );
+                    CED.Action(Drawer_FieldCaptureType),
+                    CED.FadeGroup(
+                        (s, d, o, i) => s.IsSectionExpandedReflectionProbeMode((ReflectionProbeMode)i),
+                        FadeOption.Indent,
+                        SectionProbeModeBakedSettings,
+                        SectionProbeModeRealtimeSettings,
+                        SectionProbeModeCustomSettings
+                        )
+                    );
 
             Inspector = CED.Group(
-                SectionProbeModeSettings,
-                CED.space,
-                CED.Action((s, d, o) => EditorGUILayout.LabelField(_.GetContent("Proxy Volume"), EditorStyles.boldLabel)),
-                CED.Action(Drawer_FieldProxyVolumeReference),
-                CED.space,
-                CED.Action(Drawer_Toolbar),
-                CED.space,
-                CED.Select(
-                    (s, d, o) => s.influenceVolume,
-                    (s, d, o) => d.influenceVolume,
-                    InfluenceVolumeUI.SectionFoldoutShape
-                ),
-                CED.Action(Drawer_DifferentShapeError),
-                SectionFoldoutInfluenceSettings,
-                SectionFoldoutCaptureSettings,
-                CED.Select(
-                    (s, d, o) => s.frameSettings,
-                    (s, d, o) => d.frameSettings,
-                    FrameSettingsUI.Inspector
-                ),
-                CED.space,
-                CED.Action(Drawer_SectionBakeButton)
-            );
+                    SectionProbeModeSettings,
+                    CED.space,
+                    CED.Action((s, d, o) => EditorGUILayout.LabelField(_.GetContent("Proxy Volume"), EditorStyles.boldLabel)),
+                    CED.Action(Drawer_FieldProxyVolumeReference),
+                    CED.space,
+                    CED.Action(Drawer_Toolbar),
+                    CED.space,
+                    CED.Select(
+                        (s, d, o) => s.influenceVolume,
+                        (s, d, o) => d.influenceVolume,
+                        InfluenceVolumeUI.SectionFoldoutShape
+                        ),
+                    CED.Action(Drawer_DifferentShapeError),
+                    SectionFoldoutInfluenceSettings,
+                    SectionFoldoutCaptureSettings,
+                    CED.Select(
+                        (s, d, o) => s.frameSettings,
+                        (s, d, o) => d.frameSettings,
+                        FrameSettingsUI.Inspector
+                        ),
+                    CED.space,
+                    CED.Action(Drawer_SectionBakeButton)
+                    );
         }
 
         const EditMode.SceneViewEditMode EditBaseShape = EditMode.SceneViewEditMode.ReflectionProbeBox;
@@ -122,7 +122,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     "Proxy volume and influence volume have different shape types, this is not supported.",
                     MessageType.Error,
                     true
-                );
+                    );
             }
         }
 
@@ -174,7 +174,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static void Drawer_SectionInfluenceSettings(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
         {
             EditorGUILayout.PropertyField(d.weight, _.GetContent("Weight"));
-           
+
 
             EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(d.multiplier, _.GetContent("Multiplier"));
@@ -271,16 +271,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static Func<Bounds> GetBoundsGetter(Editor o)
         {
             return () =>
-            {
-                var bounds = new Bounds();
-                foreach (Component targetObject in o.targets)
                 {
-                    var rp = targetObject.transform;
-                    var b = rp.position;
-                    bounds.Encapsulate(b);
-                }
-                return bounds;
-            };
+                    var bounds = new Bounds();
+                    foreach (Component targetObject in o.targets)
+                    {
+                        var rp = targetObject.transform;
+                        var b = rp.position;
+                        bounds.Encapsulate(b);
+                    }
+                    return bounds;
+                };
         }
     }
 }

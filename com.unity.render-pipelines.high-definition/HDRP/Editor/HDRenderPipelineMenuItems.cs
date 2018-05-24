@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -89,6 +89,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     camera.gameObject.AddComponent<HDAdditionalCameraData>();
             }
         }
+
         static void CheckOutFile(bool VSCEnabled, UnityObject mat)
         {
             if (VSCEnabled)
@@ -215,7 +216,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     if ((uint)profiles[j].transmissionMode == 2)
                     {
-                        profiles[j].transmissionMode = (DiffusionProfile.TransmissionMode)0;
+                        profiles[j].transmissionMode = (DiffusionProfile.TransmissionMode) 0;
                     }
                 }
 
@@ -259,7 +260,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         }
                     }
                     else if (mat.shader.name == "HDRenderPipeline/LayeredLit" ||
-                                mat.shader.name == "HDRenderPipeline/LayeredLitTessellation")
+                             mat.shader.name == "HDRenderPipeline/LayeredLitTessellation")
                     {
                         /*
                         bool hasSubsurfaceProfile = false;
@@ -408,7 +409,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         }
                     }
                     else if (mat.shader.name == "HDRenderPipeline/LayeredLit" ||
-                                mat.shader.name == "HDRenderPipeline/LayeredLitTessellation")
+                             mat.shader.name == "HDRenderPipeline/LayeredLitTessellation")
                     {
                         int numLayer = (int)mat.GetFloat("_LayerCount");
 

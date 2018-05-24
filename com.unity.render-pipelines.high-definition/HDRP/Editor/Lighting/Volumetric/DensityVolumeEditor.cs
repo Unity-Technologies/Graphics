@@ -35,7 +35,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             textureScroll = densityParams.FindPropertyRelative("textureScrollingSpeed");
             textureTile = densityParams.FindPropertyRelative("textureTiling");
 
-            if (volumeTexture != null && volumeTexture.objectReferenceValue != null) 
+            if (volumeTexture != null && volumeTexture.objectReferenceValue != null)
             {
                 showTextureParams = true;
             }
@@ -46,18 +46,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             albedo.colorValue = EditorGUILayout.ColorField(albedoLabel, albedo.colorValue, true, false, false);
             EditorGUILayout.PropertyField(meanFreePath, meanFreePathLabel);
             EditorGUILayout.Space();
-            
+
             showTextureParams = EditorGUILayout.Foldout(showTextureParams, textureSettingsTitle, true);
             if (showTextureParams)
             {
                 EditorGUI.indentLevel++;
-                EditorGUILayout.PropertyField(volumeTexture, volumeTextureLabel); 
+                EditorGUILayout.PropertyField(volumeTexture, volumeTextureLabel);
                 EditorGUILayout.PropertyField(textureScroll, textureScrollLabel);
                 EditorGUILayout.PropertyField(textureTile, textureTileLabel);
                 EditorGUI.indentLevel--;
             }
 
-            serializedObject.ApplyModifiedProperties ();
+            serializedObject.ApplyModifiedProperties();
         }
     }
 }

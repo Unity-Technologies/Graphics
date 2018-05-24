@@ -77,6 +77,3 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public LayerMask skyLightingOverrideLayerMask = 0;
     }
 }
-
-
-

@@ -143,18 +143,18 @@ namespace UnityEditor.ShaderGraph
         public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
         {
             registry.ProvideFunction(GetFunctionName(), s =>
-            {
-                s.AppendLine("void {0} ({1} In, {2}3 Red, {2}3 Green, {2}3 Blue, out {3} Out)",
-                    GetFunctionName(),
-                    FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToString(precision),
-                    precision,
-                    FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision));
-                using (s.BlockScope())
                 {
-                    s.AppendLine("Out = {0}(dot(In, Red), dot(In, Green), dot(In, Blue));",
+                    s.AppendLine("void {0} ({1} In, {2}3 Red, {2}3 Green, {2}3 Blue, out {3} Out)",
+                        GetFunctionName(),
+                        FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToString(precision),
+                        precision,
                         FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision));
-                }
-            });
+                    using (s.BlockScope())
+                    {
+                        s.AppendLine("Out = {0}(dot(In, Red), dot(In, Green), dot(In, Blue));",
+                            FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision));
+                    }
+                });
         }
     }
 }

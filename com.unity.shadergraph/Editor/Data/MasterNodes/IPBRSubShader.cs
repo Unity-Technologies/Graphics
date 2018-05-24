@@ -1,6 +1,7 @@
 using System;
 
-namespace UnityEditor.ShaderGraph {
+namespace UnityEditor.ShaderGraph
+{
     public interface IPBRSubShader : ISubShader
     {
     }

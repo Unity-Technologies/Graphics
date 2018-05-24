@@ -1,4 +1,4 @@
-﻿using UnityEngine.Events;
+using UnityEngine.Events;
 
 namespace UnityEditor.Experimental.Rendering
 {
@@ -10,50 +10,49 @@ namespace UnityEditor.Experimental.Rendering
         static RenderPipelineSettingsUI()
         {
             Inspector = CED.Group(
-                SectionPrimarySettings,
-                CED.space,
-                CED.Select(
-                    (s, d, o) => s.lightLoopSettings,
-                    (s, d, o) => d.lightLoopSettings,
-                    GlobalLightLoopSettingsUI.Inspector
-                ),
-                CED.space,
-                CED.Select(
-                    (s, d, o) => s.shadowInitParams,
-                    (s, d, o) => d.shadowInitParams,
-                    ShadowInitParametersUI.SectionAtlas
-                ),
-                CED.space,
-                CED.Select(
-                    (s, d, o) => s.decalSettings,
-                    (s, d, o) => d.decalSettings,
-                    GlobalDecalSettingsUI.Inspector
-                )
+                    SectionPrimarySettings,
+                    CED.space,
+                    CED.Select(
+                        (s, d, o) => s.lightLoopSettings,
+                        (s, d, o) => d.lightLoopSettings,
+                        GlobalLightLoopSettingsUI.Inspector
+                        ),
+                    CED.space,
+                    CED.Select(
+                        (s, d, o) => s.shadowInitParams,
+                        (s, d, o) => d.shadowInitParams,
+                        ShadowInitParametersUI.SectionAtlas
+                        ),
+                    CED.space,
+                    CED.Select(
+                        (s, d, o) => s.decalSettings,
+                        (s, d, o) => d.decalSettings,
+                        GlobalDecalSettingsUI.Inspector
+                        )
 
-            );
+                    );
         }
 
         public static readonly CED.IDrawer Inspector;
 
         public static readonly CED.IDrawer SectionPrimarySettings = CED.Group(
-            CED.Action(Drawer_SectionPrimarySettings)
-        );
+                CED.Action(Drawer_SectionPrimarySettings)
+                );
 
         GlobalLightLoopSettingsUI lightLoopSettings = new GlobalLightLoopSettingsUI();
-		GlobalDecalSettingsUI decalSettings = new GlobalDecalSettingsUI();
+        GlobalDecalSettingsUI decalSettings = new GlobalDecalSettingsUI();
         ShadowInitParametersUI shadowInitParams = new ShadowInitParametersUI();
 
         public RenderPipelineSettingsUI()
             : base(0)
         {
-
         }
 
         public override void Reset(SerializedRenderPipelineSettings data, UnityAction repaint)
         {
             lightLoopSettings.Reset(data.lightLoopSettings, repaint);
             shadowInitParams.Reset(data.shadowInitParams, repaint);
-			decalSettings.Reset(data.decalSettings, repaint);
+            decalSettings.Reset(data.decalSettings, repaint);
             base.Reset(data, repaint);
         }
 
@@ -61,7 +60,7 @@ namespace UnityEditor.Experimental.Rendering
         {
             lightLoopSettings.Update();
             shadowInitParams.Update();
-			decalSettings.Update();
+            decalSettings.Update();
             base.Update();
         }
 

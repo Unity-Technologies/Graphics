@@ -86,7 +86,7 @@ public class NormalMapVarianceTexturePostprocessor : AssetPostprocessor
                     {
                         int texelFootprint = 1 << m;
                         Vector3 averageNormal = GetAverageNormal(source, x * texelFootprint, y * texelFootprint,
-                            texture.width, texture.height, texelFootprint);
+                                texture.width, texture.height, texelFootprint);
 
                         // Store the normal length for the average normal.
                         int outputPosition = y * mipWidth + x;

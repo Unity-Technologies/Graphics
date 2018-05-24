@@ -82,7 +82,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void PrepareParameters()
         {
             //Texture has been updated notify the manager
-            if (previousVolumeMask != parameters.volumeMask) 
+            if (previousVolumeMask != parameters.volumeMask)
             {
                 NotifyUpdatedTexure();
                 previousVolumeMask = parameters.volumeMask;

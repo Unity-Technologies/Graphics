@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using UnityEditor.Callbacks;
@@ -140,7 +140,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override GUIContent GetPreviewTitle()
         {
-            return  _.GetContent("Planar Reflection");
+            return _.GetContent("Planar Reflection");
         }
 
         public override void OnPreviewGUI(Rect r, GUIStyle background)
@@ -158,10 +158,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 var row = i / rowSize;
                 var col = i % rowSize;
                 var itemRect = new Rect(
-                    r.x + size.x * row + ((row > 0) ? (row - 1) * space.x : 0),
-                    r.y + size.y * col + ((col > 0) ? (col - 1) * space.y : 0),
-                    size.x,
-                    size.y);
+                        r.x + size.x * row + ((row > 0) ? (row - 1) * space.x : 0),
+                        r.y + size.y * col + ((col > 0) ? (col - 1) * space.y : 0),
+                        size.x,
+                        size.y);
 
                 if (m_PreviewedTextures[i] != null)
                     EditorGUI.DrawPreviewTexture(itemRect, m_PreviewedTextures[i], CameraEditorUtils.GUITextureBlit2SRGBMaterial, ScaleMode.ScaleToFit, 0, 1);

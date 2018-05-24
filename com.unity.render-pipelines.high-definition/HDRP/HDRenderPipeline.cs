@@ -193,7 +193,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 m_ValidAPI = false;
 
-                return ;
+                return;
             }
 
             m_Asset = asset;
@@ -206,11 +206,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_GPUCopy = new GPUCopy(asset.renderPipelineResources.copyChannelCS);
 
             var bufferPyramidProcessor = new BufferPyramidProcessor(
-                asset.renderPipelineResources.colorPyramidCS,
-                asset.renderPipelineResources.depthPyramidCS,
-                m_GPUCopy,
-                new TexturePadding(asset.renderPipelineResources.texturePaddingCS)
-            );
+                    asset.renderPipelineResources.colorPyramidCS,
+                    asset.renderPipelineResources.depthPyramidCS,
+                    m_GPUCopy,
+                    new TexturePadding(asset.renderPipelineResources.texturePaddingCS)
+                    );
             m_BufferPyramid = new BufferPyramid(bufferPyramidProcessor);
 
             EncodeBC6H.DefaultInstance = EncodeBC6H.DefaultInstance ?? new EncodeBC6H(asset.renderPipelineResources.encodeBC6HCS);
@@ -278,7 +278,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void InitializeRenderTextures()
         {
-            if(!m_Asset.renderPipelineSettings.supportForwardOnly)
+            if (!m_Asset.renderPipelineSettings.supportForwardOnly)
                 m_GbufferManager.CreateBuffers();
 
             if (m_Asset.renderPipelineSettings.supportDBuffer)
@@ -286,7 +286,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_SSSBufferManager.InitSSSBuffers(m_GbufferManager, m_Asset.renderPipelineSettings);
 
-            m_CameraColorBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB : false, enableRandomWrite: true, enableMSAA: true, name : "CameraColor");
+            m_CameraColorBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, enableRandomWrite: true, enableMSAA: true, name: "CameraColor");
             m_CameraSssDiffuseLightingBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.RGB111110Float, sRGB: false, enableRandomWrite: true, enableMSAA: true, name: "CameraSSSDiffuseLighting");
 
             m_CameraDepthStencilBuffer = RTHandles.Alloc(Vector2.one, depthBufferBits: DepthBits.Depth24, colorFormat: RenderTextureFormat.Depth, filterMode: FilterMode.Point, bindTextureMS: true, enableMSAA: true, name: "CameraDepthStencil");
@@ -346,7 +346,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             HDCamera.ClearAll();
         }
-
 
         bool SetRenderingFeatures()
         {
@@ -492,7 +491,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             UnsetRenderingFeatures();
 
             if (!m_ValidAPI)
-                return ;
+                return;
 
             base.Dispose();
 
@@ -581,17 +580,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     cmd.SetGlobalTexture(HDShaderIDs._DepthPyramidTexture, previousDepthPyramidRT);
                     cmd.SetGlobalVector(HDShaderIDs._DepthPyramidSize, new Vector4(
-                        previousDepthPyramidRT.referenceSize.x,
-                        previousDepthPyramidRT.referenceSize.y,
-                        1f / previousDepthPyramidRT.referenceSize.x,
-                        1f / previousDepthPyramidRT.referenceSize.y
-                    ));
+                            previousDepthPyramidRT.referenceSize.x,
+                            previousDepthPyramidRT.referenceSize.y,
+                            1f / previousDepthPyramidRT.referenceSize.x,
+                            1f / previousDepthPyramidRT.referenceSize.y
+                            ));
                     cmd.SetGlobalVector(HDShaderIDs._DepthPyramidScale, new Vector4(
-                        previousDepthPyramidRT.referenceSize.x / (float)previousDepthPyramidRT.rt.width,
-                        previousDepthPyramidRT.referenceSize.y / (float)previousDepthPyramidRT.rt.height,
-                        Mathf.Log(Mathf.Min(previousDepthPyramidRT.rt.width, previousDepthPyramidRT.rt.height), 2),
-                        0.0f
-                    ));
+                            previousDepthPyramidRT.referenceSize.x / (float)previousDepthPyramidRT.rt.width,
+                            previousDepthPyramidRT.referenceSize.y / (float)previousDepthPyramidRT.rt.height,
+                            Mathf.Log(Mathf.Min(previousDepthPyramidRT.rt.width, previousDepthPyramidRT.rt.height), 2),
+                            0.0f
+                            ));
                 }
                 else
                 {
@@ -605,17 +604,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, previousColorPyramidRT);
                     cmd.SetGlobalVector(HDShaderIDs._ColorPyramidSize, new Vector4(
-                        previousColorPyramidRT.referenceSize.x,
-                        previousColorPyramidRT.referenceSize.y,
-                        1f / previousColorPyramidRT.referenceSize.x,
-                        1f / previousColorPyramidRT.referenceSize.y
-                    ));
+                            previousColorPyramidRT.referenceSize.x,
+                            previousColorPyramidRT.referenceSize.y,
+                            1f / previousColorPyramidRT.referenceSize.x,
+                            1f / previousColorPyramidRT.referenceSize.y
+                            ));
                     cmd.SetGlobalVector(HDShaderIDs._ColorPyramidScale, new Vector4(
-                        previousColorPyramidRT.referenceSize.x / (float)previousColorPyramidRT.rt.width,
-                        previousColorPyramidRT.referenceSize.y / (float)previousColorPyramidRT.rt.height,
-                        Mathf.Log(Mathf.Min(previousColorPyramidRT.rt.width, previousColorPyramidRT.rt.height), 2),
-                        0.0f
-                    ));
+                            previousColorPyramidRT.referenceSize.x / (float)previousColorPyramidRT.rt.width,
+                            previousColorPyramidRT.referenceSize.y / (float)previousColorPyramidRT.rt.height,
+                            Mathf.Log(Mathf.Min(previousColorPyramidRT.rt.width, previousColorPyramidRT.rt.height), 2),
+                            0.0f
+                            ));
                 }
                 else
                 {
@@ -628,9 +627,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         bool IsConsolePlatform()
         {
-            return  SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
-                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
-                    SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12;
+            return SystemInfo.graphicsDeviceType == GraphicsDeviceType.PlayStation4 ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOne ||
+                SystemInfo.graphicsDeviceType == GraphicsDeviceType.XboxOneD3D12;
         }
 
         bool NeedDepthBufferCopy()
@@ -798,8 +797,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // Planar probes rendering is not currently supported for orthographic camera
                     // Avoid rendering to prevent error log spamming
                     && !camera.orthographic)
-                        // TODO: Render only visible probes
-                        ReflectionSystem.RenderAllRealtimeViewerDependentProbesFor(ReflectionProbeType.PlanarReflection, camera);
+                    // TODO: Render only visible probes
+                    ReflectionSystem.RenderAllRealtimeViewerDependentProbesFor(ReflectionProbeType.PlanarReflection, camera);
 
                 // Init material if needed
                 // TODO: this should be move outside of the camera loop but we have no command buffer, ask details to Tim or Julien to do this
@@ -975,7 +974,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // This will bind the depth buffer if needed for DBuffer)
                     RenderDBuffer(hdCamera, cmd);
 
-					RenderGBuffer(m_CullResults, hdCamera, enableBakeShadowMask, renderContext, cmd);
+                    RenderGBuffer(m_CullResults, hdCamera, enableBakeShadowMask, renderContext, cmd);
 
                     // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
                     CopyDepthBufferIfNeeded(cmd);
@@ -1051,7 +1050,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         using (new ProfilingSample(cmd, "Deferred directional shadows", CustomSamplerId.RenderDeferredDirectionalShadow.GetSampler()))
                         {
                             // When debug is enabled we need to clear otherwise we may see non-shadows areas with stale values.
-                            if(m_CurrentDebugDisplaySettings.fullScreenDebugMode == FullScreenDebugMode.DeferredShadows)
+                            if (m_CurrentDebugDisplaySettings.fullScreenDebugMode == FullScreenDebugMode.DeferredShadows)
                             {
                                 HDUtils.SetRenderTarget(cmd, hdCamera, m_DeferredShadowBuffer, ClearFlag.Color, CoreUtils.clearColorAllBlack);
                             }
@@ -1096,7 +1095,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         // SSS pass here handle both SSS material from deferred and forward
                         m_SSSBufferManager.SubsurfaceScatteringPass(hdCamera, cmd, diffusionProfileSettings,
-                                                                    m_CameraColorBuffer, m_CameraSssDiffuseLightingBuffer, m_CameraDepthStencilBuffer, GetDepthTexture());
+                            m_CameraColorBuffer, m_CameraSssDiffuseLightingBuffer, m_CameraDepthStencilBuffer, GetDepthTexture());
 
                         RenderSky(hdCamera, cmd);
 
@@ -1201,28 +1200,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         void RenderOpaqueRenderList(CullResults cull,
-                                    HDCamera hdCamera,
-                                    ScriptableRenderContext renderContext,
-                                    CommandBuffer cmd,
-                                    ShaderPassName passName,
-                                    RendererConfiguration rendererConfiguration = 0,
-                                    RenderQueueRange? inRenderQueueRange = null,
-                                    RenderStateBlock? stateBlock = null,
-                                    Material overrideMaterial = null)
+            HDCamera hdCamera,
+            ScriptableRenderContext renderContext,
+            CommandBuffer cmd,
+            ShaderPassName passName,
+            RendererConfiguration rendererConfiguration = 0,
+            RenderQueueRange? inRenderQueueRange = null,
+            RenderStateBlock? stateBlock = null,
+            Material overrideMaterial = null)
         {
             m_SinglePassName[0] = passName;
             RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_SinglePassName, rendererConfiguration, inRenderQueueRange, stateBlock, overrideMaterial);
         }
 
         void RenderOpaqueRenderList(CullResults cull,
-                                    HDCamera hdCamera,
-                                    ScriptableRenderContext renderContext,
-                                    CommandBuffer cmd,
-                                    ShaderPassName[] passNames,
-                                    RendererConfiguration rendererConfiguration = 0,
-                                    RenderQueueRange? inRenderQueueRange = null,
-                                    RenderStateBlock? stateBlock = null,
-                                    Material overrideMaterial = null)
+            HDCamera hdCamera,
+            ScriptableRenderContext renderContext,
+            CommandBuffer cmd,
+            ShaderPassName[] passNames,
+            RendererConfiguration rendererConfiguration = 0,
+            RenderQueueRange? inRenderQueueRange = null,
+            RenderStateBlock? stateBlock = null,
+            Material overrideMaterial = null)
         {
             if (!hdCamera.frameSettings.enableOpaqueObjects)
                 return;
@@ -1257,30 +1256,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         void RenderTransparentRenderList(CullResults cull,
-                                         HDCamera hdCamera,
-                                         ScriptableRenderContext renderContext,
-                                         CommandBuffer cmd,
-                                         ShaderPassName passName,
-                                         RendererConfiguration rendererConfiguration = 0,
-                                         RenderQueueRange? inRenderQueueRange = null,
-                                         RenderStateBlock? stateBlock = null,
-                                         Material overrideMaterial = null)
+            HDCamera hdCamera,
+            ScriptableRenderContext renderContext,
+            CommandBuffer cmd,
+            ShaderPassName passName,
+            RendererConfiguration rendererConfiguration = 0,
+            RenderQueueRange? inRenderQueueRange = null,
+            RenderStateBlock? stateBlock = null,
+            Material overrideMaterial = null)
         {
             m_SinglePassName[0] = passName;
             RenderTransparentRenderList(cull, hdCamera, renderContext, cmd, m_SinglePassName,
-                                        rendererConfiguration, inRenderQueueRange, stateBlock, overrideMaterial);
+                rendererConfiguration, inRenderQueueRange, stateBlock, overrideMaterial);
         }
 
         void RenderTransparentRenderList(CullResults cull,
-                                         HDCamera hdCamera,
-                                         ScriptableRenderContext renderContext,
-                                         CommandBuffer cmd,
-                                         ShaderPassName[] passNames,
-                                         RendererConfiguration rendererConfiguration = 0,
-                                         RenderQueueRange? inRenderQueueRange = null,
-                                         RenderStateBlock? stateBlock = null,
-                                         Material overrideMaterial = null
-                                         )
+            HDCamera hdCamera,
+            ScriptableRenderContext renderContext,
+            CommandBuffer cmd,
+            ShaderPassName[] passNames,
+            RendererConfiguration rendererConfiguration = 0,
+            RenderQueueRange? inRenderQueueRange = null,
+            RenderStateBlock? stateBlock = null,
+            Material overrideMaterial = null
+            )
         {
             if (!hdCamera.frameSettings.enableTransparentObjects)
                 return;
@@ -1426,7 +1425,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Depth texture is now ready, bind it.
                 cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, GetDepthTexture());
                 m_DbufferManager.ClearTargets(cmd, hdCamera);
-				HDUtils.SetRenderTarget(cmd, hdCamera, m_DbufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer); // do not clear anymore
+                HDUtils.SetRenderTarget(cmd, hdCamera, m_DbufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer); // do not clear anymore
                 m_DbufferManager.SetHTile(m_DbufferManager.bufferCount, cmd);
                 DecalSystem.instance.RenderIntoDBuffer(cmd);
                 m_DbufferManager.UnSetHTile(cmd);
@@ -1588,7 +1587,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
 
                     m_ForwardAndForwardOnlyPassNames[0] = m_ForwardOnlyPassNames[0] =
-                        HDShaderPassNames.s_ForwardOnlyName;
+                            HDShaderPassNames.s_ForwardOnlyName;
                     m_ForwardAndForwardOnlyPassNames[1] = HDShaderPassNames.s_ForwardName;
 
                     var passNames = hdCamera.frameSettings.enableForwardRenderingOnly
@@ -1672,16 +1671,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, m_VelocityBuffer);
                 cmd.SetGlobalVector(HDShaderIDs._CameraMotionVectorsSize, new Vector4(
-                    m_VelocityBuffer.referenceSize.x,
-                    m_VelocityBuffer.referenceSize.y,
-                    1f / m_VelocityBuffer.referenceSize.x,
-                    1f / m_VelocityBuffer.referenceSize.y
-                ));
+                        m_VelocityBuffer.referenceSize.x,
+                        m_VelocityBuffer.referenceSize.y,
+                        1f / m_VelocityBuffer.referenceSize.x,
+                        1f / m_VelocityBuffer.referenceSize.y
+                        ));
                 cmd.SetGlobalVector(HDShaderIDs._CameraMotionVectorsScale, new Vector4(
-                    m_VelocityBuffer.referenceSize.x / (float)m_VelocityBuffer.rt.width,
-                    m_VelocityBuffer.referenceSize.y / (float)m_VelocityBuffer.rt.height,
-                    1, 0.0f
-                ));
+                        m_VelocityBuffer.referenceSize.x / (float)m_VelocityBuffer.rt.width,
+                        m_VelocityBuffer.referenceSize.y / (float)m_VelocityBuffer.rt.height,
+                        1, 0.0f
+                        ));
             }
         }
 
@@ -1695,7 +1694,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // These flags are still required in SRP or the engine won't compute previous model matrices...
                 // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
                 hdCamera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
-
             }
         }
 

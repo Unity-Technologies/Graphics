@@ -1,4 +1,4 @@
-﻿using UnityEngine.Serialization;
+using UnityEngine.Serialization;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
@@ -66,12 +66,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 switch (m_Mode)
                 {
                     default:
-                        case ReflectionProbeMode.Baked:
-                            return bakedTexture;
-                        case ReflectionProbeMode.Custom:
-                            return customTexture;
-                        case ReflectionProbeMode.Realtime:
-                            return realtimeTexture;
+                    case ReflectionProbeMode.Baked:
+                        return bakedTexture;
+                    case ReflectionProbeMode.Custom:
+                        return customTexture;
+                    case ReflectionProbeMode.Realtime:
+                        return realtimeTexture;
                 }
             }
         }
@@ -90,7 +90,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     influencePosition,
                     tr.rotation,
                     Vector3.one
-                );
+                    );
             }
         }
         public Texture customTexture { get { return m_CustomTexture; } set { m_CustomTexture = value; } }

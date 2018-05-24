@@ -22,12 +22,12 @@ uint JenkinsHash(uint2 v)
 
 uint JenkinsHash(uint3 v)
 {
-	return JenkinsHash(v.x ^ JenkinsHash(v.yz));
+    return JenkinsHash(v.x ^ JenkinsHash(v.yz));
 }
 
 uint JenkinsHash(uint4 v)
 {
-	return JenkinsHash(v.x ^ JenkinsHash(v.yzw));
+    return JenkinsHash(v.x ^ JenkinsHash(v.yzw));
 }
 
 // Construct a float with half-open range [0, 1) using low 23 bits.

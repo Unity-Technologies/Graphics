@@ -141,13 +141,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Most modern GPUs support it. We can avoid performing a costly copy in this case.
             // TODO: test/implement for other platforms.
             return SystemInfo.graphicsDeviceType != GraphicsDeviceType.PlayStation4 &&
-                    SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOne &&
-                    SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOneD3D12;
+                SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOne &&
+                SystemInfo.graphicsDeviceType != GraphicsDeviceType.XboxOneD3D12;
         }
 
         // Combines specular lighting and diffuse lighting with subsurface scattering.
         public void SubsurfaceScatteringPass(HDCamera hdCamera, CommandBuffer cmd, DiffusionProfileSettings sssParameters,
-                                            RTHandleSystem.RTHandle colorBufferRT, RTHandleSystem.RTHandle diffuseBufferRT, RTHandleSystem.RTHandle depthStencilBufferRT, RTHandleSystem.RTHandle depthTextureRT)
+            RTHandleSystem.RTHandle colorBufferRT, RTHandleSystem.RTHandle diffuseBufferRT, RTHandleSystem.RTHandle depthStencilBufferRT, RTHandleSystem.RTHandle depthTextureRT)
         {
             if (sssParameters == null || !hdCamera.frameSettings.enableSubsurfaceScattering)
                 return;

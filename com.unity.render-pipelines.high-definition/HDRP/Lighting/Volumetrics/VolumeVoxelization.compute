@@ -45,7 +45,7 @@
 //--------------------------------------------------------------------------------------------------
 
 StructuredBuffer<OrientedBBox>            _VolumeBounds;
-StructuredBuffer<DensityVolumeData>		  _VolumeData;
+StructuredBuffer<DensityVolumeData>       _VolumeData;
 
 TEXTURE3D(_VolumeMaskAtlas);
 
@@ -70,7 +70,7 @@ float SampleVolumeMask(DensityVolumeData volumeData, float3 voxelCenterUV)
 
     //scale and bias the UVs and then take fractional part, will be in [0,1] range
     voxelCenterUV = frac(voxelCenterUV * volumeData.textureTiling + volumeData.textureScroll);
-    
+
     voxelCenterUV.z = voxelCenterUV.z * _VolumeMaskDimensions.x;
     voxelCenterUV.z += offset;
 

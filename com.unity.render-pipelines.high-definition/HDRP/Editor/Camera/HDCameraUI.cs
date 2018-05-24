@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using UnityEditor.AnimatedValues;
 using UnityEngine;
@@ -16,7 +16,7 @@ namespace UnityEditor.Experimental.Rendering
     {
         static HDCameraUI()
         {
-            Inspector = new []
+            Inspector = new[]
             {
                 SectionPrimarySettings,
                 // Not used for now
@@ -31,68 +31,68 @@ namespace UnityEditor.Experimental.Rendering
         public static readonly CED.IDrawer[] Inspector = null;
 
         public static readonly CED.IDrawer SectionPrimarySettings = CED.Group(
-            CED.Action(Drawer_FieldClearColorMode),
-            CED.Action(Drawer_FieldBackgroundColorHDR),
-            CED.Action(Drawer_FieldClearDepth),
-            CED.Action(Drawer_FieldCullingMask),
-            CED.Action(Drawer_FieldVolumeLayerMask),
-            CED.space,
-            CED.Action(Drawer_Projection),
-            CED.Action(Drawer_FieldClippingPlanes),
-            CED.space,
-            CED.Action(Drawer_CameraWarnings),
-            CED.Action(Drawer_FieldRenderingPath),
-            CED.space
-        );
+                CED.Action(Drawer_FieldClearColorMode),
+                CED.Action(Drawer_FieldBackgroundColorHDR),
+                CED.Action(Drawer_FieldClearDepth),
+                CED.Action(Drawer_FieldCullingMask),
+                CED.Action(Drawer_FieldVolumeLayerMask),
+                CED.space,
+                CED.Action(Drawer_Projection),
+                CED.Action(Drawer_FieldClippingPlanes),
+                CED.space,
+                CED.Action(Drawer_CameraWarnings),
+                CED.Action(Drawer_FieldRenderingPath),
+                CED.space
+                );
 
         public static readonly CED.IDrawer SectionPhysicalSettings = CED.FoldoutGroup(
-            "Physical Settings",
-            (s, p, o) => s.isSectionExpandedPhysicalSettings,
-            FoldoutOption.Indent,
-            CED.Action(Drawer_FieldAperture),
-            CED.Action(Drawer_FieldShutterSpeed),
-            CED.Action(Drawer_FieldIso));
+                "Physical Settings",
+                (s, p, o) => s.isSectionExpandedPhysicalSettings,
+                FoldoutOption.Indent,
+                CED.Action(Drawer_FieldAperture),
+                CED.Action(Drawer_FieldShutterSpeed),
+                CED.Action(Drawer_FieldIso));
 
         public static readonly CED.IDrawer SectionCaptureSettings = CED.FoldoutGroup(
-            "Capture Settings",
-            (s, p, o) => s.isSectionExpandedCaptureSettings,
-            FoldoutOption.Indent,
-            CED.Action(Drawer_FieldOcclusionCulling),
-            CED.Action(Drawer_FieldNormalizedViewPort));
+                "Capture Settings",
+                (s, p, o) => s.isSectionExpandedCaptureSettings,
+                FoldoutOption.Indent,
+                CED.Action(Drawer_FieldOcclusionCulling),
+                CED.Action(Drawer_FieldNormalizedViewPort));
 
         public static readonly CED.IDrawer SectionOutputSettings = CED.FoldoutGroup(
-            "Output Settings",
-            (s, p, o) => s.isSectionExpandedOutputSettings,
-            FoldoutOption.Indent,
+                "Output Settings",
+                (s, p, o) => s.isSectionExpandedOutputSettings,
+                FoldoutOption.Indent,
 #if ENABLE_MULTIPLE_DISPLAYS
-            CED.Action(Drawer_SectionMultiDisplay),
+                CED.Action(Drawer_SectionMultiDisplay),
 #endif
-            CED.Action(Drawer_FieldDepth),
-            CED.Action(Drawer_FieldRenderTarget));
+                CED.Action(Drawer_FieldDepth),
+                CED.Action(Drawer_FieldRenderTarget));
 
         public static readonly CED.IDrawer SectionXRSettings = CED.FadeGroup(
-            (s, d, o, i) => s.isSectionAvailableXRSettings,
-            FadeOption.None,
-            CED.FoldoutGroup(
-                "XR Settings",
-                (s, p, o) => s.isSectionExpandedXRSettings,
-                FoldoutOption.Indent,
-                CED.Action(Drawer_FieldVR),
-                CED.Action(Drawer_FieldTargetEye)));
+                (s, d, o, i) => s.isSectionAvailableXRSettings,
+                FadeOption.None,
+                CED.FoldoutGroup(
+                    "XR Settings",
+                    (s, p, o) => s.isSectionExpandedXRSettings,
+                    FoldoutOption.Indent,
+                    CED.Action(Drawer_FieldVR),
+                    CED.Action(Drawer_FieldTargetEye)));
 
         public static readonly CED.IDrawer SectionRenderLoopSettings = CED.FadeGroup(
-            (s, d, o, i) => s.isSectionAvailableRenderLoopSettings,
-            FadeOption.None,
-            CED.Select(
-                (s, d, o) => s.frameSettingsUI,
-                (s, d, o) => d.frameSettings,
-                FrameSettingsUI.SectionRenderingPasses,
-                FrameSettingsUI.SectionRenderingSettings,
-                FrameSettingsUI.SectionLightingSettings),
-            CED.Select(
-                (s, d, o) => s.frameSettingsUI.lightLoopSettings,
-                (s, d, o) => d.frameSettings.lightLoopSettings,
-                LightLoopSettingsUI.SectionLightLoopSettings));
+                (s, d, o, i) => s.isSectionAvailableRenderLoopSettings,
+                FadeOption.None,
+                CED.Select(
+                    (s, d, o) => s.frameSettingsUI,
+                    (s, d, o) => d.frameSettings,
+                    FrameSettingsUI.SectionRenderingPasses,
+                    FrameSettingsUI.SectionRenderingSettings,
+                    FrameSettingsUI.SectionLightingSettings),
+                CED.Select(
+                    (s, d, o) => s.frameSettingsUI.lightLoopSettings,
+                    (s, d, o) => d.frameSettings.lightLoopSettings,
+                    LightLoopSettingsUI.SectionLightLoopSettings));
 
         enum ProjectionType { Perspective, Orthographic };
 
@@ -290,6 +290,7 @@ namespace UnityEditor.Experimental.Rendering
                     UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
             }
         }
+
 #endif
 
         static readonly int[] k_TargetEyeValues = { (int)StereoTargetEyeMask.Both, (int)StereoTargetEyeMask.Left, (int)StereoTargetEyeMask.Right, (int)StereoTargetEyeMask.None };

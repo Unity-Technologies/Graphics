@@ -20,7 +20,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public sealed class EnvUpdateParameter : VolumeParameter<EnvironementUpdateMode>
     {
         public EnvUpdateParameter(EnvironementUpdateMode value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState) {}
     }
 
     public abstract class SkySettings : VolumeComponent
@@ -71,7 +71,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return -1;
             else
                 return ((SkyUniqueID)uniqueIDs[0]).uniqueID;
-
         }
 
         public abstract SkyRenderer CreateRenderer();

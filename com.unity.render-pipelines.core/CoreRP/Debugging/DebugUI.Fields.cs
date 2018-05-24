@@ -57,7 +57,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public class BoolField : Field<bool> { }
+        public class BoolField : Field<bool> {}
 
         public class IntField : Field<int>
         {

@@ -1,4 +1,4 @@
-﻿using UnityEditor.AnimatedValues;
+using UnityEditor.AnimatedValues;
 using UnityEngine;
 
 namespace UnityEditor.Experimental.Rendering
@@ -9,10 +9,10 @@ namespace UnityEditor.Experimental.Rendering
     class LightLoopSettingsUI : BaseUI<SerializedLightLoopSettings>
     {
         public static CED.IDrawer SectionLightLoopSettings = CED.FoldoutGroup(
-            "Light Loop Settings",
-            (s, p, o) => s.isSectionExpandedLightLoopSettings,
-            FoldoutOption.Indent,
-            CED.LabelWidth(250, CED.Action(Drawer_SectionLightLoopSettings)));
+                "Light Loop Settings",
+                (s, p, o) => s.isSectionExpandedLightLoopSettings,
+                FoldoutOption.Indent,
+                CED.LabelWidth(250, CED.Action(Drawer_SectionLightLoopSettings)));
 
         public AnimBool isSectionExpandedLightLoopSettings { get { return m_AnimBools[0]; } }
         public AnimBool isSectionExpandedEnableTileAndCluster { get { return m_AnimBools[1]; } }

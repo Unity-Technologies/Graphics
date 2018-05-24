@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph.Drawing.Controls;
@@ -107,45 +107,45 @@ namespace UnityEditor.ShaderGraph
         {
             ValidateChannelCount();
             registry.ProvideFunction(GetFunctionName(), s =>
-            {
-                int channelCount = SlotValueHelper.GetChannelCount(FindSlot<MaterialSlot>(InputSlotId).concreteValueType);
-                s.AppendLine(GetFunctionPrototype("In", "Out"));
-                using (s.BlockScope())
                 {
-                    if(channelMask == 0)
-                        s.AppendLine("Out = 0;");
-                    else if(channelMask == -1)
-                        s.AppendLine("Out = In;");
-                    else
+                    int channelCount = SlotValueHelper.GetChannelCount(FindSlot<MaterialSlot>(InputSlotId).concreteValueType);
+                    s.AppendLine(GetFunctionPrototype("In", "Out"));
+                    using (s.BlockScope())
                     {
-                        bool red = (channelMask & 1) != 0;
-                        bool green = (channelMask & 2) != 0;
-                        bool blue = (channelMask & 4) != 0;
-                        bool alpha = (channelMask & 8) != 0;
-
-                        switch (channelCount)
+                        if (channelMask == 0)
+                            s.AppendLine("Out = 0;");
+                        else if (channelMask == -1)
+                            s.AppendLine("Out = In;");
+                        else
                         {
-                            case 1:
-                                s.AppendLine("Out = In.r;");
-                                break;
-                            case 2:
-                                s.AppendLine(string.Format("Out = {0}2({1}, {2});", precision, 
-                                    red ? "In.r": "0", green ? "In.g" : "0"));
-                                break;
-                            case 3:
-                                s.AppendLine(string.Format("Out = {0}3({1}, {2}, {3});", precision,
-                                    red ? "In.r" : "0", green ? "In.g" : "0", blue ? "In.b" : "0"));
-                                break;
-                            case 4:
-                                s.AppendLine(string.Format("Out = {0}4({1}, {2}, {3}, {4});", precision,
-                                    red ? "In.r" : "0", green ? "In.g" : "0", blue ? "In.b" : "0", alpha ? "In.a" : "0"));
-                                break;
-                            default:
-                                throw new ArgumentOutOfRangeException();
+                            bool red = (channelMask & 1) != 0;
+                            bool green = (channelMask & 2) != 0;
+                            bool blue = (channelMask & 4) != 0;
+                            bool alpha = (channelMask & 8) != 0;
+
+                            switch (channelCount)
+                            {
+                                case 1:
+                                    s.AppendLine("Out = In.r;");
+                                    break;
+                                case 2:
+                                    s.AppendLine(string.Format("Out = {0}2({1}, {2});", precision,
+                                        red ? "In.r" : "0", green ? "In.g" : "0"));
+                                    break;
+                                case 3:
+                                    s.AppendLine(string.Format("Out = {0}3({1}, {2}, {3});", precision,
+                                        red ? "In.r" : "0", green ? "In.g" : "0", blue ? "In.b" : "0"));
+                                    break;
+                                case 4:
+                                    s.AppendLine(string.Format("Out = {0}4({1}, {2}, {3}, {4});", precision,
+                                        red ? "In.r" : "0", green ? "In.g" : "0", blue ? "In.b" : "0", alpha ? "In.a" : "0"));
+                                    break;
+                                default:
+                                    throw new ArgumentOutOfRangeException();
+                            }
                         }
                     }
-                }
-            });
+                });
         }
     }
 }

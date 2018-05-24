@@ -61,7 +61,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected virtual void OnProxyInspectorGUI()
         {
-
         }
 
         protected virtual void OnCommonInspectorGUI()

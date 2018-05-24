@@ -131,7 +131,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get { return m_ScreenSpaceTracingDebugData; }
             internal set
             {
-                m_ScreenSpaceTracingDebugData = value; 
+                m_ScreenSpaceTracingDebugData = value;
                 if (m_LastProjectionModel != m_ScreenSpaceTracingDebugData.tracingModel)
                 {
                     m_LastProjectionModel = m_ScreenSpaceTracingDebugData.tracingModel;
@@ -331,7 +331,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         bool IsScreenSpaceTracingReflectionDebugEnabled()
         {
-            return fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceTracing 
+            return fullScreenDebugMode == FullScreenDebugMode.ScreenSpaceTracing
                 && lightingDebugSettings.debugLightingMode == DebugLightingMode.ScreenSpaceTracingReflection;
         }
 
@@ -375,9 +375,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             DebugLightingMode debugLighting = lightingDebugSettings.debugLightingMode;
             DebugViewGbuffer debugGBuffer = (DebugViewGbuffer)materialDebugSettings.debugViewGBuffer;
-            return  (debugLighting == DebugLightingMode.DiffuseLighting || debugLighting == DebugLightingMode.SpecularLighting) ||
-                    (debugGBuffer == DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive) ||
-                    (fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid);
+            return (debugLighting == DebugLightingMode.DiffuseLighting || debugLighting == DebugLightingMode.SpecularLighting) ||
+                (debugGBuffer == DebugViewGbuffer.BakeDiffuseLightingWithAlbedoPlusEmissive) ||
+                (fullScreenDebugMode == FullScreenDebugMode.PreRefractionColorPyramid || fullScreenDebugMode == FullScreenDebugMode.FinalColorPyramid);
         }
 
         void RegisterDisplayStatsDebug()
@@ -400,7 +400,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var settingsContainer = new DebugUI.Container
             {
                 displayName = "Refraction / Reflection",
-                children = 
+                children =
                 {
                     new DebugUI.BoolField { displayName = "Debug Refraction Enabled", getter = IsScreenSpaceTracingRefractionDebugEnabled, setter = SetScreenSpaceTracingRefractionDebugEnabled, onValueChanged = RefreshScreenSpaceTracingDebug },
                     new DebugUI.BoolField { displayName = "Debug Reflection Enabled", getter = IsScreenSpaceTracingReflectionDebugEnabled, setter = SetScreenSpaceTracingReflectionDebugEnabled, onValueChanged = RefreshScreenSpaceTracingDebug },
@@ -444,24 +444,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         debugSettingsContainer.children.Add(
                             new DebugUI.EnumField { displayName = "Debug Mode", getter = GetDebugLightingSubMode, setter = SetScreenSpaceTracingDebugMode, enumNames = debugScreenSpaceTracingProxyStrings, enumValues = debugScreenSpaceTracingProxyValues, onValueChanged = RefreshScreenSpaceTracingDebug }
-                        );
+                            );
                         settingsContainer.children.Add(
                             new DebugUI.Container
+                        {
+                            displayName = "Debug Values",
+                            children =
                             {
-                                displayName = "Debug Values",
-                                children =
-                                {
-                                    new DebugUI.Value { displayName = "Hit Success", getter = () => screenSpaceTracingDebugData.endHitSuccess != 0 },
-                                    new DebugUI.Value { displayName = "Proxy Shape", getter = () => screenSpaceTracingDebugData.proxyShapeType },
-                                    new DebugUI.Value { displayName = "Projection Distance", getter = () => screenSpaceTracingDebugData.projectionDistance },
-                                    new DebugUI.Value { displayName = "Start Position", getter = () => screenSpaceTracingDebugData.loopStartPositionSS },
-                                    new DebugUI.Value { displayName = "Start Linear Depth", getter = () => screenSpaceTracingDebugData.loopStartLinearDepth },
-                                    new DebugUI.Value { displayName = "End Linear Depth", getter = () => screenSpaceTracingDebugData.endLinearDepth },
-                                    new DebugUI.Value { displayName = "End Position", getter = () => screenSpaceTracingDebugData.endPositionSS },
-                                }
-                            },
+                                new DebugUI.Value { displayName = "Hit Success", getter = () => screenSpaceTracingDebugData.endHitSuccess != 0 },
+                                new DebugUI.Value { displayName = "Proxy Shape", getter = () => screenSpaceTracingDebugData.proxyShapeType },
+                                new DebugUI.Value { displayName = "Projection Distance", getter = () => screenSpaceTracingDebugData.projectionDistance },
+                                new DebugUI.Value { displayName = "Start Position", getter = () => screenSpaceTracingDebugData.loopStartPositionSS },
+                                new DebugUI.Value { displayName = "Start Linear Depth", getter = () => screenSpaceTracingDebugData.loopStartLinearDepth },
+                                new DebugUI.Value { displayName = "End Linear Depth", getter = () => screenSpaceTracingDebugData.endLinearDepth },
+                                new DebugUI.Value { displayName = "End Position", getter = () => screenSpaceTracingDebugData.endPositionSS },
+                            }
+                        },
                             lightingDebug
-                        );
+                            );
                         break;
                     }
                     case Lit.ProjectionModel.HiZ:
@@ -472,43 +472,43 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             new DebugUI.BoolField { displayName = "Display Grid", getter = () => showSSRayGrid, setter = v => showSSRayGrid = v },
                             new DebugUI.BoolField { displayName = "Display Depth", getter = () => showSSRayDepthPyramid, setter = v => showSSRayDepthPyramid = v },
                             new DebugUI.BoolField { displayName = "Display Sampled Color", getter = () => showSSSampledColor, setter = v => showSSSampledColor = v }
-                        );
+                            );
                         settingsContainer.children.Add(
                             new DebugUI.Container
+                        {
+                            displayName = "Debug Values (loop)",
+                            children =
                             {
-                                displayName = "Debug Values (loop)",
-                                children =
-                                {
-                                    new DebugUI.Value { displayName = "Hit Success", getter = () => screenSpaceTracingDebugData.endHitSuccess != 0 },
-                                    new DebugUI.Value { displayName = "Start Position", getter = () => screenSpaceTracingDebugData.loopStartPositionSS },
-                                    new DebugUI.Value { displayName = "Start Linear Depth", getter = () => screenSpaceTracingDebugData.loopStartLinearDepth },
-                                    new DebugUI.Value { displayName = "Ray Direction SS", getter = () => new Vector2(screenSpaceTracingDebugData.loopRayDirectionSS.x, screenSpaceTracingDebugData.loopRayDirectionSS.y) },
-                                    new DebugUI.Value { displayName = "Ray Depth", getter = () => 1f / screenSpaceTracingDebugData.loopRayDirectionSS.z },
-                                    new DebugUI.Value { displayName = "End Position", getter = () => screenSpaceTracingDebugData.endPositionSS },
-                                    new DebugUI.Value { displayName = "End Linear Depth", getter = () => screenSpaceTracingDebugData.endLinearDepth },
-                                    new DebugUI.Value { displayName = "Hit Weight", getter = () => screenSpaceTracingDebugData.endHitWeight.ToString("F4") },
-                                }
-                            },
+                                new DebugUI.Value { displayName = "Hit Success", getter = () => screenSpaceTracingDebugData.endHitSuccess != 0 },
+                                new DebugUI.Value { displayName = "Start Position", getter = () => screenSpaceTracingDebugData.loopStartPositionSS },
+                                new DebugUI.Value { displayName = "Start Linear Depth", getter = () => screenSpaceTracingDebugData.loopStartLinearDepth },
+                                new DebugUI.Value { displayName = "Ray Direction SS", getter = () => new Vector2(screenSpaceTracingDebugData.loopRayDirectionSS.x, screenSpaceTracingDebugData.loopRayDirectionSS.y) },
+                                new DebugUI.Value { displayName = "Ray Depth", getter = () => 1f / screenSpaceTracingDebugData.loopRayDirectionSS.z },
+                                new DebugUI.Value { displayName = "End Position", getter = () => screenSpaceTracingDebugData.endPositionSS },
+                                new DebugUI.Value { displayName = "End Linear Depth", getter = () => screenSpaceTracingDebugData.endLinearDepth },
+                                new DebugUI.Value { displayName = "Hit Weight", getter = () => screenSpaceTracingDebugData.endHitWeight.ToString("F4") },
+                            }
+                        },
                             new DebugUI.Container
+                        {
+                            displayName = "Debug Values (iteration)",
+                            children =
                             {
-                                displayName = "Debug Values (iteration)",
-                                children =
-                                {
-                                    new DebugUI.Value { displayName = "Iteration", getter = () => string.Format("{0}/{1}", screenSpaceTracingDebugData.iteration, screenSpaceTracingDebugData.loopIterationMax) },
-                                    new DebugUI.Value { displayName = "Position SS", getter = () => new Vector2(screenSpaceTracingDebugData.iterationPositionSS.x, screenSpaceTracingDebugData.iterationPositionSS.y) },
-                                    new DebugUI.Value { displayName = "Depth", getter = () => 1f / screenSpaceTracingDebugData.iterationPositionSS.z },
-                                    new DebugUI.Value { displayName = "Depth Buffer Min/Min + Thickness/Max", getter = () => string.Format("{0}/{1}/{2}", screenSpaceTracingDebugData.iterationLinearDepthBufferMin, screenSpaceTracingDebugData.iterationLinearDepthBufferMinThickness, screenSpaceTracingDebugData.iterationLinearDepthBufferMax) },
-                                    new DebugUI.Value { displayName = "Intersection Thickness", getter = () => (screenSpaceTracingDebugData.iterationLinearDepthBufferMinThickness - 1f / screenSpaceTracingDebugData.iterationPositionSS.z).ToString("F6") },
-                                    new DebugUI.Value { displayName = "Depth Buffer Diff (Max - Min)", getter = () => (screenSpaceTracingDebugData.iterationLinearDepthBufferMax - screenSpaceTracingDebugData.iterationLinearDepthBufferMin).ToString("F6") },
-                                    new DebugUI.Value { displayName = "Intersect Depth Buffer", getter = () => screenSpaceTracingDebugData.intersectDepthBuffer },
-                                    new DebugUI.Value { displayName = "Mip Level", getter = () => screenSpaceTracingDebugData.iterationMipLevel },
-                                    new DebugUI.Value { displayName = "Cell Id", getter = () => screenSpaceTracingDebugData.iterationCellId },
-                                    new DebugUI.Value { displayName = "Cell Size", getter = () => screenSpaceTracingDebugData.iterationCellSize },
-                                    new DebugUI.Value { displayName = "Intersection Kind", getter = () => k_HiZIntersectionKind[(int)screenSpaceTracingDebugData.iterationIntersectionKind] },
-                                }
-                            },
+                                new DebugUI.Value { displayName = "Iteration", getter = () => string.Format("{0}/{1}", screenSpaceTracingDebugData.iteration, screenSpaceTracingDebugData.loopIterationMax) },
+                                new DebugUI.Value { displayName = "Position SS", getter = () => new Vector2(screenSpaceTracingDebugData.iterationPositionSS.x, screenSpaceTracingDebugData.iterationPositionSS.y) },
+                                new DebugUI.Value { displayName = "Depth", getter = () => 1f / screenSpaceTracingDebugData.iterationPositionSS.z },
+                                new DebugUI.Value { displayName = "Depth Buffer Min/Min + Thickness/Max", getter = () => string.Format("{0}/{1}/{2}", screenSpaceTracingDebugData.iterationLinearDepthBufferMin, screenSpaceTracingDebugData.iterationLinearDepthBufferMinThickness, screenSpaceTracingDebugData.iterationLinearDepthBufferMax) },
+                                new DebugUI.Value { displayName = "Intersection Thickness", getter = () => (screenSpaceTracingDebugData.iterationLinearDepthBufferMinThickness - 1f / screenSpaceTracingDebugData.iterationPositionSS.z).ToString("F6") },
+                                new DebugUI.Value { displayName = "Depth Buffer Diff (Max - Min)", getter = () => (screenSpaceTracingDebugData.iterationLinearDepthBufferMax - screenSpaceTracingDebugData.iterationLinearDepthBufferMin).ToString("F6") },
+                                new DebugUI.Value { displayName = "Intersect Depth Buffer", getter = () => screenSpaceTracingDebugData.intersectDepthBuffer },
+                                new DebugUI.Value { displayName = "Mip Level", getter = () => screenSpaceTracingDebugData.iterationMipLevel },
+                                new DebugUI.Value { displayName = "Cell Id", getter = () => screenSpaceTracingDebugData.iterationCellId },
+                                new DebugUI.Value { displayName = "Cell Size", getter = () => screenSpaceTracingDebugData.iterationCellSize },
+                                new DebugUI.Value { displayName = "Intersection Kind", getter = () => k_HiZIntersectionKind[(int)screenSpaceTracingDebugData.iterationIntersectionKind] },
+                            }
+                        },
                             lightingDebug
-                        );
+                            );
                         break;
                     }
                     case Lit.ProjectionModel.Linear:
@@ -517,41 +517,41 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             new DebugUI.EnumField { displayName = "Debug Mode", getter = GetDebugLightingSubMode, setter = SetScreenSpaceTracingDebugMode, enumNames = debugScreenSpaceTracingLinearStrings, enumValues = debugScreenSpaceTracingLinearValues, onValueChanged = RefreshScreenSpaceTracingDebug },
                             new DebugUI.BoolField { displayName = "Display Grid", getter = () => showSSRayGrid, setter = v => showSSRayGrid = v },
                             new DebugUI.BoolField { displayName = "Display Depth", getter = () => showSSRayDepthPyramid, setter = v => showSSRayDepthPyramid = v }
-                        );
+                            );
                         settingsContainer.children.Add(
                             new DebugUI.Container
+                        {
+                            displayName = "Debug Values (loop)",
+                            children =
                             {
-                                displayName = "Debug Values (loop)",
-                                children =
-                                {
-                                    new DebugUI.Value { displayName = "Hit Success", getter = () => screenSpaceTracingDebugData.endHitSuccess != 0 },
-                                    new DebugUI.Value { displayName = "Start Position", getter = () => screenSpaceTracingDebugData.loopStartPositionSS },
-                                    new DebugUI.Value { displayName = "Start Linear Depth", getter = () => screenSpaceTracingDebugData.loopStartLinearDepth },
-                                    new DebugUI.Value { displayName = "Ray Direction SS", getter = () => new Vector2(screenSpaceTracingDebugData.loopRayDirectionSS.x, screenSpaceTracingDebugData.loopRayDirectionSS.y) },
-                                    new DebugUI.Value { displayName = "Ray Depth", getter = () => 1f / screenSpaceTracingDebugData.loopRayDirectionSS.z },
-                                    new DebugUI.Value { displayName = "End Position", getter = () => screenSpaceTracingDebugData.endPositionSS },
-                                    new DebugUI.Value { displayName = "End Linear Depth", getter = () => screenSpaceTracingDebugData.endLinearDepth },
-                                    new DebugUI.Value { displayName = "Hit Weight", getter = () => screenSpaceTracingDebugData.endHitWeight.ToString("F4") },
-                                }
-                            },
+                                new DebugUI.Value { displayName = "Hit Success", getter = () => screenSpaceTracingDebugData.endHitSuccess != 0 },
+                                new DebugUI.Value { displayName = "Start Position", getter = () => screenSpaceTracingDebugData.loopStartPositionSS },
+                                new DebugUI.Value { displayName = "Start Linear Depth", getter = () => screenSpaceTracingDebugData.loopStartLinearDepth },
+                                new DebugUI.Value { displayName = "Ray Direction SS", getter = () => new Vector2(screenSpaceTracingDebugData.loopRayDirectionSS.x, screenSpaceTracingDebugData.loopRayDirectionSS.y) },
+                                new DebugUI.Value { displayName = "Ray Depth", getter = () => 1f / screenSpaceTracingDebugData.loopRayDirectionSS.z },
+                                new DebugUI.Value { displayName = "End Position", getter = () => screenSpaceTracingDebugData.endPositionSS },
+                                new DebugUI.Value { displayName = "End Linear Depth", getter = () => screenSpaceTracingDebugData.endLinearDepth },
+                                new DebugUI.Value { displayName = "Hit Weight", getter = () => screenSpaceTracingDebugData.endHitWeight.ToString("F4") },
+                            }
+                        },
                             new DebugUI.Container
+                        {
+                            displayName = "Debug Values (iteration)",
+                            children =
                             {
-                                displayName = "Debug Values (iteration)",
-                                children =
-                                {
-                                    new DebugUI.Value { displayName = "Iteration", getter = () => string.Format("{0}/{1}", screenSpaceTracingDebugData.iteration, screenSpaceTracingDebugData.loopIterationMax) },
-                                    new DebugUI.Value { displayName = "Position SS", getter = () => new Vector2(screenSpaceTracingDebugData.iterationPositionSS.x, screenSpaceTracingDebugData.iterationPositionSS.y) },
-                                    new DebugUI.Value { displayName = "Depth", getter = () => 1f / screenSpaceTracingDebugData.iterationPositionSS.z },
-                                    new DebugUI.Value { displayName = "Intersection Thickness", getter = () => (screenSpaceTracingDebugData.iterationLinearDepthBufferMinThickness - 1f / screenSpaceTracingDebugData.iterationPositionSS.z).ToString("F6") },
-                                    new DebugUI.Value { displayName = "Depth Buffer Min/Min + Thickness/Max", getter = () => string.Format("{0}/{1}/{2}", screenSpaceTracingDebugData.iterationLinearDepthBufferMin, screenSpaceTracingDebugData.iterationLinearDepthBufferMinThickness, screenSpaceTracingDebugData.iterationLinearDepthBufferMax) },
-                                    new DebugUI.Value { displayName = "Intersect Depth Buffer", getter = () => screenSpaceTracingDebugData.intersectDepthBuffer },
-                                    new DebugUI.Value { displayName = "Mip Level", getter = () => screenSpaceTracingDebugData.iterationMipLevel },
-                                    new DebugUI.Value { displayName = "Cell Id", getter = () => screenSpaceTracingDebugData.iterationCellId },
-                                    new DebugUI.Value { displayName = "Cell Size", getter = () => screenSpaceTracingDebugData.iterationCellSize },
-                                }
-                            },
+                                new DebugUI.Value { displayName = "Iteration", getter = () => string.Format("{0}/{1}", screenSpaceTracingDebugData.iteration, screenSpaceTracingDebugData.loopIterationMax) },
+                                new DebugUI.Value { displayName = "Position SS", getter = () => new Vector2(screenSpaceTracingDebugData.iterationPositionSS.x, screenSpaceTracingDebugData.iterationPositionSS.y) },
+                                new DebugUI.Value { displayName = "Depth", getter = () => 1f / screenSpaceTracingDebugData.iterationPositionSS.z },
+                                new DebugUI.Value { displayName = "Intersection Thickness", getter = () => (screenSpaceTracingDebugData.iterationLinearDepthBufferMinThickness - 1f / screenSpaceTracingDebugData.iterationPositionSS.z).ToString("F6") },
+                                new DebugUI.Value { displayName = "Depth Buffer Min/Min + Thickness/Max", getter = () => string.Format("{0}/{1}/{2}", screenSpaceTracingDebugData.iterationLinearDepthBufferMin, screenSpaceTracingDebugData.iterationLinearDepthBufferMinThickness, screenSpaceTracingDebugData.iterationLinearDepthBufferMax) },
+                                new DebugUI.Value { displayName = "Intersect Depth Buffer", getter = () => screenSpaceTracingDebugData.intersectDepthBuffer },
+                                new DebugUI.Value { displayName = "Mip Level", getter = () => screenSpaceTracingDebugData.iterationMipLevel },
+                                new DebugUI.Value { displayName = "Cell Id", getter = () => screenSpaceTracingDebugData.iterationCellId },
+                                new DebugUI.Value { displayName = "Cell Size", getter = () => screenSpaceTracingDebugData.iterationCellSize },
+                            }
+                        },
                             lightingDebug
-                        );
+                            );
                         break;
                     }
                 }
@@ -651,57 +651,57 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             {
                                 displayName = "Fullscreen Debug Mip",
                                 getter = () =>
-                                {
-                                    int id;
-                                    switch (fullScreenDebugMode)
                                     {
-                                        case FullScreenDebugMode.FinalColorPyramid:
-                                        case FullScreenDebugMode.PreRefractionColorPyramid:
-                                            id = HDShaderIDs._ColorPyramidScale;
-                                            break;
-                                        default:
-                                            id = HDShaderIDs._DepthPyramidScale;
-                                            break;
-                                    }
-                                    var size = Shader.GetGlobalVector(id);
-                                    float lodCount = size.z;
-                                    return (uint)(fullscreenDebugMip * lodCount);
-                                },
+                                        int id;
+                                        switch (fullScreenDebugMode)
+                                        {
+                                            case FullScreenDebugMode.FinalColorPyramid:
+                                            case FullScreenDebugMode.PreRefractionColorPyramid:
+                                                id = HDShaderIDs._ColorPyramidScale;
+                                                break;
+                                            default:
+                                                id = HDShaderIDs._DepthPyramidScale;
+                                                break;
+                                        }
+                                        var size = Shader.GetGlobalVector(id);
+                                        float lodCount = size.z;
+                                        return (uint)(fullscreenDebugMip * lodCount);
+                                    },
                                 setter = value =>
-                                {
-                                    int id;
-                                    switch (fullScreenDebugMode)
                                     {
-                                        case FullScreenDebugMode.FinalColorPyramid:
-                                        case FullScreenDebugMode.PreRefractionColorPyramid:
-                                            id = HDShaderIDs._ColorPyramidScale;
-                                            break;
-                                        default:
-                                            id = HDShaderIDs._DepthPyramidScale;
-                                            break;
-                                    }
-                                    var size = Shader.GetGlobalVector(id);
-                                    float lodCount = size.z;
-                                    fullscreenDebugMip = (float)Convert.ChangeType(value, typeof(float)) / lodCount;
-                                },
+                                        int id;
+                                        switch (fullScreenDebugMode)
+                                        {
+                                            case FullScreenDebugMode.FinalColorPyramid:
+                                            case FullScreenDebugMode.PreRefractionColorPyramid:
+                                                id = HDShaderIDs._ColorPyramidScale;
+                                                break;
+                                            default:
+                                                id = HDShaderIDs._DepthPyramidScale;
+                                                break;
+                                        }
+                                        var size = Shader.GetGlobalVector(id);
+                                        float lodCount = size.z;
+                                        fullscreenDebugMip = (float)Convert.ChangeType(value, typeof(float)) / lodCount;
+                                    },
                                 min = () => 0u,
                                 max = () =>
-                                {
-                                    int id;
-                                    switch (fullScreenDebugMode)
                                     {
-                                        case FullScreenDebugMode.FinalColorPyramid:
-                                        case FullScreenDebugMode.PreRefractionColorPyramid:
-                                            id = HDShaderIDs._ColorPyramidScale;
-                                            break;
-                                        default:
-                                            id = HDShaderIDs._DepthPyramidScale;
-                                            break;
+                                        int id;
+                                        switch (fullScreenDebugMode)
+                                        {
+                                            case FullScreenDebugMode.FinalColorPyramid:
+                                            case FullScreenDebugMode.PreRefractionColorPyramid:
+                                                id = HDShaderIDs._ColorPyramidScale;
+                                                break;
+                                            default:
+                                                id = HDShaderIDs._DepthPyramidScale;
+                                                break;
+                                        }
+                                        var size = Shader.GetGlobalVector(id);
+                                        float lodCount = size.z;
+                                        return (uint)lodCount;
                                     }
-                                    var size = Shader.GetGlobalVector(id);
-                                    float lodCount = size.z;
-                                    return (uint)lodCount;
-                                }
                             }
                         }
                     });

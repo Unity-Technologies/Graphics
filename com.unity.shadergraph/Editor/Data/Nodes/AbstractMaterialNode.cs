@@ -472,11 +472,11 @@ namespace UnityEditor.ShaderGraph
                     continue;
 
                 s.GetPreviewProperties(s_TempPreviewProperties, GetVariableNameForSlot(s.id));
-                for(int i = 0; i < s_TempPreviewProperties.Count; i++)
+                for (int i = 0; i < s_TempPreviewProperties.Count; i++)
                 {
                     if (s_TempPreviewProperties[i].name == null)
                         continue;
-                    
+
                     properties.Add(s_TempPreviewProperties[i]);
                 }
             }

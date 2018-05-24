@@ -71,7 +71,6 @@ namespace UnityEditor.ShaderGraph
 
                 m_SurfaceType = value;
                 Dirty(ModificationScope.Graph);
-
             }
         }
 
@@ -88,7 +87,6 @@ namespace UnityEditor.ShaderGraph
 
                 m_AlphaMode = value;
                 Dirty(ModificationScope.Graph);
-
             }
         }
 
@@ -162,11 +160,11 @@ namespace UnityEditor.ShaderGraph
             GetSlots(slots);
 
             List<MaterialSlot> validSlots = new List<MaterialSlot>();
-            for(int i = 0; i < slots.Count; i++)
+            for (int i = 0; i < slots.Count; i++)
             {
-                if(slots[i].stageCapability != ShaderStageCapability.All && slots[i].stageCapability != stageCapability)
+                if (slots[i].stageCapability != ShaderStageCapability.All && slots[i].stageCapability != stageCapability)
                     continue;
-                
+
                 validSlots.Add(slots[i]);
             }
             return validSlots.OfType<IMayRequireNormal>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresNormal(stageCapability));
@@ -176,13 +174,13 @@ namespace UnityEditor.ShaderGraph
         {
             List<MaterialSlot> slots = new List<MaterialSlot>();
             GetSlots(slots);
-            
+
             List<MaterialSlot> validSlots = new List<MaterialSlot>();
-            for(int i = 0; i < slots.Count; i++)
+            for (int i = 0; i < slots.Count; i++)
             {
-                if(slots[i].stageCapability != ShaderStageCapability.All && slots[i].stageCapability != stageCapability)
+                if (slots[i].stageCapability != ShaderStageCapability.All && slots[i].stageCapability != stageCapability)
                     continue;
-                
+
                 validSlots.Add(slots[i]);
             }
             return validSlots.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition(stageCapability));

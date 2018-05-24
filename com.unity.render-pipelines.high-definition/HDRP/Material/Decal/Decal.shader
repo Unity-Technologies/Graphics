@@ -3,9 +3,9 @@ Shader "HDRenderPipeline/Decal"
     Properties
     {
         _BaseColorMap("BaseColorMap", 2D) = "white" {}
-		_NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
-		_MaskMap("MaskMap", 2D) = "white" {}
-		_DecalBlend("_DecalBlend", Range(0.0, 1.0)) = 0.5
+        _NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
+        _MaskMap("MaskMap", 2D) = "white" {}
+        _DecalBlend("_DecalBlend", Range(0.0, 1.0)) = 0.5
     }
 
     HLSLINCLUDE
@@ -17,15 +17,15 @@ Shader "HDRenderPipeline/Decal"
     //-------------------------------------------------------------------------------------
     // Variant
     //-------------------------------------------------------------------------------------
-	#pragma shader_feature _COLORMAP
-	#pragma shader_feature _NORMALMAP
-	#pragma shader_feature _MASKMAP
+    #pragma shader_feature _COLORMAP
+    #pragma shader_feature _NORMALMAP
+    #pragma shader_feature _MASKMAP
 
-	#pragma multi_compile_instancing
+    #pragma multi_compile_instancing
     //-------------------------------------------------------------------------------------
     // Define
     //-------------------------------------------------------------------------------------
-	#define UNITY_MATERIAL_DECAL
+    #define UNITY_MATERIAL_DECAL
 
     //-------------------------------------------------------------------------------------
     // Include
@@ -58,24 +58,24 @@ Shader "HDRenderPipeline/Decal"
             Name "DBuffer"  // Name is not used
             Tags { "LightMode" = "DBuffer" } // This will be only for opaque object based on the RenderQueue index
 
-			// back faces with zfail, for cases when camera is inside the decal volume
+            // back faces with zfail, for cases when camera is inside the decal volume
             Cull Front
-			ZWrite Off
-			ZTest Greater
-			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-			Blend SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+            ZWrite Off
+            ZTest Greater
+            // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+            Blend SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
 
-			HLSLPROGRAM
+            HLSLPROGRAM
 
-			#define SHADERPASS SHADERPASS_DBUFFER
-			#include "../../ShaderVariables.hlsl"
-			#include "Decal.hlsl"
-			#include "ShaderPass/DecalSharePass.hlsl"
-			#include "DecalData.hlsl"
-			#include "../../ShaderPass/ShaderPassDBuffer.hlsl"
+            #define SHADERPASS SHADERPASS_DBUFFER
+            #include "../../ShaderVariables.hlsl"
+            #include "Decal.hlsl"
+            #include "ShaderPass/DecalSharePass.hlsl"
+            #include "DecalData.hlsl"
+            #include "../../ShaderPass/ShaderPassDBuffer.hlsl"
 
             ENDHLSL
         }
-	}
+    }
     CustomEditor "Experimental.Rendering.HDPipeline.DecalUI"
 }

@@ -66,7 +66,7 @@ namespace UnityEditor.ShaderGraph
             };
             properties.AddShaderProperty(property);
         }
-        
+
         public override void GetPreviewProperties(List<PreviewProperty> properties, string name)
         {
             var pp = new PreviewProperty(PropertyType.Matrix3)

@@ -27,7 +27,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public T GetValue<T>()
         {
-            return ((VolumeParameter<T>)this).value;
+            return ((VolumeParameter<T>) this).value;
         }
 
         internal abstract void SetValue(VolumeParameter parameter);
@@ -120,12 +120,12 @@ namespace UnityEngine.Experimental.Rendering
             return string.Format("{0} ({1})", value, overrideState);
         }
 
-        public static bool operator ==(VolumeParameter<T> lhs, T rhs)
+        public static bool operator==(VolumeParameter<T> lhs, T rhs)
         {
             return lhs != null && lhs.value != null && lhs.value.Equals(rhs);
         }
 
-        public static bool operator !=(VolumeParameter<T> lhs, T rhs)
+        public static bool operator!=(VolumeParameter<T> lhs, T rhs)
         {
             return !(lhs == rhs);
         }
@@ -187,14 +187,14 @@ namespace UnityEngine.Experimental.Rendering
     public sealed class BoolParameter : VolumeParameter<bool>
     {
         public BoolParameter(bool value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState) {}
     }
 
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public class IntParameter : VolumeParameter<int>
     {
         public IntParameter(int value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState) {}
 
         public sealed override void Interp(int from, int to, float t)
         {
@@ -208,7 +208,7 @@ namespace UnityEngine.Experimental.Rendering
     public sealed class NoInterpIntParameter : VolumeParameter<int>
     {
         public NoInterpIntParameter(int value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState) {}
     }
 
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
@@ -327,7 +327,7 @@ namespace UnityEngine.Experimental.Rendering
     public class FloatParameter : VolumeParameter<float>
     {
         public FloatParameter(float value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState) {}
 
         public sealed override void Interp(float from, float to, float t)
         {
@@ -339,7 +339,7 @@ namespace UnityEngine.Experimental.Rendering
     public sealed class NoInterpFloatParameter : VolumeParameter<float>
     {
         public NoInterpFloatParameter(float value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState) {}
     }
 
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
@@ -518,7 +518,7 @@ namespace UnityEngine.Experimental.Rendering
         public bool showEyeDropper = true;
 
         public ColorParameter(Color value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState) {}
 
         public ColorParameter(Color value, bool hdr, bool showAlpha, bool showEyeDropper, bool overrideState = false)
             : base(value, overrideState)
@@ -550,7 +550,7 @@ namespace UnityEngine.Experimental.Rendering
         public bool showEyeDropper = true;
 
         public NoInterpColorParameter(Color value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState) {}
 
         public NoInterpColorParameter(Color value, bool hdr, bool showAlpha, bool showEyeDropper, bool overrideState = false)
             : base(value, overrideState)
@@ -566,7 +566,7 @@ namespace UnityEngine.Experimental.Rendering
     public sealed class Vector2Parameter : VolumeParameter<Vector2>
     {
         public Vector2Parameter(Vector2 value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState) {}
 
         public override void Interp(Vector2 from, Vector2 to, float t)
         {
@@ -579,14 +579,14 @@ namespace UnityEngine.Experimental.Rendering
     public sealed class NoInterpVector2Parameter : VolumeParameter<Vector2>
     {
         public NoInterpVector2Parameter(Vector2 value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState) {}
     }
 
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class Vector3Parameter : VolumeParameter<Vector3>
     {
         public Vector3Parameter(Vector3 value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState) {}
 
         public override void Interp(Vector3 from, Vector3 to, float t)
         {
@@ -600,14 +600,14 @@ namespace UnityEngine.Experimental.Rendering
     public sealed class NoInterpVector3Parameter : VolumeParameter<Vector3>
     {
         public NoInterpVector3Parameter(Vector3 value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState) {}
     }
 
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class Vector4Parameter : VolumeParameter<Vector4>
     {
         public Vector4Parameter(Vector4 value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState) {}
 
         public override void Interp(Vector4 from, Vector4 to, float t)
         {
@@ -622,14 +622,14 @@ namespace UnityEngine.Experimental.Rendering
     public sealed class NoInterpVector4Parameter : VolumeParameter<Vector4>
     {
         public NoInterpVector4Parameter(Vector4 value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState) {}
     }
 
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class TextureParameter : VolumeParameter<Texture>
     {
         public TextureParameter(Texture value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState) {}
 
         // TODO: Texture interpolation
     }
@@ -638,14 +638,14 @@ namespace UnityEngine.Experimental.Rendering
     public sealed class NoInterpTextureParameter : VolumeParameter<Texture>
     {
         public NoInterpTextureParameter(Texture value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState) {}
     }
 
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class RenderTextureParameter : VolumeParameter<RenderTexture>
     {
         public RenderTextureParameter(RenderTexture value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState) {}
 
         // TODO: RenderTexture interpolation
     }
@@ -654,14 +654,14 @@ namespace UnityEngine.Experimental.Rendering
     public sealed class NoInterpRenderTextureParameter : VolumeParameter<RenderTexture>
     {
         public NoInterpRenderTextureParameter(RenderTexture value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState) {}
     }
 
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class CubemapParameter : VolumeParameter<Cubemap>
     {
         public CubemapParameter(Cubemap value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState) {}
 
         // TODO: Cubemap interpolation
     }
@@ -670,7 +670,7 @@ namespace UnityEngine.Experimental.Rendering
     public sealed class NoInterpCubemapParameter : VolumeParameter<Cubemap>
     {
         public NoInterpCubemapParameter(Cubemap value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState) {}
     }
 
     // Used as a container to store custom serialized classes/structs inside volume components

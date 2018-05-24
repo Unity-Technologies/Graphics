@@ -21,29 +21,29 @@ namespace UnityEngine.Experimental.Rendering
         static readonly int _Result1 = Shader.PropertyToID("_Result1");
         static readonly int _Source4 = Shader.PropertyToID("_Source4");
         void SampleCopyChannel(
-            CommandBuffer cmd, 
+            CommandBuffer cmd,
             RectInt rect,
             int _source,
-            RenderTargetIdentifier source, 
+            RenderTargetIdentifier source,
             int _target,
             RenderTargetIdentifier target,
             int kernel8,
             int kernel1)
         {
             RectInt main, topRow, rightCol, topRight;
-            unsafe 
+            unsafe
             {
                 RectInt* dispatch1Rects = stackalloc RectInt[3];
                 int dispatch1RectCount = 0;
                 RectInt dispatch8Rect = RectInt.zero;
 
                 if (TileLayoutUtils.TryLayoutByTiles(
-                    rect, 
-                    8,
-                    out main,
-                    out topRow, 
-                    out rightCol,
-                    out topRight))
+                        rect,
+                        8,
+                        out main,
+                        out topRow,
+                        out rightCol,
+                        out topRight))
                 {
                     if (topRow.width > 0 && topRow.height > 0)
                     {
@@ -79,7 +79,7 @@ namespace UnityEngine.Experimental.Rendering
                     cmd.SetComputeIntParams(m_Shader, _RectOffset, (int)r.x, (int)r.y);
                     cmd.DispatchCompute(m_Shader, kernel8, (int)Mathf.Max(r.width / 8, 1), (int)Mathf.Max(r.height / 8, 1), 1);
                 }
-                
+
                 for (int i = 0, c = dispatch1RectCount; i < c; ++i)
                 {
                     var r = dispatch1Rects[i];
@@ -88,10 +88,10 @@ namespace UnityEngine.Experimental.Rendering
                 }
             }
         }
-        public void SampleCopyChannel_xyzw2x(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier target, RectInt rect)
-          {
-                 SampleCopyChannel(cmd, rect, _Source4, source, _Result1, target, k_SampleKernel_xyzw2x_8, k_SampleKernel_xyzw2x_1);
-          }
 
+        public void SampleCopyChannel_xyzw2x(CommandBuffer cmd, RenderTargetIdentifier source, RenderTargetIdentifier target, RectInt rect)
+        {
+            SampleCopyChannel(cmd, rect, _Source4, source, _Result1, target, k_SampleKernel_xyzw2x_8, k_SampleKernel_xyzw2x_1);
+        }
     }
 }

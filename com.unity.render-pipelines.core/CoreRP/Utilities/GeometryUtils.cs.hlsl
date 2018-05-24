@@ -21,27 +21,27 @@ struct OrientedBBox
 //
 float3 GetRight(OrientedBBox value)
 {
-	return value.right;
+    return value.right;
 }
 float GetExtentX(OrientedBBox value)
 {
-	return value.extentX;
+    return value.extentX;
 }
 float3 GetUp(OrientedBBox value)
 {
-	return value.up;
+    return value.up;
 }
 float GetExtentY(OrientedBBox value)
 {
-	return value.extentY;
+    return value.extentY;
 }
 float3 GetCenter(OrientedBBox value)
 {
-	return value.center;
+    return value.center;
 }
 float GetExtentZ(OrientedBBox value)
 {
-	return value.extentZ;
+    return value.extentZ;
 }
 
 

@@ -31,7 +31,7 @@ namespace UnityEngine.Experimental.Rendering
             VRTextureUsage vrUsage = VRTextureUsage.None,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
             string name = ""
-        )
+            )
         {
             return s_DefaultInstance.Alloc(
                 width,
@@ -54,7 +54,7 @@ namespace UnityEngine.Experimental.Rendering
                 vrUsage,
                 memoryless,
                 name
-            );
+                );
         }
 
         public static RTHandleSystem.RTHandle Alloc(
@@ -77,7 +77,7 @@ namespace UnityEngine.Experimental.Rendering
             VRTextureUsage vrUsage = VRTextureUsage.None,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
             string name = ""
-        )
+            )
         {
             return s_DefaultInstance.Alloc(
                 scaleFactor,
@@ -99,7 +99,7 @@ namespace UnityEngine.Experimental.Rendering
                 vrUsage,
                 memoryless,
                 name
-            );
+                );
         }
 
         public static RTHandleSystem.RTHandle Alloc(
@@ -122,7 +122,7 @@ namespace UnityEngine.Experimental.Rendering
             VRTextureUsage vrUsage = VRTextureUsage.None,
             RenderTextureMemoryless memoryless = RenderTextureMemoryless.None,
             string name = ""
-        )
+            )
         {
             return s_DefaultInstance.Alloc(
                 scaleFunc,
@@ -144,7 +144,7 @@ namespace UnityEngine.Experimental.Rendering
                 vrUsage,
                 memoryless,
                 name
-            );
+                );
         }
 
         public static void Initialize(
@@ -152,14 +152,14 @@ namespace UnityEngine.Experimental.Rendering
             int height,
             bool scaledRTsupportsMSAA,
             MSAASamples scaledRTMSAASamples
-        )
+            )
         {
             s_DefaultInstance.Initialize(
                 width,
                 height,
                 scaledRTsupportsMSAA,
                 scaledRTMSAASamples
-            );
+                );
         }
 
         public static void Release(RTHandleSystem.RTHandle rth)
@@ -172,14 +172,14 @@ namespace UnityEngine.Experimental.Rendering
             int height,
             bool msaa,
             MSAASamples msaaSamples
-        )
+            )
         {
             s_DefaultInstance.ResetReferenceSize(
                 width,
                 height,
                 msaa,
                 msaaSamples
-            );
+                );
         }
 
         public static void SetReferenceSize(
@@ -187,14 +187,14 @@ namespace UnityEngine.Experimental.Rendering
             int height,
             bool msaa,
             MSAASamples msaaSamples
-        )
+            )
         {
             s_DefaultInstance.SetReferenceSize(
                 width,
                 height,
                 msaa,
                 msaaSamples
-            );
+                );
         }
     }
 }

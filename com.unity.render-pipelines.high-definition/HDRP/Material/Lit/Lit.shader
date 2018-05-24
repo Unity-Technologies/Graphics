@@ -1,4 +1,4 @@
-﻿Shader "HDRenderPipeline/Lit"
+Shader "HDRenderPipeline/Lit"
 {
     Properties
     {
@@ -30,14 +30,14 @@
         [HideInInspector] _HeightAmplitude("Height Amplitude", Float) = 0.02 // In world units. This will be computed in the UI.
         [HideInInspector] _HeightCenter("Height Center", Range(0.0, 1.0)) = 0.5 // In texture space
 
-		[Enum(MinMax, 0, Amplitude, 1)] _HeightMapParametrization("Heightmap Parametrization", Int) = 0
+        [Enum(MinMax, 0, Amplitude, 1)] _HeightMapParametrization("Heightmap Parametrization", Int) = 0
         // These parameters are for vertex displacement/Tessellation
-		_HeightOffset("Height Offset", Float) = 0
-		// MinMax mode
+        _HeightOffset("Height Offset", Float) = 0
+        // MinMax mode
         _HeightMin("Heightmap Min", Float) = -1
         _HeightMax("Heightmap Max", Float) = 1
-		// Amplitude mode
-		_HeightTessAmplitude("Amplitude", Float) = 2.0 // in Centimeters
+        // Amplitude mode
+        _HeightTessAmplitude("Amplitude", Float) = 2.0 // in Centimeters
         _HeightTessCenter("Height Center", Range(0.0, 1.0)) = 0.5 // In texture space
 
         // These parameters are for pixel displacement

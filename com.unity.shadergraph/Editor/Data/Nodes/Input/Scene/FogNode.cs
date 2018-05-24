@@ -43,51 +43,51 @@ namespace UnityEditor.ShaderGraph
         {
             visitor.AddShaderChunk(string.Format("{0} {1};", FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision), GetVariableNameForSlot(OutputSlotId)), false);
             visitor.AddShaderChunk(string.Format("{0} {1};", FindOutputSlot<MaterialSlot>(OutputSlot1Id).concreteValueType.ToString(precision), GetVariableNameForSlot(OutputSlot1Id)), false);
-            visitor.AddShaderChunk(string.Format("{0}(IN.{1}, {2}, {3});", GetFunctionName(), 
-                CoordinateSpace.Object.ToVariableName(InterpolatorType.Position), 
-                GetVariableNameForSlot(OutputSlotId), GetVariableNameForSlot(OutputSlot1Id)), false);
+            visitor.AddShaderChunk(string.Format("{0}(IN.{1}, {2}, {3});", GetFunctionName(),
+                    CoordinateSpace.Object.ToVariableName(InterpolatorType.Position),
+                    GetVariableNameForSlot(OutputSlotId), GetVariableNameForSlot(OutputSlot1Id)), false);
         }
 
         public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
         {
             registry.ProvideFunction(GetFunctionName(), s =>
-            {
-                s.AppendLine("void {0}({1}3 ObjectSpacePosition, out {2} Color, out {3} Density)",
-                    GetFunctionName(),
-                    precision,
-                    FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision),
-                    FindOutputSlot<MaterialSlot>(OutputSlot1Id).concreteValueType.ToString(precision));
-                using (s.BlockScope())
                 {
-                    s.AppendLine("Color = unity_FogColor;");
+                    s.AppendLine("void {0}({1}3 ObjectSpacePosition, out {2} Color, out {3} Density)",
+                        GetFunctionName(),
+                        precision,
+                        FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision),
+                        FindOutputSlot<MaterialSlot>(OutputSlot1Id).concreteValueType.ToString(precision));
+                    using (s.BlockScope())
+                    {
+                        s.AppendLine("Color = unity_FogColor;");
 
-                    s.AppendLine("{0} clipZ_01 = UNITY_Z_0_FAR_FROM_CLIPSPACE(mul(GetWorldToHClipMatrix(), mul(GetObjectToWorldMatrix(), ObjectSpacePosition)).z);", precision);
-                    s.AppendLine("#if defined(FOG_LINEAR)");
-                    using (s.IndentScope())
-                    {
-                        s.AppendLine("{0} fogFactor = saturate(clipZ_01 * unity_FogParams.z + unity_FogParams.w);", precision);
-                        s.AppendLine("Density = fogFactor;");
+                        s.AppendLine("{0} clipZ_01 = UNITY_Z_0_FAR_FROM_CLIPSPACE(mul(GetWorldToHClipMatrix(), mul(GetObjectToWorldMatrix(), ObjectSpacePosition)).z);", precision);
+                        s.AppendLine("#if defined(FOG_LINEAR)");
+                        using (s.IndentScope())
+                        {
+                            s.AppendLine("{0} fogFactor = saturate(clipZ_01 * unity_FogParams.z + unity_FogParams.w);", precision);
+                            s.AppendLine("Density = fogFactor;");
+                        }
+                        s.AppendLine("#elif defined(FOG_EXP)");
+                        using (s.IndentScope())
+                        {
+                            s.AppendLine("{0} fogFactor = unity_FogParams.y * clipZ_01;", precision);
+                            s.AppendLine("Density = saturate(exp2(-fogFactor));");
+                        }
+                        s.AppendLine("#elif defined(FOG_EXP2)");
+                        using (s.IndentScope())
+                        {
+                            s.AppendLine("{0} fogFactor = unity_FogParams.x * clipZ_01;", precision);
+                            s.AppendLine("Density = saturate(exp2(-fogFactor*fogFactor));");
+                        }
+                        s.AppendLine("#else");
+                        using (s.IndentScope())
+                        {
+                            s.AppendLine("Density = 0.0h;");
+                        }
+                        s.AppendLine("#endif");
                     }
-                    s.AppendLine("#elif defined(FOG_EXP)");
-                    using (s.IndentScope())
-                    {
-                        s.AppendLine("{0} fogFactor = unity_FogParams.y * clipZ_01;", precision);
-                        s.AppendLine("Density = saturate(exp2(-fogFactor));");
-                    }
-                    s.AppendLine("#elif defined(FOG_EXP2)");
-                    using (s.IndentScope())
-                    {
-                        s.AppendLine("{0} fogFactor = unity_FogParams.x * clipZ_01;", precision);
-                        s.AppendLine("Density = saturate(exp2(-fogFactor*fogFactor));");
-                    }
-                    s.AppendLine("#else");
-                    using (s.IndentScope())
-                    {
-                        s.AppendLine("Density = 0.0h;");
-                    }
-                    s.AppendLine("#endif");
-                }
-            });
+                });
         }
 
         public NeededCoordinateSpace RequiresPosition(ShaderStageCapability stageCapability)

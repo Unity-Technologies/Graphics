@@ -3,13 +3,13 @@ using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    public class DensityVolumeManager 
+    public class DensityVolumeManager
     {
         static private DensityVolumeManager _instance = null;
 
         public static DensityVolumeManager manager
         {
-            get 
+            get
             {
                 if (_instance == null)
                 {
@@ -42,9 +42,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             volume.OnTextureUpdated += TriggerVolumeAtlasRefresh;
 
-            if (volume.parameters.volumeMask != null) 
+            if (volume.parameters.volumeMask != null)
             {
-                volumeAtlas.AddTexture(volume.parameters.volumeMask); 
+                volumeAtlas.AddTexture(volume.parameters.volumeMask);
             }
         }
 
@@ -55,9 +55,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 volumes.Remove(volume);
             }
 
-             volume.OnTextureUpdated -= TriggerVolumeAtlasRefresh;
+            volume.OnTextureUpdated -= TriggerVolumeAtlasRefresh;
 
-            if (volume.parameters.volumeMask != null) 
+            if (volume.parameters.volumeMask != null)
             {
                 volumeAtlas.RemoveTexture(volume.parameters.volumeMask);
             }
@@ -65,11 +65,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             //Upon removal we have to refresh the texture list.
             TriggerVolumeAtlasRefresh();
         }
-        
+
         public DensityVolume[] PrepareDensityVolumeData(CommandBuffer cmd)
         {
             //Update volumes
-            foreach (DensityVolume volume in volumes )
+            foreach (DensityVolume volume in volumes)
             {
                 volume.PrepareParameters();
             }
@@ -82,15 +82,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             volumeAtlas.GenerateVolumeAtlas(cmd);
 
-          return volumes.ToArray();
+            return volumes.ToArray();
         }
 
         private void VolumeAtlasRefresh()
         {
             volumeAtlas.ClearTextures();
-            foreach (DensityVolume volume in volumes )
+            foreach (DensityVolume volume in volumes)
             {
-                if (volume.parameters.volumeMask != null) 
+                if (volume.parameters.volumeMask != null)
                 {
                     volumeAtlas.AddTexture(volume.parameters.volumeMask);
                 }
@@ -104,9 +104,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         private void AtlasUpdated()
         {
-            foreach(DensityVolume volume in volumes )
+            foreach (DensityVolume volume in volumes)
             {
-                volume.parameters.textureIndex = volumeAtlas.GetTextureIndex(volume.parameters.volumeMask); 
+                volume.parameters.textureIndex = volumeAtlas.GetTextureIndex(volume.parameters.volumeMask);
             }
         }
     }

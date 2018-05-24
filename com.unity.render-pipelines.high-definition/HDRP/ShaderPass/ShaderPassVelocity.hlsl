@@ -89,9 +89,9 @@ float3 TransformPreviousObjectToWorldNormal(float3 normalOS)
 void VelocityPositionZBias(VaryingsToPS input)
 {
 #if defined(UNITY_REVERSED_Z)
-	input.vmesh.positionCS.z -= unity_MotionVectorsParams.z * input.vmesh.positionCS.w;
+    input.vmesh.positionCS.z -= unity_MotionVectorsParams.z * input.vmesh.positionCS.w;
 #else
-	input.vmesh.positionCS.z += unity_MotionVectorsParams.z * input.vmesh.positionCS.w;
+    input.vmesh.positionCS.z += unity_MotionVectorsParams.z * input.vmesh.positionCS.w;
 #endif
 }
 
@@ -102,13 +102,13 @@ PackedVaryingsType Vert(AttributesMesh inputMesh,
     varyingsType.vmesh = VertMesh(inputMesh);
 
 #if !defined(TESSELLATION_ON)
-	VelocityPositionZBias(varyingsType);
+    VelocityPositionZBias(varyingsType);
 #endif
 
     // It is not possible to correctly generate the motion vector for tesselated geometry as tessellation parameters can change
     // from one frame to another (adaptative, lod) + in Unity we only receive information for one non tesselated vertex.
     // So motion vetor will be based on interpolate previous position at vertex level instead.
-	varyingsType.vpass.positionCS = mul(_NonJitteredViewProjMatrix, float4(varyingsType.vmesh.positionWS, 1.0));
+    varyingsType.vpass.positionCS = mul(_NonJitteredViewProjMatrix, float4(varyingsType.vmesh.positionWS, 1.0));
 
     // Note: unity_MotionVectorsParams.y is 0 is forceNoMotion is enabled
     bool forceNoMotion = unity_MotionVectorsParams.y == 0.0;
@@ -120,21 +120,21 @@ PackedVaryingsType Vert(AttributesMesh inputMesh,
     {
         bool hasDeformation = unity_MotionVectorsParams.x > 0.0; // Skin or morph target
         //Need to apply any vertex animation to the previous worldspace position, if we want it to show up in the velocity buffer
-	    float3 previousPositionWS = mul(unity_MatrixPreviousM, hasDeformation ? float4(inputPass.previousPositionOS, 1.0) : float4(inputMesh.positionOS, 1.0)).xyz;
+        float3 previousPositionWS = mul(unity_MatrixPreviousM, hasDeformation ? float4(inputPass.previousPositionOS, 1.0) : float4(inputMesh.positionOS, 1.0)).xyz;
 #ifdef ATTRIBUTES_NEED_NORMAL
-		float3 normalWS = TransformPreviousObjectToWorldNormal(inputMesh.normalOS);
+        float3 normalWS = TransformPreviousObjectToWorldNormal(inputMesh.normalOS);
 #else
         float3 normalWS = float3(0.0, 0.0, 0.0);
 #endif
 
  #if defined(HAVE_VERTEX_MODIFICATION)
-		ApplyVertexModification(inputMesh, normalWS, previousPositionWS, _LastTime);
+        ApplyVertexModification(inputMesh, normalWS, previousPositionWS, _LastTime);
 #endif
 
-	    //Need this since we are using the current position from VertMesh()
-	    previousPositionWS = GetCameraRelativePositionWS(previousPositionWS);
+        //Need this since we are using the current position from VertMesh()
+        previousPositionWS = GetCameraRelativePositionWS(previousPositionWS);
 
-	    varyingsType.vpass.previousPositionCS = mul(_PrevViewProjMatrix, float4(previousPositionWS, 1.0));
+        varyingsType.vpass.previousPositionCS = mul(_PrevViewProjMatrix, float4(previousPositionWS, 1.0));
     }
 
     return PackVaryingsType(varyingsType);
@@ -148,7 +148,7 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 
     output.vmesh = VertMeshTesselation(input.vmesh);
 
-	VelocityPositionZBias(output);
+    VelocityPositionZBias(output);
 
     output.vpass.positionCS = input.vpass.positionCS;
     output.vpass.previousPositionCS = input.vpass.previousPositionCS;

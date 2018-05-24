@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
@@ -76,7 +76,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return add;
         }
 
-
         public override Matrix4x4 influenceToWorld
         {
             get
@@ -85,7 +84,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     (Vector3)probe.localToWorld.GetColumn(3) + probe.center,
                     probe.localToWorld.rotation,
                     Vector3.one
-                );
+                    );
             }
         }
 

@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
@@ -22,7 +22,7 @@ public class GPUCopyAssetEditor : Editor
             var assetpath = AssetDatabase.GetAssetPath(target);
             var dirpath = Path.GetDirectoryName(assetpath);
             var targetpathcs = dirpath + "/GPUCopy.cs";
-            var targetpathcc =dirpath + "/GPUCopy.compute";
+            var targetpathcc = dirpath + "/GPUCopy.compute";
             string cc, cs;
             m_Target.Generate(out cc, out cs);
 

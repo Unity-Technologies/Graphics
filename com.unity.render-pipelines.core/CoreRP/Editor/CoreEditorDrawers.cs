@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEditor.AnimatedValues;
 using UnityEngine;
@@ -36,7 +36,7 @@ namespace UnityEditor.Experimental.Rendering
         public delegate AnimBool AnimBoolGetter(TUIState s, TData p, Editor owner);
 
         public static readonly IDrawer space = Action((state, data, owner) => EditorGUILayout.Space());
-        public static readonly IDrawer noop = Action((state, data, owner) => { });
+        public static readonly IDrawer noop = Action((state, data, owner) => {});
 
         public static IDrawer Group(params IDrawer[] drawers)
         {
@@ -53,7 +53,7 @@ namespace UnityEditor.Experimental.Rendering
                         drawers[i].Draw(s, d, o);
                     EditorGUIUtility.labelWidth = l;
                 }
-            );
+                );
         }
 
         public static IDrawer Action(params ActionDrawer[] drawers)
@@ -101,8 +101,8 @@ namespace UnityEditor.Experimental.Rendering
             CoreEditorDrawer<T2UIState, T2Data>.IDrawer[] m_SourceDrawers;
 
             public SelectDrawerInternal(StateSelect<T2UIState> stateSelect,
-                DataSelect<T2Data> dataSelect,
-                params CoreEditorDrawer<T2UIState, T2Data>.IDrawer[] otherDrawers)
+                                        DataSelect<T2Data> dataSelect,
+                                        params CoreEditorDrawer<T2UIState, T2Data>.IDrawer[] otherDrawers)
             {
                 m_SourceDrawers = otherDrawers;
                 m_StateSelect = stateSelect;

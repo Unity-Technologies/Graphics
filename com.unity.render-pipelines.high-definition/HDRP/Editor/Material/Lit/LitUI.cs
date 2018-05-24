@@ -495,6 +495,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
         }
+
         protected void ShaderIridescenceInputGUI()
         {
             m_MaterialEditor.TexturePropertySingleLine(Styles.iridescenceMaskText, iridescenceMaskMap, iridescenceMask);
@@ -514,7 +515,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             else
             {
                 // Allow the user to set the constant value of thickness if no thickness map is provided.
-                m_MaterialEditor.TexturePropertySingleLine(Styles.iridescenceThicknessMapText, iridescenceThicknessMap, iridescenceThickness);                
+                m_MaterialEditor.TexturePropertySingleLine(Styles.iridescenceThicknessMapText, iridescenceThicknessMap, iridescenceThickness);
             }
         }
 
@@ -539,7 +540,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override void UpdateDisplacement()
         {
-            for(int i = 0; i < m_LayerCount; ++i)
+            for (int i = 0; i < m_LayerCount; ++i)
             {
                 UpdateDisplacement(i);
             }
@@ -556,7 +557,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             else
             {
                 HeightmapParametrization parametrization = (HeightmapParametrization)heightParametrization[layerIndex].floatValue;
-                if(parametrization == HeightmapParametrization.MinMax)
+                if (parametrization == HeightmapParametrization.MinMax)
                 {
                     float offset = heightOffset[layerIndex].floatValue;
                     float amplitude = (heightMax[layerIndex].floatValue - heightMin[layerIndex].floatValue);
@@ -588,7 +589,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.ShaderProperty(metallic[layerIndex], Styles.metallicText);
             }
 
-            if(maskMap[layerIndex].textureValue == null)
+            if (maskMap[layerIndex].textureValue == null)
             {
                 m_MaterialEditor.ShaderProperty(smoothness[layerIndex], Styles.smoothnessText);
             }
@@ -641,7 +642,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             DisplacementMode displaceMode = (DisplacementMode)displacementMode.floatValue;
-            if(displaceMode != DisplacementMode.None || showHeightMap)
+            if (displaceMode != DisplacementMode.None || showHeightMap)
             {
                 EditorGUI.BeginChangeCheck();
                 m_MaterialEditor.TexturePropertySingleLine(Styles.heightMapText, heightMap[layerIndex]);
@@ -655,7 +656,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     else
                     {
                         m_MaterialEditor.ShaderProperty(heightParametrization[layerIndex], Styles.heightMapParametrization);
-                        if(!heightParametrization[layerIndex].hasMixedValue)
+                        if (!heightParametrization[layerIndex].hasMixedValue)
                         {
                             HeightmapParametrization parametrization = (HeightmapParametrization)heightParametrization[layerIndex].floatValue;
                             if (parametrization == HeightmapParametrization.MinMax)

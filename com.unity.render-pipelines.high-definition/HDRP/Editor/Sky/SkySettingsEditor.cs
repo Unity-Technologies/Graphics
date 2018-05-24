@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.Experimental.Rendering;
@@ -28,7 +28,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             PropertyField(m_SkyExposure);
             PropertyField(m_SkyMultiplier);
-            if(enableRotation)
+            if (enableRotation)
                 PropertyField(m_SkyRotation);
 
             PropertyField(m_EnvUpdateMode);

@@ -1,4 +1,4 @@
-﻿using UnityEngine.Assertions;
+using UnityEngine.Assertions;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
@@ -45,9 +45,9 @@ namespace UnityEngine.Experimental.Rendering
         // Only use mode11 of BC6H encoding
         /// <summary>
         /// Encode a Cubemap in BC6H.
-        /// 
+        ///
         /// It will encode all faces and selected mips of the Cubemap.
-        /// 
+        ///
         /// It uses only mode 11 of BC6H.
         /// </summary>
         /// <param name="cmb">Command buffer for execution</param>
@@ -58,7 +58,7 @@ namespace UnityEngine.Experimental.Rendering
         /// <param name="fromMip">Starting mip to encode</param>
         /// <param name="toMip">Last mip to encode</param>
         /// <param name="targetArrayIndex">The index of the cubemap to store the compressed texture.
-        /// 
+        ///
         /// Only relevant when target is a CubemapArray</param>
         public void EncodeFastCubemap(CommandBuffer cmb, RenderTargetIdentifier source, int sourceSize, RenderTargetIdentifier target, int fromMip, int toMip, int targetArrayIndex = 0)
         {
@@ -81,7 +81,7 @@ namespace UnityEngine.Experimental.Rendering
                 useMipMap = false,
             };
 
-            cmb.SetComputeTextureParam(m_Shader, m_KEncodeFastCubemapMip, _Source, source); 
+            cmb.SetComputeTextureParam(m_Shader, m_KEncodeFastCubemapMip, _Source, source);
 
             for (var mip = actualFromMip; mip <= actualToMip; ++mip)
             {

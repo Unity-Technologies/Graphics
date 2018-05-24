@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using UnityEditorInternal;
 using UnityEngine.Experimental.UIElements;
 
@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             set
             {
                 var first = m_HeaderContainer.FirstOrDefault();
-                if( first != null )
+                if (first != null)
                     first.RemoveFromHierarchy();
 
                 m_HeaderContainer.Add(value);
@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             AddStyleSheetPath("Styles/PropertySheet");
             m_ContentContainer = new VisualElement { name = "content" };
             m_HeaderContainer = new VisualElement { name = "header" };
-            if( header != null)
+            if (header != null)
                 m_HeaderContainer.Add(header);
 
             m_ContentContainer.Add(m_HeaderContainer);

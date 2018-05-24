@@ -37,8 +37,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var data = DensityVolumeData.GetNeutralValues();
 
                 cmd.SetGlobalVector(HDShaderIDs._GlobalScattering, data.scattering);
-                cmd.SetGlobalFloat( HDShaderIDs._GlobalExtinction, data.extinction);
-                cmd.SetGlobalFloat( HDShaderIDs._GlobalAnisotropy, 0.0f);
+                cmd.SetGlobalFloat(HDShaderIDs._GlobalExtinction, data.extinction);
+                cmd.SetGlobalFloat(HDShaderIDs._GlobalAnisotropy, 0.0f);
             }
         }
 
@@ -76,13 +76,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public sealed class FogTypeParameter : VolumeParameter<FogType>
     {
         public FogTypeParameter(FogType value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState) {}
     }
 
     [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
     public sealed class FogColorParameter : VolumeParameter<FogColorMode>
     {
         public FogColorParameter(FogColorMode value, bool overrideState = false)
-            : base(value, overrideState) { }
+            : base(value, overrideState) {}
     }
 }

@@ -1,4 +1,4 @@
-﻿using UnityEngine.Events;
+using UnityEngine.Events;
 
 namespace UnityEditor.Experimental.Rendering
 {
@@ -10,21 +10,21 @@ namespace UnityEditor.Experimental.Rendering
         static HDRenderPipelineUI()
         {
             Inspector = CED.Group(
-                SectionPrimarySettings,
-                CED.space,
-                CED.Select(
-                    (s, d, o) => s.renderPipelineSettings,
-                    (s, d, o) => d.renderPipelineSettings,
-                    RenderPipelineSettingsUI.Inspector
-                ),
-                CED.space,
-                CED.Action(Drawer_TitleDefaultFrameSettings),
-                CED.Select(
-                    (s, d, o) => s.defaultFrameSettings,
-                    (s, d, o) => d.defaultFrameSettings,
-                    FrameSettingsUI.Inspector
-                )
-            );
+                    SectionPrimarySettings,
+                    CED.space,
+                    CED.Select(
+                        (s, d, o) => s.renderPipelineSettings,
+                        (s, d, o) => d.renderPipelineSettings,
+                        RenderPipelineSettingsUI.Inspector
+                        ),
+                    CED.space,
+                    CED.Action(Drawer_TitleDefaultFrameSettings),
+                    CED.Select(
+                        (s, d, o) => s.defaultFrameSettings,
+                        (s, d, o) => d.defaultFrameSettings,
+                        FrameSettingsUI.Inspector
+                        )
+                    );
         }
 
         public static readonly CED.IDrawer Inspector;
@@ -37,7 +37,6 @@ namespace UnityEditor.Experimental.Rendering
         public HDRenderPipelineUI()
             : base(0)
         {
-            
         }
 
         public override void Reset(SerializedHDRenderPipelineAsset data, UnityAction repaint)
@@ -64,7 +63,6 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUILayout.PropertyField(d.renderPipelineResources, _.GetContent("Render Pipeline Resources|Set of resources that need to be loaded when creating stand alone"));
             EditorGUILayout.PropertyField(d.diffusionProfileSettings, _.GetContent("Diffusion Profile Settings"));
             EditorGUILayout.PropertyField(d.allowShaderVariantStripping, _.GetContent("Enable Shader Variant Stripping (experimental)"));
-
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -62,8 +62,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (IsCollidingWithOtherProbes(path, probe, out collidingProbe))
             {
                 if (!EditorUtility.DisplayDialog("Texture is used by other reflection probe",
-                    string.Format("'{0}' path is used by the game object '{1}', do you really want to overwrite it?",
-                        path, collidingProbe.name), "Yes", "No"))
+                        string.Format("'{0}' path is used by the game object '{1}', do you really want to overwrite it?",
+                            path, collidingProbe.name), "Yes", "No"))
                 {
                     return;
                 }
@@ -103,7 +103,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var scene = probe.gameObject.scene;
             var directory = Path.Combine(Path.GetDirectoryName(scene.path), Path.GetFileNameWithoutExtension(scene.path));
             var filename = string.Format("PlanarReflectionProbe-{0}.exr", 0);
-            
+
             return Path.Combine(directory, filename);
         }
 
@@ -134,8 +134,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (IsCollidingWithOtherProbes(path, probe, out collidingProbe))
             {
                 if (!EditorUtility.DisplayDialog("Cubemap is used by other reflection probe",
-                    string.Format("'{0}' path is used by the game object '{1}', do you really want to overwrite it?",
-                        path, collidingProbe.name), "Yes", "No"))
+                        string.Format("'{0}' path is used by the game object '{1}', do you really want to overwrite it?",
+                            path, collidingProbe.name), "Yes", "No"))
                 {
                     return;
                 }
@@ -276,9 +276,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (result == null)
             {
                 result = EditorUtility.CreateGameObjectWithHideFlags(
-                    "Reflection System Dictionary",
-                    k_ReflectionSystemDictionaryHideFlags,
-                    typeof(ReflectionSystemSceneDictionary))
+                        "Reflection System Dictionary",
+                        k_ReflectionSystemDictionaryHideFlags,
+                        typeof(ReflectionSystemSceneDictionary))
                     .GetComponent<ReflectionSystemSceneDictionary>();
 
                 SceneManager.MoveGameObjectToScene(result.gameObject, scene);

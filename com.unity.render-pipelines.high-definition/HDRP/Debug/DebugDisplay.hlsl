@@ -116,13 +116,13 @@ float3 GetTextureDataDebug(uint paramId, float2 uv, Texture2D tex, float4 texelS
 }
 
 // DebugFont code assume black and white font with texture size 256x128 with bloc of 16x16
-#define DEBUG_FONT_TEXT_WIDTH	16
-#define DEBUG_FONT_TEXT_HEIGHT	16
-#define DEBUG_FONT_TEXT_COUNT_X	16
-#define DEBUG_FONT_TEXT_COUNT_Y	8
+#define DEBUG_FONT_TEXT_WIDTH   16
+#define DEBUG_FONT_TEXT_HEIGHT  16
+#define DEBUG_FONT_TEXT_COUNT_X 16
+#define DEBUG_FONT_TEXT_COUNT_Y 8
 #define DEBUG_FONT_TEXT_ASCII_START 32
 
-#define DEBUG_FONT_TEXT_SCALE_WIDTH	10 // This control the spacing between characters (if a character fill the text block it will overlap).
+#define DEBUG_FONT_TEXT_SCALE_WIDTH 10 // This control the spacing between characters (if a character fill the text block it will overlap).
 
 // Only support ASCII symbol from DEBUG_FONT_TEXT_ASCII_START to 126
 // return black or white depends if we hit font character or not

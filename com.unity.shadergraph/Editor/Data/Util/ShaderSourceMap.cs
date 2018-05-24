@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEditor.Graphing;
 
@@ -29,7 +29,7 @@ namespace UnityEditor.ShaderGraph
 
                 while (currentIndex < stopIndex && currentIndex != -1)
                 {
-                    currentIndex = source.IndexOf('\n', currentIndex+1);
+                    currentIndex = source.IndexOf('\n', currentIndex + 1);
                     line++;
                 }
 

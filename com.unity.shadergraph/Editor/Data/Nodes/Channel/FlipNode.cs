@@ -178,17 +178,17 @@ namespace UnityEditor.ShaderGraph
         public void GenerateNodeFunction(FunctionRegistry registry, GraphContext graphContext, GenerationMode generationMode)
         {
             registry.ProvideFunction(GetFunctionName(), s =>
-            {
-                s.AppendLine("void {0}({1} In, {2} Flip, out {3} Out)",
-                    GetFunctionName(),
-                    FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToString(precision),
-                    FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToString(precision),
-                    FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision));
-                using (s.BlockScope())
                 {
-                    s.AppendLine("Out = (Flip * -2 + 1) * In;");
-                }
-            });
+                    s.AppendLine("void {0}({1} In, {2} Flip, out {3} Out)",
+                        GetFunctionName(),
+                        FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToString(precision),
+                        FindInputSlot<MaterialSlot>(InputSlotId).concreteValueType.ToString(precision),
+                        FindOutputSlot<MaterialSlot>(OutputSlotId).concreteValueType.ToString(precision));
+                    using (s.BlockScope())
+                    {
+                        s.AppendLine("Out = (Flip * -2 + 1) * In;");
+                    }
+                });
         }
     }
 }

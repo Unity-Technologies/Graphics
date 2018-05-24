@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -17,7 +17,7 @@ namespace UnityEngine.Experimental.Rendering
             public bool editorForceUpdate { get { return (flags & Flags.EditorForceUpdate) != 0; } }
 
             public ObservableList<Widget> children { get; private set; }
-            public event Action<Panel> onSetDirty = delegate { };
+            public event Action<Panel> onSetDirty = delegate {};
 
             public Panel()
             {

@@ -89,7 +89,7 @@ namespace UnityEngine.Experimental.Rendering
                     // This method won't be called a lot but this is sub-optimal, fix me
                     var innerParams = (ReadOnlyCollection<VolumeParameter>)
                         t.GetProperty("parameters", BindingFlags.NonPublic | BindingFlags.Instance)
-                         .GetValue(prop, null);
+                        .GetValue(prop, null);
 
                     if (innerParams != null)
                         SetAllOverridesTo(innerParams, state);

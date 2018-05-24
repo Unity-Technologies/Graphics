@@ -52,7 +52,7 @@ namespace UnityEditor.ShaderGraph
 
         protected override MethodInfo GetFunctionToConvert()
         {
-            switch(comparisonType)
+            switch (comparisonType)
             {
                 case ComparisonType.NotEqual:
                     return GetType().GetMethod("Unity_Comparison_NotEqual", BindingFlags.Static | BindingFlags.NonPublic);

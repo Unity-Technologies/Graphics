@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor.IMGUI.Controls;
 using UnityEditorInternal;
 using UnityEngine;
@@ -335,7 +335,7 @@ namespace UnityEditor.Experimental.Rendering
             var e = GetEditorFor(reflectionProbe);
             if (e == null || !e.sceneViewEditing)
                 return;
-                
+
             var reflectionData = reflectionProbe.GetComponent<HDAdditionalReflectionData>();
             if (reflectionData != null)
                 HDReflectionProbeEditorUtility.ChangeVisibility(reflectionProbe, false);

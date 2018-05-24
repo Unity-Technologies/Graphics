@@ -97,7 +97,7 @@ ShaderPort.typeTexture3D {
 }
 
 ShaderPort.typeCubemap {
-	/* Same as typeTexture */
+    /* Same as typeTexture */
     port-color:#FF8B8B;
 }
 

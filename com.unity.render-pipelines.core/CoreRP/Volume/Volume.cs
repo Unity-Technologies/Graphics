@@ -173,6 +173,7 @@ namespace UnityEngine.Experimental.Rendering
 
             colliders.Clear();
         }
+
 #endif
     }
 }

@@ -292,7 +292,6 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var inputSlotRef = new SlotReference(remappedInputNodeGuid, inputSlot.slotId);
                     subGraph.Connect(outputSlotRef, inputSlotRef);
                 }
-
                 // one edge needs to go to outside world
                 else if (outputSlotExistsInSubgraph)
                 {

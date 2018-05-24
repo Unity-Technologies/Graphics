@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -8,23 +8,24 @@ using UnityEditor;
 using UnityEditor.Experimental.Rendering.LightweightPipeline;
 
 
-public class LWSceneConverter : MonoBehaviour 
+public class LWSceneConverter : MonoBehaviour
 {
     [SerializeField]
     static List<Material> _materials;
 
-	//[MenuItem("RenderPipeline/Lightweight Pipeline/Material Upgraders/Convert Legacy Scene Materials", false, 3)]
+    //[MenuItem("RenderPipeline/Lightweight Pipeline/Material Upgraders/Convert Legacy Scene Materials", false, 3)]
     static void ConvertToLWPipe()
     {
         _materials = new List<Material>();
         CollectMaterialsInScene();
         BackUpMaterials();
-        
+
         Selection.objects = _materials.ToArray();
         //StandardToLightweightMaterialUpgrader.UpgradeMaterialsToLDSelection();
         GraphicsSettings.renderPipelineAsset = (RenderPipelineAsset)AssetDatabase.LoadMainAssetAtPath("Assets/ScriptableRenderPipeline/LightweightPipline/LightweightPipelineAsset.asset");
     }
-	static void CollectMaterialsInScene ()
+
+    static void CollectMaterialsInScene()
     {
         _materials.Add(RenderSettings.skybox);
 
@@ -32,13 +33,13 @@ public class LWSceneConverter : MonoBehaviour
         GameObject[] rootItems = _scene.GetRootGameObjects();
 
         List<Renderer> renderers = new List<Renderer>();
-		foreach(GameObject go in rootItems)
-		{
+        foreach (GameObject go in rootItems)
+        {
             renderers.AddRange(go.GetComponentsInChildren<Renderer>());
         }
 
-		foreach(Renderer rend in renderers)
-		{
+        foreach (Renderer rend in renderers)
+        {
             if (rend != null)
             {
                 Material[] mat = rend.sharedMaterials;
@@ -68,7 +69,8 @@ public class LWSceneConverter : MonoBehaviour
     }
 
     //[MenuItem("RenderPipeline/Lightweight Pipeline/Material Upgraders/Revert Legacy Scene Materials", false, 4)]
-    static void RevertMaterials(){
+    static void RevertMaterials()
+    {
         CollectMaterialsInScene();
 
         foreach (Material mat in _materials)
@@ -84,7 +86,8 @@ public class LWSceneConverter : MonoBehaviour
         GraphicsSettings.renderPipelineAsset = null;
     }
 
-    static string GetBackupPath(string path){
+    static string GetBackupPath(string path)
+    {
         string[] splitPath = path.Split(new char[] { '/' });
         splitPath[splitPath.Length - 2] = "Backup";
         string newPath = splitPath[0];
@@ -94,5 +97,4 @@ public class LWSceneConverter : MonoBehaviour
         }
         return newPath;
     }
-
 }

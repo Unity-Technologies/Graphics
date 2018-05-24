@@ -13,8 +13,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
         {
             AddStyleSheetPath("Styles/Controls/ColorRGBSlotControlView");
             m_Slot = slot;
-            var colorField = new ColorField { value = new Color(slot.value.x, slot.value.y, slot.value.z, 0),
-                showEyeDropper = false, showAlpha = false };
+            var colorField = new ColorField
+            {
+                value = new Color(slot.value.x, slot.value.y, slot.value.z, 0),
+                showEyeDropper = false, showAlpha = false
+            };
             colorField.OnValueChanged(OnValueChanged);
             Add(colorField);
         }

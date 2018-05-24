@@ -126,7 +126,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return false;
         }
 
-
         public int callbackOrder { get { return 0; } }
         public void OnProcessShader(Shader shader, ShaderSnippetData snippet, IList<ShaderCompilerData> inputData)
         {

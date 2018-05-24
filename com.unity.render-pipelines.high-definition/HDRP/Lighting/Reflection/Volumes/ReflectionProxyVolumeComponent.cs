@@ -1,4 +1,4 @@
-﻿namespace UnityEngine.Experimental.Rendering.HDPipeline
+namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class ReflectionProxyVolumeComponent : MonoBehaviour
     {

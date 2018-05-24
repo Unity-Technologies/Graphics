@@ -49,7 +49,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             out int rayMaxScreenDistanceID,
             out int rayBlendScreenDistanceID,
             out int rayMarchBehindObjectsID
-        );
+            );
 
         void Awake()
         {
@@ -63,7 +63,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 out m_RayMaxScreenDistanceID,
                 out m_RayBlendScreenDistanceID,
                 out m_RayMarchBehindObjectsID
-            );
+                );
         }
     }
 }

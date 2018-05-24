@@ -20,23 +20,23 @@ struct DensityVolumeData
 //
 float3 GetScattering(DensityVolumeData value)
 {
-	return value.scattering;
+    return value.scattering;
 }
 float GetExtinction(DensityVolumeData value)
 {
-	return value.extinction;
+    return value.extinction;
 }
 float3 GetTextureTiling(DensityVolumeData value)
 {
-	return value.textureTiling;
+    return value.textureTiling;
 }
 int GetTextureIndex(DensityVolumeData value)
 {
-	return value.textureIndex;
+    return value.textureIndex;
 }
 float3 GetTextureScroll(DensityVolumeData value)
 {
-	return value.textureScroll;
+    return value.textureScroll;
 }
 
 

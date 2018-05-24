@@ -133,4 +133,3 @@ bool TestLightingForSSS(float3 subsurfaceLighting)
 {
     return subsurfaceLighting.b > 0;
 }
-
