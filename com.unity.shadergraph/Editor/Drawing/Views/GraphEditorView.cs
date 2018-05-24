@@ -93,20 +93,18 @@ namespace UnityEditor.ShaderGraph.Drawing
                     if (showInProjectRequested != null)
                         showInProjectRequested();
                 }
-                GUILayout.FlexibleSpace();
-                GUILayout.EndHorizontal();
             });
             Add(toolbar);
 
             var content = new VisualElement { name = "content" };
             {
+                graph.name = assetName;
                 m_GraphView = new MaterialGraphView(graph) { name = "GraphView", persistenceKey = "MaterialGraphView" };
                 m_GraphView.SetupZoom(0.05f, ContentZoomer.DefaultMaxScale);
                 m_GraphView.AddManipulator(new ContentDragger());
                 m_GraphView.AddManipulator(new SelectionDragger());
                 m_GraphView.AddManipulator(new RectangleSelector());
                 m_GraphView.AddManipulator(new ClickSelector());
-                m_GraphView.AddManipulator(new GraphDropTarget(graph));
                 m_GraphView.RegisterCallback<KeyDownEvent>(OnSpaceDown);
                 content.Add(m_GraphView);
 

@@ -138,7 +138,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get
             {
                 return m_ProxyVolumeReference != null
-                    ? m_ProxyVolumeReference.proxyVolume.boxSize * 0.5f
+                    ? m_ProxyVolumeReference.proxyVolume.extents
                     : influenceVolume.boxBaseSize;
             }
         }

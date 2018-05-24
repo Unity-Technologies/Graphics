@@ -109,7 +109,7 @@
 
         // Transparency
         [Enum(None, 0, Plane, 1, Sphere, 2)]_RefractionModel("Refraction Model", Int) = 0
-        [Enum(Proxy, 1, HiZ, 2)]_RefractionSSRayModel("Refraction SSRay Model", Int) = 0
+        [Enum(Proxy, 1, HiZ, 2)]_SSRefractionProjectionModel("Refraction Projection Model", Int) = 0
         _Ior("Index Of Refraction", Range(1.0, 2.5)) = 1.0
         _ThicknessMultiplier("Thickness Multiplier", Float) = 1.0
         _TransmittanceColor("Transmittance Color", Color) = (1.0, 1.0, 1.0)
@@ -158,6 +158,10 @@
         [ToggleUI] _DisplacementLockObjectScale("displacement lock object scale", Float) = 1.0
         [ToggleUI] _DisplacementLockTilingScale("displacement lock tiling scale", Float) = 1.0
         [ToggleUI] _DepthOffsetEnable("Depth Offset View space", Float) = 0.0
+
+        [ToggleUI] _EnableGeometricSpecularAA("EnableGeometricSpecularAA", Float) = 0.0
+        _SpecularAAScreenSpaceVariance("SpecularAAScreenSpaceVariance", Range(0.0, 1.0)) = 0.1
+        _SpecularAAThreshold("SpecularAAThreshold", Range(0.0, 1.0)) = 0.2
 
         [ToggleUI] _EnableMotionVectorForVertexAnimation("EnableMotionVectorForVertexAnimation", Float) = 0.0
 
@@ -240,6 +244,7 @@
     #pragma shader_feature _TRANSMITTANCECOLORMAP
 
     #pragma shader_feature _DISABLE_DBUFFER
+    #pragma shader_feature _ENABLE_GEOMETRIC_SPECULAR_AA
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT

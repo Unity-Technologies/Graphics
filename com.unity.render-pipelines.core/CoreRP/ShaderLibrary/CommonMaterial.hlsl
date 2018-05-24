@@ -69,6 +69,21 @@ real VarianceToRoughness(real variance)
     return sqrt(2.0 / (variance + 2.0));
 }
 
+// Reference: Error Reduction and Simplification for Shading Anti-Aliasing
+// take perceptualSmoothness and return modified perceptualSmoothness
+float GeometricFilterPerceptualSmoothness(float perceptualSmoothness, float3 geometricNormalWS, float screenSpaceVariance, float threshold)
+{
+    float3 deltaU = ddx(geometricNormalWS);
+    float3 deltaV = ddy(geometricNormalWS);
+
+    float variance = screenSpaceVariance * (dot(deltaU, deltaU) + dot(deltaV, deltaV));
+
+    float roughness         = PerceptualSmoothnessToRoughness(perceptualSmoothness);
+    float squaredRoughness  = saturate(roughness * roughness + min(2.0 * variance, threshold * threshold)); // threshold can be really low, square the value for easier control
+
+    return 1.0 - RoughnessToPerceptualRoughness(sqrt(squaredRoughness));
+}
+
 // ----------------------------------------------------------------------------
 // Helper for Disney parametrization
 // ----------------------------------------------------------------------------

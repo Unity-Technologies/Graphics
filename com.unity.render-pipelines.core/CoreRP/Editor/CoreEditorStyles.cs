@@ -7,12 +7,13 @@ namespace UnityEditor.Experimental.Rendering
         public static readonly GUIStyle smallTickbox;
         public static readonly GUIStyle miniLabelButton;
 
-        public static readonly Texture2D paneOptionsIconDark;
-        public static readonly Texture2D paneOptionsIconLight;
+        static readonly Texture2D paneOptionsIconDark;
+        static readonly Texture2D paneOptionsIconLight;
+        public static Texture2D paneOptionsIcon { get { return EditorGUIUtility.isProSkin ? paneOptionsIconDark : paneOptionsIconLight; } }
 
         static CoreEditorStyles()
         {
-            smallTickbox = new GUIStyle("ShurikenCheckMark");
+            smallTickbox = new GUIStyle("ShurikenToggle");
 
             var transparentTexture = new Texture2D(1, 1, TextureFormat.ARGB32, false);
             transparentTexture.SetPixel(0, 0, Color.clear);

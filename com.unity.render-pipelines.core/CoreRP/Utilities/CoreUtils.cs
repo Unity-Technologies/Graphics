@@ -186,6 +186,33 @@ namespace UnityEngine.Experimental.Rendering
             ClearRenderTarget(cmd, clearFlag, clearColor);
         }
 
+        // Explicit load and store actions
+        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, RenderBufferLoadAction loadAction, RenderBufferStoreAction storeAction, ClearFlag clearFlag, Color clearColor)
+        {
+            cmd.SetRenderTarget(buffer, loadAction, storeAction);
+            ClearRenderTarget(cmd, clearFlag, clearColor);
+        }
+
+        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier buffer, RenderBufferLoadAction loadAction, RenderBufferStoreAction storeAction, ClearFlag clearFlag)
+        {
+            SetRenderTarget(cmd, buffer, loadAction, storeAction, clearFlag, clearColorAllBlack);
+        }
+
+        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderBufferLoadAction colorLoadAction, RenderBufferStoreAction colorStoreAction,
+            RenderTargetIdentifier depthBuffer, RenderBufferLoadAction depthLoadAction, RenderBufferStoreAction depthStoreAction,
+            ClearFlag clearFlag, Color clearColor)
+        {
+            cmd.SetRenderTarget(colorBuffer, colorLoadAction, colorStoreAction, depthBuffer, depthLoadAction, depthStoreAction);
+            ClearRenderTarget(cmd, clearFlag, clearColor);
+        }
+
+        public static void SetRenderTarget(CommandBuffer cmd, RenderTargetIdentifier colorBuffer, RenderBufferLoadAction colorLoadAction, RenderBufferStoreAction colorStoreAction,
+            RenderTargetIdentifier depthBuffer, RenderBufferLoadAction depthLoadAction, RenderBufferStoreAction depthStoreAction,
+            ClearFlag clearFlag)
+        {
+            SetRenderTarget(cmd, colorBuffer, colorLoadAction, colorStoreAction, depthBuffer, depthLoadAction, depthStoreAction, clearFlag, clearColorAllBlack);
+        }
+
         public static string GetRenderTargetAutoName(int width, int height, int depth, RenderTextureFormat format, string name, bool mips = false, bool enableMSAA = false, MSAASamples msaaSamples = MSAASamples.None)
         {
             string result = string.Format("{0}_{1}x{2}", name, width, height);
@@ -304,7 +331,14 @@ namespace UnityEngine.Experimental.Rendering
         // Unity specifics
         public static Material CreateEngineMaterial(string shaderPath)
         {
-            var mat = new Material(Shader.Find(shaderPath))
+            Shader shader = Shader.Find(shaderPath);
+            if (shader == null)
+            {
+                Debug.LogError("Cannot create required material because shader " + shaderPath + " could not be found");
+                return null;
+            }
+
+            var mat = new Material(shader)
             {
                 hideFlags = HideFlags.HideAndDontSave
             };
@@ -313,6 +347,12 @@ namespace UnityEngine.Experimental.Rendering
 
         public static Material CreateEngineMaterial(Shader shader)
         {
+            if (shader == null)
+            {
+                Debug.LogError("Cannot create required material because shader is null");
+                return null;
+            }
+            
             var mat = new Material(shader)
             {
                 hideFlags = HideFlags.HideAndDontSave

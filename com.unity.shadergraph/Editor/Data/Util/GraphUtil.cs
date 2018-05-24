@@ -1,13 +1,16 @@
 using System;
 using System.Text;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
+using UnityEditorInternal;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
 using System.Reflection;
-using System.Text.RegularExpressions;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -1057,6 +1060,38 @@ namespace UnityEditor.ShaderGraph
             }
 
             return string.Format(duplicateFormat, name, duplicateNumber);
+        }
+
+        public static bool WriteToFile(string path, string content)
+        {
+            try
+            {
+                File.WriteAllText(path, content);
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError(e);
+                return false;
+            }
+        }
+
+        public static void OpenFile(string path)
+        {
+            if (!File.Exists(Path.GetFullPath(path)))
+            {
+                Debug.LogError(string.Format("Path {0} doesn't exists", path));
+                return;
+            }
+
+            string file = Path.GetFullPath(path);
+            ProcessStartInfo pi = new ProcessStartInfo(file);
+            pi.Arguments = Path.GetFileName(file);
+            pi.UseShellExecute = true;
+            pi.WorkingDirectory = Path.GetDirectoryName(file);
+            pi.FileName = ScriptEditorUtility.GetExternalScriptEditor();
+            pi.Verb = "OPEN";
+            Process.Start(pi);
         }
     }
 }

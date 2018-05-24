@@ -16,11 +16,12 @@
 #define MATERIALFEATUREFLAGS_LIT_CLEAR_COAT (64)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Lit+RefractionSSRayModel:  static fields
+// UnityEngine.Experimental.Rendering.HDPipeline.Lit+ProjectionModel:  static fields
 //
-#define REFRACTIONSSRAYMODEL_NONE (0)
-#define REFRACTIONSSRAYMODEL_PROXY (1)
-#define REFRACTIONSSRAYMODEL_HI_Z (2)
+#define PROJECTIONMODEL_NONE (0)
+#define PROJECTIONMODEL_PROXY (1)
+#define PROJECTIONMODEL_HI_Z (2)
+#define PROJECTIONMODEL_LINEAR (3)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+HiZIntersectionKind:  static fields

@@ -20,19 +20,19 @@ namespace UnityEditor
             public readonly string mssaDisabledWarning = "Anti Aliasing is disabled in Lightweight Pipeline settings.";
         };
 
-        private static readonly int[] kRenderingPathValues = {0};
-        private static Styles s_Styles;
-        private LightweightPipelineAsset lightweightPipeline;
-
-        private Camera camera { get { return target as Camera; } }
+        public Camera camera { get { return target as Camera; } }
 
         // Animation Properties
-        private bool IsSameClearFlags { get { return !settings.clearFlags.hasMultipleDifferentValues; } }
-        private bool IsSameOrthographic { get { return !settings.orthographic.hasMultipleDifferentValues; } }
+        public bool isSameClearFlags { get { return !settings.clearFlags.hasMultipleDifferentValues; } }
+        public bool isSameOrthographic { get { return !settings.orthographic.hasMultipleDifferentValues; } }
 
-        readonly AnimBool showBGColorAnim = new AnimBool();
-        readonly AnimBool showOrthoAnim = new AnimBool();
-        readonly AnimBool showTargetEyeAnim = new AnimBool();
+        static readonly int[] s_RenderingPathValues = {0};
+        static Styles s_Styles;
+        LightweightPipelineAsset m_LightweightPipeline;
+
+        readonly AnimBool m_ShowBGColorAnim = new AnimBool();
+        readonly AnimBool m_ShowOrthoAnim = new AnimBool();
+        readonly AnimBool m_ShowTargetEyeAnim = new AnimBool();
 
         void SetAnimationTarget(AnimBool anim, bool initialize, bool targetValue)
         {
@@ -49,14 +49,14 @@ namespace UnityEditor
 
         void UpdateAnimationValues(bool initialize)
         {
-            SetAnimationTarget(showBGColorAnim, initialize, IsSameClearFlags && (camera.clearFlags == CameraClearFlags.SolidColor || camera.clearFlags == CameraClearFlags.Skybox));
-            SetAnimationTarget(showOrthoAnim, initialize, IsSameOrthographic && camera.orthographic);
-            SetAnimationTarget(showTargetEyeAnim, initialize, settings.targetEye.intValue != (int)StereoTargetEyeMask.Both || PlayerSettings.virtualRealitySupported);
+            SetAnimationTarget(m_ShowBGColorAnim, initialize, isSameClearFlags && (camera.clearFlags == CameraClearFlags.SolidColor || camera.clearFlags == CameraClearFlags.Skybox));
+            SetAnimationTarget(m_ShowOrthoAnim, initialize, isSameOrthographic && camera.orthographic);
+            SetAnimationTarget(m_ShowTargetEyeAnim, initialize, settings.targetEye.intValue != (int)StereoTargetEyeMask.Both || PlayerSettings.virtualRealitySupported);
         }
 
         public new void OnEnable()
         {
-            lightweightPipeline = GraphicsSettings.renderPipelineAsset as LightweightPipelineAsset;
+            m_LightweightPipeline = GraphicsSettings.renderPipelineAsset as LightweightPipelineAsset;
 
             settings.OnEnable();
             UpdateAnimationValues(true);
@@ -64,62 +64,11 @@ namespace UnityEditor
 
         public void OnDisable()
         {
-            showBGColorAnim.valueChanged.RemoveListener(Repaint);
-            showOrthoAnim.valueChanged.RemoveListener(Repaint);
-            showTargetEyeAnim.valueChanged.RemoveListener(Repaint);
+            m_ShowBGColorAnim.valueChanged.RemoveListener(Repaint);
+            m_ShowOrthoAnim.valueChanged.RemoveListener(Repaint);
+            m_ShowTargetEyeAnim.valueChanged.RemoveListener(Repaint);
 
-            lightweightPipeline = null;
-        }
-
-        private void DrawRenderingPath()
-        {
-            using (new EditorGUI.DisabledScope(true))
-            {
-                EditorGUILayout.IntPopup(s_Styles.renderingPathLabel, 0, s_Styles.renderingPathOptions, kRenderingPathValues);
-            }
-
-            EditorGUILayout.HelpBox(s_Styles.renderingPathInfo.text, MessageType.Info);
-        }
-
-        private void DrawHDR()
-        {
-            settings.DrawHDR();
-            if (settings.HDR.boolValue && !lightweightPipeline.SupportsHDR)
-                EditorGUILayout.HelpBox("HDR rendering is disabled in Lightweight Pipeline asset.", MessageType.Warning);
-        }
-
-        private void DrawTargetTexture()
-        {
-            EditorGUILayout.PropertyField(settings.targetTexture);
-
-            if (!settings.targetTexture.hasMultipleDifferentValues)
-            {
-                var texture = settings.targetTexture.objectReferenceValue as RenderTexture;
-                int pipelineSamplesCount = lightweightPipeline.MSAASampleCount;
-
-                if (texture && texture.antiAliasing > pipelineSamplesCount)
-                {
-                    string pipelineMSAACaps = (pipelineSamplesCount > 1)
-                        ? String.Format("is set to support {0}x", pipelineSamplesCount)
-                        : "has MSAA disabled";
-                    EditorGUILayout.HelpBox(String.Format("Camera target texture requires {0}x MSAA. Lightweight pipeline {1}.", texture.antiAliasing, pipelineMSAACaps),
-                        MessageType.Warning, true);
-
-                    if (GUILayout.Button(s_Styles.fixNow))
-                        lightweightPipeline.MSAASampleCount = texture.antiAliasing;
-                }
-            }
-        }
-
-        private void DrawMSAA()
-        {
-            EditorGUILayout.PropertyField(settings.allowMSAA);
-            if (settings.allowMSAA.boolValue && lightweightPipeline.MSAASampleCount <= 1)
-            {
-                EditorGUILayout.HelpBox(s_Styles.mssaDisabledWarning, MessageType.Warning);
-                if (GUILayout.Button(s_Styles.fixNow))
-                    lightweightPipeline.MSAASampleCount = 4;
-            }
+            m_LightweightPipeline = null;
         }
 
         public override void OnInspectorGUI()
@@ -132,7 +81,7 @@ namespace UnityEditor
 
             settings.DrawClearFlags();
 
-            using (var group = new EditorGUILayout.FadeGroupScope(showBGColorAnim.faded))
+            using (var group = new EditorGUILayout.FadeGroupScope(m_ShowBGColorAnim.faded))
                 if (group.visible) settings.DrawBackgroundColor();
 
             settings.DrawCullingMask();
@@ -153,10 +102,61 @@ namespace UnityEditor
             settings.DrawVR();
             settings.DrawMultiDisplay();
 
-            using (var group = new EditorGUILayout.FadeGroupScope(showTargetEyeAnim.faded))
+            using (var group = new EditorGUILayout.FadeGroupScope(m_ShowTargetEyeAnim.faded))
                 if (group.visible) settings.DrawTargetEye();
 
             settings.ApplyModifiedProperties();
+        }
+
+        void DrawRenderingPath()
+        {
+            using (new EditorGUI.DisabledScope(true))
+            {
+                EditorGUILayout.IntPopup(s_Styles.renderingPathLabel, 0, s_Styles.renderingPathOptions, s_RenderingPathValues);
+            }
+
+            EditorGUILayout.HelpBox(s_Styles.renderingPathInfo.text, MessageType.Info);
+        }
+
+        void DrawHDR()
+        {
+            settings.DrawHDR();
+            if (settings.HDR.boolValue && !m_LightweightPipeline.supportsHDR)
+                EditorGUILayout.HelpBox("HDR rendering is disabled in Lightweight Pipeline asset.", MessageType.Warning);
+        }
+
+        void DrawTargetTexture()
+        {
+            EditorGUILayout.PropertyField(settings.targetTexture);
+
+            if (!settings.targetTexture.hasMultipleDifferentValues)
+            {
+                var texture = settings.targetTexture.objectReferenceValue as RenderTexture;
+                int pipelineSamplesCount = m_LightweightPipeline.msaaSampleCount;
+
+                if (texture && texture.antiAliasing > pipelineSamplesCount)
+                {
+                    string pipelineMSAACaps = (pipelineSamplesCount > 1)
+                        ? String.Format("is set to support {0}x", pipelineSamplesCount)
+                        : "has MSAA disabled";
+                    EditorGUILayout.HelpBox(String.Format("Camera target texture requires {0}x MSAA. Lightweight pipeline {1}.", texture.antiAliasing, pipelineMSAACaps),
+                        MessageType.Warning, true);
+
+                    if (GUILayout.Button(s_Styles.fixNow))
+                        m_LightweightPipeline.msaaSampleCount = texture.antiAliasing;
+                }
+            }
+        }
+
+        void DrawMSAA()
+        {
+            EditorGUILayout.PropertyField(settings.allowMSAA);
+            if (settings.allowMSAA.boolValue && m_LightweightPipeline.msaaSampleCount <= 1)
+            {
+                EditorGUILayout.HelpBox(s_Styles.mssaDisabledWarning, MessageType.Warning);
+                if (GUILayout.Button(s_Styles.fixNow))
+                    m_LightweightPipeline.msaaSampleCount = 4;
+            }
         }
     }
 }
