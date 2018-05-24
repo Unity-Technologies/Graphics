@@ -137,12 +137,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Do we have a shader variant stripper function for this shader?
             VariantStrippingFunc stripperFunc = null;
             m_StripperFuncs.TryGetValue(shader.name, out stripperFunc);
-            if (stripperFunc == null)
+            if (stripperFunc == null || inputData.Count == 0)
                 return;
 
-            int inputShaderVariantCount = inputData.Count;
-
-            ShaderCompilerData workaround = inputData[0];
+            var workaround = inputData[0];
 
             for (int i = 0; i < inputData.Count; ++i)
             {
