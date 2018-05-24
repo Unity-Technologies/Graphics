@@ -3,9 +3,9 @@ using System.Collections;
 using System.IO;
 using System.Linq;
 using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph;
 
-
-namespace UnityEditor.ShaderGraph
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class HDPBRSubShader : IPBRSubShader
     {
@@ -536,7 +536,7 @@ namespace UnityEditor.ShaderGraph
 
         private static bool GenerateShaderPass(PBRMasterNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions, ShaderGenerator result)
         {
-            var templateLocation = ShaderGenerator.GetTemplatePath(pass.TemplateName);
+            var templateLocation = Path.Combine(Path.Combine(Path.Combine(HDEditorUtils.GetHDRenderPipelinePath(), "Editor"), "ShaderGraph"), pass.TemplateName);
             if (!File.Exists(templateLocation))
             {
                 // TODO: produce error here
