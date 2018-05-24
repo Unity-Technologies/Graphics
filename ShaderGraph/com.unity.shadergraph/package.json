@@ -1,8 +1,0 @@
-{
-    "name": "com.unity.shadergraph",
-    "description": "Shader Graph",
-    "version": "0.1.19",
-    "unity": "2018.1",
-    "dependencies": {
-    }
-}
