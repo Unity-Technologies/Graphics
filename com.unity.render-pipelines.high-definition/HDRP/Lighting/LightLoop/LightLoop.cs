@@ -2373,8 +2373,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 var camera = hdCamera.camera;
 
-                var ssReflection = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>() ?? ScreenSpaceReflection.@default;
-
                 // Compute path
                 if (m_FrameSettings.lightLoopSettings.enableTileAndCluster && m_FrameSettings.lightLoopSettings.enableComputeLightEvaluation)
                 {

@@ -13,7 +13,9 @@ public class NormalMapVarianceTexturePostprocessor : AssetPostprocessor
             textureImporter.convertToNormalmap = false;
             textureImporter.textureCompression = TextureImporterCompression.CompressedHQ;
 
+#pragma warning disable 618 // remove obsolete warning for this one
             textureImporter.linearTexture = true; // Says deprecated but won't work without it.
+#pragma warning restore 618
             textureImporter.sRGBTexture = false;  // But we're setting the new property just in case it changes later...
         }
     }
