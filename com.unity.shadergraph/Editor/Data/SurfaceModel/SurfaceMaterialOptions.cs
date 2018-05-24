@@ -102,6 +102,7 @@ namespace UnityEditor.ShaderGraph
             builder.AppendLine("Tags");
             using (builder.BlockScope())
             {
+                builder.AppendLine(@"""RenderPipeline""=""HDRenderPipeline""");
                 builder.AppendLine("\"RenderType\"=\"{0}\"", renderType);
                 builder.AppendLine("\"Queue\"=\"{0}\"", renderQueue);
             }
