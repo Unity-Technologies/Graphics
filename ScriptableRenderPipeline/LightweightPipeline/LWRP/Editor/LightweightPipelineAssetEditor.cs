@@ -6,7 +6,7 @@ using UnityEditor.Experimental.Rendering;
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     [CustomEditor(typeof(LightweightPipelineAsset))]
-    public class LightweightAssetEditor : Editor
+    public class LightweightPipelineAssetEditor : Editor
     {
         internal class Styles
         {
@@ -71,37 +71,48 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         AnimBool m_ShowSoftParticles = new AnimBool();
         AnimBool m_ShowOpaqueTextureScale = new AnimBool();
 
+        int k_MaxSupportedPixelLights = 8;
+        float k_MinRenderScale = 0.1f;
+        float k_MaxRenderScale = 4.0f;
+        SerializedProperty m_RenderScale;
+        SerializedProperty m_MaxPixelLights;
+        SerializedProperty m_SupportsVertexLightProp;
+        SerializedProperty m_RequireDepthTextureProp;
+        SerializedProperty m_RequireSoftParticlesProp;
+        SerializedProperty m_RequireOpaqueTextureProp;
+        SerializedProperty m_OpaqueDownsamplingProp;
+        SerializedProperty m_HDR;
+        SerializedProperty m_MSAA;
+        SerializedProperty m_SupportsDynamicBatching;
 
-        private int kMaxSupportedPixelLights = 8;
-        private float kMinRenderScale = 0.1f;
-        private float kMaxRenderScale = 4.0f;
-        private SerializedProperty m_RenderScale;
-        private SerializedProperty m_MaxPixelLights;
-        private SerializedProperty m_SupportsVertexLightProp;
-        private SerializedProperty m_RequireDepthTextureProp;
-        private SerializedProperty m_RequireSoftParticlesProp;
-        private SerializedProperty m_RequireOpaqueTextureProp;
-        private SerializedProperty m_OpaqueDownsamplingProp;
-        private SerializedProperty m_HDR;
-        private SerializedProperty m_MSAA;
-        private SerializedProperty m_SupportsDynamicBatching;
+        SerializedProperty m_SoftShadowsSupportedProp;
+        SerializedProperty m_DirectionalShadowsSupportedProp;
+        SerializedProperty m_ShadowDistanceProp;
+        SerializedProperty m_DirectionalShadowAtlasResolutionProp;
+        SerializedProperty m_ShadowCascadesProp;
+        SerializedProperty m_ShadowCascade2SplitProp;
+        SerializedProperty m_ShadowCascade4SplitProp;
+        SerializedProperty m_LocalShadowSupportedProp;
+        SerializedProperty m_LocalShadowsAtlasResolutionProp;
 
-        private SerializedProperty m_SoftShadowsSupportedProp;
-        private SerializedProperty m_DirectionalShadowsSupportedProp;
-        private SerializedProperty m_ShadowDistanceProp;
-        private SerializedProperty m_DirectionalShadowAtlasResolutionProp;
-        private SerializedProperty m_ShadowCascadesProp;
-        private SerializedProperty m_ShadowCascade2SplitProp;
-        private SerializedProperty m_ShadowCascade4SplitProp;
-        private SerializedProperty m_LocalShadowSupportedProp;
-        private SerializedProperty m_LocalShadowsAtlasResolutionProp;
+        SerializedProperty m_CustomShaderVariantStripSettingsProp;
+        SerializedProperty m_KeepAdditionalLightsProp;
+        SerializedProperty m_KeepVertexLightsProp;
+        SerializedProperty m_KeepDirectionalShadowsProp;
+        SerializedProperty m_KeepLocalShadowsProp;
+        SerializedProperty m_KeepSoftShadowsProp;
 
-        private SerializedProperty m_CustomShaderVariantStripSettingsProp;
-        private SerializedProperty m_KeepAdditionalLightsProp;
-        private SerializedProperty m_KeepVertexLightsProp;
-        private SerializedProperty m_KeepDirectionalShadowsProp;
-        private SerializedProperty m_KeepLocalShadowsProp;
-        private SerializedProperty m_KeepSoftShadowsProp;
+        public override void OnInspectorGUI()
+        {
+            serializedObject.Update();
+
+            UpdateAnimationValues();
+            DrawRenderingSettings();
+            DrawShadowSettings();
+            DrawStrippingSettings();
+
+            serializedObject.ApplyModifiedProperties();
+        }
 
         void OnEnable()
         {
@@ -172,11 +183,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             EditorGUI.indentLevel++;
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(Styles.renderScaleLabel);
-            m_RenderScale.floatValue = EditorGUILayout.Slider(m_RenderScale.floatValue, kMinRenderScale, kMaxRenderScale);
+            m_RenderScale.floatValue = EditorGUILayout.Slider(m_RenderScale.floatValue, k_MinRenderScale, k_MaxRenderScale);
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(Styles.maxPixelLightsLabel);
-            m_MaxPixelLights.intValue = EditorGUILayout.IntSlider(m_MaxPixelLights.intValue, 0, kMaxSupportedPixelLights);
+            m_MaxPixelLights.intValue = EditorGUILayout.IntSlider(m_MaxPixelLights.intValue, 0, k_MaxSupportedPixelLights);
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.PropertyField(m_SupportsVertexLightProp, Styles.enableVertexLightLabel);
             EditorGUILayout.PropertyField(m_RequireDepthTextureProp, Styles.requireDepthTexture);
@@ -253,18 +264,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
             EditorGUILayout.Space();
-        }
-
-        public override void OnInspectorGUI()
-        {
-            serializedObject.Update();
-
-            UpdateAnimationValues();
-            DrawRenderingSettings();
-            DrawShadowSettings();
-            DrawStrippingSettings();
-
-            serializedObject.ApplyModifiedProperties();
         }
     }
 }
