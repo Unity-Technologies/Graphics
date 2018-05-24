@@ -29,3 +29,4 @@ Temp/*
 ShaderGraph/DebugOutput.meta
 ShaderGraph/DebugOutput/**
 ShaderGraph/Testing/IntegrationTests/.Failed
+TestProjects/GraphicsTests/Temp/
