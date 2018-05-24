@@ -86,6 +86,16 @@ ShaderPort.typeTexture2D {
     port-color:#FF8B8B;
 }
 
+ShaderPort.typeTexture2DArray {
+    /* Same as typeTexture */
+    port-color:#FF8B8B;
+}
+
+ShaderPort.typeTexture3D {
+    /* Same as typeTexture */
+    port-color:#FF8B8B;
+}
+
 ShaderPort.typeCubemap {
 	/* Same as typeTexture */
     port-color:#FF8B8B;

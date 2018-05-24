@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -7,6 +8,7 @@ using UnityEditor.Experimental.UIElements;
 using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEditor.Graphing;
+using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 #if UNITY_2018_1
@@ -320,6 +322,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 {
                     case ConcreteSlotValueType.Texture2D:
                         prop = new TextureShaderProperty();
+                        break;
+                    case ConcreteSlotValueType.Texture2DArray:
+                        prop = new Texture2DArrayShaderProperty();
+                        break;
+                    case ConcreteSlotValueType.Texture3D:
+                        prop = new Texture3DShaderProperty();
                         break;
                     case ConcreteSlotValueType.Cubemap:
                         prop = new CubemapShaderProperty();

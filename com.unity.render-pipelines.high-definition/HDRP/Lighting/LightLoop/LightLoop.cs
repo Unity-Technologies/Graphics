@@ -852,14 +852,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (IsBakedShadowMaskLight(light.light))
             {
                 directionalLightData.shadowMaskSelector[light.light.bakingOutput.occlusionMaskChannel] = 1.0f;
-                // TODO: make this option per light, not global
-                directionalLightData.dynamicShadowCasterOnly = QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask ? 1 : 0;
+                directionalLightData.nonLightmappedOnly = light.light.lightShadowCasterMode == LightShadowCasterMode.NonLightmappedOnly ? 1 : 0;
             }
             else
             {
                 // use -1 to say that we don't use shadow mask
                 directionalLightData.shadowMaskSelector.x = -1.0f;
-                directionalLightData.dynamicShadowCasterOnly = 0;
+                directionalLightData.nonLightmappedOnly = 0;
             }
 
             // Fallback to the first non shadow casting directional light.
@@ -1035,13 +1034,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 lightData.shadowMaskSelector[light.light.bakingOutput.occlusionMaskChannel] = 1.0f;
                 // TODO: make this option per light, not global
-                lightData.dynamicShadowCasterOnly = QualitySettings.shadowmaskMode == ShadowmaskMode.Shadowmask ? 1 : 0;
+                lightData.nonLightmappedOnly = light.light.lightShadowCasterMode == LightShadowCasterMode.NonLightmappedOnly ? 1 : 0;
             }
             else
             {
                 // use -1 to say that we don't use shadow mask
                 lightData.shadowMaskSelector.x = -1.0f;
-                lightData.dynamicShadowCasterOnly = 0;
+                lightData.nonLightmappedOnly = 0;
             }
 
             m_lightList.lights.Add(lightData);
@@ -1467,7 +1466,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // If any light require it, we need to enabled bake shadow mask feature
                 m_enableBakeShadowMask = false;
- 
+
                 m_lightList.Clear();
 
                 // We need to properly reset this here otherwise if we go from 1 light to no visible light we would keep the old reference active.
@@ -2351,7 +2350,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void RenderDeferredLighting( HDCamera hdCamera, CommandBuffer cmd, DebugDisplaySettings debugDisplaySettings,
                                             RenderTargetIdentifier[] colorBuffers, RenderTargetIdentifier depthStencilBuffer, RenderTargetIdentifier depthTexture,
-                                            LightingPassOptions options)
+                                            LightingPassOptions options, ComputeBuffer debugSSTBuffer)
         {
             cmd.SetGlobalBuffer(HDShaderIDs.g_vLightListGlobal, s_LightList);
 
@@ -2375,6 +2374,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new ProfilingSample(cmd, sLabel, CustomSamplerId.TPRenderDeferredLighting.GetSampler()))
             {
                 var camera = hdCamera.camera;
+
+                var ssReflection = VolumeManager.instance.stack.GetComponent<ScreenSpaceReflection>() ?? ScreenSpaceReflection.@default;
 
                 // Compute path
                 if (m_FrameSettings.lightLoopSettings.enableTileAndCluster && m_FrameSettings.lightLoopSettings.enableComputeLightEvaluation)
@@ -2420,6 +2421,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.specularLightingUAV, colorBuffers[0]);
                         cmd.SetComputeTextureParam(deferredComputeShader, kernel, HDShaderIDs.diffuseLightingUAV,  colorBuffers[1]);
 
+                        if (debugDisplaySettings.lightingDebugSettings.debugLightingMode == DebugLightingMode.ScreenSpaceTracingReflection)
+                            cmd.SetComputeBufferParam(deferredComputeShader, kernel, HDShaderIDs._DebugScreenSpaceTracingData, debugSSTBuffer);
+
                         // always do deferred lighting in blocks of 16x16 (not same as tiled light size)
 
                         if (enableFeatureVariants)
@@ -2463,7 +2467,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             currentLightingMaterial.SetInt(HDShaderIDs._StencilCmp, (int)CompareFunction.Equal);
                         }
 
+                        var debugSSTThisFrame = debugDisplaySettings.lightingDebugSettings.debugLightingMode == DebugLightingMode.ScreenSpaceTracingReflection;
+                        if (debugSSTThisFrame)
+                            cmd.SetRandomWriteTarget(7, debugSSTBuffer);
                         CoreUtils.DrawFullScreen(cmd, currentLightingMaterial, colorBuffers[0], depthStencilBuffer);
+                        if (debugSSTThisFrame)
+                            cmd.ClearRandomWriteTargets();
                     }
                 }
             } // End profiling

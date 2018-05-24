@@ -128,6 +128,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _DebugExposure = Shader.PropertyToID("_DebugExposure");
         public static readonly int _DebugScreenSpaceTracingData = Shader.PropertyToID("_DebugScreenSpaceTracingData");
         public static readonly int _ShowGrid = Shader.PropertyToID("_ShowGrid");
+        public static readonly int _ShowSSRaySampledColor = Shader.PropertyToID("_ShowSSRaySampledColor");
         public static readonly int _ShowDepthPyramidDebug = Shader.PropertyToID("_ShowDepthPyramidDebug");
 
         public static readonly int _DebugViewMaterial = Shader.PropertyToID("_DebugViewMaterial");
@@ -142,6 +143,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int _UseTileLightList = Shader.PropertyToID("_UseTileLightList");
 
+        public static readonly int _FrameCount     = Shader.PropertyToID("_FrameCount");
         public static readonly int _Time           = Shader.PropertyToID("_Time");
         public static readonly int _LastTime       = Shader.PropertyToID("_LastTime");
         public static readonly int _SinTime        = Shader.PropertyToID("_SinTime");
@@ -263,11 +265,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Shader.PropertyToID("_SSSBufferTexture3"),
         };
 
+        public static readonly int _SSRefractionRayMarchBehindObjects = Shader.PropertyToID("_SSRefractionRayMarchBehindObjects");
+        public static readonly int _SSRefractionRayMaxScreenDistance = Shader.PropertyToID("_SSRefractionRayMaxScreenDistance");
+        public static readonly int _SSRefractionRayBlendScreenDistance = Shader.PropertyToID("_SSRefractionRayBlendScreenDistance");
+        public static readonly int _SSRefractionRayLevel = Shader.PropertyToID("_SSRefractionRayLevel");
         public static readonly int _SSRefractionRayMinLevel = Shader.PropertyToID("_SSRefractionRayMinLevel");
         public static readonly int _SSRefractionRayMaxLevel = Shader.PropertyToID("_SSRefractionRayMaxLevel");
         public static readonly int _SSRefractionRayMaxIterations = Shader.PropertyToID("_SSRefractionRayMaxIterations");
-        public static readonly int _SSRefractionRayDepthSuccessBias = Shader.PropertyToID("_SSRefractionRayDepthSuccessBias");
+        public static readonly int _SSRefractionDepthBufferThickness = Shader.PropertyToID("_SSRefractionDepthBufferThickness");
         public static readonly int _SSRefractionInvScreenWeightDistance = Shader.PropertyToID("_SSRefractionInvScreenWeightDistance");
+
+        public static readonly int _SSReflectionRayMarchBehindObjects = Shader.PropertyToID("_SSReflectionRayMarchBehindObjects");
+        public static readonly int _SSReflectionRayMaxScreenDistance = Shader.PropertyToID("_SSReflectionRayMaxScreenDistance");
+        public static readonly int _SSReflectionRayBlendScreenDistance = Shader.PropertyToID("_SSReflectionRayBlendScreenDistance");
+        public static readonly int _SSReflectionRayLevel = Shader.PropertyToID("_SSReflectionRayLevel");
+        public static readonly int _SSReflectionRayMinLevel = Shader.PropertyToID("_SSReflectionRayMinLevel");
+        public static readonly int _SSReflectionRayMaxLevel = Shader.PropertyToID("_SSReflectionRayMaxLevel");
+        public static readonly int _SSReflectionRayMaxIterations = Shader.PropertyToID("_SSReflectionRayMaxIterations");
+        public static readonly int _SSReflectionDepthBufferThickness = Shader.PropertyToID("_SSReflectionDepthBufferThickness");
+        public static readonly int _SSReflectionInvScreenWeightDistance = Shader.PropertyToID("_SSReflectionInvScreenWeightDistance");
+        public static readonly int _SSReflectionProjectionModel = Shader.PropertyToID("_SSReflectionProjectionModel");
+        public static readonly int _SSReflectionEnabled = Shader.PropertyToID("_SSReflectionEnabled");
 
         public static readonly int _VelocityTexture = Shader.PropertyToID("_VelocityTexture");
         public static readonly int _ShadowMaskTexture = Shader.PropertyToID("_ShadowMaskTexture");
@@ -299,6 +317,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int _CameraDepthTexture = Shader.PropertyToID("_CameraDepthTexture");
         public static readonly int _CameraMotionVectorsTexture = Shader.PropertyToID("_CameraMotionVectorsTexture");
+        public static readonly int _CameraMotionVectorsSize = Shader.PropertyToID("_CameraMotionVectorsSize");
+        public static readonly int _CameraMotionVectorsScale = Shader.PropertyToID("_CameraMotionVectorsScale");
         public static readonly int _FullScreenDebugMode = Shader.PropertyToID("_FullScreenDebugMode");
 
         public static readonly int _InputCubemap = Shader.PropertyToID("_InputCubemap");

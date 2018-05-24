@@ -480,7 +480,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Set up UnityPerView CBuffer.
-        public void SetupGlobalParams(CommandBuffer cmd, float time, float lastTime)
+        public void SetupGlobalParams(CommandBuffer cmd, float time, float lastTime, uint frameCount)
         {
             cmd.SetGlobalMatrix(HDShaderIDs._ViewMatrix,                viewMatrix);
             cmd.SetGlobalMatrix(HDShaderIDs._InvViewMatrix,             viewMatrix.inverse);
@@ -515,6 +515,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalVector(HDShaderIDs.unity_DeltaTime, new Vector4(dt, 1.0f / dt, sdt, 1.0f / sdt));
             cmd.SetGlobalVector(HDShaderIDs._SinTime,        new Vector4(Mathf.Sin(ct * 0.125f), Mathf.Sin(ct * 0.25f), Mathf.Sin(ct * 0.5f), Mathf.Sin(ct)));
             cmd.SetGlobalVector(HDShaderIDs._CosTime,        new Vector4(Mathf.Cos(ct * 0.125f), Mathf.Cos(ct * 0.25f), Mathf.Cos(ct * 0.5f), Mathf.Cos(ct)));
+            cmd.SetGlobalInt(HDShaderIDs._FrameCount,        (int)frameCount);
         }
 
         public void SetupGlobalStereoParams(CommandBuffer cmd)

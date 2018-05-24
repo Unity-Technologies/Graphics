@@ -62,7 +62,7 @@ struct DirectionalLightData
     float3 up;
     float diffuseScale;
     float volumetricDimmer;
-    int dynamicShadowCasterOnly;
+    int nonLightmappedOnly;
     float4 shadowMaskSelector;
 };
 
@@ -83,7 +83,7 @@ struct LightData
     float angleScale;
     float angleOffset;
     float shadowDimmer;
-    int dynamicShadowCasterOnly;
+    int nonLightmappedOnly;
     float4 shadowMaskSelector;
     float2 size;
     int lightType;
@@ -167,9 +167,9 @@ float GetVolumetricDimmer(DirectionalLightData value)
 {
 	return value.volumetricDimmer;
 }
-int GetDynamicShadowCasterOnly(DirectionalLightData value)
+int GetNonLightmappedOnly(DirectionalLightData value)
 {
-	return value.dynamicShadowCasterOnly;
+	return value.nonLightmappedOnly;
 }
 float4 GetShadowMaskSelector(DirectionalLightData value)
 {
@@ -231,9 +231,9 @@ float GetShadowDimmer(LightData value)
 {
 	return value.shadowDimmer;
 }
-int GetDynamicShadowCasterOnly(LightData value)
+int GetNonLightmappedOnly(LightData value)
 {
-	return value.dynamicShadowCasterOnly;
+	return value.nonLightmappedOnly;
 }
 float4 GetShadowMaskSelector(LightData value)
 {

@@ -3,7 +3,7 @@
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
@@ -219,6 +219,13 @@ MonoBehaviour:
       minimumUnityVersion: 4
       platforms: -1
       run: 0
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2204_ScreenSpaceReflectionProxyBox.unity
+      scene: {fileID: 102900000, guid: 371699c064b85d04ba90b577c881c643, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2204_ScreenSpaceReflectionProxyBox.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
     - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2206_ProbeRoughness.unity
       scene: {fileID: 102900000, guid: fde2b1b0825ef5f40a0e5069afcca848, type: 3}
       scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2206_ProbeRoughness.unity
@@ -226,6 +233,13 @@ MonoBehaviour:
       minimumUnityVersion: 4
       platforms: -1
       run: 0
+    - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2205_ScreenSpaceReflectionProxySphere.unity
+      scene: {fileID: 102900000, guid: 3a4f431f1be840b45945d9ec965b621c, type: 3}
+      scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2205_ScreenSpaceReflectionProxySphere.unity
+      testTypes: 2
+      minimumUnityVersion: 4
+      platforms: -1
+      run: 1
     - name: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2301_Shadow_Mask.unity
       scene: {fileID: 102900000, guid: 1029947770f955b4290bbdd8b641f7f1, type: 3}
       scenePath: Assets/ScriptableRenderPipeline/Tests/UTF_Tests_HDRP/Scenes/2x_Lighting/2301_Shadow_Mask.unity

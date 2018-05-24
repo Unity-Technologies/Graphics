@@ -67,6 +67,34 @@ namespace UnityEditor.ShaderGraph
                 }
             }
 
+            foreach (var prop in m_Properties.OfType<Texture2DArrayShaderProperty>())
+            {
+                if (prop.referenceName != null)
+                {
+                    var textureInfo = new TextureInfo
+                    {
+                        name = prop.referenceName,
+                        textureId = prop.value.textureArray != null ? prop.value.textureArray.GetInstanceID() : 0,
+                        modifiable = prop.modifiable
+                    };
+                    result.Add(textureInfo);
+                }
+            }
+
+            foreach (var prop in m_Properties.OfType<Texture3DShaderProperty>())
+            {
+                if (prop.referenceName != null)
+                {
+                    var textureInfo = new TextureInfo
+                    {
+                        name = prop.referenceName,
+                        textureId = prop.value.texture != null ? prop.value.texture.GetInstanceID() : 0,
+                        modifiable = prop.modifiable
+                    };
+                    result.Add(textureInfo);
+                }
+            }
+
             foreach (var prop in m_Properties.OfType<CubemapShaderProperty>())
             {
                 if (prop.referenceName != null)
