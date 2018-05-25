@@ -100,7 +100,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static readonly string DepthMsaa2 = "_DEPTH_MSAA_2";
         public static readonly string DepthMsaa4 = "_DEPTH_MSAA_4";
 
-#if UNITY_2018_2_OR_NEWER
         public static readonly ShaderKeyword AdditionalLights = new ShaderKeyword(AdditionalLightsText);
         public static readonly ShaderKeyword VertexLights = new ShaderKeyword(VertexLightsText);
         public static readonly ShaderKeyword MixedLightingSubtractive = new ShaderKeyword(MixedLightingSubtractiveText);
@@ -111,7 +110,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public static readonly ShaderKeyword Lightmap = new ShaderKeyword("LIGHTMAP_ON");
         public static readonly ShaderKeyword DirectionalLightmap = new ShaderKeyword("DIRLIGHTMAP_COMBINED");
-#endif
     }
 
     public partial class LightweightPipeline
