@@ -4,31 +4,38 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Remap")]
-    class RemapToNegOnePosOne : VFXOperatorFloatUnifiedWithVariadicOutput
+    class RemapToNegOnePosOne : VFXOperatorNumericUniform
     {
-        [VFXSetting, Tooltip("Whether the values are clamped to the input/output range")]
-        public bool Clamp = false;
+        [VFXSetting, SerializeField, Tooltip("Whether the values are clamped to the input/output range")]
+        private bool m_Clamp = false;
 
         public class InputProperties
         {
             [Tooltip("The value to be remapped into the new range.")]
-            public FloatN input = new FloatN(0.5f);
+            public float input = 0.5f;
         }
 
-        override public string name { get { return "Remap [0..1] => [-1..1]"; } }
+        public override sealed string name { get { return "Remap [0..1] => [-1..1]"; } }
 
-        protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var type = inputExpression[0].valueType;
 
             VFXExpression input;
-
-            if (Clamp)
+            if (m_Clamp)
                 input = VFXOperatorUtility.Saturate(inputExpression[0]);
             else
                 input = inputExpression[0];
 
             return new[] { VFXOperatorUtility.Mad(input, VFXOperatorUtility.TwoExpression[type], VFXOperatorUtility.Negate(VFXOperatorUtility.OneExpression[type])) };
+        }
+
+        protected sealed override ValidTypeRule typeFilter
+        {
+            get
+            {
+                return ValidTypeRule.allowEverythingExceptInteger;
+            }
         }
     }
 }

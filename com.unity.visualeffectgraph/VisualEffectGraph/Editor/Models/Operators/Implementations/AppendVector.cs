@@ -7,67 +7,36 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Vector")]
-    class AppendVector : VFXOperator
+    class AppendVector : VFXOperatorNumericCascadedUnified
     {
-        override public string name { get { return "AppendVector"; } }
+        public override sealed string name { get { return "AppendVector"; } }
 
-        private int outputComponentCount
+        protected override sealed double defaultValueDouble { get { return 0.0f; } }
+
+        protected override sealed ValidTypeRule typeFilter { get { return ValidTypeRule.allowEverythingExceptIntegerAndVector4; } }
+
+        protected override Type GetExpectedOutputTypeOfOperation(IEnumerable<Type> inputTypes)
         {
-            get
+            var outputComponentCount = inputTypes.Select(o => VFXExpression.TypeToSize(VFXExpression.GetVFXValueTypeFromType(o))).Sum();
+            outputComponentCount = Mathf.Min(Mathf.Max(outputComponentCount, 1), 4);
+            switch (outputComponentCount)
             {
-                return Math.Min(4, inputSlots.Sum(s => VFXTypeUtility.GetComponentCount(s)));
+                case 2: return typeof(Vector2);
+                case 3: return typeof(Vector3);
+                case 4: return typeof(Vector4);
+                default: return typeof(float);
             }
         }
 
-        protected override IEnumerable<VFXPropertyWithValue> inputProperties
+        protected override sealed IEnumerable<VFXExpression> ApplyPatchInputExpression(IEnumerable<VFXExpression> inputExpression)
         {
-            get
-            {
-                int totalComponentCount = 0;
-                int nbNeededSlots = 1;
-                var currentSlots = inputSlots.ToList();
-                for (int i = 0; i < currentSlots.Count; ++i)
-                {
-                    var slotComponentCount = VFXTypeUtility.GetComponentCount(currentSlots[i]);
-                    totalComponentCount += slotComponentCount;
-                    if (slotComponentCount > 0 && totalComponentCount < 4)
-                        ++nbNeededSlots;
-                    if (totalComponentCount >= 4)
-                        break;
-                }
-
-                for (int i = 0; i < nbNeededSlots; ++i)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(FloatN), ((char)((int)'a' + i)).ToString()), null);
-                // if (totalComponentCount < 4)
-                //     yield return new VFXPropertyWithValue(new VFXProperty(typeof(FloatN), ((char)((int)'a' + nbNeededSlots)).ToString()), null); // Add an empty slot for additonal connection
-            }
-        }
-
-        protected override IEnumerable<VFXPropertyWithValue> outputProperties
-        {
-            get
-            {
-                const string outputName = "o";
-                Type slotType = null;
-                switch (outputComponentCount)
-                {
-                    case 1: slotType = typeof(float); break;
-                    case 2: slotType = typeof(Vector2); break;
-                    case 3: slotType = typeof(Vector3); break;
-                    case 4: slotType = typeof(Vector4); break;
-                    default: break;
-                }
-
-                if (slotType != null)
-                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, outputName));
-            }
+            return inputExpression; //remove explicitly unified behavior
         }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
-            int nbComponents = outputComponentCount;
             var allComponent = inputExpression.SelectMany(e => VFXOperatorUtility.ExtractComponents(e))
-                .Take(outputComponentCount)
+                .Take(4)
                 .ToArray();
 
             if (allComponent.Length == 0)
@@ -79,6 +48,11 @@ namespace UnityEditor.VFX.Operator
                 return allComponent;
             }
             return new[] { new VFXExpressionCombine(allComponent) };
+        }
+
+        protected override VFXExpression ComposeExpression(VFXExpression a, VFXExpression b)
+        {
+            throw new NotImplementedException();
         }
     }
 }

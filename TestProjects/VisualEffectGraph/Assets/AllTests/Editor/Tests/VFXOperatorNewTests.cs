@@ -9,6 +9,7 @@ using UnityEngine.Graphing;
 using Object = UnityEngine.Object;
 using UnityEngine.Experimental.VFX;
 using System.Text;
+using UnityEditor.VFX.Operator;
 
 namespace UnityEditor.VFX.Test
 {
@@ -16,10 +17,10 @@ namespace UnityEditor.VFX.Test
     public class VFXOperatorNewTests
     {
         [Test]
-        public void CascadedAddNewOperatorCascadedBehavior()
+        public void CascadedAddOperatorCascadedBehavior()
         {
             var one = ScriptableObject.CreateInstance<VFXInlineOperator>();
-            var add = ScriptableObject.CreateInstance<Operator.AddNew>();
+            var add = ScriptableObject.CreateInstance<Operator.Add>();
 
             one.SetSettingValue("m_Type", (SerializableType)typeof(float));
             one.inputSlots[0].value = 1.0f;
@@ -85,7 +86,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void CascadedMulNewOperatorDifferentFloatSizes()
+        public void CascadedMulOperatorDifferentFloatSizes()
         {
             var vec2_Two = ScriptableObject.CreateInstance<VFXInlineOperator>();
             var vec3_Two = ScriptableObject.CreateInstance<VFXInlineOperator>();
@@ -96,7 +97,7 @@ namespace UnityEditor.VFX.Test
             vec3_Two.SetSettingValue("m_Type", (SerializableType)typeof(Vector3));
             vec3_Two.inputSlots[0].value = Vector3.one * 2.0f;
 
-            var mul = ScriptableObject.CreateInstance<Operator.MultiplyNew>();
+            var mul = ScriptableObject.CreateInstance<Operator.Multiply>();
             mul.SetOperandType(0, typeof(Vector2));
             mul.inputSlots[0].Link(vec2_Two.outputSlots[0]);
             mul.SetOperandType(1, typeof(Vector3));
@@ -112,7 +113,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CascadedSubstractIntegerBehavior()
         {
-            var subtract = ScriptableObject.CreateInstance<Operator.SubtractNew>();
+            var subtract = ScriptableObject.CreateInstance<Operator.Subtract>();
             subtract.SetOperandType(0, typeof(float));
             subtract.SetOperandType(1, typeof(float));
 
@@ -152,9 +153,9 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void ClampNewBehavior()
+        public void ClampBehavior()
         {
-            var clamp = ScriptableObject.CreateInstance<Operator.ClampNew>();
+            var clamp = ScriptableObject.CreateInstance<Operator.Clamp>();
             clamp.SetOperandType(0, typeof(int));
             clamp.SetOperandType(1, typeof(int));
             clamp.SetOperandType(2, typeof(int));
@@ -171,9 +172,9 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void LengthNewBehavior()
+        public void LengthBehavior()
         {
-            var length = ScriptableObject.CreateInstance<Operator.LengthNew>();
+            var length = ScriptableObject.CreateInstance<Operator.Length>();
             length.SetOperandType(typeof(Vector2));
             Assert.AreEqual(VFXValueType.Float, length.outputSlots[0].GetExpression().valueType);
 
@@ -188,9 +189,9 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void DotProductNewBehavior()
+        public void DotProductBehavior()
         {
-            var dot = ScriptableObject.CreateInstance<Operator.DotProductNew>();
+            var dot = ScriptableObject.CreateInstance<Operator.DotProduct>();
             dot.SetOperandType(typeof(Vector2));
 
             Assert.AreEqual(VFXValueType.Float, dot.outputSlots[0].GetExpression().valueType);
@@ -209,9 +210,9 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void CosineNewBehavior()
+        public void CosineBehavior()
         {
-            var cos = ScriptableObject.CreateInstance<Operator.CosineNew>();
+            var cos = ScriptableObject.CreateInstance<Operator.Cosine>();
             cos.SetOperandType(typeof(Vector2));
 
             Assert.AreEqual(VFXValueType.Float2, cos.outputSlots[0].GetExpression().valueType);
@@ -228,11 +229,11 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void KeepConnectionNewBehavior()
+        public void KeepConnectionBehavior()
         {
-            var cos_A = ScriptableObject.CreateInstance<Operator.CosineNew>();
+            var cos_A = ScriptableObject.CreateInstance<Operator.Cosine>();
             cos_A.SetOperandType(typeof(Vector3));
-            var cos_B = ScriptableObject.CreateInstance<Operator.CosineNew>();
+            var cos_B = ScriptableObject.CreateInstance<Operator.Cosine>();
             cos_B.SetOperandType(typeof(float));
 
             Assert.AreEqual(VFXValueType.Float3, cos_A.outputSlots[0].GetExpression().valueType);
@@ -262,9 +263,9 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void AppendNewBehavior()
+        public void AppendBehavior()
         {
-            var append = ScriptableObject.CreateInstance<Operator.AppendVectorNew>();
+            var append = ScriptableObject.CreateInstance<Operator.AppendVector>();
             Assert.AreEqual(VFXValueType.Float2, append.outputSlots[0].GetExpression().valueType);
             append.AddOperand();
             Assert.AreEqual(VFXValueType.Float3, append.outputSlots[0].GetExpression().valueType);
@@ -282,9 +283,9 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void BranchNewBehavior()
+        public void BranchBehavior()
         {
-            var branch = ScriptableObject.CreateInstance<Operator.BranchNew>();
+            var branch = ScriptableObject.CreateInstance<Operator.Branch>();
             branch.SetOperandType(typeof(Sphere));
 
             var sphereA = new Sphere() { center = new Vector3(1.0f, 2.0f, 3.0f), radius = 4.0f };
@@ -402,15 +403,15 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void ModuloNewWithInteger()
+        public void ModuloWithInteger()
         {
             var a = 1610612737u;
             var b = 805306361u;
 
-            var moduloUInt = ScriptableObject.CreateInstance<Operator.ModuloNew>();
+            var moduloUInt = ScriptableObject.CreateInstance<Operator.Modulo>();
             moduloUInt.SetOperandType(typeof(uint));
 
-            var moduloFloat = ScriptableObject.CreateInstance<Operator.ModuloNew>();
+            var moduloFloat = ScriptableObject.CreateInstance<Operator.Modulo>();
             moduloFloat.SetOperandType(typeof(float));
 
             var aOperator = ScriptableObject.CreateInstance<VFXInlineOperator>();
@@ -436,13 +437,13 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void MinimumNewWithIdenityValue()
+        public void MinimumWithIdenityValue()
         {
             var a = new Vector2(2, 2);
             var b = new Vector3(3, 3, 3);
             var e = new Vector3(2, 2, 3);
 
-            var min = ScriptableObject.CreateInstance<Operator.MinimumNew>();
+            var min = ScriptableObject.CreateInstance<Operator.Minimum>();
             min.SetOperandType(0, a.GetType());
             min.SetOperandType(1, b.GetType());
 
@@ -456,6 +457,321 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(e.x, r.x);
             Assert.AreEqual(e.y, r.y);
             Assert.AreEqual(e.z, r.z);
+        }
+
+        private static KeyValuePair<Type, int>[] allOperatorUsingFloatN = new KeyValuePair<Type, int>[] {
+            new KeyValuePair<Type, int>(typeof(AbsoluteDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(AddDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(AppendVectorDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(BranchDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(CeilingDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(ClampDeprecated), 3),
+             new KeyValuePair<Type, int>(typeof(ComponentMask), 1),
+             new KeyValuePair<Type, int>(typeof(CosineDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(DiscretizeDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(DistanceDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(DivideDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(DotProductDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(FitClamped), 5),
+             new KeyValuePair<Type, int>(typeof(FloorDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(FractionDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(LengthDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(LerpDeprecated), 3),
+             new KeyValuePair<Type, int>(typeof(MaximumDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(MinimumDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(ModuloDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(MultiplyDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(NormalizeDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(OneMinusDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(PowerDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(ReciprocalDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(RemapDeprecated), 5),
+             new KeyValuePair<Type, int>(typeof(RemapToNegOnePosOneDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(RemapToZeroOneDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(RoundDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(SaturateDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(SawtoothWaveDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(SignDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(SineDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(SineWaveDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(SmoothstepDeprecated), 3),
+             new KeyValuePair<Type, int>(typeof(SquaredDistanceDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(SquaredLengthDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(SquareRootDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(SquareWaveDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(StepDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(SubtractDeprecated), 2),
+             new KeyValuePair<Type, int>(typeof(SwizzleDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(TangentDeprecated), 1),
+             new KeyValuePair<Type, int>(typeof(TriangleWaveDeprecated), 2),
+        };
+
+        [Test]
+        public void VerifyAllOperatorUsingFloatNAreRegistered()
+        {
+            //Use reflexion only in test to avoid slowing down domain reload due to huge reflection
+            var allClasses = VFXLibrary.FindConcreteSubclasses(typeof(VFXOperator)); //even without attribute
+
+            var typeWithFloatN = new List<KeyValuePair<Type, int>>();
+            foreach (var op in allClasses)
+            {
+                var currentOp = ScriptableObject.CreateInstance(op) as VFXOperator;
+                var floatNCount = currentOp.inputSlots.Where(o => o.property.type == typeof(FloatN)).Count();
+                if (floatNCount > 0)
+                {
+                    typeWithFloatN.Add(new KeyValuePair<Type, int>(op, floatNCount));
+                }
+            }
+
+            Func<IEnumerable<KeyValuePair<Type, int>>, string> fnDumpList = delegate(IEnumerable<KeyValuePair<Type, int>> input)
+                {
+                    if (!input.Any())
+                        return "new KeyValuePair<Type, int>[] { }";
+
+                    return "new KeyValuePair<Type, int>[] { " + input.Select(o => string.Format("new KeyValuePair<Type, int>(typeof({0}), {1})", o.Key.Name, o.Value)).Aggregate((a, b) => a + ",\n " + b) + " };";
+                };
+
+            var expected = fnDumpList(typeWithFloatN);
+            var current = fnDumpList(allOperatorUsingFloatN);
+
+            var test = allSanitizeTest;
+
+            Assert.AreEqual(expected, current);
+        }
+
+        [Test]
+        public void VerifyThereIsNoMoreOperatorOrBlockUsingFloatN()
+        {
+            var contextList = VFXLibrary.GetContexts().Select(o => o.CreateInstance() as IVFXSlotContainer);
+            var operatorList = VFXLibrary.GetOperators().Select(o => o.CreateInstance() as IVFXSlotContainer);
+            var blockList = VFXLibrary.GetBlocks().Select(o => o.CreateInstance() as IVFXSlotContainer);
+            var all = contextList.Concat(operatorList).Concat(blockList);
+
+            var searchFloatN = all.Where(o =>
+                {
+                    return o.inputSlots.Concat(o.outputSlots).Any(s => s.property.type == typeof(FloatN));
+                }).ToArray();
+
+            if (searchFloatN.Length != 0)
+            {
+                Assert.Fail("There is still not deprecated slot container which are using FloatN : {0}",
+                    searchFloatN.Select(o => o.GetType().ToString()).Aggregate((a, b) => a + ", " + b));
+            }
+        }
+
+        public class SanitizeParam
+        {
+            public Type type;
+            public Type[] inputSlotType;
+
+            public override string ToString()
+            {
+                var list = inputSlotType == null || inputSlotType.Length == 0 ? string.Empty : inputSlotType.Select(o => o == null ? "None" : o.UserFriendlyName()).Aggregate((a, b) => a + ", " + b);
+                return string.Format("{0} with {1}", type.Name, list);
+            }
+        }
+
+        private static SanitizeParam[] s_allSanitizeTest;
+        public static SanitizeParam[] allSanitizeTest
+        {
+            get
+            {
+                if (s_allSanitizeTest != null)
+                    return s_allSanitizeTest;
+
+                var availableInputType = new Type[] { null, typeof(float), typeof(Vector2), typeof(Vector3), typeof(Vector4) };
+                var maxShuffleCount = 3; //actual max : maxShuffleCount * maxShuffleCount
+
+                UnityEngine.Random.InitState(42);
+                var sanitizeTest = new List<SanitizeParam>();
+                foreach (var type in allOperatorUsingFloatN)
+                {
+                    for (int i = 0; i < maxShuffleCount * Mathf.Min(type.Value, maxShuffleCount); ++i)
+                    {
+                        var param = new SanitizeParam()
+                        {
+                            type = type.Key,
+                            inputSlotType = Enumerable.Repeat((Type)null, type.Value).ToArray()
+                        };
+
+                        for (int j = 0; j < type.Value; ++j)
+                        {
+                            param.inputSlotType[j] = availableInputType[UnityEngine.Random.Range(0, availableInputType.Length)];
+                        }
+                        sanitizeTest.Add(param);
+                    }
+
+                    if (type.Key == typeof(DotProduct)) //Add know tricky issue
+                    {
+                        var param = new SanitizeParam()
+                        {
+                            type = type.Key,
+                            inputSlotType = Enumerable.Repeat(typeof(float), 2).ToArray()
+                        };
+                        sanitizeTest.Add(param);
+                    }
+                }
+                s_allSanitizeTest = sanitizeTest.GroupBy(o => o.ToString()).Select(o => o.First()).ToArray();
+                return s_allSanitizeTest;
+            }
+        }
+
+        private static Type[] swizzleType = new Type[] { typeof(Operator.Swizzle) };
+        [Test]
+        public void SwizzleOperator([ValueSource("swizzleType")] Type swizzleType)
+        {
+            // check basic swizzle
+            {
+                var inputVec = ScriptableObject.CreateInstance<VFXOperatorVector2>();
+                var swizzle = ScriptableObject.CreateInstance(swizzleType) as VFXOperator;
+                if (swizzleType == typeof(Operator.Swizzle))
+                {
+                    (swizzle as Operator.Swizzle).SetOperandType(typeof(Vector2));
+                }
+
+                swizzle.inputSlots[0].Link(inputVec.outputSlots.First());
+                swizzle.SetSettingValue("mask", "xxy");
+
+                var finalExpr = swizzle.outputSlots.First().GetExpression();
+
+                var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+                var result = context.Compile(finalExpr);
+                var vec = result.Get<Vector3>();
+
+                Assert.AreEqual(new Vector3(1.0f, 1.0f, 2.0f), vec);
+            }
+
+            // check out of bounds mask is clamped correctly
+            {
+                var inputVec = ScriptableObject.CreateInstance<VFXOperatorVector2>();
+                var swizzle = ScriptableObject.CreateInstance(swizzleType) as VFXOperator;
+                if (swizzleType == typeof(Operator.Swizzle))
+                {
+                    (swizzle as Operator.Swizzle).SetOperandType(typeof(Vector2));
+                }
+                swizzle.inputSlots[0].Link(inputVec.outputSlots.First());
+                swizzle.SetSettingValue("mask", "yzx");
+
+                var finalExpr = swizzle.outputSlots.First().GetExpression();
+
+                var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+                var result = context.Compile(finalExpr);
+                var vec = result.Get<Vector3>();
+
+                Assert.AreEqual(new Vector3(2.0f, 2.0f, 1.0f), vec);
+            }
+        }
+
+        [Test]
+        public void SanitizeBehavior([ValueSource("allSanitizeTest")] SanitizeParam op)
+        {
+            UnityEngine.Random.InitState(87);
+
+            var graph = ScriptableObject.CreateInstance<VFXGraph>();
+            var currentOperator = ScriptableObject.CreateInstance(op.type) as VFXOperator;
+
+            graph.AddChild(currentOperator);
+
+            //Ignore not FloatN (expected first)
+            var skipCount = currentOperator.inputSlots.TakeWhile(o => o.property.type != typeof(FloatN)).Count();
+            op.inputSlotType = Enumerable.Repeat((Type)null, skipCount).Concat(op.inputSlotType).ToArray();
+
+            for (int i = 0; i < op.inputSlotType.Length; ++i)
+            {
+                Type type = op.inputSlotType[i];
+                if (type == null)
+                    continue;
+
+                var inlineOperator = ScriptableObject.CreateInstance<VFXInlineOperator>();
+                inlineOperator.SetSettingValue("m_Type", (SerializableType)type);
+                graph.AddChild(inlineOperator);
+
+                currentOperator.inputSlots.ElementAt(i).Link(inlineOperator.outputSlots.FirstOrDefault());
+            }
+
+            //Always connect output slot
+            foreach (var slot in currentOperator.outputSlots)
+            {
+                var inlineOperator = ScriptableObject.CreateInstance<VFXInlineOperator>();
+                inlineOperator.SetSettingValue("m_Type", (SerializableType)currentOperator.outputSlots[0].property.type);
+                graph.AddChild(inlineOperator);
+
+                slot.Link(inlineOperator.inputSlots.FirstOrDefault());
+            }
+
+            foreach (var slot in currentOperator.inputSlots.Where(o => o.property.type == typeof(FloatN) && !o.HasLink()))
+            {
+                var floatN = (FloatN)slot.value;
+                slot.value = new FloatN(Enumerable.Repeat(0, floatN.realSize).Select(_ => UnityEngine.Random.Range(-10.0f, 10.0f)).ToArray());
+            }
+
+            //Let's do it !
+            graph.SanitizeGraph();
+
+            //And verify equivalence...
+            var newOperator = graph.children.Where(o => !(o is VFXInlineOperator)).FirstOrDefault() as VFXOperator;
+            Assert.AreNotEqual(currentOperator, newOperator);
+            Assert.IsNotNull(newOperator);
+
+            for (int i = 0; i < currentOperator.inputSlots.Count; ++i)
+            {
+                var currentInputSlot = currentOperator.inputSlots[i];
+                var newInputSlot = newOperator.inputSlots[i];
+                if (i < op.inputSlotType.Length && op.inputSlotType[i] != null) //Cannot test currentInputSlot.HasLink because replace model clean connected slot
+                {
+                    Assert.IsTrue(newInputSlot.HasLink(true));
+                }
+                else
+                {
+                    if (currentInputSlot.property.type == typeof(FloatN))
+                    {
+                        var floatN = (FloatN)currentInputSlot.value;
+                        var newType = newInputSlot.property.type;
+                        if (newType == typeof(float))
+                        {
+                            var expected = (float)floatN;
+                            Assert.AreEqual((double)expected, (float)newInputSlot.value, 0.0001);
+                        }
+                        else if (newType == typeof(Vector2))
+                        {
+                            var expected = (Vector2)floatN;
+                            var current = (Vector2)newInputSlot.value;
+                            Assert.AreEqual((double)expected.x, (double)current.x, 0.0001);
+                            Assert.AreEqual((double)expected.y, (double)current.y, 0.0001);
+                        }
+                        else if (newType == typeof(Vector3))
+                        {
+                            var expected = (Vector3)floatN;
+                            var current = (Vector3)newInputSlot.value;
+                            Assert.AreEqual((double)expected.x, (double)current.x, 0.0001);
+                            Assert.AreEqual((double)expected.y, (double)current.y, 0.0001);
+                            Assert.AreEqual((double)expected.z, (double)current.z, 0.0001);
+                        }
+                        else if (newType == typeof(Vector4))
+                        {
+                            var expected = (Vector4)floatN;
+                            var current = (Vector4)newInputSlot.value;
+                            Assert.AreEqual((double)expected.x, (double)current.x, 0.0001);
+                            Assert.AreEqual((double)expected.y, (double)current.y, 0.0001);
+                            Assert.AreEqual((double)expected.z, (double)current.z, 0.0001);
+                            Assert.AreEqual((double)expected.w, (double)current.w, 0.0001);
+                        }
+                        else
+                        {
+                            Assert.Fail();
+                        }
+                    }
+                    else
+                    {
+                        Assert.AreEqual(currentInputSlot.value, newInputSlot.value);
+                    }
+                }
+            }
+
+            for (int i = 0; i < currentOperator.outputSlots.Count; ++i)
+            {
+                Assert.IsTrue(newOperator.outputSlots[i].HasLink());
+            }
         }
     }
 }

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 
-using BranchNew = UnityEditor.VFX.Operator.BranchNew;
+using Branch = UnityEditor.VFX.Operator.Branch;
 
 namespace UnityEditor.VFX.UI
 {
@@ -75,7 +75,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXUnifiedOperatorControllerBase<T> : VFXVariableOperatorController where T : VFXOperatorNumericNew, IVFXOperatorNumericUnifiedNew
+    class VFXUnifiedOperatorControllerBase<T> : VFXVariableOperatorController where T : VFXOperatorNumeric, IVFXOperatorNumericUnified
     {
         public VFXUnifiedOperatorControllerBase(VFXModel model, VFXViewController viewController) : base(model, viewController)
         {
@@ -101,7 +101,7 @@ namespace UnityEditor.VFX.UI
             }
         }
     }
-    class VFXUnifiedOperatorController : VFXUnifiedOperatorControllerBase<VFXOperatorNumericUnifiedNew>
+    class VFXUnifiedOperatorController : VFXUnifiedOperatorControllerBase<VFXOperatorNumericUnified>
     {
         public VFXUnifiedOperatorController(VFXModel model, VFXViewController viewController) : base(model, viewController)
         {
@@ -204,7 +204,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXCascadedOperatorController : VFXUnifiedOperatorControllerBase<VFXOperatorNumericCascadedUnifiedNew>
+    class VFXCascadedOperatorController : VFXUnifiedOperatorControllerBase<VFXOperatorNumericCascadedUnified>
     {
         public VFXCascadedOperatorController(VFXModel model, VFXViewController viewController) : base(model, viewController)
         {
@@ -286,14 +286,14 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXNumericUniformOperatorController : VFXUniformOperatorController<VFXOperatorNumericUniformNew>
+    class VFXNumericUniformOperatorController : VFXUniformOperatorController<VFXOperatorNumericUniform>
     {
         public VFXNumericUniformOperatorController(VFXModel model, VFXViewController viewController) : base(model, viewController)
         {
         }
     }
 
-    class VFXBranchOperatorController : VFXUniformOperatorController<BranchNew>
+    class VFXBranchOperatorController : VFXUniformOperatorController<Branch>
     {
         public VFXBranchOperatorController(VFXModel model, VFXViewController viewController) : base(model, viewController)
         {

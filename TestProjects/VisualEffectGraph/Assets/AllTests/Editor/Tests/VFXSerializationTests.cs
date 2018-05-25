@@ -129,8 +129,8 @@ namespace UnityEditor.VFX.Test
         {
             Assert.AreEqual(1, add.outputSlots.Count);
             Assert.AreEqual(2, add.inputSlots.Count);
-            Assert.AreEqual(typeof(FloatN), add.inputSlots[0].property.type);
-            Assert.AreEqual(typeof(FloatN), add.inputSlots[1].property.type);
+            Assert.AreEqual(typeof(float), add.inputSlots[0].property.type);
+            Assert.AreEqual(typeof(float), add.inputSlots[1].property.type);
             Assert.AreEqual(typeof(float), add.outputSlots[0].property.type);
             Assert.IsNotNull(add.outputSlots[0].GetExpression());
             Assert.IsNotNull(add.outputSlots[0].GetExpression() as VFXExpressionAdd);
@@ -140,7 +140,7 @@ namespace UnityEditor.VFX.Test
         {
             Assert.AreEqual(1, add.outputSlots.Count);
             Assert.AreEqual(1, add.inputSlots.Count);
-            Assert.AreEqual(typeof(FloatN), add.inputSlots[0].property.type);
+            Assert.AreEqual(typeof(float), add.inputSlots[0].property.type);
             Assert.AreEqual(typeof(float), add.outputSlots[0].property.type);
             Assert.IsNotNull(add.outputSlots[0].GetExpression());
             Assert.IsNotNull(add.outputSlots[0].GetExpression() as VFXExpressionAbs);
@@ -316,6 +316,7 @@ namespace UnityEditor.VFX.Test
                     var graph = asset.GetOrCreateGraph();
                     var add = ScriptableObject.CreateInstance<Operator.Add>();
                     var parameter = VFXLibrary.GetParameters().First(o => o.name == "Vector2").CreateInstance();
+                    add.SetOperandType(0, typeof(Vector2));
                     graph.AddChild(add);
                     graph.AddChild(parameter);
                     add.inputSlots[0].Link(parameter.outputSlots[0]);
