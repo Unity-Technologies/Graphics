@@ -341,13 +341,13 @@ namespace UnityEditor.VFX
                 {
                     var slot = existingSlots[i];
                     //first check at the same index
-                    if (currentSlots.Count > i && currentSlots[i].property.name == slot.property.name && VFXSlot.TransferLinksAndValue(currentSlots[i], slot, notify))
+                    if (currentSlots.Count > i && currentSlots[i].property.name == slot.property.name && VFXSlot.CopyLinksAndValues(currentSlots[i], slot, notify))
                     {
                         break;
                     }
                     var candidates = currentSlots.Where(s => s.property.name == slot.property.name);
                     foreach (var candidate in candidates)
-                        if (VFXSlot.TransferLinksAndValue(candidate, slot, notify))
+                        if (VFXSlot.CopyLinksAndValues(candidate, slot, notify))
                             break;
                 }
 
@@ -358,7 +358,7 @@ namespace UnityEditor.VFX
                     {
                         var candidate = currentSlots.FirstOrDefault(s => !s.HasLink(true) && s.property.type == slot.property.type);
                         if (candidate != null)
-                            VFXSlot.TransferLinks(candidate, slot, notify);
+                            VFXSlot.CopyLinks(candidate, slot, notify);
                     }
                 }
 

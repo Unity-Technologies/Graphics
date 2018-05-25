@@ -322,7 +322,7 @@ namespace UnityEditor.VFX
             throw new InvalidOperationException(string.Format("Unable to create slot for property {0} of type {1}", property.name, property.type));
         }
 
-        public static bool CopyrLinksAndValue(VFXSlot dst, VFXSlot src, bool notify)
+        public static bool CopyLinksAndValues(VFXSlot dst, VFXSlot src, bool notify)
         {
             // Transfer value only if src can hold it (master slot)
             if (dst.IsMasterSlot())
