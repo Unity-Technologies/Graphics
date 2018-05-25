@@ -12,7 +12,6 @@ using LightweightRP = UnityEngine.Experimental.Rendering.LightweightPipeline.Lig
 
 namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 {
-#if UNITY_2018_2_OR_NEWER
     public class ShaderPreprocessor : IPreprocessShaders
     {
 #if LOG_VARIANTS
@@ -160,5 +159,4 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 #endif
         }
     }
-#endif // UNITY_2018_2_OR_NEWER
 }
