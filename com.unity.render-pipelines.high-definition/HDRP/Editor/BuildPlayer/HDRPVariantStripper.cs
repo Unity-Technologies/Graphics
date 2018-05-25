@@ -9,7 +9,6 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-#if UNITY_2018_2_OR_NEWER
     class HDRPVariantStripper : IPreprocessShaders
     {
         // returns true if the variant should be stripped.
@@ -159,5 +158,4 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 inputData.Add(workaround);
         }
     }
-#endif
 }
