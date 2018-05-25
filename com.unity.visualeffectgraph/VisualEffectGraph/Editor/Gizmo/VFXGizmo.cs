@@ -194,7 +194,8 @@ namespace UnityEditor.VFX
         {
             m_CurrentSpace = CoordinateSpace.Global;
 
-            OnDrawGizmo((T)value);
+            if( value is T)
+                OnDrawGizmo((T)value);
         }
 
         public abstract void OnDrawGizmo(T value);
