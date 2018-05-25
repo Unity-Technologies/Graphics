@@ -5,7 +5,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public enum CustomSamplerId
     {
         PushGlobalParameters,
-        PushVelocityBufferParameters,
         CopySetDepthBuffer,
         CopyDepthStencilbuffer,
         HTileForSSS,
