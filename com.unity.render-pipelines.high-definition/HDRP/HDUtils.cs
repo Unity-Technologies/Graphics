@@ -191,8 +191,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static void SetRenderTarget(CommandBuffer cmd, HDCamera camera, RenderTargetIdentifier[] colorBuffers, RTHandleSystem.RTHandle depthBuffer, ClearFlag clearFlag, Color clearColor)
         {
             cmd.SetRenderTarget(colorBuffers, depthBuffer);
-            SetViewport(cmd, camera, depthBuffer);
-            CoreUtils.ClearRenderTarget(cmd, clearFlag, clearColor);
+            SetViewportAndClear(cmd, camera, depthBuffer, clearFlag, clearColor);
         }
 
         // Scaling viewport is done for auto-scaling render targets.
