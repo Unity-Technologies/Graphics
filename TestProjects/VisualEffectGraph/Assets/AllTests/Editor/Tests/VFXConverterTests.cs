@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using UnityEngine;
 using NUnit.Framework;
 using UnityEditor.VFX.UI;
+using UnityEngine.Experimental.VFX;
 using UnityEngine.TestTools;
 
 namespace UnityEditor.VFX.Test
@@ -38,11 +39,20 @@ namespace UnityEditor.VFX.Test
             get { BuildValueSources(); return s_FailingConversions; }
         }
 
+
+        [OneTimeTearDown]
+        public void TearDown()
+        {
+            Object.DestroyImmediate(s_Texture);
+            s_Texture = null;
+        }
+
         static void BuildValueSources()
         {
             if (s_Texture == null)
             {
                 s_Texture = new Texture2D(16, 16);
+                s_Texture.hideFlags = HideFlags.HideAndDontSave;
 
                 s_Conversions = new Conversion[]
                 {
@@ -143,6 +153,19 @@ namespace UnityEditor.VFX.Test
                     new Conversion {value = null, targetType = typeof(uint), expectedResult = null},
                     new Conversion {value = null, targetType = typeof(Texture2D), expectedResult = null},
                     new Conversion {value = null, targetType = typeof(Vector3), expectedResult = null},
+
+                    new Conversion {value = new Vector3(1, 2, 3), targetType = typeof(DirectionType), expectedResult = new DirectionType() { direction = new Vector3(1, 2, 3) } },
+                    new Conversion {value = new Vector3(4, 5, 6), targetType = typeof(Vector), expectedResult = new Vector() { vector = new Vector3(4, 5, 6) } },
+                    new Conversion {value = new Vector3(7, 8, 9), targetType = typeof(Position), expectedResult = new Position() { position = new Vector3(7, 8, 9) } },
+
+                    new Conversion {value = new DirectionType() { direction = new Vector3(1, 2, 3) }, targetType = typeof(Vector3), expectedResult = new Vector3(1, 2, 3) },
+                    new Conversion {value = new Vector() { vector = new Vector3(4, 5, 6) }, targetType = typeof(Vector3), expectedResult = new Vector3(4, 5, 6) },
+                    new Conversion {value = new Position() { position = new Vector3(7, 8, 9) }, targetType = typeof(Vector3), expectedResult = new Vector3(7, 8, 9) },
+
+                    new Conversion {value = 3, targetType = typeof(VFXValueType), expectedResult = VFXValueType.Float3},
+                    new Conversion {value = 3u, targetType = typeof(VFXValueType), expectedResult = VFXValueType.Float3},
+                    new Conversion {value = VFXValueType.Float3, targetType = typeof(int), expectedResult = 3},
+                    new Conversion {value = VFXValueType.Float3, targetType = typeof(uint), expectedResult = 3u}
                 };
 
                 s_FailingConversions = new Conversion[]

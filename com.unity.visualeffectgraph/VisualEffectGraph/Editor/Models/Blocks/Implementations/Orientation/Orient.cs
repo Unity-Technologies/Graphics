@@ -97,9 +97,19 @@ axisZ = -viewRot[2].xyz;
 
                     case Mode.FaceCameraPosition:
                         return @"
-axisZ = normalize(position - GetViewVFXPosition());
-axisX = normalize(cross(GetVFXToViewRotMatrix()[1].xyz,axisZ));
-axisY = cross(axisZ,axisX);
+if (unity_OrthoParams.w == 1.0f) // Face plane for ortho
+{
+    float3x3 viewRot = GetVFXToViewRotMatrix();
+    axisX = viewRot[0].xyz;
+    axisY = viewRot[1].xyz;
+    axisZ = -viewRot[2].xyz;
+}
+else
+{
+    axisZ = normalize(position - GetViewVFXPosition());
+    axisX = normalize(cross(GetVFXToViewRotMatrix()[1].xyz,axisZ));
+    axisY = cross(axisZ,axisX);
+}
 ";
 
                     case Mode.LookAtPosition:

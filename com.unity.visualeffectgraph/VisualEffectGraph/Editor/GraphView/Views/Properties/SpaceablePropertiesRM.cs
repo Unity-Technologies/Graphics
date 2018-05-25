@@ -136,7 +136,7 @@ namespace UnityEditor.VFX.UI
         public override void UpdateGUI(bool force)
         {
             base.UpdateGUI(force);
-            m_VectorField.value = m_Value.vector;
+            m_VectorField.SetValueWithoutNotify(m_Value.vector);
         }
     }
 
@@ -159,7 +159,7 @@ namespace UnityEditor.VFX.UI
         public override void UpdateGUI(bool force)
         {
             base.UpdateGUI(force);
-            m_VectorField.value = m_Value.position;
+            m_VectorField.SetValueWithoutNotify(m_Value.position);
         }
     }
 
@@ -182,7 +182,7 @@ namespace UnityEditor.VFX.UI
         public override void UpdateGUI(bool force)
         {
             base.UpdateGUI(force);
-            m_VectorField.value = m_Value.direction;
+            m_VectorField.SetValueWithoutNotify(m_Value.direction);
         }
     }
 }

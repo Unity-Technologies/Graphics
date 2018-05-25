@@ -400,6 +400,7 @@ namespace UnityEditor.VFX.UI
 
         public virtual void ExpandPath()
         {
+            if( model == null) return;
             model.collapsed = false;
             if (SlotShouldSkipFirstLevel(model))
             {
@@ -409,6 +410,7 @@ namespace UnityEditor.VFX.UI
 
         public virtual void RetractPath()
         {
+            if( model == null) return;
             model.collapsed = true;
             if (SlotShouldSkipFirstLevel(model))
             {
@@ -419,21 +421,19 @@ namespace UnityEditor.VFX.UI
         void RefreshGizmo()
         {
             if (m_GizmoContext != null) m_GizmoContext.Unprepare();
+            if( model == null || model.IsMasterSlot()) return;
 
-            if (!model.IsMasterSlot())
+            var parentController = sourceNode.inputPorts.FirstOrDefault(t => t.model == model.GetParent());
+            if (parentController != null)
             {
-                var parentController = sourceNode.inputPorts.FirstOrDefault(t => t.model == model.GetParent());
+                parentController.RefreshGizmo();
+            }
+            else if (model.GetParent()) // Try with grand parent for Vector3 spacable types
+            {
+                parentController = sourceNode.inputPorts.FirstOrDefault(t => t.model == model.GetParent().GetParent());
                 if (parentController != null)
                 {
                     parentController.RefreshGizmo();
-                }
-                else if (model.GetParent()) // Try with grand parent for Vector3 spacable types
-                {
-                    parentController = sourceNode.inputPorts.FirstOrDefault(t => t.model == model.GetParent().GetParent());
-                    if (parentController != null)
-                    {
-                        parentController.RefreshGizmo();
-                    }
                 }
             }
         }
@@ -543,7 +543,7 @@ namespace UnityEditor.VFX.UI
         {
             var slotOutput = output != null ? output.model : null;
 
-            VFXOperatorNumericCascadedUnifiedNew op = sourceNode.model;
+            VFXOperatorNumericCascadedUnified op = sourceNode.model;
 
             op.AddOperand(op.GetBestAffinityType(output.model.property.type));
 

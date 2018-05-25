@@ -23,7 +23,7 @@
 
 .VFXDataAnchor #lineSpacer
 {
-    flex:1;
+    flex:1 0;
 }
 .VFXDataAnchor #line
 {
@@ -96,11 +96,11 @@ VFXDataAnchor.Output #type
 {
     text-color: rgb(153,153,153);
     text-alignment:middle-right;
-    flex:1;
+    flex:1 0;
 }
 .VFXDataAnchor .propertyrm
 {
-    flex:1;
+    flex:1 0;
 }
 
 .VFXDataAnchor .space
@@ -119,17 +119,6 @@ VFXDataAnchor.Output #type
     border-color: rgb(153,153,153);
     text-color: rgb(153,153,153);
     text-alignment: middle-center;
-}
-
-.VFXDataAnchor  #IMGUI
-{
-    flex:2;
-    align-items: stretch;
-    margin-left:12;
-    margin-right:4;
-    height:20;
-
-    -background-color:rgba(255,0,0,255);
 }
 
 .VFXOutputDataAnchor #icon

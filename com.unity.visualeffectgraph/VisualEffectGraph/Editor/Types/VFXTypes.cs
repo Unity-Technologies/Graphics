@@ -218,6 +218,16 @@ namespace UnityEditor.VFX
         [Tooltip("The position."), VFXSpace(SpaceableType.Position)]
         public Vector3 position;
 
+        public static implicit operator Position(Vector3 v)
+        {
+            return new Position() { position = v };
+        }
+
+        public static implicit operator Vector3(Position v)
+        {
+            return v.position;
+        }
+
         public static Position defaultValue = new Position { position = Vector3.zero };
     }
 
@@ -226,6 +236,16 @@ namespace UnityEditor.VFX
     {
         [Tooltip("The normalized direction."), VFXSpace(SpaceableType.Direction)]
         public Vector3 direction;
+
+        public static implicit operator DirectionType(Vector3 v)
+        {
+            return new DirectionType() { direction = v };
+        }
+
+        public static implicit operator Vector3(DirectionType v)
+        {
+            return v.direction;
+        }
 
         public static DirectionType defaultValue = new DirectionType { direction = Vector3.up };
     }
@@ -236,17 +256,17 @@ namespace UnityEditor.VFX
         [Tooltip("The vector."), VFXSpace(SpaceableType.Direction)]
         public Vector3 vector;
 
-        public Vector(float x, float y, float z)
+        public static implicit operator Vector(Vector3 v)
         {
-            vector = new Vector3(x, y, z);
+            return new Vector() { vector = v };
         }
 
-        public Vector(Vector3 v)
+        public static implicit operator Vector3(Vector v)
         {
-            vector = v;
+            return v.vector;
         }
 
-        public static Vector defaultValue = new Vector();
+        public static Vector defaultValue = new Vector() { vector = Vector3.zero };
     }
 
     [VFXType, Serializable]

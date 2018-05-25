@@ -129,10 +129,10 @@ namespace UnityEditor.VFX.UI
         public override void UpdateGUI(bool force)
         {
             m_ColorField.value = m_Value;
-            m_RFloatField.value = m_Value.r;
-            m_GFloatField.value = m_Value.g;
-            m_BFloatField.value = m_Value.b;
-            m_AFloatField.value = m_Value.a;
+            m_RFloatField.SetValueWithoutNotify(m_Value.r);
+            m_GFloatField.SetValueWithoutNotify(m_Value.g);
+            m_BFloatField.SetValueWithoutNotify(m_Value.b);
+            m_AFloatField.SetValueWithoutNotify(m_Value.a);
         }
 
         public override bool showsEverything { get { return true; } }

@@ -74,7 +74,7 @@ namespace UnityEditor.VFX
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError(string.Format("Exception while getting value for slot {0} of type {1}: {2}\n{3}", name, GetType(), e, e.StackTrace));
+                    Debug.LogErrorFormat("Exception while getting value for slot {0} of type {1}: {2}\n{3}", name, GetType(), e, e.StackTrace);
                     // TODO Initialize to default value (try to call static default static method defaultValue from type)
                     m_CachedValue = null;
                 }
@@ -104,7 +104,7 @@ namespace UnityEditor.VFX
                 }
                 catch (Exception e)
                 {
-                    Debug.LogError(string.Format("Exception while setting value for slot {0} of type {1}: {2}\n{3}", name, GetType(), e, e.StackTrace));
+                    Debug.LogErrorFormat("Exception while setting value for slot {0} of type {1}: {2}\n{3}", name, GetType(), e, e.StackTrace);
                 }
             }
         }
@@ -388,31 +388,45 @@ namespace UnityEditor.VFX
             throw new InvalidOperationException(string.Format("Unable to create slot for property {0} of type {1}", property.name, property.type));
         }
 
-        public static void TransferLinksAndValue(VFXSlot dst, VFXSlot src, bool notify)
+        public static bool CopyLinksAndValues(VFXSlot dst, VFXSlot src, bool notify)
         {
             // Transfer value only if src can hold it (master slot)
             if (dst.IsMasterSlot())
-                dst.SetValueInternal(src.value, notify);
+            {
+                if (src.property.type == dst.property.type)
+                {
+                    dst.SetValueInternal(src.value, notify);
+                }
+                else
+                {
+                    object newValue;
+                    if (VFXConverter.TryConvertTo(src.value, dst.property.type, out newValue))
+                    {
+                        dst.SetValueInternal(newValue, notify);
+                        Debug.LogFormat("TransferLinksAndValue automatically converted : {0}, {1} to {2}, {3}", src.property.type, src.value, dst.property.type, dst.value);
+                    }
+                }
+            }
 
-            TransferLinks(dst, src, notify);
+            return CopyLinks(dst, src, notify);
         }
 
-        public static void TransferLinks(VFXSlot dst, VFXSlot src, bool notify)
+        public static bool CopyLinks(VFXSlot dst, VFXSlot src, bool notify)
         {
+            bool oneLinkTransfered = false;
             var links = src.LinkedSlots.ToArray();
             int index = 0;
-
             while (index < links.Count())
             {
                 var link = links[index];
                 if (dst.CanLink(link))
                 {
                     dst.Link(link, notify);
+                    dst.owner.CopyLinkMySlot(src, dst, link);
+                    link.owner.CopyLinkOtherSlot(link, src, dst);
 
-                    src.Unlink(link, notify);
 
-                    dst.owner.TransferLinkMySlot(src, dst, link);
-                    link.owner.TransferLinkOtherSlot(link, src, dst);
+                    oneLinkTransfered = true;
                 }
                 ++index;
             }
@@ -421,8 +435,10 @@ namespace UnityEditor.VFX
             {
                 int nbSubSlots = src.GetNbChildren();
                 for (int i = 0; i < nbSubSlots; ++i)
-                    TransferLinks(dst[i], src[i], notify);
+                    oneLinkTransfered |= CopyLinks(dst[i], src[i], notify);
             }
+
+            return oneLinkTransfered;
         }
 
         public override void OnUnknownChange()
@@ -443,7 +459,7 @@ namespace UnityEditor.VFX
 
             int nbRemoved = m_LinkedSlots.RemoveAll(c => c == null);// Remove bad references if any
             if (nbRemoved > 0)
-                Debug.Log(String.Format("Remove {0} linked slot(s) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
+                Debug.LogFormat("Remove {0} linked slot(s) that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType());
 
             m_ExpressionTreeUpToDate = false;
             m_DefaultExpressionInitialized = false;
@@ -481,7 +497,7 @@ namespace UnityEditor.VFX
 
             if (!hierarchySane)
             {
-                Debug.LogWarning(string.Format("Slot {0} holding {1} didnt match the type layout. It is recreated and all links are lost.", property.name, property.type));
+                Debug.LogWarningFormat("Slot {0} holding {1} didnt match the type layout. It is recreated and all links are lost.", property.name, property.type);
 
                 // Try to retrieve the value
                 object previousValue = null;
@@ -491,7 +507,7 @@ namespace UnityEditor.VFX
                 }
                 catch (Exception e)
                 {
-                    Debug.LogWarning(string.Format("Exception while trying to retrieve value: {0}: {1}", e, e.StackTrace));
+                    Debug.LogWarningFormat("Exception while trying to retrieve value: {0}: {1}", e, e.StackTrace);
                 }
 
                 // Recreate the slot
@@ -514,7 +530,7 @@ namespace UnityEditor.VFX
                     parent.AddChild(newSlot, index);
                 }
 
-                TransferLinks(newSlot, this, true);
+                CopyLinks(newSlot, this, true);
                 UnlinkAll(true);
             }
         }

@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEditor.Experimental.UIElements;
+using System;
 
 namespace UnityEditor.VFX.UIElements
 {
@@ -106,7 +107,7 @@ namespace UnityEditor.VFX.UIElements
             using (ChangeEvent<U> evt = ChangeEvent<U>.GetPooled(e.previousValue, e.newValue))
             {
                 evt.target = this;
-                value = e.newValue;
+                SetValueWithoutNotify(e.newValue);
                 UIElementsUtility.eventDispatcher.DispatchEvent(evt, panel);
             }
         }
@@ -130,6 +131,11 @@ namespace UnityEditor.VFX.UIElements
         public void SetValueAndNotify(U newValue)
         {
             (m_Control as INotifyValueChanged<U>).SetValueAndNotify(newValue);
+        }
+
+        public void SetValueWithoutNotify(U newValue)
+        {
+            (m_Control as INotifyValueChanged<U>).SetValueWithoutNotify(newValue);
         }
 
         public U value
