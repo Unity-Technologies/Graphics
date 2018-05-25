@@ -1,10 +1,9 @@
-[submodule "PostProcessing"]
-	path = PostProcessing
-	url = https://github.com/Unity-Technologies/PostProcessing
-	branch = v2
 [submodule "TestProjects/GraphicsTests/Assets/Tests/UTF_Core"]
 	path = TestProjects/GraphicsTests/Assets/Tests/UTF_Core
 	url = https://github.com/Unity-Technologies/UTF_Core.git
 [submodule "TestProjects/GraphicsTests/Assets/Tests/UTF_Tests_HDRP"]
 	path = TestProjects/GraphicsTests/Assets/Tests/UTF_Tests_HDRP
 	url = https://github.com/Unity-Technologies/UTF_Tests_HDRP.git
+[submodule "com.unity.postprocessing"]
+	path = com.unity.postprocessing
+	url = https://github.com/Unity-Technologies/PostProcessing.git
