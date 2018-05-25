@@ -267,46 +267,27 @@ namespace UnityEditor.VFX
             m_ExpressionValuesDirty = true;
         }
 
-        public bool UpdateSubAssets()
+        public void UpdateSubAssets()
         {
-            bool modified = false;
-
+            if( visualEffectResource == null)
+                return;
             Profiler.BeginSample("VFXEditor.UpdateSubAssets");
-
             try
             {
                 var currentObjects = new HashSet<ScriptableObject>();
                 currentObjects.Add(this);
                 CollectDependencies(currentObjects);
 
-                if (m_UIInfos != null)
-                    currentObjects.Add(m_UIInfos);
-
-                // Add sub assets that are not already present
-                foreach (var obj in currentObjects)
-                {
-                    if (obj.hideFlags != hideFlags)
-                    {
-                        obj.hideFlags = hideFlags;
-                        modified = true;
-                    }
-                }
-
                 visualEffectResource.SetContents(currentObjects.Cast<Object>().ToArray());
             }
             catch (Exception e)
             {
-                Debug.Log(e);
+                Debug.LogError(e);
             }
             finally
             {
                 Profiler.EndSample();
             }
-
-            if (modified)
-                EditorUtility.SetDirty(this);
-
-            return modified;
         }
 
         protected override void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
