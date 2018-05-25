@@ -2,9 +2,12 @@
 artifacts/**
 build/**
 DataSource/*
-Library/*
+**/Library/**
 obj/*
 Temp/*
+.vs
+.vscode
+.idea
 .DS_Store
 *.aspx
 *.browser
@@ -22,3 +25,10 @@ Temp/*
 *.sublime-workspace
 *.suo
 *.userprefs
+.npmrc
+ShaderGraph/DebugOutput.meta
+ShaderGraph/DebugOutput/**
+ShaderGraph/Testing/IntegrationTests/.Failed
+TestProjects/GraphicsTests/Temp/
+TestProjects/LWRP/GraphicsTests/Temp/
+TestProjects/LWRP/GraphicsTests/obj/
