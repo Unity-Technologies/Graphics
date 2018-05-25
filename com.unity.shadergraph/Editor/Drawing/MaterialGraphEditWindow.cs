@@ -11,12 +11,8 @@ using UnityEditor.Graphing;
 using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
-#if UNITY_2018_1
-using GeometryChangedEvent = UnityEngine.Experimental.UIElements.PostLayoutEvent;
-#else
 using UnityEditor.Experimental.UIElements.GraphView;
-using GeometryChangedEvent = UnityEngine.Experimental.UIElements.GeometryChangedEvent;
-#endif
+using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {

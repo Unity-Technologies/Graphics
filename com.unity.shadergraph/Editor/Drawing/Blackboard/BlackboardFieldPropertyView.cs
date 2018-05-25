@@ -290,7 +290,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         DirtyNodes();
                     };
                 var field = new Toggle(onBooleanChanged);
-                field.SetValue(booleanProperty.value);
+                field.value = booleanProperty.value;
                 AddRow("Default", field);
             }
 //            AddRow("Type", new TextField());
