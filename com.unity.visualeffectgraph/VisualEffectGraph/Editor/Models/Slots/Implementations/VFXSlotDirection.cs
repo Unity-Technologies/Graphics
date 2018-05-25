@@ -7,7 +7,7 @@ using UnityEngine.Experimental.VFX;
 namespace UnityEditor.VFX
 {
     [VFXInfo(type = typeof(DirectionType))]
-    class VFXSlotDirection : VFXSlotPImpl
+    class VFXSlotDirection : VFXSlotEncapsulated
     {
         sealed public override VFXValue DefaultExpression(VFXValue.Mode mode)
         {

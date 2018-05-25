@@ -5,7 +5,7 @@ using UnityEngine.Experimental.VFX;
 namespace UnityEditor.VFX
 {
     [VFXInfo(type = typeof(Vector))]
-    class VFXSlotVector : VFXSlotPImpl
+    class VFXSlotVector : VFXSlotEncapsulated
     {
         sealed protected override bool CanConvertFrom(Type type)
         {

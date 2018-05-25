@@ -582,7 +582,7 @@ namespace UnityEditor.VFX
                         if (spaceAttribute != null)
                         {
                             var slot = s.children.ElementAt(fieldIndex);
-                            if (slot.GetParent() is VFXSlotPImpl)
+                            if (slot.GetParent() is VFXSlotEncapsulated)
                             {
                                 slot = slot.GetParent();
                             }
@@ -1045,7 +1045,7 @@ namespace UnityEditor.VFX
         [NonSerialized]
         private SpaceSlotConcerned[] m_SlotsSpaceable;
 
-        public struct SpaceSlotConcerned
+        private struct SpaceSlotConcerned
         {
             public VFXSlot slot;
             public SpaceableType type;

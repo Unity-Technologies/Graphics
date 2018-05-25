@@ -5,7 +5,7 @@ using UnityEngine.Experimental.VFX;
 namespace UnityEditor.VFX
 {
     //Helper to isolate all class which are skipping first level of hierarchy (sealed function are important at this stage)
-    class VFXSlotPImpl : VFXSlot
+    class VFXSlotEncapsulated : VFXSlot
     {
         protected override sealed VFXExpression ExpressionFromChildren(VFXExpression[] expr)
         {

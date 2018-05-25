@@ -5,7 +5,7 @@ using UnityEngine.Experimental.VFX;
 namespace UnityEditor.VFX
 {
     [VFXInfo(type = typeof(Position))]
-    class VFXSlotPosition : VFXSlotPImpl
+    class VFXSlotPosition : VFXSlotEncapsulated
     {
         public override VFXValue DefaultExpression(VFXValue.Mode mode)
         {
