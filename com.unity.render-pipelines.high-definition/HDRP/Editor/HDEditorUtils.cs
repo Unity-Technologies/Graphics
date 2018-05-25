@@ -63,6 +63,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (k_MaterialResetters.TryGetValue(material.shader.name, out resetter))
             {
                 CoreEditorUtils.RemoveMaterialKeywords(material);
+                // We need to reapply ToggleOff/Toggle keyword after reset via ApplyMaterialPropertyDrawers
+                MaterialEditor.ApplyMaterialPropertyDrawers(material);
                 resetter(material);
                 EditorUtility.SetDirty(material);
                 return true;
