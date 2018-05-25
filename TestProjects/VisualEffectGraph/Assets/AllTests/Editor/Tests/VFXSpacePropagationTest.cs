@@ -44,7 +44,7 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void SpaceUniformisation()
         {
-            var add = ScriptableObject.CreateInstance<AddNew>();
+            var add = ScriptableObject.CreateInstance<Add>();
             add.SetOperandType(0, typeof(Position));
             add.SetOperandType(1, typeof(Position));
 
