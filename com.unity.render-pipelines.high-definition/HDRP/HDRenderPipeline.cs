@@ -624,6 +624,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 cmd.SetGlobalBuffer(HDShaderIDs._DebugScreenSpaceTracingData, m_DebugScreenSpaceTracingData);
+
+                cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, m_VelocityBuffer);
+                cmd.SetGlobalVector(HDShaderIDs._CameraMotionVectorsSize, new Vector4(
+                        m_VelocityBuffer.referenceSize.x,
+                        m_VelocityBuffer.referenceSize.y,
+                        1f / m_VelocityBuffer.referenceSize.x,
+                        1f / m_VelocityBuffer.referenceSize.y
+                        ));
+                cmd.SetGlobalVector(HDShaderIDs._CameraMotionVectorsScale, new Vector4(
+                        m_VelocityBuffer.referenceSize.x / (float)m_VelocityBuffer.rt.width,
+                        m_VelocityBuffer.referenceSize.y / (float)m_VelocityBuffer.rt.height,
+                        1, 0.0f
+                        ));
             }
         }
 
@@ -941,7 +954,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     renderContext.SetupCameraProperties(camera, hdCamera.frameSettings.enableStereo);
 
                     PushGlobalParams(hdCamera, cmd, diffusionProfileSettings);
-                    PushVelocityBuffer(hdCamera, renderContext, cmd);
 
                     // TODO: Find a correct place to bind these material textures
                     // We have to bind the material specific global parameters in this mode
@@ -984,7 +996,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     RenderDepthPyramid(hdCamera, cmd, renderContext, FullScreenDebugMode.DepthPyramid);
 
                     RenderCameraVelocity(m_CullResults, hdCamera, renderContext, cmd);
-                    PushVelocityBuffer(hdCamera, renderContext, cmd);
 
                     // Depth texture is now ready, bind it (Depth buffer could have been bind before if DBuffer is enable)
                     cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, GetDepthTexture());
@@ -1679,6 +1690,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // These flags are still required in SRP or the engine won't compute previous model matrices...
                 // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
                 hdCamera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
+
+                HDUtils.DrawFullScreen(cmd, hdCamera, m_CameraMotionVectorsMaterial, m_VelocityBuffer, m_CameraDepthStencilBuffer, null, 0);
+                PushFullScreenDebugTexture(hdCamera, cmd, m_VelocityBuffer, FullScreenDebugMode.MotionVectors);
             }
         }
 
@@ -1814,25 +1828,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // TODO: Be sure that if there is no change in the state of this keyword, it doesn't imply any work on CPU side! else we will need to save the sate somewher
                 cmd.DisableShaderKeyword("DEBUG_DISPLAY");
-            }
-        }
-
-        void PushVelocityBuffer(HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
-        {
-            using (new ProfilingSample(cmd, "Push Velocity Buffer", CustomSamplerId.PushVelocityBufferParameters.GetSampler()))
-            {
-                cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, m_VelocityBuffer);
-                cmd.SetGlobalVector(HDShaderIDs._CameraMotionVectorsSize, new Vector4(
-                        m_VelocityBuffer.referenceSize.x,
-                        m_VelocityBuffer.referenceSize.y,
-                        1f / m_VelocityBuffer.referenceSize.x,
-                        1f / m_VelocityBuffer.referenceSize.y
-                        ));
-                cmd.SetGlobalVector(HDShaderIDs._CameraMotionVectorsScale, new Vector4(
-                        m_VelocityBuffer.referenceSize.x / (float)m_VelocityBuffer.rt.width,
-                        m_VelocityBuffer.referenceSize.y / (float)m_VelocityBuffer.rt.height,
-                        1, 0.0f
-                        ));
             }
         }
 
