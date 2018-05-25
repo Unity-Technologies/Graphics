@@ -576,24 +576,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalInt(HDShaderIDs._SSReflectionEnabled, hdCamera.frameSettings.enableSSR ? 1 : 0);
 
                 PushGlobalRTHandle(
-                    cmd, 
-                    hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.DepthPyramid), 
-                    HDShaderIDs._DepthPyramidTexture, 
-                    HDShaderIDs._DepthPyramidSize, 
+                    cmd,
+                    hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.DepthPyramid),
+                    HDShaderIDs._DepthPyramidTexture,
+                    HDShaderIDs._DepthPyramidSize,
                     HDShaderIDs._DepthPyramidScale
                 );
                 PushGlobalRTHandle(
-                    cmd, 
-                    hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorPyramid), 
-                    HDShaderIDs._ColorPyramidTexture, 
-                    HDShaderIDs._ColorPyramidSize, 
+                    cmd,
+                    hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorPyramid),
+                    HDShaderIDs._ColorPyramidTexture,
+                    HDShaderIDs._ColorPyramidSize,
                     HDShaderIDs._ColorPyramidScale
                 );
                 PushGlobalRTHandle(
-                    cmd, 
-                    m_VelocityBuffer, 
-                    HDShaderIDs._CameraMotionVectorsTexture, 
-                    HDShaderIDs._CameraMotionVectorsSize, 
+                    cmd,
+                    m_VelocityBuffer,
+                    HDShaderIDs._CameraMotionVectorsTexture,
+                    HDShaderIDs._CameraMotionVectorsSize,
                     HDShaderIDs._CameraMotionVectorsScale
                 );
 
@@ -1946,17 +1946,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraSssDiffuseLightingBuffer, ClearFlag.Color, CoreUtils.clearColorAllBlack);
                 }
 
-                // TODO: As we are in development and have not all the setup pass we still clear the color in emissive buffer and gbuffer, but this will be removed later.
-
-                // Clear GBuffers
+                // We don't need to clear the GBuffers as scene is rewrite and we are suppose to only access valid data (invalid data are tagged with stencil as StencilLightingUsage.NoLighting),
+                // This is to save some performance
                 if (!hdCamera.frameSettings.enableForwardRenderingOnly)
                 {
-                    using (new ProfilingSample(cmd, "Clear GBuffer", CustomSamplerId.ClearGBuffer.GetSampler()))
+                    // We still clear in case of debug mode
+                    if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled())
                     {
-                        HDUtils.SetRenderTarget(cmd, hdCamera, m_GbufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer, ClearFlag.Color, CoreUtils.clearColorAllBlack);
+                        using (new ProfilingSample(cmd, "Clear GBuffer", CustomSamplerId.ClearGBuffer.GetSampler()))
+                        {
+                            HDUtils.SetRenderTarget(cmd, hdCamera, m_GbufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer, ClearFlag.Color, CoreUtils.clearColorAllBlack);
+                        }
                     }
                 }
-                // END TEMP
             }
         }
 
@@ -1986,7 +1988,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 cmd.SetGlobalTexture(textureID, rth);
                 cmd.SetGlobalVector(
-                    sizeID, 
+                    sizeID,
                     new Vector4(
                     rth.referenceSize.x,
                     rth.referenceSize.y,
@@ -1995,7 +1997,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     )
                 );
                 cmd.SetGlobalVector(
-                    scaleID, 
+                    scaleID,
                     new Vector4(
                     rth.referenceSize.x / (float)rth.rt.width,
                     rth.referenceSize.y / (float)rth.rt.height,
