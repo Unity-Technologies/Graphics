@@ -45,6 +45,12 @@ namespace UnityEditor.VFX
 
             if (m_Owners == null)
                 m_Owners = new List<VFXContext>();
+             else
+             {
+                int nbRemoved = m_Owners.RemoveAll(o => o == null);// Remove bad references if any
+                if (nbRemoved > 0)
+                    Debug.Log(String.Format("Remove {0} owners that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
+             }
         }
 
         public abstract void CopySettings<T>(T dst) where T : VFXData;

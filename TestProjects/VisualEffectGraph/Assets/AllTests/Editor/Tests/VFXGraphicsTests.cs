@@ -160,6 +160,7 @@ namespace UnityEditor.VFX.Test
         {
             "05_MotionVectors", // Cannot use test with postprocess effects
             "20_SpawnerChaining", // Unstable. TODO investigate why
+            "RenderStates" // Unstable. There is an instability with shadow rendering. TODO Fix that
         };
   
 
