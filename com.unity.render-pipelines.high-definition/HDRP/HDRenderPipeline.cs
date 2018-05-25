@@ -622,6 +622,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetGlobalVector(HDShaderIDs._ColorPyramidSize, Vector4.one);
                     cmd.SetGlobalVector(HDShaderIDs._ColorPyramidScale, Vector4.one);
                 }
+
+                cmd.SetGlobalBuffer(HDShaderIDs._DebugScreenSpaceTracingData, m_DebugScreenSpaceTracingData);
             }
         }
 
@@ -939,6 +941,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     renderContext.SetupCameraProperties(camera, hdCamera.frameSettings.enableStereo);
 
                     PushGlobalParams(hdCamera, cmd, diffusionProfileSettings);
+                    PushVelocityBuffer(hdCamera, renderContext, cmd);
 
                     // TODO: Find a correct place to bind these material textures
                     // We have to bind the material specific global parameters in this mode
@@ -981,6 +984,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     RenderDepthPyramid(hdCamera, cmd, renderContext, FullScreenDebugMode.DepthPyramid);
 
                     RenderCameraVelocity(m_CullResults, hdCamera, renderContext, cmd);
+                    PushVelocityBuffer(hdCamera, renderContext, cmd);
 
                     // Depth texture is now ready, bind it (Depth buffer could have been bind before if DBuffer is enable)
                     cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, GetDepthTexture());
@@ -1595,10 +1599,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         : m_ForwardOnlyPassNames;
                     var debugSSTThisPass = debugScreenSpaceTracing && (m_CurrentDebugDisplaySettings.lightingDebugSettings.debugLightingMode == DebugLightingMode.ScreenSpaceTracingReflection);
                     if (debugSSTThisPass)
-                    {
-                        cmd.SetGlobalBuffer(HDShaderIDs._DebugScreenSpaceTracingData, m_DebugScreenSpaceTracingData);
                         cmd.SetRandomWriteTarget(7, m_DebugScreenSpaceTracingData);
-                    }
                     RenderOpaqueRenderList(cullResults, hdCamera, renderContext, cmd, passNames, m_currentRendererConfigurationBakedLighting);
                     if (debugSSTThisPass)
                         cmd.ClearRandomWriteTargets();
@@ -1613,10 +1614,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     var debugSSTThisPass = debugScreenSpaceTracing && (m_CurrentDebugDisplaySettings.lightingDebugSettings.debugLightingMode == DebugLightingMode.ScreenSpaceTracingRefraction);
                     if (debugSSTThisPass)
-                    {
-                        cmd.SetGlobalBuffer(HDShaderIDs._DebugScreenSpaceTracingData, m_DebugScreenSpaceTracingData);
                         cmd.SetRandomWriteTarget(7, m_DebugScreenSpaceTracingData);
-                    }
                     RenderTransparentRenderList(cullResults, hdCamera, renderContext, cmd, m_AllTransparentPassNames, m_currentRendererConfigurationBakedLighting, pass == ForwardPass.PreRefraction ? HDRenderQueue.k_RenderQueue_PreRefraction : HDRenderQueue.k_RenderQueue_Transparent);
                     if (debugSSTThisPass)
                         cmd.ClearRandomWriteTargets();
@@ -1668,19 +1666,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 HDUtils.SetRenderTarget(cmd, hdCamera, m_VelocityBuffer, m_CameraDepthStencilBuffer);
                 RenderOpaqueRenderList(cullResults, hdCamera, renderContext, cmd, HDShaderPassNames.s_MotionVectorsName, RendererConfiguration.PerObjectMotionVectors);
-
-                cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, m_VelocityBuffer);
-                cmd.SetGlobalVector(HDShaderIDs._CameraMotionVectorsSize, new Vector4(
-                        m_VelocityBuffer.referenceSize.x,
-                        m_VelocityBuffer.referenceSize.y,
-                        1f / m_VelocityBuffer.referenceSize.x,
-                        1f / m_VelocityBuffer.referenceSize.y
-                        ));
-                cmd.SetGlobalVector(HDShaderIDs._CameraMotionVectorsScale, new Vector4(
-                        m_VelocityBuffer.referenceSize.x / (float)m_VelocityBuffer.rt.width,
-                        m_VelocityBuffer.referenceSize.y / (float)m_VelocityBuffer.rt.height,
-                        1, 0.0f
-                        ));
             }
         }
 
@@ -1829,6 +1814,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // TODO: Be sure that if there is no change in the state of this keyword, it doesn't imply any work on CPU side! else we will need to save the sate somewher
                 cmd.DisableShaderKeyword("DEBUG_DISPLAY");
+            }
+        }
+
+        void PushVelocityBuffer(HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        {
+            using (new ProfilingSample(cmd, "Push Velocity Buffer", CustomSamplerId.PushVelocityBufferParameters.GetSampler()))
+            {
+                cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, m_VelocityBuffer);
+                cmd.SetGlobalVector(HDShaderIDs._CameraMotionVectorsSize, new Vector4(
+                        m_VelocityBuffer.referenceSize.x,
+                        m_VelocityBuffer.referenceSize.y,
+                        1f / m_VelocityBuffer.referenceSize.x,
+                        1f / m_VelocityBuffer.referenceSize.y
+                        ));
+                cmd.SetGlobalVector(HDShaderIDs._CameraMotionVectorsScale, new Vector4(
+                        m_VelocityBuffer.referenceSize.x / (float)m_VelocityBuffer.rt.width,
+                        m_VelocityBuffer.referenceSize.y / (float)m_VelocityBuffer.rt.height,
+                        1, 0.0f
+                        ));
             }
         }
 
