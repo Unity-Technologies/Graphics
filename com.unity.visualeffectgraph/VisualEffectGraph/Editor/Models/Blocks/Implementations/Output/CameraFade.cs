@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 
@@ -8,7 +9,7 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Output")]
     class CameraFade : VFXBlock
     {
-        public enum ColorApplicationMode
+        public enum FadeApplicationMode
         {
             Color = 1 << 0,
             Alpha = 1 << 1,
@@ -27,7 +28,7 @@ namespace UnityEditor.VFX.Block
         private bool cullWhenFaded = true;
 
         [SerializeField, VFXSetting, Tooltip("Whether fading should be applied to Color, Alpha or both")]
-        private ColorApplicationMode fadeMode = ColorApplicationMode.Alpha;
+        private FadeApplicationMode fadeMode = FadeApplicationMode.Alpha;
 
         public override string libraryName { get { return "Camera Fade"; } }
         public override string name { get { return string.Format("Camera Fade ({0})", ObjectNames.NicifyVariableName(fadeMode.ToString())); } }
@@ -40,13 +41,13 @@ namespace UnityEditor.VFX.Block
             {
                 yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
 
-                if ((fadeMode & ColorApplicationMode.Alpha) != 0)
+                if ((fadeMode & FadeApplicationMode.Alpha) != 0)
                     yield return new VFXAttributeInfo(VFXAttribute.Alpha, VFXAttributeMode.ReadWrite);
-                if ((fadeMode & ColorApplicationMode.Color) != 0)
+                if ((fadeMode & FadeApplicationMode.Color) != 0)
                     yield return new VFXAttributeInfo(VFXAttribute.Color, VFXAttributeMode.ReadWrite);
 
                 if (cullWhenFaded)
-                    yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.ReadWrite);
+                    yield return new VFXAttributeInfo(VFXAttribute.Alive, VFXAttributeMode.Write);
             }
         }
 
@@ -54,25 +55,17 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                VFXExpression fadedDistExp = null;
-                VFXExpression visibleDistExp = null;
-
                 foreach (var param in base.parameters)
                 {
-                    if (param.name == "VisibleDistance")
-                    {
-                        visibleDistExp = param.exp;
-                        continue;
-                    }
-
-                    if (param.name == "FadedDistance")
-                        fadedDistExp = param.exp;
-
-                    yield return param;
+                    if (param.name == "VisibleDistance") continue;
                 }
+
+                VFXExpression visibleDistExp = base.parameters.Where(o => o.name == "VisibleDistance").First().exp;
 
                 if (visibleDistExp == null)
                     throw new Exception("Could not find VisibleDistance inputProperty");
+
+                VFXExpression fadedDistExp = base.parameters.Where(o => o.name == "FadedDistance").First().exp;
 
                 if (fadedDistExp == null)
                     throw new Exception("Could not find FadedDistance inputProperty");
@@ -89,10 +82,10 @@ namespace UnityEditor.VFX.Block
 float clipPosW = TransformPositionVFXToClip(position).w;
 float fade = saturate((clipPosW - FadedDistance) * InvFadeDistance);
 ";
-                if ((fadeMode & ColorApplicationMode.Color) != 0)
+                if ((fadeMode & FadeApplicationMode.Color) != 0)
                     outCode += "color *= fade;\n";
 
-                if ((fadeMode & ColorApplicationMode.Alpha) != 0)
+                if ((fadeMode & FadeApplicationMode.Alpha) != 0)
                     outCode += "alpha *= fade;\n";
 
                 if (cullWhenFaded)
