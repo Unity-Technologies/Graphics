@@ -1,21 +1,40 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Arithmetic")]
-    class Step : VFXOperatorFloatUnifiedWithVariadicOutput
+    class Step : VFXOperatorNumericUnified, IVFXOperatorNumericUnifiedConstrained
     {
-        override public string name { get { return "Step"; } }
+        public override sealed string name { get { return "Step"; } }
 
         public class InputProperties
         {
             [Tooltip("The value to compare")]
-            public FloatN Value = 0.0f;
+            public float Value = 0.0f;
             [Tooltip("The threshold from which the function will return one")]
-            public FloatN Threshold = 0.5f;
+            public float Threshold = 0.5f;
         }
+
+        public IEnumerable<int> slotIndicesThatMustHaveSameType
+        {
+            get
+            {
+                return Enumerable.Range(0, 2);
+            }
+        }
+
+        public IEnumerable<int> slotIndicesThatCanBeScalar
+        {
+            get
+            {
+                yield return 1;
+            }
+        }
+
+        protected override sealed ValidTypeRule typeFilter { get { return ValidTypeRule.allowEverythingExceptInteger; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

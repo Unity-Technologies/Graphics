@@ -33,8 +33,8 @@ namespace UnityEditor.VFX
         void SetSettingValue(string name, object value);
 
 
-        void TransferLinkOtherSlot(VFXSlot mySlot, VFXSlot prevOtherSlot, VFXSlot newOtherSlot);
-        void TransferLinkMySlot(VFXSlot myPrevSlot, VFXSlot myNewSlot, VFXSlot otherSlot);
+        void CopyLinkOtherSlot(VFXSlot mySlot, VFXSlot prevOtherSlot, VFXSlot newOtherSlot);
+        void CopyLinkMySlot(VFXSlot myPrevSlot, VFXSlot myNewSlot, VFXSlot otherSlot);
 
         bool collapsed { get; set; }
     }
@@ -138,11 +138,11 @@ namespace UnityEditor.VFX
             Invalidate(model, cause);
         }
 
-        public virtual void TransferLinkOtherSlot(VFXSlot mySlot, VFXSlot prevOtherSlot, VFXSlot newOtherSlot)
+        public virtual void CopyLinkOtherSlot(VFXSlot mySlot, VFXSlot prevOtherSlot, VFXSlot newOtherSlot)
         {
         }
 
-        public virtual void TransferLinkMySlot(VFXSlot myPrevSlot, VFXSlot myNewSlot, VFXSlot otherSlot)
+        public virtual void CopyLinkMySlot(VFXSlot myPrevSlot, VFXSlot myNewSlot, VFXSlot otherSlot)
         {
         }
 
@@ -341,13 +341,13 @@ namespace UnityEditor.VFX
                 {
                     var slot = existingSlots[i];
                     //first check at the same index
-                    if (currentSlots.Count > i && currentSlots[i].property.name == slot.property.name && VFXSlot.TransferLinksAndValue(currentSlots[i], slot, notify))
+                    if (currentSlots.Count > i && currentSlots[i].property.name == slot.property.name && VFXSlot.CopyLinksAndValues(currentSlots[i], slot, notify))
                     {
                         break;
                     }
                     var candidates = currentSlots.Where(s => s.property.name == slot.property.name);
                     foreach (var candidate in candidates)
-                        if (VFXSlot.TransferLinksAndValue(candidate, slot, notify))
+                        if (VFXSlot.CopyLinksAndValues(candidate, slot, notify))
                             break;
                 }
 
@@ -358,7 +358,7 @@ namespace UnityEditor.VFX
                     {
                         var candidate = currentSlots.FirstOrDefault(s => !s.HasLink(true) && s.property.type == slot.property.type);
                         if (candidate != null)
-                            VFXSlot.TransferLinks(candidate, slot, notify);
+                            VFXSlot.CopyLinks(candidate, slot, notify);
                     }
                 }
 

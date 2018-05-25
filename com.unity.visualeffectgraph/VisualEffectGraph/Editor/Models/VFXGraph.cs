@@ -261,7 +261,43 @@ namespace UnityEditor.VFX
 
             var objs = new HashSet<ScriptableObject>();
             CollectDependencies(objs);
-            foreach (var model in objs.OfType<VFXModel>())
+
+            //Compute safe order of SlotContainer to minimize invalidation while removing old operators
+            //TODO : this behavior is only needed, simply replace with a objs.OfType<VFXModel> once FloatN has been completely remove
+            var remainingSlotContainers = objs.Where(o => o is IVFXSlotContainer).ToList();
+            var sortedSlotContainers = new List<ScriptableObject>();
+            while (remainingSlotContainers.Any())
+            {
+                int i = 0;
+                bool hasRemoveSomething = false;
+                while (i < remainingSlotContainers.Count)
+                {
+                    var obj = remainingSlotContainers[i];
+
+                    var allLinkedOutputSlot = (obj as IVFXSlotContainer).outputSlots.SelectMany(o => o.allChildrenWhere(s => s.HasLink()).SelectMany(s => s.LinkedSlots));
+                    var slotContainersOutputOwners = allLinkedOutputSlot.Select(o => o.owner as ScriptableObject).Where(o => o != null).Distinct().ToArray();
+
+                    if (slotContainersOutputOwners.All(o => sortedSlotContainers.Contains(o)))
+                    {
+                        sortedSlotContainers.Add(remainingSlotContainers[i]);
+                        remainingSlotContainers.RemoveAt(i);
+                        hasRemoveSomething = true;
+                    }
+                    else
+                    {
+                        i++;
+                    }
+                }
+
+                if (!hasRemoveSomething)
+                {
+                    Debug.Log("SanitizeGraph fail (infinite loop)");
+                    return;
+                }
+            }
+
+            var correctOrder = sortedSlotContainers.Concat(objs.Where(o => !(o is IVFXSlotContainer)));
+            foreach (var model in correctOrder.OfType<VFXModel>())
                 try
                 {
                     model.Sanitize(); // This can modify dependencies but newly created model are supposed safe so we dont care about retrieving new dependencies

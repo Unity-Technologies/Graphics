@@ -215,7 +215,7 @@ namespace UnityEditor.VFX.Block
             attributeFromCurve.SetSettingValue("channels", channels);
 
             // Transfer links
-            VFXSlot.TransferLinksAndValue(attributeFromCurve.GetInputSlot(0), GetInputSlot(0), true);
+            VFXSlot.CopyLinksAndValues(attributeFromCurve.GetInputSlot(0), GetInputSlot(0), true);
 
             ReplaceModel(attributeFromCurve, this);
         }

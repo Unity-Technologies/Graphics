@@ -322,7 +322,7 @@ namespace UnityEditor.VFX
             throw new InvalidOperationException(string.Format("Unable to create slot for property {0} of type {1}", property.name, property.type));
         }
 
-        public static bool TransferLinksAndValue(VFXSlot dst, VFXSlot src, bool notify)
+        public static bool CopyLinksAndValues(VFXSlot dst, VFXSlot src, bool notify)
         {
             // Transfer value only if src can hold it (master slot)
             if (dst.IsMasterSlot())
@@ -342,10 +342,10 @@ namespace UnityEditor.VFX
                 }
             }
 
-            return TransferLinks(dst, src, notify);
+            return CopyLinks(dst, src, notify);
         }
 
-        public static bool TransferLinks(VFXSlot dst, VFXSlot src, bool notify)
+        public static bool CopyLinks(VFXSlot dst, VFXSlot src, bool notify)
         {
             bool oneLinkTransfered = false;
             var links = src.LinkedSlots.ToArray();
@@ -356,11 +356,9 @@ namespace UnityEditor.VFX
                 if (dst.CanLink(link))
                 {
                     dst.Link(link, notify);
-                    src.Unlink(link, notify);
+                    dst.owner.CopyLinkMySlot(src, dst, link);
+                    link.owner.CopyLinkOtherSlot(link, src, dst);
 
-
-                    dst.owner.TransferLinkMySlot(src, dst, link);
-                    link.owner.TransferLinkOtherSlot(link, src, dst);
 
                     oneLinkTransfered = true;
                 }
@@ -371,7 +369,7 @@ namespace UnityEditor.VFX
             {
                 int nbSubSlots = src.GetNbChildren();
                 for (int i = 0; i < nbSubSlots; ++i)
-                    oneLinkTransfered |= TransferLinks(dst[i], src[i], notify);
+                    oneLinkTransfered |= CopyLinks(dst[i], src[i], notify);
             }
 
             return oneLinkTransfered;
@@ -463,7 +461,7 @@ namespace UnityEditor.VFX
                     parent.AddChild(newSlot, index);
                 }
 
-                TransferLinks(newSlot, this, true);
+                CopyLinks(newSlot, this, true);
                 UnlinkAll(true);
             }
         }
