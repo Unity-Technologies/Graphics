@@ -58,6 +58,7 @@ namespace UnityEditor.VFX.Block
                 foreach (var param in base.parameters)
                 {
                     if (param.name == "VisibleDistance") continue;
+                    yield return param;
                 }
 
                 VFXExpression visibleDistExp = base.parameters.Where(o => o.name == "VisibleDistance").First().exp;
