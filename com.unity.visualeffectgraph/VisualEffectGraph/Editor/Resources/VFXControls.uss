@@ -18,7 +18,7 @@
 
 VFXColorField
 {
-    flex:1 0;
+    flex:1 0 auto;
     flex-direction:row;
     margin-left:0;
     margin-right:0;
@@ -46,17 +46,17 @@ CurveField
 }
 .sliderField Slider
 {
-    flex:1 0;
+    flex:1 0 auto;
 }
 .sliderField #Field
 {
     width:40;
-    flex:0;
+    flex:0 0 auto;
 }
 .sliderField #indeterminate
 {
     width:40;
-    flex:0;
+    flex:0 0 auto;
 }
 
 .PopupButton
