@@ -1972,6 +1972,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 renderContext.StopMultiEye(hdCamera.camera);
         }
 
+        /// <summary>
+        /// Push a RenderTexture handled by a RTHandle in global parameters.
+        /// </summary>
+        /// <param name="cmd">Command buffer to queue commands</param>
+        /// <param name="rth">RTHandle handling the RenderTexture</param>
+        /// <param name="textureID">TextureID to use for texture binding.</param>
+        /// <param name="sizeID">Property ID to store RTHandle size ((x,y) = Actual Pixel Size, (z,w) = 1 / Actual Pixel Size).</param>
+        /// <param name="scaleID">PropertyID to store RTHandle scale ((x,y) = Screen Scale, z = lod count, w = unused).</param>
         void PushGlobalRTHandle(CommandBuffer cmd, RTHandleSystem.RTHandle rth, int textureID, int sizeID, int scaleID)
         {
             if (rth != null)
