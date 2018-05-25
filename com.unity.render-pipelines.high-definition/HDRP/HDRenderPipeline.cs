@@ -175,7 +175,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RTHandleSystem.RTHandle         m_DebugFullScreenTempBuffer;
         bool                            m_FullScreenDebugPushed;
         bool                            m_ValidAPI; // False by default mean we render normally, true mean we don't render anything
-        bool                            m_IsCameraRendering; // Use to avoid nested rendering of camera
 
         public Material GetBlitMaterial() { return m_Blit; }
 
@@ -187,7 +186,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugManager.instance.RefreshEditor();
 
             m_ValidAPI = true;
-            m_IsCameraRendering = false;
 
             if (!SetRenderingFeatures())
             {
@@ -667,12 +665,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_ValidAPI)
                 return;
 
-            if (m_IsCameraRendering)
-            {
-                Debug.LogWarning("Nested camera rendering is forbidden. If you are calling camera.Render inside OnWillRenderObject callback, use BeginCameraRender callback instead.");
-                return;
-            }
-
             base.Render(renderContext, cameras);
             RenderPipeline.BeginFrameRendering(cameras);
 
@@ -727,7 +719,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     continue;
 
                 RenderPipeline.BeginCameraRendering(camera);
-                m_IsCameraRendering = true;
 
                 // First, get aggregate of frame settings base on global settings, camera frame settings and debug settings
                 // Note: the SceneView camera will never have additionalCameraData
@@ -1171,7 +1162,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_DebugScreenSpaceTracingData.SetData(m_DebugScreenSpaceTracingDataArray);
                 }
 
-                m_IsCameraRendering = false;
             } // For each camera
         }
 
