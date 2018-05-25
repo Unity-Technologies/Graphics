@@ -54,6 +54,7 @@
 - Fix banding issues caused by high intensity volumetric lighting
 - Fix the debug window being emptied on SRP asset reload
 - Fix issue with debug mode not correctly clearing the GBuffer in editor after a resize
+- Fix issue with ResetMaterialKeyword not resetting correctly ToggleOff/Roggle Keyword
 
 ## [2018.1.0f2]
 
