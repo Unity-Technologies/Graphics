@@ -9,9 +9,7 @@ using UnityEngine.Experimental.UIElements;
 using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 using Node = UnityEditor.Experimental.UIElements.GraphView.Node;
 using Object = UnityEngine.Object;
-#if !UNITY_2018_1
 using UnityEditor.Graphs;
-#endif
 
 namespace UnityEditor.ShaderGraph.Drawing
 {

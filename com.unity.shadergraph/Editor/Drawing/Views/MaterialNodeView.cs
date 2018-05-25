@@ -11,9 +11,6 @@ using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using Node = UnityEditor.Experimental.UIElements.GraphView.Node;
-#if UNITY_2018_1
-using GeometryChangedEvent = UnityEngine.Experimental.UIElements.PostLayoutEvent;
-#endif
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
