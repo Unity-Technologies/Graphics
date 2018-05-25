@@ -79,8 +79,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 CommandBuffer cmd = CommandBufferPool.Get(renderCameraTag);
                 using (new ProfilingSample(cmd, renderCameraTag))
                 {
-                    m_IsCameraRendering = true;
-
                     CameraData cameraData;
                     InitializeCameraData(camera, out cameraData);
                     SetupPerCameraShaderConstants(cameraData);
@@ -97,20 +95,33 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     context.ExecuteCommandBuffer(cmd);
                     cmd.Clear();
 
+                    try
+                    {
+                        m_IsCameraRendering = true;
 #if UNITY_EDITOR
-                    // Emit scene view UI
-                    if (cameraData.isSceneViewCamera)
-                        ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
+                        // Emit scene view UI
+                        if (cameraData.isSceneViewCamera)
+                            ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
 #endif
-                    CullResults.Cull(ref cullingParameters, context, ref m_CullResults);
-                    List<VisibleLight> visibleLights = m_CullResults.visibleLights;
+                        CullResults.Cull(ref cullingParameters, context, ref m_CullResults);
+                        List<VisibleLight> visibleLights = m_CullResults.visibleLights;
 
-                    RenderingData renderingData;
-                    InitializeRenderingData(ref cameraData, visibleLights, m_Renderer.maxSupportedLocalLightsPerPass, m_Renderer.maxSupportedVertexLights, out renderingData);
-                    m_Renderer.Setup(ref context, ref m_CullResults, ref renderingData);
-                    m_Renderer.Execute(ref context, ref m_CullResults, ref renderingData);
-
-                    m_IsCameraRendering = false;
+                        RenderingData renderingData;
+                        InitializeRenderingData(ref cameraData, visibleLights,
+                            m_Renderer.maxSupportedLocalLightsPerPass, m_Renderer.maxSupportedVertexLights,
+                            out renderingData);
+                        m_Renderer.Setup(ref context, ref m_CullResults, ref renderingData);
+                        m_Renderer.Execute(ref context, ref m_CullResults, ref renderingData);
+                    }
+                    catch (Exception)
+                    {
+                        CommandBufferPool.Release(cmd);
+                        throw;
+                    }
+                    finally
+                    {
+                        m_IsCameraRendering = false;
+                    }
                 }
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
@@ -205,7 +216,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 for (int i = 0; i < visibleLights.Count; ++i)
                 {
-                    bool castShadows = visibleLights[i].light.shadows != LightShadows.None;
+                    Light light = visibleLights[i].light;
+                    bool castShadows = light != null && light.shadows != LightShadows.None;
                     if (visibleLights[i].lightType == LightType.Directional)
                     {
                         hasDirectionalShadowCastingLight |= castShadows;
