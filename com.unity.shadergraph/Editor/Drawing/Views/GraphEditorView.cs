@@ -93,6 +93,8 @@ namespace UnityEditor.ShaderGraph.Drawing
                         if (showInProjectRequested != null)
                             showInProjectRequested();
                     }
+                    GUILayout.FlexibleSpace();
+                    GUILayout.EndHorizontal();
                 });
             Add(toolbar);
 
