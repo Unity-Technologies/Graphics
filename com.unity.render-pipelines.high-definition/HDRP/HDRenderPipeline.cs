@@ -622,6 +622,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetGlobalVector(HDShaderIDs._ColorPyramidSize, Vector4.one);
                     cmd.SetGlobalVector(HDShaderIDs._ColorPyramidScale, Vector4.one);
                 }
+
+                cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, m_VelocityBuffer);
+                cmd.SetGlobalVector(HDShaderIDs._CameraMotionVectorsSize, new Vector4(
+                        m_VelocityBuffer.referenceSize.x,
+                        m_VelocityBuffer.referenceSize.y,
+                        1f / m_VelocityBuffer.referenceSize.x,
+                        1f / m_VelocityBuffer.referenceSize.y
+                        ));
+                cmd.SetGlobalVector(HDShaderIDs._CameraMotionVectorsScale, new Vector4(
+                        m_VelocityBuffer.referenceSize.x / (float)m_VelocityBuffer.rt.width,
+                        m_VelocityBuffer.referenceSize.y / (float)m_VelocityBuffer.rt.height,
+                        1, 0.0f
+                        ));
             }
         }
 
@@ -1668,19 +1681,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 HDUtils.SetRenderTarget(cmd, hdCamera, m_VelocityBuffer, m_CameraDepthStencilBuffer);
                 RenderOpaqueRenderList(cullResults, hdCamera, renderContext, cmd, HDShaderPassNames.s_MotionVectorsName, RendererConfiguration.PerObjectMotionVectors);
-
-                cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, m_VelocityBuffer);
-                cmd.SetGlobalVector(HDShaderIDs._CameraMotionVectorsSize, new Vector4(
-                        m_VelocityBuffer.referenceSize.x,
-                        m_VelocityBuffer.referenceSize.y,
-                        1f / m_VelocityBuffer.referenceSize.x,
-                        1f / m_VelocityBuffer.referenceSize.y
-                        ));
-                cmd.SetGlobalVector(HDShaderIDs._CameraMotionVectorsScale, new Vector4(
-                        m_VelocityBuffer.referenceSize.x / (float)m_VelocityBuffer.rt.width,
-                        m_VelocityBuffer.referenceSize.y / (float)m_VelocityBuffer.rt.height,
-                        1, 0.0f
-                        ));
             }
         }
 
@@ -1694,6 +1694,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // These flags are still required in SRP or the engine won't compute previous model matrices...
                 // If the flag hasn't been set yet on this camera, motion vectors will skip a frame.
                 hdCamera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
+
+                HDUtils.DrawFullScreen(cmd, hdCamera, m_CameraMotionVectorsMaterial, m_VelocityBuffer, m_CameraDepthStencilBuffer, null, 0);
+                PushFullScreenDebugTexture(hdCamera, cmd, m_VelocityBuffer, FullScreenDebugMode.MotionVectors);
             }
         }
 
