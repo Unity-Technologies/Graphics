@@ -61,7 +61,7 @@
 
 * > #node-border
 {
-    flex:1;
+    flex:1 0;
     flex-direction:column;
     align-items:stretch;
     border-left-width:2;
@@ -112,7 +112,7 @@
 
 * #contents
 {
-    flex:1;
+    flex:1 0;
 }
 
 * TextField

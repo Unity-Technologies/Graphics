@@ -148,13 +148,13 @@ ColorPropertyRM .colorcontainer, Vector3PropertyRM .colorcontainer
 
 ColorPropertyRM FloatField
 {
-    flex:1;
+    flex:1 0;
 }
 
 FloatPropertyRM FloatField
 {
     align-self:flex-end;
-    flex:1;
+    flex:1 0;
 }
 
 IntPropertyRM IntegerField
@@ -179,11 +179,11 @@ UintPropertyRM LongField
 
 CurvePropertyRM CurveField
 {
-    flex:1;
+    flex:1 0;
 }
 
 CurvePropertyRM
-{
+{flex:1 0;flex:1 0;
     flex:1;
     min-width:100;
 }

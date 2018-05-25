@@ -5,7 +5,7 @@
 
 .VFXNodeUI.node #node-border > #title > #title-label
 {
-    flex:1;
+    flex:1 0;
 }
 
 .VFXNodeUI.superCollapsed
@@ -68,7 +68,7 @@ width:-1;
     padding-top:0;
     padding-bottom:0;
     background-color:rgba(0,0,0,0);
-    flex:1;
+    flex:1 0;
 }
 .VFXNodeUI.superCollapsed #contents > #top > #divider
 {
