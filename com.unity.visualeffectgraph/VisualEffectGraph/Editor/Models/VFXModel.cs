@@ -346,10 +346,27 @@ namespace UnityEditor.VFX
                 ((VFXBlock)dst).enabled = ((VFXBlock)src).enabled;
             }
 
+            // Unlink everything
+            if (src is IVFXSlotContainer)
+            {
+                var slotContainer = src as IVFXSlotContainer;
+                VFXSlot slotToClean = null;
+                do
+                {
+                    slotToClean = slotContainer.inputSlots.Concat(slotContainer.outputSlots).FirstOrDefault(o => o.HasLink(true));
+                    if (slotToClean)
+                    {
+                        slotToClean.UnlinkAll(true, true);
+                    }
+                }
+                while (slotToClean != null);
+            }
+
             // Replace model
             var parent = src.GetParent();
             int index = parent.GetIndex(src);
             src.Detach(notify);
+
             if (parent)
                 parent.AddChild(dst, index, notify);
         }

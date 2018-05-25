@@ -11,7 +11,7 @@ using Object = UnityEngine.Object;
 using System.Collections.ObjectModel;
 using System.Reflection;
 using UnityEngine.Profiling;
-using BranchNew = UnityEditor.VFX.Operator.BranchNew;
+using Branch = UnityEditor.VFX.Operator.Branch;
 
 namespace UnityEditor.VFX.UI
 {
@@ -1412,20 +1412,20 @@ namespace UnityEditor.VFX.UI
             List<VFXNodeController> newControllers = new List<VFXNodeController>();
             if (model is VFXOperator)
             {
-                if (model is VFXOperatorNumericCascadedUnifiedNew)
+                if (model is VFXOperatorNumericCascadedUnified)
                     newControllers.Add(new VFXCascadedOperatorController(model, this));
-                else if (model is VFXOperatorNumericUniformNew)
+                else if (model is VFXOperatorNumericUniform)
                 {
                     newControllers.Add(new VFXNumericUniformOperatorController(model, this));
                 }
-                else if (model is VFXOperatorNumericUnifiedNew)
+                else if (model is VFXOperatorNumericUnified)
                 {
                     if (model is IVFXOperatorNumericUnifiedConstrained)
                         newControllers.Add(new VFXUnifiedConstraintOperatorController(model, this));
                     else
                         newControllers.Add(new VFXUnifiedOperatorController(model, this));
                 }
-                else if (model is BranchNew)
+                else if (model is Branch)
                 {
                     newControllers.Add(new VFXBranchOperatorController(model, this));
                 }

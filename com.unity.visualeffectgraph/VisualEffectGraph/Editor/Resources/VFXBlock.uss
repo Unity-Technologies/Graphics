@@ -1,5 +1,5 @@
 .VFXContextSlotContainerUI.node {
-    flex:1 0;
+    flex:1 0 auto;
     align-items:stretch;
     margin-bottom:2;
     margin-top:2;
@@ -32,7 +32,7 @@ VFXContextUI VFXBlockUI.VFXContextSlotContainerUI.node #node-border #title.disab
 VFXContextUI VFXBlockUI.VFXContextSlotContainerUI.node #node-border #title #title-label
 {
     margin-left:4;
-    flex:1 0;
+    flex:1 0 auto;
 }
 
 VFXContextUI VFXBlockUI.VFXContextSlotContainerUI.node #node-border #title.disabled #title-label
@@ -62,7 +62,7 @@ VFXBlockUI.node
 
 VFXBlockUI.node > #node-border
 {
-    flex:1 0;
+    flex:1 0 auto;
     margin-left:0;
     margin-right:0;
     margin-top:0;

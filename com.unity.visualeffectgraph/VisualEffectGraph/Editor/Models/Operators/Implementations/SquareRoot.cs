@@ -1,13 +1,19 @@
 using System;
 using UnityEngine;
 
-
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Arithmetic")]
-    class SquareRoot : VFXOperatorUnaryFloatOperation
+    class SquareRoot : VFXOperatorNumericUniform
     {
-        override public string name { get { return "Square Root"; } }
+        public class InputProperties
+        {
+            public float x = 0.0f;
+        }
+
+        public override sealed string name { get { return "Square Root"; } }
+
+        protected override sealed ValidTypeRule typeFilter { get { return ValidTypeRule.allowEverythingExceptInteger; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
