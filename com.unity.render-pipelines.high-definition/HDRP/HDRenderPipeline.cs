@@ -575,68 +575,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 cmd.SetGlobalInt(HDShaderIDs._SSReflectionEnabled, hdCamera.frameSettings.enableSSR ? 1 : 0);
 
-                var previousDepthPyramidRT = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.DepthPyramid);
-                if (previousDepthPyramidRT != null)
-                {
-                    cmd.SetGlobalTexture(HDShaderIDs._DepthPyramidTexture, previousDepthPyramidRT);
-                    cmd.SetGlobalVector(HDShaderIDs._DepthPyramidSize, new Vector4(
-                            previousDepthPyramidRT.referenceSize.x,
-                            previousDepthPyramidRT.referenceSize.y,
-                            1f / previousDepthPyramidRT.referenceSize.x,
-                            1f / previousDepthPyramidRT.referenceSize.y
-                            ));
-                    cmd.SetGlobalVector(HDShaderIDs._DepthPyramidScale, new Vector4(
-                            previousDepthPyramidRT.referenceSize.x / (float)previousDepthPyramidRT.rt.width,
-                            previousDepthPyramidRT.referenceSize.y / (float)previousDepthPyramidRT.rt.height,
-                            Mathf.Log(Mathf.Min(previousDepthPyramidRT.rt.width, previousDepthPyramidRT.rt.height), 2),
-                            0.0f
-                            ));
-                }
-                else
-                {
-                    cmd.SetGlobalTexture(HDShaderIDs._DepthPyramidTexture, Texture2D.blackTexture);
-                    cmd.SetGlobalVector(HDShaderIDs._DepthPyramidSize, Vector4.one);
-                    cmd.SetGlobalVector(HDShaderIDs._DepthPyramidScale, Vector4.one);
-                }
-
-                var previousColorPyramidRT = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorPyramid);
-                if (previousColorPyramidRT != null)
-                {
-                    cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, previousColorPyramidRT);
-                    cmd.SetGlobalVector(HDShaderIDs._ColorPyramidSize, new Vector4(
-                            previousColorPyramidRT.referenceSize.x,
-                            previousColorPyramidRT.referenceSize.y,
-                            1f / previousColorPyramidRT.referenceSize.x,
-                            1f / previousColorPyramidRT.referenceSize.y
-                            ));
-                    cmd.SetGlobalVector(HDShaderIDs._ColorPyramidScale, new Vector4(
-                            previousColorPyramidRT.referenceSize.x / (float)previousColorPyramidRT.rt.width,
-                            previousColorPyramidRT.referenceSize.y / (float)previousColorPyramidRT.rt.height,
-                            Mathf.Log(Mathf.Min(previousColorPyramidRT.rt.width, previousColorPyramidRT.rt.height), 2),
-                            0.0f
-                            ));
-                }
-                else
-                {
-                    cmd.SetGlobalTexture(HDShaderIDs._ColorPyramidTexture, Texture2D.blackTexture);
-                    cmd.SetGlobalVector(HDShaderIDs._ColorPyramidSize, Vector4.one);
-                    cmd.SetGlobalVector(HDShaderIDs._ColorPyramidScale, Vector4.one);
-                }
+                PushGlobalRTHandle(
+                    cmd, 
+                    hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.DepthPyramid), 
+                    HDShaderIDs._DepthPyramidTexture, 
+                    HDShaderIDs._DepthPyramidSize, 
+                    HDShaderIDs._DepthPyramidScale
+                );
+                PushGlobalRTHandle(
+                    cmd, 
+                    hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorPyramid), 
+                    HDShaderIDs._ColorPyramidTexture, 
+                    HDShaderIDs._ColorPyramidSize, 
+                    HDShaderIDs._ColorPyramidScale
+                );
+                PushGlobalRTHandle(
+                    cmd, 
+                    m_VelocityBuffer, 
+                    HDShaderIDs._CameraMotionVectorsTexture, 
+                    HDShaderIDs._CameraMotionVectorsSize, 
+                    HDShaderIDs._CameraMotionVectorsScale
+                );
 
                 cmd.SetGlobalBuffer(HDShaderIDs._DebugScreenSpaceTracingData, m_DebugScreenSpaceTracingData);
-
-                cmd.SetGlobalTexture(HDShaderIDs._CameraMotionVectorsTexture, m_VelocityBuffer);
-                cmd.SetGlobalVector(HDShaderIDs._CameraMotionVectorsSize, new Vector4(
-                        m_VelocityBuffer.referenceSize.x,
-                        m_VelocityBuffer.referenceSize.y,
-                        1f / m_VelocityBuffer.referenceSize.x,
-                        1f / m_VelocityBuffer.referenceSize.y
-                        ));
-                cmd.SetGlobalVector(HDShaderIDs._CameraMotionVectorsScale, new Vector4(
-                        m_VelocityBuffer.referenceSize.x / (float)m_VelocityBuffer.rt.width,
-                        m_VelocityBuffer.referenceSize.y / (float)m_VelocityBuffer.rt.height,
-                        1, 0.0f
-                        ));
             }
         }
 
@@ -2009,6 +1970,38 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (hdCamera.frameSettings.enableStereo)
                 renderContext.StopMultiEye(hdCamera.camera);
+        }
+
+        void PushGlobalRTHandle(CommandBuffer cmd, RTHandleSystem.RTHandle rth, int textureID, int sizeID, int scaleID)
+        {
+            if (rth != null)
+            {
+                cmd.SetGlobalTexture(textureID, rth);
+                cmd.SetGlobalVector(
+                    sizeID, 
+                    new Vector4(
+                    rth.referenceSize.x,
+                    rth.referenceSize.y,
+                    1f / rth.referenceSize.x,
+                    1f / rth.referenceSize.y
+                    )
+                );
+                cmd.SetGlobalVector(
+                    scaleID, 
+                    new Vector4(
+                    rth.referenceSize.x / (float)rth.rt.width,
+                    rth.referenceSize.y / (float)rth.rt.height,
+                    Mathf.Log(Mathf.Min(rth.rt.width, rth.rt.height), 2),
+                    0.0f
+                    )
+                );
+            }
+            else
+            {
+                cmd.SetGlobalTexture(textureID, Texture2D.blackTexture);
+                cmd.SetGlobalVector(sizeID, Vector4.one);
+                cmd.SetGlobalVector(scaleID, Vector4.one);
+            }
         }
     }
 }
