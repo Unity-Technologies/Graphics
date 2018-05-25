@@ -45,19 +45,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             Add(intField);
         }
 
-#if UNITY_2018_1
-        void OnChange(ChangeEvent<long> evt)
-#else
         void OnChange(ChangeEvent<int> evt)
-#endif
         {
             m_Node.owner.owner.RegisterCompleteObjectUndo("Integer Change");
-            var newValue =
-#if UNITY_2018_1
-                (int)
-#endif
-                evt.newValue;
-            m_PropertyInfo.SetValue(m_Node, newValue, null);
+            m_PropertyInfo.SetValue(m_Node, evt.newValue, null);
             this.MarkDirtyRepaint();
         }
     }
