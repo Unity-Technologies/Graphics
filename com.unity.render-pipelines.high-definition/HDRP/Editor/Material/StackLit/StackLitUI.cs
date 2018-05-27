@@ -100,7 +100,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kStencilRefMV = "_StencilRefMV";
         protected const string kStencilWriteMaskMV = "_StencilWriteMaskMV";
 
-        protected const string k_SpecularAntiAliasingEnabled = "_SpecularAntiAliasingEnabled";
+        protected const string k_GeometricNormalFilteringEnabled = "_GeometricNormalFilteringEnabled";
+        protected const string k_TextureNormalFilteringEnabled = "_TextureNormalFilteringEnabled";        
 
         #endregion
 
@@ -116,7 +117,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         private Property EnableDualSpecularLobe;
         private Property EnableIridescence;
 
-        private Property EnableSpecularAA;
+        private Property EnableGeometricNormalFiltering;
+        private Property EnableTextureNormalFiltering;
 
         public StackLitGUI()
         {
@@ -135,7 +137,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EnableDualSpecularLobe = new Property(this, k_EnableDualSpecularLobe, "Enable Dual Specular Lobe", "Enable a second specular lobe, aim to simulate a mix of a narrow and a haze lobe that better match measured material", true);
             EnableIridescence = new Property(this, k_EnableIridescence, "Enable Iridescence", "Enable physically based iridescence layer", true);
 
-            EnableSpecularAA = new Property(this, k_SpecularAntiAliasingEnabled, "Enable SpecularAA", "Enable specular antialiasing", true);
+            EnableGeometricNormalFiltering = new Property(this, k_GeometricNormalFilteringEnabled, "Enable Geometric filtering", "Enable specular antialiasing", true);
+            EnableTextureNormalFiltering = new Property(this, k_TextureNormalFilteringEnabled, "Enable Texture filtering", "Require normal map to use _NA or _OSNA suffix for normal map name", true);
 
             // All material properties
             // All GroupPropery below need to define a
@@ -209,11 +212,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     new Property(this, k_AlbedoAffectEmissive, "Albedo Affect Emissive", "Specifies whether or not the emissive color is multiplied by the albedo.", false),
                 }),
 
-                new GroupProperty(this, "_SpecularAntiAliasing", "SpecularAntiAliasing", new BaseProperty[]
+                new GroupProperty(this, "_SpecularAntiAliasing", "Specular Anti-Aliasing", new BaseProperty[]
                 {
-                    EnableSpecularAA,
-                    new Property(this, "_SpecularAntiAliasingScreenSpaceVariance", "Screen Space Variance", "Screen Space Variance (should be less than 0.25)", false, _ => EnableSpecularAA.BoolValue == true),
-                    new Property(this, "_SpecularAntiAliasingThreshold", "Threshold", "Threshold", false, _ => EnableSpecularAA.BoolValue == true),
+                    EnableTextureNormalFiltering,
+                    EnableGeometricNormalFiltering,
+                    new Property(this, "_SpecularAntiAliasingThreshold", "Threshold", "Threshold", false, _ => (EnableGeometricNormalFiltering.BoolValue || EnableTextureNormalFiltering.BoolValue) == true),
+                    new Property(this, "_SpecularAntiAliasingScreenSpaceVariance", "Screen Space Variance", "Screen Space Variance (should be less than 0.25)", false, _ => EnableGeometricNormalFiltering.BoolValue == true),
                 }),
 
                 new GroupProperty(this, "_Debug", "Debug", new BaseProperty[]
