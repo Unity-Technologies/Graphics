@@ -4,9 +4,11 @@ using UnityEngine;
 
 public class NormalMapVarianceTexturePostprocessor : AssetPostprocessor
 {
+    static string s_Extension = "_NA";
     void OnPreprocessTexture()
     {
-        if (assetPath.IndexOf("_variance", StringComparison.InvariantCultureIgnoreCase) != -1)
+        // Any texture with _NA suffix will store average normal lenght in alpha
+        if (assetPath.IndexOf("_NA", StringComparison.InvariantCultureIgnoreCase) != -1)
         {
             // Make sure we don't convert as a normal map.
             TextureImporter textureImporter = (TextureImporter)assetImporter;
@@ -60,7 +62,7 @@ public class NormalMapVarianceTexturePostprocessor : AssetPostprocessor
 
     void OnPostprocessTexture(Texture2D texture)
     {
-        if (assetPath.IndexOf("_variance", StringComparison.InvariantCultureIgnoreCase) != -1)
+        if (assetPath.IndexOf("_NA", StringComparison.InvariantCultureIgnoreCase) != -1)
         {
             // For mip 0, set the normal length to 1.
             {

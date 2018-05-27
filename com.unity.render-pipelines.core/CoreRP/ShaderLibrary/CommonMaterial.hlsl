@@ -58,7 +58,7 @@ void ConvertAnisotropyToClampRoughness(real perceptualRoughness, real anisotropy
     roughnessB = ClampRoughnessForAnalyticalLights(roughnessB);
 }
 
-// Use with stack BRDF (clear coat / coat)
+// Use with stack BRDF (clear coat / coat) - This only used same equation to convert from Blinn-Phong spec power to Beckmann roughness
 real RoughnessToVariance(real roughness)
 {
     return 2.0 / Sq(roughness) - 2.0;
@@ -72,6 +72,7 @@ real VarianceToRoughness(real variance)
 float FilterPerceptualSmoothness(float perceptualSmoothness, float variance, float threshold)
 {
     float roughness = PerceptualSmoothnessToRoughness(perceptualSmoothness);
+    // Ref: Geometry into Shading - http://graphics.pixar.com/library/BumpRoughness/paper.pdf - equation (3)
     float squaredRoughness = saturate(roughness * roughness + min(2.0 * variance, threshold * threshold)); // threshold can be really low, square the value for easier control
 
     return 1.0 - RoughnessToPerceptualRoughness(sqrt(squaredRoughness));
@@ -114,8 +115,13 @@ float TextureFilteringVariance(float avgNormalLength)
         float avgNormLen2 = avgNormalLength * avgNormalLength;
         float kappa = (3.0 * avgNormalLength - avgNormalLength * avgNormLen2) / (1.0 - avgNormLen2);
 
+        // Ref: Frequency Domain Normal Map Filtering - http://www.cs.columbia.edu/cg/normalmap/normalmap.pdf (equation 21)
+        // Relationship between between the standard deviation of a Gaussian distribution and the roughness parameter of a Beckmann distribution.
+        // is roughness^2 = 2 variance    (note: variance is sigma^2)
+        // (Ref: Filtering Distributions of Normals for Shading Antialiasing - Equation just after (14))
         // Relationship between gaussian lobe and vMF lobe is 2 * variance = 1 / (2 * kappa) = roughness^2
-        // so to get variance we must use variance = 1 / (4 * kappa)
+        // (Equation 36 of  Normal map filtering based on The Order : 1886 SIGGRAPH course notes implementation).
+        // So to get variance we must use variance = 1 / (4 * kappa)
         return 0.25 * kappa;
     }
 
