@@ -201,7 +201,8 @@ Shader "HDRenderPipeline/StackLit"
         [HideInInspector] _ZTestDepthEqualForOpaque("_ZTestDepthEqualForOpaque", Int) = 4 // Less equal
         [HideInInspector] _ZTestModeDistortion("_ZTestModeDistortion", Int) = 8
 
-        [ToggleUI] _SpecularAntiAliasingEnabled("Specular Anti Aliasing Enabled", Float) = 0.0
+        [ToggleUI] _GeometricNormalFilteringEnabled("GeometricNormalFilteringEnabled", Float) = 0.0
+        [ToggleUI] _TextureNormalFilteringEnabled("TextureNormalFilteringEnabled", Float) = 0.0
         _SpecularAntiAliasingScreenSpaceVariance("SpecularAntiAliasingScreenSpaceVariance", Range(0.0, 1.0)) = 0.1
         _SpecularAntiAliasingThreshold("SpecularAntiAliasingThreshold", Range(0.0, 1.0)) = 0.2
 

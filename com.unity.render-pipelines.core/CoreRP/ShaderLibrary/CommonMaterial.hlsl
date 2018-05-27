@@ -69,7 +69,8 @@ real VarianceToRoughness(real variance)
     return sqrt(2.0 / (variance + 2.0));
 }
 
-float FilterPerceptualSmoothness(float perceptualSmoothness, float variance, float threshold)
+// Return modified perceptualSmoothness based on provided variance (get from GeometricNormalVariance + TextureNormalVariance)
+float NormalFiltering(float perceptualSmoothness, float variance, float threshold)
 {
     float roughness = PerceptualSmoothnessToRoughness(perceptualSmoothness);
     // Ref: Geometry into Shading - http://graphics.pixar.com/library/BumpRoughness/paper.pdf - equation (3)
@@ -83,7 +84,7 @@ float FilterPerceptualSmoothness(float perceptualSmoothness, float variance, flo
 // This is the deferred approximation, which works reasonably well so we keep it for forward too for now.
 // screenSpaceVariance should be at most 0.5^2 = 0.25, as that corresponds to considering
 // a gaussian pixel reconstruction kernel with a standard deviation of 0.5 of a pixel, thus 2 sigma covering the whole pixel.
-float GeometricFilterVariance(float3 geometricNormalWS, float screenSpaceVariance)
+float GeometricNormalVariance(float3 geometricNormalWS, float screenSpaceVariance)
 {
     float3 deltaU = ddx(geometricNormalWS);
     float3 deltaV = ddy(geometricNormalWS);
@@ -91,10 +92,11 @@ float GeometricFilterVariance(float3 geometricNormalWS, float screenSpaceVarianc
     return screenSpaceVariance * (dot(deltaU, deltaU) + dot(deltaV, deltaV));
 }
 
-float GeometricFilterPerceptualSmoothness(float perceptualSmoothness, float3 geometricNormalWS, float screenSpaceVariance, float threshold)
+// Return modified perceptualSmoothness
+float GeometricNormalFiltering(float perceptualSmoothness, float3 geometricNormalWS, float screenSpaceVariance, float threshold)
 {
-    float variance = GeometricFilterVariance(geometricNormalWS, screenSpaceVariance);
-    return FilterPerceptualSmoothness(perceptualSmoothness, variance, threshold);
+    float variance = GeometricNormalVariance(geometricNormalWS, screenSpaceVariance);
+    return NormalFiltering(perceptualSmoothness, variance, threshold);
 }
 
 // Normal map filtering based on The Order : 1886 SIGGRAPH course notes implementation.
@@ -108,7 +110,7 @@ float GeometricFilterPerceptualSmoothness(float perceptualSmoothness, float3 geo
 // Note that hw filtering on the normal map should be trilinear to be conservative, while anisotropic 
 // risk underfiltering. Could also compute average normal on the fly with a proper normal map format,
 // like Toksvig.
-float TextureFilteringVariance(float avgNormalLength)
+float TextureNormalVariance(float avgNormalLength)
 {
     if (avgNormalLength < 1.0)
     {
@@ -125,13 +127,13 @@ float TextureFilteringVariance(float avgNormalLength)
         return 0.25 * kappa;
     }
 
-    return 0.0f;
+    return 0.0;
 }
 
-float TextureFilterPerceptualSmoothness(float perceptualSmoothness, float avgNormalLength, float threshold)
+float TextureNormalFiltering(float perceptualSmoothness, float avgNormalLength, float threshold)
 {
-    float variance = TextureFilteringVariance(avgNormalLength);
-    return FilterPerceptualSmoothness(perceptualSmoothness, variance, threshold);
+    float variance = TextureNormalVariance(avgNormalLength);
+    return NormalFiltering(perceptualSmoothness, variance, threshold);
 }
 
 // ----------------------------------------------------------------------------
