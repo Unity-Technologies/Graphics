@@ -347,56 +347,6 @@ SSSData ConvertSurfaceDataToSSSData(SurfaceData surfaceData)
     return sssData;
 }
 
-
-
-// Specular antialiasing
-float NormalCurvatureToRoughness(float3 n)
-{
-    float3 dNdx = ddx(n);
-    float3 dNdy = ddy(n);
-
-    float curvature = pow(max(dot(dNdx, dNdx), dot(dNdy, dNdy)), _NormalCurvatureToRoughnessExponent);
-
-    return saturate(curvature * _NormalCurvatureToRoughnessScale + _NormalCurvatureToRoughnessBias);
-}
-
-float FilterRoughness_TOKUYOSHI(float3 n, float r)
-{
-    float3 deltaU = ddx(n);
-    float3 deltaV = ddy(n);
-
-    float variance = _SpecularAntiAliasingScreenSpaceVariance * (dot(deltaU, deltaU) + dot(deltaV, deltaV));
-
-    return variance;
-}
-
-// Based on The Order : 1886 SIGGRAPH course notes implementation.
-float AdjustRoughness(float avgNormalLength)
-{
-    if (avgNormalLength < 1.0)
-    {
-        float avgNormLen2 = avgNormalLength * avgNormalLength;
-        float kappa = (3 * avgNormalLength - avgNormalLength * avgNormLen2) / (1 - avgNormLen2);
-
-        return 1.0 / (2.0 * kappa);
-    }
-
-    return 0.0f;
-}
-
-float FilterRoughness(float r, float3 geomNormalWS, float averageNormalLength)
-{
-    // Specular AA: NormalCurvatureToRoughness
-    r = lerp(r, max(NormalCurvatureToRoughness(geomNormalWS), r), _NormalCurvatureToRoughnessEnabled);
-
-    // Specular AA: Tokuyoshi Filtering + 1866 normal filtering.
-    float varianceGeom = FilterRoughness_TOKUYOSHI(geomNormalWS, r);
-    float varianceNorm = AdjustRoughness(averageNormalLength);
-    float filteredRoughness = sqrt(saturate(r * r + min(2.0 * (varianceGeom + varianceNorm), _SpecularAntiAliasingThreshold)));
-
-    return lerp(r, filteredRoughness, _SpecularAntiAliasingEnabled);
-}
-
 //-----------------------------------------------------------------------------
 // conversion function for forward
 //-----------------------------------------------------------------------------
@@ -415,10 +365,6 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     bsdfData.normalWS = surfaceData.normalWS;
     bsdfData.perceptualRoughnessA = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothnessA);
     bsdfData.perceptualRoughnessB = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothnessB);
-
-    // Specular AA / Filtering.
-    bsdfData.perceptualRoughnessA = FilterRoughness(bsdfData.perceptualRoughnessA, bsdfData.geomNormalWS, surfaceData.averageNormalLengthA);
-    bsdfData.perceptualRoughnessB = FilterRoughness(bsdfData.perceptualRoughnessB, bsdfData.geomNormalWS, surfaceData.averageNormalLengthB);
 
     bsdfData.lobeMix = surfaceData.lobeMix;
 
@@ -449,13 +395,13 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
 
     if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT))
     {
+        FillMaterialCoatData(PerceptualSmoothnessToPerceptualRoughness(surfaceData.coatPerceptualSmoothness),
+                             surfaceData.coatIor, surfaceData.coatThickness, surfaceData.coatExtinction, bsdfData);
+
         if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT_NORMAL_MAP))
         {
             bsdfData.coatNormalWS = surfaceData.coatNormalWS;
         }
-
-        FillMaterialCoatData(PerceptualSmoothnessToPerceptualRoughness(surfaceData.coatPerceptualSmoothness),
-                             surfaceData.coatIor, surfaceData.coatThickness, surfaceData.coatExtinction, bsdfData);
 
         // vlayering:
         // We can't calculate final roughnesses including anisotropy right away in this case: we will either do it
