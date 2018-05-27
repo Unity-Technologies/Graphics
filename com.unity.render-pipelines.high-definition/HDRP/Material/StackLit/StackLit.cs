@@ -53,12 +53,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes(new string[] {"Coat Normal", "Coat Normal View Space"}, true)]
             public Vector3 coatNormalWS;
 
-            [SurfaceDataAttributes("Average Normal Length A")]
-            public float averageNormalLengthA;
-
-            [SurfaceDataAttributes("Average Normal Length B")]
-            public float averageNormalLengthB;
-
             [SurfaceDataAttributes("Smoothness A")]
             public float perceptualSmoothnessA;
 
