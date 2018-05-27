@@ -182,7 +182,8 @@ float _EmissiveColorMapUVLocal;
 float _EmissiveIntensity;
 float _AlbedoAffectEmissive;
 
-float _SpecularAntiAliasingEnabled;
+float _GeometricNormalFilteringEnabled;
+float _TextureNormalFilteringEnabled;
 float _SpecularAntiAliasingScreenSpaceVariance;
 float _SpecularAntiAliasingThreshold;
 
