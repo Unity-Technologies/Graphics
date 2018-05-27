@@ -316,8 +316,13 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.normalWS = SurfaceGradientResolveNormal(input.worldToTangent[2], gradient.xyz);
     surfaceData.coatNormalWS = SurfaceGradientResolveNormal(input.worldToTangent[2], coatGradient.xyz);
 
-    surfaceData.averageNormalLengthA = gradient.w;
-    surfaceData.averageNormalLengthB = coatGradient.w;
+    float geometricVariance = GeometricFilterVariance(input.worldToTangent[2], _SpecularAntiAliasingScreenSpaceVariance);
+    float textureFilteringVariance = TextureFilteringVariance(gradient.w);
+    float coatTextureFilteringVariance = TextureFilteringVariance(coatGradient.w);
+
+    FilterPerceptualSmoothness(surfaceData.perceptualSmoothnessA, geometricVariance + textureFilteringVariance, _SpecularAntiAliasingThreshold);
+    FilterPerceptualSmoothness(surfaceData.perceptualSmoothnessB, geometricVariance + textureFilteringVariance, _SpecularAntiAliasingThreshold);
+    FilterPerceptualSmoothness(surfaceData.coatPerceptualSmoothness, geometricVariance + coatTextureFilteringVariance, _SpecularAntiAliasingThreshold);
 
     // TODO: decal etc.
 
