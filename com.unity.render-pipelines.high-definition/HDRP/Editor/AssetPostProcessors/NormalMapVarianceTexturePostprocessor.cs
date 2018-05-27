@@ -2,16 +2,26 @@ using System;
 using UnityEditor;
 using UnityEngine;
 
-public class NormalMapVarianceTexturePostprocessor : AssetPostprocessor
+public class NormalMapAverageLengthTexturePostprocessor : AssetPostprocessor
 {
+    // This class will process a normal map and add the value of average normal length to the blue or alpha channel
+    // The texture is save as BC7.
+    // Tangent space normal map: BC7 RGB (normal xy - average normal length)
+    // Object space normal map: BC7 RGBA (normal xyz - average normal length)
+    static string s_Suffix = "_NA";
+    //static string s_SuffixOS = "_OSNA"; // Suffix for object space case - TODO
+
     void OnPreprocessTexture()
     {
-        if (assetPath.IndexOf("_variance", StringComparison.InvariantCultureIgnoreCase) != -1)
+        // Any texture with _NA suffix will store average normal lenght in alpha
+        if (assetPath.IndexOf(s_Suffix, StringComparison.InvariantCultureIgnoreCase) != -1)
         {
             // Make sure we don't convert as a normal map.
             TextureImporter textureImporter = (TextureImporter)assetImporter;
             textureImporter.convertToNormalmap = false;
-            textureImporter.textureCompression = TextureImporterCompression.CompressedHQ;
+            textureImporter.alphaSource = TextureImporterAlphaSource.None;
+            textureImporter.mipmapEnabled = true;
+            textureImporter.textureCompression = TextureImporterCompression.CompressedHQ; // This is BC7 for Mac/PC
 
 #pragma warning disable 618 // remove obsolete warning for this one
             textureImporter.linearTexture = true; // Says deprecated but won't work without it.
@@ -60,18 +70,8 @@ public class NormalMapVarianceTexturePostprocessor : AssetPostprocessor
 
     void OnPostprocessTexture(Texture2D texture)
     {
-        if (assetPath.IndexOf("_variance", StringComparison.InvariantCultureIgnoreCase) != -1)
+        if (assetPath.IndexOf(s_Suffix, StringComparison.InvariantCultureIgnoreCase) != -1)
         {
-            // For mip 0, set the normal length to 1.
-            {
-                Color[] c = texture.GetPixels(0);
-                for (int i = 0; i < c.Length; i++)
-                {
-                    c[i].a = 1.0f;
-                }
-                texture.SetPixels(c, 0);
-            }
-
             // Based on The Order : 1886 SIGGRAPH course notes implementation. Sample all normal map
             // texels from the base mip level that are within the footprint of the current mipmap texel.
             Color[] source = texture.GetPixels(0);
@@ -92,14 +92,29 @@ public class NormalMapVarianceTexturePostprocessor : AssetPostprocessor
 
                         // Store the normal length for the average normal.
                         int outputPosition = y * mipWidth + x;
-                        //c[outputPosition].a = averageNormal.magnitude;
 
-                        float normalLength = Math.Max(0.0f, Math.Min(1.0f, averageNormal.magnitude));
-                        c[outputPosition].a = normalLength;
+                        // Clamp to avoid any issue (TODO: Check this)
+                        // Write into the blue channel
+                        float averageNormalLength = Math.Max(0.0f, Math.Min(1.0f, averageNormal.magnitude));
+
+                        c[outputPosition].b = averageNormalLength;
+                        c[outputPosition].a = 1.0f;
                     }
                 }
 
                 texture.SetPixels(c, m);
+            }
+
+            // Now overwrite the first mip average normal channel - order is important as above we read the mip0
+            // For mip 0, set the normal length to 1.
+            {
+                Color[] c = texture.GetPixels(0);
+                for (int i = 0; i < c.Length; i++)
+                {
+                    c[i].b = 1.0f;
+                    c[i].a = 1.0f;
+                }
+                texture.SetPixels(c, 0);
             }
         }
     }
