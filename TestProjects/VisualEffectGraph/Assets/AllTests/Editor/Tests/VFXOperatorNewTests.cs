@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.Test
     public class VFXOperatorNewTests
     {
         [Test]
-        public void CascadedAddOperatorCascadedBehavior()
+        public void CascadedAddOperator_Adding_And_Removing_Several_Links()
         {
             var one = ScriptableObject.CreateInstance<VFXInlineOperator>();
             var add = ScriptableObject.CreateInstance<Operator.Add>();
@@ -86,7 +86,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void CascadedMulOperatorDifferentFloatSizes()
+        public void CascadedMulOperator_Mix_Vector2_and_Vector3()
         {
             var vec2_Two = ScriptableObject.CreateInstance<VFXInlineOperator>();
             var vec3_Two = ScriptableObject.CreateInstance<VFXInlineOperator>();
@@ -111,7 +111,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void CascadedSubstractIntegerBehavior()
+        public void CascadedSubstractOperator_Mixing_Integer_With_OtherType()
         {
             var subtract = ScriptableObject.CreateInstance<Operator.Subtract>();
             subtract.SetOperandType(0, typeof(float));
@@ -135,7 +135,7 @@ namespace UnityEditor.VFX.Test
             subtract.SetOperandType(1, typeof(uint));
             Assert.AreEqual(VFXValueType.Uint32, subtract.outputSlots[0].GetExpression().valueType);
 
-            //Finally, do some simple math integer (TODOPAUL : are incorrect mathematically but another PR is coming for this support)
+            //Finally, do some simple math integer
             subtract.SetOperandType(0, typeof(int));
             subtract.SetOperandType(1, typeof(uint));
 
@@ -153,7 +153,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void ClampBehavior()
+        public void ClampOperator_With_Integer()
         {
             var clamp = ScriptableObject.CreateInstance<Operator.Clamp>();
             clamp.SetOperandType(0, typeof(int));
@@ -172,7 +172,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void LengthBehavior()
+        public void LengthOperator_With_Vector2()
         {
             var length = ScriptableObject.CreateInstance<Operator.Length>();
             length.SetOperandType(typeof(Vector2));
@@ -189,7 +189,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void DotProductBehavior()
+        public void DotProductOperator_With_Vector2()
         {
             var dot = ScriptableObject.CreateInstance<Operator.DotProduct>();
             dot.SetOperandType(typeof(Vector2));
@@ -210,7 +210,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void CosineBehavior()
+        public void Cosine_With_Vector2()
         {
             var cos = ScriptableObject.CreateInstance<Operator.Cosine>();
             cos.SetOperandType(typeof(Vector2));
@@ -229,7 +229,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void KeepConnectionBehavior()
+        public void Verify_TypeChange_Keep_Connection_When_Still_Compatible()
         {
             var cos_A = ScriptableObject.CreateInstance<Operator.Cosine>();
             cos_A.SetOperandType(typeof(Vector3));
@@ -263,7 +263,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void AppendBehavior()
+        public void AppendOperator()
         {
             var append = ScriptableObject.CreateInstance<Operator.AppendVector>();
             Assert.AreEqual(VFXValueType.Float2, append.outputSlots[0].GetExpression().valueType);
@@ -283,7 +283,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void BranchBehavior()
+        public void BranchOperator_With_Sphere()
         {
             var branch = ScriptableObject.CreateInstance<Operator.Branch>();
             branch.SetOperandType(typeof(Sphere));
@@ -331,6 +331,7 @@ namespace UnityEditor.VFX.Test
 
         private static Dictionary<Type, Type[]> ComputeHeuristcalAffinity()
         {
+            /* Heuristical function which is a bit expensive but expects the same result as kTypeAffinity */
             var inputType = new[]
             {
                 typeof(Vector4),
@@ -394,7 +395,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void VerifyTypeCompatibility()
+        public void Verify_Type_Compatibility_Hasnt_Been_Changed()
         {
             var affinityHeurisitic = ComputeHeuristcalAffinity();
             var dumpAffinityHeuristic = DumpAffinityDictionnary(affinityHeurisitic);
@@ -403,7 +404,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void ModuloWithInteger()
+        public void ModuloOperator_With_Unsigned_Integer()
         {
             var a = 1610612737u;
             var b = 805306361u;
@@ -437,7 +438,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void MinimumWithIdenityValue()
+        public void MinimumOperator_Verify_Identity_Value()
         {
             var a = new Vector2(2, 2);
             var b = new Vector3(3, 3, 3);
@@ -507,7 +508,7 @@ namespace UnityEditor.VFX.Test
         };
 
         [Test]
-        public void VerifyAllOperatorUsingFloatNAreRegistered()
+        public void Verify_AllOperatorUsingFloatN_Are_Registered()
         {
             //Use reflexion only in test to avoid slowing down domain reload due to huge reflection
             var allClasses = VFXLibrary.FindConcreteSubclasses(typeof(VFXOperator)); //even without attribute
@@ -540,7 +541,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void VerifyThereIsNoMoreOperatorOrBlockUsingFloatN()
+        public void Verify_ThereIsNoMore_OperatorOrBlock_UsingFloatN()
         {
             var contextList = VFXLibrary.GetContexts().Select(o => o.CreateInstance() as IVFXSlotContainer);
             var operatorList = VFXLibrary.GetOperators().Select(o => o.CreateInstance() as IVFXSlotContainer);
@@ -663,7 +664,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void SanitizeBehavior([ValueSource("allSanitizeTest")] SanitizeParam op)
+        public void SanitizeBehavior_Of_Operator_Using_FloatN([ValueSource("allSanitizeTest")] SanitizeParam op)
         {
             UnityEngine.Random.InitState(87);
 
@@ -775,7 +776,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void AddNewMixingType()
+        public void AddOperator_MixingVector_And_Direction()
         {
             var add = ScriptableObject.CreateInstance<Operator.Add>();
             add.SetOperandType(0, typeof(Vector));

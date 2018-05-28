@@ -34,7 +34,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void ExpectedTypeSpaceable()
+        public void Sphere_Type_Should_Be_Spaceable()
         {
             var inline = ScriptableObject.CreateInstance<VFXInlineOperator>();
             inline.SetSettingValue("m_Type", (SerializableType)typeof(Sphere));
@@ -42,7 +42,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void SpaceUniformisation()
+        public void SpaceUniformisation_Between_World_And_Local()
         {
             var add = ScriptableObject.CreateInstance<Add>();
             add.SetOperandType(0, typeof(Position));
@@ -68,7 +68,7 @@ namespace UnityEditor.VFX.Test
 
         private static Type[] SpaceTransmissionType = { typeof(Position), typeof(Sphere) };
         [Test]
-        public void SpaceTransmission([ValueSource("SpaceTransmissionType")] Type type)
+        public void SpaceTransmission_From_An_Operator_To_Another([ValueSource("SpaceTransmissionType")] Type type)
         {
             var position_A = ScriptableObject.CreateInstance<VFXInlineOperator>();
             var position_B = ScriptableObject.CreateInstance<VFXInlineOperator>();
@@ -90,7 +90,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void SphereSpaceConversionUnexpected()
+        public void SpaceConversion_Sphere_Unexpected_Linking_MasterSlot()
         {
             var sphere_A = ScriptableObject.CreateInstance<VFXInlineOperator>();
             var sphere_B = ScriptableObject.CreateInstance<VFXInlineOperator>();
@@ -119,7 +119,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void SphereSpaceConversionExpected()
+        public void SpaceConversion_Sphere_Expected_Linking_Subslot()
         {
             var sphere_A = ScriptableObject.CreateInstance<VFXInlineOperator>();
             var sphere_B = ScriptableObject.CreateInstance<VFXInlineOperator>();
@@ -146,7 +146,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void PositionSubSlotSpaceConversionUnexpected()
+        public void SpaceConversion_Position_Unexpected_Linking_Subslot()
         {
             var position_A = ScriptableObject.CreateInstance<VFXInlineOperator>();
             var position_B = ScriptableObject.CreateInstance<VFXInlineOperator>();
@@ -172,7 +172,7 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
-        public void PositionLinkToLineConversionExpected()
+        public void SpaceConversion_Conversion_Expected_Linking_Position_To_Line()
         {
             var position_A = ScriptableObject.CreateInstance<VFXInlineOperator>();
             var position_B = ScriptableObject.CreateInstance<VFXInlineOperator>();
