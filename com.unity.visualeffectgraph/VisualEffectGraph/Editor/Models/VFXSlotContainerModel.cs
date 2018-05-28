@@ -314,6 +314,7 @@ namespace UnityEditor.VFX
 
                 var newSlotCount = expectedProperties.Length;
                 var newSlots = new VFXSlot[newSlotCount];
+                var createdSlots = new List<VFXSlot>(newSlotCount);
 
                 // Reuse slots that already exists or create a new one if not
                 for (int i = 0; i < newSlotCount; ++i)
@@ -326,27 +327,42 @@ namespace UnityEditor.VFX
                         existingSlots.Remove(slot);
                     }
                     else
+                    {
                         slot = VFXSlot.Create(p, direction);
+                        createdSlots.Add(slot);
+                    }
 
                     newSlots[i] = slot;
                 }
 
-                // List of candidate to copy existing slots content from
-                var candidateSlots = new VFXSlot[existingSlots.Count];
-
-                for (int i = 0; i < existingSlots.Count; ++i)
+                for (int i = 0; i < createdSlots.Count; ++i)
                 {
-                    var srcSlot = existingSlots[i];
+                    var dstSlot = createdSlots[i];
 
                     // Try to keep links and value for slots of same name and compatible types
-                    candidateSlots[i] = newSlots.FirstOrDefault(s => s.property.name == srcSlot.property.name && s.CanLink(srcSlot) && !candidateSlots.Contains(s));
+                    var srcSlot = existingSlots.FirstOrDefault(s => s.property.name == dstSlot.property.name && s.CanLink(dstSlot));
 
                     // Find the first slot with same type (should perform a more clever selection based on name distance)
-                    if (candidateSlots[i] == null)
-                        candidateSlots[i] = newSlots.FirstOrDefault(s => s.property.type == srcSlot.property.type && !candidateSlots.Contains(s));
+                    if (srcSlot == null)
+                    {
+                        //  try
+                        //   {
+                        srcSlot = newSlots.FirstOrDefault(s => s.property.type == dstSlot.property.type);
+                        //   }
+                        /*    catch(Exception e)
+                            {
+                                Debug.Log(e);
+                                throw e;
+                            }*/
+                    }
 
-                    if (candidateSlots[i] != null)
-                        VFXSlot.TransferLinksAndValue(candidateSlots[i], srcSlot, notify);
+
+                    if (srcSlot != null)
+                    {
+                        VFXSlot.TransferLinksAndValue(dstSlot, srcSlot, notify);
+                        srcSlot.UnlinkAll(true, notify);
+                        existingSlots.Remove(srcSlot);
+                    }
                 }
 
                 // Remove all remaining links
@@ -358,10 +374,7 @@ namespace UnityEditor.VFX
                     InnerAddSlot(s, -1, false);
 
                 if (notify)
-                {
-                    Invalidate(InvalidationCause.kConnectionChanged);
                     Invalidate(InvalidationCause.kStructureChanged);
-                }
             }
             else
             {
