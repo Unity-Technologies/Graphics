@@ -192,7 +192,8 @@ void Frag(  PackedVaryingsToPS packedInput,
     // TODO: How to allow overriden velocity vector from GetSurfaceAndBuiltinData ?
     float2 velocity = CalculateVelocity(inputPass.positionCS, inputPass.previousPositionCS);
 
-    // Convert from Clip space (-1..1) to NDC 0..1 space
+    // Convert from Clip space (-1..1) to NDC 0..1 space.
+    // Note it doesn't mean we don't have negative value, we store negative or positive offset in NDC space.
     // Note: ((positionCS * 0.5 + 0.5) - (previousPositionCS * 0.5 + 0.5)) = (velocity * 0.5)
     EncodeVelocity(velocity * 0.5, outColor);
 
