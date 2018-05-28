@@ -54,6 +54,10 @@ void DecodeShadowMask(float4 inBuffer, out float4 shadowMask)
     shadowMask = inBuffer;
 }
 
+// TODO: CAUTION: current DecodeVelocity is not used in motion vector / TAA pass as it come from Postprocess stack
+// This will be fix when postprocess will be integrated into HD, but it mean that we must not change the
+// EncodeVelocity / DecodeVelocity code for now, i.e it must do nothing like it is doing currently.
+// Note2: Motion blur code of posptrocess stack do * 2 - 1 to uncompress velocity which is not expected, TAA is correct.
 // Design note: We assume that velocity/distortion fit into a single buffer (i.e not spread on several buffer)
 void EncodeVelocity(float2 velocity, out float4 outBuffer)
 {

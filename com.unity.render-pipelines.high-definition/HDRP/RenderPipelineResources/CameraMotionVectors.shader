@@ -9,6 +9,7 @@ Shader "Hidden/HDRenderPipeline/CameraMotionVectors"
         #include "../ShaderPass/FragInputs.hlsl"
         #include "../ShaderPass/VaryingMesh.hlsl"
         #include "../ShaderPass/VertMesh.hlsl"
+        #include "../Material/Builtin/BuiltinData.hlsl"
 
         struct Attributes
         {
@@ -27,7 +28,7 @@ Shader "Hidden/HDRenderPipeline/CameraMotionVectors"
             return output;
         }
 
-        float4 Frag(Varyings input) : SV_Target
+        void Frag(Varyings input, out float4 outColor : SV_Target0)
         {
             float depth = LOAD_TEXTURE2D(_CameraDepthTexture, input.positionCS.xy).x;
 
@@ -38,18 +39,19 @@ Shader "Hidden/HDRenderPipeline/CameraMotionVectors"
 
             float4 prevClipPos = mul(_PrevViewProjMatrix, prevPos);
             float4 curClipPos = mul(_NonJitteredViewProjMatrix, worldPos);
-            float2 prevHPos = prevClipPos.xy / prevClipPos.w;
-            float2 curHPos = curClipPos.xy / curClipPos.w;
 
-            float2 previousPositionCS = (prevHPos + 1.0) / 2.0;
-            float2 positionCS = (curHPos + 1.0) / 2.0;
+            float2 previousPositionCS = prevClipPos.xy / prevClipPos.w;
+            float2 positionCS = curClipPos.xy / curClipPos.w;
 
-        #if UNITY_UV_STARTS_AT_TOP
-            previousPositionCS.y = 1.0 - previousPositionCS.y;
-            positionCS.y = 1.0 - positionCS.y;
-        #endif
-
-            return float4(positionCS - previousPositionCS, 0.0, 1.0);
+            // Convert from Clip space (-1..1) to NDC 0..1 space
+            float2 velocity = (positionCS - previousPositionCS);
+#if UNITY_UV_STARTS_AT_TOP
+            velocity.y = -velocity.y;
+#endif
+            // Convert velocity from Clip space (-1..1) to NDC 0..1 space
+            // Note it doesn't mean we don't have negative value, we store negative or positive offset in NDC space.
+            // Note: ((positionCS * 0.5 + 0.5) - (previousPositionCS * 0.5 + 0.5)) = (velocity * 0.5)
+            EncodeVelocity(velocity * 0.5, outColor);
         }
 
     ENDHLSL
