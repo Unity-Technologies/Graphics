@@ -461,49 +461,49 @@ namespace UnityEditor.VFX.Test
 
         private static KeyValuePair<Type, int>[] allOperatorUsingFloatN = new KeyValuePair<Type, int>[] {
             new KeyValuePair<Type, int>(typeof(AbsoluteDeprecated), 1),
-             new KeyValuePair<Type, int>(typeof(AddDeprecated), 2),
-             new KeyValuePair<Type, int>(typeof(AppendVectorDeprecated), 1),
-             new KeyValuePair<Type, int>(typeof(BranchDeprecated), 2),
-             new KeyValuePair<Type, int>(typeof(CeilingDeprecated), 1),
-             new KeyValuePair<Type, int>(typeof(ClampDeprecated), 3),
-             new KeyValuePair<Type, int>(typeof(ComponentMask), 1),
-             new KeyValuePair<Type, int>(typeof(CosineDeprecated), 1),
-             new KeyValuePair<Type, int>(typeof(DiscretizeDeprecated), 2),
-             new KeyValuePair<Type, int>(typeof(DistanceDeprecated), 2),
-             new KeyValuePair<Type, int>(typeof(DivideDeprecated), 2),
-             new KeyValuePair<Type, int>(typeof(DotProductDeprecated), 2),
-             new KeyValuePair<Type, int>(typeof(FitClamped), 5),
-             new KeyValuePair<Type, int>(typeof(FloorDeprecated), 1),
-             new KeyValuePair<Type, int>(typeof(FractionDeprecated), 1),
-             new KeyValuePair<Type, int>(typeof(LengthDeprecated), 1),
-             new KeyValuePair<Type, int>(typeof(LerpDeprecated), 3),
-             new KeyValuePair<Type, int>(typeof(MaximumDeprecated), 2),
-             new KeyValuePair<Type, int>(typeof(MinimumDeprecated), 2),
-             new KeyValuePair<Type, int>(typeof(ModuloDeprecated), 2),
-             new KeyValuePair<Type, int>(typeof(MultiplyDeprecated), 2),
-             new KeyValuePair<Type, int>(typeof(NormalizeDeprecated), 1),
-             new KeyValuePair<Type, int>(typeof(OneMinusDeprecated), 1),
-             new KeyValuePair<Type, int>(typeof(PowerDeprecated), 2),
-             new KeyValuePair<Type, int>(typeof(ReciprocalDeprecated), 1),
-             new KeyValuePair<Type, int>(typeof(RemapDeprecated), 5),
-             new KeyValuePair<Type, int>(typeof(RemapToNegOnePosOneDeprecated), 1),
-             new KeyValuePair<Type, int>(typeof(RemapToZeroOneDeprecated), 1),
-             new KeyValuePair<Type, int>(typeof(RoundDeprecated), 1),
-             new KeyValuePair<Type, int>(typeof(SaturateDeprecated), 1),
-             new KeyValuePair<Type, int>(typeof(SawtoothWaveDeprecated), 2),
-             new KeyValuePair<Type, int>(typeof(SignDeprecated), 1),
-             new KeyValuePair<Type, int>(typeof(SineDeprecated), 1),
-             new KeyValuePair<Type, int>(typeof(SineWaveDeprecated), 2),
-             new KeyValuePair<Type, int>(typeof(SmoothstepDeprecated), 3),
-             new KeyValuePair<Type, int>(typeof(SquaredDistanceDeprecated), 2),
-             new KeyValuePair<Type, int>(typeof(SquaredLengthDeprecated), 1),
-             new KeyValuePair<Type, int>(typeof(SquareRootDeprecated), 1),
-             new KeyValuePair<Type, int>(typeof(SquareWaveDeprecated), 2),
-             new KeyValuePair<Type, int>(typeof(StepDeprecated), 2),
-             new KeyValuePair<Type, int>(typeof(SubtractDeprecated), 2),
-             new KeyValuePair<Type, int>(typeof(SwizzleDeprecated), 1),
-             new KeyValuePair<Type, int>(typeof(TangentDeprecated), 1),
-             new KeyValuePair<Type, int>(typeof(TriangleWaveDeprecated), 2),
+            new KeyValuePair<Type, int>(typeof(AddDeprecated), 2),
+            new KeyValuePair<Type, int>(typeof(AppendVectorDeprecated), 1),
+            new KeyValuePair<Type, int>(typeof(BranchDeprecated), 2),
+            new KeyValuePair<Type, int>(typeof(CeilingDeprecated), 1),
+            new KeyValuePair<Type, int>(typeof(ClampDeprecated), 3),
+            new KeyValuePair<Type, int>(typeof(ComponentMask), 1),
+            new KeyValuePair<Type, int>(typeof(CosineDeprecated), 1),
+            new KeyValuePair<Type, int>(typeof(DiscretizeDeprecated), 2),
+            new KeyValuePair<Type, int>(typeof(DistanceDeprecated), 2),
+            new KeyValuePair<Type, int>(typeof(DivideDeprecated), 2),
+            new KeyValuePair<Type, int>(typeof(DotProductDeprecated), 2),
+            new KeyValuePair<Type, int>(typeof(FitClamped), 5),
+            new KeyValuePair<Type, int>(typeof(FloorDeprecated), 1),
+            new KeyValuePair<Type, int>(typeof(FractionDeprecated), 1),
+            new KeyValuePair<Type, int>(typeof(LengthDeprecated), 1),
+            new KeyValuePair<Type, int>(typeof(LerpDeprecated), 3),
+            new KeyValuePair<Type, int>(typeof(MaximumDeprecated), 2),
+            new KeyValuePair<Type, int>(typeof(MinimumDeprecated), 2),
+            new KeyValuePair<Type, int>(typeof(ModuloDeprecated), 2),
+            new KeyValuePair<Type, int>(typeof(MultiplyDeprecated), 2),
+            new KeyValuePair<Type, int>(typeof(NormalizeDeprecated), 1),
+            new KeyValuePair<Type, int>(typeof(OneMinusDeprecated), 1),
+            new KeyValuePair<Type, int>(typeof(PowerDeprecated), 2),
+            new KeyValuePair<Type, int>(typeof(ReciprocalDeprecated), 1),
+            new KeyValuePair<Type, int>(typeof(RemapDeprecated), 5),
+            new KeyValuePair<Type, int>(typeof(RemapToNegOnePosOneDeprecated), 1),
+            new KeyValuePair<Type, int>(typeof(RemapToZeroOneDeprecated), 1),
+            new KeyValuePair<Type, int>(typeof(RoundDeprecated), 1),
+            new KeyValuePair<Type, int>(typeof(SaturateDeprecated), 1),
+            new KeyValuePair<Type, int>(typeof(SawtoothWaveDeprecated), 2),
+            new KeyValuePair<Type, int>(typeof(SignDeprecated), 1),
+            new KeyValuePair<Type, int>(typeof(SineDeprecated), 1),
+            new KeyValuePair<Type, int>(typeof(SineWaveDeprecated), 2),
+            new KeyValuePair<Type, int>(typeof(SmoothstepDeprecated), 3),
+            new KeyValuePair<Type, int>(typeof(SquaredDistanceDeprecated), 2),
+            new KeyValuePair<Type, int>(typeof(SquaredLengthDeprecated), 1),
+            new KeyValuePair<Type, int>(typeof(SquareRootDeprecated), 1),
+            new KeyValuePair<Type, int>(typeof(SquareWaveDeprecated), 2),
+            new KeyValuePair<Type, int>(typeof(StepDeprecated), 2),
+            new KeyValuePair<Type, int>(typeof(SubtractDeprecated), 2),
+            new KeyValuePair<Type, int>(typeof(SwizzleDeprecated), 1),
+            new KeyValuePair<Type, int>(typeof(TangentDeprecated), 1),
+            new KeyValuePair<Type, int>(typeof(TriangleWaveDeprecated), 2),
         };
 
         [Test]
@@ -772,6 +772,31 @@ namespace UnityEditor.VFX.Test
             {
                 Assert.IsTrue(newOperator.outputSlots[i].HasLink());
             }
+        }
+
+        [Test]
+        public void AddNewMixingType()
+        {
+            var add = ScriptableObject.CreateInstance<Operator.Add>();
+            add.SetOperandType(0, typeof(Vector));
+            add.SetOperandType(1, typeof(DirectionType));
+
+            var a = new Vector3(1, 2, 3);
+            var b = new Vector3(6, 5, 4);
+
+            add.inputSlots[0].value = new Vector() { vector = a };
+            add.inputSlots[1].value = new DirectionType() { direction = b };
+
+            Assert.AreEqual(typeof(Vector), add.outputSlots[0].property.type);
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+            var resultVector3Expression = context.Compile(add.outputSlots[0].GetExpression());
+            var r = resultVector3Expression.Get<Vector3>();
+
+            var e = a + b.normalized;
+            Assert.AreEqual(e.x, r.x);
+            Assert.AreEqual(e.y, r.y);
+            Assert.AreEqual(e.z, r.z);
         }
     }
 }

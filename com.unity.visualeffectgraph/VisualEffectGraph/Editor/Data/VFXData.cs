@@ -7,6 +7,11 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
+    public interface ISpaceable
+    {
+        CoordinateSpace space { get; set; }
+    }
+
     abstract class VFXData : VFXModel
     {
         public abstract VFXDataType type { get; }

@@ -33,6 +33,7 @@ namespace UnityEditor.VFX
             kParamChanged,          // Some parameter values have changed
             kParamPropagated,       // Some parameter values have change and was propagated from the parents
             kSettingChanged,        // A setting value has changed
+            kSpaceChanged,          // Space has been changed
             kConnectionChanged,     // Connection have changed
             kExpressionInvalidated, // No direct change to the model but a change in connection was propagated from the parents
             kExpressionGraphChanged,// Expression graph must be recomputed
@@ -292,6 +293,38 @@ namespace UnityEditor.VFX
                     }
                     return false;
                 });
+        }
+
+        static protected VFXExpression ConvertSpace(VFXExpression input, VFXSlot targetSlot, CoordinateSpace space)
+        {
+            if (targetSlot.spaceable)
+            {
+                if (targetSlot.space != space)
+                {
+                    var spaceType = targetSlot.GetSpaceTransformationType();
+                    input = ConvertSpace(input, spaceType, space);
+                }
+            }
+            return input;
+        }
+
+        static protected VFXExpression ConvertSpace(VFXExpression input, SpaceableType spaceType, CoordinateSpace space)
+        {
+            var matrix = space == CoordinateSpace.Local ? VFXBuiltInExpression.WorldToLocal : VFXBuiltInExpression.LocalToWorld;
+
+            if (spaceType == SpaceableType.Position)
+            {
+                input = new VFXExpressionTransformPosition(matrix, input);
+            }
+            else if (spaceType == SpaceableType.Direction)
+            {
+                input = new VFXExpressionTransformDirection(matrix, input);
+            }
+            else
+            {
+                //Not a transformable subSlot
+            }
+            return input;
         }
 
         protected virtual IEnumerable<string> filteredOutSettings

@@ -13,6 +13,9 @@ namespace UnityEditor.VFX
         public static readonly Type[] kExpectedTypeOrdering = new[]
         {
             typeof(Vector4),
+            typeof(Position),
+            typeof(Vector),
+            typeof(DirectionType),
             typeof(Vector3),
             typeof(Vector2),
             typeof(float),
