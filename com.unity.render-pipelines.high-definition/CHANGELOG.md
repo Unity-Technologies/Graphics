@@ -57,6 +57,7 @@
 - Fix the debug window being emptied on SRP asset reload
 - Fix issue with debug mode not correctly clearing the GBuffer in editor after a resize
 - Fix issue with ResetMaterialKeyword not resetting correctly ToggleOff/Roggle Keyword
+- Fix issue with motion vector not render correctly if there is no depth prepass in deferred
 
 ## [2018.1.0f2]
 
