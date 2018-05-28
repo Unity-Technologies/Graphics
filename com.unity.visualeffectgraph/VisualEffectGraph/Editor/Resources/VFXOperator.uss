@@ -1,6 +1,6 @@
 VFXOperatorUI.node #middle
 {
-    flex:1 0;
+    flex:1 0 auto;
     background-color:#363636;
 
 }
@@ -26,21 +26,21 @@ OperandInfo *
 }
 OperandInfo VFXStringField
 {
-    flex:1 0;
+    flex:1 0 auto;
 }
 OperandInfo VFXStringField .textfield
 {
-    flex:1 0;
+    flex:1 0 auto;
 }
 OperandInfo .PopupButton
 {
-    flex:0;
+    flex:0 0 auto;
     width:55;
 }
 
 VFXUnifiedOperatorEdit OperandInfo Label
 {
-    flex:1 0;
+    flex:1 0 auto;
 }
 VFXUnifiedOperatorEdit OperandInfo .PopupButton
 {
@@ -59,7 +59,7 @@ VFXUnifiedOperatorEdit OperandInfo .PopupButton
 
 #edit-container.ReorderableList > #ListContainer
 {
-    flex:1 0;
+    flex:1 0 auto;
 }
 
 .VFXUniformOperatorEdit#edit-container

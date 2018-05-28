@@ -192,7 +192,8 @@ namespace UnityEditor.VFX
     {
         public override void CallDrawGizmo(object value)
         {
-            OnDrawGizmo((T)value);
+            if (value is T)
+                OnDrawGizmo((T)value);
         }
 
         public abstract void OnDrawGizmo(T value);

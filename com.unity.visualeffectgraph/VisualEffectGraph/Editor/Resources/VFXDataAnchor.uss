@@ -23,7 +23,7 @@
 
 .VFXDataAnchor #lineSpacer
 {
-    flex:1 0;
+    flex:1 0 auto;
 }
 .VFXDataAnchor #line
 {
@@ -96,11 +96,11 @@ VFXDataAnchor.Output #type
 {
     text-color: rgb(153,153,153);
     text-alignment:middle-right;
-    flex:1 0;
+    flex:1 0 auto;
 }
 .VFXDataAnchor .propertyrm
 {
-    flex:1 0;
+    flex:1 0 auto;
 }
 
 .VFXDataAnchor .space
