@@ -279,7 +279,7 @@ namespace UnityEditor.VFX
             int nbSlots = isInput ? GetNbInputSlots() : GetNbOutputSlots();
             var currentSlots = isInput ? inputSlots : outputSlots;
 
-            // check all slots owner
+            // check all slots owner (TODO Still useful?)
             for (int i = 0; i < nbSlots; ++i)
             {
                 VFXSlot slot = currentSlots[i];
@@ -308,7 +308,7 @@ namespace UnityEditor.VFX
             {
                 var existingSlots = new List<VFXSlot>(currentSlots);
 
-                // Remove all slots
+                // Remove all slots (TODO Uncomment)
                 for (int i = nbSlots - 1; i >= 0; --i)
                     InnerRemoveSlot(currentSlots[i], false);
 
@@ -340,22 +340,11 @@ namespace UnityEditor.VFX
                     var dstSlot = createdSlots[i];
 
                     // Try to keep links and value for slots of same name and compatible types
-                    var srcSlot = existingSlots.FirstOrDefault(s => s.property.name == dstSlot.property.name && s.CanLink(dstSlot));
+                    var srcSlot = existingSlots.FirstOrDefault(s => s.property.name == dstSlot.property.name);
 
                     // Find the first slot with same type (should perform a more clever selection based on name distance)
                     if (srcSlot == null)
-                    {
-                        //  try
-                        //   {
-                        srcSlot = newSlots.FirstOrDefault(s => s.property.type == dstSlot.property.type);
-                        //   }
-                        /*    catch(Exception e)
-                            {
-                                Debug.Log(e);
-                                throw e;
-                            }*/
-                    }
-
+                        srcSlot = existingSlots.FirstOrDefault(s => s.property.type == dstSlot.property.type);
 
                     if (srcSlot != null)
                     {

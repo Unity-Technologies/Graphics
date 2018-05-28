@@ -362,8 +362,10 @@ namespace UnityEditor.VFX
                     src.Unlink(link, notify);
 
                     // TODO Remove the callbacks after VFXParameter refactor
-                    //dst.owner.OnTransferLinkMySlot(src, dst, link);
-                    //link.owner.OnTransferLinkOtherSlot(link, src, dst);
+                    if (dst.owner != null)
+                        dst.owner.OnTransferLinkMySlot(src, dst, link);
+                    if (link.owner != null)
+                        link.owner.OnTransferLinkOtherSlot(link, src, dst);
                 }
                 ++index;
             }
