@@ -39,7 +39,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void InitSSSBuffers(GBufferManager gbufferManager, RenderPipelineSettings settings)
         {
             // TODO: For MSAA, at least initially, we can only support Jimenez, because we can't create MSAA + UAV render targets.
-            if (settings.supportForwardOnly)
+            if (settings.supportOnlyForward)
             {
                 // In case of full forward we must allocate the render target for forward SSS (or reuse one already existing)
                 // TODO: Provide a way to reuse a render target
