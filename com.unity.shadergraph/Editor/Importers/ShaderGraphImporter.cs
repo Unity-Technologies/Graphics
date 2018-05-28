@@ -96,9 +96,9 @@ Shader ""Hidden/GraphErrorShader2""
         }
         catch (Exception)
         {
+            configuredTextures = new List<PropertyCollector.TextureInfo>();
             // ignored
         }
-        configuredTextures = new List<PropertyCollector.TextureInfo>();
         return shaderString ?? k_ErrorShader.Replace("Hidden/GraphErrorShader2", shaderName);
     }
 }
