@@ -88,7 +88,6 @@ namespace UnityEditor.VFX.UI
             throw new NotImplementedException();
         }
 
-
         bool IPropertyRMProvider.expanded
         {
             get
