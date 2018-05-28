@@ -61,7 +61,7 @@
 
 .propertyrm .fieldContainer > *
 {
-    flex:1 0 auto;
+    flex:1 1 auto;
 }
 .propertyrm .textfield::disabled
 {
@@ -196,7 +196,7 @@ Matrix4x4PropertyRM.propertyrm > .fieldContainer
 
 .propertyrm #indeterminate
 {
-    flex:1;
+    flex:1 1 auto;
     slice-left: 3;
     slice-top: 3;
     slice-right: 3;
