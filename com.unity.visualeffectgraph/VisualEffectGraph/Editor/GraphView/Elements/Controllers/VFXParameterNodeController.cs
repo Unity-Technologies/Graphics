@@ -144,6 +144,32 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public CoordinateSpace space
+        {
+            get
+            {
+                return m_ParentController.space;
+            }
+
+            set
+            {
+                m_ParentController.space = value;
+            }
+        }
+
+        public bool spaceable
+        {
+            get
+            {
+                return m_ParentController.spaceable;
+            }
+        }
+
+        public bool IsSpaceInherited()
+        {
+            return m_ParentController.IsSpaceInherited();
+        }
+
         bool IPropertyRMProvider.expanded
         {
             get

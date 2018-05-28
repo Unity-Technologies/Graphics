@@ -322,8 +322,6 @@ namespace UnityEditor.VFX.UI
             return m_BlockContainer.childCount;
         }
 
-
-
         bool IDropTarget.DragEnter(DragEnterEvent evt, IEnumerable<ISelectable> selection, IDropTarget enteredTarget, ISelection dragSource)
         {
             return true;
@@ -333,7 +331,6 @@ namespace UnityEditor.VFX.UI
         {
             return true;
         }
-
 
         bool IDropTarget.DragUpdated(DragUpdatedEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget, ISelection dragSource)
         {

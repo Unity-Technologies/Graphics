@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.UI
 
         void OnMouseUp(MouseUpEvent evt)
         {
-                Selection.activeObject = m_View.controller.model;
+            Selection.activeObject = m_View.controller.model;
         }
     }
 
@@ -962,11 +962,7 @@ namespace UnityEditor.VFX.UI
 
         void OnCreateNode(NodeCreationContext ctx)
         {
-            GUIView guiView = elementPanel.ownerObject as GUIView;
-            if (guiView == null)
-                return;
-
-            Vector2 point = ctx.screenMousePosition - guiView.screenPosition.position;//GUIUtility.ScreenToGUIPoint(ctx.screenMousePosition);
+            Vector2 point = GUIUtility.ScreenToGUIPoint(ctx.screenMousePosition);
             List<VisualElement> picked = new List<VisualElement>();
             panel.PickAll(point, picked);
 
@@ -1366,27 +1362,27 @@ namespace UnityEditor.VFX.UI
         {
             if (controller == null) return;
 
-                var objectSelected = selection.OfType<VFXNodeUI>().Select(t => t.controller.model).Concat(selection.OfType<VFXContextUI>().Select(t => t.controller.model)).Where(t => t != null).ToArray();
+            var objectSelected = selection.OfType<VFXNodeUI>().Select(t => t.controller.model).Concat(selection.OfType<VFXContextUI>().Select(t => t.controller.model)).Where(t => t != null).ToArray();
 
-                if (objectSelected.Length > 0)
-                {
-                    Selection.objects = objectSelected;
-                    return;
-                }
-
-                var blackBoardSelected = selection.OfType<BlackboardField>().Select(t => t.GetFirstAncestorOfType<VFXBlackboardRow>().controller.model).ToArray();
-
-                if (blackBoardSelected.Length > 0)
-                {
-                    Selection.objects = blackBoardSelected;
-                    return;
-                }
-
-                if (Selection.activeObject != controller.model)
-                {
-                    Selection.activeObject = controller.model.asset;
-                }
+            if (objectSelected.Length > 0)
+            {
+                Selection.objects = objectSelected;
+                return;
             }
+
+            var blackBoardSelected = selection.OfType<BlackboardField>().Select(t => t.GetFirstAncestorOfType<VFXBlackboardRow>().controller.model).ToArray();
+
+            if (blackBoardSelected.Length > 0)
+            {
+                Selection.objects = blackBoardSelected;
+                return;
+            }
+
+            if (Selection.activeObject != controller.model)
+            {
+                Selection.activeObject = controller.model.asset;
+            }
+        }
 
         void ElementAddedToGroupNode(Group groupNode, GraphElement element)
         {

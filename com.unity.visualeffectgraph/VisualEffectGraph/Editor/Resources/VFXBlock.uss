@@ -11,6 +11,12 @@
     padding-bottom:0;
 }
 
+VFXBlockUI.VFXNodeUI.node #contents > #top > #input
+{
+    padding-bottom:8;
+    flex: 1 1 auto;
+}
+
 .VFXContextSlotContainerUI #settings .propertyrm
 {
     margin-left:16;
@@ -62,7 +68,7 @@ VFXBlockUI.node
 
 VFXBlockUI.node > #node-border
 {
-    flex:1 0 auto;
+    flex:1 1 auto;
     margin-left:0;
     margin-right:0;
     margin-top:0;

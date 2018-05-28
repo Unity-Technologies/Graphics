@@ -24,7 +24,13 @@ width:-1;
     max-height:0;
     height:0;
 }
+.node.collapsed #collapse-button > #icon {
+    background-image: resource("GraphView/Nodes/NodeChevronLeft.png");
+}
 
+.node.expanded #collapse-button > #icon {
+    background-image : resource("GraphView/Nodes/NodeChevronDown.png");
+}
 
 .VFXNodeUI.node #contents > #top > #input
 {

@@ -12,8 +12,7 @@ namespace UnityEditor.VFX.UI
     {
         void Connect(VFXEdgeController edgeController);
         void Disconnect(VFXEdgeController edgeController);
-
-        Direction direction {get; }
+        Direction direction { get; }
     }
 
     abstract class VFXDataAnchorController : VFXController<VFXSlot>, IVFXAnchorController, IPropertyRMProvider
@@ -26,6 +25,31 @@ namespace UnityEditor.VFX.UI
             {
                 return m_SourceNode;
             }
+        }
+
+        public CoordinateSpace space
+        {
+            get
+            {
+                return model.space;
+            }
+            set
+            {
+                model.space = value;
+            }
+        }
+
+        public bool spaceable
+        {
+            get
+            {
+                return model.spaceable;
+            }
+        }
+
+        public bool IsSpaceInherited()
+        {
+            return model.IsSpaceInherited();
         }
 
         public override string name
@@ -168,7 +192,7 @@ namespace UnityEditor.VFX.UI
 
                 var children = model.children;
 
-                if (typeof(ISpaceable).IsAssignableFrom(model.property.type) && model.children.Count() == 1)
+                if (model.spaceable && model.children.Count() == 1)
                 {
                     children = children.First().children;
                 }
@@ -371,12 +395,12 @@ namespace UnityEditor.VFX.UI
 
         public static bool SlotShouldSkipFirstLevel(VFXSlot slot)
         {
-            return typeof(ISpaceable).IsAssignableFrom(slot.property.type) && slot.children.Count() == 1;
+            return slot.spaceable && slot.children.Count() == 1;
         }
 
         public virtual void ExpandPath()
         {
-            if( model == null) return;
+            if (model == null) return;
             model.collapsed = false;
             if (SlotShouldSkipFirstLevel(model))
             {
@@ -386,7 +410,7 @@ namespace UnityEditor.VFX.UI
 
         public virtual void RetractPath()
         {
-            if( model == null) return;
+            if (model == null) return;
             model.collapsed = true;
             if (SlotShouldSkipFirstLevel(model))
             {
@@ -397,7 +421,7 @@ namespace UnityEditor.VFX.UI
         void RefreshGizmo()
         {
             if (m_GizmoContext != null) m_GizmoContext.Unprepare();
-            if( model == null || model.IsMasterSlot()) return;
+            if (model == null || model.IsMasterSlot()) return;
 
             var parentController = sourceNode.inputPorts.FirstOrDefault(t => t.model == model.GetParent());
             if (parentController != null)
@@ -563,6 +587,13 @@ namespace UnityEditor.VFX.UI
                 }
 
                 return stack.First();
+            }
+        }
+        public override CoordinateSpace space
+        {
+            get
+            {
+                return m_Controller.space;
             }
         }
 

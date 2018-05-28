@@ -256,6 +256,13 @@ namespace UnityEditor.VFX
                 get {return m_Parameter.type; }
             }
 
+            public override CoordinateSpace space
+            {
+                get
+                {
+                    return m_Parameter.outputSlots[0].space;
+                }
+            }
 
             public List<object> m_Stack = new List<object>();
 

@@ -6,7 +6,7 @@ using VFXVector3Field = UnityEditor.VFX.UIElements.VFXVector3Field;
 
 namespace UnityEditor.VFX.UI
 {
-    class SpaceablePropertyRM<T> : PropertyRM<T> where T : ISpaceable
+    class SpaceablePropertyRM<T> : PropertyRM<T>
     {
         public SpaceablePropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
@@ -26,35 +26,44 @@ namespace UnityEditor.VFX.UI
             return base.GetPreferredLabelWidth() + spaceButtonWidth;
         }
 
+        private CoordinateSpace space
+        {
+            get
+            {
+                return m_Provider.space;
+            }
+
+            set
+            {
+                m_Provider.space = value;
+            }
+        }
+
         void OnButtonClick()
         {
-            m_Value.space = (CoordinateSpace)((int)(m_Value.space + 1) % CoordinateSpaceInfo.SpaceCount);
-            NotifyValueChanged();
+            space = (CoordinateSpace)((int)(space + 1) % CoordinateSpaceInfo.SpaceCount);
         }
 
         public override void UpdateGUI(bool force)
         {
-            if (m_Value != null)
+            foreach (string name in System.Enum.GetNames(typeof(CoordinateSpace)))
             {
-                foreach (string name in System.Enum.GetNames(typeof(CoordinateSpace)))
-                {
-                    if (m_Value.space.ToString() != name)
-                        m_Button.RemoveFromClassList("space" + name);
-                }
-
-                m_Button.AddToClassList("space" + m_Value.space.ToString());
+                if (space.ToString() != name)
+                    m_Button.RemoveFromClassList("space" + name);
             }
+
+            m_Button.AddToClassList("space" + space.ToString());
         }
 
         VisualElement m_Button;
+
         protected override void UpdateEnabled()
         {
-            m_Button.SetEnabled(propertyEnabled);
+            m_Button.SetEnabled(!m_Provider.IsSpaceInherited());
         }
 
         protected override void UpdateIndeterminate()
         {
-            m_Button.visible = !indeterminate;
         }
 
         private float spaceButtonWidth
@@ -73,7 +82,7 @@ namespace UnityEditor.VFX.UI
         public override bool showsEverything { get { return false; } }
     }
 
-    abstract class Vector3SpaceablePropertyRM<T> : SpaceablePropertyRM<T> where T : ISpaceable
+    abstract class Vector3SpaceablePropertyRM<T> : SpaceablePropertyRM<T>
     {
         public Vector3SpaceablePropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
