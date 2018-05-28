@@ -93,6 +93,7 @@ float4 SampleShadowMask(float3 positionWS, float2 uvStaticLightmap) // normalWS 
     return rawOcclusionMask;
 }
 
+// Calculate velocity in Clip space [-1..1]
 float2 CalculateVelocity(float4 positionCS, float4 previousPositionCS)
 {
     // This test on define is required to remove warning of divide by 0 when initializing empty struct
