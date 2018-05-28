@@ -30,7 +30,7 @@ This adds gradient functionality via two new nodes. Sample Gradient node samples
 
 ![](.data/show_generated_code.gif)
 
-You can now look at what the generated code looks like easily by right clicking a node and select Show Generated Code. This will open up the application you have associated code with from Unity.
+You can now see the generated code for any specific node. To do so, right-click the node, and select Show Generated Code. The code snippet will now open in the code editor that you have linked to Unity.
 
 
 ### Bug fixes and minor changes
