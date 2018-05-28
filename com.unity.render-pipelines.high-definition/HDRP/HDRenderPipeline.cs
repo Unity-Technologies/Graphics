@@ -276,7 +276,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void InitializeRenderTextures()
         {
-            if (!m_Asset.renderPipelineSettings.supportForwardOnly)
+            if (!m_Asset.renderPipelineSettings.supportOnlyForward)
                 m_GbufferManager.CreateBuffers();
 
             if (m_Asset.renderPipelineSettings.supportDBuffer)
