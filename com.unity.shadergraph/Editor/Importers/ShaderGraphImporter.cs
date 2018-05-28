@@ -9,7 +9,7 @@ using UnityEditor;
 using UnityEditor.Experimental.AssetImporters;
 using UnityEditor.ShaderGraph.Drawing;
 
-[ScriptedImporter(13, ShaderGraphImporter.ShaderGraphExtension)]
+[ScriptedImporter(14, ShaderGraphImporter.ShaderGraphExtension)]
 public class ShaderGraphImporter : ScriptedImporter
 {
     public const string ShaderGraphExtension = "shadergraph";
@@ -96,9 +96,9 @@ Shader ""Hidden/GraphErrorShader2""
         }
         catch (Exception)
         {
+            configuredTextures = new List<PropertyCollector.TextureInfo>();
             // ignored
         }
-        configuredTextures = new List<PropertyCollector.TextureInfo>();
         return shaderString ?? k_ErrorShader.Replace("Hidden/GraphErrorShader2", shaderName);
     }
 }
