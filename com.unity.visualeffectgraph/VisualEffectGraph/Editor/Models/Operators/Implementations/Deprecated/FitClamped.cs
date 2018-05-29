@@ -37,8 +37,8 @@ namespace UnityEditor.VFX.Operator
 
             // Transfer links
             for (int i = 0; i < 5; ++i)
-                VFXSlot.CopyLinksAndValues(remap.GetInputSlot(i), GetInputSlot(i), true);
-            VFXSlot.CopyLinksAndValues(remap.GetOutputSlot(0), GetOutputSlot(0), true);
+                VFXSlot.CopyLinksAndValue(remap.GetInputSlot(i), GetInputSlot(i), true);
+            VFXSlot.CopyLinksAndValue(remap.GetOutputSlot(0), GetOutputSlot(0), true);
 
             ReplaceModel(remap, this);
             remap.Sanitize();

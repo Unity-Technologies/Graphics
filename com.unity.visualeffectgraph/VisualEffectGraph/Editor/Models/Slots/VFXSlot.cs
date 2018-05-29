@@ -388,9 +388,15 @@ namespace UnityEditor.VFX
             throw new InvalidOperationException(string.Format("Unable to create slot for property {0} of type {1}", property.name, property.type));
         }
 
-        public static bool CopyLinksAndValues(VFXSlot dst, VFXSlot src, bool notify)
+        public static void CopyLinksAndValue(VFXSlot dst, VFXSlot src, bool notify)
         {
-            // Transfer value only if src can hold it (master slot)
+            CopyValue(dst, src, notify);
+            CopyLinks(dst, src, notify);
+        }
+
+        public static void CopyValue(VFXSlot dst, VFXSlot src, bool notify)
+        {
+            // Transfer value only if dst can hold it (master slot)
             if (dst.IsMasterSlot())
             {
                 if (src.property.type == dst.property.type)
@@ -403,17 +409,14 @@ namespace UnityEditor.VFX
                     if (VFXConverter.TryConvertTo(src.value, dst.property.type, out newValue))
                     {
                         dst.SetValueInternal(newValue, notify);
-                        Debug.LogFormat("TransferLinksAndValue automatically converted : {0}, {1} to {2}, {3}", src.property.type, src.value, dst.property.type, dst.value);
+                        Debug.LogFormat("Value automatically converted : {0}, {1} to {2}, {3}", src.property.type, src.value, dst.property.type, dst.value);
                     }
                 }
             }
-
-            return CopyLinks(dst, src, notify);
         }
 
-        public static bool CopyLinks(VFXSlot dst, VFXSlot src, bool notify)
+        public static void CopyLinks(VFXSlot dst, VFXSlot src, bool notify)
         {
-            bool oneLinkTransfered = false;
             var links = src.LinkedSlots.ToArray();
             int index = 0;
             while (index < links.Count())
@@ -422,11 +425,12 @@ namespace UnityEditor.VFX
                 if (dst.CanLink(link))
                 {
                     dst.Link(link, notify);
-                    dst.owner.CopyLinkMySlot(src, dst, link);
-                    link.owner.CopyLinkOtherSlot(link, src, dst);
 
-
-                    oneLinkTransfered = true;
+                    // TODO Remove the callbacks after VFXParameter refactor
+                    if (dst.owner != null)
+                        dst.owner.OnCopyLinksMySlot(src, dst, link);
+                    if (link.owner != null)
+                        link.owner.OnCopyLinksOtherSlot(link, src, dst);
                 }
                 ++index;
             }
@@ -435,10 +439,8 @@ namespace UnityEditor.VFX
             {
                 int nbSubSlots = src.GetNbChildren();
                 for (int i = 0; i < nbSubSlots; ++i)
-                    oneLinkTransfered |= CopyLinks(dst[i], src[i], notify);
+                    CopyLinks(dst[i], src[i], notify);
             }
-
-            return oneLinkTransfered;
         }
 
         public override void OnUnknownChange()
