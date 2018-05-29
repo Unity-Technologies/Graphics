@@ -45,3 +45,5 @@ You can now see the generated code for any specific node. To do so, right-click 
 - When you edit sub graph paths, the search window no longer yields a null reference exception.
 - The blackboard is now within view when deserialized.
 - Your system locale can no longer cause incorrect commands due to full stops being converted to commas.
+- Deserialization of subgraphs is no longer causing an issue.
+- Added suffix (sub) to subgraphs to make it easier to distinguish them from other nodes. 
