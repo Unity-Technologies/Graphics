@@ -45,7 +45,6 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-#if UNITY_EDITOR
         [ObjectControl("")]
         public MaterialSubGraphAsset subGraphAsset
         {
@@ -77,9 +76,6 @@ namespace UnityEditor.ShaderGraph
                 Dirty(ModificationScope.Topological);
             }
         }
-#else
-        public MaterialSubGraphAsset subGraphAsset {get; set; }
-#endif
 
         public INode outputNode
         {
