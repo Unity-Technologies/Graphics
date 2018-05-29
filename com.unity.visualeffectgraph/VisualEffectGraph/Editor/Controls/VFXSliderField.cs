@@ -102,8 +102,8 @@ namespace UnityEditor.VFX.UIElements
         public void SetValueWithoutNotify(T newValue)
         {
             m_IgnoreNotification = true;
-            m_Value = value;
-            m_Field.value = value;
+            m_Value = newValue;
+            m_Field.value = newValue;
             m_Slider.value = ValueToFloat(value);
             m_IgnoreNotification = false;
         }
