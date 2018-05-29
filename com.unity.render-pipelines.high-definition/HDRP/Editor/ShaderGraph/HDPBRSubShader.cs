@@ -7,6 +7,7 @@ using UnityEditor.ShaderGraph;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
+    [FormerName("UnityEditor.ShaderGraph.HDPBRSubShader")]
     public class HDPBRSubShader : IPBRSubShader
     {
         Pass m_PassGBuffer = new Pass()
