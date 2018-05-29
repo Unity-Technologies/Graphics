@@ -38,5 +38,5 @@ This adds gradient functionality via two new nodes. Sample Gradient node samples
 - Fixed an issue with editable sub graph paths, causing the search window to sometimes yield a null reference exception.
 - Ensure that the blackboard is within view when deserialized.
 - Fixed float value to string error and truncation warning for normal create node.
-- Deserialization of subgraphs is no longer causing an issue.
-- Added suffix (sub) to subgraphs to make it easier to distinguish them from other nodes. 
+- Deserialization of subgraphs now works correctly.
+- Sub graphs are now suffixed with (sub), so you can tell them apart from other nodes.
