@@ -28,6 +28,12 @@ You can now change the path of Shader Graphs and Sub Graphs. When you change the
 
 This adds gradient functionality via two new nodes. The Sample Gradient node samples a gradient given a Time parameter. You can define this gradient on the Gradient slot control view. The Gradient Asset node defines a gradient that can be sampled by multiple Sample Gradient nodes using different Time parameters.
 
+### Texture 2D LOD node
+
+![](.data/texture_2d_lod_node.png)
+
+This adds a new node for LOD functionality on a Texture 2D Sample. Sample Texture 2D LOD uses the exact same input and output slots as Sample Texture 2D, but also includes an input for 
+LOD changes via a Vector1 slot. 
 
 ### Show generated code
 
