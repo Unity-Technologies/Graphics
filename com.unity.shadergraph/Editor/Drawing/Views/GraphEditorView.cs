@@ -151,18 +151,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnSpaceDown(KeyDownEvent evt)
         {
-            if (evt.keyCode == KeyCode.Space && !evt.shiftKey && !evt.altKey && !evt.ctrlKey && !evt.commandKey)
-            {
-                if (graphView.nodeCreationRequest == null)
-                    return;
-
-                Vector2 referencePosition;
-                referencePosition = evt.imguiEvent.mousePosition;
-                Vector2 screenPoint = m_EditorWindow.position.position + referencePosition;
-
-                graphView.nodeCreationRequest(new NodeCreationContext() { screenMousePosition = screenPoint });
-            }
-            else if (evt.keyCode == KeyCode.F1)
+            if (evt.keyCode == KeyCode.F1)
             {
                 if (m_GraphView.selection.OfType<MaterialNodeView>().Count() == 1)
                 {
