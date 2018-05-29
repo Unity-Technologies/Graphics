@@ -1,5 +1,17 @@
 # Next version
 
+### HD Render Pipeline support
+
+![](.data/hd_render_pipeline.png)
+
+Shader Graph now supports HD Render Pipeline with both its PBR and Unlit Master nodes. Simply switch active Render Pipeline and shaders built with Shader Graph will work in both pipelines. Note that Shader Graph can only generate shaders for pipelines that are currently in your project when you save the graph. This means any shaders that were created previous to HD Render Pipeline support will be to be saved again to work! 
+
+### Vertex position
+
+![](.data/vertex_position.png)
+
+You can now modify vertex position via the Position slot on the PBR and Unlit Master nodes. The input to this node is object space position by default. Custom inputs to this slot should specify the absolute local position of a given vertex. Certain nodes (such as Procedsural Shapes) are not viable in the vertex shader and therefore are incompatible with this slot. 
+
 ### Master node settings
 
 ![](.data/menu_settings.png)
@@ -27,6 +39,12 @@ You can now change the path of Shader Graphs and Sub Graphs. When you change the
 ![](.data/gradient_node.png)
 
 This adds gradient functionality via two new nodes. The Sample Gradient node samples a gradient given a Time parameter. You can define this gradient on the Gradient slot control view. The Gradient Asset node defines a gradient that can be sampled by multiple Sample Gradient nodes using different Time parameters.
+
+### Texture3D and Texture2D Array
+
+![](.data/texture_nodes.png)
+
+This change expands our support for Texture types via 2 new property types and 4 new nodes. These allow you to define and sample Texture 3D and Texture 2D Array type assets in Shader Graph.
 
 ### Texture 2D LOD node
 
