@@ -13,6 +13,7 @@ namespace UnityEditor.ShaderGraph
         public NeededCoordinateSpace requiresPosition;
         public bool requiresScreenPosition;
         public bool requiresVertexColor;
+        public bool requiresFaceSign;
         public List<UVChannel> requiresMeshUVs;
 
         public static ShaderGraphRequirements none
@@ -45,6 +46,7 @@ namespace UnityEditor.ShaderGraph
             newReqs.requiresPosition = other.requiresPosition | requiresPosition;
             newReqs.requiresScreenPosition = other.requiresScreenPosition | requiresScreenPosition;
             newReqs.requiresVertexColor = other.requiresVertexColor | requiresVertexColor;
+            newReqs.requiresFaceSign = other.requiresFaceSign | requiresFaceSign;
 
             newReqs.requiresMeshUVs = new List<UVChannel>();
             if (requiresMeshUVs != null)
@@ -64,6 +66,7 @@ namespace UnityEditor.ShaderGraph
             NeededCoordinateSpace requiresPosition = nodes.OfType<IMayRequirePosition>().Aggregate(NeededCoordinateSpace.None, (mask, node) => mask | node.RequiresPosition(stageCapability));
             bool requiresScreenPosition = nodes.OfType<IMayRequireScreenPosition>().Any(x => x.RequiresScreenPosition());
             bool requiresVertexColor = nodes.OfType<IMayRequireVertexColor>().Any(x => x.RequiresVertexColor());
+            bool requiresFaceSign = nodes.OfType<IMayRequireFaceSign>().Any(x => x.RequiresFaceSign());
 
             var meshUV = new List<UVChannel>();
             for (int uvIndex = 0; uvIndex < ShaderGeneratorNames.UVCount; ++uvIndex)
@@ -99,6 +102,7 @@ namespace UnityEditor.ShaderGraph
                 requiresPosition = requiresPosition,
                 requiresScreenPosition = requiresScreenPosition,
                 requiresVertexColor = requiresVertexColor,
+                requiresFaceSign = requiresFaceSign,
                 requiresMeshUVs = meshUV
             };
 

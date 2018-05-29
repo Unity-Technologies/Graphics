@@ -101,7 +101,7 @@ ${VertexShaderOutputs}
 		return o;
 	}
 
-	half4 frag (GraphVertexOutput IN) : SV_Target
+	half4 frag (GraphVertexOutput IN ${FaceSign}) : SV_Target
     {
     	UNITY_SETUP_INSTANCE_ID(IN);
 
