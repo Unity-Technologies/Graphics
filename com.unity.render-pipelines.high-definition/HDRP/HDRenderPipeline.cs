@@ -228,7 +228,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         RTHandleSystem.RTHandle         m_DebugFullScreenTempBuffer;
         bool                            m_FullScreenDebugPushed;
         bool                            m_ValidAPI; // False by default mean we render normally, true mean we don't render anything
-        bool                            m_IsCameraRendering; // Use to avoid nested rendering of camera
 
         public Material GetBlitMaterial() { return m_Blit; }
 
@@ -240,7 +239,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DebugManager.instance.RefreshEditor();
 
             m_ValidAPI = true;
-            m_IsCameraRendering = false;
 
             if (!SetRenderingFeatures())
             {
@@ -339,7 +337,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void InitializeRenderTextures()
         {
-            if (!m_Asset.renderPipelineSettings.supportForwardOnly)
+            if (!m_Asset.renderPipelineSettings.supportOnlyForward)
                 m_GbufferManager.CreateBuffers();
 
             if (m_Asset.renderPipelineSettings.supportDBuffer)
@@ -907,12 +905,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!m_ValidAPI)
                 return;
 
-            if (m_IsCameraRendering)
-            {
-                Debug.LogWarning("Nested camera rendering is forbidden. If you are calling camera.Render inside OnWillRenderObject callback, use BeginCameraRender callback instead.");
-                return;
-            }
-
             base.Render(renderContext, cameras);
             RenderPipeline.BeginFrameRendering(cameras);
 
@@ -967,7 +959,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     continue;
 
                 RenderPipeline.BeginCameraRendering(camera);
-                m_IsCameraRendering = true;
 
                 // First, get aggregate of frame settings base on global settings, camera frame settings and debug settings
                 // Note: the SceneView camera will never have additionalCameraData
@@ -1206,8 +1197,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     RenderDepthPrepass(m_CullResults, hdCamera, renderContext, cmd);
 
-                    RenderObjectsVelocity(m_CullResults, hdCamera, renderContext, cmd);
-
                     // This will bind the depth buffer if needed for DBuffer)
                     RenderDBuffer(hdCamera, cmd);
 
@@ -1217,6 +1206,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     CopyDepthBufferIfNeeded(cmd);
                     RenderDepthPyramid(hdCamera, cmd, renderContext, FullScreenDebugMode.DepthPyramid);
 
+                    // TODO: In the future we will render object velocity at the same time as depth prepass (we need C++ modification for this)
+                    // Once the C++ change is here we will first render all object without motion vector then motion vector object
+                    // We can't currently render object velocity after depth prepass because if there is no depth prepass we can have motion vector write that should have been rejected
+                    RenderObjectsVelocity(m_CullResults, hdCamera, renderContext, cmd);
                     RenderCameraVelocity(m_CullResults, hdCamera, renderContext, cmd);
 
                     // Depth texture is now ready, bind it (Depth buffer could have been bind before if DBuffer is enable)
@@ -1432,7 +1425,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_DebugScreenSpaceTracingData.SetData(m_DebugScreenSpaceTracingDataArray);
                 }
 
-                m_IsCameraRendering = false;
             } // For each camera
         }
 

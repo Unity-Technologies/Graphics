@@ -75,7 +75,7 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUILayout.PropertyField(d.supportMSAA, _.GetContent("Support Multi Sampling Anti-Aliasing"));
             EditorGUILayout.PropertyField(d.MSAASampleCount, _.GetContent("MSAA Sample Count"));
             EditorGUILayout.PropertyField(d.supportSubsurfaceScattering, _.GetContent("Support Subsurface Scattering"));
-            EditorGUILayout.PropertyField(d.supportForwardOnly, _.GetContent("Support Forward Only"));
+            EditorGUILayout.PropertyField(d.supportOnlyForward, _.GetContent("Support Only Forward"));
             EditorGUILayout.PropertyField(d.supportMotionVectors, _.GetContent("Support Motion Vectors"));
             EditorGUILayout.PropertyField(d.supportStereo, _.GetContent("Support Stereo Rendering"));
             EditorGUILayout.PropertyField(d.enableUltraQualitySSS, _.GetContent("Increase SSS Sample Count"));

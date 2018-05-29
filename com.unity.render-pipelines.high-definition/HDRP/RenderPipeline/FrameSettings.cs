@@ -128,7 +128,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // We have to fall back to forward-only rendering when scene view is using wireframe rendering mode
             // as rendering everything in wireframe + deferred do not play well together
-            aggregate.enableForwardRenderingOnly = srcFrameSettings.enableForwardRenderingOnly || GL.wireframe || renderPipelineSettings.supportForwardOnly;
+            aggregate.enableForwardRenderingOnly = srcFrameSettings.enableForwardRenderingOnly || GL.wireframe || renderPipelineSettings.supportOnlyForward;
             aggregate.enableDepthPrepassWithDeferredRendering = srcFrameSettings.enableDepthPrepassWithDeferredRendering;
 
             aggregate.enableTransparentPrepass = srcFrameSettings.enableTransparentPrepass;

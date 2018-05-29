@@ -157,6 +157,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_camera == null)
                 return;
 
+            m_camera.allowMSAA = false; // We don't use this option in HD (it is legacy MSAA) and it produce a warning in the inspector UI if we let it
             m_camera.allowHDR = false;
 
             //  Tag as dirty so frameSettings are correctly initialize at next HDRenderPipeline.Render() call

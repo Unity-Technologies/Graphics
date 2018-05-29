@@ -201,14 +201,10 @@ Shader "HDRenderPipeline/StackLit"
         [HideInInspector] _ZTestDepthEqualForOpaque("_ZTestDepthEqualForOpaque", Int) = 4 // Less equal
         [HideInInspector] _ZTestModeDistortion("_ZTestModeDistortion", Int) = 8
 
-        [ToggleUI] _SpecularAntiAliasingEnabled("Specular Anti Aliasing Enabled", Float) = 0.0
-        _SpecularAntiAliasingScreenSpaceVariance("SpecularAntiAliasingScreenSpaceVariance", Range(0.0, 1.0)) = 1.0
-        _SpecularAntiAliasingThreshold("SpecularAntiAliasingThreshold", Range(0.0, 1.0)) = 0.18
-
-        [ToggleUI] _NormalCurvatureToRoughnessEnabled("_NormalCurvatureToRoughnessEnabled", Float) = 0.0
-        _NormalCurvatureToRoughnessScale("_NormalCurvatureToRoughnessScale", Range(0.0, 2.0)) = 1.0
-        _NormalCurvatureToRoughnessBias("_NormalCurvatureToRoughnessBias", Range(-1.0, 1.0)) = 0.0
-        _NormalCurvatureToRoughnessExponent("_NormalCurvatureToRoughnessExponent", Range(0.05, 20.0)) = 0.333
+        [ToggleUI] _GeometricNormalFilteringEnabled("GeometricNormalFilteringEnabled", Float) = 0.0
+        [ToggleUI] _TextureNormalFilteringEnabled("TextureNormalFilteringEnabled", Float) = 0.0
+        _SpecularAntiAliasingScreenSpaceVariance("SpecularAntiAliasingScreenSpaceVariance", Range(0.0, 1.0)) = 0.1
+        _SpecularAntiAliasingThreshold("SpecularAntiAliasingThreshold", Range(0.0, 1.0)) = 0.2
 
         [ToggleUI] _EnableFogOnTransparent("Enable Fog", Float) = 1.0
         [ToggleUI] _EnableBlendModePreserveSpecularLighting("Enable Blend Mode Preserve Specular Lighting", Float) = 1.0
@@ -229,6 +225,7 @@ Shader "HDRenderPipeline/StackLit"
         [HideInInspector] _AnisotropyShow("_AnisotropyShow", Float) = 0.0
         [HideInInspector] _TransmissionShow("_TransmissionShow", Float) = 0.0
         [HideInInspector] _IridescenceShow("_IridescenceShow", Float) = 0.0
+        [HideInInspector] _SpecularAntiAliasingShow("_SpecularAntiAliasingShow", Float) = 0.0
 
         // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
         // value that exist to identify if the GI emission need to be enabled.

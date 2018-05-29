@@ -3,6 +3,7 @@
 
 ## [2018.2 undecided]
 - Fix issue with LOD transition and instancing
+- Fix discrepency between object motion vector and camera motion vector
 
 ### Improvements
 - Add stripper of shader variant when building a player. Save shader compile time.
@@ -15,6 +16,7 @@
 
 ### Changed, Removals and deprecations
 - Removed GlobalLightLoopSettings.maxPlanarReflectionProbes and instead use value of GlobalLightLoopSettings.planarReflectionProbeCacheSize
+- Changed SupportForwardOnly to SupportOnlyForward in render pipeline settings
 
 ## [2018.1 undecided]
 
@@ -55,6 +57,7 @@
 - Fix the debug window being emptied on SRP asset reload
 - Fix issue with debug mode not correctly clearing the GBuffer in editor after a resize
 - Fix issue with ResetMaterialKeyword not resetting correctly ToggleOff/Roggle Keyword
+- Fix issue with motion vector not render correctly if there is no depth prepass in deferred
 
 ## [2018.1.0f2]
 

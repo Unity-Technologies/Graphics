@@ -9,7 +9,6 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-#if UNITY_2018_2_OR_NEWER
     class HDRPVariantStripper : IPreprocessShaders
     {
         // returns true if the variant should be stripped.
@@ -81,7 +80,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 return true;
 
             // When using forward only, we never need GBuffer pass (only Forward)
-            if (m_CurrentHDRPAsset.renderPipelineSettings.supportForwardOnly && isGBufferPass)
+            if (m_CurrentHDRPAsset.renderPipelineSettings.supportOnlyForward && isGBufferPass)
                 return true;
 
             if (inputData.shaderKeywordSet.IsEnabled(m_Transparent))
@@ -100,10 +99,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 if (isTransparentForwardPass)
                     return true;
 
-                if (!m_CurrentHDRPAsset.renderPipelineSettings.supportForwardOnly && inputData.shaderKeywordSet.IsEnabled(m_ClusterLighting))
+                if (!m_CurrentHDRPAsset.renderPipelineSettings.supportOnlyForward && inputData.shaderKeywordSet.IsEnabled(m_ClusterLighting))
                     return true;
 
-                if (!m_CurrentHDRPAsset.renderPipelineSettings.supportForwardOnly)
+                if (!m_CurrentHDRPAsset.renderPipelineSettings.supportOnlyForward)
                 {
                     // If opaque and not forward only, then we only need the forward debug pass.
                     if (isForwardPass && !inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
@@ -159,5 +158,4 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 inputData.Add(workaround);
         }
     }
-#endif
 }
