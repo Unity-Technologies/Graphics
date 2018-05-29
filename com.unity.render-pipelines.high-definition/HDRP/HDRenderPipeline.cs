@@ -1646,6 +1646,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 HDUtils.DrawFullScreen(cmd, hdCamera, m_CameraMotionVectorsMaterial, m_VelocityBuffer, m_CameraDepthStencilBuffer, null, 0);
                 PushFullScreenDebugTexture(hdCamera, cmd, m_VelocityBuffer, FullScreenDebugMode.MotionVectors);
+
+#if UNITY_EDITOR
+                // In scene view there is no motion vector, so we clear the RT to black
+                if (hdCamera.camera.cameraType == CameraType.SceneView)
+                {
+                    HDUtils.SetRenderTarget(cmd, hdCamera, m_VelocityBuffer, m_CameraDepthStencilBuffer, ClearFlag.Color, CoreUtils.clearColorAllBlack);
+                }
+#endif
             }
         }
 
