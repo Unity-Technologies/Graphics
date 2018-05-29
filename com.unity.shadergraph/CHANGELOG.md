@@ -38,6 +38,6 @@ This adds gradient functionality via two new nodes. The Sample Gradient node sam
 - Properties can now be copied and pasted.
 - Pasting a property node into another graph will now convert it to a concrete node. ([#300](https://github.com/Unity-Technologies/ShaderGraph/issues/300) and [#307](https://github.com/Unity-Technologies/ShaderGraph/pull/307))
 - Nodes that are copied from one graph to another now spawn in the center of the current view. ([#333](https://github.com/Unity-Technologies/ShaderGraph/issues/333))
-- When you edit sub graph pats, the search window no longer sometimes yields a null reference exception. 
+- When you edit sub graph paths, the search window no longer yields a null reference exception.
 - The blackboard is now within view when deserialized.
 - Your systemlocale can no longer cause incorrect commands due to full stops being converted to commas.
