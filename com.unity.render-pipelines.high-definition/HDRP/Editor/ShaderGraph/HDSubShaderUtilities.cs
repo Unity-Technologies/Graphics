@@ -131,6 +131,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             [Optional] Vector4 uv2;
             [Optional] Vector4 uv3;
             [Optional] Vector4 vertexColor;
+            [Optional] float FaceSign;
 
             public static Dependency[] dependencies = new Dependency[]
             {
@@ -164,6 +165,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 new Dependency("SurfaceDescriptionInputs.uv2",                       "FragInputs.texCoord2"),
                 new Dependency("SurfaceDescriptionInputs.uv3",                       "FragInputs.texCoord3"),
                 new Dependency("SurfaceDescriptionInputs.vertexColor",               "FragInputs.color"),
+                new Dependency("SurfaceDescriptionInputs.FaceSign",                 "FragInputs.isFrontFace"),
             };
         };
 
@@ -177,6 +179,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (requirements.requiresVertexColor)
             {
                 activeFields.Add("SurfaceDescriptionInputs.vertexColor");
+            }
+
+            if (requirements.requiresFaceSign)
+            {
+                activeFields.Add("SurfaceDescriptionInputs.FaceSign");
             }
 
             if (requirements.requiresNormal != 0)

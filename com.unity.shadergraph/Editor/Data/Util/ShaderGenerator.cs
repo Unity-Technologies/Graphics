@@ -677,6 +677,9 @@ namespace UnityEditor.ShaderGraph
             if (pixelRequirements.requiresScreenPosition)
                 pixelShaderSurfaceInputs.AppendLine("surfaceInput.{0} = {0};", ShaderGeneratorNames.ScreenPosition);
 
+            if (pixelRequirements.requiresFaceSign)
+                pixelShaderSurfaceInputs.AppendLine("surfaceInput.{0} = {0};", ShaderGeneratorNames.FaceSign);
+
             foreach (var channel in pixelRequirements.requiresMeshUVs.Distinct())
                 pixelShaderSurfaceInputs.AppendLine("surfaceInput.{0} = {0};", ShaderGeneratorNames.GetUVName(channel));
 
@@ -806,8 +809,17 @@ namespace UnityEditor.ShaderGraph
                 pixelShaderSurfaceRemap.AppendLine("return surf.PreviewOutput;");
             }
 
+            // -------------------------------------
+            // Extra pixel shader work
+
+            var faceSign = new ShaderStringBuilder();
+
+            if (shaderGraphRequirements.requiresFaceSign)
+                faceSign.AppendLine(", half FaceSign : VFACE");
+
             var res = subShaderTemplate.Replace("${Interpolators}", vertexOutputStruct.ToString());
             res = res.Replace("${VertexShader}", vertexShader.ToString());
+            res = res.Replace("${FaceSign}", faceSign.ToString());
             res = res.Replace("${LocalPixelShader}", pixelShader.ToString());
             res = res.Replace("${SurfaceInputs}", pixelShaderSurfaceInputs.ToString());
             res = res.Replace("${SurfaceOutputRemap}", pixelShaderSurfaceRemap.ToString());
@@ -903,7 +915,7 @@ SubShader
             return o;
         }
 
-        float4 frag (GraphVertexOutput IN) : SV_Target
+        float4 frag (GraphVertexOutput IN ${FaceSign}) : SV_Target
         {
     ${LocalPixelShader}
             SurfaceDescriptionInputs surfaceInput = (SurfaceDescriptionInputs)0;;
