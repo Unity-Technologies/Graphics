@@ -20,7 +20,7 @@ namespace UnityEditor.VFX
             attrib.SetSettingValue("attribute", attribute);
             attrib.position = position;
 
-            VFXSlot.CopyLinksAndValues(attrib.GetOutputSlot(0), GetOutputSlot(0), true);
+            VFXSlot.CopyLinksAndValue(attrib.GetOutputSlot(0), GetOutputSlot(0), true);
             ReplaceModel(attrib, this);
         }
     }

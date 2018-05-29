@@ -137,7 +137,7 @@ namespace UnityEditor.VFX
                 randOp.constant = true;
                 randOp.seed = Operator.Random.SeedMode.PerParticle;
 
-                VFXSlot.CopyLinksAndValues(randOp.GetOutputSlot(0), GetOutputSlot(0), true);
+                VFXSlot.CopyLinksAndValue(randOp.GetOutputSlot(0), GetOutputSlot(0), true);
                 ReplaceModel(randOp, this);
             }
             else
