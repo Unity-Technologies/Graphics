@@ -305,7 +305,7 @@ namespace UnityEditor.VFX
 
         public void UpdateSubAssets()
         {
-            if( visualEffectResource == null)
+            if (visualEffectResource == null)
                 return;
             Profiler.BeginSample("VFXEditor.UpdateSubAssets");
             try

@@ -106,7 +106,7 @@ namespace  UnityEditor.VFX.UI
                 {
                     string path = AssetDatabase.GetAssetPath(instanceID);
                     if (path.EndsWith(".vfx"))
-            {
+                    {
                         selectedResource = VisualEffectResource.GetResourceAtPath(path);
                     }
                 }
