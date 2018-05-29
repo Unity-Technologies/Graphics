@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18282883, g: 0.2285301, b: 0.30698442, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -159,6 +159,7 @@ Light:
     serializedVersion: 2
     m_Bits: 4294967295
   m_Lightmapping: 4
+  m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
@@ -201,7 +202,7 @@ VisualEffect:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1360824435}
   m_Enabled: 1
-  m_Asset: {fileID: 8926484042661614526, guid: 8fd9ee67292583945ac79c1ec5a1224e, type: 2}
+  m_Asset: {fileID: 8926484042661614526, guid: 8fd9ee67292583945ac79c1ec5a1224e, type: 3}
   m_StartSeed: 0
   m_ResetSeedOnPlay: 0
   m_PropertySheet:
@@ -282,6 +283,10 @@ Camera:
   serializedVersion: 2
   m_ClearFlags: 2
   m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
+  m_projectionMatrixMode: 1
+  m_SensorSize: {x: 36, y: 24}
+  m_LensShift: {x: 0, y: 0}
+  m_FocalLength: 50
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
@@ -294,8 +299,6 @@ Camera:
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
-  m_StreamingMipmapBias: 0
-  m_StreamingInfluence: 1
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4294967295

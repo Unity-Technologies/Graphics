@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using UnityEditor.Experimental.VFX;
 using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
@@ -67,7 +68,7 @@ namespace UnityEditor.VFX
 
         public virtual void FillDescs(
             List<VFXGPUBufferDesc> outBufferDescs,
-            List<VFXSystemDesc> outSystemDescs,
+            List<VFXEditorSystemDesc> outSystemDescs,
             VFXExpressionGraph expressionGraph,
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
             Dictionary<VFXContext, int> contextSpawnToBufferIndex,

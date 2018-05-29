@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEditor.Experimental.VFX;
 using UnityEngine.Experimental.VFX;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
@@ -345,10 +346,6 @@ namespace UnityEditor.VFX.UI
             VisualElement spacer = new VisualElement();
             spacer.style.flex = new Flex(1);
             m_Toolbar.Add(spacer);
-            m_ToggleDebug = new Toggle(OnToggleDebug);
-            m_ToggleDebug.text = "Debug";
-            m_Toolbar.Add(m_ToggleDebug);
-            m_ToggleDebug.AddToClassList("toolbarItem");
 
             m_DropDownButtonCullingMode = new Label();
 
@@ -514,8 +511,6 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        Toggle m_ToggleDebug;
-
         void Delete(string cmd, AskUser askUser)
         {
             controller.Remove(selection.OfType<IControlledElement>().Select(t => t.controller));
@@ -583,10 +578,8 @@ namespace UnityEditor.VFX.UI
                     m_ToggleMotionVectors.value = settings.motionVectorGenerationMode == MotionVectorGenerationMode.Object;
                     m_ToggleMotionVectors.SetEnabled(true);
 
-                    m_ToggleDebug.value = controller.graph.displaySubAssets;
-
                     // if the asset dis destroy somehow, fox example if the user delete the asset, delete the controller and update the window.
-                    VisualEffectAsset asset = controller.model;
+                    var asset = controller.model;
                     if (asset == null)
                     {
                         this.controller = null;
@@ -1007,9 +1000,9 @@ namespace UnityEditor.VFX.UI
             {
                 if (controller != null)
                 {
-                    var asset = controller.model;
-                    if (asset != null)
-                        return asset.cullingFlags;
+                    var resource = controller.model;
+                    if (resource != null)
+                        return resource.cullingFlags;
                 }
                 return VFXCullingFlags.CullDefault;
             }
@@ -1018,19 +1011,19 @@ namespace UnityEditor.VFX.UI
             {
                 if (controller != null)
                 {
-                    var asset = controller.model;
-                    if (asset != null)
-                        asset.cullingFlags = value;
+                    var resource = controller.model;
+                    if (resource != null)
+                        resource.cullingFlags = value;
                 }
             }
         }
 
         public void CreateTemplateSystem(string path, Vector2 tPos, VFXGroupNode groupNode)
         {
-            VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
-            if (asset != null)
+            var resource = VisualEffectResource.GetResourceAtPath(path);
+            if (resource != null)
             {
-                VFXViewController templateController = VFXViewController.GetController(asset, true);
+                VFXViewController templateController = VFXViewController.GetController(resource, true);
                 templateController.useCount++;
 
 
@@ -1046,10 +1039,10 @@ namespace UnityEditor.VFX.UI
         {
             if (controller != null)
             {
-                var asset = controller.model;
-                if (asset != null)
+                var resource = controller.model;
+                if (resource != null)
                 {
-                    asset.rendererSettings = settings;
+                    resource.rendererSettings = settings;
                     controller.graph.SetExpressionGraphDirty();
                 }
             }
@@ -1391,7 +1384,7 @@ namespace UnityEditor.VFX.UI
 
             if (Selection.activeObject != controller.model)
             {
-                Selection.activeObject = controller.model;
+                Selection.activeObject = controller.model.asset;
             }
         }
 
@@ -1585,14 +1578,6 @@ namespace UnityEditor.VFX.UI
             foreach (var c in contexts)
             {
                 c.controller.position = c.GetPosition().min + new Vector2(0, size);
-            }
-        }
-
-        void OnToggleDebug()
-        {
-            if (controller != null)
-            {
-                controller.graph.displaySubAssets = !controller.graph.displaySubAssets;
             }
         }
 

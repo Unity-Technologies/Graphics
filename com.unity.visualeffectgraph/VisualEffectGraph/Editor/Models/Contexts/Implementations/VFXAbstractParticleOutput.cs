@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEditor.Experimental.VFX;
 using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
@@ -161,7 +162,7 @@ namespace UnityEditor.VFX
                 if (supportSoftParticles)
                     yield return "USE_SOFT_PARTICLE";
 
-                VisualEffectAsset asset = GetAsset();
+                VisualEffectResource asset = GetResource();
                 if (asset != null)
                 {
                     var settings = asset.rendererSettings;

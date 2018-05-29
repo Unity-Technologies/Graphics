@@ -19,8 +19,8 @@ namespace UnityEditor.VFX
             EditorGUILayout.LabelField("VFX Cache", EditorStyles.boldLabel);
             using (new GUILayout.HorizontalScope())
             {
-                if (GUILayout.Button("Clear"))
-                    VFXCacheManager.Clear();
+                /*if (GUILayout.Button("Clear"))
+                    VFXCacheManager.Clear();*/
 
                 if (GUILayout.Button("Rebuild"))
                     VFXCacheManager.Build();
@@ -38,8 +38,8 @@ namespace UnityEditor.VFX
             EditorGUILayout.LabelField("Migration", EditorStyles.boldLabel);
             using (new GUILayout.HorizontalScope())
             {
-                if (GUILayout.Button("Migrate to .vfx"))
-                    VFXMigration.Migrate();
+                /*if (GUILayout.Button("Migrate to .vfx"))
+                    VFXMigration.Migrate();*/
                 if (GUILayout.Button("Resave all .vfx"))
                     VFXMigration.Resave();
             }
