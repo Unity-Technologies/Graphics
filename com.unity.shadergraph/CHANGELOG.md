@@ -44,4 +44,4 @@ You can now see the generated code for any specific node. To do so, right-click 
 - Nodes that are copied from one graph to another now spawn in the center of the current view. ([#333](https://github.com/Unity-Technologies/ShaderGraph/issues/333))
 - When you edit sub graph paths, the search window no longer yields a null reference exception.
 - The blackboard is now within view when deserialized.
-- Your systemlocale can no longer cause incorrect commands due to full stops being converted to commas.
+- Your system locale can no longer cause incorrect commands due to full stops being converted to commas.
