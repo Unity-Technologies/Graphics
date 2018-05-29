@@ -960,12 +960,28 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public Vector2 ScreenToViewPosition(Vector2 position)
+        {
+            GUIView guiView = elementPanel.ownerObject as GUIView;
+            if (guiView == null)
+                return position;
+            return position - guiView.screenPosition.position;
+        }
+
+        public Vector2 ViewToScreenPosition(Vector2 position)
+        {
+            GUIView guiView = elementPanel.ownerObject as GUIView;
+            if (guiView == null)
+                return position;
+            return position + guiView.screenPosition.position;
+        }
+
         void OnCreateNode(NodeCreationContext ctx)
         {
             GUIView guiView = elementPanel.ownerObject as GUIView;
             if (guiView == null)
                 return;
-            Vector2 point = ctx.screenMousePosition - guiView.screenPosition.position;//GUIUtility.ScreenToGUIPoint(ctx.screenMousePosition);
+            Vector2 point = ScreenToViewPosition(ctx.screenMousePosition);
 
             List<VisualElement> picked = new List<VisualElement>();
             panel.PickAll(point, picked);
@@ -978,7 +994,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, m_NodeProvider);
+                VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, ctx.screenMousePosition, m_NodeProvider);
             }
         }
 
@@ -1630,7 +1646,7 @@ namespace UnityEditor.VFX.UI
         {
             Debug.Log("CreateMenuPosition" + e.eventInfo.mousePosition);
             //The targeted groupnode will be determined by a PickAll later
-            VFXFilterWindow.Show(VFXViewWindow.currentWindow, e.eventInfo.mousePosition, m_NodeProvider);
+            VFXFilterWindow.Show(VFXViewWindow.currentWindow, e.eventInfo.mousePosition, ViewToScreenPosition(e.eventInfo.mousePosition), m_NodeProvider);
         }
 
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
