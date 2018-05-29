@@ -41,7 +41,7 @@ MonoBehaviour:
   m_Parent: {fileID: 114350483966674976}
   m_Children:
   - {fileID: 114580989189733782}
-  - {fileID: 114859757124395110}
+  - {fileID: 114905742244603230}
   - {fileID: 114596491906001080}
   m_UIPosition: {x: 700.5957, y: 593.54254}
   m_UICollapsed: 0
@@ -67,44 +67,6 @@ MonoBehaviour:
   indirectDraw: 0
   preRefraction: 0
   useGeometryShader: 0
---- !u!114 &114082061669623284
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c117b74c5c58db542bffe25c78fe92db, type: 3}
-  m_Name: VFXSlotAnimationCurve
-  m_EditorClassIdentifier: 
-  m_Parent: {fileID: 0}
-  m_Children: []
-  m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 1
-  m_UISuperCollapsed: 0
-  m_MasterSlot: {fileID: 114082061669623284}
-  m_MasterData:
-    m_Owner: {fileID: 114859757124395110}
-    m_Value:
-      m_Type:
-        m_SerializableType: UnityEngine.AnimationCurve, UnityEngine.CoreModule, Version=0.0.0.0,
-          Culture=neutral, PublicKeyToken=null
-      m_SerializableObject: '{"frames":[{"time":0.0,"value":0.08673095703125,"inTangent":0.402862548828125,"outTangent":0.402862548828125,"tangentMode":34},{"time":1.0,"value":0.489593505859375,"inTangent":0.402862548828125,"outTangent":0.402862548828125,"tangentMode":34}],"preWrapMode":8,"postWrapMode":8}'
-  m_Property:
-    name: curve
-    m_serializedType:
-      m_SerializableType: UnityEngine.AnimationCurve, UnityEngine.CoreModule, Version=0.0.0.0,
-        Culture=neutral, PublicKeyToken=null
-    attributes:
-    - m_Type: 3
-      m_Min: -Infinity
-      m_Max: Infinity
-      m_Tooltip: The value of the size over the relative (0..1) lifetime of the particle
-      m_Regex: 
-      m_RegexMaxLength: 0
-  m_Direction: 0
-  m_LinkedSlots: []
 --- !u!114 &114131763552434164
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -128,7 +90,9 @@ MonoBehaviour:
   m_Disabled: 0
   attribute: lifetime
   Composition: 0
+  Source: 0
   Random: 2
+  channels: 4
 --- !u!114 &114158099937248418
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -184,7 +148,9 @@ MonoBehaviour:
   m_Disabled: 0
   attribute: velocity
   Composition: 0
+  Source: 0
   Random: 1
+  channels: 4
 --- !u!114 &114219382104720238
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -356,6 +322,7 @@ MonoBehaviour:
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_UIInfos: {fileID: 114340500867371532}
+  m_ParameterInfo: []
   m_saved: 1
 --- !u!114 &114380859405582094
 MonoBehaviour:
@@ -568,6 +535,12 @@ MonoBehaviour:
       m_SerializableType: System.Single, mscorlib, Version=2.0.0.0, Culture=neutral,
         PublicKeyToken=b77a5c561934e089
     attributes:
+    - m_Type: 3
+      m_Min: -Infinity
+      m_Max: Infinity
+      m_Tooltip: Spawn Rate (in number per seconds)
+      m_Regex: 
+      m_RegexMaxLength: 0
     - m_Type: 1
       m_Min: 0
       m_Max: Infinity
@@ -741,7 +714,7 @@ MonoBehaviour:
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
---- !u!114 &114859757124395110
+--- !u!114 &114855157311850152
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_CorrespondingSourceObject: {fileID: 0}
@@ -749,19 +722,30 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7ca7111aa23aa5d4a96d911b8872f2f6, type: 3}
-  m_Name: SizeOverLife
+  m_Script: {fileID: 11500000, guid: c117b74c5c58db542bffe25c78fe92db, type: 3}
+  m_Name: VFXSlotAnimationCurve
   m_EditorClassIdentifier: 
-  m_Parent: {fileID: 114063133802684794}
+  m_Parent: {fileID: 0}
   m_Children: []
   m_UIPosition: {x: 0, y: 0}
-  m_UICollapsed: 0
+  m_UICollapsed: 1
   m_UISuperCollapsed: 0
-  m_InputSlots:
-  - {fileID: 114082061669623284}
-  m_OutputSlots: []
-  m_Disabled: 0
-  composition: 0
+  m_MasterSlot: {fileID: 114855157311850152}
+  m_MasterData:
+    m_Owner: {fileID: 114905742244603230}
+    m_Value:
+      m_Type:
+        m_SerializableType: UnityEngine.AnimationCurve, UnityEngine.CoreModule, Version=0.0.0.0,
+          Culture=neutral, PublicKeyToken=null
+      m_SerializableObject: '{"frames":[{"time":0.0,"value":0.08673095703125,"inTangent":0.402862548828125,"outTangent":0.402862548828125,"tangentMode":34},{"time":1.0,"value":0.489593505859375,"inTangent":0.402862548828125,"outTangent":0.402862548828125,"tangentMode":34}],"preWrapMode":8,"postWrapMode":8}'
+  m_Property:
+    name: Size
+    m_serializedType:
+      m_SerializableType: UnityEngine.AnimationCurve, UnityEngine.CoreModule, Version=0.0.0.0,
+        Culture=neutral, PublicKeyToken=null
+    attributes: []
+  m_Direction: 0
+  m_LinkedSlots: []
 --- !u!114 &114873264888500148
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -820,6 +804,30 @@ MonoBehaviour:
       m_RegexMaxLength: 0
   m_Direction: 0
   m_LinkedSlots: []
+--- !u!114 &114905742244603230
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40990c9392b41044d87ea68e235f9edc, type: 3}
+  m_Name: AttributeOverLife
+  m_EditorClassIdentifier: 
+  m_Parent: {fileID: 114063133802684794}
+  m_Children: []
+  m_UIPosition: {x: 0, y: 0}
+  m_UICollapsed: 0
+  m_UISuperCollapsed: 0
+  m_InputSlots:
+  - {fileID: 114855157311850152}
+  m_OutputSlots: []
+  m_Disabled: 0
+  attribute: size
+  Composition: 0
+  Mode: 1
+  channels: 0
 --- !u!114 &114920711487922656
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1576,7 +1584,7 @@ VisualEffectAsset:
         index: 22
       - nameId: bounds_size
         index: 23
-      processor: {fileID: 7200000, guid: eb9d75221cdfe9b46929ae7e114f4780, type: 3}
+      processor: {fileID: 7200000, guid: 673c83e61a61a26418f782765222a501, type: 3}
     - type: 805306368
       buffers:
       - nameId: attributeBuffer
@@ -1589,7 +1597,7 @@ VisualEffectAsset:
       - nameId: deltaTime_a
         index: 21
       params: []
-      processor: {fileID: 7200000, guid: 8010df05c4c168243919559f750719c2, type: 3}
+      processor: {fileID: 7200000, guid: b6730d864d05b7246a27c956d5ec95c9, type: 3}
     - type: 805306369
       buffers:
       - nameId: attributeBuffer
@@ -1604,7 +1612,7 @@ VisualEffectAsset:
       - nameId: localToWorld
         index: 18
       params: []
-      processor: {fileID: 7200000, guid: 7222705a71d78d84183e82f00949fc74, type: 3}
+      processor: {fileID: 7200000, guid: 923bb1760e73a1e47bebe4c69e596f13, type: 3}
     - type: 1073741826
       buffers:
       - nameId: attributeBuffer
@@ -1614,7 +1622,7 @@ VisualEffectAsset:
       - nameId: deadListCount
         index: 4
       values:
-      - nameId: curve_b
+      - nameId: Size_b
         index: 17
       - nameId: gradient_c
         index: 16
@@ -1625,7 +1633,7 @@ VisualEffectAsset:
         index: 0
       - nameId: indirectDraw
         index: 1
-      processor: {fileID: 4800000, guid: 8bcba6e60a546e846b9a3dea5d598db9, type: 3}
+      processor: {fileID: 4800000, guid: 0795dcc40cfeed1408fde4608d9fd5a9, type: 3}
   m_Events:
   - name: OnPlay
     playSystems: 00000000
