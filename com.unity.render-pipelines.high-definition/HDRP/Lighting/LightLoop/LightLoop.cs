@@ -1457,6 +1457,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Return true if BakedShadowMask are enabled
         public bool PrepareLightsForGPU(CommandBuffer cmd, HDCamera hdCamera, ShadowSettings shadowSettings, CullResults cullResults,
+            LightCullingResult lightCullingResult, ReflectionProbeCullingResult reflectionProbeCullingResult,
             ReflectionProbeCullResults reflectionProbeCullResults, DensityVolumeList densityVolumes)
         {
             using (new ProfilingSample(cmd, "Prepare Lights For GPU"))
@@ -1482,6 +1483,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     worldToView = WorldToViewStereo(camera, Camera.StereoscopicEye.Left);
                     rightEyeWorldToView = WorldToViewStereo(camera, Camera.StereoscopicEye.Right);
+                }
+
+                List<VisibleLight> visibleLights = null;
+                List<VisibleReflectionProbe> visibleReflectionProbes = null;
+                // Temporary bridge to new culling
+                if (lightCullingResult != null && reflectionProbeCullingResult != null)
+                {
+                    visibleLights = new List<VisibleLight>(lightCullingResult.visibleLights.Length + lightCullingResult.visibleShadowCastingLights.Length);
+                    Debug.Assert(lightCullingResult.visibleLights.Length + lightCullingResult.visibleShadowCastingLights.Length == cullResults.visibleLights.Count);
+                    for (int i = 0; i < lightCullingResult.visibleLights.Length; ++i)
+                        visibleLights.Add(lightCullingResult.visibleLights[i]);
+                    for (int i = 0; i < lightCullingResult.visibleShadowCastingLights.Length; ++i)
+                        visibleLights.Add(lightCullingResult.visibleShadowCastingLights[i]);
+
+                    visibleReflectionProbes = new List<VisibleReflectionProbe>(reflectionProbeCullingResult.visibleReflectionProbes.Length);
+                    Debug.Assert(reflectionProbeCullingResult.visibleReflectionProbes.Length == cullResults.visibleReflectionProbes.Count);
+                    for (int i = 0; i < reflectionProbeCullingResult.visibleReflectionProbes.Length; ++i)
+                        visibleReflectionProbes.Add(reflectionProbeCullingResult.visibleReflectionProbes[i]);
+                }
+                else
+                {
+                    visibleLights = cullResults.visibleLights;
+                    visibleReflectionProbes = cullResults.visibleReflectionProbes;
                 }
 
                 // Note: Light with null intensity/Color are culled by the C++, no need to test it here

@@ -137,7 +137,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // TEST NEW CULLING
         bool m_UseNewCulling = false;
-        CullingResult m_CullingResult = new CullingResult();
+        CullingResult                   m_CullingResult = new CullingResult();
+        LightCullingResult              m_LightCullingResult = new LightCullingResult();
+        ReflectionProbeCullingResult    m_ReflectionProbeCullingResult = new ReflectionProbeCullingResult();
 
         // RendererLists
         enum HDRendererList
@@ -329,7 +331,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // TEMP
             List<DebugUI.Widget> widgets = new List<DebugUI.Widget>();
-            widgets.AddRange(new DebugUI.Widget[] { new DebugUI.BoolField { displayName = "Enable New Culling", getter = () => m_UseNewCulling, setter = value => m_UseNewCulling = value } } );
+            widgets.AddRange(new DebugUI.Widget[] { new DebugUI.BoolField { displayName = "Enable New Culling", getter = () => m_UseNewCulling, setter = value => m_UseNewCulling = value },
+                                                    new DebugUI.BoolField { displayName = "Enable SRP batcher", getter = () => GraphicsSettings.useScriptableRenderPipelineBatching, setter = value => GraphicsSettings.useScriptableRenderPipelineBatching = value }} );
             var panel = DebugManager.instance.GetPanel("Culling", true);
             panel.children.Add(widgets.ToArray());
         }
@@ -1145,6 +1148,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         if (m_UseNewCulling)
                         {
                             Culling.CullScene(cullingParametersNew, m_CullingResult);
+                            Culling.CullLights(cullingParametersNew, m_LightCullingResult);
+                            Culling.CullReflectionProbes(cullingParametersNew, m_ReflectionProbeCullingResult);
+                            // We don't pass lights and reflection probes because we don't need per object lights/probes in HDRP.
                             Culling.PrepareRendererScene(m_CullingResult, null, null);
 
                             PrepareRendererLists(hdCamera, m_CullingResult);
@@ -1185,7 +1191,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     bool enableBakeShadowMask;
                     using (new ProfilingSample(cmd, "TP_PrepareLightsForGPU", CustomSamplerId.TPPrepareLightsForGPU.GetSampler()))
                     {
-                        enableBakeShadowMask = m_LightLoop.PrepareLightsForGPU(cmd, hdCamera, m_ShadowSettings, m_CullResults, m_ReflectionProbeCullResults, densityVolumes);
+                        if (m_UseNewCulling)
+                            enableBakeShadowMask = m_LightLoop.PrepareLightsForGPU(cmd, hdCamera, m_ShadowSettings, m_CullResults, m_LightCullingResult, m_ReflectionProbeCullingResult, m_ReflectionProbeCullResults, densityVolumes);
+                        else
+                            enableBakeShadowMask = m_LightLoop.PrepareLightsForGPU(cmd, hdCamera, m_ShadowSettings, m_CullResults, null, null, m_ReflectionProbeCullResults, densityVolumes);
                     }
                     ConfigureForShadowMask(enableBakeShadowMask, cmd);
 
