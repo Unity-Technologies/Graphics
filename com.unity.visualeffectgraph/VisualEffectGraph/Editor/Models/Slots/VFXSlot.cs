@@ -388,10 +388,10 @@ namespace UnityEditor.VFX
             throw new InvalidOperationException(string.Format("Unable to create slot for property {0} of type {1}", property.name, property.type));
         }
 
-        public static bool CopyLinksAndValue(VFXSlot dst, VFXSlot src, bool notify)
+        public static void CopyLinksAndValue(VFXSlot dst, VFXSlot src, bool notify)
         {
             CopyValue(dst, src, notify);
-            TransferLinks(dst, src, notify);
+            CopyLinks(dst, src, notify);
         }
 
         public static void CopyValue(VFXSlot dst, VFXSlot src, bool notify)
@@ -409,7 +409,7 @@ namespace UnityEditor.VFX
                     if (VFXConverter.TryConvertTo(src.value, dst.property.type, out newValue))
                     {
                         dst.SetValueInternal(newValue, notify);
-                        Debug.LogFormat("TransferLinksAndValue automatically converted : {0}, {1} to {2}, {3}", src.property.type, src.value, dst.property.type, dst.value);
+                        Debug.LogFormat("Value automatically converted : {0}, {1} to {2}, {3}", src.property.type, src.value, dst.property.type, dst.value);
                     }
                 }
             }

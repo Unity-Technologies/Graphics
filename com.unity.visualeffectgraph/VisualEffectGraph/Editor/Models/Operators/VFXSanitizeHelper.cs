@@ -166,7 +166,7 @@ namespace UnityEditor.VFX
                 var current = realTypeAndValue[i];
                 if (!current.wasFloatN)
                 {
-                    VFXSlot.CopyLinksAndValues(output.inputSlots[i], input.inputSlots[i], true);
+                    VFXSlot.CopyLinksAndValue(output.inputSlots[i], input.inputSlots[i], true);
                 }
                 else
                 {
