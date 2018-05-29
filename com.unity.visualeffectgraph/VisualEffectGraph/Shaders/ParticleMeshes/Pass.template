@@ -34,6 +34,8 @@ VFX_VARYING_PS_INPUTS vert(vs_input i, uint instanceID : SV_InstanceID)
 
 	${VFXVertexCommonProcess}
 	
+	${VFXScaleBiasUV}
+
 	${VFXVertexSetFlipbooksInterpolants}
 
 	${VFXVertexAdditionalProcess}

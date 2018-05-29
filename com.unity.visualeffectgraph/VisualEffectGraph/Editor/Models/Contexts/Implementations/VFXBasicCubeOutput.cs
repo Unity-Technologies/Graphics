@@ -15,6 +15,7 @@ namespace UnityEditor.VFX
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleHexahedronOutput; } }
 
         public override bool supportsFlipbooks { get { return true; } }
+        public override bool supportsUVScaleBias { get { return false; } }
 
         public override CullMode defaultCullMode { get { return CullMode.Back; } }
 

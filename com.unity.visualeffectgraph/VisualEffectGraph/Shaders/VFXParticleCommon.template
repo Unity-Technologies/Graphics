@@ -34,6 +34,14 @@ size.z = min(size.x,size.y);
 #endif
 ${VFXEnd}
 
+${VFXBegin:VFXScaleBiasUV}
+#if USE_UV_SCALE_BIAS
+${VFXLoadParameter:{uvScale}}
+${VFXLoadParameter:{uvBias}}
+o.VFX_VARYING_UV.xy = o.VFX_VARYING_UV.xy * uvScale + uvBias;
+#endif
+${VFXEnd}
+
 ${VFXBegin:VFXVertexSetFlipbooksInterpolants}
 #if USE_FLIPBOOK
 ${VFXLoadParameter:{flipBookSize}}

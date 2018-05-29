@@ -13,6 +13,7 @@ namespace UnityEditor.VFX
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleMeshes"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleMeshOutput; } }
         public override bool supportsFlipbooks { get { return true; } }
+        public override bool supportsUVScaleBias { get { return true; } }
         public override CullMode defaultCullMode { get { return CullMode.Back;  } }
 
         public override IEnumerable<VFXAttributeInfo> attributes

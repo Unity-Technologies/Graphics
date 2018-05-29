@@ -16,6 +16,7 @@ namespace UnityEditor.VFX
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleQuad"); } }
         public override VFXTaskType taskType { get { return useGeometryShader ? VFXTaskType.ParticlePointOutput : VFXTaskType.ParticleQuadOutput; } }
         public override bool supportsFlipbooks { get { return true; } }
+        public override bool supportsUVScaleBias { get { return true; } }
 
         public override IEnumerable<string> additionalDefines
         {

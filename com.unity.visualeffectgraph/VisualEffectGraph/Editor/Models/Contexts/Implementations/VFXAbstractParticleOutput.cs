@@ -70,7 +70,10 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected ZTestMode zTestMode = ZTestMode.Default;
 
-        [VFXSetting, SerializeField, Header("Particle Options")]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Particle Options")]
+        protected bool uvScaleAndBias = false;
+
+        [VFXSetting, SerializeField]
         protected FlipbookMode flipbookMode;
 
         [VFXSetting, SerializeField]
@@ -97,6 +100,8 @@ namespace UnityEditor.VFX
         public override bool codeGeneratorCompute { get { return false; } }
 
         public virtual bool supportsFlipbooks { get { return false; } }
+        public virtual bool supportsUVScaleBias { get { return false; } }
+
         public virtual CullMode defaultCullMode { get { return CullMode.Off; } }
         public virtual ZTestMode defaultZTestMode { get { return ZTestMode.LEqual; } }
 
@@ -120,6 +125,12 @@ namespace UnityEditor.VFX
                 var flipBookSizeExp = slotExpressions.First(o => o.name == "flipBookSize");
                 yield return flipBookSizeExp;
                 yield return new VFXNamedExpression(VFXValue.Constant(Vector2.one) / flipBookSizeExp.exp, "invFlipBookSize");
+            }
+
+            if (supportsUVScaleBias && uvScaleAndBias)
+            {
+                yield return slotExpressions.First(o => o.name == "uvScale");
+                yield return slotExpressions.First(o => o.name == "uvBias");
             }
         }
 
@@ -147,6 +158,11 @@ namespace UnityEditor.VFX
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "alphaThreshold", VFXPropertyAttribute.Create(new RangeAttribute(0.0f, 1.0f))), 0.5f);
                 if (supportSoftParticles)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "softParticlesFadeDistance"), 1.0f);
+                if (supportsUVScaleBias && uvScaleAndBias)
+                {
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "uvScale"), Vector2.one);
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "uvBias"), Vector2.zero);
+                }
             }
         }
 
@@ -174,6 +190,9 @@ namespace UnityEditor.VFX
                 if (HasIndirectDraw())
                     yield return "VFX_HAS_INDIRECT_DRAW";
 
+                if (uvScaleAndBias && supportsUVScaleBias)
+                    yield return "USE_UV_SCALE_BIAS";
+
                 if (flipbookMode != FlipbookMode.Off)
                 {
                     yield return "USE_FLIPBOOK";
@@ -192,6 +211,9 @@ namespace UnityEditor.VFX
             {
                 if (!supportsFlipbooks)
                     yield return "flipbookMode";
+
+                if (!supportsUVScaleBias)
+                    yield return "uvMode";
 
                 if (blendMode == BlendMode.Masked || blendMode == BlendMode.Opaque)
                     yield return "preRefraction";
