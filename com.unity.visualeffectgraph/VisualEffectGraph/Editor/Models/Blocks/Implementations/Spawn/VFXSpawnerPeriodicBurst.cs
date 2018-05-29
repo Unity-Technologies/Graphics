@@ -22,8 +22,8 @@ namespace UnityEditor.VFX
             newBlock.SetSettingValue("delayMode", VFXSpawnerBurst.RandomMode.Random);
             newBlock.SetSettingValue("spawnMode", VFXSpawnerBurst.RandomMode.Random);
 
-            VFXSlot.CopyLinksAndValues(newBlock.GetInputSlot(0), GetInputSlot(0), true);
-            VFXSlot.CopyLinksAndValues(newBlock.GetInputSlot(1), GetInputSlot(1), true);
+            VFXSlot.CopyLinksAndValue(newBlock.GetInputSlot(0), GetInputSlot(0), true);
+            VFXSlot.CopyLinksAndValue(newBlock.GetInputSlot(1), GetInputSlot(1), true);
 
             ReplaceModel(newBlock, this);
             base.Sanitize();
