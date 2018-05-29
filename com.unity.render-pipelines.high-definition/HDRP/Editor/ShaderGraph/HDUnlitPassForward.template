@@ -193,6 +193,8 @@ ${Graph}
 
             $SurfaceDescriptionInputs.vertexColor:               output.vertexColor =    input.color;
 
+            $SurfaceDescriptionInputs.FaceSign:                  output.FaceSign =    input.isFrontFace;
+
             return output;
         }
 
