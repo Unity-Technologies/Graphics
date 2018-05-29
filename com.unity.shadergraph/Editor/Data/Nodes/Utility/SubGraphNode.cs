@@ -45,7 +45,6 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        [ObjectControl("")]
         public MaterialSubGraphAsset subGraphAsset
         {
             get
