@@ -26,7 +26,11 @@ Enables the user to change the path of Shader Graphs and Sub Graphs. Changing th
 
 This adds gradient functionality via two new nodes. Sample Gradient node samples a gradient given a Time parameter. This gradient can be defined on the Gradient slot control view. The Gradient Asset node defines a gradient that can be sampled by multiple Sample Gradient nodes using different Time parameters.
 
+### Show generated code
 
+![](.data/show_generated_code.gif)
+
+You can now see the generated code for any specific node. To do so, right-click the node, and select Show Generated Code. The code snippet will now open in the code editor that you have linked to Unity.
 
 
 ### Bug fixes and minor changes
