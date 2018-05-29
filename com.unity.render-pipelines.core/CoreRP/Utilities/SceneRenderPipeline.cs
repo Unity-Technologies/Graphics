@@ -8,6 +8,7 @@ public class SceneRenderPipeline : MonoBehaviour
 {
     public RenderPipelineAsset renderPipelineAsset;
 
+#if UNITY_EDITOR
     void OnEnable()
     {
         GraphicsSettings.renderPipelineAsset = renderPipelineAsset;
@@ -17,4 +18,5 @@ public class SceneRenderPipeline : MonoBehaviour
     {
         GraphicsSettings.renderPipelineAsset = renderPipelineAsset;
     }
+#endif
 }
