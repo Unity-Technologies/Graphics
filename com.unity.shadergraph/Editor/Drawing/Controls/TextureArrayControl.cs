@@ -47,7 +47,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
         {
             m_Node.owner.owner.RegisterCompleteObjectUndo("Texture Change");
             m_PropertyInfo.SetValue(m_Node, evt.newValue, null);
-            Dirty(ChangeType.Repaint);
+            this.MarkDirtyRepaint();
         }
     }
 }
