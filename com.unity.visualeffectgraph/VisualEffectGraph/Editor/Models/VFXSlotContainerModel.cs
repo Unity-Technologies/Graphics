@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 using UnityEngine.Graphing;
 using Object = UnityEngine.Object;
 
@@ -32,9 +33,8 @@ namespace UnityEditor.VFX
 
         void SetSettingValue(string name, object value);
 
-
-        void OnTransferLinkOtherSlot(VFXSlot mySlot, VFXSlot prevOtherSlot, VFXSlot newOtherSlot);
-        void OnTransferLinkMySlot(VFXSlot myPrevSlot, VFXSlot myNewSlot, VFXSlot otherSlot);
+        void OnCopyLinksOtherSlot(VFXSlot mySlot, VFXSlot prevOtherSlot, VFXSlot newOtherSlot);
+        void OnCopyLinksMySlot(VFXSlot myPrevSlot, VFXSlot myNewSlot, VFXSlot otherSlot);
 
         bool collapsed { get; set; }
     }
@@ -137,11 +137,11 @@ namespace UnityEditor.VFX
             Invalidate(model, cause);
         }
 
-        public virtual void OnTransferLinkOtherSlot(VFXSlot mySlot, VFXSlot prevOtherSlot, VFXSlot newOtherSlot)
+        public virtual void OnCopyLinksOtherSlot(VFXSlot mySlot, VFXSlot prevOtherSlot, VFXSlot newOtherSlot)
         {
         }
 
-        public virtual void OnTransferLinkMySlot(VFXSlot myPrevSlot, VFXSlot myNewSlot, VFXSlot otherSlot)
+        public virtual void OnCopyLinksMySlot(VFXSlot myPrevSlot, VFXSlot myNewSlot, VFXSlot otherSlot)
         {
         }
 
@@ -258,8 +258,27 @@ namespace UnityEditor.VFX
         static public IEnumerable<VFXNamedExpression> GetExpressionsFromSlots(IVFXSlotContainer slotContainer)
         {
             foreach (var master in slotContainer.inputSlots)
+            {
+                var inheritSpace = CoordinateSpace.Local;
+                if (slotContainer is VFXBlock)
+                {
+                    inheritSpace = (slotContainer as VFXBlock).GetParent().space;
+                }
+                else if (slotContainer is VFXContext)
+                {
+                    inheritSpace = (slotContainer as VFXContext).space;
+                }
+                else
+                {
+                    Debug.LogErrorFormat("Unable to retrieve inherited space from " + slotContainer);
+                }
+
                 foreach (var slot in master.GetExpressionSlots())
-                    yield return new VFXNamedExpression(slot.GetExpression(), slot.fullName);
+                {
+                    var expression = slot.GetExpression();
+                    yield return new VFXNamedExpression(ConvertSpace(expression, slot, inheritSpace), slot.fullName);
+                }
+            }
         }
 
         protected void InitSlotsFromProperties(IEnumerable<VFXPropertyWithValue> properties, VFXSlot.Direction direction)
@@ -348,7 +367,7 @@ namespace UnityEditor.VFX
 
                     if (srcSlot != null)
                     {
-                        VFXSlot.TransferLinksAndValue(dstSlot, srcSlot, notify);
+                        VFXSlot.CopyLinksAndValue(dstSlot, srcSlot, notify);
                         srcSlot.UnlinkAll(true, notify);
                         existingSlots.Remove(srcSlot);
                     }

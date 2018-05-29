@@ -207,6 +207,14 @@ namespace UnityEditor.VFX.UI
             {
                 RemoveElement(element);
             }
+            foreach (var element in dataEdges.Values)
+            {
+                RemoveElement(element);
+            }
+            foreach (var element in flowEdges.Values)
+            {
+                RemoveElement(element);
+            }
 
             groupNodes.Clear();
             stickyNotes.Clear();
@@ -964,8 +972,8 @@ namespace UnityEditor.VFX.UI
             GUIView guiView = elementPanel.ownerObject as GUIView;
             if (guiView == null)
                 return;
-
             Vector2 point = ctx.screenMousePosition - guiView.screenPosition.position;//GUIUtility.ScreenToGUIPoint(ctx.screenMousePosition);
+
             List<VisualElement> picked = new List<VisualElement>();
             panel.PickAll(point, picked);
 

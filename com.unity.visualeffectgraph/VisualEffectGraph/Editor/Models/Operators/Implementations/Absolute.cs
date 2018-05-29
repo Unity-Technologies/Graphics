@@ -2,9 +2,22 @@ using System;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Arithmetic")]
-    class Absolute : VFXOperatorUnaryFloatOperation
+    class Absolute : VFXOperatorNumericUniform
     {
-        override public string name { get { return "Absolute"; } }
+        public class InputProperties
+        {
+            public float x;
+        }
+
+        public override sealed string name { get { return "Absolute"; } }
+
+        protected override sealed ValidTypeRule typeFilter
+        {
+            get
+            {
+                return ValidTypeRule.allowEverythingExceptUnsignedInteger;
+            }
+        }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

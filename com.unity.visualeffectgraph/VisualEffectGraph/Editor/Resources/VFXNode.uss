@@ -5,7 +5,7 @@
 
 .VFXNodeUI.node #node-border > #title > #title-label
 {
-    flex:1;
+    flex:1 0 auto;
 }
 
 .VFXNodeUI.superCollapsed
@@ -24,7 +24,13 @@ width:-1;
     max-height:0;
     height:0;
 }
+.node.collapsed #collapse-button > #icon {
+    background-image: resource("GraphView/Nodes/NodeChevronLeft.png");
+}
 
+.node.expanded #collapse-button > #icon {
+    background-image : resource("GraphView/Nodes/NodeChevronDown.png");
+}
 
 .VFXNodeUI.node #contents > #top > #input
 {
@@ -68,7 +74,7 @@ width:-1;
     padding-top:0;
     padding-bottom:0;
     background-color:rgba(0,0,0,0);
-    flex:1;
+    flex:1 0 auto;
 }
 .VFXNodeUI.superCollapsed #contents > #top > #divider
 {
@@ -77,7 +83,7 @@ width:-1;
 }
 .VFXNodeUI.superCollapsed #contents > #top > #middle
 {
-    flex:0;
+    flex:0 0 auto;
 }
 .VFXNodeUI.superCollapsed #contents > #top > #output
 {
@@ -86,7 +92,7 @@ width:-1;
     position-bottom:0;
     position-right:1;
     flex-grow:0;
-    flex:0;
+    flex:0 0 auto;
     width:20;
     background-color:rgba(0,0,0,0);
 }

@@ -1,15 +1,16 @@
 using System;
+using UnityEditor.VFX;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Vector")]
-    class Length : VFXOperatorFloatUnified
+    class Length : VFXOperatorNumericUniform
     {
         public class InputProperties
         {
             [Tooltip("The vector to be used in the length calculation.")]
-            public FloatN x = Vector3.one;
+            public Vector3 x;
         }
 
         public class OutputProperties
@@ -18,7 +19,15 @@ namespace UnityEditor.VFX.Operator
             public float l;
         }
 
-        override public string name { get { return "Length"; } }
+        public sealed override string name
+        {
+            get
+            {
+                return "Length";
+            }
+        }
+
+        protected override sealed ValidTypeRule typeFilter { get { return ValidTypeRule.allowEverythingExceptInteger; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

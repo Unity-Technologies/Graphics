@@ -4,19 +4,26 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Vector")]
-    class Normalize : VFXOperatorFloatUnifiedWithVariadicOutput
+    class Normalize : VFXOperatorNumericUniform
     {
         public class InputProperties
         {
-            [Tooltip("The vector to be normalized.")]
-            public FloatN x = Vector3.one;
+            public Vector3 x = Vector3.one;
         }
 
-        override public string name { get { return "Normalize"; } }
+        public override sealed string name { get { return "Normalize"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { VFXOperatorUtility.Normalize(inputExpression[0]) };
+        }
+
+        protected override sealed ValidTypeRule typeFilter
+        {
+            get
+            {
+                return ValidTypeRule.allowVectorType;
+            }
         }
     }
 }

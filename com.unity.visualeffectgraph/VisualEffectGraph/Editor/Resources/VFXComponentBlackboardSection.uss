@@ -38,7 +38,7 @@ VFXComponentBoard, #component-container
     padding-bottom: 2;
 }
 #header > #labelContainer {
-    flex: 1;
+    flex:1 0 auto;
     flex-direction: column;
     align-items: stretch;
 }
@@ -68,7 +68,7 @@ VFXComponentBoard, #component-container
 }
 #particle-count-container > #particle-count
 {
-    flex:1;
+    flex:1 0 auto;
 }
 
 #toolbar
@@ -78,7 +78,7 @@ VFXComponentBoard, #component-container
 
 #toolbar Button
 {
-    flex:1;
+    flex:1 0 auto;
     height:24;
     align-items:center;
 }
@@ -113,7 +113,7 @@ VFXComponentBoard, #component-container
 
 #play-rate-container #play-rate-slider
 {
-    flex:1;
+    flex:1 0 auto;
 }
 
 #play-rate-container #play-rate-field

@@ -2,49 +2,36 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Vector")]
-    class Swizzle : VFXOperatorUnaryFloatOperation
+    class Swizzle : VFXOperatorNumericUniform
     {
-        override public string libraryName { get { return "Swizzle"; } }
-        override public string name { get { return "Swizzle." + mask; } }
+        public override sealed string libraryName { get { return "Swizzle"; } }
+        public override sealed string name { get { return "Swizzle." + mask; } }
+
+        public class InputProperties
+        {
+            public Vector4 x;
+        }
 
         [VFXSetting, Regex("[^w-zW-Z]", 4)]
         public string mask = "xyzw";
 
-        protected override IEnumerable<VFXPropertyWithValue> inputProperties
+        protected override sealed Type GetExpectedOutputTypeOfOperation(IEnumerable<Type> inputTypes)
         {
-            get
+            Type slotType = null;
+            switch (mask.Length)
             {
-                foreach (var p in base.inputProperties)
-                {
-                    if (p.property.type == typeof(FloatN))
-                        yield return new VFXPropertyWithValue(new VFXProperty(p.property.type, string.Empty), p.value); // remove name from FloatN slot
-                    else
-                        yield return p;
-                }
+                case 1: slotType = typeof(float); break;
+                case 2: slotType = typeof(Vector2); break;
+                case 3: slotType = typeof(Vector3); break;
+                case 4: slotType = typeof(Vector4); break;
+                default: break;
             }
-        }
-
-        protected override IEnumerable<VFXPropertyWithValue> outputProperties
-        {
-            get
-            {
-                Type slotType = null;
-                switch (mask.Length)
-                {
-                    case 1: slotType = typeof(float); break;
-                    case 2: slotType = typeof(Vector2); break;
-                    case 3: slotType = typeof(Vector3); break;
-                    case 4: slotType = typeof(Vector4); break;
-                    default: break;
-                }
-
-                if (slotType != null)
-                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, "o"));
-            }
+            return slotType;
         }
 
         private static int CharToComponentIndex(char componentChar)
@@ -59,8 +46,19 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
+        protected override ValidTypeRule typeFilter
+        {
+            get
+            {
+                return ValidTypeRule.allowEverythingExceptInteger;
+            }
+        }
+
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
+            if (mask.Length == 0)
+                return new VFXExpression[] {};
+
             var inputComponents = (inputExpression.Length > 0) ? VFXOperatorUtility.ExtractComponents(inputExpression[0]).ToArray() : new VFXExpression[0];
 
             var componentStack = new Stack<VFXExpression>();

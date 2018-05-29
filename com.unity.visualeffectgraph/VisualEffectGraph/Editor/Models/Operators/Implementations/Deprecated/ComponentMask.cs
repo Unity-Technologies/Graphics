@@ -98,7 +98,7 @@ namespace UnityEditor.VFX.Operator
         {
             Debug.Log("Sanitizing Graph: Automatically replace ComponentMask with Swizzle");
 
-            var swizzle = CreateInstance<Swizzle>();
+            var swizzle = CreateInstance<SwizzleDeprecated>();
             var mask = new Component[4] { x, y, z, w };
 
             string result = "";
@@ -121,10 +121,11 @@ namespace UnityEditor.VFX.Operator
             swizzle.SetSettingValue("mask", result);
 
             // Transfer links
-            VFXSlot.TransferLinksAndValue(swizzle.GetInputSlot(0), GetInputSlot(0), true);
-            VFXSlot.TransferLinksAndValue(swizzle.GetOutputSlot(0), GetOutputSlot(0), true);
+            VFXSlot.CopyLinksAndValues(swizzle.GetInputSlot(0), GetInputSlot(0), true);
+            VFXSlot.CopyLinksAndValues(swizzle.GetOutputSlot(0), GetOutputSlot(0), true);
 
             ReplaceModel(swizzle, this);
+            swizzle.Sanitize();
         }
     }
 }
