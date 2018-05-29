@@ -8,7 +8,6 @@
         </ui:VisualElement>
         
         <ui:VisualElement name="contents" pickingMode="Ignore">
-          <ui:VisualElement name="divider" class="horizontal"/>
           <ui:VisualElement name="settings"/>
           <ui:VisualElement name="divider" class="horizontal"/>
           <ui:VisualElement name="top" pickingMode="Ignore">

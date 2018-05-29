@@ -17,11 +17,6 @@ VFXBlockUI.VFXNodeUI.node #contents > #top > #input
     flex: 1 1 auto;
 }
 
-.VFXContextSlotContainerUI #settings .propertyrm
-{
-    margin-left:16;
-}
-
 VFXContextUI VFXBlockUI.VFXContextSlotContainerUI.node #node-border #title
 {
     flex-direction:row;
