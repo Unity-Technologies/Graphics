@@ -557,7 +557,11 @@ namespace UnityEditor.VFX.UI
 
         public void OnCreateBlock(Vector2 referencePosition)
         {
-            VFXFilterWindow.Show(VFXViewWindow.currentWindow, referencePosition, m_BlockProvider);
+            VFXView view = GetFirstAncestorOfType<VFXView>();
+
+            Vector2 screenPosition = view.ViewToScreenPosition(referencePosition);
+
+            VFXFilterWindow.Show(VFXViewWindow.currentWindow, referencePosition, screenPosition, m_BlockProvider);
         }
 
         VFXBlockProvider m_BlockProvider = null;
