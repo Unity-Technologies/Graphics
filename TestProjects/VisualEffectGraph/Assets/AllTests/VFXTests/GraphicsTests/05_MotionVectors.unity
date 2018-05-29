@@ -174,6 +174,10 @@ Camera:
   serializedVersion: 2
   m_ClearFlags: 2
   m_BackGroundColor: {r: 0, g: 0, b: 0, a: 0}
+  m_projectionMatrixMode: 1
+  m_SensorSize: {x: 36, y: 24}
+  m_LensShift: {x: 0, y: 0}
+  m_FocalLength: 50
   m_NormalizedViewPortRect:
     serializedVersion: 2
     x: 0
@@ -235,6 +239,8 @@ MonoBehaviour:
     sharpness: 0.25
     stationaryBlending: 0.95
     motionBlending: 0.85
+  subpixelMorphologicalAntialiasing:
+    quality: 2
   fastApproximateAntialiasing:
     fastMode: 0
     keepAlpha: 0
@@ -314,6 +320,7 @@ Light:
     serializedVersion: 2
     m_Bits: 4294967295
   m_Lightmapping: 4
+  m_LightShadowCasterMode: 0
   m_AreaSize: {x: 1, y: 1}
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
@@ -637,7 +644,6 @@ MonoBehaviour:
     area: {fileID: 2800000, guid: 73ec4ae984a0a0f44a2be737e41a6f2f, type: 3}
     search: {fileID: 2800000, guid: d99701099481a2f489610e977df6dcbc, type: 3}
   shaders:
-    autoExposure: {fileID: 4800000, guid: c1894ea20b8588f4ba96b12377a36a9f, type: 3}
     bloom: {fileID: 4800000, guid: c1e1d3119c6fd4646aea0b4b74cacc1a, type: 3}
     copy: {fileID: 4800000, guid: cdbdb71de5f9c454b980f6d0e87f0afb, type: 3}
     copyStd: {fileID: 4800000, guid: 4bf4cff0d0bac3d43894e2e8839feb40, type: 3}
@@ -646,10 +652,8 @@ MonoBehaviour:
     finalPass: {fileID: 4800000, guid: f75014305794b3948a3c6d5ccd550e05, type: 3}
     grainBaker: {fileID: 4800000, guid: 0d8afcb51cc9f0349a6d190da929b838, type: 3}
     motionBlur: {fileID: 4800000, guid: 2c459b89a7c8b1a4fbefe0d81341651c, type: 3}
-    temporalAntialiasing: {fileID: 4800000, guid: 51bcf79c50dc92e47ba87821b61100c3,
-      type: 3}
-    subpixelMorphologicalAntialiasing: {fileID: 4800000, guid: 81af42a93ade3dd46a9b583d4eec76d6,
-      type: 3}
+    temporalAntialiasing: {fileID: 4800000, guid: 51bcf79c50dc92e47ba87821b61100c3, type: 3}
+    subpixelMorphologicalAntialiasing: {fileID: 4800000, guid: 81af42a93ade3dd46a9b583d4eec76d6, type: 3}
     texture2dLerp: {fileID: 4800000, guid: 34a819c9e33402547a81619693adc8d5, type: 3}
     uber: {fileID: 4800000, guid: 382151503e2a43a4ebb7366d1632731d, type: 3}
     lut2DBaker: {fileID: 4800000, guid: 7ad194cbe7d006f4bace915156972026, type: 3}
@@ -661,25 +665,20 @@ MonoBehaviour:
     deferredFog: {fileID: 4800000, guid: 4117fce9491711c4094d33a048e36e73, type: 3}
     scalableAO: {fileID: 4800000, guid: d7640629310e79646af0f46eb55ae466, type: 3}
     multiScaleAO: {fileID: 4800000, guid: 67f9497810829eb4791ec19e95781e51, type: 3}
-    screenSpaceReflections: {fileID: 4800000, guid: f997a3dc9254c44459323cced085150c,
-      type: 3}
+    screenSpaceReflections: {fileID: 4800000, guid: f997a3dc9254c44459323cced085150c, type: 3}
   computeShaders:
+    autoExposure: {fileID: 0}
     exposureHistogram: {fileID: 7200000, guid: 8c2fcbdf9bc58664f89917f7b9d79501, type: 3}
     lut3DBaker: {fileID: 7200000, guid: 42496b74c071f5749950ca1abe33e945, type: 3}
     texture3dLerp: {fileID: 7200000, guid: 31e9175024adfd44aba2530ff9b77494, type: 3}
     gammaHistogram: {fileID: 7200000, guid: 18183ebfeeab97749b43e38b928604a7, type: 3}
     waveform: {fileID: 7200000, guid: 92c63830cd50c0b4fbb8233613839958, type: 3}
     vectorscope: {fileID: 7200000, guid: e1efca7c36fd01840aae0dd10378de5c, type: 3}
-    multiScaleAODownsample1: {fileID: 7200000, guid: 4c63bc487e6c29a4a99f85a6c47b292b,
-      type: 3}
-    multiScaleAODownsample2: {fileID: 7200000, guid: e4d3e4779e48a374f91d48d4c0aedb7b,
-      type: 3}
-    multiScaleAORender: {fileID: 7200000, guid: 34a460e8a2e66c243a9c12024e5a798d,
-      type: 3}
-    multiScaleAOUpsample: {fileID: 7200000, guid: 600d6212b59bb40409d19d750b5fd1e9,
-      type: 3}
-    gaussianDownsample: {fileID: 7200000, guid: 6dba4103d23a7904fbc49099355aff3e,
-      type: 3}
+    multiScaleAODownsample1: {fileID: 7200000, guid: 4c63bc487e6c29a4a99f85a6c47b292b, type: 3}
+    multiScaleAODownsample2: {fileID: 7200000, guid: e4d3e4779e48a374f91d48d4c0aedb7b, type: 3}
+    multiScaleAORender: {fileID: 7200000, guid: 34a460e8a2e66c243a9c12024e5a798d, type: 3}
+    multiScaleAOUpsample: {fileID: 7200000, guid: 600d6212b59bb40409d19d750b5fd1e9, type: 3}
+    gaussianDownsample: {fileID: 7200000, guid: 6dba4103d23a7904fbc49099355aff3e, type: 3}
 --- !u!1 &1510541624
 GameObject:
   m_ObjectHideFlags: 0
@@ -697,13 +696,13 @@ GameObject:
   m_StaticEditorFlags: 0
   m_IsActive: 1
 --- !u!2083052967 &1510541625
-VFXComponent:
+VisualEffect:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1510541624}
   m_Enabled: 1
-  m_Asset: {fileID: 8926484042661614526, guid: da0a04fa6ffd3ec46951c879a265aedf, type: 2}
+  m_Asset: {fileID: 8926484042661614526, guid: da0a04fa6ffd3ec46951c879a265aedf, type: 3}
   m_StartSeed: 0
   m_ResetSeedOnPlay: 0
   m_PropertySheet:

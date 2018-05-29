@@ -1,10 +1,9 @@
 //#define USE_SHADER_AS_SUBASSET
 using System;
-using System.Text;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using UnityEditor.Experimental.VFX;
+using UnityEngine;
 using UnityEngine.Experimental.VFX;
 using UnityEngine.Profiling;
 using System.Reflection;
@@ -16,13 +15,7 @@ namespace UnityEditor.VFX
 #if !USE_SHADER_AS_SUBASSET
     public class VFXCacheManager : EditorWindow
     {
-        //[MenuItem("VFX Editor/Clear VFXCache")]
-        public static void Clear()
-        {
-            FileUtil.DeleteFileOrDirectory(VFXGraphCompiledData.baseCacheFolder);
-        }
-
-        //[MenuItem("VFX Editor/Build VFXCache")]
+        //[MenuItem("VFX Editor/Build All VFXs")]
         public static void Build()
         {
             var vfxAssets = new List<VisualEffectAsset>();
@@ -39,78 +32,99 @@ namespace UnityEditor.VFX
 
             foreach (var vfxAsset in vfxAssets)
             {
-                Debug.Log(string.Format("Recompile VFX asset: {0} ({1})", vfxAsset, AssetDatabase.GetAssetPath(vfxAsset.GetInstanceID())));
-                vfxAsset.GetOrCreateGraph().SetExpressionGraphDirty();
-                vfxAsset.GetOrCreateGraph().OnSaved();
+                Debug.Log(string.Format("Recompile VFX asset: {0} ({1})", vfxAsset, AssetDatabase.GetAssetPath(vfxAsset)));
+                vfxAsset.GetResource().GetOrCreateGraph().SetExpressionGraphDirty();
+                vfxAsset.GetResource().GetOrCreateGraph().OnSaved();
             }
             AssetDatabase.SaveAssets();
         }
     }
 #endif
 
-
-    public class VisualEffectAssetPostProcessor : AssetPostprocessor
-    {
-        static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
-        {
-            foreach (var path in importedAssets.Where(t => t.EndsWith(".vfx")))
-            {
-                VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
-                if (asset != null)
-                {
-                    asset.GetOrCreateGraph();
-                }
-            }
-        }
-    }
-
     public class VisualEffectAssetModicationProcessor : UnityEditor.AssetModificationProcessor
     {
         static string[] OnWillSaveAssets(string[] paths)
         {
             Profiler.BeginSample("VisualEffectAssetModicationProcessor.OnWillSaveAssets");
-            foreach (string path in paths)
+            foreach (string path in paths.Where(t => t.EndsWith(".vfx")))
             {
-                var vfxAsset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
-                if (vfxAsset != null)
+                var vfxResource = VisualEffectResource.GetResourceAtPath(path);
+                if (vfxResource != null)
                 {
-                    var graph = vfxAsset.GetOrCreateGraph();
+                    var graph = vfxResource.GetOrCreateGraph();
                     graph.OnSaved();
+                    vfxResource.WriteAsset(); // write asset as the AssetDatabase won't do it.
                 }
             }
             Profiler.EndSample();
             return paths;
         }
+
+        static AssetDeleteResult OnWillDeleteAsset(string assetPath, RemoveAssetOptions option)
+        {
+            if (assetPath.EndsWith(".vfx"))
+            {
+                VisualEffectResource.DeleteAtPath(assetPath);
+            }
+
+            return AssetDeleteResult.DidNotDelete;
+        }
     }
 
     static class VisualEffectAssetExtensions
     {
-        public static VFXGraph GetOrCreateGraph(this VisualEffectAsset asset)
+        public static VFXGraph GetOrCreateGraph(this VisualEffectResource resource)
         {
-            ScriptableObject g = asset.graph;
-            if (g == null)
+            VFXGraph graph = resource.graph as VFXGraph;
+
+            if (graph == null)
             {
-                g = ScriptableObject.CreateInstance<VFXGraph>();
-                g.name = "VFXGraph";
-                asset.graph = g;
-                g.hideFlags |= HideFlags.HideInHierarchy;
-                ((VFXGraph)g).UpdateSubAssets();
+                string assetPath = AssetDatabase.GetAssetPath(resource);
+                AssetDatabase.ImportAsset(assetPath);
+
+                graph = resource.GetContents().OfType<VFXGraph>().FirstOrDefault();
             }
 
-            VFXGraph graph = (VFXGraph)g;
-            graph.visualEffectAsset = asset;
+            if (graph == null)
+            {
+                graph = ScriptableObject.CreateInstance<VFXGraph>();
+                resource.graph = graph;
+                graph.hideFlags |= HideFlags.HideInHierarchy;
+                graph.visualEffectResource = resource;
+                // in this case we must update the subassets so that the graph is added to the resource dependencies
+                graph.UpdateSubAssets();
+            }
+
+            graph.visualEffectResource = resource;
             return graph;
         }
 
-        public static void UpdateSubAssets(this VisualEffectAsset asset)
+        public static void UpdateSubAssets(this VisualEffectResource resource)
         {
-            asset.GetOrCreateGraph().UpdateSubAssets();
+            resource.GetOrCreateGraph().UpdateSubAssets();
+        }
+
+        public static VisualEffectResource GetResource(this VisualEffectAsset asset)
+        {
+            VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(AssetDatabase.GetAssetPath(asset));
+
+            if (resource == null)
+            {
+                string assetPath = AssetDatabase.GetAssetPath(asset);
+                resource = VisualEffectResource.GetResourceAtPath(assetPath);
+                if (resource == null)
+                {
+                    resource = new VisualEffectResource();
+                    resource.SetAssetPath(assetPath);
+                }
+            }
+            return resource;
         }
     }
 
     class VFXGraph : VFXModel
     {
-        public VisualEffectAsset visualEffectAsset
+        public VisualEffectResource visualEffectResource
         {
             get
             {
@@ -121,6 +135,7 @@ namespace UnityEditor.VFX
                 if (m_Owner != value)
                 {
                     m_Owner = value;
+                    m_Owner.graph = this;
                     m_ExpressionGraphDirty = true;
                 }
             }
@@ -204,47 +219,7 @@ namespace UnityEditor.VFX
                 EditorUtility.DisplayProgressBar("Saving...", "Rebuild", 0);
                 RecompileIfNeeded();
                 float currentStep = 0;
-
-#if USE_SHADER_AS_SUBASSET
-                float stepCount = m_GeneratedComputeShader.Count + m_GeneratedShader.Count + 1;
-
-                var oldComputeShader = m_GeneratedComputeShader.ToArray();
-                var oldShader = m_GeneratedShader.ToArray();
-                var oldPath = oldComputeShader.Select(o => AssetDatabase.GetAssetPath(o)).Concat(oldShader.Select(o => AssetDatabase.GetAssetPath(o))).ToArray();
-
-                m_GeneratedComputeShader.Clear();
-                m_GeneratedShader.Clear();
-
-                for (int i = 0; i < oldComputeShader.Length; ++i)
-                {
-                    var compute = oldComputeShader[i];
-                    EditorUtility.DisplayProgressBar("Saving...", string.Format("ComputeShader embedding {0}/{1}", i, oldComputeShader.Length), (++currentStep) / stepCount);
-                    var computeShaderCopy = Instantiate<ComputeShader>(compute);
-                    DestroyImmediate(compute, true);
-                    m_GeneratedComputeShader.Add(computeShaderCopy);
-                }
-
-                for (int i = 0; i < oldShader.Length; ++i)
-                {
-                    var shader = oldShader[i];
-                    EditorUtility.DisplayProgressBar("Saving...", string.Format("Shader embedding {0}/{1}", i, oldShader.Length), (++currentStep) / stepCount);
-                    var shaderCopy = Instantiate<Shader>(shader);
-                    DestroyImmediate(shader, true);
-                    m_GeneratedShader.Add(shaderCopy);
-                }
-#else
                 float stepCount = 1;
-#endif
-
-                // hide all sub assets
-                var assets = allAssets;
-                foreach (var asset in assets)
-                {
-                    asset.hideFlags |= HideFlags.HideInHierarchy;
-                }
-                hideFlags |= HideFlags.HideInHierarchy;
-
-                EditorUtility.DisplayProgressBar("Saving...", "UpdateSubAssets", (++currentStep) / stepCount);
                 m_saved = true;
             }
             catch (Exception e)
@@ -316,46 +291,9 @@ namespace UnityEditor.VFX
                 {
                     Debug.LogError(string.Format("Exception while sanitizing VFXUI: : {0} {1}", e , e.StackTrace));
                 }
+
             m_GraphSanitized = true;
         }
-
-        IEnumerable<Object> allAssets
-        {
-            get {return AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(this)).Where(o => o is VFXModel || o is ComputeShader || o is Shader || o is VFXUI); }
-        }
-
-        public  bool displaySubAssets
-        {
-            get {return (hideFlags & HideFlags.HideInHierarchy) == 0; }
-            set
-            {
-                var persistentAssets = allAssets;
-
-                if (value)
-                {
-                    hideFlags &= ~HideFlags.HideInHierarchy;
-                }
-                else
-                {
-                    hideFlags |= HideFlags.HideInHierarchy;
-                }
-
-                foreach (var asset in persistentAssets)
-                {
-                    if (value)
-                    {
-                        asset.hideFlags &= ~HideFlags.HideInHierarchy;
-                    }
-                    else
-                    {
-                        asset.hideFlags |= HideFlags.HideInHierarchy;
-                    }
-                }
-
-                AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(visualEffectAsset));
-            }
-        }
-
 
         public void ClearCompileData()
         {
@@ -365,80 +303,27 @@ namespace UnityEditor.VFX
             m_ExpressionValuesDirty = true;
         }
 
-        public bool UpdateSubAssets()
+        public void UpdateSubAssets()
         {
-            bool modified = false;
-
-            if (!EditorUtility.IsPersistent(this) && (this.visualEffectAsset != null && EditorUtility.IsPersistent(this.visualEffectAsset)))
+            if( visualEffectResource == null)
+                return;
+            Profiler.BeginSample("VFXEditor.UpdateSubAssets");
+            try
             {
-                string assetPath = AssetDatabase.GetAssetPath(this.visualEffectAsset);
-                AssetDatabase.AddObjectToAsset(this, assetPath);
-            }
+                var currentObjects = new HashSet<ScriptableObject>();
+                currentObjects.Add(this);
+                CollectDependencies(currentObjects);
 
-            if (EditorUtility.IsPersistent(this))
+                visualEffectResource.SetContents(currentObjects.Cast<Object>().ToArray());
+            }
+            catch (Exception e)
             {
-                Profiler.BeginSample("VFXEditor.UpdateSubAssets");
-
-                try
-                {
-                    var persistentObjects = new HashSet<Object>(allAssets);
-                    persistentObjects.Remove(this);
-
-                    var currentObjects = new HashSet<ScriptableObject>();
-                    CollectDependencies(currentObjects);
-
-#if USE_SHADER_AS_SUBASSET
-                    if (m_GeneratedComputeShader != null)
-                    {
-                        foreach (var compute in m_GeneratedComputeShader)
-                        {
-                            currentObjects.Add(compute);
-                        }
-                    }
-
-                    if (m_GeneratedShader != null)
-                    {
-                        foreach (var shader in m_GeneratedShader)
-                        {
-                            currentObjects.Add(shader);
-                        }
-                    }
-#endif
-
-                    if (m_UIInfos != null)
-                        currentObjects.Add(m_UIInfos);
-                    // Add sub assets that are not already present
-                    foreach (var obj in currentObjects)
-                        if (!persistentObjects.Contains(obj))
-                        {
-                            obj.name = obj.GetType().Name;
-                            AssetDatabase.AddObjectToAsset(obj, this);
-                            obj.hideFlags = hideFlags;
-                            modified = true;
-                        }
-
-                    // Remove sub assets that are not referenced anymore
-                    foreach (var obj in persistentObjects)
-                        if (obj is ScriptableObject && !currentObjects.Contains(obj as ScriptableObject))
-                        {
-                            AssetDatabase.RemoveObjectFromAsset(obj);
-                            modified = true;
-                        }
-                }
-                catch (Exception e)
-                {
-                    Debug.Log(e);
-                }
-                finally
-                {
-                    Profiler.EndSample();
-                }
-
-                if (modified)
-                    EditorUtility.SetDirty(this);
+                Debug.LogError(e);
             }
-
-            return modified;
+            finally
+            {
+                Profiler.EndSample();
+            }
         }
 
         protected override void OnInvalidate(VFXModel model, VFXModel.InvalidationCause cause)
@@ -453,17 +338,12 @@ namespace UnityEditor.VFX
 
             if (cause == VFXModel.InvalidationCause.kStructureChanged)
             {
-                //Debug.Log("UPDATE SUB ASSETS");
-                if (UpdateSubAssets())
-                {
-                    //AssetDatabase.ImportAsset(AssetDatabase.GetAssetPath(this));
-                }
+                UpdateSubAssets();
             }
 
             if (cause != VFXModel.InvalidationCause.kExpressionInvalidated &&
                 cause != VFXModel.InvalidationCause.kExpressionGraphChanged)
             {
-                //Debug.Log("ASSET DIRTY " + cause);
                 EditorUtility.SetDirty(this);
             }
 
@@ -505,9 +385,10 @@ namespace UnityEditor.VFX
 
             if (considerGraphDirty || m_ExpressionValuesDirty)
             {
+                var vfxAsset = compiledData.visualEffectResource.asset;
                 foreach (var component in VFXManager.GetComponents())
                 {
-                    if (component.visualEffectAsset == compiledData.visualEffectAsset)
+                    if (component.visualEffectAsset == vfxAsset)
                     {
                         component.SetVisualEffectAssetDirty(considerGraphDirty);
                     }
@@ -544,6 +425,6 @@ namespace UnityEditor.VFX
 
         public bool saved { get { return m_saved; } }
 
-        private VisualEffectAsset m_Owner;
+        private VisualEffectResource m_Owner;
     }
 }

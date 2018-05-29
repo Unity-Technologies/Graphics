@@ -137,7 +137,7 @@ namespace UnityEditor.VFX
             if (effect.visualEffectAsset == null)
                 return null;
 
-            VFXGraph graph = effect.visualEffectAsset.graph as VFXGraph;
+            VFXGraph graph = effect.visualEffectAsset.GetResource().graph as VFXGraph;
             if (graph == null)
                 return null;
 

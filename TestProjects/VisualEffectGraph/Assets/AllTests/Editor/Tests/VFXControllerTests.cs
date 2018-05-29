@@ -2,6 +2,7 @@ using System;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
+using UnityEditor.Experimental.VFX;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,17 +25,20 @@ namespace UnityEditor.VFX.Test
         [SetUp]
         public void CreateTestAsset()
         {
-            VisualEffectAsset asset = new VisualEffectAsset();
-
             var directoryPath = Path.GetDirectoryName(testAssetName);
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);
             }
+            if (File.Exists(testAssetName))
+            {
+                AssetDatabase.DeleteAsset(testAssetName);
+            }
 
-            AssetDatabase.CreateAsset(asset, testAssetName);
+            VisualEffectAsset asset = VisualEffectResource.CreateNewAsset(testAssetName);
+            VisualEffectResource resource = asset.GetResource(); // force resource creation
 
-            m_ViewController = VFXViewController.GetController(asset);
+            m_ViewController = VFXViewController.GetController(resource);
             m_ViewController.useCount++;
 
             m_StartUndoGroupId = Undo.GetCurrentGroup();

@@ -266,7 +266,7 @@ namespace UnityEditor.VFX
             return v.vector;
         }
 
-        public static Vector defaultValue = new Vector { vector = Vector3.zero };
+        public static Vector defaultValue = new Vector() { vector = Vector3.zero };
     }
 
     [VFXType, Serializable]
