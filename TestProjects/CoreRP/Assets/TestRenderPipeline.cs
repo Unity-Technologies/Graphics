@@ -4,14 +4,6 @@ using UnityEngine.Experimental.Rendering;
 
 
 [ExecuteInEditMode]
-public class TestRenderPipelineAsset : RenderPipelineAsset
-{
-    protected override IRenderPipeline InternalCreatePipeline()
-    {
-        return new TestRenderPipeline();
-    }
-}
-
 public class TestRenderPipeline : RenderPipeline
 {
     public override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
