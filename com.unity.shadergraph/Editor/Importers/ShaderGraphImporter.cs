@@ -9,7 +9,7 @@ using UnityEditor;
 using UnityEditor.Experimental.AssetImporters;
 using UnityEditor.ShaderGraph.Drawing;
 
-[ScriptedImporter(14, ShaderGraphImporter.ShaderGraphExtension)]
+[ScriptedImporter(14, ShaderGraphExtension)]
 public class ShaderGraphImporter : ScriptedImporter
 {
     public const string ShaderGraphExtension = "shadergraph";
@@ -66,6 +66,7 @@ Shader ""Hidden/GraphErrorShader2""
         List<PropertyCollector.TextureInfo> configuredTextures;
         string path = ctx.assetPath;
         string shaderString = null;
+        var sourceAssetDependencyPaths = new List<string>();
         var shaderName = Path.GetFileNameWithoutExtension(path);
         try
         {
@@ -76,6 +77,9 @@ Shader ""Hidden/GraphErrorShader2""
             if (!string.IsNullOrEmpty(graph.path))
                 shaderName = graph.path + "/" + shaderName;
             shaderString = graph.GetShader(shaderName, GenerationMode.ForReals, out configuredTextures);
+
+            foreach (var node in graph.GetNodes<AbstractMaterialNode>())
+                node.GetSourceAssetDependencies(sourceAssetDependencyPaths);
         }
         catch (Exception)
         {
@@ -97,6 +101,9 @@ Shader ""Hidden/GraphErrorShader2""
 
         ctx.AddObjectToAsset("MainAsset", shader);
         ctx.SetMainObject(shader);
+
+        foreach (var sourceAssetDependencyPath in sourceAssetDependencyPaths.Distinct())
+            ctx.DependsOnSourceAsset(sourceAssetDependencyPath);
     }
 }
 
