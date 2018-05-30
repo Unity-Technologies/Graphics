@@ -4,14 +4,14 @@ using UnityEngine;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Arithmetic")]
-    class Modulo : VFXOperatorFloatUnifiedWithVariadicOutput
+    class Modulo : VFXOperatorNumericUniform
     {
         public class InputProperties
         {
             [Tooltip("The numerator operand.")]
-            public FloatN a = new FloatN(1.0f);
+            public float a = 1.0f;
             [Tooltip("The denominator operand.")]
-            public FloatN b = new FloatN(1.0f);
+            public float b = 1.0f;
         }
 
         override public string name { get { return "Modulo"; } }

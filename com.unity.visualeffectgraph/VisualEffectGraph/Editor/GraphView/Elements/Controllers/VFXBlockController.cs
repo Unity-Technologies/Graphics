@@ -47,10 +47,5 @@ namespace UnityEditor.VFX.UI
         {
             get { return m_ContextController.FindBlockIndexOf(this); }
         }
-
-        bool ShouldIgnoreMember(Type type, FieldInfo field)
-        {
-            return typeof(ISpaceable).IsAssignableFrom(type) && field.Name == "space";
-        }
     }
 }

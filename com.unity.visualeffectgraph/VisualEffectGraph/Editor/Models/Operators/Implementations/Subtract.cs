@@ -1,13 +1,15 @@
 using System;
+using UnityEditor.VFX;
 
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Arithmetic")]
-    class Subtract : VFXOperatorBinaryFloatOperationZero
+    class Subtract : VFXOperatorNumericCascadedUnified
     {
-        override public string name { get { return "Subtract"; } }
+        public override sealed string name { get { return "Subtract"; } }
+        protected override sealed double defaultValueDouble { get { return 0.0; } }
 
-        override protected VFXExpression ComposeExpression(VFXExpression a, VFXExpression b)
+        protected override sealed VFXExpression ComposeExpression(VFXExpression a, VFXExpression b)
         {
             return a - b;
         }

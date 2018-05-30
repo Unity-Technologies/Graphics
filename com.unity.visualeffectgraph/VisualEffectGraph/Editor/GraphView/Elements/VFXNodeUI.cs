@@ -151,6 +151,14 @@ namespace UnityEditor.VFX.UI
                         }
                     }
                 }
+                if (hasSettings)
+                {
+                    settingsContainer.RemoveFromClassList("nosettings");
+                }
+                else
+                {
+                    settingsContainer.AddToClassList("nosettings");
+                }
             }
             Profiler.EndSample();
         }

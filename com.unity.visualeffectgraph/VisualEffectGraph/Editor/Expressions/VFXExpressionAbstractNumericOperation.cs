@@ -28,6 +28,7 @@ namespace UnityEditor.VFX
                 case VFXValueType.Float4: return ToObjectArray(input.Get<Vector4>());
                 case VFXValueType.Int32: return new object[] { input.Get<int>() };
                 case VFXValueType.Uint32: return new object[] { input.Get<uint>() };
+                case VFXValueType.Boolean: return new object[] { input.Get<bool>() };
             }
             return null;
         }
@@ -45,6 +46,12 @@ namespace UnityEditor.VFX
                 if (input.Length != 1)
                     throw new InvalidOperationException("VFXExpressionMathOperation : Unexpected size of uint");
                 return new VFXValue<uint>((uint)input[0], mode);
+            }
+            else if (input[0] is bool)
+            {
+                if (input.Length != 1)
+                    throw new InvalidOperationException("VFXExpressionMathOperation : Unexpected size of bool");
+                return new VFXValue<bool>((bool)input[0], mode);
             }
             else if (input[0] is float)
             {
@@ -64,7 +71,7 @@ namespace UnityEditor.VFX
 
         static protected bool IsNumeric(VFXValueType type)
         {
-            return IsFloatValueType(type) || IsUIntValueType(type) || IsIntValueType(type);
+            return IsFloatValueType(type) || IsUIntValueType(type) || IsIntValueType(type) || IsBoolValueType(type);
         }
 
         sealed public override VFXExpressionOperation operation { get { return m_Operation; } }
@@ -111,6 +118,10 @@ namespace UnityEditor.VFX
             {
                 result = source.Select(o => (object)ProcessUnaryOperation((uint)o)).ToArray();
             }
+            else if (source[0] is bool)
+            {
+                result = source.Select(o => (object)ProcessUnaryOperation((bool)o)).ToArray();
+            }
             else
             {
                 throw new InvalidOperationException("Unexpected type in VFXExpressionUnaryMathOperation");
@@ -121,6 +132,7 @@ namespace UnityEditor.VFX
         abstract protected float ProcessUnaryOperation(float input);
         abstract protected int ProcessUnaryOperation(int input);
         abstract protected uint ProcessUnaryOperation(uint input);
+        abstract protected bool ProcessUnaryOperation(bool input);
 
         sealed public override string GetCodeString(string[] parents)
         {
@@ -182,6 +194,13 @@ namespace UnityEditor.VFX
                     result[iChannel] = ProcessBinaryOperation((uint)sourceLeft[iChannel], (uint)sourceRight[iChannel]);
                 }
             }
+            else if (sourceLeft[0] is bool)
+            {
+                for (int iChannel = 0; iChannel < sourceLeft.Length; ++iChannel)
+                {
+                    result[iChannel] = ProcessBinaryOperation((bool)sourceLeft[iChannel], (bool)sourceRight[iChannel]);
+                }
+            }
             else
             {
                 throw new InvalidOperationException("Unexpected type in VFXExpressionUnaryMathOperation");
@@ -192,6 +211,7 @@ namespace UnityEditor.VFX
         abstract protected float ProcessBinaryOperation(float x, float y);
         abstract protected int ProcessBinaryOperation(int x, int y);
         abstract protected uint ProcessBinaryOperation(uint x, uint y);
+        abstract protected bool ProcessBinaryOperation(bool x, bool y);
 
         sealed public override string GetCodeString(string[] parents)
         {

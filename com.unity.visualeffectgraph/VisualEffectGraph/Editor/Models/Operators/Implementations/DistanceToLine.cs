@@ -25,7 +25,7 @@ namespace UnityEditor.VFX.Operator
 
         override public string name { get { return "Distance (Line)"; } }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             VFXExpression lineDelta = (inputExpression[1] - inputExpression[0]);
             VFXExpression lineLength = new VFXExpressionMax(VFXOperatorUtility.Dot(lineDelta, lineDelta), VFXValue.Constant(Mathf.Epsilon));

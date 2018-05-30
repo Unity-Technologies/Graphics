@@ -1,26 +1,51 @@
 using System;
+using System.Linq;
+using System.Collections.Generic;
+using UnityEditor.VFX;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Vector")]
-    class SquaredLength : VFXOperatorFloatUnified
+    class SquaredLength : VFXOperatorNumericUniform
     {
         public class InputProperties
         {
-            [Tooltip("The vector used to calculate the squared length.")]
-            public FloatN x = Vector3.one;
+            [Tooltip("The vector to be used in the length calculation.")]
+            public Vector3 x;
         }
 
-        public class OutputProperties
+        protected override sealed Type GetExpectedOutputTypeOfOperation(IEnumerable<Type> inputTypes)
         {
-            [Tooltip("The squared length of x.")]
-            public float l;
+            var type = inputTypes.First(); //derive from VFXOperatorNumericUniform, First is suitable
+            return VFXExpression.GetMatchingScalar(type);
         }
 
-        override public string name { get { return "Squared Length"; } }
+        protected sealed override string expectedOutputName
+        {
+            get
+            {
+                return "l";
+            }
+        }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXPropertyAttribute[] expectedOutputAttributes
+        {
+            get
+            {
+                return VFXPropertyAttribute.Create(new TooltipAttribute("The squared length of x."));
+            }
+        }
+
+        public sealed override string name
+        {
+            get
+            {
+                return "Squared Length";
+            }
+        }
+
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { VFXOperatorUtility.Dot(inputExpression[0], inputExpression[0]) };
         }

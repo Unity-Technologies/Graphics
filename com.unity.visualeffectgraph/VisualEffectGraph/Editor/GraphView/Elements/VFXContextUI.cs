@@ -322,7 +322,17 @@ namespace UnityEditor.VFX.UI
             return m_BlockContainer.childCount;
         }
 
-        bool IDropTarget.DragUpdated(DragUpdatedEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
+        bool IDropTarget.DragEnter(DragEnterEvent evt, IEnumerable<ISelectable> selection, IDropTarget enteredTarget, ISelection dragSource)
+        {
+            return true;
+        }
+
+        bool IDropTarget.DragLeave(DragLeaveEvent evt, IEnumerable<ISelectable> selection, IDropTarget leftTarget, ISelection dragSource)
+        {
+            return true;
+        }
+
+        bool IDropTarget.DragUpdated(DragUpdatedEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget, ISelection dragSource)
         {
             IEnumerable<VFXBlockUI> blocksUI = selection.Select(t => t as VFXBlockUI).Where(t => t != null);
 
@@ -345,7 +355,7 @@ namespace UnityEditor.VFX.UI
             return true;
         }
 
-        bool IDropTarget.DragPerform(DragPerformEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
+        bool IDropTarget.DragPerform(DragPerformEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget, ISelection dragSource)
         {
             DragFinished();
 
@@ -547,7 +557,11 @@ namespace UnityEditor.VFX.UI
 
         public void OnCreateBlock(Vector2 referencePosition)
         {
-            VFXFilterWindow.Show(VFXViewWindow.currentWindow, referencePosition, m_BlockProvider);
+            VFXView view = GetFirstAncestorOfType<VFXView>();
+
+            Vector2 screenPosition = view.ViewToScreenPosition(referencePosition);
+
+            VFXFilterWindow.Show(VFXViewWindow.currentWindow, referencePosition, screenPosition, m_BlockProvider);
         }
 
         VFXBlockProvider m_BlockProvider = null;

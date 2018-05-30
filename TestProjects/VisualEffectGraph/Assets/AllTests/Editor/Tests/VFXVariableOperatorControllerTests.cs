@@ -2,6 +2,7 @@ using System;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
+using UnityEditor.Experimental.VFX;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,17 +26,20 @@ namespace UnityEditor.VFX.Test
         [SetUp]
         public void CreateTestAsset()
         {
-            VisualEffectAsset asset = new VisualEffectAsset();
-
             var directoryPath = Path.GetDirectoryName(testAssetName);
             if (!Directory.Exists(directoryPath))
             {
                 Directory.CreateDirectory(directoryPath);
             }
+            if (File.Exists(testAssetName))
+            {
+                AssetDatabase.DeleteAsset(testAssetName);
+            }
 
-            AssetDatabase.CreateAsset(asset, testAssetName);
+            var asset = VisualEffectResource.CreateNewAsset(testAssetName);
+            var resource = asset.GetResource(); // force resource creation
 
-            m_ViewController = VFXViewController.GetController(asset);
+            m_ViewController = VFXViewController.GetController(resource);
             m_ViewController.useCount++;
 
             m_StartUndoGroupId = Undo.GetCurrentGroup();
@@ -69,7 +73,7 @@ namespace UnityEditor.VFX.Test
             return m_ViewController.GetRootNodeController(op, 0);
         }
 
-        static private string[] variableOperators = { "AddNew", "DotProductNew", "ClampNew" };
+        static private string[] variableOperators = { "Add", "DotProduct", "Clamp" };
 
         [Test]
         public void LinkingValidOutputSlotToVariableOperatorChangesType([ValueSource("variableOperators")] string operatorName)
@@ -94,8 +98,8 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void LinkingValidOutputSlotToUniformOperatorChangesTypeIfNoLinkOrMandatory()
         {
-            var variableOperator = CreateNew("DistanceNew", new Vector2(1, 2));
-            var operatorModel = variableOperator.model as VFXOperatorNumericNew;
+            var variableOperator = CreateNew("Distance", new Vector2(1, 2));
+            var operatorModel = variableOperator.model as VFXOperatorNumeric;
 
             var vector2inline = CreateNew(typeof(Vector2).UserFriendlyName(), new Vector2(2, 2), typeof(VFXInlineOperator));
             var vector3inline = CreateNew(typeof(Vector3).UserFriendlyName(), new Vector2(2, 2), typeof(VFXInlineOperator));
@@ -121,8 +125,8 @@ namespace UnityEditor.VFX.Test
         [Test]
         public void CascadedOperatorTests()
         {
-            var variableOperator = CreateNew("AddNew", new Vector2(1, 2)) as VFXCascadedOperatorController;
-            var operatorModel = variableOperator.model as VFXOperatorNumericNew;
+            var variableOperator = CreateNew("Add", new Vector2(1, 2)) as VFXCascadedOperatorController;
+            var operatorModel = variableOperator.model as VFXOperatorNumeric;
 
             var vector2inline = CreateNew(typeof(Vector2).UserFriendlyName(), new Vector2(2, 2), typeof(VFXInlineOperator));
             var vector3inline = CreateNew(typeof(Vector3).UserFriendlyName(), new Vector2(2, 2), typeof(VFXInlineOperator));

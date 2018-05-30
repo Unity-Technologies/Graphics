@@ -1,9 +1,6 @@
 VFXContextUI {
     font-size:18;
-    -flex: 1;
     flex-direction: column;
-    -align-items: stretch;
-    -min-width: 340;
     margin-top:0;
 }
 VFXContextUI > #node-border
@@ -97,7 +94,6 @@ VFXOwnContextSlotContainerUI.VFXContextSlotContainerUI
     margin-left:0;
     margin-bottom:0;
 
-    -border-color: #FFBC21;
     border-left-width:1;
     border-right-width:1;
     border-top-width:1;

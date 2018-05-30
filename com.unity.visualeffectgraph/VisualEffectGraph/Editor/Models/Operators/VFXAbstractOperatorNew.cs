@@ -8,11 +8,14 @@ namespace UnityEditor.VFX
 {
     abstract class VFXOperatorDynamicOperand : VFXOperator
     {
-        /* Global rules */
+        /* Global rules (these function are too general, should be a separated utility) */
         //output depends on all input type applying float > uint > int > bool (http://c0x.coding-guidelines.com/6.3.1.8.html)
         public static readonly Type[] kExpectedTypeOrdering = new[]
         {
             typeof(Vector4),
+            typeof(Position),
+            typeof(Vector),
+            typeof(DirectionType),
             typeof(Vector3),
             typeof(Vector2),
             typeof(float),
@@ -37,6 +40,16 @@ namespace UnityEditor.VFX
         public sealed override void OnEnable()
         {
             base.OnEnable();
+        }
+
+        static public IEnumerable<Type> GetTypeAffinityList(Type type)
+        {
+            Type[] affinity = null;
+            if (!kTypeAffinity.TryGetValue(type, out affinity))
+            {
+                return Enumerable.Empty<Type>();
+            }
+            return affinity;
         }
 
         public Type GetBestAffinityType(Type type)
@@ -71,7 +84,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    abstract class VFXOperatorNumericNew : VFXOperatorDynamicOperand
+    abstract class VFXOperatorNumeric : VFXOperatorDynamicOperand
     {
         protected sealed override Type defaultValueType
         {
@@ -194,7 +207,7 @@ namespace UnityEditor.VFX
             return null;
         }
 
-        protected sealed override IEnumerable<VFXExpression> ApplyPatchInputExpression(IEnumerable<VFXExpression> inputExpression)
+        protected override IEnumerable<VFXExpression> ApplyPatchInputExpression(IEnumerable<VFXExpression> inputExpression)
         {
             var minIndex = inputExpression.Select(o => Array.IndexOf(kExpectedTypeOrdering, VFXExpression.TypeToType(o.valueType))).Min();
             var unifiedType = VFXExpression.GetVFXValueTypeFromType(kExpectedTypeOrdering[minIndex]);
@@ -264,9 +277,9 @@ namespace UnityEditor.VFX
         IEnumerable<int> staticSlotIndex { get; }
     }
 
-    abstract class VFXOperatorNumericUniformNew : VFXOperatorNumericNew, IVFXOperatorUniform
+    abstract class VFXOperatorNumericUniform : VFXOperatorNumeric, IVFXOperatorUniform
     {
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField]
         SerializableType m_Type;
 
         protected override double defaultValueDouble //Most common case for this kind of operator (still overridable)
@@ -327,7 +340,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    interface IVFXOperatorNumericUnifiedNew
+    interface IVFXOperatorNumericUnified
     {
         int operandCount { get; }
         Type GetOperandType(int index);
@@ -340,9 +353,9 @@ namespace UnityEditor.VFX
         IEnumerable<int> slotIndicesThatCanBeScalar { get; }
     }
 
-    abstract class VFXOperatorNumericUnifiedNew : VFXOperatorNumericNew, IVFXOperatorNumericUnifiedNew
+    abstract class VFXOperatorNumericUnified : VFXOperatorNumeric, IVFXOperatorNumericUnified
     {
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField]
         SerializableType[] m_Type;
 
         protected override double defaultValueDouble //Most common case for this kind of operator (still overridable)
@@ -400,7 +413,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    abstract class VFXOperatorNumericCascadedUnifiedNew : VFXOperatorNumericNew, IVFXOperatorNumericUnifiedNew
+    abstract class VFXOperatorNumericCascadedUnified : VFXOperatorNumeric, IVFXOperatorNumericUnified
     {
         [Serializable]
         public struct Operand
@@ -409,7 +422,7 @@ namespace UnityEditor.VFX
             public SerializableType type;
         }
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.None), SerializeField]
         Operand[] m_Operands;
 
         protected string GetDefaultName(int index)
