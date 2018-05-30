@@ -16,13 +16,13 @@ namespace UnityEditor.VFX
         {
             titleContent = Contents.title;
 #if !USE_SHADER_AS_SUBASSET
-            EditorGUILayout.LabelField("VFX Cache", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("VFX Assets", EditorStyles.boldLabel);
             using (new GUILayout.HorizontalScope())
             {
                 /*if (GUILayout.Button("Clear"))
                     VFXCacheManager.Clear();*/
 
-                if (GUILayout.Button("Rebuild"))
+                if (GUILayout.Button("Recompile All"))
                     VFXCacheManager.Build();
             }
             EditorGUILayout.Space();
