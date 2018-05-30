@@ -64,24 +64,7 @@ Shader ""Hidden/GraphErrorShader2""
             ShaderUtil.ClearShaderErrors(oldShader);
 
         List<PropertyCollector.TextureInfo> configuredTextures;
-        var text = GetShaderText(ctx.assetPath, out configuredTextures);
-        var shader = ShaderUtil.CreateShaderAsset(text);
-
-        EditorMaterialUtility.SetShaderDefaults(
-            shader,
-            configuredTextures.Where(x => x.modifiable).Select(x => x.name).ToArray(),
-            configuredTextures.Where(x => x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
-        EditorMaterialUtility.SetShaderNonModifiableDefaults(
-            shader,
-            configuredTextures.Where(x => !x.modifiable).Select(x => x.name).ToArray(),
-            configuredTextures.Where(x => !x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
-
-        ctx.AddObjectToAsset("MainAsset", shader);
-        ctx.SetMainObject(shader);
-    }
-
-    internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures)
-    {
+        string path = ctx.assetPath;
         string shaderString = null;
         var shaderName = Path.GetFileNameWithoutExtension(path);
         try
@@ -99,7 +82,21 @@ Shader ""Hidden/GraphErrorShader2""
             configuredTextures = new List<PropertyCollector.TextureInfo>();
             // ignored
         }
-        return shaderString ?? k_ErrorShader.Replace("Hidden/GraphErrorShader2", shaderName);
+
+        var text = shaderString ?? k_ErrorShader.Replace("Hidden/GraphErrorShader2", shaderName);
+        var shader = ShaderUtil.CreateShaderAsset(text);
+
+        EditorMaterialUtility.SetShaderDefaults(
+            shader,
+            configuredTextures.Where(x => x.modifiable).Select(x => x.name).ToArray(),
+            configuredTextures.Where(x => x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
+        EditorMaterialUtility.SetShaderNonModifiableDefaults(
+            shader,
+            configuredTextures.Where(x => !x.modifiable).Select(x => x.name).ToArray(),
+            configuredTextures.Where(x => !x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
+
+        ctx.AddObjectToAsset("MainAsset", shader);
+        ctx.SetMainObject(shader);
     }
 }
 
