@@ -59,7 +59,7 @@ namespace UnityEditor.ShaderGraph
             Dirty(ModificationScope.Graph);
         }
 
-        public string GetShader(GenerationMode mode, string outputName, out List<PropertyCollector.TextureInfo> configuredTextures)
+        public string GetShader(GenerationMode mode, string outputName, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths = null)
         {
             var activeNodeList = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, this);
@@ -84,7 +84,7 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 foreach (var subShader in m_SubShaders)
-                    finalShader.AppendLines(subShader.GetSubshader(this, mode));
+                    finalShader.AppendLines(subShader.GetSubshader(this, mode, sourceAssetDependencyPaths));
 
                 finalShader.AppendLine(@"FallBack ""Hidden/InternalErrorShader""");
             }

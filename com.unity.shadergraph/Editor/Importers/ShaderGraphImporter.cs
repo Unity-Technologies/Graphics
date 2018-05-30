@@ -76,7 +76,7 @@ Shader ""Hidden/GraphErrorShader2""
 
             if (!string.IsNullOrEmpty(graph.path))
                 shaderName = graph.path + "/" + shaderName;
-            shaderString = graph.GetShader(shaderName, GenerationMode.ForReals, out configuredTextures);
+            shaderString = graph.GetShader(shaderName, GenerationMode.ForReals, out configuredTextures, sourceAssetDependencyPaths);
 
             foreach (var node in graph.GetNodes<AbstractMaterialNode>())
                 node.GetSourceAssetDependencies(sourceAssetDependencyPaths);
