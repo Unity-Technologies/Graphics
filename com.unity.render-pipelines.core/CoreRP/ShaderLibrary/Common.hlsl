@@ -478,6 +478,13 @@ float ComputeTextureLOD(float2 uv, float2 texelSize)
     return ComputeTextureLOD(uv);
 }
 
+float ComputeTextureLOD(float3 Px, float3 Py, float3 Pz)
+{
+    float d = max(dot(Px, Px), max(dot(Py, Py), dot(Pz, Pz)));
+    return max(0.0, 0.5 * log2(d));
+}
+
+
 uint GetMipCount(Texture2D tex)
 {
 #if defined(SHADER_API_D3D11) || defined(SHADER_API_D3D12) || defined(SHADER_API_D3D11_9X) || defined(SHADER_API_XBOXONE) || defined(SHADER_API_PSSL)
