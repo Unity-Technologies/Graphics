@@ -411,5 +411,17 @@ namespace UnityEditor.ShaderGraph
 
             return referencedGraph.activeNodes.OfType<IMayRequireVertexColor>().Any(x => x.RequiresVertexColor(stageCapability));
         }
+
+        public override void GetSourceAssetDependencies(List<string> paths)
+        {
+            base.GetSourceAssetDependencies(paths);
+            if (subGraphAsset != null)
+            {
+                var assetPath = AssetDatabase.GetAssetPath(subGraphAsset);
+                paths.Add(assetPath);
+                foreach (var dependencyPath in AssetDatabase.GetDependencies(assetPath))
+                    paths.Add(dependencyPath);
+            }
+        }
     }
 }
