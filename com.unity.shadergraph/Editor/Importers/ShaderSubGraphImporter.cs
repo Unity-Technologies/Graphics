@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-[ScriptedImporter(1, "ShaderSubGraph")]
+[ScriptedImporter(2, "ShaderSubGraph")]
 public class ShaderSubGraphImporter : ScriptedImporter
 {
     public override void OnImportAsset(AssetImportContext ctx)
