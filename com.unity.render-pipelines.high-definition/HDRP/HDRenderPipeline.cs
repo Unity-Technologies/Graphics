@@ -937,7 +937,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     RenderDepthPrepass(m_CullResults, hdCamera, renderContext, cmd, forcePrepassForDecals);
 
                     // This will bind the depth buffer if needed for DBuffer)
-                    RenderDBuffer(hdCamera, cmd);
+                    RenderDBuffer(hdCamera, cmd, renderContext, m_CullResults);
 
                     RenderGBuffer(m_CullResults, hdCamera, enableBakeShadowMask, renderContext, cmd);
 
@@ -1380,7 +1380,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderDBuffer(HDCamera hdCamera, CommandBuffer cmd)
+        void RenderDBuffer(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, CullResults cullResults)
         {
             if (!hdCamera.frameSettings.enableDBuffer)
                 return;
@@ -1395,7 +1395,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_DbufferManager.ClearTargets(cmd, hdCamera);
                 HDUtils.SetRenderTarget(cmd, hdCamera, m_DbufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer); // do not clear anymore
                 m_DbufferManager.SetHTile(m_DbufferManager.bufferCount, cmd);
-                DecalSystem.instance.RenderIntoDBuffer(cmd);
+                DrawRendererSettings drawSettings = new DrawRendererSettings(hdCamera.camera, HDShaderPassNames.s_EmptyName)
+                {
+                    rendererConfiguration = 0,
+                    sorting = { flags = SortFlags.CommonOpaque }
+                };
+                drawSettings.SetShaderPassName(0, HDShaderPassNames.s_MeshDecalsName);
+                FilterRenderersSettings filterRenderersSettings = new FilterRenderersSettings(true)
+                {
+                    renderQueueRange = HDRenderQueue.k_RenderQueue_AllOpaque
+                };
+                renderContext.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, filterRenderersSettings);
+
+//                DecalSystem.instance.RenderIntoDBuffer(cmd);
                 m_DbufferManager.UnSetHTile(cmd);
                 m_DbufferManager.SetHTileTexture(cmd);  // mask per 8x8 tile used for optimization when looking up dbuffer values
             }
