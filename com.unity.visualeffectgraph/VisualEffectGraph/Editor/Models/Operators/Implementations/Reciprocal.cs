@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.Operator
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var expression = inputExpression[0];
-            return new[] { VFXOperatorUtility.OneExpression[expression.valueType] / expression };
+            return new[] { VFXOperatorUtility.Reciprocal(expression) };
         }
 
         protected sealed override ValidTypeRule typeFilter
