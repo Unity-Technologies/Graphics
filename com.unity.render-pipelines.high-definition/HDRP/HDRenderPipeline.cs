@@ -912,7 +912,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_MaterialList.ForEach(material => material.Bind());
 
                     // Frustum cull density volumes on the CPU. Can be performed as soon as the camera is set up.
-                    DensityVolumeList densityVolumes = m_VolumetricLightingSystem.PrepareVisibleDensityVolumeList(hdCamera, cmd);
+                    DensityVolumeList densityVolumes = m_VolumetricLightingSystem.PrepareVisibleDensityVolumeList(hdCamera, cmd, m_Time);
 
                     // Note: Legacy Unity behave like this for ShadowMask
                     // When you select ShadowMask in Lighting panel it recompile shaders on the fly with the SHADOW_MASK keyword.
