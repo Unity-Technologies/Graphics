@@ -8,7 +8,7 @@ namespace UnityEditor.VFX
 {
     abstract class VFXOperatorDynamicOperand : VFXOperator
     {
-        /* Global rules */
+        /* Global rules (these function are too general, should be a separated utility) */
         //output depends on all input type applying float > uint > int > bool (http://c0x.coding-guidelines.com/6.3.1.8.html)
         public static readonly Type[] kExpectedTypeOrdering = new[]
         {
@@ -40,6 +40,16 @@ namespace UnityEditor.VFX
         public sealed override void OnEnable()
         {
             base.OnEnable();
+        }
+
+        static public IEnumerable<Type> GetTypeAffinityList(Type type)
+        {
+            Type[] affinity = null;
+            if (!kTypeAffinity.TryGetValue(type, out affinity))
+            {
+                return Enumerable.Empty<Type>();
+            }
+            return affinity;
         }
 
         public Type GetBestAffinityType(Type type)
