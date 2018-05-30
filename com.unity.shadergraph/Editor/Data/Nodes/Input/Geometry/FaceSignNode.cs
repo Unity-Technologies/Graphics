@@ -20,7 +20,7 @@ namespace UnityEditor.ShaderGraph
 		public override bool hasPreview { get { return false; } }
 
 		public const int OutputSlotId = 0;
-        private const string kOutputSlotName = "Out";
+        private const string kOutputSlotName = "Is Front";
 
 		public override void UpdateNodeAfterDeserialization()
         {
