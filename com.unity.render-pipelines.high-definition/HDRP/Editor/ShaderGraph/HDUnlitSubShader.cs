@@ -224,7 +224,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots);
 
             // graph requirements describe what the graph itself requires
-            var graphRequirements = ShaderGraphRequirements.FromNodes(activeNodeList, ShaderStageCapability.All, true, true);
+            var graphRequirements = ShaderGraphRequirements.FromNodes(activeNodeList, ShaderStageCapability.All, false);        // TODO: capability.all ??  fragment only?
+
 
             ShaderStringBuilder graphNodeFunctions = new ShaderStringBuilder();
             graphNodeFunctions.IncreaseIndent();
@@ -232,6 +233,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Build the list of active slots based on what the pass requires
             // TODO: this can be a shared function -- From here through GraphUtil.GenerateSurfaceDescription(..)
+            // var pixelSlots = HDSubShaderUtilities.FindSlotsOnMasterNode(pass.PixelShaderSlots, masterNode);      // TODO: need to have a generic interface for masterNode.FindSlot<> ?
+
             var activeSlots = new List<MaterialSlot>();
             foreach (var id in pass.PixelShaderSlots)
             {
@@ -303,15 +306,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
+            // build initial requirements
+            HDRPShaderStructs.AddActiveFieldsFromPixelGraphRequirements(activeFields, graphRequirements);
+
+            HDRPShaderStructs.AddRequiredFields(pass.RequiredFields, activeFields);
+
             var packedInterpolatorCode = new ShaderGenerator();
-            var graphInputs = new ShaderGenerator();
             HDRPShaderStructs.Generate(
                 packedInterpolatorCode,
-                graphInputs,
-                graphRequirements,
-                pass.RequiredFields,
-                CoordinateSpace.World,
                 activeFields);
+
+            // build graph inputs structures
+            var graphInputs = new ShaderGenerator();
+            ShaderSpliceUtil.BuildType(typeof(HDRPShaderStructs.SurfaceDescriptionInputs), activeFields, graphInputs);
 
             // debug output all active fields
             var interpolatorDefines = new ShaderGenerator();
