@@ -5,7 +5,7 @@
     "unity": "2018.2",
     "displayName": "Lightweight Render Pipeline",
     "dependencies": {
-        "com.unity.postprocessing": "2.0.6-preview",
+        "com.unity.postprocessing": "2.0.7-preview",
         "com.unity.render-pipelines.core": "3.0.0-preview",
         "com.unity.shadergraph": "3.0.0-preview"
     }
