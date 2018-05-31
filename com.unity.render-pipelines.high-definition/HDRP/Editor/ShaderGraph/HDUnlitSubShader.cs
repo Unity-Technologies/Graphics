@@ -233,7 +233,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 return false;
             }
 
-            sourceAssetDependencyPaths.Add(templateLocation);
+            if (sourceAssetDependencyPaths != null)
+                sourceAssetDependencyPaths.Add(templateLocation);
 
             // grab all of the active nodes (for pixel and vertex graphs)
             var vertexNodes = ListPool<AbstractMaterialNode>.Get();
