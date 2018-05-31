@@ -16,6 +16,7 @@
 ### Changed, Removals and deprecations
 - Removed GlobalLightLoopSettings.maxPlanarReflectionProbes and instead use value of GlobalLightLoopSettings.planarReflectionProbeCacheSize
 - Changed SupportForwardOnly to SupportOnlyForward in render pipeline settings
+- Remove EmissiveIntensity parameter and change EmissiveColor to be HDR (Matching Builtin Unity behavior) - Data need to be updated
 
 ### Bug fixes
 - Fix issue with LOD transition and instancing
