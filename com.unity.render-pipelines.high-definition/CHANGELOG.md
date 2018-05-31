@@ -11,17 +11,23 @@
 - Support correctly scene selection for alpha tested object
 - Add per light shadow mask mode control (i.e shadow mask distance and shadow mask). It use the option NonLightmappedOnly
 - Add geometric filtering to Lit shader (allow to reduce specular aliasing)
-- Allow to double click on a render pipeline asset to setup it automatically in GraphicSettings.
+- Allow to double click on a render pipeline asset to setup it automatically in GraphicSettings
+- Add shortcut to create DensityVolume and PlanarReflection in hierarchy
+- Add a DefaultHDMirrorMaterial material for PlanarReflection
 
 ### Changed, Removals and deprecations
 - Removed GlobalLightLoopSettings.maxPlanarReflectionProbes and instead use value of GlobalLightLoopSettings.planarReflectionProbeCacheSize
 - Changed SupportForwardOnly to SupportOnlyForward in render pipeline settings
 - Remove EmissiveIntensity parameter and change EmissiveColor to be HDR (Matching Builtin Unity behavior) - Data need to be updated
+- Changed versioning variable name in HDAdditionalXXXData from m_version to version
+- Create unique name when creating a game object in the rendering menu (i.e Density Volume(2))
 
 ### Bug fixes
 - Fix issue with LOD transition and instancing
 - Fix discrepency between object motion vector and camera motion vector
 - Fix issue with spot and dir light gizmo axis not highlighted correctly
+- Fix potential crash while register debug windows inputs at startup
+
 
 ## [2018.1 undecided]
 
