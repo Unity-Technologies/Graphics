@@ -66,7 +66,7 @@ namespace UnityEditor.VFX.Block
                         break;
 
                     case Mode.LookAtLine:
-                        yield return new VFXPropertyWithValue(new VFXProperty(typeof(Line), "Line"));
+                        yield return new VFXPropertyWithValue(new VFXProperty(typeof(Line), "Line"), Line.defaultValue);
                         break;
 
                     case Mode.FixedOrientation:
@@ -92,14 +92,36 @@ namespace UnityEditor.VFX.Block
 float3x3 viewRot = GetVFXToViewRotMatrix();
 axisX = viewRot[0].xyz;
 axisY = viewRot[1].xyz;
+#if VFX_LOCAL_SPACE // Need to remove potential scale in local transform
+axisX = normalize(axisX);
+axisY = normalize(axisY);
+axisZ = cross(axisX,axisY);
+#else
 axisZ = -viewRot[2].xyz;
+#endif
 ";
 
                     case Mode.FaceCameraPosition:
                         return @"
-axisZ = normalize(position - GetViewVFXPosition());
-axisX = normalize(cross(GetVFXToViewRotMatrix()[1].xyz,axisZ));
-axisY = cross(axisZ,axisX);
+if (unity_OrthoParams.w == 1.0f) // Face plane for ortho
+{
+    float3x3 viewRot = GetVFXToViewRotMatrix();
+    axisX = viewRot[0].xyz;
+    axisY = viewRot[1].xyz;
+    #if VFX_LOCAL_SPACE // Need to remove potential scale in local transform
+    axisX = normalize(axisX);
+    axisY = normalize(axisY);
+    axisZ = cross(axisX,axisY);
+    #else
+    axisZ = -viewRot[2].xyz;
+    #endif
+}
+else
+{
+    axisZ = normalize(position - GetViewVFXPosition());
+    axisX = normalize(cross(GetVFXToViewRotMatrix()[1].xyz,axisZ));
+    axisY = cross(axisZ,axisX);
+}
 ";
 
                     case Mode.LookAtPosition:

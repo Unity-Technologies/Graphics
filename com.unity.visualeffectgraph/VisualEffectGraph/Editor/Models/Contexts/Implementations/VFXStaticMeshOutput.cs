@@ -37,10 +37,16 @@ namespace UnityEditor.VFX
                 yield return new VFXPropertyWithValue(new VFXProperty(typeof(uint), "subMeshMask"), uint.MaxValue);
 
                 if (shader != null)
+                {
+                    var propertyAttribs = new List<object>(1);
                     for (int i = 0; i < ShaderUtil.GetPropertyCount(shader); ++i)
                     {
-                        string propertyName = ShaderUtil.GetPropertyName(shader, i);
+                        if (ShaderUtil.IsShaderPropertyHidden(shader, i) || ShaderUtil.IsShaderPropertyNonModifiableTexureProperty(shader, i))
+                            continue;
+
                         Type propertyType = null;
+                        propertyAttribs.Clear();
+
                         switch (ShaderUtil.GetPropertyType(shader, i))
                         {
                             case ShaderUtil.ShaderPropertyType.Color:
@@ -50,8 +56,13 @@ namespace UnityEditor.VFX
                                 propertyType = typeof(Vector4);
                                 break;
                             case ShaderUtil.ShaderPropertyType.Float:
+                                propertyType = typeof(float);
+                                break;
                             case ShaderUtil.ShaderPropertyType.Range:
                                 propertyType = typeof(float);
+                                float minRange = ShaderUtil.GetRangeLimits(shader, i, 1);
+                                float maxRange = ShaderUtil.GetRangeLimits(shader, i, 2);
+                                propertyAttribs.Add(new RangeAttribute(minRange, maxRange));
                                 break;
                             case ShaderUtil.ShaderPropertyType.TexEnv:
                             {
@@ -64,7 +75,7 @@ namespace UnityEditor.VFX
                                         propertyType = typeof(Texture3D);
                                         break;
                                     default:
-                                        break; // TODO
+                                        break;     // TODO
                                 }
                                 break;
                             }
@@ -73,8 +84,13 @@ namespace UnityEditor.VFX
                         }
 
                         if (propertyType != null)
-                            yield return new VFXPropertyWithValue(new VFXProperty(propertyType, propertyName));
+                        {
+                            string propertyName = ShaderUtil.GetPropertyName(shader, i);
+                            propertyAttribs.Add(new TooltipAttribute(ShaderUtil.GetPropertyDescription(shader, i)));
+                            yield return new VFXPropertyWithValue(new VFXProperty(propertyType, propertyName, VFXPropertyAttribute.Create(propertyAttribs.ToArray())));
+                        }
                     }
+                }
             }
         }
 

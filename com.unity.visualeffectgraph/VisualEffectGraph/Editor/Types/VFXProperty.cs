@@ -41,7 +41,7 @@ namespace UnityEditor.VFX
         [SerializeField]
         public VFXPropertyAttribute[] attributes;
 
-        public VFXProperty(Type type, string name, VFXPropertyAttribute[] attributes = null)
+        public VFXProperty(Type type, string name, params VFXPropertyAttribute[] attributes)
         {
             m_serializedType = type;
             this.name = name;
@@ -74,8 +74,7 @@ namespace UnityEditor.VFX
             if (IsExpandable())
             {
                 FieldInfo[] infos = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
-                return infos.Where(info => info.FieldType != typeof(CoordinateSpace)) // TODO filter out Coordinate space is tmp. Should be changed
-                    .Select(info => new VFXProperty(info));
+                return infos.Select(info => new VFXProperty(info));
             }
             else
             {

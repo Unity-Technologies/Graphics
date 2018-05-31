@@ -137,7 +137,7 @@ namespace UnityEditor.VFX
             if (effect.visualEffectAsset == null)
                 return null;
 
-            VFXGraph graph = effect.visualEffectAsset.graph as VFXGraph;
+            VFXGraph graph = effect.visualEffectAsset.GetResource().graph as VFXGraph;
             if (graph == null)
                 return null;
 
@@ -256,6 +256,13 @@ namespace UnityEditor.VFX
                 get {return m_Parameter.type; }
             }
 
+            public override CoordinateSpace space
+            {
+                get
+                {
+                    return m_Parameter.outputSlots[0].space;
+                }
+            }
 
             public List<object> m_Stack = new List<object>();
 

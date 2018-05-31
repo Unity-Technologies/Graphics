@@ -9,7 +9,6 @@ using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine.Experimental.VFX;
 using UnityEditor.VFX.UIElements;
-using BranchNew = UnityEditor.VFX.Operator.BranchNew;
 
 namespace UnityEditor.VFX.UI
 {
@@ -80,7 +79,7 @@ namespace UnityEditor.VFX.UI
             }
         }
     }
-    class VFXMultiOperatorEdit<T, U> : VFXReorderableList, IControlledElement<T> where U : VFXOperatorNumericNew, IVFXOperatorNumericUnifiedNew where T : VFXUnifiedOperatorControllerBase<U>
+    class VFXMultiOperatorEdit<T, U> : VFXReorderableList, IControlledElement<T> where U : VFXOperatorNumeric, IVFXOperatorNumericUnified where T : VFXUnifiedOperatorControllerBase<U>
     {
         T m_Controller;
         Controller IControlledElement.controller
@@ -239,7 +238,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    class VFXUnifiedOperatorEdit : VFXMultiOperatorEdit<VFXUnifiedOperatorController, VFXOperatorNumericUnifiedNew>
+    class VFXUnifiedOperatorEdit : VFXMultiOperatorEdit<VFXUnifiedOperatorController, VFXOperatorNumericUnified>
     {
         public VFXUnifiedOperatorEdit()
         {
@@ -256,21 +255,21 @@ namespace UnityEditor.VFX.UI
         {
             Label label;
 
-            public OperandInfo(VFXUnifiedOperatorEdit owner, VFXOperatorNumericUnifiedNew op, int index) : base(owner, op, index)
+            public OperandInfo(VFXUnifiedOperatorEdit owner, VFXOperatorNumericUnified op, int index) : base(owner, op, index)
             {
                 label = new Label();
 
                 Insert(0, label);
             }
 
-            public override void Set(VFXOperatorNumericUnifiedNew op)
+            public override void Set(VFXOperatorNumericUnified op)
             {
                 base.Set(op);
                 label.text = op.GetInputSlot(index).name;
             }
         }
     }
-    class VFXCascadedOperatorEdit : VFXMultiOperatorEdit<VFXCascadedOperatorController, VFXOperatorNumericCascadedUnifiedNew>
+    class VFXCascadedOperatorEdit : VFXMultiOperatorEdit<VFXCascadedOperatorController, VFXOperatorNumericCascadedUnified>
     {
         protected override void ElementMoved(int movedIndex, int targetIndex)
         {
@@ -313,7 +312,7 @@ namespace UnityEditor.VFX.UI
         {
             VFXStringField field;
 
-            public OperandInfo(VFXCascadedOperatorEdit owner, VFXOperatorNumericCascadedUnifiedNew op, int index) : base(owner, op, index)
+            public OperandInfo(VFXCascadedOperatorEdit owner, VFXOperatorNumericCascadedUnified op, int index) : base(owner, op, index)
             {
                 field = new VFXStringField("");
                 field.OnValueChanged = OnChangeLabel;
@@ -326,7 +325,7 @@ namespace UnityEditor.VFX.UI
                 (m_Owner as VFXCascadedOperatorEdit).OnChangeLabel(field.value, index);
             }
 
-            public override void Set(VFXOperatorNumericCascadedUnifiedNew op)
+            public override void Set(VFXOperatorNumericCascadedUnified op)
             {
                 base.Set(op);
                 field.value = op.GetOperandName(index);

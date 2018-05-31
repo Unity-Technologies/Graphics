@@ -3,20 +3,28 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Clamp")]
-    class Saturate : VFXOperatorFloatUnifiedWithVariadicOutput
+    [VFXInfo(category = "Math/Clamp", experimental = true)]
+    class Saturate : VFXOperatorNumericUniform
     {
         public class InputProperties
         {
             [Tooltip("The value to be clamped.")]
-            public FloatN input = new FloatN(0.0f);
+            public float input = 0.0f;
         }
 
-        override public string name { get { return "Saturate"; } }
+        public override sealed string name { get { return "SaturateNew"; } }
 
-        protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { VFXOperatorUtility.Saturate(inputExpression[0]) };
+        }
+
+        protected override sealed ValidTypeRule typeFilter
+        {
+            get
+            {
+                return ValidTypeRule.allowEverythingExceptInteger;
+            }
         }
     }
 }

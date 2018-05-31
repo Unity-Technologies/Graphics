@@ -4,6 +4,7 @@ using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
+using UnityEditor.Experimental.VFX;
 using System.Collections.Generic;
 using UnityEditor.VFX.Block;
 
@@ -12,10 +13,35 @@ namespace UnityEditor.VFX.Test
     [TestFixture]
     public class VFXShaderGenerationTests
     {
+        string tempFilePath = "Assets/TmpTests/vfxTest.vfx";
+
+        VFXGraph MakeTemporaryGraph()
+        {
+            if (System.IO.File.Exists(tempFilePath))
+            {
+                AssetDatabase.DeleteAsset(tempFilePath);
+            }
+            var asset = VisualEffectResource.CreateNewAsset(tempFilePath);
+
+            VisualEffectResource resource = asset.GetResource(); // force resource creation
+
+            VFXGraph graph = ScriptableObject.CreateInstance<VFXGraph>();
+
+            graph.visualEffectResource = resource;
+
+            return graph;
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            AssetDatabase.DeleteAsset(tempFilePath);
+        }
+
         [Test]
         public void GraphUsingGPUConstant()
         {
-            var graph = ScriptableObject.CreateInstance<VFXGraph>();
+            var graph = MakeTemporaryGraph();
             var updateContext = ScriptableObject.CreateInstance<VFXBasicUpdate>();
             var blockSetVelocity = ScriptableObject.CreateInstance<SetAttribute>();
             blockSetVelocity.SetSettingValue("attribute", "velocity");
@@ -34,7 +60,6 @@ namespace UnityEditor.VFX.Test
             graph.AddChild(float4);
             graph.AddChild(length);
 
-            graph.visualEffectAsset = new VisualEffectAsset();
             graph.RecompileIfNeeded();
 
             attributeParameter.outputSlots[0].Link(blockSetVelocity.inputSlots[0]);
@@ -49,7 +74,7 @@ namespace UnityEditor.VFX.Test
 
         void GraphWithImplicitBehavior_Internal(VFXBlock[] initBlocks)
         {
-            var graph = ScriptableObject.CreateInstance<VFXGraph>();
+            var graph = MakeTemporaryGraph();
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
             var initContext = ScriptableObject.CreateInstance<VFXBasicInitialize>();
             var updateContext = ScriptableObject.CreateInstance<VFXBasicUpdate>();
@@ -70,7 +95,6 @@ namespace UnityEditor.VFX.Test
                 initContext.AddChild(initBlock);
             }
 
-            graph.visualEffectAsset = new VisualEffectAsset();
             graph.RecompileIfNeeded();
         }
 

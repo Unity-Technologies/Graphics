@@ -3,13 +3,26 @@ using UnityEditor.VFX;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Clamp")]
-    class Round : VFXOperatorUnaryFloatOperation
+    class Round : VFXOperatorNumericUniform
     {
-        override public string name { get { return "Round"; } }
+        public class InputProperties
+        {
+            public float x = 0.5f;
+        }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        public override sealed string name { get { return "Round"; } }
+
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { VFXOperatorUtility.Round(inputExpression[0]) };
+        }
+
+        protected sealed override ValidTypeRule typeFilter
+        {
+            get
+            {
+                return ValidTypeRule.allowEverythingExceptInteger;
+            }
         }
     }
 }

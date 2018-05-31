@@ -19,7 +19,7 @@ namespace UnityEditor.VFX.Operator
             public uint o;
         }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { new VFXExpressionBitwiseComplement(inputExpression[0]) };
         }

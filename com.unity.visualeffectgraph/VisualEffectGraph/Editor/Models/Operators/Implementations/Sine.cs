@@ -3,11 +3,18 @@ using System;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Trigonometry")]
-    class Sine : VFXOperatorUnaryFloatOperation
+    class Sine : VFXOperatorNumericUniform
     {
-        override public string name { get { return "Sine"; } }
+        public class InputProperties
+        {
+            public float x = 0.0f;
+        }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        public override sealed string name { get { return "Sine"; } }
+
+        protected override sealed ValidTypeRule typeFilter { get { return ValidTypeRule.allowEverythingExceptInteger; } }
+
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { new VFXExpressionSin(inputExpression[0]) };
         }

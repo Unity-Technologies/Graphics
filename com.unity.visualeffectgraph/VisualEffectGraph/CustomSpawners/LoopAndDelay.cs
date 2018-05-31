@@ -8,14 +8,14 @@ namespace UnityEditor.VFX
     {
         public class InputProperties
         {
-            public uint NumLoops = 2;
+            public int NumLoops = 2;
             public float LoopDuration = 4.0f;
             public float Delay = 1.0f;
         }
 
         bool m_Waiting;
         float m_WaitTTL;
-        uint m_RemainingLoops;
+        int m_RemainingLoops = int.MinValue;
 
         static private readonly int numLoopsPropertyID = Shader.PropertyToID("NumLoops");
         static private readonly int loopDurationPropertyID = Shader.PropertyToID("LoopDuration");
@@ -23,12 +23,13 @@ namespace UnityEditor.VFX
 
         public sealed override void OnPlay(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
         {
-            m_RemainingLoops = vfxValues.GetUInt(numLoopsPropertyID);
+
         }
 
         public sealed override void OnUpdate(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
         {
-            if (!state.playing) return;
+            if (m_RemainingLoops == int.MinValue)
+                m_RemainingLoops = vfxValues.GetInt(numLoopsPropertyID);
 
             if (state.totalTime > vfxValues.GetFloat(loopDurationPropertyID))
             {
@@ -41,15 +42,22 @@ namespace UnityEditor.VFX
                 {
                     m_WaitTTL -= state.deltaTime;
 
-                    if (m_WaitTTL < 0.0f && m_RemainingLoops > 0)
+                    if (m_WaitTTL < 0.0f)
                     {
                         m_Waiting = false;
                         state.totalTime = 0.0f;
-                        m_RemainingLoops--;
+
+                        if(m_RemainingLoops > 0) // if positive, remove one from count
+                            m_RemainingLoops--;
+
+                        if(m_RemainingLoops != 0) // if 0, stop forever
+                            state.playing = true; // Re-enable the spawn context
+
+                        m_RemainingLoops = Math.Max(-1, m_RemainingLoops); // sustain at -1 if in infinite mode
                     }
                     else
                     {
-                        state.playing = false; // Stop the Spawn context
+                        state.playing = false; // Stop the Spawn context for the duration of the delay
                     }
                 }
             }

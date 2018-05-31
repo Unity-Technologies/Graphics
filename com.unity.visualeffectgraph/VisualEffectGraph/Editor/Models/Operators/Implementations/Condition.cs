@@ -27,7 +27,7 @@ namespace UnityEditor.VFX.Operator
 
         override public string name { get { return "Compare"; } }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { new VFXExpressionCondition(condition, inputExpression[0], inputExpression[1]) };
         }

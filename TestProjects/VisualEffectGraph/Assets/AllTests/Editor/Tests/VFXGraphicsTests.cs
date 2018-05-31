@@ -40,7 +40,7 @@ namespace UnityEditor.VFX.Test
 
             foreach (var vfx in vfxAsset)
             {
-                var graph = VisualEffectAssetExtensions.GetOrCreateGraph(vfx);
+                var graph = vfx.GetResource().GetOrCreateGraph();
                 graph.RecompileIfNeeded();
             }
 
@@ -160,6 +160,7 @@ namespace UnityEditor.VFX.Test
         {
             "05_MotionVectors", // Cannot use test with postprocess effects
             "20_SpawnerChaining", // Unstable. TODO investigate why
+            "RenderStates" // Unstable. There is an instability with shadow rendering. TODO Fix that
         };
 
 

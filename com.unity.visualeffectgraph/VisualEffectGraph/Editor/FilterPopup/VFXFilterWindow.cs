@@ -181,7 +181,7 @@ namespace UnityEditor.VFX.UI
 
         EditorWindow m_mainWindow;
 
-        internal static bool Show(EditorWindow mainWindow, Vector2 position, IProvider provider)
+        internal static bool Show(EditorWindow mainWindow, Vector2 graphPosition, Vector2 screenPosition, IProvider provider)
         {
             // We could not use realtimeSinceStartUp since it is set to 0 when entering/exitting playmode, we assume an increasing time when comparing time.
             long nowMilliSeconds = System.DateTime.Now.Ticks / System.TimeSpan.TicksPerMillisecond;
@@ -195,7 +195,7 @@ namespace UnityEditor.VFX.UI
                     s_FilterWindow = ScriptableObject.CreateInstance<VFXFilterWindow>();
                     s_FilterWindow.hideFlags = HideFlags.HideAndDontSave;
                 }
-                s_FilterWindow.Init(position, provider);
+                s_FilterWindow.Init(graphPosition, screenPosition, provider);
                 s_FilterWindow.m_mainWindow = mainWindow;
                 return true;
             }
@@ -208,13 +208,13 @@ namespace UnityEditor.VFX.UI
             return mi.Invoke(inst, args);
         }
 
-        void Init(Vector2 position, IProvider provider)
+        void Init(Vector2 graphPosition, Vector2 screenPosition, IProvider provider)
         {
             m_Provider = provider;
             // Has to be done before calling Show / ShowWithMode
-            m_Provider.position = position;
-            position = GUIUtility.GUIToScreenPoint(position);
-            Rect buttonRect = new Rect(position.x - DefaultWidth / 2, position.y - 16, DefaultWidth, 1);
+            m_Provider.position = graphPosition;
+
+            Rect buttonRect = new Rect(screenPosition.x - DefaultWidth / 2, screenPosition.y - 16, DefaultWidth, 1);
 
             CreateComponentTree();
 
