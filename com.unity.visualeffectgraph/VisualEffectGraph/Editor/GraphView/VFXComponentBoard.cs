@@ -348,6 +348,7 @@ namespace  UnityEditor.VFX.UI
                 m_UpdateItem.Pause();
             }
             m_ComponentContainer.RemoveFromHierarchy();
+            m_ComponentPath.text = "";
             UpdateAttachButton();
         }
 
@@ -402,9 +403,10 @@ namespace  UnityEditor.VFX.UI
             if (m_ComponentPath.text != path)
                 m_ComponentPath.text = path;
 
-            if (m_LastKnownParticleCount != m_AttachedComponent.aliveParticleCount)
+            int newParticleCount = 0;//m_AttachedComponent.aliveParticleCount
+            if (m_LastKnownParticleCount != newParticleCount)
             {
-                m_LastKnownParticleCount = m_AttachedComponent.aliveParticleCount;
+                m_LastKnownParticleCount = newParticleCount;
                 m_ParticleCount.text = m_LastKnownParticleCount.ToString();
             }
 
