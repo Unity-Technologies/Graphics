@@ -348,6 +348,7 @@ namespace  UnityEditor.VFX.UI
                 m_UpdateItem.Pause();
             }
             m_ComponentContainer.RemoveFromHierarchy();
+            m_ComponentPath.text = "";
             UpdateAttachButton();
         }
 
