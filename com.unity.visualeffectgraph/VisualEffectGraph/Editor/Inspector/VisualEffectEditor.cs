@@ -57,7 +57,7 @@ namespace UnityEditor.VFX
     [CustomEditor(typeof(VisualEffect))]
     public class VisualEffectEditor : Editor
     {
-        SerializedProperty m_VisualEffectAsset;
+        protected SerializedProperty m_VisualEffectAsset;
         SerializedProperty m_ReseedOnPlay;
         SerializedProperty m_RandomSeed;
         SerializedProperty m_VFXPropertySheet;
@@ -234,18 +234,7 @@ namespace UnityEditor.VFX
         protected virtual void AssetField()
         {
             var component = (VisualEffect)target;
-            using (new GUILayout.HorizontalScope())
-            {
-                EditorGUILayout.PropertyField(m_VisualEffectAsset, Contents.assetPath);
-
-                GUI.enabled = component.visualEffectAsset != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
-                if (GUILayout.Button(Contents.openEditor, EditorStyles.miniButton, Styles.MiniButtonWidth))
-                {
-                    VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
-
-                    window.LoadAsset(component.visualEffectAsset);
-                }
-            }
+            EditorGUILayout.PropertyField(m_VisualEffectAsset, Contents.assetPath);
         }
 
         protected virtual bool SeedField()
