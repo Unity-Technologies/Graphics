@@ -23,11 +23,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [RequireComponent(typeof(Light))]
     public class HDAdditionalLightData : MonoBehaviour
     {
- #pragma warning disable 414 // CS0414 The private field '...' is assigned but its value is never used
-        // We can't rely on Unity for our additional data, we need to version it ourself.
-        [SerializeField]
-        float m_Version = 1.0f;
- #pragma warning restore 414
+        [HideInInspector]
+        public float version = 1.0f;
 
         // To be able to have correct default values for our lights and to also control the conversion of intensity from the light editor (so it is compatible with GI)
         // we add intensity (for each type of light we want to manage).

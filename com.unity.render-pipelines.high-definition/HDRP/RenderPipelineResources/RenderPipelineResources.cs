@@ -2,8 +2,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class RenderPipelineResources : ScriptableObject
     {
+        [HideInInspector]
+        public float version = 1.0f;
+
         // Default Material / Shader
         public Material defaultDiffuseMaterial;
+        public Material defaultMirrorMaterial;
         public Material defaultDecalMaterial;
         public Shader defaultShader;
 
