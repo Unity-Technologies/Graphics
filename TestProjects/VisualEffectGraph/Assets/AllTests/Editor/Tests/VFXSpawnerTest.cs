@@ -2,6 +2,7 @@ using System;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
+using UnityEditor.Experimental.VFX;
 using UnityEditor;
 using UnityEngine.TestTools;
 using System.Linq;
@@ -14,13 +15,39 @@ namespace UnityEditor.VFX.Test
 {
     public class VFXSpawnerTest
     {
+        string tempFilePath = "Assets/TmpTests/vfxTest.vfx";
+
+        VFXGraph MakeTemporaryGraph()
+        {
+            if (System.IO.File.Exists(tempFilePath))
+            {
+                AssetDatabase.DeleteAsset(tempFilePath);
+            }
+
+            var asset = VisualEffectResource.CreateNewAsset(tempFilePath);
+
+            VisualEffectResource resource = asset.GetResource(); // force resource creation
+
+            VFXGraph graph = ScriptableObject.CreateInstance<VFXGraph>();
+
+            graph.visualEffectResource = resource;
+
+            return graph;
+        }
+
+        [TearDown]
+        public void CleanUp()
+        {
+            AssetDatabase.DeleteAsset(tempFilePath);
+        }
+
         [UnityTest]
         [Timeout(1000 * 10)]
         public IEnumerator CreateAssetAndComponentSpawner()
         {
             EditorApplication.ExecuteMenuItem("Window/General/Game");
 
-            var graph = ScriptableObject.CreateInstance<VFXGraph>();
+            var graph = MakeTemporaryGraph();
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
             var blockConstantRate = ScriptableObject.CreateInstance<VFXSpawnerConstantRate>();
@@ -39,12 +66,11 @@ namespace UnityEditor.VFX.Test
             spawnerInit.LinkFrom(spawnerContext);
             spawnerOutput.LinkFrom(spawnerInit);
 
-            graph.visualEffectAsset = new VisualEffectAsset();
             graph.RecompileIfNeeded();
 
             var gameObj = new GameObject("CreateAssetAndComponentSpawner");
             var vfxComponent = gameObj.AddComponent<VisualEffect>();
-            vfxComponent.visualEffectAsset = graph.visualEffectAsset;
+            vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
 
             var cameraObj = new GameObject("CreateAssetAndComponentSpawner_Camera");
             var camera = cameraObj.AddComponent<Camera>();
@@ -72,7 +98,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator CreateEventStartAndStop()
         {
             EditorApplication.ExecuteMenuItem("Window/General/Game");
-            var graph = ScriptableObject.CreateInstance<VFXGraph>();
+            var graph = MakeTemporaryGraph();
 
             var eventStart = ScriptableObject.CreateInstance<VFXBasicEvent>();
             eventStart.eventName = "Custom_Start";
@@ -100,12 +126,11 @@ namespace UnityEditor.VFX.Test
             spawnerContext.LinkFrom(eventStart, 0, 0);
             spawnerContext.LinkFrom(eventStop, 0, 1);
 
-            graph.visualEffectAsset = new VisualEffectAsset();
             graph.RecompileIfNeeded();
 
             var gameObj = new GameObject("CreateEventStartAndStop");
             var vfxComponent = gameObj.AddComponent<VisualEffect>();
-            vfxComponent.visualEffectAsset = graph.visualEffectAsset;
+            vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
 
             var cameraObj = new GameObject("CreateEventStartAndStop_Camera");
             var camera = cameraObj.AddComponent<Camera>();
@@ -190,7 +215,7 @@ namespace UnityEditor.VFX.Test
         public IEnumerator CreateCustomSpawnerAndComponent()
         {
             EditorApplication.ExecuteMenuItem("Window/General/Game");
-            var graph = ScriptableObject.CreateInstance<VFXGraph>();
+            var graph = MakeTemporaryGraph();
 
             var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
             var blockCustomSpawner = ScriptableObject.CreateInstance<VFXSpawnerCustomWrapper>();
@@ -219,12 +244,11 @@ namespace UnityEditor.VFX.Test
             var valueTotalTime = 187.0f;
             blockCustomSpawner.GetInputSlot(0).value = valueTotalTime;
 
-            graph.visualEffectAsset = new VisualEffectAsset();
             graph.RecompileIfNeeded();
 
             var gameObj = new GameObject("CreateCustomSpawnerAndComponent");
             var vfxComponent = gameObj.AddComponent<VisualEffect>();
-            vfxComponent.visualEffectAsset = graph.visualEffectAsset;
+            vfxComponent.visualEffectAsset = graph.visualEffectResource.asset;
 
             var cameraObj = new GameObject("CreateCustomSpawnerAndComponent_Camera");
             var camera = cameraObj.AddComponent<Camera>();

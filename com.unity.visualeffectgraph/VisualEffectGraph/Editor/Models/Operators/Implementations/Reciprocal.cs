@@ -2,14 +2,35 @@ using System;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Arithmetic")]
-    class Reciprocal : VFXOperatorUnaryFloatOperation
+    class Reciprocal : VFXOperatorNumericUniform
     {
-        override public string name { get { return "Reciprocal (1/x)"; } }
+        public class InputProperties
+        {
+            public float x = 1.0f;
+        }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        public override sealed string name { get { return "Reciprocal (1/x)"; } }
+
+        protected override double defaultValueDouble
+        {
+            get
+            {
+                return 1.0;
+            }
+        }
+
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var expression = inputExpression[0];
-            return new[] { VFXOperatorUtility.OneExpression[expression.valueType] / expression };
+            return new[] { VFXOperatorUtility.Reciprocal(expression) };
+        }
+
+        protected sealed override ValidTypeRule typeFilter
+        {
+            get
+            {
+                return ValidTypeRule.allowEverythingExceptInteger;
+            }
         }
     }
 }

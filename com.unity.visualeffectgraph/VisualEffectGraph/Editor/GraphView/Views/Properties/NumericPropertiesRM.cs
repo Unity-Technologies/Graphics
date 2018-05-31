@@ -82,7 +82,7 @@ namespace UnityEditor.VFX.UI
         {
             Vector2 range = VFXPropertyAttribute.FindRange(m_Provider.attributes);
 
-            if (RangeShouldCreateSlider(range))
+            if (range != Vector2.zero)
             {
                 value = FilterValue(range, (T)value);
             }

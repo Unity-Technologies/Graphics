@@ -21,7 +21,7 @@ namespace UnityEditor.VFX.Operator
 
         override public string name { get { return "Volume (Torus)"; } }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new VFXExpression[] { VFXOperatorUtility.TorusVolume(inputExpression[1], inputExpression[2]) };
         }

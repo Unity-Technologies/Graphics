@@ -4,6 +4,7 @@ using UnityEditor.Experimental.UIElements;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
+using UnityEditor.Experimental.VFX;
 using UnityEngine.Experimental.UIElements;
 using UnityEditor.VFX;
 using System.Collections.Generic;
@@ -50,13 +51,29 @@ namespace  UnityEditor.VFX.UI
         }
         public void LoadAsset(VisualEffectAsset asset)
         {
-            if (graphView.controller == null || graphView.controller.model != asset)
+            string assetPath = AssetDatabase.GetAssetPath(asset);
+
+            VisualEffectResource resource = VisualEffectResource.GetResourceAtPath(assetPath);
+
+            //Transitionning code
+            if (resource == null)
             {
-                bool differentAsset = asset != m_DisplayedAsset;
+                resource = new VisualEffectResource();
+                resource.SetAssetPath(AssetDatabase.GetAssetPath(asset));
+            }
 
-                m_DisplayedAsset = asset;
-                graphView.controller = VFXViewController.GetController(asset, true);
+            LoadResource(resource);
+        }
 
+        public void LoadResource(VisualEffectResource resource)
+        {
+            if (graphView.controller == null || graphView.controller.model != resource)
+            {
+                bool differentAsset = resource != m_DisplayedResource;
+
+                m_DisplayedResource = resource;
+                graphView.controller = VFXViewController.GetController(resource, true);
+                graphView.UpdateGlobalSelection();
                 if (differentAsset)
                 {
                     graphView.FrameNewController();
@@ -64,20 +81,41 @@ namespace  UnityEditor.VFX.UI
             }
         }
 
-        protected VisualEffectAsset GetCurrentAsset()
+        protected VisualEffectResource GetCurrentResource()
         {
             var objs = Selection.objects;
 
-            VisualEffectAsset selectedAsset = null;
-            if (objs != null && objs.Length == 1 && objs[0] is VisualEffectAsset)
+            VisualEffectResource selectedResource = null;
+            if (objs != null && objs.Length == 1)
             {
-                selectedAsset = objs[0] as VisualEffectAsset;
+                if (objs[0] is VisualEffectAsset)
+                {
+                    VisualEffectAsset asset = objs[0] as VisualEffectAsset;
+                    selectedResource = asset.GetResource();
+                }
+                else if (objs[0] is VisualEffectResource)
+                {
+                    selectedResource = objs[0] as VisualEffectResource;
+                }
             }
-            else if (m_DisplayedAsset != null)
+            if (selectedResource == null)
             {
-                selectedAsset = m_DisplayedAsset;
+                int instanceID = Selection.activeInstanceID;
+
+                if (instanceID != 0)
+                {
+                    string path = AssetDatabase.GetAssetPath(instanceID);
+                    if (path.EndsWith(".vfx"))
+                    {
+                        selectedResource = VisualEffectResource.GetResourceAtPath(path);
+                    }
+                }
             }
-            return selectedAsset;
+            if (selectedResource == null && m_DisplayedResource != null)
+            {
+                selectedResource = m_DisplayedResource;
+            }
+            return selectedResource;
         }
 
         protected void OnEnable()
@@ -89,10 +127,10 @@ namespace  UnityEditor.VFX.UI
             this.GetRootVisualContainer().Add(graphView);
 
 
-            VisualEffectAsset currentAsset = GetCurrentAsset();
+            var currentAsset = GetCurrentResource();
             if (currentAsset != null)
             {
-                LoadAsset(currentAsset);
+                LoadResource(currentAsset);
             }
 
             autoCompile = true;
@@ -189,6 +227,6 @@ namespace  UnityEditor.VFX.UI
         }
 
         [SerializeField]
-        private VisualEffectAsset m_DisplayedAsset;
+        private VisualEffectResource m_DisplayedResource;
     }
 }

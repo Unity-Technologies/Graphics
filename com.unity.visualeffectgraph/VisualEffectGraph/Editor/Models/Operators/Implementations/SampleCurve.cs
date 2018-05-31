@@ -24,7 +24,7 @@ namespace UnityEditor.VFX.Operator
             public float s;
         }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { new VFXExpressionSampleCurve(inputExpression[0], inputExpression[1]) };
         }

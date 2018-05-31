@@ -73,7 +73,7 @@ namespace UnityEditor.VFX.UI
 
         public void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
-            var op = controller.sourceNode.model as VFXOperatorNumericCascadedUnifiedNew;
+            var op = controller.sourceNode.model as VFXOperatorNumericCascadedUnified;
 
             if (op != null)
                 evt.menu.AppendAction("Remove Slot", OnRemove, e => op.operandCount > 2 ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled);
@@ -296,7 +296,7 @@ namespace UnityEditor.VFX.UI
             }
             else if (!exists)
             {
-                VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, new VFXNodeProvider(AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter) }));
+                VFXFilterWindow.Show(VFXViewWindow.currentWindow, Event.current.mousePosition, view.ViewToScreenPosition(Event.current.mousePosition), new VFXNodeProvider(AddLinkedNode, ProviderFilter, new Type[] { typeof(VFXOperator), typeof(VFXParameter) }));
             }
         }
 
@@ -308,7 +308,7 @@ namespace UnityEditor.VFX.UI
 
             if (mySlot == null)
             {
-                var op = controller.sourceNode.model as VFXOperatorNumericCascadedUnifiedNew;
+                var op = controller.sourceNode.model as VFXOperatorNumericCascadedUnified;
                 if (op != null)
                 {
                     validTypes = op.validTypes;
@@ -380,7 +380,7 @@ namespace UnityEditor.VFX.UI
 
             IEnumerable<Type> validTypes = null;
 
-            var op = controller.sourceNode.model as VFXOperatorNumericCascadedUnifiedNew;
+            var op = controller.sourceNode.model as VFXOperatorNumericCascadedUnified;
             if (mySlot == null && op != null)
             {
                 validTypes = op.validTypes;
@@ -417,25 +417,20 @@ namespace UnityEditor.VFX.UI
             {
                 if (newNodeController is VFXParameterNodeController)
                 {
-                    VFXParameter parameter = (newNodeController as VFXParameterNodeController).parentController.model;
+                    var parameter = (newNodeController as VFXParameterNodeController).parentController.model;
                     CopyValueToParameter(parameter);
                 }
                 else if (newNodeController is VFXOperatorController)
                 {
                     var inlineOperator = (newNodeController as VFXOperatorController).model as VFXInlineOperator;
-                    if (inlineOperator && inlineOperator.type == controller.portType)
+                    if (inlineOperator != null)
                     {
-                        if (VFXConverter.CanConvert(inlineOperator.type))
+                        var value = controller.model.value;
+                        object convertedValue = null;
+                        if (VFXConverter.TryConvertTo(value, inlineOperator.type, out convertedValue))
                         {
-                            try
-                            {
-                                inlineOperator.inputSlots[0].value = VFXConverter.ConvertTo(controller.model.value, inlineOperator.type);
-                            }
-                            catch (System.InvalidCastException) // don't fail here
-                            {}
+                            inlineOperator.inputSlots[0].value = convertedValue;
                         }
-                        else
-                            inlineOperator.inputSlots[0].value = controller.model.value;
                     }
                 }
             }
@@ -443,18 +438,12 @@ namespace UnityEditor.VFX.UI
 
         void CopyValueToParameter(VFXParameter parameter)
         {
-            if (parameter.type == portType)
+            var value = controller.model.value;
+            object convertedValue = null;
+            if (VFXConverter.TryConvertTo(value, parameter.type, out convertedValue))
             {
-                if (VFXConverter.CanConvert(parameter.type))
-                    parameter.value = VFXConverter.ConvertTo(controller.model.value, parameter.type);
-                else
-                    parameter.value = controller.model.value;
+                parameter.value = convertedValue;
             }
-        }
-
-        public override void DoRepaint()
-        {
-            base.DoRepaint();
         }
     }
 }

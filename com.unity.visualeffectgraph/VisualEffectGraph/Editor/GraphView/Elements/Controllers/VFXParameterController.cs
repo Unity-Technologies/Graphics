@@ -26,7 +26,6 @@ namespace UnityEditor.VFX.UI
         object[] m_CustomAttributes;
         VFXPropertyAttribute[] m_Attributes;
 
-
         string m_MemberPath;
 
 
@@ -63,6 +62,31 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        CoordinateSpace IPropertyRMProvider.space
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        bool IPropertyRMProvider.spaceable
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        bool IPropertyRMProvider.IsSpaceInherited()
+        {
+            throw new NotImplementedException();
+        }
 
         bool IPropertyRMProvider.expanded
         {
@@ -209,6 +233,32 @@ namespace UnityEditor.VFX.UI
             get { return true; }
         }
 
+        public CoordinateSpace space
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public bool spaceable
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        public bool IsSpaceInherited()
+        {
+            return false;
+        }
+
         public void ExpandPath()
         {
             throw new NotImplementedException();
@@ -269,27 +319,14 @@ namespace UnityEditor.VFX.UI
 
         public VFXSubParameterController[] ComputeSubControllers(Type type, IEnumerable<int> fieldPath, string memberPath)
         {
-            FieldInfo[] fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
-
-            int count = fields.Length;
-
-            bool spaceable = typeof(ISpaceable).IsAssignableFrom(type) && fields[0].FieldType == typeof(CoordinateSpace);
-            if (spaceable)
-            {
-                --count;
-            }
-
-            var subControllers = new VFXSubParameterController[count];
-
-            int startIndex = spaceable ? 1 : 0;
-
-            for (int i = startIndex; i < count + startIndex; ++i)
+            var fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
+            var subControllers = new VFXSubParameterController[fields.Length];
+            for (int i = 0; i < fields.Length; ++i)
             {
                 string path = string.IsNullOrEmpty(memberPath) ? fields[i].Name : memberPath + VFXGizmoUtility.Context.separator + fields[i].Name;
-                subControllers[i - startIndex] = new VFXSubParameterController(this, fieldPath.Concat(Enumerable.Repeat(i, 1)), path);
-                m_ChildrenByPath[path] = subControllers[i - startIndex];
+                subControllers[i] = new VFXSubParameterController(this, fieldPath.Concat(Enumerable.Repeat(i, 1)), path);
+                m_ChildrenByPath[path] = subControllers[i];
             }
-
             return subControllers;
         }
 
@@ -602,7 +639,6 @@ namespace UnityEditor.VFX.UI
         object m_CachedMinValue;
         object m_CachedMaxValue;
 
-
         public object value
         {
             get
@@ -731,6 +767,40 @@ namespace UnityEditor.VFX.UI
         }
 
         public int depth { get { return 0; } }
+        public CoordinateSpace space
+        {
+            get
+            {
+                return parameter.GetOutputSlot(0).space;
+            }
+
+            set
+            {
+                parameter.GetOutputSlot(0).space = value;
+            }
+        }
+
+        public bool spaceable
+        {
+            get
+            {
+                return parameter.GetOutputSlot(0).spaceable;
+            }
+        }
+
+        public bool IsSpaceInherited()
+        {
+            return parameter.GetOutputSlot(0).IsSpaceInherited();
+        }
+
+        public override void OnDisable()
+        {
+            if (!object.ReferenceEquals(m_Slot, null))
+            {
+                viewController.UnRegisterNotification(m_Slot, OnSlotChanged);
+            }
+            base.OnDisable();
+        }
 
         public void ExpandPath()
         {
@@ -740,16 +810,6 @@ namespace UnityEditor.VFX.UI
         public void RetractPath()
         {
             throw new NotImplementedException();
-        }
-
-        public override void OnDisable()
-        {
-            if (!object.ReferenceEquals(m_Slot, null))
-            {
-                viewController.UnRegisterNotification(m_Slot, OnSlotChanged);
-            }
-
-            base.OnDisable();
         }
     }
 
@@ -772,6 +832,13 @@ namespace UnityEditor.VFX.UI
             get { return m_Controller.value; }
         }
 
+        public override CoordinateSpace space
+        {
+            get
+            {
+                return m_Controller.space;
+            }
+        }
 
         protected override void InternalPrepare() {}
 

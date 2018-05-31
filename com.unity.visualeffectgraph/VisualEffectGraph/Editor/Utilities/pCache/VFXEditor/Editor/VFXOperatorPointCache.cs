@@ -29,7 +29,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             VFXExpression[] expressions = new VFXExpression[Asset.surfaces.Length + 1];
             expressions[0] = VFXValue.Constant((uint)Asset.PointCount);

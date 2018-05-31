@@ -214,26 +214,22 @@ namespace UnityEditor.VFX
             GUILayout.EndHorizontal();
         }
 
-
         protected virtual void EditorModeInspectorButton()
         {
         }
 
-
         protected void ShowHeader(GUIContent nameContent)
         {
-            float height = Styles.categoryHeader.CalcHeight(nameContent,4000);
-            Rect rect = GUILayoutUtility.GetRect(1,height + Styles.headerTopMargin + Styles.headerBottomMargin);
+            float height = Styles.categoryHeader.CalcHeight(nameContent, 4000);
+            Rect rect = GUILayoutUtility.GetRect(1, height + Styles.headerTopMargin + Styles.headerBottomMargin);
 
             rect.width += rect.x;
             rect.x = 0;
             rect.y += Styles.headerTopMargin;
             rect.height -= Styles.headerTopMargin + Styles.headerBottomMargin;
-            if( Event.current.type == EventType.Repaint)
-                Styles.categoryHeader.Draw(rect,nameContent,false,true,true,false );
+            if (Event.current.type == EventType.Repaint)
+                Styles.categoryHeader.Draw(rect, nameContent, false, true, true, false);
         }
-
-
 
         protected virtual void AssetField()
         {
@@ -314,7 +310,7 @@ namespace UnityEditor.VFX
                 m_asset = component.visualEffectAsset;
                 if (m_asset != null)
                 {
-                    m_graph = m_asset.GetOrCreateGraph();
+                    m_graph = m_asset.GetResource().GetOrCreateGraph();
                 }
             }
 
@@ -349,7 +345,8 @@ namespace UnityEditor.VFX
                             {
                                 currentCount = stack.Last();
                                 stack.RemoveAt(stack.Count - 1);
-                            } while (currentCount == 0);
+                            }
+                            while (currentCount == 0);
                         }
 
 
@@ -484,7 +481,6 @@ namespace UnityEditor.VFX
                 categoryHeader.border.right = 2;
                 //TODO change to editor resources calls
                 categoryHeader.normal.background = Resources.Load<Texture2D>(EditorGUIUtility.isProSkin ? "VFX/cat-background-dark" : "VFX/cat-background-light");
-
             }
         }
     }

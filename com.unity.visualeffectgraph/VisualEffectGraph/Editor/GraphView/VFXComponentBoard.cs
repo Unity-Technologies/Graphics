@@ -299,7 +299,7 @@ namespace  UnityEditor.VFX.UI
             {
                 m_SelectionCandidate = null;
                 m_SelectionCandidate = Selection.activeGameObject.GetComponent<VisualEffect>();
-                if (m_SelectionCandidate != null && m_SelectionCandidate.visualEffectAsset != controller.model)
+                if (m_SelectionCandidate != null && m_SelectionCandidate.visualEffectAsset != controller.graph.visualEffectResource.asset)
                 {
                     m_SelectionCandidate = null;
                 }

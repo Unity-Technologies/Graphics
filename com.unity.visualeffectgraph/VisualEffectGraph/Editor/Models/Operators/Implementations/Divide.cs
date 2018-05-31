@@ -3,11 +3,13 @@ using System;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Arithmetic")]
-    class Divide : VFXOperatorBinaryFloatOperationOne
+    class Divide : VFXOperatorNumericCascadedUnified
     {
-        override public string name { get { return "Divide"; } }
+        public override sealed string name { get { return "Divide"; } }
 
-        override protected VFXExpression ComposeExpression(VFXExpression a, VFXExpression b)
+        protected override sealed double defaultValueDouble { get { return 1.0; } }
+
+        protected override sealed VFXExpression ComposeExpression(VFXExpression a, VFXExpression b)
         {
             return a / b;
         }
