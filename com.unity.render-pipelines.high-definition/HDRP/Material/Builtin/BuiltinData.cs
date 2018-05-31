@@ -35,10 +35,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Shadow Mask 3")]
             public float shadowMask3;
 
-            [SurfaceDataAttributes("Emissive Color", false, true)]
+            [SurfaceDataAttributes("Emissive Color", false, false)]
             public Vector3 emissiveColor;
-            [SurfaceDataAttributes("Emissive Intensity")]
-            public float emissiveIntensity;
 
             // These is required for motion blur and temporalAA
             [SurfaceDataAttributes("Velocity")]

@@ -503,9 +503,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return layerChanged;
         }
 
-        protected override bool ShouldEmissionBeEnabled(Material mat)
+        protected override bool ShouldEmissionBeEnabled(Material material)
         {
-            return mat.GetFloat(kEmissiveIntensity) > 0.0f;
+            return (material.GetColor(kEmissiveColor) != Color.black) || material.GetTexture(kEmissiveColorMap);
         }
 
         protected override void SetupMaterialKeywordsAndPassInternal(Material material)
