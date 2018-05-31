@@ -151,20 +151,18 @@ ${Graph}
             $VertexDescriptionInputs.ViewSpacePosition:         output.ViewSpacePosition =           TransformWorldToView(output.WorldSpacePosition);
             $VertexDescriptionInputs.TangentSpacePosition:      output.TangentSpacePosition =        float3(0.0f, 0.0f, 0.0f);
 
-		// TODO: support view direction in vertex shader
-//            $VertexDescriptionInputs.WorldSpaceViewDirection:   output.WorldSpaceViewDirection =     normalize(viewWS);
-//            $VertexDescriptionInputs.ObjectSpaceViewDirection:  output.ObjectSpaceViewDirection =    mul((float3x3) unity_WorldToObject, output.WorldSpaceViewDirection);
-//            $VertexDescriptionInputs.ViewSpaceViewDirection:    output.ViewSpaceViewDirection =      mul((float3x3) UNITY_MATRIX_V, output.WorldSpaceViewDirection);
-//            $VertexDescriptionInputs.TangentSpaceViewDirection: float3x3 tangentSpaceTransform =     float3x3(output.WorldSpaceTangent,output.WorldSpaceBiTangent,output.WorldSpaceNormal);
-//            $VertexDescriptionInputs.TangentSpaceViewDirection: output.TangentSpaceViewDirection =   mul(tangentSpaceTransform, output.WorldSpaceViewDirection);
+            $VertexDescriptionInputs.WorldSpaceViewDirection:   output.WorldSpaceViewDirection =     GetWorldSpaceNormalizeViewDir(output.WorldSpacePosition);
+            $VertexDescriptionInputs.ObjectSpaceViewDirection:  output.ObjectSpaceViewDirection =    TransformWorldToObjectDir(output.WorldSpaceViewDirection);
+            $VertexDescriptionInputs.ViewSpaceViewDirection:    output.ViewSpaceViewDirection =      TransformWorldToViewDir(output.WorldSpaceViewDirection);
+            $VertexDescriptionInputs.TangentSpaceViewDirection: float3x3 tangentSpaceTransform =     float3x3(output.WorldSpaceTangent,output.WorldSpaceBiTangent,output.WorldSpaceNormal);
+            $VertexDescriptionInputs.TangentSpaceViewDirection: output.TangentSpaceViewDirection =   mul(tangentSpaceTransform, output.WorldSpaceViewDirection);
 
-            // TODO: positionSS is SV_Position, graph input expects screenPosition to be 0..1 across the active viewport (?)
-            $VertexDescriptionInputs.ScreenPosition:            output.ScreenPosition = 0.0f;       // need to calculate projected screen position
-            $VertexDescriptionInputs.uv0:                       output.uv0 =            float4(input.uv0, 0.0f, 0.0f);
-            $VertexDescriptionInputs.uv1:                       output.uv1 =            float4(input.uv1, 0.0f, 0.0f);
-            $VertexDescriptionInputs.uv2:                       output.uv2 =            float4(input.uv2, 0.0f, 0.0f);
-            $VertexDescriptionInputs.uv3:                       output.uv3 =            float4(input.uv3, 0.0f, 0.0f);
-            $VertexDescriptionInputs.VertexColor:               output.VertexColor =    input.color;
+            $VertexDescriptionInputs.ScreenPosition:            output.ScreenPosition =              TransformWorldToHClip(output.WorldSpacePosition);
+            $VertexDescriptionInputs.uv0:                       output.uv0 =                         float4(input.uv0, 0.0f, 0.0f);
+            $VertexDescriptionInputs.uv1:                       output.uv1 =                         float4(input.uv1, 0.0f, 0.0f);
+            $VertexDescriptionInputs.uv2:                       output.uv2 =                         float4(input.uv2, 0.0f, 0.0f);
+            $VertexDescriptionInputs.uv3:                       output.uv3 =                         float4(input.uv3, 0.0f, 0.0f);
+            $VertexDescriptionInputs.VertexColor:               output.VertexColor =                 input.color;
 
             return output;
         }
