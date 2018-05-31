@@ -6,7 +6,7 @@ Shader "HDRenderPipeline/Unlit"
         _UnlitColor("Color", Color) = (1,1,1,1)
         _UnlitColorMap("ColorMap", 2D) = "white" {}
 
-        [HDR] _EmissiveColor("EmissiveColor", Color) = (1, 1, 1)
+        [HDR] _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
 
         _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
