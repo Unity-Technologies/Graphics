@@ -390,7 +390,6 @@ ${Graph}
             builtinData.bakeDiffuseLighting += SampleBakedGI(fragInputs.positionWS, -fragInputs.worldToTangent[2], fragInputs.texCoord1, fragInputs.texCoord2) * bsdfData.transmittance;
         }
 
-        builtinData.emissiveIntensity =         1.0f;
 $SurfaceDescription.Emission:     builtinData.emissiveColor =             surfaceDescription.Emission;
         builtinData.velocity =                  float2(0.0, 0.0);
 #ifdef SHADOWS_SHADOWMASK

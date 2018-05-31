@@ -304,7 +304,6 @@ ${Graph}
         builtinData.opacity =                   surfaceDescription.Alpha;
         builtinData.bakeDiffuseLighting =       float3(0.0, 0.0, 0.0);
      
-        builtinData.emissiveIntensity =         1.0f;
 $SurfaceDescription.Emission:     builtinData.emissiveColor =             surfaceDescription.Emission;
         builtinData.velocity =                  float2(0.0, 0.0);
         builtinData.shadowMask0 = 0.0;
