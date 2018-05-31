@@ -1,4 +1,4 @@
-#if SHADERPASS != SHADERPASS_DBUFFER
+#if (SHADERPASS != SHADERPASS_DBUFFER) && (SHADERPASS != SHADERPASS_MESHDECALS)
 #error SHADERPASS_is_not_correctly_define
 #endif
 
@@ -17,10 +17,11 @@ void Frag(  PackedVaryingsToPS packedInput,
             )
 {
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
-
-    float depth = LOAD_TEXTURE2D(_CameraDepthTexture, input.positionSS.xy).x;
-    PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
-
+	DecalSurfaceData surfaceData;
+  
+#if (SHADERPASS == SHADERPASS_DBUFFER)
+	float depth = LOAD_TEXTURE2D(_CameraDepthTexture, input.positionSS.xy).x;
+	PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
     // Transform from world space to decal space (DS) to clip the decal.
     // For this we must use absolute position.
     // There is no lose of precision here as it doesn't involve the camera matrix
@@ -29,8 +30,7 @@ void Frag(  PackedVaryingsToPS packedInput,
     positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.0f, 0.5);
     clip(positionDS);       // clip negative value
     clip(1.0 - positionDS); // Clip value above one
-
-    DecalSurfaceData surfaceData;
+    
     float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(matrix, _NormalToWorld);
     GetSurfaceData(positionDS.xz, normalToWorld, surfaceData);
 
@@ -41,5 +41,12 @@ void Frag(  PackedVaryingsToPS packedInput,
         oldVal |= surfaceData.HTileMask;
         _DecalHTile[posInput.positionSS.xy / 8] = PackByte(oldVal);
     }
+#endif
+#if (SHADERPASS == SHADERPASS_MESHDECALS)	
+	GetSurfaceData(input.texCoord0, surfaceData);
+	uint oldVal = UnpackByte(_DecalHTile[input.positionSS.xy / 8]);
+	oldVal |= surfaceData.HTileMask;
+	_DecalHTile[input.positionSS.xy / 8] = PackByte(oldVal);
+#endif
     ENCODE_INTO_DBUFFER(surfaceData, outDBuffer);
 }

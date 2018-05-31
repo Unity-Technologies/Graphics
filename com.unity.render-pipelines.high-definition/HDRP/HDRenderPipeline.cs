@@ -1386,7 +1386,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return;
 
             using (new ProfilingSample(cmd, "DBufferRender", CustomSamplerId.DBufferRender.GetSampler()))
-            {
+            {                
                 // We need to copy depth buffer texture if we want to bind it at this stage
                 CopyDepthBufferIfNeeded(cmd);
 
@@ -1395,6 +1395,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_DbufferManager.ClearTargets(cmd, hdCamera);
                 HDUtils.SetRenderTarget(cmd, hdCamera, m_DbufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer); // do not clear anymore
                 m_DbufferManager.SetHTile(m_DbufferManager.bufferCount, cmd);
+                renderContext.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+
                 DrawRendererSettings drawSettings = new DrawRendererSettings(hdCamera.camera, HDShaderPassNames.s_EmptyName)
                 {
                     rendererConfiguration = 0,
@@ -1407,7 +1410,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 };
                 renderContext.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, filterRenderersSettings);
 
-//                DecalSystem.instance.RenderIntoDBuffer(cmd);
+                DecalSystem.instance.RenderIntoDBuffer(cmd);
                 m_DbufferManager.UnSetHTile(cmd);
                 m_DbufferManager.SetHTileTexture(cmd);  // mask per 8x8 tile used for optimization when looking up dbuffer values
             }

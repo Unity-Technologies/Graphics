@@ -76,6 +76,29 @@ Shader "HDRenderPipeline/Decal"
 
             ENDHLSL
         }
+
+		Pass
+		{
+			Name "MeshDecals"  // Name is not used
+			Tags{"LightMode" = "MeshDecals"} // This will be only for opaque object based on the RenderQueue index
+										 
+			Cull Back
+			ZWrite Off
+			ZTest LEqual
+			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+			Blend SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+
+			HLSLPROGRAM
+
+			#define SHADERPASS SHADERPASS_MESHDECALS
+			#include "../../ShaderVariables.hlsl"
+			#include "Decal.hlsl"
+			#include "ShaderPass/DecalSharePass.hlsl"
+			#include "DecalData.hlsl"
+			#include "../../ShaderPass/ShaderPassDBuffer.hlsl"
+
+			ENDHLSL
+		}
     }
     CustomEditor "Experimental.Rendering.HDPipeline.DecalUI"
 }
