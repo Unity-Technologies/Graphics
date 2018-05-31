@@ -93,7 +93,7 @@ namespace UnityEditor.VFX
         }
     }
 
-    //[CustomEditor(typeof(VisualEffect))]
+    [CustomEditor(typeof(VisualEffect))]
     [CanEditMultipleObjects]
     public class AdvancedVisualEffectEditor : VisualEffectEditor, IToolModeOwner
     {
@@ -142,7 +142,7 @@ namespace UnityEditor.VFX
                 {
                     VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
 
-                    window.LoadAsset(component.visualEffectAsset);
+                    window.LoadAsset(component.visualEffectAsset, component);
                 }
             }
         }

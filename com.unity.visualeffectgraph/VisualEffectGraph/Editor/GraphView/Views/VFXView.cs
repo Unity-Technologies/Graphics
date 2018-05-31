@@ -244,6 +244,11 @@ namespace UnityEditor.VFX.UI
             {
                 return m_ComponentBoard != null ? m_ComponentBoard.GetAttachedComponent() : null;
             }
+
+            set
+            {
+                m_ComponentBoard.Attach(value);
+            }
         }
 
         public VFXViewController controller

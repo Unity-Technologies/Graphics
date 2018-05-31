@@ -351,11 +351,12 @@ namespace  UnityEditor.VFX.UI
             UpdateAttachButton();
         }
 
-        void Attach()
+        public void Attach(VisualEffect effect = null)
         {
-            if (m_SelectionCandidate != null)
+            VisualEffect target = effect != null ? effect : m_SelectionCandidate;
+            if (target != null)
             {
-                m_AttachedComponent = m_SelectionCandidate;
+                m_AttachedComponent = target;
                 UpdateAttachButton();
                 m_LastKnownPauseState = !m_AttachedComponent.pause;
                 UpdatePlayButton();

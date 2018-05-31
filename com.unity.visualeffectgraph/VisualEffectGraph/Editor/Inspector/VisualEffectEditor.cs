@@ -54,7 +54,7 @@ namespace UnityEditor.VFX
     }
 
 
-    [CustomEditor(typeof(VisualEffect))]
+    //[CustomEditor(typeof(VisualEffect))]
     public class VisualEffectEditor : Editor
     {
         protected SerializedProperty m_VisualEffectAsset;
