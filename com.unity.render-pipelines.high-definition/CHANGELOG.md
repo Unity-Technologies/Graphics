@@ -2,8 +2,6 @@
 # Changelog
 
 ## [2018.2 undecided]
-- Fix issue with LOD transition and instancing
-- Fix discrepency between object motion vector and camera motion vector
 
 ### Improvements
 - Add stripper of shader variant when building a player. Save shader compile time.
@@ -18,6 +16,11 @@
 ### Changed, Removals and deprecations
 - Removed GlobalLightLoopSettings.maxPlanarReflectionProbes and instead use value of GlobalLightLoopSettings.planarReflectionProbeCacheSize
 - Changed SupportForwardOnly to SupportOnlyForward in render pipeline settings
+
+### Bug fixes
+- Fix issue with LOD transition and instancing
+- Fix discrepency between object motion vector and camera motion vector
+- Fix issue with spot and dir light gizmo axis not highlighted correctly
 
 ## [2018.1 undecided]
 
