@@ -52,6 +52,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 string CorePath = HDEditorUtils.GetCorePath();
 
                 newAsset.defaultDiffuseMaterial = Load<Material>(HDRenderPipelinePath + "RenderPipelineResources/DefaultHDMaterial.mat");
+                newAsset.defaultMirrorMaterial = Load<Material>(HDRenderPipelinePath + "RenderPipelineResources/DefaultHDMirrorMaterial.mat");
+
                 newAsset.defaultDecalMaterial = Load<Material>(HDRenderPipelinePath + "RenderPipelineResources/DefaultHDDecalMaterial.mat");
                 newAsset.defaultShader = Load<Shader>(HDRenderPipelinePath + "Material/Lit/Lit.shader");
 

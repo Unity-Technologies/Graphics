@@ -5,6 +5,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     // The HDRenderPipeline assumes linear lighting. Doesn't work with gamma.
     public class HDRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
+        [HideInInspector]
+        public float version = 1.0f;
+
         HDRenderPipelineAsset()
         {
         }
@@ -113,6 +116,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Material GetDefaultDecalMaterial()
         {
             return m_RenderPipelineResources.defaultDecalMaterial;
+        }
+
+        // Note: This function is HD specific
+        public Material GetDefaultMirrorMaterial()
+        {
+            return m_RenderPipelineResources.defaultMirrorMaterial;
         }
 
         public override Material GetDefaultParticleMaterial()

@@ -15,7 +15,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         ReflectionProxyVolumeComponent m_ProxyVolumeReference;
         [SerializeField]
-        InfluenceVolume m_InfluenceVolume;
+        InfluenceVolume m_InfluenceVolume = new InfluenceVolume();
         [SerializeField]
         Vector3 m_CaptureLocalPosition;
         [SerializeField]
@@ -43,7 +43,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         Vector3 m_CaptureMirrorPlaneLocalPosition;
         [SerializeField]
-        Vector3 m_CaptureMirrorPlaneLocalNormal = Vector3.forward;
+        Vector3 m_CaptureMirrorPlaneLocalNormal = Vector3.up;
         [SerializeField]
         bool m_OverrideFieldOfView = false;
         [SerializeField]

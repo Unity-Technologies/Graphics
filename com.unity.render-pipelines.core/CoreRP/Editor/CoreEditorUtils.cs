@@ -377,6 +377,11 @@ namespace UnityEditor.Experimental.Rendering
 
             return data;
         }
+
+        static public GameObject CreateGameObject(GameObject parent, string name, params Type[] types)
+        {
+            return ObjectFactory.CreateGameObject(GameObjectUtility.GetUniqueNameForSibling(parent != null ? parent.transform : null, name), types);
+        }
     }
 
     static class ShadowCascadeSplitGUI
