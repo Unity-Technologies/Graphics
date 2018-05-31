@@ -81,7 +81,6 @@ MaterialNodeView #previewFiller > #expand {
 }
 
 MaterialNodeView #previewFiller > #expand > #icon {
-    align-self: center;
     background-image : resource("GraphView/Nodes/PreviewExpand.png");
     width: 16;
     height: 16;
@@ -118,7 +117,6 @@ MaterialNodeView > #settings-container {
 
 #settings-button {
     width: 16;
-    align-self: center;
     justify-content: center;
     padding-left: 8;
 }
