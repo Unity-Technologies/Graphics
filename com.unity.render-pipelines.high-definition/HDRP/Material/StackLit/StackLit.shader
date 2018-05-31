@@ -120,7 +120,6 @@ Shader "HDRenderPipeline/StackLit"
         _EmissiveColorMap("Emissive Color Map", 2D) = "white" {}
         _EmissiveColorMapUV("Emissive Color Map UV", Range(0.0, 1.0)) = 0
         _EmissiveColorMapUVLocal("Emissive Color Map UV Local", Float) = 0.0
-        _EmissiveIntensity("Emissive Intensity", Float) = 0
         [ToggleUI] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
 
         [ToggleUI] _EnableSubsurfaceScattering("Enable Subsurface Scattering", Float) = 0.0
