@@ -70,7 +70,12 @@ namespace UnityEngine.Experimental
         public static void RegisterInputs(List<InputManagerEntry> entries)
         {
             // Grab reference to input manager
-            var inputManager = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/InputManager.asset")[0];
+            var assets = AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/InputManager.asset");
+            // Temporary fix. This happens some time with HDRP init when it's called before asset database is initialized (probably related to package load order).
+            if (assets.Length == 0)
+                return;
+
+            var inputManager = assets[0];
 
             // Wrap in serialized object
             var soInputManager = new SerializedObject(inputManager);
