@@ -43,7 +43,7 @@ void Frag(  PackedVaryingsToPS packedInput,
     }
 #endif
 #if (SHADERPASS == SHADERPASS_MESHDECALS)	
-	GetSurfaceData(input.texCoord0, surfaceData);
+	GetSurfaceData(input, surfaceData);	
 	uint oldVal = UnpackByte(_DecalHTile[input.positionSS.xy / 8]);
 	oldVal |= surfaceData.HTileMask;
 	_DecalHTile[input.positionSS.xy / 8] = PackByte(oldVal);
