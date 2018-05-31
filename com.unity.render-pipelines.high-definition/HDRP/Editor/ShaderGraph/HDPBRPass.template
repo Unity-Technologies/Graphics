@@ -40,10 +40,6 @@ ${VariantDefines}
     // this modifies the normal calculation
     // #define SURFACE_GRADIENT
 
-    // This shader support vertex modification (or not)
-    // TODO - move to PBR shader control
-    // #define HAVE_VERTEX_MODIFICATION
-
     // If we use subsurface scattering, enable output split lighting (for forward pass)
     #if defined(_MATID_SSS) && !defined(_SURFACE_TYPE_TRANSPARENT)
     #define OUTPUT_SPLIT_LIGHTING
@@ -81,6 +77,8 @@ ${Defines}
         $VaryingsMeshToPS.texCoord3:            #define VARYINGS_NEED_TEXCOORD3
         $VaryingsMeshToPS.color:                #define VARYINGS_NEED_COLOR
         $VaryingsMeshToPS.cullFace:             #define VARYINGS_NEED_CULLFACE
+        $features.modifyMesh:                   #define HAVE_MESH_MODIFICATION
+
     //-------------------------------------------------------------------------------------
     // End Defines
     //-------------------------------------------------------------------------------------
@@ -137,7 +135,65 @@ ${Graph}
     // End graph generated code
     //-------------------------------------------------------------------------------------
 
-	// TODO: Do we want to build include functionality for sharing these preprocessed functions across templates?
+#ifdef HAVE_MESH_MODIFICATION
+        // TODO: we should share this between template files somehow
+        VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh input)
+        {
+            VertexDescriptionInputs output;
+            ZERO_INITIALIZE(VertexDescriptionInputs, output);
+
+            $VertexDescriptionInputs.ObjectSpaceNormal:         output.ObjectSpaceNormal =           input.normalOS;
+            $VertexDescriptionInputs.WorldSpaceNormal:          output.WorldSpaceNormal =            TransformObjectToWorldNormal(input.normalOS);
+            $VertexDescriptionInputs.ViewSpaceNormal:           output.ViewSpaceNormal =             TransformWorldToViewDir(output.WorldSpaceNormal);
+            $VertexDescriptionInputs.TangentSpaceNormal:        output.TangentSpaceNormal =          float3(0.0f, 0.0f, 1.0f);
+
+            $VertexDescriptionInputs.ObjectSpaceTangent:        output.ObjectSpaceTangent =          input.tangentOS;
+            $VertexDescriptionInputs.WorldSpaceTangent:		    output.WorldSpaceTangent =           TransformObjectToWorldDir(input.tangentOS.xyz);
+            $VertexDescriptionInputs.ViewSpaceTangent:          output.ViewSpaceTangent =            TransformWorldToViewDir(output.WorldSpaceTangent);
+            $VertexDescriptionInputs.TangentSpaceTangent:       output.TangentSpaceTangent =         float3(1.0f, 0.0f, 0.0f);
+
+            $VertexDescriptionInputs.ObjectSpaceBiTangent:      output.ObjectSpaceBiTangent =        normalize(cross(input.normalOS, input.tangentOS) * (input.tangentOS.w > 0.0f ? 1.0f : -1.0f) * GetOddNegativeScale());
+            $VertexDescriptionInputs.WorldSpaceBiTangent:       output.WorldSpaceBiTangent =         TransformObjectToWorldDir(output.ObjectSpaceBiTangent);
+            $VertexDescriptionInputs.ViewSpaceBiTangent:        output.ViewSpaceBiTangent =          TransformWorldToViewDir(output.WorldSpaceBiTangent);
+            $VertexDescriptionInputs.TangentSpaceBiTangent:     output.TangentSpaceBiTangent =       float3(0.0f, 1.0f, 0.0f);
+
+            $VertexDescriptionInputs.ObjectSpacePosition:       output.ObjectSpacePosition =         input.positionOS;
+            $VertexDescriptionInputs.WorldSpacePosition:        output.WorldSpacePosition =          TransformObjectToWorld(input.positionOS);
+            $VertexDescriptionInputs.ViewSpacePosition:         output.ViewSpacePosition =           TransformWorldToView(output.WorldSpacePosition);
+            $VertexDescriptionInputs.TangentSpacePosition:      output.TangentSpacePosition =        float3(0.0f, 0.0f, 0.0f);
+
+            $VertexDescriptionInputs.WorldSpaceViewDirection:   output.WorldSpaceViewDirection =     GetWorldSpaceNormalizeViewDir(output.WorldSpacePosition);
+            $VertexDescriptionInputs.ObjectSpaceViewDirection:  output.ObjectSpaceViewDirection =    TransformWorldToObjectDir(output.WorldSpaceViewDirection);
+            $VertexDescriptionInputs.ViewSpaceViewDirection:    output.ViewSpaceViewDirection =      TransformWorldToViewDir(output.WorldSpaceViewDirection);
+            $VertexDescriptionInputs.TangentSpaceViewDirection: float3x3 tangentSpaceTransform =     float3x3(output.WorldSpaceTangent,output.WorldSpaceBiTangent,output.WorldSpaceNormal);
+            $VertexDescriptionInputs.TangentSpaceViewDirection: output.TangentSpaceViewDirection =   mul(tangentSpaceTransform, output.WorldSpaceViewDirection);
+
+            $VertexDescriptionInputs.ScreenPosition:            output.ScreenPosition =              TransformWorldToHClip(output.WorldSpacePosition);
+            $VertexDescriptionInputs.uv0:                       output.uv0 =                         float4(input.uv0, 0.0f, 0.0f);
+            $VertexDescriptionInputs.uv1:                       output.uv1 =                         float4(input.uv1, 0.0f, 0.0f);
+            $VertexDescriptionInputs.uv2:                       output.uv2 =                         float4(input.uv2, 0.0f, 0.0f);
+            $VertexDescriptionInputs.uv3:                       output.uv3 =                         float4(input.uv3, 0.0f, 0.0f);
+            $VertexDescriptionInputs.VertexColor:               output.VertexColor =                 input.color;
+
+            return output;
+        }
+
+        AttributesMesh ApplyMeshModification(AttributesMesh input)
+        {
+            // build graph inputs
+            VertexDescriptionInputs vertexDescriptionInputs = AttributesMeshToVertexDescriptionInputs(input);
+
+            // evaluate vertex graph
+            VertexDescription vertexDescription = VertexDescriptionFunction(vertexDescriptionInputs);
+
+            // copy graph output to the results
+            $VertexDescription.Position:    input.positionOS = vertexDescription.Position;
+
+            return input;
+        }
+#endif // HAVE_MESH_MODIFICATION
+
+	    // TODO: Do we want to build include functionality for sharing these preprocessed functions across templates?
         FragInputs BuildFragInputs(VaryingsMeshToPS input)
         {
             FragInputs output;
@@ -176,7 +232,7 @@ ${Graph}
             $SurfaceDescriptionInputs.ViewSpaceNormal:           output.ViewSpaceNormal =             mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_I_V);         // transposed multiplication by inverse matrix to handle normal scale
             $SurfaceDescriptionInputs.TangentSpaceNormal:        output.TangentSpaceNormal =          float3(0.0f, 0.0f, 1.0f);
 
-            $SurfaceDescriptionInputs.WorldSpaceTangent:		 output.WorldSpaceTangent =           input.worldToTangent[0].xyz;
+            $SurfaceDescriptionInputs.WorldSpaceTangent          output.WorldSpaceTangent =           input.worldToTangent[0].xyz;
             $SurfaceDescriptionInputs.ObjectSpaceTangent:        output.ObjectSpaceTangent =          mul((float3x3) unity_WorldToObject, output.WorldSpaceTangent);
             $SurfaceDescriptionInputs.ViewSpaceTangent:          output.ViewSpaceTangent =            mul((float3x3) UNITY_MATRIX_V, output.WorldSpaceTangent);
             $SurfaceDescriptionInputs.TangentSpaceTangent:       output.TangentSpaceTangent =         float3(1.0f, 0.0f, 0.0f);
@@ -201,14 +257,14 @@ ${Graph}
             $SurfaceDescriptionInputs.TangentSpacePosition:      output.TangentSpacePosition =        float3(0.0f, 0.0f, 0.0f);
 
             // TODO: positionSS is SV_Position, graph input expects screenPosition to be 0..1 across the active viewport (?)
-            $SurfaceDescriptionInputs.screenPosition:            output.screenPosition = input.positionSS;
+            $SurfaceDescriptionInputs.ScreenPosition:            output.ScreenPosition = input.positionSS;
             
             $SurfaceDescriptionInputs.uv0:                       output.uv0 =    float4(input.texCoord0, 0.0f, 0.0f);
             $SurfaceDescriptionInputs.uv1:                       output.uv1 =    float4(input.texCoord1, 0.0f, 0.0f);
             $SurfaceDescriptionInputs.uv2:                       output.uv2 =    float4(input.texCoord2, 0.0f, 0.0f);
             $SurfaceDescriptionInputs.uv3:                       output.uv3 =    float4(input.texCoord3, 0.0f, 0.0f);
             
-            $SurfaceDescriptionInputs.vertexColor:               output.vertexColor =    input.color;
+            $SurfaceDescriptionInputs.VertexColor:               output.VertexColor =    input.color;
 
             return output;
         }
