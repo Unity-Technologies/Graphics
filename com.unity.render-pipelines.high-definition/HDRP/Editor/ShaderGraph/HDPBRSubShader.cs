@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Collections;
 using System.IO;
 using System.Linq;
 using UnityEditor.Graphing;
@@ -58,6 +57,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 PBRMasterNode.AlphaSlotId,
                 PBRMasterNode.AlphaThresholdSlotId
             },
+            VertexShaderSlots = new List<int>()
+            {
+                PBRMasterNode.PositionSlotId
+            }
         };
 
         Pass m_PassGBufferWithPrepass = new Pass()
@@ -107,6 +110,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 PBRMasterNode.AlphaSlotId,
                 PBRMasterNode.AlphaThresholdSlotId
             },
+            VertexShaderSlots = new List<int>()
+            {
+                PBRMasterNode.PositionSlotId
+            }
         };
 
         Pass m_PassMETA = new Pass()
@@ -128,8 +135,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 "AttributesMesh.uv1",
                 "AttributesMesh.color",
                 "AttributesMesh.uv2",           // SHADERPASS_LIGHT_TRANSPORT always uses uv2
-//                "FragInputs.worldToTangent",
-//                "FragInputs.positionWS",
             },
             PixelShaderSlots = new List<int>()
             {
@@ -142,7 +147,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 PBRMasterNode.OcclusionSlotId,
                 PBRMasterNode.AlphaSlotId,
                 PBRMasterNode.AlphaThresholdSlotId
-            }
+            },
+//             VertexShaderSlots = new List<int>()
+//             {
+//                 PBRMasterNode.PositionSlotId
+//             }
         };
 
         Pass m_PassShadowCaster = new Pass()
@@ -169,6 +178,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 PBRMasterNode.AlphaSlotId,
                 PBRMasterNode.AlphaThresholdSlotId
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                PBRMasterNode.PositionSlotId
             }
         };
 
@@ -192,6 +205,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 PBRMasterNode.AlphaSlotId,
                 PBRMasterNode.AlphaThresholdSlotId
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                PBRMasterNode.PositionSlotId
             }
         };
 
@@ -209,11 +226,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 "FragInputs.positionWS",
             },
-            PixelShaderSlots = new List<int>()
-            {
-                PBRMasterNode.AlphaSlotId,
-                PBRMasterNode.AlphaThresholdSlotId
-            },
             StencilOverride = new List<string>()
             {
                 "// If velocity pass (motion vectors) is enabled we tag the stencil so it don't perform CameraMotionVelocity",
@@ -224,7 +236,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 "   Comp Always",
                 "   Pass Replace",
                 "}"
-            }
+            },
+            PixelShaderSlots = new List<int>()
+            {
+                PBRMasterNode.AlphaSlotId,
+                PBRMasterNode.AlphaThresholdSlotId
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                PBRMasterNode.PositionSlotId
+            },
         };
 
         Pass m_PassDistortion = new Pass()
@@ -250,7 +271,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 PBRMasterNode.AlphaSlotId,
                 PBRMasterNode.AlphaThresholdSlotId
-            }
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                PBRMasterNode.PositionSlotId
+            },
         };
 
         Pass m_PassTransparentDepthPrepass = new Pass()
@@ -277,7 +302,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 PBRMasterNode.AlphaSlotId,
                 PBRMasterNode.AlphaThresholdSlotId
-            }
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                PBRMasterNode.PositionSlotId
+            },
         };
 
         Pass m_PassTransparentBackface = new Pass()
@@ -317,7 +346,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 PBRMasterNode.OcclusionSlotId,
                 PBRMasterNode.AlphaSlotId,
                 PBRMasterNode.AlphaThresholdSlotId
-            }
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                PBRMasterNode.PositionSlotId
+            },
         };
 
         Pass m_PassForward = new Pass()
@@ -367,7 +400,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 PBRMasterNode.OcclusionSlotId,
                 PBRMasterNode.AlphaSlotId,
                 PBRMasterNode.AlphaThresholdSlotId
-            }
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                PBRMasterNode.PositionSlotId
+            },
         };
 
         Pass m_PassTransparentDepthPostpass = new Pass()
@@ -394,7 +431,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 PBRMasterNode.AlphaSlotId,
                 PBRMasterNode.AlphaThresholdSlotId
-            }
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                PBRMasterNode.PositionSlotId
+            },
         };
 
         private static string GetVariantDefines(PBRMasterNode masterNode)
@@ -481,7 +522,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // #pragma shader_feature _HEIGHTMAP
             // #pragma shader_feature _TANGENTMAP
             // #pragma shader_feature _ANISOTROPYMAP
-            // #pragma shader_feature _DETAIL_MAP                                   // MOVE to a node
             // #pragma shader_feature _SUBSURFACE_RADIUS_MAP
             // #pragma shader_feature _THICKNESSMAP
             // #pragma shader_feature _SPECULARCOLORMAP
@@ -537,7 +577,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return defines.GetShaderString(2);
         }
 
-        private static bool GenerateShaderPass(PBRMasterNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
+        private static bool GenerateShaderPassLit(PBRMasterNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
         {
             var templateLocation = Path.Combine(Path.Combine(Path.Combine(HDEditorUtils.GetHDRenderPipelinePath(), "Editor"), "ShaderGraph"), pass.TemplateName);
             if (!File.Exists(templateLocation))
@@ -549,57 +589,95 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (sourceAssetDependencyPaths != null)
                 sourceAssetDependencyPaths.Add(templateLocation);
 
-            // grab all of the active nodes
-            var activeNodeList = ListPool<INode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(activeNodeList, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots);
+            // grab all of the active nodes (for pixel and vertex graphs)
+            var vertexNodes = ListPool<AbstractMaterialNode>.Get();
+            NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.VertexShaderSlots);
+
+            var pixelNodes = ListPool<INode>.Get();
+            NodeUtils.DepthFirstCollectNodesFromNode(pixelNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots);
 
             // graph requirements describe what the graph itself requires
-            var graphRequirements = ShaderGraphRequirements.FromNodes(activeNodeList, ShaderStageCapability.Fragment);
+            var pixelRequirements = ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment, false);   // TODO: is ShaderStageCapability.Fragment correct?
+            var vertexRequirements = ShaderGraphRequirements.FromNodes(vertexNodes, ShaderStageCapability.Vertex, false);
 
+            // Function Registry tracks functions to remove duplicates, it wraps a string builder that stores the combined function string
             ShaderStringBuilder graphNodeFunctions = new ShaderStringBuilder();
             graphNodeFunctions.IncreaseIndent();
             var functionRegistry = new FunctionRegistry(graphNodeFunctions);
 
+            // TODO: this can be a shared function for all HDRP master nodes -- From here through GraphUtil.GenerateSurfaceDescription(..)
+
             // Build the list of active slots based on what the pass requires
-            // TODO: this can be a shared function -- From here through GraphUtil.GenerateSurfaceDescription(..)
-            var activeSlots = new List<MaterialSlot>();
-            foreach (var id in pass.PixelShaderSlots)
-            {
-                MaterialSlot slot = masterNode.FindSlot<MaterialSlot>(id);
-                if (slot != null)
-                {
-                    activeSlots.Add(slot);
-                }
-            }
+            var pixelSlots = HDSubShaderUtilities.FindMaterialSlotsOnNode(pass.PixelShaderSlots, masterNode);
+            var vertexSlots = HDSubShaderUtilities.FindMaterialSlotsOnNode(pass.VertexShaderSlots, masterNode);
+
+            // properties used by either pixel and vertex shader
+            PropertyCollector sharedProperties = new PropertyCollector();
 
             // build the graph outputs structure to hold the results of each active slots (and fill out activeFields to indicate they are active)
-            string graphInputStructName = "SurfaceDescriptionInputs";
-            string graphOutputStructName = "SurfaceDescription";
-            string graphEvalFunctionName = "SurfaceDescriptionFunction";
-            ShaderStringBuilder graphEvalFunction = new ShaderStringBuilder();
-            ShaderStringBuilder graphOutputs = new ShaderStringBuilder();
-            PropertyCollector graphProperties = new PropertyCollector();
+            string pixelGraphInputStructName = "SurfaceDescriptionInputs";
+            string pixelGraphOutputStructName = "SurfaceDescription";
+            string pixelGraphEvalFunctionName = "SurfaceDescriptionFunction";
+            ShaderStringBuilder pixelGraphEvalFunction = new ShaderStringBuilder();
+            ShaderStringBuilder pixelGraphOutputs = new ShaderStringBuilder();
+
+            // dependency tracker -- set of active fields
+            HashSet<string> activeFields = new HashSet<string>();
+
+            // build initial requirements
+            HDRPShaderStructs.AddActiveFieldsFromPixelGraphRequirements(activeFields, pixelRequirements);
 
             // build the graph outputs structure, and populate activeFields with the fields of that structure
-            HashSet<string> activeFields = new HashSet<string>();
-            GraphUtil.GenerateSurfaceDescriptionStruct(graphOutputs, activeSlots, true);
-            //GraphUtil.GenerateSurfaceDescriptionStruct(graphOutputs, activeSlots, true, graphOutputStructName, activeFields);
+            GraphUtil.GenerateSurfaceDescriptionStruct(pixelGraphOutputs, pixelSlots, true, pixelGraphOutputStructName, activeFields);
 
             // Build the graph evaluation code, to evaluate the specified slots
             GraphUtil.GenerateSurfaceDescriptionFunction(
-                activeNodeList,
+                pixelNodes,
                 masterNode,
                 masterNode.owner as AbstractMaterialGraph,
-                graphEvalFunction,
+                pixelGraphEvalFunction,
                 functionRegistry,
-                graphProperties,
-                graphRequirements,  // TODO : REMOVE UNUSED
+                sharedProperties,
+                pixelRequirements,  // TODO : REMOVE UNUSED
                 mode,
-                graphEvalFunctionName,
-                graphOutputStructName,
+                pixelGraphEvalFunctionName,
+                pixelGraphOutputStructName,
                 null,
-                activeSlots,
-                graphInputStructName);
+                pixelSlots,
+                pixelGraphInputStructName);
+
+            string vertexGraphInputStructName = "VertexDescriptionInputs";
+            string vertexGraphOutputStructName = "VertexDescription";
+            string vertexGraphEvalFunctionName = "VertexDescriptionFunction";
+            ShaderStringBuilder vertexGraphEvalFunction = new ShaderStringBuilder();
+            ShaderStringBuilder vertexGraphOutputs = new ShaderStringBuilder();
+
+            // check for vertex animation -- enables HAVE_VERTEX_MODIFICATION
+            bool vertexActive = false;
+            if (masterNode.IsSlotConnected(PBRMasterNode.PositionSlotId))
+            {
+                vertexActive = true;
+                activeFields.Add("features.modifyMesh");
+                HDRPShaderStructs.AddActiveFieldsFromVertexGraphRequirements(activeFields, vertexRequirements);
+
+                // -------------------------------------
+                // Generate Output structure for Vertex Description function
+                GraphUtil.GenerateVertexDescriptionStruct(vertexGraphOutputs, vertexSlots, vertexGraphOutputStructName, activeFields);
+
+                // -------------------------------------
+                // Generate Vertex Description function
+                GraphUtil.GenerateVertexDescriptionFunction(
+                    masterNode.owner as AbstractMaterialGraph,
+                    vertexGraphEvalFunction,
+                    functionRegistry,
+                    sharedProperties,
+                    mode,
+                    vertexNodes,
+                    vertexSlots,
+                    vertexGraphInputStructName,
+                    vertexGraphEvalFunctionName,
+                    vertexGraphOutputStructName);
+            }
 
             var blendCode = new ShaderStringBuilder();
             var cullCode = new ShaderStringBuilder();
@@ -620,28 +698,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
-            if (pass.PixelShaderSlots != null)
-            {
-                foreach (var slotId in pass.PixelShaderSlots)
-                {
-                    var slot = masterNode.FindSlot<MaterialSlot>(slotId);
-                    if (slot != null)
-                    {
-                        var rawSlotName = slot.RawDisplayName().ToString();
-                        var descriptionVar = string.Format("{0}.{1}", graphOutputStructName, rawSlotName);
-                        activeFields.Add(descriptionVar);
-                    }
-                }
-            }
+            HDRPShaderStructs.AddRequiredFields(pass.RequiredFields, activeFields);
 
+            // apply dependencies to the active fields, and build interpolators (TODO: split this function)
             var packedInterpolatorCode = new ShaderGenerator();
-            var graphInputs = new ShaderGenerator();
             HDRPShaderStructs.Generate(
                 packedInterpolatorCode,
-                graphInputs,
-                graphRequirements,
-                pass.RequiredFields,
-                CoordinateSpace.World,
                 activeFields);
 
             // debug output all active fields
@@ -653,6 +715,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     interpolatorDefines.AddShaderChunk("//   " + f);
                 }
             }
+
+            // build graph inputs structures
+            ShaderGenerator pixelGraphInputs = new ShaderGenerator();
+            ShaderSpliceUtil.BuildType(typeof(HDRPShaderStructs.SurfaceDescriptionInputs), activeFields, pixelGraphInputs);
+            ShaderGenerator vertexGraphInputs = new ShaderGenerator();
+            ShaderSpliceUtil.BuildType(typeof(HDRPShaderStructs.VertexDescriptionInputs), activeFields, vertexGraphInputs);
 
             ShaderGenerator defines = new ShaderGenerator();
             {
@@ -675,24 +743,43 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // build graph code
             var graph = new ShaderGenerator();
-            graph.AddShaderChunk("// Graph Inputs");
-            graph.Indent();
-            graph.AddGenerator(graphInputs);
-            graph.Deindent();
-            graph.AddShaderChunk("// Graph Outputs");
-            graph.Indent();
-            graph.AddShaderChunk(graphOutputs.ToString());
-            //graph.AddGenerator(graphOutputs);
-            graph.Deindent();
-            graph.AddShaderChunk("// Graph Properties (uniform inputs)");
-            graph.AddShaderChunk(graphProperties.GetPropertiesDeclaration(1));
-            graph.AddShaderChunk("// Graph Node Functions");
-            graph.AddShaderChunk(graphNodeFunctions.ToString());
-            graph.AddShaderChunk("// Graph Evaluation");
-            graph.Indent();
-            graph.AddShaderChunk(graphEvalFunction.ToString());
-            //graph.AddGenerator(graphEvalFunction);
-            graph.Deindent();
+            {
+                graph.AddShaderChunk("// Shared Graph Properties (uniform inputs)");
+                graph.AddShaderChunk(sharedProperties.GetPropertiesDeclaration(1));
+
+                graph.AddShaderChunk("// Shared Graph Node Functions");
+                graph.AddShaderChunk(graphNodeFunctions.ToString());
+
+                if (vertexActive)
+                {
+                    graph.AddShaderChunk("// Vertex Graph Inputs");
+                    graph.Indent();
+                    graph.AddGenerator(vertexGraphInputs);
+                    graph.Deindent();
+                    graph.AddShaderChunk("// Vertex Graph Outputs");
+                    graph.Indent();
+                    graph.AddShaderChunk(vertexGraphOutputs.ToString());
+                    graph.Deindent();
+                    graph.AddShaderChunk("// Vertex Graph Evaluation");
+                    graph.Indent();
+                    graph.AddShaderChunk(vertexGraphEvalFunction.ToString());
+                    graph.Deindent();
+                }
+
+                graph.AddShaderChunk("// Pixel Graph Inputs");
+                graph.Indent();
+                graph.AddGenerator(pixelGraphInputs);
+                graph.Deindent();
+                graph.AddShaderChunk("// Pixel Graph Outputs");
+                graph.Indent();
+                graph.AddShaderChunk(pixelGraphOutputs.ToString());
+                graph.Deindent();
+
+                graph.AddShaderChunk("// Pixel Graph Evaluation");
+                graph.Indent();
+                graph.AddShaderChunk(pixelGraphEvalFunction.ToString());
+                graph.Deindent();
+            }
 
             // build the hash table of all named fragments      TODO: could make this Dictionary<string, ShaderGenerator / string>  ?
             Dictionary<string, string> namedFragments = new Dictionary<string, string>();
@@ -760,39 +847,39 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 if (opaque)
                 {
-                    GenerateShaderPass(masterNode, m_PassGBuffer, mode, materialOptions, subShader, sourceAssetDependencyPaths);
-                    GenerateShaderPass(masterNode, m_PassGBufferWithPrepass, mode, materialOptions, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, m_PassGBuffer, mode, materialOptions, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, m_PassGBufferWithPrepass, mode, materialOptions, subShader, sourceAssetDependencyPaths);
                 }
 
-                GenerateShaderPass(masterNode, m_PassMETA, mode, materialOptions, subShader, sourceAssetDependencyPaths);
-                GenerateShaderPass(masterNode, m_PassShadowCaster, mode, materialOptions, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassLit(masterNode, m_PassMETA, mode, materialOptions, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassLit(masterNode, m_PassShadowCaster, mode, materialOptions, subShader, sourceAssetDependencyPaths);
 
                 if (opaque)
                 {
-                    GenerateShaderPass(masterNode, m_PassDepthOnly, mode, materialOptions, subShader, sourceAssetDependencyPaths);
-                    GenerateShaderPass(masterNode, m_PassMotionVectors, mode, materialOptions, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, m_PassDepthOnly, mode, materialOptions, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, m_PassMotionVectors, mode, materialOptions, subShader, sourceAssetDependencyPaths);
                 }
 
                 if (distortionActive)
                 {
-                    GenerateShaderPass(masterNode, m_PassDistortion, mode, materialOptions, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, m_PassDistortion, mode, materialOptions, subShader, sourceAssetDependencyPaths);
                 }
 
                 if (transparentDepthPrepassActive)
                 {
-                    GenerateShaderPass(masterNode, m_PassTransparentDepthPrepass, mode, materialOptions, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, m_PassTransparentDepthPrepass, mode, materialOptions, subShader, sourceAssetDependencyPaths);
                 }
 
                 if (transparentBackfaceActive)
                 {
-                    GenerateShaderPass(masterNode, m_PassTransparentBackface, mode, materialOptions, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, m_PassTransparentBackface, mode, materialOptions, subShader, sourceAssetDependencyPaths);
                 }
 
-                GenerateShaderPass(masterNode, m_PassForward, mode, materialOptions, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPassLit(masterNode, m_PassForward, mode, materialOptions, subShader, sourceAssetDependencyPaths);
 
                 if (transparentDepthPostpassActive)
                 {
-                    GenerateShaderPass(masterNode, m_PassTransparentDepthPostpass, mode, materialOptions, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPassLit(masterNode, m_PassTransparentDepthPostpass, mode, materialOptions, subShader, sourceAssetDependencyPaths);
                 }
             }
             subShader.Deindent();
