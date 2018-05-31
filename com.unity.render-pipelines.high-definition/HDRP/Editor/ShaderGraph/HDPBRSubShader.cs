@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Collections;
 using System.IO;
 using System.Linq;
 using UnityEditor.Graphing;
@@ -578,7 +577,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return defines.GetShaderString(2);
         }
 
-        private static bool GenerateShaderPass(PBRMasterNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions, ShaderGenerator result)
+        // TODO: this can be a shared function I think
+        private static bool GenerateShaderPassLit(PBRMasterNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions, ShaderGenerator result)
         {
             var templateLocation = Path.Combine(Path.Combine(Path.Combine(HDEditorUtils.GetHDRenderPipelinePath(), "Editor"), "ShaderGraph"), pass.TemplateName);
             if (!File.Exists(templateLocation))
@@ -595,7 +595,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             NodeUtils.DepthFirstCollectNodesFromNode(pixelNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.PixelShaderSlots);
 
             // graph requirements describe what the graph itself requires
-            var pixelRequirements = ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment, false);
+            var pixelRequirements = ShaderGraphRequirements.FromNodes(pixelNodes, ShaderStageCapability.Fragment, false);   // TODO: is ShaderStageCapability.Fragment correct?
             var vertexRequirements = ShaderGraphRequirements.FromNodes(vertexNodes, ShaderStageCapability.Vertex, false);
 
             // Function Registry tracks functions to remove duplicates, it wraps a string builder that stores the combined function string
@@ -606,8 +606,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // TODO: this can be a shared function for all HDRP master nodes -- From here through GraphUtil.GenerateSurfaceDescription(..)
 
             // Build the list of active slots based on what the pass requires
-            var pixelSlots = HDSubShaderUtilities.FindSlotsOnMasterNode(pass.PixelShaderSlots, masterNode);
-            var vertexSlots = HDSubShaderUtilities.FindSlotsOnMasterNode(pass.VertexShaderSlots, masterNode);
+            var pixelSlots = HDSubShaderUtilities.FindMaterialSlotsOnNode(pass.PixelShaderSlots, masterNode);
+            var vertexSlots = HDSubShaderUtilities.FindMaterialSlotsOnNode(pass.VertexShaderSlots, masterNode);
 
             // properties used by either pixel and vertex shader
             PropertyCollector sharedProperties = new PropertyCollector();
@@ -619,6 +619,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ShaderStringBuilder pixelGraphEvalFunction = new ShaderStringBuilder();
             ShaderStringBuilder pixelGraphOutputs = new ShaderStringBuilder();
 
+            // dependency tracker -- set of active fields
             HashSet<string> activeFields = new HashSet<string>();
 
             // build initial requirements
@@ -836,39 +837,39 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 if (opaque)
                 {
-                    GenerateShaderPass(masterNode, m_PassGBuffer, mode, materialOptions, subShader);
-                    GenerateShaderPass(masterNode, m_PassGBufferWithPrepass, mode, materialOptions, subShader);
+                    GenerateShaderPassLit(masterNode, m_PassGBuffer, mode, materialOptions, subShader);
+                    GenerateShaderPassLit(masterNode, m_PassGBufferWithPrepass, mode, materialOptions, subShader);
                 }
 
-                GenerateShaderPass(masterNode, m_PassMETA, mode, materialOptions, subShader);
-                GenerateShaderPass(masterNode, m_PassShadowCaster, mode, materialOptions, subShader);
+                GenerateShaderPassLit(masterNode, m_PassMETA, mode, materialOptions, subShader);
+                GenerateShaderPassLit(masterNode, m_PassShadowCaster, mode, materialOptions, subShader);
 
                 if (opaque)
                 {
-                    GenerateShaderPass(masterNode, m_PassDepthOnly, mode, materialOptions, subShader);
-                    GenerateShaderPass(masterNode, m_PassMotionVectors, mode, materialOptions, subShader);
+                    GenerateShaderPassLit(masterNode, m_PassDepthOnly, mode, materialOptions, subShader);
+                    GenerateShaderPassLit(masterNode, m_PassMotionVectors, mode, materialOptions, subShader);
                 }
 
                 if (distortionActive)
                 {
-                    GenerateShaderPass(masterNode, m_PassDistortion, mode, materialOptions, subShader);
+                    GenerateShaderPassLit(masterNode, m_PassDistortion, mode, materialOptions, subShader);
                 }
 
                 if (transparentDepthPrepassActive)
                 {
-                    GenerateShaderPass(masterNode, m_PassTransparentDepthPrepass, mode, materialOptions, subShader);
+                    GenerateShaderPassLit(masterNode, m_PassTransparentDepthPrepass, mode, materialOptions, subShader);
                 }
 
                 if (transparentBackfaceActive)
                 {
-                    GenerateShaderPass(masterNode, m_PassTransparentBackface, mode, materialOptions, subShader);
+                    GenerateShaderPassLit(masterNode, m_PassTransparentBackface, mode, materialOptions, subShader);
                 }
 
-                GenerateShaderPass(masterNode, m_PassForward, mode, materialOptions, subShader);
+                GenerateShaderPassLit(masterNode, m_PassForward, mode, materialOptions, subShader);
 
                 if (transparentDepthPostpassActive)
                 {
-                    GenerateShaderPass(masterNode, m_PassTransparentDepthPostpass, mode, materialOptions, subShader);
+                    GenerateShaderPassLit(masterNode, m_PassTransparentDepthPostpass, mode, materialOptions, subShader);
                 }
             }
             subShader.Deindent();

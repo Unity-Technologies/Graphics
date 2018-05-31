@@ -222,17 +222,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 new Dependency("VertexDescriptionInputs.WorldSpacePosition",        "AttributesMesh.positionOS"),
                 new Dependency("VertexDescriptionInputs.ViewSpacePosition",         "VertexDescriptionInputs.WorldSpacePosition"),
 
-                 // TODO : view direction accessible in vertex shader
-//                 new Dependency("VertexDescriptionInputs.WorldSpaceViewDirection",   "FragInputs.positionWS"),                   // we build WorldSpaceViewDirection using FragInputs.positionWS in GetWorldSpaceNormalizeViewDir()
-//                 new Dependency("VertexDescriptionInputs.ObjectSpaceViewDirection",  "VertexDescriptionInputs.WorldSpaceViewDirection"),
-//                 new Dependency("VertexDescriptionInputs.ViewSpaceViewDirection",    "VertexDescriptionInputs.WorldSpaceViewDirection"),
-//                 new Dependency("VertexDescriptionInputs.TangentSpaceViewDirection", "VertexDescriptionInputs.WorldSpaceViewDirection"),
-//                 new Dependency("VertexDescriptionInputs.TangentSpaceViewDirection", "VertexDescriptionInputs.WorldSpaceTangent"),
-//                 new Dependency("VertexDescriptionInputs.TangentSpaceViewDirection", "VertexDescriptionInputs.WorldSpaceBiTangent"),
-//                 new Dependency("VertexDescriptionInputs.TangentSpaceViewDirection", "VertexDescriptionInputs.WorldSpaceNormal"),
+                new Dependency("VertexDescriptionInputs.WorldSpaceViewDirection",   "VertexDescriptionInputs.WorldSpacePosition"),
+                new Dependency("VertexDescriptionInputs.ObjectSpaceViewDirection",  "VertexDescriptionInputs.WorldSpaceViewDirection"),
+                new Dependency("VertexDescriptionInputs.ViewSpaceViewDirection",    "VertexDescriptionInputs.WorldSpaceViewDirection"),
+                new Dependency("VertexDescriptionInputs.TangentSpaceViewDirection", "VertexDescriptionInputs.WorldSpaceViewDirection"),
+                new Dependency("VertexDescriptionInputs.TangentSpaceViewDirection", "VertexDescriptionInputs.WorldSpaceTangent"),
+                new Dependency("VertexDescriptionInputs.TangentSpaceViewDirection", "VertexDescriptionInputs.WorldSpaceBiTangent"),
+                new Dependency("VertexDescriptionInputs.TangentSpaceViewDirection", "VertexDescriptionInputs.WorldSpaceNormal"),
 
-                 // TODO : screen position accessible in vertex shader
-//                new Dependency("VertexDescriptionInputs.ScreenPosition",            "VertexDescriptionInputs.WorldSpacePosition"),
+                new Dependency("VertexDescriptionInputs.ScreenPosition",            "VertexDescriptionInputs.WorldSpacePosition"),
                 new Dependency("VertexDescriptionInputs.uv0",                       "AttributesMesh.uv0"),
                 new Dependency("VertexDescriptionInputs.uv1",                       "AttributesMesh.uv1"),
                 new Dependency("VertexDescriptionInputs.uv2",                       "AttributesMesh.uv2"),
@@ -491,14 +489,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
     public static class HDSubShaderUtilities
     {
-        public static List<MaterialSlot> FindSlotsOnMasterNode(IEnumerable<int> slots, PBRMasterNode masterNode)
+        public static List<MaterialSlot> FindMaterialSlotsOnNode(IEnumerable<int> slots, AbstractMaterialNode node)
         {
             var activeSlots = new List<MaterialSlot>();
             if (slots != null)
             {
                 foreach (var id in slots)
                 {
-                    MaterialSlot slot = masterNode.FindSlot<MaterialSlot>(id);
+                    MaterialSlot slot = node.FindSlot<MaterialSlot>(id);
                     if (slot != null)
                     {
                         activeSlots.Add(slot);
