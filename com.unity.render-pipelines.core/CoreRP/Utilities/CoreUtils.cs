@@ -633,5 +633,18 @@ namespace UnityEngine.Experimental.Rendering
 
             return fogEnable;
         }
+
+        static public void CheckOutFile(bool VSCEnabled, UnityObject mat)
+        {
+            if (VSCEnabled)
+            {
+                UnityEditor.VersionControl.Task task = UnityEditor.VersionControl.Provider.Checkout(mat, UnityEditor.VersionControl.CheckoutMode.Both);
+
+                if (!task.success)
+                {
+                    Debug.Log(task.text + " " + task.resultCode);
+                }
+            }
+        }
     }
 }
