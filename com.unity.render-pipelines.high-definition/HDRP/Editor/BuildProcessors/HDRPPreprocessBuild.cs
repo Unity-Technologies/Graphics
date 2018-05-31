@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
-class HDRPCustomBuildProcessor : IPreprocessBuildWithReport
+class HDRPPreprocessBuild : IPreprocessBuildWithReport
 {
     public int callbackOrder { get { return 0; } }
 
