@@ -7,11 +7,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class DecalMenuItems
     {
-        [MenuItem("GameObject/Rendering/DecalProjector", priority = CoreUtils.gameObjectMenuPriority)]
+        [MenuItem("GameObject/Rendering/Decal Projector", priority = CoreUtils.gameObjectMenuPriority)]
         static void CreateDecal(MenuCommand menuCommand)
         {
-            // Create a custom game object
-            GameObject go = new GameObject("DecalProjector");
+            var parent = menuCommand.context as GameObject;
+            var go = CoreEditorUtils.CreateGameObject(parent, "Decal Projector");
             go.AddComponent<DecalProjectorComponent>();
             // Ensure it gets re-parented if this was a context click (otherwise does nothing)
             GameObjectUtility.SetParentAndAlign(go, menuCommand.context as GameObject);
