@@ -24,7 +24,7 @@ namespace UnityEditor.VFX.Operator
 
         override public string name { get { return "Spherical to Rectangular"; } }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { VFXOperatorUtility.SphericalToRectangular(VFXOperatorUtility.DegToRad(inputExpression[0]), VFXOperatorUtility.DegToRad(inputExpression[1]), inputExpression[2]) };
         }

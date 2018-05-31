@@ -74,8 +74,7 @@ namespace UnityEditor.VFX
             if (IsExpandable())
             {
                 FieldInfo[] infos = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
-                return infos.Where(info => info.FieldType != typeof(CoordinateSpace)) // TODO filter out Coordinate space is tmp. Should be changed
-                    .Select(info => new VFXProperty(info));
+                return infos.Select(info => new VFXProperty(info));
             }
             else
             {

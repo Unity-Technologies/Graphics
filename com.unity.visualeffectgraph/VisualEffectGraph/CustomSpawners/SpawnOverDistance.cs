@@ -27,15 +27,24 @@ namespace UnityEditor.VFX
             m_OldPosition = vfxValues.GetVector3(positionPropertyId);
         }
 
+        private float cachedSqrThreshold;
+        private float cachedRatePerSqrUnit;
+
         public sealed override void OnUpdate(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
         {
+            cachedSqrThreshold = vfxValues.GetFloat(velocityThresholdPropertyId);
+            cachedSqrThreshold *= cachedSqrThreshold;
+
+            cachedRatePerSqrUnit = vfxValues.GetFloat(ratePerUnitPropertyId);
+            cachedRatePerSqrUnit *= cachedRatePerSqrUnit;
+
             if (!state.playing || state.deltaTime == 0) return;
 
             Vector3 pos = vfxValues.GetVector3(positionPropertyId);
-            float distance = Vector3.Distance(m_OldPosition, pos);
-            if (distance < vfxValues.GetFloat(velocityThresholdPropertyId) * state.deltaTime)
+            float sqrDistance = Vector3.SqrMagnitude(m_OldPosition - pos);
+            if (sqrDistance < cachedSqrThreshold * state.deltaTime)
             {
-                state.spawnCount += distance * vfxValues.GetFloat(ratePerUnitPropertyId);
+                state.spawnCount += sqrDistance * cachedRatePerSqrUnit;
 
                 state.vfxEventAttribute.SetVector3(oldPositionAttributeId, m_OldPosition);
                 state.vfxEventAttribute.SetVector3(positionAttributeId, pos);

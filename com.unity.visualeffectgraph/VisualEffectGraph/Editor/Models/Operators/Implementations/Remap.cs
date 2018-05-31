@@ -1,34 +1,60 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Remap")]
-    class Remap : VFXOperatorFloatUnifiedWithVariadicOutput
+    class Remap : VFXOperatorNumericUnified, IVFXOperatorNumericUnifiedConstrained
     {
-        [VFXSetting, Tooltip("Whether the values are clamped to the input/output range")]
-        public bool Clamp = false;
+        [VFXSetting, SerializeField, Tooltip("Whether the values are clamped to the input/output range")]
+        private bool m_Clamp = false;
 
         public class InputProperties
         {
             [Tooltip("The value to be remapped into the new range.")]
-            public FloatN input = new FloatN(0.5f);
+            public float input = 0.5f;
             [Tooltip("The start of the old range.")]
-            public FloatN oldRangeMin = new FloatN(0.0f);
+            public float oldRangeMin = 0.0f;
             [Tooltip("The end of the old range.")]
-            public FloatN oldRangeMax = new FloatN(1.0f);
+            public float oldRangeMax = 1.0f;
             [Tooltip("The start of the new range.")]
-            public FloatN newRangeMin = new FloatN(5.0f);
+            public float newRangeMin = 5.0f;
             [Tooltip("The end of the new range.")]
-            public FloatN newRangeMax = new FloatN(10.0f);
+            public float newRangeMax = 10.0f;
         }
 
-        override public string name { get { return "Remap"; } }
+        public override sealed string name { get { return "Remap"; } }
 
-        protected override VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        public IEnumerable<int> slotIndicesThatMustHaveSameType
+        {
+            get
+            {
+                return Enumerable.Range(0, 5);
+            }
+        }
+
+        public IEnumerable<int> slotIndicesThatCanBeScalar
+        {
+            get
+            {
+                return Enumerable.Range(1, 4);
+            }
+        }
+
+        protected sealed override ValidTypeRule typeFilter
+        {
+            get
+            {
+                return ValidTypeRule.allowEverythingExceptInteger;
+            }
+        }
+
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             VFXExpression input;
-            if (Clamp)
+            if (m_Clamp)
                 input = VFXOperatorUtility.Clamp(inputExpression[0], inputExpression[1], inputExpression[2]);
             else
                 input = inputExpression[0];

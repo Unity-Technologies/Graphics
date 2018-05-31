@@ -25,7 +25,7 @@ namespace UnityEditor.VFX.Operator
             public Vector4 s;
         }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { new VFXExpressionSampleTextureCubeArray(inputExpression[0], inputExpression[1], inputExpression[2], inputExpression[3]) };
         }

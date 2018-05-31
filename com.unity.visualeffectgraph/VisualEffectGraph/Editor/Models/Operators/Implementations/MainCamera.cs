@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.Operator
 
         override public string name { get { return "Main Camera"; } }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             VFXExpression matrix = new VFXExpressionExtractMatrixFromMainCamera();
             VFXExpression fov = new VFXExpressionExtractFOVFromMainCamera();

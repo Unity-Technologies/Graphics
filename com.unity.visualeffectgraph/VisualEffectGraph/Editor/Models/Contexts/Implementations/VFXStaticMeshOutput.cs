@@ -65,20 +65,20 @@ namespace UnityEditor.VFX
                                 propertyAttribs.Add(new RangeAttribute(minRange, maxRange));
                                 break;
                             case ShaderUtil.ShaderPropertyType.TexEnv:
+                            {
+                                switch (ShaderUtil.GetTexDim(shader, i))
                                 {
-                                    switch (ShaderUtil.GetTexDim(shader, i))
-                                    {
-                                        case TextureDimension.Tex2D:
-                                            propertyType = typeof(Texture2D);
-                                            break;
-                                        case TextureDimension.Tex3D:
-                                            propertyType = typeof(Texture3D);
-                                            break;
-                                        default:
-                                            break; // TODO
-                                    }
-                                    break;
+                                    case TextureDimension.Tex2D:
+                                        propertyType = typeof(Texture2D);
+                                        break;
+                                    case TextureDimension.Tex3D:
+                                        propertyType = typeof(Texture3D);
+                                        break;
+                                    default:
+                                        break;     // TODO
                                 }
+                                break;
+                            }
                             default:
                                 break;
                         }

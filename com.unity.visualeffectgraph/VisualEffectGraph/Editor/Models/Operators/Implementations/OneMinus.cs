@@ -3,15 +3,28 @@ using System;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Arithmetic")]
-    class OneMinus : VFXOperatorUnaryFloatOperation
+    class OneMinus : VFXOperatorNumericUniform
     {
-        override public string name { get { return "One Minus (1-x)"; } }
+        public class InputProperties
+        {
+            public float x = 0.0f;
+        }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        public override sealed string name { get { return "One Minus (1-x)"; } }
+
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var input = inputExpression[0];
             var one = VFXOperatorUtility.OneExpression[input.valueType];
             return new[] { one - input };
+        }
+
+        protected sealed override ValidTypeRule typeFilter
+        {
+            get
+            {
+                return ValidTypeRule.allowEverythingExceptInteger;
+            }
         }
     }
 }

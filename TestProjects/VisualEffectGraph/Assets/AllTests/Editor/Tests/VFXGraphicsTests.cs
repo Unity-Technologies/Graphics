@@ -40,7 +40,7 @@ namespace UnityEditor.VFX.Test
 
             foreach (var vfx in vfxAsset)
             {
-                var graph = VisualEffectAssetExtensions.GetOrCreateGraph(vfx);
+                var graph = vfx.GetResource().GetOrCreateGraph();
                 graph.RecompileIfNeeded();
             }
 
