@@ -504,9 +504,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         [MenuItem("GameObject/Rendering/Scene Settings", priority = CoreUtils.gameObjectMenuPriority)]
-        static void CreateCustomGameObject(MenuCommand menuCommand)
+        static void CreateSceneSettingsGameObject(MenuCommand menuCommand)
         {
-            var sceneSettings = new GameObject("Scene Settings");
+            var parent = menuCommand.context as GameObject;
+            var sceneSettings = CoreEditorUtils.CreateGameObject(parent, "Scene Settings");
             GameObjectUtility.SetParentAndAlign(sceneSettings, menuCommand.context as GameObject);
             Undo.RegisterCreatedObjectUndo(sceneSettings, "Create " + sceneSettings.name);
             Selection.activeObject = sceneSettings;
