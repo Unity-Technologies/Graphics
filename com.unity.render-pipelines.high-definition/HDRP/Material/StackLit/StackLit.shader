@@ -116,7 +116,7 @@ Shader "HDRenderPipeline/StackLit"
         [HideInInspector] _AmbientOcclusionRange("AmbientOcclusion Range", Vector) = (0, 1, 0, 0)
 
         [HideInInspector] _EmissiveColorMapShow("Emissive Color Map Show", Float) = 0.0
-        _EmissiveColor("Emissive Color", Color) = (1, 1, 1)
+        [HDR] _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         _EmissiveColorMap("Emissive Color Map", 2D) = "white" {}
         _EmissiveColorMapUV("Emissive Color Map UV", Range(0.0, 1.0)) = 0
         _EmissiveColorMapUVLocal("Emissive Color Map UV Local", Float) = 0.0

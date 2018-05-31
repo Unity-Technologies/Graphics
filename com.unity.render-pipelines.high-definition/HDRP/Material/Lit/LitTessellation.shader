@@ -77,7 +77,7 @@ Shader "HDRenderPipeline/LitTessellation"
         // These option below will cause different compilation flag.
         [ToggleUI]  _EnableSpecularOcclusion("Enable specular occlusion", Float) = 0.0
 
-        [HDR] _EmissiveColor("EmissiveColor", Color) = (1, 1, 1)
+        [HDR] _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
         [ToggleUI] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
 
