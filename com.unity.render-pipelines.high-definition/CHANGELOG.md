@@ -14,6 +14,7 @@
 - Allow to double click on a render pipeline asset to setup it automatically in GraphicSettings
 - Add shortcut to create DensityVolume and PlanarReflection in hierarchy
 - Add a DefaultHDMirrorMaterial material for PlanarReflection
+- Added a script to be able to update material to newer version of Unity
 
 ### Changed, Removals and deprecations
 - Removed GlobalLightLoopSettings.maxPlanarReflectionProbes and instead use value of GlobalLightLoopSettings.planarReflectionProbeCacheSize
@@ -21,6 +22,8 @@
 - Remove EmissiveIntensity parameter and change EmissiveColor to be HDR (Matching Builtin Unity behavior) - Data need to be updated
 - Changed versioning variable name in HDAdditionalXXXData from m_version to version
 - Create unique name when creating a game object in the rendering menu (i.e Density Volume(2))
+- Re-organize various files and folder location to clean the repository
+- Change Debug windows name and location. Now located at:  Windows -> General -> Render Pipeline Debug
 
 ### Bug fixes
 - Fix issue with LOD transition and instancing
