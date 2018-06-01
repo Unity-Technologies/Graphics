@@ -33,11 +33,11 @@ In the expanded property window, you can now also toggle if the property is expo
 
 You can now change the path of Shader Graphs and Sub Graphs. When you change the path of a Shader Graph, this modifies the location it has in the shader selection list. When you change the path of Sub Graph, it will have a different location in the node creation menu.
 
-### Face Sign node
+### Is Front Face node
 
 ![](.data/face_sign.png)
 
-This node adds the ability to change graph output depending on the face sign of a given fragment. The Face Sign node returns true is currently rendering a front face, and false if rendering a back face. Enable "two sided" on the Master node to use this functionality.
+This node adds the ability to change graph output depending on the face sign of a given fragment. The Is Front Face node returns true if currently rendering a front face, and false if rendering a back face. Enable "two sided" on the Master node to use this functionality.
 
 ### Gradient nodes
 
