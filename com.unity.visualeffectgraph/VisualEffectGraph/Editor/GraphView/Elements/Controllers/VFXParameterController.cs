@@ -663,6 +663,7 @@ namespace UnityEditor.VFX.UI
                     }
                 }
 
+                Undo.RecordObject(slot, "VFXSlotValue"); // The slot value is stored on the master slot, not necessarly my own slot
                 slot.value = value;
             }
         }
