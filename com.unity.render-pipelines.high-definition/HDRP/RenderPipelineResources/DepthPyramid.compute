@@ -52,7 +52,7 @@ void KERNEL_NAME(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThrea
     float2 offset = float2(srcPixelUL) + 0.5;
 
 #if defined(PLATFORM_SUPPORT_GATHER)
-    float4 depths = GATHER_RED_TEXTURE2D(_Source, sampler_PointClamp, offset * _SrcSize.zw, 0.0).wzxy;
+    float4 depths = GATHER_RED_TEXTURE2D(_Source, sampler_PointClamp, offset * _SrcSize.zw).wzxy;
 #else
     float p00 = SAMPLE_TEXTURE2D_LOD(_Source, sampler_PointClamp, (offset) * _SrcSize.zw, 0.0).x;
     float p10 = SAMPLE_TEXTURE2D_LOD(_Source, sampler_PointClamp, (offset + float2(1.0, 0.0)) * _SrcSize.zw, 0.0).x;
