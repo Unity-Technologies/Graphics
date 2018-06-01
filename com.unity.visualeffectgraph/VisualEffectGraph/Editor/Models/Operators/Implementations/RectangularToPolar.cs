@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.Operator
 
         override public string name { get { return "Rectangular to Polar"; } }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return VFXOperatorUtility.RectangularToPolar(inputExpression[0]);
         }

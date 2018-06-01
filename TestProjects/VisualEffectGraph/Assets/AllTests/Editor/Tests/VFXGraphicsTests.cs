@@ -40,7 +40,7 @@ namespace UnityEditor.VFX.Test
 
             foreach (var vfx in vfxAsset)
             {
-                var graph = VisualEffectAssetExtensions.GetOrCreateGraph(vfx);
+                var graph = vfx.GetResource().GetOrCreateGraph();
                 graph.RecompileIfNeeded();
             }
 
@@ -162,7 +162,7 @@ namespace UnityEditor.VFX.Test
             "20_SpawnerChaining", // Unstable. TODO investigate why
             "RenderStates" // Unstable. There is an instability with shadow rendering. TODO Fix that
         };
-  
+
 
         static class CollectScene
         {
@@ -171,12 +171,12 @@ namespace UnityEditor.VFX.Test
                 get
                 {
                     return Directory.GetFiles("Assets/VFXTests/GraphicsTests/", "*.unity").Where(p => !ExcludedTests.Contains(Path.GetFileNameWithoutExtension(p))).Select(p =>
-                    {
-                        return new SceneTest
                         {
-                            path = p
-                        };
-                    });
+                            return new SceneTest
+                            {
+                                path = p
+                            };
+                        });
                 }
             }
         }

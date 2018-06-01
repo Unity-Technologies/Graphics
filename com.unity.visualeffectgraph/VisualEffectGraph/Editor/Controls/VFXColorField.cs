@@ -26,7 +26,7 @@ namespace UnityEditor.VFX.UIElements
 
             m_Container.style.flexDirection = FlexDirection.Column;
             m_Container.style.alignItems = Align.Stretch;
-            m_Container.style.flex = 1;
+            m_Container.style.flex = new Flex(1);
             m_Container.AddToClassList("colorcontainer");
 
             m_ColorDisplay = new VisualElement();
@@ -208,8 +208,8 @@ namespace UnityEditor.VFX.UIElements
             if (indeterminate)
             {
                 m_ColorDisplay.style.backgroundColor = VFXControlConstants.indeterminateTextColor;
-                m_AlphaDisplay.style.flex = 1;
-                m_NotAlphaDisplay.style.flex = 0;
+                m_AlphaDisplay.style.flex = new Flex(1);
+                m_NotAlphaDisplay.style.flex = new Flex(0, 0);
                 m_HDRLabel.RemoveFromHierarchy();
                 if (m_IndeterminateLabel.parent == null)
                     m_Container.Add(m_IndeterminateLabel);
@@ -219,8 +219,8 @@ namespace UnityEditor.VFX.UIElements
                 m_IndeterminateLabel.RemoveFromHierarchy();
                 Color displayedColor = (new Color(m_Value.r, m_Value.g, m_Value.b, 1)).gamma;
                 m_ColorDisplay.style.backgroundColor = displayedColor;
-                m_AlphaDisplay.style.flex = m_Value.a;
-                m_NotAlphaDisplay.style.flex = 1 - m_Value.a;
+                m_AlphaDisplay.style.flex = new Flex(m_Value.a, 0);
+                m_NotAlphaDisplay.style.flex = new Flex(1 - m_Value.a, 0);
 
                 bool hdr = m_Value.r > 1 || m_Value.g > 1 || m_Value.b > 1;
                 if ((m_HDRLabel.parent != null) != hdr)

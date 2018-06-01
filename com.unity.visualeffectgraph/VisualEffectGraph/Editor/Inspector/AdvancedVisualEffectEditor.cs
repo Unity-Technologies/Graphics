@@ -102,11 +102,31 @@ namespace UnityEditor.VFX
             base.OnEnable();
             EditMode.editModeStarted += OnEditModeStart;
             EditMode.editModeEnded += OnEditModeEnd;
+
+            // Force rebuilding the parameterinfos
+            VisualEffect effect = ((VisualEffect)targets[0]);
+
+            var asset = effect.visualEffectAsset;
+            if (asset != null && asset.GetResource() != null)
+            {
+                var graph = asset.GetResource().GetOrCreateGraph();
+
+                if (graph)
+                {
+                    graph.BuildParameterInfo();
+                }
+            }
         }
 
         new void OnDisable()
         {
-            base.OnDisable();
+            VisualEffect effect = ((VisualEffect)targets[0]);
+            // Check if the component is attach in the editor. If So do not call base.OnDisable() because we don't want to reset the playrate or pause
+            VFXViewWindow window = VFXViewWindow.GetWindow<VFXViewWindow>();
+            if (window == null || window.graphView == null || window.graphView.attachedComponent != effect)
+            {
+                base.OnDisable();
+            }
 
             m_ContextsPerComponent.Clear();
             EditMode.editModeStarted -= OnEditModeStart;
@@ -137,7 +157,7 @@ namespace UnityEditor.VFX
             if (effect.visualEffectAsset == null)
                 return null;
 
-            VFXGraph graph = effect.visualEffectAsset.graph as VFXGraph;
+            VFXGraph graph = effect.visualEffectAsset.GetResource().graph as VFXGraph;
             if (graph == null)
                 return null;
 
@@ -256,6 +276,13 @@ namespace UnityEditor.VFX
                 get {return m_Parameter.type; }
             }
 
+            public override CoordinateSpace space
+            {
+                get
+                {
+                    return m_Parameter.outputSlots[0].space;
+                }
+            }
 
             public List<object> m_Stack = new List<object>();
 

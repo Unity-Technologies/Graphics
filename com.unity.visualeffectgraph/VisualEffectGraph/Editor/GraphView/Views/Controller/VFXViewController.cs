@@ -4,18 +4,18 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
-using UnityEngine.Experimental.VFX;
+using UnityEditor.Experimental.VFX;
 using UnityEngine.Experimental.UIElements;
 
 using Object = UnityEngine.Object;
 using System.Collections.ObjectModel;
 using System.Reflection;
 using UnityEngine.Profiling;
-using BranchNew = UnityEditor.VFX.Operator.BranchNew;
+using Branch = UnityEditor.VFX.Operator.Branch;
 
 namespace UnityEditor.VFX.UI
 {
-    internal partial class VFXViewController : Controller<VisualEffectAsset>
+    internal partial class VFXViewController : Controller<VisualEffectResource>
     {
         private int m_UseCount;
         public int useCount
@@ -137,7 +137,7 @@ namespace UnityEditor.VFX.UI
                 // In this case the asset has been destroyed or reimported after having changed outside.
                 // Lets rebuild everything and clear the undo stack.
                 Clear();
-                if (model != null)
+                if (model != null && model.graph != null)
                     InitializeUndoStack();
                 Debug.LogWarning("ModelChanged");
                 ModelChanged(model);
@@ -1168,15 +1168,20 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        static Dictionary<VisualEffectAsset, VFXViewController> s_Controllers = new Dictionary<VisualEffectAsset, VFXViewController>();
+        static Dictionary<VisualEffectResource, VFXViewController> s_Controllers = new Dictionary<VisualEffectResource, VFXViewController>();
 
-        public static VFXViewController GetController(VisualEffectAsset asset, bool forceUpdate = false)
+        public static VFXViewController GetController(VisualEffectResource resource, bool forceUpdate = false)
         {
+            //TRANSITION : delete VFXAsset as it should be in Library
+            resource.ValidateAsset();
+            string assetPath = AssetDatabase.GetAssetPath(resource);
+
+
             VFXViewController controller;
-            if (!s_Controllers.TryGetValue(asset, out controller))
+            if (!s_Controllers.TryGetValue(resource, out controller))
             {
-                controller = new VFXViewController(asset);
-                s_Controllers[asset] = controller;
+                controller = new VFXViewController(resource);
+                s_Controllers[resource] = controller;
             }
             else
             {
@@ -1198,16 +1203,9 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        VFXViewController(VisualEffectAsset vfx) : base(vfx)
+        VFXViewController(VisualEffectResource vfx) : base(vfx)
         {
             ModelChanged(vfx); // This will initialize the graph from the vfx asset.
-
-#if ENABLE_VIEW_3D_PRESENTER
-            if (controller != null)
-                RemoveElement(controller);
-            controller = CreateInstance<Preview3DController>();
-            AddElement(controller);
-#endif
 
             if (m_FlowAnchorController == null)
                 m_FlowAnchorController = new List<VFXFlowAnchorController>();
@@ -1215,6 +1213,11 @@ namespace UnityEditor.VFX.UI
             Undo.undoRedoPerformed += SynchronizeUndoRedoState;
             Undo.willFlushUndoRecord += WillFlushUndoRecord;
 
+            string fileName = System.IO.Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(vfx));
+            vfx.name = fileName;
+
+            if (m_Graph != null)
+                m_Graph.BuildParameterInfo();
 
             InitializeUndoStack();
             GraphChanged();
@@ -1405,20 +1408,20 @@ namespace UnityEditor.VFX.UI
             List<VFXNodeController> newControllers = new List<VFXNodeController>();
             if (model is VFXOperator)
             {
-                if (model is VFXOperatorNumericCascadedUnifiedNew)
+                if (model is VFXOperatorNumericCascadedUnified)
                     newControllers.Add(new VFXCascadedOperatorController(model, this));
-                else if (model is VFXOperatorNumericUniformNew)
+                else if (model is VFXOperatorNumericUniform)
                 {
                     newControllers.Add(new VFXNumericUniformOperatorController(model, this));
                 }
-                else if (model is VFXOperatorNumericUnifiedNew)
+                else if (model is VFXOperatorNumericUnified)
                 {
                     if (model is IVFXOperatorNumericUnifiedConstrained)
                         newControllers.Add(new VFXUnifiedConstraintOperatorController(model, this));
                     else
                         newControllers.Add(new VFXUnifiedOperatorController(model, this));
                 }
-                else if (model is BranchNew)
+                else if (model is Branch)
                 {
                     newControllers.Add(new VFXBranchOperatorController(model, this));
                 }

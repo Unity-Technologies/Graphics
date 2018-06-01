@@ -142,6 +142,36 @@ namespace UnityEditor.VFX.Test
         }
 
         [Test]
+        public void ProcessExpressionLogical()
+        {
+            bool a = true;
+            bool b = false;
+            var resultA = a && b;
+            var resultB = a || b;
+            var resultC = !a;
+            var resultD = !b;
+
+            var value_a = new VFXValue<bool>((bool)a);
+            var value_b = new VFXValue<bool>((bool)b);
+
+            var expressionA = new VFXExpressionLogicalAnd(value_a, value_b);
+            var expressionB = new VFXExpressionLogicalOr(value_a, value_b);
+            var expressionC = new VFXExpressionLogicalNot(value_a);
+            var expressionD = new VFXExpressionLogicalNot(value_b);
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+            var resultExpressionA = context.Compile(expressionA);
+            var resultExpressionB = context.Compile(expressionB);
+            var resultExpressionC = context.Compile(expressionC);
+            var resultExpressionD = context.Compile(expressionD);
+
+            Assert.AreEqual((bool)resultA, resultExpressionA.Get<bool>());
+            Assert.AreEqual((bool)resultB, resultExpressionB.Get<bool>());
+            Assert.AreEqual((bool)resultC, resultExpressionC.Get<bool>());
+            Assert.AreEqual((bool)resultD, resultExpressionD.Get<bool>());
+        }
+
+        [Test]
         public void ProcessExpressionMinMax()
         {
             var a = -1.5f;

@@ -28,17 +28,32 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                switch (randomMode)
+
+                var attrib = currentAttribute;
+
+                VFXPropertyAttribute[] attr = null;
+                if (attrib.Equals(VFXAttribute.Color))
+                    attr = VFXPropertyAttribute.Create(new ShowAsColorAttribute());
+
+                Type slotType = VFXExpression.TypeToType(attrib.type);
+
+                if (randomMode == RandomMode.Off)
+                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, currentAttribute.name)
+                    {
+                        attributes = attr
+                    }, currentAttribute.value.GetContent());
+                else
                 {
-                    case RandomMode.Off:
-                        yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(currentAttribute.type), currentAttribute.name), currentAttribute.value.GetContent());
-                        break;
-                    case RandomMode.Uniform:
-                    case RandomMode.PerComponent:
-                        yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(currentAttribute.type), "Min"), currentAttribute.value.GetContent());
-                        yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(currentAttribute.type), "Max"), currentAttribute.value.GetContent());
-                        break;
+                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Min")
+                    {
+                        attributes = attr
+                    }, currentAttribute.value.GetContent());
+                    yield return new VFXPropertyWithValue(new VFXProperty(slotType, "Max")
+                    {
+                        attributes = attr
+                    }, currentAttribute.value.GetContent());
                 }
+
             }
         }
 

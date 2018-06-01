@@ -32,15 +32,16 @@ namespace UnityEditor.VFX.Operator
         {
             Debug.Log("Sanitizing Graph: Automatically replace FitClamped with Remap");
 
-            var remap = CreateInstance<Remap>();
+            var remap = CreateInstance<RemapDeprecated>();
             remap.SetSettingValue("Clamp", true);
 
             // Transfer links
             for (int i = 0; i < 5; ++i)
-                VFXSlot.TransferLinksAndValue(remap.GetInputSlot(i), GetInputSlot(i), true);
-            VFXSlot.TransferLinksAndValue(remap.GetOutputSlot(0), GetOutputSlot(0), true);
+                VFXSlot.CopyLinksAndValue(remap.GetInputSlot(i), GetInputSlot(i), true);
+            VFXSlot.CopyLinksAndValue(remap.GetOutputSlot(0), GetOutputSlot(0), true);
 
             ReplaceModel(remap, this);
+            remap.Sanitize();
         }
     }
 }

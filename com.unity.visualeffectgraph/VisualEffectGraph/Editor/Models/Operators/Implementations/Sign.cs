@@ -3,13 +3,26 @@ using System;
 namespace UnityEditor.VFX.Operator
 {
     [VFXInfo(category = "Math/Arithmetic")]
-    class Sign : VFXOperatorUnaryFloatOperation
+    class Sign : VFXOperatorNumericUniform
     {
-        override public string name { get { return "Sign"; } }
+        public class InputProperties
+        {
+            public float x = 0.0f;
+        }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        public override sealed string name { get { return "Sign"; } }
+
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { new VFXExpressionSign(inputExpression[0]) };
+        }
+
+        protected override sealed ValidTypeRule typeFilter
+        {
+            get
+            {
+                return ValidTypeRule.allowEverythingExceptUnsignedInteger;
+            }
         }
     }
 }

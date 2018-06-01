@@ -46,6 +46,8 @@ namespace UnityEditor.VFX
 
                 extremities[6] = bottomCap + Vector3.left * cone.radius0;
                 extremities[7] = bottomCap - Vector3.left * cone.radius0;
+
+                visibleCount = 4;
             }
 
             public Extremities(Cone cone, float degArc)
@@ -53,7 +55,14 @@ namespace UnityEditor.VFX
                 topCap = cone.height * Vector3.up;
                 bottomCap = Vector3.zero;
 
-                int count = Mathf.CeilToInt(degArc / 90);
+
+                int count = 4;
+
+                visibleCount = Mathf.CeilToInt(degArc / 90);
+                if (visibleCount <= 0)
+                {
+                    visibleCount = 1;
+                }
 
                 extremities = new Vector3[count * 2];
 
@@ -89,6 +98,7 @@ namespace UnityEditor.VFX
             public Vector3 topCap;
             public Vector3 bottomCap;
             public Vector3[] extremities;
+            public int visibleCount;
         }
 
 
@@ -105,7 +115,7 @@ namespace UnityEditor.VFX
                         EditorGUI.BeginChangeCheck();
 
                         Vector3 pos = extremities.extremities[i];
-                        Vector3 result = Handles.Slider(pos, pos - extremities.bottomCap, handleSize * HandleUtility.GetHandleSize(pos), Handles.CubeHandleCap, 0);
+                        Vector3 result = Handles.Slider(pos, pos - extremities.bottomCap, (i - extremities.extremities.Length / 2) < extremities.visibleCount ? handleSize * HandleUtility.GetHandleSize(pos) : 0, Handles.CubeHandleCap, 0);
 
                         if (EditorGUI.EndChangeCheck())
                         {
@@ -122,7 +132,7 @@ namespace UnityEditor.VFX
 
                         Vector3 pos = extremities.extremities[i];
                         Vector3 dir = pos - extremities.topCap;
-                        Vector3 result = Handles.Slider(pos, dir, handleSize * HandleUtility.GetHandleSize(pos), Handles.CubeHandleCap, 0);
+                        Vector3 result = Handles.Slider(pos, dir, i < extremities.visibleCount ? handleSize * HandleUtility.GetHandleSize(pos) : 0, Handles.CubeHandleCap, 0);
 
                         if (EditorGUI.EndChangeCheck())
                         {
@@ -192,7 +202,7 @@ namespace UnityEditor.VFX
                 Handles.DrawWireArc(extremities.topCap, Vector3.up, Vector3.forward, arc, arcCone.radius1);
                 Handles.DrawWireArc(extremities.bottomCap, Vector3.up, Vector3.forward, arc, arcCone.radius0);
 
-                for (int i = 0; i < extremities.extremities.Length / 2; ++i)
+                for (int i = 0; i < extremities.extremities.Length / 2 && i < extremities.visibleCount; ++i)
                 {
                     Handles.DrawLine(extremities.extremities[i], extremities.extremities[i + extremities.extremities.Length / 2]);
                 }

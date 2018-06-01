@@ -74,7 +74,7 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                foreach(var setting in base.filteredOutSettings)
+                foreach (var setting in base.filteredOutSettings)
                     yield return setting;
 
                 if (!GetData().IsCurrentAttributeRead(VFXAttribute.SizeZ))
@@ -95,7 +95,7 @@ namespace UnityEditor.VFX.Block
                     yield return new VFXAttributeInfo(VFXAttribute.SizeY, VFXAttributeMode.ReadWrite);
 
                 // if SizeZ is used, we need to scale it too, in an uniform way.
-                if(GetData().IsCurrentAttributeRead(VFXAttribute.SizeZ) && sizeZMode != SizeZMode.Ignore)
+                if (GetData().IsCurrentAttributeRead(VFXAttribute.SizeZ) && sizeZMode != SizeZMode.Ignore)
                     yield return new VFXAttributeInfo(VFXAttribute.SizeZ, VFXAttributeMode.ReadWrite);
             }
         }
@@ -123,13 +123,13 @@ float2 scale = {2};
 size = minSize * scale;
 {1}
 ",
-                    VFXBlockUtility.GetSizeVector(GetParent(), 2),
-                    VFXBlockUtility.SetSizesFromVector(GetParent(), "size", 2),
-                    sizeString);
+                        VFXBlockUtility.GetSizeVector(GetParent(), 2),
+                        VFXBlockUtility.SetSizesFromVector(GetParent(), "size", 2),
+                        sizeString);
 
-                if(GetData().IsCurrentAttributeRead(VFXAttribute.SizeZ) && sizeZMode != SizeZMode.Ignore)
+                if (GetData().IsCurrentAttributeRead(VFXAttribute.SizeZ) && sizeZMode != SizeZMode.Ignore)
                 {
-                    switch(sizeZMode)
+                    switch (sizeZMode)
                     {
                         case SizeZMode.Ignore: break; // should not happen
                         case SizeZMode.SameAsSizeX:     Source += "sizeZ = size.x;"; break;

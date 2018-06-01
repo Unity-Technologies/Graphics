@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.UI
 {
@@ -95,6 +96,26 @@ namespace UnityEditor.VFX.UI
                 var customAttributes = owner.GetType().GetField(path, BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance).GetCustomAttributes(true);
                 return customAttributes;
             }
+        }
+
+        public CoordinateSpace space
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+
+            set
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public bool spaceable { get { return false; } }
+
+        public bool IsSpaceInherited()
+        {
+            throw new NotImplementedException();
         }
 
         public void ExpandPath()

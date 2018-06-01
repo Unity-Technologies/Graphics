@@ -27,7 +27,7 @@ namespace UnityEditor.VFX.UI
 
             m_ObjectField.RegisterCallback<ChangeEvent<Object>>(OnValueChanged);
 
-            m_ObjectField.style.flex = 1;
+            m_ObjectField.style.flex = new Flex(1, 0);
 
             Add(m_ObjectField);
         }
@@ -93,7 +93,7 @@ namespace UnityEditor.VFX.UI
 
         public override void UpdateGUI(bool force)
         {
-            m_ObjectField.value = m_Value;
+            m_ObjectField.SetValueWithoutNotify(m_Value);
         }
 
         public override bool showsEverything { get { return true; } }

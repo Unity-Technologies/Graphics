@@ -88,7 +88,7 @@ namespace UnityEditor.VFX.UIElements
             {
                 if (!m_Fields[i].control.HasFocus() || force)
                 {
-                    m_Fields[i].value = GetValueComponent(ref value, i);
+                    m_Fields[i].SetValueWithoutNotify(GetValueComponent(ref value, i));
                 }
             }
         }

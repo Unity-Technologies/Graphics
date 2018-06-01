@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEditor.Experimental.VFX;
 using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
@@ -157,7 +158,7 @@ namespace UnityEditor.VFX
                 if (blendMode == BlendMode.Masked)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "alphaThreshold", VFXPropertyAttribute.Create(new RangeAttribute(0.0f, 1.0f))), 0.5f);
                 if (supportSoftParticles)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "softParticlesFadeDistance"), 1.0f);
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "softParticlesFadeDistance", VFXPropertyAttribute.Create(new MinAttribute(0.0f))), 1.0f);
                 if (supportsUVScaleBias && uvScaleAndBias)
                 {
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "uvScale"), Vector2.one);
@@ -177,7 +178,7 @@ namespace UnityEditor.VFX
                 if (supportSoftParticles)
                     yield return "USE_SOFT_PARTICLE";
 
-                VisualEffectAsset asset = GetAsset();
+                VisualEffectResource asset = GetResource();
                 if (asset != null)
                 {
                     var settings = asset.rendererSettings;

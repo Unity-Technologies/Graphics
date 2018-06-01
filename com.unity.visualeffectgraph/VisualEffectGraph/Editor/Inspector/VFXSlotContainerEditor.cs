@@ -117,4 +117,97 @@ public class VFXSlotContainerEditor : Editor
             }
         }
     }
+
+    protected class Contents
+    {
+        public static GUIContent name = EditorGUIUtility.TrTextContent("Name");
+        public static GUIContent type = EditorGUIUtility.TrTextContent("Type");
+        public static GUIContent mode = EditorGUIUtility.TrTextContent("Mode");
+    }
+
+    protected class Styles
+    {
+        public static GUIStyle header;
+        public static GUIStyle cell;
+        public static GUIStyle foldout;
+        static Styles()
+        {
+            header = new GUIStyle(EditorStyles.toolbarButton);
+            header.fontStyle = FontStyle.Bold;
+            header.alignment = TextAnchor.MiddleLeft;
+
+            cell = new GUIStyle(EditorStyles.toolbarButton);
+            var bg = cell.onActive.background;
+
+            cell.active.background = bg;
+            cell.onActive.background = bg;
+            cell.normal.background = bg;
+            cell.onNormal.background = bg;
+            cell.focused.background = bg;
+            cell.onFocused.background = bg;
+            cell.hover.background = bg;
+            cell.onHover.background = bg;
+
+            cell.alignment = TextAnchor.MiddleLeft;
+
+            foldout = new GUIStyle(EditorStyles.foldout);
+            foldout.fontStyle = FontStyle.Bold;
+        }
+
+        static Dictionary<VFXAttributeMode, Color> attributeModeColors = new Dictionary<VFXAttributeMode, Color>()
+        {
+            { VFXAttributeMode.None, new Color32(160, 160, 160, 255) },
+            { VFXAttributeMode.Read, new Color32(160, 160, 255, 255) },
+            { VFXAttributeMode.ReadSource, new Color32(160, 160, 255, 255) },
+            { VFXAttributeMode.ReadWrite, new Color32(160, 255, 160, 255) },
+            { VFXAttributeMode.Write, new Color32(255, 160, 160, 255) },
+        };
+
+        static Dictionary<VFXValueType, Color> valueTypeColors = new Dictionary<VFXValueType, Color>()
+        {
+            { VFXValueType.Boolean, new Color32(125, 110, 191, 255) },
+            { VFXValueType.ColorGradient, new Color32(130, 223, 226, 255) },
+            { VFXValueType.Curve, new Color32(130, 223, 226, 255) },
+            { VFXValueType.Float, new Color32(130, 223, 226, 255) },
+            { VFXValueType.Float2, new Color32(154, 239, 146, 255) },
+            { VFXValueType.Float3, new Color32(241, 250, 151, 255) },
+            { VFXValueType.Float4, new Color32(246, 199, 239, 255) },
+            { VFXValueType.Int32, new Color32(125, 110, 191, 255) },
+            { VFXValueType.Matrix4x4, new Color32(118, 118, 118, 255) },
+            { VFXValueType.Mesh, new Color32(130, 223, 226, 255) },
+            { VFXValueType.None, new Color32(118, 118, 118, 255) },
+            { VFXValueType.Spline, new Color32(130, 223, 226, 255) },
+            { VFXValueType.Texture2D, new Color32(250, 137, 137, 255) },
+            { VFXValueType.Texture2DArray, new Color32(250, 137, 137, 255) },
+            { VFXValueType.Texture3D, new Color32(250, 137, 137, 255) },
+            { VFXValueType.TextureCube, new Color32(250, 137, 137, 255) },
+            { VFXValueType.TextureCubeArray, new Color32(250, 137, 137, 255) },
+            { VFXValueType.Uint32, new Color32(125, 110, 191, 255) },
+        };
+
+        internal static void DataTypeLabel(string Label, VFXValueType type, GUIStyle style, params GUILayoutOption[] options)
+        {
+            Color backup = GUI.color;
+            GUI.color = valueTypeColors[type];
+            GUILayout.Label(Label, style, options);
+            GUI.color = backup;
+        }
+
+        internal static void AttributeModeLabel(string Label, VFXAttributeMode mode, GUIStyle style, params GUILayoutOption[] options)
+        {
+            Color backup = GUI.color;
+            GUI.color = attributeModeColors[mode];
+            EditorGUILayout.LabelField(Label, style, options);
+            GUI.color = backup;
+        }
+
+        public static void Row(GUIStyle style, params string[] labels)
+        {
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                foreach (string label in labels)
+                    EditorGUILayout.LabelField(label, style);
+            }
+        }
+    }
 }

@@ -28,7 +28,7 @@ namespace UnityEditor.VFX.Operator
 
         override public string name { get { return "Rotate 3D"; } }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             var pos = inputExpression[0];
             var center = inputExpression[1];

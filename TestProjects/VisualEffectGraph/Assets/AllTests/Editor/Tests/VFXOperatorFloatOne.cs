@@ -22,7 +22,7 @@ namespace UnityEditor.VFX.Test
         }
 
         override public string name { get { return "Temp_Float_One"; } }
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             return new[] { GetDefault };
         }

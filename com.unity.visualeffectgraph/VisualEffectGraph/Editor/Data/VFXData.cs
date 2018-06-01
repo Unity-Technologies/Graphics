@@ -3,10 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using UnityEditor.Experimental.VFX;
 using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
+    public interface ISpaceable
+    {
+        CoordinateSpace space { get; set; }
+    }
+
     abstract class VFXData : VFXModel
     {
         public abstract VFXDataType type { get; }
@@ -45,12 +51,12 @@ namespace UnityEditor.VFX
 
             if (m_Owners == null)
                 m_Owners = new List<VFXContext>();
-             else
-             {
+            else
+            {
                 int nbRemoved = m_Owners.RemoveAll(o => o == null);// Remove bad references if any
                 if (nbRemoved > 0)
                     Debug.Log(String.Format("Remove {0} owners that couldnt be deserialized from {1} of type {2}", nbRemoved, name, GetType()));
-             }
+            }
         }
 
         public abstract void CopySettings<T>(T dst) where T : VFXData;
@@ -62,7 +68,7 @@ namespace UnityEditor.VFX
 
         public virtual void FillDescs(
             List<VFXGPUBufferDesc> outBufferDescs,
-            List<VFXSystemDesc> outSystemDescs,
+            List<VFXEditorSystemDesc> outSystemDescs,
             VFXExpressionGraph expressionGraph,
             Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData,
             Dictionary<VFXContext, int> contextSpawnToBufferIndex,
@@ -151,6 +157,23 @@ namespace UnityEditor.VFX
 
                 yield return info;
             }
+        }
+
+        public IEnumerable<VFXAttributeInfo> GetAttributesForContext(VFXContext context)
+        {
+            Dictionary<VFXAttribute, VFXAttributeMode> attribs;
+            if (m_ContextsToAttributes.TryGetValue(context, out attribs))
+            {
+                foreach (var attrib in attribs)
+                {
+                    VFXAttributeInfo info;
+                    info.attrib = attrib.Key;
+                    info.mode = attrib.Value;
+                    yield return info;
+                }
+            }
+            else
+                throw new ArgumentException("Context does not exist");
         }
 
         private struct VFXAttributeInfoContext

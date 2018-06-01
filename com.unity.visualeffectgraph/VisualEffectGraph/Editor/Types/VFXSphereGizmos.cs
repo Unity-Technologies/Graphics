@@ -18,7 +18,7 @@ namespace UnityEditor.VFX
             m_RadiusProperty = context.RegisterProperty<float>("radius");
         }
 
-        public static readonly Vector3[] radiusDirections = new Vector3[] { Vector3.left, Vector3.up, Vector3.forward };
+        public static readonly Vector3[] radiusDirections = new Vector3[] { Vector3.right, Vector3.up, Vector3.forward };
 
         public static void DrawSphere(Sphere sphere, VFXGizmo gizmo, IProperty<Vector3> centerProperty, IProperty<float> radiusProperty)
         {
