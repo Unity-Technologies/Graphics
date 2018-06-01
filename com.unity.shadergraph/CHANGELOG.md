@@ -32,8 +32,7 @@ This adds gradient functionality via two new nodes. The Sample Gradient node sam
 
 ![](.data/texture_2d_lod_node.png)
 
-This adds a new node for LOD functionality on a Texture 2D Sample. Sample Texture 2D LOD uses the exact same input and output slots as Sample Texture 2D, but also includes an input for 
-LOD changes via a Vector1 slot. 
+This adds a new node for LOD functionality on a Texture 2D Sample. Sample Texture 2D LOD uses the exact same input and output slots as Sample Texture 2D, but also includes an input for level of detail adjustments via a Vector1 slot. 
 
 ### Show generated code
 
