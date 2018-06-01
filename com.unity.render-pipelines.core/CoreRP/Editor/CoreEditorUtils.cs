@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -381,6 +382,14 @@ namespace UnityEditor.Experimental.Rendering
         static public GameObject CreateGameObject(GameObject parent, string name, params Type[] types)
         {
             return ObjectFactory.CreateGameObject(GameObjectUtility.GetUniqueNameForSibling(parent != null ? parent.transform : null, name), types);
+        }
+
+        static public string GetCurrentProjectVersion()
+        {
+            string[] readText = File.ReadAllLines("ProjectSettings/ProjectVersion.txt");
+            // format is m_EditorVersion: 2018.2.0b7
+            string[] versionText = readText[0].Split(' ');
+            return versionText[1];
         }
     }
 

@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
@@ -202,7 +203,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         // Update EmissiveColor after we remove EmissiveIntensity from all shaders in 2018.2
         // Now EmissiveColor is HDR and it must be update to the value new EmissiveColor = old EmissiveColor * EmissiveIntensity
-        static bool UpdateMaterial_EmissiveColor_2018_2(string path, Material mat)
+        static bool UpdateMaterial_EmissiveColor(string path, Material mat)
         {
             // Find the missing property in the file and update EmissiveColor
             string[] readText = File.ReadAllLines(path);
@@ -234,7 +235,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return false;
         }
 
-        static void UpdateMaterialFile_EmissiveColor_2018_2(string path)
+        static void UpdateMaterialFile_EmissiveColor(string path)
         {
             string[] readText = File.ReadAllLines(path);
 
@@ -328,10 +329,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
         [MenuItem("Edit/Render Pipeline/Update all Materials to latest version", priority = CoreUtils.editMenuPriority3)]
-        static void UpdateMaterialToNewerVersion()
+        static public void UpdateMaterialToNewerVersion()
         {
             // Add here all the material upgrade function supported in this version
-            UpdateMaterialToNewerVersion("(EmissiveColor)", UpdateMaterial_EmissiveColor_2018_2, UpdateMaterialFile_EmissiveColor_2018_2);
+            // Caution: All the functions here MUST be re-entrant (call multiple time) without failing.
+
+            float currentVersion = HDRPVersion.GetCurrentHDRPProjectVersion();
+            if (currentVersion < 1.0)
+            {
+                // Appear in hdrp version 1.0
+                UpdateMaterialToNewerVersion("(EmissiveColor)", UpdateMaterial_EmissiveColor, UpdateMaterialFile_EmissiveColor);
+            }
         }
     }
 }
