@@ -1207,13 +1207,6 @@ namespace UnityEditor.VFX.UI
         {
             ModelChanged(vfx); // This will initialize the graph from the vfx asset.
 
-#if ENABLE_VIEW_3D_PRESENTER
-            if (controller != null)
-                RemoveElement(controller);
-            controller = CreateInstance<Preview3DController>();
-            AddElement(controller);
-#endif
-
             if (m_FlowAnchorController == null)
                 m_FlowAnchorController = new List<VFXFlowAnchorController>();
 
@@ -1222,6 +1215,9 @@ namespace UnityEditor.VFX.UI
 
             string fileName = System.IO.Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(vfx));
             vfx.name = fileName;
+
+            if (m_Graph != null)
+                m_Graph.BuildParameterInfo();
 
             InitializeUndoStack();
             GraphChanged();
