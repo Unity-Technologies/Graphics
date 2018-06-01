@@ -54,6 +54,10 @@ namespace UnityEditor.VFX
                 bottomCap = Vector3.zero;
 
                 int count = Mathf.CeilToInt(degArc / 90);
+                if (count <= 0)
+                {
+                    count = 1;
+                }
 
                 extremities = new Vector3[count * 2];
 
