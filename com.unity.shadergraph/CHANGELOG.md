@@ -28,11 +28,6 @@ You can now change the path of Shader Graphs and Sub Graphs. When you change the
 
 This adds gradient functionality via two new nodes. The Sample Gradient node samples a gradient given a Time parameter. You can define this gradient on the Gradient slot control view. The Gradient Asset node defines a gradient that can be sampled by multiple Sample Gradient nodes using different Time parameters.
 
-### Sphere Mask Node
-
-![](.data/sphereMask.png)
-
-This adds sphere mask functionality via one new node. Given a starting coordinate and center point, you can create a sphere mask using the Radius and Hardness parameters. Will function in 2d or 3d space, based on the vector coordinates given in the Coords and Center input.
 
 ### Show generated code
 
