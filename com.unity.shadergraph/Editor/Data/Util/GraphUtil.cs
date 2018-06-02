@@ -952,7 +952,7 @@ namespace UnityEditor.ShaderGraph
             FunctionRegistry functionRegistry,
             PropertyCollector shaderProperties,
             GenerationMode mode,
-            List<AbstractMaterialNode> nodes,
+            List<INode> nodes,
             List<MaterialSlot> slots,
             string graphInputStructName = "VertexDescriptionInputs",
             string functionName = "PopulateVertexData",
@@ -970,7 +970,7 @@ namespace UnityEditor.ShaderGraph
             {
                 ShaderGenerator sg = new ShaderGenerator();
                 builder.AppendLine("{0} description = ({0})0;", graphOutputStructName);
-                foreach (var node in nodes)
+                foreach (var node in nodes.OfType<AbstractMaterialNode>())
                 {
                     var generatesFunction = node as IGeneratesFunction;
                     if (generatesFunction != null)

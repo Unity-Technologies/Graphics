@@ -113,16 +113,32 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
         };
 
-        private static string GetVariantDefines(UnlitMasterNode masterNode)
+        private static HashSet<string> GetActiveFieldsFromMasterNode(INode iMasterNode, Pass pass)
         {
-            ShaderGenerator defines = new ShaderGenerator();
+            HashSet<string> activeFields = new HashSet<string>();
 
-            // #pragma shader_feature _ALPHATEST_ON
+            UnlitMasterNode masterNode = iMasterNode as UnlitMasterNode;
+            if (masterNode == null)
+            {
+                return null;
+            }
+
+            if (masterNode.twoSided.isOn)
+            {
+                activeFields.Add("DoubleSided");
+                if (pass.ShaderPassName != "SHADERPASS_VELOCITY")   // HACK to get around lack of a good interpolator dependency system
+                {                                                   // we need to be able to build interpolators using multiple input structs
+                                                                    // also: should only require isFrontFace if Normals are required...
+                    activeFields.Add("DoubleSided.Mirror");         // TODO: change this depending on what kind of normal flip you want..
+                    activeFields.Add("FragInputs.isFrontFace");     // will need this for determining normal flip mode
+                }
+            }
+
             float constantAlpha = 0.0f;
             if (masterNode.IsSlotConnected(PBRMasterNode.AlphaThresholdSlotId) ||
                 (float.TryParse(masterNode.GetSlotValue(PBRMasterNode.AlphaThresholdSlotId, GenerationMode.ForReals), out constantAlpha) && (constantAlpha > 0.0f)))
             {
-                defines.AddShaderChunk("#define _ALPHATEST_ON 1", true);
+                activeFields.Add("AlphaTest");
             }
 
 //             if (kTesselationMode != TessellationMode.None)
@@ -172,7 +188,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // #pragma shader_feature _HEIGHTMAP
             // #pragma shader_feature _TANGENTMAP
             // #pragma shader_feature _ANISOTROPYMAP
-            // #pragma shader_feature _DETAIL_MAP                                   // MOVE to a node
             // #pragma shader_feature _SUBSURFACE_RADIUS_MAP
             // #pragma shader_feature _THICKNESSMAP
             // #pragma shader_feature _SPECULARCOLORMAP
@@ -183,16 +198,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (masterNode.surfaceType != SurfaceType.Opaque)
             {
                 // transparent-only defines
-                defines.AddShaderChunk("#define _SURFACE_TYPE_TRANSPARENT 1", true);
+                activeFields.Add("SurfaceType.Transparent");
 
                 // #pragma shader_feature _ _BLENDMODE_ALPHA _BLENDMODE_ADD _BLENDMODE_PRE_MULTIPLY
                 if (masterNode.alphaMode == AlphaMode.Alpha)
                 {
-                    defines.AddShaderChunk("#define _BLENDMODE_ALPHA 1", true);
+                    activeFields.Add("BlendMode.Alpha");
                 }
                 else if (masterNode.alphaMode == AlphaMode.Additive)
                 {
-                    defines.AddShaderChunk("#define _BLENDMODE_ADD 1", true);
+                    activeFields.Add("BlendMode.Add");
                 }
 //                else if (masterNode.alphaMode == PBRMasterNode.AlphaMode.PremultiplyAlpha)            // TODO
 //                {
@@ -221,10 +236,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // TODO: We should have this keyword only if VelocityInGBuffer is enable, how to do that ?
             //#pragma multi_compile VELOCITYOUTPUT_OFF VELOCITYOUTPUT_ON
 
-            return defines.GetShaderString(2);
+            return activeFields;
         }
 
-        private static bool GenerateShaderPassUnlit(UnlitMasterNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
+        private static bool GenerateShaderPassUnlit(AbstractMaterialNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
         {
             var templateLocation = Path.Combine(Path.Combine(Path.Combine(HDEditorUtils.GetHDRenderPipelinePath(), "Editor"), "ShaderGraph"), pass.TemplateName);
             if (!File.Exists(templateLocation))
@@ -237,7 +252,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 sourceAssetDependencyPaths.Add(templateLocation);
 
             // grab all of the active nodes (for pixel and vertex graphs)
-            var vertexNodes = ListPool<AbstractMaterialNode>.Get();
+            var vertexNodes = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.VertexShaderSlots);
 
             var pixelNodes = ListPool<INode>.Get();
@@ -269,7 +284,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             ShaderStringBuilder pixelGraphOutputs = new ShaderStringBuilder();
 
             // dependency tracker -- set of active fields
-            HashSet<string> activeFields = new HashSet<string>();
+            HashSet<string> activeFields = GetActiveFieldsFromMasterNode(masterNode, pass);
 
             // build initial requirements
             HDRPShaderStructs.AddActiveFieldsFromPixelGraphRequirements(activeFields, pixelRequirements);
@@ -333,17 +348,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var stencilCode = new ShaderStringBuilder();
             var colorMaskCode = new ShaderStringBuilder();
             HDSubShaderUtilities.BuildRenderStatesFromPassAndMaterialOptions(pass, materialOptions, blendCode, cullCode, zTestCode, zWriteCode, stencilCode, colorMaskCode);
-
-            if (masterNode.twoSided.isOn)
-            {
-                activeFields.Add("DoubleSided");
-                if (pass.ShaderPassName != "SHADERPASS_VELOCITY")   // HACK to get around lack of a good interpolator dependency system
-                {                                                   // we need to be able to build interpolators using multiple input structs
-                                                                    // also: should only require isFrontFace if Normals are required...
-                    activeFields.Add("DoubleSided.Mirror");         // TODO: change this depending on what kind of normal flip you want..
-                    activeFields.Add("FragInputs.isFrontFace");     // will need this for determining normal flip mode
-                }
-            }
 
             HDRPShaderStructs.AddRequiredFields(pass.RequiredFields, activeFields);
 
@@ -443,7 +447,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             namedFragments.Add("${Stencil}",                stencilCode.ToString());
             namedFragments.Add("${ColorMask}",              colorMaskCode.ToString());
             namedFragments.Add("${LOD}",                    materialOptions.lod.ToString());
-            namedFragments.Add("${VariantDefines}",         GetVariantDefines(masterNode));
 
             // process the template to generate the shader code for this pass   TODO: could make this a shared function
             string[] templateLines = File.ReadAllLines(templateLocation);

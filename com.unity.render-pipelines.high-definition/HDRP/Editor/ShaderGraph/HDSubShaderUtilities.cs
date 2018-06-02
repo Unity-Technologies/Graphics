@@ -159,7 +159,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 new Dependency("SurfaceDescriptionInputs.TangentSpaceViewDirection", "SurfaceDescriptionInputs.WorldSpaceBiTangent"),
                 new Dependency("SurfaceDescriptionInputs.TangentSpaceViewDirection", "SurfaceDescriptionInputs.WorldSpaceNormal"),
 
-                new Dependency("SurfaceDescriptionInputs.ScreenPosition",            "FragInputs.positionSS"),
+                new Dependency("SurfaceDescriptionInputs.ScreenPosition",            "SurfaceDescriptionInputs.WorldSpacePosition"),
                 new Dependency("SurfaceDescriptionInputs.uv0",                       "FragInputs.texCoord0"),
                 new Dependency("SurfaceDescriptionInputs.uv1",                       "FragInputs.texCoord1"),
                 new Dependency("SurfaceDescriptionInputs.uv2",                       "FragInputs.texCoord2"),

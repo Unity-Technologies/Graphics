@@ -157,7 +157,7 @@ ${Graph}
             $VertexDescriptionInputs.TangentSpaceViewDirection: float3x3 tangentSpaceTransform =     float3x3(output.WorldSpaceTangent,output.WorldSpaceBiTangent,output.WorldSpaceNormal);
             $VertexDescriptionInputs.TangentSpaceViewDirection: output.TangentSpaceViewDirection =   mul(tangentSpaceTransform, output.WorldSpaceViewDirection);
 
-            $VertexDescriptionInputs.ScreenPosition:            output.ScreenPosition =              TransformWorldToHClip(output.WorldSpacePosition);
+            $VertexDescriptionInputs.ScreenPosition:            output.ScreenPosition =              TransformWorldToHClip(output.WorldSpacePosition) * 0.5 + 0.5;
             $VertexDescriptionInputs.uv0:                       output.uv0 =                         float4(input.uv0, 0.0f, 0.0f);
             $VertexDescriptionInputs.uv1:                       output.uv1 =                         float4(input.uv1, 0.0f, 0.0f);
             $VertexDescriptionInputs.uv2:                       output.uv2 =                         float4(input.uv2, 0.0f, 0.0f);
