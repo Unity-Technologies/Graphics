@@ -42,15 +42,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             if (m_Handle != null)
+            { 
                 DecalSystem.instance.RemoveDecal(m_Handle);
+                m_Handle = null;
+            }
+
             Vector4 uvScaleBias = new Vector4(m_UVScale.x, m_UVScale.y, m_UVBias.x, m_UVBias.y);
             m_Handle = DecalSystem.instance.AddDecal(transform, m_DrawDistance, m_FadeScale, uvScaleBias, m_Material);
         }
 
         public void OnDisable()
         {
-            DecalSystem.instance.RemoveDecal(m_Handle);
-            m_Handle = null;
+            if (m_Handle != null)
+            { 
+                DecalSystem.instance.RemoveDecal(m_Handle);
+                m_Handle = null;
+            }
         }
 
         // Declare the method signature of the delegate to call.
