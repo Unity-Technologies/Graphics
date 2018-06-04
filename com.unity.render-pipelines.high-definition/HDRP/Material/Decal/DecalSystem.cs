@@ -8,6 +8,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class DecalSystem
     {
         public const int kInvalidIndex = -1;
+        public const int kNullMaterialIndex = int.MaxValue;
         public class DecalHandle
         {
             public DecalHandle(int index, int materialID)
@@ -143,6 +144,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             public void InitializeMaterialValues()
             {
+                if (m_Material == null)
+                    return;
                 m_Diffuse.m_Texture = m_Material.GetTexture("_BaseColorMap");
                 m_Normal.m_Texture = m_Material.GetTexture("_NormalMap");
                 m_Mask.m_Texture = m_Material.GetTexture("_MaskMap");
@@ -151,7 +154,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public DecalSet(Material material)
             {
-                m_Material = material;
+                m_Material = material;              
                 InitializeMaterialValues();
             }
 
@@ -169,6 +172,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public void UpdateCachedData(Transform transform, float drawDistance, float fadeScale, Vector4 uvScaleBias, DecalHandle handle)
             {
+                if (m_Material == null)
+                    return;
                 int index = handle.m_Index;
                 m_CachedDecalToWorld[index] = transform.localToWorldMatrix;
 
@@ -249,6 +254,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public void BeginCull()
             {
+                if (m_Material == null)
+                    return;
                 if (m_CullingGroup != null)
                 {
                     Debug.LogError("Begin/EndCull() called out of sequence for decal projectors.");
@@ -267,6 +274,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public int QueryCullResults()
             {
+                if (m_Material == null)
+                    return 0;
                 m_NumResults = m_CullingGroup.QueryIndices(true, m_ResultIndices, 0);
                 return m_NumResults;
             }
@@ -328,6 +337,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public void CreateDrawData()
             {
+                if (m_Material == null)
+                    return;
                 if (m_NumResults == 0)
                     return;
                 // only add if anything in this decal set is visible.
@@ -378,6 +389,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public void EndCull()
             {
+                if (m_Material == null)
+                    return;
                 if (m_CullingGroup == null)
                 {
                     Debug.LogError("Begin/EndCull() called out of sequence for decal projectors.");
@@ -407,6 +420,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             public void RenderIntoDBuffer(CommandBuffer cmd)
             {
+                if (m_Material == null)
+                    return;
                 if (m_NumResults == 0)
                     return;
                 int batchIndex = 0;
@@ -465,7 +480,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public DecalHandle AddDecal(Transform transform, float drawDistance, float fadeScale, Vector4 uvScaleBias, Material material)
         {
             DecalSet decalSet = null;
-            int key = material.GetInstanceID();
+            int key = material != null ? material.GetInstanceID() : kNullMaterialIndex;
             if (!m_DecalSets.TryGetValue(key, out decalSet))
             {
                 decalSet = new DecalSet(material);
