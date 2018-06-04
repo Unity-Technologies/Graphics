@@ -36,6 +36,9 @@ SAMPLER(sampler_CoatSmoothnessMap);
 TEXTURE2D(_IridescenceThicknessMap);
 SAMPLER(sampler_IridescenceThicknessMap);
 
+TEXTURE2D(_IridescenceMaskMap);
+SAMPLER(sampler_IridescenceMaskMap);
+
 TEXTURE2D(_SubsurfaceMaskMap);
 SAMPLER(sampler_SubsurfaceMaskMap);
 
@@ -151,6 +154,16 @@ float4 _IridescenceThicknessMap_MipInfo;
 float4 _IridescenceThicknessMapChannelMask;
 float4 _IridescenceThicknessRange;
 float _IridescenceIor;
+
+float _IridescenceMask;
+float _IridescenceMaskUseMap;
+float _IridescenceMaskMapUV;
+float _IridescenceMaskMapUVLocal;
+float4 _IridescenceMaskMap_ST;
+float4 _IridescenceMaskMap_TexelSize;
+float4 _IridescenceMaskMap_MipInfo;
+float4 _IridescenceMaskMapChannelMask;
+float4 _IridescenceMaskRange;
 
 int _DiffusionProfile;
 float _SubsurfaceMask;

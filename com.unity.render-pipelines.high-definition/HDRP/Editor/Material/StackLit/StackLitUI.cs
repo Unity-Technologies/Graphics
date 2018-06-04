@@ -92,6 +92,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string k_IridescenceThickness = "_IridescenceThickness";
         protected const string k_IridescenceThicknessMap = "_IridescenceThicknessMap";
         protected const string k_IridescenceThicknessMapUV = "_IridescenceThicknessMapUV";
+        protected const string k_IridescenceMask = "_IridescenceMask";
+        protected const string k_IridescenceMaskMap = "_IridescenceMaskMap";
+        protected const string k_IridescenceMaskMapUV = "_IridescenceMaskMapUV";
 
         // Stencil is use to control lighting mode (regular, split lighting)
         protected const string kStencilRef = "_StencilRef";
@@ -188,8 +191,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 new GroupProperty(this, "_Iridescence", "Iridescence", new BaseProperty[]
                 {
-                    new Property(this, "_IridescenceIor", "IOR", "Index of refraction of iridescence layer", false),
-                    new Property(this, "_IridescenceThickness", "Thickness", "Iridescence thickness (Remap to 0..3000nm)", false),
+                    //just to test: to use the same EvalIridescence as lit, find a good mapping for the top IOR (over the iridescence dielectric film)
+                    //when having iridescence:
+                    //new Property(this, "_IridescenceIor", "TopIOR", "Index of refraction on top of iridescence layer", false),
+                    new TextureProperty(this, k_IridescenceMaskMap, k_IridescenceMask, "Iridescence Mask", "Iridescence Mask", false),
+                    new TextureProperty(this, k_IridescenceThicknessMap, k_IridescenceThickness, "Iridescence thickness (Remap to 0..3000nm)", "Iridescence thickness (Remap to 0..3000nm)", false),
                 }, _ => EnableIridescence.BoolValue == true),
 
                 new GroupProperty(this, "_SSS", "Sub-Surface Scattering", new BaseProperty[]
@@ -368,6 +374,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetupTextureMaterialProperty(material, k_Thickness);
             SetupTextureMaterialProperty(material, k_Anisotropy);
             SetupTextureMaterialProperty(material, k_IridescenceThickness);
+            SetupTextureMaterialProperty(material, k_IridescenceMask);
             SetupTextureMaterialProperty(material, k_CoatSmoothness);
 
             // Check if we are using specific UVs.
@@ -384,6 +391,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 (TextureProperty.UVMapping)material.GetFloat(k_ThicknessMapUV),
                 (TextureProperty.UVMapping)material.GetFloat(k_AnisotropyMapUV),
                 (TextureProperty.UVMapping)material.GetFloat(k_IridescenceThicknessMapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_IridescenceMaskMapUV),
                 (TextureProperty.UVMapping)material.GetFloat(k_CoatSmoothnessMapUV),
                 (TextureProperty.UVMapping)material.GetFloat(k_CoatNormalMapUV),
             };

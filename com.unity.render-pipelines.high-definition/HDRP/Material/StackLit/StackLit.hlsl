@@ -95,6 +95,14 @@ TEXTURE2D(_GBufferTexture0);
 
 #else // ! _MATERIAL_FEATURE_COAT
 
+    // For iridescence, we will reuse the recompute per light keyword even when not vlayered.
+    // When vlayered and iridescence is on, iridescence is also automatically recomputed per light too,
+    // so the following gives the recompute option for iridescence when NOT vlayered:
+#ifdef VLAYERED_RECOMPUTE_PERLIGHT
+#    if _MATERIAL_FEATURE_IRIDESCENCE
+#    define IRIDESCENCE_RECOMPUTE_PERLIGHT
+#    endif
+#endif
 #    undef VLAYERED_RECOMPUTE_PERLIGHT
 #    undef VLAYERED_USE_REFRACTED_ANGLES_FOR_BASE
 #    undef _MATERIAL_FEATURE_COAT_NORMALMAP // enforce a "coat enabled subfeature" condition on this shader_feature
@@ -219,6 +227,13 @@ void FillMaterialAnisotropy(float anisotropy, float3 tangentWS, float3 bitangent
     bsdfData.anisotropy  = anisotropy;
     bsdfData.tangentWS   = tangentWS;
     bsdfData.bitangentWS = bitangentWS;
+}
+
+void FillMaterialIridescence(float mask, float thickness, float ior, inout BSDFData bsdfData)
+{
+    bsdfData.iridescenceMask = mask;
+    bsdfData.iridescenceThickness = thickness;
+    bsdfData.iridescenceIor = ior;
 }
 
 void FillMaterialCoatData(float coatPerceptualRoughness, float coatIor, float coatThickness, float3 coatExtinction, inout BSDFData bsdfData)
@@ -393,6 +408,11 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
         FillMaterialAnisotropy(surfaceData.anisotropy, surfaceData.tangentWS, cross(surfaceData.normalWS, surfaceData.tangentWS), bsdfData);
     }
 
+    if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_IRIDESCENCE))
+    {
+        FillMaterialIridescence(surfaceData.iridescenceMask, surfaceData.iridescenceThickness, surfaceData.iridescenceIor, bsdfData);
+    }
+
     if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT))
     {
         FillMaterialCoatData(PerceptualSmoothnessToPerceptualRoughness(surfaceData.coatPerceptualSmoothness),
@@ -503,6 +523,10 @@ struct PreLightData
     // for it (hence the name iblF in Lit). Here, we will fold all data into
     // lobe-indexed arrays.
 
+    // For iridescence, to avoid recalculation per analytical light, we store the calculated
+    // iridescence reflectance that was used (as an approximation to "iridescent pre-integrated" FGD)
+    // to calculate FGD with the precalculated table:
+    float3 fresnelIridforCalculatingFGD;
 
     // For clarity, we will dump the base layer lobes roughnesses used by analytical lights
     // here, to avoid confusion with the per-vlayer (vs per lobe) vLayerPerceptualRoughness
@@ -963,6 +987,22 @@ void ComputeStatistics(in  float  cti, in float3 V, in float3 vOrthoGeomN, in bo
 
         // Update energy
         R12 = F_Schlick(bsdfData.fresnel0, ctiForFGD);
+
+        if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_IRIDESCENCE))
+        {
+            if (bsdfData.iridescenceMask > 0.0)
+            {
+                //float topIor = bsdfData.coatIor;
+                // TODO:
+                // We will avoid using coatIor directly as with the fake refraction, it can cause TIR
+                // which even when handled in EvalIridescence (tested), doesn't look pleasing and 
+                // creates a discontinuity.
+                float scale = clamp((1.0-bsdfData.coatPerceptualRoughness), 0.0, 1.0);
+                float topIor = lerp(1.0001, bsdfData.coatIor, scale);
+                R12 = lerp(R12, EvalIridescence(topIor, ctiForFGD, bsdfData.iridescenceThickness, bsdfData.fresnel0), bsdfData.iridescenceMask);
+            }
+        }
+
         T12 = 0.0;
 #ifdef VLAYERED_DIFFUSE_ENERGY_HACKED_TERM
         // Still should use FGD!
@@ -1650,20 +1690,30 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
             iblN[0] = iblN[1] = N[0];
         } // ...no anisotropy
 
+        float3 f0forCalculatingFGD = bsdfData.fresnel0;
+        if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_IRIDESCENCE))
+        {
+            float topIor = 1.0; // Air on top, no coat.
+            if (bsdfData.iridescenceMask > 0.0)
+            {
+                preLightData.fresnelIridforCalculatingFGD = EvalIridescence(topIor, NdotV[0], bsdfData.iridescenceThickness, bsdfData.fresnel0);
+                f0forCalculatingFGD = lerp(bsdfData.fresnel0, preLightData.fresnelIridforCalculatingFGD, bsdfData.iridescenceMask);
+            }
+        }
 
         // IBL
         // Handle IBL pre calculated data + GGX multiscattering energy loss compensation term
 
         GetPreIntegratedFGDGGXAndDisneyDiffuse(NdotV[0],
                                                preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX],
-                                               bsdfData.fresnel0,
+                                               f0forCalculatingFGD,
                                                preLightData.specularFGD[BASE_LOBEA_IDX],
                                                diffuseFGD[0],
                                                specularReflectivity[BASE_LOBEA_IDX]);
 
         GetPreIntegratedFGDGGXAndDisneyDiffuse(NdotV[0],
                                                preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX],
-                                               bsdfData.fresnel0,
+                                               f0forCalculatingFGD,
                                                preLightData.specularFGD[BASE_LOBEB_IDX],
                                                diffuseFGD[1],
                                                specularReflectivity[BASE_LOBEB_IDX]);
@@ -2134,6 +2184,17 @@ void BSDF(float3 inV, float3 inL, float inNdotL, float3 positionWS, PreLightData
         // --------------------------------------------------------------------
         // TODO: Proper Fresnel
         float3 F = F_Schlick(bsdfData.fresnel0, savedLdotH);
+
+        if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_IRIDESCENCE))
+        {
+            float3 fresnelIridescent = preLightData.fresnelIridforCalculatingFGD;
+            
+#ifdef IRIDESCENCE_RECOMPUTE_PERLIGHT
+            float topIor = 1.0; // default air on top.
+            fresnelIridescent = EvalIridescence(topIor, savedLdotH, bsdfData.iridescenceThickness, bsdfData.fresnel0);
+#endif
+            F = lerp(F, fresnelIridescent, bsdfData.iridescenceMask);
+        }
 
         if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_ANISOTROPY))
         {
