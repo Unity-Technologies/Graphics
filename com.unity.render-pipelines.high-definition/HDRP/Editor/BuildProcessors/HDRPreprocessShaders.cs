@@ -9,7 +9,7 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    class HDRPVariantStripper : IPreprocessShaders
+    class HDRPreprocessShaders : IPreprocessShaders
     {
         // returns true if the variant should be stripped.
         delegate bool VariantStrippingFunc(Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData);
@@ -26,7 +26,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         //ShaderKeyword m_FeatureSSS;
 
-        public HDRPVariantStripper()
+        public HDRPreprocessShaders()
         {
             // TODO: Grab correct configuration/quality asset.
             HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
