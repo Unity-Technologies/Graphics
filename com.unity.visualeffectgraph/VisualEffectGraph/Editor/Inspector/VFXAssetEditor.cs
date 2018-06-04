@@ -25,20 +25,100 @@ public class VisualEffectAssetEditorStyles
 [CustomEditor(typeof(VisualEffectAsset))]
 public class VisualEffectAssetEditor : Editor
 {
-    ReorderableList outputList;
-
-    //List<VFXAbstractParticleOutput> m_Outputs = new List<VFXAbstractParticleOutput>();
     void OnEnable()
     {
-        /*
-        VisualEffectAsset asset = (VisualEffectAsset)target;
-        /*
-        VFXGraph graph = asset.GetOrCreateGraph();
+    }
 
-        m_Outputs = graph.children.OfType<VFXAbstractParticleOutput>().ToList();
+    PreviewRenderUtility m_PreviewUtility;
 
-        outputList = new ReorderableList(m_Outputs, typeof(VFXAbstractParticleOutput));
-        */
+    private PreviewRenderUtility previewUtility
+    {
+        get
+        {
+            if (m_PreviewUtility == null)
+            {
+                m_PreviewUtility = new PreviewRenderUtility();
+                m_PreviewUtility.camera.fieldOfView = 60.0f;
+                m_PreviewUtility.camera.allowHDR = false;
+                m_PreviewUtility.camera.allowMSAA = false;
+                m_PreviewUtility.camera.farClipPlane = 10000.0f;
+                m_PreviewUtility.ambientColor = new Color(.1f, .1f, .1f, 0);
+                m_PreviewUtility.lights[0].intensity = 1.4f;
+                m_PreviewUtility.lights[0].transform.rotation = Quaternion.Euler(40f, 40f, 0);
+                m_PreviewUtility.lights[1].intensity = 1.4f;
+                InitPreviewVisualEffect();
+
+                m_Distance = 10;
+                m_Direction = Vector3.forward;
+            }
+            return m_PreviewUtility;
+        }
+    }
+
+
+    void InitPreviewVisualEffect()
+    {
+        if (m_VisualEffectGO == null)
+        {
+            m_VisualEffectGO = new GameObject("VisualEffect (Preview)");
+            m_VisualEffect = m_VisualEffectGO.AddComponent<VisualEffect>();
+            m_PreviewUtility.AddManagedGO(m_VisualEffectGO);
+
+            m_VisualEffectGO.transform.localPosition = Vector3.zero;
+            m_VisualEffectGO.transform.localRotation = Quaternion.identity;
+            m_VisualEffectGO.transform.localScale = Vector3.one;
+
+            m_VisualEffect.visualEffectAsset = target as VisualEffectAsset;
+        }
+    }
+
+    GameObject m_VisualEffectGO;
+    VisualEffect m_VisualEffect;
+    Vector3 m_Direction;
+    float m_Distance;
+
+    public override bool HasPreviewGUI()
+    {
+        return true;
+    }
+
+    public override void OnInteractivePreviewGUI(Rect r, GUIStyle background)
+    {
+        bool isRepaint = (Event.current.type == EventType.Repaint);
+
+
+        m_Direction = VFXPreviewGUI.Drag2D(m_Direction, r);
+
+
+        if (Event.current.isScrollWheel)
+        {
+            m_Distance *= 1 + (Event.current.delta.y * .015f);
+        }
+
+        if (isRepaint)
+        {
+            previewUtility.BeginPreview(r, background);
+
+            Quaternion rot = Quaternion.Euler(m_Direction.y, 0, 0) * Quaternion.Euler(0, m_Direction.x, 0);
+            m_PreviewUtility.camera.transform.position = new Vector3(0, 0, -m_Distance);
+
+            m_VisualEffectGO.transform.localRotation = rot;
+
+            previewUtility.Render();
+
+            previewUtility.EndAndDrawPreview(r);
+
+            // Ask for repaint so the effect is animated.
+            Repaint();
+        }
+    }
+
+    private void OnDisable()
+    {
+        if (m_PreviewUtility != null)
+        {
+            m_PreviewUtility.Cleanup();
+        }
     }
 
     public override void OnInspectorGUI()
@@ -113,5 +193,124 @@ public class VisualEffectAssetEditor : Editor
             return "";
 
         return resource.shaderSources[index].source;
+    }
+}
+
+
+static class VFXPreviewGUI
+{
+    static int sliderHash = "Slider".GetHashCode();
+    static Rect s_ViewRect, s_Position;
+    static Vector2 s_ScrollPos;
+
+    internal static void BeginScrollView(Rect position, Vector2 scrollPosition, Rect viewRect, GUIStyle horizontalScrollbar, GUIStyle verticalScrollbar)
+    {
+        s_ScrollPos = scrollPosition;
+        s_ViewRect = viewRect;
+        s_Position = position;
+        GUIClip.Push(position, new Vector2(Mathf.Round(-scrollPosition.x - viewRect.x - (viewRect.width - position.width) * .5f), Mathf.Round(-scrollPosition.y - viewRect.y - (viewRect.height - position.height) * .5f)), Vector2.zero, false);
+    }
+
+    internal class Styles
+    {
+        public static GUIStyle preButton;
+        public static void Init()
+        {
+            preButton = "preButton";
+        }
+    }
+
+    public static int CycleButton(int selected, GUIContent[] options)
+    {
+        Styles.Init();
+        return EditorGUILayout.CycleButton(selected, options, Styles.preButton);
+    }
+
+    public static Vector2 EndScrollView()
+    {
+        GUIClip.Pop();
+
+        Rect clipRect = s_Position, position = s_Position, viewRect = s_ViewRect;
+
+        Vector2 scrollPosition = s_ScrollPos;
+        switch (Event.current.type)
+        {
+            case EventType.Layout:
+                GUIUtility.GetControlID(sliderHash, FocusType.Passive);
+                GUIUtility.GetControlID(sliderHash, FocusType.Passive);
+                break;
+            case EventType.Used:
+                break;
+            default:
+                bool needsVerticalScrollbar = ((int)viewRect.width > (int)clipRect.width);
+                bool needsHorizontalScrollbar = ((int)viewRect.height > (int)clipRect.height);
+                int id = GUIUtility.GetControlID(sliderHash, FocusType.Passive);
+
+                if (needsHorizontalScrollbar)
+                {
+                    GUIStyle horizontalScrollbar = "PreHorizontalScrollbar";
+                    GUIStyle horizontalScrollbarThumb = "PreHorizontalScrollbarThumb";
+                    float offset = (viewRect.width - clipRect.width) * .5f;
+                    scrollPosition.x = GUI.Slider(new Rect(position.x, position.yMax - horizontalScrollbar.fixedHeight, clipRect.width - (needsVerticalScrollbar ? horizontalScrollbar.fixedHeight : 0), horizontalScrollbar.fixedHeight),
+                            scrollPosition.x, clipRect.width + offset, -offset, viewRect.width,
+                            horizontalScrollbar, horizontalScrollbarThumb, true, id);
+                }
+                else
+                {
+                    // Get the same number of Control IDs so the ID generation for childrent don't depend on number of things above
+                    scrollPosition.x = 0;
+                }
+
+                id = GUIUtility.GetControlID(sliderHash, FocusType.Passive);
+
+                if (needsVerticalScrollbar)
+                {
+                    GUIStyle verticalScrollbar = "PreVerticalScrollbar";
+                    GUIStyle verticalScrollbarThumb = "PreVerticalScrollbarThumb";
+                    float offset = (viewRect.height - clipRect.height) * .5f;
+                    scrollPosition.y = GUI.Slider(new Rect(clipRect.xMax - verticalScrollbar.fixedWidth, clipRect.y, verticalScrollbar.fixedWidth, clipRect.height),
+                            scrollPosition.y, clipRect.height + offset, -offset, viewRect.height,
+                            verticalScrollbar, verticalScrollbarThumb, false, id);
+                }
+                else
+                {
+                    scrollPosition.y = 0;
+                }
+                break;
+        }
+
+        return scrollPosition;
+    }
+
+    public static Vector2 Drag2D(Vector2 scrollPosition, Rect position)
+    {
+        int id = GUIUtility.GetControlID(sliderHash, FocusType.Passive);
+        Event evt = Event.current;
+        switch (evt.GetTypeForControl(id))
+        {
+            case EventType.MouseDown:
+                if (position.Contains(evt.mousePosition) && position.width > 50)
+                {
+                    GUIUtility.hotControl = id;
+                    evt.Use();
+                    EditorGUIUtility.SetWantsMouseJumping(1);
+                }
+                break;
+            case EventType.MouseDrag:
+                if (GUIUtility.hotControl == id)
+                {
+                    scrollPosition -= evt.delta * (evt.shift ? 3 : 1) / Mathf.Min(position.width, position.height) * 140.0f;
+                    scrollPosition.y = Mathf.Clamp(scrollPosition.y, -90, 90);
+                    evt.Use();
+                    GUI.changed = true;
+                }
+                break;
+            case EventType.MouseUp:
+                if (GUIUtility.hotControl == id)
+                    GUIUtility.hotControl = 0;
+                EditorGUIUtility.SetWantsMouseJumping(0);
+                break;
+        }
+        return scrollPosition;
     }
 }
