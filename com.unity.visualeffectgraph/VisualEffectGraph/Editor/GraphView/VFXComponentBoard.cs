@@ -145,11 +145,11 @@ namespace  UnityEditor.VFX.UI
         public VFXComponentBoard(VFXView view)
         {
             m_View = view;
-            var tpl = EditorGUIUtility.Load(UXMLHelper.GetUXMLPath("uxml/VFXComponentBlackboardSection.uxml")) as VisualTreeAsset;
+            var tpl = EditorGUIUtility.Load(UXMLHelper.GetUXMLPath("uxml/VFXComponentBoard.uxml")) as VisualTreeAsset;
 
             tpl.CloneTree(contentContainer, new Dictionary<string, VisualElement>());
 
-            contentContainer.AddStyleSheetPath("VFXComponentBlackboardSection");
+            contentContainer.AddStyleSheetPath("VFXComponentBoard");
 
             m_AttachButton = this.Query<Button>("attach");
             m_AttachButton.clickable.clicked += ToggleAttach;
