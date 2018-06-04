@@ -169,7 +169,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             postprocessRenderContext = new PostProcessRenderContext();
 
-            m_AdditionalCameraData = cam.GetComponent<HDAdditionalCameraData>();
+            m_AdditionalCameraData = null; // Init in Update
 
             Reset();
         }
@@ -178,6 +178,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // That way you will never update an HDCamera and forget to update the dependent system.
         public void Update(FrameSettings currentFrameSettings, PostProcessLayer postProcessLayer, VolumetricLightingSystem vlSys)
         {
+            // store a shortcut on HDAdditionalCameraData (done here and not in the constructor as
+            // we do'nt create HDCamera at every frame and user can change the HDAdditionalData later (Like when they create a new scene).
+            m_AdditionalCameraData = camera.GetComponent<HDAdditionalCameraData>();
+
             m_frameSettings = currentFrameSettings;
 
             // If TAA is enabled projMatrix will hold a jittered projection matrix. The original,

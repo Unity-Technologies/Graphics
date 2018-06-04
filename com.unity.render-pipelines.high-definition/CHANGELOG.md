@@ -2,8 +2,6 @@
 # Changelog
 
 ## [2018.2 undecided]
-- Fix issue with LOD transition and instancing
-- Fix discrepency between object motion vector and camera motion vector
 
 ### Improvements
 - Add stripper of shader variant when building a player. Save shader compile time.
@@ -13,11 +11,26 @@
 - Support correctly scene selection for alpha tested object
 - Add per light shadow mask mode control (i.e shadow mask distance and shadow mask). It use the option NonLightmappedOnly
 - Add geometric filtering to Lit shader (allow to reduce specular aliasing)
-- Allow to double click on a render pipeline asset to setup it automatically in GraphicSettings.
+- Allow to double click on a render pipeline asset to setup it automatically in GraphicSettings
+- Add shortcut to create DensityVolume and PlanarReflection in hierarchy
+- Add a DefaultHDMirrorMaterial material for PlanarReflection
+- Added a script to be able to update material to newer version of Unity
 
 ### Changed, Removals and deprecations
 - Removed GlobalLightLoopSettings.maxPlanarReflectionProbes and instead use value of GlobalLightLoopSettings.planarReflectionProbeCacheSize
 - Changed SupportForwardOnly to SupportOnlyForward in render pipeline settings
+- Remove EmissiveIntensity parameter and change EmissiveColor to be HDR (Matching Builtin Unity behavior) - Data need to be updated
+- Changed versioning variable name in HDAdditionalXXXData from m_version to version
+- Create unique name when creating a game object in the rendering menu (i.e Density Volume(2))
+- Re-organize various files and folder location to clean the repository
+- Change Debug windows name and location. Now located at:  Windows -> General -> Render Pipeline Debug
+
+### Bug fixes
+- Fix issue with LOD transition and instancing
+- Fix discrepency between object motion vector and camera motion vector
+- Fix issue with spot and dir light gizmo axis not highlighted correctly
+- Fix potential crash while register debug windows inputs at startup
+
 
 ## [2018.1 undecided]
 
@@ -30,6 +43,7 @@
 - The VolumetricLightingSystem now uses RTHandles, which allows to save memory by sharing buffers between different cameras (history buffers are not shared), and reduce reallocation frequency by reallocating buffers only if the rendering resolution increases (and suballocating within existing buffers if the rendering resolution decreases)
 - Add a Volumetric Dimmer slider to lights to control the intensity of the scattered volumetric lighting
 - Add UV tiling and offset support for decals.
+- Add mipmapping support for volume 3D mask textures
 
 ### Changed, Removals and deprecations
 - Remove Resource folder of PreIntegratedFGD and add the resource to RenderPipeline Asset

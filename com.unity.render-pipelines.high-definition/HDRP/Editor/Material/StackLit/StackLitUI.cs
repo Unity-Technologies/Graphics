@@ -44,7 +44,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string k_EmissiveColor = "_EmissiveColor";
         protected const string k_EmissiveColorMap = "_EmissiveColorMap";
         protected const string k_EmissiveColorMapUV = "_EmissiveColorMapUV";
-        protected const string k_EmissiveIntensity = "_EmissiveIntensity";
         protected const string k_AlbedoAffectEmissive = "_AlbedoAffectEmissive";
 
         // Coat
@@ -101,7 +100,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kStencilWriteMaskMV = "_StencilWriteMaskMV";
 
         protected const string k_GeometricNormalFilteringEnabled = "_GeometricNormalFilteringEnabled";
-        protected const string k_TextureNormalFilteringEnabled = "_TextureNormalFilteringEnabled";        
+        protected const string k_TextureNormalFilteringEnabled = "_TextureNormalFilteringEnabled";
 
         #endregion
 
@@ -208,7 +207,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 new GroupProperty(this, "_Emissive", "Emissive", new BaseProperty[]
                 {
                     new TextureProperty(this, k_EmissiveColorMap, k_EmissiveColor, "Emissive Color", "Emissive", true, false),
-                    new Property(this, k_EmissiveIntensity, "Emissive Intensity", "Emissive", false),
                     new Property(this, k_AlbedoAffectEmissive, "Albedo Affect Emissive", "Specifies whether or not the emissive color is multiplied by the albedo.", false),
                 }),
 
@@ -234,7 +232,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override bool ShouldEmissionBeEnabled(Material material)
         {
-            return material.GetFloat(k_EmissiveIntensity) > 0.0f;
+            return (material.GetColor(k_EmissiveColor) != Color.black) || material.GetTexture(k_EmissiveColorMap);
         }
 
         protected override void FindBaseMaterialProperties(MaterialProperty[] props)

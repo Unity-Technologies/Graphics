@@ -148,33 +148,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             graphEditorView = null;
         }
 
-        void UpdateDependantGraphs()
-        {
-            string[] lookFor = new string[] {"Assets"};
-            var guids = AssetDatabase.FindAssets("t:shader", lookFor);
-            foreach (string guid in guids)
-            {
-                if (AssetDatabase.GUIDToAssetPath(guid).ToLower().EndsWith(ShaderGraphImporter.ShaderGraphExtension))
-                {
-                    var path = AssetDatabase.GUIDToAssetPath(guid);
-
-                    var textGraph = File.ReadAllText(path, Encoding.UTF8);
-                    var graph = JsonUtility.FromJson<MaterialGraph>(textGraph);
-                    graph.LoadedFromDisk();
-
-                    foreach (SubGraphNode graphNode in graph.GetNodes<SubGraphNode>())
-                    {
-                        var subpath = AssetDatabase.GetAssetPath(graphNode.subGraphAsset);
-                        var subguid = AssetDatabase.AssetPathToGUID(subpath);
-                        if (subguid == selectedGuid)
-                        {
-                            UpdateShaderGraphOnDisk(path, graph);
-                        }
-                    }
-                }
-            }
-        }
-
         public void PingAsset()
         {
             if (selectedGuid != null)
@@ -430,8 +403,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             File.WriteAllText(path, EditorJsonUtility.ToJson(graph, true));
             AssetDatabase.ImportAsset(path);
-
-            UpdateDependantGraphs();
         }
 
         void UpdateShaderGraphOnDisk(string path)
