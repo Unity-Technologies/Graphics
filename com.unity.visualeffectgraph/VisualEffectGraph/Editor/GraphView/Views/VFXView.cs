@@ -244,6 +244,11 @@ namespace UnityEditor.VFX.UI
             {
                 return m_ComponentBoard != null ? m_ComponentBoard.GetAttachedComponent() : null;
             }
+
+            set
+            {
+                m_ComponentBoard.Attach(value);
+            }
         }
 
         public VFXViewController controller
@@ -513,7 +518,16 @@ namespace UnityEditor.VFX.UI
 
         void Delete(string cmd, AskUser askUser)
         {
-            controller.Remove(selection.OfType<IControlledElement>().Select(t => t.controller));
+            var selection = this.selection.ToArray();
+
+
+            var parametersToRemove = Enumerable.Empty<VFXParameterController>();
+
+            foreach (var category in selection.OfType<VFXBlackboardCategory>())
+            {
+                parametersToRemove = parametersToRemove.Concat(controller.RemoveCategory(m_Blackboard.GetCategoryIndex(category)));
+            }
+            controller.Remove(selection.OfType<IControlledElement>().Select(t => t.controller).Concat(parametersToRemove.Cast<Controller>()));
         }
 
         void OnControllerChanged(ControllerChangedEvent e)

@@ -150,6 +150,33 @@ namespace UnityEditor.VFX
                 OnEditEnd();
         }
 
+        protected override void AssetField()
+        {
+            var component = (VisualEffect)target;
+            using (new GUILayout.HorizontalScope())
+            {
+                EditorGUILayout.PropertyField(m_VisualEffectAsset, Contents.assetPath);
+
+                GUI.enabled = component.visualEffectAsset != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
+                if (GUILayout.Button(Contents.openEditor, EditorStyles.miniButton, Styles.MiniButtonWidth))
+                {
+                    VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+
+                    window.LoadAsset(component.visualEffectAsset, component);
+                }
+            }
+        }
+
+        protected override void EditorModeInspectorButton()
+        {
+            EditMode.DoEditModeInspectorModeButton(
+                EditMode.SceneViewEditMode.Collider,
+                "Show Parameters",
+                EditorGUIUtility.IconContent("EditCollider"),
+                this
+                );
+        }
+
         VFXParameter GetParameter(string name)
         {
             VisualEffect effect = (VisualEffect)target;
