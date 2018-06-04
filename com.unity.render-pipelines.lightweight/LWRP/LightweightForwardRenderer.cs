@@ -309,7 +309,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             bool isScaledRender = !Mathf.Approximately(cameraData.renderScale, 1.0f);
             bool isTargetTexture2DArray = baseDescriptor.dimension == TextureDimension.Tex2DArray;
             return requiresCameraDepth || cameraData.isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
-                cameraData.postProcessEnabled || cameraData.requiresOpaqueTexture || isTargetTexture2DArray;
+                cameraData.postProcessEnabled || cameraData.requiresOpaqueTexture || isTargetTexture2DArray || !cameraData.isDefaultViewport;
         }
 
         bool CanCopyDepth(ref CameraData cameraData)
