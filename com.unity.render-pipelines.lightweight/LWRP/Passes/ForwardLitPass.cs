@@ -368,11 +368,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // We need to handle viewport on a RT. We do it by rendering a fullscreen quad + viewport
             if (colorAttachmentHandle != -1 && !cameraData.isDefaultViewport)
             {
-                SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.All, Color.black);
+                SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.None, Color.black);
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.SetViewport(cameraData.camera.pixelRect);
                 LightweightPipeline.DrawFullScreen(cmd, material);
-                
             }
             else
             {
