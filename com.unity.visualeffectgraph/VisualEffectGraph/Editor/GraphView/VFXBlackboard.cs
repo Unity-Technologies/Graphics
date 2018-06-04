@@ -471,7 +471,6 @@ namespace  UnityEditor.VFX.UI
 
             clippingOptions = ClippingOptions.ClipContents;
             SetDragIndicatorVisible(false);
-
         }
 
         private void SetDragIndicatorVisible(bool visible)
@@ -499,10 +498,10 @@ namespace  UnityEditor.VFX.UI
             {
                 int defaultCatIndex = IndexOf(m_DefaultCategory);
 
-                for(int i = defaultCatIndex +1 ; i< childCount; ++i)
+                for (int i = defaultCatIndex + 1; i < childCount; ++i)
                 {
                     VFXBlackboardCategory cat = ElementAt(i) as VFXBlackboardCategory;
-                    if(cat == null)
+                    if (cat == null)
                     {
                         return i;
                     }
@@ -518,7 +517,8 @@ namespace  UnityEditor.VFX.UI
             }
             return -1;
         }
-          int m_InsertIndex;
+
+        int m_InsertIndex;
 
         void OnDragUpdatedEvent(DragUpdatedEvent e)
         {
@@ -530,7 +530,7 @@ namespace  UnityEditor.VFX.UI
                 return;
             }
 
-            if( selection.Any(t=> ! (t is VFXBlackboardCategory)))
+            if (selection.Any(t => !(t is VFXBlackboardCategory)))
             {
                 SetDragIndicatorVisible(false);
                 return;
@@ -546,7 +546,7 @@ namespace  UnityEditor.VFX.UI
 
                 if (m_InsertIndex == childCount)
                 {
-                    if( childCount > 0)
+                    if (childCount > 0)
                     {
                         VisualElement lastChild = this[childCount - 1];
 
@@ -577,7 +577,6 @@ namespace  UnityEditor.VFX.UI
             e.StopPropagation();
         }
 
-
         public int GetCategoryIndex(VFXBlackboardCategory cat)
         {
             return IndexOf(cat) - IndexOf(m_DefaultCategory) - 1;
@@ -593,16 +592,16 @@ namespace  UnityEditor.VFX.UI
             }
 
             var category = selection.OfType<VFXBlackboardCategory>().FirstOrDefault();
-            if( category == null)
+            if (category == null)
             {
                 return;
             }
 
             if (m_InsertIndex != -1)
             {
-                if( m_InsertIndex > IndexOf(category) )
-                       --m_InsertIndex;
-                controller.MoveCategory(category.title,m_InsertIndex - IndexOf(m_DefaultCategory) - 1);
+                if (m_InsertIndex > IndexOf(category))
+                    --m_InsertIndex;
+                controller.MoveCategory(category.title, m_InsertIndex - IndexOf(m_DefaultCategory) - 1);
             }
 
             SetDragIndicatorVisible(false);
@@ -626,7 +625,6 @@ namespace  UnityEditor.VFX.UI
             m_View.SetBoardToFront(this);
         }
 
-
         void OnAddParameter(object parameter)
         {
             m_Controller.AddVFXParameter(Vector2.zero, (VFXModelDescriptorParameters)parameter);
@@ -637,7 +635,7 @@ namespace  UnityEditor.VFX.UI
             GenericMenu menu = new GenericMenu();
 
 
-            menu.AddItem(EditorGUIUtility.TrTextContent("category"),false,OnAddCategory);
+            menu.AddItem(EditorGUIUtility.TrTextContent("Category"), false, OnAddCategory);
             menu.AddSeparator(string.Empty);
 
             foreach (var parameter in VFXLibrary.GetParameters())
@@ -652,18 +650,17 @@ namespace  UnityEditor.VFX.UI
             menu.ShowAsContext();
         }
 
-
-        public void SetCategoryName(VFXBlackboardCategory cat,string newName)
+        public void SetCategoryName(VFXBlackboardCategory cat, string newName)
         {
             int index = GetCategoryIndex(cat);
 
-            bool succeeded = controller.SetCategoryName(index,newName);
+            bool succeeded = controller.SetCategoryName(index, newName);
 
-            if( succeeded)
+            if (succeeded)
             {
                 m_Categories.Remove(cat.title);
                 cat.title = newName;
-                m_Categories.Add(newName,cat);
+                m_Categories.Add(newName, cat);
             }
         }
 
@@ -671,9 +668,9 @@ namespace  UnityEditor.VFX.UI
         {
             string newCategoryName = EditorGUIUtility.TrTextContent("new category").text;
             int cpt = 1;
-            while( controller.graph.UIInfos.categories.Contains(newCategoryName))
+            while (controller.graph.UIInfos.categories.Contains(newCategoryName))
             {
-                newCategoryName = string.Format(EditorGUIUtility.TrTextContent("new category {0}").text,cpt++);
+                newCategoryName = string.Format(EditorGUIUtility.TrTextContent("new category {0}").text, cpt++);
             }
 
             controller.graph.UIInfos.categories.Add(newCategoryName);
@@ -691,30 +688,27 @@ namespace  UnityEditor.VFX.UI
         public void OnMoveParameter(IEnumerable<VFXBlackboardRow> rows, VFXBlackboardCategory category, int index)
         {
             //TODO sort elements
-            foreach(var row in rows)
+            foreach (var row in rows)
             {
-                controller.SetParametersOrder(row.controller, index++,category == m_DefaultCategory ? "" : category.title);
+                controller.SetParametersOrder(row.controller, index++, category == m_DefaultCategory ? "" : category.title);
             }
         }
 
-
         VFXBlackboardCategory m_DefaultCategory;
-        Dictionary<string,VFXBlackboardCategory> m_Categories = new Dictionary<string,VFXBlackboardCategory>();
-
+        Dictionary<string, VFXBlackboardCategory> m_Categories = new Dictionary<string, VFXBlackboardCategory>();
 
 
         public VFXBlackboardRow GetRowFromController(VFXParameterController controller)
         {
             VFXBlackboardCategory cat = null;
             VFXBlackboardRow row = null;
-            if( m_Categories.TryGetValue(controller.model.category,out cat ))
+            if (m_Categories.TryGetValue(controller.model.category, out cat))
             {
                 row = cat.GetRowFromController(controller);
             }
 
             return row;
         }
-
 
         struct CategoryNOrder
         {
@@ -728,22 +722,22 @@ namespace  UnityEditor.VFX.UI
             {
                 var orderedCategories = controller.graph.UIInfos.categories;
                 var newCategories = new List<VFXBlackboardCategory>();
-                if( orderedCategories != null)
+                if (orderedCategories != null)
                 {
-                    foreach(var catName in controller.graph.UIInfos.categories)
+                    foreach (var catName in controller.graph.UIInfos.categories)
                     {
                         VFXBlackboardCategory cat = null;
-                        if( ! m_Categories.TryGetValue(catName,out cat))
+                        if (!m_Categories.TryGetValue(catName, out cat))
                         {
-                            cat = new VFXBlackboardCategory(){title =  catName};
+                            cat = new VFXBlackboardCategory() {title =  catName};
                             cat.SetSelectable();
-                            m_Categories.Add(catName,cat);
+                            m_Categories.Add(catName, cat);
                         }
 
                         newCategories.Add(cat);
                     }
 
-                    foreach( var category in m_Categories.Keys.Except(orderedCategories).ToArray() )
+                    foreach (var category in m_Categories.Keys.Except(orderedCategories).ToArray())
                     {
                         m_Categories[category].RemoveFromHierarchy();
                         m_Categories.Remove(category);
@@ -752,22 +746,22 @@ namespace  UnityEditor.VFX.UI
 
                 var prevCat = m_DefaultCategory;
 
-                foreach(var cat in newCategories)
+                foreach (var cat in newCategories)
                 {
-                    if(cat.parent == null)
-                        Insert(IndexOf(prevCat)+1,cat);
+                    if (cat.parent == null)
+                        Insert(IndexOf(prevCat) + 1, cat);
                     else
                         cat.PlaceInFront(prevCat);
                     prevCat = cat;
                 }
 
-                var actualControllers = new HashSet<VFXParameterController>(controller.parameterControllers.Where(t=>string.IsNullOrEmpty(t.model.category)));
+                var actualControllers = new HashSet<VFXParameterController>(controller.parameterControllers.Where(t => string.IsNullOrEmpty(t.model.category)));
                 m_DefaultCategory.SyncParameters(actualControllers);
 
 
-                foreach(var cat in newCategories)
+                foreach (var cat in newCategories)
                 {
-                    actualControllers = new HashSet<VFXParameterController>(controller.parameterControllers.Where(t=>t.model.category == cat.title));
+                    actualControllers = new HashSet<VFXParameterController>(controller.parameterControllers.Where(t => t.model.category == cat.title));
                     cat.SyncParameters(actualControllers);
                 }
             }
