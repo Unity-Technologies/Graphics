@@ -316,10 +316,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 ClearFlag clearFlag = GetCameraClearFlag(camera);
                 SetRenderTarget(cmd, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, clearFlag, CoreUtils.ConvertSRGBToActiveColorSpace(camera.backgroundColor));
 
-                // If rendering to an intermediate RT we resolve viewport on blit due to offset not being supported
-                // while rendering to a RT.
-                if (colorAttachmentHandle == -1 && !cameraData.isDefaultViewport)
-                    cmd.SetViewport(camera.pixelRect);
+                // TODO: We need a proper way to handle multiple camera/ camera stack. Issue is: multiple cameras can share a same RT
+                // (e.g, split screen games). However devs have to be dilligent with it and know when to clear/preserve color.
+                // For now we make it consistent by resolving viewport with a RT until we can have a proper camera management system
+                //if (colorAttachmentHandle == -1 && !cameraData.isDefaultViewport)
+                //    cmd.SetViewport(camera.pixelRect);
 
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
@@ -366,7 +367,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.SetGlobalTexture("_BlitTex", sourceRT);
 
             // We need to handle viewport on a RT. We do it by rendering a fullscreen quad + viewport
-            if (colorAttachmentHandle != -1 && !cameraData.isDefaultViewport)
+            if (!cameraData.isDefaultViewport)
             {
                 SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.None, Color.black);
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
