@@ -40,7 +40,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // - Scene Selection
         // - Motion vectors
         // - Tile pass for Transparent (not compatible)
-        // - 
+        // -
         protected bool CommonShaderStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
         {
             bool isSceneSelectionPass = snippet.passName == "SceneSelectionPass";
@@ -61,14 +61,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             else // Opaque
             {
-                // Note: we can't assume anything regarding tile/cluster for opaque as multiple view could used different settings adn it depends on MSAA
+                // Note: we can't assume anything regarding tile/cluster for opaque as multiple view could used different settings and it depends on MSAA
             }
 
             // TODO: If static lighting we can remove meta pass, but how to know that?
 
-            // TODO: Expose development build flag.
-            //if (developmentBuild && inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
-            //    return true;
+            // If we are in a release build, don't compile debug display variant
+            // Also don't compile it if not requested by the render pipeline settings
+            if ((/*!Debug.isDebugBuild || */ !hdrpAsset.renderPipelineSettings.supportRuntimeDebugDisplay) && inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
+                return true;
 
             return false;
         }
