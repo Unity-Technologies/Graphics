@@ -102,6 +102,20 @@ namespace UnityEditor.VFX
             base.OnEnable();
             EditMode.editModeStarted += OnEditModeStart;
             EditMode.editModeEnded += OnEditModeEnd;
+
+            // Force rebuilding the parameterinfos
+            VisualEffect effect = ((VisualEffect)targets[0]);
+
+            var asset = effect.visualEffectAsset;
+            if (asset != null && asset.GetResource() != null)
+            {
+                var graph = asset.GetResource().GetOrCreateGraph();
+
+                if (graph)
+                {
+                    graph.BuildParameterInfo();
+                }
+            }
         }
 
         new void OnDisable()

@@ -1207,13 +1207,6 @@ namespace UnityEditor.VFX.UI
         {
             ModelChanged(vfx); // This will initialize the graph from the vfx asset.
 
-#if ENABLE_VIEW_3D_PRESENTER
-            if (controller != null)
-                RemoveElement(controller);
-            controller = CreateInstance<Preview3DController>();
-            AddElement(controller);
-#endif
-
             if (m_FlowAnchorController == null)
                 m_FlowAnchorController = new List<VFXFlowAnchorController>();
 
@@ -1222,6 +1215,9 @@ namespace UnityEditor.VFX.UI
 
             string fileName = System.IO.Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(vfx));
             vfx.name = fileName;
+
+            if (m_Graph != null)
+                m_Graph.BuildParameterInfo();
 
             InitializeUndoStack();
             GraphChanged();
@@ -1330,23 +1326,22 @@ namespace UnityEditor.VFX.UI
             return changed;
         }
 
-
         public void ValidateCategoryList()
         {
-            if( ! m_Syncing )
+            if (!m_Syncing)
             {
                 var ui = graph.UIInfos;
                 // Validate category list
                 List<string> categories = ui.categories != null ? ui.categories : new List<string>();
 
-                string[] missingCategories = m_ParameterControllers.Select(t=>t.Key.category).Where(t=>!string.IsNullOrEmpty(t)).Except(categories).ToArray();
+                string[] missingCategories = m_ParameterControllers.Select(t => t.Key.category).Where(t => !string.IsNullOrEmpty(t)).Except(categories).ToArray();
 
                 HashSet<string> foundCategories = new HashSet<string>();
 
-                for(int i = 0 ; i < categories.Count ; ++i)
+                for (int i = 0; i < categories.Count; ++i)
                 {
                     string category = categories[i];
-                    if( string.IsNullOrEmpty(category) || foundCategories.Contains(category))
+                    if (string.IsNullOrEmpty(category) || foundCategories.Contains(category))
                     {
                         categories.RemoveAt(i);
                         --i;
@@ -1354,7 +1349,7 @@ namespace UnityEditor.VFX.UI
                     foundCategories.Add(category);
                 }
 
-                if(missingCategories.Length > 0)
+                if (missingCategories.Length > 0)
                 {
                     categories.AddRange(missingCategories);
                     ui.categories = categories;
@@ -1418,37 +1413,36 @@ namespace UnityEditor.VFX.UI
 
         public void MoveCategory(string category, int index)
         {
-            if( graph.UIInfos.categories == null)
+            if (graph.UIInfos.categories == null)
                 return;
             int oldIndex = graph.UIInfos.categories.IndexOf(category);
 
-            if( oldIndex == -1 || oldIndex == index)
+            if (oldIndex == -1 || oldIndex == index)
                 return;
             graph.UIInfos.categories.RemoveAt(oldIndex);
-            if( index < graph.UIInfos.categories.Count)
-                graph.UIInfos.categories.Insert(index,category);
+            if (index < graph.UIInfos.categories.Count)
+                graph.UIInfos.categories.Insert(index, category);
             else
                 graph.UIInfos.categories.Add(category);
 
             graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }
 
-
         public bool SetCategoryName(int category, string newName)
         {
-            if( category >= 0 && graph.UIInfos.categories != null && category < graph.UIInfos.categories.Count)
+            if (category >= 0 && graph.UIInfos.categories != null && category < graph.UIInfos.categories.Count)
             {
-                if( graph.UIInfos.categories[category] == newName)
+                if (graph.UIInfos.categories[category] == newName)
                 {
                     return false;
                 }
-                if( ! graph.UIInfos.categories.Contains(newName))
+                if (!graph.UIInfos.categories.Contains(newName))
                 {
                     string oldName = graph.UIInfos.categories[category];
 
-                    foreach(var parameter in m_ParameterControllers)
+                    foreach (var parameter in m_ParameterControllers)
                     {
-                        if( parameter.Key.category == oldName )
+                        if (parameter.Key.category == oldName)
                         {
                             parameter.Key.category = newName;
                         }
@@ -1472,29 +1466,28 @@ namespace UnityEditor.VFX.UI
             return false;
         }
 
-
         public IEnumerable<VFXParameterController> RemoveCategory(int category)
         {
-            if( category >= 0 && graph.UIInfos.categories != null && category < graph.UIInfos.categories.Count)
+            if (category >= 0 && graph.UIInfos.categories != null && category < graph.UIInfos.categories.Count)
             {
                 string name = graph.UIInfos.categories[category];
 
                 graph.UIInfos.categories.RemoveAt(category);
                 graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
 
-                return m_ParameterControllers.Values.Where(t=>t.model.category == name);
+                return m_ParameterControllers.Values.Where(t => t.model.category == name);
             }
             return Enumerable.Empty<VFXParameterController>();
         }
 
         public void SetParametersOrder(VFXParameterController controller, int index, string category)
         {
-            var orderedParameters = m_ParameterControllers.Where(t=>t.Key.category == category).OrderBy(t => t.Value.order).Select(t => t.Value).ToList();
+            var orderedParameters = m_ParameterControllers.Where(t => t.Key.category == category).OrderBy(t => t.Value.order).Select(t => t.Value).ToList();
 
             int oldIndex = orderedParameters.IndexOf(controller);
 
 
-            if( oldIndex != -1)
+            if (oldIndex != -1)
             {
                 orderedParameters.RemoveAt(oldIndex);
 
