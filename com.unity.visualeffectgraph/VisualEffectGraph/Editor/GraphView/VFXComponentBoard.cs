@@ -352,11 +352,12 @@ namespace  UnityEditor.VFX.UI
             UpdateAttachButton();
         }
 
-        void Attach()
+        public void Attach(VisualEffect effect = null)
         {
-            if (m_SelectionCandidate != null)
+            VisualEffect target = effect != null ? effect : m_SelectionCandidate;
+            if (target != null)
             {
-                m_AttachedComponent = m_SelectionCandidate;
+                m_AttachedComponent = target;
                 UpdateAttachButton();
                 m_LastKnownPauseState = !m_AttachedComponent.pause;
                 UpdatePlayButton();
@@ -461,6 +462,11 @@ namespace  UnityEditor.VFX.UI
 
         public void ControllerChanged(ControllerChangedEvent e)
         {
+        }
+
+        public override void UpdatePresenterPosition()
+        {
+            BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.blackboard, GetPosition());
         }
 
         public void OnMoved()
