@@ -21,8 +21,6 @@ VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceI
 	o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
 
 	${VFXVertexCommonProcess}
-
-	${VFXScaleBiasUV}
 	
 	${VFXVertexSetFlipbooksInterpolants}
 

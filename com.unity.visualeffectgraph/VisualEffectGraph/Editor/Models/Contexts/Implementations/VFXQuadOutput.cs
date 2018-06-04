@@ -15,8 +15,7 @@ namespace UnityEditor.VFX
         public override string name { get { return "Quad Output"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleQuad"); } }
         public override VFXTaskType taskType { get { return useGeometryShader ? VFXTaskType.ParticlePointOutput : VFXTaskType.ParticleQuadOutput; } }
-        public override bool supportsFlipbooks { get { return true; } }
-        public override bool supportsUVScaleBias { get { return true; } }
+        public override bool supportsUV { get { return true; } }
 
         public override IEnumerable<string> additionalDefines
         {
@@ -49,7 +48,7 @@ namespace UnityEditor.VFX
                 foreach (var size in VFXBlockUtility.GetReadableSizeAttributes(GetData()))
                     yield return size;
 
-                if (flipbookMode != FlipbookMode.Off)
+                if (uvMode != UVMode.Simple)
                     yield return new VFXAttributeInfo(VFXAttribute.TexIndex, VFXAttributeMode.Read);
             }
         }

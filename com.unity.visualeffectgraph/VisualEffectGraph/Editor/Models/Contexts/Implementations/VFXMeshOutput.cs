@@ -12,8 +12,7 @@ namespace UnityEditor.VFX
         public override string name { get { return "Mesh Output"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleMeshes"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleMeshOutput; } }
-        public override bool supportsFlipbooks { get { return true; } }
-        public override bool supportsUVScaleBias { get { return true; } }
+        public override bool supportsUV { get { return true; } }
         public override CullMode defaultCullMode { get { return CullMode.Back;  } }
 
         public override IEnumerable<VFXAttributeInfo> attributes
@@ -35,7 +34,7 @@ namespace UnityEditor.VFX
                 foreach (var size in VFXBlockUtility.GetReadableSizeAttributes(GetData()))
                     yield return size;
 
-                if (flipbookMode != FlipbookMode.Off)
+                if (uvMode != UVMode.Simple)
                     yield return new VFXAttributeInfo(VFXAttribute.TexIndex, VFXAttributeMode.Read);
             }
         }

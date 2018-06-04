@@ -35,8 +35,6 @@ void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_P
 
 		${VFXVertexCommonProcess}
 		
-		${VFXScaleBiasUV}
-		
 		${VFXVertexSetFlipbooksInterpolants}
 		
 		${VFXVertexAdditionalProcess}

@@ -13,8 +13,7 @@ namespace UnityEditor.VFX
         public override string name { get { return "Decal Output"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleDecal"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleHexahedronOutput; } }
-        public override bool supportsFlipbooks { get { return true; } }
-        public override bool supportsUVScaleBias { get { return false; } }
+        public override bool supportsUV { get { return true; } }
         public override CullMode defaultCullMode { get { return CullMode.Back; } }
 
         public class InputProperties
@@ -70,7 +69,7 @@ namespace UnityEditor.VFX
                 foreach (var size in VFXBlockUtility.GetReadableSizeAttributes(GetData()))
                     yield return size;
 
-                if (flipbookMode != FlipbookMode.Off)
+                if (uvMode != UVMode.Simple)
                     yield return new VFXAttributeInfo(VFXAttribute.TexIndex, VFXAttributeMode.Read);
             }
         }
