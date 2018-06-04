@@ -19,6 +19,14 @@ VFXComponentBoard.graphElement
     font-size:11;
 }
 
+VFXComponentBoard ScrollView
+{
+    flex-direction:column;
+    align-items:stretch;
+    overflow:hidden;
+    flex: 1 1 auto;
+}
+
 VFXComponentBoard, #component-container
 {
     flex-direction:column;
@@ -128,5 +136,20 @@ VFXComponentBoard, #component-container
     border-left:0;
     border-top:0;
     width:40;
+    height:16;
+}
+
+VFXComponentBoardEventUI
+{
+    flex-direction:row;
+    align-items:center;
+}
+VFXComponentBoardEventUI #event-name
+{
+    flex:1;
+}
+
+VFXComponentBoardEventUI Button
+{
     height:16;
 }

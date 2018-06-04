@@ -12,11 +12,11 @@ using System.Text;
 using UnityEditor.SceneManagement;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 
-namespace  UnityEditor.VFX.UI
+namespace UnityEditor.VFX.UI
 {
     static class BoardPreferenceHelper
     {
-        public  enum Board
+        public enum Board
         {
             blackboard,
             componentBoard
@@ -157,6 +157,7 @@ namespace  UnityEditor.VFX.UI
             m_ComponentPath = this.Query<Label>("component-path");
 
             m_ComponentContainer = this.Query("component-container");
+            m_ComponentContainerParent = m_ComponentContainer.parent;
 
             RegisterCallback<AttachToPanelEvent>(OnAttachToPanel);
             RegisterCallback<DetachFromPanelEvent>(OnDetachToPanel);
@@ -183,6 +184,8 @@ namespace  UnityEditor.VFX.UI
 
             m_ParticleCount = this.Query<Label>("particle-count");
 
+            m_EventsContainer = this.Query("events-container");
+
             Detach();
             this.AddManipulator(new Dragger { clampToParentEdges = true });
 
@@ -196,6 +199,8 @@ namespace  UnityEditor.VFX.UI
 
             SetPosition(BoardPreferenceHelper.LoadPosition(BoardPreferenceHelper.Board.componentBoard, defaultRect));
         }
+
+        VisualElement m_ComponentContainerParent;
 
         public void ValidatePosition()
         {
@@ -236,7 +241,7 @@ namespace  UnityEditor.VFX.UI
         {
             if (m_AttachedComponent == null)
                 return;
-            float rate = (float)((int)value)  * VisualEffectControl.valueToPlayRate;
+            float rate = (float)((int)value) * VisualEffectControl.valueToPlayRate;
             m_AttachedComponent.playRate = rate;
             UpdatePlayRate();
         }
@@ -350,6 +355,8 @@ namespace  UnityEditor.VFX.UI
             m_ComponentContainer.RemoveFromHierarchy();
             m_ComponentPath.text = "";
             UpdateAttachButton();
+            m_EventsContainer.Clear();
+            m_Events.Clear();
         }
 
         public void Attach(VisualEffect effect = null)
@@ -366,9 +373,18 @@ namespace  UnityEditor.VFX.UI
                     m_UpdateItem = schedule.Execute(Update).Every(100);
                 else
                     m_UpdateItem.Resume();
+                if (m_ComponentContainer.parent == null)
+                    m_ComponentContainerParent.Add(m_ComponentContainer);
+                UpdateEventList();
             }
-            if (m_ComponentContainer.parent == null)
-                Add(m_ComponentContainer);
+        }
+
+        public void SendEvent(string name)
+        {
+            if (m_AttachedComponent != null)
+            {
+                m_AttachedComponent.SendEvent(name);
+            }
         }
 
         IVisualElementScheduledItem m_UpdateItem;
@@ -441,6 +457,7 @@ namespace  UnityEditor.VFX.UI
         Button m_AttachButton;
         Label m_ComponentPath;
         VisualElement m_ComponentContainer;
+        VisualElement m_EventsContainer;
 
         Button m_Stop;
         Button m_Play;
@@ -462,7 +479,73 @@ namespace  UnityEditor.VFX.UI
 
         public void ControllerChanged(ControllerChangedEvent e)
         {
+            UpdateEventList();
         }
+
+        public void UpdateEventList()
+        {
+            if (m_AttachedComponent == null)
+            {
+                m_EventsContainer.Clear();
+                m_Events.Clear();
+            }
+            else
+            {
+                var eventNames = controller.contexts.Select(t => t.model).OfType<VFXBasicEvent>().Select(t => t.eventName).Distinct().OrderBy(t => t).ToArray();
+
+                foreach (var removed in m_Events.Keys.Except(eventNames).ToArray())
+                {
+                    var ui = m_Events[removed];
+                    m_EventsContainer.Remove(ui);
+                    m_Events.Remove(removed);
+                }
+
+                foreach (var added in eventNames.Except(m_Events.Keys).ToArray())
+                {
+                    var tpl = EditorGUIUtility.Load(UXMLHelper.GetUXMLPath("uxml/VFXComponentBoard-event.uxml")) as VisualTreeAsset;
+
+                    tpl.CloneTree(m_EventsContainer, new Dictionary<string, VisualElement>());
+
+                    VFXComponentBoardEventUI newUI = m_EventsContainer.Children().Last() as VFXComponentBoardEventUI;
+                    if (newUI != null)
+                    {
+                        newUI.Setup();
+                        newUI.name = added;
+                        m_Events.Add(added, newUI);
+                    }
+                }
+
+                if (!m_Events.Values.Any(t => t.nameHasFocus))
+                {
+                    SortEventList();
+                }
+            }
+        }
+
+        void SortEventList()
+        {
+            var eventNames = m_Events.Keys.OrderBy(t => t);
+            //Sort events
+            VFXComponentBoardEventUI prev = null;
+            foreach (var eventName in eventNames)
+            {
+                VFXComponentBoardEventUI current = m_Events[eventName];
+                if (current != null)
+                {
+                    if (prev == null)
+                    {
+                        current.SendToBack();
+                    }
+                    else
+                    {
+                        current.PlaceInFront(prev);
+                    }
+                    prev = current;
+                }
+            }
+        }
+
+        Dictionary<string, VFXComponentBoardEventUI> m_Events = new Dictionary<string, VFXComponentBoardEventUI>();
 
         public override void UpdatePresenterPosition()
         {
@@ -478,6 +561,69 @@ namespace  UnityEditor.VFX.UI
         public void OnResized()
         {
             BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.componentBoard, GetPosition());
+        }
+    }
+    public class VFXComponentBoardEventUIFactory : UxmlFactory<VFXComponentBoardEventUI>
+    {
+    }
+    public class VFXComponentBoardEventUI : VisualElement
+    {
+        public VFXComponentBoardEventUI()
+        {
+        }
+
+        public void Setup()
+        {
+            m_EventName = this.Query<TextField>("event-name");
+            m_EventName.isDelayed = true;
+            m_EventName.RegisterCallback<ChangeEvent<string>>(OnChangeName);
+            m_EventSend = this.Query<Button>("event-send");
+            m_EventSend.clickable.clicked += OnSend;
+        }
+
+        void OnChangeName(ChangeEvent<string> e)
+        {
+            var board = GetFirstAncestorOfType<VFXComponentBoard>();
+            if (board != null)
+            {
+                board.controller.ChangeEventName(m_Name, e.newValue);
+            }
+        }
+
+        public bool nameHasFocus
+        {
+            get { return m_EventName.HasFocus(); }
+        }
+
+        public string name
+        {
+            get
+            {
+                return m_Name;
+            }
+
+            set
+            {
+                m_Name = value;
+                if (m_EventName != null)
+                {
+                    if (!m_EventName.HasFocus())
+                        m_EventName.SetValueWithoutNotify(m_Name);
+                }
+            }
+        }
+
+        string      m_Name;
+        TextField   m_EventName;
+        Button      m_EventSend;
+
+        void OnSend()
+        {
+            var board = GetFirstAncestorOfType<VFXComponentBoard>();
+            if (board != null)
+            {
+                board.SendEvent(m_Name);
+            }
         }
     }
 }
