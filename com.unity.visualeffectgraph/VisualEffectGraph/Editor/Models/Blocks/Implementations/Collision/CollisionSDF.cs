@@ -6,7 +6,7 @@ using UnityEngine;
 namespace UnityEditor.VFX.Block
 {
     [VFXInfo(category = "Collision")]
-    class CollisionSDF : VFXBlock
+    class CollisionSDF : CollisionBase
     {
         public override string name { get { return "Collide with SDF"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kUpdate; } }
@@ -16,14 +16,14 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
+                foreach (var input in base.parameters)
+                    yield return input;
+
                 foreach (var input in GetExpressionsFromSlots(this))
                 {
                     if (input.name == "FieldTransform")
                         yield return new VFXNamedExpression(new VFXExpressionInverseMatrix(input.exp), "InvFieldTransform");
-                    yield return input;
                 }
-
-                yield return new VFXNamedExpression(VFXBuiltInExpression.DeltaTime, "deltaTime");
             }
         }
 
@@ -41,8 +41,6 @@ namespace UnityEditor.VFX.Block
         {
             public Texture3D DistanceField;
             public Transform FieldTransform = Transform.defaultValue;
-            public float Elasticity = 0.1f;
-            public float Friction = 0.2f;
         }
 
         public override string source
@@ -54,7 +52,7 @@ float3 nextPos = position + velocity * deltaTime;
 float3 tPos = mul(InvFieldTransform, float4(position,1.0f)).xyz;
 
 float3 coord = tPos + 0.5f;
-float dist = SampleTexture(DistanceField, coord).x;
+float dist = SampleTexture(DistanceField, coord).x * colliderSign;
 
 if (dist <= 0.0f) // collision
 {
