@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
-using UnityEngine.Experimental.VFX;
+using UnityEditor.Experimental.VFX;
 using UnityEngine;
 using UnityEngine.Profiling;
 
@@ -30,7 +30,7 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    partial class VFXViewController : Controller<VisualEffectAsset>
+    partial class VFXViewController : Controller<VisualEffectResource>
     {
         public void RecompileExpressionGraphIfNeeded()
         {

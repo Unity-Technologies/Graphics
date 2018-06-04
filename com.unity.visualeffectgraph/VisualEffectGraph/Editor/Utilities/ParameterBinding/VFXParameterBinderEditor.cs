@@ -4,7 +4,9 @@ using System.Reflection;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
+using UnityEditor.Experimental.VFX;
 using UnityEngine.Experimental.VFX.Utility;
+using UnityEditor.VFX;
 using UnityEditor;
 using UnityEditorInternal;
 
@@ -122,7 +124,7 @@ public class VFXParameterBinderEditor : Editor
     public void CheckTypeMenu(SerializedProperty property, VFXParameterBindingAttribute attribute, VisualEffectAsset asset)
     {
         GenericMenu menu = new GenericMenu();
-        var parameters = (asset.graph as UnityEditor.VFX.VFXGraph).children.OfType<UnityEditor.VFX.VFXParameter>();
+        var parameters = (asset.GetResource().graph as UnityEditor.VFX.VFXGraph).children.OfType<UnityEditor.VFX.VFXParameter>();
         foreach (var param in parameters)
         {
             string typeName = param.type.ToString();

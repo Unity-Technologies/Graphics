@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.UI
 
         public override void UpdateGUI(bool force)
         {
-            m_Toggle.value = m_Value;
+            m_Toggle.SetValueWithoutNotify(m_Value);
         }
 
         Toggle m_Toggle;

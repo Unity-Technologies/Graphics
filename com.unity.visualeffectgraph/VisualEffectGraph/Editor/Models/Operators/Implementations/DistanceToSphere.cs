@@ -25,7 +25,7 @@ namespace UnityEditor.VFX.Operator
 
         override public string name { get { return "Distance (Sphere)"; } }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             VFXExpression sphereDelta = (inputExpression[2] - inputExpression[0]);
             VFXExpression sphereDeltaLength = VFXOperatorUtility.Length(sphereDelta);

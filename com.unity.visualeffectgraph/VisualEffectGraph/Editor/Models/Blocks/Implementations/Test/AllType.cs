@@ -31,8 +31,8 @@ namespace UnityEditor.VFX.Block.Test
             public Cubemap aTextureCube = null;
             public CubemapArray aTextureCubeArray = null;
             public Sphere aSphere = new Sphere();
-            public Vector aVector = new Vector { space = CoordinateSpace.Local, vector = Vector3.one };
-            public Position aPosition = new Position { space = CoordinateSpace.Local, position = Vector3.forward };
+            public Vector aVector = new Vector { vector = Vector3.one };
+            public Position aPosition = new Position { position = Vector3.forward };
             public int anInt = 123;
             public uint anUint = 321;
             public FlipBook aFlipBook = new FlipBook();

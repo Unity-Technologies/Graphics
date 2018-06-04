@@ -25,7 +25,7 @@ namespace UnityEditor.VFX
 
         public static readonly float[] angles = new float[] { 0.0f, 90.0f, 180.0f, 270.0f };
 
-        public static void DrawTorus(Torus torus, VFXGizmo gizmo, IProperty<Vector3> centerProperty, IProperty<float> minorRadiusProperty, IProperty<float> majorRadiusProperty, IEnumerable<float> angles)
+        public static void DrawTorus(Torus torus, VFXGizmo gizmo, IProperty<Vector3> centerProperty, IProperty<float> minorRadiusProperty, IProperty<float> majorRadiusProperty, IEnumerable<float> angles, float maxAngle = Mathf.PI * 2)
         {
             gizmo.PositionGizmo(torus.center, centerProperty, true);
 
@@ -48,7 +48,7 @@ namespace UnityEditor.VFX
 
                             EditorGUI.BeginChangeCheck();
                             Vector3 sliderPos = capCenter + distRotated * torus.minorRadius;
-                            Vector3 result = Handles.Slider(sliderPos, distRotated, handleSize * HandleUtility.GetHandleSize(sliderPos), Handles.CubeHandleCap, 0);
+                            Vector3 result = Handles.Slider(sliderPos, distRotated, arcAngle <= maxAngle ? handleSize * HandleUtility.GetHandleSize(sliderPos) : 0, Handles.CubeHandleCap, 0);
 
                             if (EditorGUI.EndChangeCheck())
                             {
@@ -131,7 +131,7 @@ namespace UnityEditor.VFX
             Handles.DrawWireArc(arcTorus.center, Vector3.back, Vector3.up, angle, arcTorus.majorRadius - arcTorus.minorRadius);
 
             Torus torus = new Torus() { center = arcTorus.center, minorRadius = arcTorus.minorRadius, majorRadius = arcTorus.majorRadius };
-            VFXTorusGizmo.DrawTorus(torus, this, m_CenterProperty, m_MinorRadiusProperty, m_MajorRadiusProperty, VFXTorusGizmo.angles.Concat(new float[] { arc }).Where(t => t <= arc));
+            VFXTorusGizmo.DrawTorus(torus, this, m_CenterProperty, m_MinorRadiusProperty, m_MajorRadiusProperty, VFXTorusGizmo.angles.Concat(new float[] { arc }), arc);
 
             ArcGizmo(center, arcTorus.majorRadius, arc, m_ArcProperty, Quaternion.Euler(-90.0f, 0.0f, 0.0f), true);
         }

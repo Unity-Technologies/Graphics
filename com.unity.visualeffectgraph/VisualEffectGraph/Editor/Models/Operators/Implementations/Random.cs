@@ -17,9 +17,9 @@ namespace UnityEditor.VFX.Operator
         public class InputProperties
         {
             [Tooltip("The minimum value to be generated.")]
-            public FloatN min = new FloatN(0.0f);
+            public float min = 0.0f;
             [Tooltip("The maximum value to be generated.")]
-            public FloatN max = new FloatN(1.0f);
+            public float max = 1.0f;
         }
 
         public class ConstantInputProperties
@@ -52,7 +52,7 @@ namespace UnityEditor.VFX.Operator
             }
         }
 
-        override protected VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
+        protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {
             VFXExpression rand = null;
             if (constant)

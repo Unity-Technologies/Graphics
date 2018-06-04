@@ -1,6 +1,8 @@
 using System.Collections;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEditor.Experimental.VFX;
 using UnityEngine.Experimental.VFX;
 using UnityEditor;
 using UnityEditor.VFX;
@@ -78,28 +80,17 @@ namespace UnityEditor
         [MenuItem("Assets/Create/Visual Effects/Visual Effect Graph", false, 306)]
         public static void CreateVisualEffectAsset()
         {
-            VisualEffectAsset asset = new VisualEffectAsset();
-
-            VFXViewController controller = VFXViewController.GetController(asset);
-            controller.useCount++;
-
-            VisualEffectAsset template = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(templatePath + "/" + templateAssetName);
-            if (template != null)
+            string templateString = "";
+            try
             {
-                VFXViewController templateController = VFXViewController.GetController(template);
-                templateController.useCount++;
-
-                var data = VFXCopyPaste.SerializeElements(templateController.allChildren, Rect.zero);
-
-                VFXCopyPaste.UnserializeAndPasteElements(controller, Vector2.zero, data);
-
-                templateController.useCount--;
+                templateString = System.IO.File.ReadAllText(templatePath + "/" + templateAssetName);
             }
-            controller.graph.RecompileIfNeeded();
+            catch (System.Exception e)
+            {
+                Debug.LogError("Couldn't read template for new vfx asset : " + e.Message);
+            }
 
-            ProjectWindowUtil.CreateAsset(asset, "New VFX.vfx");
-
-            controller.useCount--;
+            ProjectWindowUtil.CreateAssetWithContent("New VFX.vfx", templateString);
         }
     }
 }

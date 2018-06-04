@@ -88,6 +88,8 @@ namespace UnityEditor.VFX
         public GroupInfo[] groupInfos;
         public StickyNoteInfo[] stickyNoteInfos;
 
+        public List<string> categories;
+
         public Rect uiBounds;
 
 

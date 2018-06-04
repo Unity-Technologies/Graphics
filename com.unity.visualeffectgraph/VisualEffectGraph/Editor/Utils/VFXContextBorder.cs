@@ -114,7 +114,7 @@ namespace UnityEditor.VFX.UI
             styles.ApplyCustomProperty("end-color", ref m_EndColor);
         }
 
-        public override void DoRepaint()
+        protected override void DoRepaint(IStylePainter sp)
         {
             RecreateResources();
             VFXView view = GetFirstAncestorOfType<VFXView>();

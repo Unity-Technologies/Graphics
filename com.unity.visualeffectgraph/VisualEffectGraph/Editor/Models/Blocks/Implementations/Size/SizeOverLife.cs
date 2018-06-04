@@ -79,7 +79,7 @@ float sampledCurve = SampleCurve(curve, age/lifetime);
             attributeOverLife.SetSettingValue("channels", VariadicChannelOptions.X);
 
             // Transfer links
-            VFXSlot.TransferLinksAndValue(attributeOverLife.GetInputSlot(0), GetInputSlot(0), true);
+            VFXSlot.CopyLinksAndValue(attributeOverLife.GetInputSlot(0), GetInputSlot(0), true);
 
             ReplaceModel(attributeOverLife, this);
         }

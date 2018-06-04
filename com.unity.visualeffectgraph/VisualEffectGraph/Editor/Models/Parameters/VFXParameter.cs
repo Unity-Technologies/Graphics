@@ -22,6 +22,8 @@ namespace UnityEditor.VFX
         private bool m_exposed;
         [SerializeField]
         private int m_Order;
+        [SerializeField]
+        private string m_Category;
         [VFXSetting, SerializeField]
         public VFXSerializableObject m_Min;
         [VFXSetting, SerializeField]
@@ -120,6 +122,19 @@ namespace UnityEditor.VFX
                 if (m_Order != value)
                 {
                     m_Order = value;
+                    Invalidate(InvalidationCause.kUIChanged);
+                }
+            }
+        }
+
+        public string category
+        {
+            get { return m_Category; }
+            set
+            {
+                if (m_Category != value)
+                {
+                    m_Category = value;
                     Invalidate(InvalidationCause.kUIChanged);
                 }
             }
@@ -399,7 +414,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public override void TransferLinkOtherSlot(VFXSlot mySlot, VFXSlot prevOtherSlot, VFXSlot newOtherSlot)
+        public override void OnCopyLinksOtherSlot(VFXSlot mySlot, VFXSlot prevOtherSlot, VFXSlot newOtherSlot)
         {
             foreach (var node in m_Nodes)
             {
@@ -412,11 +427,9 @@ namespace UnityEditor.VFX
                     }
                 }
             }
-
-            Debug.LogError("An unknown link with a parameter was tranfered");
         }
 
-        public override void TransferLinkMySlot(VFXSlot myPrevSlot, VFXSlot myNewSlot, VFXSlot otherSlot)
+        public override void OnCopyLinksMySlot(VFXSlot myPrevSlot, VFXSlot myNewSlot, VFXSlot otherSlot)
         {
             foreach (var node in m_Nodes)
             {
@@ -429,8 +442,6 @@ namespace UnityEditor.VFX
                     }
                 }
             }
-
-            Debug.LogError("An unknown link with a parameter was tranfered");
         }
 
         private VFXValue.Mode valueMode
