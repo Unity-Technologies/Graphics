@@ -4,8 +4,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     public class ScreenSpaceShadowResolvePass : ScriptableRenderPass
     {
-        public bool softShadows { get; set; }
-
         RenderTextureFormat m_ColorFormat;
         Material m_ScreenSpaceShadowsMaterial;
 
@@ -16,7 +14,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 : RenderTextureFormat.ARGB32;
 
             m_ScreenSpaceShadowsMaterial = renderer.GetMaterial(MaterialHandles.ScrenSpaceShadow);
-            softShadows = false;
         }
 
         public override void Setup(CommandBuffer cmd, RenderTextureDescriptor baseDescriptor, int[] colorAttachmentHandles, int depthAttachmentHandle = -1, int samples = 1)
@@ -33,7 +30,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 return;
 
             CommandBuffer cmd = CommandBufferPool.Get("Collect Shadows");
-            SetShadowCollectPassKeywords(cmd, renderingData.shadowData.directionalLightCascadeCount);
+            SetShadowCollectPassKeywords(cmd, ref renderingData.shadowData);
 
             // Note: The source isn't actually 'used', but there's an engine peculiarity (bug) that
             // doesn't like null sources when trying to determine a stereo-ized blit.  So for proper
@@ -57,10 +54,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CommandBufferPool.Release(cmd);
         }
 
-        void SetShadowCollectPassKeywords(CommandBuffer cmd, int cascadeCount)
+        void SetShadowCollectPassKeywords(CommandBuffer cmd, ref ShadowData shadowData)
         {
-            CoreUtils.SetKeyword(cmd, LightweightKeywords.SoftShadowsText, softShadows);
-            CoreUtils.SetKeyword(cmd, LightweightKeywords.CascadeShadowsText, cascadeCount > 1);
+            CoreUtils.SetKeyword(cmd, LightweightKeywords.SoftShadowsText, shadowData.renderedDirectionalShadowQuality == LightShadows.Soft);
+            CoreUtils.SetKeyword(cmd, LightweightKeywords.CascadeShadowsText, shadowData.directionalLightCascadeCount > 1);
         }
     }
 }
