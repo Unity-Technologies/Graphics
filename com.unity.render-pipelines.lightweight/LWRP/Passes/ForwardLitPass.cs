@@ -318,7 +318,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 // If rendering to an intermediate RT we resolve viewport on blit due to offset not being supported
                 // while rendering to a RT.
-                if (colorAttachmentHandle == -1 && cameraData.isDefaultViewport)
+                if (colorAttachmentHandle == -1 && !cameraData.isDefaultViewport)
                     cmd.SetViewport(camera.pixelRect);
 
                 context.ExecuteCommandBuffer(cmd);
@@ -365,12 +365,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CommandBuffer cmd = CommandBufferPool.Get("Final Blit Pass");
             cmd.SetGlobalTexture("_BlitTex", sourceRT);
 
-            if (!cameraData.isDefaultViewport)
+            // We need to handle viewport on a RT. We do it by rendering a fullscreen quad + viewport
+            if (colorAttachmentHandle != -1 && !cameraData.isDefaultViewport)
             {
                 SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store, ClearFlag.All, Color.black);
                 cmd.SetViewProjectionMatrices(Matrix4x4.identity, Matrix4x4.identity);
                 cmd.SetViewport(cameraData.camera.pixelRect);
                 LightweightPipeline.DrawFullScreen(cmd, material);
+                
             }
             else
             {
