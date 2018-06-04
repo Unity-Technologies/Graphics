@@ -307,10 +307,7 @@ namespace UnityEditor.Experimental.Rendering
 
             mode = EditorGUILayout.Popup(label, mode, options);
             if (EditorGUI.EndChangeCheck())
-            {
-                Undo.RecordObject(property.objectReferenceValue, property.name);
                 property.intValue = mode;
-            }
         }
 
         public static void DrawCascadeSplitGUI<T>(ref SerializedProperty shadowCascadeSplit)
