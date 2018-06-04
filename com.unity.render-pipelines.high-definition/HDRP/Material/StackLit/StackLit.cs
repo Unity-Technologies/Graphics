@@ -75,6 +75,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public float iridescenceIor;
             [SurfaceDataAttributes("IridescenceThickness")]
             public float iridescenceThickness;
+            [SurfaceDataAttributes("Iridescence Mask")]
+            public float iridescenceMask;
 
             // Top interface and media (clearcoat)
             [SurfaceDataAttributes("Coat Smoothness")]
@@ -150,6 +152,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // iridescence
             public float iridescenceIor;
             public float iridescenceThickness;
+            public float iridescenceMask;
 
             // SSS
             public uint diffusionProfile;

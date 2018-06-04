@@ -149,15 +149,29 @@ Shader "HDRenderPipeline/StackLit"
         [HideInInspector] _ThicknessRange("Thickness Range", Vector) = (0, 1, 0, 0)
 
         [ToggleUI] _EnableIridescence("Enable Iridescence", Float) = 0.0 // UI only
-        _IridescenceIor("Coat IOR", Range(1.0, 2.0)) = 1.5
-        _IridescenceThickness("_IridescenceThickness", Range(0.0, 1.0)) = 0.0
-        _IridescenceThicknessMap("IridescenceThickness Color Map", 2D) = "black" {}
+        _IridescenceIor("TopIOR over iridescent layer", Range(1.0, 2.0)) = 1.5
+        [HideInInspector] _IridescenceThicknessMapShow("IridescenceThickness Map Show", Float) = 0
+        _IridescenceThickness("IridescenceThickness", Range(0.0, 1.0)) = 0.0
+        _IridescenceThicknessMap("IridescenceThickness Map", 2D) = "black" {}
         _IridescenceThicknessUseMap("IridescenceThickness Use Map", Float) = 0
         _IridescenceThicknessMapUV("IridescenceThickness Map UV", Float) = 0.0
         _IridescenceThicknessMapLocal("IridescenceThickness Map UV Local", Float) = 0.0
-        _IridescenceThicknessMapChannel("IridescenceThickness Mask Map Channel", Float) = 0.0
-        _IridescenceThicknessMapChannelMask("IridescenceThickness Mask Map Channel Mask", Vector) = (1, 0, 0, 0)
+        _IridescenceThicknessMapChannel("IridescenceThickness Map Channel", Float) = 0.0
+        _IridescenceThicknessMapChannelMask("IridescenceThickness Map Channel Mask", Vector) = (1, 0, 0, 0)
+        _IridescenceThicknessRemap("IridescenceThickness Remap", Vector) = (0, 1, 0, 0)
+        [ToggleUI] _IridescenceThicknessRemapInverted("Invert IridescenceThickness Remap", Float) = 0.0
         [HideInInspector] _IridescenceThicknessRange("IridescenceThickness Range", Vector) = (0, 1, 0, 0)
+
+        [HideInInspector] _IridescenceMaskMapShow("Iridescence Mask Map Show", Float) = 0
+        _IridescenceMask("Iridescence Mask", Range(0.0, 1.0)) = 1.0
+        _IridescenceMaskMap("Iridescence Mask Map", 2D) = "black" {}
+        _IridescenceMaskUseMap("Iridescence Mask Use Map", Float) = 0
+        _IridescenceMaskMapUV("Iridescence Mask Map UV", Float) = 0.0
+        _IridescenceMaskMapUVLocal("Iridescence Mask UV Local", Float) = 0.0
+        _IridescenceMaskMapChannel("Iridescence Mask Map Channel", Float) = 0.0
+        _IridescenceMaskMapChannelMask("Iridescence Mask Map Channel Mask", Vector) = (1, 0, 0, 0)
+        _IridescenceMaskRemap("Iridescence Mask Remap", Vector) = (0, 1, 0, 0)
+        [HideInInspector] _IridescenceMaskRange("Iridescence Mask Range", Vector) = (0, 1, 0, 0)
 
         _DistortionVectorMap("DistortionVectorMap", 2D) = "black" {}
         [ToggleUI] _DistortionEnable("Enable Distortion", Float) = 0.0
@@ -450,10 +464,11 @@ Shader "HDRenderPipeline/StackLit"
 
             #pragma multi_compile _ DEBUG_DISPLAY
             //NEWLITTODO
-            //#pragma multi_compile _ LIGHTMAP_ON
-            //#pragma multi_compile _ DIRLIGHTMAP_COMBINED
-            //#pragma multi_compile _ DYNAMICLIGHTMAP_ON
-            //#pragma multi_compile _ SHADOWS_SHADOWMASK
+
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ DYNAMICLIGHTMAP_ON
+            #pragma multi_compile _ SHADOWS_SHADOWMASK
 
             // #include "../../Lighting/Forward.hlsl" : nothing left in there.
             //#pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
