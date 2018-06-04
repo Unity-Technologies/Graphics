@@ -65,7 +65,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     );
 
             Inspector = CED.Group(
-                    SectionProbeModeSettings,
+                    //SectionProbeModeSettings,
                     CED.space,
                     CED.Action((s, d, o) => EditorGUILayout.LabelField(_.GetContent("Proxy Volume"), EditorStyles.boldLabel)),
                     CED.Action(Drawer_FieldProxyVolumeReference),
