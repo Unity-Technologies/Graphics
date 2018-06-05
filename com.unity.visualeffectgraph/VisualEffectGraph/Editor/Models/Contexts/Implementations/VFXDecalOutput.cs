@@ -69,7 +69,7 @@ namespace UnityEditor.VFX
                 foreach (var size in VFXBlockUtility.GetReadableSizeAttributes(GetData()))
                     yield return size;
 
-                if (uvMode != UVMode.Simple)
+                if (usesFlipbook)
                     yield return new VFXAttributeInfo(VFXAttribute.TexIndex, VFXAttributeMode.Read);
             }
         }

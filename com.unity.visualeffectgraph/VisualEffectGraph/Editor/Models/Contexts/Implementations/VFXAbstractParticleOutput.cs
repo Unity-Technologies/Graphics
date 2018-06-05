@@ -25,7 +25,7 @@ namespace UnityEditor.VFX
             Simple,
             Flipbook,
             FlipbookBlend,
-            UVScaleAndBias
+            ScaleAndBias
         }
 
         public enum ZWriteMode
@@ -107,6 +107,8 @@ namespace UnityEditor.VFX
 
         public virtual bool supportSoftParticles { get { return useSoftParticle && (blendMode != BlendMode.Opaque && blendMode != BlendMode.Masked); } }
 
+        protected bool usesFlipbook { get { return supportsUV && (uvMode == UVMode.Flipbook || uvMode == UVMode.FlipbookBlend); } }
+
         protected virtual IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
         {
             if (blendMode == BlendMode.Masked)
@@ -129,7 +131,7 @@ namespace UnityEditor.VFX
                         yield return flipBookSizeExp;
                         yield return new VFXNamedExpression(VFXValue.Constant(Vector2.one) / flipBookSizeExp.exp, "invFlipBookSize");
                         break;
-                    case UVMode.UVScaleAndBias:
+                    case UVMode.ScaleAndBias:
                         yield return slotExpressions.First(o => o.name == "uvScale");
                         yield return slotExpressions.First(o => o.name == "uvBias");
                         break;
@@ -164,7 +166,7 @@ namespace UnityEditor.VFX
                         case UVMode.FlipbookBlend:
                             yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "flipBookSize"), new Vector2(4, 4));
                             break;
-                        case UVMode.UVScaleAndBias:
+                        case UVMode.ScaleAndBias:
                             yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "uvScale"), Vector2.one);
                             yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "uvBias"), Vector2.zero);
                             break;
@@ -214,7 +216,7 @@ namespace UnityEditor.VFX
                             yield return "USE_FLIPBOOK";
                             yield return "USE_FLIPBOOK_INTERPOLATION";
                             break;
-                        case UVMode.UVScaleAndBias:
+                        case UVMode.ScaleAndBias:
                             yield return "USE_UV_SCALE_BIAS";
                             break;
                         default: throw new NotImplementedException("Unimplemented UVMode: " + uvMode);
