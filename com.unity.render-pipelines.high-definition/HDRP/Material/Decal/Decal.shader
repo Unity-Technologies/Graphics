@@ -6,6 +6,7 @@ Shader "HDRenderPipeline/Decal"
         _NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
         _MaskMap("MaskMap", 2D) = "white" {}
         _DecalBlend("_DecalBlend", Range(0.0, 1.0)) = 0.5
+		[ToggleUI] _AlbedoMode("_AlbedoMode", Range(0.0, 1.0)) = 0.0
     }
 
     HLSLINCLUDE
@@ -20,6 +21,7 @@ Shader "HDRenderPipeline/Decal"
     #pragma shader_feature _COLORMAP
     #pragma shader_feature _NORMALMAP
     #pragma shader_feature _MASKMAP
+	#pragma shader_feature _ALBEDOCONTRIBUTION
 
     #pragma multi_compile_instancing
     //-------------------------------------------------------------------------------------
