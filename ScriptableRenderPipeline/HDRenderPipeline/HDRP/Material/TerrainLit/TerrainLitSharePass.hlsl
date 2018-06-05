@@ -24,5 +24,16 @@
     #define VARYINGS_NEED_CULLFACE
 #endif
 
+#if defined(UNITY_INSTANCING_ENABLED) && defined(_TERRAIN_INSTANCED_PERPIXEL_NORMAL)
+    #define ENABLE_TERRAIN_PERPIXEL_NORMAL
+#endif
+
+#ifdef ENABLE_TERRAIN_PERPIXEL_NORMAL
+    // With per-pixel normal enabled, tangent space is created in the pixel shader.
+    #undef ATTRIBUTES_NEED_NORMAL
+    #undef ATTRIBUTES_NEED_TANGENT
+    #undef VARYINGS_NEED_TANGENT_TO_WORLD
+#endif
+
 // This include will define the various Attributes/Varyings structure
 #include "../../ShaderPass/VaryingMesh.hlsl"

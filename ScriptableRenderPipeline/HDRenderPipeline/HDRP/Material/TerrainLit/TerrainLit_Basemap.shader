@@ -42,6 +42,7 @@ Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap"
 
     #pragma shader_feature _DOUBLESIDED_ON
     #pragma shader_feature _DISABLE_DBUFFER
+    #pragma shader_feature _TERRAIN_INSTANCED_PERPIXEL_NORMAL
 
     //enable GPU instancing support
     #pragma multi_compile_instancing

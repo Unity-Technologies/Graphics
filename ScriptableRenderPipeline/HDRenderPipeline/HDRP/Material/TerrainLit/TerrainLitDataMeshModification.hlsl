@@ -36,7 +36,11 @@ void ApplyPreVertexModification(inout AttributesMesh input)
     #endif
 
     #if defined(VARYINGS_NEED_TEXCOORD0) || defined(VARYINGS_DS_NEED_TEXCOORD0)
-        input.uv0 = sampleCoords * _TerrainHeightmapRecipSize.zw;
+        #ifdef ENABLE_TERRAIN_PERPIXEL_NORMAL
+            input.uv0 = sampleCoords;
+        #else
+            input.uv0 = sampleCoords * _TerrainHeightmapRecipSize.zw;
+        #endif
     #endif
 #endif
 

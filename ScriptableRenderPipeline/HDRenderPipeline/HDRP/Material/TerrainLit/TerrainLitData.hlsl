@@ -8,9 +8,31 @@
 #include "../Decal/DecalUtilities.hlsl"
 
 #include "TerrainLitSplatCommon.hlsl"
+#include "TerrainLitDataMeshModification.hlsl"
 
-void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
+void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
+#ifdef ENABLE_TERRAIN_PERPIXEL_NORMAL
+    {
+        float3 normalOS = SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_Control0, (input.texCoord0 + 0.5f) * _TerrainHeightmapRecipSize.xy).rgb * 2 - 1;
+        float3 normalWS = ((float3x3)GetObjectToWorldMatrix(), normalOS);
+        float3 tangentWS = cross(GetObjectToWorldMatrix()._13_23_33, normalWS);
+        float renormFactor = 1.0 / length(normalWS);
+
+        // bitangent on the fly option in xnormal to reduce vertex shader outputs.
+        // this is the mikktspace transformation (must use unnormalized attributes)
+        float3x3 worldToTangent = CreateWorldToTangent(normalWS, tangentWS.xyz, 1);
+
+        // surface gradient based formulation requires a unit length initial normal. We can maintain compliance with mikkts
+        // by uniformly scaling all 3 vectors since normalization of the perturbed normal will cancel it.
+        input.worldToTangent[0] = worldToTangent[0] * renormFactor;
+        input.worldToTangent[1] = worldToTangent[1] * renormFactor;
+        input.worldToTangent[2] = worldToTangent[2] * renormFactor;		// normalizes the interpolated vertex normal
+
+        input.texCoord0 *= _TerrainHeightmapRecipSize.zw;
+    }
+#endif
+
     // terrain lightmap uvs are always taken from uv0
     input.texCoord1 = input.texCoord2 = input.texCoord0;
 
@@ -275,5 +297,3 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     GetBuiltinData(input, surfaceData, 1, bentNormalWS, 0, builtinData);
 }
-
-#include "TerrainLitDataMeshModification.hlsl"
