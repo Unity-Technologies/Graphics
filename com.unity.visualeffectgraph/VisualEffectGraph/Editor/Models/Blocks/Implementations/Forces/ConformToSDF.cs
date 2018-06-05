@@ -54,7 +54,7 @@ namespace UnityEditor.VFX.Block
                 return @"
 float3 tPos = mul(InvFieldTransform, float4(position,1.0f)).xyz;
 float3 coord = saturate(tPos + 0.5f);
-float dist = SampleTexture(DistanceField, coord).x;
+float dist = SampleSDF(DistanceField, coord);
 
 float3 absPos = abs(tPos);
 float outsideDist = max(absPos.x,max(absPos.y,absPos.z));
@@ -68,11 +68,8 @@ if (outsideDist > 0.5f) // Check wether point is outside the box
 else
 {
     // compute normal
-    dir.x = SampleTexture(DistanceField, coord + float3(0.01,0,0)).x;
-    dir.y = SampleTexture(DistanceField, coord + float3(0,0.01,0)).x;
-    dir.z = SampleTexture(DistanceField, coord + float3(0,0,0.01)).x;
-    dir = normalize((float3)dist - dir);
-    if (dist < 0)
+    dir = SampleSDFDerivatives(DistanceField, coord, dist);
+    if (dist > 0)
         dir = -dir;
     dir = normalize(mul(FieldTransform,float4(dir,0)));
 }
