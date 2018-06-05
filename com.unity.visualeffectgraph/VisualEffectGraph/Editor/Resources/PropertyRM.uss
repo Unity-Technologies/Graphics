@@ -89,7 +89,7 @@
 {
     -align-items: center;
     flex-direction:row;
-    flex:1 0 auto;
+    flex:1 1 0;
 
     margin-left:0;
     margin-right:0;

@@ -49,7 +49,7 @@ namespace  UnityEditor.VFX.UI
         {
             get; private set;
         }
-        public void LoadAsset(VisualEffectAsset asset)
+        public void LoadAsset(VisualEffectAsset asset, VisualEffect effectToAttach)
         {
             string assetPath = AssetDatabase.GetAssetPath(asset);
 
@@ -62,10 +62,10 @@ namespace  UnityEditor.VFX.UI
                 resource.SetAssetPath(AssetDatabase.GetAssetPath(asset));
             }
 
-            LoadResource(resource);
+            LoadResource(resource, effectToAttach);
         }
 
-        public void LoadResource(VisualEffectResource resource)
+        public void LoadResource(VisualEffectResource resource, VisualEffect effectToAttach = null)
         {
             if (graphView.controller == null || graphView.controller.model != resource)
             {
@@ -73,12 +73,14 @@ namespace  UnityEditor.VFX.UI
 
                 m_DisplayedResource = resource;
                 graphView.controller = VFXViewController.GetController(resource, true);
-
+                graphView.UpdateGlobalSelection();
                 if (differentAsset)
                 {
                     graphView.FrameNewController();
                 }
             }
+            if (effectToAttach != null && graphView.controller != null && graphView.controller.model != null && effectToAttach.visualEffectAsset == graphView.controller.model.asset)
+                graphView.attachedComponent = effectToAttach;
         }
 
         protected VisualEffectResource GetCurrentResource()
@@ -180,7 +182,7 @@ namespace  UnityEditor.VFX.UI
             {
                 if (controller == null || controller.model != objs[0] as VisualEffectAsset)
                 {
-                    LoadAsset(objs[0] as VisualEffectAsset);
+                    LoadAsset(objs[0] as VisualEffectAsset, null);
                 }
             }
         }

@@ -102,11 +102,31 @@ namespace UnityEditor.VFX
             base.OnEnable();
             EditMode.editModeStarted += OnEditModeStart;
             EditMode.editModeEnded += OnEditModeEnd;
+
+            // Force rebuilding the parameterinfos
+            VisualEffect effect = ((VisualEffect)targets[0]);
+
+            var asset = effect.visualEffectAsset;
+            if (asset != null && asset.GetResource() != null)
+            {
+                var graph = asset.GetResource().GetOrCreateGraph();
+
+                if (graph)
+                {
+                    graph.BuildParameterInfo();
+                }
+            }
         }
 
         new void OnDisable()
         {
-            base.OnDisable();
+            VisualEffect effect = ((VisualEffect)targets[0]);
+            // Check if the component is attach in the editor. If So do not call base.OnDisable() because we don't want to reset the playrate or pause
+            VFXViewWindow window = VFXViewWindow.GetWindow<VFXViewWindow>();
+            if (window == null || window.graphView == null || window.graphView.attachedComponent != effect)
+            {
+                base.OnDisable();
+            }
 
             m_ContextsPerComponent.Clear();
             EditMode.editModeStarted -= OnEditModeStart;
@@ -128,6 +148,33 @@ namespace UnityEditor.VFX
         {
             if (owner == (IToolModeOwner)this)
                 OnEditEnd();
+        }
+
+        protected override void AssetField()
+        {
+            var component = (VisualEffect)target;
+            using (new GUILayout.HorizontalScope())
+            {
+                EditorGUILayout.PropertyField(m_VisualEffectAsset, Contents.assetPath);
+
+                GUI.enabled = component.visualEffectAsset != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
+                if (GUILayout.Button(Contents.openEditor, EditorStyles.miniButton, Styles.MiniButtonWidth))
+                {
+                    VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+
+                    window.LoadAsset(component.visualEffectAsset, component);
+                }
+            }
+        }
+
+        protected override void EditorModeInspectorButton()
+        {
+            EditMode.DoEditModeInspectorModeButton(
+                EditMode.SceneViewEditMode.Collider,
+                "Show Parameters",
+                EditorGUIUtility.IconContent("EditCollider"),
+                this
+                );
         }
 
         VFXParameter GetParameter(string name)
