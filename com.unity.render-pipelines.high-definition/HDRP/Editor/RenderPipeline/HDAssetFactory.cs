@@ -106,7 +106,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 newAsset.skyboxCubemap = Shader.Find("Skybox/Cubemap");
 
                 // Material
-                newAsset.preIntegratedFGD = Load<Shader>(HDRenderPipelinePath + "Material/PreIntegratedFGD.shader");
+                newAsset.preIntegratedFGD = Load<Shader>(HDRenderPipelinePath + "Material/PreIntegratedFGD/PreIntegratedFGD.shader");
 
                 // Utilities / Core
                 newAsset.encodeBC6HCS = Load<ComputeShader>(CorePath + "CoreResources/EncodeBC6H.compute");
