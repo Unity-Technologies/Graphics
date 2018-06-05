@@ -15,6 +15,7 @@
 - Add shortcut to create DensityVolume and PlanarReflection in hierarchy
 - Add a DefaultHDMirrorMaterial material for PlanarReflection
 - Added a script to be able to upgrade material to newer version of HDRP
+- Removed useless duplication of ForwardError passes.
 
 ### Changed, Removals and deprecations
 - Removed GlobalLightLoopSettings.maxPlanarReflectionProbes and instead use value of GlobalLightLoopSettings.planarReflectionProbeCacheSize
