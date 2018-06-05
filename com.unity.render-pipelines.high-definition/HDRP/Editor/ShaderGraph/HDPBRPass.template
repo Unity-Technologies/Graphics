@@ -18,7 +18,7 @@ ${ColorMask}
     //-------------------------------------------------------------------------------------
 
     HLSLPROGRAM
-    
+
     #pragma target 4.5
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
     //#pragma enable_d3d11_debug_symbols
@@ -84,7 +84,7 @@ ${Defines}
     //-------------------------------------------------------------------------------------
     // End Defines
     //-------------------------------------------------------------------------------------
-    
+
     #include "HDRP/ShaderVariables.hlsl"
     #ifdef DEBUG_DISPLAY
         #include "HDRP/Debug/DebugDisplay.hlsl"
@@ -202,12 +202,12 @@ ${Graph}
 
             // TODO: positionSS is SV_Position, graph input expects screenPosition to be 0..1 across the active viewport (?)
             $SurfaceDescriptionInputs.screenPosition:            output.screenPosition = input.positionSS;
-            
+
             $SurfaceDescriptionInputs.uv0:                       output.uv0 =    float4(input.texCoord0, 0.0f, 0.0f);
             $SurfaceDescriptionInputs.uv1:                       output.uv1 =    float4(input.texCoord1, 0.0f, 0.0f);
             $SurfaceDescriptionInputs.uv2:                       output.uv2 =    float4(input.texCoord2, 0.0f, 0.0f);
             $SurfaceDescriptionInputs.uv3:                       output.uv3 =    float4(input.texCoord3, 0.0f, 0.0f);
-            
+
             $SurfaceDescriptionInputs.vertexColor:               output.vertexColor =    input.color;
 
             return output;
@@ -321,7 +321,7 @@ ${Graph}
 
         builtinData.opacity =                   surfaceDescription.Alpha;
         builtinData.bakeDiffuseLighting =       SampleBakedGI(fragInputs.positionWS, bentNormalWS, fragInputs.texCoord1, fragInputs.texCoord2);    // see GetBuiltinData()
-     
+
         // It is safe to call this function here as surfaceData have been filled
         // We want to know if we must enable transmission on GI for SSS material, if the material have no SSS, this code will be remove by the compiler.
         BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
@@ -334,7 +334,6 @@ ${Graph}
             builtinData.bakeDiffuseLighting += SampleBakedGI(fragInputs.positionWS, -fragInputs.worldToTangent[2], fragInputs.texCoord1, fragInputs.texCoord2) * bsdfData.transmittance;
         }
 
-        builtinData.emissiveIntensity =         1.0f;
 $SurfaceDescription.Emission:     builtinData.emissiveColor =             surfaceDescription.Emission;
         builtinData.velocity =                  float2(0.0, 0.0);
 #ifdef SHADOWS_SHADOWMASK
