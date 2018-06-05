@@ -70,11 +70,15 @@ public class VisualEffectAssetEditor : Editor
             if (shader is Shader || shader is ComputeShader)
             {
                 GUILayout.BeginHorizontal();
-                GUILayout.FlexibleSpace();
-                GUILayout.Label(shader.name);
-                if (GUILayout.Button("Reveal"))
+                GUILayout.Label(shader.name, GUILayout.ExpandWidth(true));
+                if (GUILayout.Button("Show Generated", GUILayout.Width(110)))
                 {
-                    OpenTempFile(shader);
+                    int index = resource.GetShaderIndex(shader);
+                    resource.ShowGeneratedShaderFile(index);
+                }
+                if (GUILayout.Button("Select", GUILayout.Width(50)))
+                {
+                    Selection.activeObject = shader;
                 }
                 GUILayout.EndHorizontal();
                 /*
@@ -87,31 +91,5 @@ public class VisualEffectAssetEditor : Editor
             }
         }
         GUI.enabled = enabled;
-    }
-
-    void OpenTempFile(UnityObject shader)
-    {
-        string source = GetShaderSource(shader);
-
-        if (!string.IsNullOrEmpty(source))
-        {
-            string path = AssetDatabase.GetAssetPath(target);
-            string name = Path.GetFileNameWithoutExtension(path);
-            string fileName = "Temp/" + name + "_" + shader.name.Replace("/", "_");
-            File.WriteAllText(fileName, source);
-            EditorUtility.RevealInFinder(fileName);
-        }
-    }
-
-    string GetShaderSource(UnityObject shader)
-    {
-        VisualEffectAsset asset = (VisualEffectAsset)target;
-        VisualEffectResource resource = asset.GetResource();
-
-        int index = resource.GetShaderIndex(shader);
-        if (index < 0 || index >= resource.shaderSources.Length)
-            return "";
-
-        return resource.shaderSources[index].source;
     }
 }
