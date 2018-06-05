@@ -136,6 +136,8 @@ Shader "HDRenderPipeline/TerrainLit"
         [Enum(Flip, 0, Mirror, 1, None, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
         [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
 
+        [ToggleUI] _EnableInstancedPerPixelNormal("Instanced per pixel normal", Float) = 1.0
+
         // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
         // value that exist to identify if the GI emission need to be enabled.
         // In our case we don't use such a mechanism but need to keep the code quiet. We declare the value and always enable it.
@@ -164,6 +166,9 @@ Shader "HDRenderPipeline/TerrainLit"
     #pragma shader_feature _TERRAIN_NORMAL_MAP
     #pragma shader_feature _TERRAIN_HEIGHT_MAP
     // #pragma shader_feature _HEIGHT_BASED_BLEND // _HEIGHT_BASED_BLEND is implied if heightmap is used.
+
+    // Sample normal in pixel shader when doing instancing
+    #pragma shader_feature _TERRAIN_INSTANCED_PERPIXEL_NORMAL
 
     //#pragma shader_feature _MASKMAP0
     //#pragma shader_feature _MASKMAP1

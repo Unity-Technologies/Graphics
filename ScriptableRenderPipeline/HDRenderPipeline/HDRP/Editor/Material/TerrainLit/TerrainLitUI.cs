@@ -15,6 +15,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent layerMapMaskText = new GUIContent("Layer Mask", "Layer mask");
             public readonly GUIContent enableHeightBlending = new GUIContent("Enable Height Blending", "Enables layer blending using heightmaps.");
             public readonly GUIContent heightTransition = new GUIContent("Height Transition", "Size in world units of the smooth transition between layers.");
+            public readonly GUIContent enableInstancedPerPixelNormal = new GUIContent("Enable Per-pixel Normal", "Enable per-pixel normal when the terrain uses instanced rendering.");
         }
 
         static StylesLayer s_Styles = null;
@@ -34,6 +35,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         MaterialProperty heightTransition = null;
         const string kHeightTransition = "_HeightTransition";
 
+        MaterialProperty enableInstancedPerPixelNormal = null;
+        const string kEnableInstancedPerPixelNormal = "_EnableInstancedPerPixelNormal";
+
         protected override void FindMaterialProperties(MaterialProperty[] props)
         {
             enableHeightBlending = FindProperty(kEnableHeightBlending, props, false);
@@ -43,6 +47,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // Density/opacity mode
                 opacityAsDensity[i] = FindProperty(string.Format("{0}{1}", kOpacityAsDensity, i), props);
             }
+            enableInstancedPerPixelNormal = FindProperty(kEnableInstancedPerPixelNormal, props, false);
         }
 
         // We use the user data to save a string that represent the referenced lit material
@@ -116,6 +121,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // TODO: planar/triplannar supprt
             //SetupLayersMappingKeywords(material);
+
+            bool enableInstancedPerPixelNormal = material.GetFloat(kEnableInstancedPerPixelNormal) > 0.0f;
+            CoreUtils.SetKeyword(material, "_TERRAIN_INSTANCED_PERPIXEL_NORMAL", enableInstancedPerPixelNormal);
         }
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
@@ -142,15 +150,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             bool layerChanged = DoLayersGUI(materialImporter);
+            bool enablePerPixelNormalChanged = false;
 
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(StylesBaseUnlit.advancedText, EditorStyles.boldLabel);
             // NB RenderQueue editor is not shown on purpose: we want to override it based on blend mode
             EditorGUI.indentLevel++;
             m_MaterialEditor.EnableInstancingField();
+            if (m_MaterialEditor.IsInstancingEnabled())
+            {
+                EditorGUI.indentLevel++;
+                EditorGUI.BeginChangeCheck();
+                m_MaterialEditor.ShaderProperty(enableInstancedPerPixelNormal, styles.enableInstancedPerPixelNormal);
+                enablePerPixelNormalChanged = EditorGUI.EndChangeCheck();
+                EditorGUI.indentLevel--;
+            }
             EditorGUI.indentLevel--;
 
-            if (layerChanged || optionsChanged)
+            if (layerChanged || optionsChanged || enablePerPixelNormalChanged)
             {
                 foreach (var obj in m_MaterialEditor.targets)
                 {
