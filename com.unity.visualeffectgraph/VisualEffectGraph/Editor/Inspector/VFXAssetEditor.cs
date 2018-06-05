@@ -48,7 +48,9 @@ public class VisualEffectAssetEditor : Editor
                 m_PreviewUtility.lights[1].intensity = 1.4f;
                 InitPreviewVisualEffect();
 
+                m_FrameCount = 0;
                 m_Distance = 10;
+                m_Origin = Vector3.zero;
                 m_Direction = Vector3.forward;
             }
             return m_PreviewUtility;
@@ -69,17 +71,34 @@ public class VisualEffectAssetEditor : Editor
             m_VisualEffectGO.transform.localScale = Vector3.one;
 
             m_VisualEffect.visualEffectAsset = target as VisualEffectAsset;
+            m_Bounds.size = Vector3.zero;
         }
     }
 
     GameObject m_VisualEffectGO;
     VisualEffect m_VisualEffect;
     Vector3 m_Direction;
+    Vector3 m_Origin;
     float m_Distance;
+    Bounds m_Bounds;
+
+    int m_FrameCount = 0;
+
+    const int kSafeFrame = 2;
 
     public override bool HasPreviewGUI()
     {
         return true;
+    }
+
+    void ComputeFarNear()
+    {
+        if (m_Bounds.size != Vector3.zero)
+        {
+            float maxBounds = Mathf.Max(m_Bounds.size.x, Mathf.Max(m_Bounds.size.y, m_Bounds.size.z));
+            m_PreviewUtility.camera.farClipPlane = m_Distance + maxBounds * 1.1f;
+            m_PreviewUtility.camera.nearClipPlane = Mathf.Max(0.0001f, (m_Distance - maxBounds) * 0.9f);
+        }
     }
 
     public override void OnInteractivePreviewGUI(Rect r, GUIStyle background)
@@ -89,20 +108,34 @@ public class VisualEffectAssetEditor : Editor
 
         m_Direction = VFXPreviewGUI.Drag2D(m_Direction, r);
 
+        if (m_FrameCount == kSafeFrame && m_VisualEffectGO != null) // wait to frame before asking the renderer bounds as it is a computed value.
+        {
+            Renderer renderer = m_VisualEffectGO.GetComponent<Renderer>();
+            if (renderer != null)
+            {
+                var m_Bounds = renderer.bounds;
+                float maxBounds = Mathf.Max(m_Bounds.size.x, Mathf.Max(m_Bounds.size.y, m_Bounds.size.z));
+                m_Distance = Mathf.Max(0.01f, maxBounds * 0.5f);
 
+                m_Origin = m_Bounds.center;
+                ComputeFarNear();
+            }
+        }
+        m_FrameCount++;
         if (Event.current.isScrollWheel)
         {
             m_Distance *= 1 + (Event.current.delta.y * .015f);
+            ComputeFarNear();
         }
 
         if (isRepaint)
         {
             previewUtility.BeginPreview(r, background);
 
-            Quaternion rot = Quaternion.Euler(m_Direction.y, 0, 0) * Quaternion.Euler(0, m_Direction.x, 0);
-            m_PreviewUtility.camera.transform.position = new Vector3(0, 0, -m_Distance);
+            Quaternion rot = Quaternion.Euler(-m_Direction.y, 0, 0) * Quaternion.Euler(0, -m_Direction.x, 0);
+            m_PreviewUtility.camera.transform.position = m_Bounds.center + rot * new Vector3(0, 0, -m_Distance);
+            m_PreviewUtility.camera.transform.localRotation = rot;
 
-            m_VisualEffectGO.transform.localRotation = rot;
 
             previewUtility.Render();
 
