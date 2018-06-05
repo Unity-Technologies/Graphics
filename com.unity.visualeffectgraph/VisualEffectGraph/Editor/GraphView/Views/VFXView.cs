@@ -247,7 +247,10 @@ namespace UnityEditor.VFX.UI
 
             set
             {
-                m_ComponentBoard.Attach(value);
+                if (m_ComponentBoard == null)
+                    ShowComponentBoard();
+                if (m_ComponentBoard != null)
+                    m_ComponentBoard.Attach(value);
             }
         }
 
