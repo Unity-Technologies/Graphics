@@ -328,7 +328,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/Update all Materials to latest version", priority = CoreUtils.editMenuPriority3)]
+        [MenuItem("Edit/Render Pipeline/Single step upgrade script/Upgrade all Materials EmissionColor", priority = CoreUtils.editMenuPriority3)]
+        static public void UpdateMaterialToNewerVersionEmissiveColor()
+        {
+            UpdateMaterialToNewerVersion("(EmissiveColor)", UpdateMaterial_EmissiveColor, UpdateMaterialFile_EmissiveColor);
+        }
+
+        [MenuItem("Edit/Render Pipeline/Upgrade all Materials to latest version", priority = CoreUtils.editMenuPriority3)]
         static public void UpdateMaterialToNewerVersion()
         {
             // Add here all the material upgrade function supported in this version
