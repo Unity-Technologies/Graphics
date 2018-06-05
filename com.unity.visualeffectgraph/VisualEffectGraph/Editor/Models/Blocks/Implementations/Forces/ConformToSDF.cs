@@ -8,7 +8,7 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Force")]
     class ConformToSDF : VFXBlock
     {
-        public override string name { get { return "Conform to SDF"; } }
+        public override string name { get { return "Conform to Signed Distance Field"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kUpdate; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
 
@@ -33,7 +33,7 @@ namespace UnityEditor.VFX.Block
             {
                 yield return new VFXAttributeInfo(VFXAttribute.Velocity, VFXAttributeMode.ReadWrite);
                 yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
-                //yield return new VFXAttributeInfo(VFXAttribute.Mass, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.Mass, VFXAttributeMode.Read);
             }
         }
 
@@ -76,15 +76,14 @@ else
         dir = -dir;
     dir = normalize(mul(FieldTransform,float4(dir,0)));
 }
-  
-float distToSurface = abs(dist); 
+
+float distToSurface = abs(dist);
 
 float spdNormal = dot(dir,velocity);
 float ratio = smoothstep(0.0,stickDistance * 2.0,abs(distToSurface));
 float tgtSpeed = sign(distToSurface) * attractionSpeed * ratio;
 float deltaSpeed = tgtSpeed - spdNormal;
-velocity += sign(deltaSpeed) * min(abs(deltaSpeed),deltaTime * lerp(stickForce,attractionForce,ratio)) * dir;";
-                ;
+velocity += sign(deltaSpeed) * min(abs(deltaSpeed),deltaTime * lerp(stickForce,attractionForce,ratio)) * dir / mass ;";
             }
         }
     }

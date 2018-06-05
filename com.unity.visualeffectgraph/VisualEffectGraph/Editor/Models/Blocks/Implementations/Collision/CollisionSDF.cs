@@ -8,7 +8,7 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Collision")]
     class CollisionSDF : CollisionBase
     {
-        public override string name { get { return "Collide with SDF"; } }
+        public override string name { get { return "Collide with Signed Distance Field"; } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kUpdate; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
 
@@ -33,7 +33,9 @@ namespace UnityEditor.VFX.Block
             {
                 yield return new VFXAttributeInfo(VFXAttribute.Velocity, VFXAttributeMode.ReadWrite);
                 yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
-                //yield return new VFXAttributeInfo(VFXAttribute.Mass, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.Mass, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.Age, VFXAttributeMode.ReadWrite);
+                yield return new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.Read);
             }
         }
 
@@ -47,9 +49,10 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                return @"
+                string Source = @"
 float3 nextPos = position + velocity * deltaTime;
 float3 tPos = mul(InvFieldTransform, float4(position,1.0f)).xyz;
+float invMass = 1.0/mass;
 
 float3 coord = tPos + 0.5f;
 float dist = SampleTexture(DistanceField, coord).x * colliderSign;
@@ -63,24 +66,14 @@ if (dist <= 0.0f) // collision
     n = normalize((float3)dist - n);
 
     tPos += n * dist; // push on boundaries
-    
+
     // back in system space
     position = mul(FieldTransform,float4(tPos,1.0f)).xyz;
-    n = normalize(mul(FieldTransform,float4(n,0)));    
-
-    float projVelocity = dot(n,velocity);
-	if (projVelocity > 0)
-    {
-        float3 nVelocity = projVelocity * n; // normal component
-        float3 tVelocity = velocity - nVelocity; // tangential component
-
-        velocity -= (1 + saturate(Elasticity)) * nVelocity;
-        velocity -= saturate(Friction) * tVelocity;
-
-        //position -= velocity * deltaTime;
-    }
+    n = normalize(mul(FieldTransform,float4(n,0)));";
+                Source += collisionResponseSource;
+                Source += @"
 }";
-                ;
+                return Source;
             }
         }
     }

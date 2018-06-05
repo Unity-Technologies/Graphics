@@ -29,7 +29,7 @@ namespace UnityEditor.VFX.Block
             {
                 yield return new VFXAttributeInfo(VFXAttribute.Velocity, VFXAttributeMode.ReadWrite);
                 yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.Read);
-                //yield return new VFXAttributeInfo(VFXAttribute.Mass, VFXAttributeMode.Read);
+                yield return new VFXAttributeInfo(VFXAttribute.Mass, VFXAttributeMode.Read);
             }
         }
 
@@ -55,7 +55,7 @@ float spdNormal = dot(dir,velocity);
 float ratio = smoothstep(0.0,stickDistance * 2.0,abs(distToSurface));
 float tgtSpeed = sign(distToSurface) * attractionSpeed * ratio;
 float deltaSpeed = tgtSpeed - spdNormal;
-velocity += sign(deltaSpeed) * min(abs(deltaSpeed),deltaTime * lerp(stickForce,attractionForce,ratio)) * dir;";
+velocity += sign(deltaSpeed) * min(abs(deltaSpeed),deltaTime * lerp(stickForce,attractionForce,ratio)) * dir / mass;";
             }
         }
     }
