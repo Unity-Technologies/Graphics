@@ -176,6 +176,7 @@ namespace UnityEditor.VFX.UI
             m_PlayRateSlider.highValue = Mathf.Pow(VisualEffectControl.maxSlider, 1 / VisualEffectControl.sliderPower);
             m_PlayRateSlider.valueChanged += OnEffectSlider;
             m_PlayRateField = this.Query<IntegerField>("play-rate-field");
+            m_PlayRateField.RegisterCallback<ChangeEvent<int>>(OnPlayRateField);
 
             m_PlayRateMenu = this.Query<Button>("play-rate-menu");
             m_PlayRateMenu.AddStyleSheetPathWithSkinVariant("VFXControls");
@@ -235,6 +236,11 @@ namespace UnityEditor.VFX.UI
                 menu.AddItem(EditorGUIUtility.TextContent(string.Format("{0}%", value)), false, SetPlayRate, value);
             }
             menu.DropDown(m_PlayRateMenu.worldBound);
+        }
+
+        void OnPlayRateField(ChangeEvent<int> e)
+        {
+            SetPlayRate(e.newValue);
         }
 
         void SetPlayRate(object value)
@@ -487,7 +493,8 @@ namespace UnityEditor.VFX.UI
         {
             if (m_AttachedComponent == null)
             {
-                m_EventsContainer.Clear();
+                if (m_EventsContainer != null)
+                    m_EventsContainer.Clear();
                 m_Events.Clear();
             }
             else
