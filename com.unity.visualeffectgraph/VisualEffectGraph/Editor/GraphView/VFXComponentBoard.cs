@@ -355,7 +355,8 @@ namespace UnityEditor.VFX.UI
             m_ComponentContainer.RemoveFromHierarchy();
             m_ComponentPath.text = "";
             UpdateAttachButton();
-            m_EventsContainer.Clear();
+            if (m_EventsContainer != null)
+                m_EventsContainer.Clear();
             m_Events.Clear();
         }
 
