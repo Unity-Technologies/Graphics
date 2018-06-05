@@ -1612,6 +1612,15 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public void ChangeEventName(string oldName, string newName)
+        {
+            foreach (var context in m_SyncedModels.Keys.OfType<VFXBasicEvent>())
+            {
+                if (context.eventName == oldName)
+                    context.SetSettingValue("eventName", newName);
+            }
+        }
+
         public VFXNodeController GetRootNodeController(VFXModel model, int id)
         {
             List<VFXNodeController> controller = null;
