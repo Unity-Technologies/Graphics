@@ -41,7 +41,7 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            public Texture3D DistanceField;
+            public Texture3D DistanceField = VFXResources.defaultResources.signedDistanceField;
             public Transform FieldTransform = Transform.defaultValue;
         }
 

@@ -46,6 +46,7 @@ namespace UnityEditor.VFX
                 newAsset.particleTexture = SafeLoadAssetAtPath<Texture2D>(defaultPath + "Textures/DefaultParticle.tga");
                 newAsset.noiseTexture = SafeLoadAssetAtPath<Texture2D>(defaultPath + "Textures/Noise.tga");
                 newAsset.vectorField = SafeLoadAssetAtPath<Texture3D>(defaultPath + "Textures/vectorfield.asset");
+                newAsset.signedDistanceField = SafeLoadAssetAtPath<Texture3D>(defaultPath + "Textures/SignedDistanceField.asset");
                 newAsset.mesh = Resources.GetBuiltinResource<Mesh>("New-Capsule.fbx");
 
                 newAsset.shader = Shader.Find("Hidden/Default StaticMeshOutput");
@@ -81,6 +82,7 @@ namespace UnityEditor.VFX
         public Texture2D particleTexture;
         public Texture2D noiseTexture;
         public Texture3D vectorField;
+        public Texture3D signedDistanceField;
         public Mesh mesh;
         public AnimationCurve animationCurve;
         public Gradient gradient;

@@ -39,7 +39,7 @@ namespace UnityEditor.VFX.Block
 
         public class InputProperties
         {
-            public Texture3D DistanceField;
+            public Texture3D DistanceField = VFXResources.defaultResources.signedDistanceField;
             public Transform FieldTransform = Transform.defaultValue;
             public float attractionSpeed = 5.0f;
             public float attractionForce = 20.0f;
