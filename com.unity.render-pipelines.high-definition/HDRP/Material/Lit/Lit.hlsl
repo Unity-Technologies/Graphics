@@ -2180,39 +2180,35 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 
     if (_DebugLightingMode != 0)
     {
-        bool keepSpecular = false;
-
+        // Caution: _DebugLightingMode is used in other part of the code, don't do anything outside of
+        // current cases
         switch (_DebugLightingMode)
         {
         case DEBUGLIGHTINGMODE_LUX_METER:
             diffuseLighting = lighting.direct.diffuse + bakeLightingData.bakeDiffuseLighting;
+            specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
             break;
 
         case DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_OCCLUSION:
             diffuseLighting = aoFactor.indirectAmbientOcclusion;
+            specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
             break;
 
         case DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_OCCLUSION:
             diffuseLighting = aoFactor.indirectSpecularOcclusion;
+            specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
             break;
 
         case DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFRACTION:
             if (_DebugLightingSubMode != DEBUGSCREENSPACETRACING_COLOR)
                 diffuseLighting = lighting.indirect.specularTransmitted;
-            else
-                keepSpecular = true;
             break;
 
         case DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFLECTION:
             if (_DebugLightingSubMode != DEBUGSCREENSPACETRACING_COLOR)
                 diffuseLighting = lighting.indirect.specularReflected;
-            else
-                keepSpecular = true;
             break;
         }
-
-        if (!keepSpecular)
-            specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
     }
     else if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
