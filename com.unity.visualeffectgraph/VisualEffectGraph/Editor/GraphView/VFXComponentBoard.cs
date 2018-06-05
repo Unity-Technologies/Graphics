@@ -145,11 +145,11 @@ namespace  UnityEditor.VFX.UI
         public VFXComponentBoard(VFXView view)
         {
             m_View = view;
-            var tpl = EditorGUIUtility.Load(UXMLHelper.GetUXMLPath("uxml/VFXComponentBlackboardSection.uxml")) as VisualTreeAsset;
+            var tpl = EditorGUIUtility.Load(UXMLHelper.GetUXMLPath("uxml/VFXComponentBoard.uxml")) as VisualTreeAsset;
 
             tpl.CloneTree(contentContainer, new Dictionary<string, VisualElement>());
 
-            contentContainer.AddStyleSheetPath("VFXComponentBlackboardSection");
+            contentContainer.AddStyleSheetPath("VFXComponentBoard");
 
             m_AttachButton = this.Query<Button>("attach");
             m_AttachButton.clickable.clicked += ToggleAttach;
@@ -352,11 +352,12 @@ namespace  UnityEditor.VFX.UI
             UpdateAttachButton();
         }
 
-        void Attach()
+        public void Attach(VisualEffect effect = null)
         {
-            if (m_SelectionCandidate != null)
+            VisualEffect target = effect != null ? effect : m_SelectionCandidate;
+            if (target != null)
             {
-                m_AttachedComponent = m_SelectionCandidate;
+                m_AttachedComponent = target;
                 UpdateAttachButton();
                 m_LastKnownPauseState = !m_AttachedComponent.pause;
                 UpdatePlayButton();
@@ -461,6 +462,11 @@ namespace  UnityEditor.VFX.UI
 
         public void ControllerChanged(ControllerChangedEvent e)
         {
+        }
+
+        public override void UpdatePresenterPosition()
+        {
+            BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.blackboard, GetPosition());
         }
 
         public void OnMoved()
