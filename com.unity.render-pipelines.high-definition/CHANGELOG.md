@@ -14,7 +14,7 @@
 - Allow to double click on a render pipeline asset to setup it automatically in GraphicSettings
 - Add shortcut to create DensityVolume and PlanarReflection in hierarchy
 - Add a DefaultHDMirrorMaterial material for PlanarReflection
-- Added a script to be able to update material to newer version of Unity
+- Added a script to be able to upgrade material to newer version of HDRP
 
 ### Changed, Removals and deprecations
 - Removed GlobalLightLoopSettings.maxPlanarReflectionProbes and instead use value of GlobalLightLoopSettings.planarReflectionProbeCacheSize
@@ -30,6 +30,9 @@
 - Fix discrepency between object motion vector and camera motion vector
 - Fix issue with spot and dir light gizmo axis not highlighted correctly
 - Fix potential crash while register debug windows inputs at startup
+- Fix warning when creating Planar reflection
+- Fix specular lighting debug mode (was rendering black)
+- Allow projector decal with null material to allow to configure decal when HDRP is not set
 
 
 ## [2018.1 undecided]
