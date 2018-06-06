@@ -1,0 +1,6 @@
+{
+    "dependencies": {
+        "com.unity.postprocessing": "file:../../../com.unity.postprocessing", 
+        "com.unity.testframework.graphics": "file:../../../com.unity.testframework.graphics"
+    }
+}
