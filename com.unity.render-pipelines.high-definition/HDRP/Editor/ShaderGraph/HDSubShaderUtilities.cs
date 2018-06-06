@@ -125,12 +125,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             [Optional] Vector3 WorldSpacePosition;
             [Optional] Vector3 TangentSpacePosition;
 
-            [Optional] Vector4 screenPosition;
+            [Optional] Vector4 ScreenPosition;
             [Optional] Vector4 uv0;
             [Optional] Vector4 uv1;
             [Optional] Vector4 uv2;
             [Optional] Vector4 uv3;
-            [Optional] Vector4 vertexColor;
+            [Optional] Vector4 VertexColor;
             [Optional] float FaceSign;
 
             public static Dependency[] dependencies = new Dependency[]
@@ -159,12 +159,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 new Dependency("SurfaceDescriptionInputs.TangentSpaceViewDirection", "SurfaceDescriptionInputs.WorldSpaceBiTangent"),
                 new Dependency("SurfaceDescriptionInputs.TangentSpaceViewDirection", "SurfaceDescriptionInputs.WorldSpaceNormal"),
 
-                new Dependency("SurfaceDescriptionInputs.screenPosition",            "FragInputs.positionSS"),
+                new Dependency("SurfaceDescriptionInputs.ScreenPosition",            "FragInputs.positionSS"),
                 new Dependency("SurfaceDescriptionInputs.uv0",                       "FragInputs.texCoord0"),
                 new Dependency("SurfaceDescriptionInputs.uv1",                       "FragInputs.texCoord1"),
                 new Dependency("SurfaceDescriptionInputs.uv2",                       "FragInputs.texCoord2"),
                 new Dependency("SurfaceDescriptionInputs.uv3",                       "FragInputs.texCoord3"),
-                new Dependency("SurfaceDescriptionInputs.vertexColor",               "FragInputs.color"),
+                new Dependency("SurfaceDescriptionInputs.VertexColor",               "FragInputs.color"),
                 new Dependency("SurfaceDescriptionInputs.FaceSign",                 "FragInputs.isFrontFace"),
             };
         };
@@ -173,12 +173,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             if (requirements.requiresScreenPosition)
             {
-                activeFields.Add("SurfaceDescriptionInputs.screenPosition");
+                activeFields.Add("SurfaceDescriptionInputs.ScreenPosition");
             }
 
             if (requirements.requiresVertexColor)
             {
-                activeFields.Add("SurfaceDescriptionInputs.vertexColor");
+                activeFields.Add("SurfaceDescriptionInputs.VertexColor");
             }
 
             if (requirements.requiresFaceSign)
