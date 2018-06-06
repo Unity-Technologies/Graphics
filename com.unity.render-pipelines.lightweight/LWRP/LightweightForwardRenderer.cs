@@ -224,9 +224,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 // Note: Scene view camera always perform depth prepass
                 CommandBuffer cmd = CommandBufferPool.Get("Copy Depth to Camera");
                 CoreUtils.SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget);
-                cmd.EnableShaderKeyword(LightweightKeywords.DepthNoMsaa);
-                cmd.DisableShaderKeyword(LightweightKeywords.DepthMsaa2);
-                cmd.DisableShaderKeyword(LightweightKeywords.DepthMsaa4);
+                cmd.EnableShaderKeyword(LightweightKeywordStrings.DepthNoMsaa);
+                cmd.DisableShaderKeyword(LightweightKeywordStrings.DepthMsaa2);
+                cmd.DisableShaderKeyword(LightweightKeywordStrings.DepthMsaa4);
                 cmd.Blit(GetSurface(RenderTargetHandles.DepthTexture), BuiltinRenderTextureType.CameraTarget, GetMaterial(MaterialHandles.DepthCopy));
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);

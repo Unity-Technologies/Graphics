@@ -2,8 +2,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.PostProcessing;
-using UnityEngine.XR;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
@@ -270,12 +268,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             int vertexLightsCount = lightData.totalAdditionalLightsCount - lightData.pixelAdditionalLightsCount;
 
-            CoreUtils.SetKeyword(cmd, LightweightKeywords.AdditionalLightsText, lightData.totalAdditionalLightsCount > 0);
-            CoreUtils.SetKeyword(cmd, LightweightKeywords.MixedLightingSubtractiveText, m_MixedLightingSetup == MixedLightingSetup.Subtractive);
-            CoreUtils.SetKeyword(cmd, LightweightKeywords.VertexLightsText, vertexLightsCount > 0);
+            CoreUtils.SetKeyword(cmd, LightweightKeywordStrings.AdditionalLights, lightData.totalAdditionalLightsCount > 0);
+            CoreUtils.SetKeyword(cmd, LightweightKeywordStrings.MixedLightingSubtractive, m_MixedLightingSetup == MixedLightingSetup.Subtractive);
+            CoreUtils.SetKeyword(cmd, LightweightKeywordStrings.VertexLights, vertexLightsCount > 0);
 
             // TODO: We have to discuss cookie approach on LWRP.
-            // CoreUtils.SetKeyword(cmd, LightweightKeywords.MainLightCookieText, mainLightIndex != -1 && LightweightUtils.IsSupportedCookieType(visibleLights[mainLightIndex].lightType) && visibleLights[mainLightIndex].light.cookie != null);
+            // CoreUtils.SetKeyword(cmd, LightweightKeywordStrings.MainLightCookieText, mainLightIndex != -1 && LightweightUtils.IsSupportedCookieType(visibleLights[mainLightIndex].lightType) && visibleLights[mainLightIndex].light.cookie != null);
 
             LightShadows directionalShadowQuality = shadowData.renderedDirectionalShadowQuality;
             LightShadows localShadowQuality = shadowData.renderedLocalShadowQuality;
@@ -284,9 +282,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             bool hasSoftShadows = (directionalShadowQuality == LightShadows.Soft || localShadowQuality == LightShadows.Soft) &&
                 shadowData.supportsSoftShadows;
 
-            CoreUtils.SetKeyword(cmd, LightweightKeywords.DirectionalShadowsText, directionalShadowQuality != LightShadows.None);
-            CoreUtils.SetKeyword(cmd, LightweightKeywords.LocalShadowsText, localShadowQuality != LightShadows.None);
-            CoreUtils.SetKeyword(cmd, LightweightKeywords.SoftShadowsText, hasSoftShadows);
+            CoreUtils.SetKeyword(cmd, LightweightKeywordStrings.DirectionalShadows, directionalShadowQuality != LightShadows.None);
+            CoreUtils.SetKeyword(cmd, LightweightKeywordStrings.LocalShadows, localShadowQuality != LightShadows.None);
+            CoreUtils.SetKeyword(cmd, LightweightKeywordStrings.SoftShadows, hasSoftShadows);
 
             // TODO: Remove this. legacy particles support will be removed from Unity in 2018.3. This should be a shader_feature instead with prop exposed in the Standard particles shader.
             CoreUtils.SetKeyword(cmd, "SOFTPARTICLES_ON", cameraData.requiresSoftParticles);
@@ -522,24 +520,24 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             if (cameraData.msaaSamples > 1)
             {
-                cmd.DisableShaderKeyword(LightweightKeywords.DepthNoMsaa);
+                cmd.DisableShaderKeyword(LightweightKeywordStrings.DepthNoMsaa);
                 if (cameraData.msaaSamples == 4)
                 {
-                    cmd.DisableShaderKeyword(LightweightKeywords.DepthMsaa2);
-                    cmd.EnableShaderKeyword(LightweightKeywords.DepthMsaa4);
+                    cmd.DisableShaderKeyword(LightweightKeywordStrings.DepthMsaa2);
+                    cmd.EnableShaderKeyword(LightweightKeywordStrings.DepthMsaa4);
                 }
                 else
                 {
-                    cmd.EnableShaderKeyword(LightweightKeywords.DepthMsaa2);
-                    cmd.DisableShaderKeyword(LightweightKeywords.DepthMsaa4);
+                    cmd.EnableShaderKeyword(LightweightKeywordStrings.DepthMsaa2);
+                    cmd.DisableShaderKeyword(LightweightKeywordStrings.DepthMsaa4);
                 }
                 cmd.Blit(depthSurface, copyDepthSurface, m_DepthCopyMaterial);
             }
             else
             {
-                cmd.EnableShaderKeyword(LightweightKeywords.DepthNoMsaa);
-                cmd.DisableShaderKeyword(LightweightKeywords.DepthMsaa2);
-                cmd.DisableShaderKeyword(LightweightKeywords.DepthMsaa4);
+                cmd.EnableShaderKeyword(LightweightKeywordStrings.DepthNoMsaa);
+                cmd.DisableShaderKeyword(LightweightKeywordStrings.DepthMsaa2);
+                cmd.DisableShaderKeyword(LightweightKeywordStrings.DepthMsaa4);
                 LightweightPipeline.CopyTexture(cmd, depthSurface, copyDepthSurface, m_DepthCopyMaterial);
             }
             context.ExecuteCommandBuffer(cmd);
