@@ -146,6 +146,11 @@ ColorPropertyRM .colorcontainer, Vector3PropertyRM .colorcontainer
     margin-bottom:2;
 }
 
+ColorPropertyRM > .maincontainer > .fieldContainer
+{
+    flex:0 0 auto;
+}
+
 ColorPropertyRM FloatField
 {
     flex:1 0 auto;

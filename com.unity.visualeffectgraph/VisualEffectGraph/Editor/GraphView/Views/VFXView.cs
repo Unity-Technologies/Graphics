@@ -542,6 +542,13 @@ namespace UnityEditor.VFX.UI
             else if (e.controller is VFXNodeController)
             {
                 UpdateUIBounds();
+                if (e.controller is VFXContextController)
+                {
+                    if (m_ComponentBoard != null)
+                    {
+                        m_ComponentBoard.UpdateEventList();
+                    }
+                }
             }
         }
 

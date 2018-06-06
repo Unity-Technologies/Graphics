@@ -317,6 +317,10 @@ namespace UnityEditor.VFX
                     ShowHeader(Contents.headerParameters);
                     List<int> stack = new List<int>();
                     int currentCount = m_graph.m_ParameterInfo.Length;
+                    if (currentCount == 0)
+                    {
+                        GUILayout.Label("No Parameter exposed in the asset");
+                    }
 
                     foreach (var parameter in m_graph.m_ParameterInfo)
                     {
