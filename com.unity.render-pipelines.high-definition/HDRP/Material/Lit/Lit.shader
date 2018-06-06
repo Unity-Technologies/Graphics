@@ -319,6 +319,8 @@ Shader "HDRenderPipeline/Lit"
 
             HLSLPROGRAM
 
+            // Note: Require _ObjectId and _PassValue variables
+
             // We reuse depth prepass for the scene selection, allow to handle alpha correctly as well as tessellation and vertex animation
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #define SCENESELECTIONPASS // This will drive the output of the scene selection shader
