@@ -32,21 +32,20 @@ void Frag(  PackedVaryingsToPS packedInput,
     clip(1.0 - positionDS); // Clip value above one
     
     float4x4 normalToWorld = UNITY_ACCESS_INSTANCED_PROP(matrix, _NormalToWorld);
-    GetSurfaceData(positionDS.xz, normalToWorld, surfaceData);
+    GetSurfaceData(positionDS.xz, normalToWorld, surfaceData);\
+	// have to do explicit test since compiler behavior is not defined for RW resources and discard instructions
+	if ((all(positionDS.xyz > 0.0f) && all(1.0f - positionDS.xyz > 0.0f)))
+	{
 
-    // have to do explicit test since compiler behavior is not defined for RW resources and discard instructions
-    if((all(positionDS.xyz > 0.0f) && all(1.0f - positionDS.xyz > 0.0f)))
-    {
-        uint oldVal = UnpackByte(_DecalHTile[posInput.positionSS.xy / 8]);
-        oldVal |= surfaceData.HTileMask;
-        _DecalHTile[posInput.positionSS.xy / 8] = PackByte(oldVal);
-    }
+#elif (SHADERPASS == SHADERPASS_MESHDECALS)
+	GetSurfaceData(input, surfaceData);
 #endif
-#if (SHADERPASS == SHADERPASS_MESHDECALS)	
-	GetSurfaceData(input, surfaceData);	
-	uint oldVal = UnpackByte(_DecalHTile[input.positionSS.xy / 8]);
-	oldVal |= surfaceData.HTileMask;
-	_DecalHTile[input.positionSS.xy / 8] = PackByte(oldVal);
+        uint oldVal = UnpackByte(_DecalHTile[input.positionSS.xy / 8]);
+        oldVal |= surfaceData.HTileMask;
+        _DecalHTile[input.positionSS.xy / 8] = PackByte(oldVal);
+
+#if (SHADERPASS == SHADERPASS_DBUFFER)
+    }
 #endif
     ENCODE_INTO_DBUFFER(surfaceData, outDBuffer);
 }
