@@ -95,6 +95,10 @@ VaryingsToDS InterpolateWithBaryCoordsToDS(VaryingsToDS input0, VaryingsToDS inp
 // TODO: Here we will also have all the vertex deformation (GPU skinning, vertex animation, morph target...) or we will need to generate a compute shaders instead (better! but require work to deal with unpacking like fp16)
 VaryingsMeshType VertMesh(AttributesMesh input)
 {
+#if defined(HAVE_MESH_MODIFICATION)
+    input = ApplyMeshModification(input);
+#endif
+
     VaryingsMeshType output;
 
     UNITY_SETUP_INSTANCE_ID(input);

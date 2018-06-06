@@ -9,7 +9,7 @@ using UnityEditor;
 using UnityEditor.Experimental.AssetImporters;
 using UnityEditor.ShaderGraph.Drawing;
 
-[ScriptedImporter(14, ShaderGraphImporter.ShaderGraphExtension)]
+[ScriptedImporter(15, ShaderGraphExtension)]
 public class ShaderGraphImporter : ScriptedImporter
 {
     public const string ShaderGraphExtension = "shadergraph";
@@ -64,7 +64,9 @@ Shader ""Hidden/GraphErrorShader2""
             ShaderUtil.ClearShaderErrors(oldShader);
 
         List<PropertyCollector.TextureInfo> configuredTextures;
-        var text = GetShaderText(ctx.assetPath, out configuredTextures);
+        string path = ctx.assetPath;
+        var sourceAssetDependencyPaths = new List<string>();
+        var text = GetShaderText(path, out configuredTextures, sourceAssetDependencyPaths);
         var shader = ShaderUtil.CreateShaderAsset(text);
 
         EditorMaterialUtility.SetShaderDefaults(
@@ -78,9 +80,12 @@ Shader ""Hidden/GraphErrorShader2""
 
         ctx.AddObjectToAsset("MainAsset", shader);
         ctx.SetMainObject(shader);
+
+        foreach (var sourceAssetDependencyPath in sourceAssetDependencyPaths.Distinct())
+            ctx.DependsOnSourceAsset(sourceAssetDependencyPath);
     }
 
-    internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures)
+    internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths)
     {
         string shaderString = null;
         var shaderName = Path.GetFileNameWithoutExtension(path);
@@ -92,7 +97,13 @@ Shader ""Hidden/GraphErrorShader2""
 
             if (!string.IsNullOrEmpty(graph.path))
                 shaderName = graph.path + "/" + shaderName;
-            shaderString = graph.GetShader(shaderName, GenerationMode.ForReals, out configuredTextures);
+            shaderString = graph.GetShader(shaderName, GenerationMode.ForReals, out configuredTextures, sourceAssetDependencyPaths);
+
+            if (sourceAssetDependencyPaths != null)
+            {
+                foreach (var node in graph.GetNodes<AbstractMaterialNode>())
+                    node.GetSourceAssetDependencies(sourceAssetDependencyPaths);
+            }
         }
         catch (Exception)
         {
@@ -100,6 +111,11 @@ Shader ""Hidden/GraphErrorShader2""
             // ignored
         }
         return shaderString ?? k_ErrorShader.Replace("Hidden/GraphErrorShader2", shaderName);
+    }
+
+    internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures)
+    {
+        return GetShaderText(path, out configuredTextures, null);
     }
 }
 

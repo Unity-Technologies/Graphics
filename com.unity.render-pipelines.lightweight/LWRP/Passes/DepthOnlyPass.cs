@@ -4,7 +4,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     public class DepthOnlyPass : ScriptableRenderPass
     {
-        const string k_SetupRenderTargetTag = "Setup Render Target";
         const string k_DepthPrepassTag = "Depth Prepass";
 
         int kDepthBufferBits = 32;
@@ -32,7 +31,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_DepthPrepassTag);
-            using (new ProfilingSample(cmd, k_SetupRenderTargetTag))
+            using (new ProfilingSample(cmd, k_DepthPrepassTag))
             {
                 SetRenderTarget(cmd, GetSurface(depthAttachmentHandle), RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
                     ClearFlag.Depth, Color.black);

@@ -179,7 +179,6 @@ float4 _EmissiveColorMap_TexelSize;
 float4 _EmissiveColorMap_MipInfo;
 float _EmissiveColorMapUV;
 float _EmissiveColorMapUVLocal;
-float _EmissiveIntensity;
 float _AlbedoAffectEmissive;
 
 float _GeometricNormalFilteringEnabled;
@@ -202,5 +201,9 @@ float _DistortionBlurRemapMax;
 // In our case we don't use such a mechanism but need to keep the code quiet. We declare the value and always enable it.
 // TODO: Fix the code in legacy unity so we can customize the behavior for GI
 float3 _EmissionColor;
+
+// Following two variables are feeded by the C++ Editor for Scene selection
+int _ObjectId;
+int _PassValue;
 
 CBUFFER_END
