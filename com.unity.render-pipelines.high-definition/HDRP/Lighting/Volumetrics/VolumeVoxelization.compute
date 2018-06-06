@@ -57,13 +57,13 @@ CBUFFER_START(UnityVolumetricLighting)
     float4   _VBufferSampleOffset;     // Not used by this shader
     float    _CornetteShanksConstant;  // Not used by this shader
     uint     _NumVisibleDensityVolumes;
-    float2   _VolumeMaskDimensions;    //x = 1/totalTextures , y = 1/textureSize
+    float3   _VolumeMaskDimensions;    //x = 1/totalTextures , y = 1/textureSize, z = textureSize
 CBUFFER_END
 
 //--------------------------------------------------------------------------------------------------
 // Implementation
 //--------------------------------------------------------------------------------------------------
-float SampleVolumeMask(DensityVolumeData volumeData, float3 voxelCenterUV)
+float SampleVolumeMask(DensityVolumeData volumeData, float3 voxelCenterUV, float3 VxUV, float3 VyUV, float3 VzUV)
 {
     float offset = volumeData.textureIndex * _VolumeMaskDimensions.x;
     float clampBorder = 0.5f * _VolumeMaskDimensions.y;
@@ -75,8 +75,9 @@ float SampleVolumeMask(DensityVolumeData volumeData, float3 voxelCenterUV)
     voxelCenterUV.z += offset;
 
     voxelCenterUV.z = clamp(voxelCenterUV.z, offset + clampBorder, offset + _VolumeMaskDimensions.x - clampBorder);
-
-    float maskValue = SAMPLE_TEXTURE3D_LOD(_VolumeMaskAtlas, s_linear_clamp_sampler, voxelCenterUV, 0).a;
+    
+    float lod = ComputeTextureLOD(VxUV * _VolumeMaskDimensions.z, VyUV * _VolumeMaskDimensions.z, VzUV * _VolumeMaskDimensions.z);
+    float maskValue = SAMPLE_TEXTURE3D_LOD(_VolumeMaskAtlas, s_linear_clamp_sampler, voxelCenterUV, lod).a;
 
     return maskValue;
 }
@@ -121,6 +122,12 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, float3 rayOriginWS, fl
         float  halfDZ        = 0.5 * (z1 - z0);
         float  z             = z0 + halfDZ;
         float3 voxelCenterWS = rayOriginWS + z * rayUnDirWS; // Works due to the length of of the dir
+
+        // Dimensions of the voxel as we step along the ray.
+        float3 voxelRightSize = z * voxelAxisRight;
+        float3 voxelUpSize = z * voxelAxisUp;
+        float3 voxelDepthSize = halfDZ * voxelAxisForward;
+
 
         // TODO: define a function ComputeGlobalFogCoefficients(float3 voxelCenterWS),
         // which allows procedural definition of extinction and scattering.
@@ -239,7 +246,16 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, float3 rayOriginWS, fl
                     //Sample the volumeMask
                     if (_VolumeData[volumeIndex].textureIndex != -1)
                     {
-                        scatteringAndExtinctionMask = SampleVolumeMask(_VolumeData[volumeIndex], voxelCenterUV);
+                        float3 voxelRightSizeBS = mul(voxelRightSize, transpose(obbFrame));
+                        float3 voxelRightSizeUV = (voxelRightSizeBS / obbExtents);
+                        
+                        float3 voxelUpSizeBS = mul(voxelUpSize, transpose(obbFrame));
+                        float3 voxelUpSizeUV = (voxelUpSizeBS / obbExtents);
+                        
+                        float3 voxelDepthSizeBS = mul(voxelDepthSize, transpose(obbFrame));
+                        float3 voxelDepthSizeUV = (voxelDepthSizeBS / obbExtents);
+
+                        scatteringAndExtinctionMask = SampleVolumeMask(_VolumeData[volumeIndex], voxelCenterUV * 0.5 + 0.5, voxelRightSizeUV, voxelUpSizeUV, voxelDepthSizeUV);
                     }
 
                     // There is an overlap. Sample the 3D texture, or load the constant value.

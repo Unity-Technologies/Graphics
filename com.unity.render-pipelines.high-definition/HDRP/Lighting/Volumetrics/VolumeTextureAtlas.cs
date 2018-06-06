@@ -65,7 +65,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (volumeTexture.format != requiredTextureFormat)
             {
-                Debug.LogError(string.Format("VolumeTextureAtlas: Texture format of texture {0} : {1} does not match expected format of {2}", volumeTexture, volumeTexture.format, requiredTextureSize));
+                Debug.LogError(string.Format("VolumeTextureAtlas: Texture format of texture {0} : {1} does not match expected format of {2}", volumeTexture, volumeTexture.format, requiredTextureFormat));
                 return;
             }
 
@@ -95,7 +95,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (textures.Count > 0)
                 {
                     Color[] colorArray = new Color[0];
-                    volumeAtlas = new Texture3D(requiredTextureSize, requiredTextureSize, requiredTextureSize * textures.Count, requiredTextureFormat, false);
+                    volumeAtlas = new Texture3D(requiredTextureSize, requiredTextureSize, requiredTextureSize * textures.Count, requiredTextureFormat, true);
 
                     foreach (Texture3D tex in textures)
                     {

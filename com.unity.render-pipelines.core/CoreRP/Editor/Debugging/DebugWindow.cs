@@ -99,11 +99,11 @@ namespace UnityEditor.Experimental.Rendering
             s_TypeMapDirty = false;
         }
 
-        [MenuItem("Window/Render Pipeline/Debug Window", priority = CoreUtils.editMenuPriority2)]
+        [MenuItem("Window/General/Render Pipeline Debug", priority = CoreUtils.editMenuPriority2)]
         static void Init()
         {
             var window = GetWindow<DebugWindow>();
-            window.titleContent = new GUIContent("Debugging");
+            window.titleContent = new GUIContent("Debug");
         }
 
         void OnEnable()

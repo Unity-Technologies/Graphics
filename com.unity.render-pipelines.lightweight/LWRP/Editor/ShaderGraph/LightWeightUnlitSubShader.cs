@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using UnityEditor;
 using UnityEditor.Experimental.Rendering.LightweightPipeline;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
@@ -37,12 +38,24 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         };
 
-        public string GetSubshader(IMasterNode inMasterNode, GenerationMode mode)
+        public string GetSubshader(IMasterNode inMasterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
         {
+            if (sourceAssetDependencyPaths != null)
+            {
+                // LightWeightUnlitSubShader.cs
+                sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("3ef30c5c1d5fc412f88511ef5818b654"));
+            }
+
             var templatePath = GetTemplatePath("lightweightUnlitPass.template");
             var extraPassesTemplatePath = GetTemplatePath("lightweightUnlitExtraPasses.template");
             if (!File.Exists(templatePath) || !File.Exists(extraPassesTemplatePath))
                 return string.Empty;
+
+            if (sourceAssetDependencyPaths != null)
+            {
+                sourceAssetDependencyPaths.Add(templatePath);
+                sourceAssetDependencyPaths.Add(extraPassesTemplatePath);
+            }
 
             string forwardTemplate = File.ReadAllText(templatePath);
             string extraTemplate = File.ReadAllText(extraPassesTemplatePath);
@@ -75,14 +88,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         static string GetTemplatePath(string templateName)
         {
-            string relativeTemplatePath = Path.Combine("LWRP", Path.Combine("Editor", Path.Combine("ShaderGraph", templateName)));
-            foreach (var path in LightweightIncludePaths.GetPaths())
-            {
-                var templatePath = Path.Combine(path, relativeTemplatePath);
-                if (File.Exists(templatePath))
-                    return templatePath;
-            }
-            throw new FileNotFoundException(string.Format(@"Cannot find a template with name ""{0}"".", templateName));
+            var pathSegments = new[] { "Packages", "com.unity.render-pipelines.lightweight", "LWRP", "Editor", "ShaderGraph", templateName };
+            var path = pathSegments.Aggregate("", Path.Combine);
+            if (!File.Exists(path))
+                throw new FileNotFoundException(string.Format(@"Cannot find a template with name ""{0}"".", templateName));
+            return path;
         }
 
         static string GetShaderPassFromTemplate(string template, UnlitMasterNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions)
