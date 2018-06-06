@@ -8,12 +8,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     [InitializeOnLoad]
     public class HDRPVersion
     {
-        static public float hdrpVersion = 1.0f;
+        static public int hdrpVersion = 1;
 
-        static public float GetCurrentHDRPProjectVersion()
+        static public int GetCurrentHDRPProjectVersion()
         {
             string[] version = new string[1];
-            version[0] = "0.9"; // Note: When we don't know what a project is, assume worst case
+            version[0] = "0"; // Note: When we don't know what a project is, assume worst case 0
 
             try
             {
@@ -21,10 +21,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             catch
             {
-                Debug.LogWarning("Unable to read from ProjectSettings/HDRPProjectVersion.txt - Assign default version value");
+                // Don't display warning
+                //Debug.LogWarning("Unable to read from ProjectSettings/HDRPProjectVersion.txt - Assign default version value");
             }
 
-            return float.Parse(version[0]);
+            return int.Parse(version[0]);
         }
 
         static public void WriteCurrentHDRPProjectVersion()
@@ -47,15 +48,29 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Compare project version with current version - Trigger an upgrade if user ask for it
             if (GetCurrentHDRPProjectVersion() < hdrpVersion)
             {
-                if (EditorUtility.DisplayDialog("A newer version of Unity has been detected",
-                                                "Do you want to upgrade your materials to newer version?\n You can also upgrade manually materials in Edit -> Render Pipeline submenu", "Yes", "No"))
+                if (EditorUtility.DisplayDialog("A newer version of HDRP has been detected",
+                                                "Do you want to upgrade your materials to newer version?\n You can also upgrade manually materials in 'Edit -> Render Pipeline' submenu", "Yes", "No"))
                 {
                     UpgradeMenuItems.UpdateMaterialToNewerVersion();
                 }
             }
+        }
+    }
 
-            // Update current project version with HDRP version
-            WriteCurrentHDRPProjectVersion();
+    public class FileModificationWarning : UnityEditor.AssetModificationProcessor
+    {
+        static string[] OnWillSaveAssets(string[] paths)
+        {
+            foreach (string path in paths)
+            {
+                // Detect when we save project and write our HDRP version at this time.
+                if (path == "ProjectSettings/ProjectSettings.asset")
+                {
+                    // Update current project version with HDRP version
+                    HDRPVersion.WriteCurrentHDRPProjectVersion();
+                }
+            }
+            return paths;
         }
     }
 }
