@@ -619,5 +619,8 @@ namespace UnityEditor.ShaderGraph
             var slot = FindSlot<MaterialSlot>(slotId);
             return slot != null && owner.GetEdges(slot.slotReference).Any();
         }
+
+        public virtual void GetSourceAssetDependencies(List<string> paths)
+        {}
     }
 }

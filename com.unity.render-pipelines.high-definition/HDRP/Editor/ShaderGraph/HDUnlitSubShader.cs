@@ -210,14 +210,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return defines.GetShaderString(2);
         }
 
-        private static bool GenerateShaderPass(UnlitMasterNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions, ShaderGenerator result)
+        private static bool GenerateShaderPass(UnlitMasterNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
         {
-            var templateLocation = ShaderGenerator.GetTemplatePath(pass.TemplateName);
+            var templateLocation = Path.Combine(Path.Combine(Path.Combine(HDEditorUtils.GetHDRenderPipelinePath(), "Editor"), "ShaderGraph"), pass.TemplateName);
             if (!File.Exists(templateLocation))
             {
                 // TODO: produce error here
                 return false;
             }
+
+            sourceAssetDependencyPaths.Add(templateLocation);
 
             // grab all of the active nodes
             var activeNodeList = ListPool<INode>.Get();
@@ -394,8 +396,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return true;
         }
 
-        public string GetSubshader(IMasterNode inMasterNode, GenerationMode mode)
+        public string GetSubshader(IMasterNode inMasterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
         {
+            if (sourceAssetDependencyPaths != null)
+            {
+                // HDUnlitSubShader.cs
+                sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("292c6a3c80161fa4cb49a9d11d35cbe9"));
+                // HDSubShaderUtilities.cs
+                sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("713ced4e6eef4a44799a4dd59041484b"));
+            }
+
             var masterNode = inMasterNode as UnlitMasterNode;
             var subShader = new ShaderGenerator();
             subShader.AddShaderChunk("SubShader", true);
@@ -416,12 +426,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 //                bool transparent = (masterNode.surfaceType != SurfaceType.Opaque);
                 bool distortionActive = false;
 
-                GenerateShaderPass(masterNode, m_PassDepthOnly, mode, materialOptions, subShader);
-                GenerateShaderPass(masterNode, m_PassForward, mode, materialOptions, subShader);
-                GenerateShaderPass(masterNode, m_PassMETA, mode, materialOptions, subShader);
+                GenerateShaderPass(masterNode, m_PassDepthOnly, mode, materialOptions, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPass(masterNode, m_PassForward, mode, materialOptions, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPass(masterNode, m_PassMETA, mode, materialOptions, subShader, sourceAssetDependencyPaths);
                 if (distortionActive)
                 {
-                    GenerateShaderPass(masterNode, m_PassDistortion, mode, materialOptions, subShader);
+                    GenerateShaderPass(masterNode, m_PassDistortion, mode, materialOptions, subShader, sourceAssetDependencyPaths);
                 }
             }
             subShader.Deindent();
