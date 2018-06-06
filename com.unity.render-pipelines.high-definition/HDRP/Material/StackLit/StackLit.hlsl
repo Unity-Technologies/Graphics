@@ -1697,7 +1697,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
             if (bsdfData.iridescenceMask > 0.0)
             {
                 preLightData.fresnelIridforCalculatingFGD = EvalIridescence(topIor, NdotV[0], bsdfData.iridescenceThickness, bsdfData.fresnel0);
-                f0forCalculatingFGD = lerp(bsdfData.fresnel0, preLightData.fresnelIridforCalculatingFGD, bsdfData.iridescenceMask);
+                f0forCalculatingFGD = lerp(f0forCalculatingFGD, preLightData.fresnelIridforCalculatingFGD, bsdfData.iridescenceMask);
             }
         }
 
