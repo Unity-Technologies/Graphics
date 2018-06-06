@@ -95,7 +95,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     context.ExecuteCommandBuffer(cmd);
                     cmd.Clear();
 
+#if UNITY_EDITOR
                     try
+#endif
                     {
                         m_IsCameraRendering = true;
 #if UNITY_EDITOR
@@ -113,12 +115,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                         m_Renderer.Setup(ref context, ref m_CullResults, ref renderingData);
                         m_Renderer.Execute(ref context, ref m_CullResults, ref renderingData);
                     }
+#if UNITY_EDITOR
                     catch (Exception)
                     {
                         CommandBufferPool.Release(cmd);
                         throw;
                     }
                     finally
+#endif
                     {
                         m_IsCameraRendering = false;
                     }
