@@ -202,4 +202,8 @@ float _DistortionBlurRemapMax;
 // TODO: Fix the code in legacy unity so we can customize the behavior for GI
 float3 _EmissionColor;
 
+// Following two variables are feeded by the C++ Editor for Scene selection
+int _ObjectId;
+int _PassValue;
+
 CBUFFER_END
