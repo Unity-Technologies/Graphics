@@ -242,7 +242,7 @@ ${Graph}
             $SurfaceDescriptionInputs.ViewSpaceNormal:           output.ViewSpaceNormal =             mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_I_V);         // transposed multiplication by inverse matrix to handle normal scale
             $SurfaceDescriptionInputs.TangentSpaceNormal:        output.TangentSpaceNormal =          float3(0.0f, 0.0f, 1.0f);
 
-            $SurfaceDescriptionInputs.WorldSpaceTangent          output.WorldSpaceTangent =           input.worldToTangent[0].xyz;
+            $SurfaceDescriptionInputs.WorldSpaceTangent:         output.WorldSpaceTangent =           input.worldToTangent[0].xyz;
             $SurfaceDescriptionInputs.ObjectSpaceTangent:        output.ObjectSpaceTangent =          mul((float3x3) unity_WorldToObject, output.WorldSpaceTangent);
             $SurfaceDescriptionInputs.ViewSpaceTangent:          output.ViewSpaceTangent =            mul((float3x3) UNITY_MATRIX_V, output.WorldSpaceTangent);
             $SurfaceDescriptionInputs.TangentSpaceTangent:       output.TangentSpaceTangent =         float3(1.0f, 0.0f, 0.0f);
@@ -267,8 +267,7 @@ ${Graph}
             $SurfaceDescriptionInputs.TangentSpacePosition:      output.TangentSpacePosition =        float3(0.0f, 0.0f, 0.0f);
 
             // TODO: positionSS is SV_Position, graph input expects screenPosition to be 0..1 across the active viewport (?)
-            $SurfaceDescriptionInputs.ScreenPosition:            float4 clipPos =                    ComputeScreenPos(TransformWorldToHClip(input.positionWS), _ProjectionParams.x);
-            $SurfaceDescriptionInputs.ScreenPosition:            output.ScreenPosition =             clipPos; // float4(clipPos.x * _ScreenSize.x, clipPos.y * _ScreenSize.y, clipPos.zw);          // wtf?
+            $SurfaceDescriptionInputs.ScreenPosition:            output.ScreenPosition =             ComputeScreenPos(TransformWorldToHClip(input.positionWS), _ProjectionParams.x);
             
             $SurfaceDescriptionInputs.uv0:                       output.uv0 =    float4(input.texCoord0, 0.0f, 0.0f);
             $SurfaceDescriptionInputs.uv1:                       output.uv1 =    float4(input.texCoord1, 0.0f, 0.0f);
