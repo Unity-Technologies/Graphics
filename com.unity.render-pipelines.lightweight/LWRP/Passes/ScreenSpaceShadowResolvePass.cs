@@ -56,8 +56,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         void SetShadowCollectPassKeywords(CommandBuffer cmd, ref ShadowData shadowData)
         {
-            CoreUtils.SetKeyword(cmd, LightweightKeywords.SoftShadowsText, shadowData.renderedDirectionalShadowQuality == LightShadows.Soft);
-            CoreUtils.SetKeyword(cmd, LightweightKeywords.CascadeShadowsText, shadowData.directionalLightCascadeCount > 1);
+            CoreUtils.SetKeyword(cmd, LightweightKeywordStrings.SoftShadows, shadowData.renderedDirectionalShadowQuality == LightShadows.Soft);
+            CoreUtils.SetKeyword(cmd, LightweightKeywordStrings.CascadeShadows, shadowData.directionalLightCascadeCount > 1);
         }
     }
 }
