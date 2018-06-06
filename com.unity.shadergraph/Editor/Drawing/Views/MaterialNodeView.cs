@@ -307,6 +307,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (m_PreviewContainer.parent != this)
                 {
                     Add(m_PreviewContainer);
+                    m_PreviewContainer.PlaceBehind(this.Q("selection-border"));
                 }
                 m_PreviewFiller.AddToClassList("expanded");
                 m_PreviewFiller.RemoveFromClassList("collapsed");
@@ -326,7 +327,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             var subGraphNode = node as SubGraphNode;
             if (subGraphNode != null && subGraphNode.subGraphAsset != null)
-                title = subGraphNode.subGraphAsset.name;
+                title = subGraphNode.subGraphAsset.name + " (sub)";
             else
                 title = node.name;
         }
