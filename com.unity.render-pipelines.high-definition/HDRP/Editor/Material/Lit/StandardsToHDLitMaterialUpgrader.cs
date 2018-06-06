@@ -203,23 +203,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     break;
             }
 
-            // Emission: Convert the HDR emissive color to ldr color + intensity
             Color hdrEmission = srcMaterial.GetColor("_EmissionColor");
-            float intensity = Mathf.Max(hdrEmission.r, Mathf.Max(hdrEmission.g, hdrEmission.b));
-
-            if (intensity > 1f)
-            {
-                hdrEmission.r /= intensity;
-                hdrEmission.g /= intensity;
-                hdrEmission.b /= intensity;
-            }
-            else
-                intensity = 1f;
-
-            intensity = Mathf.Pow(intensity, 2.2f); // Gamma to Linear conversion
-
             dstMaterial.SetColor("_EmissiveColor", hdrEmission);
-            dstMaterial.SetFloat("_EmissiveIntensity", intensity);
 
             HDEditorUtils.ResetMaterialKeywords(dstMaterial);
         }

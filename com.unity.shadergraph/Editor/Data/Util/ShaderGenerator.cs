@@ -596,7 +596,7 @@ namespace UnityEditor.ShaderGraph
 
             if (combinedRequirements.requiresScreenPosition)
             {
-                var screenPosition = "ComputeScreenPos(mul(GetWorldToHClipMatrix(), mul(GetObjectToWorldMatrix(), v.vertex.xyz)), _ProjectionParams.x)";
+                var screenPosition = "ComputeScreenPos(mul(GetWorldToHClipMatrix(), mul(GetObjectToWorldMatrix(), v.vertex)), _ProjectionParams.x)";
                 vertexShader.AppendLine("float4 {0} = {1};", ShaderGeneratorNames.ScreenPosition, screenPosition);
                 if (graphModelRequirements.requiresScreenPosition)
                 {

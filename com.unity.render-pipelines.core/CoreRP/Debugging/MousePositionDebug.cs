@@ -41,7 +41,12 @@ namespace UnityEngine.Experimental.Rendering
             public static void Cleanup()
             {
                 if (s_Instance != null)
-                    DestroyImmediate(s_Instance.gameObject);
+                {
+                    // Either we call DestroyImmediate or Destroy we get an error :(
+                    // GameViewEventCatcher is only use for SSR debugging currently so comment this code and uncomment it if you want to debug SSR
+                    //DestroyImmediate(s_Instance.gameObject);
+                    //Destroy(s_Instance.gameObject);
+                }
             }
 
             public static void Build()
@@ -113,7 +118,8 @@ namespace UnityEngine.Experimental.Rendering
 #if UNITY_EDITOR
             UnityEditor.SceneView.onSceneGUIDelegate -= OnSceneGUI;
             UnityEditor.SceneView.onSceneGUIDelegate += OnSceneGUI;
-            GameViewEventCatcher.Build();
+            // Disabled as it cause error: GameViewEventCatcher is only use for SSR debugging currently so comment this code and uncomment it if you want to debug SSR
+            //GameViewEventCatcher.Build();
 #endif
         }
 
@@ -121,7 +127,8 @@ namespace UnityEngine.Experimental.Rendering
         {
 #if UNITY_EDITOR
             UnityEditor.SceneView.onSceneGUIDelegate -= OnSceneGUI;
-            GameViewEventCatcher.Cleanup();
+            // Disabled as it cause error: GameViewEventCatcher is only use for SSR debugging currently so comment this code and uncomment it if you want to debug SSR
+            //GameViewEventCatcher.Cleanup();
 #endif
         }
 

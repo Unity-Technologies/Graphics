@@ -13,9 +13,9 @@ namespace UnityEditor.ShaderGraph
             get { return GetNodes<INode>().OfType<IMasterNode>().FirstOrDefault(); }
         }
 
-        public string GetShader(string name, GenerationMode mode, out List<PropertyCollector.TextureInfo> configuredTextures)
+        public string GetShader(string name, GenerationMode mode, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths = null)
         {
-            return masterNode.GetShader(mode, name, out configuredTextures);
+            return masterNode.GetShader(mode, name, out configuredTextures, sourceAssetDependencyPaths);
         }
 
         public void LoadedFromDisk()

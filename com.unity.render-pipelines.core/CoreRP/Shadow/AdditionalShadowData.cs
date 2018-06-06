@@ -3,11 +3,8 @@ namespace UnityEngine.Experimental.Rendering
     [RequireComponent(typeof(Light))]
     public class AdditionalShadowData : MonoBehaviour
     {
-#pragma warning disable 414 // CS0414 The private field '...' is assigned but its value is never used
-        // We can't rely on Unity for our additional data, we need to version it ourself.
-        [SerializeField]
-        float m_Version = 1.0f;
-#pragma warning restore 414
+        [HideInInspector]
+        public float version = 1.0f;
 
         public const int DefaultShadowResolution = 512;
 

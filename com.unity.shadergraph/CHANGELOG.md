@@ -1,5 +1,17 @@
 # Next version
 
+### HD Render Pipeline support
+
+![](.data/hd_render_pipeline.png)
+
+Shader Graph now supports the High Definition Render Pipeline with both PBR and Unlit Master nodes. Shaders built with Shader Graph work with both the Lightweight and HD render pipelines.
+
+### Vertex position
+
+![](.data/vertex_position.png)
+
+You can now modify vertex position via the Position slot on the PBR and Unlit Master nodes. By default, the input to this node is object space position. Custom inputs to this slot should specify the absolute local position of a given vertex. Certain nodes (such as Procedural Shapes) are not viable in the vertex shader. Such nodes are incompatible with this slot.
+
 ### Master node settings
 
 ![](.data/menu_settings.png)
@@ -34,6 +46,17 @@ Note: This functionality requires that you have enabled **two sided** on the Mas
 
 This adds gradient functionality via two new nodes. The Sample Gradient node samples a gradient given a Time parameter. You can define this gradient on the Gradient slot control view. The Gradient Asset node defines a gradient that can be sampled by multiple Sample Gradient nodes using different Time parameters.
 
+### Texture3D and Texture2D Array
+
+![](.data/texture_nodes.png)
+
+This change expands Unity's support for Texture types via two new property types and four new nodes. These allow you to define and sample Texture 3D and Texture 2D Array type assets in Shader Graph.
+
+### Texture 2D LOD node
+
+![](.data/texture_2d_lod_node.png)
+
+This adds a new node for LOD functionality on a Texture 2D Sample. Sample Texture 2D LOD uses the exact same input and output slots as Sample Texture 2D, but also includes an input for level of detail adjustments via a Vector1 slot. 
 
 ### Show generated code
 
@@ -51,3 +74,6 @@ You can now see the generated code for any specific node. To do so, right-click 
 - When you edit sub graph paths, the search window no longer yields a null reference exception.
 - The blackboard is now within view when deserialized.
 - Your system locale can no longer cause incorrect commands due to full stops being converted to commas.
+- Deserialization of subgraphs now works correctly.
+- Sub graphs are now suffixed with (sub), so you can tell them apart from other nodes.
+- The preview of a node does not obstruct the selection outliner anymore.
