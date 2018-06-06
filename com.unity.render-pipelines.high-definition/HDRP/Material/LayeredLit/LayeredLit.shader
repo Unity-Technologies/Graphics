@@ -509,6 +509,8 @@ Shader "HDRenderPipeline/LayeredLit"
 
             HLSLPROGRAM
 
+            // Note: Require _ObjectId and _PassValue variables
+
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #define SCENESELECTIONPASS // This will drive the output of the scene selection shader
             #include "../../ShaderVariables.hlsl"
