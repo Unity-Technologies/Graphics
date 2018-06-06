@@ -63,8 +63,8 @@ namespace UnityEditor.VFX.UI
                     var line = new VisualElement();
                     line.style.width = 1;
                     line.name = "line";
-                    line.style.marginLeft = 0.5f * VFXPropertyIM.depthOffset;
-                    line.style.marginRight = VFXPropertyIM.depthOffset * 0.5f;
+                    line.style.marginLeft = 0.5f * PropertyRM.depthOffset;
+                    line.style.marginRight = PropertyRM.depthOffset * 0.5f;
 
                     Add(line);
                     m_Lines[i] = line;
