@@ -17,13 +17,13 @@
     min-height:17;
     height:-1;
     margin-bottom:0;
-    margin-right:6;
+    margin-right:4;
     Visible:true;
 }
 
 .VFXDataAnchor #lineSpacer
 {
-    flex:1;
+    flex:1 0 auto;
 }
 .VFXDataAnchor #line
 {
@@ -96,11 +96,11 @@ VFXDataAnchor.Output #type
 {
     text-color: rgb(153,153,153);
     text-alignment:middle-right;
-    flex:1;
+    flex:1 0 auto;
 }
 .VFXDataAnchor .propertyrm
 {
-    flex:1;
+    flex:1 1 auto;
 }
 
 .VFXDataAnchor .space
@@ -121,17 +121,6 @@ VFXDataAnchor.Output #type
     text-alignment: middle-center;
 }
 
-.VFXDataAnchor  #IMGUI
-{
-    flex:2;
-    align-items: stretch;
-    margin-left:12;
-    margin-right:4;
-    height:20;
-
-    -background-color:rgba(255,0,0,255);
-}
-
 .VFXOutputDataAnchor #icon
 {
     margin-top:6;
@@ -148,4 +137,10 @@ VFXDataAnchor.Output #type
 .VFXDataAnchor.connected > #connector
 {
     border-color:#787878;
+}
+
+
+*:disabled
+{
+    opacity:0.5;
 }

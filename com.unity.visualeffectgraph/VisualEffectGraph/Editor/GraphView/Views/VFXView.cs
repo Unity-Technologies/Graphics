@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEditor.Experimental.VFX;
 using UnityEngine.Experimental.VFX;
 using UnityEngine.Experimental.UIElements;
 using UnityEngine.Experimental.UIElements.StyleEnums;
@@ -207,6 +208,14 @@ namespace UnityEditor.VFX.UI
             {
                 RemoveElement(element);
             }
+            foreach (var element in dataEdges.Values)
+            {
+                RemoveElement(element);
+            }
+            foreach (var element in flowEdges.Values)
+            {
+                RemoveElement(element);
+            }
 
             groupNodes.Clear();
             stickyNotes.Clear();
@@ -234,6 +243,14 @@ namespace UnityEditor.VFX.UI
             get
             {
                 return m_ComponentBoard != null ? m_ComponentBoard.GetAttachedComponent() : null;
+            }
+
+            set
+            {
+                if (m_ComponentBoard == null)
+                    ShowComponentBoard();
+                if (m_ComponentBoard != null)
+                    m_ComponentBoard.Attach(value);
             }
         }
 
@@ -335,12 +352,8 @@ namespace UnityEditor.VFX.UI
 
 
             VisualElement spacer = new VisualElement();
-            spacer.style.flex = 1;
+            spacer.style.flex = new Flex(1);
             m_Toolbar.Add(spacer);
-            m_ToggleDebug = new Toggle(OnToggleDebug);
-            m_ToggleDebug.text = "Debug";
-            m_Toolbar.Add(m_ToggleDebug);
-            m_ToggleDebug.AddToClassList("toolbarItem");
 
             m_DropDownButtonCullingMode = new Label();
 
@@ -506,11 +519,18 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        Toggle m_ToggleDebug;
-
         void Delete(string cmd, AskUser askUser)
         {
-            controller.Remove(selection.OfType<IControlledElement>().Select(t => t.controller));
+            var selection = this.selection.ToArray();
+
+
+            var parametersToRemove = Enumerable.Empty<VFXParameterController>();
+
+            foreach (var category in selection.OfType<VFXBlackboardCategory>())
+            {
+                parametersToRemove = parametersToRemove.Concat(controller.RemoveCategory(m_Blackboard.GetCategoryIndex(category)));
+            }
+            controller.Remove(selection.OfType<IControlledElement>().Select(t => t.controller).Concat(parametersToRemove.Cast<Controller>()));
         }
 
         void OnControllerChanged(ControllerChangedEvent e)
@@ -522,6 +542,13 @@ namespace UnityEditor.VFX.UI
             else if (e.controller is VFXNodeController)
             {
                 UpdateUIBounds();
+                if (e.controller is VFXContextController)
+                {
+                    if (m_ComponentBoard != null)
+                    {
+                        m_ComponentBoard.UpdateEventList();
+                    }
+                }
             }
         }
 
@@ -575,10 +602,8 @@ namespace UnityEditor.VFX.UI
                     m_ToggleMotionVectors.value = settings.motionVectorGenerationMode == MotionVectorGenerationMode.Object;
                     m_ToggleMotionVectors.SetEnabled(true);
 
-                    m_ToggleDebug.value = controller.graph.displaySubAssets;
-
                     // if the asset dis destroy somehow, fox example if the user delete the asset, delete the controller and update the window.
-                    VisualEffectAsset asset = controller.model;
+                    var asset = controller.model;
                     if (asset == null)
                     {
                         this.controller = null;
@@ -959,9 +984,29 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public Vector2 ScreenToViewPosition(Vector2 position)
+        {
+            GUIView guiView = elementPanel.ownerObject as GUIView;
+            if (guiView == null)
+                return position;
+            return position - guiView.screenPosition.position;
+        }
+
+        public Vector2 ViewToScreenPosition(Vector2 position)
+        {
+            GUIView guiView = elementPanel.ownerObject as GUIView;
+            if (guiView == null)
+                return position;
+            return position + guiView.screenPosition.position;
+        }
+
         void OnCreateNode(NodeCreationContext ctx)
         {
-            Vector2 point = GUIUtility.ScreenToGUIPoint(ctx.screenMousePosition);
+            GUIView guiView = elementPanel.ownerObject as GUIView;
+            if (guiView == null)
+                return;
+            Vector2 point = ScreenToViewPosition(ctx.screenMousePosition);
+
             List<VisualElement> picked = new List<VisualElement>();
             panel.PickAll(point, picked);
 
@@ -973,7 +1018,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, m_NodeProvider);
+                VFXFilterWindow.Show(VFXViewWindow.currentWindow, point, ctx.screenMousePosition, m_NodeProvider);
             }
         }
 
@@ -995,9 +1040,9 @@ namespace UnityEditor.VFX.UI
             {
                 if (controller != null)
                 {
-                    var asset = controller.model;
-                    if (asset != null)
-                        return asset.cullingFlags;
+                    var resource = controller.model;
+                    if (resource != null)
+                        return resource.cullingFlags;
                 }
                 return VFXCullingFlags.CullDefault;
             }
@@ -1006,19 +1051,19 @@ namespace UnityEditor.VFX.UI
             {
                 if (controller != null)
                 {
-                    var asset = controller.model;
-                    if (asset != null)
-                        asset.cullingFlags = value;
+                    var resource = controller.model;
+                    if (resource != null)
+                        resource.cullingFlags = value;
                 }
             }
         }
 
         public void CreateTemplateSystem(string path, Vector2 tPos, VFXGroupNode groupNode)
         {
-            VisualEffectAsset asset = AssetDatabase.LoadAssetAtPath<VisualEffectAsset>(path);
-            if (asset != null)
+            var resource = VisualEffectResource.GetResourceAtPath(path);
+            if (resource != null)
             {
-                VFXViewController templateController = VFXViewController.GetController(asset, true);
+                VFXViewController templateController = VFXViewController.GetController(resource, true);
                 templateController.useCount++;
 
 
@@ -1034,10 +1079,10 @@ namespace UnityEditor.VFX.UI
         {
             if (controller != null)
             {
-                var asset = controller.model;
-                if (asset != null)
+                var resource = controller.model;
+                if (resource != null)
                 {
-                    asset.rendererSettings = settings;
+                    resource.rendererSettings = settings;
                     controller.graph.SetExpressionGraphDirty();
                 }
             }
@@ -1379,7 +1424,7 @@ namespace UnityEditor.VFX.UI
 
             if (Selection.activeObject != controller.model)
             {
-                Selection.activeObject = controller.model;
+                Selection.activeObject = controller.model.asset;
             }
         }
 
@@ -1576,14 +1621,6 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void OnToggleDebug()
-        {
-            if (controller != null)
-            {
-                controller.graph.displaySubAssets = !controller.graph.displaySubAssets;
-            }
-        }
-
         bool canGroupSelection
         {
             get
@@ -1633,7 +1670,7 @@ namespace UnityEditor.VFX.UI
         {
             Debug.Log("CreateMenuPosition" + e.eventInfo.mousePosition);
             //The targeted groupnode will be determined by a PickAll later
-            VFXFilterWindow.Show(VFXViewWindow.currentWindow, e.eventInfo.mousePosition, m_NodeProvider);
+            VFXFilterWindow.Show(VFXViewWindow.currentWindow, e.eventInfo.mousePosition, ViewToScreenPosition(e.eventInfo.mousePosition), m_NodeProvider);
         }
 
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
@@ -1698,7 +1735,17 @@ namespace UnityEditor.VFX.UI
             return true;
         }
 
-        bool IDropTarget.DragPerform(DragPerformEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
+        bool IDropTarget.DragEnter(DragEnterEvent evt, IEnumerable<ISelectable> selection, IDropTarget enteredTarget, ISelection dragSource)
+        {
+            return true;
+        }
+
+        bool IDropTarget.DragLeave(DragLeaveEvent evt, IEnumerable<ISelectable> selection, IDropTarget leftTarget, ISelection dragSource)
+        {
+            return true;
+        }
+
+        bool IDropTarget.DragPerform(DragPerformEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget, ISelection dragSource)
         {
             var rows = selection.OfType<BlackboardField>().Select(t => t.GetFirstAncestorOfType<VFXBlackboardRow>()).Where(t => t != null).ToArray();
 
@@ -1713,7 +1760,7 @@ namespace UnityEditor.VFX.UI
             return true;
         }
 
-        bool IDropTarget.DragUpdated(DragUpdatedEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget)
+        bool IDropTarget.DragUpdated(DragUpdatedEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget, ISelection dragSource)
         {
             DragAndDrop.visualMode = DragAndDropVisualMode.Link;
 

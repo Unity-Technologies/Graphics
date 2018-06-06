@@ -36,21 +36,26 @@ namespace UnityEditor.VFX
         // unified binary op
         static public VFXExpression UnifyOp(Func<VFXExpression, VFXExpression, VFXExpression> f, VFXExpression e0, VFXExpression e1)
         {
-            var unifiedExp = VFXOperatorUtility.UpcastAllFloatN(new VFXExpression[2] {e0, e1}).ToArray();
+            var unifiedExp = UpcastAllFloatN(new VFXExpression[2] {e0, e1}).ToArray();
             return f(unifiedExp[0], unifiedExp[1]);
         }
 
         // unified ternary op
         static public VFXExpression UnifyOp(Func<VFXExpression, VFXExpression, VFXExpression, VFXExpression> f, VFXExpression e0, VFXExpression e1, VFXExpression e2)
         {
-            var unifiedExp = VFXOperatorUtility.UpcastAllFloatN(new VFXExpression[3] {e0, e1, e2}).ToArray();
+            var unifiedExp = UpcastAllFloatN(new VFXExpression[3] {e0, e1, e2}).ToArray();
             return f(unifiedExp[0], unifiedExp[1], unifiedExp[2]);
         }
 
         static public VFXExpression Negate(VFXExpression input)
         {
-            var minusOne = VFXOperatorUtility.MinusOneExpression[input.valueType];
+            var minusOne = MinusOneExpression[input.valueType];
             return (minusOne * input);
+        }
+
+        static public VFXExpression Reciprocal(VFXExpression input)
+        {
+            return OneExpression[input.valueType] / input;
         }
 
         static public VFXExpression Mad(VFXExpression input, VFXExpression scale, VFXExpression bias)
@@ -316,7 +321,7 @@ namespace UnityEditor.VFX
         {
             //theta = atan2(coord.y, coord.x)
             //distance = length(coord)
-            var components = VFXOperatorUtility.ExtractComponents(coord).ToArray();
+            var components = ExtractComponents(coord).ToArray();
             var theta = new VFXExpressionATan2(components[1], components[0]);
             var distance = Length(coord);
             return new VFXExpression[] { theta, distance };
@@ -345,7 +350,7 @@ namespace UnityEditor.VFX
             //distance = length(coord)
             //theta = atan2(z, x)
             //phi = asin(y / distance)
-            var components = VFXOperatorUtility.ExtractComponents(coord).ToArray();
+            var components = ExtractComponents(coord).ToArray();
             var distance = Length(coord);
             var theta = new VFXExpressionATan2(components[2], components[0]);
             var phi = new VFXExpressionASin(components[1] / distance);
@@ -413,7 +418,7 @@ namespace UnityEditor.VFX
 
         static public VFXExpression GammaToLinear(VFXExpression gamma)
         {
-            var components = VFXOperatorUtility.ExtractComponents(gamma).ToArray();
+            var components = ExtractComponents(gamma).ToArray();
             if (components.Length != 3 && components.Length != 4)
                 throw new ArgumentException("input expression must be a 3 or 4 components vector");
 
@@ -426,7 +431,7 @@ namespace UnityEditor.VFX
 
         static public VFXExpression LinearToGamma(VFXExpression linear)
         {
-            var components = VFXOperatorUtility.ExtractComponents(linear).ToArray();
+            var components = ExtractComponents(linear).ToArray();
             if (components.Length != 3 && components.Length != 4)
                 throw new ArgumentException("input expression must be a 3 or 4 components vector");
 

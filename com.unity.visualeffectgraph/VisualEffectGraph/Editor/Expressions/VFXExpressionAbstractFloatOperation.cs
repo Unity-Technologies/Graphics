@@ -27,6 +27,11 @@ namespace UnityEditor.VFX
             throw new NotImplementedException();
         }
 
+        sealed protected override bool ProcessUnaryOperation(bool input)
+        {
+            throw new NotImplementedException();
+        }
+
         sealed protected override string GetUnaryOperationCode(string x, VFXValueType type)
         {
             if (type != VFXValueType.Float)
@@ -55,6 +60,11 @@ namespace UnityEditor.VFX
         }
 
         sealed protected override uint ProcessBinaryOperation(uint x, uint y)
+        {
+            throw new NotImplementedException();
+        }
+
+        sealed protected override bool ProcessBinaryOperation(bool x, bool y)
         {
             throw new NotImplementedException();
         }

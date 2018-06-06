@@ -20,6 +20,13 @@ o.VFX_VARYING_POSSS = VFXGetPOSSS(o.VFX_VARYING_POSCS);
 ${VFXLoadParameter:{alphaThreshold}}
 o.VFX_VARYING_ALPHATHRESHOLD = alphaThreshold;
 #endif
+
+#if USE_UV_SCALE_BIAS
+${VFXLoadParameter:{uvScale}}
+${VFXLoadParameter:{uvBias}}
+o.VFX_VARYING_UV.xy = o.VFX_VARYING_UV.xy * uvScale + uvBias;
+#endif
+
 ${VFXEnd}
 
 ${VFXBegin:VFXLoadSize}

@@ -3,6 +3,7 @@ using System.Text;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEditor.Experimental.VFX;
 using UnityEngine.Experimental.VFX;
 using UnityEngine.Profiling;
 
@@ -16,7 +17,7 @@ namespace UnityEditor.VFX
         public VFXExpressionMapper gpuMapper;
         public VFXUniformMapper uniformMapper;
         public VFXMapping[] parameters;
-        public Object processor;
+        public int indexInShaderSource;
     }
 
     class VFXGraphCompiledData
@@ -26,14 +27,6 @@ namespace UnityEditor.VFX
             if (graph == null)
                 throw new ArgumentNullException("VFXGraph cannot be null");
             m_Graph = graph;
-        }
-
-        static public string baseCacheFolder
-        {
-            get
-            {
-                return "Assets/VFXCache";
-            }
         }
 
         private struct GeneratedCodeData
@@ -294,7 +287,7 @@ namespace UnityEditor.VFX
             return data;
         }
 
-        private static void FillSpawner(Dictionary<VFXContext, SpawnInfo> outContextSpawnToSpawnInfo, List<VFXCPUBufferDesc> outCpuBufferDescs, List<VFXSystemDesc> outSystemDescs, IEnumerable<VFXContext> contexts, VFXExpressionGraph graph, List<VFXLayoutElementDesc> globalEventAttributeDescs, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
+        private static void FillSpawner(Dictionary<VFXContext, SpawnInfo> outContextSpawnToSpawnInfo, List<VFXCPUBufferDesc> outCpuBufferDescs, List<VFXEditorSystemDesc> outSystemDescs, IEnumerable<VFXContext> contexts, VFXExpressionGraph graph, List<VFXLayoutElementDesc> globalEventAttributeDescs, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
         {
             var spawners = CollectSpawnersHierarchy(contexts);
             foreach (var it in spawners.Select((spawner, index) => new { spawner, index }))
@@ -334,7 +327,7 @@ namespace UnityEditor.VFX
                 }
 
                 var contextData = contextToCompiledData[spawnContext];
-                outSystemDescs.Add(new VFXSystemDesc()
+                outSystemDescs.Add(new VFXEditorSystemDesc()
                 {
                     buffers = buffers.ToArray(),
                     capacity = 0u,
@@ -378,13 +371,13 @@ namespace UnityEditor.VFX
                                 processor = AssetDatabase.LoadAssetAtPath<TextAsset>(assetPath);
                             }
 
-                            return new VFXTaskDesc
+                            return new VFXEditorTaskDesc
                             {
                                 type = spawnerBlock.spawnerType,
                                 buffers = new VFXMapping[0],
                                 values = cpuExpression.ToArray(),
                                 parameters = contextData.parameters,
-                                processor = processor,
+                                externalProcessor = processor
                             };
                         }).ToArray()
                 });
@@ -482,89 +475,31 @@ namespace UnityEditor.VFX
             }
         }
 
-        private static void SaveShaderFiles(VisualEffectAsset asset, List<GeneratedCodeData> generatedCodeData, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
+        private static void SaveShaderFiles(VisualEffectResource resource, List<GeneratedCodeData> generatedCodeData, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
         {
             Profiler.BeginSample("VFXEditor.SaveShaderFiles");
             try
             {
-                var currentCacheFolder = baseCacheFolder;
-                if (asset != null)
+                VFXShaderSourceDesc[] descs = new VFXShaderSourceDesc[generatedCodeData.Count];
+
+                for (int i = 0; i < generatedCodeData.Count; ++i)
                 {
-                    var path = AssetDatabase.GetAssetPath(asset);
-                    path = path.Replace("Assets", "");
-                    path = path.Replace(".asset", "");
-                    currentCacheFolder += path;
+                    var generated = generatedCodeData[i];
+                    var fileName = string.Format("Temp_{1}_{0}_{2}_{3}.{1}",  VFXCodeGeneratorHelper.GeneratePrefix((uint)i), generated.computeShader ? "compute" : "shader", generated.context.name.ToLower(), generated.compilMode);
+
+                    descs[i].source = generated.content.ToString();
+                    descs[i].name = fileName;
+                    descs[i].compute = generated.computeShader;
                 }
 
-                System.IO.Directory.CreateDirectory(currentCacheFolder);
+                resource.shaderSources = descs;
 
-                Profiler.BeginSample("VFXEditor.SaveShaderFiles.WriteAsset");
-                var generatedIntermediateData = Enumerable.Empty<int>().Select(_ => new
+                for (int i = 0; i < generatedCodeData.Count; ++i)
                 {
-                    context = (VFXContext)null,
-                    needImport = false,
-                    path = string.Empty
-                }).ToArray();
-
-                try
-                {
-                    generatedIntermediateData = generatedCodeData.Select((generated, i) =>
-                        {
-                            var path = string.Format("{0}/Temp_{2}_{1}_{3}_{4}.{2}", currentCacheFolder, VFXCodeGeneratorHelper.GeneratePrefix((uint)i), generated.computeShader ? "compute" : "shader", generated.context.name.ToLower(), generated.compilMode);
-                            var newContent = generated.content.ToString();
-
-                            var oldContent = System.IO.File.Exists(path) ? System.IO.File.ReadAllText(path) : string.Empty;
-                            bool hasChanged = oldContent != newContent;
-                            if (hasChanged)
-                            {
-                                System.IO.File.WriteAllText(path, newContent);
-                            }
-
-                            return new
-                            {
-                                context = generated.context,
-                                needImport = hasChanged,
-                                path = path
-                            };
-                        }).ToArray();
-                }
-                finally
-                {
-                    Profiler.EndSample();
-                }
-
-                if (generatedIntermediateData.Any(o => o.needImport))
-                {
-                    Profiler.BeginSample("VFXEditor.SaveShaderFiles.ImportAsset");
-                    try
-                    {
-                        AssetDatabase.StartAssetEditing();
-                        foreach (var import in generatedIntermediateData.Where(o => o.needImport))
-                        {
-                            AssetDatabase.ImportAsset(import.path);
-                        }
-                        AssetDatabase.StopAssetEditing();
-                    }
-                    finally
-                    {
-                        Profiler.EndSample();
-                    }
-                }
-
-                Profiler.BeginSample("VFXEditor.SaveShaderFiles.LoadAsset");
-                try
-                {
-                    foreach (var generated in generatedIntermediateData)
-                    {
-                        var imported = AssetDatabase.LoadAssetAtPath<Object>(generated.path);
-                        var contextData = contextToCompiledData[generated.context];
-                        contextData.processor = imported;
-                        contextToCompiledData[generated.context] = contextData;
-                    }
-                }
-                finally
-                {
-                    Profiler.EndSample();
+                    var generated = generatedCodeData[i];
+                    var contextData = contextToCompiledData[generated.context];
+                    contextData.indexInShaderSource = i;
+                    contextToCompiledData[generated.context] = contextData;
                 }
             }
             finally
@@ -642,10 +577,10 @@ namespace UnityEditor.VFX
             if (m_Graph.children.Count() < 1)
             {
                 // Cleaning
-                if (m_Graph.visualEffectAsset != null)
+                if (m_Graph.visualEffectResource != null)
                 {
-                    m_Graph.visualEffectAsset.ClearPropertyData();
-                    m_Graph.visualEffectAsset.SetSystems(null, null, null, null);
+                    m_Graph.visualEffectResource.ClearPropertyData();
+                    m_Graph.visualEffectResource.SetSystems(null, null, null, null);
                 }
 
                 m_ExpressionGraph = new VFXExpressionGraph();
@@ -663,7 +598,9 @@ namespace UnityEditor.VFX
                 var models = new HashSet<ScriptableObject>();
                 m_Graph.CollectDependencies(models);
 
-                foreach (var c in models.OfType<VFXContext>()) // Unflag all contexts
+                var contexts = models.OfType<VFXContext>().ToArray();
+
+                foreach (var c in contexts) // Unflag all contexts
                     c.MarkAsCompiled(false);
 
                 var compilableContexts = models.OfType<VFXContext>().Where(c => c.CanBeCompiled());
@@ -724,19 +661,19 @@ namespace UnityEditor.VFX
                 expressionSheet.values = valueDescs.ToArray();
                 expressionSheet.exposed = exposedParameterDescs.ToArray();
 
-                m_Graph.visualEffectAsset.ClearPropertyData();
-                m_Graph.visualEffectAsset.SetExpressionSheet(expressionSheet);
+                m_Graph.visualEffectResource.ClearPropertyData();
+                m_Graph.visualEffectResource.SetExpressionSheet(expressionSheet);
 
                 var generatedCodeData = new List<GeneratedCodeData>();
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generate shaders", 7 / nbSteps);
                 GenerateShaders(generatedCodeData, m_ExpressionGraph, compilableContexts, contextToCompiledData);
-                EditorUtility.DisplayProgressBar(progressBarTitle, "Write shader files", 8 / nbSteps);
-                SaveShaderFiles(m_Graph.visualEffectAsset, generatedCodeData, contextToCompiledData);
+                EditorUtility.DisplayProgressBar(progressBarTitle, "Importing shaders", 8 / nbSteps);
+                SaveShaderFiles(m_Graph.visualEffectResource, generatedCodeData, contextToCompiledData);
 
                 var bufferDescs = new List<VFXGPUBufferDesc>();
                 var cpuBufferDescs = new List<VFXCPUBufferDesc>();
-                var systemDescs = new List<VFXSystemDesc>();
+                var systemDescs = new List<VFXEditorSystemDesc>();
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generate native systems", 9 / nbSteps);
                 cpuBufferDescs.Add(new VFXCPUBufferDesc()
@@ -769,19 +706,22 @@ namespace UnityEditor.VFX
                 }
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Setting up systems", 9 / nbSteps);
-                m_Graph.visualEffectAsset.SetSystems(systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray());
+                m_Graph.visualEffectResource.SetSystems(systemDescs.ToArray(), eventDescs.ToArray(), bufferDescs.ToArray(), cpuBufferDescs.ToArray());
                 m_ExpressionValues = valueDescs;
-                m_Graph.visualEffectAsset.MarkRuntimeVersion();
+                m_Graph.visualEffectResource.MarkRuntimeVersion();
+
+                var assetPath = AssetDatabase.GetAssetPath(visualEffectResource);
+                AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate); //This should compile the shaders on the C++ size
             }
             catch (Exception e)
             {
                 Debug.LogError(string.Format("Exception while compiling expression graph: {0}: {1}", e, e.StackTrace));
 
                 // Cleaning
-                if (m_Graph.visualEffectAsset != null)
+                if (m_Graph.visualEffectResource != null)
                 {
-                    m_Graph.visualEffectAsset.ClearPropertyData();
-                    m_Graph.visualEffectAsset.SetSystems(null, null, null, null);
+                    m_Graph.visualEffectResource.ClearPropertyData();
+                    m_Graph.visualEffectResource.SetSystems(null, null, null, null);
                 }
 
                 m_ExpressionGraph = new VFXExpressionGraph();
@@ -832,16 +772,16 @@ namespace UnityEditor.VFX
                 }
             }
 
-            m_Graph.visualEffectAsset.SetValueSheet(m_ExpressionValues.ToArray());
+            m_Graph.visualEffectResource.SetValueSheet(m_ExpressionValues.ToArray());
         }
 
-        public VisualEffectAsset visualEffectAsset
+        public VisualEffectResource visualEffectResource
         {
             get
             {
                 if (m_Graph != null)
                 {
-                    return m_Graph.visualEffectAsset;
+                    return m_Graph.visualEffectResource;
                 }
                 return null;
             }

@@ -82,7 +82,10 @@ namespace UnityEditor.VFX.UI
             {
                 get;
             }
-
+            public abstract CoordinateSpace space
+            {
+                get;
+            }
 
             protected Dictionary<string, object> m_PropertyCache = new Dictionary<string, object>();
 
@@ -175,6 +178,7 @@ namespace UnityEditor.VFX.UI
             if (!context.IsIndeterminate())
             {
                 gizmo.component = component;
+                gizmo.currentSpace = context.space;
                 gizmo.CallDrawGizmo(context.value);
                 gizmo.component = null;
             }

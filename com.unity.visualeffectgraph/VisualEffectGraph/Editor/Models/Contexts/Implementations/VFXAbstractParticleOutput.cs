@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Serialization;
+using UnityEditor.Experimental.VFX;
 using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
@@ -18,11 +20,12 @@ namespace UnityEditor.VFX
             Opaque,
         }
 
-        public enum FlipbookMode
+        public enum UVMode
         {
-            Off,
+            Simple,
             Flipbook,
             FlipbookBlend,
+            ScaleAndBias
         }
 
         public enum ZWriteMode
@@ -70,8 +73,8 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected ZTestMode zTestMode = ZTestMode.Default;
 
-        [VFXSetting, SerializeField, Header("Particle Options")]
-        protected FlipbookMode flipbookMode;
+        [VFXSetting, SerializeField, Header("Particle Options"), FormerlySerializedAs("flipbookMode")]
+        protected UVMode uvMode;
 
         [VFXSetting, SerializeField]
         protected bool useSoftParticle = false;
@@ -96,12 +99,15 @@ namespace UnityEditor.VFX
 
         public override bool codeGeneratorCompute { get { return false; } }
 
-        public virtual bool supportsFlipbooks { get { return false; } }
+        public virtual bool supportsUV { get { return false; } }
+
         public virtual CullMode defaultCullMode { get { return CullMode.Off; } }
         public virtual ZTestMode defaultZTestMode { get { return ZTestMode.LEqual; } }
 
 
         public virtual bool supportSoftParticles { get { return useSoftParticle && (blendMode != BlendMode.Opaque && blendMode != BlendMode.Masked); } }
+
+        protected bool usesFlipbook { get { return supportsUV && (uvMode == UVMode.Flipbook || uvMode == UVMode.FlipbookBlend); } }
 
         protected virtual IEnumerable<VFXNamedExpression> CollectGPUExpressions(IEnumerable<VFXNamedExpression> slotExpressions)
         {
@@ -115,11 +121,22 @@ namespace UnityEditor.VFX
                 yield return new VFXNamedExpression(invSoftParticleFade, "invSoftParticlesFadeDistance");
             }
 
-            if (flipbookMode != FlipbookMode.Off)
+            if (supportsUV && uvMode != UVMode.Simple)
             {
-                var flipBookSizeExp = slotExpressions.First(o => o.name == "flipBookSize");
-                yield return flipBookSizeExp;
-                yield return new VFXNamedExpression(VFXValue.Constant(Vector2.one) / flipBookSizeExp.exp, "invFlipBookSize");
+                switch (uvMode)
+                {
+                    case UVMode.Flipbook:
+                    case UVMode.FlipbookBlend:
+                        var flipBookSizeExp = slotExpressions.First(o => o.name == "flipBookSize");
+                        yield return flipBookSizeExp;
+                        yield return new VFXNamedExpression(VFXValue.Constant(Vector2.one) / flipBookSizeExp.exp, "invFlipBookSize");
+                        break;
+                    case UVMode.ScaleAndBias:
+                        yield return slotExpressions.First(o => o.name == "uvScale");
+                        yield return slotExpressions.First(o => o.name == "uvBias");
+                        break;
+                    default: throw new NotImplementedException("Unimplemented UVMode: " + uvMode);
+                }
             }
         }
 
@@ -141,12 +158,26 @@ namespace UnityEditor.VFX
                 foreach (var property in PropertiesFromType(GetInputPropertiesTypeName()))
                     yield return property;
 
-                if (flipbookMode != FlipbookMode.Off)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "flipBookSize"), new Vector2(4, 4));
+                if (supportsUV && uvMode != UVMode.Simple)
+                {
+                    switch (uvMode)
+                    {
+                        case UVMode.Flipbook:
+                        case UVMode.FlipbookBlend:
+                            yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "flipBookSize"), new Vector2(4, 4));
+                            break;
+                        case UVMode.ScaleAndBias:
+                            yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "uvScale"), Vector2.one);
+                            yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "uvBias"), Vector2.zero);
+                            break;
+                        default: throw new NotImplementedException("Unimplemented UVMode: " + uvMode);
+                    }
+                }
+
                 if (blendMode == BlendMode.Masked)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "alphaThreshold"), 0.5f);
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "alphaThreshold", VFXPropertyAttribute.Create(new RangeAttribute(0.0f, 1.0f))), 0.5f);
                 if (supportSoftParticles)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "softParticlesFadeDistance"), 1.0f);
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "softParticlesFadeDistance", VFXPropertyAttribute.Create(new MinAttribute(0.0f))), 1.0f);
             }
         }
 
@@ -161,7 +192,7 @@ namespace UnityEditor.VFX
                 if (supportSoftParticles)
                     yield return "USE_SOFT_PARTICLE";
 
-                VisualEffectAsset asset = GetAsset();
+                VisualEffectResource asset = GetResource();
                 if (asset != null)
                 {
                     var settings = asset.rendererSettings;
@@ -174,11 +205,22 @@ namespace UnityEditor.VFX
                 if (HasIndirectDraw())
                     yield return "VFX_HAS_INDIRECT_DRAW";
 
-                if (flipbookMode != FlipbookMode.Off)
+                if (supportsUV && uvMode != UVMode.Simple)
                 {
-                    yield return "USE_FLIPBOOK";
-                    if (flipbookMode == FlipbookMode.FlipbookBlend)
-                        yield return "USE_FLIPBOOK_INTERPOLATION";
+                    switch (uvMode)
+                    {
+                        case UVMode.Flipbook:
+                            yield return "USE_FLIPBOOK";
+                            break;
+                        case UVMode.FlipbookBlend:
+                            yield return "USE_FLIPBOOK";
+                            yield return "USE_FLIPBOOK_INTERPOLATION";
+                            break;
+                        case UVMode.ScaleAndBias:
+                            yield return "USE_UV_SCALE_BIAS";
+                            break;
+                        default: throw new NotImplementedException("Unimplemented UVMode: " + uvMode);
+                    }
                 }
 
                 if (NeedsDeadListCount())
@@ -190,8 +232,8 @@ namespace UnityEditor.VFX
         {
             get
             {
-                if (!supportsFlipbooks)
-                    yield return "flipbookMode";
+                if (!supportsUV)
+                    yield return "uvMode";
 
                 if (blendMode == BlendMode.Masked || blendMode == BlendMode.Opaque)
                     yield return "preRefraction";
