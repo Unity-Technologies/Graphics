@@ -387,7 +387,7 @@ namespace UnityEditor.VFX.UI
 
             Toggle toggleRenderBounds = new Toggle(OnShowBounds);
             toggleRenderBounds.text = "Show Bounds";
-            toggleRenderBounds.value = VisualEffect.renderBounds;
+            toggleRenderBounds.value = VFXDebugUtil.renderBounds;
             m_Toolbar.Add(toggleRenderBounds);
             toggleRenderBounds.AddToClassList("toolbarItem");
 
@@ -1103,7 +1103,7 @@ namespace UnityEditor.VFX.UI
 
         void OnShowBounds()
         {
-            VisualEffect.renderBounds = !VisualEffect.renderBounds;
+            VFXDebugUtil.renderBounds = !VFXDebugUtil.renderBounds;
         }
 
         void OnToggleCompile()
