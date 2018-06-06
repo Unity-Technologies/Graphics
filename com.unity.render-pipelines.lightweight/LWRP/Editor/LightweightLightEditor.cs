@@ -14,8 +14,8 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
         AnimBool m_AnimAreaOptions = new AnimBool();
         AnimBool m_AnimRuntimeOptions = new AnimBool();
         AnimBool m_AnimShadowOptions = new AnimBool();
-        AnimBool m_AnimBakedShadowAngleOptions = new AnimBool();
-        AnimBool m_AnimBakedShadowRadiusOptions = new AnimBool();
+        AnimBool m_AnimShadowAngleOptions = new AnimBool();
+        AnimBool m_AnimShadowRadiusOptions = new AnimBool();
         AnimBool m_AnimLightBounceIntensity = new AnimBool();
 
         class Styles
@@ -170,8 +170,8 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             SetOptions(m_AnimAreaOptions, initialize, areaOptionsValue);
             SetOptions(m_AnimShadowOptions, initialize, shadowOptionsValue);
             SetOptions(m_AnimRuntimeOptions, initialize, runtimeOptionsValue);
-            SetOptions(m_AnimBakedShadowAngleOptions, initialize, bakedShadowAngle);
-            SetOptions(m_AnimBakedShadowRadiusOptions, initialize, bakedShadowRadius);
+            SetOptions(m_AnimShadowAngleOptions, initialize, bakedShadowAngle);
+            SetOptions(m_AnimShadowRadiusOptions, initialize, bakedShadowRadius);
             SetOptions(m_AnimLightBounceIntensity, initialize, showLightBounceIntensity);
         }
 
@@ -206,12 +206,12 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             EditorGUI.indentLevel += 1;
             show *= m_AnimShadowOptions.faded;
             // Baked Shadow radius
-            using (var group = new EditorGUILayout.FadeGroupScope(show * m_AnimBakedShadowRadiusOptions.faded))
+            using (var group = new EditorGUILayout.FadeGroupScope(show * m_AnimShadowRadiusOptions.faded))
                 if (group.visible)
                     settings.DrawBakedShadowRadius();
 
             // Baked Shadow angle
-            using (var group = new EditorGUILayout.FadeGroupScope(show * m_AnimBakedShadowAngleOptions.faded))
+            using (var group = new EditorGUILayout.FadeGroupScope(show * m_AnimShadowAngleOptions.faded))
                 if (group.visible)
                     settings.DrawBakedShadowAngle();
 
