@@ -1,10 +1,11 @@
 
-artifacts/**
-build/**
-DataSource/*
-**/Library/**
-obj/*
-Temp/*
+[Aa]rtifacts/
+[Bb]uild/
+[Ll]ibrary/
+[Oo]bj/
+[Tt]emp/
+[Ss]treaming[Aa]ssets/
+[Ll]og/
 .vs
 .vscode
 .idea
@@ -29,8 +30,3 @@ Temp/*
 ShaderGraph/DebugOutput.meta
 ShaderGraph/DebugOutput/**
 ShaderGraph/Testing/IntegrationTests/.Failed
-TestProjects/GraphicsTests/Temp/
-TestProjects/LWRP/GraphicsTests/Temp/
-TestProjects/LWRP/GraphicsTests/obj/
-TestProjects/ShaderGraph/Temp/
-TestProjects/PostProcessing/Temp/
