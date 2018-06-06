@@ -33,7 +33,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         float[] m_OpaqueScalerValues = {1.0f, 0.5f, 0.25f, 0.25f};
         int m_SampleOffsetShaderHandle;
 
-        const string k_SetupRenderTargetTag = "Setup Render Target";
         const string k_RenderOpaquesTag = "Render Opaques";
         const string k_RenderTransparentsTag = "Render Transparents";
 
@@ -308,7 +307,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         void RenderOpaques(ref ScriptableRenderContext context, ref CullResults cullResults, ref CameraData cameraData, RendererConfiguration rendererConfiguration, bool dynamicBatching)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_RenderOpaquesTag);
-            using (new ProfilingSample(cmd, k_SetupRenderTargetTag))
+            using (new ProfilingSample(cmd, k_RenderOpaquesTag))
             {
                 Camera camera = cameraData.camera;
                 ClearFlag clearFlag = GetCameraClearFlag(camera);
@@ -339,7 +338,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         void RenderTransparents(ref ScriptableRenderContext context, ref CullResults cullResults, ref CameraData cameraData, RendererConfiguration rendererConfiguration, bool dynamicBatching)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_RenderTransparentsTag);
-            using (new ProfilingSample(cmd, k_SetupRenderTargetTag))
+            using (new ProfilingSample(cmd, k_RenderTransparentsTag))
             {
                 Camera camera = cameraData.camera;
                 SetRenderTarget(cmd, RenderBufferLoadAction.Load, RenderBufferStoreAction.Store, ClearFlag.None, Color.black);
