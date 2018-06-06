@@ -1,0 +1,21 @@
+{
+    "name": "HDRP_Tests_Editor",
+    "references": [
+        "com.unity.postprocessing.Editor",
+        "com.unity.render-pipelines.core.Editor",
+        "com.unity.render-pipelines.high-defintion.Editor",
+        "HDRP_Tests",
+        "com.unity.postprocessing.Runtime",
+        "com.unity.render-pipelines.core.IncludePaths",
+        "com.unity.render-pipelines.core.Runtime",
+        "com.unity.render-pipelines.high-definition.Runtime"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false
+}

@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6918f3da28fdc4e47b6f4f6e669f1831, type: 3}
+  m_Name: AdditionalTestSceneInfos
+  m_EditorClassIdentifier: 
+  additionalInfos:
+  - name: 1102
+    comment: Waiting for negative values in BC6H.
+  - name: 1103
+    comment: Waiting for negative values in BC6H.
+  - name: 1206
+    comment: Waiting for negative values in BC6H.
+  - name: 1302
+    comment: Open the scene and apply the correct pipeline.
+  - name: 1303
+    comment: Open the scene and apply the correct pipeline.
+  - name: 2203
+    comment: Scene not finished for the moment.
+  - name: 2301
+    comment: Shadow must be fixed.
+  - name: 2004
+    comment: No animated cookie on point light.

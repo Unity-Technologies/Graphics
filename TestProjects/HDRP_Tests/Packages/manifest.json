@@ -1,0 +1,12 @@
+{
+    "dependencies": {
+		"com.unity.ads": "exclude",
+		"com.unity.analytics": "exclude",
+		"com.unity.standardevents": "exclude",
+		"com.unity.purchasing": "exclude",
+        "com.unity.postprocessing": "file:../../../com.unity.postprocessing", 
+        "com.unity.render-pipelines.core": "file:../../../com.unity.render-pipelines.core",
+        "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
+        "com.unity.render-pipelines.high-definition": "file:../../../com.unity.render-pipelines.high-definition"
+    }
+}
