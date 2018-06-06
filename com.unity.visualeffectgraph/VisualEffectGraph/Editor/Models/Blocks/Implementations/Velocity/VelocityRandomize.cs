@@ -19,7 +19,7 @@ namespace UnityEditor.VFX.Block
                     yield return attribute;
 
                 // we need to add seed only if it's not already present
-                if (speedRandomMode == SpeedRandomMode.Constant)
+                if (speedMode == SpeedMode.Constant)
                     yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
             }
         }

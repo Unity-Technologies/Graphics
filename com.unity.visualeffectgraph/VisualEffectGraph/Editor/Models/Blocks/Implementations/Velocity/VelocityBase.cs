@@ -7,7 +7,7 @@ namespace UnityEditor.VFX.Block
 {
     abstract class VelocityBase : VFXBlock
     {
-        public enum SpeedRandomMode
+        public enum SpeedMode
         {
             Constant,
             Random
@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.Block
         protected AttributeCompositionMode composition = AttributeCompositionMode.Add;
 
         [VFXSetting, SerializeField]
-        protected SpeedRandomMode speedRandomMode = SpeedRandomMode.Constant;
+        protected SpeedMode speedMode = SpeedMode.Constant;
 
         public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdate; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
@@ -30,7 +30,7 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                string speedInputPropertiesClass = speedRandomMode == SpeedRandomMode.Constant ? "InputPropertiesSpeedConstant" : "InputPropertiesSpeedRandom";
+                string speedInputPropertiesClass = speedMode == SpeedMode.Constant ? "InputPropertiesSpeedConstant" : "InputPropertiesSpeedRandom";
 
                 foreach (var property in PropertiesFromType(speedInputPropertiesClass))
                     yield return property;
@@ -85,11 +85,11 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                switch (speedRandomMode)
+                switch (speedMode)
                 {
-                    case SpeedRandomMode.Constant: return "float speed = Speed;";
-                    case SpeedRandomMode.Random: return "float speed = lerp(MinSpeed,MaxSpeed,RAND);";
-                    default: throw new NotImplementedException("Unimplemented random mode: " + speedRandomMode);
+                    case SpeedMode.Constant: return "float speed = Speed;";
+                    case SpeedMode.Random: return "float speed = lerp(MinSpeed,MaxSpeed,RAND);";
+                    default: throw new NotImplementedException("Unimplemented random mode: " + speedMode);
                 }
             }
         }
@@ -106,7 +106,7 @@ namespace UnityEditor.VFX.Block
                 yield return new VFXAttributeInfo(VFXAttribute.Velocity, composition == AttributeCompositionMode.Overwrite ? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite);
                 yield return new VFXAttributeInfo(VFXAttribute.Direction, VFXAttributeMode.ReadWrite);
 
-                if (speedRandomMode != SpeedRandomMode.Constant)
+                if (speedMode != SpeedMode.Constant)
                     yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
             }
         }
