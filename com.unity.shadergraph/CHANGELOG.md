@@ -37,7 +37,8 @@ You can now change the path of Shader Graphs and Sub Graphs. When you change the
 
 ![](.data/face_sign.png)
 
-This node adds the ability to change graph output depending on the face sign of a given fragment. The Is Front Face node returns true if currently rendering a front face, and false if rendering a back face. Enable "two sided" on the Master node to use this functionality.
+With this node, you can change graph output depending on the face sign of a given fragment. If the current fragment is part of a front face, the node returns True. For a back face, the node returns False.
+Note: This functionality requires that you have enabled **two sided** on the Master node.
 
 ### Gradient nodes
 
