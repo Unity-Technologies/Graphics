@@ -24,7 +24,7 @@ namespace UnityEngine.Experimental.VFX.Utility
         [Tooltip("Computes intersection in world space and sets it to the position EventAttribute")]
         public bool RaycastMousePosition = false;
 
-        protected override void SetEventAttribute(Object[] parameters)
+        protected override void SetEventAttribute(object[] parameters)
         {
             if (RaycastMousePosition)
             {

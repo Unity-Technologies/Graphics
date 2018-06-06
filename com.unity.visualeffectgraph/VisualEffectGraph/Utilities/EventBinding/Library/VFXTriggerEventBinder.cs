@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace UnityEngine.Experimental.VFX.Utility
 {
@@ -20,7 +19,7 @@ namespace UnityEngine.Experimental.VFX.Utility
 
         private ExposedParameter positionParameter = "position";
 
-        protected override void SetEventAttribute(Object[] parameters)
+        protected override void SetEventAttribute(object[] parameters)
         {
             Collider collider = (Collider)parameters[0];
             eventAttribute.SetVector3(positionParameter, collider.transform.position);

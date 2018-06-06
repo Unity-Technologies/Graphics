@@ -1,7 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
-
 using UnityEngine.Experimental.VFX;
 
 namespace UnityEngine.Experimental.VFX.Utility
@@ -23,9 +21,9 @@ namespace UnityEngine.Experimental.VFX.Utility
                 eventAttribute = null;
         }
 
-        protected abstract void SetEventAttribute(Object[] parameters = null);
+        protected abstract void SetEventAttribute(object[] parameters = null);
 
-        protected void SendEventToVisualEffect(params Object[] parameters)
+        protected void SendEventToVisualEffect(params object[] parameters)
         {
             if (target != null)
             {
