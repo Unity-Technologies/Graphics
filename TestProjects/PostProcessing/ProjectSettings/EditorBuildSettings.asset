@@ -5,9 +5,6 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
-    path: 
-    guid: 00000000000000000000000000000000
   - enabled: 1
     path: Assets/Scenes/0001_Std_Empty_Forward_LDR_NoMSAA.unity
     guid: 8fc5aad14bb29264f87f269762897676
