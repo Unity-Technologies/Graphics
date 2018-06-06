@@ -12,13 +12,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         struct AttributesMesh
         {
             [Semantic("POSITION")]              Vector3 positionOS;
-            [Semantic("NORMAL")][Optional]      Vector3 normalOS;
-            [Semantic("TANGENT")][Optional]     Vector4 tangentOS;       // Stores bi-tangent sign in w
-            [Semantic("TEXCOORD0")][Optional]   Vector2 uv0;
-            [Semantic("TEXCOORD1")][Optional]   Vector2 uv1;
-            [Semantic("TEXCOORD2")][Optional]   Vector2 uv2;
-            [Semantic("TEXCOORD3")][Optional]   Vector2 uv3;
-            [Semantic("COLOR")][Optional]       Vector4 color;
+            [Semantic("NORMAL")][Optional]     Vector3 normalOS;
+            [Semantic("TANGENT")][Optional]    Vector4 tangentOS;       // Stores bi-tangent sign in w
+            [Semantic("TEXCOORD0")][Optional]  Vector2 uv0;
+            [Semantic("TEXCOORD1")][Optional]  Vector2 uv1;
+            [Semantic("TEXCOORD2")][Optional]  Vector2 uv2;
+            [Semantic("TEXCOORD3")][Optional]  Vector2 uv3;
+            [Semantic("COLOR")][Optional]      Vector4 color;
         };
 
         struct VaryingsMeshToPS
@@ -132,6 +132,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             [Optional] Vector4 uv2;
             [Optional] Vector4 uv3;
             [Optional] Vector4 VertexColor;
+            [Optional] float FaceSign;
 
             public static Dependency[] dependencies = new Dependency[]
             {
@@ -165,6 +166,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 new Dependency("SurfaceDescriptionInputs.uv2",                       "FragInputs.texCoord2"),
                 new Dependency("SurfaceDescriptionInputs.uv3",                       "FragInputs.texCoord3"),
                 new Dependency("SurfaceDescriptionInputs.VertexColor",               "FragInputs.color"),
+                new Dependency("SurfaceDescriptionInputs.FaceSign",                 "FragInputs.isFrontFace"),
             };
         };
 
@@ -344,6 +346,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (requirements.requiresVertexColor)
             {
                 activeFields.Add("SurfaceDescriptionInputs.VertexColor");
+            }
+
+            if (requirements.requiresFaceSign)
+            {
+                activeFields.Add("SurfaceDescriptionInputs.FaceSign");
             }
 
             if (requirements.requiresNormal != 0)
