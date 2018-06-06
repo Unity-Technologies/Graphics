@@ -12,6 +12,20 @@ using LightweightRP = UnityEngine.Experimental.Rendering.LightweightPipeline.Lig
 
 namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 {
+    public static class LightweightKeyword
+    {
+        public static readonly ShaderKeyword AdditionalLights = new ShaderKeyword(LightweightKeywordStrings.AdditionalLights);
+        public static readonly ShaderKeyword VertexLights = new ShaderKeyword(LightweightKeywordStrings.VertexLights);
+        public static readonly ShaderKeyword MixedLightingSubtractive = new ShaderKeyword(LightweightKeywordStrings.MixedLightingSubtractive);
+        public static readonly ShaderKeyword MainLightCookie = new ShaderKeyword(LightweightKeywordStrings.MainLightCookie);
+        public static readonly ShaderKeyword DirectionalShadows = new ShaderKeyword(LightweightKeywordStrings.DirectionalShadows);
+        public static readonly ShaderKeyword LocalShadows = new ShaderKeyword(LightweightKeywordStrings.LocalShadows);
+        public static readonly ShaderKeyword SoftShadows = new ShaderKeyword(LightweightKeywordStrings.SoftShadows);
+
+        public static readonly ShaderKeyword Lightmap = new ShaderKeyword("LIGHTMAP_ON");
+        public static readonly ShaderKeyword DirectionalLightmap = new ShaderKeyword("DIRLIGHTMAP_COMBINED");
+    }
+
     public class ShaderPreprocessor : IPreprocessShaders
     {
 #if LOG_VARIANTS
@@ -52,23 +66,23 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
         bool StripUnusedVariant(PipelineCapabilities capabilities, ShaderCompilerData compilerData)
         {
-            if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeywords.AdditionalLights) &&
+            if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeyword.AdditionalLights) &&
                 !CoreUtils.HasFlag(capabilities, PipelineCapabilities.AdditionalLights))
                 return true;
 
-            if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeywords.VertexLights) &&
+            if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeyword.VertexLights) &&
                 !CoreUtils.HasFlag(capabilities, PipelineCapabilities.VertexLights))
                 return true;
 
-            if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeywords.DirectionalShadows) &&
+            if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeyword.DirectionalShadows) &&
                 !CoreUtils.HasFlag(capabilities, PipelineCapabilities.DirectionalShadows))
                 return true;
 
-            if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeywords.LocalShadows) &&
+            if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeyword.LocalShadows) &&
                 !CoreUtils.HasFlag(capabilities, PipelineCapabilities.LocalShadows))
                 return true;
 
-            if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeywords.SoftShadows) &&
+            if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeyword.SoftShadows) &&
                 !CoreUtils.HasFlag(capabilities, PipelineCapabilities.SoftShadows))
                 return true;
 
@@ -77,19 +91,19 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
         bool StripInvalidVariants(ShaderCompilerData compilerData)
         {
-            bool isShadowVariant = compilerData.shaderKeywordSet.IsEnabled(LightweightKeywords.DirectionalShadows) ||
-                compilerData.shaderKeywordSet.IsEnabled(LightweightKeywords.LocalShadows);
+            bool isShadowVariant = compilerData.shaderKeywordSet.IsEnabled(LightweightKeyword.DirectionalShadows) ||
+                compilerData.shaderKeywordSet.IsEnabled(LightweightKeyword.LocalShadows);
 
-            if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeywords.SoftShadows) && !isShadowVariant)
+            if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeyword.SoftShadows) && !isShadowVariant)
                 return true;
 
-            if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeywords.VertexLights) &&
-                !compilerData.shaderKeywordSet.IsEnabled(LightweightKeywords.AdditionalLights))
+            if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeyword.VertexLights) &&
+                !compilerData.shaderKeywordSet.IsEnabled(LightweightKeyword.AdditionalLights))
                 return true;
 
             // Note: LWRP doesn't support Dynamic Lightmap.
-            if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeywords.DirectionalLightmap) &&
-                !compilerData.shaderKeywordSet.IsEnabled(LightweightKeywords.Lightmap))
+            if (compilerData.shaderKeywordSet.IsEnabled(LightweightKeyword.DirectionalLightmap) &&
+                !compilerData.shaderKeywordSet.IsEnabled(LightweightKeyword.Lightmap))
                 return true;
 
             return false;
