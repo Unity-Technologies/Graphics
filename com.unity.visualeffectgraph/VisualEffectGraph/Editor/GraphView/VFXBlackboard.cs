@@ -627,7 +627,10 @@ namespace  UnityEditor.VFX.UI
 
         void OnAddParameter(object parameter)
         {
-            m_Controller.AddVFXParameter(Vector2.zero, (VFXModelDescriptorParameters)parameter);
+            var selectedCategory = m_View.selection.OfType<VFXBlackboardCategory>().FirstOrDefault();
+            VFXParameter newParam = m_Controller.AddVFXParameter(Vector2.zero, (VFXModelDescriptorParameters)parameter);
+            if (selectedCategory != null && newParam != null)
+                newParam.category = selectedCategory.title;
         }
 
         void OnAddItem(Blackboard bb)
