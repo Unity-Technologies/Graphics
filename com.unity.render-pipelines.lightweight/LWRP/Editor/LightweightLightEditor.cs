@@ -8,15 +8,15 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
     [CustomEditorForRenderPipeline(typeof(Light), typeof(LightweightPipelineAsset))]
     class LightweightLightEditor : LightEditor
     {
-        AnimBool m_AnimShowSpotOptions = new AnimBool();
-        AnimBool m_AnimShowPointOptions = new AnimBool();
-        AnimBool m_AnimShowDirOptions = new AnimBool();
-        AnimBool m_AnimShowAreaOptions = new AnimBool();
-        AnimBool m_AnimShowRuntimeOptions = new AnimBool();
-        AnimBool m_AnimShowShadowOptions = new AnimBool();
+        AnimBool m_AnimSpotOptions = new AnimBool();
+        AnimBool m_AnimPointOptions = new AnimBool();
+        AnimBool m_AnimDirOptions = new AnimBool();
+        AnimBool m_AnimAreaOptions = new AnimBool();
+        AnimBool m_AnimRuntimeOptions = new AnimBool();
+        AnimBool m_AnimShadowOptions = new AnimBool();
         AnimBool m_AnimBakedShadowAngleOptions = new AnimBool();
         AnimBool m_AnimBakedShadowRadiusOptions = new AnimBool();
-        AnimBool m_AnimShowLightBounceIntensity = new AnimBool();
+        AnimBool m_AnimLightBounceIntensity = new AnimBool();
 
         class Styles
         {
@@ -97,17 +97,17 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
             // When we are switching between two light types that don't show the range (directional and area lights)
             // we want the fade group to stay hidden.
-            using (var group = new EditorGUILayout.FadeGroupScope(1.0f - m_AnimShowDirOptions.faded))
+            using (var group = new EditorGUILayout.FadeGroupScope(1.0f - m_AnimDirOptions.faded))
                 if (group.visible)
-                    settings.DrawRange(m_AnimShowAreaOptions.target);
+                    settings.DrawRange(m_AnimAreaOptions.target);
 
             // Spot angle
-            using (var group = new EditorGUILayout.FadeGroupScope(m_AnimShowSpotOptions.faded))
+            using (var group = new EditorGUILayout.FadeGroupScope(m_AnimSpotOptions.faded))
                 if (group.visible)
                     DrawSpotAngle();
 
             // Area width & height
-            using (var group = new EditorGUILayout.FadeGroupScope(m_AnimShowAreaOptions.faded))
+            using (var group = new EditorGUILayout.FadeGroupScope(m_AnimAreaOptions.faded))
                 if (group.visible)
                     settings.DrawArea();
 
@@ -115,13 +115,13 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
             EditorGUILayout.Space();
 
-            using (var group = new EditorGUILayout.FadeGroupScope(1.0f - m_AnimShowAreaOptions.faded))
+            using (var group = new EditorGUILayout.FadeGroupScope(1.0f - m_AnimAreaOptions.faded))
                 if (group.visible)
                     settings.DrawLightmapping();
 
             settings.DrawIntensity();
 
-            using (var group = new EditorGUILayout.FadeGroupScope(m_AnimShowLightBounceIntensity.faded))
+            using (var group = new EditorGUILayout.FadeGroupScope(m_AnimLightBounceIntensity.faded))
                 if (group.visible)
                     settings.DrawBounceIntensity();
 
@@ -164,15 +164,15 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
         void UpdateShowOptions(bool initialize)
         {
-            SetOptions(m_AnimShowSpotOptions, initialize, spotOptionsValue);
-            SetOptions(m_AnimShowPointOptions, initialize, pointOptionsValue);
-            SetOptions(m_AnimShowDirOptions, initialize, dirOptionsValue);
-            SetOptions(m_AnimShowAreaOptions, initialize, areaOptionsValue);
-            SetOptions(m_AnimShowShadowOptions, initialize, shadowOptionsValue);
-            SetOptions(m_AnimShowRuntimeOptions, initialize, runtimeOptionsValue);
+            SetOptions(m_AnimSpotOptions, initialize, spotOptionsValue);
+            SetOptions(m_AnimPointOptions, initialize, pointOptionsValue);
+            SetOptions(m_AnimDirOptions, initialize, dirOptionsValue);
+            SetOptions(m_AnimAreaOptions, initialize, areaOptionsValue);
+            SetOptions(m_AnimShadowOptions, initialize, shadowOptionsValue);
+            SetOptions(m_AnimRuntimeOptions, initialize, runtimeOptionsValue);
             SetOptions(m_AnimBakedShadowAngleOptions, initialize, bakedShadowAngle);
             SetOptions(m_AnimBakedShadowRadiusOptions, initialize, bakedShadowRadius);
-            SetOptions(m_AnimShowLightBounceIntensity, initialize, showLightBounceIntensity);
+            SetOptions(m_AnimLightBounceIntensity, initialize, showLightBounceIntensity);
         }
 
         void DrawSpotAngle()
@@ -199,12 +199,12 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
         void ShadowsGUI()
         {
             // Shadows drop-down. Area lights can only be baked and always have shadows.
-            float show = 1.0f - m_AnimShowAreaOptions.faded;
+            float show = 1.0f - m_AnimAreaOptions.faded;
             using (new EditorGUILayout.FadeGroupScope(show))
                 settings.DrawShadowsType();
 
             EditorGUI.indentLevel += 1;
-            show *= m_AnimShowShadowOptions.faded;
+            show *= m_AnimShadowOptions.faded;
             // Baked Shadow radius
             using (var group = new EditorGUILayout.FadeGroupScope(show * m_AnimBakedShadowRadiusOptions.faded))
                 if (group.visible)
@@ -216,7 +216,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
                     settings.DrawBakedShadowAngle();
 
             // Runtime shadows - shadow strength, resolution, bias
-            using (var group = new EditorGUILayout.FadeGroupScope(show * m_AnimShowRuntimeOptions.faded))
+            using (var group = new EditorGUILayout.FadeGroupScope(show * m_AnimRuntimeOptions.faded))
                 if (group.visible)
                     settings.DrawRuntimeShadow();
             EditorGUI.indentLevel -= 1;
