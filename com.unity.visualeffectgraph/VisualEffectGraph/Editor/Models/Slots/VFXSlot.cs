@@ -573,8 +573,17 @@ namespace UnityEditor.VFX
                     if (!s.property.IsExpandable())
                         return;
 
-                    var fields = s.property.type.GetFields(BindingFlags.Public | BindingFlags.Instance).ToArray();
+                    var spaceAttributeOnType = s.property.type.GetCustomAttributes(typeof(VFXSpaceAttribute), true).FirstOrDefault();
+                    if (spaceAttributeOnType != null)
+                    {
+                        spaceableCollection.Add(new SpaceSlotConcerned
+                        {
+                            slot = s,
+                            type = (spaceAttributeOnType as VFXSpaceAttribute).type
+                        });
+                    }
 
+                    var fields = s.property.type.GetFields(BindingFlags.Public | BindingFlags.Instance).ToArray();
                     if (fields.Length != s.children.Count())
                         throw new InvalidOperationException("Unexpected slot count for : " + s.property.type.ToString());
 
@@ -589,14 +598,19 @@ namespace UnityEditor.VFX
                                 slot = slot.GetParent();
                             }
 
-                            spaceableCollection.Add(new SpaceSlotConcerned()
-                        {
-                            slot = slot,
-                            type = (spaceAttribute as VFXSpaceAttribute).type
-                        });
+                            spaceableCollection.Add(new SpaceSlotConcerned
+                            {
+                                slot = slot,
+                                type = (spaceAttribute as VFXSpaceAttribute).type
+                            });
                         }
                     }
                 });
+
+            if (spaceableCollection.GroupBy(s => s.slot).Any(g => g.Count() > 1))
+            {
+                Debug.LogErrorFormat("Unexpected space collection computed for {0}", masterSlot.property.type);
+            }
 
             masterSlot.m_SlotsSpaceable = spaceableCollection.ToArray();
             if (masterSlot.m_SlotsSpaceable.Any())
