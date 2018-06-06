@@ -537,7 +537,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return defines.GetShaderString(2);
         }
 
-        private static bool GenerateShaderPass(PBRMasterNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions, ShaderGenerator result)
+        private static bool GenerateShaderPass(PBRMasterNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
         {
             var templateLocation = Path.Combine(Path.Combine(Path.Combine(HDEditorUtils.GetHDRenderPipelinePath(), "Editor"), "ShaderGraph"), pass.TemplateName);
             if (!File.Exists(templateLocation))
@@ -545,6 +545,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // TODO: produce error here
                 return false;
             }
+
+            if (sourceAssetDependencyPaths != null)
+                sourceAssetDependencyPaths.Add(templateLocation);
 
             // grab all of the active nodes
             var activeNodeList = ListPool<INode>.Get();
@@ -722,8 +725,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return true;
         }
 
-        public string GetSubshader(IMasterNode iMasterNode, GenerationMode mode)
+        public string GetSubshader(IMasterNode iMasterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
         {
+            if (sourceAssetDependencyPaths != null)
+            {
+                // HDPBRSubShader.cs
+                sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("c4e8610eb7ce19747bb637c68acc55cd"));
+                // HDSubShaderUtilities.cs
+                sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("713ced4e6eef4a44799a4dd59041484b"));
+            }
+
             var masterNode = iMasterNode as PBRMasterNode;
             var subShader = new ShaderGenerator();
             subShader.AddShaderChunk("SubShader", true);
@@ -749,39 +760,39 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 if (opaque)
                 {
-                    GenerateShaderPass(masterNode, m_PassGBuffer, mode, materialOptions, subShader);
-                    GenerateShaderPass(masterNode, m_PassGBufferWithPrepass, mode, materialOptions, subShader);
+                    GenerateShaderPass(masterNode, m_PassGBuffer, mode, materialOptions, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPass(masterNode, m_PassGBufferWithPrepass, mode, materialOptions, subShader, sourceAssetDependencyPaths);
                 }
 
-                GenerateShaderPass(masterNode, m_PassMETA, mode, materialOptions, subShader);
-                GenerateShaderPass(masterNode, m_PassShadowCaster, mode, materialOptions, subShader);
+                GenerateShaderPass(masterNode, m_PassMETA, mode, materialOptions, subShader, sourceAssetDependencyPaths);
+                GenerateShaderPass(masterNode, m_PassShadowCaster, mode, materialOptions, subShader, sourceAssetDependencyPaths);
 
                 if (opaque)
                 {
-                    GenerateShaderPass(masterNode, m_PassDepthOnly, mode, materialOptions, subShader);
-                    GenerateShaderPass(masterNode, m_PassMotionVectors, mode, materialOptions, subShader);
+                    GenerateShaderPass(masterNode, m_PassDepthOnly, mode, materialOptions, subShader, sourceAssetDependencyPaths);
+                    GenerateShaderPass(masterNode, m_PassMotionVectors, mode, materialOptions, subShader, sourceAssetDependencyPaths);
                 }
 
                 if (distortionActive)
                 {
-                    GenerateShaderPass(masterNode, m_PassDistortion, mode, materialOptions, subShader);
+                    GenerateShaderPass(masterNode, m_PassDistortion, mode, materialOptions, subShader, sourceAssetDependencyPaths);
                 }
 
                 if (transparentDepthPrepassActive)
                 {
-                    GenerateShaderPass(masterNode, m_PassTransparentDepthPrepass, mode, materialOptions, subShader);
+                    GenerateShaderPass(masterNode, m_PassTransparentDepthPrepass, mode, materialOptions, subShader, sourceAssetDependencyPaths);
                 }
 
                 if (transparentBackfaceActive)
                 {
-                    GenerateShaderPass(masterNode, m_PassTransparentBackface, mode, materialOptions, subShader);
+                    GenerateShaderPass(masterNode, m_PassTransparentBackface, mode, materialOptions, subShader, sourceAssetDependencyPaths);
                 }
 
-                GenerateShaderPass(masterNode, m_PassForward, mode, materialOptions, subShader);
+                GenerateShaderPass(masterNode, m_PassForward, mode, materialOptions, subShader, sourceAssetDependencyPaths);
 
                 if (transparentDepthPostpassActive)
                 {
-                    GenerateShaderPass(masterNode, m_PassTransparentDepthPostpass, mode, materialOptions, subShader);
+                    GenerateShaderPass(masterNode, m_PassTransparentDepthPostpass, mode, materialOptions, subShader, sourceAssetDependencyPaths);
                 }
             }
             subShader.Deindent();
