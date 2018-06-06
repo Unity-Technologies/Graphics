@@ -20,7 +20,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         List<int> m_LocalLightIndices = new List<int>();
 
         bool m_IsCameraRendering;
-        const string k_CameraProfilerTag = "Render Camera";
 
         public LightweightPipeline(LightweightPipelineAsset asset)
         {
@@ -76,8 +75,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             foreach (Camera camera in cameras)
             {
                 BeginCameraRendering(camera);
-                CommandBuffer cmd = CommandBufferPool.Get(k_CameraProfilerTag);
-                using (new ProfilingSample(cmd, k_CameraProfilerTag))
+                string renderCameraTag = "Render " + camera.name;
+                CommandBuffer cmd = CommandBufferPool.Get(renderCameraTag);
+                using (new ProfilingSample(cmd, renderCameraTag))
                 {
                     CameraData cameraData;
                     InitializeCameraData(camera, out cameraData);
