@@ -32,7 +32,7 @@ This adds gradient functionality via two new nodes. The Sample Gradient node sam
 
 ![](.data/sphereMask.png)
 
-With this node, you can create a sphere mask. Indicate the starting coordinate and center point, and the sphere mask will use these with the Radius and Hardness parameters. Sphere mask functionality works in both 2D and 3D spaces, and is based on the vector coordinates in the Coords and Center input.
+With this node, you can create a sphere mask. Indicate the starting coordinate and center point, and the sphere mask will use these with the **Radius** and **Hardness** parameters. Sphere mask functionality works in both 2D and 3D spaces, and is based on the vector coordinates in the **Coords and Center** input.
 
 ### Show generated code
 
