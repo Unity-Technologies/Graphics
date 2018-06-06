@@ -93,6 +93,8 @@ Shader ""Hidden/GraphErrorShader2""
         {
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
             var graph = JsonUtility.FromJson<MaterialGraph>(textGraph);
+
+//            var graph = JsonSerializer.Deserialize<MaterialGraph>(textGraph, CompositeResolver.Create(new IJsonFormatter[] {}, new [] {UnityResolver.Instance, JsonSerializer.DefaultResolver}));
             graph.LoadedFromDisk();
 
             if (!string.IsNullOrEmpty(graph.path))

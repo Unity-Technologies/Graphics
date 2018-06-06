@@ -370,9 +370,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                         var results = m_Graph.GetUberColorShader();
                         m_OutputIdName = results.outputIdProperty.referenceName;
                         ShaderUtil.UpdateShaderAsset(m_ColorShader, results.shader);
-                        var debugOutputPath = DefaultShaderIncludes.GetDebugOutputPath();
-                        if (debugOutputPath != null)
-                            File.WriteAllText(debugOutputPath + "/ColorShader.shader", (results.shader ?? "null").Replace("UnityEngine.MaterialGraph", "Generated"));
+                        File.WriteAllText(Path.GetFullPath("Assets/" + "/ColorShader.shader"), (results.shader ?? "null").Replace("UnityEngine.MaterialGraph", "Generated"));
                         bool uberShaderHasError = false;
                         if (MaterialGraphAsset.ShaderHasError(m_ColorShader))
                         {
