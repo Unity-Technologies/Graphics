@@ -7,7 +7,7 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    public class LitShaderPreprocessor : ShaderPreprocessorMaterial
+    public class LitShaderPreprocessor : BaseShaderPreprocessor
     {
         bool LitShaderStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
         {
@@ -16,7 +16,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             bool isGBufferPass = snippet.passName == "GBuffer";
             bool isForwardPass = snippet.passName == "Forward";
-            bool isTransparentForwardPass = snippet.passName == "TransparentDepthPostpass" || snippet.passName == "TransparentBackface" || snippet.passName == "TransparentDepthPrepass";          
+            bool isTransparentForwardPass = snippet.passName == "TransparentDepthPostpass" || snippet.passName == "TransparentBackface" || snippet.passName == "TransparentDepthPrepass";
 
             // When using forward only, we never need GBuffer pass (only Forward)
             if (hdrpAsset.renderPipelineSettings.supportOnlyForward && isGBufferPass)
