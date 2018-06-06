@@ -11,7 +11,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     // returns true if the variant should be stripped.
     public delegate bool VariantStrippingFunc(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData);
 
-    public class ShaderPreprocessorMaterial
+    public class BaseShaderPreprocessor
     {
         protected ShaderKeyword m_ShadowMask;
         protected ShaderKeyword m_Transparent;
@@ -19,7 +19,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected ShaderKeyword m_TileLighting;
         protected ShaderKeyword m_ClusterLighting;
 
-        public ShaderPreprocessorMaterial()
+        public BaseShaderPreprocessor()
         {
             m_Transparent = new ShaderKeyword("_SURFACE_TYPE_TRANSPARENT");
             m_DebugDisplay = new ShaderKeyword("DEBUG_DISPLAY");

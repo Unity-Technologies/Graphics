@@ -24,10 +24,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             m_StripperFuncs = new Dictionary<string, VariantStrippingFunc>();
 
-            List<ShaderPreprocessorMaterial> materialList = HDEditorUtils.GetShaderPreprocessorMaterialList();
+            List<BaseShaderPreprocessor> materialList = HDEditorUtils.GetBaseShaderPreprocessorList();
 
             // Fill the dictionary with material to handle
-            foreach (ShaderPreprocessorMaterial material in materialList)
+            foreach (BaseShaderPreprocessor material in materialList)
             {
                 material.AddStripperFuncs(m_StripperFuncs);
             }

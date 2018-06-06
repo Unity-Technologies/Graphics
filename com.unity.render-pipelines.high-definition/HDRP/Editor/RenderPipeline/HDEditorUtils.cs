@@ -49,15 +49,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return false;
         }
 
-        public static List<ShaderPreprocessorMaterial> GetShaderPreprocessorMaterialList()
+        public static List<BaseShaderPreprocessor> GetBaseShaderPreprocessorList()
         {
-            var baseType = typeof(ShaderPreprocessorMaterial);
+            var baseType = typeof(BaseShaderPreprocessor);
             var assembly = baseType.Assembly;
 
             var types = assembly.GetTypes()
                 .Where(t => t.IsSubclassOf(baseType))
                 .Select(Activator.CreateInstance)
-                .Cast<ShaderPreprocessorMaterial>()
+                .Cast<BaseShaderPreprocessor>()
                 .ToList();
 
             return types;
