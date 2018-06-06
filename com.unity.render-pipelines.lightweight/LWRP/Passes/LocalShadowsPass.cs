@@ -14,7 +14,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         ShadowSliceData[] m_LocalLightSlices;
         float[] m_LocalShadowStrength;
 
-        const string k_SetupRenderTargetTag = "Setup Render Target";
         const string k_RenderLocalShadows = "Render Local Shadows";
 
         public LocalShadowsPass(LightweightForwardRenderer renderer) : base(renderer)
@@ -94,7 +93,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             int shadowSampling = 0;
 
             CommandBuffer cmd = CommandBufferPool.Get(k_RenderLocalShadows);
-            using (new ProfilingSample(cmd, k_SetupRenderTargetTag))
+            using (new ProfilingSample(cmd, k_RenderLocalShadows))
             {
                 // TODO: Add support to point light shadows. We make a simplification here that only works
                 // for spot lights and with max spot shadows per pass.
