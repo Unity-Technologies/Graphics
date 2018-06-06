@@ -417,7 +417,10 @@ real3 EvalIridescence(real eta_1, real cosTheta1, real iridescenceThickness, rea
     // real eta_2 = lerp(eta_1, eta_2, smoothstep(0.0, 0.03, Dinc));
     // Evaluate the cosTheta on the base layer (Snell law)
     real sinTheta2 = Sq(eta_1 / eta_2) * (1.0 - Sq(cosTheta1));
-    //debug: TIR if( sinTheta2 > 1.0 ) return real3(1.0, 0.0, 0.0);
+#ifdef UNITY_MATERIAL_STACKLIT
+    //TIR 
+    if( sinTheta2 > 1.0 ) return real3(1.0, 1.0, 1.0);
+#endif
     real cosTheta2 = sqrt(1.0 - sinTheta2);
 
     // First interface
