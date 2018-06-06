@@ -27,8 +27,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         MaterialGraphView m_GraphView;
         MasterPreviewView m_MasterPreviewView;
 
-        private EditorWindow m_EditorWindow;
-
         AbstractMaterialGraph m_Graph;
         PreviewManager m_PreviewManager;
         SearchWindowProvider m_SearchWindowProvider;
@@ -63,7 +61,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             m_Graph = graph;
             AddStyleSheetPath("Styles/GraphEditorView");
-            m_EditorWindow = editorWindow;
             previewManager = new PreviewManager(graph);
 
             string serializedWindowLayout = EditorUserSettings.GetConfigValue(k_FloatingWindowsLayoutKey);

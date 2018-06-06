@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using UnityEditor;
 using UnityEditor.Experimental.Rendering.LightweightPipeline;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
@@ -37,12 +38,24 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         };
 
-        public string GetSubshader(IMasterNode inMasterNode, GenerationMode mode)
+        public string GetSubshader(IMasterNode inMasterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
         {
+            if (sourceAssetDependencyPaths != null)
+            {
+                // LightWeightUnlitSubShader.cs
+                sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("3ef30c5c1d5fc412f88511ef5818b654"));
+            }
+
             var templatePath = GetTemplatePath("lightweightUnlitPass.template");
             var extraPassesTemplatePath = GetTemplatePath("lightweightUnlitExtraPasses.template");
             if (!File.Exists(templatePath) || !File.Exists(extraPassesTemplatePath))
                 return string.Empty;
+
+            if (sourceAssetDependencyPaths != null)
+            {
+                sourceAssetDependencyPaths.Add(templatePath);
+                sourceAssetDependencyPaths.Add(extraPassesTemplatePath);
+            }
 
             string forwardTemplate = File.ReadAllText(templatePath);
             string extraTemplate = File.ReadAllText(extraPassesTemplatePath);
@@ -75,14 +88,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         static string GetTemplatePath(string templateName)
         {
-            string relativeTemplatePath = Path.Combine("LWRP", Path.Combine("Editor", Path.Combine("ShaderGraph", templateName)));
-            foreach (var path in LightweightIncludePaths.GetPaths())
-            {
-                var templatePath = Path.Combine(path, relativeTemplatePath);
-                if (File.Exists(templatePath))
-                    return templatePath;
-            }
-            throw new FileNotFoundException(string.Format(@"Cannot find a template with name ""{0}"".", templateName));
+            var pathSegments = new[] { "Packages", "com.unity.render-pipelines.lightweight", "LWRP", "Editor", "ShaderGraph", templateName };
+            var path = pathSegments.Aggregate("", Path.Combine);
+            if (!File.Exists(path))
+                throw new FileNotFoundException(string.Format(@"Cannot find a template with name ""{0}"".", templateName));
+            return path;
         }
 
         static string GetShaderPassFromTemplate(string template, UnlitMasterNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions)
@@ -124,7 +134,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // Get Slot and Node lists per stage
 
             var vertexSlots = pass.VertexShaderSlots.Select(masterNode.FindSlot<MaterialSlot>).ToList();
-            var vertexNodes = ListPool<AbstractMaterialNode>.Get();
+            var vertexNodes = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.VertexShaderSlots);
 
             var pixelSlots = pass.PixelShaderSlots.Select(masterNode.FindSlot<MaterialSlot>).ToList();
@@ -239,6 +249,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (surfaceRequirements.requiresScreenPosition)
                     surfaceDescriptionInputStruct.AppendLine("float4 {0};", ShaderGeneratorNames.ScreenPosition);
 
+                if (surfaceRequirements.requiresFaceSign)
+                    surfaceDescriptionInputStruct.AppendLine("float {0};", ShaderGeneratorNames.FaceSign);
+
                 foreach (var channel in surfaceRequirements.requiresMeshUVs.Distinct())
                     surfaceDescriptionInputStruct.AppendLine("half4 {0};", channel.GetUVName());
             }
@@ -301,6 +314,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 pixelShaderSurfaceRemap.AppendLine("{0} = surf.{0};", slot.shaderOutputName);
             }
 
+            // -------------------------------------
+            // Extra pixel shader work
+
+            var faceSign = new ShaderStringBuilder();
+
+            if (pixelRequirements.requiresFaceSign)
+                faceSign.AppendLine(", half FaceSign : VFACE");
+
             // ----------------------------------------------------- //
             //                      FINALIZE                         //
             // ----------------------------------------------------- //
@@ -340,6 +361,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             resultPass = resultPass.Replace("${VertexShaderDescriptionInputs}", vertexShaderDescriptionInputs.ToString());
             resultPass = resultPass.Replace("${VertexShaderOutputs}", vertexShaderOutputs.ToString());
 
+            resultPass = resultPass.Replace("${FaceSign}", faceSign.ToString());
             resultPass = resultPass.Replace("${PixelShader}", pixelShader.ToString());
             resultPass = resultPass.Replace("${PixelShaderSurfaceInputs}", pixelShaderSurfaceInputs.ToString());
             resultPass = resultPass.Replace("${PixelShaderSurfaceRemap}", pixelShaderSurfaceRemap.ToString());
@@ -377,7 +399,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // Get Slot and Node lists per stage
 
             var vertexSlots = pass.VertexShaderSlots.Select(masterNode.FindSlot<MaterialSlot>).ToList();
-            var vertexNodes = ListPool<AbstractMaterialNode>.Get();
+            var vertexNodes = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.VertexShaderSlots);
 
             // -------------------------------------

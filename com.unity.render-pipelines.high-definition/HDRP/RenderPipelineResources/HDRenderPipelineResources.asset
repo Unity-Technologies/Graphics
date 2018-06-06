@@ -3,7 +3,7 @@
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
@@ -11,7 +11,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b6f86e1523e69a4282e92d393be89a4, type: 3}
   m_Name: HDRenderPipelineResources
   m_EditorClassIdentifier: 
+  version: 1
   defaultDiffuseMaterial: {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17,
+    type: 2}
+  defaultMirrorMaterial: {fileID: 2100000, guid: 6b17274157b33bc45b6a40e7d4ff51fe,
     type: 2}
   defaultDecalMaterial: {fileID: 2100000, guid: 500e733574922d04ea961553b1b26a63,
     type: 2}

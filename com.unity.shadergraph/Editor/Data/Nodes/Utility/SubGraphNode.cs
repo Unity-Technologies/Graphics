@@ -25,6 +25,9 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private string m_SerializedSubGraph = string.Empty;
 
+        [NonSerialized]
+        MaterialSubGraphAsset m_SubGraph;
+
         [Serializable]
         private class SubGraphHelper
         {
@@ -42,8 +45,6 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-#if UNITY_EDITOR
-        [ObjectControl("")]
         public MaterialSubGraphAsset subGraphAsset
         {
             get
@@ -51,9 +52,14 @@ namespace UnityEditor.ShaderGraph
                 if (string.IsNullOrEmpty(m_SerializedSubGraph))
                     return null;
 
-                var helper = new SubGraphHelper();
-                EditorJsonUtility.FromJsonOverwrite(m_SerializedSubGraph, helper);
-                return helper.subGraph;
+                if (m_SubGraph == null)
+                {
+                    var helper = new SubGraphHelper();
+                    EditorJsonUtility.FromJsonOverwrite(m_SerializedSubGraph, helper);
+                    m_SubGraph = helper.subGraph;
+                }
+
+                return m_SubGraph;
             }
             set
             {
@@ -63,14 +69,12 @@ namespace UnityEditor.ShaderGraph
                 var helper = new SubGraphHelper();
                 helper.subGraph = value;
                 m_SerializedSubGraph = EditorJsonUtility.ToJson(helper, true);
+                m_SubGraph = null;
                 UpdateSlots();
 
                 Dirty(ModificationScope.Topological);
             }
         }
-#else
-        public MaterialSubGraphAsset subGraphAsset {get; set; }
-#endif
 
         public INode outputNode
         {
@@ -161,7 +165,7 @@ namespace UnityEditor.ShaderGraph
             var validNames = new List<int>();
             if (referencedGraph == null)
             {
-                RemoveSlotsNameNotMatching(validNames);
+                RemoveSlotsNameNotMatching(validNames, true);
                 return;
             }
 
@@ -406,6 +410,18 @@ namespace UnityEditor.ShaderGraph
                 return false;
 
             return referencedGraph.activeNodes.OfType<IMayRequireVertexColor>().Any(x => x.RequiresVertexColor(stageCapability));
+        }
+
+        public override void GetSourceAssetDependencies(List<string> paths)
+        {
+            base.GetSourceAssetDependencies(paths);
+            if (subGraphAsset != null)
+            {
+                var assetPath = AssetDatabase.GetAssetPath(subGraphAsset);
+                paths.Add(assetPath);
+                foreach (var dependencyPath in AssetDatabase.GetDependencies(assetPath))
+                    paths.Add(dependencyPath);
+            }
         }
     }
 }

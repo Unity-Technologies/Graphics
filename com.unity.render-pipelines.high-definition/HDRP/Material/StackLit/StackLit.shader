@@ -2,6 +2,9 @@ Shader "HDRenderPipeline/StackLit"
 {
     Properties
     {
+        // Versioning of material to help for upgrading
+        [HideInInspector] _HdrpVersion("_HdrpVersion", Float) = 1
+
         // Following set of parameters represent the parameters node inside the MaterialGraph.
         // They are use to fill a SurfaceData. With a MaterialGraph this should not exist.
 
@@ -116,11 +119,10 @@ Shader "HDRenderPipeline/StackLit"
         [HideInInspector] _AmbientOcclusionRange("AmbientOcclusion Range", Vector) = (0, 1, 0, 0)
 
         [HideInInspector] _EmissiveColorMapShow("Emissive Color Map Show", Float) = 0.0
-        _EmissiveColor("Emissive Color", Color) = (1, 1, 1)
+        [HDR] _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         _EmissiveColorMap("Emissive Color Map", 2D) = "white" {}
         _EmissiveColorMapUV("Emissive Color Map UV", Range(0.0, 1.0)) = 0
         _EmissiveColorMapUVLocal("Emissive Color Map UV Local", Float) = 0.0
-        _EmissiveIntensity("Emissive Intensity", Float) = 0
         [ToggleUI] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
 
         [ToggleUI] _EnableSubsurfaceScattering("Enable Subsurface Scattering", Float) = 0.0
@@ -318,7 +320,28 @@ Shader "HDRenderPipeline/StackLit"
         // This tags allow to use the shader replacement features
         Tags{ "RenderPipeline" = "HDRenderPipeline" "RenderType" = "HDStackLitShader" }
 
-        // Caution: The outline selection in the editor use the vertex shader/hull/domain shader of the first pass declare. So it should not be the meta pass.
+        Pass
+        {
+            Name "SceneSelectionPass" // Name is not used
+            Tags { "LightMode" = "SceneSelectionPass" }
+
+            Cull Off
+
+            HLSLPROGRAM
+
+            // Note: Require _ObjectId and _PassValue variables
+
+            // We reuse depth prepass for the scene selection, allow to handle alpha correctly as well as tessellation and vertex animation
+            #define SHADERPASS SHADERPASS_DEPTH_ONLY
+            #define SCENESELECTIONPASS // This will drive the output of the scene selection shader
+            #include "../../ShaderVariables.hlsl"
+            #include "../../Material/Material.hlsl"
+            #include "ShaderPass/StackLitDepthPass.hlsl"
+            #include "StackLitData.hlsl"
+            #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
+
+            ENDHLSL
+        }
 
         Pass
         {

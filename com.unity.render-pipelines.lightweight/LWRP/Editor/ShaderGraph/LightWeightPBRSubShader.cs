@@ -61,12 +61,24 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             }
         };
 
-        public string GetSubshader(IMasterNode inMasterNode, GenerationMode mode)
+        public string GetSubshader(IMasterNode inMasterNode, GenerationMode mode, List<string> sourceAssetDependencyPaths = null)
         {
+            if (sourceAssetDependencyPaths != null)
+            {
+                // LightWeightPBRSubShader.cs
+                sourceAssetDependencyPaths.Add(AssetDatabase.GUIDToAssetPath("ca91dbeb78daa054c9bbe15fef76361c"));
+            }
+
             var templatePath = GetTemplatePath("lightweightPBRForwardPass.template");
             var extraPassesTemplatePath = GetTemplatePath("lightweightPBRExtraPasses.template");
             if (!File.Exists(templatePath) || !File.Exists(extraPassesTemplatePath))
                 return string.Empty;
+
+            if (sourceAssetDependencyPaths != null)
+            {
+                sourceAssetDependencyPaths.Add(templatePath);
+                sourceAssetDependencyPaths.Add(extraPassesTemplatePath);
+            }
 
             string forwardTemplate = File.ReadAllText(templatePath);
             string extraTemplate = File.ReadAllText(extraPassesTemplatePath);
@@ -148,7 +160,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             // Get Slot and Node lists per stage
 
             var vertexSlots = pass.VertexShaderSlots.Select(masterNode.FindSlot<MaterialSlot>).ToList();
-            var vertexNodes = ListPool<AbstractMaterialNode>.Get();
+            var vertexNodes = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.VertexShaderSlots);
 
             var pixelSlots = pass.PixelShaderSlots.Select(masterNode.FindSlot<MaterialSlot>).ToList();
@@ -269,6 +281,9 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
                 if (surfaceRequirements.requiresScreenPosition)
                     surfaceDescriptionInputStruct.AppendLine("float4 {0};", ShaderGeneratorNames.ScreenPosition);
 
+                if (surfaceRequirements.requiresFaceSign)
+                    surfaceDescriptionInputStruct.AppendLine("float {0};", ShaderGeneratorNames.FaceSign);
+
                 foreach (var channel in surfaceRequirements.requiresMeshUVs.Distinct())
                     surfaceDescriptionInputStruct.AppendLine("half4 {0};", channel.GetUVName());
             }
@@ -331,6 +346,14 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
                 pixelShaderSurfaceRemap.AppendLine("{0} = surf.{0};", slot.shaderOutputName);
             }
 
+            // -------------------------------------
+            // Extra pixel shader work
+
+            var faceSign = new ShaderStringBuilder();
+
+            if (pixelRequirements.requiresFaceSign)
+                faceSign.AppendLine(", half FaceSign : VFACE");
+
             // ----------------------------------------------------- //
             //                      FINALIZE                         //
             // ----------------------------------------------------- //
@@ -370,6 +393,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             resultPass = resultPass.Replace("${VertexShaderDescriptionInputs}", vertexShaderDescriptionInputs.ToString());
             resultPass = resultPass.Replace("${VertexShaderOutputs}", vertexShaderOutputs.ToString());
 
+            resultPass = resultPass.Replace("${FaceSign}", faceSign.ToString());
             resultPass = resultPass.Replace("${PixelShader}", pixelShader.ToString());
             resultPass = resultPass.Replace("${PixelShaderSurfaceInputs}", pixelShaderSurfaceInputs.ToString());
             resultPass = resultPass.Replace("${PixelShaderSurfaceRemap}", pixelShaderSurfaceRemap.ToString());
@@ -407,7 +431,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             // Get Slot and Node lists per stage
 
             var vertexSlots = pass.VertexShaderSlots.Select(masterNode.FindSlot<MaterialSlot>).ToList();
-            var vertexNodes = ListPool<AbstractMaterialNode>.Get();
+            var vertexNodes = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.VertexShaderSlots);
 
             // -------------------------------------

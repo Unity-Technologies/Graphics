@@ -2,6 +2,9 @@ Shader "HDRenderPipeline/LayeredLit"
 {
     Properties
     {
+        // Versioning of material to help for upgrading
+        [HideInInspector] _HdrpVersion("_HdrpVersion", Float) = 1
+
         // Following set of parameters represent the parameters node inside the MaterialGraph.
         // They are use to fill a SurfaceData. With a MaterialGraph this should not exist.
 
@@ -226,9 +229,8 @@ Shader "HDRenderPipeline/LayeredLit"
 
         [ToggleUI]  _EnableSpecularOcclusion("Enable specular occlusion", Float) = 0.0
 
-        _EmissiveColor("EmissiveColor", Color) = (1, 1, 1)
+        [HDR] _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
-        _EmissiveIntensity("EmissiveIntensity", Float) = 0
         [ToggleUI] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
 
         [ToggleUI] _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
@@ -506,6 +508,8 @@ Shader "HDRenderPipeline/LayeredLit"
             ColorMask 0
 
             HLSLPROGRAM
+
+            // Note: Require _ObjectId and _PassValue variables
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #define SCENESELECTIONPASS // This will drive the output of the scene selection shader
