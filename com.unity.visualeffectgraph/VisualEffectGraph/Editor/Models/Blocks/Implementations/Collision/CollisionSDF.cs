@@ -44,7 +44,7 @@ float dist = SampleSDF(DistanceField, coord);
 
 if (colliderSign * dist <= 0.0f) // collision
 {
-    float3 n = SampleSDFDerivatives(DistanceField, coord, dist);
+    float3 n = SampleSDFDerivatives(DistanceField, coord);
 
     // back in system space
     float3 delta = colliderSign * mul(FieldTransform,float4(normalize(n) * abs(dist),0)).xyz;
@@ -52,6 +52,17 @@ if (colliderSign * dist <= 0.0f) // collision
 ";
 
                 Source += collisionResponseSource;
+
+                if (mode == Mode.Inverted)
+                {
+                    Source += @"
+    float3 absPos = abs(tPos);
+    float outsideDist = max(absPos.x,max(absPos.y,absPos.z));
+    if (outsideDist > 0.5f) // Check wether point is outside the box
+        position = mul(FieldTransform,float4(coord - 0.5f,1)).xyz;
+";
+                }
+
                 Source += @"
     position += delta;
 }";

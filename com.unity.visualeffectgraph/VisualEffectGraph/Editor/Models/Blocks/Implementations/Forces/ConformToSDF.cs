@@ -68,7 +68,7 @@ if (outsideDist > 0.5f) // Check wether point is outside the box
 else
 {
     // compute normal
-    dir = SampleSDFDerivatives(DistanceField, coord, dist);
+    dir = SampleSDFDerivativesFast(DistanceField, coord, dist);
     if (dist > 0)
         dir = -dir;
     dir = normalize(mul(FieldTransform,float4(dir,0)));
