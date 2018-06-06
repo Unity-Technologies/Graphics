@@ -16,6 +16,7 @@
 - Add a DefaultHDMirrorMaterial material for PlanarReflection
 - Added a script to be able to upgrade material to newer version of HDRP
 - Removed useless duplication of ForwardError passes.
+- Add option to not compile any DEBUG_DISPLAY shader in the player (Faster build) call Support Runtime Debug display
 
 ### Changed, Removals and deprecations
 - Removed GlobalLightLoopSettings.maxPlanarReflectionProbes and instead use value of GlobalLightLoopSettings.planarReflectionProbeCacheSize
