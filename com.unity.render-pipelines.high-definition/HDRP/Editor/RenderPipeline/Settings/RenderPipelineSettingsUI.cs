@@ -80,7 +80,7 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUILayout.PropertyField(d.supportStereo, _.GetContent("Support Stereo Rendering"));
             EditorGUILayout.PropertyField(d.enableUltraQualitySSS, _.GetContent("Increase SSS Sample Count|This allow better SSS quality. Warning: Slow feature, don't use for game."));
             EditorGUILayout.PropertyField(d.supportVolumetric, _.GetContent("Support volumetric|Enable memory and shader variant for volumetric."));
-            EditorGUILayout.PropertyField(d.supportRuntimeDebugDisplay, _.GetContent("Support debug display|Remove all debug display shader variant only in the player. Allow faster build."));
+            EditorGUILayout.PropertyField(d.supportRuntimeDebugDisplay, _.GetContent("Support runtime debug display|Remove all debug display shader variant only in the player. Allow faster build."));
 
             --EditorGUI.indentLevel;
         }

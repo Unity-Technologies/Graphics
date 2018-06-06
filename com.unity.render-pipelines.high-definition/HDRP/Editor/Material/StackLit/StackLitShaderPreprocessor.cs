@@ -7,7 +7,7 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    public class StackLitShaderPreprocessor : ShaderPreprocessorMaterial
+    public class StackLitShaderPreprocessor : BaseShaderPreprocessor
     {
         bool StackLitShaderStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
         {
