@@ -334,7 +334,28 @@ Shader "HDRenderPipeline/StackLit"
         // This tags allow to use the shader replacement features
         Tags{ "RenderPipeline" = "HDRenderPipeline" "RenderType" = "HDStackLitShader" }
 
-        // Caution: The outline selection in the editor use the vertex shader/hull/domain shader of the first pass declare. So it should not be the meta pass.
+        Pass
+        {
+            Name "SceneSelectionPass" // Name is not used
+            Tags { "LightMode" = "SceneSelectionPass" }
+
+            Cull Off
+
+            HLSLPROGRAM
+
+            // Note: Require _ObjectId and _PassValue variables
+
+            // We reuse depth prepass for the scene selection, allow to handle alpha correctly as well as tessellation and vertex animation
+            #define SHADERPASS SHADERPASS_DEPTH_ONLY
+            #define SCENESELECTIONPASS // This will drive the output of the scene selection shader
+            #include "../../ShaderVariables.hlsl"
+            #include "../../Material/Material.hlsl"
+            #include "ShaderPass/StackLitDepthPass.hlsl"
+            #include "StackLitData.hlsl"
+            #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
+
+            ENDHLSL
+        }
 
         Pass
         {
