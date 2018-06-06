@@ -365,14 +365,33 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public static System.Text.StringBuilder PreprocessShaderCode(string code, HashSet<string> activeFields, Dictionary<string, string> namedFragments = null, System.Text.StringBuilder result = null)
+        // returns the offset of the first non-whitespace character, in the range [start, end] inclusive ... will return end if none found
+        private static int SkipWhitespace(string str, int start, int end)
+        {
+            int index = start;
+
+            while (index < end)
+            {
+                char c = str[index];
+                if (!Char.IsWhiteSpace(c))
+                {
+                    break;
+                }
+                index++;
+            }
+            return index;
+        }
+
+        public static System.Text.StringBuilder PreprocessShaderCode(string code, HashSet<string> activeFields, Dictionary<string, string> namedFragments, System.Text.StringBuilder result, bool debugOutput)
         {
             if (result == null)
             {
                 result = new System.Text.StringBuilder();
             }
+
             int cur = 0;
             int end = code.Length;
+            bool skipEndln = false;
 
             while (cur < end)
             {
@@ -387,10 +406,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     // found $ escape sequence
 
-                    // first append everything before the beginning of the escape sequence
-                    AppendSubstring(result, code, cur, true, dollar, false);
-
-                    // next find the end of the line (or if none found, the end of the code)
+                    // find the end of the line (or if none found, the end of the code)
                     int endln = code.IndexOf('\n', dollar + 1);
                     if (endln < 0)
                     {
@@ -412,7 +428,11 @@ namespace UnityEditor.ShaderGraph
                         int nameLength = curlyend - dollar + 1;
                         if ((curlyend < 0) || (nameLength <= 0))
                         {
-                            // no } found, or zero length name
+                            // no } found, or zero length name                            
+
+                            // append everything before the beginning of the escape sequence
+                            AppendSubstring(result, code, cur, true, dollar, false);
+
                             if (curlyend < 0)
                             {
                                 result.Append("// ERROR: unterminated escape sequence ('${' and '}' must be matched)\n");
@@ -432,6 +452,9 @@ namespace UnityEditor.ShaderGraph
                             // } found!
                             // ugh, this probably allocates memory -- wish we could do the name lookup direct from a substring
                             string name = code.Substring(dollar, nameLength);
+
+                            // append everything before the beginning of the escape sequence
+                            AppendSubstring(result, code, cur, true, dollar, false);
 
                             string fragment;
                             if ((namedFragments != null) && namedFragments.TryGetValue(name, out fragment))
@@ -463,6 +486,10 @@ namespace UnityEditor.ShaderGraph
                         if ((colon < 0) || (predicateLength <= 0))
                         {
                             // no colon found... error!  Spit out error and context
+
+                            // append everything before the beginning of the escape sequence
+                            AppendSubstring(result, code, cur, true, dollar, false);
+
                             if (colon < 0)
                             {
                                 result.Append("// ERROR: unterminated escape sequence ('$' and ':' must be matched)\n");
@@ -481,24 +508,39 @@ namespace UnityEditor.ShaderGraph
                             // colon found!
                             // ugh, this probably allocates memory -- wish we could do the field lookup direct from a substring
                             string predicate = code.Substring(dollar + 1, predicateLength);
-
+                            int nonwhitespace = SkipWhitespace(code, colon + 1, endln);
                             if (activeFields.Contains(predicate))
                             {
+                                // append everything before the beginning of the escape sequence
+                                AppendSubstring(result, code, cur, true, dollar, false);
+
                                 // predicate is active, append the line
-                                result.Append(' ', predicateLength + 2);
-                                AppendSubstring(result, code, colon, false, endln, false);
+                                AppendSubstring(result, code, nonwhitespace, true, endln, false);
                             }
                             else
                             {
-                                // predicate is not active -- comment out line
-                                result.Append("//");
-                                result.Append(' ', predicateLength);
-                                AppendSubstring(result, code, colon, false, endln, false);
+                                // predicate is not active
+                                if (debugOutput)
+                                {
+                                    // append everything before the beginning of the escape sequence
+                                    AppendSubstring(result, code, cur, true, dollar, false);
+                                    result.Append("// ");
+                                    AppendSubstring(result, code, nonwhitespace, true, endln, false);
+                                }
+                                else
+                                {
+                                    skipEndln = true;
+                                }
                             }
                         }
                         cur = endln + 1;
                     }
                 }
+            }
+
+            if (!skipEndln)
+            {
+                result.AppendLine();
             }
 
             return result;
