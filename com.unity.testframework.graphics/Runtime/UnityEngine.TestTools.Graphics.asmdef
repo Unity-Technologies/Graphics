@@ -6,7 +6,5 @@
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
-    "allowUnsafeCode": true,
-    "overrideReferences": false,
-    "precompiledReferences": []
+    "allowUnsafeCode": true
 }
