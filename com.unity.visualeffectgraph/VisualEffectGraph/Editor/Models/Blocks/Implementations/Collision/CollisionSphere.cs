@@ -21,7 +21,8 @@ namespace UnityEditor.VFX.Block
 float3 nextPos = position + velocity * deltaTime;
 float3 dir = nextPos - Sphere_center;
 float sqrLength = dot(dir, dir);
-if (colliderSign * sqrLength <= colliderSign * Sphere_radius * Sphere_radius)
+float totalRadius = Sphere_radius + colliderSign * radius;
+if (colliderSign * sqrLength <= colliderSign * totalRadius * totalRadius)
 {
     float dist = sqrt(sqrLength);
     float3 n = colliderSign * dir / dist;
@@ -29,7 +30,7 @@ if (colliderSign * sqrLength <= colliderSign * Sphere_radius * Sphere_radius)
 
                 Source += collisionResponseSource;
                 Source += @"
-    position -= n * (dist - Sphere_radius) * colliderSign;
+    position -= n * (dist - totalRadius) * colliderSign;
 }";
                 return Source;
             }

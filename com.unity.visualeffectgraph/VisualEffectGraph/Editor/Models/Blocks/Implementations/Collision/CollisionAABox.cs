@@ -21,7 +21,7 @@ namespace UnityEditor.VFX.Block
 float3 nextPos = position + velocity * deltaTime;
 float3 dir = nextPos - box_center;
 float3 absDir = abs(dir);
-float3 size = box_size * 0.5f;
+float3 size = box_size * 0.5f + radius * colliderSign;
 ";
 
                 if (mode == Mode.Solid)

@@ -8,7 +8,7 @@ namespace UnityEditor.VFX.Block
     [VFXInfo(category = "Collision")]
     class CollisionSDF : CollisionBase
     {
-        public override string name { get { return "Collide (Signed Distance Field)"; } }
+        public override string name { get { return "Collider (Signed Distance Field)"; } }
 
         public class InputProperties
         {
@@ -39,8 +39,9 @@ namespace UnityEditor.VFX.Block
 float3 nextPos = position + velocity * deltaTime;
 
 float3 tPos = mul(InvFieldTransform, float4(nextPos,1.0f)).xyz;
+float tRadius = radius * length(InvFieldTransform[0]); // Only uniform scale for SDF transform
 float3 coord = saturate(tPos + 0.5f);
-float dist = SampleSDF(DistanceField, coord);
+float dist = SampleSDF(DistanceField, coord) - colliderSign * tRadius;
 
 if (colliderSign * dist <= 0.0f) // collision
 {
