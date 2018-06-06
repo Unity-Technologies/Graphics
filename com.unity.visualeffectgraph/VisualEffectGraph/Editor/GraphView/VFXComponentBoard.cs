@@ -581,7 +581,7 @@ namespace UnityEditor.VFX.UI
 
         public override void UpdatePresenterPosition()
         {
-            BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.blackboard, GetPosition());
+            BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.componentBoard, GetPosition());
         }
 
         public void OnMoved()
