@@ -47,10 +47,16 @@ ${Graph}
         // Interpolators defined by graph
 ${VertexOutputStruct}
         UNITY_VERTEX_INPUT_INSTANCE_ID
+        UNITY_VERTEX_OUTPUT_STEREO
     };
 
     GraphVertexOutput vert (GraphVertexInput v)
     {
+        GraphVertexOutput o = (GraphVertexOutput)0;
+        UNITY_SETUP_INSTANCE_ID(v);
+        UNITY_TRANSFER_INSTANCE_ID(v, o);
+        UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+
         // Vertex transformations performed by graph
 ${VertexShader}
         VertexDescriptionInputs vdi = (VertexDescriptionInputs)0;
@@ -59,11 +65,6 @@ ${VertexShader}
 ${VertexShaderDescriptionInputs}
         VertexDescription vd = PopulateVertexData(vdi);
         v.vertex.xyz = vd.Position;
-        
-        GraphVertexOutput o = (GraphVertexOutput)0;
-        
-        UNITY_SETUP_INSTANCE_ID(v);
-        UNITY_TRANSFER_INSTANCE_ID(v, o);
 
         o.position = TransformObjectToHClip(v.vertex.xyz);
         // Vertex shader outputs defined by graph
