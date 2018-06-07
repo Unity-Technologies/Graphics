@@ -4,6 +4,7 @@
 // SurfaceData is defined in StackLit.cs which generates StackLit.cs.hlsl
 #include "StackLit.cs.hlsl"
 #include "../SubsurfaceScattering/SubsurfaceScattering.hlsl"
+#include "../NormalBuffer.hlsl"
 //#include "CoreRP/ShaderLibrary/VolumeRendering.hlsl"
 
 //NEWLITTODO : wireup CBUFFERs for ambientocclusion, and other uniforms and samplers used:

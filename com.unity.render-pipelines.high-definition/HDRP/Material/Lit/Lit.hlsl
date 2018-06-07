@@ -1,6 +1,7 @@
 // SurfaceData is define in Lit.cs which generate Lit.cs.hlsl
 #include "Lit.cs.hlsl"
 #include "../SubsurfaceScattering/SubsurfaceScattering.hlsl"
+#include "../NormalBuffer.hlsl"
 #include "CoreRP/ShaderLibrary/VolumeRendering.hlsl"
 
 //-----------------------------------------------------------------------------
@@ -334,16 +335,16 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
 {
     NormalData normalData;
 
+    normalData.normalWS = surfaceData.normalWS;
+
     // When using clear cloat we want to use the coat normal for the various deferred effect
     // as it is the most dominant one
     if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
-        normalData.normalWS = surfaceData.coatNormalWS;
         normalData.perceptualSmoothness = CLEAR_COAT_ROUGHNESS;
     }
     else
     {
-        normalData.normalWS = surfaceData.normalWS;
         normalData.perceptualSmoothness = surfaceData.perceptualSmoothness;
     }
 
@@ -647,7 +648,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     NormalData normalData;
     DecodeFromNormalBuffer(inGBuffer1, positionSS, normalData);
     bsdfData.normalWS = normalData.normalWS;
-    bsdfData.perceptualRoughness = normalData.perceptualRoughness;
+    bsdfData.perceptualRoughness = normalData.perceptualSmoothness;
 
     bakeDiffuseLighting = inGBuffer3.rgb;
 
