@@ -440,6 +440,10 @@ Shader "HDRenderPipeline/Lit"
 
             HLSLPROGRAM
 
+            // In deferred, depth only pass don't output anything.
+            // In forward it output the normal buffer
+            #pragma multi_compile _ OUTPUT_NORMAL_BUFFER
+
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
@@ -448,10 +452,6 @@ Shader "HDRenderPipeline/Lit"
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
-
-            // In deferred, depth only pass don't output anything.
-            // In forward it output the normal buffer
-            #pragma multi_compile _ OUTPUT_NORMAL_BUFFER
         }
 
         Pass
