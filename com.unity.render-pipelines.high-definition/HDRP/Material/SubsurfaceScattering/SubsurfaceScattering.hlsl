@@ -87,7 +87,7 @@ struct SSSData
     uint   diffusionProfile;
 };
 
-#define SSSBufferType0 float4
+#define SSSBufferType0 float4 // Must match GBufferType0 in deferred
 
 // SSSBuffer texture declaration
 TEXTURE2D(_SSSBufferTexture0);
@@ -112,7 +112,7 @@ void DecodeFromSSSBuffer(uint2 positionSS, out SSSData sssData)
 }
 
 // OUTPUT_SSSBUFFER start from SV_Target2 as SV_Target0 and SV_Target1 are used for lighting buffer
-#define OUTPUT_SSSBUFFER(NAME) out GBufferType0 MERGE_NAME(NAME, 0) : SV_Target2
+#define OUTPUT_SSSBUFFER(NAME) out SSSBufferType0 MERGE_NAME(NAME, 0) : SV_Target2
 #define ENCODE_INTO_SSSBUFFER(SURFACE_DATA, UNPOSITIONSS, NAME) EncodeIntoSSSBuffer(ConvertSurfaceDataToSSSData(SURFACE_DATA), UNPOSITIONSS, MERGE_NAME(NAME, 0))
 
 #define DECODE_FROM_SSSBUFFER(UNPOSITIONSS, SSS_DATA) DecodeFromSSSBuffer(UNPOSITIONSS, SSS_DATA)

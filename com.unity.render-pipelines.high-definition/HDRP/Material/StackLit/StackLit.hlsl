@@ -26,9 +26,6 @@ TEXTURE2D(_GBufferTexture0);
 // Definition
 //-----------------------------------------------------------------------------
 
-// Required for SSS
-#define GBufferType0 float4
-
 // Needed for MATERIAL_FEATURE_MASK_FLAGS.
 #include "../../Lighting/LightLoop/LightLoop.cs.hlsl"
 
@@ -345,6 +342,27 @@ SSSData ConvertSurfaceDataToSSSData(SurfaceData surfaceData)
     sssData.diffusionProfile = surfaceData.diffusionProfile;
 
     return sssData;
+}
+
+NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
+{
+    NormalData normalData;
+
+    // When using clear cloat we want to use the coat normal for the various deferred effect
+    // as it is the most dominant one
+    if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT))
+    {
+        normalData.normalWS = surfaceData.coatNormalWS;
+        normalData.perceptualSmoothness = surfaceData.coatPerceptualSmoothness;
+    }
+    else
+    {
+        normalData.normalWS = surfaceData.normalWS;
+        // Do average mix in case of dual lobe
+        normalData.perceptualSmoothness = lerp(surfaceData.perceptualSmoothnessA, surfaceData.perceptualSmoothnessB, surfaceData.lobeMix);
+    }
+
+    return normalData;
 }
 
 //-----------------------------------------------------------------------------
