@@ -2,7 +2,7 @@ using System;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Arithmetic", experimental = true)]
+    [VFXInfo(category = "Math/Arithmetic")]
     class Fractional : VFXOperatorNumericUniform
     {
         public class InputProperties
