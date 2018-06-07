@@ -36,7 +36,7 @@ void DecodeFromNormalBuffer(float4 normalBuffer, uint2 positionSS, out NormalDat
     float3 packNormalWS = normalBuffer.rgb;
     float2 octNormalWS = Unpack888ToFloat2(packNormalWS);
     normalData.normalWS = UnpackNormalOctQuadEncode(octNormalWS * 2.0 - 1.0);
-    normalData.perceptualRoughness = normalBuffer.a;
+    normalData.perceptualSmoothness = normalBuffer.a;
 }
 
 void DecodeFromNormalBuffer(uint2 positionSS, out NormalData normalData)
