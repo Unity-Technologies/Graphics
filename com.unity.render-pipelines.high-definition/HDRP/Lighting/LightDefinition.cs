@@ -75,6 +75,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector3 up;      // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeHeight)
         public float diffuseScale;
 
+        public Vector2 unused0;
+        public int flagIndex;
+        public int flagCount;
+
         public float angleScale;  // Spot light
         public float angleOffset; // Spot light
         public float shadowDimmer;

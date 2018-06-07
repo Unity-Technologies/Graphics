@@ -321,6 +321,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     break;
             }
 
+            if(m_AdditionalLightData.showAdditionalSettings.boolValue)
+            {
+                EditorGUILayout.Space();
+                EditorGUILayout.LabelField("Additional Settings", EditorStyles.boldLabel);
+                EditorGUI.indentLevel++;
+
+                if (m_LightShape == LightShape.Point ||
+                   m_LightShape == LightShape.Spot)
+                {
+                    DrawLightFlags();
+                }
+
+                EditorGUI.indentLevel--;
+            }
+
             if (EditorGUI.EndChangeCheck())
             {
                 UpdateLightIntensity();
@@ -384,6 +399,51 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 case LightShape.Line:
                     settings.intensity.floatValue = LightUtils.CalculateLineLightIntensity(m_AdditionalLightData.areaIntensity.floatValue, m_AdditionalLightData.shapeWidth.floatValue);
                     break;
+            }
+        }
+
+        void DrawLightFlags()
+        {
+            if (targets.Length > 1)
+            {
+                EditorGUILayout.HelpBox("Cannot edit flags for multi-object", MessageType.Info);
+            }
+            else
+            {
+                var ald = m_SerializedAdditionalLightData.targetObject as HDAdditionalLightData;
+                if (ald != null)
+                {
+                    Rect rect = EditorGUILayout.GetControlRect(true);
+                    float labelWidth = rect.x;
+                    rect = EditorGUI.IndentedRect(rect);
+                    labelWidth = EditorGUIUtility.labelWidth - (rect.x - labelWidth);
+                    GUI.Label(new Rect(rect.x, rect.y, labelWidth, rect.height), "Light Flags");
+                    rect.width -= labelWidth; rect.x += labelWidth;
+                    if (GUI.Button(rect, "Add Light Flag"))
+                        ald.AddLightFlag();
+
+                    EditorGUI.indentLevel++;
+                    labelWidth = EditorGUIUtility.labelWidth;
+                    EditorGUIUtility.labelWidth = 0;
+                    GUIContent removeLabel = new GUIContent("Remove", "Destroy the light flag");
+                    float removeWidth = GUI.skin.button.CalcSize(removeLabel).x;
+                    const float hSpace = 2;
+                    var flags = ald.LightFlags;
+                    foreach (var f in flags)
+                    {
+                        rect = EditorGUILayout.GetControlRect(true);
+                        rect.width -= removeWidth + hSpace;
+                        bool enabled = GUI.enabled;
+                        GUI.enabled = false;
+                        EditorGUI.ObjectField(rect, f, typeof(HDLightFlag), !EditorUtility.IsPersistent(target));
+                        GUI.enabled = enabled;
+                        rect.x += rect.width + hSpace; rect.width = removeWidth;
+                        if (GUI.Button(rect, removeLabel))
+                            Undo.DestroyObjectImmediate(f.gameObject);
+                    }
+                    EditorGUIUtility.labelWidth = labelWidth;
+                    EditorGUI.indentLevel--;
+                }
             }
         }
 

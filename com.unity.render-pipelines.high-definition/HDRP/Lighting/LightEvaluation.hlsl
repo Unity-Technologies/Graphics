@@ -127,6 +127,17 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
     return cookie;
 }
 
+//ref: https://github.com/Unity-Technologies/VolumetricLighting
+half ShadowPlane(half3 worldPos, half4 plane, half feather)
+{
+	half x = plane.w - dot(worldPos, plane.xyz);
+	// Compiler bug workaround
+	x += 0.0001;
+
+    //Smoothstep from 0.
+	return smoothstep(0, feather, x);
+}
+
 // None of the outputs are premultiplied.
 // distances = {d, d^2, 1/d, d_proj}, where d_proj = dot(lightToSample, lightData.forward).
 void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs posInput,
@@ -141,6 +152,14 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     color       = lightData.color;
     attenuation = SmoothPunctualLightAttenuation(distances, lightData.invSqrAttenuationRadius,
                                                  lightData.angleScale, lightData.angleOffset);
+
+    //Light Flags.
+    for(int i = lightData.flagIndex; i < lightData.flagIndex + lightData.flagCount; i++)
+    {
+        attenuation *= ShadowPlane(GetAbsolutePositionWS(positionWS),
+                                   GetPlane  (_LightFlagDatas[i]),
+                                   GetFeather(_LightFlagDatas[i]));
+    }
 
 #if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET != 0)
     // TODO: sample the extinction from the density V-buffer.
