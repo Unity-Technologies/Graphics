@@ -150,6 +150,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_Normal.m_Texture = m_Material.GetTexture("_NormalMap");
                 m_Mask.m_Texture = m_Material.GetTexture("_MaskMap");
                 m_Blend = m_Material.GetFloat("_DecalBlend");
+                m_AlbedoContribution = m_Material.GetFloat("_AlbedoMode");
             }
 
             public DecalSet(Material material)
@@ -365,6 +366,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         normalToWorldBatch[instanceCount] = m_CachedNormalToWorld[decalIndex];
                         float fadeFactor = Mathf.Clamp((cullDistance - distanceToDecal) / (cullDistance * (1.0f - m_CachedDrawDistances[decalIndex].y)), 0.0f, 1.0f);
                         normalToWorldBatch[instanceCount].m03 = fadeFactor * m_Blend;   // vector3 rotation matrix so bottom row and last column can be used for other data to save space
+                        normalToWorldBatch[instanceCount].m13 = m_AlbedoContribution;
                         normalToWorldBatch[instanceCount].SetRow(3, m_CachedUVScaleBias[decalIndex]);
 
                         // clustered forward data
@@ -471,6 +473,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             private Vector4[] m_CachedUVScaleBias = new Vector4[kDecalBlockSize]; // xy - scale, zw bias
             private Material m_Material;
             private float m_Blend = 0;
+            private float m_AlbedoContribution = 0;
 
             TextureScaleBias m_Diffuse = new TextureScaleBias();
             TextureScaleBias m_Normal = new TextureScaleBias();

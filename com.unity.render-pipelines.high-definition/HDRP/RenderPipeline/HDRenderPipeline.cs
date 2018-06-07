@@ -897,8 +897,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         if (hdCamera.frameSettings.enableDBuffer)
                         {
                             DecalSystem.instance.EndCull();
-                            //m_DbufferManager.vsibleDecalCount = DecalSystem.m_DecalsVisibleThisFrame;
-                            m_DbufferManager.EnableDBUffer = true;
+                            m_DbufferManager.EnableDBUffer = true;              // mesh decals are renderers managed by c++ runtime and we have no way to query if any are visible, so set to true
                             DecalSystem.instance.UpdateCachedMaterialData();    // textures, alpha or fade distances could've changed
                             DecalSystem.instance.CreateDrawData();              // prepare data is separate from draw
                             DecalSystem.instance.UpdateTextureAtlas(cmd);       // as this is only used for transparent pass, would've been nice not to have to do this if no transparent renderers are visible, needs to happen after CreateDrawData
@@ -933,9 +932,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     ClearBuffers(hdCamera, cmd);
 
                     // TODO: Add stereo occlusion mask
-
-                    bool forcePrepassForDecals = m_DbufferManager.EnableDBUffer;
-                    RenderDepthPrepass(m_CullResults, hdCamera, renderContext, cmd, forcePrepassForDecals);
+                    RenderDepthPrepass(m_CullResults, hdCamera, renderContext, cmd, m_DbufferManager.EnableDBUffer);
 
                     // This will bind the depth buffer if needed for DBuffer)
                     RenderDBuffer(hdCamera, cmd, renderContext, m_CullResults);
@@ -1583,8 +1580,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else
                 {
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
-                    //if ((hdCamera.frameSettings.enableDBuffer) && (DecalSystem.m_DecalsVisibleThisFrame > 0)) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
-                    if (hdCamera.frameSettings.enableDBuffer)
+                    if ((hdCamera.frameSettings.enableDBuffer) && (DecalSystem.m_DecalsVisibleThisFrame > 0)) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered                    
                     {
                         DecalSystem.instance.SetAtlas(cmd); // for clustered decals
                     }
