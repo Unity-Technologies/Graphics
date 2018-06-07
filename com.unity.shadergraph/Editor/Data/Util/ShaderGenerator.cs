@@ -88,7 +88,10 @@ namespace UnityEditor.ShaderGraph
                 {
                     var line = lines[index];
                     for (var i = 0; i < shaderChunk.chunkIndentLevel + baseIndentLevel; i++)
-                        sb.Append("\t");
+                    {
+                        //sb.Append("\t");
+                        sb.Append("    "); // unity convention use space instead of tab...
+                    }
 
                     sb.AppendLine(line);
                     appendedNewline = true;
