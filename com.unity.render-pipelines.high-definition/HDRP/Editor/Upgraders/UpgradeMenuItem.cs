@@ -75,7 +75,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         string.Format("{0} / {1} materials subsurface updated.", i, length),
                         i / (float)(length - 1));
 
-                    bool VSCEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
+                    bool VCSEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
 
                     if (mat.shader.name == "HDRenderPipeline/LitTessellation" ||
                         mat.shader.name == "HDRenderPipeline/Lit" ||
@@ -88,7 +88,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                         if (mat.HasProperty("_SSSAndTransmissionType"))
                         {
-                            CoreUtils.CheckOutFile(VSCEnabled, mat);
+                            CoreEditorUtils.CheckOutFile(VCSEnabled, mat);
 
                             int materialSSSAndTransmissionID = mat.GetInt("_SSSAndTransmissionType");
 
@@ -133,7 +133,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         string.Format("{0} / {1} materials updated.", i, length),
                         i / (float)(length - 1));
 
-                    bool VSCEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
+                    bool VCSEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
 
                     if (mat.shader.name == "HDRenderPipeline/LitTessellation" ||
                         mat.shader.name == "HDRenderPipeline/Lit")
@@ -141,7 +141,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         // Need only test one of the new properties
                         if (mat.HasProperty("_HeightPoMAmplitude"))
                         {
-                            CoreUtils.CheckOutFile(VSCEnabled, mat);
+                            CoreEditorUtils.CheckOutFile(VCSEnabled, mat);
 
                             float valueMax = mat.GetFloat("_HeightMax");
                             float valueMin = mat.GetFloat("_HeightMin");
@@ -169,7 +169,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                         if (mat.HasProperty("_HeightPoMAmplitude0"))
                         {
-                            CoreUtils.CheckOutFile(VSCEnabled, mat);
+                            CoreEditorUtils.CheckOutFile(VCSEnabled, mat);
 
                             for (int x = 0; x < numLayer; ++x)
                             {
@@ -258,7 +258,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void UpdateMaterialToNewerVersion(string caption, UpdateMaterial updateMaterial, UpdateMaterialFile updateMaterialFile = null)
         {
-            bool VSCEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
+            bool VCSEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
             var matIds = AssetDatabase.FindAssets("t:Material");
             List<string> materialFiles = new List<string>(); // Contain the list dirty files
 
@@ -288,7 +288,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         if (dirty)
                         {
                             // Checkout the file and tag it as dirty
-                            CoreUtils.CheckOutFile(VSCEnabled, mat);
+                            CoreEditorUtils.CheckOutFile(VCSEnabled, mat);
                             EditorUtility.SetDirty(mat);
                             materialFiles.Add(path);
                         }

@@ -524,6 +524,8 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
 
             HLSLPROGRAM
 
+            // Note: Require _ObjectId and _PassValue variables
+
             #pragma hull Hull
             #pragma domain Domain
 
