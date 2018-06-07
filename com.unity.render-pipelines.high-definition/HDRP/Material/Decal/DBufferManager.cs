@@ -5,7 +5,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class DBufferManager : MRTBufferManager
     {
-        public int vsibleDecalCount { get; set; }
+        public bool EnableDBUffer { get; set; }
 
         RTHandleSystem.RTHandle m_HTile;
 
@@ -70,7 +70,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (hdCamera.frameSettings.enableDBuffer)
             {
-                cmd.SetGlobalInt(HDShaderIDs._EnableDBuffer, vsibleDecalCount > 0 ? 1 : 0);
+                cmd.SetGlobalInt(HDShaderIDs._EnableDBuffer, EnableDBUffer ? 1 : 0);
                 cmd.SetGlobalVector(HDShaderIDs._DecalAtlasResolution, new Vector2(HDUtils.hdrpSettings.decalSettings.atlasWidth, HDUtils.hdrpSettings.decalSettings.atlasHeight));
                 BindBufferAsTextures(cmd);
             }
