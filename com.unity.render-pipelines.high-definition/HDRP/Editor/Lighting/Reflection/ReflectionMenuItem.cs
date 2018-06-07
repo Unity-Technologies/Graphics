@@ -8,8 +8,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class ReflectionMenuItems
     {
-        [MenuItem("GameObject/Rendering/Planar Reflection", priority = CoreUtils.gameObjectMenuPriority)]
-        static void CreatePlanarReflectionGameObject(MenuCommand menuCommand)
+        [MenuItem("GameObject/3D Object/Mirror", priority = CoreUtils.gameObjectMenuPriority)]
+        static void CreateMirrorGameObject(MenuCommand menuCommand)
         {
             GameObject plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
             GameObjectUtility.SetParentAndAlign(plane, menuCommand.context as GameObject);
@@ -26,6 +26,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 plane.GetComponent<MeshRenderer>().sharedMaterial = material;
             }
+        }
+
+        [MenuItem("GameObject/Light/Planar Reflection Probe", priority = CoreUtils.gameObjectMenuPriority)]
+        static void CreatePlanarReflectionGameObject(MenuCommand menuCommand)
+        {
+            var parent = menuCommand.context as GameObject;
+            var go = CoreEditorUtils.CreateGameObject(parent, "Planar Reflection");
+            var planarProbe = go.AddComponent<PlanarReflectionProbe>();
+            planarProbe.influenceVolume.boxBaseSize = new Vector3(1, 0.01f, 1);
+            // Ensure it gets re-parented if this was a context click (otherwise does nothing)
+            GameObjectUtility.SetParentAndAlign(go, menuCommand.context as GameObject);
+            // Register the creation in the undo system
+            Undo.RegisterCreatedObjectUndo(go, "Create " + go.name);
+            Selection.activeObject = go;
         }
     }
 }
