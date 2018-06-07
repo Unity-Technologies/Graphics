@@ -420,6 +420,8 @@ real3 EvalIridescence(real eta_1, real cosTheta1, real iridescenceThickness, rea
 #ifdef UNITY_MATERIAL_STACKLIT
     //TIR 
     if( sinTheta2 > 1.0 ) return real3(1.0, 1.0, 1.0);
+    //Or use this "artistic hack" to get more continuity even though wrong (test with dual normal maps to understand the difference)
+    //if( sinTheta2 > 1.0 ) { sinTheta2 = 2 - sinTheta2; }
 #endif
     real cosTheta2 = sqrt(1.0 - sinTheta2);
 
