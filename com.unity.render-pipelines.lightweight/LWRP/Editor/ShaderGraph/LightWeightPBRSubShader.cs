@@ -239,8 +239,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 
                 foreach (var channel in vertexRequirements.requiresMeshUVs.Distinct())
                     vertexDescriptionInputStruct.AppendLine("half4 {0};", channel.GetUVName());
-
-                vertexDescriptionInputStruct.AppendLine("UNITY_VERTEX_INPUT_INSTANCE_ID");
+                
             }
 
             // -------------------------------------
