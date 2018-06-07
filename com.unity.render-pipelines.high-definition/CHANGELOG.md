@@ -10,10 +10,13 @@
 ### Bug fixes
 
 ## [2018.2 / 2.0.1-preview]
+- Add Light -> Planar Reflection Probe command
 
 ### Improvements
 
 ### Changed, Removals and deprecations
+- Change Render -> Planar Reflection creation to 3D Object -> Mirror
+- Change "Enable Reflector" name on SpotLight to "Angle Affect Intensity"
 
 ### Bug fixes
 
@@ -37,7 +40,7 @@
 ### Changed, Removals and deprecations
 - Removed GlobalLightLoopSettings.maxPlanarReflectionProbes and instead use value of GlobalLightLoopSettings.planarReflectionProbeCacheSize
 - Changed SupportForwardOnly to SupportOnlyForward in render pipeline settings
-- Remove EmissiveIntensity parameter and change EmissiveColor to be HDR (Matching Builtin Unity behavior) - Data need to be updated
+- Remove EmissiveIntensity parameter and change EmissiveColor to be HDR (Matching Builtin Unity behavior) - Data need to be updated - Launch Edit -> Single Step Upgrade Script -> Upgrade all Materials emissionColor
 - Changed versioning variable name in HDAdditionalXXXData from m_version to version
 - Create unique name when creating a game object in the rendering menu (i.e Density Volume(2))
 - Re-organize various files and folder location to clean the repository
