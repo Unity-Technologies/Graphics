@@ -436,7 +436,7 @@ Shader "HDRenderPipeline/Lit"
 
             ZWrite On
 
-            ColorMask 0
+            //ColorMask 0
 
             HLSLPROGRAM
 
@@ -448,6 +448,10 @@ Shader "HDRenderPipeline/Lit"
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
             ENDHLSL
+
+            // In deferred, depth only pass don't output anything.
+            // In forward it output the normal buffer
+            #pragma multi_compile _ OUTPUT_NORMAL_BUFFER
         }
 
         Pass

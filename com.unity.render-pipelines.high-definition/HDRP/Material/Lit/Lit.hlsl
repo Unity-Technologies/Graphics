@@ -41,7 +41,7 @@ TEXTURE2D(_GBufferTexture3);
 #define CLEAR_COAT_IOR 1.5
 #define CLEAR_COAT_IETA (1.0 / CLEAR_COAT_IOR) // IETA is the inverse eta which is the ratio of IOR of two interface
 #define CLEAR_COAT_F0 0.04 // IORToFresnel0(CLEAR_COAT_IOR)
-#define CLEAR_COAT_ROUGHNESS 0.001
+#define CLEAR_COAT_ROUGHNESS 0.01
 #define CLEAR_COAT_PERCEPTUAL_ROUGHNESS RoughnessToPerceptualRoughness(CLEAR_COAT_ROUGHNESS)
 
 //-----------------------------------------------------------------------------
@@ -330,6 +330,26 @@ SSSData ConvertSurfaceDataToSSSData(SurfaceData surfaceData)
     return sssData;
 }
 
+NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
+{
+    NormalData normalData;
+
+    // When using clear cloat we want to use the coat normal for the various deferred effect
+    // as it is the most dominant one
+    if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
+    {
+        normalData.normalWS = surfaceData.coatNormalWS;
+        normalData.perceptualSmoothness = CLEAR_COAT_ROUGHNESS;
+    }
+    else
+    {
+        normalData.normalWS = surfaceData.normalWS;
+        normalData.perceptualSmoothness = surfaceData.perceptualSmoothness;
+    }
+
+    return normalData;
+}
+
 //-----------------------------------------------------------------------------
 // conversion function for forward
 //-----------------------------------------------------------------------------
@@ -468,20 +488,8 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     // Warning: the contents are later overwritten for Standard and SSS!
     outGBuffer0 = float4(surfaceData.baseColor, surfaceData.specularOcclusion);
 
-    // The sign of the Z component of the normal MUST round-trip through the G-Buffer, otherwise
-    // the reconstruction of the tangent frame for anisotropic GGX creates a seam along the Z axis.
-    // The constant was eye-balled to not cause artifacts.
-    // TODO: find a proper solution. E.g. we could re-shuffle the faces of the octahedron
-    // s.t. the sign of the Z component round-trips.
-    const float seamThreshold = 1.0/1024.0;
-    surfaceData.normalWS.z = CopySign(max(seamThreshold, abs(surfaceData.normalWS.z)), surfaceData.normalWS.z);
-
-    // RT1 - 8:8:8:8
-    // Our tangent encoding is based on our normal.
-    float2 octNormalWS = PackNormalOctQuadEncode(surfaceData.normalWS);
-    float3 packNormalWS = PackFloat2To888(saturate(octNormalWS * 0.5 + 0.5));
-    // We store perceptualRoughness instead of roughness because it is perceptually linear.
-    outGBuffer1 = float4(packNormalWS, PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness));
+    // This encode normalWS and PerceptualSmoothness into GBuffer1
+    EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surfaceData), positionSS, outGBuffer1);
 
     // RT2 - 8:8:8:8
     uint materialFeatureId;
@@ -636,10 +644,10 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     // Decompress feature-agnostic data from the G-Buffer.
     float3 baseColor = inGBuffer0.rgb;
 
-    float3 packNormalWS = inGBuffer1.rgb;
-    float2 octNormalWS = Unpack888ToFloat2(packNormalWS);
-    bsdfData.normalWS = UnpackNormalOctQuadEncode(octNormalWS * 2.0 - 1.0);
-    bsdfData.perceptualRoughness = inGBuffer1.a;
+    NormalData normalData;
+    DecodeFromNormalBuffer(inGBuffer1, positionSS, normalData);
+    bsdfData.normalWS = normalData.normalWS;
+    bsdfData.perceptualRoughness = normalData.perceptualRoughness;
 
     bakeDiffuseLighting = inGBuffer3.rgb;
 
