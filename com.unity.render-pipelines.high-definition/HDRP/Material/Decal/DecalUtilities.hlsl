@@ -121,8 +121,13 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
 
                 if((decalData.diffuseScaleBias.x > 0) && (decalData.diffuseScaleBias.y > 0))
                 {
-                    ApplyBlendDiffuse(DBuffer0, mask, sampleDiffuse, DBUFFERHTILEBIT_DIFFUSE, decalBlend, lodDiffuse);
-                    alpha = alpha < decalBlend ? decalBlend : alpha;    // use decal alpha if it is higher than transparent alpha
+					ApplyBlendDiffuse(DBuffer0, mask, sampleDiffuse, DBUFFERHTILEBIT_DIFFUSE, decalBlend, lodDiffuse);						
+					float albedoContribution = decalData.normalToWorld[1][3];
+					if (albedoContribution == 0.0f)
+					{
+						mask = 0;	// diffuse will not get modified						
+					}
+					alpha = alpha < decalBlend ? decalBlend : alpha;    // use decal alpha if it is higher than transparent alpha
                 }
 
                 if ((decalData.normalScaleBias.x > 0) && (decalData.normalScaleBias.y > 0))
