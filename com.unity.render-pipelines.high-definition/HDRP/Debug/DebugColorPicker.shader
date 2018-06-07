@@ -53,20 +53,15 @@ Shader "Hidden/HDRenderPipeline/DebugColorPicker"
 
                 return output;
             }
-            
-            float InverseLerp(float min, float max, float t)
-            {
-                return saturate((t - min) / (max - min));
-            }
 
             float3 FasleColorRemap(float lum, float4 thresholds)
             {
                 //Gradient from 0 to 240 deg of HUE gradient
                 const float l = DegToRad(240) / TWO_PI;
 
-                float t = lerp(0.0, l / 3, InverseLerp(thresholds.x, thresholds.y, lum))
-                        + lerp(0.0, l / 3, InverseLerp(thresholds.y, thresholds.z, lum))
-                        + lerp(0.0, l / 3, InverseLerp(thresholds.z, thresholds.w, lum));
+                float t = lerp(0.0, l / 3, RangeRemap(thresholds.x, thresholds.y, lum))
+                        + lerp(0.0, l / 3, RangeRemap(thresholds.y, thresholds.z, lum))
+                        + lerp(0.0, l / 3, RangeRemap(thresholds.z, thresholds.w, lum));
 
                 return HsvToRgb(float3(l - t, 1, 1));
             }
