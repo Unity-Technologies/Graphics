@@ -1023,7 +1023,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     preLightData.transparentTransmittance = exp(-bsdfData.absorptionCoefficient * refraction.dist);
     // Empirical remap to try to match a bit the refraction probe blurring for the fallback
     // Use IblPerceptualRoughness so we can handle approx of clear coat.
-    preLightData.transparentSSMipLevel = pow(preLightData.iblPerceptualRoughness, 1.3) * uint(max(_ColorPyramidScale.z - 1, 0));
+    preLightData.transparentSSMipLevel = PositivePow(preLightData.iblPerceptualRoughness, 1.3) * uint(max(_ColorPyramidScale.z - 1, 0));
 #endif
 
     return preLightData;
@@ -1909,36 +1909,45 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     // TODO: Fade pixels marked as foreground in stencil
     float weight = weightNDC.x * weightNDC.y * hitWeight;
 
-    float hitDeviceDepth = LOAD_TEXTURE2D_LOD(_DepthPyramidTexture, hit.positionSS, 0).r;
-    float hitLinearDepth = LinearEyeDepth(hitDeviceDepth, _ZBufferParams);
-
     // Exit if texel is discarded
     if (weight == 0)
         // Do nothing and don't update the hierarchy weight so we can fall back on refraction probe
         return lighting;
 
+    float hitDeviceDepth = LOAD_TEXTURE2D_LOD(_DepthPyramidTexture, hit.positionSS, 0).r;
+    float hitLinearDepth = LinearEyeDepth(hitDeviceDepth, _ZBufferParams);
+
+    float2 samplingPositionNDC = hit.positionNDC;
+#if HAS_REFRACTION
+    if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION
+        && hitLinearDepth < posInput.linearDepth)
+        samplingPositionNDC = posInput.positionNDC;
+#endif
+
     UpdateLightingHierarchyWeights(hierarchyWeight, weight); // Shouldn't be needed, but safer in case we decide to change hierarchy priority
 
-    // Reproject color pyramid
-    float4 hitVelocityBuffer = LOAD_TEXTURE2D_LOD(
-        _CameraMotionVectorsTexture,
-        hit.positionSS,
-        0.0
-    );
-
-    float2 hitVelocityNDC;
-    DecodeVelocity(hitVelocityBuffer, hitVelocityNDC);
+    float2 hitVelocityNDC = 0;
+    if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
+    {
+        // Reproject color pyramid
+        float4 hitVelocityBuffer = LOAD_TEXTURE2D_LOD(
+            _CameraMotionVectorsTexture,
+            hit.positionSS,
+            0.0
+        );
+        DecodeVelocity(hitVelocityBuffer, hitVelocityNDC);
+    }
 
     float3 preLD = SAMPLE_TEXTURE2D_LOD(
         _ColorPyramidTexture,
         s_trilinear_clamp_sampler,
         // Offset by half a texel to properly interpolate between this pixel and its mips
-        (hit.positionNDC - hitVelocityNDC) * _ColorPyramidScale.xy + _ColorPyramidSize.zw * 0.5,
+        (samplingPositionNDC - hitVelocityNDC) * _ColorPyramidScale.xy + _ColorPyramidSize.zw * 0.5,
         mipLevel
     ).rgb;
 
     // With HiZ, we use a temporal filtering to reduce the noise from the ray origin jittering
-    if (projectionModel == PROJECTIONMODEL_HI_Z)
+    if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION && projectionModel == PROJECTIONMODEL_HI_Z)
     {
         float4 currentVelocityBuffer = LOAD_TEXTURE2D_LOD(
             _CameraMotionVectorsTexture,
