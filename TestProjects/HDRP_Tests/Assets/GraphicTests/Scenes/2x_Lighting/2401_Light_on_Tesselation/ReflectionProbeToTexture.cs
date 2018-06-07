@@ -8,6 +8,7 @@ public class ReflectionProbeToTexture : MonoBehaviour
 {
     [SerializeField] private ReflectionProbe targetProbe;
     [SerializeField] private bool correctGamma = false;
+    [SerializeField] private bool boxLayout = false;
     
     private Material blitMat;
     private Texture probeTexture;
@@ -32,6 +33,7 @@ public class ReflectionProbeToTexture : MonoBehaviour
             if (blitMat != null) DestroyImmediate(blitMat);
             blitMat = new Material(Shader.Find("Hiddent/HDRP/Tests/TexCubeToTex2D"));
             blitMat.SetFloat("_CorrectGamma", correctGamma ? 1 : 0);
+            blitMat.SetFloat("_BoxLayout", boxLayout ? 1 : 0);
 
             RenderTexture dest = new RenderTexture(texture.width, texture.height, 0, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default);
 
