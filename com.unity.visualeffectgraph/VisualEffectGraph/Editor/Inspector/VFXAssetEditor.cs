@@ -1,10 +1,4 @@
-using System;
-using System.Linq;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEditor;
-using UnityEditor.Experimental;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 using UnityEditor.Experimental.VFX;
@@ -13,55 +7,25 @@ using UnityEditor.VFX.UI;
 using System.IO;
 
 using UnityObject = UnityEngine.Object;
-using UnityEditorInternal;
-
-
-public class VisualEffectAssetEditorStyles
-{
-    public static Texture2D errorIcon = EditorGUIUtility.LoadIcon("console.erroricon.sml");
-    public static Texture2D warningIcon = EditorGUIUtility.LoadIcon("console.warnicon.sml");
-}
 
 [CustomEditor(typeof(VisualEffectAsset))]
 public class VisualEffectAssetEditor : Editor
 {
+    static Mesh s_CubeWireFrame;
     void OnEnable()
-    {
-    }
-
-    PreviewRenderUtility m_PreviewUtility;
-
-    private PreviewRenderUtility previewUtility
-    {
-        get
-        {
-            if (m_PreviewUtility == null)
-            {
-                m_PreviewUtility = new PreviewRenderUtility();
-                m_PreviewUtility.camera.fieldOfView = 60.0f;
-                m_PreviewUtility.camera.allowHDR = false;
-                m_PreviewUtility.camera.allowMSAA = false;
-                m_PreviewUtility.camera.farClipPlane = 10000.0f;
-                m_PreviewUtility.ambientColor = new Color(.1f, .1f, .1f, 0);
-                m_PreviewUtility.lights[0].intensity = 1.4f;
-                m_PreviewUtility.lights[0].transform.rotation = Quaternion.Euler(40f, 40f, 0);
-                m_PreviewUtility.lights[1].intensity = 1.4f;
-                InitPreviewVisualEffect();
-
-                m_FrameCount = 0;
-                m_Distance = 10;
-                m_Origin = Vector3.zero;
-                m_Direction = Vector3.forward;
-            }
-            return m_PreviewUtility;
-        }
-    }
-
-
-    void InitPreviewVisualEffect()
     {
         if (m_VisualEffectGO == null)
         {
+            m_PreviewUtility = new PreviewRenderUtility();
+            m_PreviewUtility.camera.fieldOfView = 60.0f;
+            m_PreviewUtility.camera.allowHDR = false;
+            m_PreviewUtility.camera.allowMSAA = false;
+            m_PreviewUtility.camera.farClipPlane = 10000.0f;
+            m_PreviewUtility.ambientColor = new Color(.1f, .1f, .1f, 0);
+            m_PreviewUtility.lights[0].intensity = 1.4f;
+            m_PreviewUtility.lights[0].transform.rotation = Quaternion.Euler(40f, 40f, 0);
+            m_PreviewUtility.lights[1].intensity = 1.4f;
+
             m_VisualEffectGO = new GameObject("VisualEffect (Preview)");
             m_VisualEffect = m_VisualEffectGO.AddComponent<VisualEffect>();
             m_PreviewUtility.AddManagedGO(m_VisualEffectGO);
@@ -71,16 +35,64 @@ public class VisualEffectAssetEditor : Editor
             m_VisualEffectGO.transform.localScale = Vector3.one;
 
             m_VisualEffect.visualEffectAsset = target as VisualEffectAsset;
-            m_Bounds.size = Vector3.zero;
+            m_OriginalBounds.size = Vector3.zero;
+
+            m_FrameCount = 0;
+            m_Distance = 10;
+            m_Origin = Vector3.zero;
+            m_Direction = Vector3.forward;
+
+            if (s_CubeWireFrame == null)
+            {
+                s_CubeWireFrame = new Mesh();
+
+                var vertices = new Vector3[]
+                {
+                    new Vector3(-0.5f, -0.5f, -0.5f),
+                    new Vector3(-0.5f, -0.5f, 0.5f),
+                    new Vector3(-0.5f, 0.5f, 0.5f),
+                    new Vector3(-0.5f, 0.5f, -0.5f),
+
+                    new Vector3(0.5f, -0.5f, -0.5f),
+                    new Vector3(0.5f, -0.5f, 0.5f),
+                    new Vector3(0.5f, 0.5f, 0.5f),
+                    new Vector3(0.5f, 0.5f, -0.5f)
+                };
+
+
+                var indices = new int[]
+                {
+                    0, 1,
+                    0, 3,
+                    0, 4,
+
+                    6, 2,
+                    6, 5,
+                    6, 7,
+
+                    1, 2,
+                    1, 5,
+
+                    3, 7,
+                    3, 2,
+
+                    4, 5,
+                    4, 7
+                };
+                s_CubeWireFrame.vertices = vertices;
+                s_CubeWireFrame.SetIndices(indices, MeshTopology.Lines, 0);
+            }
         }
     }
+
+    PreviewRenderUtility m_PreviewUtility;
 
     GameObject m_VisualEffectGO;
     VisualEffect m_VisualEffect;
     Vector3 m_Direction;
     Vector3 m_Origin;
     float m_Distance;
-    Bounds m_Bounds;
+    Bounds m_OriginalBounds;
 
     int m_FrameCount = 0;
 
@@ -93,31 +105,35 @@ public class VisualEffectAssetEditor : Editor
 
     void ComputeFarNear()
     {
-        if (m_Bounds.size != Vector3.zero)
+        if (m_OriginalBounds.size != Vector3.zero)
         {
-            float maxBounds = Mathf.Max(m_Bounds.size.x, Mathf.Max(m_Bounds.size.y, m_Bounds.size.z));
+            float maxBounds = Mathf.Sqrt(m_OriginalBounds.size.x * m_OriginalBounds.size.x + m_OriginalBounds.size.y * m_OriginalBounds.size.y + m_OriginalBounds.size.z * m_OriginalBounds.size.z) * 0.5f;
             m_PreviewUtility.camera.farClipPlane = m_Distance + maxBounds * 1.1f;
-            m_PreviewUtility.camera.nearClipPlane = Mathf.Max(0.0001f, (m_Distance - maxBounds) * 0.9f);
+            m_PreviewUtility.camera.nearClipPlane = Mathf.Max(0.0001f, (m_Distance - maxBounds));
         }
     }
 
     public override void OnInteractivePreviewGUI(Rect r, GUIStyle background)
     {
+        if (m_VisualEffectGO == null)
+        {
+            OnEnable();
+        }
+
         bool isRepaint = (Event.current.type == EventType.Repaint);
 
-
         m_Direction = VFXPreviewGUI.Drag2D(m_Direction, r);
+        Renderer renderer = m_VisualEffectGO.GetComponent<Renderer>();
 
-        if (m_FrameCount == kSafeFrame && m_VisualEffectGO != null) // wait to frame before asking the renderer bounds as it is a computed value.
+        if (m_FrameCount == kSafeFrame) // wait to frame before asking the renderer bounds as it is a computed value.
         {
-            Renderer renderer = m_VisualEffectGO.GetComponent<Renderer>();
             if (renderer != null)
             {
-                var m_Bounds = renderer.bounds;
-                float maxBounds = Mathf.Max(m_Bounds.size.x, Mathf.Max(m_Bounds.size.y, m_Bounds.size.z));
-                m_Distance = Mathf.Max(0.01f, maxBounds * 0.5f);
+                m_OriginalBounds = renderer.bounds;
+                float maxBounds = Mathf.Sqrt(m_OriginalBounds.size.x * m_OriginalBounds.size.x + m_OriginalBounds.size.y * m_OriginalBounds.size.y + m_OriginalBounds.size.z * m_OriginalBounds.size.z) * 0.5f;
+                m_Distance = Mathf.Max(0.01f, maxBounds * 1.25f);
 
-                m_Origin = m_Bounds.center;
+                m_Origin = m_OriginalBounds.center;
                 ComputeFarNear();
             }
         }
@@ -130,16 +146,22 @@ public class VisualEffectAssetEditor : Editor
 
         if (isRepaint)
         {
-            previewUtility.BeginPreview(r, background);
+            m_PreviewUtility.BeginPreview(r, background);
 
             Quaternion rot = Quaternion.Euler(m_Direction.y, 0, 0) * Quaternion.Euler(0, m_Direction.x, 0);
-            m_PreviewUtility.camera.transform.position = m_Bounds.center + rot * new Vector3(0, 0, -m_Distance);
+            m_PreviewUtility.camera.transform.position = m_OriginalBounds.center + rot * new Vector3(0, 0, -m_Distance);
             m_PreviewUtility.camera.transform.localRotation = rot;
 
 
-            previewUtility.Render();
+            m_PreviewUtility.Render();
+            if (renderer != null)
+            {
+                var bounds = renderer.bounds;
 
-            previewUtility.EndAndDrawPreview(r);
+                m_PreviewUtility.DrawMesh(s_CubeWireFrame, Matrix4x4.TRS(bounds.center, Quaternion.identity, bounds.size * 0.5f), (Material)EditorGUIUtility.LoadRequired("SceneView/HandleLines.mat"), 0);
+            }
+
+            m_PreviewUtility.EndAndDrawPreview(r);
 
             // Ask for repaint so the effect is animated.
             Repaint();
@@ -190,13 +212,6 @@ public class VisualEffectAssetEditor : Editor
                     OpenTempFile(shader);
                 }
                 GUILayout.EndHorizontal();
-                /*
-                var errors = ShaderUtil.GetShaderErrors(shader as Shader);
-
-                foreach (var error in errors)
-                {
-                    GUILayout.Label(new GUIContent(error.message, error.warning != 0 ? VisualEffectAssetEditorStyles.warningIcon : VisualEffectAssetEditorStyles.errorIcon, string.Format("{0} line:{1} shader:{2}", error.messageDetails, error.line, shaderSource.name)));
-                }*/
             }
         }
         GUI.enabled = enabled;
