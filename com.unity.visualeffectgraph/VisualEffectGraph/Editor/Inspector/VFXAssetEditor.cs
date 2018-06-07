@@ -132,7 +132,7 @@ public class VisualEffectAssetEditor : Editor
         {
             previewUtility.BeginPreview(r, background);
 
-            Quaternion rot = Quaternion.Euler(-m_Direction.y, 0, 0) * Quaternion.Euler(0, -m_Direction.x, 0);
+            Quaternion rot = Quaternion.Euler(m_Direction.y, 0, 0) * Quaternion.Euler(0, m_Direction.x, 0);
             m_PreviewUtility.camera.transform.position = m_Bounds.center + rot * new Vector3(0, 0, -m_Distance);
             m_PreviewUtility.camera.transform.localRotation = rot;
 
@@ -233,88 +233,6 @@ public class VisualEffectAssetEditor : Editor
 static class VFXPreviewGUI
 {
     static int sliderHash = "Slider".GetHashCode();
-    static Rect s_ViewRect, s_Position;
-    static Vector2 s_ScrollPos;
-
-    internal static void BeginScrollView(Rect position, Vector2 scrollPosition, Rect viewRect, GUIStyle horizontalScrollbar, GUIStyle verticalScrollbar)
-    {
-        s_ScrollPos = scrollPosition;
-        s_ViewRect = viewRect;
-        s_Position = position;
-        GUIClip.Push(position, new Vector2(Mathf.Round(-scrollPosition.x - viewRect.x - (viewRect.width - position.width) * .5f), Mathf.Round(-scrollPosition.y - viewRect.y - (viewRect.height - position.height) * .5f)), Vector2.zero, false);
-    }
-
-    internal class Styles
-    {
-        public static GUIStyle preButton;
-        public static void Init()
-        {
-            preButton = "preButton";
-        }
-    }
-
-    public static int CycleButton(int selected, GUIContent[] options)
-    {
-        Styles.Init();
-        return EditorGUILayout.CycleButton(selected, options, Styles.preButton);
-    }
-
-    public static Vector2 EndScrollView()
-    {
-        GUIClip.Pop();
-
-        Rect clipRect = s_Position, position = s_Position, viewRect = s_ViewRect;
-
-        Vector2 scrollPosition = s_ScrollPos;
-        switch (Event.current.type)
-        {
-            case EventType.Layout:
-                GUIUtility.GetControlID(sliderHash, FocusType.Passive);
-                GUIUtility.GetControlID(sliderHash, FocusType.Passive);
-                break;
-            case EventType.Used:
-                break;
-            default:
-                bool needsVerticalScrollbar = ((int)viewRect.width > (int)clipRect.width);
-                bool needsHorizontalScrollbar = ((int)viewRect.height > (int)clipRect.height);
-                int id = GUIUtility.GetControlID(sliderHash, FocusType.Passive);
-
-                if (needsHorizontalScrollbar)
-                {
-                    GUIStyle horizontalScrollbar = "PreHorizontalScrollbar";
-                    GUIStyle horizontalScrollbarThumb = "PreHorizontalScrollbarThumb";
-                    float offset = (viewRect.width - clipRect.width) * .5f;
-                    scrollPosition.x = GUI.Slider(new Rect(position.x, position.yMax - horizontalScrollbar.fixedHeight, clipRect.width - (needsVerticalScrollbar ? horizontalScrollbar.fixedHeight : 0), horizontalScrollbar.fixedHeight),
-                            scrollPosition.x, clipRect.width + offset, -offset, viewRect.width,
-                            horizontalScrollbar, horizontalScrollbarThumb, true, id);
-                }
-                else
-                {
-                    // Get the same number of Control IDs so the ID generation for childrent don't depend on number of things above
-                    scrollPosition.x = 0;
-                }
-
-                id = GUIUtility.GetControlID(sliderHash, FocusType.Passive);
-
-                if (needsVerticalScrollbar)
-                {
-                    GUIStyle verticalScrollbar = "PreVerticalScrollbar";
-                    GUIStyle verticalScrollbarThumb = "PreVerticalScrollbarThumb";
-                    float offset = (viewRect.height - clipRect.height) * .5f;
-                    scrollPosition.y = GUI.Slider(new Rect(clipRect.xMax - verticalScrollbar.fixedWidth, clipRect.y, verticalScrollbar.fixedWidth, clipRect.height),
-                            scrollPosition.y, clipRect.height + offset, -offset, viewRect.height,
-                            verticalScrollbar, verticalScrollbarThumb, false, id);
-                }
-                else
-                {
-                    scrollPosition.y = 0;
-                }
-                break;
-        }
-
-        return scrollPosition;
-    }
-
     public static Vector2 Drag2D(Vector2 scrollPosition, Rect position)
     {
         int id = GUIUtility.GetControlID(sliderHash, FocusType.Passive);
@@ -332,7 +250,7 @@ static class VFXPreviewGUI
             case EventType.MouseDrag:
                 if (GUIUtility.hotControl == id)
                 {
-                    scrollPosition -= evt.delta * (evt.shift ? 3 : 1) / Mathf.Min(position.width, position.height) * 140.0f;
+                    scrollPosition -= -evt.delta * (evt.shift ? 3 : 1) / Mathf.Min(position.width, position.height) * 140.0f;
                     scrollPosition.y = Mathf.Clamp(scrollPosition.y, -90, 90);
                     evt.Use();
                     GUI.changed = true;
