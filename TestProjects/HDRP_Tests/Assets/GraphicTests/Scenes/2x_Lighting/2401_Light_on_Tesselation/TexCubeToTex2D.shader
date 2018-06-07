@@ -4,6 +4,7 @@ Shader "Hiddent/HDRP/Tests/TexCubeToTex2D"
 	{
 		_MainTex ("Texture", Cube) = "white" {}
         _CorrectGamma ("Correct Gamma", float ) = 0
+        _BoxLayout ("Box Layout", float) = 0
 	}
 	SubShader
 	{
@@ -32,6 +33,7 @@ Shader "Hiddent/HDRP/Tests/TexCubeToTex2D"
 
             samplerCUBE _MainTex;
             bool _CorrectGamma;
+            float _BoxLayout;
 			
 			v2f vert (appdata v)
 			{
@@ -54,69 +56,72 @@ Shader "Hiddent/HDRP/Tests/TexCubeToTex2D"
 
                 fixed4 col = fixed4(1,1,1,1);
 
-                if (i.uv.x < 0.25)
+                if (_BoxLayout)
                 {
-                    if (i.uv.y < 0.3333333)
-                        col.a *= 0;
-                    else if (i.uv.y < 0.6666666)
+                    if (i.uv.x < 0.25)
                     {
-                        coords.x = saturate(i.uv.x * 4) * 2 - 1;
-                        coords.y = clamp((i.uv.y * 2 - 1) * 3, -1, 1);
-                        coords.z = 1;
-                    }
-                    else
-                        col.a *= 0;
-                }
-                else if (i.uv.x < 0.5)
-                {
-                    if (i.uv.y < 0.3333333)
-                    {
-                        coords.x = ((i.uv.y * 3) * 2 - 1);
-                        coords.y = -1;
-                    }
-                    else if (i.uv.y < 0.6666666)
-                    {
-                        coords.x = 1;
-                        coords.y = (i.uv.y * 2 - 1) * 3;
-                    }
-                    else
-                    {
-                        coords.x = -(((i.uv.y-.6666666) * 3) * 2 - 1);
-                        coords.y = 1;
-                    }
-                    coords.z = -(saturate((i.uv.x - 0.25) * 4) * 2 - 1);
-
-                }
-                else if (i.uv.x < 0.75)
-                {
-                    if (i.uv.y < 0.3333333)
-                        col.a *= 0;
-                    else if (i.uv.y < 0.6666666)
-                    {
-                        coords.x = -(saturate((i.uv.x-0.5) * 4) * 2 - 1);
-                        coords.y = (i.uv.y * 2 - 1) * 3;
-                        coords.z = -1;
-                    }
-                    else
-                        col.a *= 0;
-                }
-                else
-                {
-                    if (i.uv.y < 0.3333333)
-                        col.a *= 0;
-                    else if (i.uv.y < 0.6666666)
-                    {
-                        coords.x = -1;
-                        coords.y = (i.uv.y * 2 - 1) * 3;
-                        coords.z = saturate((i.uv.x - 0.75) * 4) * 2 - 1;
-                    }
+                        if (i.uv.y < 0.3333333)
+                            col.a *= 0;
+                        else if (i.uv.y < 0.6666666)
+                        {
+                            coords.x = saturate(i.uv.x * 4) * 2 - 1;
+                            coords.y = clamp((i.uv.y * 2 - 1) * 3, -1, 1);
+                            coords.z = 1;
+                        }
                         else
                             col.a *= 0;
+                    }
+                    else if (i.uv.x < 0.5)
+                    {
+                        if (i.uv.y < 0.3333333)
+                        {
+                            coords.x = ((i.uv.y * 3) * 2 - 1);
+                            coords.y = -1;
+                        }
+                        else if (i.uv.y < 0.6666666)
+                        {
+                            coords.x = 1;
+                            coords.y = (i.uv.y * 2 - 1) * 3;
+                        }
+                        else
+                        {
+                            coords.x = -(((i.uv.y-.6666666) * 3) * 2 - 1);
+                            coords.y = 1;
+                        }
+                        coords.z = -(saturate((i.uv.x - 0.25) * 4) * 2 - 1);
+
+                    }
+                    else if (i.uv.x < 0.75)
+                    {
+                        if (i.uv.y < 0.3333333)
+                            col.a *= 0;
+                        else if (i.uv.y < 0.6666666)
+                        {
+                            coords.x = -(saturate((i.uv.x-0.5) * 4) * 2 - 1);
+                            coords.y = (i.uv.y * 2 - 1) * 3;
+                            coords.z = -1;
+                        }
+                        else
+                            col.a *= 0;
+                    }
+                    else
+                    {
+                        if (i.uv.y < 0.3333333)
+                            col.a *= 0;
+                        else if (i.uv.y < 0.6666666)
+                        {
+                            coords.x = -1;
+                            coords.y = (i.uv.y * 2 - 1) * 3;
+                            coords.z = saturate((i.uv.x - 0.75) * 4) * 2 - 1;
+                        }
+                            else
+                                col.a *= 0;
+                    }
+
+                    coords = normalize(coords);
                 }
 
-                coords = normalize(coords);
-
-				col.rgb *= texCUBE(_MainTex, coords).rgb;
+				col.rgb *= texCUBElod(_MainTex, float4(coords, 0)).rgb;
 
                 if (_CorrectGamma == 1)
                     col.rgb = pow(col.rgb, 0.4545454545); // Gamma Correction

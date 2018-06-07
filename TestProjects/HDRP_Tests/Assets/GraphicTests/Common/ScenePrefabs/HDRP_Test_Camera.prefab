@@ -84,7 +84,7 @@ Camera:
   m_StereoSeparation: 0.022
 --- !u!114 &114482499083377642
 MonoBehaviour:
-  m_ObjectHideFlags: 2
+  m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 1132393308280272}

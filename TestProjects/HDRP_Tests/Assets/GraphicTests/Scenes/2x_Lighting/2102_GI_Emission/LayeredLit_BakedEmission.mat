@@ -140,7 +140,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _LayerMaskMap:
-        m_Texture: {fileID: 2800000, guid: 6b43fa9736beb354dba359b5d2ec3699, type: 3}
+        m_Texture: {fileID: 2800000, guid: 8aef3768dead9db45b009fa735ed0307, type: 3}
         m_Scale: {x: 1, y: 0.66}
         m_Offset: {x: 0, y: 0.33}
     - _MainTex:
@@ -348,6 +348,7 @@ Material:
     - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
+    - _HdrpVersion: 1
     - _HeightAmplitude: 0.02
     - _HeightAmplitude0: 0.02
     - _HeightAmplitude1: 0.02

@@ -89,7 +89,7 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaIndirect: 2
     m_PVRFilteringAtrousPositionSigmaAO: 1
     m_ShowResolutionOverlay: 1
-  m_LightingDataAsset: {fileID: 112000052, guid: 543a6061485cba84e9be181cc70a2380,
+  m_LightingDataAsset: {fileID: 112000052, guid: a1ae51cbf52a52f4a89fac02867ba491,
     type: 2}
   m_UseShadowmask: 1
 --- !u!196 &4
@@ -134,7 +134,7 @@ GameObject:
   m_IsActive: 1
 --- !u!114 &21185586
 MonoBehaviour:
-  m_ObjectHideFlags: 2
+  m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 21185585}
@@ -143,7 +143,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 1
+  version: 1
   shadowResolution: 256
   shadowDimmer: 0.5
   shadowFadeDistance: 20
@@ -178,7 +178,7 @@ MonoBehaviour:
     data: 0bd7a33b0000803f
 --- !u!114 &21185587
 MonoBehaviour:
-  m_ObjectHideFlags: 2
+  m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 21185585}
@@ -187,7 +187,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 1
+  version: 1
   directionalIntensity: 3.1415927
   punctualIntensity: 600
   areaIntensity: 200
@@ -220,7 +220,7 @@ Light:
   serializedVersion: 8
   m_Type: 2
   m_Color: {r: 0, g: 0.7673323, b: 1, a: 1}
-  m_Intensity: 20
+  m_Intensity: 47.746483
   m_Range: 4.49
   m_SpotAngle: 80
   m_CookieSize: 10
@@ -754,7 +754,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 23c1ce4fb46143f46bc5cb5224c934f6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 1
+  version: 1
   clearColorMode: 0
   backgroundColorHDR: {r: 0.025, g: 0.07, b: 0.19, a: 0}
   clearDepth: 1
@@ -1929,7 +1929,7 @@ GameObject:
   m_IsActive: 1
 --- !u!114 &1035895819
 MonoBehaviour:
-  m_ObjectHideFlags: 2
+  m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1035895818}
@@ -1938,7 +1938,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 1
+  version: 1
   shadowResolution: 512
   shadowDimmer: 0.5
   shadowFadeDistance: 20
@@ -1973,7 +1973,7 @@ MonoBehaviour:
     data: 0bd7a33b0000803f
 --- !u!114 &1035895820
 MonoBehaviour:
-  m_ObjectHideFlags: 2
+  m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1035895818}
@@ -1982,9 +1982,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 1
+  version: 1
   directionalIntensity: 3.1415927
-  punctualIntensity: 600
+  punctualIntensity: 3000
   areaIntensity: 200
   enableSpotReflector: 0
   m_InnerSpotPercent: 0
@@ -2015,7 +2015,7 @@ Light:
   serializedVersion: 8
   m_Type: 0
   m_Color: {r: 1, g: 0.79510856, b: 0, a: 1}
-  m_Intensity: 300
+  m_Intensity: 238.7324
   m_Range: 30
   m_SpotAngle: 45
   m_CookieSize: 10
@@ -3845,7 +3845,7 @@ GameObject:
   m_IsActive: 1
 --- !u!114 &2095208481
 MonoBehaviour:
-  m_ObjectHideFlags: 2
+  m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 2095208480}
@@ -3854,7 +3854,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 1
+  version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
@@ -3871,12 +3871,12 @@ MonoBehaviour:
   shadowCascadeCount: 4
   shadowCascadeRatios:
   - 0.05
-  - 0.2
+  - 0.15
   - 0.3
   shadowCascadeBorders:
-  - 0.2
-  - 0.2
-  - 0.2
+  - 0
+  - 0
+  - 0
   - 0.2
   shadowAlgorithm: 0
   shadowVariant: 3
@@ -3889,7 +3889,7 @@ MonoBehaviour:
     data: 0bd7a33b0000803f
 --- !u!114 &2095208482
 MonoBehaviour:
-  m_ObjectHideFlags: 2
+  m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 2095208480}
@@ -3898,8 +3898,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 1
-  directionalIntensity: 3.1415927
+  version: 1
+  directionalIntensity: 1
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 0
@@ -3931,7 +3931,7 @@ Light:
   serializedVersion: 8
   m_Type: 1
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 0.5
+  m_Intensity: 1
   m_Range: 10
   m_SpotAngle: 30
   m_CookieSize: 10
