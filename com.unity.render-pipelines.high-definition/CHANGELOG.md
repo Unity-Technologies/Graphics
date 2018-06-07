@@ -38,6 +38,7 @@
 - Fix warning when creating Planar reflection
 - Fix specular lighting debug mode (was rendering black)
 - Allow projector decal with null material to allow to configure decal when HDRP is not set
+- Decal atlas texture offset/scale is updated after allocations (used to be before so it was using date from previous frame)
 
 
 ## [2018.1 undecided]
