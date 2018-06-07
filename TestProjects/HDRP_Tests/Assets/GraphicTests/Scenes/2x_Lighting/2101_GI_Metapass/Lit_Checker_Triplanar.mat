@@ -30,7 +30,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseColorMap:
-        m_Texture: {fileID: 2800000, guid: 8abdc3adb95657847a5a8f760fdfc843, type: 3}
+        m_Texture: {fileID: 2800000, guid: 5923fa4602df2354c9373123f2b3ce60, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BentNormalMap:
@@ -70,7 +70,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 5923fa4602df2354c9373123f2b3ce60, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MaskMap:
@@ -164,6 +164,7 @@ Material:
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _EnergyConservingSpecularColor: 1
+    - _HdrpVersion: 1
     - _HeightAmplitude: 0.02
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 1
@@ -175,7 +176,7 @@ Material:
     - _HeightTessCenter: 0.5
     - _IOR: 1
     - _InitialBend: 1
-    - _InvTilingScale: 4
+    - _InvTilingScale: 1
     - _Ior: 1
     - _IridescenceMask: 1
     - _IridescenceThickness: 1
@@ -212,7 +213,7 @@ Material:
     - _SubsurfaceRadius: 1
     - _SupportDBuffer: 1
     - _SurfaceType: 0
-    - _TexWorldScale: 0.25
+    - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
     - _Thickness: 1
     - _ThicknessMultiplier: 1

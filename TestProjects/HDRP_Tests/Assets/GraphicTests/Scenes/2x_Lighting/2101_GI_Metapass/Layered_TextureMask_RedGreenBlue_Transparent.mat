@@ -142,7 +142,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _LayerMaskMap:
-        m_Texture: {fileID: 2800000, guid: 6b43fa9736beb354dba359b5d2ec3699, type: 3}
+        m_Texture: {fileID: 2800000, guid: 8aef3768dead9db45b009fa735ed0307, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
@@ -350,6 +350,7 @@ Material:
     - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
+    - _HdrpVersion: 1
     - _HeightAmplitude: 0.02
     - _HeightAmplitude0: 0.02
     - _HeightAmplitude1: 0.02
@@ -445,9 +446,9 @@ Material:
     - _ShiverDirectionality: 0.5
     - _ShiverDrag: 0.2
     - _ShowLayer0: 1
-    - _ShowLayer1: 0
-    - _ShowLayer2: 0
-    - _ShowLayer3: 0
+    - _ShowLayer1: 1
+    - _ShowLayer2: 1
+    - _ShowLayer3: 1
     - _ShowMaterialReferences: 1
     - _Smoothness: 1
     - _Smoothness0: 0.6
@@ -526,11 +527,11 @@ Material:
     - _ZWrite: 0
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
-    - _BaseColor0: {r: 1, g: 1, b: 1, a: 1}
-    - _BaseColor1: {r: 1, g: 0, b: 0, a: 1}
-    - _BaseColor2: {r: 0, g: 1, b: 0, a: 1}
-    - _BaseColor3: {r: 0, g: 0, b: 1, a: 1}
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _BaseColor0: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    - _BaseColor1: {r: 1, g: 0, b: 0, a: 0.5019608}
+    - _BaseColor2: {r: 0, g: 1, b: 0, a: 0.5019608}
+    - _BaseColor3: {r: 0, g: 0, b: 1, a: 0.5019608}
+    - _Color: {r: 0, g: 0, b: 0, a: 1}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}
