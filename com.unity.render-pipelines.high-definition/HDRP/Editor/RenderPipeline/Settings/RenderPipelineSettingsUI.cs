@@ -68,18 +68,20 @@ namespace UnityEditor.Experimental.Rendering
         {
             EditorGUILayout.LabelField(_.GetContent("Render Pipeline Settings"), EditorStyles.boldLabel);
             ++EditorGUI.indentLevel;
-            EditorGUILayout.PropertyField(d.supportShadowMask, _.GetContent("Support Shadow Mask"));
-            EditorGUILayout.PropertyField(d.supportSSR, _.GetContent("Support SSR"));
-            EditorGUILayout.PropertyField(d.supportSSAO, _.GetContent("Support SSAO"));
-            EditorGUILayout.PropertyField(d.supportDBuffer, _.GetContent("Support Decal Buffer"));
-            EditorGUILayout.PropertyField(d.supportMSAA, _.GetContent("Support Multi Sampling Anti-Aliasing"));
-            EditorGUILayout.PropertyField(d.MSAASampleCount, _.GetContent("MSAA Sample Count"));
+            EditorGUILayout.PropertyField(d.supportShadowMask, _.GetContent("Support Shadow Mask|Enable memory (Extra Gbuffer in deferred) and shader variant for shadow mask."));
+            EditorGUILayout.PropertyField(d.supportSSR, _.GetContent("Support SSR|Enable memory use by SSR effect."));
+            EditorGUILayout.PropertyField(d.supportSSAO, _.GetContent("Support SSAO|Enable memory use by SSAO effect."));
+            EditorGUILayout.PropertyField(d.supportDBuffer, _.GetContent("Support Decal Buffer|Enable memory and variant of decal buffer."));
+            EditorGUILayout.PropertyField(d.supportMSAA, _.GetContent("Support Multi Sampling Anti-Aliasing|This feature doesn't work currently."));
+            EditorGUILayout.PropertyField(d.MSAASampleCount, _.GetContent("MSAA Sample Count|Allow to select the level of MSAA."));
             EditorGUILayout.PropertyField(d.supportSubsurfaceScattering, _.GetContent("Support Subsurface Scattering"));
-            EditorGUILayout.PropertyField(d.supportOnlyForward, _.GetContent("Support Only Forward"));
-            EditorGUILayout.PropertyField(d.supportMotionVectors, _.GetContent("Support Motion Vectors"));
+            EditorGUILayout.PropertyField(d.supportOnlyForward, _.GetContent("Support Only Forward|Remove all the memory and shader variant of GBuffer. The renderer can be switch to deferred anymore."));
+            EditorGUILayout.PropertyField(d.supportMotionVectors, _.GetContent("Support Motion Vectors|Motion vector are use for Motion Blur, TAA, temporal re-projection of various effect like SSR."));
             EditorGUILayout.PropertyField(d.supportStereo, _.GetContent("Support Stereo Rendering"));
-            EditorGUILayout.PropertyField(d.enableUltraQualitySSS, _.GetContent("Increase SSS Sample Count"));
-            EditorGUILayout.PropertyField(d.supportVolumetric, _.GetContent("Support volumetric"));
+            EditorGUILayout.PropertyField(d.enableUltraQualitySSS, _.GetContent("Increase SSS Sample Count|This allow better SSS quality. Warning: Slow feature, don't use for game."));
+            EditorGUILayout.PropertyField(d.supportVolumetric, _.GetContent("Support volumetric|Enable memory and shader variant for volumetric."));
+            EditorGUILayout.PropertyField(d.supportRuntimeDebugDisplay, _.GetContent("Support runtime debug display|Remove all debug display shader variant only in the player. Allow faster build."));
+
             --EditorGUI.indentLevel;
         }
     }
