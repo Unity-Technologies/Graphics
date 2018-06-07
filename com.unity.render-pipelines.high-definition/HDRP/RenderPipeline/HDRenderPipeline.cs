@@ -891,13 +891,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     m_ReflectionProbeCullResults.Cull();
 
-                    m_DbufferManager.vsibleDecalCount = 0;
+                    m_DbufferManager.EnableDBUffer = false;
                     using (new ProfilingSample(cmd, "DBufferPrepareDrawData", CustomSamplerId.DBufferPrepareDrawData.GetSampler()))
                     {
                         if (hdCamera.frameSettings.enableDBuffer)
                         {
                             DecalSystem.instance.EndCull();
-                            m_DbufferManager.vsibleDecalCount = DecalSystem.m_DecalsVisibleThisFrame;
+                            m_DbufferManager.EnableDBUffer = true;              // mesh decals are renderers managed by c++ runtime and we have no way to query if any are visible, so set to true
                             DecalSystem.instance.UpdateCachedMaterialData();    // textures, alpha or fade distances could've changed
                             DecalSystem.instance.CreateDrawData();              // prepare data is separate from draw
                             DecalSystem.instance.UpdateTextureAtlas(cmd);       // as this is only used for transparent pass, would've been nice not to have to do this if no transparent renderers are visible, needs to happen after CreateDrawData
@@ -932,12 +932,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     ClearBuffers(hdCamera, cmd);
 
                     // TODO: Add stereo occlusion mask
-
-                    bool forcePrepassForDecals = m_DbufferManager.vsibleDecalCount > 0;
-                    RenderDepthPrepass(m_CullResults, hdCamera, renderContext, cmd, forcePrepassForDecals);
+                    RenderDepthPrepass(m_CullResults, hdCamera, renderContext, cmd, m_DbufferManager.EnableDBUffer);
 
                     // This will bind the depth buffer if needed for DBuffer)
-                    RenderDBuffer(hdCamera, cmd);
+                    RenderDBuffer(hdCamera, cmd, renderContext, m_CullResults);
 
                     RenderGBuffer(m_CullResults, hdCamera, enableBakeShadowMask, renderContext, cmd);
 
@@ -1380,7 +1378,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderDBuffer(HDCamera hdCamera, CommandBuffer cmd)
+        void RenderDBuffer(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, CullResults cullResults)
         {
             if (!hdCamera.frameSettings.enableDBuffer)
                 return;
@@ -1395,6 +1393,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_DbufferManager.ClearTargets(cmd, hdCamera);
                 HDUtils.SetRenderTarget(cmd, hdCamera, m_DbufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer); // do not clear anymore
                 m_DbufferManager.SetHTile(m_DbufferManager.bufferCount, cmd);
+                renderContext.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+
+                DrawRendererSettings drawSettings = new DrawRendererSettings(hdCamera.camera, HDShaderPassNames.s_EmptyName)
+                {
+                    rendererConfiguration = 0,
+                    sorting = { flags = SortFlags.CommonOpaque }
+                };
+                drawSettings.SetShaderPassName(0, HDShaderPassNames.s_MeshDecalsName);
+                FilterRenderersSettings filterRenderersSettings = new FilterRenderersSettings(true)
+                {
+                    renderQueueRange = HDRenderQueue.k_RenderQueue_AllOpaque
+                };
+                renderContext.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, filterRenderersSettings);
+
                 DecalSystem.instance.RenderIntoDBuffer(cmd);
                 m_DbufferManager.UnSetHTile(cmd);
                 m_DbufferManager.SetHTileTexture(cmd);  // mask per 8x8 tile used for optimization when looking up dbuffer values
@@ -1567,7 +1580,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else
                 {
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
-                    if ((hdCamera.frameSettings.enableDBuffer) && (DecalSystem.m_DecalsVisibleThisFrame > 0)) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
+                    if ((hdCamera.frameSettings.enableDBuffer) && (DecalSystem.m_DecalDatasCount > 0)) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered                    
+                                                                                                       // decal datas count is 0 if no decals affect transparency             
                     {
                         DecalSystem.instance.SetAtlas(cmd); // for clustered decals
                     }
