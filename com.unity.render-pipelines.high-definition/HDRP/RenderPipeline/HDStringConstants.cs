@@ -265,6 +265,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Shader.PropertyToID("_SSSBufferTexture3"),
         };
 
+        public static readonly int[] _NormalBufferTexture =
+        {
+            Shader.PropertyToID("_NormalBufferTexture0"),
+            Shader.PropertyToID("_NormalBufferTexture1"),
+            Shader.PropertyToID("_NormalBufferTexture2"),
+            Shader.PropertyToID("_NormalBufferTexture3"),
+        };
+
         public static readonly int _SSRefractionRayMarchBehindObjects = Shader.PropertyToID("_SSRefractionRayMarchBehindObjects");
         public static readonly int _SSRefractionRayMaxScreenDistance = Shader.PropertyToID("_SSRefractionRayMaxScreenDistance");
         public static readonly int _SSRefractionRayBlendScreenDistance = Shader.PropertyToID("_SSRefractionRayBlendScreenDistance");
