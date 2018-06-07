@@ -87,6 +87,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static public DecalData[] m_DecalDatas = new DecalData[kDecalBlockSize];
         static public SFiniteLightBound[] m_Bounds = new SFiniteLightBound[kDecalBlockSize];
         static public LightVolumeData[] m_LightVolumes = new LightVolumeData[kDecalBlockSize];
+        static public TextureScaleBias[] m_DiffuseTextureScaleBias = new TextureScaleBias[kDecalBlockSize];
+        static public TextureScaleBias[] m_NormalTextureScaleBias = new TextureScaleBias[kDecalBlockSize];
+        static public TextureScaleBias[] m_MaskTextureScaleBias = new TextureScaleBias[kDecalBlockSize];
+
         static public int m_DecalDatasCount = 0;
 
         static public float[] m_BoundingDistances = new float[1];
@@ -379,9 +383,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         { 
                             m_DecalDatas[m_DecalDatasCount].worldToDecal = decalToWorldBatch[instanceCount].inverse;
                             m_DecalDatas[m_DecalDatasCount].normalToWorld = normalToWorldBatch[instanceCount];
-                            m_DecalDatas[m_DecalDatasCount].diffuseScaleBias = m_Diffuse.m_ScaleBias;
-                            m_DecalDatas[m_DecalDatasCount].normalScaleBias = m_Normal.m_ScaleBias;
-                            m_DecalDatas[m_DecalDatasCount].maskScaleBias = m_Mask.m_ScaleBias;
+
+                            // we have not allocated the textures in atlas yet, so only store references to them
+                            m_DiffuseTextureScaleBias[m_DecalDatasCount] = m_Diffuse;
+                            m_NormalTextureScaleBias[m_DecalDatasCount] = m_Normal;
+                            m_MaskTextureScaleBias[m_DecalDatasCount] = m_Mask;
+
                             GetDecalVolumeDataAndBound(decalToWorldBatch[instanceCount], worldToView);
                             m_DecalDatasCount++;
                             anyAffectTransparency = true;
@@ -397,7 +404,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     }
                 }
 
-                // only add if any projectors in this decal set affect transparency
+                // only add if any projectors in this decal set affect transparency, doesn't actually allocate textures in the atlas yet, this is because we want all the textures in the list so we can optimize the packing
                 if( anyAffectTransparency)
                 { 
                     AddToTextureList(ref instance.m_TextureList);
@@ -606,6 +613,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        private void UpdateDecalDatasWithAtlasInfo()
+        {
+            for (int decalDataIndex = 0; decalDataIndex < m_DecalDatasCount; decalDataIndex++)
+            {
+                m_DecalDatas[decalDataIndex].diffuseScaleBias = m_DiffuseTextureScaleBias[decalDataIndex].m_ScaleBias;
+                m_DecalDatas[decalDataIndex].normalScaleBias = m_NormalTextureScaleBias[decalDataIndex].m_ScaleBias;
+                m_DecalDatas[decalDataIndex].maskScaleBias = m_MaskTextureScaleBias[decalDataIndex].m_ScaleBias;
+            }
+        }
+
         public void UpdateTextureAtlas(CommandBuffer cmd)
         {
             m_AllocationSuccess = true;
@@ -631,6 +648,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
             m_PrevAllocationSuccess = m_AllocationSuccess;
+            // now that textures have been stored in the atlas we can update their location info in decal data
+            UpdateDecalDatasWithAtlasInfo();
         }
 
         public void CreateDrawData()
@@ -643,6 +662,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_DecalDatas = new DecalData[newDecalDatasSize];
                 m_Bounds = new SFiniteLightBound[newDecalDatasSize];
                 m_LightVolumes = new LightVolumeData[newDecalDatasSize];
+                m_DiffuseTextureScaleBias = new TextureScaleBias[newDecalDatasSize];
+                m_NormalTextureScaleBias = new TextureScaleBias[newDecalDatasSize];
+                m_MaskTextureScaleBias = new TextureScaleBias[newDecalDatasSize];
             }
             foreach (var pair in m_DecalSets)
             {
