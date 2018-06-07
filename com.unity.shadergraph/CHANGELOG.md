@@ -33,6 +33,12 @@ In the expanded property window, you can now also toggle if the property is expo
 
 You can now change the path of Shader Graphs and Sub Graphs. When you change the path of a Shader Graph, this modifies the location it has in the shader selection list. When you change the path of Sub Graph, it will have a different location in the node creation menu.
 
+### Is Front Face node
+
+![](.data/face_sign.png)
+
+With this node, you can change graph output depending on the face sign of a given fragment. If the current fragment is part of a front face, the node returns True. For a back face, the node returns False.
+Note: This functionality requires that you have enabled **two sided** on the Master node.
 
 ### Gradient nodes
 
@@ -70,3 +76,4 @@ You can now see the generated code for any specific node. To do so, right-click 
 - Your system locale can no longer cause incorrect commands due to full stops being converted to commas.
 - Deserialization of subgraphs now works correctly.
 - Sub graphs are now suffixed with (sub), so you can tell them apart from other nodes.
+- The preview of a node does not obstruct the selection outliner anymore.
