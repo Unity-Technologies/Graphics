@@ -9,7 +9,7 @@
 
 ### Bug fixes
 
-## [2018.2 / 2.0.1-preview]
+## [2018.2 / next ]
 - Add Light -> Planar Reflection Probe command
 
 ### Improvements
@@ -20,7 +20,7 @@
 
 ### Bug fixes
 
-## [2018.2 / 2.0.0-preview]
+## [2018.2 / 2.0.1-preview]
 
 ### Improvements
 - Add stripper of shader variant when building a player. Save shader compile time.
