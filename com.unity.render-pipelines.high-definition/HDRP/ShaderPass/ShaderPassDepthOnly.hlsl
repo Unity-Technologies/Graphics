@@ -25,7 +25,7 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 #endif // TESSELLATION_ON
 
 void Frag(  PackedVaryingsToPS packedInput,
-            #ifdef OUTPUT_NORMAL_BUFFER
+            #ifdef WRITE_NORMAL_BUFFER
             OUTPUT_NORMALBUFFER(outNormalBuffer)
             #else
             out float4 outColor : SV_Target
@@ -54,7 +54,7 @@ void Frag(  PackedVaryingsToPS packedInput,
     outputDepth = posInput.deviceDepth;
 #endif
 
-#ifdef OUTPUT_NORMAL_BUFFER
+#ifdef WRITE_NORMAL_BUFFER
     ENCODE_INTO_NORMALBUFFER(surfaceData, posInput.positionSS, outNormalBuffer);
 #elif defined(SCENESELECTIONPASS)
     // We use depth prepass for scene selection in the editor, this code allow to output the outline correctly

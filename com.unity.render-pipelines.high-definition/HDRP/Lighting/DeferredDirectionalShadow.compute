@@ -1,16 +1,6 @@
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel DeferredDirectionalShadow                    DEFERRED_DIRECTIONAL=DeferredDirectionalShadow
 #pragma kernel DeferredDirectionalShadow_Contact            DEFERRED_DIRECTIONAL=DeferredDirectionalShadow_Contact          ENABLE_CONTACT_SHADOWS
-#pragma kernel DeferredDirectionalShadow_Normals            DEFERRED_DIRECTIONAL=DeferredDirectionalShadow_Normals          ENABLE_NORMALS
-#pragma kernel DeferredDirectionalShadow_Contact_Normals    DEFERRED_DIRECTIONAL=DeferredDirectionalShadow_Contact_Normals  ENABLE_CONTACT_SHADOWS ENABLE_NORMALS
-
-#ifdef ENABLE_NORMALS
-#   define LIGHTLOOP_TILE_PASS 1
-#   define USE_FPTL_LIGHTLIST  1 // deferred opaque always use FPTL
-#   define UNITY_MATERIAL_LIT
-#else
-#   define SHADOW_USE_ONLY_VIEW_BASED_BIASING 1   // Enable only light view vector based biasing. If undefined, biasing will be based on the normal and calling code must provide a valid normal.
-#endif
 
 #ifdef SHADER_API_PSSL
 #   pragma argument( scheduler=minpressure ) // instruct the shader compiler to prefer minimizing vgpr usage
@@ -18,6 +8,7 @@
 
 #include "CoreRP/ShaderLibrary/Common.hlsl"
 #include "../ShaderVariables.hlsl"
+#include "../Material/NormalBuffer.hlsl"
 #include "Lighting.hlsl"
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
@@ -125,17 +116,12 @@ void DEFERRED_DIRECTIONAL(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId 
 
     PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, tileCoord);
 
-#ifdef ENABLE_NORMALS
-    BSDFData bsdfData;
-    BakeLightingData unused;
-    DECODE_FROM_GBUFFER(posInput.positionSS, UINT_MAX, bsdfData, unused.bakeDiffuseLighting);
-    float3 nrm = bsdfData.normalWS;
-#else
-    float3 nrm = 0.0.xxx;
-#endif
+    NormalData normalData;
+    DecodeFromNormalBuffer(posInput.positionSS, normalData);
+    float3 normalWS = normalData.normalWS;
 
     ShadowContext shadowContext = InitShadowContext();
-    float shadow = GetDirectionalShadowAttenuation(shadowContext, posInput.positionWS, nrm, _DirectionalShadowIndex, _LightDirection);
+    float shadow = GetDirectionalShadowAttenuation(shadowContext, posInput.positionWS, normalWS, _DirectionalShadowIndex, _LightDirection);
 
 #ifdef ENABLE_CONTACT_SHADOWS
     float contactShadow = 1.0f;
