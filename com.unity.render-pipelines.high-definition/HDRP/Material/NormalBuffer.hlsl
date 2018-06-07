@@ -1,3 +1,6 @@
+#include "CoreRP/ShaderLibrary/Packing.hlsl"
+#include "CoreRP/ShaderLibrary/CommonMaterial.hlsl"
+
 // ----------------------------------------------------------------------------
 // Encoding/decoding normal buffer functions
 // ----------------------------------------------------------------------------
@@ -46,7 +49,7 @@ void DecodeFromNormalBuffer(uint2 positionSS, out NormalData normalData)
 }
 
 // OUTPUT_NORMAL_NORMALBUFFER start from SV_Target0 as it is used during depth prepass where there is no color buffer
-#define OUTPUT_NORMAL_NORMALBUFFER(NAME) out NormalBufferType0 MERGE_NAME(NAME, 0) : SV_Target0
+#define OUTPUT_NORMALBUFFER(NAME) out NormalBufferType0 MERGE_NAME(NAME, 0) : SV_Target0
 #define ENCODE_INTO_NORMALBUFFER(SURFACE_DATA, UNPOSITIONSS, NAME) EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(SURFACE_DATA), UNPOSITIONSS, MERGE_NAME(NAME, 0))
 
 #define DECODE_FROM_NORMALBUFFER(UNPOSITIONSS, NORMAL_DATA) DecodeFromNormalBuffer(UNPOSITIONSS, NORMAL_DATA)

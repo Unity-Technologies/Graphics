@@ -354,6 +354,7 @@ Shader "HDRenderPipeline/StackLit"
 
             HLSLPROGRAM
 
+            #define WRITE_NORMAL_BUFFER
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"

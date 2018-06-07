@@ -351,14 +351,43 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
     return normalData;
 }
 
+void UpdateSurfaceDataFromNormalData(uint2 positionSS, inout SurfaceData surfaceData)
+{
+    NormalData normalData;
+
+    DecodeFromNormalBuffer(positionSS, normalData);
+
+    surfaceData.normalWS = normalData.normalWS;
+
+    // If we have store clear coat smoothness in the texture, don't override perceptualSmoothness
+    // Note: Compiler is always able to optimize this code as we are in forward, so with static flag
+    // so the condition will be remove and the read texture will correctly happen instead of all the code
+    // to provide perceptualSmoothness
+    if (!HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
+    {
+        surfaceData.perceptualSmoothness = normalData.perceptualSmoothness;
+    }
+}
+
 //-----------------------------------------------------------------------------
 // conversion function for forward
 //-----------------------------------------------------------------------------
 
-BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
+BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 {
     BSDFData bsdfData;
     ZERO_INITIALIZE(BSDFData, bsdfData);
+
+    // In forward we can chose between reading the normal from the normalBufferTexture or computing it again
+    // Reading normal will suffer from compression, thus using following code depends on tradeoff between performance and quality.
+    // Test it for your project
+
+    // #define READ_FORWARD_NORMAL_FROM_TEXTURE
+#ifdef READ_FORWARD_NORMAL_FROM_TEXTURE
+#if SHADERPASS == SHADERPASS_FORWARD
+    UpdateSurfaceDataFromNormalData(positionSS, surfaceData);
+#endif
+#endif
 
     // IMPORTANT: In case of foward or gbuffer pass all enable flags are statically know at compile time, so the compiler can do compile time optimization
     bsdfData.materialFeatures    = surfaceData.materialFeatures;
