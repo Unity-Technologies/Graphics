@@ -580,7 +580,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             foreach (var pair in m_DecalSets)
             {
                 pair.Value.RenderIntoDBuffer(cmd);
-            }           
+            }
         }
 
         public void SetAtlas(CommandBuffer cmd)
