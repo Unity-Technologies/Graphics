@@ -446,20 +446,7 @@ namespace UnityEditor.VFX.UI
             persistenceKey = "VFXView";
 
 
-            RegisterCallback<GeometryChangedEvent>(ValidateBoards);
-        }
-
-        void ValidateBoards(GeometryChangedEvent e)
-        {
-            if (m_Blackboard != null)
-                m_Blackboard.ValidatePosition();
-
-            if (m_ComponentBoard != null)
-            {
-                m_ComponentBoard.ValidatePosition();
-            }
-
-            UnregisterCallback<GeometryChangedEvent>(ValidateBoards);
+            RegisterCallback<GeometryChangedEvent>(OnFirstResize);
         }
 
         public void SetBoardToFront(GraphElement board)
@@ -482,7 +469,7 @@ namespace UnityEditor.VFX.UI
             {
                 Insert(childCount - 1, m_Blackboard);
                 BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
-                m_Blackboard.ValidatePosition();
+                m_Blackboard.RegisterCallback<GeometryChangedEvent>(OnFirstBlackboardGeometryChanged);
             }
             else
             {
@@ -502,6 +489,39 @@ namespace UnityEditor.VFX.UI
             Insert(childCount - 1, m_ComponentBoard);
 
             BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.componentBoard, true);
+
+            m_ComponentBoard.RegisterCallback<GeometryChangedEvent>(OnFirstComponentBoardGeometryChanged);
+        }
+
+        void OnFirstComponentBoardGeometryChanged(GeometryChangedEvent e)
+        {
+            if (m_FirstResize)
+            {
+                m_ComponentBoard.ValidatePosition();
+                m_ComponentBoard.UnregisterCallback<GeometryChangedEvent>(OnFirstComponentBoardGeometryChanged);
+            }
+        }
+
+        void OnFirstBlackboardGeometryChanged(GeometryChangedEvent e)
+        {
+            if (m_FirstResize)
+            {
+                m_Blackboard.ValidatePosition();
+                m_Blackboard.UnregisterCallback<GeometryChangedEvent>(OnFirstBlackboardGeometryChanged);
+            }
+        }
+
+        public bool m_FirstResize = false;
+
+        void OnFirstResize(GeometryChangedEvent e)
+        {
+            m_FirstResize = true;
+            if (m_ComponentBoard != null)
+                m_ComponentBoard.ValidatePosition();
+            if (m_Blackboard != null)
+                m_Blackboard.ValidatePosition();
+
+            UnregisterCallback<GeometryChangedEvent>(OnFirstResize);
         }
 
         void ToggleComponentBoard()
@@ -509,8 +529,6 @@ namespace UnityEditor.VFX.UI
             if (m_ComponentBoard == null || m_ComponentBoard.parent == null)
             {
                 ShowComponentBoard();
-
-                m_ComponentBoard.ValidatePosition();
             }
             else
             {
@@ -542,6 +560,13 @@ namespace UnityEditor.VFX.UI
             else if (e.controller is VFXNodeController)
             {
                 UpdateUIBounds();
+                if (e.controller is VFXContextController)
+                {
+                    if (m_ComponentBoard != null)
+                    {
+                        m_ComponentBoard.UpdateEventList();
+                    }
+                }
             }
         }
 

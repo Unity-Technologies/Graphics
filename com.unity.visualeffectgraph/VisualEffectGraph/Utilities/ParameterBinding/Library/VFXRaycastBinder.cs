@@ -70,8 +70,8 @@ namespace UnityEngine.Experimental.VFX.Utility
             bool hasHit = Physics.Raycast(ray, out m_HitInfo, MaxDistance, Layers);
 
 
-            component.SetVector3(m_TargetPosition_position, m_HitInfo.m_Point);
-            component.SetVector3(m_TargetNormal_direction, m_HitInfo.m_Normal);
+            component.SetVector3(m_TargetPosition_position, m_HitInfo.point);
+            component.SetVector3(m_TargetNormal_direction, m_HitInfo.normal);
             component.SetBool(TargetHit, hasHit);
         }
 
