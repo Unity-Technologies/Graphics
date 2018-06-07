@@ -11,6 +11,7 @@
 
 ## [2018.2 / next ]
 - Add Light -> Planar Reflection Probe command
+- Added a false color mode in rendering debug
 
 ### Improvements
 
