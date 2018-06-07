@@ -6,9 +6,9 @@
 #include "CoreRP/ShaderLibrary/EntityLighting.hlsl"
 #include "../MaterialUtilities.hlsl"
 
-#if (SHADERPASS == SHADERPASS_DBUFFER)
+#if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
 void GetSurfaceData(float2 texCoordDS, float4x4 normalToWorld, out DecalSurfaceData surfaceData)
-#elif (SHADERPASS == SHADERPASS_MESHDECALS)
+#elif (SHADERPASS == SHADERPASS_DBUFFER_MESH)
 void GetSurfaceData(FragInputs input, out DecalSurfaceData surfaceData)
 #endif
 {
@@ -16,12 +16,12 @@ void GetSurfaceData(FragInputs input, out DecalSurfaceData surfaceData)
     surfaceData.normalWS = float4(0,0,0,0);
     surfaceData.mask = float4(0,0,0,0);
     surfaceData.HTileMask = 0;
-#if (SHADERPASS == SHADERPASS_DBUFFER)
+#if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
     float totalBlend = clamp(normalToWorld[0][3], 0.0f, 1.0f);
     float2 scale = float2(normalToWorld[3][0], normalToWorld[3][1]);
     float2 offset = float2(normalToWorld[3][2], normalToWorld[3][3]);
 	float2 texCoords = texCoordDS * scale + offset;
-#elif (SHADERPASS == SHADERPASS_MESHDECALS)
+#elif (SHADERPASS == SHADERPASS_DBUFFER_MESH)
 	float totalBlend = _DecalBlend;
 	float2 texCoords = input.texCoord0;
 #endif
@@ -39,9 +39,9 @@ void GetSurfaceData(FragInputs input, out DecalSurfaceData surfaceData)
 
 #if _NORMALMAP
 	float3 normalTS = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, texCoords));
-#if (SHADERPASS == SHADERPASS_DBUFFER)
+#if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
 	float3 normalWS = mul((float3x3)normalToWorld, normalTS);
-#elif (SHADERPASS == SHADERPASS_MESHDECALS)	
+#elif (SHADERPASS == SHADERPASS_DBUFFER_MESH)	
 	float3 normalWS;
 	GetNormalWS(input, 0, normalTS, normalWS);
 #endif
