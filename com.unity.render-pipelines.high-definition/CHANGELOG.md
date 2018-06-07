@@ -1,7 +1,27 @@
 
 # Changelog
 
-## [2018.2 undecided]
+## [2018.3]
+
+### Improvements
+
+### Changed, Removals and deprecations
+
+### Bug fixes
+
+## [2018.2 / next ]
+- Add Light -> Planar Reflection Probe command
+- Added a false color mode in rendering debug
+
+### Improvements
+
+### Changed, Removals and deprecations
+- Change Render -> Planar Reflection creation to 3D Object -> Mirror
+- Change "Enable Reflector" name on SpotLight to "Angle Affect Intensity"
+
+### Bug fixes
+
+## [2018.2 / 2.0.1-preview]
 
 ### Improvements
 - Add stripper of shader variant when building a player. Save shader compile time.
@@ -24,7 +44,7 @@
 ### Changed, Removals and deprecations
 - Removed GlobalLightLoopSettings.maxPlanarReflectionProbes and instead use value of GlobalLightLoopSettings.planarReflectionProbeCacheSize
 - Changed SupportForwardOnly to SupportOnlyForward in render pipeline settings
-- Remove EmissiveIntensity parameter and change EmissiveColor to be HDR (Matching Builtin Unity behavior) - Data need to be updated
+- Remove EmissiveIntensity parameter and change EmissiveColor to be HDR (Matching Builtin Unity behavior) - Data need to be updated - Launch Edit -> Single Step Upgrade Script -> Upgrade all Materials emissionColor
 - Changed versioning variable name in HDAdditionalXXXData from m_version to version
 - Create unique name when creating a game object in the rendering menu (i.e Density Volume(2))
 - Re-organize various files and folder location to clean the repository
@@ -39,7 +59,6 @@
 - Fix specular lighting debug mode (was rendering black)
 - Allow projector decal with null material to allow to configure decal when HDRP is not set
 - Decal atlas texture offset/scale is updated after allocations (used to be before so it was using date from previous frame)
-
 
 ## [2018.1 undecided]
 
