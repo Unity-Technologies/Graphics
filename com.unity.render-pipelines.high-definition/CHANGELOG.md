@@ -17,6 +17,9 @@
 - Added a script to be able to upgrade material to newer version of HDRP
 - Removed useless duplication of ForwardError passes.
 - Add option to not compile any DEBUG_DISPLAY shader in the player (Faster build) call Support Runtime Debug display
+- Add support for mesh decals
+- Add flag to disable projector decals on transparent geometry to save performance and decal texture atlas space
+- Add ability to use decal diffuse map as mask only
 
 ### Changed, Removals and deprecations
 - Removed GlobalLightLoopSettings.maxPlanarReflectionProbes and instead use value of GlobalLightLoopSettings.planarReflectionProbeCacheSize
