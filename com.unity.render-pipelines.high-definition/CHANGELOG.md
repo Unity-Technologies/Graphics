@@ -1,7 +1,23 @@
 
 # Changelog
 
-## [2018.2 undecided]
+## [2018.3]
+
+### Improvements
+
+### Changed, Removals and deprecations
+
+### Bug fixes
+
+## [2018.2 / 2.0.1-preview]
+
+### Improvements
+
+### Changed, Removals and deprecations
+
+### Bug fixes
+
+## [2018.2 / 2.0.0-preview]
 
 ### Improvements
 - Add stripper of shader variant when building a player. Save shader compile time.
@@ -35,7 +51,6 @@
 - Fix warning when creating Planar reflection
 - Fix specular lighting debug mode (was rendering black)
 - Allow projector decal with null material to allow to configure decal when HDRP is not set
-
 
 ## [2018.1 undecided]
 
