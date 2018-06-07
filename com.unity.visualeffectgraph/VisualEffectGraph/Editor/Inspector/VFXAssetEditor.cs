@@ -5,12 +5,25 @@ using UnityEditor.Experimental.VFX;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
 using System.IO;
+using UnityEditor.Callbacks;
 
 using UnityObject = UnityEngine.Object;
 
 [CustomEditor(typeof(VisualEffectAsset))]
 public class VisualEffectAssetEditor : Editor
 {
+    [OnOpenAsset(1)]
+    public static bool OnOpenVFX(int instanceID, int line)
+    {
+        var obj = EditorUtility.InstanceIDToObject(instanceID);
+        if (obj is VisualEffectAsset)
+        {
+            VFXViewWindow.GetWindow<VFXViewWindow>().LoadAsset(obj as VisualEffectAsset, null);
+            return true;
+        }
+        return false;
+    }
+
     static Mesh s_CubeWireFrame;
     void OnEnable()
     {
@@ -18,10 +31,10 @@ public class VisualEffectAssetEditor : Editor
         {
             m_PreviewUtility = new PreviewRenderUtility();
             m_PreviewUtility.camera.fieldOfView = 60.0f;
-            m_PreviewUtility.camera.allowHDR = false;
+            m_PreviewUtility.camera.allowHDR = true;
             m_PreviewUtility.camera.allowMSAA = false;
             m_PreviewUtility.camera.farClipPlane = 10000.0f;
-            m_PreviewUtility.ambientColor = new Color(.1f, .1f, .1f, 0);
+            m_PreviewUtility.ambientColor = new Color(.1f, .1f, .1f, 1.0f);
             m_PreviewUtility.lights[0].intensity = 1.4f;
             m_PreviewUtility.lights[0].transform.rotation = Quaternion.Euler(40f, 40f, 0);
             m_PreviewUtility.lights[1].intensity = 1.4f;
@@ -180,23 +193,9 @@ public class VisualEffectAssetEditor : Editor
     {
         VisualEffectAsset asset = (VisualEffectAsset)target;
 
-
-        bool enabled = GUI.enabled;
-        GUI.enabled = true;
-        GUILayout.BeginHorizontal();
-        GUILayout.FlexibleSpace();
-        if (GUILayout.Button("Open Editor"))
-        {
-            EditorWindow.GetWindow<VFXViewWindow>();
-        }
-        GUILayout.FlexibleSpace();
-        GUILayout.EndHorizontal();
-
-
         VisualEffectResource resource = asset.GetResource();
 
         if (resource == null) return;
-
 
         UnityObject[] objects = AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(asset));
 
@@ -214,7 +213,6 @@ public class VisualEffectAssetEditor : Editor
                 GUILayout.EndHorizontal();
             }
         }
-        GUI.enabled = enabled;
     }
 
     void OpenTempFile(UnityObject shader)
