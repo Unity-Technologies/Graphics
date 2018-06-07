@@ -13,7 +13,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             public readonly GUIContent layersText = new GUIContent("Inputs");
             public readonly GUIContent layerMapMaskText = new GUIContent("Layer Mask", "Layer mask");
-            public readonly GUIContent enableHeightBlending = new GUIContent("Enable Height Blending", "Enables layer blending using heightmaps.");
+            public readonly GUIContent layerBlendMode = new GUIContent("Layer Blend Mode", "Controls how terrain layers are blended.");
             public readonly GUIContent heightTransition = new GUIContent("Height Transition", "Size in world units of the smooth transition between layers.");
             public readonly GUIContent enableInstancedPerPixelNormal = new GUIContent("Enable Per-pixel Normal", "Enable per-pixel normal when the terrain uses instanced rendering.");
         }
@@ -25,13 +25,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
         }
 
-        // Density/opacity mode
-        MaterialProperty[] opacityAsDensity = new MaterialProperty[kMaxLayerCount];
-        const string kOpacityAsDensity = "_OpacityAsDensity";
+        MaterialProperty layerBlendMode;
+        const string kLayerBlendMode = "_LayerBlendMode";
 
         // Height blend
-        MaterialProperty enableHeightBlending = null;
-        const string kEnableHeightBlending = "_EnableHeightBlending";
         MaterialProperty heightTransition = null;
         const string kHeightTransition = "_HeightTransition";
 
@@ -40,13 +37,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override void FindMaterialProperties(MaterialProperty[] props)
         {
-            enableHeightBlending = FindProperty(kEnableHeightBlending, props, false);
+            layerBlendMode = FindProperty(kLayerBlendMode, props, false);
             heightTransition = FindProperty(kHeightTransition, props, false);
-            for (int i = 0; i < kMaxLayerCount; ++i)
-            {
-                // Density/opacity mode
-                opacityAsDensity[i] = FindProperty(string.Format("{0}{1}", kOpacityAsDensity, i), props);
-            }
             enableInstancedPerPixelNormal = FindProperty(kEnableInstancedPerPixelNormal, props, false);
         }
 
@@ -57,10 +49,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel++;
             GUILayout.Label(styles.layersText, EditorStyles.boldLabel);
 
-            if (enableHeightBlending != null)
+            if (layerBlendMode != null)
             {
-                m_MaterialEditor.ShaderProperty(enableHeightBlending, styles.enableHeightBlending);
-                if (enableHeightBlending.floatValue > 0)
+                m_MaterialEditor.ShaderProperty(layerBlendMode, styles.layerBlendMode);
+                if (layerBlendMode.floatValue == 2)
                 {
                     EditorGUI.indentLevel++;
                     m_MaterialEditor.ShaderProperty(heightTransition, styles.heightTransition);
@@ -121,6 +113,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // TODO: planar/triplannar supprt
             //SetupLayersMappingKeywords(material);
+
+            int layerBlendMode = (int)material.GetFloat(kLayerBlendMode);
+            CoreUtils.SetKeyword(material, "_TERRAIN_BLEND_DENSITY", layerBlendMode == 1);
+            CoreUtils.SetKeyword(material, "_TERRAIN_BLEND_HEIGHT", layerBlendMode == 2);
 
             bool enableInstancedPerPixelNormal = material.GetFloat(kEnableInstancedPerPixelNormal) > 0.0f;
             CoreUtils.SetKeyword(material, "_TERRAIN_INSTANCED_PERPIXEL_NORMAL", enableInstancedPerPixelNormal);

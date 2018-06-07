@@ -41,26 +41,28 @@ Shader "HDRenderPipeline/TerrainLit"
         [HideInInspector] _Smoothness6("Smoothness 6", Range(0.0, 1.0)) = 0.0
         [HideInInspector] _Smoothness7("Smoothness 7", Range(0.0, 1.0)) = 0.0
 
-        // TODO: route values from terrain layers. enable _DENSITY_MODE if any of these enabled.
-        [HideInInspector] [ToggleUI] _OpacityAsDensity0("_OpacityAsDensity0", Float) = 0.0
-        [HideInInspector] [ToggleUI] _OpacityAsDensity1("_OpacityAsDensity1", Float) = 0.0
-        [HideInInspector] [ToggleUI] _OpacityAsDensity2("_OpacityAsDensity2", Float) = 0.0
-        [HideInInspector] [ToggleUI] _OpacityAsDensity3("_OpacityAsDensity3", Float) = 0.0
-        [HideInInspector] [ToggleUI] _OpacityAsDensity4("_OpacityAsDensity4", Float) = 0.0
-        [HideInInspector] [ToggleUI] _OpacityAsDensity5("_OpacityAsDensity5", Float) = 0.0
-        [HideInInspector] [ToggleUI] _OpacityAsDensity6("_OpacityAsDensity6", Float) = 0.0
-        [HideInInspector] [ToggleUI] _OpacityAsDensity7("_OpacityAsDensity7", Float) = 0.0
+        [HideInInspector] [Enum(Alpha, 0, Density, 1, Height, 2)] _LayerBlendMode("Layer Blend Mode", Int) = 0
 
-        [ToggleUI] _EnableHeightBlending("Enable Height Blending", Float) = 1.0 // Hint Unity if heightmaps are ever used
+        [HideInInspector] _Mask0("Mask 0", 2D) = "black" {}
+        [HideInInspector] _Mask1("Mask 1", 2D) = "black" {}
+        [HideInInspector] _Mask2("Mask 2", 2D) = "black" {}
+        [HideInInspector] _Mask3("Mask 3", 2D) = "black" {}
+        [HideInInspector] _Mask4("Mask 4", 2D) = "black" {}
+        [HideInInspector] _Mask5("Mask 5", 2D) = "black" {}
+        [HideInInspector] _Mask6("Mask 6", 2D) = "black" {}
+        [HideInInspector] _Mask7("Mask 7", 2D) = "black" {}
+
+        [HideInInspector] _Density0("_Density0", Float) = 1.0
+        [HideInInspector] _Density1("_Density1", Float) = 1.0
+        [HideInInspector] _Density2("_Density2", Float) = 1.0
+        [HideInInspector] _Density3("_Density3", Float) = 1.0
+        [HideInInspector] _Density4("_Density4", Float) = 1.0
+        [HideInInspector] _Density5("_Density5", Float) = 1.0
+        [HideInInspector] _Density6("_Density6", Float) = 1.0
+        [HideInInspector] _Density7("_Density7", Float) = 1.0
+
+        // Height in mask.r
         _HeightTransition("Height Transition", Range(0, 1.0)) = 0.0
-        [HideInInspector] _Height0("Height 0", 2D) = "black" {}
-        [HideInInspector] _Height1("Height 1", 2D) = "black" {}
-        [HideInInspector] _Height2("Height 2", 2D) = "black" {}
-        [HideInInspector] _Height3("Height 3", 2D) = "black" {}
-        [HideInInspector] _Height4("Height 4", 2D) = "black" {}
-        [HideInInspector] _Height5("Height 5", 2D) = "black" {}
-        [HideInInspector] _Height6("Height 6", 2D) = "black" {}
-        [HideInInspector] _Height7("Height 7", 2D) = "black" {}
         [HideInInspector] _HeightAmplitude0("Height Scale0", Float) = 0.02
         [HideInInspector] _HeightAmplitude1("Height Scale1", Float) = 0.02
         [HideInInspector] _HeightAmplitude2("Height Scale2", Float) = 0.02
@@ -110,11 +112,6 @@ Shader "HDRenderPipeline/TerrainLit"
         _AORemapMax1("AORemapMax1", Range(0.0, 1.0)) = 1.0
         _AORemapMax2("AORemapMax2", Range(0.0, 1.0)) = 1.0
         _AORemapMax3("AORemapMax3", Range(0.0, 1.0)) = 1.0
-
-        _MaskMap0("MaskMap0", 2D) = "white" {}
-        _MaskMap1("MaskMap1", 2D) = "white" {}
-        _MaskMap2("MaskMap2", 2D) = "white" {}
-        _MaskMap3("MaskMap3", 2D) = "white" {}
         */
         // All the following properties exist only in layered lit material
 
@@ -156,28 +153,19 @@ Shader "HDRenderPipeline/TerrainLit"
     #pragma target 4.5
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
+    #pragma shader_feature _TERRAIN_8_LAYERS
+    #pragma shader_feature _ _TERRAIN_BLEND_DENSITY _TERRAIN_BLEND_HEIGHT
+    #pragma shader_feature _NORMALMAP
+    #pragma shader_feature _MASKMAP
+    // Sample normal in pixel shader when doing instancing
+    #pragma shader_feature _TERRAIN_INSTANCED_PERPIXEL_NORMAL
+
     #pragma shader_feature _DOUBLESIDED_ON
 
     //#pragma shader_feature _ _LAYER_MAPPING_PLANAR0 _LAYER_MAPPING_TRIPLANAR0
     //#pragma shader_feature _ _LAYER_MAPPING_PLANAR1 _LAYER_MAPPING_TRIPLANAR1
     //#pragma shader_feature _ _LAYER_MAPPING_PLANAR2 _LAYER_MAPPING_TRIPLANAR2
     //#pragma shader_feature _ _LAYER_MAPPING_PLANAR3 _LAYER_MAPPING_TRIPLANAR3
-
-    #pragma shader_feature _TERRAIN_NORMAL_MAP
-    #pragma shader_feature _TERRAIN_HEIGHT_MAP
-    // #pragma shader_feature _HEIGHT_BASED_BLEND // _HEIGHT_BASED_BLEND is implied if heightmap is used.
-
-    // Sample normal in pixel shader when doing instancing
-    #pragma shader_feature _TERRAIN_INSTANCED_PERPIXEL_NORMAL
-
-    //#pragma shader_feature _MASKMAP0
-    //#pragma shader_feature _MASKMAP1
-    //#pragma shader_feature _MASKMAP2
-    //#pragma shader_feature _MASKMAP3
-
-    #pragma shader_feature _DENSITY_MODE
-
-    #pragma shader_feature _TERRAIN_1_SPLAT _TERRAIN_2_SPLATS _TERRAIN_3_SPLATS _TERRAIN_4_SPLATS _TERRAIN_5_SPLATS _TERRAIN_6_SPLATS _TERRAIN_7_SPLATS _TERRAIN_8_SPLATS
 
     #pragma shader_feature _DISABLE_DBUFFER
 
@@ -202,12 +190,6 @@ Shader "HDRenderPipeline/TerrainLit"
     #include "CoreRP/ShaderLibrary/Common.hlsl"
     #include "../../ShaderPass/FragInputs.hlsl"
     #include "../../ShaderPass/ShaderPass.cs.hlsl"
-
-    //-------------------------------------------------------------------------------------
-    // variable declaration
-    //-------------------------------------------------------------------------------------
-
-    #define _MAX_LAYER 8
 
     //-------------------------------------------------------------------------------------
     // variable declaration
