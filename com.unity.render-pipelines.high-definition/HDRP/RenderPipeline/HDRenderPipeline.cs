@@ -1580,7 +1580,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else
                 {
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
-                    if ((hdCamera.frameSettings.enableDBuffer) && (DecalSystem.m_DecalsVisibleThisFrame > 0)) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered                    
+                    if ((hdCamera.frameSettings.enableDBuffer) && (DecalSystem.m_DecalDatasCount > 0)) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered                    
+                                                                                                       // decal datas count is 0 if no decals affect transparency             
                     {
                         DecalSystem.instance.SetAtlas(cmd); // for clustered decals
                     }
