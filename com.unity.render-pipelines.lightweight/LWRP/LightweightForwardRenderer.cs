@@ -164,6 +164,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             SetupPerObjectLightIndices(ref cullResults, ref renderingData.lightData);
             RenderTextureDescriptor baseDescriptor = CreateRTDesc(ref renderingData.cameraData);
+            RenderTextureDescriptor shadowDescriptor = baseDescriptor;
+            shadowDescriptor.dimension = TextureDimension.Tex2D;
 
             bool requiresCameraDepth = renderingData.cameraData.requiresDepthTexture;
             bool requiresDepthPrepass = renderingData.shadowData.requiresScreenSpaceShadowResolve ||
@@ -178,13 +180,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             if (renderingData.shadowData.renderDirectionalShadows)
             {
-                EnqueuePass(cmd, RenderPassHandles.DirectionalShadows, baseDescriptor);
+                EnqueuePass(cmd, RenderPassHandles.DirectionalShadows, shadowDescriptor);
                 if (renderingData.shadowData.requiresScreenSpaceShadowResolve)
                     EnqueuePass(cmd, RenderPassHandles.ScreenSpaceShadowResolve, baseDescriptor, new[] {RenderTargetHandles.ScreenSpaceShadowmap});
             }
 
             if (renderingData.shadowData.renderLocalShadows)
-                EnqueuePass(cmd, RenderPassHandles.LocalShadows, baseDescriptor);
+                EnqueuePass(cmd, RenderPassHandles.LocalShadows, shadowDescriptor);
 
             bool requiresDepthAttachment = requiresCameraDepth && !requiresDepthPrepass;
             bool requiresColorAttachment = RequiresIntermediateColorTexture(ref renderingData.cameraData, baseDescriptor, requiresDepthAttachment);
