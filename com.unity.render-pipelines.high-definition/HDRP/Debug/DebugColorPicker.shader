@@ -31,6 +31,8 @@ Shader "Hidden/HDRenderPipeline/DebugColorPicker"
             float3 _ColorPickerFontColor;
             float _ApplyLinearToSRGB;
             float _RequireToFlipInputTexture;
+            int _FalseColor;
+            float4 _FalseColorThresholds; // 4 increasing threshold
 
             struct Attributes
             {
@@ -50,6 +52,23 @@ Shader "Hidden/HDRenderPipeline/DebugColorPicker"
                 output.texcoord = GetNormalizedFullScreenTriangleTexCoord(input.vertexID);
 
                 return output;
+            }
+            
+            float InverseLerp(float min, float max, float t)
+            {
+                return saturate((t - min) / (max - min));
+            }
+
+            float3 FasleColorRemap(float lum, float4 thresholds)
+            {
+                //Gradient from 0 to 240 deg of HUE gradient
+                const float l = DegToRad(240) / TWO_PI;
+
+                float t = lerp(0.0, l / 3, InverseLerp(thresholds.x, thresholds.y, lum))
+                        + lerp(0.0, l / 3, InverseLerp(thresholds.y, thresholds.z, lum))
+                        + lerp(0.0, l / 3, InverseLerp(thresholds.z, thresholds.w, lum));
+
+                return HsvToRgb(float3(l - t, 1, 1));
             }
 
             float4 DisplayPixelInformationAtMousePosition(Varyings input, float4 result, float4 mouseResult, float4 mousePixelCoord)
@@ -144,7 +163,6 @@ Shader "Hidden/HDRenderPipeline/DebugColorPicker"
                 }
 
                 float4 result = SAMPLE_TEXTURE2D(_DebugColorPickerTexture, sampler_DebugColorPickerTexture, input.texcoord);
-                //result.rgb = GetColorCodeFunction(result.x, _ColorPickerParam);
 
                 float4 mousePixelCoord = _MousePixelCoord;
                 if (_RequireToFlipInputTexture > 0.0)
@@ -158,7 +176,14 @@ Shader "Hidden/HDRenderPipeline/DebugColorPicker"
                 // _DebugExposure will be set to zero if the debug view does not need it so we don't need to make a special case here. It's handled in only one place in C#
                 mouseResult = mouseResult / exp2(_DebugExposure);
 
-                float4 finalResult = DisplayPixelInformationAtMousePosition(input, result, mouseResult, mousePixelCoord);
+                if (_FalseColor)
+                    result.rgb = FasleColorRemap(Luminance(result.rgb), _FalseColorThresholds);
+                
+                float4 finalResult = result;
+
+                if (_ColorPickerMode != COLORPICKERDEBUGMODE_NONE)
+                    finalResult = DisplayPixelInformationAtMousePosition(input, result, mouseResult, mousePixelCoord);
+
                 return finalResult;
             }
 
