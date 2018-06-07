@@ -146,14 +146,6 @@ public class VisualEffectAssetEditor : Editor
         }
     }
 
-    private void OnDisable()
-    {
-        if (m_PreviewUtility != null)
-        {
-            m_PreviewUtility.Cleanup();
-        }
-    }
-
     public override void OnInspectorGUI()
     {
         VisualEffectAsset asset = (VisualEffectAsset)target;
