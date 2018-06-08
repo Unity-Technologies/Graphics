@@ -1350,7 +1350,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 using (new ProfilingSample(cmd, "Depth Prepass (forward)", CustomSamplerId.DepthPrepass.GetSampler()))
                 {
-                    cmd.EnableShaderKeyword("OUTPUT_NORMAL_BUFFER");
+                    cmd.EnableShaderKeyword("WRITE_NORMAL_BUFFER");
 
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_NormalBufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer);
 
@@ -1362,7 +1362,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 using (new ProfilingSample(cmd, "Depth Prepass (deferred)", CustomSamplerId.DepthPrepass.GetSampler()))
                 {
-                    cmd.DisableShaderKeyword("OUTPUT_NORMAL_BUFFER"); // Note: This only disable the output of normal buffer for Lit shader, not the other shader that don't use multicompile
+                    cmd.DisableShaderKeyword("WRITE_NORMAL_BUFFER"); // Note: This only disable the output of normal buffer for Lit shader, not the other shader that don't use multicompile
                     
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraDepthStencilBuffer);
 
@@ -1379,7 +1379,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 using (new ProfilingSample(cmd, "Depth Prepass (deferred incomplete)", CustomSamplerId.DepthPrepass.GetSampler()))
                 {
-                    cmd.DisableShaderKeyword("OUTPUT_NORMAL_BUFFER");
+                    cmd.DisableShaderKeyword("WRITE_NORMAL_BUFFER");
 
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraDepthStencilBuffer);
 
