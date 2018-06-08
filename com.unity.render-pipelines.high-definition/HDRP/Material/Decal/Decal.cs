@@ -66,5 +66,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4 diffuseScaleBias;
         public Vector4 normalScaleBias;
         public Vector4 maskScaleBias;
+        public Vector4 baseColor;
     };
 }
