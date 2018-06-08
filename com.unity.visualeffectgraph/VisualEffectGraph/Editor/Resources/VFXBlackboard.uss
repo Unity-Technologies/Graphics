@@ -11,11 +11,12 @@
 
 VFXBlackboardRow.hovered #pill #selection-border
 {
+    background-color:rgba(68,192,255,0.4);
     border-color: #44C0FF;
-    border-left-width:1;
-    border-top-width:1;
-    border-right-width:1;
-    border-bottom-width:1;
+    border-left-width:2;
+    border-top-width:2;
+    border-right-width:2;
+    border-bottom-width:2;
     position-left:1;
     position-right:1;
     position-top:1;

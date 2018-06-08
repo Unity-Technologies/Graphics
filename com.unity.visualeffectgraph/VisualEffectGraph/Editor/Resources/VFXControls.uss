@@ -88,11 +88,6 @@ VFXStringFieldPushButton Button
     height:16;
 }
 
-#line
-{
-    background-color:#999;
-}
-
 Button.MiniDropDown
 {
     slice-right: 12;

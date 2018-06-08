@@ -199,6 +199,10 @@ public class VisualEffectAssetEditor : Editor
 
         UnityObject[] objects = AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(asset));
 
+
+        bool enable = GUI.enabled; //Everything in external asset is disabled by default
+        GUI.enabled = true;
+
         foreach (var shader in objects)
         {
             if (shader is Shader || shader is ComputeShader)
@@ -213,6 +217,7 @@ public class VisualEffectAssetEditor : Editor
                 GUILayout.EndHorizontal();
             }
         }
+        GUI.enabled = false;
     }
 
     void OpenTempFile(UnityObject shader)
