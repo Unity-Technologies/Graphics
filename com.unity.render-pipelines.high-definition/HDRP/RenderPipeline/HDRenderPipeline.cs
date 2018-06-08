@@ -1342,6 +1342,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Forward material always output normal buffer (unless they don't participate to shading)
             // Deferred material never output normal buffer
+
+            // Note: Unlit object use a ForwardOnly pass and don't have normal, they will write 0 in the normal buffer. This should be safe
+            // as they will not use the result of lighting anyway. However take care of effect that will try to filter normal buffer.
+            // TODO: maybe we can use a stencil to tag when Forward unlit touch normal buffer
             if (hdCamera.frameSettings.enableForwardRenderingOnly)
             {
                 using (new ProfilingSample(cmd, "Depth Prepass (forward)", CustomSamplerId.DepthPrepass.GetSampler()))
@@ -1359,11 +1363,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 using (new ProfilingSample(cmd, "Depth Prepass (deferred)", CustomSamplerId.DepthPrepass.GetSampler()))
                 {
                     cmd.DisableShaderKeyword("OUTPUT_NORMAL_BUFFER"); // Note: This only disable the output of normal buffer for Lit shader, not the other shader that don't use multicompile
-
-                    HDUtils.SetRenderTarget(cmd, hdCamera, m_NormalBufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer);
+                    
+                    HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraDepthStencilBuffer);
 
                     // First deferred material
                     RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque);
+
+                    HDUtils.SetRenderTarget(cmd, hdCamera, m_NormalBufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer);
+
                     // Then forward only material that output normal buffer
                     RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthForwardOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque);
                 }
