@@ -18,6 +18,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly string s_TransparentDepthPostpassStr = "TransparentDepthPostpass";
         public static readonly string s_MetaStr = "Meta";
         public static readonly string s_ShadowCasterStr = "ShadowCaster";
+        public static readonly string s_MeshDecalsStr = "DBufferMesh";
 
         // ShaderPass name
         public static readonly ShaderPassName s_EmptyName = new ShaderPassName(s_EmptyStr);
@@ -33,6 +34,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly ShaderPassName s_TransparentDepthPrepassName = new ShaderPassName(s_TransparentDepthPrepassStr);
         public static readonly ShaderPassName s_TransparentBackfaceName = new ShaderPassName(s_TransparentBackfaceStr);
         public static readonly ShaderPassName s_TransparentDepthPostpassName = new ShaderPassName(s_TransparentDepthPostpassStr);
+        public static readonly ShaderPassName s_MeshDecalsName = new ShaderPassName(s_MeshDecalsStr);
 
         // Legacy name
         public static readonly ShaderPassName s_AlwaysName = new ShaderPassName("Always");
@@ -265,6 +267,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Shader.PropertyToID("_SSSBufferTexture3"),
         };
 
+        public static readonly int[] _NormalBufferTexture =
+        {
+            Shader.PropertyToID("_NormalBufferTexture0"),
+            Shader.PropertyToID("_NormalBufferTexture1"),
+            Shader.PropertyToID("_NormalBufferTexture2"),
+            Shader.PropertyToID("_NormalBufferTexture3"),
+        };
+
         public static readonly int _SSRefractionRayMarchBehindObjects = Shader.PropertyToID("_SSRefractionRayMarchBehindObjects");
         public static readonly int _SSRefractionRayMaxScreenDistance = Shader.PropertyToID("_SSRefractionRayMaxScreenDistance");
         public static readonly int _SSRefractionRayBlendScreenDistance = Shader.PropertyToID("_SSRefractionRayBlendScreenDistance");
@@ -298,11 +308,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _DepthPyramidScale = Shader.PropertyToID("_DepthPyramidScale");
 
         public static readonly int _DebugColorPickerTexture = Shader.PropertyToID("_DebugColorPickerTexture");
-        public static readonly int _ColorPickerParam = Shader.PropertyToID("_ColorPickerParam");
         public static readonly int _ColorPickerMode = Shader.PropertyToID("_ColorPickerMode");
         public static readonly int _ApplyLinearToSRGB = Shader.PropertyToID("_ApplyLinearToSRGB");
         public static readonly int _ColorPickerFontColor = Shader.PropertyToID("_ColorPickerFontColor");
         public static readonly int _RequireToFlipInputTexture = Shader.PropertyToID("_RequireToFlipInputTexture");
+        public static readonly int _FalseColorEnabled = Shader.PropertyToID("_FalseColor");
+        public static readonly int _FalseColorThresholds = Shader.PropertyToID("_FalseColorThresholds");
 
         public static readonly int _DebugFullScreenTexture = Shader.PropertyToID("_DebugFullScreenTexture");
         public static readonly int _BlitTexture = Shader.PropertyToID("_BlitTexture");

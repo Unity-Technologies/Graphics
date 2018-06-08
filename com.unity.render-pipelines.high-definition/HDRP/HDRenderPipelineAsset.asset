@@ -3,7 +3,7 @@
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
@@ -11,6 +11,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
   m_Name: HDRenderPipelineAsset
   m_EditorClassIdentifier: 
+  version: 1
   m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
     type: 2}
   m_FrameSettings:
@@ -20,6 +21,8 @@ MonoBehaviour:
     enableSSAO: 1
     enableSubsurfaceScattering: 1
     enableTransmission: 1
+    enableAtmosphericScattering: 1
+    enableVolumetric: 1
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
     enableForwardRenderingOnly: 0
@@ -28,7 +31,6 @@ MonoBehaviour:
     enableMotionVectors: 1
     enableObjectMotionVectors: 1
     enableDBuffer: 1
-    enableAtmosphericScattering: 1
     enableRoughRefraction: 1
     enableTransparentPostpass: 1
     enableDistortion: 1
@@ -38,7 +40,7 @@ MonoBehaviour:
     enableOpaqueObjects: 1
     enableTransparentObjects: 1
     enableMSAA: 0
-    enableShadowMask: 0
+    enableShadowMask: 1
     lightLoopSettings:
       enableTileAndCluster: 1
       enableComputeLightEvaluation: 1
@@ -52,8 +54,10 @@ MonoBehaviour:
     supportSSR: 1
     supportSSAO: 1
     supportSubsurfaceScattering: 1
-    supportForwardOnly: 0
+    supportOnlyForward: 0
     enableUltraQualitySSS: 0
+    supportVolumetric: 1
+    supportRuntimeDebugDisplay: 1
     supportDBuffer: 1
     supportMSAA: 0
     msaaSampleCount: 1
@@ -64,13 +68,12 @@ MonoBehaviour:
       cookieTexArraySize: 16
       pointCookieSize: 512
       cubeCookieTexArraySize: 16
-      reflectionProbeCacheSize: 128
       planarReflectionProbeCacheSize: 4
-      reflectionCubemapSize: 128
       planarReflectionTextureSize: 1024
+      reflectionProbeCacheSize: 128
+      reflectionCubemapSize: 128
       reflectionCacheCompressed: 0
       planarReflectionCacheCompressed: 0
-      maxPlanarReflectionProbes: 128
       skyReflectionSize: 256
       skyLightingOverrideLayerMask:
         serializedVersion: 2
@@ -80,6 +83,8 @@ MonoBehaviour:
       shadowAtlasHeight: 4096
     decalSettings:
       drawDistance: 1000
-      atlasSize: 8192
+      atlasWidth: 4096
+      atlasHeight: 4096
+  allowShaderVariantStripping: 1
   diffusionProfileSettings: {fileID: 11400000, guid: 404820c4cf36ad944862fa59c56064f0,
     type: 2}
