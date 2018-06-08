@@ -12,7 +12,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         protected ShaderKeyword m_WriteNormalBuffer;
 
-        LitShaderPreprocessor()
+        public LitShaderPreprocessor()
         {
             m_WriteNormalBuffer = new ShaderKeyword("WRITE_NORMAL_BUFFER");
         }
@@ -51,10 +51,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     // When we are full forward, we don't have depth prepass without writeNormalBuffer
                     if (hdrpAsset.renderPipelineSettings.supportOnlyForward && !inputData.shaderKeywordSet.IsEnabled(m_WriteNormalBuffer))
-                        return true;
-
-                    // When we are in deferred we don't have depth prepass with writeNormalBuffer
-                    if (!hdrpAsset.renderPipelineSettings.supportOnlyForward && inputData.shaderKeywordSet.IsEnabled(m_WriteNormalBuffer))
                         return true;
                 }
 
