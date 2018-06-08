@@ -15,6 +15,7 @@
 - Add support for mesh decals
 - Add flag to disable projector decals on transparent geometry to save performance and decal texture atlas space
 - Add ability to use decal diffuse map as mask only
+- Add visualize all shadow masks in lighting debug
 
 ### Improvements
 
