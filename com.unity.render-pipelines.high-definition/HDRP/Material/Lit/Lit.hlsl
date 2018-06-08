@@ -336,18 +336,10 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
 {
     NormalData normalData;
 
+    // Note: We can't handle clear coat material here, we have only one slot to store smoothness
+    // and the buffer is the GBuffer1.
     normalData.normalWS = surfaceData.normalWS;
-
-    // When using clear cloat we want to use the coat normal for the various deferred effect
-    // as it is the most dominant one
-    if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
-    {
-        normalData.perceptualSmoothness = CLEAR_COAT_PERCEPTUAL_SMOOTHNESS;
-    }
-    else
-    {
-        normalData.perceptualSmoothness = surfaceData.perceptualSmoothness;
-    }
+    normalData.perceptualSmoothness = surfaceData.perceptualSmoothness;
 
     return normalData;
 }
@@ -359,15 +351,7 @@ void UpdateSurfaceDataFromNormalData(uint2 positionSS, inout SurfaceData surface
     DecodeFromNormalBuffer(positionSS, normalData);
 
     surfaceData.normalWS = normalData.normalWS;
-
-    // If we have store clear coat smoothness in the texture, don't override perceptualSmoothness
-    // Note: Compiler is always able to optimize this code as we are in forward, so with static flag
-    // so the condition will be remove and the read texture will correctly happen instead of all the code
-    // to provide perceptualSmoothness
-    if (!HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
-    {
-        surfaceData.perceptualSmoothness = normalData.perceptualSmoothness;
-    }
+    surfaceData.perceptualSmoothness = normalData.perceptualSmoothness;
 }
 
 //-----------------------------------------------------------------------------
@@ -383,7 +367,7 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     // Reading normal will suffer from compression, thus using following code depends on tradeoff between performance and quality.
     // Test it for your project
 
-     #define READ_FORWARD_NORMAL_FROM_TEXTURE
+     //#define READ_FORWARD_NORMAL_FROM_TEXTURE
 #ifdef READ_FORWARD_NORMAL_FROM_TEXTURE
 #if (SHADERPASS == SHADERPASS_FORWARD) && !defined(_SURFACE_TYPE_TRANSPARENT)
     UpdateSurfaceDataFromNormalData(positionSS, surfaceData);
