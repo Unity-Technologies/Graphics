@@ -21,6 +21,21 @@ public class VisualEffectAssetEditor : Editor
             VFXViewWindow.GetWindow<VFXViewWindow>().LoadAsset(obj as VisualEffectAsset, null);
             return true;
         }
+        else if (obj is Shader || obj is ComputeShader)
+        {
+            string path = AssetDatabase.GetAssetPath(instanceID);
+
+            if (path.EndsWith(".vfx"))
+            {
+                var resource = VisualEffectResource.GetResourceAtPath(path);
+                if (resource != null)
+                {
+                    int index = resource.GetShaderIndex(obj);
+                    resource.ShowGeneratedShaderFile(index, line);
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
