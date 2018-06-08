@@ -577,10 +577,10 @@ namespace UnityEditor.VFX
                     if (spaceAttributeOnType != null)
                     {
                         spaceableCollection.Add(new SpaceSlotConcerned
-                        {
-                            slot = s,
-                            type = (spaceAttributeOnType as VFXSpaceAttribute).type
-                        });
+                    {
+                        slot = s,
+                        type = (spaceAttributeOnType as VFXSpaceAttribute).type
+                    });
                     }
 
                     var fields = s.property.type.GetFields(BindingFlags.Public | BindingFlags.Instance).ToArray();
@@ -599,10 +599,10 @@ namespace UnityEditor.VFX
                             }
 
                             spaceableCollection.Add(new SpaceSlotConcerned
-                            {
-                                slot = slot,
-                                type = (spaceAttribute as VFXSpaceAttribute).type
-                            });
+                        {
+                            slot = slot,
+                            type = (spaceAttribute as VFXSpaceAttribute).type
+                        });
                         }
                     }
                 });
@@ -786,7 +786,7 @@ namespace UnityEditor.VFX
             var expression = refSlot.GetExpression();
             if (expression != null)
             {
-                destSlot.m_LinkedInExpression = ApplySpaceConversion(expression, destSlot, refSlot);
+                destSlot.m_LinkedInExpression = expression;
                 destSlot.m_LinkedInSlot = refSlot;
             }
             else if (destSlot.GetType() == refSlot.GetType())
@@ -864,7 +864,8 @@ namespace UnityEditor.VFX
             // First pass set in expression and propagate to children
             foreach (var startSlot in startSlots)
             {
-                startSlot.m_InExpression = startSlot.ConvertExpression(startSlot.m_LinkedInExpression, startSlot.m_LinkedInSlot); // TODO Handle structural modification
+                var inExpressionPatched = ApplySpaceConversion(startSlot.m_LinkedInExpression, startSlot, startSlot.m_LinkedInSlot);
+                startSlot.m_InExpression = startSlot.ConvertExpression(inExpressionPatched, startSlot.m_LinkedInSlot); // TODO Handle structural modification
                 startSlot.PropagateToChildren(s => {
                         var exp = s.ExpressionToChildren(s.m_InExpression);
                         for (int i = 0; i < s.GetNbChildren(); ++i)
@@ -891,7 +892,8 @@ namespace UnityEditor.VFX
 
         private static VFXExpression ApplySpaceConversion(VFXExpression exp, VFXSlot destSlot, VFXSlot sourceSlot)
         {
-            if (destSlot.spaceable && sourceSlot.spaceable
+            if (sourceSlot != null
+                && destSlot.spaceable && sourceSlot.spaceable
                 &&  destSlot.space != sourceSlot.space)
             {
                 var destSpaceableType = destSlot.GetSpaceTransformationType();

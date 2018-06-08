@@ -257,6 +257,7 @@ namespace UnityEditor.VFX
 
         static public IEnumerable<VFXNamedExpression> GetExpressionsFromSlots(IVFXSlotContainer slotContainer)
         {
+            //TODO : This is not the right place to process space conversion ! (follow marker TODO_REFACTOR_SPACE_CONVERSION)
             foreach (var master in slotContainer.inputSlots)
             {
                 var inheritSpace = CoordinateSpace.Local;

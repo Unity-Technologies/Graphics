@@ -295,7 +295,7 @@ namespace UnityEditor.VFX
                 });
         }
 
-        static protected VFXExpression ConvertSpace(VFXExpression input, VFXSlot targetSlot, CoordinateSpace space)
+        static public VFXExpression ConvertSpace(VFXExpression input, VFXSlot targetSlot, CoordinateSpace space)
         {
             if (targetSlot.spaceable)
             {
