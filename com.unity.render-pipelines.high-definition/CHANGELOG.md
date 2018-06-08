@@ -11,6 +11,10 @@
 
 ## [2018.2 / next ]
 - Add Light -> Planar Reflection Probe command
+- Added a false color mode in rendering debug
+- Add support for mesh decals
+- Add flag to disable projector decals on transparent geometry to save performance and decal texture atlas space
+- Add ability to use decal diffuse map as mask only
 - Add visualize all shadow masks in lighting debug
 
 ### Improvements
@@ -55,6 +59,7 @@
 - Fix warning when creating Planar reflection
 - Fix specular lighting debug mode (was rendering black)
 - Allow projector decal with null material to allow to configure decal when HDRP is not set
+- Decal atlas texture offset/scale is updated after allocations (used to be before so it was using date from previous frame)
 
 ## [2018.1 undecided]
 
