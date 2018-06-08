@@ -11,6 +11,7 @@
 
 ## [2018.2 / next ]
 - Add Light -> Planar Reflection Probe command
+- Add visualize all shadow masks in lighting debug
 
 ### Improvements
 
