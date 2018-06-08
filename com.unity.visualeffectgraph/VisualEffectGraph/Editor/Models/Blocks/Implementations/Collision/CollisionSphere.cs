@@ -26,11 +26,11 @@ if (colliderSign * sqrLength <= colliderSign * totalRadius * totalRadius)
 {
     float dist = sqrt(sqrLength);
     float3 n = colliderSign * dir / dist;
+    position -= n * (dist - totalRadius) * colliderSign;
 ";
 
                 Source += collisionResponseSource;
                 Source += @"
-    position -= n * (dist - totalRadius) * colliderSign;
 }";
                 return Source;
             }

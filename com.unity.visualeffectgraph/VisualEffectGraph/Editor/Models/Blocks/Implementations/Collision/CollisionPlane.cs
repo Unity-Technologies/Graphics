@@ -45,11 +45,11 @@ float w = plane.w;
 float distToPlane = dot(nextPos, n) - w - radius;
 if (distToPlane < 0.0f)
 {
+    position -= n * distToPlane;
 ";
 
                 Source += collisionResponseSource;
                 Source += @"
-    position -= n * distToPlane;
 }";
                 return Source;
             }
