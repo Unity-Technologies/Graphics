@@ -61,6 +61,11 @@ TEXTURE2D(_GBufferTexture3);
 // #define LIT_DISPLAY_REFERENCE_IBL
 #endif
 
+// In forward we can chose between reading the normal from the normalBufferTexture or computing it again
+// This is tradeoff between performance and quality. As we store the normal conpressed, recomputing again is higher quality.
+// Uncomment this to get speed (to measure), let it comment to get quality
+// #define FORWARD_MATERIAL_READ_FROM_WRITTEN_NORMAL_BUFFER
+
 //-----------------------------------------------------------------------------
 // Ligth and material classification for the deferred rendering path
 // Configure what kind of combination is supported
@@ -363,12 +368,8 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     BSDFData bsdfData;
     ZERO_INITIALIZE(BSDFData, bsdfData);
 
-    // In forward we can chose between reading the normal from the normalBufferTexture or computing it again
-    // Reading normal will suffer from compression, thus using following code depends on tradeoff between performance and quality.
-    // Test it for your project
-
-     //#define READ_FORWARD_NORMAL_FROM_TEXTURE
-#ifdef READ_FORWARD_NORMAL_FROM_TEXTURE
+    // Check if we read value of normal and roughness from buffer. This is a tradeoff
+#ifdef FORWARD_MATERIAL_READ_FROM_WRITTEN_NORMAL_BUFFER
 #if (SHADERPASS == SHADERPASS_FORWARD) && !defined(_SURFACE_TYPE_TRANSPARENT)
     UpdateSurfaceDataFromNormalData(positionSS, surfaceData);
 #endif
