@@ -161,6 +161,7 @@ public class VFXSlotContainerEditor : Editor
             { VFXAttributeMode.ReadSource, new Color32(160, 160, 255, 255) },
             { VFXAttributeMode.ReadWrite, new Color32(160, 255, 160, 255) },
             { VFXAttributeMode.Write, new Color32(255, 160, 160, 255) },
+            { VFXAttributeMode.Write | VFXAttributeMode.ReadSource, new Color32(255, 160, 255, 255) },
         };
 
         static Dictionary<VFXValueType, Color> valueTypeColors = new Dictionary<VFXValueType, Color>()

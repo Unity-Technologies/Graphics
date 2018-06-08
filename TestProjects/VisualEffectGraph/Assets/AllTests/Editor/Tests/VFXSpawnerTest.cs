@@ -85,7 +85,7 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(maxFrame > 0);
             yield return null; //wait for exactly one more update if visible
 
-            var spawnerState = vfxComponent.DebugGetSpawnerState(0);
+            var spawnerState = VFXDebugUtil.GetSpawnerState(vfxComponent, 0);
 
             var spawnCountRead = spawnerState.spawnCount / spawnerState.deltaTime;
             Assert.LessOrEqual(Mathf.Abs(spawnCountRead - spawnCountValue), 0.01f);
@@ -145,21 +145,21 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(maxFrame > 0);
             yield return null; //wait for exactly one more update if visible
 
-            var spawnerState = vfxComponent.DebugGetSpawnerState(0);
+            var spawnerState = VFXDebugUtil.GetSpawnerState(vfxComponent, 0);
             var spawnCountRead = spawnerState.spawnCount / spawnerState.deltaTime;
             Assert.LessOrEqual(Mathf.Abs(spawnCountRead), 0.01f);
 
             vfxComponent.SendEvent("Custom_Start");
             for (int i = 0; i < 16; ++i) yield return null;
 
-            spawnerState = vfxComponent.DebugGetSpawnerState(0);
+            spawnerState = VFXDebugUtil.GetSpawnerState(vfxComponent, 0);
             spawnCountRead = spawnerState.spawnCount / spawnerState.deltaTime;
             Assert.LessOrEqual(Mathf.Abs(spawnCountRead - spawnCountValue), 0.01f);
 
             vfxComponent.SendEvent("Custom_Stop");
             for (int i = 0; i < 16; ++i) yield return null;
 
-            spawnerState = vfxComponent.DebugGetSpawnerState(0);
+            spawnerState = VFXDebugUtil.GetSpawnerState(vfxComponent, 0);
             spawnCountRead = spawnerState.spawnCount / spawnerState.deltaTime;
             Assert.LessOrEqual(Mathf.Abs(spawnCountRead), 0.01f);
 
@@ -263,7 +263,7 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(maxFrame > 0);
             yield return null; //wait for exactly one more update if visible
 
-            var spawnerState = vfxComponent.DebugGetSpawnerState(0);
+            var spawnerState = VFXDebugUtil.GetSpawnerState(vfxComponent, 0);
             Assert.GreaterOrEqual(spawnerState.totalTime, valueTotalTime);
             Assert.AreEqual(VFXCustomSpawnerTest.s_LifeTime, spawnerState.vfxEventAttribute.GetFloat("lifetime"));
             Assert.AreEqual(VFXCustomSpawnerTest.s_SpawnCount, spawnerState.spawnCount);

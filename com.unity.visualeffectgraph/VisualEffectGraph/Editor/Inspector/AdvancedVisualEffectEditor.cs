@@ -122,7 +122,7 @@ namespace UnityEditor.VFX
         {
             VisualEffect effect = ((VisualEffect)targets[0]);
             // Check if the component is attach in the editor. If So do not call base.OnDisable() because we don't want to reset the playrate or pause
-            VFXViewWindow window = VFXViewWindow.GetWindow<VFXViewWindow>();
+            VFXViewWindow window = VFXViewWindow.currentWindow;
             if (window == null || window.graphView == null || window.graphView.attachedComponent != effect)
             {
                 base.OnDisable();
@@ -228,7 +228,7 @@ namespace UnityEditor.VFX
                 m_GizmoedParameter = null;
             }*/
 
-            if (GUILayout.Toggle(m_GizmoedParameter == parameter, new GUIContent(Resources.Load<Texture2D>(EditorGUIUtility.pixelsPerPoint > 1 ? "VFX/gizmos@2x" : "VFX/gizmos")), GUISkin.current.button, GUILayout.Width(overrideWidth)))
+            if (GUILayout.Toggle(m_GizmoedParameter == parameter, new GUIContent(Resources.Load<Texture2D>(EditorGUIUtility.pixelsPerPoint > 1 ? "VFX/gizmos@2x" : "VFX/gizmos")), EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector).button, GUILayout.Width(overrideWidth)))
             {
                 m_GizmoedParameter = parameter;
             }

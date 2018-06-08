@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Operator
 {
-    [VFXInfo(category = "Math/Clamp", experimental = true)]
+    [VFXInfo(category = "Math/Clamp")]
     class Saturate : VFXOperatorNumericUniform
     {
         public class InputProperties
@@ -12,7 +12,7 @@ namespace UnityEditor.VFX.Operator
             public float input = 0.0f;
         }
 
-        public override sealed string name { get { return "SaturateNew"; } }
+        public override sealed string name { get { return "Saturate"; } }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)
         {

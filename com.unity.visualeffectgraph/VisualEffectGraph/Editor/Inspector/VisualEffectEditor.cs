@@ -317,6 +317,10 @@ namespace UnityEditor.VFX
                     ShowHeader(Contents.headerParameters);
                     List<int> stack = new List<int>();
                     int currentCount = m_graph.m_ParameterInfo.Length;
+                    if (currentCount == 0)
+                    {
+                        GUILayout.Label("No Parameter exposed in the asset");
+                    }
 
                     foreach (var parameter in m_graph.m_ParameterInfo)
                     {
@@ -461,9 +465,10 @@ namespace UnityEditor.VFX
 
             static Styles()
             {
-                toggleStyle = GUISkin.current.GetStyle("ShurikenCheckMark");
-                toggleMixedStyle = GUISkin.current.GetStyle("ShurikenCheckMarkMixed");
-                categoryHeader = new GUIStyle(GUISkin.current.label);
+                var builtInSkin = EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector);
+                toggleStyle = builtInSkin.GetStyle("ShurikenCheckMark");
+                toggleMixedStyle = builtInSkin.GetStyle("ShurikenCheckMarkMixed");
+                categoryHeader = new GUIStyle(builtInSkin.label);
                 categoryHeader.fontStyle = FontStyle.Bold;
                 categoryHeader.border.left = 2;
                 categoryHeader.padding.left = 14;
