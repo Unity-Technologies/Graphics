@@ -344,19 +344,19 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
     // Note: We can't handle clear coat material here, we have only one slot to store smoothness
     // and the buffer is the GBuffer1.
     normalData.normalWS = surfaceData.normalWS;
-    normalData.perceptualSmoothness = surfaceData.perceptualSmoothness;
+    normalData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
 
     return normalData;
 }
 
-void UpdateSurfaceDataFromNormalData(uint2 positionSS, inout SurfaceData surfaceData)
+void UpdateSurfaceDataFromNormalData(uint2 positionSS, inout BSDFData bsdfData)
 {
     NormalData normalData;
 
     DecodeFromNormalBuffer(positionSS, normalData);
 
-    surfaceData.normalWS = normalData.normalWS;
-    surfaceData.perceptualSmoothness = normalData.perceptualSmoothness;
+    bsdfData.normalWS = normalData.normalWS;
+    bsdfData.perceptualRoughness = normalData.perceptualRoughness;
 }
 
 //-----------------------------------------------------------------------------
@@ -368,13 +368,6 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     BSDFData bsdfData;
     ZERO_INITIALIZE(BSDFData, bsdfData);
 
-    // Check if we read value of normal and roughness from buffer. This is a tradeoff
-#ifdef FORWARD_MATERIAL_READ_FROM_WRITTEN_NORMAL_BUFFER
-#if (SHADERPASS == SHADERPASS_FORWARD) && !defined(_SURFACE_TYPE_TRANSPARENT)
-    UpdateSurfaceDataFromNormalData(positionSS, surfaceData);
-#endif
-#endif
-
     // IMPORTANT: In case of foward or gbuffer pass all enable flags are statically know at compile time, so the compiler can do compile time optimization
     bsdfData.materialFeatures    = surfaceData.materialFeatures;
 
@@ -382,6 +375,13 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     bsdfData.specularOcclusion   = surfaceData.specularOcclusion;
     bsdfData.normalWS            = surfaceData.normalWS;
     bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
+
+    // Check if we read value of normal and roughness from buffer. This is a tradeoff
+#ifdef FORWARD_MATERIAL_READ_FROM_WRITTEN_NORMAL_BUFFER
+#if (SHADERPASS == SHADERPASS_FORWARD) && !defined(_SURFACE_TYPE_TRANSPARENT)
+    UpdateSurfaceDataFromNormalData(positionSS, bsdfData);
+#endif
+#endif
 
     // There is no metallic with SSS and specular color mode
     float metallic = HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION) ? 0.0 : surfaceData.metallic;
@@ -663,7 +663,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     NormalData normalData;
     DecodeFromNormalBuffer(inGBuffer1, positionSS, normalData);
     bsdfData.normalWS = normalData.normalWS;
-    bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(normalData.perceptualSmoothness);
+    bsdfData.perceptualRoughness = normalData.perceptualRoughness;
 
     bakeDiffuseLighting = inGBuffer3.rgb;
 

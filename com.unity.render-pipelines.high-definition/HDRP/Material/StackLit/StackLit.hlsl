@@ -354,13 +354,13 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
     if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT))
     {
         normalData.normalWS = surfaceData.coatNormalWS;
-        normalData.perceptualSmoothness = surfaceData.coatPerceptualSmoothness;
+        normalData.perceptualRoughness = surfaceData.coatPerceptualSmoothness;
     }
     else
     {
         normalData.normalWS = surfaceData.normalWS;
         // Do average mix in case of dual lobe
-        normalData.perceptualSmoothness = lerp(surfaceData.perceptualSmoothnessA, surfaceData.perceptualSmoothnessB, surfaceData.lobeMix);
+        normalData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(lerp(surfaceData.perceptualSmoothnessA, surfaceData.perceptualSmoothnessB, surfaceData.lobeMix));
     }
 
     return normalData;
