@@ -6,6 +6,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
         Pass
         {
             ZWrite Off
+            Cull Off
 
             HLSLPROGRAM
             #pragma target 4.5
