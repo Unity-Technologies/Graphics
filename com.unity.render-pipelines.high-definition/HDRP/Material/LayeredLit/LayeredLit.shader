@@ -655,14 +655,22 @@ Shader "HDRenderPipeline/LayeredLit"
 
             ZWrite On
 
-            ColorMask 0
-
             HLSLPROGRAM
+
+            // In deferred, depth only pass don't output anything.
+            // In forward it output the normal buffer
+            #pragma multi_compile _ WRITE_NORMAL_BUFFER
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
+
+            #ifdef WRITE_NORMAL_BUFFER // If enabled we need all regular interpolator
+            #include "../Lit/ShaderPass/LitSharePass.hlsl"
+            #else
             #include "../Lit/ShaderPass/LitDepthPass.hlsl"
+            #endif
+
             #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
