@@ -18,6 +18,7 @@
 - Add visualize all shadow masks in lighting debug
 - Add export of normal and roughness buffer for forwardOnly and when in supportOnlyForward mode for forward
 - Provide a define in lit.hlsl (FORWARD_MATERIAL_READ_FROM_WRITTEN_NORMAL_BUFFER) when output buffer normal is used to read the normal and roughness instead of caclulating it (can save performance, but lower quality due to compression)
+- Add color swatch to decal material
 
 ### Improvements
 
