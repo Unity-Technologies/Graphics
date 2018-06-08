@@ -14,6 +14,7 @@ int _DebugLightingMode; // Match enum DebugLightingMode
 int _DebugLightingSubMode;
 int _DebugViewMaterial; // Contain the id (define in various materialXXX.cs.hlsl) of the property to display
 int _DebugMipMapMode; // Match enum DebugMipMapMode
+int _ColorPickerMode; // Match enum ColorPickerDebugMode
 int _DebugStep;
 float4 _DebugLightingAlbedo; // x == bool override, yzw = albedo for diffuse
 float4 _DebugLightingSmoothness; // x == bool override, y == override value
