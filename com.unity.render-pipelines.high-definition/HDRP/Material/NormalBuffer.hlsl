@@ -31,7 +31,7 @@ void EncodeIntoNormalBuffer(NormalData normalData, uint2 positionSS, out NormalB
     float2 octNormalWS = PackNormalOctQuadEncode(normalData.normalWS);
     float3 packNormalWS = PackFloat2To888(saturate(octNormalWS * 0.5 + 0.5));
     // We store perceptualRoughness instead of roughness because it is perceptually linear.
-    outNormalBuffer0 = float4(packNormalWS, PerceptualSmoothnessToPerceptualRoughness(normalData.perceptualSmoothness));
+    outNormalBuffer0 = float4(packNormalWS, normalData.perceptualSmoothness);
 }
 
 void DecodeFromNormalBuffer(float4 normalBuffer, uint2 positionSS, out NormalData normalData)
