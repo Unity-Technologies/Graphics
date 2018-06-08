@@ -445,7 +445,13 @@ Shader "HDRenderPipeline/Lit"
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
+
+            #ifdef WRITE_NORMAL_BUFFER // If enabled we need all regular interpolator
+            #include "ShaderPass/LitSharePass.hlsl"
+            #else
             #include "ShaderPass/LitDepthPass.hlsl"
+            #endif
+
             #include "LitData.hlsl"
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
