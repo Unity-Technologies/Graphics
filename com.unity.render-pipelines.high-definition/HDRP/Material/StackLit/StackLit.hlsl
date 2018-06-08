@@ -2744,6 +2744,17 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
             //if (_DebugLightingSubMode != DEBUGSCREENSPACETRACING_COLOR)
             //    diffuseLighting = lighting.indirect.specularReflected;
             break;
+
+        case DEBUGLIGHTINGMODE_VISUALIZE_SHADOW_MASKS:
+            #ifdef SHADOWS_SHADOWMASK
+            diffuseLighting = float3(
+                bakeLightingData.bakeShadowMask.r / 2 + bakeLightingData.bakeShadowMask.g / 2,
+                bakeLightingData.bakeShadowMask.g / 2 + bakeLightingData.bakeShadowMask.b / 2,
+                bakeLightingData.bakeShadowMask.b / 2 + bakeLightingData.bakeShadowMask.a / 2
+            );
+            specularLighting = float3(0, 0, 0);
+            #endif
+            break ;
         }
     }
     else if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
