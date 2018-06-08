@@ -44,6 +44,24 @@ namespace UnityEditor.VFX
             }
         }
 
+        protected override IEnumerable<string> filteredOutSettings
+        {
+            get
+            {
+                foreach (var setting in base.filteredOutSettings)
+                    yield return setting;
+
+                var lifeTime = GetData().IsCurrentAttributeWritten(VFXAttribute.Lifetime);
+                var age = GetData().IsCurrentAttributeRead(VFXAttribute.Age);
+
+                if (!(age || lifeTime))
+                    yield return "ageParticles";
+
+                if (!lifeTime)
+                    yield return "reapParticles";
+            }
+        }
+
         protected override IEnumerable<VFXBlock> implicitPostBlock
         {
             get
