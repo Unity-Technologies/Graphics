@@ -12,7 +12,7 @@ void GetSurfaceData(float2 texCoordDS, float4x4 normalToWorld, out DecalSurfaceD
 void GetSurfaceData(FragInputs input, out DecalSurfaceData surfaceData)
 #endif
 {
-    surfaceData.baseColor = float4(0,0,0,0);
+    surfaceData.baseColor = _BaseColor;
     surfaceData.normalWS = float4(0,0,0,0);
     surfaceData.mask = float4(0,0,0,0);
     surfaceData.HTileMask = 0;
@@ -27,14 +27,16 @@ void GetSurfaceData(FragInputs input, out DecalSurfaceData surfaceData)
 #endif
 
 #if _COLORMAP
-    surfaceData.baseColor = SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, texCoords);
-    surfaceData.baseColor.w *= totalBlend;
-    totalBlend = surfaceData.baseColor.w;   // base alpha affects all other channels;
+    surfaceData.baseColor *= SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, texCoords);    
+#endif
+	surfaceData.baseColor.w *= totalBlend;
+	totalBlend = surfaceData.baseColor.w;   // base alpha affects all other channels;
+
+// outside _COLORMAP because we still have base color
 #if _ALBEDOCONTRIBUTION
 	surfaceData.HTileMask |= DBUFFERHTILEBIT_DIFFUSE;
 #else
 	surfaceData.baseColor.w = 0;	// dont blend any albedo
-#endif
 #endif
 
 #if _NORMALMAP
