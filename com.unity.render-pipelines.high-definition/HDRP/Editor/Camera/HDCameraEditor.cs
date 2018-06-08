@@ -11,16 +11,41 @@ namespace UnityEditor.Experimental.Rendering
     [CanEditMultipleObjects]
     partial class HDCameraEditor : Editor
     {
-        [MenuItem("CONTEXT/Camera/Remove HD Camera", false, 0)]
+        [MenuItem("CONTEXT/Camera/Remove Component", false, 0)]
         static void RemoveLight(MenuCommand menuCommand)
         {
             GameObject go = ((Camera)menuCommand.context).gameObject;
 
             Assert.IsNotNull(go);
 
+            Camera camera = go.GetComponent<Camera>();
+            HDAdditionalCameraData cameraAdditionalData = go.GetComponent<HDAdditionalCameraData>();
+
+            Assert.IsNotNull(camera);
+            Assert.IsNotNull(cameraAdditionalData);
+
             Undo.SetCurrentGroupName("Remove HD Camera");
-            Undo.DestroyObjectImmediate(go.GetComponent<Camera>());
-            Undo.DestroyObjectImmediate(go.GetComponent<HDAdditionalCameraData>());
+            Undo.DestroyObjectImmediate(camera);
+            Undo.DestroyObjectImmediate(cameraAdditionalData);
+        }
+
+        [MenuItem("CONTEXT/Camera/Reset", false, 0)]
+        static void ResetLight(MenuCommand menuCommand)
+        {
+            GameObject go = ((Camera)menuCommand.context).gameObject;
+
+            Assert.IsNotNull(go);
+
+            Camera camera = go.GetComponent<Camera>();
+            HDAdditionalCameraData cameraAdditionalData = go.GetComponent<HDAdditionalCameraData>();
+
+            Assert.IsNotNull(camera);
+            Assert.IsNotNull(cameraAdditionalData);
+
+            Undo.SetCurrentGroupName("Reset HD Camera");
+            Undo.RecordObjects(new UnityEngine.Object[] { camera, cameraAdditionalData }, "Reset HD Camera");
+            camera.Reset();
+            cameraAdditionalData.Reset();
         }
 
         SerializedHDCamera m_SerializedCamera;

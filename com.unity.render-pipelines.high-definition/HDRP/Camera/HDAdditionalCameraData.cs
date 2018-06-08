@@ -1,4 +1,5 @@
 using UnityEngine.Serialization;
+using UnityEngine.Assertions;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -36,19 +37,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             None
         };
 
-        public ClearColorMode clearColorMode = ClearColorMode.Sky;
+        public ClearColorMode clearColorMode;
         [ColorUsage(true, true)]
-        public Color backgroundColorHDR = new Color(0.025f, 0.07f, 0.19f, 0.0f);
-        public bool clearDepth = true;
+        public Color backgroundColorHDR;
+        public bool clearDepth;
 
         public RenderingPath renderingPath;
         [Tooltip("Layer Mask used for the volume interpolation for this camera.")]
-        public LayerMask volumeLayerMask = -1;
+        public LayerMask volumeLayerMask;
 
         // Physical parameters
-        public float aperture = 8f;
-        public float shutterSpeed = 1f / 200f;
-        public float iso = 400f;
+        public float aperture;
+        public float shutterSpeed;
+        public float iso;
 
         // To be able to turn on/off FrameSettings properties at runtime for debugging purpose without affecting the original one
         // we create a runtime copy (m_ActiveFrameSettings that is used, and any parametrization is done on serialized frameSettings)
@@ -70,6 +71,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // When we are a preview, there is no way inside Unity to make a disctinctoin between camera preview and material preview.
         // This property allow to say that we are an editor camera preview when the type is preview.
         public bool isEditorCameraPreview { get; set; }
+
+        private void Awake()
+        {
+            Init();
+        }
+
+        public void Reset()
+        {
+            Init();
+        }
+
+        private void Init()
+        {
+            clearColorMode = ClearColorMode.Sky;
+            backgroundColorHDR = new Color(0.025f, 0.07f, 0.19f, 0.0f);
+            clearDepth = true;
+            renderingPath = RenderingPath.Default;
+            volumeLayerMask = -1;
+            aperture = 8f;
+            shutterSpeed = 1f / 200f;
+            iso = 400f;
+        }
 
         // This is the function use outside to access FrameSettings. It return the current state of FrameSettings for the camera
         // taking into account the customization via the debug menu
