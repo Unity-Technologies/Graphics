@@ -16,8 +16,15 @@ namespace UnityEditor.VFX
             None
         }
 
+        [Header("Particle Update Options")]
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
         public VFXIntegrationMode integration = VFXIntegrationMode.Euler;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Automatically increase particle age every frame, based on deltaTime")]
+        public bool ageParticles = true;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), Tooltip("Destroy particles if age > lifetime")]
+        public bool reapParticles = true;
 
         public VFXBasicUpdate() : base(VFXContextType.kUpdate, VFXDataType.kParticle, VFXDataType.kParticle) {}
         public override string name { get { return "Update"; } }
@@ -51,8 +58,10 @@ namespace UnityEditor.VFX
 
                 if (age || lifeTime)
                 {
-                    yield return CreateInstance<Age>();
-                    if (lifeTime)
+                    if (ageParticles)
+                        yield return CreateInstance<Age>();
+
+                    if (lifeTime && reapParticles)
                         yield return CreateInstance<Reap>();
                 }
             }
