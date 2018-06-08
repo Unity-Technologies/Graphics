@@ -2217,6 +2217,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
             if (_DebugLightingSubMode != DEBUGSCREENSPACETRACING_COLOR)
                 diffuseLighting = lighting.indirect.specularReflected;
             break;
+
         case DEBUGLIGHTINGMODE_VISUALIZE_SHADOW_MASKS:
             #ifdef SHADOWS_SHADOWMASK
             diffuseLighting = float3(
