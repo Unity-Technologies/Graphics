@@ -20,19 +20,21 @@ namespace UnityEditor.VFX
 
         public static readonly Vector3[] radiusDirections = new Vector3[] { Vector3.up, Vector3.right, Vector3.down, Vector3.left };
 
-        public static void DrawCircle(Circle circle, VFXGizmo gizmo, IProperty<Vector3> centerProperty, IProperty<float> radiusProperty, IEnumerable<Vector3> radiusDirections)
+        public static void DrawCircle(Circle circle, VFXGizmo gizmo, IProperty<Vector3> centerProperty, IProperty<float> radiusProperty, IEnumerable<Vector3> radiusDirections, int countVisible = int.MaxValue)
         {
             gizmo.PositionGizmo(circle.center, centerProperty, true);
 
             // Radius controls
             if (radiusProperty.isEditable)
             {
+                int cpt = 0;
                 foreach (var dist in radiusDirections)
                 {
                     EditorGUI.BeginChangeCheck();
                     Vector3 sliderPos = circle.center + dist * circle.radius;
-                    Vector3 result = Handles.Slider(sliderPos, dist, handleSize * HandleUtility.GetHandleSize(sliderPos), Handles.CubeHandleCap, 0);
+                    Vector3 result = Handles.Slider(sliderPos, dist, cpt < countVisible ? (handleSize * HandleUtility.GetHandleSize(sliderPos)) : 0, Handles.CubeHandleCap, 0);
 
+                    ++cpt;
                     if (EditorGUI.EndChangeCheck())
                     {
                         circle.radius = (result - circle.center).magnitude;
@@ -78,11 +80,11 @@ namespace UnityEditor.VFX
             // Draw circle around the arc
             Handles.DrawWireArc(center, -Vector3.forward, Vector3.up, arc, radius);
 
-            VFXCircleGizmo.DrawCircle(arcCircle.circle, this, m_CenterProperty, m_RadiusProperty, VFXCircleGizmo.radiusDirections.Take(Mathf.CeilToInt(arc / 90)));
+            VFXCircleGizmo.DrawCircle(arcCircle.circle, this, m_CenterProperty, m_RadiusProperty, VFXCircleGizmo.radiusDirections, Mathf.CeilToInt(arc / 90));
 
             //Arc first line
-            Handles.DrawLine(center, center + Vector3.up * radius);
-            Handles.DrawLine(center, center + Quaternion.AngleAxis(arc, -Vector3.forward) * Vector3.up * radius);
+            /*Handles.DrawLine(center, center + Vector3.up * radius);
+            Handles.DrawLine(center, center + Quaternion.AngleAxis(arc, -Vector3.forward) * Vector3.up * radius);*/
 
             ArcGizmo(center, radius, arc, m_ArcProperty, Quaternion.Euler(-90.0f, 0.0f, 0.0f), true);
         }

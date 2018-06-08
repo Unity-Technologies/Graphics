@@ -132,6 +132,8 @@ namespace UnityEditor.VFX.UI
             return GetType() == GetPropertyType(provider);
         }
 
+        public const float depthOffset = 8;
+
         public virtual float GetPreferredLabelWidth()
         {
             if (m_Label.panel == null) return 40;
@@ -144,9 +146,9 @@ namespace UnityEditor.VFX.UI
             if (element != null)
             {
                 m_Label.style.font = element.style.font;
-                return m_Label.DoMeasure(-1, MeasureMode.Undefined, m_Label.style.height, MeasureMode.Exactly).x + m_Provider.depth * VFXPropertyIM.depthOffset;
+                return m_Label.DoMeasure(-1, MeasureMode.Undefined, m_Label.style.height, MeasureMode.Exactly).x + m_Provider.depth * depthOffset;
             }
-            return 40 + m_Provider.depth * VFXPropertyIM.depthOffset;
+            return 40 + m_Provider.depth * depthOffset;
         }
 
         public abstract float GetPreferredControlWidth();
@@ -154,7 +156,7 @@ namespace UnityEditor.VFX.UI
         public void SetLabelWidth(float label)
         {
             m_labelWidth = label;
-            m_Label.style.width = effectiveLabelWidth - m_Provider.depth * VFXPropertyIM.depthOffset;
+            m_Label.style.width = effectiveLabelWidth - m_Provider.depth * depthOffset;
         }
 
         protected abstract void UpdateEnabled();
@@ -284,13 +286,13 @@ namespace UnityEditor.VFX.UI
                     VisualElement line = new VisualElement();
                     line.style.width = 1;
                     line.name = "line";
-                    line.style.marginLeft =  0.5f * VFXPropertyIM.depthOffset + (i == 0 ? -2 : 0);
-                    line.style.marginRight = VFXPropertyIM.depthOffset * 0.5f + ((i == provider.depth - 1) ? 2 : 0);
+                    line.style.marginLeft =  0.5f * depthOffset + (i == 0 ? -2 : 0);
+                    line.style.marginRight = depthOffset * 0.5f + ((i == provider.depth - 1) ? 2 : 0);
 
                     Add(line);
                 }
             }
-            m_Label.style.width = effectiveLabelWidth - provider.depth * VFXPropertyIM.depthOffset;
+            m_Label.style.width = effectiveLabelWidth - provider.depth * depthOffset;
             Add(m_Label);
 
             AddToClassList("propertyrm");

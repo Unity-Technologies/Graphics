@@ -102,11 +102,31 @@ namespace UnityEditor.VFX
             base.OnEnable();
             EditMode.editModeStarted += OnEditModeStart;
             EditMode.editModeEnded += OnEditModeEnd;
+
+            // Force rebuilding the parameterinfos
+            VisualEffect effect = ((VisualEffect)targets[0]);
+
+            var asset = effect.visualEffectAsset;
+            if (asset != null && asset.GetResource() != null)
+            {
+                var graph = asset.GetResource().GetOrCreateGraph();
+
+                if (graph)
+                {
+                    graph.BuildParameterInfo();
+                }
+            }
         }
 
         new void OnDisable()
         {
-            base.OnDisable();
+            VisualEffect effect = ((VisualEffect)targets[0]);
+            // Check if the component is attach in the editor. If So do not call base.OnDisable() because we don't want to reset the playrate or pause
+            VFXViewWindow window = VFXViewWindow.currentWindow;
+            if (window == null || window.graphView == null || window.graphView.attachedComponent != effect)
+            {
+                base.OnDisable();
+            }
 
             m_ContextsPerComponent.Clear();
             EditMode.editModeStarted -= OnEditModeStart;
@@ -128,6 +148,33 @@ namespace UnityEditor.VFX
         {
             if (owner == (IToolModeOwner)this)
                 OnEditEnd();
+        }
+
+        protected override void AssetField()
+        {
+            var component = (VisualEffect)target;
+            using (new GUILayout.HorizontalScope())
+            {
+                EditorGUILayout.PropertyField(m_VisualEffectAsset, Contents.assetPath);
+
+                GUI.enabled = component.visualEffectAsset != null; // Enabled state will be kept for all content until the end of the inspectorGUI.
+                if (GUILayout.Button(Contents.openEditor, EditorStyles.miniButton, Styles.MiniButtonWidth))
+                {
+                    VFXViewWindow window = EditorWindow.GetWindow<VFXViewWindow>();
+
+                    window.LoadAsset(component.visualEffectAsset, component);
+                }
+            }
+        }
+
+        protected override void EditorModeInspectorButton()
+        {
+            EditMode.DoEditModeInspectorModeButton(
+                EditMode.SceneViewEditMode.Collider,
+                "Show Parameters",
+                EditorGUIUtility.IconContent("EditCollider"),
+                this
+                );
         }
 
         VFXParameter GetParameter(string name)
@@ -181,7 +228,7 @@ namespace UnityEditor.VFX
                 m_GizmoedParameter = null;
             }*/
 
-            if (GUILayout.Toggle(m_GizmoedParameter == parameter, new GUIContent(Resources.Load<Texture2D>(EditorGUIUtility.pixelsPerPoint > 1 ? "VFX/gizmos@2x" : "VFX/gizmos")), GUISkin.current.button, GUILayout.Width(overrideWidth)))
+            if (GUILayout.Toggle(m_GizmoedParameter == parameter, new GUIContent(Resources.Load<Texture2D>(EditorGUIUtility.pixelsPerPoint > 1 ? "VFX/gizmos@2x" : "VFX/gizmos")), GetCurrentSkin().button, GUILayout.Width(overrideWidth)))
             {
                 m_GizmoedParameter = parameter;
             }
