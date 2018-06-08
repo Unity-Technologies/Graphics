@@ -43,6 +43,7 @@ TEXTURE2D(_GBufferTexture3);
 #define CLEAR_COAT_IETA (1.0 / CLEAR_COAT_IOR) // IETA is the inverse eta which is the ratio of IOR of two interface
 #define CLEAR_COAT_F0 0.04 // IORToFresnel0(CLEAR_COAT_IOR)
 #define CLEAR_COAT_ROUGHNESS 0.001
+#define CLEAR_COAT_PERCEPTUAL_SMOOTHNESS RoughnessToPerceptualSmoothness(CLEAR_COAT_ROUGHNESS)
 #define CLEAR_COAT_PERCEPTUAL_ROUGHNESS RoughnessToPerceptualRoughness(CLEAR_COAT_ROUGHNESS)
 
 //-----------------------------------------------------------------------------
@@ -341,7 +342,7 @@ NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
     // as it is the most dominant one
     if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
-        normalData.perceptualSmoothness = CLEAR_COAT_ROUGHNESS;
+        normalData.perceptualSmoothness = CLEAR_COAT_PERCEPTUAL_SMOOTHNESS;
     }
     else
     {
@@ -382,9 +383,9 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     // Reading normal will suffer from compression, thus using following code depends on tradeoff between performance and quality.
     // Test it for your project
 
-    // #define READ_FORWARD_NORMAL_FROM_TEXTURE
+     #define READ_FORWARD_NORMAL_FROM_TEXTURE
 #ifdef READ_FORWARD_NORMAL_FROM_TEXTURE
-#if SHADERPASS == SHADERPASS_FORWARD
+#if (SHADERPASS == SHADERPASS_FORWARD) && !defined(_SURFACE_TYPE_TRANSPARENT)
     UpdateSurfaceDataFromNormalData(positionSS, surfaceData);
 #endif
 #endif
@@ -677,7 +678,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     NormalData normalData;
     DecodeFromNormalBuffer(inGBuffer1, positionSS, normalData);
     bsdfData.normalWS = normalData.normalWS;
-    bsdfData.perceptualRoughness = normalData.perceptualSmoothness;
+    bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(normalData.perceptualSmoothness);
 
     bakeDiffuseLighting = inGBuffer3.rgb;
 
