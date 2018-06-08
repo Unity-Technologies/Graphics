@@ -12,7 +12,7 @@ namespace UnityEditor.VFX
         public override string name { get { return "Lit Quad Output"; } }
         public override string codeGeneratorTemplate { get { return RenderPipeTemplate("VFXParticleLitQuad"); } }
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleQuadOutput; } }
-        public override bool supportsFlipbooks { get { return true; } }
+        public override bool supportsUV { get { return true; } }
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool normalBending = false;
@@ -61,7 +61,7 @@ namespace UnityEditor.VFX
                 foreach (var size in VFXBlockUtility.GetReadableSizeAttributes(GetData()))
                     yield return size;
 
-                if (flipbookMode != FlipbookMode.Off)
+                if (usesFlipbook)
                     yield return new VFXAttributeInfo(VFXAttribute.TexIndex, VFXAttributeMode.Read);
             }
         }
