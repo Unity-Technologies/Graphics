@@ -891,13 +891,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     m_ReflectionProbeCullResults.Cull();
 
-                    m_DbufferManager.vsibleDecalCount = 0;
+                    m_DbufferManager.EnableDBUffer = false;
                     using (new ProfilingSample(cmd, "DBufferPrepareDrawData", CustomSamplerId.DBufferPrepareDrawData.GetSampler()))
                     {
                         if (hdCamera.frameSettings.enableDBuffer)
                         {
                             DecalSystem.instance.EndCull();
-                            m_DbufferManager.vsibleDecalCount = DecalSystem.m_DecalsVisibleThisFrame;
+                            m_DbufferManager.EnableDBUffer = true;              // mesh decals are renderers managed by c++ runtime and we have no way to query if any are visible, so set to true
                             DecalSystem.instance.UpdateCachedMaterialData();    // textures, alpha or fade distances could've changed
                             DecalSystem.instance.CreateDrawData();              // prepare data is separate from draw
                             DecalSystem.instance.UpdateTextureAtlas(cmd);       // as this is only used for transparent pass, would've been nice not to have to do this if no transparent renderers are visible, needs to happen after CreateDrawData
@@ -932,12 +932,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     ClearBuffers(hdCamera, cmd);
 
                     // TODO: Add stereo occlusion mask
-
-                    bool forcePrepassForDecals = m_DbufferManager.vsibleDecalCount > 0;
-                    RenderDepthPrepass(m_CullResults, hdCamera, renderContext, cmd, forcePrepassForDecals);
+                    RenderDepthPrepass(m_CullResults, hdCamera, renderContext, cmd, m_DbufferManager.EnableDBUffer);
 
                     // This will bind the depth buffer if needed for DBuffer)
-                    RenderDBuffer(hdCamera, cmd);
+                    RenderDBuffer(hdCamera, cmd, renderContext, m_CullResults);
 
                     RenderGBuffer(m_CullResults, hdCamera, enableBakeShadowMask, renderContext, cmd);
 
@@ -1380,7 +1378,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderDBuffer(HDCamera hdCamera, CommandBuffer cmd)
+        void RenderDBuffer(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, CullResults cullResults)
         {
             if (!hdCamera.frameSettings.enableDBuffer)
                 return;
@@ -1395,6 +1393,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_DbufferManager.ClearTargets(cmd, hdCamera);
                 HDUtils.SetRenderTarget(cmd, hdCamera, m_DbufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer); // do not clear anymore
                 m_DbufferManager.SetHTile(m_DbufferManager.bufferCount, cmd);
+                renderContext.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+
+                DrawRendererSettings drawSettings = new DrawRendererSettings(hdCamera.camera, HDShaderPassNames.s_EmptyName)
+                {
+                    rendererConfiguration = 0,
+                    sorting = { flags = SortFlags.CommonOpaque }
+                };
+                drawSettings.SetShaderPassName(0, HDShaderPassNames.s_MeshDecalsName);
+                FilterRenderersSettings filterRenderersSettings = new FilterRenderersSettings(true)
+                {
+                    renderQueueRange = HDRenderQueue.k_RenderQueue_AllOpaque
+                };
+                renderContext.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, filterRenderersSettings);
+
                 DecalSystem.instance.RenderIntoDBuffer(cmd);
                 m_DbufferManager.UnSetHTile(cmd);
                 m_DbufferManager.SetHTileTexture(cmd);  // mask per 8x8 tile used for optimization when looking up dbuffer values
@@ -1567,7 +1580,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else
                 {
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
-                    if ((hdCamera.frameSettings.enableDBuffer) && (DecalSystem.m_DecalsVisibleThisFrame > 0)) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
+                    if ((hdCamera.frameSettings.enableDBuffer) && (DecalSystem.m_DecalDatasCount > 0)) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered                    
+                                                                                                       // decal datas count is 0 if no decals affect transparency             
                     {
                         DecalSystem.instance.SetAtlas(cmd); // for clustered decals
                     }
@@ -1782,7 +1796,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void PushColorPickerDebugTexture(CommandBuffer cmd, RTHandleSystem.RTHandle textureID, HDCamera hdCamera)
         {
-            if (m_CurrentDebugDisplaySettings.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None)
+            if (m_CurrentDebugDisplaySettings.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None || m_DebugDisplaySettings.falseColorDebugSettings.falseColor)
             {
                 using (new ProfilingSample(cmd, "Push To Color Picker"))
                 {
@@ -1794,7 +1808,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // TODO TEMP: Not sure I want to keep this special case. Gotta see how to get rid of it (not sure it will work correctly for non-full viewports.
         public void PushColorPickerDebugTexture(HDCamera hdCamera, CommandBuffer cmd, RenderTargetIdentifier textureID)
         {
-            if (m_CurrentDebugDisplaySettings.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None)
+            if (m_CurrentDebugDisplaySettings.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None || m_DebugDisplaySettings.falseColorDebugSettings.falseColor)
             {
                 using (new ProfilingSample(cmd, "Push To Color Picker"))
                 {
@@ -1872,9 +1886,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 DecalSystem.instance.RenderDebugOverlay(hdCamera, cmd, m_CurrentDebugDisplaySettings, ref x, ref y, overlaySize, hdCamera.actualWidth);
 
-                if (m_CurrentDebugDisplaySettings.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None)
+                if (m_CurrentDebugDisplaySettings.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None || m_CurrentDebugDisplaySettings.falseColorDebugSettings.falseColor)
                 {
                     ColorPickerDebugSettings colorPickerDebugSettings = m_CurrentDebugDisplaySettings.colorPickerDebugSettings;
+                    FalseColorDebugSettings falseColorDebugSettings = m_CurrentDebugDisplaySettings.falseColorDebugSettings;
+                    var falseColorThresholds = new Vector4(falseColorDebugSettings.colorThreshold0, falseColorDebugSettings.colorThreshold1, falseColorDebugSettings.colorThreshold2, falseColorDebugSettings.colorThreshold3);
 
                     // Here we have three cases:
                     // - Material debug is enabled, this is the buffer we display
@@ -1884,9 +1900,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetGlobalTexture(HDShaderIDs._DebugColorPickerTexture, m_DebugColorPickerBuffer); // No SetTexture with RenderTarget identifier... so use SetGlobalTexture
                     // TODO: Replace with command buffer call when available
                     m_DebugColorPicker.SetColor(HDShaderIDs._ColorPickerFontColor, colorPickerDebugSettings.fontColor);
-                    var colorPickerParam = new Vector4(colorPickerDebugSettings.colorThreshold0, colorPickerDebugSettings.colorThreshold1, colorPickerDebugSettings.colorThreshold2, colorPickerDebugSettings.colorThreshold3);
-                    m_DebugColorPicker.SetVector(HDShaderIDs._ColorPickerParam, colorPickerParam);
                     m_DebugColorPicker.SetInt(HDShaderIDs._ColorPickerMode, (int)colorPickerDebugSettings.colorPickerMode);
+                    m_DebugColorPicker.SetInt(HDShaderIDs._FalseColorEnabled, falseColorDebugSettings.falseColor ? 1 : 0);
+                    m_DebugColorPicker.SetVector(HDShaderIDs._FalseColorThresholds, falseColorThresholds);
                     // The material display debug perform sRGBToLinear conversion as the final blit currently hardcode a linearToSrgb conversion. As when we read with color picker this is not done,
                     // we perform it inside the color picker shader. But we shouldn't do it for HDR buffer.
                     m_DebugColorPicker.SetFloat(HDShaderIDs._ApplyLinearToSRGB, m_CurrentDebugDisplaySettings.IsDebugMaterialDisplayEnabled() ? 1.0f : 0.0f);
