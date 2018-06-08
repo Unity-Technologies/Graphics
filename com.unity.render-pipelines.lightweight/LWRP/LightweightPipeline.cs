@@ -196,9 +196,24 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             // Discard variations lesser than kRenderScaleThreshold.
             // Scale is only enabled for gameview
-            // XR has it's own scaling mechanism.
-            cameraData.renderScale = (Mathf.Abs(1.0f - pipelineAsset.renderScale) < kRenderScaleThreshold) ? 1.0f : pipelineAsset.renderScale;
-            cameraData.renderScale = (camera.cameraType == CameraType.Game && !cameraData.isStereoEnabled) ? cameraData.renderScale : 1.0f;
+            // XR has its own scaling mechanism.
+
+            if (camera.cameraType == CameraType.Game)
+            {
+                if (cameraData.isStereoEnabled)
+                {
+                    cameraData.renderScale = XRSettings.eyeTextureResolutionScale;
+                }
+                else
+                {
+                    cameraData.renderScale = pipelineAsset.renderScale;
+                }
+            } else
+            {
+                cameraData.renderScale = 1.0f;
+            }
+            
+            cameraData.renderScale = (Mathf.Abs(1.0f - cameraData.renderScale) < kRenderScaleThreshold) ? 1.0f : cameraData.renderScale;
 
             cameraData.requiresDepthTexture = pipelineAsset.supportsCameraDepthTexture || cameraData.postProcessEnabled || cameraData.isSceneViewCamera;
             cameraData.requiresSoftParticles = pipelineAsset.supportsSoftParticles;
