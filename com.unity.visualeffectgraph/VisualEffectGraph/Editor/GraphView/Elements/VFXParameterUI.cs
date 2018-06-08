@@ -85,12 +85,22 @@ namespace UnityEditor.VFX.UI
         {
             RemoveFromClassList("VFXNodeUI");
             AddStyleSheetPath("VFXParameter");
+            AddStyleSheetPath("StyleSheets/GraphView/Node.uss");
 
             RegisterCallback<MouseEnterEvent>(OnMouseHover);
             RegisterCallback<MouseLeaveEvent>(OnMouseHover);
 
             m_ExposedIcon = this.Q<Image>("exposed-icon");
+            m_SuperCollapsedButton = this.Q("super-collapse-button");
+            m_SuperCollapsedButton.AddManipulator(new Clickable(OnToggleSuperCollapse));
         }
+
+        void OnToggleSuperCollapse()
+        {
+            controller.superCollapsed = !controller.superCollapsed;
+        }
+
+        VisualElement m_SuperCollapsedButton;
 
         public new VFXParameterNodeController controller
         {
