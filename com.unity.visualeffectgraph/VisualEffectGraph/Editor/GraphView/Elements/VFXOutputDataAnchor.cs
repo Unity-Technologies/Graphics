@@ -66,7 +66,7 @@ namespace UnityEditor.VFX.UI
                     line.style.marginLeft = 0.5f * PropertyRM.depthOffset;
                     line.style.marginRight = PropertyRM.depthOffset * 0.5f;
 
-                    Insert(1, line);
+                    Insert(2, line);
                     m_Lines[i] = line;
                 }
             }
