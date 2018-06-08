@@ -1430,9 +1430,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void DisplayRendererList(CommandBuffer cmd, RendererList rendererList, RendererConfiguration conf, RenderStateBlock? stateBlock = null)
         {
-            if (!m_UseNewCulling)
-                return;
-
             DrawRendererSettings_New settings = new DrawRendererSettings_New() { rendererConfiguration = conf };
             if (stateBlock == null)
                 cmd.DrawRenderers(rendererList, settings);
@@ -1445,13 +1442,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ScriptableRenderContext renderContext,
             CommandBuffer cmd,
             ShaderPassName passName,
+            RendererList rendererList,
             RendererConfiguration rendererConfiguration = 0,
             RenderQueueRange? inRenderQueueRange = null,
             RenderStateBlock? stateBlock = null,
             Material overrideMaterial = null)
         {
             m_SinglePassName[0] = passName;
-            RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_SinglePassName, rendererConfiguration, inRenderQueueRange, stateBlock, overrideMaterial);
+            RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_SinglePassName, rendererList, rendererConfiguration, inRenderQueueRange, stateBlock, overrideMaterial);
         }
 
         void RenderOpaqueRenderList(CullResults cull,
@@ -1459,44 +1457,49 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ScriptableRenderContext renderContext,
             CommandBuffer cmd,
             ShaderPassName[] passNames,
+            RendererList rendererList,
             RendererConfiguration rendererConfiguration = 0,
             RenderQueueRange? inRenderQueueRange = null,
             RenderStateBlock? stateBlock = null,
             Material overrideMaterial = null)
         {
-            if (m_UseNewCulling)
-                return;
-
             if (!hdCamera.frameSettings.enableOpaqueObjects)
                 return;
 
-            // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders
-            renderContext.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
-
-            var drawSettings = new DrawRendererSettings(hdCamera.camera, HDShaderPassNames.s_EmptyName)
+            if (m_UseNewCulling && (rendererList != null))
             {
-                rendererConfiguration = rendererConfiguration,
-                sorting = { flags = SortFlags.CommonOpaque }
-            };
-
-            for (int i = 0; i < passNames.Length; ++i)
-            {
-                drawSettings.SetShaderPassName(i, passNames[i]);
+                DisplayRendererList(cmd, rendererList, rendererConfiguration, stateBlock);
             }
-
-            if (overrideMaterial != null)
-                drawSettings.SetOverrideMaterial(overrideMaterial, 0);
-
-            var filterSettings = new FilterRenderersSettings(true)
-            {
-                renderQueueRange = inRenderQueueRange == null ? HDRenderQueue.k_RenderQueue_AllOpaque : inRenderQueueRange.Value
-            };
-
-            if (stateBlock == null)
-                renderContext.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings);
             else
-                renderContext.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings, stateBlock.Value);
+            {
+                // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders
+                renderContext.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+
+                var drawSettings = new DrawRendererSettings(hdCamera.camera, HDShaderPassNames.s_EmptyName)
+                {
+                    rendererConfiguration = rendererConfiguration,
+                    sorting = { flags = SortFlags.CommonOpaque }
+                };
+
+                for (int i = 0; i < passNames.Length; ++i)
+                {
+                    drawSettings.SetShaderPassName(i, passNames[i]);
+                }
+
+                if (overrideMaterial != null)
+                    drawSettings.SetOverrideMaterial(overrideMaterial, 0);
+
+                var filterSettings = new FilterRenderersSettings(true)
+                {
+                    renderQueueRange = inRenderQueueRange == null ? HDRenderQueue.k_RenderQueue_AllOpaque : inRenderQueueRange.Value
+                };
+
+                if (stateBlock == null)
+                    renderContext.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings);
+                else
+                    renderContext.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings, stateBlock.Value);
+            }
         }
 
         void RenderTransparentRenderList(CullResults cull,
@@ -1504,13 +1507,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ScriptableRenderContext renderContext,
             CommandBuffer cmd,
             ShaderPassName passName,
+            RendererList rendererList,
             RendererConfiguration rendererConfiguration = 0,
             RenderQueueRange? inRenderQueueRange = null,
             RenderStateBlock? stateBlock = null,
             Material overrideMaterial = null)
         {
             m_SinglePassName[0] = passName;
-            RenderTransparentRenderList(cull, hdCamera, renderContext, cmd, m_SinglePassName,
+            RenderTransparentRenderList(cull, hdCamera, renderContext, cmd, m_SinglePassName, rendererList,
                 rendererConfiguration, inRenderQueueRange, stateBlock, overrideMaterial);
         }
 
@@ -1519,45 +1523,50 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ScriptableRenderContext renderContext,
             CommandBuffer cmd,
             ShaderPassName[] passNames,
+            RendererList rendererList,
             RendererConfiguration rendererConfiguration = 0,
             RenderQueueRange? inRenderQueueRange = null,
             RenderStateBlock? stateBlock = null,
             Material overrideMaterial = null
             )
         {
-            if (m_UseNewCulling)
-                return;
-
             if (!hdCamera.frameSettings.enableTransparentObjects)
                 return;
 
-            // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders
-            renderContext.ExecuteCommandBuffer(cmd);
-            cmd.Clear();
-
-            var drawSettings = new DrawRendererSettings(hdCamera.camera, HDShaderPassNames.s_EmptyName)
+            if (m_UseNewCulling && (rendererList != null))
             {
-                rendererConfiguration = rendererConfiguration,
-                sorting = { flags = SortFlags.CommonTransparent }
-            };
-
-            for (int i = 0; i < passNames.Length; ++i)
-            {
-                drawSettings.SetShaderPassName(i, passNames[i]);
+                DisplayRendererList(cmd, rendererList, rendererConfiguration, stateBlock);
             }
-
-            if (overrideMaterial != null)
-                drawSettings.SetOverrideMaterial(overrideMaterial, 0);
-
-            var filterSettings = new FilterRenderersSettings(true)
-            {
-                renderQueueRange = inRenderQueueRange == null ? HDRenderQueue.k_RenderQueue_AllTransparent : inRenderQueueRange.Value
-            };
-
-            if (stateBlock == null)
-                renderContext.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings);
             else
-                renderContext.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings, stateBlock.Value);
+            {
+                // This is done here because DrawRenderers API lives outside command buffers so we need to make call this before doing any DrawRenders
+                renderContext.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+
+                var drawSettings = new DrawRendererSettings(hdCamera.camera, HDShaderPassNames.s_EmptyName)
+                {
+                    rendererConfiguration = rendererConfiguration,
+                    sorting = { flags = SortFlags.CommonTransparent }
+                };
+
+                for (int i = 0; i < passNames.Length; ++i)
+                {
+                    drawSettings.SetShaderPassName(i, passNames[i]);
+                }
+
+                if (overrideMaterial != null)
+                    drawSettings.SetOverrideMaterial(overrideMaterial, 0);
+
+                var filterSettings = new FilterRenderersSettings(true)
+                {
+                    renderQueueRange = inRenderQueueRange == null ? HDRenderQueue.k_RenderQueue_AllTransparent : inRenderQueueRange.Value
+                };
+
+                if (stateBlock == null)
+                    renderContext.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings);
+                else
+                    renderContext.DrawRenderers(cull.visibleRenderers, ref drawSettings, filterSettings, stateBlock.Value);
+            }
         }
 
         void AccumulateDistortion(CullResults cullResults, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
@@ -1570,8 +1579,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 HDUtils.SetRenderTarget(cmd, hdCamera, m_DistortionBuffer, m_CameraDepthStencilBuffer, ClearFlag.Color, Color.clear);
 
                 // Only transparent object can render distortion vectors
-                RenderTransparentRenderList(cullResults, hdCamera, renderContext, cmd, HDShaderPassNames.s_DistortionVectorsName);
-                DisplayRendererList(cmd, m_RendererLists[(int)HDRendererList.Distortion], 0);
+                RenderTransparentRenderList(cullResults, hdCamera, renderContext, cmd, HDShaderPassNames.s_DistortionVectorsName, m_RendererLists[(int)HDRendererList.Distortion]);
             }
         }
 
@@ -1615,19 +1623,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     // We render first the opaque object as opaque alpha tested are more costly to render and could be reject by early-z (but not Hi-z as it is disable with clip instruction)
                     // This is handled automatically with the RenderQueue value (OpaqueAlphaTested have a different value and thus are sorted after Opaque)
-                    RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyAndDepthForwardOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque);
-                    DisplayRendererList(cmd, m_RendererLists[(int)HDRendererList.DepthFull], 0);
+                    RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyAndDepthForwardOnlyPassNames, m_RendererLists[(int)HDRendererList.DepthFull], 0, HDRenderQueue.k_RenderQueue_AllOpaque);
                 }
                 else // Deferred rendering with partial depth prepass
                 {
                     // We always do a DepthForwardOnly pass with all the opaque (including alpha test)
-                    RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthForwardOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque);
-                    DisplayRendererList(cmd, m_RendererLists[(int)HDRendererList.DepthForwardOnly], 0);
+                    RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthForwardOnlyPassNames, m_RendererLists[(int)HDRendererList.DepthForwardOnly], 0, HDRenderQueue.k_RenderQueue_AllOpaque);
 
                     // Alpha tested materials always have a prepass.
                     var renderQueueRange = new RenderQueueRange { min = (int)RenderQueue.AlphaTest, max = (int)RenderQueue.GeometryLast - 1 };
-                    RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyPassNames, 0, renderQueueRange);
-                    DisplayRendererList(cmd, m_RendererLists[(int)HDRendererList.DepthAlphaTest], 0);
+                    RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyPassNames, m_RendererLists[(int)HDRendererList.DepthAlphaTest], 0, renderQueueRange);
                 }
             }
 
@@ -1636,8 +1641,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Render transparent depth prepass after opaque one
                 using (new ProfilingSample(cmd, "Transparent Depth Prepass", CustomSamplerId.TransparentDepthPrepass.GetSampler()))
                 {
-                    RenderTransparentRenderList(cull, hdCamera, renderContext, cmd, m_TransparentDepthPrepassNames);
-                    DisplayRendererList(cmd, m_RendererLists[(int)HDRendererList.TransparentDepthPrepass], 0);
+                    RenderTransparentRenderList(cull, hdCamera, renderContext, cmd, m_TransparentDepthPrepassNames, m_RendererLists[(int)HDRendererList.TransparentDepthPrepass]);
                 }
             }
         }
@@ -1653,8 +1657,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // setup GBuffer for rendering
                 HDUtils.SetRenderTarget(cmd, hdCamera, m_GbufferManager.GetBuffersRTI(enableShadowMask), m_CameraDepthStencilBuffer);
-                RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, HDShaderPassNames.s_GBufferName, m_currentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_AllOpaque);
-                DisplayRendererList(cmd, m_RendererLists[(int)HDRendererList.GBuffer], m_currentRendererConfigurationBakedLighting);
+                RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, HDShaderPassNames.s_GBufferName, m_RendererLists[(int)HDRendererList.GBuffer], m_currentRendererConfigurationBakedLighting, HDRenderQueue.k_RenderQueue_AllOpaque);
 
                 m_GbufferManager.BindBufferAsTextures(cmd);
             }
@@ -1699,12 +1702,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer, ClearFlag.All, CoreUtils.clearColorAllBlack);
                     // Render Opaque forward
-                    RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_AllForwardOpaquePassNames, m_currentRendererConfigurationBakedLighting, stateBlock: m_DepthStateOpaque);
-                    DisplayRendererList(cmd, m_RendererLists[(int)HDRendererList.OpaqueDebug], m_currentRendererConfigurationBakedLighting, m_DepthStateOpaque);
+                    RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_AllForwardOpaquePassNames, m_RendererLists[(int)HDRendererList.OpaqueDebug], m_currentRendererConfigurationBakedLighting, stateBlock: m_DepthStateOpaque);
 
                     // Render forward transparent
-                    RenderTransparentRenderList(cull, hdCamera, renderContext, cmd, m_AllTransparentPassNames, m_currentRendererConfigurationBakedLighting, stateBlock: m_DepthStateOpaque);
-                    DisplayRendererList(cmd, m_RendererLists[(int)HDRendererList.TransparentDebug], m_currentRendererConfigurationBakedLighting, m_DepthStateOpaque);
+                    RenderTransparentRenderList(cull, hdCamera, renderContext, cmd, m_AllTransparentPassNames, m_RendererLists[(int)HDRendererList.TransparentDebug], m_currentRendererConfigurationBakedLighting, stateBlock: m_DepthStateOpaque);
                 }
             }
 
@@ -1842,8 +1843,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     var debugSSTThisPass = debugScreenSpaceTracing && (m_CurrentDebugDisplaySettings.lightingDebugSettings.debugLightingMode == DebugLightingMode.ScreenSpaceTracingReflection);
                     if (debugSSTThisPass)
                         cmd.SetRandomWriteTarget(7, m_DebugScreenSpaceTracingData);
-                    RenderOpaqueRenderList(cullResults, hdCamera, renderContext, cmd, passNames, m_currentRendererConfigurationBakedLighting);
-                    DisplayRendererList(cmd, m_RendererLists[hdCamera.frameSettings.enableForwardRenderingOnly ? (int)HDRendererList.ForwardOpaque : (int)HDRendererList.ForwardOnlyOpaque], m_currentRendererConfigurationBakedLighting);
+
+                    var rendererList = m_RendererLists[hdCamera.frameSettings.enableForwardRenderingOnly ? (int)HDRendererList.ForwardOpaque : (int)HDRendererList.ForwardOnlyOpaque];
+                    RenderOpaqueRenderList(cullResults, hdCamera, renderContext, cmd, passNames, rendererList, m_currentRendererConfigurationBakedLighting);
                     if (debugSSTThisPass)
                         cmd.ClearRandomWriteTargets();
                 }
@@ -1858,8 +1860,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     var debugSSTThisPass = debugScreenSpaceTracing && (m_CurrentDebugDisplaySettings.lightingDebugSettings.debugLightingMode == DebugLightingMode.ScreenSpaceTracingRefraction);
                     if (debugSSTThisPass)
                         cmd.SetRandomWriteTarget(7, m_DebugScreenSpaceTracingData);
-                    RenderTransparentRenderList(cullResults, hdCamera, renderContext, cmd, m_AllTransparentPassNames, m_currentRendererConfigurationBakedLighting, pass == ForwardPass.PreRefraction ? HDRenderQueue.k_RenderQueue_PreRefraction : HDRenderQueue.k_RenderQueue_Transparent);
-                    DisplayRendererList(cmd, m_RendererLists[pass == ForwardPass.PreRefraction ? (int)HDRendererList.ForwardPreRefraction : (int)HDRendererList.ForwardTransparent], m_currentRendererConfigurationBakedLighting);
+
+                    var rendererList = m_RendererLists[pass == ForwardPass.PreRefraction ? (int)HDRendererList.ForwardPreRefraction : (int)HDRendererList.ForwardTransparent];
+                    RenderTransparentRenderList(cullResults, hdCamera, renderContext, cmd, m_AllTransparentPassNames, rendererList, m_currentRendererConfigurationBakedLighting, pass == ForwardPass.PreRefraction ? HDRenderQueue.k_RenderQueue_PreRefraction : HDRenderQueue.k_RenderQueue_Transparent);
                     if (debugSSTThisPass)
                         cmd.ClearRandomWriteTargets();
                 }
@@ -1876,8 +1879,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new ProfilingSample(cmd, "Render Forward Error", CustomSamplerId.RenderForwardError.GetSampler()))
             {
                 HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
-                RenderOpaqueRenderList(cullResults, hdCamera, renderContext, cmd, m_ForwardErrorPassNames, 0, new RenderQueueRange() { min = 0, max = RenderQueueRange.k_RenderQueueMax }, null, m_ErrorMaterial);
-                DisplayRendererList(cmd, m_RendererLists[(int)HDRendererList.ForwardError], 0);
+                RenderOpaqueRenderList(cullResults, hdCamera, renderContext, cmd, m_ForwardErrorPassNames, m_RendererLists[(int)HDRendererList.ForwardError], 0, new RenderQueueRange() { min = 0, max = RenderQueueRange.k_RenderQueueMax }, null, m_ErrorMaterial);
             }
         }
 
@@ -1889,8 +1891,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new ProfilingSample(cmd, "Render Transparent Depth Post ", CustomSamplerId.TransparentDepthPostpass.GetSampler()))
             {
                 HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraDepthStencilBuffer);
-                RenderTransparentRenderList(cullResults, hdCamera, renderContext, cmd, m_TransparentDepthPostpassNames);
-                DisplayRendererList(cmd, m_RendererLists[(int)HDRendererList.ForwardTransparentPostPass], 0);
+                RenderTransparentRenderList(cullResults, hdCamera, renderContext, cmd, m_TransparentDepthPostpassNames, m_RendererLists[(int)HDRendererList.ForwardTransparentPostPass]);
             }
         }
 
@@ -1906,8 +1907,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 hdCamera.camera.depthTextureMode |= DepthTextureMode.MotionVectors | DepthTextureMode.Depth;
 
                 HDUtils.SetRenderTarget(cmd, hdCamera, m_VelocityBuffer, m_CameraDepthStencilBuffer);
-                RenderOpaqueRenderList(cullResults, hdCamera, renderContext, cmd, HDShaderPassNames.s_MotionVectorsName, RendererConfiguration.PerObjectMotionVectors);
-                DisplayRendererList(cmd, m_RendererLists[(int)HDRendererList.ObjectVelocity], RendererConfiguration.PerObjectMotionVectors);
+                RenderOpaqueRenderList(cullResults, hdCamera, renderContext, cmd, HDShaderPassNames.s_MotionVectorsName, m_RendererLists[(int)HDRendererList.ObjectVelocity], RendererConfiguration.PerObjectMotionVectors);
             }
         }
 
