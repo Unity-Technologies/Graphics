@@ -24,9 +24,12 @@ void ApplyBlendNormal(inout float4 dst, inout int matMask, float2 texCoords, int
     matMask |= mapMask;
 }
 
-void ApplyBlendDiffuse(inout float4 dst, inout int matMask, float2 texCoords, int mapMask, inout float blend, float lod)
+void ApplyBlendDiffuse(inout float4 dst, inout int matMask, float2 texCoords, float4 src, int mapMask, inout float blend, float lod, int diffuseTextureBound)
 {
-    float4 src = SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, texCoords, lod);
+	if(diffuseTextureBound)
+	{ 
+		src *= SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, texCoords, lod);
+	}
     src.w *= blend;
     blend = src.w;  // diffuse texture alpha affects all other channels
     dst.xyz = src.xyz * src.w + dst.xyz * (1.0f - src.w);
@@ -118,18 +121,18 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
                 float lodMask = ComputeTextureLOD(sampleMaskDdx, sampleMaskDdy, _DecalAtlasResolution);
 
                 float decalBlend = decalData.normalToWorld[0][3];
+				float4 src = decalData.baseColor;
+				int diffuseTextureBound = (decalData.diffuseScaleBias.x > 0) && (decalData.diffuseScaleBias.y > 0);
+                
+				ApplyBlendDiffuse(DBuffer0, mask, sampleDiffuse, src, DBUFFERHTILEBIT_DIFFUSE, decalBlend, lodDiffuse, diffuseTextureBound);		
+				alpha = alpha < decalBlend ? decalBlend : alpha;    // use decal alpha if it is higher than transparent alpha
 
-                if((decalData.diffuseScaleBias.x > 0) && (decalData.diffuseScaleBias.y > 0))
-                {
-					ApplyBlendDiffuse(DBuffer0, mask, sampleDiffuse, DBUFFERHTILEBIT_DIFFUSE, decalBlend, lodDiffuse);						
-					float albedoContribution = decalData.normalToWorld[1][3];
-					if (albedoContribution == 0.0f)
-					{
-						mask = 0;	// diffuse will not get modified						
-					}
-					alpha = alpha < decalBlend ? decalBlend : alpha;    // use decal alpha if it is higher than transparent alpha
-                }
-
+				float albedoContribution = decalData.normalToWorld[1][3];
+				if (albedoContribution == 0.0f)
+				{
+					mask = 0;	// diffuse will not get modified						
+				}
+				
                 if ((decalData.normalScaleBias.x > 0) && (decalData.normalScaleBias.y > 0))
                 {
                     ApplyBlendNormal(DBuffer1, mask, sampleNormal, DBUFFERHTILEBIT_NORMAL, (float3x3)decalData.normalToWorld, decalBlend, lodNormal);
