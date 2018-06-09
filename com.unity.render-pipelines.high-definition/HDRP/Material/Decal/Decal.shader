@@ -2,6 +2,7 @@ Shader "HDRenderPipeline/Decal"
 {
     Properties
     {
+		_BaseColor("_BaseColor", Color) = (1,1,1,1)
         _BaseColorMap("BaseColorMap", 2D) = "white" {}
         _NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
         _MaskMap("MaskMap", 2D) = "white" {}
