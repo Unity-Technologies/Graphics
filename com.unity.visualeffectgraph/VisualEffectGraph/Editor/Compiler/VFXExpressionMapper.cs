@@ -33,16 +33,13 @@ namespace UnityEditor.VFX
 
         public IEnumerable<VFXExpression> expressions { get { return m_ExpressionsData.Keys; } }
 
-        public void AddExpressionFromSlotContainer(IVFXSlotContainer slotContainer, int blockId, bool applySpaceConversion = false, CoordinateSpace space = CoordinateSpace.Local)
+        public void AddExpressionFromSlotContainer(IVFXSlotContainer slotContainer, int blockId)
         {
-            //TODO : This is not the right place to process space conversion ! (follow marker TODO_REFACTOR_SPACE_CONVERSION)
             foreach (var master in slotContainer.inputSlots)
             {
                 foreach (var slot in master.GetExpressionSlots())
                 {
                     var exp = slot.GetExpression();
-                    if (applySpaceConversion)
-                        exp = VFXModel.ConvertSpace(exp, slot, space);
 
                     if (!Contains(exp))
                         AddExpression(exp, slot.fullName, blockId);

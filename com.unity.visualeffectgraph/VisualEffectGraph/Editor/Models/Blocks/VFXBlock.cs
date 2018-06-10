@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-
+using UnityEngine.Experimental.VFX;
 using Type = System.Type;
 
 namespace UnityEditor.VFX
@@ -38,6 +38,21 @@ namespace UnityEditor.VFX
             if (GetParent() != null)
                 return GetParent().GetData();
             return null;
+        }
+
+        public override sealed CoordinateSpace space
+        {
+            get
+            {
+                if (GetParent() != null)
+                    return GetParent().space;
+                return (CoordinateSpace)int.MaxValue;
+            }
+
+            set
+            {
+                Debug.LogErrorFormat("We aren't supposed to call set directly on block : {0}", name);
+            }
         }
     }
 }

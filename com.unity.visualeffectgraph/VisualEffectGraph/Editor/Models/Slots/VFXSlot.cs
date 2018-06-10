@@ -878,12 +878,19 @@ namespace UnityEditor.VFX
                 startSlot.PropagateToParent(s => s.m_InExpression = s.ExpressionFromChildren(s.children.Select(c => c.m_InExpression).ToArray()));
 
             var toInvalidate = new HashSet<VFXSlot>();
-            masterSlot.SetOutExpression(masterSlot.m_InExpression, toInvalidate);
+            var ownerSpace = masterSlot.owner != null ? masterSlot.owner.space : (CoordinateSpace)int.MaxValue;
+            if (name == "bounds" && masterSlot.owner is VFXBasicInitialize)
+            {
+                //HotFix : ignore space for bounds of basicInitialize (TODOPAUL)
+                ownerSpace = CoordinateSpace.Local;
+            }
+
+            masterSlot.SetOutExpression(masterSlot.m_InExpression, toInvalidate, ownerSpace);
             masterSlot.PropagateToChildren(s =>
                 {
                     var exp = s.ExpressionToChildren(s.m_OutExpression);
                     for (int i = 0; i < s.GetNbChildren(); ++i)
-                        s[i].SetOutExpression(exp != null ? exp[i] : s[i].m_InExpression, toInvalidate);
+                        s[i].SetOutExpression(exp != null ? exp[i] : s[i].m_InExpression, toInvalidate, ownerSpace);
                 });
 
             foreach (var slot in toInvalidate)
@@ -916,9 +923,13 @@ namespace UnityEditor.VFX
             return exp;
         }
 
-        private void SetOutExpression(VFXExpression exp, HashSet<VFXSlot> toInvalidate)
+        private void SetOutExpression(VFXExpression exp, HashSet<VFXSlot> toInvalidate, CoordinateSpace convertToSpace = (CoordinateSpace)int.MaxValue)
         {
             exp = VFXPropertyAttribute.ApplyToExpressionGraph(m_Property.attributes, exp);
+            if (convertToSpace != (CoordinateSpace)int.MaxValue)
+            {
+                exp = ConvertSpace(exp, this, convertToSpace);
+            }
 
             if (m_OutExpression != exp)
             {
