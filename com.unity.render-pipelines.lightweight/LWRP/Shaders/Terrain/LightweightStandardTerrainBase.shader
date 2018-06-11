@@ -62,6 +62,7 @@ Shader "Hidden/LightweightPipeline/Terrain/Standard Terrain Base"
 
         Pass
         {
+            Name "ShadowCaster"
             Tags{"LightMode" = "ShadowCaster"}
 
             ZWrite On
@@ -87,6 +88,7 @@ Shader "Hidden/LightweightPipeline/Terrain/Standard Terrain Base"
 
         Pass
         {
+            Name "DepthOnly"
             Tags{"LightMode" = "DepthOnly"}
 
             ZWrite On
@@ -116,13 +118,15 @@ Shader "Hidden/LightweightPipeline/Terrain/Standard Terrain Base"
         // This pass it not used during regular rendering, only for lightmap baking.
         Pass
         {
+            Name "Meta"
             Tags{"LightMode" = "Meta"}
+
+            Cull Off
 
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
             #pragma prefer_hlslcc gles
             #pragma exclude_renderers d3d11_9x
-            #pragma target 2.0
 
             #pragma vertex LightweightVertexMeta
             #pragma fragment LightweightFragmentMeta
