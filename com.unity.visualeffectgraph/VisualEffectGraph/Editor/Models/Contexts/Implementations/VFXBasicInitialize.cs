@@ -63,7 +63,6 @@ namespace UnityEditor.VFX
             // CPU
             var cpuMapper = new VFXExpressionMapper();
             cpuMapper.AddExpressionFromSlotContainer(this, -1);
-
             return cpuMapper;
         }
     }

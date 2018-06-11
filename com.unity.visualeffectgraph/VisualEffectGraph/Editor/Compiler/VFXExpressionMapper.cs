@@ -40,7 +40,6 @@ namespace UnityEditor.VFX
                 foreach (var slot in master.GetExpressionSlots())
                 {
                     var exp = slot.GetExpression();
-
                     if (!Contains(exp))
                         AddExpression(exp, slot.fullName, blockId);
                 }

@@ -127,7 +127,6 @@ namespace UnityEditor.VFX
 
                 case VFXDeviceTarget.CPU:
                 {
-                    //TODO : This is not the right place to process space conversion ! (follow marker TODO_REFACTOR_SPACE_CONVERSION)
                     var mapper = new VFXExpressionMapper();
                     mapper.AddExpression(GetInputSlot(0).GetExpression(), "mesh", -1);
                     mapper.AddExpression(GetInputSlot(1).GetExpression(), "transform", -1);
