@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add color swatch to decal material
 
 ### Improvements
+- Increased debug color picker limit up to 260k lux
 
 ### Changed, Removals and deprecations
 - Change Render -> Planar Reflection creation to 3D Object -> Mirror
