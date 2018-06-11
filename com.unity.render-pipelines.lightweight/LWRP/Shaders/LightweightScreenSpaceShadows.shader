@@ -15,6 +15,10 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
         #include "LWRP/ShaderLibrary/Core.hlsl"
         #include "LWRP/ShaderLibrary/Shadows.hlsl"
 
+        // Note: Screenspace shadow resolve is only performed when shadow cascades are enabled
+        // Shadow cascades require cascade index and shadowCoord to be computed on pixel.
+        #define _SHADOWS_CASCADE
+
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
         TEXTURE2D_ARRAY_FLOAT(_CameraDepthTexture);
 #else
@@ -92,7 +96,6 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
 
             HLSLPROGRAM
             #pragma multi_compile _ _SHADOWS_SOFT
-            #pragma multi_compile _ _SHADOWS_CASCADE
 
             #pragma vertex   Vertex
             #pragma fragment Fragment
