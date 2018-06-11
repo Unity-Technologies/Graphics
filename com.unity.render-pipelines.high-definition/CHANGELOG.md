@@ -29,6 +29,8 @@
 
 ### Bug fixes
 - Fix issue with StackLit in deferred mode with deferredDirectionalShadow due to GBuffer not being cleared. Gbuffer is still not clear and issue was fix with the new Output of normal buffer.
+- Fixed an issue where interpolation volumes were not updated correctly for reflection captures.
+- Fixed an exception in Light Loop settings UI
 
 ## [2018.2 / 2.0.1-preview]
 
