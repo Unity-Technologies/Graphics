@@ -9,6 +9,7 @@ def packages_list():
         ("com.unity.render-pipelines.high-definition", os.path.join("com.unity.render-pipelines.high-definition")),
         ("com.unity.shadergraph", os.path.join("com.unity.shadergraph")),
         ("com.unity.postprocessing", os.path.join("com.unity.postprocessing")),
+        ("com.unity.testframework.graphics", os.path.join("com.unity.testframework.graphics")),
     ]
 
 def test_packages_list():
