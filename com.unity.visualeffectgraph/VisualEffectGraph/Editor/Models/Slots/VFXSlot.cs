@@ -878,19 +878,13 @@ namespace UnityEditor.VFX
                 startSlot.PropagateToParent(s => s.m_InExpression = s.ExpressionFromChildren(s.children.Select(c => c.m_InExpression).ToArray()));
 
             var toInvalidate = new HashSet<VFXSlot>();
-            var ownerSpace = masterSlot.owner != null ? masterSlot.owner.space : (CoordinateSpace)int.MaxValue;
-            if (name == "bounds" && masterSlot.owner is VFXBasicInitialize)
-            {
-                //HotFix : ignore space for bounds of basicInitialize (TODOPAUL)
-                ownerSpace = CoordinateSpace.Local;
-            }
 
-            masterSlot.SetOutExpression(masterSlot.m_InExpression, toInvalidate, ownerSpace);
+            masterSlot.SetOutExpression(masterSlot.m_InExpression, toInvalidate, masterSlot.owner != null ? masterSlot.owner.GetOutputSpaceFromSlot(this) : (CoordinateSpace)int.MaxValue);
             masterSlot.PropagateToChildren(s =>
                 {
                     var exp = s.ExpressionToChildren(s.m_OutExpression);
                     for (int i = 0; i < s.GetNbChildren(); ++i)
-                        s[i].SetOutExpression(exp != null ? exp[i] : s[i].m_InExpression, toInvalidate, ownerSpace);
+                        s[i].SetOutExpression(exp != null ? exp[i] : s[i].m_InExpression, toInvalidate, masterSlot.owner != null ? masterSlot.owner.GetOutputSpaceFromSlot(s) : (CoordinateSpace)int.MaxValue);
                 });
 
             foreach (var slot in toInvalidate)

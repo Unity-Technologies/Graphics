@@ -91,17 +91,9 @@ namespace UnityEditor.VFX
             base.OnInvalidate(model, cause);
         }
 
-        public override CoordinateSpace space
+        public sealed override CoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
         {
-            get
-            {
-                return GetCommonSpaceFromSpaceableSlot(inputSlots);
-            }
-
-            set
-            {
-                //Not settable in operator (atm)
-            }
+            return GetCommonSpaceFromSpaceableSlot(inputSlots);
         }
 
         public override sealed void UpdateOutputExpressions()

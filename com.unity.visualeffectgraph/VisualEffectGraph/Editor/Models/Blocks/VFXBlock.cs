@@ -40,19 +40,11 @@ namespace UnityEditor.VFX
             return null;
         }
 
-        public override sealed CoordinateSpace space
+        public sealed override CoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
         {
-            get
-            {
-                if (GetParent() != null)
-                    return GetParent().space;
-                return (CoordinateSpace)int.MaxValue;
-            }
-
-            set
-            {
-                Debug.LogErrorFormat("We aren't supposed to call set directly on block : {0}", name);
-            }
+            if (GetParent() != null)
+                return GetParent().space;
+            return (CoordinateSpace)int.MaxValue;
         }
     }
 }

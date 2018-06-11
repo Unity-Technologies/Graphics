@@ -422,7 +422,12 @@ namespace UnityEditor.VFX
         [SerializeField]
         private VFXContextSlot[] m_OutputFlowSlot;
 
-        public override CoordinateSpace space
+        public override CoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
+        {
+            return space;
+        }
+
+        public CoordinateSpace space
         {
             get
             {

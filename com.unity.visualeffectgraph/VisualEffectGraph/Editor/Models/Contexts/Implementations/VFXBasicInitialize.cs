@@ -47,6 +47,13 @@ namespace UnityEditor.VFX
             public AABox bounds = new AABox() { size = Vector3.one };
         }
 
+        public sealed override CoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
+        {
+            if (slot.name == "bounds")
+                return CoordinateSpace.Local;
+            return base.GetOutputSpaceFromSlot(slot);
+        }
+
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
         {
             // GPU
