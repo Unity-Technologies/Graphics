@@ -154,6 +154,8 @@ Shader "HDRenderPipeline/Unlit"
 
             ZWrite On
 
+            ColorMask 0 // We don't have WRITE_NORMAL_BUFFER for unlit, but as we bind a buffer we shouldn't write into it.
+
             HLSLPROGRAM
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY

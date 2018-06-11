@@ -67,6 +67,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         readonly GBufferManager m_GbufferManager;
         readonly DBufferManager m_DbufferManager;
         readonly SubsurfaceScatteringManager m_SSSBufferManager = new SubsurfaceScatteringManager();
+        readonly NormalBufferManager m_NormalBufferManager = new NormalBufferManager();
 
         // Renderer Bake configuration can vary depends on if shadow mask is enabled or no
         RendererConfiguration m_currentRendererConfigurationBakedLighting = HDUtils.k_RendererConfigurationBakedLighting;
@@ -235,6 +236,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DbufferManager = new DBufferManager();
 
             m_SSSBufferManager.Build(asset);
+            m_NormalBufferManager.Build(asset);
 
             // Initialize various compute shader resources
             m_applyDistortionKernel = m_applyDistortionCS.FindKernel("KMain");
@@ -283,6 +285,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_DbufferManager.CreateBuffers();
 
             m_SSSBufferManager.InitSSSBuffers(m_GbufferManager, m_Asset.renderPipelineSettings);
+            m_NormalBufferManager.InitNormalBuffers(m_GbufferManager, m_Asset.renderPipelineSettings);            
 
             m_CameraColorBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, enableRandomWrite: true, enableMSAA: true, name: "CameraColor");
             m_CameraSssDiffuseLightingBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.RGB111110Float, sRGB: false, enableRandomWrite: true, enableMSAA: true, name: "CameraSSSDiffuseLighting");
@@ -517,6 +520,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             CoreUtils.Destroy(m_ErrorMaterial);
 
             m_SSSBufferManager.Cleanup();
+            m_NormalBufferManager.Cleanup();
             m_SkyManager.Cleanup();
             m_VolumetricLightingSystem.Cleanup();
             m_IBLFilterGGX.Cleanup();
@@ -790,47 +794,47 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     else
                     {
                         m_CurrentDebugDisplaySettings = m_DebugDisplaySettings;
+                    }
 
-                        using (new ProfilingSample(cmd, "Volume Update", CustomSamplerId.VolumeUpdate.GetSampler()))
+                    using (new ProfilingSample(cmd, "Volume Update", CustomSamplerId.VolumeUpdate.GetSampler()))
+                    {
+                        LayerMask layerMask = -1;
+                        if (additionalCameraData != null)
                         {
-                            LayerMask layerMask = -1;
-                            if (additionalCameraData != null)
+                            layerMask = additionalCameraData.volumeLayerMask;
+                        }
+                        else
+                        {
+                            // Temporary hack:
+                            // For scene view, by default, we use the "main" camera volume layer mask if it exists
+                            // Otherwise we just remove the lighting override layers in the current sky to avoid conflicts
+                            // This is arbitrary and should be editable in the scene view somehow.
+                            if (camera.cameraType == CameraType.SceneView)
                             {
-                                layerMask = additionalCameraData.volumeLayerMask;
-                            }
-                            else
-                            {
-                                // Temporary hack:
-                                // For scene view, by default, we use the "main" camera volume layer mask if it exists
-                                // Otherwise we just remove the lighting override layers in the current sky to avoid conflicts
-                                // This is arbitrary and should be editable in the scene view somehow.
-                                if (camera.cameraType == CameraType.SceneView)
+                                var mainCamera = Camera.main;
+                                bool needFallback = true;
+                                if (mainCamera != null)
                                 {
-                                    var mainCamera = Camera.main;
-                                    bool needFallback = true;
-                                    if (mainCamera != null)
+                                    var mainCamAdditionalData = mainCamera.GetComponent<HDAdditionalCameraData>();
+                                    if (mainCamAdditionalData != null)
                                     {
-                                        var mainCamAdditionalData = mainCamera.GetComponent<HDAdditionalCameraData>();
-                                        if (mainCamAdditionalData != null)
-                                        {
-                                            layerMask = mainCamAdditionalData.volumeLayerMask;
-                                            needFallback = false;
-                                        }
-                                    }
-
-                                    if (needFallback)
-                                    {
-                                        // If the override layer is "Everything", we fall-back to "Everything" for the current layer mask to avoid issues by having no current layer
-                                        // In practice we should never have "Everything" as an override mask as it does not make sense (a warning is issued in the UI)
-                                        if (m_Asset.renderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask == -1)
-                                            layerMask = -1;
-                                        else
-                                            layerMask = (-1 & ~m_Asset.renderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask);
+                                        layerMask = mainCamAdditionalData.volumeLayerMask;
+                                        needFallback = false;
                                     }
                                 }
+
+                                if (needFallback)
+                                {
+                                    // If the override layer is "Everything", we fall-back to "Everything" for the current layer mask to avoid issues by having no current layer
+                                    // In practice we should never have "Everything" as an override mask as it does not make sense (a warning is issued in the UI)
+                                    if (m_Asset.renderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask == -1)
+                                        layerMask = -1;
+                                    else
+                                        layerMask = (-1 & ~m_Asset.renderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask);
+                                }
                             }
-                            VolumeManager.instance.Update(camera.transform, layerMask);
                         }
+                        VolumeManager.instance.Update(camera.transform, layerMask);
                     }
 
                     var postProcessLayer = camera.GetComponent<PostProcessLayer>();
@@ -891,13 +895,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     m_ReflectionProbeCullResults.Cull();
 
-                    m_DbufferManager.vsibleDecalCount = 0;
+                    m_DbufferManager.EnableDBUffer = false;
                     using (new ProfilingSample(cmd, "DBufferPrepareDrawData", CustomSamplerId.DBufferPrepareDrawData.GetSampler()))
                     {
                         if (hdCamera.frameSettings.enableDBuffer)
                         {
                             DecalSystem.instance.EndCull();
-                            m_DbufferManager.vsibleDecalCount = DecalSystem.m_DecalsVisibleThisFrame;
+                            m_DbufferManager.EnableDBUffer = true;              // mesh decals are renderers managed by c++ runtime and we have no way to query if any are visible, so set to true
                             DecalSystem.instance.UpdateCachedMaterialData();    // textures, alpha or fade distances could've changed
                             DecalSystem.instance.CreateDrawData();              // prepare data is separate from draw
                             DecalSystem.instance.UpdateTextureAtlas(cmd);       // as this is only used for transparent pass, would've been nice not to have to do this if no transparent renderers are visible, needs to happen after CreateDrawData
@@ -932,14 +936,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     ClearBuffers(hdCamera, cmd);
 
                     // TODO: Add stereo occlusion mask
-
-                    bool forcePrepassForDecals = m_DbufferManager.vsibleDecalCount > 0;
-                    RenderDepthPrepass(m_CullResults, hdCamera, renderContext, cmd, forcePrepassForDecals);
+                    RenderDepthPrepass(m_CullResults, hdCamera, renderContext, cmd, m_DbufferManager.EnableDBUffer);
 
                     // This will bind the depth buffer if needed for DBuffer)
-                    RenderDBuffer(hdCamera, cmd);
+                    RenderDBuffer(hdCamera, cmd, renderContext, m_CullResults);
 
                     RenderGBuffer(m_CullResults, hdCamera, enableBakeShadowMask, renderContext, cmd);
+
+                    // We can now bind the normal buffer to be use by any effect
+                    m_NormalBufferManager.BindNormalBuffers(cmd);
 
                     // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
                     CopyDepthBufferIfNeeded(cmd);
@@ -1331,25 +1336,61 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // by using the pass "ForwardOnly". In this case the .shader should not have "Forward" but only a "ForwardOnly" pass.
             // It must also have a "DepthForwardOnly" and no "DepthOnly" pass as forward material (either deferred or forward only rendering) have always a depth pass.
             // If a forward material have no depth prepass, then lighting can be incorrect (deferred sahdowing, SSAO), this may be acceptable depends on usage
-            bool addFullDepthPrepass = forcePrepass || hdCamera.frameSettings.enableForwardRenderingOnly || hdCamera.frameSettings.enableDepthPrepassWithDeferredRendering;
 
-            using (new ProfilingSample(cmd, !addFullDepthPrepass ? "Depth Prepass alpha test" : "Depth Prepass", CustomSamplerId.DepthPrepass.GetSampler()))
+            // Whatever the configuration we always render first the opaque object as opaque alpha tested are more costly to render and could be reject by early-z
+            // (but not Hi-z as it is disable with clip instruction). This is handled automatically with the RenderQueue value (OpaqueAlphaTested have a different value and thus are sorted after Opaque)
+
+            // Forward material always output normal buffer (unless they don't participate to shading)
+            // Deferred material never output normal buffer
+
+            // Note: Unlit object use a ForwardOnly pass and don't have normal, they will write 0 in the normal buffer. This should be safe
+            // as they will not use the result of lighting anyway. However take care of effect that will try to filter normal buffer.
+            // TODO: maybe we can use a stencil to tag when Forward unlit touch normal buffer
+            if (hdCamera.frameSettings.enableForwardRenderingOnly)
             {
-                HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraDepthStencilBuffer);
-                if (addFullDepthPrepass) // Always true in case of forward rendering, use in case of deferred rendering if requesting a full depth prepass
+                using (new ProfilingSample(cmd, "Depth Prepass (forward)", CustomSamplerId.DepthPrepass.GetSampler()))
                 {
-                    // We render first the opaque object as opaque alpha tested are more costly to render and could be reject by early-z (but not Hi-z as it is disable with clip instruction)
-                    // This is handled automatically with the RenderQueue value (OpaqueAlphaTested have a different value and thus are sorted after Opaque)
+                    cmd.EnableShaderKeyword("WRITE_NORMAL_BUFFER");
+
+                    HDUtils.SetRenderTarget(cmd, hdCamera, m_NormalBufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer);
+
+                    // Full forward: Output normal buffer for both forward and forwardOnly
                     RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyAndDepthForwardOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque);
                 }
-                else // Deferred rendering with partial depth prepass
+            }
+            else if (hdCamera.frameSettings.enableDepthPrepassWithDeferredRendering || forcePrepass)
+            {
+                using (new ProfilingSample(cmd, "Depth Prepass (deferred)", CustomSamplerId.DepthPrepass.GetSampler()))
                 {
-                    // We always do a DepthForwardOnly pass with all the opaque (including alpha test)
-                    RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthForwardOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque);
+                    cmd.DisableShaderKeyword("WRITE_NORMAL_BUFFER"); // Note: This only disable the output of normal buffer for Lit shader, not the other shader that don't use multicompile
+                    
+                    HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraDepthStencilBuffer);
 
-                    // Alpha tested materials always have a prepass.
+                    // First deferred material
+                    RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque);
+
+                    HDUtils.SetRenderTarget(cmd, hdCamera, m_NormalBufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer);
+
+                    // Then forward only material that output normal buffer
+                    RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthForwardOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque);
+                }
+            }
+            else // Deferred with partial depth prepass
+            {
+                using (new ProfilingSample(cmd, "Depth Prepass (deferred incomplete)", CustomSamplerId.DepthPrepass.GetSampler()))
+                {
+                    cmd.DisableShaderKeyword("WRITE_NORMAL_BUFFER");
+
+                    HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraDepthStencilBuffer);
+
+                    // First deferred alpha tested materials. Alpha tested object have always a prepass even if enableDepthPrepassWithDeferredRendering is disabled
                     var renderQueueRange = new RenderQueueRange { min = (int)RenderQueue.AlphaTest, max = (int)RenderQueue.GeometryLast - 1 };
                     RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyPassNames, 0, renderQueueRange);
+
+                    HDUtils.SetRenderTarget(cmd, hdCamera, m_NormalBufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer);
+
+                    // Then forward only material that output normal buffer
+                    RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthForwardOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque);
                 }
             }
 
@@ -1380,7 +1421,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderDBuffer(HDCamera hdCamera, CommandBuffer cmd)
+        void RenderDBuffer(HDCamera hdCamera, CommandBuffer cmd, ScriptableRenderContext renderContext, CullResults cullResults)
         {
             if (!hdCamera.frameSettings.enableDBuffer)
                 return;
@@ -1395,6 +1436,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_DbufferManager.ClearTargets(cmd, hdCamera);
                 HDUtils.SetRenderTarget(cmd, hdCamera, m_DbufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer); // do not clear anymore
                 m_DbufferManager.SetHTile(m_DbufferManager.bufferCount, cmd);
+                renderContext.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+
+                DrawRendererSettings drawSettings = new DrawRendererSettings(hdCamera.camera, HDShaderPassNames.s_EmptyName)
+                {
+                    rendererConfiguration = 0,
+                    sorting = { flags = SortFlags.CommonOpaque }
+                };
+                drawSettings.SetShaderPassName(0, HDShaderPassNames.s_MeshDecalsName);
+                FilterRenderersSettings filterRenderersSettings = new FilterRenderersSettings(true)
+                {
+                    renderQueueRange = HDRenderQueue.k_RenderQueue_AllOpaque
+                };
+                renderContext.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, filterRenderersSettings);
+
                 DecalSystem.instance.RenderIntoDBuffer(cmd);
                 m_DbufferManager.UnSetHTile(cmd);
                 m_DbufferManager.SetHTileTexture(cmd);  // mask per 8x8 tile used for optimization when looking up dbuffer values
@@ -1538,8 +1594,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // In case of forward SSS we will bind all the required target. It is up to the shader to write into it or not.
                     if (hdCamera.frameSettings.enableSubsurfaceScattering)
                     {
-                        RenderTargetIdentifier[] m_MRTWithSSS =
-                            new RenderTargetIdentifier[2 + m_SSSBufferManager.sssBufferCount];
+                        RenderTargetIdentifier[] m_MRTWithSSS = new RenderTargetIdentifier[2 + m_SSSBufferManager.sssBufferCount];
                         m_MRTWithSSS[0] = m_CameraColorBuffer; // Store the specular color
                         m_MRTWithSSS[1] = m_CameraSssDiffuseLightingBuffer;
                         for (int i = 0; i < m_SSSBufferManager.sssBufferCount; ++i)
@@ -1567,7 +1622,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else
                 {
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
-                    if ((hdCamera.frameSettings.enableDBuffer) && (DecalSystem.m_DecalsVisibleThisFrame > 0)) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
+                    if ((hdCamera.frameSettings.enableDBuffer) && (DecalSystem.m_DecalDatasCount > 0)) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered                    
+                                                                                                       // decal datas count is 0 if no decals affect transparency             
                     {
                         DecalSystem.instance.SetAtlas(cmd); // for clustered decals
                     }

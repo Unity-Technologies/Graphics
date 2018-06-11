@@ -18,6 +18,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly string s_TransparentDepthPostpassStr = "TransparentDepthPostpass";
         public static readonly string s_MetaStr = "Meta";
         public static readonly string s_ShadowCasterStr = "ShadowCaster";
+        public static readonly string s_MeshDecalsStr = "DBufferMesh";
 
         // ShaderPass name
         public static readonly ShaderPassName s_EmptyName = new ShaderPassName(s_EmptyStr);
@@ -33,6 +34,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly ShaderPassName s_TransparentDepthPrepassName = new ShaderPassName(s_TransparentDepthPrepassStr);
         public static readonly ShaderPassName s_TransparentBackfaceName = new ShaderPassName(s_TransparentBackfaceStr);
         public static readonly ShaderPassName s_TransparentDepthPostpassName = new ShaderPassName(s_TransparentDepthPostpassStr);
+        public static readonly ShaderPassName s_MeshDecalsName = new ShaderPassName(s_MeshDecalsStr);
 
         // Legacy name
         public static readonly ShaderPassName s_AlwaysName = new ShaderPassName("Always");
@@ -264,6 +266,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Shader.PropertyToID("_SSSBufferTexture1"),
             Shader.PropertyToID("_SSSBufferTexture2"),
             Shader.PropertyToID("_SSSBufferTexture3"),
+        };
+
+        public static readonly int[] _NormalBufferTexture =
+        {
+            Shader.PropertyToID("_NormalBufferTexture0"),
+            Shader.PropertyToID("_NormalBufferTexture1"),
+            Shader.PropertyToID("_NormalBufferTexture2"),
+            Shader.PropertyToID("_NormalBufferTexture3"),
         };
 
         public static readonly int _SSRefractionRayMarchBehindObjects = Shader.PropertyToID("_SSRefractionRayMarchBehindObjects");
