@@ -124,7 +124,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (success)
                 {
                     shadowQuality = (shadowData.supportsSoftShadows) ? light.shadows : LightShadows.Hard;
-                    SetupDirectionalShadowReceiverConstants(ref context, cmd, ref shadowData, shadowLight);
+                    SetupDirectionalShadowReceiverConstants(cmd, ref shadowData, shadowLight);
                 }
             }
             context.ExecuteCommandBuffer(cmd);
@@ -134,7 +134,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             shadowData.renderedDirectionalShadowQuality = shadowQuality;
         }
 
-        void SetupDirectionalShadowReceiverConstants(ref ScriptableRenderContext context, CommandBuffer cmd, ref ShadowData shadowData, VisibleLight shadowLight)
+        void SetupDirectionalShadowReceiverConstants(CommandBuffer cmd, ref ShadowData shadowData, VisibleLight shadowLight)
         {
             Light light = shadowLight.light;
 
