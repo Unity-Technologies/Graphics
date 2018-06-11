@@ -152,13 +152,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             var materials = Resources.FindObjectsOfTypeAll<Material>();
 
-            bool VSCEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
+            bool VCSEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
 
             foreach (var mat in materials)
             {
                 if (mat.shader.name == "HDRenderPipeline/LayeredLit" || mat.shader.name == "HDRenderPipeline/LayeredLitTessellation")
                 {
-                    CoreUtils.CheckOutFile(VSCEnabled, mat);
+                    CoreEditorUtils.CheckOutFile(VCSEnabled, mat);
                     LayeredLitGUI.SynchronizeAllLayers(mat);
                     EditorUtility.SetDirty(mat);
                 }
@@ -203,7 +203,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             for (var i = 0; i < openedScenes.Length; ++i)
                 openedScenes[i] = SceneManager.GetSceneAt(i).path;
 
-            bool VSCEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
+            bool VCSEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
 
             try
             {
@@ -213,7 +213,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     var scenePath = AssetDatabase.GUIDToAssetPath(scenes[i]);
                     var sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(scenePath);
-                    CoreUtils.CheckOutFile(VSCEnabled, sceneAsset);
+                    CoreEditorUtils.CheckOutFile(VCSEnabled, sceneAsset);
                     EditorSceneManager.OpenScene(scenePath);
 
                     var sceneName = Path.GetFileNameWithoutExtension(scenePath);
@@ -244,7 +244,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             var matIds = AssetDatabase.FindAssets("t:Material");
 
-            bool VSCEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
+            bool VCSEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
 
             for (int i = 0, length = matIds.Length; i < length; i++)
             {
@@ -256,7 +256,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     string.Format("{0} / {1} materials cleaned.", i, length),
                     (i / (float)(length - 1)) * progressScale + progressOffset);
 
-                CoreUtils.CheckOutFile(VSCEnabled, mat);
+                CoreEditorUtils.CheckOutFile(VCSEnabled, mat);
                 var h = Debug.unityLogger.logHandler;
                 Debug.unityLogger.logHandler = new UnityContextualLogHandler(mat);
                 HDEditorUtils.ResetMaterialKeywords(mat);
@@ -268,7 +268,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             var materials = Resources.FindObjectsOfTypeAll<Material>();
 
-            bool VSCEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
+            bool VCSEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
 
             bool anyMaterialDirty = false; // Will be true if any material is dirty.
 
@@ -279,7 +279,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     string.Format("{0}{1} / {2} materials cleaned.", descriptionPrefix, i, length),
                     (i / (float)(length - 1)) * progressScale + progressOffset);
 
-                CoreUtils.CheckOutFile(VSCEnabled, materials[i]);
+                CoreEditorUtils.CheckOutFile(VCSEnabled, materials[i]);
 
                 if (HDEditorUtils.ResetMaterialKeywords(materials[i]))
                 {

@@ -29,6 +29,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool supportOnlyForward = false;
         public bool enableUltraQualitySSS = false;
         public bool supportVolumetric = true;
+        public bool supportRuntimeDebugDisplay = true;
 
         // Engine
         public bool         supportDBuffer = false;

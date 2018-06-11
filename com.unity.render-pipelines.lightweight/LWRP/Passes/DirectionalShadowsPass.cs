@@ -16,7 +16,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         ShadowSliceData[] m_CascadeSlices;
         Vector4[] m_CascadeSplitDistances;
 
-        const string k_SetupRenderTargetTag = "Setup Render Target";
         const string k_RenderDirectionalShadowmapTag = "Render Directional Shadowmap";
 
         public DirectionalShadowsPass(LightweightForwardRenderer renderer) : base(renderer)
@@ -93,7 +92,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 return;
 
             CommandBuffer cmd = CommandBufferPool.Get(k_RenderDirectionalShadowmapTag);
-            using (new ProfilingSample(cmd, k_SetupRenderTargetTag))
+            using (new ProfilingSample(cmd, k_RenderDirectionalShadowmapTag))
             {
                 m_ShadowCasterCascadesCount = shadowData.directionalLightCascadeCount;
 

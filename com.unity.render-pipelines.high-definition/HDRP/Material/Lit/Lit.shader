@@ -319,6 +319,8 @@ Shader "HDRenderPipeline/Lit"
 
             HLSLPROGRAM
 
+            // Note: Require _ObjectId and _PassValue variables
+
             // We reuse depth prepass for the scene selection, allow to handle alpha correctly as well as tessellation and vertex animation
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #define SCENESELECTIONPASS // This will drive the output of the scene selection shader
@@ -434,14 +436,22 @@ Shader "HDRenderPipeline/Lit"
 
             ZWrite On
 
-            ColorMask 0
-
             HLSLPROGRAM
+
+            // In deferred, depth only pass don't output anything.
+            // In forward it output the normal buffer
+            #pragma multi_compile _ WRITE_NORMAL_BUFFER
 
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
+
+            #ifdef WRITE_NORMAL_BUFFER // If enabled we need all regular interpolator
+            #include "ShaderPass/LitSharePass.hlsl"
+            #else
             #include "ShaderPass/LitDepthPass.hlsl"
+            #endif
+
             #include "LitData.hlsl"
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 

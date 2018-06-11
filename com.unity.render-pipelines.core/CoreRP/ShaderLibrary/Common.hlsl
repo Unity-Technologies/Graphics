@@ -449,6 +449,8 @@ real Pow4(real x)
     return (x * x) * (x * x);
 }
 
+TEMPLATE_3_FLT(RangeRemap, min, max, t, return saturate((t - min) / (max - min)))
+
 // ----------------------------------------------------------------------------
 // Texture utilities
 // ----------------------------------------------------------------------------

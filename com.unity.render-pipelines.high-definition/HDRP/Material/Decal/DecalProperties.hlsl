@@ -9,5 +9,6 @@ TEXTURE2D(_MaskMap);
 SAMPLER(sampler_MaskMap);
 
 float _DecalBlend;
+float4 _BaseColor;
 
 #endif

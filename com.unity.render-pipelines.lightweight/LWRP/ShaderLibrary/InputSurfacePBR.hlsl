@@ -59,9 +59,8 @@ half4 SampleMetallicSpecGloss(float2 uv, half albedoAlpha)
 half SampleOcclusion(float2 uv)
 {
 #ifdef _OCCLUSIONMAP
-#if (SHADER_TARGET < 30)
-    // SM20: instruction count limitation
-    // SM20: simpler occlusion
+// TODO: Controls things like these by exposing SHADER_QUALITY levels (low, medium, high)
+#if defined(SHADER_API_GLES)
     return SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, uv).g;
 #else
     half occ = SAMPLE_TEXTURE2D(_OcclusionMap, sampler_OcclusionMap, uv).g;
