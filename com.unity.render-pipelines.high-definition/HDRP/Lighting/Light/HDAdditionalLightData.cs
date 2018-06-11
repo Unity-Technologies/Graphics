@@ -291,7 +291,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (copyFrom == null)
             {
                 flag.transform.localPosition = Vector3.zero;
-                flag.transform.localRotation = Quaternion.identity;
+                flag.transform.localRotation = Quaternion.LookRotation(-Vector3.forward);
                 flag.m_Feather = 1;
             }
             else
