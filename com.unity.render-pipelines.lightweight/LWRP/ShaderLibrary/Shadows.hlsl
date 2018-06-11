@@ -8,7 +8,7 @@
 #define MAX_SHADOW_CASCADES 4
 
 #ifndef SHADOWS_SCREEN
-#ifdef SHADER_API_GLES
+#if defined(SHADER_API_GLES) || !defined(_SHADOWS_CASCADE)
 #define SHADOWS_SCREEN 0
 #else
 #define SHADOWS_SCREEN 1
