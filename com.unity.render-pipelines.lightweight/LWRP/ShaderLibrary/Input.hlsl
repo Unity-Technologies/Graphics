@@ -47,7 +47,9 @@ half4 _AdditionalLightSpotAttenuation[MAX_VISIBLE_LIGHTS];
 float4 _ScaledScreenParams;
 CBUFFER_END
 
+#if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
 StructuredBuffer<int> _LightIndexBuffer;
+#endif
 
 #define UNITY_MATRIX_M     unity_ObjectToWorld
 #define UNITY_MATRIX_I_M   unity_WorldToObject
