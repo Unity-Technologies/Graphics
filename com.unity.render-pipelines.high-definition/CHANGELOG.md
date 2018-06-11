@@ -18,6 +18,7 @@
 - Add visualize all shadow masks in lighting debug
 
 ### Improvements
+- Increased debug color picker limit up to 260k lux
 
 ### Changed, Removals and deprecations
 - Change Render -> Planar Reflection creation to 3D Object -> Mirror
