@@ -21,6 +21,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SubsurfaceScattering,
         VolumeVoxelization,
         VolumetricLighting,
-        DBuffer
+        DbufferProjector,
+        DbufferMesh
     }
 }
