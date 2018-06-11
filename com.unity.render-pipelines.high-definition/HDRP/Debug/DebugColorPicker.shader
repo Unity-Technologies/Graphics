@@ -27,7 +27,6 @@ Shader "Hidden/HDRenderPipeline/DebugColorPicker"
             SAMPLER(sampler_DebugColorPickerTexture);
 
             float4 _ColorPickerParam; // 4 increasing threshold
-            int _ColorPickerMode;
             float3 _ColorPickerFontColor;
             float _ApplyLinearToSRGB;
             float _RequireToFlipInputTexture;
@@ -159,27 +158,36 @@ Shader "Hidden/HDRenderPipeline/DebugColorPicker"
 
                 float4 result = SAMPLE_TEXTURE2D(_DebugColorPickerTexture, sampler_DebugColorPickerTexture, input.texcoord);
 
-                float4 mousePixelCoord = _MousePixelCoord;
-                if (_RequireToFlipInputTexture > 0.0)
-                {
-                    mousePixelCoord.y = _ScreenSize.y - mousePixelCoord.y;
-                    // Note: We must not flip the mousePixelCoord.w coordinate
-                }
-
-                float4 mouseResult = SAMPLE_TEXTURE2D(_DebugColorPickerTexture, sampler_DebugColorPickerTexture, mousePixelCoord.zw);
-                // Reverse debug exposure in order to display the real values.
-                // _DebugExposure will be set to zero if the debug view does not need it so we don't need to make a special case here. It's handled in only one place in C#
-                mouseResult = mouseResult / exp2(_DebugExposure);
+                //Decompress value if luxMeter is active
+                if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER && _ColorPickerMode != COLORPICKERDEBUGMODE_NONE)
+                    result.rgb = result.rgb * LUXMETER_COMPRESSION_RATIO;
 
                 if (_FalseColor)
                     result.rgb = FasleColorRemap(Luminance(result.rgb), _FalseColorThresholds);
-                
-                float4 finalResult = result;
 
                 if (_ColorPickerMode != COLORPICKERDEBUGMODE_NONE)
-                    finalResult = DisplayPixelInformationAtMousePosition(input, result, mouseResult, mousePixelCoord);
+                {
+                    float4 mousePixelCoord = _MousePixelCoord;
+                    if (_RequireToFlipInputTexture > 0.0)
+                    {
+                        mousePixelCoord.y = _ScreenSize.y - mousePixelCoord.y;
+                        // Note: We must not flip the mousePixelCoord.w coordinate
+                    }
 
-                return finalResult;
+                    float4 mouseResult = SAMPLE_TEXTURE2D(_DebugColorPickerTexture, sampler_DebugColorPickerTexture, mousePixelCoord.zw);
+                    
+                    //Decompress value if luxMeter is active
+                    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+                        mouseResult = mouseResult * LUXMETER_COMPRESSION_RATIO;
+
+                    // Reverse debug exposure in order to display the real values.
+                    // _DebugExposure will be set to zero if the debug view does not need it so we don't need to make a special case here. It's handled in only one place in C#
+                    mouseResult = mouseResult / exp2(_DebugExposure);
+
+                    result = DisplayPixelInformationAtMousePosition(input, result, mouseResult, mousePixelCoord);
+                }
+
+                return result;
             }
 
             ENDHLSL

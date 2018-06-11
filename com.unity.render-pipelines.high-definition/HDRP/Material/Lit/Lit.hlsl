@@ -2219,6 +2219,11 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
         {
         case DEBUGLIGHTINGMODE_LUX_METER:
             diffuseLighting = lighting.direct.diffuse + bakeLightingData.bakeDiffuseLighting;
+
+            //Compress lighting values for color picker if enabled
+            if (_ColorPickerMode != COLORPICKERDEBUGMODE_NONE)
+                diffuseLighting = diffuseLighting / LUXMETER_COMPRESSION_RATIO;
+            
             specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
             break;
 
