@@ -15,6 +15,11 @@ real RoughnessToPerceptualRoughness(real roughness)
     return sqrt(roughness);
 }
 
+real RoughnessToPerceptualSmoothness(real roughness)
+{
+    return 1.0 - sqrt(roughness);
+}
+
 real PerceptualSmoothnessToRoughness(real perceptualSmoothness)
 {
     return (1.0 - perceptualSmoothness) * (1.0 - perceptualSmoothness);
