@@ -27,10 +27,11 @@ Shader "Hidden/HDRenderPipeline/DebugColorPicker"
             SAMPLER(sampler_DebugColorPickerTexture);
 
             float4 _ColorPickerParam; // 4 increasing threshold
-            int _ColorPickerMode;
             float3 _ColorPickerFontColor;
             float _ApplyLinearToSRGB;
             float _RequireToFlipInputTexture;
+            int _FalseColor;
+            float4 _FalseColorThresholds; // 4 increasing threshold
 
             struct Attributes
             {
@@ -50,6 +51,18 @@ Shader "Hidden/HDRenderPipeline/DebugColorPicker"
                 output.texcoord = GetNormalizedFullScreenTriangleTexCoord(input.vertexID);
 
                 return output;
+            }
+
+            float3 FasleColorRemap(float lum, float4 thresholds)
+            {
+                //Gradient from 0 to 240 deg of HUE gradient
+                const float l = DegToRad(240) / TWO_PI;
+
+                float t = lerp(0.0, l / 3, RangeRemap(thresholds.x, thresholds.y, lum))
+                        + lerp(0.0, l / 3, RangeRemap(thresholds.y, thresholds.z, lum))
+                        + lerp(0.0, l / 3, RangeRemap(thresholds.z, thresholds.w, lum));
+
+                return HsvToRgb(float3(l - t, 1, 1));
             }
 
             float4 DisplayPixelInformationAtMousePosition(Varyings input, float4 result, float4 mouseResult, float4 mousePixelCoord)
@@ -144,22 +157,37 @@ Shader "Hidden/HDRenderPipeline/DebugColorPicker"
                 }
 
                 float4 result = SAMPLE_TEXTURE2D(_DebugColorPickerTexture, sampler_DebugColorPickerTexture, input.texcoord);
-                //result.rgb = GetColorCodeFunction(result.x, _ColorPickerParam);
 
-                float4 mousePixelCoord = _MousePixelCoord;
-                if (_RequireToFlipInputTexture > 0.0)
+                //Decompress value if luxMeter is active
+                if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER && _ColorPickerMode != COLORPICKERDEBUGMODE_NONE)
+                    result.rgb = result.rgb * LUXMETER_COMPRESSION_RATIO;
+
+                if (_FalseColor)
+                    result.rgb = FasleColorRemap(Luminance(result.rgb), _FalseColorThresholds);
+
+                if (_ColorPickerMode != COLORPICKERDEBUGMODE_NONE)
                 {
-                    mousePixelCoord.y = _ScreenSize.y - mousePixelCoord.y;
-                    // Note: We must not flip the mousePixelCoord.w coordinate
+                    float4 mousePixelCoord = _MousePixelCoord;
+                    if (_RequireToFlipInputTexture > 0.0)
+                    {
+                        mousePixelCoord.y = _ScreenSize.y - mousePixelCoord.y;
+                        // Note: We must not flip the mousePixelCoord.w coordinate
+                    }
+
+                    float4 mouseResult = SAMPLE_TEXTURE2D(_DebugColorPickerTexture, sampler_DebugColorPickerTexture, mousePixelCoord.zw);
+                    
+                    //Decompress value if luxMeter is active
+                    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+                        mouseResult = mouseResult * LUXMETER_COMPRESSION_RATIO;
+
+                    // Reverse debug exposure in order to display the real values.
+                    // _DebugExposure will be set to zero if the debug view does not need it so we don't need to make a special case here. It's handled in only one place in C#
+                    mouseResult = mouseResult / exp2(_DebugExposure);
+
+                    result = DisplayPixelInformationAtMousePosition(input, result, mouseResult, mousePixelCoord);
                 }
 
-                float4 mouseResult = SAMPLE_TEXTURE2D(_DebugColorPickerTexture, sampler_DebugColorPickerTexture, mousePixelCoord.zw);
-                // Reverse debug exposure in order to display the real values.
-                // _DebugExposure will be set to zero if the debug view does not need it so we don't need to make a special case here. It's handled in only one place in C#
-                mouseResult = mouseResult / exp2(_DebugExposure);
-
-                float4 finalResult = DisplayPixelInformationAtMousePosition(input, result, mouseResult, mousePixelCoord);
-                return finalResult;
+                return result;
             }
 
             ENDHLSL

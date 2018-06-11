@@ -18,7 +18,7 @@ Pass
     //-------------------------------------------------------------------------------------
 
     HLSLPROGRAM
-    
+
     #pragma target 4.5
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
     //#pragma enable_d3d11_debug_symbols
@@ -246,11 +246,15 @@ ${Graph}
             $SurfaceDescriptionInputs.ViewSpacePosition:         output.ViewSpacePosition =           posViewSpace.xyz / posViewSpace.w;
             $SurfaceDescriptionInputs.TangentSpacePosition:      output.TangentSpacePosition =        float3(0.0f, 0.0f, 0.0f);
             $SurfaceDescriptionInputs.ScreenPosition:            output.ScreenPosition =              ComputeScreenPos(TransformWorldToHClip(input.positionWS), _ProjectionParams.x);
+            
             $SurfaceDescriptionInputs.uv0:                       output.uv0 =                         float4(input.texCoord0, 0.0f, 0.0f);
             $SurfaceDescriptionInputs.uv1:                       output.uv1 =                         float4(input.texCoord1, 0.0f, 0.0f);
             $SurfaceDescriptionInputs.uv2:                       output.uv2 =                         float4(input.texCoord2, 0.0f, 0.0f);
             $SurfaceDescriptionInputs.uv3:                       output.uv3 =                         float4(input.texCoord3, 0.0f, 0.0f);
+            
             $SurfaceDescriptionInputs.VertexColor:               output.VertexColor =                 input.color;
+
+            $SurfaceDescriptionInputs.FaceSign:                  output.FaceSign =    input.isFrontFace;
 
             return output;
         }
@@ -296,7 +300,7 @@ ${Graph}
 
         builtinData.opacity =                   surfaceDescription.Alpha;
         builtinData.bakeDiffuseLighting =       float3(0.0, 0.0, 0.0);
-     
+
 $SurfaceDescription.Emission:     builtinData.emissiveColor =             surfaceDescription.Emission;
         builtinData.velocity =                  float2(0.0, 0.0);
         builtinData.shadowMask0 = 0.0;

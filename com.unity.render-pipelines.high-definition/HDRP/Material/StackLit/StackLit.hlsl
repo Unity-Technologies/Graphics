@@ -4,6 +4,7 @@
 // SurfaceData is defined in StackLit.cs which generates StackLit.cs.hlsl
 #include "StackLit.cs.hlsl"
 #include "../SubsurfaceScattering/SubsurfaceScattering.hlsl"
+#include "../NormalBuffer.hlsl"
 //#include "CoreRP/ShaderLibrary/VolumeRendering.hlsl"
 
 //NEWLITTODO : wireup CBUFFERs for ambientocclusion, and other uniforms and samplers used:
@@ -25,9 +26,6 @@ TEXTURE2D(_GBufferTexture0);
 //-----------------------------------------------------------------------------
 // Definition
 //-----------------------------------------------------------------------------
-
-// Required for SSS
-#define GBufferType0 float4
 
 // Needed for MATERIAL_FEATURE_MASK_FLAGS.
 #include "../../Lighting/LightLoop/LightLoop.cs.hlsl"
@@ -347,11 +345,32 @@ SSSData ConvertSurfaceDataToSSSData(SurfaceData surfaceData)
     return sssData;
 }
 
+NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
+{
+    NormalData normalData;
+
+    // When using clear cloat we want to use the coat normal for the various deferred effect
+    // as it is the most dominant one
+    if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_COAT))
+    {
+        normalData.normalWS = surfaceData.coatNormalWS;
+        normalData.perceptualRoughness = surfaceData.coatPerceptualSmoothness;
+    }
+    else
+    {
+        normalData.normalWS = surfaceData.normalWS;
+        // Do average mix in case of dual lobe
+        normalData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(lerp(surfaceData.perceptualSmoothnessA, surfaceData.perceptualSmoothnessB, surfaceData.lobeMix));
+    }
+
+    return normalData;
+}
+
 //-----------------------------------------------------------------------------
 // conversion function for forward
 //-----------------------------------------------------------------------------
 
-BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
+BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 {
     BSDFData bsdfData;
     ZERO_INITIALIZE(BSDFData, bsdfData);
@@ -2697,26 +2716,45 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 
     if (_DebugLightingMode != 0)
     {
-        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
-
+        // Caution: _DebugLightingMode is used in other part of the code, don't do anything outside of
+        // current cases
         switch (_DebugLightingMode)
         {
         case DEBUGLIGHTINGMODE_LUX_METER:
             diffuseLighting = lighting.direct.diffuse + bakeLightingData.bakeDiffuseLighting;
+            specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
             break;
 
         case DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_OCCLUSION:
             diffuseLighting = aoFactor.indirectAmbientOcclusion;
+            specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
             break;
 
         case DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_OCCLUSION:
-            //diffuseLighting = aoFactor.indirectSpecularOcclusion;
+            diffuseLighting = aoFactor.indirectSpecularOcclusion;
+            specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
             break;
 
         case DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFRACTION:
             //if (_DebugLightingSubMode != DEBUGSCREENSPACETRACING_COLOR)
-            //    diffuseLighting = lighting.indirect.specularTransmitted;
+             //   diffuseLighting = lighting.indirect.specularTransmitted;
             break;
+
+        case DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFLECTION:
+            //if (_DebugLightingSubMode != DEBUGSCREENSPACETRACING_COLOR)
+            //    diffuseLighting = lighting.indirect.specularReflected;
+            break;
+
+        case DEBUGLIGHTINGMODE_VISUALIZE_SHADOW_MASKS:
+            #ifdef SHADOWS_SHADOWMASK
+            diffuseLighting = float3(
+                bakeLightingData.bakeShadowMask.r / 2 + bakeLightingData.bakeShadowMask.g / 2,
+                bakeLightingData.bakeShadowMask.g / 2 + bakeLightingData.bakeShadowMask.b / 2,
+                bakeLightingData.bakeShadowMask.b / 2 + bakeLightingData.bakeShadowMask.a / 2
+            );
+            specularLighting = float3(0, 0, 0);
+            #endif
+            break ;
         }
     }
     else if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)

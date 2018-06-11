@@ -109,6 +109,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public LightingDebugSettings lightingDebugSettings = new LightingDebugSettings();
         public MipMapDebugSettings mipMapDebugSettings = new MipMapDebugSettings();
         public ColorPickerDebugSettings colorPickerDebugSettings = new ColorPickerDebugSettings();
+        public FalseColorDebugSettings falseColorDebugSettings = new FalseColorDebugSettings();
         public DecalsDebugSettings decalsDebugSettings = new DecalsDebugSettings();
 
         public static GUIContent[] lightingFullScreenDebugStrings = null;
@@ -220,6 +221,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public DebugMipMapMode GetDebugMipMapMode()
         {
             return mipMapDebugSettings.debugMipMapMode;
+        }
+
+        public ColorPickerDebugMode GetDebugColorPickerMode()
+        {
+            return colorPickerDebugSettings.colorPickerMode;
         }
 
         public bool IsDebugDisplayEnabled()
@@ -595,6 +601,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RegisterDecalsDebug();
         }
 
+        void RefreshRenderingDebug<T>(DebugUI.Field<T> field, T value)
+        {
+            UnregisterDebugItems(k_PanelRendering, m_DebugRenderingItems);
+            RegisterRenderingDebug();
+        }
+
         public void RegisterLightingDebug()
         {
             var list = new List<DebugUI.Widget>();
@@ -782,7 +794,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void RegisterRenderingDebug()
         {
-            m_DebugRenderingItems = new DebugUI.Widget[]
+            var widgetList = new List<DebugUI.Widget>();
+
+            widgetList.AddRange(new DebugUI.Widget[]
             {
                 new DebugUI.EnumField { displayName = "Fullscreen Debug Mode", getter = () => (int)fullScreenDebugMode, setter = value => fullScreenDebugMode = (FullScreenDebugMode)value, enumNames = renderingFullScreenDebugStrings, enumValues = renderingFullScreenDebugValues },
                 new DebugUI.EnumField { displayName = "MipMaps", getter = () => (int)mipMapDebugSettings.debugMipMapMode, setter = value => SetMipMapMode((DebugMipMapMode)value), autoEnum = typeof(DebugMipMapMode) },
@@ -794,15 +808,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     children =
                     {
                         new DebugUI.EnumField  { displayName = "Debug Mode", getter = () => (int)colorPickerDebugSettings.colorPickerMode, setter = value => colorPickerDebugSettings.colorPickerMode = (ColorPickerDebugMode)value, autoEnum = typeof(ColorPickerDebugMode) },
-                        new DebugUI.FloatField { displayName = "Range Threshold 0", getter = () => colorPickerDebugSettings.colorThreshold0, setter = value => colorPickerDebugSettings.colorThreshold0 = value },
-                        new DebugUI.FloatField { displayName = "Range Threshold 1", getter = () => colorPickerDebugSettings.colorThreshold1, setter = value => colorPickerDebugSettings.colorThreshold1 = value },
-                        new DebugUI.FloatField { displayName = "Range Threshold 2", getter = () => colorPickerDebugSettings.colorThreshold2, setter = value => colorPickerDebugSettings.colorThreshold2 = value },
-                        new DebugUI.FloatField { displayName = "Range Threshold 3", getter = () => colorPickerDebugSettings.colorThreshold3, setter = value => colorPickerDebugSettings.colorThreshold3 = value },
                         new DebugUI.ColorField { displayName = "Font Color", flags = DebugUI.Flags.EditorOnly, getter = () => colorPickerDebugSettings.fontColor, setter = value => colorPickerDebugSettings.fontColor = value }
                     }
                 }
-            };
+            });
+            
+            widgetList.Add(new DebugUI.BoolField  { displayName = "False Color Mode", getter = () => falseColorDebugSettings.falseColor, setter = value => falseColorDebugSettings.falseColor = value, onValueChanged = RefreshRenderingDebug });
+            if (falseColorDebugSettings.falseColor)
+            {
+                widgetList.Add(new DebugUI.Container{
+                    flags = DebugUI.Flags.EditorOnly,
+                    children = 
+                    {
+                        new DebugUI.FloatField { displayName = "Range Threshold 0", getter = () => falseColorDebugSettings.colorThreshold0, setter = value => falseColorDebugSettings.colorThreshold0 = Mathf.Min(value, falseColorDebugSettings.colorThreshold1) },
+                        new DebugUI.FloatField { displayName = "Range Threshold 1", getter = () => falseColorDebugSettings.colorThreshold1, setter = value => falseColorDebugSettings.colorThreshold1 = Mathf.Clamp(value, falseColorDebugSettings.colorThreshold0, falseColorDebugSettings.colorThreshold2) },
+                        new DebugUI.FloatField { displayName = "Range Threshold 2", getter = () => falseColorDebugSettings.colorThreshold2, setter = value => falseColorDebugSettings.colorThreshold2 = Mathf.Clamp(value, falseColorDebugSettings.colorThreshold1, falseColorDebugSettings.colorThreshold3) },
+                        new DebugUI.FloatField { displayName = "Range Threshold 3", getter = () => falseColorDebugSettings.colorThreshold3, setter = value => falseColorDebugSettings.colorThreshold3 = Mathf.Max(value, falseColorDebugSettings.colorThreshold2) },
+                    }
+                });
+            }
 
+            m_DebugRenderingItems = widgetList.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelRendering, true);
             panel.children.Add(m_DebugRenderingItems);
         }

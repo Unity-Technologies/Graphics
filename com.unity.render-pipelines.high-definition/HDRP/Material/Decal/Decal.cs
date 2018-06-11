@@ -49,11 +49,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             sRGBFlags = m_sRGBFlags;
         }
     }
-
-    // normalToWorld.m03 - total blend factor
-    // normalToWorld.m13 - diffuse texture index in atlas
-    // normalToWorld.m23 - normal texture index in atlas
-    // normalToWorld.m33 - mask texture index in atlas
+    
+    // normal to world only uses 3x3 for actual matrix so some data is packed in the unused space
+    // blend:
+    // float decalBlend = decalData.normalToWorld[0][3];
+    // albedo contribution on/off:
+    // float albedoContribution = decalData.normalToWorld[1][3];
+    // tiling:
+    // float2 uvScale = float2(decalData.normalToWorld[3][0], decalData.normalToWorld[3][1]);
+    // float2 uvBias = float2(decalData.normalToWorld[3][2], decalData.normalToWorld[3][3]);
     [GenerateHLSL]
     public struct DecalData
     {
@@ -62,5 +66,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4 diffuseScaleBias;
         public Vector4 normalScaleBias;
         public Vector4 maskScaleBias;
+        public Vector4 baseColor;
     };
 }
