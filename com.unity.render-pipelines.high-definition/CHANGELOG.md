@@ -1,15 +1,10 @@
-
 # Changelog
+All notable changes to this package will be documented in this file.
 
-## [2018.3]
+The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
+and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-### Improvements
-
-### Changed, Removals and deprecations
-
-### Bug fixes
-
-## [2018.2 / next ]
+## [2.0.2-preview]
 - Add Light -> Planar Reflection Probe command
 - Added a false color mode in rendering debug
 - Add support for mesh decals
@@ -32,7 +27,7 @@
 - Fixed an issue where interpolation volumes were not updated correctly for reflection captures.
 - Fixed an exception in Light Loop settings UI
 
-## [2018.2 / 2.0.1-preview]
+## [2.0.1-preview]
 
 ### Improvements
 - Add stripper of shader variant when building a player. Save shader compile time.
