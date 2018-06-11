@@ -254,6 +254,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public float renderScale
         {
             get { return m_RenderScale; }
+            set { m_RenderScale = value; }
         }
 
         public bool supportsDynamicBatching
@@ -274,6 +275,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public float shadowDistance
         {
             get { return m_ShadowDistance; }
+            set { m_ShadowDistance = value; }
         }
 
         public int cascadeCount
