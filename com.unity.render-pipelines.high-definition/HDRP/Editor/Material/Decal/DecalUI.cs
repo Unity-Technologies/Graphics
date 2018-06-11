@@ -23,6 +23,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty baseColorMap = new MaterialProperty();
         protected const string kBaseColorMap = "_BaseColorMap";
 
+        protected MaterialProperty baseColor = new MaterialProperty();
+        protected const string kBaseColor = "_BaseColor";
+
         protected MaterialProperty normalMap = new MaterialProperty();
         protected const string kNormalMap = "_NormalMap";
 
@@ -42,6 +45,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         void FindMaterialProperties(MaterialProperty[] props)
         {
+            baseColor = FindProperty(kBaseColor, props);
             baseColorMap = FindProperty(kBaseColorMap, props);
             normalMap = FindProperty(kNormalMap, props);
             maskMap = FindProperty(kMaskMap, props);
@@ -80,11 +84,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.ShaderProperty(albedoMode, Styles.AlbedoModeText);
                 if (material.GetFloat(kAlbedoMode) == 1.0f)
                 {
-                    m_MaterialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap);                    
+                    m_MaterialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap, baseColor);                    
                 }
                 else
                 {
-                    m_MaterialEditor.TexturePropertySingleLine(Styles.baseColorText2, baseColorMap);                    
+                    m_MaterialEditor.TexturePropertySingleLine(Styles.baseColorText2, baseColorMap, baseColor);                    
                 }
                 m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap);
                 m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapText, maskMap);
