@@ -104,6 +104,7 @@ namespace UnityEditor.TestTools.Graphics
                     importer.textureCompression = TextureImporterCompression.Uncompressed;
                     importer.isReadable = true;
                     importer.mipmapEnabled = false;
+                    importer.npotScale = TextureImporterNPOTScale.None;
                     AssetDatabase.ImportAsset(path);
                 }
             }
