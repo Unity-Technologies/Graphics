@@ -536,9 +536,17 @@ namespace UnityEditor.VFX.UI
             var blocks = m_BlockContainer.Query().OfType<VFXBlockUI>().ToList();
             for (int i = 0; i < blocks.Count; ++i)
             {
-                if (blocks[i].worldBound.Contains(position))
+                Rect worldBounds = blocks[i].worldBound;
+                if (worldBounds.Contains(position))
                 {
-                    blockIndex = i;
+                    if (position.y > worldBounds.center.y)
+                    {
+                        blockIndex = i + 1;
+                    }
+                    else
+                    {
+                        blockIndex = i;
+                    }
                     break;
                 }
             }
