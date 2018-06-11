@@ -228,7 +228,7 @@ namespace UnityEditor.VFX
                 m_GizmoedParameter = null;
             }*/
 
-            if (GUILayout.Toggle(m_GizmoedParameter == parameter, new GUIContent(Resources.Load<Texture2D>(EditorGUIUtility.pixelsPerPoint > 1 ? "VFX/gizmos@2x" : "VFX/gizmos")), GUISkin.current.button, GUILayout.Width(overrideWidth)))
+            if (GUILayout.Toggle(m_GizmoedParameter == parameter, new GUIContent(Resources.Load<Texture2D>(EditorGUIUtility.pixelsPerPoint > 1 ? "VFX/gizmos@2x" : "VFX/gizmos")), GetCurrentSkin().button, GUILayout.Width(overrideWidth)))
             {
                 m_GizmoedParameter = parameter;
             }

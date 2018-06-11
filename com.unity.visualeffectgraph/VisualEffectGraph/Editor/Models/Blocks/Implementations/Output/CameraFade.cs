@@ -71,7 +71,7 @@ namespace UnityEditor.VFX.Block
                 if (fadedDistExp == null)
                     throw new Exception("Could not find FadedDistance inputProperty");
 
-                yield return new VFXNamedExpression( VFXOperatorUtility.Reciprocal(new VFXExpressionSubtract(visibleDistExp, fadedDistExp)), "InvFadeDistance");
+                yield return new VFXNamedExpression(VFXOperatorUtility.Reciprocal(new VFXExpressionSubtract(visibleDistExp, fadedDistExp)), "InvFadeDistance");
             }
         }
 

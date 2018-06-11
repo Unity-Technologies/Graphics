@@ -178,7 +178,7 @@ public class VFXParameterBinderEditor : Editor
     public void AddBinding(object type)
     {
         Type t = type as Type;
-        var obj = (m_SerializedObject.targetObject as VFXParameterBinder).gameObject;
+        var obj = (serializedObject.targetObject as VFXParameterBinder).gameObject;
         Undo.AddComponent(obj, t);
     }
 

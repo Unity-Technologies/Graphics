@@ -451,6 +451,11 @@ namespace UnityEditor.VFX
             }
         }
 
+        public static GUISkin GetCurrentSkin()
+        {
+            return EditorGUIUtility.isProSkin ? EditorGUIUtility.GetBuiltinSkin(EditorSkin.Scene) : EditorGUIUtility.GetBuiltinSkin(EditorSkin.Inspector);
+        }
+
         protected static class Styles
         {
             public static readonly GUIStyle toggleStyle;
@@ -465,9 +470,10 @@ namespace UnityEditor.VFX
 
             static Styles()
             {
-                toggleStyle = GUISkin.current.GetStyle("ShurikenCheckMark");
-                toggleMixedStyle = GUISkin.current.GetStyle("ShurikenCheckMarkMixed");
-                categoryHeader = new GUIStyle(GUISkin.current.label);
+                var builtInSkin = GetCurrentSkin();
+                toggleStyle = builtInSkin.GetStyle("ShurikenCheckMark");
+                toggleMixedStyle = builtInSkin.GetStyle("ShurikenCheckMarkMixed");
+                categoryHeader = new GUIStyle(builtInSkin.label);
                 categoryHeader.fontStyle = FontStyle.Bold;
                 categoryHeader.border.left = 2;
                 categoryHeader.padding.left = 14;

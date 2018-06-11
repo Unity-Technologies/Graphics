@@ -295,9 +295,9 @@ namespace  UnityEditor.VFX.UI
                 foreach (var parameter in view.graphElements.ToList().OfType<VFXParameterUI>().Where(t => t.controller.parentController == controller))
                 {
                     if (evt.GetEventTypeId() == MouseEnterEvent.TypeId())
-                        parameter.pseudoStates |= PseudoStates.Hover;
+                        parameter.AddToClassList("hovered");
                     else
-                        parameter.pseudoStates &= ~PseudoStates.Hover;
+                        parameter.RemoveFromClassList("hovered");
                 }
             }
         }

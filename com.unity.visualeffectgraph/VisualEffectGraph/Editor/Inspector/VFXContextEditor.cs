@@ -76,7 +76,7 @@ public class VFXContextEditor : VFXSlotContainerEditor
                     if (j < usedSize)
                     {
                         var attrib = bucket.attributes[j];
-                        if(attrib.name != null)
+                        if (attrib.name != null)
                             Styles.DataTypeLabel(attrib.name, attrib.type, Styles.cell, GUILayout.Width(m_Width / maxSize));
                         else
                             Styles.DataTypeLabel("", VFXValueType.None, Styles.cell, GUILayout.Width(m_Width / maxSize));
@@ -88,7 +88,6 @@ public class VFXContextEditor : VFXSlotContainerEditor
                         else
                             GUILayout.Space(m_Width / maxSize);
                     }
-
                 }
             }
             i++;

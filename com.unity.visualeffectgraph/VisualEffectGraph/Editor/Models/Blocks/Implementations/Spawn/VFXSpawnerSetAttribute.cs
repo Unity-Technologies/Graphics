@@ -28,7 +28,6 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-
                 var attrib = currentAttribute;
 
                 VFXPropertyAttribute[] attr = null;
@@ -53,7 +52,6 @@ namespace UnityEditor.VFX.Block
                         attributes = attr
                     }, currentAttribute.value.GetContent());
                 }
-
             }
         }
 
