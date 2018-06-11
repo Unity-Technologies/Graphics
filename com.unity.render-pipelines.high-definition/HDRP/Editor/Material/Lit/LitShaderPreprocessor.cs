@@ -3,12 +3,20 @@ using System.Collections.Generic;
 using UnityEditor.Build;
 using UnityEditor.Rendering;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class LitShaderPreprocessor : BaseShaderPreprocessor
     {
+        protected ShaderKeyword m_WriteNormalBuffer;
+
+        public LitShaderPreprocessor()
+        {
+            m_WriteNormalBuffer = new ShaderKeyword("WRITE_NORMAL_BUFFER");
+        }
+
         bool LitShaderStripper(HDRenderPipelineAsset hdrpAsset, Shader shader, ShaderSnippetData snippet, ShaderCompilerData inputData)
         {
             if (CommonShaderStripper(hdrpAsset, shader, snippet, inputData))
@@ -16,6 +24,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             bool isGBufferPass = snippet.passName == "GBuffer";
             bool isForwardPass = snippet.passName == "Forward";
+            bool isDepthOnlyPass = snippet.passName == "DepthOnly";
             bool isTransparentForwardPass = snippet.passName == "TransparentDepthPostpass" || snippet.passName == "TransparentBackface" || snippet.passName == "TransparentDepthPrepass";
 
             // When using forward only, we never need GBuffer pass (only Forward)
@@ -37,6 +46,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // When we are in deferred (i.e !hdrpAsset.renderPipelineSettings.supportOnlyForward), we only support tile lighting
                 if (!hdrpAsset.renderPipelineSettings.supportOnlyForward && inputData.shaderKeywordSet.IsEnabled(m_ClusterLighting))
                     return true;
+
+                if (isDepthOnlyPass)
+                {
+                    // When we are full forward, we don't have depth prepass without writeNormalBuffer
+                    if (hdrpAsset.renderPipelineSettings.supportOnlyForward && !inputData.shaderKeywordSet.IsEnabled(m_WriteNormalBuffer))
+                        return true;
+                }
 
                 if (!hdrpAsset.renderPipelineSettings.supportOnlyForward)
                 {
