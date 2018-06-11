@@ -23,7 +23,6 @@ namespace UnityEditor.VFX
 
         public sealed override void OnPlay(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
         {
-
         }
 
         public sealed override void OnUpdate(VFXSpawnerState state, VFXExpressionValues vfxValues, VisualEffect vfxComponent)
@@ -47,10 +46,10 @@ namespace UnityEditor.VFX
                         m_Waiting = false;
                         state.totalTime = 0.0f;
 
-                        if(m_RemainingLoops > 0) // if positive, remove one from count
+                        if (m_RemainingLoops > 0) // if positive, remove one from count
                             m_RemainingLoops--;
 
-                        if(m_RemainingLoops != 0) // if 0, stop forever
+                        if (m_RemainingLoops != 0) // if 0, stop forever
                             state.playing = true; // Re-enable the spawn context
 
                         m_RemainingLoops = Math.Max(-1, m_RemainingLoops); // sustain at -1 if in infinite mode

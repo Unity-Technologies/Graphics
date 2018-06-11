@@ -77,7 +77,7 @@ public class VFXSlotContainerEditor : Editor
             if (VFXViewWindow.currentWindow != null)
             {
                 VFXView view = VFXViewWindow.currentWindow.graphView;
-                if (view.controller != null && view.controller.graph == slotContainer.GetGraph())
+                if (view.controller != null && view.controller.model && view.controller.graph == slotContainer.GetGraph())
                 {
                     if (slotContainer is VFXParameter)
                     {

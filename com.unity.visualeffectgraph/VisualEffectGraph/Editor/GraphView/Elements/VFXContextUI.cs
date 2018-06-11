@@ -263,7 +263,7 @@ namespace UnityEditor.VFX.UI
             m_BlockContainer.Add(m_DragDisplay);
         }
 
-        public void DragFinished()
+        public void RemoveDragIndicator()
         {
             if (m_DragDisplay.parent != null)
                 m_BlockContainer.Remove(m_DragDisplay);
@@ -329,6 +329,7 @@ namespace UnityEditor.VFX.UI
 
         bool IDropTarget.DragLeave(DragLeaveEvent evt, IEnumerable<ISelectable> selection, IDropTarget leftTarget, ISelection dragSource)
         {
+            RemoveDragIndicator();
             return true;
         }
 
@@ -357,7 +358,7 @@ namespace UnityEditor.VFX.UI
 
         bool IDropTarget.DragPerform(DragPerformEvent evt, IEnumerable<ISelectable> selection, IDropTarget dropTarget, ISelection dragSource)
         {
-            DragFinished();
+            RemoveDragIndicator();
 
             Vector2 mousePosition = m_BlockContainer.WorldToLocal(evt.mousePosition);
 
@@ -399,7 +400,7 @@ namespace UnityEditor.VFX.UI
         bool IDropTarget.DragExited()
         {
             // TODO: Do something when current drag is canceled
-            DragFinished();
+            RemoveDragIndicator();
             m_DragStarted = false;
 
             return true;
@@ -535,9 +536,17 @@ namespace UnityEditor.VFX.UI
             var blocks = m_BlockContainer.Query().OfType<VFXBlockUI>().ToList();
             for (int i = 0; i < blocks.Count; ++i)
             {
-                if (blocks[i].worldBound.Contains(position))
+                Rect worldBounds = blocks[i].worldBound;
+                if (worldBounds.Contains(position))
                 {
-                    blockIndex = i;
+                    if (position.y > worldBounds.center.y)
+                    {
+                        blockIndex = i + 1;
+                    }
+                    else
+                    {
+                        blockIndex = i;
+                    }
                     break;
                 }
             }
