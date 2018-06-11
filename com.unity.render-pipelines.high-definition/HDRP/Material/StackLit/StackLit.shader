@@ -354,10 +354,12 @@ Shader "HDRenderPipeline/StackLit"
 
             HLSLPROGRAM
 
+            #define WRITE_NORMAL_BUFFER
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
-            #include "ShaderPass/StackLitDepthPass.hlsl"
+            // As we enabled WRITE_NORMAL_BUFFER we need all regular interpolator
+            #include "ShaderPass/StackLitSharePass.hlsl"
             #include "StackLitData.hlsl"
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
