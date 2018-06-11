@@ -132,6 +132,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             [Optional] Vector4 uv2;
             [Optional] Vector4 uv3;
             [Optional] Vector4 VertexColor;
+            [Optional] float FaceSign;
 
             public static Dependency[] dependencies = new Dependency[]
             {
@@ -165,6 +166,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 new Dependency("SurfaceDescriptionInputs.uv2",                       "FragInputs.texCoord2"),
                 new Dependency("SurfaceDescriptionInputs.uv3",                       "FragInputs.texCoord3"),
                 new Dependency("SurfaceDescriptionInputs.VertexColor",               "FragInputs.color"),
+                new Dependency("SurfaceDescriptionInputs.FaceSign",                  "FragInputs.isFrontFace"),
             };
         };
 
@@ -344,6 +346,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (requirements.requiresVertexColor)
             {
                 activeFields.Add("SurfaceDescriptionInputs.VertexColor");
+            }
+
+            if (requirements.requiresFaceSign)
+            {
+                activeFields.Add("SurfaceDescriptionInputs.FaceSign");
             }
 
             if (requirements.requiresNormal != 0)
@@ -648,9 +655,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 graph.AddShaderChunk("// Shared Graph Properties (uniform inputs)");
                 graph.AddShaderChunk(sharedProperties.GetPropertiesDeclaration(1));
 
-                graph.AddShaderChunk("// Shared Graph Node Functions");
-                graph.AddShaderChunk(graphNodeFunctions.ToString());
-
                 if (vertexActive)
                 {
                     graph.AddShaderChunk("// Vertex Graph Inputs");
@@ -660,10 +664,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     graph.AddShaderChunk("// Vertex Graph Outputs");
                     graph.Indent();
                     graph.AddShaderChunk(vertexGraphOutputs.ToString());
-                    graph.Deindent();
-                    graph.AddShaderChunk("// Vertex Graph Evaluation");
-                    graph.Indent();
-                    graph.AddShaderChunk(vertexGraphEvalFunction.ToString());
                     graph.Deindent();
                 }
 
@@ -675,6 +675,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 graph.Indent();
                 graph.AddShaderChunk(pixelGraphOutputs.ToString());
                 graph.Deindent();
+
+                graph.AddShaderChunk("// Shared Graph Node Functions");
+                graph.AddShaderChunk(graphNodeFunctions.ToString());
+
+                if (vertexActive)
+                {
+                    graph.AddShaderChunk("// Vertex Graph Evaluation");
+                    graph.Indent();
+                    graph.AddShaderChunk(vertexGraphEvalFunction.ToString());
+                    graph.Deindent();
+                }
 
                 graph.AddShaderChunk("// Pixel Graph Evaluation");
                 graph.Indent();

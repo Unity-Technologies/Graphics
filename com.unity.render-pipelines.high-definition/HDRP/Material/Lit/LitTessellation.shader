@@ -2,6 +2,9 @@ Shader "HDRenderPipeline/LitTessellation"
 {
     Properties
     {
+        // Versioning of material to help for upgrading
+        [HideInInspector] _HdrpVersion("_HdrpVersion", Float) = 1
+
         // Following set of parameters represent the parameters node inside the MaterialGraph.
         // They are use to fill a SurfaceData. With a MaterialGraph this should not exist.
 
@@ -335,6 +338,8 @@ Shader "HDRenderPipeline/LitTessellation"
 
             HLSLPROGRAM
 
+            // Note: Require _ObjectId and _PassValue variables
+
             #pragma hull Hull
             #pragma domain Domain
 
@@ -461,17 +466,25 @@ Shader "HDRenderPipeline/LitTessellation"
 
             ZWrite On
 
-            ColorMask 0
-
             HLSLPROGRAM
 
             #pragma hull Hull
             #pragma domain Domain
 
+            // In deferred, depth only pass don't output anything.
+            // In forward it output the normal buffer
+            #pragma multi_compile _ WRITE_NORMAL_BUFFER
+
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
+
+            #ifdef WRITE_NORMAL_BUFFER // If enabled we need all regular interpolator
+            #include "ShaderPass/LitSharePass.hlsl"
+            #else
             #include "ShaderPass/LitDepthPass.hlsl"
+            #endif
+
             #include "LitData.hlsl"
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 

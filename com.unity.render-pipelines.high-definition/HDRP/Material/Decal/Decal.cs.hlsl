@@ -43,6 +43,7 @@ struct DecalData
     float4 diffuseScaleBias;
     float4 normalScaleBias;
     float4 maskScaleBias;
+	float4 baseColor;
 };
 
 //

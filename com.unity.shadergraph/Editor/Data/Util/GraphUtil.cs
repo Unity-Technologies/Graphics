@@ -92,7 +92,7 @@ namespace UnityEditor.ShaderGraph
             {
                 return 2;
             }
-            else if (typeName.Equals("float"))
+            else if (typeName.Equals("Single"))
             {
                 return 1;
             }
@@ -734,6 +734,9 @@ namespace UnityEditor.ShaderGraph
 
                 if (requirements.requiresScreenPosition)
                     surfaceDescriptionInputStruct.AppendLine("float4 {0};", ShaderGeneratorNames.ScreenPosition);
+
+                if (requirements.requiresFaceSign)
+                    surfaceDescriptionInputStruct.AppendLine("float {0};", ShaderGeneratorNames.FaceSign);
 
                 results.previewMode = PreviewMode.Preview3D;
                 if (!isUber)

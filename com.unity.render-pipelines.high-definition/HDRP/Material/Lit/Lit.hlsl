@@ -1,6 +1,7 @@
 // SurfaceData is define in Lit.cs which generate Lit.cs.hlsl
 #include "Lit.cs.hlsl"
 #include "../SubsurfaceScattering/SubsurfaceScattering.hlsl"
+#include "../NormalBuffer.hlsl"
 #include "CoreRP/ShaderLibrary/VolumeRendering.hlsl"
 
 //-----------------------------------------------------------------------------
@@ -41,7 +42,8 @@ TEXTURE2D(_GBufferTexture3);
 #define CLEAR_COAT_IOR 1.5
 #define CLEAR_COAT_IETA (1.0 / CLEAR_COAT_IOR) // IETA is the inverse eta which is the ratio of IOR of two interface
 #define CLEAR_COAT_F0 0.04 // IORToFresnel0(CLEAR_COAT_IOR)
-#define CLEAR_COAT_ROUGHNESS 0.001
+#define CLEAR_COAT_ROUGHNESS 0.03
+#define CLEAR_COAT_PERCEPTUAL_SMOOTHNESS RoughnessToPerceptualSmoothness(CLEAR_COAT_ROUGHNESS)
 #define CLEAR_COAT_PERCEPTUAL_ROUGHNESS RoughnessToPerceptualRoughness(CLEAR_COAT_ROUGHNESS)
 
 //-----------------------------------------------------------------------------
@@ -58,6 +60,11 @@ TEXTURE2D(_GBufferTexture3);
 // #define LIT_DISPLAY_REFERENCE_AREA
 // #define LIT_DISPLAY_REFERENCE_IBL
 #endif
+
+// In forward we can chose between reading the normal from the normalBufferTexture or computing it again
+// This is tradeoff between performance and quality. As we store the normal conpressed, recomputing again is higher quality.
+// Uncomment this to get speed (to measure), let it comment to get quality
+// #define FORWARD_MATERIAL_READ_FROM_WRITTEN_NORMAL_BUFFER
 
 //-----------------------------------------------------------------------------
 // Ligth and material classification for the deferred rendering path
@@ -330,11 +337,33 @@ SSSData ConvertSurfaceDataToSSSData(SurfaceData surfaceData)
     return sssData;
 }
 
+NormalData ConvertSurfaceDataToNormalData(SurfaceData surfaceData)
+{
+    NormalData normalData;
+
+    // Note: We can't handle clear coat material here, we have only one slot to store smoothness
+    // and the buffer is the GBuffer1.
+    normalData.normalWS = surfaceData.normalWS;
+    normalData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
+
+    return normalData;
+}
+
+void UpdateSurfaceDataFromNormalData(uint2 positionSS, inout BSDFData bsdfData)
+{
+    NormalData normalData;
+
+    DecodeFromNormalBuffer(positionSS, normalData);
+
+    bsdfData.normalWS = normalData.normalWS;
+    bsdfData.perceptualRoughness = normalData.perceptualRoughness;
+}
+
 //-----------------------------------------------------------------------------
 // conversion function for forward
 //-----------------------------------------------------------------------------
 
-BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
+BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 {
     BSDFData bsdfData;
     ZERO_INITIALIZE(BSDFData, bsdfData);
@@ -346,6 +375,13 @@ BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData)
     bsdfData.specularOcclusion   = surfaceData.specularOcclusion;
     bsdfData.normalWS            = surfaceData.normalWS;
     bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
+
+    // Check if we read value of normal and roughness from buffer. This is a tradeoff
+#ifdef FORWARD_MATERIAL_READ_FROM_WRITTEN_NORMAL_BUFFER
+#if (SHADERPASS == SHADERPASS_FORWARD) && !defined(_SURFACE_TYPE_TRANSPARENT)
+    UpdateSurfaceDataFromNormalData(positionSS, bsdfData);
+#endif
+#endif
 
     // There is no metallic with SSS and specular color mode
     float metallic = HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR | MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING | MATERIALFEATUREFLAGS_LIT_TRANSMISSION) ? 0.0 : surfaceData.metallic;
@@ -468,20 +504,8 @@ void EncodeIntoGBuffer( SurfaceData surfaceData,
     // Warning: the contents are later overwritten for Standard and SSS!
     outGBuffer0 = float4(surfaceData.baseColor, surfaceData.specularOcclusion);
 
-    // The sign of the Z component of the normal MUST round-trip through the G-Buffer, otherwise
-    // the reconstruction of the tangent frame for anisotropic GGX creates a seam along the Z axis.
-    // The constant was eye-balled to not cause artifacts.
-    // TODO: find a proper solution. E.g. we could re-shuffle the faces of the octahedron
-    // s.t. the sign of the Z component round-trips.
-    const float seamThreshold = 1.0/1024.0;
-    surfaceData.normalWS.z = CopySign(max(seamThreshold, abs(surfaceData.normalWS.z)), surfaceData.normalWS.z);
-
-    // RT1 - 8:8:8:8
-    // Our tangent encoding is based on our normal.
-    float2 octNormalWS = PackNormalOctQuadEncode(surfaceData.normalWS);
-    float3 packNormalWS = PackFloat2To888(saturate(octNormalWS * 0.5 + 0.5));
-    // We store perceptualRoughness instead of roughness because it is perceptually linear.
-    outGBuffer1 = float4(packNormalWS, PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness));
+    // This encode normalWS and PerceptualSmoothness into GBuffer1
+    EncodeIntoNormalBuffer(ConvertSurfaceDataToNormalData(surfaceData), positionSS, outGBuffer1);
 
     // RT2 - 8:8:8:8
     uint materialFeatureId;
@@ -636,10 +660,10 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     // Decompress feature-agnostic data from the G-Buffer.
     float3 baseColor = inGBuffer0.rgb;
 
-    float3 packNormalWS = inGBuffer1.rgb;
-    float2 octNormalWS = Unpack888ToFloat2(packNormalWS);
-    bsdfData.normalWS = UnpackNormalOctQuadEncode(octNormalWS * 2.0 - 1.0);
-    bsdfData.perceptualRoughness = inGBuffer1.a;
+    NormalData normalData;
+    DecodeFromNormalBuffer(inGBuffer1, positionSS, normalData);
+    bsdfData.normalWS = normalData.normalWS;
+    bsdfData.perceptualRoughness = normalData.perceptualRoughness;
 
     bakeDiffuseLighting = inGBuffer3.rgb;
 
@@ -1023,7 +1047,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     preLightData.transparentTransmittance = exp(-bsdfData.absorptionCoefficient * refraction.dist);
     // Empirical remap to try to match a bit the refraction probe blurring for the fallback
     // Use IblPerceptualRoughness so we can handle approx of clear coat.
-    preLightData.transparentSSMipLevel = pow(preLightData.iblPerceptualRoughness, 1.3) * uint(max(_ColorPyramidScale.z - 1, 0));
+    preLightData.transparentSSMipLevel = PositivePow(preLightData.iblPerceptualRoughness, 1.3) * uint(max(_ColorPyramidScale.z - 1, 0));
 #endif
 
     return preLightData;
@@ -1909,36 +1933,45 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     // TODO: Fade pixels marked as foreground in stencil
     float weight = weightNDC.x * weightNDC.y * hitWeight;
 
-    float hitDeviceDepth = LOAD_TEXTURE2D_LOD(_DepthPyramidTexture, hit.positionSS, 0).r;
-    float hitLinearDepth = LinearEyeDepth(hitDeviceDepth, _ZBufferParams);
-
     // Exit if texel is discarded
     if (weight == 0)
         // Do nothing and don't update the hierarchy weight so we can fall back on refraction probe
         return lighting;
 
+    float hitDeviceDepth = LOAD_TEXTURE2D_LOD(_DepthPyramidTexture, hit.positionSS, 0).r;
+    float hitLinearDepth = LinearEyeDepth(hitDeviceDepth, _ZBufferParams);
+
+    float2 samplingPositionNDC = hit.positionNDC;
+#if HAS_REFRACTION
+    if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION
+        && hitLinearDepth < posInput.linearDepth)
+        samplingPositionNDC = posInput.positionNDC;
+#endif
+
     UpdateLightingHierarchyWeights(hierarchyWeight, weight); // Shouldn't be needed, but safer in case we decide to change hierarchy priority
 
-    // Reproject color pyramid
-    float4 hitVelocityBuffer = LOAD_TEXTURE2D_LOD(
-        _CameraMotionVectorsTexture,
-        hit.positionSS,
-        0.0
-    );
-
-    float2 hitVelocityNDC;
-    DecodeVelocity(hitVelocityBuffer, hitVelocityNDC);
+    float2 hitVelocityNDC = 0;
+    if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION)
+    {
+        // Reproject color pyramid
+        float4 hitVelocityBuffer = LOAD_TEXTURE2D_LOD(
+            _CameraMotionVectorsTexture,
+            hit.positionSS,
+            0.0
+        );
+        DecodeVelocity(hitVelocityBuffer, hitVelocityNDC);
+    }
 
     float3 preLD = SAMPLE_TEXTURE2D_LOD(
         _ColorPyramidTexture,
         s_trilinear_clamp_sampler,
         // Offset by half a texel to properly interpolate between this pixel and its mips
-        (hit.positionNDC - hitVelocityNDC) * _ColorPyramidScale.xy + _ColorPyramidSize.zw * 0.5,
+        (samplingPositionNDC - hitVelocityNDC) * _ColorPyramidScale.xy + _ColorPyramidSize.zw * 0.5,
         mipLevel
     ).rgb;
 
     // With HiZ, we use a temporal filtering to reduce the noise from the ray origin jittering
-    if (projectionModel == PROJECTIONMODEL_HI_Z)
+    if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFLECTION && projectionModel == PROJECTIONMODEL_HI_Z)
     {
         float4 currentVelocityBuffer = LOAD_TEXTURE2D_LOD(
             _CameraMotionVectorsTexture,
@@ -2180,39 +2213,51 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 
     if (_DebugLightingMode != 0)
     {
-        bool keepSpecular = false;
-
+        // Caution: _DebugLightingMode is used in other part of the code, don't do anything outside of
+        // current cases
         switch (_DebugLightingMode)
         {
         case DEBUGLIGHTINGMODE_LUX_METER:
             diffuseLighting = lighting.direct.diffuse + bakeLightingData.bakeDiffuseLighting;
+
+            //Compress lighting values for color picker if enabled
+            if (_ColorPickerMode != COLORPICKERDEBUGMODE_NONE)
+                diffuseLighting = diffuseLighting / LUXMETER_COMPRESSION_RATIO;
+            
+            specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
             break;
 
         case DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_OCCLUSION:
             diffuseLighting = aoFactor.indirectAmbientOcclusion;
+            specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
             break;
 
         case DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_OCCLUSION:
             diffuseLighting = aoFactor.indirectSpecularOcclusion;
+            specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
             break;
 
         case DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFRACTION:
             if (_DebugLightingSubMode != DEBUGSCREENSPACETRACING_COLOR)
                 diffuseLighting = lighting.indirect.specularTransmitted;
-            else
-                keepSpecular = true;
             break;
 
         case DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFLECTION:
             if (_DebugLightingSubMode != DEBUGSCREENSPACETRACING_COLOR)
                 diffuseLighting = lighting.indirect.specularReflected;
-            else
-                keepSpecular = true;
             break;
-        }
 
-        if (!keepSpecular)
-            specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
+        case DEBUGLIGHTINGMODE_VISUALIZE_SHADOW_MASKS:
+            #ifdef SHADOWS_SHADOWMASK
+            diffuseLighting = float3(
+                bakeLightingData.bakeShadowMask.r / 2 + bakeLightingData.bakeShadowMask.g / 2,
+                bakeLightingData.bakeShadowMask.g / 2 + bakeLightingData.bakeShadowMask.b / 2,
+                bakeLightingData.bakeShadowMask.b / 2 + bakeLightingData.bakeShadowMask.a / 2
+            );
+            specularLighting = float3(0, 0, 0);
+            #endif
+            break ;
+        }
     }
     else if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {

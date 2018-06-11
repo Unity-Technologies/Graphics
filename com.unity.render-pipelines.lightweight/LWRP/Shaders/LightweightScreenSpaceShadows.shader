@@ -34,7 +34,6 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
         {
             half4  pos      : SV_POSITION;
             half4  texcoord : TEXCOORD0;
-            UNITY_VERTEX_INPUT_INSTANCE_ID
             UNITY_VERTEX_OUTPUT_STEREO
         };
 
@@ -42,7 +41,6 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
         {
             Interpolators o;
             UNITY_SETUP_INSTANCE_ID(i);
-            UNITY_TRANSFER_INSTANCE_ID(i, o);
             UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
             o.pos = TransformObjectToHClip(i.vertex.xyz);
@@ -58,7 +56,6 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
 
         half4 Fragment(Interpolators i) : SV_Target
         {
-            UNITY_SETUP_INSTANCE_ID(i);
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
