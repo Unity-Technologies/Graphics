@@ -25,6 +25,8 @@ float4 _MouseClickPixelCoord;  // xy unorm, zw norm
 float _DebugExposure;
 CBUFFER_END
 
+#define LUXMETER_COMPRESSION_RATIO  4
+
 TEXTURE2D(_DebugFont); // Debug font to write string in shader
 RWStructuredBuffer<ScreenSpaceTracingDebug> _DebugScreenSpaceTracingData : register(u7); // TODO: Change the register number for PS4
 
