@@ -32,6 +32,8 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         ColorSpace m_ColorSpace;
 
+        static MaterialGraphEditWindow s_Instance;
+
         GraphEditorView m_GraphEditorView;
 
         GraphEditorView graphEditorView
@@ -73,6 +75,35 @@ namespace UnityEditor.ShaderGraph.Drawing
             private set { m_Selected = value; }
         }
 
+        // This is so that we can check if the file on disk has been renamed.
+        // If it has, we can update the Title of the shader graph tab.
+        class ShaderPostProcessor : AssetPostprocessor
+        {
+            static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
+            {
+                if (s_Instance != null)
+                {
+                    string ending = ".ShaderGraph";
+                    bool anyShaders = importedAssets.Any(val => val.EndsWith(ending));
+                    anyShaders |= movedAssets.Any(val => val.EndsWith(ending));
+                    if (anyShaders)
+                        s_Instance.UpdateAfterAssetChange();
+                }
+            }
+        }
+
+        void UpdateAfterAssetChange()
+        {
+           var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(selectedGuid));
+           if (titleContent.text != asset.name)
+               titleContent.text = asset.name;
+        }
+
+        public void OnEnable()
+        {
+            s_Instance = this;
+        }
+
         void Update()
         {
             if (m_HasError)
@@ -102,6 +133,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var materialGraph = graphObject.graph as AbstractMaterialGraph;
                 if (materialGraph == null)
                     return;
+
                 if (graphEditorView == null)
                 {
                     var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(selectedGuid));
@@ -133,6 +165,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         void OnDisable()
         {
             graphEditorView = null;
+            s_Instance = null;
         }
 
         void OnDestroy()
