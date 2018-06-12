@@ -63,7 +63,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             get
             {
                 return SystemInfo.supportsComputeShaders &&
-                    !Application.isMobilePlatform && Application.platform != RuntimePlatform.WebGLPlayer;
+                       SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore &&
+                       !Application.isMobilePlatform &&
+                       Application.platform != RuntimePlatform.WebGLPlayer;
             }
         }
 
