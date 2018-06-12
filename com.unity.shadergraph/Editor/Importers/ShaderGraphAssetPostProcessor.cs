@@ -54,7 +54,7 @@ namespace UnityEditor.ShaderGraph
             RegisterShaders(importedAssets);
 
             bool anyShaders = movedAssets.Any(val => val.EndsWith(ShaderGraphImporter.ShaderGraphExtension, StringComparison.InvariantCultureIgnoreCase));
-            anyShaders |= movedAssets.Any(val => val.EndsWith(ShaderSubGraphImporter.ShaderSubGraphExtension, StringComparison.InvariantCultureIgnoreCase));
+            anyShaders |= movedAssets.Any(val => val.EndsWith("shadersubgraph", StringComparison.InvariantCultureIgnoreCase));
             if (anyShaders)
                 UpdateAfterAssetChange(movedAssets);
         }

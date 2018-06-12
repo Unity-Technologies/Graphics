@@ -9,7 +9,6 @@ using System.Text;
 [ScriptedImporter(2, "ShaderSubGraph")]
 public class ShaderSubGraphImporter : ScriptedImporter
 {
-    public const string ShaderSubGraphExtension = "shadersubgraph";
     public override void OnImportAsset(AssetImportContext ctx)
     {
         var textGraph = File.ReadAllText(ctx.assetPath, Encoding.UTF8);
