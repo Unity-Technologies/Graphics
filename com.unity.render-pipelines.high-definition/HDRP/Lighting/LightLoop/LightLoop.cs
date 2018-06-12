@@ -373,6 +373,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static int[] s_shadeOpaqueIndirectShadowMaskFptlKernels = new int[LightDefinitions.s_NumFeatureVariants];
 
         static int s_deferredDirectionalShadowKernel;
+        static int s_deferredContactShadowkernel;
         static int s_deferredDirectionalShadow_Contact_Kernel;
 
         static ComputeBuffer s_LightVolumeDataBuffer = null;
@@ -431,6 +432,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         Light m_CurrentSunLight;
         int m_CurrentSunLightShadowIndex = -1;
+        int m_DominantLightIndex = -1;
 
         public Light GetCurrentSunLight() { return m_CurrentSunLight; }
 
@@ -556,6 +558,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             s_deferredDirectionalShadowKernel = deferredDirectionalShadowComputeShader.FindKernel("DeferredDirectionalShadow");
             s_deferredDirectionalShadow_Contact_Kernel = deferredDirectionalShadowComputeShader.FindKernel("DeferredDirectionalShadow_Contact");
+            s_deferredContactShadowkernel = deferredDirectionalShadowComputeShader.FindKernel("DeferredContactShadow");
 
             for (int variant = 0; variant < LightDefinitions.s_NumFeatureVariants; variant++)
             {
@@ -1644,7 +1647,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 
                     //TODO: move this upwards
                     float   biggestLight = 0;
-                    int     dominantLightIndex = -1;
 
                     for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
                     {
@@ -1669,12 +1671,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             if (GetDirectionalLightData(cmd, shadowSettings, gpuLightType, light, additionalLightData, additionalShadowData, lightIndex))
                             {
                                 directionalLightcount++;
-
-                                if (additionalShadowData != null && additionalShadowData.contactShadows)
-                                {
-                                    dominantLightIndex = lightIndex;
-                                    biggestLight = Single.PositiveInfinity;
-                                }
 
                                 // We make the light position camera-relative as late as possible in order
                                 // to allow the preceding code to work with the absolute world space coordinates.
@@ -1710,7 +1706,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             
                             if (additionalShadowData != null && additionalShadowData.contactShadows && lightDimensions.magnitude > biggestLight)
                             {
-                                dominantLightIndex = lightIndex;
+                                m_DominantLightIndex = lightIndex;
                                 biggestLight = lightDimensions.magnitude;
                             }
 
@@ -2311,7 +2307,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void RenderDeferredDirectionalShadow(HDCamera hdCamera, RTHandleSystem.RTHandle deferredShadowRT, RenderTargetIdentifier depthTexture, CommandBuffer cmd)
         {
-            if (m_CurrentSunLight == null || m_CurrentSunLight.GetComponent<AdditionalShadowData>() == null || m_CurrentSunLightShadowIndex < 0)
+            if ((m_CurrentSunLight == null || m_CurrentSunLight.GetComponent<AdditionalShadowData>() == null || m_CurrentSunLightShadowIndex < 0) && m_DominantLightIndex == -1)
             {
                 cmd.SetGlobalTexture(HDShaderIDs._DeferredShadowTexture, RuntimeUtilities.blackTexture);
                 return;
@@ -2319,14 +2315,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new ProfilingSample(cmd, "Deferred Directional Shadow", CustomSamplerId.TPDeferredDirectionalShadow.GetSampler()))
             {
-                ContactShadows contactShadows = VolumeManager.instance.stack.GetComponent<ContactShadows>();
+                ContactShadows  contactShadows = VolumeManager.instance.stack.GetComponent<ContactShadows>();
+                bool            enableContactShadows = m_FrameSettings.enableContactShadows && contactShadows.enable && contactShadows.length > 0.0f;
+                Vector3         lightDirection;
+                int             kernel;
 
-                bool enableContactShadows = m_FrameSettings.enableContactShadows && contactShadows.enable && contactShadows.length > 0.0f;
-                int kernel;
+                // Debug.Log("contactShadowsSettings: " + contactShadows.enable);
                 if (enableContactShadows)
-                    kernel = s_deferredDirectionalShadow_Contact_Kernel;
+                {
+                    Debug.Log("Contact shadows enabled !");
+                    if (m_DominantLightIndex != -1)
+                    {
+                        kernel = s_deferredContactShadowkernel;
+                    }
+                    else
+                        kernel = s_deferredDirectionalShadow_Contact_Kernel;
+                }
                 else
                     kernel = s_deferredDirectionalShadowKernel;
+                
+                if (m_CurrentSunLight != null)
+                    lightDirection = -m_CurrentSunLight.transform.forward;
+                else
+                    lightDirection = Vector3.one; //TODO: put dominant light direction here
 
                 m_ShadowMgr.BindResources(cmd, deferredDirectionalShadowComputeShader, kernel);
 
@@ -2341,7 +2352,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 
                 cmd.SetComputeIntParam(deferredDirectionalShadowComputeShader, HDShaderIDs._DirectionalShadowIndex, m_CurrentSunLightShadowIndex);
-                cmd.SetComputeVectorParam(deferredDirectionalShadowComputeShader, HDShaderIDs._DirectionalLightDirection, -m_CurrentSunLight.transform.forward);
+                cmd.SetComputeVectorParam(deferredDirectionalShadowComputeShader, HDShaderIDs._DirectionalLightDirection, lightDirection);
                 cmd.SetComputeTextureParam(deferredDirectionalShadowComputeShader, kernel, HDShaderIDs._DeferredShadowTextureUAV, deferredShadowRT);
                 cmd.SetComputeTextureParam(deferredDirectionalShadowComputeShader, kernel, HDShaderIDs._CameraDepthTexture, depthTexture);
 
