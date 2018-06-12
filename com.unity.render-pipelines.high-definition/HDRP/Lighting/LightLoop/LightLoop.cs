@@ -1641,6 +1641,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // 2. Go through all lights, convert them to GPU format.
                     // Simultaneously create data for culling (LightVolumeData and SFiniteLightBound)
+                
+                    //TODO: move this upwards
+                    float   biggestLight = 0;
+                    int     dominantLightIndex = -1;
 
                     for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
                     {
@@ -1665,6 +1669,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             if (GetDirectionalLightData(cmd, shadowSettings, gpuLightType, light, additionalLightData, additionalShadowData, lightIndex))
                             {
                                 directionalLightcount++;
+
+                                if (additionalShadowData != null && additionalShadowData.contactShadows)
+                                {
+                                    dominantLightIndex = lightIndex;
+                                    biggestLight = Single.PositiveInfinity;
+                                }
 
                                 // We make the light position camera-relative as late as possible in order
                                 // to allow the preceding code to work with the absolute world space coordinates.
@@ -1696,6 +1706,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 default:
                                     Debug.Assert(false, "TODO: encountered an unknown LightCategory.");
                                     break;
+                            }
+                            
+                            if (additionalShadowData != null && additionalShadowData.contactShadows && lightDimensions.magnitude > biggestLight)
+                            {
+                                dominantLightIndex = lightIndex;
+                                biggestLight = lightDimensions.magnitude;
                             }
 
                             // Then culling side. Must be call in this order as we pass the created Light data to the function
