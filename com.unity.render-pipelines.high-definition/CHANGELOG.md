@@ -1,15 +1,24 @@
-
 # Changelog
+All notable changes to this package will be documented in this file.
 
-## [2018.3]
+The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
+and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-### Improvements
+## [Unreleased]
 
-### Changed, Removals and deprecations
+## [2.0.4-preview]
 
 ### Bug fixes
+- Fix issue when disabling rough refraction and building a player. Was causing a crash.
 
-## [2018.2 / next ]
+## [2.0.3-preview]
+
+### Improvements
+- Increased debug color picker limit up to 260k lux
+
+## [2.0.2-preview]
+
+### Improvements
 - Add Light -> Planar Reflection Probe command
 - Added a false color mode in rendering debug
 - Add support for mesh decals
@@ -19,9 +28,6 @@
 - Add export of normal and roughness buffer for forwardOnly and when in supportOnlyForward mode for forward
 - Provide a define in lit.hlsl (FORWARD_MATERIAL_READ_FROM_WRITTEN_NORMAL_BUFFER) when output buffer normal is used to read the normal and roughness instead of caclulating it (can save performance, but lower quality due to compression)
 - Add color swatch to decal material
-
-### Improvements
-- Increased debug color picker limit up to 260k lux
 
 ### Changed, Removals and deprecations
 - Change Render -> Planar Reflection creation to 3D Object -> Mirror
@@ -33,7 +39,7 @@
 - Fixed an issue where interpolation volumes were not updated correctly for reflection captures.
 - Fixed an exception in Light Loop settings UI
 
-## [2018.2 / 2.0.1-preview]
+## [2.0.1-preview]
 
 ### Improvements
 - Add stripper of shader variant when building a player. Save shader compile time.
