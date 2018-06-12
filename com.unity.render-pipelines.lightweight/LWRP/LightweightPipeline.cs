@@ -195,21 +195,19 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                                               Math.Abs(cameraRect.width) < 1.0f || Math.Abs(cameraRect.height) < 1.0f));
 
             // Discard variations lesser than kRenderScaleThreshold.
-            // Scale is only enabled for gameview
-            // XR has its own scaling mechanism.
+            // Scale is only enabled for gameview.
+            // In XR mode, grab renderScale from XRSettings instead of SRP asset for now.
+	    // This is just a temporary change pending full integration of XR with SRP
 
             if (camera.cameraType == CameraType.Game)
             {
                 if (cameraData.isStereoEnabled)
                 {
                     cameraData.renderScale = XRSettings.eyeTextureResolutionScale;
-                }
-                else
-                {
+                } else {
                     cameraData.renderScale = pipelineAsset.renderScale;
                 }
-            } else
-            {
+            } else {
                 cameraData.renderScale = 1.0f;
             }
             
