@@ -5,10 +5,10 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+- GLCore compute buffer compiler error
 
 ## [2.0.2-preview]
 ### Fixed
-- GLCore compute buffer compiler error
 - Occlusion strength not being applied on LW standard shaders
 - CopyDepth pass is being called even when a depth from prepass is available
 - GLES2 shader compiler error in IntegrationTests
