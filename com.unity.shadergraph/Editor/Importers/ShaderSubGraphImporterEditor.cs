@@ -3,16 +3,19 @@ using UnityEditor.Experimental.AssetImporters;
 using UnityEngine;
 using Debug = System.Diagnostics.Debug;
 
-[CustomEditor(typeof(ShaderSubGraphImporter))]
-public class ShaderSubGraphImporterEditor : ScriptedImporterEditor
+namespace UnityEditor.ShaderGraph
 {
-    public override void OnInspectorGUI()
+    [CustomEditor(typeof(ShaderSubGraphImporter))]
+    public class ShaderSubGraphImporterEditor : ScriptedImporterEditor
     {
-        if (GUILayout.Button("Open Shader Editor"))
+        public override void OnInspectorGUI()
         {
-            AssetImporter importer = target as AssetImporter;
-            Debug.Assert(importer != null, "importer != null");
-            ShaderGraphImporterEditor.ShowGraphEditWindow(importer.assetPath);
+            if (GUILayout.Button("Open Shader Editor"))
+            {
+                AssetImporter importer = target as AssetImporter;
+                Debug.Assert(importer != null, "importer != null");
+                ShaderGraphImporterEditor.ShowGraphEditWindow(importer.assetPath);
+            }
         }
     }
 }
