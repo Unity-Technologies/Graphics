@@ -28,11 +28,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Graph = graph;
             m_Property = property;
 
-            m_ExposedToogle = new Toggle(() =>
-                {
-                    property.generatePropertyBlock = m_ExposedToogle.value;
-                    DirtyNodes(ModificationScope.Graph);
-                });
+            m_ExposedToogle = new Toggle();
+            m_ExposedToogle.OnToggleChanged(evt =>
+            {
+                property.generatePropertyBlock = evt.newValue;
+                DirtyNodes(ModificationScope.Graph);
+            });
             m_ExposedToogle.value = property.generatePropertyBlock;
             AddRow("Exposed", m_ExposedToogle);
 
@@ -284,12 +285,13 @@ namespace UnityEditor.ShaderGraph.Drawing
             else if (property is BooleanShaderProperty)
             {
                 var booleanProperty = (BooleanShaderProperty)property;
-                Action onBooleanChanged = () =>
+                EventCallback<ChangeEvent<bool>> onBooleanChanged = evt =>
                     {
-                        booleanProperty.value = !booleanProperty.value;
+                        booleanProperty.value = evt.newValue;
                         DirtyNodes();
                     };
-                var field = new Toggle(onBooleanChanged);
+                var field = new Toggle();
+                field.OnToggleChanged(onBooleanChanged);
                 field.value = booleanProperty.value;
                 AddRow("Default", field);
             }
