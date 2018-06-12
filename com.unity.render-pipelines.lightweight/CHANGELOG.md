@@ -4,15 +4,22 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [2.0.3-preview]
+
+### Fixed
 - GLCore compute buffer compiler error
 
 ## [2.0.2-preview]
+
 ### Fixed
 - Occlusion strength not being applied on LW standard shaders
 - CopyDepth pass is being called even when a depth from prepass is available
 - GLES2 shader compiler error in IntegrationTests
 - Can't set RenderScale and ShadowDistance by script
+
+## [2.0.1-preview]
+
+### Fixed
 - VR Single Pass Instancing shadows
 
 ## [2.0.0-preview]
