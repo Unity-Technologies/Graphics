@@ -6,12 +6,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.0.4-preview]
+
+### Bug fixes
+- Fix issue when disabling rough refraction and building a player. Was causing a crash.
+
 ## [2.0.3-preview]
 
 ### Improvements
 - Increased debug color picker limit up to 260k lux
 
 ## [2.0.2-preview]
+
+### Improvements
 - Add Light -> Planar Reflection Probe command
 - Added a false color mode in rendering debug
 - Add support for mesh decals
@@ -21,8 +28,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add export of normal and roughness buffer for forwardOnly and when in supportOnlyForward mode for forward
 - Provide a define in lit.hlsl (FORWARD_MATERIAL_READ_FROM_WRITTEN_NORMAL_BUFFER) when output buffer normal is used to read the normal and roughness instead of caclulating it (can save performance, but lower quality due to compression)
 - Add color swatch to decal material
-
-### Improvements
 
 ### Changed, Removals and deprecations
 - Change Render -> Planar Reflection creation to 3D Object -> Mirror
