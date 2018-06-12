@@ -5,9 +5,9 @@
 #include "StackLit.cs.hlsl"
 #include "../SubsurfaceScattering/SubsurfaceScattering.hlsl"
 #include "../NormalBuffer.hlsl"
-//#include "CoreRP/ShaderLibrary/VolumeRendering.hlsl"
+#include "CoreRP/ShaderLibrary/VolumeRendering.hlsl"
 
-//NEWLITTODO : wireup CBUFFERs for ambientocclusion, and other uniforms and samplers used:
+//NEWLITTODO : wireup CBUFFERs for uniforms and samplers used:
 //
 // We need this for AO, Depth/Color pyramids, LTC lights data, FGD pre-integrated data.
 //
@@ -1801,48 +1801,10 @@ bool ShouldOutputSplitLighting(BSDFData bsdfData)
 #define USE_DEFERRED_DIRECTIONAL_SHADOWS // Deferred shadows are always enabled for opaque objects
 #endif
 
-#include "../../Lighting/LightEvaluation.hlsl"
-#include "../../Lighting/Reflection/VolumeProjection.hlsl"
+#include "HDRP/Material/MaterialEvaluation.hlsl"
+#include "HDRP/Lighting/LightEvaluation.hlsl"
 
-//-----------------------------------------------------------------------------
-// Lighting structure for light accumulation
-//-----------------------------------------------------------------------------
-
-// These structure allow to accumulate lighting accross the Lit material
-// AggregateLighting is init to zero and transfer to EvaluateBSDF, but the LightLoop can't access its content.
-//
-// In fact, all structures here are opaque but used by LightLoop.hlsl.
-// The Accumulate* functions are also used by LightLoop to accumulate the contributions of lights.
-//
-struct DirectLighting
-{
-    float3 diffuse;
-    float3 specular;
-};
-
-struct IndirectLighting
-{
-    float3 specularReflected;
-    float3 specularTransmitted;
-};
-
-struct AggregateLighting
-{
-    DirectLighting   direct;
-    IndirectLighting indirect;
-};
-
-void AccumulateDirectLighting(DirectLighting src, inout AggregateLighting dst)
-{
-    dst.direct.diffuse += src.diffuse;
-    dst.direct.specular += src.specular;
-}
-
-void AccumulateIndirectLighting(IndirectLighting src, inout AggregateLighting dst)
-{
-    dst.indirect.specularReflected += src.specularReflected;
-    dst.indirect.specularTransmitted += src.specularTransmitted;
-}
+#include "HDRP/Lighting/Reflection/VolumeProjection.hlsl"
 
 //-----------------------------------------------------------------------------
 // BSDF share between directional light, punctual light and area light (reference)
@@ -2688,9 +2650,8 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
                         PreLightData preLightData, BSDFData bsdfData, BakeLightingData bakeLightingData, AggregateLighting lighting,
                         out float3 diffuseLighting, out float3 specularLighting)
 {
-    float3 bakeDiffuseLighting = bakeLightingData.bakeDiffuseLighting;
-
-    float3 N; float unclampedNdotV;
+    float3 N;
+    float unclampedNdotV;
     EvaluateBSDF_GetNormalUnclampedNdotV(bsdfData, preLightData, V, N, unclampedNdotV);
 
     AmbientOcclusionFactor aoFactor;
@@ -2698,9 +2659,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     //GetScreenSpaceAmbientOcclusionMultibounce(posInput.positionSS, preLightData.NdotV, lerp(bsdfData.perceptualRoughnessA, bsdfData.perceptualRoughnessB, bsdfData.lobeMix), bsdfData.ambientOcclusion, 1.0, bsdfData.diffuseColor, bsdfData.fresnel0, aoFactor);
     GetScreenSpaceAmbientOcclusionMultibounce(posInput.positionSS, unclampedNdotV, lerp(bsdfData.perceptualRoughnessA, bsdfData.perceptualRoughnessB, bsdfData.lobeMix), bsdfData.ambientOcclusion, 1.0, bsdfData.diffuseColor, bsdfData.fresnel0, aoFactor);
 
-    // Add indirect diffuse + emissive (if any) - Ambient occlusion is multiply by emissive which is wrong but not a big deal
-    bakeDiffuseLighting                 *= aoFactor.indirectAmbientOcclusion;
-    lighting.direct.diffuse             *= aoFactor.directAmbientOcclusion;
+    ApplyAmbientOcclusionFactor(aoFactor, bakeLightingData, lighting);
 
     // Subsurface scattering mdoe
     uint   texturingMode = (bsdfData.materialFeatures >> MATERIAL_FEATURE_FLAGS_SSS_TEXTURING_MODE_OFFSET) & 3;
@@ -2708,61 +2667,12 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 
     // Apply the albedo to the direct diffuse lighting (only once). The indirect (baked)
     // diffuse lighting has already had the albedo applied in GetBakedDiffuseLighting().
-    diffuseLighting = modifiedDiffuseColor * lighting.direct.diffuse + bakeDiffuseLighting;
+    diffuseLighting = modifiedDiffuseColor * lighting.direct.diffuse + bakeLightingData.bakeDiffuseLighting;
 
     specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
 
 #ifdef DEBUG_DISPLAY
-
-    if (_DebugLightingMode != 0)
-    {
-        // Caution: _DebugLightingMode is used in other part of the code, don't do anything outside of
-        // current cases
-        switch (_DebugLightingMode)
-        {
-        case DEBUGLIGHTINGMODE_LUX_METER:
-            diffuseLighting = lighting.direct.diffuse + bakeLightingData.bakeDiffuseLighting;
-            specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
-            break;
-
-        case DEBUGLIGHTINGMODE_INDIRECT_DIFFUSE_OCCLUSION:
-            diffuseLighting = aoFactor.indirectAmbientOcclusion;
-            specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
-            break;
-
-        case DEBUGLIGHTINGMODE_INDIRECT_SPECULAR_OCCLUSION:
-            diffuseLighting = aoFactor.indirectSpecularOcclusion;
-            specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
-            break;
-
-        case DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFRACTION:
-            //if (_DebugLightingSubMode != DEBUGSCREENSPACETRACING_COLOR)
-             //   diffuseLighting = lighting.indirect.specularTransmitted;
-            break;
-
-        case DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFLECTION:
-            //if (_DebugLightingSubMode != DEBUGSCREENSPACETRACING_COLOR)
-            //    diffuseLighting = lighting.indirect.specularReflected;
-            break;
-
-        case DEBUGLIGHTINGMODE_VISUALIZE_SHADOW_MASKS:
-            #ifdef SHADOWS_SHADOWMASK
-            diffuseLighting = float3(
-                bakeLightingData.bakeShadowMask.r / 2 + bakeLightingData.bakeShadowMask.g / 2,
-                bakeLightingData.bakeShadowMask.g / 2 + bakeLightingData.bakeShadowMask.b / 2,
-                bakeLightingData.bakeShadowMask.b / 2 + bakeLightingData.bakeShadowMask.a / 2
-            );
-            specularLighting = float3(0, 0, 0);
-            #endif
-            break ;
-        }
-    }
-    else if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
-    {
-        diffuseLighting = bsdfData.diffuseColor;
-        specularLighting = float3(0.0, 0.0, 0.0); // Disable specular lighting
-    }
-
+    PostEvaluateBSDFDebugDisplay(aoFactor, bakeLightingData, lighting, bsdfData.diffuseColor, diffuseLighting, specularLighting);
 #endif
 }
 
