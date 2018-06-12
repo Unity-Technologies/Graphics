@@ -21,6 +21,7 @@
 - Add color swatch to decal material
 
 ### Improvements
+- Increased debug color picker limit up to 260k lux
 
 ### Changed, Removals and deprecations
 - Change Render -> Planar Reflection creation to 3D Object -> Mirror
