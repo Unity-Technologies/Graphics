@@ -56,6 +56,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty dimmer;
             public SerializedProperty fadeDistance;
             public SerializedProperty resolution;
+            public SerializedProperty contactShadows;
 
             // Bias control
             public SerializedProperty viewBiasMin;
@@ -140,6 +141,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     dimmer = o.Find(x => x.shadowDimmer),
                     fadeDistance = o.Find(x => x.shadowFadeDistance),
                     resolution = o.Find(x => x.shadowResolution),
+                    contactShadows = o.Find(x => x.contactShadows),
 
                     viewBiasMin = o.Find(x => x.viewBiasMin),
                     viewBiasMax = o.Find(x => x.viewBiasMax),
@@ -510,6 +512,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (settings.isBakedOrMixed)
                 DrawBakedShadowParameters();
+
+            EditorGUILayout.PropertyField(m_AdditionalShadowData.contactShadows, s_Styles.contactShadows);
 
             // There is currently no additional settings for shadow on directional light
             if (m_AdditionalLightData.showAdditionalSettings.boolValue)
