@@ -38,10 +38,10 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             ps.Add(new PropertyRow(new Label("Two Sided")), (row) =>
                 {
-                    row.Add(new Toggle(null), (toggle) =>
+                    row.Add(new Toggle(), (toggle) =>
                     {
                         toggle.value = m_Node.twoSided.isOn;
-                        toggle.OnToggle(ChangeTwoSided);
+                        toggle.OnToggleChanged(ChangeTwoSided);
                     });
                 });
 
@@ -66,11 +66,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             m_Node.alphaMode = (AlphaMode)evt.newValue;
         }
 
-        void ChangeTwoSided()
+        void ChangeTwoSided(ChangeEvent<bool> evt)
         {
             m_Node.owner.owner.RegisterCompleteObjectUndo("Two Sided Change");
             ToggleData td = m_Node.twoSided;
-            td.isOn ^= true;
+            td.isOn = evt.newValue;
             m_Node.twoSided = td;
         }
     }
