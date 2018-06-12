@@ -5,49 +5,54 @@ using UnityEditor.Experimental.AssetImporters;
 using UnityEditor.ShaderGraph.Drawing;
 using UnityEngine;
 
-[CustomEditor(typeof(ShaderGraphImporter))]
-public class ShaderGraphImporterEditor : ScriptedImporterEditor
+namespace UnityEditor.ShaderGraph
 {
-    public override void OnInspectorGUI()
-    {
-        if (GUILayout.Button("Open Shader Editor"))
-        {
-            AssetImporter importer = target as AssetImporter;
-            Debug.Assert(importer != null, "importer != null");
-            ShowGraphEditWindow(importer.assetPath);
-        }
-    }
 
-    internal static bool ShowGraphEditWindow(string path)
+    [CustomEditor(typeof(ShaderGraphImporter))]
+    public class ShaderGraphImporterEditor : ScriptedImporterEditor
     {
-        var guid = AssetDatabase.AssetPathToGUID(path);
-        var extension = Path.GetExtension(path);
-        if (extension != ".ShaderGraph" && extension != ".LayeredShaderGraph" && extension != ".ShaderSubGraph" && extension != ".ShaderRemapGraph")
-            return false;
-
-        var foundWindow = false;
-        foreach (var w in Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>())
+        public override void OnInspectorGUI()
         {
-            if (w.selectedGuid == guid)
+            if (GUILayout.Button("Open Shader Editor"))
             {
-                foundWindow = true;
-                w.Focus();
+                AssetImporter importer = target as AssetImporter;
+                Debug.Assert(importer != null, "importer != null");
+                ShowGraphEditWindow(importer.assetPath);
             }
         }
 
-        if (!foundWindow)
+        internal static bool ShowGraphEditWindow(string path)
         {
-            var window = CreateInstance<MaterialGraphEditWindow>();
-            window.Show();
-            window.Initialize(guid);
-        }
-        return true;
-    }
+            var guid = AssetDatabase.AssetPathToGUID(path);
+            var extension = Path.GetExtension(path);
+            if (extension != ".ShaderGraph" && extension != ".LayeredShaderGraph" && extension != ".ShaderSubGraph" && extension != ".ShaderRemapGraph")
+                return false;
 
-    [OnOpenAsset(0)]
-    public static bool OnOpenAsset(int instanceID, int line)
-    {
-        var path = AssetDatabase.GetAssetPath(instanceID);
-        return ShowGraphEditWindow(path);
+            var foundWindow = false;
+            foreach (var w in Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>())
+            {
+                if (w.selectedGuid == guid)
+                {
+                    foundWindow = true;
+                    w.Focus();
+                }
+            }
+
+            if (!foundWindow)
+            {
+                var window = CreateInstance<MaterialGraphEditWindow>();
+                window.Show();
+                window.Initialize(guid);
+            }
+
+            return true;
+        }
+
+        [OnOpenAsset(0)]
+        public static bool OnOpenAsset(int instanceID, int line)
+        {
+            var path = AssetDatabase.GetAssetPath(instanceID);
+            return ShowGraphEditWindow(path);
+        }
     }
 }

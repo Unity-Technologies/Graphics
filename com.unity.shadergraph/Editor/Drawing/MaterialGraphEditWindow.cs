@@ -32,8 +32,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         ColorSpace m_ColorSpace;
 
-        static MaterialGraphEditWindow s_Instance;
-
         GraphEditorView m_GraphEditorView;
 
         GraphEditorView graphEditorView
@@ -75,33 +73,14 @@ namespace UnityEditor.ShaderGraph.Drawing
             private set { m_Selected = value; }
         }
 
-        // This is so that we can check if the file on disk has been renamed.
-        // If it has, we can update the Title of the shader graph tab.
-        class ShaderPostProcessor : AssetPostprocessor
+        public string assetName
         {
-            static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
+            get { return titleContent.text; }
+            set
             {
-                if (s_Instance != null)
-                {
-                    string ending = ".ShaderGraph";
-                    bool anyShaders = importedAssets.Any(val => val.EndsWith(ending));
-                    anyShaders |= movedAssets.Any(val => val.EndsWith(ending));
-                    if (anyShaders)
-                        s_Instance.UpdateAfterAssetChange();
-                }
+                titleContent.text = value;
+                graphEditorView.assetName = value;
             }
-        }
-
-        void UpdateAfterAssetChange()
-        {
-           var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(selectedGuid));
-           if (titleContent.text != asset.name)
-               titleContent.text = asset.name;
-        }
-
-        public void OnEnable()
-        {
-            s_Instance = this;
         }
 
         void Update()
@@ -137,7 +116,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (graphEditorView == null)
                 {
                     var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(selectedGuid));
-                    graphEditorView = new GraphEditorView(this, materialGraph, asset.name) { persistenceKey = selectedGuid };
+                    graphEditorView = new GraphEditorView(this, materialGraph)
+                    {
+                        persistenceKey = selectedGuid,
+                        assetName = asset.name
+                    };
                     m_ColorSpace = PlayerSettings.colorSpace;
                 }
 
@@ -165,7 +148,6 @@ namespace UnityEditor.ShaderGraph.Drawing
         void OnDisable()
         {
             graphEditorView = null;
-            s_Instance = null;
         }
 
         void OnDestroy()
@@ -485,14 +467,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                     return;
 
                 var path = AssetDatabase.GetAssetPath(asset);
-                var extension = Path.GetExtension(path);
+                // Remove the "." in ".extension_name"
+                var extension = Path.GetExtension(path).Substring(1);
                 Type graphType;
-                switch (extension)
+                switch (extension.ToLower())
                 {
-                    case ".ShaderGraph":
+                    case ShaderGraphImporter.ShaderGraphExtension:
                         graphType = typeof(MaterialGraph);
                         break;
-                    case ".ShaderSubGraph":
+                    case ShaderSubGraphImporter.ShaderSubGraphExtension:
                         graphType = typeof(SubGraph);
                         break;
                     default:
@@ -508,7 +491,11 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphObject.graph.OnEnable();
                 graphObject.graph.ValidateGraph();
 
-                graphEditorView = new GraphEditorView(this, m_GraphObject.graph as AbstractMaterialGraph, asset.name) { persistenceKey = selectedGuid };
+                graphEditorView = new GraphEditorView(this, m_GraphObject.graph as AbstractMaterialGraph)
+                {
+                    persistenceKey = selectedGuid,
+                    assetName = asset.name
+                };
                 graphEditorView.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
 
                 titleContent = new GUIContent(asset.name);
