@@ -39,7 +39,8 @@ namespace UnityEditor.Experimental.Rendering
         public SphereBoundsHandle sphereBlendNormalHandle = new SphereBoundsHandle();
         public Matrix4x4 oldLocalSpace = Matrix4x4.identity;
 
-        public AnimBool isSectionExpandedInfluenceVolume { get { return m_AnimBools[0]; } }
+        public AnimBool isSectionExpandedProxyVolume { get { return m_AnimBools[0]; } }
+        public AnimBool isSectionExpandedInfluenceVolume { get { return m_AnimBools[1]; } }
         public AnimBool isSectionExpandedCaptureSettings { get { return m_AnimBools[2]; } }
         public AnimBool isSectionExpandedAdditional { get { return m_AnimBools[3]; } }
 
@@ -58,6 +59,7 @@ namespace UnityEditor.Experimental.Rendering
         public HDReflectionProbeUI()
             : base(k_AnimBoolsCount)
         {
+            isSectionExpandedProxyVolume.value = true;
             isSectionExpandedCaptureSettings.value = true;
             isSectionExpandedInfluenceVolume.value = true;
             isSectionExpandedAdditional.value = false;

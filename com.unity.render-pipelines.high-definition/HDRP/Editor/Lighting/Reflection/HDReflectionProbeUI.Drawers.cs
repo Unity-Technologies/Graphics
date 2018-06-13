@@ -18,6 +18,7 @@ namespace UnityEditor.Experimental.Rendering
             Inspector = new[]
             {
                 SectionPrimarySettings,
+                SectionProxyVolumeSettings,
                 SectionInfluenceVolumeSettings,
                 SectionCaptureSettings,
                 SectionAdditionalSettings,
@@ -37,12 +38,14 @@ namespace UnityEditor.Experimental.Rendering
                     CED.noop,                                  // Baked
                     CED.Action(Drawer_ModeSettingsRealtime),  // Realtime
                     CED.Action(Drawer_ModeSettingsCustom)     // Custom
-                    ),
-                CED.space,
-                CED.Action(Drawer_InfluenceShape),
-                //CED.Action(Drawer_IntensityMultiplier),
-                CED.space,
-                CED.Action((s, d, o) => EditorGUILayout.PropertyField(d.proxyVolumeComponent, _.GetContent("Proxy Volume")))
+                    )
+                );
+
+        public static readonly CED.IDrawer SectionProxyVolumeSettings = CED.FoldoutGroup(
+                "Proxy volume",
+                (s, p, o) => s.isSectionExpandedProxyVolume,
+                FoldoutOption.Indent,
+                CED.Action(Drawer_ProxyVolume)
                 );
 
         public static readonly CED.IDrawer SectionInfluenceVolumeSettings = CED.FoldoutGroup(
@@ -127,6 +130,30 @@ namespace UnityEditor.Experimental.Rendering
         static void Drawer_BakeActions(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
             EditorReflectionSystemGUI.DrawBakeButton((ReflectionProbeMode)p.mode.intValue, p.target);
+        }
+
+        static void Drawer_ProxyVolume(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
+        {
+            EditorGUILayout.PropertyField(p.proxyVolumeComponent, _.GetContent("Proxy Volume"));
+
+            if (p.proxyVolumeComponent.objectReferenceValue != null)
+            {
+                var proxy = (ReflectionProxyVolumeComponent)p.proxyVolumeComponent.objectReferenceValue;
+                if ((int)proxy.proxyVolume.shapeType != p.influenceShape.enumValueIndex)
+                    EditorGUILayout.HelpBox(
+                        "Proxy volume and influence volume have different shape types, this is not supported.",
+                        MessageType.Error,
+                        true
+                        );
+            }
+            else
+            {
+                EditorGUILayout.HelpBox(
+                        "When no Proxy setted, Influence shape will be used as Proxy shape too.",
+                        MessageType.Info,
+                        true
+                        );
+            }
         }
 
         #region Influence Volume
