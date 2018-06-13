@@ -74,6 +74,7 @@ struct LightData
     float invSqrAttenuationRadius;
     float3 color;
     int shadowIndex;
+    int disableContactShadow;
     float3 forward;
     int cookieIndex;
     float3 right;
@@ -194,6 +195,10 @@ float3 GetColor(LightData value)
 int GetShadowIndex(LightData value)
 {
     return value.shadowIndex;
+}
+int GetDisableContactShadow(LightData value)
+{
+    return value.disableContactShadow;
 }
 float3 GetForward(LightData value)
 {

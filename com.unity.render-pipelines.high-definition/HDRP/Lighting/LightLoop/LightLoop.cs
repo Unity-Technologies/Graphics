@@ -432,6 +432,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         Light m_CurrentSunLight;
         int m_CurrentSunLightShadowIndex = -1;
+        LightData m_DominantLightData;
         int m_DominantLightIndex = -1;
 
         public Light GetCurrentSunLight() { return m_CurrentSunLight; }
@@ -892,6 +893,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var lightData = new LightData();
 
             lightData.lightType = gpuLightType;
+
+            lightData.disableContactShadow = 1;
 
             lightData.positionWS = light.light.transform.position;
             // Setting 0 for invSqrAttenuationRadius mean we have no range attenuation, but still have inverse square attenuation.
@@ -1468,6 +1471,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // We need to properly reset this here otherwise if we go from 1 light to no visible light we would keep the old reference active.
                 m_CurrentSunLight = null;
                 m_CurrentSunLightShadowIndex = -1;
+                m_DominantLightIndex = -1;
 
                 var stereoEnabled = m_FrameSettings.enableStereo;
 
@@ -1647,6 +1651,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 
                     //TODO: move this upwards
                     float   biggestLight = 0;
+                    int     dominantLightDataIndex = 0;
 
                     for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
                     {
@@ -1682,6 +1687,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     lightData.positionWS -= camPosWS;
                                     m_lightList.directionalLights[last] = lightData;
                                 }
+
+                                if (additionalShadowData.contactShadows)
+                                    biggestLight = Single.PositiveInfinity;
                             }
                             continue;
                         }
@@ -1691,6 +1699,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Punctual, area, projector lights - the rendering side.
                         if (GetLightData(cmd, shadowSettings, camera, gpuLightType, light, additionalLightData, additionalShadowData, lightIndex, ref lightDimensions))
                         {
+                            int last = m_lightList.lights.Count - 1;
+                            
                             switch (lightCategory)
                             {
                                 case LightCategory.Punctual:
@@ -1703,12 +1713,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     Debug.Assert(false, "TODO: encountered an unknown LightCategory.");
                                     break;
                             }
-                            
-                            if (additionalShadowData != null && additionalShadowData.contactShadows && lightDimensions.magnitude > biggestLight)
-                            {
-                                m_DominantLightIndex = lightIndex;
-                                biggestLight = lightDimensions.magnitude;
-                            }
 
                             // Then culling side. Must be call in this order as we pass the created Light data to the function
                             GetLightVolumeDataAndBound(lightCategory, gpuLightType, lightVolumeType, light, m_lightList.lights[m_lightList.lights.Count - 1], lightDimensions, worldToView);
@@ -1720,12 +1724,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             if (ShaderConfig.s_CameraRelativeRendering != 0)
                             {
                                 // Caution: 'LightData.positionWS' is camera-relative after this point.
-                                int last = m_lightList.lights.Count - 1;
                                 LightData lightData = m_lightList.lights[last];
                                 lightData.positionWS -= camPosWS;
                                 m_lightList.lights[last] = lightData;
                             }
+                            
+                            if (additionalShadowData != null && additionalShadowData.contactShadows && lightDimensions.magnitude > biggestLight)
+                            {
+                                m_DominantLightData = m_lightList.lights[m_lightList.lights.Count - 1];
+                                m_DominantLightIndex = lightIndex;
+                                dominantLightDataIndex = last;
+                                biggestLight = lightDimensions.magnitude;
+                            }
                         }
+                    }
+
+                    //Activate contact shadows on dominant light
+                    if (m_DominantLightIndex != -1)
+                    {
+                        m_DominantLightData.disableContactShadow = 0;
+                        m_lightList.lights[dominantLightDataIndex] = m_DominantLightData;
                     }
 
                     // Sanity check
@@ -2312,7 +2330,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalTexture(HDShaderIDs._DeferredShadowTexture, RuntimeUtilities.blackTexture);
                 return;
             }
-
+            
             using (new ProfilingSample(cmd, "Deferred Directional Shadow", CustomSamplerId.TPDeferredDirectionalShadow.GetSampler()))
             {
                 ContactShadows  contactShadows = VolumeManager.instance.stack.GetComponent<ContactShadows>();
@@ -2320,14 +2338,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Vector3         lightDirection;
                 int             kernel;
 
-                // Debug.Log("contactShadowsSettings: " + contactShadows.enable);
                 if (enableContactShadows)
                 {
-                    Debug.Log("Contact shadows enabled !");
                     if (m_DominantLightIndex != -1)
-                    {
                         kernel = s_deferredContactShadowkernel;
-                    }
                     else
                         kernel = s_deferredDirectionalShadow_Contact_Kernel;
                 }
@@ -2337,7 +2351,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (m_CurrentSunLight != null)
                     lightDirection = -m_CurrentSunLight.transform.forward;
                 else
-                    lightDirection = Vector3.one; //TODO: put dominant light direction here
+                    lightDirection = m_DominantLightData.positionWS;
 
                 m_ShadowMgr.BindResources(cmd, deferredDirectionalShadowComputeShader, kernel);
 

@@ -66,6 +66,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector3 color;
         public int shadowIndex; // -1 if unused
 
+        public int disableContactShadow; // 1 if disabled
+
         public Vector3 forward;
         public int cookieIndex; // -1 if unused
 
