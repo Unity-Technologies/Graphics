@@ -143,6 +143,7 @@ namespace UnityEditor.Experimental.Rendering
         {
             var maxBlendDistance = HDReflectionProbeEditorUtility.CalculateBoxMaxBlendDistance(s, p, owner);
 
+            EditorGUILayout.BeginHorizontal();
             Drawer_AdvancedBlendDistance(
                 p.blendDistancePositive,
                 p.blendDistanceNegative,
@@ -150,7 +151,13 @@ namespace UnityEditor.Experimental.Rendering
                 CoreEditorUtils.GetContent("Blend Distance|Area around the probe where it is blended with other probes. Only used in deferred probes."),
                 s.isSectionExpendedAdvancedBlendDistanceBoxShape
                 );
+            if(GUILayout.Button(toolbar_Contents[1], GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight((s.isSectionExpendedAdvancedBlendDistanceBoxShape.value ? 3 : 1)*(EditorGUIUtility.singleLineHeight+3))))
+            {
+                EditMode.ChangeEditMode(k_Toolbar_SceneViewEditModes[1], GetBoundsGetter(p)(), owner);
+            }
+            EditorGUILayout.EndHorizontal();
 
+            EditorGUILayout.BeginHorizontal();
             Drawer_AdvancedBlendDistance(
                 p.blendNormalDistancePositive,
                 p.blendNormalDistanceNegative,
@@ -158,6 +165,11 @@ namespace UnityEditor.Experimental.Rendering
                 CoreEditorUtils.GetContent("Blend Normal Distance|Area around the probe where the normals influence the probe. Only used in deferred probes."),
                 s.isSectionExpendedAdvancedBlendNormalDistanceBoxShape
                 );
+            if(GUILayout.Button(toolbar_Contents[2], GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight((s.isSectionExpendedAdvancedBlendNormalDistanceBoxShape.value ? 3 : 1)*(EditorGUIUtility.singleLineHeight+3))))
+            {
+                EditMode.ChangeEditMode(k_Toolbar_SceneViewEditModes[2], GetBoundsGetter(p)(), owner);
+            }
+            EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(CoreEditorUtils.GetContent("Face fade|Fade faces of the cubemap."));
@@ -234,6 +246,7 @@ namespace UnityEditor.Experimental.Rendering
             var maxBlendDistance = HDReflectionProbeEditorUtility.CalculateSphereMaxBlendDistance(s, p, owner);
 
             var blendDistance = p.blendDistancePositive.vector3Value.x;
+            EditorGUILayout.BeginHorizontal();
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = p.blendDistancePositive.hasMultipleDifferentValues;
             blendDistance = EditorGUILayout.Slider(CoreEditorUtils.GetContent("Blend Distance|Area around the probe where it is blended with other probes. Only used in deferred probes."), blendDistance, 0, maxBlendDistance);
@@ -242,8 +255,14 @@ namespace UnityEditor.Experimental.Rendering
                 p.blendDistancePositive.vector3Value = Vector3.one * blendDistance;
                 p.blendDistanceNegative.vector3Value = Vector3.one * blendDistance;
             }
+            if(GUILayout.Button(toolbar_Contents[1], GUILayout.Width(28f), GUILayout.Height(EditorGUIUtility.singleLineHeight+3)))
+            {
+                EditMode.ChangeEditMode(k_Toolbar_SceneViewEditModes[1], GetBoundsGetter(p)(), owner);
+            }
+            EditorGUILayout.EndHorizontal();
 
             var blendNormalDistance = p.blendNormalDistancePositive.vector3Value.x;
+            EditorGUILayout.BeginHorizontal();
             EditorGUI.BeginChangeCheck();
             EditorGUI.showMixedValue = p.blendNormalDistancePositive.hasMultipleDifferentValues;
             blendNormalDistance = EditorGUILayout.Slider(CoreEditorUtils.GetContent("Blend Normal Distance|Area around the probe where the normals influence the probe. Only used in deferred probes."), blendNormalDistance, 0, maxBlendDistance);
@@ -252,6 +271,11 @@ namespace UnityEditor.Experimental.Rendering
                 p.blendNormalDistancePositive.vector3Value = Vector3.one * blendNormalDistance;
                 p.blendNormalDistanceNegative.vector3Value = Vector3.one * blendNormalDistance;
             }
+            if(GUILayout.Button(toolbar_Contents[2], GUILayout.Width(28f), GUILayout.Height(EditorGUIUtility.singleLineHeight+3)))
+            {
+                EditMode.ChangeEditMode(k_Toolbar_SceneViewEditModes[2], GetBoundsGetter(p)(), owner);
+            }
+            EditorGUILayout.EndHorizontal();
             EditorGUI.showMixedValue = false;
         }
 
@@ -312,8 +336,18 @@ namespace UnityEditor.Experimental.Rendering
 
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PropertyField(p.boxSize, CoreEditorUtils.GetContent("Box Size|The size of the box in which the reflections will be applied to objects. The value is not affected by the Transform of the Game Object."));
+            if(GUILayout.Button(toolbar_Contents[0], GUILayout.Width(28f), GUILayout.Height(EditorGUIUtility.singleLineHeight+3)))
+            {
+                EditMode.ChangeEditMode(EditMode.SceneViewEditMode.ReflectionProbeBox, GetBoundsGetter(p)(), owner);
+            }
             EditorGUILayout.EndHorizontal();
+            EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PropertyField(p.boxOffset, CoreEditorUtils.GetContent("Box Offset|The center of the box in which the reflections will be applied to objects. The value is relative to the position of the Game Object."));
+            if(GUILayout.Button(toolbar_Contents[3], GUILayout.Width(28f), GUILayout.Height(EditorGUIUtility.singleLineHeight+3)))
+            {
+                EditMode.ChangeEditMode(EditMode.SceneViewEditMode.ReflectionProbeOrigin, GetBoundsGetter(p)(), owner);
+            }
+            EditorGUILayout.EndHorizontal();
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -329,8 +363,20 @@ namespace UnityEditor.Experimental.Rendering
 
         static void Drawer_InfluenceShapeSphereSettings(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
+            EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PropertyField(p.influenceSphereRadius, CoreEditorUtils.GetContent("Radius"));
+            if(GUILayout.Button(toolbar_Contents[0], GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.Height(EditorGUIUtility.singleLineHeight+3)))
+            {
+                EditMode.ChangeEditMode(EditMode.SceneViewEditMode.ReflectionProbeBox, GetBoundsGetter(p)(), owner);
+            }
+            EditorGUILayout.EndHorizontal();
+            EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PropertyField(p.boxOffset, CoreEditorUtils.GetContent("Sphere Offset|The center of the sphere in which the reflections will be applied to objects. The value is relative to the position of the Game Object."));
+            if(GUILayout.Button(toolbar_Contents[3], GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.Height(EditorGUIUtility.singleLineHeight+3)))
+            {
+                EditMode.ChangeEditMode(EditMode.SceneViewEditMode.ReflectionProbeOrigin, GetBoundsGetter(p)(), owner);
+            }
+            EditorGUILayout.EndHorizontal();
         }
 
         static void Drawer_InfluenceAreas(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
