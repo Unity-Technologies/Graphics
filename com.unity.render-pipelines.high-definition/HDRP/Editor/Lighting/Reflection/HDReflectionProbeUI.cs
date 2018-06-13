@@ -40,7 +40,6 @@ namespace UnityEditor.Experimental.Rendering
         public Matrix4x4 oldLocalSpace = Matrix4x4.identity;
 
         public AnimBool isSectionExpandedInfluenceVolume { get { return m_AnimBools[0]; } }
-        public AnimBool isSectionExpandedSeparateProjection { get { return m_AnimBools[1]; } }
         public AnimBool isSectionExpandedCaptureSettings { get { return m_AnimBools[2]; } }
         public AnimBool isSectionExpandedAdditional { get { return m_AnimBools[3]; } }
 
@@ -71,7 +70,6 @@ namespace UnityEditor.Experimental.Rendering
             SetModeTarget(data.mode.hasMultipleDifferentValues ? -1 : data.mode.intValue);
             SetShapeTarget(data.influenceShape.hasMultipleDifferentValues ? -1 : data.influenceShape.intValue);
 
-            isSectionExpandedSeparateProjection.value = data.useSeparateProjectionVolume.boolValue;
             base.Update();
         }
 
