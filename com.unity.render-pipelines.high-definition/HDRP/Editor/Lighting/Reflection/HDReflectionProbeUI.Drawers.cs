@@ -28,8 +28,10 @@ namespace UnityEditor.Experimental.Rendering
         public static readonly CED.IDrawer[] Inspector;
 
         public static readonly CED.IDrawer SectionPrimarySettings = CED.Group(
-
+                CED.Action(Drawer_Toolbar),
+                CED.space,
                 CED.Action(Drawer_ReflectionProbeMode),
+                CED.space,
                 CED.FadeGroup((s, p, o, i) => s.IsSectionExpandedMode((ReflectionProbeMode)i),
                     FadeOption.Indent,
                     CED.noop,                                  // Baked
@@ -39,8 +41,6 @@ namespace UnityEditor.Experimental.Rendering
                 CED.space,
                 CED.Action(Drawer_InfluenceShape),
                 //CED.Action(Drawer_IntensityMultiplier),
-                CED.space,
-                CED.Action(Drawer_Toolbar),
                 CED.space,
                 CED.Action((s, d, o) => EditorGUILayout.PropertyField(d.proxyVolumeComponent, _.GetContent("Proxy Volume")))
                 );
