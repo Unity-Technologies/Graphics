@@ -894,7 +894,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             lightData.lightType = gpuLightType;
 
-            lightData.disableContactShadow = 1;
+            lightData.contactShadowIndex = -1;
 
             lightData.positionWS = light.light.transform.position;
             // Setting 0 for invSqrAttenuationRadius mean we have no range attenuation, but still have inverse square attenuation.
@@ -1543,6 +1543,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int lightCount = Math.Min(cullResults.visibleLights.Count, k_MaxLightsOnScreen);
                     var sortKeys = new uint[lightCount];
                     int sortCount = 0;
+                
+                    float biggestLight = 0;
+                    int dominantLightDataIndex = 0;
 
                     for (int lightIndex = 0, numLights = cullResults.visibleLights.Count; (lightIndex < numLights) && (sortCount < lightCount); ++lightIndex)
                     {
@@ -1648,10 +1651,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // 2. Go through all lights, convert them to GPU format.
                     // Simultaneously create data for culling (LightVolumeData and SFiniteLightBound)
-                
-                    //TODO: move this upwards
-                    float   biggestLight = 0;
-                    int     dominantLightDataIndex = 0;
 
                     for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
                     {
@@ -1742,7 +1741,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     //Activate contact shadows on dominant light
                     if (m_DominantLightIndex != -1)
                     {
-                        m_DominantLightData.disableContactShadow = 0;
+                        m_DominantLightData.contactShadowIndex = 0;
                         m_lightList.lights[dominantLightDataIndex] = m_DominantLightData;
                     }
 
@@ -2327,7 +2326,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if ((m_CurrentSunLight == null || m_CurrentSunLight.GetComponent<AdditionalShadowData>() == null || m_CurrentSunLightShadowIndex < 0) && m_DominantLightIndex == -1)
             {
-                cmd.SetGlobalTexture(HDShaderIDs._DeferredShadowTexture, RuntimeUtilities.blackTexture);
+                cmd.SetGlobalTexture(HDShaderIDs._DeferredShadowTexture, RuntimeUtilities.whiteTexture);
                 return;
             }
             
