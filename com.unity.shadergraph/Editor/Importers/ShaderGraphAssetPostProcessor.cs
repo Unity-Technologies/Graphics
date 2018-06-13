@@ -38,7 +38,7 @@ namespace UnityEditor.ShaderGraph
                 for (int i = 0; i < newNames.Length; ++i)
                 {
                     if (matGraphEditWindow.selectedGuid == AssetDatabase.AssetPathToGUID(newNames[i]))
-                        matGraphEditWindow.assetName = Path.GetFileNameWithoutExtension(newNames[i]);
+                        matGraphEditWindow.assetName = Path.GetFileNameWithoutExtension(newNames[i]).Split('/').Last();
                 }
             }
         }

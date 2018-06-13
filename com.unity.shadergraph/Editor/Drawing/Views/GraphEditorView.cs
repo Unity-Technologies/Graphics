@@ -62,8 +62,8 @@ namespace UnityEditor.ShaderGraph.Drawing
             get { return m_BlackboardProvider.blackboard.title; }
             set
             {
-                m_BlackboardProvider.blackboard.title = value;
-                m_MasterPreviewView.assetName = value;
+                m_BlackboardProvider.blackboard.title = value.Split('/').Last();
+                m_MasterPreviewView.assetName = value.Split('/').Last();
             }
         }
 
