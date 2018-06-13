@@ -497,7 +497,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 };
                 graphEditorView.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
 
-                titleContent = new GUIContent(asset.name);
+                titleContent = new GUIContent(asset.name.Split('/').Last());
 
                 Repaint();
             }
