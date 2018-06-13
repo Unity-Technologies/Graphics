@@ -65,7 +65,7 @@ namespace UnityEditor.VFX.UI
                 e.controller = this;
                 e.change = eventID;
                 e.target = eventHandler;
-                UIElementsUtility.eventDispatcher.DispatchEvent(e, (eventHandler as VisualElement).panel);
+                (UIElementsUtility.eventDispatcher as EventDispatcher).DispatchEvent(e, (eventHandler as VisualElement).panel, DispatchMode.Immediate);
             }
         }
 
@@ -76,7 +76,7 @@ namespace UnityEditor.VFX.UI
             foreach (var eventHandler in eventHandlers)
             {
                 e.target = eventHandler;
-                UIElementsUtility.eventDispatcher.DispatchEvent(e, (eventHandler as VisualElement).panel);
+                (UIElementsUtility.eventDispatcher as EventDispatcher).DispatchEvent(e, (eventHandler as VisualElement).panel, DispatchMode.Immediate);
             }
         }
 

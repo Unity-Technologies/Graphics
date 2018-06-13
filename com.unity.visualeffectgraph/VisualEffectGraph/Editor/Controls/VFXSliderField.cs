@@ -24,7 +24,7 @@ namespace UnityEditor.VFX.UIElements
         void OnFocusLost(BlurEvent e)
         {
             //forward the focus lost event
-            using (BlurEvent newE = BlurEvent.GetPooled(this, e.relatedTarget, e.direction))
+            using (BlurEvent newE = BlurEvent.GetPooled(this, e.relatedTarget, e.direction, panel.focusController))
             {
                 UIElementsUtility.eventDispatcher.DispatchEvent(newE, null);
             }
@@ -84,6 +84,11 @@ namespace UnityEditor.VFX.UIElements
         public void OnValueChanged(EventCallback<ChangeEvent<T>> callback)
         {
             RegisterCallback(callback);
+        }
+
+        public void RemoveOnValueChanged(EventCallback<ChangeEvent<T>> callback)
+        {
+            UnregisterCallback(callback);
         }
 
         public void SetValueAndNotify(T newValue)
