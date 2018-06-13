@@ -11,7 +11,7 @@ namespace UnityEditor.Experimental.Rendering
 {
     public partial class HDReflectionProbeUI : BaseUI<SerializedHDReflectionProbe>
     {
-        const int k_AnimBoolSingleFieldCount = 4;
+        const int k_AnimBoolSingleFieldCount = 7;
         static readonly int k_ReflectionProbeModeCount = Enum.GetValues(typeof(ReflectionProbeMode)).Length;
         static readonly int k_ReflectionInfluenceShapeCount = Enum.GetValues(typeof(ShapeType)).Length;
         static readonly int k_AnimBoolsCount = k_ReflectionProbeModeCount + k_ReflectionInfluenceShapeCount + k_AnimBoolSingleFieldCount;
@@ -43,6 +43,9 @@ namespace UnityEditor.Experimental.Rendering
         public AnimBool isSectionExpandedInfluenceVolume { get { return m_AnimBools[1]; } }
         public AnimBool isSectionExpandedCaptureSettings { get { return m_AnimBools[2]; } }
         public AnimBool isSectionExpandedAdditional { get { return m_AnimBools[3]; } }
+        public AnimBool isSectionExpendedAdvancedBlendDistanceBoxShape { get { return m_AnimBools[4]; } }
+        public AnimBool isSectionExpendedAdvancedBlendNormalDistanceBoxShape { get { return m_AnimBools[5]; } }
+        public AnimBool isSectionExpendedAdvancedBlendFaceFadeBoxShape { get { return m_AnimBools[6]; } }
 
         public bool HasAndClearOperation(Operation op)
         {
@@ -63,6 +66,9 @@ namespace UnityEditor.Experimental.Rendering
             isSectionExpandedCaptureSettings.value = true;
             isSectionExpandedInfluenceVolume.value = true;
             isSectionExpandedAdditional.value = false;
+            isSectionExpendedAdvancedBlendDistanceBoxShape.value = false;
+            isSectionExpendedAdvancedBlendNormalDistanceBoxShape.value = false;
+            isSectionExpendedAdvancedBlendFaceFadeBoxShape.value = false;
         }
 
         public override void Update()
