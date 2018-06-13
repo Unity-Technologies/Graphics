@@ -76,12 +76,12 @@ namespace UnityEditor.VFX.Block
             public float VelocityBlend = 1.0f;
         }
 
-        public string directionFormatBlendSource
+        protected string directionFormatBlendSource
         {
             get { return "direction = normalize(lerp(direction, {0}, DirectionBlend));"; }
         }
 
-        public string speedComputeString
+        protected string speedComputeString
         {
             get
             {
@@ -94,7 +94,7 @@ namespace UnityEditor.VFX.Block
             }
         }
 
-        public string velocityComposeFormatString
+        protected string velocityComposeFormatString
         {
             get { return VFXBlockUtility.GetComposeString(composition, "velocity", "{0}", "VelocityBlend"); }
         }

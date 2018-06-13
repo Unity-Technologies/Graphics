@@ -40,11 +40,30 @@ namespace UnityEditor.VFX.Block
             }
         }
 
+        public override IEnumerable<VFXNamedExpression> parameters
+        {
+            get
+            {
+                foreach (var param in base.parameters)
+                {
+                    if (param.name == "axis_end")
+                        continue;
+
+                    yield return param;
+                }
+
+                var start = base.parameters.First(o => o.name == "axis_start").exp;
+                var end = base.parameters.First(o => o.name == "axis_end").exp;
+
+                yield return new VFXNamedExpression(VFXOperatorUtility.Normalize(end - start), "normalizedDir");
+            }
+        }
+
         public override string source
         {
             get
             {
-                string outSource = @"float3 dir = normalize(axis_end - axis_start);
+                string outSource = @"float3 dir = normalizedDir; // normalize(axis_end - axis_start);
 float3 projPos = (dot(dir, position - axis_start) * dir) + axis_start;
 float3 tangentDirection = cross(normalize(position - projPos), dir);
 ";
