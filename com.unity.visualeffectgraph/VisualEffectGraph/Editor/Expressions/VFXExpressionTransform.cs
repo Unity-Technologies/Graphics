@@ -153,6 +153,37 @@ namespace UnityEditor.VFX
         }
     }
 
+    class VFXExpressionTransformMatrix : VFXExpression
+    {
+        public VFXExpressionTransformMatrix() : this(VFXValue<Matrix4x4>.Default, VFXValue<Matrix4x4>.Default)
+        {
+        }
+
+        public VFXExpressionTransformMatrix(VFXExpression left, VFXExpression right) : base(VFXExpression.Flags.None, new VFXExpression[] { left, right })
+        {
+        }
+
+        public override VFXExpressionOperation operation
+        {
+            get
+            {
+                return VFXExpressionOperation.TransformMatrix;
+            }
+        }
+
+        protected sealed override VFXExpression Evaluate(VFXExpression[] constParents)
+        {
+            var left = constParents[0].Get<Matrix4x4>();
+            var right = constParents[1].Get<Matrix4x4>();
+            return VFXValue.Constant(left * right);
+        }
+
+        public override string GetCodeString(string[] parents)
+        {
+            return string.Format("mul({0}, {1}).xyz", parents[0], parents[1]);
+        }
+    }
+
     class VFXExpressionTransformPosition : VFXExpression
     {
         public VFXExpressionTransformPosition() : this(VFXValue<Matrix4x4>.Default, VFXValue<Vector3>.Default)

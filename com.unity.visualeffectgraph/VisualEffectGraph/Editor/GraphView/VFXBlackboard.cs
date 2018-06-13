@@ -295,9 +295,9 @@ namespace  UnityEditor.VFX.UI
                 foreach (var parameter in view.graphElements.ToList().OfType<VFXParameterUI>().Where(t => t.controller.parentController == controller))
                 {
                     if (evt.GetEventTypeId() == MouseEnterEvent.TypeId())
-                        parameter.pseudoStates |= PseudoStates.Hover;
+                        parameter.AddToClassList("hovered");
                     else
-                        parameter.pseudoStates &= ~PseudoStates.Hover;
+                        parameter.RemoveFromClassList("hovered");
                 }
             }
         }
@@ -627,7 +627,10 @@ namespace  UnityEditor.VFX.UI
 
         void OnAddParameter(object parameter)
         {
-            m_Controller.AddVFXParameter(Vector2.zero, (VFXModelDescriptorParameters)parameter);
+            var selectedCategory = m_View.selection.OfType<VFXBlackboardCategory>().FirstOrDefault();
+            VFXParameter newParam = m_Controller.AddVFXParameter(Vector2.zero, (VFXModelDescriptorParameters)parameter);
+            if (selectedCategory != null && newParam != null)
+                newParam.category = selectedCategory.title;
         }
 
         void OnAddItem(Blackboard bb)
@@ -702,7 +705,11 @@ namespace  UnityEditor.VFX.UI
         {
             VFXBlackboardCategory cat = null;
             VFXBlackboardRow row = null;
-            if (m_Categories.TryGetValue(controller.model.category, out cat))
+            if (string.IsNullOrEmpty(controller.model.category))
+            {
+                row = m_DefaultCategory.GetRowFromController(controller);
+            }
+            else if (m_Categories.TryGetValue(controller.model.category, out cat))
             {
                 row = cat.GetRowFromController(controller);
             }

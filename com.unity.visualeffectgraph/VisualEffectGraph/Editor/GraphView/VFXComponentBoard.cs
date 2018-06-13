@@ -154,6 +154,9 @@ namespace UnityEditor.VFX.UI
             m_AttachButton = this.Query<Button>("attach");
             m_AttachButton.clickable.clicked += ToggleAttach;
 
+            m_SelectButton = this.Query<Button>("select");
+            m_SelectButton.clickable.clicked += Select;
+
             m_ComponentPath = this.Query<Label>("component-path");
 
             m_ComponentContainer = this.Query("component-container");
@@ -184,6 +187,11 @@ namespace UnityEditor.VFX.UI
             m_PlayRateMenu.clickable.clicked += OnPlayRateMenu;
 
             m_ParticleCount = this.Query<Label>("particle-count");
+
+            Button button = this.Query<Button>("on-play-button");
+            button.clickable.clicked += () => SendEvent("OnPlay");
+            button = this.Query<Button>("on-stop-button");
+            button.clickable.clicked += () => SendEvent("OnStop");
 
             m_EventsContainer = this.Query("events-container");
 
@@ -364,6 +372,7 @@ namespace UnityEditor.VFX.UI
             if (m_EventsContainer != null)
                 m_EventsContainer.Clear();
             m_Events.Clear();
+            m_SelectButton.visible = false;
         }
 
         public void Attach(VisualEffect effect = null)
@@ -383,6 +392,7 @@ namespace UnityEditor.VFX.UI
                 if (m_ComponentContainer.parent == null)
                     m_ComponentContainerParent.Add(m_ComponentContainer);
                 UpdateEventList();
+                m_SelectButton.visible = true;
             }
         }
 
@@ -426,11 +436,14 @@ namespace UnityEditor.VFX.UI
             if (m_ComponentPath.text != path)
                 m_ComponentPath.text = path;
 
-            int newParticleCount = 0;//m_AttachedComponent.aliveParticleCount
-            if (m_LastKnownParticleCount != newParticleCount)
+            if (m_ParticleCount != null)
             {
-                m_LastKnownParticleCount = newParticleCount;
-                m_ParticleCount.text = m_LastKnownParticleCount.ToString();
+                int newParticleCount = 0;//m_AttachedComponent.aliveParticleCount
+                if (m_LastKnownParticleCount != newParticleCount)
+                {
+                    m_LastKnownParticleCount = newParticleCount;
+                    m_ParticleCount.text = m_LastKnownParticleCount.ToString();
+                }
             }
 
             UpdatePlayRate();
@@ -461,7 +474,16 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        void Select()
+        {
+            if (m_AttachedComponent != null)
+            {
+                Selection.activeObject = m_AttachedComponent;
+            }
+        }
+
         Button m_AttachButton;
+        Button m_SelectButton;
         Label m_ComponentPath;
         VisualElement m_ComponentContainer;
         VisualElement m_EventsContainer;
@@ -489,6 +511,8 @@ namespace UnityEditor.VFX.UI
             UpdateEventList();
         }
 
+        static readonly string[] staticEventNames = new string[] {"OnPlay", "OnStop" };
+
         public void UpdateEventList()
         {
             if (m_AttachedComponent == null)
@@ -499,7 +523,7 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                var eventNames = controller.contexts.Select(t => t.model).OfType<VFXBasicEvent>().Select(t => t.eventName).Distinct().OrderBy(t => t).ToArray();
+                var eventNames = controller.contexts.Select(t => t.model).OfType<VFXBasicEvent>().Select(t => t.eventName).Except(staticEventNames).Distinct().OrderBy(t => t).ToArray();
 
                 foreach (var removed in m_Events.Keys.Except(eventNames).ToArray())
                 {
@@ -557,7 +581,7 @@ namespace UnityEditor.VFX.UI
 
         public override void UpdatePresenterPosition()
         {
-            BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.blackboard, GetPosition());
+            BoardPreferenceHelper.SavePosition(BoardPreferenceHelper.Board.componentBoard, GetPosition());
         }
 
         public void OnMoved()

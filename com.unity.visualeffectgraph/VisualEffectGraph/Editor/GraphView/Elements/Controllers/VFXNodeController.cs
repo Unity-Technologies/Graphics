@@ -114,7 +114,7 @@ namespace UnityEditor.VFX.UI
                 model.position = value;
             }
         }
-        public bool superCollapsed
+        public virtual bool superCollapsed
         {
             get
             {

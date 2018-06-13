@@ -578,6 +578,8 @@ namespace UnityEditor.VFX.UI
         {
             get
             {
+                // If the vfxwindow is hidden then Update will not be called, which in turn will not recompile the expression graph. so try recompiling it now
+                m_Controller.viewController.RecompileExpressionGraphIfNeeded();
                 stack.Clear();
                 int stackSize = stack.Count;
                 foreach (var action in m_ValueBuilder)

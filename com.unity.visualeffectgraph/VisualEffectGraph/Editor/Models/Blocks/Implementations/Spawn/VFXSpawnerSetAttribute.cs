@@ -7,7 +7,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Spawn", variantProvider = typeof(AttributeVariantReadWritableNoVariadic))]
+    [VFXInfo(category = "Spawn/Attribute", variantProvider = typeof(AttributeVariantReadWritableNoVariadic))]
     class VFXSpawnerSetAttribute : VFXAbstractSpawner
     {
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(AttributeProvider))]
@@ -28,7 +28,6 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-
                 var attrib = currentAttribute;
 
                 VFXPropertyAttribute[] attr = null;
@@ -53,7 +52,6 @@ namespace UnityEditor.VFX.Block
                         attributes = attr
                     }, currentAttribute.value.GetContent());
                 }
-
             }
         }
 

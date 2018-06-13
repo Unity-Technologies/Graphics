@@ -16,9 +16,10 @@ namespace UnityEditor.VFX
         None,
         Position,
         Direction,
+        Matrix,
     }
 
-    [AttributeUsage(AttributeTargets.Field)]
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Struct)]
     public class VFXSpaceAttribute : PropertyAttribute
     {
         public readonly SpaceableType type;
@@ -199,7 +200,7 @@ namespace UnityEditor.VFX
         public static Line defaultValue = new Line { start = Vector3.zero, end = Vector3.left };
     }
 
-    [VFXType, Serializable]
+    [VFXType, VFXSpace(SpaceableType.Matrix), Serializable]
     struct Transform
     {
         [Tooltip("The transform position."), VFXSpace(SpaceableType.Position)]
@@ -266,7 +267,7 @@ namespace UnityEditor.VFX
             return v.vector;
         }
 
-        public static Vector defaultValue = new Vector() { vector = Vector3.zero };
+        public static Vector defaultValue = new Vector { vector = Vector3.zero };
     }
 
     [VFXType, Serializable]

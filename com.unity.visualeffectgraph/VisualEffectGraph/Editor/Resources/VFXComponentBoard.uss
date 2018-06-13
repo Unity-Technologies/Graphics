@@ -19,6 +19,17 @@ VFXComponentBoard.graphElement
     font-size:11;
 }
 
+#divider {
+    background-color: rgba(35,35,35,0.8);
+    border-color: rgba(35,35,35,0.8);
+}
+
+#divider.horizontal {
+    height:0.01;
+    border-bottom-width: 1;
+}
+
+
 VFXComponentBoard ScrollView
 {
     flex-direction:column;
@@ -32,6 +43,7 @@ VFXComponentBoard, #component-container
     flex-direction:column;
     align-items:stretch;
     overflow:hidden;
+    padding-top:8;
 }
 
 #header {
@@ -60,20 +72,32 @@ VFXComponentBoard, #component-container
     text-color: #606060;
 }
 
-#attach
+
+VFXComponentBoardEventUI Button, #on-play-button, #on-stop-button,#attach, #select,#component-path
 {
-    height:16;
-    width:100;
+    height:20;
+}
+
+
+#attach, #select
+{
+    width:60;
 }
 
 #component-path
 {
-    height:16;
+    flex:1;
 }
 
 #particle-count-container, #attach-container
 {
     flex-direction:row;
+}
+
+#attach-container
+{
+    padding-top: 8;
+    padding-bottom: 8;
 }
 #particle-count-container > #particle-count
 {
@@ -118,6 +142,12 @@ VFXComponentBoard, #component-container
     flex-direction:row;
     height:28;
     align-items: center;
+    padding-bottom:8;
+}
+
+#events-label
+{
+    padding-top:8;
 }
 
 #play-rate-container #play-rate-slider
@@ -147,9 +177,4 @@ VFXComponentBoardEventUI
 VFXComponentBoardEventUI #event-name
 {
     flex:1;
-}
-
-VFXComponentBoardEventUI Button
-{
-    height:16;
 }

@@ -275,6 +275,7 @@ namespace UnityEditor.VFX.UI
                 }
                 SetDragIndicatorVisible(false);
                 evt.StopPropagation();
+                m_InsertIndex = -1;
             }
         }
 
