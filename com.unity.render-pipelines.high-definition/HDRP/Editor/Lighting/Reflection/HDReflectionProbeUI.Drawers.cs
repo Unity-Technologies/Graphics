@@ -85,7 +85,7 @@ namespace UnityEditor.Experimental.Rendering
                 );
 
         public static readonly CED.IDrawer SectionAdditionalSettings = CED.FoldoutGroup(
-                "Additional settings",
+                "Artistic settings",
                 (s, p, o) => s.isSectionExpandedAdditional,
                 FoldoutOption.Indent,
                 CED.Action(Drawer_AdditionalSettings)
@@ -108,10 +108,10 @@ namespace UnityEditor.Experimental.Rendering
 
         static void Drawer_AdditionalSettings(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
-            EditorGUILayout.PropertyField(p.weight);
+            EditorGUILayout.PropertyField(p.weight, CoreEditorUtils.GetContent("Influence Volume Weight|Blending weight to use while interpolating between influence volume. (Reminder: Sky is an Influence Volume too)."));
 
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(p.multiplier);
+            EditorGUILayout.PropertyField(p.multiplier, CoreEditorUtils.GetContent("Multiplier|Tweeking option to enhance reflection."));
             if (EditorGUI.EndChangeCheck())
                 p.multiplier.floatValue = Mathf.Max(0.0f, p.multiplier.floatValue);
 
