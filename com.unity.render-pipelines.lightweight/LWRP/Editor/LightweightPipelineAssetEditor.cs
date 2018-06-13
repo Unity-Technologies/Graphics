@@ -12,6 +12,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             public static GUIContent renderingLabel = new GUIContent("Rendering");
             public static GUIContent shadowLabel = new GUIContent("Shadows");
+            public static GUIContent capabilitiesLabel = new GUIContent("Capabilities");
 
             public static GUIContent renderScaleLabel = new GUIContent("Render Scale", "Scales the camera render target allowing the game to render at a resolution different than native resolution. UI is always rendered at native resolution. When in VR mode, VR scaling configuration is used instead.");
 
@@ -23,7 +24,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             public static GUIContent requireDepthTexture = new GUIContent("Depth Texture", "If enabled the pipeline will generate camera's depth that can be bound in shaders as _CameraDepthTexture.");
 
-            public static GUIContent requireSoftParticles = new GUIContent("Soft Particles", "If enabled the pipeline will enable SOFT_PARTICLES keyword.");
+            public static GUIContent requireSoftParticles = new GUIContent("Soft Particles", "If enabled the pipeline will enable SOFT_PARTICLES keyword.\nNeeds Depth Texture to be enabled.");
 
             public static GUIContent requireOpaqueTexture = new GUIContent("Opaque Texture", "If enabled the pipeline will copy the screen to texture after opaque objects are drawn. For transparent objects this can be bound in shaders as _CameraOpaqueTexture.");
 
@@ -108,7 +109,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             UpdateAnimationValues();
             DrawRenderingSettings();
-            DrawShadowSettings();
+            DrawCapabilitiesSettings();
+
             DrawStrippingSettings();
 
             serializedObject.ApplyModifiedProperties();
@@ -181,19 +183,31 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(Styles.renderingLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(Styles.renderScaleLabel);
-            m_RenderScale.floatValue = EditorGUILayout.Slider(m_RenderScale.floatValue, k_MinRenderScale, k_MaxRenderScale);
-            EditorGUILayout.EndHorizontal();
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(Styles.maxPixelLightsLabel);
-            m_MaxPixelLights.intValue = EditorGUILayout.IntSlider(m_MaxPixelLights.intValue, 0, k_MaxSupportedPixelLights);
-            EditorGUILayout.EndHorizontal();
+            //EditorGUILayout.BeginHorizontal();
+            //EditorGUILayout.LabelField(Styles.renderScaleLabel);
+
+            m_RenderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleLabel, m_RenderScale.floatValue, k_MinRenderScale, k_MaxRenderScale);
+            //EditorGUILayout.EndHorizontal();
+            //EditorGUILayout.BeginHorizontal();
+            //EditorGUILayout.LabelField(Styles.maxPixelLightsLabel);
+            m_MaxPixelLights.intValue = EditorGUILayout.IntSlider(Styles.maxPixelLightsLabel, m_MaxPixelLights.intValue, 0, k_MaxSupportedPixelLights);
+            //EditorGUILayout.EndHorizontal();
             EditorGUILayout.PropertyField(m_SupportsVertexLightProp, Styles.enableVertexLightLabel);
             EditorGUILayout.PropertyField(m_RequireDepthTextureProp, Styles.requireDepthTexture);
-            DrawAnimatedProperty(m_RequireSoftParticlesProp, Styles.requireSoftParticles, m_ShowSoftParticles);
+            //EditorGUI.indentLevel++;
+            //if(m_RequireDepthTextureProp.boolValue)
+            EditorGUI.BeginDisabledGroup(!m_RequireDepthTextureProp.boolValue);
+            EditorGUILayout.PropertyField(m_RequireSoftParticlesProp, Styles.requireSoftParticles);
+            EditorGUI.EndDisabledGroup();
+            //EditorGUI.indentLevel--;
+            //DrawAnimatedProperty(m_RequireSoftParticlesProp, Styles.requireSoftParticles, m_ShowSoftParticles);
             EditorGUILayout.PropertyField(m_RequireOpaqueTextureProp, Styles.requireOpaqueTexture);
-            DrawAnimatedPopup(m_OpaqueDownsamplingProp, Styles.opaqueDownsampling, Styles.opaqueDownsamplingOptions, m_ShowOpaqueTextureScale);
+            EditorGUI.indentLevel++;
+            EditorGUI.BeginDisabledGroup(!m_RequireOpaqueTextureProp.boolValue);
+            EditorGUILayout.PropertyField(m_OpaqueDownsamplingProp, Styles.opaqueDownsampling);
+            EditorGUI.EndDisabledGroup();
+            EditorGUI.indentLevel--;
+            //DrawAnimatedPopup(m_OpaqueDownsamplingProp, Styles.opaqueDownsampling, Styles.opaqueDownsamplingOptions, m_ShowOpaqueTextureScale);
             EditorGUILayout.PropertyField(m_HDR, Styles.hdrContent);
             EditorGUILayout.PropertyField(m_MSAA, Styles.msaaContent);
             EditorGUILayout.PropertyField(m_SupportsDynamicBatching, Styles.dynamicBatching);
@@ -203,9 +217,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             EditorGUILayout.Space();
         }
 
+        void DrawCapabilitiesSettings()
+        {
+            EditorGUILayout.LabelField(Styles.capabilitiesLabel, EditorStyles.boldLabel);
+            DrawShadowSettings();
+        }
+
         void DrawShadowSettings()
         {
-            EditorGUILayout.LabelField(Styles.shadowLabel, EditorStyles.boldLabel);
+            //EditorGUILayout.LabelField(Styles.shadowLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
 
             EditorGUILayout.PropertyField(m_DirectionalShadowsSupportedProp, Styles.supportsDirectionalShadows);
