@@ -9,6 +9,7 @@ using UnityEngine;
 using UnityEngine.Profiling;
 using UnityEngine.Experimental.VFX;
 using UnityEngine.Experimental.UIElements;
+using System.Collections.ObjectModel;
 
 
 namespace UnityEditor.VFX.UI
@@ -695,6 +696,12 @@ namespace UnityEditor.VFX.UI
         public int nodeCount
         {
             get {return m_Controllers.Count(); }
+        }
+
+
+        public IEnumerable<VFXParameterNodeController> nodes
+        {
+            get { return m_Controllers.Values; }
         }
 
         protected override void ModelChanged(UnityEngine.Object obj)

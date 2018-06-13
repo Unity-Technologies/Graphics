@@ -417,7 +417,7 @@ namespace UnityEditor.VFX
 
         public override void OnCopyLinksOtherSlot(VFXSlot mySlot, VFXSlot prevOtherSlot, VFXSlot newOtherSlot)
         {
-            foreach (var node in m_Nodes)
+            foreach (var node in nodes)
             {
                 for (int i = 0; i < node.linkedSlots.Count; ++i)
                 {
@@ -432,7 +432,7 @@ namespace UnityEditor.VFX
 
         public override void OnCopyLinksMySlot(VFXSlot myPrevSlot, VFXSlot myNewSlot, VFXSlot otherSlot)
         {
-            foreach (var node in m_Nodes)
+            foreach (var node in nodes)
             {
                 for (int i = 0; i < node.linkedSlots.Count; ++i)
                 {

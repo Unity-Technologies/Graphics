@@ -265,5 +265,62 @@ namespace UnityEditor.VFX.UI
         {
             get { return m_ParentController; }
         }
+
+        public void ConvertToInline()
+        {
+            VFXInlineOperator op = new VFXInlineOperator();
+            op.SetSettingValue("m_Type", (SerializableType)parentController.model.type);
+
+            viewController.graph.AddChild(op);
+
+            op.position = position;
+
+            foreach (var link in m_Infos.linkedSlots.ToArray())
+            {
+                var ancestors = new List<VFXSlot>();
+                ancestors.Add(link.outputSlot);
+                VFXSlot parent = link.outputSlot.GetParent();
+                while (parent != null)
+                {
+                    ancestors.Add(parent);
+
+                    parent = parent.GetParent();
+                }
+                int index = parentController.model.GetSlotIndex(ancestors.Last());
+
+                if (index >= 0 && index < op.GetNbOutputSlots())
+                {
+                    VFXSlot slot = op.outputSlots[index];
+                    for (int i = ancestors.Count() - 2; i >= 0; --i)
+                    {
+                        int subIndex = ancestors[i + 1].GetIndex(ancestors[i]);
+
+                        if (subIndex >= 0 && subIndex < slot.GetNbChildren())
+                        {
+                            slot = slot[subIndex];
+                        }
+                        else
+                        {
+                            slot = null;
+                            break;
+                        }
+                    }
+                    if (slot.path != link.outputSlot.path.Substring(1)) // parameters output are still named 0, inline outputs have no name.
+                    {
+                        Debug.LogError("New inline don't have the same subslot as old parameter");
+                    }
+                    else
+                    {
+                        link.outputSlot.Unlink(link.inputSlot);
+                        slot.Link(link.inputSlot);
+                    }
+                }
+            }
+
+            op.inputSlots[0].value = value;
+            viewController.LightApplyChanges();
+            viewController.PutInSameGroupNodeAs(viewController.GetNodeController(op, 0), this);
+            viewController.RemoveElement(this);
+        }
     }
 }

@@ -136,6 +136,20 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        {
+            if (evt.target == this && controller != null)
+            {
+                evt.menu.AppendAction("Convert to Inline", OnConvertToInline, e => ContextualMenu.MenuAction.StatusFlags.Normal);
+                evt.menu.AppendSeparator();
+            }
+        }
+
+        void OnConvertToInline(ContextualMenu.MenuAction evt)
+        {
+            controller.ConvertToInline();
+        }
+
         void OnMouseHover(EventBase evt)
         {
             VFXView view = GetFirstAncestorOfType<VFXView>();

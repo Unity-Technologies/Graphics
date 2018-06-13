@@ -125,6 +125,20 @@ namespace UnityEditor.VFX.UI
             return null;
         }
 
+        public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
+        {
+            if (evt.target == this && controller != null && controller.model is VFXInlineOperator)
+            {
+                evt.menu.AppendAction("Convert to Parameter", OnConvertToParameter, e => ContextualMenu.MenuAction.StatusFlags.Normal);
+                evt.menu.AppendSeparator();
+            }
+        }
+
+        void OnConvertToParameter(ContextualMenu.MenuAction evt)
+        {
+            controller.ConvertToParameter();
+        }
+
         public override bool superCollapsed
         {
             get { return base.superCollapsed && (m_EditContainer == null || m_EditContainer.parent == null); }

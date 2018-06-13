@@ -1665,6 +1665,21 @@ namespace UnityEditor.VFX.UI
             m_Graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }
 
+        public void PutInSameGroupNodeAs(VFXNodeController target, VFXNodeController example)
+        {
+            var ui = graph.UIInfos;
+            if (ui.groupInfos == null) return;
+
+            foreach (var groupNode in m_GroupNodeControllers)
+            {
+                if (groupNode.nodes.Contains(example))
+                {
+                    groupNode.AddNode(target);
+                    break;
+                }
+            }
+        }
+
         private VFXGraph m_Graph;
 
         private VFXUI m_UI;

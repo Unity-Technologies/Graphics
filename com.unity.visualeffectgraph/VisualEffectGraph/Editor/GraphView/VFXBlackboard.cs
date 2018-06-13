@@ -365,6 +365,7 @@ namespace  UnityEditor.VFX.UI
             m_Properties.SelfChange(e.change);
 
             m_Field.SelfChange();
+            RemoveFromClassList("hovered");
         }
 
         VFXParameterController m_Controller;
