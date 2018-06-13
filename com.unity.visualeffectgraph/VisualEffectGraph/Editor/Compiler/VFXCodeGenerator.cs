@@ -384,7 +384,7 @@ namespace UnityEditor.VFX
             globalDeclaration.WriteCBuffer(contextData.uniformMapper, "parameters");
             globalDeclaration.WriteTexture(contextData.uniformMapper);
 
-            var linkedEventOut = context.allLinkedOutputSlot.ToList();
+            var linkedEventOut = context.allLinkedOutputSlot.Where(s => ((VFXModel)s.owner).GetFirstOfType<VFXContext>().CanBeCompiled()).ToList();
             globalDeclaration.WriteEventBuffer(eventListOutName, linkedEventOut.Count);
 
             //< Block processor
@@ -470,9 +470,8 @@ namespace UnityEditor.VFX
                     foreach (var outputSlot in block.outputSlots.SelectMany(o => o.LinkedSlots))
                     {
                         var eventIndex = linkedEventOut.IndexOf(outputSlot);
-                        if (eventIndex == -1)
-                            throw new InvalidOperationException("Cannot retrieve output slot index");
-                        blockCallFunction.WriteLineFormat("{0}_{1} += {0};", VFXAttribute.EventCount.name, VFXCodeGeneratorHelper.GeneratePrefix((uint)eventIndex));
+                        if (eventIndex != -1)
+                            blockCallFunction.WriteLineFormat("{0}_{1} += {0};", VFXAttribute.EventCount.name, VFXCodeGeneratorHelper.GeneratePrefix((uint)eventIndex));
                     }
                 }
                 if (needScope)

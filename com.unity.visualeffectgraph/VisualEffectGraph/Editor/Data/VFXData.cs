@@ -196,41 +196,38 @@ namespace UnityEditor.VFX
             if (m_Contexts == null) // Context hasnt been initialized (may happen in unity tests but not during actual compilation)
                 InitImplicitContexts();
 
-            m_DependenciesIn.Clear();
-            var inDependencies = m_Contexts.Where(o => o.contextType == VFXContextType.kInit)
-                .SelectMany(o => o.inputContexts.Where(i => i.contextType == VFXContextType.kSpawnerGPU))
-                .SelectMany(o => o.allLinkedInputSlot)
-                .Select(o =>
+            m_DependenciesIn = new HashSet<VFXData>(
+                    m_Contexts.Where(c => c.contextType == VFXContextType.kInit)
+                    .SelectMany(c => c.inputContexts.Where(i => i.contextType == VFXContextType.kSpawnerGPU))
+                    .SelectMany(c => c.allLinkedInputSlot)
+                    .Where(s =>
                 {
-                    if (o.owner is VFXBlock)
+                    if (s.owner is VFXBlock)
                     {
-                        return (o.owner as VFXBlock).GetParent() as VFXContext;
+                        VFXBlock block = (VFXBlock)(s.owner);
+                        if (block.enabled)
+                            return true;
                     }
-                    else if (o.owner is VFXContext)
+                    else if (s.owner is VFXContext)
                     {
-                        return o.owner as VFXContext;
+                        return true;
                     }
-                    else
-                    {
-                        throw new InvalidOperationException("Unexpected linked slot on spawner GPU");
-                    }
-                })
-                .Select(o => o.GetData())
-                .Distinct();
-            foreach (var depend in inDependencies)
-            {
-                m_DependenciesIn.Add(depend);
-            }
 
-            m_DependenciesOut.Clear();
-            var outDependencies = owners.SelectMany(o => o.allLinkedOutputSlot)
-                .SelectMany(o => (o.owner as VFXContext).outputContexts)
-                .Select(o => o.GetData())
-                .Distinct();
-            foreach (var depend in outDependencies)
-            {
-                m_DependenciesOut.Add(depend);
-            }
+                    return false;
+                })
+                    .Select(s => ((VFXModel)s.owner).GetFirstOfType<VFXContext>())
+                    .Where(c => c.CanBeCompiled())
+                    .Select(c => c.GetData())
+                    );
+
+            m_DependenciesOut = new HashSet<VFXData>(
+                    owners.SelectMany(o => o.allLinkedOutputSlot)
+                    .Select(s => (VFXContext)s.owner)
+                    .Where(c => c.CanBeCompiled())
+                    .SelectMany(c => c.outputContexts)
+                    .Where(c => c.CanBeCompiled())
+                    .Select(c => c.GetData())
+                    );
 
             m_ContextsToAttributes.Clear();
             m_AttributesToContexts.Clear();
