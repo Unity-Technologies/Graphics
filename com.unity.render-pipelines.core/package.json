@@ -1,7 +1,7 @@
 {
     "name": "com.unity.render-pipelines.core",
     "description": "Core library for Unity render pipelines.",
-    "version": "2.0.3-preview",
+    "version": "2.0.4-preview",
     "unity": "2018.2",
     "displayName": "Render Pipeline Core Library",
     "dependencies": {

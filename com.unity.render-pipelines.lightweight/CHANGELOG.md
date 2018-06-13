@@ -6,7 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [2.0.3-preview]
+
+### Fixed
+- GLCore compute buffer compiler error
+
 ## [2.0.2-preview]
+
 ### Fixed
 - Occlusion strength not being applied on LW standard shaders
 - CopyDepth pass is being called even when a depth from prepass is available
