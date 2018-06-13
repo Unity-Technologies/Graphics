@@ -6,6 +6,7 @@ using UnityEditor.Graphing.Util;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.UIElements;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.ShaderGraph
 {
@@ -84,7 +85,10 @@ namespace UnityEditor.ShaderGraph
                 }
 
                 foreach (var subShader in m_SubShaders)
-                    finalShader.AppendLines(subShader.GetSubshader(this, mode, sourceAssetDependencyPaths));
+                {
+                    if (mode != GenerationMode.Preview || subShader.IsPipelineCompatible(GraphicsSettings.renderPipelineAsset))
+                        finalShader.AppendLines(subShader.GetSubshader(this, mode, sourceAssetDependencyPaths));
+                }
 
                 finalShader.AppendLine(@"FallBack ""Hidden/InternalErrorShader""");
             }
@@ -92,9 +96,14 @@ namespace UnityEditor.ShaderGraph
             return finalShader.ToString();
         }
 
-        public bool IsPipelineCompatible(IRenderPipeline renderPipeline)
+        public bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
         {
-            return true;
+            foreach (var subShader in m_SubShaders)
+            {
+                if (subShader.IsPipelineCompatible(GraphicsSettings.renderPipelineAsset))
+                    return true;
+            }
+            return false;
         }
 
         public override void OnBeforeSerialize()

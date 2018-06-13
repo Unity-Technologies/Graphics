@@ -12,7 +12,9 @@ using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.UIElements;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -31,6 +33,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public bool forceRedrawPreviews = false;
 
         ColorSpace m_ColorSpace;
+        RenderPipelineAsset m_RenderPipelineAsset;
 
         GraphEditorView m_GraphEditorView;
 
@@ -84,6 +87,12 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_ColorSpace = PlayerSettings.colorSpace;
             }
 
+            if (GraphicsSettings.renderPipelineAsset != m_RenderPipelineAsset)
+            {
+                graphEditorView = null;
+                m_RenderPipelineAsset = GraphicsSettings.renderPipelineAsset;
+            }
+
             try
             {
                 if (graphObject == null && selectedGuid != null)
@@ -107,6 +116,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(selectedGuid));
                     graphEditorView = new GraphEditorView(this, materialGraph, asset.name) { persistenceKey = selectedGuid };
                     m_ColorSpace = PlayerSettings.colorSpace;
+                    m_RenderPipelineAsset = GraphicsSettings.renderPipelineAsset;
                 }
 
                 if (forceRedrawPreviews)
@@ -440,6 +450,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             try
             {
                 m_ColorSpace = PlayerSettings.colorSpace;
+                m_RenderPipelineAsset = GraphicsSettings.renderPipelineAsset;
 
                 var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(assetGuid));
                 if (asset == null)
