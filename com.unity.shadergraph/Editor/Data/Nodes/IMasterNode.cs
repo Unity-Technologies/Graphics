@@ -7,6 +7,6 @@ namespace UnityEditor.ShaderGraph
     public interface IMasterNode : INode
     {
         string GetShader(GenerationMode mode, string name, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths = null);
-        bool IsPipelineCompatible(IRenderPipeline renderPipeline);
+        bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset);
     }
 }
