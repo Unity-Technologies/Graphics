@@ -134,9 +134,10 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
                             float3 N, float3 L, float3 lightToSample, float4 distances,
                             out float3 color, out float attenuation)
 {
-    float3 positionWS = posInput.positionWS;
-    float  shadow     = 1.0;
-    float  shadowMask = 1.0;
+    float3 positionWS    = posInput.positionWS;
+    float  shadow        = 1.0;
+    float  shadowMask    = 1.0;
+    float  contactShadow = 1.0;
 
     color       = lightData.color;
     attenuation = SmoothPunctualLightAttenuation(distances, lightData.invSqrAttenuationRadius,
@@ -166,7 +167,12 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     UNITY_BRANCH if (lightData.shadowIndex >= 0)
     {
         // TODO: make projector lights cast shadows.
+        contactShadow = LOAD_TEXTURE2D(_DeferredShadowTexture, posInput.positionSS).x;
+
         shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, lightData.shadowIndex, L, distances.x, posInput.positionSS);
+
+        shadow = min(max(lightData.disableContactShadow, contactShadow), shadow);
+
 #ifdef SHADOWS_SHADOWMASK
         // Note: Legacy Unity have two shadow mask mode. ShadowMask (ShadowMask contain static objects shadow and ShadowMap contain only dynamic objects shadow, final result is the minimun of both value)
         // and ShadowMask_Distance (ShadowMask contain static objects shadow and ShadowMap contain everything and is blend with ShadowMask based on distance (Global distance setup in QualitySettigns)).
