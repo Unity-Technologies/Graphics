@@ -20,10 +20,8 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                foreach (var p in GetExpressionsFromSlots(this))
+                foreach (var p in base.parameters)
                     yield return p;
-
-                yield return new VFXNamedExpression(VFXBuiltInExpression.DeltaTime, "deltaTime");
 
                 VFXExpression sign = (mode == Mode.Solid) ? VFXValue.Constant(1.0f) : VFXValue.Constant(-1.0f);
                 VFXExpression position = inputSlots[0][0].GetExpression();
@@ -32,7 +30,6 @@ namespace UnityEditor.VFX.Block
                 List<VFXExpression> plane = VFXOperatorUtility.ExtractComponents(normal).ToList();
                 plane.Add(VFXOperatorUtility.Dot(position, normal));
 
-                yield return new VFXNamedExpression(sign, "colliderSign");
                 yield return new VFXNamedExpression(new VFXExpressionCombine(plane.ToArray()), "plane");
             }
         }
@@ -43,16 +40,16 @@ namespace UnityEditor.VFX.Block
             {
                 string Source = @"
 float3 nextPos = position + velocity * deltaTime;
-float3 n = plane.xyz;
+float3 n = plane.xyz; // plane.xyz is already multiplied by collider sign
 float w = plane.w;
-float distToPlane = dot(nextPos, n) - w;
+float distToPlane = dot(nextPos, n) - w - radius;
 if (distToPlane < 0.0f)
 {
+    position -= n * distToPlane;
 ";
 
                 Source += collisionResponseSource;
                 Source += @"
-    position -= n * distToPlane;
 }";
                 return Source;
             }

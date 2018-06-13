@@ -12,8 +12,17 @@ namespace UnityEditor.VFX.Block
             Inverted
         }
 
+        public enum RadiusMode
+        {
+            None,
+            FromSize,
+            Custom,
+        }
+
         [VFXSetting, Tooltip("The Collider can be either a solid volume, or an empty volume, with an infinite filled volume surrounding it.")]
         public Mode mode = Mode.Solid;
+        [VFXSetting]
+        public RadiusMode radiusMode = RadiusMode.None;
         [VFXSetting, Tooltip("Enable random bending of the collision normal to simulate collision with a rough surface.")]
         public bool roughSurface = false;
 
@@ -29,7 +38,26 @@ namespace UnityEditor.VFX.Block
                 yield return new VFXAttributeInfo(VFXAttribute.Lifetime, VFXAttributeMode.Read);
                 if (roughSurface)
                     yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
-                yield return new VFXAttributeInfo(VFXAttribute.Mass, VFXAttributeMode.Read);
+                if (radiusMode == RadiusMode.FromSize)
+                    yield return new VFXAttributeInfo(VFXAttribute.SizeX, VFXAttributeMode.Read);
+            }
+        }
+
+        protected IEnumerable<VFXNamedExpression> collisionParameters
+        {
+            get
+            {
+                yield return new VFXNamedExpression(VFXBuiltInExpression.DeltaTime, "deltaTime");
+
+                if (mode == Mode.Solid)
+                    yield return new VFXNamedExpression(VFXValue.Constant(1.0f), "colliderSign");
+                else
+                    yield return new VFXNamedExpression(VFXValue.Constant(-1.0f), "colliderSign");
+
+                if (radiusMode == RadiusMode.None)
+                    yield return new VFXNamedExpression(VFXValue.Constant(0.0f), "radius");
+                else if (radiusMode == RadiusMode.FromSize)
+                    yield return new VFXNamedExpression(new VFXAttributeExpression(VFXAttribute.SizeX) * VFXValue.Constant(0.5f), "radius");
             }
         }
 
@@ -40,12 +68,8 @@ namespace UnityEditor.VFX.Block
                 foreach (var p in GetExpressionsFromSlots(this))
                     yield return p;
 
-                yield return new VFXNamedExpression(VFXBuiltInExpression.DeltaTime, "deltaTime");
-
-                if (mode == Mode.Solid)
-                    yield return new VFXNamedExpression(VFXValue.Constant(1.0f), "colliderSign");
-                else
-                    yield return new VFXNamedExpression(VFXValue.Constant(-1.0f), "colliderSign");
+                foreach (var p in collisionParameters)
+                    yield return p;
             }
         }
 
@@ -57,6 +81,8 @@ namespace UnityEditor.VFX.Block
                 properties = properties.Concat(PropertiesFromType("CollisionProperties"));
                 if (roughSurface)
                     properties = properties.Concat(PropertiesFromType("RoughnessProperties"));
+                if (radiusMode == RadiusMode.Custom)
+                    properties = properties.Concat(PropertiesFromType("RadiusProperties"));
                 return properties;
             }
         }
@@ -82,7 +108,6 @@ namespace UnityEditor.VFX.Block
                     Source += roughSurfaceSource;
                 Source += @"
     float projVelocity = dot(n, velocity);
-    projVelocity *= mass;
 
     float3 normalVelocity = projVelocity * n;
     float3 tangentVelocity = velocity - normalVelocity;
@@ -112,6 +137,12 @@ namespace UnityEditor.VFX.Block
         {
             [Range(0, 1), Tooltip("How much to randomly adjust the normal after a collision.")]
             public float Roughness = 0.0f;
+        }
+
+        public class RadiusProperties
+        {
+            [Tooltip("How much to randomly adjust the normal after a collision.")]
+            public float radius = 0.1f;
         }
     }
 }
