@@ -246,7 +246,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             bool supportsScreenSpaceShadows = SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
             shadowData.renderDirectionalShadows = pipelineAsset.supportsDirectionalShadows && hasDirectionalShadowCastingLight;
-            shadowData.requiresScreenSpaceShadowResolve = shadowData.renderDirectionalShadows && supportsScreenSpaceShadows;
+
+            // we resolve shadows in screenspace when cascades are enabled to save ALU as computing cascade index + shadowCoord on fragment is expensive
+            shadowData.requiresScreenSpaceShadowResolve = shadowData.renderDirectionalShadows && supportsScreenSpaceShadows && pipelineAsset.cascadeCount > 1;
             shadowData.directionalLightCascadeCount = (shadowData.requiresScreenSpaceShadowResolve) ? pipelineAsset.cascadeCount : 1;
             shadowData.directionalShadowAtlasWidth = pipelineAsset.directionalShadowAtlasResolution;
             shadowData.directionalShadowAtlasHeight = pipelineAsset.directionalShadowAtlasResolution;

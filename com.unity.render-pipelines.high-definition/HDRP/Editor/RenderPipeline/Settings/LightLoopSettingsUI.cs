@@ -50,10 +50,8 @@ namespace UnityEditor.Experimental.Rendering
                     EditorGUILayout.PropertyField(p.enableComputeMaterialVariants, _.GetContent("Enable Compute Material Variants"));
                     EditorGUI.indentLevel--;
                 }
-                EditorGUILayout.EndFadeGroup();
                 GUILayout.EndVertical();
             }
-            EditorGUILayout.EndFadeGroup();
             GUILayout.EndVertical();
 
             //EditorGUI.indentLevel--;
