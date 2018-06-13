@@ -239,6 +239,12 @@ namespace UnityEditor.Experimental.Rendering
             return group.isExpanded;
         }
 
+        static readonly GUIContent[] k_DrawVector6_Label =
+        {
+            new GUIContent("X"),
+            new GUIContent("Y"),
+            new GUIContent("Z"),
+        };
         static readonly GUIContent[] k_DrawVector6Slider_LabelPositives =
         {
             new GUIContent("+X"),
@@ -278,6 +284,32 @@ namespace UnityEditor.Experimental.Rendering
             GUILayout.EndVertical();
         }
 
+        public static void DrawVector6(GUIContent label, SerializedProperty positive, SerializedProperty negative, Vector3 min, Vector3 max)
+        {
+            GUILayout.BeginVertical();
+            if(label != GUIContent.none)
+                EditorGUILayout.LabelField(label);
+            ++EditorGUI.indentLevel;
+
+            var rect = GUILayoutUtility.GetRect(0, float.MaxValue, EditorGUIUtility.singleLineHeight, EditorGUIUtility.singleLineHeight);
+            var v = positive.vector3Value;
+            EditorGUI.BeginChangeCheck();
+            v = DrawVector3(rect, k_DrawVector6_Label, v, min, max, false);
+            if (EditorGUI.EndChangeCheck())
+                positive.vector3Value = v;
+
+            GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
+
+            rect = GUILayoutUtility.GetRect(0, float.MaxValue, EditorGUIUtility.singleLineHeight, EditorGUIUtility.singleLineHeight);
+            v = negative.vector3Value;
+            EditorGUI.BeginChangeCheck();
+            v = DrawVector3(rect, k_DrawVector6_Label, v, min, max, true);
+            if (EditorGUI.EndChangeCheck())
+                negative.vector3Value = v;
+            --EditorGUI.indentLevel;
+            GUILayout.EndVertical();
+        }
+
         static Vector3 DrawVector3Slider(Rect rect, GUIContent[] labels, Vector3 value, Vector3 min, Vector3 max)
         {
             // Use a corrected width due to the hacks used for layouting the slider properly below
@@ -293,6 +325,32 @@ namespace UnityEditor.Experimental.Rendering
                 EditorGUI.LabelField(labelRect, labels[i]);
                 value[i] = GUI.HorizontalSlider(sliderRect, value[i], min[i], max[i]);
                 value[i] = EditorGUI.FloatField(fieldRect, value[i]);
+            }
+            return value;
+        }
+
+        //Suffix is a hack as sublabel only work with 1 character
+        static Vector3 DrawVector3(Rect rect, GUIContent[] labels, Vector3 value, Vector3 min, Vector3 max, bool addMinusPrefix)
+        {
+            float[] multifloat = new float[] { value.x, value.y, value.z };
+            rect = EditorGUI.IndentedRect(rect);
+            float fieldWidth = rect.width / 3f;
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.MultiFloatField(rect, labels, multifloat);
+            if(EditorGUI.EndChangeCheck())
+            {
+                value.x = Mathf.Max(Mathf.Min(multifloat[0], max.x), min.x);
+                value.y = Mathf.Max(Mathf.Min(multifloat[1], max.y), min.y);
+                value.z = Mathf.Max(Mathf.Min(multifloat[2], max.z), min.z);
+            }
+            if(addMinusPrefix)
+            {
+                Rect suffixRect = new Rect(rect.x-33, rect.y, 100, rect.height);
+                for(int i = 0; i < 3; ++i)
+                {
+                    EditorGUI.LabelField(suffixRect, "-");
+                    suffixRect.x += fieldWidth;
+                }
             }
             return value;
         }
