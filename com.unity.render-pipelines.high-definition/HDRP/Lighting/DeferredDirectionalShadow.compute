@@ -13,14 +13,15 @@
 #include "Lighting.hlsl"
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+#pragma enable_d3d11_debug_symbol
 
 //#pragma enable_d3d11_debug_symbols
 
 RWTexture2D<float4> _DeferredShadowTextureUAV;
+float3  _LightDirection;
 
 CBUFFER_START(DeferredShadowParameters)
 uint    _DirectionalShadowIndex;
-float3  _LightDirection;
 float4  _ScreenSpaceShadowsParameters;
 int     _SampleCount;
 CBUFFER_END
@@ -150,10 +151,11 @@ void DeferredContactShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId
     float shadow = 1;
     if (_ContactShadowLength > 0.0f)
     {
-        float4 result = ScreenSpaceShadowRayCast(posInput.positionWS, normalize(_LightDirection), _ContactShadowLength * max(0.5, posInput.linearDepth * _ContactShadowDistanceScaleFactor));
+        //Here LightDirection is not the light direction but the light position
+        float4 result = ScreenSpaceShadowRayCast(posInput.positionWS, normalize(_LightDirection - posInput.positionWS), _ContactShadowLength * max(0.5, posInput.linearDepth * _ContactShadowDistanceScaleFactor));
         contactShadow = 1.0 - result.x * saturate((_ContactShadowFadeEnd - posInput.linearDepth) * _ContactShadowFadeOneOverRange);
         shadow *= contactShadow;
     }
     
-    _DeferredShadowTextureUAV[pixelCoord] = float4(shadow, 0.0, 0.0, 0.0);
+    _DeferredShadowTextureUAV[pixelCoord] = float4(shadow, _LightDirection);
 }
