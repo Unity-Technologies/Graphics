@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "FlipBook")]
+    //[VFXInfo(category = "FlipBook")] deprecated
     class FlipbookSetTexIndex : VFXBlock
     {
         // TODO: Let's factorize this this into a utility class
@@ -87,6 +87,33 @@ namespace UnityEditor.VFX.Block
 
                 string outSource = string.Format("texIndex = {0};", value);
                 return outSource;
+            }
+        }
+
+        public override void Sanitize()
+        {
+            Debug.Log("Sanitizing Graph: Automatically replace SetLifetime with corresponding generic blocks");
+
+            if (mode == Mode.Constant || mode == Mode.Random)
+            {
+                var newBlock = CreateInstance<SetAttribute>();
+                newBlock.SetSettingValue("attribute", "texIndex");
+                newBlock.SetSettingValue("Random", mode == Mode.Constant ? RandomMode.Off : RandomMode.Uniform);
+
+                // Transfer links
+                VFXSlot.CopyLinksAndValue(newBlock.GetInputSlot(0), GetInputSlot(0), true);
+                if (mode == Mode.Random)
+                    VFXSlot.CopyLinksAndValue(newBlock.GetInputSlot(1), GetInputSlot(1), true);
+                ReplaceModel(newBlock, this);
+            }
+            else // Ignore random curve
+            {
+                var newBlock = CreateInstance<AttributeFromCurve>();
+                newBlock.SetSettingValue("attribute", "texIndex");
+
+                // Transfer links
+                VFXSlot.CopyLinksAndValue(newBlock.GetInputSlot(0), GetInputSlot(0), true);
+                ReplaceModel(newBlock, this);
             }
         }
     }

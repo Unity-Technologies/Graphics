@@ -80,4 +80,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/VFXTests/GraphicsTests/20_SpawnerChaining.unity
     guid: e0c50bd7286de7b4b9c97f3f962b0933
+  - enabled: 1
+    path: Assets/VFXTests/GraphicsTests/Collision.unity
+    guid: e51caecb20798cf40ba0f8b8759d3e1b
+  - enabled: 1
+    path: Assets/VFXTests/GraphicsTests/ConformAndSDF.unity
+    guid: 637544c4a1360da42a28676609233cd8
   m_configObjects: {}

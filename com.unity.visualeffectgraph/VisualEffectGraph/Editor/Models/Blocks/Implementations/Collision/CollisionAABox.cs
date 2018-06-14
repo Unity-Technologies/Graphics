@@ -21,13 +21,13 @@ namespace UnityEditor.VFX.Block
 float3 nextPos = position + velocity * deltaTime;
 float3 dir = nextPos - box_center;
 float3 absDir = abs(dir);
-float3 size = box_size * 0.5f;
+float3 size = box_size * 0.5f + radius * colliderSign;
 ";
 
                 if (mode == Mode.Solid)
-                    Source += @"bool collision = all(absDir <= size);";
+                    Source += @"bool collision = all(absDir < size);";
                 else
-                    Source += @"bool collision = any(absDir >= size);";
+                    Source += @"bool collision = any(absDir > size);";
 
                 Source += @"
 if (collision)
@@ -43,9 +43,11 @@ if (collision)
         n = float3(0.0f, colliderSign * sign(dir.y), 0.0f);
     else
         n = float3(0.0f, 0.0f, colliderSign * sign(dir.z));
-
-    position -= n * distanceToEdge * colliderSign;
     ";
+                if (mode == Mode.Solid)
+                    Source += @"position -= n * distanceToEdge;";
+                else
+                    Source += @"position -= sign(dir) * max(0, distanceToEdge);";
 
                 Source += collisionResponseSource;
                 Source += @"

@@ -286,10 +286,7 @@ namespace UnityEditor.VFX
 
             // Has a least one dependent compilable system
             if (m_Owners.SelectMany(c => c.allLinkedOutputSlot)
-                .Select(s => s.owner)
-                .Where(m => ((m is VFXBlock) && ((VFXBlock)m).enabled) || (m is VFXContext))
-                .Select(m => ((VFXModel)m).GetFirstParentOfType<VFXContext>())
-                .Distinct()
+                .Select(s => ((VFXModel)s.owner).GetFirstOfType<VFXContext>())
                 .Any(c => c.CanBeCompiled()))
                 return true;
 
@@ -576,6 +573,7 @@ namespace UnityEditor.VFX
                 }
 
                 var gpuTarget = context.allLinkedOutputSlot.SelectMany(o => (o.owner as VFXContext).outputContexts)
+                    .Where(c => c.CanBeCompiled())
                     .Select(o => eventBuffer[o.GetData()])
                     .ToArray();
                 for (uint indexTarget = 0; indexTarget < (uint)gpuTarget.Length; ++indexTarget)

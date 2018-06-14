@@ -147,17 +147,17 @@ namespace UnityEditor.VFX
             return m_Parent;
         }
 
-        public T GetFirstParentOfType<T>() where T : VFXModel
+        public T GetFirstOfType<T>() where T : VFXModel
         {
+            if (this is T)
+                return this as T;
+
             var parent = GetParent();
 
             if (parent == null)
                 return null;
 
-            if (parent is T)
-                return parent as T;
-
-            return parent.GetFirstParentOfType<T>();
+            return parent.GetFirstOfType<T>();
         }
 
         public void Attach(VFXModel parent, bool notify = true)
