@@ -1,7 +1,7 @@
-﻿namespace UnityEngine.TestTools.Graphics
+namespace UnityEngine.TestTools.Graphics
 {
     public class GraphicsTestSettings : MonoBehaviour
     {
-        public ImageComparisonSettings ImageComparisonSettings;
+        public ImageComparisonSettings ImageComparisonSettings = new ImageComparisonSettings();
     }
 }
