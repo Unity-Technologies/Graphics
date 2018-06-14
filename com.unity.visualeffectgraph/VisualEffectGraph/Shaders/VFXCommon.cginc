@@ -89,6 +89,33 @@ float4 SampleTexture(VFXSamplerCubeArray s,float3 coords,float slice,float level
     return s.t.SampleLevel(s.s,float4(coords,slice),level);
 }
 
+float SampleSDF(VFXSampler3D s,float3 coords,float level = 0.0f)
+{
+    return SampleTexture(s,coords,level).x;
+}
+
+float3 SampleSDFDerivativesFast(VFXSampler3D s, float3 coords, float dist, float level = 0.0f)
+{
+    float3 d;
+    // 3 taps
+    const float kStep = 0.01f;
+    d.x = SampleSDF(s, coords + float3(kStep, 0, 0));
+    d.y = SampleSDF(s, coords + float3(0, kStep, 0));
+    d.z = SampleSDF(s, coords + float3(0, 0, kStep));
+    return d - dist;
+}
+
+float3 SampleSDFDerivatives(VFXSampler3D s,float3 coords,float level = 0.0f)
+{
+    float3 d;
+    // 6 taps
+    const float kStep = 0.01f;
+    d.x = SampleSDF(s, coords + float3(kStep, 0, 0)) - SampleSDF(s, coords - float3(kStep, 0, 0));
+    d.y = SampleSDF(s, coords + float3(0, kStep, 0)) - SampleSDF(s, coords - float3(0, kStep, 0));
+    d.z = SampleSDF(s, coords + float3(0, 0, kStep)) - SampleSDF(s, coords - float3(0, 0, kStep));
+    return d;
+}
+
 VFXSampler2D GetVFXSampler(Texture2D t,SamplerState s)
 {
     VFXSampler2D vfxSampler;
