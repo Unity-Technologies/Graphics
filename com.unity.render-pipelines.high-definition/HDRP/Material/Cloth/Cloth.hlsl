@@ -4,6 +4,15 @@
 // SurfaceData is defined in Cloth.cs which generates Cloth.cs.hlsl
 #include "Cloth.cs.hlsl"
 
+// TODO: Share!
+
+// This method allows us to know at compile time what material features should be removed from the code by Tile (Indepenently of the value of material feature flag per pixel).
+// This is only useful for classification during lighting, so it's not needed in EncodeIntoGBuffer and ConvertSurfaceDataToBSDFData (where we always know exactly what the material feature is)
+bool HasFeatureFlag(uint featureFlags, uint flag)
+{
+    return ((featureFlags & flag) != 0);
+}
+
 // This function is use to help with debugging and must be implemented by any lit material
 // Implementer must take into account what are the current override component and
 // adjust SurfaceData properties accordingdly
@@ -102,19 +111,39 @@ void GetBSDFDataDebug(uint paramId, BSDFData bsdfData, inout float3 result, inou
 // Precomputed lighting data to send to the various lighting functions
 struct PreLightData
 {
-    float NdotV;                     // Could be negative due to normal mapping, use ClampNdotV()
+    float NdotV;        // Could be negative due to normal mapping, use ClampNdotV()
+    float partLambdaV;
 };
 
 // This function is call to precompute heavy calculation before lightloop
 PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData bsdfData)
 {
     PreLightData preLightData;
-    ZERO_INITIALIZE(PreLightData, preLightData);
+    // Don't init to zero to allow to track warning about uninitialized data
 
     float3 N = bsdfData.normalWS;
     preLightData.NdotV = dot(N, V);
 
-    //float NdotV = ClampNdotV(preLightData.NdotV);
+    float NdotV = ClampNdotV(preLightData.NdotV);
+
+    // We avoid divergent evaluation of the GGX, as that nearly doubles the cost.
+    // If the tile has anisotropy, all the pixels within the tile are evaluated as anisotropic.
+    if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_CLOTH_SILK))
+    {
+        float TdotV = dot(bsdfData.tangentWS, V);
+        float BdotV = dot(bsdfData.bitangentWS, V);
+
+        // See code in lit.hlsl - TODO: share!
+        preLightData.partLambdaV = GetSmithJointGGXAnisoPartLambdaV(TdotV, BdotV, NdotV, bsdfData.roughnessT, bsdfData.roughnessB);
+        //float3 grainDirWS = (bsdfData.anisotropy >= 0.0) ? bsdfData.bitangentWS : bsdfData.tangentWS;
+        //float stretch = abs(bsdfData.anisotropy) * saturate(5 * preLightData.iblPerceptualRoughness);
+        //iblN = GetAnisotropicModifiedNormal(grainDirWS, N, V, stretch);
+    }
+    else
+    {
+        preLightData.partLambdaV = 0;
+        //iblN = N;
+    }
 
     return preLightData;
 }
@@ -196,15 +225,39 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
 
     // Cloth are dieletric but we simulate forward scattering effect with colored specular (fuzz tint term)
 	float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
-    float D = D_Charlie(NdotH, bsdfData.roughnessT);
-    // V_Charlie is expensive, use approx with V_Ashikhmin instead
-    // float Vis = V_Charlie(NdotL, NdotV, bsdfData.roughness);
-    float Vis = V_Ashikhmin(NdotL, NdotV);
 
-    specularLighting = F * Vis * D;
+    if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_CLOTH_COTTON_WOOL))
+    {
+        float D = D_Charlie(NdotH, bsdfData.roughnessT);
+        // V_Charlie is expensive, use approx with V_Ashikhmin instead
+        // float Vis = V_Charlie(NdotL, NdotV, bsdfData.roughness);
+        float Vis = V_Ashikhmin(NdotL, NdotV);
 
-    // Note: diffuseLighting is multiply by color in PostEvaluateBSDF
-    diffuseLighting = ClothLambert(bsdfData.roughnessT);
+        specularLighting = F * Vis * D;
+
+        // Note: diffuseLighting is multiply by color in PostEvaluateBSDF
+        diffuseLighting = ClothLambert(bsdfData.roughnessT);
+    }
+    else // MATERIALFEATUREFLAGS_CLOTH_SILK
+    {
+        // For silk we just use a tinted anisotropy
+        float3 H = (L + V) * invLenLV;
+
+        // For anisotropy we must not saturate these values
+        float TdotH = dot(bsdfData.tangentWS, H);
+        float TdotL = dot(bsdfData.tangentWS, L);
+        float BdotH = dot(bsdfData.bitangentWS, H);
+        float BdotL = dot(bsdfData.bitangentWS, L);
+
+        // TODO: Do comparison between this correct version and the one from isotropic and see if there is any visual difference
+        float DV = DV_SmithJointGGXAniso(   TdotH, BdotH, NdotH, NdotV, TdotL, BdotL, NdotL,
+                                            bsdfData.roughnessT, bsdfData.roughnessB, preLightData.partLambdaV);
+
+        specularLighting = F * DV;
+
+        // Note: diffuseLighting is multiply by color in PostEvaluateBSDF
+        diffuseLighting = DisneyDiffuse(NdotV, NdotL, LdotV, bsdfData.perceptualRoughness);
+    }
 }
 
 //-----------------------------------------------------------------------------
