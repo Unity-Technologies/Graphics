@@ -7,12 +7,12 @@ Pass
     //-------------------------------------------------------------------------------------
     // Render Modes (Blend, Cull, ZTest, Stencil, etc)
     //-------------------------------------------------------------------------------------
-${Blending}
-${Culling}
-${ZTest}
-${ZWrite}
-${Stencil}
-${ColorMask}
+        ${Blending}
+        ${Culling}
+        ${ZTest}
+        ${ZWrite}
+        ${Stencil}
+        ${ColorMask}
     //-------------------------------------------------------------------------------------
     // End Render Modes
     //-------------------------------------------------------------------------------------
@@ -37,7 +37,7 @@ ${ColorMask}
         $BlendMode.Alpha:                #define _BLENDMODE_ALPHA 1
         $BlendMode.Add:                  #define _BLENDMODE_ADD 1
     //-------------------------------------------------------------------------------------
-    // End Variant
+    // End Variant Definitions
     //-------------------------------------------------------------------------------------
 
     #pragma vertex Vert
@@ -156,28 +156,23 @@ ${Graph}
             $VertexDescriptionInputs.WorldSpaceNormal:          output.WorldSpaceNormal =            TransformObjectToWorldNormal(input.normalOS);
             $VertexDescriptionInputs.ViewSpaceNormal:           output.ViewSpaceNormal =             TransformWorldToViewDir(output.WorldSpaceNormal);
             $VertexDescriptionInputs.TangentSpaceNormal:        output.TangentSpaceNormal =          float3(0.0f, 0.0f, 1.0f);
-
             $VertexDescriptionInputs.ObjectSpaceTangent:        output.ObjectSpaceTangent =          input.tangentOS;
             $VertexDescriptionInputs.WorldSpaceTangent:		    output.WorldSpaceTangent =           TransformObjectToWorldDir(input.tangentOS.xyz);
             $VertexDescriptionInputs.ViewSpaceTangent:          output.ViewSpaceTangent =            TransformWorldToViewDir(output.WorldSpaceTangent);
             $VertexDescriptionInputs.TangentSpaceTangent:       output.TangentSpaceTangent =         float3(1.0f, 0.0f, 0.0f);
-
             $VertexDescriptionInputs.ObjectSpaceBiTangent:      output.ObjectSpaceBiTangent =        normalize(cross(input.normalOS, input.tangentOS) * (input.tangentOS.w > 0.0f ? 1.0f : -1.0f) * GetOddNegativeScale());
             $VertexDescriptionInputs.WorldSpaceBiTangent:       output.WorldSpaceBiTangent =         TransformObjectToWorldDir(output.ObjectSpaceBiTangent);
             $VertexDescriptionInputs.ViewSpaceBiTangent:        output.ViewSpaceBiTangent =          TransformWorldToViewDir(output.WorldSpaceBiTangent);
             $VertexDescriptionInputs.TangentSpaceBiTangent:     output.TangentSpaceBiTangent =       float3(0.0f, 1.0f, 0.0f);
-
             $VertexDescriptionInputs.ObjectSpacePosition:       output.ObjectSpacePosition =         input.positionOS;
             $VertexDescriptionInputs.WorldSpacePosition:        output.WorldSpacePosition =          TransformObjectToWorld(input.positionOS);
             $VertexDescriptionInputs.ViewSpacePosition:         output.ViewSpacePosition =           TransformWorldToView(output.WorldSpacePosition);
             $VertexDescriptionInputs.TangentSpacePosition:      output.TangentSpacePosition =        float3(0.0f, 0.0f, 0.0f);
-
             $VertexDescriptionInputs.WorldSpaceViewDirection:   output.WorldSpaceViewDirection =     GetWorldSpaceNormalizeViewDir(output.WorldSpacePosition);
             $VertexDescriptionInputs.ObjectSpaceViewDirection:  output.ObjectSpaceViewDirection =    TransformWorldToObjectDir(output.WorldSpaceViewDirection);
             $VertexDescriptionInputs.ViewSpaceViewDirection:    output.ViewSpaceViewDirection =      TransformWorldToViewDir(output.WorldSpaceViewDirection);
             $VertexDescriptionInputs.TangentSpaceViewDirection: float3x3 tangentSpaceTransform =     float3x3(output.WorldSpaceTangent,output.WorldSpaceBiTangent,output.WorldSpaceNormal);
             $VertexDescriptionInputs.TangentSpaceViewDirection: output.TangentSpaceViewDirection =   mul(tangentSpaceTransform, output.WorldSpaceViewDirection);
-
             $VertexDescriptionInputs.ScreenPosition:            output.ScreenPosition =              ComputeScreenPos(TransformWorldToHClip(output.WorldSpacePosition), _ProjectionParams.x);
             $VertexDescriptionInputs.uv0:                       output.uv0 =                         float4(input.uv0, 0.0f, 0.0f);
             $VertexDescriptionInputs.uv1:                       output.uv1 =                         float4(input.uv1, 0.0f, 0.0f);
@@ -241,40 +236,33 @@ ${Graph}
             $SurfaceDescriptionInputs.ObjectSpaceNormal:         output.ObjectSpaceNormal =           mul(output.WorldSpaceNormal, (float3x3) unity_ObjectToWorld);      // transposed multiplication by inverse matrix to handle normal scale
             $SurfaceDescriptionInputs.ViewSpaceNormal:           output.ViewSpaceNormal =             mul(output.WorldSpaceNormal, (float3x3) UNITY_MATRIX_I_V);         // transposed multiplication by inverse matrix to handle normal scale
             $SurfaceDescriptionInputs.TangentSpaceNormal:        output.TangentSpaceNormal =          float3(0.0f, 0.0f, 1.0f);
-
             $SurfaceDescriptionInputs.WorldSpaceTangent:         output.WorldSpaceTangent =           input.worldToTangent[0].xyz;
             $SurfaceDescriptionInputs.ObjectSpaceTangent:        output.ObjectSpaceTangent =          mul((float3x3) unity_WorldToObject, output.WorldSpaceTangent);
             $SurfaceDescriptionInputs.ViewSpaceTangent:          output.ViewSpaceTangent =            mul((float3x3) UNITY_MATRIX_V, output.WorldSpaceTangent);
             $SurfaceDescriptionInputs.TangentSpaceTangent:       output.TangentSpaceTangent =         float3(1.0f, 0.0f, 0.0f);
-
             $SurfaceDescriptionInputs.WorldSpaceBiTangent:       output.WorldSpaceBiTangent =         input.worldToTangent[1].xyz;
             $SurfaceDescriptionInputs.ObjectSpaceBiTangent:      output.ObjectSpaceBiTangent =        mul((float3x3) unity_WorldToObject, output.WorldSpaceBiTangent);
             $SurfaceDescriptionInputs.ViewSpaceBiTangent:        output.ViewSpaceBiTangent =          mul((float3x3) UNITY_MATRIX_V, output.WorldSpaceBiTangent);
             $SurfaceDescriptionInputs.TangentSpaceBiTangent:     output.TangentSpaceBiTangent =       float3(0.0f, 1.0f, 0.0f);
-
             $SurfaceDescriptionInputs.WorldSpaceViewDirection:   output.WorldSpaceViewDirection =     normalize(viewWS);
             $SurfaceDescriptionInputs.ObjectSpaceViewDirection:  output.ObjectSpaceViewDirection =    mul((float3x3) unity_WorldToObject, output.WorldSpaceViewDirection);
             $SurfaceDescriptionInputs.ViewSpaceViewDirection:    output.ViewSpaceViewDirection =      mul((float3x3) UNITY_MATRIX_V, output.WorldSpaceViewDirection);
             $SurfaceDescriptionInputs.TangentSpaceViewDirection: float3x3 tangentSpaceTransform =     float3x3(output.WorldSpaceTangent,output.WorldSpaceBiTangent,output.WorldSpaceNormal);
             $SurfaceDescriptionInputs.TangentSpaceViewDirection: output.TangentSpaceViewDirection =   mul(tangentSpaceTransform, output.WorldSpaceViewDirection);
-
-            // TODO: FragInputs.positionWS is badly named -- it's camera relative, not in world space
-            // we have to fix it up here to match graph input expectations
+            $SurfaceDescriptionInputs.WorldSpacePosition:        // TODO: FragInputs.positionWS is badly named -- it's camera relative, not in world space
+            $SurfaceDescriptionInputs.WorldSpacePosition:        // we have to fix it up here to match graph input expectations
             $SurfaceDescriptionInputs.WorldSpacePosition:        output.WorldSpacePosition =          input.positionWS + _WorldSpaceCameraPos;
             $SurfaceDescriptionInputs.ObjectSpacePosition:       output.ObjectSpacePosition =         mul(unity_WorldToObject, float4(input.positionWS + _WorldSpaceCameraPos, 1.0f)).xyz;
             $SurfaceDescriptionInputs.ViewSpacePosition:         float4 posViewSpace =                mul(UNITY_MATRIX_V, float4(input.positionWS, 1.0f));
             $SurfaceDescriptionInputs.ViewSpacePosition:         output.ViewSpacePosition =           posViewSpace.xyz / posViewSpace.w;
             $SurfaceDescriptionInputs.TangentSpacePosition:      output.TangentSpacePosition =        float3(0.0f, 0.0f, 0.0f);
-
-            // TODO: positionSS is SV_Position, graph input expects screenPosition to be 0..1 across the active viewport (?)
-            $SurfaceDescriptionInputs.ScreenPosition:            output.ScreenPosition =             ComputeScreenPos(TransformWorldToHClip(input.positionWS), _ProjectionParams.x);
-
-            $SurfaceDescriptionInputs.uv0:                       output.uv0 =    float4(input.texCoord0, 0.0f, 0.0f);
-            $SurfaceDescriptionInputs.uv1:                       output.uv1 =    float4(input.texCoord1, 0.0f, 0.0f);
-            $SurfaceDescriptionInputs.uv2:                       output.uv2 =    float4(input.texCoord2, 0.0f, 0.0f);
-            $SurfaceDescriptionInputs.uv3:                       output.uv3 =    float4(input.texCoord3, 0.0f, 0.0f);
-
-            $SurfaceDescriptionInputs.VertexColor:               output.VertexColor =    input.color;
+            $SurfaceDescriptionInputs.ScreenPosition:            output.ScreenPosition =              ComputeScreenPos(TransformWorldToHClip(input.positionWS), _ProjectionParams.x);
+            $SurfaceDescriptionInputs.uv0:                       output.uv0 =                         float4(input.texCoord0, 0.0f, 0.0f);
+            $SurfaceDescriptionInputs.uv1:                       output.uv1 =                         float4(input.texCoord1, 0.0f, 0.0f);
+            $SurfaceDescriptionInputs.uv2:                       output.uv2 =                         float4(input.texCoord2, 0.0f, 0.0f);
+            $SurfaceDescriptionInputs.uv3:                       output.uv3 =                         float4(input.texCoord3, 0.0f, 0.0f);
+            
+            $SurfaceDescriptionInputs.VertexColor:               output.VertexColor =                 input.color;
 
             $SurfaceDescriptionInputs.FaceSign:                  output.FaceSign =    input.isFrontFace;
 
@@ -390,7 +378,7 @@ ${Graph}
 
         // It is safe to call this function here as surfaceData have been filled
         // We want to know if we must enable transmission on GI for SSS material, if the material have no SSS, this code will be remove by the compiler.
-        BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
+        BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS.xy, surfaceData);
         if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
         {
             // For now simply recall the function with inverted normal, the compiler should be able to optimize the lightmap case to not resample the directional lightmap

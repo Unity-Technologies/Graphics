@@ -63,7 +63,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             get
             {
                 return SystemInfo.supportsComputeShaders &&
-                    !Application.isMobilePlatform && Application.platform != RuntimePlatform.WebGLPlayer;
+                       SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore &&
+                       !Application.isMobilePlatform &&
+                       Application.platform != RuntimePlatform.WebGLPlayer;
             }
         }
 
@@ -191,7 +193,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             bool requiresDepthAttachment = requiresCameraDepth && !requiresDepthPrepass;
             bool requiresColorAttachment = RequiresIntermediateColorTexture(ref renderingData.cameraData, baseDescriptor, requiresDepthAttachment);
             int[] colorHandles = (requiresColorAttachment) ? new[] {RenderTargetHandles.Color} : null;
-            int depthHandle = (requiresColorAttachment) ? RenderTargetHandles.DepthAttachment : -1;
+            int depthHandle = (requiresDepthAttachment) ? RenderTargetHandles.DepthAttachment : -1;
             EnqueuePass(cmd, RenderPassHandles.ForwardLit, baseDescriptor, colorHandles, depthHandle, renderingData.cameraData.msaaSamples);
 
             context.ExecuteCommandBuffer(cmd);

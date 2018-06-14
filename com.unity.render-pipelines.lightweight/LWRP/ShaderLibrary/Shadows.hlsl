@@ -8,10 +8,10 @@
 #define MAX_SHADOW_CASCADES 4
 
 #ifndef SHADOWS_SCREEN
-#ifdef SHADER_API_GLES
-#define SHADOWS_SCREEN 0
-#else
+#if defined(_SHADOWS_ENABLED) && defined(_SHADOWS_CASCADE) && !defined(SHADER_API_GLES)
 #define SHADOWS_SCREEN 1
+#else
+#define SHADOWS_SCREEN 0
 #endif
 #endif
 
@@ -220,7 +220,6 @@ half MainLightRealtimeShadowAttenuation(float4 shadowCoord)
     half shadowStrength = GetMainLightShadowStrength();
     return SampleShadowmap(shadowCoord, TEXTURE2D_PARAM(_DirectionalShadowmapTexture, sampler_DirectionalShadowmapTexture), shadowSamplingData, shadowStrength);
 #endif
-
 }
 
 half LocalLightRealtimeShadowAttenuation(int lightIndex, float3 positionWS)
