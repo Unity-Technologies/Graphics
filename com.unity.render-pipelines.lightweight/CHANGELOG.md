@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 ### Fixed
+- Fixed UnityPerDraw CB layout
 - GLCore compute buffer compiler error
 - Occlusion strength not being applied on LW standard shaders
 - CopyDepth pass is being called even when a depth from prepass is available
