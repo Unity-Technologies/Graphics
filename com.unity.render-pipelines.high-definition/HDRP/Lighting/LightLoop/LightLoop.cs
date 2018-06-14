@@ -373,7 +373,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static int[] s_shadeOpaqueIndirectShadowMaskFptlKernels = new int[LightDefinitions.s_NumFeatureVariants];
 
         static int s_deferredDirectionalShadowKernel;
-        static int s_deferredContactShadowkernel;
         static int s_deferredDirectionalShadow_Contact_Kernel;
 
         static ComputeBuffer s_LightVolumeDataBuffer = null;
@@ -434,6 +433,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_CurrentSunLightShadowIndex = -1;
         LightData m_DominantLightData;
         int m_DominantLightIndex = -1;
+        bool m_CurrentSunLightContactShadow = false;
 
         public Light GetCurrentSunLight() { return m_CurrentSunLight; }
 
@@ -559,7 +559,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             s_deferredDirectionalShadowKernel = deferredDirectionalShadowComputeShader.FindKernel("DeferredDirectionalShadow");
             s_deferredDirectionalShadow_Contact_Kernel = deferredDirectionalShadowComputeShader.FindKernel("DeferredDirectionalShadow_Contact");
-            s_deferredContactShadowkernel = deferredDirectionalShadowComputeShader.FindKernel("DeferredContactShadow");
 
             for (int variant = 0; variant < LightDefinitions.s_NumFeatureVariants; variant++)
             {
@@ -891,10 +890,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int lightIndex, ref Vector3 lightDimensions)
         {
             var lightData = new LightData();
+            ContactShadows contactShadows = VolumeManager.instance.stack.GetComponent<ContactShadows>();
+            bool enableContactShadows = m_FrameSettings.enableContactShadows && contactShadows.enable && contactShadows.length > 0.0f;
 
             lightData.lightType = gpuLightType;
-
-            lightData.contactShadowIndex = -1;
+            
+            lightData.contactShadowIndex = enableContactShadows ? 1 : -1;
 
             lightData.positionWS = light.light.transform.position;
             // Setting 0 for invSqrAttenuationRadius mean we have no range attenuation, but still have inverse square attenuation.
@@ -1472,6 +1473,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_CurrentSunLight = null;
                 m_CurrentSunLightShadowIndex = -1;
                 m_DominantLightIndex = -1;
+                m_CurrentSunLightContactShadow = false;
 
                 var stereoEnabled = m_FrameSettings.enableStereo;
 
@@ -1687,8 +1689,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     m_lightList.directionalLights[last] = lightData;
                                 }
 
-                                if (additionalShadowData.contactShadows)
+                                if (additionalShadowData != null && additionalShadowData.contactShadows)
+                                {
                                     biggestLight = Single.PositiveInfinity;
+                                    m_CurrentSunLightContactShadow = true;
+                                }
                             }
                             continue;
                         }
@@ -1727,7 +1732,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 lightData.positionWS -= camPosWS;
                                 m_lightList.lights[last] = lightData;
                             }
-                            
+
                             if (additionalShadowData != null && additionalShadowData.contactShadows && lightDimensions.magnitude > biggestLight)
                             {
                                 m_DominantLightData = m_lightList.lights[m_lightList.lights.Count - 1];
@@ -2334,23 +2339,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 ContactShadows  contactShadows = VolumeManager.instance.stack.GetComponent<ContactShadows>();
                 bool            enableContactShadows = m_FrameSettings.enableContactShadows && contactShadows.enable && contactShadows.length > 0.0f;
-                Vector3         lightDirection;
+                Vector4         lightDirection;
                 int             kernel;
 
-                if (enableContactShadows)
-                {
-                    if (m_DominantLightIndex != -1)
-                        kernel = s_deferredContactShadowkernel;
-                    else
-                        kernel = s_deferredDirectionalShadow_Contact_Kernel;
-                }
+                if (enableContactShadows && (m_DominantLightIndex != -1 || m_CurrentSunLightContactShadow))
+                    kernel = s_deferredDirectionalShadow_Contact_Kernel;
                 else
                     kernel = s_deferredDirectionalShadowKernel;
                 
-                if (m_CurrentSunLight != null)
+                if (m_DominantLightIndex == -1 && m_CurrentSunLight != null)
+                {
                     lightDirection = -m_CurrentSunLight.transform.forward;
+                    lightDirection.w = 0;
+                }
                 else
+                {
                     lightDirection = m_DominantLightData.positionWS;
+                    lightDirection.w = 1;
+                }
 
                 m_ShadowMgr.BindResources(cmd, deferredDirectionalShadowComputeShader, kernel);
 
