@@ -120,7 +120,7 @@ public class VisualEffectAssetEditor : Editor
     {
         if (m_OriginalBounds.size != Vector3.zero)
         {
-            float maxBounds = Mathf.Sqrt(m_OriginalBounds.size.x * m_OriginalBounds.size.x + m_OriginalBounds.size.y * m_OriginalBounds.size.y + m_OriginalBounds.size.z * m_OriginalBounds.size.z) * 0.5f;
+            float maxBounds = Mathf.Sqrt(m_OriginalBounds.size.x * m_OriginalBounds.size.x + m_OriginalBounds.size.y * m_OriginalBounds.size.y + m_OriginalBounds.size.z * m_OriginalBounds.size.z);
             m_PreviewUtility.camera.farClipPlane = m_Distance + maxBounds * 1.1f;
             m_PreviewUtility.camera.nearClipPlane = Mathf.Max(0.0001f, (m_Distance - maxBounds));
         }
@@ -143,7 +143,7 @@ public class VisualEffectAssetEditor : Editor
             if (renderer != null)
             {
                 m_OriginalBounds = renderer.bounds;
-                float maxBounds = Mathf.Sqrt(m_OriginalBounds.size.x * m_OriginalBounds.size.x + m_OriginalBounds.size.y * m_OriginalBounds.size.y + m_OriginalBounds.size.z * m_OriginalBounds.size.z) * 0.5f;
+                float maxBounds = Mathf.Sqrt(m_OriginalBounds.size.x * m_OriginalBounds.size.x + m_OriginalBounds.size.y * m_OriginalBounds.size.y + m_OriginalBounds.size.z * m_OriginalBounds.size.z);
                 m_Distance = Mathf.Max(0.01f, maxBounds * 1.25f);
 
                 m_Origin = m_OriginalBounds.center;
@@ -171,7 +171,7 @@ public class VisualEffectAssetEditor : Editor
             {
                 var bounds = renderer.bounds;
 
-                m_PreviewUtility.DrawMesh(s_CubeWireFrame, Matrix4x4.TRS(bounds.center, Quaternion.identity, bounds.size * 0.5f), (Material)EditorGUIUtility.LoadRequired("SceneView/HandleLines.mat"), 0);
+                m_PreviewUtility.DrawMesh(s_CubeWireFrame, Matrix4x4.TRS(bounds.center, Quaternion.identity, bounds.size), (Material)EditorGUIUtility.LoadRequired("SceneView/HandleLines.mat"), 0);
             }
 
             m_PreviewUtility.EndAndDrawPreview(r);
@@ -199,6 +199,10 @@ public class VisualEffectAssetEditor : Editor
 
         UnityObject[] objects = AssetDatabase.LoadAllAssetsAtPath(AssetDatabase.GetAssetPath(asset));
 
+
+        bool enable = GUI.enabled; //Everything in external asset is disabled by default
+        GUI.enabled = true;
+
         foreach (var shader in objects)
         {
             if (shader is Shader || shader is ComputeShader)
@@ -213,6 +217,7 @@ public class VisualEffectAssetEditor : Editor
                 GUILayout.EndHorizontal();
             }
         }
+        GUI.enabled = false;
     }
 
     void OpenTempFile(UnityObject shader)

@@ -221,10 +221,12 @@ namespace UnityEditor.VFX.UI
                 }
 
                 correctOrder[0].SendToBack();
+                correctOrder[0].AddToClassList("first");
                 for (int i = 1; i < correctOrder.Length; ++i)
                 {
                     if (container.ElementAt(i) != correctOrder[i])
                         correctOrder[i].PlaceInFront(correctOrder[i - 1]);
+                    correctOrder[i].RemoveFromClassList("first");
                 }
             }
             Profiler.EndSample();
@@ -250,7 +252,7 @@ namespace UnityEditor.VFX.UI
                 style.positionTop = controller.position.y;
             }
 
-            if (controller.model.superCollapsed)
+            if (controller.superCollapsed)
             {
                 AddToClassList("superCollapsed");
             }

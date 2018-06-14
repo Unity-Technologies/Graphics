@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Time")]
+    //[VFXInfo(category = "Time")] deprecated
     class SetLifetime : VFXBlock
     {
         // TODO: Let's factorize this this into a utility class
@@ -81,6 +81,33 @@ namespace UnityEditor.VFX.Block
                     case SetMode.FromCurveRandom: return "lifetime = SampleCurve(Curve, RAND);";
                     default: throw new InvalidOperationException();
                 }
+            }
+        }
+
+        public override void Sanitize()
+        {
+            Debug.Log("Sanitizing Graph: Automatically replace SetLifetime with corresponding generic blocks");
+
+            if(mode == SetMode.Constant || mode == SetMode.Random)
+            {
+                var newBlock = CreateInstance<SetAttribute>();
+                newBlock.SetSettingValue("attribute", "lifetime");
+                newBlock.SetSettingValue("Random", mode == SetMode.Constant ? RandomMode.Off : RandomMode.Uniform);
+
+                // Transfer links
+                VFXSlot.CopyLinksAndValue(newBlock.GetInputSlot(0), GetInputSlot(0), true);
+                if(mode == SetMode.Random)
+                    VFXSlot.CopyLinksAndValue(newBlock.GetInputSlot(1), GetInputSlot(1), true);
+                ReplaceModel(newBlock, this);
+            }
+            else // Ignore random curve
+            {
+                var newBlock = CreateInstance<AttributeFromCurve>();
+                newBlock.SetSettingValue("attribute", "lifetime");
+
+                // Transfer links
+                VFXSlot.CopyLinksAndValue(newBlock.GetInputSlot(0), GetInputSlot(0), true);
+                ReplaceModel(newBlock, this);
             }
         }
     }

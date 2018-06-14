@@ -147,17 +147,17 @@ namespace UnityEditor.VFX
             return m_Parent;
         }
 
-        public T GetFirstParentOfType<T>() where T : VFXModel
+        public T GetFirstOfType<T>() where T : VFXModel
         {
+            if (this is T)
+                return this as T;
+
             var parent = GetParent();
 
             if (parent == null)
                 return null;
 
-            if (parent is T)
-                return parent as T;
-
-            return parent.GetFirstParentOfType<T>();
+            return parent.GetFirstOfType<T>();
         }
 
         public void Attach(VFXModel parent, bool notify = true)
@@ -295,7 +295,7 @@ namespace UnityEditor.VFX
                 });
         }
 
-        static protected VFXExpression ConvertSpace(VFXExpression input, VFXSlot targetSlot, CoordinateSpace space)
+        static public VFXExpression ConvertSpace(VFXExpression input, VFXSlot targetSlot, CoordinateSpace space)
         {
             if (targetSlot.spaceable)
             {
@@ -319,6 +319,10 @@ namespace UnityEditor.VFX
             else if (spaceType == SpaceableType.Direction)
             {
                 input = new VFXExpressionTransformDirection(matrix, input);
+            }
+            else if (spaceType == SpaceableType.Matrix)
+            {
+                input = new VFXExpressionTransformMatrix(matrix, input);
             }
             else
             {

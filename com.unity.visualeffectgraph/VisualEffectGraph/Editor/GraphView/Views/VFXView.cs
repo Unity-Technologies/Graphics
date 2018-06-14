@@ -1307,6 +1307,10 @@ namespace UnityEditor.VFX.UI
                     movable.OnMoved();
                 }
             }
+            else if (change.elementsToRemove != null)
+            {
+                controller.Remove(change.elementsToRemove.OfType<IControlledElement>().Where(t => t.controller != null).Select(t => t.controller));
+            }
             return change;
         }
 

@@ -223,6 +223,10 @@ width:-1;
     background-color:rgba(0,0,0,0);
 }
 
+#line
+{
+    background-color:#4c4c4c;
+}
 
 #settings-divider
 {

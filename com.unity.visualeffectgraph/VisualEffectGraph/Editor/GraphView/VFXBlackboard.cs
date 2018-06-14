@@ -705,7 +705,11 @@ namespace  UnityEditor.VFX.UI
         {
             VFXBlackboardCategory cat = null;
             VFXBlackboardRow row = null;
-            if (m_Categories.TryGetValue(controller.model.category, out cat))
+            if (string.IsNullOrEmpty(controller.model.category))
+            {
+                row = m_DefaultCategory.GetRowFromController(controller);
+            }
+            else if (m_Categories.TryGetValue(controller.model.category, out cat))
             {
                 row = cat.GetRowFromController(controller);
             }

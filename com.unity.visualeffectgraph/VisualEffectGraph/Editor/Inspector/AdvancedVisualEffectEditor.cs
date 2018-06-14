@@ -317,6 +317,7 @@ namespace UnityEditor.VFX
             {
                 get
                 {
+                    m_SerializedObject.Update();
                     if (m_Stack.Count == 0)
                         m_Stack.Add(System.Activator.CreateInstance(portType));
                     else

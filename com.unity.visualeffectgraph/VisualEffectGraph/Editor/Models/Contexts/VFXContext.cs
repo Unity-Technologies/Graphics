@@ -422,6 +422,11 @@ namespace UnityEditor.VFX
         [SerializeField]
         private VFXContextSlot[] m_OutputFlowSlot;
 
+        public override CoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
+        {
+            return space;
+        }
+
         public CoordinateSpace space
         {
             get
@@ -432,12 +437,17 @@ namespace UnityEditor.VFX
                 }
                 return CoordinateSpace.Local;
             }
+
             set
             {
                 if (m_Data is ISpaceable)
                 {
                     (m_Data as ISpaceable).space = value;
                     Invalidate(InvalidationCause.kSettingChanged);
+
+                    var slots = m_Data.owners.SelectMany(c => c.inputSlots.Concat(children.SelectMany(o => o.inputSlots)));
+                    foreach (var slot in slots.Where(s => s.spaceable))
+                        slot.Invalidate(InvalidationCause.kSpaceChanged);
                 }
             }
         }

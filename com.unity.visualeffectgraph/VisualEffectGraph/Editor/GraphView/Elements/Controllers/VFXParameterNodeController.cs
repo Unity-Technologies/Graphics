@@ -120,7 +120,7 @@ namespace UnityEditor.VFX.UI
 
         public override string title
         {
-            get { return ""; }
+            get { return outputPorts.First().name; }
         }
 
         public string exposedName
@@ -141,6 +141,21 @@ namespace UnityEditor.VFX.UI
             get
             {
                 return true;
+            }
+            set
+            {
+            }
+        }
+        public override bool superCollapsed
+        {
+            get
+            {
+                return !m_Infos.expanded;
+            }
+            set
+            {
+                m_Infos.expanded = !value;
+                model.Invalidate(VFXModel.InvalidationCause.kUIChanged);
             }
         }
 
