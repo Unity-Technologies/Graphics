@@ -168,7 +168,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     {
         // TODO: make projector lights cast shadows.
         shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, lightData.shadowIndex, L, distances.x, posInput.positionSS);
-        contactShadow = GetSContactShadow(lightLoopContext, lightData.contactShadowIndex);
+        contactShadow = GetContactShadow(lightLoopContext, lightData.contactShadowIndex);
         shadow = min(shadow, contactShadow);
 
 #ifdef SHADOWS_SHADOWMASK
