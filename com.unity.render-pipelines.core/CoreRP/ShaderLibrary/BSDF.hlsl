@@ -460,4 +460,65 @@ real3 EvalIridescence(real eta_1, real cosTheta1, real iridescenceThickness, rea
     return I;
 }
 
+//-----------------------------------------------------------------------------
+// Cloth
+//-----------------------------------------------------------------------------
+
+// Ref: https://knarkowicz.wordpress.com/2018/01/04/cloth-shading/
+real D_CharlieNoPI(real NdotH, real roughness)
+{
+    float invR = rcp(roughness);
+    float cos2h = NdotH * NdotH;
+    float sin2h = 1.0 - cos2h;
+    // Note: We have sin^2 so multiply by 0.5 to cancel it
+    return (2.0 + invR) * PositivePow(sin2h, invR * 0.5) / 2.0;
+}
+
+real D_Charlie(real NdotH, real roughness)
+{
+    return INV_PI * D_CharlieNoPI(NdotH, roughness);
+}
+
+real CharlieL(real x, real r)
+{
+    r = saturate(r);
+    r = (1. - r * r);
+
+    float a = lerp(25.3245, 21.5473, r);
+    float b = lerp(3.32435, 3.82987, r);
+    float c = lerp(0.16801, 0.19823, r);
+    float d = lerp(-1.27393, -1.97760, r);
+    float e = lerp(-4.85967, -4.32054, r);
+
+    return a / (1. + b * PositivePow(x, c)) + d * x + e;
+}
+
+// Note: This version don't include the softening of the paper: Production Friendly Microfacet Sheen BRDF
+real V_Charlie(real NdotL, real NdotV, real roughness)
+{
+    real lambdaV = NdotV < 0.5 ? exp(CharlieL(NdotV, roughness)) : exp(2.0 * CharlieL(0.5, roughness) - CharlieL(1.0 - NdotV, roughness));
+    real lambdaL = NdotL < 0.5 ? exp(CharlieL(NdotL, roughness)) : exp(2.0 * CharlieL(0.5, roughness) - CharlieL(1.0 - NdotL, roughness));
+
+    return 1.0 / ((1.0 + lambdaV + lambdaL) * (4.0 * NdotV * NdotL));
+}
+
+// We use V_Ashikhmin instead of V_Charlie in practice for game due to the cost of V_Charlie
+real V_Ashikhmin(real NdotL, real NdotV)
+{
+    // Use soft visibility term introduce in: Crafting a Next-Gen Material Pipeline for The Order : 1886
+    return 1.0 / (4.0 * (NdotL + NdotV - NdotL * NdotV));
+}
+
+// A diffuse term use with cloth done by tech artist - empirical
+real ClothLambertNoPI(real roughness)
+{
+    return lerp(1.0, 0.5, roughness);
+}
+
+real ClothLambert(real roughness)
+{
+    return INV_PI * ClothLambertNoPI(roughness);
+}
+
+
 #endif // UNITY_BSDF_INCLUDED
