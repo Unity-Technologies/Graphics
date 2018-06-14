@@ -1,6 +1,7 @@
 // Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel DeferredDirectionalShadow                    DEFERRED_DIRECTIONAL=DeferredDirectionalShadow
 #pragma kernel DeferredDirectionalShadow_Contact            DEFERRED_DIRECTIONAL=DeferredDirectionalShadow_Contact          ENABLE_CONTACT_SHADOWS
+#pragma kernel DeferredContactShadow
 
 #ifdef SHADER_API_PSSL
 #   pragma argument( scheduler=minpressure ) // instruct the shader compiler to prefer minimizing vgpr usage
@@ -12,15 +13,15 @@
 #include "Lighting.hlsl"
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
-#pragma enable_d3d11_debug_symbol
 
 //#pragma enable_d3d11_debug_symbols
 
 RWTexture2D<float4> _DeferredShadowTextureUAV;
-float3  _LightDirection;
 
 CBUFFER_START(DeferredShadowParameters)
 uint    _DirectionalShadowIndex;
+float4  _DirectionalLightDirection;
+float4  _PunctualLightPosition;
 float4  _ScreenSpaceShadowsParameters;
 int     _SampleCount;
 CBUFFER_END
@@ -104,14 +105,14 @@ float4 ScreenSpaceShadowRayCast(float3 positionWS, float3 rayDirection, float ra
     return occluded;
 }
 
-float ComputeContactShadow(PositionInputs posInput)
+float ComputeContactShadow(PositionInputs posInput, float3 direction)
 {
-    float   contactShadow = 0.0;
-
+    float contactShadow = 1.0;
+    
     if (_ContactShadowLength > 0.0f)
     {
         //Here LightDirection is not the light direction but the light position
-        float4 result = ScreenSpaceShadowRayCast(posInput.positionWS, normalize(_LightDirection - posInput.positionWS), _ContactShadowLength * max(0.5, posInput.linearDepth * _ContactShadowDistanceScaleFactor));
+        float4 result = ScreenSpaceShadowRayCast(posInput.positionWS, direction, _ContactShadowLength * max(0.5, posInput.linearDepth * _ContactShadowDistanceScaleFactor));
         contactShadow = 1.0 - result.x * saturate((_ContactShadowFadeEnd - posInput.linearDepth) * _ContactShadowFadeOneOverRange);
     }
 
@@ -123,7 +124,7 @@ void DEFERRED_DIRECTIONAL(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId 
 {
     uint2 pixelCoord = groupId * DEFERRED_SHADOW_TILE_SIZE + groupThreadId;
     uint2 tileCoord = groupId;
-    float contactShadow = 0.0;
+    float contactShadow = 1.0;
 
     float depth = LOAD_TEXTURE2D(_CameraDepthTexture, pixelCoord.xy).x;
 
@@ -131,18 +132,41 @@ void DEFERRED_DIRECTIONAL(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId 
         return;
 
     PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, tileCoord);
+    
+    //Direction got from either the directional light direction or the difference of punctual light position and the pixel position
+    float3 direction = normalize(_DirectionalLightDirection.xyz * _DirectionalLightDirection.w + (_PunctualLightPosition.xyz - posInput.positionWS) * _PunctualLightPosition.w);
 
     NormalData normalData;
     DecodeFromNormalBuffer(posInput.positionSS, normalData);
     float3 normalWS = normalData.normalWS;
 
     ShadowContext shadowContext = InitShadowContext();
-    float shadow = GetDirectionalShadowAttenuation(shadowContext, posInput.positionWS, normalWS, _DirectionalShadowIndex, _LightDirection);
+    float shadow = GetDirectionalShadowAttenuation(shadowContext, posInput.positionWS, normalWS, _DirectionalShadowIndex, _DirectionalLightDirection.xyz);
 
 #ifdef ENABLE_CONTACT_SHADOWS
-    contactShadow = ComputeContactShadow(posInput);
-    shadow *= contactShadow;
+    contactShadow = ComputeContactShadow(posInput, direction);
 #endif
 
     _DeferredShadowTextureUAV[pixelCoord] = float4(shadow, contactShadow, 0.0, 0.0);
+}
+
+[numthreads(DEFERRED_SHADOW_TILE_SIZE, DEFERRED_SHADOW_TILE_SIZE, 1)]
+void DeferredContactShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId : SV_GroupID)
+{
+    uint2 pixelCoord = groupId * DEFERRED_SHADOW_TILE_SIZE + groupThreadId;
+    uint2 tileCoord = groupId;
+    float contactShadow = 1.0;
+
+    float depth = LOAD_TEXTURE2D(_CameraDepthTexture, pixelCoord.xy).x;
+
+    if (depth == UNITY_RAW_FAR_CLIP_VALUE)
+        return;
+
+    PositionInputs posInput = GetPositionInput(pixelCoord.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V, tileCoord);
+    
+    float3 direction = normalize(_PunctualLightPosition.xyz - posInput.positionWS);
+
+    contactShadow = ComputeContactShadow(posInput, direction);
+
+    _DeferredShadowTextureUAV[pixelCoord] = float4(0.0, contactShadow, 0.0, 0.0);
 }
