@@ -59,11 +59,11 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public string assetName
         {
-            get { return m_BlackboardProvider.blackboard.title; }
+            get { return m_BlackboardProvider.assetName; }
             set
             {
-                m_BlackboardProvider.blackboard.title = value.Split('/').Last();
-                m_MasterPreviewView.assetName = value.Split('/').Last();
+                m_BlackboardProvider.assetName = value;
+                m_MasterPreviewView.assetName = value;
             }
         }
 
