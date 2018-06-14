@@ -1,3 +1,4 @@
+#define _RESTRICT_ATTRIBUTE_ACCESS
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -128,20 +129,69 @@ namespace UnityEditor.VFX.UI
             return model.HasLink();
         }
 
+#if _RESTRICT_ATTRIBUTE_ACCESS
+        static private bool DependOnAttribute(object model)
+        {
+            return model is VFXAttributeParameter || model is Operator.AgeOverLifetime;
+        }
+
+        static private HashSet<IVFXSlotContainer> CollectDescendantOfAttribute(IEnumerable<VFXNodeController> allSlotContainerControllers)
+        {
+            var operatorDependOnAttribute = new HashSet<IVFXSlotContainer>();
+            foreach (var attributeParameter in allSlotContainerControllers.Where(o => DependOnAttribute(o.model)))
+            {
+                VFXViewController.CollectChildOperator(attributeParameter.model as IVFXSlotContainer, operatorDependOnAttribute);
+            }
+            return operatorDependOnAttribute;
+        }
+
+        static private HashSet<IVFXSlotContainer> CollectAnscestorOfSpawner(IEnumerable<VFXNodeController> allSlotContainerControllers)
+        {
+            var operatorDependOnSpawner = new HashSet<IVFXSlotContainer>();
+            foreach (var block in allSlotContainerControllers.Where(o => o.model is VFXBlock && (o.model as VFXBlock).GetParent().contextType == VFXContextType.kSpawner))
+            {
+                VFXViewController.CollectParentOperator(block.model as IVFXSlotContainer, operatorDependOnSpawner);
+            }
+            return operatorDependOnSpawner;
+        }
+
+#endif
+
         public bool CanLinkToNode(VFXNodeController nodeController)
         {
             if (nodeController == sourceNode)
                 return false;
-            var childrenOperators = new HashSet<IVFXSlotContainer>();
             if (direction != Direction.Input)
             {
+                var childrenOperators = new HashSet<IVFXSlotContainer>();
                 VFXViewController.CollectChildOperator(sourceNode.slotContainer, childrenOperators);
+#if _RESTRICT_ATTRIBUTE_ACCESS
+                var parentsOperators = new HashSet<IVFXSlotContainer>();
+                VFXViewController.CollectParentOperator(sourceNode.slotContainer, parentsOperators);
+                if (parentsOperators.Any(o => DependOnAttribute(o)))
+                {
+                    var additionnalExcludeOperator = CollectAnscestorOfSpawner(viewController.AllSlotContainerControllers);
+                    childrenOperators.UnionWith(additionnalExcludeOperator);
+                }
+#endif
                 return !childrenOperators.Contains(nodeController.slotContainer);
             }
             else
             {
-                VFXViewController.CollectParentOperator(nodeController.slotContainer, childrenOperators);
-                return !childrenOperators.Contains(sourceNode.slotContainer);
+                var parentsOperators = new HashSet<IVFXSlotContainer>();
+                VFXViewController.CollectParentOperator(nodeController.slotContainer, parentsOperators);
+#if _RESTRICT_ATTRIBUTE_ACCESS
+                var childrenOperators = new HashSet<IVFXSlotContainer>();
+                VFXViewController.CollectChildOperator(sourceNode.slotContainer, childrenOperators);
+
+                var contextTypeInChildren = childrenOperators.OfType<VFXBlock>().Select(o => o.GetParent().contextType);
+                if (contextTypeInChildren.Any(o => o == VFXContextType.kSpawner))
+                {
+                    var additionnalExcludeOperator = CollectDescendantOfAttribute(viewController.AllSlotContainerControllers);
+                    return !parentsOperators.Contains(sourceNode.slotContainer) && !additionnalExcludeOperator.Contains(nodeController.slotContainer);
+                }
+#endif
+                return !parentsOperators.Contains(sourceNode.slotContainer);
             }
         }
 

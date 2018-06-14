@@ -954,10 +954,10 @@ namespace UnityEditor.VFX.UI
 
             hashChildren.Add(operatorInput);
 
-            var children = operatorInput.outputSlots.SelectMany(o => o.allChildrenWhere(s => s.HasLink())).Select(o => o.refSlot.owner);
+            var children = operatorInput.outputSlots.SelectMany(o => o.allChildrenWhere(s => s.HasLink())).SelectMany(o => o.LinkedSlots);
             foreach (var child in children)
             {
-                CollectChildOperator(child, hashChildren);
+                CollectChildOperator(child.owner, hashChildren);
             }
         }
 
