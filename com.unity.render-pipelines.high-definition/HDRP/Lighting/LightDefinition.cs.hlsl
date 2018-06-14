@@ -55,6 +55,7 @@ struct DirectionalLightData
     int tileCookie;
     float3 color;
     int shadowIndex;
+    int contactShadowIndex;
     float3 forward;
     int cookieIndex;
     float3 right;
@@ -139,6 +140,10 @@ float3 GetColor(DirectionalLightData value)
 int GetShadowIndex(DirectionalLightData value)
 {
     return value.shadowIndex;
+}
+int GetContactShadowIndex(DirectionalLightData value)
+{
+    return value.contactShadowIndex;
 }
 float3 GetForward(DirectionalLightData value)
 {

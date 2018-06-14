@@ -34,6 +34,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
     float3 positionWS = posInput.positionWS;
     float  shadow     = 1.0;
     float  shadowMask = 1.0;
+    float4 shadowData = float4(1, 1, 1, 1);
 
     color       = lightData.color;
     attenuation = 1.0; // Note: no volumetric attenuation along shadow rays for directional lights
@@ -59,6 +60,9 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 #else
         shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, lightData.shadowIndex, L, posInput.positionSS);
 #endif
+
+        float contactShadow = GetContactShadow(lightLoopContext, lightData.contactShadowIndex);
+        shadow = min(shadow, contactShadow);
 
 #ifdef SHADOWS_SHADOWMASK
 
