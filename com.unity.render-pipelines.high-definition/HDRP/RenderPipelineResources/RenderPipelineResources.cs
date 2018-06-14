@@ -61,7 +61,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Shader skyboxCubemap;
 
         // Material
-        public Shader preIntegratedFGD;
+        public Shader preIntegratedFGD_GGXDisneyDiffuse;
+        public Shader preIntegratedFGD_CharlieClothLambert;
 
         // Utilities / Core
         public ComputeShader encodeBC6HCS;
