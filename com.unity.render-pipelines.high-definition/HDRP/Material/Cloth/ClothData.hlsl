@@ -5,6 +5,9 @@
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
+    // TODO: Remove this zero initialize once we have written all the code
+    ZERO_INITIALIZE(SurfaceData, surfaceData);
+
     surfaceData.normalWS = input.worldToTangent[2].xyz;
     
     float2 baseColorMapUv = TRANSFORM_TEX(input.texCoord0, _BaseColorMap);

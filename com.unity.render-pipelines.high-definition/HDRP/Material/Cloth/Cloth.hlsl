@@ -179,16 +179,32 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 // BSDF share between directional light, punctual light and area light (reference)
 //-----------------------------------------------------------------------------
 
+// Ref: https://www.slideshare.net/jalnaga/custom-fabric-shader-for-unreal-engine-4
+// For cloth we have two type of BRDF
+// Non-Metal: Cotton, deim, flax and common fabrics
+// Cotton: Roughness of 1.0 (unless wet) - Fuzz rim - specular color is white but is looked like desaturated.
+// Metal: Silk, satin, velvet, nylon and polyester
+// Silk: Roughness 0.3 - 0.7 - anisotropic - varying specular color
+
 // This function apply BSDF. Assumes that NdotL is positive.
 void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData preLightData, BSDFData bsdfData,
             out float3 diffuseLighting,
             out float3 specularLighting)
 {
-    float  diffuseTerm = Lambert();
+    float LdotV, NdotH, LdotH, NdotV, invLenLV;
+    GetBSDFAngle(V, L, NdotL, preLightData.NdotV, LdotV, NdotH, LdotH, NdotV, invLenLV);
 
-    // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-    diffuseLighting = diffuseTerm;
-    specularLighting = float3(0.0, 0.0, 0.0);
+    // Cloth are dieletric but we simulate forward scattering effect with colored specular (fuzz tint term)
+	float3 F = F_Schlick(bsdfData.fresnel0, LdotH);
+    float D = D_Charlie(NdotH, bsdfData.roughnessT);
+    // V_Charlie is expensive, use approx with V_Ashikhmin instead
+    // float Vis = V_Charlie(NdotL, NdotV, bsdfData.roughness);
+    float Vis = V_Ashikhmin(NdotL, NdotV);
+
+    specularLighting = F * Vis * D;
+
+    // Note: diffuseLighting is multiply by color in PostEvaluateBSDF
+    diffuseLighting = ClothLambert(bsdfData.roughnessT);
 }
 
 //-----------------------------------------------------------------------------
@@ -214,7 +230,6 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
     float intensity = max(0, attenuation * NdotL); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
 
-    // Note: We use NdotL here to early out, but in case of clear coat this is not correct. But we are ok with this
     UNITY_BRANCH if (intensity > 0.0)
     {
         BSDF(V, L, NdotL, posInput.positionWS, preLightData, bsdfData, lighting.diffuse, lighting.specular);
@@ -285,7 +300,6 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
 
     float intensity = max(0, attenuation * NdotL); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
 
-    // Note: We use NdotL here to early out, but in case of clear coat this is not correct. But we are ok with this
     UNITY_BRANCH if (intensity > 0.0)
     {
         // Shader implementer is free to use minRoughness paramter or not(But better if it is done)
