@@ -57,7 +57,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // LightTransportData
         // This struct is use to store information for Enlighten/Progressive light mapper. both at runtime or off line.
         //-----------------------------------------------------------------------------
-        [GenerateHLSL(PackingRules.Exact, false, true, 120)]
+        [GenerateHLSL(PackingRules.Exact, false, true, 150)]
         public struct LightTransportData
         {
             [SurfaceDataAttributes("", false, true)]

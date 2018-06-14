@@ -5,7 +5,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public partial class Decal
     {
         // Main structure that store the user data (i.e user input of master node in material graph)
-        [GenerateHLSL(PackingRules.Exact, false, true, 10000)]
+        [GenerateHLSL(PackingRules.Exact, false, true, 200)]
         public struct DecalSurfaceData
         {
             [SurfaceDataAttributes("Base Color", false, true)]
