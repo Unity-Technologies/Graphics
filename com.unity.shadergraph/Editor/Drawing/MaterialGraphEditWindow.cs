@@ -119,7 +119,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphEditorView = new GraphEditorView(this, materialGraph)
                     {
                         persistenceKey = selectedGuid,
-                        assetName = asset.name
+                        assetName = asset.name.Split('/').Last()
                     };
                     m_ColorSpace = PlayerSettings.colorSpace;
                 }
@@ -493,7 +493,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphEditorView = new GraphEditorView(this, m_GraphObject.graph as AbstractMaterialGraph)
                 {
                     persistenceKey = selectedGuid,
-                    assetName = asset.name
+                    assetName = asset.name.Split('/').Last()
                 };
                 graphEditorView.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
 
