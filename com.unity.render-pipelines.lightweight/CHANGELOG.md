@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - pipeline now uses XRSEttings.eyeTextureResolutionScale as renderScale when in XR 
 
+### Changed
+- Screenspace shadow resolve is not only done when rendering shadow cascades
+
 ## [2.0.3-preview]
 
 ### Fixed
