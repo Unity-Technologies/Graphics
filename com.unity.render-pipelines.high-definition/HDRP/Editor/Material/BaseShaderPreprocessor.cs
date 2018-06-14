@@ -18,6 +18,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected ShaderKeyword m_DebugDisplay;
         protected ShaderKeyword m_TileLighting;
         protected ShaderKeyword m_ClusterLighting;
+        protected ShaderKeyword m_LodFadeCrossFade;
 
         public BaseShaderPreprocessor()
         {
@@ -25,6 +26,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_DebugDisplay = new ShaderKeyword("DEBUG_DISPLAY");
             m_TileLighting = new ShaderKeyword("USE_FPTL_LIGHTLIST");
             m_ClusterLighting = new ShaderKeyword("USE_CLUSTERED_LIGHTLIST");
+            m_LodFadeCrossFade = new ShaderKeyword("LOD_FADE_CROSSFADE");
         }
 
         public virtual void AddStripperFuncs(Dictionary<string, VariantStrippingFunc> stripperFuncs) {}
@@ -69,6 +71,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // If we are in a release build, don't compile debug display variant
             // Also don't compile it if not requested by the render pipeline settings
             if ((/*!Debug.isDebugBuild || */ !hdrpAsset.renderPipelineSettings.supportRuntimeDebugDisplay) && inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
+                return true;
+
+            if (inputData.shaderKeywordSet.IsEnabled(m_LodFadeCrossFade) && !hdrpAsset.renderPipelineSettings.supportDitheringCrossFade)
                 return true;
 
             return false;
