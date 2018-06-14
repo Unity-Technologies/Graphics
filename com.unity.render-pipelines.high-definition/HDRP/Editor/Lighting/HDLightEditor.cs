@@ -513,14 +513,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (settings.isBakedOrMixed)
                 DrawBakedShadowParameters();
 
-            EditorGUILayout.PropertyField(m_AdditionalShadowData.contactShadows, s_Styles.contactShadows);
-
             // There is currently no additional settings for shadow on directional light
             if (m_AdditionalLightData.showAdditionalSettings.boolValue)
             {
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Additional Settings", EditorStyles.boldLabel);
                 EditorGUI.indentLevel++;
+
+                EditorGUILayout.PropertyField(m_AdditionalShadowData.contactShadows, s_Styles.contactShadows);
 
                 if (settings.lightType.enumValueIndex != (int)LightType.Directional)
                 {
