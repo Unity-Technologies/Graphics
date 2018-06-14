@@ -268,51 +268,54 @@ namespace UnityEditor.VFX.UI
 
         public void ConvertToInline()
         {
-            VFXInlineOperator op = new VFXInlineOperator();
+            VFXInlineOperator op = ScriptableObject.CreateInstance<VFXInlineOperator>();
             op.SetSettingValue("m_Type", (SerializableType)parentController.model.type);
 
             viewController.graph.AddChild(op);
 
             op.position = position;
 
-            foreach (var link in m_Infos.linkedSlots.ToArray())
+            if (m_Infos.linkedSlots != null)
             {
-                var ancestors = new List<VFXSlot>();
-                ancestors.Add(link.outputSlot);
-                VFXSlot parent = link.outputSlot.GetParent();
-                while (parent != null)
+                foreach (var link in m_Infos.linkedSlots.ToArray())
                 {
-                    ancestors.Add(parent);
-
-                    parent = parent.GetParent();
-                }
-                int index = parentController.model.GetSlotIndex(ancestors.Last());
-
-                if (index >= 0 && index < op.GetNbOutputSlots())
-                {
-                    VFXSlot slot = op.outputSlots[index];
-                    for (int i = ancestors.Count() - 2; i >= 0; --i)
+                    var ancestors = new List<VFXSlot>();
+                    ancestors.Add(link.outputSlot);
+                    VFXSlot parent = link.outputSlot.GetParent();
+                    while (parent != null)
                     {
-                        int subIndex = ancestors[i + 1].GetIndex(ancestors[i]);
+                        ancestors.Add(parent);
 
-                        if (subIndex >= 0 && subIndex < slot.GetNbChildren())
+                        parent = parent.GetParent();
+                    }
+                    int index = parentController.model.GetSlotIndex(ancestors.Last());
+
+                    if (index >= 0 && index < op.GetNbOutputSlots())
+                    {
+                        VFXSlot slot = op.outputSlots[index];
+                        for (int i = ancestors.Count() - 2; i >= 0; --i)
                         {
-                            slot = slot[subIndex];
+                            int subIndex = ancestors[i + 1].GetIndex(ancestors[i]);
+
+                            if (subIndex >= 0 && subIndex < slot.GetNbChildren())
+                            {
+                                slot = slot[subIndex];
+                            }
+                            else
+                            {
+                                slot = null;
+                                break;
+                            }
+                        }
+                        if (slot.path != link.outputSlot.path.Substring(1)) // parameters output are still named 0, inline outputs have no name.
+                        {
+                            Debug.LogError("New inline don't have the same subslot as old parameter");
                         }
                         else
                         {
-                            slot = null;
-                            break;
+                            link.outputSlot.Unlink(link.inputSlot);
+                            slot.Link(link.inputSlot);
                         }
-                    }
-                    if (slot.path != link.outputSlot.path.Substring(1)) // parameters output are still named 0, inline outputs have no name.
-                    {
-                        Debug.LogError("New inline don't have the same subslot as old parameter");
-                    }
-                    else
-                    {
-                        link.outputSlot.Unlink(link.inputSlot);
-                        slot.Link(link.inputSlot);
                     }
                 }
             }

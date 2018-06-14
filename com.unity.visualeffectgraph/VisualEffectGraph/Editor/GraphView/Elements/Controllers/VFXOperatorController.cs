@@ -50,11 +50,11 @@ namespace UnityEditor.VFX.UI
             if (desc == null)
                 return;
 
-            var param = viewController.AddVFXParameter(position, desc);
+            var param = viewController.AddVFXParameter(Vector2.zero, desc); // parameters should have zero for position, position is help by the nodes
 
             VFXSlot.CopyLinks(param.GetOutputSlot(0), model.GetOutputSlot(0), false);
 
-            param.ValidateNodes();
+            param.CreateDefaultNode(position);
 
             viewController.LightApplyChanges();
 

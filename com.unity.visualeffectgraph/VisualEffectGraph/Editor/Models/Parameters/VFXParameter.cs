@@ -275,6 +275,11 @@ namespace UnityEditor.VFX
 
             info.position = pos;
 
+            if (m_Nodes == null)
+            {
+                m_Nodes = new List<Node>();
+            }
+
             m_Nodes.Add(info);
 
             Invalidate(InvalidationCause.kUIChanged);
@@ -286,9 +291,12 @@ namespace UnityEditor.VFX
         {
             if (m_Nodes.Contains(info))
             {
-                foreach (var slots in info.linkedSlots)
+                if (info.linkedSlots != null)
                 {
-                    slots.outputSlot.Unlink(slots.inputSlot);
+                    foreach (var slots in info.linkedSlots)
+                    {
+                        slots.outputSlot.Unlink(slots.inputSlot);
+                    }
                 }
                 m_Nodes.Remove(info);
 
@@ -345,15 +353,7 @@ namespace UnityEditor.VFX
             // Case of the old VFXParameter we create a new one on the same place with all the Links
             if (position != Vector2.zero && nodes.Count == 0)
             {
-                var newInfos = NewNode();
-                newInfos.position = position;
-
-
-                newInfos.linkedSlots = new List<NodeLinkedSlot>();
-                GetAllLinks(newInfos.linkedSlots, outputSlots[0]);
-                newInfos.expandedSlots = new List<VFXSlot>();
-                GetAllExpandedSlots(newInfos.expandedSlots, outputSlots[0]);
-                m_Nodes.Add(newInfos);
+                CreateDefaultNode(position);
             }
             else
             {
@@ -406,6 +406,28 @@ namespace UnityEditor.VFX
             position = Vector2.zero; // Set that as a marker that the parameter has been touched by the new code.
         }
 
+        public void CreateDefaultNode(Vector2 position)
+        {
+            if (m_Nodes != null && m_Nodes.Count != 0)
+            {
+                Debug.LogError("CreateDefaultNode must only be called with an empty parameter");
+                return;
+            }
+            var newInfos = NewNode();
+            newInfos.position = position;
+
+
+            newInfos.linkedSlots = new List<NodeLinkedSlot>();
+            GetAllLinks(newInfos.linkedSlots, outputSlots[0]);
+            newInfos.expandedSlots = new List<VFXSlot>();
+            GetAllExpandedSlots(newInfos.expandedSlots, outputSlots[0]);
+            if (m_Nodes == null)
+            {
+                m_Nodes = new List<Node>();
+            }
+            m_Nodes.Add(newInfos);
+        }
+
         public override void UpdateOutputExpressions()
         {
             for (int i = 0; i < m_ExprSlots.Length; ++i)
@@ -419,12 +441,15 @@ namespace UnityEditor.VFX
         {
             foreach (var node in nodes)
             {
-                for (int i = 0; i < node.linkedSlots.Count; ++i)
+                if (node.linkedSlots != null)
                 {
-                    if (node.linkedSlots[i].outputSlot == mySlot && node.linkedSlots[i].inputSlot == prevOtherSlot)
+                    for (int i = 0; i < node.linkedSlots.Count; ++i)
                     {
-                        node.linkedSlots[i] = new NodeLinkedSlot() {outputSlot = mySlot, inputSlot = newOtherSlot};
-                        return;
+                        if (node.linkedSlots[i].outputSlot == mySlot && node.linkedSlots[i].inputSlot == prevOtherSlot)
+                        {
+                            node.linkedSlots[i] = new NodeLinkedSlot() { outputSlot = mySlot, inputSlot = newOtherSlot };
+                            return;
+                        }
                     }
                 }
             }
@@ -434,12 +459,15 @@ namespace UnityEditor.VFX
         {
             foreach (var node in nodes)
             {
-                for (int i = 0; i < node.linkedSlots.Count; ++i)
+                if (node.linkedSlots != null)
                 {
-                    if (node.linkedSlots[i].outputSlot == myPrevSlot && node.linkedSlots[i].inputSlot == otherSlot)
+                    for (int i = 0; i < node.linkedSlots.Count; ++i)
                     {
-                        node.linkedSlots[i] = new NodeLinkedSlot() {outputSlot = myNewSlot, inputSlot = otherSlot};
-                        return;
+                        if (node.linkedSlots[i].outputSlot == myPrevSlot && node.linkedSlots[i].inputSlot == otherSlot)
+                        {
+                            node.linkedSlots[i] = new NodeLinkedSlot() { outputSlot = myNewSlot, inputSlot = otherSlot };
+                            return;
+                        }
                     }
                 }
             }

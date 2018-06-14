@@ -617,6 +617,8 @@ namespace UnityEditor.VFX.UI
                         {
                             var parameter = copyData.parameters[dataEdge.outputParameterIndex];
                             var node = parameter.parameter.nodes[dataEdge.outputParameterNodeIndex + parameter.infoIndexOffset];
+                            if (node.linkedSlots == null)
+                                node.linkedSlots = new List<VFXParameter.NodeLinkedSlot>();
                             node.linkedSlots.Add(new VFXParameter.NodeLinkedSlot() { inputSlot = inputSlot, outputSlot = outputSlot });
                         }
                     }

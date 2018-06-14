@@ -542,6 +542,8 @@ namespace UnityEditor.VFX.UI
 
                 if (fromController != null)
                 {
+                    if (fromController.infos.linkedSlots == null)
+                        fromController.infos.linkedSlots = new List<VFXParameter.NodeLinkedSlot>();
                     fromController.infos.linkedSlots.Add(resulting);
                 }
                 DataEdgesMightHaveChanged();
