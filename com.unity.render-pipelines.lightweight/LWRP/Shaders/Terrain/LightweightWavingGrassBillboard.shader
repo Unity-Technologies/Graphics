@@ -32,6 +32,7 @@ Shader "Hidden/TerrainEngine/Details/BillboardWavingDoublePass" // Has to overri
             #pragma multi_compile _ _SHADOWS_ENABLED
             #pragma multi_compile _ _LOCAL_SHADOWS_ENABLED
             #pragma multi_compile _ _SHADOWS_SOFT
+            #pragma multi_compile _ _SHADOWS_CASCADE
 
             // -------------------------------------
             // Unity defined keywords
