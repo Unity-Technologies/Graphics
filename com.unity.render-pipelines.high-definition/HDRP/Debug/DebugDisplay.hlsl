@@ -14,6 +14,7 @@ int _DebugLightingMode; // Match enum DebugLightingMode
 int _DebugLightingSubMode;
 int _DebugViewMaterial; // Contain the id (define in various materialXXX.cs.hlsl) of the property to display
 int _DebugMipMapMode; // Match enum DebugMipMapMode
+int _ColorPickerMode; // Match enum ColorPickerDebugMode
 int _DebugStep;
 float4 _DebugLightingAlbedo; // x == bool override, yzw = albedo for diffuse
 float4 _DebugLightingSmoothness; // x == bool override, y == override value
@@ -23,6 +24,10 @@ float4 _MousePixelCoord;  // xy unorm, zw norm
 float4 _MouseClickPixelCoord;  // xy unorm, zw norm
 float _DebugExposure;
 CBUFFER_END
+
+// When displaying lux meter we compress the light in order to be able to display value higher than 65504
+// The sun is between 100 000 and 150 000, so we use 4 to be able to cover such a range (4 * 65504)
+#define LUXMETER_COMPRESSION_RATIO  4
 
 TEXTURE2D(_DebugFont); // Debug font to write string in shader
 RWStructuredBuffer<ScreenSpaceTracingDebug> _DebugScreenSpaceTracingData : register(u7); // TODO: Change the register number for PS4

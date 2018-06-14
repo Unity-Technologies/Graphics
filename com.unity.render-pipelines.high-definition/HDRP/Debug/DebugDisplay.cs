@@ -223,6 +223,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return mipMapDebugSettings.debugMipMapMode;
         }
 
+        public ColorPickerDebugMode GetDebugColorPickerMode()
+        {
+            return colorPickerDebugSettings.colorPickerMode;
+        }
+
         public bool IsDebugDisplayEnabled()
         {
             return materialDebugSettings.IsDebugDisplayEnabled() || lightingDebugSettings.IsDebugDisplayEnabled() || mipMapDebugSettings.IsDebugDisplayEnabled() || IsDebugFullScreenEnabled();

@@ -794,47 +794,47 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     else
                     {
                         m_CurrentDebugDisplaySettings = m_DebugDisplaySettings;
+                    }
 
-                        using (new ProfilingSample(cmd, "Volume Update", CustomSamplerId.VolumeUpdate.GetSampler()))
+                    using (new ProfilingSample(cmd, "Volume Update", CustomSamplerId.VolumeUpdate.GetSampler()))
+                    {
+                        LayerMask layerMask = -1;
+                        if (additionalCameraData != null)
                         {
-                            LayerMask layerMask = -1;
-                            if (additionalCameraData != null)
+                            layerMask = additionalCameraData.volumeLayerMask;
+                        }
+                        else
+                        {
+                            // Temporary hack:
+                            // For scene view, by default, we use the "main" camera volume layer mask if it exists
+                            // Otherwise we just remove the lighting override layers in the current sky to avoid conflicts
+                            // This is arbitrary and should be editable in the scene view somehow.
+                            if (camera.cameraType == CameraType.SceneView)
                             {
-                                layerMask = additionalCameraData.volumeLayerMask;
-                            }
-                            else
-                            {
-                                // Temporary hack:
-                                // For scene view, by default, we use the "main" camera volume layer mask if it exists
-                                // Otherwise we just remove the lighting override layers in the current sky to avoid conflicts
-                                // This is arbitrary and should be editable in the scene view somehow.
-                                if (camera.cameraType == CameraType.SceneView)
+                                var mainCamera = Camera.main;
+                                bool needFallback = true;
+                                if (mainCamera != null)
                                 {
-                                    var mainCamera = Camera.main;
-                                    bool needFallback = true;
-                                    if (mainCamera != null)
+                                    var mainCamAdditionalData = mainCamera.GetComponent<HDAdditionalCameraData>();
+                                    if (mainCamAdditionalData != null)
                                     {
-                                        var mainCamAdditionalData = mainCamera.GetComponent<HDAdditionalCameraData>();
-                                        if (mainCamAdditionalData != null)
-                                        {
-                                            layerMask = mainCamAdditionalData.volumeLayerMask;
-                                            needFallback = false;
-                                        }
-                                    }
-
-                                    if (needFallback)
-                                    {
-                                        // If the override layer is "Everything", we fall-back to "Everything" for the current layer mask to avoid issues by having no current layer
-                                        // In practice we should never have "Everything" as an override mask as it does not make sense (a warning is issued in the UI)
-                                        if (m_Asset.renderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask == -1)
-                                            layerMask = -1;
-                                        else
-                                            layerMask = (-1 & ~m_Asset.renderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask);
+                                        layerMask = mainCamAdditionalData.volumeLayerMask;
+                                        needFallback = false;
                                     }
                                 }
+
+                                if (needFallback)
+                                {
+                                    // If the override layer is "Everything", we fall-back to "Everything" for the current layer mask to avoid issues by having no current layer
+                                    // In practice we should never have "Everything" as an override mask as it does not make sense (a warning is issued in the UI)
+                                    if (m_Asset.renderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask == -1)
+                                        layerMask = -1;
+                                    else
+                                        layerMask = (-1 & ~m_Asset.renderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask);
+                                }
                             }
-                            VolumeManager.instance.Update(camera.transform, layerMask);
                         }
+                        VolumeManager.instance.Update(camera.transform, layerMask);
                     }
 
                     var postProcessLayer = camera.GetComponent<PostProcessLayer>();
@@ -936,7 +936,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     ClearBuffers(hdCamera, cmd);
 
                     // TODO: Add stereo occlusion mask
-                    RenderDepthPrepass(m_CullResults, hdCamera, renderContext, cmd, m_DbufferManager.EnableDBUffer);
+                    RenderDepthPrepass(m_CullResults, hdCamera, renderContext, cmd);
 
                     // This will bind the depth buffer if needed for DBuffer)
                     RenderDBuffer(hdCamera, cmd, renderContext, m_CullResults);
@@ -1327,7 +1327,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Forward only renderer: We always render everything
         // Deferred renderer: We always render depth prepass for alpha tested (optimization), other object are render based on engine configuration.
         // Forward opaque with deferred renderer (DepthForwardOnly pass): We always render everything
-        void RenderDepthPrepass(CullResults cull, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd, bool forcePrepass)
+        void RenderDepthPrepass(CullResults cull, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             // In case of deferred renderer, we can have forward opaque material. These materials need to be render in the depth buffer to correctly build the light list.
             // And they will tag the stencil to not be lit during the deferred lighting pass.
@@ -1358,9 +1358,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthOnlyAndDepthForwardOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque);
                 }
             }
-            else if (hdCamera.frameSettings.enableDepthPrepassWithDeferredRendering || forcePrepass)
+            // If we enable DBuffer, we need a full depth prepass
+            else if (hdCamera.frameSettings.enableDepthPrepassWithDeferredRendering || m_DbufferManager.EnableDBUffer)
             {
-                using (new ProfilingSample(cmd, "Depth Prepass (deferred)", CustomSamplerId.DepthPrepass.GetSampler()))
+                using (new ProfilingSample(cmd, m_DbufferManager.EnableDBUffer ? "Depth Prepass (deferred) force by DBuffer" : "Depth Prepass (deferred)", CustomSamplerId.DepthPrepass.GetSampler()))
                 {
                     cmd.DisableShaderKeyword("WRITE_NORMAL_BUFFER"); // Note: This only disable the output of normal buffer for Lit shader, not the other shader that don't use multicompile
                     
@@ -1715,6 +1716,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return;
             }
 
+            // TODO: Move allocation in separate method call in start of the render loop
             var cameraRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorPyramid)
                 ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ColorPyramid, m_BufferPyramid.AllocColorRT);
 
@@ -1730,6 +1732,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!hdCamera.frameSettings.enableRoughRefraction)
                 return;
 
+            // TODO: Move allocation in separate method call in start of the render loop
             var cameraRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.DepthPyramid)
                 ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.DepthPyramid, m_BufferPyramid.AllocDepthRT);
 
@@ -1812,6 +1815,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalInt(HDShaderIDs._DebugLightingMode, (int)m_CurrentDebugDisplaySettings.GetDebugLightingMode());
                 cmd.SetGlobalInt(HDShaderIDs._DebugLightingSubMode, (int)m_CurrentDebugDisplaySettings.GetDebugLightingSubMode());
                 cmd.SetGlobalInt(HDShaderIDs._DebugMipMapMode, (int)m_CurrentDebugDisplaySettings.GetDebugMipMapMode());
+                cmd.SetGlobalInt(HDShaderIDs._ColorPickerMode, (int)m_CurrentDebugDisplaySettings.GetDebugColorPickerMode());
 
                 cmd.SetGlobalVector(HDShaderIDs._DebugLightingAlbedo, debugAlbedo);
                 cmd.SetGlobalVector(HDShaderIDs._DebugLightingSmoothness, debugSmoothness);
@@ -1898,7 +1902,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // (i.e. we have perform a flip, we need to flip the input texture)
                     m_DebugFullScreen.SetFloat(HDShaderIDs._RequireToFlipInputTexture, hdCamera.camera.cameraType != CameraType.SceneView ? 1.0f : 0.0f);
                     m_DebugFullScreen.SetBuffer(HDShaderIDs._DebugScreenSpaceTracingData, m_DebugScreenSpaceTracingData);
-                    m_DebugFullScreen.SetTexture(HDShaderIDs._DepthPyramidTexture, hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.DepthPyramid));
                     HDUtils.DrawFullScreen(cmd, hdCamera, m_DebugFullScreen, (RenderTargetIdentifier)BuiltinRenderTextureType.CameraTarget);
 
                     PushColorPickerDebugTexture(hdCamera, cmd, (RenderTargetIdentifier)BuiltinRenderTextureType.CameraTarget);
@@ -1942,7 +1945,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.SetGlobalTexture(HDShaderIDs._DebugColorPickerTexture, m_DebugColorPickerBuffer); // No SetTexture with RenderTarget identifier... so use SetGlobalTexture
                     // TODO: Replace with command buffer call when available
                     m_DebugColorPicker.SetColor(HDShaderIDs._ColorPickerFontColor, colorPickerDebugSettings.fontColor);
-                    m_DebugColorPicker.SetInt(HDShaderIDs._ColorPickerMode, (int)colorPickerDebugSettings.colorPickerMode);
                     m_DebugColorPicker.SetInt(HDShaderIDs._FalseColorEnabled, falseColorDebugSettings.falseColor ? 1 : 0);
                     m_DebugColorPicker.SetVector(HDShaderIDs._FalseColorThresholds, falseColorThresholds);
                     // The material display debug perform sRGBToLinear conversion as the final blit currently hardcode a linearToSrgb conversion. As when we read with color picker this is not done,

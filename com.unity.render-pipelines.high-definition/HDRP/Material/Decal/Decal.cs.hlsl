@@ -7,10 +7,10 @@
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Decal+DecalSurfaceData:  static fields
 //
-#define DEBUGVIEW_DECAL_DECALSURFACEDATA_BASE_COLOR (10000)
-#define DEBUGVIEW_DECAL_DECALSURFACEDATA_NORMAL (10001)
-#define DEBUGVIEW_DECAL_DECALSURFACEDATA_MASK (10002)
-#define DEBUGVIEW_DECAL_DECALSURFACEDATA_HTILE_MASK (10003)
+#define DEBUGVIEW_DECAL_DECALSURFACEDATA_BASE_COLOR (200)
+#define DEBUGVIEW_DECAL_DECALSURFACEDATA_NORMAL (201)
+#define DEBUGVIEW_DECAL_DECALSURFACEDATA_MASK (202)
+#define DEBUGVIEW_DECAL_DECALSURFACEDATA_HTILE_MASK (203)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Decal+DBufferMaterial:  static fields
@@ -43,7 +43,7 @@ struct DecalData
     float4 diffuseScaleBias;
     float4 normalScaleBias;
     float4 maskScaleBias;
-	float4 baseColor;
+    float4 baseColor;
 };
 
 //
@@ -68,6 +68,10 @@ float4 GetNormalScaleBias(DecalData value)
 float4 GetMaskScaleBias(DecalData value)
 {
     return value.maskScaleBias;
+}
+float4 GetBaseColor(DecalData value)
+{
+    return value.baseColor;
 }
 
 //
