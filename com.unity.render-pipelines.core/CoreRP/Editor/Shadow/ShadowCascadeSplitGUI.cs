@@ -63,11 +63,8 @@ namespace UnityEditor.Experimental.Rendering
             */
         public static void HandleCascadeSliderGUI(ref float[] normalizedCascadePartitions)
         {
-            //EditorGUILayout.LabelField("Cascade splits");
-
             EditorGUILayout.BeginHorizontal();
-            //EditorGUI.indentLevel++;
-            GUILayout.Space(32);
+            GUILayout.Space(EditorGUI.indentLevel * 15f);
             // get the inspector width since we need it while drawing the partition rects.
             // Only way currently is to reserve the block in the layout using GetRect(), and then immediately drawing the empty box
             // to match the call to GetRect.
