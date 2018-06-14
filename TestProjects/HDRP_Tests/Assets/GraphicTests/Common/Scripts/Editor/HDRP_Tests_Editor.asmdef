@@ -10,9 +10,7 @@
         "com.unity.render-pipelines.core.Runtime",
         "com.unity.render-pipelines.high-definition.Runtime"
     ],
-    "optionalUnityReferences": [
-        "TestAssemblies"
-    ],
+    "optionalUnityReferences": [],
     "includePlatforms": [
         "Editor"
     ],
