@@ -320,7 +320,7 @@ EnvLightData FetchEnvLight(uint start, uint i)
     return _EnvLightDatas[j];
 }
 
-float GetSContactShadow(LightLoopContext lightLoopContact, int contactShadowIndex)
+float GetContactShadow(LightLoopContext lightLoopContact, int contactShadowIndex)
 {
-    return 1;//max(lightLoopContact.shadowContext.contactShadow, abs(contactShadowIndex));
+    return max(lightLoopContact.shadowContext.contactShadow, abs(contactShadowIndex));
 }
