@@ -3,8 +3,12 @@
 #ifndef LIGHTWEIGHT_SHADER_VARIABLES_INCLUDED
 #define LIGHTWEIGHT_SHADER_VARIABLES_INCLUDED
 
-#if (defined(SHADER_API_D3D11)  || defined(SHADER_API_PSSL)) && defined(STEREO_INSTANCING_ON)
+#if defined(STEREO_INSTANCING_ON) && (defined(SHADER_API_D3D11) || defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE) || defined(SHADER_API_PSSL))
 #define UNITY_STEREO_INSTANCING_ENABLED
+#endif
+
+#if defined(STEREO_MULTIVIEW_ON) && (defined(SHADER_API_GLES3) || defined(SHADER_API_GLCORE)) && !(defined(SHADER_API_SWITCH))
+    #define UNITY_STEREO_MULTIVIEW_ENABLED
 #endif
 
 #if defined(UNITY_SINGLE_PASS_STEREO) || defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
@@ -122,8 +126,16 @@ real4 unity_4LightIndices1;
 
 CBUFFER_END
 
+#if defined(UNITY_STEREO_MULTIVIEW_ENABLED) || ((defined(UNITY_SINGLE_PASS_STEREO) || defined(UNITY_STEREO_INSTANCING_ENABLED)) && (defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3) || defined(SHADER_API_METAL)))
+    #define GLOBAL_CBUFFER_START(name)    cbuffer name {
+    #define GLOBAL_CBUFFER_END            }
+#else
+    #define GLOBAL_CBUFFER_START(name)    CBUFFER_START(name)
+    #define GLOBAL_CBUFFER_END            CBUFFER_END
+#endif
+
 #if defined(USING_STEREO_MATRICES)
-CBUFFER_START(UnityStereoGlobals)
+GLOBAL_CBUFFER_START(UnityStereoGlobals)
 float4x4 unity_StereoMatrixP[2];
 float4x4 unity_StereoMatrixV[2];
 float4x4 unity_StereoMatrixInvV[2];
@@ -136,13 +148,22 @@ float4x4 unity_StereoCameraToWorld[2];
 
 float3 unity_StereoWorldSpaceCameraPos[2];
 float4 unity_StereoScaleOffset[2];
-CBUFFER_END
+GLOBAL_CBUFFER_END
 #endif
 
 #if defined(USING_STEREO_MATRICES) && defined(UNITY_STEREO_MULTIVIEW_ENABLED)
-CBUFFER_START(UnityStereoEyeIndices)
-real4 unity_StereoEyeIndices[2];
-CBUFFER_END
+GLOBAL_CBUFFER_START(UnityStereoEyeIndices)
+    float4 unity_StereoEyeIndices[2];
+GLOBAL_CBUFFER_END
+#endif
+
+#if defined(UNITY_STEREO_MULTIVIEW_ENABLED) && defined(SHADER_STAGE_VERTEX)
+// OVR_multiview
+// In order to convey this info over the DX compiler, we wrap it into a cbuffer.
+#if !defined(UNITY_DECLARE_MULTIVIEW)
+#define UNITY_DECLARE_MULTIVIEW(number_of_views) GLOBAL_CBUFFER_START(OVR_multiview) uint gl_ViewID; uint numViews_##number_of_views; GLOBAL_CBUFFER_END
+#define UNITY_VIEWID gl_ViewID
+#endif
 #endif
 
 #if defined(UNITY_STEREO_MULTIVIEW_ENABLED) && defined(SHADER_STAGE_VERTEX)
@@ -151,9 +172,9 @@ UNITY_DECLARE_MULTIVIEW(2);
 #elif defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
 static uint unity_StereoEyeIndex;
 #elif defined(UNITY_SINGLE_PASS_STEREO)
-CBUFFER_START(UnityStereoEyeIndex)
+GLOBAL_CBUFFER_START(UnityStereoEyeIndex)
 int unity_StereoEyeIndex;
-CBUFFER_END
+GLOBAL_CBUFFER_END
 #endif
 
 CBUFFER_START(UnityPerDrawRare)
