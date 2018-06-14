@@ -57,6 +57,7 @@ MonoBehaviour:
     supportOnlyForward: 0
     enableUltraQualitySSS: 0
     supportVolumetric: 1
+    supportRuntimeDebugDisplay: 1
     supportDBuffer: 1
     supportMSAA: 0
     msaaSampleCount: 1
@@ -67,7 +68,7 @@ MonoBehaviour:
       cookieTexArraySize: 16
       pointCookieSize: 512
       cubeCookieTexArraySize: 16
-      planarReflectionProbeCacheSize: 2
+      planarReflectionProbeCacheSize: 12
       planarReflectionTextureSize: 512
       reflectionProbeCacheSize: 128
       reflectionCubemapSize: 128
