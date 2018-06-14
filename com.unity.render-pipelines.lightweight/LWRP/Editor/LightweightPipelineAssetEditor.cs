@@ -100,21 +100,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         SerializedProperty m_LocalShadowsAtlasResolutionProp;
 
         SerializedProperty m_CustomShaderVariantStripSettingsProp;
-//        SerializedProperty m_KeepAdditionalLightsProp;
-//        SerializedProperty m_KeepVertexLightsProp;
-//        SerializedProperty m_KeepDirectionalShadowsProp;
-//        SerializedProperty m_KeepLocalShadowsProp;
-//        SerializedProperty m_KeepSoftShadowsProp;
 
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
 
             UpdateAnimationValues();
-
             DrawCapabilitiesSettings();
             DrawGeneralSettings();
-            //DrawStrippingSettings();
 
             serializedObject.ApplyModifiedProperties();
         }
@@ -141,13 +134,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_LocalShadowSupportedProp = serializedObject.FindProperty("m_LocalShadowsSupported");
             m_LocalShadowsAtlasResolutionProp = serializedObject.FindProperty("m_LocalShadowsAtlasResolution");
             m_SoftShadowsSupportedProp = serializedObject.FindProperty("m_SoftShadowsSupported");
-
-            //m_CustomShaderVariantStripSettingsProp = serializedObject.FindProperty("m_CustomShaderVariantStrippingSettings");
-//            m_KeepAdditionalLightsProp = serializedObject.FindProperty("m_KeepAdditionalLightVariants");
-//            m_KeepVertexLightsProp = serializedObject.FindProperty("m_KeepVertexLightVariants");
-//            m_KeepDirectionalShadowsProp = serializedObject.FindProperty("m_KeepDirectionalShadowVariants");
-//            m_KeepLocalShadowsProp = serializedObject.FindProperty("m_KeepLocalShadowVariants");
-//            m_KeepSoftShadowsProp = serializedObject.FindProperty("m_KeepSoftShadowVariants");
 
             m_ShowSoftParticles.valueChanged.AddListener(Repaint);
             m_ShowSoftParticles.value = m_RequireSoftParticlesProp.boolValue;
@@ -208,7 +194,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (directionalShadows || localShadows)
                 EditorGUILayout.PropertyField(m_SoftShadowsSupportedProp, Styles.supportsSoftShadows);
 
-
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
             EditorGUILayout.Space();
@@ -244,25 +229,5 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             EditorGUILayout.Space();
 
         }
-
-//        void DrawStrippingSettings()
-//        {
-//            EditorGUILayout.LabelField(StrippingStyles.strippingLabel, EditorStyles.boldLabel);
-//            EditorGUI.indentLevel++;
-//            CoreEditorUtils.DrawPopup(StrippingStyles.pipelineCapabilitiesLabel, m_CustomShaderVariantStripSettingsProp, StrippingStyles.strippingOptions);
-//            if (m_CustomShaderVariantStripSettingsProp.boolValue)
-//            {
-//                EditorGUI.indentLevel++;
-//                EditorGUILayout.PropertyField(m_KeepAdditionalLightsProp, StrippingStyles.localLightsLabel);
-//                EditorGUILayout.PropertyField(m_KeepVertexLightsProp, StrippingStyles.vertexLightsLabel);
-//                EditorGUILayout.PropertyField(m_KeepDirectionalShadowsProp, StrippingStyles.directionalShadowsLabel);
-//                EditorGUILayout.PropertyField(m_KeepLocalShadowsProp, StrippingStyles.localShadowsLabel);
-//                EditorGUILayout.PropertyField(m_KeepSoftShadowsProp, StrippingStyles.softShadowsLabel);
-//                EditorGUI.indentLevel--;
-//            }
-//            EditorGUI.indentLevel--;
-//            EditorGUILayout.Space();
-//            EditorGUILayout.Space();
-//        }
     }
 }
