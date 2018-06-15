@@ -121,7 +121,7 @@ half SampleScreenSpaceShadowMap(float4 shadowCoord)
 
 real SampleShadowmap(float4 shadowCoord, TEXTURE2D_SHADOW_ARGS(ShadowMap, sampler_ShadowMap), ShadowSamplingData samplingData, half shadowStrength, bool isPerspectiveProjection = true)
 {
-    // Compiler will optimize this branch away as long as isPerspectiveProjection is known at runtime
+    // Compiler will optimize this branch away as long as isPerspectiveProjection is known at compile time
     if (isPerspectiveProjection)
         shadowCoord.xyz /= shadowCoord.w;
 
