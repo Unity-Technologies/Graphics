@@ -435,8 +435,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         Light m_CurrentSunLight;
         int m_CurrentSunLightShadowIndex = -1;
+
+        // Used to get the current dominant casting shadow light on screen (the one which takes the biggest part of the screen)
         int m_DominantLightIndex = -1;
         float m_DominantLightValue;
+        // Store the dominant light to give to ScreenSpaceShadow.compute (null is the dominant light is directional)
         LightData m_DominantLightData;
 
         public Light GetCurrentSunLight() { return m_CurrentSunLight; }
@@ -816,6 +819,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         bool GetDominantLightWithShadows(AdditionalShadowData additionalShadowData, VisibleLight light, int lightIndex = -1)
         {
+            // Ratio of the size of the light on screen and its intensity, gives a value used to compare light importance
             float lightDominanceValue = light.screenRect.size.magnitude * light.light.intensity;
 
             if (additionalShadowData == null || !additionalShadowData.contactShadows || light.light.shadows == LightShadows.None)
@@ -890,8 +894,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Fallback to the first non shadow casting directional light.
             m_CurrentSunLight = m_CurrentSunLight == null ? light.light : m_CurrentSunLight;
 
-            directionalLightData.contactShadowIndex = m_EnableContactShadow ? 1 : -1;
+            directionalLightData.contactShadowIndex = -1;
 
+            // The first shadow casting directional light with contact shadow enabled is always taken as dominant light
             if (GetDominantLightWithShadows(additionalShadowData, light))
                 directionalLightData.contactShadowIndex = 0;
 
@@ -1074,10 +1079,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightData.nonLightmappedOnly = 0;
             }
             
-            lightData.contactShadowIndex = m_EnableContactShadow ? 1 : -1;
+            lightData.contactShadowIndex = -1;
 
             m_lightList.lights.Add(lightData);
             
+            // Check if the current light is dominant and store it's index to change it's property later,
+            // as we can't know which one will be dominant before checking all the lights
             GetDominantLightWithShadows(additionalshadowData, light, m_lightList.lights.Count -1);
 
             return true;
@@ -2345,6 +2352,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             bool sunLightShadow = m_CurrentSunLight != null && m_CurrentSunLight.GetComponent<AdditionalShadowData>() != null && m_CurrentSunLightShadowIndex >= 0;
 
+            // if there is no directional light shadows or no need to compute contact shadows, we just quit
             if (!sunLightShadow && m_DominantLightIndex == -1)
             {
                 cmd.SetGlobalTexture(HDShaderIDs._DeferredShadowTexture, RuntimeUtilities.whiteTexture);
@@ -2357,6 +2365,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Vector4         lightPosition = Vector4.zero;
                 int             kernel;
 
+                // Here we have three cases:
+                //  - if there is a sun light casting shadow, we need to use comput directional light shadows
+                //    and contact shadows of the dominant light (or the directional if contact shadows are enabled on it)
+                //  - if there is no sun or it's not casting shadows, we don't need to compute it's costy directional
+                //    shadows so we only compute contact shadows for the dominant light
+                //  - if there is no contact shadows then we only compute the directional light shadows
                 if (m_EnableContactShadow)
                 {
                     if (sunLightShadow)
@@ -2367,6 +2381,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else
                     kernel = s_deferredDirectionalShadowKernel;
                 
+                // We use the .w component of the direction/position vectors to choose in the shader the
+                // light direction of the contact shadows (direction light direction or (pixel position - light position))
                 if (m_CurrentSunLight != null)
                 {
                     lightDirection = -m_CurrentSunLight.transform.forward;
