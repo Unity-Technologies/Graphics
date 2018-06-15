@@ -36,7 +36,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ComputeShader buildPerVoxelLightListShader;    // clustered
         public ComputeShader buildMaterialFlagsShader;
         public ComputeShader deferredComputeShader;
-        public ComputeShader deferredDirectionalShadowComputeShader;
+        public ComputeShader screenSpaceShadowComputeShader;
         public ComputeShader volumeVoxelizationCS;
         public ComputeShader volumetricLightingCS;
 
