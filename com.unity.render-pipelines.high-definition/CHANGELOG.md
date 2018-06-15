@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Re-enable shadow mask mode in debug view
 
+### Fixed
+- Fix contact shadows applied on transmission
+
 ## [2.0.4-preview]
 
 ### Fixed
