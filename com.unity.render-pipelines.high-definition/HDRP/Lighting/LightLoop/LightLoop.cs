@@ -842,7 +842,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float specularDimmer = m_FrameSettings.specularGlobalDimmer * additionalData.lightDimmer;
             if (diffuseDimmer  <= 0.0f && specularDimmer <= 0.0f)
                 return false;
-            
             // Light direction for directional is opposite to the forward direction
             directionalLightData.forward = light.light.transform.forward;
             // Rescale for cookies and windowing.
@@ -1578,7 +1577,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int lightCount = Math.Min(cullResults.visibleLights.Count, k_MaxLightsOnScreen);
                     var sortKeys = new uint[lightCount];
                     int sortCount = 0;
-                
                     for (int lightIndex = 0, numLights = cullResults.visibleLights.Count; (lightIndex < numLights) && (sortCount < lightCount); ++lightIndex)
                     {
                         var light = cullResults.visibleLights[lightIndex];
@@ -1712,8 +1710,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 // to allow the preceding code to work with the absolute world space coordinates.
                                 if (ShaderConfig.s_CameraRelativeRendering != 0)
                                 {
-                                    int last = m_lightList.directionalLights.Count - 1;
                                     // Caution: 'DirectionalLightData.positionWS' is camera-relative after this point.
+                                    int last = m_lightList.directionalLights.Count - 1;
                                     DirectionalLightData lightData = m_lightList.directionalLights[last];
                                     lightData.positionWS -= camPosWS;
                                     m_lightList.directionalLights[last] = lightData;
@@ -1749,8 +1747,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             // to allow the preceding code to work with the absolute world space coordinates.
                             if (ShaderConfig.s_CameraRelativeRendering != 0)
                             {
-                                int last = m_lightList.lights.Count - 1;
                                 // Caution: 'LightData.positionWS' is camera-relative after this point.
+                                int last = m_lightList.lights.Count - 1;
                                 LightData lightData = m_lightList.lights[last];
                                 lightData.positionWS -= camPosWS;
                                 m_lightList.lights[last] = lightData;
