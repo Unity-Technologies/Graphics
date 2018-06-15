@@ -124,9 +124,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ShadowMgr = new ShadowManager(shadowSettings, ref scInit, ref budgets, m_Shadowmaps);
             // set global overrides - these need to match the override specified in LightLoop/Shadow.hlsl
             bool useGlobalOverrides = true;
+
+            /*
             m_ShadowMgr.SetGlobalShadowOverride(GPUShadowType.Point        , ShadowAlgorithm.PCF, ShadowVariant.V2, ShadowPrecision.High, useGlobalOverrides);
             m_ShadowMgr.SetGlobalShadowOverride(GPUShadowType.Spot         , ShadowAlgorithm.PCF, ShadowVariant.V2, ShadowPrecision.High, useGlobalOverrides);
-            m_ShadowMgr.SetGlobalShadowOverride(GPUShadowType.Directional  , ShadowAlgorithm.PCF, ShadowVariant.V3, ShadowPrecision.High, useGlobalOverrides);
+            m_ShadowMgr.SetGlobalShadowOverride(GPUShadowType.Directional  , ShadowAlgorithm.PCF, ShadowVariant.V3, ShadowPrecision.High, useGlobalOverrides);*/
+
+            //TODO: do not include this in the final PR !
+            m_ShadowMgr.SetGlobalShadowOverride(GPUShadowType.Point        , ShadowAlgorithm.PCSS, ShadowVariant.V0, ShadowPrecision.High, useGlobalOverrides);
+            m_ShadowMgr.SetGlobalShadowOverride(GPUShadowType.Spot         , ShadowAlgorithm.PCSS, ShadowVariant.V0, ShadowPrecision.High, useGlobalOverrides);
+            m_ShadowMgr.SetGlobalShadowOverride(GPUShadowType.Directional  , ShadowAlgorithm.PCSS, ShadowVariant.V0, ShadowPrecision.High, useGlobalOverrides);
 
             m_ShadowMgr.SetShadowLightTypeDelegate(HDShadowLightType);
 
