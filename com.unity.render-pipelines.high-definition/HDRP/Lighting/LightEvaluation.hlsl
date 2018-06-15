@@ -87,8 +87,10 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 
         attenuationNoContactShadow = attenuation * shadow;
 
+#if (SHADERPASS != SHADERPASS_VOLUMETRIC_LIGHTING)
         float contactShadow = GetContactShadow(lightLoopContext, lightData.contactShadowIndex);
         shadow = min(shadow, contactShadow);
+#endif
     }
 
     attenuation *= shadow;
@@ -192,8 +194,10 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
 
         attenuationNoContactShadows = shadow * attenuation;
 
+#if (SHADERPASS != SHADERPASS_VOLUMETRIC_LIGHTING)
         contactShadow = GetContactShadow(lightLoopContext, lightData.contactShadowIndex);
         shadow = min(shadow, contactShadow);
+#endif
     }
 
     attenuation *= shadow;
