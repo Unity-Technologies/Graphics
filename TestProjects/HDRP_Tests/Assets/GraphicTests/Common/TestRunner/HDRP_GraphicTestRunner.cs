@@ -15,8 +15,9 @@ public class HDRP_GraphicTestRunner
     {
         SceneManager.LoadScene(testCase.ScenePath);
 
-        // Always wait one frame for scene load
-        yield return null;
+        // Arbitrary wait for 5 frames for the scene to load, and other stuff to happen (like Realtime GI to appear ...)
+        for (int i=0 ; i<5 ; ++i)
+            yield return null;
 
         // Load the test settings
         var settings = GameObject.FindObjectOfType<HDRP_TestSettings>();
