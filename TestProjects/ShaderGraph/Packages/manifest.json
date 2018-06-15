@@ -11,6 +11,7 @@
     "com.unity.render-pipelines.lightweight": "file:../../../com.unity.render-pipelines.lightweight",
     "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
     "com.unity.standardevents": "1.0.13",
+    "com.unity.testframework.graphics": "file:../../../com.unity.testframework.graphics",
     "com.unity.textmeshpro": "1.2.1",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.animation": "1.0.0",
@@ -44,6 +45,7 @@
     "com.unity.modules.xr": "1.0.0"
   },
   "testables": [
-    "com.unity.render-pipelines.shadergraph"
+    "com.unity.render-pipelines.shadergraph",
+    "com.unity.testframework.graphics"
   ]
 }
