@@ -57,6 +57,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty fadeDistance;
             public SerializedProperty resolution;
             public SerializedProperty contactShadows;
+            public SerializedProperty softness;
+            public SerializedProperty minimumSoftness;
 
             // Bias control
             public SerializedProperty viewBiasMin;
@@ -142,6 +144,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     fadeDistance = o.Find(x => x.shadowFadeDistance),
                     resolution = o.Find(x => x.shadowResolution),
                     contactShadows = o.Find(x => x.contactShadows),
+                    softness = o.Find(x => x.shadowSoftness),
+                    minimumSoftness = o.Find(x => x.shadowMinimumSoftness),
 
                     viewBiasMin = o.Find(x => x.viewBiasMin),
                     viewBiasMax = o.Find(x => x.viewBiasMax),
@@ -519,6 +523,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Additional Settings", EditorStyles.boldLabel);
                 EditorGUI.indentLevel++;
+
+                //TOOD: check the current shadowing algorithm and hide these fields
+                EditorGUILayout.Slider(m_AdditionalShadowData.softness, 0.0f, 1.0f, s_Styles.shadowSoftness);
+                EditorGUILayout.Slider(m_AdditionalShadowData.minimumSoftness, 0.0f, 0.001f, s_Styles.shadowMinimumSoftness);
 
                 EditorGUILayout.PropertyField(m_AdditionalShadowData.contactShadows, s_Styles.contactShadows);
 

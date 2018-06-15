@@ -51,6 +51,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent shadowFadeDistance = new GUIContent("Fade Distance", "The shadow will fade at distance ShadowFadeDistance before being culled to minimize popping.");
             public readonly GUIContent shadowDimmer = new GUIContent("Dimmer", "Aim to be use with script, timeline or animation. It allows dimming one or multiple shadows. This can also be used as an optimization to fit in shadow budget manually and minimize popping.");
             public readonly GUIContent contactShadows = new GUIContent("Enable Contact Shadows", "Enable support for contact shadows on this light. Better for lights with a lot of visible shadows.");
+            public readonly GUIContent shadowSoftness = new GUIContent("Penumbra Softness", "TODO !");
+            public readonly GUIContent shadowMinimumSoftness = new GUIContent("Minimum Penumbra Softness", "TODO !");
 
             // Bias control
             public readonly GUIContent viewBiasMin = new GUIContent("View Bias");
