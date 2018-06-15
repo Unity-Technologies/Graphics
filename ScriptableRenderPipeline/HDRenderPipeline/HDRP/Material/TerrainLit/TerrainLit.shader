@@ -206,7 +206,7 @@ Shader "HDRenderPipeline/TerrainLit"
     SubShader
     {
         // This tags allow to use the shader replacement features
-        Tags{ "RenderPipeline" = "HDRenderPipeline" "RenderType" = "HDLitShader" "SplatCount"="8" }
+        Tags{ "RenderPipeline" = "HDRenderPipeline" "RenderType" = "Opaque" "SplatCount"="8" }
 
         // Caution: The outline selection in the editor use the vertex shader/hull/domain shader of the first pass declare. So it should not bethe  meta pass.
         Pass

@@ -120,7 +120,7 @@ void TerrainSplatBlend(float2 uv, float3 tangentWS, float3 bitangentWS,
     {                                                                                                   \
         albedo[i] = float4(0, 0, 0, 0);                                                                 \
         normal[i] = float3(0, 0, 0);                                                                    \
-        masks[i] = float4(-1, 0, 0, 0);                            \
+        masks[i] = float4(-1, 0, 0, 0);                                                                 \
     }
 
     float2 dxuv = ddx(uv);
