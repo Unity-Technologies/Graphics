@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - pipeline now uses XRSEttings.eyeTextureResolutionScale as renderScale when in XR 
 
 ### Changed
+- Reduced by 25% frame time in Mali Utgard arch in Overdraw benchmark scene by removing indexing in shadow code and avoiding division for orthographic projection.
 - Screenspace shadow resolve is not only done when rendering shadow cascades
 
 ### Fixed
