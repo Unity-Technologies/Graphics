@@ -30,7 +30,7 @@ for %%a in (%platforms%) do (
 		echo start /WAIT %unity% -runTests -projectPath "%project%" -testPlatform %%a -testResults "%project%TestResults-%%a-%%b.xml" -logFile "%project%Log%%a-%%b.log" -batchmode -executeMethod SetupProject.ApplySettings %%b
 		echo/
 		
-		rem start /WAIT %unity% -runTests -projectPath "%project%" -testPlatform %%a -testResults "%project%TestResults-%%a-%%b.xml" -logFile "%project%Log%%a-%%b.log" -batchmode -executeMethod SetupProject.ApplySettings %%b
+		start /WAIT %unity% -runTests -projectPath "%project%" -testPlatform %%a -testResults "%project%TestResults-%%a-%%b.xml" -logFile "%project%Log%%a-%%b.log" -batchmode -executeMethod SetupProject.ApplySettings %%b
 	)
 )
 
