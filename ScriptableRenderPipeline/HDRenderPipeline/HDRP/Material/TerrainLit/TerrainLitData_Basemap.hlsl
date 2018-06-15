@@ -18,7 +18,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #ifdef ENABLE_TERRAIN_PERPIXEL_NORMAL
     {
         float3 normalOS = SAMPLE_TEXTURE2D(_TerrainNormalmapTexture, sampler_MainTex, (input.texCoord0 + 0.5f) * _TerrainHeightmapRecipSize.xy).rgb * 2 - 1;
-        float3 normalWS = ((float3x3)GetObjectToWorldMatrix(), normalOS);
+        float3 normalWS = mul((float3x3)GetObjectToWorldMatrix(), normalOS);
         float3 tangentWS = cross(GetObjectToWorldMatrix()._13_23_33, normalWS);
         float renormFactor = 1.0 / length(normalWS);
 

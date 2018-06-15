@@ -19,7 +19,7 @@ TEXTURE2D(_Splat1);
 TEXTURE2D(_Splat2);
 TEXTURE2D(_Splat3);
 
-#ifdef _TERRAIN_NORMAL_MAP
+#ifdef _NORMALMAP
 TEXTURE2D(_Normal0);     SAMPLER(sampler_Normal0);
 TEXTURE2D(_Normal1);
 TEXTURE2D(_Normal2);
