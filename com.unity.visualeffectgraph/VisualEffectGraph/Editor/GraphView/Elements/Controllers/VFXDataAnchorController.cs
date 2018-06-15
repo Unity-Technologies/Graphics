@@ -140,7 +140,7 @@ namespace UnityEditor.VFX.UI
             var operatorDependOnAttribute = new HashSet<IVFXSlotContainer>();
             foreach (var attributeParameter in allSlotContainerControllers.Where(o => DependOnAttribute(o.model)))
             {
-                VFXViewController.CollectChildOperator(attributeParameter.model as IVFXSlotContainer, operatorDependOnAttribute);
+                VFXViewController.CollectDescendantOperator(attributeParameter.model as IVFXSlotContainer, operatorDependOnAttribute);
             }
             return operatorDependOnAttribute;
         }
@@ -150,66 +150,86 @@ namespace UnityEditor.VFX.UI
             var operatorDependOnSpawner = new HashSet<IVFXSlotContainer>();
             foreach (var block in allSlotContainerControllers.Where(o => o.model is VFXBlock && (o.model as VFXBlock).GetParent().contextType == VFXContextType.kSpawner))
             {
-                VFXViewController.CollectParentOperator(block.model as IVFXSlotContainer, operatorDependOnSpawner);
+                VFXViewController.CollectAncestorOperator(block.model as IVFXSlotContainer, operatorDependOnSpawner);
             }
             return operatorDependOnSpawner;
         }
 
 #endif
+        public class CanLinkCache
+        {
+#if _RESTRICT_ATTRIBUTE_ACCESS
+            internal HashSet<IVFXSlotContainer> ancestorOfSpawners;
+            internal HashSet<IVFXSlotContainer> descendantOfAttribute;
+#endif
+            internal HashSet<IVFXSlotContainer> localChildrenOperator = new HashSet<IVFXSlotContainer>();
+            internal HashSet<IVFXSlotContainer> localParentOperator = new HashSet<IVFXSlotContainer>();
+        }
 
-        public bool CanLinkToNode(VFXNodeController nodeController)
+        public bool CanLinkToNode(VFXNodeController nodeController, CanLinkCache cache)
         {
             if (nodeController == sourceNode)
                 return false;
+
+            if (cache == null)
+                cache = new CanLinkCache();
+
+            cache.localChildrenOperator.Clear();
+            cache.localParentOperator.Clear();
+
+            bool result;
             if (direction != Direction.Input)
             {
-                var childrenOperators = new HashSet<IVFXSlotContainer>();
-                VFXViewController.CollectChildOperator(sourceNode.slotContainer, childrenOperators);
+                VFXViewController.CollectDescendantOperator(sourceNode.slotContainer, cache.localChildrenOperator);
 #if _RESTRICT_ATTRIBUTE_ACCESS
-                var parentsOperators = new HashSet<IVFXSlotContainer>();
-                VFXViewController.CollectParentOperator(sourceNode.slotContainer, parentsOperators);
-                if (parentsOperators.Any(o => DependOnAttribute(o)))
+                VFXViewController.CollectAncestorOperator(sourceNode.slotContainer, cache.localParentOperator);
+                if (cache.localParentOperator.Any(o => DependOnAttribute(o)))
                 {
-                    var additionnalExcludeOperator = CollectAnscestorOfSpawner(viewController.AllSlotContainerControllers);
-                    childrenOperators.UnionWith(additionnalExcludeOperator);
+                    if (cache.ancestorOfSpawners == null)
+                        cache.ancestorOfSpawners = CollectAnscestorOfSpawner(viewController.AllSlotContainerControllers);
+                    var additionnalExcludeOperator = cache.ancestorOfSpawners;
+                    cache.localChildrenOperator.UnionWith(additionnalExcludeOperator);
                 }
 #endif
-                return !childrenOperators.Contains(nodeController.slotContainer);
+                result = !cache.localChildrenOperator.Contains(nodeController.slotContainer);
             }
             else
             {
-                var parentsOperators = new HashSet<IVFXSlotContainer>();
-                VFXViewController.CollectParentOperator(nodeController.slotContainer, parentsOperators);
+                VFXViewController.CollectAncestorOperator(nodeController.slotContainer, cache.localParentOperator);
 #if _RESTRICT_ATTRIBUTE_ACCESS
-                var childrenOperators = new HashSet<IVFXSlotContainer>();
-                VFXViewController.CollectChildOperator(sourceNode.slotContainer, childrenOperators);
+                VFXViewController.CollectDescendantOperator(sourceNode.slotContainer, cache.localChildrenOperator);
 
-                var contextTypeInChildren = childrenOperators.OfType<VFXBlock>().Select(o => o.GetParent().contextType);
+                var contextTypeInChildren = cache.localChildrenOperator.OfType<VFXBlock>().Select(o => o.GetParent().contextType);
                 if (contextTypeInChildren.Any(o => o == VFXContextType.kSpawner))
                 {
-                    var additionnalExcludeOperator = CollectDescendantOfAttribute(viewController.AllSlotContainerControllers);
-                    return !parentsOperators.Contains(sourceNode.slotContainer) && !additionnalExcludeOperator.Contains(nodeController.slotContainer);
+                    if (cache.descendantOfAttribute == null)
+                        cache.descendantOfAttribute = CollectDescendantOfAttribute(viewController.AllSlotContainerControllers);
+
+                    var additionnalExcludeOperator = cache.descendantOfAttribute;
+                    return !cache.localParentOperator.Contains(sourceNode.slotContainer) && !additionnalExcludeOperator.Contains(nodeController.slotContainer);
                 }
 #endif
-                return !parentsOperators.Contains(sourceNode.slotContainer);
+                result = !cache.localParentOperator.Contains(sourceNode.slotContainer);
             }
+
+            return result;
         }
 
-        public virtual bool CanLink(VFXDataAnchorController controller)
+        public virtual bool CanLink(VFXDataAnchorController controller, CanLinkCache cache = null)
         {
             if (controller.model != null)
             {
                 if (model.CanLink(controller.model) && controller.model.CanLink(model))
                 {
-                    if (!CanLinkToNode(controller.sourceNode))
+                    if (!CanLinkToNode(controller.sourceNode, cache))
                         return false;
 
                     return true;
                 }
-                return sourceNode.CouldLink(this, controller);
+                return sourceNode.CouldLink(this, controller, cache);
             }
 
-            return controller.CanLink(this);
+            return controller.CanLink(this, cache);
         }
 
         public virtual VFXParameter.NodeLinkedSlot CreateLinkTo(VFXDataAnchorController output)
@@ -568,7 +588,7 @@ namespace UnityEditor.VFX.UI
                 return "";
             }
         }
-        public override bool CanLink(VFXDataAnchorController controller)
+        public override bool CanLink(VFXDataAnchorController controller, CanLinkCache cache = null)
         {
             var op = (sourceNode as VFXCascadedOperatorController);
 
@@ -578,7 +598,7 @@ namespace UnityEditor.VFX.UI
             if (controller is VFXUpcommingDataAnchorController)
                 return false;
 
-            if (!CanLinkToNode(controller.sourceNode))
+            if (!CanLinkToNode(controller.sourceNode, cache))
                 return false;
 
             return op.model.GetBestAffinityType(controller.model.property.type) != null;

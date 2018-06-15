@@ -798,14 +798,19 @@ namespace UnityEditor.VFX
             }
         }
 
-        public IEnumerable<VFXSlot> allChildrenWhere(Func<VFXSlot, bool> predicate)
+        public IEnumerable<VFXSlot> AllChildrenWithLink()
         {
-            if (predicate(this))
+            if (HasLink())
                 yield return this;
 
-            var filtered = children.SelectMany(c => c.allChildrenWhere(predicate));
-            foreach (var r in filtered)
-                yield return r;
+            foreach (var child in children)
+            {
+                var results = child.AllChildrenWithLink();
+                foreach (var result in results)
+                {
+                    yield return result;
+                }
+            }
         }
 
         private void RecomputeExpressionTree()
@@ -828,7 +833,7 @@ namespace UnityEditor.VFX
                         s.m_LinkedInSlot = null;
                     });
 
-                var linkedChildren = masterSlot.allChildrenWhere(s => s.HasLink());
+                var linkedChildren = masterSlot.AllChildrenWithLink();
                 foreach (var slot in linkedChildren)
                 {
                     UpdateLinkedInExpression(slot, slot.refSlot);// this will trigger recomputation of linked expressions if needed

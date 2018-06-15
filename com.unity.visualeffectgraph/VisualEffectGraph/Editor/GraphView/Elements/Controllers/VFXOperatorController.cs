@@ -59,12 +59,12 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        protected override bool CouldLinkMyInputTo(VFXDataAnchorController myInput, VFXDataAnchorController otherOutput)
+        protected override bool CouldLinkMyInputTo(VFXDataAnchorController myInput, VFXDataAnchorController otherOutput, VFXDataAnchorController.CanLinkCache cache)
         {
             if (otherOutput.direction == myInput.direction)
                 return false;
 
-            if (!myInput.CanLinkToNode(otherOutput.sourceNode))
+            if (!myInput.CanLinkToNode(otherOutput.sourceNode, cache))
                 return false;
             return model.GetBestAffinityType(otherOutput.portType) != null;
         }
@@ -113,14 +113,14 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        protected override bool CouldLinkMyInputTo(VFXDataAnchorController myInput, VFXDataAnchorController otherOutput)
+        protected override bool CouldLinkMyInputTo(VFXDataAnchorController myInput, VFXDataAnchorController otherOutput, VFXDataAnchorController.CanLinkCache cache)
         {
             if (!myInput.model.IsMasterSlot())
                 return false;
             if (otherOutput.direction == myInput.direction)
                 return false;
 
-            if (!myInput.CanLinkToNode(otherOutput.sourceNode))
+            if (!myInput.CanLinkToNode(otherOutput.sourceNode, cache))
                 return false;
 
             int inputIndex = model.GetSlotIndex(myInput.model);
