@@ -319,3 +319,13 @@ EnvLightData FetchEnvLight(uint start, uint i)
 
     return _EnvLightDatas[j];
 }
+
+float GetContactShadow(LightLoopContext lightLoopContact, int contactShadowIndex)
+{
+    // Here we take the contact shadow value using the contactShadowIndex of the light
+    // If the contact shadows are diasbled, it's value is -1 so this function will only
+    // return 1
+    // On the other hand, if the feature is active it's value is 0 so we can return
+    // the value fetched at the begining of LightLoop()
+    return max(lightLoopContact.shadowContext.contactShadow, abs(contactShadowIndex));
+}
