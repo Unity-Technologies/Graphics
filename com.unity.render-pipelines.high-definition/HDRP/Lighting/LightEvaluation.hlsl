@@ -29,12 +29,13 @@ float3 EvaluateCookie_Directional(LightLoopContext lightLoopContext, Directional
 void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs posInput,
                                DirectionalLightData lightData, BakeLightingData bakeLightingData,
                                float3 N, float3 L,
-                               out float3 color, out float attenuation, out float attenuationNoContactShadow)
+                               out float3 color, out float attenuation, out float attenuationNoContactShadows)
 {
     float3 positionWS = posInput.positionWS;
     float  shadow     = 1.0;
     float  shadowMask = 1.0;
     float4 shadowData = float4(1, 1, 1, 1);
+    float  contactShadow = 1.0;
 
     color       = lightData.color;
     attenuation = 1.0; // Note: no volumetric attenuation along shadow rays for directional lights
@@ -85,15 +86,13 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
         // Note: There is no shadowDimmer when there is no shadow mask
 #endif
 
-        attenuationNoContactShadow = attenuation * shadow;
-
-#if (SHADERPASS != SHADERPASS_VOLUMETRIC_LIGHTING)
-        float contactShadow = GetContactShadow(lightLoopContext, lightData.contactShadowIndex);
-        shadow = min(shadow, contactShadow);
+#if (SHADERPASS != SHADERPASS_VOLUMETRIC_LIGHTING && !defined(_SURFACE_TYPE_TRANSPARENT))
+        contactShadow = GetContactShadow(lightLoopContext, lightData.contactShadowIndex);
 #endif
     }
 
-    attenuation *= shadow;
+    attenuationNoContactShadows = shadow * attenuation;
+    attenuation *= min(shadow, contactShadow);
 }
 
 //-----------------------------------------------------------------------------
@@ -147,7 +146,6 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     float  shadowMask    = 1.0;
     float  contactShadow = 1.0;
 
-    attenuationNoContactShadows = 1;
     color       = lightData.color;
     attenuation = SmoothPunctualLightAttenuation(distances, lightData.invSqrAttenuationRadius,
                                                  lightData.angleScale, lightData.angleOffset);
@@ -192,15 +190,13 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
         shadow = lerp(1.0, shadow, lightData.shadowDimmer);
 #endif
 
-        attenuationNoContactShadows = shadow * attenuation;
-
-#if (SHADERPASS != SHADERPASS_VOLUMETRIC_LIGHTING)
+#if (SHADERPASS != SHADERPASS_VOLUMETRIC_LIGHTING && !defined(_SURFACE_TYPE_TRANSPARENT))
         contactShadow = GetContactShadow(lightLoopContext, lightData.contactShadowIndex);
-        shadow = min(shadow, contactShadow);
 #endif
     }
 
-    attenuation *= shadow;
+    attenuationNoContactShadows = shadow * attenuation;
+    attenuation *= min(shadow, contactShadow);
 
 }
 

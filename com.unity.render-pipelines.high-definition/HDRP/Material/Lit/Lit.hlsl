@@ -1342,6 +1342,8 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     {
         // Make sure we do not sample the shadow map twice.
         lightData.shadowIndex = -1;
+        //No need to restore as we dont use it later
+        lightData.contactShadowIndex = -1;
     }
 
     float3 color;
