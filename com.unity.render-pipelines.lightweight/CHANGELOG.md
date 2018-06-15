@@ -5,10 +5,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- pipeline now uses XRSEttings.eyeTextureResolutionScale as renderScale when in XR 
+
 ### Changed
+- Screenspace shadow resolve is not only done when rendering shadow cascades
 - Updated the UI for the Lighweight pipeline asset 
 
 ### Fixed
+- Fixed UnityPerDraw CB layout
 - GLCore compute buffer compiler error
 - Occlusion strength not being applied on LW standard shaders
 - CopyDepth pass is being called even when a depth from prepass is available

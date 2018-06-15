@@ -1716,6 +1716,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return;
             }
 
+            // TODO: Move allocation in separate method call in start of the render loop
             var cameraRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorPyramid)
                 ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.ColorPyramid, m_BufferPyramid.AllocColorRT);
 
@@ -1731,6 +1732,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!hdCamera.frameSettings.enableRoughRefraction)
                 return;
 
+            // TODO: Move allocation in separate method call in start of the render loop
             var cameraRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.DepthPyramid)
                 ?? hdCamera.AllocHistoryFrameRT((int)HDCameraFrameHistoryType.DepthPyramid, m_BufferPyramid.AllocDepthRT);
 
@@ -1900,7 +1902,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // (i.e. we have perform a flip, we need to flip the input texture)
                     m_DebugFullScreen.SetFloat(HDShaderIDs._RequireToFlipInputTexture, hdCamera.camera.cameraType != CameraType.SceneView ? 1.0f : 0.0f);
                     m_DebugFullScreen.SetBuffer(HDShaderIDs._DebugScreenSpaceTracingData, m_DebugScreenSpaceTracingData);
-                    m_DebugFullScreen.SetTexture(HDShaderIDs._DepthPyramidTexture, hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.DepthPyramid));
                     HDUtils.DrawFullScreen(cmd, hdCamera, m_DebugFullScreen, (RenderTargetIdentifier)BuiltinRenderTextureType.CameraTarget);
 
                     PushColorPickerDebugTexture(hdCamera, cmd, (RenderTargetIdentifier)BuiltinRenderTextureType.CameraTarget);
