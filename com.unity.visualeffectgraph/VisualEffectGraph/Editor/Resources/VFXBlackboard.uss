@@ -68,6 +68,16 @@ VFXBlackboardCategory.expanded #expandButton > #buttonImage {
     image : resource("GraphView/Nodes/NodeChevronDown.png");
 }
 
+VFXBlackboardCategory > .mainContainer > #rowsContainer
+{
+    height:0;
+}
+
+VFXBlackboardCategory.expanded  > .mainContainer > #rowsContainer
+{
+    height:-1;
+}
+
 VFXBlackboardCategory > .mainContainer > #sectionHeader
 {
     padding-left:4;
@@ -82,8 +92,8 @@ VFXBlackboardCategory > .mainContainer > #sectionHeader
 }
 
 #divider {
-    background-color: rgba(80,80,80,0.8);
-    border-color: rgba(80,80,80,0.8);
+    background-color: rgba(60,60,60,0.8);
+    border-color: rgba(60,60,60,0.8);
 }
 
 #divider.horizontal {
