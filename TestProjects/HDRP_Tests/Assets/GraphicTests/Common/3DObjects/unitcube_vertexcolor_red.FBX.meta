@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: 3b9491354aed07c4ba5433f9c3c6f094
 ModelImporter:
-  serializedVersion: 22
+  serializedVersion: 23
   fileIDToRecycleName:
     100000: //RootNode
     400000: //RootNode
@@ -10,6 +10,7 @@ ModelImporter:
     3300000: //RootNode
     4300000: Box001
     4300002: unitcube_vertexcolor_red
+    2186277476908879412: ImportLogs
   externalObjects: {}
   materials:
     importMaterials: 0
@@ -61,6 +62,8 @@ ModelImporter:
     secondaryUVHardAngle: 88
     secondaryUVPackMargin: 4
     useFileScale: 1
+    previousCalculatedGlobalScale: 1
+    hasPreviousCalculatedGlobalScale: 0
   tangentSpace:
     normalSmoothAngle: 60
     normalImportMode: 0
