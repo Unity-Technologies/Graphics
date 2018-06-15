@@ -34,6 +34,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
     float3 positionWS = posInput.positionWS;
     float  shadow     = 1.0;
     float  shadowMask = 1.0;
+    float4 shadowData = float4(1, 1, 1, 1);
 
     color       = lightData.color;
     attenuation = 1.0; // Note: no volumetric attenuation along shadow rays for directional lights
@@ -59,6 +60,9 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 #else
         shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, lightData.shadowIndex, L, posInput.positionSS);
 #endif
+
+        float contactShadow = GetContactShadow(lightLoopContext, lightData.contactShadowIndex);
+        shadow = min(shadow, contactShadow);
 
 #ifdef SHADOWS_SHADOWMASK
 
@@ -134,9 +138,10 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
                             float3 N, float3 L, float3 lightToSample, float4 distances,
                             out float3 color, out float attenuation)
 {
-    float3 positionWS = posInput.positionWS;
-    float  shadow     = 1.0;
-    float  shadowMask = 1.0;
+    float3 positionWS    = posInput.positionWS;
+    float  shadow        = 1.0;
+    float  shadowMask    = 1.0;
+    float  contactShadow = 1.0;
 
     color       = lightData.color;
     attenuation = SmoothPunctualLightAttenuation(distances, lightData.invSqrAttenuationRadius,
@@ -167,6 +172,9 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     {
         // TODO: make projector lights cast shadows.
         shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, lightData.shadowIndex, L, distances.x, posInput.positionSS);
+        contactShadow = GetContactShadow(lightLoopContext, lightData.contactShadowIndex);
+        shadow = min(shadow, contactShadow);
+
 #ifdef SHADOWS_SHADOWMASK
         // Note: Legacy Unity have two shadow mask mode. ShadowMask (ShadowMask contain static objects shadow and ShadowMap contain only dynamic objects shadow, final result is the minimun of both value)
         // and ShadowMask_Distance (ShadowMask contain static objects shadow and ShadowMap contain everything and is blend with ShadowMask based on distance (Global distance setup in QualitySettigns)).
