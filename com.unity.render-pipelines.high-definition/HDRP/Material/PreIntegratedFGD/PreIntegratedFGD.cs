@@ -19,73 +19,111 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        bool m_isInit;
-        int m_refCounting;
+        public enum FGDIndex
+        {
+            FGD_GGXAndDisneyDiffuse = 0,
+            FGD_CharlieAndClothLambert = 1,
+            Count = 2
+        }
 
-        // For image based lighting
-        Material m_PreIntegratedFGDMaterial;
-        RenderTexture m_PreIntegratedFGD;
+        bool[] m_isInit = new bool[(int)FGDIndex.Count];
+        int[] m_refCounting = new int[(int)FGDIndex.Count];
+
+        Material[] m_PreIntegratedFGDMaterial = new Material[(int)FGDIndex.Count];
+        RenderTexture[] m_PreIntegratedFGD = new RenderTexture[(int)FGDIndex.Count];
 
         PreIntegratedFGD()
-        {
-            m_isInit = false;
-            m_refCounting = 0;
+        {            
+            for (int i = 0; i < (int)FGDIndex.Count; ++i)
+            {
+                m_isInit[i] = false;
+                m_refCounting[i] = 0;
+            }
         }
 
-        public void Build()
+        public void Build(FGDIndex index)
         {
-            Debug.Assert(m_refCounting >= 0);
+            Debug.Assert(index != FGDIndex.Count);
+            Debug.Assert(m_refCounting[(int)index] >= 0);
 
-            if (m_refCounting == 0)
+            if (m_refCounting[(int)index] == 0)
             {
                 var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
-                m_PreIntegratedFGDMaterial = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.preIntegratedFGD);
+                switch(index)
+                {
+                    case FGDIndex.FGD_GGXAndDisneyDiffuse:
+                        m_PreIntegratedFGDMaterial[(int)index] = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.preIntegratedFGD_GGXDisneyDiffuse);
+                        m_PreIntegratedFGD[(int)index] = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGB2101010, RenderTextureReadWrite.Linear);
+                        m_PreIntegratedFGD[(int)index].hideFlags = HideFlags.HideAndDontSave;
+                        m_PreIntegratedFGD[(int)index].filterMode = FilterMode.Bilinear;
+                        m_PreIntegratedFGD[(int)index].wrapMode = TextureWrapMode.Clamp;
+                        m_PreIntegratedFGD[(int)index].name = CoreUtils.GetRenderTargetAutoName(128, 128, 1, RenderTextureFormat.ARGB2101010, "preIntegratedFGD_GGXDisneyDiffuse");
+                        m_PreIntegratedFGD[(int)index].Create();
+                        break;
 
-                m_PreIntegratedFGD = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGB2101010, RenderTextureReadWrite.Linear);
-                m_PreIntegratedFGD.hideFlags = HideFlags.HideAndDontSave;
-                m_PreIntegratedFGD.filterMode = FilterMode.Bilinear;
-                m_PreIntegratedFGD.wrapMode = TextureWrapMode.Clamp;
-                m_PreIntegratedFGD.hideFlags = HideFlags.DontSave;
-                m_PreIntegratedFGD.name = CoreUtils.GetRenderTargetAutoName(128, 128, 1, RenderTextureFormat.ARGB2101010, "PreIntegratedFGD");
-                m_PreIntegratedFGD.Create();
+                    case FGDIndex.FGD_CharlieAndClothLambert:
+                        m_PreIntegratedFGDMaterial[(int)index] = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.preIntegratedFGD_CharlieClothLambert);
+                        m_PreIntegratedFGD[(int)index] = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGB2101010, RenderTextureReadWrite.Linear);
+                        m_PreIntegratedFGD[(int)index].hideFlags = HideFlags.HideAndDontSave;
+                        m_PreIntegratedFGD[(int)index].filterMode = FilterMode.Bilinear;
+                        m_PreIntegratedFGD[(int)index].wrapMode = TextureWrapMode.Clamp;
+                        m_PreIntegratedFGD[(int)index].name = CoreUtils.GetRenderTargetAutoName(128, 128, 1, RenderTextureFormat.ARGB2101010, "preIntegratedFGD_CharlieClothLambert");
+                        m_PreIntegratedFGD[(int)index].Create();
+                        break;
 
-                m_isInit = false;
+                    default:
+                        break;
+                }
+
+                m_isInit[(int)index] = false;
             }
 
-            m_refCounting++;
+            m_refCounting[(int)index]++;
         }
 
-        public void RenderInit(CommandBuffer cmd)
+        public void RenderInit(FGDIndex index, CommandBuffer cmd)
         {
-            if (m_isInit)
+            if (m_isInit[(int)index])
                 return;
 
             using (new ProfilingSample(cmd, "PreIntegratedFGD Material Generation"))
             {
-                CoreUtils.DrawFullScreen(cmd, m_PreIntegratedFGDMaterial, new RenderTargetIdentifier(m_PreIntegratedFGD));
+                CoreUtils.DrawFullScreen(cmd, m_PreIntegratedFGDMaterial[(int)index], new RenderTargetIdentifier(m_PreIntegratedFGD[(int)index]));
             }
 
-            m_isInit = true;
+            m_isInit[(int)index] = true;
         }
 
-        public void Cleanup()
+        public void Cleanup(FGDIndex index)
         {
-            m_refCounting--;
+            m_refCounting[(int)index]--;
 
-            if (m_refCounting == 0)
+            if (m_refCounting[(int)index] == 0)
             {
-                CoreUtils.Destroy(m_PreIntegratedFGDMaterial);
-                CoreUtils.Destroy(m_PreIntegratedFGD);
+                CoreUtils.Destroy(m_PreIntegratedFGDMaterial[(int)index]);
+                CoreUtils.Destroy(m_PreIntegratedFGD[(int)index]);
 
-                m_isInit = false;
+                m_isInit[(int)index] = false;
             }
 
-            Debug.Assert(m_refCounting >= 0);
+            Debug.Assert(m_refCounting[(int)index] >= 0);
         }
 
-        public void Bind()
+        public void Bind(FGDIndex index)
         {
-            Shader.SetGlobalTexture("_PreIntegratedFGD", m_PreIntegratedFGD);
+            switch (index)
+            {
+                case FGDIndex.FGD_GGXAndDisneyDiffuse:
+                    Shader.SetGlobalTexture(HDShaderIDs._PreIntegratedFGD_GGXDisneyDiffuse, m_PreIntegratedFGD[(int)index]);
+                    break;
+
+                case FGDIndex.FGD_CharlieAndClothLambert:
+                    Shader.SetGlobalTexture(HDShaderIDs._PreIntegratedFGD_CharlieAndCloth, m_PreIntegratedFGD[(int)index]);
+                    break;
+
+                default:
+                    break;
+            }
         }
     }
 }

@@ -1,15 +1,30 @@
-
 # Changelog
+All notable changes to this package will be documented in this file.
 
-## [2018.3]
+The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
+and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-### Improvements
+## [Unreleased]
 
-### Changed, Removals and deprecations
+### Added
+- Add option supportDitheringCrossFade on HDRP Asset to allow to remove shader variant during player build if needed
 
-### Bug fixes
+### Changed
+- Re-enable shadow mask mode in debug view
 
-## [2018.2 / next ]
+## [2.0.4-preview]
+
+### Fixed
+- Fix issue when disabling rough refraction and building a player. Was causing a crash.
+
+## [2.0.3-preview]
+
+### Added
+- Increased debug color picker limit up to 260k lux
+
+## [2.0.2-preview]
+
+### Added
 - Add Light -> Planar Reflection Probe command
 - Added a false color mode in rendering debug
 - Add support for mesh decals
@@ -20,22 +35,19 @@
 - Provide a define in lit.hlsl (FORWARD_MATERIAL_READ_FROM_WRITTEN_NORMAL_BUFFER) when output buffer normal is used to read the normal and roughness instead of caclulating it (can save performance, but lower quality due to compression)
 - Add color swatch to decal material
 
-### Improvements
-- Increased debug color picker limit up to 260k lux
-
-### Changed, Removals and deprecations
+### Changed
 - Change Render -> Planar Reflection creation to 3D Object -> Mirror
 - Change "Enable Reflector" name on SpotLight to "Angle Affect Intensity"
 - Change prototype of BSDFData ConvertSurfaceDataToBSDFData(SurfaceData surfaceData) to BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
 
-### Bug fixes
+### Fixed
 - Fix issue with StackLit in deferred mode with deferredDirectionalShadow due to GBuffer not being cleared. Gbuffer is still not clear and issue was fix with the new Output of normal buffer.
 - Fixed an issue where interpolation volumes were not updated correctly for reflection captures.
 - Fixed an exception in Light Loop settings UI
 
-## [2018.2 / 2.0.1-preview]
+## [2.0.1-preview]
 
-### Improvements
+### Added
 - Add stripper of shader variant when building a player. Save shader compile time.
 - Disable per-object culling that was executed in C++ in HD whereas it was not used (Optimization)
 - Enable texture streaming debugging (was not working before 2018.2)
@@ -50,16 +62,18 @@
 - Removed useless duplication of ForwardError passes.
 - Add option to not compile any DEBUG_DISPLAY shader in the player (Faster build) call Support Runtime Debug display
 
-### Changed, Removals and deprecations
-- Removed GlobalLightLoopSettings.maxPlanarReflectionProbes and instead use value of GlobalLightLoopSettings.planarReflectionProbeCacheSize
+### Changed
 - Changed SupportForwardOnly to SupportOnlyForward in render pipeline settings
-- Remove EmissiveIntensity parameter and change EmissiveColor to be HDR (Matching Builtin Unity behavior) - Data need to be updated - Launch Edit -> Single Step Upgrade Script -> Upgrade all Materials emissionColor
 - Changed versioning variable name in HDAdditionalXXXData from m_version to version
 - Create unique name when creating a game object in the rendering menu (i.e Density Volume(2))
 - Re-organize various files and folder location to clean the repository
 - Change Debug windows name and location. Now located at:  Windows -> General -> Render Pipeline Debug
 
-### Bug fixes
+### Removed
+- Removed GlobalLightLoopSettings.maxPlanarReflectionProbes and instead use value of GlobalLightLoopSettings.planarReflectionProbeCacheSize
+- Remove EmissiveIntensity parameter and change EmissiveColor to be HDR (Matching Builtin Unity behavior) - Data need to be updated - Launch Edit -> Single Step Upgrade Script -> Upgrade all Materials emissionColor
+
+### Fixed
 - Fix issue with LOD transition and instancing
 - Fix discrepency between object motion vector and camera motion vector
 - Fix issue with spot and dir light gizmo axis not highlighted correctly
@@ -69,9 +83,9 @@
 - Allow projector decal with null material to allow to configure decal when HDRP is not set
 - Decal atlas texture offset/scale is updated after allocations (used to be before so it was using date from previous frame)
 
-## [2018.1 undecided]
+## [2018.1 experimental]
 
-### Improvements
+### Added
 - Configure the VolumetricLightingSystem code path to be on by default
 - Trigger a build exception when trying to build an unsupported platform
 - Introduce the VolumetricLightingController component, which can (and should) be placed on the camera, and allows one to control the near and the far plane of the V-Buffer (volumetric "froxel" buffer) along with the depth distribution (from logarithmic to linear)
@@ -82,8 +96,7 @@
 - Add UV tiling and offset support for decals.
 - Add mipmapping support for volume 3D mask textures
 
-### Changed, Removals and deprecations
-- Remove Resource folder of PreIntegratedFGD and add the resource to RenderPipeline Asset
+### Changed
 - Default number of planar reflection change from 4 to 2
 - Rename _MainDepthTexture to _CameraDepthTexture
 - The VolumetricLightingController has been moved to the Interpolation Volume framework and now functions similarly to the VolumetricFog settings
@@ -91,7 +104,10 @@
 - Allow enabling/disabling shadows for area lights when they are set to baked.
 - Hide applyRangeAttenuation and FadeDistance for directional shadow as they are not used
 
-### Bug fixes
+### Removed
+- Remove Resource folder of PreIntegratedFGD and add the resource to RenderPipeline Asset
+
+### Fixed
 - Fix ConvertPhysicalLightIntensityToLightIntensity() function used when creating light from script to match HDLightEditor behavior
 - Fix numerical issues with the default value of mean free path of volumetric fog 
 - Fix the bug preventing decals from coexisting with density volumes
@@ -113,7 +129,7 @@
 
 ## [2018.1.0f2]
 
-### Improvements
+### Added
 - Screen Space Refraction projection model (Proxy raycasting, HiZ raymarching)
 - Screen Space Refraction settings as volume component
 - Added buffered frame history per camera
@@ -129,17 +145,19 @@
 - Add manipulator gizmo on decal to improve authoring workflow
 - Add a minimal StackLit material (work in progress, this version can be used as template to add new material)
 
-### Changed, Removals and deprecations
+### Changed
 - EnableShadowMask in FrameSettings (But shadowMaskSupport still disable by default)
 - Forced Planar Probe update modes to (Realtime, Every Update, Mirror Camera)
-- Removed Planar Probe mirror plane position and normal fields in inspector, always display mirror plane and normal gizmos
 - Screen Space Refraction proxy model uses the proxy of the first environment light (Reflection probe/Planar probe) or the sky
 - Moved RTHandle static methods to RTHandles
 - Renamed RTHandle to RTHandleSystem.RTHandle
 - Move code for PreIntegratedFDG (Lit.shader) into its dedicated folder to be share with other material
 - Move code for LTCArea (Lit.shader) into its dedicated folder to be share with other material
  
-### Bug fixes
+### Removed
+- Removed Planar Probe mirror plane position and normal fields in inspector, always display mirror plane and normal gizmos
+
+### Fixed
 - Fix fog flags in scene view is now taken into account
 - Fix sky in preview windows that were disappearing after a load of a new level
 - Fix numerical issues in IntersectRayAABB().
