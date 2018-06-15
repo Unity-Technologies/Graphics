@@ -1345,8 +1345,9 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
 
     float3 color;
     float attenuation;
+    float attenuationWithoutContactShadow;
     EvaluateLight_Punctual(lightLoopContext, posInput, lightData, bakeLightingData, N, L,
-                           lightToSample, distances, color, attenuation);
+                           lightToSample, distances, color, attenuation, attenuationWithoutContactShadow);
 
     // Restore the original shadow index.
     lightData.shadowIndex = originalShadowIndex;
@@ -1423,7 +1424,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
         // Note: we do not modify the distance to the light, or the light angle for the back face.
         // This is a performance-saving optimization which makes sense as long as the thickness is small.
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        lighting.diffuse += EvaluateTransmission(bsdfData, transmittance, NdotL, NdotV, LdotV, attenuation * lightData.diffuseScale);
+        lighting.diffuse += EvaluateTransmission(bsdfData, transmittance, NdotL, NdotV, LdotV, attenuationWithoutContactShadow * lightData.diffuseScale);
     }
 
     // Save ALU by applying light and cookie colors only once.
