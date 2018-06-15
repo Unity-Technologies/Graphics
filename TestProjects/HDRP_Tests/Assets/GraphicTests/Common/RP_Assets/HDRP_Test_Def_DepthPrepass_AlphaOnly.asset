@@ -57,7 +57,7 @@ MonoBehaviour:
     supportOnlyForward: 0
     enableUltraQualitySSS: 0
     supportVolumetric: 1
-    supportRuntimeDebugDisplay: 1
+    supportRuntimeDebugDisplay: 0
     supportDBuffer: 1
     supportMSAA: 0
     msaaSampleCount: 1
