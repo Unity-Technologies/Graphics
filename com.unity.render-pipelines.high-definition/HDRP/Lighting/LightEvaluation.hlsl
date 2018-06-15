@@ -29,7 +29,7 @@ float3 EvaluateCookie_Directional(LightLoopContext lightLoopContext, Directional
 void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs posInput,
                                DirectionalLightData lightData, BakeLightingData bakeLightingData,
                                float3 N, float3 L,
-                               out float3 color, out float attenuation)
+                               out float3 color, out float attenuation, out float attenuationNoContactShadow)
 {
     float3 positionWS = posInput.positionWS;
     float  shadow     = 1.0;
@@ -61,9 +61,6 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
         shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, lightData.shadowIndex, L, posInput.positionSS);
 #endif
 
-        float contactShadow = GetContactShadow(lightLoopContext, lightData.contactShadowIndex);
-        shadow = min(shadow, contactShadow);
-
 #ifdef SHADOWS_SHADOWMASK
 
         // TODO: Optimize this code! Currently it is a bit like brute force to get the last transistion and fade to shadow mask, but there is
@@ -87,6 +84,11 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 
         // Note: There is no shadowDimmer when there is no shadow mask
 #endif
+
+        attenuationNoContactShadow = attenuation * shadow;
+
+        float contactShadow = GetContactShadow(lightLoopContext, lightData.contactShadowIndex);
+        shadow = min(shadow, contactShadow);
     }
 
     attenuation *= shadow;
@@ -136,13 +138,14 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
 void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs posInput,
                             LightData lightData, BakeLightingData bakeLightingData,
                             float3 N, float3 L, float3 lightToSample, float4 distances,
-                            out float3 color, out float attenuation, out float attenuationWithoutContactShadows)
+                            out float3 color, out float attenuation, out float attenuationNoContactShadows)
 {
     float3 positionWS    = posInput.positionWS;
     float  shadow        = 1.0;
     float  shadowMask    = 1.0;
     float  contactShadow = 1.0;
 
+    attenuationNoContactShadows = 1;
     color       = lightData.color;
     attenuation = SmoothPunctualLightAttenuation(distances, lightData.invSqrAttenuationRadius,
                                                  lightData.angleScale, lightData.angleOffset);
@@ -172,7 +175,6 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     {
         // TODO: make projector lights cast shadows.
         shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, lightData.shadowIndex, L, distances.x, posInput.positionSS);
-        contactShadow = GetContactShadow(lightLoopContext, lightData.contactShadowIndex);
 
 #ifdef SHADOWS_SHADOWMASK
         // Note: Legacy Unity have two shadow mask mode. ShadowMask (ShadowMask contain static objects shadow and ShadowMap contain only dynamic objects shadow, final result is the minimun of both value)
@@ -188,8 +190,9 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
         shadow = lerp(1.0, shadow, lightData.shadowDimmer);
 #endif
 
-        attenuationWithoutContactShadows = attenuation * shadow;
-        
+        attenuationNoContactShadows = shadow * attenuation;
+
+        contactShadow = GetContactShadow(lightLoopContext, lightData.contactShadowIndex);
         shadow = min(shadow, contactShadow);
     }
 

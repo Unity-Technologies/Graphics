@@ -139,9 +139,9 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
             DirectionalLightData light = _DirectionalLightDatas[i];
             float3 L = -light.forward; // Lights point backwards in Unity
 
-            float3 color; float attenuation;
+            float3 color; float attenuation; float attenuationNoContactShadows;
             EvaluateLight_Directional(context, posInput, light, unused, 0, L,
-                                      color, attenuation);
+                                      color, attenuation, attenuationNoContactShadows);
 
             // Important:
             // Ideally, all scattering calculations should use the jittered versions
@@ -270,10 +270,10 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                     float4 distances     = float4(dist, distSq, distRcp, distProj);
                     float3 L             = -lightToSample * distRcp;
 
-                    float3 color; float attenuation; float attenuationWithoutContactShadow;
+                    float3 color; float attenuation; float attenuationNoContactShadows;
                     EvaluateLight_Punctual(context, posInput, light, unused,
                                            0, L, lightToSample, distances, color,
-                                           attenuation, attenuationWithoutContactShadow);
+                                           attenuation, attenuationNoContactShadows);
 
                     // Important:
                     // Ideally, all scattering calculations should use the jittered versions
@@ -359,10 +359,10 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                     float  distProj      = dot(lightToSample, light.forward);
                     float4 distances     = float4(1, 1, 1, distProj);
 
-                    float3 color; float attenuation; float attenuationWithoutContactShadow;
+                    float3 color; float attenuation; float attenuationNoContactShadows;
                     EvaluateLight_Punctual(context, posInput, light, unused,
                                            0, L, lightToSample, distances, color,
-                                           attenuation, attenuationWithoutContactShadow);
+                                           attenuation, attenuationNoContactShadows);
 
                     // Important:
                     // Ideally, all scattering calculations should use the jittered versions
