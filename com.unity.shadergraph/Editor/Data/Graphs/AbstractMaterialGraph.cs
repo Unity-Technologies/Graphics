@@ -149,7 +149,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         public string name { get; set; }
-        
+
         [SerializeField]
         string m_Path;
 
