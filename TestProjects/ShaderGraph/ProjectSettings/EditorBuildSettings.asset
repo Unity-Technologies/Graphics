@@ -8,4 +8,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Test01.unity
     guid: 43c05c9811bc897488141f42f3160f0e
+  - enabled: 1
+    path: Assets/Scenes/MathNodes.unity
+    guid: a57ba07320e44f145ab52a48fadc4dca
   m_configObjects: {}
