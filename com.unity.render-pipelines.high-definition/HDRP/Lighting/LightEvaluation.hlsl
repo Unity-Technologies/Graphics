@@ -136,7 +136,7 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
 void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs posInput,
                             LightData lightData, BakeLightingData bakeLightingData,
                             float3 N, float3 L, float3 lightToSample, float4 distances,
-                            out float3 color, out float attenuation)
+                            out float3 color, out float attenuation, out float attenuationWithoutContactShadows)
 {
     float3 positionWS    = posInput.positionWS;
     float  shadow        = 1.0;
@@ -173,7 +173,6 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
         // TODO: make projector lights cast shadows.
         shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, lightData.shadowIndex, L, distances.x, posInput.positionSS);
         contactShadow = GetContactShadow(lightLoopContext, lightData.contactShadowIndex);
-        shadow = min(shadow, contactShadow);
 
 #ifdef SHADOWS_SHADOWMASK
         // Note: Legacy Unity have two shadow mask mode. ShadowMask (ShadowMask contain static objects shadow and ShadowMap contain only dynamic objects shadow, final result is the minimun of both value)
@@ -188,6 +187,10 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
 #else
         shadow = lerp(1.0, shadow, lightData.shadowDimmer);
 #endif
+
+        attenuationWithoutContactShadows = attenuation * shadow;
+        
+        shadow = min(shadow, contactShadow);
     }
 
     attenuation *= shadow;
