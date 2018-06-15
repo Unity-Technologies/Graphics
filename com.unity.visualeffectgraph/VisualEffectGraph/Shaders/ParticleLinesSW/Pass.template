@@ -9,7 +9,7 @@ ${VFXGeneratedBlockFunction}
 
 VFX_VARYING_PS_INPUTS vert(uint id : SV_VertexID, uint instanceID : SV_InstanceID)
 {
-	uint index = id >> 2;
+	uint index = (id >> 2) + instanceID * 2048;
 	VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
 	
 	${VFXLoadAttributesOrCull}

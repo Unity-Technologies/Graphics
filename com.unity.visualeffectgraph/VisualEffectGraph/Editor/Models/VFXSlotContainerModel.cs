@@ -37,6 +37,8 @@ namespace UnityEditor.VFX
         void OnCopyLinksMySlot(VFXSlot myPrevSlot, VFXSlot myNewSlot, VFXSlot otherSlot);
 
         bool collapsed { get; set; }
+
+        CoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot);
     }
 
     abstract class VFXSlotContainerModel<ParentType, ChildrenType> : VFXModel<ParentType, ChildrenType>, IVFXSlotContainer
@@ -259,24 +261,10 @@ namespace UnityEditor.VFX
         {
             foreach (var master in slotContainer.inputSlots)
             {
-                var inheritSpace = CoordinateSpace.Local;
-                if (slotContainer is VFXBlock)
-                {
-                    inheritSpace = (slotContainer as VFXBlock).GetParent().space;
-                }
-                else if (slotContainer is VFXContext)
-                {
-                    inheritSpace = (slotContainer as VFXContext).space;
-                }
-                else
-                {
-                    Debug.LogErrorFormat("Unable to retrieve inherited space from " + slotContainer);
-                }
-
                 foreach (var slot in master.GetExpressionSlots())
                 {
                     var expression = slot.GetExpression();
-                    yield return new VFXNamedExpression(ConvertSpace(expression, slot, inheritSpace), slot.fullName);
+                    yield return new VFXNamedExpression(expression, slot.fullName);
                 }
             }
         }
@@ -420,6 +408,11 @@ namespace UnityEditor.VFX
         }
 
         public virtual void UpdateOutputExpressions() {}
+
+        public virtual CoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
+        {
+            return (CoordinateSpace)int.MaxValue;
+        }
 
         //[SerializeField]
         HashSet<string> m_expandedPaths = new HashSet<string>();

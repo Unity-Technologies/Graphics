@@ -573,8 +573,17 @@ namespace UnityEditor.VFX
                     if (!s.property.IsExpandable())
                         return;
 
-                    var fields = s.property.type.GetFields(BindingFlags.Public | BindingFlags.Instance).ToArray();
+                    var spaceAttributeOnType = s.property.type.GetCustomAttributes(typeof(VFXSpaceAttribute), true).FirstOrDefault();
+                    if (spaceAttributeOnType != null)
+                    {
+                        spaceableCollection.Add(new SpaceSlotConcerned
+                    {
+                        slot = s,
+                        type = (spaceAttributeOnType as VFXSpaceAttribute).type
+                    });
+                    }
 
+                    var fields = s.property.type.GetFields(BindingFlags.Public | BindingFlags.Instance).ToArray();
                     if (fields.Length != s.children.Count())
                         throw new InvalidOperationException("Unexpected slot count for : " + s.property.type.ToString());
 
@@ -589,7 +598,7 @@ namespace UnityEditor.VFX
                                 slot = slot.GetParent();
                             }
 
-                            spaceableCollection.Add(new SpaceSlotConcerned()
+                            spaceableCollection.Add(new SpaceSlotConcerned
                         {
                             slot = slot,
                             type = (spaceAttribute as VFXSpaceAttribute).type
@@ -597,6 +606,11 @@ namespace UnityEditor.VFX
                         }
                     }
                 });
+
+            if (spaceableCollection.GroupBy(s => s.slot).Any(g => g.Count() > 1))
+            {
+                Debug.LogErrorFormat("Unexpected space collection computed for {0}", masterSlot.property.type);
+            }
 
             masterSlot.m_SlotsSpaceable = spaceableCollection.ToArray();
             if (masterSlot.m_SlotsSpaceable.Any())
@@ -772,7 +786,7 @@ namespace UnityEditor.VFX
             var expression = refSlot.GetExpression();
             if (expression != null)
             {
-                destSlot.m_LinkedInExpression = ApplySpaceConversion(expression, destSlot, refSlot);
+                destSlot.m_LinkedInExpression = expression;
                 destSlot.m_LinkedInSlot = refSlot;
             }
             else if (destSlot.GetType() == refSlot.GetType())
@@ -850,7 +864,8 @@ namespace UnityEditor.VFX
             // First pass set in expression and propagate to children
             foreach (var startSlot in startSlots)
             {
-                startSlot.m_InExpression = startSlot.ConvertExpression(startSlot.m_LinkedInExpression, startSlot.m_LinkedInSlot); // TODO Handle structural modification
+                var inExpressionPatched = ApplySpaceConversion(startSlot.m_LinkedInExpression, startSlot, startSlot.m_LinkedInSlot);
+                startSlot.m_InExpression = startSlot.ConvertExpression(inExpressionPatched, startSlot.m_LinkedInSlot); // TODO Handle structural modification
                 startSlot.PropagateToChildren(s => {
                         var exp = s.ExpressionToChildren(s.m_InExpression);
                         for (int i = 0; i < s.GetNbChildren(); ++i)
@@ -863,12 +878,13 @@ namespace UnityEditor.VFX
                 startSlot.PropagateToParent(s => s.m_InExpression = s.ExpressionFromChildren(s.children.Select(c => c.m_InExpression).ToArray()));
 
             var toInvalidate = new HashSet<VFXSlot>();
-            masterSlot.SetOutExpression(masterSlot.m_InExpression, toInvalidate);
+
+            masterSlot.SetOutExpression(masterSlot.m_InExpression, toInvalidate, masterSlot.owner != null ? masterSlot.owner.GetOutputSpaceFromSlot(this) : (CoordinateSpace)int.MaxValue);
             masterSlot.PropagateToChildren(s =>
                 {
                     var exp = s.ExpressionToChildren(s.m_OutExpression);
                     for (int i = 0; i < s.GetNbChildren(); ++i)
-                        s[i].SetOutExpression(exp != null ? exp[i] : s[i].m_InExpression, toInvalidate);
+                        s[i].SetOutExpression(exp != null ? exp[i] : s[i].m_InExpression, toInvalidate, masterSlot.owner != null ? masterSlot.owner.GetOutputSpaceFromSlot(s) : (CoordinateSpace)int.MaxValue);
                 });
 
             foreach (var slot in toInvalidate)
@@ -877,7 +893,8 @@ namespace UnityEditor.VFX
 
         private static VFXExpression ApplySpaceConversion(VFXExpression exp, VFXSlot destSlot, VFXSlot sourceSlot)
         {
-            if (destSlot.spaceable && sourceSlot.spaceable
+            if (sourceSlot != null
+                && destSlot.spaceable && sourceSlot.spaceable
                 &&  destSlot.space != sourceSlot.space)
             {
                 var destSpaceableType = destSlot.GetSpaceTransformationType();
@@ -900,9 +917,13 @@ namespace UnityEditor.VFX
             return exp;
         }
 
-        private void SetOutExpression(VFXExpression exp, HashSet<VFXSlot> toInvalidate)
+        private void SetOutExpression(VFXExpression exp, HashSet<VFXSlot> toInvalidate, CoordinateSpace convertToSpace = (CoordinateSpace)int.MaxValue)
         {
             exp = VFXPropertyAttribute.ApplyToExpressionGraph(m_Property.attributes, exp);
+            if (convertToSpace != (CoordinateSpace)int.MaxValue)
+            {
+                exp = ConvertSpace(exp, this, convertToSpace);
+            }
 
             if (m_OutExpression != exp)
             {

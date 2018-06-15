@@ -56,7 +56,8 @@ namespace UnityEditor.VFX
 
         private static CoordinateSpace GetCommonSpaceFromSpaceableSlot(IEnumerable<VFXSlot> slots)
         {
-            return slots.Select(o => o.space).Distinct().OrderByDescending(o => (int)o).First();
+            var spaceableSlots = slots.Select(o => o.space).Distinct().OrderByDescending(o => (int)o);
+            return spaceableSlots.Any() ? spaceableSlots.First() : (CoordinateSpace)int.MaxValue;
         }
 
         protected override sealed void OnInvalidate(VFXModel model, InvalidationCause cause)
@@ -90,6 +91,11 @@ namespace UnityEditor.VFX
             base.OnInvalidate(model, cause);
         }
 
+        public sealed override CoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
+        {
+            return GetCommonSpaceFromSpaceableSlot(inputSlots);
+        }
+
         public override sealed void UpdateOutputExpressions()
         {
             var outputSlotWithExpression = new List<VFXSlot>();
@@ -98,19 +104,7 @@ namespace UnityEditor.VFX
             GetSlotPredicateRecursive(inputSlotWithExpression, inputSlots, s => s.GetExpression() != null);
 
             var inputSlotSpaceable = inputSlots.Where(o => o.spaceable);
-            IEnumerable<VFXExpression> inputExpressions;
-            if (inputSlotSpaceable.Any())
-            {
-                var currentSpace = GetCommonSpaceFromSpaceableSlot(inputSlotSpaceable);
-                //Actually, it will convert space only on spaceable slot
-                inputExpressions = inputSlotWithExpression.Select(o => ConvertSpace(o.GetExpression(), o, currentSpace));
-            }
-            else
-            {
-                //Simple path, doesn't require any transformation
-                inputExpressions = inputSlotWithExpression.Select(o => o.GetExpression());
-            }
-
+            IEnumerable<VFXExpression> inputExpressions = inputSlotWithExpression.Select(o => o.GetExpression());
             inputExpressions = ApplyPatchInputExpression(inputExpressions);
 
             var outputExpressions = BuildExpression(inputExpressions.ToArray());
