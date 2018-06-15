@@ -56,7 +56,7 @@ namespace UnityEditor.VFX.UI
 
         public VFXBlackboardCategory()
         {
-            var tpl = EditorGUIUtility.Load("UXML/GraphView/BlackboardSection.uxml") as VisualTreeAsset;
+            var tpl = EditorGUIUtility.Load(UXMLHelper.GetUXMLPath("uxml/VFXBlackboardSection.uxml")) as VisualTreeAsset;
 
             m_MainContainer = tpl.CloneTree(null);
             m_MainContainer.AddToClassList("mainContainer");
