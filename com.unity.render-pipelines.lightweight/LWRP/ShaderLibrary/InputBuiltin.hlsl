@@ -91,16 +91,34 @@ CBUFFER_END
 
 // ----------------------------------------------------------------------------
 
+// Block Layout should be respected due to SRP Batcher
 CBUFFER_START(UnityPerDraw)
-
+// Space block Feature
 float4x4 unity_ObjectToWorld;
 float4x4 unity_WorldToObject;
 real4 unity_LODFade; // x is the fade value ranging within [0,1]. y is x quantized into 16 levels
 float4 unity_WorldTransformParams; // w is usually 1.0, or -1.0 for odd-negative scale transforms
 
-float4 unity_LightmapST;
+// Light Indices block feature
+// These are set internally by the engine upon request by RendererConfiguration.
+// Check GetRendererSettings in LightweightPipeline.cs
+real4 unity_LightIndicesOffsetAndCount;
+real4 unity_4LightIndices0;
+real4 unity_4LightIndices1;
 
-// SH lighting environment
+// Reflection Probe 0 block feature
+// HDR environment map decode instructions
+real4 unity_SpecCube0_HDR;
+
+// Lightmap block feature
+float4 unity_LightmapST;
+float4 unity_DynamicLightmapST;
+
+// No feature block yet!
+// HDR lightmap decode instructions
+real4 unity_Lightmap_HDR;
+
+// SH block feature
 real4 unity_SHAr;
 real4 unity_SHAg;
 real4 unity_SHAb;
@@ -109,21 +127,9 @@ real4 unity_SHBg;
 real4 unity_SHBb;
 real4 unity_SHC;
 
+// Probe Occlusion block feature
 // This contain occlusion factor from 0 to 1 for dynamic objects (no SH here)
 real4 unity_ProbesOcclusion;
-
-// HDR environment map decode instructions
-real4 unity_SpecCube0_HDR;
-
-// HDR lightmap decode instructions
-real4 unity_Lightmap_HDR;
-
-// These are set internally by the engine upon request by RendererConfiguration.
-// Check GetRendererSettings in LightweightPipeline.cs
-real4 unity_LightIndicesOffsetAndCount;
-real4 unity_4LightIndices0;
-real4 unity_4LightIndices1;
-
 CBUFFER_END
 
 #if defined(UNITY_STEREO_MULTIVIEW_ENABLED) || ((defined(UNITY_SINGLE_PASS_STEREO) || defined(UNITY_STEREO_INSTANCING_ENABLED)) && (defined(SHADER_API_GLCORE) || defined(SHADER_API_GLES3) || defined(SHADER_API_METAL)))
