@@ -790,5 +790,57 @@ namespace UnityEditor.VFX.Test
             Assert.IsFalse(cos.inputSlots[0].HasLink(true));
             Assert.IsFalse(sin.inputSlots[0].HasLink(true));
         }
+
+        [Test]
+        public void ConvertParameterToInline()
+        {
+            VFXParameter newParameter = m_ViewController.AddVFXParameter(Vector2.zero, VFXLibrary.GetParameters().First(t => t.model.type == typeof(AABox)));
+
+            m_ViewController.LightApplyChanges();
+
+            VFXParameterController parameterController = m_ViewController.GetParameterController(newParameter);
+
+            int id = parameterController.model.AddNode(new Vector2(123, 456));
+
+            AABox value = new AABox { center = new Vector3(1, 2, 3), size = new Vector3(4, 5, 6) };
+
+            parameterController.value = value;
+
+            m_ViewController.LightApplyChanges();
+
+            VFXParameterNodeController parameterNode = parameterController.nodes.First();
+
+            parameterNode.ConvertToInline();
+
+            VFXInlineOperator op = m_ViewController.graph.children.OfType<VFXInlineOperator>().First();
+
+            Assert.AreEqual(new Vector2(123, 456), op.position);
+            Assert.AreEqual(typeof(AABox), op.type);
+            Assert.AreEqual(value, op.inputSlots[0].value);
+        }
+
+        [Test]
+        public void ConvertInlineToParameter()
+        {
+            var op = ScriptableObject.CreateInstance<VFXInlineOperator>();
+            m_ViewController.graph.AddChild(op);
+            op.SetSettingValue("m_Type", (SerializableType)typeof(AABox));
+            op.position = new Vector2(123, 456);
+            AABox value = new AABox { center = new Vector3(1, 2, 3), size = new Vector3(4, 5, 6) };
+
+            op.inputSlots[0].value = value;
+
+            m_ViewController.LightApplyChanges();
+
+            var nodeController = m_ViewController.GetNodeController(op, 0) as VFXOperatorController;
+
+            nodeController.ConvertToParameter();
+
+            VFXParameter param = m_ViewController.graph.children.OfType<VFXParameter>().First();
+
+            Assert.AreEqual(new Vector2(123, 456), param.nodes[0].position);
+            Assert.AreEqual(typeof(AABox), param.type);
+            Assert.AreEqual(value, param.value);
+        }
     }
 }
