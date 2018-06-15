@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Screenspace shadow resolve is not only done when rendering shadow cascades
+- Updated the UI for the Lighweight pipeline asset 
 
 ### Fixed
 - Fixed UnityPerDraw CB layout

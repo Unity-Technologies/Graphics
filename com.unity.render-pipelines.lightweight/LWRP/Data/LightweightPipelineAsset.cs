@@ -82,7 +82,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] bool m_LocalShadowsSupported = true;
         [SerializeField] ShadowResolution m_LocalShadowsAtlasResolution = ShadowResolution._512;
         [SerializeField] bool m_SoftShadowsSupported = false;
-        [SerializeField] bool m_CustomShaderVariantStrippingSettings = false;
         [SerializeField] bool m_KeepAdditionalLightVariants = true;
         [SerializeField] bool m_KeepVertexLightVariants = true;
         [SerializeField] bool m_KeepDirectionalShadowVariants = true;
@@ -320,7 +319,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public bool customShaderVariantStripping
         {
-            get { return m_CustomShaderVariantStrippingSettings; }
+            get { return false; }
         }
 
         public bool keepAdditionalLightVariants
