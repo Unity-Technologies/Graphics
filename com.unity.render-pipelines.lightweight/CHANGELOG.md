@@ -9,7 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - pipeline now uses XRSEttings.eyeTextureResolutionScale as renderScale when in XR 
 
 ### Changed
-- Screenspace shadow resolve is not only done when rendering shadow cascades
+- Updated lightweight asset inspector to show capabilities and general settings groups. Removed custom shader stripping.
+- Screenspace shadow resolve is now only done when rendering shadow cascades
 
 ## [2.0.3-preview]
 
