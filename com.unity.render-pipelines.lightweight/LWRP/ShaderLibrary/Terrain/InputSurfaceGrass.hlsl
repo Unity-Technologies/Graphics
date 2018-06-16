@@ -86,7 +86,7 @@ half4 TerrainWaveGrass (inout float4 vertex, float waveAmount, half4 color)
     vertex.xz -= waveMove.xz * _WaveAndDistance.z;
 
     // apply color animation
-    half3 waveColor = lerp (0.5, _WavingTint.rgb, lighting);
+    half3 waveColor = lerp (real3(0.5, 0.5, 0.5), _WavingTint.rgb, lighting);
 
     // Fade the grass out before detail distance.
     // Saturate because Radeon HD drivers on OS X 10.4.10 don't saturate vertex colors properly.
