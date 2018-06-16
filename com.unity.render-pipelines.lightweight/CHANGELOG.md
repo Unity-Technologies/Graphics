@@ -6,7 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 ### Added
-- pipeline now uses XRSEttings.eyeTextureResolutionScale as renderScale when in XR 
+- Added camera additional data component to control shadows, depth and color texture
+- pipeline now uses XRSEttings.eyeTextureResolutionScale as renderScale when in XR
 
 ### Changed
 - Updated lightweight asset inspector to show capabilities and general settings groups. Removed custom shader stripping.
