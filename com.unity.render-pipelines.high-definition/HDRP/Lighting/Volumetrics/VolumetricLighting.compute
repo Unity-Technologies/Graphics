@@ -140,8 +140,8 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
             float3 L = -light.forward; // Lights point backwards in Unity
 
             float3 color; float attenuation; float attenuationNoContactShadows;
-            EvaluateLight_Directional(context, posInput, light, unused, 0, L,
-                                      color, attenuation, attenuationNoContactShadows);
+            EvaluateLight_Directional(context, posInput, light, unused, 0, L, false,
+                                      color, attenuation);
 
             // Important:
             // Ideally, all scattering calculations should use the jittered versions
@@ -272,8 +272,8 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
 
                     float3 color; float attenuation; float attenuationNoContactShadows;
                     EvaluateLight_Punctual(context, posInput, light, unused,
-                                           0, L, lightToSample, distances, color,
-                                           attenuation, attenuationNoContactShadows);
+                                           0, L, lightToSample, distances, false,
+                                           color, attenuation);
 
                     // Important:
                     // Ideally, all scattering calculations should use the jittered versions
@@ -360,9 +360,9 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                     float4 distances     = float4(1, 1, 1, distProj);
 
                     float3 color; float attenuation; float attenuationNoContactShadows;
-                    EvaluateLight_Punctual(context, posInput, light, unused,
-                                           0, L, lightToSample, distances, color,
-                                           attenuation, attenuationNoContactShadows);
+                    EvaluateLight_Punctual( context, posInput, light, unused,
+                                            0, L, lightToSample, distances, false,
+                                            color, attenuation);
 
                     // Important:
                     // Ideally, all scattering calculations should use the jittered versions
