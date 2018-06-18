@@ -34,6 +34,8 @@ TEXTURE2D(_GBufferTexture0);
 #define MATERIAL_FEATURE_FLAGS_SSS_OUTPUT_SPLIT_LIGHTING         ((MATERIAL_FEATURE_MASK_FLAGS + 1) << 0)
 #define MATERIAL_FEATURE_FLAGS_SSS_TEXTURING_MODE_OFFSET FastLog2((MATERIAL_FEATURE_MASK_FLAGS + 1) << 1) // 2 bits
 #define MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS ((MATERIAL_FEATURE_MASK_FLAGS + 1) << 3)
+// Flags used as a shortcut to know if we have thin mode transmission
+#define MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS  ((MATERIAL_FEATURE_MASK_FLAGS + 1) << 4)
 
 //
 // Vertically Layered BSDF : "vlayering"
@@ -193,21 +195,21 @@ void FillMaterialTransmission(uint diffusionProfile, float thickness, inout BSDF
     // the current object. That's not a problem, since large thickness will result in low intensity.
     bool useThinObjectMode = IsBitSet(asuint(_TransmissionFlags), diffusionProfile);
 
-    bsdfData.materialFeatures |= useThinObjectMode ? 0 : MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS;
+    bsdfData.materialFeatures |= useThinObjectMode ? MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS : MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS;
 
     // Compute transmittance using baked thickness here. It may be overridden for direct lighting
     // in the auto-thickness mode (but is always be used for indirect lighting).
 #if SHADEROPTIONS_USE_DISNEY_SSS
     bsdfData.transmittance = ComputeTransmittanceDisney(_ShapeParams[diffusionProfile].rgb,
-        _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
-        bsdfData.thickness);
+                                                        _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
+                                                        bsdfData.thickness);
 #else
     bsdfData.transmittance = ComputeTransmittanceJimenez(_HalfRcpVariancesAndWeights[diffusionProfile][0].rgb,
-        _HalfRcpVariancesAndWeights[diffusionProfile][0].a,
-        _HalfRcpVariancesAndWeights[diffusionProfile][1].rgb,
-        _HalfRcpVariancesAndWeights[diffusionProfile][1].a,
-        _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
-        bsdfData.thickness);
+                                                         _HalfRcpVariancesAndWeights[diffusionProfile][0].a,
+                                                         _HalfRcpVariancesAndWeights[diffusionProfile][1].rgb,
+                                                         _HalfRcpVariancesAndWeights[diffusionProfile][1].a,
+                                                         _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
+                                                         bsdfData.thickness);
 #endif
 }
 
@@ -2223,6 +2225,15 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     float3 color;
     float attenuation;
 
+    // When using thin transmission mode we don't fetch shadow map for back face, we reuse front face shadow
+    // However we flip the normal for the bias (and the NdotL test) and disable contact shadow
+    if (HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS) && NdotL < 0)
+    {
+        //  Disable shadow contact in case of transmission and backface shadow
+        N = -N;
+        lightData.contactShadowIndex = -1; // This is only modify for the scope of this function
+    }
+
     // For shadow attenuation (ie receiver bias), always use the geometric normal:
     EvaluateLight_Directional(lightLoopContext, posInput, lightData, bakeLightingData, bsdfData.geomNormalWS, L, color, attenuation);
 
@@ -2238,9 +2249,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     }
 
     // The mixed thickness mode is not supported by directional lights due to poor quality and high performance impact.
-    bool mixedThicknessMode = HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS);
-
-    if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION) && !mixedThicknessMode)
+    if (HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
     {
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
         lighting.diffuse += EvaluateTransmission(bsdfData, bsdfData.transmittance, NdotL, NdotV, LdotV, attenuation * lightData.diffuseScale);
@@ -2303,27 +2312,22 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     float  NdotL = dot(N, L);
     float  LdotV = dot(L, V);
 
-    bool mixedThicknessMode = HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS)
-                              && NdotL < 0 && lightData.shadowIndex >= 0;
-
-    // Save the original version for the transmission code below.
-    int originalShadowIndex = lightData.shadowIndex;
-
-    if (mixedThicknessMode)
-    {
-        // Make sure we do not sample the shadow map twice.
-        lightData.shadowIndex = -1;
-    }
-
     float3 color;
     float attenuation;
+
+    // When using thin transmission mode we don't fetch shadow map for back face, we reuse front face shadow
+    // However we flip the normal for the bias (and the NdotL test) and disable contact shadow
+    if (HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS) && NdotL < 0)
+    {
+        //  Disable shadow contact in case of transmission and backface shadow
+        N = -N;
+        lightData.contactShadowIndex = -1; // This is only modify for the scope of this function
+    }
 
     // For shadow attenuation (ie receiver bias), always use the geometric normal:
     EvaluateLight_Punctual(lightLoopContext, posInput, lightData, bakeLightingData, bsdfData.geomNormalWS, L,
                            lightToSample, distances, color, attenuation);
 
-    // Restore the original shadow index.
-    lightData.shadowIndex = originalShadowIndex;
 
     float intensity = max(0, attenuation); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
 
@@ -2350,6 +2354,9 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION))
     {
         float3 transmittance = bsdfData.transmittance;
+
+        bool mixedThicknessMode =   HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS)
+                                    && NdotL < 0 && lightData.shadowIndex >= 0;
 
         if (mixedThicknessMode)
         {
