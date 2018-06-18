@@ -139,12 +139,12 @@ public class VisualEffectAssetEditor : Editor
 
         m_Direction = VFXPreviewGUI.Drag2D(m_Direction, r);
         Renderer renderer = m_VisualEffectGO.GetComponent<Renderer>();
+        m_OriginalBounds = renderer.bounds;
 
         if (m_FrameCount == kSafeFrame) // wait to frame before asking the renderer bounds as it is a computed value.
         {
             if (renderer != null)
             {
-                m_OriginalBounds = renderer.bounds;
                 float maxBounds = Mathf.Sqrt(m_OriginalBounds.size.x * m_OriginalBounds.size.x + m_OriginalBounds.size.y * m_OriginalBounds.size.y + m_OriginalBounds.size.z * m_OriginalBounds.size.z);
                 m_Distance = Mathf.Max(0.01f, maxBounds * 1.25f);
 
@@ -152,11 +152,14 @@ public class VisualEffectAssetEditor : Editor
                 ComputeFarNear();
             }
         }
+        else
+        {
+            ComputeFarNear();
+        }
         m_FrameCount++;
         if (Event.current.isScrollWheel)
         {
             m_Distance *= 1 + (Event.current.delta.y * .015f);
-            ComputeFarNear();
         }
 
         if (isRepaint)
