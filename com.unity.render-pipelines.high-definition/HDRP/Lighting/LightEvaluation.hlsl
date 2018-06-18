@@ -172,7 +172,6 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
 #endif
 
     // We test NdotL >= 0.0 to not sample the shadow map if it is not required.
-    // Note that volumetric use N of 0 so it still work
     UNITY_BRANCH if (lightData.shadowIndex >= 0 && (dot(N, L) >= 0.0))
     {
         // TODO: make projector lights cast shadows.
