@@ -672,12 +672,12 @@ namespace  UnityEditor.VFX.UI
         {
             string newCategoryName = EditorGUIUtility.TrTextContent("new category").text;
             int cpt = 1;
-            while (controller.graph.UIInfos.categories.Contains(newCategoryName))
+            while (controller.graph.UIInfos.categories.Any(t => t.name == newCategoryName))
             {
                 newCategoryName = string.Format(EditorGUIUtility.TrTextContent("new category {0}").text, cpt++);
             }
 
-            controller.graph.UIInfos.categories.Add(newCategoryName);
+            controller.graph.UIInfos.categories.Add(new VFXUI.CategoryInfo() { name = newCategoryName });
             controller.graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }
 
@@ -696,6 +696,11 @@ namespace  UnityEditor.VFX.UI
             {
                 controller.SetParametersOrder(row.controller, index++, category == m_DefaultCategory ? "" : category.title);
             }
+        }
+
+        public void SetCategoryExpanded(VFXBlackboardCategory category, bool expanded)
+        {
+            controller.SetCategoryExpanded(category.title, expanded);
         }
 
         VFXBlackboardCategory m_DefaultCategory;
@@ -724,31 +729,35 @@ namespace  UnityEditor.VFX.UI
             public int order;
         }
 
+        Dictionary<string, bool> m_ExpandedStatus = new Dictionary<string, bool>();
         void OnControllerChanged(ControllerChangedEvent e)
         {
             if (e.controller == controller || e.controller is VFXParameterController) //optim : reorder only is only the order has changed
             {
                 var orderedCategories = controller.graph.UIInfos.categories;
                 var newCategories = new List<VFXBlackboardCategory>();
+
                 if (orderedCategories != null)
                 {
-                    foreach (var catName in controller.graph.UIInfos.categories)
+                    foreach (var catModel in controller.graph.UIInfos.categories)
                     {
                         VFXBlackboardCategory cat = null;
-                        if (!m_Categories.TryGetValue(catName, out cat))
+                        if (!m_Categories.TryGetValue(catModel.name, out cat))
                         {
-                            cat = new VFXBlackboardCategory() {title =  catName};
+                            cat = new VFXBlackboardCategory() {title = catModel.name };
                             cat.SetSelectable();
-                            m_Categories.Add(catName, cat);
+                            m_Categories.Add(catModel.name, cat);
                         }
+                        m_ExpandedStatus[catModel.name] = !catModel.collapsed;
 
                         newCategories.Add(cat);
                     }
 
-                    foreach (var category in m_Categories.Keys.Except(orderedCategories).ToArray())
+                    foreach (var category in m_Categories.Keys.Except(orderedCategories.Select(t => t.name)).ToArray())
                     {
                         m_Categories[category].RemoveFromHierarchy();
                         m_Categories.Remove(category);
+                        m_ExpandedStatus.Remove(category);
                     }
                 }
 
@@ -771,6 +780,7 @@ namespace  UnityEditor.VFX.UI
                 {
                     actualControllers = new HashSet<VFXParameterController>(controller.parameterControllers.Where(t => t.model.category == cat.title));
                     cat.SyncParameters(actualControllers);
+                    cat.expanded = m_ExpandedStatus[cat.title];
                 }
             }
         }
