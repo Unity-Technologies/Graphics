@@ -147,7 +147,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     float  shadowMask    = 1.0;
 
     color       = lightData.color;
-    attenuation = SmoothPunctualLightAttenuation(distances, lightData.invSqrAttenuationRadius,
+    attenuation = SmoothPunctualLightAttenuation(distances, lightData.rangeAttenuationScale, lightData.rangeAttenuationBias,
                                                  lightData.angleScale, lightData.angleOffset);
 
 #if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET != 0)

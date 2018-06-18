@@ -931,9 +931,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             lightData.lightType = gpuLightType;
 
             lightData.positionWS = light.light.transform.position;
-            // Setting 0 for invSqrAttenuationRadius mean we have no range attenuation, but still have inverse square attenuation.
+
             bool applyRangeAttenuation = additionalLightData.applyRangeAttenuation && (gpuLightType != GPULightType.ProjectorBox);
-            lightData.invSqrAttenuationRadius = applyRangeAttenuation ? 1.0f / (light.range * light.range) : 0.0f;
+
+            // In the shader we do range remapping: (x - start) / (end - start) = (dist^2 * rangeAttenuationScale + rangeAttenuationBias)
+            if (applyRangeAttenuation)
+            {
+                // start = 0.0f, end = range^2
+                lightData.rangeAttenuationScale = 1.0f / (light.range * light.range);
+                lightData.rangeAttenuationBias = 0.0f;
+            }
+            else // Don't apply any attenuation but do a 'step' at range
+            {
+                // start = range^2 - epsilon, end = range^2
+                lightData.rangeAttenuationScale = 1.0f / 0.01f;
+                lightData.rangeAttenuationBias = - (light.range * light.range - 0.01f) / 0.01f;
+            }
+
             lightData.color = GetLightColor(light);
 
             lightData.forward = light.light.transform.forward; // Note: Light direction is oriented backward (-Z)
