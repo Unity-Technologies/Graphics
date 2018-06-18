@@ -678,6 +678,8 @@ MonoBehaviour:
     - context: {fileID: 114063133802684794}
       slotIndex: 0
   integration: 0
+  ageParticles: 1
+  reapParticles: 1
 --- !u!114 &114816735112706074
 MonoBehaviour:
   m_ObjectHideFlags: 1
