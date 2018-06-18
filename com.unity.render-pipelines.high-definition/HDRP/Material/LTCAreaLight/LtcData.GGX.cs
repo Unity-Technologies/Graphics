@@ -9,7 +9,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // LTC area light Look up table (fit for GGX with height-correlated Smith's visibility term)
         //-------------------------------------------------------------------------------------------
 
-        // This table is precomputed for squared roughness and normalized so that last entry
+        // This table is precomputed for sqrt(roughness) and normalized so that last entry
         // is 1 and thus does not need to be store in a texture.
         public static double[,] s_LtcGGXMatrixData = new double[k_LtcLUTResolution * k_LtcLUTResolution, k_LtcLUTMatrixDim * k_LtcLUTMatrixDim]
         {
