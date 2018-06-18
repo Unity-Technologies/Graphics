@@ -53,8 +53,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
     shadow = shadowMask = (lightData.shadowMaskSelector.x >= 0.0) ? dot(bakeLightingData.bakeShadowMask, lightData.shadowMaskSelector) : 1.0;
 #endif
 
-    // We test NdotL > 0.0 to not sample the shadow map if it is not required.
-    // In case of thin mode we always need to perform the fetch as we reuse it for back and front lighting
+    // We test NdotL >= 0.0 to not sample the shadow map if it is not required.
     UNITY_BRANCH if (lightData.shadowIndex >= 0 && (dot(N, L) >= 0.0))
     {
 #ifdef USE_DEFERRED_DIRECTIONAL_SHADOWS

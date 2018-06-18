@@ -139,7 +139,7 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
             DirectionalLightData light = _DirectionalLightDatas[i];
             float3 L = -light.forward; // Lights point backwards in Unity
 
-            float3 color; float attenuation; float attenuationNoContactShadows;
+            float3 color; float attenuation;
             EvaluateLight_Directional(context, posInput, light, unused, 0, L,
                                       color, attenuation);
 
@@ -270,7 +270,7 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                     float4 distances     = float4(dist, distSq, distRcp, distProj);
                     float3 L             = -lightToSample * distRcp;
 
-                    float3 color; float attenuation; float attenuationNoContactShadows;
+                    float3 color; float attenuation;
                     EvaluateLight_Punctual(context, posInput, light, unused,
                                            0, L, lightToSample, distances,
                                            color, attenuation);
