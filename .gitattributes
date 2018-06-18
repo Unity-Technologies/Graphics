@@ -1,8 +1,9 @@
 com.unity.shadergraph/**/*.png filter=lfs diff=lfs merge=lfs -text
 com.unity.shadergraph/**/*.gif filter=lfs diff=lfs merge=lfs -text
-TestProjects/ShaderGraph/**/*.png filter=lfs diff=lfs merge=lfs -text
-TestProjects/LWGraphicsTest/**/*.tif filter=lfs diff=lfs merge=lfs -text
-TestProjects/LWGraphicsTest/**/*.png filter=lfs diff=lfs merge=lfs -text
+TestProjects/**/*.png filter=lfs diff=lfs merge=lfs -text
+TestProjects/**/*.tif filter=lfs diff=lfs merge=lfs -text
+TestProjects/**/*.exr filter=lfs diff=lfs merge=lfs -text
+TestProjects/**/*.fbx filter=lfs diff=lfs merge=lfs -text
 *.psd filter=lfs diff=lfs merge=lfs -text
 *.jpg filter=lfs diff=lfs merge=lfs -text
 *.png filter=lfs diff=lfs merge=lfs -text
