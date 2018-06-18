@@ -104,7 +104,7 @@ namespace UnityEditor.VFX.Block
             get
             {
                 yield return new VFXAttributeInfo(VFXAttribute.Velocity, composition == AttributeCompositionMode.Overwrite ? VFXAttributeMode.Write : VFXAttributeMode.ReadWrite);
-                yield return new VFXAttributeInfo(VFXAttribute.Direction, VFXAttributeMode.ReadWrite);
+                yield return new VFXAttributeInfo(VFXAttribute.Direction, altersDirection ? VFXAttributeMode.ReadWrite : VFXAttributeMode.Read );
 
                 if (speedMode != SpeedMode.Constant)
                     yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
