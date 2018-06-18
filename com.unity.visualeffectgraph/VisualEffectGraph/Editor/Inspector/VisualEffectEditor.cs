@@ -234,7 +234,7 @@ namespace UnityEditor.VFX
             {
                 rect.x += 2;
                 rect.y += 2;
-                rect.width = overrideWidth;
+                rect.width -= 2;
                 return EditorGUI.Toggle(rect, toggleState, Styles.toggleStyle);
             }
             return false;
