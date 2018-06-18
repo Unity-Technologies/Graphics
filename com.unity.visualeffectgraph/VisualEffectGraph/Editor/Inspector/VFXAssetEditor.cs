@@ -40,6 +40,8 @@ public class VisualEffectAssetEditor : Editor
             m_PreviewUtility.lights[1].intensity = 1.4f;
 
             m_VisualEffectGO = new GameObject("VisualEffect (Preview)");
+
+            m_VisualEffectGO.hideFlags = HideFlags.DontSave;
             m_VisualEffect = m_VisualEffectGO.AddComponent<VisualEffect>();
             m_PreviewUtility.AddManagedGO(m_VisualEffectGO);
 
@@ -183,6 +185,10 @@ public class VisualEffectAssetEditor : Editor
 
     void OnDisable()
     {
+        if (!Object.ReferenceEquals(m_VisualEffectGO, null))
+        {
+            Object.DestroyImmediate(m_VisualEffectGO);
+        }
         if (m_PreviewUtility != null)
         {
             m_PreviewUtility.Cleanup();
