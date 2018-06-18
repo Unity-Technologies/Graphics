@@ -6,11 +6,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Fixed
+- Fixed a shader preprocessor issue when compiling DebugViewMaterialGBuffer.shader against Metal target
+- Added a temporary workaround to Lit.hlsl to avoid broken lighting code with Metal/AMD
+
 ### Added
 - Add option supportDitheringCrossFade on HDRP Asset to allow to remove shader variant during player build if needed
+- Add contact shadows for punctual lights (in additional shadow settings), only one light is allowed to cast contact shadows at the same time and so at each frame a dominant light is choosed among all light with contact shadows enabled.
 
 ### Changed
 - Re-enable shadow mask mode in debug view
+
+### Fixed
+- Fix contact shadows applied on transmission
 
 ## [2.0.4-preview]
 
