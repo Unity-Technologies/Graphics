@@ -1480,11 +1480,11 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
 
     // We define the ellipsoid s.t. r1 = (r + len / 2), r2 = r3 = r.
     // TODO: This could be precomputed.
-    float radius         = rsqrt(lightData.invSqrAttenuationRadius);
+    float radius         = rsqrt(lightData.rangeAttenuationScale); //  // rangeAttenuationScale is inverse Square Radius
     float invAspectRatio = saturate(radius / (radius + (0.5 * len)));
 
     // Compute the light attenuation.
-    float intensity = EllipsoidalDistanceAttenuation(unL, lightData.invSqrAttenuationRadius,
+    float intensity = EllipsoidalDistanceAttenuation(unL, lightData.rangeAttenuationScale, lightData.rangeAttenuationBias,
                                                      axis, invAspectRatio);
 
     // Terminate if the shaded point is too far away.
@@ -1604,7 +1604,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 
     // Define the dimensions of the attenuation volume.
     // TODO: This could be precomputed.
-    float  radius     = rsqrt(lightData.invSqrAttenuationRadius);
+    float  radius     = rsqrt(lightData.rangeAttenuationScale); // rangeAttenuationScale is inverse Square Radius
     float3 invHalfDim = rcp(float3(radius + halfWidth,
                                    radius + halfHeight,
                                    radius));
