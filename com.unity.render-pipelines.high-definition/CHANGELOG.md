@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed a shader preprocessor issue when compiling DebugViewMaterialGBuffer.shader against Metal target
 - Added a temporary workaround to Lit.hlsl to avoid broken lighting code with Metal/AMD
+- Fixed compilation errors on Nintendo Switch (limited XRSetting support).
 
 ### Added
 - Add option supportDitheringCrossFade on HDRP Asset to allow to remove shader variant during player build if needed
