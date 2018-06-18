@@ -1767,7 +1767,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     float3 rayOriginWS              = float3(0, 0, 0);
     float3 rayDirWS                 = float3(0, 0, 0);
     float mipLevel                  = 0;
-#if DEBUG_DISPLAY
+#ifdef DEBUG_DISPLAY
     int debugMode                   = 0;
 #endif
     float invScreenWeightDistance   = 0;
@@ -1787,7 +1787,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
         rayDirWS                = preLightData.transparentRefractV;
         mipLevel                = preLightData.transparentSSMipLevel;
         invScreenWeightDistance = _SSRefractionInvScreenWeightDistance;
-#if DEBUG_DISPLAY
+#ifdef DEBUG_DISPLAY
         debugMode               = DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFRACTION;
 #endif
     }
@@ -1799,12 +1799,12 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
         rayDirWS                = preLightData.iblR;
         mipLevel                = PositivePow(preLightData.iblPerceptualRoughness, 0.8) * uint(max(_ColorPyramidScale.z - 1, 0));
         invScreenWeightDistance = _SSReflectionInvScreenWeightDistance;
-#if DEBUG_DISPLAY
+#ifdef DEBUG_DISPLAY
         debugMode               = DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFLECTION;
 #endif
     }
 
-#if DEBUG_DISPLAY
+#ifdef DEBUG_DISPLAY
             bool debug              = _DebugLightingMode == debugMode
                 && !any(int2(_MouseClickPixelCoord.xy) - int2(posInput.positionSS));
 #endif
@@ -1852,7 +1852,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
         // Jitter the ray origin to trade some noise instead of banding effect
         ssRayInput.rayOriginWS = rayOriginWS + rayDirWS * SampleBayer4(posInput.positionSS + uint2(_FrameCount, uint(_FrameCount) / 4u)) * 0.1;
         ssRayInput.rayDirWS = rayDirWS;
-#if DEBUG_DISPLAY
+#ifdef DEBUG_DISPLAY
         ssRayInput.debug = debug;
 #endif
 
@@ -2073,12 +2073,14 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     float iblMipLevel;
     // TODO: We need to match the PerceptualRoughnessToMipmapLevel formula for planar, so we don't do this test (which is specific to our current lightloop)
     // Specific case for Texture2Ds, their convolution is a gaussian one and not a GGX one - So we use another roughness mip mapping.
+#if !defined(SHADER_API_METAL)
     if (IsEnvIndexTexture2D(lightData.envIndex))
     {
         // Empirical remapping
         iblMipLevel = PositivePow(preLightData.iblPerceptualRoughness, 0.8) * uint(max(_ColorPyramidScale.z - 1, 0));
     }
     else
+#endif
     {
         iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness);
     }

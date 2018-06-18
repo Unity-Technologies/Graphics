@@ -71,6 +71,7 @@ struct LightLoopContext
 {
     int sampleReflection;
     ShadowContext shadowContext;
+    float contactShadow; // Currently we support only one contact shadow per view
 };
 
 //-----------------------------------------------------------------------------
@@ -327,5 +328,5 @@ float GetContactShadow(LightLoopContext lightLoopContext, int contactShadowIndex
     // return 1
     // On the other hand, if the feature is active it's value is 0 so we can return
     // the value fetched at the begining of LightLoop()
-    return max(lightLoopContext.shadowContext.contactShadow, abs(contactShadowIndex));
+    return max(lightLoopContext.contactShadow, abs(contactShadowIndex));
 }
