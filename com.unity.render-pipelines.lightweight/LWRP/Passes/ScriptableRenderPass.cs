@@ -14,9 +14,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public TextureDimension textureDimension { get; private set; }
 
-        protected List<ShaderPassName> m_ShaderPassNames = new List<ShaderPassName>();
+        public int samples { get; private set; }
 
-        int samples;
+        protected List<ShaderPassName> m_ShaderPassNames = new List<ShaderPassName>();
 
         public ScriptableRenderPass(LightweightForwardRenderer renderer)
         {

@@ -7,12 +7,12 @@
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Unlit+SurfaceData:  static fields
 //
-#define DEBUGVIEW_UNLIT_SURFACEDATA_COLOR (1100)
+#define DEBUGVIEW_UNLIT_SURFACEDATA_COLOR (300)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Unlit+BSDFData:  static fields
 //
-#define DEBUGVIEW_UNLIT_BSDFDATA_COLOR (1130)
+#define DEBUGVIEW_UNLIT_BSDFDATA_COLOR (350)
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.Unlit+SurfaceData
 // PackingRules = Exact

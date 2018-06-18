@@ -65,7 +65,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     );
 
             Inspector = CED.Group(
-                    SectionProbeModeSettings,
+                    //SectionProbeModeSettings,
                     CED.space,
                     CED.Action((s, d, o) => EditorGUILayout.LabelField(_.GetContent("Proxy Volume"), EditorStyles.boldLabel)),
                     CED.Action(Drawer_FieldProxyVolumeReference),
@@ -166,8 +166,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             GUI.enabled = false;
             EditorGUILayout.PropertyField(d.refreshMode, _.GetContent("Refresh Mode"));
             EditorGUILayout.PropertyField(d.capturePositionMode, _.GetContent("Capture Position Mode"));
-            d.refreshMode.enumValueIndex = (int)ReflectionProbeRefreshMode.EveryFrame;
-            d.capturePositionMode.enumValueIndex = (int)PlanarReflectionProbe.CapturePositionMode.MirrorCamera;
             GUI.enabled = true;
         }
 
@@ -186,7 +184,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             GUI.enabled = false;
             EditorGUILayout.PropertyField(d.mode, _.GetContent("Type"));
-            d.mode.enumValueIndex = (int)ReflectionProbeMode.Realtime;
             GUI.enabled = true;
         }
 

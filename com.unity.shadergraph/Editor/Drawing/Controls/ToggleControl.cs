@@ -63,8 +63,8 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             var panel = new VisualElement { name = "togglePanel" };
             if (!string.IsNullOrEmpty(label))
                 panel.Add(new Label(label));
-            Action changedToggle = () => { OnChangeToggle(); };
-            m_Toggle = new UnityEngine.Experimental.UIElements.Toggle(changedToggle);
+            m_Toggle = new Toggle();
+            m_Toggle.OnToggleChanged(OnChangeToggle);
             m_Toggle.SetEnabled(value.isEnabled);
             m_Toggle.value = value.isOn;
             panel.Add(m_Toggle);
@@ -82,11 +82,11 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             }
         }
 
-        void OnChangeToggle()
+        void OnChangeToggle(ChangeEvent<bool> evt)
         {
             m_Node.owner.owner.RegisterCompleteObjectUndo("Toggle Change");
             var value = (ToggleData)m_PropertyInfo.GetValue(m_Node, null);
-            value.isOn = !value.isOn;
+            value.isOn = evt.newValue;
             m_PropertyInfo.SetValue(m_Node, value, null);
             this.MarkDirtyRepaint();
         }

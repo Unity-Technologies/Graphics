@@ -6,6 +6,7 @@ Shader "Hidden/HDRenderPipeline/DebugViewTiles"
         Pass
         {
             ZWrite Off
+            Cull Off
             ZTest Always
             Blend SrcAlpha OneMinusSrcAlpha
 

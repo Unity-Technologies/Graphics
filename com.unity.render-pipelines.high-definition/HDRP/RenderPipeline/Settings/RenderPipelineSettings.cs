@@ -30,6 +30,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableUltraQualitySSS = false;
         public bool supportVolumetric = true;
 
+        // reduce variant
+        public bool supportRuntimeDebugDisplay = true;
+        public bool supportDitheringCrossFade = true;
+
         // Engine
         public bool         supportDBuffer = false;
         public bool         supportMSAA = false;

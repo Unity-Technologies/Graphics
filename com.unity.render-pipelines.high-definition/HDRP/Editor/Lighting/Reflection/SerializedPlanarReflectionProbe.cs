@@ -89,6 +89,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             serializedObject.Update();
 
+            mode.enumValueIndex = (int)ReflectionProbeMode.Realtime;
+            refreshMode.enumValueIndex = (int)ReflectionProbeRefreshMode.EveryFrame;
+            capturePositionMode.enumValueIndex = (int)PlanarReflectionProbe.CapturePositionMode.MirrorCamera;
+
             var updateProxyVolume = reflectionProxyVolume != null
                 && serializedObject.targetObjects.Length != reflectionProxyVolume.serializedObject.targetObjects.Length;
             if (!updateProxyVolume && reflectionProxyVolume != null)

@@ -28,7 +28,10 @@ namespace UnityEditor.ShaderGraph
             foreach (var prop in m_Properties.Where(x => x.generatePropertyBlock))
             {
                 for (var i = 0; i < baseIndentLevel; i++)
-                    sb.Append("\t");
+                {
+                    //sb.Append("\t");
+                    sb.Append("    "); // unity convention use space instead of tab...
+                }
                 sb.AppendLine(prop.GetPropertyBlockString());
             }
             return sb.ToString();

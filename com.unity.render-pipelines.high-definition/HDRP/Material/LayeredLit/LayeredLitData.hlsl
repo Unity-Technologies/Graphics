@@ -548,7 +548,7 @@ float4 ApplyHeightBlend(float4 heights, float4 blendMask)
 
     // Normalize
     maxHeight = GetMaxHeight(maskedHeights);
-    maskedHeights = maskedHeights / maxHeight.xxxx;
+    maskedHeights = maskedHeights / max(maxHeight.xxxx, 1e-6);
 
     return maskedHeights.yzwx;
 }

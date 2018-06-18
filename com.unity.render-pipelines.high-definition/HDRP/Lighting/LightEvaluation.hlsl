@@ -34,6 +34,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
     float3 positionWS = posInput.positionWS;
     float  shadow     = 1.0;
     float  shadowMask = 1.0;
+    float4 shadowData = float4(1, 1, 1, 1);
 
     color       = lightData.color;
     attenuation = 1.0; // Note: no volumetric attenuation along shadow rays for directional lights
@@ -59,6 +60,9 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 #else
         shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, lightData.shadowIndex, L, posInput.positionSS);
 #endif
+
+        float contactShadow = GetContactShadow(lightLoopContext, lightData.contactShadowIndex);
+        shadow = min(shadow, contactShadow);
 
 #ifdef SHADOWS_SHADOWMASK
 
@@ -134,9 +138,10 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
                             float3 N, float3 L, float3 lightToSample, float4 distances,
                             out float3 color, out float attenuation)
 {
-    float3 positionWS = posInput.positionWS;
-    float  shadow     = 1.0;
-    float  shadowMask = 1.0;
+    float3 positionWS    = posInput.positionWS;
+    float  shadow        = 1.0;
+    float  shadowMask    = 1.0;
+    float  contactShadow = 1.0;
 
     color       = lightData.color;
     attenuation = SmoothPunctualLightAttenuation(distances, lightData.invSqrAttenuationRadius,
@@ -167,6 +172,9 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     {
         // TODO: make projector lights cast shadows.
         shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, lightData.shadowIndex, L, distances.x, posInput.positionSS);
+        contactShadow = GetContactShadow(lightLoopContext, lightData.contactShadowIndex);
+        shadow = min(shadow, contactShadow);
+
 #ifdef SHADOWS_SHADOWMASK
         // Note: Legacy Unity have two shadow mask mode. ShadowMask (ShadowMask contain static objects shadow and ShadowMap contain only dynamic objects shadow, final result is the minimun of both value)
         // and ShadowMask_Distance (ShadowMask contain static objects shadow and ShadowMap contain everything and is blend with ShadowMask based on distance (Global distance setup in QualitySettigns)).
@@ -233,61 +241,4 @@ void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightD
     // Smooth weighting
     weight = Smoothstep01(weight);
     weight *= lightData.weight;
-}
-
-// Ambient occlusion
-struct AmbientOcclusionFactor
-{
-    float3 indirectAmbientOcclusion;
-    float3 directAmbientOcclusion;
-    float3 indirectSpecularOcclusion;
-};
-
-void GetScreenSpaceAmbientOcclusion(float2 positionSS, float NdotV, float perceptualRoughness, float ambientOcclusionFromData, float specularOcclusionFromData, out AmbientOcclusionFactor aoFactor)
-{
-    // Note: When we ImageLoad outside of texture size, the value returned by Load is 0 (Note: On Metal maybe it clamp to value of texture which is also fine)
-    // We use this property to have a neutral value for AO that doesn't consume a sampler and work also with compute shader (i.e use ImageLoad)
-    // We store inverse AO so neutral is black. So either we sample inside or outside the texture it return 0 in case of neutral
-
-    // Ambient occlusion use for indirect lighting (reflection probe, baked diffuse lighting)
-#ifndef _SURFACE_TYPE_TRANSPARENT
-    float indirectAmbientOcclusion = 1.0 - LOAD_TEXTURE2D(_AmbientOcclusionTexture, positionSS).x;
-    // Ambient occlusion use for direct lighting (directional, punctual, area)
-    float directAmbientOcclusion = lerp(1.0, indirectAmbientOcclusion, _AmbientOcclusionParam.w);
-#else
-    float indirectAmbientOcclusion = 1.0;
-    float directAmbientOcclusion = 1.0;
-#endif
-
-    float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
-    float specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(NdotV), indirectAmbientOcclusion, roughness);
-
-    aoFactor.indirectSpecularOcclusion  = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), min(specularOcclusionFromData, specularOcclusion));
-    aoFactor.indirectAmbientOcclusion   = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), min(ambientOcclusionFromData, indirectAmbientOcclusion));
-    aoFactor.directAmbientOcclusion     = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), directAmbientOcclusion);
-}
-
-void GetScreenSpaceAmbientOcclusionMultibounce(float2 positionSS, float NdotV, float perceptualRoughness, float ambientOcclusionFromData, float specularOcclusionFromData, float3 diffuseColor, float3 fresnel0, out AmbientOcclusionFactor aoFactor)
-{
-    // Use GTAOMultiBounce approximation for ambient occlusion (allow to get a tint from the diffuseColor)
-    // Note: When we ImageLoad outside of texture size, the value returned by Load is 0 (Note: On Metal maybe it clamp to value of texture which is also fine)
-    // We use this property to have a neutral value for AO that doesn't consume a sampler and work also with compute shader (i.e use ImageLoad)
-    // We store inverse AO so neutral is black. So either we sample inside or outside the texture it return 0 in case of neutral
-
-    // Ambient occlusion use for indirect lighting (reflection probe, baked diffuse lighting)
-#ifndef _SURFACE_TYPE_TRANSPARENT
-    float indirectAmbientOcclusion = 1.0 - LOAD_TEXTURE2D(_AmbientOcclusionTexture, positionSS).x;
-    // Ambient occlusion use for direct lighting (directional, punctual, area)
-    float directAmbientOcclusion = lerp(1.0, indirectAmbientOcclusion, _AmbientOcclusionParam.w);
-#else
-    float indirectAmbientOcclusion = 1.0;
-    float directAmbientOcclusion = 1.0;
-#endif
-
-    float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
-    float specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(NdotV), indirectAmbientOcclusion, roughness);
-
-    aoFactor.indirectSpecularOcclusion  = GTAOMultiBounce(min(specularOcclusionFromData, specularOcclusion), fresnel0);
-    aoFactor.indirectAmbientOcclusion   = GTAOMultiBounce(min(ambientOcclusionFromData, indirectAmbientOcclusion), diffuseColor);
-    aoFactor.directAmbientOcclusion     = GTAOMultiBounce(directAmbientOcclusion, diffuseColor);
 }
