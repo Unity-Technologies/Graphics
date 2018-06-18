@@ -201,11 +201,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             if (camera.cameraType == CameraType.Game)
             {
+#if !UNITY_SWITCH
                 if (cameraData.isStereoEnabled)
                 {
                     cameraData.renderScale = XRSettings.eyeTextureResolutionScale;
-                }
-                else
+                } else
+#endif
                 {
                     cameraData.renderScale = pipelineAsset.renderScale;
                 }
