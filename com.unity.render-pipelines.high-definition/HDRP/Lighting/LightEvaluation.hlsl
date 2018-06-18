@@ -87,7 +87,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 #endif
 
         // Volumetric don't use screenspace shadow. Transparent neither (as we don't have the depth information)
-#if (SHADERPASS != SHADERPASS_VOLUMETRIC_LIGHTING && !defined(_SURFACE_TYPE_TRANSPARENT))
+#ifndef _SURFACE_TYPE_TRANSPARENT
         shadow = min(shadow, GetContactShadow(lightLoopContext, lightData.contactShadowIndex));
 #endif
     }
@@ -194,7 +194,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
 #endif
 
         // Volumetric don't use screenspace shadow. Transparent neither (as we don't have the depth information)
-#if (SHADERPASS != SHADERPASS_VOLUMETRIC_LIGHTING && !defined(_SURFACE_TYPE_TRANSPARENT))
+#ifndef _SURFACE_TYPE_TRANSPARENT
         shadow = min(shadow, GetContactShadow(lightLoopContext, lightData.contactShadowIndex));
 #endif
     }
