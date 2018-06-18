@@ -128,6 +128,8 @@ static const uint kFeatureVariantFlags[NUM_FEATURE_VARIANTS] =
 #define MATERIAL_FEATURE_FLAGS_SSS_OUTPUT_SPLIT_LIGHTING         ((MATERIAL_FEATURE_MASK_FLAGS + 1) << 0)
 #define MATERIAL_FEATURE_FLAGS_SSS_TEXTURING_MODE_OFFSET FastLog2((MATERIAL_FEATURE_MASK_FLAGS + 1) << 1) // 2 bits
 #define MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS ((MATERIAL_FEATURE_MASK_FLAGS + 1) << 3)
+// Flags used as a shortcut to know if we have thin mode transmission
+#define MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS  ((MATERIAL_FEATURE_MASK_FLAGS + 1) << 4)
 
 uint FeatureFlagsToTileVariant(uint featureFlags)
 {
@@ -221,7 +223,7 @@ void FillMaterialTransmission(uint diffusionProfile, float thickness, inout BSDF
     // the current object. That's not a problem, since large thickness will result in low intensity.
     bool useThinObjectMode = IsBitSet(asuint(_TransmissionFlags), diffusionProfile);
 
-    bsdfData.materialFeatures |= useThinObjectMode ? 0 : MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS;
+    bsdfData.materialFeatures |= useThinObjectMode ? MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS : MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS;
 
     // Compute transmittance using baked thickness here. It may be overridden for direct lighting
     // in the auto-thickness mode (but is always be used for indirect lighting).
@@ -1256,7 +1258,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     float3 color;
     float attenuation;
     float attenuationNoContactShadows;
-    EvaluateLight_Directional(lightLoopContext, posInput, lightData, bakeLightingData, N, L, color, attenuation, attenuationNoContactShadows);
+    EvaluateLight_Directional(lightLoopContext, posInput, lightData, bakeLightingData, N, L, HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS), color, attenuation);
 
     float intensity = max(0, attenuation * NdotL); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
 
@@ -1270,12 +1272,10 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     }
 
     // The mixed thickness mode is not supported by directional lights due to poor quality and high performance impact.
-    bool mixedThicknessMode = HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS);
-
-    if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION) && !mixedThicknessMode)
+    if (HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
     {
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        lighting.diffuse += EvaluateTransmission(bsdfData, bsdfData.transmittance, NdotL, NdotV, LdotV, attenuationNoContactShadows * lightData.diffuseScale);
+        lighting.diffuse += EvaluateTransmission(bsdfData, bsdfData.transmittance, NdotL, NdotV, LdotV, attenuation * lightData.diffuseScale);
     }
 
     // Save ALU by applying light and cookie colors only once.
@@ -1332,28 +1332,13 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     float  NdotL = dot(N, L);
     float  LdotV = dot(L, V);
 
-    bool mixedThicknessMode = HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS)
-                              && NdotL < 0 && lightData.shadowIndex >= 0;
-
-    // Save the original version for the transmission code below.
-    int originalShadowIndex = lightData.shadowIndex;
-
-    if (mixedThicknessMode)
-    {
-        // Make sure we do not sample the shadow map twice.
-        lightData.shadowIndex = -1;
-        //No need to restore as we dont use it later
-        lightData.contactShadowIndex = -1;
-    }
-
     float3 color;
     float attenuation;
     float attenuationNoContactShadows;
-    EvaluateLight_Punctual(lightLoopContext, posInput, lightData, bakeLightingData, N, L,
-                           lightToSample, distances, color, attenuation, attenuationNoContactShadows);
 
-    // Restore the original shadow index.
-    lightData.shadowIndex = originalShadowIndex;
+    EvaluateLight_Punctual(lightLoopContext, posInput, lightData, bakeLightingData, N, L,
+                           lightToSample, distances, HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS),
+                            color, attenuation);
 
     float intensity = max(0, attenuation * NdotL); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
 
@@ -1376,6 +1361,11 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
         float3 transmittance = bsdfData.transmittance;
+
+        // Note that if NdotL is positive, we have one fetch on front face done by EvaluateLight_Punctual, otherwise we have only one fetch
+        // done by transmission code here (EvaluateLight_Punctual discard the fetch if NdotL < 0)
+        bool mixedThicknessMode =   HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS)
+                                    && NdotL < 0 && lightData.shadowIndex >= 0;
 
         if (mixedThicknessMode)
         {
@@ -1427,7 +1417,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
         // Note: we do not modify the distance to the light, or the light angle for the back face.
         // This is a performance-saving optimization which makes sense as long as the thickness is small.
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        lighting.diffuse += EvaluateTransmission(bsdfData, transmittance, NdotL, NdotV, LdotV, attenuationNoContactShadows * lightData.diffuseScale);
+        lighting.diffuse += EvaluateTransmission(bsdfData, transmittance, NdotL, NdotV, LdotV, attenuation * lightData.diffuseScale);
     }
 
     // Save ALU by applying light and cookie colors only once.
