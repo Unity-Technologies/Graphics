@@ -186,6 +186,14 @@ public class VFXSlotContainerEditor : Editor
             { VFXValueType.Uint32, new Color32(125, 110, 191, 255) },
         };
 
+        internal static  void DataTypeLabel(Rect r , string Label, VFXValueType type, GUIStyle style)
+        {
+            Color backup = GUI.color;
+            GUI.color = valueTypeColors[type];
+            GUI.Label(r, Label, style);
+            GUI.color = backup;
+        }
+
         internal static void DataTypeLabel(string Label, VFXValueType type, GUIStyle style, params GUILayoutOption[] options)
         {
             Color backup = GUI.color;

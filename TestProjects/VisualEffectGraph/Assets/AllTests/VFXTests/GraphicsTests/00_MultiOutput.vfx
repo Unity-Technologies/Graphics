@@ -546,7 +546,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: UnityEditor.VFX.AABox, Assembly-CSharp-Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
       m_SerializableObject: '{"space":0,"center":{"x":-0.00014281272888183594,"y":0.266866534948349,"z":0.0},"size":{"x":0.4611510634422302,"y":0.5761944651603699,"z":0.0}}'
-    m_Space: 2147483647
+    m_Space: 0
   m_Property:
     name: bounds
     m_serializedType:
