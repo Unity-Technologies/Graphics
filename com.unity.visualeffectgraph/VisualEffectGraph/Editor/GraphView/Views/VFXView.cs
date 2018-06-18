@@ -375,25 +375,25 @@ namespace UnityEditor.VFX.UI
 
             m_ToggleCastShadows = new Toggle(OnToggleCastShadows);
             m_ToggleCastShadows.text = "Cast Shadows";
-            m_ToggleCastShadows.value = GetRendererSettings().shadowCastingMode != ShadowCastingMode.Off;
+            m_ToggleCastShadows.SetValueWithoutNotify(GetRendererSettings().shadowCastingMode != ShadowCastingMode.Off);
             m_Toolbar.Add(m_ToggleCastShadows);
             m_ToggleCastShadows.AddToClassList("toolbarItem");
 
             m_ToggleMotionVectors = new Toggle(OnToggleMotionVectors);
             m_ToggleMotionVectors.text = "Use Motion Vectors";
-            m_ToggleMotionVectors.value = GetRendererSettings().motionVectorGenerationMode == MotionVectorGenerationMode.Object;
+            m_ToggleMotionVectors.SetValueWithoutNotify(GetRendererSettings().motionVectorGenerationMode == MotionVectorGenerationMode.Object);
             m_Toolbar.Add(m_ToggleMotionVectors);
             m_ToggleMotionVectors.AddToClassList("toolbarItem");
 
             Toggle toggleRenderBounds = new Toggle(OnShowBounds);
             toggleRenderBounds.text = "Show Bounds";
-            toggleRenderBounds.value = VFXDebugUtil.renderBounds;
+            toggleRenderBounds.SetValueWithoutNotify(VFXDebugUtil.renderBounds);
             m_Toolbar.Add(toggleRenderBounds);
             toggleRenderBounds.AddToClassList("toolbarItem");
 
             Toggle toggleAutoCompile = new Toggle(OnToggleCompile);
             toggleAutoCompile.text = "Auto Compile";
-            toggleAutoCompile.value = true;
+            toggleAutoCompile.SetValueWithoutNotify(true);
             m_Toolbar.Add(toggleAutoCompile);
             toggleAutoCompile.AddToClassList("toolbarItem");
 
