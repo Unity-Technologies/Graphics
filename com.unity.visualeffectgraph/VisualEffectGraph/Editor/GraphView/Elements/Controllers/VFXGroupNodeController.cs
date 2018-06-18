@@ -74,10 +74,10 @@ namespace UnityEditor.VFX.UI
                 r.height = 100;
             }
 
-            r.x = Mathf.Floor(r.x);
-            r.y = Mathf.Floor(r.y);
-            r.width = Mathf.Ceil(r.width);
-            r.height = Mathf.Ceil(r.height);
+            r.x = Mathf.Round(r.x);
+            r.y = Mathf.Round(r.y);
+            r.width = Mathf.Round(r.width);
+            r.height = Mathf.Round(r.height);
         }
 
         public Rect position

@@ -163,6 +163,8 @@ MonoBehaviour:
     - context: {fileID: 114993613033173082}
       slotIndex: 0
   integration: 0
+  ageParticles: 1
+  reapParticles: 1
 --- !u!114 &114058971582878834
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -622,7 +624,7 @@ MonoBehaviour:
   cullMode: 3
   zWriteMode: 0
   zTestMode: 0
-  flipbookMode: 0
+  uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
   sort: 0
@@ -991,7 +993,7 @@ MonoBehaviour:
   cullMode: 3
   zWriteMode: 0
   zTestMode: 0
-  flipbookMode: 0
+  uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
   sort: 0

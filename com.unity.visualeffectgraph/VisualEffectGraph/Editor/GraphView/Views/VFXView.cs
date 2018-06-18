@@ -1568,10 +1568,10 @@ namespace UnityEditor.VFX.UI
             }
 
             // Round to avoid changes in the asset because of the zoom level.
-            bounds.x = Mathf.Floor(bounds.x);
-            bounds.y = Mathf.Floor(bounds.y);
-            bounds.width = Mathf.Ceil(bounds.width);
-            bounds.height = Mathf.Ceil(bounds.height);
+            bounds.x = Mathf.Round(bounds.x);
+            bounds.y = Mathf.Round(bounds.y);
+            bounds.width = Mathf.Round(bounds.width);
+            bounds.height = Mathf.Round(bounds.height);
 
             return bounds;
         }
