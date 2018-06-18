@@ -218,17 +218,26 @@ namespace UnityEditor.VFX
         {
         }
 
-        protected void ShowHeader(GUIContent nameContent)
+        protected bool ShowHeader(GUIContent nameContent, bool displayToggle, bool toggleState)
         {
             float height = Styles.categoryHeader.CalcHeight(nameContent, 4000);
-            Rect rect = GUILayoutUtility.GetRect(1, height + Styles.headerTopMargin + Styles.headerBottomMargin);
+            Rect rect = GUILayoutUtility.GetRect(1, height - 1);
 
             rect.width += rect.x;
             rect.x = 0;
-            rect.y += Styles.headerTopMargin;
-            rect.height -= Styles.headerTopMargin + Styles.headerBottomMargin;
+            rect.height++;
             if (Event.current.type == EventType.Repaint)
                 Styles.categoryHeader.Draw(rect, nameContent, false, true, true, false);
+
+
+            if (displayToggle)
+            {
+                rect.x += 2;
+                rect.y += 2;
+                rect.width -= 2;
+                return EditorGUI.Toggle(rect, toggleState, Styles.toggleStyle);
+            }
+            return false;
         }
 
         protected virtual void AssetField()
@@ -314,13 +323,15 @@ namespace UnityEditor.VFX
 
                 if (m_graph.m_ParameterInfo != null)
                 {
-                    ShowHeader(Contents.headerParameters);
+                    ShowHeader(Contents.headerParameters, false, false);
                     List<int> stack = new List<int>();
                     int currentCount = m_graph.m_ParameterInfo.Length;
                     if (currentCount == 0)
                     {
                         GUILayout.Label("No Parameter exposed in the asset");
                     }
+
+                    bool ignoreUntilNextCat = false;
 
                     foreach (var parameter in m_graph.m_ParameterInfo)
                     {
@@ -342,21 +353,34 @@ namespace UnityEditor.VFX
                             while (currentCount == 0);
                         }
 
-
                         if (string.IsNullOrEmpty(parameter.sheetType))
                         {
                             if (!string.IsNullOrEmpty(parameter.name))
                             {
                                 if (string.IsNullOrEmpty(parameter.realType)) // This is a category
                                 {
+                                    if (!ignoreUntilNextCat)
+                                        GUILayout.Space(Styles.headerTopMargin);
+                                    ignoreUntilNextCat = false;
                                     var nameContent = new GUIContent(parameter.name);
-                                    ShowHeader(nameContent);
+
+                                    bool prevState = EditorPrefs.GetBool("VFX-category-" + parameter.name, true);
+                                    bool currentState = ShowHeader(nameContent, true, prevState);
+                                    if (currentState != prevState)
+                                    {
+                                        EditorPrefs.SetBool("VFX-category-" + parameter.name, currentState);
+                                    }
+
+                                    if (!currentState)
+                                        ignoreUntilNextCat = true;
+                                    else
+                                        GUILayout.Space(Styles.headerBottomMargin);
                                 }
-                                else
+                                else if (!ignoreUntilNextCat)
                                     EmptyLineControl(parameter.name, stack.Count);
                             }
                         }
-                        else
+                        else if (!ignoreUntilNextCat)
                         {
                             var vfxField = m_VFXPropertySheet.FindPropertyRelative(parameter.sheetType + ".m_Array");
                             SerializedProperty property = null;
@@ -401,6 +425,7 @@ namespace UnityEditor.VFX
                     }
                 }
             }
+            GUILayout.Space(1); // Space for the line if the last category is closed.
         }
 
         protected static class Contents

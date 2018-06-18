@@ -17,6 +17,7 @@ namespace UnityEditor.VFX.UI
         private VisualElement m_Header;
         private Label m_TitleLabel;
         private VisualElement m_RowsContainer;
+        public Button m_ExpandButton;
         private int m_InsertIndex;
 
         int InsertionIndex(Vector2 pos)
@@ -56,7 +57,7 @@ namespace UnityEditor.VFX.UI
 
         public VFXBlackboardCategory()
         {
-            var tpl = EditorGUIUtility.Load("UXML/GraphView/BlackboardSection.uxml") as VisualTreeAsset;
+            var tpl = EditorGUIUtility.Load(UXMLHelper.GetUXMLPath("uxml/VFXBlackboardSection.uxml")) as VisualTreeAsset;
 
             m_MainContainer = tpl.CloneTree(null);
             m_MainContainer.AddToClassList("mainContainer");
@@ -64,6 +65,9 @@ namespace UnityEditor.VFX.UI
             m_Header = m_MainContainer.Q<VisualElement>("sectionHeader");
             m_TitleLabel = m_MainContainer.Q<Label>("sectionTitleLabel");
             m_RowsContainer = m_MainContainer.Q<VisualElement>("rowsContainer");
+
+            m_ExpandButton = m_Header.Q<Button>("expandButton");
+            m_ExpandButton.clickable.clicked += ToggleExpand;
 
             shadow.Add(m_MainContainer);
             shadow.Add(m_MainContainer);
@@ -126,7 +130,7 @@ namespace UnityEditor.VFX.UI
             AddToClassList("selectable");
             shadow.Add(new VisualElement() {name = "selection-border", pickingMode = PickingMode.Ignore});
 
-            RegisterCallback<MouseDownEvent>(OnHeaderClicked);
+            //RegisterCallback<MouseDownEvent>(OnHeaderClicked);
             pickingMode = PickingMode.Position;
 
             this.AddManipulator(new SelectionDropper());
@@ -141,16 +145,31 @@ namespace UnityEditor.VFX.UI
             m_NameField.visible = false;
         }
 
-        void OnHeaderClicked(MouseDownEvent e)
-        {/*
-            VFXView view = GetFirstAncestorOfType<VFXView>();
-
-            if( view != null)
+        void ToggleExpand()
+        {
+            var parent = GetFirstAncestorOfType<VFXBlackboard>();
+            if (parent != null)
             {
-                view.ClearSelection();
-                view.AddToSelection(this);
+                parent.SetCategoryExpanded(this, !expanded);
             }
-            e.StopPropagation();*/
+        }
+
+        bool m_Expanded;
+        public bool expanded
+        {
+            get { return m_Expanded; }
+            set
+            {
+                m_Expanded = value;
+                if (m_Expanded)
+                {
+                    AddToClassList("expanded");
+                }
+                else
+                {
+                    RemoveFromClassList("expanded");
+                }
+            }
         }
 
         public override VisualElement contentContainer { get { return m_RowsContainer; } }
@@ -176,6 +195,7 @@ namespace UnityEditor.VFX.UI
                 else
                 {
                     m_MainContainer.Remove(m_Header);
+                    expanded = true;
                 }
             }
         }
