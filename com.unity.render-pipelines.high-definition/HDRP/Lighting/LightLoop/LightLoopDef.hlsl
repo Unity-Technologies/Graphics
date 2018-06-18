@@ -321,12 +321,17 @@ EnvLightData FetchEnvLight(uint start, uint i)
     return _EnvLightDatas[j];
 }
 
+// We always fetch the screen space shadow texture to reduce the number of shader variant, overhead is negligible,
+// it is a 1x1 white texture if deferred directional shadow and/or contact shadow are disabled
+// We perform a single featch a the beginning of the lightloop
+float InitContactShadow(PositionInputs posInput)
+{
+    // For now we only support one contact shadow
+    // Contactshadow is store in Green Channel of _DeferredShadowTexture
+    return LOAD_TEXTURE2D(_DeferredShadowTexture, posInput.positionSS).y;
+}
+
 float GetContactShadow(LightLoopContext lightLoopContext, int contactShadowIndex)
 {
-    // Here we take the contact shadow value using the contactShadowIndex of the light
-    // If the contact shadows are diasbled, it's value is -1 so this function will only
-    // return 1
-    // On the other hand, if the feature is active it's value is 0 so we can return
-    // the value fetched at the begining of LightLoop()
-    return max(lightLoopContext.contactShadow, abs(contactShadowIndex));
+    return contactShadowIndex >= 0 ? lightLoopContext.contactShadow : 1.0;
 }
