@@ -1257,8 +1257,17 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
     float3 color;
     float attenuation;
-    float attenuationNoContactShadows;
-    EvaluateLight_Directional(lightLoopContext, posInput, lightData, bakeLightingData, N, L, HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS), color, attenuation);
+
+    // When using thin transmission mode we don't fetch shadow map for back face, we reuse front face shadow
+    // However we flip the normal for the bias (and the NdotL test) and disable contact shadow
+    if (HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS) && NdotL < 0)
+    {
+        //  Disable shadow contact in case of transmission and backface shadow
+        N = -N;
+        lightData.contactShadowIndex = -1; // This is only modify for the scope of this function
+    }
+
+    EvaluateLight_Directional(lightLoopContext, posInput, lightData, bakeLightingData, N, L, color, attenuation);
 
     float intensity = max(0, attenuation * NdotL); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
 
@@ -1334,11 +1343,18 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
 
     float3 color;
     float attenuation;
-    float attenuationNoContactShadows;
+
+    // When using thin transmission mode we don't fetch shadow map for back face, we reuse front face shadow
+    // However we flip the normal for the bias (and the NdotL test) and disable contact shadow
+    if (HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS) && NdotL < 0)
+    {
+        //  Disable shadow contact in case of transmission and backface shadow
+        N = -N;
+        lightData.contactShadowIndex = -1; // This is only modify for the scope of this function
+    }
 
     EvaluateLight_Punctual(lightLoopContext, posInput, lightData, bakeLightingData, N, L,
-                           lightToSample, distances, HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS),
-                            color, attenuation);
+                           lightToSample, distances, color, attenuation);
 
     float intensity = max(0, attenuation * NdotL); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
 

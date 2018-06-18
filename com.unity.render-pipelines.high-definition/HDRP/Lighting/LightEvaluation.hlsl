@@ -29,7 +29,7 @@ float3 EvaluateCookie_Directional(LightLoopContext lightLoopContext, Directional
 // Note: When doing transmission we always have only one shadow sample to do: Either front or back. We use NdotL to know on which side we are
 void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs posInput,
                                DirectionalLightData lightData, BakeLightingData bakeLightingData,
-                               float3 N, float3 L, bool isThinModeTransmission,
+                               float3 N, float3 L,
                                out float3 color, out float attenuation)
 {
     float3 positionWS = posInput.positionWS;
@@ -53,16 +53,14 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
     shadow = shadowMask = (lightData.shadowMaskSelector.x >= 0.0) ? dot(bakeLightingData.bakeShadowMask, lightData.shadowMaskSelector) : 1.0;
 #endif
 
-    float NdotL = dot(N, L);
-
     // We test NdotL > 0.0 to not sample the shadow map if it is not required.
     // In case of thin mode we always need to perform the fetch as we reuse it for back and front lighting
-    UNITY_BRANCH if (lightData.shadowIndex >= 0 && (isThinModeTransmission || NdotL >= 0.0))
+    UNITY_BRANCH if (lightData.shadowIndex >= 0 && (dot(N, L) >= 0.0))
     {
 #ifdef USE_DEFERRED_DIRECTIONAL_SHADOWS
         shadow = LOAD_TEXTURE2D(_DeferredShadowTexture, posInput.positionSS).x;
 #else
-        shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, NdotL > 0.0 ? N : -N, lightData.shadowIndex, L, posInput.positionSS);
+        shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, lightData.shadowIndex, L, posInput.positionSS);
 #endif
 
 #ifdef SHADOWS_SHADOWMASK
@@ -91,8 +89,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 
         // Volumetric don't use screenspace shadow. Transparent neither (as we don't have the depth information)
 #if (SHADERPASS != SHADERPASS_VOLUMETRIC_LIGHTING && !defined(_SURFACE_TYPE_TRANSPARENT))
-        // Don't apply shadow contact on transmismission
-        shadow = isThinModeTransmission ? shadow : min(shadow, GetContactShadow(lightLoopContext, lightData.contactShadowIndex));
+        shadow = min(shadow, GetContactShadow(lightLoopContext, lightData.contactShadowIndex));
 #endif
     }
 
@@ -143,7 +140,7 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
 // Note: When doing transmission we always have only one shadow sample to do: Either front or back. We use NdotL to know on which side we are
 void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs posInput,
                             LightData lightData, BakeLightingData bakeLightingData,
-                            float3 N, float3 L, float3 lightToSample, float4 distances, bool isThinModeTransmission,
+                            float3 N, float3 L, float3 lightToSample, float4 distances,
                             out float3 color, out float attenuation)
 {
     float3 positionWS    = posInput.positionWS;
@@ -175,15 +172,13 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     shadow = shadowMask = (lightData.shadowMaskSelector.x >= 0.0) ? dot(bakeLightingData.bakeShadowMask, lightData.shadowMaskSelector) : 1.0;
 #endif
 
-    float NdotL = dot(N, L);
-
-    // We test NdotL > 0.0 to not sample the shadow map if it is not required.
-    // In case of thin mode we always need to perform the fetch as we reuse it for back and front lighting
-    UNITY_BRANCH if (lightData.shadowIndex >= 0 && (isThinModeTransmission || NdotL >= 0.0))
+    // We test NdotL >= 0.0 to not sample the shadow map if it is not required.
+    // Note that volumetric use N of 0 so it still work
+    UNITY_BRANCH if (lightData.shadowIndex >= 0 && (dot(N, L) >= 0.0))
     {
         // TODO: make projector lights cast shadows.
         // Note:the case of NdotL < 0 can appear with isThinModeTransmission, in this case we need to flip the shadow bias
-        shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS, NdotL > 0.0 ? N : -N, lightData.shadowIndex, L, distances.x, posInput.positionSS);
+        shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, lightData.shadowIndex, L, distances.x, posInput.positionSS);
 
 #ifdef SHADOWS_SHADOWMASK
         // Note: Legacy Unity have two shadow mask mode. ShadowMask (ShadowMask contain static objects shadow and ShadowMap contain only dynamic objects shadow, final result is the minimun of both value)
@@ -201,8 +196,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
 
         // Volumetric don't use screenspace shadow. Transparent neither (as we don't have the depth information)
 #if (SHADERPASS != SHADERPASS_VOLUMETRIC_LIGHTING && !defined(_SURFACE_TYPE_TRANSPARENT))
-        // Don't apply shadow contact on transmismission
-        shadow = isThinModeTransmission ? shadow : min(shadow, GetContactShadow(lightLoopContext, lightData.contactShadowIndex));
+        shadow = min(shadow, GetContactShadow(lightLoopContext, lightData.contactShadowIndex));
 #endif
     }
 
