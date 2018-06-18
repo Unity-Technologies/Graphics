@@ -16,6 +16,7 @@ namespace UnityEditor
             public readonly GUIContent[] renderingPathOptions = { new GUIContent("Forward") };
             public readonly GUIContent renderingPathInfo = new GUIContent("Lightweight Pipeline only supports Forward rendering path.");
             public readonly GUIContent fixNow = new GUIContent("Fix now");
+            public readonly GUIContent additionalCameraDataLabel = new GUIContent("Add Additional Camera Data");
 
             public readonly string mssaDisabledWarning = "Anti Aliasing is disabled in Lightweight Pipeline settings.";
         };
@@ -105,6 +106,16 @@ namespace UnityEditor
             using (var group = new EditorGUILayout.FadeGroupScope(m_ShowTargetEyeAnim.faded))
                 if (group.visible) settings.DrawTargetEye();
 
+            EditorGUILayout.Space();
+            EditorGUILayout.Space();
+            GameObject gameObject = camera.gameObject;
+            if (gameObject.GetComponent<LightweightAdditionalCameraData>() == null)
+            {
+                if (GUILayout.Button(s_Styles.additionalCameraDataLabel))
+                {
+                    gameObject.AddComponent<LightweightAdditionalCameraData>();
+                }
+            }
             settings.ApplyModifiedProperties();
         }
 

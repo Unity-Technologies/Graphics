@@ -11,4 +11,4 @@
 #endif //..._ALPHATEST_ON
 
 // This include will define the various Attributes/Varyings structure
-#include "../../ShaderPass/VaryingMesh.hlsl"
+#include "HDRP/ShaderPass/VaryingMesh.hlsl"

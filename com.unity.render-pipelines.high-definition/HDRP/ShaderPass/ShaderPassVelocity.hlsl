@@ -119,8 +119,18 @@ PackedVaryingsType Vert(AttributesMesh inputMesh,
     else
     {
         bool hasDeformation = unity_MotionVectorsParams.x > 0.0; // Skin or morph target
-        //Need to apply any vertex animation to the previous worldspace position, if we want it to show up in the velocity buffer
+
+        // Need to apply any vertex animation to the previous worldspace position, if we want it to show up in the velocity buffer
+#if defined(HAVE_MESH_MODIFICATION)
+        AttributesMesh previousMesh = inputMesh;
+        if (hasDeformation)
+            previousMesh.positionOS = inputPass.previousPositionOS;
+        previousMesh = ApplyMeshModification(previousMesh);
+        float3 previousPositionWS = mul(unity_MatrixPreviousM, float4(previousMesh.positionOS, 1.0)).xyz;
+#else
         float3 previousPositionWS = mul(unity_MatrixPreviousM, hasDeformation ? float4(inputPass.previousPositionOS, 1.0) : float4(inputMesh.positionOS, 1.0)).xyz;
+#endif
+
 #ifdef ATTRIBUTES_NEED_NORMAL
         float3 normalWS = TransformPreviousObjectToWorldNormal(inputMesh.normalOS);
 #else

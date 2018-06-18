@@ -10,7 +10,8 @@
 // If lightmap is not defined than we evaluate GI (ambient + probes) from SH
 // We might do it fully or partially in vertex to save shader ALU
 #if !defined(LIGHTMAP_ON)
-    #if defined(SHADER_API_GLES) || (SHADER_TARGET < 30) || !defined(_NORMALMAP)
+// TODO: Controls things like these by exposing SHADER_QUALITY levels (low, medium, high)
+    #if defined(SHADER_API_GLES) || !defined(_NORMALMAP)
         // Evaluates SH fully in vertex
         #define EVALUATE_SH_VERTEX
     #elif !SHADER_HINT_NICE_QUALITY
@@ -215,8 +216,7 @@ struct BRDFData
 
 half ReflectivitySpecular(half3 specular)
 {
-#if (SHADER_TARGET < 30)
-    // SM2.0: instruction count limitation
+#if defined(SHADER_API_GLES)
     return specular.r; // Red channel - because most metals are either monocrhome or with redish/yellowish tint
 #else
     return max(max(specular.r, specular.g), specular.b);

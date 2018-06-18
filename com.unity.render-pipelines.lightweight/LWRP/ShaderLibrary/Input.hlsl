@@ -6,7 +6,7 @@
 // Must match check of use compute buffer in LightweightPipeline.cs
 // GLES check here because of WebGL 1.0 support
 // TODO: check performance of using StructuredBuffer on mobile as well
-#if defined(SHADER_API_MOBILE) || defined(SHADER_API_GLES)
+#if defined(SHADER_API_MOBILE) || defined(SHADER_API_GLES) || defined(SHADER_API_GLCORE)
 #define USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA 0
 #else
 #define USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA 1
@@ -47,7 +47,9 @@ half4 _AdditionalLightSpotAttenuation[MAX_VISIBLE_LIGHTS];
 float4 _ScaledScreenParams;
 CBUFFER_END
 
+#if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
 StructuredBuffer<int> _LightIndexBuffer;
+#endif
 
 #define UNITY_MATRIX_M     unity_ObjectToWorld
 #define UNITY_MATRIX_I_M   unity_WorldToObject

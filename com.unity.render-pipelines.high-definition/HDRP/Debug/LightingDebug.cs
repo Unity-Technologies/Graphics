@@ -10,6 +10,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SpecularLighting,
         LuxMeter,
         VisualizeCascade,
+        VisualizeShadowMasks,
         IndirectDiffuseOcclusion,
         IndirectSpecularOcclusion,
         ScreenSpaceTracingRefraction,

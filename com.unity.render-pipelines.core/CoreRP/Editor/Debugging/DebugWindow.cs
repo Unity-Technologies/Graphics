@@ -99,7 +99,7 @@ namespace UnityEditor.Experimental.Rendering
             s_TypeMapDirty = false;
         }
 
-        [MenuItem("Window/General/Render Pipeline Debug", priority = CoreUtils.editMenuPriority2)]
+        [MenuItem("Window/General/Render Pipeline Debug", priority = 112)] // 112 is hardcoded number given by the UxTeam to fit correctly in the Windows menu
         static void Init()
         {
             var window = GetWindow<DebugWindow>();

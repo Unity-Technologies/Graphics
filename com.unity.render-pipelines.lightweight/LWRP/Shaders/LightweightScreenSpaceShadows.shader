@@ -6,6 +6,10 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
 
         HLSLINCLUDE
 
+        // Note: Screenspace shadow resolve is only performed when shadow cascades are enabled
+        // Shadow cascades require cascade index and shadowCoord to be computed on pixel.
+        #define _SHADOWS_CASCADE
+
         #pragma prefer_hlslcc gles
         #pragma exclude_renderers d3d11_9x
         //Keep compiler quiet about Shadows.hlsl.
@@ -34,7 +38,6 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
         {
             half4  pos      : SV_POSITION;
             half4  texcoord : TEXCOORD0;
-            UNITY_VERTEX_INPUT_INSTANCE_ID
             UNITY_VERTEX_OUTPUT_STEREO
         };
 
@@ -42,7 +45,6 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
         {
             Interpolators o;
             UNITY_SETUP_INSTANCE_ID(i);
-            UNITY_TRANSFER_INSTANCE_ID(i, o);
             UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
             o.pos = TransformObjectToHClip(i.vertex.xyz);
@@ -58,7 +60,6 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
 
         half4 Fragment(Interpolators i) : SV_Target
         {
-            UNITY_SETUP_INSTANCE_ID(i);
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(i);
 
 #if defined(UNITY_STEREO_INSTANCING_ENABLED) || defined(UNITY_STEREO_MULTIVIEW_ENABLED)
@@ -76,12 +77,12 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
             float3 wpos = mul(unity_CameraToWorld, float4(vpos, 1)).xyz;
 
             //Fetch shadow coordinates for cascade.
-            float4 coords  = TransformWorldToShadowCoord(wpos);
+            float4 coords = TransformWorldToShadowCoord(wpos);
 
             // Screenspace shadowmap is only used for directional lights which use orthogonal projection.
             ShadowSamplingData shadowSamplingData = GetMainLightShadowSamplingData();
             half shadowStrength = GetMainLightShadowStrength();
-            return SampleShadowmap(coords, TEXTURE2D_PARAM(_DirectionalShadowmapTexture, sampler_DirectionalShadowmapTexture), shadowSamplingData, shadowStrength);
+            return SampleShadowmap(coords, TEXTURE2D_PARAM(_DirectionalShadowmapTexture, sampler_DirectionalShadowmapTexture), shadowSamplingData, shadowStrength, false);
         }
 
         ENDHLSL
@@ -95,7 +96,6 @@ Shader "Hidden/LightweightPipeline/ScreenSpaceShadows"
 
             HLSLPROGRAM
             #pragma multi_compile _ _SHADOWS_SOFT
-            #pragma multi_compile _ _SHADOWS_CASCADE
 
             #pragma vertex   Vertex
             #pragma fragment Fragment
