@@ -58,7 +58,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty resolution;
             public SerializedProperty contactShadows;
             public SerializedProperty softness;
-            public SerializedProperty minimumSoftness;
+            public SerializedProperty pcssSampleCount;
 
             // Bias control
             public SerializedProperty viewBiasMin;
@@ -145,7 +145,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     resolution = o.Find(x => x.shadowResolution),
                     contactShadows = o.Find(x => x.contactShadows),
                     softness = o.Find(x => x.shadowSoftness),
-                    minimumSoftness = o.Find(x => x.shadowMinimumSoftness),
+                    pcssSampleCount = o.Find(x => x.sampleCount),
 
                     viewBiasMin = o.Find(x => x.viewBiasMin),
                     viewBiasMax = o.Find(x => x.viewBiasMax),
@@ -526,7 +526,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 //TOOD: check the current shadowing algorithm and hide these fields
                 EditorGUILayout.Slider(m_AdditionalShadowData.softness, 0.0f, 1.0f, s_Styles.shadowSoftness);
-                EditorGUILayout.Slider(m_AdditionalShadowData.minimumSoftness, 0.0f, 0.001f, s_Styles.shadowMinimumSoftness);
+                EditorGUILayout.IntSlider(m_AdditionalShadowData.pcssSampleCount, 0, 64, s_Styles.pcssSampleCount);
 
                 EditorGUILayout.PropertyField(m_AdditionalShadowData.contactShadows, s_Styles.contactShadows);
 
