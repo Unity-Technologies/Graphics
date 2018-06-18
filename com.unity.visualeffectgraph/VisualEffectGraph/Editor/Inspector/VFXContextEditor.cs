@@ -53,8 +53,10 @@ public class VFXContextEditor : VFXSlotContainerEditor
     {
         GUILayout.Label(label, Styles.header);
 
-        if (Event.current.type == EventType.Repaint)
-            m_Width = GUILayoutUtility.GetLastRect().width - 16;
+        // Used to distribute width evenly for each cell, induces a one-frame latency
+        var w = GUILayoutUtility.GetLastRect().width;
+        if (Event.current.type != EventType.Layout && w > 0)
+            m_Width = w - 48;
 
         int i = 0;
         int maxSize = 0;
@@ -62,33 +64,49 @@ public class VFXContextEditor : VFXSlotContainerEditor
         foreach (StructureOfArrayProvider.BucketInfo bucket in layout)
             maxSize = Math.Max(maxSize, bucket.size);
 
+        DrawAttributeLayoutGrid(layout, maxSize);
+    }
+
+    void DrawAttributeLayoutGrid(StructureOfArrayProvider.BucketInfo[] layout, int maxSize)
+    {
+        int i = 0;
+        float height = 16.0f;
+
+        Rect r = GUILayoutUtility.GetRect(m_Width, layout.Length * height);
+
         foreach (var bucket in layout)
         {
-            using (new GUILayout.HorizontalScope())
+            float x = r.x;
+            float y = r.y + i * height;
+            float cellwidth = (m_Width - 16) / maxSize;
+
+            Rect cellRect = new Rect(x, y, 16, height);
+            GUI.Label(cellRect, i.ToString(), Styles.cell);
+
+            int bucketSize = bucket.size;
+            int usedSize = bucket.usedSize;
+
+            x += 16;
+
+            for (int j = 0; j < maxSize; j++)
             {
-                GUILayout.Label(i.ToString(), Styles.cell, GUILayout.Width(16));
-
-                int bucketSize = bucket.size;
-                int usedSize = bucket.usedSize;
-
-                for (int j = 0; j < maxSize; j++)
+                cellRect = new Rect(x, y, cellwidth, height);
+                if (j < usedSize)
                 {
-                    if (j < usedSize)
-                    {
-                        var attrib = bucket.attributes[j];
-                        if (attrib.name != null)
-                            Styles.DataTypeLabel(attrib.name, attrib.type, Styles.cell, GUILayout.Width(m_Width / maxSize));
-                        else
-                            Styles.DataTypeLabel("", VFXValueType.None, Styles.cell, GUILayout.Width(m_Width / maxSize));
-                    }
+                    var attrib = bucket.attributes[j];
+                    if (attrib.name != null)
+                        Styles.DataTypeLabel(cellRect, attrib.name, attrib.type, Styles.cell);
                     else
-                    {
-                        if (j < bucketSize)
-                            Styles.DataTypeLabel("", VFXValueType.None, Styles.cell, GUILayout.Width(m_Width / maxSize));
-                        else
-                            GUILayout.Space(m_Width / maxSize);
-                    }
+                        Styles.DataTypeLabel(cellRect, "", VFXValueType.None, Styles.cell);
                 }
+                else
+                {
+                    if (j < bucketSize)
+                        Styles.DataTypeLabel(cellRect, "", VFXValueType.None, Styles.cell);
+                    else
+                        GUI.Label(cellRect, "");
+                }
+                x += cellwidth;
             }
             i++;
         }
@@ -181,10 +199,22 @@ public class VFXContextEditor : VFXSlotContainerEditor
                 EditorGUILayout.Space();
 
                 var attributeInfos = data.GetAttributesForContext(context);
+                VFXAttributeInfo[] infos;
+
+                // Early check for context consistency
+                try
+                {
+                    infos = attributeInfos.ToArray();
+                }
+                catch
+                {
+                    EditorGUILayout.HelpBox("Context is not connected or results in invalid system, please ensure all flow connections are correct.", MessageType.Warning, true);
+                    return;
+                }
 
                 EditorGUILayout.LabelField("Attributes used by Context", Styles.header);
 
-                foreach (var info in attributeInfos)
+                foreach (var info in infos)
                 {
                     using (new EditorGUILayout.HorizontalScope())
                     {
