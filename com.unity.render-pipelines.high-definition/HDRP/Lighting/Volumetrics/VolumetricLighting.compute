@@ -655,7 +655,9 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
 
     // TODO
     LightLoopContext context;
+    context.sampleReflection = 0;
     context.shadowContext = InitShadowContext();
+    context.contactShadow = 1.0;
     uint featureFlags = 0xFFFFFFFF;
 
     PositionInputs posInput = GetPositionInput(voxelCoord, _VBufferResolution.zw, tileCoord);
