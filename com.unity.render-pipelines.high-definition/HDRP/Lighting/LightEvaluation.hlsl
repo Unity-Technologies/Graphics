@@ -26,6 +26,7 @@ float3 EvaluateCookie_Directional(LightLoopContext lightLoopContext, Directional
 }
 
 // None of the outputs are premultiplied.
+// Note: When doing transmission we always have only one shadow sample to do: Either front or back. We use NdotL to know on which side we are
 void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs posInput,
                                DirectionalLightData lightData, BakeLightingData bakeLightingData,
                                float3 N, float3 L,
@@ -34,7 +35,6 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
     float3 positionWS = posInput.positionWS;
     float  shadow     = 1.0;
     float  shadowMask = 1.0;
-    float4 shadowData = float4(1, 1, 1, 1);
 
     color       = lightData.color;
     attenuation = 1.0; // Note: no volumetric attenuation along shadow rays for directional lights
@@ -53,16 +53,14 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
     shadow = shadowMask = (lightData.shadowMaskSelector.x >= 0.0) ? dot(bakeLightingData.bakeShadowMask, lightData.shadowMaskSelector) : 1.0;
 #endif
 
-    UNITY_BRANCH if (lightData.shadowIndex >= 0)
+    // We test NdotL >= 0.0 to not sample the shadow map if it is not required.
+    UNITY_BRANCH if (lightData.shadowIndex >= 0 && (dot(N, L) >= 0.0))
     {
 #ifdef USE_DEFERRED_DIRECTIONAL_SHADOWS
         shadow = LOAD_TEXTURE2D(_DeferredShadowTexture, posInput.positionSS).x;
 #else
         shadow = GetDirectionalShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, lightData.shadowIndex, L, posInput.positionSS);
 #endif
-
-        float contactShadow = GetContactShadow(lightLoopContext, lightData.contactShadowIndex);
-        shadow = min(shadow, contactShadow);
 
 #ifdef SHADOWS_SHADOWMASK
 
@@ -86,6 +84,11 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
         shadow = lightData.nonLightmappedOnly ? min(shadowMask, shadow) : shadow;
 
         // Note: There is no shadowDimmer when there is no shadow mask
+#endif
+
+        // Transparent have no contact shadow information
+#ifndef _SURFACE_TYPE_TRANSPARENT
+        shadow = min(shadow, GetContactShadow(lightLoopContext, lightData.contactShadowIndex));
 #endif
     }
 
@@ -133,6 +136,7 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
 
 // None of the outputs are premultiplied.
 // distances = {d, d^2, 1/d, d_proj}, where d_proj = dot(lightToSample, lightData.forward).
+// Note: When doing transmission we always have only one shadow sample to do: Either front or back. We use NdotL to know on which side we are
 void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs posInput,
                             LightData lightData, BakeLightingData bakeLightingData,
                             float3 N, float3 L, float3 lightToSample, float4 distances,
@@ -141,7 +145,6 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     float3 positionWS    = posInput.positionWS;
     float  shadow        = 1.0;
     float  shadowMask    = 1.0;
-    float  contactShadow = 1.0;
 
     color       = lightData.color;
     attenuation = SmoothPunctualLightAttenuation(distances, lightData.invSqrAttenuationRadius,
@@ -168,12 +171,12 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     shadow = shadowMask = (lightData.shadowMaskSelector.x >= 0.0) ? dot(bakeLightingData.bakeShadowMask, lightData.shadowMaskSelector) : 1.0;
 #endif
 
-    UNITY_BRANCH if (lightData.shadowIndex >= 0)
+    // We test NdotL >= 0.0 to not sample the shadow map if it is not required.
+    UNITY_BRANCH if (lightData.shadowIndex >= 0 && (dot(N, L) >= 0.0))
     {
         // TODO: make projector lights cast shadows.
+        // Note:the case of NdotL < 0 can appear with isThinModeTransmission, in this case we need to flip the shadow bias
         shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, lightData.shadowIndex, L, distances.x, posInput.positionSS);
-        contactShadow = GetContactShadow(lightLoopContext, lightData.contactShadowIndex);
-        shadow = min(shadow, contactShadow);
 
 #ifdef SHADOWS_SHADOWMASK
         // Note: Legacy Unity have two shadow mask mode. ShadowMask (ShadowMask contain static objects shadow and ShadowMap contain only dynamic objects shadow, final result is the minimun of both value)
@@ -188,10 +191,14 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
 #else
         shadow = lerp(1.0, shadow, lightData.shadowDimmer);
 #endif
+
+        // Transparent have no contact shadow information
+#ifndef _SURFACE_TYPE_TRANSPARENT
+        shadow = min(shadow, GetContactShadow(lightLoopContext, lightData.contactShadowIndex));
+#endif
     }
 
     attenuation *= shadow;
-
 }
 
 // Environment map share function
