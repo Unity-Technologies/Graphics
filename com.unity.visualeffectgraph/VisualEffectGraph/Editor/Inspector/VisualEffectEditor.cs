@@ -218,8 +218,10 @@ namespace UnityEditor.VFX
         {
         }
 
-        protected bool ShowHeader(GUIContent nameContent, bool displayToggle, bool toggleState)
+        public static bool ShowHeader(GUIContent nameContent, bool hasHeader, bool hasFooter, bool displayToggle, bool toggleState)
         {
+            if (hasHeader)
+                GUILayout.Space(Styles.headerTopMargin);
             float height = Styles.categoryHeader.CalcHeight(nameContent, 4000);
             Rect rect = GUILayoutUtility.GetRect(1, height - 1);
 
@@ -229,15 +231,18 @@ namespace UnityEditor.VFX
             if (Event.current.type == EventType.Repaint)
                 Styles.categoryHeader.Draw(rect, nameContent, false, true, true, false);
 
-
+            bool result = false;
             if (displayToggle)
             {
                 rect.x += 2;
                 rect.y += 2;
                 rect.width -= 2;
-                return EditorGUI.Toggle(rect, toggleState, Styles.toggleStyle);
+                result = EditorGUI.Toggle(rect, toggleState, Styles.toggleStyle);
             }
-            return false;
+            if (hasFooter)
+                GUILayout.Space(Styles.headerTopMargin);
+
+            return result;
         }
 
         protected virtual void AssetField()
@@ -323,7 +328,7 @@ namespace UnityEditor.VFX
 
                 if (m_graph.m_ParameterInfo != null)
                 {
-                    ShowHeader(Contents.headerParameters, false, false);
+                    ShowHeader(Contents.headerParameters, false, false, false, false);
                     List<int> stack = new List<int>();
                     int currentCount = m_graph.m_ParameterInfo.Length;
                     if (currentCount == 0)
@@ -359,13 +364,12 @@ namespace UnityEditor.VFX
                             {
                                 if (string.IsNullOrEmpty(parameter.realType)) // This is a category
                                 {
-                                    if (!ignoreUntilNextCat)
-                                        GUILayout.Space(Styles.headerTopMargin);
+                                    bool wasIgnored = ignoreUntilNextCat;
                                     ignoreUntilNextCat = false;
                                     var nameContent = new GUIContent(parameter.name);
 
                                     bool prevState = EditorPrefs.GetBool("VFX-category-" + parameter.name, true);
-                                    bool currentState = ShowHeader(nameContent, true, prevState);
+                                    bool currentState = ShowHeader(nameContent, !wasIgnored, false, true, prevState);
                                     if (currentState != prevState)
                                     {
                                         EditorPrefs.SetBool("VFX-category-" + parameter.name, currentState);

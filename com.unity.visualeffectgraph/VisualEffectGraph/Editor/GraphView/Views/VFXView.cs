@@ -355,42 +355,6 @@ namespace UnityEditor.VFX.UI
             spacer.style.flex = new Flex(1);
             m_Toolbar.Add(spacer);
 
-            m_DropDownButtonCullingMode = new Label();
-
-            m_DropDownButtonCullingMode.text = CullingMaskToString(cullingFlags);
-            m_DropDownButtonCullingMode.AddManipulator(new DownClickable(() => {
-                    var menu = new GenericMenu();
-                    foreach (var val in k_CullingOptions)
-                    {
-                        menu.AddItem(new GUIContent(val.Key), val.Value == cullingFlags, (v) =>
-                        {
-                            cullingFlags = (VFXCullingFlags)v;
-                            m_DropDownButtonCullingMode.text = CullingMaskToString((VFXCullingFlags)v);
-                        }, val.Value);
-                    }
-                    menu.DropDown(m_DropDownButtonCullingMode.worldBound);
-                }));
-            m_Toolbar.Add(m_DropDownButtonCullingMode);
-            m_DropDownButtonCullingMode.AddToClassList("toolbarItem");
-
-            m_ToggleCastShadows = new Toggle(OnToggleCastShadows);
-            m_ToggleCastShadows.text = "Cast Shadows";
-            m_ToggleCastShadows.SetValueWithoutNotify(GetRendererSettings().shadowCastingMode != ShadowCastingMode.Off);
-            m_Toolbar.Add(m_ToggleCastShadows);
-            m_ToggleCastShadows.AddToClassList("toolbarItem");
-
-            m_ToggleMotionVectors = new Toggle(OnToggleMotionVectors);
-            m_ToggleMotionVectors.text = "Use Motion Vectors";
-            m_ToggleMotionVectors.SetValueWithoutNotify(GetRendererSettings().motionVectorGenerationMode == MotionVectorGenerationMode.Object);
-            m_Toolbar.Add(m_ToggleMotionVectors);
-            m_ToggleMotionVectors.AddToClassList("toolbarItem");
-
-            Toggle toggleRenderBounds = new Toggle(OnShowBounds);
-            toggleRenderBounds.text = "Show Bounds";
-            toggleRenderBounds.SetValueWithoutNotify(VFXDebugUtil.renderBounds);
-            m_Toolbar.Add(toggleRenderBounds);
-            toggleRenderBounds.AddToClassList("toolbarItem");
-
             Toggle toggleAutoCompile = new Toggle(OnToggleCompile);
             toggleAutoCompile.text = "Auto Compile";
             toggleAutoCompile.SetValueWithoutNotify(true);
@@ -610,17 +574,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (change == VFXViewController.AnyThing)
                 {
-                    var settings = GetRendererSettings();
-
-                    m_DropDownButtonCullingMode.text = CullingMaskToString(cullingFlags);
-
-                    m_ToggleCastShadows.value = settings.shadowCastingMode != ShadowCastingMode.Off;
-                    m_ToggleCastShadows.SetEnabled(true);
-
-                    m_ToggleMotionVectors.value = settings.motionVectorGenerationMode == MotionVectorGenerationMode.Object;
-                    m_ToggleMotionVectors.SetEnabled(true);
-
-                    // if the asset dis destroy somehow, fox example if the user delete the asset, delete the controller and update the window.
+                    // if the asset is destroyed somehow, fox example if the user delete the asset, update the controller and update the window.
                     var asset = controller.model;
                     if (asset == null)
                     {
@@ -628,12 +582,6 @@ namespace UnityEditor.VFX.UI
                         return;
                     }
                 }
-            }
-            else
-            {
-                m_DropDownButtonCullingMode.text = k_CullingOptions[0].Key;
-                m_ToggleCastShadows.SetEnabled(false);
-                m_ToggleMotionVectors.SetEnabled(false);
             }
 
             Profiler.EndSample();
@@ -1040,42 +988,6 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        VFXRendererSettings GetRendererSettings()
-        {
-            if (controller != null)
-            {
-                var asset = controller.model;
-                if (asset != null)
-                    return asset.rendererSettings;
-            }
-
-            return new VFXRendererSettings();
-        }
-
-        VFXCullingFlags cullingFlags
-        {
-            get
-            {
-                if (controller != null)
-                {
-                    var resource = controller.model;
-                    if (resource != null)
-                        return resource.cullingFlags;
-                }
-                return VFXCullingFlags.CullDefault;
-            }
-
-            set
-            {
-                if (controller != null)
-                {
-                    var resource = controller.model;
-                    if (resource != null)
-                        resource.cullingFlags = value;
-                }
-            }
-        }
-
         public void CreateTemplateSystem(string path, Vector2 tPos, VFXGroupNode groupNode)
         {
             var resource = VisualEffectResource.GetResourceAtPath(path);
@@ -1091,44 +1003,6 @@ namespace UnityEditor.VFX.UI
 
                 templateController.useCount--;
             }
-        }
-
-        void SetRendererSettings(VFXRendererSettings settings)
-        {
-            if (controller != null)
-            {
-                var resource = controller.model;
-                if (resource != null)
-                {
-                    resource.rendererSettings = settings;
-                    controller.graph.SetExpressionGraphDirty();
-                }
-            }
-        }
-
-        void OnToggleCastShadows()
-        {
-            var settings = GetRendererSettings();
-            if (settings.shadowCastingMode != ShadowCastingMode.Off)
-                settings.shadowCastingMode = ShadowCastingMode.Off;
-            else
-                settings.shadowCastingMode = ShadowCastingMode.On;
-            SetRendererSettings(settings);
-        }
-
-        void OnToggleMotionVectors()
-        {
-            var settings = GetRendererSettings();
-            if (settings.motionVectorGenerationMode == MotionVectorGenerationMode.Object)
-                settings.motionVectorGenerationMode = MotionVectorGenerationMode.Camera;
-            else
-                settings.motionVectorGenerationMode = MotionVectorGenerationMode.Object;
-            SetRendererSettings(settings);
-        }
-
-        void OnShowBounds()
-        {
-            VFXDebugUtil.renderBounds = !VFXDebugUtil.renderBounds;
         }
 
         void OnToggleCompile()
@@ -1490,10 +1364,6 @@ namespace UnityEditor.VFX.UI
 
         VFXComponentBoard m_ComponentBoard;
 
-        private Label m_DropDownButtonCullingMode;
-        private Toggle m_ToggleCastShadows;
-        private Toggle m_ToggleMotionVectors;
-
         public readonly Vector2 defaultPasteOffset = new Vector2(100, 100);
         public Vector2 pasteOffset = Vector2.zero;
 
@@ -1739,18 +1609,6 @@ namespace UnityEditor.VFX.UI
             }
 
             base.BuildContextualMenu(evt);
-        }
-
-        private static readonly KeyValuePair<string, VFXCullingFlags>[] k_CullingOptions = new KeyValuePair<string, VFXCullingFlags>[]
-        {
-            new KeyValuePair<string, VFXCullingFlags>("Cull simulation and bounds", (VFXCullingFlags.CullSimulation | VFXCullingFlags.CullBoundsUpdate)),
-            new KeyValuePair<string, VFXCullingFlags>("Cull simulation only", (VFXCullingFlags.CullSimulation)),
-            new KeyValuePair<string, VFXCullingFlags>("Disable culling", VFXCullingFlags.CullNone),
-        };
-
-        private string CullingMaskToString(VFXCullingFlags flags)
-        {
-            return k_CullingOptions.First(o => o.Value == flags).Key;
         }
 
         bool IDropTarget.CanAcceptDrop(List<ISelectable> selection)
