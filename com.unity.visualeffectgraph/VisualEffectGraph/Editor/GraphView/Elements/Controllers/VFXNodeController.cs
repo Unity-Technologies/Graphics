@@ -111,7 +111,7 @@ namespace UnityEditor.VFX.UI
             }
             set
             {
-                model.position = value;
+                model.position = new Vector2(Mathf.Round(value.x),Mathf.Round(value.y));
             }
         }
         public virtual bool superCollapsed
