@@ -157,6 +157,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   groupInfos: []
   stickyNoteInfos: []
+  categories: []
   uiBounds:
     serializedVersion: 2
     x: 642
