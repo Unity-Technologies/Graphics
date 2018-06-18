@@ -121,6 +121,9 @@ namespace UnityEngine.Experimental.Rendering
         readonly ValRange m_DefPCF_DepthBias = new ValRange("Depth Bias", 0.0f, 0.0f, 1.0f, 000.1f);
         readonly ValRange m_DefPCF_FilterSize = new ValRange("Filter Size", 1.0f, 1.0f, 10.0f, 1.0f);
 
+        readonly ValRange m_DefPCSS_ShadowSoftness = new ValRange("Shadow Softness", 0.0f, 0.5f, 1.0f, 0.01f);
+        readonly ValRange m_DefPCSS_SampleCount = new ValRange("Sample Count", 0, 32, 64, 1);
+
 
         public ShadowAtlas(ref AtlasInit init) : base(ref init.baseInit)
         {
@@ -178,6 +181,15 @@ namespace UnityEngine.Experimental.Rendering
                     if (dataVariant == ShadowVariant.V1)
                         m_DefPCF_FilterSize.Slider(ref dataBlock[1]);
                 };
+
+            ShadowRegistry.VariantDelegate pcssDel = (Light l, ShadowAlgorithm dataAlgorithm, ShadowVariant dataVariant, ShadowPrecision dataPrecision, ref int[] dataBlock) =>
+            {
+                CheckDataIntegrity(dataAlgorithm, dataVariant, dataPrecision, ref dataBlock);
+
+                m_DefPCSS_ShadowSoftness.Slider(ref dataBlock[0]);
+                m_DefPCSS_SampleCount.Slider(ref dataBlock[1]);
+            };
+
             registry.Register(type, precision, ShadowAlgorithm.PCF, "Percentage Closer Filtering (PCF)",
                 new ShadowVariant[] { ShadowVariant.V0, ShadowVariant.V1, ShadowVariant.V2, ShadowVariant.V3, ShadowVariant.V4 },
                 new string[] {"1 tap", "9 tap adaptive", "tent 3x3 (4 taps)", "tent 5x5 (9 taps)", "tent 7x7 (16 taps)" },
@@ -186,28 +198,44 @@ namespace UnityEngine.Experimental.Rendering
             registry.Register(type, precision, ShadowAlgorithm.PCSS, "Percentage Closer Soft Shadows (PCSS)",
                 new ShadowVariant[] { ShadowVariant.V0 },
                 new string[] { "poisson 64" },
-                new ShadowRegistry.VariantDelegate[] { del });
+                new ShadowRegistry.VariantDelegate[] { pcssDel });
         }
 
         // returns true if the original data passed integrity checks, false if the data had to be modified
         virtual protected bool CheckDataIntegrity(ShadowAlgorithm algorithm, ShadowVariant variant, ShadowPrecision precision, ref int[] dataBlock)
         {
-            if (algorithm != ShadowAlgorithm.PCF ||
+            if ((algorithm != ShadowAlgorithm.PCF && algorithm != ShadowAlgorithm.PCSS) ||
                 (variant != ShadowVariant.V0 &&
                  variant != ShadowVariant.V1 &&
                  variant != ShadowVariant.V2 &&
                  variant != ShadowVariant.V3 &&
                  variant != ShadowVariant.V4))
                 return true;
-
-            const int k_BlockSize = 2;
-            if (dataBlock == null || dataBlock.Length != k_BlockSize)
+            
+            switch (algorithm)
             {
-                // set defaults
-                dataBlock = new int[k_BlockSize];
-                dataBlock[0] = m_DefPCF_DepthBias.Default();
-                dataBlock[1] = m_DefPCF_FilterSize.Default();
-                return false;
+                case  ShadowAlgorithm.PCF:
+                    const int k_PcfBlockSize = 2;
+                    if (dataBlock == null || dataBlock.Length != k_PcfBlockSize)
+                    {
+                        // set defaults
+                        dataBlock = new int[k_PcfBlockSize];
+                        dataBlock[0] = m_DefPCF_DepthBias.Default();
+                        dataBlock[1] = m_DefPCF_FilterSize.Default();
+                        return false;
+                    }
+                    break;
+                case ShadowAlgorithm.PCSS:
+                    const int k_PcssBlockSize = 2;
+                    if (dataBlock == null || dataBlock.Length != k_PcssBlockSize)
+                    {
+                        // set defaults
+                        dataBlock = new int[k_PcssBlockSize];
+                        dataBlock[0] = m_DefPCSS_ShadowSoftness.Default();
+                        dataBlock[1] = m_DefPCSS_SampleCount.Default();
+                        return false;
+                    }
+                    break;
             }
             return true;
         }
@@ -443,8 +471,19 @@ namespace UnityEngine.Experimental.Rendering
         virtual protected uint ReservePayload(ShadowRequest sr)
         {
             uint payloadSize  = sr.shadowType == GPUShadowType.Directional ? (1 + k_MaxCascadesInShader + ((uint)m_TmpBorders.Length / 4)) : 0;
-            payloadSize += ShadowUtils.ExtractAlgorithm(sr.shadowAlgorithm) == ShadowAlgorithm.PCF ? 1u : 0;
-            payloadSize += ShadowUtils.ExtractAlgorithm(sr.shadowAlgorithm) == ShadowAlgorithm.PCSS ? 1u : 0;
+
+            switch (ShadowUtils.ExtractAlgorithm(sr.shadowAlgorithm))
+            {
+                case ShadowAlgorithm.PCF:
+                    payloadSize += 1;
+                    break;
+                case ShadowAlgorithm.PCSS:
+                    payloadSize += 1;
+                    break;
+                default:
+                    break;
+            }
+
             return payloadSize;
         }
 
@@ -538,7 +577,7 @@ namespace UnityEngine.Experimental.Rendering
                 }
                 else // PCSS
                 {
-                    sp.Set((0.01f * asd.shadowSoftness) * 255, asd.shadowMinimumSoftness * 255, 0, 0);
+                    sp.Set(shadowData[0], shadowData[1], 0, 0);
                     payload[payloadOffset] = sp;
                     payloadOffset++;
                 }
