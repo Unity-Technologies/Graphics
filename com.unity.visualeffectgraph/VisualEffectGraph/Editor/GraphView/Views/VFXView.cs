@@ -1567,6 +1567,12 @@ namespace UnityEditor.VFX.UI
                 bounds = Rect.MinMaxRect(Mathf.Min(elementBounds[i].xMin, bounds.xMin), Mathf.Min(elementBounds[i].yMin, bounds.yMin), Mathf.Max(elementBounds[i].xMax, bounds.xMax), Mathf.Max(elementBounds[i].yMax, bounds.yMax));
             }
 
+            // Round to avoid changes in the asset because of the zoom level.
+            bounds.x = Mathf.Round(bounds.x);
+            bounds.y = Mathf.Round(bounds.y);
+            bounds.width = Mathf.Round(bounds.width);
+            bounds.height = Mathf.Round(bounds.height);
+
             return bounds;
         }
 
