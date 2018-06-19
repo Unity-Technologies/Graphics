@@ -347,6 +347,7 @@ MonoBehaviour:
   sortPriority: 0
   sort: 0
   indirectDraw: 0
+  castShadows: 1
   preRefraction: 0
 --- !u!114 &114149745243873572
 MonoBehaviour:
@@ -395,10 +396,10 @@ MonoBehaviour:
   categories: []
   uiBounds:
     serializedVersion: 2
-    x: 0
-    y: 0
-    width: 0
-    height: 0
+    x: -796
+    y: 416
+    width: 3630
+    height: 2483
 --- !u!114 &114154661306603660
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1000,15 +1001,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114838466200305200}
   m_Children: []
-  m_UIPosition: {x: -795.9518, y: 530.9413}
+  m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 114283240058233450}
-  m_exposedName: exposedName
+  m_exposedName: exposedName 1
   m_exposed: 0
-  m_Order: 0
+  m_Order: 1
   m_Category: 
   m_Min:
     m_Type:
@@ -1018,7 +1019,16 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
-  m_Nodes: []
+  m_Nodes:
+  - m_Id: 0
+    linkedSlots:
+    - outputSlot: {fileID: 114283240058233450}
+      inputSlot: {fileID: 114728954793436396}
+    - outputSlot: {fileID: 114283240058233450}
+      inputSlot: {fileID: 8926484042661614590}
+    position: {x: -795.9518, y: 530.9413}
+    expandedSlots: []
+    expanded: 0
 --- !u!114 &114361518839833050
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1057,6 +1067,7 @@ MonoBehaviour:
   sortPriority: 0
   sort: 0
   indirectDraw: 0
+  castShadows: 1
   preRefraction: 0
 --- !u!114 &114369422258304014
 MonoBehaviour:
@@ -1291,6 +1302,7 @@ MonoBehaviour:
   sortPriority: 0
   sort: 0
   indirectDraw: 0
+  castShadows: 1
   preRefraction: 0
   targetFromAttributes: 1
   useNativeLines: 0
@@ -2385,15 +2397,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114838466200305200}
   m_Children: []
-  m_UIPosition: {x: -37.95901, y: 2337.223}
+  m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
   m_OutputSlots:
   - {fileID: 114605936197091038}
-  m_exposedName: exposedName
+  m_exposedName: exposedName 2
   m_exposed: 0
-  m_Order: 0
+  m_Order: 2
   m_Category: 
   m_Min:
     m_Type:
@@ -2403,7 +2415,19 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
-  m_Nodes: []
+  m_Nodes:
+  - m_Id: 0
+    linkedSlots:
+    - outputSlot: {fileID: 114417416619547874}
+      inputSlot: {fileID: 8926484042661614574}
+    - outputSlot: {fileID: 114586265036585470}
+      inputSlot: {fileID: 8926484042661614550}
+    - outputSlot: {fileID: 114586265036585470}
+      inputSlot: {fileID: 8926484042661614555}
+    position: {x: -37.95901, y: 2337.223}
+    expandedSlots:
+    - {fileID: 114605936197091038}
+    expanded: 0
 --- !u!114 &114768175125361842
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2525,6 +2549,7 @@ MonoBehaviour:
   sortPriority: 0
   sort: 0
   indirectDraw: 0
+  castShadows: 1
   preRefraction: 0
   useGeometryShader: 0
 --- !u!114 &114786253860938156
@@ -3163,7 +3188,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114838466200305200}
   m_Children: []
-  m_UIPosition: {x: -6.6213818, y: 935.1517}
+  m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -3181,7 +3206,14 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
-  m_Nodes: []
+  m_Nodes:
+  - m_Id: 0
+    linkedSlots:
+    - outputSlot: {fileID: 114757265932841848}
+      inputSlot: {fileID: 8926484042661614567}
+    position: {x: -6.6213818, y: 935.1517}
+    expandedSlots: []
+    expanded: 0
 --- !u!2058629511 &8926484042661614527
 VisualEffectResource:
   m_ObjectHideFlags: 0

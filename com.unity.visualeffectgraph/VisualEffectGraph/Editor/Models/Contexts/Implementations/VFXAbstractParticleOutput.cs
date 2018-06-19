@@ -9,7 +9,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
-    abstract class VFXAbstractParticleOutput : VFXContext
+    abstract class VFXAbstractParticleOutput : VFXContext, IVFXSubRenderer
     {
         public enum BlendMode
         {
@@ -89,10 +89,13 @@ namespace UnityEditor.VFX
         protected bool indirectDraw = false;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
-        protected bool castShadows = true;
+        protected bool castShadows = false;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool preRefraction = false;
+
+        // IVFXSubRenderer interface
+        public virtual bool hasShadowCasting { get { return castShadows; } }
 
         public bool HasIndirectDraw()   { return indirectDraw || HasSorting(); }
         public bool HasSorting()        { return sort == SortMode.On || (sort == SortMode.Auto && (blendMode == BlendMode.Alpha || blendMode == BlendMode.AlphaPremultiplied)); }
@@ -201,7 +204,7 @@ namespace UnityEditor.VFX
                     var settings = asset.rendererSettings;
                     if (settings.motionVectorGenerationMode == MotionVectorGenerationMode.Object)
                         yield return "USE_MOTION_VECTORS_PASS";
-                    if (settings.shadowCastingMode != ShadowCastingMode.Off && castShadows)
+                    if (castShadows)
                         yield return "USE_CAST_SHADOWS_PASS";
                 }
 
@@ -243,13 +246,6 @@ namespace UnityEditor.VFX
 
                 if (blendMode == BlendMode.Opaque || blendMode == BlendMode.Masked)
                     yield return "useSoftParticle";
-
-                VisualEffectResource asset = GetResource();
-                if (asset != null)
-                {
-                    if (asset.rendererSettings.shadowCastingMode == ShadowCastingMode.Off)
-                        yield return "castShadows";
-                }
             }
         }
 

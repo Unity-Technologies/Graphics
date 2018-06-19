@@ -373,12 +373,6 @@ namespace UnityEditor.VFX.UI
             m_Toolbar.Add(m_DropDownButtonCullingMode);
             m_DropDownButtonCullingMode.AddToClassList("toolbarItem");
 
-            m_ToggleCastShadows = new Toggle(OnToggleCastShadows);
-            m_ToggleCastShadows.text = "Cast Shadows";
-            m_ToggleCastShadows.value = GetRendererSettings().shadowCastingMode != ShadowCastingMode.Off;
-            m_Toolbar.Add(m_ToggleCastShadows);
-            m_ToggleCastShadows.AddToClassList("toolbarItem");
-
             m_ToggleMotionVectors = new Toggle(OnToggleMotionVectors);
             m_ToggleMotionVectors.text = "Use Motion Vectors";
             m_ToggleMotionVectors.value = GetRendererSettings().motionVectorGenerationMode == MotionVectorGenerationMode.Object;
@@ -614,9 +608,6 @@ namespace UnityEditor.VFX.UI
 
                     m_DropDownButtonCullingMode.text = CullingMaskToString(cullingFlags);
 
-                    m_ToggleCastShadows.value = settings.shadowCastingMode != ShadowCastingMode.Off;
-                    m_ToggleCastShadows.SetEnabled(true);
-
                     m_ToggleMotionVectors.value = settings.motionVectorGenerationMode == MotionVectorGenerationMode.Object;
                     m_ToggleMotionVectors.SetEnabled(true);
 
@@ -632,7 +623,6 @@ namespace UnityEditor.VFX.UI
             else
             {
                 m_DropDownButtonCullingMode.text = k_CullingOptions[0].Key;
-                m_ToggleCastShadows.SetEnabled(false);
                 m_ToggleMotionVectors.SetEnabled(false);
             }
 
@@ -1106,16 +1096,6 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void OnToggleCastShadows()
-        {
-            var settings = GetRendererSettings();
-            if (settings.shadowCastingMode != ShadowCastingMode.Off)
-                settings.shadowCastingMode = ShadowCastingMode.Off;
-            else
-                settings.shadowCastingMode = ShadowCastingMode.On;
-            SetRendererSettings(settings);
-        }
-
         void OnToggleMotionVectors()
         {
             var settings = GetRendererSettings();
@@ -1491,7 +1471,6 @@ namespace UnityEditor.VFX.UI
         VFXComponentBoard m_ComponentBoard;
 
         private Label m_DropDownButtonCullingMode;
-        private Toggle m_ToggleCastShadows;
         private Toggle m_ToggleMotionVectors;
 
         public readonly Vector2 defaultPasteOffset = new Vector2(100, 100);

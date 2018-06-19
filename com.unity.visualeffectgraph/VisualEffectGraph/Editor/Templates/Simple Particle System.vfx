@@ -65,6 +65,7 @@ MonoBehaviour:
   sortPriority: 0
   sort: 0
   indirectDraw: 0
+  castShadows: 0
   preRefraction: 0
   useGeometryShader: 0
 --- !u!114 &114131763552434164

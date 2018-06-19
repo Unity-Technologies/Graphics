@@ -504,6 +504,7 @@ MonoBehaviour:
   sortPriority: 0
   sort: 0
   indirectDraw: 0
+  castShadows: 0
   preRefraction: 0
   useGeometryShader: 0
 --- !u!114 &114697200481505942
@@ -2905,6 +2906,7 @@ MonoBehaviour:
   sortPriority: 0
   sort: 0
   indirectDraw: 0
+  castShadows: 0
   preRefraction: 0
   useGeometryShader: 0
 --- !u!114 &8926484042661614560

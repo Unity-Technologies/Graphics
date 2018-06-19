@@ -1717,6 +1717,7 @@ MonoBehaviour:
   sortPriority: 0
   sort: 0
   indirectDraw: 0
+  castShadows: 0
   preRefraction: 0
   useGeometryShader: 0
 --- !u!114 &114222089427741568
@@ -1932,6 +1933,7 @@ MonoBehaviour:
   sortPriority: 0
   sort: 0
   indirectDraw: 1
+  castShadows: 0
   preRefraction: 0
   useGeometryShader: 0
 --- !u!114 &114268286058138816
@@ -2621,6 +2623,7 @@ MonoBehaviour:
   - link: []
   m_OutputFlowSlot:
   - link: []
+  castShadows: 0
 --- !u!114 &114389172974816748
 MonoBehaviour:
   m_ObjectHideFlags: 1
