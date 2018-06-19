@@ -259,8 +259,8 @@ void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightD
 
 // This function return transmittance to provide to EvaluateTransmission
 float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext, PositionInputs posInput, float distFrontFaceToLight,
-                                            float NdotL, float3 L, LightData lightData, BSDFData bsdfData,
-                                            inout float3 normalWS, inout int contactShadowIndex)
+                                            float NdotL, float3 L, BSDFData bsdfData,
+                                            inout float3 normalWS, inout LightData lightData)
 {
     float3 transmittance = bsdfData.transmittance;
 
@@ -274,7 +274,7 @@ float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext, P
         if (HasFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
         {
             normalWS = -normalWS; // Flip normal for shadow bias
-            contactShadowIndex = -1;  //  Disable shadow contact
+            lightData.contactShadowIndex = -1;  //  Disable shadow contact
         }
         else // MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS
         {
