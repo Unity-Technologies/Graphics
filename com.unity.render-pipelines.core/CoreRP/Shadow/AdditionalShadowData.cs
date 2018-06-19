@@ -21,7 +21,7 @@ namespace UnityEngine.Experimental.Rendering
         // PCSS specific parameters (can be moved somewhere else)
         [Range(0.0f, 1.0f)]
         public float shadowSoftness     = 0.5f;
-        [Range(0, 64)]
+        [Range(1, 64)]
         public int sampleCount          = 32;
         // End of PCSS parameters
 

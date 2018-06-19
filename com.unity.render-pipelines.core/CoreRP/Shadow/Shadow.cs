@@ -122,7 +122,7 @@ namespace UnityEngine.Experimental.Rendering
         readonly ValRange m_DefPCF_FilterSize = new ValRange("Filter Size", 1.0f, 1.0f, 10.0f, 1.0f);
 
         readonly ValRange m_DefPCSS_ShadowSoftness = new ValRange("Shadow Softness", 0.0f, 0.5f, 1.0f, 0.01f);
-        readonly ValRange m_DefPCSS_SampleCount = new ValRange("Sample Count", 0, 32, 64, 1);
+        readonly ValRange m_DefPCSS_SampleCount = new ValRange("Sample Count", 1, 32, 64, 1);
 
 
         public ShadowAtlas(ref AtlasInit init) : base(ref init.baseInit)
@@ -188,6 +188,7 @@ namespace UnityEngine.Experimental.Rendering
 
                 m_DefPCSS_ShadowSoftness.Slider(ref dataBlock[0]);
                 m_DefPCSS_SampleCount.Slider(ref dataBlock[1]);
+                dataBlock[1] = ShadowUtils.Asint(Mathf.RoundToInt(ShadowUtils.Asfloat(dataBlock[1])));
             };
 
             registry.Register(type, precision, ShadowAlgorithm.PCF, "Percentage Closer Filtering (PCF)",
