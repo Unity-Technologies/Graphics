@@ -2,10 +2,6 @@
 #include "../DiffusionProfile/DiffusionProfileSettings.cs.hlsl"
 #include "../DiffusionProfile/DiffusionProfile.hlsl"
 
-// Subsurface scattering constant
-#define SSS_WRAP_ANGLE (PI/12)              // 15 degrees
-#define SSS_WRAP_LIGHT cos(PI/2 - SSS_WRAP_ANGLE)
-
 CBUFFER_START(UnitySSSAndTransmissionParameters)
 // Warning: Unity is not able to losslessly transfer integers larger than 2^24 to the shader system.
 // Therefore, we bitcast uint to float in C#, and bitcast back to uint in the shader.

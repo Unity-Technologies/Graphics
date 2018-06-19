@@ -1,6 +1,37 @@
+//-----------------------------------------------------------------------------
+// Configuration
+//-----------------------------------------------------------------------------
+
+// Choose between Lambert diffuse and Disney diffuse (enable only one of them)
+// #define LIT_DIFFUSE_LAMBERT_BRDF
+#define LIT_USE_GGX_ENERGY_COMPENSATION
+
+// Enable reference mode for IBL and area lights
+// Both reference define below can be define only if LightLoop is present, else we get a compile error
+#ifdef HAS_LIGHTLOOP
+// #define LIT_DISPLAY_REFERENCE_AREA
+// #define LIT_DISPLAY_REFERENCE_IBL
+#endif
+
+// In forward we can chose between reading the normal from the normalBufferTexture or computing it again
+// This is tradeoff between performance and quality. As we store the normal conpressed, recomputing again is higher quality.
+// Uncomment this to get speed (to measure), let it comment to get quality
+// #define FORWARD_MATERIAL_READ_FROM_WRITTEN_NORMAL_BUFFER
+
+//-----------------------------------------------------------------------------
+// Includes
+//-----------------------------------------------------------------------------
+
 // SurfaceData is define in Lit.cs which generate Lit.cs.hlsl
 #include "Lit.cs.hlsl"
 #include "../SubsurfaceScattering/SubsurfaceScattering.hlsl"
+// Those define allow to include wanted function from Utils file
+#define INCLUDE_SUBSURFACESCATTERING
+#define INCLUDE_TRANSMISSION
+#ifndef LIT_DIFFUSE_LAMBERT_BRDF
+#define TRANSMISSION_DISNEY_DIFFUSE_BRDF
+#endif
+#include "../SubsurfaceScattering/SubsurfaceScatteringUtils.hlsl"
 #include "../NormalBuffer.hlsl"
 #include "CoreRP/ShaderLibrary/VolumeRendering.hlsl"
 
@@ -45,26 +76,6 @@ TEXTURE2D(_GBufferTexture3);
 #define CLEAR_COAT_ROUGHNESS 0.03
 #define CLEAR_COAT_PERCEPTUAL_SMOOTHNESS RoughnessToPerceptualSmoothness(CLEAR_COAT_ROUGHNESS)
 #define CLEAR_COAT_PERCEPTUAL_ROUGHNESS RoughnessToPerceptualRoughness(CLEAR_COAT_ROUGHNESS)
-
-//-----------------------------------------------------------------------------
-// Configuration
-//-----------------------------------------------------------------------------
-
-// Choose between Lambert diffuse and Disney diffuse (enable only one of them)
-// #define LIT_DIFFUSE_LAMBERT_BRDF
-#define LIT_USE_GGX_ENERGY_COMPENSATION
-
-// Enable reference mode for IBL and area lights
-// Both reference define below can be define only if LightLoop is present, else we get a compile error
-#ifdef HAS_LIGHTLOOP
-// #define LIT_DISPLAY_REFERENCE_AREA
-// #define LIT_DISPLAY_REFERENCE_IBL
-#endif
-
-// In forward we can chose between reading the normal from the normalBufferTexture or computing it again
-// This is tradeoff between performance and quality. As we store the normal conpressed, recomputing again is higher quality.
-// Uncomment this to get speed (to measure), let it comment to get quality
-// #define FORWARD_MATERIAL_READ_FROM_WRITTEN_NORMAL_BUFFER
 
 //-----------------------------------------------------------------------------
 // Ligth and material classification for the deferred rendering path
@@ -124,13 +135,6 @@ static const uint kFeatureVariantFlags[NUM_FEATURE_VARIANTS] =
     /* 26 */ LIGHT_FEATURE_MASK_FLAGS_OPAQUE | MATERIAL_FEATURE_MASK_FLAGS, // Catch all case with MATERIAL_FEATURE_MASK_FLAGS is needed in case we disable material classification
 };
 
-// Additional bits set in 'bsdfData.materialFeatures' to save registers and simplify feature tracking.
-#define MATERIAL_FEATURE_FLAGS_SSS_OUTPUT_SPLIT_LIGHTING         ((MATERIAL_FEATURE_MASK_FLAGS + 1) << 0)
-#define MATERIAL_FEATURE_FLAGS_SSS_TEXTURING_MODE_OFFSET FastLog2((MATERIAL_FEATURE_MASK_FLAGS + 1) << 1) // 2 bits
-#define MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS ((MATERIAL_FEATURE_MASK_FLAGS + 1) << 3)
-// Flags used as a shortcut to know if we have thin mode transmission
-#define MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS  ((MATERIAL_FEATURE_MASK_FLAGS + 1) << 4)
-
 uint FeatureFlagsToTileVariant(uint featureFlags)
 {
     for (int i = 0; i < NUM_FEATURE_VARIANTS; i++)
@@ -185,61 +189,6 @@ uint TileVariantToFeatureFlags(uint variant, uint tileIndex)
     #define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelSphere(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
     #endif
 #endif
-
-// This method allows us to know at compile time what material features should be removed from the code by Tile (Indepenently of the value of material feature flag per pixel).
-// This is only useful for classification during lighting, so it's not needed in EncodeIntoGBuffer and ConvertSurfaceDataToBSDFData (where we always know exactly what the material feature is)
-bool HasFeatureFlag(uint featureFlags, uint flag)
-{
-    return ((featureFlags & flag) != 0);
-}
-
-// Assume that bsdfData.diffusionProfile is init
-void FillMaterialSSS(uint diffusionProfile, float subsurfaceMask, inout BSDFData bsdfData)
-{
-    bsdfData.diffusionProfile = diffusionProfile;
-    bsdfData.fresnel0 = _TransmissionTintsAndFresnel0[diffusionProfile].a;
-    bsdfData.subsurfaceMask = subsurfaceMask;
-    bsdfData.materialFeatures |= MATERIAL_FEATURE_FLAGS_SSS_OUTPUT_SPLIT_LIGHTING;
-    bsdfData.materialFeatures |= GetSubsurfaceScatteringTexturingMode(bsdfData.diffusionProfile) << MATERIAL_FEATURE_FLAGS_SSS_TEXTURING_MODE_OFFSET;
-}
-
-// Assume that bsdfData.diffusionProfile is init
-void FillMaterialTransmission(uint diffusionProfile, float thickness, inout BSDFData bsdfData)
-{
-    bsdfData.diffusionProfile = diffusionProfile;
-    bsdfData.fresnel0 = _TransmissionTintsAndFresnel0[diffusionProfile].a;
-
-    bsdfData.thickness = _ThicknessRemaps[diffusionProfile].x + _ThicknessRemaps[diffusionProfile].y * thickness;
-
-    // The difference between the thin and the regular (a.k.a. auto-thickness) modes is the following:
-    // * in the thin object mode, we assume that the geometry is thin enough for us to safely share
-    // the shadowing information between the front and the back faces;
-    // * the thin mode uses baked (textured) thickness for all transmission calculations;
-    // * the thin mode uses wrapped diffuse lighting for the NdotL;
-    // * the auto-thickness mode uses the baked (textured) thickness to compute transmission from
-    // indirect lighting and non-shadow-casting lights; for shadowed lights, it calculates
-    // the thickness using the distance to the closest occluder sampled from the shadow map.
-    // If the distance is large, it may indicate that the closest occluder is not the back face of
-    // the current object. That's not a problem, since large thickness will result in low intensity.
-    bool useThinObjectMode = IsBitSet(asuint(_TransmissionFlags), diffusionProfile);
-
-    bsdfData.materialFeatures |= useThinObjectMode ? MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS : MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS;
-
-    // Compute transmittance using baked thickness here. It may be overridden for direct lighting
-    // in the auto-thickness mode (but is always be used for indirect lighting).
-#if SHADEROPTIONS_USE_DISNEY_SSS
-    bsdfData.transmittance = ComputeTransmittanceDisney(_ShapeParams[diffusionProfile].rgb,
-                                                        _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
-                                                        bsdfData.thickness);
-#else
-    bsdfData.transmittance = ComputeTransmittanceJimenez(_HalfRcpVariancesAndWeights[diffusionProfile][0].rgb,
-                                                         _HalfRcpVariancesAndWeights[diffusionProfile][0].a,
-                                                         _HalfRcpVariancesAndWeights[diffusionProfile][1].rgb,
-                                                         _HalfRcpVariancesAndWeights[diffusionProfile][1].a,
-                                                         _TransmissionTintsAndFresnel0[diffusionProfile].rgb,
-                                                         bsdfData.thickness);
-#endif
-}
 
 // Assume bsdfData.normalWS is init
 void FillMaterialAnisotropy(float anisotropy, float3 tangentWS, float3 bitangentWS, inout BSDFData bsdfData)
@@ -1102,15 +1051,6 @@ LightTransportData GetLightTransportData(SurfaceData surfaceData, BuiltinData bu
 }
 
 //-----------------------------------------------------------------------------
-// Subsurface Scattering functions
-//-----------------------------------------------------------------------------
-
-bool ShouldOutputSplitLighting(BSDFData bsdfData)
-{
-    return HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_SSS_OUTPUT_SPLIT_LIGHTING);
-}
-
-//-----------------------------------------------------------------------------
 // LightLoop related function (Only include if required)
 // HAS_LIGHTLOOP is define in Lighting.hlsl
 //-----------------------------------------------------------------------------
@@ -1211,32 +1151,6 @@ void BSDF(  float3 V, float3 L, float NdotL, float3 positionWS, PreLightData pre
     }
 }
 
-// Currently, we only model diffuse transmission. Specular transmission is not yet supported.
-// Transmitted lighting is computed as follows:
-// - we assume that the object is a thick plane (slab);
-// - we reverse the front-facing normal for the back of the object;
-// - we assume that the incoming radiance is constant along the entire back surface;
-// - we apply BSDF-specific diffuse transmission to transmit the light subsurface and back;
-// - we integrate the diffuse reflectance profile w.r.t. the radius (while also accounting
-//   for the thickness) to compute the transmittance;
-// - we multiply the transmitted radiance by the transmittance.
-float3 EvaluateTransmission(BSDFData bsdfData, float3 transmittance, float NdotL, float NdotV, float LdotV, float attenuation)
-{
-    // Apply wrapped lighting to better handle thin objects at grazing angles.
-    float wrappedNdotL = ComputeWrappedDiffuseLighting(-NdotL, SSS_WRAP_LIGHT);
-
-    // Apply BSDF-specific diffuse transmission to attenuation. See also: [SSS-NOTE-TRSM]
-    // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-#ifdef LIT_DIFFUSE_LAMBERT_BRDF
-    attenuation *= Lambert();
-#else
-    attenuation *= DisneyDiffuse(NdotV, max(0, -NdotL), LdotV, bsdfData.perceptualRoughness);
-#endif
-
-    float intensity = attenuation * wrappedNdotL;
-    return intensity * transmittance;
-}
-
 //-----------------------------------------------------------------------------
 // EvaluateBSDF_Directional
 //-----------------------------------------------------------------------------
@@ -1251,22 +1165,13 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 
     float3 N     = bsdfData.normalWS;
     float3 L     = -lightData.forward; // Lights point backward in Unity
-    float  NdotV = ClampNdotV(preLightData.NdotV);
     float  NdotL = dot(N, L);
-    float  LdotV = dot(L, V);
+
+    // Caution: This function modify N and lightData
+    PreEvaluateLightTransmission(NdotL, bsdfData, N, lightData.contactShadowIndex); // contactShadowIndex is only modify for the code of this function
 
     float3 color;
     float attenuation;
-
-    // When using thin transmission mode we don't fetch shadow map for back face, we reuse front face shadow
-    // However we flip the normal for the bias (and the NdotL test) and disable contact shadow
-    if (HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS) && NdotL < 0)
-    {
-        //  Disable shadow contact in case of transmission and backface shadow
-        N = -N;
-        lightData.contactShadowIndex = -1; // This is only modify for the scope of this function
-    }
-
     EvaluateLight_Directional(lightLoopContext, posInput, lightData, bakeLightingData, N, L, color, attenuation);
 
     float intensity = max(0, attenuation * NdotL); // Warning: attenuation can be greater than 1 due to the inverse square attenuation (when position is close to light)
@@ -1283,6 +1188,8 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     // The mixed thickness mode is not supported by directional lights due to poor quality and high performance impact.
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
     {
+        float  NdotV = ClampNdotV(preLightData.NdotV);
+        float  LdotV = dot(L, V);
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
         lighting.diffuse += EvaluateTransmission(bsdfData, bsdfData.transmittance, NdotL, NdotV, LdotV, attenuation * lightData.diffuseScale);
     }
@@ -1337,22 +1244,13 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     }
 
     float3 N     = bsdfData.normalWS;
-    float  NdotV = ClampNdotV(preLightData.NdotV);
     float  NdotL = dot(N, L);
-    float  LdotV = dot(L, V);
+
+    // Caution: This function modify N and lightData
+    PreEvaluateLightTransmission(NdotL, bsdfData, N, lightData.contactShadowIndex);
 
     float3 color;
     float attenuation;
-
-    // When using thin transmission mode we don't fetch shadow map for back face, we reuse front face shadow
-    // However we flip the normal for the bias (and the NdotL test) and disable contact shadow
-    if (HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS) && NdotL < 0)
-    {
-        //  Disable shadow contact in case of transmission and backface shadow
-        N = -N;
-        lightData.contactShadowIndex = -1; // This is only modify for the scope of this function
-    }
-
     EvaluateLight_Punctual(lightLoopContext, posInput, lightData, bakeLightingData, N, L,
                            lightToSample, distances, color, attenuation);
 
@@ -1376,64 +1274,11 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
 
     if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
-        float3 transmittance = bsdfData.transmittance;
-
-        // Note that if NdotL is positive, we have one fetch on front face done by EvaluateLight_Punctual, otherwise we have only one fetch
-        // done by transmission code here (EvaluateLight_Punctual discard the fetch if NdotL < 0)
-        bool mixedThicknessMode =   HasFeatureFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS)
-                                    && NdotL < 0 && lightData.shadowIndex >= 0;
-
-        if (mixedThicknessMode)
-        {
-            // Recompute transmittance using the thickness value computed from the shadow map.
-
-            // Compute the distance from the light to the back face of the object along the light direction.
-            float distBackFaceToLight = GetPunctualShadowClosestDistance(lightLoopContext.shadowContext, s_linear_clamp_sampler,
-                                                                         posInput.positionWS, lightData.shadowIndex, L, lightData.positionWS);
-
-            // Our subsurface scattering models use the semi-infinite planar slab assumption.
-            // Therefore, we need to find the thickness along the normal.
-            float distFrontFaceToLight   = distances.x;
-            float thicknessInUnits       = (distFrontFaceToLight - distBackFaceToLight) * -NdotL;
-            float thicknessInMeters      = thicknessInUnits * _WorldScales[bsdfData.diffusionProfile].x;
-            float thicknessInMillimeters = thicknessInMeters * MILLIMETERS_PER_METER;
-
-        #if SHADEROPTIONS_USE_DISNEY_SSS
-            // We need to make sure it's not less than the baked thickness to minimize light leaking.
-            float thicknessDelta = max(0, thicknessInMillimeters - bsdfData.thickness);
-
-            float3 S = _ShapeParams[bsdfData.diffusionProfile].rgb;
-
-            // Approximate the decrease of transmittance by e^(-1/3 * dt * S).
-        #if 0
-            float3 expOneThird = exp(((-1.0 / 3.0) * thicknessDelta) * S);
-        #else
-            // Help the compiler.
-            float  k = (-1.0 / 3.0) * LOG2_E;
-            float3 p = (k * thicknessDelta) * S;
-            float3 expOneThird = exp2(p);
-        #endif
-
-            transmittance *= expOneThird;
-
-        #else // SHADEROPTIONS_USE_DISNEY_SSS
-
-            // We need to make sure it's not less than the baked thickness to minimize light leaking.
-            thicknessInMillimeters = max(thicknessInMillimeters, bsdfData.thickness);
-
-            transmittance = ComputeTransmittanceJimenez(_HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][0].rgb,
-                                                        _HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][0].a,
-                                                        _HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][1].rgb,
-                                                        _HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][1].a,
-                                                        _TransmissionTintsAndFresnel0[bsdfData.diffusionProfile].rgb,
-                                                        thicknessInMillimeters);
-        #endif // SHADEROPTIONS_USE_DISNEY_SSS
-        }
-
-        // Note: we do not modify the distance to the light, or the light angle for the back face.
-        // This is a performance-saving optimization which makes sense as long as the thickness is small.
+        float  NdotV = ClampNdotV(preLightData.NdotV);
+        float  LdotV = dot(L, V);
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        lighting.diffuse += EvaluateTransmission(bsdfData, transmittance, NdotL, NdotV, LdotV, attenuation * lightData.diffuseScale);
+        lighting.diffuse += PostEvaluateLightTransmission(  lightLoopContext.shadowContext, posInput, distances.x,
+                                                            NdotL, NdotV, LdotV, L, attenuation * lightData.diffuseScale, lightData, bsdfData);
     }
 
     // Save ALU by applying light and cookie colors only once.
@@ -2158,8 +2003,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     ApplyAmbientOcclusionFactor(aoFactor, bakeLightingData, lighting);
 
     // Subsurface scattering mdoe
-    uint   texturingMode        = (bsdfData.materialFeatures >> MATERIAL_FEATURE_FLAGS_SSS_TEXTURING_MODE_OFFSET) & 3;
-    float3 modifiedDiffuseColor = ApplySubsurfaceScatteringTexturingMode(texturingMode, bsdfData.diffuseColor);
+    float3 modifiedDiffuseColor = SSSGetModifiedDiffuseColor(bsdfData);
 
     // Apply the albedo to the direct diffuse lighting (only once). The indirect (baked)
     // diffuse lighting has already had the albedo applied in GetBakedDiffuseLighting().

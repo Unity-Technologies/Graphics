@@ -236,4 +236,14 @@ real3 LerpWhiteTo(real3 b, real t)
     return real3(oneMinusT, oneMinusT, oneMinusT) + b * t;
 }
 
+// ----------------------------------------------------------------------------
+// Helper
+// ----------------------------------------------------------------------------
+
+// Simple function to test a bitfield
+bool HasFeatureFlag(uint featureFlags, uint flag)
+{
+    return ((featureFlags & flag) != 0);
+}
+
 #endif // UNITY_COMMON_MATERIAL_INCLUDED
