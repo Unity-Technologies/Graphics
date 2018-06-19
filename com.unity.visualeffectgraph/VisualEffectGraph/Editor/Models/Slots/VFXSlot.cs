@@ -798,14 +798,14 @@ namespace UnityEditor.VFX
             }
         }
 
-        public IEnumerable<VFXSlot> AllChildrenWithLink()
+        public IEnumerable<VFXSlot> AllChildrenWithLink(bool includeSelf = true)
         {
-            if (HasLink())
+            if (includeSelf && HasLink())
                 yield return this;
 
             foreach (var child in children)
             {
-                var results = child.AllChildrenWithLink();
+                var results = child.AllChildrenWithLink(true);
                 foreach (var result in results)
                 {
                     yield return result;
