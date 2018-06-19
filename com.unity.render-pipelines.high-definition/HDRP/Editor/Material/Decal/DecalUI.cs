@@ -20,20 +20,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent AlbedoModeText = new GUIContent("Albedo contribution", "Base color + Blend, Blend only");
         }
 
-        enum NormalPerPixelBlendSource
+        enum BlendSource
         {
             AlbedoMapAlpha,
             MaskMapBlue
         }
-        protected string[] normalPerPixelBlendSourceNames = Enum.GetNames(typeof(NormalPerPixelBlendSource));
+        protected string[] blendSourceNames = Enum.GetNames(typeof(BlendSource));
 
-        enum MaskPerPixelBlendSource
+        enum BlendMode
         {
-            Zero,
-            AlbedoMapAlpha,
-            MaskMapBlue
+            Metal_AO_Smoothness,
+            Metal_Smoothness,
+            Metal,
+            AO,
+            Smoothness
         }
-        protected string[] maskPerPixelBlendSourceNames = Enum.GetNames(typeof(MaskPerPixelBlendSource));
+        protected string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
 
         protected MaterialProperty baseColorMap = new MaterialProperty();
         protected const string kBaseColorMap = "_BaseColorMap";
@@ -53,19 +55,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty albedoMode = new MaterialProperty();
         protected const string kAlbedoMode = "_AlbedoMode";
 
-        protected MaterialProperty normalPerPixelBlend = new MaterialProperty();
-        protected const string kNormalPerPixelBlend = "_NormalPerPixelBlend";
+        protected MaterialProperty normalBlendSrc = new MaterialProperty();
+        protected const string kNormalBlendSrc = "_NormalBlendSrc";
 
-        protected MaterialProperty metalnessPerPixelBlend = new MaterialProperty();
-        protected const string kMetalnessPerPixelBlend = "_MetalnessPerPixelBlend";
+        protected MaterialProperty maskBlendSrc = new MaterialProperty();
+        protected const string kMaskBlendSrc = "_MaskBlendSrc";
 
-        protected MaterialProperty AOPerPixelBlend = new MaterialProperty();
-        protected const string kAOPerPixelBlend = "_AOPerPixelBlend";
-
-        protected MaterialProperty smoothnessPerPixelBlend = new MaterialProperty();
-        protected const string kSmoothnessPerPixelBlend = "_SmoothnessPerPixelBlend";
-
-      
+        protected MaterialProperty maskBlendMode = new MaterialProperty();
+        protected const string kMaskBlendMode = "_MaskBlendMode";
+ 
         protected MaterialEditor m_MaterialEditor;
 
         // This is call by the inspector
@@ -78,10 +76,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             maskMap = FindProperty(kMaskMap, props);
             decalBlend = FindProperty(kDecalBlend, props);
             albedoMode = FindProperty(kAlbedoMode, props);
-            normalPerPixelBlend = FindProperty(kNormalPerPixelBlend, props);
-            metalnessPerPixelBlend = FindProperty(kMetalnessPerPixelBlend, props);
-            AOPerPixelBlend = FindProperty(kAOPerPixelBlend, props);
-            smoothnessPerPixelBlend = FindProperty(kSmoothnessPerPixelBlend, props);
+            normalBlendSrc = FindProperty(kNormalBlendSrc, props);
+            maskBlendSrc = FindProperty(kMaskBlendSrc, props);
+            maskBlendMode = FindProperty(kMaskBlendMode, props);
+            
             // always instanced
             SerializedProperty instancing = m_MaterialEditor.serializedObject.FindProperty("m_EnableInstancingVariants");
             instancing.boolValue = true;
@@ -105,12 +103,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             // Use default labelWidth
             EditorGUIUtility.labelWidth = 0f;
-            float normalPerPixelBlendValue = normalPerPixelBlend.floatValue;
-            float metalnessPerPixelBlendValue =  metalnessPerPixelBlend.floatValue;
-            float AOPerPixelBlendValue = AOPerPixelBlend.floatValue;
-            float smoothnessPerPixelBlendValue = smoothnessPerPixelBlend.floatValue;
+            float normalBlendSrcValue = normalBlendSrc.floatValue;
+            float maskBlendSrcValue =  maskBlendSrc.floatValue;
+            float maskBlendModeValue = maskBlendMode.floatValue;
 
-            EditorGUI.showMixedValue = normalPerPixelBlend.hasMixedValue;
+
             // Detect any changes to the material
             EditorGUI.BeginChangeCheck();
             {
@@ -127,31 +124,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     m_MaterialEditor.TexturePropertySingleLine(Styles.baseColorText2, baseColorMap, baseColor);                    
                 }
                 m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap);                               
-                normalPerPixelBlendValue = EditorGUILayout.Popup( "Normal Per Pixel Blend", (int)normalPerPixelBlendValue, normalPerPixelBlendSourceNames);               
+                normalBlendSrcValue = EditorGUILayout.Popup( "Normal Per Pixel Blend", (int)normalBlendSrcValue, blendSourceNames);               
                 m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapText, maskMap);
-                metalnessPerPixelBlendValue = EditorGUILayout.Popup( "Metalness Per Pixel Blend", (int)metalnessPerPixelBlendValue, maskPerPixelBlendSourceNames);               
-                smoothnessPerPixelBlendValue = EditorGUILayout.Popup( "Smoothness Per Pixel Blend", (int)smoothnessPerPixelBlendValue, maskPerPixelBlendSourceNames);            
-                EditorGUILayout.Space();
-                AOPerPixelBlendValue = EditorGUILayout.Popup( "AO Per Pixel Blend", (int)AOPerPixelBlendValue, maskPerPixelBlendSourceNames);   
-                EditorGUILayout.Space();                               
+                maskBlendSrcValue = EditorGUILayout.Popup( "Mask blend source", (int)maskBlendSrcValue, blendSourceNames);                                    
+                maskBlendModeValue = EditorGUILayout.Popup( "Mask blend mode", (int)maskBlendModeValue, blendModeNames);   
                 m_MaterialEditor.ShaderProperty(decalBlend, Styles.decalBlendText);
                 EditorGUI.indentLevel--;
             }
 
             if (EditorGUI.EndChangeCheck())
             {
-                m_MaterialEditor.RegisterPropertyChangeUndo( "Normal Per Pixel Blend");
-                normalPerPixelBlend.floatValue = normalPerPixelBlendValue;
-                m_MaterialEditor.RegisterPropertyChangeUndo( "Metalness Per Pixel Blend");
-                metalnessPerPixelBlend.floatValue = metalnessPerPixelBlendValue;
-                m_MaterialEditor.RegisterPropertyChangeUndo( "AO Per Pixel Blend");
-                AOPerPixelBlend.floatValue = AOPerPixelBlendValue;
-                m_MaterialEditor.RegisterPropertyChangeUndo( "Smoothness Per Pixel Blend");
-                smoothnessPerPixelBlend.floatValue = smoothnessPerPixelBlendValue;
+                normalBlendSrc.floatValue = normalBlendSrcValue;
+                maskBlendSrc.floatValue = maskBlendSrcValue;
+                maskBlendMode.floatValue = maskBlendModeValue;
+
                 foreach (var obj in m_MaterialEditor.targets)
                     SetupMaterialKeywordsAndPassInternal((Material)obj);
             }
-            EditorGUI.showMixedValue = false;
         }
 
         public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] props)
