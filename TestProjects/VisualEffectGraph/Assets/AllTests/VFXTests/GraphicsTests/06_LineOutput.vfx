@@ -2497,6 +2497,7 @@ MonoBehaviour:
   sortPriority: 0
   sort: 0
   indirectDraw: 0
+  castShadows: 0
   preRefraction: 0
   targetFromAttributes: 1
   useNativeLines: 0

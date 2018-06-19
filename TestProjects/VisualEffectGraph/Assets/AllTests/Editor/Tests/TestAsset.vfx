@@ -629,6 +629,7 @@ MonoBehaviour:
   sortPriority: 0
   sort: 0
   indirectDraw: 0
+  castShadows: 0
   preRefraction: 0
 --- !u!114 &114454257000599510
 MonoBehaviour:
@@ -998,6 +999,7 @@ MonoBehaviour:
   sortPriority: 0
   sort: 0
   indirectDraw: 0
+  castShadows: 0
   preRefraction: 0
 --- !u!2058629511 &8926484042661614527
 VisualEffectResource:

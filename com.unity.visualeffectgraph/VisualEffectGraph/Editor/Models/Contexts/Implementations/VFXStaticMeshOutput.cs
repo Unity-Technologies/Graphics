@@ -7,10 +7,17 @@ using UnityEngine.Experimental.VFX;
 namespace UnityEditor.VFX
 {
     [VFXInfo]
-    class VFXStaticMeshOutput : VFXContext
+    class VFXStaticMeshOutput : VFXContext, IVFXSubRenderer
     {
         [VFXSetting]
         private Shader shader; // not serialized here but in VFXDataMesh
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected bool castShadows = false;
+
+        // IVFXSubRenderer interface
+        // TODO Could we derive this directly by looking at the shader to know if a shadow pass is present?
+        public virtual bool hasShadowCasting { get { return castShadows; } }
 
         protected VFXStaticMeshOutput() : base(VFXContextType.kOutput, VFXDataType.kMesh, VFXDataType.kNone) {}
 

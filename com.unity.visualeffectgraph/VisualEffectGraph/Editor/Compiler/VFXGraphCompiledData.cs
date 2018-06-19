@@ -2,10 +2,13 @@ using System;
 using System.Text;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
+
 using UnityEditor.Experimental.VFX;
+
+using UnityEngine;
 using UnityEngine.Experimental.VFX;
 using UnityEngine.Profiling;
+using UnityEngine.Rendering;
 
 using Object = UnityEngine.Object;
 
@@ -534,6 +537,13 @@ namespace UnityEditor.VFX
             }
         }
 
+        VFXRendererSettings GetRendererSettings(VFXRendererSettings initialSettings, IEnumerable<IVFXSubRenderer> subRenderers)
+        {
+            var settings = initialSettings;
+            settings.shadowCastingMode = subRenderers.Any(r => r.hasShadowCasting) ? ShadowCastingMode.On : ShadowCastingMode.Off;
+            return settings;
+        }
+
         private class VFXImplicitContextOfExposedExpression : VFXContext
         {
             private VFXExpressionMapper mapper;
@@ -693,6 +703,10 @@ namespace UnityEditor.VFX
                         attributeBufferDictionnary,
                         eventGpuBufferDictionnary);
                 }
+
+                // Update renderer settings
+                VFXRendererSettings rendererSettings = GetRendererSettings(m_Graph.visualEffectResource.rendererSettings, compilableContexts.OfType<IVFXSubRenderer>());
+                m_Graph.visualEffectResource.rendererSettings = rendererSettings;
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Setting up systems", 9 / nbSteps);
 

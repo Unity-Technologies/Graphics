@@ -426,6 +426,7 @@ namespace UnityEditor.VFX.UI
             while (current != null)
             {
                 path = current.name + " > " + path;
+                current = current.parent;
             }
 
             if (EditorSceneManager.loadedSceneCount > 1)
