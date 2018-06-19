@@ -157,41 +157,89 @@ namespace UnityEditor.VFX.UI
 
         public static bool inRemoveElement {get; set; }
 
-        public void ElementAddedToGroupNode(GraphElement element)
+
+        public void UpdateControllerFromContent()
         {
-            if (!m_ModificationFromController)
+            bool changed = false;
+            Controller[] content = this.containedElements.Where(t => t is VFXGroupNode || t is VFXNodeUI).Cast<IControlledElement>().Select(t => t.controller).ToArray();
+            Controller[] controllerContent = controller.nodes.ToArray();
+
+
+            var stickyNoteControllers = new List<VFXStickyNoteController>();
+            var nodeControllers = new List<VFXNodeController>();
+
+
+            foreach (var remove in controllerContent.Except(content))
             {
-                ISettableControlledElement<VFXNodeController> node = element as ISettableControlledElement<VFXNodeController>;
-
-                if (node != null)
+                if (remove is VFXStickyNoteController)
                 {
-                    controller.AddNode(node.controller);
-
-                    OnMoved();
+                    stickyNoteControllers.Add(remove as VFXStickyNoteController);
                 }
-                else if (element is VFXStickyNote)
+                else
                 {
-                    controller.AddStickyNote((element as VFXStickyNote).controller);
+                    nodeControllers.Add(remove as VFXNodeController);
                 }
+            }
+
+            if (nodeControllers.Count > 0)
+            {
+                controller.RemoveNodes(nodeControllers);
+                changed = true;
+            }
+            if (stickyNoteControllers.Count > 0)
+            {
+                controller.RemoveStickyNotes(stickyNoteControllers);
+                changed = true;
+            }
+
+            stickyNoteControllers.Clear();
+            nodeControllers.Clear();
+
+            foreach (var add in content.Except(controllerContent))
+            {
+                if (add is VFXStickyNoteController)
+                {
+                    stickyNoteControllers.Add(add as VFXStickyNoteController);
+                }
+                else
+                {
+                    nodeControllers.Add(add as VFXNodeController);
+                }
+            }
+            if (nodeControllers.Count > 0)
+            {
+                controller.AddNodes(nodeControllers);
+                changed = true;
+            }
+
+            if (stickyNoteControllers.Count > 0)
+            {
+                controller.AddStickyNotes(stickyNoteControllers);
+                changed = true;
+            }
+            if (changed)
+            {
+                OnMoved();
             }
         }
 
-        public void ElementRemovedFromGroupNode(GraphElement element)
+        public void ElementsAddedToGroupNode(IEnumerable<GraphElement> elements)
         {
-            if (!m_ModificationFromController && !inRemoveElement)
+            if (!m_ModificationFromController)
             {
-                ISettableControlledElement<VFXNodeController> node = element as ISettableControlledElement<VFXNodeController>;
-                if (node != null)
-                {
-                    controller.RemoveNode(node.controller);
-
-                    OnMoved();
-                }
-                else if (element is VFXStickyNote)
-                {
-                    controller.RemoveStickyNote((element as VFXStickyNote).controller);
-                }
+                controller.AddNodes(elements.OfType<ISettableControlledElement<VFXNodeController>>().Select(t => t.controller));
+                controller.AddStickyNotes(elements.OfType<VFXStickyNote>().Select(t => t.controller));
+                OnMoved();
             }
+        }
+
+        public void ElementsRemovedFromGroupNode(IEnumerable<GraphElement> elements)
+        {
+            /*if (!m_ModificationFromController && !inRemoveElement)
+            {
+                controller.RemoveNodes(elements.OfType<ISettableControlledElement<VFXNodeController>>().Select(t => t.controller));
+                controller.RemoveStickyNotes(elements.OfType<VFXStickyNote>().Select(t => t.controller));
+            }*/
         }
 
         public void GroupNodeTitleChanged(string title)

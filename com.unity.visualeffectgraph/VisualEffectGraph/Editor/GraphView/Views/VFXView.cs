@@ -193,8 +193,8 @@ namespace UnityEditor.VFX.UI
             deleteSelection = null;
             nodeCreationRequest = null;
 
-            elementAddedToGroup = null;
-            elementRemovedFromGroup = null;
+            elementsAddedToGroup = null;
+            elementsRemovedFromGroup = null;
             groupTitleChanged = null;
 
             m_GeometrySet = false;
@@ -233,8 +233,8 @@ namespace UnityEditor.VFX.UI
             deleteSelection = Delete;
             nodeCreationRequest = OnCreateNode;
 
-            elementAddedToGroup = ElementAddedToGroupNode;
-            elementRemovedFromGroup = ElementRemovedFromGroupNode;
+            elementsAddedToGroup = ElementAddedToGroupNode;
+            elementsRemovedFromGroup = ElementRemovedFromGroupNode;
             groupTitleChanged = GroupNodeTitleChanged;
         }
 
@@ -698,8 +698,8 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                elementAddedToGroup = null;
-                elementRemovedFromGroup = null;
+                elementsAddedToGroup = null;
+                elementsRemovedFromGroup = null;
 
                 var deletedControllers = rootNodes.Keys.Except(controller.nodes).ToArray();
 
@@ -743,8 +743,8 @@ namespace UnityEditor.VFX.UI
                 }
 
 
-                elementAddedToGroup = ElementAddedToGroupNode;
-                elementRemovedFromGroup = ElementRemovedFromGroupNode;
+                elementsAddedToGroup = ElementAddedToGroupNode;
+                elementsRemovedFromGroup = ElementRemovedFromGroupNode;
             }
 
             Profiler.EndSample();
@@ -1185,6 +1185,12 @@ namespace UnityEditor.VFX.UI
             {
                 controller.Remove(change.elementsToRemove.OfType<IControlledElement>().Where(t => t.controller != null).Select(t => t.controller));
             }
+
+            foreach (var groupNode in groupNodes.Values)
+            {
+                groupNode.UpdateControllerFromContent();
+            }
+
             return change;
         }
 
@@ -1324,14 +1330,14 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void ElementAddedToGroupNode(Group groupNode, GraphElement element)
+        void ElementAddedToGroupNode(Group groupNode, IEnumerable<GraphElement> elements)
         {
-            (groupNode as VFXGroupNode).ElementAddedToGroupNode(element);
+            (groupNode as VFXGroupNode).ElementsAddedToGroupNode(elements);
         }
 
-        void ElementRemovedFromGroupNode(Group groupNode, GraphElement element)
+        void ElementRemovedFromGroupNode(Group groupNode, IEnumerable<GraphElement> elements)
         {
-            (groupNode as VFXGroupNode).ElementRemovedFromGroupNode(element);
+            //(groupNode as VFXGroupNode).ElementsRemovedFromGroupNode(elements);
         }
 
         void GroupNodeTitleChanged(Group groupNode, string title)
