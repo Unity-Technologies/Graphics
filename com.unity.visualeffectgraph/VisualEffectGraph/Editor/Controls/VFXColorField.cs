@@ -134,11 +134,11 @@ namespace UnityEditor.VFX.UIElements
             return eyeDropper;
         }
 
-        IScheduledItem m_EyeDroppperScheduler;
+        IVisualElementScheduledItem m_EyeDropperScheduler;
         void OnEyeDropperStart(MouseDownEvent e)
         {
             EyeDropper.Start(OnGammaColorChanged);
-            m_EyeDroppperScheduler = (panel as BaseVisualElementPanel).scheduler.ScheduleUntil(OnEyeDropperMove, 10, 10, () => false);
+            m_EyeDropperScheduler = this.schedule.Execute(OnEyeDropperMove).Every(10).StartingIn(10);
             m_EyeDropper.UnregisterCallback<MouseDownEvent>(OnEyeDropperStart);
         }
 
@@ -180,10 +180,10 @@ namespace UnityEditor.VFX.UIElements
         {
             SetValue(color);
 
-            if (m_EyeDroppperScheduler != null)
+            if (m_EyeDropperScheduler != null)
             {
-                (panel as BaseVisualElementPanel).scheduler.Unschedule(m_EyeDroppperScheduler);
-                m_EyeDroppperScheduler = null;
+                m_EyeDropperScheduler.Pause();
+                m_EyeDropperScheduler = null;
                 m_EyeDropper.RegisterCallback<MouseDownEvent>(OnEyeDropperStart);
             }
 
