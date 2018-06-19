@@ -15,6 +15,7 @@ void GetSurfaceData(FragInputs input, out DecalSurfaceData surfaceData)
     surfaceData.baseColor = _BaseColor;
     surfaceData.normalWS = float4(0,0,0,0);
     surfaceData.mask = float4(0,0,0,0);
+	surfaceData.AOSBlend = float2(0, 0);
     surfaceData.HTileMask = 0;
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
     float totalBlend = clamp(normalToWorld[0][3], 0.0f, 1.0f);
