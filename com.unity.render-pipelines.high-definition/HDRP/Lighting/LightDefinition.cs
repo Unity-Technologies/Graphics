@@ -36,57 +36,57 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [GenerateHLSL]
     public struct DirectionalLightData
     {
+        // Packing order depends on chronological access to avoid cache misses
+
         public Vector3 positionWS;
-        public int tileCookie; // TODO: make it a bool
-
         public Vector3 color;
-        public int shadowIndex; // -1 if unused
-
-        public Vector3 forward;
         public int cookieIndex; // -1 if unused
+        public float volumetricDimmer;
 
         public Vector3 right;   // Rescaled by (2 / shapeWidth)
-        public float specularScale;
-
         public Vector3 up;      // Rescaled by (2 / shapeHeight)
-        public float diffuseScale;
-
-        public float volumetricDimmer;
-        public int nonLightmappedOnly; // Use with ShadowMask feature // TODO: make it a bool
+        public Vector3 forward;
+        public int tileCookie; // TODO: make it a bool
+        public int shadowIndex; // -1 if unused
+        public int contactShadowIndex; // -1 if unused
 
         public Vector4 shadowMaskSelector; // Use with ShadowMask feature
+
+        public int nonLightmappedOnly; // Use with ShadowMask feature // TODO: make it a bool
+        public float diffuseScale;
+        public float specularScale;
     };
 
     [GenerateHLSL]
     public struct LightData
     {
+        // Packing order depends on chronological access to avoid cache misses
+
         public Vector3 positionWS;
-        public float invSqrAttenuationRadius;
-
         public Vector3 color;
-        public int shadowIndex; // -1 if unused
-
-        public Vector3 forward;
-        public int cookieIndex; // -1 if unused
-
-        public Vector3 right;   // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeWidth)
-        public float specularScale;
-
-        public Vector3 up;      // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeHeight)
-        public float diffuseScale;
+        public float rangeAttenuationScale;
+        public float rangeAttenuationBias;
 
         public float angleScale;  // Spot light
         public float angleOffset; // Spot light
+        public int cookieIndex; // -1 if unused
+        public GPULightType lightType;
+
+        public Vector3 right;   // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeWidth)
+        public Vector3 up;      // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeHeight)
+        public Vector3 forward;
+        public int shadowIndex; // -1 if unused
+        public int contactShadowIndex; // -1 if unused
         public float shadowDimmer;
-        public int nonLightmappedOnly; // Use with ShadowMask feature // TODO: make it a bool
 
         public Vector4 shadowMaskSelector; // Use with ShadowMask feature
+        public int nonLightmappedOnly; // Use with ShadowMask feature // TODO: make it a bool      
+        public float minRoughness;  // This is use to give a small "area" to punctual light, as if we have a light with a radius.
+        public float diffuseScale;
+        public float specularScale;
 
         public Vector2 size;        // Used by area (X = length or width, Y = height) and box projector lights (X = range (depth))
-        public GPULightType lightType;
-        public float minRoughness;  // This is use to give a small "area" to punctual light, as if we have a light with a radius.
-
-        public float volumetricDimmer; // TODO: improve the cache locality
+        public float volumetricDimmer;
     };
 
 
@@ -115,7 +115,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public struct EnvLightData
     {
         // Packing order depends on chronological access to avoid cache misses
-        // Caution: The struct need to be align on byte16 (not strictly needed for structured buffer but if we do array later better).
 
         // Proxy properties
         public Vector3 capturePositionWS;

@@ -82,7 +82,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] bool m_LocalShadowsSupported = true;
         [SerializeField] ShadowResolution m_LocalShadowsAtlasResolution = ShadowResolution._512;
         [SerializeField] bool m_SoftShadowsSupported = false;
-        [SerializeField] bool m_CustomShaderVariantStrippingSettings = false;
         [SerializeField] bool m_KeepAdditionalLightVariants = true;
         [SerializeField] bool m_KeepVertexLightVariants = true;
         [SerializeField] bool m_KeepDirectionalShadowVariants = true;
@@ -254,6 +253,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public float renderScale
         {
             get { return m_RenderScale; }
+            set { m_RenderScale = value; }
         }
 
         public bool supportsDynamicBatching
@@ -274,6 +274,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public float shadowDistance
         {
             get { return m_ShadowDistance; }
+            set { m_ShadowDistance = value; }
         }
 
         public int cascadeCount
@@ -318,7 +319,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public bool customShaderVariantStripping
         {
-            get { return m_CustomShaderVariantStrippingSettings; }
+            get { return false; }
         }
 
         public bool keepAdditionalLightVariants

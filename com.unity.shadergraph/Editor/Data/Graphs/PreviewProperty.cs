@@ -15,16 +15,22 @@ namespace UnityEditor.ShaderGraph
         }
 
         [StructLayout(LayoutKind.Explicit)]
-        struct Data
+        struct ClassData
         {
-            [FieldOffset(0)]
-            public Color colorValue;
             [FieldOffset(0)]
             public Texture textureValue;
             [FieldOffset(0)]
             public Cubemap cubemapValue;
             [FieldOffset(0)]
             public Gradient gradientValue;
+        }
+
+        [StructLayout(LayoutKind.Explicit)]
+        struct StructData
+        {
+
+            [FieldOffset(0)]
+            public Color colorValue;
             [FieldOffset(0)]
             public Vector4 vector4Value;
             [FieldOffset(0)]
@@ -33,7 +39,8 @@ namespace UnityEditor.ShaderGraph
             public bool booleanValue;
         }
 
-        Data m_Data;
+        ClassData m_ClassData;
+        StructData m_StructData;
 
         public Color colorValue
         {
@@ -41,13 +48,13 @@ namespace UnityEditor.ShaderGraph
             {
                 if (propType != PropertyType.Color)
                     throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Color, propType));
-                return m_Data.colorValue;
+                return m_StructData.colorValue;
             }
             set
             {
                 if (propType != PropertyType.Color)
                     throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Color, propType));
-                m_Data.colorValue = value;
+                m_StructData.colorValue = value;
             }
         }
 
@@ -57,13 +64,13 @@ namespace UnityEditor.ShaderGraph
             {
                 if (propType != PropertyType.Texture2D && propType != PropertyType.Texture2DArray && propType != PropertyType.Texture3D)
                     throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Texture2D, propType));
-                return m_Data.textureValue;
+                return m_ClassData.textureValue;
             }
             set
             {
                 if (propType != PropertyType.Texture2D && propType != PropertyType.Texture2DArray && propType != PropertyType.Texture3D)
                     throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Texture2D, propType));
-                m_Data.textureValue = value;
+                m_ClassData.textureValue = value;
             }
         }
 
@@ -73,13 +80,13 @@ namespace UnityEditor.ShaderGraph
             {
                 if (propType != PropertyType.Cubemap)
                     throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Cubemap, propType));
-                return m_Data.cubemapValue;
+                return m_ClassData.cubemapValue;
             }
             set
             {
                 if (propType != PropertyType.Cubemap)
                     throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Cubemap, propType));
-                m_Data.cubemapValue = value;
+                m_ClassData.cubemapValue = value;
             }
         }
 
@@ -89,13 +96,13 @@ namespace UnityEditor.ShaderGraph
             {
                 if (propType != PropertyType.Gradient)
                     throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Gradient, propType));
-                return m_Data.gradientValue;
+                return m_ClassData.gradientValue;
             }
             set
             {
                 if (propType != PropertyType.Gradient)
                     throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Gradient, propType));
-                m_Data.gradientValue = value;
+                m_ClassData.gradientValue = value;
             }
         }
 
@@ -105,14 +112,14 @@ namespace UnityEditor.ShaderGraph
             {
                 if (propType != PropertyType.Vector2 && propType != PropertyType.Vector3 && propType != PropertyType.Vector4)
                     throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Vector4, propType));
-                return m_Data.vector4Value;
+                return m_StructData.vector4Value;
             }
             set
             {
                 if (propType != PropertyType.Vector2 && propType != PropertyType.Vector3 && propType != PropertyType.Vector4
                     && propType != PropertyType.Matrix2 && propType != PropertyType.Matrix3 && propType != PropertyType.Matrix4)
                     throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Vector4, propType));
-                m_Data.vector4Value = value;
+                m_StructData.vector4Value = value;
             }
         }
 
@@ -122,13 +129,13 @@ namespace UnityEditor.ShaderGraph
             {
                 if (propType != PropertyType.Vector1)
                     throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Vector1, propType));
-                return m_Data.floatValue;
+                return m_StructData.floatValue;
             }
             set
             {
                 if (propType != PropertyType.Vector1)
                     throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Vector1, propType));
-                m_Data.floatValue = value;
+                m_StructData.floatValue = value;
             }
         }
 
@@ -138,13 +145,13 @@ namespace UnityEditor.ShaderGraph
             {
                 if (propType != PropertyType.Boolean)
                     throw new ArgumentException(string.Format(k_GetErrorMessage, PropertyType.Boolean, propType));
-                return m_Data.booleanValue;
+                return m_StructData.booleanValue;
             }
             set
             {
                 if (propType != PropertyType.Boolean)
                     throw new ArgumentException(string.Format(k_SetErrorMessage, PropertyType.Boolean, propType));
-                m_Data.booleanValue = value;
+                m_StructData.booleanValue = value;
             }
         }
 
@@ -154,17 +161,17 @@ namespace UnityEditor.ShaderGraph
         public void SetMaterialPropertyBlockValue(MaterialPropertyBlock block)
         {
             if ((propType == PropertyType.Texture2D || propType == PropertyType.Texture2DArray || propType == PropertyType.Texture3D) && textureValue != null)
-                block.SetTexture(name, m_Data.textureValue);
+                block.SetTexture(name, m_ClassData.textureValue);
             else if (propType == PropertyType.Cubemap && cubemapValue != null)
-                block.SetTexture(name, m_Data.cubemapValue);
+                block.SetTexture(name, m_ClassData.cubemapValue);
             else if (propType == PropertyType.Color)
-                block.SetColor(name, m_Data.colorValue);
+                block.SetColor(name, m_StructData.colorValue);
             else if (propType == PropertyType.Vector2 || propType == PropertyType.Vector3 || propType == PropertyType.Vector4)
-                block.SetVector(name, m_Data.vector4Value);
+                block.SetVector(name, m_StructData.vector4Value);
             else if (propType == PropertyType.Vector1)
-                block.SetFloat(name, m_Data.floatValue);
+                block.SetFloat(name, m_StructData.floatValue);
             else if (propType == PropertyType.Boolean)
-                block.SetFloat(name, m_Data.booleanValue ? 1 : 0);
+                block.SetFloat(name, m_StructData.booleanValue ? 1 : 0);
         }
     }
 

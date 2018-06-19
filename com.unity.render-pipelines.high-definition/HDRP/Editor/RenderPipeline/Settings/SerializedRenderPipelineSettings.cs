@@ -18,6 +18,8 @@ namespace UnityEditor.Experimental.Rendering
         public SerializedProperty supportStereo;
         public SerializedProperty enableUltraQualitySSS;
         public SerializedProperty supportVolumetric;
+        public SerializedProperty supportRuntimeDebugDisplay;
+        public SerializedProperty supportDitheringCrossFade;
 
         public SerializedGlobalLightLoopSettings lightLoopSettings;
         public SerializedShadowInitParameters shadowInitParams;
@@ -39,6 +41,8 @@ namespace UnityEditor.Experimental.Rendering
             supportStereo = root.Find((RenderPipelineSettings s) => s.supportStereo);
             enableUltraQualitySSS = root.Find((RenderPipelineSettings s) => s.enableUltraQualitySSS);
             supportVolumetric = root.Find((RenderPipelineSettings s) => s.supportVolumetric);
+            supportRuntimeDebugDisplay = root.Find((RenderPipelineSettings s) => s.supportRuntimeDebugDisplay);
+            supportDitheringCrossFade = root.Find((RenderPipelineSettings s) => s.supportDitheringCrossFade);
 
             lightLoopSettings = new SerializedGlobalLightLoopSettings(root.Find((RenderPipelineSettings s) => s.lightLoopSettings));
             shadowInitParams = new SerializedShadowInitParameters(root.Find((RenderPipelineSettings s) => s.shadowInitParams));

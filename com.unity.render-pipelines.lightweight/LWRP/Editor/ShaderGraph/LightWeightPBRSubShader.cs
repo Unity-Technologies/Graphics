@@ -160,7 +160,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             // Get Slot and Node lists per stage
 
             var vertexSlots = pass.VertexShaderSlots.Select(masterNode.FindSlot<MaterialSlot>).ToList();
-            var vertexNodes = ListPool<AbstractMaterialNode>.Get();
+            var vertexNodes = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.VertexShaderSlots);
 
             var pixelSlots = pass.PixelShaderSlots.Select(masterNode.FindSlot<MaterialSlot>).ToList();
@@ -281,6 +281,9 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
                 if (surfaceRequirements.requiresScreenPosition)
                     surfaceDescriptionInputStruct.AppendLine("float4 {0};", ShaderGeneratorNames.ScreenPosition);
 
+                if (surfaceRequirements.requiresFaceSign)
+                    surfaceDescriptionInputStruct.AppendLine("float {0};", ShaderGeneratorNames.FaceSign);
+
                 foreach (var channel in surfaceRequirements.requiresMeshUVs.Distinct())
                     surfaceDescriptionInputStruct.AppendLine("half4 {0};", channel.GetUVName());
             }
@@ -343,6 +346,14 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
                 pixelShaderSurfaceRemap.AppendLine("{0} = surf.{0};", slot.shaderOutputName);
             }
 
+            // -------------------------------------
+            // Extra pixel shader work
+
+            var faceSign = new ShaderStringBuilder();
+
+            if (pixelRequirements.requiresFaceSign)
+                faceSign.AppendLine(", half FaceSign : VFACE");
+
             // ----------------------------------------------------- //
             //                      FINALIZE                         //
             // ----------------------------------------------------- //
@@ -382,6 +393,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             resultPass = resultPass.Replace("${VertexShaderDescriptionInputs}", vertexShaderDescriptionInputs.ToString());
             resultPass = resultPass.Replace("${VertexShaderOutputs}", vertexShaderOutputs.ToString());
 
+            resultPass = resultPass.Replace("${FaceSign}", faceSign.ToString());
             resultPass = resultPass.Replace("${PixelShader}", pixelShader.ToString());
             resultPass = resultPass.Replace("${PixelShaderSurfaceInputs}", pixelShaderSurfaceInputs.ToString());
             resultPass = resultPass.Replace("${PixelShaderSurfaceRemap}", pixelShaderSurfaceRemap.ToString());
@@ -419,7 +431,7 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             // Get Slot and Node lists per stage
 
             var vertexSlots = pass.VertexShaderSlots.Select(masterNode.FindSlot<MaterialSlot>).ToList();
-            var vertexNodes = ListPool<AbstractMaterialNode>.Get();
+            var vertexNodes = ListPool<INode>.Get();
             NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.VertexShaderSlots);
 
             // -------------------------------------

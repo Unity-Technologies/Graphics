@@ -63,7 +63,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             get
             {
                 return SystemInfo.supportsComputeShaders &&
-                    !Application.isMobilePlatform && Application.platform != RuntimePlatform.WebGLPlayer;
+                       SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore &&
+                       !Application.isMobilePlatform &&
+                       Application.platform != RuntimePlatform.WebGLPlayer;
             }
         }
 
@@ -146,12 +148,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             RenderTextureDescriptor desc;
             float renderScale = cameraData.renderScale;
 
+#if !UNITY_SWITCH
             if (cameraData.isStereoEnabled)
             {
                 XRSettings.eyeTextureResolutionScale = renderScale;
                 return XRSettings.eyeTextureDesc; // FIXME Any adjustments needed before using eyeTextureDesc?
             }
             else
+#endif
             {
                 desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
             }
@@ -169,6 +173,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             SetupPerObjectLightIndices(ref cullResults, ref renderingData.lightData);
             RenderTextureDescriptor baseDescriptor = CreateRTDesc(ref renderingData.cameraData);
+            RenderTextureDescriptor shadowDescriptor = baseDescriptor;
+            shadowDescriptor.dimension = TextureDimension.Tex2D;
 
             bool requiresCameraDepth = renderingData.cameraData.requiresDepthTexture;
             bool requiresDepthPrepass = renderingData.shadowData.requiresScreenSpaceShadowResolve ||
@@ -183,18 +189,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             if (renderingData.shadowData.renderDirectionalShadows)
             {
-                EnqueuePass(cmd, RenderPassHandles.DirectionalShadows, baseDescriptor);
+                EnqueuePass(cmd, RenderPassHandles.DirectionalShadows, shadowDescriptor);
                 if (renderingData.shadowData.requiresScreenSpaceShadowResolve)
                     EnqueuePass(cmd, RenderPassHandles.ScreenSpaceShadowResolve, baseDescriptor, new[] {RenderTargetHandles.ScreenSpaceShadowmap});
             }
 
             if (renderingData.shadowData.renderLocalShadows)
-                EnqueuePass(cmd, RenderPassHandles.LocalShadows, baseDescriptor);
+                EnqueuePass(cmd, RenderPassHandles.LocalShadows, shadowDescriptor);
 
             bool requiresDepthAttachment = requiresCameraDepth && !requiresDepthPrepass;
-            bool requiresColorAttachment = RequiresColorAttachment(ref renderingData.cameraData, baseDescriptor) || requiresDepthAttachment;
+            bool requiresColorAttachment = RequiresIntermediateColorTexture(ref renderingData.cameraData, baseDescriptor, requiresDepthAttachment);
             int[] colorHandles = (requiresColorAttachment) ? new[] {RenderTargetHandles.Color} : null;
-            int depthHandle = (requiresColorAttachment) ? RenderTargetHandles.DepthAttachment : -1;
+            int depthHandle = (requiresDepthAttachment) ? RenderTargetHandles.DepthAttachment : -1;
             EnqueuePass(cmd, RenderPassHandles.ForwardLit, baseDescriptor, colorHandles, depthHandle, renderingData.cameraData.msaaSamples);
 
             context.ExecuteCommandBuffer(cmd);
@@ -229,9 +235,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 // Note: Scene view camera always perform depth prepass
                 CommandBuffer cmd = CommandBufferPool.Get("Copy Depth to Camera");
                 CoreUtils.SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget);
-                cmd.EnableShaderKeyword(LightweightKeywords.DepthNoMsaa);
-                cmd.DisableShaderKeyword(LightweightKeywords.DepthMsaa2);
-                cmd.DisableShaderKeyword(LightweightKeywords.DepthMsaa4);
+                cmd.EnableShaderKeyword(LightweightKeywordStrings.DepthNoMsaa);
+                cmd.DisableShaderKeyword(LightweightKeywordStrings.DepthMsaa2);
+                cmd.DisableShaderKeyword(LightweightKeywordStrings.DepthMsaa4);
                 cmd.Blit(GetSurface(RenderTargetHandles.DepthTexture), BuiltinRenderTextureType.CameraTarget, GetMaterial(MaterialHandles.DepthCopy));
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
@@ -243,8 +249,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public RenderTargetIdentifier GetSurface(int handle)
         {
+            if (handle == -1)
+                return BuiltinRenderTextureType.CameraTarget;
+
             RenderTargetIdentifier renderTargetID;
-            if (handle < 0 || !m_ResourceMap.TryGetValue(handle, out renderTargetID))
+            if (!m_ResourceMap.TryGetValue(handle, out renderTargetID))
             {
                 Debug.LogError(string.Format("Handle {0} has not any surface registered to it.", handle));
                 return new RenderTargetIdentifier();
@@ -303,12 +312,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_ActiveRenderPassQueue.Add(pass);
         }
 
-        bool RequiresColorAttachment(ref CameraData cameraData, RenderTextureDescriptor baseDescriptor)
+        bool RequiresIntermediateColorTexture(ref CameraData cameraData, RenderTextureDescriptor baseDescriptor, bool requiresCameraDepth)
         {
+            if (cameraData.isOffscreenRender)
+                return false;
+
             bool isScaledRender = !Mathf.Approximately(cameraData.renderScale, 1.0f);
             bool isTargetTexture2DArray = baseDescriptor.dimension == TextureDimension.Tex2DArray;
-            return cameraData.isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
-                cameraData.postProcessEnabled || cameraData.requiresOpaqueTexture || isTargetTexture2DArray;
+            return requiresCameraDepth || cameraData.isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
+                cameraData.postProcessEnabled || cameraData.requiresOpaqueTexture || isTargetTexture2DArray || !cameraData.isDefaultViewport;
         }
 
         bool CanCopyDepth(ref CameraData cameraData)

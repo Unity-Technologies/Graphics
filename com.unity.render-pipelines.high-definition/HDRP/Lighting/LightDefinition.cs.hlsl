@@ -52,18 +52,19 @@
 struct DirectionalLightData
 {
     float3 positionWS;
-    int tileCookie;
     float3 color;
-    int shadowIndex;
-    float3 forward;
     int cookieIndex;
-    float3 right;
-    float specularScale;
-    float3 up;
-    float diffuseScale;
     float volumetricDimmer;
-    int nonLightmappedOnly;
+    float3 right;
+    float3 up;
+    float3 forward;
+    int tileCookie;
+    int shadowIndex;
+    int contactShadowIndex;
     float4 shadowMaskSelector;
+    int nonLightmappedOnly;
+    float diffuseScale;
+    float specularScale;
 };
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.LightData
@@ -71,23 +72,25 @@ struct DirectionalLightData
 struct LightData
 {
     float3 positionWS;
-    float invSqrAttenuationRadius;
     float3 color;
-    int shadowIndex;
-    float3 forward;
-    int cookieIndex;
-    float3 right;
-    float specularScale;
-    float3 up;
-    float diffuseScale;
+    float rangeAttenuationScale;
+    float rangeAttenuationBias;
     float angleScale;
     float angleOffset;
-    float shadowDimmer;
-    int nonLightmappedOnly;
-    float4 shadowMaskSelector;
-    float2 size;
+    int cookieIndex;
     int lightType;
+    float3 right;
+    float3 up;
+    float3 forward;
+    int shadowIndex;
+    int contactShadowIndex;
+    float shadowDimmer;
+    float4 shadowMaskSelector;
+    int nonLightmappedOnly;
     float minRoughness;
+    float diffuseScale;
+    float specularScale;
+    float2 size;
     float volumetricDimmer;
 };
 
@@ -127,53 +130,57 @@ float3 GetPositionWS(DirectionalLightData value)
 {
     return value.positionWS;
 }
-int GetTileCookie(DirectionalLightData value)
-{
-    return value.tileCookie;
-}
 float3 GetColor(DirectionalLightData value)
 {
     return value.color;
-}
-int GetShadowIndex(DirectionalLightData value)
-{
-    return value.shadowIndex;
-}
-float3 GetForward(DirectionalLightData value)
-{
-    return value.forward;
 }
 int GetCookieIndex(DirectionalLightData value)
 {
     return value.cookieIndex;
 }
+float GetVolumetricDimmer(DirectionalLightData value)
+{
+    return value.volumetricDimmer;
+}
 float3 GetRight(DirectionalLightData value)
 {
     return value.right;
-}
-float GetSpecularScale(DirectionalLightData value)
-{
-    return value.specularScale;
 }
 float3 GetUp(DirectionalLightData value)
 {
     return value.up;
 }
-float GetDiffuseScale(DirectionalLightData value)
+float3 GetForward(DirectionalLightData value)
 {
-    return value.diffuseScale;
+    return value.forward;
 }
-float GetVolumetricDimmer(DirectionalLightData value)
+int GetTileCookie(DirectionalLightData value)
 {
-    return value.volumetricDimmer;
+    return value.tileCookie;
+}
+int GetShadowIndex(DirectionalLightData value)
+{
+    return value.shadowIndex;
+}
+int GetContactShadowIndex(DirectionalLightData value)
+{
+    return value.contactShadowIndex;
+}
+float4 GetShadowMaskSelector(DirectionalLightData value)
+{
+    return value.shadowMaskSelector;
 }
 int GetNonLightmappedOnly(DirectionalLightData value)
 {
     return value.nonLightmappedOnly;
 }
-float4 GetShadowMaskSelector(DirectionalLightData value)
+float GetDiffuseScale(DirectionalLightData value)
 {
-    return value.shadowMaskSelector;
+    return value.diffuseScale;
+}
+float GetSpecularScale(DirectionalLightData value)
+{
+    return value.specularScale;
 }
 
 //
@@ -183,41 +190,17 @@ float3 GetPositionWS(LightData value)
 {
     return value.positionWS;
 }
-float GetInvSqrAttenuationRadius(LightData value)
-{
-    return value.invSqrAttenuationRadius;
-}
 float3 GetColor(LightData value)
 {
     return value.color;
 }
-int GetShadowIndex(LightData value)
+float GetRangeAttenuationScale(LightData value)
 {
-    return value.shadowIndex;
+    return value.rangeAttenuationScale;
 }
-float3 GetForward(LightData value)
+float GetRangeAttenuationBias(LightData value)
 {
-    return value.forward;
-}
-int GetCookieIndex(LightData value)
-{
-    return value.cookieIndex;
-}
-float3 GetRight(LightData value)
-{
-    return value.right;
-}
-float GetSpecularScale(LightData value)
-{
-    return value.specularScale;
-}
-float3 GetUp(LightData value)
-{
-    return value.up;
-}
-float GetDiffuseScale(LightData value)
-{
-    return value.diffuseScale;
+    return value.rangeAttenuationBias;
 }
 float GetAngleScale(LightData value)
 {
@@ -227,29 +210,61 @@ float GetAngleOffset(LightData value)
 {
     return value.angleOffset;
 }
-float GetShadowDimmer(LightData value)
+int GetCookieIndex(LightData value)
 {
-    return value.shadowDimmer;
-}
-int GetNonLightmappedOnly(LightData value)
-{
-    return value.nonLightmappedOnly;
-}
-float4 GetShadowMaskSelector(LightData value)
-{
-    return value.shadowMaskSelector;
-}
-float2 GetSize(LightData value)
-{
-    return value.size;
+    return value.cookieIndex;
 }
 int GetLightType(LightData value)
 {
     return value.lightType;
 }
+float3 GetRight(LightData value)
+{
+    return value.right;
+}
+float3 GetUp(LightData value)
+{
+    return value.up;
+}
+float3 GetForward(LightData value)
+{
+    return value.forward;
+}
+int GetShadowIndex(LightData value)
+{
+    return value.shadowIndex;
+}
+int GetContactShadowIndex(LightData value)
+{
+    return value.contactShadowIndex;
+}
+float GetShadowDimmer(LightData value)
+{
+    return value.shadowDimmer;
+}
+float4 GetShadowMaskSelector(LightData value)
+{
+    return value.shadowMaskSelector;
+}
+int GetNonLightmappedOnly(LightData value)
+{
+    return value.nonLightmappedOnly;
+}
 float GetMinRoughness(LightData value)
 {
     return value.minRoughness;
+}
+float GetDiffuseScale(LightData value)
+{
+    return value.diffuseScale;
+}
+float GetSpecularScale(LightData value)
+{
+    return value.specularScale;
+}
+float2 GetSize(LightData value)
+{
+    return value.size;
 }
 float GetVolumetricDimmer(LightData value)
 {
