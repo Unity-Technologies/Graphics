@@ -8,12 +8,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     [InitializeOnLoad]
     public class HDRPVersion
     {
-        static public float hdrpVersion = 1.0f;
+        static public int hdrpVersion = 1;
 
-        static public float GetCurrentHDRPProjectVersion()
+        static public int GetCurrentHDRPProjectVersion()
         {
             string[] version = new string[1];
-            version[0] = "0.9"; // Note: When we don't know what a project is, assume worst case
 
             try
             {
@@ -21,10 +20,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             catch
             {
-                Debug.LogWarning("Unable to read from ProjectSettings/HDRPProjectVersion.txt - Assign default version value");
+                // Don't display warning
+                //Debug.LogWarning("Unable to read from ProjectSettings/HDRPProjectVersion.txt - Assign default version value");
+
+                // When we don't find HDRPProjectVersion file we return the current value. Because this happen when you create new project.
+                return hdrpVersion;
             }
 
-            return float.Parse(version[0]);
+            return int.Parse(version[0]);
         }
 
         static public void WriteCurrentHDRPProjectVersion()

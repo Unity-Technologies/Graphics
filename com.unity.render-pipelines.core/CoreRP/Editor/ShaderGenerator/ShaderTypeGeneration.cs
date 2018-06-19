@@ -419,7 +419,10 @@ namespace UnityEditor.Experimental.Rendering
                     }
                 }
 
-                shaderText += "\treturn value." + acc.name + swizzle + ";\n";
+                shaderText +=
+                            //"\t"
+                            "    " // unity convention use space instead of tab...
+                            + "return value." + acc.name + swizzle + ";\n";
                 shaderText += "}\n";
             }
 

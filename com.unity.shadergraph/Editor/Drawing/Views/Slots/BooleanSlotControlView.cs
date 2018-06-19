@@ -13,16 +13,16 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
         {
             AddStyleSheetPath("Styles/Controls/BooleanSlotControlView");
             m_Slot = slot;
-            Action changedToggle = () => { OnChangeToggle(); };
-            var toggleField = new UnityEngine.Experimental.UIElements.Toggle(changedToggle);
+            var toggleField = new Toggle();
+            toggleField.OnToggleChanged(OnChangeToggle);
             Add(toggleField);
         }
 
-        void OnChangeToggle()
+        void OnChangeToggle(ChangeEvent<bool> evt)
         {
             m_Slot.owner.owner.owner.RegisterCompleteObjectUndo("Toggle Change");
             var value = m_Slot.value;
-            value = !value;
+            value = evt.newValue;
             m_Slot.value = value;
             m_Slot.owner.Dirty(ModificationScope.Node);
         }

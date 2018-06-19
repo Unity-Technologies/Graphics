@@ -22,8 +22,8 @@
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Builtin+LightTransportData:  static fields
 //
-#define DEBUGVIEW_BUILTIN_LIGHTTRANSPORTDATA_DIFFUSE_COLOR (120)
-#define DEBUGVIEW_BUILTIN_LIGHTTRANSPORTDATA_EMISSIVE_COLOR (121)
+#define DEBUGVIEW_BUILTIN_LIGHTTRANSPORTDATA_DIFFUSE_COLOR (150)
+#define DEBUGVIEW_BUILTIN_LIGHTTRANSPORTDATA_EMISSIVE_COLOR (151)
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.Builtin+BuiltinData
 // PackingRules = Exact

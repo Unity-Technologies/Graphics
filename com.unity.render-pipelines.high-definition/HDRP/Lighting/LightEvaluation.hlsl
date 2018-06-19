@@ -26,6 +26,7 @@ float3 EvaluateCookie_Directional(LightLoopContext lightLoopContext, Directional
 }
 
 // None of the outputs are premultiplied.
+// Note: When doing transmission we always have only one shadow sample to do: Either front or back. We use NdotL to know on which side we are
 void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs posInput,
                                DirectionalLightData lightData, BakeLightingData bakeLightingData,
                                float3 N, float3 L,
@@ -52,7 +53,8 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
     shadow = shadowMask = (lightData.shadowMaskSelector.x >= 0.0) ? dot(bakeLightingData.bakeShadowMask, lightData.shadowMaskSelector) : 1.0;
 #endif
 
-    UNITY_BRANCH if (lightData.shadowIndex >= 0)
+    // We test NdotL >= 0.0 to not sample the shadow map if it is not required.
+    UNITY_BRANCH if (lightData.shadowIndex >= 0 && (dot(N, L) >= 0.0))
     {
 #ifdef USE_DEFERRED_DIRECTIONAL_SHADOWS
         shadow = LOAD_TEXTURE2D(_DeferredShadowTexture, posInput.positionSS).x;
@@ -82,6 +84,11 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
         shadow = lightData.nonLightmappedOnly ? min(shadowMask, shadow) : shadow;
 
         // Note: There is no shadowDimmer when there is no shadow mask
+#endif
+
+        // Transparent have no contact shadow information
+#ifndef _SURFACE_TYPE_TRANSPARENT
+        shadow = min(shadow, GetContactShadow(lightLoopContext, lightData.contactShadowIndex));
 #endif
     }
 
@@ -129,17 +136,18 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
 
 // None of the outputs are premultiplied.
 // distances = {d, d^2, 1/d, d_proj}, where d_proj = dot(lightToSample, lightData.forward).
+// Note: When doing transmission we always have only one shadow sample to do: Either front or back. We use NdotL to know on which side we are
 void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs posInput,
                             LightData lightData, BakeLightingData bakeLightingData,
                             float3 N, float3 L, float3 lightToSample, float4 distances,
                             out float3 color, out float attenuation)
 {
-    float3 positionWS = posInput.positionWS;
-    float  shadow     = 1.0;
-    float  shadowMask = 1.0;
+    float3 positionWS    = posInput.positionWS;
+    float  shadow        = 1.0;
+    float  shadowMask    = 1.0;
 
     color       = lightData.color;
-    attenuation = SmoothPunctualLightAttenuation(distances, lightData.invSqrAttenuationRadius,
+    attenuation = SmoothPunctualLightAttenuation(distances, lightData.rangeAttenuationScale, lightData.rangeAttenuationBias,
                                                  lightData.angleScale, lightData.angleOffset);
 
 #if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET != 0)
@@ -163,10 +171,13 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     shadow = shadowMask = (lightData.shadowMaskSelector.x >= 0.0) ? dot(bakeLightingData.bakeShadowMask, lightData.shadowMaskSelector) : 1.0;
 #endif
 
-    UNITY_BRANCH if (lightData.shadowIndex >= 0)
+    // We test NdotL >= 0.0 to not sample the shadow map if it is not required.
+    UNITY_BRANCH if (lightData.shadowIndex >= 0 && (dot(N, L) >= 0.0))
     {
         // TODO: make projector lights cast shadows.
+        // Note:the case of NdotL < 0 can appear with isThinModeTransmission, in this case we need to flip the shadow bias
         shadow = GetPunctualShadowAttenuation(lightLoopContext.shadowContext, positionWS, N, lightData.shadowIndex, L, distances.x, posInput.positionSS);
+
 #ifdef SHADOWS_SHADOWMASK
         // Note: Legacy Unity have two shadow mask mode. ShadowMask (ShadowMask contain static objects shadow and ShadowMap contain only dynamic objects shadow, final result is the minimun of both value)
         // and ShadowMask_Distance (ShadowMask contain static objects shadow and ShadowMap contain everything and is blend with ShadowMask based on distance (Global distance setup in QualitySettigns)).
@@ -180,10 +191,14 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
 #else
         shadow = lerp(1.0, shadow, lightData.shadowDimmer);
 #endif
+
+        // Transparent have no contact shadow information
+#ifndef _SURFACE_TYPE_TRANSPARENT
+        shadow = min(shadow, GetContactShadow(lightLoopContext, lightData.contactShadowIndex));
+#endif
     }
 
     attenuation *= shadow;
-
 }
 
 // Environment map share function
@@ -233,61 +248,4 @@ void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightD
     // Smooth weighting
     weight = Smoothstep01(weight);
     weight *= lightData.weight;
-}
-
-// Ambient occlusion
-struct AmbientOcclusionFactor
-{
-    float3 indirectAmbientOcclusion;
-    float3 directAmbientOcclusion;
-    float3 indirectSpecularOcclusion;
-};
-
-void GetScreenSpaceAmbientOcclusion(float2 positionSS, float NdotV, float perceptualRoughness, float ambientOcclusionFromData, float specularOcclusionFromData, out AmbientOcclusionFactor aoFactor)
-{
-    // Note: When we ImageLoad outside of texture size, the value returned by Load is 0 (Note: On Metal maybe it clamp to value of texture which is also fine)
-    // We use this property to have a neutral value for AO that doesn't consume a sampler and work also with compute shader (i.e use ImageLoad)
-    // We store inverse AO so neutral is black. So either we sample inside or outside the texture it return 0 in case of neutral
-
-    // Ambient occlusion use for indirect lighting (reflection probe, baked diffuse lighting)
-#ifndef _SURFACE_TYPE_TRANSPARENT
-    float indirectAmbientOcclusion = 1.0 - LOAD_TEXTURE2D(_AmbientOcclusionTexture, positionSS).x;
-    // Ambient occlusion use for direct lighting (directional, punctual, area)
-    float directAmbientOcclusion = lerp(1.0, indirectAmbientOcclusion, _AmbientOcclusionParam.w);
-#else
-    float indirectAmbientOcclusion = 1.0;
-    float directAmbientOcclusion = 1.0;
-#endif
-
-    float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
-    float specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(NdotV), indirectAmbientOcclusion, roughness);
-
-    aoFactor.indirectSpecularOcclusion  = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), min(specularOcclusionFromData, specularOcclusion));
-    aoFactor.indirectAmbientOcclusion   = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), min(ambientOcclusionFromData, indirectAmbientOcclusion));
-    aoFactor.directAmbientOcclusion     = lerp(_AmbientOcclusionParam.rgb, float3(1.0, 1.0, 1.0), directAmbientOcclusion);
-}
-
-void GetScreenSpaceAmbientOcclusionMultibounce(float2 positionSS, float NdotV, float perceptualRoughness, float ambientOcclusionFromData, float specularOcclusionFromData, float3 diffuseColor, float3 fresnel0, out AmbientOcclusionFactor aoFactor)
-{
-    // Use GTAOMultiBounce approximation for ambient occlusion (allow to get a tint from the diffuseColor)
-    // Note: When we ImageLoad outside of texture size, the value returned by Load is 0 (Note: On Metal maybe it clamp to value of texture which is also fine)
-    // We use this property to have a neutral value for AO that doesn't consume a sampler and work also with compute shader (i.e use ImageLoad)
-    // We store inverse AO so neutral is black. So either we sample inside or outside the texture it return 0 in case of neutral
-
-    // Ambient occlusion use for indirect lighting (reflection probe, baked diffuse lighting)
-#ifndef _SURFACE_TYPE_TRANSPARENT
-    float indirectAmbientOcclusion = 1.0 - LOAD_TEXTURE2D(_AmbientOcclusionTexture, positionSS).x;
-    // Ambient occlusion use for direct lighting (directional, punctual, area)
-    float directAmbientOcclusion = lerp(1.0, indirectAmbientOcclusion, _AmbientOcclusionParam.w);
-#else
-    float indirectAmbientOcclusion = 1.0;
-    float directAmbientOcclusion = 1.0;
-#endif
-
-    float roughness = PerceptualRoughnessToRoughness(perceptualRoughness);
-    float specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(NdotV), indirectAmbientOcclusion, roughness);
-
-    aoFactor.indirectSpecularOcclusion  = GTAOMultiBounce(min(specularOcclusionFromData, specularOcclusion), fresnel0);
-    aoFactor.indirectAmbientOcclusion   = GTAOMultiBounce(min(ambientOcclusionFromData, indirectAmbientOcclusion), diffuseColor);
-    aoFactor.directAmbientOcclusion     = GTAOMultiBounce(directAmbientOcclusion, diffuseColor);
 }

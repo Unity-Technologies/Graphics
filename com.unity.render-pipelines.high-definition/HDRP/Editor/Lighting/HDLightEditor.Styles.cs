@@ -44,12 +44,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public readonly GUIContent shape = new GUIContent("Type", "Specifies the current type of light. Possible types are Directional, Spot, Point, Rectangle and Line lights.");
             public readonly GUIContent[] shapeNames;
-            public readonly GUIContent enableSpotReflector = new GUIContent("Enable spot reflector", "When true it simulate a spot light with reflector (mean the intensity of the light will be more focus with narrower angle), otherwise light outside of the cone is simply absorbed (mean intensity is constent whatever the size of the cone).");
+            public readonly GUIContent enableSpotReflector = new GUIContent("Angle affect intensity", "When true it simulate a spot light with reflector (mean the intensity of the light will be more focus with narrower angle), otherwise light outside of the cone is simply absorbed (mean intensity is constent whatever the size of the cone).");
 
             // Additional shadow data
             public readonly GUIContent shadowResolution = new GUIContent("Resolution", "Controls the rendered resolution of the shadow maps. A higher resolution will increase the fidelity of shadows at the cost of GPU performance and memory usage.");
             public readonly GUIContent shadowFadeDistance = new GUIContent("Fade Distance", "The shadow will fade at distance ShadowFadeDistance before being culled to minimize popping.");
             public readonly GUIContent shadowDimmer = new GUIContent("Dimmer", "Aim to be use with script, timeline or animation. It allows dimming one or multiple shadows. This can also be used as an optimization to fit in shadow budget manually and minimize popping.");
+            public readonly GUIContent contactShadows = new GUIContent("Enable Contact Shadows", "Enable support for contact shadows on this light. Better for lights with a lot of visible shadows.");
 
             // Bias control
             public readonly GUIContent viewBiasMin = new GUIContent("View Bias");

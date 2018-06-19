@@ -64,6 +64,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
     LightLoopContext context;
     context.sampleReflection = 0;
     context.shadowContext = InitShadowContext();
+    context.contactShadow = InitContactShadow(posInput);
 
     // This struct is define in the material. the Lightloop must not access it
     // PostEvaluateBSDF call at the end will convert Lighting to diffuse and specular lighting
