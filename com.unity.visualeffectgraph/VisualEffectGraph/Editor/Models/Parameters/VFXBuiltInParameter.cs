@@ -47,16 +47,37 @@ namespace UnityEditor.VFX
                         break;
                 }
             }
+
+            if (outputSlots.Count > 0 && outputSlots[0].GetType() == typeof(Matrix4x4))
+                outputSlots[0].Detach(); // In order not to have a bad conversion
+
             base.Sanitize(); // Will call ResyncSlots
+        }
+
+        private Type GetOutputType()
+        {
+            switch (m_expressionOp)
+            {
+                case VFXExpressionOperation.LocalToWorld:
+                case VFXExpressionOperation.WorldToLocal:
+                    return typeof(Transform);
+                default:
+                {
+                    var exp = VFXBuiltInExpression.Find(m_expressionOp);
+                    if (exp != null)
+                        return VFXExpression.TypeToType(VFXBuiltInExpression.Find(m_expressionOp).valueType);
+                    return null;
+                }
+            }
         }
 
         protected override IEnumerable<VFXPropertyWithValue> outputProperties
         {
             get
             {
-                var expression = VFXBuiltInExpression.Find(m_expressionOp);
-                if (expression != null)
-                    yield return new VFXPropertyWithValue(new VFXProperty(VFXExpression.TypeToType(expression.valueType), m_expressionOp.ToString()));
+                Type outputType = GetOutputType();
+                if (outputType != null)
+                    yield return new VFXPropertyWithValue(new VFXProperty(outputType, m_expressionOp.ToString()));
             }
         }
 

@@ -437,7 +437,6 @@ public class VFXMigration
                             Debug.LogError("Component " + componentPath + " asset should have been set with its prefab be didn't in scene " + infos.path);
                         }
                     }
-                    effect.SetVisualEffectAssetDirty(true);
 
                     SerializedObject obj = new SerializedObject(effect);
 

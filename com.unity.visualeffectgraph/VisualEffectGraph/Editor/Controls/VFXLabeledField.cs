@@ -125,7 +125,12 @@ namespace UnityEditor.VFX.UIElements
 
         public void OnValueChanged(EventCallback<ChangeEvent<U>> callback)
         {
-            (m_Control as INotifyValueChanged<U> ).OnValueChanged(callback);
+            (m_Control as INotifyValueChanged<U>).OnValueChanged(callback);
+        }
+
+        public void RemoveOnValueChanged(EventCallback<ChangeEvent<U>> callback)
+        {
+            (m_Control as INotifyValueChanged<U>).RemoveOnValueChanged(callback);
         }
 
         public void SetValueAndNotify(U newValue)

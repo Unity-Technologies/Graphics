@@ -43,6 +43,29 @@ namespace UnityEditor.VFX.UI
         {
             get {return false; }
         }
+
+        public void ConvertToParameter()
+        {
+            var desc = VFXLibrary.GetParameters().FirstOrDefault(t => t.model.type == (model as VFXInlineOperator).type);
+            if (desc == null)
+                return;
+
+            var param = viewController.AddVFXParameter(Vector2.zero, desc); // parameters should have zero for position, position is help by the nodes
+
+            VFXSlot.CopyLinks(param.GetOutputSlot(0), model.GetOutputSlot(0), false);
+
+            param.CreateDefaultNode(position);
+
+            viewController.LightApplyChanges();
+
+            var paramController = viewController.GetParameterController(param);
+            paramController.value = inputPorts[0].value;
+            var paramNodeController = paramController.nodes.FirstOrDefault();
+            if (paramNodeController == null)
+                return;
+            viewController.PutInSameGroupNodeAs(paramNodeController, this);
+            viewController.RemoveElement(this);
+        }
     }
 
     class VFXVariableOperatorController : VFXOperatorController

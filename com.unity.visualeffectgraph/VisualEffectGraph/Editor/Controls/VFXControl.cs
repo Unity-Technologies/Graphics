@@ -56,5 +56,10 @@ namespace UnityEditor.VFX.UIElements
         {
             RegisterCallback(callback);
         }
+
+        public void RemoveOnValueChanged(EventCallback<ChangeEvent<T>> callback)
+        {
+            UnregisterCallback(callback);
+        }
     }
 }

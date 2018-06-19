@@ -383,18 +383,6 @@ namespace UnityEditor.VFX
                 compiledData.UpdateValues();
             }
 
-            if (considerGraphDirty || m_ExpressionValuesDirty)
-            {
-                var vfxAsset = compiledData.visualEffectResource.asset;
-                foreach (var component in VFXManager.GetComponents())
-                {
-                    if (component.visualEffectAsset == vfxAsset)
-                    {
-                        component.SetVisualEffectAssetDirty(considerGraphDirty);
-                    }
-                }
-            }
-
             if (considerGraphDirty)
                 m_ExpressionGraphDirty = false;
             m_ExpressionValuesDirty = false;
