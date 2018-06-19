@@ -161,7 +161,7 @@ namespace UnityEditor.VFX.UI
         public void UpdateControllerFromContent()
         {
             bool changed = false;
-            Controller[] content = this.containedElements.Where(t => t is VFXGroupNode || t is VFXNodeUI).Cast<IControlledElement>().Select(t => t.controller).ToArray();
+            Controller[] content = this.containedElements.Where(t => t is VFXStickyNote || t is VFXNodeUI).Cast<IControlledElement>().Select(t => t.controller).ToArray();
             Controller[] controllerContent = controller.nodes.ToArray();
 
 
