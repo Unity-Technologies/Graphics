@@ -819,6 +819,12 @@ void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float3 viewFor
 // Misc utilities
 // ----------------------------------------------------------------------------
 
+// Simple function to test a bitfield
+bool HasFlag(uint bitfield, uint flag)
+{
+    return (bitfield & flag) != 0;
+}
+
 // Normalize that account for vectors with zero length
 real3 SafeNormalize(real3 inVec)
 {
