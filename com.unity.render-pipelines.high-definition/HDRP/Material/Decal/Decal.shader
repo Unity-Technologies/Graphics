@@ -8,6 +8,10 @@ Shader "HDRenderPipeline/Decal"
         _MaskMap("MaskMap", 2D) = "white" {}
         _DecalBlend("_DecalBlend", Range(0.0, 1.0)) = 0.5
 		[ToggleUI] _AlbedoMode("_AlbedoMode", Range(0.0, 1.0)) = 1.0
+		[HideInInspector] _NormalPerPixelBlend("_NormalPerPixelBlend", Float) = 0.0
+		[HideInInspector] _MetalnessPerPixelBlend("_MetalnessPerPixelBlend", Float) = 1.0
+		[HideInInspector] _AOPerPixelBlend("_AOPerPixelBlend", Float) = 1.0
+		[HideInInspector] _SmoothnessPerPixelBlend("_SmoothnessPerPixelBlend", Float) = 1.0
     }
 
     HLSLINCLUDE
@@ -23,6 +27,21 @@ Shader "HDRenderPipeline/Decal"
     #pragma shader_feature _NORMALMAP
     #pragma shader_feature _MASKMAP
 	#pragma shader_feature _ALBEDOCONTRIBUTION
+
+	#pragma shader_feature _NORMAL_BLEND_ALBEDO_A
+	#pragma shader_feature _NORMAL_BLEND_MASK_B
+
+	#pragma shader_feature _METALNESS_BLEND_ZERO
+	#pragma shader_feature _METALNESS_BLEND_ALBEDO_A
+	#pragma shader_feature _METALNESS_BLEND_MASK_B
+
+	#pragma shader_feature _AO_BLEND_ZERO
+	#pragma shader_feature _AO_BLEND_ALBEDO_A
+	#pragma shader_feature _AO_BLEND_MASK_B
+
+	#pragma shader_feature _SMOOTHNESS_BLEND_ZERO
+	#pragma shader_feature _SMOOTHNESS_BLEND_ALBEDO_A
+	#pragma shader_feature _SMOOTHNESS_BLEND_MASK_B
 
     #pragma multi_compile_instancing
     //-------------------------------------------------------------------------------------

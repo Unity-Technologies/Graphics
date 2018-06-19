@@ -15,7 +15,7 @@
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Decal+DBufferMaterial:  static fields
 //
-#define DBUFFERMATERIAL_COUNT (3)
+#define DBUFFERMATERIAL_COUNT (4)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Decal+DBufferHTileBit:  static fields
@@ -31,6 +31,7 @@ struct DecalSurfaceData
     float4 baseColor;
     float4 normalWS;
     float4 mask;
+	float2 AOSBlend;
     uint HTileMask;
 };
 
