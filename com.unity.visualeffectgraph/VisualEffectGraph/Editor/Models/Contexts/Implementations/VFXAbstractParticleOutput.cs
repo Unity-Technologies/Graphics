@@ -89,6 +89,9 @@ namespace UnityEditor.VFX
         protected bool indirectDraw = false;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected bool castShadows = true;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool preRefraction = false;
 
         public bool HasIndirectDraw()   { return indirectDraw || HasSorting(); }
@@ -198,7 +201,7 @@ namespace UnityEditor.VFX
                     var settings = asset.rendererSettings;
                     if (settings.motionVectorGenerationMode == MotionVectorGenerationMode.Object)
                         yield return "USE_MOTION_VECTORS_PASS";
-                    if (settings.shadowCastingMode != ShadowCastingMode.Off)
+                    if (settings.shadowCastingMode != ShadowCastingMode.Off && castShadows)
                         yield return "USE_CAST_SHADOWS_PASS";
                 }
 
@@ -240,6 +243,13 @@ namespace UnityEditor.VFX
 
                 if (blendMode == BlendMode.Opaque || blendMode == BlendMode.Masked)
                     yield return "useSoftParticle";
+
+                VisualEffectResource asset = GetResource();
+                if (asset != null)
+                {
+                    if (asset.rendererSettings.shadowCastingMode == ShadowCastingMode.Off)
+                        yield return "castShadows";
+                }
             }
         }
 
