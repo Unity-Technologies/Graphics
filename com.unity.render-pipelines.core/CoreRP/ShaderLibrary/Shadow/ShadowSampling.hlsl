@@ -538,12 +538,12 @@ real SampleShadow_PCSS( ShadowContext shadowContext, inout uint payloadOffset, r
     //1) Blocker Search
     real averageBlockerDepth = 0.0;
     real numBlockers         = 0.0;
-    if (!BlockerSearch(averageBlockerDepth, numBlockers, shadowSoftnesss + 0.001, tcs, sampleBias, shadowContext, slice, texIdx, sampIdx, sampleCount))
+    if (!BlockerSearch(averageBlockerDepth, numBlockers, shadowSoftnesss + 0.000001, tcs, sampleBias, shadowContext, slice, texIdx, sampIdx, sampleCount))
         return 1.0;
 
     //2) Penumbra Estimation
     real filterSize = shadowSoftnesss * PenumbraSize(tcs.z, averageBlockerDepth);
-    filterSize = max(filterSize, 0.001);
+    filterSize = max(filterSize, 0.000001);
 
     //3) Filter
     return PCSS(tcs, filterSize, scaleOffset, slice, sampleBias, shadowContext, texIdx, sampIdx, sampleCount);
@@ -562,12 +562,12 @@ real SampleShadow_PCSS( ShadowContext shadowContext, inout uint payloadOffset, r
     //1) Blocker Search
     real averageBlockerDepth = 0.0;
     real numBlockers         = 0.0;
-    if (!BlockerSearch(averageBlockerDepth, numBlockers, shadowSoftnesss + 0.001, tcs, slice, sampleBias, tex, samp, sampleCount)) 
+    if (!BlockerSearch(averageBlockerDepth, numBlockers, shadowSoftnesss + 0.000001, tcs, slice, sampleBias, tex, samp, sampleCount)) 
         return 1.0;
 
     //2) Penumbra Estimation
     real filterSize = shadowSoftnesss * PenumbraSize(tcs.z, averageBlockerDepth);
-    filterSize = max(filterSize, 0.001);
+    filterSize = max(filterSize, 0.000001);
 
     //3) Filter
     return PCSS(tcs, filterSize, scaleOffset, slice, sampleBias, tex, compSamp, sampleCount);

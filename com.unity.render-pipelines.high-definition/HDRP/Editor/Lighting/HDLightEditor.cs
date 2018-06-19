@@ -57,8 +57,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty fadeDistance;
             public SerializedProperty resolution;
             public SerializedProperty contactShadows;
-            public SerializedProperty softness;
-            public SerializedProperty pcssSampleCount;
 
             // Bias control
             public SerializedProperty viewBiasMin;
@@ -144,8 +142,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     fadeDistance = o.Find(x => x.shadowFadeDistance),
                     resolution = o.Find(x => x.shadowResolution),
                     contactShadows = o.Find(x => x.contactShadows),
-                    softness = o.Find(x => x.shadowSoftness),
-                    pcssSampleCount = o.Find(x => x.sampleCount),
 
                     viewBiasMin = o.Find(x => x.viewBiasMin),
                     viewBiasMax = o.Find(x => x.viewBiasMax),
@@ -523,16 +519,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Additional Settings", EditorStyles.boldLabel);
                 EditorGUI.indentLevel++;
-
-
-                int shadowAlgorithm, variant, precision;
-                (target as Light).GetComponent< AdditionalShadowData >().GetShadowAlgorithm(out shadowAlgorithm, out variant, out precision);
-                if (shadowAlgorithm == (int)ShadowAlgorithm.PCSS)
-                {
-                    //TOOD: check the current shadowing algorithm and hide these fields
-                    EditorGUILayout.Slider(m_AdditionalShadowData.softness, 0.0f, 1.0f, s_Styles.shadowSoftness);
-                    EditorGUILayout.IntSlider(m_AdditionalShadowData.pcssSampleCount, 1, 64, s_Styles.pcssSampleCount);
-                }
 
                 EditorGUILayout.PropertyField(m_AdditionalShadowData.contactShadows, s_Styles.contactShadows);
 
