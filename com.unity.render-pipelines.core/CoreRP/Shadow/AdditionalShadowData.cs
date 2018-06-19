@@ -18,13 +18,6 @@ namespace UnityEngine.Experimental.Rendering
                 return DefaultShadowResolution;
         }
 
-        // PCSS specific parameters (can be moved somewhere else)
-        [Range(0.0f, 1.0f)]
-        public float shadowSoftness     = 0.5f;
-        [Range(1, 64)]
-        public int sampleCount          = 32;
-        // End of PCSS parameters
-
         [Range(0.0f, 1.0f)]
         public float shadowDimmer = 1.0f;
         public float shadowFadeDistance = 10000.0f;
