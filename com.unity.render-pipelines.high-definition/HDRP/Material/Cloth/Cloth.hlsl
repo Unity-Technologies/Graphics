@@ -4,15 +4,6 @@
 // SurfaceData is defined in Cloth.cs which generates Cloth.cs.hlsl
 #include "Cloth.cs.hlsl"
 
-// TODO: Share!
-
-// This method allows us to know at compile time what material features should be removed from the code by Tile (Indepenently of the value of material feature flag per pixel).
-// This is only useful for classification during lighting, so it's not needed in EncodeIntoGBuffer and ConvertSurfaceDataToBSDFData (where we always know exactly what the material feature is)
-bool HasFeatureFlag(uint featureFlags, uint flag)
-{
-    return ((featureFlags & flag) != 0);
-}
-
 // This function is use to help with debugging and must be implemented by any lit material
 // Implementer must take into account what are the current override component and
 // adjust SurfaceData properties accordingdly
@@ -76,8 +67,44 @@ BSDFData ConvertSurfaceDataToBSDFData(uint2 positionSS, SurfaceData surfaceData)
     BSDFData bsdfData;
     ZERO_INITIALIZE(BSDFData, bsdfData);
 
+    // IMPORTANT: In case of foward or gbuffer pass all enable flags are statically know at compile time, so the compiler can do compile time optimization
+    bsdfData.materialFeatures = surfaceData.materialFeatures;
+
     bsdfData.diffuseColor = surfaceData.baseColor;
+    bsdfData.specularOcclusion = surfaceData.specularOcclusion;
     bsdfData.normalWS = surfaceData.normalWS;
+    bsdfData.perceptualRoughness = PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness);
+
+    bsdfData.ambientOcclusion = surfaceData.ambientOcclusion;
+    bsdfData.fuzzTint = surfaceData.fuzzTint;
+
+    // Note: we have ZERO_INITIALIZE the struct so bsdfData.anisotropy == 0.0
+    // Note: DIFFUSION_PROFILE_NEUTRAL_ID is 0
+
+    // In forward everything is statically know and we could theorically cumulate all the material features. So the code reflect it.
+    // However in practice we keep parity between deferred and forward, so we should constrain the various features.
+    // The UI is in charge of setuping the constrain, not the code. So if users is forward only and want unleash power, it is easy to unleash by some UI change
+
+    if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_CLOTH_SUBSURFACE_SCATTERING))
+    {
+        // Assign profile id and overwrite fresnel0
+        FillMaterialSSS(surfaceData.diffusionProfile, surfaceData.subsurfaceMask, bsdfData);
+    }
+
+    if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_COTH_TRANSMISSION))
+    {
+        // Assign profile id and overwrite fresnel0
+        FillMaterialTransmission(surfaceData.diffusionProfile, surfaceData.thickness, bsdfData);
+    }
+
+    if (HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_CLOTH_SILK))
+    {
+        FillMaterialAnisotropy(surfaceData.anisotropy, surfaceData.tangentWS, cross(surfaceData.normalWS, surfaceData.tangentWS), bsdfData);
+    }
+    
+
+
+    bsdfData.fresnel0 = HasFeatureFlag(surfaceData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SPECULAR_COLOR) ? surfaceData.specularColor : ComputeFresnel0(surfaceData.baseColor, surfaceData.metallic, DEFAULT_SPECULAR_VALUE);
 
     ApplyDebugToBSDFData(bsdfData);
     return bsdfData;
