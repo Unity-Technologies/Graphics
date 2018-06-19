@@ -77,7 +77,7 @@ bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real 
     for (int i = 0; i < sampleCount; ++i)
     {
         real2 offset = real2(poissonDisk64[i].x *  sampleBias.y + poissonDisk64[i].y * sampleBias.x,
-                            poissonDisk64[i].x * -sampleBias.x + poissonDisk64[i].y * sampleBias.y) * lightArea;
+                             poissonDisk64[i].x * -sampleBias.x + poissonDisk64[i].y * sampleBias.y) * lightArea;
 
         real shadowMapDepth = SAMPLE_TEXTURE2D_ARRAY_LOD( shadowMap, PointSampler, coord.xy + offset, slice, 0.0 ).x;
 
@@ -89,9 +89,7 @@ bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real 
     }
     averageBlockerDepth = blockerSum / numBlockers;
 
-    if (numBlockers < 1)
-        return false;
-    return true;
+    return numBlockers >= 1;
 }
 
 bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real lightArea, real3 coord, real2 sampleBias, ShadowContext shadowContext, float slice, uint texIdx, uint sampIdx, int sampleCount)
@@ -100,7 +98,7 @@ bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real 
     for (int i = 0; i < sampleCount; ++i)
     {
         real2 offset = real2(poissonDisk64[i].x *  sampleBias.y + poissonDisk64[i].y * sampleBias.x,
-                            poissonDisk64[i].x * -sampleBias.x + poissonDisk64[i].y * sampleBias.y) * lightArea;
+                             poissonDisk64[i].x * -sampleBias.x + poissonDisk64[i].y * sampleBias.y) * lightArea;
 
         real shadowMapDepth = SampleCompShadow_T2DA(shadowContext, texIdx, sampIdx, coord.xyz, slice).x;
 
@@ -112,12 +110,10 @@ bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real 
     }
     averageBlockerDepth = blockerSum / numBlockers;
 
-    if (numBlockers < 1)
-        return false;
-    return true;
+    return numBlockers >= 1;
 }
 
-real PCSS(real3 coord, real filterRadius, real4 scaleOffset, float slice, real2 sampleBias, Texture2DArray shadowMap, SamplerComparisonState compSampler, int sampleCount)
+real PCSS(real3 coord, real filterRadius, real4 scaleOffset, float slice, real2 sampleBias, real2 sampleJitter, Texture2DArray shadowMap, SamplerComparisonState compSampler, int sampleCount)
 {
     real UMin = scaleOffset.z;
     real UMax = scaleOffset.z + scaleOffset.x;
@@ -125,11 +121,11 @@ real PCSS(real3 coord, real filterRadius, real4 scaleOffset, float slice, real2 
     real VMin = scaleOffset.w;
     real VMax = scaleOffset.w + scaleOffset.y;
 
-    real Sum = 0.0;
+    real sum = 0.0;
     for(int i = 0; i < sampleCount; ++i)
     {
-        real2 offset = real2(poissonDisk64[i].x *  sampleBias.y + poissonDisk64[i].y * sampleBias.x,
-                             poissonDisk64[i].x * -sampleBias.x + poissonDisk64[i].y * sampleBias.y) * filterRadius;
+        real2 offset = real2(poissonDisk64[i].x *  sampleJitter.y + poissonDisk64[i].y * sampleJitter.x,
+                             poissonDisk64[i].x * -sampleJitter.x + poissonDisk64[i].y * sampleJitter.y) * filterRadius;
 
         real U = coord.x + offset.x;
         real V = coord.y + offset.y;
@@ -138,15 +134,15 @@ real PCSS(real3 coord, real filterRadius, real4 scaleOffset, float slice, real2 
         //        Overfiltering will leak results from other shadow lights.
         //TODO: Investigate moving this to blocker search.
         if (U <= UMin || U >= UMax || V <= VMin || V >= VMax)
-            Sum += SAMPLE_TEXTURE2D_ARRAY_SHADOW(shadowMap, compSampler, real3(coord.xy, coord.z), slice);
+            sum += SAMPLE_TEXTURE2D_ARRAY_SHADOW(shadowMap, compSampler, real3(coord.xy, coord.z), slice);
         else
-            Sum += SAMPLE_TEXTURE2D_ARRAY_SHADOW(shadowMap, compSampler, real3(U, V, coord.z), slice);
+            sum += SAMPLE_TEXTURE2D_ARRAY_SHADOW(shadowMap, compSampler, real3(U, V, coord.z + dot(sampleBias, offset)), slice);
     }
 
-    return Sum / sampleCount;
+    return sum / sampleCount;
 }
 
-real PCSS(real3 coord, real filterRadius, real4 scaleOffset, float slice, real2 sampleBias, ShadowContext shadowContext, uint texIdx, uint sampIdx, int sampleCount)
+real PCSS(real3 coord, real filterRadius, real4 scaleOffset, float slice, real2 sampleBias, real2 sampleJitter, ShadowContext shadowContext, uint texIdx, uint sampIdx, int sampleCount)
 {
     real UMin = scaleOffset.z;
     real UMax = scaleOffset.z + scaleOffset.x;
@@ -154,11 +150,11 @@ real PCSS(real3 coord, real filterRadius, real4 scaleOffset, float slice, real2 
     real VMin = scaleOffset.w;
     real VMax = scaleOffset.w + scaleOffset.y;
 
-    real Sum = 0.0;
+    real sum = 0.0;
     for(int i = 0; i < sampleCount; ++i)
     {
-        real2 offset = real2(poissonDisk64[i].x *  sampleBias.y + poissonDisk64[i].y * sampleBias.x,
-                             poissonDisk64[i].x * -sampleBias.x + poissonDisk64[i].y * sampleBias.y) * filterRadius;
+        real2 offset = real2(poissonDisk64[i].x *  sampleJitter.y + poissonDisk64[i].y * sampleJitter.x,
+                             poissonDisk64[i].x * -sampleJitter.x + poissonDisk64[i].y * sampleJitter.y) * filterRadius;
 
         real U = coord.x + offset.x;
         real V = coord.y + offset.y;
@@ -167,10 +163,10 @@ real PCSS(real3 coord, real filterRadius, real4 scaleOffset, float slice, real2 
         //        Overfiltering will leak results from other shadow lights.
         //TODO: Investigate moving this to blocker search.
         if (U <= UMin || U >= UMax || V <= VMin || V >= VMax)
-            Sum += SampleCompShadow_T2DA(shadowContext, texIdx, sampIdx, real3(coord.xy, coord.z), slice);
+            sum += SampleCompShadow_T2DA(shadowContext, texIdx, sampIdx, real3(coord.xy, coord.z), slice);
         else
-            Sum += SampleCompShadow_T2DA(shadowContext, texIdx, sampIdx, real3(U, V, coord.z), slice);
+            sum += SampleCompShadow_T2DA(shadowContext, texIdx, sampIdx, real3(U, V, coord.z + dot(sampleBias, offset)), slice);
     }
 
-    return Sum / sampleCount;
+    return sum / sampleCount;
 }

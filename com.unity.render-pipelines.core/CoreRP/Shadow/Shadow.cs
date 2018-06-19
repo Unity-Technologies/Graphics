@@ -171,7 +171,7 @@ namespace UnityEngine.Experimental.Rendering
             m_SupportedAlgorithms.AddUniqueUnchecked((int)ShadowUtils.Pack(ShadowAlgorithm.PCF, ShadowVariant.V2, precision));
             m_SupportedAlgorithms.AddUniqueUnchecked((int)ShadowUtils.Pack(ShadowAlgorithm.PCF, ShadowVariant.V3, precision));
             m_SupportedAlgorithms.AddUniqueUnchecked((int)ShadowUtils.Pack(ShadowAlgorithm.PCF, ShadowVariant.V4, precision));
-            m_SupportedAlgorithms.AddUniqueUnchecked((int)ShadowUtils.Pack(ShadowAlgorithm.PCSS, ShadowVariant.V0, precision)); //TODO: Consider the highest precision for blocker search.
+            m_SupportedAlgorithms.AddUniqueUnchecked((int)ShadowUtils.Pack(ShadowAlgorithm.PCSS, ShadowVariant.V0, precision));
 
             ShadowRegistry.VariantDelegate del = (Light l, ShadowAlgorithm dataAlgorithm, ShadowVariant dataVariant, ShadowPrecision dataPrecision, ref int[] dataBlock) =>
                 {
@@ -576,7 +576,7 @@ namespace UnityEngine.Experimental.Rendering
                         break;
                     }
                 }
-                else // PCSS
+                else if (algo == ShadowAlgorithm.PCSS)
                 {
                     sp.Set(shadowData[0], shadowData[1], 0, 0);
                     payload[payloadOffset] = sp;

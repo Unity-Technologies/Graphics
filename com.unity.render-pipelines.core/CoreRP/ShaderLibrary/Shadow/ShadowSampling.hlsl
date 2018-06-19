@@ -534,11 +534,14 @@ real SampleShadow_PCSS( ShadowContext shadowContext, inout uint payloadOffset, r
     real shadowSoftnesss   = params.x;
     int sampleCount        = params.y;
     payloadOffset++;
+    
+    real2 sampleJitter = real2(sin(GenerateHashedRandomFloat(tcs.x)),
+                               cos(GenerateHashedRandomFloat(tcs.y)));
 
     //1) Blocker Search
     real averageBlockerDepth = 0.0;
     real numBlockers         = 0.0;
-    if (!BlockerSearch(averageBlockerDepth, numBlockers, shadowSoftnesss + 0.000001, tcs, sampleBias, shadowContext, slice, texIdx, sampIdx, sampleCount))
+    if (!BlockerSearch(averageBlockerDepth, numBlockers, shadowSoftnesss + 0.000001, tcs, sampleJitter, shadowContext, slice, texIdx, sampIdx, sampleCount))
         return 1.0;
 
     //2) Penumbra Estimation
@@ -546,23 +549,23 @@ real SampleShadow_PCSS( ShadowContext shadowContext, inout uint payloadOffset, r
     filterSize = max(filterSize, 0.000001);
 
     //3) Filter
-    return PCSS(tcs, filterSize, scaleOffset, slice, sampleBias, shadowContext, texIdx, sampIdx, sampleCount);
+    return PCSS(tcs, filterSize, scaleOffset, slice, sampleBias, sampleJitter, shadowContext, texIdx, sampIdx, sampleCount);
 }
 
-real SampleShadow_PCSS( ShadowContext shadowContext, inout uint payloadOffset, real3 tcs, real4 scaleOffset, float slice, Texture2DArray tex, SamplerComparisonState compSamp, SamplerState samp )
+real SampleShadow_PCSS( ShadowContext shadowContext, inout uint payloadOffset, real3 tcs, real4 scaleOffset, real2 sampleBias, float slice, Texture2DArray tex, SamplerComparisonState compSamp, SamplerState samp )
 {
     real2 params           = asfloat(shadowContext.payloads[payloadOffset].xy);
     real shadowSoftnesss   = params.x;
     int sampleCount        = params.y;
     payloadOffset++;
 
-    real2 sampleBias = real2(sin(GenerateHashedRandomFloat(asuint(tcs.x))),
-                             cos(GenerateHashedRandomFloat(asuint(tcs.y))));
+    real2 sampleJitter = real2(sin(GenerateHashedRandomFloat(tcs.x)),
+                               cos(GenerateHashedRandomFloat(tcs.y)));
 
     //1) Blocker Search
     real averageBlockerDepth = 0.0;
     real numBlockers         = 0.0;
-    if (!BlockerSearch(averageBlockerDepth, numBlockers, shadowSoftnesss + 0.000001, tcs, slice, sampleBias, tex, samp, sampleCount)) 
+    if (!BlockerSearch(averageBlockerDepth, numBlockers, shadowSoftnesss + 0.000001, tcs, slice, sampleJitter, tex, samp, sampleCount)) 
         return 1.0;
 
     //2) Penumbra Estimation
@@ -570,7 +573,7 @@ real SampleShadow_PCSS( ShadowContext shadowContext, inout uint payloadOffset, r
     filterSize = max(filterSize, 0.000001);
 
     //3) Filter
-    return PCSS(tcs, filterSize, scaleOffset, slice, sampleBias, tex, compSamp, sampleCount);
+    return PCSS(tcs, filterSize, scaleOffset, slice, sampleBias, sampleJitter, tex, compSamp, sampleCount);
 }
 
 //-----------------------------------------------------------------------------------------------------
@@ -605,7 +608,7 @@ real SampleShadow_SelectAlgorithm( ShadowContext shadowContext, ShadowData shado
     case GPUSHADOWALGORITHM_PCF_TENT_3X3    : return SampleShadow_PCF_Tent_3x3( shadowContext, payloadOffset, shadowData.textureSize, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, tex, compSamp );
     case GPUSHADOWALGORITHM_PCF_TENT_5X5    : return SampleShadow_PCF_Tent_5x5( shadowContext, payloadOffset, shadowData.textureSize, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, tex, compSamp );
     case GPUSHADOWALGORITHM_PCF_TENT_7X7    : return SampleShadow_PCF_Tent_7x7( shadowContext, payloadOffset, shadowData.textureSize, shadowData.texelSizeRcp, posTC, sampleBias, shadowData.slice, tex, compSamp );
-    case GPUSHADOWALGORITHM_PCSS            : return SampleShadow_PCSS( shadowContext, payloadOffset, posTC, shadowData.scaleOffset, shadowData.slice, tex, compSamp, s_point_clamp_sampler );
+    case GPUSHADOWALGORITHM_PCSS            : return SampleShadow_PCSS( shadowContext, payloadOffset, posTC, shadowData.scaleOffset, sampleBias, shadowData.slice, tex, compSamp, s_point_clamp_sampler );
 
     default: return 1.0;
     }
