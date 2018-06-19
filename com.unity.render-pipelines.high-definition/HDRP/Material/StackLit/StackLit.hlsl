@@ -147,13 +147,6 @@ TEXTURE2D(_GBufferTexture0);
 // Helper functions/variable specific to this material
 //-----------------------------------------------------------------------------
 
-// This method allows us to know at compile time what material features should be removed from the code by Tile (Indepenently of the value of material feature flag per pixel).
-// This is only useful for classification during lighting, so it's not needed in EncodeIntoGBuffer and ConvertSurfaceDataToBSDFData (where we always know exactly what the material feature is)
-bool HasFeatureFlag(uint featureFlags, uint flag)
-{
-    return ((featureFlags & flag) != 0);
-}
-
 // The only way to get Coat now is with vlayering
 bool IsVLayeredEnabled(BSDFData bsdfData)
 {
