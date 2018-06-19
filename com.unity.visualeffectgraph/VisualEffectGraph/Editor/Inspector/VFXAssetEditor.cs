@@ -1,11 +1,14 @@
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
+using UnityEngine.Rendering;
+using UnityEditor.Callbacks;
 using UnityEditor.Experimental.VFX;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
+using System.Collections.Generic;
 using System.IO;
-using UnityEditor.Callbacks;
+using System.Linq;
 
 using UnityObject = UnityEngine.Object;
 
@@ -154,12 +157,12 @@ public class VisualEffectAssetEditor : Editor
 
         m_Direction = VFXPreviewGUI.Drag2D(m_Direction, r);
         Renderer renderer = m_VisualEffectGO.GetComponent<Renderer>();
+        m_OriginalBounds = renderer.bounds;
 
         if (m_FrameCount == kSafeFrame) // wait to frame before asking the renderer bounds as it is a computed value.
         {
             if (renderer != null)
             {
-                m_OriginalBounds = renderer.bounds;
                 float maxBounds = Mathf.Sqrt(m_OriginalBounds.size.x * m_OriginalBounds.size.x + m_OriginalBounds.size.y * m_OriginalBounds.size.y + m_OriginalBounds.size.z * m_OriginalBounds.size.z);
                 m_Distance = Mathf.Max(0.01f, maxBounds * 1.25f);
 
@@ -167,11 +170,14 @@ public class VisualEffectAssetEditor : Editor
                 ComputeFarNear();
             }
         }
+        else
+        {
+            ComputeFarNear();
+        }
         m_FrameCount++;
         if (Event.current.isScrollWheel)
         {
             m_Distance *= 1 + (Event.current.delta.y * .015f);
-            ComputeFarNear();
         }
 
         if (isRepaint)
@@ -210,6 +216,18 @@ public class VisualEffectAssetEditor : Editor
         }
     }
 
+    private static readonly KeyValuePair<string, VFXCullingFlags>[] k_CullingOptions = new KeyValuePair<string, VFXCullingFlags>[]
+    {
+        new KeyValuePair<string, VFXCullingFlags>("Cull simulation and bounds", (VFXCullingFlags.CullSimulation | VFXCullingFlags.CullBoundsUpdate)),
+        new KeyValuePair<string, VFXCullingFlags>("Cull simulation only", (VFXCullingFlags.CullSimulation)),
+        new KeyValuePair<string, VFXCullingFlags>("Disable culling", VFXCullingFlags.CullNone),
+    };
+
+    private string CullingMaskToString(VFXCullingFlags flags)
+    {
+        return k_CullingOptions.First(o => o.Value == flags).Key;
+    }
+
     public override void OnInspectorGUI()
     {
         VisualEffectAsset asset = (VisualEffectAsset)target;
@@ -223,6 +241,56 @@ public class VisualEffectAssetEditor : Editor
 
         bool enable = GUI.enabled; //Everything in external asset is disabled by default
         GUI.enabled = true;
+
+
+        /*
+        m_DropDownButtonCullingMode.AddManipulator(new DownClickable(() => {
+
+        }));*/
+
+        var cullingFlags = resource.cullingFlags;
+
+
+        EditorGUILayout.BeginHorizontal();
+
+        EditorGUILayout.PrefixLabel(EditorGUIUtility.TrTextContent("Culling Flags"));
+        if (EditorGUILayout.DropdownButton(new GUIContent(CullingMaskToString(cullingFlags)), FocusType.Passive))
+        {
+            var menu = new GenericMenu();
+            foreach (var val in k_CullingOptions)
+            {
+                menu.AddItem(new GUIContent(val.Key), val.Value == cullingFlags, (v) =>
+                    {
+                        resource.cullingFlags = (VFXCullingFlags)v;
+                    }, val.Value);
+            }
+            menu.DropDown(GUILayoutUtility.topLevel.GetLast());
+        }
+
+        EditorGUILayout.EndHorizontal();
+
+        bool needRecompile = false;
+        EditorGUI.BeginChangeCheck();
+        bool castShadows = EditorGUILayout.Toggle(EditorGUIUtility.TrTextContent("Cast Shadows"), resource.rendererSettings.shadowCastingMode != ShadowCastingMode.Off);
+        if (EditorGUI.EndChangeCheck())
+        {
+            var settings = resource.rendererSettings;
+            settings.shadowCastingMode = castShadows ? ShadowCastingMode.On : ShadowCastingMode.Off;
+            resource.rendererSettings = settings;
+            needRecompile = true;
+        }
+
+        EditorGUI.BeginChangeCheck();
+        bool motionVector = EditorGUILayout.Toggle(EditorGUIUtility.TrTextContent("Use Motion Vectors"), resource.rendererSettings.motionVectorGenerationMode == MotionVectorGenerationMode.Object);
+        if (EditorGUI.EndChangeCheck())
+        {
+            var settings = resource.rendererSettings;
+            settings.motionVectorGenerationMode = motionVector ? MotionVectorGenerationMode.Object : MotionVectorGenerationMode.Camera;
+            resource.rendererSettings = settings;
+            needRecompile = true;
+        }
+
+        VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Shaders"), true, true, false, false);
 
         foreach (var shader in objects)
         {
@@ -243,6 +311,16 @@ public class VisualEffectAssetEditor : Editor
             }
         }
         GUI.enabled = false;
+
+        if (needRecompile)
+        {
+            VFXGraph graph = resource.GetOrCreateGraph() as VFXGraph;
+            if (graph != null)
+            {
+                graph.SetExpressionGraphDirty();
+                graph.RecompileIfNeeded();
+            }
+        }
     }
 }
 
