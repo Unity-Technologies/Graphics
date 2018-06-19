@@ -144,12 +144,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             Camera camera = cameraData.camera;
             RenderTextureDescriptor desc;
-            if (cameraData.isStereoEnabled)
-                desc = XRSettings.eyeTextureDesc;
-            else
-                desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
-
             float renderScale = cameraData.renderScale;
+
+            if (cameraData.isStereoEnabled)
+            {
+                XRSettings.eyeTextureResolutionScale = renderScale;
+                return XRSettings.eyeTextureDesc; // FIXME Any adjustments needed before using eyeTextureDesc?
+            }
+            else
+            {
+                desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
+            }
             desc.colorFormat = cameraData.isHdrEnabled ? RenderTextureFormat.DefaultHDR :
                 RenderTextureFormat.Default;
             desc.enableRandomWrite = false;
