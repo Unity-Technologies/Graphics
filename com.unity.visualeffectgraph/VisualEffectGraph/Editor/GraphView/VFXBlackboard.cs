@@ -472,6 +472,14 @@ namespace  UnityEditor.VFX.UI
 
             clippingOptions = ClippingOptions.ClipContents;
             SetDragIndicatorVisible(false);
+
+            Resizer resizer = this.Query<Resizer>();
+
+            shadow.Add(new ResizableElement());
+
+            style.positionType = PositionType.Absolute;
+
+            resizer.RemoveFromHierarchy();
         }
 
         private void SetDragIndicatorVisible(bool visible)
