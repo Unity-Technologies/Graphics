@@ -524,9 +524,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.LabelField("Additional Settings", EditorStyles.boldLabel);
                 EditorGUI.indentLevel++;
 
-                //TOOD: check the current shadowing algorithm and hide these fields
-                EditorGUILayout.Slider(m_AdditionalShadowData.softness, 0.0f, 1.0f, s_Styles.shadowSoftness);
-                EditorGUILayout.IntSlider(m_AdditionalShadowData.pcssSampleCount, 0, 64, s_Styles.pcssSampleCount);
+
+                int shadowAlgorithm, variant, precision;
+                (target as Light).GetComponent< AdditionalShadowData >().GetShadowAlgorithm(out shadowAlgorithm, out variant, out precision);
+                if (shadowAlgorithm == (int)ShadowAlgorithm.PCSS)
+                {
+                    //TOOD: check the current shadowing algorithm and hide these fields
+                    EditorGUILayout.Slider(m_AdditionalShadowData.softness, 0.0f, 1.0f, s_Styles.shadowSoftness);
+                    EditorGUILayout.IntSlider(m_AdditionalShadowData.pcssSampleCount, 1, 64, s_Styles.pcssSampleCount);
+                }
 
                 EditorGUILayout.PropertyField(m_AdditionalShadowData.contactShadows, s_Styles.contactShadows);
 

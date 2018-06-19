@@ -530,52 +530,47 @@ real SampleShadow_MSM_1tap( ShadowContext shadowContext, inout uint payloadOffse
 
 real SampleShadow_PCSS( ShadowContext shadowContext, inout uint payloadOffset, real3 tcs, real4 scaleOffset, real2 sampleBias, float slice, uint texIdx, uint sampIdx )
 {
-    return 1;
     real2 params           = asfloat(shadowContext.payloads[payloadOffset].xy);
     real shadowSoftnesss   = params.x;
     int sampleCount        = params.y;
     payloadOffset++;
 
-    real2 SampleBias = real2(sin(GenerateHashedRandomFloat(asuint(tcs.x))),
-                             cos(GenerateHashedRandomFloat(asuint(tcs.y))));
-
     //1) Blocker Search
-    real AverageBlockerDepth = 0.0;
-    real NumBlockers         = 0.0;
-    if (!BlockerSearch(AverageBlockerDepth, NumBlockers, shadowSoftnesss + 0.001, tcs, sampleBias, shadowContext, slice, texIdx, sampIdx, sampleCount))
+    real averageBlockerDepth = 0.0;
+    real numBlockers         = 0.0;
+    if (!BlockerSearch(averageBlockerDepth, numBlockers, shadowSoftnesss + 0.001, tcs, sampleBias, shadowContext, slice, texIdx, sampIdx, sampleCount))
         return 1.0;
 
     //2) Penumbra Estimation
-    real FilterSize = shadowSoftnesss * PenumbraSize(tcs.z, AverageBlockerDepth);
-    FilterSize = max(FilterSize, 0.001);
+    real filterSize = shadowSoftnesss * PenumbraSize(tcs.z, averageBlockerDepth);
+    filterSize = max(filterSize, 0.001);
 
     //3) Filter
-    return PCSS(tcs, FilterSize, scaleOffset, slice, SampleBias, shadowContext, texIdx, sampIdx, sampleCount);
+    return PCSS(tcs, filterSize, scaleOffset, slice, sampleBias, shadowContext, texIdx, sampIdx, sampleCount);
 }
 
 real SampleShadow_PCSS( ShadowContext shadowContext, inout uint payloadOffset, real3 tcs, real4 scaleOffset, float slice, Texture2DArray tex, SamplerComparisonState compSamp, SamplerState samp )
 {
-    return 1;
     real2 params           = asfloat(shadowContext.payloads[payloadOffset].xy);
     real shadowSoftnesss   = params.x;
     int sampleCount        = params.y;
     payloadOffset++;
 
-    real2 SampleBias = real2(sin(GenerateHashedRandomFloat(asuint(tcs.x))),
+    real2 sampleBias = real2(sin(GenerateHashedRandomFloat(asuint(tcs.x))),
                              cos(GenerateHashedRandomFloat(asuint(tcs.y))));
 
     //1) Blocker Search
-    real AverageBlockerDepth = 0.0;
-    real NumBlockers         = 0.0;
-    // if (!BlockerSearch(AverageBlockerDepth, NumBlockers, shadowSoftnesss + 0.001, tcs, slice, SampleBias, tex, samp, sampleCount)) 
-        // return 1.0;
+    real averageBlockerDepth = 0.0;
+    real numBlockers         = 0.0;
+    if (!BlockerSearch(averageBlockerDepth, numBlockers, shadowSoftnesss + 0.001, tcs, slice, sampleBias, tex, samp, sampleCount)) 
+        return 1.0;
 
     //2) Penumbra Estimation
-    real FilterSize = shadowSoftnesss * PenumbraSize(tcs.z, AverageBlockerDepth);
-    FilterSize = max(FilterSize, 0.001);
+    real filterSize = shadowSoftnesss * PenumbraSize(tcs.z, averageBlockerDepth);
+    filterSize = max(filterSize, 0.001);
 
     //3) Filter
-    return PCSS(tcs, FilterSize, scaleOffset, slice, SampleBias, tex, compSamp, sampleCount);
+    return PCSS(tcs, filterSize, scaleOffset, slice, sampleBias, tex, compSamp, sampleCount);
 }
 
 //-----------------------------------------------------------------------------------------------------

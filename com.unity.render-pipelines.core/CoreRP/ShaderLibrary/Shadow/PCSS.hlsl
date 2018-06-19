@@ -1,4 +1,4 @@
-static const float2 PoissonDisk64[64] =
+static const float2 poissonDisk64[64] =
 {
     float2 ( 0.1187053,   0.7951565),
     float2 ( 0.1173675,   0.6087878),
@@ -71,57 +71,54 @@ real PenumbraSize(real Reciever, real Blocker)
     return abs((Reciever - Blocker) / Blocker);
 }
 
-bool BlockerSearch(inout real AverageBlockerDepth, inout real NumBlockers, real LightArea, real3 coord, float slice, real2 sampleBias, Texture2DArray shadowMap, SamplerState PointSampler, int sampleCount )
+bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real lightArea, real3 coord, float slice, real2 sampleBias, Texture2DArray shadowMap, SamplerState PointSampler, int sampleCount)
 {
-    return 0;
-    real BlockerSum = 0.0;
-    for (int i = 0; i < 64; ++i)
+    real blockerSum = 0.0;
+    for (int i = 0; i < sampleCount; ++i)
     {
-        real2 Offset = real2(PoissonDisk64[i].x *  sampleBias.y + PoissonDisk64[i].y * sampleBias.x,
-                            PoissonDisk64[i].x * -sampleBias.x + PoissonDisk64[i].y * sampleBias.y) * LightArea;
+        real2 offset = real2(poissonDisk64[i].x *  sampleBias.y + poissonDisk64[i].y * sampleBias.x,
+                            poissonDisk64[i].x * -sampleBias.x + poissonDisk64[i].y * sampleBias.y) * lightArea;
 
-        real ShadowMapDepth = SAMPLE_TEXTURE2D_ARRAY_LOD( shadowMap, PointSampler, coord.xy + Offset, slice, 0.0 ).x;
+        real shadowMapDepth = SAMPLE_TEXTURE2D_ARRAY_LOD( shadowMap, PointSampler, coord.xy + offset, slice, 0.0 ).x;
 
-        if(ShadowMapDepth > coord.z)
+        if(shadowMapDepth > coord.z)
         {
-            BlockerSum  += ShadowMapDepth;
-            NumBlockers += 1.0;
+            blockerSum  += shadowMapDepth;
+            numBlockers += 1.0;
         }
     }
-    AverageBlockerDepth = BlockerSum / NumBlockers;
+    averageBlockerDepth = blockerSum / numBlockers;
 
-    if (NumBlockers < 1)
+    if (numBlockers < 1)
         return false;
     return true;
 }
 
-bool BlockerSearch(inout real AverageBlockerDepth, inout real NumBlockers, real LightArea, real3 coord, real2 sampleBias, ShadowContext shadowContext, float slice, uint texIdx, uint sampIdx, int sampleCount )
+bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real lightArea, real3 coord, real2 sampleBias, ShadowContext shadowContext, float slice, uint texIdx, uint sampIdx, int sampleCount)
 {
-    return 0;
-    real BlockerSum = 0.0;
-    for (int i = 0; i < 64; ++i)
+    real blockerSum = 0.0;
+    for (int i = 0; i < sampleCount; ++i)
     {
-        real2 offset = real2(PoissonDisk64[i].x *  sampleBias.y + PoissonDisk64[i].y * sampleBias.x,
-                            PoissonDisk64[i].x * -sampleBias.x + PoissonDisk64[i].y * sampleBias.y) * LightArea;
+        real2 offset = real2(poissonDisk64[i].x *  sampleBias.y + poissonDisk64[i].y * sampleBias.x,
+                            poissonDisk64[i].x * -sampleBias.x + poissonDisk64[i].y * sampleBias.y) * lightArea;
 
-        real ShadowMapDepth = SampleCompShadow_T2DA(shadowContext, texIdx, sampIdx, coord.xyz, slice).x;
+        real shadowMapDepth = SampleCompShadow_T2DA(shadowContext, texIdx, sampIdx, coord.xyz, slice).x;
 
-        if(ShadowMapDepth > coord.z)
+        if(shadowMapDepth > coord.z)
         {
-            BlockerSum  += ShadowMapDepth;
-            NumBlockers += 1.0;
+            blockerSum  += shadowMapDepth;
+            numBlockers += 1.0;
         }
     }
-    AverageBlockerDepth = BlockerSum / NumBlockers;
+    averageBlockerDepth = blockerSum / numBlockers;
 
-    if (NumBlockers < 1)
+    if (numBlockers < 1)
         return false;
     return true;
 }
 
-real PCSS(real3 coord, real filterRadius, real4 scaleOffset, float slice, real2 sampleBias, Texture2DArray shadowMap, SamplerComparisonState compSampler, int sampleCount )
+real PCSS(real3 coord, real filterRadius, real4 scaleOffset, float slice, real2 sampleBias, Texture2DArray shadowMap, SamplerComparisonState compSampler, int sampleCount)
 {
-    return 0;
     real UMin = scaleOffset.z;
     real UMax = scaleOffset.z + scaleOffset.x;
 
@@ -131,8 +128,8 @@ real PCSS(real3 coord, real filterRadius, real4 scaleOffset, float slice, real2 
     real Sum = 0.0;
     for(int i = 0; i < sampleCount; ++i)
     {
-        real2 offset = real2(PoissonDisk64[i].x *  sampleBias.y + PoissonDisk64[i].y * sampleBias.x,
-                             PoissonDisk64[i].x * -sampleBias.x + PoissonDisk64[i].y * sampleBias.y) * filterRadius;
+        real2 offset = real2(poissonDisk64[i].x *  sampleBias.y + poissonDisk64[i].y * sampleBias.x,
+                             poissonDisk64[i].x * -sampleBias.x + poissonDisk64[i].y * sampleBias.y) * filterRadius;
 
         real U = coord.x + offset.x;
         real V = coord.y + offset.y;
@@ -149,9 +146,8 @@ real PCSS(real3 coord, real filterRadius, real4 scaleOffset, float slice, real2 
     return Sum / sampleCount;
 }
 
-real PCSS(real3 coord, real filterRadius, real4 scaleOffset, float slice, real2 sampleBias, ShadowContext shadowContext, uint texIdx, uint sampIdx, int sampleCount )
+real PCSS(real3 coord, real filterRadius, real4 scaleOffset, float slice, real2 sampleBias, ShadowContext shadowContext, uint texIdx, uint sampIdx, int sampleCount)
 {
-    return 0;
     real UMin = scaleOffset.z;
     real UMax = scaleOffset.z + scaleOffset.x;
 
@@ -161,8 +157,8 @@ real PCSS(real3 coord, real filterRadius, real4 scaleOffset, float slice, real2 
     real Sum = 0.0;
     for(int i = 0; i < sampleCount; ++i)
     {
-        real2 offset = real2(PoissonDisk64[i].x *  sampleBias.y + PoissonDisk64[i].y * sampleBias.x,
-                             PoissonDisk64[i].x * -sampleBias.x + PoissonDisk64[i].y * sampleBias.y) * filterRadius;
+        real2 offset = real2(poissonDisk64[i].x *  sampleBias.y + poissonDisk64[i].y * sampleBias.x,
+                             poissonDisk64[i].x * -sampleBias.x + poissonDisk64[i].y * sampleBias.y) * filterRadius;
 
         real U = coord.x + offset.x;
         real V = coord.y + offset.y;
