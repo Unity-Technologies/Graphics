@@ -28,7 +28,7 @@ Shader "LightweightPipeline/Terrain/Standard Terrain"
 
     SubShader
     {
-        Tags { "Queue" = "Geometry-100" "RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline" "IgnoreProjector" = "True"}
+        Tags { "Queue" = "Geometry-100" "RenderType" = "Opaque" "RenderPipeline" = "LightweightPipeline" "IgnoreProjector" = "False"}
 
         Pass
         {
@@ -54,6 +54,7 @@ Shader "LightweightPipeline/Terrain/Standard Terrain"
             #pragma multi_compile _ _SHADOWS_ENABLED
             #pragma multi_compile _ _LOCAL_SHADOWS_ENABLED
             #pragma multi_compile _ _SHADOWS_SOFT
+            #pragma multi_compile _ _SHADOWS_CASCADE
 
             // -------------------------------------
             // Unity defined keywords

@@ -317,7 +317,7 @@ void ImportanceSampleAnisoGGX(real2   u,
 
 #if !defined SHADER_API_GLES
 // Ref: Listing 18 in "Moving Frostbite to PBR" + https://knarkowicz.wordpress.com/2014/12/27/analytical-dfg-term-for-ibl/
-real4 IntegrateGGXAndDisneyFGD(real3 V, real3 N, real roughness, uint sampleCount = 8192)
+real4 IntegrateGGXAndDisneyDiffuseFGD(real3 V, real3 N, real roughness, uint sampleCount = 8192)
 {
     real NdotV     = ClampNdotV(dot(N, V));
     real4 acc      = real4(0.0, 0.0, 0.0, 0.0);
@@ -370,7 +370,71 @@ real4 IntegrateGGXAndDisneyFGD(real3 V, real3 N, real roughness, uint sampleCoun
 }
 #else
 // Not supported due to lack of random library in GLES 2
-#define IntegrateGGXAndDisneyFGD ERROR_ON_UNSUPPORTED_FUNCTION(IntegrateGGXAndDisneyFGD)
+#define IntegrateGGXAndDisneyDiffuseFGD ERROR_ON_UNSUPPORTED_FUNCTION(IntegrateGGXAndDisneyDiffuseFGD)
+#endif
+
+#if !defined SHADER_API_GLES
+real4 IntegrateCharlieAndClothLambertFGD(real3 V, real3 N, real roughness, uint sampleCount = 8192)
+{
+    real NdotV     = ClampNdotV(dot(N, V));
+    real4 acc      = real4(0.0, 0.0, 0.0, 0.0);
+    // Add some jittering on Hammersley2d
+    real2 randNum  = InitRandom(V.xy * 0.5 + 0.5);
+
+    real3x3 localToWorld = GetLocalFrame(N);
+
+    for (uint i = 0; i < sampleCount; ++i)
+    {
+        real2 u = frac(randNum + Hammersley2d(i, sampleCount));
+
+        real NdotL;
+        real weightOverPdf;
+
+        // Ref: Production Friendly Microfacet Sheen BRDF
+        // Paper recommend plain uniform sampling of upper hemisphere instead of importance sampling for Charlie
+        real3 localL = SampleHemisphereUniform(u.x, u.y);
+        real3 L = mul(localL, localToWorld);
+        NdotL = saturate(dot(N, L));
+
+        if (NdotL > 0.0)
+        {
+            // Sampling weight for each sample
+            // pdf = 1 / 2PI
+            // weight = fr * (N.L) with fr = CharlieV * CharlieD  / PI
+            // weight over pdf is:
+            // weightOverPdf = (CharlieV * CharlieD / PI) * (N.L) / (1 / 2PI)
+            // weightOverPdf = 2 * CharlieV * CharlieD * (N.L)
+            real3 H = normalize(V + L);
+            real NdotH = dot(N, H);
+            // Note: we use V_Charlie and not the approx when computing FGD texture as we can afford it
+            weightOverPdf = 2.0 * V_Charlie(NdotL, NdotV, roughness) * D_CharlieNoPI(NdotH, roughness) * NdotL;
+
+            // Integral{BSDF * <N,L> dw} =
+            // Integral{(F0 + (1 - F0) * (1 - <V,H>)^5) * (BSDF / F) * <N,L> dw} =
+            // (1 - F0) * Integral{(1 - <V,H>)^5 * (BSDF / F) * <N,L> dw} + F0 * Integral{(BSDF / F) * <N,L> dw}=
+            // (1 - F0) * x + F0 * y = lerp(x, y, F0)
+            real VdotH = dot(V, H);
+            acc.x += weightOverPdf * pow(1 - VdotH, 5);
+            acc.y += weightOverPdf;
+        }
+
+        // for cloth Lambert we still use a Cosine importance sampling
+        ImportanceSampleLambert(u, localToWorld, L, NdotL, weightOverPdf);
+
+        if (NdotL > 0.0)
+        {
+            real clothLambert = ClothLambertNoPI(roughness);
+            acc.z += clothLambert * weightOverPdf;
+        }
+    }
+
+    acc /= sampleCount;
+
+    return acc;
+}
+#else
+// Not supported due to lack of random library in GLES 2
+#define IntegrateCharlieAndClothLambertFGD ERROR_ON_UNSUPPORTED_FUNCTION(IntegrateCharlieAndClothLambertFGD)
 #endif
 
 uint GetIBLRuntimeFilterSampleCount(uint mipLevel)
