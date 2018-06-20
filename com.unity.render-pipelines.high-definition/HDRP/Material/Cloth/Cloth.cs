@@ -16,7 +16,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ClothCottonWool = 1 << 0,
             ClothSilk = 1 << 1,
             ClothSubsurfaceScattering = 1 << 2,
-            CothTransmission = 1 << 3
+            ClothTransmission = 1 << 3
         };
 
         //-----------------------------------------------------------------------------
@@ -81,7 +81,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector3 diffuseColor;
             public Vector3 fresnel0;
 
+            public float ambientOcclusion;
             public float specularOcclusion;
+
+            public Vector3 fuzzTint;
 
             [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
             public Vector3 normalWS;
