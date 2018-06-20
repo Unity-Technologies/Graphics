@@ -551,6 +551,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     volumeAtlasDimensions.y = 1.0f / volumeAtlas.width;
                     volumeAtlasDimensions.z = volumeAtlas.width;
                 }
+                else
+                {
+                    volumeAtlas = CoreUtils.blackVolumeTexture;
+                }
 
                 cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VBufferDensity, m_DensityBufferHandle);
                 cmd.SetComputeBufferParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VolumeBounds,   s_VisibleVolumeBoundsBuffer);
