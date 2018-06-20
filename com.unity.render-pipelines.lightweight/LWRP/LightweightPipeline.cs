@@ -349,7 +349,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         void SetupPerCameraShaderConstants(CameraData cameraData)
         {
             float cameraWidth = (float)cameraData.camera.pixelWidth * cameraData.targetScale;
-            float cameraHeight = (float)cameraData.camera.pixelWidth * cameraData.targetScale;
+            float cameraHeight = (float)cameraData.camera.pixelHeight * cameraData.targetScale;
             Shader.SetGlobalVector(PerCameraBuffer._ScaledScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
         }
 
