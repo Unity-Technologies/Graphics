@@ -44,6 +44,7 @@ namespace UnityEngine.Experimental.Rendering
         VSM,
         EVSM,
         MSM,
+        PCSS,
         Custom = 32
     };
 
@@ -78,6 +79,7 @@ namespace UnityEngine.Experimental.Rendering
         EVSM_4          = ShadowAlgorithm.EVSM      << 3 | ShadowVariant.V1,
         MSM_Ham         = ShadowAlgorithm.MSM       << 3 | ShadowVariant.V0,
         MSM_Haus        = ShadowAlgorithm.MSM       << 3 | ShadowVariant.V1,
+        PCSS            = ShadowAlgorithm.PCSS      << 3 | ShadowVariant.V0,
         Custom          = ShadowAlgorithm.Custom    << 3
     }
 
