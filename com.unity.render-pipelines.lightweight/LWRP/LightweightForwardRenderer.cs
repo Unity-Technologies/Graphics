@@ -146,7 +146,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             Camera camera = cameraData.camera;
             RenderTextureDescriptor desc;
-            float renderScale = cameraData.renderScale;
+            float renderScale = cameraData.targetScale;
 
 #if !UNITY_SWITCH
             if (cameraData.isStereoEnabled)
@@ -317,7 +317,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (cameraData.isOffscreenRender)
                 return false;
 
-            bool isScaledRender = !Mathf.Approximately(cameraData.renderScale, 1.0f);
+            bool isScaledRender = !Mathf.Approximately(cameraData.targetScale, 1.0f);
             bool isTargetTexture2DArray = baseDescriptor.dimension == TextureDimension.Tex2DArray;
             return requiresCameraDepth || cameraData.isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
                 cameraData.postProcessEnabled || cameraData.requiresOpaqueTexture || isTargetTexture2DArray || !cameraData.isDefaultViewport;

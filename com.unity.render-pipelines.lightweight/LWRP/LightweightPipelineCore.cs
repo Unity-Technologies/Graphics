@@ -41,7 +41,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     public struct CameraData
     {
         public Camera camera;
-        public float renderScale;
+        public float targetScale;
         public int msaaSamples;
         public bool isSceneViewCamera;
         public bool isDefaultViewport;

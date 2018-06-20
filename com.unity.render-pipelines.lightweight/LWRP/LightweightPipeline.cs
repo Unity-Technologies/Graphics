@@ -170,7 +170,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         void InitializeCameraData(Camera camera, out CameraData cameraData)
         {
-            const float kRenderScaleThreshold = 0.05f;
+            const float kTargetScaleThreshold = 0.05f;
             cameraData.camera = camera;
 
             bool msaaEnabled = camera.allowMSAA && pipelineAsset.msaaSampleCount > 1;
@@ -196,8 +196,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             // Discard variations lesser than kRenderScaleThreshold.
             // Scale is only enabled for gameview
-            cameraData.renderScale = (Mathf.Abs(1.0f - pipelineAsset.renderScale) < kRenderScaleThreshold) ? 1.0f : pipelineAsset.renderScale;
-            cameraData.renderScale = (camera.cameraType == CameraType.Game) ? cameraData.renderScale : 1.0f;
+            cameraData.targetScale = (Mathf.Abs(1.0f - pipelineAsset.TargetScale) < kTargetScaleThreshold) ? 1.0f : pipelineAsset.TargetScale;
+            cameraData.targetScale = (camera.cameraType == CameraType.Game) ? cameraData.targetScale : 1.0f;
 
             cameraData.requiresDepthTexture = pipelineAsset.supportsCameraDepthTexture || cameraData.isSceneViewCamera;
             cameraData.requiresSoftParticles = pipelineAsset.supportsSoftParticles;
@@ -348,8 +348,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         void SetupPerCameraShaderConstants(CameraData cameraData)
         {
-            float cameraWidth = (float)cameraData.camera.pixelWidth * cameraData.renderScale;
-            float cameraHeight = (float)cameraData.camera.pixelWidth * cameraData.renderScale;
+            float cameraWidth = (float)cameraData.camera.pixelWidth * cameraData.targetScale;
+            float cameraHeight = (float)cameraData.camera.pixelWidth * cameraData.targetScale;
             Shader.SetGlobalVector(PerCameraBuffer._ScaledScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
         }
 
