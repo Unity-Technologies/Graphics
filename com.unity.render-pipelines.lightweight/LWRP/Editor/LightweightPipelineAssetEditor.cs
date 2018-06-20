@@ -118,7 +118,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             DrawCapabilitiesSettings();
             DrawGeneralSettings();
-            DrawXRSettings();            
+            // Readd when XRSettings is hooked up
+            // DrawXRSettings();            
 
             serializedObject.ApplyModifiedProperties();
         }
@@ -175,7 +176,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             EditorGUILayout.LabelField(Styles.generalSettingsLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
             m_TargetScale.floatValue = EditorGUILayout.Slider(Styles.TargetScaleLabel, m_TargetScale.floatValue, k_MinTargetScale, k_MaxTargetScale);
-            m_ViewportScale.floatValue = EditorGUILayout.Slider(Styles.ViewportScaleLabel, m_ViewportScale.floatValue, k_MinViewportScale, k_MaxViewportScale);
+            // Re-add once viewport scale is hooked up
+            //m_ViewportScale.floatValue = EditorGUILayout.Slider(Styles.ViewportScaleLabel, m_ViewportScale.floatValue, k_MinViewportScale, k_MaxViewportScale);
             m_MaxPixelLights.intValue = EditorGUILayout.IntSlider(Styles.maxPixelLightsLabel, m_MaxPixelLights.intValue, 0, k_MaxSupportedPixelLights);
             EditorGUILayout.Space();
 
