@@ -195,18 +195,51 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                                               Math.Abs(cameraRect.width) < 1.0f || Math.Abs(cameraRect.height) < 1.0f));
 
             // Discard variations lesser than kRenderScaleThreshold.
-            // Scale is only enabled for gameview
-            // XR has it's own scaling mechanism.
-            cameraData.renderScale = (Mathf.Abs(1.0f - pipelineAsset.renderScale) < kRenderScaleThreshold) ? 1.0f : pipelineAsset.renderScale;
-            cameraData.renderScale = (camera.cameraType == CameraType.Game && !cameraData.isStereoEnabled) ? cameraData.renderScale : 1.0f;
+            // Scale is only enabled for gameview.
+            // In XR mode, grab renderScale from XRSettings instead of SRP asset for now.
+            // This is just a temporary change pending full integration of XR with SRP
 
-            cameraData.requiresDepthTexture = pipelineAsset.supportsCameraDepthTexture || cameraData.postProcessEnabled || cameraData.isSceneViewCamera;
+            if (camera.cameraType == CameraType.Game)
+            {
+#if !UNITY_SWITCH
+                if (cameraData.isStereoEnabled)
+                {
+                    cameraData.renderScale = XRSettings.eyeTextureResolutionScale;
+                } else
+#endif
+                {
+                    cameraData.renderScale = pipelineAsset.renderScale;
+                }
+            }
+            else
+            {
+                cameraData.renderScale = 1.0f;
+            }
+
+            cameraData.renderScale = (Mathf.Abs(1.0f - cameraData.renderScale) < kRenderScaleThreshold) ? 1.0f : cameraData.renderScale;
+
+            cameraData.requiresDepthTexture = pipelineAsset.supportsCameraDepthTexture || cameraData.isSceneViewCamera;
             cameraData.requiresSoftParticles = pipelineAsset.supportsSoftParticles;
             cameraData.requiresOpaqueTexture = pipelineAsset.supportsCameraOpaqueTexture;
             cameraData.opaqueTextureDownsampling = pipelineAsset.opaqueDownsampling;
 
             bool anyShadowsEnabled = pipelineAsset.supportsDirectionalShadows || pipelineAsset.supportsLocalShadows;
             cameraData.maxShadowDistance = (anyShadowsEnabled) ? pipelineAsset.shadowDistance : 0.0f;
+
+            LightweightAdditionalCameraData additionalCameraData = camera.gameObject.GetComponent<LightweightAdditionalCameraData>();
+            if (additionalCameraData != null)
+            {
+                cameraData.maxShadowDistance = (additionalCameraData.renderShadows) ? cameraData.maxShadowDistance : 0.0f;
+                cameraData.requiresDepthTexture &= additionalCameraData.requiresDepthTexture;
+                cameraData.requiresOpaqueTexture &= additionalCameraData.requiresColorTexture;
+            }
+            else if (!cameraData.isSceneViewCamera && camera.cameraType != CameraType.Reflection && camera.cameraType != CameraType.Preview)
+            {
+                cameraData.requiresDepthTexture = false;
+                cameraData.requiresOpaqueTexture = false;
+            }
+
+            cameraData.requiresDepthTexture |= cameraData.postProcessEnabled;
         }
 
         void InitializeRenderingData(ref CameraData cameraData, List<VisibleLight> visibleLights, int maxSupportedLocalLightsPerPass, int maxSupportedVertexLights, out RenderingData renderingData)

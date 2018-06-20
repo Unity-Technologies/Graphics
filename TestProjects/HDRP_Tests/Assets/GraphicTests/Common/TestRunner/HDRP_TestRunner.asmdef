@@ -1,0 +1,16 @@
+{
+    "name": "HDRP_TestRunner",
+    "references": [
+        "com.unity.postprocessing.Runtime",
+        "com.unity.render-pipelines.core.IncludePaths",
+        "com.unity.render-pipelines.core.Runtime",
+        "com.unity.render-pipelines.high-definition.Runtime",
+        "UnityEngine.TestTools.Graphics"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false
+}
