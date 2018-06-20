@@ -81,7 +81,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (textures.Contains(volumeTexture))
             {
-                textures.Add(volumeTexture);
+                textures.Remove(volumeTexture);
 
                 needTextureUpdate = true;
             }
