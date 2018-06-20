@@ -1133,7 +1133,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     ZERO_INITIALIZE(DirectLighting, lighting);
 
     float3 N     = bsdfData.normalWS;
-    float3 L     = -lightData.forward; // Lights point backward in Unity
+    float3 L     = -lightData.forward;
     float  NdotL = dot(N, L);
 
     float3 transmittance = float3(0.0, 0.0, 0.0);

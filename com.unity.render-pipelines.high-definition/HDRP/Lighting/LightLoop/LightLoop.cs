@@ -950,7 +950,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             lightData.color = GetLightColor(light);
 
-            lightData.forward = light.light.transform.forward; // Note: Light direction is oriented backward (-Z)
+            lightData.forward = light.light.transform.forward;
             lightData.up = light.light.transform.up;
             lightData.right = light.light.transform.right;
 

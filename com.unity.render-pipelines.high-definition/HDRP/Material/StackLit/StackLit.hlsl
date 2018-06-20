@@ -2283,7 +2283,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
     float3 N; float unclampedNdotV;
     EvaluateBSDF_GetNormalUnclampedNdotV(bsdfData, preLightData, V, N, unclampedNdotV);
 
-    float3 L     = -lightData.forward; // Lights point backward in Unity
+    float3 L     = -lightData.forward;
     float  NdotL = dot(N, L);
 
     // For shadow attenuation (ie receiver bias), always use the geometric normal

@@ -136,9 +136,9 @@ real PCSS(real3 coord, real filterRadius, real4 scaleOffset, float slice, real2 
         //        Overfiltering will leak results from other shadow lights.
         //TODO: Investigate moving this to blocker search.
         if (U <= UMin || U >= UMax || V <= VMin || V >= VMax)
-            sum += SampleCompShadow_T2DA(shadowContext, texIdx, sampIdx, real3(coord.xy, coord.z), slice);
+            sum += SampleCompShadow_T2DA(shadowContext, texIdx, sampIdx, real3(coord.xy, coord.z), slice).r;
         else
-            sum += SampleCompShadow_T2DA(shadowContext, texIdx, sampIdx, real3(U, V, coord.z + dot(sampleBias, offset)), slice);
+            sum += SampleCompShadow_T2DA(shadowContext, texIdx, sampIdx, real3(U, V, coord.z + dot(sampleBias, offset)), slice).r;
     }
 
     return sum / sampleCount;
@@ -165,9 +165,9 @@ real PCSS(real3 coord, real filterRadius, real4 scaleOffset, float slice, real2 
         //        Overfiltering will leak results from other shadow lights.
         //TODO: Investigate moving this to blocker search.
         if (U <= UMin || U >= UMax || V <= VMin || V >= VMax)
-            sum += SAMPLE_TEXTURE2D_ARRAY_SHADOW(shadowMap, compSampler, real3(coord.xy, coord.z), slice);
+            sum += SAMPLE_TEXTURE2D_ARRAY_SHADOW(shadowMap, compSampler, real3(coord.xy, coord.z), slice).r;
         else
-            sum += SAMPLE_TEXTURE2D_ARRAY_SHADOW(shadowMap, compSampler, real3(U, V, coord.z + dot(sampleBias, offset)), slice);
+            sum += SAMPLE_TEXTURE2D_ARRAY_SHADOW(shadowMap, compSampler, real3(U, V, coord.z + dot(sampleBias, offset)), slice).r;
     }
 
     return sum / sampleCount;
