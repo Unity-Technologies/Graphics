@@ -41,6 +41,23 @@ namespace UnityEditor.VFX.UI
         public VFXDataEdge()
         {
             RegisterCallback<ControllerChangedEvent>(OnChange);
+
+            RegisterCallback<MouseEnterEvent>(OnMouseEnter);
+            RegisterCallback<MouseLeaveEvent>(OnMouseLeave);
+        }
+
+        bool m_Hovered;
+
+        void OnMouseEnter(MouseEnterEvent e)
+        {
+            m_Hovered = true;
+            e.PreventDefault();
+        }
+
+        void OnMouseLeave(MouseLeaveEvent e)
+        {
+            m_Hovered = false;
+            e.PreventDefault();
         }
 
         protected virtual void OnChange(ControllerChangedEvent e)
@@ -48,6 +65,51 @@ namespace UnityEditor.VFX.UI
             if (e.controller == controller)
             {
                 SelfChange();
+            }
+        }
+
+        bool m_Selected;
+
+        protected override void DrawEdge()
+        {
+            if (!UpdateEdgeControl())
+                return;
+
+            if (m_Selected)
+            {
+                if (isGhostEdge)
+                    Debug.Log("Selected Ghost Edge: this should never be");
+
+                edgeControl.inputColor = selectedColor;
+                edgeControl.outputColor = selectedColor;
+                edgeControl.edgeWidth = 4;
+
+                if (input != null)
+                    input.capColor = selectedColor;
+
+                if (output != null)
+                    output.capColor = selectedColor;
+            }
+            else
+            {
+                if (input != null)
+                    input.UpdateCapColor();
+
+                if (output != null)
+                    output.UpdateCapColor();
+
+                edgeControl.inputColor = input == null ? output.portColor : input.portColor;
+                edgeControl.outputColor = output == null ? input.portColor : output.portColor;
+                edgeControl.edgeWidth = m_Hovered ? 4 : 2;
+
+                edgeControl.toCapColor = input == null ? output.portColor : input.portColor;
+                edgeControl.fromCapColor = output == null ? input.portColor : output.portColor;
+
+                if (isGhostEdge)
+                {
+                    edgeControl.inputColor = new Color(edgeControl.inputColor.r, edgeControl.inputColor.g, edgeControl.inputColor.b, 0.5f);
+                    edgeControl.outputColor = new Color(edgeControl.outputColor.r, edgeControl.outputColor.g, edgeControl.outputColor.b, 0.5f);
+                }
             }
         }
 
