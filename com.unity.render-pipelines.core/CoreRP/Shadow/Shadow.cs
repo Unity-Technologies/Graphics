@@ -165,7 +165,7 @@ namespace UnityEngine.Experimental.Rendering
         override protected void Register(GPUShadowType type, ShadowRegistry registry)
         {
             ShadowPrecision precision = m_ShadowmapBits == 32 ? ShadowPrecision.High : ShadowPrecision.Low;
-            m_SupportedAlgorithms.Reserve(5);
+            m_SupportedAlgorithms.Reserve(6);
             m_SupportedAlgorithms.AddUniqueUnchecked((int)ShadowUtils.Pack(ShadowAlgorithm.PCF, ShadowVariant.V0, precision));
             m_SupportedAlgorithms.AddUniqueUnchecked((int)ShadowUtils.Pack(ShadowAlgorithm.PCF, ShadowVariant.V1, precision));
             m_SupportedAlgorithms.AddUniqueUnchecked((int)ShadowUtils.Pack(ShadowAlgorithm.PCF, ShadowVariant.V2, precision));
