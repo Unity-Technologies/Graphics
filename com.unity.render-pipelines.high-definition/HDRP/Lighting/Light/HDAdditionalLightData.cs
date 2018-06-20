@@ -87,6 +87,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool featuresFoldout = true;
         public bool showAdditionalSettings = false;
 
+        public bool showEmissiveMesh = false;
+
 #if UNITY_EDITOR
 
         private void DrawGizmos(bool selected)
