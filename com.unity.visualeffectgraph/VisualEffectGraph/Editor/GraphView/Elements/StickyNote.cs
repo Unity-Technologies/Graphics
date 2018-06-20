@@ -152,6 +152,7 @@ namespace UnityEditor.VFX.UI
     {
         public ResizableElement() : this(UXMLHelper.GetUXMLPath("uxml/Resizable.uxml"))
         {
+            pickingMode = PickingMode.Ignore;
         }
 
         public ResizableElement(string uiFile)

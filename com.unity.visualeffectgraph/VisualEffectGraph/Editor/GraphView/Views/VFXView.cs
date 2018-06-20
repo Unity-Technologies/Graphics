@@ -193,8 +193,8 @@ namespace UnityEditor.VFX.UI
             deleteSelection = null;
             nodeCreationRequest = null;
 
-            elementAddedToGroup = null;
-            elementRemovedFromGroup = null;
+            elementsAddedToGroup = null;
+            elementsRemovedFromGroup = null;
             groupTitleChanged = null;
 
             m_GeometrySet = false;
@@ -233,8 +233,8 @@ namespace UnityEditor.VFX.UI
             deleteSelection = Delete;
             nodeCreationRequest = OnCreateNode;
 
-            elementAddedToGroup = ElementAddedToGroupNode;
-            elementRemovedFromGroup = ElementRemovedFromGroupNode;
+            elementsAddedToGroup = ElementAddedToGroupNode;
+            elementsRemovedFromGroup = ElementRemovedFromGroupNode;
             groupTitleChanged = GroupNodeTitleChanged;
         }
 
@@ -355,39 +355,9 @@ namespace UnityEditor.VFX.UI
             spacer.style.flex = new Flex(1);
             m_Toolbar.Add(spacer);
 
-            m_DropDownButtonCullingMode = new Label();
-
-            m_DropDownButtonCullingMode.text = CullingMaskToString(cullingFlags);
-            m_DropDownButtonCullingMode.AddManipulator(new DownClickable(() => {
-                    var menu = new GenericMenu();
-                    foreach (var val in k_CullingOptions)
-                    {
-                        menu.AddItem(new GUIContent(val.Key), val.Value == cullingFlags, (v) =>
-                        {
-                            cullingFlags = (VFXCullingFlags)v;
-                            m_DropDownButtonCullingMode.text = CullingMaskToString((VFXCullingFlags)v);
-                        }, val.Value);
-                    }
-                    menu.DropDown(m_DropDownButtonCullingMode.worldBound);
-                }));
-            m_Toolbar.Add(m_DropDownButtonCullingMode);
-            m_DropDownButtonCullingMode.AddToClassList("toolbarItem");
-
-            m_ToggleMotionVectors = new Toggle(OnToggleMotionVectors);
-            m_ToggleMotionVectors.text = "Use Motion Vectors";
-            m_ToggleMotionVectors.value = GetRendererSettings().motionVectorGenerationMode == MotionVectorGenerationMode.Object;
-            m_Toolbar.Add(m_ToggleMotionVectors);
-            m_ToggleMotionVectors.AddToClassList("toolbarItem");
-
-            Toggle toggleRenderBounds = new Toggle(OnShowBounds);
-            toggleRenderBounds.text = "Show Bounds";
-            toggleRenderBounds.value = VisualEffect.renderBounds;
-            m_Toolbar.Add(toggleRenderBounds);
-            toggleRenderBounds.AddToClassList("toolbarItem");
-
             Toggle toggleAutoCompile = new Toggle(OnToggleCompile);
             toggleAutoCompile.text = "Auto Compile";
-            toggleAutoCompile.value = true;
+            toggleAutoCompile.SetValueWithoutNotify(true);
             m_Toolbar.Add(toggleAutoCompile);
             toggleAutoCompile.AddToClassList("toolbarItem");
 
@@ -464,6 +434,7 @@ namespace UnityEditor.VFX.UI
                 Insert(childCount - 1, m_Blackboard);
                 BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
                 m_Blackboard.RegisterCallback<GeometryChangedEvent>(OnFirstBlackboardGeometryChanged);
+                m_Blackboard.style.positionType = PositionType.Absolute;
             }
             else
             {
@@ -604,14 +575,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (change == VFXViewController.AnyThing)
                 {
-                    var settings = GetRendererSettings();
-
-                    m_DropDownButtonCullingMode.text = CullingMaskToString(cullingFlags);
-
-                    m_ToggleMotionVectors.value = settings.motionVectorGenerationMode == MotionVectorGenerationMode.Object;
-                    m_ToggleMotionVectors.SetEnabled(true);
-
-                    // if the asset dis destroy somehow, fox example if the user delete the asset, delete the controller and update the window.
+                    // if the asset is destroyed somehow, fox example if the user delete the asset, update the controller and update the window.
                     var asset = controller.model;
                     if (asset == null)
                     {
@@ -619,11 +583,6 @@ namespace UnityEditor.VFX.UI
                         return;
                     }
                 }
-            }
-            else
-            {
-                m_DropDownButtonCullingMode.text = k_CullingOptions[0].Key;
-                m_ToggleMotionVectors.SetEnabled(false);
             }
 
             Profiler.EndSample();
@@ -740,8 +699,8 @@ namespace UnityEditor.VFX.UI
             }
             else
             {
-                elementAddedToGroup = null;
-                elementRemovedFromGroup = null;
+                elementsAddedToGroup = null;
+                elementsRemovedFromGroup = null;
 
                 var deletedControllers = rootNodes.Keys.Except(controller.nodes).ToArray();
 
@@ -785,8 +744,8 @@ namespace UnityEditor.VFX.UI
                 }
 
 
-                elementAddedToGroup = ElementAddedToGroupNode;
-                elementRemovedFromGroup = ElementRemovedFromGroupNode;
+                elementsAddedToGroup = ElementAddedToGroupNode;
+                elementsRemovedFromGroup = ElementRemovedFromGroupNode;
             }
 
             Profiler.EndSample();
@@ -1030,42 +989,6 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        VFXRendererSettings GetRendererSettings()
-        {
-            if (controller != null)
-            {
-                var asset = controller.model;
-                if (asset != null)
-                    return asset.rendererSettings;
-            }
-
-            return new VFXRendererSettings();
-        }
-
-        VFXCullingFlags cullingFlags
-        {
-            get
-            {
-                if (controller != null)
-                {
-                    var resource = controller.model;
-                    if (resource != null)
-                        return resource.cullingFlags;
-                }
-                return VFXCullingFlags.CullDefault;
-            }
-
-            set
-            {
-                if (controller != null)
-                {
-                    var resource = controller.model;
-                    if (resource != null)
-                        resource.cullingFlags = value;
-                }
-            }
-        }
-
         public void CreateTemplateSystem(string path, Vector2 tPos, VFXGroupNode groupNode)
         {
             var resource = VisualEffectResource.GetResourceAtPath(path);
@@ -1081,34 +1004,6 @@ namespace UnityEditor.VFX.UI
 
                 templateController.useCount--;
             }
-        }
-
-        void SetRendererSettings(VFXRendererSettings settings)
-        {
-            if (controller != null)
-            {
-                var resource = controller.model;
-                if (resource != null)
-                {
-                    resource.rendererSettings = settings;
-                    controller.graph.SetExpressionGraphDirty();
-                }
-            }
-        }
-
-        void OnToggleMotionVectors()
-        {
-            var settings = GetRendererSettings();
-            if (settings.motionVectorGenerationMode == MotionVectorGenerationMode.Object)
-                settings.motionVectorGenerationMode = MotionVectorGenerationMode.Camera;
-            else
-                settings.motionVectorGenerationMode = MotionVectorGenerationMode.Object;
-            SetRendererSettings(settings);
-        }
-
-        void OnShowBounds()
-        {
-            VisualEffect.renderBounds = !VisualEffect.renderBounds;
         }
 
         void OnToggleCompile()
@@ -1291,6 +1186,12 @@ namespace UnityEditor.VFX.UI
             {
                 controller.Remove(change.elementsToRemove.OfType<IControlledElement>().Where(t => t.controller != null).Select(t => t.controller));
             }
+
+            foreach (var groupNode in groupNodes.Values)
+            {
+                groupNode.UpdateControllerFromContent();
+            }
+
             return change;
         }
 
@@ -1430,14 +1331,14 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void ElementAddedToGroupNode(Group groupNode, GraphElement element)
+        void ElementAddedToGroupNode(Group groupNode, IEnumerable<GraphElement> elements)
         {
-            (groupNode as VFXGroupNode).ElementAddedToGroupNode(element);
+            (groupNode as VFXGroupNode).ElementsAddedToGroupNode(elements);
         }
 
-        void ElementRemovedFromGroupNode(Group groupNode, GraphElement element)
+        void ElementRemovedFromGroupNode(Group groupNode, IEnumerable<GraphElement> elements)
         {
-            (groupNode as VFXGroupNode).ElementRemovedFromGroupNode(element);
+            //(groupNode as VFXGroupNode).ElementsRemovedFromGroupNode(elements);
         }
 
         void GroupNodeTitleChanged(Group groupNode, string title)
@@ -1469,9 +1370,6 @@ namespace UnityEditor.VFX.UI
 
 
         VFXComponentBoard m_ComponentBoard;
-
-        private Label m_DropDownButtonCullingMode;
-        private Toggle m_ToggleMotionVectors;
 
         public readonly Vector2 defaultPasteOffset = new Vector2(100, 100);
         public Vector2 pasteOffset = Vector2.zero;
@@ -1718,18 +1616,6 @@ namespace UnityEditor.VFX.UI
             }
 
             base.BuildContextualMenu(evt);
-        }
-
-        private static readonly KeyValuePair<string, VFXCullingFlags>[] k_CullingOptions = new KeyValuePair<string, VFXCullingFlags>[]
-        {
-            new KeyValuePair<string, VFXCullingFlags>("Cull simulation and bounds", (VFXCullingFlags.CullSimulation | VFXCullingFlags.CullBoundsUpdate)),
-            new KeyValuePair<string, VFXCullingFlags>("Cull simulation only", (VFXCullingFlags.CullSimulation)),
-            new KeyValuePair<string, VFXCullingFlags>("Disable culling", VFXCullingFlags.CullNone),
-        };
-
-        private string CullingMaskToString(VFXCullingFlags flags)
-        {
-            return k_CullingOptions.First(o => o.Value == flags).Key;
         }
 
         bool IDropTarget.CanAcceptDrop(List<ISelectable> selection)

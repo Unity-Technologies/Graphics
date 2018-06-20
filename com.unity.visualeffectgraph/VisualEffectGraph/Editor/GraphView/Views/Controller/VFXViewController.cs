@@ -259,9 +259,8 @@ namespace UnityEditor.VFX.UI
             {
                 var operatorControllers = m_SyncedModels.Values.SelectMany(t => t).OfType<VFXNodeController>();
                 var blockControllers = (contexts.SelectMany(t => t.blockControllers)).Cast<VFXNodeController>();
-                var contextSlotContainers = contexts.Where(t => t != null).Cast<VFXNodeController>();
 
-                return operatorControllers.Concat(blockControllers).Concat(contextSlotContainers);
+                return operatorControllers.Concat(blockControllers);
             }
         }
 
@@ -935,64 +934,58 @@ namespace UnityEditor.VFX.UI
             m_FlowAnchorController.Remove(controller);
         }
 
-        public static void CollectParentOperator(IVFXSlotContainer operatorInput, HashSet<IVFXSlotContainer> hashParents)
+        public static void CollectAncestorOperator(IVFXSlotContainer operatorInput, HashSet<IVFXSlotContainer> hashParents)
         {
             if (hashParents.Contains(operatorInput))
                 return;
 
             hashParents.Add(operatorInput);
 
-            var parents = operatorInput.inputSlots.SelectMany(o => o.allChildrenWhere(s => s.HasLink())).Select(o => o.refSlot.owner);
-            foreach (var parent in parents)
+            foreach (var slotInput in operatorInput.inputSlots)
             {
-                CollectParentOperator(parent, hashParents);
+                var linkedSlots = slotInput.AllChildrenWithLink();
+                foreach (var linkedSlot in linkedSlots)
+                {
+                    CollectAncestorOperator(linkedSlot.refSlot.owner, hashParents);
+                }
             }
         }
 
-        public static void CollectChildOperator(IVFXSlotContainer operatorInput, HashSet<IVFXSlotContainer> hashChildren)
+        public static void CollectDescendantOperator(IVFXSlotContainer operatorInput, HashSet<IVFXSlotContainer> hashChildren)
         {
             if (hashChildren.Contains(operatorInput))
                 return;
 
             hashChildren.Add(operatorInput);
-
-            var children = operatorInput.outputSlots.SelectMany(o => o.allChildrenWhere(s => s.HasLink())).Select(o => o.refSlot.owner);
-            foreach (var child in children)
+            foreach (var slotOutput in operatorInput.outputSlots)
             {
-                CollectChildOperator(child, hashChildren);
+                var linkedSlots = slotOutput.AllChildrenWithLink();
+                foreach (var linkedSlot in linkedSlots)
+                {
+                    foreach (var link in linkedSlot.LinkedSlots)
+                    {
+                        CollectDescendantOperator(link.owner, hashChildren);
+                    }
+                }
             }
         }
 
-        public List<VFXDataAnchorController> GetCompatiblePorts(VFXDataAnchorController startAnchorController, NodeAdapter nodeAdapter)
+        public IEnumerable<VFXDataAnchorController> GetCompatiblePorts(VFXDataAnchorController startAnchorController, NodeAdapter nodeAdapter)
         {
-            var allSlotContainerControllers = AllSlotContainerControllers;
+            var cacheLinkData = new VFXDataAnchorController.CanLinkCache();
 
-
-            IEnumerable<VFXDataAnchorController> allCandidates = Enumerable.Empty<VFXDataAnchorController>();
-
-            if (startAnchorController.direction == Direction.Input)
+            var direction = startAnchorController.direction;
+            foreach (var slotContainer in AllSlotContainerControllers)
             {
-                var currentOperator = startAnchorController.sourceNode.slotContainer;
-                var childrenOperators = new HashSet<IVFXSlotContainer>();
-                CollectChildOperator(currentOperator, childrenOperators);
-
-                allSlotContainerControllers = allSlotContainerControllers.Where(o => !childrenOperators.Contains(o.slotContainer));
-
-                var toSlot = startAnchorController.model;
-                allCandidates = allSlotContainerControllers.SelectMany(o => o.outputPorts).Where(o => startAnchorController.CanLink(o)).ToList();
+                var sourceSlot = direction == Direction.Input ? slotContainer.outputPorts : slotContainer.inputPorts;
+                foreach (var slot in sourceSlot)
+                {
+                    if (startAnchorController.CanLink(slot, cacheLinkData))
+                    {
+                        yield return slot;
+                    }
+                }
             }
-            else
-            {
-                var currentOperator = startAnchorController.sourceNode.slotContainer;
-                var parentOperators = new HashSet<IVFXSlotContainer>();
-                CollectParentOperator(currentOperator, parentOperators);
-
-                allSlotContainerControllers = allSlotContainerControllers.Where(o => !parentOperators.Contains(o.slotContainer));
-
-                allCandidates = allSlotContainerControllers.SelectMany(o => o.inputPorts).Where(i => startAnchorController.CanLink(i)).ToList();
-            }
-
-            return allCandidates.ToList();
         }
 
         public List<VFXFlowAnchorController> GetCompatiblePorts(VFXFlowAnchorController startAnchorController, NodeAdapter nodeAdapter)

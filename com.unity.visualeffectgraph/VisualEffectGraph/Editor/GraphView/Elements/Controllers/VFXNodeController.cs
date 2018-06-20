@@ -49,15 +49,15 @@ namespace UnityEditor.VFX.UI
         {
         }
 
-        public bool CouldLink(VFXDataAnchorController myAnchor, VFXDataAnchorController otherAnchor)
+        public bool CouldLink(VFXDataAnchorController myAnchor, VFXDataAnchorController otherAnchor, VFXDataAnchorController.CanLinkCache cache)
         {
             if (myAnchor.direction == Direction.Input)
-                return CouldLinkMyInputTo(myAnchor, otherAnchor);
+                return CouldLinkMyInputTo(myAnchor, otherAnchor, cache);
             else
-                return otherAnchor.sourceNode.CouldLinkMyInputTo(otherAnchor, myAnchor);
+                return otherAnchor.sourceNode.CouldLinkMyInputTo(otherAnchor, myAnchor, cache);
         }
 
-        protected virtual bool CouldLinkMyInputTo(VFXDataAnchorController myInput, VFXDataAnchorController otherOutput)
+        protected virtual bool CouldLinkMyInputTo(VFXDataAnchorController myInput, VFXDataAnchorController otherOutput, VFXDataAnchorController.CanLinkCache cache)
         {
             return false;
         }
@@ -111,7 +111,7 @@ namespace UnityEditor.VFX.UI
             }
             set
             {
-                model.position = new Vector2(Mathf.Round(value.x),Mathf.Round(value.y));
+                model.position = new Vector2(Mathf.Round(value.x), Mathf.Round(value.y));
             }
         }
         public virtual bool superCollapsed

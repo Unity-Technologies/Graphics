@@ -195,6 +195,10 @@ namespace UnityEditor.VFX
             }
             Profiler.EndSample();
             Profiler.EndSample();
+            m_ExpressionGraphDirty = true;
+            m_ExpressionValuesDirty = true;
+
+            Debug.Log("Graph Restore");
         }
 
         public override void CollectDependencies(HashSet<ScriptableObject> objs)
@@ -249,7 +253,7 @@ namespace UnityEditor.VFX
                 {
                     var obj = remainingSlotContainers[i];
 
-                    var allLinkedOutputSlot = (obj as IVFXSlotContainer).outputSlots.SelectMany(o => o.allChildrenWhere(s => s.HasLink()).SelectMany(s => s.LinkedSlots));
+                    var allLinkedOutputSlot = (obj as IVFXSlotContainer).outputSlots.SelectMany(o => o.AllChildrenWithLink().SelectMany(s => s.LinkedSlots));
                     var slotContainersOutputOwners = allLinkedOutputSlot.Select(o => o.owner as ScriptableObject).Where(o => o != null).Distinct().ToArray();
 
                     if (slotContainersOutputOwners.All(o => sortedSlotContainers.Contains(o)))
@@ -369,6 +373,11 @@ namespace UnityEditor.VFX
             m_ExpressionGraphDirty = true;
         }
 
+        public void SetExpressionValueDirty()
+        {
+            m_ExpressionValuesDirty = true;
+        }
+
         public void RecompileIfNeeded(bool preventRecompilation = false)
         {
             SanitizeGraph();
@@ -381,18 +390,6 @@ namespace UnityEditor.VFX
             else if (m_ExpressionValuesDirty && !m_ExpressionGraphDirty)
             {
                 compiledData.UpdateValues();
-            }
-
-            if (considerGraphDirty || m_ExpressionValuesDirty)
-            {
-                var vfxAsset = compiledData.visualEffectResource.asset;
-                foreach (var component in VFXManager.GetComponents())
-                {
-                    if (component.visualEffectAsset == vfxAsset)
-                    {
-                        component.SetVisualEffectAssetDirty(considerGraphDirty);
-                    }
-                }
             }
 
             if (considerGraphDirty)
