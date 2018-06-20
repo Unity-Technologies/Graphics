@@ -3,7 +3,6 @@ TEXTURE2D_ARRAY(_LtcData); // We pack all Ltc data inside one texture array to l
 
 #define LTC_GGX_MATRIX_INDEX 0 // RGBA
 #define LTC_DISNEY_DIFFUSE_MATRIX_INDEX 1 // RGBA
-#define LTC_MULTI_GGX_FRESNEL_DISNEY_DIFFUSE_INDEX 2 // RGB, A unused
 
 #define LTC_LUT_SIZE   64
 #define LTC_LUT_SCALE  ((LTC_LUT_SIZE - 1) * rcp(LTC_LUT_SIZE))
