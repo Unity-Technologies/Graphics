@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - GLES2 shader compiler error in IntegrationTests
 - Can't set RenderScale and ShadowDistance by script
 - VR Single Pass Instancing shadows
+- Fixed compilation errors on Nintendo Switch (limited XRSetting support).
 
 ## [2.0.0-preview]
 

@@ -295,9 +295,14 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.iridescenceThickness = dot(SAMPLE_TEXTURE2D_SCALE_BIAS(_IridescenceThicknessMap), _IridescenceThicknessMapChannelMask);
     surfaceData.iridescenceThickness = lerp(_IridescenceThicknessRange.x, _IridescenceThicknessRange.y, surfaceData.iridescenceThickness);
     surfaceData.iridescenceThickness = lerp(_IridescenceThickness, surfaceData.iridescenceThickness, _IridescenceThicknessUseMap);
+    surfaceData.iridescenceMask = dot(SAMPLE_TEXTURE2D_SCALE_BIAS(_IridescenceMaskMap), _IridescenceMaskMapChannelMask);
+    surfaceData.iridescenceMask = lerp(_IridescenceMaskRange.x, _IridescenceMaskRange.y, surfaceData.iridescenceMask);
+    surfaceData.iridescenceMask = lerp(_IridescenceMask, surfaceData.iridescenceMask, _IridescenceMaskUseMap);
+
 #else
     surfaceData.iridescenceIor = 1.0;
     surfaceData.iridescenceThickness = 0.0;
+    surfaceData.iridescenceMask = 0.0;
 #endif
 
 #if defined(_MATERIAL_FEATURE_SUBSURFACE_SCATTERING) || defined(_MATERIAL_FEATURE_TRANSMISSION)
@@ -332,6 +337,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Convert back to world space normal
     surfaceData.normalWS = SurfaceGradientResolveNormal(input.worldToTangent[2], gradient.xyz);
     surfaceData.coatNormalWS = SurfaceGradientResolveNormal(input.worldToTangent[2], coatGradient.xyz);
+
+    surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 
     if ((_GeometricNormalFilteringEnabled + _TextureNormalFilteringEnabled) > 0.0)
     {
@@ -376,7 +383,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // It is safe to call this function here as surfaceData have been filled
     // We want to know if we must enable transmission on GI for SSS material, if the material have no SSS, this code will be remove by the compiler.
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(input.positionSS.xy, surfaceData);
-    if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION))
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION))
     {
         // For now simply recall the function with inverted normal, the compiler should be able to optimize the lightmap case to not resample the directional lightmap
         // however it will not optimize the lightprobe case due to the proxy volume relying on dynamic if (we rely must get right of this dynamic if), not a problem for SH9, but a problem for proxy volume.

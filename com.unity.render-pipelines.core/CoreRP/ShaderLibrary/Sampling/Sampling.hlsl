@@ -100,7 +100,6 @@ real3 CubemapTexelToDirection(real2 positionNVC, uint faceId)
 //-----------------------------------------------------------------------------
 // Sampling function
 // Reference : http://www.cs.virginia.edu/~jdl/bib/globillum/mis/shirley96.pdf + PBRT
-// Caution: Our light point backward (-Z), these sampling function follow this convention
 //-----------------------------------------------------------------------------
 
 // Performs uniform sampling of the unit disk.
@@ -237,7 +236,7 @@ void SampleRectangle(real2   u,
 {
     // Random point at rectangle surface
     P = real3((u.x - 0.5) * width, (u.y - 0.5) * height, 0);
-    Ns = real3(0, 0, -1); // Light point backward (-Z)
+    Ns = real3(0, 0, -1); // Light down (-Z)
 
     // Transform to world space
     P = mul(real4(P, 1.0), localToWorld).xyz;
@@ -256,7 +255,7 @@ void SampleDisk(real2   u,
 {
     // Random point at disk surface
     P  = real3(radius * SampleDiskUniform(u.x, u.y), 0);
-    Ns = real3(0.0, 0.0, -1.0); // Light point backward (-Z)
+    Ns = real3(0.0, 0.0, -1.0); // Light down (-Z)
 
     // Transform to world space
     P = mul(real4(P, 1.0), localToWorld).xyz;

@@ -9,13 +9,19 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed a shader preprocessor issue when compiling DebugViewMaterialGBuffer.shader against Metal target
 - Added a temporary workaround to Lit.hlsl to avoid broken lighting code with Metal/AMD
+- Fixed compilation errors on Nintendo Switch (limited XRSetting support).
+- Fixed apply range attenuation option on punctual light
+- Fixed issue when using more than one volume mask texture with density volumes.
 
 ### Added
 - Add option supportDitheringCrossFade on HDRP Asset to allow to remove shader variant during player build if needed
 - Add contact shadows for punctual lights (in additional shadow settings), only one light is allowed to cast contact shadows at the same time and so at each frame a dominant light is choosed among all light with contact shadows enabled.
+- Add PCSS shadow filter support (from SRP Core)
 
 ### Changed
 - Re-enable shadow mask mode in debug view
+- SSS and Transmission code have been refactored to be able to share it between various material. Guidelines are in SubsurfaceScattering.hlsl
+- Change code in area light with LTC for Lit shader. Magnitude is now take from FGD texture instead of a separate texture.
 
 ### Fixed
 - Fix contact shadows applied on transmission
