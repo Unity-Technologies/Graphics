@@ -862,7 +862,6 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 
         preLightData.coatPartLambdaV = GetSmithJointGGXPartLambdaV(NdotV, CLEAR_COAT_ROUGHNESS);
         preLightData.coatIblR = reflect(-V, N);
-
         preLightData.coatIblF = F_Schlick(CLEAR_COAT_F0, NdotV) * bsdfData.coatMask;
     }
 
@@ -1338,11 +1337,7 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
 
     // See comment for specular magnitude, it apply to diffuse as well
-#ifdef USE_DIFFUSE_LAMBERT_BRDF
-    lighting.diffuse = ltcValue;
-#else
     lighting.diffuse = preLightData.diffuseFGD * ltcValue;
-#endif
 
     UNITY_BRANCH if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
@@ -1481,11 +1476,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     ltcValue *= lightData.diffuseScale;
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
     // See comment for specular magnitude, it apply to diffuse as well
-#ifdef USE_DIFFUSE_LAMBERT_BRDF
-    lighting.diffuse = ltcValue;
-#else
     lighting.diffuse = preLightData.diffuseFGD * ltcValue;
-#endif
 
     UNITY_BRANCH if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
