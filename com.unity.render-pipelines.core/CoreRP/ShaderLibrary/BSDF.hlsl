@@ -438,7 +438,7 @@ real3 EvalIridescence(real eta_1, real cosTheta1, real iridescenceThickness, rea
     // The f0 or the base should account for the new computed eta_2 on top.
     // This is optionally done if we are given the needed current ior over the base layer that is accounted for
     // in the baseLayerFresnel0 parameter:
-    if(iorOverBaseLayer > 0.0)
+    if (iorOverBaseLayer > 0.0)
     {
         // Fresnel0ToIor will give us a ratio of baseIor/topIor, hence we * iorOverBaseLayer to get the baseIor
         real3 baseIor = iorOverBaseLayer * Fresnel0ToIor(baseLayerFresnel0 + 0.0001); // guard against 1.0

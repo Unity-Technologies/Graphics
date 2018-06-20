@@ -21,7 +21,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_refCounting;
 
         // For area lighting - We pack all texture inside a texture array to reduce the number of resource required
-        Texture2DArray m_LtcData; // 0: m_LtcGGXMatrix - RGBA,12: m_LtcDisneyDiffuseMatrix - RGBA
+        Texture2DArray m_LtcData; // 0: m_LtcGGXMatrix - RGBA, 1: m_LtcDisneyDiffuseMatrix - RGBA
 
         const int k_LtcLUTMatrixDim = 3; // size of the matrix (3x3)
         const int k_LtcLUTResolution = 64;
