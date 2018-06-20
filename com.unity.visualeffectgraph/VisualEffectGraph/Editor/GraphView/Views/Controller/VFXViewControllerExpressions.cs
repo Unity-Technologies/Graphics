@@ -61,8 +61,7 @@ namespace UnityEditor.VFX.UI
                 cause != VFXModel.InvalidationCause.kExpressionInvalidated &&
                 cause != VFXModel.InvalidationCause.kParamChanged)
             {
-                if (cause != VFXModel.InvalidationCause.kParamChanged)
-                    ExpressionGraphDirtyParamOnly = false;
+                ExpressionGraphDirtyParamOnly = false;
                 return;
             }
 
