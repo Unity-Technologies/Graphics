@@ -171,7 +171,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int g_TileListOffset = Shader.PropertyToID("g_TileListOffset");
 
         public static readonly int _LtcData = Shader.PropertyToID("_LtcData");
-        public static readonly int _PreIntegratedFGD = Shader.PropertyToID("_PreIntegratedFGD");
         public static readonly int _LtcGGXMatrix = Shader.PropertyToID("_LtcGGXMatrix");
         public static readonly int _LtcDisneyDiffuseMatrix = Shader.PropertyToID("_LtcDisneyDiffuseMatrix");
         public static readonly int _LtcMultiGGXFresnelDisneyDiffuse = Shader.PropertyToID("_LtcMultiGGXFresnelDisneyDiffuse");
@@ -181,7 +180,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _DirectionalShadowIndex = Shader.PropertyToID("_DirectionalShadowIndex");
         public static readonly int _DirectionalContactShadowParams = Shader.PropertyToID("_ScreenSpaceShadowsParameters");
         public static readonly int _DirectionalContactShadowSampleCount = Shader.PropertyToID("_SampleCount");
-        public static readonly int _DirectionalLightDirection = Shader.PropertyToID("_LightDirection");
+        public static readonly int _DirectionalLightDirection = Shader.PropertyToID("_DirectionalLightDirection");
+        public static readonly int _PunctualLightPosition = Shader.PropertyToID("_PunctualLightPosition");
 
         public static readonly int _StencilMask = Shader.PropertyToID("_StencilMask");
         public static readonly int _StencilRef = Shader.PropertyToID("_StencilRef");
@@ -382,5 +382,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _NumVisibleDensityVolumes       = Shader.PropertyToID("_NumVisibleDensityVolumes");
         public static readonly int _VolumeMaskAtlas                = Shader.PropertyToID("_VolumeMaskAtlas");
         public static readonly int _VolumeMaskDimensions           = Shader.PropertyToID("_VolumeMaskDimensions");
+
+        // Preintegrated texture name
+        public static readonly int _PreIntegratedFGD_GGXDisneyDiffuse = Shader.PropertyToID("_PreIntegratedFGD_GGXDisneyDiffuse");
+        public static readonly int _PreIntegratedFGD_CharlieAndCloth = Shader.PropertyToID("_PreIntegratedFGD_CharlieAndCloth");
     }
 }

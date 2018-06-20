@@ -71,6 +71,7 @@ struct LightLoopContext
 {
     int sampleReflection;
     ShadowContext shadowContext;
+    float contactShadow; // Currently we support only one contact shadow per view
 };
 
 //-----------------------------------------------------------------------------
@@ -318,4 +319,19 @@ EnvLightData FetchEnvLight(uint start, uint i)
     int j = FetchIndex(start, i);
 
     return _EnvLightDatas[j];
+}
+
+// We always fetch the screen space shadow texture to reduce the number of shader variant, overhead is negligible,
+// it is a 1x1 white texture if deferred directional shadow and/or contact shadow are disabled
+// We perform a single featch a the beginning of the lightloop
+float InitContactShadow(PositionInputs posInput)
+{
+    // For now we only support one contact shadow
+    // Contactshadow is store in Green Channel of _DeferredShadowTexture
+    return LOAD_TEXTURE2D(_DeferredShadowTexture, posInput.positionSS).y;
+}
+
+float GetContactShadow(LightLoopContext lightLoopContext, int contactShadowIndex)
+{
+    return contactShadowIndex >= 0 ? lightLoopContext.contactShadow : 1.0;
 }
