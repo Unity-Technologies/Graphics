@@ -81,7 +81,7 @@ bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real 
         real2 offset = real2(poissonDisk64[i].x *  sampleJitter.y + poissonDisk64[i].y * sampleJitter.x,
                              poissonDisk64[i].x * -sampleJitter.x + poissonDisk64[i].y * sampleJitter.y) * lightArea;
 
-        real shadowMapDepth = SampleShadow_T2DA(shadowContext, texIdx, sampIdx, coord.xy, slice).x;
+        real shadowMapDepth = SampleShadow_T2DA(shadowContext, texIdx, sampIdx, coord.xy + offset, slice).x;
 
         if (COMPARE_DEVICE_DEPTH_CLOSER(shadowMapDepth, coord.z + dot(sampleBias, offset)))
         {
