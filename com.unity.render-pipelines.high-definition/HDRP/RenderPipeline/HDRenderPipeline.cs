@@ -1446,6 +1446,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     sorting = { flags = SortFlags.CommonOpaque }
                 };
                 drawSettings.SetShaderPassName(0, HDShaderPassNames.s_MeshDecalsName);
+                drawSettings.SetShaderPassName(1, HDShaderPassNames.s_MeshDecalsMSName);
+                drawSettings.SetShaderPassName(2, HDShaderPassNames.s_MeshDecalsMName);
+                drawSettings.SetShaderPassName(3, HDShaderPassNames.s_MeshDecalsSName);
+                drawSettings.SetShaderPassName(4, HDShaderPassNames.s_MeshDecalsAOName);
+                
+                
                 FilterRenderersSettings filterRenderersSettings = new FilterRenderersSettings(true)
                 {
                     renderQueueRange = HDRenderQueue.k_RenderQueue_AllOpaque

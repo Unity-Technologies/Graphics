@@ -27,20 +27,8 @@ Shader "HDRenderPipeline/Decal"
     #pragma shader_feature _MASKMAP
 	#pragma shader_feature _ALBEDOCONTRIBUTION
 
-	#pragma shader_feature _NORMAL_BLEND_ALBEDO_A
 	#pragma shader_feature _NORMAL_BLEND_MASK_B
-
-	#pragma shader_feature _METALNESS_BLEND_ZERO
-	#pragma shader_feature _METALNESS_BLEND_ALBEDO_A
-	#pragma shader_feature _METALNESS_BLEND_MASK_B
-
-	#pragma shader_feature _AO_BLEND_ZERO
-	#pragma shader_feature _AO_BLEND_ALBEDO_A
-	#pragma shader_feature _AO_BLEND_MASK_B
-
-	#pragma shader_feature _SMOOTHNESS_BLEND_ZERO
-	#pragma shader_feature _SMOOTHNESS_BLEND_ALBEDO_A
-	#pragma shader_feature _SMOOTHNESS_BLEND_MASK_B
+	#pragma shader_feature _MAOS_BLEND_MASK_B
 
     #pragma multi_compile_instancing
     //-------------------------------------------------------------------------------------
@@ -77,7 +65,7 @@ Shader "HDRenderPipeline/Decal"
         Pass
         {
             Name "DBufferProjector"  // Name is not used
-            Tags { "LightMode" = "DBufferProjector" } // This will be only for opaque object based on the RenderQueue index
+            Tags { "LightMode" = "DBufferProjector" } // pass 0 for decal projectors
 
             // back faces with zfail, for cases when camera is inside the decal volume
             Cull Front
@@ -100,14 +88,133 @@ Shader "HDRenderPipeline/Decal"
 
 		Pass
 		{
-			Name "DBufferMesh"  // Name is not used
-			Tags{"LightMode" = "DBufferMesh"} // This will be only for opaque object based on the RenderQueue index
+			Name "DBufferMesh_MAOS"  // Name is not used
+			Tags{"LightMode" = "DBufferMesh_MAOS"} // Metalness AO and Smoothness
 										 
 			Cull Back
 			ZWrite Off
 			ZTest LEqual
 			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-			Blend SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 3 Zero OneMinusSrcColor
+
+			HLSLPROGRAM
+
+			#define SHADERPASS SHADERPASS_DBUFFER_MESH
+			#include "../../ShaderVariables.hlsl"
+			#include "Decal.hlsl"
+			#include "ShaderPass/DecalSharePass.hlsl"
+			#include "DecalData.hlsl"
+			#include "../../ShaderPass/ShaderPassDBuffer.hlsl"
+
+			ENDHLSL
+		}
+
+		Pass
+		{
+			Name "DBufferMesh_MS"  // Name is not used
+			Tags{"LightMode" = "DBufferMesh_MS"} // Metalness and smoothness
+
+			Cull Back
+			ZWrite Off
+			ZTest LEqual
+			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 3 Zero OneMinusSrcColor
+
+			ColorMask RBA 2	// metal/smoothness/smoothness alpha 
+			ColorMask R 3	// metal alpha
+
+			HLSLPROGRAM
+
+			#define SHADERPASS SHADERPASS_DBUFFER_MESH
+			#include "../../ShaderVariables.hlsl"
+			#include "Decal.hlsl"
+			#include "ShaderPass/DecalSharePass.hlsl"
+			#include "DecalData.hlsl"
+			#include "../../ShaderPass/ShaderPassDBuffer.hlsl"
+
+			ENDHLSL
+		}
+
+		Pass
+		{
+			Name "DBufferMesh_M"  // Name is not used
+			Tags{"LightMode" = "DBufferMesh_M"} // Metalness only
+
+			Cull Back
+			ZWrite Off
+			ZTest LEqual
+			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 3 Zero OneMinusSrcColor
+
+			ColorMask R 2	// metal 
+			ColorMask R 3	// metal alpha
+
+			HLSLPROGRAM
+
+			#define SHADERPASS SHADERPASS_DBUFFER_MESH
+			#include "../../ShaderVariables.hlsl"
+			#include "Decal.hlsl"
+			#include "ShaderPass/DecalSharePass.hlsl"
+			#include "DecalData.hlsl"
+			#include "../../ShaderPass/ShaderPassDBuffer.hlsl"
+
+			ENDHLSL
+		}
+
+		Pass
+		{
+			Name "DBufferMesh_S"  // Name is not used
+			Tags{"LightMode" = "DBufferMesh_S"} // Metalness only
+
+			Cull Back
+			ZWrite Off
+			ZTest LEqual
+			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 3 Zero OneMinusSrcColor
+
+			ColorMask BA 2	// smoothness/smoothness alpha
+			ColorMask 0 3	
+
+			HLSLPROGRAM
+
+			#define SHADERPASS SHADERPASS_DBUFFER_MESH
+			#include "../../ShaderVariables.hlsl"
+			#include "Decal.hlsl"
+			#include "ShaderPass/DecalSharePass.hlsl"
+			#include "DecalData.hlsl"
+			#include "../../ShaderPass/ShaderPassDBuffer.hlsl"
+
+			ENDHLSL
+		}
+
+		Pass
+		{
+			Name "DBufferMesh_AO"  // Name is not used
+			Tags{"LightMode" = "DBufferMesh_AO"} // AO only
+
+			Cull Back
+			ZWrite Off
+			ZTest LEqual
+			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 3 Zero OneMinusSrcColor
+
+			ColorMask G 2	// ao
+			ColorMask G 3	// ao alpha
 
 			HLSLPROGRAM
 
