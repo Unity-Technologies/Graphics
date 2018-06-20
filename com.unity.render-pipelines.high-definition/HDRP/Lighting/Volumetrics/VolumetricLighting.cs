@@ -547,7 +547,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if (volumeAtlas != null)
                 {
-                    volumeAtlasDimensions.x = volumeAtlas.width / volumeAtlas.depth; // 1 / number of textures
+                    volumeAtlasDimensions.x = (float)volumeAtlas.width / volumeAtlas.depth; // 1 / number of textures
                     volumeAtlasDimensions.y = 1.0f / volumeAtlas.width;
                     volumeAtlasDimensions.z = volumeAtlas.width;
                 }
