@@ -417,12 +417,13 @@ real3 EvalIridescence(real eta_1, real cosTheta1, real iridescenceThickness, rea
     // real eta_2 = lerp(eta_1, eta_2, smoothstep(0.0, 0.03, Dinc));
     // Evaluate the cosTheta on the base layer (Snell law)
     real sinTheta2 = Sq(eta_1 / eta_2) * (1.0 - Sq(cosTheta1));
-#ifdef UNITY_MATERIAL_STACKLIT
-    //TIR 
-    if( sinTheta2 > 1.0 ) return real3(1.0, 1.0, 1.0);
+
+    // Handle TIR
+    if (sinTheta2 > 1.0)
+        return real3(1.0, 1.0, 1.0);
     //Or use this "artistic hack" to get more continuity even though wrong (test with dual normal maps to understand the difference)
     //if( sinTheta2 > 1.0 ) { sinTheta2 = 2 - sinTheta2; }
-#endif
+
     real cosTheta2 = sqrt(1.0 - sinTheta2);
 
     // First interface
@@ -443,7 +444,7 @@ real3 EvalIridescence(real eta_1, real cosTheta1, real iridescenceThickness, rea
         real3 baseIor = iorOverBaseLayer * Fresnel0ToIor(baseLayerFresnel0 + 0.0001); // guard against 1.0
         baseLayerFresnel0 = IorToFresnel0(baseIor, eta_2);
     }
-    
+
     real3 R23 = F_Schlick(baseLayerFresnel0, cosTheta2);
     real  phi23 = 0.0;
 
