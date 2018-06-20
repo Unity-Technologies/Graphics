@@ -249,7 +249,7 @@ namespace UnityEditor.VFX
                 {
                     var obj = remainingSlotContainers[i];
 
-                    var allLinkedOutputSlot = (obj as IVFXSlotContainer).outputSlots.SelectMany(o => o.allChildrenWhere(s => s.HasLink()).SelectMany(s => s.LinkedSlots));
+                    var allLinkedOutputSlot = (obj as IVFXSlotContainer).outputSlots.SelectMany(o => o.AllChildrenWithLink().SelectMany(s => s.LinkedSlots));
                     var slotContainersOutputOwners = allLinkedOutputSlot.Select(o => o.owner as ScriptableObject).Where(o => o != null).Distinct().ToArray();
 
                     if (slotContainersOutputOwners.All(o => sortedSlotContainers.Contains(o)))
