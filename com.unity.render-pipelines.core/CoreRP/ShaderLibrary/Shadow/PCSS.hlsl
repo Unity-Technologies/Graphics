@@ -1,3 +1,5 @@
+#include "CoreRP/ShaderLibrary/Common.hlsl"
+
 static const float2 poissonDisk64[64] =
 {
     float2 ( 0.1187053,   0.7951565),
@@ -71,17 +73,17 @@ real PenumbraSize(real Reciever, real Blocker)
     return abs((Reciever - Blocker) / Blocker);
 }
 
-bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real lightArea, real3 coord, float slice, real2 sampleBias, Texture2DArray shadowMap, SamplerState PointSampler, int sampleCount)
+bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real lightArea, real3 coord, float slice, real2 sampleJitter, real2 sampleBias, Texture2DArray shadowMap, SamplerState PointSampler, int sampleCount)
 {
     real blockerSum = 0.0;
     for (int i = 0; i < sampleCount; ++i)
     {
-        real2 offset = real2(poissonDisk64[i].x *  sampleBias.y + poissonDisk64[i].y * sampleBias.x,
-                             poissonDisk64[i].x * -sampleBias.x + poissonDisk64[i].y * sampleBias.y) * lightArea;
+        real2 offset = real2(poissonDisk64[i].x *  sampleJitter.y + poissonDisk64[i].y * sampleJitter.x,
+                             poissonDisk64[i].x * -sampleJitter.x + poissonDisk64[i].y * sampleJitter.y) * lightArea;
 
         real shadowMapDepth = SAMPLE_TEXTURE2D_ARRAY_LOD( shadowMap, PointSampler, coord.xy + offset, slice, 0.0 ).x;
 
-        if(shadowMapDepth > coord.z)
+        if (COMPARE_DEVICE_DEPTH_CLOSER(shadowMapDepth, coord.z))
         {
             blockerSum  += shadowMapDepth;
             numBlockers += 1.0;
@@ -92,17 +94,17 @@ bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real 
     return numBlockers >= 1;
 }
 
-bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real lightArea, real3 coord, real2 sampleBias, ShadowContext shadowContext, float slice, uint texIdx, uint sampIdx, int sampleCount)
+bool BlockerSearch(inout real averageBlockerDepth, inout real numBlockers, real lightArea, real3 coord, real2 sampleJitter, real2 sampleBias, ShadowContext shadowContext, float slice, uint texIdx, uint sampIdx, int sampleCount)
 {
     real blockerSum = 0.0;
     for (int i = 0; i < sampleCount; ++i)
     {
-        real2 offset = real2(poissonDisk64[i].x *  sampleBias.y + poissonDisk64[i].y * sampleBias.x,
-                             poissonDisk64[i].x * -sampleBias.x + poissonDisk64[i].y * sampleBias.y) * lightArea;
+        real2 offset = real2(poissonDisk64[i].x *  sampleJitter.y + poissonDisk64[i].y * sampleJitter.x,
+                             poissonDisk64[i].x * -sampleJitter.x + poissonDisk64[i].y * sampleJitter.y) * lightArea;
 
-        real shadowMapDepth = SampleCompShadow_T2DA(shadowContext, texIdx, sampIdx, coord.xyz, slice).x;
+        real shadowMapDepth = SampleCompShadow_T2DA(shadowContext, texIdx, sampIdx, real3(coord.xy, coord.z + dot(sampleBias, offset)), slice).x;
 
-        if(shadowMapDepth > coord.z)
+        if (COMPARE_DEVICE_DEPTH_CLOSER(shadowMapDepth, coord.z))
         {
             blockerSum  += shadowMapDepth;
             numBlockers += 1.0;
