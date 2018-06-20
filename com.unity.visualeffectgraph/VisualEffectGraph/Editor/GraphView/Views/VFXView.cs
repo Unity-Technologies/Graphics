@@ -434,6 +434,7 @@ namespace UnityEditor.VFX.UI
                 Insert(childCount - 1, m_Blackboard);
                 BoardPreferenceHelper.SetVisible(BoardPreferenceHelper.Board.blackboard, true);
                 m_Blackboard.RegisterCallback<GeometryChangedEvent>(OnFirstBlackboardGeometryChanged);
+                m_Blackboard.style.positionType = PositionType.Absolute;
             }
             else
             {

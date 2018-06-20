@@ -626,7 +626,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        private void UpdateDefaultExpressionValue()
+        public void UpdateDefaultExpressionValue()
         {
             if (!m_DefaultExpressionInitialized)
                 InitDefaultExpression();
