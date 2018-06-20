@@ -2,118 +2,15 @@ Shader "HDRenderPipeline/TerrainLit"
 {
     Properties
     {
-        [HideInInspector] _Control0("Control 0 (RGBA)", 2D) = "" {}
-        [HideInInspector] _Control1("Control 1 (RGBA)", 2D) = "" {}
-
-        [HideInInspector] _Splat0("Layer 0", 2D) = "white" {}
-        [HideInInspector] _Splat1("Layer 1", 2D) = "white" {}
-        [HideInInspector] _Splat2("Layer 2", 2D) = "white" {}
-        [HideInInspector] _Splat3("Layer 3", 2D) = "white" {}
-        [HideInInspector] _Splat4("Layer 4", 2D) = "white" {}
-        [HideInInspector] _Splat5("Layer 5", 2D) = "white" {}
-        [HideInInspector] _Splat6("Layer 6", 2D) = "white" {}
-        [HideInInspector] _Splat7("Layer 7", 2D) = "white" {}
-
-        [HideInInspector] _Normal0("Normal 0", 2D) = "bump" {}
-        [HideInInspector] _Normal1("Normal 1", 2D) = "bump" {}
-        [HideInInspector] _Normal2("Normal 2", 2D) = "bump" {}
-        [HideInInspector] _Normal3("Normal 3", 2D) = "bump" {}
-        [HideInInspector] _Normal4("Normal 4", 2D) = "bump" {}
-        [HideInInspector] _Normal5("Normal 5", 2D) = "bump" {}
-        [HideInInspector] _Normal6("Normal 6", 2D) = "bump" {}
-        [HideInInspector] _Normal7("Normal 7", 2D) = "bump" {}
-
-        // Since we don't use a mask texture for getting the mask, we'll need the metallic property to be serialized as in sRGB space.
-        [HideInInspector] [Gamma] _Metallic0("Metallic 0", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] [Gamma] _Metallic1("Metallic 1", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] [Gamma] _Metallic2("Metallic 2", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] [Gamma] _Metallic3("Metallic 3", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] [Gamma] _Metallic4("Metallic 4", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] [Gamma] _Metallic5("Metallic 5", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] [Gamma] _Metallic6("Metallic 6", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] [Gamma] _Metallic7("Metallic 7", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] _Smoothness0("Smoothness 0", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] _Smoothness1("Smoothness 1", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] _Smoothness2("Smoothness 2", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] _Smoothness3("Smoothness 3", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] _Smoothness4("Smoothness 4", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] _Smoothness5("Smoothness 5", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] _Smoothness6("Smoothness 6", Range(0.0, 1.0)) = 0.0
-        [HideInInspector] _Smoothness7("Smoothness 7", Range(0.0, 1.0)) = 0.0
-
         [HideInInspector] [Enum(Alpha, 0, Density, 1, Height, 2)] _LayerBlendMode("Layer Blend Mode", Int) = 0
-
-        [HideInInspector] _Mask0("Mask 0", 2D) = "black" {}
-        [HideInInspector] _Mask1("Mask 1", 2D) = "black" {}
-        [HideInInspector] _Mask2("Mask 2", 2D) = "black" {}
-        [HideInInspector] _Mask3("Mask 3", 2D) = "black" {}
-        [HideInInspector] _Mask4("Mask 4", 2D) = "black" {}
-        [HideInInspector] _Mask5("Mask 5", 2D) = "black" {}
-        [HideInInspector] _Mask6("Mask 6", 2D) = "black" {}
-        [HideInInspector] _Mask7("Mask 7", 2D) = "black" {}
-
-        [HideInInspector] _Density0("_Density0", Float) = 1.0
-        [HideInInspector] _Density1("_Density1", Float) = 1.0
-        [HideInInspector] _Density2("_Density2", Float) = 1.0
-        [HideInInspector] _Density3("_Density3", Float) = 1.0
-        [HideInInspector] _Density4("_Density4", Float) = 1.0
-        [HideInInspector] _Density5("_Density5", Float) = 1.0
-        [HideInInspector] _Density6("_Density6", Float) = 1.0
-        [HideInInspector] _Density7("_Density7", Float) = 1.0
-
-        // Height in mask.r
         _HeightTransition("Height Transition", Range(0, 1.0)) = 0.0
-        [HideInInspector] _HeightAmplitude0("Height Scale0", Float) = 0.02
-        [HideInInspector] _HeightAmplitude1("Height Scale1", Float) = 0.02
-        [HideInInspector] _HeightAmplitude2("Height Scale2", Float) = 0.02
-        [HideInInspector] _HeightAmplitude3("Height Scale3", Float) = 0.02
-        [HideInInspector] _HeightAmplitude4("Height Scale4", Float) = 0.02
-        [HideInInspector] _HeightAmplitude5("Height Scale5", Float) = 0.02
-        [HideInInspector] _HeightAmplitude6("Height Scale6", Float) = 0.02
-        [HideInInspector] _HeightAmplitude7("Height Scale7", Float) = 0.02
-        [HideInInspector] _HeightCenter0("Height Bias0", Range(0.0, 1.0)) = 0.5
-        [HideInInspector] _HeightCenter1("Height Bias1", Range(0.0, 1.0)) = 0.5
-        [HideInInspector] _HeightCenter2("Height Bias2", Range(0.0, 1.0)) = 0.5
-        [HideInInspector] _HeightCenter3("Height Bias3", Range(0.0, 1.0)) = 0.5
-        [HideInInspector] _HeightCenter4("Height Bias4", Range(0.0, 1.0)) = 0.5
-        [HideInInspector] _HeightCenter5("Height Bias5", Range(0.0, 1.0)) = 0.5
-        [HideInInspector] _HeightCenter6("Height Bias6", Range(0.0, 1.0)) = 0.5
-        [HideInInspector] _HeightCenter7("Height Bias7", Range(0.0, 1.0)) = 0.5
 
         // TODO: support tri-planar?
         // TODO: support more maps?
-        /*
-        [HideInInspector] _TexWorldScale0("Tiling", Float) = 1.0
-        [HideInInspector] _TexWorldScale1("Tiling", Float) = 1.0
-        [HideInInspector] _TexWorldScale2("Tiling", Float) = 1.0
-        [HideInInspector] _TexWorldScale3("Tiling", Float) = 1.0
-
-        // Following set of parameters represent the parameters node inside the MaterialGraph.
-        // They are use to fill a SurfaceData. With a MaterialGraph this should not exist.
-
-        // All the following properties are filled by the referenced lit shader.
-
-        _SmoothnessRemapMin0("SmoothnessRemapMin0", Range(0.0, 1.0)) = 0.0
-        _SmoothnessRemapMin1("SmoothnessRemapMin1", Range(0.0, 1.0)) = 0.0
-        _SmoothnessRemapMin2("SmoothnessRemapMin2", Range(0.0, 1.0)) = 0.0
-        _SmoothnessRemapMin3("SmoothnessRemapMin3", Range(0.0, 1.0)) = 0.0
-
-        _SmoothnessRemapMax0("SmoothnessRemapMax0", Range(0.0, 1.0)) = 1.0
-        _SmoothnessRemapMax1("SmoothnessRemapMax1", Range(0.0, 1.0)) = 1.0
-        _SmoothnessRemapMax2("SmoothnessRemapMax2", Range(0.0, 1.0)) = 1.0
-        _SmoothnessRemapMax3("SmoothnessRemapMax3", Range(0.0, 1.0)) = 1.0
-
-        _AORemapMin0("AORemapMin0", Range(0.0, 1.0)) = 0.0
-        _AORemapMin1("AORemapMin1", Range(0.0, 1.0)) = 0.0
-        _AORemapMin2("AORemapMin2", Range(0.0, 1.0)) = 0.0
-        _AORemapMin3("AORemapMin3", Range(0.0, 1.0)) = 0.0
-
-        _AORemapMax0("AORemapMax0", Range(0.0, 1.0)) = 1.0
-        _AORemapMax1("AORemapMax1", Range(0.0, 1.0)) = 1.0
-        _AORemapMax2("AORemapMax2", Range(0.0, 1.0)) = 1.0
-        _AORemapMax3("AORemapMax3", Range(0.0, 1.0)) = 1.0
-        */
-        // All the following properties exist only in layered lit material
+        //[HideInInspector] _TexWorldScale0("Tiling", Float) = 1.0
+        //[HideInInspector] _TexWorldScale1("Tiling", Float) = 1.0
+        //[HideInInspector] _TexWorldScale2("Tiling", Float) = 1.0
+        //[HideInInspector] _TexWorldScale3("Tiling", Float) = 1.0
 
         // Following are builtin properties
 
@@ -206,7 +103,18 @@ Shader "HDRenderPipeline/TerrainLit"
     SubShader
     {
         // This tags allow to use the shader replacement features
-        Tags{ "RenderPipeline" = "HDRenderPipeline" "RenderType" = "Opaque" "SplatCount"="8" }
+        Tags
+        {
+            "RenderPipeline" = "HDRenderPipeline"
+            "RenderType" = "Opaque"
+            "SplatCount" = "8"
+            "MaskMapR" = "Metallic"
+            "MaskMapG" = "AO"
+            "MaskMapB" = "Height"
+            "MaskMapA" = "Smoothness"
+            "DiffuseA" = "Smoothness (becomes Density when Mask map is assigned)"   // when MaskMap is disabled
+            "DiffuseA_MaskMapUsed" = "Density"                                      // when MaskMap is enabled
+        }
 
         // Caution: The outline selection in the editor use the vertex shader/hull/domain shader of the first pass declare. So it should not bethe  meta pass.
         Pass

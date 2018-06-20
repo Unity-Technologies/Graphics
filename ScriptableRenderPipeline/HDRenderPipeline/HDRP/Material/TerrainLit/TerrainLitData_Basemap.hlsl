@@ -44,7 +44,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.baseColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.texCoord0).rgb;
 
     surfaceData.perceptualSmoothness = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.texCoord0).a;
-    surfaceData.ambientOcclusion = 1;
+    surfaceData.ambientOcclusion = SAMPLE_TEXTURE2D(_MetallicTex, sampler_MainTex, input.texCoord0).g;
     surfaceData.metallic = SAMPLE_TEXTURE2D(_MetallicTex, sampler_MainTex, input.texCoord0).r;
     surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. Tag: SURFACE_GRADIENT
     surfaceData.subsurfaceMask = 0;
@@ -76,7 +76,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     GetNormalWS(input, V, normalTS, surfaceData.normalWS);
     float3 bentNormalWS = surfaceData.normalWS;
 
-    surfaceData.specularOcclusion = 1.0;
+    if (surfaceData.ambientOcclusion != 1.0f)
+        surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(dot(surfaceData.normalWS, V), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
+    else
+        surfaceData.specularOcclusion = 1.0f;
 
 #ifndef _DISABLE_DBUFFER
     float alpha = 1;

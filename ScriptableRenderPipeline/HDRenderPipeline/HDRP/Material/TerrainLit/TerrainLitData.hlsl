@@ -40,9 +40,8 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
 
     float3 normalTS;
     TerrainSplatBlend(input.texCoord0, input.worldToTangent[0], input.worldToTangent[1],
-        surfaceData.baseColor, normalTS, surfaceData.perceptualSmoothness, surfaceData.metallic);
+        surfaceData.baseColor, normalTS, surfaceData.perceptualSmoothness, surfaceData.metallic, surfaceData.ambientOcclusion);
 
-    surfaceData.ambientOcclusion = 1;
     surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. Tag: SURFACE_GRADIENT
     surfaceData.subsurfaceMask = 0;
     surfaceData.thickness = 1;
@@ -68,11 +67,11 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     float3 bentNormalWS = surfaceData.normalWS;
 
     // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
-//#if defined(_MASKMAP0) || defined(_MASKMAP1) || defined(_MASKMAP2) || defined(_MASKMAP3)
-//    surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(dot(surfaceData.normalWS, V), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
-//#else
+#ifdef _MASKMAP
+    surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(dot(surfaceData.normalWS, V), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
+#else
     surfaceData.specularOcclusion = 1.0;
-//#endif
+#endif
 
 #ifndef _DISABLE_DBUFFER
     float alpha = 1;

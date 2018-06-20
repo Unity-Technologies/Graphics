@@ -67,8 +67,9 @@ Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap_Gen"
                 float4 albedo;
                 float3 normalTS;
                 float metallic;
+                float ao;
                 TerrainSplatBlend(i.texcoord, float3(0, 0, 0), float3(0, 0, 0),
-                    albedo.xyz, normalTS, albedo.w, metallic);
+                    albedo.xyz, normalTS, albedo.w, metallic, ao);
 
                 return albedo;
             }
@@ -81,7 +82,7 @@ Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap_Gen"
             Tags
             {
                 "Name" = "_MetallicTex"
-                "Format" = "R8"
+                "Format" = "RG16"
                 "Size" = "1/4"
             }
 
@@ -102,15 +103,16 @@ Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap_Gen"
                 return o;
             }
 
-            float4 frag(v2f i) : SV_Target
+            float2 frag(v2f i) : SV_Target
             {
                 float4 albedo;
                 float3 normalTS;
                 float metallic;
+                float ao;
                 TerrainSplatBlend(i.texcoord, float3(0, 0, 0), float3(0, 0, 0),
-                    albedo.xyz, normalTS, albedo.w, metallic);
+                    albedo.xyz, normalTS, albedo.w, metallic, ao);
 
-                return metallic;
+                return float2(metallic, ao);
             }
 
             ENDHLSL
