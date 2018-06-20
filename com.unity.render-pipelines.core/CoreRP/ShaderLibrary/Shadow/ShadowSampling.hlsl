@@ -541,7 +541,7 @@ real SampleShadow_PCSS( ShadowContext shadowContext, inout uint payloadOffset, r
     //1) Blocker Search
     real averageBlockerDepth = 0.0;
     real numBlockers         = 0.0;
-    if (!BlockerSearch(averageBlockerDepth, numBlockers, shadowSoftnesss + 0.000001, tcs, sampleJitter, shadowContext, slice, texIdx, sampIdx, sampleCount))
+    if (!BlockerSearch(averageBlockerDepth, numBlockers, shadowSoftnesss + 0.000001, tcs, sampleJitter, sampleBias, shadowContext, slice, texIdx, sampIdx, sampleCount))
         return 1.0;
 
     //2) Penumbra Estimation
@@ -565,7 +565,7 @@ real SampleShadow_PCSS( ShadowContext shadowContext, inout uint payloadOffset, r
     //1) Blocker Search
     real averageBlockerDepth = 0.0;
     real numBlockers         = 0.0;
-    if (!BlockerSearch(averageBlockerDepth, numBlockers, shadowSoftnesss + 0.000001, tcs, slice, sampleJitter, tex, samp, sampleCount)) 
+    if (!BlockerSearch(averageBlockerDepth, numBlockers, shadowSoftnesss + 0.000001, tcs, slice, sampleJitter, sampleBias, tex, samp, sampleCount)) 
         return 1.0;
 
     //2) Penumbra Estimation
