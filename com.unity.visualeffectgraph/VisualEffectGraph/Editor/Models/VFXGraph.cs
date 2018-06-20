@@ -195,6 +195,10 @@ namespace UnityEditor.VFX
             }
             Profiler.EndSample();
             Profiler.EndSample();
+            m_ExpressionGraphDirty = true;
+            m_ExpressionValuesDirty = true;
+
+            Debug.Log("Graph Restore");
         }
 
         public override void CollectDependencies(HashSet<ScriptableObject> objs)
@@ -367,6 +371,11 @@ namespace UnityEditor.VFX
         public void SetExpressionGraphDirty()
         {
             m_ExpressionGraphDirty = true;
+        }
+
+        public void SetExpressionValueDirty()
+        {
+            m_ExpressionValuesDirty = true;
         }
 
         public void RecompileIfNeeded(bool preventRecompilation = false)

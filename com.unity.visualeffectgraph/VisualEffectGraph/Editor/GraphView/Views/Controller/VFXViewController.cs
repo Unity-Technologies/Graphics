@@ -259,9 +259,8 @@ namespace UnityEditor.VFX.UI
             {
                 var operatorControllers = m_SyncedModels.Values.SelectMany(t => t).OfType<VFXNodeController>();
                 var blockControllers = (contexts.SelectMany(t => t.blockControllers)).Cast<VFXNodeController>();
-                var contextSlotContainers = contexts.Where(t => t != null).Cast<VFXNodeController>();
 
-                return operatorControllers.Concat(blockControllers).Concat(contextSlotContainers);
+                return operatorControllers.Concat(blockControllers);
             }
         }
 

@@ -217,6 +217,30 @@ namespace UnityEditor.VFX.UI
                     m_graphUndoStack = new VFXGraphUndoStack(graph);
                 }
             }
+            else
+            {
+                //The graph didn't change by this undo, only, potentially the slot values.
+                // Any undo could be a slot value undo: update input slot expressions and expression graph values
+                ExpressionGraphDirty = true;
+                ExpressionGraphDirtyParamOnly = true;
+
+                if (graph != null)
+                {
+                    foreach (var element in AllSlotContainerControllers)
+                    {
+                        foreach (var slot in (element.model as IVFXSlotContainer).inputSlots)
+                        {
+                            slot.UpdateDefaultExpressionValue();
+                        }
+                    }
+
+                    foreach (var parameter in m_ParameterControllers.Keys)
+                    {
+                        parameter.UpdateDefaultExpressionValue();
+                    }
+                    graph.SetExpressionValueDirty();
+                }
+            }
         }
     }
 }
