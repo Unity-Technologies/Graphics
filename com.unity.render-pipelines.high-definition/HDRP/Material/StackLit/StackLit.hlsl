@@ -1471,7 +1471,7 @@ void PreLightData_SetupAreaLights(BSDFData bsdfData, float3 V, float3 N[NB_NORMA
     PreLightData_LoadLtcTransformSpecular(uv[BASE_LOBEB_IDX], BASE_LOBEB_IDX, preLightData);
 
 
-#ifdef LIT_DIFFUSE_LAMBERT_BRDF
+#ifdef USE_DIFFUSE_LAMBERT_BRDF
     preLightData.ltcTransformDiffuse = k_identity3x3;
 #else
     // TODO
