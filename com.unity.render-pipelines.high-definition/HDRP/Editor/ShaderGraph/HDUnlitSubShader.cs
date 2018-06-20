@@ -84,7 +84,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             VertexShaderSlots = new List<int>()
             {
-                PBRMasterNode.PositionSlotId
+                //PBRMasterNode.PositionSlotId
             }
         };
 
