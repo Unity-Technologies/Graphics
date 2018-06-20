@@ -15,7 +15,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Mask", true)]
             public Vector4 mask;
             [SurfaceDataAttributes("AOSBlend", true)]
-            public Vector2 AOSBlend;
+            public Vector2 MAOSBlend;
             [SurfaceDataAttributes("HTileMask")]
             public uint HTileMask;
         };
