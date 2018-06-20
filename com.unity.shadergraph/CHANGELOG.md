@@ -77,3 +77,4 @@ You can now see the generated code for any specific node. To do so, right-click 
 - Deserialization of subgraphs now works correctly.
 - Sub graphs are now suffixed with (sub), so you can tell them apart from other nodes.
 - The preview of a node does not obstruct the selection outliner anymore.
+- Sub-graph nodes with vector type input ports can now be copied, pasted and duplicated without error.
