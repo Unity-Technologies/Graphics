@@ -249,3 +249,131 @@ void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightD
     weight = Smoothstep01(weight);
     weight *= lightData.weight;
 }
+
+// ----------------------------------------------------------------------------
+// Helper functions to use Transmission with a material
+// ----------------------------------------------------------------------------
+// For EvaluateTransmission.hlsl file it is required to define a BRDF for the transmission. Defining USE_DIFFUSE_LAMBERT_BRDF use Lambert, otherwise it use Disneydiffuse
+
+#ifdef MATERIAL_INCLUDE_TRANSMISSION
+
+// This function return transmittance to provide to EvaluateTransmission
+float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext, PositionInputs posInput, float distFrontFaceToLight,
+                                            float NdotL, float3 L, BSDFData bsdfData,
+                                            inout float3 normalWS, inout LightData lightData)
+{
+    float3 transmittance = bsdfData.transmittance;
+
+    // if NdotL is positive, we do one fetch on front face done by EvaluateLight_XXX. Just regular lighting
+    // If NdotL is negative, we have two cases:
+    // - Thin mode: Reuse the front face fetch as shadow for back face - flip the normal for the bias (and the NdotL test) and disable contact shadow
+    // - Mixed mode: Do a fetch on back face to retrieve the thickness. The thickness will provide a shadow attenuation (with distance travelled there is less transmission).
+    // (Note: EvaluateLight_Punctual discard the fetch if NdotL < 0)
+    if (NdotL < 0 && lightData.shadowIndex >= 0)
+    {
+        if (HasFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
+        {
+            normalWS = -normalWS; // Flip normal for shadow bias
+            lightData.contactShadowIndex = -1;  //  Disable shadow contact
+        }
+        else // MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_MIXED_THICKNESS
+        {
+            // Recompute transmittance using the thickness value computed from the shadow map.
+
+            // Compute the distance from the light to the back face of the object along the light direction.
+            float distBackFaceToLight = GetPunctualShadowClosestDistance(   lightLoopContext.shadowContext, s_linear_clamp_sampler,
+                                                                            posInput.positionWS, lightData.shadowIndex, L, lightData.positionWS);
+
+            // Our subsurface scattering models use the semi-infinite planar slab assumption.
+            // Therefore, we need to find the thickness along the normal.
+            float thicknessInUnits = (distFrontFaceToLight - distBackFaceToLight) * -NdotL;
+            float thicknessInMeters = thicknessInUnits * _WorldScales[bsdfData.diffusionProfile].x;
+            float thicknessInMillimeters = thicknessInMeters * MILLIMETERS_PER_METER;
+
+#if SHADEROPTIONS_USE_DISNEY_SSS
+            // We need to make sure it's not less than the baked thickness to minimize light leaking.
+            float thicknessDelta = max(0, thicknessInMillimeters - bsdfData.thickness);
+
+            float3 S = _ShapeParams[bsdfData.diffusionProfile].rgb;
+
+            // Approximate the decrease of transmittance by e^(-1/3 * dt * S).
+#if 0
+            float3 expOneThird = exp(((-1.0 / 3.0) * thicknessDelta) * S);
+#else
+            // Help the compiler.
+            float  k = (-1.0 / 3.0) * LOG2_E;
+            float3 p = (k * thicknessDelta) * S;
+            float3 expOneThird = exp2(p);
+#endif
+
+            transmittance *= expOneThird;
+
+#else // SHADEROPTIONS_USE_DISNEY_SSS
+
+            // We need to make sure it's not less than the baked thickness to minimize light leaking.
+            thicknessInMillimeters = max(thicknessInMillimeters, bsdfData.thickness);
+
+            transmittance = ComputeTransmittanceJimenez(_HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][0].rgb,
+                                                        _HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][0].a,
+                                                        _HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][1].rgb,
+                                                        _HalfRcpVariancesAndWeights[bsdfData.diffusionProfile][1].a,
+                                                        _TransmissionTintsAndFresnel0[bsdfData.diffusionProfile].rgb,
+                                                        thicknessInMillimeters);
+#endif // SHADEROPTIONS_USE_DISNEY_SSS
+
+            // Note: we do not modify the distance to the light, or the light angle for the back face.
+            // This is a performance-saving optimization which makes sense as long as the thickness is small.
+        }
+    }
+
+    return transmittance;
+}
+
+// This function return transmittance to provide to EvaluateTransmission
+float3 PreEvaluateDirectionalLightTransmission(float NdotL, DirectionalLightData lightData, BSDFData bsdfData, inout float3 normalWS, inout int contactShadowIndex)
+{
+    if (NdotL < 0 && lightData.shadowIndex >= 0)
+    {
+        if (HasFlag(bsdfData.materialFeatures, MATERIAL_FEATURE_FLAGS_TRANSMISSION_MODE_THIN_THICKNESS))
+        {
+            normalWS = -normalWS; // Flip normal for shadow bias
+            contactShadowIndex = -1;  //  Disable shadow contact
+        }
+    }
+
+    return bsdfData.transmittance;
+}
+
+#define TRANSMISSION_WRAP_ANGLE (PI/12)              // 15 degrees
+#define TRANSMISSION_WRAP_LIGHT cos(PI/2 - TRANSMISSION_WRAP_ANGLE)
+
+// Currently, we only model diffuse transmission. Specular transmission is not yet supported.
+// Transmitted lighting is computed as follows:
+// - we assume that the object is a thick plane (slab);
+// - we reverse the front-facing normal for the back of the object;
+// - we assume that the incoming radiance is constant along the entire back surface;
+// - we apply BSDF-specific diffuse transmission to transmit the light subsurface and back;
+// - we integrate the diffuse reflectance profile w.r.t. the radius (while also accounting
+//   for the thickness) to compute the transmittance;
+// - we multiply the transmitted radiance by the transmittance.
+
+// transmittance come from the call to PreEvaluateLightTransmission
+// attenuation come from the call to EvaluateLight_Punctual
+float3 EvaluateTransmission(BSDFData bsdfData, float3 transmittance, float NdotL, float NdotV, float LdotV, float attenuation)
+{
+    // Apply wrapped lighting to better handle thin objects at grazing angles.
+    float wrappedNdotL = ComputeWrappedDiffuseLighting(-NdotL, TRANSMISSION_WRAP_LIGHT);
+
+    // Apply BSDF-specific diffuse transmission to attenuation. See also: [SSS-NOTE-TRSM]
+    // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
+#ifdef USE_DIFFUSE_LAMBERT_BRDF
+    attenuation *= Lambert();
+#else
+    attenuation *= DisneyDiffuse(NdotV, max(0, -NdotL), LdotV, bsdfData.perceptualRoughness);
+#endif
+
+    float intensity = attenuation * wrappedNdotL;
+    return intensity * transmittance;
+}
+
+#endif // #ifdef MATERIAL_INCLUDE_TRANSMISSION
