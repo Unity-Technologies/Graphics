@@ -44,6 +44,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty maxSmoothness;
             public SerializedProperty applyRangeAttenuation;
             public SerializedProperty volumetricDimmer;
+            public SerializedProperty showEmissiveMesh;
 
             // Editor stuff
             public SerializedProperty useOldInspector;
@@ -95,15 +96,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // Used for UI only; the processing code must use LightTypeExtent and LightType
         LightShape m_LightShape;
 
+        HDAdditionalLightData[]     m_AdditionalLightDatas;
+        AdditionalShadowData[]      m_AdditionalShaodowDatas;
+
         protected override void OnEnable()
         {
             base.OnEnable();
 
             // Get & automatically add additional HD data if not present
-            var lightData = CoreEditorUtils.GetAdditionalData<HDAdditionalLightData>(targets, HDAdditionalLightData.InitDefaultHDAdditionalLightData);
-            var shadowData = CoreEditorUtils.GetAdditionalData<AdditionalShadowData>(targets, HDAdditionalShadowData.InitDefaultHDAdditionalShadowData);
-            m_SerializedAdditionalLightData = new SerializedObject(lightData);
-            m_SerializedAdditionalShadowData = new SerializedObject(shadowData);
+            m_AdditionalLightDatas = CoreEditorUtils.GetAdditionalData<HDAdditionalLightData>(targets, HDAdditionalLightData.InitDefaultHDAdditionalLightData);
+            m_AdditionalShaodowDatas = CoreEditorUtils.GetAdditionalData<AdditionalShadowData>(targets, HDAdditionalShadowData.InitDefaultHDAdditionalShadowData);
+            m_SerializedAdditionalLightData = new SerializedObject(m_AdditionalLightDatas);
+            m_SerializedAdditionalShadowData = new SerializedObject(m_AdditionalShaodowDatas);
 
             using (var o = new PropertyFetcher<HDAdditionalLightData>(m_SerializedAdditionalLightData))
                 m_AdditionalLightData = new SerializedLightData
@@ -115,6 +119,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     spotInnerPercent = o.Find(x => x.m_InnerSpotPercent),
                     lightDimmer = o.Find(x => x.lightDimmer),
                     volumetricDimmer = o.Find(x => x.volumetricDimmer),
+                    showEmissiveMesh = o.Find(x => x.showEmissiveMesh),
                     fadeDistance = o.Find(x => x.fadeDistance),
                     affectDiffuse = o.Find(x => x.affectDiffuse),
                     affectSpecular = o.Find(x => x.affectSpecular),
@@ -325,8 +330,41 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (EditorGUI.EndChangeCheck())
             {
+                UpdateEmissiveMesh();
                 UpdateLightIntensity();
                 ((Light)target).SetLightDirty(); // Should be apply only to parameter that's affect GI, but make the code cleaner
+            }
+        }
+
+        void UpdateEmissiveMesh()
+        {
+            foreach (var lightData in m_AdditionalLightDatas)
+            {
+                Debug.Log("heavy operation");
+                GameObject    lightGameObject = lightData.gameObject;
+                MeshRenderer  emissiveMeshRenderer = lightData.GetComponent<MeshRenderer>();
+                MeshFilter    emissiveMeshFilter = lightData.GetComponent<MeshFilter>();
+
+                // Ensure that the emissive mesh components are here
+                if (lightData.showEmissiveMesh)
+                {
+                    if (emissiveMeshRenderer == null)
+                        emissiveMeshRenderer = lightGameObject.AddComponent<MeshRenderer>();
+                    if (emissiveMeshFilter == null)
+                        emissiveMeshFilter = lightGameObject.AddComponent<MeshFilter>();
+                }
+                else // Or remove them if the option is disabled
+                {
+                    if (emissiveMeshRenderer != null)
+                        DestroyImmediate(emissiveMeshRenderer);
+                    if (emissiveMeshFilter != null)
+                        DestroyImmediate(emissiveMeshFilter);
+                }
+
+                if (lightData.showEmissiveMesh)
+                {
+                    // Update Mesh emissive value
+                }
             }
         }
 
@@ -444,6 +482,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     EditorGUILayout.PropertyField(m_AdditionalLightData.shapeHeight, s_Styles.cookieSizeY);
                     EditorGUI.indentLevel--;
                 }
+            }
+            
+            // Emissive mesh for area light only
+            if (m_LightShape == LightShape.Rectangle)
+            {
+                EditorGUI.BeginChangeCheck();
+                EditorGUILayout.PropertyField(m_AdditionalLightData.showEmissiveMesh);
+                if (EditorGUI.EndChangeCheck())
+                    UpdateEmissiveMesh();
             }
 
             if (m_AdditionalLightData.showAdditionalSettings.boolValue)
