@@ -14,9 +14,6 @@
 //-----------------------------------------------------------------------------
 // Configuration
 //-----------------------------------------------------------------------------
-// Use the same FGD table than for environments, since it is the same
-// (Saves fetches and VGPRs in PreLightData.
-#define LTC_USE_COMMON_FGD
 
 // Choose between Lambert diffuse and Disney diffuse (enable only one of them)
 // #define USE_DIFFUSE_LAMBERT_BRDF
@@ -810,19 +807,12 @@ struct PreLightData
     float3x3 orthoBasisViewNormal;   // Right-handed view-dependent orthogonal basis around the normal (6x VGPRs)
     float3x3 ltcTransformDiffuse;    // Inverse transformation for Lambertian or Disney Diffuse        (4x VGPRs)
     float3x3 ltcTransformSpecular;   // Inverse transformation for GGX                                 (4x VGPRs)
-#ifndef LTC_USE_COMMON_FGD
-    float    ltcMagnitudeDiffuse;
-    float3   ltcMagnitudeFresnel;
-#endif
 
     // Clear coat
     float    coatPartLambdaV;
     float3   coatIblR;
-    float    coatIblF;               // Fresnel term for view vector or specularFGD term for coat (if LTC_USE_COMMON_FGD)
+    float    coatIblF;               // Fresnel term for view vector
     float3x3 ltcTransformCoat;       // Inverse transformation for GGX                                 (4x VGPRs)
-#ifndef LTC_USE_COMMON_FGD
-    float    ltcMagnitudeCoatFresnel;
-#endif
 
 #if HAS_REFRACTION
     // Refraction
@@ -873,9 +863,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         preLightData.coatPartLambdaV = GetSmithJointGGXPartLambdaV(NdotV, CLEAR_COAT_ROUGHNESS);
         preLightData.coatIblR = reflect(-V, N);
 
-//#ifndef LTC_USE_COMMON_FGD
         preLightData.coatIblF = F_Schlick(CLEAR_COAT_F0, NdotV) * bsdfData.coatMask;
-//#endif
     }
 
     float3 iblN, iblR;
@@ -909,7 +897,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 
     // IBL
 
-    // Handle IBL +  multiscattering
+    // Handle IBL +  multiscattering. Note FGD texture is also use for area light
     float specularReflectivity;
     GetPreIntegratedFGDGGXAndDisneyDiffuse(NdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, specularReflectivity);
 #ifdef USE_DIFFUSE_LAMBERT_BRDF
@@ -961,61 +949,15 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     preLightData.orthoBasisViewNormal[2] = N;
     preLightData.orthoBasisViewNormal[1] = cross(preLightData.orthoBasisViewNormal[2], preLightData.orthoBasisViewNormal[0]);
 
-#ifndef LTC_USE_COMMON_FGD
-    float3 ltcMagnitude = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_MULTI_GGX_FRESNEL_DISNEY_DIFFUSE_INDEX, 0).rgb;
-    float  ltcGGXFresnelMagnitudeDiff = ltcMagnitude.r; // The difference of magnitudes of GGX and Fresnel
-    float  ltcGGXFresnelMagnitude     = ltcMagnitude.g;
-    float  ltcDisneyDiffuseMagnitude  = ltcMagnitude.b;
-#endif
-
-#ifndef LTC_USE_COMMON_FGD
-#ifdef USE_DIFFUSE_LAMBERT_BRDF
-    preLightData.ltcMagnitudeDiffuse = 1;
-#else
-    preLightData.ltcMagnitudeDiffuse = ltcDisneyDiffuseMagnitude;
-#endif //USE_DIFFUSE_LAMBERT_BRDF
-#endif //LTC_USE_COMMON_FGD #else we will use preLightData.diffuseFGD;
-
-
-    // TODO: the fit seems rather poor. The scaling factor of 0.5 allows us
-    // to match the reference for rough metals, but further darkens dielectrics.
-#ifndef LTC_USE_COMMON_FGD
-    preLightData.ltcMagnitudeFresnel = bsdfData.fresnel0 * ltcGGXFresnelMagnitudeDiff + (float3)ltcGGXFresnelMagnitude;
-    //#else we will use preLightData.specularFGD;
-#endif
-
+    preLightData.ltcTransformCoat = 0.0;
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         float2 uv = LTC_LUT_OFFSET + LTC_LUT_SCALE * float2(CLEAR_COAT_PERCEPTUAL_ROUGHNESS, theta * INV_HALF_PI);
 
         // Get the inverse LTC matrix for GGX
         // Note we load the matrix transpose (avoid to have to transpose it in shader)
-        preLightData.ltcTransformCoat = 0.0;
         preLightData.ltcTransformCoat._m22 = 1.0;
         preLightData.ltcTransformCoat._m00_m02_m11_m20 = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_GGX_MATRIX_INDEX, 0);
-
-#ifndef LTC_USE_COMMON_FGD
-        ltcMagnitude = SAMPLE_TEXTURE2D_ARRAY_LOD(_LtcData, s_linear_clamp_sampler, uv, LTC_MULTI_GGX_FRESNEL_DISNEY_DIFFUSE_INDEX, 0).rgb;
-        ltcGGXFresnelMagnitudeDiff  = ltcMagnitude.r; // The difference of magnitudes of GGX and Fresnel
-        ltcGGXFresnelMagnitude      = ltcMagnitude.g;
-        preLightData.ltcMagnitudeCoatFresnel = (CLEAR_COAT_F0 * ltcGGXFresnelMagnitudeDiff + ltcGGXFresnelMagnitude) * bsdfData.coatMask;
-#else
-        // We will use the original FGD table and since we paid the cost of the fetch, we now have
-        // the proper FGD for the coat too, so assign it to coatIblF instead of the non integrated 
-        // Fresnel Schlick above. The compiler should also remove the Schlick evaluation (not used). 
-        // That also saves another VGPR.
-        float dFGD;
-        float3 sFGD;
-        GetPreIntegratedFGDGGXAndDisneyDiffuse(NdotV, CLEAR_COAT_PERCEPTUAL_ROUGHNESS, float3(1.0,1.0,1.0)*CLEAR_COAT_F0, sFGD, dFGD, specularReflectivity);
-        preLightData.coatIblF = sFGD.x * bsdfData.coatMask;
-#endif
-    }
-    else
-    {
-        preLightData.ltcTransformCoat = 0.0;
-#ifndef LTC_USE_COMMON_FGD
-        preLightData.ltcMagnitudeCoatFresnel = 0.0;
-#endif
     }
 
     // refraction (forward only)
@@ -1394,8 +1336,10 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
     ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformDiffuse);
     ltcValue *= lightData.diffuseScale;
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-#ifndef LTC_USE_COMMON_FGD
-    lighting.diffuse = preLightData.ltcMagnitudeDiffuse * ltcValue;
+
+    // See comment for specular magnitude, it apply to diffuse as well
+#ifdef USE_DIFFUSE_LAMBERT_BRDF
+    lighting.diffuse = ltcValue;
 #else
     lighting.diffuse = preLightData.diffuseFGD * ltcValue;
 #endif
@@ -1420,26 +1364,20 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
     // Evaluate the specular part
     ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformSpecular);
     ltcValue *= lightData.specularScale;
-#ifndef LTC_USE_COMMON_FGD
-    lighting.specular = preLightData.ltcMagnitudeFresnel * ltcValue;
-#else
+    // We need to multiply by the magnitude of the integral of the BRDF
+    // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
+    // This value is what we store in specularFGD, so reuse it
     lighting.specular = preLightData.specularFGD * ltcValue;
-#endif
 
     // Evaluate the coat part
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformCoat);
         ltcValue *= lightData.specularScale;
-#ifndef LTC_USE_COMMON_FGD
-        lighting.diffuse *= (1.0 - preLightData.ltcMagnitudeCoatFresnel);
-        lighting.specular *= (1.0 - preLightData.ltcMagnitudeCoatFresnel);
-        lighting.specular += preLightData.ltcMagnitudeCoatFresnel * ltcValue;
-#else
+        // For clear coat we don't fetch specularFGD we can use directly the perfect fresnel coatIblF
         lighting.diffuse *= (1.0 - preLightData.coatIblF);
         lighting.specular *= (1.0 - preLightData.coatIblF);
         lighting.specular += preLightData.coatIblF * ltcValue;
-#endif
     }
 
     // Save ALU by applying 'lightData.color' only once.
@@ -1542,8 +1480,9 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     ltcValue  = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformDiffuse));
     ltcValue *= lightData.diffuseScale;
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-#ifndef LTC_USE_COMMON_FGD
-    lighting.diffuse = preLightData.ltcMagnitudeDiffuse * ltcValue;
+    // See comment for specular magnitude, it apply to diffuse as well
+#ifdef USE_DIFFUSE_LAMBERT_BRDF
+    lighting.diffuse = ltcValue;
 #else
     lighting.diffuse = preLightData.diffuseFGD * ltcValue;
 #endif
@@ -1572,26 +1511,20 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     // Polygon irradiance in the transformed configuration.
     ltcValue  = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformSpecular));
     ltcValue *= lightData.specularScale;
-#ifndef LTC_USE_COMMON_FGD
-    lighting.specular += preLightData.ltcMagnitudeFresnel * ltcValue;
-#else
+    // We need to multiply by the magnitude of the integral of the BRDF
+    // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
+    // This value is what we store in specularFGD, so reuse it
     lighting.specular += preLightData.specularFGD * ltcValue;
-#endif
 
     // Evaluate the coat part
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
     {
         ltcValue = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformCoat));
         ltcValue *= lightData.specularScale;
-#ifndef LTC_USE_COMMON_FGD
-        lighting.diffuse *= (1.0 - preLightData.ltcMagnitudeCoatFresnel);
-        lighting.specular *= (1.0 - preLightData.ltcMagnitudeCoatFresnel);
-        lighting.specular += preLightData.ltcMagnitudeCoatFresnel * ltcValue;
-#else
+        // For clear coat we don't fetch specularFGD we can use directly the perfect fresnel coatIblF
         lighting.diffuse *= (1.0 - preLightData.coatIblF);
         lighting.specular *= (1.0 - preLightData.coatIblF);
         lighting.specular += preLightData.coatIblF * ltcValue;
-#endif
     }
 
     // Save ALU by applying 'lightData.color' only once.
