@@ -19,7 +19,9 @@ namespace UnityEditor.ShaderGraph
         string[] m_Labels;
 
         public Vector2MaterialSlot()
-        {}
+        {
+            m_Labels = new[] { "X", "Y" };
+        }
 
         public Vector2MaterialSlot(
             int slotId,

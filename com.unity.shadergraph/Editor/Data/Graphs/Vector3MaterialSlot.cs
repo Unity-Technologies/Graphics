@@ -20,6 +20,7 @@ namespace UnityEditor.ShaderGraph
 
         public Vector3MaterialSlot()
         {
+            m_Labels = new[] { "X", "Y", "Z" };
         }
 
         public Vector3MaterialSlot(
