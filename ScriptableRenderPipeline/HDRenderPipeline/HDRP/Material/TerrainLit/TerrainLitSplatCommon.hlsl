@@ -12,9 +12,9 @@
     float4 _Splat##n##_ST;          \
     float _Metallic##n;             \
     float _Smoothness##n;           \
-    float _Density##n;              \
-    float _HeightCenter##n;         \
-    float _HeightAmplitude##n
+    float _NormalScale##n;          \
+    float4 _MaskRemapOffset##n;     \
+    float4 _MaskRemapScale##n
 
 DECLARE_TERRAIN_LAYER(0);
 DECLARE_TERRAIN_LAYER(1);
@@ -52,32 +52,33 @@ float GetSumHeight(float4 heights0, float4 heights1)
     return sumHeight;
 }
 
-float3 SampleNormalGrad(TEXTURE2D_ARGS(textureName, samplerName), float2 uv, float2 dxuv, float2 dyuv, float3 tangentWS, float3 bitangentWS)
+float3 SampleNormalGrad(TEXTURE2D_ARGS(textureName, samplerName), float2 uv, float2 dxuv, float2 dyuv, float scale, float3 tangentWS, float3 bitangentWS)
 {
     float4 nrm = SAMPLE_TEXTURE2D_GRAD(textureName, samplerName, uv, dxuv, dyuv);
 #ifdef SURFACE_GRADIENT
     #ifdef UNITY_NO_DXT5nm
-        real2 deriv = UnpackDerivativeNormalRGB(nrm, 1);
+        real2 deriv = UnpackDerivativeNormalRGB(nrm, scale);
     #else
-        real2 deriv = UnpackDerivativeNormalRGorAG(nrm, 1);
+        real2 deriv = UnpackDerivativeNormalRGorAG(nrm, scale);
     #endif
     return SurfaceGradientFromTBN(deriv, tangentWS, bitangentWS);
 #else
     #ifdef UNITY_NO_DXT5nm
-        return UnpackNormalRGB(nrm, 1);
+        return UnpackNormalRGB(nrm, scale);
     #else
-        return UnpackNormalmapRGorAG(nrm, 1);
+        return UnpackNormalmapRGorAG(nrm, scale);
     #endif
 #endif
 }
 
-float4 RemapMasks(float4 masks, float blendMask, float heightCenter, float heightAmplitude, float smoothness, float metallic)
+float4 RemapMasks(float4 masks, float blendMask, float metallic, float smoothness, float4 remapOffset, float4 remapScale)
 {
-    return float4(
-        (masks.r * blendMask - heightCenter) * heightAmplitude,
-        masks.g * smoothness,
-        masks.b * metallic,
-        0);
+    float4 ret = masks;
+    ret.r *= metallic;
+    ret.b *= blendMask; // height needs to be weighted before remapping
+    ret.a *= smoothness;
+    ret = ret * remapScale + remapOffset;
+    return ret;
 }
 
 #ifdef OVERRIDE_SAMPLER_NAME
@@ -85,7 +86,7 @@ float4 RemapMasks(float4 masks, float blendMask, float heightCenter, float heigh
 #endif
 
 void TerrainSplatBlend(float2 uv, float3 tangentWS, float3 bitangentWS,
-    out float3 outAlbedo, out float3 outNormalTS, out float outSmoothness, out float outMetallic)
+    out float3 outAlbedo, out float3 outNormalTS, out float outSmoothness, out float outMetallic, out float outAO)
 {
     // TODO: triplanar and SURFACE_GRADIENT?
     // TODO: POM
@@ -95,15 +96,17 @@ void TerrainSplatBlend(float2 uv, float3 tangentWS, float3 bitangentWS,
     float4 masks[_LAYER_COUNT];
 
 #ifdef _NORMALMAP
-    #define SampleNormal(i) SampleNormalGrad(_Normal##i, sampler_Splat0, splatuv, splatdxuv, splatdyuv, tangentWS, bitangentWS)
+    #define SampleNormal(i) SampleNormalGrad(_Normal##i, sampler_Splat0, splatuv, splatdxuv, splatdyuv, _NormalScale##i, tangentWS, bitangentWS)
 #else
     #define SampleNormal(i) float3(0, 0, 1)
 #endif
 
 #ifdef _MASKMAP
-    #define SampleMasks(i, blendMask) RemapMasks(SAMPLE_TEXTURE2D_GRAD(_Mask##i, sampler_Splat0, splatuv, splatdxuv, splatdyuv), blendMask, _HeightCenter##i, _HeightAmplitude##i, _Smoothness##i, _Metallic##i)
+    #define SampleMasks(i, blendMask) RemapMasks(SAMPLE_TEXTURE2D_GRAD(_Mask##i, sampler_Splat0, splatuv, splatdxuv, splatdyuv), blendMask, _Metallic##i, _Smoothness##i, _MaskRemapOffset##i, _MaskRemapScale##i)
+    #define NullMask(i)               float4(0, 0, _MaskRemapOffset##i.z, 0) // only height matters when weight is zero.
 #else
-    #define SampleMasks(i, blendMask) float4(0, albedo[i].a * _Smoothness##i, _Metallic##i, 0)
+    #define SampleMasks(i, blendMask) float4(_Metallic##i, 0, 0, albedo[i].a * _Smoothness##i)
+    #define NullMask(i)               float4(0, 0, 0, 0)
 #endif
 
 #define SampleResults(i, mask)                                                                          \
@@ -120,7 +123,7 @@ void TerrainSplatBlend(float2 uv, float3 tangentWS, float3 bitangentWS,
     {                                                                                                   \
         albedo[i] = float4(0, 0, 0, 0);                                                                 \
         normal[i] = float3(0, 0, 0);                                                                    \
-        masks[i] = float4(-1, 0, 0, 0);                                                                 \
+        masks[i] = NullMask(i);                                                                         \
     }
 
     float2 dxuv = ddx(uv);
@@ -153,15 +156,15 @@ void TerrainSplatBlend(float2 uv, float3 tangentWS, float3 bitangentWS,
 
     #if defined(_TERRAIN_BLEND_HEIGHT) && defined(_MASKMAP)
         // Modify blendMask to take into account the height of the layer. Higher height should be more visible.
-        float maxHeight = masks[0].x;
-        maxHeight = max(maxHeight, masks[1].x);
-        maxHeight = max(maxHeight, masks[2].x);
-        maxHeight = max(maxHeight, masks[3].x);
+        float maxHeight = masks[0].z;
+        maxHeight = max(maxHeight, masks[1].z);
+        maxHeight = max(maxHeight, masks[2].z);
+        maxHeight = max(maxHeight, masks[3].z);
         #ifdef _TERRAIN_8_LAYERS
-            maxHeight = max(maxHeight, masks[4].x);
-            maxHeight = max(maxHeight, masks[5].x);
-            maxHeight = max(maxHeight, masks[6].x);
-            maxHeight = max(maxHeight, masks[7].x);
+            maxHeight = max(maxHeight, masks[4].z);
+            maxHeight = max(maxHeight, masks[5].z);
+            maxHeight = max(maxHeight, masks[6].z);
+            maxHeight = max(maxHeight, masks[7].z);
         #endif
 
         // Make sure that transition is not zero otherwise the next computation will be wrong.
@@ -170,13 +173,13 @@ void TerrainSplatBlend(float2 uv, float3 tangentWS, float3 bitangentWS,
 
         // The goal here is to have all but the highest layer at negative heights, then we add the transition so that if the next highest layer is near transition it will have a positive value.
         // Then we clamp this to zero and normalize everything so that highest layer has a value of 1.
-        float4 weightedHeights0 = { masks[0].x, masks[1].x, masks[2].x, masks[3].x };
+        float4 weightedHeights0 = { masks[0].z, masks[1].z, masks[2].z, masks[3].z };
         weightedHeights0 = weightedHeights0 - maxHeight.xxxx;
         // We need to add an epsilon here for active layers (hence the blendMask again) so that at least a layer shows up if everything's too low.
         weightedHeights0 = (max(0, weightedHeights0 + transition) + 1e-6) * blendMasks0;
 
         #ifdef _TERRAIN_8_LAYERS
-            float4 weightedHeights1 = { masks[4].x, masks[5].x, masks[6].x, masks[7].x };
+            float4 weightedHeights1 = { masks[4].z, masks[5].z, masks[6].z, masks[7].z };
             weightedHeights1 = weightedHeights1 - maxHeight.xxxx;
             weightedHeights1 = (max(0, weightedHeights1 + transition) + 1e-6) * blendMasks1;
         #else
@@ -193,11 +196,11 @@ void TerrainSplatBlend(float2 uv, float3 tangentWS, float3 bitangentWS,
     #elif defined(_TERRAIN_BLEND_DENSITY) && defined(_MASKMAP)
         // Denser layers are more visible.
         float4 opacityAsDensity0 = saturate((float4(albedo[0].a, albedo[1].a, albedo[2].a, albedo[3].a) - (float4(1.0, 1.0, 1.0, 1.0) - blendMasks0)) * 20.0); // 20.0 is the number of steps in inputAlphaMask (Density mask. We decided 20 empirically)
-        float4 useOpacityAsDensityParam0 = { _Density0, _Density1, _Density2, _Density3 };
+        float4 useOpacityAsDensityParam0 = { 1, 1, 1, 1 };
         blendMasks0 = lerp(blendMasks0, opacityAsDensity0, useOpacityAsDensityParam0);
         #ifdef _TERRAIN_8_LAYERS
             float4 opacityAsDensity1 = saturate((float4(albedo[4].a, albedo[5].a, albedo[6].a, albedo[7].a) - (float4(1.0, 1.0, 1.0, 1.0) - blendMasks1)) * 20.0); // 20.0 is the number of steps in inputAlphaMask (Density mask. We decided 20 empirically)
-            float4 useOpacityAsDensityParam1 = { _Density4, _Density5, _Density6, _Density7 };
+            float4 useOpacityAsDensityParam1 = { 1, 1, 1, 1 };
             blendMasks1 = lerp(blendMasks1, opacityAsDensity1, useOpacityAsDensityParam1);
         #endif
     #endif
@@ -220,8 +223,7 @@ void TerrainSplatBlend(float2 uv, float3 tangentWS, float3 bitangentWS,
         // If a top layer doesn't use the full weight, the remaining can be use by the following layer.
         float weightsSum = 0.0;
 
-        UNITY_UNROLL
-        for (int i = _LAYER_COUNT - 1; i >= 0; --i)
+        UNITY_UNROLL for (int i = _LAYER_COUNT - 1; i >= 0; --i)
         {
             weights[i] = min(weights[i], (1.0 - weightsSum));
             weightsSum = saturate(weightsSum + weights[i]);
@@ -230,12 +232,12 @@ void TerrainSplatBlend(float2 uv, float3 tangentWS, float3 bitangentWS,
 
     outAlbedo = 0;
     outNormalTS = 0;
-    float2 outMasks = 0;
+    float3 outMasks = 0;
     UNITY_UNROLL for (int i = 0; i < _LAYER_COUNT; ++i)
     {
         outAlbedo += albedo[i].rgb * weights[i];
-        outNormalTS += normal[i].rgb * weights[i];
-        outMasks += masks[i].yz * weights[i];
+        outNormalTS += normal[i].rgb * weights[i]; // no need to normalize
+        outMasks += masks[i].xyw * weights[i];
     }
     #ifndef _NORMALMAP
         #ifdef SURFACE_GRADIENT
@@ -244,6 +246,7 @@ void TerrainSplatBlend(float2 uv, float3 tangentWS, float3 bitangentWS,
             outNormalTS = float3(0.0, 0.0, 1.0);
         #endif
     #endif
-    outSmoothness = outMasks.x;
-    outMetallic = outMasks.y;
+    outSmoothness = outMasks.z;
+    outMetallic = outMasks.x;
+    outAO = saturate(1 - outMasks.y);
 }
