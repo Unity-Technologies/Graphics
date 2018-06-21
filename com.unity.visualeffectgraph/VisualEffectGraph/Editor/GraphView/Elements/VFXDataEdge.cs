@@ -60,7 +60,7 @@ namespace UnityEditor.VFX.UI
         {
             m_Hovered = false;
             e.PreventDefault();
-            
+
             MarkDirtyRepaint();
         }
 
@@ -167,11 +167,13 @@ namespace UnityEditor.VFX.UI
 
         public override void OnSelected()
         {
+            m_Selected = true;
             base.OnSelected();
         }
 
         public override void OnUnselected()
         {
+            m_Selected = false;
             base.OnUnselected();
         }
     }
