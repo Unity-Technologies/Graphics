@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed compilation errors on Nintendo Switch (limited XRSetting support).
 - Fixed apply range attenuation option on punctual light
 - Fixed issue when using more than one volume mask texture with density volumes.
+- Fixed an error which prevented volumetric lighting from working if no density volumes with 3D textures were present.
 
 ### Added
 - Add option supportDitheringCrossFade on HDRP Asset to allow to remove shader variant during player build if needed
