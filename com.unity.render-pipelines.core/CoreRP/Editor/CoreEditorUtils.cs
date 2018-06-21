@@ -284,8 +284,13 @@ namespace UnityEditor.Experimental.Rendering
             GUILayout.EndVertical();
         }
 
-        public static void DrawVector6(GUIContent label, SerializedProperty positive, SerializedProperty negative, Vector3 min, Vector3 max)
+        public static void DrawVector6(GUIContent label, SerializedProperty positive, SerializedProperty negative, Vector3 min, Vector3 max, Color[][] colors = null)
         {
+            if (colors != null && (colors.Length != 2 || colors[0].Length != 3 || colors[1].Length != 3))
+                    throw new System.ArgumentException("Colors must be a 2x3 array.");
+
+            Debug.Log(colors);
+
             GUILayout.BeginVertical();
             if(label != GUIContent.none)
                 EditorGUILayout.LabelField(label);
@@ -294,7 +299,7 @@ namespace UnityEditor.Experimental.Rendering
             var rect = GUILayoutUtility.GetRect(0, float.MaxValue, EditorGUIUtility.singleLineHeight, EditorGUIUtility.singleLineHeight);
             var v = positive.vector3Value;
             EditorGUI.BeginChangeCheck();
-            v = DrawVector3(rect, k_DrawVector6_Label, v, min, max, false);
+            v = DrawVector3(rect, k_DrawVector6_Label, v, min, max, false, colors == null ? null : colors[0]);
             if (EditorGUI.EndChangeCheck())
                 positive.vector3Value = v;
 
@@ -303,7 +308,7 @@ namespace UnityEditor.Experimental.Rendering
             rect = GUILayoutUtility.GetRect(0, float.MaxValue, EditorGUIUtility.singleLineHeight, EditorGUIUtility.singleLineHeight);
             v = negative.vector3Value;
             EditorGUI.BeginChangeCheck();
-            v = DrawVector3(rect, k_DrawVector6_Label, v, min, max, true);
+            v = DrawVector3(rect, k_DrawVector6_Label, v, min, max, true, colors == null ? null : colors[1]);
             if (EditorGUI.EndChangeCheck())
                 negative.vector3Value = v;
             --EditorGUI.indentLevel;
@@ -329,8 +334,7 @@ namespace UnityEditor.Experimental.Rendering
             return value;
         }
 
-        //Suffix is a hack as sublabel only work with 1 character
-        static Vector3 DrawVector3(Rect rect, GUIContent[] labels, Vector3 value, Vector3 min, Vector3 max, bool addMinusPrefix)
+        static Vector3 DrawVector3(Rect rect, GUIContent[] labels, Vector3 value, Vector3 min, Vector3 max, bool addMinusPrefix, Color[] colors)
         {
             float[] multifloat = new float[] { value.x, value.y, value.z };
             rect = EditorGUI.IndentedRect(rect);
@@ -343,14 +347,40 @@ namespace UnityEditor.Experimental.Rendering
                 value.y = Mathf.Max(Mathf.Min(multifloat[1], max.y), min.y);
                 value.z = Mathf.Max(Mathf.Min(multifloat[2], max.z), min.z);
             }
+
+            //Suffix is a hack as sublabel only work with 1 character
             if(addMinusPrefix)
             {
                 Rect suffixRect = new Rect(rect.x-33, rect.y, 100, rect.height);
                 for(int i = 0; i < 3; ++i)
                 {
                     EditorGUI.LabelField(suffixRect, "-");
-                    suffixRect.x += fieldWidth;
+                    suffixRect.x += fieldWidth + .5f;
                 }
+            }
+
+            //Color is a hack as nothing is done to handle this at the moment
+            if(colors != null)
+            {
+                if (colors.Length != 3)
+                    throw new System.ArgumentException("colors must have 3 elements.");
+
+                Rect suffixRect = new Rect(rect.x - 23, rect.y, 100, rect.height);
+                GUIStyle colorMark = new GUIStyle(EditorStyles.label);
+                colorMark.normal.textColor = colors[0];
+                EditorGUI.LabelField(suffixRect, "|", colorMark);
+                suffixRect.x += 1;
+                EditorGUI.LabelField(suffixRect, "|", colorMark);
+                suffixRect.x += fieldWidth  - .5f;
+                colorMark.normal.textColor = colors[1];
+                EditorGUI.LabelField(suffixRect, "|", colorMark);
+                suffixRect.x += 1;
+                EditorGUI.LabelField(suffixRect, "|", colorMark);
+                suffixRect.x += fieldWidth  + .5f;
+                colorMark.normal.textColor = colors[2];
+                EditorGUI.LabelField(suffixRect, "|", colorMark);
+                suffixRect.x += 1;
+                EditorGUI.LabelField(suffixRect, "|", colorMark);
             }
             return value;
         }
