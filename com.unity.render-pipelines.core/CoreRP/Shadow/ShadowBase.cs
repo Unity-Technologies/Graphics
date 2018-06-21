@@ -9,9 +9,16 @@ namespace UnityEngine.Experimental.Rendering
     public class ShadowInitParameters
     {
         public const int kDefaultShadowAtlasSize = 4096;
+        public const int kDefaultMaxPointLightShadows = 6;
+        public const int kDefaultMaxSpotLightShadows = 12;
+        public const int kDefaultMaxDirectionalLightShadows = 1;
 
         public int      shadowAtlasWidth = kDefaultShadowAtlasSize;
         public int      shadowAtlasHeight = kDefaultShadowAtlasSize;
+
+        public int      maxPointLightShadows = kDefaultMaxPointLightShadows;
+        public int      maxSpotLightShadows = kDefaultMaxSpotLightShadows;
+        public int      maxDirectionalLightShadows = kDefaultMaxDirectionalLightShadows;
     }
 
     // Class used to pass parameters to the shadow system on a per frame basis.
