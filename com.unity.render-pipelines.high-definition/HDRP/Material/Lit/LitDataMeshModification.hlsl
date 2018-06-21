@@ -48,7 +48,7 @@ void ApplyVertexModification(AttributesMesh input, float3 normalWS, inout float3
 
 #ifdef _VERTEX_WIND
     // current wind implementation is in absolute world space
-    float3 rootWP = GetObjectPositionWS();
+    float3 rootWP = GetObjectAbsolutePositionWS();
     float3 absolutePositionWS = GetAbsolutePositionWS(positionWS);
     ApplyWindDisplacement(absolutePositionWS, normalWS, rootWP, _Stiffness, _Drag, _ShiverDrag, _ShiverDirectionality, _InitialBend, input.color.a, time);
     positionWS = GetCameraRelativePositionWS(absolutePositionWS);

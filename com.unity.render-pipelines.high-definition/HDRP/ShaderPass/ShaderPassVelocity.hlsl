@@ -88,14 +88,8 @@ float3 TransformPreviousObjectToWorldNormal(float3 normalOS)
 
 float3 TransformPreviousObjectToWorld(float3 positionOS)
 {
-    float4x4 modelMatrix = unity_MatrixPreviousM;
-    // To handle camera relative rendering we substract the camera position in the model matrix
-    // User must not use UNITY_MATRIX_M directly, unless they understand what they do
-#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
-    modelMatrix._m03_m13_m23 -= _WorldSpaceCameraPos;
-#endif
-
-    return mul(modelMatrix, float4(positionOS, 1.0)).xyz;
+    float4x4 previousModelMatrix = ApplyCameraTranslationToMatrix(unity_MatrixPreviousM);
+    return mul(previousModelMatrix, float4(positionOS, 1.0)).xyz;
 }
 
 void VelocityPositionZBias(VaryingsToPS input)
