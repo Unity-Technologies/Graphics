@@ -117,9 +117,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             scInit.resourceBinder                    = binder;
 
             ShadowManager.ShadowBudgets budgets;
-            budgets.maxPointLights       = 6;
-            budgets.maxSpotLights        = 12;
-            budgets.maxDirectionalLights = 1;
+            budgets.maxPointLights       = shadowInit.maxPointLightShadows;
+            budgets.maxSpotLights        = shadowInit.maxSpotLightShadows;
+            budgets.maxDirectionalLights = shadowInit.maxDirectionalLightShadows;
 
             m_ShadowMgr = new ShadowManager(shadowSettings, ref scInit, ref budgets, m_Shadowmaps);
             // set global overrides - these need to match the override specified in LightLoop/Shadow.hlsl
