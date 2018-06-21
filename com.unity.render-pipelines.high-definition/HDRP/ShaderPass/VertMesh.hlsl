@@ -104,6 +104,7 @@ VaryingsMeshType VertMesh(AttributesMesh input)
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
+    // This return the camera relative position (if enable)
     float3 positionWS = TransformObjectToWorld(input.positionOS);
 #ifdef ATTRIBUTES_NEED_NORMAL
     float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
@@ -115,13 +116,10 @@ VaryingsMeshType VertMesh(AttributesMesh input)
      float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
 #endif
 
-    // TODO: deal with camera center rendering and instancing (This is the reason why we always perform two  steps transform to clip space + instancing matrix)
-
+     // Do vertex modification in camera relative space (if enable)
 #if defined(HAVE_VERTEX_MODIFICATION)
     ApplyVertexModification(input, normalWS, positionWS, _Time);
 #endif
-
-    positionWS = GetCameraRelativePositionWS(positionWS);
 
 #ifdef TESSELLATION_ON
     output.positionWS = positionWS;

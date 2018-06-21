@@ -6,14 +6,34 @@ float4x4 GetWorldToViewMatrix()
     return UNITY_MATRIX_V;
 }
 
+// Return world position of current object
+float3 GetObjectPositionWS()
+{
+    float4x4 modelMatrix = UNITY_MATRIX_M;
+    return modelMatrix._m03_m13_m23; // Translation object to world
+}
+
+// Return the PreTranslated ObjectToWorld Matrix (i.e matrix with _WorldSpaceCameraPos apply to it if we use camera relative rendering)
 float4x4 GetObjectToWorldMatrix()
 {
-    return UNITY_MATRIX_M;
+    float4x4 modelMatrix = UNITY_MATRIX_M;
+    // To handle camera relative rendering we substract the camera position in the model matrix
+    // User must not use UNITY_MATRIX_M directly, unless they understand what they do
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    modelMatrix._m03_m13_m23 -= _WorldSpaceCameraPos;
+#endif
+    return modelMatrix;
 }
 
 float4x4 GetWorldToObjectMatrix()
 {
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    // To handle camera relative rendering we need to apply translation before converting to object space
+    float4x4 modelMatrix = { {1.0, 0.0, 0.0, _WorldSpaceCameraPos.x}, { 0.0, 1.0, 0.0, _WorldSpaceCameraPos.y }, { 0.0, 0.0, 1.0, _WorldSpaceCameraPos.z }, { 0.0, 0.0, 0.0, 1.0 } };
+    return mul(UNITY_MATRIX_I_M, modelMatrix);
+#else
     return UNITY_MATRIX_I_M;
+#endif
 }
 
 // Transform to homogenous clip space
