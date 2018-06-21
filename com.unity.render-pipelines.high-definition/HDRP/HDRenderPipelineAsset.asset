@@ -83,8 +83,8 @@ MonoBehaviour:
       shadowAtlasWidth: 4096
       shadowAtlasHeight: 4096
       maxPointLightShadows: 6
-      maxSpotLightShadows: 20
-      maxDirectionalLightShadows: 4
+      maxSpotLightShadows: 12
+      maxDirectionalLightShadows: 1
     decalSettings:
       drawDistance: 1000
       atlasWidth: 4096
