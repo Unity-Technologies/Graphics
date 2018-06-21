@@ -151,7 +151,7 @@ namespace UnityEditor.Experimental.Rendering
                 CoreEditorUtils.GetContent("Blend Distance|Area around the probe where it is blended with other probes. Only used in deferred probes."),
                 s.isSectionExpendedAdvancedBlendDistanceBoxShape
                 );
-            if(GUILayout.Button(toolbar_Contents[1], GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight((s.isSectionExpendedAdvancedBlendDistanceBoxShape.value ? 3 : 1)*(EditorGUIUtility.singleLineHeight+3))))
+            if (GUILayout.Button(toolbar_Contents[1], GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight((s.isSectionExpendedAdvancedBlendDistanceBoxShape.value ? 3 : 1) * (EditorGUIUtility.singleLineHeight + 3))))
             {
                 EditMode.ChangeEditMode(k_Toolbar_SceneViewEditModes[1], GetBoundsGetter(p)(), owner);
             }
@@ -165,7 +165,7 @@ namespace UnityEditor.Experimental.Rendering
                 CoreEditorUtils.GetContent("Blend Normal Distance|Area around the probe where the normals influence the probe. Only used in deferred probes."),
                 s.isSectionExpendedAdvancedBlendNormalDistanceBoxShape
                 );
-            if(GUILayout.Button(toolbar_Contents[2], GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight((s.isSectionExpendedAdvancedBlendNormalDistanceBoxShape.value ? 3 : 1)*(EditorGUIUtility.singleLineHeight+3))))
+            if (GUILayout.Button(toolbar_Contents[2], GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight((s.isSectionExpendedAdvancedBlendNormalDistanceBoxShape.value ? 3 : 1) * (EditorGUIUtility.singleLineHeight + 3))))
             {
                 EditMode.ChangeEditMode(k_Toolbar_SceneViewEditModes[2], GetBoundsGetter(p)(), owner);
             }
@@ -173,17 +173,17 @@ namespace UnityEditor.Experimental.Rendering
 
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(CoreEditorUtils.GetContent("Face fade|Fade faces of the cubemap."));
-            if(GUILayout.Button(CoreEditorUtils.GetContent(s.isSectionExpendedAdvancedBlendFaceFadeBoxShape.value ? "Hide" : "Advanced")))
+            if (GUILayout.Button(CoreEditorUtils.GetContent(s.isSectionExpendedAdvancedBlendFaceFadeBoxShape.value ? "Hide" : "Advanced")))
             {
                 s.isSectionExpendedAdvancedBlendFaceFadeBoxShape.value ^= true;
             }
             EditorGUILayout.EndHorizontal();
 
-            if(s.isSectionExpendedAdvancedBlendFaceFadeBoxShape.value)
+            if (s.isSectionExpendedAdvancedBlendFaceFadeBoxShape.value)
             {
                 CoreEditorUtils.DrawVector6(
                     GUIContent.none, //CoreEditorUtils.GetContent("Face fade|Fade faces of the cubemap."),
-                    p.boxSideFadePositive, p.boxSideFadeNegative, Vector3.zero, Vector3.one);
+                    p.boxSideFadePositive, p.boxSideFadeNegative, Vector3.zero, Vector3.one, HDReflectionProbeEditor.k_handlesColor);
             }
         }
 
@@ -204,7 +204,7 @@ namespace UnityEditor.Experimental.Rendering
 
             EditorGUI.BeginChangeCheck();
             maxDistance = EditorGUILayout.FloatField(content, maxDistance, advanced.value ? styleTextDisabled : GUI.skin.textField);
-            if(advanced.value)
+            if (advanced.value)
             {
                 maxDistance = originalMaxDistance;
                 EditorGUI.EndChangeCheck();
@@ -224,18 +224,18 @@ namespace UnityEditor.Experimental.Rendering
                 blendDistanceNegative.vector3Value = bdn;
             }
 
-            if(GUILayout.Button(CoreEditorUtils.GetContent(advanced.value ? "Hide" : "Advanced"), GUILayout.MaxWidth(70)))
+            if (GUILayout.Button(CoreEditorUtils.GetContent(advanced.value ? "Hide" : "Advanced"), GUILayout.MaxWidth(70)))
             {
                 advanced.value ^= true;
             }
 
             EditorGUILayout.EndHorizontal();
 
-            if(advanced.value)
+            if (advanced.value)
             {
                 CoreEditorUtils.DrawVector6(
                     GUIContent.none,
-                    blendDistancePositive, blendDistanceNegative, Vector3.zero, maxBlendDistance);
+                    blendDistancePositive, blendDistanceNegative, Vector3.zero, maxBlendDistance, HDReflectionProbeEditor.k_handlesColor);
             }
 
             GUILayout.EndVertical();
@@ -255,7 +255,7 @@ namespace UnityEditor.Experimental.Rendering
                 p.blendDistancePositive.vector3Value = Vector3.one * blendDistance;
                 p.blendDistanceNegative.vector3Value = Vector3.one * blendDistance;
             }
-            if(GUILayout.Button(toolbar_Contents[1], GUILayout.Width(28f), GUILayout.Height(EditorGUIUtility.singleLineHeight+3)))
+            if (GUILayout.Button(toolbar_Contents[1], GUILayout.Width(28f), GUILayout.Height(EditorGUIUtility.singleLineHeight + 3)))
             {
                 EditMode.ChangeEditMode(k_Toolbar_SceneViewEditModes[1], GetBoundsGetter(p)(), owner);
             }
@@ -271,7 +271,7 @@ namespace UnityEditor.Experimental.Rendering
                 p.blendNormalDistancePositive.vector3Value = Vector3.one * blendNormalDistance;
                 p.blendNormalDistanceNegative.vector3Value = Vector3.one * blendNormalDistance;
             }
-            if(GUILayout.Button(toolbar_Contents[2], GUILayout.Width(28f), GUILayout.Height(EditorGUIUtility.singleLineHeight+3)))
+            if (GUILayout.Button(toolbar_Contents[2], GUILayout.Width(28f), GUILayout.Height(EditorGUIUtility.singleLineHeight + 3)))
             {
                 EditMode.ChangeEditMode(k_Toolbar_SceneViewEditModes[2], GetBoundsGetter(p)(), owner);
             }
@@ -318,7 +318,7 @@ namespace UnityEditor.Experimental.Rendering
                         );
             }
 
-            switch((ShapeType)p.influenceShape.enumValueIndex)
+            switch ((ShapeType)p.influenceShape.enumValueIndex)
             {
                 case ShapeType.Box:
                     Drawer_InfluenceShapeBoxSettings(s, p, owner);
@@ -336,14 +336,14 @@ namespace UnityEditor.Experimental.Rendering
 
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PropertyField(p.boxSize, CoreEditorUtils.GetContent("Box Size|The size of the box in which the reflections will be applied to objects. The value is not affected by the Transform of the Game Object."));
-            if(GUILayout.Button(toolbar_Contents[0], GUILayout.Width(28f), GUILayout.Height(EditorGUIUtility.singleLineHeight+3)))
+            if (GUILayout.Button(toolbar_Contents[0], GUILayout.Width(28f), GUILayout.Height(EditorGUIUtility.singleLineHeight + 3)))
             {
                 EditMode.ChangeEditMode(EditMode.SceneViewEditMode.ReflectionProbeBox, GetBoundsGetter(p)(), owner);
             }
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PropertyField(p.boxOffset, CoreEditorUtils.GetContent("Box Offset|The center of the box in which the reflections will be applied to objects. The value is relative to the position of the Game Object."));
-            if(GUILayout.Button(toolbar_Contents[3], GUILayout.Width(28f), GUILayout.Height(EditorGUIUtility.singleLineHeight+3)))
+            if (GUILayout.Button(toolbar_Contents[3], GUILayout.Width(28f), GUILayout.Height(EditorGUIUtility.singleLineHeight + 3)))
             {
                 EditMode.ChangeEditMode(EditMode.SceneViewEditMode.ReflectionProbeOrigin, GetBoundsGetter(p)(), owner);
             }
@@ -365,14 +365,14 @@ namespace UnityEditor.Experimental.Rendering
         {
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PropertyField(p.influenceSphereRadius, CoreEditorUtils.GetContent("Radius"));
-            if(GUILayout.Button(toolbar_Contents[0], GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.Height(EditorGUIUtility.singleLineHeight+3)))
+            if (GUILayout.Button(toolbar_Contents[0], GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.Height(EditorGUIUtility.singleLineHeight + 3)))
             {
                 EditMode.ChangeEditMode(EditMode.SceneViewEditMode.ReflectionProbeBox, GetBoundsGetter(p)(), owner);
             }
             EditorGUILayout.EndHorizontal();
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PropertyField(p.boxOffset, CoreEditorUtils.GetContent("Sphere Offset|The center of the sphere in which the reflections will be applied to objects. The value is relative to the position of the Game Object."));
-            if(GUILayout.Button(toolbar_Contents[3], GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.Height(EditorGUIUtility.singleLineHeight+3)))
+            if (GUILayout.Button(toolbar_Contents[3], GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.Height(EditorGUIUtility.singleLineHeight + 3)))
             {
                 EditMode.ChangeEditMode(EditMode.SceneViewEditMode.ReflectionProbeOrigin, GetBoundsGetter(p)(), owner);
             }
@@ -381,11 +381,11 @@ namespace UnityEditor.Experimental.Rendering
 
         static void Drawer_InfluenceAreas(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
-            if(s.IsSectionExpandedShape(ShapeType.Box).value)
+            if (s.IsSectionExpandedShape(ShapeType.Box).value)
             {
                 Drawer_InfluenceBoxSettings(s, p, owner);
             }
-            if(s.IsSectionExpandedShape(ShapeType.Sphere).value)
+            if (s.IsSectionExpandedShape(ShapeType.Sphere).value)
             {
                 Drawer_InfluenceSphereSettings(s, p, owner);
             }
@@ -394,6 +394,7 @@ namespace UnityEditor.Experimental.Rendering
         static void Drawer_InfluenceSettings(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.boxProjection, CoreEditorUtils.GetContent("Parallax Correction|Parallax Correction causes reflections to appear to change based on the object's position within the probe's box, while still using a single probe as the source of the reflection. This works well for reflections on objects that are moving through enclosed spaces such as corridors and rooms. Setting Parallax Correction to False and the cubemap reflection will be treated as coming from infinitely far away. Note that this feature can be globally disabled from Graphics Settings -> Tier Settings"));
+            s.useNewGizmo = EditorGUILayout.Toggle(CoreEditorUtils.GetContent("New Gizmo"), s.useNewGizmo);
         }
 
         static void Drawer_IntensityMultiplier(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)

@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Gizmo;
 
 namespace UnityEditor.Experimental.Rendering
 {
@@ -26,6 +27,22 @@ namespace UnityEditor.Experimental.Rendering
         internal static Color k_GizmoThemeColorProjectionFace = new Color(0x00 / 255f, 0xE5 / 255f, 0xFF / 255f, 0x20 / 255f);
         internal static Color k_GizmoThemeColorDisabled = new Color(0x99 / 255f, 0x89 / 255f, 0x59 / 255f, 0x10 / 255f);
         internal static Color k_GizmoThemeColorDisabledFace = new Color(0x99 / 255f, 0x89 / 255f, 0x59 / 255f, 0x10 / 255f);
+
+        internal static Color[][] k_handlesColor = new Color[][]
+        {
+            new Color[]
+            {
+                Color.red,
+                Color.green,
+                Color.blue
+            },
+            new Color[]
+            {
+                new Color(.5f, 0f, 0f, 1f),
+                new Color(0f, .5f, 0f, 1f),
+                new Color(0f, 0f, .5f, 1f)
+            }
+        };
 
         void OnSceneGUI()
         {
@@ -69,6 +86,7 @@ namespace UnityEditor.Experimental.Rendering
         static void Handle_InfluenceFadeEditing(HDReflectionProbeUI s, SerializedHDReflectionProbe sp, Editor o, InfluenceType influenceType)
         {
             BoxBoundsHandle blendBox;
+            Gizmo6FacesBoxContained alternativeBlendBox;
             SphereBoundsHandle sphereHandle;
             Vector3 probeBlendDistancePositive, probeBlendDistanceNegative;
             Color color;
@@ -76,25 +94,26 @@ namespace UnityEditor.Experimental.Rendering
             {
                 default:
                 case InfluenceType.Standard:
-                {
-                    blendBox = s.boxBlendHandle;
-                    sphereHandle = s.sphereBlendHandle;
-                    probeBlendDistancePositive = sp.targetData.blendDistancePositive;
-                    probeBlendDistanceNegative = sp.targetData.blendDistanceNegative;
-                    color = k_GizmoThemeColorInfluenceBlend;
-                    break;
-                }
+                    {
+                        alternativeBlendBox = s.alternativeBoxBlendHandle;
+                        blendBox = s.boxBlendHandle;
+                        sphereHandle = s.sphereBlendHandle;
+                        probeBlendDistancePositive = sp.targetData.blendDistancePositive;
+                        probeBlendDistanceNegative = sp.targetData.blendDistanceNegative;
+                        color = k_GizmoThemeColorInfluenceBlend;
+                        break;
+                    }
                 case InfluenceType.Normal:
-                {
-                    blendBox = s.boxBlendNormalHandle;
-                    sphereHandle = s.sphereBlendNormalHandle;
-                    probeBlendDistancePositive = sp.targetData.blendNormalDistancePositive;
-                    probeBlendDistanceNegative = sp.targetData.blendNormalDistanceNegative;
-                    color = k_GizmoThemeColorInfluenceNormalBlend;
-                    break;
-                }
+                    {
+                        alternativeBlendBox = s.alternativeBoxBlendNormalHandle;
+                        blendBox = s.boxBlendNormalHandle;
+                        sphereHandle = s.sphereBlendNormalHandle;
+                        probeBlendDistancePositive = sp.targetData.blendNormalDistancePositive;
+                        probeBlendDistanceNegative = sp.targetData.blendNormalDistanceNegative;
+                        color = k_GizmoThemeColorInfluenceNormalBlend;
+                        break;
+                    }
             }
-
 
             var mat = Handles.matrix;
             var col = Handles.color;
@@ -102,68 +121,81 @@ namespace UnityEditor.Experimental.Rendering
             switch ((ShapeType)sp.influenceShape.enumValueIndex)
             {
                 case ShapeType.Box:
-                {
-                    blendBox.center = sp.target.center - (probeBlendDistancePositive - probeBlendDistanceNegative) * 0.5f;
-                    blendBox.size = sp.target.size - probeBlendDistancePositive - probeBlendDistanceNegative;
-
-                    Handles.color = k_GizmoThemeColorExtent;
-                    EditorGUI.BeginChangeCheck();
-                    Handles.color = color;
-                    blendBox.DrawHandle();
-                    if (EditorGUI.EndChangeCheck())
                     {
-                        Undo.RecordObject(sp.target, "Modified Reflection Probe Influence");
-                        Undo.RecordObject(sp.targetData, "Modified Reflection Probe Influence");
+                        blendBox.center = sp.target.center - (probeBlendDistancePositive - probeBlendDistanceNegative) * 0.5f;
+                        blendBox.size = sp.target.size - probeBlendDistancePositive - probeBlendDistanceNegative;
 
-                        var center = sp.target.center;
-                        var influenceSize = sp.target.size;
+                        alternativeBlendBox.center = sp.target.center - (probeBlendDistancePositive - probeBlendDistanceNegative) * 0.5f;
+                        alternativeBlendBox.size = sp.target.size - probeBlendDistancePositive - probeBlendDistanceNegative;
 
-                        var diff = 2 * (blendBox.center - center);
-                        var sum = influenceSize - blendBox.size;
-                        var positive = (sum - diff) * 0.5f;
-                        var negative = (sum + diff) * 0.5f;
-                        var blendDistancePositive = Vector3.Max(Vector3.zero, Vector3.Min(positive, influenceSize));
-                        var blendDistanceNegative = Vector3.Max(Vector3.zero, Vector3.Min(negative, influenceSize));
+                        alternativeBlendBox.container.center = sp.target.center;
+                        alternativeBlendBox.container.size = sp.target.size;
 
-                        probeBlendDistancePositive = blendDistancePositive;
-                        probeBlendDistanceNegative = blendDistanceNegative;
+                        Handles.color = k_GizmoThemeColorExtent;
+                        EditorGUI.BeginChangeCheck();
+                        Handles.color = color;
+                        if(s.useNewGizmo)
+                        {
+                            alternativeBlendBox.DrawHandle();
+                        }
+                        else
+                        {
+                            blendBox.DrawHandle();
+                        }
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            Undo.RecordObject(sp.target, "Modified Reflection Probe Influence");
+                            Undo.RecordObject(sp.targetData, "Modified Reflection Probe Influence");
 
-                        ApplyConstraintsOnTargets(s, sp, o);
+                            var center = sp.target.center;
+                            var influenceSize = sp.target.size;
 
-                        EditorUtility.SetDirty(sp.target);
-                        EditorUtility.SetDirty(sp.targetData);
+                            var diff = 2 * ((s.useNewGizmo?alternativeBlendBox.center:blendBox.center) - center);
+                            var sum = influenceSize - (s.useNewGizmo?alternativeBlendBox.size:blendBox.size);
+                            var positive = (sum - diff) * 0.5f;
+                            var negative = (sum + diff) * 0.5f;
+                            var blendDistancePositive = Vector3.Max(Vector3.zero, Vector3.Min(positive, influenceSize));
+                            var blendDistanceNegative = Vector3.Max(Vector3.zero, Vector3.Min(negative, influenceSize));
+
+                            probeBlendDistancePositive = blendDistancePositive;
+                            probeBlendDistanceNegative = blendDistanceNegative;
+
+                            ApplyConstraintsOnTargets(s, sp, o);
+
+                            EditorUtility.SetDirty(sp.target);
+                            EditorUtility.SetDirty(sp.targetData);
+                        }
+                        break;
                     }
-                    break;
-                }
                 case ShapeType.Sphere:
-                {
-                    sphereHandle.center = sp.target.center;
-                    sphereHandle.radius = Mathf.Clamp(sp.targetData.influenceSphereRadius - probeBlendDistancePositive.x, 0, sp.targetData.influenceSphereRadius);
-
-                    Handles.color = k_GizmoThemeColorExtent;
-                    EditorGUI.BeginChangeCheck();
-                    Handles.color = color;
-                    sphereHandle.DrawHandle();
-                    if (EditorGUI.EndChangeCheck())
                     {
-                        Undo.RecordObject(sp.target, "Modified Reflection influence volume");
-                        Undo.RecordObject(sp.targetData, "Modified Reflection influence volume");
+                        sphereHandle.center = sp.target.center;
+                        sphereHandle.radius = Mathf.Clamp(sp.targetData.influenceSphereRadius - probeBlendDistancePositive.x, 0, sp.targetData.influenceSphereRadius);
 
-                        var influenceRadius = sp.targetData.influenceSphereRadius;
-                        var blendRadius = sphereHandle.radius;
+                        Handles.color = k_GizmoThemeColorExtent;
+                        EditorGUI.BeginChangeCheck();
+                        Handles.color = color;
+                        sphereHandle.DrawHandle();
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            Undo.RecordObject(sp.target, "Modified Reflection influence volume");
+                            Undo.RecordObject(sp.targetData, "Modified Reflection influence volume");
 
-                        var blendDistance = Mathf.Clamp(influenceRadius - blendRadius, 0, influenceRadius);
+                            var influenceRadius = sp.targetData.influenceSphereRadius;
+                            var blendRadius = sphereHandle.radius;
 
-                        probeBlendDistancePositive = Vector3.one * blendDistance;
-                        probeBlendDistanceNegative = probeBlendDistancePositive;
+                            var blendDistance = Mathf.Clamp(influenceRadius - blendRadius, 0, influenceRadius);
 
-                        ApplyConstraintsOnTargets(s, sp, o);
+                            probeBlendDistancePositive = Vector3.one * blendDistance;
+                            probeBlendDistanceNegative = probeBlendDistancePositive;
 
-                        EditorUtility.SetDirty(sp.target);
-                        EditorUtility.SetDirty(sp.targetData);
+                            ApplyConstraintsOnTargets(s, sp, o);
+
+                            EditorUtility.SetDirty(sp.target);
+                            EditorUtility.SetDirty(sp.targetData);
+                        }
+                        break;
                     }
-                    break;
-                }
             }
             Handles.matrix = mat;
             Handles.color = col;
@@ -173,17 +205,17 @@ namespace UnityEditor.Experimental.Rendering
             {
                 default:
                 case InfluenceType.Standard:
-                {
-                    sp.targetData.blendDistancePositive = probeBlendDistancePositive;
-                    sp.targetData.blendDistanceNegative = probeBlendDistanceNegative;
-                    break;
-                }
+                    {
+                        sp.targetData.blendDistancePositive = probeBlendDistancePositive;
+                        sp.targetData.blendDistanceNegative = probeBlendDistanceNegative;
+                        break;
+                    }
                 case InfluenceType.Normal:
-                {
-                    sp.targetData.blendNormalDistancePositive = probeBlendDistancePositive;
-                    sp.targetData.blendNormalDistanceNegative = probeBlendDistanceNegative;
-                    break;
-                }
+                    {
+                        sp.targetData.blendNormalDistancePositive = probeBlendDistancePositive;
+                        sp.targetData.blendNormalDistanceNegative = probeBlendDistanceNegative;
+                        break;
+                    }
             }
         }
 
@@ -195,62 +227,87 @@ namespace UnityEditor.Experimental.Rendering
             switch ((ShapeType)sp.influenceShape.enumValueIndex)
             {
                 case ShapeType.Box:
-                {
-                    s.boxInfluenceHandle.center = sp.target.center;
-                    s.boxInfluenceHandle.size = sp.target.size;
-
-                    Handles.color = k_GizmoThemeColorExtent;
-                    EditorGUI.BeginChangeCheck();
-                    s.boxInfluenceHandle.DrawHandle();
-                    if (EditorGUI.EndChangeCheck())
                     {
-                        Undo.RecordObject(sp.target, "Modified Reflection Probe AABB");
-                        Undo.RecordObject(sp.targetData, "Modified Reflection Probe AABB");
+                        if (s.useNewGizmo)
+                        {
+                            s.alternativeBoxInfluenceHandle.center = sp.target.center;
+                            s.alternativeBoxInfluenceHandle.size = sp.target.size;
+                        }
+                        else
+                        {
+                            s.boxInfluenceHandle.center = sp.target.center;
+                            s.boxInfluenceHandle.size = sp.target.size;
+                        }
 
-                        var center = s.boxInfluenceHandle.center;
-                        var size = s.boxInfluenceHandle.size;
+                        Handles.color = k_GizmoThemeColorExtent;
+                        EditorGUI.BeginChangeCheck();
+                        if (s.useNewGizmo)
+                        {
+                            s.alternativeBoxInfluenceHandle.DrawHandle();
+                        }
+                        else
+                        {
+                            s.boxInfluenceHandle.DrawHandle();
+                        }
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            Undo.RecordObject(sp.target, "Modified Reflection Probe AABB");
+                            Undo.RecordObject(sp.targetData, "Modified Reflection Probe AABB");
 
-                        HDReflectionProbeEditorUtility.ValidateAABB(sp.target, ref center, ref size);
+                            Vector3 center;
+                            Vector3 size;
+                            if (s.useNewGizmo)
+                            {
+                                center = s.alternativeBoxInfluenceHandle.center;
+                                size = s.alternativeBoxInfluenceHandle.size;
+                            }
+                            else
+                            {
+                                center = s.boxInfluenceHandle.center;
+                                size = s.boxInfluenceHandle.size;
+                            }
 
-                        sp.target.center = center;
-                        sp.target.size = size;
+                            HDReflectionProbeEditorUtility.ValidateAABB(sp.target, ref center, ref size);
 
-                        ApplyConstraintsOnTargets(s, sp, o);
+                            sp.target.center = center;
+                            sp.target.size = size;
 
-                        EditorUtility.SetDirty(sp.target);
-                        EditorUtility.SetDirty(sp.targetData);
+                            ApplyConstraintsOnTargets(s, sp, o);
+
+                            EditorUtility.SetDirty(sp.target);
+                            EditorUtility.SetDirty(sp.targetData);
+                        }
+                        break;
                     }
-                    break;
-                }
                 case ShapeType.Sphere:
-                {
-                    s.sphereInfluenceHandle.center = sp.target.center;
-                    s.sphereInfluenceHandle.radius = sp.targetData.influenceSphereRadius;
-
-                    Handles.color = k_GizmoThemeColorExtent;
-                    EditorGUI.BeginChangeCheck();
-                    s.sphereInfluenceHandle.DrawHandle();
-                    if (EditorGUI.EndChangeCheck())
                     {
-                        Undo.RecordObject(sp.target, "Modified Reflection Probe AABB");
-                        Undo.RecordObject(sp.targetData, "Modified Reflection Probe AABB");
+                        s.sphereInfluenceHandle.center = sp.target.center;
+                        s.sphereInfluenceHandle.radius = sp.targetData.influenceSphereRadius;
 
-                        var center = sp.target.center;
-                        var influenceRadius = s.sphereInfluenceHandle.radius;
-                        var radius = Vector3.one * influenceRadius;
+                        Handles.color = k_GizmoThemeColorExtent;
+                        EditorGUI.BeginChangeCheck();
+                        s.sphereInfluenceHandle.DrawHandle();
+                        if (EditorGUI.EndChangeCheck())
+                        {
+                            Undo.RecordObject(sp.target, "Modified Reflection Probe AABB");
+                            Undo.RecordObject(sp.targetData, "Modified Reflection Probe AABB");
 
-                        HDReflectionProbeEditorUtility.ValidateAABB(sp.target, ref center, ref radius);
-                        influenceRadius = radius.x;
+                            var center = sp.target.center;
+                            var influenceRadius = s.sphereInfluenceHandle.radius;
+                            var radius = Vector3.one * influenceRadius;
 
-                        sp.targetData.influenceSphereRadius = influenceRadius;
+                            HDReflectionProbeEditorUtility.ValidateAABB(sp.target, ref center, ref radius);
+                            influenceRadius = radius.x;
 
-                        ApplyConstraintsOnTargets(s, sp, o);
+                            sp.targetData.influenceSphereRadius = influenceRadius;
 
-                        EditorUtility.SetDirty(sp.target);
-                        EditorUtility.SetDirty(sp.targetData);
+                            ApplyConstraintsOnTargets(s, sp, o);
+
+                            EditorUtility.SetDirty(sp.target);
+                            EditorUtility.SetDirty(sp.targetData);
+                        }
+                        break;
                     }
-                    break;
-                }
             }
             Handles.matrix = mat;
             Handles.color = col;
@@ -341,11 +398,12 @@ namespace UnityEditor.Experimental.Rendering
                 HDReflectionProbeEditorUtility.ChangeVisibility(reflectionProbe, false);
         }
 
-        static void Gizmos_InfluenceFade(ReflectionProbe p, HDAdditionalReflectionData a, Editor e, InfluenceType type, bool isEdit)
+        static void Gizmos_InfluenceFade(ReflectionProbe p, HDAdditionalReflectionData a, HDReflectionProbeEditor e, InfluenceType type, bool isEdit)
         {
             var col = Gizmos.color;
             var mat = Gizmos.matrix;
 
+            Gizmo6FacesBoxContained box;
             Vector3 boxCenterOffset;
             Vector3 boxSizeOffset;
             float sphereRadiusOffset;
@@ -354,51 +412,60 @@ namespace UnityEditor.Experimental.Rendering
             {
                 default:
                 case InfluenceType.Standard:
-                {
-                    boxCenterOffset = a.boxBlendCenterOffset;
-                    boxSizeOffset = a.boxBlendSizeOffset;
-                    sphereRadiusOffset = a.sphereBlendRadiusOffset;
-                    color = isEdit ? k_GizmoThemeColorInfluenceBlendFace : k_GizmoThemeColorInfluenceBlend;
-                    break;
-                }
+                    {
+                        box = e != null ? e.m_UIState.alternativeBoxBlendHandle : null;
+                        boxCenterOffset = a.boxBlendCenterOffset;
+                        boxSizeOffset = a.boxBlendSizeOffset;
+                        sphereRadiusOffset = a.sphereBlendRadiusOffset;
+                        color = isEdit ? k_GizmoThemeColorInfluenceBlendFace : k_GizmoThemeColorInfluenceBlend;
+                        break;
+                    }
                 case InfluenceType.Normal:
-                {
-                    boxCenterOffset = a.boxBlendNormalCenterOffset;
-                    boxSizeOffset = a.boxBlendNormalSizeOffset;
-                    sphereRadiusOffset = a.sphereBlendNormalRadiusOffset;
-                    color = isEdit ? k_GizmoThemeColorInfluenceNormalBlendFace : k_GizmoThemeColorInfluenceNormalBlend;
-                    break;
-                }
+                    {
+                        box = e != null ? e.m_UIState.alternativeBoxBlendNormalHandle : null;
+                        boxCenterOffset = a.boxBlendNormalCenterOffset;
+                        boxSizeOffset = a.boxBlendNormalSizeOffset;
+                        sphereRadiusOffset = a.sphereBlendNormalRadiusOffset;
+                        color = isEdit ? k_GizmoThemeColorInfluenceNormalBlendFace : k_GizmoThemeColorInfluenceNormalBlend;
+                        break;
+                    }
             }
 
             Gizmos.matrix = HDReflectionProbeEditorUtility.GetLocalSpace(p);
             switch (a.influenceShape)
             {
                 case ShapeType.Box:
-                {
-                    Gizmos.color = color;
-                    if (isEdit)
-                        Gizmos.DrawCube(p.center + boxCenterOffset, p.size + boxSizeOffset);
-                    else
-                        Gizmos.DrawWireCube(p.center + boxCenterOffset, p.size + boxSizeOffset);
-                    break;
-                }
+                    {
+                        if(e != null && e.m_UIState.useNewGizmo)
+                        {
+                            box.DrawHull(isEdit);
+                        }
+                        else
+                        {
+                            Gizmos.color = color;
+                            if (isEdit)
+                                Gizmos.DrawCube(p.center + boxCenterOffset, p.size + boxSizeOffset);
+                            else
+                                Gizmos.DrawWireCube(p.center + boxCenterOffset, p.size + boxSizeOffset);
+                        }
+                        break;
+                    }
                 case ShapeType.Sphere:
-                {
-                    Gizmos.color = color;
-                    if (isEdit)
-                        Gizmos.DrawSphere(p.center, a.influenceSphereRadius + sphereRadiusOffset);
-                    else
-                        Gizmos.DrawWireSphere(p.center, a.influenceSphereRadius + sphereRadiusOffset);
-                    break;
-                }
+                    {
+                        Gizmos.color = color;
+                        if (isEdit)
+                            Gizmos.DrawSphere(p.center, a.influenceSphereRadius + sphereRadiusOffset);
+                        else
+                            Gizmos.DrawWireSphere(p.center, a.influenceSphereRadius + sphereRadiusOffset);
+                        break;
+                    }
             }
 
             Gizmos.matrix = mat;
             Gizmos.color = col;
         }
 
-        static void Gizmos_Influence(ReflectionProbe p, HDAdditionalReflectionData a, Editor e, bool isEdit)
+        static void Gizmos_Influence(ReflectionProbe p, HDAdditionalReflectionData a, HDReflectionProbeEditor e, bool isEdit)
         {
             var col = Gizmos.color;
             var mat = Gizmos.matrix;
@@ -407,23 +474,30 @@ namespace UnityEditor.Experimental.Rendering
             switch (a.influenceShape)
             {
                 case ShapeType.Box:
-                {
-                    Gizmos.color = isEdit ? k_GizmoThemeColorExtentFace : k_GizmoThemeColorExtent;
-                    if (isEdit)
-                        Gizmos.DrawCube(p.center, p.size);
-                    else
-                        Gizmos.DrawWireCube(p.center, p.size);
-                    break;
-                }
+                    {
+                        if(e != null && e.m_UIState.useNewGizmo)
+                        {
+                            e.m_UIState.alternativeBoxInfluenceHandle.DrawHull(isEdit);
+                        }
+                        else
+                        {
+                            Gizmos.color = isEdit ? k_GizmoThemeColorExtentFace : k_GizmoThemeColorExtent;
+                            if (isEdit)
+                                Gizmos.DrawCube(p.center, p.size);
+                            else
+                                Gizmos.DrawWireCube(p.center, p.size);
+                        }
+                        break;
+                    }
                 case ShapeType.Sphere:
-                {
-                    Gizmos.color = k_GizmoThemeColorExtentFace;
-                    if (isEdit)
-                        Gizmos.DrawSphere(p.center, a.influenceSphereRadius);
-                    else
-                        Gizmos.DrawWireSphere(p.center, a.influenceSphereRadius);
-                    break;
-                }
+                    {
+                        Gizmos.color = k_GizmoThemeColorExtentFace;
+                        if (isEdit)
+                            Gizmos.DrawSphere(p.center, a.influenceSphereRadius);
+                        else
+                            Gizmos.DrawWireSphere(p.center, a.influenceSphereRadius);
+                        break;
+                    }
             }
 
             Gizmos.matrix = mat;
