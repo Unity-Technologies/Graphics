@@ -88,11 +88,13 @@ namespace UnityEditor.VFX.UI
 
         public override void OnSelected()
         {
+            m_Selected = true;
             UpdateBorder();
         }
 
         public override void OnUnselected()
         {
+            m_Selected = false;
             UpdateBorder();
         }
 

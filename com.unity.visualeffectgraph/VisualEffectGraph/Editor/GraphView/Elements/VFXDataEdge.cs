@@ -52,12 +52,16 @@ namespace UnityEditor.VFX.UI
         {
             m_Hovered = true;
             e.PreventDefault();
+
+            MarkDirtyRepaint();
         }
 
         void OnMouseLeave(MouseLeaveEvent e)
         {
             m_Hovered = false;
             e.PreventDefault();
+            
+            MarkDirtyRepaint();
         }
 
         protected virtual void OnChange(ControllerChangedEvent e)
