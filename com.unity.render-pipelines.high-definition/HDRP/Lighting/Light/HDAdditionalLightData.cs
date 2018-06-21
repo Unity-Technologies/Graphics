@@ -31,6 +31,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float directionalIntensity   = Mathf.PI; // In Lux
         public float punctualIntensity      = 600.0f;   // Light default to 600 lumen, i.e ~48 candela
         public float areaIntensity          = 200.0f;   // Light default to 200 lumen to better match point light
+        
+        public float intensity
+        {
+            get { return m_Light.intensity; }
+            set { GetLightIntensity(value); }
+        }
 
         // Only for Spotlight, should be hide for other light
         public bool enableSpotReflector = false;
@@ -48,6 +54,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         [Range(0.0f, 1.0f)]
         public float volumetricDimmer = 1.0f;
+
+        // Used internally to convert any light unit input into light intensity
+        public int  lightUnit;
 
         // Not used for directional lights.
         public float fadeDistance = 10000.0f;
@@ -86,6 +95,74 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool useOldInspector = false;
         public bool featuresFoldout = true;
         public bool showAdditionalSettings = false;
+        public float editorLightIntensity;
+
+        // Runtime datas used to compute light intensity
+        Light       _light;
+        Light       m_Light
+        {
+            get
+            {
+                if (_light == null)
+                    _light = GetComponent<Light>();
+                return _light;
+            }
+        }
+        
+        void GetLightIntensity(float value)
+        {
+            switch (lightTypeExtent)
+            {
+                case LightTypeExtent.Punctual:
+                    GetLightIntensityPunctual(value);
+                    break;
+                case LightTypeExtent.Line:
+                    m_Light.intensity = LightUtils.CalculateLineLightIntensity(value, shapeWidth);
+                    break;
+                case LightTypeExtent.Rectangle:
+                    m_Light.intensity = LightUtils.ConvertRectLightIntensity(value, shapeWidth, shapeHeight);
+                    break ;
+            }
+        }
+
+        void GetLightIntensityPunctual(float value)
+        {
+            switch (m_Light.type)
+            {
+                case LightType.Directional:
+                    m_Light.intensity = directionalIntensity;
+                    break;
+                case LightType.Point:
+                    m_Light.intensity = LightUtils.ConvertPointLightIntensity(value);
+                    break;
+                case LightType.Spot:
+                    if (enableSpotReflector)
+
+                    {
+                        if (spotLightShape == SpotLightShape.Cone)
+                        {
+                            m_Light.intensity = LightUtils.ConvertSpotLightIntensity(value, m_Light.spotAngle * Mathf.Deg2Rad, true);
+                        }
+                        else if (spotLightShape == SpotLightShape.Pyramid)
+                        {
+                            float angleA, angleB;
+                            LightUtils.CalculateAnglesForPyramid(aspectRatio, m_Light.spotAngle,
+                                out angleA, out angleB);
+
+                            m_Light.intensity = LightUtils.ConvertFrustrumLightIntensity(value, angleA, angleB);
+                        }
+                        else // Box shape, fallback to punctual light.
+                        {
+                            m_Light.intensity = LightUtils.ConvertPointLightIntensity(value);
+                        }
+                    }
+                    else // Reflector disabled, fallback to punctual light.
+                    {
+                        m_Light.intensity = LightUtils.ConvertPointLightIntensity(value);
+                    }
+                    break;
+            }
+        }
 
 #if UNITY_EDITOR
 
@@ -164,12 +241,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DrawGizmos(true);
         }
 
+        public void RefreshLightIntensity()
+        {
+            // The editor can only access editorLightIntensity (because of SerializedProperties) so we update the intensity to get the real value
+            intensity = editorLightIntensity;
+        }
+
 #endif
 
         // Caution: this function must match the one in HDLightEditor.UpdateLightIntensity - any change need to be replicated
         public void ConvertPhysicalLightIntensityToLightIntensity()
         {
-            var light = gameObject.GetComponent<Light>();
+            var light = m_Light;
 
             if (lightTypeExtent == LightTypeExtent.Punctual)
             {
@@ -246,6 +329,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // At first init we need to initialize correctly the default value
             lightData.ConvertPhysicalLightIntensityToLightIntensity();
+
+            // TODO: Initialize the light intensity in function of the light type
         }
     }
 }

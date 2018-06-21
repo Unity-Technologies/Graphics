@@ -25,6 +25,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         sealed class SerializedLightData
         {
+            public SerializedProperty intensity;
             public SerializedProperty directionalIntensity;
             public SerializedProperty punctualIntensity;
             public SerializedProperty areaIntensity;
@@ -44,6 +45,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty maxSmoothness;
             public SerializedProperty applyRangeAttenuation;
             public SerializedProperty volumetricDimmer;
+            public SerializedProperty lightUnit;
 
             // Editor stuff
             public SerializedProperty useOldInspector;
@@ -90,6 +92,31 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             //Disc,
         }
 
+        enum LightUnits
+        {
+            Lumen,
+            Candela,
+            Lux,
+            Luminance,
+        }
+
+        enum DirectionalLightUnits
+        {
+            Lux = LightUnits.Lux,
+        }
+
+        enum AreaLightUnits
+        {
+            Lumen = LightUnits.Lumen,
+            Luminance = LightUnits.Luminance,
+        }
+
+        enum PunctualLightUnits
+        {
+            Lumen = LightUnits.Lumen,
+            Candela = LightUnits.Candela,
+        }
+
         const float k_MinAreaWidth = 0.01f; // Provide a small size of 1cm for line light
 
         // Used for UI only; the processing code must use LightTypeExtent and LightType
@@ -111,10 +138,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     directionalIntensity = o.Find(x => x.directionalIntensity),
                     punctualIntensity = o.Find(x => x.punctualIntensity),
                     areaIntensity = o.Find(x => x.areaIntensity),
+                    intensity = o.Find(x => x.editorLightIntensity),
                     enableSpotReflector = o.Find(x => x.enableSpotReflector),
                     spotInnerPercent = o.Find(x => x.m_InnerSpotPercent),
                     lightDimmer = o.Find(x => x.lightDimmer),
                     volumetricDimmer = o.Find(x => x.volumetricDimmer),
+                    lightUnit = o.Find(x => x.lightUnit),
                     fadeDistance = o.Find(x => x.fadeDistance),
                     affectDiffuse = o.Find(x => x.affectDiffuse),
                     affectSpecular = o.Find(x => x.affectSpecular),
@@ -133,7 +162,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     showFeatures = o.Find(x => x.featuresFoldout),
                     showAdditionalSettings = o.Find(x => x.showAdditionalSettings)
                 };
-
+            
             // TODO: Review this once AdditionalShadowData is refactored
             using (var o = new PropertyFetcher<AdditionalShadowData>(m_SerializedAdditionalShadowData))
                 m_AdditionalShadowData = new SerializedShadowData
@@ -333,8 +362,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // Caution: this function must match the one in HDAdditionalLightData.ConvertPhysicalLightIntensityToLightIntensity - any change need to be replicated
         void UpdateLightIntensity()
         {
+            //TOOD: TMP stuff, waiting for the emissive mesh to be merged
+            m_SerializedAdditionalLightData.ApplyModifiedProperties();
+            ((Light)target).GetComponent<HDAdditionalLightData>().RefreshLightIntensity();
+
             // Clamp negative values.
-            m_AdditionalLightData.directionalIntensity.floatValue = Mathf.Max(0, m_AdditionalLightData.directionalIntensity.floatValue);
+            /*m_AdditionalLightData.directionalIntensity.floatValue = Mathf.Max(0, m_AdditionalLightData.directionalIntensity.floatValue);
             m_AdditionalLightData.punctualIntensity.floatValue    = Mathf.Max(0, m_AdditionalLightData.punctualIntensity.floatValue);
             m_AdditionalLightData.areaIntensity.floatValue        = Mathf.Max(0, m_AdditionalLightData.areaIntensity.floatValue);
 
@@ -386,6 +419,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 case LightShape.Line:
                     settings.intensity.floatValue = LightUtils.CalculateLineLightIntensity(m_AdditionalLightData.areaIntensity.floatValue, m_AdditionalLightData.shapeWidth.floatValue);
                     break;
+            }*/
+        }
+
+        LightUnits LightIntensityUnitPopup(LightShape shape)
+        {
+            switch (shape)
+            {
+                case LightShape.Directional:
+                    return (LightUnits)EditorGUILayout.EnumPopup((DirectionalLightUnits)m_AdditionalLightData.lightUnit.intValue);
+                case LightShape.Point:
+                case LightShape.Spot:
+                    return (LightUnits)EditorGUILayout.EnumPopup((PunctualLightUnits)m_AdditionalLightData.lightUnit.intValue);
+                default:
+                    return (LightUnits)EditorGUILayout.EnumPopup((AreaLightUnits)m_AdditionalLightData.lightUnit.intValue);
             }
         }
 
@@ -395,29 +442,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUI.BeginChangeCheck();
 
-            switch (m_LightShape)
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.PropertyField(m_AdditionalLightData.intensity, s_Styles.lightIntensity);
+            m_AdditionalLightData.lightUnit.intValue = (int)LightIntensityUnitPopup(m_LightShape);
+            EditorGUILayout.EndHorizontal();
+            
+            // Only display reflector option if it make sense
+            if (m_LightShape == LightShape.Spot)
             {
-                case LightShape.Directional:
-                    EditorGUILayout.PropertyField(m_AdditionalLightData.directionalIntensity, s_Styles.directionalIntensity);
-                    break;
-
-                case LightShape.Point:
-                case LightShape.Spot:
-                    EditorGUILayout.PropertyField(m_AdditionalLightData.punctualIntensity, s_Styles.punctualIntensity);
-
-                    // Only display reflector option if it make sense
-                    if (m_LightShape == LightShape.Spot)
-                    {
-                        var spotLightShape = (SpotLightShape)m_AdditionalLightData.spotLightShape.enumValueIndex;
-                        if (spotLightShape == SpotLightShape.Cone || spotLightShape == SpotLightShape.Pyramid)
-                            EditorGUILayout.PropertyField(m_AdditionalLightData.enableSpotReflector, s_Styles.enableSpotReflector);
-                    }
-                    break;
-
-                case LightShape.Rectangle:
-                case LightShape.Line:
-                    EditorGUILayout.PropertyField(m_AdditionalLightData.areaIntensity, s_Styles.areaIntensity);
-                    break;
+                var spotLightShape = (SpotLightShape)m_AdditionalLightData.spotLightShape.enumValueIndex;
+                if (spotLightShape == SpotLightShape.Cone || spotLightShape == SpotLightShape.Pyramid)
+                    EditorGUILayout.PropertyField(m_AdditionalLightData.enableSpotReflector, s_Styles.enableSpotReflector);
             }
 
             if (EditorGUI.EndChangeCheck())
