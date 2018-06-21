@@ -343,22 +343,22 @@ namespace UnityEngine.Experimental.Gizmo
                 yRecal.y = 0;
                 zRecal.z = 0;
 
-                Gizmos.color = GetColor(NamedFace.Left, Element.SelectedFace);
+                Gizmos.color = GetColor(NamedFace.Left, Element.Handle);
                 Gizmos.DrawLine(m_container.center + xRecal + m_container.size.x * .5f * Vector3.left, center + size.x * .5f * Vector3.left);
 
-                Gizmos.color = GetColor(NamedFace.Right, Element.SelectedFace);
+                Gizmos.color = GetColor(NamedFace.Right, Element.Handle);
                 Gizmos.DrawLine(m_container.center + xRecal + m_container.size.x * .5f * Vector3.right, center + size.x * .5f * Vector3.right);
 
-                Gizmos.color = GetColor(NamedFace.Top, Element.SelectedFace);
+                Gizmos.color = GetColor(NamedFace.Top, Element.Handle);
                 Gizmos.DrawLine(m_container.center + yRecal + m_container.size.y * .5f * Vector3.up, center + size.y * .5f * Vector3.up);
 
-                Gizmos.color = GetColor(NamedFace.Bottom, Element.SelectedFace);
+                Gizmos.color = GetColor(NamedFace.Bottom, Element.Handle);
                 Gizmos.DrawLine(m_container.center + yRecal + m_container.size.y * .5f * Vector3.down, center + size.y * .5f * Vector3.down);
 
-                Gizmos.color = GetColor(NamedFace.Front, Element.SelectedFace);
+                Gizmos.color = GetColor(NamedFace.Front, Element.Handle);
                 Gizmos.DrawLine(m_container.center + zRecal + m_container.size.z * .5f * Vector3.forward, center + size.z * .5f * Vector3.forward);
 
-                Gizmos.color = GetColor(NamedFace.Back, Element.SelectedFace);
+                Gizmos.color = GetColor(NamedFace.Back, Element.Handle);
                 Gizmos.DrawLine(m_container.center + zRecal + m_container.size.z * .5f * Vector3.back, center + size.z * .5f * Vector3.back);
 
             }
