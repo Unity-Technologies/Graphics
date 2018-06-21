@@ -86,6 +86,18 @@ float3 TransformPreviousObjectToWorldNormal(float3 normalOS)
 #endif
 }
 
+float3 TransformPreviousObjectToWorld(float3 positionOS)
+{
+    float4x4 modelMatrix = unity_MatrixPreviousM;
+    // To handle camera relative rendering we substract the camera position in the model matrix
+    // User must not use UNITY_MATRIX_M directly, unless they understand what they do
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    modelMatrix._m03_m13_m23 -= _WorldSpaceCameraPos;
+#endif
+
+    return mul(modelMatrix, float4(positionOS, 1.0)).xyz;
+}
+
 void VelocityPositionZBias(VaryingsToPS input)
 {
 #if defined(UNITY_REVERSED_Z)
@@ -126,9 +138,9 @@ PackedVaryingsType Vert(AttributesMesh inputMesh,
         if (hasDeformation)
             previousMesh.positionOS = inputPass.previousPositionOS;
         previousMesh = ApplyMeshModification(previousMesh);
-        float3 previousPositionWS = mul(unity_MatrixPreviousM, float4(previousMesh.positionOS, 1.0)).xyz;
+        float3 previousPositionWS = TransformPreviousObjectToWorld(previousMesh.positionOS);
 #else
-        float3 previousPositionWS = mul(unity_MatrixPreviousM, hasDeformation ? float4(inputPass.previousPositionOS, 1.0) : float4(inputMesh.positionOS, 1.0)).xyz;
+        float3 previousPositionWS = TransformPreviousObjectToWorld(hasDeformation ? inputPass.previousPositionOS : inputMesh.positionOS);
 #endif
 
 #ifdef ATTRIBUTES_NEED_NORMAL
@@ -140,9 +152,6 @@ PackedVaryingsType Vert(AttributesMesh inputMesh,
  #if defined(HAVE_VERTEX_MODIFICATION)
         ApplyVertexModification(inputMesh, normalWS, previousPositionWS, _LastTime);
 #endif
-
-        //Need this since we are using the current position from VertMesh()
-        previousPositionWS = GetCameraRelativePositionWS(previousPositionWS);
 
         varyingsType.vpass.previousPositionCS = mul(_PrevViewProjMatrix, float4(previousPositionWS, 1.0));
     }
