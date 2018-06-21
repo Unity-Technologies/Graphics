@@ -461,17 +461,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return;
                 int batchIndex = 0;
                 int totalToDraw = m_NumResults;
+                int shaderPass = (int)m_Material.GetFloat("_MaskBlendMode");
                 for (; batchIndex < m_NumResults / kDrawIndexedBatchSize; batchIndex++)
                 {
                     m_PropertyBlock.SetMatrixArray(HDShaderIDs._NormalToWorldID, m_NormalToWorld[batchIndex]);
-                    cmd.DrawMeshInstanced(m_DecalMesh, 0, KeyMaterial, 0, m_DecalToWorld[batchIndex], kDrawIndexedBatchSize, m_PropertyBlock);
+                    cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Material, shaderPass, m_DecalToWorld[batchIndex], kDrawIndexedBatchSize, m_PropertyBlock);
                     totalToDraw -= kDrawIndexedBatchSize;
                 }
 
                 if (totalToDraw > 0)
                 {
                     m_PropertyBlock.SetMatrixArray(HDShaderIDs._NormalToWorldID, m_NormalToWorld[batchIndex]);
-                    cmd.DrawMeshInstanced(m_DecalMesh, 0, KeyMaterial, 0, m_DecalToWorld[batchIndex], totalToDraw, m_PropertyBlock);
+                    cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Material, shaderPass, m_DecalToWorld[batchIndex], totalToDraw, m_PropertyBlock);
                 }
             }
 
