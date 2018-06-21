@@ -1,3 +1,4 @@
+// Note: positionWS can be either in camera relative space or not
 float3 GetVertexDisplacement(float3 positionWS, float3 normalWS, float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3, float4 vertexColor)
 {
     // This call will work for both LayeredLit and Lit shader
@@ -11,6 +12,7 @@ float3 GetVertexDisplacement(float3 positionWS, float3 normalWS, float2 texCoord
     return ComputePerVertexDisplacement(layerTexCoord, vertexColor, lod) * normalWS;
 }
 
+// Note: positionWS can be either in camera relative space or not
 void ApplyVertexModification(AttributesMesh input, float3 normalWS, inout float3 positionWS, float4 time)
 {
 #if defined(_VERTEX_DISPLACEMENT)
@@ -45,8 +47,11 @@ void ApplyVertexModification(AttributesMesh input, float3 normalWS, inout float3
 #endif
 
 #ifdef _VERTEX_WIND
-    float3 rootWP = mul(GetObjectToWorldMatrix(), float4(0, 0, 0, 1)).xyz;
-    ApplyWindDisplacement(positionWS, normalWS, rootWP, _Stiffness, _Drag, _ShiverDrag, _ShiverDirectionality, _InitialBend, input.color.a, time);
+    // current wind implementation is in absolute world space
+    float3 rootWP = GetObjectPositionWS();
+    float3 absolutePositionWS = GetAbsolutePositionWS(positionWS);
+    ApplyWindDisplacement(absolutePositionWS, normalWS, rootWP, _Stiffness, _Drag, _ShiverDrag, _ShiverDirectionality, _InitialBend, input.color.a, time);
+    positionWS = GetCameraRelativePositionWS(absolutePositionWS);
 #endif
 }
 

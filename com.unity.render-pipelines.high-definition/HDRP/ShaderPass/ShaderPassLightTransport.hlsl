@@ -43,7 +43,7 @@ PackedVaryingsToPS Vert(AttributesMesh inputMesh)
     output.vmesh.positionCS = float4(uv * 2.0 - 1.0, inputMesh.positionOS.z > 0 ? 1.0e-4 : 0.0, 1.0);
 
 #ifdef VARYINGS_NEED_POSITION_WS
-    float3 positionWS = GetCameraRelativePositionWS(TransformObjectToWorld(inputMesh.positionOS));
+    float3 positionWS = TransformObjectToWorld(inputMesh.positionOS);
     output.vmesh.positionWS = positionWS;
 #endif
 
