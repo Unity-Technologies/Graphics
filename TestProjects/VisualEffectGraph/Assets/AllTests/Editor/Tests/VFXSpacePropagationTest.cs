@@ -66,7 +66,10 @@ namespace UnityEditor.VFX.Test
                 }));
         }
 
+        #pragma warning disable CS0414
         private static Type[] SpaceTransmissionType = { typeof(Position), typeof(Sphere) };
+
+        #pragma warning restore CS0414
         [Test]
         public void SpaceTransmission_From_An_Operator_To_Another([ValueSource("SpaceTransmissionType")] Type type)
         {

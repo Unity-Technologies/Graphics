@@ -19,7 +19,7 @@ namespace UnityEditor.VFX.Operator
 
         public class OutputProperties
         {
-            public uint o;
+            public uint o = 0;
         }
 
         protected override sealed VFXExpression[] BuildExpression(VFXExpression[] inputExpression)

@@ -58,7 +58,6 @@ public class VFXContextEditor : VFXSlotContainerEditor
         if (Event.current.type != EventType.Layout && w > 0)
             m_Width = w - 48;
 
-        int i = 0;
         int maxSize = 0;
 
         foreach (StructureOfArrayProvider.BucketInfo bucket in layout)

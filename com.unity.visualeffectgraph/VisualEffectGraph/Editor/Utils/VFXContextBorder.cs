@@ -10,12 +10,7 @@ using UnityObject = UnityEngine.Object;
 namespace UnityEditor.VFX.UI
 {
     public class VFXContextBorderFactory : UxmlFactory<VFXContextBorder>
-    {
-        protected override VFXContextBorder DoCreate(IUxmlAttributes bag, CreationContext cc)
-        {
-            return new VFXContextBorder();
-        }
-    }
+    {}
 
     [InitializeOnLoad]
     public class VFXContextBorder : VisualElement, IDisposable

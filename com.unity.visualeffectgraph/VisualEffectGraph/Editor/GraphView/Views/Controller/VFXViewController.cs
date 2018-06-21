@@ -1169,8 +1169,6 @@ namespace UnityEditor.VFX.UI
         {
             //TRANSITION : delete VFXAsset as it should be in Library
             resource.ValidateAsset();
-            string assetPath = AssetDatabase.GetAssetPath(resource);
-
 
             VFXViewController controller;
             if (!s_Controllers.TryGetValue(resource, out controller))

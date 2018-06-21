@@ -9,7 +9,7 @@ namespace UnityEditor.VFX.Operator
     {
         public class OutputProperties
         {
-            public CameraType o;
+            public CameraType o = new CameraType();
         }
 
         override public string name { get { return "Main Camera"; } }

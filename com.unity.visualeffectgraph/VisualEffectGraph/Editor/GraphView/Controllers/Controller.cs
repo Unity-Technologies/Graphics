@@ -156,7 +156,7 @@ namespace UnityEditor.VFX.UI
         protected override void Init()
         {
             base.Init();
-            flags = EventFlags.Bubbles | EventFlags.Capturable;
+            flags = EventFlags.Bubbles | EventFlags.TricklesDown;
             controller = null;
             change = 0;
         }

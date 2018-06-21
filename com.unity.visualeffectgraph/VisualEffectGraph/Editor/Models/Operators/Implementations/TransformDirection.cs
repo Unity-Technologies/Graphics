@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.Operator
 
         public class OutputProperties
         {
-            public Vector3 tDir;
+            public Vector3 tDir = Vector3.zero;
         }
 
         override public string name { get { return "Transform (Direction)"; } }

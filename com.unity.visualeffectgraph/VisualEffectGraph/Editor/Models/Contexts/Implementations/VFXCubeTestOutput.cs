@@ -72,13 +72,13 @@ namespace UnityEditor.VFX
 
         public class NormalInputProperties
         {
-            public Texture2D normalMap;
+            public Texture2D normalMap = null;
         }
 
         public class RimLightInputProperties
         {
-            public Color rimColor;
-            public float rimCoef;
+            public Color rimColor = Color.clear;
+            public float rimCoef = 0;
         }
 
         public override IEnumerable<string> additionalDefines
