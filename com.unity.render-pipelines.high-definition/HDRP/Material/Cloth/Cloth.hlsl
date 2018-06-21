@@ -192,29 +192,15 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
     // Reminder: This is a static if resolve at compile time
     if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_CLOTH_SILK))
     {
+        GetPreIntegratedFGDGGXAndDisneyDiffuse(NdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, unused);
+
         float TdotV = dot(bsdfData.tangentWS, V);
         float BdotV = dot(bsdfData.bitangentWS, V);
 
         preLightData.partLambdaV = GetSmithJointGGXAnisoPartLambdaV(TdotV, BdotV, NdotV, bsdfData.roughnessT, bsdfData.roughnessB);
 
-        // For GGX aniso and IBL we have done an empirical (eye balled) approximation compare to the reference.
-        // We use a single fetch, and we stretch the normal to use based on various criteria.
-        // result are far away from the reference but better than nothing
-        // For positive anisotropy values: tangent = highlight stretch (anisotropy) direction, bitangent = grain (brush) direction.
-        float3 grainDirWS = (bsdfData.anisotropy >= 0.0) ? bsdfData.bitangentWS : bsdfData.tangentWS;
-        // Reduce stretching for (perceptualRoughness < 0.2).
-        float stretch = abs(bsdfData.anisotropy) * saturate(5 * preLightData.iblPerceptualRoughness);
-        // NOTE: If we follow the theory we should use the modified normal for the different calculation implying a normal (like NdotV) and use 'anisoIblNormalWS'
-        // into function like GetSpecularDominantDir(). However modified normal is just a hack. The goal is just to stretch a cubemap, no accuracy here.
-        // With this in mind and for performance reasons we chose to only use modified normal to calculate R.
-        iblN = GetAnisotropicModifiedNormal(grainDirWS, N, V, stretch);
-
-        GetPreIntegratedFGDGGXAndDisneyDiffuse(NdotV, preLightData.iblPerceptualRoughness, bsdfData.fresnel0, preLightData.specularFGD, preLightData.diffuseFGD, unused);
-
-        // This is a ad-hoc tweak to better match reference of anisotropic GGX.
-        // TODO: We need a better hack.
-        preLightData.iblPerceptualRoughness *= saturate(1.2 - abs(bsdfData.anisotropy));
-
+        // perceptualRoughness is use as input and output here
+        GetGGXAnisotropicModifiedNormalAndRoughness(bsdfData.bitangentWS, bsdfData.tangentWS, N, V, bsdfData.anisotropy, preLightData.iblPerceptualRoughness, iblN, preLightData.iblPerceptualRoughness);
     }
     else
     {
