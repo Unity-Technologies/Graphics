@@ -470,8 +470,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 m_ChannelProperty = new ComboProperty(parent, propertyName + "Channel", "Channel", Enum.GetNames(typeof(Channel)), false);
 
-                m_RemapProperty = new Property(parent, constantPropertyName + "Remap", "Remapping", "Defines the range to remap/scale the values in texture", false);
-                m_InvertRemapProperty = new Property(parent, constantPropertyName + "RemapInverted", "Invert Remapping", "Whether the mapping values are inverted.", false);
+                m_RemapProperty = new Property(parent, propertyName + "Remap", "Remapping", "Defines the range to remap/scale the values in texture", false);
+                m_InvertRemapProperty = new Property(parent, propertyName + "RemapInverted", "Invert Remapping", "Whether the mapping values are inverted.", false);
             }
 
             public override void OnFindProperty(MaterialProperty[] props)
