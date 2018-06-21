@@ -63,7 +63,7 @@ namespace UnityEditor.VFX.Block
         public class InputPropertiesCurve
         {
             public AnimationCurve Curve = AnimationCurve.EaseInOut(0, 0, 1, 1);
-            public float CurveSample;
+            public float CurveSample = 0;
         }
         public class InputPropertiesCurveRandom
         {

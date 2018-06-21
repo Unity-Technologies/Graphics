@@ -6,7 +6,7 @@ namespace UnityEditor.VFX.Test
     {
         public class OutputProperties
         {
-            public float o;
+            public float o = 0;
         }
 
         // HACK FIX

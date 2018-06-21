@@ -14,14 +14,14 @@ namespace UnityEditor.VFX.Test
         {
             public class InputProperties
             {
-                public Vector4 v;
-                public float f;
+                public Vector4 v = Vector4.zero;
+                public float f = 0;
             }
 
             public class OutputProperties
             {
-                public Vector2 v2;
-                public Vector3 v3;
+                public Vector2 v2 = Vector2.zero;
+                public Vector3 v3 = Vector2.zero;
             }
         }
 

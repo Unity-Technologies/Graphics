@@ -52,7 +52,10 @@ namespace UnityEditor.VFX.Test
             AssetDatabase.DeleteAsset(testAssetName);
         }
 
+        #pragma warning disable CS0414
         static private bool[] usePosition = { true, false };
+
+        #pragma warning restore CS0414
         [Test]
         public void LinkPositionOrVectorAndDirection([ValueSource("usePosition")] bool usePosition)
         {
@@ -800,7 +803,7 @@ namespace UnityEditor.VFX.Test
 
             VFXParameterController parameterController = m_ViewController.GetParameterController(newParameter);
 
-            int id = parameterController.model.AddNode(new Vector2(123, 456));
+            parameterController.model.AddNode(new Vector2(123, 456));
 
             AABox value = new AABox { center = new Vector3(1, 2, 3), size = new Vector3(4, 5, 6) };
 

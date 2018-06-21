@@ -10,12 +10,7 @@ using System.Linq;
 namespace UnityEditor.VFX.UI
 {
     public class ResizableElementFactory : UxmlFactory<ResizableElement>
-    {
-        protected override ResizableElement DoCreate(IUxmlAttributes bag, CreationContext cc)
-        {
-            return new ResizableElement();
-        }
-    }
+    {}
     class ElementResizer : Manipulator
     {
         public readonly ResizableElement.Resizer direction;
@@ -62,7 +57,7 @@ namespace UnityEditor.VFX.UI
                     {
                         target.RegisterCallback<MouseMoveEvent>(OnMouseMove);
                         e.StopPropagation();
-                        target.TakeMouseCapture();
+                        target.CaptureMouse();
                         m_StartMouse = resizedBase.WorldToLocal(e.mousePosition);
                         m_StartSize = new Vector2(resizedTarget.style.width, resizedTarget.style.height);
                         m_StartPosition = new Vector2(resizedTarget.style.positionLeft, resizedTarget.style.positionTop);
@@ -143,7 +138,7 @@ namespace UnityEditor.VFX.UI
                     }
                 }
                 target.UnregisterCallback<MouseMoveEvent>(OnMouseMove);
-                target.ReleaseMouseCapture();
+                target.ReleaseMouse();
                 e.StopPropagation();
             }
         }

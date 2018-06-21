@@ -14,7 +14,7 @@ namespace UnityEditor.VFX.Operator
 
         public class InputProperties
         {
-            public Vector4 x;
+            public Vector4 x = Vector4.zero;
         }
 
         [VFXSetting, Regex("[^w-zW-Z]", 4)]

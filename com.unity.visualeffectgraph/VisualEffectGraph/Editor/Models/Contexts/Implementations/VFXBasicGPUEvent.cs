@@ -18,7 +18,7 @@ namespace UnityEditor.VFX
 
         public class InputProperties
         {
-            public GPUEvent evt;
+            public GPUEvent evt = new GPUEvent();
         }
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)

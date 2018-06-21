@@ -15,7 +15,7 @@ namespace UnityEditor.VFX.Operator
 
         public class OutputProperties
         {
-            public Vector3 hsv;
+            public Vector3 hsv = Vector3.zero;
         }
 
         override public string name { get { return "RGB to HSV"; } }
