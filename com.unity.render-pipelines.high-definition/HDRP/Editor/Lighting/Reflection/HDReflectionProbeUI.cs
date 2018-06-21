@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
+using UnityEngine.Experimental.Gizmo;
 
 namespace UnityEditor.Experimental.Rendering
 {
@@ -29,10 +30,15 @@ namespace UnityEditor.Experimental.Rendering
         public void ClearOperation(Operation op) { operations &= ~op; }
         public void AddOperation(Operation op) { operations |= op; }
 
+        public bool useNewGizmo = false;
+
         public BoxBoundsHandle boxInfluenceHandle = new BoxBoundsHandle();
         public BoxBoundsHandle boxProjectionHandle = new BoxBoundsHandle();
         public BoxBoundsHandle boxBlendHandle = new BoxBoundsHandle();
         public BoxBoundsHandle boxBlendNormalHandle = new BoxBoundsHandle();
+        public Gizmo6FacesBox alternativeBoxInfluenceHandle = new Gizmo6FacesBox();
+        public Gizmo6FacesBoxContained alternativeBoxBlendHandle;
+        public Gizmo6FacesBoxContained alternativeBoxBlendNormalHandle;
         public SphereBoundsHandle sphereInfluenceHandle = new SphereBoundsHandle();
         public SphereBoundsHandle sphereProjectionHandle = new SphereBoundsHandle();
         public SphereBoundsHandle sphereBlendHandle = new SphereBoundsHandle();
@@ -69,6 +75,78 @@ namespace UnityEditor.Experimental.Rendering
             isSectionExpendedAdvancedBlendDistanceBoxShape.value = false;
             isSectionExpendedAdvancedBlendNormalDistanceBoxShape.value = false;
             isSectionExpendedAdvancedBlendFaceFadeBoxShape.value = false;
+
+            alternativeBoxBlendHandle = new Gizmo6FacesBoxContained(alternativeBoxInfluenceHandle);
+            alternativeBoxBlendNormalHandle = new Gizmo6FacesBoxContained(alternativeBoxInfluenceHandle);
+
+            Color[] handleColors = new Color[]
+            {
+                HDReflectionProbeEditor.k_handlesColor[0][0],
+                HDReflectionProbeEditor.k_handlesColor[0][1],
+                HDReflectionProbeEditor.k_handlesColor[0][2],
+                HDReflectionProbeEditor.k_handlesColor[1][0],
+                HDReflectionProbeEditor.k_handlesColor[1][1],
+                HDReflectionProbeEditor.k_handlesColor[1][2]
+            };
+            alternativeBoxInfluenceHandle.handleColors = handleColors;
+            alternativeBoxBlendHandle.handleColors = handleColors;
+            alternativeBoxBlendNormalHandle.handleColors = handleColors;
+
+            //unified color is finally better [Todo: improve gizmo to have an override color]
+            alternativeBoxInfluenceHandle.faceColors = new Color[] 
+            {
+                HDReflectionProbeEditor.k_GizmoThemeColorExtent,
+                HDReflectionProbeEditor.k_GizmoThemeColorExtent,
+                HDReflectionProbeEditor.k_GizmoThemeColorExtent,
+                HDReflectionProbeEditor.k_GizmoThemeColorExtent,
+                HDReflectionProbeEditor.k_GizmoThemeColorExtent,
+                HDReflectionProbeEditor.k_GizmoThemeColorExtent
+            };
+            alternativeBoxInfluenceHandle.faceColorsSelected = new Color[] 
+            {
+                HDReflectionProbeEditor.k_GizmoThemeColorExtentFace,
+                HDReflectionProbeEditor.k_GizmoThemeColorExtentFace,
+                HDReflectionProbeEditor.k_GizmoThemeColorExtentFace,
+                HDReflectionProbeEditor.k_GizmoThemeColorExtentFace,
+                HDReflectionProbeEditor.k_GizmoThemeColorExtentFace,
+                HDReflectionProbeEditor.k_GizmoThemeColorExtentFace
+            };
+            alternativeBoxBlendHandle.faceColors = new Color[] 
+            {
+                HDReflectionProbeEditor.k_GizmoThemeColorInfluenceBlend,
+                HDReflectionProbeEditor.k_GizmoThemeColorInfluenceBlend,
+                HDReflectionProbeEditor.k_GizmoThemeColorInfluenceBlend,
+                HDReflectionProbeEditor.k_GizmoThemeColorInfluenceBlend,
+                HDReflectionProbeEditor.k_GizmoThemeColorInfluenceBlend,
+                HDReflectionProbeEditor.k_GizmoThemeColorInfluenceBlend
+            };
+            alternativeBoxBlendHandle.faceColorsSelected = new Color[] 
+            {
+                HDReflectionProbeEditor.k_GizmoThemeColorInfluenceBlendFace,
+                HDReflectionProbeEditor.k_GizmoThemeColorInfluenceBlendFace,
+                HDReflectionProbeEditor.k_GizmoThemeColorInfluenceBlendFace,
+                HDReflectionProbeEditor.k_GizmoThemeColorInfluenceBlendFace,
+                HDReflectionProbeEditor.k_GizmoThemeColorInfluenceBlendFace,
+                HDReflectionProbeEditor.k_GizmoThemeColorInfluenceBlendFace
+            };
+            alternativeBoxBlendNormalHandle.faceColors = new Color[] 
+            {
+                HDReflectionProbeEditor.k_GizmoThemeColorInfluenceNormalBlend,
+                HDReflectionProbeEditor.k_GizmoThemeColorInfluenceNormalBlend,
+                HDReflectionProbeEditor.k_GizmoThemeColorInfluenceNormalBlend,
+                HDReflectionProbeEditor.k_GizmoThemeColorInfluenceNormalBlend,
+                HDReflectionProbeEditor.k_GizmoThemeColorInfluenceNormalBlend,
+                HDReflectionProbeEditor.k_GizmoThemeColorInfluenceNormalBlend
+            };
+            alternativeBoxBlendNormalHandle.faceColorsSelected = new Color[] 
+            {
+                HDReflectionProbeEditor.k_GizmoThemeColorInfluenceNormalBlendFace,
+                HDReflectionProbeEditor.k_GizmoThemeColorInfluenceNormalBlendFace,
+                HDReflectionProbeEditor.k_GizmoThemeColorInfluenceNormalBlendFace,
+                HDReflectionProbeEditor.k_GizmoThemeColorInfluenceNormalBlendFace,
+                HDReflectionProbeEditor.k_GizmoThemeColorInfluenceNormalBlendFace,
+                HDReflectionProbeEditor.k_GizmoThemeColorInfluenceNormalBlendFace
+            };
         }
 
         public override void Update()
