@@ -222,8 +222,6 @@ namespace UnityEditor.VFX
             {
                 EditorUtility.DisplayProgressBar("Saving...", "Rebuild", 0);
                 RecompileIfNeeded();
-                float currentStep = 0;
-                float stepCount = 1;
                 m_saved = true;
             }
             catch (Exception e)

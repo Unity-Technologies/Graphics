@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEditor;
 using Object = UnityEngine.Object;
 using System.Globalization;
+using TangentMode = UnityEditor.AnimationUtility.TangentMode;
 
 namespace UnityEditor.VFX
 {
@@ -149,7 +150,8 @@ namespace UnityEditor.VFX
                 public float value;
                 public float inTangent;
                 public float outTangent;
-                public int tangentMode;
+                public TangentMode leftTangentMode;
+                public TangentMode rightTangentMode;
             }
             public Keyframe[] frames;
             public WrapMode preWrapMode;
@@ -235,7 +237,8 @@ namespace UnityEditor.VFX
                     sac.frames[i].value = curve.keys[i].value;
                     sac.frames[i].inTangent = curve.keys[i].inTangent;
                     sac.frames[i].outTangent = curve.keys[i].outTangent;
-                    sac.frames[i].tangentMode = curve.keys[i].tangentMode;
+                    sac.frames[i].leftTangentMode = AnimationUtility.GetKeyLeftTangentMode(curve, i);
+                    sac.frames[i].rightTangentMode = AnimationUtility.GetKeyRightTangentMode(curve, i);
                 }
                 sac.preWrapMode = curve.preWrapMode;
                 sac.postWrapMode = curve.postWrapMode;
@@ -304,9 +307,13 @@ namespace UnityEditor.VFX
                         keys[i].value = sac.frames[i].value;
                         keys[i].inTangent = sac.frames[i].inTangent;
                         keys[i].outTangent = sac.frames[i].outTangent;
-                        keys[i].tangentMode = sac.frames[i].tangentMode;
                     }
                     curve.keys = keys;
+                    for (int i = 0; i < sac.frames.Length; ++i)
+                    {
+                        AnimationUtility.SetKeyLeftTangentMode(curve, i, sac.frames[i].leftTangentMode);
+                        AnimationUtility.SetKeyRightTangentMode(curve, i, sac.frames[i].rightTangentMode);
+                    }
                     curve.preWrapMode = sac.preWrapMode;
                     curve.postWrapMode = sac.postWrapMode;
                 }

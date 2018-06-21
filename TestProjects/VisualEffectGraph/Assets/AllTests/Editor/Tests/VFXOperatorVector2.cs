@@ -7,7 +7,7 @@ namespace UnityEditor.VFX.Test
     {
         public class OutputProperties
         {
-            public Vector2 o;
+            public Vector2 o = Vector2.zero;
         }
 
         // HACK FIX

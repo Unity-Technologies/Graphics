@@ -169,7 +169,6 @@ namespace UnityEditor.VFX
             foreach (var kvp in m_AttributeLayout)
             {
                 var attrib = kvp.Key;
-                var bucket = buckets[kvp.Value.bucket];
                 int size = VFXValue.TypeToSize(attrib.type);
                 int offset = kvp.Value.offset;
                 for (int i = 0; i < size; i++)

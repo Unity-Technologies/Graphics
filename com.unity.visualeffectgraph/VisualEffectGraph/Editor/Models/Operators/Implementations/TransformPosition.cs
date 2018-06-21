@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.Operator
 
         public class OutputProperties
         {
-            public Vector3 tPos;
+            public Vector3 tPos = Vector3.zero;
         }
 
         override public string name { get { return "Transform (Position)"; } }

@@ -13,7 +13,7 @@ public class SortingTest : MonoBehaviour
     public Material diffMat;
 
     private int sortKernelBitonic;
-    private int sortKernelMerge;
+    //private int sortKernelMerge;
     private int mergeKernel;
 
     private ComputeBuffer inputBuffer;
@@ -38,7 +38,7 @@ public class SortingTest : MonoBehaviour
         if (sortShader != null)
             sortKernelBitonic = sortShader.FindKernel("BitonicPrePass");
 
-        sortKernelMerge = -1;
+        //sortKernelMerge = -1;
         //if (sortShader != null)
         //    sortKernelMerge = sortShader.FindKernel("MergeSort");
 

@@ -6,7 +6,7 @@ namespace UnityEditor.VFX.Operator
     {
         public class InputProperties
         {
-            public float x;
+            public float x = 0;
         }
 
         public override sealed string name { get { return "Absolute"; } }
