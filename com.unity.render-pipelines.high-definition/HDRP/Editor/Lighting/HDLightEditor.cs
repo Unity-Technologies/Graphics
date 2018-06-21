@@ -100,6 +100,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         HDAdditionalLightData[]     m_AdditionalLightDatas;
         AdditionalShadowData[]      m_AdditionalShaodowDatas;
 
+        // Used to detect if the scale have been changed via the transform component
+        Vector3 m_OldLightSize;
+        bool m_UpdateEmissiveMesh;
+
         protected override void OnEnable()
         {
             base.OnEnable();
@@ -210,6 +214,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_SerializedAdditionalShadowData.ApplyModifiedProperties();
             m_SerializedAdditionalLightData.ApplyModifiedProperties();
             settings.ApplyModifiedProperties();
+
+            if (m_UpdateEmissiveMesh)
+                UpdateEmissiveMesh();
         }
 
         void DrawFoldout(SerializedProperty foldoutProperty, string title, Action func)
@@ -334,7 +341,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (EditorGUI.EndChangeCheck())
             {
                 UpdateLightIntensity();
-                UpdateEmissiveMesh();
+                m_UpdateEmissiveMesh = true;
                 ((Light)target).SetLightDirty(); // Should be apply only to parameter that's affect GI, but make the code cleaner
             }
         }
@@ -351,6 +358,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 GameObject    lightGameObject = lightData.gameObject;
                 MeshRenderer  emissiveMeshRenderer = lightData.GetComponent<MeshRenderer>();
                 MeshFilter    emissiveMeshFilter = lightData.GetComponent<MeshFilter>();
+                Light         light = lightGameObject.GetComponent<Light>();
 
                 bool showEmissiveMesh = IsAreaLightShape(m_LightShape) && m_LightShape != LightShape.Line && m_AdditionalLightData.showEmissiveMesh.boolValue;
 
@@ -374,17 +382,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
 
                 float areaLightIntensity = 0;
-                
+
                 // Update Mesh emissive value
                 switch (m_LightShape)
                 {
                     case LightShape.Rectangle:
                         emissiveMeshFilter.mesh = AssetDatabase.LoadAssetAtPath< Mesh >(HDEditorUtils.GetHDRenderPipelinePath() + "RenderPipelineResources/Quad.FBX");
-                        lightGameObject.transform.localScale = new Vector3(m_AdditionalLightData.shapeWidth.floatValue, m_AdditionalLightData.shapeHeight.floatValue, 0);
+                        lightGameObject.transform.localScale = new Vector3(lightData.shapeWidth, lightData.shapeHeight, 0);
                         areaLightIntensity = LightUtils.ConvertRectLightIntensity(
-                            settings.intensity.floatValue,
-                            m_AdditionalLightData.shapeWidth.floatValue,
-                            m_AdditionalLightData.shapeHeight.floatValue);
+                            light.intensity,
+                            lightData.shapeWidth,
+                            lightData.shapeHeight);
                         break;
                     default:
                         break;
@@ -394,7 +402,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     emissiveMeshRenderer.material = new Material(Shader.Find("HDRenderPipeline/Unlit"));
                 
                 emissiveMeshRenderer.sharedMaterial.SetColor("_UnlitColor", Color.black);
-                emissiveMeshRenderer.sharedMaterial.SetColor("_EmissiveColor", settings.color.colorValue * areaLightIntensity);
+                emissiveMeshRenderer.sharedMaterial.SetColor("_EmissiveColor", light.color * areaLightIntensity);
             }
         }
 
@@ -402,11 +410,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         void UpdateEmissiveMeshSize()
         {
             // Early exit if the light type is not an area
-            if (!IsAreaLightShape(m_LightShape) || target == null)
+            if (!IsAreaLightShape(m_LightShape) || target == null || targets.Length > 1)
                 return ;
             
             Vector3 lightSize = ((Light)target).transform.localScale;
             lightSize = Vector3.Max(Vector3.one * k_MinAreaWidth, lightSize);
+
+            if (lightSize == m_OldLightSize)
+                return ;
 
             switch (m_LightShape)
             {
@@ -417,6 +428,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 default:
                     break;
             }
+
+            UpdateLightIntensity();
+            m_UpdateEmissiveMesh = true;
+
+            m_OldLightSize = lightSize;
         }
 
         // Caution: this function must match the one in HDAdditionalLightData.ConvertPhysicalLightIntensityToLightIntensity - any change need to be replicated
@@ -483,7 +499,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.BeginChangeCheck();
             settings.DrawColor();
             if (EditorGUI.EndChangeCheck())
-                UpdateEmissiveMesh();
+                m_UpdateEmissiveMesh = true;
 
             EditorGUI.BeginChangeCheck();
 
@@ -515,7 +531,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (EditorGUI.EndChangeCheck())
             {
                 UpdateLightIntensity();
-                UpdateEmissiveMesh();
+                m_UpdateEmissiveMesh = true;
             }
 
             settings.DrawBounceIntensity();
@@ -543,9 +559,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (IsAreaLightShape(m_LightShape))
             {
                 EditorGUI.BeginChangeCheck();
-                EditorGUILayout.PropertyField(m_AdditionalLightData.showEmissiveMesh);
+                EditorGUILayout.PropertyField(m_AdditionalLightData.showEmissiveMesh, s_Styles.showEmissiveMesh);
                 if (EditorGUI.EndChangeCheck())
-                    UpdateEmissiveMesh();
+                    m_UpdateEmissiveMesh = true;
             }
 
             if (m_AdditionalLightData.showAdditionalSettings.boolValue)
