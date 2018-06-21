@@ -6,17 +6,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+- Add option supportDitheringCrossFade on HDRP Asset to allow to remove shader variant during player build if needed
+- Exposed shadow budget parameters in HDRP asset
+
+### Changed
+- Re-enable shadow mask mode in debug view
+
 ### Fixed
 - Fixed a shader preprocessor issue when compiling DebugViewMaterialGBuffer.shader against Metal target
 - Added a temporary workaround to Lit.hlsl to avoid broken lighting code with Metal/AMD
 - Fixed issue when using more than one volume texture mask with density volumes.
 - Fixed an error which prevented volumetric lighting from working if no density volumes with 3D textures were present.
-
-### Added
-- Add option supportDitheringCrossFade on HDRP Asset to allow to remove shader variant during player build if needed
-
-### Changed
-- Re-enable shadow mask mode in debug view
 
 ## [2.0.4-preview]
 
