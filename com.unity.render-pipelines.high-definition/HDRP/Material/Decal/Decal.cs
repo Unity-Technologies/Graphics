@@ -68,5 +68,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4 normalScaleBias;
         public Vector4 maskScaleBias;
         public Vector4 baseColor;
+        public Vector3 blendParams; // x normal blend source, y mask blend source, z mask blend mode
     };
 }

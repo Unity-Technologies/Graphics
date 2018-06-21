@@ -163,6 +163,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_Blend = m_Material.GetFloat("_DecalBlend");
                 m_AlbedoContribution = m_Material.GetFloat("_AlbedoMode");
                 m_BaseColor = m_Material.GetVector("_BaseColor");
+                m_BlendParams = new Vector3(m_Material.GetFloat("_NormalBlendSrc"), m_Material.GetFloat("_MaskBlendSrc"), m_Material.GetFloat("_MaskBlendMode"));                
             }
 
             public DecalSet(Material material)
@@ -392,7 +393,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             m_DecalDatas[m_DecalDatasCount].worldToDecal = decalToWorldBatch[instanceCount].inverse;
                             m_DecalDatas[m_DecalDatasCount].normalToWorld = normalToWorldBatch[instanceCount];
                             m_DecalDatas[m_DecalDatasCount].baseColor = m_BaseColor;
-
+                            m_DecalDatas[m_DecalDatasCount].blendParams = m_BlendParams;
+                            
                             // we have not allocated the textures in atlas yet, so only store references to them
                             m_DiffuseTextureScaleBias[m_DecalDatasCount] = m_Diffuse;
                             m_NormalTextureScaleBias[m_DecalDatasCount] = m_Normal;
@@ -507,6 +509,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             private float m_Blend = 0;
             private float m_AlbedoContribution = 0;
             private Vector4 m_BaseColor;
+            private Vector3 m_BlendParams;
+            
 
             TextureScaleBias m_Diffuse = new TextureScaleBias();
             TextureScaleBias m_Normal = new TextureScaleBias();
