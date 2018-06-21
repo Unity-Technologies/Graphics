@@ -387,7 +387,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 switch (m_LightShape)
                 {
                     case LightShape.Rectangle:
-                        emissiveMeshFilter.mesh = AssetDatabase.LoadAssetAtPath< Mesh >(HDEditorUtils.GetHDRenderPipelinePath() + "RenderPipelineResources/Quad.FBX");
+                        emissiveMeshFilter.mesh = HDEditorUtils.LoadAsset< Mesh >("RenderPipelineResources/Quad.FBX");
                         lightGameObject.transform.localScale = new Vector3(lightData.shapeWidth, lightData.shapeHeight, 0);
                         areaLightIntensity = LightUtils.ConvertRectLightIntensity(
                             light.intensity,
