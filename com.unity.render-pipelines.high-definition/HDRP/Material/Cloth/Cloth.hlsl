@@ -542,7 +542,51 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     IndirectLighting lighting;
     ZERO_INITIALIZE(IndirectLighting, lighting);
 
-    // TODO
+    if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
+        return lighting;
+
+    float3 envLighting;
+    float3 positionWS = posInput.positionWS;
+    float weight = 1.0;
+
+    float3 R = preLightData.iblR;
+
+    if ((lightData.envIndex & 1) == ENVCACHETYPE_CUBEMAP)
+    {
+        R = GetSpecularDominantDir(bsdfData.normalWS, R, preLightData.iblPerceptualRoughness, ClampNdotV(preLightData.NdotV));
+        // When we are rough, we tend to see outward shifting of the reflection when at the boundary of the projection volume
+        // Also it appear like more sharp. To avoid these artifact and at the same time get better match to reference we lerp to original unmodified reflection.
+        // Formula is empirical.
+        float roughness = PerceptualRoughnessToRoughness(preLightData.iblPerceptualRoughness);
+        R = lerp(R, preLightData.iblR, saturate(smoothstep(0, 1, roughness * roughness)));
+    }
+
+    // Note: using influenceShapeType and projectionShapeType instead of (lightData|proxyData).shapeType allow to make compiler optimization in case the type is know (like for sky)
+    EvaluateLight_EnvIntersection(positionWS, bsdfData.normalWS, lightData, influenceShapeType, R, weight);
+
+    float iblMipLevel;
+    // TODO: We need to match the PerceptualRoughnessToMipmapLevel formula for planar, so we don't do this test (which is specific to our current lightloop)
+    // Specific case for Texture2Ds, their convolution is a gaussian one and not a GGX one - So we use another roughness mip mapping.
+#if !defined(SHADER_API_METAL)
+    if (IsEnvIndexTexture2D(lightData.envIndex))
+    {
+        // Empirical remapping
+        iblMipLevel = PositivePow(preLightData.iblPerceptualRoughness, 0.8) * uint(max(_ColorPyramidScale.z - 1, 0));
+    }
+    else
+#endif
+    {
+        iblMipLevel = PerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness);
+    }
+
+    float4 preLD = SampleEnv(lightLoopContext, lightData.envIndex, R, iblMipLevel);
+    weight *= preLD.a; // Used by planar reflection to discard pixel
+
+    envLighting = preLightData.specularFGD * preLD.rgb;
+
+    UpdateLightingHierarchyWeights(hierarchyWeight, weight);
+    envLighting *= weight * lightData.multiplier;
+    lighting.specularReflected = envLighting;
 
     return lighting;
 }
