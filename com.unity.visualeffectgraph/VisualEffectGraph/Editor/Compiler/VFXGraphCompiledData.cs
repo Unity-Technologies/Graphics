@@ -719,7 +719,9 @@ namespace UnityEditor.VFX
                 m_ExpressionValues = valueDescs;
 
                 var assetPath = AssetDatabase.GetAssetPath(visualEffectResource);
+                Profiler.BeginSample("VFXEditor.CompileAsset:ImportAsset");
                 AssetDatabase.ImportAsset(assetPath, ImportAssetOptions.ForceUpdate); //This should compile the shaders on the C++ size
+                Profiler.EndSample();
             }
             catch (Exception e)
             {
