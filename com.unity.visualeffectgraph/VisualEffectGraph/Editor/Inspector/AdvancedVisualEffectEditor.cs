@@ -16,7 +16,7 @@ using UnityObject = UnityEngine.Object;
 using System.Reflection;
 namespace UnityEditor.VFX
 {
-    static class VisualEffectUtility
+    static class VisualEffectSerializationUtility
     {
         public static string GetTypeField(Type type)
         {
@@ -352,7 +352,7 @@ namespace UnityEditor.VFX
 
             bool BuildPropertyValue<T>(List<Action<List<object>, object>> cmdList, Type type, string propertyPath, string[] memberPath, int depth, FieldInfo specialSpacableVector3CaseField = null)
             {
-                string field = VisualEffectUtility.GetTypeField(type);
+                string field = VisualEffectSerializationUtility.GetTypeField(type);
 
                 if (field != null)
                 {
@@ -545,7 +545,7 @@ namespace UnityEditor.VFX
 
             void BuildValue(List<Action<List<object>>> cmdList, Type type, string propertyPath)
             {
-                string field = VisualEffectUtility.GetTypeField(type);
+                string field = VisualEffectSerializationUtility.GetTypeField(type);
                 if (field != null)
                 {
                     var vfxField = m_VFXPropertySheet.FindPropertyRelative(field + ".m_Array");
