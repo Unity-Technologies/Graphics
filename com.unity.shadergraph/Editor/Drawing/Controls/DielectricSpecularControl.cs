@@ -64,7 +64,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             m_IORPanel = new VisualElement { name = "sliderPanel" };
             m_IORPanel.Add(new Label("IOR"));
             Action<float> changedIORSlider = (s) => { OnChangeIORSlider(s); };
-            m_IORSlider = new Slider(1, 5, changedIORSlider) { value = m_DielectricMaterial.indexOfRefraction };
+            m_IORSlider = new Slider(1, 2.5f, changedIORSlider) { value = m_DielectricMaterial.indexOfRefraction };
             m_IORPanel.Add(m_IORSlider);
             m_IORField = AddField(m_IORPanel, m_IORSlider, 1, m_DielectricMaterial);
             m_IORPanel.SetEnabled(m_DielectricMaterial.type == DielectricMaterialType.Custom);
