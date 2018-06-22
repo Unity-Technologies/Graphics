@@ -9,12 +9,14 @@ using UnityEditor;
 using UnityEditor.Experimental.AssetImporters;
 using UnityEditor.ShaderGraph.Drawing;
 
-[ScriptedImporter(15, ShaderGraphExtension)]
-public class ShaderGraphImporter : ScriptedImporter
+namespace UnityEditor.ShaderGraph
 {
-    public const string ShaderGraphExtension = "shadergraph";
+    [ScriptedImporter(15, ShaderGraphExtension)]
+    public class ShaderGraphImporter : ScriptedImporter
+    {
+        public const string ShaderGraphExtension = "shadergraph";
 
-    const string k_ErrorShader = @"
+        const string k_ErrorShader = @"
 Shader ""Hidden/GraphErrorShader2""
 {
     SubShader
@@ -56,98 +58,67 @@ Shader ""Hidden/GraphErrorShader2""
     Fallback Off
 }";
 
-
-    public override void OnImportAsset(AssetImportContext ctx)
-    {
-        var oldShader = AssetDatabase.LoadAssetAtPath<Shader>(ctx.assetPath);
-        if (oldShader != null)
-            ShaderUtil.ClearShaderErrors(oldShader);
-
-        List<PropertyCollector.TextureInfo> configuredTextures;
-        string path = ctx.assetPath;
-        var sourceAssetDependencyPaths = new List<string>();
-        var text = GetShaderText(path, out configuredTextures, sourceAssetDependencyPaths);
-        var shader = ShaderUtil.CreateShaderAsset(text);
-
-        EditorMaterialUtility.SetShaderDefaults(
-            shader,
-            configuredTextures.Where(x => x.modifiable).Select(x => x.name).ToArray(),
-            configuredTextures.Where(x => x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
-        EditorMaterialUtility.SetShaderNonModifiableDefaults(
-            shader,
-            configuredTextures.Where(x => !x.modifiable).Select(x => x.name).ToArray(),
-            configuredTextures.Where(x => !x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
-
-        ctx.AddObjectToAsset("MainAsset", shader);
-        ctx.SetMainObject(shader);
-
-        foreach (var sourceAssetDependencyPath in sourceAssetDependencyPaths.Distinct())
-            ctx.DependsOnSourceAsset(sourceAssetDependencyPath);
-    }
-
-    internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths)
-    {
-        string shaderString = null;
-        var shaderName = Path.GetFileNameWithoutExtension(path);
-        try
+        public override void OnImportAsset(AssetImportContext ctx)
         {
-            var textGraph = File.ReadAllText(path, Encoding.UTF8);
-            var graph = JsonUtility.FromJson<MaterialGraph>(textGraph);
-            graph.LoadedFromDisk();
+            var oldShader = AssetDatabase.LoadAssetAtPath<Shader>(ctx.assetPath);
+            if (oldShader != null)
+                ShaderUtil.ClearShaderErrors(oldShader);
 
-            if (!string.IsNullOrEmpty(graph.path))
-                shaderName = graph.path + "/" + shaderName;
-            shaderString = graph.GetShader(shaderName, GenerationMode.ForReals, out configuredTextures, sourceAssetDependencyPaths);
+            List<PropertyCollector.TextureInfo> configuredTextures;
+            string path = ctx.assetPath;
+            var sourceAssetDependencyPaths = new List<string>();
+            var text = GetShaderText(path, out configuredTextures, sourceAssetDependencyPaths);
+            var shader = ShaderUtil.CreateShaderAsset(text);
 
-            if (sourceAssetDependencyPaths != null)
+            EditorMaterialUtility.SetShaderDefaults(
+                shader,
+                configuredTextures.Where(x => x.modifiable).Select(x => x.name).ToArray(),
+                configuredTextures.Where(x => x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
+            EditorMaterialUtility.SetShaderNonModifiableDefaults(
+                shader,
+                configuredTextures.Where(x => !x.modifiable).Select(x => x.name).ToArray(),
+                configuredTextures.Where(x => !x.modifiable).Select(x => EditorUtility.InstanceIDToObject(x.textureId) as Texture).ToArray());
+
+            ctx.AddObjectToAsset("MainAsset", shader);
+            ctx.SetMainObject(shader);
+
+            foreach (var sourceAssetDependencyPath in sourceAssetDependencyPaths.Distinct())
+                ctx.DependsOnSourceAsset(sourceAssetDependencyPath);
+        }
+
+        internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures, List<string> sourceAssetDependencyPaths)
+        {
+            string shaderString = null;
+            var shaderName = Path.GetFileNameWithoutExtension(path);
+            try
             {
-                foreach (var node in graph.GetNodes<AbstractMaterialNode>())
-                    node.GetSourceAssetDependencies(sourceAssetDependencyPaths);
+                var textGraph = File.ReadAllText(path, Encoding.UTF8);
+                var graph = JsonUtility.FromJson<MaterialGraph>(textGraph);
+                graph.LoadedFromDisk();
+
+                if (!string.IsNullOrEmpty(graph.path))
+                    shaderName = graph.path + "/" + shaderName;
+                shaderString = graph.GetShader(shaderName, GenerationMode.ForReals, out configuredTextures, sourceAssetDependencyPaths);
+
+                if (sourceAssetDependencyPaths != null)
+                {
+                    foreach (var node in graph.GetNodes<AbstractMaterialNode>())
+                        node.GetSourceAssetDependencies(sourceAssetDependencyPaths);
+                }
             }
-        }
-        catch (Exception)
-        {
-            configuredTextures = new List<PropertyCollector.TextureInfo>();
-            // ignored
-        }
-        return shaderString ?? k_ErrorShader.Replace("Hidden/GraphErrorShader2", shaderName);
-    }
-
-    internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures)
-    {
-        return GetShaderText(path, out configuredTextures, null);
-    }
-}
-
-class ShaderGraphAssetPostProcessor : AssetPostprocessor
-{
-    static void RegisterShaders(string[] paths)
-    {
-        foreach (var path in paths)
-        {
-            if (!path.EndsWith(ShaderGraphImporter.ShaderGraphExtension, StringComparison.InvariantCultureIgnoreCase))
-                continue;
-
-            var mainObj = AssetDatabase.LoadMainAssetAtPath(path);
-            if (mainObj is Shader)
-                ShaderUtil.RegisterShader((Shader)mainObj);
-
-            var objs = AssetDatabase.LoadAllAssetRepresentationsAtPath(path);
-            foreach (var obj in objs)
+            catch (Exception)
             {
-                if (obj is Shader)
-                    ShaderUtil.RegisterShader((Shader)obj);
-            }
-        }
-    }
+                configuredTextures = new List<PropertyCollector.TextureInfo>();
 
-    static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
-    {
-        MaterialGraphEditWindow[] windows = Resources.FindObjectsOfTypeAll<MaterialGraphEditWindow>();
-        foreach (var matGraphEditWindow in windows)
-        {
-            matGraphEditWindow.forceRedrawPreviews = true;
+                // ignored
+            }
+
+            return shaderString ?? k_ErrorShader.Replace("Hidden/GraphErrorShader2", shaderName);
         }
-        RegisterShaders(importedAssets);
+
+        internal static string GetShaderText(string path, out List<PropertyCollector.TextureInfo> configuredTextures)
+        {
+            return GetShaderText(path, out configuredTextures, null);
+        }
     }
 }
