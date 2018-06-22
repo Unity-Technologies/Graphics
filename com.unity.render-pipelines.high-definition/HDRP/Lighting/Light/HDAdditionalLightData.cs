@@ -17,6 +17,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     };
 
     public enum SpotLightShape { Cone, Pyramid, Box };
+    
+    public enum LightUnit
+    {
+        Lumen,
+        Candela,
+        Lux,
+        Luminance,
+    }
 
     //@TODO: We should continuously move these values
     // into the engine when we can see them being generally useful
@@ -34,8 +42,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         
         public float intensity
         {
-            get { return m_Light.intensity; }
-            set { GetLightIntensity(value); }
+            get { return editorLightIntensity; }
+            set { SetLightIntensity(value); }
         }
 
         // Only for Spotlight, should be hide for other light
@@ -56,7 +64,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float volumetricDimmer = 1.0f;
 
         // Used internally to convert any light unit input into light intensity
-        public int  lightUnit;
+        public LightUnit lightUnit;
 
         // Not used for directional lights.
         public float fadeDistance = 10000.0f;
@@ -109,39 +117,49 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
         
-        void GetLightIntensity(float value)
+        void SetLightIntensity(float intensity)
         {
             switch (lightTypeExtent)
             {
                 case LightTypeExtent.Punctual:
-                    GetLightIntensityPunctual(value);
+                    SetLightIntensityPunctual(intensity);
                     break;
                 case LightTypeExtent.Line:
-                    m_Light.intensity = LightUtils.CalculateLineLightIntensity(value, shapeWidth);
+                    if (lightUnit == LightUnit.Lumen)
+                        m_Light.intensity = LightUtils.CalculateLineLightIntensity(intensity, shapeWidth);
+                    else
+                        m_Light.intensity = intensity;
                     break;
                 case LightTypeExtent.Rectangle:
-                    m_Light.intensity = LightUtils.ConvertRectLightIntensity(value, shapeWidth, shapeHeight);
-                    break ;
+                    if (lightUnit == LightUnit.Lumen)
+                        m_Light.intensity = LightUtils.ConvertRectLightIntensity(intensity, shapeWidth, shapeHeight);
+                    else
+                        m_Light.intensity = intensity;
+                    break;
             }
         }
 
-        void GetLightIntensityPunctual(float value)
+        void SetLightIntensityPunctual(float intensity)
         {
             switch (m_Light.type)
             {
                 case LightType.Directional:
-                    m_Light.intensity = directionalIntensity;
+                    m_Light.intensity = intensity; // Alwas in lux
                     break;
                 case LightType.Point:
-                    m_Light.intensity = LightUtils.ConvertPointLightIntensity(value);
+                    if (lightUnit == LightUnit.Candela)
+                        m_Light.intensity = intensity;
+                    else
+                        m_Light.intensity = LightUtils.ConvertPointLightIntensity(intensity);
                     break;
                 case LightType.Spot:
-                    if (enableSpotReflector)
-
+                    if (lightUnit == LightUnit.Candela)
+                        m_Light.intensity = intensity;
+                    else if (enableSpotReflector)
                     {
                         if (spotLightShape == SpotLightShape.Cone)
                         {
-                            m_Light.intensity = LightUtils.ConvertSpotLightIntensity(value, m_Light.spotAngle * Mathf.Deg2Rad, true);
+                            m_Light.intensity = LightUtils.ConvertSpotLightIntensity(intensity, m_Light.spotAngle * Mathf.Deg2Rad, true);
                         }
                         else if (spotLightShape == SpotLightShape.Pyramid)
                         {
@@ -149,16 +167,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             LightUtils.CalculateAnglesForPyramid(aspectRatio, m_Light.spotAngle,
                                 out angleA, out angleB);
 
-                            m_Light.intensity = LightUtils.ConvertFrustrumLightIntensity(value, angleA, angleB);
+                            m_Light.intensity = LightUtils.ConvertFrustrumLightIntensity(intensity, angleA, angleB);
                         }
                         else // Box shape, fallback to punctual light.
                         {
-                            m_Light.intensity = LightUtils.ConvertPointLightIntensity(value);
+                            m_Light.intensity = LightUtils.ConvertPointLightIntensity(intensity);
                         }
                     }
                     else // Reflector disabled, fallback to punctual light.
                     {
-                        m_Light.intensity = LightUtils.ConvertPointLightIntensity(value);
+                        m_Light.intensity = LightUtils.ConvertPointLightIntensity(intensity);
                     }
                     break;
             }
