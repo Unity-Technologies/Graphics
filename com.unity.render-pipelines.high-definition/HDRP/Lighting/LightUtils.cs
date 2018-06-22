@@ -20,45 +20,69 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Also good ref: https://www.radiance-online.org/community/workshops/2004-fribourg/presentations/Wandachowicz_paper.pdf
 
         // convert intensity (lumen) to candela
-        public static float ConvertPointLightIntensity(float intensity)
+        public static float ConvertPointLightLumenToCandela(float intensity)
         {
             return intensity / (4.0f * Mathf.PI);
         }
 
+        // convert intensity (candela) to lumen
+        public static float ConvertPointLightCandelaToLumen(float intensity)
+        {
+            return intensity * (4.0f * Mathf.PI);
+        }
+
         // angle is the full angle, not the half angle in radiant
         // convert intensity (lumen) to candela
-        public static float ConvertSpotLightIntensity(float intensity, float angle, bool exact)
+        public static float ConvertSpotLightLumenToCandela(float intensity, float angle, bool exact)
         {
             return exact ? intensity / (2.0f * (1.0f - Mathf.Cos(angle / 2.0f)) * Mathf.PI) : intensity / Mathf.PI;
         }
 
         // angleA and angleB are the full opening angle, not half angle
         // convert intensity (lumen) to candela
-        public static float ConvertFrustrumLightIntensity(float intensity, float angleA, float angleB)
+        public static float ConvertFrustrumLightLumenToCandela(float intensity, float angleA, float angleB)
         {
             return intensity / (4.0f * Mathf.Asin(Mathf.Sin(angleA / 2.0f) * Mathf.Sin(angleB / 2.0f)));
         }
 
         // convert intensity (lumen) to nits
-        public static float ConvertSphereLightIntensity(float intensity, float sphereRadius)
+        public static float ConvertSphereLightLumenToLuminance(float intensity, float sphereRadius)
         {
             return intensity / ((4.0f * Mathf.PI * sphereRadius * sphereRadius) * Mathf.PI);
         }
 
-        // convert intensity (lumen) to nits
-        public static float ConvertDiscLightIntensity(float intensity, float discRadius)
+        // convert intensity (nits) to lumen
+        public static float ConvertSphereLightLuminanceToLumen(float intensity, float sphereRadius)
         {
-            return intensity / ((discRadius * discRadius * Mathf.PI) * Mathf.PI);
+            return intensity * ((4.0f * Mathf.PI * sphereRadius * sphereRadius) * Mathf.PI);
         }
 
         // convert intensity (lumen) to nits
-        public static float ConvertRectLightIntensity(float intensity, float width, float height)
+        public static float ConvertDiscLightLumenToLuminance(float intensity, float discRadius)
+        {
+            return intensity / ((discRadius * discRadius * Mathf.PI) * Mathf.PI);
+        }
+        
+        // convert intensity (nits) to lumen
+        public static float ConvertDiscLightLuminanceToLumen(float intensity, float discRadius)
+        {
+            return intensity * ((discRadius * discRadius * Mathf.PI) * Mathf.PI);
+        }
+
+        // convert intensity (lumen) to nits
+        public static float ConvertRectLightLumenToLuminance(float intensity, float width, float height)
         {
             return intensity / ((width * height) * Mathf.PI);
         }
 
+        // convert intensity (nits) to lumen
+        public static float ConvertRectLightLuminanceToLumen(float intensity, float width, float height)
+        {
+            return intensity * ((width * height) * Mathf.PI);
+        }
+
         // convert intensity (lumen) to nits
-        public static float CalculateLineLightIntensity(float intensity, float lineWidth)
+        public static float CalculateLineLightLumenToLuminance(float intensity, float lineWidth)
         {
             //Line lights expect radiance (W / (sr * m^2)) in the shader.
             //In the UI, we specify luminous flux (power) in lumens.
@@ -79,6 +103,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             //power = length * (4 * Pi) * radiance,
             //radiance = power / (length * (4 * Pi)).
             return intensity / (4.0f * Mathf.PI * lineWidth);
+        }
+        
+        public static float CalculateLineLightLuminanceToLumen(float intensity, float lineWidth)
+        {
+            return intensity * (4.0f * Mathf.PI * lineWidth);
         }
 
         public static void CalculateAnglesForPyramid(float aspectRatio, float spotAngle, out float angleA, out float angleB)

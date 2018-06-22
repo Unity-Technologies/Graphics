@@ -29,20 +29,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     //@TODO: We should continuously move these values
     // into the engine when we can see them being generally useful
     [RequireComponent(typeof(Light))]
-    public class HDAdditionalLightData : MonoBehaviour
+    [ExecuteInEditMode]
+    public class HDAdditionalLightData : MonoBehaviour, ISerializationCallbackReceiver
     {
+        public const float currentVersion = 1.1f;
+
         [HideInInspector]
-        public float version = 1.0f;
+        public float version = currentVersion;
 
         // To be able to have correct default values for our lights and to also control the conversion of intensity from the light editor (so it is compatible with GI)
         // we add intensity (for each type of light we want to manage).
+        [System.Obsolete("directionalIntensity is deprecated, use intensity and lightUnit instead")]
         public float directionalIntensity   = Mathf.PI; // In Lux
+        [System.Obsolete("punctualIntensity is deprecated, use intensity and lightUnit instead")]
         public float punctualIntensity      = 600.0f;   // Light default to 600 lumen, i.e ~48 candela
+        [System.Obsolete("areaIntensity is deprecated, use intensity and lightUnit instead")]
         public float areaIntensity          = 200.0f;   // Light default to 200 lumen to better match point light
+
+        public const float k_DefaultDirectionalLightIntensity = Mathf.PI; // In lux
+        public const float k_DefaultPunctualLightIntensity = 600.0f;      // In lumens
+        public const float k_DefaultAreaLightIntensity = 200.0f;          // In lumens
         
         public float intensity
         {
-            get { return editorLightIntensity; }
+            get { return displayLightIntensity; }
             set { SetLightIntensity(value); }
         }
 
@@ -103,7 +113,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool useOldInspector = false;
         public bool featuresFoldout = true;
         public bool showAdditionalSettings = false;
-        public float editorLightIntensity;
+        public float displayLightIntensity;
+
+        // We nee all those variables to make timeline and the animator record the intensity value
+        [System.NonSerialized]
+        float oldDisplayLightIntensity;
+        [System.NonSerialized]
+        float oldSpotAngle;
+        [System.NonSerialized]
+        bool oldEnableSpotReflector;
 
         // Runtime datas used to compute light intensity
         Light       _light;
@@ -119,24 +137,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         
         void SetLightIntensity(float intensity)
         {
-            switch (lightTypeExtent)
+            displayLightIntensity = intensity;
+
+            if (lightUnit == LightUnit.Lumen)
             {
-                case LightTypeExtent.Punctual:
-                    SetLightIntensityPunctual(intensity);
-                    break;
-                case LightTypeExtent.Line:
-                    if (lightUnit == LightUnit.Lumen)
-                        m_Light.intensity = LightUtils.CalculateLineLightIntensity(intensity, shapeWidth);
-                    else
-                        m_Light.intensity = intensity;
-                    break;
-                case LightTypeExtent.Rectangle:
-                    if (lightUnit == LightUnit.Lumen)
-                        m_Light.intensity = LightUtils.ConvertRectLightIntensity(intensity, shapeWidth, shapeHeight);
-                    else
-                        m_Light.intensity = intensity;
-                    break;
+                switch (lightTypeExtent)
+                {
+                    case LightTypeExtent.Punctual:
+                        SetLightIntensityPunctual(intensity);
+                        break;
+                    case LightTypeExtent.Line:
+                            m_Light.intensity = LightUtils.CalculateLineLightLumenToLuminance(intensity, shapeWidth);
+                        break;
+                    case LightTypeExtent.Rectangle:
+                        m_Light.intensity = LightUtils.ConvertRectLightLumenToLuminance(intensity, shapeWidth, shapeHeight);
+                        break;
+                }
             }
+            else
+                m_Light.intensity = intensity;
+                
+            m_Light.SetLightDirty(); // Should be apply only to parameter that's affect GI, but make the code cleaner
         }
 
         void SetLightIntensityPunctual(float intensity)
@@ -150,7 +171,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     if (lightUnit == LightUnit.Candela)
                         m_Light.intensity = intensity;
                     else
-                        m_Light.intensity = LightUtils.ConvertPointLightIntensity(intensity);
+                        m_Light.intensity = LightUtils.ConvertPointLightLumenToCandela(intensity);
                     break;
                 case LightType.Spot:
                     if (lightUnit == LightUnit.Candela)
@@ -159,7 +180,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         if (spotLightShape == SpotLightShape.Cone)
                         {
-                            m_Light.intensity = LightUtils.ConvertSpotLightIntensity(intensity, m_Light.spotAngle * Mathf.Deg2Rad, true);
+                            m_Light.intensity = LightUtils.ConvertSpotLightLumenToCandela(intensity, m_Light.spotAngle * Mathf.Deg2Rad, true);
                         }
                         else if (spotLightShape == SpotLightShape.Pyramid)
                         {
@@ -167,19 +188,43 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             LightUtils.CalculateAnglesForPyramid(aspectRatio, m_Light.spotAngle,
                                 out angleA, out angleB);
 
-                            m_Light.intensity = LightUtils.ConvertFrustrumLightIntensity(intensity, angleA, angleB);
+                            m_Light.intensity = LightUtils.ConvertFrustrumLightLumenToCandela(intensity, angleA, angleB);
                         }
                         else // Box shape, fallback to punctual light.
                         {
-                            m_Light.intensity = LightUtils.ConvertPointLightIntensity(intensity);
+                            m_Light.intensity = LightUtils.ConvertPointLightLumenToCandela(intensity);
                         }
                     }
                     else // Reflector disabled, fallback to punctual light.
                     {
-                        m_Light.intensity = LightUtils.ConvertPointLightIntensity(intensity);
+                        m_Light.intensity = LightUtils.ConvertPointLightLumenToCandela(intensity);
                     }
                     break;
             }
+        }
+
+        // Given a correlated color temperature (in Kelvin), estimate the RGB equivalent. Curve fit error is max 0.008.
+        Color CorrelatedColorTemperatureToRGB(float temperature)
+        {
+            float r, g, b;
+
+            // Temperature must fall between 1000 and 40000 degrees
+            // The fitting require to divide kelvin by 1000 (allow more precision)
+            float kelvin = Mathf.Clamp(temperature, 1000.0f, 40000.0f) / 1000.0f;
+            float kelvin2 = kelvin * kelvin;
+
+            // Using 6570 as a pivot is an approximation, pivot point for red is around 6580 and for blue and green around 6560.
+            // Calculate each color in turn (Note, clamp is not really necessary as all value belongs to [0..1] but can help for extremum).
+            // Red
+            r = kelvin < 6.570f ? 1.0f : Mathf.Clamp((1.35651f + 0.216422f * kelvin + 0.000633715f * kelvin2) / (-3.24223f + 0.918711f * kelvin), 0.0f, 1.0f);
+            // Green
+            g = kelvin < 6.570f ?
+                Mathf.Clamp((-399.809f + 414.271f * kelvin + 111.543f * kelvin2) / (2779.24f + 164.143f * kelvin + 84.7356f * kelvin2), 0.0f, 1.0f) :
+                Mathf.Clamp((1370.38f + 734.616f * kelvin + 0.689955f * kelvin2) / (-4625.69f + 1699.87f * kelvin), 0.0f, 1.0f);
+            //Blue
+            b = kelvin > 6.570f ? 1.0f : Mathf.Clamp((348.963f - 523.53f * kelvin + 183.62f * kelvin2) / (2848.82f - 214.52f * kelvin + 78.8614f * kelvin2), 0.0f, 1.0f);
+
+            return new Color(r, g, b, 1.0f);
         }
 
 #if UNITY_EDITOR
@@ -259,78 +304,55 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DrawGizmos(true);
         }
 
-        public void RefreshLightIntensity()
+        void LateUpdate()
         {
-            // The editor can only access editorLightIntensity (because of SerializedProperties) so we update the intensity to get the real value
-            intensity = editorLightIntensity;
+            // Check if the intensity have been changed by the inspector or an animator
+            if (oldDisplayLightIntensity != displayLightIntensity)
+            {
+                RefreshLigthIntensity();
+                oldDisplayLightIntensity = displayLightIntensity;
+            }
+
+            // Same check for light angle to update intensity using spot angle
+            if (m_Light.type == LightType.Spot && (oldSpotAngle != m_Light.spotAngle || oldEnableSpotReflector != enableSpotReflector))
+            {
+                RefreshLigthIntensity();
+                oldSpotAngle = m_Light.spotAngle;
+                oldEnableSpotReflector = enableSpotReflector;
+            }
+        }
+
+        // The editor can only access displayLightIntensity (because of SerializedProperties) so we update the intensity to get the real value
+        public void RefreshLigthIntensity()
+        {
+            intensity = displayLightIntensity;
         }
 
 #endif
-
-        // Caution: this function must match the one in HDLightEditor.UpdateLightIntensity - any change need to be replicated
-        public void ConvertPhysicalLightIntensityToLightIntensity()
-        {
-            var light = m_Light;
-
-            if (lightTypeExtent == LightTypeExtent.Punctual)
-            {
-                switch (light.type)
-                {
-                    case LightType.Directional:
-                        light.intensity = Mathf.Max(0, directionalIntensity);
-                        break;
-
-                    case LightType.Point:
-                        light.intensity = LightUtils.ConvertPointLightIntensity(Mathf.Max(0, punctualIntensity));
-                        break;
-
-                    case LightType.Spot:
-
-                        if (enableSpotReflector)
-                        {
-                            if (spotLightShape == SpotLightShape.Cone)
-                            {
-                                light.intensity = LightUtils.ConvertSpotLightIntensity(Mathf.Max(0, punctualIntensity), light.spotAngle * Mathf.Deg2Rad, true);
-                            }
-                            else if (spotLightShape == SpotLightShape.Pyramid)
-                            {
-                                float angleA, angleB;
-                                LightUtils.CalculateAnglesForPyramid(aspectRatio, light.spotAngle,
-                                    out angleA, out angleB);
-
-                                light.intensity = LightUtils.ConvertFrustrumLightIntensity(Mathf.Max(0, punctualIntensity), angleA, angleB);
-                            }
-                            else // Box shape, fallback to punctual light.
-                            {
-                                light.intensity = LightUtils.ConvertPointLightIntensity(Mathf.Max(0, punctualIntensity));
-                            }
-                        }
-                        else
-                        {
-                            // Spot should used conversion which take into account the angle, and thus the intensity vary with angle.
-                            // This is not easy to manipulate for lighter, so we simply consider any spot light as just occluded point light. So reuse the same code.
-                            light.intensity = LightUtils.ConvertPointLightIntensity(Mathf.Max(0, punctualIntensity));
-                            // TODO: What to do with box shape ?
-                            // var spotLightShape = (SpotLightShape)m_AdditionalspotLightShape.enumValueIndex;
-                        }
-                        break;
-                }
-            }
-            else if (lightTypeExtent == LightTypeExtent.Rectangle)
-            {
-                light.intensity = LightUtils.ConvertRectLightIntensity(Mathf.Max(0, areaIntensity), shapeWidth, shapeHeight);
-            }
-            else if (lightTypeExtent == LightTypeExtent.Line)
-            {
-                light.intensity = LightUtils.CalculateLineLightIntensity(Mathf.Max(0, areaIntensity), shapeWidth);
-            }
-        }
 
         // As we have our own default value, we need to initialize the light intensity correctly
         public static void InitDefaultHDAdditionalLightData(HDAdditionalLightData lightData)
         {
             // Special treatment for Unity built-in area light. Change it to our rectangle light
             var light = lightData.gameObject.GetComponent<Light>();
+
+            // Set light intensity and unit using its type
+            switch (light.type)
+            {
+                case LightType.Directional:
+                    lightData.lightUnit = LightUnit.Lux;
+                    lightData.intensity = k_DefaultDirectionalLightIntensity;
+                    break;
+                case LightType.Area: // Rectangle by default when light is created
+                    lightData.lightUnit = LightUnit.Lumen;
+                    lightData.intensity = k_DefaultAreaLightIntensity;
+                    break;
+                case LightType.Point:
+                case LightType.Spot:
+                    lightData.lightUnit = LightUnit.Lumen;
+                    lightData.intensity = k_DefaultPunctualLightIntensity;
+                    break;
+            }
 
             // Sanity check: lightData.lightTypeExtent is init to LightTypeExtent.Punctual (in case for unknow reasons we recreate additional data on an existing line)
             if (light.type == LightType.Area && lightData.lightTypeExtent == LightTypeExtent.Punctual)
@@ -344,11 +366,45 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // We don't use the global settings of shadow mask by default
             light.lightShadowCasterMode = LightShadowCasterMode.Everything;
+        }
 
-            // At first init we need to initialize correctly the default value
-            lightData.ConvertPhysicalLightIntensityToLightIntensity();
+        public void OnBeforeSerialize() {}
 
-            // TODO: Initialize the light intensity in function of the light type
+        public void OnAfterDeserialize()
+        {
+            // If we are deserializing an old version, convert the light intensity to the new system
+            if (version == 1.0f)
+            {
+                //TODO: convert dir, punc and area light intensities to intensity field
+
+// Pragma to disable the warning got by using deprecated properties (areaIntensity, directionalIntensity, ...)
+#pragma warning disable 0618
+                switch (lightTypeExtent)
+                {
+                    case LightTypeExtent.Punctual:
+                        switch (m_Light.type)
+                        {
+                            case LightType.Directional:
+                                lightUnit = LightUnit.Lux;
+                                intensity = directionalIntensity;
+                                break;
+                            case LightType.Spot:
+                            case LightType.Point:
+                                lightUnit = LightUnit.Lumen;
+                                intensity = punctualIntensity;
+                                break;
+                        }
+                        break;
+                    case LightTypeExtent.Line:
+                    case LightTypeExtent.Rectangle:
+                        lightUnit = LightUnit.Lumen;
+                        intensity = areaIntensity;
+                        break;
+                }
+#pragma warning restore 0618
+
+                version = currentVersion;
+            }
         }
     }
 }
