@@ -77,3 +77,4 @@ You can now see the generated code for any specific node. To do so, right-click 
 - Deserialization of subgraphs now works correctly.
 - Sub graphs are now suffixed with (sub), so you can tell them apart from other nodes.
 - The preview of a node does not obstruct the selection outliner anymore.
+- When you rename a shader graph or sub shader graph locally on your disk, the title of the Shader Graph window, black board, and preview also updates.
