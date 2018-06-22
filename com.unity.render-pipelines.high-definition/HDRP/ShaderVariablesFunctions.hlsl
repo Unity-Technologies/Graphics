@@ -1,7 +1,7 @@
 #ifndef UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
 #define UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
 
-// This function always return the absolute position in WS either the CameraRelative mode is enabled or not
+// This function always return the absolute position in WS
 float3 GetAbsolutePositionWS(float3 positionRWS)
 {
 #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
@@ -10,7 +10,7 @@ float3 GetAbsolutePositionWS(float3 positionRWS)
     return positionRWS;
 }
 
-// This function always return the camera relative position in WS either the CameraRelative mode is enabled or not
+// This function return the camera relative position in WS
 float3 GetCameraRelativePositionWS(float3 positionWS)
 {
 #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
