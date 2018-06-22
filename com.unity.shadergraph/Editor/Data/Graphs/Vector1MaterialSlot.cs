@@ -16,11 +16,11 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         float m_DefaultValue;
 
+        [SerializeField]
         string[] m_Labels;
 
         public Vector1MaterialSlot()
         {
-            m_Labels = new[] { "X" };
         }
 
         public Vector1MaterialSlot(

@@ -16,11 +16,11 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private Vector3 m_DefaultValue;
 
+        [SerializeField]
         string[] m_Labels;
 
         public Vector3MaterialSlot()
         {
-            m_Labels = new[] { "X", "Y", "Z" };
         }
 
         public Vector3MaterialSlot(
