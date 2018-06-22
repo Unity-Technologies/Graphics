@@ -92,29 +92,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             //Disc,
         }
 
-        enum LightUnits
+        enum DirectionalLightUnit
         {
-            Lumen,
-            Candela,
-            Lux,
-            Luminance,
+            Lux = LightUnit.Lux,
         }
 
-        enum DirectionalLightUnits
+        enum AreaLightUnit
         {
-            Lux = LightUnits.Lux,
+            Lumen = LightUnit.Lumen,
+            Luminance = LightUnit.Luminance,
         }
 
-        enum AreaLightUnits
+        enum PunctualLightUnit
         {
-            Lumen = LightUnits.Lumen,
-            Luminance = LightUnits.Luminance,
-        }
-
-        enum PunctualLightUnits
-        {
-            Lumen = LightUnits.Lumen,
-            Candela = LightUnits.Candela,
+            Lumen = LightUnit.Lumen,
+            Candela = LightUnit.Candela,
         }
 
         const float k_MinAreaWidth = 0.01f; // Provide a small size of 1cm for line light
@@ -422,18 +414,34 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }*/
         }
 
-        LightUnits LightIntensityUnitPopup(LightShape shape)
+        LightUnit LightIntensityUnitPopup(LightShape shape)
         {
+            LightUnit     selectedLightUnit;
+            LightUnit     oldLigthUnit = (LightUnit)m_AdditionalLightData.lightUnit.enumValueIndex;
+
+            EditorGUI.BeginChangeCheck();
             switch (shape)
             {
                 case LightShape.Directional:
-                    return (LightUnits)EditorGUILayout.EnumPopup((DirectionalLightUnits)m_AdditionalLightData.lightUnit.intValue);
+                    selectedLightUnit = (LightUnit)EditorGUILayout.EnumPopup((DirectionalLightUnit)m_AdditionalLightData.lightUnit.enumValueIndex);
+                    break;
                 case LightShape.Point:
                 case LightShape.Spot:
-                    return (LightUnits)EditorGUILayout.EnumPopup((PunctualLightUnits)m_AdditionalLightData.lightUnit.intValue);
+                    selectedLightUnit = (LightUnit)EditorGUILayout.EnumPopup((PunctualLightUnit)m_AdditionalLightData.lightUnit.enumValueIndex);
+                    break;
                 default:
-                    return (LightUnits)EditorGUILayout.EnumPopup((AreaLightUnits)m_AdditionalLightData.lightUnit.intValue);
+                    selectedLightUnit = (LightUnit)EditorGUILayout.EnumPopup((AreaLightUnit)m_AdditionalLightData.lightUnit.enumValueIndex);
+                    break;
             }
+            if (EditorGUI.EndChangeCheck())
+                ConvertLightIntensity(oldLigthUnit, selectedLightUnit);
+
+            return selectedLightUnit;
+        }
+
+        void ConvertLightIntensity(LightUnit oldLightUnit, LightUnit newLightUnit)
+        {
+
         }
 
         void DrawLightSettings()
@@ -442,9 +450,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUI.BeginChangeCheck();
 
+            HDAdditionalLightData d = (target as Light).GetComponent<HDAdditionalLightData>();
+
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PropertyField(m_AdditionalLightData.intensity, s_Styles.lightIntensity);
-            m_AdditionalLightData.lightUnit.intValue = (int)LightIntensityUnitPopup(m_LightShape);
+            m_AdditionalLightData.lightUnit.enumValueIndex = (int)LightIntensityUnitPopup(m_LightShape);
             EditorGUILayout.EndHorizontal();
             
             // Only display reflector option if it make sense
