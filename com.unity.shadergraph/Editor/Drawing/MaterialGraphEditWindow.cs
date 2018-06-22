@@ -76,6 +76,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             private set { m_Selected = value; }
         }
 
+        public string assetName
+        {
+            get { return titleContent.text; }
+            set
+            {
+                titleContent.text = value;
+                graphEditorView.assetName = value;
+            }
+        }
+
         void Update()
         {
             if (m_HasError)
@@ -111,10 +121,15 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var materialGraph = graphObject.graph as AbstractMaterialGraph;
                 if (materialGraph == null)
                     return;
+
                 if (graphEditorView == null)
                 {
                     var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(selectedGuid));
-                    graphEditorView = new GraphEditorView(this, materialGraph, asset.name) { persistenceKey = selectedGuid };
+                    graphEditorView = new GraphEditorView(this, materialGraph)
+                    {
+                        persistenceKey = selectedGuid,
+                        assetName = asset.name.Split('/').Last()
+                    };
                     m_ColorSpace = PlayerSettings.colorSpace;
                     m_RenderPipelineAsset = GraphicsSettings.renderPipelineAsset;
                 }
@@ -486,10 +501,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphObject.graph.OnEnable();
                 graphObject.graph.ValidateGraph();
 
-                graphEditorView = new GraphEditorView(this, m_GraphObject.graph as AbstractMaterialGraph, asset.name) { persistenceKey = selectedGuid };
+                graphEditorView = new GraphEditorView(this, m_GraphObject.graph as AbstractMaterialGraph)
+                {
+                    persistenceKey = selectedGuid,
+                    assetName = asset.name.Split('/').Last()
+                };
                 graphEditorView.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
 
-                titleContent = new GUIContent(asset.name);
+                titleContent = new GUIContent(asset.name.Split('/').Last());
 
                 Repaint();
             }

@@ -112,7 +112,7 @@ float GeometricNormalFiltering(float perceptualSmoothness, float3 geometricNorma
 //
 // avgNormalLength gives the dispersion information for the covered normals.
 //
-// Note that hw filtering on the normal map should be trilinear to be conservative, while anisotropic 
+// Note that hw filtering on the normal map should be trilinear to be conservative, while anisotropic
 // risk underfiltering. Could also compute average normal on the fly with a proper normal map format,
 // like Toksvig.
 float TextureNormalVariance(float avgNormalLength)
