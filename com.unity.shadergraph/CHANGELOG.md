@@ -77,5 +77,5 @@ You can now see the generated code for any specific node. To do so, right-click 
 - Deserialization of subgraphs now works correctly.
 - Sub graphs are now suffixed with (sub), so you can tell them apart from other nodes.
 - The preview of a node does not obstruct the selection outliner anymore.
-- Master nodes now display an error badge if the current render pipeline is not compatible.
-- The preview shader compiles faster now by only considering the current render pipeline.
+- If the current render pipeline is not compatible, master nodes now display an error badge.
+- The preview shader now only considers the current render pipeline. Because of this there is less code to compile, and therefore the preview shader will compile faster.
