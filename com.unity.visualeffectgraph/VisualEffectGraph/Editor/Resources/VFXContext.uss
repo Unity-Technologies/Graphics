@@ -177,6 +177,8 @@ VFXContextUI #header-space
     position-type:absolute;
     position-right:5;
     position-top:5;
+    width:48;
+    height:16;
 }
 VFXContextUI #node-border > #inside > #contents
 {
