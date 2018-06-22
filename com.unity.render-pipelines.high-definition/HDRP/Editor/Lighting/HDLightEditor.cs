@@ -26,9 +26,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         sealed class SerializedLightData
         {
             public SerializedProperty intensity;
-            public SerializedProperty directionalIntensity;
-            public SerializedProperty punctualIntensity;
-            public SerializedProperty areaIntensity;
             public SerializedProperty enableSpotReflector;
             public SerializedProperty spotInnerPercent;
             public SerializedProperty lightDimmer;
@@ -127,10 +124,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             using (var o = new PropertyFetcher<HDAdditionalLightData>(m_SerializedAdditionalLightData))
                 m_AdditionalLightData = new SerializedLightData
                 {
-                    directionalIntensity = o.Find(x => x.directionalIntensity),
-                    punctualIntensity = o.Find(x => x.punctualIntensity),
-                    areaIntensity = o.Find(x => x.areaIntensity),
-                    intensity = o.Find(x => x.editorLightIntensity),
+                    intensity = o.Find(x => x.displayLightIntensity),
                     enableSpotReflector = o.Find(x => x.enableSpotReflector),
                     spotInnerPercent = o.Find(x => x.m_InnerSpotPercent),
                     lightDimmer = o.Find(x => x.lightDimmer),
@@ -346,72 +340,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (EditorGUI.EndChangeCheck())
             {
-                UpdateLightIntensity();
-                ((Light)target).SetLightDirty(); // Should be apply only to parameter that's affect GI, but make the code cleaner
+                UpdateLightIntensityUnit();
             }
         }
 
-        // Caution: this function must match the one in HDAdditionalLightData.ConvertPhysicalLightIntensityToLightIntensity - any change need to be replicated
-        void UpdateLightIntensity()
+        void UpdateLightIntensityUnit()
         {
-            //TOOD: TMP stuff, waiting for the emissive mesh to be merged
-            m_SerializedAdditionalLightData.ApplyModifiedProperties();
-            ((Light)target).GetComponent<HDAdditionalLightData>().RefreshLightIntensity();
-
-            // Clamp negative values.
-            /*m_AdditionalLightData.directionalIntensity.floatValue = Mathf.Max(0, m_AdditionalLightData.directionalIntensity.floatValue);
-            m_AdditionalLightData.punctualIntensity.floatValue    = Mathf.Max(0, m_AdditionalLightData.punctualIntensity.floatValue);
-            m_AdditionalLightData.areaIntensity.floatValue        = Mathf.Max(0, m_AdditionalLightData.areaIntensity.floatValue);
-
-            switch (m_LightShape)
-            {
-                case LightShape.Directional:
-                    settings.intensity.floatValue = m_AdditionalLightData.directionalIntensity.floatValue;
-                    break;
-
-                case LightShape.Point:
-                    settings.intensity.floatValue = LightUtils.ConvertPointLightIntensity(m_AdditionalLightData.punctualIntensity.floatValue);
-                    break;
-
-                case LightShape.Spot:
-                    // Spot should used conversion which take into account the angle, and thus the intensity vary with angle.
-                    // This is not easy to manipulate for lighter, so we simply consider any spot light as just occluded point light. So reuse the same code.
-
-                    var spotLightShape = (SpotLightShape)m_AdditionalLightData.spotLightShape.enumValueIndex;
-
-                    if (m_AdditionalLightData.enableSpotReflector.boolValue)
-                    {
-                        if (spotLightShape == SpotLightShape.Cone)
-                        {
-                            settings.intensity.floatValue = LightUtils.ConvertSpotLightIntensity(m_AdditionalLightData.punctualIntensity.floatValue, settings.spotAngle.floatValue * Mathf.Deg2Rad, true);
-                        }
-                        else if (spotLightShape == SpotLightShape.Pyramid)
-                        {
-                            float angleA, angleB;
-                            LightUtils.CalculateAnglesForPyramid(m_AdditionalLightData.aspectRatio.floatValue, settings.spotAngle.floatValue,
-                                out angleA, out angleB);
-
-                            settings.intensity.floatValue = LightUtils.ConvertFrustrumLightIntensity(m_AdditionalLightData.punctualIntensity.floatValue, angleA, angleB);
-                        }
-                        else // Box shape, fallback to punctual light.
-                        {
-                            settings.intensity.floatValue = LightUtils.ConvertPointLightIntensity(m_AdditionalLightData.punctualIntensity.floatValue);
-                        }
-                    }
-                    else // Reflector disabled, fallback to punctual light.
-                    {
-                        settings.intensity.floatValue = LightUtils.ConvertPointLightIntensity(m_AdditionalLightData.punctualIntensity.floatValue);
-                    }
-                    break;
-
-                case LightShape.Rectangle:
-                    settings.intensity.floatValue = LightUtils.ConvertRectLightIntensity(m_AdditionalLightData.areaIntensity.floatValue, m_AdditionalLightData.shapeWidth.floatValue, m_AdditionalLightData.shapeHeight.floatValue);
-                    break;
-
-                case LightShape.Line:
-                    settings.intensity.floatValue = LightUtils.CalculateLineLightIntensity(m_AdditionalLightData.areaIntensity.floatValue, m_AdditionalLightData.shapeWidth.floatValue);
-                    break;
-            }*/
+            if (m_LightShape == LightShape.Directional)
+                m_AdditionalLightData.lightUnit.enumValueIndex = (int)DirectionalLightUnit.Lux;
+            else
+                m_AdditionalLightData.lightUnit.enumValueIndex = (int)LightUnit.Lumen;
         }
 
         LightUnit LightIntensityUnitPopup(LightShape shape)
@@ -441,16 +379,36 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         void ConvertLightIntensity(LightUnit oldLightUnit, LightUnit newLightUnit)
         {
+            float intensity = m_AdditionalLightData.intensity.floatValue;
 
+            // For punctual lights
+            if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Candela)
+                intensity = LightUtils.ConvertPointLightLumenToCandela(intensity);
+            if (oldLightUnit == LightUnit.Candela && newLightUnit == LightUnit.Lumen)
+                intensity = LightUtils.ConvertPointLightCandelaToLumen(intensity);
+            
+            // For area lights
+            if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Luminance)
+            {
+                if (m_LightShape == LightShape.Rectangle)
+                    intensity = LightUtils.ConvertRectLightLumenToLuminance(intensity, m_AdditionalLightData.shapeWidth.floatValue, m_AdditionalLightData.shapeHeight.floatValue);
+                else if (m_LightShape == LightShape.Line)
+                    intensity = LightUtils.CalculateLineLightLumenToLuminance(intensity, m_AdditionalLightData.shapeWidth.floatValue);
+            }
+            if (oldLightUnit == LightUnit.Luminance && newLightUnit == LightUnit.Lumen)
+            {
+                if (m_LightShape == LightShape.Rectangle)
+                    intensity = LightUtils.ConvertRectLightLuminanceToLumen(intensity, m_AdditionalLightData.shapeWidth.floatValue, m_AdditionalLightData.shapeHeight.floatValue);
+                else if (m_LightShape == LightShape.Line)
+                    intensity = LightUtils.CalculateLineLightLuminanceToLumen(intensity, m_AdditionalLightData.shapeWidth.floatValue);
+            }
+
+            m_AdditionalLightData.intensity.floatValue = intensity;
         }
 
         void DrawLightSettings()
         {
             settings.DrawColor();
-
-            EditorGUI.BeginChangeCheck();
-
-            HDAdditionalLightData d = (target as Light).GetComponent<HDAdditionalLightData>();
 
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PropertyField(m_AdditionalLightData.intensity, s_Styles.lightIntensity);
@@ -463,11 +421,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 var spotLightShape = (SpotLightShape)m_AdditionalLightData.spotLightShape.enumValueIndex;
                 if (spotLightShape == SpotLightShape.Cone || spotLightShape == SpotLightShape.Pyramid)
                     EditorGUILayout.PropertyField(m_AdditionalLightData.enableSpotReflector, s_Styles.enableSpotReflector);
-            }
-
-            if (EditorGUI.EndChangeCheck())
-            {
-                UpdateLightIntensity();
             }
 
             settings.DrawBounceIntensity();
