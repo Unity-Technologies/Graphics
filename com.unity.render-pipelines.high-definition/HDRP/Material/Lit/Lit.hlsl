@@ -1851,7 +1851,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     else
 #endif
     {
-        if ((lightData.envIndex & 1) == ENVCACHETYPE_CUBEMAP)
+        if (!IsEnvIndexTexture2D(lightData.envIndex)) // ENVCACHETYPE_CUBEMAP
         {
             R = GetSpecularDominantDir(bsdfData.normalWS, R, preLightData.iblPerceptualRoughness, ClampNdotV(preLightData.NdotV));
             // When we are rough, we tend to see outward shifting of the reflection when at the boundary of the projection volume
