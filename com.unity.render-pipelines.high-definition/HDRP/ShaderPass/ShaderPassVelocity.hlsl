@@ -86,6 +86,7 @@ float3 TransformPreviousObjectToWorldNormal(float3 normalOS)
 #endif
 }
 
+// Transforms local position to camera relative world space
 float3 TransformPreviousObjectToWorld(float3 positionOS)
 {
     float4x4 previousModelMatrix = ApplyCameraTranslationToMatrix(unity_MatrixPreviousM);
@@ -114,7 +115,7 @@ PackedVaryingsType Vert(AttributesMesh inputMesh,
     // It is not possible to correctly generate the motion vector for tesselated geometry as tessellation parameters can change
     // from one frame to another (adaptative, lod) + in Unity we only receive information for one non tesselated vertex.
     // So motion vetor will be based on interpolate previous position at vertex level instead.
-    varyingsType.vpass.positionCS = mul(_NonJitteredViewProjMatrix, float4(varyingsType.vmesh.positionWS, 1.0));
+    varyingsType.vpass.positionCS = mul(_NonJitteredViewProjMatrix, float4(varyingsType.vmesh.positionRWS, 1.0));
 
     // Note: unity_MotionVectorsParams.y is 0 is forceNoMotion is enabled
     bool forceNoMotion = unity_MotionVectorsParams.y == 0.0;
@@ -132,9 +133,9 @@ PackedVaryingsType Vert(AttributesMesh inputMesh,
         if (hasDeformation)
             previousMesh.positionOS = inputPass.previousPositionOS;
         previousMesh = ApplyMeshModification(previousMesh);
-        float3 previousPositionWS = TransformPreviousObjectToWorld(previousMesh.positionOS);
+        float3 previousPositionRWS = TransformPreviousObjectToWorld(previousMesh.positionOS);
 #else
-        float3 previousPositionWS = TransformPreviousObjectToWorld(hasDeformation ? inputPass.previousPositionOS : inputMesh.positionOS);
+        float3 previousPositionRWS = TransformPreviousObjectToWorld(hasDeformation ? inputPass.previousPositionOS : inputMesh.positionOS);
 #endif
 
 #ifdef ATTRIBUTES_NEED_NORMAL
@@ -144,10 +145,10 @@ PackedVaryingsType Vert(AttributesMesh inputMesh,
 #endif
 
  #if defined(HAVE_VERTEX_MODIFICATION)
-        ApplyVertexModification(inputMesh, normalWS, previousPositionWS, _LastTime);
+        ApplyVertexModification(inputMesh, normalWS, previousPositionRWS, _LastTime);
 #endif
 
-        varyingsType.vpass.previousPositionCS = mul(_PrevViewProjMatrix, float4(previousPositionWS, 1.0));
+        varyingsType.vpass.previousPositionCS = mul(_PrevViewProjMatrix, float4(previousPositionRWS, 1.0));
     }
 
     return PackVaryingsType(varyingsType);
@@ -183,10 +184,10 @@ void Frag(  PackedVaryingsToPS packedInput,
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
 
     // input.positionSS is SV_Position
-    PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionWS);
+    PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS);
 
 #ifdef VARYINGS_NEED_POSITION_WS
-    float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
+    float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);
 #else
     float3 V = 0; // Avoid the division by 0
 #endif

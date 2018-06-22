@@ -105,7 +105,7 @@ VaryingsMeshType VertMesh(AttributesMesh input)
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
     // This return the camera relative position (if enable)
-    float3 positionWS = TransformObjectToWorld(input.positionOS);
+    float3 positionRWS = TransformObjectToWorld(input.positionOS);
 #ifdef ATTRIBUTES_NEED_NORMAL
     float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
 #else
@@ -118,20 +118,20 @@ VaryingsMeshType VertMesh(AttributesMesh input)
 
      // Do vertex modification in camera relative space (if enable)
 #if defined(HAVE_VERTEX_MODIFICATION)
-    ApplyVertexModification(input, normalWS, positionWS, _Time);
+    ApplyVertexModification(input, normalWS, positionRWS, _Time);
 #endif
 
 #ifdef TESSELLATION_ON
-    output.positionWS = positionWS;
+    output.positionRWS = positionRWS;
     output.normalWS = normalWS;
     #if defined(VARYINGS_NEED_TANGENT_TO_WORLD) || defined(VARYINGS_DS_NEED_TANGENT)
     output.tangentWS = tangentWS;
     #endif
 #else
     #ifdef VARYINGS_NEED_POSITION_WS
-    output.positionWS = positionWS;
+    output.positionRWS = positionRWS;
     #endif
-    output.positionCS = TransformWorldToHClip(positionWS);
+    output.positionCS = TransformWorldToHClip(positionRWS);
     #ifdef VARYINGS_NEED_TANGENT_TO_WORLD
     output.normalWS = normalWS;
     output.tangentWS = tangentWS;
@@ -166,10 +166,10 @@ VaryingsMeshToPS VertMeshTesselation(VaryingsMeshToDS input)
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output);
 
-    output.positionCS = TransformWorldToHClip(input.positionWS);
+    output.positionCS = TransformWorldToHClip(input.positionRWS);
 
 #ifdef VARYINGS_NEED_POSITION_WS
-    output.positionWS = input.positionWS;
+    output.positionRWS = input.positionRWS;
 #endif
 
 #ifdef VARYINGS_NEED_TANGENT_TO_WORLD

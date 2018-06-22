@@ -1,10 +1,10 @@
 // Note: positionWS can be either in camera relative space or not
-float3 GetVertexDisplacement(float3 positionWS, float3 normalWS, float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3, float4 vertexColor)
+float3 GetVertexDisplacement(float3 positionRWS, float3 normalWS, float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3, float4 vertexColor)
 {
     // This call will work for both LayeredLit and Lit shader
     LayerTexCoord layerTexCoord;
     ZERO_INITIALIZE(LayerTexCoord, layerTexCoord);
-    GetLayerTexCoord(texCoord0, texCoord1, texCoord2, texCoord3, positionWS, normalWS, layerTexCoord);
+    GetLayerTexCoord(texCoord0, texCoord1, texCoord2, texCoord3, positionRWS, normalWS, layerTexCoord);
 
     // TODO: do this algorithm for lod fetching as lod not available in vertex/domain shader
     // http://www.sebastiansylvan.com/post/the-problem-with-tessellation-in-directx-11/
@@ -13,11 +13,11 @@ float3 GetVertexDisplacement(float3 positionWS, float3 normalWS, float2 texCoord
 }
 
 // Note: positionWS can be either in camera relative space or not
-void ApplyVertexModification(AttributesMesh input, float3 normalWS, inout float3 positionWS, float4 time)
+void ApplyVertexModification(AttributesMesh input, float3 normalWS, inout float3 positionRWS, float4 time)
 {
 #if defined(_VERTEX_DISPLACEMENT)
 
-    positionWS += GetVertexDisplacement(positionWS, normalWS,
+    positionRWS += GetVertexDisplacement(positionRWS, normalWS,
     #ifdef ATTRIBUTES_NEED_TEXCOORD0
         input.uv0,
     #else
@@ -49,9 +49,9 @@ void ApplyVertexModification(AttributesMesh input, float3 normalWS, inout float3
 #ifdef _VERTEX_WIND
     // current wind implementation is in absolute world space
     float3 rootWP = GetObjectAbsolutePositionWS();
-    float3 absolutePositionWS = GetAbsolutePositionWS(positionWS);
+    float3 absolutePositionWS = GetAbsolutePositionWS(positionRWS);
     ApplyWindDisplacement(absolutePositionWS, normalWS, rootWP, _Stiffness, _Drag, _ShiverDrag, _ShiverDirectionality, _InitialBend, input.color.a, time);
-    positionWS = GetCameraRelativePositionWS(absolutePositionWS);
+    positionRWS = GetCameraRelativePositionWS(absolutePositionWS);
 #endif
 }
 
@@ -136,11 +136,11 @@ float4 GetTessellationFactors(float3 p0, float3 p1, float3 p2, float3 n0, float3
 // y - 2->0 edge
 // z - 0->1 edge
 // w - inside tessellation factor
-void ApplyTessellationModification(VaryingsMeshToDS input, float3 normalWS, inout float3 positionWS)
+void ApplyTessellationModification(VaryingsMeshToDS input, float3 normalWS, inout float3 positionRWS)
 {
 #if defined(_TESSELLATION_DISPLACEMENT)
 
-    positionWS += GetVertexDisplacement(positionWS, normalWS,
+    positionRWS += GetVertexDisplacement(positionRWS, normalWS,
     #ifdef VARYINGS_DS_NEED_TEXCOORD0
         input.texCoord0,
     #else
