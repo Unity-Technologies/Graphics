@@ -207,7 +207,7 @@ float3 IntegrateSpecularGGXIBLRef(LightLoopContext lightLoopContext,
 {
     float3x3 localToWorld;
 
-    if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
     {
         localToWorld = float3x3(bsdfData.tangentWS, bsdfData.bitangentWS, bsdfData.normalWS);
     }
@@ -234,7 +234,7 @@ float3 IntegrateSpecularGGXIBLRef(LightLoopContext lightLoopContext,
         float weightOverPdf;
 
         // GGX BRDF
-        if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
+        if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_ANISOTROPY))
         {
             ImportanceSampleAnisoGGX(u, V, localToWorld, bsdfData.roughnessT, bsdfData.roughnessB, NdotV, L, VdotH, NdotL, weightOverPdf);
         }

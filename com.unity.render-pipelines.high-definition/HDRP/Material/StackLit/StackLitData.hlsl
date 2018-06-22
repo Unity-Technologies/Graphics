@@ -189,7 +189,7 @@ float4 SampleTexture2DTriplanarNormalScaleBias(TEXTURE2D_ARGS(textureName, sampl
 }
 
 #define SAMPLE_TEXTURE2D_SCALE_BIAS(name) SampleTexture2DTriplanarScaleBias(name, sampler##name, name##UV, name##UVLocal, name##_ST, uvMapping)
-#define SAMPLE_TEXTURE2D_NORMAL_SCALE_BIAS(name, scale) SampleTexture2DTriplanarNormalScaleBias(name, sampler##name, name##UV, name##UVLocal, name##_ST, name##ObjSpace, uvMapping, scale)
+#define SAMPLE_TEXTURE2D_NORMAL_SCALE_BIAS(name, scale, objSpace) SampleTexture2DTriplanarNormalScaleBias(name, sampler##name, name##UV, name##UVLocal, name##_ST, objSpace, uvMapping, scale)
 
 //-----------------------------------------------------------------------------
 // GetSurfaceAndBuiltinData
@@ -224,21 +224,21 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Standard
     surfaceData.baseColor = SAMPLE_TEXTURE2D_SCALE_BIAS(_BaseColorMap).rgb * _BaseColor.rgb;
 
-    float4 gradient = SAMPLE_TEXTURE2D_NORMAL_SCALE_BIAS(_NormalMap, _NormalScale);
+    float4 gradient = SAMPLE_TEXTURE2D_NORMAL_SCALE_BIAS(_NormalMap, _NormalScale, _NormalMapObjSpace);
     //TODO: bentNormalTS
 
     surfaceData.perceptualSmoothnessA = dot(SAMPLE_TEXTURE2D_SCALE_BIAS(_SmoothnessAMap), _SmoothnessAMapChannelMask);
-    surfaceData.perceptualSmoothnessA = lerp(_SmoothnessARange.x, _SmoothnessARange.y, surfaceData.perceptualSmoothnessA);
+    surfaceData.perceptualSmoothnessA = lerp(_SmoothnessAMapRange.x, _SmoothnessAMapRange.y, surfaceData.perceptualSmoothnessA);
     surfaceData.perceptualSmoothnessA = lerp(_SmoothnessA, surfaceData.perceptualSmoothnessA, _SmoothnessAUseMap);
 
     surfaceData.metallic = dot(SAMPLE_TEXTURE2D_SCALE_BIAS(_MetallicMap), _MetallicMapChannelMask);
-    surfaceData.metallic = lerp(_MetallicRange.x, _MetallicRange.y, surfaceData.metallic);
+    surfaceData.metallic = lerp(_MetallicMapRange.x, _MetallicMapRange.y, surfaceData.metallic);
     surfaceData.metallic = lerp(_Metallic, surfaceData.metallic, _MetallicUseMap);
 
     surfaceData.dielectricIor = _DielectricIor;
 
     surfaceData.ambientOcclusion = dot(SAMPLE_TEXTURE2D_SCALE_BIAS(_AmbientOcclusionMap), _AmbientOcclusionMapChannelMask);
-    surfaceData.ambientOcclusion = lerp(_AmbientOcclusionRange.x, _AmbientOcclusionRange.y, surfaceData.ambientOcclusion);
+    surfaceData.ambientOcclusion = lerp(_AmbientOcclusionMapRange.x, _AmbientOcclusionMapRange.y, surfaceData.ambientOcclusion);
     surfaceData.ambientOcclusion = lerp(_AmbientOcclusion, surfaceData.ambientOcclusion, _AmbientOcclusionUseMap);
 
     // These static material feature allow compile time optimization
@@ -249,7 +249,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_STACK_LIT_DUAL_SPECULAR_LOBE;
     surfaceData.lobeMix = _LobeMix;
     surfaceData.perceptualSmoothnessB = dot(SAMPLE_TEXTURE2D_SCALE_BIAS(_SmoothnessBMap), _SmoothnessBMapChannelMask);
-    surfaceData.perceptualSmoothnessB = lerp(_SmoothnessBRange.x, _SmoothnessBRange.y, surfaceData.perceptualSmoothnessB);
+    surfaceData.perceptualSmoothnessB = lerp(_SmoothnessBMapRange.x, _SmoothnessBMapRange.y, surfaceData.perceptualSmoothnessB);
     surfaceData.perceptualSmoothnessB = lerp(_SmoothnessB, surfaceData.perceptualSmoothnessB, _SmoothnessBUseMap);
 #else
     surfaceData.lobeMix = 0.0;
@@ -260,7 +260,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_STACK_LIT_ANISOTROPY;
     // TODO: manage anistropy map
     //surfaceData.anisotropy = dot(SAMPLE_TEXTURE2D_SCALE_BIAS(_AnistropyMap), _AnistropyMapChannelMask);
-    //surfaceData.anisotropy = lerp(_AnistropyRange.x, _AnistropyRange.y, surfaceData.anisotropy);
+    //surfaceData.anisotropy = lerp(_AnistropyMapRange.x, _AnistropyMapRange.y, surfaceData.anisotropy);
     surfaceData.anisotropy = _Anisotropy; // In all cases we must multiply anisotropy with the map
 #else
     surfaceData.anisotropy = 0.0;
@@ -271,7 +271,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #ifdef _MATERIAL_FEATURE_COAT
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_STACK_LIT_COAT;
     surfaceData.coatPerceptualSmoothness = dot(SAMPLE_TEXTURE2D_SCALE_BIAS(_CoatSmoothnessMap), _CoatSmoothnessMapChannelMask);
-    surfaceData.coatPerceptualSmoothness = lerp(_CoatSmoothnessRange.x, _CoatSmoothnessRange.y, surfaceData.coatPerceptualSmoothness);
+    surfaceData.coatPerceptualSmoothness = lerp(_CoatSmoothnessMapRange.x, _CoatSmoothnessMapRange.y, surfaceData.coatPerceptualSmoothness);
     surfaceData.coatPerceptualSmoothness = lerp(_CoatSmoothness, surfaceData.coatPerceptualSmoothness, _CoatSmoothnessUseMap);
     surfaceData.coatIor = _CoatIor;
     surfaceData.coatThickness = _CoatThickness;
@@ -279,7 +279,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
 #ifdef _MATERIAL_FEATURE_COAT_NORMALMAP
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_STACK_LIT_COAT_NORMAL_MAP;
-    coatGradient = SAMPLE_TEXTURE2D_NORMAL_SCALE_BIAS(_CoatNormalMap, _CoatNormalScale);
+    coatGradient = SAMPLE_TEXTURE2D_NORMAL_SCALE_BIAS(_CoatNormalMap, _CoatNormalScale, _CoatNormalMapObjSpace);
 #endif
 
 #else
@@ -293,11 +293,16 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_STACK_LIT_IRIDESCENCE;
     surfaceData.iridescenceIor = _IridescenceIor;
     surfaceData.iridescenceThickness = dot(SAMPLE_TEXTURE2D_SCALE_BIAS(_IridescenceThicknessMap), _IridescenceThicknessMapChannelMask);
-    surfaceData.iridescenceThickness = lerp(_IridescenceThicknessRange.x, _IridescenceThicknessRange.y, surfaceData.iridescenceThickness);
+    surfaceData.iridescenceThickness = lerp(_IridescenceThicknessMapRange.x, _IridescenceThicknessMapRange.y, surfaceData.iridescenceThickness);
     surfaceData.iridescenceThickness = lerp(_IridescenceThickness, surfaceData.iridescenceThickness, _IridescenceThicknessUseMap);
+    surfaceData.iridescenceMask = dot(SAMPLE_TEXTURE2D_SCALE_BIAS(_IridescenceMaskMap), _IridescenceMaskMapChannelMask);
+    surfaceData.iridescenceMask = lerp(_IridescenceMaskMapRange.x, _IridescenceMaskMapRange.y, surfaceData.iridescenceMask);
+    surfaceData.iridescenceMask = lerp(_IridescenceMask, surfaceData.iridescenceMask, _IridescenceMaskUseMap);
+
 #else
     surfaceData.iridescenceIor = 1.0;
     surfaceData.iridescenceThickness = 0.0;
+    surfaceData.iridescenceMask = 0.0;
 #endif
 
 #if defined(_MATERIAL_FEATURE_SUBSURFACE_SCATTERING) || defined(_MATERIAL_FEATURE_TRANSMISSION)
@@ -309,7 +314,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_STACK_LIT_SUBSURFACE_SCATTERING;
     surfaceData.subsurfaceMask = dot(SAMPLE_TEXTURE2D_SCALE_BIAS(_SubsurfaceMaskMap), _SubsurfaceMaskMapChannelMask);
-    surfaceData.subsurfaceMask = lerp(_SubsurfaceMaskRange.x, _SubsurfaceMaskRange.y, surfaceData.subsurfaceMask);
+    surfaceData.subsurfaceMask = lerp(_SubsurfaceMaskMapRange.x, _SubsurfaceMaskMapRange.y, surfaceData.subsurfaceMask);
     surfaceData.subsurfaceMask = lerp(_SubsurfaceMask, surfaceData.subsurfaceMask, _SubsurfaceMaskUseMap);
 #else
     surfaceData.subsurfaceMask = 0.0;
@@ -318,12 +323,38 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #ifdef _MATERIAL_FEATURE_TRANSMISSION
     surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION;
     surfaceData.thickness = dot(SAMPLE_TEXTURE2D_SCALE_BIAS(_ThicknessMap), _ThicknessMapChannelMask);
-    surfaceData.thickness = lerp(_ThicknessRange.x, _ThicknessRange.y, surfaceData.thickness);
+    surfaceData.thickness = lerp(_ThicknessMapRange.x, _ThicknessMapRange.y, surfaceData.thickness);
     surfaceData.thickness = lerp(_Thickness, surfaceData.thickness, _ThicknessUseMap);
 #else
     surfaceData.thickness = 1.0;
 #endif
 
+#ifdef _USE_DETAILMAP
+    float detailMask = dot(SAMPLE_TEXTURE2D_SCALE_BIAS(_DetailMaskMap), _DetailMaskMapChannelMask);
+
+    float4 detailGradient = SAMPLE_TEXTURE2D_NORMAL_SCALE_BIAS(_DetailNormalMap, _DetailNormalScale, 0.0);
+    gradient += detailGradient * detailMask;
+    gradient.w *= 0.5; // Take mean of average normal length
+
+    float detailPerceptualSmoothness = dot(SAMPLE_TEXTURE2D_SCALE_BIAS(_DetailSmoothnessMap), _DetailSmoothnessMapChannelMask);
+    detailPerceptualSmoothness = lerp(_DetailSmoothnessMapRange.x, _DetailSmoothnessMapRange.y, detailPerceptualSmoothness);
+
+    // Use overlay blend mode for detail abledo: (base < 0.5 ? (2.0 * base * blend) : (1.0 - 2.0 * (1.0 - base) * (1.0 - blend)))
+    float smoothnessOverlay = (detailPerceptualSmoothness < 0.5) ?
+                                surfaceData.perceptualSmoothnessA * PositivePow(2.0 * detailPerceptualSmoothness, _DetailSmoothnessScale) :
+                                1.0 - (1.0 - surfaceData.perceptualSmoothnessA) * PositivePow(2.0 * (1.0 - detailPerceptualSmoothness), _DetailSmoothnessScale);
+    // Lerp with details mask
+    surfaceData.perceptualSmoothnessA = lerp(surfaceData.perceptualSmoothnessA, saturate(smoothnessOverlay), detailMask);
+
+    #ifdef _MATERIAL_FEATURE_DUAL_SPECULAR_LOBE
+   // Use overlay blend mode for detail abledo: (base < 0.5 ? (2.0 * base * blend) : (1.0 - 2.0 * (1.0 - base) * (1.0 - blend)))
+    smoothnessOverlay = (detailPerceptualSmoothness < 0.5) ?
+                                surfaceData.perceptualSmoothnessB * PositivePow(2.0 * detailPerceptualSmoothness, _DetailSmoothnessScale) :
+                                1.0 - (1.0 - surfaceData.perceptualSmoothnessB) * PositivePow(2.0 * (1.0 - detailPerceptualSmoothness), _DetailSmoothnessScale);
+    // Lerp with details mask
+    surfaceData.perceptualSmoothnessB = lerp(surfaceData.perceptualSmoothnessB, saturate(smoothnessOverlay), detailMask);
+    #endif
+#endif
     // -------------------------------------------------------------
     // Surface Data Part 2 (outsite GetSurfaceData( ) in Lit shader):
     // -------------------------------------------------------------
@@ -332,6 +363,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Convert back to world space normal
     surfaceData.normalWS = SurfaceGradientResolveNormal(input.worldToTangent[2], gradient.xyz);
     surfaceData.coatNormalWS = SurfaceGradientResolveNormal(input.worldToTangent[2], coatGradient.xyz);
+
+    surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 
     if ((_GeometricNormalFilteringEnabled + _TextureNormalFilteringEnabled) > 0.0)
     {
@@ -376,7 +409,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // It is safe to call this function here as surfaceData have been filled
     // We want to know if we must enable transmission on GI for SSS material, if the material have no SSS, this code will be remove by the compiler.
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(input.positionSS.xy, surfaceData);
-    if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION))
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_TRANSMISSION))
     {
         // For now simply recall the function with inverted normal, the compiler should be able to optimize the lightmap case to not resample the directional lightmap
         // however it will not optimize the lightprobe case due to the proxy volume relying on dynamic if (we rely must get right of this dynamic if), not a problem for SH9, but a problem for proxy volume.
