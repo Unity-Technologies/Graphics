@@ -87,7 +87,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool featuresFoldout = true;
         public bool showAdditionalSettings = false;
 
-        public bool showEmissiveMesh = false;
+        // When true, a mesh will be display to represent the area light (Can only be change in editor, component is added in Editor)
+        public bool displayAreaLightEmissiveMesh = false;
 
 #if UNITY_EDITOR
 
