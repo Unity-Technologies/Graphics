@@ -22,11 +22,8 @@ void Frag(  PackedVaryingsToPS packedInput,
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
 	float depth = LOAD_TEXTURE2D(_CameraDepthTexture, input.positionSS.xy).x;
 	PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
-    // Transform from world space to decal space (DS) to clip the decal.
-    // For this we must use absolute position.
-    // There is no lose of precision here as it doesn't involve the camera matrix
-    float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
-    float3 positionDS = TransformWorldToObject(positionWS);
+    // Transform from relative world space to decal space (DS) to clip the decal
+    float3 positionDS = TransformWorldToObject(posInput.positionWS);
     positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.0f, 0.5);
     clip(positionDS);       // clip negative value
     clip(1.0 - positionDS); // Clip value above one
