@@ -57,7 +57,17 @@ namespace UnityEditor.ShaderGraph.Drawing
             set { m_PreviewManager = value; }
         }
 
-        public GraphEditorView(EditorWindow editorWindow, AbstractMaterialGraph graph, string assetName)
+        public string assetName
+        {
+            get { return m_BlackboardProvider.assetName; }
+            set
+            {
+                m_BlackboardProvider.assetName = value;
+                m_MasterPreviewView.assetName = value;
+            }
+        }
+
+        public GraphEditorView(EditorWindow editorWindow, AbstractMaterialGraph graph)
         {
             m_Graph = graph;
             AddStyleSheetPath("Styles/GraphEditorView");
@@ -94,7 +104,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var content = new VisualElement { name = "content" };
             {
-                graph.name = assetName;
                 m_GraphView = new MaterialGraphView(graph) { name = "GraphView", persistenceKey = "MaterialGraphView" };
                 m_GraphView.SetupZoom(0.05f, ContentZoomer.DefaultMaxScale);
                 m_GraphView.AddManipulator(new ContentDragger());
@@ -104,14 +113,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.RegisterCallback<KeyDownEvent>(OnSpaceDown);
                 content.Add(m_GraphView);
 
-                m_BlackboardProvider = new BlackboardProvider(assetName, graph);
+                m_BlackboardProvider = new BlackboardProvider(graph);
                 m_GraphView.Add(m_BlackboardProvider.blackboard);
                 Rect blackboardLayout = m_BlackboardProvider.blackboard.layout;
                 blackboardLayout.x = 10f;
                 blackboardLayout.y = 10f;
                 m_BlackboardProvider.blackboard.layout = blackboardLayout;
 
-                m_MasterPreviewView = new MasterPreviewView(assetName, previewManager, graph) { name = "masterPreview" };
+                m_MasterPreviewView = new MasterPreviewView(previewManager, graph) { name = "masterPreview" };
 
                 WindowDraggable masterPreviewViewDraggable = new WindowDraggable(null, this);
                 m_MasterPreviewView.AddManipulator(masterPreviewViewDraggable);
