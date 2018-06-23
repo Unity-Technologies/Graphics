@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Assertions;
 using UnityEngine.Experimental.Rendering;
@@ -44,6 +45,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty maxSmoothness;
             public SerializedProperty applyRangeAttenuation;
             public SerializedProperty volumetricDimmer;
+            public SerializedProperty displayAreaLightEmissiveMesh;
 
             // Editor stuff
             public SerializedProperty useOldInspector;
@@ -95,15 +97,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // Used for UI only; the processing code must use LightTypeExtent and LightType
         LightShape m_LightShape;
 
+        HDAdditionalLightData[]     m_AdditionalLightDatas;
+        AdditionalShadowData[]      m_AdditionalShadowDatas;
+
+        // Used to detect if the scale have been changed via the transform component
+        Vector3 m_OldAreaLightSize;
+        bool m_UpdateAreaLightEmissiveMesh;
+
         protected override void OnEnable()
         {
             base.OnEnable();
 
             // Get & automatically add additional HD data if not present
-            var lightData = CoreEditorUtils.GetAdditionalData<HDAdditionalLightData>(targets, HDAdditionalLightData.InitDefaultHDAdditionalLightData);
-            var shadowData = CoreEditorUtils.GetAdditionalData<AdditionalShadowData>(targets, HDAdditionalShadowData.InitDefaultHDAdditionalShadowData);
-            m_SerializedAdditionalLightData = new SerializedObject(lightData);
-            m_SerializedAdditionalShadowData = new SerializedObject(shadowData);
+            m_AdditionalLightDatas = CoreEditorUtils.GetAdditionalData<HDAdditionalLightData>(targets, HDAdditionalLightData.InitDefaultHDAdditionalLightData);
+            m_AdditionalShadowDatas = CoreEditorUtils.GetAdditionalData<AdditionalShadowData>(targets, HDAdditionalShadowData.InitDefaultHDAdditionalShadowData);
+            m_SerializedAdditionalLightData = new SerializedObject(m_AdditionalLightDatas);
+            m_SerializedAdditionalShadowData = new SerializedObject(m_AdditionalShadowDatas);
 
             using (var o = new PropertyFetcher<HDAdditionalLightData>(m_SerializedAdditionalLightData))
                 m_AdditionalLightData = new SerializedLightData
@@ -115,6 +124,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     spotInnerPercent = o.Find(x => x.m_InnerSpotPercent),
                     lightDimmer = o.Find(x => x.lightDimmer),
                     volumetricDimmer = o.Find(x => x.volumetricDimmer),
+                    displayAreaLightEmissiveMesh = o.Find(x => x.displayAreaLightEmissiveMesh),
                     fadeDistance = o.Find(x => x.fadeDistance),
                     affectDiffuse = o.Find(x => x.affectDiffuse),
                     affectSpecular = o.Find(x => x.affectSpecular),
@@ -199,9 +209,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreEditorUtils.DrawSplitter();
             EditorGUILayout.Space();
 
+            UpdateAreaLightEmissiveMeshSize();
+
             m_SerializedAdditionalShadowData.ApplyModifiedProperties();
             m_SerializedAdditionalLightData.ApplyModifiedProperties();
             settings.ApplyModifiedProperties();
+
+            if (m_UpdateAreaLightEmissiveMesh)
+                UpdateAreaLightEmissiveMesh();
         }
 
         void DrawFoldout(SerializedProperty foldoutProperty, string title, Action func)
@@ -326,8 +341,100 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (EditorGUI.EndChangeCheck())
             {
                 UpdateLightIntensity();
+                m_UpdateAreaLightEmissiveMesh = true;
                 ((Light)target).SetLightDirty(); // Should be apply only to parameter that's affect GI, but make the code cleaner
             }
+        }
+
+        bool IsAreaLightShape(LightShape shape)
+        {
+            return shape == LightShape.Rectangle || shape == LightShape.Line;
+        }
+
+        void UpdateAreaLightEmissiveMesh()
+        {
+            foreach (var lightData in m_AdditionalLightDatas)
+            {
+                GameObject    lightGameObject = lightData.gameObject;
+                MeshRenderer  emissiveMeshRenderer = lightData.GetComponent<MeshRenderer>();
+                MeshFilter    emissiveMeshFilter = lightData.GetComponent<MeshFilter>();
+                Light         light = lightGameObject.GetComponent<Light>();
+
+                bool displayAreaLightEmissiveMesh = IsAreaLightShape(m_LightShape) && m_LightShape != LightShape.Line && m_AdditionalLightData.displayAreaLightEmissiveMesh.boolValue;
+
+                // Ensure that the emissive mesh components are here
+                if (displayAreaLightEmissiveMesh)
+                {
+                    if (emissiveMeshRenderer == null)
+                        emissiveMeshRenderer = lightGameObject.AddComponent<MeshRenderer>();
+                    if (emissiveMeshFilter == null)
+                        emissiveMeshFilter = lightGameObject.AddComponent<MeshFilter>();
+                }
+                else // Or remove them if the option is disabled
+                {
+                    if (emissiveMeshRenderer != null)
+                        DestroyImmediate(emissiveMeshRenderer);
+                    if (emissiveMeshFilter != null)
+                        DestroyImmediate(emissiveMeshFilter);
+                    
+                    // Skip to the next light
+                    continue;
+                }
+
+                float areaLightIntensity = 0.0f;
+
+                // Update Mesh emissive value
+                switch (m_LightShape)
+                {
+                    case LightShape.Rectangle:
+                        emissiveMeshFilter.mesh = HDEditorUtils.LoadAsset< Mesh >("RenderPipelineResources/Quad.FBX");
+                        lightGameObject.transform.localScale = new Vector3(lightData.shapeWidth, lightData.shapeHeight, 0);
+                        // Do the same conversion as for light intensity
+                        areaLightIntensity = LightUtils.ConvertRectLightIntensity(
+                            m_AdditionalLightData.areaIntensity.floatValue,
+                            lightData.shapeWidth,
+                            lightData.shapeHeight);
+                        break;
+                    default:
+                        break;
+                }
+
+                if (emissiveMeshRenderer.sharedMaterial == null)
+                    emissiveMeshRenderer.material = new Material(Shader.Find("HDRenderPipeline/Unlit"));
+                
+                emissiveMeshRenderer.sharedMaterial.SetColor("_UnlitColor", Color.black);
+                // Note that we must use the light in linear RGB
+                emissiveMeshRenderer.sharedMaterial.SetColor("_EmissiveColor", light.color.linear * areaLightIntensity);
+            }
+        }
+
+        // This function updates the area light size when the local scale of the gameobject changes
+        void UpdateAreaLightEmissiveMeshSize()
+        {
+            // Early exit if the light type is not an area
+            if (!IsAreaLightShape(m_LightShape) || target == null || targets.Length > 1)
+                return ;
+            
+            Vector3 lightSize = ((Light)target).transform.localScale;
+            lightSize = Vector3.Max(Vector3.one * k_MinAreaWidth, lightSize);
+
+            if (lightSize == m_OldAreaLightSize)
+                return ;
+
+            switch (m_LightShape)
+            {
+                case LightShape.Rectangle:
+                    m_AdditionalLightData.shapeWidth.floatValue = lightSize.x;
+                    m_AdditionalLightData.shapeHeight.floatValue = lightSize.y;
+                    break;
+                default:
+                    break;
+            }
+
+            UpdateLightIntensity();
+            m_UpdateAreaLightEmissiveMesh = true;
+
+            m_OldAreaLightSize = lightSize;
         }
 
         // Caution: this function must match the one in HDAdditionalLightData.ConvertPhysicalLightIntensityToLightIntensity - any change need to be replicated
@@ -391,7 +498,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         void DrawLightSettings()
         {
+            EditorGUI.BeginChangeCheck();
             settings.DrawColor();
+            if (EditorGUI.EndChangeCheck())
+                m_UpdateAreaLightEmissiveMesh = true;
 
             EditorGUI.BeginChangeCheck();
 
@@ -423,6 +533,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (EditorGUI.EndChangeCheck())
             {
                 UpdateLightIntensity();
+                m_UpdateAreaLightEmissiveMesh = true;
             }
 
             settings.DrawBounceIntensity();
@@ -432,7 +543,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.BeginChangeCheck(); // For GI we need to detect any change on additional data and call SetLightDirty
 
             // No cookie with area light (maybe in future textured area light ?)
-            if (m_LightShape != LightShape.Rectangle && m_LightShape != LightShape.Line)
+            if (!IsAreaLightShape(m_LightShape))
             {
                 settings.DrawCookie();
 
@@ -459,6 +570,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.PropertyField(m_AdditionalLightData.volumetricDimmer, s_Styles.volumetricDimmer);
                 if (m_LightShape != LightShape.Directional)
                     EditorGUILayout.PropertyField(m_AdditionalLightData.applyRangeAttenuation, s_Styles.applyRangeAttenuation);
+
+                // Emissive mesh for area light only
+                if (IsAreaLightShape(m_LightShape))
+                {
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.PropertyField(m_AdditionalLightData.displayAreaLightEmissiveMesh, s_Styles.displayAreaLightEmissiveMesh);
+                    if (EditorGUI.EndChangeCheck())
+                        m_UpdateAreaLightEmissiveMesh = true;
+                }
+
                 EditorGUI.indentLevel--;
             }
 
