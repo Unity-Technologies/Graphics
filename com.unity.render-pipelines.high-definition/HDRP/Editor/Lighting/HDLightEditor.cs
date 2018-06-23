@@ -45,7 +45,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty maxSmoothness;
             public SerializedProperty applyRangeAttenuation;
             public SerializedProperty volumetricDimmer;
-            public SerializedProperty showEmissiveMesh;
+            public SerializedProperty displayAreaLightEmissiveMesh;
 
             // Editor stuff
             public SerializedProperty useOldInspector;
@@ -98,11 +98,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         LightShape m_LightShape;
 
         HDAdditionalLightData[]     m_AdditionalLightDatas;
-        AdditionalShadowData[]      m_AdditionalShaodowDatas;
+        AdditionalShadowData[]      m_AdditionalShadowDatas;
 
         // Used to detect if the scale have been changed via the transform component
-        Vector3 m_OldLightSize;
-        bool m_UpdateEmissiveMesh;
+        Vector3 m_OldAreaLightSize;
+        bool m_UpdateAreaLightEmissiveMesh;
 
         protected override void OnEnable()
         {
@@ -110,9 +110,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Get & automatically add additional HD data if not present
             m_AdditionalLightDatas = CoreEditorUtils.GetAdditionalData<HDAdditionalLightData>(targets, HDAdditionalLightData.InitDefaultHDAdditionalLightData);
-            m_AdditionalShaodowDatas = CoreEditorUtils.GetAdditionalData<AdditionalShadowData>(targets, HDAdditionalShadowData.InitDefaultHDAdditionalShadowData);
+            m_AdditionalShadowDatas = CoreEditorUtils.GetAdditionalData<AdditionalShadowData>(targets, HDAdditionalShadowData.InitDefaultHDAdditionalShadowData);
             m_SerializedAdditionalLightData = new SerializedObject(m_AdditionalLightDatas);
-            m_SerializedAdditionalShadowData = new SerializedObject(m_AdditionalShaodowDatas);
+            m_SerializedAdditionalShadowData = new SerializedObject(m_AdditionalShadowDatas);
 
             using (var o = new PropertyFetcher<HDAdditionalLightData>(m_SerializedAdditionalLightData))
                 m_AdditionalLightData = new SerializedLightData
@@ -124,7 +124,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     spotInnerPercent = o.Find(x => x.m_InnerSpotPercent),
                     lightDimmer = o.Find(x => x.lightDimmer),
                     volumetricDimmer = o.Find(x => x.volumetricDimmer),
-                    showEmissiveMesh = o.Find(x => x.showEmissiveMesh),
+                    displayAreaLightEmissiveMesh = o.Find(x => x.displayAreaLightEmissiveMesh),
                     fadeDistance = o.Find(x => x.fadeDistance),
                     affectDiffuse = o.Find(x => x.affectDiffuse),
                     affectSpecular = o.Find(x => x.affectSpecular),
@@ -209,14 +209,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreEditorUtils.DrawSplitter();
             EditorGUILayout.Space();
 
-            UpdateEmissiveMeshSize();
+            UpdateAreaLightEmissiveMeshSize();
 
             m_SerializedAdditionalShadowData.ApplyModifiedProperties();
             m_SerializedAdditionalLightData.ApplyModifiedProperties();
             settings.ApplyModifiedProperties();
 
-            if (m_UpdateEmissiveMesh)
-                UpdateEmissiveMesh();
+            if (m_UpdateAreaLightEmissiveMesh)
+                UpdateAreaLightEmissiveMesh();
         }
 
         void DrawFoldout(SerializedProperty foldoutProperty, string title, Action func)
@@ -341,7 +341,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (EditorGUI.EndChangeCheck())
             {
                 UpdateLightIntensity();
-                m_UpdateEmissiveMesh = true;
+                m_UpdateAreaLightEmissiveMesh = true;
                 ((Light)target).SetLightDirty(); // Should be apply only to parameter that's affect GI, but make the code cleaner
             }
         }
@@ -351,7 +351,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return shape == LightShape.Rectangle || shape == LightShape.Line;
         }
 
-        void UpdateEmissiveMesh()
+        void UpdateAreaLightEmissiveMesh()
         {
             foreach (var lightData in m_AdditionalLightDatas)
             {
@@ -360,10 +360,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 MeshFilter    emissiveMeshFilter = lightData.GetComponent<MeshFilter>();
                 Light         light = lightGameObject.GetComponent<Light>();
 
-                bool showEmissiveMesh = IsAreaLightShape(m_LightShape) && m_LightShape != LightShape.Line && m_AdditionalLightData.showEmissiveMesh.boolValue;
+                bool displayAreaLightEmissiveMesh = IsAreaLightShape(m_LightShape) && m_LightShape != LightShape.Line && m_AdditionalLightData.displayAreaLightEmissiveMesh.boolValue;
 
                 // Ensure that the emissive mesh components are here
-                if (showEmissiveMesh)
+                if (displayAreaLightEmissiveMesh)
                 {
                     if (emissiveMeshRenderer == null)
                         emissiveMeshRenderer = lightGameObject.AddComponent<MeshRenderer>();
@@ -381,7 +381,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     continue;
                 }
 
-                float areaLightIntensity = 0;
+                float areaLightIntensity = 0.0f;
 
                 // Update Mesh emissive value
                 switch (m_LightShape)
@@ -389,8 +389,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     case LightShape.Rectangle:
                         emissiveMeshFilter.mesh = HDEditorUtils.LoadAsset< Mesh >("RenderPipelineResources/Quad.FBX");
                         lightGameObject.transform.localScale = new Vector3(lightData.shapeWidth, lightData.shapeHeight, 0);
+                        // Do the same conversion as for light intensity
                         areaLightIntensity = LightUtils.ConvertRectLightIntensity(
-                            light.intensity,
+                            m_AdditionalLightData.areaIntensity.floatValue,
                             lightData.shapeWidth,
                             lightData.shapeHeight);
                         break;
@@ -402,12 +403,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     emissiveMeshRenderer.material = new Material(Shader.Find("HDRenderPipeline/Unlit"));
                 
                 emissiveMeshRenderer.sharedMaterial.SetColor("_UnlitColor", Color.black);
-                emissiveMeshRenderer.sharedMaterial.SetColor("_EmissiveColor", light.color * areaLightIntensity);
+                // Note that we must use the light in linear RGB
+                emissiveMeshRenderer.sharedMaterial.SetColor("_EmissiveColor", light.color.linear * areaLightIntensity);
             }
         }
 
         // This function updates the area light size when the local scale of the gameobject changes
-        void UpdateEmissiveMeshSize()
+        void UpdateAreaLightEmissiveMeshSize()
         {
             // Early exit if the light type is not an area
             if (!IsAreaLightShape(m_LightShape) || target == null || targets.Length > 1)
@@ -416,7 +418,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Vector3 lightSize = ((Light)target).transform.localScale;
             lightSize = Vector3.Max(Vector3.one * k_MinAreaWidth, lightSize);
 
-            if (lightSize == m_OldLightSize)
+            if (lightSize == m_OldAreaLightSize)
                 return ;
 
             switch (m_LightShape)
@@ -430,9 +432,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             UpdateLightIntensity();
-            m_UpdateEmissiveMesh = true;
+            m_UpdateAreaLightEmissiveMesh = true;
 
-            m_OldLightSize = lightSize;
+            m_OldAreaLightSize = lightSize;
         }
 
         // Caution: this function must match the one in HDAdditionalLightData.ConvertPhysicalLightIntensityToLightIntensity - any change need to be replicated
@@ -499,7 +501,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.BeginChangeCheck();
             settings.DrawColor();
             if (EditorGUI.EndChangeCheck())
-                m_UpdateEmissiveMesh = true;
+                m_UpdateAreaLightEmissiveMesh = true;
 
             EditorGUI.BeginChangeCheck();
 
@@ -531,7 +533,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (EditorGUI.EndChangeCheck())
             {
                 UpdateLightIntensity();
-                m_UpdateEmissiveMesh = true;
+                m_UpdateAreaLightEmissiveMesh = true;
             }
 
             settings.DrawBounceIntensity();
@@ -554,15 +556,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     EditorGUI.indentLevel--;
                 }
             }
-            
-            // Emissive mesh for area light only
-            if (IsAreaLightShape(m_LightShape))
-            {
-                EditorGUI.BeginChangeCheck();
-                EditorGUILayout.PropertyField(m_AdditionalLightData.showEmissiveMesh, s_Styles.showEmissiveMesh);
-                if (EditorGUI.EndChangeCheck())
-                    m_UpdateEmissiveMesh = true;
-            }
 
             if (m_AdditionalLightData.showAdditionalSettings.boolValue)
             {
@@ -577,6 +570,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.PropertyField(m_AdditionalLightData.volumetricDimmer, s_Styles.volumetricDimmer);
                 if (m_LightShape != LightShape.Directional)
                     EditorGUILayout.PropertyField(m_AdditionalLightData.applyRangeAttenuation, s_Styles.applyRangeAttenuation);
+
+                // Emissive mesh for area light only
+                if (IsAreaLightShape(m_LightShape))
+                {
+                    EditorGUI.BeginChangeCheck();
+                    EditorGUILayout.PropertyField(m_AdditionalLightData.displayAreaLightEmissiveMesh, s_Styles.displayAreaLightEmissiveMesh);
+                    if (EditorGUI.EndChangeCheck())
+                        m_UpdateAreaLightEmissiveMesh = true;
+                }
+
                 EditorGUI.indentLevel--;
             }
 
