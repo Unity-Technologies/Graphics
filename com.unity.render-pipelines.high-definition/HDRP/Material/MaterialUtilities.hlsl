@@ -1,3 +1,9 @@
+// Return camera relative probe volume world to object transformation
+float4x4 GetProbeVolumeWorldToObject()
+{
+    return ApplyCameraTranslationToInverseMatrix(unity_ProbeVolumeWorldToObject);
+}
+    
 // In unity we can have a mix of fully baked lightmap (static lightmap) + enlighten realtime lightmap (dynamic lightmap)
 // for each case we can have directional lightmap or not.
 // Else we have lightprobe for dynamic/moving entity. Either SH9 per object lightprobe or SH4 per pixel per object volume probe
@@ -24,8 +30,7 @@ float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightma
     }
     else
     {
-        // TODO: We use GetAbsolutePositionWS(positionRWS) to handle the camera relative case here but this should be part of the unity_ProbeVolumeWorldToObject matrix on C++ side (sadly we can't modify it for HDRenderPipeline...)
-        return SampleProbeVolumeSH4(TEXTURE3D_PARAM(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), GetAbsolutePositionWS(positionRWS), normalWS, unity_ProbeVolumeWorldToObject,
+        return SampleProbeVolumeSH4(TEXTURE3D_PARAM(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, GetProbeVolumeWorldToObject(),
                                     unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin, unity_ProbeVolumeSizeInv);
     }
 
@@ -79,8 +84,7 @@ float4 SampleShadowMask(float3 positionRWS, float2 uvStaticLightmap) // normalWS
     float4 rawOcclusionMask;
     if (unity_ProbeVolumeParams.x == 1.0)
     {
-        // TODO: We use GetAbsolutePositionWS(positionRWS) to handle the camera relative case here but this should be part of the unity_ProbeVolumeWorldToObject matrix on C++ side (sadly we can't modify it for HDRenderPipeline...)
-        rawOcclusionMask = SampleProbeOcclusion(TEXTURE3D_PARAM(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), GetAbsolutePositionWS(positionRWS), unity_ProbeVolumeWorldToObject,
+        rawOcclusionMask = SampleProbeOcclusion(TEXTURE3D_PARAM(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, GetProbeVolumeWorldToObject(),
                                                 unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin, unity_ProbeVolumeSizeInv);
     }
     else

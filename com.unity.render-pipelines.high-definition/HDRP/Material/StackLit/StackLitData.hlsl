@@ -32,7 +32,6 @@ struct TextureUVMapping
 
 void InitializeMappingData(FragInputs input, out TextureUVMapping uvMapping)
 {
-    float3 position = GetAbsolutePositionWS(input.positionRWS);
     float2 uvXZ;
     float2 uvXY;
     float2 uvZY;
@@ -44,14 +43,13 @@ void InitializeMappingData(FragInputs input, out TextureUVMapping uvMapping)
     uvMapping.texcoords[TEXCOORD_INDEX_UV3][0] = uvMapping.texcoords[TEXCOORD_INDEX_UV3][1] = input.texCoord3.xy;
 
     // planar/triplanar
-    GetTriplanarCoordinate(position, uvXZ, uvXY, uvZY);
+    GetTriplanarCoordinate(GetAbsolutePositionWS(input.positionRWS), uvXZ, uvXY, uvZY);
     uvMapping.texcoords[TEXCOORD_INDEX_PLANAR_XY][0] = uvXY;
     uvMapping.texcoords[TEXCOORD_INDEX_PLANAR_YZ][0] = uvZY;
     uvMapping.texcoords[TEXCOORD_INDEX_PLANAR_ZX][0] = uvXZ;
 
     // If we use local planar mapping, convert to local space
-    position = TransformWorldToObject(position);
-    GetTriplanarCoordinate(position, uvXZ, uvXY, uvZY);
+    GetTriplanarCoordinate(TransformWorldToObject(input.positionRWS), uvXZ, uvXY, uvZY);
     uvMapping.texcoords[TEXCOORD_INDEX_PLANAR_XY][1] = uvXY;
     uvMapping.texcoords[TEXCOORD_INDEX_PLANAR_YZ][1] = uvZY;
     uvMapping.texcoords[TEXCOORD_INDEX_PLANAR_ZX][1] = uvXZ;
