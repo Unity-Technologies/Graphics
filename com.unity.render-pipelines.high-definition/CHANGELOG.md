@@ -23,7 +23,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - Re-enable shadow mask mode in debug view
 - SSS and Transmission code have been refactored to be able to share it between various material. Guidelines are in SubsurfaceScattering.hlsl
-- Change code in area light with LTC for Lit shader. Magnitude is now take from FGD texture instead of a separate texture.
+- Change code in area light with LTC for Lit shader. Magnitude is now take from FGD texture instead of a separate texture
+- Improve camera relative rendering: We now apply camera translation on the model matrix, so before the TransformObjectToWorld(). Note: unity_WorldToObject and unity_ObjectToWorld must never be used directly.
+- Rename positionWS to positionRWS (Camera relative world position) at a lot of places (mainly in interpolator and FragInputs). In case of custom shader user will be required to update their code. 
 
 ### Fixed
 - Fix contact shadows applied on transmission
