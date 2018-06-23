@@ -117,9 +117,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             scInit.resourceBinder                    = binder;
 
             ShadowManager.ShadowBudgets budgets;
-            budgets.maxPointLights       = 6;
-            budgets.maxSpotLights        = 12;
-            budgets.maxDirectionalLights = 1;
+            budgets.maxPointLights       = shadowInit.maxPointLightShadows;
+            budgets.maxSpotLights        = shadowInit.maxSpotLightShadows;
+            budgets.maxDirectionalLights = shadowInit.maxDirectionalLightShadows;
 
             m_ShadowMgr = new ShadowManager(shadowSettings, ref scInit, ref budgets, m_Shadowmaps);
             // set global overrides - these need to match the override specified in LightLoop/Shadow.hlsl
@@ -950,7 +950,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             lightData.color = GetLightColor(light);
 
-            lightData.forward = light.light.transform.forward; // Note: Light direction is oriented backward (-Z)
+            lightData.forward = light.light.transform.forward;
             lightData.up = light.light.transform.up;
             lightData.right = light.light.transform.right;
 

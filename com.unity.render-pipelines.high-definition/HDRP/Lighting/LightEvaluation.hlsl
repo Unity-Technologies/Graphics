@@ -99,6 +99,31 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 // Punctual Light evaluation helper
 //-----------------------------------------------------------------------------
 
+// Return L vector for punctual light (normalize surface to light), lightToSample (light to surface non normalize) and distances {d, d^2, 1/d, d_proj}
+void GetPunctualLightVectors(float3 positionWS, LightData lightData, out float3 L, out float3 lightToSample, out float4 distances)
+{
+    lightToSample = positionWS - lightData.positionWS;
+    int lightType = lightData.lightType;
+
+    distances.w = dot(lightToSample, lightData.forward);
+
+    if (lightType == GPULIGHTTYPE_PROJECTOR_BOX)
+    {
+        L = -lightData.forward;
+        distances.xyz = 1; // No distance or angle attenuation
+    }
+    else
+    {
+        float3 unL     = -lightToSample;
+        float  distSq  = dot(unL, unL);
+        float  distRcp = rsqrt(distSq);
+        float  dist    = distSq * distRcp;
+
+        L = unL * distRcp;
+        distances.xyz = float3(dist, distSq, distRcp);
+    }
+}
+
 float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData lightData,
                                float3 lightToSample)
 {

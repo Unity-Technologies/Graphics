@@ -12,7 +12,9 @@ using Debug = UnityEngine.Debug;
 using Object = UnityEngine.Object;
 using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 using UnityEditor.Experimental.UIElements.GraphView;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.UIElements;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -31,6 +33,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         public bool forceRedrawPreviews = false;
 
         ColorSpace m_ColorSpace;
+        RenderPipelineAsset m_RenderPipelineAsset;
 
         GraphEditorView m_GraphEditorView;
 
@@ -73,6 +76,16 @@ namespace UnityEditor.ShaderGraph.Drawing
             private set { m_Selected = value; }
         }
 
+        public string assetName
+        {
+            get { return titleContent.text; }
+            set
+            {
+                titleContent.text = value;
+                graphEditorView.assetName = value;
+            }
+        }
+
         void Update()
         {
             if (m_HasError)
@@ -82,6 +95,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 graphEditorView = null;
                 m_ColorSpace = PlayerSettings.colorSpace;
+            }
+
+            if (GraphicsSettings.renderPipelineAsset != m_RenderPipelineAsset)
+            {
+                graphEditorView = null;
+                m_RenderPipelineAsset = GraphicsSettings.renderPipelineAsset;
             }
 
             try
@@ -102,11 +121,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                 var materialGraph = graphObject.graph as AbstractMaterialGraph;
                 if (materialGraph == null)
                     return;
+
                 if (graphEditorView == null)
                 {
                     var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(selectedGuid));
-                    graphEditorView = new GraphEditorView(this, materialGraph, asset.name) { persistenceKey = selectedGuid };
+                    graphEditorView = new GraphEditorView(this, materialGraph)
+                    {
+                        persistenceKey = selectedGuid,
+                        assetName = asset.name.Split('/').Last()
+                    };
                     m_ColorSpace = PlayerSettings.colorSpace;
+                    m_RenderPipelineAsset = GraphicsSettings.renderPipelineAsset;
                 }
 
                 if (forceRedrawPreviews)
@@ -440,6 +465,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             try
             {
                 m_ColorSpace = PlayerSettings.colorSpace;
+                m_RenderPipelineAsset = GraphicsSettings.renderPipelineAsset;
 
                 var asset = AssetDatabase.LoadAssetAtPath<Object>(AssetDatabase.GUIDToAssetPath(assetGuid));
                 if (asset == null)
@@ -475,10 +501,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 graphObject.graph.OnEnable();
                 graphObject.graph.ValidateGraph();
 
-                graphEditorView = new GraphEditorView(this, m_GraphObject.graph as AbstractMaterialGraph, asset.name) { persistenceKey = selectedGuid };
+                graphEditorView = new GraphEditorView(this, m_GraphObject.graph as AbstractMaterialGraph)
+                {
+                    persistenceKey = selectedGuid,
+                    assetName = asset.name.Split('/').Last()
+                };
                 graphEditorView.RegisterCallback<GeometryChangedEvent>(OnGeometryChanged);
 
-                titleContent = new GUIContent(asset.name);
+                titleContent = new GUIContent(asset.name.Split('/').Last());
 
                 Repaint();
             }
