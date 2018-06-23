@@ -170,7 +170,7 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, float3 rayOriginWS, fl
 
                 // Express the voxel center in the local coordinate system of the box.
                 float3 voxelCenterBS = mul(voxelCenterWS - obb.center, transpose(obbFrame));
-                float3 voxelCenterUV = (voxelCenterBS / obbExtents) * 0.5 + 0.5;
+                float3 voxelCenterUV = (voxelCenterBS / obbExtents);
 
             #if SOFT_VOXELIZATION
                 // We need to determine which is the face closest to 'voxelCenterBS'.
