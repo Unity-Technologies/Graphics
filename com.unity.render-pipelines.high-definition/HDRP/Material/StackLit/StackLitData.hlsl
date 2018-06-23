@@ -32,7 +32,7 @@ struct TextureUVMapping
 
 void InitializeMappingData(FragInputs input, out TextureUVMapping uvMapping)
 {
-    float3 position = GetAbsolutePositionWS(input.positionWS);
+    float3 position = GetAbsolutePositionWS(input.positionRWS);
     float2 uvXZ;
     float2 uvXY;
     float2 uvZY;
@@ -71,8 +71,8 @@ void InitializeMappingData(FragInputs input, out TextureUVMapping uvMapping)
     uvMapping.vertexTangentWS[0] = input.worldToTangent[0];
     uvMapping.vertexBitangentWS[0] = input.worldToTangent[1];
 
-    float3 dPdx = ddx_fine(input.positionWS);
-    float3 dPdy = ddy_fine(input.positionWS);
+    float3 dPdx = ddx_fine(input.positionRWS);
+    float3 dPdy = ddy_fine(input.positionRWS);
 
     float3 sigmaX = dPdx - dot(dPdx, vertexNormalWS) * vertexNormalWS;
     float3 sigmaY = dPdy - dot(dPdy, vertexNormalWS) * vertexNormalWS;
@@ -404,7 +404,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
     builtinData.opacity = alpha;
 
-    builtinData.bakeDiffuseLighting = SampleBakedGI(input.positionWS, surfaceData.normalWS, input.texCoord1, input.texCoord2);
+    builtinData.bakeDiffuseLighting = SampleBakedGI(input.positionRWS, surfaceData.normalWS, input.texCoord1, input.texCoord2);
 
     // It is safe to call this function here as surfaceData have been filled
     // We want to know if we must enable transmission on GI for SSS material, if the material have no SSS, this code will be remove by the compiler.
@@ -415,7 +415,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
         // however it will not optimize the lightprobe case due to the proxy volume relying on dynamic if (we rely must get right of this dynamic if), not a problem for SH9, but a problem for proxy volume.
         // TODO: optimize more this code.
         // Add GI transmission contribution by resampling the GI for inverted vertex normal
-        builtinData.bakeDiffuseLighting += SampleBakedGI(input.positionWS, -input.worldToTangent[2], input.texCoord1, input.texCoord2) * bsdfData.transmittance;
+        builtinData.bakeDiffuseLighting += SampleBakedGI(input.positionRWS, -input.worldToTangent[2], input.texCoord1, input.texCoord2) * bsdfData.transmittance;
     }
 
     builtinData.emissiveColor = _EmissiveColor * lerp(float3(1.0, 1.0, 1.0), surfaceData.baseColor.rgb, _AlbedoAffectEmissive);
@@ -425,7 +425,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     builtinData.velocity = float2(0.0, 0.0);
 
 #ifdef SHADOWS_SHADOWMASK
-    float4 shadowMask = SampleShadowMask(input.positionWS, input.texCoord1);
+    float4 shadowMask = SampleShadowMask(input.positionRWS, input.texCoord1);
     builtinData.shadowMask0 = shadowMask.x;
     builtinData.shadowMask1 = shadowMask.y;
     builtinData.shadowMask2 = shadowMask.z;
