@@ -13,8 +13,9 @@
     float _Metallic##n;             \
     float _Smoothness##n;           \
     float _NormalScale##n;          \
-    float4 _MaskRemapOffset##n;     \
-    float4 _MaskRemapScale##n
+    float4 _DiffuseRemapScale##n;   \
+    float4 _MaskMapRemapOffset##n;  \
+    float4 _MaskMapRemapScale##n
 
 DECLARE_TERRAIN_LAYER(0);
 DECLARE_TERRAIN_LAYER(1);
@@ -102,8 +103,8 @@ void TerrainSplatBlend(float2 uv, float3 tangentWS, float3 bitangentWS,
 #endif
 
 #ifdef _MASKMAP
-    #define SampleMasks(i, blendMask) RemapMasks(SAMPLE_TEXTURE2D_GRAD(_Mask##i, sampler_Splat0, splatuv, splatdxuv, splatdyuv), blendMask, _Metallic##i, _Smoothness##i, _MaskRemapOffset##i, _MaskRemapScale##i)
-    #define NullMask(i)               float4(0, 0, _MaskRemapOffset##i.z, 0) // only height matters when weight is zero.
+    #define SampleMasks(i, blendMask) RemapMasks(SAMPLE_TEXTURE2D_GRAD(_Mask##i, sampler_Splat0, splatuv, splatdxuv, splatdyuv), blendMask, _Metallic##i, _Smoothness##i, _MaskMapRemapOffset##i, _MaskMapRemapScale##i)
+    #define NullMask(i)               float4(0, 0, _MaskMapRemapOffset##i.z, 0) // only height matters when weight is zero.
 #else
     #define SampleMasks(i, blendMask) float4(_Metallic##i, 0, 0, albedo[i].a * _Smoothness##i)
     #define NullMask(i)               float4(0, 0, 0, 0)
@@ -116,6 +117,7 @@ void TerrainSplatBlend(float2 uv, float3 tangentWS, float3 bitangentWS,
         float2 splatdxuv = dxuv * _Splat##i##_ST.x;                                                     \
         float2 splatdyuv = dyuv * _Splat##i##_ST.y;                                                     \
         albedo[i] = SAMPLE_TEXTURE2D_GRAD(_Splat##i, sampler_Splat0, splatuv, splatdxuv, splatdyuv);    \
+        albedo[i].rgb *= _DiffuseRemapScale##i.xyz;                                                     \
         normal[i] = SampleNormal(i);                                                                    \
         masks[i] = SampleMasks(i, mask);                                                                \
     }                                                                                                   \
@@ -196,11 +198,11 @@ void TerrainSplatBlend(float2 uv, float3 tangentWS, float3 bitangentWS,
     #elif defined(_TERRAIN_BLEND_DENSITY) && defined(_MASKMAP)
         // Denser layers are more visible.
         float4 opacityAsDensity0 = saturate((float4(albedo[0].a, albedo[1].a, albedo[2].a, albedo[3].a) - (float4(1.0, 1.0, 1.0, 1.0) - blendMasks0)) * 20.0); // 20.0 is the number of steps in inputAlphaMask (Density mask. We decided 20 empirically)
-        float4 useOpacityAsDensityParam0 = { 1, 1, 1, 1 };
+        float4 useOpacityAsDensityParam0 = { _DiffuseRemapScale0.w, _DiffuseRemapScale1.w, _DiffuseRemapScale2.w, _DiffuseRemapScale3.w };
         blendMasks0 = lerp(blendMasks0, opacityAsDensity0, useOpacityAsDensityParam0);
         #ifdef _TERRAIN_8_LAYERS
             float4 opacityAsDensity1 = saturate((float4(albedo[4].a, albedo[5].a, albedo[6].a, albedo[7].a) - (float4(1.0, 1.0, 1.0, 1.0) - blendMasks1)) * 20.0); // 20.0 is the number of steps in inputAlphaMask (Density mask. We decided 20 empirically)
-            float4 useOpacityAsDensityParam1 = { 1, 1, 1, 1 };
+            float4 useOpacityAsDensityParam1 = { _DiffuseRemapScale4.w, _DiffuseRemapScale5.w, _DiffuseRemapScale6.w, _DiffuseRemapScale7.w };
             blendMasks1 = lerp(blendMasks1, opacityAsDensity1, useOpacityAsDensityParam1);
         #endif
     #endif
