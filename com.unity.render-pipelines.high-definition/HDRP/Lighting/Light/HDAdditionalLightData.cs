@@ -114,14 +114,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool featuresFoldout = true;
         public bool showAdditionalSettings = false;
         public float displayLightIntensity;
+        
+        // Duplication of HDLightEditor.k_MinAreaWidth, maybe do something about that
+        const float k_MinAreaWidth = 0.01f; // Provide a small size of 1cm for line light
 
-        // We nee all those variables to make timeline and the animator record the intensity value
+        // We nee all those variables to make timeline and the animator record the intensity value and the emissive mesh changes
         [System.NonSerialized]
         float oldDisplayLightIntensity;
         [System.NonSerialized]
         float oldSpotAngle;
         [System.NonSerialized]
         bool oldEnableSpotReflector;
+        [System.NonSerialized]
+        Color oldLightColor;
+        [System.NonSerialized]
+        Vector3 oldLocalScale;
+        [System.NonSerialized]
+        bool oldDisplayAreaLightEmissiveMesh;
+        [System.NonSerialized]
+        LightTypeExtent oldLightTypeExtent;
+        [System.NonSerialized]
+        float oldLightColorTemperature;
 
         // Runtime datas used to compute light intensity
         Light       _light;
@@ -307,13 +320,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DrawGizmos(true);
         }
 
+        // TODO: There are a lot of old != current checks and assignation in this function, maybe think about using another system ?
         void LateUpdate()
         {
             // Check if the intensity have been changed by the inspector or an animator
-            if (oldDisplayLightIntensity != displayLightIntensity)
+            if (oldDisplayLightIntensity != displayLightIntensity
+                || lightTypeExtent != oldLightTypeExtent
+                || transform.localScale != oldLocalScale
+                || m_Light.colorTemperature != oldLightColorTemperature)
             {
                 RefreshLigthIntensity();
+                UpdateAreaLightEmissiveMesh();
                 oldDisplayLightIntensity = displayLightIntensity;
+                oldLocalScale = transform.localScale;
             }
 
             // Same check for light angle to update intensity using spot angle
@@ -323,12 +342,97 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 oldSpotAngle = m_Light.spotAngle;
                 oldEnableSpotReflector = enableSpotReflector;
             }
+
+            if (m_Light.color != oldLightColor
+                || transform.localScale != oldLocalScale
+                || displayAreaLightEmissiveMesh != oldDisplayAreaLightEmissiveMesh
+                || lightTypeExtent != oldLightTypeExtent
+                || m_Light.colorTemperature != oldLightColorTemperature)
+            {
+                UpdateAreaLightEmissiveMesh();
+                oldLightColor = m_Light.color;
+                oldLocalScale = transform.localScale;
+                oldDisplayAreaLightEmissiveMesh = displayAreaLightEmissiveMesh;
+                oldLightTypeExtent = lightTypeExtent;
+                oldLightColorTemperature = m_Light.colorTemperature;
+            }
         }
 
         // The editor can only access displayLightIntensity (because of SerializedProperties) so we update the intensity to get the real value
-        public void RefreshLigthIntensity()
+        void RefreshLigthIntensity()
         {
             intensity = displayLightIntensity;
+        }
+
+        public static bool IsAreaLight(LightTypeExtent lightType)
+        {
+            return lightType != LightTypeExtent.Punctual;
+        }
+
+        public static bool IsAreaLight(SerializedProperty lightType)
+        {
+            return IsAreaLight((LightTypeExtent)lightType.enumValueIndex);
+        }
+        
+        public void UpdateAreaLightEmissiveMesh()
+        {
+            MeshRenderer  emissiveMeshRenderer = GetComponent<MeshRenderer>();
+            MeshFilter    emissiveMeshFilter = GetComponent<MeshFilter>();
+
+            bool displayEmissiveMesh = IsAreaLight(lightTypeExtent) && lightTypeExtent != LightTypeExtent.Line && displayAreaLightEmissiveMesh;
+
+            // Ensure that the emissive mesh components are here
+            if (displayEmissiveMesh)
+            {
+                if (emissiveMeshRenderer == null)
+                    emissiveMeshRenderer = gameObject.AddComponent<MeshRenderer>();
+                if (emissiveMeshFilter == null)
+                    emissiveMeshFilter = gameObject.AddComponent<MeshFilter>();
+            }
+            else // Or remove them if the option is disabled
+            {
+                if (emissiveMeshRenderer != null)
+                    DestroyImmediate(emissiveMeshRenderer);
+                if (emissiveMeshFilter != null)
+                    DestroyImmediate(emissiveMeshFilter);
+
+                // We don't have anything to do left if the dislay emissive mesh option is disabled
+                return ;
+            }
+
+            // Update light area size from GameObject transform scale
+            Vector3 lightSize = m_Light.transform.localScale;
+            lightSize = Vector3.Max(Vector3.one * k_MinAreaWidth, lightSize);
+            m_Light.transform.localScale = lightSize;
+
+            float areaLightIntensity = intensity;
+
+            switch (lightTypeExtent)
+            {
+                case LightTypeExtent.Rectangle:
+                    shapeWidth = lightSize.x;
+                    shapeHeight = lightSize.y;
+                    
+                    // If the light unit is in lumen, we need a convertion to get the good intensity value
+                    if (lightUnit == LightUnit.Lumen)
+                    {
+                        areaLightIntensity = LightUtils.ConvertRectLightLumenToLuminance(
+                            intensity,
+                            shapeWidth,
+                            shapeHeight);
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            if (emissiveMeshRenderer.sharedMaterial == null)
+                emissiveMeshRenderer.material = new Material(Shader.Find("HDRenderPipeline/Unlit"));
+            
+            // Update Mesh emissive properties
+            emissiveMeshRenderer.sharedMaterial.SetColor("_UnlitColor", Color.black);
+            // Note that we must use the light in linear RGB
+            emissiveMeshRenderer.sharedMaterial.SetColor("_EmissiveColor", m_Light.color.linear * areaLightIntensity * CorrelatedColorTemperatureToRGB(m_Light.colorTemperature));
         }
 
 #endif
@@ -378,7 +482,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // If we are deserializing an old version, convert the light intensity to the new system
             if (version == 1.0f)
             {
-                //TODO: convert dir, punc and area light intensities to intensity field
+                //TODO: test this
 
 // Pragma to disable the warning got by using deprecated properties (areaIntensity, directionalIntensity, ...)
 #pragma warning disable 0618
