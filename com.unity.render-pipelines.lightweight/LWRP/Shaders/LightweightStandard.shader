@@ -125,6 +125,54 @@ Shader "LightweightPipeline/Standard (Physically Based)"
 
         Pass
         {
+            Name "GBuffer"
+            Tags {"LightMode" = "LightweightDeferred"}
+
+            ZWrite On
+            ZTest LEQual
+            Cull[_Cull]
+
+            HLSLPROGRAM
+            // Required to compile gles 2.0 with standard SRP library
+            // All shaders must be compiled with HLSLcc and currently only gles is not using HLSLcc by default
+            #pragma exclude_renderers gles d3d11_9x 
+            #pragma target 4.5
+
+            // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature _NORMALMAP
+            #pragma shader_feature _ALPHATEST_ON
+            #pragma shader_feature _ALPHAPREMULTIPLY_ON
+            #pragma shader_feature _EMISSION
+            #pragma shader_feature _METALLICSPECGLOSSMAP
+            #pragma shader_feature _SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A
+            #pragma shader_feature _OCCLUSIONMAP
+
+            #pragma shader_feature _SPECULARHIGHLIGHTS_OFF
+            #pragma shader_feature _GLOSSYREFLECTIONS_OFF
+            #pragma shader_feature _SPECULAR_SETUP
+
+            // -------------------------------------
+            // Unity defined keywords
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile_fog
+
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+
+            #pragma vertex LitPassVertex
+            #pragma fragment LitPassFragment_Deferred
+
+            #include "LWRP/ShaderLibrary/InputSurfacePBR.hlsl"
+            #include "LWRP/ShaderLibrary/LightweightPassLit.hlsl"
+            
+            ENDHLSL
+        }
+
+        Pass
+        {
             Name "ShadowCaster"
             Tags{"LightMode" = "ShadowCaster"}
 

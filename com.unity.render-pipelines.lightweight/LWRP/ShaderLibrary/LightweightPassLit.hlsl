@@ -143,4 +143,27 @@ half4 LitPassFragment(LightweightVertexOutput IN) : SV_Target
     return color;
 }
 
+void LitPassFragment_Deferred(LightweightVertexOutput IN,
+    out half4 GBuffer0 : SV_Target0,
+    out half4 GBuffer1 : SV_Target1,
+    out half4 GBuffer2 : SV_Target2,
+    out half4 GBuffer3 : SV_Target3)
+{
+    UNITY_SETUP_INSTANCE_ID(IN);
+
+    SurfaceData surfaceData;
+    InitializeStandardLitSurfaceData(IN.uv, surfaceData);
+
+    InputData inputData;
+    InitializeInputData(IN, surfaceData.normalTS, inputData);
+
+    BRDFData brdfData;
+    InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
+
+    GBuffer0 = half4(brdfData.diffuse, surfaceData.occlusion);
+    GBuffer1 = half4(brdfData.specular, brdfData.roughness);
+    GBuffer2 = half4(inputData.normalWS * 0.5h + 0.5h, 1.0h);
+    GBuffer3 = half4(GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.normalWS, inputData.viewDirectionWS) + surfaceData.emission, 1.0h);
+}
+
 #endif

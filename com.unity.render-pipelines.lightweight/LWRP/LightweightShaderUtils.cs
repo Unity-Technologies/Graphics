@@ -10,6 +10,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         STANDARD_PARTICLES_UNLIT,
 
         HIDDEN_BLIT,
+        HIDDEN_TRANSIENT_BLIT,
         HIDDEN_DEPTH_COPY,
 
         SHADER_PATH_COUNT
@@ -26,6 +27,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             "LightweightPipeline/Particles/Standard",
             "LightweightPipeline/Particles/Standard Unlit",
             "Hidden/LightweightPipeline/Blit",
+            "Hidden/LightweightPipeline/BlitTransient",
             "Hidden/LightweightPipeline/CopyDepth"
         };
 

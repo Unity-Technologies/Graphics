@@ -399,6 +399,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             get { return resources != null ? resources.BlitShader : null; }
         }
 
+        public Shader blitTransientShader
+        {
+            get { return resources != null ? resources.BlitTransientShader : null; }
+        }
+
         public Shader copyDepthShader
         {
             get { return resources != null ? resources.CopyDepthShader : null; }
