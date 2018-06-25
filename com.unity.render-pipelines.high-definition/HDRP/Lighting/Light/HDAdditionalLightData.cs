@@ -227,6 +227,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return new Color(r, g, b, 1.0f);
         }
 
+        // When true, a mesh will be display to represent the area light (Can only be change in editor, component is added in Editor)
+        public bool displayAreaLightEmissiveMesh = false;
+
 #if UNITY_EDITOR
 
         private void DrawGizmos(bool selected)

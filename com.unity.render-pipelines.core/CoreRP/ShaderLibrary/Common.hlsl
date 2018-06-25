@@ -11,6 +11,7 @@
 
 // space at the end of the variable name
 // WS: world space
+// RWS: Camera-Relative world space. A space where the translation of the camera have already been substract in order to improve precision
 // VS: view space
 // OS: object space
 // CS: Homogenous clip spaces
