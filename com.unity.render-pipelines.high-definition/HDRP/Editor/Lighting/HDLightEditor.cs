@@ -180,8 +180,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Update emissive mesh and light intensity when undo/redo
             Undo.undoRedoPerformed += () => {
-                foreach (var h in m_AdditionalLightDatas)
-                    h.UpdateAreaLightEmissiveMesh();
+                foreach (var hdLightData in m_AdditionalLightDatas)
+                    if (hdLightData != null)
+                        hdLightData.UpdateAreaLightEmissiveMesh();
             };
         }
 

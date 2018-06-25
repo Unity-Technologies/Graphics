@@ -136,6 +136,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [System.NonSerialized]
         float oldLightColorTemperature;
 
+        // For light that used the old intensity system we update them
+        [System.NonSerialized]
+        bool needsIntensityUpdate = false;
+
         // Runtime datas used to compute light intensity
         Light       _light;
         Light       m_Light
@@ -480,10 +484,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void OnAfterDeserialize()
         {
             // If we are deserializing an old version, convert the light intensity to the new system
-            if (version == 1.0f)
+            if (version != currentVersion)
             {
-                //TODO: test this
+                needsIntensityUpdate = true;
+                version = currentVersion;
+            }
+        }
 
+        private void OnEnable()
+        {
+            if (needsIntensityUpdate)
+            {
 // Pragma to disable the warning got by using deprecated properties (areaIntensity, directionalIntensity, ...)
 #pragma warning disable 0618
                 switch (lightTypeExtent)
@@ -509,8 +520,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         break;
                 }
 #pragma warning restore 0618
-
-                version = currentVersion;
             }
         }
     }
