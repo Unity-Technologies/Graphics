@@ -30,7 +30,7 @@ Shader "Hidden/HDRenderPipeline/CopyDepthBuffer"
             #include "CoreRP/ShaderLibrary/Common.hlsl"
             #include "../ShaderVariables.hlsl"
 
-            TEXTURE2D(_InputDepthTexture);
+            TEXTURE2D_FLOAT(_InputDepthTexture);
 
             struct Attributes
             {

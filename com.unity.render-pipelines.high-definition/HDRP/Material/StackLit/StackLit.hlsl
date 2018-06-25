@@ -1610,8 +1610,14 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 #endif
  
             // perceptualRoughness is use as input and output here
-            GetGGXAnisotropicModifiedNormalAndRoughness(bsdfData.bitangentWS, bsdfData.tangentWS, N, V, preLightData.iblAnisotropy[0], preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX], iblN[BASE_LOBEA_IDX], preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX]);
-            GetGGXAnisotropicModifiedNormalAndRoughness(bsdfData.bitangentWS, bsdfData.tangentWS, N, V, preLightData.iblAnisotropy[1], preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX], iblN[BASE_LOBEB_IDX], preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX]);
+            float3 outNormal;
+            float outPerceptualRoughness;
+            GetGGXAnisotropicModifiedNormalAndRoughness(bsdfData.bitangentWS, bsdfData.tangentWS, N[0], V, preLightData.iblAnisotropy[0], preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX], outNormal, outPerceptualRoughness);
+            iblN[BASE_LOBEA_IDX] = outNormal;
+            preLightData.iblPerceptualRoughness[BASE_LOBEA_IDX] = outPerceptualRoughness;
+            GetGGXAnisotropicModifiedNormalAndRoughness(bsdfData.bitangentWS, bsdfData.tangentWS, N[0], V, preLightData.iblAnisotropy[1], preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX], outNormal, outPerceptualRoughness);
+            iblN[BASE_LOBEB_IDX] = outNormal;
+            preLightData.iblPerceptualRoughness[BASE_LOBEB_IDX] = outPerceptualRoughness;
 
             iblN[COAT_LOBE_IDX] = N[COAT_NORMAL_IDX]; // no anisotropy for coat.
         }
