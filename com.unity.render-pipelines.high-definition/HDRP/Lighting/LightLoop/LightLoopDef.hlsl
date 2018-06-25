@@ -42,11 +42,8 @@ StructuredBuffer<LightData>            _LightDatas;
 StructuredBuffer<EnvLightData>         _EnvLightDatas;
 StructuredBuffer<ShadowData>           _ShadowDatas;
 
-// Used by directional and spot lights
-TEXTURE2D_ARRAY(_CookieTextures);
-
-// Used by point lights
-TEXTURECUBE_ARRAY_ABSTRACT(_CookieCubeTextures);
+// Cookie atlas used by all the lights
+TEXTURE2D(_CookieAtlas);
 
 // Use texture array for reflection (or LatLong 2D array for mobile)
 TEXTURECUBE_ARRAY_ABSTRACT(_EnvCubemapTextures);
@@ -79,25 +76,21 @@ struct LightLoopContext
 // ----------------------------------------------------------------------------
 
 // Used by directional and spot lights.
-float3 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, int index, bool repeat)
+float3 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, float4 scaleBias, bool repeat)
 {
-    if (repeat)
-    {
-        // TODO: add MIP maps to combat aliasing?
-        return SAMPLE_TEXTURE2D_ARRAY_LOD(_CookieTextures, s_linear_repeat_sampler, coord, index, 0).rgb;
-    }
-    else // clamp
-    {
-        // TODO: add MIP maps to combat aliasing?
-        return SAMPLE_TEXTURE2D_ARRAY_LOD(_CookieTextures, s_linear_clamp_sampler, coord, index, 0).rgb;
-    }
+    // TODO: add MIP maps to combat aliasing?
+    // float2 atlasCoords = RangeRemap((repeat) ? coord % float2(1, 1) : coord, scaleBias.xz, scaleBias.yw);
+    float2 atlasCoords = coord / scaleBias.xy + scaleBias.zw;
+    return LOAD_TEXTURE2D(_CookieAtlas, atlasCoords);
 }
 
 // Used by point lights.
-float3 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, int index)
+float3 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, float4 scaleBias)
 {
     // TODO: add MIP maps to combat aliasing?
-    return SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_CookieCubeTextures, s_linear_clamp_sampler, coord, index, 0).rgb;
+    // return SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_CookieCubeTextures, s_linear_clamp_sampler, coord, index, 0).rgb;
+    // TODO :)
+    return float3(0, 1, 1);
 }
 
 //-----------------------------------------------------------------------------

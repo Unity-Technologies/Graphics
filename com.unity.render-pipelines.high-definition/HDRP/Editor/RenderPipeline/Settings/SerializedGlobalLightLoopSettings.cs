@@ -6,10 +6,8 @@ namespace UnityEditor.Experimental.Rendering
     {
         public SerializedProperty root;
 
-        public SerializedProperty cookieSize;
-        public SerializedProperty cookieTexArraySize;
-        public SerializedProperty pointCookieSize;
-        public SerializedProperty cubeCookieTexArraySize;
+        public SerializedProperty cookieAtlasWidth;
+        public SerializedProperty cookieAtlasHeight;
         public SerializedProperty reflectionProbeCacheSize;
         public SerializedProperty reflectionCubemapSize;
         public SerializedProperty reflectionCacheCompressed;
@@ -23,10 +21,8 @@ namespace UnityEditor.Experimental.Rendering
         {
             this.root = root;
 
-            cookieSize = root.Find((GlobalLightLoopSettings s) => s.cookieSize);
-            cookieTexArraySize = root.Find((GlobalLightLoopSettings s) => s.cookieTexArraySize);
-            pointCookieSize = root.Find((GlobalLightLoopSettings s) => s.pointCookieSize);
-            cubeCookieTexArraySize = root.Find((GlobalLightLoopSettings s) => s.cubeCookieTexArraySize);
+            cookieAtlasWidth = root.Find((GlobalLightLoopSettings s) => s.cookieAtlasWidth);
+            cookieAtlasHeight = root.Find((GlobalLightLoopSettings s) => s.cookieAtlasHeight);
 
             reflectionProbeCacheSize = root.Find((GlobalLightLoopSettings s) => s.reflectionProbeCacheSize);
             reflectionCubemapSize = root.Find((GlobalLightLoopSettings s) => s.reflectionCubemapSize);

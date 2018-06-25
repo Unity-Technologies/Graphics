@@ -171,12 +171,26 @@ namespace UnityEngine.Experimental.Rendering
             IntPtr key = texture.GetNativeTexturePtr();
             if (!m_AllocationCache.TryGetValue(key, out scaleBias))
             {
-                int width = texture.width;
-                int height = texture.height;
+                Texture2D           tex2D = texture as Texture2D;
+                Cubemap             cubemap = texture as Cubemap;
+                CustomRenderTexture crt = texture as CustomRenderTexture;
+                int                 mipCount = 1;
+                int                 width = texture.width;
+                int                 height = texture.height;
+
+                if (tex2D != null)
+                    mipCount = tex2D.mipmapCount;
+                else if (cubemap != null)
+                    mipCount = cubemap.mipmapCount;
+                else if (crt != null)
+                    mipCount = 1;
+                else
+                    return false;
+                
                 if (m_AtlasAllocator.Allocate(ref scaleBias, width, height))
                 {
                     scaleBias.Scale(new Vector4(1.0f / m_Width, 1.0f / m_Height, 1.0f / m_Width, 1.0f / m_Height));
-                    for (int mipLevel = 0; mipLevel < (texture as Texture2D).mipmapCount; mipLevel++)
+                    for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
                     {
                         cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
                         HDUtils.BlitQuad(cmd, texture, new Vector4(1, 1, 0, 0), scaleBias, mipLevel, false);
@@ -189,7 +203,13 @@ namespace UnityEngine.Experimental.Rendering
                     return false;
                 }
             }
+            scaleBias.x = Random.value;
             return true;
+        }
+
+        public bool RemoveTexture(Texture texture)
+        {
+            return m_AllocationCache.Remove(texture.GetNativeTexturePtr());
         }
     }
 }

@@ -40,7 +40,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public Vector3 positionWS;
         public Vector3 color;
-        public int cookieIndex; // -1 if unused
+        public Vector4 cookieScaleBias;
         public float volumetricDimmer;
 
         public Vector3 right;   // Rescaled by (2 / shapeWidth)
@@ -69,7 +69,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public float angleScale;  // Spot light
         public float angleOffset; // Spot light
-        public int cookieIndex; // -1 if unused
+        public Vector4 cookieScaleBias; // -1 if unused
         public GPULightType lightType;
 
         public Vector3 right;   // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeWidth)

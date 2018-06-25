@@ -22,7 +22,7 @@ float3 EvaluateCookie_Directional(LightLoopContext lightLoopContext, Directional
     float2 positionNDC = positionCS * 0.5 + 0.5;
 
     // We let the sampler handle clamping to border.
-    return SampleCookie2D(lightLoopContext, positionNDC, lightData.cookieIndex, lightData.tileCookie);
+    return SampleCookie2D(lightLoopContext, positionNDC, lightData.cookieScaleBias, lightData.tileCookie);
 }
 
 // None of the outputs are premultiplied.
@@ -39,7 +39,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
     color       = lightData.color;
     attenuation = 1.0; // Note: no volumetric attenuation along shadow rays for directional lights
 
-    UNITY_BRANCH if (lightData.cookieIndex >= 0)
+    UNITY_BRANCH if (any(lightData.cookieScaleBias))
     {
         float3 lightToSample = positionWS - lightData.positionWS;
         float3 cookie = EvaluateCookie_Directional(lightLoopContext, lightData, lightToSample);
@@ -138,7 +138,7 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
 
     UNITY_BRANCH if (lightType == GPULIGHTTYPE_POINT)
     {
-        cookie.rgb = SampleCookieCube(lightLoopContext, positionLS, lightData.cookieIndex);
+        cookie.rgb = SampleCookieCube(lightLoopContext, positionLS, lightData.cookieScaleBias);
         cookie.a   = 1;
     }
     else
@@ -152,7 +152,7 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
         float2 positionNDC = positionCS * 0.5 + 0.5;
 
         // Manually clamp to border (black).
-        cookie.rgb = SampleCookie2D(lightLoopContext, positionNDC, lightData.cookieIndex, false);
+        cookie.rgb = SampleCookie2D(lightLoopContext, positionNDC, lightData.cookieScaleBias, false);
         cookie.a   = isInBounds ? 1 : 0;
     }
 
@@ -182,7 +182,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
 #endif
 
     // Projector lights always have cookies, so we can perform clipping inside the if().
-    UNITY_BRANCH if (lightData.cookieIndex >= 0)
+    UNITY_BRANCH if (any(lightData.cookieScaleBias))
     {
         float4 cookie = EvaluateCookie_Punctual(lightLoopContext, lightData, lightToSample);
 

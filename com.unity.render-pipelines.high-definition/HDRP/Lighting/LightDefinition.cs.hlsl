@@ -53,7 +53,7 @@ struct DirectionalLightData
 {
     float3 positionWS;
     float3 color;
-    int cookieIndex;
+    float4 cookieScaleBias;
     float volumetricDimmer;
     float3 right;
     float3 up;
@@ -77,7 +77,7 @@ struct LightData
     float rangeAttenuationBias;
     float angleScale;
     float angleOffset;
-    int cookieIndex;
+    float4 cookieScaleBias;
     int lightType;
     float3 right;
     float3 up;
@@ -134,9 +134,9 @@ float3 GetColor(DirectionalLightData value)
 {
     return value.color;
 }
-int GetCookieIndex(DirectionalLightData value)
+float4 GetCookieScaleBias(DirectionalLightData value)
 {
-    return value.cookieIndex;
+    return value.cookieScaleBias;
 }
 float GetVolumetricDimmer(DirectionalLightData value)
 {
@@ -210,9 +210,9 @@ float GetAngleOffset(LightData value)
 {
     return value.angleOffset;
 }
-int GetCookieIndex(LightData value)
+float4 GetCookieScaleBias(LightData value)
 {
-    return value.cookieIndex;
+    return value.cookieScaleBias;
 }
 int GetLightType(LightData value)
 {
