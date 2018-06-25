@@ -10,6 +10,7 @@ CBUFFER_START(initParams)
 #if !VFX_USE_SPAWNER_FROM_GPU
     uint nbSpawned;					// Numbers of particle spawned
     uint spawnIndex;				// Index of the first particle spawned
+    uint dispatchWidth;
 #else
     uint offsetInAdditionalOutput;
 	uint nbMax;
@@ -30,8 +31,16 @@ ByteAddressBuffer inputAdditional;
 ${VFXGeneratedBlockFunction}
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
-void CSMain(uint3 id : SV_DispatchThreadID)
+void CSMain(uint3 groupId          : SV_GroupID,
+            uint3 groupThreadId    : SV_GroupThreadID)
 {
+    uint3 id = (uint3)0;
+#if VFX_USE_SPAWNER_FROM_GPU
+    id.x = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP;
+#else
+    id.x = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
+#endif
+
 #if VFX_USE_SPAWNER_FROM_GPU
     uint maxThreadId = inputAdditional.Load((offsetInAdditionalOutput * 2 + 0) << 2);
     uint currentSpawnIndex = inputAdditional.Load((offsetInAdditionalOutput * 2 + 1) << 2) - maxThreadId;

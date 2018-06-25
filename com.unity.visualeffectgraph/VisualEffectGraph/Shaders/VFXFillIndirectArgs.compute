@@ -94,6 +94,8 @@ void CSVFXIndirectArgs(uint3 id : SV_DispatchThreadID)
             }
             case 0xffffffff: // dispatch
             {
+                //Clamp indirect dispatch to 1D max dispatch of DX11 : 65535
+                elementCount = min(elementCount, 0xffff);
                 firstArg = (elementCount + NB_THREADS_PER_GROUP - 1) / NB_THREADS_PER_GROUP;
 
                 //Update total element count (spawnIndex)
