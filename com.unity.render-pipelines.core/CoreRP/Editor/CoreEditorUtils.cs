@@ -297,7 +297,7 @@ namespace UnityEditor.Experimental.Rendering
             return value;
         }
 
-        public static void DrawPopup(GUIContent label, SerializedProperty property, string[] options)
+        public static int DrawPopup(GUIContent label, SerializedProperty property, string[] options)
         {
             var mode = property.intValue;
             EditorGUI.BeginChangeCheck();
@@ -308,6 +308,8 @@ namespace UnityEditor.Experimental.Rendering
             mode = EditorGUILayout.Popup(label, mode, options);
             if (EditorGUI.EndChangeCheck())
                 property.intValue = mode;
+
+            return mode;
         }
 
         public static void DrawCascadeSplitGUI<T>(ref SerializedProperty shadowCascadeSplit)

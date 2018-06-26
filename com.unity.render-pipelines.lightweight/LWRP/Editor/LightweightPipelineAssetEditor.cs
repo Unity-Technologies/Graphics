@@ -1,4 +1,3 @@
-using System.Linq;
 using UnityEditor;
 using UnityEditor.AnimatedValues;
 using UnityEditor.Experimental.Rendering;
@@ -10,12 +9,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     {
         internal class Styles
         {
+            public static GUIContent rendererLabel = new GUIContent("Renderer");
             public static GUIContent generalSettingsLabel = new GUIContent("General");
             public static GUIContent renderingLabel = new GUIContent("Rendering");
             public static GUIContent shadowLabel = new GUIContent("Shadows");
             public static GUIContent directionalShadowLabel = new GUIContent("Directional Shadows");
             public static GUIContent localShadowLabel = new GUIContent("Local Shadows");
             public static GUIContent capabilitiesLabel = new GUIContent("Capabilities");
+
+            public static GUIContent scriptableRendererTypeLabel = new GUIContent("Renderer", "Controls which renderer Lightweight Pipeline uses.");
+
+            public static GUIContent scriptableRendererCreatorLabel = new GUIContent("Scriptable Renderer", "Assign a custom Scriptable Renderer Creator here.");
 
             public static GUIContent renderScaleLabel = new GUIContent("Render Scale", "Scales the camera render target allowing the game to render at a resolution different than native resolution. UI is always rendered at native resolution. When in VR mode, VR scaling configuration is used instead.");
 
@@ -55,6 +59,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static GUIContent localShadowsAtlasResolution = new GUIContent("Atlas Resolution",
                     "All local lights are packed into a single atlas. This setting controls the atlas size.");
 
+            public static string[] scriptableRendererTypeOptions = {"ClassicForward", "OnTileDeferred", "Custom"};
             public static string[] shadowCascadeOptions = {"No Cascades", "Two Cascades", "Four Cascades"};
             public static string[] opaqueDownsamplingOptions = {"None", "2x (Bilinear)", "4x (Box)", "4x (Bilinear)"};
         }
@@ -100,12 +105,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         SerializedProperty m_LocalShadowsAtlasResolutionProp;
 
         SerializedProperty m_CustomShaderVariantStripSettingsProp;
+        SerializedProperty m_ScriptableRendererTypeProp;
+        SerializedProperty m_ScriptableRendererCreatorProp;
 
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
 
             UpdateAnimationValues();
+            DrawScriptableRendererSettings();
             DrawCapabilitiesSettings();
             DrawGeneralSettings();
 
@@ -135,6 +143,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_LocalShadowsAtlasResolutionProp = serializedObject.FindProperty("m_LocalShadowsAtlasResolution");
             m_SoftShadowsSupportedProp = serializedObject.FindProperty("m_SoftShadowsSupported");
 
+            m_ScriptableRendererTypeProp = serializedObject.FindProperty("m_ScriptableRendererType");
+            m_ScriptableRendererCreatorProp = serializedObject.FindProperty("m_ScriptableRendererCreator");
+
             m_ShowSoftParticles.valueChanged.AddListener(Repaint);
             m_ShowSoftParticles.value = m_RequireSoftParticlesProp.boolValue;
             m_ShowOpaqueTextureScale.valueChanged.AddListener(Repaint);
@@ -151,6 +162,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             m_ShowSoftParticles.target = m_RequireDepthTextureProp.boolValue;
             m_ShowOpaqueTextureScale.target = m_RequireOpaqueTextureProp.boolValue;
+        }
+
+        void DrawScriptableRendererSettings()
+        {
+            EditorGUILayout.LabelField(Styles.rendererLabel, EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
+            ScriptableRendererType rendererType = (ScriptableRendererType)CoreEditorUtils.DrawPopup(Styles.scriptableRendererTypeLabel, m_ScriptableRendererTypeProp, Styles.scriptableRendererTypeOptions);
+            if (rendererType == ScriptableRendererType.Custom)
+                EditorGUILayout.PropertyField(m_ScriptableRendererCreatorProp, Styles.scriptableRendererCreatorLabel);
+            EditorGUI.indentLevel--;
+            EditorGUILayout.Space();
+            EditorGUILayout.Space();
         }
 
         void DrawGeneralSettings()

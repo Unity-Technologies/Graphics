@@ -53,6 +53,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         UnityBuiltinDefault
     }
 
+    public enum ScriptableRendererType
+    {
+        ClassicForward,
+        OnTileDeferred,
+        Custom,
+    }
+
     public class LightweightPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
         public static readonly string s_SearchPathProject = "Assets";
@@ -89,6 +96,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] bool m_KeepSoftShadowVariants = true;
 
         [SerializeField] LightweightPipelineResources m_ResourcesAsset;
+
+        [SerializeField] ScriptableRendererType m_ScriptableRendererType;
+        [SerializeField] MonoBehaviour m_ScriptableRendererCreator;
 
         // Deprecated
         [SerializeField] ShadowType m_ShadowType = ShadowType.HARD_SHADOWS;
@@ -176,6 +186,33 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         protected override IRenderPipeline InternalCreatePipeline()
         {
             return new LightweightPipeline(this);
+        }
+
+        public ScriptableRenderer CreateRenderer()
+        {
+            IScriptableRendererCreator creator;
+            if (m_ScriptableRendererType == ScriptableRendererType.ClassicForward)
+            {
+                creator = new LightweightForwardRendererCreator();
+            }
+            else if (m_ScriptableRendererType == ScriptableRendererType.OnTileDeferred)
+            {
+                creator = new LightweightDeferredRendererCreator();
+            }
+            else
+            {
+                if (m_ScriptableRendererCreator == null)
+                {
+                    Debug.LogError("Custom renderer is selected but no renderer creator is assigned in the pipeline asset. Falling back to Forward Renderer");
+                    creator = new LightweightForwardRendererCreator();
+                }
+                else
+                {
+                    creator = m_ScriptableRendererCreator;
+                }
+            }
+
+            return creator.Create(this);
         }
 
         Material GetMaterial(DefaultMaterialType materialType)

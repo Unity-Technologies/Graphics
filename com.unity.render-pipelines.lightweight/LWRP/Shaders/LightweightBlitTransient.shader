@@ -13,9 +13,7 @@ Shader "Hidden/LightweightPipeline/BlitTransient"
             ZTest Always ZWrite Off
 
             HLSLPROGRAM
-            // Required to compile gles 2.0 with standard srp library
-            #pragma prefer_hlslcc gles
-            #pragma exclude_renderers d3d11_9x
+            #pragma exclude_renderers gles d3d11_9x
             #pragma vertex Vertex
             #pragma fragment Fragment
 
