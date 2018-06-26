@@ -8,11 +8,13 @@ Shader "Hidden/HDRenderPipeline/Blit"
         #include "../ShaderVariables.hlsl"
 
         TEXTURE2D(_BlitTexture);
+        TEXTURECUBE(_CubemapBlitTexture);
         SamplerState sampler_PointClamp;
         SamplerState sampler_LinearClamp;
         uniform float4 _BlitScaleBias;
         uniform float4 _BlitScaleBiasRt;
         uniform float _BlitMipLevel;
+        uniform uint _BlitFaceIndex;
 
         struct Attributes
         {
@@ -47,25 +49,27 @@ Shader "Hidden/HDRenderPipeline/Blit"
             output.texcoord = GetQuadTexCoord(input.vertexID) * _BlitScaleBias.xy + _BlitScaleBias.zw;
             return output;
         }
+        
+        static const float3 faceU[6] = { float3(0, 0, -1), float3(0, 0, 1), float3(1, 0, 0), float3(1, 0, 0), float3(1, 0, 0), float3(-1, 0, 0) };
+        static const float3 faceV[6] = { float3(0, -1, 0), float3(0, -1, 0), float3(0, 0, 1), float3(0, 0, -1), float3(0, -1, 0), float3(0, -1, 0) };
 
         VaryingsCube VertexCube(Attributes input)
         {
             VaryingsCube output;
-            // TODO: cubemap vertex position and UV generation
-            output.positionCS = GetQuadVertexPosition(input.vertexID) * float4(_BlitScaleBiasRt.x, _BlitScaleBiasRt.y, 1, 1) + float4(_BlitScaleBiasRt.z, _BlitScaleBiasRt.w, 0, 0);
+            float4 cubeFaceVertexPosition = GetQuadVertexPosition(input.vertexID) + float4(_BlitFaceIndex % 3, _BlitFaceIndex / 3, 0, 0);
+            output.positionCS = cubeFaceVertexPosition * float4(_BlitScaleBiasRt.x, _BlitScaleBiasRt.y, 1, 1) + float4(_BlitScaleBiasRt.z, _BlitScaleBiasRt.w, 0, 0);
             output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
             
-            float2 uv = GetFullScreenTriangleTexCoord(input.vertexID);
+            float2 uv = GetQuadTexCoord(input.vertexID) * _BlitScaleBias.xy + _BlitScaleBias.zw;
             uv = uv * 2 - 1;
 
-            // int idx = (int)_FaceIndex;
-            // float3 transformU = faceU[idx];
-            // float3 transformV = faceV[idx];
+            int idx = (int)_BlitFaceIndex;
+            float3 transformU = faceU[idx];
+            float3 transformV = faceV[idx];
 
-            // float3 n = cross(transformV, transformU);
-            // output.texcoord = n + uv.x * transformU + uv.y * transformV;
+            float3 n = cross(transformV, transformU);
+            output.texcoord = n + uv.x * transformU + uv.y * transformV;
 
-            output.texcoord = float3(GetQuadTexCoord(input.vertexID) * _BlitScaleBias.xy + _BlitScaleBias.zw, 1);
             return output;
         }
 
@@ -81,12 +85,12 @@ Shader "Hidden/HDRenderPipeline/Blit"
 
         float4 FragNearestCube(VaryingsCube input) : SV_Target
         {
-            return SAMPLE_TEXTURE2D_LOD(_BlitTexture, sampler_PointClamp, input.texcoord, _BlitMipLevel);
+            return SAMPLE_TEXTURECUBE_LOD(_CubemapBlitTexture, sampler_PointClamp, input.texcoord, _BlitMipLevel);
         }
 
         float4 FragBilinearCube(VaryingsCube input) : SV_Target
         {
-            return SAMPLE_TEXTURE2D_LOD(_BlitTexture, sampler_LinearClamp, input.texcoord, _BlitMipLevel);
+            return SAMPLE_TEXTURECUBE_LOD(_CubemapBlitTexture, sampler_LinearClamp, input.texcoord, _BlitMipLevel);
         }
 
     ENDHLSL

@@ -121,6 +121,7 @@ namespace UnityEngine.Experimental.Rendering
         private RTHandleSystem.RTHandle m_AtlasTexture = null;
         private int m_Width;
         private int m_Height;
+        private bool m_GenerateMipMaps;
         private RenderTextureFormat m_Format;
         private AtlasAllocator m_AtlasAllocator = null;
         private Dictionary<IntPtr, Vector4> m_AllocationCache = new Dictionary<IntPtr, Vector4>();
@@ -134,17 +135,18 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public Texture2DAtlas(int width, int height, RenderTextureFormat format)
+        public Texture2DAtlas(int width, int height, RenderTextureFormat format, bool generateMipMaps = false, FilterMode filterMode = FilterMode.Point)
         {
             m_Width = width;
             m_Height = height;
             m_Format = format;
+            m_GenerateMipMaps = generateMipMaps;
             m_AtlasTexture = RTHandles.Alloc(m_Width,
                     m_Height,
                     1,
                     DepthBits.None,
                     m_Format,
-                    FilterMode.Point,
+                    filterMode,
                     TextureWrapMode.Clamp,
                     TextureDimension.Tex2D,
                     false,
@@ -174,25 +176,31 @@ namespace UnityEngine.Experimental.Rendering
                 cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
                 HDUtils.BlitQuad(cmd, texture, new Vector4(1, 1, 0, 0), scaleBias, mipLevel, false);
             }
+
+            if (m_GenerateMipMaps)
+                m_AtlasTexture.rt.GenerateMips();
         }
 
         void BlitCubemap(CommandBuffer cmd, Vector4 scaleBias, Texture texture, int mipCount)
         {
+            scaleBias.x /= 3;
+            scaleBias.y /= 2;
             for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
             {
                 cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-
-                // This is probably not the best way to do this (and it doesn't works btw)
                 HDUtils.BlitCube(cmd, texture, new Vector4(1, 1, 0, 0), scaleBias, mipLevel, false);
             }
+
+            if (m_GenerateMipMaps)
+                m_AtlasTexture.rt.GenerateMips();
         }
 
         void UpdateCustomRenderTexture(CommandBuffer cmd, Vector4 scaleBias, CustomRenderTexture crt)
         {
             if (crt.dimension == TextureDimension.Tex2D)
-                Blit2DTexture(cmd, scaleBias, crt, 1);
+                Blit2DTexture(cmd, scaleBias, crt, 2);
             else if (crt.dimension == TextureDimension.Cube)
-                BlitCubemap(cmd, scaleBias, crt, 1);
+                BlitCubemap(cmd, scaleBias, crt, 2);
         }
 
         public bool AddTexture(CommandBuffer cmd, ref Vector4 scaleBias, Texture texture)
@@ -211,8 +219,11 @@ namespace UnityEngine.Experimental.Rendering
             {
                 uint updateCount;
                 if (m_CustomRenderTextureUpdateCache.TryGetValue(key, out updateCount))
+                {
                     if (crt.updateCount != updateCount)
                         UpdateCustomRenderTexture(cmd, scaleBias, crt);
+                    m_CustomRenderTextureUpdateCache[key] = crt.updateCount;
+                }
             }
             
             // If the texture is already in the atlas, return else we add it
@@ -228,15 +239,7 @@ namespace UnityEngine.Experimental.Rendering
                 mipCount = tex2D.mipmapCount;
             else if (cubemap != null)
             {
-                // For the cubemap, faces are organized like this:
-                // +-----+
-                // |1|2|3|
-                // +-----+
-                // |4|5|6|
-                // +-----+
                 cube = true;
-                width *= 3;
-                height *= 2;
                 mipCount = cubemap.mipmapCount;
             }
             else if (crt != null)
@@ -248,6 +251,18 @@ namespace UnityEngine.Experimental.Rendering
             else // Unknown texture type
             {
                 return false;
+            }
+
+            if (cube)
+            {
+                // For the cubemap, faces are organized like this:
+                // +-----+
+                // |3|4|5|
+                // +-----+
+                // |0|1|2|
+                // +-----+
+                width *= 3;
+                height *= 2;
             }
             
             if (m_AtlasAllocator.Allocate(ref scaleBias, width, height))

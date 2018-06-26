@@ -266,6 +266,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DensityVolumes = 16
         };
 
+        private class CookieInfo
+        {
+            public Texture texture;
+            public bool usedInFrame;
+        }
+
         public const int k_MaxDirectionalLightsOnScreen = 4;
         public const int k_MaxPunctualLightsOnScreen    = 512;
         public const int k_MaxAreaLightsOnScreen        = 64;
@@ -290,6 +296,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         PlanarReflectionProbeCache m_ReflectionPlanarProbeCache;
         ReflectionProbeCache m_ReflectionProbeCache;
         Texture2DAtlas m_CookieAtlas;
+        Dictionary<int, CookieInfo> m_CookieList = new Dictionary<int, CookieInfo>();
         List<Matrix4x4> m_Env2DCaptureVP = new List<Matrix4x4>();
 
         // For now we don't use shadow cascade borders.
@@ -520,7 +527,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DecalDatas = new ComputeBuffer(k_MaxDecalsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DecalData)));
 
             GlobalLightLoopSettings gLightLoopSettings = hdAsset.GetRenderPipelineSettings().lightLoopSettings;
-            m_CookieAtlas = new Texture2DAtlas(gLightLoopSettings.cookieAtlasWidth, gLightLoopSettings.cookieAtlasHeight, RenderTextureFormat.ARGB32);
+            m_CookieAtlas = new Texture2DAtlas(gLightLoopSettings.cookieAtlasWidth, gLightLoopSettings.cookieAtlasHeight, RenderTextureFormat.ARGB32, true, FilterMode.Trilinear);
 
             TextureFormat probeCacheFormat = gLightLoopSettings.reflectionCacheCompressed ? TextureFormat.BC6H : TextureFormat.RGBAHalf;
             m_ReflectionProbeCache = new ReflectionProbeCache(hdAsset, iblFilterGGX, gLightLoopSettings.reflectionProbeCacheSize, (int)gLightLoopSettings.reflectionCubemapSize, probeCacheFormat, true);
@@ -831,11 +838,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Vector4 TryGetOrSetCookie(CommandBuffer cmd, Texture cookie)
         {
             Vector4 scaleBias = Vector4.zero;
-            int key = cookie.GetInstanceID();
 
             if (!m_CookieAtlas.AddTexture(cmd, ref scaleBias, cookie))
                 return Vector4.zero;
             
+            // m_CookieList[cookie].
+            
+            Debug.Log("cookie: " + cookie + ", position: " + scaleBias);
+
             return scaleBias;
         }
 
@@ -1516,6 +1526,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_enableBakeShadowMask = false;
 
                 m_lightList.Clear();
+
+                // We reset all cookie usedInFrame boolean so they can be removed from the atlas if we don't see them anymore
+                foreach (var kp in m_CookieList)
+                    kp.Value.usedInFrame = false;
 
                 // We need to properly reset this here otherwise if we go from 1 light to no visible light we would keep the old reference active.
                 m_CurrentSunLight = null;
@@ -2299,6 +2313,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ShadowMgr.BindResources(cmd, null, 0);
 
                 cmd.SetGlobalTexture(HDShaderIDs._CookieAtlas, m_CookieAtlas.AtlasTexture);
+                cmd.SetGlobalVector(HDShaderIDs._CookieAtlasSize, new Vector2(m_CookieAtlas.AtlasTexture.rt.width, m_CookieAtlas.AtlasTexture.rt.height));
                 cmd.SetGlobalTexture(HDShaderIDs._EnvCubemapTextures, m_ReflectionProbeCache.GetTexCache());
                 cmd.SetGlobalTexture(HDShaderIDs._Env2DTextures, m_ReflectionPlanarProbeCache.GetTexCache());
                 cmd.SetGlobalMatrixArray(HDShaderIDs._Env2DCaptureVP, m_Env2DCaptureVP);

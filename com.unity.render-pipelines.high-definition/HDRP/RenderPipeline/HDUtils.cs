@@ -220,17 +220,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static void BlitCube(CommandBuffer cmd, Texture source, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear)
         {
-            s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
+            s_PropertyBlock.SetTexture(HDShaderIDs._CubemapBlitTexture, source);
             s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBiasTex);
             s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
             s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevelTex);
-            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 4 : 5, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+
+            for (int i = 0; i < 6; i++)
+            {
+                s_PropertyBlock.SetInt(HDShaderIDs._BlitFaceIndex, i);
+                cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 4 : 5, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+            }
         }
 
         public static void BlitTexture(CommandBuffer cmd, RTHandleSystem.RTHandle source, RTHandleSystem.RTHandle destination, Vector4 scaleBias, float mipLevel, bool bilinear)
         {
             s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
             s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBias);
+
             s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevel);
             cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 1 : 0, MeshTopology.Triangles, 3, 1, s_PropertyBlock);
         }

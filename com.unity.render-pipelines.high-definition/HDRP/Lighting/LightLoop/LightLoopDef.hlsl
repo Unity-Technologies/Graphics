@@ -1,5 +1,6 @@
 #include "LightLoop.cs.hlsl"
 #include "../../Sky/SkyVariables.hlsl"
+#include "CoreRP/ShaderLibrary/GeometricTools.hlsl"
 
 StructuredBuffer<uint> g_vLightListGlobal;      // don't support Buffer yet in unity
 
@@ -45,6 +46,7 @@ StructuredBuffer<ShadowData>           _ShadowDatas;
 // Cookie atlas used by all the lights
 TEXTURE2D(_CookieAtlas);
 SAMPLER(sampler_CookieAtlas);
+float2 _CookieAtlasSize;
 
 // Use texture array for reflection (or LatLong 2D array for mobile)
 TEXTURECUBE_ARRAY_ABSTRACT(_EnvCubemapTextures);
@@ -77,21 +79,77 @@ struct LightLoopContext
 // ----------------------------------------------------------------------------
 
 // Used by directional and spot lights.
-float3 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, float4 scaleBias, bool repeat)
+float3 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, float4 scaleBias, bool repeat, float3 N, float3 L, float3 worldPos, float3 lightPosition, float3 lightRight, float3 lightUp)
 {
+    repeat = true;
     // TODO: add MIP maps to combat aliasing?
-    // float2 atlasCoords = RangeRemap((repeat) ? coord % float2(1, 1) : coord, scaleBias.xz, scaleBias.yw);
-    coord = (repeat) ? coord % 1 : coord;
+    coord = (repeat) ? frac(coord) : coord;
     float2 atlasCoords = coord * scaleBias.xy + scaleBias.zw;
-    return SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, coord, 0).rgb;
+    float mipLevel = 0;
+
+#if 1
+
+    float3 xNearPixel = IntersectRayPlane(lightPosition, L, worldPos + lightRight, N);
+    float3 yNearPixel = IntersectRayPlane(lightPosition, L, worldPos + lightUp, N);
+
+    float3 xDiff = worldPos - xNearPixel;
+    float3 yDiff = worldPos - yNearPixel;
+
+    float delta = max(dot(xDiff, xDiff), dot(yDiff, yDiff));
+
+#else
+
+    float2 xSize = ddx(atlasCoords) * _CookieAtlasSize;
+    float2 ySize = ddy(atlasCoords) * _CookieAtlasSize;
+    
+    float delta = max(dot(xSize, xSize), dot(ySize, ySize));
+
+#endif
+
+    mipLevel = log2(sqrt(delta));
+
+    float3 color = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, atlasCoords, mipLevel).rgb;
+
+    color *= saturate(1 - abs(3 * mipLevel / 10 - float4(0, 1, 2, 3)));
+
+    return color;
+}
+
+float2 CubeMapFaceUV(float3 dir)
+{
+    float3 a = abs(dir);
+    float2 uv;
+    float d;
+
+    if (a.z >= a.x && a.z >= a.y)
+    {
+        d = 0.5 / a.z;
+        uv = float2(dir.z < 0.0 ? -dir.x : dir.x, -dir.y);
+    }
+    else if (a.y >= a.x)
+    {
+        d = 0.5 / a.y;
+        uv = float2(dir.x, dir.y < 0.0 ? -dir.z : dir.z);
+    }
+    else
+    {
+        d = 0.5 / a.x;
+		uv = float2(dir.x < 0.0 ? dir.z : -dir.z, -dir.y);
+    }
+
+    return uv * d + 0.5;
 }
 
 // Used by point lights.
 float3 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, float4 scaleBias)
 {
-    float cubeFaceId = CubeMapFaceID(coord);
+    scaleBias.x /= 3;
+    scaleBias.y /= 2;
+
+    uint cubeFaceId = (uint)CubeMapFaceID(coord);
     float2 cubeMapOffset = float2((cubeFaceId % 3) * scaleBias.x, (cubeFaceId / 3) * scaleBias.y);
-    float2 atlasCoords = coord * scaleBias.xy + scaleBias.zw + cubeMapOffset;
+    float2 cubeMapUVs = CubeMapFaceUV(coord);
+    float2 atlasCoords = cubeMapUVs * scaleBias.xy + scaleBias.zw + cubeMapOffset;
 
     // TODO: add MIP maps to combat aliasing?
     return SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, atlasCoords, 0).rgb;
