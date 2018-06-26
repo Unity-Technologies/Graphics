@@ -170,7 +170,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             EditorGUI.indentLevel++;
             ScriptableRendererType rendererType = (ScriptableRendererType)CoreEditorUtils.DrawPopup(Styles.scriptableRendererTypeLabel, m_ScriptableRendererTypeProp, Styles.scriptableRendererTypeOptions);
             if (rendererType == ScriptableRendererType.Custom)
-                EditorGUILayout.PropertyField(m_ScriptableRendererCreatorProp, Styles.scriptableRendererCreatorLabel);
+            {
+                Rect rendererRect = EditorGUILayout.GetControlRect(true, EditorGUI.GetPropertyHeight(m_ScriptableRendererCreatorProp));
+                EditorGUI.BeginProperty(rendererRect, Styles.scriptableRendererCreatorLabel, m_ScriptableRendererCreatorProp);
+                m_ScriptableRendererCreatorProp.objectReferenceValue = EditorGUI.ObjectField(rendererRect, m_ScriptableRendererCreatorProp.objectReferenceValue, typeof(IScriptableRendererAsset), false);
+                EditorGUI.EndProperty();
+            }
+                
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
             EditorGUILayout.Space();

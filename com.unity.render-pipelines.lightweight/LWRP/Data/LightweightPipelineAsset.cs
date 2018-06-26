@@ -98,7 +98,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] LightweightPipelineResources m_ResourcesAsset;
 
         [SerializeField] ScriptableRendererType m_ScriptableRendererType;
-        [SerializeField] MonoBehaviour m_ScriptableRendererCreator;
+        [SerializeField] ScriptableObject m_ScriptableRendererCreator;
 
         // Deprecated
         [SerializeField] ShadowType m_ShadowType = ShadowType.HARD_SHADOWS;
@@ -190,25 +190,25 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public ScriptableRenderer CreateRenderer()
         {
-            IScriptableRendererCreator creator;
+            IScriptableRendererAsset creator;
             if (m_ScriptableRendererType == ScriptableRendererType.ClassicForward)
             {
-                creator = new LightweightForwardRendererCreator();
+                creator = ScriptableObject.CreateInstance<LightweightForwardRendererAsset>();
             }
             else if (m_ScriptableRendererType == ScriptableRendererType.OnTileDeferred)
             {
-                creator = new LightweightDeferredRendererCreator();
+                creator = ScriptableObject.CreateInstance<LightweightDeferredRendererAsset>();
             }
             else
             {
                 if (m_ScriptableRendererCreator == null)
                 {
                     Debug.LogError("Custom renderer is selected but no renderer creator is assigned in the pipeline asset. Falling back to Forward Renderer");
-                    creator = new LightweightForwardRendererCreator();
+                    creator = ScriptableObject.CreateInstance<LightweightForwardRendererAsset>();
                 }
                 else
                 {
-                    creator = m_ScriptableRendererCreator;
+                    creator = (IScriptableRendererAsset)m_ScriptableRendererCreator;
                 }
             }
 
