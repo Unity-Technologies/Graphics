@@ -10,7 +10,8 @@
 #define DEBUGVIEW_DECAL_DECALSURFACEDATA_BASE_COLOR (200)
 #define DEBUGVIEW_DECAL_DECALSURFACEDATA_NORMAL (201)
 #define DEBUGVIEW_DECAL_DECALSURFACEDATA_MASK (202)
-#define DEBUGVIEW_DECAL_DECALSURFACEDATA_HTILE_MASK (203)
+#define DEBUGVIEW_DECAL_DECALSURFACEDATA_AOSBLEND (203)
+#define DEBUGVIEW_DECAL_DECALSURFACEDATA_HTILE_MASK (204)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Decal+DBufferMaterial:  static fields
@@ -31,7 +32,7 @@ struct DecalSurfaceData
     float4 baseColor;
     float4 normalWS;
     float4 mask;
-	float2 MAOSBlend;
+    float2 MAOSBlend;
     uint HTileMask;
 };
 
@@ -45,7 +46,7 @@ struct DecalData
     float4 normalScaleBias;
     float4 maskScaleBias;
     float4 baseColor;
-	float3 blendParams;
+    float3 blendParams;
 };
 
 //
@@ -75,6 +76,10 @@ float4 GetBaseColor(DecalData value)
 {
     return value.baseColor;
 }
+float3 GetBlendParams(DecalData value)
+{
+    return value.blendParams;
+}
 
 //
 // Debug functions
@@ -92,6 +97,9 @@ void GetGeneratedDecalSurfaceDataDebug(uint paramId, DecalSurfaceData decalsurfa
             break;
         case DEBUGVIEW_DECAL_DECALSURFACEDATA_MASK:
             result = decalsurfacedata.mask.xyz;
+            break;
+        case DEBUGVIEW_DECAL_DECALSURFACEDATA_AOSBLEND:
+            result = float3(decalsurfacedata.MAOSBlend, 0.0);
             break;
         case DEBUGVIEW_DECAL_DECALSURFACEDATA_HTILE_MASK:
             result = GetIndexColor(decalsurfacedata.HTileMask);
