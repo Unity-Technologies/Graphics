@@ -124,6 +124,7 @@ namespace UnityEngine.Experimental.Rendering
         private RenderTextureFormat m_Format;
         private AtlasAllocator m_AtlasAllocator = null;
         private Dictionary<IntPtr, Vector4> m_AllocationCache = new Dictionary<IntPtr, Vector4>();
+        private Dictionary<IntPtr, uint> m_CustomRenderTextureUpdateCache = new Dictionary<IntPtr, uint>();
 
         public RTHandleSystem.RTHandle AtlasTexture
         {
@@ -166,45 +167,103 @@ namespace UnityEngine.Experimental.Rendering
             m_AllocationCache.Clear();
         }
 
+        void Blit2DTexture(CommandBuffer cmd, Vector4 scaleBias, Texture texture, int mipCount)
+        {
+            for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
+            {
+                cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
+                HDUtils.BlitQuad(cmd, texture, new Vector4(1, 1, 0, 0), scaleBias, mipLevel, false);
+            }
+        }
+
+        void BlitCubemap(CommandBuffer cmd, Vector4 scaleBias, Texture texture, int mipCount)
+        {
+            for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
+            {
+                cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
+
+                // This is probably not the best way to do this (and it doesn't works btw)
+                HDUtils.BlitCube(cmd, texture, new Vector4(1, 1, 0, 0), scaleBias, mipLevel, false);
+            }
+        }
+
+        void UpdateCustomRenderTexture(CommandBuffer cmd, Vector4 scaleBias, CustomRenderTexture crt)
+        {
+            if (crt.dimension == TextureDimension.Tex2D)
+                Blit2DTexture(cmd, scaleBias, crt, 1);
+            else if (crt.dimension == TextureDimension.Cube)
+                BlitCubemap(cmd, scaleBias, crt, 1);
+        }
+
         public bool AddTexture(CommandBuffer cmd, ref Vector4 scaleBias, Texture texture)
         {
-            IntPtr key = texture.GetNativeTexturePtr();
-            if (!m_AllocationCache.TryGetValue(key, out scaleBias))
-            {
-                Texture2D           tex2D = texture as Texture2D;
-                Cubemap             cubemap = texture as Cubemap;
-                CustomRenderTexture crt = texture as CustomRenderTexture;
-                int                 mipCount = 1;
-                int                 width = texture.width;
-                int                 height = texture.height;
+            Texture2D           tex2D = texture as Texture2D;
+            Cubemap             cubemap = texture as Cubemap;
+            CustomRenderTexture crt = texture as CustomRenderTexture;
+            IntPtr              key = texture.GetNativeTexturePtr();
+            bool                cached = false;
+            
+            if (m_AllocationCache.TryGetValue(key, out scaleBias))
+                cached = true;
 
-                if (tex2D != null)
-                    mipCount = tex2D.mipmapCount;
-                else if (cubemap != null)
-                    mipCount = cubemap.mipmapCount;
-                else if (crt != null)
-                    mipCount = 1;
-                else
-                    return false;
-                
-                if (m_AtlasAllocator.Allocate(ref scaleBias, width, height))
-                {
-                    scaleBias.Scale(new Vector4(1.0f / m_Width, 1.0f / m_Height, 1.0f / m_Width, 1.0f / m_Height));
-                    for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
-                    {
-                        cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                        HDUtils.BlitQuad(cmd, texture, new Vector4(1, 1, 0, 0), scaleBias, mipLevel, false);
-                    }
-                    m_AllocationCache.Add(key, scaleBias);
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
+            // Update the custom render texture if needed
+            if (crt != null && cached)
+            {
+                uint updateCount;
+                if (m_CustomRenderTextureUpdateCache.TryGetValue(key, out updateCount))
+                    if (crt.updateCount != updateCount)
+                        UpdateCustomRenderTexture(cmd, scaleBias, crt);
             }
-            scaleBias.x = Random.value;
-            return true;
+            
+            // If the texture is already in the atlas, return else we add it
+            if (cached)
+                return true;
+            
+            int                 mipCount = 1;
+            int                 width = texture.width;
+            int                 height = texture.height;
+            bool                cube = false;
+
+            if (tex2D != null)
+                mipCount = tex2D.mipmapCount;
+            else if (cubemap != null)
+            {
+                // For the cubemap, faces are organized like this:
+                // +-----+
+                // |1|2|3|
+                // +-----+
+                // |4|5|6|
+                // +-----+
+                cube = true;
+                width *= 3;
+                height *= 2;
+                mipCount = cubemap.mipmapCount;
+            }
+            else if (crt != null)
+            {
+                mipCount = 1;
+                cube = crt.dimension == TextureDimension.Cube;
+                m_CustomRenderTextureUpdateCache[key] = crt.updateCount;
+            }
+            else // Unknown texture type
+            {
+                return false;
+            }
+            
+            if (m_AtlasAllocator.Allocate(ref scaleBias, width, height))
+            {
+                scaleBias.Scale(new Vector4(1.0f / m_Width, 1.0f / m_Height, 1.0f / m_Width, 1.0f / m_Height));
+                if (cube)
+                    BlitCubemap(cmd, scaleBias, texture, mipCount);
+                else
+                    Blit2DTexture(cmd, scaleBias, texture, mipCount);
+                m_AllocationCache.Add(key, scaleBias);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         public bool RemoveTexture(Texture texture)

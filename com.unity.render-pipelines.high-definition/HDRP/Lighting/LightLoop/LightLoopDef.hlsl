@@ -44,6 +44,7 @@ StructuredBuffer<ShadowData>           _ShadowDatas;
 
 // Cookie atlas used by all the lights
 TEXTURE2D(_CookieAtlas);
+SAMPLER(sampler_CookieAtlas);
 
 // Use texture array for reflection (or LatLong 2D array for mobile)
 TEXTURECUBE_ARRAY_ABSTRACT(_EnvCubemapTextures);
@@ -80,17 +81,20 @@ float3 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, float4 sc
 {
     // TODO: add MIP maps to combat aliasing?
     // float2 atlasCoords = RangeRemap((repeat) ? coord % float2(1, 1) : coord, scaleBias.xz, scaleBias.yw);
-    float2 atlasCoords = coord / scaleBias.xy + scaleBias.zw;
-    return LOAD_TEXTURE2D(_CookieAtlas, atlasCoords);
+    coord = (repeat) ? coord % 1 : coord;
+    float2 atlasCoords = coord * scaleBias.xy + scaleBias.zw;
+    return SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, coord, 0).rgb;
 }
 
 // Used by point lights.
 float3 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, float4 scaleBias)
 {
+    float cubeFaceId = CubeMapFaceID(coord);
+    float2 cubeMapOffset = float2((cubeFaceId % 3) * scaleBias.x, (cubeFaceId / 3) * scaleBias.y);
+    float2 atlasCoords = coord * scaleBias.xy + scaleBias.zw + cubeMapOffset;
+
     // TODO: add MIP maps to combat aliasing?
-    // return SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_CookieCubeTextures, s_linear_clamp_sampler, coord, index, 0).rgb;
-    // TODO :)
-    return float3(0, 1, 1);
+    return SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, atlasCoords, 0).rgb;
 }
 
 //-----------------------------------------------------------------------------

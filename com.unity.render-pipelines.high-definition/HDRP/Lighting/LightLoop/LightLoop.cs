@@ -290,7 +290,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         PlanarReflectionProbeCache m_ReflectionPlanarProbeCache;
         ReflectionProbeCache m_ReflectionProbeCache;
         Texture2DAtlas m_CookieAtlas;
-        Dictionary<int, Vector4> m_CookieMap = new Dictionary<int, Vector4>();
         List<Matrix4x4> m_Env2DCaptureVP = new List<Matrix4x4>();
 
         // For now we don't use shadow cascade borders.
@@ -831,23 +830,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // TODO: put this elsewhere
         Vector4 TryGetOrSetCookie(CommandBuffer cmd, Texture cookie)
         {
-            Vector4 scaleBias;
+            Vector4 scaleBias = Vector4.zero;
             int key = cookie.GetInstanceID();
 
-
-            m_CookieMap.TryGetValue(key, out scaleBias);
-
-            // If the cookie is not in the atlas, add it
-            if (scaleBias == Vector4.zero)
-            {
-                if (!m_CookieAtlas.AddTexture(cmd, ref scaleBias, cookie))
-                    return Vector4.zero;
-                
-                m_CookieMap.Add(key, scaleBias);
-            }
+            if (!m_CookieAtlas.AddTexture(cmd, ref scaleBias, cookie))
+                return Vector4.zero;
             
-            Debug.Log("cookie: " + cookie + ", position: " + scaleBias);
-
             return scaleBias;
         }
 
