@@ -133,7 +133,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 var drawSettings = new DrawRendererSettings(camera, new ShaderPassName("LightweightDeferred"))
                 {
                     sorting = {flags = SortFlags.CommonOpaque},
-                    rendererConfiguration = RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightmaps,
+                    rendererConfiguration = RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe,
                     flags = DrawRendererFlags.EnableInstancing,
                 };
 
