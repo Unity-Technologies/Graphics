@@ -16,3 +16,8 @@ MonoBehaviour:
   ScreenSpaceShadowShader: {fileID: 4800000, guid: 0f854b35a0cf61a429bd5dcfea30eddd,
     type: 3}
   SamplingShader: {fileID: 4800000, guid: 04c410c9937594faa893a11dceb85f7e, type: 3}
+  BlitTransientShader: {fileID: 4800000, guid: 70f0bb01990945e428a81a63b6083acf, type: 3}
+  DeferredLightingShader: {fileID: 4800000, guid: 372d42f3146d2e743aca190fbb890957,
+    type: 3}
+  SpotLightProxyMesh: {fileID: 4300000, guid: 93e85ba57f65145538a8ac97bd005d40, type: 3}
+  PointLightProxyMesh: {fileID: 4300000, guid: ca5ad20b8c008467d85ab2152d0f67a9, type: 3}

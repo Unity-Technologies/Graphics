@@ -161,7 +161,7 @@ void LitPassFragment_Deferred(LightweightVertexOutput IN,
     InitializeBRDFData(surfaceData.albedo, surfaceData.metallic, surfaceData.specular, surfaceData.smoothness, surfaceData.alpha, brdfData);
 
     GBuffer0 = half4(brdfData.diffuse, surfaceData.occlusion);
-    GBuffer1 = half4(brdfData.specular, brdfData.roughness);
+    GBuffer1 = half4(brdfData.specular, brdfData.roughness2);
     GBuffer2 = half4(inputData.normalWS * 0.5h + 0.5h, 1.0h);
     GBuffer3 = half4(GlobalIllumination(brdfData, inputData.bakedGI, surfaceData.occlusion, inputData.normalWS, inputData.viewDirectionWS) + surfaceData.emission, 1.0h);
 }

@@ -1,31 +1,41 @@
+using System.Collections.Generic;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     public class LightweightDeferredRenderer : ScriptableRenderer
     {
+        const string k_GBufferProfilerTag = "Render GBuffer";
+
         Material m_BlitMaterial;
+        Material m_DeferredLightingMaterial;
+        Mesh m_PointLightProxyMesh;
+        Mesh m_SpotLightProxyMesh;
+
+        MaterialPropertyBlock m_DeferredLightingProperties = new MaterialPropertyBlock();
 
         RenderPassAttachment m_GBufferAlbedo;
         RenderPassAttachment m_GBufferSpecRough;
         RenderPassAttachment m_GBufferNormal;
-        RenderPassAttachment m_GBufferGIEmission;
+        RenderPassAttachment m_LightAccumulation;
         RenderPassAttachment m_DepthAttachment;
-
-        const string k_GBufferProfilerTag = "Render GBuffer";
-
+        
         public LightweightDeferredRenderer(LightweightPipelineAsset asset)
         {
             m_GBufferAlbedo = new RenderPassAttachment(RenderTextureFormat.ARGB32);
             m_GBufferSpecRough = new RenderPassAttachment(RenderTextureFormat.ARGB32);
             m_GBufferNormal = new RenderPassAttachment(RenderTextureFormat.ARGB2101010);
-            m_GBufferGIEmission = new RenderPassAttachment(asset.supportsHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
+            m_LightAccumulation = new RenderPassAttachment(asset.supportsHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
             m_DepthAttachment = new RenderPassAttachment(RenderTextureFormat.Depth);
 
-            m_GBufferGIEmission.Clear(Color.black, 1.0f, 0);
+            m_LightAccumulation.Clear(Color.black, 1.0f, 0);
             m_DepthAttachment.Clear(Color.black, 1.0f, 0);
 
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(asset.blitTransientShader);
+            m_DeferredLightingMaterial = CoreUtils.CreateEngineMaterial(asset.deferredLightingShader);
+
+            m_PointLightProxyMesh = asset.pointLightProxyMesh;
+            m_SpotLightProxyMesh = asset.spotLightPointMesh;
         }
 
         public override void Dispose()
@@ -47,47 +57,53 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             int cameraPixelWidth = (int) (camera.pixelWidth * renderScale);
             int cameraPixelHeight = (int) (camera.pixelHeight * renderScale);
 
-            m_GBufferAlbedo.BindSurface(BuiltinRenderTextureType.CameraTarget, false, true);
+            m_LightAccumulation.BindSurface(BuiltinRenderTextureType.CameraTarget, false, true);
 
             context.SetupCameraProperties(renderingData.cameraData.camera, renderingData.cameraData.isStereoEnabled);
 
             using (RenderPass rp = new RenderPass(context, cameraPixelWidth, cameraPixelHeight, 1, 
-                new[] { m_GBufferAlbedo, m_GBufferSpecRough, m_GBufferNormal, m_GBufferGIEmission }, m_DepthAttachment))
+                new[] { m_GBufferAlbedo, m_GBufferSpecRough, m_GBufferNormal, m_LightAccumulation }, m_DepthAttachment))
             {
-                using (new RenderPass.SubPass(rp, new[] { m_GBufferAlbedo, m_GBufferSpecRough, m_GBufferNormal, m_GBufferGIEmission }, null))
+                using (new RenderPass.SubPass(rp, new[] { m_GBufferAlbedo, m_GBufferSpecRough, m_GBufferNormal, m_LightAccumulation }, null))
                 {
-                    GBufferPass(ref context, ref cullResults, ref renderingData.cameraData);
+                    GBufferPass(ref context, ref cullResults, camera);
                 }
 
-                //using (new RenderPass.SubPass(rp, new[] { m_LightAccumulation }, new[] { m_GBufferAlbedo, m_GBufferSpecRough, m_GBufferNormal, m_GBufferDepth }, true))
-                //{
-                //    LightingPass();
-                //}
+                using (new RenderPass.SubPass(rp, new[] { m_LightAccumulation }, new[] { m_GBufferAlbedo, m_GBufferSpecRough, m_GBufferNormal, m_DepthAttachment }, true))
+                {
+                    LightingPass(ref context, ref cullResults, ref renderingData.lightData);
+                }
 
-                //using (new RenderPass.SubPass(rp, new[] { m_LightAccumulation }, null))
-                //{
-                //    context.DrawSkybox(camera);
-                //}
+                using (new RenderPass.SubPass(rp, new[] { m_LightAccumulation }, null))
+                {
+                    context.DrawSkybox(camera);
+                }
 
                 //using (new RenderPass.SubPass(rp, new[] { m_LightAccumulation }, null))
                 //{
                 //   TransparentPass();
                 //}
-
-                using (new RenderPass.SubPass(rp, new[] { m_GBufferAlbedo }, new[] { m_GBufferGIEmission }))
-                {
-                    FinalPass(ref context, ref cullResults, ref renderingData.cameraData);
-                }
             }
+
+#if UNITY_EDITOR
+            if (renderingData.cameraData.isSceneViewCamera)
+            {
+                // Restore Render target for additional editor rendering.
+                // Note: Scene view camera always perform depth prepass
+                CommandBuffer cmd = CommandBufferPool.Get("Copy Depth to Camera");
+                CoreUtils.SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget);
+                //cmd.Blit(GetSurface(RenderTargetHandles.DepthTexture), BuiltinRenderTextureType.CameraTarget, GetMaterial(MaterialHandles.DepthCopy));
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
+            }
+#endif
         }
 
-        public void GBufferPass(ref ScriptableRenderContext context, ref CullResults cullResults, ref CameraData cameraData)
+        public void GBufferPass(ref ScriptableRenderContext context, ref CullResults cullResults, Camera camera)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_GBufferProfilerTag);
             using (new ProfilingSample(cmd, k_GBufferProfilerTag))
             {
-                Camera camera = cameraData.camera;
-
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
@@ -127,15 +143,25 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             //}
         }
 
-        public void LightingPass()
+        public void LightingPass(ref ScriptableRenderContext context, ref CullResults cullResults, ref LightData lightData)
         {
-            //using (var cmd = new CommandBuffer { name = "Deferred Lighting and Reflections Pass" })
-            //{
-            //    RenderLightsDeferred(camera, cullResults, cmd, loop);
-            //    RenderReflections(camera, cmd, cullResults, loop);
+            CommandBuffer cmd = CommandBufferPool.Get("Deferred Lighting");
+            List<VisibleLight> visibleLights = lightData.visibleLights;
 
-            //    loop.ExecuteCommandBuffer(cmd);
-            //}
+            m_DeferredLightingProperties.Clear();
+            Vector4 lightPosition;
+            Vector4 lightColor;
+            Vector4 lightAttenuation;
+            Vector4 lightSpotDirection;
+            Vector4 lightSpotAttenuation;
+            InitializeLightConstants(visibleLights, lightData.mainLightIndex, MixedLightingSetup.None, out lightPosition, out lightColor, out lightAttenuation, out lightSpotDirection, out lightSpotAttenuation);
+
+            m_DeferredLightingProperties.SetVector(PerCameraBuffer._MainLightPosition, new Vector4(lightPosition.x, lightPosition.y, lightPosition.z, lightAttenuation.w));
+            m_DeferredLightingProperties.SetVector(PerCameraBuffer._MainLightColor, lightColor);
+            LightweightPipeline.DrawFullScreen(cmd, m_DeferredLightingMaterial, m_DeferredLightingProperties);
+
+            context.ExecuteCommandBuffer(cmd);
+            CommandBufferPool.Release(cmd);
         }
 
         public void TransparentPass()

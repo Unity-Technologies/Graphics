@@ -456,6 +456,21 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             get { return resources != null ? resources.SamplingShader : null; }
         }
 
+        public Shader deferredLightingShader
+        {
+            get { return resources != null ? resources.DeferredLightingShader : null; }
+        }
+
+        public Mesh pointLightProxyMesh
+        {
+            get { return resources != null ? resources.PointLightProxyMesh : null; }
+        }
+
+        public Mesh spotLightPointMesh
+        {
+            get { return resources != null ? resources.SpotLightProxyMesh : null; }
+        }
+
         public void OnBeforeSerialize()
         {
         }
