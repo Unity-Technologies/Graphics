@@ -41,8 +41,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     {
         public PostProcessRenderContext postProcessRenderContext { get; private set; }
 
-        public ComputeBuffer perObjectLightIndices { get; private set; }
-
         public FilterRenderersSettings opaqueFilterSettings { get; private set; }
         public FilterRenderersSettings transparentFilterSettings { get; private set; }
 
@@ -98,12 +96,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public override void Dispose()
         {
-            if (perObjectLightIndices != null)
-            {
-                perObjectLightIndices.Release();
-                perObjectLightIndices = null;
-            }
-
+            base.Dispose();
             for (int i = 0; i < m_Materials.Length; ++i)
                 CoreUtils.Destroy(m_Materials[i]);
         }
@@ -273,31 +266,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_ActiveRenderPassQueue.Add(pass);
         }
 
-        bool RequiresIntermediateColorTexture(ref CameraData cameraData, RenderTextureDescriptor baseDescriptor, bool requiresCameraDepth)
-        {
-            if (cameraData.isOffscreenRender)
-                return false;
-
-            bool isScaledRender = !Mathf.Approximately(cameraData.renderScale, 1.0f);
-            bool isTargetTexture2DArray = baseDescriptor.dimension == TextureDimension.Tex2DArray;
-            return requiresCameraDepth || cameraData.isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
-                cameraData.postProcessEnabled || cameraData.requiresOpaqueTexture || isTargetTexture2DArray || !cameraData.isDefaultViewport;
-        }
-
-        bool CanCopyDepth(ref CameraData cameraData)
-        {
-            bool msaaEnabledForCamera = cameraData.msaaSamples > 1;
-            bool supportsTextureCopy = SystemInfo.copyTextureSupport != CopyTextureSupport.None;
-            bool supportsDepthTarget = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.Depth);
-            bool supportsDepthCopy = !msaaEnabledForCamera && (supportsDepthTarget || supportsTextureCopy);
-
-            // TODO:  We don't have support to highp Texture2DMS currently and this breaks depth precision.
-            // currently disabling it until shader changes kick in.
-            //bool msaaDepthResolve = msaaEnabledForCamera && SystemInfo.supportsMultisampledTextures != 0;
-            bool msaaDepthResolve = false;
-            return supportsDepthCopy || msaaDepthResolve;
-        }
-
         void DisposePasses(ref ScriptableRenderContext context)
         {
             CommandBuffer cmd = CommandBufferPool.Get("Release Resources");
@@ -309,52 +277,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
-        }
-
-        void SetupPerObjectLightIndices(ref CullResults cullResults, ref LightData lightData)
-        {
-            if (lightData.totalAdditionalLightsCount == 0)
-                return;
-
-            List<VisibleLight> visibleLights = lightData.visibleLights;
-            int[] perObjectLightIndexMap = cullResults.GetLightIndexMap();
-            int directionalLightCount = 0;
-
-            // Disable all directional lights from the perobject light indices
-            // Pipeline handles them globally
-            for (int i = 0; i < visibleLights.Count; ++i)
-            {
-                VisibleLight light = visibleLights[i];
-                if (light.lightType == LightType.Directional)
-                {
-                    perObjectLightIndexMap[i] = -1;
-                    ++directionalLightCount;
-                }
-                else
-                    perObjectLightIndexMap[i] -= directionalLightCount;
-            }
-            cullResults.SetLightIndexMap(perObjectLightIndexMap);
-
-            // if not using a compute buffer, engine will set indices in 2 vec4 constants
-            // unity_4LightIndices0 and unity_4LightIndices1
-            if (useComputeBufferForPerObjectLightIndices)
-            {
-                int lightIndicesCount = cullResults.GetLightIndicesCount();
-                if (lightIndicesCount > 0)
-                {
-                    if (perObjectLightIndices == null)
-                    {
-                        perObjectLightIndices = new ComputeBuffer(lightIndicesCount, sizeof(int));
-                    }
-                    else if (perObjectLightIndices.count < lightIndicesCount)
-                    {
-                        perObjectLightIndices.Release();
-                        perObjectLightIndices = new ComputeBuffer(lightIndicesCount, sizeof(int));
-                    }
-
-                    cullResults.FillLightIndices(perObjectLightIndices);
-                }
-            }
         }
     }
 }

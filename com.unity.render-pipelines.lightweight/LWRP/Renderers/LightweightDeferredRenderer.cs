@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.Rendering;
+using UnityEngine.XR;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
@@ -8,6 +9,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         const string k_GBufferProfilerTag = "Render GBuffer";
 
         Material m_BlitMaterial;
+        Material m_DefaultBlitMaterial;
         Material m_DeferredLightingMaterial;
         Mesh m_PointLightProxyMesh;
         Mesh m_SpotLightProxyMesh;
@@ -19,7 +21,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         RenderPassAttachment m_GBufferNormal;
         RenderPassAttachment m_LightAccumulation;
         RenderPassAttachment m_DepthAttachment;
-        
+
+        int m_CameraColorTextureHandle;
+        RenderTargetIdentifier m_CameraColorTexture;
+        RenderTargetIdentifier m_CameraTarget;
+
         public LightweightDeferredRenderer(LightweightPipelineAsset asset)
         {
             m_GBufferAlbedo = new RenderPassAttachment(RenderTextureFormat.ARGB32);
@@ -32,21 +38,42 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_DepthAttachment.Clear(Color.black, 1.0f, 0);
 
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(asset.blitTransientShader);
+            m_DefaultBlitMaterial = CoreUtils.CreateEngineMaterial(asset.blitShader);
             m_DeferredLightingMaterial = CoreUtils.CreateEngineMaterial(asset.deferredLightingShader);
 
             m_PointLightProxyMesh = asset.pointLightProxyMesh;
             m_SpotLightProxyMesh = asset.spotLightPointMesh;
+
+            m_CameraColorTextureHandle = Shader.PropertyToID("_CameraColorTexture");
+            m_CameraColorTexture = new RenderTargetIdentifier(m_CameraColorTextureHandle);
         }
 
-        public override void Dispose()
+        public virtual void Dispose()
         {
-
+            base.Dispose();
         }
 
         public override void Setup(ref ScriptableRenderContext context, ref CullResults cullResults,
             ref RenderingData renderingData)
         {
+            if (renderingData.cameraData.isSceneViewCamera)
+            {
+                RenderTextureDescriptor baseDescriptor = CreateRTDesc(ref renderingData.cameraData);
+                baseDescriptor.depthBufferBits = 32;
+                baseDescriptor.sRGB = true;
+                baseDescriptor.msaaSamples = 1;
 
+                CommandBuffer cmd = CommandBufferPool.Get("Create color texture");
+                cmd.GetTemporaryRT(m_CameraColorTextureHandle, baseDescriptor, FilterMode.Bilinear);
+                context.ExecuteCommandBuffer(cmd);
+                CommandBufferPool.Release(cmd);
+                context.Submit();
+                m_CameraTarget = m_CameraColorTexture;
+            }
+            else
+            {
+                m_CameraTarget = BuiltinRenderTextureType.CameraTarget;
+            }
         }
 
         public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults,
@@ -56,8 +83,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             float renderScale = renderingData.cameraData.renderScale;
             int cameraPixelWidth = (int) (camera.pixelWidth * renderScale);
             int cameraPixelHeight = (int) (camera.pixelHeight * renderScale);
-
-            m_LightAccumulation.BindSurface(BuiltinRenderTextureType.CameraTarget, false, true);
+            m_LightAccumulation.BindSurface(m_CameraTarget, false, true);
 
             context.SetupCameraProperties(renderingData.cameraData.camera, renderingData.cameraData.isStereoEnabled);
 
@@ -81,22 +107,19 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 //using (new RenderPass.SubPass(rp, new[] { m_LightAccumulation }, null))
                 //{
-                //   TransparentPass();
+                //    TransparentPass();
                 //}
             }
 
-#if UNITY_EDITOR
             if (renderingData.cameraData.isSceneViewCamera)
             {
-                // Restore Render target for additional editor rendering.
-                // Note: Scene view camera always perform depth prepass
-                CommandBuffer cmd = CommandBufferPool.Get("Copy Depth to Camera");
+                CommandBuffer cmd = CommandBufferPool.Get("Final Blit");
+                cmd.SetGlobalTexture("_BlitTex", m_CameraColorTexture);
+                cmd.Blit(m_CameraTarget, BuiltinRenderTextureType.CameraTarget, m_DefaultBlitMaterial);
                 CoreUtils.SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget);
-                //cmd.Blit(GetSurface(RenderTargetHandles.DepthTexture), BuiltinRenderTextureType.CameraTarget, GetMaterial(MaterialHandles.DepthCopy));
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
             }
-#endif
         }
 
         public void GBufferPass(ref ScriptableRenderContext context, ref CullResults cullResults, Camera camera)
@@ -188,6 +211,26 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             LightweightPipeline.DrawFullScreen(cmd, m_BlitMaterial);
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+        }
+
+        public RenderTextureDescriptor CreateRTDesc(ref CameraData cameraData, float scaler = 1.0f)
+        {
+            Camera camera = cameraData.camera;
+            RenderTextureDescriptor desc;
+#if !UNITY_SWITCH
+            if (cameraData.isStereoEnabled)
+                desc = XRSettings.eyeTextureDesc;
+            else
+#endif
+                desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
+
+            float renderScale = cameraData.renderScale;
+            desc.colorFormat = cameraData.isHdrEnabled ? RenderTextureFormat.DefaultHDR :
+                RenderTextureFormat.Default;
+            desc.enableRandomWrite = false;
+            desc.width = (int)((float)desc.width * renderScale * scaler);
+            desc.height = (int)((float)desc.height * renderScale * scaler);
+            return desc;
         }
     }
 }
