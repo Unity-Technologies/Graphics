@@ -37,11 +37,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_CameraColorTexture = new RenderTargetIdentifier(m_CameraColorTextureHandle);
         }
 
-        public virtual void Dispose()
-        {
-            base.Dispose();
-        }
-
         public override void Setup(ref ScriptableRenderContext context, ref CullResults cullResults,
             ref RenderingData renderingData)
         {

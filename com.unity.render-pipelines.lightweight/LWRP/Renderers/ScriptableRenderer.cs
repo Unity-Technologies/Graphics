@@ -1,10 +1,11 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.GlobalIllumination;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
-    public abstract class ScriptableRenderer
+    public abstract class ScriptableRenderer : IDisposable
     {
         Vector4 k_DefaultLightPosition = new Vector4(0.0f, 0.0f, 1.0f, 0.0f);
         Vector4 k_DefaultLightColor = Color.black;
