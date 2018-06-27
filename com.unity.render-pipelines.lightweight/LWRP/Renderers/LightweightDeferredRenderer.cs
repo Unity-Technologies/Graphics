@@ -48,7 +48,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 baseDescriptor.msaaSamples = 1;
 
                 CommandBuffer cmd = CommandBufferPool.Get("Create color texture");
-                cmd.GetTemporaryRT(m_CameraColorTextureHandle, baseDescriptor, FilterMode.Bilinear);
+                cmd.GetTemporaryRT(m_CameraColorTextureHandle, baseDescriptor, FilterMode.Point);
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
                 context.Submit();

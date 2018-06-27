@@ -44,6 +44,12 @@ half4 _AdditionalLightDistanceAttenuation[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightSpotDir[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightSpotAttenuation[MAX_VISIBLE_LIGHTS];
 
+// x = width
+// y = height
+// z = 1.0 / width
+// w = 1.0 / height
+float4 _ScreenSize;
+
 float4 _ScaledScreenParams;
 CBUFFER_END
 

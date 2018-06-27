@@ -24,6 +24,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public static int _LightIndexBuffer;
 
+        public static int _ScreenSize;
         public static int _ScaledScreenParams;
     }
 

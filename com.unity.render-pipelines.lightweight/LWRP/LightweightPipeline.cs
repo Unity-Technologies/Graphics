@@ -32,6 +32,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             PerFrameBuffer._GlossyEnvironmentColor = Shader.PropertyToID("_GlossyEnvironmentColor");
             PerFrameBuffer._SubtractiveShadowColor = Shader.PropertyToID("_SubtractiveShadowColor");
 
+            PerCameraBuffer._ScreenSize = Shader.PropertyToID("_ScreenSize");
             PerCameraBuffer._ScaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
 
             m_Renderer = asset.CreateRenderer();
@@ -369,8 +370,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         void SetupPerCameraShaderConstants(CameraData cameraData)
         {
-            float cameraWidth = (float)cameraData.camera.pixelWidth * cameraData.renderScale;
-            float cameraHeight = (float)cameraData.camera.pixelWidth * cameraData.renderScale;
+            Camera camera = cameraData.camera;
+            float cameraWidth = (float)camera.pixelWidth * cameraData.renderScale;
+            float cameraHeight = (float)camera.pixelWidth * cameraData.renderScale;
+            Shader.SetGlobalVector(PerCameraBuffer._ScreenSize, new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight));
             Shader.SetGlobalVector(PerCameraBuffer._ScaledScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
         }
 
