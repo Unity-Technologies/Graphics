@@ -278,7 +278,7 @@ namespace UnityEditor.VFX
             return VFXValueType.None;
         }
 
-        public static Dictionary<VFXExpression, VFXExpression> fakeHashSet = new Dictionary<VFXExpression, VFXExpression>();
+        public static Dictionary<VFXExpression, VFXExpression> fakeHashSet = new Dictionary<VFXExpression, VFXExpression>(); //TODOPAUL : find suitable place to handle clear of this map
         public static bool use_FakeHasSet = true;
 
         protected VFXExpression(Flags flags, params VFXExpression[] parents)
