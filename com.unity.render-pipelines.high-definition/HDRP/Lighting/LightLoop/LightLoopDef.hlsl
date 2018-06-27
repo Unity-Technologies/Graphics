@@ -83,14 +83,20 @@ float3 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, float4 sc
 {
     repeat = true;
     // TODO: add MIP maps to combat aliasing?
-    coord = (repeat) ? frac(coord) : coord;
+    coord = clamp((repeat) ? frac(coord) : coord, 0, 1);
     float2 atlasCoords = coord * scaleBias.xy + scaleBias.zw;
     float mipLevel = 0;
 
 #if 1
 
-    float3 xNearPixel = IntersectRayPlane(lightPosition, L, worldPos + lightRight, N);
-    float3 yNearPixel = IntersectRayPlane(lightPosition, L, worldPos + lightUp, N);
+    float dl = dot(L, L);
+
+    float2 t = atlasCoords * 2 - 1;
+    float3 rightDirection = normalize(L + lightRight * t.x);
+    float3 upDirection = normalize(L + lightUp * t.y);
+
+    float3 xNearPixel = IntersectRayPlane(lightPosition, rightDirection, worldPos, N);
+    float3 yNearPixel = IntersectRayPlane(lightPosition, upDirection, worldPos, N);
 
     float3 xDiff = worldPos - xNearPixel;
     float3 yDiff = worldPos - yNearPixel;
@@ -108,7 +114,32 @@ float3 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, float4 sc
 
     mipLevel = log2(sqrt(delta));
 
+    mipLevel = 3;
+
+#if 1
+
+    float2 texelSize = 1 / (scaleBias.xy * _CookieAtlasSize);
+
+    float2 c1 = clamp(coord, 0, 0.99999) * scaleBias.xy + scaleBias.zw;
+    float2 c2 = clamp(coord + float2(texelSize.x, 0.0), 0, 0.99999) * scaleBias.xy + scaleBias.zw;
+    float2 c3 = clamp(coord + float2(0.0, texelSize.y), 0, 0.99999) * scaleBias.xy + scaleBias.zw;
+    float2 c4 = clamp(coord + float2(texelSize.x, texelSize.y), 0, 0.99999) * scaleBias.xy + scaleBias.zw;
+
+    // Manual bilinear interpolation
+    float4 tl = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, c1, mipLevel);
+    float4 tr = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, c2, mipLevel);
+    float4 bl = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, c3, mipLevel);
+    float4 br = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, c4, mipLevel);
+    float2 f = frac(atlasCoords * scaleBias.xy * _CookieAtlasSize);
+    float4 tA = lerp(tl, tr, f.x);
+    float4 tB = lerp(bl, br, f.x);
+    float3 color = lerp(tA, tB, f.y).rgb;
+
+#else
+
     float3 color = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, atlasCoords, mipLevel).rgb;
+
+#endif
     
     // color *= saturate(1 - abs(3 * mipLevel / 10 - float4(0, 1, 2, 3)));
 

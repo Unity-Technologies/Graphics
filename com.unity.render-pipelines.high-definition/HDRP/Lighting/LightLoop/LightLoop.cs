@@ -525,7 +525,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DecalDatas = new ComputeBuffer(k_MaxDecalsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DecalData)));
 
             GlobalLightLoopSettings gLightLoopSettings = hdAsset.GetRenderPipelineSettings().lightLoopSettings;
-            m_CookieAtlas = new Texture2DAtlas(gLightLoopSettings.cookieAtlasWidth, gLightLoopSettings.cookieAtlasHeight, RenderTextureFormat.ARGB32, true, FilterMode.Trilinear);
+            m_CookieAtlas = new Texture2DAtlas(gLightLoopSettings.cookieAtlasWidth, gLightLoopSettings.cookieAtlasHeight, RenderTextureFormat.ARGB32, true, FilterMode.Point);
 
             TextureFormat probeCacheFormat = gLightLoopSettings.reflectionCacheCompressed ? TextureFormat.BC6H : TextureFormat.RGBAHalf;
             m_ReflectionProbeCache = new ReflectionProbeCache(hdAsset, iblFilterGGX, gLightLoopSettings.reflectionProbeCacheSize, (int)gLightLoopSettings.reflectionCubemapSize, probeCacheFormat, true);
@@ -1977,9 +1977,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void DefragmentCookieAtlas(CommandBuffer cmd, List< VisibleLight > visibleLights)
         {
             m_CookieAtlas.ResetAllocator();
-
-            Debug.Log("Defrag cookies !");
-
 
             // Iterate over visible lights sorted by cookie size
             foreach (var light in visibleLights.Where(l => l.light.cookie != null).OrderBy(l => GetCookieSize(l.light.cookie).magnitude))

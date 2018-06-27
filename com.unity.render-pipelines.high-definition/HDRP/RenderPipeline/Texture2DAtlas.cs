@@ -121,7 +121,6 @@ namespace UnityEngine.Experimental.Rendering
         private RTHandleSystem.RTHandle m_AtlasTexture = null;
         private int m_Width;
         private int m_Height;
-        private bool m_GenerateMipMaps;
         private RenderTextureFormat m_Format;
         private AtlasAllocator m_AtlasAllocator = null;
         private Dictionary<IntPtr, Vector4> m_AllocationCache = new Dictionary<IntPtr, Vector4>();
@@ -140,7 +139,6 @@ namespace UnityEngine.Experimental.Rendering
             m_Width = width;
             m_Height = height;
             m_Format = format;
-            m_GenerateMipMaps = generateMipMaps;
             m_AtlasTexture = RTHandles.Alloc(m_Width,
                     m_Height,
                     1,
@@ -152,7 +150,7 @@ namespace UnityEngine.Experimental.Rendering
                     false,
                     false,
                     true,
-                    false);
+                    generateMipMaps);
 
             m_AtlasAllocator = new AtlasAllocator(width, height);
         }
@@ -176,9 +174,6 @@ namespace UnityEngine.Experimental.Rendering
                 cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
                 HDUtils.BlitQuad(cmd, texture, new Vector4(1, 1, 0, 0), scaleBias, mipLevel, false);
             }
-
-            if (m_GenerateMipMaps)
-                m_AtlasTexture.rt.GenerateMips();
         }
 
         void BlitCubemap(CommandBuffer cmd, Vector4 scaleBias, Texture texture, int mipCount)
@@ -190,9 +185,6 @@ namespace UnityEngine.Experimental.Rendering
                 cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
                 HDUtils.BlitCube(cmd, texture, new Vector4(1, 1, 0, 0), scaleBias, mipLevel, false);
             }
-
-            if (m_GenerateMipMaps)
-                m_AtlasTexture.rt.GenerateMips();
         }
 
         void UpdateCustomRenderTexture(CommandBuffer cmd, Vector4 scaleBias, CustomRenderTexture crt)
