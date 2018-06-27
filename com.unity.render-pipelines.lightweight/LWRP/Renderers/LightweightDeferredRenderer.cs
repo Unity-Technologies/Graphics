@@ -16,26 +16,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         MaterialPropertyBlock m_DeferredLightingProperties = new MaterialPropertyBlock();
 
-        RenderPassAttachment m_GBufferAlbedo;
-        RenderPassAttachment m_GBufferSpecRough;
-        RenderPassAttachment m_GBufferNormal;
-        RenderPassAttachment m_LightAccumulation;
-        RenderPassAttachment m_DepthAttachment;
-
         int m_CameraColorTextureHandle;
         RenderTargetIdentifier m_CameraColorTexture;
         RenderTargetIdentifier m_CameraTarget;
 
+        readonly bool m_SupportsHDR;
+
         public LightweightDeferredRenderer(LightweightPipelineAsset asset)
         {
-            m_GBufferAlbedo = new RenderPassAttachment(RenderTextureFormat.ARGB32);
-            m_GBufferSpecRough = new RenderPassAttachment(RenderTextureFormat.ARGB32);
-            m_GBufferNormal = new RenderPassAttachment(RenderTextureFormat.ARGB2101010);
-            m_LightAccumulation = new RenderPassAttachment(asset.supportsHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
-            m_DepthAttachment = new RenderPassAttachment(RenderTextureFormat.Depth);
-
-            m_LightAccumulation.Clear(Color.black, 1.0f, 0);
-            m_DepthAttachment.Clear(Color.black, 1.0f, 0);
+            m_SupportsHDR = asset.supportsHDR;
 
             m_BlitMaterial = CoreUtils.CreateEngineMaterial(asset.blitTransientShader);
             m_DefaultBlitMaterial = CoreUtils.CreateEngineMaterial(asset.blitShader);
@@ -83,29 +72,38 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             float renderScale = renderingData.cameraData.renderScale;
             int cameraPixelWidth = (int) (camera.pixelWidth * renderScale);
             int cameraPixelHeight = (int) (camera.pixelHeight * renderScale);
-            m_LightAccumulation.BindSurface(m_CameraTarget, false, true);
 
             context.SetupCameraProperties(renderingData.cameraData.camera, renderingData.cameraData.isStereoEnabled);
 
-            using (RenderPass rp = new RenderPass(context, cameraPixelWidth, cameraPixelHeight, 1, 
-                new[] { m_GBufferAlbedo, m_GBufferSpecRough, m_GBufferNormal, m_LightAccumulation }, m_DepthAttachment))
+            var depth = new AttachmentDescriptor(RenderTextureFormat.Depth);
+            depth.Clear(Color.black, 1.0f, 0);
+            using (RenderPass rp = context.BeginRenderPass(cameraPixelWidth, cameraPixelHeight, 1, depth))
             {
-                using (new RenderPass.SubPass(rp, new[] { m_GBufferAlbedo, m_GBufferSpecRough, m_GBufferNormal, m_LightAccumulation }, null))
+                var gBufferAlbedoId = context.CreateAttachment(new AttachmentDescriptor(RenderTextureFormat.ARGB32));
+                var gBufferSpecRoughId = context.CreateAttachment(new AttachmentDescriptor(RenderTextureFormat.ARGB32));
+                var gBufferNormalId = context.CreateAttachment(new AttachmentDescriptor(RenderTextureFormat.ARGB2101010));
+
+                var lightAccumulation = new AttachmentDescriptor(m_SupportsHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default);
+                lightAccumulation.Clear(Color.black, 1.0f, 0);
+                lightAccumulation.BindSurface(m_CameraTarget, false, true);
+                var lightAccumulationId = context.CreateAttachment(lightAccumulation);
+
+                using (context.BeginSubPass(new AttachmentList { gBufferAlbedoId, gBufferSpecRoughId, gBufferNormalId, lightAccumulationId }))
                 {
                     GBufferPass(ref context, ref cullResults, camera);
                 }
 
-                using (new RenderPass.SubPass(rp, new[] { m_LightAccumulation }, new[] { m_GBufferAlbedo, m_GBufferSpecRough, m_GBufferNormal, m_DepthAttachment }, true))
+                using (context.BeginSubPass(new AttachmentList { lightAccumulationId }, new AttachmentList { gBufferAlbedoId, gBufferSpecRoughId, gBufferNormalId, rp.depthId }, true))
                 {
                     LightingPass(ref context, ref cullResults, ref renderingData.lightData);
                 }
 
-                using (new RenderPass.SubPass(rp, new[] { m_LightAccumulation }, null))
+                using (context.BeginSubPass(new AttachmentList { lightAccumulationId }))
                 {
                     context.DrawSkybox(camera);
                 }
 
-                //using (new RenderPass.SubPass(rp, new[] { m_LightAccumulation }, null))
+                //using (new RenderPass.SubPass(rp, new AttachmentList { lightAccumulationId }, null))
                 //{
                 //    TransparentPass();
                 //}
