@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering.HDPipeline.Internal;
 using UnityEngine.Rendering;
@@ -266,12 +267,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             DensityVolumes = 16
         };
 
-        private class CookieInfo
-        {
-            public Texture texture;
-            public bool usedInFrame;
-        }
-
         public const int k_MaxDirectionalLightsOnScreen = 4;
         public const int k_MaxPunctualLightsOnScreen    = 512;
         public const int k_MaxAreaLightsOnScreen        = 64;
@@ -296,7 +291,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         PlanarReflectionProbeCache m_ReflectionPlanarProbeCache;
         ReflectionProbeCache m_ReflectionProbeCache;
         Texture2DAtlas m_CookieAtlas;
-        Dictionary<int, CookieInfo> m_CookieList = new Dictionary<int, CookieInfo>();
+        bool m_CookieAtlasAllocationFailed;
+        // TODO: This is bad design, refactor
+        Dictionary<VisibleLight, int> m_VisibleLightToDirectionalMap = new Dictionary<VisibleLight, int>();
+        Dictionary<VisibleLight, int> m_VisibleLightToPunctualMap = new Dictionary<VisibleLight, int>();
         List<Matrix4x4> m_Env2DCaptureVP = new List<Matrix4x4>();
 
         // For now we don't use shadow cascade borders.
@@ -834,21 +832,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return true;
         }
 
-        // TODO: put this elsewhere
-        Vector4 TryGetOrSetCookie(CommandBuffer cmd, Texture cookie)
-        {
-            Vector4 scaleBias = Vector4.zero;
-
-            if (!m_CookieAtlas.AddTexture(cmd, ref scaleBias, cookie))
-                return Vector4.zero;
-            
-            // m_CookieList[cookie].
-            
-            Debug.Log("cookie: " + cookie + ", position: " + scaleBias);
-
-            return scaleBias;
-        }
-
         public bool GetDirectionalLightData(CommandBuffer cmd, ShadowSettings shadowSettings, GPULightType gpuLightType, VisibleLight light, HDAdditionalLightData additionalData, AdditionalShadowData additionalShadowData, int lightIndex)
         {
             var directionalLightData = new DirectionalLightData();
@@ -878,7 +861,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (light.light.cookie != null)
             {
                 directionalLightData.tileCookie = light.light.cookie.wrapMode == TextureWrapMode.Repeat ? 1 : 0;
-                directionalLightData.cookieScaleBias = TryGetOrSetCookie(cmd, light.light.cookie);
+                directionalLightData.cookieScaleBias = FetchCookieAtlas(cmd, light.light.cookie);
             }
             // fix up shadow information
             int shadowIdx;
@@ -911,6 +894,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // The first shadow casting directional light with contact shadow enabled is always taken as dominant light
             if (GetDominantLightWithShadows(additionalShadowData, light))
                 directionalLightData.contactShadowIndex = 0;
+
+            m_VisibleLightToDirectionalMap[light] = m_lightList.directionalLights.Count;
 
             m_lightList.directionalLights.Add(directionalLightData);
 
@@ -1052,7 +1037,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (light.light.cookie != null)
             {
-                lightData.cookieScaleBias = TryGetOrSetCookie(cmd, light.light.cookie);
+                lightData.cookieScaleBias = FetchCookieAtlas(cmd, light.light.cookie);
             }
             else if (light.lightType == LightType.Spot && additionalLightData.spotLightShape != SpotLightShape.Cone)
             {
@@ -1060,7 +1045,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // As long as the cache is a texture array and not an atlas, the 4x4 white texture will be rescaled to 128
 
                 // TODO: test this, it might be a problem with atlas mip maps (1x1 texture)
-                lightData.cookieScaleBias = TryGetOrSetCookie(cmd, Texture2D.whiteTexture);
+                lightData.cookieScaleBias = FetchCookieAtlas(cmd, Texture2D.whiteTexture);
             }
 
             if (additionalshadowData)
@@ -1099,6 +1084,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             
             lightData.contactShadowIndex = -1;
+            
+            m_VisibleLightToPunctualMap[light] = m_lightList.lights.Count;
 
             m_lightList.lights.Add(lightData);
             
@@ -1527,15 +1514,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 m_lightList.Clear();
 
-                // We reset all cookie usedInFrame boolean so they can be removed from the atlas if we don't see them anymore
-                foreach (var kp in m_CookieList)
-                    kp.Value.usedInFrame = false;
-
                 // We need to properly reset this here otherwise if we go from 1 light to no visible light we would keep the old reference active.
                 m_CurrentSunLight = null;
                 m_CurrentSunLightShadowIndex = -1;
                 m_DominantLightIndex = -1;
                 m_DominantLightValue = 0;
+
+                // Reset properties for cookie atlas updates
+                m_CookieAtlasAllocationFailed = false;
 
                 var stereoEnabled = m_FrameSettings.enableStereo;
 
@@ -1786,6 +1772,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                     }
 
+                    if (m_CookieAtlasAllocationFailed)
+                        DefragmentCookieAtlas(cmd, cullResults.visibleLights);
+
                     //Activate contact shadows on dominant light
                     if (m_DominantLightIndex != -1)
                     {
@@ -1954,6 +1943,69 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_enableBakeShadowMask = m_enableBakeShadowMask && hdCamera.frameSettings.enableShadowMask;
 
             return m_enableBakeShadowMask;
+        }
+        
+        Vector4 FetchCookieAtlas(CommandBuffer cmd, Texture cookie)
+        {
+            Vector4 scaleBias = Vector4.zero;
+
+            if (!m_CookieAtlas.AddTexture(cmd, ref scaleBias, cookie))
+            {
+                m_CookieAtlasAllocationFailed = true;
+                return Vector4.zero;
+            }
+
+            return scaleBias;
+        }
+
+        Vector2 GetCookieSize(Texture cookie)
+        {
+            CustomRenderTexture crt = cookie as CustomRenderTexture;
+            Cubemap cubemap = cookie as Cubemap;
+            float width = cookie.width;
+            float height = cookie.height;
+
+            if ((crt != null && crt.dimension == TextureDimension.Cube) || cubemap != null)
+            {
+                width *= 3;
+                height *= 2;
+            }
+
+            return new Vector2(width, height);
+        }
+
+        void DefragmentCookieAtlas(CommandBuffer cmd, List< VisibleLight > visibleLights)
+        {
+            m_CookieAtlas.ResetAllocator();
+
+            Debug.Log("Defrag cookies !");
+
+
+            // Iterate over visible lights sorted by cookie size
+            foreach (var light in visibleLights.Where(l => l.light.cookie != null).OrderBy(l => GetCookieSize(l.light.cookie).magnitude))
+            {
+                if (light.light.cookie == null)
+                    continue ;
+                
+
+                int index;
+                if (m_VisibleLightToPunctualMap.TryGetValue(light, out index))
+                {
+                    var lightData = m_lightList.lights[index];
+                    m_CookieAtlas.AddTexture(cmd, ref lightData.cookieScaleBias, light.light.cookie);
+                    m_lightList.lights[index] = lightData;
+                }
+                else
+                {
+                    index = m_VisibleLightToDirectionalMap[light];
+
+                    var dirLightData = m_lightList.directionalLights[index];
+                    m_CookieAtlas.AddTexture(cmd, ref dirLightData.cookieScaleBias, light.light.cookie);
+                    m_lightList.directionalLights[index] = dirLightData;
+                }
+            }
+
+            // Foreach lights, sort cookies and readd to atlas
         }
 
         static float CalculateProbeLogVolume(Bounds bounds)

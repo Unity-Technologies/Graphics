@@ -197,10 +197,15 @@ namespace UnityEngine.Experimental.Rendering
 
         void UpdateCustomRenderTexture(CommandBuffer cmd, Vector4 scaleBias, CustomRenderTexture crt)
         {
+            // Compute the number of mipmaps using the size of the texture: mipCout = 1 + floot(log2(maxSize))
+            // TODO: maybe too much mipmaps ?
+            float   maxSize = Mathf.Max(crt.width, crt.height, crt.depth);
+            int     mipCount = 1 + Mathf.FloorToInt(Mathf.Log(maxSize) / Mathf.Log(2));
+
             if (crt.dimension == TextureDimension.Tex2D)
-                Blit2DTexture(cmd, scaleBias, crt, 2);
+                Blit2DTexture(cmd, scaleBias, crt, mipCount);
             else if (crt.dimension == TextureDimension.Cube)
-                BlitCubemap(cmd, scaleBias, crt, 2);
+                BlitCubemap(cmd, scaleBias, crt, mipCount);
         }
 
         public bool AddTexture(CommandBuffer cmd, ref Vector4 scaleBias, Texture texture)
@@ -279,11 +284,6 @@ namespace UnityEngine.Experimental.Rendering
             {
                 return false;
             }
-        }
-
-        public bool RemoveTexture(Texture texture)
-        {
-            return m_AllocationCache.Remove(texture.GetNativeTexturePtr());
         }
     }
 }

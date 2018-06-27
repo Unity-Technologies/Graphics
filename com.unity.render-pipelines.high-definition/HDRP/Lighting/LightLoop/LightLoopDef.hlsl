@@ -109,8 +109,8 @@ float3 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, float4 sc
     mipLevel = log2(sqrt(delta));
 
     float3 color = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, atlasCoords, mipLevel).rgb;
-
-    color *= saturate(1 - abs(3 * mipLevel / 10 - float4(0, 1, 2, 3)));
+    
+    // color *= saturate(1 - abs(3 * mipLevel / 10 - float4(0, 1, 2, 3)));
 
     return color;
 }
