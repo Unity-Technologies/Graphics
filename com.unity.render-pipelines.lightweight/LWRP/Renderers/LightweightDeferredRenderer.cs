@@ -146,24 +146,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
-
-            //using (var cmd = new CommandBuffer { name = "Create G-Buffer" })
-            //{
-
-            //    cmd.EnableShaderKeyword("UNITY_HDR_ON");
-            //    cmd.ClearRenderTarget(true, true, new Color(0, 0, 0, 0));
-            //    loop.ExecuteCommandBuffer(cmd);
-
-            //    // render opaque objects using Deferred pass
-            //    var drawSettings = new DrawRendererSettings(camera, new ShaderPassName("LightweightDeferred"))
-            //    {
-            //        sorting = { flags = SortFlags.CommonOpaque },
-            //        rendererConfiguration = RendererConfiguration.PerObjectLightmaps | RendererConfiguration.PerObjectLightProbe
-            //    };
-            //    var filterSettings = new FilterRenderersSettings(true) { renderQueueRange = RenderQueueRange.opaque };
-            //    loop.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, filterSettings);
-
-            //}
         }
 
         public void LightingPass(ref ScriptableRenderContext context, ref CullResults cullResults, ref LightData lightData)
