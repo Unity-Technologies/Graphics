@@ -353,6 +353,13 @@ namespace UnityEditor.VFX.UI
             spacer.style.flex = new Flex(1);
             m_Toolbar.Add(spacer);
 
+            Toggle toggleRuntimeMode = new Toggle();
+            toggleRuntimeMode.text = "Force Runtime Mode";
+            toggleRuntimeMode.SetValueWithoutNotify(true);
+            toggleRuntimeMode.RegisterCallback<ChangeEvent<bool>>(OnToggleRuntimeMode);
+            m_Toolbar.Add(toggleRuntimeMode);
+            toggleRuntimeMode.AddToClassList("toolbarItem");
+
             Toggle toggleAutoCompile = new Toggle();
             toggleAutoCompile.text = "Auto Compile";
             toggleAutoCompile.SetValueWithoutNotify(true);
@@ -1015,6 +1022,11 @@ namespace UnityEditor.VFX.UI
             var graph = controller.graph;
             graph.SetExpressionGraphDirty();
             graph.RecompileIfNeeded();
+        }
+
+        void OnToggleRuntimeMode(ChangeEvent<bool> e)
+        {
+            controller.graph.SetCompilationMode(e.newValue ? VFXCompilationMode.Runtime : VFXCompilationMode.Edition);
         }
 
         public EventPropagation Compile()

@@ -13,12 +13,6 @@ namespace UnityEditor.VFX
 {
     static class VFXCodeGenerator
     {
-        public enum CompilationMode
-        {
-            Debug,
-            Runtime
-        }
-
         private static string GetIndent(string src, int index)
         {
             var indent = "";
@@ -189,29 +183,10 @@ namespace UnityEditor.VFX
             return r;
         }
 
-        static public void Build(VFXContext context, CompilationMode[] modes, StringBuilder[] stringBuilders, VFXContextCompiledData contextData, string templateName)
+        static public StringBuilder Build(VFXContext context, VFXCompilationMode compilationMode, VFXContextCompiledData contextData)
         {
-            var fallbackTemplate = string.Format("Assets/{0}.template", templateName);
-            var processedFile = new Dictionary<string, StringBuilder>();
-            for (int i = 0; i < modes.Length; ++i)
-            {
-                var mode = modes[i];
-                var currentTemplate = string.Format("Assets/{0}_{1}.template", templateName, mode.ToString().ToLower());
-                if (!System.IO.File.Exists(currentTemplate))
-                {
-                    currentTemplate = fallbackTemplate;
-                }
-
-                if (processedFile.ContainsKey(currentTemplate))
-                {
-                    stringBuilders[i] = new StringBuilder(processedFile[currentTemplate].ToString());
-                }
-                else
-                {
-                    Build(context, currentTemplate, stringBuilders[i], contextData);
-                    processedFile.Add(currentTemplate, stringBuilders[i]);
-                }
-            }
+            var templatePath = string.Format("Assets/{0}.template", context.codeGeneratorTemplate);
+            return Build(context, templatePath, compilationMode, contextData);
         }
 
         static private void GetFunctionName(VFXBlock block, out string functionName, out string comment)
@@ -373,12 +348,12 @@ namespace UnityEditor.VFX
             }
         }
 
-        static private void Build(VFXContext context, string templatePath, StringBuilder stringBuilder, VFXContextCompiledData contextData)
+        static private StringBuilder Build(VFXContext context, string templatePath, VFXCompilationMode compilationMode, VFXContextCompiledData contextData)
         {
             var dependencies = new HashSet<ScriptableObject>();
             context.CollectDependencies(dependencies);
 
-            var templateContent = GetFlattenedTemplateContent(templatePath, new List<string>(), context.additionalDefines);
+            var stringBuilder = GetFlattenedTemplateContent(templatePath, new List<string>(), context.additionalDefines);
 
             var globalDeclaration = new VFXShaderWriter();
             globalDeclaration.WriteCBuffer(contextData.uniformMapper, "parameters");
@@ -521,8 +496,6 @@ namespace UnityEditor.VFX
             foreach (var includePath in uniqueIncludes)
                 perPassIncludeContent.WriteLine(string.Format("#include \"{0}\"", includePath));
 
-            stringBuilder.Append(templateContent);
-
             ReplaceMultiline(stringBuilder, "${VFXGlobalInclude}", globalIncludeContent.builder);
             ReplaceMultiline(stringBuilder, "${VFXGlobalDeclaration}", globalDeclaration.builder);
             ReplaceMultiline(stringBuilder, "${VFXPerPassInclude}", perPassIncludeContent.builder);
@@ -584,6 +557,8 @@ namespace UnityEditor.VFX
             SubstituteMacros(stringBuilder);
 
             Debug.LogFormat("GENERATED_OUTPUT_FILE_FOR : {0}\n{1}", context.ToString(), stringBuilder.ToString());
+
+            return stringBuilder;
         }
     }
 }

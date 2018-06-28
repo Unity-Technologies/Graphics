@@ -23,6 +23,12 @@ namespace UnityEditor.VFX
         public int indexInShaderSource;
     }
 
+    enum VFXCompilationMode
+    {
+        Edition,
+        Runtime,
+    }
+
     class VFXGraphCompiledData
     {
         public VFXGraphCompiledData(VFXGraph graph)
@@ -37,7 +43,7 @@ namespace UnityEditor.VFX
             public VFXContext context;
             public bool computeShader;
             public System.Text.StringBuilder content;
-            public VFXCodeGenerator.CompilationMode compilMode;
+            public VFXCompilationMode compilMode;
         }
 
         private static VFXExpressionValueContainerDesc<T> CreateValueDesc<T>(VFXExpression exp, int expIndex)
@@ -435,13 +441,11 @@ namespace UnityEditor.VFX
             outEventDesc.AddRange(eventDescTemp.Select(o => new VFXEventDesc() { name = o.eventName, startSystems = o.playSystems.ToArray(), stopSystems = o.stopSystems.ToArray() }));
         }
 
-        private static void GenerateShaders(List<GeneratedCodeData> outGeneratedCodeData, VFXExpressionGraph graph, IEnumerable<VFXContext> contexts, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData)
+        private static void GenerateShaders(List<GeneratedCodeData> outGeneratedCodeData, VFXExpressionGraph graph, IEnumerable<VFXContext> contexts, Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData, VFXCompilationMode compilationMode)
         {
             Profiler.BeginSample("VFXEditor.GenerateShaders");
             try
             {
-                var compilMode = new[] { /* VFXCodeGenerator.CompilationMode.Debug,*/ VFXCodeGenerator.CompilationMode.Runtime };
-
                 foreach (var context in contexts)
                 {
                     var gpuMapper = graph.BuildGPUMapper(context);
@@ -456,19 +460,15 @@ namespace UnityEditor.VFX
                     var codeGeneratorTemplate = context.codeGeneratorTemplate;
                     if (codeGeneratorTemplate != null)
                     {
-                        var generatedContent = compilMode.Select(o => new StringBuilder()).ToArray();
-                        VFXCodeGenerator.Build(context, compilMode, generatedContent, contextData, codeGeneratorTemplate);
+                        var generatedContent = VFXCodeGenerator.Build(context, compilationMode, contextData);
 
-                        for (int i = 0; i < compilMode.Length; ++i)
+                        outGeneratedCodeData.Add(new GeneratedCodeData()
                         {
-                            outGeneratedCodeData.Add(new GeneratedCodeData()
-                            {
-                                context = context,
-                                computeShader = context.codeGeneratorCompute,
-                                compilMode = compilMode[i],
-                                content = generatedContent[i]
-                            });
-                        }
+                            context = context,
+                            computeShader = context.codeGeneratorCompute,
+                            compilMode = compilationMode,
+                            content = generatedContent
+                        });
                     }
                 }
             }
@@ -581,7 +581,7 @@ namespace UnityEditor.VFX
         }
 
 
-        public void Compile()
+        public void Compile(VFXCompilationMode compilationMode)
         {
             // Prevent doing anything ( and especially showing progesses ) in an empty graph.
             if (m_Graph.children.Count() < 1)
@@ -634,7 +634,9 @@ namespace UnityEditor.VFX
                 m_ExpressionGraph = new VFXExpressionGraph();
                 var exposedExpressionContext = ScriptableObject.CreateInstance<VFXImplicitContextOfExposedExpression>();
                 exposedExpressionContext.FillExpression(m_Graph); //Force all exposed expression to be visible, only for registering in CompileExpressions
-                m_ExpressionGraph.CompileExpressions(compilableContexts.Concat(new VFXContext[] { exposedExpressionContext }), VFXExpressionContextOption.Reduction);
+
+                var expressionContextOptions = compilationMode == VFXCompilationMode.Runtime ? VFXExpressionContextOption.ConstantFolding : VFXExpressionContextOption.Reduction;
+                m_ExpressionGraph.CompileExpressions(compilableContexts.Concat(new VFXContext[] { exposedExpressionContext }), expressionContextOptions);
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generating bytecode", 4 / nbSteps);
                 var expressionDescs = new List<VFXExpressionDesc>();
@@ -667,7 +669,7 @@ namespace UnityEditor.VFX
                 var generatedCodeData = new List<GeneratedCodeData>();
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generating shaders", 7 / nbSteps);
-                GenerateShaders(generatedCodeData, m_ExpressionGraph, compilableContexts, contextToCompiledData);
+                GenerateShaders(generatedCodeData, m_ExpressionGraph, compilableContexts, contextToCompiledData, compilationMode);
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Saving shaders", 8 / nbSteps);
                 SaveShaderFiles(m_Graph.visualEffectResource, generatedCodeData, contextToCompiledData);

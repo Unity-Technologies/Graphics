@@ -366,6 +366,16 @@ namespace UnityEditor.VFX
             return compiledData.FindReducedExpressionIndexFromSlotCPU(slot);
         }
 
+        public void SetCompilationMode(VFXCompilationMode mode)
+        {
+            if (m_CompilationMode != mode)
+            {
+                m_CompilationMode = mode;
+                SetExpressionGraphDirty();
+                RecompileIfNeeded();
+            }
+        }
+
         public void SetExpressionGraphDirty()
         {
             m_ExpressionGraphDirty = true;
@@ -383,7 +393,7 @@ namespace UnityEditor.VFX
             bool considerGraphDirty = m_ExpressionGraphDirty && !preventRecompilation;
             if (considerGraphDirty)
             {
-                compiledData.Compile();
+                compiledData.Compile(m_CompilationMode);
             }
             else if (m_ExpressionValuesDirty && !m_ExpressionGraphDirty)
             {
@@ -414,6 +424,8 @@ namespace UnityEditor.VFX
 
         [NonSerialized]
         private VFXGraphCompiledData m_CompiledData;
+        [NonSerialized]
+        private VFXCompilationMode m_CompilationMode = VFXCompilationMode.Runtime;
 
         [SerializeField]
         protected bool m_saved = false;

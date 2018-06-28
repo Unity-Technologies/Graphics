@@ -63,7 +63,7 @@ namespace UnityEditor.VFX
                     break;
                 case VFXValueType.Matrix4x4:
                 {
-                    var matrix = (Matrix4x4)value;
+                    var matrix = ((Matrix4x4)value).transpose;
                     value = "(";
                     for (int i = 0; i < 16; ++i)
                         value += string.Format(CultureInfo.InvariantCulture, i == 15 ? "{0}" : "{0},", matrix[i]);
