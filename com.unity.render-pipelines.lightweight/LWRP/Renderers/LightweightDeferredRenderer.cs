@@ -41,6 +41,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             m_CameraColorTextureHandle = Shader.PropertyToID("_CameraColorTexture");
             m_CameraColorTexture = new RenderTargetIdentifier(m_CameraColorTextureHandle);
+
+            PerCameraBuffer._MainLightPosition = Shader.PropertyToID("_MainLightPosition");
+            PerCameraBuffer._MainLightColor = Shader.PropertyToID("_MainLightColor");
         }
 
         public override void Setup(ref ScriptableRenderContext context, ref CullResults cullResults,
