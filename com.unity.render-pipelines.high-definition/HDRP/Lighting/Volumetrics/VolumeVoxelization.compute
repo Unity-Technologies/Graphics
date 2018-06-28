@@ -83,6 +83,8 @@ float SampleVolumeMask(DensityVolumeData volumeData, float3 voxelCenterUV, float
     float lod = ComputeTextureLOD(VxUV * _VolumeMaskDimensions.z, VyUV * _VolumeMaskDimensions.z, VzUV * _VolumeMaskDimensions.z);
     voxelCenterUV.z = clamp(voxelCenterUV.z, offset + clampBorder, offset + _VolumeMaskDimensions.x - clampBorder);    
     
+    // TODO: expose the LoD bias parameter.
+    // TODO: can we use anisotropic filtering to improve the quality? SampleGrad() doesn't support ddz().
     float maskValue = SAMPLE_TEXTURE3D_LOD(_VolumeMaskAtlas, s_trilinear_clamp_sampler, voxelCenterUV, lod).a;
 
     return maskValue;
