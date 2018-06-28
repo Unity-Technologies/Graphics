@@ -37,6 +37,6 @@ MonoBehaviour:
   m_KeepLocalShadowVariants: 1
   m_KeepSoftShadowVariants: 1
   m_ResourcesAsset: {fileID: 11400000, guid: aac5a08c32552a14c89394b703f1978a, type: 2}
-  m_ScriptableRendererType: 0
+  m_ScriptableRendererType: 1
   m_ScriptableRendererCreator: {fileID: 0}
   m_ShadowType: 0
