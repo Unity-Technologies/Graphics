@@ -185,6 +185,9 @@ namespace UnityEditor.VFX.UI
 
         void DisconnectController()
         {
+            if (controller.graph)
+                controller.graph.SetCompilationMode(VFXCompilationMode.Runtime);
+
             m_Controller.UnregisterHandler(this);
             m_Controller.useCount--;
 
@@ -225,6 +228,9 @@ namespace UnityEditor.VFX.UI
 
         void ConnectController()
         {
+            if (controller.graph)
+                controller.graph.SetCompilationMode(m_IsRuntimeMode ? VFXCompilationMode.Runtime : VFXCompilationMode.Edition);
+
             m_Controller.RegisterHandler(this);
             m_Controller.useCount++;
 
@@ -355,7 +361,7 @@ namespace UnityEditor.VFX.UI
 
             Toggle toggleRuntimeMode = new Toggle();
             toggleRuntimeMode.text = "Force Runtime Mode";
-            toggleRuntimeMode.SetValueWithoutNotify(true);
+            toggleRuntimeMode.SetValueWithoutNotify(m_IsRuntimeMode);
             toggleRuntimeMode.RegisterCallback<ChangeEvent<bool>>(OnToggleRuntimeMode);
             m_Toolbar.Add(toggleRuntimeMode);
             toggleRuntimeMode.AddToClassList("toolbarItem");
@@ -1024,9 +1030,11 @@ namespace UnityEditor.VFX.UI
             graph.RecompileIfNeeded();
         }
 
+        private bool m_IsRuntimeMode = false;
         void OnToggleRuntimeMode(ChangeEvent<bool> e)
         {
-            controller.graph.SetCompilationMode(e.newValue ? VFXCompilationMode.Runtime : VFXCompilationMode.Edition);
+            m_IsRuntimeMode = e.newValue;
+            controller.graph.SetCompilationMode(m_IsRuntimeMode ? VFXCompilationMode.Runtime : VFXCompilationMode.Edition);
         }
 
         public EventPropagation Compile()

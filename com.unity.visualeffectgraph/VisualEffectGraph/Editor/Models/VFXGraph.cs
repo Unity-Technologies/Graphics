@@ -424,7 +424,6 @@ namespace UnityEditor.VFX
 
         [NonSerialized]
         private VFXGraphCompiledData m_CompiledData;
-        [NonSerialized]
         private VFXCompilationMode m_CompilationMode = VFXCompilationMode.Runtime;
 
         [SerializeField]
