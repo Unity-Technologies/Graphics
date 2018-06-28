@@ -31,6 +31,7 @@ Shader "HDRenderPipeline/Decal"
 	#pragma shader_feature _MAOS_BLEND_MASK_B
 
     #pragma multi_compile_instancing
+	#pragma multi_compile _ _PER_CHANNEL_MASK
     //-------------------------------------------------------------------------------------
     // Define
     //-------------------------------------------------------------------------------------
@@ -195,6 +196,31 @@ Shader "HDRenderPipeline/Decal"
 			HLSLPROGRAM
 
 			#define SHADERPASS SHADERPASS_DBUFFER_PROJECTOR
+			#include "../../ShaderVariables.hlsl"
+			#include "Decal.hlsl"
+			#include "ShaderPass/DecalSharePass.hlsl"
+			#include "DecalData.hlsl"
+			#include "../../ShaderPass/ShaderPassDBuffer.hlsl"
+
+			ENDHLSL
+		}
+
+		Pass
+		{
+			Name "DBufferMesh"  // Name is not used
+			Tags{"LightMode" = "DBufferMesh"} // No mask
+
+			Cull Back
+			ZWrite Off
+			ZTest LEqual
+			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+
+			HLSLPROGRAM
+
+			#define SHADERPASS SHADERPASS_DBUFFER_MESH
 			#include "../../ShaderVariables.hlsl"
 			#include "Decal.hlsl"
 			#include "ShaderPass/DecalSharePass.hlsl"

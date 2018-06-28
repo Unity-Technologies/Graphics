@@ -55,6 +55,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        public bool perChannelMask
+        {
+            get
+            {
+                HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+                if (hdrp != null)
+                {
+                    return hdrp.renderPipelineSettings.decalSettings.perChannelMask;
+                }
+                return false;
+            }
+        }
+
         public Camera CurrentCamera
         {
             get
@@ -371,6 +384,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 Vector3 cameraPos = instance.CurrentCamera.transform.position;
                 Matrix4x4 worldToView = LightLoop.WorldToCamera(instance.CurrentCamera);
+                bool perChannelMask = instance.perChannelMask;
                 for (int resultIndex = 0; resultIndex < m_NumResults; resultIndex++)
                 {
                     int decalIndex = m_ResultIndices[resultIndex];
@@ -394,7 +408,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             m_DecalDatas[m_DecalDatasCount].normalToWorld = normalToWorldBatch[instanceCount];
                             m_DecalDatas[m_DecalDatasCount].baseColor = m_BaseColor;
                             m_DecalDatas[m_DecalDatasCount].blendParams = m_BlendParams;
-                            
+                            if(!perChannelMask)
+                            {
+                                m_DecalDatas[m_DecalDatasCount].blendParams.z = 0.0f;
+                            }
+                                                        
                             // we have not allocated the textures in atlas yet, so only store references to them
                             m_DiffuseTextureScaleBias[m_DecalDatasCount] = m_Diffuse;
                             m_NormalTextureScaleBias[m_DecalDatasCount] = m_Normal;
@@ -461,7 +479,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return;
                 int batchIndex = 0;
                 int totalToDraw = m_NumResults;
-                int shaderPass = (int)m_Material.GetFloat("_MaskBlendMode");
+                int shaderPass = instance.perChannelMask ? (int)m_Material.GetFloat("_MaskBlendMode") : 0;
                 for (; batchIndex < m_NumResults / kDrawIndexedBatchSize; batchIndex++)
                 {
                     m_PropertyBlock.SetMatrixArray(HDShaderIDs._NormalToWorldID, m_NormalToWorld[batchIndex]);

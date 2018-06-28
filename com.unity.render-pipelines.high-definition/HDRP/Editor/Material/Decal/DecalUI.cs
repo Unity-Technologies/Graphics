@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -94,49 +95,54 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap));
             CoreUtils.SetKeyword(material, "_NORMAL_BLEND_MASK_B", material.GetFloat(kNormalBlendSrc) == 1.0f);
             CoreUtils.SetKeyword(material, "_MAOS_BLEND_MASK_B", material.GetFloat(kMaskBlendSrc) == 1.0f);
-            if (material.GetFloat(kMaskBlendMode) == 0.0f)
+
+            material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsStrNoMask, true); // no mask always on
+            BlendMode blendMode = (BlendMode)material.GetFloat(kMaskBlendMode);
+            switch(blendMode)
             {
-                material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsStr, true);    
-                material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMSStr, false);    
-                material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMStr, false);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsSStr, false);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsAOStr, false);
-            }
-            else if (material.GetFloat(kMaskBlendMode) == 1.0f)
-            {
-                material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsStr, false);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMSStr, true);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMStr, false);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsSStr, false);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsAOStr, false);
-            }
-            else if (material.GetFloat(kMaskBlendMode) == 2.0f)
-            {
-                material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsStr, false);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMSStr, false);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMStr, true);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsSStr, false);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsAOStr, false);
-            }
-            else if (material.GetFloat(kMaskBlendMode) == 3.0f)
-            {
-                material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsStr, false);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMSStr, false);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMStr, false);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsSStr, true);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsAOStr, false);
-            }
-            else if (material.GetFloat(kMaskBlendMode) == 4.0f)
-            {
-                material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsStr, false);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMSStr, false);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMStr, false);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsSStr, false);
-                material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsAOStr, true);
+                case BlendMode.Metal_AO_Smoothness:
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsStr, true);
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMSStr, false);
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMStr, false);
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsSStr, false);
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsAOStr, false);
+                    break;
+
+                case BlendMode.Metal_Smoothness:
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsStr, false);
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMSStr, true);
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMStr, false);
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsSStr, false);
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsAOStr, false);
+                    break;
+
+                case BlendMode.Metal:
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsStr, false);
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMSStr, false);
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMStr, true);
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsSStr, false);
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsAOStr, false);
+                    break;
+
+                case BlendMode.Smoothness:
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsStr, false);
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMSStr, false);
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMStr, false);
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsSStr, true);
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsAOStr, false);
+                    break;
+
+                case BlendMode.AO:
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsStr, false);
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMSStr, false);
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMStr, false);
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsSStr, false);
+                    material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsAOStr, true);
+                    break;
             }
         }
 
-        protected void SetupMaterialKeywordsAndPassInternal(Material material)
+        protected void SetupMaterialKeywordsAndPassInternal(Material material, bool perChannelMask)
         {
             SetupMaterialKeywordsAndPass(material);
         }
@@ -149,6 +155,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             float maskBlendSrcValue =  maskBlendSrc.floatValue;
             float maskBlendModeValue = maskBlendMode.floatValue;
 
+            HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            bool perChannelMask = hdrp.renderPipelineSettings.decalSettings.perChannelMask;
 
             // Detect any changes to the material
             EditorGUI.BeginChangeCheck();
@@ -168,8 +176,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap);                               
                 normalBlendSrcValue = EditorGUILayout.Popup( "Normal blend source", (int)normalBlendSrcValue, blendSourceNames);               
                 m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapText, maskMap);
-                maskBlendSrcValue = EditorGUILayout.Popup( "Mask blend source", (int)maskBlendSrcValue, blendSourceNames);                                    
-                maskBlendModeValue = EditorGUILayout.Popup( "Mask blend mode", (int)maskBlendModeValue, blendModeNames);   
+                maskBlendSrcValue = EditorGUILayout.Popup( "Mask blend source", (int)maskBlendSrcValue, blendSourceNames);
+                EditorGUILayout.LabelField("Individual mask map channel blending mode can be enabled/disabled in pipeline asset.");
+                EditorGUILayout.LabelField("Warning!!! Enabling this feature incurs a performance cost.");
+                if(perChannelMask)
+                {
+                    maskBlendModeValue = EditorGUILayout.Popup( "Mask blend mode", (int)maskBlendModeValue, blendModeNames);   
+                }
                 m_MaterialEditor.ShaderProperty(decalBlend, Styles.decalBlendText);
                 EditorGUI.indentLevel--;
             }
@@ -181,7 +194,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 maskBlendMode.floatValue = maskBlendModeValue;
 
                 foreach (var obj in m_MaterialEditor.targets)
-                    SetupMaterialKeywordsAndPassInternal((Material)obj);
+                    SetupMaterialKeywordsAndPassInternal((Material)obj, perChannelMask);
             }
         }
 
