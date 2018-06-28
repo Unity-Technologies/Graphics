@@ -74,9 +74,15 @@ float SampleVolumeMask(DensityVolumeData volumeData, float3 voxelCenterUV, float
     voxelCenterUV.z = voxelCenterUV.z * _VolumeMaskDimensions.x;
     voxelCenterUV.z += offset;
 
-    voxelCenterUV.z = clamp(voxelCenterUV.z, offset + clampBorder, offset + _VolumeMaskDimensions.x - clampBorder);
-    
+    // TODO: bugfix.
+    // Note that this clamping to edge doesn't quite work.
+    // First of all, the distance to the edge should depend on the LoD. In the current implementation, it does not.
+    // Secondly, for trilinear filering, which of the two LoDs should you choose to compute the distance to the edge?
+    // If you use floor(lod), the lower LoD may cause the leak across the edge from the neighbour texture.
+    // If you use ceil(lod), the upper LoD effectively loses a texel at the border, which may break tilable textures.
     float lod = ComputeTextureLOD(VxUV * _VolumeMaskDimensions.z, VyUV * _VolumeMaskDimensions.z, VzUV * _VolumeMaskDimensions.z);
+    voxelCenterUV.z = clamp(voxelCenterUV.z, offset + clampBorder, offset + _VolumeMaskDimensions.x - clampBorder);    
+    
     float maskValue = SAMPLE_TEXTURE3D_LOD(_VolumeMaskAtlas, s_linear_clamp_sampler, voxelCenterUV, lod).a;
 
     return maskValue;
