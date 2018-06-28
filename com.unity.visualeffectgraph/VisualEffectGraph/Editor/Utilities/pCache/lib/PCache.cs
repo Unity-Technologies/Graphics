@@ -199,7 +199,6 @@ public class PCache
             throw new Exception("Invalid header : missing magic number");
 
         Format format = Format.None;
-        string version;
         data.elementCount = 0;
 
         data.properties = new List<PropertyDesc>();
@@ -220,7 +219,6 @@ public class PCache
                         case "binary": format = Format.Binary; break;
                         default: throw new Exception("Invalid Format :" + words[1]);
                     }
-                    version = words[2];
                     break;
                 case "elements":
                     if (words.Length != 2) throw new Exception("Invalid element description  :" + line);

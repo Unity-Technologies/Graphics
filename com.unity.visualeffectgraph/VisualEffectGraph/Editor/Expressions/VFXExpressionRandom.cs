@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 
 namespace UnityEditor.VFX
 {
+    #pragma warning disable CS0659
     class VFXExpressionRandom : VFXExpression
     {
         public VFXExpressionRandom(bool perElement = false) : base(perElement ? VFXExpression.Flags.PerElement : VFXExpression.Flags.None)
@@ -71,4 +72,5 @@ namespace UnityEditor.VFX
                 yield return new VFXAttributeInfo(VFXAttribute.ParticleId, VFXAttributeMode.Read);
         }
     }
+    #pragma warning restore CS0659
 }

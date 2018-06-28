@@ -25,13 +25,14 @@ namespace UnityEditor.VFX.UI
             Profiler.BeginSample("VFXBlockUI.VFXBlockUI");
             AddStyleSheetPath("VFXBlock");
             pickingMode = PickingMode.Position;
-            m_EnableToggle = new Toggle(OnToggleEnable);
+            m_EnableToggle = new Toggle();
+            m_EnableToggle.RegisterCallback<ChangeEvent<bool>>(OnToggleEnable);
             titleContainer.Insert(1, m_EnableToggle);
 
             capabilities &= ~Capabilities.Ascendable;
             capabilities |= Capabilities.Selectable;
 
-            RegisterCallback<MouseDownEvent>(OnMouseDown, Capture.Capture);
+            RegisterCallback<MouseDownEvent>(OnMouseDown, TrickleDown.TrickleDown);
             Profiler.EndSample();
             style.positionType = PositionType.Relative;
         }
@@ -67,7 +68,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void OnToggleEnable()
+        void OnToggleEnable(ChangeEvent<bool> e)
         {
             controller.block.enabled = !controller.block.enabled;
         }

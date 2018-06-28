@@ -39,7 +39,7 @@ namespace UnityEditor.VFX.Block.Test
 
         public class OutputProperties
         {
-            public GPUEvent evt;
+            public GPUEvent evt = new GPUEvent();
         }
 
         public override string source

@@ -212,8 +212,11 @@ namespace UnityEditor.VFX.Test
             return dump;
         }
 
+        #pragma warning disable CS0414
         private static bool[] linkSubSlotOnly = new[] { true, false };
         private static bool[] linkToDirection = new[] { true, false };
+
+        #pragma warning restore CS0414
 
         [Test]
         public void CheckDeterministicBehaviorFromLazyGetExpression([ValueSource("linkSubSlotOnly")] bool linkSubSlotOnly, [ValueSource("linkToDirection")] bool linkToDirection)

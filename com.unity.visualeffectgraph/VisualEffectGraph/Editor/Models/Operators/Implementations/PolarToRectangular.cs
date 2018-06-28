@@ -17,7 +17,7 @@ namespace UnityEditor.VFX.Operator
 
         public class OutputProperties
         {
-            public Vector2 coord;
+            public Vector2 coord = Vector2.zero;
         }
 
         override public string name { get { return "Polar to Rectangular"; } }

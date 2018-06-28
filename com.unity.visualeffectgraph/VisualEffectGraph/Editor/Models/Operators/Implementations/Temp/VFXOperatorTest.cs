@@ -26,7 +26,7 @@ namespace UnityEditor.VFX
             public Color aColor = Color.gray;
             //public Texture2D aTexture2D = null;
             //public Texture3D aTexture3D = null;
-            public Sphere aSphere;
+            public Sphere aSphere = new Sphere();
             public Vector aVector = new Vector { vector = Vector3.one };
             public Position aPosition = new Position { position = Vector3.forward };
             //public int anInt;

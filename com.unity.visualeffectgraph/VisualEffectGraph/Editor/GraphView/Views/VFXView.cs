@@ -323,8 +323,6 @@ namespace UnityEditor.VFX.UI
 
             AddStyleSheetPath("VFXView");
 
-            Dirty(ChangeType.Transform);
-
             AddLayer(-1);
             AddLayer(1);
             AddLayer(2);
@@ -355,9 +353,10 @@ namespace UnityEditor.VFX.UI
             spacer.style.flex = new Flex(1);
             m_Toolbar.Add(spacer);
 
-            Toggle toggleAutoCompile = new Toggle(OnToggleCompile);
+            Toggle toggleAutoCompile = new Toggle();
             toggleAutoCompile.text = "Auto Compile";
             toggleAutoCompile.SetValueWithoutNotify(true);
+            toggleAutoCompile.RegisterCallback<ChangeEvent<bool>>(OnToggleCompile);
             m_Toolbar.Add(toggleAutoCompile);
             toggleAutoCompile.AddToClassList("toolbarItem");
 
@@ -653,7 +652,7 @@ namespace UnityEditor.VFX.UI
 
             UpdateViewTransform(frameTranslation, frameScaling);
 
-            contentViewContainer.Dirty(ChangeType.Repaint);
+            contentViewContainer.MarkDirtyRepaint();
         }
 
         bool m_GeometrySet = false;
@@ -1006,7 +1005,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void OnToggleCompile()
+        void OnToggleCompile(ChangeEvent<bool> e)
         {
             VFXViewWindow.currentWindow.autoCompile = !VFXViewWindow.currentWindow.autoCompile;
         }

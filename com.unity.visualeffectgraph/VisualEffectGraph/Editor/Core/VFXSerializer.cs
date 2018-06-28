@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEditor;
 using Object = UnityEngine.Object;
 using System.Globalization;
+using TangentMode = UnityEditor.AnimationUtility.TangentMode;
 
 namespace UnityEditor.VFX
 {
@@ -149,11 +150,17 @@ namespace UnityEditor.VFX
                 public float value;
                 public float inTangent;
                 public float outTangent;
+
                 public int tangentMode;
+                public TangentMode leftTangentMode;
+                public TangentMode rightTangentMode;
+
+                public bool broken;
             }
             public Keyframe[] frames;
             public WrapMode preWrapMode;
             public WrapMode postWrapMode;
+            public int version;
         }
 
         [System.Serializable]
@@ -235,10 +242,13 @@ namespace UnityEditor.VFX
                     sac.frames[i].value = curve.keys[i].value;
                     sac.frames[i].inTangent = curve.keys[i].inTangent;
                     sac.frames[i].outTangent = curve.keys[i].outTangent;
-                    sac.frames[i].tangentMode = curve.keys[i].tangentMode;
+                    sac.frames[i].leftTangentMode = AnimationUtility.GetKeyLeftTangentMode(curve, i);
+                    sac.frames[i].rightTangentMode = AnimationUtility.GetKeyRightTangentMode(curve, i);
+                    sac.frames[i].broken = AnimationUtility.GetKeyBroken(curve, i);
                 }
                 sac.preWrapMode = curve.preWrapMode;
                 sac.postWrapMode = curve.postWrapMode;
+                sac.version = 1;
 
                 return JsonUtility.ToJson(sac);
             }
@@ -267,6 +277,10 @@ namespace UnityEditor.VFX
                 return EditorJsonUtility.ToJson(obj);
             }
         }
+
+        const int kBrokenMask = 1 << 0;
+        const int kLeftTangentMask = 1 << 1 | 1 << 2 | 1 << 3 | 1 << 4;
+        const int kRightTangentMask = 1 << 5 | 1 << 6 | 1 << 7 | 1 << 8;
 
         public static object Load(System.Type type, string text, object oldValue)
         {
@@ -304,7 +318,18 @@ namespace UnityEditor.VFX
                         keys[i].value = sac.frames[i].value;
                         keys[i].inTangent = sac.frames[i].inTangent;
                         keys[i].outTangent = sac.frames[i].outTangent;
-                        keys[i].tangentMode = sac.frames[i].tangentMode;
+                        if (sac.version == 1)
+                        {
+                            AnimationUtility.SetKeyLeftTangentMode(ref keys[i], sac.frames[i].leftTangentMode);
+                            AnimationUtility.SetKeyRightTangentMode(ref keys[i], sac.frames[i].rightTangentMode);
+                            AnimationUtility.SetKeyBroken(ref keys[i], sac.frames[i].broken);
+                        }
+                        else
+                        {
+                            AnimationUtility.SetKeyLeftTangentMode(ref keys[i], (TangentMode)((sac.frames[i].tangentMode & kLeftTangentMask) >> 1));
+                            AnimationUtility.SetKeyRightTangentMode(ref keys[i], (TangentMode)((sac.frames[i].tangentMode & kRightTangentMask) >> 5));
+                            AnimationUtility.SetKeyBroken(ref keys[i], (sac.frames[i].tangentMode & kBrokenMask) != 0);
+                        }
                     }
                     curve.keys = keys;
                     curve.preWrapMode = sac.preWrapMode;

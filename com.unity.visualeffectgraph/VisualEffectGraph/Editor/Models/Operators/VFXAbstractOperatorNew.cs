@@ -134,7 +134,7 @@ namespace UnityEditor.VFX
                     types = types.Except(kVector3Type);
 
                 if ((typeFilter & ValidTypeRule.allowVector2Type) != ValidTypeRule.allowVector2Type)
-                    types = types.Except(kVector3Type);
+                    types = types.Except(kVector2Type);
 
                 if ((typeFilter & ValidTypeRule.allowOneDimensionType) != ValidTypeRule.allowOneDimensionType)
                     types = types.Except(kOneDimensionType);

@@ -15,11 +15,12 @@ namespace UnityEditor.VFX.UI
     {
         public BoolPropertyRM(IPropertyRMProvider controller, float labelWidth) : base(controller, labelWidth)
         {
-            m_Toggle =  new Toggle(OnValueChanged);
+            m_Toggle =  new Toggle();
+            m_Toggle.RegisterCallback<ChangeEvent<bool>>(OnValueChanged);
             Add(m_Toggle);
         }
 
-        void OnValueChanged()
+        void OnValueChanged(ChangeEvent<bool> e)
         {
             m_Value = m_Toggle.value;
             NotifyValueChanged();

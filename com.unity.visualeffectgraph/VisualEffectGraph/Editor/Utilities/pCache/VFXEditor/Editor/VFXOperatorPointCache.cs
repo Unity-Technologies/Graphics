@@ -13,7 +13,7 @@ namespace UnityEditor.VFX
 
         public class OutputProperties
         {
-            public uint Count;
+            public uint Count = 0;
         }
 
         protected override IEnumerable<VFXPropertyWithValue> outputProperties

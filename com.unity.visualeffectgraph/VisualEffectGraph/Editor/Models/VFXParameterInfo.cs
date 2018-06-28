@@ -73,7 +73,7 @@ namespace UnityEditor.VFX
             var subList = new List<VFXParameterInfo>();
             foreach (var parameter in parameters)
             {
-                string rootFieldName = VisualEffectUtility.GetTypeField(parameter.type);
+                string rootFieldName = VisualEffectSerializationUtility.GetTypeField(parameter.type);
 
                 VFXParameterInfo paramInfo = new VFXParameterInfo(parameter.exposedName, parameter.type.Name);
                 if (rootFieldName != null)
@@ -116,7 +116,7 @@ namespace UnityEditor.VFX
 
                 info.path = path + "_" + field.Name;
 
-                var fieldName = VisualEffectUtility.GetTypeField(field.FieldType);
+                var fieldName = VisualEffectSerializationUtility.GetTypeField(field.FieldType);
 
                 if (fieldName != null)
                 {

@@ -103,7 +103,6 @@ namespace UnityEditor.VFX
             GetSlotPredicateRecursive(outputSlotWithExpression, outputSlots, s => s.DefaultExpr != null);
             GetSlotPredicateRecursive(inputSlotWithExpression, inputSlots, s => s.GetExpression() != null);
 
-            var inputSlotSpaceable = inputSlots.Where(o => o.spaceable);
             IEnumerable<VFXExpression> inputExpressions = inputSlotWithExpression.Select(o => o.GetExpression());
             inputExpressions = ApplyPatchInputExpression(inputExpressions);
 

@@ -102,9 +102,6 @@ public class Test_Explorer : MonoBehaviour
 
     void OnObjectLoaded(GameObject obj, int sceneIndex)
     {
-        var layer = sceneIndex;
-        var layerMask = 1 << sceneIndex;
-
         obj.layer = sceneIndex;
         var currentCamera = obj.GetComponent<Camera>();
         if (currentCamera)
