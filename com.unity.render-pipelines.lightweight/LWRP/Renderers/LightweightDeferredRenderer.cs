@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.XR;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
@@ -7,6 +8,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     public class LightweightDeferredRenderer : ScriptableRenderer
     {
         const string k_GBufferProfilerTag = "Render GBuffer";
+
+        public PostProcessRenderContext postProcessRenderContext { get; private set; }
 
         Material m_BlitMaterial;
         Material m_DefaultBlitMaterial;
@@ -19,6 +22,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         int m_CameraColorTextureHandle;
         RenderTargetIdentifier m_CameraColorTexture;
         RenderTargetIdentifier m_CameraTarget;
+        bool m_RequiresIntermediateColorTexture;
 
         readonly bool m_SupportsHDR;
 
@@ -30,6 +34,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_DefaultBlitMaterial = CoreUtils.CreateEngineMaterial(asset.blitShader);
             m_DeferredLightingMaterial = CoreUtils.CreateEngineMaterial(asset.deferredLightingShader);
 
+            postProcessRenderContext = new PostProcessRenderContext();
+
             m_PointLightProxyMesh = asset.pointLightProxyMesh;
             m_SpotLightProxyMesh = asset.spotLightPointMesh;
 
@@ -40,13 +46,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public override void Setup(ref ScriptableRenderContext context, ref CullResults cullResults,
             ref RenderingData renderingData)
         {
-            if (renderingData.cameraData.isSceneViewCamera || renderingData.cameraData.isOffscreenRender)
+            RenderTextureDescriptor baseDescriptor = CreateRTDesc(ref renderingData.cameraData);
+            baseDescriptor.depthBufferBits = 32;
+            baseDescriptor.sRGB = true;
+            baseDescriptor.msaaSamples = 1;
+            m_RequiresIntermediateColorTexture = renderingData.cameraData.isOffscreenRender || RequiresIntermediateColorTexture(ref renderingData.cameraData, baseDescriptor, false);
+            if (m_RequiresIntermediateColorTexture)
             {
-                RenderTextureDescriptor baseDescriptor = CreateRTDesc(ref renderingData.cameraData);
-                baseDescriptor.depthBufferBits = 32;
-                baseDescriptor.sRGB = true;
-                baseDescriptor.msaaSamples = 1;
-
                 CommandBuffer cmd = CommandBufferPool.Get("Create color texture");
                 cmd.GetTemporaryRT(m_CameraColorTextureHandle, baseDescriptor, FilterMode.Point);
                 context.ExecuteCommandBuffer(cmd);
@@ -104,8 +110,36 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 //}
             }
 
-            if (renderingData.cameraData.isSceneViewCamera)
-            if (renderingData.cameraData.isSceneViewCamera || renderingData.cameraData.isOffscreenRender)
+            if (renderingData.cameraData.postProcessEnabled &&
+                renderingData.cameraData.postProcessLayer.HasOpaqueOnlyEffects(postProcessRenderContext))
+            {
+                CommandBuffer cmd = CommandBufferPool.Get("Render Opaque PostProcess Effects");
+                try
+                {
+                    LightweightPipeline.RenderPostProcess(cmd, postProcessRenderContext, ref renderingData.cameraData, m_SupportsHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default, m_CameraTarget, m_CameraTarget, true);
+                    context.ExecuteCommandBuffer(cmd);
+                }
+                finally
+                {
+                    CommandBufferPool.Release(cmd);
+                }
+            }
+
+            if (renderingData.cameraData.postProcessEnabled)
+            {
+                CommandBuffer cmd = CommandBufferPool.Get("Render PostProcess Effects");
+                try
+                {
+                    LightweightPipeline.RenderPostProcess(cmd, postProcessRenderContext, ref renderingData.cameraData, m_SupportsHDR ? RenderTextureFormat.DefaultHDR : RenderTextureFormat.Default, m_CameraTarget, m_CameraTarget, false);
+                    context.ExecuteCommandBuffer(cmd);
+                }
+                finally
+                {
+                    CommandBufferPool.Release(cmd);
+                }
+            }
+
+            if (m_RequiresIntermediateColorTexture)
             {
                 CommandBuffer cmd = CommandBufferPool.Get("Final Blit");
                 cmd.SetGlobalTexture("_BlitTex", m_CameraColorTexture);
