@@ -11,8 +11,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         public override void OnImportAsset(AssetImportContext ctx)
         {
-            string[] lines = File.ReadAllLines(ctx.assetPath);
-            
+            AsciiFileParser parser = new AsciiFileParser(ctx.assetPath);
+
+            var iesAsset = ScriptableObject.CreateInstance< IesAsset >();
+
+            parser.Parse(iesAsset);
+
+            ctx.AddObjectToAsset("IES asset", iesAsset);
+
+            // TODO: generate a cookie from the IES asset and set it as main asset
         }
     }
 }
