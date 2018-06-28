@@ -449,7 +449,7 @@ namespace UnityEditor.VFX
                 foreach (var context in contexts)
                 {
                     var gpuMapper = graph.BuildGPUMapper(context);
-                    var uniformMapper = new VFXUniformMapper(gpuMapper);
+                    var uniformMapper = new VFXUniformMapper(gpuMapper, context.doesGenerateShader);
 
                     // Add gpu and uniform mapper
                     var contextData = contextToCompiledData[context];
@@ -457,8 +457,7 @@ namespace UnityEditor.VFX
                     contextData.uniformMapper = uniformMapper;
                     contextToCompiledData[context] = contextData;
 
-                    var codeGeneratorTemplate = context.codeGeneratorTemplate;
-                    if (codeGeneratorTemplate != null)
+                    if (context.doesGenerateShader)
                     {
                         var generatedContent = VFXCodeGenerator.Build(context, compilationMode, contextData);
 

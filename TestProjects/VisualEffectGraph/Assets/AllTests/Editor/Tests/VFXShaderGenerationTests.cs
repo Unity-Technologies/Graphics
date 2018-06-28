@@ -168,7 +168,7 @@ namespace UnityEditor.VFX.Test
             var contextCompiledData = new VFXContextCompiledData()
             {
                 gpuMapper = new VFXExpressionMapper(),
-                uniformMapper = new VFXUniformMapper(new VFXExpressionMapper())
+                uniformMapper = new VFXUniformMapper(new VFXExpressionMapper(), true)
             };
 
             var stringBuilder = VFXCodeGenerator.Build(updateContext, VFXCompilationMode.Runtime, contextCompiledData);

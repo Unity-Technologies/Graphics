@@ -9,8 +9,9 @@ namespace UnityEditor.VFX
 {
     class VFXUniformMapper
     {
-        public VFXUniformMapper(VFXExpressionMapper mapper)
+        public VFXUniformMapper(VFXExpressionMapper mapper, bool filterOutConstants)
         {
+            m_FilterOutConstants = filterOutConstants;
             Init(mapper);
         }
 
@@ -23,13 +24,11 @@ namespace UnityEditor.VFX
 
                 if (VFXExpression.IsUniform(exp.valueType))
                 {
-                    if (!exp.Is(VFXExpression.Flags.Constant)) // Filter out constant uniform that should be patched directly in shader
-                    {
-                        prefix = "uniform_";
-                        expressions = m_UniformToName;
-                    }
-                    else
+                    if (m_FilterOutConstants && exp.Is(VFXExpression.Flags.Constant)) // Filter out constant uniform that should be patched directly in shader
                         return;
+
+                    prefix = "uniform_";
+                    expressions = m_UniformToName;
                 }
                 else if (VFXExpression.IsTexture(exp.valueType))
                 {
@@ -108,5 +107,6 @@ namespace UnityEditor.VFX
 
         private Dictionary<VFXExpression, string> m_UniformToName;
         private Dictionary<VFXExpression, string> m_TextureToName;
+        private bool m_FilterOutConstants;
     }
 }
