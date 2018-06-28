@@ -56,7 +56,9 @@ Shader "Hidden/LightweightPipeline/DeferredLighting"
                 float depth = UNITY_READ_FRAMEBUFFER_INPUT(3, pos).r;
 
                 float2 positionNDC = pos.xy * _ScreenSize.zw;
-                float3 positionWS = ComputeWorldSpacePosition(positionNDC, depth, _InvViewProjMatrix);
+
+                // TODO: This needs to be setup for VR
+                float3 positionWS = ComputeWorldSpacePosition(positionNDC, depth, UNITY_MATRIX_I_VP);
                 half3 viewDirection = half3(normalize(GetCameraPositionWS() - positionWS));
 
                 Light mainLight = GetMainLight();
@@ -67,8 +69,7 @@ Shader "Hidden/LightweightPipeline/DeferredLighting"
                 brdfData.roughness2 = specRoughness.a * specRoughness.a;
                 brdfData.roughness2MinusOne = brdfData.roughness2 - 1.0h;
 
-                return half4(saturate(dot(mainLight.direction, normalWS)) * albedoOcclusion.rgb * mainLight.color, 1.0);
-                //return half4(LightingPhysicallyBased(brdfData, mainLight, normalWS, viewDirection), 1.0);
+                return half4(LightingPhysicallyBased(brdfData, mainLight, normalWS, viewDirection), 1.0);
             }
             ENDHLSL
         }

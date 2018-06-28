@@ -32,6 +32,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             PerFrameBuffer._GlossyEnvironmentColor = Shader.PropertyToID("_GlossyEnvironmentColor");
             PerFrameBuffer._SubtractiveShadowColor = Shader.PropertyToID("_SubtractiveShadowColor");
 
+            // TODO: This matrix also needs to be setup for stereo
+            PerCameraBuffer._InvCameraViewProj = Shader.PropertyToID("_InvCameraViewProj");
             PerCameraBuffer._ScreenSize = Shader.PropertyToID("_ScreenSize");
             PerCameraBuffer._ScaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
 
@@ -375,6 +377,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             float cameraHeight = (float)camera.pixelWidth * cameraData.renderScale;
             Shader.SetGlobalVector(PerCameraBuffer._ScreenSize, new Vector4(camera.pixelWidth, camera.pixelHeight, 1.0f / camera.pixelWidth, 1.0f / camera.pixelHeight));
             Shader.SetGlobalVector(PerCameraBuffer._ScaledScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
+
+            Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(camera.projectionMatrix, false);
+            Matrix4x4 viewMatrix = camera.worldToCameraMatrix;
+            Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
+            Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
+            Shader.SetGlobalMatrix(PerCameraBuffer._InvCameraViewProj, invViewProjMatrix);
         }
 
         bool IsStereoEnabled(Camera camera)

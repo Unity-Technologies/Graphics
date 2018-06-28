@@ -10,6 +10,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
     public static class PerCameraBuffer
     {
+        public static int _InvCameraViewProj;
+
         public static int _MainLightPosition;
         public static int _MainLightColor;
         public static int _MainLightCookie;
