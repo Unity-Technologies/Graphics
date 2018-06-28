@@ -73,11 +73,14 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
     uint i = 0; // Declare once to avoid the D3D11 compiler warning.
 
+    float3 positionRWSDdx = ddx(posInput.positionWS);
+    float3 positionRWSDdy = ddy(posInput.positionWS);
+
     if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
     {
         for (i = 0; i < _DirectionalLightCount; ++i)
         {
-            DirectLighting lighting = EvaluateBSDF_Directional(context, V, posInput, preLightData, _DirectionalLightDatas[i], bsdfData, bakeLightingData);
+            DirectLighting lighting = EvaluateBSDF_Directional(context, V, posInput, preLightData, _DirectionalLightDatas[i], bsdfData, bakeLightingData, positionRWSDdx, positionRWSDdy);
             AccumulateDirectLighting(lighting, aggregateLighting);
         }
     }
@@ -97,7 +100,7 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
         {
             LightData lightData = FetchLight(lightStart, i);
 
-            DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, lightData, bsdfData, bakeLightingData);
+            DirectLighting lighting = EvaluateBSDF_Punctual(context, V, posInput, preLightData, lightData, bsdfData, bakeLightingData, positionRWSDdx, positionRWSDdy);
             AccumulateDirectLighting(lighting, aggregateLighting);
         }
     }

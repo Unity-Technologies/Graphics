@@ -7,13 +7,19 @@
 //-----------------------------------------------------------------------------
 
 float3 EvaluateCookie_Directional(LightLoopContext lightLoopContext, DirectionalLightData lightData,
-                                  float3 lightToSample, float3 N, float3 L, float3 worldPos)
+                                  float3 lightToSample, float3 positionRWSDdx, float3 positionRWSDdy)
 {
 
     // Translate and rotate 'positionWS' into the light space.
     // 'lightData.right' and 'lightData.up' are pre-scaled on CPU.
     float3x3 lightToWorld  = float3x3(lightData.right, lightData.up, lightData.forward);
     float3   positionLS    = mul(lightToSample, transpose(lightToWorld));
+
+    positionRWSDdx    = mul(positionRWSDdx, transpose(lightToWorld));
+    positionRWSDdy    = mul(positionRWSDdy, transpose(lightToWorld));
+
+    float2 sampleDdx = positionRWSDdx.xy * lightData.cookieScaleBias.xy;
+    float2 sampleDdy = positionRWSDdy.xy * lightData.cookieScaleBias.xy;
 
     // Perform orthographic projection.
     float2 positionCS    = positionLS.xy;
@@ -22,7 +28,7 @@ float3 EvaluateCookie_Directional(LightLoopContext lightLoopContext, Directional
     float2 positionNDC = positionCS * 0.5 + 0.5;
 
     // We let the sampler handle clamping to border.
-    return SampleCookie2D(lightLoopContext, positionNDC, lightData.cookieScaleBias, lightData.tileCookie, N, L, worldPos, lightData.positionWS, lightData.right, lightData.up);
+    return SampleCookie2D(lightLoopContext, positionNDC, lightData.cookieScaleBias, lightData.tileCookie, sampleDdx, sampleDdy);
 }
 
 // None of the outputs are premultiplied.
@@ -30,7 +36,7 @@ float3 EvaluateCookie_Directional(LightLoopContext lightLoopContext, Directional
 void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs posInput,
                                DirectionalLightData lightData, BakeLightingData bakeLightingData,
                                float3 N, float3 L,
-                               out float3 color, out float attenuation)
+                               out float3 color, out float attenuation, float3 positionRWSDdx, float3 positionRWSDdy)
 {
     float3 positionWS = posInput.positionWS;
     float  shadow     = 1.0;
@@ -42,7 +48,8 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
     UNITY_BRANCH if (any(lightData.cookieScaleBias))
     {
         float3 lightToSample = positionWS - lightData.positionWS;
-        float3 cookie = EvaluateCookie_Directional(lightLoopContext, lightData, lightToSample, N, L, positionWS);
+
+        float3 cookie = EvaluateCookie_Directional(lightLoopContext, lightData, lightToSample, positionRWSDdx, positionRWSDdy);
 
         color *= cookie;
     }
@@ -125,7 +132,7 @@ void GetPunctualLightVectors(float3 positionWS, LightData lightData, out float3 
 }
 
 float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData lightData,
-                               float3 lightToSample, float3 N, float3 L, float3 worldPos)
+                               float3 lightToSample, float3 positionRWSDdx, float3 positionRWSDdy)
 {
     int lightType = lightData.lightType;
 
@@ -151,8 +158,14 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
         // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
         float2 positionNDC = positionCS * 0.5 + 0.5;
 
+        positionRWSDdx    = mul(positionRWSDdx, transpose(lightToWorld));
+        positionRWSDdy    = mul(positionRWSDdy, transpose(lightToWorld));
+    
+        float2 sampleDdx = positionRWSDdx.xy * lightData.cookieScaleBias.xy;
+        float2 sampleDdy = positionRWSDdy.xy * lightData.cookieScaleBias.xy;
+
         // Manually clamp to border (black).
-        cookie.rgb = SampleCookie2D(lightLoopContext, positionNDC, lightData.cookieScaleBias, false, N, L, worldPos, lightData.positionWS, lightData.right, lightData.up);
+        cookie.rgb = SampleCookie2D(lightLoopContext, positionNDC, lightData.cookieScaleBias, false, sampleDdx, sampleDdy);
         cookie.a   = isInBounds ? 1 : 0;
     }
 
@@ -165,7 +178,7 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
 void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs posInput,
                             LightData lightData, BakeLightingData bakeLightingData,
                             float3 N, float3 L, float3 lightToSample, float4 distances,
-                            out float3 color, out float attenuation)
+                            out float3 color, out float attenuation, float3 positionRWSDdx, float3 positionRWSDdy)
 {
     float3 positionWS    = posInput.positionWS;
     float  shadow        = 1.0;
@@ -184,7 +197,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     // Projector lights always have cookies, so we can perform clipping inside the if().
     UNITY_BRANCH if (any(lightData.cookieScaleBias))
     {
-        float4 cookie = EvaluateCookie_Punctual(lightLoopContext, lightData, lightToSample, N, L, positionWS);
+        float4 cookie = EvaluateCookie_Punctual(lightLoopContext, lightData, lightToSample, positionRWSDdx, positionRWSDdy);
 
         color       *= cookie.rgb;
         attenuation *= cookie.a;

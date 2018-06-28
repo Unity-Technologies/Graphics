@@ -79,7 +79,7 @@ struct LightLoopContext
 // ----------------------------------------------------------------------------
 
 // Used by directional and spot lights.
-float3 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, float4 scaleBias, bool repeat, float3 N, float3 L, float3 worldPos, float3 lightPosition, float3 lightRight, float3 lightUp)
+float3 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, float4 scaleBias, bool repeat, float2 sampleDdx, float2 sampleDdy)
 {
     repeat = true;
     // TODO: add MIP maps to combat aliasing?
@@ -87,36 +87,7 @@ float3 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, float4 sc
     float2 atlasCoords = coord * scaleBias.xy + scaleBias.zw;
     float mipLevel = 0;
 
-#if 1
-
-    float dl = dot(L, L);
-
-    float2 t = atlasCoords * 2 - 1;
-    float3 rightDirection = normalize(L + lightRight * t.x);
-    float3 upDirection = normalize(L + lightUp * t.y);
-
-    float3 xNearPixel = IntersectRayPlane(lightPosition, rightDirection, worldPos, N);
-    float3 yNearPixel = IntersectRayPlane(lightPosition, upDirection, worldPos, N);
-
-    float3 xDiff = worldPos - xNearPixel;
-    float3 yDiff = worldPos - yNearPixel;
-
-    float delta = max(dot(xDiff, xDiff), dot(yDiff, yDiff));
-
-#else
-
-    float2 xSize = ddx(atlasCoords) * _CookieAtlasSize;
-    float2 ySize = ddy(atlasCoords) * _CookieAtlasSize;
-    
-    float delta = max(dot(xSize, xSize), dot(ySize, ySize));
-
-#endif
-
-    mipLevel = log2(sqrt(delta));
-
-    mipLevel = 3;
-
-#if 1
+#if 0
 
     float2 texelSize = 1 / (scaleBias.xy * _CookieAtlasSize);
 
@@ -126,10 +97,10 @@ float3 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, float4 sc
     float2 c4 = clamp(coord + float2(texelSize.x, texelSize.y), 0, 0.99999) * scaleBias.xy + scaleBias.zw;
 
     // Manual bilinear interpolation
-    float4 tl = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, c1, mipLevel);
-    float4 tr = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, c2, mipLevel);
-    float4 bl = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, c3, mipLevel);
-    float4 br = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, c4, mipLevel);
+    float4 tl = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, c1, lod);
+    float4 tr = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, c2, lod);
+    float4 bl = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, c3, lod);
+    float4 br = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, c4, lod);
     float2 f = frac(atlasCoords * scaleBias.xy * _CookieAtlasSize);
     float4 tA = lerp(tl, tr, f.x);
     float4 tB = lerp(bl, br, f.x);
@@ -137,11 +108,13 @@ float3 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, float4 sc
 
 #else
 
-    float3 color = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, atlasCoords, mipLevel).rgb;
+    float lod = ComputeTextureLOD(sampleDdx, sampleDdy, _CookieAtlasSize);
+
+    float3 color = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, atlasCoords, lod).rgb;
 
 #endif
     
-    // color *= saturate(1 - abs(3 * mipLevel / 10 - float4(0, 1, 2, 3)));
+    color *= saturate(1 - abs(3 * lod / 10 - float4(0, 1, 2, 3))).rgb;
 
     return color;
 }
