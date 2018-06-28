@@ -40,7 +40,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public override void Setup(ref ScriptableRenderContext context, ref CullResults cullResults,
             ref RenderingData renderingData)
         {
-            if (renderingData.cameraData.isSceneViewCamera)
+            if (renderingData.cameraData.isSceneViewCamera || renderingData.cameraData.isOffscreenRender)
             {
                 RenderTextureDescriptor baseDescriptor = CreateRTDesc(ref renderingData.cameraData);
                 baseDescriptor.depthBufferBits = 32;
@@ -105,6 +105,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
 
             if (renderingData.cameraData.isSceneViewCamera)
+            if (renderingData.cameraData.isSceneViewCamera || renderingData.cameraData.isOffscreenRender)
             {
                 CommandBuffer cmd = CommandBufferPool.Get("Final Blit");
                 cmd.SetGlobalTexture("_BlitTex", m_CameraColorTexture);
