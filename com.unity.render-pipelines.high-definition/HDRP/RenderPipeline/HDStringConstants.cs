@@ -18,6 +18,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly string s_TransparentDepthPostpassStr = "TransparentDepthPostpass";
         public static readonly string s_MetaStr = "Meta";
         public static readonly string s_ShadowCasterStr = "ShadowCaster";
+        public static readonly string s_MeshDecalsStrNoMask = "DBufferMesh";
         public static readonly string s_MeshDecalsStr = "DBufferMesh_MAOS";
         public static readonly string s_MeshDecalsMSStr = "DBufferMesh_MS";
         public static readonly string s_MeshDecalsMStr = "DBufferMesh_M";
@@ -38,6 +39,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly ShaderPassName s_TransparentDepthPrepassName = new ShaderPassName(s_TransparentDepthPrepassStr);
         public static readonly ShaderPassName s_TransparentBackfaceName = new ShaderPassName(s_TransparentBackfaceStr);
         public static readonly ShaderPassName s_TransparentDepthPostpassName = new ShaderPassName(s_TransparentDepthPostpassStr);
+        public static readonly ShaderPassName s_MeshDecalsNoMaskName = new ShaderPassName(s_MeshDecalsStrNoMask);
         public static readonly ShaderPassName s_MeshDecalsName = new ShaderPassName(s_MeshDecalsStr);
         public static readonly ShaderPassName s_MeshDecalsMSName = new ShaderPassName(s_MeshDecalsMSStr);
         public static readonly ShaderPassName s_MeshDecalsMName = new ShaderPassName(s_MeshDecalsMStr);
