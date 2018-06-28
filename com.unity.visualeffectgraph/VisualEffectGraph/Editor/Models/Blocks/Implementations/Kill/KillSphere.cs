@@ -12,7 +12,7 @@ namespace UnityEditor.VFX.Block
 
         public override string name { get { return "Kill (Sphere)"; } }
 
-        public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdate; } }
+        public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdateAndOutput; } }
         public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
 
         public override IEnumerable<VFXAttributeInfo> attributes
