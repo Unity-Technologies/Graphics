@@ -72,7 +72,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void Build(HDRenderPipelineAsset hdAsset)
         {
             // Disney SSS (compute + combine)
-            string kernelName = hdAsset.renderPipelineSettings.enableUltraQualitySSS ? "SubsurfaceScatteringQualityUltra" : "SubsurfaceScatteringQualityNormal";
+            string kernelName = hdAsset.renderPipelineSettings.increaseSssSampleCount ? "SubsurfaceScatteringHQ" : "SubsurfaceScatteringMQ";
             m_SubsurfaceScatteringCS = hdAsset.renderPipelineResources.subsurfaceScatteringCS;
             m_SubsurfaceScatteringKernel = m_SubsurfaceScatteringCS.FindKernel(kernelName);
             m_CombineLightingPass = CoreUtils.CreateEngineMaterial(hdAsset.renderPipelineResources.combineLighting);

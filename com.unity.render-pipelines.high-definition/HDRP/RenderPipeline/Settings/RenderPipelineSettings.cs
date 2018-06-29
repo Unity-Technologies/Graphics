@@ -27,7 +27,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool supportSubsurfaceScattering = true;
         [FormerlySerializedAs("supportForwardOnly")]
         public bool supportOnlyForward = false;
-        public bool enableUltraQualitySSS = false;
+        public bool increaseSssSampleCount = false;
         public bool supportVolumetric = true;
 
         // reduce variant

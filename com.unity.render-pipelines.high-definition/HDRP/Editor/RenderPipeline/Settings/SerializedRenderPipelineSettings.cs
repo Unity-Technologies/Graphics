@@ -16,7 +16,7 @@ namespace UnityEditor.Experimental.Rendering
         public SerializedProperty supportOnlyForward;
         public SerializedProperty supportMotionVectors;
         public SerializedProperty supportStereo;
-        public SerializedProperty enableUltraQualitySSS;
+        public SerializedProperty increaseSssSampleCount;
         public SerializedProperty supportVolumetric;
         public SerializedProperty supportRuntimeDebugDisplay;
         public SerializedProperty supportDitheringCrossFade;
@@ -39,7 +39,7 @@ namespace UnityEditor.Experimental.Rendering
             supportOnlyForward = root.Find((RenderPipelineSettings s) => s.supportOnlyForward);
             supportMotionVectors = root.Find((RenderPipelineSettings s) => s.supportMotionVectors);
             supportStereo = root.Find((RenderPipelineSettings s) => s.supportStereo);
-            enableUltraQualitySSS = root.Find((RenderPipelineSettings s) => s.enableUltraQualitySSS);
+            increaseSssSampleCount = root.Find((RenderPipelineSettings s) => s.increaseSssSampleCount);
             supportVolumetric = root.Find((RenderPipelineSettings s) => s.supportVolumetric);
             supportRuntimeDebugDisplay = root.Find((RenderPipelineSettings s) => s.supportRuntimeDebugDisplay);
             supportDitheringCrossFade = root.Find((RenderPipelineSettings s) => s.supportDitheringCrossFade);
