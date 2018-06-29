@@ -481,10 +481,10 @@ float ComputeTextureLOD(float2 uv, float2 texelSize)
     return ComputeTextureLOD(uv);
 }
 
-float ComputeTextureLOD(float3 Px, float3 Py, float3 Pz)
+float ComputeTextureLOD(float3 duvw_dx, float3 duvw_dy, float3 duvw_dz, float scale)
 {
-    float d = max(dot(Px, Px), max(dot(Py, Py), dot(Pz, Pz)));
-    return max(0.0, 0.5 * log2(d));
+    float d = Max3(dot(duvw_dx, duvw_dx), dot(duvw_dy, duvw_dy), dot(duvw_dz, duvw_dz));
+    return max(0.0, 0.5 * log2(d * (scale * scale)));
 }
 
 
