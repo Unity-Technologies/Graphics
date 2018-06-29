@@ -55,7 +55,7 @@ MonoBehaviour:
     supportSSAO: 1
     supportSubsurfaceScattering: 1
     supportOnlyForward: 0
-    enableUltraQualitySSS: 0
+    increaseSssSampleCount: 0
     supportVolumetric: 1
     supportRuntimeDebugDisplay: 1
     supportDitheringCrossFade: 1
