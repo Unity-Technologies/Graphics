@@ -15,12 +15,12 @@ namespace UnityEditor.VFX
             Init(mapper);
         }
 
-        private void CollectAndAddUniforms(VFXExpression exp, string name)
+        private void CollectAndAddUniforms(VFXExpression exp, IEnumerable<string> names)
         {
             if (!exp.IsAny(VFXExpression.Flags.NotCompilabeOnCPU))
             {
                 string prefix;
-                Dictionary<VFXExpression, string> expressions;
+                Dictionary<VFXExpression, List<string>> expressions;
 
                 if (VFXExpression.IsUniform(exp.valueType))
                 {
@@ -44,11 +44,19 @@ namespace UnityEditor.VFX
                     return;
                 }
 
-                if (expressions.ContainsKey(exp)) // Only need one name
-                    return;
+                List<string> previousNames;
+                expressions.TryGetValue(exp, out previousNames);
 
-                name = name != null ? name : prefix + VFXCodeGeneratorHelper.GeneratePrefix((uint)expressions.Count());
-                expressions[exp] = name;
+                if (previousNames == null)
+                {
+                    previousNames = new List<string>();
+                    expressions[exp] = previousNames;
+                }
+
+                if (names == null)
+                    previousNames.Add(prefix + VFXCodeGeneratorHelper.GeneratePrefix((uint)expressions.Count()));
+                else
+                    previousNames.AddRange(names);
             }
             else
                 foreach (var parent in exp.parents)
@@ -57,25 +65,20 @@ namespace UnityEditor.VFX
 
         private void Init(VFXExpressionMapper mapper)
         {
-            m_UniformToName = new Dictionary<VFXExpression, string>();
-            m_TextureToName = new Dictionary<VFXExpression, string>();
+            m_UniformToName = new Dictionary<VFXExpression, List<string>>();
+            m_TextureToName = new Dictionary<VFXExpression, List<string>>();
 
             foreach (var exp in mapper.expressions)
-                CollectAndAddUniforms(exp, mapper.GetData(exp).First().fullName);
+                CollectAndAddUniforms(exp, mapper.GetData(exp).Select(d => d.fullName));
         }
 
         public IEnumerable<VFXExpression> uniforms { get { return m_UniformToName.Keys; } }
         public IEnumerable<VFXExpression> textures { get { return m_TextureToName.Keys; } }
 
-        public string GetName(VFXExpression exp)    { return VFXExpression.IsTexture(exp.valueType) ? m_TextureToName[exp] : m_UniformToName[exp]; }
+        // Get only the first name of a uniform (For generated code, we collapse all uniforms using the same expression into a single one)
+        public string GetName(VFXExpression exp)        { return VFXExpression.IsTexture(exp.valueType) ? m_TextureToName[exp].First() : m_UniformToName[exp].First(); }
 
-        public Dictionary<VFXExpression, string> expressionToName
-        {
-            get
-            {
-                return m_UniformToName.Union(m_TextureToName).ToDictionary(s => s.Key, s => s.Value);
-            }
-        }
+        public List<string> GetNames(VFXExpression exp) { return VFXExpression.IsTexture(exp.valueType) ? m_TextureToName[exp] : m_UniformToName[exp]; }
 
         // This retrieves expression to name with additional type conversion where suitable
         public Dictionary<VFXExpression, string> expressionToCode
@@ -84,29 +87,30 @@ namespace UnityEditor.VFX
             {
                 return m_UniformToName.Select(s => {
                         string code = null;
+                        string firstName = s.Value.First();
                         switch (s.Key.valueType)
                         {
                             case VFXValueType.Int32:
-                                code = "asint(" + s.Value + ")";
+                                code = "asint(" + firstName + ")";
                                 break;
                             case VFXValueType.Uint32:
-                                code = "asuint(" + s.Value + ")";
+                                code = "asuint(" + firstName + ")";
                                 break;
                             case VFXValueType.Boolean:
-                                code = "(bool)asuint(" + s.Value + ")";
+                                code = "(bool)asuint(" + firstName + ")";
                                 break;
                             default:
-                                code = s.Value;
+                                code = firstName;
                                 break;
                         }
 
                         return new KeyValuePair<VFXExpression, string>(s.Key, code);
-                    }).Union(m_TextureToName).ToDictionary(s => s.Key, s => s.Value);
+                    }).Union(m_TextureToName.Select(s => new KeyValuePair<VFXExpression, string>(s.Key, s.Value.First()))).ToDictionary(s => s.Key, s => s.Value);
             }
         }
 
-        private Dictionary<VFXExpression, string> m_UniformToName;
-        private Dictionary<VFXExpression, string> m_TextureToName;
+        private Dictionary<VFXExpression, List<string>> m_UniformToName;
+        private Dictionary<VFXExpression, List<string>> m_TextureToName;
         private bool m_FilterOutConstants;
     }
 }
