@@ -234,9 +234,7 @@ void ToggleBit(inout uint data, uint offset)
 {
     data ^= 1u << offset;
 }
-
 #endif
-
 
 #ifndef INTRINSIC_WAVEREADFIRSTLANE
     // Warning: for correctness, the argument's value must be the same across all lanes of the wave.
@@ -831,6 +829,13 @@ real3 SafeNormalize(real3 inVec)
 {
     real dp3 = max(REAL_MIN, dot(inVec, inVec));
     return inVec * rsqrt(dp3);
+}
+
+// Division which returns 1 for (inf/inf) and (0/0).
+// If any of the input parameters are NaNs, the result is a NaN.
+real SafeDiv(real numer, real denom)
+{
+    return (numer != denom) : numer / denom : 1;
 }
 
 // Generates a triangle in homogeneous clip space, s.t.
