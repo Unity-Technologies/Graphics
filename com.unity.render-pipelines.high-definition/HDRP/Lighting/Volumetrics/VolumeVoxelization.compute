@@ -73,6 +73,9 @@ float SampleVolumeMask(DensityVolumeData volumeData, float3 voxelCenterUV, float
     voxelCenterUV.z = voxelCenterUV.z * _VolumeMaskDimensions.x;
     voxelCenterUV.z += offset;
 
+    // TODO: expose the LoD bias parameter.
+    float lod = ComputeTextureLOD(duvw_dx, duvw_dy, duvw_dz, _VolumeMaskDimensions.z);
+
     // TODO: bugfix.
     // Note that this clamping to edge doesn't quite work.
     // First of all, the distance to the edge should depend on the LoD.
@@ -80,12 +83,13 @@ float SampleVolumeMask(DensityVolumeData volumeData, float3 voxelCenterUV, float
     // If you use floor(lod), the lower LoD may cause the leak across the edge from the neighbour texture.
     // If you use ceil(lod), the upper LoD effectively loses a texel at the border, which may break tilable textures.
     // For now, we choose the second option.
-    float lod         = ComputeTextureLOD(duvw_dx, duvw_dy, duvw_dz, _VolumeMaskDimensions.z);
-    float lodScale    = exp2(ceil(lod));
-    float clampBorder = 0.5f * lodScale * _VolumeMaskDimensions.y; // 0.5 * (lodScale / textureSize)
+    int   textureSize = (int)_VolumeMaskDimensions.z;
+    int   mipSize     = textureSize >> (int)ceil(lod);
+    float clampBorder = 0.5f * rcp(mipSize);
+
+    // TODO: TRILINEAR WRAP
     voxelCenterUV.z   = clamp(voxelCenterUV.z, offset + clampBorder, offset + _VolumeMaskDimensions.x - clampBorder);
     
-    // TODO: expose the LoD bias parameter.
     float maskValue = SAMPLE_TEXTURE3D_LOD(_VolumeMaskAtlas, s_trilinear_clamp_sampler, voxelCenterUV, lod).a;
 
     return maskValue;
