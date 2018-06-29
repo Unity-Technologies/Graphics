@@ -80,7 +80,7 @@
         DBufferType2 MERGE_NAME(NAME, 2) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 2), unCoord2); \
         DBufferType3 MERGE_NAME(NAME, 3) = LOAD_TEXTURE2D(MERGE_NAME(TEX, 3), unCoord2);
 
-#ifdef _PER_CHANNEL_MASK
+#ifdef _DECALS_PER_CHANNEL_MASK
 	#define ENCODE_INTO_DBUFFER(DECAL_SURFACE_DATA, NAME) EncodeIntoDBuffer(DECAL_SURFACE_DATA, MERGE_NAME(NAME,0), MERGE_NAME(NAME,1), MERGE_NAME(NAME,2), MERGE_NAME(NAME,3))
 	#define DECODE_FROM_DBUFFER(NAME, DECAL_SURFACE_DATA) DecodeFromDBuffer(MERGE_NAME(NAME,0), MERGE_NAME(NAME,1), MERGE_NAME(NAME,2), MERGE_NAME(NAME,3), DECAL_SURFACE_DATA)
 #else
@@ -117,7 +117,7 @@ void EncodeIntoDBuffer( DecalSurfaceData surfaceData
                         , out DBufferType0 outDBuffer0
                         , out DBufferType1 outDBuffer1
                         , out DBufferType2 outDBuffer2
-#ifdef _PER_CHANNEL_MASK
+#ifdef _DECALS_PER_CHANNEL_MASK
 						, out DBufferType3 outDBuffer3
 #endif
                         )
@@ -125,7 +125,7 @@ void EncodeIntoDBuffer( DecalSurfaceData surfaceData
     outDBuffer0 = surfaceData.baseColor;
     outDBuffer1 = surfaceData.normalWS;
     outDBuffer2 = surfaceData.mask;
-#ifdef _PER_CHANNEL_MASK
+#ifdef _DECALS_PER_CHANNEL_MASK
 	outDBuffer3 = surfaceData.MAOSBlend;
 #endif
 }
@@ -134,7 +134,7 @@ void DecodeFromDBuffer(
     DBufferType0 inDBuffer0
     , DBufferType1 inDBuffer1
     , DBufferType2 inDBuffer2
-#ifdef _PER_CHANNEL_MASK
+#ifdef _DECALS_PER_CHANNEL_MASK
 	, DBufferType3 inDBuffer3
 #endif
     , out DecalSurfaceData surfaceData
@@ -145,7 +145,7 @@ void DecodeFromDBuffer(
     surfaceData.normalWS.xyz = inDBuffer1.xyz * 2.0f - 1.0f;
     surfaceData.normalWS.w = inDBuffer1.w;
     surfaceData.mask = inDBuffer2;
-#ifdef _PER_CHANNEL_MASK
+#ifdef _DECALS_PER_CHANNEL_MASK
 	surfaceData.MAOSBlend = inDBuffer3;
 #else
 	surfaceData.MAOSBlend = float2(surfaceData.mask.w, surfaceData.mask.w);
