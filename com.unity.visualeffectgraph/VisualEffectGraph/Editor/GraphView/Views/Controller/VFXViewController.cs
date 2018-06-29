@@ -139,7 +139,6 @@ namespace UnityEditor.VFX.UI
                 Clear();
                 if (model != null && model.graph != null)
                     InitializeUndoStack();
-                Debug.LogWarning("ModelChanged");
                 ModelChanged(model);
             }
 
