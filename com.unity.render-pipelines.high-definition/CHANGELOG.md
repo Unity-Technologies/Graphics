@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improve camera relative rendering: We now apply camera translation on the model matrix, so before the TransformObjectToWorld(). Note: unity_WorldToObject and unity_ObjectToWorld must never be used directly.
 - Rename positionWS to positionRWS (Camera relative world position) at a lot of places (mainly in interpolator and FragInputs). In case of custom shader user will be required to update their code.
 - Improve the quality of trilinear filtering of density volume textures.
+- Stabilize the dithered LOD transition mask with respect to the camera rotation.
 
 ### Fixed
 - Fix contact shadows applied on transmission
