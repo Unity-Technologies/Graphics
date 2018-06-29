@@ -1465,7 +1465,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     renderQueueRange = HDRenderQueue.k_RenderQueue_AllOpaque
                 };
 
-                CoreUtils.SetKeyword(cmd, "_PER_CHANNEL_MASK", m_Asset.GetRenderPipelineSettings().decalSettings.perChannelMask);
+                CoreUtils.SetKeyword(cmd, "_DECALS_PER_CHANNEL_MASK", m_Asset.GetRenderPipelineSettings().decalSettings.perChannelMask);
 
                 renderContext.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, filterRenderersSettings);
                 DecalSystem.instance.RenderIntoDBuffer(cmd);

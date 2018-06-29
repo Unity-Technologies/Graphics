@@ -31,7 +31,7 @@ Shader "HDRenderPipeline/Decal"
 	#pragma shader_feature _MAOS_BLEND_MASK_B
 
     #pragma multi_compile_instancing
-	#pragma multi_compile _ _PER_CHANNEL_MASK
+	#pragma multi_compile _ _DECALS_PER_CHANNEL_MASK
     //-------------------------------------------------------------------------------------
     // Define
     //-------------------------------------------------------------------------------------
