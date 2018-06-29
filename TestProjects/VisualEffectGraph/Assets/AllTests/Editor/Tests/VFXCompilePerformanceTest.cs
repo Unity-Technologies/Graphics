@@ -11,7 +11,7 @@ namespace UnityEditor.VFX.Test
     [TestFixture]
     class VFXCompilePerformanceTest
     {
-        //[Test]
+        //[Test]  //Not really a test but an helper to measure compilation time for every existing 
         public void MesureCompilationTime()
         {
             UnityEngine.Debug.unityLogger.logEnabled = false;
@@ -34,20 +34,19 @@ namespace UnityEditor.VFX.Test
             }
 
             uint processCount = 8;
-            long[] newA = new long[vfxAssets.Count];
+            long[] elapsedTime = new long[vfxAssets.Count];
             for (int pass = 0; pass < processCount; ++pass)
                 for (int i = 0; i < vfxAssets.Count; ++i)
                 {
                     var graph = vfxAssets[i].GetResource().GetOrCreateGraph();
-
-                    var filename = System.IO.Path.GetFileNameWithoutExtension(AssetDatabase.GetAssetPath(vfxAssets[i]));
 
                     var sw = Stopwatch.StartNew();
                     graph.SetExpressionGraphDirty();
                     VFXExpression.ClearCacheOfExpressions();
                     graph.RecompileIfNeeded();
                     sw.Stop();
-                    newA[i] += sw.ElapsedMilliseconds;
+
+                    elapsedTime[i] += sw.ElapsedMilliseconds;
                 }
 
             UnityEngine.Debug.unityLogger.logEnabled = true;
@@ -56,8 +55,8 @@ namespace UnityEditor.VFX.Test
             for (int i = 0; i < vfxAssets.Count; ++i)
             {
                 var nameAsset = AssetDatabase.GetAssetPath(vfxAssets[i]);
-                var res = string.Format("{0, -90} | second : {1}ms", nameAsset, newA[i] / processCount);
-                debugLogList.Add(new KeyValuePair<long, string>(newA[i], res));
+                var res = string.Format("{0, -90} | second : {1}ms", nameAsset, elapsedTime[i] / processCount);
+                debugLogList.Add(new KeyValuePair<long, string>(elapsedTime[i], res));
             }
 
             foreach (var log in debugLogList.OrderByDescending(o => o.Key))

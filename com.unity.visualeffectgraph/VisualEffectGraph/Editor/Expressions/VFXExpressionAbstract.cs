@@ -465,16 +465,6 @@ namespace UnityEditor.VFX
             {
                 m_HashCode = GetInnerHashCode();
                 m_HashCodeCached = true;
-
-#if _HACKY_IN_HASH_SET
-                if (use_FakeHasSet)
-                {
-                    if (!fakeHashSet.ContainsKey(this))
-                    {
-                        fakeHashSet.Add(this, this);
-                    }
-                }
-#endif
             }
 
             return m_HashCode;
