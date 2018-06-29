@@ -28,7 +28,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [FormerlySerializedAs("supportForwardOnly")]
         public bool supportOnlyForward = false;
         public bool increaseSssSampleCount = false;
-        public bool supportVolumetric = true;
+        public bool supportVolumetrics = true;
+        public bool increaseResolutionOfVolumetrics = false;
 
         // reduce variant
         public bool supportRuntimeDebugDisplay = true;

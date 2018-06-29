@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add PCSS shadow filter support (from SRP Core)
 - Exposed shadow budget parameters in HDRP asset
 - Add an option to generate an emissive mesh for area lights (currently rectangle light only). The mesh fits the size, intensity and color of the light.
+- Add an option to the HDRP asset to increase the resolution of volumetric lighting.
 
 ### Changed
 - Re-enable shadow mask mode in debug view
