@@ -278,48 +278,50 @@ namespace UnityEditor.VFX
             return VFXValueType.None;
         }
 
-        public static Dictionary<VFXExpression, VFXExpression> fakeHashSet = new Dictionary<VFXExpression, VFXExpression>(); //TODOPAUL : find suitable place to handle clear of this map
-        public static bool use_FakeHasSet = true;
+
+        private static Dictionary<VFXExpression, VFXExpression> s_CacheOfExpressions = new Dictionary<VFXExpression, VFXExpression>();
+
+        public static void ClearCacheOfExpressions()
+        {
+            s_CacheOfExpressions.Clear();
+        }
+
+        //Ideally, we should use HashSet<T>.TryGetValue https://msdn.microsoft.com/en-us/library/mt829070(v=vs.110).aspx
+        //but it's available only in 4.7, Dictionary<T, T> is a workaround, sensible same performance but there is a waste of memory
+        private void SimplifyWithCacheParents()
+        {
+            for (int i = 0; i < m_Parents.Length; ++i)
+            {
+                VFXExpression parentEq;
+                if (!s_CacheOfExpressions.TryGetValue(parents[i], out parentEq))
+                {
+                    s_CacheOfExpressions.Add(parents[i], parents[i]);
+                }
+                else
+                {
+                    m_Parents[i] = parentEq;
+                }
+            }
+        }
 
         protected VFXExpression(Flags flags, params VFXExpression[] parents)
         {
             m_Parents = parents;
-            FixParents(m_Parents);
+            SimplifyWithCacheParents();
+
             m_Flags = flags;
             PropagateParentsFlags();
         }
-
 
         // Only do that when constructing an instance if needed
         private void Initialize(Flags additionalFlags, VFXExpression[] parents)
         {
             m_Parents = parents;
-            FixParents(m_Parents);
+            SimplifyWithCacheParents();
 
             m_Flags |= additionalFlags;
             PropagateParentsFlags();
             m_HashCodeCached = false; // as expression is mutated
-        }
-
-        //Ideally, should use HashSet<T>.TryGetValue https://msdn.microsoft.com/en-us/library/mt829070(v=vs.110).aspx
-        //but it's available only in 4.7, Dictionary<T, T> is a workaround, sensible same performance but waste of memory
-        private static void FixParents(VFXExpression[] parents)
-        {
-            if (!use_FakeHasSet)
-                return;
-
-            for (int i = 0; i < parents.Length; ++i)
-            {
-                VFXExpression parentEq;
-                if (!fakeHashSet.TryGetValue(parents[i], out parentEq))
-                {
-                    fakeHashSet.Add(parents[i], parents[i]);
-                }
-                else
-                {
-                    parents[i] = parentEq;
-                }
-            }
         }
 
         //Helper using reflection to recreate a concrete type from an abstract class (useful with reduce behavior)

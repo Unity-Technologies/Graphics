@@ -26,7 +26,7 @@ namespace UnityEditor.VFX
             }
         }
 
-        public static void DebugExpressionGraph(VFXGraph graph, VFXExpressionContextOption option)
+        public static void DebugExpressionGraph(VFXGraph graph, VFXExpressionContextOption option, string fileName = "expGraph.dot")
         {
             var expressionGraph = new VFXExpressionGraph();
             expressionGraph.CompileExpressions(graph, option, true);
@@ -99,7 +99,7 @@ namespace UnityEditor.VFX
             basePath = basePath.Replace("/Assets", "");
             basePath = basePath.Replace("/", "\\");
 
-            var outputfile = basePath + "\\GraphViz\\output\\expGraph.dot";
+            var outputfile = basePath + "\\GraphViz\\output\\" + fileName;
             dotGraph.OutputToDotFile(outputfile);
 
             var proc = new Process();
