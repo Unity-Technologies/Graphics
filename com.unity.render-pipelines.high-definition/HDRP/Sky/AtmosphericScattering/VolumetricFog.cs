@@ -8,7 +8,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class VolumetricFog : AtmosphericScattering
     {
-        public ColorParameter        albedo       = new ColorParameter(new Color(0.5f, 0.5f, 0.5f));
+        public ColorParameter        albedo       = new ColorParameter(Color.white);
         public MinFloatParameter     meanFreePath = new MinFloatParameter(1000000.0f, 1.0f);
         public ClampedFloatParameter anisotropy   = new ClampedFloatParameter(0.0f, -1.0f, 1.0f);
 
