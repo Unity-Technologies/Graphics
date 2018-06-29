@@ -1,4 +1,3 @@
-//#define _HACKY_IN_HASH_SET
 using System;
 using System.Collections.Generic;
 using System.Linq;
