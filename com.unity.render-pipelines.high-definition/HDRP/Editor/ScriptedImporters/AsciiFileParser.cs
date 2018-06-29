@@ -18,14 +18,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public Regex    startMatch;
         public Regex    stopMatch;
         public bool     required;
+        public int      maxLines;
+        public int      lineCount;
+        public bool     split;
 
         public bool     matchMode;
 
-        public LineAttribute(int lineNumber, string match = @"(.*)", bool required = true)
+        public LineAttribute(int lineNumber, string match = @"(.*)", bool required = true, int maxLines = 1, bool split = true)
         {
             this.lineNumber = lineNumber;
             this.match = new Regex(match);
             this.required = required;
+            this.maxLines = maxLines;
+            this.split = split;
+            this.lineCount = 0;
 
             matchMode = true;
         }
@@ -97,9 +103,67 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return false;
         }
 
+        IEnumerable<string> ExpressionWhileMatch(FileField f)
+        {
+            while (f.line.match.IsMatch(m_Lines[m_LineIndex]))
+            {
+                if (f.line.split)
+                {
+                    foreach (var w in m_Lines[m_LineIndex].Split(null))
+                        yield return f.line.match.Match(w).Groups[1].Value;
+                }
+                else
+                {
+                    var match = f.line.match.Match(m_Lines[m_LineIndex]);
+                    yield return match.Groups[1].Value;
+                }
+
+                m_LineIndex++;
+                f.line.lineCount++;
+
+                // If we've reached the end of the file, break
+                if (m_Lines.Length == m_LineIndex)
+                    yield break;
+                
+                if (f.line.maxLines > 0 && f.line.lineCount >= f.line.maxLines)
+                    yield break;
+            }
+        }
+
+        IEnumerable<string> ExpressionUntilStop(FileField f)
+        {
+            // If the stop is on the same line than the start, we loop until we reach it
+            if (f.line.stopMatch.IsMatch(m_Lines[m_LineIndex]))
+            {
+                foreach (var w in m_Lines[m_LineIndex].Split(null))
+                {
+                    yield return w;
+                    if (f.line.stopMatch.IsMatch(w))
+                        break;
+                }
+                yield break;
+            }
+            
+            // Else we can loop until the stop condition is valid
+            while (!f.line.stopMatch.IsMatch(m_Lines[m_LineIndex]))
+            {
+                foreach (var w in m_Lines[m_LineIndex].Split(null))
+                    yield return w;
+                m_LineIndex++;
+
+                // If we've reached the end of the file, break
+                if (m_Lines.Length == m_LineIndex)
+                    yield break;
+            }
+        }
+
         IEnumerable<string> ExpressionMatches<T>(List<FileField> fileFieldGroup, T instance)
         {
             int fieldCount = fileFieldGroup.Count;
+            
+            // If we've reached the end of the file, break
+            if (m_Lines.Length == m_LineIndex)
+                yield break;
 
             if (fieldCount == 1)
             {
@@ -111,16 +175,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // If we're in match mode, we iterate over lines and return them until we dont match anymore
                 if (f.line.matchMode)
                 {
-                    while (f.line.match.IsMatch(m_Lines[m_LineIndex]))
-                    {
-                        var match = f.line.match.Match(m_Lines[m_LineIndex]);
-                        yield return match.Groups[1].Value;
-                        m_LineIndex++;
-
-                        // If we've reached the end of the file, break
-                        if (m_Lines.Length == m_LineIndex)
-                            yield break;
-                    }
+                    foreach (var e in ExpressionWhileMatch(f))
+                        yield return e;
                 }
                 else // start / stop mode
                 {
@@ -128,29 +184,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     if (!f.line.startMatch.IsMatch(m_Lines[m_LineIndex]))
                         yield break;
                     
-                    // If the stop is on the same line than the start, we loop until we reach it
-                    if (f.line.stopMatch.IsMatch(m_Lines[m_LineIndex]))
-                    {
-                        foreach (var w in m_Lines[m_LineIndex].Split(null))
-                        {
-                            yield return w;
-                            if (f.line.stopMatch.IsMatch(w))
-                                break;
-                        }
-                        yield break;
-                    }
-                    
-                    // Else we can loop until the stop condition is valid
-                    while (!f.line.stopMatch.IsMatch(m_Lines[m_LineIndex]))
-                    {
-                        foreach (var w in m_Lines[m_LineIndex].Split(null))
-                            yield return w;
-                        m_LineIndex++;
-
-                        // If we've reached the end of the file, break
-                        if (m_Lines.Length == m_LineIndex)
-                            yield break;
-                    }
+                    foreach (var e in ExpressionUntilStop(f))
+                        yield return e;
                 }
             }
             else
@@ -158,7 +193,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // If there are multiple fields to provide from the same line, split the line and send the result
                 foreach (var w in m_Lines[m_LineIndex].Split(null))
                     yield return w;
+                
                 m_LineIndex++;
+
+                // If we've reached the end of the file, break
+                if (m_Lines.Length == m_LineIndex)
+                    yield break;
             }
         }
 
@@ -174,7 +214,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 if (String.IsNullOrEmpty(expression.Trim()))
                     continue ;
-
+                
                 // If the target type is a list, we call add rather than setting it's value
                 if (typeof(IList).IsAssignableFrom(f.field.FieldType))
                 {
@@ -218,8 +258,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (fileFields.First().line.lineNumber != 1)
                 throw new Exception("The first parsing instruction does not start at line 1");
             
-            foreach (var fileFieldGroup in fileFields.Where(f => f.line != null).OrderBy(f => f.line.lineNumber).GroupBy(f => f.line.lineNumber))
-                ParseLines(fileFieldGroup, instance);
+            try {
+                foreach (var fileFieldGroup in fileFields.Where(f => f.line != null).OrderBy(f => f.line.lineNumber).GroupBy(f => f.line.lineNumber))
+                    ParseLines(fileFieldGroup, instance);
+            } catch (Exception e) {
+                Debug.LogError("Error at line " + m_LineIndex + ": " + m_Lines[m_LineIndex] + "\n" + e);
+            }
         }
     }
 }

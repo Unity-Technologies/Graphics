@@ -45,7 +45,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
     color       = lightData.color;
     attenuation = 1.0; // Note: no volumetric attenuation along shadow rays for directional lights
 
-    UNITY_BRANCH if (any(lightData.cookieScaleBias))
+    UNITY_BRANCH if (any(lightData.cookieScaleBias > 0.0))
     {
         float3 lightToSample = positionWS - lightData.positionWS;
 
@@ -145,7 +145,10 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
 
     UNITY_BRANCH if (lightType == GPULIGHTTYPE_POINT)
     {
-        cookie.rgb = SampleCookieCube(lightLoopContext, positionLS, lightData.cookieScaleBias);
+        float2 sampleDdx = positionRWSDdx.xy * lightData.cookieScaleBias.xy;
+        float2 sampleDdy = positionRWSDdy.xy * lightData.cookieScaleBias.xy;
+
+        cookie.rgb = SampleCookieCube(lightLoopContext, positionLS, lightData.cookieScaleBias, sampleDdx, sampleDdy);
         cookie.a   = 1;
     }
     else
@@ -160,6 +163,9 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
 
         positionRWSDdx    = mul(positionRWSDdx, transpose(lightToWorld));
         positionRWSDdy    = mul(positionRWSDdy, transpose(lightToWorld));
+
+        positionRWSDdx.xy /= perspectiveZ;
+        positionRWSDdy.xy /= perspectiveZ;
     
         float2 sampleDdx = positionRWSDdx.xy * lightData.cookieScaleBias.xy;
         float2 sampleDdy = positionRWSDdy.xy * lightData.cookieScaleBias.xy;
@@ -195,7 +201,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
 #endif
 
     // Projector lights always have cookies, so we can perform clipping inside the if().
-    UNITY_BRANCH if (any(lightData.cookieScaleBias))
+    UNITY_BRANCH if (any(lightData.cookieScaleBias > 0.0))
     {
         float4 cookie = EvaluateCookie_Punctual(lightLoopContext, lightData, lightToSample, positionRWSDdx, positionRWSDdy);
 

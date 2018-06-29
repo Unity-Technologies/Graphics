@@ -81,40 +81,23 @@ struct LightLoopContext
 // Used by directional and spot lights.
 float3 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, float4 scaleBias, bool repeat, float2 sampleDdx, float2 sampleDdy)
 {
-    repeat = true;
-    // TODO: add MIP maps to combat aliasing?
+    float2  offset = scaleBias.zw;
+    float2  size = scaleBias.xy;
     coord = clamp((repeat) ? frac(coord) : coord, 0, 1);
-    float2 atlasCoords = coord * scaleBias.xy + scaleBias.zw;
-    float mipLevel = 0;
-
-#if 0
-
-    float2 texelSize = 1 / (scaleBias.xy * _CookieAtlasSize);
-
-    float2 c1 = clamp(coord, 0, 0.99999) * scaleBias.xy + scaleBias.zw;
-    float2 c2 = clamp(coord + float2(texelSize.x, 0.0), 0, 0.99999) * scaleBias.xy + scaleBias.zw;
-    float2 c3 = clamp(coord + float2(0.0, texelSize.y), 0, 0.99999) * scaleBias.xy + scaleBias.zw;
-    float2 c4 = clamp(coord + float2(texelSize.x, texelSize.y), 0, 0.99999) * scaleBias.xy + scaleBias.zw;
-
-    // Manual bilinear interpolation
-    float4 tl = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, c1, lod);
-    float4 tr = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, c2, lod);
-    float4 bl = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, c3, lod);
-    float4 br = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, c4, lod);
-    float2 f = frac(atlasCoords * scaleBias.xy * _CookieAtlasSize);
-    float4 tA = lerp(tl, tr, f.x);
-    float4 tB = lerp(bl, br, f.x);
-    float3 color = lerp(tA, tB, f.y).rgb;
-
-#else
-
+    float2 atlasCoords = coord * size + offset;
     float lod = ComputeTextureLOD(sampleDdx, sampleDdy, _CookieAtlasSize);
 
-    float3 color = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, atlasCoords, lod).rgb;
+    // Clamp texture coordinates to prevent edge bleeding
+    int2    textureSize = (int2)(_CookieAtlasSize);
+    int2    mipSize     = textureSize >> (int2)ceil(lod);
+    float2  clampBorder = 0.5f * rcp(mipSize);
 
-#endif
+    atlasCoords = clamp(atlasCoords, offset + clampBorder, offset + size - clampBorder);
+
+    float3 color = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, atlasCoords, lod).rgb;
     
-    color *= saturate(1 - abs(3 * lod / 10 - float4(0, 1, 2, 3))).rgb;
+    // Mip visualization (0 -> red, 10 -> blue)
+    // color *= saturate(1 - abs(3 * lod / 10 - float4(0, 1, 2, 3))).rgb;
 
     return color;
 }
@@ -145,18 +128,33 @@ float2 CubeMapFaceUV(float3 dir)
 }
 
 // Used by point lights.
-float3 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, float4 scaleBias)
+float3 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, float4 scaleBias, float2 sampleDdx, float2 sampleDdy)
 {
+    // We correct the size of the texture to get the size of one face of the cube
     scaleBias.x /= 3;
     scaleBias.y /= 2;
+    
+    float2  offset = scaleBias.zw;
+    float2  size = scaleBias.xy;
 
     uint cubeFaceId = (uint)CubeMapFaceID(coord);
     float2 cubeMapOffset = float2((cubeFaceId % 3) * scaleBias.x, (cubeFaceId / 3) * scaleBias.y);
     float2 cubeMapUVs = CubeMapFaceUV(coord);
     float2 atlasCoords = cubeMapUVs * scaleBias.xy + scaleBias.zw + cubeMapOffset;
+    float lod = ComputeTextureLOD(sampleDdx, sampleDdy, _CookieAtlasSize);
+    
+    // Clamp texture coordinates to prevent edge bleeding
+    int2    textureSize = (int2)(_CookieAtlasSize);
+    int2    mipSize     = textureSize >> (int2)ceil(lod);
+    float2  clampBorder = 0.5f * rcp(mipSize);
+    
+    atlasCoords = clamp(atlasCoords, offset + cubeMapOffset + clampBorder, offset + cubeMapOffset + size - clampBorder);
 
-    // TODO: add MIP maps to combat aliasing?
-    return SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, atlasCoords, 0).rgb;
+    float3 color = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, atlasCoords, lod).rgb;
+    
+    // color *= saturate(1 - abs(3 * lod / 10 - float4(0, 1, 2, 3))).rgb;
+
+    return color;
 }
 
 //-----------------------------------------------------------------------------

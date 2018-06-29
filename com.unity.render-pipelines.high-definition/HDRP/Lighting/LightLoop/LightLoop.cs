@@ -2001,8 +2001,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_lightList.directionalLights[index] = dirLightData;
                 }
             }
-
-            // Foreach lights, sort cookies and readd to atlas
         }
 
         static float CalculateProbeLogVolume(Bounds bounds)

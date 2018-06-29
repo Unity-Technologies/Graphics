@@ -28,39 +28,42 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         [Line(1, @"(^IESNA:.*)", required: false)]
         public string           fileVersion;
-        [Line(2, @"(^\[[A-Z]+\].*)")]
+        [Line(2, match: @"(^\[[\w+]+\].*)", maxLines: -1)]
         public List<string>     keywords;
+        
+        [Line(3, start: @"^", stop: @"^TILT=")]
+        public List<string>     infos;
 
-        [Line(3, @"TILT=(\w+)")]
+        [Line(4, @"^TILT=(\w+)")]
         public Tilt             tilt;
-        [Line(4), SkipIfEqual("tilt", "None")]
-        public float            lampToLuminaireGeometry;
         [Line(5), SkipIfEqual("tilt", "None")]
-        public int              pairAnglesAndMultipyFactorCount;
+        public int              lampToLuminaireGeometry;
         [Line(6), SkipIfEqual("tilt", "None")]
-        public List<float>      angles;
+        public int              pairAnglesAndMultipyFactorCount;
         [Line(7), SkipIfEqual("tilt", "None")]
+        public List<float>      angles;
+        [Line(8), SkipIfEqual("tilt", "None")]
         public List<float>      multiplyingFactors;
 
-        [Line(8)]
+        [Line(9)]
         public int              lampCount;
-        [Line(8)]
+        [Line(9)]
         public float            lumenPerLamp;
-        [Line(8)]
+        [Line(9)]
         public float            candelaMultiplier;
-        [Line(8)]
+        [Line(9)]
         public int              verticalAnglesCount;
-        [Line(8)]
+        [Line(9)]
         public int              horizontalAnglesCount;
-        [Line(8)]
+        [Line(9)]
         public PhotometricType  photometricType;
-        [Line(8)]
+        [Line(9)]
         public UnitType         unitType;
-        [Line(8)]
+        [Line(9)]
         public float            luminousWidth;
-        [Line(8)]
+        [Line(9)]
         public float            luminousLength;
-        [Line(8)]
+        [Line(9)]
         public float            luminousheight;
 
         [Line(10)]
@@ -70,9 +73,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         [Line(10)]
         public float            inputWatts;
 
-        [Line(15, start: @"^(0|0.[0+])", stop: @"(180|180.[0+])")]
+        [Line(15)]
         public List<float>      verticalAngles;
-        [Line(16, start: @"^(0|0.[0+])", stop: @"(180|180.[0+])")]
+        [Line(16)]
         public List<float>      horizontalAngles;
         [Line(17, start: @".*", stop: @"^$")] // Keep looping until we encounter the end of the file
         public List<float>      intensityValues; // In candella
