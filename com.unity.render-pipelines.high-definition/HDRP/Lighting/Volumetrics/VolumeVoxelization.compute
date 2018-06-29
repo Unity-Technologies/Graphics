@@ -63,15 +63,15 @@ CBUFFER_END
 //--------------------------------------------------------------------------------------------------
 // Implementation
 //--------------------------------------------------------------------------------------------------
-float SampleVolumeMask(DensityVolumeData volumeData, float3 voxelCenterUV, float3 duvw_dx, float3 duvw_dy, float3 duvw_dz)
+float SampleVolumeMask(DensityVolumeData volumeData, float3 voxelCenterUVW, float3 duvw_dx, float3 duvw_dy, float3 duvw_dz)
 {
     float offset = volumeData.textureIndex * _VolumeMaskDimensions.x;
 
-    //scale and bias the UVs and then take fractional part, will be in [0,1] range
-    voxelCenterUV = frac(voxelCenterUV * volumeData.textureTiling + volumeData.textureScroll);
+    //scale and bias the UVWs and then take fractional part, will be in [0,1] range
+    voxelCenterUVW = frac(voxelCenterUVW * volumeData.textureTiling + volumeData.textureScroll);
 
-    voxelCenterUV.z = voxelCenterUV.z * _VolumeMaskDimensions.x;
-    voxelCenterUV.z += offset;
+    voxelCenterUVW.z = voxelCenterUVW.z * _VolumeMaskDimensions.x;
+    voxelCenterUVW.z += offset;
 
     // TODO: expose the LoD bias parameter.
     float lod = ComputeTextureLOD(duvw_dx, duvw_dy, duvw_dz, _VolumeMaskDimensions.z);
@@ -86,13 +86,9 @@ float SampleVolumeMask(DensityVolumeData volumeData, float3 voxelCenterUV, float
     int   textureSize = (int)_VolumeMaskDimensions.z;
     int   mipSize     = textureSize >> (int)ceil(lod);
     float clampBorder = 0.5f * rcp(mipSize);
-
-    // TODO: TRILINEAR WRAP
-    voxelCenterUV.z   = clamp(voxelCenterUV.z, offset + clampBorder, offset + _VolumeMaskDimensions.x - clampBorder);
+    voxelCenterUVW.z  = clamp(voxelCenterUVW.z, offset + clampBorder, offset + _VolumeMaskDimensions.x - clampBorder);
     
-    float maskValue = SAMPLE_TEXTURE3D_LOD(_VolumeMaskAtlas, s_trilinear_clamp_sampler, voxelCenterUV, lod).a;
-
-    return maskValue;
+    return SAMPLE_TEXTURE3D_LOD(_VolumeMaskAtlas, s_trilinear_clamp_sampler, voxelCenterUVW, lod).a;
 }
 
 
@@ -177,7 +173,7 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, float3 rayOriginWS, fl
 
                 // Express the voxel center in the local coordinate system of the box.
                 const float3 voxelCenterBS = mul(voxelCenterWS - obb.center, transpose(obbFrame));
-                const float3 voxelCenterUV = (voxelCenterBS / obbExtents);
+                const float3 voxelCenterCS = (voxelCenterBS / obbExtents);
 
                 const float3 voxelAxisRightBS   = mul(voxelAxisRight,   transpose(obbFrame));
                 const float3 voxelAxisUpBS      = mul(voxelAxisUp,      transpose(obbFrame));
@@ -239,9 +235,7 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, float3 rayOriginWS, fl
 
             #else  // SOFT_VOXELIZATION
 
-                bool overlap = abs(voxelCenterUV.x) <= 1 &&
-                               abs(voxelCenterUV.y) <= 1 &&
-                               abs(voxelCenterUV.z) <= 1;
+                bool overlap = Max3(abs(voxelCenterCS.x), abs(voxelCenterCS.y), abs(voxelCenterCS.z)) <= 1;
 
                 float overlapFraction = overlap ? 1 : 0;
 
@@ -254,11 +248,12 @@ void FillVolumetricDensityBuffer(PositionInputs posInput, float3 rayOriginWS, fl
                     if (_VolumeData[volumeIndex].textureIndex != -1)
                     {
                         // We divide extents (half-sizes) by extents here, obtaining full-sized gradients.
-                        float3 voxelGradRightUV   = z      * voxelAxisRightBS   / obbExtents;
-                        float3 voxelGradUpUV      = z      * voxelAxisUpBS      / obbExtents;
-                        float3 voxelGradForwardUV = halfDZ * voxelAxisForwardBS / obbExtents;
+                        float3 voxelGradRightUVW   = z      * voxelAxisRightBS   / obbExtents;
+                        float3 voxelGradUpUVW      = z      * voxelAxisUpBS      / obbExtents;
+                        float3 voxelGradForwardUVW = halfDZ * voxelAxisForwardBS / obbExtents;
+                        float3 voxelCenterUVW      = voxelCenterCS * 0.5 + 0.5;
 
-                        densityMask = SampleVolumeMask(_VolumeData[volumeIndex], voxelCenterUV * 0.5 + 0.5, voxelGradRightUV, voxelGradUpUV, voxelGradForwardUV);
+                        densityMask = SampleVolumeMask(_VolumeData[volumeIndex], voxelCenterUVW, voxelGradRightUVW, voxelGradUpUVW, voxelGradForwardUVW);
                     }
 
                     // There is an overlap. Sample the 3D texture, or load the constant value.
