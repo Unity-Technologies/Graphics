@@ -481,10 +481,11 @@ float ComputeTextureLOD(float2 uv, float2 texelSize)
     return ComputeTextureLOD(uv);
 }
 
+// LOD clamp is optional and happens outside the function.
 float ComputeTextureLOD(float3 duvw_dx, float3 duvw_dy, float3 duvw_dz, float scale)
 {
     float d = Max3(dot(duvw_dx, duvw_dx), dot(duvw_dy, duvw_dy), dot(duvw_dz, duvw_dz));
-    return max(0.0, 0.5 * log2(d * (scale * scale)));
+    return 0.5 * log2(d * (scale * scale));
 }
 
 
