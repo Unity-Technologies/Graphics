@@ -57,7 +57,7 @@ CBUFFER_START(UnityVolumetricLighting)
     float4   _VBufferSampleOffset;     // Not used by this shader
     float    _CornetteShanksConstant;  // Not used by this shader
     uint     _NumVisibleDensityVolumes;
-    float3   _VolumeMaskDimensions;    //x = 1/totalTextures , y = 1/textureSize, z = textureSize
+    float4   _VolumeMaskDimensions;    //x = 1/numTextures , y = width, z = depth = width * numTextures, w = maxLod
 CBUFFER_END
 
 //--------------------------------------------------------------------------------------------------
@@ -65,28 +65,33 @@ CBUFFER_END
 //--------------------------------------------------------------------------------------------------
 float SampleVolumeMask(DensityVolumeData volumeData, float3 voxelCenterUVW, float3 duvw_dx, float3 duvw_dy, float3 duvw_dz)
 {
-    float offset = volumeData.textureIndex * _VolumeMaskDimensions.x;
-
-    //scale and bias the UVWs and then take fractional part, will be in [0,1] range
+    // Scale and bias the UVWs and then take fractional part, will be in [0,1] range.
     voxelCenterUVW = frac(voxelCenterUVW * volumeData.textureTiling + volumeData.textureScroll);
 
-    voxelCenterUVW.z = voxelCenterUVW.z * _VolumeMaskDimensions.x;
-    voxelCenterUVW.z += offset;
+    float rcpNumTextures = _VolumeMaskDimensions.x;
+    float textureWidth   = _VolumeMaskDimensions.y;
+    float textureDepth   = _VolumeMaskDimensions.z;
+    float maxLod         = _VolumeMaskDimensions.w;
+
+    float offset = volumeData.textureIndex * rcpNumTextures;
+    voxelCenterUVW.z = voxelCenterUVW.z * rcpNumTextures + offset;
 
     // TODO: expose the LoD bias parameter.
-    float lod = ComputeTextureLOD(duvw_dx, duvw_dy, duvw_dz, _VolumeMaskDimensions.z);
+    float lod = ComputeTextureLOD(duvw_dx, duvw_dy, duvw_dz, textureWidth);
+    lod = clamp(lod, 0, maxLod);
 
     // TODO: bugfix.
     // Note that this clamping to edge doesn't quite work.
     // First of all, the distance to the edge should depend on the LoD.
-    // Secondly, for trilinear filering, which of the two LoDs should you choose to compute the distance to the edge?
-    // If you use floor(lod), the lower LoD may cause the leak across the edge from the neighbour texture.
-    // If you use ceil(lod), the upper LoD effectively loses a texel at the border, which may break tilable textures.
+    // Secondly, for trilinear filtering, which of the two LoDs should you choose to compute the distance to the edge?
+    // If you use floor(lod), the lower LoD may cause a leak across the edge from the neighbor texture.
+    // If you use ceil(lod), the upper LoD effectively loses a texel at the border, which may break tileable textures.
     // For now, we choose the second option.
-    int   textureSize = (int)_VolumeMaskDimensions.z;
-    int   mipSize     = textureSize >> (int)ceil(lod);
-    float clampBorder = 0.5f * rcp(mipSize);
-    voxelCenterUVW.z  = clamp(voxelCenterUVW.z, offset + clampBorder, offset + _VolumeMaskDimensions.x - clampBorder);
+    // We support texture filtering across the wrap in Z in neither case.
+    int   textureSize   = (int)textureDepth;
+    int   mipSize       = textureSize >> (int)ceil(lod);
+    float halfTexelSize = 0.5f * rcp(mipSize);
+    voxelCenterUVW.z    = clamp(voxelCenterUVW.z, offset + halfTexelSize, offset + rcpNumTextures - halfTexelSize);
     
     return SAMPLE_TEXTURE3D_LOD(_VolumeMaskAtlas, s_trilinear_clamp_sampler, voxelCenterUVW, lod).a;
 }
