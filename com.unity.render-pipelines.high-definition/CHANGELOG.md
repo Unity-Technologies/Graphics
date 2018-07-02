@@ -28,10 +28,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Change code in area light with LTC for Lit shader. Magnitude is now take from FGD texture instead of a separate texture
 - Improve camera relative rendering: We now apply camera translation on the model matrix, so before the TransformObjectToWorld(). Note: unity_WorldToObject and unity_ObjectToWorld must never be used directly.
 - Rename positionWS to positionRWS (Camera relative world position) at a lot of places (mainly in interpolator and FragInputs). In case of custom shader user will be required to update their code.
+- Rename positionWS, capturePositionWS, proxyPositionWS, influencePositionWS to positionRWS, capturePositionRWS, proxyPositionRWS, influencePositionRWS (Camera relative world position) in LightDefinition struct.
 - Improve the quality of trilinear filtering of density volume textures.
 
 ### Fixed
 - Fix contact shadows applied on transmission
+- Fix issue with forward opaque lit shader variant being removed by the shader preprocessor
 
 ## [2.0.4-preview]
 
