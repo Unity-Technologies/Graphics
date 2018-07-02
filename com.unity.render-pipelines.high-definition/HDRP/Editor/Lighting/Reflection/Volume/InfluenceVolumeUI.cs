@@ -8,6 +8,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     partial class InfluenceVolumeUI : BaseUI<SerializedInfluenceVolume>
     {
+        const int k_AnimBoolFields = 2;
         internal static Color k_GizmoThemeColorBase = new Color(255f / 255f, 229f / 255f, 148f / 255f, 80f / 255f);
         internal static Color k_GizmoThemeColorBaseFace = new Color(255f / 255f, 229f / 255f, 148f / 255f, 45f / 255f);
         internal static Color k_GizmoThemeColorInfluence = new Color(83f / 255f, 255f / 255f, 95f / 255f, 75f / 255f);
@@ -30,11 +31,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SphereBoundsHandle sphereInfluenceNormalHandle = new SphereBoundsHandle();
 
         public AnimBool isSectionExpandedShape { get { return m_AnimBools[k_ShapeCount]; } }
+        public AnimBool isSectionAdvancedInfluenceSettings  { get { return m_AnimBools[k_ShapeCount + 1]; } }
         public bool showInfluenceHandles { get; set; }
 
         public InfluenceVolumeUI()
-            : base(k_ShapeCount + 1)
+            : base(k_ShapeCount + k_AnimBoolFields)
         {
+            isSectionAdvancedInfluenceSettings.value = false;
         }
 
         public override void Update()

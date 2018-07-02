@@ -8,7 +8,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     partial class PlanarReflectionProbeUI : BaseUI<SerializedPlanarReflectionProbe>
     {
-        const int k_AnimBoolFields = 4;
+        const int k_AnimBoolFields = 5;
         static readonly int k_ReflectionProbeModeModeCount = Enum.GetValues(typeof(ReflectionProbeMode)).Length;
         static readonly int k_AnimBoolTotal = k_AnimBoolFields + k_ReflectionProbeModeModeCount;
 
@@ -21,6 +21,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public AnimBool isSectionExpandedCaptureMirrorSettings { get { return m_AnimBools[k_ReflectionProbeModeModeCount + 2]; } }
         public AnimBool isSectionExpandedCaptureStaticSettings { get { return m_AnimBools[k_ReflectionProbeModeModeCount + 3]; } }
+        public AnimBool isSectionExpendedProxyVolume { get { return m_AnimBools[k_ReflectionProbeModeModeCount + 4]; } }
 
         public bool showCaptureHandles { get; set; }
 

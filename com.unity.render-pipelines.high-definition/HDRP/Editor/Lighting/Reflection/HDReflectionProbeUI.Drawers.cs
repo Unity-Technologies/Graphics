@@ -181,7 +181,7 @@ namespace UnityEditor.Experimental.Rendering
             }
         }
 
-        static void Drawer_AdvancedBlendDistance(SerializedProperty blendDistancePositive, SerializedProperty blendDistanceNegative, Vector3 maxBlendDistance, GUIContent content, AnimatedValues.AnimBool advanced)
+        public static void Drawer_AdvancedBlendDistance(SerializedProperty blendDistancePositive, SerializedProperty blendDistanceNegative, Vector3 maxBlendDistance, GUIContent content, AnimatedValues.AnimBool advanced)
         {
             Vector3 bdp = blendDistancePositive.vector3Value;
             Vector3 bdn = blendDistanceNegative.vector3Value;
