@@ -101,6 +101,7 @@ namespace UnityEditor.VFX
             m_UICollapsed = false;
         }
 
+        public bool doesGenerateShader                                  { get { return codeGeneratorTemplate != null; } }
         public virtual string codeGeneratorTemplate                     { get { return null; } }
         public virtual bool codeGeneratorCompute                        { get { return true; } }
         public virtual VFXContextType contextType                       { get { return m_ContextType; } }

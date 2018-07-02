@@ -50,7 +50,11 @@ namespace UnityEditor.VFX
 
             var mappings = new List<VFXMapping>();
             foreach (var uniform in contextData.uniformMapper.uniforms.Concat(contextData.uniformMapper.textures))
-                mappings.Add(new VFXMapping(contextData.uniformMapper.GetName(uniform), expressionGraph.GetFlattenedIndex(uniform)));
+            {
+                int exprIndex = expressionGraph.GetFlattenedIndex(uniform);
+                foreach (var name in contextData.uniformMapper.GetNames(uniform))
+                    mappings.Add(new VFXMapping(name, exprIndex));
+            }
 
             var task = new VFXEditorTaskDesc()
             {
