@@ -479,7 +479,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return;
                 int batchIndex = 0;
                 int totalToDraw = m_NumResults;
-                int shaderPass = instance.perChannelMask ? (int)m_Material.GetFloat("_MaskBlendMode") : 0;
+                int shaderPass = instance.perChannelMask ? (int)m_Material.GetFloat("_MaskBlendMode") : 0; // relies on the order shader passes are declared in decal.shader and decalUI.cs
+                // enum BlendMode
+                // {
+                //		Metal_AO_Smoothness,
+                //		Metal_Smoothness,
+                //		Metal,
+                //		Smoothness,
+                //		AO
+                // }
+
                 for (; batchIndex < m_NumResults / kDrawIndexedBatchSize; batchIndex++)
                 {
                     m_PropertyBlock.SetMatrixArray(HDShaderIDs._NormalToWorldID, m_NormalToWorld[batchIndex]);

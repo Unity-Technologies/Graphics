@@ -63,6 +63,16 @@ Shader "HDRenderPipeline/Decal"
     {
         Tags{ "RenderPipeline" = "HDRenderPipeline"}
 
+		// c# code relies on the order in which the passes are declared, any change will need to be reflected in DecalUI.cs
+		// enum BlendMode
+		// {
+		//		Metal_AO_Smoothness,
+		//		Metal_Smoothness,
+		//		Metal,
+		//		Smoothness,
+		//		AO
+		// }
+
         Pass
         {
             Name "DBufferProjector_MAOS"  // Name is not used
