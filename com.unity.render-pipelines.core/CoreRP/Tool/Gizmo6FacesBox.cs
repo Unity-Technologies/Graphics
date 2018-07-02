@@ -207,30 +207,31 @@ namespace UnityEngine.Experimental.Gizmo
             Gizmos.color = colorGizmo;
         }
 
-        static Type k_SnapSettings = Type.GetType("UnityEditor.SnapSettings, UnityEditor");
-        //static Type k_Slider1D = Type.GetType("UnityEditorInternal.Slider1D");
-        //static MethodInfo k_Slider1D_Do = k_Slider1D
-        //    .GetMethod(
-        //        "Do",
-        //        BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public,
-        //        null,
-        //        CallingConventions.Any,
-        //        new[] { typeof(int), typeof(Vector3), typeof(Vector3), typeof(float), typeof(Handles.CapFunction), typeof(float) },
-        //        null);
+
+        static PropertyInfo k_scale = Type.GetType("UnityEditor.SnapSettings, UnityEditor").GetProperty("scale");
+        static Type k_Slider1D = Type.GetType("UnityEditorInternal.Slider1D, UnityEditor");
+        static MethodInfo k_Slider1D_Do = k_Slider1D
+                .GetMethod(
+                    "Do",
+                    BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public,
+                    null,
+                    CallingConventions.Any,
+                    new[] { typeof(int), typeof(Vector3), typeof(Vector3), typeof(float), typeof(Handles.CapFunction), typeof(float) },
+                    null);
 
         public void DrawHandle()
         {
-            //Type k_Slider1D = Type.GetType("UnityEditorInternal.Slider1D, UnityEditor");
-            //MethodInfo k_Slider1D_Do = k_Slider1D
-            //    .GetMethod(
-            //        "Do",
-            //        BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public,
-            //        null,
-            //        CallingConventions.Any,
-            //        new[] { typeof(int), typeof(Vector3), typeof(Vector3), typeof(float), typeof(Handles.CapFunction), typeof(float) },
-            //        null);
+            Type k_Slider1D = Type.GetType("UnityEditorInternal.Slider1D, UnityEditor");
+            MethodInfo k_Slider1D_Do = k_Slider1D
+                .GetMethod(
+                    "Do",
+                    BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public,
+                    null,
+                    CallingConventions.Any,
+                    new[] { typeof(int), typeof(Vector3), typeof(Vector3), typeof(float), typeof(Handles.CapFunction), typeof(float) },
+                    null);
 
-            float handleSize = HandleUtility.GetHandleSize(center) * 0.05f;
+            float handleSizeCoef = 0.05f;
 
             for (int i = 0, count = m_ControlIDs.Length; i < count; ++i)
                 m_ControlIDs[i] = GUIUtility.GetControlID(GetHashCode(), FocusType.Passive);
@@ -245,74 +246,72 @@ namespace UnityEngine.Experimental.Gizmo
             Vector3 frontPosition = center + size.z * .5f * Vector3.forward;
             Vector3 backPosition = center + size.z * .5f * Vector3.back;
 
+            //Note: Handles.Slider not allow to use a specific ControlID.
+            //Thus Slider1D is used (with reflection)
 
-            float snapScale = (float)k_SnapSettings.GetProperty("scale").GetValue(null, null);
+            float snapScale = (float)k_scale.GetValue(null, null);
             using (new Handles.DrawingScope(GetColor(NamedFace.Left, Element.Handle)))
-                //k_Slider1D_Do.Invoke(null, new[]
-                //{
-                //    m_ControlIDs[(int)NamedFace.Left],
-                //    leftPosition,
-                //    Vector3.left,
-                //    1f,
-                //    (Delegate)Handles.DotHandleCap,
-                //    k_SnapSettings.GetProperty("scale").GetValue(null, null)
-                //});
-                leftPosition = UnityEditorInternal.Slider1D.Do(
+                leftPosition = (Vector3)k_Slider1D_Do.Invoke(null, new object[]
+                {
                     m_ControlIDs[(int)NamedFace.Left],
                     leftPosition,
                     Vector3.left,
-                    handleSize,
-                    Handles.DotHandleCap,
+                    HandleUtility.GetHandleSize(leftPosition) * handleSizeCoef,
+                    new Handles.CapFunction(Handles.DotHandleCap),
                     snapScale
-                    );
+                });
             using (new Handles.DrawingScope(GetColor(NamedFace.Right, Element.Handle)))
-                rightPosition = UnityEditorInternal.Slider1D.Do(
+                rightPosition = (Vector3)k_Slider1D_Do.Invoke(null, new object[]
+                {
                     m_ControlIDs[(int)NamedFace.Right],
                     rightPosition,
-                    Vector3.right,
-                    handleSize,
-                    Handles.DotHandleCap,
+                    Vector3.left,
+                    HandleUtility.GetHandleSize(rightPosition) * handleSizeCoef,
+                    new Handles.CapFunction(Handles.DotHandleCap),
                     snapScale
-                    );
+                });
 
             using (new Handles.DrawingScope(GetColor(NamedFace.Top, Element.Handle)))
-                topPosition = UnityEditorInternal.Slider1D.Do(
+                topPosition = (Vector3)k_Slider1D_Do.Invoke(null, new object[]
+                {
                     m_ControlIDs[(int)NamedFace.Top],
                     topPosition,
                     Vector3.up,
-                    handleSize,
-                    Handles.DotHandleCap,
+                    HandleUtility.GetHandleSize(topPosition) * handleSizeCoef,
+                    new Handles.CapFunction(Handles.DotHandleCap),
                     snapScale
-                    );
+                });
             using (new Handles.DrawingScope(GetColor(NamedFace.Bottom, Element.Handle)))
-                bottomPosition = UnityEditorInternal.Slider1D.Do(
+                bottomPosition = (Vector3)k_Slider1D_Do.Invoke(null, new object[]
+                {
                     m_ControlIDs[(int)NamedFace.Bottom],
                     bottomPosition,
                     Vector3.down,
-                    handleSize,
-                    Handles.DotHandleCap,
+                    HandleUtility.GetHandleSize(bottomPosition) * handleSizeCoef,
+                    new Handles.CapFunction(Handles.DotHandleCap),
                     snapScale
-                    );
+                });
 
             using (new Handles.DrawingScope(GetColor(NamedFace.Front, Element.Handle)))
-                frontPosition = UnityEditorInternal.Slider1D.Do(
+                frontPosition = (Vector3)k_Slider1D_Do.Invoke(null, new object[]
+                {
                     m_ControlIDs[(int)NamedFace.Front],
                     frontPosition,
                     Vector3.forward,
-                    handleSize,
-                    Handles.DotHandleCap,
+                    HandleUtility.GetHandleSize(frontPosition) * handleSizeCoef,
+                    new Handles.CapFunction(Handles.DotHandleCap),
                     snapScale
-                    );
+                });
             using (new Handles.DrawingScope(GetColor(NamedFace.Back, Element.Handle)))
-                backPosition = UnityEditorInternal.Slider1D.Do(
+                backPosition = (Vector3)k_Slider1D_Do.Invoke(null, new object[]
+                {
                     m_ControlIDs[(int)NamedFace.Back],
                     backPosition,
                     Vector3.back,
-                    handleSize,
-                    Handles.DotHandleCap,
+                    HandleUtility.GetHandleSize(backPosition) * handleSizeCoef,
+                    new Handles.CapFunction(Handles.DotHandleCap),
                     snapScale
-                    );
-            
+                });
 
             if (EditorGUI.EndChangeCheck())
             {
