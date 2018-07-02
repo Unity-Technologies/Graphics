@@ -182,6 +182,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cameraData.isSceneViewCamera = camera.cameraType == CameraType.SceneView;
             cameraData.isOffscreenRender = camera.targetTexture != null && !cameraData.isSceneViewCamera;
             cameraData.isStereoEnabled = IsStereoEnabled(camera);
+
+#if !UNITY_SWITCH
+            // TODO: There's currently an issue in engine side that breaks MSAA with texture2DArray.
+            // for now we force msaa disabled when using texture2DArray. This fixes VR multiple and single pass instanced modes.
+            if (cameraData.isStereoEnabled && XRSettings.eyeTextureDesc.dimension == TextureDimension.Tex2DArray)
+                cameraData.msaaSamples = 1;
+#endif
+
             cameraData.isHdrEnabled = camera.allowHDR && pipelineAsset.supportsHDR;
 
             cameraData.postProcessLayer = camera.GetComponent<PostProcessLayer>();
@@ -205,7 +213,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (cameraData.isStereoEnabled)
                 {
                     cameraData.renderScale = XRSettings.eyeTextureResolutionScale;
-                } else
+                }
+                else
 #endif
                 {
                     cameraData.renderScale = pipelineAsset.renderScale;
