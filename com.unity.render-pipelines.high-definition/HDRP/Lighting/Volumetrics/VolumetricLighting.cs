@@ -390,9 +390,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return depthParams;
         }
 
-        void SetPreconvolvedAmbientLightProbe(CommandBuffer cmd, float anisotropy)
+        void SetPreconvolvedAmbientLightProbe(CommandBuffer cmd, float dimmer, float anisotropy)
         {
             SphericalHarmonicsL2 probeSH = SphericalHarmonicMath.UndoCosineRescaling(RenderSettings.ambientProbe);
+                                 probeSH = SphericalHarmonicMath.RescaleCoefficients(probeSH, dimmer);
             ZonalHarmonicsL2     phaseZH = ZonalHarmonicsL2.GetCornetteShanksPhaseFunction(anisotropy);
             SphericalHarmonicsL2 finalSH = SphericalHarmonicMath.PremultiplyCoefficients(SphericalHarmonicMath.Convolve(probeSH, phaseZH));
 
@@ -425,7 +426,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Get the interpolated anisotropy value.
             var fog = VolumeManager.instance.stack.GetComponent<VolumetricFog>();
 
-            SetPreconvolvedAmbientLightProbe(cmd, fog.anisotropy);
+            SetPreconvolvedAmbientLightProbe(cmd, fog.globalLightProbeDimmer, fog.anisotropy);
 
             var currFrameParams = hdCamera.vBufferParams[0];
             var prevFrameParams = hdCamera.vBufferParams[1];
