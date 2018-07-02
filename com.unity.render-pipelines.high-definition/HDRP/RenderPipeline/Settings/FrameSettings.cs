@@ -18,7 +18,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableSubsurfaceScattering = true;
         public bool enableTransmission = true;  // Caution: this is only for debug, it doesn't save the cost of Transmission execution
         public bool enableAtmosphericScattering = true;
-        public bool enableVolumetric = true;
+        public bool enableVolumetrics = true;
 
         // Setup by system
         public float diffuseGlobalDimmer = 1.0f;
@@ -59,7 +59,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             frameSettings.enableSubsurfaceScattering = this.enableSubsurfaceScattering;
             frameSettings.enableTransmission = this.enableTransmission;
             frameSettings.enableAtmosphericScattering = this.enableAtmosphericScattering;
-            frameSettings.enableVolumetric = this.enableVolumetric;
+            frameSettings.enableVolumetrics = this.enableVolumetrics;
 
             frameSettings.diffuseGlobalDimmer = this.diffuseGlobalDimmer;
             frameSettings.specularGlobalDimmer = this.specularGlobalDimmer;
@@ -120,11 +120,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (!CoreUtils.IsSceneViewFogEnabled(camera))
                 aggregate.enableAtmosphericScattering = false;
             // Volumetric are disabled if there is no atmospheric scattering
-            aggregate.enableVolumetric = srcFrameSettings.enableVolumetric && renderPipelineSettings.supportVolumetric && aggregate.enableAtmosphericScattering;
+            aggregate.enableVolumetrics = srcFrameSettings.enableVolumetrics && renderPipelineSettings.supportVolumetrics && aggregate.enableAtmosphericScattering;
 
             // TODO: Add support of volumetric in planar reflection
             if (camera.cameraType == CameraType.Reflection)
-                aggregate.enableVolumetric = false;
+                aggregate.enableVolumetrics = false;
 
             // We have to fall back to forward-only rendering when scene view is using wireframe rendering mode
             // as rendering everything in wireframe + deferred do not play well together
@@ -168,7 +168,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 aggregate.enableSSR = false;
                 aggregate.enableSSAO = false;
                 aggregate.enableAtmosphericScattering = false;
-                aggregate.enableVolumetric = false;
+                aggregate.enableVolumetrics = false;
                 aggregate.enableTransparentPrepass = false;
                 aggregate.enableMotionVectors = false;
                 aggregate.enableObjectMotionVectors = false;
@@ -284,7 +284,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         new DebugUI.BoolField { displayName = "Enable Contact Shadows", getter = () => frameSettings.enableContactShadows, setter = value => frameSettings.enableContactShadows = value },
                         new DebugUI.BoolField { displayName = "Enable ShadowMask", getter = () => frameSettings.enableShadowMask, setter = value => frameSettings.enableShadowMask = value },
                         new DebugUI.BoolField { displayName = "Enable Atmospheric Scattering", getter = () => frameSettings.enableAtmosphericScattering, setter = value => frameSettings.enableAtmosphericScattering = value },
-                        new DebugUI.BoolField { displayName = "    Enable volumetric", getter = () => frameSettings.enableVolumetric, setter = value => frameSettings.enableVolumetric = value },
+                        new DebugUI.BoolField { displayName = "Enable volumetrics", getter = () => frameSettings.enableVolumetrics, setter = value => frameSettings.enableVolumetrics = value },
                     }
                 }
             });
