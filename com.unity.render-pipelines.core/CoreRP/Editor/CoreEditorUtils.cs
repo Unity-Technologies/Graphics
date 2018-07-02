@@ -289,8 +289,6 @@ namespace UnityEditor.Experimental.Rendering
             if (colors != null && (colors.Length != 2 || colors[0].Length != 3 || colors[1].Length != 3))
                     throw new System.ArgumentException("Colors must be a 2x3 array.");
 
-            Debug.Log(colors);
-
             GUILayout.BeginVertical();
             if(label != GUIContent.none)
                 EditorGUILayout.LabelField(label);

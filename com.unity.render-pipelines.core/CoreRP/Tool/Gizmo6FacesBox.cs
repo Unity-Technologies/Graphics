@@ -52,6 +52,20 @@ namespace UnityEngine.Experimental.Gizmo
                     new Color(0f, 1f, 0f, .15f),
                     new Color(0f, 0f, 1f, .15f)
                 });
+                return m_faceColorsSelected ?? (m_faceColorsSelected = monochromeSelectedFace
+                    ? new Color[]
+                    {
+                        new Color(1f, 1f, 1f, .15f)
+                    }
+                    : new Color[]
+                    {
+                        new Color(1f, 0f, 0f, .15f),
+                        new Color(0f, 1f, 0f, .15f),
+                        new Color(0f, 0f, 1f, .15f),
+                        new Color(1f, 0f, 0f, .15f),
+                        new Color(0f, 1f, 0f, .15f),
+                        new Color(0f, 0f, 1f, .15f)
+                    });
             }
             set
             {
@@ -59,9 +73,9 @@ namespace UnityEngine.Experimental.Gizmo
                 {
                     throw new ArgumentNullException("FaceColor cannot be set to null.");
                 }
-                if (value.Length != 6)
+                if (value.Length != (monochromeSelectedFace ? 1 : 6))
                 {
-                    throw new ArgumentException("FaceColor must have 6 entries: X Y Z -X -Y -Z");
+                    throw new ArgumentException("FaceColor must have 6 entries: X Y Z -X -Y -Z or only one in monochrome mode");
                 }
                 m_faceColorsSelected = value;
             }
@@ -74,15 +88,20 @@ namespace UnityEngine.Experimental.Gizmo
         {
             get
             {
-                return m_faceColors ?? (m_faceColors = new Color[]
-                {
-                    new Color(1f, .9f, .58f, .17f),
-                    new Color(1f, .9f, .58f, .17f),
-                    new Color(1f, .9f, .58f, .17f),
-                    new Color(1f, .9f, .58f, .17f),
-                    new Color(1f, .9f, .58f, .17f),
-                    new Color(1f, .9f, .58f, .17f)
-                });
+                return m_faceColors ?? (m_faceColors = monochromeFace
+                    ? new Color[]
+                    {
+                        new Color(.5f, .5f, .5f, .15f)
+                    }
+                    : new Color[]
+                    {
+                        new Color(.5f, 0f, 0f, .15f),
+                        new Color(0f, .5f, 0f, .15f),
+                        new Color(0f, 0f, .5f, .15f),
+                        new Color(.5f, 0f, 0f, .15f),
+                        new Color(0f, .5f, 0f, .15f),
+                        new Color(0f, 0f, .5f, .15f)
+                    });
             }
             set
             {
@@ -90,14 +109,13 @@ namespace UnityEngine.Experimental.Gizmo
                 {
                     throw new ArgumentNullException("FaceColor cannot be set to null.");
                 }
-                if (value.Length != 6)
+                if (value.Length != (monochromeFace ? 1 : 6))
                 {
-                    throw new ArgumentException("FaceColor must have 6 entries: X Y Z -X -Y -Z");
+                    throw new ArgumentException("FaceColor must have 6 entries: X Y Z -X -Y -Z or only one in monochrome mode");
                 }
                 m_faceColors = value;
             }
         }
-
 
         Color[] m_handleColors;
 
@@ -105,15 +123,20 @@ namespace UnityEngine.Experimental.Gizmo
         {
             get
             {
-                return m_handleColors ?? (m_handleColors = new Color[]
-                {
-                    new Color(1f, 0f, 0f, 1f),
-                    new Color(0f, 1f, 0f, 1f),
-                    new Color(0f, 0f, 1f, 1f),
-                    new Color(1f, 0f, 0f, 1f),
-                    new Color(0f, 1f, 0f, 1f),
-                    new Color(0f, 0f, 1f, 1f)
-                });
+                return m_handleColors ?? (m_handleColors = monochromeHandle
+                    ? new Color[]
+                    {
+                        new Color(1f, 0f, 0f, 1f)
+                    }
+                    : new Color[]
+                    {
+                        new Color(1f, 0f, 0f, 1f),
+                        new Color(0f, 1f, 0f, 1f),
+                        new Color(0f, 0f, 1f, 1f),
+                        new Color(1f, 0f, 0f, 1f),
+                        new Color(0f, 1f, 0f, 1f),
+                        new Color(0f, 0f, 1f, 1f)
+                    });
             }
             set
             {
@@ -121,13 +144,17 @@ namespace UnityEngine.Experimental.Gizmo
                 {
                     throw new ArgumentNullException("HandleColor cannot be set to null.");
                 }
-                if (value.Length != 6)
+                if (value.Length != (monochromeHandle ? 1 : 6))
                 {
-                    throw new ArgumentException("HandleColor must have 6 entries: X Y Z -X -Y -Z");
+                    throw new ArgumentException("HandleColor must have 6 entries: X Y Z -X -Y -Z or only one in monochrome mode");
                 }
                 m_handleColors = value;
             }
         }
+
+        public readonly bool monochromeHandle;
+        public readonly bool monochromeFace;
+        public readonly bool monochromeSelectedFace;
 
         public int[] m_ControlIDs = new int[6] { 0, 0, 0, 0, 0, 0 };
 
@@ -135,12 +162,22 @@ namespace UnityEngine.Experimental.Gizmo
 
         public Vector3 size { get; set; }
 
-        public Gizmo6FacesBox()
-        { }
+        public Gizmo6FacesBox(bool monochromeHandle = false, bool monochromeFace = false, bool monochromeSelectedFace = false)
+        {
+            this.monochromeHandle = monochromeHandle;
+            this.monochromeFace = monochromeFace;
+            this.monochromeSelectedFace = monochromeSelectedFace;
+        }
 
         protected Color GetColor(NamedFace name, Element element)
         {
-            return (element == Element.Face ? faceColors : element == Element.Handle ? handleColors : faceColorsSelected)[(int)name];
+            switch(element)
+            {
+                default:
+                case Element.Face: return faceColors[monochromeFace ? 0 : (int)name];
+                case Element.SelectedFace: return faceColorsSelected[monochromeSelectedFace ? 0 : (int)name];
+                case Element.Handle: return handleColors[monochromeHandle ? 0 : (int)name];
+            }
         }
 
         public virtual void DrawHull(bool selected)
@@ -322,7 +359,7 @@ namespace UnityEngine.Experimental.Gizmo
             }
         }
 
-        public Gizmo6FacesBoxContained(Gizmo6FacesBox container)
+        public Gizmo6FacesBoxContained(Gizmo6FacesBox container, bool monochromeHandle = false, bool monochromeFace = false, bool monochromeSelectedFace = false) : base(monochromeHandle, monochromeFace, monochromeSelectedFace)
         {
             m_container = container;
         }
@@ -362,8 +399,6 @@ namespace UnityEngine.Experimental.Gizmo
                 Gizmos.DrawLine(m_container.center + zRecal + m_container.size.z * .5f * Vector3.back, center + size.z * .5f * Vector3.back);
 
             }
-
-            Debug.Log(m_container.size);
 
             Gizmos.color = colorGizmo;
         }

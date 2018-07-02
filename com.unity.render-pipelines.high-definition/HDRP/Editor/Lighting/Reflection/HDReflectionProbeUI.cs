@@ -30,8 +30,6 @@ namespace UnityEditor.Experimental.Rendering
         public void ClearOperation(Operation op) { operations &= ~op; }
         public void AddOperation(Operation op) { operations |= op; }
 
-        public bool useNewGizmo = false;
-
         public BoxBoundsHandle boxInfluenceHandle = new BoxBoundsHandle();
         public BoxBoundsHandle boxProjectionHandle = new BoxBoundsHandle();
         public BoxBoundsHandle boxBlendHandle = new BoxBoundsHandle();
