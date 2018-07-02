@@ -180,6 +180,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Update emissive mesh and light intensity when undo/redo
             Undo.undoRedoPerformed += () => {
+                m_SerializedAdditionalLightData.ApplyModifiedProperties();
                 foreach (var hdLightData in m_AdditionalLightDatas)
                     if (hdLightData != null)
                         hdLightData.UpdateAreaLightEmissiveMesh();
@@ -272,7 +273,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             EditorGUI.BeginChangeCheck(); // For GI we need to detect any change on additional data and call SetLightDirty + For intensity we need to detect light shape change
 
+            EditorGUI.BeginChangeCheck();
             m_LightShape = (LightShape)EditorGUILayout.Popup(s_Styles.shape, (int)m_LightShape, s_Styles.shapeNames);
+            if (EditorGUI.EndChangeCheck())
+                UpdateLightIntensityUnit();
 
             if (m_LightShape != LightShape.Directional)
                 settings.DrawRange(false);
@@ -358,7 +362,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (EditorGUI.EndChangeCheck())
             {
-                UpdateLightIntensityUnit();
                 UpdateLightScale();
                 m_UpdateAreaLightEmissiveMeshComponents = true;
                 ((Light)target).SetLightDirty(); // Should be apply only to parameter that's affect GI, but make the code cleaner
