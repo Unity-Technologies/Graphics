@@ -935,6 +935,18 @@ namespace UnityEditor.VFX.UI
 
         public static void CollectAncestorOperator(IVFXSlotContainer operatorInput, HashSet<IVFXSlotContainer> hashParents)
         {
+            foreach (var slotInput in operatorInput.inputSlots)
+            {
+                var linkedSlots = slotInput.AllChildrenWithLink();
+                foreach (var linkedSlot in linkedSlots)
+                {
+                    RecurseCollectAncestorOperator(linkedSlot.refSlot.owner, hashParents);
+                }
+            }
+        }
+
+        public static void RecurseCollectAncestorOperator(IVFXSlotContainer operatorInput, HashSet<IVFXSlotContainer> hashParents)
+        {
             if (hashParents.Contains(operatorInput))
                 return;
 
@@ -945,12 +957,27 @@ namespace UnityEditor.VFX.UI
                 var linkedSlots = slotInput.AllChildrenWithLink();
                 foreach (var linkedSlot in linkedSlots)
                 {
-                    CollectAncestorOperator(linkedSlot.refSlot.owner, hashParents);
+                    RecurseCollectAncestorOperator(linkedSlot.refSlot.owner, hashParents);
                 }
             }
         }
 
         public static void CollectDescendantOperator(IVFXSlotContainer operatorInput, HashSet<IVFXSlotContainer> hashChildren)
+        {
+            foreach (var slotOutput in operatorInput.outputSlots)
+            {
+                var linkedSlots = slotOutput.AllChildrenWithLink();
+                foreach (var linkedSlot in linkedSlots)
+                {
+                    foreach (var link in linkedSlot.LinkedSlots)
+                    {
+                        RecurseCollectDescendantOperator(link.owner, hashChildren);
+                    }
+                }
+            }
+        }
+
+        public static void RecurseCollectDescendantOperator(IVFXSlotContainer operatorInput, HashSet<IVFXSlotContainer> hashChildren)
         {
             if (hashChildren.Contains(operatorInput))
                 return;
@@ -963,7 +990,7 @@ namespace UnityEditor.VFX.UI
                 {
                     foreach (var link in linkedSlot.LinkedSlots)
                     {
-                        CollectDescendantOperator(link.owner, hashChildren);
+                        RecurseCollectDescendantOperator(link.owner, hashChildren);
                     }
                 }
             }

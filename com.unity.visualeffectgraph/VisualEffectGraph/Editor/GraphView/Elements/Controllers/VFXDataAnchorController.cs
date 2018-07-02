@@ -180,9 +180,8 @@ namespace UnityEditor.VFX.UI
             bool result;
             if (direction != Direction.Input)
             {
-                VFXViewController.CollectDescendantOperator(sourceNode.slotContainer, cache.localChildrenOperator);
-#if _RESTRICT_ATTRIBUTE_ACCESS
                 VFXViewController.CollectAncestorOperator(sourceNode.slotContainer, cache.localParentOperator);
+#if _RESTRICT_ATTRIBUTE_ACCESS
                 if (cache.localParentOperator.Any(o => DependOnAttribute(o)))
                 {
                     if (cache.ancestorOfSpawners == null)
@@ -191,13 +190,12 @@ namespace UnityEditor.VFX.UI
                     cache.localChildrenOperator.UnionWith(additionnalExcludeOperator);
                 }
 #endif
-                result = !cache.localChildrenOperator.Contains(nodeController.slotContainer);
+                result = !cache.localParentOperator.Contains(nodeController.slotContainer);
             }
             else
             {
-                VFXViewController.CollectAncestorOperator(nodeController.slotContainer, cache.localParentOperator);
-#if _RESTRICT_ATTRIBUTE_ACCESS
                 VFXViewController.CollectDescendantOperator(sourceNode.slotContainer, cache.localChildrenOperator);
+#if _RESTRICT_ATTRIBUTE_ACCESS
 
                 var contextTypeInChildren = cache.localChildrenOperator.OfType<VFXBlock>().Select(o => o.GetParent().contextType);
                 if (contextTypeInChildren.Any(o => o == VFXContextType.kSpawner))
@@ -209,7 +207,7 @@ namespace UnityEditor.VFX.UI
                     return !cache.localParentOperator.Contains(sourceNode.slotContainer) && !additionnalExcludeOperator.Contains(nodeController.slotContainer);
                 }
 #endif
-                result = !cache.localParentOperator.Contains(sourceNode.slotContainer);
+                result = !cache.localChildrenOperator.Contains(nodeController.slotContainer);
             }
 
             return result;
