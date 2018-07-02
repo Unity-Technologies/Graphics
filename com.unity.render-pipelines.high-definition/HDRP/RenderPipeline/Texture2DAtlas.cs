@@ -241,7 +241,7 @@ namespace UnityEngine.Experimental.Rendering
             }
             else if (crt != null)
             {
-                mipCount = 1;
+                mipCount = 1 + Mathf.FloorToInt(Mathf.Log(Mathf.Max(crt.width, crt.height)) / Mathf.Log(2));
                 cube = crt.dimension == TextureDimension.Cube;
                 m_CustomRenderTextureUpdateCache[key] = crt.updateCount;
             }

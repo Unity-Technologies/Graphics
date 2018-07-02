@@ -157,17 +157,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        IEnumerable<string> ExpressionMatches<T>(List<FileField> fileFieldGroup, T instance)
+        IEnumerable<string> ExpressionMatches<T>(List<FileField> fileFieldList, T instance)
         {
-            int fieldCount = fileFieldGroup.Count;
-            
             // If we've reached the end of the file, break
             if (m_Lines.Length == m_LineIndex)
                 yield break;
 
-            if (fieldCount == 1)
+            if (fileFieldList.Count == 1)
             {
-                FileField f = fileFieldGroup.First();
+                FileField f = fileFieldList.First();
 
                 if (SkipField(f, instance))
                     yield break;
@@ -190,15 +188,26 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             else
             {
-                // If there are multiple fields to provide from the same line, split the line and send the result
-                foreach (var w in m_Lines[m_LineIndex].Split(null))
-                    yield return w;
-                
-                m_LineIndex++;
+                int fieldCount = 0;
 
-                // If we've reached the end of the file, break
-                if (m_Lines.Length == m_LineIndex)
-                    yield break;
+                // If we have multiple fields, we split each lines and returns until we have filled all the fields
+                while (fieldCount < fileFieldList.Count)
+                {
+                    foreach (var w in m_Lines[m_LineIndex].Split(null))
+                    {
+                        yield return w;
+                        fieldCount++;
+
+                        if (fieldCount == fileFieldList.Count)
+                            break;
+                    }
+                    
+                    m_LineIndex++;
+
+                    // If we've reached the end of the file, break
+                    if (m_Lines.Length == m_LineIndex)
+                        yield break;
+                }
             }
         }
 
@@ -214,6 +223,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 if (String.IsNullOrEmpty(expression.Trim()))
                     continue ;
+
+                Debug.Log("field: " + f.field.Name + " | " + expression);
                 
                 // If the target type is a list, we call add rather than setting it's value
                 if (typeof(IList).IsAssignableFrom(f.field.FieldType))
