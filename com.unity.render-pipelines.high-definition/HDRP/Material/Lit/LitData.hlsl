@@ -62,9 +62,8 @@ void GenerateLayerTexCoordBasisTB(FragInputs input, inout LayerTexCoord layerTex
     layerTexCoord.vertexTangentWS0 = input.worldToTangent[0];
     layerTexCoord.vertexBitangentWS0 = input.worldToTangent[1];
 
-    // TODO: We should use relative camera position here - This will be automatic when we will move to camera relative space.
-    float3 dPdx = ddx_fine(input.positionWS);
-    float3 dPdy = ddy_fine(input.positionWS);
+    float3 dPdx = ddx_fine(input.positionRWS);
+    float3 dPdy = ddy_fine(input.positionRWS);
 
     float3 sigmaX = dPdx - dot(dPdx, vertexNormalWS) * vertexNormalWS;
     float3 sigmaY = dPdy - dot(dPdy, vertexNormalWS) * vertexNormalWS;
@@ -138,7 +137,7 @@ void GenerateLayerTexCoordBasisTB(FragInputs input, inout LayerTexCoord layerTex
 // in function with FragInputs input as parameters
 // layerTexCoord must have been initialize to 0 outside of this function
 void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3,
-                      float3 positionWS, float3 vertexNormalWS, inout LayerTexCoord layerTexCoord)
+                      float3 positionRWS, float3 vertexNormalWS, inout LayerTexCoord layerTexCoord)
 {
     layerTexCoord.vertexNormalWS = vertexNormalWS;
     layerTexCoord.triplanarWeights = ComputeTriplanarWeights(vertexNormalWS);
@@ -153,7 +152,7 @@ void GetLayerTexCoord(float2 texCoord0, float2 texCoord1, float2 texCoord2, floa
     // Be sure that the compiler is aware that we don't use UV1 to UV3 for main layer so it can optimize code
     ComputeLayerTexCoord(   texCoord0, texCoord1, texCoord2, texCoord3, _UVMappingMask, _UVDetailsMappingMask,
                             _BaseColorMap_ST.xy, _BaseColorMap_ST.zw, _DetailMap_ST.xy, _DetailMap_ST.zw, 1.0, _LinkDetailsWithBase,
-                            positionWS, _TexWorldScale,
+                            positionRWS, _TexWorldScale,
                             mappingType, layerTexCoord);
 }
 
@@ -166,7 +165,7 @@ void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
 #endif
 
     GetLayerTexCoord(   input.texCoord0, input.texCoord1, input.texCoord2, input.texCoord3,
-                        input.positionWS, input.worldToTangent[2].xyz, layerTexCoord);
+                        input.positionRWS, input.worldToTangent[2].xyz, layerTexCoord);
 }
 
 #include "LitDataDisplacement.hlsl"
