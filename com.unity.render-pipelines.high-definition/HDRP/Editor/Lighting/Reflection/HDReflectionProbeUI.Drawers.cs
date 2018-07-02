@@ -52,6 +52,8 @@ namespace UnityEditor.Experimental.Rendering
                 "Influence volume settings",
                 (s, p, o) => s.isSectionExpandedInfluenceVolume,
                 FoldoutOption.Indent,
+                CED.Action(Drawer_InfluenceAdvancedSwitch),
+                CED.space,
                 CED.Action(Drawer_InfluenceShape),
                 CED.space,
                 CED.Action(Drawer_InfluenceAreas),
@@ -149,9 +151,9 @@ namespace UnityEditor.Experimental.Rendering
                 p.blendDistanceNegative,
                 maxBlendDistance,
                 CoreEditorUtils.GetContent("Blend Distance|Area around the probe where it is blended with other probes. Only used in deferred probes."),
-                s.isSectionExpendedAdvancedBlendDistanceBoxShape
+                s.isSectionAdvancedInfluenceSettings
                 );
-            if (GUILayout.Button(toolbar_Contents[1], GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight((s.isSectionExpendedAdvancedBlendDistanceBoxShape.value ? 3 : 1) * (EditorGUIUtility.singleLineHeight + 3))))
+            if (GUILayout.Button(toolbar_Contents[1], GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight((s.isSectionAdvancedInfluenceSettings.value ? 3 : 1) * (EditorGUIUtility.singleLineHeight + 3))))
             {
                 EditMode.ChangeEditMode(k_Toolbar_SceneViewEditModes[1], GetBoundsGetter(p)(), owner);
             }
@@ -163,26 +165,18 @@ namespace UnityEditor.Experimental.Rendering
                 p.blendNormalDistanceNegative,
                 maxBlendDistance,
                 CoreEditorUtils.GetContent("Blend Normal Distance|Area around the probe where the normals influence the probe. Only used in deferred probes."),
-                s.isSectionExpendedAdvancedBlendNormalDistanceBoxShape
+                s.isSectionAdvancedInfluenceSettings
                 );
-            if (GUILayout.Button(toolbar_Contents[2], GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight((s.isSectionExpendedAdvancedBlendNormalDistanceBoxShape.value ? 3 : 1) * (EditorGUIUtility.singleLineHeight + 3))))
+            if (GUILayout.Button(toolbar_Contents[2], GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight((s.isSectionAdvancedInfluenceSettings.value ? 3 : 1) * (EditorGUIUtility.singleLineHeight + 3))))
             {
                 EditMode.ChangeEditMode(k_Toolbar_SceneViewEditModes[2], GetBoundsGetter(p)(), owner);
             }
             EditorGUILayout.EndHorizontal();
 
-            EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.LabelField(CoreEditorUtils.GetContent("Face fade|Fade faces of the cubemap."));
-            if (GUILayout.Button(CoreEditorUtils.GetContent(s.isSectionExpendedAdvancedBlendFaceFadeBoxShape.value ? "Hide" : "Advanced")))
-            {
-                s.isSectionExpendedAdvancedBlendFaceFadeBoxShape.value ^= true;
-            }
-            EditorGUILayout.EndHorizontal();
-
-            if (s.isSectionExpendedAdvancedBlendFaceFadeBoxShape.value)
+            if (s.isSectionAdvancedInfluenceSettings.value)
             {
                 CoreEditorUtils.DrawVector6(
-                    GUIContent.none, //CoreEditorUtils.GetContent("Face fade|Fade faces of the cubemap."),
+                    CoreEditorUtils.GetContent("Face fade|Fade faces of the cubemap."),
                     p.boxSideFadePositive, p.boxSideFadeNegative, Vector3.zero, Vector3.one, HDReflectionProbeEditor.k_handlesColor);
             }
         }
@@ -191,51 +185,32 @@ namespace UnityEditor.Experimental.Rendering
         {
             Vector3 bdp = blendDistancePositive.vector3Value;
             Vector3 bdn = blendDistanceNegative.vector3Value;
-            float maxDistance = Mathf.Max(bdp.x, bdp.y, bdp.z, bdn.x, bdn.y, bdn.z);
-            float originalMaxDistance = maxDistance;
-
-            GUIStyle styleTextDisabled = new GUIStyle(GUI.skin.textField);
-            styleTextDisabled.normal.textColor = Color.grey;
-
 
             EditorGUILayout.BeginVertical();
-
-            EditorGUILayout.BeginHorizontal();
-
-            EditorGUI.BeginChangeCheck();
-            maxDistance = EditorGUILayout.FloatField(content, maxDistance, advanced.value ? styleTextDisabled : GUI.skin.textField);
-            if (advanced.value)
-            {
-                maxDistance = originalMaxDistance;
-                EditorGUI.EndChangeCheck();
-            }
-            else if (EditorGUI.EndChangeCheck())
-            {
-                Vector3 decal = Vector3.one * maxDistance;
-                bdp = decal;
-                bdn = decal;
-                bdp.x = Mathf.Clamp(bdp.x, 0f, maxBlendDistance.x);
-                bdp.y = Mathf.Clamp(bdp.y, 0f, maxBlendDistance.y);
-                bdp.z = Mathf.Clamp(bdp.z, 0f, maxBlendDistance.z);
-                bdn.x = Mathf.Clamp(bdp.x, 0f, maxBlendDistance.x);
-                bdn.y = Mathf.Clamp(bdp.y, 0f, maxBlendDistance.y);
-                bdn.z = Mathf.Clamp(bdp.z, 0f, maxBlendDistance.z);
-                blendDistancePositive.vector3Value = bdp;
-                blendDistanceNegative.vector3Value = bdn;
-            }
-
-            if (GUILayout.Button(CoreEditorUtils.GetContent(advanced.value ? "Hide" : "Advanced"), GUILayout.MaxWidth(70)))
-            {
-                advanced.value ^= true;
-            }
-
-            EditorGUILayout.EndHorizontal();
 
             if (advanced.value)
             {
                 CoreEditorUtils.DrawVector6(
-                    GUIContent.none,
+                    content,
                     blendDistancePositive, blendDistanceNegative, Vector3.zero, maxBlendDistance, HDReflectionProbeEditor.k_handlesColor);
+            }
+            else
+            {
+                float distance = bdp.x;
+                EditorGUI.BeginChangeCheck();
+                distance = EditorGUILayout.FloatField(content, distance);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    Vector3 decal = Vector3.one * distance;
+                    bdp.x = Mathf.Clamp(decal.x, 0f, maxBlendDistance.x);
+                    bdp.y = Mathf.Clamp(decal.y, 0f, maxBlendDistance.y);
+                    bdp.z = Mathf.Clamp(decal.z, 0f, maxBlendDistance.z);
+                    bdn.x = Mathf.Clamp(decal.x, 0f, maxBlendDistance.x);
+                    bdn.y = Mathf.Clamp(decal.y, 0f, maxBlendDistance.y);
+                    bdn.z = Mathf.Clamp(decal.z, 0f, maxBlendDistance.z);
+                    blendDistancePositive.vector3Value = bdp;
+                    blendDistanceNegative.vector3Value = bdn;
+                }
             }
 
             GUILayout.EndVertical();
@@ -295,6 +270,27 @@ namespace UnityEditor.Experimental.Rendering
                 s.SetModeTarget(p.mode.intValue);
                 foreach (var targetObject in p.so.targetObjects)
                     HDReflectionProbeEditorUtility.ResetProbeSceneTextureInMaterial((ReflectionProbe)targetObject);
+            }
+        }
+
+        static void Drawer_InfluenceAdvancedSwitch(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
+        {
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                GUILayout.FlexibleSpace();
+
+                bool advanced = s.isSectionAdvancedInfluenceSettings.value;
+                advanced = !GUILayout.Toggle(!advanced, CoreEditorUtils.GetContent("Normal|Normal parameters mode (only change for box shape)."), EditorStyles.miniButtonLeft, GUILayout.Width(60f), GUILayout.ExpandWidth(false));
+                advanced = GUILayout.Toggle(advanced, CoreEditorUtils.GetContent("Advanced|Advanced parameters mode (only change for box shape)."), EditorStyles.miniButtonRight, GUILayout.Width(60f), GUILayout.ExpandWidth(false));
+                if (s.isSectionAdvancedInfluenceSettings.value ^ advanced)
+                {
+                    s.isSectionAdvancedInfluenceSettings.value = advanced;
+                    if (!advanced)
+                    {
+                        p.blendDistanceNegative.vector3Value = p.blendDistancePositive.vector3Value = Vector3.one *  p.blendDistancePositive.vector3Value.x;
+                        p.blendNormalDistanceNegative.vector3Value = p.blendNormalDistancePositive.vector3Value = Vector3.one *  p.blendNormalDistancePositive.vector3Value.x;
+                    }
+                }
             }
         }
 
