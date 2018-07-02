@@ -41,7 +41,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 
     UNITY_BRANCH if (lightData.cookieIndex >= 0)
     {
-        float3 lightToSample = positionWS - lightData.positionWS;
+        float3 lightToSample = positionWS - lightData.positionRWS;
         float3 cookie = EvaluateCookie_Directional(lightLoopContext, lightData, lightToSample);
 
         color *= cookie;
@@ -102,7 +102,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 // Return L vector for punctual light (normalize surface to light), lightToSample (light to surface non normalize) and distances {d, d^2, 1/d, d_proj}
 void GetPunctualLightVectors(float3 positionWS, LightData lightData, out float3 L, out float3 lightToSample, out float4 distances)
 {
-    lightToSample = positionWS - lightData.positionWS;
+    lightToSample = positionWS - lightData.positionRWS;
     int lightType = lightData.lightType;
 
     distances.w = dot(lightToSample, lightData.forward);
@@ -251,9 +251,8 @@ void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightD
     if (influenceShapeType == ENVSHAPETYPE_SPHERE)
     {
         projectionDistance = IntersectSphereProxy(lightData, dirPS, positionPS);
-        // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.capturePositionWS
-        float3 capturePositionWS = lightData.capturePositionWS;
-        R = (positionWS + projectionDistance * R) - capturePositionWS;
+        // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.capturePositionRWS
+        R = (positionWS + projectionDistance * R) - lightData.capturePositionRWS;
 
         weight = InfluenceSphereWeight(lightData, normalWS, positionWS, positionIS, dirIS);
     }
@@ -261,9 +260,8 @@ void EvaluateLight_EnvIntersection(float3 positionWS, float3 normalWS, EnvLightD
     {
         projectionDistance = IntersectBoxProxy(lightData, dirPS, positionPS);
         // No need to normalize for fetching cubemap
-        // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.capturePositionWS
-        float3 capturePositionWS = lightData.capturePositionWS;
-        R = (positionWS + projectionDistance * R) - capturePositionWS;
+        // We can reuse dist calculate in LS directly in WS as there is no scaling. Also the offset is already include in lightData.capturePositionRWS
+        R = (positionWS + projectionDistance * R) - lightData.capturePositionRWS;
 
         weight = InfluenceBoxWeight(lightData, normalWS, positionWS, positionIS, dirIS);
     }
@@ -305,7 +303,7 @@ float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext, P
 
             // Compute the distance from the light to the back face of the object along the light direction.
             float distBackFaceToLight = GetPunctualShadowClosestDistance(   lightLoopContext.shadowContext, s_linear_clamp_sampler,
-                                                                            posInput.positionWS, lightData.shadowIndex, L, lightData.positionWS);
+                                                                            posInput.positionWS, lightData.shadowIndex, L, lightData.positionRWS);
 
             // Our subsurface scattering models use the semi-infinite planar slab assumption.
             // Therefore, we need to find the thickness along the normal.

@@ -242,7 +242,7 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                     float3 coneAxisY = lenMul * light.up;
 
                     sampleLight = IntersectRayCone(ray.originWS, ray.jitterDirWS,
-                                                   light.positionWS, light.forward,
+                                                   light.positionRWS, light.forward,
                                                    coneAxisX, coneAxisY,
                                                    t0, t1, tEntr, tExit);
                 }
@@ -256,14 +256,14 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                     float hackMinDistSq = Sq(dt * (0.5 / 7));
 
                     float t, distSq, rcpPdf;
-                    ImportanceSamplePunctualLight(rndVal, light.positionWS,
+                    ImportanceSamplePunctualLight(rndVal, light.positionRWS,
                                                   ray.originWS, ray.jitterDirWS,
                                                   tEntr, tExit, t, distSq, rcpPdf,
                                                   hackMinDistSq);
 
                     posInput.positionWS = GetPointAtDistance(ray, t);
 
-                    float3 lightToSample = posInput.positionWS - light.positionWS;
+                    float3 lightToSample = posInput.positionWS - light.positionRWS;
                     float  distRcp       = rsqrt(distSq);
                     float  dist          = distSq * distRcp;
                     float  distProj      = dot(lightToSample, light.forward);
@@ -288,7 +288,7 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                     // and any temporal instability of anisotropy causes causes visible jitter.
                     // In order to stabilize the image, we use the voxel center for all
                     // anisotropy-related calculations.
-                    float3 centerL = light.positionWS - centerWS;
+                    float3 centerL = light.positionRWS - centerWS;
                     float  cosTheta = dot(centerL, ray.centerDirWS) * rsqrt(dot(centerL, centerL));
                     float  phase    = CornetteShanksPhasePartVarying(anisotropy, cosTheta);
 
@@ -339,7 +339,7 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                 // 'light.right' and 'light.up' vectors are pre-scaled on the CPU by (2/w) and (2/h).
                 float3x3 rotMat = float3x3(light.right, light.up, light.forward);
 
-                float3 o = mul(rotMat, ray.originWS - light.positionWS);
+                float3 o = mul(rotMat, ray.originWS - light.positionRWS);
                 float3 d = mul(rotMat, ray.jitterDirWS);
 
                 float  range  = light.size.x;
@@ -357,7 +357,7 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                     posInput.positionWS = GetPointAtDistance(ray, t);
 
                     float3 L             = -light.forward;
-                    float3 lightToSample = posInput.positionWS - light.positionWS;
+                    float3 lightToSample = posInput.positionWS - light.positionRWS;
                     float  distProj      = dot(lightToSample, light.forward);
                     float4 distances     = float4(1, 1, 1, distProj);
 
@@ -379,7 +379,7 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                     // and any temporal instability of anisotropy causes causes visible jitter.
                     // In order to stabilize the image, we use the voxel center for all
                     // anisotropy-related calculations.
-                    float3 centerL  = light.positionWS - centerWS;
+                    float3 centerL  = light.positionRWS - centerWS;
                     float  cosTheta = dot(centerL, ray.centerDirWS) * rsqrt(dot(centerL, centerL));
                     float  phase    = CornetteShanksPhasePartVarying(anisotropy, cosTheta);
 
