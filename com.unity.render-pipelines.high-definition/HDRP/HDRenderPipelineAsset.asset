@@ -58,6 +58,7 @@ MonoBehaviour:
     enableUltraQualitySSS: 0
     supportVolumetric: 1
     supportRuntimeDebugDisplay: 1
+    supportDitheringCrossFade: 1
     supportDBuffer: 1
     supportMSAA: 0
     msaaSampleCount: 1
@@ -81,6 +82,9 @@ MonoBehaviour:
     shadowInitParams:
       shadowAtlasWidth: 4096
       shadowAtlasHeight: 4096
+      maxPointLightShadows: 6
+      maxSpotLightShadows: 12
+      maxDirectionalLightShadows: 1
     decalSettings:
       drawDistance: 1000
       atlasWidth: 4096
