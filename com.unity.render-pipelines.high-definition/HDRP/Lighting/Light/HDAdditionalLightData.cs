@@ -3,7 +3,6 @@ using UnityEditor;
 using UnityEditor.Experimental.Rendering.HDPipeline;
 #endif
 using UnityEngine.Serialization;
-using System.Reflection;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -131,6 +130,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool showAdditionalSettings = false;
         public float displayLightIntensity;
         
+        // When true, a mesh will be display to represent the area light (Can only be change in editor, component is added in Editor)
+        public bool displayAreaLightEmissiveMesh = false;
+        
         // Duplication of HDLightEditor.k_MinAreaWidth, maybe do something about that
         const float k_MinAreaWidth = 0.01f; // Provide a small size of 1cm for line light
 
@@ -224,32 +226,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        // Given a correlated color temperature (in Kelvin), estimate the RGB equivalent. Curve fit error is max 0.008.
-        Color CorrelatedColorTemperatureToRGB(float temperature)
-        {
-            float r, g, b;
-
-            // Temperature must fall between 1000 and 40000 degrees
-            // The fitting require to divide kelvin by 1000 (allow more precision)
-            float kelvin = Mathf.Clamp(temperature, 1000.0f, 40000.0f) / 1000.0f;
-            float kelvin2 = kelvin * kelvin;
-
-            // Using 6570 as a pivot is an approximation, pivot point for red is around 6580 and for blue and green around 6560.
-            // Calculate each color in turn (Note, clamp is not really necessary as all value belongs to [0..1] but can help for extremum).
-            // Red
-            r = kelvin < 6.570f ? 1.0f : Mathf.Clamp((1.35651f + 0.216422f * kelvin + 0.000633715f * kelvin2) / (-3.24223f + 0.918711f * kelvin), 0.0f, 1.0f);
-            // Green
-            g = kelvin < 6.570f ?
-                Mathf.Clamp((-399.809f + 414.271f * kelvin + 111.543f * kelvin2) / (2779.24f + 164.143f * kelvin + 84.7356f * kelvin2), 0.0f, 1.0f) :
-                Mathf.Clamp((1370.38f + 734.616f * kelvin + 0.689955f * kelvin2) / (-4625.69f + 1699.87f * kelvin), 0.0f, 1.0f);
-            //Blue
-            b = kelvin > 6.570f ? 1.0f : Mathf.Clamp((348.963f - 523.53f * kelvin + 183.62f * kelvin2) / (2848.82f - 214.52f * kelvin + 78.8614f * kelvin2), 0.0f, 1.0f);
-
-            return new Color(r, g, b, 1.0f);
-        }
-
-        // When true, a mesh will be display to represent the area light (Can only be change in editor, component is added in Editor)
-        public bool displayAreaLightEmissiveMesh = false;
 
 #if UNITY_EDITOR
 
@@ -479,6 +455,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 emissiveMeshRenderer.sharedMaterial.SetColor("_EmissiveColor", m_Light.color.linear * areaLightIntensity * CorrelatedColorTemperatureToRGB(m_Light.colorTemperature));
             else
                 emissiveMeshRenderer.sharedMaterial.SetColor("_EmissiveColor", m_Light.color.linear * areaLightIntensity);
+        }
+        
+        // Given a correlated color temperature (in Kelvin), estimate the RGB equivalent. Curve fit error is max 0.008.
+        Color CorrelatedColorTemperatureToRGB(float temperature)
+        {
+            float r, g, b;
+
+            // Temperature must fall between 1000 and 40000 degrees
+            // The fitting require to divide kelvin by 1000 (allow more precision)
+            float kelvin = Mathf.Clamp(temperature, 1000.0f, 40000.0f) / 1000.0f;
+            float kelvin2 = kelvin * kelvin;
+
+            // Using 6570 as a pivot is an approximation, pivot point for red is around 6580 and for blue and green around 6560.
+            // Calculate each color in turn (Note, clamp is not really necessary as all value belongs to [0..1] but can help for extremum).
+            // Red
+            r = kelvin < 6.570f ? 1.0f : Mathf.Clamp((1.35651f + 0.216422f * kelvin + 0.000633715f * kelvin2) / (-3.24223f + 0.918711f * kelvin), 0.0f, 1.0f);
+            // Green
+            g = kelvin < 6.570f ?
+                Mathf.Clamp((-399.809f + 414.271f * kelvin + 111.543f * kelvin2) / (2779.24f + 164.143f * kelvin + 84.7356f * kelvin2), 0.0f, 1.0f) :
+                Mathf.Clamp((1370.38f + 734.616f * kelvin + 0.689955f * kelvin2) / (-4625.69f + 1699.87f * kelvin), 0.0f, 1.0f);
+            //Blue
+            b = kelvin > 6.570f ? 1.0f : Mathf.Clamp((348.963f - 523.53f * kelvin + 183.62f * kelvin2) / (2848.82f - 214.52f * kelvin + 78.8614f * kelvin2), 0.0f, 1.0f);
+
+            return new Color(r, g, b, 1.0f);
         }
 
 #endif
