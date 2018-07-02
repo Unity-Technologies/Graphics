@@ -285,7 +285,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_DbufferManager.CreateBuffers();
 
             m_SSSBufferManager.InitSSSBuffers(m_GbufferManager, m_Asset.renderPipelineSettings);
-            m_NormalBufferManager.InitNormalBuffers(m_GbufferManager, m_Asset.renderPipelineSettings);            
+            m_NormalBufferManager.InitNormalBuffers(m_GbufferManager, m_Asset.renderPipelineSettings);
 
             m_CameraColorBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, enableRandomWrite: true, enableMSAA: true, name: "CameraColor");
             m_CameraSssDiffuseLightingBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.RGB111110Float, sRGB: false, enableRandomWrite: true, enableMSAA: true, name: "CameraSSSDiffuseLighting");
@@ -840,7 +840,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     var postProcessLayer = camera.GetComponent<PostProcessLayer>();
 
                     // Disable post process if we enable debug mode or if the post process layer is disabled
-                    if (m_CurrentDebugDisplaySettings.IsDebugDisplayRemovePostprocess() || !CoreUtils.IsPostProcessingActive(postProcessLayer))
+                    if (m_CurrentDebugDisplaySettings.IsDebugDisplayRemovePostprocess() || !HDUtils.IsPostProcessingActive(postProcessLayer))
                     {
                         currentFrameSettings.enablePostprocess = false;
                     }
@@ -1364,7 +1364,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 using (new ProfilingSample(cmd, m_DbufferManager.EnableDBUffer ? "Depth Prepass (deferred) force by DBuffer" : "Depth Prepass (deferred)", CustomSamplerId.DepthPrepass.GetSampler()))
                 {
                     cmd.DisableShaderKeyword("WRITE_NORMAL_BUFFER"); // Note: This only disable the output of normal buffer for Lit shader, not the other shader that don't use multicompile
-                    
+
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraDepthStencilBuffer);
 
                     // First deferred material
@@ -1623,8 +1623,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else
                 {
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
-                    if ((hdCamera.frameSettings.enableDBuffer) && (DecalSystem.m_DecalDatasCount > 0)) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered                    
-                                                                                                       // decal datas count is 0 if no decals affect transparency             
+                    if ((hdCamera.frameSettings.enableDBuffer) && (DecalSystem.m_DecalDatasCount > 0)) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
+                                                                                                       // decal datas count is 0 if no decals affect transparency
                     {
                         DecalSystem.instance.SetAtlas(cmd); // for clustered decals
                     }
