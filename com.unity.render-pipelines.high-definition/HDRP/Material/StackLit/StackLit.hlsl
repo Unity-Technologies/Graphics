@@ -535,9 +535,9 @@ struct PreLightData
 
     float3 vLayerEnergyCoeff[NB_VLAYERS];
     // TODOENERGY
-    // For now since FGD fetches aren't used in compute adding (instead we do non integrated 
-    // Fresnel( ) evaluations and 1 - Fresnel( ) which is wrong, the former only ok for analytical 
-    // lights for the top interface for R12), we will use these for FGD fetches but keep them 
+    // For now since FGD fetches aren't used in compute adding (instead we do non integrated
+    // Fresnel( ) evaluations and 1 - Fresnel( ) which is wrong, the former only ok for analytical
+    // lights for the top interface for R12), we will use these for FGD fetches but keep them
     // for BSDF( ) eval for analytical lights since the later don't use FGD terms.
 
 
@@ -979,7 +979,7 @@ void ComputeStatistics(in  float  cti, in float3 V, in float3 vOrthoGeomN, in bo
                 //float topIor = bsdfData.coatIor;
                 // TODO:
                 // We will avoid using coatIor directly as with the fake refraction, it can cause TIR
-                // which even when handled in EvalIridescence (tested), doesn't look pleasing and 
+                // which even when handled in EvalIridescence (tested), doesn't look pleasing and
                 // creates a discontinuity.
                 float scale = clamp((1.0-bsdfData.coatPerceptualRoughness), 0.0, 1.0);
                 float topIor = lerp(1.0001, bsdfData.coatIor, scale);
@@ -1450,7 +1450,7 @@ void PreLightData_SetupAreaLights(BSDFData bsdfData, float3 V, float3 N[NB_NORMA
     float theta[NB_NORMALS];
     float2 uv[TOTAL_NB_LOBES];
 
-    // These 2 cases will generate the same code when no dual normal maps since COAT_NORMAL_IDX == BASE_NORMAL_IDX == 0, 
+    // These 2 cases will generate the same code when no dual normal maps since COAT_NORMAL_IDX == BASE_NORMAL_IDX == 0,
     // and one will be pruned out:
     theta[COAT_NORMAL_IDX] =  FastACosPos(NdotV[COAT_NORMAL_IDX]);
     theta[BASE_NORMAL_IDX] =  FastACosPos(NdotV[BASE_NORMAL_IDX]);
@@ -1608,7 +1608,7 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
             preLightData.TdotV = TdotV;
             preLightData.BdotV = BdotV;
 #endif
- 
+
             // perceptualRoughness is use as input and output here
             float3 outNormal;
             float outPerceptualRoughness;
@@ -2181,7 +2181,7 @@ void BSDF(float3 inV, float3 inL, float inNdotL, float3 positionWS, PreLightData
         if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_STACK_LIT_IRIDESCENCE))
         {
             float3 fresnelIridescent = preLightData.fresnelIridforCalculatingFGD;
-            
+
 #ifdef IRIDESCENCE_RECOMPUTE_PERLIGHT
             float topIor = 1.0; // default air on top.
             fresnelIridescent = EvalIridescence(topIor, savedLdotH, bsdfData.iridescenceThickness, bsdfData.fresnel0);
@@ -2309,15 +2309,15 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
         float  NdotV = ClampNdotV(unclampedNdotV);
         float  LdotV = dot(L, V);
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        
-        // TODOENERGYDIFFUSE: 
+
+        // TODOENERGYDIFFUSE:
         //
         // With coat, will need a diffuse energy term here. eg preLightData.diffuseEnergyTransmitted, from something like e_T0i,
-        // but we would need to balance it with the term used from e_Ti0 == preLightData.diffuseEnergy, as 
+        // but we would need to balance it with the term used from e_Ti0 == preLightData.diffuseEnergy, as
         // the term as computed with VLAYERED_DIFFUSE_ENERGY_HACKED_TERM, assumes that all light that is not (Fresnel) reflected
         // at the bottom interface thus corresponds to diffuse light.
-        // If we use the same term, we could just apply it in the end to diffuse light since coat can't produce diffuse lighting, 
-        // so diffuse lighting from the base interface should all have the term applied. (Then, we would need to make sure the 
+        // If we use the same term, we could just apply it in the end to diffuse light since coat can't produce diffuse lighting,
+        // so diffuse lighting from the base interface should all have the term applied. (Then, we would need to make sure the
         // energy term is separate from diffuseFGD.) But the terms are not the same:
         //
         // Even without energy conservation, preLightData.diffuseEnergyTransmitted should still != preLightData.diffuseEnergy
@@ -2448,7 +2448,7 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
     float  len = lightData.size.x;
     float3 T   = lightData.right;
 
-    float3 unL = lightData.positionWS - positionWS;
+    float3 unL = lightData.positionRWS - positionWS;
 
     // Pick the major axis of the ellipsoid.
     float3 axis = lightData.right;
@@ -2470,11 +2470,11 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
     lightData.specularScale *= intensity;
 
     // Translate the light s.t. the shaded point is at the origin of the coordinate system.
-    lightData.positionWS -= positionWS;
+    lightData.positionRWS -= positionWS;
 
     // TODO: some of this could be precomputed.
-    float3 P1 = lightData.positionWS - T * (0.5 * len);
-    float3 P2 = lightData.positionWS + T * (0.5 * len);
+    float3 P1 = lightData.positionRWS - T * (0.5 * len);
+    float3 P2 = lightData.positionRWS + T * (0.5 * len);
 
     // Rotate the endpoints into the local coordinate system.
     float3 localP1 = mul(P1, transpose(preLightData.orthoBasisViewNormal[BASE_NORMAL_IDX]));
@@ -2505,7 +2505,7 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
         ltcValue *= lightData.diffuseScale;
         // TODOENERGYDIFFUSE: In Lit with Lambert, there's no diffuseFGD, it is one. In our case, we also
         // need a diffuse energy term when vlayered. See preLightData.diffuseEnergyTransmitted
-        
+
         // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
         // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
         lighting.diffuse += bsdfData.transmittance * ltcValue;
@@ -2580,7 +2580,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     IntegrateBSDF_AreaRef(V, positionWS, preLightData, lightData, bsdfData,
                           lighting.diffuse, lighting.specular);
 #else
-    float3 unL = lightData.positionWS - positionWS;
+    float3 unL = lightData.positionRWS - positionWS;
 
     if (dot(lightData.forward, unL) >= 0.0001)
     {
@@ -2622,15 +2622,15 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     lightData.specularScale *= intensity;
 
     // Translate the light s.t. the shaded point is at the origin of the coordinate system.
-    lightData.positionWS -= positionWS;
+    lightData.positionRWS -= positionWS;
 
     float4x3 lightVerts;
 
     // TODO: some of this could be precomputed.
-    lightVerts[0] = lightData.positionWS + lightData.right *  halfWidth + lightData.up *  halfHeight;
-    lightVerts[1] = lightData.positionWS + lightData.right *  halfWidth + lightData.up * -halfHeight;
-    lightVerts[2] = lightData.positionWS + lightData.right * -halfWidth + lightData.up * -halfHeight;
-    lightVerts[3] = lightData.positionWS + lightData.right * -halfWidth + lightData.up *  halfHeight;
+    lightVerts[0] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight;
+    lightVerts[1] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up * -halfHeight;
+    lightVerts[2] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight;
+    lightVerts[3] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight;
 
     // Rotate the endpoints into the local coordinate system.
     float4x3 localLightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal[BASE_NORMAL_IDX]));

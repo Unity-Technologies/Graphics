@@ -9,9 +9,7 @@
 #include "../../ShaderVariables.hlsl"
 #include "../../Lighting/Volumetrics/VBuffer.hlsl"
 
-#if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET != 0)
 TEXTURE3D(_VBufferLighting);
-#endif
 
 CBUFFER_START(AtmosphericScattering)
 int     _AtmosphericScatteringType;
@@ -82,7 +80,6 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput)
         }
         case FOGTYPE_VOLUMETRIC:
         {
-        #if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET != 0)
             float4 volFog = SampleVolumetricLighting(TEXTURE3D_PARAM(_VBufferLighting, s_linear_clamp_sampler),
                                                      posInput.positionNDC,
                                                      posInput.linearDepth,
@@ -96,7 +93,6 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput)
 
             fogFactor = 1 - volFog.a;                              // Opacity from transmittance
             fogColor  = volFog.rgb * min(rcp(fogFactor), FLT_MAX); // Un-premultiply, clamp to avoid (0 * INF = NaN)
-        #endif
             break;
         }
     }
