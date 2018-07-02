@@ -24,6 +24,7 @@ namespace UnityEditor.VFX
         public static readonly VFXAttribute OldPosition         = new VFXAttribute("oldPosition", VFXValueType.Float3);
         public static readonly VFXAttribute Position            = new VFXAttribute("position", VFXValueType.Float3);
         public static readonly VFXAttribute Velocity            = new VFXAttribute("velocity", VFXValueType.Float3);
+        public static readonly VFXAttribute Direction           = new VFXAttribute("direction", VFXValue.Constant(new Vector3(0.0f, 0.0f, 1.0f)));
         public static readonly VFXAttribute Color               = new VFXAttribute("color", VFXValue.Constant(Vector3.one));
         public static readonly VFXAttribute Alpha               = new VFXAttribute("alpha", VFXValue.Constant(1.0f));
         public static readonly VFXAttribute SizeX               = new VFXAttribute("sizeX", VFXValue.Constant(kDefaultSize), VFXVariadic.BelongsToVariadic);

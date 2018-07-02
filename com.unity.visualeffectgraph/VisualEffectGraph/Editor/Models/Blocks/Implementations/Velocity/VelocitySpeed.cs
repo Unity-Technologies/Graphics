@@ -6,31 +6,18 @@ using UnityEngine;
 namespace UnityEditor.VFX.Block
 {
     [VFXInfo(category = "Velocity")]
-    class VelocitySpeed : VFXBlock
+    class VelocitySpeed : VelocityBase
     {
-        public override string name { get { return "Velocity (Speed)"; } }
-        public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdateAndOutput; } }
-        public override VFXDataType compatibleData { get { return VFXDataType.kParticle; } }
-        public override IEnumerable<VFXAttributeInfo> attributes
-        {
-            get
-            {
-                yield return new VFXAttributeInfo(VFXAttribute.Velocity, VFXAttributeMode.ReadWrite);
-                yield return new VFXAttributeInfo(new VFXAttribute("direction", VFXValue.Constant(new Vector3(0.0f, 0.0f, 1.0f))), VFXAttributeMode.Read);
-            }
-        }
-
-        public class InputProperties
-        {
-            [Tooltip("The speed to add to the particles.")]
-            public float Speed = 1.0f;
-        }
+        public override string name { get { return string.Format(base.name, "Speed"); } }
+        protected override bool altersDirection { get { return false; } }
 
         public override string source
         {
             get
             {
-                return @"velocity += direction * Speed;";
+                string outSource = speedComputeString + "\n";
+                outSource += string.Format(velocityComposeFormatString, "direction * speed");
+                return outSource;
             }
         }
     }
