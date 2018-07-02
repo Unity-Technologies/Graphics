@@ -16,7 +16,9 @@ namespace UnityEditor.Experimental.Rendering
         public SerializedProperty supportOnlyForward;
         public SerializedProperty supportMotionVectors;
         public SerializedProperty supportStereo;
+        [UnityEngine.Serialization.FormerlySerializedAs("enableUltraQualitySSS")]
         public SerializedProperty increaseSssSampleCount;
+        [UnityEngine.Serialization.FormerlySerializedAs("supportVolumetric")]
         public SerializedProperty supportVolumetrics;
         public SerializedProperty increaseResolutionOfVolumetrics;
         public SerializedProperty supportRuntimeDebugDisplay;
