@@ -394,7 +394,6 @@ namespace UnityEditor.Experimental.Rendering
         static void Drawer_InfluenceSettings(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.boxProjection, CoreEditorUtils.GetContent("Parallax Correction|Parallax Correction causes reflections to appear to change based on the object's position within the probe's box, while still using a single probe as the source of the reflection. This works well for reflections on objects that are moving through enclosed spaces such as corridors and rooms. Setting Parallax Correction to False and the cubemap reflection will be treated as coming from infinitely far away. Note that this feature can be globally disabled from Graphics Settings -> Tier Settings"));
-            s.useNewGizmo = EditorGUILayout.Toggle(CoreEditorUtils.GetContent("New Gizmo"), s.useNewGizmo);
         }
 
         static void Drawer_IntensityMultiplier(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
