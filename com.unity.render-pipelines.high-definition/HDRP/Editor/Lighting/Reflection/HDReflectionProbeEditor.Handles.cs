@@ -122,26 +122,14 @@ namespace UnityEditor.Experimental.Rendering
             {
                 case ShapeType.Box:
                     {
-                        blendBox.center = sp.target.center - (probeBlendDistancePositive - probeBlendDistanceNegative) * 0.5f;
-                        blendBox.size = sp.target.size - probeBlendDistancePositive - probeBlendDistanceNegative;
-
                         alternativeBlendBox.center = sp.target.center - (probeBlendDistancePositive - probeBlendDistanceNegative) * 0.5f;
                         alternativeBlendBox.size = sp.target.size - probeBlendDistancePositive - probeBlendDistanceNegative;
 
                         alternativeBlendBox.container.center = sp.target.center;
                         alternativeBlendBox.container.size = sp.target.size;
 
-                        Handles.color = k_GizmoThemeColorExtent;
                         EditorGUI.BeginChangeCheck();
-                        Handles.color = color;
-                        if(s.useNewGizmo)
-                        {
-                            alternativeBlendBox.DrawHandle();
-                        }
-                        else
-                        {
-                            blendBox.DrawHandle();
-                        }
+                        alternativeBlendBox.DrawHandle();
                         if (EditorGUI.EndChangeCheck())
                         {
                             Undo.RecordObject(sp.target, "Modified Reflection Probe Influence");
@@ -150,8 +138,8 @@ namespace UnityEditor.Experimental.Rendering
                             var center = sp.target.center;
                             var influenceSize = sp.target.size;
 
-                            var diff = 2 * ((s.useNewGizmo?alternativeBlendBox.center:blendBox.center) - center);
-                            var sum = influenceSize - (s.useNewGizmo?alternativeBlendBox.size:blendBox.size);
+                            var diff = 2 * (alternativeBlendBox.center - center);
+                            var sum = influenceSize - (alternativeBlendBox.size);
                             var positive = (sum - diff) * 0.5f;
                             var negative = (sum + diff) * 0.5f;
                             var blendDistancePositive = Vector3.Max(Vector3.zero, Vector3.Min(positive, influenceSize));
@@ -228,27 +216,11 @@ namespace UnityEditor.Experimental.Rendering
             {
                 case ShapeType.Box:
                     {
-                        if (s.useNewGizmo)
-                        {
-                            s.alternativeBoxInfluenceHandle.center = sp.target.center;
-                            s.alternativeBoxInfluenceHandle.size = sp.target.size;
-                        }
-                        else
-                        {
-                            s.boxInfluenceHandle.center = sp.target.center;
-                            s.boxInfluenceHandle.size = sp.target.size;
-                        }
+                        s.alternativeBoxInfluenceHandle.center = sp.target.center;
+                        s.alternativeBoxInfluenceHandle.size = sp.target.size;
 
-                        Handles.color = k_GizmoThemeColorExtent;
                         EditorGUI.BeginChangeCheck();
-                        if (s.useNewGizmo)
-                        {
-                            s.alternativeBoxInfluenceHandle.DrawHandle();
-                        }
-                        else
-                        {
-                            s.boxInfluenceHandle.DrawHandle();
-                        }
+                        s.alternativeBoxInfluenceHandle.DrawHandle();
                         if (EditorGUI.EndChangeCheck())
                         {
                             Undo.RecordObject(sp.target, "Modified Reflection Probe AABB");
@@ -256,16 +228,8 @@ namespace UnityEditor.Experimental.Rendering
 
                             Vector3 center;
                             Vector3 size;
-                            if (s.useNewGizmo)
-                            {
-                                center = s.alternativeBoxInfluenceHandle.center;
-                                size = s.alternativeBoxInfluenceHandle.size;
-                            }
-                            else
-                            {
-                                center = s.boxInfluenceHandle.center;
-                                size = s.boxInfluenceHandle.size;
-                            }
+                            center = s.alternativeBoxInfluenceHandle.center;
+                            size = s.alternativeBoxInfluenceHandle.size;
 
                             HDReflectionProbeEditorUtility.ValidateAABB(sp.target, ref center, ref size);
 
@@ -436,7 +400,7 @@ namespace UnityEditor.Experimental.Rendering
             {
                 case ShapeType.Box:
                     {
-                        if(e != null && e.m_UIState.useNewGizmo)
+                        if(e != null)
                         {
                             box.DrawHull(isEdit);
                         }
@@ -475,7 +439,7 @@ namespace UnityEditor.Experimental.Rendering
             {
                 case ShapeType.Box:
                     {
-                        if(e != null && e.m_UIState.useNewGizmo)
+                        if(e != null)
                         {
                             e.m_UIState.alternativeBoxInfluenceHandle.DrawHull(isEdit);
                         }
