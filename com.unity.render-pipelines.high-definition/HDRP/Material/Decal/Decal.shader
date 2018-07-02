@@ -27,8 +27,8 @@ Shader "HDRenderPipeline/Decal"
     #pragma shader_feature _MASKMAP
 	#pragma shader_feature _ALBEDOCONTRIBUTION
 
-	#pragma shader_feature _NORMAL_BLEND_MASK_B
-	#pragma shader_feature _MAOS_BLEND_MASK_B
+	#pragma shader_feature _NORMAL_BLEND_SRC_B
+	#pragma shader_feature _MASK_BLEND_SRC_B
 
     #pragma multi_compile_instancing
 	#pragma multi_compile _ _DECALS_PER_CHANNEL_MASK

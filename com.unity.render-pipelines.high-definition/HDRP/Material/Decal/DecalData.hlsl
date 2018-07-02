@@ -45,7 +45,7 @@ void GetSurfaceData(FragInputs input, out DecalSurfaceData surfaceData)
 	maskMapBlend = surfaceData.mask.z * _DecalBlend;	// store before overwriting with smoothness
     surfaceData.mask.z = surfaceData.mask.w;
 	surfaceData.HTileMask |= DBUFFERHTILEBIT_MASK;
-#if _MAOS_BLEND_MASK_B
+#if _MASK_BLEND_SRC_B
 	surfaceData.mask.w = maskMapBlend;
 #else
     surfaceData.mask.w = albedoMapBlend;
@@ -63,7 +63,7 @@ void GetSurfaceData(FragInputs input, out DecalSurfaceData surfaceData)
 #endif
 	surfaceData.normalWS.xyz = normalWS * 0.5f + 0.5f;
 	surfaceData.HTileMask |= DBUFFERHTILEBIT_NORMAL;
-#if _NORMAL_BLEND_MASK_B
+#if _NORMAL_BLEND_SRC_B
 	surfaceData.normalWS.w = maskMapBlend;
 #else
 	surfaceData.normalWS.w = albedoMapBlend;

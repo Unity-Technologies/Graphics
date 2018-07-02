@@ -87,7 +87,7 @@ void ApplyBlendMask(inout float4 dbuffer2, inout float2 dbuffer3, inout int matM
 		dbuffer3Mask = float2(0, 1); // _, AO alpha
 	}
 
-    dbuffer2.xyz = (dbuffer2Mask.xyz == 1) ? src.xyz * src.w + dbuffer2.xyz * (1.0f - src.w) : dbuffer2.xyz;
+	dbuffer2.xyz = (dbuffer2Mask.xyz == 1) ? src.xyz * src.w + dbuffer2.xyz * (1.0f - src.w) : dbuffer2.xyz;
 	dbuffer2.w = (dbuffer2Mask.w == 1) ? dbuffer2.w * (1.0f - src.w) : dbuffer2.w;
 
 	dbuffer3.xy = (dbuffer3Mask.xy == 1) ? dbuffer3.xy * (1.0f - src.w) : dbuffer3.xy;
