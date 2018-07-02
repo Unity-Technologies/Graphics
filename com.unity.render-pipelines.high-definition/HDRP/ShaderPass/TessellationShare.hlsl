@@ -17,9 +17,9 @@ TessellationFactors HullConstant(InputPatch<PackedVaryingsToDS, 3> input)
     VaryingsToDS varying1 = UnpackVaryingsToDS(input[1]);
     VaryingsToDS varying2 = UnpackVaryingsToDS(input[2]);
 
-    float3 p0 = varying0.vmesh.positionWS;
-    float3 p1 = varying1.vmesh.positionWS;
-    float3 p2 = varying2.vmesh.positionWS;
+    float3 p0 = varying0.vmesh.positionRWS;
+    float3 p1 = varying1.vmesh.positionRWS;
+    float3 p2 = varying2.vmesh.positionRWS;
 
     float3 n0 = varying0.vmesh.normalWS;
     float3 n1 = varying1.vmesh.normalWS;
@@ -64,21 +64,21 @@ PackedVaryingsToPS Domain(TessellationFactors tessFactors, const OutputPatch<Pac
     // We have Phong tessellation in all case where we don't have displacement only
 #ifdef _TESSELLATION_PHONG
 
-    float3 p0 = varying0.vmesh.positionWS;
-    float3 p1 = varying1.vmesh.positionWS;
-    float3 p2 = varying2.vmesh.positionWS;
+    float3 p0 = varying0.vmesh.positionRWS;
+    float3 p1 = varying1.vmesh.positionRWS;
+    float3 p2 = varying2.vmesh.positionRWS;
 
     float3 n0 = varying0.vmesh.normalWS;
     float3 n1 = varying1.vmesh.normalWS;
     float3 n2 = varying2.vmesh.normalWS;
 
-    varying.vmesh.positionWS = PhongTessellation(   varying.vmesh.positionWS,
+    varying.vmesh.positionRWS = PhongTessellation(  varying.vmesh.positionRWS,
                                                     p0, p1, p2, n0, n1, n2,
                                                     baryCoords, _TessellationShapeFactor);
 #endif
 
 #ifdef HAVE_TESSELLATION_MODIFICATION
-    ApplyTessellationModification(varying.vmesh, varying.vmesh.normalWS, varying.vmesh.positionWS);
+    ApplyTessellationModification(varying.vmesh, varying.vmesh.normalWS, varying.vmesh.positionRWS);
 #endif
 
     return VertTesselation(varying);

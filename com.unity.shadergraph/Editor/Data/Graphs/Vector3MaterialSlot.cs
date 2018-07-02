@@ -16,6 +16,7 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         private Vector3 m_DefaultValue;
 
+        [SerializeField]
         string[] m_Labels;
 
         public Vector3MaterialSlot()

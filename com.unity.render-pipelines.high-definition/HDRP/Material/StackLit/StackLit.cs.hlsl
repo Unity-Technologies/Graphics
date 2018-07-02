@@ -37,13 +37,14 @@
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_ANISOTROPY (1115)
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_IRIDESCENCE_IOR (1116)
 #define DEBUGVIEW_STACKLIT_SURFACEDATA_IRIDESCENCE_THICKNESS (1117)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_SMOOTHNESS (1118)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_IOR (1119)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_THICKNESS (1120)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_EXTINCTION_COEFFICIENT (1121)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_DIFFUSION_PROFILE (1122)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_SUBSURFACE_MASK (1123)
-#define DEBUGVIEW_STACKLIT_SURFACEDATA_THICKNESS (1124)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_IRIDESCENCE_MASK (1118)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_SMOOTHNESS (1119)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_IOR (1120)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_THICKNESS (1121)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_EXTINCTION_COEFFICIENT (1122)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_DIFFUSION_PROFILE (1123)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_SUBSURFACE_MASK (1124)
+#define DEBUGVIEW_STACKLIT_SURFACEDATA_THICKNESS (1125)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.StackLit+BSDFData:  static fields
@@ -75,11 +76,12 @@
 #define DEBUGVIEW_STACKLIT_BSDFDATA_COAT_EXTINCTION (1174)
 #define DEBUGVIEW_STACKLIT_BSDFDATA_IRIDESCENCE_IOR (1175)
 #define DEBUGVIEW_STACKLIT_BSDFDATA_IRIDESCENCE_THICKNESS (1176)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_DIFFUSION_PROFILE (1177)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_SUBSURFACE_MASK (1178)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_THICKNESS (1179)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_USE_THICK_OBJECT_MODE (1180)
-#define DEBUGVIEW_STACKLIT_BSDFDATA_TRANSMITTANCE (1181)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_IRIDESCENCE_MASK (1177)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_DIFFUSION_PROFILE (1178)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_SUBSURFACE_MASK (1179)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_THICKNESS (1180)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_USE_THICK_OBJECT_MODE (1181)
+#define DEBUGVIEW_STACKLIT_BSDFDATA_TRANSMITTANCE (1182)
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.StackLit+SurfaceData
 // PackingRules = Exact
@@ -100,6 +102,7 @@ struct SurfaceData
     float anisotropy;
     float iridescenceIor;
     float iridescenceThickness;
+    float iridescenceMask;
     float coatPerceptualSmoothness;
     float coatIor;
     float coatThickness;
@@ -137,6 +140,7 @@ struct BSDFData
     float3 coatExtinction;
     float iridescenceIor;
     float iridescenceThickness;
+    float iridescenceMask;
     uint diffusionProfile;
     float subsurfaceMask;
     float thickness;
@@ -205,6 +209,9 @@ void GetGeneratedSurfaceDataDebug(uint paramId, SurfaceData surfacedata, inout f
             break;
         case DEBUGVIEW_STACKLIT_SURFACEDATA_IRIDESCENCE_THICKNESS:
             result = surfacedata.iridescenceThickness.xxx;
+            break;
+        case DEBUGVIEW_STACKLIT_SURFACEDATA_IRIDESCENCE_MASK:
+            result = surfacedata.iridescenceMask.xxx;
             break;
         case DEBUGVIEW_STACKLIT_SURFACEDATA_COAT_SMOOTHNESS:
             result = surfacedata.coatPerceptualSmoothness.xxx;
@@ -318,6 +325,9 @@ void GetGeneratedBSDFDataDebug(uint paramId, BSDFData bsdfdata, inout float3 res
             break;
         case DEBUGVIEW_STACKLIT_BSDFDATA_IRIDESCENCE_THICKNESS:
             result = bsdfdata.iridescenceThickness.xxx;
+            break;
+        case DEBUGVIEW_STACKLIT_BSDFDATA_IRIDESCENCE_MASK:
+            result = bsdfdata.iridescenceMask.xxx;
             break;
         case DEBUGVIEW_STACKLIT_BSDFDATA_DIFFUSION_PROFILE:
             result = GetIndexColor(bsdfdata.diffusionProfile);
