@@ -28,6 +28,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
         protected string[] blendSourceNames = Enum.GetNames(typeof(BlendSource));
 
+        // relies on the order shader passes are declared in decal.shader
         enum BlendMode
         {
             Metal_AO_Smoothness,
