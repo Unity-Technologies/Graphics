@@ -94,8 +94,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_COLORMAP", material.GetTexture(kBaseColorMap));
             CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap));
             CoreUtils.SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap));
-            CoreUtils.SetKeyword(material, "_NORMAL_BLEND_MASK_B", material.GetFloat(kNormalBlendSrc) == 1.0f);
-            CoreUtils.SetKeyword(material, "_MAOS_BLEND_MASK_B", material.GetFloat(kMaskBlendSrc) == 1.0f);
+            CoreUtils.SetKeyword(material, "_NORMAL_BLEND_SRC_B", material.GetFloat(kNormalBlendSrc) == 1.0f);
+            CoreUtils.SetKeyword(material, "_MASK_BLEND_SRC_B", material.GetFloat(kMaskBlendSrc) == 1.0f);
 
             material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsStrNoMask, true); // no mask always on
             BlendMode blendMode = (BlendMode)material.GetFloat(kMaskBlendMode);
@@ -143,7 +143,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        protected void SetupMaterialKeywordsAndPassInternal(Material material, bool perChannelMask)
+        protected void SetupMaterialKeywordsAndPassInternal(Material material)
         {
             SetupMaterialKeywordsAndPass(material);
         }
@@ -195,7 +195,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 maskBlendMode.floatValue = maskBlendModeValue;
 
                 foreach (var obj in m_MaterialEditor.targets)
-                    SetupMaterialKeywordsAndPassInternal((Material)obj, perChannelMask);
+                    SetupMaterialKeywordsAndPassInternal((Material)obj);
             }
         }
 
