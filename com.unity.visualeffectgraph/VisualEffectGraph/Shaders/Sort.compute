@@ -207,6 +207,7 @@ void BITONIC_SORT(uint id : SV_GroupIndex, uint3 groupId : SV_GroupID)
 
 CBUFFER_START(MergePassConstants)
 uint subArraySize;
+uint dispatchWidth;
 CBUFFER_END
 
 float GetKeyWithCheck(uint index)
@@ -218,9 +219,14 @@ float GetKeyWithCheck(uint index)
 }
 
 // Merge pass: take N sorted sub arrays as input and output N/2 sorted arrays twice bigger - execute in O(log(subArraySize))
-[numthreads(64, 1, 1)]
-void MERGE_PASS(uint id : SV_DispatchThreadID,uint3 groupId : SV_GroupID)
+#define NB_THREADS_PER_GROUP_MERGE_PASS 64
+[numthreads(NB_THREADS_PER_GROUP_MERGE_PASS, 1, 1)]
+void MERGE_PASS(uint3 groupId           : SV_GroupID,
+                uint3 groupThreadId     : SV_GroupThreadID)
 {
+    uint3 id = (uint3)0;
+    id.x = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP_MERGE_PASS + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP_MERGE_PASS;
+
     if (id.x >= GetElementCount())
         return;
 
