@@ -205,7 +205,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (cameraData.isStereoEnabled)
                 {
                     cameraData.renderScale = XRSettings.eyeTextureResolutionScale;
-                } else
+                }
+                else
 #endif
                 {
                     cameraData.renderScale = pipelineAsset.renderScale;

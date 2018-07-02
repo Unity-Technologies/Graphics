@@ -543,13 +543,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 Matrix4x4 transform   = HDUtils.ComputePixelCoordToWorldSpaceViewDirectionMatrix(vFoV, resolution, hdCamera.viewMatrix, false);
 
                 Texture3D volumeAtlas = DensityVolumeManager.manager.volumeAtlas.volumeAtlas;
-                Vector3 volumeAtlasDimensions = new Vector3(0.0f, 0.0f, 0.0f);
+                Vector4 volumeAtlasDimensions = new Vector4(0.0f, 0.0f, 0.0f, 0.0f);
 
                 if (volumeAtlas != null)
                 {
                     volumeAtlasDimensions.x = (float)volumeAtlas.width / volumeAtlas.depth; // 1 / number of textures
-                    volumeAtlasDimensions.y = 1.0f / volumeAtlas.width;
-                    volumeAtlasDimensions.z = volumeAtlas.width;
+                    volumeAtlasDimensions.y = volumeAtlas.width;
+                    volumeAtlasDimensions.z = volumeAtlas.depth;
+                    volumeAtlasDimensions.w = Mathf.Log(volumeAtlas.width, 2);              // Max LoD
+                }
+                else
+                {
+                    volumeAtlas = CoreUtils.blackVolumeTexture;
                 }
 
                 cmd.SetComputeTextureParam(m_VolumeVoxelizationCS, kernel, HDShaderIDs._VBufferDensity, m_DensityBufferHandle);
