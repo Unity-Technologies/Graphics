@@ -138,7 +138,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // TEST NEW CULLING
         bool m_UseNewCulling = false;
-        CullingResult                   m_CullingResult = new CullingResult();
+        RenderersCullingResult          m_RenderersCullingResult = new RenderersCullingResult();
         LightCullingResult              m_LightCullingResult = new LightCullingResult();
         ReflectionProbeCullingResult    m_ReflectionProbeCullingResult = new ReflectionProbeCullingResult();
 
@@ -450,7 +450,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                                                                                             sortFlags: SortFlags.CommonTransparent,
                                                                                                             shaderPassNames: m_AllTransparentPassNames);
             m_RendererListSettings[(int)HDRendererList.ForwardError] = new RendererListSettings(    renderQueueMin: 0,
-                                                                                                    renderQueueMax: RenderQueueRange.k_RenderQueueMax,
+                                                                                                    renderQueueMax: RenderQueueRange.maximumUpperBound,
                                                                                                     shaderPassNames: m_ForwardErrorPassNames,
                                                                                                     overrideMaterial: m_ErrorMaterial,
                                                                                                     overrideeMaterialPassIdx: 0);
@@ -490,7 +490,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_RendererListsToPrepare.Add(m_RendererLists[(int)hdRendererList]);
         }
 
-        void PrepareRendererLists(HDCamera hdCamera, CullingResult cullingResult)
+        void PrepareRendererLists(HDCamera hdCamera, RenderersCullingResult cullingResult)
         {
             m_RendererListSettingsToPrepare.Clear();
             m_RendererListsToPrepare.Clear();
@@ -503,12 +503,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             else if (hdCamera.frameSettings.enableDepthPrepassWithDeferredRendering || m_DbufferManager.EnableDBUffer)
             {
                 AddPrepareRendererList(HDRendererList.DepthOnly, hdCamera);
-                AddPrepareRendererList(HDRendererList.DepthAlphaTest, hdCamera);
+                AddPrepareRendererList(HDRendererList.DepthForwardOnly, hdCamera);
             }
             else
             {
-                AddPrepareRendererList(HDRendererList.DepthForwardOnly, hdCamera);
                 AddPrepareRendererList(HDRendererList.DepthAlphaTest, hdCamera);
+                AddPrepareRendererList(HDRendererList.DepthForwardOnly, hdCamera);
             }
 
             if (hdCamera.frameSettings.enableTransparentPrepass)
@@ -1140,13 +1140,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         if (m_UseNewCulling)
                         {
-                            Culling.CullScene(cullingParametersNew, m_CullingResult);
+                            Culling.CullRenderers(cullingParametersNew, m_RenderersCullingResult);
                             Culling.CullLights(cullingParametersNew, m_LightCullingResult);
                             Culling.CullReflectionProbes(cullingParametersNew, m_ReflectionProbeCullingResult);
                             // We don't pass lights and reflection probes because we don't need per object lights/probes in HDRP.
-                            Culling.PrepareRendererScene(m_CullingResult, null, null);
+                            Culling.PrepareRendererScene(m_RenderersCullingResult, null, null);
 
-                            PrepareRendererLists(hdCamera, m_CullingResult);
+                            PrepareRendererLists(hdCamera, m_RenderersCullingResult);
                         }
                     }
 
@@ -1939,7 +1939,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             using (new ProfilingSample(cmd, "Render Forward Error", CustomSamplerId.RenderForwardError.GetSampler()))
             {
                 HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
-                RenderOpaqueRenderList(cullResults, hdCamera, renderContext, cmd, m_ForwardErrorPassNames, m_RendererLists[(int)HDRendererList.ForwardError], 0, new RenderQueueRange() { min = 0, max = RenderQueueRange.k_RenderQueueMax }, null, m_ErrorMaterial);
+                RenderOpaqueRenderList(cullResults, hdCamera, renderContext, cmd, m_ForwardErrorPassNames, m_RendererLists[(int)HDRendererList.ForwardError], 0, new RenderQueueRange() { min = RenderQueueRange.minimumLowerBound, max = RenderQueueRange.maximumUpperBound }, null, m_ErrorMaterial);
             }
         }
 

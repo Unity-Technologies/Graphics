@@ -1,14 +1,10 @@
 using System;
 using System.Linq;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using NUnit.Framework;
-using UnityEditor;
-using UnityEngine.TestTools;
 using UnityEditor.SceneManagement;
-using Unity.Collections;
 
 [TestFixture]
 public class ScriptableCullingTests
@@ -68,110 +64,18 @@ public class ScriptableCullingTests
         m_TestCamera = null;
     }
 
-    [Test(Description = "Scene frustum culling test")]
-    public void SceneFrustumCulling()
+    [Test(Description = "Renderers frustum culling test")]
+    public void RenderersFrustumCulling()
     {
         Setup("FrustumCullingTest", "Camera_FrustumCullingTest");
 
         CullingParameters cullingParams = new CullingParameters();
         ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
 
-        CullingResult result = new CullingResult();
-        Culling.CullScene(cullingParams, result);
+        RenderersCullingResult result = new RenderersCullingResult();
+        Culling.CullRenderers(cullingParams, result);
 
         Assert.AreEqual(3, result.GetVisibleObjectCount());
-        TearDown();
-    }
-
-    [Test(Description = "Renderer List Test")]
-    public void PrepareRendererList()
-    {
-        Setup("RendererListTest", "Camera_RendererListTest");
-
-        CullingParameters cullingParams = new CullingParameters();
-        ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
-
-        CullingResult result = new CullingResult();
-        Culling.CullScene(cullingParams, result);
-
-        Assert.AreEqual(4, result.GetVisibleObjectCount());
-
-        Culling.PrepareRendererScene(result, null, null);
-
-        List<RendererListSettings> settingsList = new List<RendererListSettings>();
-        RendererListSettings settingsOpaque = new RendererListSettings(camera: m_TestCamera);
-        settingsOpaque.renderQueueRange = RenderQueueRange.opaque;
-        settingsOpaque.SetShaderTag(0, new ShaderPassName("Forward"));
-        RendererListSettings settingsTransparent = new RendererListSettings(camera: m_TestCamera);
-        settingsTransparent.renderQueueRange = RenderQueueRange.transparent;
-        settingsTransparent.SetShaderTag(0, new ShaderPassName("Forward"));
-        settingsList.Add(settingsOpaque);
-        settingsList.Add(settingsTransparent);
-
-        List<RendererList> listOut = new List<RendererList>();
-        var listOpaque = new RendererList();
-        var listTransparent = new RendererList();
-        listOut.Add(listOpaque);
-        listOut.Add(listTransparent);
-
-        RendererList.PrepareRendererLists(result, settingsList.ToArray(), listOut.ToArray());
-        Assert.AreEqual(3, listOut[0].GetRendererCount());
-        Assert.AreEqual(1, listOut[1].GetRendererCount());
-
-        TearDown();
-    }
-
-    [Test(Description = "Renderer List Test")]
-    public void MismatchPrepareRendererListArguments()
-    {
-        Setup("RendererListTest", "Camera_RendererListTest");
-
-        CullingParameters cullingParams = new CullingParameters();
-        ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
-
-        CullingResult result = new CullingResult();
-        Culling.CullScene(cullingParams, result);
-
-        Assert.AreEqual(4, result.GetVisibleObjectCount());
-
-        Culling.PrepareRendererScene(result, null, null);
-
-        List<RendererListSettings> settingsList = new List<RendererListSettings>();
-        RendererListSettings settings1 = new RendererListSettings(camera: m_TestCamera);
-        settingsList.Add(settings1);
-
-        List<RendererList> listOut = new List<RendererList>();
-        var list1 = new RendererList();
-        var list2 = new RendererList();
-        listOut.Add(list1);
-        listOut.Add(list2);
-
-        Assert.Throws<ArgumentException>(() => RendererList.PrepareRendererLists(result, settingsList.ToArray(), listOut.ToArray()));
-
-        TearDown();
-    }
-
-    [Test(Description = "Scene not prepared before rendering error")]
-    public void SceneNotPreparedError()
-    {
-        Setup("FrustumCullingTest", "Camera_FrustumCullingTest");
-
-        CullingParameters cullingParams = new CullingParameters();
-        ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
-
-        CullingResult result = new CullingResult();
-        Culling.CullScene(cullingParams, result);
-
-        List<RendererListSettings> settingsList = new List<RendererListSettings>();
-        RendererListSettings settings1 = new RendererListSettings(camera: m_TestCamera);
-        settingsList.Add(settings1);
-
-        List<RendererList> listOut = new List<RendererList>();
-        var list1 = new RendererList();
-        listOut.Add(list1);
-
-        Assert.Throws<ArgumentException>(() => RendererList.PrepareRendererLists(result, settingsList.ToArray(), listOut.ToArray()));
-
         TearDown();
     }
 
@@ -223,6 +127,67 @@ public class ScriptableCullingTests
         Assert.AreEqual(2, result.visibleReflectionProbes.Length);
         Assert.IsTrue(result.visibleReflectionProbes.Any((visibleProbe) => visibleProbe.probe.gameObject.name == "ReflectionProbe Inside"));
         Assert.IsTrue(result.visibleReflectionProbes.Any((visibleProbe) => visibleProbe.probe.gameObject.name == "ReflectionProbe Partial"));
+
+        TearDown();
+    }
+
+    [Test(Description = "Renderers occlusion culling test")]
+    public void RenderersOcclusionCulling()
+    {
+        Setup("OcclusionCullingTest", "Camera_OcclusionCullingTest");
+
+        CullingParameters cullingParams = new CullingParameters();
+        ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
+        cullingParams.parameters.cullingFlags |= CullFlag.OcclusionCull;
+
+        RenderersCullingResult result = new RenderersCullingResult();
+        Culling.CullRenderers(cullingParams, result);
+
+        Assert.AreEqual(3, result.GetVisibleObjectCount());
+        TearDown();
+    }
+
+    [Test(Description = "Light occlusion culling test")]
+    public void LightOcclusionCulling()
+    {
+        Setup("OcclusionCullingTest", "Camera_OcclusionCullingTest");
+
+        CullingParameters cullingParams = new CullingParameters();
+        ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
+        cullingParams.parameters.cullingFlags |= CullFlag.OcclusionCull;
+
+        LightCullingResult result = new LightCullingResult();
+        Culling.CullLights(cullingParams, result);
+
+        Assert.AreEqual(3, result.visibleLights.Length);
+
+        Assert.IsTrue(result.visibleLights.Any((visibleLight) => visibleLight.light.gameObject.name == "Directional Light"));
+        Assert.IsTrue(result.visibleLights.Any((visibleLight) => visibleLight.light.gameObject.name == "Point Light"));
+        Assert.IsTrue(result.visibleLights.Any((visibleLight) => visibleLight.light.gameObject.name == "Spot Light"));
+
+        Assert.AreEqual(0, result.visibleShadowCastingLights.Length);
+        Assert.AreEqual(0, result.visibleOffscreenVertexLights.Length);
+        Assert.AreEqual(0, result.visibleOffscreenShadowCastingVertexLights.Length);
+
+        TearDown();
+    }
+
+    [Test(Description = "Reflection Probe occlusion culling test")]
+    public void ReflectionProbeOcclusionCulling()
+    {
+        Setup("OcclusionCullingTest", "Camera_OcclusionCullingTest");
+
+        CullingParameters cullingParams = new CullingParameters();
+        ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
+        cullingParams.parameters.cullingFlags |= CullFlag.OcclusionCull;
+
+        ReflectionProbeCullingResult result = new ReflectionProbeCullingResult();
+        Culling.CullReflectionProbes(cullingParams, result);
+
+        var visibleProbes = result.visibleReflectionProbes;
+
+        Assert.AreEqual(1, result.visibleReflectionProbes.Length);
+        Assert.IsTrue(result.visibleReflectionProbes.Any((visibleProbe) => visibleProbe.probe.gameObject.name == "Reflection Probe"));
 
         TearDown();
     }
@@ -291,16 +256,16 @@ public class ScriptableCullingTests
         SetupTestScene("ReuseCullingResultTest");
 
         CullingParameters cullingParams = new CullingParameters();
-        CullingResult result = new CullingResult();
+        RenderersCullingResult result = new RenderersCullingResult();
 
         SetupTestCamera("ReuseResultCamera 1");
         ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
-        Culling.CullScene (cullingParams, result);
+        Culling.CullRenderers (cullingParams, result);
         Assert.AreEqual(2, result.GetVisibleObjectCount());
 
         SetupTestCamera("ReuseResultCamera 2");
         ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
-        Culling.CullScene(cullingParams, result);
+        Culling.CullRenderers(cullingParams, result);
         Assert.AreEqual(1, result.GetVisibleObjectCount());
 
         TearDown();
@@ -314,8 +279,8 @@ public class ScriptableCullingTests
     //    CullingParameters cullingParams = new CullingParameters();
     //    ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
 
-    //    CullingResult result = new CullingResult();
-    //    Culling.CullScene(cullingParams, result);
+    //    RenderersCullingResult result = new RenderersCullingResult();
+    //    Culling.CullRenderers(cullingParams, result);
 
     //    LightCullingResult lightResult = new LightCullingResult();
     //    Culling.CullLights(cullingParams, lightResult);

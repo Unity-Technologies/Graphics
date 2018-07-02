@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering;
@@ -6,6 +7,17 @@ using UnityEngine.Experimental.Rendering;
 [ExecuteInEditMode]
 public class TestRenderPipeline : RenderPipeline
 {
+    TestRenderPipelineAsset m_Asset;
+    public TestRenderPipeline(TestRenderPipelineAsset asset)
+    {
+        m_Asset = asset;
+
+        List<DebugUI.Widget> widgets = new List<DebugUI.Widget>();
+        widgets.AddRange(new DebugUI.Widget[] { new DebugUI.BoolField { displayName = "Enable New Culling", getter = () => m_Asset.m_UseNewCulling, setter = value => m_Asset.m_UseNewCulling = value } });
+        var panel = DebugManager.instance.GetPanel("Culling", true);
+        panel.children.Add(widgets.ToArray());
+    }
+
     public override void Render(ScriptableRenderContext renderContext, Camera[] cameras)
     {
         base.Render(renderContext, cameras);
@@ -18,36 +30,67 @@ public class TestRenderPipeline : RenderPipeline
 
             CullingParameters cullingParameters = new CullingParameters();
             ScriptableCulling.FillCullingParameters(camera, ref cullingParameters);
+            if (camera.useOcclusionCulling)
+                cullingParameters.parameters.cullingFlags |= CullFlag.OcclusionCull;
 
-            CullingResult result = new CullingResult();
+            RenderersCullingResult result = new RenderersCullingResult();
             LightCullingResult lightResult = new LightCullingResult();
-            Culling.CullScene(cullingParameters, result);
-            Culling.CullLights(cullingParameters, lightResult);
-            Culling.PrepareRendererScene(result, null, null);
 
-            // Get directional light
+
+            CullResults oldResult = new CullResults();
+            ScriptableCullingParameters oldCullingParameters = new ScriptableCullingParameters();
+
             Light dirLight = null;
-            foreach (var light in lightResult.visibleShadowCastingLights)
-            {
-                if(light.lightType == LightType.Directional)
-                {
-                    dirLight = light.light;
-                }
 
-                break;
-            }
-
-            if (dirLight == null)
+            if (m_Asset.m_UseNewCulling)
             {
-                foreach (var light in lightResult.visibleLights)
+                Culling.CullRenderers(cullingParameters, result);
+                Culling.CullLights(cullingParameters, lightResult);
+                Culling.PrepareRendererScene(result, null, null);
+
+                // Get directional light
+                foreach (var light in lightResult.visibleShadowCastingLights)
                 {
                     if (light.lightType == LightType.Directional)
                     {
                         dirLight = light.light;
                     }
+
+                    break;
+                }
+
+                if (dirLight == null)
+                {
+                    foreach (var light in lightResult.visibleLights)
+                    {
+                        if (light.lightType == LightType.Directional)
+                        {
+                            dirLight = light.light;
+                        }
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                CullResults.GetCullingParameters(camera, false, out oldCullingParameters);
+                if (camera.useOcclusionCulling)
+                    oldCullingParameters.cullingFlags |= CullFlag.OcclusionCull;
+
+                CullResults.Cull(ref oldCullingParameters, renderContext, ref oldResult);
+
+                foreach (var light in oldResult.visibleLights)
+                {
+                    if (light.lightType == LightType.Directional)
+                    {
+                        dirLight = light.light;
+                    }
+
                     break;
                 }
             }
+
+
 
             if (dirLight != null)
             {
@@ -65,22 +108,59 @@ public class TestRenderPipeline : RenderPipeline
             // Render Objects
             ShaderPassName[] passNames = { new ShaderPassName("Forward") };
             RendererList[] rendererLists = { new RendererList(), new RendererList() };
-            RendererListSettings[] rendererListSettings = {
+
+            if (m_Asset.m_UseNewCulling)
+            {
+                RendererListSettings[] rendererListSettings = {
                                                             new RendererListSettings(renderQueueMin: (int)RenderQueue.Geometry, renderQueueMax: (int)RenderQueue.GeometryLast, shaderPassNames: passNames),
                                                             new RendererListSettings(renderQueueMin: (int)RenderQueue.Transparent, renderQueueMax: (int)RenderQueue.Transparent + 100, shaderPassNames: passNames),
                                                         };
 
-            RendererList.PrepareRendererLists(result, rendererListSettings, rendererLists);
+                RendererList.PrepareRendererLists(result, rendererListSettings, rendererLists);
+            }
 
             int texID = Shader.PropertyToID("_CameraDepthBuffer");
             cmd.GetTemporaryRT(texID, camera.pixelWidth, camera.pixelHeight, 1, FilterMode.Point, RenderTextureFormat.Depth);
 
             CoreUtils.SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget, texID);
             cmd.ClearRenderTarget(true, true, Color.grey);
-            // Opaque
-            cmd.DrawRenderers(rendererLists[0], new DrawRendererSettings_New());
-            // Transparent
-            cmd.DrawRenderers(rendererLists[1], new DrawRendererSettings_New());
+
+            if (m_Asset.m_UseNewCulling)
+            {
+                // Opaque
+                cmd.DrawRenderers(rendererLists[0], new DrawRendererSettings_New());
+                // Transparent
+                cmd.DrawRenderers(rendererLists[1], new DrawRendererSettings_New());
+            }
+            else
+            {
+                renderContext.ExecuteCommandBuffer(cmd);
+                cmd.Clear();
+
+                var drawSettings = new DrawRendererSettings(camera, new ShaderPassName("Forward"))
+                {
+                    rendererConfiguration = 0,
+                    sorting = { flags = SortFlags.CommonOpaque }
+                };
+                var filterSettings = new FilterRenderersSettings(true)
+                {
+                    renderQueueRange = new RenderQueueRange()
+                    {
+                        max = (int)RenderQueue.GeometryLast,
+                        min = (int)RenderQueue.Geometry
+                    }
+                };
+                var filterSettingsTransparent = new FilterRenderersSettings(true)
+                {
+                    renderQueueRange = new RenderQueueRange()
+                    {
+                        max = (int)RenderQueue.Transparent + 100,
+                        min = (int)RenderQueue.Transparent
+                    }
+                };
+                renderContext.DrawRenderers(oldResult.visibleRenderers, ref drawSettings, filterSettings);
+                renderContext.DrawRenderers(oldResult.visibleRenderers, ref drawSettings, filterSettingsTransparent);
+            }
 
             renderContext.ExecuteCommandBuffer(cmd);
             renderContext.Submit();
@@ -88,5 +168,10 @@ public class TestRenderPipeline : RenderPipeline
         }
 
         renderContext.Submit();
+    }
+
+    public override void Dispose()
+    {
+        DebugManager.instance.RemovePanel("Culling");
     }
 }

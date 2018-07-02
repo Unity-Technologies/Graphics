@@ -11,3 +11,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c5aa0fc334e4504b92476a2330c8f3e, type: 3}
   m_Name: TestRenderPipelineAsset
   m_EditorClassIdentifier: 
+  m_UseNewCulling: 0
