@@ -15,6 +15,7 @@ namespace UnityEditor.VFX
         public override VFXTaskType taskType { get { return VFXTaskType.ParticleHexahedronOutput; } }
         public override bool supportsUV { get { return true; } }
         public override CullMode defaultCullMode { get { return CullMode.Back; } }
+        public override bool hasShadowCasting { get { return false; } }
 
         public class InputProperties
         {
@@ -39,6 +40,7 @@ namespace UnityEditor.VFX
                 yield return "cullMode";
                 yield return "zWriteMode";
                 yield return "zTestMode";
+                yield return "castShadows";
             }
         }
 

@@ -12,17 +12,23 @@ Pass
 	struct ps_input
 	{
 		float4 pos : SV_POSITION;
-		#if USE_ALPHA_TEST
+		float3 offsets : TEXCOORD0;
+		
+		#if VFX_USE_ALPHA_CURRENT || USE_ALPHA_TEST 
 		// x: alpha
 		// y: alpha threshold
 		nointerpolation float2 builtInInterpolants : TEXCOORD1;
 		#endif
+		
+		nointerpolation uint faceID : TEXCOORD2;
 	};
 
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
 #define VFX_VARYING_ALPHA builtInInterpolants.x
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
+#define VFX_VARYING_OFFSETS offsets
+#define VFX_VARYING_FACEID faceID
 		
 ${VFXBegin:VFXVertexAdditionalProcess}
 o.pos = VFXApplyShadowBias(o.pos);
@@ -38,6 +44,7 @@ ${VFXEnd}
 	float frag(ps_input i) : SV_Target0
 	{
 		float alpha = VFXGetFragmentColor(i).a;		
+		alpha *= VFXGetTextureColorWithProceduralUV(VFX_SAMPLER(mainTexture),i,VFXCubeGetUV(i)).a;		
 		VFXClipFragmentColor(alpha,i);
 		return 0;
 	}

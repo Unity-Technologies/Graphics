@@ -204,7 +204,7 @@ namespace UnityEditor.VFX
                     var settings = asset.rendererSettings;
                     if (settings.motionVectorGenerationMode == MotionVectorGenerationMode.Object)
                         yield return "USE_MOTION_VECTORS_PASS";
-                    if (castShadows)
+                    if (hasShadowCasting)
                         yield return "USE_CAST_SHADOWS_PASS";
                 }
 
