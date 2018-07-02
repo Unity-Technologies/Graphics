@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEditor.Experimental.Rendering.HDPipeline;
 #endif
 using UnityEngine.Serialization;
+using System.Reflection;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -24,6 +25,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Candela,
         Lux,
         Luminance,
+    }
+
+    // This structure contains all the old values for every recordable fields from the HD light editor
+    // so we can force timeline to record changes on other fields from the LateUpdate function (editor only)
+    struct TimelineWorkaournd
+    {
+        public float oldDisplayLightIntensity;
+        public float oldSpotAngle;
+        public bool oldEnableSpotReflector;
+        public Color oldLightColor;
+        public Vector3 oldLocalScale;
+        public bool oldDisplayAreaLightEmissiveMesh;
+        public LightTypeExtent oldLightTypeExtent;
+        public float oldLightColorTemperature;
+        public Vector3 oldShape;
     }
 
     //@TODO: We should continuously move these values
@@ -118,27 +134,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Duplication of HDLightEditor.k_MinAreaWidth, maybe do something about that
         const float k_MinAreaWidth = 0.01f; // Provide a small size of 1cm for line light
 
-        // We nee all those variables to make timeline and the animator record the intensity value and the emissive mesh changes
+#if UNITY_EDITOR
+        // We need these old states to make timeline and the animator record the intensity value and the emissive mesh changes (editor-only)
         [System.NonSerialized]
-        float oldDisplayLightIntensity;
-        [System.NonSerialized]
-        float oldSpotAngle;
-        [System.NonSerialized]
-        bool oldEnableSpotReflector;
-        [System.NonSerialized]
-        Color oldLightColor;
-        [System.NonSerialized]
-        Vector3 oldLocalScale;
-        [System.NonSerialized]
-        bool oldDisplayAreaLightEmissiveMesh;
-        [System.NonSerialized]
-        LightTypeExtent oldLightTypeExtent;
-        [System.NonSerialized]
-        float oldLightColorTemperature;
+        TimelineWorkaournd timelineWorkaround;
+#endif
 
         // For light that used the old intensity system we update them
         [System.NonSerialized]
-        bool needsIntensityUpdate = false;
+        bool needsIntensityUpdate_1_0 = false;
 
         // Runtime datas used to compute light intensity
         Light       _light;
@@ -249,6 +253,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 #if UNITY_EDITOR
 
+        // Force to retreive color light's m_UseColorTemperature because it's private
+        [System.NonSerialized]
+        SerializedProperty useColorTemperatureProperty;
+        [System.NonSerialized]
+        SerializedObject lightSerializedObject;
+        bool useColorTemperature
+        {
+            get
+            {
+                if (useColorTemperatureProperty == null)
+                {
+                    lightSerializedObject = new SerializedObject(m_Light);
+                    useColorTemperatureProperty = lightSerializedObject.FindProperty("m_UseColorTemperature");
+                }
+
+                lightSerializedObject.Update();
+
+                return useColorTemperatureProperty.boolValue;
+            }
+        }
+
         private void DrawGizmos(bool selected)
         {
             var light = gameObject.GetComponent<Light>();
@@ -327,38 +352,44 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // TODO: There are a lot of old != current checks and assignation in this function, maybe think about using another system ?
         void LateUpdate()
         {
+            Vector3 shape = new Vector3(shapeWidth, shapeHeight, shapeRadius);
+
             // Check if the intensity have been changed by the inspector or an animator
-            if (oldDisplayLightIntensity != displayLightIntensity
-                || lightTypeExtent != oldLightTypeExtent
-                || transform.localScale != oldLocalScale
-                || m_Light.colorTemperature != oldLightColorTemperature)
+            if (timelineWorkaround.oldDisplayLightIntensity != displayLightIntensity
+                || lightTypeExtent != timelineWorkaround.oldLightTypeExtent
+                || transform.localScale != timelineWorkaround.oldLocalScale
+                || shape != timelineWorkaround.oldShape
+                || m_Light.colorTemperature != timelineWorkaround.oldLightColorTemperature)
             {
                 RefreshLigthIntensity();
                 UpdateAreaLightEmissiveMesh();
-                oldDisplayLightIntensity = displayLightIntensity;
-                oldLocalScale = transform.localScale;
+                timelineWorkaround.oldDisplayLightIntensity = displayLightIntensity;
+                timelineWorkaround.oldLocalScale = transform.localScale;
+                timelineWorkaround.oldLightTypeExtent = lightTypeExtent;
+                timelineWorkaround.oldLightColorTemperature = m_Light.colorTemperature;
+                timelineWorkaround.oldShape = shape;
             }
 
             // Same check for light angle to update intensity using spot angle
-            if (m_Light.type == LightType.Spot && (oldSpotAngle != m_Light.spotAngle || oldEnableSpotReflector != enableSpotReflector))
+            if (m_Light.type == LightType.Spot && (timelineWorkaround.oldSpotAngle != m_Light.spotAngle || timelineWorkaround.oldEnableSpotReflector != enableSpotReflector))
             {
                 RefreshLigthIntensity();
-                oldSpotAngle = m_Light.spotAngle;
-                oldEnableSpotReflector = enableSpotReflector;
+                timelineWorkaround.oldSpotAngle = m_Light.spotAngle;
+                timelineWorkaround.oldEnableSpotReflector = enableSpotReflector;
             }
 
-            if (m_Light.color != oldLightColor
-                || transform.localScale != oldLocalScale
-                || displayAreaLightEmissiveMesh != oldDisplayAreaLightEmissiveMesh
-                || lightTypeExtent != oldLightTypeExtent
-                || m_Light.colorTemperature != oldLightColorTemperature)
+            if (m_Light.color != timelineWorkaround.oldLightColor
+                || transform.localScale !=timelineWorkaround.oldLocalScale
+                || displayAreaLightEmissiveMesh != timelineWorkaround.oldDisplayAreaLightEmissiveMesh
+                || lightTypeExtent !=timelineWorkaround.oldLightTypeExtent
+                || m_Light.colorTemperature != timelineWorkaround.oldLightColorTemperature)
             {
                 UpdateAreaLightEmissiveMesh();
-                oldLightColor = m_Light.color;
-                oldLocalScale = transform.localScale;
-                oldDisplayAreaLightEmissiveMesh = displayAreaLightEmissiveMesh;
-                oldLightTypeExtent = lightTypeExtent;
-                oldLightColorTemperature = m_Light.colorTemperature;
+                timelineWorkaround.oldLightColor = m_Light.color;
+                timelineWorkaround.oldLocalScale = transform.localScale;
+                timelineWorkaround.oldDisplayAreaLightEmissiveMesh = displayAreaLightEmissiveMesh;
+                timelineWorkaround.oldLightTypeExtent = lightTypeExtent;
+                timelineWorkaround.oldLightColorTemperature = m_Light.colorTemperature;
             }
         }
 
@@ -403,11 +434,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // We don't have anything to do left if the dislay emissive mesh option is disabled
                 return ;
             }
+            
+            Vector3 lightSize;
 
-            // Update light area size from GameObject transform scale
-            Vector3 lightSize = m_Light.transform.localScale;
+            // Update light area size from GameObject transform scale if the transform have changed
+            // else we update the light size from the shape fields
+            if (timelineWorkaround.oldLocalScale != transform.localScale)
+                lightSize = transform.localScale;
+            else
+                lightSize = new Vector3(shapeWidth, shapeHeight, 0);
+            
             lightSize = Vector3.Max(Vector3.one * k_MinAreaWidth, lightSize);
             m_Light.transform.localScale = lightSize;
+            m_Light.areaSize = lightSize;
 
             float areaLightIntensity = intensity;
 
@@ -436,7 +475,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Update Mesh emissive properties
             emissiveMeshRenderer.sharedMaterial.SetColor("_UnlitColor", Color.black);
             // Note that we must use the light in linear RGB
-            emissiveMeshRenderer.sharedMaterial.SetColor("_EmissiveColor", m_Light.color.linear * areaLightIntensity * CorrelatedColorTemperatureToRGB(m_Light.colorTemperature));
+            if (useColorTemperature)
+                emissiveMeshRenderer.sharedMaterial.SetColor("_EmissiveColor", m_Light.color.linear * areaLightIntensity * CorrelatedColorTemperatureToRGB(m_Light.colorTemperature));
+            else
+                emissiveMeshRenderer.sharedMaterial.SetColor("_EmissiveColor", m_Light.color.linear * areaLightIntensity);
         }
 
 #endif
@@ -484,16 +526,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void OnAfterDeserialize()
         {
             // If we are deserializing an old version, convert the light intensity to the new system
-            if (version != currentVersion)
+            if (version <= 1.0f)
             {
-                needsIntensityUpdate = true;
-                version = currentVersion;
+                needsIntensityUpdate_1_0 = true;
             }
+
+            version = currentVersion;
         }
 
         private void OnEnable()
         {
-            if (needsIntensityUpdate)
+            if (needsIntensityUpdate_1_0)
             {
 // Pragma to disable the warning got by using deprecated properties (areaIntensity, directionalIntensity, ...)
 #pragma warning disable 0618
