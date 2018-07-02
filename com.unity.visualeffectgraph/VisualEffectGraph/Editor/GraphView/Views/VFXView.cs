@@ -185,7 +185,7 @@ namespace UnityEditor.VFX.UI
 
         void DisconnectController()
         {
-            if (controller.graph)
+            if (controller.model && controller.graph)
                 controller.graph.SetCompilationMode(VFXCompilationMode.Runtime);
 
             m_Controller.UnregisterHandler(this);
