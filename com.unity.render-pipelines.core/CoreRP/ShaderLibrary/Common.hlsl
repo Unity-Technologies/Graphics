@@ -836,7 +836,7 @@ real3 SafeNormalize(real3 inVec)
 // If any of the input parameters are NaNs, the result is a NaN.
 real SafeDiv(real numer, real denom)
 {
-    return (numer != denom) : numer / denom : 1;
+    return (numer != denom) ? numer / denom : 1;
 }
 
 // Generates a triangle in homogeneous clip space, s.t.
