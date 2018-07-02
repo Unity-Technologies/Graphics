@@ -56,8 +56,20 @@ namespace UnityEditor.VFX
 
         private static CoordinateSpace GetCommonSpaceFromSpaceableSlot(IEnumerable<VFXSlot> slots)
         {
-            var spaceableSlots = slots.Select(o => o.space).Distinct().OrderByDescending(o => (int)o);
-            return spaceableSlots.Any() ? spaceableSlots.First() : (CoordinateSpace)int.MaxValue;
+            var space = (CoordinateSpace)int.MaxValue;
+            foreach (var slot in slots)
+            {
+                if (slot.spaceable)
+                {
+                    var currentSpace = slot.space;
+                    if (space == (CoordinateSpace)int.MaxValue
+                        ||  space < currentSpace)
+                    {
+                        space = currentSpace;
+                    }
+                }
+            }
+            return space;
         }
 
         protected override sealed void OnInvalidate(VFXModel model, InvalidationCause cause)
@@ -103,7 +115,6 @@ namespace UnityEditor.VFX
             GetSlotPredicateRecursive(outputSlotWithExpression, outputSlots, s => s.DefaultExpr != null);
             GetSlotPredicateRecursive(inputSlotWithExpression, inputSlots, s => s.GetExpression() != null);
 
-            var inputSlotSpaceable = inputSlots.Where(o => o.spaceable);
             IEnumerable<VFXExpression> inputExpressions = inputSlotWithExpression.Select(o => o.GetExpression());
             inputExpressions = ApplyPatchInputExpression(inputExpressions);
 

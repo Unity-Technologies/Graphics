@@ -88,7 +88,14 @@ namespace UnityEditor.VFX
         public GroupInfo[] groupInfos;
         public StickyNoteInfo[] stickyNoteInfos;
 
-        public List<string> categories;
+        [Serializable]
+        public struct CategoryInfo
+        {
+            public string name;
+            public bool collapsed;
+        }
+
+        public List<CategoryInfo> categories;
 
         public Rect uiBounds;
 

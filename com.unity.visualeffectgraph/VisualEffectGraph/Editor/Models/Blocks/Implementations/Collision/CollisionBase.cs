@@ -39,7 +39,8 @@ namespace UnityEditor.VFX.Block
                 if (roughSurface)
                     yield return new VFXAttributeInfo(VFXAttribute.Seed, VFXAttributeMode.ReadWrite);
                 if (radiusMode == RadiusMode.FromSize)
-                    yield return new VFXAttributeInfo(VFXAttribute.SizeX, VFXAttributeMode.Read);
+                    foreach (var size in VFXBlockUtility.GetReadableSizeAttributes(GetData()))
+                        yield return size;
             }
         }
 
@@ -57,7 +58,13 @@ namespace UnityEditor.VFX.Block
                 if (radiusMode == RadiusMode.None)
                     yield return new VFXNamedExpression(VFXValue.Constant(0.0f), "radius");
                 else if (radiusMode == RadiusMode.FromSize)
-                    yield return new VFXNamedExpression(new VFXAttributeExpression(VFXAttribute.SizeX) * VFXValue.Constant(0.5f), "radius");
+                {
+                    VFXExpression maxSizeExp = new VFXAttributeExpression(VFXAttribute.SizeX);
+                    foreach (var size in VFXBlockUtility.GetReadableSizeAttributes(GetData()).Skip(1))
+                        maxSizeExp = new VFXExpressionMax(new VFXAttributeExpression(size.attrib), maxSizeExp);
+                    maxSizeExp *= VFXValue.Constant(0.5f);
+                    yield return new VFXNamedExpression(maxSizeExp, "radius");
+                }
             }
         }
 

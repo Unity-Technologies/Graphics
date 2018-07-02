@@ -63,7 +63,7 @@ namespace UnityEditor.VFX.Block
         public class InputPropertiesCurve
         {
             public AnimationCurve Curve = AnimationCurve.EaseInOut(0, 0, 1, 1);
-            public float CurveSample;
+            public float CurveSample = 0;
         }
         public class InputPropertiesCurveRandom
         {
@@ -88,7 +88,7 @@ namespace UnityEditor.VFX.Block
         {
             Debug.Log("Sanitizing Graph: Automatically replace SetLifetime with corresponding generic blocks");
 
-            if(mode == SetMode.Constant || mode == SetMode.Random)
+            if (mode == SetMode.Constant || mode == SetMode.Random)
             {
                 var newBlock = CreateInstance<SetAttribute>();
                 newBlock.SetSettingValue("attribute", "lifetime");
@@ -96,7 +96,7 @@ namespace UnityEditor.VFX.Block
 
                 // Transfer links
                 VFXSlot.CopyLinksAndValue(newBlock.GetInputSlot(0), GetInputSlot(0), true);
-                if(mode == SetMode.Random)
+                if (mode == SetMode.Random)
                     VFXSlot.CopyLinksAndValue(newBlock.GetInputSlot(1), GetInputSlot(1), true);
                 ReplaceModel(newBlock, this);
             }

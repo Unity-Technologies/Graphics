@@ -35,7 +35,7 @@ namespace UnityEditor.VFX.UI
         void Release()
         {
             target.UnregisterCallback<MouseMoveEvent>(OnMouseMove);
-            target.ReleaseMouseCapture();
+            target.ReleaseMouse();
             m_Ctx = null;
         }
 
@@ -44,7 +44,7 @@ namespace UnityEditor.VFX.UI
             if (evt.button == 0)
             {
                 evt.StopPropagation();
-                target.TakeMouseCapture();
+                target.CaptureMouse();
                 startPosition = m_Root.WorldToLocal(evt.mousePosition);
                 target.RegisterCallback<MouseMoveEvent>(OnMouseMove);
                 m_Ctx = m_Root.StartDragging(m_Line);
@@ -82,12 +82,12 @@ namespace UnityEditor.VFX.UI
 
         protected override void RegisterCallbacksOnTarget()
         {
-            target.RegisterCallback<MouseDownEvent>(OnMouseDown, Capture.Capture);
+            target.RegisterCallback<MouseDownEvent>(OnMouseDown, TrickleDown.TrickleDown);
         }
 
         protected override void UnregisterCallbacksFromTarget()
         {
-            target.UnregisterCallback<MouseDownEvent>(OnMouseDown, Capture.Capture);
+            target.UnregisterCallback<MouseDownEvent>(OnMouseDown, TrickleDown.TrickleDown);
         }
 
         void OnMouseDown(MouseDownEvent e)

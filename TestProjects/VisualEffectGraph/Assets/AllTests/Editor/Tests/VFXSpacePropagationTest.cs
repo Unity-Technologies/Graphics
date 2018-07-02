@@ -66,7 +66,10 @@ namespace UnityEditor.VFX.Test
                 }));
         }
 
+        #pragma warning disable CS0414
         private static Type[] SpaceTransmissionType = { typeof(Position), typeof(Sphere) };
+
+        #pragma warning restore CS0414
         [Test]
         public void SpaceTransmission_From_An_Operator_To_Another([ValueSource("SpaceTransmissionType")] Type type)
         {
@@ -87,6 +90,30 @@ namespace UnityEditor.VFX.Test
 
             position_A.inputSlots[0].space = CoordinateSpace.Local;
             Assert.AreEqual(CoordinateSpace.Local, position_B.outputSlots[0].space);
+        }
+
+        [Test]
+        public void SpaceConversion_Vector3_To_ArcSphere_Center_DoesntExcept_Conversion()
+        {
+            var rotate3D = ScriptableObject.CreateInstance<Rotate3D>();
+            var arcSphere = ScriptableObject.CreateInstance<VFXInlineOperator>();
+
+            arcSphere.SetSettingValue("m_Type", (SerializableType)typeof(ArcSphere));
+
+            arcSphere.inputSlots[0][0][0].Link(rotate3D.outputSlots[0]); //link result of rotate3D to center of arcSphere
+
+            var context = new VFXExpression.Context(VFXExpressionContextOption.CPUEvaluation);
+            var resultCenter = context.Compile(arcSphere.inputSlots[0][0][0].GetExpression());
+
+            var allExprCenter = CollectExpression(resultCenter).ToArray();
+            Assert.IsFalse(allExprCenter.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal)); //everything is within the same space by default
+
+            arcSphere.inputSlots[0].space = CoordinateSpace.Global;
+
+            resultCenter = context.Compile(arcSphere.inputSlots[0][0][0].GetExpression());
+            allExprCenter = CollectExpression(resultCenter).ToArray();
+
+            Assert.IsTrue(allExprCenter.Any(o => o.operation == VFXExpressionOperation.LocalToWorld));
         }
 
         [Test]

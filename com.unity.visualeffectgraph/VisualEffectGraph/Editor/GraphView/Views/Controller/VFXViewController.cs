@@ -139,7 +139,6 @@ namespace UnityEditor.VFX.UI
                 Clear();
                 if (model != null && model.graph != null)
                     InitializeUndoStack();
-                Debug.LogWarning("ModelChanged");
                 ModelChanged(model);
             }
 
@@ -259,9 +258,8 @@ namespace UnityEditor.VFX.UI
             {
                 var operatorControllers = m_SyncedModels.Values.SelectMany(t => t).OfType<VFXNodeController>();
                 var blockControllers = (contexts.SelectMany(t => t.blockControllers)).Cast<VFXNodeController>();
-                var contextSlotContainers = contexts.Where(t => t != null).Cast<VFXNodeController>();
 
-                return operatorControllers.Concat(blockControllers).Concat(contextSlotContainers);
+                return operatorControllers.Concat(blockControllers);
             }
         }
 
@@ -935,64 +933,58 @@ namespace UnityEditor.VFX.UI
             m_FlowAnchorController.Remove(controller);
         }
 
-        public static void CollectParentOperator(IVFXSlotContainer operatorInput, HashSet<IVFXSlotContainer> hashParents)
+        public static void CollectAncestorOperator(IVFXSlotContainer operatorInput, HashSet<IVFXSlotContainer> hashParents)
         {
             if (hashParents.Contains(operatorInput))
                 return;
 
             hashParents.Add(operatorInput);
 
-            var parents = operatorInput.inputSlots.SelectMany(o => o.allChildrenWhere(s => s.HasLink())).Select(o => o.refSlot.owner);
-            foreach (var parent in parents)
+            foreach (var slotInput in operatorInput.inputSlots)
             {
-                CollectParentOperator(parent, hashParents);
+                var linkedSlots = slotInput.AllChildrenWithLink();
+                foreach (var linkedSlot in linkedSlots)
+                {
+                    CollectAncestorOperator(linkedSlot.refSlot.owner, hashParents);
+                }
             }
         }
 
-        public static void CollectChildOperator(IVFXSlotContainer operatorInput, HashSet<IVFXSlotContainer> hashChildren)
+        public static void CollectDescendantOperator(IVFXSlotContainer operatorInput, HashSet<IVFXSlotContainer> hashChildren)
         {
             if (hashChildren.Contains(operatorInput))
                 return;
 
             hashChildren.Add(operatorInput);
-
-            var children = operatorInput.outputSlots.SelectMany(o => o.allChildrenWhere(s => s.HasLink())).Select(o => o.refSlot.owner);
-            foreach (var child in children)
+            foreach (var slotOutput in operatorInput.outputSlots)
             {
-                CollectChildOperator(child, hashChildren);
+                var linkedSlots = slotOutput.AllChildrenWithLink();
+                foreach (var linkedSlot in linkedSlots)
+                {
+                    foreach (var link in linkedSlot.LinkedSlots)
+                    {
+                        CollectDescendantOperator(link.owner, hashChildren);
+                    }
+                }
             }
         }
 
-        public List<VFXDataAnchorController> GetCompatiblePorts(VFXDataAnchorController startAnchorController, NodeAdapter nodeAdapter)
+        public IEnumerable<VFXDataAnchorController> GetCompatiblePorts(VFXDataAnchorController startAnchorController, NodeAdapter nodeAdapter)
         {
-            var allSlotContainerControllers = AllSlotContainerControllers;
+            var cacheLinkData = new VFXDataAnchorController.CanLinkCache();
 
-
-            IEnumerable<VFXDataAnchorController> allCandidates = Enumerable.Empty<VFXDataAnchorController>();
-
-            if (startAnchorController.direction == Direction.Input)
+            var direction = startAnchorController.direction;
+            foreach (var slotContainer in AllSlotContainerControllers)
             {
-                var currentOperator = startAnchorController.sourceNode.slotContainer;
-                var childrenOperators = new HashSet<IVFXSlotContainer>();
-                CollectChildOperator(currentOperator, childrenOperators);
-
-                allSlotContainerControllers = allSlotContainerControllers.Where(o => !childrenOperators.Contains(o.slotContainer));
-
-                var toSlot = startAnchorController.model;
-                allCandidates = allSlotContainerControllers.SelectMany(o => o.outputPorts).Where(o => startAnchorController.CanLink(o)).ToList();
+                var sourceSlot = direction == Direction.Input ? slotContainer.outputPorts : slotContainer.inputPorts;
+                foreach (var slot in sourceSlot)
+                {
+                    if (startAnchorController.CanLink(slot, cacheLinkData))
+                    {
+                        yield return slot;
+                    }
+                }
             }
-            else
-            {
-                var currentOperator = startAnchorController.sourceNode.slotContainer;
-                var parentOperators = new HashSet<IVFXSlotContainer>();
-                CollectParentOperator(currentOperator, parentOperators);
-
-                allSlotContainerControllers = allSlotContainerControllers.Where(o => !parentOperators.Contains(o.slotContainer));
-
-                allCandidates = allSlotContainerControllers.SelectMany(o => o.inputPorts).Where(i => startAnchorController.CanLink(i)).ToList();
-            }
-
-            return allCandidates.ToList();
         }
 
         public List<VFXFlowAnchorController> GetCompatiblePorts(VFXFlowAnchorController startAnchorController, NodeAdapter nodeAdapter)
@@ -1176,8 +1168,6 @@ namespace UnityEditor.VFX.UI
         {
             //TRANSITION : delete VFXAsset as it should be in Library
             resource.ValidateAsset();
-            string assetPath = AssetDatabase.GetAssetPath(resource);
-
 
             VFXViewController controller;
             if (!s_Controllers.TryGetValue(resource, out controller))
@@ -1334,15 +1324,15 @@ namespace UnityEditor.VFX.UI
             {
                 var ui = graph.UIInfos;
                 // Validate category list
-                List<string> categories = ui.categories != null ? ui.categories : new List<string>();
+                var categories = ui.categories != null ? ui.categories : new List<VFXUI.CategoryInfo>();
 
-                string[] missingCategories = m_ParameterControllers.Select(t => t.Key.category).Where(t => !string.IsNullOrEmpty(t)).Except(categories).ToArray();
+                string[] missingCategories = m_ParameterControllers.Select(t => t.Key.category).Where(t => !string.IsNullOrEmpty(t)).Except(categories.Select(t => t.name)).ToArray();
 
                 HashSet<string> foundCategories = new HashSet<string>();
 
                 for (int i = 0; i < categories.Count; ++i)
                 {
-                    string category = categories[i];
+                    string category = categories[i].name;
                     if (string.IsNullOrEmpty(category) || foundCategories.Contains(category))
                     {
                         categories.RemoveAt(i);
@@ -1353,7 +1343,7 @@ namespace UnityEditor.VFX.UI
 
                 if (missingCategories.Length > 0)
                 {
-                    categories.AddRange(missingCategories);
+                    categories.AddRange(missingCategories.Select(t => new VFXUI.CategoryInfo { name = t}));
                     ui.categories = categories;
                     ui.Modified();
                 }
@@ -1399,9 +1389,8 @@ namespace UnityEditor.VFX.UI
 
             changed |= RecreateUI(ref groupNodeChanged);
 
-            ValidateCategoryList();
-
             m_Syncing = false;
+            ValidateCategoryList();
             return changed;
         }
 
@@ -1417,15 +1406,15 @@ namespace UnityEditor.VFX.UI
         {
             if (graph.UIInfos.categories == null)
                 return;
-            int oldIndex = graph.UIInfos.categories.IndexOf(category);
+            int oldIndex = graph.UIInfos.categories.FindIndex(t => t.name == category);
 
             if (oldIndex == -1 || oldIndex == index)
                 return;
             graph.UIInfos.categories.RemoveAt(oldIndex);
             if (index < graph.UIInfos.categories.Count)
-                graph.UIInfos.categories.Insert(index, category);
+                graph.UIInfos.categories.Insert(index, new VFXUI.CategoryInfo { name = category });
             else
-                graph.UIInfos.categories.Add(category);
+                graph.UIInfos.categories.Add(new VFXUI.CategoryInfo { name = category });
 
             graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
         }
@@ -1434,13 +1423,13 @@ namespace UnityEditor.VFX.UI
         {
             if (category >= 0 && graph.UIInfos.categories != null && category < graph.UIInfos.categories.Count)
             {
-                if (graph.UIInfos.categories[category] == newName)
+                if (graph.UIInfos.categories[category].name == newName)
                 {
                     return false;
                 }
-                if (!graph.UIInfos.categories.Contains(newName))
+                if (!graph.UIInfos.categories.Any(t => t.name == newName))
                 {
-                    string oldName = graph.UIInfos.categories[category];
+                    var oldName = graph.UIInfos.categories[category].name;
 
                     foreach (var parameter in m_ParameterControllers)
                     {
@@ -1450,7 +1439,9 @@ namespace UnityEditor.VFX.UI
                         }
                     }
 
-                    graph.UIInfos.categories[category] = newName;
+                    var catInfo = graph.UIInfos.categories[category];
+                    catInfo.name = newName;
+                    graph.UIInfos.categories[category] = catInfo;
 
                     graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
                     return true;
@@ -1472,7 +1463,7 @@ namespace UnityEditor.VFX.UI
         {
             if (category >= 0 && graph.UIInfos.categories != null && category < graph.UIInfos.categories.Count)
             {
-                string name = graph.UIInfos.categories[category];
+                string name = graph.UIInfos.categories[category].name;
 
                 graph.UIInfos.categories.RemoveAt(category);
                 graph.Invalidate(VFXModel.InvalidationCause.kUIChanged);
@@ -1513,6 +1504,21 @@ namespace UnityEditor.VFX.UI
             for (int i = 0; i < orderedParameters.Count; ++i)
             {
                 orderedParameters[i].order = i;
+            }
+            NotifyChange(AnyThing);
+        }
+
+        public void SetCategoryExpanded(string category, bool expanded)
+        {
+            if (graph.UIInfos.categories != null)
+            {
+                for (int i = 0; i < graph.UIInfos.categories.Count; ++i)
+                {
+                    if (graph.UIInfos.categories[i].name == category)
+                    {
+                        graph.UIInfos.categories[i] = new VFXUI.CategoryInfo { name = category, collapsed = !expanded };
+                    }
+                }
             }
             NotifyChange(AnyThing);
         }

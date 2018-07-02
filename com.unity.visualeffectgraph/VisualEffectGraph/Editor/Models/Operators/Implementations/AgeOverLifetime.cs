@@ -10,7 +10,7 @@ namespace UnityEditor.VFX.Operator
     {
         public class OutputProperties
         {
-            public float t;
+            public float t = 0;
         }
 
         public override string name

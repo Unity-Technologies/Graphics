@@ -83,7 +83,7 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(maxFrame > 0);
 
             maxFrame = 512;
-            while (!(vfxComponent.DebugExpressionGetFloat(expressionIndex) > 0.01f) && --maxFrame > 0)
+            while (!(VFXDebugUtil.GetExpressionFloat(vfxComponent, expressionIndex) > 0.01f) && --maxFrame > 0)
             {
                 yield return null;
             }

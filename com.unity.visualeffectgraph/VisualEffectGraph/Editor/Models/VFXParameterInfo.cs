@@ -43,20 +43,20 @@ namespace UnityEditor.VFX
         {
             var categories = graph.UIInfos.categories;
             if (categories == null)
-                categories = new List<string>();
+                categories = new List<VFXUI.CategoryInfo>();
 
 
-            var parameters = graph.children.OfType<VFXParameter>().Where(t => t.exposed && (string.IsNullOrEmpty(t.category) || !categories.Contains(t.category))).OrderBy(t => t.order).ToArray();
+            var parameters = graph.children.OfType<VFXParameter>().Where(t => t.exposed && (string.IsNullOrEmpty(t.category) || !categories.Any(u => u.name == t.category))).OrderBy(t => t.order).ToArray();
 
             var infos = new List<VFXParameterInfo>();
             BuildCategoryParameterInfo(parameters, infos);
 
             foreach (var cat in categories)
             {
-                parameters = graph.children.OfType<VFXParameter>().Where(t => t.exposed && t.category == cat).OrderBy(t => t.order).ToArray();
+                parameters = graph.children.OfType<VFXParameter>().Where(t => t.exposed && t.category == cat.name).OrderBy(t => t.order).ToArray();
                 if (parameters.Length > 0)
                 {
-                    VFXParameterInfo paramInfo = new VFXParameterInfo(cat, "");
+                    VFXParameterInfo paramInfo = new VFXParameterInfo(cat.name, "");
 
                     paramInfo.descendantCount = 0;//parameters.Length;
                     infos.Add(paramInfo);

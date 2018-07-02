@@ -73,6 +73,11 @@ namespace UnityEditor.VFX.UI
             {
                 r.height = 100;
             }
+
+            r.x = Mathf.Round(r.x);
+            r.y = Mathf.Round(r.y);
+            r.width = Mathf.Round(r.width);
+            r.height = Mathf.Round(r.height);
         }
 
         public Rect position
@@ -147,7 +152,6 @@ namespace UnityEditor.VFX.UI
                     return m_UI.groupInfos[m_Index].contents.Where(t => t.isStickyNote || t.model != null).Select(t => t.isStickyNote ? (Controller)m_ViewController.GetStickyNoteController(t.id) : (Controller)m_ViewController.GetRootNodeController(t.model, t.id)).Where(t => t != null);
                 return Enumerable.Empty<Controller>();
             }
-            //set { m_UI.groupInfos[m_Index].contents = value.Select(t => new VFXNodeID(t.model, t.id)).ToArray(); }
         }
 
 
@@ -163,56 +167,106 @@ namespace UnityEditor.VFX.UI
                 m_UI.groupInfos[m_Index].contents = m_UI.groupInfos[m_Index].contents.Concat(Enumerable.Repeat(nodeID, 1)).Distinct().ToArray();
             else
                 m_UI.groupInfos[m_Index].contents = new VFXNodeID[] { nodeID };
+        }
+
+        public void AddNodes(IEnumerable<VFXNodeController> controllers)
+        {
+            if (m_Index < 0)
+                return;
+
+            foreach (var controller in controllers)
+            {
+                AddNodeID(new VFXNodeID(controller.model, controller.id));
+            }
 
             Modified();
         }
 
         public void AddNode(VFXNodeController controller)
         {
-            if (controller == null)
+            if (m_Index < 0)
                 return;
 
             AddNodeID(new VFXNodeID(controller.model, controller.id));
+
+            Modified();
+        }
+
+        public void AddStickyNotes(IEnumerable<VFXStickyNoteController> notes)
+        {
+            if (m_Index < 0)
+                return;
+
+            foreach (var note in notes)
+            {
+                AddNodeID(new VFXNodeID(note.index));
+            }
+
+            Modified();
         }
 
         public void AddStickyNote(VFXStickyNoteController note)
         {
-            if (note == null)
+            if (m_Index < 0)
                 return;
 
             AddNodeID(new VFXNodeID(note.index));
+
+            Modified();
         }
 
-        public void RemoveNode(VFXNodeController nodeController)
+        public void RemoveNodes(IEnumerable<VFXNodeController> nodeControllers)
         {
-            if (nodeController == null || m_Index < 0)
+            if (m_Index < 0)
                 return;
 
             if (m_UI.groupInfos[m_Index].contents == null)
                 return;
 
+            foreach (var nodeController in nodeControllers)
+            {
+                int id = nodeController.id;
+                var model = nodeController.model;
+                if (!m_UI.groupInfos[m_Index].contents.Any(t => t.model == model && t.id == id))
+                    continue;
+                m_UI.groupInfos[m_Index].contents = m_UI.groupInfos[m_Index].contents.Where(t => t.model != model || t.id != id).ToArray();
+            }
+
+            Modified();
+        }
+
+        public void RemoveNode(VFXNodeController nodeController)
+        {
+            if (m_Index < 0)
+                return;
+
+            if (m_UI.groupInfos[m_Index].contents == null)
+                return;
 
             int id = nodeController.id;
             var model = nodeController.model;
             if (!m_UI.groupInfos[m_Index].contents.Any(t => t.model == model && t.id == id))
                 return;
-
             m_UI.groupInfos[m_Index].contents = m_UI.groupInfos[m_Index].contents.Where(t => t.model != model || t.id != id).ToArray();
+
             Modified();
         }
 
-        public void RemoveStickyNote(VFXStickyNoteController controller)
+        public void RemoveStickyNotes(IEnumerable<VFXStickyNoteController> stickyNodeControllers)
         {
-            if (controller == null || m_Index < 0)
+            if (m_Index < 0)
                 return;
             if (m_UI.groupInfos[m_Index].contents == null)
                 return;
 
+            foreach (var stickyNoteController in stickyNodeControllers)
+            {
+                if (!m_UI.groupInfos[m_Index].contents.Any(t => t.isStickyNote && t.id == stickyNoteController.index))
+                    return;
 
-            if (!m_UI.groupInfos[m_Index].contents.Any(t => t.isStickyNote && t.id == controller.index))
-                return;
+                m_UI.groupInfos[m_Index].contents = m_UI.groupInfos[m_Index].contents.Where(t => !t.isStickyNote || t.id != stickyNoteController.index).ToArray();
+            }
 
-            m_UI.groupInfos[m_Index].contents = m_UI.groupInfos[m_Index].contents.Where(t => !t.isStickyNote || t.id != controller.index).ToArray();
             Modified();
         }
 

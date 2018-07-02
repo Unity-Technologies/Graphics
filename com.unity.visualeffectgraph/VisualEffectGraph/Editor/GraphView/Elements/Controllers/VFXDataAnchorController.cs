@@ -1,3 +1,4 @@
+#define _RESTRICT_ATTRIBUTE_ACCESS
 using System;
 using System.Linq;
 using System.Collections.Generic;
@@ -128,38 +129,107 @@ namespace UnityEditor.VFX.UI
             return model.HasLink();
         }
 
-        public bool CanLinkToNode(VFXNodeController nodeController)
+#if _RESTRICT_ATTRIBUTE_ACCESS
+        static private bool DependOnAttribute(object model)
+        {
+            return model is VFXAttributeParameter || model is Operator.AgeOverLifetime;
+        }
+
+        static private HashSet<IVFXSlotContainer> CollectDescendantOfAttribute(IEnumerable<VFXNodeController> allSlotContainerControllers)
+        {
+            var operatorDependOnAttribute = new HashSet<IVFXSlotContainer>();
+            foreach (var attributeParameter in allSlotContainerControllers.Where(o => DependOnAttribute(o.model)))
+            {
+                VFXViewController.CollectDescendantOperator(attributeParameter.model as IVFXSlotContainer, operatorDependOnAttribute);
+            }
+            return operatorDependOnAttribute;
+        }
+
+        static private HashSet<IVFXSlotContainer> CollectAnscestorOfSpawner(IEnumerable<VFXNodeController> allSlotContainerControllers)
+        {
+            var operatorDependOnSpawner = new HashSet<IVFXSlotContainer>();
+            foreach (var block in allSlotContainerControllers.Where(o => o.model is VFXBlock && (o.model as VFXBlock).GetParent().contextType == VFXContextType.kSpawner))
+            {
+                VFXViewController.CollectAncestorOperator(block.model as IVFXSlotContainer, operatorDependOnSpawner);
+            }
+            return operatorDependOnSpawner;
+        }
+
+#endif
+        public class CanLinkCache
+        {
+#if _RESTRICT_ATTRIBUTE_ACCESS
+            internal HashSet<IVFXSlotContainer> ancestorOfSpawners;
+            internal HashSet<IVFXSlotContainer> descendantOfAttribute;
+#endif
+            internal HashSet<IVFXSlotContainer> localChildrenOperator = new HashSet<IVFXSlotContainer>();
+            internal HashSet<IVFXSlotContainer> localParentOperator = new HashSet<IVFXSlotContainer>();
+        }
+
+        public bool CanLinkToNode(VFXNodeController nodeController, CanLinkCache cache)
         {
             if (nodeController == sourceNode)
                 return false;
-            var childrenOperators = new HashSet<IVFXSlotContainer>();
+
+            if (cache == null)
+                cache = new CanLinkCache();
+
+            cache.localChildrenOperator.Clear();
+            cache.localParentOperator.Clear();
+
+            bool result;
             if (direction != Direction.Input)
             {
-                VFXViewController.CollectChildOperator(sourceNode.slotContainer, childrenOperators);
-                return !childrenOperators.Contains(nodeController.slotContainer);
+                VFXViewController.CollectDescendantOperator(sourceNode.slotContainer, cache.localChildrenOperator);
+#if _RESTRICT_ATTRIBUTE_ACCESS
+                VFXViewController.CollectAncestorOperator(sourceNode.slotContainer, cache.localParentOperator);
+                if (cache.localParentOperator.Any(o => DependOnAttribute(o)))
+                {
+                    if (cache.ancestorOfSpawners == null)
+                        cache.ancestorOfSpawners = CollectAnscestorOfSpawner(viewController.AllSlotContainerControllers);
+                    var additionnalExcludeOperator = cache.ancestorOfSpawners;
+                    cache.localChildrenOperator.UnionWith(additionnalExcludeOperator);
+                }
+#endif
+                result = !cache.localChildrenOperator.Contains(nodeController.slotContainer);
             }
             else
             {
-                VFXViewController.CollectParentOperator(nodeController.slotContainer, childrenOperators);
-                return !childrenOperators.Contains(sourceNode.slotContainer);
+                VFXViewController.CollectAncestorOperator(nodeController.slotContainer, cache.localParentOperator);
+#if _RESTRICT_ATTRIBUTE_ACCESS
+                VFXViewController.CollectDescendantOperator(sourceNode.slotContainer, cache.localChildrenOperator);
+
+                var contextTypeInChildren = cache.localChildrenOperator.OfType<VFXBlock>().Select(o => o.GetParent().contextType);
+                if (contextTypeInChildren.Any(o => o == VFXContextType.kSpawner))
+                {
+                    if (cache.descendantOfAttribute == null)
+                        cache.descendantOfAttribute = CollectDescendantOfAttribute(viewController.AllSlotContainerControllers);
+
+                    var additionnalExcludeOperator = cache.descendantOfAttribute;
+                    return !cache.localParentOperator.Contains(sourceNode.slotContainer) && !additionnalExcludeOperator.Contains(nodeController.slotContainer);
+                }
+#endif
+                result = !cache.localParentOperator.Contains(sourceNode.slotContainer);
             }
+
+            return result;
         }
 
-        public virtual bool CanLink(VFXDataAnchorController controller)
+        public virtual bool CanLink(VFXDataAnchorController controller, CanLinkCache cache = null)
         {
             if (controller.model != null)
             {
                 if (model.CanLink(controller.model) && controller.model.CanLink(model))
                 {
-                    if (!CanLinkToNode(controller.sourceNode))
+                    if (!CanLinkToNode(controller.sourceNode, cache))
                         return false;
 
                     return true;
                 }
-                return sourceNode.CouldLink(this, controller);
+                return sourceNode.CouldLink(this, controller, cache);
             }
 
-            return controller.CanLink(this);
+            return controller.CanLink(this, cache);
         }
 
         public virtual VFXParameter.NodeLinkedSlot CreateLinkTo(VFXDataAnchorController output)
@@ -518,7 +588,7 @@ namespace UnityEditor.VFX.UI
                 return "";
             }
         }
-        public override bool CanLink(VFXDataAnchorController controller)
+        public override bool CanLink(VFXDataAnchorController controller, CanLinkCache cache = null)
         {
             var op = (sourceNode as VFXCascadedOperatorController);
 
@@ -528,7 +598,7 @@ namespace UnityEditor.VFX.UI
             if (controller is VFXUpcommingDataAnchorController)
                 return false;
 
-            if (!CanLinkToNode(controller.sourceNode))
+            if (!CanLinkToNode(controller.sourceNode, cache))
                 return false;
 
             return op.model.GetBestAffinityType(controller.model.property.type) != null;

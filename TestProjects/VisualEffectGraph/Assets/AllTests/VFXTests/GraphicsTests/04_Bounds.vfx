@@ -183,6 +183,8 @@ MonoBehaviour:
     - context: {fileID: 114681613447015294}
       slotIndex: 0
   integration: 0
+  ageParticles: 1
+  reapParticles: 1
 --- !u!114 &114189742656582804
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -502,6 +504,7 @@ MonoBehaviour:
   sortPriority: 0
   sort: 0
   indirectDraw: 0
+  castShadows: 0
   preRefraction: 0
   useGeometryShader: 0
 --- !u!114 &114697200481505942
@@ -2303,6 +2306,8 @@ MonoBehaviour:
     - context: {fileID: 8926484042661614559}
       slotIndex: 0
   integration: 0
+  ageParticles: 1
+  reapParticles: 1
 --- !u!114 &8926484042661614541
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2901,6 +2906,7 @@ MonoBehaviour:
   sortPriority: 0
   sort: 0
   indirectDraw: 0
+  castShadows: 0
   preRefraction: 0
   useGeometryShader: 0
 --- !u!114 &8926484042661614560

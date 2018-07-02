@@ -343,7 +343,6 @@ namespace UnityEditor.VFX
             foreach (var parameter in parameters)
             {
                 var inputModifier = GetInputModifier(parameter.mode);
-                var parameterType = GetFunctionParameterType(parameter.expression.valueType);
                 parametersCode.Add(string.Format("{1}{0}", GetFunctionParameterName(parameter.expression, variableNames), string.IsNullOrEmpty(inputModifier) ? string.Empty : string.Format(" /*{0}*/", inputModifier)));
             }
 

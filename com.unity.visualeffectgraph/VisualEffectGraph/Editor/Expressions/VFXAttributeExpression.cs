@@ -164,7 +164,7 @@ namespace UnityEditor.VFX
         XY = 3,
         XYZ = 4
     };
-
+    #pragma warning disable CS0659
     sealed class VFXAttributeExpression : VFXExpression
     {
         public VFXAttributeExpression(VFXAttribute attribute, VFXAttributeLocation location = VFXAttributeLocation.Current) : base(Flags.PerElement)
@@ -238,4 +238,6 @@ namespace UnityEditor.VFX
             yield return new VFXAttributeInfo(attribute, m_attributeLocation == VFXAttributeLocation.Source ? VFXAttributeMode.ReadSource : VFXAttributeMode.Read);
         }
     }
+
+    #pragma warning restore CS0659
 }

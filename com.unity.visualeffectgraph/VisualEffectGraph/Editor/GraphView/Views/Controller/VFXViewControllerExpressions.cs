@@ -25,7 +25,7 @@ namespace UnityEditor.VFX.UI
         protected override void Init()
         {
             base.Init();
-            flags = EventFlags.Bubbles | EventFlags.Capturable;
+            flags = EventFlags.Bubbles | EventFlags.TricklesDown;
             controller = null;
         }
     }
@@ -61,8 +61,7 @@ namespace UnityEditor.VFX.UI
                 cause != VFXModel.InvalidationCause.kExpressionInvalidated &&
                 cause != VFXModel.InvalidationCause.kParamChanged)
             {
-                if (cause != VFXModel.InvalidationCause.kParamChanged)
-                    ExpressionGraphDirtyParamOnly = false;
+                ExpressionGraphDirtyParamOnly = false;
                 return;
             }
 

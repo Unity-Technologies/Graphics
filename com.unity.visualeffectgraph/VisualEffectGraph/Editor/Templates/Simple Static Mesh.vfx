@@ -157,6 +157,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   groupInfos: []
   stickyNoteInfos: []
+  categories: []
   uiBounds:
     serializedVersion: 2
     x: 642
@@ -190,6 +191,7 @@ MonoBehaviour:
   - link: []
   m_OutputFlowSlot:
   - link: []
+  castShadows: 0
 --- !u!114 &114398170323442244
 MonoBehaviour:
   m_ObjectHideFlags: 1

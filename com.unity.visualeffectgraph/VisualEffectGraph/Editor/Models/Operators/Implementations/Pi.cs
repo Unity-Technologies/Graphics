@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.Operator
 
         public class OutputProperties
         {
-            public float Pi;
+            public float Pi = Mathf.PI;
         }
 
         protected override IEnumerable<VFXPropertyWithValue> outputProperties

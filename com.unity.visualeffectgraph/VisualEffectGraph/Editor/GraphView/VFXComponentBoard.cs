@@ -202,7 +202,7 @@ namespace UnityEditor.VFX.UI
 
             RegisterCallback<ControllerChangedEvent>(ControllerChanged);
 
-            RegisterCallback<MouseDownEvent>(OnMouseClick, Capture.Capture);
+            RegisterCallback<MouseDownEvent>(OnMouseClick, TrickleDown.TrickleDown);
 
             style.positionType = PositionType.Absolute;
 
@@ -426,6 +426,7 @@ namespace UnityEditor.VFX.UI
             while (current != null)
             {
                 path = current.name + " > " + path;
+                current = current.parent;
             }
 
             if (EditorSceneManager.loadedSceneCount > 1)
@@ -596,8 +597,7 @@ namespace UnityEditor.VFX.UI
         }
     }
     public class VFXComponentBoardEventUIFactory : UxmlFactory<VFXComponentBoardEventUI>
-    {
-    }
+    {}
     public class VFXComponentBoardEventUI : VisualElement
     {
         public VFXComponentBoardEventUI()
@@ -627,7 +627,7 @@ namespace UnityEditor.VFX.UI
             get { return m_EventName.HasFocus(); }
         }
 
-        public string name
+        public new string name
         {
             get
             {

@@ -503,6 +503,7 @@ MonoBehaviour:
   m_exposedName: New AABox
   m_exposed: 0
   m_Order: 2
+  m_Category: 
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -556,6 +557,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   groupInfos: []
   stickyNoteInfos: []
+  categories: []
   uiBounds:
     serializedVersion: 2
     x: 517
@@ -927,6 +929,7 @@ MonoBehaviour:
   m_exposedName: parameter
   m_exposed: 0
   m_Order: 1
+  m_Category: 
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -942,6 +945,7 @@ MonoBehaviour:
       inputSlot: {fileID: 114490695020445978}
     position: {x: 508.83353, y: 552.1118}
     expandedSlots: []
+    expanded: 0
 --- !u!114 &114549587357967636
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1020,6 +1024,8 @@ MonoBehaviour:
     - context: {fileID: 114792578739552882}
       slotIndex: 0
   integration: 0
+  ageParticles: 1
+  reapParticles: 1
 --- !u!114 &114602708459676084
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1494,11 +1500,12 @@ MonoBehaviour:
   cullMode: 0
   zWriteMode: 0
   zTestMode: 0
-  flipbookMode: 0
+  uvMode: 0
   useSoftParticle: 0
   sortPriority: 0
   sort: 0
   indirectDraw: 0
+  castShadows: 0
   preRefraction: 0
   useGeometryShader: 0
 --- !u!114 &114806364651043532
@@ -1523,6 +1530,7 @@ MonoBehaviour:
   m_exposedName: Texture
   m_exposed: 0
   m_Order: 0
+  m_Category: 
   m_Min:
     m_Type:
       m_SerializableType: 
@@ -1538,6 +1546,7 @@ MonoBehaviour:
       inputSlot: {fileID: 114190932133667664}
     position: {x: 1401.8335, y: 356.1118}
     expandedSlots: []
+    expanded: 0
 --- !u!114 &114807095693715294
 MonoBehaviour:
   m_ObjectHideFlags: 1

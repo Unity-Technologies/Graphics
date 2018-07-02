@@ -107,7 +107,6 @@ namespace UnityEditor.VFX.UIElements
             using (ChangeEvent<U> evt = ChangeEvent<U>.GetPooled(e.previousValue, e.newValue))
             {
                 evt.target = this;
-                SetValueWithoutNotify(e.newValue);
                 UIElementsUtility.eventDispatcher.DispatchEvent(evt, panel);
             }
         }
@@ -125,12 +124,19 @@ namespace UnityEditor.VFX.UIElements
 
         public void OnValueChanged(EventCallback<ChangeEvent<U>> callback)
         {
-            (m_Control as INotifyValueChanged<U> ).OnValueChanged(callback);
+            (m_Control as INotifyValueChanged<U>).OnValueChanged(callback);
+        }
+
+        public void RemoveOnValueChanged(EventCallback<ChangeEvent<U>> callback)
+        {
+            (m_Control as INotifyValueChanged<U>).RemoveOnValueChanged(callback);
         }
 
         public void SetValueAndNotify(U newValue)
         {
+            #pragma warning disable CS0618
             (m_Control as INotifyValueChanged<U>).SetValueAndNotify(newValue);
+            #pragma warning restore CS0618
         }
 
         public void SetValueWithoutNotify(U newValue)

@@ -1,11 +1,14 @@
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
+using UnityEngine.Rendering;
+using UnityEditor.Callbacks;
 using UnityEditor.Experimental.VFX;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
+using System.Collections.Generic;
 using System.IO;
-using UnityEditor.Callbacks;
+using System.Linq;
 
 using UnityObject = UnityEngine.Object;
 
@@ -20,6 +23,21 @@ public class VisualEffectAssetEditor : Editor
         {
             VFXViewWindow.GetWindow<VFXViewWindow>().LoadAsset(obj as VisualEffectAsset, null);
             return true;
+        }
+        else if (obj is Shader || obj is ComputeShader)
+        {
+            string path = AssetDatabase.GetAssetPath(instanceID);
+
+            if (path.EndsWith(".vfx"))
+            {
+                var resource = VisualEffectResource.GetResourceAtPath(path);
+                if (resource != null)
+                {
+                    int index = resource.GetShaderIndex(obj);
+                    resource.ShowGeneratedShaderFile(index, line);
+                    return true;
+                }
+            }
         }
         return false;
     }
@@ -50,12 +68,11 @@ public class VisualEffectAssetEditor : Editor
             m_VisualEffectGO.transform.localScale = Vector3.one;
 
             m_VisualEffect.visualEffectAsset = target as VisualEffectAsset;
-            m_OriginalBounds.size = Vector3.zero;
 
+            m_CurrentBounds = new Bounds(Vector3.zero, Vector3.one);
             m_FrameCount = 0;
             m_Distance = 10;
-            m_Origin = Vector3.zero;
-            m_Direction = Vector3.forward;
+            m_Angles = Vector3.forward;
 
             if (s_CubeWireFrame == null)
             {
@@ -104,10 +121,9 @@ public class VisualEffectAssetEditor : Editor
 
     GameObject m_VisualEffectGO;
     VisualEffect m_VisualEffect;
-    Vector3 m_Direction;
-    Vector3 m_Origin;
+    Vector3 m_Angles;
     float m_Distance;
-    Bounds m_OriginalBounds;
+    Bounds m_CurrentBounds;
 
     int m_FrameCount = 0;
 
@@ -120,9 +136,9 @@ public class VisualEffectAssetEditor : Editor
 
     void ComputeFarNear()
     {
-        if (m_OriginalBounds.size != Vector3.zero)
+        if (m_CurrentBounds.size != Vector3.zero)
         {
-            float maxBounds = Mathf.Sqrt(m_OriginalBounds.size.x * m_OriginalBounds.size.x + m_OriginalBounds.size.y * m_OriginalBounds.size.y + m_OriginalBounds.size.z * m_OriginalBounds.size.z);
+            float maxBounds = Mathf.Sqrt(m_CurrentBounds.size.x * m_CurrentBounds.size.x + m_CurrentBounds.size.y * m_CurrentBounds.size.y + m_CurrentBounds.size.z * m_CurrentBounds.size.z);
             m_PreviewUtility.camera.farClipPlane = m_Distance + maxBounds * 1.1f;
             m_PreviewUtility.camera.nearClipPlane = Mathf.Max(0.0001f, (m_Distance - maxBounds));
         }
@@ -137,45 +153,43 @@ public class VisualEffectAssetEditor : Editor
 
         bool isRepaint = (Event.current.type == EventType.Repaint);
 
-        m_Direction = VFXPreviewGUI.Drag2D(m_Direction, r);
+        m_Angles = VFXPreviewGUI.Drag2D(m_Angles, r);
         Renderer renderer = m_VisualEffectGO.GetComponent<Renderer>();
+        if (renderer == null)
+        {
+            return;
+        }
+
+        if (renderer.bounds.size != Vector3.zero)
+        {
+            m_CurrentBounds = renderer.bounds;
+        }
 
         if (m_FrameCount == kSafeFrame) // wait to frame before asking the renderer bounds as it is a computed value.
         {
-            if (renderer != null)
-            {
-                m_OriginalBounds = renderer.bounds;
-                float maxBounds = Mathf.Sqrt(m_OriginalBounds.size.x * m_OriginalBounds.size.x + m_OriginalBounds.size.y * m_OriginalBounds.size.y + m_OriginalBounds.size.z * m_OriginalBounds.size.z);
-                m_Distance = Mathf.Max(0.01f, maxBounds * 1.25f);
-
-                m_Origin = m_OriginalBounds.center;
-                ComputeFarNear();
-            }
+            float maxBounds = Mathf.Sqrt(m_CurrentBounds.size.x * m_CurrentBounds.size.x + m_CurrentBounds.size.y * m_CurrentBounds.size.y + m_CurrentBounds.size.z * m_CurrentBounds.size.z);
+            m_Distance = Mathf.Max(0.01f, maxBounds * 1.25f);
+            ComputeFarNear();
+        }
+        else
+        {
+            ComputeFarNear();
         }
         m_FrameCount++;
         if (Event.current.isScrollWheel)
         {
             m_Distance *= 1 + (Event.current.delta.y * .015f);
-            ComputeFarNear();
         }
 
         if (isRepaint)
         {
             m_PreviewUtility.BeginPreview(r, background);
 
-            Quaternion rot = Quaternion.Euler(m_Direction.y, 0, 0) * Quaternion.Euler(0, m_Direction.x, 0);
-            m_PreviewUtility.camera.transform.position = m_OriginalBounds.center + rot * new Vector3(0, 0, -m_Distance);
+            Quaternion rot = Quaternion.Euler(0, m_Angles.x, 0) * Quaternion.Euler(m_Angles.y, 0, 0);
+            m_PreviewUtility.camera.transform.position = m_CurrentBounds.center + rot * new Vector3(0, 0, -m_Distance);
             m_PreviewUtility.camera.transform.localRotation = rot;
-
-
             m_PreviewUtility.Render();
-            if (renderer != null)
-            {
-                var bounds = renderer.bounds;
-
-                m_PreviewUtility.DrawMesh(s_CubeWireFrame, Matrix4x4.TRS(bounds.center, Quaternion.identity, bounds.size), (Material)EditorGUIUtility.LoadRequired("SceneView/HandleLines.mat"), 0);
-            }
-
+            m_PreviewUtility.DrawMesh(s_CubeWireFrame, Matrix4x4.TRS(m_CurrentBounds.center, Quaternion.identity, m_CurrentBounds.size), (Material)EditorGUIUtility.LoadRequired("SceneView/HandleLines.mat"), 0);
             m_PreviewUtility.EndAndDrawPreview(r);
 
             // Ask for repaint so the effect is animated.
@@ -195,6 +209,18 @@ public class VisualEffectAssetEditor : Editor
         }
     }
 
+    private static readonly KeyValuePair<string, VFXCullingFlags>[] k_CullingOptions = new KeyValuePair<string, VFXCullingFlags>[]
+    {
+        new KeyValuePair<string, VFXCullingFlags>("Cull simulation and bounds", (VFXCullingFlags.CullSimulation | VFXCullingFlags.CullBoundsUpdate)),
+        new KeyValuePair<string, VFXCullingFlags>("Cull simulation only", (VFXCullingFlags.CullSimulation)),
+        new KeyValuePair<string, VFXCullingFlags>("Disable culling", VFXCullingFlags.CullNone),
+    };
+
+    private string CullingMaskToString(VFXCullingFlags flags)
+    {
+        return k_CullingOptions.First(o => o.Value == flags).Key;
+    }
+
     public override void OnInspectorGUI()
     {
         VisualEffectAsset asset = (VisualEffectAsset)target;
@@ -209,47 +235,85 @@ public class VisualEffectAssetEditor : Editor
         bool enable = GUI.enabled; //Everything in external asset is disabled by default
         GUI.enabled = true;
 
+
+        /*
+        m_DropDownButtonCullingMode.AddManipulator(new DownClickable(() => {
+
+        }));*/
+
+        var cullingFlags = resource.cullingFlags;
+
+
+        EditorGUILayout.BeginHorizontal();
+
+        EditorGUILayout.PrefixLabel(EditorGUIUtility.TrTextContent("Culling Flags"));
+        if (EditorGUILayout.DropdownButton(new GUIContent(CullingMaskToString(cullingFlags)), FocusType.Passive))
+        {
+            var menu = new GenericMenu();
+            foreach (var val in k_CullingOptions)
+            {
+                menu.AddItem(new GUIContent(val.Key), val.Value == cullingFlags, (v) =>
+                    {
+                        resource.cullingFlags = (VFXCullingFlags)v;
+                    }, val.Value);
+            }
+            menu.DropDown(GUILayoutUtility.topLevel.GetLast());
+        }
+
+        EditorGUILayout.EndHorizontal();
+
+        bool needRecompile = false;
+        EditorGUI.BeginChangeCheck();
+        bool castShadows = EditorGUILayout.Toggle(EditorGUIUtility.TrTextContent("Cast Shadows"), resource.rendererSettings.shadowCastingMode != ShadowCastingMode.Off);
+        if (EditorGUI.EndChangeCheck())
+        {
+            var settings = resource.rendererSettings;
+            settings.shadowCastingMode = castShadows ? ShadowCastingMode.On : ShadowCastingMode.Off;
+            resource.rendererSettings = settings;
+            needRecompile = true;
+        }
+
+        EditorGUI.BeginChangeCheck();
+        bool motionVector = EditorGUILayout.Toggle(EditorGUIUtility.TrTextContent("Use Motion Vectors"), resource.rendererSettings.motionVectorGenerationMode == MotionVectorGenerationMode.Object);
+        if (EditorGUI.EndChangeCheck())
+        {
+            var settings = resource.rendererSettings;
+            settings.motionVectorGenerationMode = motionVector ? MotionVectorGenerationMode.Object : MotionVectorGenerationMode.Camera;
+            resource.rendererSettings = settings;
+            needRecompile = true;
+        }
+
+        VisualEffectEditor.ShowHeader(EditorGUIUtility.TrTextContent("Shaders"), true, true, false, false);
+
         foreach (var shader in objects)
         {
             if (shader is Shader || shader is ComputeShader)
             {
                 GUILayout.BeginHorizontal();
-                GUILayout.FlexibleSpace();
-                GUILayout.Label(shader.name);
-                if (GUILayout.Button("Reveal"))
+                GUILayout.Label(shader.name, GUILayout.ExpandWidth(true));
+                if (GUILayout.Button("Show Generated", GUILayout.Width(110)))
                 {
-                    OpenTempFile(shader);
+                    int index = resource.GetShaderIndex(shader);
+                    resource.ShowGeneratedShaderFile(index);
+                }
+                if (GUILayout.Button("Select", GUILayout.Width(50)))
+                {
+                    Selection.activeObject = shader;
                 }
                 GUILayout.EndHorizontal();
             }
         }
         GUI.enabled = false;
-    }
 
-    void OpenTempFile(UnityObject shader)
-    {
-        string source = GetShaderSource(shader);
-
-        if (!string.IsNullOrEmpty(source))
+        if (needRecompile)
         {
-            string path = AssetDatabase.GetAssetPath(target);
-            string name = Path.GetFileNameWithoutExtension(path);
-            string fileName = "Temp/" + name + "_" + shader.name.Replace("/", "_");
-            File.WriteAllText(fileName, source);
-            EditorUtility.RevealInFinder(fileName);
+            VFXGraph graph = resource.GetOrCreateGraph() as VFXGraph;
+            if (graph != null)
+            {
+                graph.SetExpressionGraphDirty();
+                graph.RecompileIfNeeded();
+            }
         }
-    }
-
-    string GetShaderSource(UnityObject shader)
-    {
-        VisualEffectAsset asset = (VisualEffectAsset)target;
-        VisualEffectResource resource = asset.GetResource();
-
-        int index = resource.GetShaderIndex(shader);
-        if (index < 0 || index >= resource.shaderSources.Length)
-            return "";
-
-        return resource.shaderSources[index].source;
     }
 }
 
