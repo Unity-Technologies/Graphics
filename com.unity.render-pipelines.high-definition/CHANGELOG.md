@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed apply range attenuation option on punctual light
 - Fixed issue when using more than one volume mask texture with density volumes.
 - Fixed an error which prevented volumetric lighting from working if no density volumes with 3D textures were present.
+- Fixed issue with color temperature not take correctly into account with static lighting
 
 ### Added
 - Add option supportDitheringCrossFade on HDRP Asset to allow to remove shader variant during player build if needed
@@ -21,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Exposed shadow budget parameters in HDRP asset
 - Add an option to generate an emissive mesh for area lights (currently rectangle light only). The mesh fits the size, intensity and color of the light.
 - Add an option to the HDRP asset to increase the resolution of volumetric lighting.
+- Add additional ligth unit support for punctual light (Lumens, Candela) and area lights (Lumens, Luminance)
 
 ### Changed
 - Re-enable shadow mask mode in debug view
