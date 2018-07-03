@@ -17,10 +17,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 add = HDUtils.s_DefaultHDAdditionalLightData;
             }
 
-            // TODO: Only take into account the light dimmer when we have real time GI.
+            // TODO: Currently color temperature is not handled at runtime, need to expose useColorTemperature publicly
+            Color cct = new Color(1.0f, 1.0f, 1.0f);
+#if UNITY_EDITOR
+            if (add.useColorTemperature)
+                cct = LightUtils.CorrelatedColorTemperatureToRGB(l.colorTemperature);
+#endif
 
+            // TODO: Only take into account the light dimmer when we have real time GI.
             ld.instanceID = l.GetInstanceID();
             ld.color = add.affectDiffuse ? LinearColor.Convert(l.color, l.intensity) : LinearColor.Black();
+            ld.color.red *= cct.r;
+            ld.color.green *= cct.g;
+            ld.color.blue *= cct.b;
             ld.indirectColor = add.affectDiffuse ? LightmapperUtils.ExtractIndirect(l) : LinearColor.Black();
 
             // Note that the HDRI is correctly integrated in the GlobalIllumination system, we don't need to do anything regarding it.

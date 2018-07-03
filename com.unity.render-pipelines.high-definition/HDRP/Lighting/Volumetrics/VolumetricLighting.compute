@@ -2,34 +2,32 @@
 // Definitions
 //--------------------------------------------------------------------------------------------------
 
-#pragma kernel VolumetricLightingBruteforce       VolumetricLighting=VolumetricLightingBruteforce       ENABLE_REPROJECTION=0 LIGHTLOOP_SINGLE_PASS
-#pragma kernel VolumetricLightingBruteforceReproj VolumetricLighting=VolumetricLightingBruteforceReproj ENABLE_REPROJECTION=1 LIGHTLOOP_SINGLE_PASS
-#pragma kernel VolumetricLightingClustered        VolumetricLighting=VolumetricLightingClustered        ENABLE_REPROJECTION=0 LIGHTLOOP_TILE_PASS   USE_CLUSTERED_LIGHTLIST
-#pragma kernel VolumetricLightingClusteredReproj  VolumetricLighting=VolumetricLightingClusteredReproj  ENABLE_REPROJECTION=1 LIGHTLOOP_TILE_PASS   USE_CLUSTERED_LIGHTLIST
+#pragma kernel VolumetricLightingBruteforceMQ       VolumetricLighting=VolumetricLightingBruteforceMQ       VL_PRESET_MQ ENABLE_REPROJECTION=0 LIGHTLOOP_SINGLE_PASS
+#pragma kernel VolumetricLightingBruteforceReprojMQ VolumetricLighting=VolumetricLightingBruteforceReprojMQ VL_PRESET_MQ ENABLE_REPROJECTION=1 LIGHTLOOP_SINGLE_PASS
+#pragma kernel VolumetricLightingClusteredMQ        VolumetricLighting=VolumetricLightingClusteredMQ        VL_PRESET_MQ ENABLE_REPROJECTION=0 LIGHTLOOP_TILE_PASS   USE_CLUSTERED_LIGHTLIST
+#pragma kernel VolumetricLightingClusteredReprojMQ  VolumetricLighting=VolumetricLightingClusteredReprojMQ  VL_PRESET_MQ ENABLE_REPROJECTION=1 LIGHTLOOP_TILE_PASS   USE_CLUSTERED_LIGHTLIST
+#pragma kernel VolumetricLightingBruteforceHQ       VolumetricLighting=VolumetricLightingBruteforceHQ       VL_PRESET_HQ ENABLE_REPROJECTION=0 LIGHTLOOP_SINGLE_PASS
+#pragma kernel VolumetricLightingBruteforceReprojHQ VolumetricLighting=VolumetricLightingBruteforceReprojHQ VL_PRESET_HQ ENABLE_REPROJECTION=1 LIGHTLOOP_SINGLE_PASS
+#pragma kernel VolumetricLightingClusteredHQ        VolumetricLighting=VolumetricLightingClusteredHQ        VL_PRESET_HQ ENABLE_REPROJECTION=0 LIGHTLOOP_TILE_PASS   USE_CLUSTERED_LIGHTLIST
+#pragma kernel VolumetricLightingClusteredReprojHQ  VolumetricLighting=VolumetricLightingClusteredReprojHQ  VL_PRESET_HQ ENABLE_REPROJECTION=1 LIGHTLOOP_TILE_PASS   USE_CLUSTERED_LIGHTLIST
 
 // #pragma enable_d3d11_debug_symbols
 
+#ifdef VL_PRESET_MQ
+    // E.g. for 1080p: (1920/8)x(1080/8)x(64)  =  2,073,600 voxels
+    #define VBUFFER_TILE_SIZE 8
+#endif
+#ifdef VL_PRESET_HQ
+    // E.g. for 1080p: (1920/4)x(1080/4)x(128) = 16,588,800 voxels
+    #define VBUFFER_TILE_SIZE 4
+#endif
+
+#define GROUP_SIZE_1D                      8
+#define SUPPORT_PUNCTUAL_LIGHTS            1 // Punctual lights contribute to fog lighting
 #define SHADOW_USE_ONLY_VIEW_BASED_BIASING 1 // We don't use normal biasing as it is not available when doing volumetric
 
 #include "../../ShaderPass/ShaderPass.cs.hlsl"
 #define SHADERPASS SHADERPASS_VOLUMETRIC_LIGHTING
-
-#include "../../ShaderConfig.cs.hlsl"
-#if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET == 1)
-    // E.g. for 1080p: (1920/8)x(1080/8)x(64)  =  2,073,600 voxels
-    #define VBUFFER_TILE_SIZE   8
-    #define VBUFFER_SLICE_COUNT 64
-#else
-    // E.g. for 1080p: (1920/4)x(1080/4)x(128) = 16,588,800 voxels
-    #define VBUFFER_TILE_SIZE   4
-    #define VBUFFER_SLICE_COUNT 128
-#endif
-
-#define SUPPORT_PUNCTUAL_LIGHTS 1 // Punctual lights contribute to fog lighting
-
-#define GROUP_SIZE_1D 8
-
-#if (SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET != 0) // Switch between the full and the empty shader
 
 //--------------------------------------------------------------------------------------------------
 // Included headers
@@ -44,8 +42,8 @@
 #include "VolumetricLighting.cs.hlsl"
 #include "VBuffer.hlsl"
 
-#define UNITY_MATERIAL_VOLUMETRIC          // Define before including Lighting.hlsl and Material.hlsl
-#include "../Lighting.hlsl" // Includes Material.hlsl
+#define UNITY_MATERIAL_VOLUMETRIC // Define before including Lighting.hlsl and Material.hlsl
+#include "../Lighting.hlsl"       // Includes Material.hlsl
 #include "../LightEvaluation.hlsl"
 
 #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
@@ -140,6 +138,8 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
             float3 L = -light.forward; // Lights point backwards in Unity
 
             float3 color; float attenuation;
+            light.contactShadowIndex = -1; // Disable shadow contact if any
+            // Note: We provide a normal of 0 here that work with the NdotL >= 0 test inside the EvaluateLight_Punctual call
             EvaluateLight_Directional(context, posInput, light, unused, 0, L,
                                       color, attenuation);
 
@@ -242,7 +242,7 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                     float3 coneAxisY = lenMul * light.up;
 
                     sampleLight = IntersectRayCone(ray.originWS, ray.jitterDirWS,
-                                                   light.positionWS, light.forward,
+                                                   light.positionRWS, light.forward,
                                                    coneAxisX, coneAxisY,
                                                    t0, t1, tEntr, tExit);
                 }
@@ -256,14 +256,14 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                     float hackMinDistSq = Sq(dt * (0.5 / 7));
 
                     float t, distSq, rcpPdf;
-                    ImportanceSamplePunctualLight(rndVal, light.positionWS,
+                    ImportanceSamplePunctualLight(rndVal, light.positionRWS,
                                                   ray.originWS, ray.jitterDirWS,
                                                   tEntr, tExit, t, distSq, rcpPdf,
                                                   hackMinDistSq);
 
                     posInput.positionWS = GetPointAtDistance(ray, t);
 
-                    float3 lightToSample = posInput.positionWS - light.positionWS;
+                    float3 lightToSample = posInput.positionWS - light.positionRWS;
                     float  distRcp       = rsqrt(distSq);
                     float  dist          = distSq * distRcp;
                     float  distProj      = dot(lightToSample, light.forward);
@@ -271,8 +271,11 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                     float3 L             = -lightToSample * distRcp;
 
                     float3 color; float attenuation;
+                    light.contactShadowIndex = -1; // Disable shadow contact if any
+                    // Note: We provide a normal of 0 here that work with the NdotL >= 0 test inside the EvaluateLight_Punctual call
                     EvaluateLight_Punctual(context, posInput, light, unused,
-                                           0, L, lightToSample, distances, color, attenuation);
+                                           0, L, lightToSample, distances,
+                                           color, attenuation);
 
                     // Important:
                     // Ideally, all scattering calculations should use the jittered versions
@@ -285,7 +288,7 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                     // and any temporal instability of anisotropy causes causes visible jitter.
                     // In order to stabilize the image, we use the voxel center for all
                     // anisotropy-related calculations.
-                    float3 centerL = light.positionWS - centerWS;
+                    float3 centerL = light.positionRWS - centerWS;
                     float  cosTheta = dot(centerL, ray.centerDirWS) * rsqrt(dot(centerL, centerL));
                     float  phase    = CornetteShanksPhasePartVarying(anisotropy, cosTheta);
 
@@ -336,7 +339,7 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                 // 'light.right' and 'light.up' vectors are pre-scaled on the CPU by (2/w) and (2/h).
                 float3x3 rotMat = float3x3(light.right, light.up, light.forward);
 
-                float3 o = mul(rotMat, ray.originWS - light.positionWS);
+                float3 o = mul(rotMat, ray.originWS - light.positionRWS);
                 float3 d = mul(rotMat, ray.jitterDirWS);
 
                 float  range  = light.size.x;
@@ -354,13 +357,16 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                     posInput.positionWS = GetPointAtDistance(ray, t);
 
                     float3 L             = -light.forward;
-                    float3 lightToSample = posInput.positionWS - light.positionWS;
+                    float3 lightToSample = posInput.positionWS - light.positionRWS;
                     float  distProj      = dot(lightToSample, light.forward);
                     float4 distances     = float4(1, 1, 1, distProj);
 
                     float3 color; float attenuation;
-                    EvaluateLight_Punctual(context, posInput, light, unused,
-                                           0, L, lightToSample, distances, color, attenuation);
+                    light.contactShadowIndex = -1; // Disable shadow contact if any
+                    // Note: We provide a normal of 0 here that work with the NdotL >= 0 test inside the EvaluateLight_Punctual call
+                    EvaluateLight_Punctual( context, posInput, light, unused,
+                                            0, L, lightToSample, distances,
+                                            color, attenuation);
 
                     // Important:
                     // Ideally, all scattering calculations should use the jittered versions
@@ -373,7 +379,7 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
                     // and any temporal instability of anisotropy causes causes visible jitter.
                     // In order to stabilize the image, we use the voxel center for all
                     // anisotropy-related calculations.
-                    float3 centerL  = light.positionWS - centerWS;
+                    float3 centerL  = light.positionRWS - centerWS;
                     float  cosTheta = dot(centerL, ray.centerDirWS) * rsqrt(dot(centerL, centerL));
                     float  phase    = CornetteShanksPhasePartVarying(anisotropy, cosTheta);
 
@@ -414,8 +420,8 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
                                   PositionInputs posInput, DualRay ray)
 {
     const float n  = _VBufferDepthDecodingParams.x + _VBufferDepthDecodingParams.z;
-    const float z0 = n;                        // Start integration from the near plane
-    const float de = rcp(VBUFFER_SLICE_COUNT); // Log-encoded distance between slices
+    const float z0 = n;                    // Start integration from the near plane
+    const float de = _VBufferSliceCount.y; // Log-encoded distance between slices
 
     float t0 = ConvertLinearDepthToJitterRayDist(ray, z0);
 
@@ -435,15 +441,7 @@ void FillVolumetricLightingBuffer(LightLoopContext context, uint featureFlags,
     lightClusters[0] = GetLightClusterIndex(posInput.tileCoord, z0);
 #endif // USE_CLUSTERED_LIGHTLIST
 
-#if defined(SHADER_API_METAL)
-    [fastopt]
-    for (uint slice = 0; slice < VBUFFER_SLICE_COUNT; slice++)
-#else
-    uint sliceCountHack = max(VBUFFER_SLICE_COUNT, (uint)_VBufferDepthEncodingParams.w); // Prevent unrolling...
-
-    // TODO: replace 'sliceCountHack' with VBUFFER_SLICE_COUNT when the shader compiler bug is fixed.
-    for (uint slice = 0; slice < sliceCountHack; slice++)
-#endif
+    for (uint slice = 0; slice < (uint)_VBufferSliceCount.x; slice++)
     {
         uint3 voxelCoord = uint3(posInput.positionSS, slice);
 
@@ -647,21 +645,12 @@ void VolumetricLighting(uint2 groupId       : SV_GroupID,
 
     // TODO
     LightLoopContext context;
+    context.sampleReflection = 0;
     context.shadowContext = InitShadowContext();
+    context.contactShadow = 1.0;
     uint featureFlags = 0xFFFFFFFF;
 
     PositionInputs posInput = GetPositionInput(voxelCoord, _VBufferResolution.zw, tileCoord);
 
     FillVolumetricLightingBuffer(context, featureFlags, posInput, ray);
 }
-
-#else
-
-[numthreads(GROUP_SIZE_1D, GROUP_SIZE_1D, 1)]
-void VolumetricLighting(uint2 groupId       : SV_GroupID,
-                        uint2 groupThreadId : SV_GroupThreadID)
-{
-    // Reduce compile times if the feature is disabled.
-}
-
-#endif // SHADEROPTIONS_VOLUMETRIC_LIGHTING_PRESET

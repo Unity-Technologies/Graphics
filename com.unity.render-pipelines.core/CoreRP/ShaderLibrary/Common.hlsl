@@ -11,6 +11,7 @@
 
 // space at the end of the variable name
 // WS: world space
+// RWS: Camera-Relative world space. A space where the translation of the camera have already been substract in order to improve precision
 // VS: view space
 // OS: object space
 // CS: Homogenous clip spaces
@@ -233,9 +234,7 @@ void ToggleBit(inout uint data, uint offset)
 {
     data ^= 1u << offset;
 }
-
 #endif
-
 
 #ifndef INTRINSIC_WAVEREADFIRSTLANE
     // Warning: for correctness, the argument's value must be the same across all lanes of the wave.
@@ -480,10 +479,11 @@ float ComputeTextureLOD(float2 uv, float2 texelSize)
     return ComputeTextureLOD(uv);
 }
 
-float ComputeTextureLOD(float3 Px, float3 Py, float3 Pz)
+// LOD clamp is optional and happens outside the function.
+float ComputeTextureLOD(float3 duvw_dx, float3 duvw_dy, float3 duvw_dz, float scale)
 {
-    float d = max(dot(Px, Px), max(dot(Py, Py), dot(Pz, Pz)));
-    return max(0.0, 0.5 * log2(d));
+    float d = Max3(dot(duvw_dx, duvw_dx), dot(duvw_dy, duvw_dy), dot(duvw_dz, duvw_dz));
+    return 0.5 * log2(d * (scale * scale));
 }
 
 
@@ -819,11 +819,24 @@ void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float3 viewFor
 // Misc utilities
 // ----------------------------------------------------------------------------
 
+// Simple function to test a bitfield
+bool HasFlag(uint bitfield, uint flag)
+{
+    return (bitfield & flag) != 0;
+}
+
 // Normalize that account for vectors with zero length
 real3 SafeNormalize(real3 inVec)
 {
     real dp3 = max(REAL_MIN, dot(inVec, inVec));
     return inVec * rsqrt(dp3);
+}
+
+// Division which returns 1 for (inf/inf) and (0/0).
+// If any of the input parameters are NaNs, the result is a NaN.
+real SafeDiv(real numer, real denom)
+{
+    return (numer != denom) ? numer / denom : 1;
 }
 
 // Generates a triangle in homogeneous clip space, s.t.
