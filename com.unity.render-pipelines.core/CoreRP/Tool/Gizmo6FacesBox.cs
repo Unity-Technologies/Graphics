@@ -11,7 +11,7 @@ namespace UnityEngine.Experimental.Rendering
     {
         const float k_HandleSizeCoef = 0.05f;
 
-        protected enum NamedFace { Right, Top, Front, Left, Bottom, Back }
+        protected enum NamedFace { Right, Top, Front, Left, Bottom, Back, None }
         protected enum Element { Face, SelectedFace, Handle }
 
         Mesh m_face = null;
@@ -157,7 +157,9 @@ namespace UnityEngine.Experimental.Rendering
         public readonly bool monochromeFace;
         public readonly bool monochromeSelectedFace;
 
-        public int[] m_ControlIDs = new int[6] { 0, 0, 0, 0, 0, 0 };
+        public bool allHandleControledByOne = false;
+
+        private int[] m_ControlIDs = new int[6] { 0, 0, 0, 0, 0, 0 };
 
         public Vector3 center { get; set; }
 
@@ -240,6 +242,9 @@ namespace UnityEngine.Experimental.Rendering
             Vector3 backPosition = center + size.z * .5f * Vector3.back;
 
             float snapScale = (float)k_scale.GetValue(null, null);
+            NamedFace theChangedFace = NamedFace.None;
+
+            EditorGUI.BeginChangeCheck();
             using (new Handles.DrawingScope(GetColor(NamedFace.Left, Element.Handle)))
                 leftPosition = (Vector3)k_Slider1D_Do.Invoke(null, new object[]
                 {
@@ -250,6 +255,17 @@ namespace UnityEngine.Experimental.Rendering
                     new Handles.CapFunction(Handles.DotHandleCap),
                     snapScale
                 });
+            if (EditorGUI.EndChangeCheck() && allHandleControledByOne)
+            {
+                theChangedFace = NamedFace.Left;
+                //Vector3 size = this.size - Vector3.one * (leftPosition - center + this.size.x * .5f * Vector3.left).x;
+                //for (int axis = 0; axis < 3; ++axis)
+                //    size[axis] = Mathf.Max(size[axis], 0f);
+                //this.size = size;
+                //oneChanged = true;
+            }
+
+            EditorGUI.BeginChangeCheck();
             using (new Handles.DrawingScope(GetColor(NamedFace.Right, Element.Handle)))
                 rightPosition = (Vector3)k_Slider1D_Do.Invoke(null, new object[]
                 {
@@ -260,7 +276,10 @@ namespace UnityEngine.Experimental.Rendering
                     new Handles.CapFunction(Handles.DotHandleCap),
                     snapScale
                 });
+            if (EditorGUI.EndChangeCheck() && allHandleControledByOne)
+                theChangedFace = NamedFace.Right;
 
+            EditorGUI.BeginChangeCheck();
             using (new Handles.DrawingScope(GetColor(NamedFace.Top, Element.Handle)))
                 topPosition = (Vector3)k_Slider1D_Do.Invoke(null, new object[]
                 {
@@ -271,6 +290,10 @@ namespace UnityEngine.Experimental.Rendering
                     new Handles.CapFunction(Handles.DotHandleCap),
                     snapScale
                 });
+            if (EditorGUI.EndChangeCheck() && allHandleControledByOne)
+                theChangedFace = NamedFace.Top;
+
+            EditorGUI.BeginChangeCheck();
             using (new Handles.DrawingScope(GetColor(NamedFace.Bottom, Element.Handle)))
                 bottomPosition = (Vector3)k_Slider1D_Do.Invoke(null, new object[]
                 {
@@ -281,7 +304,10 @@ namespace UnityEngine.Experimental.Rendering
                     new Handles.CapFunction(Handles.DotHandleCap),
                     snapScale
                 });
+            if (EditorGUI.EndChangeCheck() && allHandleControledByOne)
+                theChangedFace = NamedFace.Bottom;
 
+            EditorGUI.BeginChangeCheck();
             using (new Handles.DrawingScope(GetColor(NamedFace.Front, Element.Handle)))
                 frontPosition = (Vector3)k_Slider1D_Do.Invoke(null, new object[]
                 {
@@ -292,6 +318,10 @@ namespace UnityEngine.Experimental.Rendering
                     new Handles.CapFunction(Handles.DotHandleCap),
                     snapScale
                 });
+            if (EditorGUI.EndChangeCheck() && allHandleControledByOne)
+                theChangedFace = NamedFace.Front;
+
+            EditorGUI.BeginChangeCheck();
             using (new Handles.DrawingScope(GetColor(NamedFace.Back, Element.Handle)))
                 backPosition = (Vector3)k_Slider1D_Do.Invoke(null, new object[]
                 {
@@ -302,30 +332,72 @@ namespace UnityEngine.Experimental.Rendering
                     new Handles.CapFunction(Handles.DotHandleCap),
                     snapScale
                 });
+            if (EditorGUI.EndChangeCheck() && allHandleControledByOne)
+                theChangedFace = NamedFace.Back;
 
             if (EditorGUI.EndChangeCheck())
             {
-                Vector3 max = new Vector3(rightPosition.x, topPosition.y, frontPosition.z);
-                Vector3 min = new Vector3(leftPosition.x, bottomPosition.y, backPosition.z);
-
-                //ensure that the box face are still facing outside
-                for (int axis = 0; axis < 3; ++axis)
+                if(allHandleControledByOne)
                 {
-                    if (min[axis] > max[axis])
+                    float decal = 0f;
+                    switch(theChangedFace)
                     {
-                        if (GUIUtility.hotControl == m_ControlIDs[axis])
+                        case NamedFace.Left:
+                            decal = (leftPosition - center - size.x * .5f * Vector3.left).x;
+                            break;
+                        case NamedFace.Right:
+                            decal = -(rightPosition - center - size.x * .5f * Vector3.right).x;
+                            break;
+                        case NamedFace.Top:
+                            decal = -(topPosition - center - size.y * .5f * Vector3.up).y;
+                            break;
+                        case NamedFace.Bottom:
+                            decal = (bottomPosition - center - size.y * .5f * Vector3.down).y;
+                            break;
+                        case NamedFace.Front:
+                            decal = -(frontPosition - center - size.z * .5f * Vector3.forward).z;
+                            break;
+                        case NamedFace.Back:
+                            decal = (backPosition - center - size.z * .5f * Vector3.back).z;
+                            break;
+                    }
+
+                    Vector3 tempSize = size - Vector3.one * decal;
+                    for (int axis = 0; axis < 3; ++axis)
+                    {
+                        if (tempSize[axis] < 0)
                         {
-                            max[axis] = min[axis];
-                        }
-                        else
-                        {
-                            min[axis] = max[axis];
+                            decal += tempSize[axis];
+                            tempSize = size - Vector3.one * decal;
                         }
                     }
-                }
 
-                center = (max + min) * .5f;
-                size = max - min;
+                    size = tempSize;
+                }
+                else
+                {
+                    Vector3 max = new Vector3(rightPosition.x, topPosition.y, frontPosition.z);
+                    Vector3 min = new Vector3(leftPosition.x, bottomPosition.y, backPosition.z);
+
+                    //ensure that the box face are still facing outside
+                    for (int axis = 0; axis < 3; ++axis)
+                    {
+                        if (min[axis] > max[axis])
+                        {
+                            if (GUIUtility.hotControl == m_ControlIDs[axis])
+                            {
+                                max[axis] = min[axis];
+                            }
+                            else
+                            {
+                                min[axis] = max[axis];
+                            }
+                        }
+                    }
+
+                    center = (max + min) * .5f;
+                    size = max - min;
+                }
             }
         }
     }
