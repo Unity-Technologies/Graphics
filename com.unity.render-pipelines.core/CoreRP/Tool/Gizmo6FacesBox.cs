@@ -186,25 +186,32 @@ namespace UnityEngine.Experimental.Gizmo
 
             Element element = selected ? Element.SelectedFace : Element.Face;
 
-            Vector3 xSize = new Vector3(size.z, size.y, 1f);
-            Gizmos.color = GetColor(NamedFace.Left, element);
-            Gizmos.DrawMesh(face, center + size.x * .5f * Vector3.left, Quaternion.FromToRotation(Vector3.forward, Vector3.left), xSize);
-            Gizmos.color = GetColor(NamedFace.Right, element);
-            Gizmos.DrawMesh(face, center + size.x * .5f * Vector3.right, Quaternion.FromToRotation(Vector3.forward, Vector3.right), xSize);
+            if (selected)
+            {
+                Vector3 xSize = new Vector3(size.z, size.y, 1f);
+                Gizmos.color = GetColor(NamedFace.Left, element);
+                Gizmos.DrawMesh(face, center + size.x * .5f * Vector3.left, Quaternion.FromToRotation(Vector3.forward, Vector3.left), xSize);
+                Gizmos.color = GetColor(NamedFace.Right, element);
+                Gizmos.DrawMesh(face, center + size.x * .5f * Vector3.right, Quaternion.FromToRotation(Vector3.forward, Vector3.right), xSize);
 
-            Vector3 ySize = new Vector3(size.x, size.z, 1f);
-            Gizmos.color = GetColor(NamedFace.Top, element);
-            Gizmos.DrawMesh(face, center + size.y * .5f * Vector3.up, Quaternion.FromToRotation(Vector3.forward, Vector3.up), ySize);
-            Gizmos.color = GetColor(NamedFace.Bottom, element);
-            Gizmos.DrawMesh(face, center + size.y * .5f * Vector3.down, Quaternion.FromToRotation(Vector3.forward, Vector3.down), ySize);
+                Vector3 ySize = new Vector3(size.x, size.z, 1f);
+                Gizmos.color = GetColor(NamedFace.Top, element);
+                Gizmos.DrawMesh(face, center + size.y * .5f * Vector3.up, Quaternion.FromToRotation(Vector3.forward, Vector3.up), ySize);
+                Gizmos.color = GetColor(NamedFace.Bottom, element);
+                Gizmos.DrawMesh(face, center + size.y * .5f * Vector3.down, Quaternion.FromToRotation(Vector3.forward, Vector3.down), ySize);
 
-            Vector3 zSize = new Vector3(size.x, size.y, 1f);
-            Gizmos.color = GetColor(NamedFace.Front, element);
-            Gizmos.DrawMesh(face, center + size.z * .5f * Vector3.forward, Quaternion.identity, zSize);
-            Gizmos.color = GetColor(NamedFace.Back, element);
-            Gizmos.DrawMesh(face, center + size.z * .5f * Vector3.back, Quaternion.FromToRotation(Vector3.forward, Vector3.back), zSize);
+                Vector3 zSize = new Vector3(size.x, size.y, 1f);
+                Gizmos.color = GetColor(NamedFace.Front, element);
+                Gizmos.DrawMesh(face, center + size.z * .5f * Vector3.forward, Quaternion.identity, zSize);
+                Gizmos.color = GetColor(NamedFace.Back, element);
+                Gizmos.DrawMesh(face, center + size.z * .5f * Vector3.back, Quaternion.FromToRotation(Vector3.forward, Vector3.back), zSize);
+            }
 
             Gizmos.color = colorGizmo;
+            Debug.Log("center: " + center);
+            Debug.Log("size: " + size);
+            Debug.Log("color: " + colorGizmo);
+            Gizmos.DrawWireCube(center, size);
         }
 
 
