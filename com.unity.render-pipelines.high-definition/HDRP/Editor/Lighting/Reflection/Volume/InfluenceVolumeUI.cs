@@ -3,6 +3,7 @@ using UnityEditor.AnimatedValues;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Experimental.Gizmo;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -22,9 +23,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static readonly int k_ShapeCount = Enum.GetValues(typeof(ShapeType)).Length;
 
-        public BoxBoundsHandle boxBaseHandle = new BoxBoundsHandle();
-        public BoxBoundsHandle boxInfluenceHandle = new BoxBoundsHandle();
-        public BoxBoundsHandle boxInfluenceNormalHandle = new BoxBoundsHandle();
+        public Gizmo6FacesBox boxBaseHandle;
+        public Gizmo6FacesBoxContained boxInfluenceHandle;
+        public Gizmo6FacesBoxContained boxInfluenceNormalHandle;
 
         public SphereBoundsHandle sphereBaseHandle = new SphereBoundsHandle();
         public SphereBoundsHandle sphereInfluenceHandle = new SphereBoundsHandle();
@@ -38,6 +39,30 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             : base(k_ShapeCount + k_AnimBoolFields)
         {
             isSectionAdvancedInfluenceSettings.value = false;
+
+            boxBaseHandle = new Gizmo6FacesBox(monochromeFace:true, monochromeSelectedFace:true);
+            boxInfluenceHandle = new Gizmo6FacesBoxContained(boxBaseHandle, monochromeFace:true, monochromeSelectedFace:true);
+            boxInfluenceNormalHandle = new Gizmo6FacesBoxContained(boxBaseHandle, monochromeFace:true, monochromeSelectedFace:true);
+
+            Color[] handleColors = new Color[]
+            {
+                HDReflectionProbeEditor.k_handlesColor[0][0],
+                HDReflectionProbeEditor.k_handlesColor[0][1],
+                HDReflectionProbeEditor.k_handlesColor[0][2],
+                HDReflectionProbeEditor.k_handlesColor[1][0],
+                HDReflectionProbeEditor.k_handlesColor[1][1],
+                HDReflectionProbeEditor.k_handlesColor[1][2]
+            };
+            boxBaseHandle.handleColors = handleColors;
+            boxInfluenceHandle.handleColors = handleColors;
+            boxInfluenceNormalHandle.handleColors = handleColors;
+
+            boxBaseHandle.faceColors = new Color[] { HDReflectionProbeEditor.k_GizmoThemeColorExtent };
+            boxBaseHandle.faceColorsSelected = new Color[] { HDReflectionProbeEditor.k_GizmoThemeColorExtentFace };
+            boxInfluenceHandle.faceColors = new Color[] { HDReflectionProbeEditor.k_GizmoThemeColorInfluenceBlend };
+            boxInfluenceHandle.faceColorsSelected = new Color[] { HDReflectionProbeEditor.k_GizmoThemeColorInfluenceBlendFace };
+            boxInfluenceNormalHandle.faceColors = new Color[] { HDReflectionProbeEditor.k_GizmoThemeColorInfluenceNormalBlend };
+            boxInfluenceNormalHandle.faceColorsSelected = new Color[] { HDReflectionProbeEditor.k_GizmoThemeColorInfluenceNormalBlendFace };
         }
 
         public override void Update()

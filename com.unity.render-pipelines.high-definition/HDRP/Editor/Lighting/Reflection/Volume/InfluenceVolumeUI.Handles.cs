@@ -3,6 +3,7 @@ using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using Object = UnityEngine.Object;
+using UnityEngine.Experimental.Gizmo;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -125,7 +126,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void DrawBoxHandle(
             InfluenceVolumeUI s, InfluenceVolume d, Editor o, Object sourceAsset,
-            Func<InfluenceVolumeUI, BoxBoundsHandle> boundsGetter,
+            Func<InfluenceVolumeUI, Gizmo6FacesBox> boundsGetter,
             ref Vector3 center, ref Vector3 size)
         {
             var b = boundsGetter(s);
@@ -147,7 +148,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void DrawBoxFadeHandle(
             InfluenceVolumeUI s, InfluenceVolume d, Editor o, Object sourceAsset,
-            Func<InfluenceVolumeUI, BoxBoundsHandle> boundsGetter,
+            Func<InfluenceVolumeUI, Gizmo6FacesBox> boundsGetter,
             Vector3 baseOffset, Vector3 baseSize,
             ref Vector3 positive, ref Vector3 negative)
         {
