@@ -433,22 +433,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_Light.transform.localScale = lightSize;
             m_Light.areaSize = lightSize;
 
-            float areaLightIntensity = intensity;
-
             switch (lightTypeExtent)
             {
                 case LightTypeExtent.Rectangle:
                     shapeWidth = lightSize.x;
                     shapeHeight = lightSize.y;
-
-                    // If the light unit is in lumen, we need a convertion to get the good intensity value
-                    if (lightUnit == LightUnit.Lumen)
-                    {
-                        areaLightIntensity = LightUtils.ConvertRectLightLumenToLuminance(
-                            intensity,
-                            shapeWidth,
-                            shapeHeight);
-                    }
                     break;
                 default:
                     break;
@@ -459,11 +448,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Update Mesh emissive properties
             emissiveMeshRenderer.sharedMaterial.SetColor("_UnlitColor", Color.black);
-            // Note that we must use the light in linear RGB
+
+            // m_Light.intensity is in luminance which is the value we need for emissive color
+            Color value = m_Light.color.linear * m_Light.intensity;
             if (useColorTemperature)
-                emissiveMeshRenderer.sharedMaterial.SetColor("_EmissiveColor", m_Light.color.linear * areaLightIntensity * LightUtils.CorrelatedColorTemperatureToRGB(m_Light.colorTemperature));
-            else
-                emissiveMeshRenderer.sharedMaterial.SetColor("_EmissiveColor", m_Light.color.linear * areaLightIntensity);
+                value *= LightUtils.CorrelatedColorTemperatureToRGB(m_Light.colorTemperature);
+
+            emissiveMeshRenderer.sharedMaterial.SetColor("_EmissiveColor", value);
         }
 
 #endif
