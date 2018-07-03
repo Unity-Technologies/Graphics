@@ -34,11 +34,11 @@ ${VFXGeneratedBlockFunction}
 void CSMain(uint3 groupId          : SV_GroupID,
             uint3 groupThreadId    : SV_GroupThreadID)
 {
-    uint3 id = (uint3)0;
+    uint id = 0;
 #if VFX_USE_SPAWNER_FROM_GPU
-    id.x = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP;
+    id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP;
 #else
-    id.x = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
+    id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
 #endif
 
 #if VFX_USE_SPAWNER_FROM_GPU
@@ -55,12 +55,12 @@ void CSMain(uint3 groupId          : SV_GroupID,
     maxThreadId = min(maxThreadId, nbMax); //otherwise, nbSpawned already clamped on CPU
 #endif
 
-    if (id.x < maxThreadId)
+    if (id < maxThreadId)
     {
 #if VFX_USE_SPAWNER_FROM_GPU
-        int sourceIndex = eventList[id.x];
+        int sourceIndex = eventList[id];
 #endif
-        uint particleIndex = id.x + currentSpawnIndex;
+        uint particleIndex = id + currentSpawnIndex;
 		
 #if !VFX_USE_SPAWNER_FROM_GPU
         ${VFXComputeSourceIndex}

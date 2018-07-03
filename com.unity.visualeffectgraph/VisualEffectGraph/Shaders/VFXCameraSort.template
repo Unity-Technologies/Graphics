@@ -35,12 +35,10 @@ void CSMain(uint3 groupId          : SV_GroupID,
 #if USE_DEAD_LIST_COUNT
 	threshold -= deadListCount.Load(0);
 #endif
-	uint3 id = (uint3)0;
-	id.x = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
-	
-	if (id.x < threshold)
+	uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
+	if (id < threshold)
 	{
-		uint index = inputBuffer[id.x];
+		uint index = inputBuffer[id];
 		${VFXLoadAttributes:{position}}
 		
 #if VFX_LOCAL_SPACE
@@ -52,9 +50,8 @@ void CSMain(uint3 groupId          : SV_GroupID,
 		
 		Kvp kvp;
 		kvp.sortKey = dot(camToPos,camToPos); // sqr distance to the camera
-		//kvp.sortKey += lerp(-1.0f/256.0f,+1.0f/256.0f, (float)index/(float)nbMax); //hack bias
 		kvp.index = index;
 
-		outputBuffer[id.x] = kvp;
+		outputBuffer[id] = kvp;
 	}
 }

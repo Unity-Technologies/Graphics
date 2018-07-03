@@ -25,10 +25,9 @@ ${VFXGeneratedBlockFunction}
 void CSMain(uint3 groupId          : SV_GroupID,
             uint3 groupThreadId    : SV_GroupThreadID)
 {
-	uint3 id = (uint3)0;
-	id.x = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
-	uint index = id.x;
-	if (id.x < nbMax)
+	uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
+	uint index = id;
+	if (id < nbMax)
 	{
 #if VFX_USE_ALIVE_CURRENT
 		${VFXLoadAttributes:{alive}}
