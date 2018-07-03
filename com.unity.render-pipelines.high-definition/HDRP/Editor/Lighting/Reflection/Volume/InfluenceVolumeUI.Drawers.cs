@@ -35,18 +35,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void Drawer_FieldShapeType(InfluenceVolumeUI s, SerializedInfluenceVolume d, Editor o)
         {
-            //EditorGUI.showMixedValue = d.;
             EditorGUILayout.PropertyField(d.shapeType, _.GetContent("Shape Type"));
-            //EditorGUI.showMixedValue = false;
-
-            //if(s.shapeMissmatch)
-            //{
-            //    EditorGUILayout.HelpBox(
-            //            "Proxy volume and influence volume have different shape types, this is not supported.",
-            //            MessageType.Error,
-            //            true
-            //            );
-            //}
         }
 
         static void Drawer_InfluenceAdvancedSwitch(InfluenceVolumeUI s, SerializedInfluenceVolume d, Editor owner)
@@ -76,7 +65,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var minFadeDistance = Vector3.zero;
 
             EditorGUILayout.PropertyField(d.boxBaseSize, _.GetContent("Box Size"));
-            EditorGUILayout.PropertyField(d.boxBaseOffset, _.GetContent("Box Offset"));
+
+            //offset have no meaning for planar reflexion probe
+            //EditorGUILayout.PropertyField(d.boxBaseOffset, _.GetContent("Box Offset"));
 
             EditorGUILayout.Space();
 
