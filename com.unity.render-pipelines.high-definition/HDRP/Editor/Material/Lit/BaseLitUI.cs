@@ -244,7 +244,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.showMixedValue = false;
         }
 
-        protected abstract void UpdateDisplacement();
+        protected virtual void UpdateDisplacement() {}
 
         protected override void BaseMaterialPropertiesGUI()
         {
@@ -381,7 +381,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             SetupBaseUnlitKeywords(material);
 
-            if (material.HasProperty(kDoubleSidedEnable) && material.GetFloat(kDoubleSidedEnable) > 0.0f)
+            bool doubleSidedEnable = material.HasProperty(kDoubleSidedEnable) ? material.GetFloat(kDoubleSidedEnable) > 0.0f : false;
+            if (doubleSidedEnable)
             {
                 DoubleSidedNormalMode doubleSidedNormalMode = (DoubleSidedNormalMode)material.GetFloat(kDoubleSidedNormalMode);
                 switch (doubleSidedNormalMode)
