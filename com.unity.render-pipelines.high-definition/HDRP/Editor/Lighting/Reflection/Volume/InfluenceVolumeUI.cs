@@ -32,13 +32,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SphereBoundsHandle sphereInfluenceNormalHandle = new SphereBoundsHandle();
 
         public AnimBool isSectionExpandedShape { get { return m_AnimBools[k_ShapeCount]; } }
-        public AnimBool isSectionAdvancedInfluenceSettings  { get { return m_AnimBools[k_ShapeCount + 1]; } }
         public bool showInfluenceHandles { get; set; }
 
         public InfluenceVolumeUI()
             : base(k_ShapeCount + k_AnimBoolFields)
         {
-            isSectionAdvancedInfluenceSettings.value = false;
+            isSectionExpandedShape.value = true;
 
             boxBaseHandle = new Gizmo6FacesBox(monochromeFace:true, monochromeSelectedFace:true);
             boxInfluenceHandle = new Gizmo6FacesBoxContained(boxBaseHandle, monochromeFace:true, monochromeSelectedFace:true);
