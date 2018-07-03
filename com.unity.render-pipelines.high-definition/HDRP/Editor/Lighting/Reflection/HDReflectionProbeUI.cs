@@ -30,10 +30,6 @@ namespace UnityEditor.Experimental.Rendering
         public void ClearOperation(Operation op) { operations &= ~op; }
         public void AddOperation(Operation op) { operations |= op; }
 
-        public BoxBoundsHandle boxInfluenceHandle = new BoxBoundsHandle();
-        public BoxBoundsHandle boxProjectionHandle = new BoxBoundsHandle();
-        public BoxBoundsHandle boxBlendHandle = new BoxBoundsHandle();
-        public BoxBoundsHandle boxBlendNormalHandle = new BoxBoundsHandle();
         public Gizmo6FacesBox alternativeBoxInfluenceHandle;
         public Gizmo6FacesBoxContained alternativeBoxBlendHandle;
         public Gizmo6FacesBoxContained alternativeBoxBlendNormalHandle;
