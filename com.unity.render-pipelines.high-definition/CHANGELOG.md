@@ -81,7 +81,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Support correctly scene selection for alpha tested object
 - Add per light shadow mask mode control (i.e shadow mask distance and shadow mask). It use the option NonLightmappedOnly
 - Add geometric filtering to Lit shader (allow to reduce specular aliasing)
-- Allow to double click on a render pipeline asset to setup it automatically in GraphicSettings
 - Add shortcut to create DensityVolume and PlanarReflection in hierarchy
 - Add a DefaultHDMirrorMaterial material for PlanarReflection
 - Added a script to be able to upgrade material to newer version of HDRP
