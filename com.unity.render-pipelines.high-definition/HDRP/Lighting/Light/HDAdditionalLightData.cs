@@ -17,7 +17,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     };
 
     public enum SpotLightShape { Cone, Pyramid, Box };
-    
+
     public enum LightUnit
     {
         Lumen,
@@ -50,6 +50,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const float currentVersion = 1.1f;
 
         [HideInInspector]
+        [FormerlySerializedAs("m_Version")]
         public float version = currentVersion;
 
         // To be able to have correct default values for our lights and to also control the conversion of intensity from the light editor (so it is compatible with GI)
@@ -64,7 +65,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public const float k_DefaultDirectionalLightIntensity = Mathf.PI; // In lux
         public const float k_DefaultPunctualLightIntensity = 600.0f;      // In lumens
         public const float k_DefaultAreaLightIntensity = 200.0f;          // In lumens
-        
+
         public float intensity
         {
             get { return displayLightIntensity; }
@@ -129,10 +130,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool featuresFoldout = true;
         public bool showAdditionalSettings = false;
         public float displayLightIntensity;
-        
+
         // When true, a mesh will be display to represent the area light (Can only be change in editor, component is added in Editor)
         public bool displayAreaLightEmissiveMesh = false;
-        
+
         // Duplication of HDLightEditor.k_MinAreaWidth, maybe do something about that
         const float k_MinAreaWidth = 0.01f; // Provide a small size of 1cm for line light
 
@@ -157,7 +158,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return _light;
             }
         }
-        
+
         void SetLightIntensity(float intensity)
         {
             displayLightIntensity = intensity;
@@ -179,7 +180,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
             else
                 m_Light.intensity = intensity;
-                
+
             m_Light.SetLightDirty(); // Should be apply only to parameter that's affect GI, but make the code cleaner
         }
 
@@ -188,7 +189,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             switch (m_Light.type)
             {
                 case LightType.Directional:
-                    m_Light.intensity = intensity; // Alwas in lux
+                    m_Light.intensity = intensity; // Always in lux
                     break;
                 case LightType.Point:
                     if (lightUnit == LightUnit.Candela)
@@ -198,29 +199,37 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     break;
                 case LightType.Spot:
                     if (lightUnit == LightUnit.Candela)
-                        m_Light.intensity = intensity;
-                    else if (enableSpotReflector)
                     {
-                        if (spotLightShape == SpotLightShape.Cone)
+                        // When using candela, reflector don't have any effect. Our intensity is candela = lumens/steradian and the user
+                        // provide desired value for an angle of 1 steradian.
+                        m_Light.intensity = intensity;
+                    }
+                    else  // lumen
+                    {
+                        if (enableSpotReflector)
                         {
-                            m_Light.intensity = LightUtils.ConvertSpotLightLumenToCandela(intensity, m_Light.spotAngle * Mathf.Deg2Rad, true);
-                        }
-                        else if (spotLightShape == SpotLightShape.Pyramid)
-                        {
-                            float angleA, angleB;
-                            LightUtils.CalculateAnglesForPyramid(aspectRatio, m_Light.spotAngle,
-                                out angleA, out angleB);
+                            // If reflector is enabled all the lighting from the sphere is focus inside the solid angle of current shape
+                            if (spotLightShape == SpotLightShape.Cone)
+                            {
+                                m_Light.intensity = LightUtils.ConvertSpotLightLumenToCandela(intensity, m_Light.spotAngle * Mathf.Deg2Rad, true);
+                            }
+                            else if (spotLightShape == SpotLightShape.Pyramid)
+                            {
+                                float angleA, angleB;
+                                LightUtils.CalculateAnglesForPyramid(aspectRatio, m_Light.spotAngle * Mathf.Deg2Rad, out angleA, out angleB);
 
-                            m_Light.intensity = LightUtils.ConvertFrustrumLightLumenToCandela(intensity, angleA, angleB);
+                                m_Light.intensity = LightUtils.ConvertFrustrumLightLumenToCandela(intensity, angleA, angleB);
+                            }
+                            else // Box shape, fallback to punctual light.
+                            {
+                                m_Light.intensity = LightUtils.ConvertPointLightLumenToCandela(intensity);
+                            }
                         }
-                        else // Box shape, fallback to punctual light.
+                        else
                         {
+                            // No reflector, angle act as occlusion of point light.
                             m_Light.intensity = LightUtils.ConvertPointLightLumenToCandela(intensity);
                         }
-                    }
-                    else // Reflector disabled, fallback to punctual light.
-                    {
-                        m_Light.intensity = LightUtils.ConvertPointLightLumenToCandela(intensity);
                     }
                     break;
             }
@@ -229,12 +238,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 #if UNITY_EDITOR
 
-        // Force to retreive color light's m_UseColorTemperature because it's private
+        // Force to retrieve color light's m_UseColorTemperature because it's private
         [System.NonSerialized]
         SerializedProperty useColorTemperatureProperty;
         [System.NonSerialized]
         SerializedObject lightSerializedObject;
-        bool useColorTemperature
+        public bool useColorTemperature
         {
             get
             {
@@ -384,7 +393,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             return IsAreaLight((LightTypeExtent)lightType.enumValueIndex);
         }
-        
+
         public void UpdateAreaLightEmissiveMesh()
         {
             MeshRenderer  emissiveMeshRenderer = GetComponent<MeshRenderer>();
@@ -410,7 +419,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // We don't have anything to do left if the dislay emissive mesh option is disabled
                 return ;
             }
-            
+
             Vector3 lightSize;
 
             // Update light area size from GameObject transform scale if the transform have changed
@@ -419,7 +428,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightSize = transform.localScale;
             else
                 lightSize = new Vector3(shapeWidth, shapeHeight, 0);
-            
+
             lightSize = Vector3.Max(Vector3.one * k_MinAreaWidth, lightSize);
             m_Light.transform.localScale = lightSize;
             m_Light.areaSize = lightSize;
@@ -431,7 +440,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 case LightTypeExtent.Rectangle:
                     shapeWidth = lightSize.x;
                     shapeHeight = lightSize.y;
-                    
+
                     // If the light unit is in lumen, we need a convertion to get the good intensity value
                     if (lightUnit == LightUnit.Lumen)
                     {
@@ -447,38 +456,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (emissiveMeshRenderer.sharedMaterial == null)
                 emissiveMeshRenderer.material = new Material(Shader.Find("HDRenderPipeline/Unlit"));
-            
+
             // Update Mesh emissive properties
             emissiveMeshRenderer.sharedMaterial.SetColor("_UnlitColor", Color.black);
             // Note that we must use the light in linear RGB
             if (useColorTemperature)
-                emissiveMeshRenderer.sharedMaterial.SetColor("_EmissiveColor", m_Light.color.linear * areaLightIntensity * CorrelatedColorTemperatureToRGB(m_Light.colorTemperature));
+                emissiveMeshRenderer.sharedMaterial.SetColor("_EmissiveColor", m_Light.color.linear * areaLightIntensity * LightUtils.CorrelatedColorTemperatureToRGB(m_Light.colorTemperature));
             else
                 emissiveMeshRenderer.sharedMaterial.SetColor("_EmissiveColor", m_Light.color.linear * areaLightIntensity);
-        }
-        
-        // Given a correlated color temperature (in Kelvin), estimate the RGB equivalent. Curve fit error is max 0.008.
-        Color CorrelatedColorTemperatureToRGB(float temperature)
-        {
-            float r, g, b;
-
-            // Temperature must fall between 1000 and 40000 degrees
-            // The fitting require to divide kelvin by 1000 (allow more precision)
-            float kelvin = Mathf.Clamp(temperature, 1000.0f, 40000.0f) / 1000.0f;
-            float kelvin2 = kelvin * kelvin;
-
-            // Using 6570 as a pivot is an approximation, pivot point for red is around 6580 and for blue and green around 6560.
-            // Calculate each color in turn (Note, clamp is not really necessary as all value belongs to [0..1] but can help for extremum).
-            // Red
-            r = kelvin < 6.570f ? 1.0f : Mathf.Clamp((1.35651f + 0.216422f * kelvin + 0.000633715f * kelvin2) / (-3.24223f + 0.918711f * kelvin), 0.0f, 1.0f);
-            // Green
-            g = kelvin < 6.570f ?
-                Mathf.Clamp((-399.809f + 414.271f * kelvin + 111.543f * kelvin2) / (2779.24f + 164.143f * kelvin + 84.7356f * kelvin2), 0.0f, 1.0f) :
-                Mathf.Clamp((1370.38f + 734.616f * kelvin + 0.689955f * kelvin2) / (-4625.69f + 1699.87f * kelvin), 0.0f, 1.0f);
-            //Blue
-            b = kelvin > 6.570f ? 1.0f : Mathf.Clamp((348.963f - 523.53f * kelvin + 183.62f * kelvin2) / (2848.82f - 214.52f * kelvin + 78.8614f * kelvin2), 0.0f, 1.0f);
-
-            return new Color(r, g, b, 1.0f);
         }
 
 #endif

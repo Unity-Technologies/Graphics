@@ -156,7 +156,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     showFeatures = o.Find(x => x.featuresFoldout),
                     showAdditionalSettings = o.Find(x => x.showAdditionalSettings)
                 };
-            
+
             // TODO: Review this once AdditionalShadowData is refactored
             using (var o = new PropertyFetcher<AdditionalShadowData>(m_SerializedAdditionalShadowData))
                 m_AdditionalShadowData = new SerializedShadowData
@@ -428,10 +428,36 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // For punctual lights
             if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Candela)
-                intensity = LightUtils.ConvertPointLightLumenToCandela(intensity);
+            {
+                if (m_LightShape == LightShape.Spot && m_AdditionalLightData.enableSpotReflector.boolValue)
+                {
+                    // We have already calculate the correct value, just assign it
+                    intensity = ((Light)target).intensity;
+                }
+                else
+                    intensity = LightUtils.ConvertPointLightLumenToCandela(intensity);
+            }
             if (oldLightUnit == LightUnit.Candela && newLightUnit == LightUnit.Lumen)
-                intensity = LightUtils.ConvertPointLightCandelaToLumen(intensity);
-            
+            {
+                if (m_LightShape == LightShape.Spot && m_AdditionalLightData.enableSpotReflector.boolValue)
+                {
+                    // We just need to multiply candela by solid angle in this case
+                    if ((SpotLightShape)m_AdditionalLightData.spotLightShape.enumValueIndex == SpotLightShape.Cone)
+                        intensity = LightUtils.ConvertSpotLightCandelaToLumen(intensity, ((Light)target).spotAngle * Mathf.Deg2Rad, true);
+                    else if ((SpotLightShape)m_AdditionalLightData.spotLightShape.enumValueIndex == SpotLightShape.Pyramid)
+                    {
+                        float angleA, angleB;
+                        LightUtils.CalculateAnglesForPyramid(m_AdditionalLightData.aspectRatio.floatValue, ((Light)target).spotAngle * Mathf.Deg2Rad, out angleA, out angleB);
+
+                        intensity = LightUtils.ConvertFrustrumLightCandelaToLumen(intensity, angleA, angleB);
+                    }
+                    else // Box
+                        intensity = LightUtils.ConvertPointLightCandelaToLumen(intensity);
+                }
+                else
+                    intensity = LightUtils.ConvertPointLightCandelaToLumen(intensity);
+            }
+
             // For area lights
             if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Luminance)
             {
@@ -482,12 +508,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(m_AdditionalLightData.intensity, s_Styles.lightIntensity);
             m_AdditionalLightData.lightUnit.enumValueIndex = (int)LightIntensityUnitPopup(m_LightShape);
             EditorGUILayout.EndHorizontal();
-            
+
             // Only display reflector option if it make sense
             if (m_LightShape == LightShape.Spot)
             {
                 var spotLightShape = (SpotLightShape)m_AdditionalLightData.spotLightShape.enumValueIndex;
-                if (spotLightShape == SpotLightShape.Cone || spotLightShape == SpotLightShape.Pyramid)
+                if ((spotLightShape == SpotLightShape.Cone || spotLightShape == SpotLightShape.Pyramid)
+                    && m_AdditionalLightData.lightUnit.enumValueIndex == (int)PunctualLightUnit.Lumen)
                     EditorGUILayout.PropertyField(m_AdditionalLightData.enableSpotReflector, s_Styles.enableSpotReflector);
             }
 
