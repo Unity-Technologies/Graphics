@@ -328,7 +328,6 @@ namespace UnityEditor.Experimental.Rendering
 
         static void Drawer_InfluenceShapeBoxSettings(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
-            EditorGUI.BeginChangeCheck();
 
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PropertyField(p.boxSize, CoreEditorUtils.GetContent("Box Size|The size of the box in which the reflections will be applied to objects. The value is not affected by the Transform of the Game Object."));
@@ -337,6 +336,9 @@ namespace UnityEditor.Experimental.Rendering
                 EditMode.ChangeEditMode(EditMode.SceneViewEditMode.ReflectionProbeBox, GetBoundsGetter(p)(), owner);
             }
             EditorGUILayout.EndHorizontal();
+
+
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PropertyField(p.boxOffset, CoreEditorUtils.GetContent("Box Offset|The center of the box in which the reflections will be applied to objects. The value is relative to the position of the Game Object."));
             if (GUILayout.Button(toolbar_Contents[3], GUILayout.Width(28f), GUILayout.Height(EditorGUIUtility.singleLineHeight + 3)))
@@ -344,15 +346,15 @@ namespace UnityEditor.Experimental.Rendering
                 EditMode.ChangeEditMode(EditMode.SceneViewEditMode.ReflectionProbeOrigin, GetBoundsGetter(p)(), owner);
             }
             EditorGUILayout.EndHorizontal();
-
             if (EditorGUI.EndChangeCheck())
             {
                 var center = p.boxOffset.vector3Value;
                 var size = p.boxSize.vector3Value;
                 if (HDReflectionProbeEditorUtility.ValidateAABB(p.target, ref center, ref size))
                 {
-                    p.boxOffset.vector3Value = center;
-                    p.boxSize.vector3Value = size;
+                    //clamp to contains object center instead of resizing
+                    Vector3 projector = (center - p.boxOffset.vector3Value).normalized;
+                    p.boxOffset.vector3Value = center + Mathf.Abs(Vector3.Dot((p.boxSize.vector3Value - size) * .5f, projector)) * projector;
                 }
             }
         }
