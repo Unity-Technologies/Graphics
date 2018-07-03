@@ -82,6 +82,23 @@ real3 GetAnisotropicModifiedNormal(real3 grainDir, real3 N, real3 V, real anisot
     return normalize(lerp(N, grainNormal, anisotropy));
 }
 
+// For GGX aniso and IBL we have done an empirical (eye balled) approximation compare to the reference.
+// We use a single fetch, and we stretch the normal to use based on various criteria.
+// result are far away from the reference but better than nothing
+// Anisotropic ratio (0->no isotropic; 1->full anisotropy in tangent direction) - positive use bitangentWS - negative use tangentWS
+// Note: returned iblPerceptualRoughness shouldn't be use for sampling FGD texture in a pre-integration
+void GetGGXAnisotropicModifiedNormalAndRoughness(real3 bitangentWS, real3 tangentWS, real3 N, real3 V, real anisotropy, real perceptualRoughness, out real3 iblN, out real iblPerceptualRoughness)
+{
+    // For positive anisotropy values: tangent = highlight stretch (anisotropy) direction, bitangent = grain (brush) direction.
+    float3 grainDirWS = (anisotropy >= 0.0) ? bitangentWS : tangentWS;
+    // Reduce stretching for (perceptualRoughness < 0.2).
+    float stretch = abs(anisotropy) * saturate(5.0 * perceptualRoughness);
+    // NOTE: If we follow the theory we should use the modified normal for the different calculation implying a normal (like NdotV)
+    // However modified normal is just a hack. The goal is just to stretch a cubemap, no accuracy here. Let's save performance instead.
+    iblN = GetAnisotropicModifiedNormal(grainDirWS, N, V, stretch);
+    iblPerceptualRoughness = perceptualRoughness * saturate(1.2 - abs(anisotropy));
+}
+
 // Ref: "Moving Frostbite to PBR", p. 69.
 real3 GetSpecularDominantDir(real3 N, real3 R, real perceptualRoughness, real NdotV)
 {

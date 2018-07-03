@@ -117,9 +117,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             scInit.resourceBinder                    = binder;
 
             ShadowManager.ShadowBudgets budgets;
-            budgets.maxPointLights       = 6;
-            budgets.maxSpotLights        = 12;
-            budgets.maxDirectionalLights = 1;
+            budgets.maxPointLights       = shadowInit.maxPointLightShadows;
+            budgets.maxSpotLights        = shadowInit.maxSpotLightShadows;
+            budgets.maxDirectionalLights = shadowInit.maxDirectionalLightShadows;
 
             m_ShadowMgr = new ShadowManager(shadowSettings, ref scInit, ref budgets, m_Shadowmaps);
             // set global overrides - these need to match the override specified in LightLoop/Shadow.hlsl
@@ -851,7 +851,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Rescale for cookies and windowing.
             directionalLightData.right      = light.light.transform.right * 2 / Mathf.Max(additionalData.shapeWidth, 0.001f);
             directionalLightData.up         = light.light.transform.up    * 2 / Mathf.Max(additionalData.shapeHeight, 0.001f);
-            directionalLightData.positionWS = light.light.transform.position;
+            directionalLightData.positionRWS = light.light.transform.position;
             directionalLightData.color = GetLightColor(light);
 
             // Caution: This is bad but if additionalData == HDUtils.s_DefaultHDAdditionalLightData it mean we are trying to promote legacy lights, which is the case for the preview for example, so we need to multiply by PI as legacy Unity do implicit divide by PI for direct intensity.
@@ -930,13 +930,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             lightData.lightType = gpuLightType;
 
-            lightData.positionWS = light.light.transform.position;
-            // Setting 0 for invSqrAttenuationRadius mean we have no range attenuation, but still have inverse square attenuation.
+            lightData.positionRWS = light.light.transform.position;
+
             bool applyRangeAttenuation = additionalLightData.applyRangeAttenuation && (gpuLightType != GPULightType.ProjectorBox);
-            lightData.invSqrAttenuationRadius = applyRangeAttenuation ? 1.0f / (light.range * light.range) : 0.0f;
+
+            // In the shader we do range remapping: (x - start) / (end - start) = (dist^2 * rangeAttenuationScale + rangeAttenuationBias)
+            if (applyRangeAttenuation)
+            {
+                // start = 0.0f, end = range^2
+                lightData.rangeAttenuationScale = 1.0f / (light.range * light.range);
+                lightData.rangeAttenuationBias = 0.0f;
+            }
+            else // Don't apply any attenuation but do a 'step' at range
+            {
+                // start = range^2 - epsilon, end = range^2
+                lightData.rangeAttenuationScale = 1.0f / 0.01f;
+                lightData.rangeAttenuationBias = - (light.range * light.range - 0.01f) / 0.01f;
+            }
+
             lightData.color = GetLightColor(light);
 
-            lightData.forward = light.light.transform.forward; // Note: Light direction is oriented backward (-Z)
+            lightData.forward = light.light.transform.forward;
             lightData.up = light.light.transform.up;
             lightData.right = light.light.transform.right;
 
@@ -1009,7 +1023,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightData.size = new Vector2(additionalLightData.shapeWidth, additionalLightData.shapeHeight);
             }
 
-            float distanceToCamera = (lightData.positionWS - camera.transform.position).magnitude;
+            float distanceToCamera = (lightData.positionRWS - camera.transform.position).magnitude;
             float distanceFade = ComputeLinearDistanceFade(distanceToCamera, additionalLightData.fadeDistance);
             float lightScale = additionalLightData.lightDimmer * distanceFade;
 
@@ -1078,11 +1092,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightData.shadowMaskSelector.x = -1.0f;
                 lightData.nonLightmappedOnly = 0;
             }
-            
+
             lightData.contactShadowIndex = -1;
 
             m_lightList.lights.Add(lightData);
-            
+
             // Check if the current light is dominant and store it's index to change it's property later,
             // as we can't know which one will be dominant before checking all the lights
             GetDominantLightWithShadows(additionalshadowData, light, m_lightList.lights.Count -1);
@@ -1098,7 +1112,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Then Culling side
             var range = lightDimensions.z;
             var lightToWorld = light.localToWorld;
-            Vector3 positionWS = lightData.positionWS;
+            Vector3 positionWS = lightData.positionRWS;
             Vector3 positionVS = worldToView.MultiplyPoint(positionWS);
 
             Matrix4x4 lightToView = worldToView * lightToWorld;
@@ -1339,8 +1353,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             envLightData.influenceRight = influenceToWorld.GetColumn(0).normalized;
             envLightData.influenceUp = influenceToWorld.GetColumn(1).normalized;
             envLightData.influenceForward = influenceToWorld.GetColumn(2).normalized;
-            envLightData.capturePositionWS = capturePosition;
-            envLightData.influencePositionWS = influenceToWorld.GetColumn(3);
+            envLightData.capturePositionRWS = capturePosition;
+            envLightData.influencePositionRWS = influenceToWorld.GetColumn(3);
 
             envLightData.envIndex = envIndex;
 
@@ -1351,7 +1365,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             envLightData.proxyRight = proxyToWorld.GetColumn(0).normalized;
             envLightData.proxyUp = proxyToWorld.GetColumn(1).normalized;
             envLightData.proxyForward = proxyToWorld.GetColumn(2).normalized;
-            envLightData.proxyPositionWS = proxyToWorld.GetColumn(3);
+            envLightData.proxyPositionRWS = proxyToWorld.GetColumn(3);
 
             m_lightList.envLights.Add(envLightData);
             return true;
@@ -1720,7 +1734,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     // Caution: 'DirectionalLightData.positionWS' is camera-relative after this point.
                                     int last = m_lightList.directionalLights.Count - 1;
                                     DirectionalLightData lightData = m_lightList.directionalLights[last];
-                                    lightData.positionWS -= camPosWS;
+                                    lightData.positionRWS -= camPosWS;
                                     m_lightList.directionalLights[last] = lightData;
                                 }
                             }
@@ -1757,7 +1771,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 // Caution: 'LightData.positionWS' is camera-relative after this point.
                                 int last = m_lightList.lights.Count - 1;
                                 LightData lightData = m_lightList.lights[last];
-                                lightData.positionWS -= camPosWS;
+                                lightData.positionRWS -= camPosWS;
                                 m_lightList.lights[last] = lightData;
                             }
                         }
@@ -1868,12 +1882,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             // to allow the preceding code to work with the absolute world space coordinates.
                             if (ShaderConfig.s_CameraRelativeRendering != 0)
                             {
-                                // Caution: 'EnvLightData.positionWS' is camera-relative after this point.
+                                // Caution: 'EnvLightData.positionRWS' is camera-relative after this point.
                                 int last = m_lightList.envLights.Count - 1;
                                 EnvLightData envLightData = m_lightList.envLights[last];
-                                envLightData.capturePositionWS -= camPosWS;
-                                envLightData.influencePositionWS -= camPosWS;
-                                envLightData.proxyPositionWS -= camPosWS;
+                                envLightData.capturePositionRWS -= camPosWS;
+                                envLightData.influencePositionRWS -= camPosWS;
+                                envLightData.proxyPositionRWS -= camPosWS;
                                 m_lightList.envLights[last] = envLightData;
                             }
                         }
@@ -2358,7 +2372,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetGlobalTexture(HDShaderIDs._DeferredShadowTexture, RuntimeUtilities.whiteTexture);
                 return;
             }
-            
+
             using (new ProfilingSample(cmd, "Deferred Directional Shadow", CustomSamplerId.TPDeferredDirectionalShadow.GetSampler()))
             {
                 Vector4         lightDirection = Vector4.zero;
@@ -2380,7 +2394,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 else
                     kernel = s_deferredDirectionalShadowKernel;
-                
+
                 // We use the .w component of the direction/position vectors to choose in the shader the
                 // light direction of the contact shadows (direction light direction or (pixel position - light position))
                 if (m_CurrentSunLight != null)
@@ -2390,7 +2404,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 if (m_DominantLightIndex != -1)
                 {
-                    lightPosition = m_DominantLightData.positionWS;
+                    lightPosition = m_DominantLightData.positionRWS;
                     lightPosition.w = 1;
                     lightDirection.w = 0;
                 }

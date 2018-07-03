@@ -4,8 +4,8 @@
 // Definitions
 //--------------------------------------------------------------------------------------------------
 
-#pragma kernel SubsurfaceScatteringQualityNormal SubsurfaceScattering=SubsurfaceScatteringQualityNormal SSS_ENABLE_NEAR_FIELD=0
-#pragma kernel SubsurfaceScatteringQualityUltra  SubsurfaceScattering=SubsurfaceScatteringQualityUltra  SSS_ENABLE_NEAR_FIELD=1
+#pragma kernel SubsurfaceScatteringMQ SubsurfaceScattering=SubsurfaceScatteringMQ SSS_ENABLE_NEAR_FIELD=0
+#pragma kernel SubsurfaceScatteringHQ SubsurfaceScattering=SubsurfaceScatteringHQ SSS_ENABLE_NEAR_FIELD=1
 
 // #pragma enable_d3d11_debug_symbols
 // TODO: use sharp load hoisting on PS4.

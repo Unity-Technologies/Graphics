@@ -48,8 +48,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             int inputShaderVariantCount = inputData.Count;
 
-            ShaderCompilerData workaround = inputData[0];
-
             for (int i = 0; i < inputData.Count; ++i)
             {
                 ShaderCompilerData input = inputData[i];
@@ -59,12 +57,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     i--;
                 }
             }
-
-            // Currently if a certain snippet is completely stripped (for example if you remove a whole pass) other passes might get broken
-            // To work around that, we make sure that we always have at least one variant.
-            // TODO: Remove this one it is fixed
-            if (inputData.Count == 0)
-                inputData.Add(workaround);
         }
     }
 }

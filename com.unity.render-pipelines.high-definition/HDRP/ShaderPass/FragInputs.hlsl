@@ -10,8 +10,8 @@ struct FragInputs
     // Contain value return by SV_POSITION (That is name positionCS in PackedVarying).
     // xy: unormalized screen position (offset by 0.5), z: device depth, w: depth in view space
     // Note: SV_POSITION is the result of the clip space position provide to the vertex shaders that is transform by the viewport
-    float4 positionSS; // In case depth offset is use, positionWS.w is equal to depth offset
-    float3 positionWS;
+    float4 positionSS; // In case depth offset is use, positionRWS.w is equal to depth offset
+    float3 positionRWS; // Relative camera space position
     float2 texCoord0;
     float2 texCoord1;
     float2 texCoord2;

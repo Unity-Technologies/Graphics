@@ -146,9 +146,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             Camera camera = cameraData.camera;
             RenderTextureDescriptor desc;
+#if !UNITY_SWITCH
             if (cameraData.isStereoEnabled)
                 desc = XRSettings.eyeTextureDesc;
             else
+#endif
                 desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
 
             float renderScale = cameraData.renderScale;

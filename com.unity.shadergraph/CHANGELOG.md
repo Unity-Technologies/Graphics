@@ -46,6 +46,12 @@ Note: This functionality requires that you have enabled **two sided** on the Mas
 
 This adds gradient functionality via two new nodes. The Sample Gradient node samples a gradient given a Time parameter. You can define this gradient on the Gradient slot control view. The Gradient Asset node defines a gradient that can be sampled by multiple Sample Gradient nodes using different Time parameters.
 
+### Sphere Mask Node
+
+![](.data/sphereMask.png)
+
+With this node, you can create a sphere mask. Indicate the starting coordinate and center point. The sphere mask uses these with the **Radius** and **Hardness** parameters. Sphere mask functionality works in both 2D and 3D spaces, and is based on the vector coordinates in the **Coords and Center** input.
+
 ### Texture3D and Texture2D Array
 
 ![](.data/texture_nodes.png)
@@ -77,3 +83,7 @@ You can now see the generated code for any specific node. To do so, right-click 
 - Deserialization of subgraphs now works correctly.
 - Sub graphs are now suffixed with (sub), so you can tell them apart from other nodes.
 - The preview of a node does not obstruct the selection outliner anymore.
+- You can now copy, paste, and duplicate sub-graph nodes with vector type input ports.
+- If the current render pipeline is not compatible, master nodes now display an error badge.
+- The preview shader now only considers the current render pipeline. Because of this there is less code to compile, and therefore the preview shader will compile faster.
+- When you rename a shader graph or sub shader graph locally on your disk, the title of the Shader Graph window, black board, and preview also updates.
