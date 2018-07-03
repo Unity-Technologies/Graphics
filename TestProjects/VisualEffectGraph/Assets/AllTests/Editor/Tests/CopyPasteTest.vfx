@@ -93,6 +93,8 @@ MonoBehaviour:
   - {fileID: 114956230055637208}
   m_OutputSlots: []
   m_Disabled: 0
+  composition: 1
+  speedMode: 0
 --- !u!114 &114053965721421142
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -218,7 +220,7 @@ MonoBehaviour:
     - m_Type: 3
       m_Min: -Infinity
       m_Max: Infinity
-      m_Tooltip: The speed to add to the particles, in the new direction.
+      m_Tooltip: The speed to compute for the particles, in the new direction.
       m_Regex: 
       m_RegexMaxLength: 0
   m_Direction: 0

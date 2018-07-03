@@ -641,120 +641,30 @@ VisualEffectResource:
         data[0]: -1
         data[1]: -1
         data[2]: -1
-        data[3]: 1
+        data[3]: 6
       - op: 1
         valueIndex: 1
         data[0]: -1
         data[1]: -1
         data[2]: -1
-        data[3]: 1
-      - op: 1
-        valueIndex: 2
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
-        data[3]: 1
+        data[3]: 7
       - op: 1
         valueIndex: 3
         data[0]: -1
         data[1]: -1
         data[2]: -1
-        data[3]: 1
-      - op: 1
-        valueIndex: 4
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
-        data[3]: 1
+        data[3]: 15
       - op: 1
         valueIndex: 5
         data[0]: -1
         data[1]: -1
         data[2]: -1
-        data[3]: 1
-      - op: 1
-        valueIndex: 6
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
-        data[3]: 1
-      - op: 1
-        valueIndex: 7
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
-        data[3]: 1
-      - op: 1
-        valueIndex: 8
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
-        data[3]: 1
-      - op: 3
-        valueIndex: 9
-        data[0]: 7
-        data[1]: 6
-        data[2]: 8
-        data[3]: -1
-      - op: 3
-        valueIndex: 12
-        data[0]: 5
-        data[1]: 4
-        data[2]: 3
-        data[3]: -1
-      - op: 3
-        valueIndex: 15
-        data[0]: 2
-        data[1]: 1
-        data[2]: 0
-        data[3]: -1
-      - op: 1
-        valueIndex: 18
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
-        data[3]: 6
-      - op: 1
-        valueIndex: 19
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
-        data[3]: 7
-      - op: 29
-        valueIndex: 21
-        data[0]: 9
-        data[1]: 11
-        data[2]: 10
-        data[3]: -1
-      - op: 1
-        valueIndex: 37
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
-        data[3]: 15
+        data[3]: 12
       m_NeedsLocalToWorld: 0
       m_NeedsWorldToLocal: 0
     m_PropertySheet:
       m_Float:
-        m_Array:
-        - m_ExpressionIndex: 0
-          m_Value: 0
-        - m_ExpressionIndex: 1
-          m_Value: 0
-        - m_ExpressionIndex: 2
-          m_Value: 0
-        - m_ExpressionIndex: 3
-          m_Value: 1
-        - m_ExpressionIndex: 4
-          m_Value: 1
-        - m_ExpressionIndex: 5
-          m_Value: 1
-        - m_ExpressionIndex: 6
-          m_Value: 0
-        - m_ExpressionIndex: 7
-          m_Value: 0
-        - m_ExpressionIndex: 8
-          m_Value: 0
+        m_Array: []
       m_Vector2f:
         m_Array: []
       m_Vector3f:
@@ -763,21 +673,39 @@ VisualEffectResource:
         m_Array: []
       m_Uint:
         m_Array:
-        - m_ExpressionIndex: 12
+        - m_ExpressionIndex: 0
           m_Value: 4294967295
       m_Int:
         m_Array: []
       m_Matrix4x4f:
-        m_Array: []
+        m_Array:
+        - m_ExpressionIndex: 3
+          m_Value:
+            e00: 1
+            e01: 0
+            e02: 0
+            e03: 0
+            e10: 0
+            e11: 1
+            e12: 0
+            e13: 0
+            e20: 0
+            e21: 0
+            e22: 1
+            e23: 0
+            e30: 0
+            e31: 0
+            e32: 0
+            e33: 1
       m_AnimationCurve:
         m_Array: []
       m_Gradient:
         m_Array: []
       m_NamedObject:
         m_Array:
-        - m_ExpressionIndex: 13
+        - m_ExpressionIndex: 1
           m_Value: {fileID: 2800000, guid: de0fae515169ff246a20d58a8a440ed0, type: 3}
-        - m_ExpressionIndex: 15
+        - m_ExpressionIndex: 2
           m_Value: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
       m_Bool:
         m_Array: []
@@ -818,18 +746,18 @@ VisualEffectResource:
     buffers: []
     values:
     - nameId: mesh
-      index: 15
+      index: 2
     - nameId: transform
-      index: 14
+      index: 3
     - nameId: subMeshMask
-      index: 12
+      index: 0
     tasks:
     - type: 1073741824
       buffers: []
       values:
       - nameId: subMeshMask
-        index: 12
+        index: 0
       - nameId: _MainTex
-        index: 13
+        index: 1
       params: []
       shaderSourceIndex: -1

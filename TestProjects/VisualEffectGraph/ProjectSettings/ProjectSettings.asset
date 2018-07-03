@@ -467,6 +467,7 @@ PlayerSettings:
   ps4pnGameCustomData: 1
   playerPrefsSupport: 0
   enableApplicationExit: 0
+  resetTempFolder: 1
   restrictedAudioUsageRights: 0
   ps4UseResolutionFallback: 0
   ps4ReprojectionSupport: 1

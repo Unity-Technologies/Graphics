@@ -545,82 +545,38 @@ VisualEffectResource:
         data[0]: -1
         data[1]: -1
         data[2]: -1
-        data[3]: 1
-      - op: 1
-        valueIndex: 1
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
-        data[3]: 1
-      - op: 1
+        data[3]: 7
+      - op: 9
         valueIndex: 2
         data[0]: -1
         data[1]: -1
         data[2]: -1
-        data[3]: 1
-      - op: 1
-        valueIndex: 3
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
-        data[3]: 1
-      - op: 1
-        valueIndex: 4
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
-        data[3]: 1
-      - op: 1
-        valueIndex: 5
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
-        data[3]: 1
-      - op: 9
-        valueIndex: 6
-        data[0]: -1
-        data[1]: -1
-        data[2]: -1
         data[3]: -1
       - op: 1
-        valueIndex: 22
+        valueIndex: 18
         data[0]: -1
         data[1]: -1
         data[2]: -1
-        data[3]: 7
-      - op: 3
-        valueIndex: 24
-        data[0]: 4
-        data[1]: 5
-        data[2]: 3
-        data[3]: -1
-      - op: 3
-        valueIndex: 27
-        data[0]: 0
-        data[1]: 1
-        data[2]: 2
-        data[3]: -1
+        data[3]: 3
+      - op: 1
+        valueIndex: 21
+        data[0]: -1
+        data[1]: -1
+        data[2]: -1
+        data[3]: 3
       m_NeedsLocalToWorld: 1
       m_NeedsWorldToLocal: 0
     m_PropertySheet:
       m_Float:
-        m_Array:
-        - m_ExpressionIndex: 0
-          m_Value: 1
-        - m_ExpressionIndex: 1
-          m_Value: 1
-        - m_ExpressionIndex: 2
-          m_Value: 1
-        - m_ExpressionIndex: 3
-          m_Value: 0
-        - m_ExpressionIndex: 4
-          m_Value: 0
-        - m_ExpressionIndex: 5
-          m_Value: 0
+        m_Array: []
       m_Vector2f:
         m_Array: []
       m_Vector3f:
-        m_Array: []
+        m_Array:
+        - m_ExpressionIndex: 2
+          m_Value: {x: 0, y: 0, z: 0}
+        - m_ExpressionIndex: 3
+          m_Value: {x: 1, y: 1, z: 1}
       m_Vector4f:
         m_Array: []
       m_Uint:
@@ -635,7 +591,7 @@ VisualEffectResource:
         m_Array: []
       m_NamedObject:
         m_Array:
-        - m_ExpressionIndex: 7
+        - m_ExpressionIndex: 0
           m_Value: {fileID: 0}
       m_Bool:
         m_Array: []
@@ -732,9 +688,9 @@ VisualEffectResource:
       index: 3
     values:
     - nameId: bounds_center
-      index: 8
+      index: 2
     - nameId: bounds_size
-      index: 9
+      index: 3
     tasks:
     - type: 536870912
       buffers:
@@ -743,9 +699,9 @@ VisualEffectResource:
       values: []
       params:
       - nameId: bounds_center
-        index: 8
+        index: 2
       - nameId: bounds_size
-        index: 9
+        index: 3
       shaderSourceIndex: 0
     - type: 805306368
       buffers:
@@ -762,7 +718,7 @@ VisualEffectResource:
         index: 2
       values:
       - nameId: localToWorld
-        index: 6
+        index: 1
       params: []
       shaderSourceIndex: 3
     - type: 1073741826
@@ -771,7 +727,7 @@ VisualEffectResource:
         index: 1
       values:
       - nameId: mainTexture
-        index: 7
+        index: 0
       params:
       - nameId: sortPriority
         index: 0
