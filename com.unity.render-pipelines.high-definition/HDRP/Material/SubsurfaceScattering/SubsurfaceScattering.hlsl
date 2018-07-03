@@ -2,7 +2,9 @@
 #include "../DiffusionProfile/DiffusionProfileSettings.cs.hlsl"
 #include "../DiffusionProfile/DiffusionProfile.hlsl"
 
+// ----------------------------------------------------------------------------
 // constant buffer declaration
+// ----------------------------------------------------------------------------
 
 CBUFFER_START(UnitySSSAndTransmissionParameters)
 // Warning: Unity is not able to losslessly transfer integers larger than 2^24 to the shader system.
