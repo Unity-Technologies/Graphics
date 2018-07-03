@@ -18,7 +18,7 @@ float3x3 WorldToProxySpace(EnvLightData lightData)
 
 float3 WorldToProxyPosition(EnvLightData lightData, float3x3 worldToPS, float3 positionWS)
 {
-    float3 positionPS = positionWS - lightData.proxyPositionWS;
+    float3 positionPS = positionWS - lightData.proxyPositionRWS;
     positionPS = mul(positionPS, worldToPS).xyz;
     return positionPS;
 }
@@ -50,7 +50,7 @@ float InfluenceSphereWeight(EnvLightData lightData, float3 normalWS, float3 posi
 
 #if defined(ENVMAP_FEATURE_INFLUENCENORMAL)
     float insideInfluenceNormalVolume = lengthPositionLS <= (lightData.influenceExtents.x - lightData.blendNormalDistancePositive.x) ? 1.0 : 0.0;
-    float insideWeight = InfluenceFadeNormalWeight(normalWS, normalize(positionWS - lightData.capturePositionWS));
+    float insideWeight = InfluenceFadeNormalWeight(normalWS, normalize(positionWS - lightData.capturePositionRWS));
     alpha *= insideInfluenceNormalVolume ? 1.0 : insideWeight;
 #endif
 
@@ -90,7 +90,7 @@ float InfluenceBoxWeight(EnvLightData lightData, float3 normalWS, float3 positio
     float3 belowPositiveInfluenceNormalVolume = positiveDistance / max(0.0001, lightData.blendNormalDistancePositive);
     float3 aboveNegativeInfluenceNormalVolume = negativeDistance / max(0.0001, lightData.blendNormalDistanceNegative);
     float insideInfluenceNormalVolume = all(belowPositiveInfluenceNormalVolume >= 1.0) && all(aboveNegativeInfluenceNormalVolume >= 1.0) ? 1.0 : 0;
-    float insideWeight = InfluenceFadeNormalWeight(normalWS, normalize(positionWS - lightData.capturePositionWS));
+    float insideWeight = InfluenceFadeNormalWeight(normalWS, normalize(positionWS - lightData.capturePositionRWS));
     alpha *= insideInfluenceNormalVolume ? 1.0 : insideWeight;
 #endif
 
@@ -124,7 +124,7 @@ float3x3 WorldToInfluenceSpace(EnvLightData lightData)
 
 float3 WorldToInfluencePosition(EnvLightData lightData, float3x3 worldToIS, float3 positionWS)
 {
-    float3 positionIS = positionWS - lightData.influencePositionWS;
+    float3 positionIS = positionWS - lightData.influencePositionRWS;
     positionIS = mul(positionIS, worldToIS).xyz;
     return positionIS;
 }

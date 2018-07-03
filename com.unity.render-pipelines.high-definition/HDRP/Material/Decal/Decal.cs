@@ -49,7 +49,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             sRGBFlags = m_sRGBFlags;
         }
     }
-    
+
     // normal to world only uses 3x3 for actual matrix so some data is packed in the unused space
     // blend:
     // float decalBlend = decalData.normalToWorld[0][3];
@@ -58,7 +58,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     // tiling:
     // float2 uvScale = float2(decalData.normalToWorld[3][0], decalData.normalToWorld[3][1]);
     // float2 uvBias = float2(decalData.normalToWorld[3][2], decalData.normalToWorld[3][3]);
-    [GenerateHLSL]
+    [GenerateHLSL(PackingRules.Exact, false)]
     public struct DecalData
     {
         public Matrix4x4 worldToDecal;

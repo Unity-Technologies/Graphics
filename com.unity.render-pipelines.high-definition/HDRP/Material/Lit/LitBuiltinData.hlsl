@@ -5,22 +5,22 @@ void GetBuiltinData(FragInputs input, SurfaceData surfaceData, float alpha, floa
 
     // TODO: Sample lightmap/lightprobe/volume proxy
     // This should also handle projective lightmap
-    builtinData.bakeDiffuseLighting = SampleBakedGI(input.positionWS, bentNormalWS, input.texCoord1, input.texCoord2);
+    builtinData.bakeDiffuseLighting = SampleBakedGI(input.positionRWS, bentNormalWS, input.texCoord1, input.texCoord2);
 
     // It is safe to call this function here as surfaceData have been filled
     // We want to know if we must enable transmission on GI for SSS material, if the material have no SSS, this code will be remove by the compiler.
     BSDFData bsdfData = ConvertSurfaceDataToBSDFData(input.positionSS.xy, surfaceData);
-    if (HasFeatureFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
     {
         // For now simply recall the function with inverted normal, the compiler should be able to optimize the lightmap case to not resample the directional lightmap
         // however it will not optimize the lightprobe case due to the proxy volume relying on dynamic if (we rely must get right of this dynamic if), not a problem for SH9, but a problem for proxy volume.
         // TODO: optimize more this code.
         // Add GI transmission contribution by resampling the GI for inverted vertex normal
-        builtinData.bakeDiffuseLighting += SampleBakedGI(input.positionWS, -input.worldToTangent[2], input.texCoord1, input.texCoord2) * bsdfData.transmittance;
+        builtinData.bakeDiffuseLighting += SampleBakedGI(input.positionRWS, -input.worldToTangent[2], input.texCoord1, input.texCoord2) * bsdfData.transmittance;
     }
 
 #ifdef SHADOWS_SHADOWMASK
-    float4 shadowMask = SampleShadowMask(input.positionWS, input.texCoord1);
+    float4 shadowMask = SampleShadowMask(input.positionRWS, input.texCoord1);
     builtinData.shadowMask0 = shadowMask.x;
     builtinData.shadowMask1 = shadowMask.y;
     builtinData.shadowMask2 = shadowMask.z;
@@ -56,7 +56,7 @@ void GetBuiltinData(FragInputs input, SurfaceData surfaceData, float alpha, floa
     #endif
                             input.texCoord0, input.texCoord1, input.texCoord2, input.texCoord3, _UVMappingMaskEmissive, _UVMappingMaskEmissive,
                             _EmissiveColorMap_ST.xy, _EmissiveColorMap_ST.zw, float2(0.0, 0.0), float2(0.0, 0.0), 1.0, false,
-                            input.positionWS, _TexWorldScaleEmissive,
+                            input.positionRWS, _TexWorldScaleEmissive,
                             mappingType, layerTexCoord);
 
     #ifndef LAYERED_LIT_SHADER
