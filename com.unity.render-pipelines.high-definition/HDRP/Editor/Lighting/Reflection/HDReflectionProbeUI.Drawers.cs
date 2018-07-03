@@ -20,6 +20,7 @@ namespace UnityEditor.Experimental.Rendering
                 SectionPrimarySettings,
                 SectionProxyVolumeSettings,
                 SectionInfluenceVolumeSettings,
+                SectionInfluenceProxyMismatch,
                 SectionCaptureSettings,
                 SectionAdditionalSettings,
                 ButtonBake
@@ -60,6 +61,8 @@ namespace UnityEditor.Experimental.Rendering
                 CED.space,
                 CED.Action(Drawer_InfluenceSettings)
                 );
+
+        public static readonly CED.IDrawer SectionInfluenceProxyMismatch = CED.Action(Drawer_InfluenceProxyMissmatch);
 
         public static readonly CED.IDrawer SectionCaptureSettings = CED.FoldoutGroup(
                 "Capture settings",
@@ -120,17 +123,7 @@ namespace UnityEditor.Experimental.Rendering
         {
             EditorGUILayout.PropertyField(p.proxyVolumeComponent, _.GetContent("Proxy Volume"));
 
-            if (p.proxyVolumeComponent.objectReferenceValue != null)
-            {
-                var proxy = (ReflectionProxyVolumeComponent)p.proxyVolumeComponent.objectReferenceValue;
-                if ((int)proxy.proxyVolume.shapeType != p.influenceShape.enumValueIndex)
-                    EditorGUILayout.HelpBox(
-                        "Proxy volume and influence volume have different shape types, this is not supported.",
-                        MessageType.Error,
-                        true
-                        );
-            }
-            else
+            if (p.proxyVolumeComponent.objectReferenceValue == null)
             {
                 EditorGUILayout.HelpBox(
                         "When no Proxy setted, Influence shape will be used as Proxy shape too.",
@@ -141,6 +134,20 @@ namespace UnityEditor.Experimental.Rendering
         }
 
         #region Influence Volume
+        static void Drawer_InfluenceProxyMissmatch(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
+        {
+            if (p.proxyVolumeComponent.objectReferenceValue != null)
+            {
+                var proxy = (ReflectionProxyVolumeComponent)p.proxyVolumeComponent.objectReferenceValue;
+                if ((int)proxy.proxyVolume.shapeType != p.influenceShape.enumValueIndex)
+                    EditorGUILayout.HelpBox(
+                        "Proxy volume and influence volume have different shape types, this is not supported.",
+                        MessageType.Error,
+                        true
+                        );
+            }
+        }
+
         static void Drawer_InfluenceBoxSettings(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
             var maxBlendDistance = HDReflectionProbeEditorUtility.CalculateBoxMaxBlendDistance(s, p, owner);
@@ -302,17 +309,6 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUI.showMixedValue = false;
             if (EditorGUI.EndChangeCheck())
                 s.SetShapeTarget(p.influenceShape.intValue);
-
-            if (p.proxyVolumeComponent.objectReferenceValue != null)
-            {
-                var proxy = (ReflectionProxyVolumeComponent)p.proxyVolumeComponent.objectReferenceValue;
-                if ((int)proxy.proxyVolume.shapeType != p.influenceShape.enumValueIndex)
-                    EditorGUILayout.HelpBox(
-                        "Proxy volume and influence volume have different shape types, this is not supported.",
-                        MessageType.Error,
-                        true
-                        );
-            }
 
             switch ((ShapeType)p.influenceShape.enumValueIndex)
             {
