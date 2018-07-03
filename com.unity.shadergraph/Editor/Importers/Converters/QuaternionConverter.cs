@@ -1,13 +1,12 @@
 ﻿using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using UnityEngine;
 
 namespace UnityEngine.ShaderGraph
 {
-    public class Vector3Converter : JsonConverter<Vector3>
+    public class QuaternionConverter : JsonConverter<Quaternion>
     {
-        public override void WriteJson(JsonWriter writer, Vector3 value, JsonSerializer serializer)
+        public override void WriteJson(JsonWriter writer, Quaternion value, JsonSerializer serializer)
         {
             writer.WriteStartObject();
 
@@ -20,15 +19,19 @@ namespace UnityEngine.ShaderGraph
             writer.WritePropertyName("z");
             writer.WriteValue(value.z);
 
+            writer.WritePropertyName("w");
+            writer.WriteValue(value.w);
+
             writer.WriteEndObject();
         }
 
-        public override Vector3 ReadJson(JsonReader reader, Type objectType, Vector3 existingValue, bool hasExistingValue, JsonSerializer serializer)
+        public override Quaternion ReadJson(JsonReader reader, Type objectType, Quaternion existingValue, bool hasExistingValue, JsonSerializer serializer)
         {
             var jObject = JObject.Load(reader);
             existingValue.x = jObject["x"].Value<float>();
             existingValue.y = jObject["y"].Value<float>();
             existingValue.z = jObject["z"].Value<float>();
+            existingValue.w = jObject["w"].Value<float>();
             return existingValue;
         }
     }

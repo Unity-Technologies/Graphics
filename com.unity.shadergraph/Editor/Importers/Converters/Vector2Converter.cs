@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-namespace Importers.Converters
+namespace UnityEngine.ShaderGraph
 {
     public class Vector2Converter : JsonConverter<Vector2>
     {

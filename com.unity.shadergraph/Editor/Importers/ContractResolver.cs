@@ -1,5 +1,4 @@
 ﻿using System;
-using Importers.Converters;
 using Newtonsoft.Json.Serialization;
 using UnityEditor.Importers;
 using UnityEditor.ShaderGraph;
@@ -19,6 +18,14 @@ namespace UnityEngine.ShaderGraph
                 jsonContract.Converter = new Vector3Converter();
             else if (objectType == typeof(Vector4))
                 jsonContract.Converter = new Vector4Converter();
+            else if (objectType == typeof(Quaternion))
+                jsonContract.Converter = new QuaternionConverter();
+            else if (objectType == typeof(Color))
+                jsonContract.Converter = new ColorConverter();
+            else if (objectType == typeof(Bounds))
+                jsonContract.Converter = new BoundsConverter();
+            else if (objectType == typeof(Rect))
+                jsonContract.Converter = new RectConverter();
             else if (Attribute.IsDefined(objectType, typeof(JsonVersionedAttribute), true))
                 jsonContract.Converter = new UpgradeConverter(objectType);
 

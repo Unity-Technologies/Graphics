@@ -1,94 +1,83 @@
-﻿using Importers;
-using Importers.Converters;
+﻿using System;
+using System.Collections;
 using Newtonsoft.Json;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.ShaderGraph;
+using UnityEngine.Assertions;
+using UnityEngine.TestTools;
+using Assert = UnityEngine.Assertions.Assert;
 
 namespace UnityEditor.ShaderGraph.UnitTests.Serialization
 {
     public class UnityStructTests
     {
-        [Test]
-        public void CanSerializeAndDeserializeVector2()
+        [Serializable]
+        struct BoundsWrapper
         {
-            var originalValue = new Vector2(1.123f, 655f);
+            public Bounds bounds;
 
-            var jsonSerializerSettings = new JsonSerializerSettings { ContractResolver = new ContractResolver() };
-            var json = JsonConvert.SerializeObject(originalValue, jsonSerializerSettings);
-            var deserializedValue = JsonConvert.DeserializeObject<Vector2>(json, jsonSerializerSettings);
+            public BoundsWrapper(Bounds bounds)
+            {
+                this.bounds = bounds;
+            }
 
-            Assert.AreEqual(originalValue, deserializedValue);
+            public override string ToString()
+            {
+                return bounds.ToString();
+            }
         }
 
-        [Test]
-        public void CanSerializeAndDeserializeVector3()
+        [Serializable]
+        struct RectWrapper
         {
-            var originalValue = new Vector3(1.123f, 655f, 43.344f);
+            public Rect rect;
 
-            var jsonSerializerSettings = new JsonSerializerSettings { ContractResolver = new ContractResolver() };
-            var json = JsonConvert.SerializeObject(originalValue, jsonSerializerSettings);
-            var deserializedValue = JsonConvert.DeserializeObject<Vector3>(json, jsonSerializerSettings);
+            public RectWrapper(Rect rect)
+            {
+                this.rect = rect;
+            }
 
-            Assert.AreEqual(originalValue, deserializedValue);
+            public override string ToString()
+            {
+                return rect.ToString();
+            }
         }
 
-        [Test]
-        public void CanSerializeAndDeserializeVector4()
+        static float NextFloat(System.Random random, float minValue = -1024f, float maxValue = 1024f)
         {
-            var originalValue = new Vector4(1.123f, 655f, 43.344f, 985885.34445f);
-
-            var jsonSerializerSettings = new JsonSerializerSettings { ContractResolver = new ContractResolver() };
-            var json = JsonConvert.SerializeObject(originalValue, jsonSerializerSettings);
-            var deserializedValue = JsonConvert.DeserializeObject<Vector4>(json, jsonSerializerSettings);
-
-            Assert.AreEqual(originalValue, deserializedValue);
+            return (float)(random.NextDouble() * (maxValue - minValue) + minValue);
         }
 
-        [Test]
-        public void CanSerializeAndDeserializeQuaternion()
+        static IEnumerable TestCases()
         {
-            var originalValue = new Quaternion(1.123f, 655f, 43.344f, 985885.34445f);
-
-            var jsonSerializerSettings = new JsonSerializerSettings { ContractResolver = new ContractResolver() };
-            var json = JsonConvert.SerializeObject(originalValue, jsonSerializerSettings);
-            var deserializedValue = JsonConvert.DeserializeObject<Quaternion>(json, jsonSerializerSettings);
-
-            Assert.AreEqual(originalValue, deserializedValue);
+            var random = new System.Random(8371);
+            yield return new Vector2(NextFloat(random), NextFloat(random));
+            yield return new Vector3(NextFloat(random), NextFloat(random), NextFloat(random));
+            yield return new Vector4(NextFloat(random), NextFloat(random), NextFloat(random), NextFloat(random));
+            yield return new Quaternion(NextFloat(random), NextFloat(random), NextFloat(random), NextFloat(random));
+            yield return new Color(NextFloat(random), NextFloat(random), NextFloat(random), NextFloat(random));
+            yield return new BoundsWrapper(new Bounds(new Vector3(NextFloat(random), NextFloat(random), NextFloat(random)), new Vector3(NextFloat(random), NextFloat(random), NextFloat(random))));
+            yield return new RectWrapper(new Rect(NextFloat(random), NextFloat(random), NextFloat(random), NextFloat(random)));
         }
 
-        [Test]
-        public void CanSerializeAndDeserializeColor()
+        [TestCaseSource("TestCases")]
+        public void CanSerializeAndDeserializeValue<T>(T typedValue)
         {
-            var originalValue = new Color(1.123f, 655f, 43.344f, 985885.34445f);
-
+            object originalValue = typedValue;
             var jsonSerializerSettings = new JsonSerializerSettings { ContractResolver = new ContractResolver() };
             var json = JsonConvert.SerializeObject(originalValue, jsonSerializerSettings);
-            var deserializedValue = JsonConvert.DeserializeObject<Color>(json, jsonSerializerSettings);
+            var deserializedValue = JsonConvert.DeserializeObject<T>(json, jsonSerializerSettings);
 
-            Assert.AreEqual(originalValue, deserializedValue);
+            Assert.AreEqual(typedValue, deserializedValue);
         }
 
-        [Test]
-        public void CanSerializeAndDeserializeBounds()
+        [TestCaseSource("TestCases")]
+        public void CanDeserializeUnitySerializedValue<T>(T originalValue)
         {
-            var originalValue = new Bounds(new Vector3(1.123f, 655f, 43.344f), new Vector3(23.3f, 0.4553f, 985885.34445f));
-
             var jsonSerializerSettings = new JsonSerializerSettings { ContractResolver = new ContractResolver() };
-            var json = JsonConvert.SerializeObject(originalValue, jsonSerializerSettings);
-            var deserializedValue = JsonConvert.DeserializeObject<Bounds>(json, jsonSerializerSettings);
-
-            Assert.AreEqual(originalValue, deserializedValue);
-        }
-
-        [Test]
-        public void CanSerializeAndDeserializeRect()
-        {
-            var originalValue = new Rect(1.123f, 655f, 43.344f, 985885.34445f);
-
-            var jsonSerializerSettings = new JsonSerializerSettings { ContractResolver = new ContractResolver() };
-            var json = JsonConvert.SerializeObject(originalValue, jsonSerializerSettings);
-            var deserializedValue = JsonConvert.DeserializeObject<Rect>(json, jsonSerializerSettings);
+            var unityJson = JsonUtility.ToJson(originalValue);
+            var deserializedValue = JsonConvert.DeserializeObject<T>(unityJson, jsonSerializerSettings);
 
             Assert.AreEqual(originalValue, deserializedValue);
         }
