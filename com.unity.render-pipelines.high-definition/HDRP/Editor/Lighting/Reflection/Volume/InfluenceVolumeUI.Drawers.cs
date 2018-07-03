@@ -73,9 +73,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             //EditorGUILayout.PropertyField(d.boxBaseOffset, _.GetContent("Box Offset"));
 
             EditorGUILayout.BeginHorizontal();
-            HDReflectionProbeUI.Drawer_AdvancedBlendDistance(
-                d.boxInfluencePositiveFade,
-                d.boxInfluenceNegativeFade,
+            Drawer_AdvancedBlendDistance(
+                d,
+                false,
                 maxFadeDistance,
                 CoreEditorUtils.GetContent("Blend Distance|Area around the probe where it is blended with other probes. Only used in deferred probes."),
                 s.isSectionAdvancedInfluenceSettings
@@ -84,9 +84,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.EndHorizontal();
 
             EditorGUILayout.BeginHorizontal();
-            HDReflectionProbeUI.Drawer_AdvancedBlendDistance(
-                d.boxInfluenceNormalPositiveFade,
-                d.boxInfluenceNormalNegativeFade,
+            Drawer_AdvancedBlendDistance(
+                d,
+                true,
                 maxFadeDistance,
                 CoreEditorUtils.GetContent("Blend Normal Distance|Area around the probe where the normals influence the probe. Only used in deferred probes."),
                 s.isSectionAdvancedInfluenceSettings
@@ -100,6 +100,55 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     CoreEditorUtils.GetContent("Face fade|Fade faces of the cubemap."),
                     d.boxPositiveFaceFade, d.boxNegativeFaceFade, Vector3.zero, Vector3.one, HDReflectionProbeEditor.k_handlesColor);
             }
+        }
+
+        static void Drawer_AdvancedBlendDistance(SerializedInfluenceVolume d, bool isNormal, Vector3 maxBlendDistance, GUIContent content, AnimatedValues.AnimBool advanced)
+        {
+            SerializedProperty blendDistancePositive = isNormal ? d.boxInfluenceNormalPositiveFade : d.boxInfluencePositiveFade;
+            SerializedProperty blendDistanceNegative = isNormal ? d.boxInfluenceNormalNegativeFade : d.boxInfluenceNegativeFade;
+            SerializedProperty editorAdvancedModeBlendDistancePositive = isNormal ? d.editorAdvancedModeBlendNormalDistancePositive : d.editorAdvancedModeBlendDistancePositive;
+            SerializedProperty editorAdvancedModeBlendDistanceNegative = isNormal ? d.editorAdvancedModeBlendNormalDistanceNegative : d.editorAdvancedModeBlendDistanceNegative;
+            SerializedProperty editorSimplifiedModeBlendDistance = isNormal ? d.editorSimplifiedModeBlendNormalDistance : d.editorSimplifiedModeBlendDistance;
+            Vector3 bdp = blendDistancePositive.vector3Value;
+            Vector3 bdn = blendDistanceNegative.vector3Value;
+
+            EditorGUILayout.BeginVertical();
+
+            if (advanced.value)
+            {
+                EditorGUI.BeginChangeCheck();
+                blendDistancePositive.vector3Value = editorAdvancedModeBlendDistancePositive.vector3Value;
+                blendDistanceNegative.vector3Value = editorAdvancedModeBlendDistanceNegative.vector3Value;
+                CoreEditorUtils.DrawVector6(
+                    content,
+                    blendDistancePositive, blendDistanceNegative, Vector3.zero, maxBlendDistance, HDReflectionProbeEditor.k_handlesColor);
+                if(EditorGUI.EndChangeCheck())
+                {
+                    editorAdvancedModeBlendDistancePositive.vector3Value = blendDistancePositive.vector3Value;
+                    editorAdvancedModeBlendDistanceNegative.vector3Value = blendDistanceNegative.vector3Value;
+                }
+            }
+            else
+            {
+                float distance = editorSimplifiedModeBlendDistance.floatValue;
+                EditorGUI.BeginChangeCheck();
+                distance = EditorGUILayout.FloatField(content, distance);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    Vector3 decal = Vector3.one * distance;
+                    bdp.x = Mathf.Clamp(decal.x, 0f, maxBlendDistance.x);
+                    bdp.y = Mathf.Clamp(decal.y, 0f, maxBlendDistance.y);
+                    bdp.z = Mathf.Clamp(decal.z, 0f, maxBlendDistance.z);
+                    bdn.x = Mathf.Clamp(decal.x, 0f, maxBlendDistance.x);
+                    bdn.y = Mathf.Clamp(decal.y, 0f, maxBlendDistance.y);
+                    bdn.z = Mathf.Clamp(decal.z, 0f, maxBlendDistance.z);
+                    blendDistancePositive.vector3Value = bdp;
+                    blendDistanceNegative.vector3Value = bdn;
+                    editorSimplifiedModeBlendDistance.floatValue = distance;
+                }
+            }
+
+            GUILayout.EndVertical();
         }
 
         static void Drawer_SectionShapeSphere(InfluenceVolumeUI s, SerializedInfluenceVolume d, Editor o)
