@@ -9,6 +9,8 @@ namespace UnityEngine.Experimental.Gizmo
 {
     public class Gizmo6FacesBox
     {
+        const float k_HandleSizeCoef = 0.05f;
+
         protected enum NamedFace { Right, Top, Front, Left, Bottom, Back }
         protected enum Element { Face, SelectedFace, Handle }
 
@@ -80,7 +82,6 @@ namespace UnityEngine.Experimental.Gizmo
                 m_faceColorsSelected = value;
             }
         }
-
 
         Color[] m_faceColors;
 
@@ -208,13 +209,11 @@ namespace UnityEngine.Experimental.Gizmo
             }
 
             Gizmos.color = colorGizmo;
-            Debug.Log("center: " + center);
-            Debug.Log("size: " + size);
-            Debug.Log("color: " + colorGizmo);
             Gizmos.DrawWireCube(center, size);
         }
 
-
+        //Note: Handles.Slider not allow to use a specific ControlID.
+        //Thus Slider1D is used (with reflection)
         static PropertyInfo k_scale = Type.GetType("UnityEditor.SnapSettings, UnityEditor").GetProperty("scale");
         static Type k_Slider1D = Type.GetType("UnityEditorInternal.Slider1D, UnityEditor");
         static MethodInfo k_Slider1D_Do = k_Slider1D
@@ -228,22 +227,9 @@ namespace UnityEngine.Experimental.Gizmo
 
         public void DrawHandle()
         {
-            Type k_Slider1D = Type.GetType("UnityEditorInternal.Slider1D, UnityEditor");
-            MethodInfo k_Slider1D_Do = k_Slider1D
-                .GetMethod(
-                    "Do",
-                    BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public,
-                    null,
-                    CallingConventions.Any,
-                    new[] { typeof(int), typeof(Vector3), typeof(Vector3), typeof(float), typeof(Handles.CapFunction), typeof(float) },
-                    null);
-
-            float handleSizeCoef = 0.05f;
-
             for (int i = 0, count = m_ControlIDs.Length; i < count; ++i)
                 m_ControlIDs[i] = GUIUtility.GetControlID(GetHashCode(), FocusType.Passive);
 
-            //Draw Handles
             EditorGUI.BeginChangeCheck();
 
             Vector3 leftPosition = center + size.x * .5f * Vector3.left;
@@ -253,9 +239,6 @@ namespace UnityEngine.Experimental.Gizmo
             Vector3 frontPosition = center + size.z * .5f * Vector3.forward;
             Vector3 backPosition = center + size.z * .5f * Vector3.back;
 
-            //Note: Handles.Slider not allow to use a specific ControlID.
-            //Thus Slider1D is used (with reflection)
-
             float snapScale = (float)k_scale.GetValue(null, null);
             using (new Handles.DrawingScope(GetColor(NamedFace.Left, Element.Handle)))
                 leftPosition = (Vector3)k_Slider1D_Do.Invoke(null, new object[]
@@ -263,7 +246,7 @@ namespace UnityEngine.Experimental.Gizmo
                     m_ControlIDs[(int)NamedFace.Left],
                     leftPosition,
                     Vector3.left,
-                    HandleUtility.GetHandleSize(leftPosition) * handleSizeCoef,
+                    HandleUtility.GetHandleSize(leftPosition) * k_HandleSizeCoef,
                     new Handles.CapFunction(Handles.DotHandleCap),
                     snapScale
                 });
@@ -273,7 +256,7 @@ namespace UnityEngine.Experimental.Gizmo
                     m_ControlIDs[(int)NamedFace.Right],
                     rightPosition,
                     Vector3.left,
-                    HandleUtility.GetHandleSize(rightPosition) * handleSizeCoef,
+                    HandleUtility.GetHandleSize(rightPosition) * k_HandleSizeCoef,
                     new Handles.CapFunction(Handles.DotHandleCap),
                     snapScale
                 });
@@ -284,7 +267,7 @@ namespace UnityEngine.Experimental.Gizmo
                     m_ControlIDs[(int)NamedFace.Top],
                     topPosition,
                     Vector3.up,
-                    HandleUtility.GetHandleSize(topPosition) * handleSizeCoef,
+                    HandleUtility.GetHandleSize(topPosition) * k_HandleSizeCoef,
                     new Handles.CapFunction(Handles.DotHandleCap),
                     snapScale
                 });
@@ -294,7 +277,7 @@ namespace UnityEngine.Experimental.Gizmo
                     m_ControlIDs[(int)NamedFace.Bottom],
                     bottomPosition,
                     Vector3.down,
-                    HandleUtility.GetHandleSize(bottomPosition) * handleSizeCoef,
+                    HandleUtility.GetHandleSize(bottomPosition) * k_HandleSizeCoef,
                     new Handles.CapFunction(Handles.DotHandleCap),
                     snapScale
                 });
@@ -305,7 +288,7 @@ namespace UnityEngine.Experimental.Gizmo
                     m_ControlIDs[(int)NamedFace.Front],
                     frontPosition,
                     Vector3.forward,
-                    HandleUtility.GetHandleSize(frontPosition) * handleSizeCoef,
+                    HandleUtility.GetHandleSize(frontPosition) * k_HandleSizeCoef,
                     new Handles.CapFunction(Handles.DotHandleCap),
                     snapScale
                 });
@@ -315,7 +298,7 @@ namespace UnityEngine.Experimental.Gizmo
                     m_ControlIDs[(int)NamedFace.Back],
                     backPosition,
                     Vector3.back,
-                    HandleUtility.GetHandleSize(backPosition) * handleSizeCoef,
+                    HandleUtility.GetHandleSize(backPosition) * k_HandleSizeCoef,
                     new Handles.CapFunction(Handles.DotHandleCap),
                     snapScale
                 });
@@ -375,7 +358,7 @@ namespace UnityEngine.Experimental.Gizmo
             Color colorGizmo = Gizmos.color;
             base.DrawHull(selected);
 
-            //if selected, also draw handle displacement here
+            //if selected, also draw handle distance to container here
             if (selected)
             {
                 Vector3 centerDiff = center - m_container.center;
@@ -403,7 +386,6 @@ namespace UnityEngine.Experimental.Gizmo
 
                 Gizmos.color = GetColor(NamedFace.Back, Element.Handle);
                 Gizmos.DrawLine(m_container.center + zRecal + m_container.size.z * .5f * Vector3.back, center + size.z * .5f * Vector3.back);
-
             }
 
             Gizmos.color = colorGizmo;
