@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed issue when using more than one volume mask texture with density volumes.
 - Fixed an error which prevented volumetric lighting from working if no density volumes with 3D textures were present.
 - Fixed issue with color temperature not take correctly into account with static lighting
+- Don't display fog when diffuse lighting, specular lighting, or lux meter debug mode are enabled.
 
 ### Added
 - Add option supportDitheringCrossFade on HDRP Asset to allow to remove shader variant during player build if needed
