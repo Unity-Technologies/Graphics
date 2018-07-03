@@ -64,12 +64,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var maxFadeDistance = d.boxBaseSize.vector3Value * 0.5f;
             var minFadeDistance = Vector3.zero;
 
+            EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PropertyField(d.boxBaseSize, _.GetContent("Box Size"));
+            PlanarReflectionProbeUI.Drawer_ToolBarButton(0, o, GUILayout.Width(28f), GUILayout.MinHeight(22f));
+            EditorGUILayout.EndHorizontal();
 
             //offset have no meaning for planar reflexion probe
             //EditorGUILayout.PropertyField(d.boxBaseOffset, _.GetContent("Box Offset"));
-
-            EditorGUILayout.Space();
 
             EditorGUILayout.BeginHorizontal();
             HDReflectionProbeUI.Drawer_AdvancedBlendDistance(
@@ -79,13 +80,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 CoreEditorUtils.GetContent("Blend Distance|Area around the probe where it is blended with other probes. Only used in deferred probes."),
                 s.isSectionAdvancedInfluenceSettings
                 );
-            //if (GUILayout.Button(toolbar_Contents[1], GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight((s.isSectionAdvancedInfluenceSettings.value ? 3 : 1) * (EditorGUIUtility.singleLineHeight + 3))))
-            //{
-            //    EditMode.ChangeEditMode(k_Toolbar_SceneViewEditModes[1], GetBoundsGetter(p)(), owner);
-            //}
+            PlanarReflectionProbeUI.Drawer_ToolBarButton(1, o, GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight((s.isSectionAdvancedInfluenceSettings.value ? 3 : 1) * (EditorGUIUtility.singleLineHeight + 3)));
             EditorGUILayout.EndHorizontal();
-
-            EditorGUILayout.Space();
 
             EditorGUILayout.BeginHorizontal();
             HDReflectionProbeUI.Drawer_AdvancedBlendDistance(
@@ -95,13 +91,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 CoreEditorUtils.GetContent("Blend Normal Distance|Area around the probe where the normals influence the probe. Only used in deferred probes."),
                 s.isSectionAdvancedInfluenceSettings
                 );
-            //if (GUILayout.Button(toolbar_Contents[2], GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight((s.isSectionAdvancedInfluenceSettings.value ? 3 : 1) * (EditorGUIUtility.singleLineHeight + 3))))
-            //{
-            //    EditMode.ChangeEditMode(k_Toolbar_SceneViewEditModes[2], GetBoundsGetter(p)(), owner);
-            //}
+            PlanarReflectionProbeUI.Drawer_ToolBarButton(2, o, GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight((s.isSectionAdvancedInfluenceSettings.value ? 3 : 1) * (EditorGUIUtility.singleLineHeight + 3)));
             EditorGUILayout.EndHorizontal();
-
-            EditorGUILayout.Space();
 
             if (s.isSectionAdvancedInfluenceSettings.value)
             {

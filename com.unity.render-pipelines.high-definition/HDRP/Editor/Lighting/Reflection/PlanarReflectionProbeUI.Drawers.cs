@@ -224,11 +224,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static readonly EditMode.SceneViewEditMode[] k_Toolbar_Static_SceneViewEditModes =
         {
-            EditCenter
+            //EditCenter  //offset have no meanings with planar
         };
         static readonly EditMode.SceneViewEditMode[] k_Toolbar_Mirror_SceneViewEditModes =
         {
-            EditMirrorPosition,
+            //EditMirrorPosition,  //offset have no meanings with planar
             EditMirrorRotation
         };
         static GUIContent[] s_Toolbar_Contents = null;
@@ -250,9 +250,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             get
             {
-                return s_Toolbar_Static_Contents ?? (s_Toolbar_Static_Contents = new[]
+                return s_Toolbar_Static_Contents ?? (s_Toolbar_Static_Contents = new GUIContent[]
                 {
-                    EditorGUIUtility.IconContent("MoveTool", "|Move the capture position.")
+                    //EditorGUIUtility.IconContent("MoveTool", "|Move the capture position.")   //offset have no meanings with planar
                 });
             }
         }
@@ -264,7 +264,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 return s_Toolbar_Mirror_Contents ?? (s_Toolbar_Mirror_Contents = new[]
                 {
-                    EditorGUIUtility.IconContent("MoveTool", "|Move the mirror plane."),
+                    //EditorGUIUtility.IconContent("MoveTool", "|Move the mirror plane."),   //offset have no meanings with planar
                     EditorGUIUtility.IconContent("RotateTool", "|Rotate the mirror plane.")
                 });
             }
@@ -285,6 +285,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
+        }
+
+        static public void Drawer_ToolBarButton(int buttonIndex, Editor owner, params GUILayoutOption[] styles)
+        {
+            if (GUILayout.Button(toolbar_Contents[buttonIndex], styles))
+            {
+                EditMode.ChangeEditMode(k_Toolbar_SceneViewEditModes[buttonIndex], GetBoundsGetter(owner)(), owner);
+            }
         }
 
         static Func<Bounds> GetBoundsGetter(Editor o)
