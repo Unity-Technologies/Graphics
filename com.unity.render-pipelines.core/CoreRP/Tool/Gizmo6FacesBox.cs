@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEditor;
 using System.Reflection;
 
-namespace UnityEngine.Experimental.Gizmo
+namespace UnityEngine.Experimental.Rendering
 {
     public class Gizmo6FacesBox
     {

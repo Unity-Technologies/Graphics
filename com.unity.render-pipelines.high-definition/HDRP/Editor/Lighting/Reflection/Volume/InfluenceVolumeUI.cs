@@ -3,7 +3,7 @@ using UnityEditor.AnimatedValues;
 using UnityEditor.IMGUI.Controls;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
-using UnityEngine.Experimental.Gizmo;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
