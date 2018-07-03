@@ -65,9 +65,9 @@ float4 EvaluateAtmosphericScattering(PositionInputs posInput)
 {
     float3 fogColor = 0;
     float  fogFactor = 0;
-    
+
 #ifdef DEBUG_DISPLAY
-    // Don't sample amthmospheric scattering when diffuse lighting debug is enabled so fog is not visible
+    // Don't sample atmospheric scattering when lighting debug more are enabled so fog is not visible
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_DIFFUSE_LIGHTING || _DebugLightingMode == DEBUGLIGHTINGMODE_SPECULAR_LIGHTING || _DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
         return float4(0, 0, 0, 0);
 #endif
