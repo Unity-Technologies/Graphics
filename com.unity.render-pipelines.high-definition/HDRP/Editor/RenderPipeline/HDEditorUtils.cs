@@ -12,6 +12,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         delegate void MaterialResetter(Material material);
         static Dictionary<string, MaterialResetter> k_MaterialResetters = new Dictionary<string, MaterialResetter>()
         {
+            { "HDRenderPipeline/Cloth",  ClothGUI.SetupMaterialKeywordsAndPass },
             { "HDRenderPipeline/LayeredLit",  LayeredLitGUI.SetupMaterialKeywordsAndPass },
             { "HDRenderPipeline/LayeredLitTessellation", LayeredLitGUI.SetupMaterialKeywordsAndPass },
             { "HDRenderPipeline/Lit", LitGUI.SetupMaterialKeywordsAndPass },

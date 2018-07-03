@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -31,7 +32,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent anisotropyMapText = new GUIContent("Anisotropy Map (R)", "Anisotropy");
 
             public static GUIContent UVBaseMappingText = new GUIContent("Base UV mapping", "");
-            public static GUIContent texWorldScaleText = new GUIContent("World scale", "Tiling factor applied to Planar/Trilinear mapping");
 
             // Details
             public static string detailText = "Detail Inputs";
@@ -81,8 +81,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected MaterialProperty UVBase = null;
         protected const string kUVBase = "_UVBase";
-        protected MaterialProperty InvTilingScale = null;
-        protected const string kInvTilingScale = "_InvTilingScale";
         protected MaterialProperty UVMappingMask = null;
         protected const string kUVMappingMask = "_UVMappingMask";
 
@@ -111,6 +109,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected MaterialProperty fuzzTint = null;
         protected const string kFuzzTint = "_FuzzTint";
+        protected MaterialProperty clothType = null;
+        protected const string kClothType = "_ClothType";
 
         protected MaterialProperty diffusionProfileID = null;
         protected const string kDiffusionProfileID = "_DiffusionProfile";
@@ -129,10 +129,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kUVDetail = "_UVDetail";
         protected MaterialProperty UVDetailsMappingMask = null;
         protected const string kUVDetailsMappingMask = "_UVDetailsMappingMask";
+        
         protected MaterialProperty detailMap = null;
         protected const string kDetailMap = "_DetailMap";
+        protected MaterialProperty detailMask = null;
+        protected const string kDetailMask = "_DetailMask";
         protected MaterialProperty linkDetailsWithBase = null;
-        protected const string kLinkDetailsWithBase = "_LinkDetailsWithBase";
+        protected const string kLinkDetailsWithBase = "_LinkDetailsWithBase";     
+
+        protected MaterialProperty detailFuzz1 = null;
+        protected const string kDetailFuzz1 = "_DetailFuzz1";
         protected MaterialProperty detailAOScale = null;
         protected const string kDetailAOScale = "_DetailAOScale";
         protected MaterialProperty detailNormalScale = null;
@@ -150,12 +156,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty enableSpecularOcclusion = null;
         protected const string kEnableSpecularOcclusion = "_EnableSpecularOcclusion";
 
+        protected MaterialProperty enableSubsurfaceScattering = null;
+        protected const string kEnableSubsurfaceScattering = "_EnableSubsurfaceScattering";
+        protected MaterialProperty enableTransmission = null;
+        protected const string kEnableTransmission = "_EnableTransmission";
 
         override protected void FindMaterialProperties(MaterialProperty[] props)
         {
             UVBase = FindProperty(kUVBase, props);
-            TexWorldScale = FindProperty(kTexWorldScale, props);
-            InvTilingScale = FindProperty(kInvTilingScale, props);
             UVMappingMask = FindProperty(kUVMappingMask, props);
 
             baseColor = FindProperty(kBaseColor, props);
@@ -171,6 +179,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bentNormalMap = FindProperty(kBentNormalMap, props);
 
             fuzzTint = FindProperty(kFuzzTint, props);
+            clothType = FindProperty(kClothType, props);           
 
             // Sub surface
             diffusionProfileID = FindProperty(kDiffusionProfileID, props);
@@ -184,7 +193,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UVDetail = FindProperty(kUVDetail, props);
             UVDetailsMappingMask = FindProperty(kUVDetailsMappingMask, props);
             linkDetailsWithBase = FindProperty(kLinkDetailsWithBase, props);
+            
             detailMap = FindProperty(kDetailMap, props);
+            detailMask = FindProperty(kDetailMask, props);
+            detailFuzz1 = FindProperty(kDetailFuzz1, props);
             detailAOScale = FindProperty(kDetailAOScale, props);
             detailNormalScale = FindProperty(kDetailNormalScale, props);
             detailSmoothnessScale = FindProperty(kDetailSmoothnessScale, props);
@@ -193,9 +205,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             tangentMap = FindProperty(kTangentMap, props);
             anisotropy = FindProperty(kAnisotropy, props);
             anisotropyMap = FindProperty(kAnisotropyMap, props);
+
+            // toggle
+            enableSubsurfaceScattering = FindProperty(kEnableSubsurfaceScattering, props);
+            enableTransmission = FindProperty(kEnableTransmission, props);
         }
 
-        protected void ShaderSSSAndTransmissionInputGUI(Material material, int layerIndex)
+        protected void ShaderSSSAndTransmissionInputGUI(Material material)
         {
             var hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
 
@@ -226,7 +242,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             using (var scope = new EditorGUI.ChangeCheckScope())
             {
-                int profileID = (int)diffusionProfileID[layerIndex].floatValue;
+                int profileID = (int)diffusionProfileID.floatValue;
 
                 using (new EditorGUILayout.HorizontalScope())
                 {
@@ -242,7 +258,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
 
                 if (scope.changed)
-                    diffusionProfileID[layerIndex].floatValue = profileID;
+                    diffusionProfileID.floatValue = profileID;
             }
 
             /*
@@ -285,9 +301,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override void MaterialPropertiesGUI(Material material)
         {
-            GUILayout.Label("Fabric Options", EditorStyles.boldLabel);
+            GUILayout.Label("Cloth Options", EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
-            m_MaterialEditor.ShaderProperty(fabricType, Styles.fabricTypeText);
+            m_MaterialEditor.ShaderProperty(clothType, Styles.clothTypeText);
             EditorGUI.indentLevel--;
             m_MaterialEditor.ShaderProperty(fuzzTint, Styles.fuzzTintText);
 
@@ -326,12 +342,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapSpecularText, maskMap);
 
-            m_MaterialEditor.ShaderProperty(normalMapSpace, Styles.normalMapSpaceText);
-
             m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap, normalScale);
             m_MaterialEditor.TexturePropertySingleLine(Styles.bentNormalMapText, bentNormalMap);
 
-            ShaderSSSAndTransmissionInputGUI(material, layerIndex);
+            ShaderSSSAndTransmissionInputGUI(material);
             ShaderAnisoInputGUI();
 
             EditorGUILayout.Space();
@@ -349,26 +363,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             UVMappingMask.colorValue = new Color(X, Y, Z, W);
 
-            if ((uvBaseMapping == UVBaseMapping.Planar) || (uvBaseMapping == UVBaseMapping.Triplanar))
-            {
-                m_MaterialEditor.ShaderProperty(TexWorldScale, Styles.texWorldScaleText);
-            }
             m_MaterialEditor.TextureScaleOffsetProperty(baseColorMap);
-            if (EditorGUI.EndChangeCheck())
-            {
-                // Precompute.
-                InvTilingScale.floatValue = 2.0f / (Mathf.Abs(baseColorMap.textureScaleAndOffset.x) + Mathf.Abs(baseColorMap.textureScaleAndOffset.y));
-                if ((uvBaseMapping == UVBaseMapping.Planar) || (uvBaseMapping == UVBaseMapping.Triplanar))
-                {
-                    InvTilingScale.floatValue = InvTilingScale.floatValue / TexWorldScale.floatValue;
-                }
-            }
 
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
             EditorGUILayout.LabelField(Styles.detailText, EditorStyles.boldLabel);
 
             EditorGUI.indentLevel++;
+            m_MaterialEditor.TexturePropertySingleLine(Styles.detailMaskText, detailMask);
             m_MaterialEditor.TexturePropertySingleLine(Styles.detailMapNormalText, detailMap);
 
             if (material.GetTexture(kDetailMap))
@@ -416,11 +418,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetupBaseLitKeywords(material);
             SetupBaseLitMaterialPass(material);
 
-            ClothType clothType = (ClothType)material.GetFloat(kClothType);
-            CoreUtils.SetKeyword(material, "_FABRIC_SILK", clothType == ClothType.Silk);
-
-            NormalMapSpace normalMapSpace = (NormalMapSpace)material.GetFloat(kNormalMapSpace);
-
             // With details map, we always use a normal map and Unity provide a default (0, 0, 1) normal map for it
             CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap) || material.GetTexture(kDetailMap));
             CoreUtils.SetKeyword(material, "_TANGENTMAP", material.GetTexture(kTangentMap));
@@ -453,11 +450,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 material.DisableKeyword("_REQUIRE_UV3");
             }
 
-            BaseLitGUI.MaterialId materialId = (BaseLitGUI.MaterialId)material.GetFloat(kMaterialID);
-            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", materialId == BaseLitGUI.MaterialId.LitSSS);
-            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", materialId == BaseLitGUI.MaterialId.LitTranslucent || (materialId == BaseLitGUI.MaterialId.LitSSS && material.GetFloat(kTransmissionEnable) > 0.0f));
-
-            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_ANISOTROPY", materialId == BaseLitGUI.MaterialId.LitAniso);
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", material.GetFloat(kEnableSubsurfaceScattering) > 0.0f);
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", material.GetFloat(kEnableTransmission) > 0.0f);
+            ClothType clothType = (ClothType)material.GetFloat(kClothType);
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_ANISOTROPY", clothType == ClothType.Silk);
         }
     }
 } // namespace UnityEditor

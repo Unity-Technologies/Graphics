@@ -28,13 +28,13 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Builtin Data
     builtinData.opacity = alpha;
 
-    builtinData.bakeDiffuseLighting = SampleBakedGI(input.positionWS, surfaceData.normalWS, input.texCoord1, input.texCoord2);
+    builtinData.bakeDiffuseLighting = SampleBakedGI(input.positionRWS, surfaceData.normalWS, input.texCoord1, input.texCoord2);
 
     builtinData.emissiveColor = float3(0.0, 0.0, 0.0);
     builtinData.velocity = float2(0.0, 0.0);
 
 #ifdef SHADOWS_SHADOWMASK
-    float4 shadowMask = SampleShadowMask(input.positionWS, input.texCoord1);
+    float4 shadowMask = SampleShadowMask(input.positionRWS, input.texCoord1);
     builtinData.shadowMask0 = shadowMask.x;
     builtinData.shadowMask1 = shadowMask.y;
     builtinData.shadowMask2 = shadowMask.z;
