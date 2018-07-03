@@ -194,9 +194,9 @@ namespace UnityEditor.Experimental.Rendering
                         sp.blendDistancePositive.vector3Value = probeBlendDistancePositive;
                         sp.blendDistanceNegative.vector3Value = probeBlendDistanceNegative;
 
-                        if(sp.editorAdvancedModeEnabled.boolValue)
+                        //save advanced/simplified saved data
+                        if (sp.editorAdvancedModeEnabled.boolValue)
                         {
-                            //save advanced/simplified saved data
                             sp.editorAdvancedModeBlendDistancePositive.vector3Value = probeBlendDistancePositive;
                             sp.editorAdvancedModeBlendDistanceNegative.vector3Value = probeBlendDistanceNegative;
                         }
@@ -211,9 +211,9 @@ namespace UnityEditor.Experimental.Rendering
                         sp.blendNormalDistancePositive.vector3Value = probeBlendDistancePositive;
                         sp.blendNormalDistanceNegative.vector3Value = probeBlendDistanceNegative;
 
-                        if(sp.editorAdvancedModeEnabled.boolValue)
+                        //save advanced/simplified saved data
+                        if (sp.editorAdvancedModeEnabled.boolValue)
                         {
-                            //save advanced/simplified saved data
                             sp.editorAdvancedModeBlendNormalDistancePositive.vector3Value = probeBlendDistancePositive;
                             sp.editorAdvancedModeBlendNormalDistanceNegative.vector3Value = probeBlendDistanceNegative;
                         }

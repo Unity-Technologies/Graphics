@@ -158,8 +158,7 @@ namespace UnityEditor.Experimental.Rendering
                 p,
                 false,
                 maxBlendDistance,
-                CoreEditorUtils.GetContent("Blend Distance|Area around the probe where it is blended with other probes. Only used in deferred probes."),
-                advanced
+                CoreEditorUtils.GetContent("Blend Distance|Area around the probe where it is blended with other probes. Only used in deferred probes.")
                 );
             if (GUILayout.Button(toolbar_Contents[1], GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight((advanced ? 3 : 1) * (EditorGUIUtility.singleLineHeight + 3))))
             {
@@ -172,8 +171,7 @@ namespace UnityEditor.Experimental.Rendering
                 p,
                 true,
                 maxBlendDistance,
-                CoreEditorUtils.GetContent("Blend Normal Distance|Area around the probe where the normals influence the probe. Only used in deferred probes."),
-                advanced
+                CoreEditorUtils.GetContent("Blend Normal Distance|Area around the probe where the normals influence the probe. Only used in deferred probes.")
                 );
             if (GUILayout.Button(toolbar_Contents[2], GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight((advanced ? 3 : 1) * (EditorGUIUtility.singleLineHeight + 3))))
             {
@@ -189,7 +187,7 @@ namespace UnityEditor.Experimental.Rendering
             }
         }
 
-        static void Drawer_AdvancedBlendDistance(SerializedHDReflectionProbe p, bool isNormal, Vector3 maxBlendDistance, GUIContent content, bool advanced)
+        static void Drawer_AdvancedBlendDistance(SerializedHDReflectionProbe p, bool isNormal, Vector3 maxBlendDistance, GUIContent content)
         {
             SerializedProperty blendDistancePositive = isNormal ? p.blendNormalDistancePositive : p.blendDistancePositive;
             SerializedProperty blendDistanceNegative = isNormal ? p.blendNormalDistanceNegative : p.blendDistanceNegative;
@@ -201,7 +199,7 @@ namespace UnityEditor.Experimental.Rendering
 
             EditorGUILayout.BeginVertical();
 
-            if (advanced)
+            if (p.editorAdvancedModeEnabled.boolValue)
             {
                 EditorGUI.BeginChangeCheck();
                 Debug.Log(editorAdvancedModeBlendDistancePositive.vector3Value + " " + editorAdvancedModeBlendDistanceNegative.vector3Value);
