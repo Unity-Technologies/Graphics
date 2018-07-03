@@ -15,6 +15,8 @@ Shader "Hidden/HDRenderPipeline/OpaqueAtmosphericScattering"
 
             #pragma vertex Vert
             #pragma fragment Frag
+            
+            #pragma multi_compile _ DEBUG_DISPLAY
 
             // #pragma enable_d3d11_debug_symbols
 

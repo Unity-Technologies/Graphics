@@ -69,17 +69,20 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
         decalStart = 0;
     #endif
 
-        float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
+        float3 positionRWS = posInput.positionWS;
 
         // get world space ddx/ddy for adjacent pixels to be used later in mipmap lod calculation
-        float3 positionWSDdx = ddx(positionWS);
-        float3 positionWSDdy = ddy(positionWS);
+        float3 positionRWSDdx = ddx(positionRWS);
+        float3 positionRWSDdy = ddy(positionRWS);
 
         for (uint i = 0; i < decalCount; i++)
         {
             DecalData decalData = FetchDecal(decalStart, i);
 
-            float3 positionDS = mul(decalData.worldToDecal, float4(positionWS, 1.0)).xyz;
+            // Get the relative world camera to decal matrix
+            float4x4 worldToDecal = ApplyCameraTranslationToInverseMatrix(decalData.worldToDecal);
+
+            float3 positionDS = mul(worldToDecal, float4(positionRWS, 1.0)).xyz;
             positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.0f, 0.5);  // decal clip space
             if ((all(positionDS.xyz > 0.0f) && all(1.0f - positionDS.xyz > 0.0f)))
             {
@@ -105,8 +108,8 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
                 float2 sampleMask = clamp(positionDS.xz * decalData.maskScaleBias.xy + decalData.maskScaleBias.zw, maskMin, maskMax);
 
                 // need to compute the mipmap LOD manually because we are sampling inside a loop
-                float3 positionDSDdx = mul(decalData.worldToDecal, float4(positionWSDdx, 0.0)).xyz; // transform the derivatives to decal space, any translation is irrelevant
-                float3 positionDSDdy = mul(decalData.worldToDecal, float4(positionWSDdy, 0.0)).xyz;
+                float3 positionDSDdx = mul(worldToDecal, float4(positionRWSDdx, 0.0)).xyz; // transform the derivatives to decal space, any translation is irrelevant
+                float3 positionDSDdy = mul(worldToDecal, float4(positionRWSDdy, 0.0)).xyz;
 
                 float2 sampleDiffuseDdx = positionDSDdx.xz * decalData.diffuseScaleBias.xy; // factor in the atlas scale
                 float2 sampleDiffuseDdy = positionDSDdy.xz * decalData.diffuseScaleBias.xy;
