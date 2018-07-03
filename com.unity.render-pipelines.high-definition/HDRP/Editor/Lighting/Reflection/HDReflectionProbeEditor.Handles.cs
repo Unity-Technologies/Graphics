@@ -191,17 +191,40 @@ namespace UnityEditor.Experimental.Rendering
                 default:
                 case InfluenceType.Standard:
                     {
-                        sp.targetData.blendDistancePositive = probeBlendDistancePositive;
-                        sp.targetData.blendDistanceNegative = probeBlendDistanceNegative;
+                        sp.blendDistancePositive.vector3Value = probeBlendDistancePositive;
+                        sp.blendDistanceNegative.vector3Value = probeBlendDistanceNegative;
+
+                        if(sp.editorAdvancedModeEnabled.boolValue)
+                        {
+                            //save advanced/simplified saved data
+                            sp.editorAdvancedModeBlendDistancePositive.vector3Value = probeBlendDistancePositive;
+                            sp.editorAdvancedModeBlendDistanceNegative.vector3Value = probeBlendDistanceNegative;
+                        }
+                        else
+                        {
+                            sp.editorSimplifiedModeBlendDistance.floatValue = probeBlendDistancePositive.x;
+                        }
                         break;
                     }
                 case InfluenceType.Normal:
                     {
-                        sp.targetData.blendNormalDistancePositive = probeBlendDistancePositive;
-                        sp.targetData.blendNormalDistanceNegative = probeBlendDistanceNegative;
+                        sp.blendNormalDistancePositive.vector3Value = probeBlendDistancePositive;
+                        sp.blendNormalDistanceNegative.vector3Value = probeBlendDistanceNegative;
+
+                        if(sp.editorAdvancedModeEnabled.boolValue)
+                        {
+                            //save advanced/simplified saved data
+                            sp.editorAdvancedModeBlendNormalDistancePositive.vector3Value = probeBlendDistancePositive;
+                            sp.editorAdvancedModeBlendNormalDistanceNegative.vector3Value = probeBlendDistanceNegative;
+                        }
+                        else
+                        {
+                            sp.editorSimplifiedModeBlendNormalDistance.floatValue = probeBlendDistancePositive.x;
+                        }
                         break;
                     }
             }
+            sp.Apply();
         }
 
         static void Handle_InfluenceEditing(HDReflectionProbeUI s, SerializedHDReflectionProbe sp, Editor o)

@@ -12,7 +12,7 @@ namespace UnityEditor.Experimental.Rendering
 {
     public partial class HDReflectionProbeUI : BaseUI<SerializedHDReflectionProbe>
     {
-        const int k_AnimBoolSingleFieldCount = 5;
+        const int k_AnimBoolSingleFieldCount = 4;
         static readonly int k_ReflectionProbeModeCount = Enum.GetValues(typeof(ReflectionProbeMode)).Length;
         static readonly int k_ReflectionInfluenceShapeCount = Enum.GetValues(typeof(ShapeType)).Length;
         static readonly int k_AnimBoolsCount = k_ReflectionProbeModeCount + k_ReflectionInfluenceShapeCount + k_AnimBoolSingleFieldCount;
@@ -43,7 +43,6 @@ namespace UnityEditor.Experimental.Rendering
         public AnimBool isSectionExpandedInfluenceVolume { get { return m_AnimBools[1]; } }
         public AnimBool isSectionExpandedCaptureSettings { get { return m_AnimBools[2]; } }
         public AnimBool isSectionExpandedAdditional { get { return m_AnimBools[3]; } }
-        public AnimBool isSectionAdvancedInfluenceSettings { get { return m_AnimBools[4]; } }
 
         public bool HasAndClearOperation(Operation op)
         {
@@ -64,7 +63,6 @@ namespace UnityEditor.Experimental.Rendering
             isSectionExpandedCaptureSettings.value = true;
             isSectionExpandedInfluenceVolume.value = true;
             isSectionExpandedAdditional.value = false;
-            isSectionAdvancedInfluenceSettings.value = false;
 
             alternativeBoxInfluenceHandle = new Gizmo6FacesBox(monochromeFace:true, monochromeSelectedFace:true);
             alternativeBoxBlendHandle = new Gizmo6FacesBoxContained(alternativeBoxInfluenceHandle, monochromeFace:true, monochromeSelectedFace:true);
