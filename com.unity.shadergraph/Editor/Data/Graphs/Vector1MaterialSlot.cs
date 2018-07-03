@@ -16,10 +16,12 @@ namespace UnityEditor.ShaderGraph
         [SerializeField]
         float m_DefaultValue;
 
+        [SerializeField]
         string[] m_Labels;
 
         public Vector1MaterialSlot()
-        {}
+        {
+        }
 
         public Vector1MaterialSlot(
             int slotId,

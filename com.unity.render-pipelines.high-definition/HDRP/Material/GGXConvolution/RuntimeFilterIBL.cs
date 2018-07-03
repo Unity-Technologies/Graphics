@@ -59,7 +59,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (!m_GgxIblSampleData)
             {
-                m_GgxIblSampleData = new RenderTexture(m_GgxIblMaxSampleCount, k_GgxIblMipCountMinusOne, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+                m_GgxIblSampleData = new RenderTexture(m_GgxIblMaxSampleCount, k_GgxIblMipCountMinusOne, 0, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
                 m_GgxIblSampleData.useMipMap = false;
                 m_GgxIblSampleData.autoGenerateMips = false;
                 m_GgxIblSampleData.enableRandomWrite = true;

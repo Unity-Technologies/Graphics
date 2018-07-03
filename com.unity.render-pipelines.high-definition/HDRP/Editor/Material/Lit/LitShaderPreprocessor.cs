@@ -23,7 +23,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 return true;
 
             bool isGBufferPass = snippet.passName == "GBuffer";
-            bool isForwardPass = snippet.passName == "Forward";
+            //bool isForwardPass = snippet.passName == "Forward";
             bool isDepthOnlyPass = snippet.passName == "DepthOnly";
             bool isTransparentForwardPass = snippet.passName == "TransparentDepthPostpass" || snippet.passName == "TransparentBackface" || snippet.passName == "TransparentDepthPrepass";
 
@@ -54,11 +54,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         return true;
                 }
 
-                if (!hdrpAsset.renderPipelineSettings.supportOnlyForward)
+                // TODO: add an option to say we are using only the deferred shader variant (for Lit)
+                //if (0)
                 {
                     // If opaque and not forward only, then we only need the forward debug pass.
-                    if (isForwardPass && !inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
-                        return true;
+                    //if (isForwardPass && !inputData.shaderKeywordSet.IsEnabled(m_DebugDisplay))
+                    //    return true;
                 }
             }
 
