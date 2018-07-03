@@ -43,14 +43,14 @@ namespace UnityEditor.Experimental.Rendering
                 );
 
         public static readonly CED.IDrawer SectionProxyVolumeSettings = CED.FoldoutGroup(
-                "Proxy volume",
+                "Proxy Volume",
                 (s, p, o) => s.isSectionExpandedProxyVolume,
                 FoldoutOption.Indent,
                 CED.Action(Drawer_ProxyVolume)
                 );
 
         public static readonly CED.IDrawer SectionInfluenceVolumeSettings = CED.FoldoutGroup(
-                "Influence volume settings",
+                "Influence Volume",
                 (s, p, o) => s.isSectionExpandedInfluenceVolume,
                 FoldoutOption.Indent,
                 CED.Action(Drawer_InfluenceAdvancedSwitch),
@@ -65,14 +65,14 @@ namespace UnityEditor.Experimental.Rendering
         public static readonly CED.IDrawer SectionInfluenceProxyMismatch = CED.Action(Drawer_InfluenceProxyMissmatch);
 
         public static readonly CED.IDrawer SectionCaptureSettings = CED.FoldoutGroup(
-                "Capture settings",
+                "Capture Settings",
                 (s, p, o) => s.isSectionExpandedCaptureSettings,
                 FoldoutOption.Indent,
                 CED.Action(Drawer_CaptureSettings)
                 );
 
         public static readonly CED.IDrawer SectionAdditionalSettings = CED.FoldoutGroup(
-                "Artistic settings",
+                "Artistic Settings",
                 (s, p, o) => s.isSectionExpandedAdditional,
                 FoldoutOption.Indent,
                 CED.Action(Drawer_AdditionalSettings)
