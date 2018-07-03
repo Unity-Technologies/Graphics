@@ -305,6 +305,7 @@ namespace UnityEditor.Experimental.Rendering
                 bool advanced = p.editorAdvancedModeEnabled.boolValue;
                 advanced = !GUILayout.Toggle(!advanced, CoreEditorUtils.GetContent("Normal|Normal parameters mode (only change for box shape)."), EditorStyles.miniButtonLeft, GUILayout.Width(60f), GUILayout.ExpandWidth(false));
                 advanced = GUILayout.Toggle(advanced, CoreEditorUtils.GetContent("Advanced|Advanced parameters mode (only change for box shape)."), EditorStyles.miniButtonRight, GUILayout.Width(60f), GUILayout.ExpandWidth(false));
+                s.alternativeBoxBlendHandle.allHandleControledByOne = s.alternativeBoxBlendNormalHandle.allHandleControledByOne = !advanced;
                 if (p.editorAdvancedModeEnabled.boolValue ^ advanced)
                 {
                     p.editorAdvancedModeEnabled.boolValue = advanced;
@@ -320,7 +321,6 @@ namespace UnityEditor.Experimental.Rendering
                         p.blendDistanceNegative.vector3Value = p.blendDistancePositive.vector3Value = Vector3.one * p.editorSimplifiedModeBlendDistance.floatValue;
                         p.blendNormalDistanceNegative.vector3Value = p.blendNormalDistancePositive.vector3Value = Vector3.one * p.editorSimplifiedModeBlendNormalDistance.floatValue;
                     }
-                    s.alternativeBoxBlendHandle.allHandleControledByOne = s.alternativeBoxBlendNormalHandle.allHandleControledByOne = !advanced;
                     p.Apply();
                 }
             }
