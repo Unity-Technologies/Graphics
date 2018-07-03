@@ -82,5 +82,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 editorAdvancedModeEnabled.boolValue = true;
             }
         }
+
+        public void Apply()
+        {
+            root.serializedObject.ApplyModifiedProperties();
+        }
     }
 }

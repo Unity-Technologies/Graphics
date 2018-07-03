@@ -25,9 +25,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public static readonly CED.IDrawer SectionProbeModeRealtimeSettings = CED.Action(Drawer_SectionProbeModeRealtimeSettings);
         public static readonly CED.IDrawer SectionBakeButton = CED.Action(Drawer_SectionBakeButton);
 
-        public static readonly CED.IDrawer SectionFoldoutInfluenceSettings = CED.FoldoutGroup(
+        public static readonly CED.IDrawer SectionFoldoutAdditionalSettings = CED.FoldoutGroup(
                 "Artistic Settings",
-                (s, d, o) => s.isSectionExpandedInfluenceSettings,
+                (s, d, o) => s.isSectionExpendedAdditionalSettings,
                 FoldoutOption.Indent,
                 CED.Action(Drawer_SectionInfluenceSettings)
                 );
@@ -82,7 +82,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         ),
                     CED.Action(Drawer_DifferentShapeError),
                     SectionFoldoutCaptureSettings,
-                    SectionFoldoutInfluenceSettings,
+                    SectionFoldoutAdditionalSettings,
                     CED.Select(
                         (s, d, o) => s.frameSettings,
                         (s, d, o) => d.frameSettings,
