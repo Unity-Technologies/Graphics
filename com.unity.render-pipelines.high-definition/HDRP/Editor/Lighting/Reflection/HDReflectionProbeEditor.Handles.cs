@@ -85,7 +85,6 @@ namespace UnityEditor.Experimental.Rendering
 
         static void Handle_InfluenceFadeEditing(HDReflectionProbeUI s, SerializedHDReflectionProbe sp, Editor o, InfluenceType influenceType)
         {
-            BoxBoundsHandle blendBox;
             Gizmo6FacesBoxContained alternativeBlendBox;
             SphereBoundsHandle sphereHandle;
             Vector3 probeBlendDistancePositive, probeBlendDistanceNegative;
@@ -96,7 +95,6 @@ namespace UnityEditor.Experimental.Rendering
                 case InfluenceType.Standard:
                     {
                         alternativeBlendBox = s.alternativeBoxBlendHandle;
-                        blendBox = s.boxBlendHandle;
                         sphereHandle = s.sphereBlendHandle;
                         probeBlendDistancePositive = sp.targetData.blendDistancePositive;
                         probeBlendDistanceNegative = sp.targetData.blendDistanceNegative;
@@ -106,7 +104,6 @@ namespace UnityEditor.Experimental.Rendering
                 case InfluenceType.Normal:
                     {
                         alternativeBlendBox = s.alternativeBoxBlendNormalHandle;
-                        blendBox = s.boxBlendNormalHandle;
                         sphereHandle = s.sphereBlendNormalHandle;
                         probeBlendDistancePositive = sp.targetData.blendNormalDistancePositive;
                         probeBlendDistanceNegative = sp.targetData.blendNormalDistanceNegative;
@@ -236,7 +233,7 @@ namespace UnityEditor.Experimental.Rendering
                             sp.target.center = center;
                             sp.target.size = size;
 
-                            ApplyConstraintsOnTargets(s, sp, o);
+                            //ApplyConstraintsOnTargets(s, sp, o);
 
                             EditorUtility.SetDirty(sp.target);
                             EditorUtility.SetDirty(sp.targetData);
@@ -265,7 +262,7 @@ namespace UnityEditor.Experimental.Rendering
 
                             sp.targetData.influenceSphereRadius = influenceRadius;
 
-                            ApplyConstraintsOnTargets(s, sp, o);
+                            //ApplyConstraintsOnTargets(s, sp, o);
 
                             EditorUtility.SetDirty(sp.target);
                             EditorUtility.SetDirty(sp.targetData);
@@ -342,7 +339,7 @@ namespace UnityEditor.Experimental.Rendering
 
             var reflectionData = reflectionProbe.GetComponent<HDAdditionalReflectionData>();
 
-            Gizmos_Influence(reflectionProbe, reflectionData, null, false);
+            //Gizmos_Influence(reflectionProbe, reflectionData, e, false);
             Gizmos_InfluenceFade(reflectionProbe, reflectionData, null, InfluenceType.Standard, false);
             Gizmos_InfluenceFade(reflectionProbe, reflectionData, null, InfluenceType.Normal, false);
 
@@ -400,13 +397,13 @@ namespace UnityEditor.Experimental.Rendering
             {
                 case ShapeType.Box:
                     {
-                        if(e != null)
+                        Gizmos.color = color;
+                        if(e != null) // e == null may occure when editor have still not been created at selection while the tool is not used for this part
                         {
                             box.DrawHull(isEdit);
                         }
                         else
                         {
-                            Gizmos.color = color;
                             if (isEdit)
                                 Gizmos.DrawCube(p.center + boxCenterOffset, p.size + boxSizeOffset);
                             else
@@ -439,18 +436,8 @@ namespace UnityEditor.Experimental.Rendering
             {
                 case ShapeType.Box:
                     {
-                        if(e != null)
-                        {
-                            e.m_UIState.alternativeBoxInfluenceHandle.DrawHull(isEdit);
-                        }
-                        else
-                        {
-                            Gizmos.color = isEdit ? k_GizmoThemeColorExtentFace : k_GizmoThemeColorExtent;
-                            if (isEdit)
-                                Gizmos.DrawCube(p.center, p.size);
-                            else
-                                Gizmos.DrawWireCube(p.center, p.size);
-                        }
+                        Gizmos.color = k_GizmoThemeColorExtentFace;
+                        e.m_UIState.alternativeBoxInfluenceHandle.DrawHull(isEdit);
                         break;
                     }
                 case ShapeType.Sphere:
