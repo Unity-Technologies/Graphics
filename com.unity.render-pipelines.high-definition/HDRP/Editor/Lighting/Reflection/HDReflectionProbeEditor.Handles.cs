@@ -28,7 +28,7 @@ namespace UnityEditor.Experimental.Rendering
         internal static Color k_GizmoThemeColorDisabled = new Color(0x99 / 255f, 0x89 / 255f, 0x59 / 255f, 0x10 / 255f);
         internal static Color k_GizmoThemeColorDisabledFace = new Color(0x99 / 255f, 0x89 / 255f, 0x59 / 255f, 0x10 / 255f);
 
-        internal static Color[][] k_handlesColor = new Color[][]
+        internal static readonly Color[][] k_handlesColor = new Color[][]
         {
             new Color[]
             {
