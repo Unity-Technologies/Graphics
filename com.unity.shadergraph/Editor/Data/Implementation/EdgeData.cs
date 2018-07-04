@@ -1,20 +1,23 @@
 using System;
+using UnityEditor.Graphing;
+using UnityEditor.ShaderGraph;
 using UnityEngine;
 
-namespace UnityEditor.Graphing
+namespace UnityEditor.ShaderGraph
 {
+    [FormerName("UnityEditor.Graphing.Edge")]
     [Serializable]
-    public class Edge : IEdge
+    public class EdgeData
     {
         [SerializeField]
         private SlotReference m_OutputSlot;
         [SerializeField]
         private SlotReference m_InputSlot;
 
-        public Edge()
+        public EdgeData()
         {}
 
-        public Edge(SlotReference outputSlot, SlotReference inputSlot)
+        public EdgeData(SlotReference outputSlot, SlotReference inputSlot)
         {
             m_OutputSlot = outputSlot;
             m_InputSlot = inputSlot;
@@ -30,14 +33,9 @@ namespace UnityEditor.Graphing
             get { return m_InputSlot; }
         }
 
-        protected bool Equals(Edge other)
+        protected bool Equals(EdgeData other)
         {
             return Equals(m_OutputSlot, other.m_OutputSlot) && Equals(m_InputSlot, other.m_InputSlot);
-        }
-
-        public bool Equals(IEdge other)
-        {
-            return Equals(other as object);
         }
 
         public override bool Equals(object obj)
@@ -45,7 +43,7 @@ namespace UnityEditor.Graphing
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((Edge)obj);
+            return Equals((EdgeData)obj);
         }
 
         public override int GetHashCode()

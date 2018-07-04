@@ -552,7 +552,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             GraphUtil.GenerateSurfaceDescriptionFunction(
                 pixelNodes,
                 masterNode,
-                masterNode.owner as AbstractMaterialGraph,
+                masterNode.owner as GraphData,
                 pixelGraphEvalFunction,
                 functionRegistry,
                 sharedProperties,
@@ -585,7 +585,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // -------------------------------------
                 // Generate Vertex Description function
                 GraphUtil.GenerateVertexDescriptionFunction(
-                    masterNode.owner as AbstractMaterialGraph,
+                    masterNode.owner as GraphData,
                     vertexGraphEvalFunction,
                     functionRegistry,
                     sharedProperties,

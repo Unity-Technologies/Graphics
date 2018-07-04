@@ -19,7 +19,7 @@ namespace UnityEditor.Graphing
         void RegisterCallback(OnNodeModified callback);
         void UnregisterCallback(OnNodeModified callback);
         void Dirty(ModificationScope scope);
-        IGraph owner { get; set; }
+        GraphData owner { get; set; }
         Guid guid { get; }
         Identifier tempId { get; set; }
         Guid RewriteGuid();

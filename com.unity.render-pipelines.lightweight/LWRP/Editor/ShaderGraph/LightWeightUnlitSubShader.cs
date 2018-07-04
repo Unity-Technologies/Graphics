@@ -218,7 +218,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // Generate Vertex Description function
 
             GraphUtil.GenerateVertexDescriptionFunction(
-                masterNode.owner as AbstractMaterialGraph,
+                masterNode.owner as GraphData,
                 vertexDescriptionFunction,
                 functionRegistry,
                 shaderProperties,
@@ -267,7 +267,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             GraphUtil.GenerateSurfaceDescriptionFunction(
                 pixelNodes,
                 masterNode,
-                masterNode.owner as AbstractMaterialGraph,
+                masterNode.owner as GraphData,
                 surfaceDescriptionFunction,
                 functionRegistry,
                 shaderProperties,
@@ -465,7 +465,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // Generate Vertex Description function
 
             GraphUtil.GenerateVertexDescriptionFunction(
-                masterNode.owner as AbstractMaterialGraph,
+                masterNode.owner as GraphData,
                 vertexDescriptionFunction,
                 functionRegistry,
                 shaderProperties,

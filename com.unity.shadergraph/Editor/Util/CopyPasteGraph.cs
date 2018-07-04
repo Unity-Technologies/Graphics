@@ -10,7 +10,7 @@ namespace UnityEditor.Graphing.Util
     sealed class CopyPasteGraph : ISerializationCallbackReceiver
     {
         [NonSerialized]
-        HashSet<IEdge> m_Edges = new HashSet<IEdge>();
+        HashSet<EdgeData> m_Edges = new HashSet<EdgeData>();
 
         [NonSerialized]
         HashSet<INode> m_Nodes = new HashSet<INode>();
@@ -44,7 +44,7 @@ namespace UnityEditor.Graphing.Util
 
         public CopyPasteGraph() {}
 
-        public CopyPasteGraph(Guid sourceGraphGuid, IEnumerable<INode> nodes, IEnumerable<IEdge> edges, IEnumerable<IShaderProperty> properties, IEnumerable<IShaderProperty> metaProperties)
+        public CopyPasteGraph(Guid sourceGraphGuid, IEnumerable<INode> nodes, IEnumerable<EdgeData> edges, IEnumerable<IShaderProperty> properties, IEnumerable<IShaderProperty> metaProperties)
         {
             m_SourceGraphGuid = new SerializableGuid(sourceGraphGuid);
 
@@ -70,7 +70,7 @@ namespace UnityEditor.Graphing.Util
             m_Nodes.Add(node);
         }
 
-        public void AddEdge(IEdge edge)
+        public void AddEdge(EdgeData edge)
         {
             m_Edges.Add(edge);
         }
@@ -90,7 +90,7 @@ namespace UnityEditor.Graphing.Util
             return m_Nodes.OfType<T>();
         }
 
-        public IEnumerable<IEdge> edges
+        public IEnumerable<EdgeData> edges
         {
             get { return m_Edges; }
         }
@@ -114,7 +114,7 @@ namespace UnityEditor.Graphing.Util
         {
             m_SerializeableSourceGraphGuid = SerializationHelper.Serialize(m_SourceGraphGuid);
             m_SerializableNodes = SerializationHelper.Serialize<INode>(m_Nodes);
-            m_SerializableEdges = SerializationHelper.Serialize<IEdge>(m_Edges);
+            m_SerializableEdges = SerializationHelper.Serialize<EdgeData>(m_Edges);
             m_SerilaizeableProperties = SerializationHelper.Serialize<IShaderProperty>(m_Properties);
             m_SerializableMetaProperties = SerializationHelper.Serialize<IShaderProperty>(m_MetaProperties);
         }
@@ -129,7 +129,7 @@ namespace UnityEditor.Graphing.Util
                 m_Nodes.Add(node);
             m_SerializableNodes = null;
 
-            var edges = SerializationHelper.Deserialize<IEdge>(m_SerializableEdges, GraphUtil.GetLegacyTypeRemapping());
+            var edges = SerializationHelper.Deserialize<EdgeData>(m_SerializableEdges, GraphUtil.GetLegacyTypeRemapping());
             m_Edges.Clear();
             foreach (var edge in edges)
                 m_Edges.Add(edge);

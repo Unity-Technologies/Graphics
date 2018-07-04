@@ -66,7 +66,7 @@ namespace UnityEditor.ShaderGraph
 
             var shaderProperties = new PropertyCollector();
 
-            var abstractMaterialGraph = owner as AbstractMaterialGraph;
+            var abstractMaterialGraph = owner as GraphData;
             if (abstractMaterialGraph != null)
                 abstractMaterialGraph.CollectShaderProperties(shaderProperties, mode);
 

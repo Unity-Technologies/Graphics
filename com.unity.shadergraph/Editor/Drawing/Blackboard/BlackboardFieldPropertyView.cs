@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     class BlackboardFieldPropertyView : VisualElement
     {
-        readonly AbstractMaterialGraph m_Graph;
+        readonly GraphData m_Graph;
 
         IShaderProperty m_Property;
         Toggle m_ExposedToogle;
@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         IManipulator m_ResetReferenceMenu;
 
-        public BlackboardFieldPropertyView(AbstractMaterialGraph graph, IShaderProperty property)
+        public BlackboardFieldPropertyView(GraphData graph, IShaderProperty property)
         {
             AddStyleSheetPath("Styles/ShaderGraphBlackboard");
             m_Graph = graph;

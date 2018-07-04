@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     class BlackboardProvider
     {
-        readonly AbstractMaterialGraph m_Graph;
+        readonly GraphData m_Graph;
         readonly Texture2D m_ExposedIcon;
         readonly Dictionary<Guid, BlackboardRow> m_PropertyRows;
         readonly BlackboardSection m_Section;
@@ -35,7 +35,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         //    set { m_ResizeBorderFrame.OnResizeFinished = value; }
         //}
 
-        public BlackboardProvider(string assetName, AbstractMaterialGraph graph)
+        public BlackboardProvider(string assetName, GraphData graph)
         {
             m_Graph = graph;
             m_ExposedIcon = Resources.Load<Texture2D>("GraphView/Nodes/BlackboardFieldExposed");

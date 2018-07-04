@@ -1,9 +1,10 @@
 using System;
+using UnityEditor.ShaderGraph;
 using UnityEngine;
 
 namespace UnityEditor.Graphing
 {
-    public class GraphObject : ScriptableObject, IGraphObject, ISerializationCallbackReceiver
+    public class GraphObject : ScriptableObject, ISerializationCallbackReceiver
     {
         [SerializeField]
         SerializationHelper.JSONSerializedElement m_SerializedGraph;
@@ -11,10 +12,10 @@ namespace UnityEditor.Graphing
         [SerializeField]
         bool m_IsDirty;
 
-        IGraph m_Graph;
-        IGraph m_DeserializedGraph;
+        GraphData m_Graph;
+        GraphData m_DeserializedGraph;
 
-        public IGraph graph
+        public GraphData graph
         {
             get { return m_Graph; }
             set
@@ -47,7 +48,8 @@ namespace UnityEditor.Graphing
 
         public void OnAfterDeserialize()
         {
-            var deserializedGraph = SerializationHelper.Deserialize<IGraph>(m_SerializedGraph, null);
+            m_DeserializedGraph = null;
+            var deserializedGraph = SerializationHelper.Deserialize<GraphData>(m_SerializedGraph, null);
             if (graph == null)
                 graph = deserializedGraph;
             else

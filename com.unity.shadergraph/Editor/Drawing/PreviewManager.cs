@@ -12,7 +12,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     public class PreviewManager : IDisposable
     {
-        AbstractMaterialGraph m_Graph;
+        GraphData m_Graph;
         List<PreviewRenderData> m_RenderDatas = new List<PreviewRenderData>();
         PreviewRenderData m_MasterRenderData;
         List<Identifier> m_Identifiers = new List<Identifier>();
@@ -32,7 +32,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             get { return m_MasterRenderData; }
         }
 
-        public PreviewManager(AbstractMaterialGraph graph)
+        public PreviewManager(GraphData graph)
         {
             m_Graph = graph;
             m_PreviewMaterial = new Material(Shader.Find("Unlit/Color")) { hideFlags = HideFlags.HideInHierarchy };
@@ -114,7 +114,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         }
 
         Stack<Identifier> m_Wavefront = new Stack<Identifier>();
-        List<IEdge> m_Edges = new List<IEdge>();
+        List<EdgeData> m_Edges = new List<EdgeData>();
         List<MaterialSlot> m_Slots = new List<MaterialSlot>();
 
         void PropagateNodeSet(IndexSet nodeSet, bool forward = true, IEnumerable<Identifier> initialWavefront = null)

@@ -9,9 +9,33 @@ using UnityEditor.Graphing.Util;
 namespace UnityEditor.ShaderGraph
 {
     [Serializable]
-    public abstract class AbstractMaterialGraph : IGraph, ISerializationCallbackReceiver, IGenerateProperties
+    public sealed class GraphData : ISerializationCallbackReceiver, IGenerateProperties
     {
-        public IGraphObject owner { get; set; }
+        public GraphObject owner { get; set; }
+
+        public bool isSubGraph { get; internal set; }
+
+        [NonSerialized]
+        private SubGraphOutputNode m_OutputNode;
+
+        public SubGraphOutputNode outputNode
+        {
+            get
+            {
+                if (!isSubGraph)
+                    return null;
+                // find existing node
+                if (m_OutputNode == null)
+                    m_OutputNode = GetNodes<SubGraphOutputNode>().FirstOrDefault();
+
+                return m_OutputNode;
+            }
+        }
+
+        public IMasterNode masterNode
+        {
+            get { return isSubGraph ? null : GetNodes<INode>().OfType<IMasterNode>().FirstOrDefault(); }
+        }
 
         #region Property data
 
@@ -108,9 +132,9 @@ namespace UnityEditor.ShaderGraph
         #region Edge data
 
         [NonSerialized]
-        List<IEdge> m_Edges = new List<IEdge>();
+        List<EdgeData> m_Edges = new List<EdgeData>();
 
-        public IEnumerable<IEdge> edges
+        public IEnumerable<EdgeData> edges
         {
             get { return m_Edges; }
         }
@@ -119,20 +143,20 @@ namespace UnityEditor.ShaderGraph
         List<SerializationHelper.JSONSerializedElement> m_SerializableEdges = new List<SerializationHelper.JSONSerializedElement>();
 
         [NonSerialized]
-        Dictionary<Guid, List<IEdge>> m_NodeEdges = new Dictionary<Guid, List<IEdge>>();
+        Dictionary<Guid, List<EdgeData>> m_NodeEdges = new Dictionary<Guid, List<EdgeData>>();
 
         [NonSerialized]
-        List<IEdge> m_AddedEdges = new List<IEdge>();
+        List<EdgeData> m_AddedEdges = new List<EdgeData>();
 
-        public IEnumerable<IEdge> addedEdges
+        public IEnumerable<EdgeData> addedEdges
         {
             get { return m_AddedEdges; }
         }
 
         [NonSerialized]
-        List<IEdge> m_RemovedEdges = new List<IEdge>();
+        List<EdgeData> m_RemovedEdges = new List<EdgeData>();
 
-        public IEnumerable<IEdge> removedEdges
+        public IEnumerable<EdgeData> removedEdges
         {
             get { return m_RemovedEdges; }
         }
@@ -177,11 +201,18 @@ namespace UnityEditor.ShaderGraph
             m_MovedProperties.Clear();
         }
 
-        public virtual void AddNode(INode node)
+        public /*virtual*/ void AddNode(INode node)
         {
-            if (node is AbstractMaterialNode)
+            var materialNode = node as AbstractMaterialNode;
+            if (materialNode != null)
             {
-                AddNodeNoValidate(node);
+                if (isSubGraph && !materialNode.allowedInSubGraph)
+                {
+                    Debug.LogWarningFormat("Attempting to add {0} to Sub Graph. This is not allowed.", materialNode.GetType());
+                    return;
+                }
+
+                AddNodeNoValidate(materialNode);
                 ValidateGraph();
             }
             else
@@ -190,9 +221,8 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        void AddNodeNoValidate(INode node)
+        void AddNodeNoValidate(AbstractMaterialNode materialNode)
         {
-            var materialNode = (AbstractMaterialNode)node;
             materialNode.owner = this;
             if (m_FreeNodeTempIds.Any())
             {
@@ -231,20 +261,20 @@ namespace UnityEditor.ShaderGraph
             m_RemovedNodes.Add(materialNode);
         }
 
-        void AddEdgeToNodeEdges(IEdge edge)
+        void AddEdgeToNodeEdges(EdgeData edge)
         {
-            List<IEdge> inputEdges;
+            List<EdgeData> inputEdges;
             if (!m_NodeEdges.TryGetValue(edge.inputSlot.nodeGuid, out inputEdges))
-                m_NodeEdges[edge.inputSlot.nodeGuid] = inputEdges = new List<IEdge>();
+                m_NodeEdges[edge.inputSlot.nodeGuid] = inputEdges = new List<EdgeData>();
             inputEdges.Add(edge);
 
-            List<IEdge> outputEdges;
+            List<EdgeData> outputEdges;
             if (!m_NodeEdges.TryGetValue(edge.outputSlot.nodeGuid, out outputEdges))
-                m_NodeEdges[edge.outputSlot.nodeGuid] = outputEdges = new List<IEdge>();
+                m_NodeEdges[edge.outputSlot.nodeGuid] = outputEdges = new List<EdgeData>();
             outputEdges.Add(edge);
         }
 
-        IEdge ConnectNoValidate(SlotReference fromSlotRef, SlotReference toSlotRef)
+        EdgeData ConnectNoValidate(SlotReference fromSlotRef, SlotReference toSlotRef)
         {
             var fromNode = GetNodeFromGuid(fromSlotRef.nodeGuid);
             var toNode = GetNodeFromGuid(toSlotRef.nodeGuid);
@@ -279,7 +309,7 @@ namespace UnityEditor.ShaderGraph
                 RemoveEdgeNoValidate(edge);
             }
 
-            var newEdge = new Edge(outputSlot, inputSlot);
+            var newEdge = new EdgeData(outputSlot, inputSlot);
             m_Edges.Add(newEdge);
             m_AddedEdges.Add(newEdge);
             AddEdgeToNodeEdges(newEdge);
@@ -288,20 +318,20 @@ namespace UnityEditor.ShaderGraph
             return newEdge;
         }
 
-        public virtual IEdge Connect(SlotReference fromSlotRef, SlotReference toSlotRef)
+        public /*virtual*/ EdgeData Connect(SlotReference fromSlotRef, SlotReference toSlotRef)
         {
             var newEdge = ConnectNoValidate(fromSlotRef, toSlotRef);
             ValidateGraph();
             return newEdge;
         }
 
-        public virtual void RemoveEdge(IEdge e)
+        public /*virtual*/ void RemoveEdge(EdgeData e)
         {
             RemoveEdgeNoValidate(e);
             ValidateGraph();
         }
 
-        public void RemoveElements(IEnumerable<INode> nodes, IEnumerable<IEdge> edges)
+        public void RemoveElements(IEnumerable<INode> nodes, IEnumerable<EdgeData> edges)
         {
             foreach (var edge in edges.ToArray())
                 RemoveEdgeNoValidate(edge);
@@ -312,18 +342,18 @@ namespace UnityEditor.ShaderGraph
             ValidateGraph();
         }
 
-        protected void RemoveEdgeNoValidate(IEdge e)
+        void RemoveEdgeNoValidate(EdgeData e)
         {
             e = m_Edges.FirstOrDefault(x => x.Equals(e));
             if (e == null)
                 throw new ArgumentException("Trying to remove an edge that does not exist.", "e");
             m_Edges.Remove(e);
 
-            List<IEdge> inputNodeEdges;
+            List<EdgeData> inputNodeEdges;
             if (m_NodeEdges.TryGetValue(e.inputSlot.nodeGuid, out inputNodeEdges))
                 inputNodeEdges.Remove(e);
 
-            List<IEdge> outputNodeEdges;
+            List<EdgeData> outputNodeEdges;
             if (m_NodeEdges.TryGetValue(e.outputSlot.nodeGuid, out outputNodeEdges))
                 outputNodeEdges.Remove(e);
 
@@ -362,7 +392,14 @@ namespace UnityEditor.ShaderGraph
             return default(T);
         }
 
-        public void GetEdges(SlotReference s, List<IEdge> foundEdges)
+        public IEnumerable<EdgeData> GetEdges(SlotReference s)
+        {
+            var foundEdges = new List<EdgeData>();
+            GetEdges(s, foundEdges);
+            return foundEdges;
+        }
+
+        public void GetEdges(SlotReference s, List<EdgeData> foundEdges)
         {
             var node = GetNodeFromGuid(s.nodeGuid);
             if (node == null)
@@ -372,7 +409,7 @@ namespace UnityEditor.ShaderGraph
             }
             ISlot slot = node.FindSlot<ISlot>(s.slotId);
 
-            List<IEdge> candidateEdges;
+            List<EdgeData> candidateEdges;
             if (!m_NodeEdges.TryGetValue(s.nodeGuid, out candidateEdges))
                 return;
 
@@ -384,10 +421,27 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public virtual void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
+        public /*virtual*/ void CollectShaderProperties(PropertyCollector collector, GenerationMode generationMode)
         {
-            foreach (var prop in properties)
-                collector.AddShaderProperty(prop);
+            if (isSubGraph)
+            {
+                var activeNodes = new List<AbstractMaterialNode>();
+                NodeUtils.DepthFirstCollectNodesFromNode(activeNodes, outputNode);
+                foreach (var node in activeNodes)
+                    node.CollectShaderProperties(collector, generationMode);
+            }
+
+            // if we are previewing the graph we need to
+            // export 'exposed props' if we are 'for real'
+            // then we are outputting the graph in the
+            // nested context and the needed values will
+            // be copied into scope.
+            if (!isSubGraph || generationMode == GenerationMode.Preview)
+            {
+                foreach (var prop in properties)
+                    collector.AddShaderProperty(prop);
+            }
+
         }
 
         public void AddShaderProperty(IShaderProperty property)
@@ -470,7 +524,7 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        static List<IEdge> s_TempEdges = new List<IEdge>();
+        static List<EdgeData> s_TempEdges = new List<EdgeData>();
 
         public void ReplacePropertyNodeWithConcreteNode(PropertyNode propertyNode)
         {
@@ -485,16 +539,17 @@ namespace UnityEditor.ShaderGraph
                 return;
 
             var node = property.ToConcreteNode();
-            if (!(node is AbstractMaterialNode))
+            var materialNode = node as AbstractMaterialNode;
+            if (materialNode == null)
                 return;
 
             var slot = propertyNode.FindOutputSlot<MaterialSlot>(PropertyNode.OutputSlotId);
-            var newSlot = node.GetOutputSlots<MaterialSlot>().FirstOrDefault(s => s.valueType == slot.valueType);
+            var newSlot = materialNode.GetOutputSlots<MaterialSlot>().FirstOrDefault(s => s.valueType == slot.valueType);
             if (newSlot == null)
                 return;
 
-            node.drawState = propertyNode.drawState;
-            AddNodeNoValidate(node);
+            materialNode.drawState = propertyNode.drawState;
+            AddNodeNoValidate(materialNode);
 
             foreach (var edge in this.GetEdges(slot.slotReference))
                 ConnectNoValidate(newSlot.slotReference, edge.inputSlot);
@@ -550,12 +605,8 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public void ReplaceWith(IGraph other)
+        public void ReplaceWith(GraphData other)
         {
-            var otherMg = other as AbstractMaterialGraph;
-            if (otherMg == null)
-                throw new ArgumentException("Can only replace with another AbstractMaterialGraph", "other");
-
             using (var removedPropertiesPooledObject = ListPool<Guid>.GetDisposable())
             {
                 var removedPropertyGuids = removedPropertiesPooledObject.value;
@@ -564,7 +615,7 @@ namespace UnityEditor.ShaderGraph
                 foreach (var propertyGuid in removedPropertyGuids)
                     RemoveShaderPropertyNoValidate(propertyGuid);
             }
-            foreach (var otherProperty in otherMg.properties)
+            foreach (var otherProperty in other.properties)
             {
                 if (!properties.Any(p => p.guid == otherProperty.guid))
                     AddShaderProperty(otherProperty);
@@ -575,7 +626,7 @@ namespace UnityEditor.ShaderGraph
 
             // Current tactic is to remove all nodes and edges and then re-add them, such that depending systems
             // will re-initialize with new references.
-            using (var pooledList = ListPool<IEdge>.GetDisposable())
+            using (var pooledList = ListPool<EdgeData>.GetDisposable())
             {
                 var removedNodeEdges = pooledList.value;
                 removedNodeEdges.AddRange(m_Edges);
@@ -593,7 +644,7 @@ namespace UnityEditor.ShaderGraph
 
             ValidateGraph();
 
-            foreach (var node in other.GetNodes<INode>())
+            foreach (var node in other.GetNodes<AbstractMaterialNode>())
                 AddNodeNoValidate(node);
 
             foreach (var edge in other.edges)
@@ -602,7 +653,7 @@ namespace UnityEditor.ShaderGraph
             ValidateGraph();
         }
 
-        internal void PasteGraph(CopyPasteGraph graphToPaste, List<INode> remappedNodes, List<IEdge> remappedEdges)
+        internal void PasteGraph(CopyPasteGraph graphToPaste, List<INode> remappedNodes, List<EdgeData> remappedEdges)
         {
             var nodeGuidMap = new Dictionary<Guid, Guid>();
             foreach (var node in graphToPaste.GetNodes<INode>())
@@ -670,12 +721,13 @@ namespace UnityEditor.ShaderGraph
         public void OnBeforeSerialize()
         {
             m_SerializableNodes = SerializationHelper.Serialize(GetNodes<INode>());
-            m_SerializableEdges = SerializationHelper.Serialize<IEdge>(m_Edges);
+            m_SerializableEdges = SerializationHelper.Serialize<EdgeData>(m_Edges);
             m_SerializedProperties = SerializationHelper.Serialize<IShaderProperty>(m_Properties);
         }
 
-        public virtual void OnAfterDeserialize()
+        public /*virtual*/ void OnAfterDeserialize()
         {
+            m_OutputNode = null;
             // have to deserialize 'globals' before nodes
             m_Properties = SerializationHelper.Deserialize<IShaderProperty>(m_SerializedProperties, GraphUtil.GetLegacyTypeRemapping());
             var nodes = SerializationHelper.Deserialize<INode>(m_SerializableNodes, GraphUtil.GetLegacyTypeRemapping());
@@ -692,7 +744,7 @@ namespace UnityEditor.ShaderGraph
 
             m_SerializableNodes = null;
 
-            m_Edges = SerializationHelper.Deserialize<IEdge>(m_SerializableEdges, GraphUtil.GetLegacyTypeRemapping());
+            m_Edges = SerializationHelper.Deserialize<EdgeData>(m_SerializableEdges, GraphUtil.GetLegacyTypeRemapping());
             m_SerializableEdges = null;
             foreach (var edge in m_Edges)
                 AddEdgeToNodeEdges(edge);
@@ -705,17 +757,11 @@ namespace UnityEditor.ShaderGraph
                 node.OnEnable();
             }
         }
-    }
 
-    [Serializable]
-    public class InspectorPreviewData
-    {
-        public SerializableMesh serializedMesh = new SerializableMesh();
-
-        [NonSerialized]
-        public Quaternion rotation = Quaternion.identity;
-
-        [NonSerialized]
-        public float scale = 1f;
+        public void LoadedFromDisk()
+        {
+            OnEnable();
+            ValidateGraph();
+        }
     }
 }

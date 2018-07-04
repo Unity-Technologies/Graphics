@@ -27,7 +27,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         MaterialGraphView m_GraphView;
         MasterPreviewView m_MasterPreviewView;
 
-        AbstractMaterialGraph m_Graph;
+        GraphData m_Graph;
         PreviewManager m_PreviewManager;
         SearchWindowProvider m_SearchWindowProvider;
         EdgeConnectorListener m_EdgeConnectorListener;
@@ -57,7 +57,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             set { m_PreviewManager = value; }
         }
 
-        public GraphEditorView(EditorWindow editorWindow, AbstractMaterialGraph graph, string assetName)
+        public GraphEditorView(EditorWindow editorWindow, GraphData graph, string assetName)
         {
             m_Graph = graph;
             AddStyleSheetPath("Styles/GraphEditorView");
@@ -197,7 +197,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             {
                 m_Graph.owner.RegisterCompleteObjectUndo("Remove Elements");
                 m_Graph.RemoveElements(graphViewChange.elementsToRemove.OfType<MaterialNodeView>().Select(v => (INode)v.node),
-                    graphViewChange.elementsToRemove.OfType<Edge>().Select(e => (IEdge)e.userData));
+                    graphViewChange.elementsToRemove.OfType<Edge>().Select(e => (EdgeData)e.userData));
                 foreach (var edge in graphViewChange.elementsToRemove.OfType<Edge>())
                 {
                     if (edge.input != null)
@@ -275,7 +275,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             foreach (var edge in m_Graph.removedEdges)
             {
-                var edgeView = m_GraphView.graphElements.ToList().OfType<Edge>().FirstOrDefault(p => p.userData is IEdge && Equals((IEdge)p.userData, edge));
+                var edgeView = m_GraphView.graphElements.ToList().OfType<Edge>().FirstOrDefault(p => p.userData is EdgeData && Equals((EdgeData)p.userData, edge));
                 if (edgeView != null)
                 {
                     var nodeView = edgeView.input.node as MaterialNodeView;
@@ -351,7 +351,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             port.MarkDirtyRepaint();
         }
 
-        Edge AddEdge(IEdge edge)
+        Edge AddEdge(EdgeData edge)
         {
             var sourceNode = m_Graph.GetNodeFromGuid(edge.outputSlot.nodeGuid);
             if (sourceNode == null)

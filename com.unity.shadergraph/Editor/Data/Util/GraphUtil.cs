@@ -630,7 +630,7 @@ namespace UnityEditor.ShaderGraph
             outputList.Add(node);
         }
 
-        public static GenerationResults GetShader(this AbstractMaterialGraph graph, AbstractMaterialNode node, GenerationMode mode, string name)
+        public static GenerationResults GetShader(this GraphData graph, AbstractMaterialNode node, GenerationMode mode, string name)
         {
             // ----------------------------------------------------- //
             //                         SETUP                         //
@@ -880,7 +880,7 @@ namespace UnityEditor.ShaderGraph
         public static void GenerateSurfaceDescriptionFunction(
             List<INode> activeNodeList,
             AbstractMaterialNode masterNode,
-            AbstractMaterialGraph graph,
+            GraphData graph,
             ShaderStringBuilder surfaceDescriptionFunction,
             FunctionRegistry functionRegistry,
             PropertyCollector shaderProperties,
@@ -992,7 +992,7 @@ namespace UnityEditor.ShaderGraph
         }
 
         public static void GenerateVertexDescriptionFunction(
-            AbstractMaterialGraph graph,
+            GraphData graph,
             ShaderStringBuilder builder,
             FunctionRegistry functionRegistry,
             PropertyCollector shaderProperties,
@@ -1042,12 +1042,12 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public static GenerationResults GetPreviewShader(this AbstractMaterialGraph graph, AbstractMaterialNode node)
+        public static GenerationResults GetPreviewShader(this GraphData graph, AbstractMaterialNode node)
         {
             return graph.GetShader(node, GenerationMode.Preview, String.Format("hidden/preview/{0}", node.GetVariableNameForNode()));
         }
 
-        public static GenerationResults GetUberColorShader(this AbstractMaterialGraph graph)
+        public static GenerationResults GetUberColorShader(this GraphData graph)
         {
             return graph.GetShader(null, GenerationMode.Preview, "hidden/preview");
         }

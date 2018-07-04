@@ -92,14 +92,14 @@ Shader ""Hidden/GraphErrorShader2""
         try
         {
             var textGraph = File.ReadAllText(path, Encoding.UTF8);
-            var graph = JsonUtility.FromJson<MaterialGraph>(textGraph);
+            var graph = JsonUtility.FromJson<GraphData>(textGraph);
 
 //            var graph = JsonSerializer.Deserialize<MaterialGraph>(textGraph, CompositeResolver.Create(new IJsonFormatter[] {}, new [] {UnityResolver.Instance, JsonSerializer.DefaultResolver}));
             graph.LoadedFromDisk();
 
             if (!string.IsNullOrEmpty(graph.path))
                 shaderName = graph.path + "/" + shaderName;
-            shaderString = graph.GetShader(shaderName, GenerationMode.ForReals, out configuredTextures, sourceAssetDependencyPaths);
+            shaderString = graph.masterNode.GetShader(GenerationMode.ForReals, shaderName, out configuredTextures, sourceAssetDependencyPaths);
 
             if (sourceAssetDependencyPaths != null)
             {

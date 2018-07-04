@@ -34,9 +34,9 @@ namespace UnityEditor.Graphing
             throw new SlotConfigurationException(string.Format("Missing slots {0} on node {1}", string.Join(", ", toPrint.ToArray()), node));
         }
 
-        public static IEnumerable<IEdge> GetAllEdges(INode node)
+        public static IEnumerable<EdgeData> GetAllEdges(INode node)
         {
-            var result = new List<IEdge>();
+            var result = new List<EdgeData>();
             var validSlots = ListPool<ISlot>.Get();
 
             validSlots.AddRange(node.GetInputSlots<ISlot>());

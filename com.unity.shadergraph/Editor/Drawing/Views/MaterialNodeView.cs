@@ -259,7 +259,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         public void ShowGeneratedCode()
         {
-            var graph = (AbstractMaterialGraph)node.owner;
+            var graph = (GraphData)node.owner;
 
             string path = String.Format("Temp/GeneratedFromGraph-{0}-{1}-{2}.shader", SanitizeName(graph.name), SanitizeName(node.name), node.guid);
 
@@ -274,7 +274,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             if (masterNode != null)
                 return masterNode.GetShader(GenerationMode.ForReals, node.name, out textureInfo);
 
-            var graph = (AbstractMaterialGraph)node.owner;
+            var graph = (GraphData)node.owner;
             return graph.GetShader(node, GenerationMode.ForReals, node.name).shader;
         }
 

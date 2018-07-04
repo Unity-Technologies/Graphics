@@ -79,7 +79,7 @@ namespace UnityEditor.ShaderGraph.IntegrationTests
             var filePath = file.FullName;
 
             var textGraph = File.ReadAllText(filePath, Encoding.UTF8);
-            var graph = JsonUtility.FromJson<MaterialGraph>(textGraph);
+            var graph = JsonUtility.FromJson<GraphData>(textGraph);
 
             Assert.IsNotNull(graph.masterNode, "No master node in graph.");
 

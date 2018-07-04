@@ -31,12 +31,12 @@ namespace UnityEditor.ShaderGraph.Drawing
             get { return selection.OfType<Node>().Any() || selection.OfType<GroupNode>().Any() || selection.OfType<BlackboardField>().Any(); }
         }
 
-        public MaterialGraphView(AbstractMaterialGraph graph) : this()
+        public MaterialGraphView(GraphData graph) : this()
         {
             this.graph = graph;
         }
 
-        public AbstractMaterialGraph graph { get; private set; }
+        public GraphData graph { get; private set; }
         public Action onConvertToSubgraphClick { get; set; }
 
         public override List<Port> GetCompatiblePorts(Port startAnchor, NodeAdapter nodeAdapter)
@@ -198,7 +198,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                 .OfType<PropertyNode>();
 
             foreach (var propNode in selectedNodeViews)
-                ((AbstractMaterialGraph)propNode.owner).ReplacePropertyNodeWithConcreteNode(propNode);
+                ((GraphData)propNode.owner).ReplacePropertyNodeWithConcreteNode(propNode);
         }
 
         ContextualMenu.MenuAction.StatusFlags ConvertToSubgraphStatus()
@@ -215,7 +215,7 @@ namespace UnityEditor.ShaderGraph.Drawing
         string SerializeGraphElementsImplementation(IEnumerable<GraphElement> elements)
         {
             var nodes = elements.OfType<MaterialNodeView>().Select(x => (INode)x.node);
-            var edges = elements.OfType<Edge>().Select(x => x.userData).OfType<IEdge>();
+            var edges = elements.OfType<Edge>().Select(x => x.userData).OfType<EdgeData>();
             var properties = selection.OfType<BlackboardField>().Select(x => x.userData as IShaderProperty);
 
             // Collect the property nodes and get the corresponding properties
@@ -252,7 +252,7 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
 
             graph.owner.RegisterCompleteObjectUndo(operationName);
-            graph.RemoveElements(selection.OfType<MaterialNodeView>().Where(v => !(v.node is SubGraphOutputNode)).Select(x => (INode)x.node), selection.OfType<Edge>().Select(x => x.userData).OfType<IEdge>());
+            graph.RemoveElements(selection.OfType<MaterialNodeView>().Where(v => !(v.node is SubGraphOutputNode)).Select(x => (INode)x.node), selection.OfType<Edge>().Select(x => x.userData).OfType<EdgeData>());
 
             foreach (var selectable in selection)
             {
@@ -475,7 +475,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             using (var remappedNodesDisposable = ListPool<INode>.GetDisposable())
             {
-                using (var remappedEdgesDisposable = ListPool<IEdge>.GetDisposable())
+                using (var remappedEdgesDisposable = ListPool<EdgeData>.GetDisposable())
                 {
                     var remappedNodes = remappedNodesDisposable.value;
                     var remappedEdges = remappedEdgesDisposable.value;
@@ -513,7 +513,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     graphView.graphElements.ForEach(element =>
                         {
                             var edge = element as Edge;
-                            if (edge != null && remappedEdges.Contains(edge.userData as IEdge))
+                            if (edge != null && remappedEdges.Contains(edge.userData as EdgeData))
                                 graphView.AddToSelection(edge);
 
                             var nodeView = element as MaterialNodeView;

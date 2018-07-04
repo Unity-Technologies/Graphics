@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
     public class MasterPreviewView : VisualElement
     {
         PreviewManager m_PreviewManager;
-        AbstractMaterialGraph m_Graph;
+        GraphData m_Graph;
 
         PreviewRenderData m_PreviewRenderHandle;
         Image m_PreviewTextureView;
@@ -63,7 +63,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         static Type s_ContextualMenuManipulator = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEngine.Experimental.UIElements.ContextualMenuManipulator");
         static Type s_ObjectSelector = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEditor.ObjectSelector");
 
-        public MasterPreviewView(string assetName, PreviewManager previewManager, AbstractMaterialGraph graph)
+        public MasterPreviewView(string assetName, PreviewManager previewManager, GraphData graph)
         {
             this.clippingOptions = ClippingOptions.ClipAndCacheContents;
             m_PreviewManager = previewManager;
@@ -188,11 +188,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                 amn.Dirty(scope);
 
             // If currently editing a subgraph, dirty the output node rather than master node.
-            if (m_Graph is SubGraph)
+            if (m_Graph.isSubGraph)
             {
-                var subgraph = m_Graph as SubGraph;
-                if (subgraph != null && subgraph.outputNode != null)
-                    subgraph.outputNode.Dirty(scope);
+                if (m_Graph.outputNode != null)
+                    m_Graph.outputNode.Dirty(scope);
             }
         }
 

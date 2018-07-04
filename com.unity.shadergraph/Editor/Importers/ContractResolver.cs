@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Serialization;
 using Newtonsoft.Json.Serialization;
 using UnityEditor.Importers;
 using UnityEditor.ShaderGraph;
@@ -28,6 +29,11 @@ namespace UnityEngine.ShaderGraph
                 jsonContract.Converter = new RectConverter();
             else if (Attribute.IsDefined(objectType, typeof(JsonVersionedAttribute), true))
                 jsonContract.Converter = new UpgradeConverter(objectType);
+            else if (!Attribute.IsDefined(objectType, typeof(DataContractAttribute), true)
+                && Attribute.IsDefined(objectType, typeof(SerializableAttribute), true)
+                && !objectType.IsAbstract
+                && !objectType.IsGenericType)
+                jsonContract.Converter = new UnityConverter();
 
             return jsonContract;
         }
