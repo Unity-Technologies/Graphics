@@ -7,12 +7,12 @@ using UnityEngine.Rendering;
 public class DoubleCameraRender : MonoBehaviour
 {
     [Header("Forward Path")]
-    [SerializeField] private Camera fwd_Camera;
-    [SerializeField] private RenderPipelineAsset fwd_RenderPipelineAsset;
+    [SerializeField] private Camera fwd_Camera = null;
+    [SerializeField] private RenderPipelineAsset fwd_RenderPipelineAsset = null;
 
     [Header("Deferred Path")]
-    [SerializeField] private Camera dfd_Camera;
-    [SerializeField] private RenderPipelineAsset dfd_RenderPipelineAsset;
+    [SerializeField] private Camera dfd_Camera = null;
+    [SerializeField] private RenderPipelineAsset dfd_RenderPipelineAsset = null;
 
     [SerializeField] private bool refresh = false;
 

@@ -10,7 +10,7 @@ namespace UnityEditor.ShaderGraph
     public class Vector1Node : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
     {
         [SerializeField]
-        private float m_Value;
+        private float m_Value = 0;
 
         const string kInputSlotXName = "X";
         const string kOutputSlotName = "Out";

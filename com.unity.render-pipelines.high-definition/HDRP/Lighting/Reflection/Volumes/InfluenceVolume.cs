@@ -6,7 +6,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class InfluenceVolume
     {
         [SerializeField]
-        ShapeType m_ShapeType;
+        ShapeType m_ShapeType = ShapeType.Box;
 
         // Box
         [SerializeField]
