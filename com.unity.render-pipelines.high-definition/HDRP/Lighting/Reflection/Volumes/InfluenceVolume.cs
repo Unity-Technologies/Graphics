@@ -26,6 +26,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         Vector3 m_BoxNegativeFaceFade = Vector3.one;
 
+#if UNITY_EDITOR
+        //editor value that need to be saved for easy passing from simplified to advanced and vice et versa
+        // /!\ must not be used outside editor code
+        [SerializeField] private Vector3 editorAdvancedModeBlendDistancePositive;
+        [SerializeField] private Vector3 editorAdvancedModeBlendDistanceNegative;
+        [SerializeField] private float editorSimplifiedModeBlendDistance;
+        [SerializeField] private Vector3 editorAdvancedModeBlendNormalDistancePositive;
+        [SerializeField] private Vector3 editorAdvancedModeBlendNormalDistanceNegative;
+        [SerializeField] private float editorSimplifiedModeBlendNormalDistance;
+        [SerializeField] private bool editorAdvancedModeEnabled;
+#endif
+
         // Sphere
         [SerializeField]
         float m_SphereBaseRadius = 1;
