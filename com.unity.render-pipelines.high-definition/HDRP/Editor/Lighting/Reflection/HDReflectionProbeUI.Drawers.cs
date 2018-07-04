@@ -202,7 +202,6 @@ namespace UnityEditor.Experimental.Rendering
             if (p.editorAdvancedModeEnabled.boolValue)
             {
                 EditorGUI.BeginChangeCheck();
-                Debug.Log(editorAdvancedModeBlendDistancePositive.vector3Value + " " + editorAdvancedModeBlendDistanceNegative.vector3Value);
                 CoreEditorUtils.DrawVector6(
                     content,
                     editorAdvancedModeBlendDistancePositive, editorAdvancedModeBlendDistanceNegative, Vector3.zero, maxBlendDistance, HDReflectionProbeEditor.k_handlesColor);
