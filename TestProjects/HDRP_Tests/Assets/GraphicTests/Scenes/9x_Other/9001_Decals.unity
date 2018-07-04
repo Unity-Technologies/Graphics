@@ -158,6 +158,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
+  m_AffectsTransparency: 0
 --- !u!1 &110250902
 GameObject:
   m_ObjectHideFlags: 0
@@ -203,6 +204,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
+  m_AffectsTransparency: 0
 --- !u!1 &136133827
 GameObject:
   m_ObjectHideFlags: 0
@@ -248,6 +250,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
+  m_AffectsTransparency: 0
 --- !u!1 &196288473
 GameObject:
   m_ObjectHideFlags: 0
@@ -293,6 +296,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
+  m_AffectsTransparency: 0
 --- !u!1 &296064738
 GameObject:
   m_ObjectHideFlags: 0
@@ -313,7 +317,7 @@ GameObject:
   m_IsActive: 1
 --- !u!114 &296064739
 MonoBehaviour:
-  m_ObjectHideFlags: 2
+  m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 296064738}
@@ -322,10 +326,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 1
+  version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
+  contactShadows: 0
   viewBiasMin: 0.5
   viewBiasMax: 10
   viewBiasScale: 1
@@ -357,7 +362,7 @@ MonoBehaviour:
     data: 0bd7a33b0000803f
 --- !u!114 &296064740
 MonoBehaviour:
-  m_ObjectHideFlags: 2
+  m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 296064738}
@@ -366,7 +371,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 1
+  version: 1.1
   directionalIntensity: 3.1415927
   punctualIntensity: 600
   areaIntensity: 200
@@ -374,6 +379,7 @@ MonoBehaviour:
   m_InnerSpotPercent: 0
   lightDimmer: 1
   volumetricDimmer: 1
+  lightUnit: 2
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
@@ -389,6 +395,8 @@ MonoBehaviour:
   useOldInspector: 0
   featuresFoldout: 1
   showAdditionalSettings: 0
+  displayLightIntensity: 1
+  displayAreaLightEmissiveMesh: 0
 --- !u!108 &296064741
 Light:
   m_ObjectHideFlags: 0
@@ -668,7 +676,7 @@ GameObject:
   m_IsActive: 1
 --- !u!114 &384391180
 MonoBehaviour:
-  m_ObjectHideFlags: 2
+  m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 384391179}
@@ -677,10 +685,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 1
+  version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
+  contactShadows: 0
   viewBiasMin: 0.5
   viewBiasMax: 10
   viewBiasScale: 1
@@ -712,7 +721,7 @@ MonoBehaviour:
     data: 0bd7a33b0000803f
 --- !u!114 &384391181
 MonoBehaviour:
-  m_ObjectHideFlags: 2
+  m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 384391179}
@@ -721,7 +730,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 1
+  version: 1.1
   directionalIntensity: 3.1415927
   punctualIntensity: 600
   areaIntensity: 200
@@ -729,6 +738,7 @@ MonoBehaviour:
   m_InnerSpotPercent: 0
   lightDimmer: 1
   volumetricDimmer: 1
+  lightUnit: 2
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
@@ -744,6 +754,8 @@ MonoBehaviour:
   useOldInspector: 0
   featuresFoldout: 1
   showAdditionalSettings: 0
+  displayLightIntensity: 1
+  displayAreaLightEmissiveMesh: 0
 --- !u!108 &384391182
 Light:
   m_ObjectHideFlags: 0
@@ -1015,6 +1027,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
+  m_AffectsTransparency: 0
 --- !u!1 &578096841
 GameObject:
   m_ObjectHideFlags: 0
@@ -1060,6 +1073,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
+  m_AffectsTransparency: 0
 --- !u!1 &579433324
 GameObject:
   m_ObjectHideFlags: 0
@@ -1105,6 +1119,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
+  m_AffectsTransparency: 0
 --- !u!1 &634394204
 GameObject:
   m_ObjectHideFlags: 0
@@ -1150,6 +1165,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
+  m_AffectsTransparency: 0
 --- !u!1 &670286505
 GameObject:
   m_ObjectHideFlags: 0
@@ -1195,6 +1211,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
+  m_AffectsTransparency: 0
 --- !u!1 &719923510
 GameObject:
   m_ObjectHideFlags: 0
@@ -1502,6 +1519,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
+  m_AffectsTransparency: 0
 --- !u!1 &836353759
 GameObject:
   m_ObjectHideFlags: 0
@@ -1725,6 +1743,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
+  m_AffectsTransparency: 0
 --- !u!1 &893842369
 GameObject:
   m_ObjectHideFlags: 0
@@ -1995,6 +2014,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
+  m_AffectsTransparency: 0
 --- !u!1 &938463391
 GameObject:
   m_ObjectHideFlags: 0
@@ -2798,6 +2818,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
+  m_AffectsTransparency: 0
 --- !u!1001 &1192952626
 Prefab:
   m_ObjectHideFlags: 0
@@ -2885,6 +2906,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
+  m_AffectsTransparency: 0
 --- !u!1 &1285983877
 GameObject:
   m_ObjectHideFlags: 0
@@ -3020,6 +3042,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
+  m_AffectsTransparency: 0
 --- !u!1 &1390467587
 GameObject:
   m_ObjectHideFlags: 0
@@ -3216,7 +3239,7 @@ GameObject:
   m_IsActive: 1
 --- !u!114 &1442353285
 MonoBehaviour:
-  m_ObjectHideFlags: 2
+  m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1442353284}
@@ -3225,10 +3248,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 1
+  version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
+  contactShadows: 0
   viewBiasMin: 0.5
   viewBiasMax: 10
   viewBiasScale: 1
@@ -3260,7 +3284,7 @@ MonoBehaviour:
     data: 0bd7a33b0000803f
 --- !u!114 &1442353286
 MonoBehaviour:
-  m_ObjectHideFlags: 2
+  m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1442353284}
@@ -3269,7 +3293,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Version: 1
+  version: 1.1
   directionalIntensity: 3.1415927
   punctualIntensity: 600
   areaIntensity: 200
@@ -3277,6 +3301,7 @@ MonoBehaviour:
   m_InnerSpotPercent: 0
   lightDimmer: 1
   volumetricDimmer: 1
+  lightUnit: 2
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
@@ -3292,6 +3317,8 @@ MonoBehaviour:
   useOldInspector: 0
   featuresFoldout: 1
   showAdditionalSettings: 0
+  displayLightIntensity: 1
+  displayAreaLightEmissiveMesh: 0
 --- !u!108 &1442353287
 Light:
   m_ObjectHideFlags: 0
@@ -3302,7 +3329,7 @@ Light:
   serializedVersion: 8
   m_Type: 1
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 0.5
+  m_Intensity: 1
   m_Range: 10
   m_SpotAngle: 30
   m_CookieSize: 10
@@ -3561,6 +3588,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
+  m_AffectsTransparency: 0
 --- !u!1 &1708486506
 GameObject:
   m_ObjectHideFlags: 0
@@ -3694,6 +3722,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
+  m_AffectsTransparency: 0
 --- !u!1 &1762936944
 GameObject:
   m_ObjectHideFlags: 0
@@ -3825,6 +3854,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
+  m_AffectsTransparency: 0
 --- !u!1 &1968355458
 GameObject:
   m_ObjectHideFlags: 0
@@ -3958,6 +3988,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
+  m_AffectsTransparency: 0
 --- !u!1 &2006409709
 GameObject:
   m_ObjectHideFlags: 0
@@ -4217,6 +4248,7 @@ MonoBehaviour:
   m_FadeScale: 0.9
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
+  m_AffectsTransparency: 0
 --- !u!1 &2085834128
 GameObject:
   m_ObjectHideFlags: 0
