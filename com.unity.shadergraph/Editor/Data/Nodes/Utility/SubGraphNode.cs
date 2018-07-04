@@ -132,9 +132,9 @@ namespace UnityEditor.ShaderGraph
 
                 if (prop is TextureShaderProperty)
                     arguments.Add(string.Format("TEXTURE2D_PARAM({0}, sampler{0})", GetSlotValue(inSlotId, generationMode)));
-                if (prop is Texture2DArrayShaderProperty)
-                    arguments.Add(string.Format("TEXTURE2D_PARAM({0}, sampler{0})", GetSlotValue(inSlotId, generationMode)));
-                if (prop is Texture3DShaderProperty)
+                else if (prop is Texture2DArrayShaderProperty)
+                    arguments.Add(string.Format("TEXTURE2D_ARRAY_PARAM({0}, sampler{0})", GetSlotValue(inSlotId, generationMode)));
+                else if (prop is Texture3DShaderProperty)
                     arguments.Add(string.Format("TEXTURE3D_PARAM({0}, sampler{0})", GetSlotValue(inSlotId, generationMode)));
                 else if (prop is CubemapShaderProperty)
                     arguments.Add(string.Format("TEXTURECUBE_PARAM({0}, sampler{0})", GetSlotValue(inSlotId, generationMode)));
@@ -206,6 +206,9 @@ namespace UnityEditor.ShaderGraph
                         break;
                     case PropertyType.Vector4:
                         slotType = SlotValueType.Vector4;
+                        break;
+                    case PropertyType.Boolean:
+                        slotType = SlotValueType.Boolean;
                         break;
                     case PropertyType.Matrix2:
                         slotType = SlotValueType.Matrix2;
