@@ -82,7 +82,10 @@ You can now see the generated code for any specific node. To do so, right-click 
 - Your system locale can no longer cause incorrect commands due to full stops being converted to commas.
 - Deserialization of subgraphs now works correctly.
 - Sub graphs are now suffixed with (sub), so you can tell them apart from other nodes.
+- Boolean and Texture type properties now function correctly in sub-graphs.
 - The preview of a node does not obstruct the selection outliner anymore.
+- The Dielectric Specular node no longer resets its control values.
+- HD PBR subshader no longer duplicates surface description code into vertex shader.
 - You can now copy, paste, and duplicate sub-graph nodes with vector type input ports.
 - If the current render pipeline is not compatible, master nodes now display an error badge.
 - The preview shader now only considers the current render pipeline. Because of this there is less code to compile, and therefore the preview shader will compile faster.
