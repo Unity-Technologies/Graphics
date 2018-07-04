@@ -227,6 +227,22 @@ namespace UnityEngine.Experimental.Rendering
                     new[] { typeof(int), typeof(Vector3), typeof(Vector3), typeof(float), typeof(Handles.CapFunction), typeof(float) },
                     null);
 
+        static void Slider1D(int controlID, ref Vector3 handlePosition, Vector3 handleOrientation, float snapScale, Color color)
+        {
+            using (new Handles.DrawingScope(color))
+            {
+                handlePosition = (Vector3)k_Slider1D_Do.Invoke(null, new object[]
+                    {
+                        controlID,
+                        handlePosition,
+                        handleOrientation,
+                        HandleUtility.GetHandleSize(handlePosition) * k_HandleSizeCoef,
+                        new Handles.CapFunction(Handles.DotHandleCap),
+                        snapScale
+                    });
+            }
+        }
+
         public void DrawHandle()
         {
             for (int i = 0, count = m_ControlIDs.Length; i < count; ++i)
@@ -245,93 +261,33 @@ namespace UnityEngine.Experimental.Rendering
             NamedFace theChangedFace = NamedFace.None;
 
             EditorGUI.BeginChangeCheck();
-            using (new Handles.DrawingScope(GetColor(NamedFace.Left, Element.Handle)))
-                leftPosition = (Vector3)k_Slider1D_Do.Invoke(null, new object[]
-                {
-                    m_ControlIDs[(int)NamedFace.Left],
-                    leftPosition,
-                    Vector3.left,
-                    HandleUtility.GetHandleSize(leftPosition) * k_HandleSizeCoef,
-                    new Handles.CapFunction(Handles.DotHandleCap),
-                    snapScale
-                });
+            Slider1D(m_ControlIDs[(int)NamedFace.Left], ref leftPosition, Vector3.left, snapScale, GetColor(NamedFace.Left, Element.Handle));
             if (EditorGUI.EndChangeCheck() && allHandleControledByOne)
-            {
                 theChangedFace = NamedFace.Left;
-                //Vector3 size = this.size - Vector3.one * (leftPosition - center + this.size.x * .5f * Vector3.left).x;
-                //for (int axis = 0; axis < 3; ++axis)
-                //    size[axis] = Mathf.Max(size[axis], 0f);
-                //this.size = size;
-                //oneChanged = true;
-            }
 
             EditorGUI.BeginChangeCheck();
             using (new Handles.DrawingScope(GetColor(NamedFace.Right, Element.Handle)))
-                rightPosition = (Vector3)k_Slider1D_Do.Invoke(null, new object[]
-                {
-                    m_ControlIDs[(int)NamedFace.Right],
-                    rightPosition,
-                    Vector3.left,
-                    HandleUtility.GetHandleSize(rightPosition) * k_HandleSizeCoef,
-                    new Handles.CapFunction(Handles.DotHandleCap),
-                    snapScale
-                });
+            Slider1D(m_ControlIDs[(int)NamedFace.Right], ref rightPosition, Vector3.right, snapScale, GetColor(NamedFace.Right, Element.Handle));
             if (EditorGUI.EndChangeCheck() && allHandleControledByOne)
                 theChangedFace = NamedFace.Right;
 
             EditorGUI.BeginChangeCheck();
-            using (new Handles.DrawingScope(GetColor(NamedFace.Top, Element.Handle)))
-                topPosition = (Vector3)k_Slider1D_Do.Invoke(null, new object[]
-                {
-                    m_ControlIDs[(int)NamedFace.Top],
-                    topPosition,
-                    Vector3.up,
-                    HandleUtility.GetHandleSize(topPosition) * k_HandleSizeCoef,
-                    new Handles.CapFunction(Handles.DotHandleCap),
-                    snapScale
-                });
+            Slider1D(m_ControlIDs[(int)NamedFace.Top], ref topPosition, Vector3.up, snapScale, GetColor(NamedFace.Top, Element.Handle));
             if (EditorGUI.EndChangeCheck() && allHandleControledByOne)
                 theChangedFace = NamedFace.Top;
 
             EditorGUI.BeginChangeCheck();
-            using (new Handles.DrawingScope(GetColor(NamedFace.Bottom, Element.Handle)))
-                bottomPosition = (Vector3)k_Slider1D_Do.Invoke(null, new object[]
-                {
-                    m_ControlIDs[(int)NamedFace.Bottom],
-                    bottomPosition,
-                    Vector3.down,
-                    HandleUtility.GetHandleSize(bottomPosition) * k_HandleSizeCoef,
-                    new Handles.CapFunction(Handles.DotHandleCap),
-                    snapScale
-                });
+            Slider1D(m_ControlIDs[(int)NamedFace.Bottom], ref bottomPosition, Vector3.down, snapScale, GetColor(NamedFace.Bottom, Element.Handle));
             if (EditorGUI.EndChangeCheck() && allHandleControledByOne)
                 theChangedFace = NamedFace.Bottom;
 
             EditorGUI.BeginChangeCheck();
-            using (new Handles.DrawingScope(GetColor(NamedFace.Front, Element.Handle)))
-                frontPosition = (Vector3)k_Slider1D_Do.Invoke(null, new object[]
-                {
-                    m_ControlIDs[(int)NamedFace.Front],
-                    frontPosition,
-                    Vector3.forward,
-                    HandleUtility.GetHandleSize(frontPosition) * k_HandleSizeCoef,
-                    new Handles.CapFunction(Handles.DotHandleCap),
-                    snapScale
-                });
+            Slider1D(m_ControlIDs[(int)NamedFace.Front], ref frontPosition, Vector3.forward, snapScale, GetColor(NamedFace.Front, Element.Handle));
             if (EditorGUI.EndChangeCheck() && allHandleControledByOne)
                 theChangedFace = NamedFace.Front;
 
             EditorGUI.BeginChangeCheck();
-            using (new Handles.DrawingScope(GetColor(NamedFace.Back, Element.Handle)))
-                backPosition = (Vector3)k_Slider1D_Do.Invoke(null, new object[]
-                {
-                    m_ControlIDs[(int)NamedFace.Back],
-                    backPosition,
-                    Vector3.back,
-                    HandleUtility.GetHandleSize(backPosition) * k_HandleSizeCoef,
-                    new Handles.CapFunction(Handles.DotHandleCap),
-                    snapScale
-                });
+            Slider1D(m_ControlIDs[(int)NamedFace.Back], ref backPosition, Vector3.back, snapScale, GetColor(NamedFace.Back, Element.Handle));
             if (EditorGUI.EndChangeCheck() && allHandleControledByOne)
                 theChangedFace = NamedFace.Back;
 
