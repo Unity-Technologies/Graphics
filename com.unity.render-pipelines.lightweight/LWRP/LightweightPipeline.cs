@@ -5,7 +5,6 @@ using UnityEditor.Experimental.Rendering.LightweightPipeline;
 #endif
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
-using UnityEngine.XR;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
@@ -62,6 +61,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 Debug.LogWarning("Nested camera rendering is forbidden. If you are calling camera.Render inside OnWillRenderObject callback, use BeginCameraRender callback instead.");
                 return;
             }
+            pipelineAsset.XRGConfig.SetConfig();
 
             base.Render(context, cameras);
             BeginFrameRendering(cameras);
@@ -186,7 +186,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 #if !UNITY_SWITCH
             // TODO: There's currently an issue in engine side that breaks MSAA with texture2DArray.
             // for now we force msaa disabled when using texture2DArray. This fixes VR multiple and single pass instanced modes.
-            if (cameraData.isStereoEnabled && XRSettings.eyeTextureDesc.dimension == TextureDimension.Tex2DArray)
+            if (cameraData.isStereoEnabled && pipelineAsset.XRGConfig.EyeTextureDesc.dimension == TextureDimension.Tex2DArray)
                 cameraData.msaaSamples = 1;
 #endif
 
@@ -212,7 +212,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 #if !UNITY_SWITCH
                 if (cameraData.isStereoEnabled)
                 {
-                    cameraData.renderScale = XRSettings.eyeTextureResolutionScale;
+                    cameraData.renderScale = pipelineAsset.XRGConfig.renderScale;
                 }
                 else
 #endif
@@ -385,7 +385,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
 #if !UNITY_SWITCH
             bool isSceneViewCamera = camera.cameraType == CameraType.SceneView;
-            return XRSettings.isDeviceActive && !isSceneViewCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
+            return XRGConfig.Enabled && !isSceneViewCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
 #else
             return false;
 #endif
