@@ -672,7 +672,7 @@ MonoBehaviour:
     asymmetry: 0
     volumeMask: {fileID: 11700000, guid: d43d6ba36bbc67045820b8e190a13ce7, type: 2}
     textureIndex: 0
-    textureScrollingSpeed: {x: 1, y: 1, z: 0}
+    textureScrollingSpeed: {x: 0, y: 0, z: 0}
     textureTiling: {x: 2, y: 2, z: 2}
 --- !u!4 &997687877
 Transform:
@@ -720,7 +720,7 @@ MonoBehaviour:
     asymmetry: 0
     volumeMask: {fileID: 11700000, guid: d43d6ba36bbc67045820b8e190a13ce7, type: 2}
     textureIndex: 0
-    textureScrollingSpeed: {x: -1, y: 0, z: 0}
+    textureScrollingSpeed: {x: 0, y: 0, z: 0}
     textureTiling: {x: 1, y: 1, z: 1}
 --- !u!4 &1003440662
 Transform:
@@ -864,7 +864,7 @@ MonoBehaviour:
     asymmetry: 0
     volumeMask: {fileID: 11700000, guid: d43d6ba36bbc67045820b8e190a13ce7, type: 2}
     textureIndex: 0
-    textureScrollingSpeed: {x: 0, y: 0, z: 1}
+    textureScrollingSpeed: {x: 0, y: 0, z: 0}
     textureTiling: {x: 1, y: 1, z: 8}
 --- !u!4 &1207992333
 Transform:
@@ -998,7 +998,7 @@ MonoBehaviour:
     asymmetry: 0
     volumeMask: {fileID: 11700000, guid: d43d6ba36bbc67045820b8e190a13ce7, type: 2}
     textureIndex: 0
-    textureScrollingSpeed: {x: 1, y: 0, z: 0}
+    textureScrollingSpeed: {x: 0, y: 0, z: 0}
     textureTiling: {x: 1, y: 1, z: 1}
 --- !u!4 &1765618692
 Transform:
@@ -1228,7 +1228,7 @@ MonoBehaviour:
     asymmetry: 0
     volumeMask: {fileID: 11700000, guid: d43d6ba36bbc67045820b8e190a13ce7, type: 2}
     textureIndex: 0
-    textureScrollingSpeed: {x: -1, y: -1, z: 0}
+    textureScrollingSpeed: {x: 0, y: 0, z: 0}
     textureTiling: {x: 2, y: 2, z: 2}
 --- !u!4 &1993217163
 Transform:

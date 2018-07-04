@@ -99,9 +99,18 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2401_Light_on_Tesselation.unity
     guid: 3f6529c22f7d2ca46814b2e7afd04ef9
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2501_Instancing_Lighting.unity
+    guid: d841ad64fdc2ae14ba996e30fe86b901
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2601_ColorTemp.unity
+    guid: 34a3a4a7a56d3014dad3114e6b523742
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/9x_Other/9001_Decals.unity
     guid: a27cb5a638892574f99eb333bb3c7722
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/9x_Other/9003_Density-volumes.unity
+    path: Assets/GraphicTests/Scenes/9x_Other/9101_Density-volumes.unity
     guid: 340fc0a32de5178478b13cfa2dd928f6
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/9x_Other/9102_Density-volumes-shadows.unity
+    guid: abfc0c0cd1816114e9696849bc9e6406
   m_configObjects: {}
