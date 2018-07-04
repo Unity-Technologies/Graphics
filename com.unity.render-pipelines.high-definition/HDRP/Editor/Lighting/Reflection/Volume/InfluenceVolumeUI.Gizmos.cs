@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Experimental.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -28,7 +29,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     d.boxInfluenceOffset, d.boxInfluenceSizeOffset,
                     d.sphereInfluenceRadiusOffset,
                     (editedHandle & HandleType.Influence) != 0,
-                    k_GizmoThemeColorInfluence);
+                    k_GizmoThemeColorInfluence,
+                    false);
 
             if ((showedHandle & HandleType.InfluenceNormal) != 0)
                 DrawGizmos_FadeHandle(
@@ -36,7 +38,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     d.boxInfluenceNormalOffset, d.boxInfluenceNormalSizeOffset,
                     d.sphereInfluenceNormalRadiusOffset,
                     (editedHandle & HandleType.InfluenceNormal) != 0,
-                    k_GizmoThemeColorInfluenceNormal);
+                    k_GizmoThemeColorInfluenceNormal,
+                    true);
         }
 
         static void DrawGizmos_BaseHandle(
@@ -51,10 +54,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 case ShapeType.Box:
                 {
-                    if (isSolid)
-                        Gizmos.DrawCube(d.boxBaseOffset, d.boxBaseSize);
-                    else
-                        Gizmos.DrawWireCube(d.boxBaseOffset, d.boxBaseSize);
+                    s.boxBaseHandle.center = d.boxBaseOffset;
+                    s.boxBaseHandle.size = d.boxBaseSize;
+                    s.boxBaseHandle.DrawHull(isSolid);
                     break;
                 }
                 case ShapeType.Sphere:
@@ -74,7 +76,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             InfluenceVolumeUI s, InfluenceVolume d, Matrix4x4 matrix,
             Vector3 boxOffset, Vector3 boxSizeOffset,
             float sphereOffset,
-            bool isSolid, Color color)
+            bool isSolid, Color color, bool isNormal)
         {
             var mat = Gizmos.matrix;
             var c = Gizmos.color;
@@ -84,10 +86,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 case ShapeType.Box:
                 {
-                    if (isSolid)
-                        Gizmos.DrawCube(d.boxBaseOffset + boxOffset, d.boxBaseSize + boxSizeOffset);
-                    else
-                        Gizmos.DrawWireCube(d.boxBaseOffset + boxOffset, d.boxBaseSize + boxSizeOffset);
+                    Gizmo6FacesBox refBox = isNormal ? s.boxInfluenceNormalHandle : s.boxInfluenceHandle;
+                    refBox.center = d.boxBaseOffset + boxOffset;
+                    refBox.size = d.boxBaseSize + boxSizeOffset;
+                    refBox.DrawHull(isSolid);
                     break;
                 }
                 case ShapeType.Sphere:
