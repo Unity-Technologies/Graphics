@@ -1,11 +1,37 @@
 #ifndef UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
 #define UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED
 
+// This function always return the absolute position in WS
+float3 GetAbsolutePositionWS(float3 positionRWS)
+{
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    positionRWS += _WorldSpaceCameraPos;
+#endif
+    return positionRWS;
+}
+
+// This function return the camera relative position in WS
+float3 GetCameraRelativePositionWS(float3 positionWS)
+{
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    positionWS -= _WorldSpaceCameraPos;
+#endif
+    return positionWS;
+}
+
 float4x4 GetWorldToViewMatrix()
 {
     return UNITY_MATRIX_V;
 }
 
+// Return absolute world position of current object
+float3 GetObjectAbsolutePositionWS()
+{
+    float4x4 modelMatrix = UNITY_MATRIX_M;
+    return GetAbsolutePositionWS(modelMatrix._m03_m13_m23); // Translation object to world
+}
+
+// Return the PreTranslated ObjectToWorld Matrix (i.e matrix with _WorldSpaceCameraPos apply to it if we use camera relative rendering)
 float4x4 GetObjectToWorldMatrix()
 {
     return UNITY_MATRIX_M;
@@ -32,9 +58,9 @@ float GetOddNegativeScale()
     return unity_WorldTransformParams.w;
 }
 
-float3 TransformWorldToView(float3 positionWS)
+float3 TransformWorldToView(float3 positionRWS)
 {
-    return mul(GetWorldToViewMatrix(), float4(positionWS, 1.0)).xyz;
+    return mul(GetWorldToViewMatrix(), float4(positionRWS, 1.0)).xyz;
 }
 
 float3 TransformObjectToWorld(float3 positionOS)
@@ -42,9 +68,9 @@ float3 TransformObjectToWorld(float3 positionOS)
     return mul(GetObjectToWorldMatrix(), float4(positionOS, 1.0)).xyz;
 }
 
-float3 TransformWorldToObject(float3 positionWS)
+float3 TransformWorldToObject(float3 positionRWS)
 {
-    return mul(GetWorldToObjectMatrix(), float4(positionWS, 1.0)).xyz;
+    return mul(GetWorldToObjectMatrix(), float4(positionRWS, 1.0)).xyz;
 }
 
 float3 TransformObjectToWorldDir(float3 dirOS)
@@ -76,9 +102,9 @@ float3 TransformObjectToWorldNormal(float3 normalOS)
 }
 
 // Tranforms position from world space to homogenous space
-float4 TransformWorldToHClip(float3 positionWS)
+float4 TransformWorldToHClip(float3 positionRWS)
 {
-    return mul(GetWorldToHClipMatrix(), float4(positionWS, 1.0));
+    return mul(GetWorldToHClipMatrix(), float4(positionRWS, 1.0));
 }
 
 // Tranforms vector from world space to homogenous space
@@ -97,24 +123,6 @@ float4 TransformWViewToHClip(float3 positionVS)
 float3 TransformViewToHClipDir(float3 directionVS)
 {
     return mul((float3x3)GetViewToHClipMatrix(), directionVS);
-}
-
-// This function always return the absolute position in WS either the CameraRelative mode is enabled or not
-float3 GetAbsolutePositionWS(float3 positionWS)
-{
-#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
-    positionWS += _WorldSpaceCameraPos;
-#endif
-    return positionWS;
-}
-
-// This function always return the camera relative position in WS either the CameraRelative mode is enabled or not
-float3 GetCameraRelativePositionWS(float3 positionWS)
-{
-#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
-    positionWS -= _WorldSpaceCameraPos;
-#endif
-    return positionWS;
 }
 
 float3 GetPrimaryCameraPosition()
@@ -160,12 +168,12 @@ bool IsPerspectiveProjection()
 }
 
 // Computes the world space view direction (pointing towards the viewer).
-float3 GetWorldSpaceViewDir(float3 positionWS)
+float3 GetWorldSpaceViewDir(float3 positionRWS)
 {
     if (IsPerspectiveProjection())
     {
         // Perspective
-        return GetCurrentViewPosition() - positionWS;
+        return GetCurrentViewPosition() - positionRWS;
     }
     else
     {
@@ -174,9 +182,9 @@ float3 GetWorldSpaceViewDir(float3 positionWS)
     }
 }
 
-float3 GetWorldSpaceNormalizeViewDir(float3 positionWS)
+float3 GetWorldSpaceNormalizeViewDir(float3 positionRWS)
 {
-    return normalize(GetWorldSpaceViewDir(positionWS));
+    return normalize(GetWorldSpaceViewDir(positionRWS));
 }
 
 float3x3 CreateWorldToTangent(float3 normal, float3 tangent, float flipSign)

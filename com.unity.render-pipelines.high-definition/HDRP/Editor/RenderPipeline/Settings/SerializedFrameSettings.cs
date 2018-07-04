@@ -54,7 +54,7 @@ namespace UnityEditor.Experimental.Rendering
             enableSubsurfaceScattering = root.Find((FrameSettings d) => d.enableSubsurfaceScattering);
             enableTransmission = root.Find((FrameSettings d) => d.enableTransmission);
             enableAtmosphericScattering = root.Find((FrameSettings d) => d.enableAtmosphericScattering);
-            enableVolumetric = root.Find((FrameSettings d) => d.enableVolumetric);
+            enableVolumetric = root.Find((FrameSettings d) => d.enableVolumetrics);
             diffuseGlobalDimmer = root.Find((FrameSettings d) => d.diffuseGlobalDimmer);
             specularGlobalDimmer = root.Find((FrameSettings d) => d.specularGlobalDimmer);
             enableForwardRenderingOnly = root.Find((FrameSettings d) => d.enableForwardRenderingOnly);

@@ -399,7 +399,7 @@ real3 EvalSensitivity(real opd, real shift)
 }
 
 // Evaluate the reflectance for a thin-film layer on top of a dielectric medum.
-real3 EvalIridescence(real eta_1, real cosTheta1, real iridescenceThickness, real3 baseLayerFresnel0)
+real3 EvalIridescence(real eta_1, real cosTheta1, real iridescenceThickness, real3 baseLayerFresnel0, real iorOverBaseLayer = 0.0)
 {
     // iridescenceThickness unit is micrometer for this equation here. Mean 0.5 is 500nm.
     real Dinc = 3.0 * iridescenceThickness;
@@ -416,7 +416,15 @@ real3 EvalIridescence(real eta_1, real cosTheta1, real iridescenceThickness, rea
     // Force eta_2 -> eta_1 when Dinc -> 0.0
     // real eta_2 = lerp(eta_1, eta_2, smoothstep(0.0, 0.03, Dinc));
     // Evaluate the cosTheta on the base layer (Snell law)
-    real cosTheta2 = sqrt(1.0 - Sq(eta_1 / eta_2) * (1.0 - Sq(cosTheta1)));
+    real sinTheta2 = Sq(eta_1 / eta_2) * (1.0 - Sq(cosTheta1));
+
+    // Handle TIR
+    if (sinTheta2 > 1.0)
+        return real3(1.0, 1.0, 1.0);
+    //Or use this "artistic hack" to get more continuity even though wrong (test with dual normal maps to understand the difference)
+    //if( sinTheta2 > 1.0 ) { sinTheta2 = 2 - sinTheta2; }
+
+    real cosTheta2 = sqrt(1.0 - sinTheta2);
 
     // First interface
     real R0 = IorToFresnel0(eta_2, eta_1);
@@ -427,6 +435,16 @@ real3 EvalIridescence(real eta_1, real cosTheta1, real iridescenceThickness, rea
     real phi21 = PI - phi12;
 
     // Second interface
+    // The f0 or the base should account for the new computed eta_2 on top.
+    // This is optionally done if we are given the needed current ior over the base layer that is accounted for
+    // in the baseLayerFresnel0 parameter:
+    if (iorOverBaseLayer > 0.0)
+    {
+        // Fresnel0ToIor will give us a ratio of baseIor/topIor, hence we * iorOverBaseLayer to get the baseIor
+        real3 baseIor = iorOverBaseLayer * Fresnel0ToIor(baseLayerFresnel0 + 0.0001); // guard against 1.0
+        baseLayerFresnel0 = IorToFresnel0(baseIor, eta_2);
+    }
+
     real3 R23 = F_Schlick(baseLayerFresnel0, cosTheta2);
     real  phi23 = 0.0;
 

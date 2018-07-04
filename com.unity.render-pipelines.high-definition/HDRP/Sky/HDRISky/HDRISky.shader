@@ -58,6 +58,7 @@ Shader "Hidden/HDRenderPipeline/Sky/HDRISky"
 
     SubShader
     {
+        // For cubemap
         Pass
         {
             ZWrite Off
@@ -70,6 +71,7 @@ Shader "Hidden/HDRenderPipeline/Sky/HDRISky"
 
         }
 
+        // For fullscreen Sky
         Pass
         {
             ZWrite Off

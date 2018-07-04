@@ -9,7 +9,7 @@ namespace UnityEditor.ShaderGraph
     public class Vector4Node : AbstractMaterialNode, IGeneratesBodyCode, IPropertyFromNode
     {
         [SerializeField]
-        private Vector4 m_Value;
+        private Vector4 m_Value = Vector4.zero;
 
         const string kInputSlotXName = "X";
         const string kInputSlotYName = "Y";

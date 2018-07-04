@@ -239,30 +239,29 @@ namespace UnityEditor.Experimental.Rendering
             return group.isExpanded;
         }
 
-        static readonly GUIContent[] k_DrawVector6Slider_LabelPositives =
+        static readonly GUIContent[] k_DrawVector6_Label =
         {
-            new GUIContent("+X"),
-            new GUIContent("+Y"),
-            new GUIContent("+Z"),
-        };
-        static readonly GUIContent[] k_DrawVector6Slider_LabelNegatives =
-        {
-            new GUIContent("-X"),
-            new GUIContent("-Y"),
-            new GUIContent("-Z"),
+            new GUIContent("X"),
+            new GUIContent("Y"),
+            new GUIContent("Z"),
         };
         const int k_DrawVector6Slider_LabelSize = 60;
         const int k_DrawVector6Slider_FieldSize = 80;
-        public static void DrawVector6Slider(GUIContent label, SerializedProperty positive, SerializedProperty negative, Vector3 min, Vector3 max)
+
+        public static void DrawVector6(GUIContent label, SerializedProperty positive, SerializedProperty negative, Vector3 min, Vector3 max, Color[][] colors = null)
         {
+            if (colors != null && (colors.Length != 2 || colors[0].Length != 3 || colors[1].Length != 3))
+                    throw new System.ArgumentException("Colors must be a 2x3 array.");
+
             GUILayout.BeginVertical();
-            EditorGUILayout.LabelField(label);
+            if(label != GUIContent.none)
+                EditorGUILayout.LabelField(label);
             ++EditorGUI.indentLevel;
 
             var rect = GUILayoutUtility.GetRect(0, float.MaxValue, EditorGUIUtility.singleLineHeight, EditorGUIUtility.singleLineHeight);
             var v = positive.vector3Value;
             EditorGUI.BeginChangeCheck();
-            v = DrawVector3Slider(rect, k_DrawVector6Slider_LabelPositives, v, min, max);
+            v = DrawVector3(rect, k_DrawVector6_Label, v, min, max, false, colors == null ? null : colors[0]);
             if (EditorGUI.EndChangeCheck())
                 positive.vector3Value = v;
 
@@ -271,28 +270,60 @@ namespace UnityEditor.Experimental.Rendering
             rect = GUILayoutUtility.GetRect(0, float.MaxValue, EditorGUIUtility.singleLineHeight, EditorGUIUtility.singleLineHeight);
             v = negative.vector3Value;
             EditorGUI.BeginChangeCheck();
-            v = DrawVector3Slider(rect, k_DrawVector6Slider_LabelNegatives, v, min, max);
+            v = DrawVector3(rect, k_DrawVector6_Label, v, min, max, true, colors == null ? null : colors[1]);
             if (EditorGUI.EndChangeCheck())
                 negative.vector3Value = v;
             --EditorGUI.indentLevel;
             GUILayout.EndVertical();
         }
 
-        static Vector3 DrawVector3Slider(Rect rect, GUIContent[] labels, Vector3 value, Vector3 min, Vector3 max)
+        static Vector3 DrawVector3(Rect rect, GUIContent[] labels, Vector3 value, Vector3 min, Vector3 max, bool addMinusPrefix, Color[] colors)
         {
-            // Use a corrected width due to the hacks used for layouting the slider properly below
-            rect.width -= 20;
-            var fieldWidth = rect.width / 3f;
-
-            for (var i = 0; i < 3; ++i)
+            float[] multifloat = new float[] { value.x, value.y, value.z };
+            rect = EditorGUI.IndentedRect(rect);
+            float fieldWidth = rect.width / 3f;
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.MultiFloatField(rect, labels, multifloat);
+            if(EditorGUI.EndChangeCheck())
             {
-                var c = new Rect(rect.x + fieldWidth * i, rect.y, fieldWidth, rect.height);
-                var labelRect = new Rect(c.x, c.y, k_DrawVector6Slider_LabelSize, c.height);
-                var sliderRect = new Rect(labelRect.x + labelRect.width, c.y, c.width - k_DrawVector6Slider_LabelSize - k_DrawVector6Slider_FieldSize + 45, c.height);
-                var fieldRect = new Rect(sliderRect.x + sliderRect.width - 25, c.y, k_DrawVector6Slider_FieldSize, c.height);
-                EditorGUI.LabelField(labelRect, labels[i]);
-                value[i] = GUI.HorizontalSlider(sliderRect, value[i], min[i], max[i]);
-                value[i] = EditorGUI.FloatField(fieldRect, value[i]);
+                value.x = Mathf.Max(Mathf.Min(multifloat[0], max.x), min.x);
+                value.y = Mathf.Max(Mathf.Min(multifloat[1], max.y), min.y);
+                value.z = Mathf.Max(Mathf.Min(multifloat[2], max.z), min.z);
+            }
+
+            //Suffix is a hack as sublabel only work with 1 character
+            if(addMinusPrefix)
+            {
+                Rect suffixRect = new Rect(rect.x-33, rect.y, 100, rect.height);
+                for(int i = 0; i < 3; ++i)
+                {
+                    EditorGUI.LabelField(suffixRect, "-");
+                    suffixRect.x += fieldWidth + .5f;
+                }
+            }
+
+            //Color is a hack as nothing is done to handle this at the moment
+            if(colors != null)
+            {
+                if (colors.Length != 3)
+                    throw new System.ArgumentException("colors must have 3 elements.");
+
+                Rect suffixRect = new Rect(rect.x - 23, rect.y, 100, rect.height);
+                GUIStyle colorMark = new GUIStyle(EditorStyles.label);
+                colorMark.normal.textColor = colors[0];
+                EditorGUI.LabelField(suffixRect, "|", colorMark);
+                suffixRect.x += 1;
+                EditorGUI.LabelField(suffixRect, "|", colorMark);
+                suffixRect.x += fieldWidth  - .5f;
+                colorMark.normal.textColor = colors[1];
+                EditorGUI.LabelField(suffixRect, "|", colorMark);
+                suffixRect.x += 1;
+                EditorGUI.LabelField(suffixRect, "|", colorMark);
+                suffixRect.x += fieldWidth  + .5f;
+                colorMark.normal.textColor = colors[2];
+                EditorGUI.LabelField(suffixRect, "|", colorMark);
+                suffixRect.x += 1;
+                EditorGUI.LabelField(suffixRect, "|", colorMark);
             }
             return value;
         }

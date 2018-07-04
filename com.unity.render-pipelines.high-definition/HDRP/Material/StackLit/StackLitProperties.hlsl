@@ -36,11 +36,24 @@ SAMPLER(sampler_CoatSmoothnessMap);
 TEXTURE2D(_IridescenceThicknessMap);
 SAMPLER(sampler_IridescenceThicknessMap);
 
+TEXTURE2D(_IridescenceMaskMap);
+SAMPLER(sampler_IridescenceMaskMap);
+
 TEXTURE2D(_SubsurfaceMaskMap);
 SAMPLER(sampler_SubsurfaceMaskMap);
 
 TEXTURE2D(_ThicknessMap);
 SAMPLER(sampler_ThicknessMap);
+
+// Details
+TEXTURE2D(_DetailMaskMap);
+SAMPLER(sampler_DetailMaskMap);
+
+TEXTURE2D(_DetailSmoothnessMap);
+SAMPLER(sampler_DetailSmoothnessMap);
+
+TEXTURE2D(_DetailNormalMap);
+SAMPLER(sampler_DetailNormalMap);
 
 TEXTURE2D(_EmissiveColorMap);
 SAMPLER(sampler_EmissiveColorMap);
@@ -62,7 +75,7 @@ float4 _MetallicMap_ST;
 float4 _MetallicMap_TexelSize;
 float4 _MetallicMap_MipInfo;
 float4 _MetallicMapChannelMask;
-float4 _MetallicRange;
+float4 _MetallicMapRange;
 
 float _DielectricIor;
 
@@ -74,7 +87,7 @@ float4 _SmoothnessAMap_ST;
 float4 _SmoothnessAMap_TexelSize;
 float4 _SmoothnessAMap_MipInfo;
 float4 _SmoothnessAMapChannelMask;
-float4 _SmoothnessARange;
+float4 _SmoothnessAMapRange;
 
 float4 _DebugEnvLobeMask;
 float4 _DebugLobeMask;
@@ -96,7 +109,7 @@ float4 _AmbientOcclusionMap_ST;
 float4 _AmbientOcclusionMap_TexelSize;
 float4 _AmbientOcclusionMap_MipInfo;
 float4 _AmbientOcclusionMapChannelMask;
-float4 _AmbientOcclusionRange;
+float4 _AmbientOcclusionMapRange;
 
 float _SmoothnessB;
 float _SmoothnessBUseMap;
@@ -106,7 +119,7 @@ float4 _SmoothnessBMap_ST;
 float4 _SmoothnessBMap_TexelSize;
 float4 _SmoothnessBMap_MipInfo;
 float4 _SmoothnessBMapChannelMask;
-float4 _SmoothnessBRange;
+float4 _SmoothnessBMapRange;
 float _LobeMix;
 
 float _Anisotropy;
@@ -117,7 +130,7 @@ float4 _AnisotropyMap_ST;
 float4 _AnisotropyMap_TexelSize;
 float4 _AnisotropyMap_MipInfo;
 float4 _AnisotropyMapChannelMask;
-float4 _AnisotropyRange;
+float4 _AnisotropyMapRange;
 
 float _CoatSmoothness;
 float _CoatSmoothnessUseMap;
@@ -127,7 +140,7 @@ float4 _CoatSmoothnessMap_ST;
 float4 _CoatSmoothnessMap_TexelSize;
 float4 _CoatSmoothnessMap_MipInfo;
 float4 _CoatSmoothnessMapChannelMask;
-float4 _CoatSmoothnessRange;
+float4 _CoatSmoothnessMapRange;
 float _CoatIor;
 float _CoatThickness;
 float3 _CoatExtinction;
@@ -140,7 +153,6 @@ float4 _CoatNormalMap_ST;
 float4 _CoatNormalMap_TexelSize;
 float4 _CoatNormalMap_MipInfo;
 
-
 float _IridescenceThickness;
 float _IridescenceThicknessUseMap;
 float _IridescenceThicknessMapUV;
@@ -149,8 +161,18 @@ float4 _IridescenceThicknessMap_ST;
 float4 _IridescenceThicknessMap_TexelSize;
 float4 _IridescenceThicknessMap_MipInfo;
 float4 _IridescenceThicknessMapChannelMask;
-float4 _IridescenceThicknessRange;
+float4 _IridescenceThicknessMapRange;
 float _IridescenceIor;
+
+float _IridescenceMask;
+float _IridescenceMaskUseMap;
+float _IridescenceMaskMapUV;
+float _IridescenceMaskMapUVLocal;
+float4 _IridescenceMaskMap_ST;
+float4 _IridescenceMaskMap_TexelSize;
+float4 _IridescenceMaskMap_MipInfo;
+float4 _IridescenceMaskMapChannelMask;
+float4 _IridescenceMaskMapRange;
 
 int _DiffusionProfile;
 float _SubsurfaceMask;
@@ -161,7 +183,7 @@ float4 _SubsurfaceMaskMap_ST;
 float4 _SubsurfaceMaskMap_TexelSize;
 float4 _SubsurfaceMaskMap_MipInfo;
 float4 _SubsurfaceMaskMapChannelMask;
-float4 _SubsurfaceMaskRange;
+float4 _SubsurfaceMaskMapRange;
 
 float _Thickness;
 float _ThicknessUseMap;
@@ -171,7 +193,32 @@ float4 _ThicknessMap_ST;
 float4 _ThicknessMap_TexelSize;
 float4 _ThicknessMap_MipInfo;
 float4 _ThicknessMapChannelMask;
-float4 _ThicknessRange;
+float4 _ThicknessMapRange;
+
+// Details
+float _DetailMaskMapUV;
+float _DetailMaskMapUVLocal;
+float4 _DetailMaskMap_ST;
+float4 _DetailMaskMap_TexelSize;
+float4 _DetailMaskMap_MipInfo;
+float4 _DetailMaskMapChannelMask;
+
+float _DetailSmoothnessMapUV;
+float _DetailSmoothnessMapUVLocal;
+float4 _DetailSmoothnessMap_ST;
+float4 _DetailSmoothnessMap_TexelSize;
+float4 _DetailSmoothnessMap_MipInfo;
+float4 _DetailSmoothnessMapChannelMask;
+float4 _DetailSmoothnessMapRange;
+float _DetailSmoothnessScale;
+
+float _DetailNormalScale;
+float _DetailNormalMapUV;
+float _DetailNormalMapUVLocal;
+float4 _DetailNormalMap_ST;
+float4 _DetailNormalMap_TexelSize;
+float4 _DetailNormalMap_MipInfo;
+
 
 float3 _EmissiveColor;
 float4 _EmissiveColorMap_ST;
