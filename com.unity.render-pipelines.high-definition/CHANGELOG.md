@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Add an option to generate an emissive mesh for area lights (currently rectangle light only). The mesh fits the size, intensity and color of the light.
 - Add an option to the HDRP asset to increase the resolution of volumetric lighting.
 - Add additional ligth unit support for punctual light (Lumens, Candela) and area lights (Lumens, Luminance)
+- Add dedicated Gizmo for the box Influence volume of HDReflectionProbe / PlanarReflectionProbe
 
 ### Changed
 - Re-enable shadow mask mode in debug view
@@ -33,6 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Rename positionWS to positionRWS (Camera relative world position) at a lot of places (mainly in interpolator and FragInputs). In case of custom shader user will be required to update their code.
 - Rename positionWS, capturePositionWS, proxyPositionWS, influencePositionWS to positionRWS, capturePositionRWS, proxyPositionRWS, influencePositionRWS (Camera relative world position) in LightDefinition struct.
 - Improve the quality of trilinear filtering of density volume textures.
+- Improve UI for HDReflectionProbe / PlanarReflectionProbe
 
 ### Fixed
 - Fix contact shadows applied on transmission
