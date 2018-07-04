@@ -32,7 +32,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // In case volumetric lighting is enabled, we need to make sure that all rendering passes
             // (not just the atmospheric scattering one) receive neutral parameters.
-            if (hdCamera.frameSettings.enableVolumetric)
+            if (hdCamera.frameSettings.enableVolumetrics)
             {
                 var data = DensityVolumeData.GetNeutralValues();
 

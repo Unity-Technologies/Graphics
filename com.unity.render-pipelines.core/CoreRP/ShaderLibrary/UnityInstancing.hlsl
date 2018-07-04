@@ -293,13 +293,22 @@
         #endif
     UNITY_INSTANCING_BUFFER_END(unity_Builtins2)
 
+
     #undef UNITY_MATRIX_M
-    #define UNITY_MATRIX_M     UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_ObjectToWorldArray)
+    #ifdef MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
+    #define UNITY_MATRIX_M  ApplyCameraTranslationToMatrix(UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_ObjectToWorldArray))
+    #else
+    #define UNITY_MATRIX_M  UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_ObjectToWorldArray)
+    #endif
 
     #define MERGE_UNITY_BUILTINS_INDEX(X) unity_Builtins##X
 
     #undef UNITY_MATRIX_I_M
-    #define UNITY_MATRIX_I_M     UNITY_ACCESS_INSTANCED_PROP(MERGE_UNITY_BUILTINS_INDEX(UNITY_WORLDTOOBJECTARRAY_CB), unity_WorldToObjectArray)
+    #ifdef MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
+    #define UNITY_MATRIX_I_M    ApplyCameraTranslationToInverseMatrix(UNITY_ACCESS_INSTANCED_PROP(MERGE_UNITY_BUILTINS_INDEX(UNITY_WORLDTOOBJECTARRAY_CB), unity_WorldToObjectArray))
+    #else
+    #define UNITY_MATRIX_I_M    UNITY_ACCESS_INSTANCED_PROP(MERGE_UNITY_BUILTINS_INDEX(UNITY_WORLDTOOBJECTARRAY_CB), unity_WorldToObjectArray)
+    #endif
 
 #else // UNITY_INSTANCING_ENABLED
 

@@ -3,7 +3,7 @@ void ADD_IDX(ComputeLayerTexCoord)( // Uv related parameters
                                     // scale and bias for base and detail + global tiling factor (for layered lit only)
                                     float2 texScale, float2 texBias, float2 texScaleDetails, float2 texBiasDetails, float additionalTiling, float linkDetailsWithBase,
                                     // parameter for planar/triplanar
-                                    float3 positionWS, float worldScale,
+                                    float3 positionRWS, float worldScale,
                                     // mapping type and output
                                     int mappingType, inout LayerTexCoord layerTexCoord)
 {
@@ -38,7 +38,7 @@ void ADD_IDX(ComputeLayerTexCoord)( // Uv related parameters
     float2 uvXY;
     float2 uvZY;
 
-    GetTriplanarCoordinate(GetAbsolutePositionWS(positionWS) * worldScale, uvXZ, uvXY, uvZY);
+    GetTriplanarCoordinate(GetAbsolutePositionWS(positionRWS) * worldScale, uvXZ, uvXY, uvZY);
 
     // Planar is just XZ of triplanar
     if (mappingType == UV_MAPPING_PLANAR)

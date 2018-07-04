@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
+using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.LightweightPipeline;
 
 namespace UnityEditor.Experimental.Rendering.LightweightPipeline
 {
@@ -107,6 +109,11 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
             }
 
             return subShader.ToString();
+        }
+
+        public bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
+        {
+            return renderPipelineAsset is LightweightPipelineAsset;
         }
 
         static string GetTemplatePath(string templateName)

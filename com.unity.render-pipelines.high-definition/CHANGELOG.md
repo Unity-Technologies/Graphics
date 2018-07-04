@@ -11,17 +11,32 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added a temporary workaround to Lit.hlsl to avoid broken lighting code with Metal/AMD
 - Fixed compilation errors on Nintendo Switch (limited XRSetting support).
 - Fixed apply range attenuation option on punctual light
+- Fixed issue when using more than one volume mask texture with density volumes.
+- Fixed an error which prevented volumetric lighting from working if no density volumes with 3D textures were present.
+- Fixed issue with color temperature not take correctly into account with static lighting
+- Don't display fog when diffuse lighting, specular lighting, or lux meter debug mode are enabled.
 
 ### Added
 - Add option supportDitheringCrossFade on HDRP Asset to allow to remove shader variant during player build if needed
 - Add contact shadows for punctual lights (in additional shadow settings), only one light is allowed to cast contact shadows at the same time and so at each frame a dominant light is choosed among all light with contact shadows enabled.
+- Add PCSS shadow filter support (from SRP Core)
+- Exposed shadow budget parameters in HDRP asset
+- Add an option to generate an emissive mesh for area lights (currently rectangle light only). The mesh fits the size, intensity and color of the light.
+- Add an option to the HDRP asset to increase the resolution of volumetric lighting.
+- Add additional ligth unit support for punctual light (Lumens, Candela) and area lights (Lumens, Luminance)
 
 ### Changed
 - Re-enable shadow mask mode in debug view
 - SSS and Transmission code have been refactored to be able to share it between various material. Guidelines are in SubsurfaceScattering.hlsl
+- Change code in area light with LTC for Lit shader. Magnitude is now take from FGD texture instead of a separate texture
+- Improve camera relative rendering: We now apply camera translation on the model matrix, so before the TransformObjectToWorld(). Note: unity_WorldToObject and unity_ObjectToWorld must never be used directly.
+- Rename positionWS to positionRWS (Camera relative world position) at a lot of places (mainly in interpolator and FragInputs). In case of custom shader user will be required to update their code.
+- Rename positionWS, capturePositionWS, proxyPositionWS, influencePositionWS to positionRWS, capturePositionRWS, proxyPositionRWS, influencePositionRWS (Camera relative world position) in LightDefinition struct.
+- Improve the quality of trilinear filtering of density volume textures.
 
 ### Fixed
 - Fix contact shadows applied on transmission
+- Fix issue with forward opaque lit shader variant being removed by the shader preprocessor
 
 ## [2.0.4-preview]
 
@@ -66,7 +81,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Support correctly scene selection for alpha tested object
 - Add per light shadow mask mode control (i.e shadow mask distance and shadow mask). It use the option NonLightmappedOnly
 - Add geometric filtering to Lit shader (allow to reduce specular aliasing)
-- Allow to double click on a render pipeline asset to setup it automatically in GraphicSettings
 - Add shortcut to create DensityVolume and PlanarReflection in hierarchy
 - Add a DefaultHDMirrorMaterial material for PlanarReflection
 - Added a script to be able to upgrade material to newer version of HDRP
