@@ -21,7 +21,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_refCounting;
 
         // For area lighting - We pack all texture inside a texture array to reduce the number of resource required
-        Texture2DArray m_LtcData; // 0: m_LtcGGXMatrix - RGBA, 2: m_LtcDisneyDiffuseMatrix - RGBA, 3: m_LtcMultiGGXFresnelDisneyDiffuse - RGB, A unused
+        Texture2DArray m_LtcData; // 0: m_LtcGGXMatrix - RGBA, 1: m_LtcDisneyDiffuseMatrix - RGBA
 
         const int k_LtcLUTMatrixDim = 3; // size of the matrix (3x3)
         const int k_LtcLUTResolution = 64;
@@ -64,22 +64,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             tex.SetPixels(pixels, arrayElement);
         }
 
-        // Special-case function for 'm_LtcMultiGGXFresnelDisneyDiffuse'.
-        void LoadLUT(Texture2DArray tex, int arrayElement, TextureFormat format, float[] LtcGGXMagnitudeData, float[] LtcGGXFresnelData, float[] LtcDisneyDiffuseMagnitudeData)
-        {
-            const int count = k_LtcLUTResolution * k_LtcLUTResolution;
-            Color[] pixels = new Color[count];
-
-            for (int i = 0; i < count; i++)
-            {
-                // We store the result of the subtraction as a run-time optimization.
-                // See the footnote 2 of "LTC Fresnel Approximation" by Stephen Hill.
-                pixels[i] = new Color(LtcGGXMagnitudeData[i] - LtcGGXFresnelData[i], LtcGGXFresnelData[i], LtcDisneyDiffuseMagnitudeData[i], 1);
-            }
-
-            tex.SetPixels(pixels, arrayElement);
-        }
-
         public void Build()
         {
             Debug.Assert(m_refCounting >= 0);
@@ -91,13 +75,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     hideFlags = HideFlags.HideAndDontSave,
                     wrapMode = TextureWrapMode.Clamp,
                     filterMode = FilterMode.Bilinear,
-                    name = CoreUtils.GetTextureAutoName(k_LtcLUTResolution, k_LtcLUTResolution, TextureFormat.RGBAHalf, depth: 3, dim: TextureDimension.Tex2DArray, name: "LTC_LUT")
+                    name = CoreUtils.GetTextureAutoName(k_LtcLUTResolution, k_LtcLUTResolution, TextureFormat.RGBAHalf, depth: 2, dim: TextureDimension.Tex2DArray, name: "LTC_LUT")
                 };
 
                 LoadLUT(m_LtcData, 0, TextureFormat.RGBAHalf, s_LtcGGXMatrixData);
                 LoadLUT(m_LtcData, 1, TextureFormat.RGBAHalf, s_LtcDisneyDiffuseMatrixData);
-                // TODO: switch to RGBA64 when it becomes available.
-                LoadLUT(m_LtcData, 2, TextureFormat.RGBAHalf, s_LtcGGXMagnitudeData, s_LtcGGXFresnelData, s_LtcDisneyDiffuseMagnitudeData);
 
                 m_LtcData.Apply();
             }

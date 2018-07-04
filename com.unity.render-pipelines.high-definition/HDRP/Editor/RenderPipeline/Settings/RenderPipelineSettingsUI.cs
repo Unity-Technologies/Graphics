@@ -72,14 +72,16 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUILayout.PropertyField(d.supportSSR, _.GetContent("Support SSR|Enable memory use by SSR effect."));
             EditorGUILayout.PropertyField(d.supportSSAO, _.GetContent("Support SSAO|Enable memory use by SSAO effect."));
             EditorGUILayout.PropertyField(d.supportDBuffer, _.GetContent("Support Decal Buffer|Enable memory and variant of decal buffer."));
-            EditorGUILayout.PropertyField(d.supportMSAA, _.GetContent("Support Multi Sampling Anti-Aliasing|This feature doesn't work currently."));
-            EditorGUILayout.PropertyField(d.MSAASampleCount, _.GetContent("MSAA Sample Count|Allow to select the level of MSAA."));
+            // TODO: Implement MSAA - Hide for now as it doesn't work
+            //EditorGUILayout.PropertyField(d.supportMSAA, _.GetContent("Support Multi Sampling Anti-Aliasing|This feature doesn't work currently."));
+            //EditorGUILayout.PropertyField(d.MSAASampleCount, _.GetContent("MSAA Sample Count|Allow to select the level of MSAA."));
             EditorGUILayout.PropertyField(d.supportSubsurfaceScattering, _.GetContent("Support Subsurface Scattering"));
             EditorGUILayout.PropertyField(d.supportOnlyForward, _.GetContent("Support Only Forward|Remove all the memory and shader variant of GBuffer. The renderer can be switch to deferred anymore."));
             EditorGUILayout.PropertyField(d.supportMotionVectors, _.GetContent("Support Motion Vectors|Motion vector are use for Motion Blur, TAA, temporal re-projection of various effect like SSR."));
             EditorGUILayout.PropertyField(d.supportStereo, _.GetContent("Support Stereo Rendering"));
-            EditorGUILayout.PropertyField(d.enableUltraQualitySSS, _.GetContent("Increase SSS Sample Count|This allow better SSS quality. Warning: Slow feature, don't use for game."));
-            EditorGUILayout.PropertyField(d.supportVolumetric, _.GetContent("Support volumetric|Enable memory and shader variant for volumetric."));
+            EditorGUILayout.PropertyField(d.increaseSssSampleCount, _.GetContent("Increase SSS Sample Count|This allows for better SSS quality. Warning: high performance cost, do not enable on consoles."));
+            EditorGUILayout.PropertyField(d.supportVolumetrics, _.GetContent("Support volumetrics|Enable memory and shader variant for volumetric."));
+            EditorGUILayout.PropertyField(d.increaseResolutionOfVolumetrics, _.GetContent("Increase resolution of volumetrics|Increase the resolution of volumetric lighting buffers. Warning: high performance cost, do not enable on consoles."));
             EditorGUILayout.PropertyField(d.supportRuntimeDebugDisplay, _.GetContent("Support runtime debug display|Remove all debug display shader variant only in the player. Allow faster build."));
             EditorGUILayout.PropertyField(d.supportDitheringCrossFade, _.GetContent("Support dithering cross fade|Remove all dithering cross fade shader variant only in the player. Allow faster build."));
 

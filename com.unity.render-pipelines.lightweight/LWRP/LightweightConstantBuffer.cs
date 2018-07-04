@@ -31,7 +31,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     {
         public static int _WorldToShadow;
         public static int _ShadowData;
-        public static int _DirShadowSplitSpheres;
+        public static int _DirShadowSplitSpheres0;
+        public static int _DirShadowSplitSpheres1;
+        public static int _DirShadowSplitSpheres2;
+        public static int _DirShadowSplitSpheres3;
         public static int _DirShadowSplitSphereRadii;
         public static int _ShadowOffset0;
         public static int _ShadowOffset1;

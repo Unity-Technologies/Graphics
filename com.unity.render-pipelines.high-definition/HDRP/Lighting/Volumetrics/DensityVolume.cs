@@ -73,7 +73,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [AddComponentMenu("Rendering/Density Volume", 1100)]
     public class DensityVolume : MonoBehaviour
     {
-        public DensityVolumeParameters parameters = new DensityVolumeParameters(Color.grey, 10.0f, 0.0f);
+        public DensityVolumeParameters parameters = new DensityVolumeParameters(Color.white, 10.0f, 0.0f);
 
         private Texture3D previousVolumeMask = null;
 

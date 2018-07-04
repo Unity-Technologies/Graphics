@@ -6,12 +6,18 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 ### Added
-- pipeline now uses XRSEttings.eyeTextureResolutionScale as renderScale when in XR 
+- Added camera additional data component to control shadows, depth and color texture.
+- pipeline now uses XRSEttings.eyeTextureResolutionScale as renderScale when in XR.
 
 ### Changed
-- Screenspace shadow resolve is not only done when rendering shadow cascades
+- Shadow rendering has been optimized for the Mali Utgard architecture by removing indexing and avoiding divisions for orthographic projections. This reduces the frame time by 25% on the Overdraw benchmark.
+- Removed 7x7 tent filtering when using cascades.
+- Screenspace shadow resolve is now only done when rendering shadow cascades.
+- Updated the UI for the Lighweight pipeline asset.
 
 ### Fixed
+- PS4 compiler error
+- Fixed VR multiview rendering by forcing MSAA to be off. There's a current issue in engine that breaks MSAA and Texture2DArray.
 - Fixed UnityPerDraw CB layout
 - GLCore compute buffer compiler error
 - Occlusion strength not being applied on LW standard shaders
@@ -19,6 +25,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - GLES2 shader compiler error in IntegrationTests
 - Can't set RenderScale and ShadowDistance by script
 - VR Single Pass Instancing shadows
+- Fixed compilation errors on Nintendo Switch (limited XRSetting support).
 
 ## [2.0.0-preview]
 

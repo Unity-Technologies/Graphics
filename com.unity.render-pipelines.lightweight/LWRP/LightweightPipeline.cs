@@ -182,6 +182,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cameraData.isSceneViewCamera = camera.cameraType == CameraType.SceneView;
             cameraData.isOffscreenRender = camera.targetTexture != null && !cameraData.isSceneViewCamera;
             cameraData.isStereoEnabled = IsStereoEnabled(camera);
+
+#if !UNITY_SWITCH
+            // TODO: There's currently an issue in engine side that breaks MSAA with texture2DArray.
+            // for now we force msaa disabled when using texture2DArray. This fixes VR multiple and single pass instanced modes.
+            if (cameraData.isStereoEnabled && XRSettings.eyeTextureDesc.dimension == TextureDimension.Tex2DArray)
+                cameraData.msaaSamples = 1;
+#endif
+
             cameraData.isHdrEnabled = camera.allowHDR && pipelineAsset.supportsHDR;
 
             cameraData.postProcessLayer = camera.GetComponent<PostProcessLayer>();
@@ -197,29 +205,50 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // Discard variations lesser than kRenderScaleThreshold.
             // Scale is only enabled for gameview.
             // In XR mode, grab renderScale from XRSettings instead of SRP asset for now.
-	    // This is just a temporary change pending full integration of XR with SRP
+            // This is just a temporary change pending full integration of XR with SRP
 
             if (camera.cameraType == CameraType.Game)
             {
+#if !UNITY_SWITCH
                 if (cameraData.isStereoEnabled)
                 {
                     cameraData.renderScale = XRSettings.eyeTextureResolutionScale;
-                } else {
+                }
+                else
+#endif
+                {
                     cameraData.renderScale = pipelineAsset.renderScale;
                 }
-            } else {
+            }
+            else
+            {
                 cameraData.renderScale = 1.0f;
             }
-            
+
             cameraData.renderScale = (Mathf.Abs(1.0f - cameraData.renderScale) < kRenderScaleThreshold) ? 1.0f : cameraData.renderScale;
 
-            cameraData.requiresDepthTexture = pipelineAsset.supportsCameraDepthTexture || cameraData.postProcessEnabled || cameraData.isSceneViewCamera;
+            cameraData.requiresDepthTexture = pipelineAsset.supportsCameraDepthTexture || cameraData.isSceneViewCamera;
             cameraData.requiresSoftParticles = pipelineAsset.supportsSoftParticles;
             cameraData.requiresOpaqueTexture = pipelineAsset.supportsCameraOpaqueTexture;
             cameraData.opaqueTextureDownsampling = pipelineAsset.opaqueDownsampling;
 
             bool anyShadowsEnabled = pipelineAsset.supportsDirectionalShadows || pipelineAsset.supportsLocalShadows;
             cameraData.maxShadowDistance = (anyShadowsEnabled) ? pipelineAsset.shadowDistance : 0.0f;
+
+            LightweightAdditionalCameraData additionalCameraData = camera.gameObject.GetComponent<LightweightAdditionalCameraData>();
+            if (additionalCameraData != null)
+            {
+                cameraData.maxShadowDistance = (additionalCameraData.renderShadows) ? cameraData.maxShadowDistance : 0.0f;
+                cameraData.requiresDepthTexture &= additionalCameraData.requiresDepthTexture;
+                cameraData.requiresOpaqueTexture &= additionalCameraData.requiresColorTexture;
+            }
+            else if (!cameraData.isSceneViewCamera && camera.cameraType != CameraType.Reflection && camera.cameraType != CameraType.Preview)
+            {
+                cameraData.requiresDepthTexture = false;
+                cameraData.requiresOpaqueTexture = false;
+            }
+
+            cameraData.requiresDepthTexture |= cameraData.postProcessEnabled;
         }
 
         void InitializeRenderingData(ref CameraData cameraData, List<VisibleLight> visibleLights, int maxSupportedLocalLightsPerPass, int maxSupportedVertexLights, out RenderingData renderingData)
