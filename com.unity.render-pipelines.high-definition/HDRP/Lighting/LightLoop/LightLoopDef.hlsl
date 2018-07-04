@@ -120,7 +120,7 @@ EnvLightData InitSkyEnvLightData(int envIndex)
     output.influenceForward = float3(0.0, 0.0, 1.0);
     output.influenceUp = float3(0.0, 1.0, 0.0);
     output.influenceRight = float3(1.0, 0.0, 0.0);
-    output.influencePositionWS = float3(0.0, 0.0, 0.0);
+    output.influencePositionRWS = float3(0.0, 0.0, 0.0);
 
     output.weight = 1.0;
     output.multiplier = 1.0;

@@ -201,7 +201,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Controls
             value = Mathf.Max(Mathf.Min(value, 5), 1);
             m_IORPanel.Remove(m_IORSlider);
             Action<float> changedSlider = (s) => { OnChangeIORSlider(s); };
-            m_IORSlider = new Slider(1, 5, changedSlider)  { value = value };
+            m_IORSlider = new Slider(1, 2.5f, changedSlider)  { value = value };
             m_IORPanel.Add(m_IORSlider);
             m_IORPanel.Remove(m_IORField);
             m_IORField.value = value;

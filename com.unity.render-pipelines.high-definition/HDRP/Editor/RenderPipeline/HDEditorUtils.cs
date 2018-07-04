@@ -34,6 +34,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return "Packages/com.unity.render-pipelines.core/CoreRP/";
         }
 
+        public static T LoadAsset<T>(string relativePath) where T : UnityEngine.Object
+        {
+            return AssetDatabase.LoadAssetAtPath<T>(GetHDRenderPipelinePath() + relativePath);
+        }
+
         public static bool ResetMaterialKeywords(Material material)
         {
             MaterialResetter resetter;

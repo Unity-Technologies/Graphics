@@ -24,6 +24,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent directionalIntensity = new GUIContent("Intensity (Lux)", "Illuminance of the directional light at ground level in lux.");
             public readonly GUIContent punctualIntensity = new GUIContent("Intensity (Lumen)", "Luminous power of the light in lumen. Spotlight are considered as point light with barndoor so match intensity of a point light.");
             public readonly GUIContent areaIntensity = new GUIContent("Intensity (Lumen)", "Luminous power of the light in lumen.");
+            public readonly GUIContent lightIntensity = new GUIContent("Intensity", "");
 
             public readonly GUIContent maxSmoothness = new GUIContent("Max Smoothness", "Very low cost way of faking spherical area lighting. This will modify the roughness of the material lit. This is useful when the specular highlight is too small or too sharp.");
             public readonly GUIContent affectDiffuse = new GUIContent("Affect Diffuse", "This will disable diffuse lighting for this light. Doesn't save performance, diffuse lighting is still computed.");
@@ -41,6 +42,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent shapeWidthBox = new GUIContent("Size X", "");
             public readonly GUIContent shapeHeightBox = new GUIContent("Size Y", "");
             public readonly GUIContent applyRangeAttenuation = new GUIContent("Apply Range Attenuation", "Allows disabling range attenuation. This is useful indoor (like a room) to avoid having to setup a large range for a light to get correct inverse square attenuation that may leak out of the indoor");
+            public readonly GUIContent displayAreaLightEmissiveMesh = new GUIContent("Display Emissive Mesh", "Generate an emissive mesh using the size, color and intensity of the area light");
 
             public readonly GUIContent shape = new GUIContent("Type", "Specifies the current type of light. Possible types are Directional, Spot, Point, Rectangle and Line lights.");
             public readonly GUIContent[] shapeNames;
