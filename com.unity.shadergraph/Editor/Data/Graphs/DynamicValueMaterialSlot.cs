@@ -15,7 +15,7 @@ namespace UnityEditor.ShaderGraph
         private Matrix4x4 m_Value;
 
         [SerializeField]
-        private Matrix4x4 m_DefaultValue;
+        private Matrix4x4 m_DefaultValue = Matrix4x4.identity;
 
         static readonly string[] k_Labels = {"X", "Y", "Z", "W"};
 

@@ -148,10 +148,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 PBRMasterNode.AlphaSlotId,
                 PBRMasterNode.AlphaThresholdSlotId
             },
-//             VertexShaderSlots = new List<int>()
-//             {
-//                 PBRMasterNode.PositionSlotId
-//             }
+            VertexShaderSlots = new List<int>()
+            {
+                //PBRMasterNode.PositionSlotId
+            }
         };
 
         Pass m_PassShadowCaster = new Pass()

@@ -5,9 +5,9 @@ using UnityEngine;
 [ExecuteInEditMode]
 public class CookieUpdater : MonoBehaviour
 {
-	[SerializeField] Material crtMaterial;
+	[SerializeField] Material crtMaterial = null;
 
-	[SerializeField] CustomRenderTexture[] customRenderTextures;
+	[SerializeField] CustomRenderTexture[] customRenderTextures = null;
 
 	int frames = 0;
 
