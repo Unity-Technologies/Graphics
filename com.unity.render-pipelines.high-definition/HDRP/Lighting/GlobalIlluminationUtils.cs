@@ -31,6 +31,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             ld.color.green *= cct.g;
             ld.color.blue *= cct.b;
             ld.indirectColor = add.affectDiffuse ? LightmapperUtils.ExtractIndirect(l) : LinearColor.Black();
+            ld.indirectColor.red *= cct.r;
+            ld.indirectColor.green *= cct.g;
+            ld.indirectColor.blue *= cct.b;
 
             // Note that the HDRI is correctly integrated in the GlobalIllumination system, we don't need to do anything regarding it.
 
