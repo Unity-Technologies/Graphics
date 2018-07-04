@@ -57,6 +57,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             public static string[] shadowCascadeOptions = {"No Cascades", "Two Cascades", "Four Cascades"};
             public static string[] opaqueDownsamplingOptions = {"None", "2x (Bilinear)", "4x (Box)", "4x (Bilinear)"};
+
+            public static GUIContent XRConfig = new GUIContent("XR Graphics Settings", "SRP will attempt to set this configuration to the VRDevice.");
         }
 
         public static class StrippingStyles
@@ -101,6 +103,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         SerializedProperty m_CustomShaderVariantStripSettingsProp;
 
+        SerializedProperty m_XRConfig;
+        
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
@@ -108,12 +112,19 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             UpdateAnimationValues();
             DrawCapabilitiesSettings();
             DrawGeneralSettings();
+            DrawXRSettings();
 
             serializedObject.ApplyModifiedProperties();
         }
+        void DrawXRSettings()
+        {
+            EditorGUILayout.PropertyField(m_XRConfig);
+        }
+
+
 
         void OnEnable()
-        {
+        {            
             m_RenderScale = serializedObject.FindProperty("m_RenderScale");
             m_MaxPixelLights = serializedObject.FindProperty("m_MaxPixelLights");
             m_SupportsVertexLightProp = serializedObject.FindProperty("m_SupportsVertexLight");
@@ -139,6 +150,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_ShowSoftParticles.value = m_RequireSoftParticlesProp.boolValue;
             m_ShowOpaqueTextureScale.valueChanged.AddListener(Repaint);
             m_ShowOpaqueTextureScale.value = m_RequireOpaqueTextureProp.boolValue;
+            m_XRConfig = serializedObject.FindProperty("m_savedXRConfig");
+            
         }
 
         void OnDisable()
@@ -157,7 +170,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             EditorGUILayout.LabelField(Styles.generalSettingsLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
+            EditorGUI.BeginDisabledGroup(!XRGConfig.Enabled);
             m_RenderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleLabel, m_RenderScale.floatValue, k_MinRenderScale, k_MaxRenderScale);
+            EditorGUI.EndDisabledGroup();
             m_MaxPixelLights.intValue = EditorGUILayout.IntSlider(Styles.maxPixelLightsLabel, m_MaxPixelLights.intValue, 0, k_MaxSupportedPixelLights);
             EditorGUILayout.Space();
 
@@ -193,7 +208,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             if (directionalShadows || localShadows)
                 EditorGUILayout.PropertyField(m_SoftShadowsSupportedProp, Styles.supportsSoftShadows);
-
             EditorGUI.indentLevel--;
             EditorGUILayout.Space();
             EditorGUILayout.Space();
