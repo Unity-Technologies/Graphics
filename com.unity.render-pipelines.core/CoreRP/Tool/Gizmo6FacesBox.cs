@@ -45,15 +45,6 @@ namespace UnityEngine.Experimental.Rendering
         {
             get
             {
-                return m_faceColorsSelected ?? (m_faceColorsSelected = new Color[]
-                {
-                    new Color(1f, 0f, 0f, .15f),
-                    new Color(0f, 1f, 0f, .15f),
-                    new Color(0f, 0f, 1f, .15f),
-                    new Color(1f, 0f, 0f, .15f),
-                    new Color(0f, 1f, 0f, .15f),
-                    new Color(0f, 0f, 1f, .15f)
-                });
                 return m_faceColorsSelected ?? (m_faceColorsSelected = monochromeSelectedFace
                     ? new Color[]
                     {

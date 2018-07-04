@@ -32,7 +32,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 CED.Action(Drawer_SectionInfluenceSettings)
                 );
 
-        public static readonly CED.IDrawer SectionFoldoutProxySettings;
         public static readonly CED.IDrawer SectionFoldoutCaptureSettings;
 
         public static readonly CED.IDrawer SectionCaptureMirrorSettings = CED.Action(Drawer_SectionCaptureMirror);
