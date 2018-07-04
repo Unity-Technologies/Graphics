@@ -181,7 +181,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             else
                 m_Light.intensity = intensity;
 
+        #if UNITY_EDITOR
             m_Light.SetLightDirty(); // Should be apply only to parameter that's affect GI, but make the code cleaner
+        #endif
         }
 
         void SetLightIntensityPunctual(float intensity)
