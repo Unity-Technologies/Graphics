@@ -92,16 +92,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PlanarReflectionProbeUI.Drawer_ToolBarButton(1, o, GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight((advanced ? 3 : 1) * (EditorGUIUtility.singleLineHeight + 3)));
             EditorGUILayout.EndHorizontal();
 
-            EditorGUILayout.BeginHorizontal();
-            Drawer_AdvancedBlendDistance(
-                d,
-                true,
-                maxFadeDistance,
-                CoreEditorUtils.GetContent("Blend Normal Distance|Area around the probe where the normals influence the probe. Only used in deferred probes.")
-                );
-            PlanarReflectionProbeUI.Drawer_ToolBarButton(2, o, GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight((advanced ? 3 : 1) * (EditorGUIUtility.singleLineHeight + 3)));
-            EditorGUILayout.EndHorizontal();
-
             if (advanced)
             {
                 CoreEditorUtils.DrawVector6(
