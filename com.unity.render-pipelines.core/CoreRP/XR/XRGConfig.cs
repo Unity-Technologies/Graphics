@@ -21,6 +21,12 @@ namespace UnityEngine.Experimental.Rendering
             XRSettings.showDeviceView = showDeviceView;
             XRSettings.gameViewRenderMode = gameViewRenderMode;
         }
+        public void SetViewportScale(float viewportScale)
+        { // If XR is enabled, sets XRSettings from our saved config
+            if (!Enabled)
+                return;
+            XRSettings.renderViewportScale = viewportScale;
+        }
 
         public float renderScale;
         public float viewportScale;
@@ -99,7 +105,7 @@ namespace UnityEngine.Experimental.Rendering
         private float k_MaxRenderScale = 4.0f;
         internal class Styles
         {
-            public static GUIContent XRSettingsLabel = new GUIContent("XR Settings");
+            public static GUIContent XRSettingsLabel = new GUIContent("XR Config", "Enable XR in Player Settings. Then SetConfig can be used to set this configuration to XRSettings.");
             public static GUIContent XREnabledLabel = new GUIContent("Enable XR", "Enables stereo rendering");
             public static GUIContent renderScaleLabel = new GUIContent("Render Scale", "Scales (and reallocates) the camera render target allowing the game to render at a resolution different than native resolution. UI is always rendered at native resolution.");
             public static GUIContent viewportScaleLabel = new GUIContent("Viewport Scale", "Scales the section of the render target being rendered. Use for dynamic resolution adjustments.");
@@ -113,26 +119,25 @@ namespace UnityEngine.Experimental.Rendering
         // Draw the property inside the given rect
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            if (XRGConfig.Enabled)
-            {
-                var m_RenderScale = property.FindPropertyRelative("renderScale");
-                var m_ViewportScale = property.FindPropertyRelative("viewportScale");
-                var m_ShowDeviceView = property.FindPropertyRelative("showDeviceView");
-                var m_GameViewRenderMode = property.FindPropertyRelative("gameViewRenderMode");
-                var m_UseOcclusionMesh = property.FindPropertyRelative("useOcclusionMesh");
-                var m_OcclusionMaskScale = property.FindPropertyRelative("occlusionMaskScale");
+            var m_RenderScale = property.FindPropertyRelative("renderScale");
+            var m_ViewportScale = property.FindPropertyRelative("viewportScale");
+            var m_ShowDeviceView = property.FindPropertyRelative("showDeviceView");
+            var m_GameViewRenderMode = property.FindPropertyRelative("gameViewRenderMode");
+            var m_UseOcclusionMesh = property.FindPropertyRelative("useOcclusionMesh");
+            var m_OcclusionMaskScale = property.FindPropertyRelative("occlusionMaskScale");
 
-                EditorGUILayout.LabelField(Styles.XRSettingsLabel, EditorStyles.boldLabel);
-                EditorGUI.indentLevel++;
-                m_RenderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleLabel, m_RenderScale.floatValue, k_MinRenderScale, k_MaxRenderScale);
-                m_ViewportScale.floatValue = EditorGUILayout.Slider(Styles.viewportScaleLabel, m_ViewportScale.floatValue, k_MinRenderScale, k_MaxRenderScale);
-                EditorGUILayout.PropertyField(m_UseOcclusionMesh, Styles.useOcclusionMeshLabel);
-                EditorGUILayout.PropertyField(m_OcclusionMaskScale, Styles.occlusionScaleLabel);
-                EditorGUILayout.PropertyField(m_ShowDeviceView, Styles.showDeviceViewLabel);
-                EditorGUILayout.PropertyField(m_GameViewRenderMode, Styles.gameViewRenderModeLabel);
-                EditorGUI.indentLevel--;
-                EditorGUILayout.Space();
-            }
+            EditorGUI.BeginDisabledGroup(!XRGConfig.Enabled);
+            EditorGUILayout.LabelField(Styles.XRSettingsLabel, EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
+            m_RenderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleLabel, m_RenderScale.floatValue, k_MinRenderScale, k_MaxRenderScale);
+            m_ViewportScale.floatValue = EditorGUILayout.Slider(Styles.viewportScaleLabel, m_ViewportScale.floatValue, k_MinRenderScale, k_MaxRenderScale);
+            EditorGUILayout.PropertyField(m_UseOcclusionMesh, Styles.useOcclusionMeshLabel);
+            EditorGUILayout.PropertyField(m_OcclusionMaskScale, Styles.occlusionScaleLabel);
+            EditorGUILayout.PropertyField(m_ShowDeviceView, Styles.showDeviceViewLabel);
+            EditorGUILayout.PropertyField(m_GameViewRenderMode, Styles.gameViewRenderModeLabel);
+            EditorGUI.indentLevel--;
+            EditorGUILayout.Space();
+            EditorGUI.EndDisabledGroup();
         }
     }
 }
