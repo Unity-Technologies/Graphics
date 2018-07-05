@@ -9,7 +9,15 @@ namespace UnityEngine.Experimental.Rendering
 {
     [Serializable]
     public struct XRGConfig
-    { // XRGConfig stores the desired XR settings for a given SRP asset. 
+    { // XRGConfig stores the desired XR settings for a given SRP asset.
+
+        public float renderScale;
+        public float viewportScale;
+        public bool useOcclusionMesh;
+        public float occlusionMaskScale;
+        public bool showDeviceView;
+        public GameViewRenderMode gameViewRenderMode;
+
         public void SetConfig()
         { // If XR is enabled, sets XRSettings from our saved config
             if (!Enabled)
@@ -22,18 +30,11 @@ namespace UnityEngine.Experimental.Rendering
             XRSettings.gameViewRenderMode = gameViewRenderMode;
         }
         public void SetViewportScale(float viewportScale)
-        { // If XR is enabled, sets XRSettings from our saved config
+        { // Only sets viewport- since this is probably the only thing getting updated every frame
             if (!Enabled)
                 return;
             XRSettings.renderViewportScale = viewportScale;
         }
-
-        public float renderScale;
-        public float viewportScale;
-        public bool useOcclusionMesh;
-        public float occlusionMaskScale;
-        public bool showDeviceView;
-        public GameViewRenderMode gameViewRenderMode;
 
         public static readonly XRGConfig defaultXRConfig = new XRGConfig
         {
