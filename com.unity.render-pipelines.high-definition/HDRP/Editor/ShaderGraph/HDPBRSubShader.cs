@@ -1,8 +1,8 @@
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using UnityEditor.Graphing;
 using UnityEditor.ShaderGraph;
+using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -41,7 +41,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             RequiredFields = new List<string>()
             {
                 "FragInputs.worldToTangent",
-                "FragInputs.positionWS",
+                "FragInputs.positionRWS",
                 "FragInputs.texCoord1",
                 "FragInputs.texCoord2"
             },
@@ -96,7 +96,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             RequiredFields = new List<string>()
             {
 //                "FragInputs.worldToTangent",
-//                "FragInputs.positionWS",
+//                "FragInputs.positionRWS",
             },
             PixelShaderSlots = new List<int>()
             {
@@ -148,10 +148,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 PBRMasterNode.AlphaSlotId,
                 PBRMasterNode.AlphaThresholdSlotId
             },
-//             VertexShaderSlots = new List<int>()
-//             {
-//                 PBRMasterNode.PositionSlotId
-//             }
+            VertexShaderSlots = new List<int>()
+            {
+                //PBRMasterNode.PositionSlotId
+            }
         };
 
         Pass m_PassShadowCaster = new Pass()
@@ -172,7 +172,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             RequiredFields = new List<string>()
             {
 //                "FragInputs.worldToTangent",
-//                "FragInputs.positionWS",
+//                "FragInputs.positionRWS",
             },
             PixelShaderSlots = new List<int>()
             {
@@ -199,7 +199,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             RequiredFields = new List<string>()
             {
 //                "FragInputs.worldToTangent",
-//                "FragInputs.positionWS",
+//                "FragInputs.positionRWS",
             },
             PixelShaderSlots = new List<int>()
             {
@@ -224,7 +224,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             },
             RequiredFields = new List<string>()
             {
-                "FragInputs.positionWS",
+                "FragInputs.positionRWS",
             },
             StencilOverride = new List<string>()
             {
@@ -265,7 +265,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             RequiredFields = new List<string>()
             {
 //                "FragInputs.worldToTangent",
-//                "FragInputs.positionWS",
+//                "FragInputs.positionRWS",
             },
             PixelShaderSlots = new List<int>()
             {
@@ -296,7 +296,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             RequiredFields = new List<string>()
             {
 //                "FragInputs.worldToTangent",
-//                "FragInputs.positionWS",
+//                "FragInputs.positionRWS",
             },
             PixelShaderSlots = new List<int>()
             {
@@ -333,7 +333,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             RequiredFields = new List<string>()
             {
 //                "FragInputs.worldToTangent",
-//                "FragInputs.positionWS",
+//                "FragInputs.positionRWS",
             },
             PixelShaderSlots = new List<int>()
             {
@@ -387,7 +387,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             RequiredFields = new List<string>()
             {
                 "FragInputs.worldToTangent",
-//                "FragInputs.positionWS",
+//                "FragInputs.positionRWS",
             },
             PixelShaderSlots = new List<int>()
             {
@@ -425,7 +425,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             RequiredFields = new List<string>()
             {
 //                "FragInputs.worldToTangent",
-//                "FragInputs.positionWS",
+//                "FragInputs.positionRWS",
             },
             PixelShaderSlots = new List<int>()
             {
@@ -595,6 +595,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             subShader.AddShaderChunk("}", true);
 
             return subShader.GetShaderString(0);
+        }
+
+        public bool IsPipelineCompatible(RenderPipelineAsset renderPipelineAsset)
+        {
+            return renderPipelineAsset is HDRenderPipelineAsset;
         }
     }
 }

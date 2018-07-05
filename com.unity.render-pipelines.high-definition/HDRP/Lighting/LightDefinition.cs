@@ -33,12 +33,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     };
 
     // These structures share between C# and hlsl need to be align on float4, so we pad them.
-    [GenerateHLSL]
+    [GenerateHLSL(PackingRules.Exact, false)]
     public struct DirectionalLightData
     {
         // Packing order depends on chronological access to avoid cache misses
 
-        public Vector3 positionWS;
+        public Vector3 positionRWS;
         public Vector3 color;
         public int cookieIndex; // -1 if unused
         public float volumetricDimmer;
@@ -57,12 +57,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float specularScale;
     };
 
-    [GenerateHLSL]
+    [GenerateHLSL(PackingRules.Exact, false)]
     public struct LightData
     {
         // Packing order depends on chronological access to avoid cache misses
 
-        public Vector3 positionWS;
+        public Vector3 positionRWS;
         public Vector3 color;
         public float rangeAttenuationScale;
         public float rangeAttenuationBias;
@@ -80,7 +80,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float shadowDimmer;
 
         public Vector4 shadowMaskSelector; // Use with ShadowMask feature
-        public int nonLightmappedOnly; // Use with ShadowMask feature // TODO: make it a bool      
+        public int nonLightmappedOnly; // Use with ShadowMask feature // TODO: make it a bool
         public float minRoughness;  // This is use to give a small "area" to punctual light, as if we have a light with a radius.
         public float diffuseScale;
         public float specularScale;
@@ -111,13 +111,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     // It allow to have more coherence for the dynamic if in shader code.
     // Users can also chose to not have any projection, in this case we use the property minProjectionDistance to minimize code change. minProjectionDistance is set to huge number
     // that simulate effect of no shape projection
-    [GenerateHLSL]
+    [GenerateHLSL(PackingRules.Exact, false)]
     public struct EnvLightData
     {
         // Packing order depends on chronological access to avoid cache misses
 
         // Proxy properties
-        public Vector3 capturePositionWS;
+        public Vector3 capturePositionRWS;
         public EnvShapeType influenceShapeType;
 
         // Box: extents = box extents
@@ -126,13 +126,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // User can chose if they use This is use in case we want to force infinite projection distance (i.e no projection);
         public float minProjectionDistance;
 
-        public Vector3 proxyPositionWS;
+        public Vector3 proxyPositionRWS;
         public Vector3 proxyForward;
         public Vector3 proxyUp;
         public Vector3 proxyRight;
 
         // Influence properties
-        public Vector3 influencePositionWS;
+        public Vector3 influencePositionRWS;
         public Vector3 influenceForward;
         public Vector3 influenceUp;
         public Vector3 influenceRight;

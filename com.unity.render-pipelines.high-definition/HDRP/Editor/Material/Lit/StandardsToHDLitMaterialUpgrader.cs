@@ -52,9 +52,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Metallic
             bool hasMetallic = false;
-            Texture metallicMap = Texture2D.blackTexture;
+            Texture metallicMap = TextureCombiner.TextureFromColor(Color.black);
             if ((srcMaterial.shader.name == Standard) || (srcMaterial.shader.name == Standard_Rough))
             {
+                // Convert _Metallic value from Gamma to Linear
+                float metallicValue = Mathf.Pow(srcMaterial.GetFloat("_Metallic"), 2.2f);
+                dstMaterial.SetFloat("_Metallic", metallicValue);
+
                 hasMetallic = srcMaterial.GetTexture("_MetallicGlossMap") != null;
                 if (hasMetallic)
                 {
@@ -62,10 +66,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
-                    float metallicValue = Mathf.Pow(srcMaterial.GetFloat("_Metallic"), 2.2f); // Convert _Metallic value from Gamma to Linear
-
-                    dstMaterial.SetFloat("_Metallic", metallicValue);
-                    metallicMap = TextureCombiner.TextureFromColor(Color.white * metallicValue);
+                    metallicMap = TextureCombiner.TextureFromColor(Color.white);
                 }
             }
 
@@ -74,6 +75,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Texture occlusionMap = Texture2D.whiteTexture;
             if (hasOcclusion) occlusionMap = TextureCombiner.GetTextureSafe(srcMaterial, "_OcclusionMap", Color.white);
 
+            dstMaterial.SetFloat("_AORemapMin", 1f - srcMaterial.GetFloat("_OcclusionStrength"));
+
             // Detail Mask
             bool hasDetailMask = srcMaterial.GetTexture("_DetailMask") != null;
             Texture detailMaskMap = Texture2D.whiteTexture;
@@ -81,7 +84,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Smoothness
             bool hasSmoothness = false;
-            Texture2D smoothnessMap = TextureCombiner.TextureFromColor(Color.grey);
+            Texture2D smoothnessMap = TextureCombiner.TextureFromColor(Color.white);
+
+            dstMaterial.SetFloat("_SmoothnessRemapMax", srcMaterial.GetFloat("_Glossiness"));
 
             if (srcMaterial.shader.name == Standard_Rough)
             {
@@ -112,7 +117,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
-                    smoothnessMap = TextureCombiner.TextureFromColor(Color.white * srcMaterial.GetFloat("_Glossiness"));
+                    smoothnessMap = TextureCombiner.TextureFromColor(Color.white);
                 }
             }
 
@@ -123,21 +128,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Texture2D maskMap;
 
                 TextureCombiner maskMapCombiner = new TextureCombiner(
-                        metallicMap, 0,                                                 // R: Metallic from red
-                        occlusionMap, 1,                                                // G: Occlusion from green
-                        detailMaskMap, 3,                                               // B: Detail Mask from alpha
+                        metallicMap, 0,                                                     // R: Metallic from red
+                        occlusionMap, 1,                                                    // G: Occlusion from green
+                        detailMaskMap, 3,                                                   // B: Detail Mask from alpha
                         smoothnessMap, (srcMaterial.shader.name == Standard_Rough) ? -4 : 3 // A: Smoothness Texture from inverse greyscale for roughness setup, or alpha
                         );
-
-                dstMaterial.SetFloat("_Metallic", 1f);                                  // Force _Metallic value to 1, to use the value stored in the mask map without modification
 
                 string maskMapPath = AssetDatabase.GetAssetPath(srcMaterial);
                 maskMapPath = maskMapPath.Remove(maskMapPath.Length - 4) + "_MaskMap.png";
                 maskMap = maskMapCombiner.Combine(maskMapPath);
                 dstMaterial.SetTexture("_MaskMap", maskMap);
             }
-
-            dstMaterial.SetFloat("_AORemapMin", 1f - srcMaterial.GetFloat("_OcclusionStrength"));
 
             // Specular Setup Specific
             if (srcMaterial.shader.name == Standard_Spec)
@@ -204,7 +205,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             Color hdrEmission = srcMaterial.GetColor("_EmissionColor");
-            dstMaterial.SetColor("_EmissiveColor", hdrEmission);
+            dstMaterial.SetColor("_EmissiveColor", (srcMaterial.GetFloat("_EmissionEnabled") != 0)?hdrEmission: Color.black);
 
             HDEditorUtils.ResetMaterialKeywords(dstMaterial);
         }

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine.Rendering;
-using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -301,20 +300,6 @@ namespace UnityEngine.Experimental.Rendering
             // we pass the first color target as the depth target. If it has 0 depth bits,
             // no depth target ends up being bound.
             DrawFullScreen(commandBuffer, material, colorBuffers, colorBuffers[0], properties, shaderPassId);
-        }
-
-        // Post-processing misc
-        public static bool IsPostProcessingActive(PostProcessLayer layer)
-        {
-            return layer != null
-                && layer.enabled;
-        }
-
-        public static bool IsTemporalAntialiasingActive(PostProcessLayer layer)
-        {
-            return IsPostProcessingActive(layer)
-                && layer.antialiasingMode == PostProcessLayer.Antialiasing.TemporalAntialiasing
-                && layer.temporalAntialiasing.IsSupported();
         }
 
         // Color space utilities

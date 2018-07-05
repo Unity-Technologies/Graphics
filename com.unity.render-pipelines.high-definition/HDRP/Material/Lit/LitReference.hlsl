@@ -12,7 +12,7 @@ void IntegrateBSDF_LineRef(float3 V, float3 positionWS,
 
     const float  len = lightData.size.x;
     const float3 T   = lightData.right;
-    const float3 P1  = lightData.positionWS - T * (0.5 * len);
+    const float3 P1  = lightData.positionRWS - T * (0.5 * len);
     const float  dt  = len * rcp(sampleCount);
     const float  off = 0.5 * dt;
 
@@ -73,7 +73,7 @@ void IntegrateBSDF_AreaRef(float3 V, float3 positionWS,
         u = frac(u + randNum);
 
         // Lights in Unity point backward.
-        float4x4 localToWorld = float4x4(float4(lightData.right, 0.0), float4(lightData.up, 0.0), float4(-lightData.forward, 0.0), float4(lightData.positionWS, 1.0));
+        float4x4 localToWorld = float4x4(float4(lightData.right, 0.0), float4(lightData.up, 0.0), float4(-lightData.forward, 0.0), float4(lightData.positionRWS, 1.0));
 
         switch (lightData.lightType)
         {

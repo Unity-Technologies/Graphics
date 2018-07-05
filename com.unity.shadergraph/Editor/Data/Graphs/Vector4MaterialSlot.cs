@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph
         private Vector4 m_Value;
 
         [SerializeField]
-        private Vector4 m_DefaultValue;
+        private Vector4 m_DefaultValue = Vector4.zero;
 
         string[] m_Labels;
 

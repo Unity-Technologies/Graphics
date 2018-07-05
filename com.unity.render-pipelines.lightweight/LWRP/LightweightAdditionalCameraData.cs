@@ -13,7 +13,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [Tooltip("If enabled opaque color texture will render for this camera and bound as _CameraOpaqueTexture.")]
         public bool requiresColorTexture = false;
 
-        [HideInInspector][SerializeField] float m_Version;
+        [HideInInspector]
+        [SerializeField]
+        float m_Version = 1;
+
         public float version
         {
             get { return m_Version; }
