@@ -9,10 +9,10 @@ namespace UnityEngine.Experimental.Rendering
 {
     [Serializable]
     public struct XRGConfig
-    {
+    { // XRGConfig stores the desired XR settings for a given SRP asset. 
         public void SetConfig()
         { // If XR is enabled, sets XRSettings from our saved config
-            if (!XRSettings.enabled)
+            if (!Enabled)
                 return;
             XRSettings.eyeTextureResolutionScale = renderScale;
             XRSettings.renderViewportScale = viewportScale;
@@ -38,26 +38,56 @@ namespace UnityEngine.Experimental.Rendering
             showDeviceView = true,
             gameViewRenderMode = GameViewRenderMode.BothEyes
         };
-        public static bool Enabled
+
+        public static XRGConfig ActualXRSettings()
         {
-            get
+            XRGConfig getXRSettings = new XRGConfig();
+
+            // Just to make it obvious if getting XR settings failed
+            getXRSettings.renderScale = 0.0f;
+            getXRSettings.viewportScale = 0.0f;
+            if (Enabled)
             {
-                return XRSettings.enabled;
+                getXRSettings.renderScale = XRSettings.eyeTextureResolutionScale;
+                getXRSettings.viewportScale = XRSettings.renderViewportScale;
+                getXRSettings.useOcclusionMesh = XRSettings.useOcclusionMesh;
+                getXRSettings.occlusionMaskScale = XRSettings.occlusionMaskScale;
+                getXRSettings.showDeviceView = XRSettings.showDeviceView;
+                getXRSettings.gameViewRenderMode = XRSettings.gameViewRenderMode;
             }
+            return getXRSettings;
         }
-        public static StereoRenderingPath StereoRenderingMode
-        {
+
+        public static bool Enabled
+        { // SRP should use this to safely determine whether XR is enabled
             get
             {
-                return (StereoRenderingPath)XRSettings.stereoRenderingMode;
+#if !UNITY_SWITCH // FIXME find the right way of safely checking if XR is supported
+                return XRSettings.enabled;
+#else
+                return false;
+#endif
             }
         }
 
-        public RenderTextureDescriptor EyeTextureDesc
+        public static RenderTextureDescriptor EyeTextureDesc
         {
             get
             {
-                return XRSettings.eyeTextureDesc;
+                if (Enabled)
+                    return XRSettings.eyeTextureDesc;
+                return new RenderTextureDescriptor(1, 1); // Should be easy to tell if this failed
+            }
+        }
+
+        public static string[] SupportedDevices
+        {
+            get
+            {
+                if (Enabled)
+                    return XRSettings.supportedDevices;
+                string[] empty = {"XR disabled"};
+                return empty;
             }
         }
     }
@@ -83,23 +113,26 @@ namespace UnityEngine.Experimental.Rendering
         // Draw the property inside the given rect
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
-            var m_RenderScale = property.FindPropertyRelative("renderScale");
-            var m_ViewportScale = property.FindPropertyRelative("viewportScale");
-            var m_ShowDeviceView = property.FindPropertyRelative("showDeviceView");
-            var m_GameViewRenderMode = property.FindPropertyRelative("gameViewRenderMode");
-            var m_UseOcclusionMesh = property.FindPropertyRelative("useOcclusionMesh");
-            var m_OcclusionMaskScale = property.FindPropertyRelative("occlusionMaskScale");
-            
-            EditorGUILayout.LabelField(Styles.XRSettingsLabel, EditorStyles.boldLabel);
-            EditorGUI.indentLevel++;
-            m_RenderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleLabel, m_RenderScale.floatValue, k_MinRenderScale, k_MaxRenderScale);
-            m_ViewportScale.floatValue = EditorGUILayout.Slider(Styles.viewportScaleLabel, m_ViewportScale.floatValue, k_MinRenderScale, k_MaxRenderScale);
-            EditorGUILayout.PropertyField(m_UseOcclusionMesh, Styles.useOcclusionMeshLabel);
-            EditorGUILayout.PropertyField(m_OcclusionMaskScale, Styles.occlusionScaleLabel);
-            EditorGUILayout.PropertyField(m_ShowDeviceView, Styles.showDeviceViewLabel);
-            EditorGUILayout.PropertyField(m_GameViewRenderMode, Styles.gameViewRenderModeLabel);
-            EditorGUI.indentLevel--;
-            EditorGUILayout.Space();
+            if (XRGConfig.Enabled)
+            {
+                var m_RenderScale = property.FindPropertyRelative("renderScale");
+                var m_ViewportScale = property.FindPropertyRelative("viewportScale");
+                var m_ShowDeviceView = property.FindPropertyRelative("showDeviceView");
+                var m_GameViewRenderMode = property.FindPropertyRelative("gameViewRenderMode");
+                var m_UseOcclusionMesh = property.FindPropertyRelative("useOcclusionMesh");
+                var m_OcclusionMaskScale = property.FindPropertyRelative("occlusionMaskScale");
+
+                EditorGUILayout.LabelField(Styles.XRSettingsLabel, EditorStyles.boldLabel);
+                EditorGUI.indentLevel++;
+                m_RenderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleLabel, m_RenderScale.floatValue, k_MinRenderScale, k_MaxRenderScale);
+                m_ViewportScale.floatValue = EditorGUILayout.Slider(Styles.viewportScaleLabel, m_ViewportScale.floatValue, k_MinRenderScale, k_MaxRenderScale);
+                EditorGUILayout.PropertyField(m_UseOcclusionMesh, Styles.useOcclusionMeshLabel);
+                EditorGUILayout.PropertyField(m_OcclusionMaskScale, Styles.occlusionScaleLabel);
+                EditorGUILayout.PropertyField(m_ShowDeviceView, Styles.showDeviceViewLabel);
+                EditorGUILayout.PropertyField(m_GameViewRenderMode, Styles.gameViewRenderModeLabel);
+                EditorGUI.indentLevel--;
+                EditorGUILayout.Space();
+            }
         }
     }
 }

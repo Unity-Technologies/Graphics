@@ -146,16 +146,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             Camera camera = cameraData.camera;
             RenderTextureDescriptor desc;
-            float renderScale = cameraData.targetScale;
-
-#if !UNITY_SWITCH
+            float renderScale = cameraData.renderScale;
+            
             if (cameraData.isStereoEnabled)
             {
-                XRSettings.eyeTextureResolutionScale = renderScale;
-                return XRSettings.eyeTextureDesc; // FIXME Any adjustments needed before using eyeTextureDesc?
+                return XRGConfig.EyeTextureDesc; 
             }
             else
-#endif
             {
                 desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
             }
@@ -317,7 +314,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (cameraData.isOffscreenRender)
                 return false;
 
-            bool isScaledRender = !Mathf.Approximately(cameraData.targetScale, 1.0f);
+            bool isScaledRender = !Mathf.Approximately(cameraData.renderScale, 1.0f);
             bool isTargetTexture2DArray = baseDescriptor.dimension == TextureDimension.Tex2DArray;
             return requiresCameraDepth || cameraData.isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
                 cameraData.postProcessEnabled || cameraData.requiresOpaqueTexture || isTargetTexture2DArray || !cameraData.isDefaultViewport;

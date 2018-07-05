@@ -70,8 +70,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] Downsampling m_OpaqueDownsampling = Downsampling._2xBilinear;
         [SerializeField] bool m_SupportsHDR = false;
         [SerializeField] MSAAQuality m_MSAA = MSAAQuality._4x;
-        [SerializeField] float m_TargetScale = 1.0f;
-        [SerializeField] float m_ViewportScale = 1.0f;
+        [SerializeField] float m_RenderScale = 1.0f;
         [SerializeField] bool m_SupportsDynamicBatching = true;
 
         [SerializeField] bool m_DirectionalShadowsSupported = true;
@@ -90,9 +89,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] bool m_KeepSoftShadowVariants = true;
 
         [SerializeField] LightweightPipelineResources m_ResourcesAsset;
-        [SerializeField] XRGConfig m_savedXRConfig = XRGConfig.defaultXRConfig;
-
-        [SerializeField] bool m_XREnabled = false;
+        [SerializeField] XRGConfig m_savedXRConfig = XRGConfig.defaultXRConfig;        
 
         // Deprecated
         [SerializeField] ShadowType m_ShadowType = ShadowType.HARD_SHADOWS;
@@ -254,48 +251,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             set { m_MSAA = (MSAAQuality)value; }
         }
 
-        public float TargetScale
+        public float renderScale
         {
-            get // FIXME race conditions? 
+            get  
             {
-                //if (m_XREnabled)
-                //    m_TargetScale = UnityEngine.XR.XRSettings.eyeTextureResolutionScale;
-                return m_TargetScale;
+                return m_RenderScale;
             }
             set
             {
-                if (m_XREnabled)
-                    UnityEngine.XR.XRSettings.eyeTextureResolutionScale = value;
-                m_TargetScale = value;
-            }
-        }
-        public float ViewportScale
-        {
-            get // FIXME race conditions? 
-            {
-                //if (m_XREnabled)
-                //    m_ViewportScale = UnityEngine.XR.XRSettings.renderViewportScale;
-                return m_ViewportScale;
-            }
-            set
-            {
-                if (m_XREnabled)                
-                    UnityEngine.XR.XRSettings.renderViewportScale = value;
-                
-                m_ViewportScale = value;
-            }
-        }
-
-        public bool XREnabled
-        {
-            get
-            {
-                return m_XREnabled;
-            }
-            set
-            {
-                UnityEngine.XR.XRSettings.enabled = value;
-                m_XREnabled = value; 
+                m_RenderScale = value;
             }
         }
 
