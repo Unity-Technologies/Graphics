@@ -17,7 +17,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             public static GUIContent localShadowLabel = new GUIContent("Local Shadows");
             public static GUIContent capabilitiesLabel = new GUIContent("Capabilities");
 
-            public static GUIContent renderScaleLabel = new GUIContent("Target Scale", "Scales the camera render target allowing the game to render at a resolution different than native resolution. UI is always rendered at native resolution. When in VR mode, uses value set in XRGraphicsConfig instead.");
+            public static GUIContent renderScaleLabel = new GUIContent("Render Scale", "Scales the camera render target allowing the game to render at a resolution different than native resolution. UI is always rendered at native resolution. When in VR mode, uses value set in XRGraphicsConfig instead.");
 
             public static GUIContent maxPixelLightsLabel = new GUIContent("Pixel Lights",
                     "Controls the amount of pixel lights that run in fragment light loop. Lights are sorted and culled per-object.");
@@ -76,7 +76,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         AnimBool m_ShowSoftParticles = new AnimBool();
         AnimBool m_ShowOpaqueTextureScale = new AnimBool();
-        AnimBool m_ShowXREnabled = new AnimBool();
 
         int k_MaxSupportedPixelLights = 8;
         float k_MinRenderScale = 0.1f;
@@ -165,7 +164,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             EditorGUILayout.LabelField(Styles.generalSettingsLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
-            EditorGUI.BeginDisabledGroup(!XRGConfig.Enabled);
+            EditorGUI.BeginDisabledGroup(XRGConfig.Enabled);
             m_RenderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleLabel, m_RenderScale.floatValue, k_MinRenderScale, k_MaxRenderScale);
             EditorGUI.EndDisabledGroup();
             m_MaxPixelLights.intValue = EditorGUILayout.IntSlider(Styles.maxPixelLightsLabel, m_MaxPixelLights.intValue, 0, k_MaxSupportedPixelLights);
