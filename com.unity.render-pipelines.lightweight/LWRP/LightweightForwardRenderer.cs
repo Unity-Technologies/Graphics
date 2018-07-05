@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.XR;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
@@ -145,16 +146,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             Camera camera = cameraData.camera;
             RenderTextureDescriptor desc;
-            float renderScale = cameraData.renderScale;
-            
+#if !UNITY_SWITCH
             if (cameraData.isStereoEnabled)
-            {
-                return XRGraphicsConfig.eyeTextureDesc; 
-            }
+                desc = XRSettings.eyeTextureDesc;
             else
-            {
+#endif
                 desc = new RenderTextureDescriptor(camera.pixelWidth, camera.pixelHeight);
-            }
+
+            float renderScale = cameraData.renderScale;
             desc.colorFormat = cameraData.isHdrEnabled ? RenderTextureFormat.DefaultHDR :
                 RenderTextureFormat.Default;
             desc.enableRandomWrite = false;
