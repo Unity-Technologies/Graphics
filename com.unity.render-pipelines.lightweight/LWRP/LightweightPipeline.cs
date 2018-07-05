@@ -134,22 +134,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
-        public static void RenderPostProcess(CommandBuffer cmd, PostProcessRenderContext context, ref CameraData cameraData, RenderTextureFormat colorFormat, RenderTargetIdentifier source, RenderTargetIdentifier dest, bool opaqueOnly)
-        {
-            context.Reset();
-            context.camera = cameraData.camera;
-            context.source = source;
-            context.sourceFormat = colorFormat;
-            context.destination = dest;
-            context.command = cmd;
-            context.flip = cameraData.camera.targetTexture == null;
-
-            if (opaqueOnly)
-                cameraData.postProcessLayer.RenderOpaqueOnly(context);
-            else
-                cameraData.postProcessLayer.Render(context);
-        }
-
         void SetSupportedRenderingFeatures()
         {
 #if UNITY_EDITOR
@@ -193,9 +177,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             cameraData.postProcessLayer = camera.GetComponent<PostProcessLayer>();
             cameraData.postProcessEnabled = cameraData.postProcessLayer != null && cameraData.postProcessLayer.isActiveAndEnabled;
-
-            // PostProcess for VR is not working atm. Disable it for now.
-            cameraData.postProcessEnabled &= !cameraData.isStereoEnabled;
 
             Rect cameraRect = camera.rect;
             cameraData.isDefaultViewport = (!(Math.Abs(cameraRect.x) > 0.0f || Math.Abs(cameraRect.y) > 0.0f ||
@@ -360,12 +341,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             float cameraWidth = (float)cameraData.camera.pixelWidth * cameraData.renderScale;
             float cameraHeight = (float)cameraData.camera.pixelHeight * cameraData.renderScale;
             Shader.SetGlobalVector(PerCameraBuffer._ScaledScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
-        }
-
-        bool IsStereoEnabled(Camera camera)
-        {
-            bool isSceneViewCamera = camera.cameraType == CameraType.SceneView;
-            return XRGraphicsConfig.enabled && !isSceneViewCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
         }
     }
 }

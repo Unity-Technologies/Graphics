@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Updated the UI for the Lighweight pipeline asset.
 
 ### Fixed
+- Post-processing now works with VR on PC.
 - PS4 compiler error
 - Fixed VR multiview rendering by forcing MSAA to be off. There's a current issue in engine that breaks MSAA and Texture2DArray.
 - Fixed UnityPerDraw CB layout
