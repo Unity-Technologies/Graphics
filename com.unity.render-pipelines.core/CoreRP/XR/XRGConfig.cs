@@ -62,7 +62,7 @@ namespace UnityEngine.Experimental.Rendering
         { // SRP should use this to safely determine whether XR is enabled
             get
             {
-#if !UNITY_SWITCH // FIXME find the right way of safely checking if XR is supported
+#if ENABLE_VR 
                 return XRSettings.enabled;
 #else
                 return false;
