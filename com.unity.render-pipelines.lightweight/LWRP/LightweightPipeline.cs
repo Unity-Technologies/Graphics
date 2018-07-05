@@ -62,7 +62,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 return;
             }
             // Apply any changes to XRGConfig prior to this point
-            pipelineAsset.XRGConfig.SetConfig();
+            pipelineAsset.savedXRGraphicsConfig.SetConfig();
 
             base.Render(context, cameras);
             BeginFrameRendering(cameras);
@@ -186,7 +186,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             
             // TODO: There's currently an issue in engine side that breaks MSAA with texture2DArray.
             // for now we force msaa disabled when using texture2DArray. This fixes VR multiple and single pass instanced modes.
-            if (cameraData.isStereoEnabled && XRGConfig.EyeTextureDesc.dimension == TextureDimension.Tex2DArray)
+            if (cameraData.isStereoEnabled && XRGraphicsConfig.eyeTextureDesc.dimension == TextureDimension.Tex2DArray)
                 cameraData.msaaSamples = 1;
 
             cameraData.isHdrEnabled = camera.allowHDR && pipelineAsset.supportsHDR;
@@ -204,7 +204,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             // If XR is enabled, use XR renderScale. 
             // Discard variations lesser than kRenderScaleThreshold.
             // Scale is only enabled for gameview.
-            float usedRenderScale = XRGConfig.Enabled ? pipelineAsset.XRGConfig.renderScale : pipelineAsset.renderScale;
+            float usedRenderScale = XRGraphicsConfig.enabled ? pipelineAsset.savedXRGraphicsConfig.renderScale : pipelineAsset.renderScale;
             cameraData.renderScale = (Mathf.Abs(1.0f - usedRenderScale) < kRenderScaleThreshold) ? 1.0f : usedRenderScale;
             cameraData.renderScale = (camera.cameraType == CameraType.Game) ? cameraData.renderScale : 1.0f;
 
@@ -365,7 +365,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         bool IsStereoEnabled(Camera camera)
         {
             bool isSceneViewCamera = camera.cameraType == CameraType.SceneView;
-            return XRGConfig.Enabled && !isSceneViewCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
+            return XRGraphicsConfig.enabled && !isSceneViewCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
         }
     }
 }
