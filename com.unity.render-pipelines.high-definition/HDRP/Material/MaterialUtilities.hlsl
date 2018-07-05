@@ -1,7 +1,13 @@
+// Return camera relative probe volume world to object transformation
+float4x4 GetProbeVolumeWorldToObject()
+{
+    return ApplyCameraTranslationToInverseMatrix(unity_ProbeVolumeWorldToObject);
+}
+    
 // In unity we can have a mix of fully baked lightmap (static lightmap) + enlighten realtime lightmap (dynamic lightmap)
 // for each case we can have directional lightmap or not.
 // Else we have lightprobe for dynamic/moving entity. Either SH9 per object lightprobe or SH4 per pixel per object volume probe
-float3 SampleBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap)
+float3 SampleBakedGI(float3 positionRWS, float3 normalWS, float2 uvStaticLightmap, float2 uvDynamicLightmap)
 {
     // If there is no lightmap, it assume lightprobe
 #if !defined(LIGHTMAP_ON) && !defined(DYNAMICLIGHTMAP_ON)
@@ -24,8 +30,7 @@ float3 SampleBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap
     }
     else
     {
-        // TODO: We use GetAbsolutePositionWS(positionWS) to handle the camera relative case here but this should be part of the unity_ProbeVolumeWorldToObject matrix on C++ side (sadly we can't modify it for HDRenderPipeline...)
-        return SampleProbeVolumeSH4(TEXTURE3D_PARAM(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), GetAbsolutePositionWS(positionWS), normalWS, unity_ProbeVolumeWorldToObject,
+        return SampleProbeVolumeSH4(TEXTURE3D_PARAM(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, normalWS, GetProbeVolumeWorldToObject(),
                                     unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin, unity_ProbeVolumeSizeInv);
     }
 
@@ -70,7 +75,7 @@ float3 SampleBakedGI(float3 positionWS, float3 normalWS, float2 uvStaticLightmap
 #endif
 }
 
-float4 SampleShadowMask(float3 positionWS, float2 uvStaticLightmap) // normalWS not use for now
+float4 SampleShadowMask(float3 positionRWS, float2 uvStaticLightmap) // normalWS not use for now
 {
 #if defined(LIGHTMAP_ON)
     float2 uv = uvStaticLightmap * unity_LightmapST.xy + unity_LightmapST.zw;
@@ -79,8 +84,7 @@ float4 SampleShadowMask(float3 positionWS, float2 uvStaticLightmap) // normalWS 
     float4 rawOcclusionMask;
     if (unity_ProbeVolumeParams.x == 1.0)
     {
-        // TODO: We use GetAbsolutePositionWS(positionWS) to handle the camera relative case here but this should be part of the unity_ProbeVolumeWorldToObject matrix on C++ side (sadly we can't modify it for HDRenderPipeline...)
-        rawOcclusionMask = SampleProbeOcclusion(TEXTURE3D_PARAM(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), GetAbsolutePositionWS(positionWS), unity_ProbeVolumeWorldToObject,
+        rawOcclusionMask = SampleProbeOcclusion(TEXTURE3D_PARAM(unity_ProbeVolumeSH, samplerunity_ProbeVolumeSH), positionRWS, GetProbeVolumeWorldToObject(),
                                                 unity_ProbeVolumeParams.y, unity_ProbeVolumeParams.z, unity_ProbeVolumeMin, unity_ProbeVolumeSizeInv);
     }
     else

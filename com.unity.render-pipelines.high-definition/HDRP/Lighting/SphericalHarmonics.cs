@@ -110,6 +110,19 @@ public class SphericalHarmonicMath
         return sh;
     }
 
+    public static SphericalHarmonicsL2 RescaleCoefficients(SphericalHarmonicsL2 sh, float scalar)
+    {
+        for (int c = 0; c < 3; c++)
+        {
+            for (int i = 0; i < 9; i++)
+            {
+                sh[c, i] *= scalar;
+            }
+        }
+
+        return sh;
+    }
+
     // Packs coefficients so that we can use Peter-Pike Sloan's shader code.
     // Does not perform premultiplication with coefficients of SH basis functions.
     // See SetSHEMapConstants() in "Stupid Spherical Harmonics Tricks".

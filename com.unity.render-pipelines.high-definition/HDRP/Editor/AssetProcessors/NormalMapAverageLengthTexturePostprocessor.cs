@@ -1,6 +1,7 @@
 using System;
 using UnityEditor;
 using UnityEngine;
+using System.IO;
 
 public class NormalMapAverageLengthTexturePostprocessor : AssetPostprocessor
 {
@@ -14,7 +15,7 @@ public class NormalMapAverageLengthTexturePostprocessor : AssetPostprocessor
     void OnPreprocessTexture()
     {
         // Any texture with _NA suffix will store average normal lenght in alpha
-        if (assetPath.IndexOf(s_Suffix, StringComparison.InvariantCultureIgnoreCase) != -1)
+        if (Path.GetFileNameWithoutExtension(assetPath).EndsWith(s_Suffix, StringComparison.InvariantCultureIgnoreCase))
         {
             // Make sure we don't convert as a normal map.
             TextureImporter textureImporter = (TextureImporter)assetImporter;
@@ -70,7 +71,7 @@ public class NormalMapAverageLengthTexturePostprocessor : AssetPostprocessor
 
     void OnPostprocessTexture(Texture2D texture)
     {
-        if (assetPath.IndexOf(s_Suffix, StringComparison.InvariantCultureIgnoreCase) != -1)
+        if (Path.GetFileNameWithoutExtension(assetPath).EndsWith(s_Suffix, StringComparison.InvariantCultureIgnoreCase))
         {
             // Based on The Order : 1886 SIGGRAPH course notes implementation. Sample all normal map
             // texels from the base mip level that are within the footprint of the current mipmap texel.

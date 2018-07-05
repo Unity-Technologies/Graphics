@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.XR;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
@@ -183,7 +184,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (pipelineAsset.keepSoftShadowVariants)
                     s_PipelineCapabilities |= PipelineCapabilities.SoftShadows;
             }
-        }
+    }
 
         public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)

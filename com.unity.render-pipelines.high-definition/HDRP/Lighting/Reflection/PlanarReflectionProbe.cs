@@ -13,7 +13,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         [SerializeField]
-        ReflectionProxyVolumeComponent m_ProxyVolumeReference;
+        ReflectionProxyVolumeComponent m_ProxyVolumeReference = null;
         [SerializeField]
         InfluenceVolume m_InfluenceVolume = new InfluenceVolume();
         [SerializeField]
@@ -33,7 +33,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         Texture m_BakedTexture;
         [SerializeField]
-        FrameSettings m_FrameSettings;
+        FrameSettings m_FrameSettings = null;
         [SerializeField]
         float m_CaptureNearPlane = 1;
         [SerializeField]

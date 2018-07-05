@@ -14,14 +14,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public static readonly CED.IDrawer Inspector;
 
         public static readonly CED.IDrawer SectionProbeModeSettings;
+        public static readonly CED.IDrawer ProxyVolumeSettings = CED.FoldoutGroup(
+                "Proxy Volume",
+                (s, d, o) => s.isSectionExpendedProxyVolume,
+                FoldoutOption.Indent,
+                CED.Action(Drawer_SectionProxySettings)
+                );
         public static readonly CED.IDrawer SectionProbeModeBakedSettings = CED.noop;
         public static readonly CED.IDrawer SectionProbeModeCustomSettings = CED.Action(Drawer_SectionProbeModeCustomSettings);
         public static readonly CED.IDrawer SectionProbeModeRealtimeSettings = CED.Action(Drawer_SectionProbeModeRealtimeSettings);
         public static readonly CED.IDrawer SectionBakeButton = CED.Action(Drawer_SectionBakeButton);
 
-        public static readonly CED.IDrawer SectionFoldoutInfluenceSettings = CED.FoldoutGroup(
-                "Influence Settings",
-                (s, d, o) => s.isSectionExpandedInfluenceSettings,
+        public static readonly CED.IDrawer SectionFoldoutAdditionalSettings = CED.FoldoutGroup(
+                "Artistic Settings",
+                (s, d, o) => s.isSectionExpendedAdditionalSettings,
                 FoldoutOption.Indent,
                 CED.Action(Drawer_SectionInfluenceSettings)
                 );
@@ -40,14 +46,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     CED.Action(Drawer_SectionCaptureSettings),
                     CED.FadeGroup(
                         (s, d, o, i) =>
-                {
-                    switch (i)
-                    {
-                        default:
-                        case 0: return s.isSectionExpandedCaptureMirrorSettings;
-                        case 1: return s.isSectionExpandedCaptureStaticSettings;
-                    }
-                },
+                        {
+                            switch (i)
+                            {
+                                default:
+                                case 0: return s.isSectionExpandedCaptureMirrorSettings;
+                                case 1: return s.isSectionExpandedCaptureStaticSettings;
+                            }
+                        },
                         FadeOption.None,
                         SectionCaptureMirrorSettings,
                         SectionCaptureStaticSettings)
@@ -65,21 +71,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     );
 
             Inspector = CED.Group(
-                    //SectionProbeModeSettings,
-                    CED.space,
-                    CED.Action((s, d, o) => EditorGUILayout.LabelField(_.GetContent("Proxy Volume"), EditorStyles.boldLabel)),
-                    CED.Action(Drawer_FieldProxyVolumeReference),
-                    CED.space,
                     CED.Action(Drawer_Toolbar),
                     CED.space,
+                    ProxyVolumeSettings,
                     CED.Select(
                         (s, d, o) => s.influenceVolume,
                         (s, d, o) => d.influenceVolume,
                         InfluenceVolumeUI.SectionFoldoutShape
                         ),
                     CED.Action(Drawer_DifferentShapeError),
-                    SectionFoldoutInfluenceSettings,
                     SectionFoldoutCaptureSettings,
+                    SectionFoldoutAdditionalSettings,
                     CED.Select(
                         (s, d, o) => s.frameSettings,
                         (s, d, o) => d.frameSettings,
@@ -169,6 +171,30 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             GUI.enabled = true;
         }
 
+        static void Drawer_SectionProxySettings(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
+        {
+            EditorGUILayout.PropertyField(d.proxyVolumeReference, _.GetContent("Reference"));
+
+            if (d.proxyVolumeReference.objectReferenceValue != null)
+            {
+                var proxy = (ReflectionProxyVolumeComponent)d.proxyVolumeReference.objectReferenceValue;
+                if ((int)proxy.proxyVolume.shapeType != d.influenceVolume.shapeType.enumValueIndex)
+                    EditorGUILayout.HelpBox(
+                        "Proxy volume and influence volume have different shape types, this is not supported.",
+                        MessageType.Error,
+                        true
+                        );
+            }
+            else
+            {
+                EditorGUILayout.HelpBox(
+                        "When no Proxy setted, Influence shape will be used as Proxy shape too.",
+                        MessageType.Info,
+                        true
+                        );
+            }
+        }
+
         static void Drawer_SectionInfluenceSettings(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
         {
             EditorGUILayout.PropertyField(d.weight, _.GetContent("Weight"));
@@ -187,11 +213,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             GUI.enabled = true;
         }
 
-        static void Drawer_FieldProxyVolumeReference(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
-        {
-            EditorGUILayout.PropertyField(d.proxyVolumeReference, _.GetContent("Reference"));
-        }
-
         static readonly EditMode.SceneViewEditMode[] k_Toolbar_SceneViewEditModes =
         {
             EditBaseShape,
@@ -202,11 +223,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static readonly EditMode.SceneViewEditMode[] k_Toolbar_Static_SceneViewEditModes =
         {
-            EditCenter
+            //EditCenter  //offset have no meanings with planar
         };
         static readonly EditMode.SceneViewEditMode[] k_Toolbar_Mirror_SceneViewEditModes =
         {
-            EditMirrorPosition,
+            //EditMirrorPosition,  //offset have no meanings with planar
             EditMirrorRotation
         };
         static GUIContent[] s_Toolbar_Contents = null;
@@ -228,9 +249,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             get
             {
-                return s_Toolbar_Static_Contents ?? (s_Toolbar_Static_Contents = new[]
+                return s_Toolbar_Static_Contents ?? (s_Toolbar_Static_Contents = new GUIContent[]
                 {
-                    EditorGUIUtility.IconContent("MoveTool", "|Move the capture position.")
+                    //EditorGUIUtility.IconContent("MoveTool", "|Move the capture position.")   //offset have no meanings with planar
                 });
             }
         }
@@ -242,7 +263,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 return s_Toolbar_Mirror_Contents ?? (s_Toolbar_Mirror_Contents = new[]
                 {
-                    EditorGUIUtility.IconContent("MoveTool", "|Move the mirror plane."),
+                    //EditorGUIUtility.IconContent("MoveTool", "|Move the mirror plane."),   //offset have no meanings with planar
                     EditorGUIUtility.IconContent("RotateTool", "|Rotate the mirror plane.")
                 });
             }
@@ -263,6 +284,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
+        }
+
+        static public void Drawer_ToolBarButton(int buttonIndex, Editor owner, params GUILayoutOption[] styles)
+        {
+            if (GUILayout.Button(toolbar_Contents[buttonIndex], styles))
+            {
+                EditMode.ChangeEditMode(k_Toolbar_SceneViewEditModes[buttonIndex], GetBoundsGetter(owner)(), owner);
+            }
         }
 
         static Func<Bounds> GetBoundsGetter(Editor o)
