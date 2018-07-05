@@ -1,22 +1,26 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Text.RegularExpressions;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using UnityEngine;
 using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
+using UnityEditor.Importers;
 
 namespace UnityEditor.ShaderGraph
 {
-    [Serializable]
-    public sealed class GraphData : ISerializationCallbackReceiver, IGenerateProperties
+    [DataContract]
+    [JsonVersioned(typeof(GraphDataV0))]
+    public sealed class GraphData : IGenerateProperties
     {
         public GraphObject owner { get; set; }
 
         public bool isSubGraph { get; internal set; }
 
-        [NonSerialized]
-        private SubGraphOutputNode m_OutputNode;
+        SubGraphOutputNode m_OutputNode;
 
         public SubGraphOutputNode outputNode
         {
@@ -39,7 +43,7 @@ namespace UnityEditor.ShaderGraph
 
         #region Property data
 
-        [NonSerialized]
+        [JsonProperty(ItemTypeNameHandling = TypeNameHandling.Auto)]
         List<IShaderProperty> m_Properties = new List<IShaderProperty>();
 
         public IEnumerable<IShaderProperty> properties
@@ -47,10 +51,6 @@ namespace UnityEditor.ShaderGraph
             get { return m_Properties; }
         }
 
-        [SerializeField]
-        List<SerializationHelper.JSONSerializedElement> m_SerializedProperties = new List<SerializationHelper.JSONSerializedElement>();
-
-        [NonSerialized]
         List<IShaderProperty> m_AddedProperties = new List<IShaderProperty>();
 
         public IEnumerable<IShaderProperty> addedProperties
@@ -58,7 +58,6 @@ namespace UnityEditor.ShaderGraph
             get { return m_AddedProperties; }
         }
 
-        [NonSerialized]
         List<Guid> m_RemovedProperties = new List<Guid>();
 
         public IEnumerable<Guid> removedProperties
@@ -66,7 +65,6 @@ namespace UnityEditor.ShaderGraph
             get { return m_RemovedProperties; }
         }
 
-        [NonSerialized]
         List<IShaderProperty> m_MovedProperties = new List<IShaderProperty>();
 
         public IEnumerable<IShaderProperty> movedProperties
@@ -74,25 +72,18 @@ namespace UnityEditor.ShaderGraph
             get { return m_MovedProperties; }
         }
 
-        [SerializeField]
-        SerializableGuid m_GUID = new SerializableGuid();
-
-        public Guid guid
-        {
-            get { return m_GUID.guid; }
-        }
-
         #endregion
+
+        [DataMember]
+        public Guid guid { get; private set; }
 
         #region Node data
 
-        [NonSerialized]
         Stack<Identifier> m_FreeNodeTempIds = new Stack<Identifier>();
 
-        [NonSerialized]
+        [JsonProperty(ItemTypeNameHandling = TypeNameHandling.Auto)]
         List<AbstractMaterialNode> m_Nodes = new List<AbstractMaterialNode>();
 
-        [NonSerialized]
         Dictionary<Guid, INode> m_NodeDictionary = new Dictionary<Guid, INode>();
 
         public IEnumerable<T> GetNodes<T>() where T : INode
@@ -100,10 +91,6 @@ namespace UnityEditor.ShaderGraph
             return m_Nodes.Where(x => x != null).OfType<T>();
         }
 
-        [SerializeField]
-        List<SerializationHelper.JSONSerializedElement> m_SerializableNodes = new List<SerializationHelper.JSONSerializedElement>();
-
-        [NonSerialized]
         List<INode> m_AddedNodes = new List<INode>();
 
         public IEnumerable<INode> addedNodes
@@ -111,7 +98,6 @@ namespace UnityEditor.ShaderGraph
             get { return m_AddedNodes; }
         }
 
-        [NonSerialized]
         List<INode> m_RemovedNodes = new List<INode>();
 
         public IEnumerable<INode> removedNodes
@@ -119,7 +105,6 @@ namespace UnityEditor.ShaderGraph
             get { return m_RemovedNodes; }
         }
 
-        [NonSerialized]
         List<INode> m_PastedNodes = new List<INode>();
 
         public IEnumerable<INode> pastedNodes
@@ -131,7 +116,7 @@ namespace UnityEditor.ShaderGraph
 
         #region Edge data
 
-        [NonSerialized]
+        [DataMember]
         List<EdgeData> m_Edges = new List<EdgeData>();
 
         public IEnumerable<EdgeData> edges
@@ -139,13 +124,8 @@ namespace UnityEditor.ShaderGraph
             get { return m_Edges; }
         }
 
-        [SerializeField]
-        List<SerializationHelper.JSONSerializedElement> m_SerializableEdges = new List<SerializationHelper.JSONSerializedElement>();
-
-        [NonSerialized]
         Dictionary<Guid, List<EdgeData>> m_NodeEdges = new Dictionary<Guid, List<EdgeData>>();
 
-        [NonSerialized]
         List<EdgeData> m_AddedEdges = new List<EdgeData>();
 
         public IEnumerable<EdgeData> addedEdges
@@ -153,7 +133,6 @@ namespace UnityEditor.ShaderGraph
             get { return m_AddedEdges; }
         }
 
-        [NonSerialized]
         List<EdgeData> m_RemovedEdges = new List<EdgeData>();
 
         public IEnumerable<EdgeData> removedEdges
@@ -163,18 +142,18 @@ namespace UnityEditor.ShaderGraph
 
         #endregion
 
-        [SerializeField]
-        InspectorPreviewData m_PreviewData = new InspectorPreviewData();
+        [DataMember]
+        InspectorPreviewData m_Preview = new InspectorPreviewData();
 
-        public InspectorPreviewData previewData
+        public InspectorPreviewData preview
         {
-            get { return m_PreviewData; }
-            set { m_PreviewData = value; }
+            get { return m_Preview; }
+            set { m_Preview = value; }
         }
 
         public string name { get; set; }
 
-        [SerializeField]
+        [DataMember]
         string m_Path;
 
         public string path
@@ -718,38 +697,6 @@ namespace UnityEditor.ShaderGraph
             ValidateGraph();
         }
 
-        public void OnBeforeSerialize()
-        {
-            m_SerializableNodes = SerializationHelper.Serialize(GetNodes<INode>());
-            m_SerializableEdges = SerializationHelper.Serialize<EdgeData>(m_Edges);
-            m_SerializedProperties = SerializationHelper.Serialize<IShaderProperty>(m_Properties);
-        }
-
-        public /*virtual*/ void OnAfterDeserialize()
-        {
-            m_OutputNode = null;
-            // have to deserialize 'globals' before nodes
-            m_Properties = SerializationHelper.Deserialize<IShaderProperty>(m_SerializedProperties, GraphUtil.GetLegacyTypeRemapping());
-            var nodes = SerializationHelper.Deserialize<INode>(m_SerializableNodes, GraphUtil.GetLegacyTypeRemapping());
-            m_Nodes = new List<AbstractMaterialNode>(nodes.Count);
-            m_NodeDictionary = new Dictionary<Guid, INode>(nodes.Count);
-            foreach (var node in nodes.OfType<AbstractMaterialNode>())
-            {
-                node.owner = this;
-                node.UpdateNodeAfterDeserialization();
-                node.tempId = new Identifier(m_Nodes.Count);
-                m_Nodes.Add(node);
-                m_NodeDictionary.Add(node.guid, node);
-            }
-
-            m_SerializableNodes = null;
-
-            m_Edges = SerializationHelper.Deserialize<EdgeData>(m_SerializableEdges, GraphUtil.GetLegacyTypeRemapping());
-            m_SerializableEdges = null;
-            foreach (var edge in m_Edges)
-                AddEdgeToNodeEdges(edge);
-        }
-
         public void OnEnable()
         {
             foreach (var node in GetNodes<INode>().OfType<IOnAssetEnabled>())
@@ -763,5 +710,68 @@ namespace UnityEditor.ShaderGraph
             OnEnable();
             ValidateGraph();
         }
+    }
+
+    [Serializable]
+    sealed class GraphDataV0 : IUpgradableTo<GraphData>
+    {
+        [SerializeField]
+        List<SerializationHelper.JSONSerializedElement> m_SerializedProperties = new List<SerializationHelper.JSONSerializedElement>();
+
+        [SerializeField]
+        SerializableGuid m_GUID = new SerializableGuid();
+
+        [SerializeField]
+        List<SerializationHelper.JSONSerializedElement> m_SerializableNodes = new List<SerializationHelper.JSONSerializedElement>();
+
+        [SerializeField]
+        List<SerializationHelper.JSONSerializedElement> m_SerializableEdges = new List<SerializationHelper.JSONSerializedElement>();
+
+        [SerializeField]
+        InspectorPreviewData m_PreviewData = new InspectorPreviewData();
+
+        [SerializeField]
+        string m_Path;
+
+        public GraphData Upgrade()
+        {
+            var graphData = new GraphData
+            {
+
+            };
+            return graphData;
+        }
+
+//        public void OnBeforeSerialize()
+//        {
+//            m_SerializableNodes = SerializationHelper.Serialize(GetNodes<INode>());
+//            m_SerializableEdges = SerializationHelper.Serialize<EdgeData>(m_Edges);
+//            m_SerializedProperties = SerializationHelper.Serialize<IShaderProperty>(m_Properties);
+//        }
+//
+//        public /*virtual*/ void OnAfterDeserialize()
+//        {
+//            m_OutputNode = null;
+//            // have to deserialize 'globals' before nodes
+//            m_Properties = SerializationHelper.Deserialize<IShaderProperty>(m_SerializedProperties, GraphUtil.GetLegacyTypeRemapping());
+//            var nodes = SerializationHelper.Deserialize<INode>(m_SerializableNodes, GraphUtil.GetLegacyTypeRemapping());
+//            m_Nodes = new List<AbstractMaterialNode>(nodes.Count);
+//            m_NodeDictionary = new Dictionary<Guid, INode>(nodes.Count);
+//            foreach (var node in nodes.OfType<AbstractMaterialNode>())
+//            {
+//                node.owner = this;
+//                node.UpdateNodeAfterDeserialization();
+//                node.tempId = new Identifier(m_Nodes.Count);
+//                m_Nodes.Add(node);
+//                m_NodeDictionary.Add(node.guid, node);
+//            }
+//
+//            m_SerializableNodes = null;
+//
+//            m_Edges = SerializationHelper.Deserialize<EdgeData>(m_SerializableEdges, GraphUtil.GetLegacyTypeRemapping());
+//            m_SerializableEdges = null;
+//            foreach (var edge in m_Edges)
+//                AddEdgeToNodeEdges(edge);
+//        }
     }
 }

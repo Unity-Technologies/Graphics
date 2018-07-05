@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
+using Importers;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using UnityEditor.Importers;
 using UnityEditor.ShaderGraph;
@@ -7,35 +10,60 @@ using UnityEngine;
 
 namespace UnityEngine.ShaderGraph
 {
-    public class ContractResolver : DefaultContractResolver
+    class ContractResolver : DefaultContractResolver
     {
-        protected override JsonContract CreateContract(Type objectType)
+        public static readonly ContractResolver instance = new ContractResolver();
+
+        ContractResolver()
         {
-            var jsonContract = base.CreateContract(objectType);
+            NamingStrategy = new UnityNamingStrategy();
+        }
+
+        protected override JsonObjectContract CreateObjectContract(Type objectType)
+        {
+            var contract = base.CreateObjectContract(objectType);
 
             if (objectType == typeof(Vector2))
-                jsonContract.Converter = new Vector2Converter();
+                contract.Converter = new Vector2Converter();
             else if (objectType == typeof(Vector3))
-                jsonContract.Converter = new Vector3Converter();
+                contract.Converter = new Vector3Converter();
             else if (objectType == typeof(Vector4))
-                jsonContract.Converter = new Vector4Converter();
+                contract.Converter = new Vector4Converter();
             else if (objectType == typeof(Quaternion))
-                jsonContract.Converter = new QuaternionConverter();
+                contract.Converter = new QuaternionConverter();
             else if (objectType == typeof(Color))
-                jsonContract.Converter = new ColorConverter();
+                contract.Converter = new ColorConverter();
             else if (objectType == typeof(Bounds))
-                jsonContract.Converter = new BoundsConverter();
+                contract.Converter = new BoundsConverter();
             else if (objectType == typeof(Rect))
-                jsonContract.Converter = new RectConverter();
+                contract.Converter = new RectConverter();
             else if (Attribute.IsDefined(objectType, typeof(JsonVersionedAttribute), true))
-                jsonContract.Converter = new UpgradeConverter(objectType);
+            {
+                contract.Converter = new UpgradeConverter();
+                var property = new JsonProperty
+                {
+                    DeclaringType = contract.UnderlyingType,
+                    PropertyName = "$version",
+                    UnderlyingName = "$version",
+                    PropertyType = typeof(int),
+                    ValueProvider = new ConstantValueProvider(2),
+                    Readable = true,
+                    Writable = false,
+                };
+                contract.Properties.Insert(0, property);
+            }
             else if (!Attribute.IsDefined(objectType, typeof(DataContractAttribute), true)
+                && !Attribute.IsDefined(objectType, typeof(JsonObjectAttribute), true)
+                && !Attribute.IsDefined(objectType, typeof(JsonDictionaryAttribute), true)
+                && !Attribute.IsDefined(objectType, typeof(JsonArrayAttribute), true)
                 && Attribute.IsDefined(objectType, typeof(SerializableAttribute), true)
                 && !objectType.IsAbstract
                 && !objectType.IsGenericType)
-                jsonContract.Converter = new UnityConverter();
+                contract.Converter = new UnityConverter();
 
-            return jsonContract;
+
+
+            return contract;
         }
     }
 }

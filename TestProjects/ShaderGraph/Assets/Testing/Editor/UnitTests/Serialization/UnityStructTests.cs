@@ -65,7 +65,7 @@ namespace UnityEditor.ShaderGraph.UnitTests.Serialization
         public void CanSerializeAndDeserializeValue<T>(T typedValue)
         {
             object originalValue = typedValue;
-            var jsonSerializerSettings = new JsonSerializerSettings { ContractResolver = new ContractResolver() };
+            var jsonSerializerSettings = new JsonSerializerSettings { ContractResolver = ContractResolver.instance };
             var json = JsonConvert.SerializeObject(originalValue, jsonSerializerSettings);
             var deserializedValue = JsonConvert.DeserializeObject<T>(json, jsonSerializerSettings);
 
@@ -75,7 +75,7 @@ namespace UnityEditor.ShaderGraph.UnitTests.Serialization
         [TestCaseSource("TestCases")]
         public void CanDeserializeUnitySerializedValue<T>(T originalValue)
         {
-            var jsonSerializerSettings = new JsonSerializerSettings { ContractResolver = new ContractResolver() };
+            var jsonSerializerSettings = new JsonSerializerSettings { ContractResolver = ContractResolver.instance };
             var unityJson = JsonUtility.ToJson(originalValue);
             var deserializedValue = JsonConvert.DeserializeObject<T>(unityJson, jsonSerializerSettings);
 

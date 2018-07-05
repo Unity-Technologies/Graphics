@@ -214,12 +214,12 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
             DirtyMasterNode(ModificationScope.Node);
 
-            if (m_Graph.previewData.serializedMesh.mesh != changedMesh)
+            if (m_Graph.preview.serializedMesh.mesh != changedMesh)
             {
-                m_Graph.previewData.rotation = Quaternion.identity;
+                m_Graph.preview.rotation = Quaternion.identity;
             }
 
-            m_Graph.previewData.serializedMesh.mesh = changedMesh;
+            m_Graph.preview.serializedMesh.mesh = changedMesh;
         }
 
         private static EditorWindow Get()
@@ -239,7 +239,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         void ChangeMeshCustom()
         {
             MethodInfo ShowMethod = s_ObjectSelector.GetMethod("Show", BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.DeclaredOnly, Type.DefaultBinder, new[] {typeof(Object), typeof(Type), typeof(SerializedProperty), typeof(bool), typeof(List<int>), typeof(Action<Object>), typeof(Action<Object>)}, new ParameterModifier[7]);
-            m_PreviousMesh = m_Graph.previewData.serializedMesh.mesh;
+            m_PreviousMesh = m_Graph.preview.serializedMesh.mesh;
             ShowMethod.Invoke(Get(), new object[] { null, typeof(Mesh), null, false, null, (Action<Object>)OnMeshChanged, (Action<Object>)OnMeshChanged });
         }
 
@@ -272,7 +272,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         void OnScroll(float scrollValue)
         {
             float rescaleAmount = -scrollValue * .03f;
-            m_Graph.previewData.scale = Mathf.Clamp(m_Graph.previewData.scale + rescaleAmount, 0.2f, 5f);
+            m_Graph.preview.scale = Mathf.Clamp(m_Graph.preview.scale + rescaleAmount, 0.2f, 5f);
 
             DirtyMasterNode(ModificationScope.Node);
         }
@@ -284,7 +284,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             m_PreviewScrollPosition -= deltaMouse * (Event.current.shift ? 3f : 1f) / Mathf.Min(previewSize.x, previewSize.y) * 140f;
             m_PreviewScrollPosition.y = Mathf.Clamp(m_PreviewScrollPosition.y, -90f, 90f);
             Quaternion previewRotation = Quaternion.Euler(m_PreviewScrollPosition.y, 0, 0) * Quaternion.Euler(0, m_PreviewScrollPosition.x, 0);
-            m_Graph.previewData.rotation = previewRotation;
+            m_Graph.preview.rotation = previewRotation;
 
             DirtyMasterNode(ModificationScope.Node);
         }

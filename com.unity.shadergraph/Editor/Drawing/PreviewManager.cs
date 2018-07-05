@@ -305,9 +305,9 @@ namespace UnityEditor.ShaderGraph.Drawing
                     masterRenderData.texture = masterRenderData.renderTexture;
                     m_NewMasterPreviewSize = null;
                 }
-                var mesh = m_Graph.previewData.serializedMesh.mesh ? m_Graph.previewData.serializedMesh.mesh :  m_SceneResources.sphere;
-                var previewTransform = Matrix4x4.Rotate(m_Graph.previewData.rotation);
-                var scale = m_Graph.previewData.scale;
+                var mesh = m_Graph.preview.serializedMesh.mesh ? m_Graph.preview.serializedMesh.mesh :  m_SceneResources.sphere;
+                var previewTransform = Matrix4x4.Rotate(m_Graph.preview.rotation);
+                var scale = m_Graph.preview.scale;
                 previewTransform *= Matrix4x4.Scale(scale * Vector3.one * (Vector3.one).magnitude / mesh.bounds.size.magnitude);
                 previewTransform *= Matrix4x4.Translate(-mesh.bounds.center);
                 RenderPreview(masterRenderData, mesh, previewTransform);
