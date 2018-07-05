@@ -89,7 +89,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] bool m_KeepSoftShadowVariants = true;
 
         [SerializeField] LightweightPipelineResources m_ResourcesAsset;
-        [SerializeField] XRGConfig m_savedXRConfig = XRGConfig.defaultXRConfig;        
+        [SerializeField] XRGraphicsConfig m_SavedXRConfig = XRGraphicsConfig.s_DefaultXRConfig;        
 
         // Deprecated
         [SerializeField] ShadowType m_ShadowType = ShadowType.HARD_SHADOWS;
@@ -253,14 +253,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public float renderScale
         {
-            get  
-            {
-                return m_RenderScale;
-            }
-            set
-            {
-                m_RenderScale = value;
-            }
+            get { return m_RenderScale; }
+            set { m_RenderScale = value; }
         }
 
         public bool supportsDynamicBatching
@@ -421,9 +415,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             get { return resources != null ? resources.SamplingShader : null; }
         }
 
-        public XRGConfig XRGConfig
+        public XRGraphicsConfig savedXRGraphicsConfig
         {
-            get { return m_savedXRConfig; }
+            get { return m_SavedXRConfig; }
         }
 
         public void OnBeforeSerialize()

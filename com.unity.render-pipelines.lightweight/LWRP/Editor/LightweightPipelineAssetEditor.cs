@@ -144,7 +144,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_ShowSoftParticles.value = m_RequireSoftParticlesProp.boolValue;
             m_ShowOpaqueTextureScale.valueChanged.AddListener(Repaint);
             m_ShowOpaqueTextureScale.value = m_RequireOpaqueTextureProp.boolValue;
-            m_XRConfig = serializedObject.FindProperty("m_savedXRConfig");
+            m_XRConfig = serializedObject.FindProperty("m_SavedXRConfig");
             
         }
 
@@ -164,9 +164,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             EditorGUILayout.LabelField(Styles.generalSettingsLabel, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
-            EditorGUI.BeginDisabledGroup(XRGConfig.Enabled);
+            EditorGUI.BeginDisabledGroup(XRGraphicsConfig.tryEnable); // Begin XR-overridden values
             m_RenderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleLabel, m_RenderScale.floatValue, k_MinRenderScale, k_MaxRenderScale);
-            EditorGUI.EndDisabledGroup();
+            EditorGUI.EndDisabledGroup(); // End XR-overridden values
             m_MaxPixelLights.intValue = EditorGUILayout.IntSlider(Styles.maxPixelLightsLabel, m_MaxPixelLights.intValue, 0, k_MaxSupportedPixelLights);
             EditorGUILayout.Space();
 
