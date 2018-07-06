@@ -28,7 +28,7 @@ void EncodeIntoNormalBuffer(NormalData normalData, uint2 positionSS, out NormalB
 
     // RT1 - 8:8:8:8
     // Our tangent encoding is based on our normal.
-#if defined(SHADER_API_METAL)
+#if defined(SHADER_API_METAL) || defined(SHADER_API_VULKAN)
     // With octahedral quad packing we get an artifact for reconstructed tangent at the center of this quad. We use rect packing instead to avoid it.
     float2 octNormalWS = PackNormalOctRectEncode(normalData.normalWS);
 #else
@@ -43,7 +43,7 @@ void DecodeFromNormalBuffer(float4 normalBuffer, uint2 positionSS, out NormalDat
 {
     float3 packNormalWS = normalBuffer.rgb;
     float2 octNormalWS = Unpack888ToFloat2(packNormalWS);
-#if defined(SHADER_API_METAL)
+#if defined(SHADER_API_METAL) || defined(SHADER_API_VULKAN)
     normalData.normalWS = UnpackNormalOctRectEncode(octNormalWS * 2.0 - 1.0);
 #else
     normalData.normalWS = UnpackNormalOctQuadEncode(octNormalWS * 2.0 - 1.0);
