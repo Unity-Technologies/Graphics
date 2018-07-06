@@ -180,7 +180,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _DirectionalShadowIndex = Shader.PropertyToID("_DirectionalShadowIndex");
         public static readonly int _DirectionalContactShadowParams = Shader.PropertyToID("_ScreenSpaceShadowsParameters");
         public static readonly int _DirectionalContactShadowSampleCount = Shader.PropertyToID("_SampleCount");
-        public static readonly int _DirectionalLightDirection = Shader.PropertyToID("_LightDirection");
+        public static readonly int _DirectionalLightDirection = Shader.PropertyToID("_DirectionalLightDirection");
+        public static readonly int _PunctualLightPosition = Shader.PropertyToID("_PunctualLightPosition");
 
         public static readonly int _StencilMask = Shader.PropertyToID("_StencilMask");
         public static readonly int _StencilRef = Shader.PropertyToID("_StencilRef");

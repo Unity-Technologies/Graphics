@@ -27,6 +27,7 @@
 #define GPUSHADOWALGORITHM_EVSM_4 (17)
 #define GPUSHADOWALGORITHM_MSM_HAM (24)
 #define GPUSHADOWALGORITHM_MSM_HAUS (25)
+#define GPUSHADOWALGORITHM_PCSS (32)
 #define GPUSHADOWALGORITHM_CUSTOM (256)
 
 // Generated from UnityEngine.Experimental.Rendering.ShadowData

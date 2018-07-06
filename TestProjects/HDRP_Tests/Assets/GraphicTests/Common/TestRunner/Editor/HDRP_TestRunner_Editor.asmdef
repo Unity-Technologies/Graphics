@@ -1,0 +1,10 @@
+{
+    "name": "HDRP_TestRunner_Editor",
+    "references": [],
+    "optionalUnityReferences": [],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false
+}
