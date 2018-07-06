@@ -8,16 +8,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [2.0.5-preview]
 
-### Fixed
-- Fixed a shader preprocessor issue when compiling DebugViewMaterialGBuffer.shader against Metal target
-- Added a temporary workaround to Lit.hlsl to avoid broken lighting code with Metal/AMD
-- Fixed compilation errors on Nintendo Switch (limited XRSetting support).
-- Fixed apply range attenuation option on punctual light
-- Fixed issue when using more than one volume mask texture with density volumes.
-- Fixed an error which prevented volumetric lighting from working if no density volumes with 3D textures were present.
-- Fixed issue with color temperature not take correctly into account with static lighting
-- Don't display fog when diffuse lighting, specular lighting, or lux meter debug mode are enabled.
-
 ### Added
 - Add option supportDitheringCrossFade on HDRP Asset to allow to remove shader variant during player build if needed
 - Add contact shadows for punctual lights (in additional shadow settings), only one light is allowed to cast contact shadows at the same time and so at each frame a dominant light is choosed among all light with contact shadows enabled.
@@ -45,6 +35,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an error which prevented volumetric lighting from working if no density volumes with 3D textures were present.
 - Fix contact shadows applied on transmission
 - Fix issue with forward opaque lit shader variant being removed by the shader preprocessor
+- Fixed compilation errors on Nintendo Switch (limited XRSetting support).
+- Fixed apply range attenuation option on punctual light
+- Fixed issue with color temperature not take correctly into account with static lighting
+- Don't display fog when diffuse lighting, specular lighting, or lux meter debug mode are enabled.
 
 ## [2.0.4-preview]
 

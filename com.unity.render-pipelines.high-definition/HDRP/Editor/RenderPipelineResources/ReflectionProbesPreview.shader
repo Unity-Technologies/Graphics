@@ -52,7 +52,6 @@ Shader "Debug/ReflectionProbePreview"
                 v2f o;
                 // Transform local to world before custom vertex code
                 o.positionWS = TransformObjectToWorld(v.positionOS.xyz);
-                o.positionWS = GetCameraRelativePositionWS(o.positionWS);
                 o.positionCS = TransformWorldToHClip(o.positionWS);
                 o.normalWS = TransformObjectToWorldNormal(v.normalOS);
 
