@@ -60,7 +60,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 && editorSimplifiedModeBlendDistance.floatValue == 0f
                 && editorAdvancedModeBlendNormalDistancePositive.vector3Value == Vector3.zero
                 && editorAdvancedModeBlendNormalDistanceNegative.vector3Value == Vector3.zero
-                && editorSimplifiedModeBlendNormalDistance.floatValue == 0f)
+                && editorSimplifiedModeBlendNormalDistance.floatValue == 0f
+                && (boxInfluencePositiveFade.vector3Value != Vector3.zero
+                    || boxInfluenceNegativeFade.vector3Value != Vector3.zero))
             {
                 Vector3 positive = boxInfluencePositiveFade.vector3Value;
                 Vector3 negative = boxInfluenceNegativeFade.vector3Value;
@@ -70,16 +72,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 //aproximated simplified
                 editorSimplifiedModeBlendDistance.floatValue = Mathf.Max(positive.x, positive.y, positive.z, negative.x, negative.y, negative.z);
 
-                positive = boxInfluenceNormalPositiveFade.vector3Value;
-                negative = boxInfluenceNormalNegativeFade.vector3Value;
-                //exact advanced
-                editorAdvancedModeBlendNormalDistancePositive.vector3Value = positive;
-                editorAdvancedModeBlendNormalDistanceNegative.vector3Value = negative;
-                //aproximated simplified
-                editorSimplifiedModeBlendNormalDistance.floatValue = Mathf.Max(positive.x, positive.y, positive.z, negative.x, negative.y, negative.z);
+                //no normal modification allowed anymore in PlanarReflectionProbe
+                boxInfluenceNormalPositiveFade.vector3Value = Vector3.zero;
+                boxInfluenceNormalNegativeFade.vector3Value = Vector3.zero;
 
                 //display old data
                 editorAdvancedModeEnabled.boolValue = true;
+                Apply();
             }
         }
 

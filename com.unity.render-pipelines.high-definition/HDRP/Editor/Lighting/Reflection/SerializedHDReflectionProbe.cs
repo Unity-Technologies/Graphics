@@ -106,7 +106,11 @@ namespace UnityEditor.Experimental.Rendering
                 && editorSimplifiedModeBlendDistance.floatValue == 0f
                 && editorAdvancedModeBlendNormalDistancePositive.vector3Value == Vector3.zero
                 && editorAdvancedModeBlendNormalDistanceNegative.vector3Value == Vector3.zero
-                && editorSimplifiedModeBlendNormalDistance.floatValue == 0f)
+                && editorSimplifiedModeBlendNormalDistance.floatValue == 0f
+                && (blendDistancePositive.vector3Value != Vector3.zero
+                    || blendDistanceNegative.vector3Value != Vector3.zero
+                    || blendNormalDistancePositive.vector3Value != Vector3.zero
+                    || blendNormalDistanceNegative.vector3Value != Vector3.zero))
             {
                 Vector3 positive = blendDistancePositive.vector3Value;
                 Vector3 negative = blendDistanceNegative.vector3Value;
@@ -126,6 +130,7 @@ namespace UnityEditor.Experimental.Rendering
 
                 //display old data
                 editorAdvancedModeEnabled.boolValue = true;
+                Apply();
             }
 
             proxyVolumeComponent = addso.Find((HDAdditionalReflectionData d) => d.proxyVolumeComponent);
