@@ -153,8 +153,8 @@ MonoBehaviour:
   ImageComparisonSettings:
     TargetWidth: 1920
     TargetHeight: 1080
-    PerPixelCorrectnessThreshold: 0.002
-    AverageCorrectnessThreshold: 0.00025
+    PerPixelCorrectnessThreshold: 0.001
+    AverageCorrectnessThreshold: 0.0001
   doBeforeTest:
     m_PersistentCalls:
       m_Calls: []
