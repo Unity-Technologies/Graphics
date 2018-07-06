@@ -45,9 +45,6 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1301_SubSurfaceScattering.unity
     guid: 201c29a239df4c74ea9e1ab47082abea
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/1x_Materials/1303_SSS_Pre-Post.unity
-    guid: 6f2bc3028f3daba46ab0447a3e25ebc6
-  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1401_StackLit.unity
     guid: 695dac9017b946a49a338d466a6d50ff
   - enabled: 1
@@ -63,14 +60,8 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2004_AnimatedCookie.unity
     guid: 9f03abfd8e9cc614c89458cbdb208e7c
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2101_GI_Metapass.unity
-    guid: 8747b43f8bcf2b44cbc3ece373da65a9
-  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2102_GI_Emission.unity
     guid: b8f49ca9a12abb4468116e9422139e63
-  - enabled: 1
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2103_BakeMixed.unity
-    guid: d8cfa4fd9319d2444b3bf6dd836ffe31
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2201_ReflectionProbes_Priority.unity
     guid: d485acf0535eb4b42a9a3847f4a8274a
