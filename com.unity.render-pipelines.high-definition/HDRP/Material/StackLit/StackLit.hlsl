@@ -1107,16 +1107,8 @@ void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightDat
         _s_ri0 = (e_ri0 > 0.0) ? _s_ri0/e_ri0 : 0.0;
 
         // Store the coefficient and variance
-        if(m_r0i > 0.0)
-        {
-            preLightData.vLayerEnergyCoeff[i] = m_R0i;
-            //preLightData.vLayerPerceptualRoughness[i] = LinearVarianceToPerceptualRoughness(_s_r0m);
-        }
-        else
-        {
-            preLightData.vLayerEnergyCoeff[i] = float3(0.0, 0.0, 0.0);
-            //preLightData.vLayerPerceptualRoughness[i] = 0.0;
-        }
+        preLightData.vLayerEnergyCoeff[i] = (m_r0i > 0.0) ? m_R0i : float3(0.0, 0.0, 0.0);
+        //preLightData.vLayerPerceptualRoughness[i] = (m_r0i > 0.0) ? LinearVarianceToPerceptualRoughness(_s_r0m) : 0.0;
 
         // Update energy
         R0i = e_R0i;
