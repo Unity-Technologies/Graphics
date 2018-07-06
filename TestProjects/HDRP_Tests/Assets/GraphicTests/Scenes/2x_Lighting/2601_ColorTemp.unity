@@ -44,7 +44,7 @@ RenderSettings:
 LightmapSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 11
-  m_GIWorkflowMode: 0
+  m_GIWorkflowMode: 1
   m_GISettings:
     serializedVersion: 2
     m_BounceScale: 1
@@ -89,7 +89,8 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaIndirect: 2
     m_PVRFilteringAtrousPositionSigmaAO: 1
     m_ShowResolutionOverlay: 1
-  m_LightingDataAsset: {fileID: 0}
+  m_LightingDataAsset: {fileID: 112000004, guid: fcaf9eccbaa13734a915b4a09ad3ff8f,
+    type: 2}
   m_UseShadowmask: 1
 --- !u!196 &4
 NavMeshSettings:
@@ -1047,7 +1048,7 @@ MonoBehaviour:
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 1
-  m_InnerSpotPercent: 0
+  m_InnerSpotPercent: 80
   lightDimmer: 1
   volumetricDimmer: 1
   lightUnit: 0
@@ -1497,7 +1498,7 @@ MonoBehaviour:
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 1
-  m_InnerSpotPercent: 0
+  m_InnerSpotPercent: 80
   lightDimmer: 1
   volumetricDimmer: 1
   lightUnit: 0
@@ -1647,7 +1648,7 @@ MonoBehaviour:
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 1
-  m_InnerSpotPercent: 0
+  m_InnerSpotPercent: 80
   lightDimmer: 1
   volumetricDimmer: 1
   lightUnit: 0
@@ -1797,7 +1798,7 @@ MonoBehaviour:
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 1
-  m_InnerSpotPercent: 0
+  m_InnerSpotPercent: 80
   lightDimmer: 1
   volumetricDimmer: 1
   lightUnit: 0
@@ -1947,7 +1948,7 @@ MonoBehaviour:
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 1
-  m_InnerSpotPercent: 0
+  m_InnerSpotPercent: 80
   lightDimmer: 1
   volumetricDimmer: 1
   lightUnit: 0
@@ -2247,7 +2248,7 @@ MonoBehaviour:
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 1
-  m_InnerSpotPercent: 0
+  m_InnerSpotPercent: 80
   lightDimmer: 1
   volumetricDimmer: 1
   lightUnit: 0
@@ -2397,7 +2398,7 @@ MonoBehaviour:
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 1
-  m_InnerSpotPercent: 0
+  m_InnerSpotPercent: 80
   lightDimmer: 1
   volumetricDimmer: 1
   lightUnit: 0
@@ -2547,7 +2548,7 @@ MonoBehaviour:
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 1
-  m_InnerSpotPercent: 0
+  m_InnerSpotPercent: 80
   lightDimmer: 1
   volumetricDimmer: 1
   lightUnit: 0
@@ -2697,7 +2698,7 @@ MonoBehaviour:
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 1
-  m_InnerSpotPercent: 0
+  m_InnerSpotPercent: 80
   lightDimmer: 1
   volumetricDimmer: 1
   lightUnit: 0
@@ -3047,7 +3048,7 @@ MonoBehaviour:
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 1
-  m_InnerSpotPercent: 0
+  m_InnerSpotPercent: 80
   lightDimmer: 1
   volumetricDimmer: 1
   lightUnit: 0
@@ -3297,7 +3298,7 @@ MonoBehaviour:
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 1
-  m_InnerSpotPercent: 0
+  m_InnerSpotPercent: 80
   lightDimmer: 1
   volumetricDimmer: 1
   lightUnit: 0
@@ -3597,7 +3598,7 @@ MonoBehaviour:
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 1
-  m_InnerSpotPercent: 0
+  m_InnerSpotPercent: 80
   lightDimmer: 1
   volumetricDimmer: 1
   lightUnit: 0
@@ -3747,7 +3748,7 @@ MonoBehaviour:
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 1
-  m_InnerSpotPercent: 0
+  m_InnerSpotPercent: 80
   lightDimmer: 1
   volumetricDimmer: 1
   lightUnit: 0
@@ -3897,7 +3898,7 @@ MonoBehaviour:
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 1
-  m_InnerSpotPercent: 0
+  m_InnerSpotPercent: 80
   lightDimmer: 1
   volumetricDimmer: 1
   lightUnit: 0
@@ -4197,7 +4198,7 @@ MonoBehaviour:
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 1
-  m_InnerSpotPercent: 0
+  m_InnerSpotPercent: 80
   lightDimmer: 1
   volumetricDimmer: 1
   lightUnit: 0
@@ -4497,7 +4498,7 @@ MonoBehaviour:
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 1
-  m_InnerSpotPercent: 0
+  m_InnerSpotPercent: 80
   lightDimmer: 1
   volumetricDimmer: 1
   lightUnit: 0
@@ -4884,7 +4885,7 @@ MonoBehaviour:
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 1
-  m_InnerSpotPercent: 0
+  m_InnerSpotPercent: 80
   lightDimmer: 1
   volumetricDimmer: 1
   lightUnit: 0
@@ -5184,7 +5185,7 @@ MonoBehaviour:
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 1
-  m_InnerSpotPercent: 0
+  m_InnerSpotPercent: 80
   lightDimmer: 1
   volumetricDimmer: 1
   lightUnit: 0
@@ -5990,7 +5991,7 @@ MonoBehaviour:
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 1
-  m_InnerSpotPercent: 0
+  m_InnerSpotPercent: 80
   lightDimmer: 1
   volumetricDimmer: 1
   lightUnit: 0
@@ -6140,7 +6141,7 @@ MonoBehaviour:
   punctualIntensity: 600
   areaIntensity: 200
   enableSpotReflector: 1
-  m_InnerSpotPercent: 0
+  m_InnerSpotPercent: 80
   lightDimmer: 1
   volumetricDimmer: 1
   lightUnit: 0
