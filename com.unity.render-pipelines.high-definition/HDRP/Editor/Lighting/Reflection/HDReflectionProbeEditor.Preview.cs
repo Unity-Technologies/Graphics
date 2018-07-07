@@ -12,7 +12,7 @@ namespace UnityEditor.Experimental.Rendering
                 return false;  // We only handle one preview for reflection probes
 
             // Ensure valid cube map editor (if possible)
-            if (ValidPreviewSetup())
+            if (ValidPreviewSetup() && m_CubemapEditor == null)
             {
                 Editor editor = m_CubemapEditor;
                 CreateCachedEditor(((ReflectionProbe)target).texture, typeof(HDCubemapInspector), ref editor);
@@ -57,6 +57,11 @@ namespace UnityEditor.Experimental.Rendering
         {
             var p = target as ReflectionProbe;
             return p != null && p.texture != null;
+        }
+
+        private void OnDestroy()
+        {
+            DestroyImmediate(m_CubemapEditor);
         }
     }
 }
