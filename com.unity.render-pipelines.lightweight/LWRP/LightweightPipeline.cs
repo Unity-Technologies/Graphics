@@ -61,6 +61,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 Debug.LogWarning("Nested camera rendering is forbidden. If you are calling camera.Render inside OnWillRenderObject callback, use BeginCameraRender callback instead.");
                 return;
             }
+            pipelineAsset.savedXRGraphicsConfig.renderScale = pipelineAsset.renderScale;
+            pipelineAsset.savedXRGraphicsConfig.viewportScale = 1.0f; // Placeholder until viewportScale is all hooked up
             // Apply any changes to XRGConfig prior to this point
             pipelineAsset.savedXRGraphicsConfig.SetConfig();
 
