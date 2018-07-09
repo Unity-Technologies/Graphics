@@ -6,7 +6,7 @@ using UnityEngine.Assertions;
 namespace UnityEngine.Experimental.Rendering
 {
     [Serializable]
-    public struct XRGraphicsConfig
+    public class XRGraphicsConfig
     { // XRGConfig stores the desired XR settings for a given SRP asset.
 
         public float renderScale;
@@ -77,7 +77,7 @@ namespace UnityEngine.Experimental.Rendering
                 return false;
 #endif
             }
-        }
+        }        
 
         public static RenderTextureDescriptor eyeTextureDesc
         {

@@ -418,6 +418,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public XRGraphicsConfig savedXRGraphicsConfig
         {
             get { return m_SavedXRConfig; }
+            set { m_SavedXRConfig = value;  }
         }
 
         public void OnBeforeSerialize()
