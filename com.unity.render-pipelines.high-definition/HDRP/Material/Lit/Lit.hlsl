@@ -1261,7 +1261,7 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
     float  len = lightData.size.x;
     float3 T   = lightData.right;
 
-    float3 unL = lightData.positionWS - positionWS;
+    float3 unL = lightData.positionRWS - positionWS;
 
     // Pick the major axis of the ellipsoid.
     float3 axis = lightData.right;
@@ -1283,11 +1283,11 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
     lightData.specularScale *= intensity;
 
     // Translate the light s.t. the shaded point is at the origin of the coordinate system.
-    lightData.positionWS -= positionWS;
+    lightData.positionRWS -= positionWS;
 
     // TODO: some of this could be precomputed.
-    float3 P1 = lightData.positionWS - T * (0.5 * len);
-    float3 P2 = lightData.positionWS + T * (0.5 * len);
+    float3 P1 = lightData.positionRWS - T * (0.5 * len);
+    float3 P2 = lightData.positionRWS + T * (0.5 * len);
 
     // Rotate the endpoints into the local coordinate system.
     P1 = mul(P1, transpose(preLightData.orthoBasisViewNormal));
@@ -1380,7 +1380,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     IntegrateBSDF_AreaRef(V, positionWS, preLightData, lightData, bsdfData,
                           lighting.diffuse, lighting.specular);
 #else
-    float3 unL = lightData.positionWS - positionWS;
+    float3 unL = lightData.positionRWS - positionWS;
 
     if (dot(lightData.forward, unL) >= 0.0001)
     {
@@ -1422,15 +1422,15 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     lightData.specularScale *= intensity;
 
     // Translate the light s.t. the shaded point is at the origin of the coordinate system.
-    lightData.positionWS -= positionWS;
+    lightData.positionRWS -= positionWS;
 
     float4x3 lightVerts;
 
     // TODO: some of this could be precomputed.
-    lightVerts[0] = lightData.positionWS + lightData.right *  halfWidth + lightData.up *  halfHeight;
-    lightVerts[1] = lightData.positionWS + lightData.right *  halfWidth + lightData.up * -halfHeight;
-    lightVerts[2] = lightData.positionWS + lightData.right * -halfWidth + lightData.up * -halfHeight;
-    lightVerts[3] = lightData.positionWS + lightData.right * -halfWidth + lightData.up *  halfHeight;
+    lightVerts[0] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight;
+    lightVerts[1] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up * -halfHeight;
+    lightVerts[2] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight;
+    lightVerts[3] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight;
 
     // Rotate the endpoints into the local coordinate system.
     lightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal));

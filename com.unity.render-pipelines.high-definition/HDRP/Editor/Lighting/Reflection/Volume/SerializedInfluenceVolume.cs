@@ -1,3 +1,4 @@
+using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -20,6 +21,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty sphereInfluenceFade;
         public SerializedProperty sphereInfluenceNormalFade;
 
+        internal SerializedProperty editorAdvancedModeBlendDistancePositive;
+        internal SerializedProperty editorAdvancedModeBlendDistanceNegative;
+        internal SerializedProperty editorSimplifiedModeBlendDistance;
+        internal SerializedProperty editorAdvancedModeBlendNormalDistancePositive;
+        internal SerializedProperty editorAdvancedModeBlendNormalDistanceNegative;
+        internal SerializedProperty editorSimplifiedModeBlendNormalDistance;
+        internal SerializedProperty editorAdvancedModeEnabled;
+
         public SerializedInfluenceVolume(SerializedProperty root)
         {
             this.root = root;
@@ -37,6 +46,45 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             sphereBaseOffset = root.Find((InfluenceVolume i) => i.sphereBaseOffset);
             sphereInfluenceFade = root.Find((InfluenceVolume i) => i.sphereInfluenceFade);
             sphereInfluenceNormalFade = root.Find((InfluenceVolume i) => i.sphereInfluenceNormalFade);
+
+            editorAdvancedModeBlendDistancePositive = root.FindPropertyRelative("editorAdvancedModeBlendDistancePositive");
+            editorAdvancedModeBlendDistanceNegative = root.FindPropertyRelative("editorAdvancedModeBlendDistanceNegative");
+            editorSimplifiedModeBlendDistance = root.FindPropertyRelative("editorSimplifiedModeBlendDistance");
+            editorAdvancedModeBlendNormalDistancePositive = root.FindPropertyRelative("editorAdvancedModeBlendNormalDistancePositive");
+            editorAdvancedModeBlendNormalDistanceNegative = root.FindPropertyRelative("editorAdvancedModeBlendNormalDistanceNegative");
+            editorSimplifiedModeBlendNormalDistance = root.FindPropertyRelative("editorSimplifiedModeBlendNormalDistance");
+            editorAdvancedModeEnabled = root.FindPropertyRelative("editorAdvancedModeEnabled");
+            //handle data migration from before editor value were saved
+            if(editorAdvancedModeBlendDistancePositive.vector3Value == Vector3.zero
+                && editorAdvancedModeBlendDistanceNegative.vector3Value == Vector3.zero
+                && editorSimplifiedModeBlendDistance.floatValue == 0f
+                && editorAdvancedModeBlendNormalDistancePositive.vector3Value == Vector3.zero
+                && editorAdvancedModeBlendNormalDistanceNegative.vector3Value == Vector3.zero
+                && editorSimplifiedModeBlendNormalDistance.floatValue == 0f
+                && (boxInfluencePositiveFade.vector3Value != Vector3.zero
+                    || boxInfluenceNegativeFade.vector3Value != Vector3.zero))
+            {
+                Vector3 positive = boxInfluencePositiveFade.vector3Value;
+                Vector3 negative = boxInfluenceNegativeFade.vector3Value;
+                //exact advanced
+                editorAdvancedModeBlendDistancePositive.vector3Value = positive;
+                editorAdvancedModeBlendDistanceNegative.vector3Value = negative;
+                //aproximated simplified
+                editorSimplifiedModeBlendDistance.floatValue = Mathf.Max(positive.x, positive.y, positive.z, negative.x, negative.y, negative.z);
+
+                //no normal modification allowed anymore in PlanarReflectionProbe
+                boxInfluenceNormalPositiveFade.vector3Value = Vector3.zero;
+                boxInfluenceNormalNegativeFade.vector3Value = Vector3.zero;
+
+                //display old data
+                editorAdvancedModeEnabled.boolValue = true;
+                Apply();
+            }
+        }
+
+        public void Apply()
+        {
+            root.serializedObject.ApplyModifiedProperties();
         }
     }
 }

@@ -1,12 +1,8 @@
 {
   "dependencies": {
-    "com.unity.ads": "2.0.8",
     "com.unity.analytics": "2.0.16",
-    "com.unity.collab-proxy": "1.2.4-preview",
-    "com.unity.package-manager-ui": "2.0.0-preview.2",
-    "com.unity.testframework.graphics": "file:../../../com.unity.testframework.graphics",
+    "com.unity.package-manager-ui": "2.0.0-preview.3",
     "com.unity.postprocessing": "file:../../../com.unity.postprocessing",
-    "com.unity.purchasing": "2.0.1",
     "com.unity.render-pipelines.core": "file:../../../com.unity.render-pipelines.core",
     "com.unity.render-pipelines.lightweight": "file:../../../com.unity.render-pipelines.lightweight",
     "com.unity.shadergraph": "file:../../../com.unity.shadergraph",

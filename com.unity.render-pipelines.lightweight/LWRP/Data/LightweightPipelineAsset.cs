@@ -89,6 +89,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] bool m_KeepSoftShadowVariants = true;
 
         [SerializeField] LightweightPipelineResources m_ResourcesAsset;
+        [SerializeField] XRGraphicsConfig m_SavedXRConfig = XRGraphicsConfig.s_DefaultXRConfig;        
 
         // Deprecated
         [SerializeField] ShadowType m_ShadowType = ShadowType.HARD_SHADOWS;
@@ -203,7 +204,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return null;
 #endif
         }
-
+        
         public int GetAssetVersion()
         {
             return k_AssetVersion;
@@ -412,6 +413,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public Shader samplingShader
         {
             get { return resources != null ? resources.SamplingShader : null; }
+        }
+
+        public XRGraphicsConfig savedXRGraphicsConfig
+        {
+            get { return m_SavedXRConfig; }
+            set { m_SavedXRConfig = value;  }
         }
 
         public void OnBeforeSerialize()

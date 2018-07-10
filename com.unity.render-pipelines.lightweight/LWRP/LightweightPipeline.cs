@@ -5,7 +5,6 @@ using UnityEditor.Experimental.Rendering.LightweightPipeline;
 #endif
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
-using UnityEngine.XR;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
@@ -62,6 +61,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 Debug.LogWarning("Nested camera rendering is forbidden. If you are calling camera.Render inside OnWillRenderObject callback, use BeginCameraRender callback instead.");
                 return;
             }
+            pipelineAsset.savedXRGraphicsConfig.renderScale = pipelineAsset.renderScale;
+            pipelineAsset.savedXRGraphicsConfig.viewportScale = 1.0f; // Placeholder until viewportScale is all hooked up
+            // Apply any changes to XRGConfig prior to this point
+            pipelineAsset.savedXRGraphicsConfig.SetConfig();
 
             base.Render(context, cameras);
             BeginFrameRendering(cameras);
@@ -133,22 +136,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
-        public static void RenderPostProcess(CommandBuffer cmd, PostProcessRenderContext context, ref CameraData cameraData, RenderTextureFormat colorFormat, RenderTargetIdentifier source, RenderTargetIdentifier dest, bool opaqueOnly)
-        {
-            context.Reset();
-            context.camera = cameraData.camera;
-            context.source = source;
-            context.sourceFormat = colorFormat;
-            context.destination = dest;
-            context.command = cmd;
-            context.flip = cameraData.camera.targetTexture == null;
-
-            if (opaqueOnly)
-                cameraData.postProcessLayer.RenderOpaqueOnly(context);
-            else
-                cameraData.postProcessLayer.Render(context);
-        }
-
         void SetSupportedRenderingFeatures()
         {
 #if UNITY_EDITOR
@@ -182,41 +169,27 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cameraData.isSceneViewCamera = camera.cameraType == CameraType.SceneView;
             cameraData.isOffscreenRender = camera.targetTexture != null && !cameraData.isSceneViewCamera;
             cameraData.isStereoEnabled = IsStereoEnabled(camera);
+            
+            // TODO: There's currently an issue in engine side that breaks MSAA with texture2DArray.
+            // for now we force msaa disabled when using texture2DArray. This fixes VR multiple and single pass instanced modes.
+            if (cameraData.isStereoEnabled && XRGraphicsConfig.eyeTextureDesc.dimension == TextureDimension.Tex2DArray)
+                cameraData.msaaSamples = 1;
+
             cameraData.isHdrEnabled = camera.allowHDR && pipelineAsset.supportsHDR;
 
             cameraData.postProcessLayer = camera.GetComponent<PostProcessLayer>();
             cameraData.postProcessEnabled = cameraData.postProcessLayer != null && cameraData.postProcessLayer.isActiveAndEnabled;
 
-            // PostProcess for VR is not working atm. Disable it for now.
-            cameraData.postProcessEnabled &= !cameraData.isStereoEnabled;
-
             Rect cameraRect = camera.rect;
             cameraData.isDefaultViewport = (!(Math.Abs(cameraRect.x) > 0.0f || Math.Abs(cameraRect.y) > 0.0f ||
                                               Math.Abs(cameraRect.width) < 1.0f || Math.Abs(cameraRect.height) < 1.0f));
 
+            // If XR is enabled, use XR renderScale. 
             // Discard variations lesser than kRenderScaleThreshold.
             // Scale is only enabled for gameview.
-            // In XR mode, grab renderScale from XRSettings instead of SRP asset for now.
-            // This is just a temporary change pending full integration of XR with SRP
-
-            if (camera.cameraType == CameraType.Game)
-            {
-#if !UNITY_SWITCH
-                if (cameraData.isStereoEnabled)
-                {
-                    cameraData.renderScale = XRSettings.eyeTextureResolutionScale;
-                } else
-#endif
-                {
-                    cameraData.renderScale = pipelineAsset.renderScale;
-                }
-            }
-            else
-            {
-                cameraData.renderScale = 1.0f;
-            }
-
-            cameraData.renderScale = (Mathf.Abs(1.0f - cameraData.renderScale) < kRenderScaleThreshold) ? 1.0f : cameraData.renderScale;
+            float usedRenderScale = XRGraphicsConfig.enabled ? pipelineAsset.savedXRGraphicsConfig.renderScale : pipelineAsset.renderScale;
+            cameraData.renderScale = (Mathf.Abs(1.0f - usedRenderScale) < kRenderScaleThreshold) ? 1.0f : usedRenderScale;
+            cameraData.renderScale = (camera.cameraType == CameraType.Game) ? cameraData.renderScale : 1.0f;
 
             cameraData.requiresDepthTexture = pipelineAsset.supportsCameraDepthTexture || cameraData.isSceneViewCamera;
             cameraData.requiresSoftParticles = pipelineAsset.supportsSoftParticles;
@@ -368,18 +341,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         void SetupPerCameraShaderConstants(CameraData cameraData)
         {
             float cameraWidth = (float)cameraData.camera.pixelWidth * cameraData.renderScale;
-            float cameraHeight = (float)cameraData.camera.pixelWidth * cameraData.renderScale;
+            float cameraHeight = (float)cameraData.camera.pixelHeight * cameraData.renderScale;
             Shader.SetGlobalVector(PerCameraBuffer._ScaledScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
-        }
-
-        bool IsStereoEnabled(Camera camera)
-        {
-#if !UNITY_SWITCH
-            bool isSceneViewCamera = camera.cameraType == CameraType.SceneView;
-            return XRSettings.isDeviceActive && !isSceneViewCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
-#else
-            return false;
-#endif
         }
     }
 }

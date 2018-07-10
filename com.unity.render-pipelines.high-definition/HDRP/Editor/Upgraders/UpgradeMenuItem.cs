@@ -12,51 +12,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class UpgradeMenuItems
     {
-        //[MenuItem("Internal/HDRenderPipeline/Upgrade Scene Light Intensity to physical light unit", priority = CoreUtils.editMenuPriority2)]
-        static void UpgradeLightsPLU()
-        {
-            Light[] lights = Resources.FindObjectsOfTypeAll<Light>();
-
-            foreach (var l in lights)
-            {
-                var add = l.GetComponent<HDAdditionalLightData>();
-
-                if (add == null)
-                {
-                    continue;
-                }
-
-                // We only need to update the new intensity parameters on additional data, no need to change intensity
-                if (add.lightTypeExtent == LightTypeExtent.Punctual)
-                {
-                    switch (l.type)
-                    {
-                        case LightType.Point:
-                            add.punctualIntensity = l.intensity / LightUtils.ConvertPointLightIntensity(1.0f);
-                            break;
-
-                        case LightType.Spot:
-                            add.punctualIntensity = l.intensity / LightUtils.ConvertPointLightIntensity(1.0f);
-                            break;
-
-                        case LightType.Directional:
-                            add.directionalIntensity = l.intensity;
-                            break;
-                    }
-                }
-                else if (add.lightTypeExtent == LightTypeExtent.Rectangle)
-                {
-                    add.areaIntensity = l.intensity / LightUtils.ConvertRectLightIntensity(1.0f, add.shapeWidth, add.shapeHeight);
-                }
-                else if (add.lightTypeExtent == LightTypeExtent.Line)
-                {
-                    add.areaIntensity = l.intensity / LightUtils.CalculateLineLightIntensity(1.0f, add.shapeWidth);
-                }
-            }
-
-            var scene = SceneManager.GetActiveScene();
-            EditorSceneManager.MarkSceneDirty(scene);
-        }
 
         //[MenuItem("Internal/HDRenderPipeline/Update/Update material for subsurface")]
         static void UpdateMaterialForSubsurface()
