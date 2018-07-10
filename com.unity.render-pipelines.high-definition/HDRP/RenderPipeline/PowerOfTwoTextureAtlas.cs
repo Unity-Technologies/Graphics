@@ -9,7 +9,12 @@ namespace UnityEngine.Experimental.Rendering
     public class PowerOfTwoTextureAtlas : Texture2DAtlas
     {
         public PowerOfTwoTextureAtlas(int size, RenderTextureFormat format, bool generateMipMaps = true, FilterMode filterMode = FilterMode.Point)
-            : base(size, size, format, generateMipMaps, filterMode) {}
+            : base(size, size, format, generateMipMaps, filterMode, true)
+        {
+            // Check if size is a power of two
+            if ((size & (size - 1)) != 0)
+                Debug.Assert(false, "Power of two atlas was constructed with non power of two size: " + size);
+        }
         
         void BlitCubemap(CommandBuffer cmd, Vector4 scaleBias, Texture texture)
         {
@@ -42,7 +47,35 @@ namespace UnityEngine.Experimental.Rendering
 
         protected override bool AllocateTexture(CommandBuffer cmd, ref Vector4 scaleBias, Texture texture, int width, int height)
         {
-            // Change the width and height of the texture to bepower of two
+            // This atlas only supports square textures
+            if (height != width)
+                return false;
+
+            // Compute the next highest power of two (ref https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2)
+            int p = height;
+            p--;
+            p |= p >> 1;
+            p |= p >> 2;
+            p |= p >> 4;
+            p |= p >> 8;
+            p |= p >> 16;
+            p++;
+
+            // Change the width and height of the texture to be power of two
+            width = p;
+            height = p;
+
+            if (IsCubemap(texture))
+            {
+                // For the cubemap, faces are organized like this:
+                // +-----+
+                // |3|4|5|
+                // +-----+
+                // |0|1|2|
+                // +-----+
+                width *= 3;
+                height *= 2;
+            }
 
             return base.AllocateTexture(cmd, ref scaleBias, texture, width, height);
         }
@@ -53,16 +86,13 @@ namespace UnityEngine.Experimental.Rendering
             if (base.AddTexture(cmd, ref scaleBias, texture))
                 return true;
             
+            // We only accept cubemaps and 2D textures for this atlas
             if (!IsCubemap(texture))
                 return false;
-            
-            // For the cubemap, faces are organized like this:
-            // +-----+
-            // |3|4|5|
-            // +-----+
-            // |0|1|2|
-            // +-----+
-            return AllocateTexture(cmd, ref scaleBias, texture, texture.width * 3, texture.height * 2);
+
+            bool b = AllocateTexture(cmd, ref scaleBias, texture, texture.width, texture.height);
+
+            return b;
         }
     }
 }

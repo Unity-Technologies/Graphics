@@ -87,9 +87,11 @@ float3 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, float4 sc
     float2 atlasCoords = coord * size + offset;
     float lod = ComputeTextureLOD(sampleDdx, sampleDdy, _CookieAtlasSize);
 
+    // Clamp lod to the maximum level of the texture we are sampling
+    lod = min(lod, log2(_CookieAtlasSize * size).x);
+
     // Clamp texture coordinates to prevent edge bleeding
-    int2    textureSize = (int2)(_CookieAtlasSize);
-    int2    mipSize     = textureSize >> (int2)ceil(lod);
+    float2  mipSize     = _CookieAtlasSize / pow(2, max(1, lod));
     float2  clampBorder = 0.5f * rcp(mipSize);
 
     atlasCoords = clamp(atlasCoords, offset + clampBorder, offset + size - clampBorder);

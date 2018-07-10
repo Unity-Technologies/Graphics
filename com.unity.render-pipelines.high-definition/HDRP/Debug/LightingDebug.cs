@@ -87,6 +87,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public float                debugExposure = 0.0f;
 
+        public bool                 displayCookieAtlas = false;
+        public uint                 cookieAtlasMipLevel = 0;
+        public bool                 resetCookie = false;
+
         public LightLoop.TileClusterDebug tileClusterDebug = LightLoop.TileClusterDebug.None;
         public LightLoop.TileClusterCategoryDebug tileClusterDebugByCategory = LightLoop.TileClusterCategoryDebug.Punctual;
     }

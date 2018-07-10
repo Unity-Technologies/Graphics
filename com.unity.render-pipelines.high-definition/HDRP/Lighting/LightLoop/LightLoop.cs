@@ -290,7 +290,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         PlanarReflectionProbeCache m_ReflectionPlanarProbeCache;
         ReflectionProbeCache m_ReflectionProbeCache;
-        Texture2DAtlas m_CookieAtlas;
+        PowerOfTwoTextureAtlas m_CookieAtlas;
         bool m_CookieAtlasAllocationFailed;
         // TODO: This is bad design, refactor
         Dictionary<VisibleLight, int> m_VisibleLightToDirectionalMap = new Dictionary<VisibleLight, int>();
@@ -525,7 +525,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DecalDatas = new ComputeBuffer(k_MaxDecalsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DecalData)));
 
             GlobalLightLoopSettings gLightLoopSettings = hdAsset.GetRenderPipelineSettings().lightLoopSettings;
-            m_CookieAtlas = new Texture2DAtlas(gLightLoopSettings.cookieAtlasWidth, gLightLoopSettings.cookieAtlasHeight, RenderTextureFormat.ARGB32, true, FilterMode.Trilinear);
+            m_CookieAtlas = new PowerOfTwoTextureAtlas(gLightLoopSettings.cookieAtlasWidth, RenderTextureFormat.ARGB32, true, FilterMode.Trilinear);
 
             TextureFormat probeCacheFormat = gLightLoopSettings.reflectionCacheCompressed ? TextureFormat.BC6H : TextureFormat.RGBAHalf;
             m_ReflectionProbeCache = new ReflectionProbeCache(hdAsset, iblFilterGGX, gLightLoopSettings.reflectionProbeCacheSize, (int)gLightLoopSettings.reflectionCubemapSize, probeCacheFormat, true);
@@ -1044,7 +1044,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Projectors lights must always have a cookie texture.
                 // As long as the cache is a texture array and not an atlas, the 4x4 white texture will be rescaled to 128
 
-                // TODO: test this, it might be a problem with atlas mip maps (1x1 texture)
                 lightData.cookieScaleBias = FetchCookieAtlas(cmd, Texture2D.whiteTexture);
             }
 
@@ -2739,6 +2738,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else if (lightingDebug.shadowDebugMode == ShadowMapDebugMode.VisualizeAtlas)
                 {
                     m_ShadowMgr.DisplayShadowMap(cmd, m_DebugShadowMapMaterial, lightingDebug.shadowAtlasIndex, lightingDebug.shadowSliceIndex, x, y, overlaySize, overlaySize, lightingDebug.shadowMinValue, lightingDebug.shadowMaxValue, hdCamera.camera.cameraType != CameraType.SceneView);
+                    HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera.actualWidth);
+                }
+            }
+
+            using (new ProfilingSample(cmd, "Display Cookie Atlas", CustomSamplerId.DisplayCookieAtlas.GetSampler()))
+            {
+                if (lightingDebug.resetCookie)
+                {
+                    m_CookieAtlas.ResetAllocator();
+                    lightingDebug.resetCookie = false;
+                }
+                
+                if (lightingDebug.displayCookieAtlas)
+                {
+                    cmd.SetViewport(new Rect(x, y, overlaySize, overlaySize));
+                    HDUtils.BlitQuad(cmd, m_CookieAtlas.AtlasTexture, new Vector4(1, 1, 0, 0), new Vector4(1, 1, 0, 0), (int)debugDisplaySettings.lightingDebugSettings.cookieAtlasMipLevel, true);
                     HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera.actualWidth);
                 }
             }

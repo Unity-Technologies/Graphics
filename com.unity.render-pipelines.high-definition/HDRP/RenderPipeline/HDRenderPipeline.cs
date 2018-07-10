@@ -158,6 +158,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int highestDim = Math.Max(renderPipelineSettings.decalSettings.atlasWidth, renderPipelineSettings.decalSettings.atlasHeight);
             return (int)Math.Log(highestDim, 2);
         }
+        public int GetCookieAtlasMipCount()
+        {
+            int highestDim = Math.Max(renderPipelineSettings.lightLoopSettings.cookieAtlasWidth, renderPipelineSettings.lightLoopSettings.cookieAtlasHeight);
+            return (int)Math.Log(highestDim, 2);
+        }
 
         public int GetShadowSliceCount(uint atlasIndex) { return m_LightLoop.GetShadowSliceCount(atlasIndex); }
 

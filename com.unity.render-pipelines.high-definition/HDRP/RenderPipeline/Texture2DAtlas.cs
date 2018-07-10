@@ -18,28 +18,44 @@ namespace UnityEngine.Experimental.Rendering
             public AtlasNode m_BottomChild = null;
             public Vector4 m_Rect = new Vector4(0, 0, 0, 0); // x,y is width and height (scale) z,w offset into atlas (bias)
 
-            public AtlasNode Allocate(int width, int height)
+            public AtlasNode Allocate(int width, int height, bool powerOfTwoPadding)
             {
                 // not a leaf node, try children
                 if (m_RightChild != null)
                 {
-                    AtlasNode node = m_RightChild.Allocate(width, height);
+                    AtlasNode node = m_RightChild.Allocate(width, height, powerOfTwoPadding);
                     if (node == null)
                     {
-                        node = m_BottomChild.Allocate(width, height);
+                        node = m_BottomChild.Allocate(width, height, powerOfTwoPadding);
                     }
                     return node;
                 }
+                
+                int wPadd = 0;
+                int hPadd = 0;
+                
+                if (powerOfTwoPadding)
+                {
+                    wPadd = (int)m_Rect.z % width;
+                    hPadd = (int)m_Rect.w % height;
+                }
 
                 //leaf node, check for fit
-                if ((width <= m_Rect.x) && (height <= m_Rect.y))
+                if ((width <= m_Rect.x - wPadd) && (height <= m_Rect.y - hPadd))
                 {
                     // perform the split
                     m_RightChild = new AtlasNode();
                     m_BottomChild = new AtlasNode();
+                    
+                    if (powerOfTwoPadding)
+                    {
+                        m_Rect.z += wPadd;
+                        m_Rect.w += hPadd;
+                    }
 
                     if (width > height) // logic to decide which way to split
-                    {                                                           //  +--------+------+
+                    {
+                                                                                //  +--------+------+
                         m_RightChild.m_Rect.z = m_Rect.z + width;               //  |        |      |
                         m_RightChild.m_Rect.w = m_Rect.w;                       //  +--------+------+
                         m_RightChild.m_Rect.x = m_Rect.x - width;               //  |               |
@@ -84,18 +100,20 @@ namespace UnityEngine.Experimental.Rendering
         private AtlasNode m_Root;
         private int m_Width;
         private int m_Height;
+        private bool powerOfTwoPadding;
 
-        public AtlasAllocator(int width, int height)
+        public AtlasAllocator(int width, int height, bool potPadding)
         {
             m_Root = new AtlasNode();
             m_Root.m_Rect.Set(width, height, 0, 0);
             m_Width = width;
             m_Height = height;
+            powerOfTwoPadding = potPadding;
         }
 
         public bool Allocate(ref Vector4 result, int width, int height)
         {
-            AtlasNode node = m_Root.Allocate(width, height);
+            AtlasNode node = m_Root.Allocate(width, height, powerOfTwoPadding);
             if (node != null)
             {
                 result = node.m_Rect;
@@ -134,7 +152,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public Texture2DAtlas(int width, int height, RenderTextureFormat format, bool generateMipMaps = false, FilterMode filterMode = FilterMode.Point)
+        public Texture2DAtlas(int width, int height, RenderTextureFormat format, bool generateMipMaps = false, FilterMode filterMode = FilterMode.Point, bool powerOfTwoPadding = false)
         {
             m_Width = width;
             m_Height = height;
@@ -152,7 +170,7 @@ namespace UnityEngine.Experimental.Rendering
                     true,
                     generateMipMaps);
 
-            m_AtlasAllocator = new AtlasAllocator(width, height);
+            m_AtlasAllocator = new AtlasAllocator(width, height, powerOfTwoPadding);
         }
 
         public void Release()
@@ -225,7 +243,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        protected bool IsCached(CommandBuffer cmd, Vector4 scaleBias, Texture texture)
+        protected bool IsCached(CommandBuffer cmd, out Vector4 scaleBias, Texture texture)
         {
             bool                cached = false;
             IntPtr              key = texture.GetNativeTexturePtr();
@@ -242,8 +260,8 @@ namespace UnityEngine.Experimental.Rendering
                 {
                     if (crt.updateCount != updateCount)
                         BlitTexture(cmd, scaleBias, crt);
-                    m_CustomRenderTextureUpdateCache[key] = crt.updateCount;
                 }
+                m_CustomRenderTextureUpdateCache[key] = crt.updateCount;
             }
 
             return cached;
@@ -251,7 +269,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public virtual bool AddTexture(CommandBuffer cmd, ref Vector4 scaleBias, Texture texture)
         {
-            if (IsCached(cmd, scaleBias, texture))
+            if (IsCached(cmd, out scaleBias, texture))
                 return true;
             
             // We only support 2D texture in this class, support for other textures are provided by child classes (ex: PowerOfTwoTextureAtlas)

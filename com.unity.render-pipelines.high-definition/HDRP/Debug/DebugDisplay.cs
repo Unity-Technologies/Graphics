@@ -786,6 +786,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (DebugNeedsExposure())
                 list.Add(new DebugUI.FloatField { displayName = "Debug Exposure", getter = () => lightingDebugSettings.debugExposure, setter = value => lightingDebugSettings.debugExposure = value });
+            
+            list.Add(new DebugUI.BoolField { displayName = "Display Cookie Atlas", getter = () => lightingDebugSettings.displayCookieAtlas, setter = value => lightingDebugSettings.displayCookieAtlas = value});
+            list.Add(new DebugUI.IntField { displayName = "Mip Level", getter = () => (int)lightingDebugSettings.cookieAtlasMipLevel, setter = value => lightingDebugSettings.cookieAtlasMipLevel = (uint)value, min = () => 0, max = () => (RenderPipelineManager.currentPipeline as HDRenderPipeline).GetDecalAtlasMipCount()});
+            list.Add(new DebugUI.Button { displayName = "Reset atlas", action = () => lightingDebugSettings.resetCookie = true});
 
             m_DebugLightingItems = list.ToArray();
             var panel = DebugManager.instance.GetPanel(k_PanelLighting, true);
