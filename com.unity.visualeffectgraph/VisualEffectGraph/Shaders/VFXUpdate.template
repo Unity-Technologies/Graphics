@@ -1,0 +1,67 @@
+#pragma kernel CSMain
+${VFXGlobalInclude}
+${VFXGlobalDeclaration}
+${VFXPerPassInclude}
+
+RWByteAddressBuffer attributeBuffer;
+
+#if VFX_USE_ALIVE_CURRENT
+AppendStructuredBuffer<uint> deadListOut;
+#endif
+
+#if VFX_HAS_INDIRECT_DRAW
+AppendStructuredBuffer<uint> indirectBuffer;
+#endif
+
+CBUFFER_START(updateParams)
+    uint nbMax;
+	uint systemSeed;
+CBUFFER_END
+
+${VFXGeneratedBlockFunction}
+
+[numthreads(NB_THREADS_PER_GROUP,1,1)]
+void CSMain(uint3 id : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID)
+{
+    uint index = id.x;
+	if (id.x < nbMax)
+	{
+#if VFX_USE_ALIVE_CURRENT
+		${VFXLoadAttributes:{alive}}
+		if (alive)
+		{
+			${VFXLoadAttributes:{(?!(alive))(\b\w)}}
+			
+#if VFX_USE_OLDPOSITION_CURRENT
+			oldPosition = position;
+#endif
+			
+			${VFXProcessBlocks}
+			if (alive)
+			{
+				${VFXStoreAttributes:{(?!(alive))(\b\w)}}
+#if VFX_HAS_INDIRECT_DRAW
+				indirectBuffer.Append(index);
+#endif
+			}
+			else
+			{
+				${VFXStoreAttributes:{alive|eventCount}}
+				deadListOut.Append(index);
+			}
+		}
+#else
+		${VFXLoadAttributes}
+		
+#if VFX_USE_OLDPOSITION_CURRENT
+		oldPosition = position;
+#endif
+		
+		${VFXProcessBlocks}
+		${VFXStoreAttributes}
+#if VFX_HAS_INDIRECT_DRAW
+		indirectBuffer.Append(index);
+#endif
+#endif
+	}
+}

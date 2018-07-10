@@ -1,0 +1,71 @@
+.VFXContextSlotContainerUI.node {
+    flex:1 0 auto;
+    align-items:stretch;
+    margin-bottom:2;
+    margin-top:2;
+    border-radius:0;
+    border-color:rgba(0,0,0,0);
+    padding-top:0;
+    padding-left:0;
+    padding-right:0;
+    padding-bottom:0;
+}
+
+VFXBlockUI.VFXNodeUI.node #contents > #top > #input
+{
+    padding-bottom:8;
+    flex: 1 1 auto;
+}
+
+VFXContextUI VFXBlockUI.VFXContextSlotContainerUI.node #node-border #title
+{
+    flex-direction:row;
+    align-items:center;
+    justify-content:flex-start;
+}
+
+
+VFXContextUI VFXBlockUI.VFXContextSlotContainerUI.node #node-border #title.disabled
+{
+    opacity:0.5;
+}
+
+VFXContextUI VFXBlockUI.VFXContextSlotContainerUI.node #node-border #title #title-label
+{
+    margin-left:4;
+    flex:1 0 auto;
+}
+
+VFXContextUI VFXBlockUI.VFXContextSlotContainerUI.node #node-border #title.disabled #title-label
+{
+    opacity:0.5;
+}
+
+VFXBlockUI.VFXContextSlotContainerUI.node #title Toggle
+{
+    width:14;
+    height:14;
+    margin-right:0;
+}
+VFXBlockUI.VFXContextSlotContainerUI.node #title #collapse-button
+{
+    width:20;
+    padding-right:4;
+}
+VFXBlockUI.node
+{
+    margin-left:0;
+    margin-right:0;
+    margin-top:0;
+    margin-bottom:0;
+    flex-direction:row;
+}
+
+VFXBlockUI.node > #node-border
+{
+    flex:1 1 auto;
+    margin-left:0;
+    margin-right:0;
+    margin-top:0;
+    margin-bottom:0;
+}

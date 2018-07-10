@@ -1,0 +1,10 @@
+Shader "Hidden/VFX/ParticleDecals"
+{
+	SubShader
+	{	
+		Cull Back
+		
+		${VFXInclude("Assets/VFXEditor/Shaders/VFXParticleHeader.template")}
+		${VFXInclude("Assets/VFXEditor/Shaders/ParticleDecals/PassForward.template")}
+	}
+}

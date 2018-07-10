@@ -1,0 +1,9 @@
+Shader "Hidden/VFX/ParticleLines"
+{
+	SubShader
+	{	
+		${VFXInclude("Assets/VFXEditor/Shaders/VFXParticleHeader.template")}
+		${VFXInclude("Assets/VFXEditor/Shaders/ParticleLinesSW/PassForward.template")}
+		${VFXInclude("Assets/VFXEditor/Shaders/ParticleLinesSW/PassShadowCaster.template"),USE_CAST_SHADOWS_PASS}
+	}
+}

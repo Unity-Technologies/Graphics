@@ -1,0 +1,11 @@
+Shader "Hidden/VFX/ParticlePoints"
+{
+	SubShader
+	{	
+		${VFXInclude("Assets/VFXEditor/Shaders/VFXParticleHeader.template")}
+		${VFXInclude("Assets/VFXEditor/Shaders/ParticlePoints/PassDepth.template"),IS_OPAQUE_PARTICLE}
+		${VFXInclude("Assets/VFXEditor/Shaders/ParticlePoints/PassForward.template")}
+		${VFXInclude("Assets/VFXEditor/Shaders/ParticlePoints/PassMotionVectors.template"),USE_MOTION_VECTORS_PASS}
+		${VFXInclude("Assets/VFXEditor/Shaders/ParticlePoints/PassShadowCaster.template"),USE_CAST_SHADOWS_PASS}
+	}
+}
