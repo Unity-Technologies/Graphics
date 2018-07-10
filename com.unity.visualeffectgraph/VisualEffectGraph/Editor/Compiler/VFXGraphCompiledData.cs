@@ -60,12 +60,12 @@ namespace UnityEditor.VFX
             return desc;
         }
 
-        private void SetValueDesc<T>(VFXExpressionValueContainerDescAbstract desc, VFXExpression exp)
+        private void SetValueDesc<T>(VFXExpressionValueContainerDesc desc, VFXExpression exp)
         {
             ((VFXExpressionValueContainerDesc<T>)desc).value = exp.Get<T>();
         }
 
-        private void SetValueDesc<T, S>(VFXExpressionValueContainerDescAbstract desc, VFXExpression exp) where S : class
+        private void SetValueDesc<T, S>(VFXExpressionValueContainerDesc desc, VFXExpression exp) where S : class
         {
             ((VFXExpressionValueContainerDesc<S>)desc).value = exp.Get<T>() as S;
         }
@@ -91,7 +91,7 @@ namespace UnityEditor.VFX
             return (uint)m_ExpressionGraph.GetFlattenedIndex(ouputExpression);
         }
 
-        private static void FillExpressionDescs(List<VFXExpressionDesc> outExpressionDescs, List<VFXExpressionValueContainerDescAbstract> outValueDescs, VFXExpressionGraph graph)
+        private static void FillExpressionDescs(List<VFXExpressionDesc> outExpressionDescs, List<VFXExpressionValueContainerDesc> outValueDescs, VFXExpressionGraph graph)
         {
             var flatGraph = graph.FlattenedExpressions;
             var numFlattenedExpressions = flatGraph.Count;
@@ -103,7 +103,7 @@ namespace UnityEditor.VFX
                 // Must match data in C++ expression
                 if (exp.Is(VFXExpression.Flags.Value))
                 {
-                    VFXExpressionValueContainerDescAbstract value;
+                    VFXExpressionValueContainerDesc value;
                     switch (exp.valueType)
                     {
                         case VFXValueType.Float: value = CreateValueDesc<float>(exp, i); break;
@@ -590,7 +590,7 @@ namespace UnityEditor.VFX
                     m_Graph.visualEffectResource.ClearRuntimeData();
 
                 m_ExpressionGraph = new VFXExpressionGraph();
-                m_ExpressionValues = new List<VFXExpressionValueContainerDescAbstract>();
+                m_ExpressionValues = new List<VFXExpressionValueContainerDesc>();
                 return;
             }
 
@@ -639,7 +639,7 @@ namespace UnityEditor.VFX
 
                 EditorUtility.DisplayProgressBar(progressBarTitle, "Generating bytecode", 4 / nbSteps);
                 var expressionDescs = new List<VFXExpressionDesc>();
-                var valueDescs = new List<VFXExpressionValueContainerDescAbstract>();
+                var valueDescs = new List<VFXExpressionValueContainerDesc>();
                 FillExpressionDescs(expressionDescs, valueDescs, m_ExpressionGraph);
 
                 Dictionary<VFXContext, VFXContextCompiledData> contextToCompiledData = new Dictionary<VFXContext, VFXContextCompiledData>();
@@ -734,7 +734,7 @@ namespace UnityEditor.VFX
                     m_Graph.visualEffectResource.ClearRuntimeData();
 
                 m_ExpressionGraph = new VFXExpressionGraph();
-                m_ExpressionValues = new List<VFXExpressionValueContainerDescAbstract>();
+                m_ExpressionValues = new List<VFXExpressionValueContainerDesc>();
             }
             finally
             {
@@ -801,7 +801,7 @@ namespace UnityEditor.VFX
         [NonSerialized]
         private VFXExpressionGraph m_ExpressionGraph;
         [NonSerialized]
-        private List<VFXExpressionValueContainerDescAbstract> m_ExpressionValues;
+        private List<VFXExpressionValueContainerDesc> m_ExpressionValues;
         //[NonSerialized]
         //private Dictionary<VFXContext, VFXContextCompiledData> m_ContextToCompiledData;
     }

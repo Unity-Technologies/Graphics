@@ -23,16 +23,22 @@ namespace UnityEditor.VFX
             return new VFXValue<T>(value, Mode.Constant);
         }
 
-        protected VFXValue(Mode mode)
-            : base(Flags.Value)
+        private static Flags GetFlagsFromMode(Mode mode, Flags flags)
         {
-            m_Mode = mode;
+            flags |= Flags.Value;
             if (mode != Mode.Variable)
             {
-                m_Flags |= Flags.Foldable;
+                flags |= Flags.Foldable;
                 if (mode == Mode.Constant)
-                    m_Flags |= Flags.Constant;
+                    flags |= Flags.Constant;
             }
+            return flags;
+        }
+
+        protected VFXValue(Mode mode, Flags flags)
+            : base(GetFlagsFromMode(mode, flags))
+        {
+            m_Mode = mode;
         }
 
         public Mode ValueMode { get { return m_Mode; } }
@@ -109,12 +115,18 @@ namespace UnityEditor.VFX
 
     sealed class VFXValue<T> : VFXValue
     {
-        public VFXValue(T content = default(T), Mode mode = Mode.FoldableVariable) : base(mode)
+        private static Flags GetFlagsFromType(VFXValueType valueType)
+        {
+            var flags = Flags.None;
+            if (!IsTypeValidOnGPU(valueType))
+                flags |= VFXExpression.Flags.InvalidOnGPU;
+            return flags;
+        }
+
+
+        public VFXValue(T content = default(T), Mode mode = Mode.FoldableVariable) : base(mode, GetFlagsFromType(ToValueType()))
         {
             m_Content = content;
-
-            if (!IsTypeValidOnGPU(valueType))
-                m_Flags |= VFXExpression.Flags.InvalidOnGPU;
         }
 
         sealed public override VFXValue CopyExpression(Mode mode)

@@ -187,6 +187,21 @@ namespace UnityEditor.VFX.Test
 
         #pragma warning restore CS0414
 
+        int m_previousCaptureFrameRate;
+        float m_previousFixedTimeStep;
+        float m_previousMaxDeltaTime;
+
+        [SetUp]
+        public void Init()
+        {
+            m_previousCaptureFrameRate = Time.captureFramerate;
+            m_previousFixedTimeStep = VFXManager.fixedTimeStep;
+            m_previousMaxDeltaTime = VFXManager.maxDeltaTime;
+            Time.captureFramerate = 20;
+            VFXManager.fixedTimeStep = 1.0f / 20.0f;
+            VFXManager.maxDeltaTime = 1.0f / 20.0f;
+        }
+
         [UnityTest /* TestCaseSource(typeof(CollectScene), "scenes")  <= doesn't work for UnityTest for now */]
         [Timeout(1000 * 10)]
         public IEnumerator RenderSceneAndCompareExpectedCapture([ValueSource("scenes")] SceneTest sceneTest)
@@ -198,15 +213,13 @@ namespace UnityEditor.VFX.Test
 
             float simulateTime = 6.0f;
             float frequency = 1.0f / 20.0f;
-            uint waitFrameCount = (uint)(simulateTime / frequency);
+            int waitFrameCount = (int)(simulateTime / frequency);
 
             var scenePath = sceneTest.path;
             var threshold = 0.01f;
 
             var refCapturePath = scenePath.Replace(".unity", ".png");
             var currentCapturePath = scenePath.Replace(".unity", "_fail.png");
-
-            VFXManager.updateMode = VFXManagerUpdateMode.Force20Hz;
 
             var passes = new List<string>();
             if (!File.Exists(refCapturePath))
@@ -225,12 +238,13 @@ namespace UnityEditor.VFX.Test
 
                 AnimationMode.StartAnimationMode();
 
-                uint startFrameIndex = VFXManager.frameIndex;
-                uint expectedFrameIndex = startFrameIndex + waitFrameCount;
-                while (VFXManager.frameIndex != expectedFrameIndex)
+                int startFrameIndex = Time.frameCount;
+                int expectedFrameIndex = startFrameIndex + waitFrameCount;
+                while (Time.frameCount != expectedFrameIndex)
                 {
-                    EditorWindow.GetWindow(typeof(GameView)).Focus();
-                    UpdateScene(scene, (VFXManager.frameIndex - startFrameIndex) * frequency);
+                    EditorWindow.GetWindow(typeof(GameView));
+                    UpdateScene(scene, (Time.frameCount - startFrameIndex) * frequency);
+                    Time.captureFramerate = 20;
                     scene.camera.Render();
                     yield return null;
                 }
@@ -259,7 +273,9 @@ namespace UnityEditor.VFX.Test
         [TearDown]
         public void TearDown()
         {
-            VFXManager.updateMode = VFXManagerUpdateMode.Default;
+            Time.captureFramerate = m_previousCaptureFrameRate;
+            VFXManager.fixedTimeStep = m_previousFixedTimeStep;
+            VFXManager.maxDeltaTime = m_previousMaxDeltaTime;
         }
     }
 }

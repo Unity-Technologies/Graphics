@@ -173,7 +173,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114498444751905048}
   m_Children: []
-  m_UIPosition: {x: -1414.0934, y: -9.042467}
+  m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -191,7 +191,14 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
-  m_Nodes: []
+  m_Nodes:
+  - m_Id: 0
+    linkedSlots:
+    - outputSlot: {fileID: 114879092719112468}
+      inputSlot: {fileID: 114174283462304106}
+    position: {x: -1414.0934, y: -9.042467}
+    expandedSlots: []
+    expanded: 0
 --- !u!114 &114125815196396460
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1109,7 +1116,21 @@ MonoBehaviour:
   m_UICollapsed: 1
   m_UISuperCollapsed: 0
   m_UIInfos: {fileID: 114645787965093820}
-  m_ParameterInfo: []
+  m_ParameterInfo:
+  - name: gradient
+    path: gradient
+    sheetType: m_Gradient
+    realType: Gradient
+    min: -Infinity
+    max: Infinity
+    descendantCount: 0
+  - name: initialGradient
+    path: initialGradient
+    sheetType: m_Gradient
+    realType: Gradient
+    min: -Infinity
+    max: Infinity
+    descendantCount: 0
   m_saved: 1
 --- !u!114 &114504190396488434
 MonoBehaviour:
@@ -1217,7 +1238,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Parent: {fileID: 114498444751905048}
   m_Children: []
-  m_UIPosition: {x: -1323.6711, y: -1039.9192}
+  m_UIPosition: {x: 0, y: 0}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -1225,7 +1246,7 @@ MonoBehaviour:
   - {fileID: 114597739427807632}
   m_exposedName: initialGradient
   m_exposed: 1
-  m_Order: 0
+  m_Order: 1
   m_Category: 
   m_Min:
     m_Type:
@@ -1235,7 +1256,14 @@ MonoBehaviour:
     m_Type:
       m_SerializableType: 
     m_SerializableObject: 
-  m_Nodes: []
+  m_Nodes:
+  - m_Id: 0
+    linkedSlots:
+    - outputSlot: {fileID: 114597739427807632}
+      inputSlot: {fileID: 114624854136236906}
+    position: {x: -1323.6711, y: -1039.9192}
+    expandedSlots: []
+    expanded: 0
 --- !u!114 &114616928884609912
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -1385,10 +1413,10 @@ MonoBehaviour:
   categories: []
   uiBounds:
     serializedVersion: 2
-    x: 0
-    y: 0
-    width: 0
-    height: 0
+    x: -2002
+    y: -1390
+    width: 2473
+    height: 1727
 --- !u!114 &114674961967120392
 MonoBehaviour:
   m_ObjectHideFlags: 1

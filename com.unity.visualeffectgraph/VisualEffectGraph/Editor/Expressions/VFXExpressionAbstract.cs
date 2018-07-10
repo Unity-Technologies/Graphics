@@ -277,15 +277,54 @@ namespace UnityEditor.VFX
             return VFXValueType.None;
         }
 
+
+        private static Dictionary<VFXExpression, VFXExpression> s_CacheOfExpressions = new Dictionary<VFXExpression, VFXExpression>();
+
+        public static void ClearCacheOfExpressions()
+        {
+            s_CacheOfExpressions.Clear();
+        }
+
+        //Ideally, we should use HashSet<T>.TryGetValue https://msdn.microsoft.com/en-us/library/mt829070(v=vs.110).aspx
+        //but it's available only in 4.7, Dictionary<T, T> is a workaround, sensible same performance but there is a waste of memory
+        private void SimplifyWithCacheParents()
+        {
+            for (int i = 0; i < m_Parents.Length; ++i)
+            {
+                VFXExpression parentEq;
+                if (!s_CacheOfExpressions.TryGetValue(parents[i], out parentEq))
+                {
+                    s_CacheOfExpressions.Add(parents[i], parents[i]);
+                }
+                else
+                {
+                    m_Parents[i] = parentEq;
+                }
+            }
+        }
+
         protected VFXExpression(Flags flags, params VFXExpression[] parents)
         {
             m_Parents = parents;
+            SimplifyWithCacheParents();
+
             m_Flags = flags;
             PropagateParentsFlags();
         }
 
+        // Only do that when constructing an instance if needed
+        private void Initialize(Flags additionalFlags, VFXExpression[] parents)
+        {
+            m_Parents = parents;
+            SimplifyWithCacheParents();
+
+            m_Flags |= additionalFlags;
+            PropagateParentsFlags();
+            m_HashCodeCached = false; // as expression is mutated
+        }
+
         //Helper using reflection to recreate a concrete type from an abstract class (useful with reduce behavior)
-        protected static VFXExpression CreateNewInstance(Type expressionType)
+        private static VFXExpression CreateNewInstance(Type expressionType)
         {
             var allconstructors = expressionType.GetConstructors().ToArray();
             if (allconstructors.Length == 0)
@@ -302,7 +341,7 @@ namespace UnityEditor.VFX
             return (VFXExpression)constructor.Invoke(param);
         }
 
-        protected VFXExpression CreateNewInstance()
+        private VFXExpression CreateNewInstance()
         {
             return CreateNewInstance(GetType());
         }
@@ -449,7 +488,9 @@ namespace UnityEditor.VFX
             return hash;
         }
 
-        protected virtual int[] additionnalOperands { get { return Enumerable.Empty<int>().ToArray(); } }
+        private static readonly int[] k_EmptyOperands = Enumerable.Empty<int>().ToArray();
+
+        protected virtual int[] additionnalOperands { get { return k_EmptyOperands; } }
         public virtual T Get<T>()
         {
             var value = (this as VFXValue<T>);
@@ -465,14 +506,6 @@ namespace UnityEditor.VFX
             throw new ArgumentException(string.Format("GetContent isn't available for {0}", GetType().FullName));
         }
 
-        // Only do that when constructing an instance if needed
-        protected void Initialize(Flags additionalFlags, VFXExpression[] parents)
-        {
-            m_Parents = parents;
-            m_Flags |= additionalFlags;
-            PropagateParentsFlags();
-            m_HashCodeCached = false; // as expression is mutated
-        }
 
         private void PropagateParentsFlags()
         {
@@ -511,7 +544,7 @@ namespace UnityEditor.VFX
         public VFXExpression z { get { return new VFXExpressionExtractComponent(this, 2); }  }
         public VFXExpression w { get { return new VFXExpressionExtractComponent(this, 3); }  }
 
-        protected Flags m_Flags = Flags.None;
+        private Flags m_Flags = Flags.None;
         private VFXExpression[] m_Parents;
 
         private int m_HashCode;
