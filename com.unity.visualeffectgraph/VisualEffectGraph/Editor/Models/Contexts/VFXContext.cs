@@ -50,7 +50,7 @@ namespace UnityEditor.VFX
         public List<VFXContextLink> link = new List<VFXContextLink>();
     }
 
-    class VFXContext : VFXSlotContainerModel<VFXGraph, VFXBlock>
+    internal class VFXContext : VFXSlotContainerModel<VFXGraph, VFXBlock>
     {
         protected static string RenderPipeTemplate(string fileName)
         {
