@@ -118,13 +118,13 @@ namespace UnityEngine.Experimental.Rendering
 
     public class Texture2DAtlas
     {
-        private RTHandleSystem.RTHandle m_AtlasTexture = null;
-        private int m_Width;
-        private int m_Height;
-        private RenderTextureFormat m_Format;
-        private AtlasAllocator m_AtlasAllocator = null;
-        private Dictionary<IntPtr, Vector4> m_AllocationCache = new Dictionary<IntPtr, Vector4>();
-        private Dictionary<IntPtr, uint> m_CustomRenderTextureUpdateCache = new Dictionary<IntPtr, uint>();
+        protected RTHandleSystem.RTHandle m_AtlasTexture = null;
+        protected int m_Width;
+        protected int m_Height;
+        protected RenderTextureFormat m_Format;
+        protected AtlasAllocator m_AtlasAllocator = null;
+        protected Dictionary<IntPtr, Vector4> m_AllocationCache = new Dictionary<IntPtr, Vector4>();
+        protected Dictionary<IntPtr, uint> m_CustomRenderTextureUpdateCache = new Dictionary<IntPtr, uint>();
 
         public RTHandleSystem.RTHandle AtlasTexture
         {
@@ -167,8 +167,35 @@ namespace UnityEngine.Experimental.Rendering
             m_AllocationCache.Clear();
         }
 
-        void Blit2DTexture(CommandBuffer cmd, Vector4 scaleBias, Texture texture, int mipCount)
+        protected int GetTextureMipmapCount(Texture texture)
         {
+            if (texture is CustomRenderTexture)
+            {
+                float   maxSize = Mathf.Max(texture.width, texture.height);
+                return 1 + Mathf.FloorToInt(Mathf.Log(maxSize) / Mathf.Log(2));
+            }
+            else if (texture is Texture2D)
+            {
+                return (texture as Texture2D).mipmapCount;
+            }
+            else if (texture is Cubemap)
+            {
+                return (texture as Cubemap).mipmapCount;
+            }
+
+            return 0;
+        }
+
+        bool Is2D(Texture texture)
+        {
+            CustomRenderTexture crt = texture as CustomRenderTexture;
+            return (texture is Texture2D || (crt != null && crt.dimension == TextureDimension.Tex2D));
+        }
+
+        protected void Blit2DTexture(CommandBuffer cmd, Vector4 scaleBias, Texture texture)
+        {
+            int mipCount = GetTextureMipmapCount(texture);
+
             for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
             {
                 cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
@@ -176,38 +203,34 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        void BlitCubemap(CommandBuffer cmd, Vector4 scaleBias, Texture texture, int mipCount)
+        protected virtual void BlitTexture(CommandBuffer cmd, Vector4 scaleBias, Texture texture)
         {
-            scaleBias.x /= 3;
-            scaleBias.y /= 2;
-            for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
+            // This atlas only support 2D texture so we only blit 2D textures
+            if (Is2D(texture))
+                Blit2DTexture(cmd, scaleBias, texture);
+        }
+
+        protected virtual bool AllocateTexture(CommandBuffer cmd, ref Vector4 scaleBias, Texture texture, int width, int height)
+        {
+            if (m_AtlasAllocator.Allocate(ref scaleBias, width, height))
             {
-                cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                HDUtils.BlitCube(cmd, texture, new Vector4(1, 1, 0, 0), scaleBias, mipLevel, false);
+                scaleBias.Scale(new Vector4(1.0f / m_Width, 1.0f / m_Height, 1.0f / m_Width, 1.0f / m_Height));
+                BlitTexture(cmd, scaleBias, texture);
+                m_AllocationCache.Add(texture.GetNativeTexturePtr(), scaleBias);
+                return true;
+            }
+            else
+            {
+                return false;
             }
         }
 
-        void UpdateCustomRenderTexture(CommandBuffer cmd, Vector4 scaleBias, CustomRenderTexture crt)
+        protected bool IsCached(CommandBuffer cmd, Vector4 scaleBias, Texture texture)
         {
-            // Compute the number of mipmaps using the size of the texture: mipCout = 1 + floot(log2(maxSize))
-            // TODO: maybe too much mipmaps ?
-            float   maxSize = Mathf.Max(crt.width, crt.height, crt.depth);
-            int     mipCount = 1 + Mathf.FloorToInt(Mathf.Log(maxSize) / Mathf.Log(2));
-
-            if (crt.dimension == TextureDimension.Tex2D)
-                Blit2DTexture(cmd, scaleBias, crt, mipCount);
-            else if (crt.dimension == TextureDimension.Cube)
-                BlitCubemap(cmd, scaleBias, crt, mipCount);
-        }
-
-        public bool AddTexture(CommandBuffer cmd, ref Vector4 scaleBias, Texture texture)
-        {
-            Texture2D           tex2D = texture as Texture2D;
-            Cubemap             cubemap = texture as Cubemap;
-            CustomRenderTexture crt = texture as CustomRenderTexture;
-            IntPtr              key = texture.GetNativeTexturePtr();
             bool                cached = false;
-            
+            IntPtr              key = texture.GetNativeTexturePtr();
+            CustomRenderTexture crt = texture as CustomRenderTexture;
+
             if (m_AllocationCache.TryGetValue(key, out scaleBias))
                 cached = true;
 
@@ -218,64 +241,24 @@ namespace UnityEngine.Experimental.Rendering
                 if (m_CustomRenderTextureUpdateCache.TryGetValue(key, out updateCount))
                 {
                     if (crt.updateCount != updateCount)
-                        UpdateCustomRenderTexture(cmd, scaleBias, crt);
+                        BlitTexture(cmd, scaleBias, crt);
                     m_CustomRenderTextureUpdateCache[key] = crt.updateCount;
                 }
             }
-            
-            // If the texture is already in the atlas, return else we add it
-            if (cached)
+
+            return cached;
+        }
+
+        public virtual bool AddTexture(CommandBuffer cmd, ref Vector4 scaleBias, Texture texture)
+        {
+            if (IsCached(cmd, scaleBias, texture))
                 return true;
             
-            int                 mipCount = 1;
-            int                 width = texture.width;
-            int                 height = texture.height;
-            bool                cube = false;
-
-            if (tex2D != null)
-                mipCount = tex2D.mipmapCount;
-            else if (cubemap != null)
-            {
-                cube = true;
-                mipCount = cubemap.mipmapCount;
-            }
-            else if (crt != null)
-            {
-                mipCount = 1 + Mathf.FloorToInt(Mathf.Log(Mathf.Max(crt.width, crt.height)) / Mathf.Log(2));
-                cube = crt.dimension == TextureDimension.Cube;
-                m_CustomRenderTextureUpdateCache[key] = crt.updateCount;
-            }
-            else // Unknown texture type
-            {
+            // We only support 2D texture in this class, support for other textures are provided by child classes (ex: PowerOfTwoTextureAtlas)
+            if (!Is2D(texture))
                 return false;
-            }
 
-            if (cube)
-            {
-                // For the cubemap, faces are organized like this:
-                // +-----+
-                // |3|4|5|
-                // +-----+
-                // |0|1|2|
-                // +-----+
-                width *= 3;
-                height *= 2;
-            }
-            
-            if (m_AtlasAllocator.Allocate(ref scaleBias, width, height))
-            {
-                scaleBias.Scale(new Vector4(1.0f / m_Width, 1.0f / m_Height, 1.0f / m_Width, 1.0f / m_Height));
-                if (cube)
-                    BlitCubemap(cmd, scaleBias, texture, mipCount);
-                else
-                    Blit2DTexture(cmd, scaleBias, texture, mipCount);
-                m_AllocationCache.Add(key, scaleBias);
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            return AllocateTexture(cmd, ref scaleBias, texture, texture.width, texture.height);
         }
     }
 }
