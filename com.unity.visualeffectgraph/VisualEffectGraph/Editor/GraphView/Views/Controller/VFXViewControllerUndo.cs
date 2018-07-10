@@ -224,7 +224,7 @@ namespace UnityEditor.VFX.UI
                 ExpressionGraphDirty = true;
                 ExpressionGraphDirtyParamOnly = true;
 
-                if (graph != null)
+                if (model != null && graph != null)
                 {
                     foreach (var element in AllSlotContainerControllers)
                     {
