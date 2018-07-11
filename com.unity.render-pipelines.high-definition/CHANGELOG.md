@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Fixed
+- Fixed an issue with distortion that was using previous frame instead of current frame
+
 ## [2.0.5-preview]
 
 ### Added
