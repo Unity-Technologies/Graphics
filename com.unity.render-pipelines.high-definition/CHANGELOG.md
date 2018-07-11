@@ -8,7 +8,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 
 ## [3.0.0-preview]
+
+### Fixed
 - Fixed an issue with distortion that was using previous frame instead of current frame
+- Fixed an issue where disabled light where not upgrade correctly to the new physical light unit system introduce in 2.0.5-preview
 
 ## [2.0.5-preview]
 
