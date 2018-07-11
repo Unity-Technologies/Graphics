@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added camera additional data component to control shadows, depth and color texture.
 - pipeline now uses XRSEttings.eyeTextureResolutionScale as renderScale when in XR.
+- New pass architecture. Allows for custom passes to be written and then used on a per camera basis in LWRP
 
 ### Changed
 - Shadow rendering has been optimized for the Mali Utgard architecture by removing indexing and avoiding divisions for orthographic projections. This reduces the frame time by 25% on the Overdraw benchmark.
