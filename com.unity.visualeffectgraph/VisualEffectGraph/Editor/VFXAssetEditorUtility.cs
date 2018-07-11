@@ -83,11 +83,12 @@ namespace UnityEditor
             string templateString = "";
             try
             {
-                templateString = System.IO.File.ReadAllText(templatePath + "/" + templateAssetName);
+                templateString = System.IO.File.ReadAllText(VisualEffectGraphPackageInfo.packagePath + "/VisualEffectGraph/Editor/Templates/" + templateAssetName);
             }
             catch (System.Exception e)
             {
                 Debug.LogError("Couldn't read template for new vfx asset : " + e.Message);
+                return;
             }
 
             ProjectWindowUtil.CreateAssetWithContent("New VFX.vfx", templateString);
