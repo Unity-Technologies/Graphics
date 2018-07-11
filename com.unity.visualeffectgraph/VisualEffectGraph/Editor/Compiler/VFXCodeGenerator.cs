@@ -455,12 +455,17 @@ namespace UnityEditor.VFX
 
             //< Final composition
             var renderPipePath = VFXManager.renderPipeSettingsPath;
-            string renderPipeCommon = VisualEffectGraphPackageInfo.assetPackagePath + "/VisualEffectGraph/Shaders/Common/VFXCommonCompute.cginc";
+            var renderPipeShaderIncludePath = renderPipePath;
+            if(renderPipeShaderIncludePath.StartsWith(VisualEffectGraphPackageInfo.assetPackagePath))
+            {
+                renderPipeShaderIncludePath = renderPipeShaderIncludePath.Substring(VisualEffectGraphPackageInfo.assetPackagePath.Length);
+            }
+            string renderPipeCommon = "VisualEffectGraph/Shaders/Common/VFXCommonCompute.cginc";
             string renderPipePasses = null;
 
             if (!context.codeGeneratorCompute && !string.IsNullOrEmpty(renderPipePath))
             {
-                renderPipeCommon = renderPipePath + "/VFXCommon.cginc";
+                renderPipeCommon = renderPipeShaderIncludePath + "/VFXCommon.cginc";
                 renderPipePasses = renderPipePath + "/VFXPasses.template";
             }
 
@@ -486,7 +491,7 @@ namespace UnityEditor.VFX
 
             var perPassIncludeContent = new VFXShaderWriter();
             perPassIncludeContent.WriteLine("#include \"" + renderPipeCommon + "\"");
-            perPassIncludeContent.WriteLine("#include \"Assets/VFXEditor/Shaders/VFXCommon.cginc\"");
+            perPassIncludeContent.WriteLine("#include \"VisualEffectGraph/Shaders/VFXCommon.cginc\"");
 
             // Per-block includes
             var includes = Enumerable.Empty<string>();
