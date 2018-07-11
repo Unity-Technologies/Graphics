@@ -506,6 +506,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // If we are deserializing an old version, convert the light intensity to the new system
             if (version <= 1.0f)
             {
+                // Note: We can't access to the light component in OnAfterSerialize as it is not init() yet,
+                // so instead we use a boolean to do the upgrade in OnEnable().
+                // However if the light is not enabled, the light is not upgraded.
+                // To solve this issue we add a callback below that will force OnEnable() to upgrade the light.
 #if UNITY_EDITOR
                 EditorApplication.update += EditorOnEnableWorkaround;
 #endif
@@ -516,6 +520,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
 #if UNITY_EDITOR
+        // See comment above, this is a workaround to upgrade Disabled light correctly.
         void EditorOnEnableWorkaround()
         {
             OnEnable();
