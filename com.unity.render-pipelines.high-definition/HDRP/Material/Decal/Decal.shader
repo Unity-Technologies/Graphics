@@ -11,6 +11,7 @@ Shader "HDRenderPipeline/Decal"
 		[HideInInspector] _NormalBlendSrc("_NormalBlendSrc", Float) = 0.0
 		[HideInInspector] _MaskBlendSrc("_MaskBlendSrc", Float) = 1.0
 		[HideInInspector] _MaskBlendMode("_MaskBlendMode", Float) = 0.0
+		[HideInInspector] _MaskBlendMode2("_MaskBlendMode2", Float) = 0.0
     }
 
     HLSLINCLUDE
@@ -31,7 +32,7 @@ Shader "HDRenderPipeline/Decal"
 	#pragma shader_feature _MASK_BLEND_SRC_B
 
     #pragma multi_compile_instancing
-	#pragma multi_compile _ _DECALS_PER_CHANNEL_MASK
+	#pragma multi_compile _ _DECALS_4RT
     //-------------------------------------------------------------------------------------
     // Define
     //-------------------------------------------------------------------------------------

@@ -37,6 +37,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Smoothness,
             AO
         }
+
+        enum MaskBlendFlags
+        {
+            Metal = 1 << 0, 
+            Smoothness = 1 << 1,
+            AO = 1 << 2,
+        }
+
         protected string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
 
         protected MaterialProperty baseColorMap = new MaterialProperty();
@@ -63,6 +71,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty maskBlendSrc = new MaterialProperty();
         protected const string kMaskBlendSrc = "_MaskBlendSrc";
 
+        protected MaterialProperty maskBlendMode2 = new MaterialProperty();
+        protected const string kMaskBlendMode2 = "_MaskBlendMode2";
+
         protected MaterialProperty maskBlendMode = new MaterialProperty();
         protected const string kMaskBlendMode = "_MaskBlendMode";
  
@@ -81,6 +92,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             normalBlendSrc = FindProperty(kNormalBlendSrc, props);
             maskBlendSrc = FindProperty(kMaskBlendSrc, props);
             maskBlendMode = FindProperty(kMaskBlendMode, props);
+            maskBlendMode2 = FindProperty(kMaskBlendMode2, props);
             
             // always instanced
             SerializedProperty instancing = m_MaterialEditor.serializedObject.FindProperty("m_EnableInstancingVariants");
@@ -155,6 +167,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             float normalBlendSrcValue = normalBlendSrc.floatValue;
             float maskBlendSrcValue =  maskBlendSrc.floatValue;
             float maskBlendModeValue = maskBlendMode.floatValue;
+            float maskBlendModeValue2 = maskBlendMode2.floatValue;
+            MaskBlendFlags maskBlendFlags = (MaskBlendFlags) maskBlendModeValue2;              
 
             HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
             bool perChannelMask = hdrp.renderPipelineSettings.decalSettings.perChannelMask;
@@ -178,11 +192,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 normalBlendSrcValue = EditorGUILayout.Popup( "Normal blend source", (int)normalBlendSrcValue, blendSourceNames);               
                 m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapText, maskMap);
                 maskBlendSrcValue = EditorGUILayout.Popup( "Mask blend source", (int)maskBlendSrcValue, blendSourceNames);
-                EditorGUILayout.LabelField("Individual mask map channel blending mode can be enabled/disabled in pipeline asset.");
-                EditorGUILayout.LabelField("Warning!!! Enabling this feature incurs a performance cost.");
+                EditorGUILayout.HelpBox("Individual mask map channel blending mode can be enabled/disabled in pipeline asset.\nEnabling this feature incurs a performance cost.", MessageType.Warning);
                 if(perChannelMask)
                 {
-                    maskBlendModeValue = EditorGUILayout.Popup( "Mask blend mode", (int)maskBlendModeValue, blendModeNames);   
+                    maskBlendModeValue = EditorGUILayout.Popup( "Mask blend mode", (int)maskBlendModeValue, blendModeNames);
+                    maskBlendFlags = (MaskBlendFlags)EditorGUILayout.EnumFlagsField( "Mask blend mode", maskBlendFlags);                  
                 }
                 m_MaterialEditor.ShaderProperty(decalBlend, Styles.decalBlendText);
                 EditorGUI.indentLevel--;
@@ -193,7 +207,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 normalBlendSrc.floatValue = normalBlendSrcValue;
                 maskBlendSrc.floatValue = maskBlendSrcValue;
                 maskBlendMode.floatValue = maskBlendModeValue;
-
+                maskBlendMode2.floatValue = (float) maskBlendFlags;
                 foreach (var obj in m_MaterialEditor.targets)
                     SetupMaterialKeywordsAndPassInternal((Material)obj);
             }
