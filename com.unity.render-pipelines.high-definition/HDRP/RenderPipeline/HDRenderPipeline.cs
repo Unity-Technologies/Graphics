@@ -1432,11 +1432,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // We need to copy depth buffer texture if we want to bind it at this stage
                 CopyDepthBufferIfNeeded(cmd);
 
+                bool rtCount4 = m_Asset.GetRenderPipelineSettings().decalSettings.perChannelMask;
                 // Depth texture is now ready, bind it.
                 cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, GetDepthTexture());
-                m_DbufferManager.ClearTargets(cmd, hdCamera);
-                HDUtils.SetRenderTarget(cmd, hdCamera, m_DbufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer); // do not clear anymore
-                m_DbufferManager.SetHTile(m_DbufferManager.bufferCount, cmd);
+                m_DbufferManager.ClearAndSetTargets(cmd, hdCamera, rtCount4, m_CameraDepthStencilBuffer);
                 renderContext.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
@@ -1446,7 +1445,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     sorting = { flags = SortFlags.CommonOpaque }
                 };
 
-                if(m_Asset.GetRenderPipelineSettings().decalSettings.perChannelMask)
+                if(rtCount4)
                 {
                     drawSettings.SetShaderPassName(0, HDShaderPassNames.s_MeshDecalsName);
                     drawSettings.SetShaderPassName(1, HDShaderPassNames.s_MeshDecalsMSName);
@@ -1465,7 +1464,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     renderQueueRange = HDRenderQueue.k_RenderQueue_AllOpaque
                 };
 
-                CoreUtils.SetKeyword(cmd, "_DECALS_PER_CHANNEL_MASK", m_Asset.GetRenderPipelineSettings().decalSettings.perChannelMask);
+                CoreUtils.SetKeyword(cmd, "_DECALS_4RT", m_Asset.GetRenderPipelineSettings().decalSettings.perChannelMask);
 
                 renderContext.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, filterRenderersSettings);
                 DecalSystem.instance.RenderIntoDBuffer(cmd);

@@ -109,7 +109,11 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
         DBuffer0 = float4(0.0f, 0.0f, 0.0f, 1.0f);
         DBuffer1 = float4(0.5f, 0.5f, 0.5f, 1.0f);
         DBuffer2 = float4(0.0f, 0.0f, 0.0f, 1.0f);
+#ifdef _DECALS_4RT
 		DBuffer3 = float2(1.0f, 1.0f);
+#else
+		float2 DBuffer3 = float2(1.0f, 1.0f);
+#endif
 
     #ifdef LIGHTLOOP_TILE_PASS
         GetCountAndStart(posInput, LIGHTCATEGORY_DECAL, decalStart, decalCount);
