@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.XR;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
@@ -248,6 +249,33 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static bool IsSupportedCookieType(LightType lightType)
         {
             return lightType == LightType.Directional || lightType == LightType.Spot;
+        }
+
+        public static bool IsStereoEnabled(Camera camera)
+        {
+#if !UNITY_SWITCH
+            bool isSceneViewCamera = camera.cameraType == CameraType.SceneView;
+            return XRSettings.isDeviceActive && !isSceneViewCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
+#else
+            return false;
+#endif
+        }
+
+        public static void RenderPostProcess(CommandBuffer cmd, PostProcessRenderContext context, ref CameraData cameraData, RenderTextureFormat colorFormat, RenderTargetIdentifier source, RenderTargetIdentifier dest, bool opaqueOnly)
+        {
+            Camera camera = cameraData.camera;
+            context.Reset();
+            context.camera = camera;
+            context.source = source;
+            context.sourceFormat = colorFormat;
+            context.destination = dest;
+            context.command = cmd;
+            context.flip = !IsStereoEnabled(camera) && camera.targetTexture == null;
+
+            if (opaqueOnly)
+                cameraData.postProcessLayer.RenderOpaqueOnly(context);
+            else
+                cameraData.postProcessLayer.Render(context);
         }
     }
 }
