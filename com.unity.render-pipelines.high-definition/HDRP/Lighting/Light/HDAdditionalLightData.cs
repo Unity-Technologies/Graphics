@@ -506,17 +506,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // If we are deserializing an old version, convert the light intensity to the new system
             if (version <= 1.0f)
             {
-                EditorApplication.update += EditorOnEnableWorkaround;
                 needsIntensityUpdate_1_0 = true;
             }
 
             version = currentVersion;
-        }
-
-        void EditorOnEnableWorkaround()
-        {
-            OnEnable();
-            EditorApplication.update -= EditorOnEnableWorkaround;
         }
 
         private void OnEnable()

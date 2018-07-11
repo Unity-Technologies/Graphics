@@ -10,11 +10,14 @@ Shader "Hidden/HDRenderPipeline/Blit"
         TEXTURE2D(_BlitTexture);
         TEXTURECUBE(_CubemapBlitTexture);
         SamplerState sampler_PointClamp;
+        SamplerState sampler_PointRepeat;
         SamplerState sampler_LinearClamp;
+        SamplerState sampler_LinearRepeat;
         uniform float4 _BlitScaleBias;
         uniform float4 _BlitScaleBiasRt;
         uniform float _BlitMipLevel;
         uniform uint _BlitFaceIndex;
+        uniform float2 _BlitTextureSize;
 
         struct Attributes
         {
@@ -49,12 +52,23 @@ Shader "Hidden/HDRenderPipeline/Blit"
             output.texcoord = GetQuadTexCoord(input.vertexID) * _BlitScaleBias.xy + _BlitScaleBias.zw;
             return output;
         }
+
+        Varyings VertQuadPadding(Attributes input)
+        {
+            Varyings output;
+            // 8 is the number of pixels to repeat times two
+            float2 paddingUV = ((_BlitTextureSize - 8) / _BlitTextureSize);
+            output.positionCS = GetQuadVertexPosition(input.vertexID) * float4(_BlitScaleBiasRt.x, _BlitScaleBiasRt.y, 1, 1) + float4(_BlitScaleBiasRt.z, _BlitScaleBiasRt.w, 0, 0);
+            output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
+            output.texcoord = GetQuadTexCoord(input.vertexID) * (_BlitScaleBias.xy + paddingUV) + _BlitScaleBias.zw + paddingUV / 2;
+            return output;
+        }
         
         // Duplication of BlitCubemap.shader
         static const float3 faceU[6] = { float3(0, 0, -1), float3(0, 0, 1), float3(1, 0, 0), float3(1, 0, 0), float3(1, 0, 0), float3(-1, 0, 0) };
         static const float3 faceV[6] = { float3(0, -1, 0), float3(0, -1, 0), float3(0, 0, 1), float3(0, 0, -1), float3(0, -1, 0), float3(0, -1, 0) };
 
-        VaryingsCube VertexCube(Attributes input)
+        VaryingsCube VertCube(Attributes input)
         {
             VaryingsCube output;
             float4 cubeFaceVertexPosition = GetQuadVertexPosition(input.vertexID) + float4(_BlitFaceIndex % 3, _BlitFaceIndex / 3, 0, 0);
@@ -82,6 +96,16 @@ Shader "Hidden/HDRenderPipeline/Blit"
         float4 FragBilinear(Varyings input) : SV_Target
         {
             return SAMPLE_TEXTURE2D_LOD(_BlitTexture, sampler_LinearClamp, input.texcoord, _BlitMipLevel);
+        }
+        
+        float4 FragNearestRepeat(Varyings input) : SV_Target
+        {
+            return SAMPLE_TEXTURE2D_LOD(_BlitTexture, sampler_PointRepeat, input.texcoord, _BlitMipLevel);
+        }
+
+        float4 FragBilinearRepeat(Varyings input) : SV_Target
+        {
+            return SAMPLE_TEXTURE2D_LOD(_BlitTexture, sampler_LinearRepeat, input.texcoord, _BlitMipLevel);
         }
 
         float4 FragNearestCube(VaryingsCube input) : SV_Target
@@ -150,7 +174,7 @@ Shader "Hidden/HDRenderPipeline/Blit"
             ZWrite Off ZTest Always Blend Off Cull Off
 
             HLSLPROGRAM
-                #pragma vertex VertexCube
+                #pragma vertex VertCube
                 #pragma fragment FragNearestCube
             ENDHLSL
         }
@@ -161,8 +185,30 @@ Shader "Hidden/HDRenderPipeline/Blit"
             ZWrite Off ZTest Always Blend Off Cull Off
 
             HLSLPROGRAM
-                #pragma vertex VertexCube
+                #pragma vertex VertCube
                 #pragma fragment FragBilinearCube
+            ENDHLSL
+        }
+
+        // 6: Nearest padded quad
+        Pass
+        {
+            ZWrite Off ZTest Always Blend Off Cull Off
+
+            HLSLPROGRAM
+                #pragma vertex VertQuadPadding
+                #pragma fragment FragNearestRepeat
+            ENDHLSL
+        }
+
+        // 7: Bilinear padded quad
+        Pass
+        {
+            ZWrite Off ZTest Always Blend Off Cull Off
+
+            HLSLPROGRAM
+                #pragma vertex VertQuadPadding
+                #pragma fragment FragBilinearRepeat
             ENDHLSL
         }
 

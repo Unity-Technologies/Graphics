@@ -33,8 +33,7 @@ namespace UnityEditor.Experimental.Rendering
         {
             EditorGUILayout.LabelField(_.GetContent("Cookies"), EditorStyles.boldLabel);
             ++EditorGUI.indentLevel;
-            EditorGUILayout.PropertyField(d.cookieAtlasWidth, _.GetContent("Atlas Width"));
-            EditorGUILayout.PropertyField(d.cookieAtlasHeight, _.GetContent("Atlas Height"));
+            EditorGUILayout.PropertyField(d.cookieAtlasSize, _.GetContent("Atlas Size (Squared)"));
             --EditorGUI.indentLevel;
         }
 

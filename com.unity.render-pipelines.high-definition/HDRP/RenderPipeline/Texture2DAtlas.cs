@@ -47,11 +47,10 @@ namespace UnityEngine.Experimental.Rendering
                     m_RightChild = new AtlasNode();
                     m_BottomChild = new AtlasNode();
                     
-                    if (powerOfTwoPadding)
-                    {
-                        m_Rect.z += wPadd;
-                        m_Rect.w += hPadd;
-                    }
+                    m_Rect.z += wPadd;
+                    m_Rect.w += hPadd;
+                    m_Rect.x -= wPadd;
+                    m_Rect.y -= hPadd;
 
                     if (width > height) // logic to decide which way to split
                     {
@@ -204,7 +203,7 @@ namespace UnityEngine.Experimental.Rendering
             return 0;
         }
 
-        bool Is2D(Texture texture)
+        protected bool Is2D(Texture texture)
         {
             CustomRenderTexture crt = texture as CustomRenderTexture;
             return (texture is Texture2D || (crt != null && crt.dimension == TextureDimension.Tex2D));
@@ -217,7 +216,7 @@ namespace UnityEngine.Experimental.Rendering
             for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
             {
                 cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                HDUtils.BlitQuad(cmd, texture, new Vector4(1, 1, 0, 0), scaleBias, mipLevel, false);
+                HDUtils.BlitQuad(cmd, texture, new Vector4(1, 1, 0, 0), scaleBias, mipLevel, true);
             }
         }
 
