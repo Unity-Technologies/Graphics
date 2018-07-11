@@ -1,0 +1,19 @@
+{
+    "name": "com.unity.visualeffectgraph.EditorTests",
+    "references": [
+        "com.unity.visualeffectgraph.Editor",
+        "com.unity.visualeffectgraph.Runtime"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": []
+}
