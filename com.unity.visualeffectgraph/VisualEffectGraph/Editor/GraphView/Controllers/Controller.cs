@@ -8,7 +8,11 @@ using UnityEngine.Profiling;
 
 namespace UnityEditor.VFX.UI
 {
-    public abstract class Controller
+    class VFXControllerEvent
+    {
+        public IControlledElement target;
+    }
+    abstract class Controller
     {
         public bool m_DisableCalled = false;
         public virtual void OnDisable()
@@ -25,7 +29,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void RegisterHandler(IEventHandler handler)
+        public void RegisterHandler(IControlledElement handler)
         {
             //Debug.Log("RegisterHandler  of " + handler.GetType().Name + " on " + GetType().Name );
 
@@ -39,7 +43,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void UnregisterHandler(IEventHandler handler)
+        public void UnregisterHandler(IControlledElement handler)
         {
             m_EventHandlers.Remove(handler);
         }
@@ -58,25 +62,36 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void NotifyEventHandler(IEventHandler eventHandler, int eventID)
+        void NotifyEventHandler(IControlledElement eventHandler, int eventID)
         {
-            using (var e = ControllerChangedEvent.GetPooled())
+            ControllerChangedEvent e = new ControllerChangedEvent();
+            e.controller = this;
+            e.target = eventHandler;
+            e.change = eventID;
+            eventHandler.OnControllerChanged(ref e);
+            if (e.isPropagationStopped)
+                return;
+            if (eventHandler is VisualElement)
             {
-                e.controller = this;
-                e.change = eventID;
-                e.target = eventHandler;
-                (UIElementsUtility.eventDispatcher as EventDispatcher).DispatchEvent(e, (eventHandler as VisualElement).panel, DispatchMode.Immediate);
+                var element = eventHandler as VisualElement;
+                eventHandler = element.GetFirstAncestorOfType<IControlledElement>();
+                while (eventHandler != null)
+                {
+                    eventHandler.OnControllerChanged(ref e);
+                    if (e.isPropagationStopped)
+                        break;
+                    eventHandler = (eventHandler as VisualElement).GetFirstAncestorOfType<IControlledElement>();
+                }
             }
         }
 
-        public void SendEvent(EventBase e)
+        public void SendEvent(VFXControllerEvent e)
         {
             var eventHandlers = m_EventHandlers.ToArray(); // Some notification may trigger Register/Unregister so duplicate the collection.
 
             foreach (var eventHandler in eventHandlers)
             {
-                e.target = eventHandler;
-                (UIElementsUtility.eventDispatcher as EventDispatcher).DispatchEvent(e, (eventHandler as VisualElement).panel, DispatchMode.Immediate);
+                eventHandler.OnControllerEvent(e);
             }
         }
 
@@ -88,7 +103,7 @@ namespace UnityEditor.VFX.UI
             get { return Enumerable.Empty<Controller>(); }
         }
 
-        List<IEventHandler> m_EventHandlers = new List<IEventHandler>();
+        List<IControlledElement> m_EventHandlers = new List<IControlledElement>();
     }
 
     abstract class Controller<T> : Controller where T : UnityEngine.Object
@@ -148,17 +163,19 @@ namespace UnityEditor.VFX.UI
         }
     }
 
-    public class ControllerChangedEvent : EventBase<ControllerChangedEvent>, IPropagatableEvent
+    struct ControllerChangedEvent
     {
+        public IControlledElement target;
         public Controller controller;
-
         public int change;
-        protected override void Init()
+
+        bool m_PropagationStopped;
+        public void StopPropagation()
         {
-            base.Init();
-            flags = EventFlags.Bubbles | EventFlags.TricklesDown;
-            controller = null;
-            change = 0;
+            m_PropagationStopped = true;
         }
+
+        public bool isPropagationStopped
+        { get { return m_PropagationStopped; } }
     }
 }

@@ -39,8 +39,6 @@ namespace UnityEditor.VFX.UI
 
         public VFXGroupNode()
         {
-            RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
-
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
 
             m_GroupDropArea = this.Query("dropArea");
@@ -88,7 +86,8 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void OnControllerChanged(ControllerChangedEvent e)
+        void IControlledElement.OnControllerEvent(VFXControllerEvent e) {}
+        void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {
             if (e.controller == controller)
             {

@@ -200,8 +200,6 @@ namespace UnityEditor.VFX.UI
 
             capabilities |= Capabilities.Movable;
 
-            RegisterCallback<ControllerChangedEvent>(ControllerChanged);
-
             RegisterCallback<MouseDownEvent>(OnMouseClick, TrickleDown.TrickleDown);
 
             style.positionType = PositionType.Absolute;
@@ -507,7 +505,8 @@ namespace UnityEditor.VFX.UI
             Detach();
         }
 
-        public void ControllerChanged(ControllerChangedEvent e)
+        void IControlledElement.OnControllerEvent(VFXControllerEvent e) {}
+        void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {
             UpdateEventList();
         }
