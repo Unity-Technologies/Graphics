@@ -145,7 +145,7 @@ namespace UnityEditor.VFX.UI
         public VFXComponentBoard(VFXView view)
         {
             m_View = view;
-            var tpl = EditorGUIUtility.Load(UXMLHelper.GetUXMLPath("uxml/VFXComponentBoard.uxml")) as VisualTreeAsset;
+            var tpl = Resources.Load<VisualTreeAsset>("uxml/VFXComponentBoard");
 
             tpl.CloneTree(contentContainer, new Dictionary<string, VisualElement>());
 
@@ -535,7 +535,7 @@ namespace UnityEditor.VFX.UI
 
                 foreach (var added in eventNames.Except(m_Events.Keys).ToArray())
                 {
-                    var tpl = EditorGUIUtility.Load(UXMLHelper.GetUXMLPath("uxml/VFXComponentBoard-event.uxml")) as VisualTreeAsset;
+                    var tpl = Resources.Load<VisualTreeAsset>("uxml/VFXComponentBoard-event.uxml");
 
                     tpl.CloneTree(m_EventsContainer, new Dictionary<string, VisualElement>());
 

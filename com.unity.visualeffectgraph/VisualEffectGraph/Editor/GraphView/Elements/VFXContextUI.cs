@@ -181,7 +181,7 @@ namespace UnityEditor.VFX.UI
             RefreshContext();
         }
 
-        public VFXContextUI() : base(UXMLHelper.GetUXMLPath("uxml/VFXContext.uxml"))
+        public VFXContextUI() : base("uxml/VFXContext")
         {
             capabilities |= Capabilities.Selectable | Capabilities.Movable | Capabilities.Deletable | Capabilities.Ascendable;
 

@@ -91,11 +91,11 @@ namespace UnityEditor.VFX.Test
                 {
                     AnimationMode.BeginSampling();
 
-                    var range = clip.clip.stopTime - clip.clip.startTime;
+                    var range = clip.clip.length;
 
                     var normalizedTime = virtualTotalTime / range;
                     var relativeTimeNormalized = normalizedTime - Mathf.Floor(normalizedTime);
-                    var relativeTime = clip.clip.startTime + relativeTimeNormalized * range;
+                    var relativeTime = relativeTimeNormalized * range;
 
                     AnimationMode.SampleAnimationClip(animator.gameObject, clip.clip, relativeTime);
                     AnimationMode.EndSampling();
@@ -242,9 +242,14 @@ namespace UnityEditor.VFX.Test
                 int expectedFrameIndex = startFrameIndex + waitFrameCount;
                 while (Time.frameCount != expectedFrameIndex)
                 {
+<<<<<<< HEAD
                     EditorWindow.GetWindow(typeof(GameView));
                     UpdateScene(scene, (Time.frameCount - startFrameIndex) * frequency);
                     Time.captureFramerate = 20;
+=======
+                    /*Tristan*/ //EditorWindow.GetWindow(typeof(GameView)).Focus();
+                    UpdateScene(scene, (VFXManager.frameIndex - startFrameIndex) * frequency);
+>>>>>>> remotes/origin/vfx/main
                     scene.camera.Render();
                     yield return null;
                 }

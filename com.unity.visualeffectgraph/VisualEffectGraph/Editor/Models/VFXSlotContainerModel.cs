@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
-using UnityEngine.Graphing;
 using Object = UnityEngine.Object;
 
 namespace UnityEditor.VFX

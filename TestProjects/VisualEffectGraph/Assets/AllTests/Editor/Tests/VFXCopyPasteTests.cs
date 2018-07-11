@@ -1,3 +1,4 @@
+#if false
 using System;
 using NUnit.Framework;
 using UnityEngine;
@@ -342,3 +343,4 @@ namespace UnityEditor.VFX.Test
         }
     }
 }
+#endif
