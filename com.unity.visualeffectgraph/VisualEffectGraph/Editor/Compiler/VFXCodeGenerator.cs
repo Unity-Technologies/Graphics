@@ -185,7 +185,7 @@ namespace UnityEditor.VFX
 
         static public StringBuilder Build(VFXContext context, VFXCompilationMode compilationMode, VFXContextCompiledData contextData)
         {
-            var templatePath = string.Format("Assets/{0}.template", context.codeGeneratorTemplate);
+            var templatePath = string.Format("{0}.template", context.codeGeneratorTemplate);
             return Build(context, templatePath, compilationMode, contextData);
         }
 
@@ -289,7 +289,7 @@ namespace UnityEditor.VFX
                     }
                 }
 
-                var includeBuilder = GetFlattenedTemplateContent(includePath, includes, defines);
+                var includeBuilder = GetFlattenedTemplateContent(VisualEffectGraphPackageInfo.assetPackagePath + "/VisualEffectGraph/"+includePath, includes, defines);
                 ReplaceMultiline(templateContent, groups[0].Value, includeBuilder);
             }
 
@@ -455,13 +455,13 @@ namespace UnityEditor.VFX
 
             //< Final composition
             var renderPipePath = VFXManager.renderPipeSettingsPath;
-            string renderPipeCommon = "Assets/VFXEditor/Shaders/Common/VFXCommonCompute.cginc";
+            string renderPipeCommon = VisualEffectGraphPackageInfo.assetPackagePath + "/VisualEffectGraph/Shaders/Common/VFXCommonCompute.cginc";
             string renderPipePasses = null;
 
             if (!context.codeGeneratorCompute && !string.IsNullOrEmpty(renderPipePath))
             {
-                renderPipeCommon = "Assets/" + renderPipePath + "/VFXCommon.cginc";
-                renderPipePasses = "Assets/" + renderPipePath + "/VFXPasses.template";
+                renderPipeCommon = renderPipePath + "/VFXCommon.cginc";
+                renderPipePasses = renderPipePath + "/VFXPasses.template";
             }
 
             var globalIncludeContent = new VFXShaderWriter();
