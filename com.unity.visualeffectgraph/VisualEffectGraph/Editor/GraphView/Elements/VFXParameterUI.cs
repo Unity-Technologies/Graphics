@@ -81,7 +81,7 @@ namespace UnityEditor.VFX.UI
 
     class VFXParameterUI : VFXNodeUI
     {
-        public VFXParameterUI() : base(UXMLHelper.GetUXMLPath("uxml/VFXParameter.uxml"))
+        public VFXParameterUI() : base("uxml/VFXParameter")
         {
             RemoveFromClassList("VFXNodeUI");
             AddStyleSheetPath("VFXParameter");
