@@ -4,8 +4,8 @@ Shader "Hidden/VFX/ParticleQuads"
 	{	
 		Cull Off
 		
-		${VFXInclude("Assets/VFXEditor/Shaders/VFXParticleHeader.template")}
-		${VFXInclude("Assets/VFXEditor/Shaders/ParticleQuads/PassForward.template")}
-		${VFXInclude("Assets/VFXEditor/Shaders/ParticleQuads/PassShadowCaster.template"),USE_CAST_SHADOWS_PASS}
+		${VFXInclude("Shaders/VFXParticleHeader.template")}
+		${VFXInclude("Shaders/ParticleQuads/PassForward.template")}
+		${VFXInclude("Shaders/ParticleQuads/PassShadowCaster.template"),USE_CAST_SHADOWS_PASS}
 	}
 }

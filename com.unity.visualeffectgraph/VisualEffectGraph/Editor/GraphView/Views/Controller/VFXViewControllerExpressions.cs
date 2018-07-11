@@ -10,24 +10,12 @@ using UnityEngine.Experimental.UIElements;
 
 namespace UnityEditor.VFX.UI
 {
-    class VFXRecompileEvent : EventBase<VFXRecompileEvent>, IPropagatableEvent
+    class VFXRecompileEvent : VFXControllerEvent
     {
-        public bool valueOnly {get; private set; }
-        public static VFXRecompileEvent GetPooled(bool valueOnly)
-        {
-            VFXRecompileEvent evt = GetPooled();
-            evt.valueOnly = valueOnly;
+        public bool valueOnly {get; set; }
 
-            return evt;
-        }
-
+        public static VFXRecompileEvent Default = new VFXRecompileEvent();
         public VFXViewController controller;
-        protected override void Init()
-        {
-            base.Init();
-            flags = EventFlags.Bubbles | EventFlags.TricklesDown;
-            controller = null;
-        }
     }
 
     partial class VFXViewController : Controller<VisualEffectResource>
@@ -49,10 +37,8 @@ namespace UnityEditor.VFX.UI
                 Debug.LogException(e);
             }
 
-            using (VFXRecompileEvent e = VFXRecompileEvent.GetPooled(ExpressionGraphDirtyParamOnly))
-            {
-                SendEvent(e);
-            }
+            VFXRecompileEvent.Default.valueOnly = ExpressionGraphDirtyParamOnly;
+            SendEvent(VFXRecompileEvent.Default);
         }
 
         public void InvalidateExpressionGraph(VFXModel model, VFXModel.InvalidationCause cause)

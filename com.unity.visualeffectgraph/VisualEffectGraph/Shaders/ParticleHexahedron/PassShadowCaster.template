@@ -38,7 +38,7 @@ ${VFXEnd}
 #define SHADERPASS SHADERPASS_SHADOWS
 #define USE_LEGACY_UNITY_MATRIX_VARIABLES
 	
-	${VFXInclude("Assets/VFXEditor/Shaders/ParticleHexahedron/Pass.template")}	
+	${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}	
 		
 	#pragma fragment frag
 	float frag(ps_input i) : SV_Target0

@@ -13,6 +13,8 @@ namespace UnityEditor.VFX.UI
         {
             get;
         }
+        void OnControllerChanged(ref ControllerChangedEvent e);
+        void OnControllerEvent(VFXControllerEvent e);
     }
 
     interface IControlledElement<T> : IControlledElement where T : Controller

@@ -5,7 +5,7 @@
 ${VFXPerPassInclude}
 ${VFXGeneratedBlockFunction}
 
-${VFXInclude("Assets/VFXEditor/Shaders/ParticleQuads/PassVS.template"),!USE_GEOMETRY_SHADER}
-${VFXInclude("Assets/VFXEditor/Shaders/ParticleQuads/PassGS.template"),USE_GEOMETRY_SHADER}
+${VFXInclude("Shaders/ParticleQuads/PassVS.template"),!USE_GEOMETRY_SHADER}
+${VFXInclude("Shaders/ParticleQuads/PassGS.template"),USE_GEOMETRY_SHADER}
 
 ${VFXFragmentCommonFunctions}

@@ -9,24 +9,32 @@ namespace UnityEditor.VFX
 public static class VisualEffectGraphPackageInfo
 {
     static string m_PackagePath;
-    
-    public static string packagePath
-    {
-        get{
-            if(m_PackagePath == null)
+
+        public static string fileSystemPackagePath
+        {
+            get
             {
-                foreach(string str in UnityEditor.PackageManager.Folders.GetPackagesPaths())
+                if (m_PackagePath == null)
                 {
-                    if (str.Contains("com.unity.visualeffectgraph"))
+                    foreach (var pkg in UnityEditor.PackageManager.Packages.GetAll())
                     {
-                        m_PackagePath = str;
-                        break;
+                        if (pkg.name == "com.unity.visualeffectgraph")
+                        {
+                            m_PackagePath = pkg.resolvedPath.Replace("\\", "/");
+                            break;
+                        }
                     }
                 }
+                return m_PackagePath;
             }
-            return m_PackagePath;
+        }
+        public static string assetPackagePath
+        {
+            get
+            {
+                return "Packages/com.unity.visualeffectgraph";
+            }
         }
     }
-}
 
 }

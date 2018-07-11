@@ -24,8 +24,6 @@ namespace UnityEditor.VFX.UI
             m_TypePopup.AddManipulator(new DownClickable(() => OnTypeMenu()));
 
             Add(m_TypePopup);
-
-            RegisterCallback<ControllerChangedEvent>(OnChange);
         }
 
         void OnTypeMenu()
@@ -71,7 +69,8 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
-        void OnChange(ControllerChangedEvent e)
+        void IControlledElement.OnControllerEvent(VFXControllerEvent e) {}
+        void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {
             if (e.controller == controller)
             {
@@ -108,7 +107,6 @@ namespace UnityEditor.VFX.UI
 
         public VFXMultiOperatorEdit()
         {
-            RegisterCallback<ControllerChangedEvent>(OnChange);
         }
 
         int m_CurrentIndex = -1;
@@ -164,7 +162,8 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void OnChange(ControllerChangedEvent e)
+        void IControlledElement.OnControllerEvent(VFXControllerEvent e) {}
+        void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {
             if (e.controller == controller)
             {

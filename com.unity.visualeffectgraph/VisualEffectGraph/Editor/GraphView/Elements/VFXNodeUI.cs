@@ -54,7 +54,7 @@ namespace UnityEditor.VFX.UI
 
         static string UXMLResourceToPackage(string resourcePath)
         {
-            return VisualEffectGraphPackageInfo.packagePath + "/VisualEffectGraph/Editor/Resources/" + resourcePath + ".uxml";
+            return VisualEffectGraphPackageInfo.assetPackagePath + "/VisualEffectGraph/Editor/Resources/" + resourcePath + ".uxml";
         }
 
         public VFXNodeUI(string template) : base(UXMLResourceToPackage(template))
@@ -73,11 +73,11 @@ namespace UnityEditor.VFX.UI
         {
             AddStyleSheetPath("VFXNode");
             AddToClassList("VFXNodeUI");
-            RegisterCallback<ControllerChangedEvent>(OnChange);
             clippingOptions = ClippingOptions.ClipContents;
         }
 
-        virtual protected void OnChange(ControllerChangedEvent e)
+        void IControlledElement.OnControllerEvent(VFXControllerEvent e) {}
+        public virtual void OnControllerChanged(ref ControllerChangedEvent e)
         {
             if (e.controller == controller)
             {

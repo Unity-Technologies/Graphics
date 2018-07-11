@@ -95,7 +95,7 @@ namespace UnityEditor.VFX.UI
 
         protected override IEnumerable<Descriptor> GetDescriptors()
         {
-            var systemFiles = System.IO.Directory.GetFiles(VisualEffectAssetEditorUtility.templatePath, "*.vfx").Select(t => t.Replace("\\", "/"));
+            var systemFiles = System.IO.Directory.GetFiles(VisualEffectAssetEditorUtility.templatePath, "*.vfx").Select(t => t.Replace("\\", "/").Replace(VisualEffectGraphPackageInfo.fileSystemPackagePath, VisualEffectGraphPackageInfo.assetPackagePath));
             var systemDesc = systemFiles.Select(t => new Descriptor() {modelDescriptor = t, category = "System", name = System.IO.Path.GetFileNameWithoutExtension(t)});
 
 
@@ -166,11 +166,15 @@ namespace UnityEditor.VFX.UI
     {
         public HashSet<VFXEditableDataAnchor> allDataAnchors = new HashSet<VFXEditableDataAnchor>();
 
-        void OnRecompile(VFXRecompileEvent e)
+        void IControlledElement.OnControllerEvent(VFXControllerEvent e)
         {
-            foreach (var anchor in allDataAnchors)
+            if (e is VFXRecompileEvent)
             {
-                anchor.OnRecompile(e.valueOnly);
+                var recompileEvent = e as VFXRecompileEvent;
+                foreach (var anchor in allDataAnchors)
+                {
+                    anchor.OnRecompile(recompileEvent.valueOnly);
+                }
             }
         }
 
@@ -391,9 +395,6 @@ namespace UnityEditor.VFX.UI
 
             Add(m_NoAssetLabel);
 
-            RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
-            RegisterCallback<VFXRecompileEvent>(OnRecompile);
-
             m_Blackboard = new VFXBlackboard(this);
 
 
@@ -528,7 +529,7 @@ namespace UnityEditor.VFX.UI
             controller.Remove(selection.OfType<IControlledElement>().Select(t => t.controller).Concat(parametersToRemove.Cast<Controller>()));
         }
 
-        void OnControllerChanged(ControllerChangedEvent e)
+        void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {
             if (e.controller == controller)
             {

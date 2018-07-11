@@ -21,38 +21,7 @@ namespace UnityEditor
             {
                 if (m_TemplatePath == null)
                 {
-                    var guids = AssetDatabase.FindAssets("\"Simple Particle System\" t:VisualEffectAsset");
-                    if (guids.Length == 1)
-                    {
-                        string path = AssetDatabase.GUIDToAssetPath(guids[0]);
-                        m_TemplatePath = System.IO.Path.GetDirectoryName(path);
-                    }
-                    else
-                    {
-                        string usualPath = "Assets/VFXEditor/Editor/Templates";
-
-                        bool found = false;
-                        do
-                        {
-                            foreach (var guid in guids)
-                            {
-                                string path = AssetDatabase.GUIDToAssetPath(guid);
-                                m_TemplatePath = System.IO.Path.GetDirectoryName(path);
-                                if (m_TemplatePath.EndsWith(usualPath))
-                                {
-                                    found = true;
-                                    break;
-                                }
-                            }
-                            int index = m_TemplatePath.IndexOf('/');
-                            if (index == -1)
-                            {
-                                break;
-                            }
-                            usualPath = usualPath.Substring(index + 1);
-                        }
-                        while (!found && m_TemplatePath.Length > 0);
-                    }
+                    m_TemplatePath = VisualEffectGraphPackageInfo.assetPackagePath + "/VisualEffectGraph/Editor/Templates/";
                 }
                 return m_TemplatePath;
             }
@@ -83,7 +52,7 @@ namespace UnityEditor
             string templateString = "";
             try
             {
-                templateString = System.IO.File.ReadAllText(VisualEffectGraphPackageInfo.packagePath + "/VisualEffectGraph/Editor/Templates/" + templateAssetName);
+                templateString = System.IO.File.ReadAllText(templatePath + templateAssetName);
             }
             catch (System.Exception e)
             {
