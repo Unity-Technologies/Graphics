@@ -1,0 +1,74 @@
+#include "CoreRP/ShaderLibrary/Common.hlsl"
+
+// ------------------------------------------------
+// Algorithm
+// ------------------------------------------------
+// Downsample a depth texture by taking min value of sampled pixels
+
+// ------------------------------------------------
+// Variants
+// ------------------------------------------------
+
+#pragma kernel KDepthDownSample8                  KERNEL_SIZE=8       KERNEL_NAME=KDepthDownSample8
+#pragma kernel KDepthDownSample1                  KERNEL_SIZE=1       KERNEL_NAME=KDepthDownSample1
+
+#pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+
+// ------------------------------------------------
+// Texture buffers
+// ------------------------------------------------
+
+Texture2D<float2> _Source;
+RW_TEXTURE2D(float2, _Result);
+
+SamplerState sampler_PointClamp;    //TODO: could we use min-sampler instead of using ALU?
+
+// ------------------------------------------------
+// Constant buffers
+// ------------------------------------------------
+CBUFFER_START(cb)
+float4 _SrcSize;
+int2 _RectOffset;          // Offset in source texture
+CBUFFER_END
+
+// ------------------------------------------------
+// Kernel
+// ------------------------------------------------
+
+#if UNITY_REVERSED_Z
+# define MIN_DEPTH(l, r) max(l, r)
+# define MAX_DEPTH(l, r) min(l, r)
+#else
+# define MIN_DEPTH(l, r) min(l, r)
+# define MAX_DEPTH(l, r) max(l, r)
+#endif
+
+[numthreads(KERNEL_SIZE, KERNEL_SIZE, 1)]
+void KERNEL_NAME(uint2 groupId : SV_GroupID, uint2 groupThreadId : SV_GroupThreadID, uint2 dispatchThreadId : SV_DispatchThreadID)
+{
+    // Upper-left pixel coordinate of quad that this thread will read
+    uint2 srcPixelUL = _RectOffset + (dispatchThreadId << 1);
+    // Offset by 0.5 so sampling get the proper pixels
+    float2 offset = float2(srcPixelUL) + 0.5;
+
+#if defined(PLATFORM_SUPPORT_GATHER)
+    float4 depths = GATHER_RED_TEXTURE2D(_Source, sampler_PointClamp, offset * _SrcSize.zw).wzxy;
+#else
+    float p00 = SAMPLE_TEXTURE2D_LOD(_Source, sampler_PointClamp, (offset) * _SrcSize.zw, 0.0).x;
+    float p10 = SAMPLE_TEXTURE2D_LOD(_Source, sampler_PointClamp, (offset + float2(1.0, 0.0)) * _SrcSize.zw, 0.0).x;
+    float p01 = SAMPLE_TEXTURE2D_LOD(_Source, sampler_PointClamp, (offset + float2(0.0, 1.0)) * _SrcSize.zw, 0.0).x;
+    float p11 = SAMPLE_TEXTURE2D_LOD(_Source, sampler_PointClamp, (offset + float2(1.0, 1.0)) * _SrcSize.zw, 0.0).x;
+    float4 depths = float4(p00, p10, p01, p11);
+#endif
+
+    // Select the nearest sample
+    float minDepth = MIN_DEPTH(MIN_DEPTH(depths.x, depths.y), MIN_DEPTH(depths.z, depths.w));
+    float maxDepth = MAX_DEPTH(MAX_DEPTH(depths.x, depths.y), MAX_DEPTH(depths.z, depths.w));
+
+    // Write to the final target
+    uint2 dstPixel = (_RectOffset >> 1) + dispatchThreadId;
+    _Result[dstPixel] = float2(minDepth, maxDepth);
+}
+
+#undef MIN_DEPTH
+#undef MAX_DEPTH

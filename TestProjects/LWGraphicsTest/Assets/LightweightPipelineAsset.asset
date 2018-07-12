@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf2edee5c58d82540a51f03df9d42094, type: 3}
+  m_Name: LightweightPipelineAsset
+  m_EditorClassIdentifier: 
+  kAssetVersion: 3
+  m_MaxPixelLights: 4
+  m_SupportsVertexLight: 0
+  m_RequireDepthTexture: 0
+  m_RequireSoftParticles: 0
+  m_RequireOpaqueTexture: 0
+  m_OpaqueDownsampling: 1
+  m_SupportsHDR: 0
+  m_MSAA: 4
+  m_RenderScale: 1
+  m_DirectionalShadowsSupported: 1
+  m_ShadowAtlasResolution: 2048
+  m_ShadowDistance: 50
+  m_ShadowCascades: 2
+  m_Cascade2Split: 0.25
+  m_Cascade4Split: {x: 0.067, y: 0.2, z: 0.467}
+  m_LocalShadowsSupported: 1
+  m_LocalShadowsAtlasResolution: 512
+  m_SoftShadowsSupported: 1
+  m_CustomShaderVariantStrippingSettings: 0
+  m_KeepAdditionalLightVariants: 1
+  m_KeepVertexLightVariants: 1
+  m_KeepDirectionalShadowVariants: 1
+  m_KeepLocalShadowVariants: 1
+  m_KeepSoftShadowVariants: 1
+  m_ResourcesAsset: {fileID: 11400000, guid: aac5a08c32552a14c89394b703f1978a, type: 2}
+  m_ShadowType: 0

@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "com.unity.postprocessing": "file:../../../com.unity.postprocessing",
+    "com.unity.render-pipelines.core": "file:../../../com.unity.render-pipelines.core",
+    "com.unity.render-pipelines.high-definition": "file:../../../com.unity.render-pipelines.high-definition",
+    "com.unity.render-pipelines.lightweight": "file:../../../com.unity.render-pipelines.lightweight",
+    "com.unity.shadergraph": "file:../../../com.unity.shadergraph",
+    "com.unity.testframework.graphics": "file:../../../com.unity.testframework.graphics",
+    "com.unity.textmeshpro": "1.2.4"
+  },
+  "testables": [
+    "com.unity.render-pipelines.shadergraph",
+    "com.unity.testframework.graphics"
+  ]
+}
