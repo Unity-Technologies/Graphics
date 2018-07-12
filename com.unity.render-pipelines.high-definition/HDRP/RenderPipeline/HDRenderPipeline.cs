@@ -369,7 +369,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 rendererSupportsLightProbeProxyVolumes = true,
                 rendererSupportsMotionVectors = true,
                 rendererSupportsReceiveShadows = false,
-                rendererSupportsReflectionProbes = true
+                rendererSupportsReflectionProbes = true,
+                rendererSupportsRendererPriority = true
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
@@ -1264,7 +1265,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var drawSettings = new DrawRendererSettings(hdCamera.camera, HDShaderPassNames.s_EmptyName)
             {
                 rendererConfiguration = rendererConfiguration,
-                sorting = { flags = SortFlags.CommonTransparent }
+                sorting = { flags = SortFlags.CommonTransparent | SortFlags.RendererPriority }
             };
 
             for (int i = 0; i < passNames.Length; ++i)
