@@ -359,12 +359,24 @@ float4x4 ApplyCameraTranslationToInverseMatrix(float4x4 inverseModelMatrix)
 #endif
 }
 
+// Define Model Matrix Macro
+// Note: In order to be able to define our macro to forbid usage of unity_ObjectToWorld/unity_WorldToObject
+// We need to declare inline function. Using uniform directly mean they are expand with the macro
+float4x4 GetUnityObjectToWorld() { return unity_ObjectToWorld; }
+float4x4 GetUnityWorldToObject() { return unity_WorldToObject; }
+
+#define UNITY_MATRIX_M     ApplyCameraTranslationToMatrix(GetUnityObjectToWorld())
+#define UNITY_MATRIX_I_M   ApplyCameraTranslationToInverseMatrix(GetUnityWorldToObject())
+
+#define unity_ObjectToWorld Use_Macro_UNITY_MATRIX_M_instead_of_unity_ObjectToWorld
+#define unity_WorldToObject Use_Macro_UNITY_MATRIX_I_M_instead_of_unity_WorldToObject
+
+// Define View/Projection matrix macro
 #ifdef USE_LEGACY_UNITY_MATRIX_VARIABLES
     #include "ShaderVariablesMatrixDefsLegacyUnity.hlsl"
 #else
     #include "ShaderVariablesMatrixDefsHDCamera.hlsl"
 #endif
-
 
 // This define allow to tell to unity instancing that we will use our camera relative functions (ApplyCameraTranslationToMatrix and  ApplyCameraTranslationToInverseMatrix) for the model view matrix
 #define MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
