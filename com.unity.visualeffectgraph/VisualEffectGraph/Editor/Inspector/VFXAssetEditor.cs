@@ -1,3 +1,8 @@
+using System;
+using System.IO;
+using System.Linq;
+using System.Collections.Generic;
+
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
@@ -6,9 +11,6 @@ using UnityEditor.Callbacks;
 using UnityEditor.Experimental.VFX;
 using UnityEditor.VFX;
 using UnityEditor.VFX.UI;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 
 using UnityObject = UnityEngine.Object;
 
@@ -199,9 +201,9 @@ public class VisualEffectAssetEditor : Editor
 
     void OnDisable()
     {
-        if (!Object.ReferenceEquals(m_VisualEffectGO, null))
+        if (!UnityObject.ReferenceEquals(m_VisualEffectGO, null))
         {
-            Object.DestroyImmediate(m_VisualEffectGO);
+            UnityObject.DestroyImmediate(m_VisualEffectGO);
         }
         if (m_PreviewUtility != null)
         {
@@ -221,6 +223,11 @@ public class VisualEffectAssetEditor : Editor
         return k_CullingOptions.First(o => o.Value == flags).Key;
     }
 
+    private string UpdateModeToString(VFXUpdateMode mode)
+    {
+        return ObjectNames.NicifyVariableName(mode.ToString());
+    }
+
     public override void OnInspectorGUI()
     {
         VisualEffectAsset asset = (VisualEffectAsset)target;
@@ -235,15 +242,25 @@ public class VisualEffectAssetEditor : Editor
         bool enable = GUI.enabled; //Everything in external asset is disabled by default
         GUI.enabled = true;
 
+        var updateMode = resource.updateMode;
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.PrefixLabel(EditorGUIUtility.TrTextContent("Update Mode"));
+        if (EditorGUILayout.DropdownButton(new GUIContent(UpdateModeToString(updateMode)), FocusType.Passive))
+        {
+            var menu = new GenericMenu();
+            foreach (VFXUpdateMode val in Enum.GetValues(typeof(VFXUpdateMode)))
+            {
+                menu.AddItem(new GUIContent(UpdateModeToString(val)), val == updateMode, (v) =>
+                {
+                    resource.updateMode = (VFXUpdateMode)v;
+                }, val);
+            }
+            menu.DropDown(GUILayoutUtility.topLevel.GetLast());
+        }
 
-        /*
-        m_DropDownButtonCullingMode.AddManipulator(new DownClickable(() => {
-
-        }));*/
+        EditorGUILayout.EndHorizontal();
 
         var cullingFlags = resource.cullingFlags;
-
-
         EditorGUILayout.BeginHorizontal();
 
         EditorGUILayout.PrefixLabel(EditorGUIUtility.TrTextContent("Culling Flags"));
