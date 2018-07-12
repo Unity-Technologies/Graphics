@@ -56,15 +56,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // To be able to have correct default values for our lights and to also control the conversion of intensity from the light editor (so it is compatible with GI)
         // we add intensity (for each type of light we want to manage).
         [System.Obsolete("directionalIntensity is deprecated, use intensity and lightUnit instead")]
-        public float directionalIntensity   = Mathf.PI; // In Lux
+        public float directionalIntensity;
         [System.Obsolete("punctualIntensity is deprecated, use intensity and lightUnit instead")]
-        public float punctualIntensity      = 600.0f;   // Light default to 600 lumen, i.e ~48 candela
+        public float punctualIntensity;
         [System.Obsolete("areaIntensity is deprecated, use intensity and lightUnit instead")]
-        public float areaIntensity          = 200.0f;   // Light default to 200 lumen to better match point light
+        public float areaIntensity;
 
         public const float k_DefaultDirectionalLightIntensity = Mathf.PI; // In lux
-        public const float k_DefaultPunctualLightIntensity = 600.0f;      // In lumens
-        public const float k_DefaultAreaLightIntensity = 200.0f;          // In lumens
+        public const float k_DefaultPunctualLightIntensity = 600.0f;      // Light default to 600 lumen, i.e ~48 candela
+        public const float k_DefaultAreaLightIntensity = 200.0f;          // Light default to 200 lumen to better match point light
 
         public float intensity
         {
@@ -73,10 +73,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Only for Spotlight, should be hide for other light
-        public bool enableSpotReflector = false;
+        public bool enableSpotReflector;
 
         [Range(0.0f, 100.0f)]
-        public float m_InnerSpotPercent = 0.0f; // To display this field in the UI this need to be public
+        public float m_InnerSpotPercent; // To display this field in the UI this need to be public
 
         public float GetInnerSpotPercent01()
         {
@@ -84,55 +84,55 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         [Range(0.0f, 1.0f)]
-        public float lightDimmer = 1.0f;
+        public float lightDimmer;
 
         [Range(0.0f, 1.0f)]
-        public float volumetricDimmer = 1.0f;
+        public float volumetricDimmer;
 
         // Used internally to convert any light unit input into light intensity
         public LightUnit lightUnit;
 
         // Not used for directional lights.
-        public float fadeDistance = 10000.0f;
+        public float fadeDistance;
 
-        public bool affectDiffuse = true;
-        public bool affectSpecular = true;
+        public bool affectDiffuse;
+        public bool affectSpecular;
 
         // This property work only with shadow mask and allow to say we don't render any lightMapped object in the shadow map
-        public bool nonLightmappedOnly = false;
+        public bool nonLightmappedOnly;
 
-        public LightTypeExtent lightTypeExtent = LightTypeExtent.Punctual;
+        public LightTypeExtent lightTypeExtent;
 
         // Only for Spotlight, should be hide for other light
-        public SpotLightShape spotLightShape = SpotLightShape.Cone;
+        public SpotLightShape spotLightShape;
 
         // Only for Rectangle/Line/box projector lights
-        public float shapeWidth = 0.5f;
+        public float shapeWidth;
 
         // Only for Rectangle/box projector lights
-        public float shapeHeight = 0.5f;
+        public float shapeHeight;
 
         // Only for pyramid projector
-        public float aspectRatio = 1.0f;
+        public float aspectRatio;
 
         // Only for Sphere/Disc
-        public float shapeRadius = 0.0f;
+        public float shapeRadius;
 
         // Only for Spot/Point - use to cheaply fake specular spherical area light
         [Range(0.0f, 1.0f)]
-        public float maxSmoothness = 1.0f;
+        public float maxSmoothness;
 
         // If true, we apply the smooth attenuation factor on the range attenuation to get 0 value, else the attenuation is just inverse square and never reach 0
-        public bool applyRangeAttenuation = true;
+        public bool applyRangeAttenuation;
 
         // This is specific for the LightEditor GUI and not use at runtime
-        public bool useOldInspector = false;
-        public bool featuresFoldout = true;
-        public bool showAdditionalSettings = false;
+        public bool useOldInspector;
+        public bool featuresFoldout;
+        public bool showAdditionalSettings;
         public float displayLightIntensity;
 
         // When true, a mesh will be display to represent the area light (Can only be change in editor, component is added in Editor)
-        public bool displayAreaLightEmissiveMesh = false;
+        public bool displayAreaLightEmissiveMesh;
 
         // Duplication of HDLightEditor.k_MinAreaWidth, maybe do something about that
         const float k_MinAreaWidth = 0.01f; // Provide a small size of 1cm for line light
@@ -145,7 +145,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // For light that used the old intensity system we update them
         [System.NonSerialized]
-        bool needsIntensityUpdate_1_0 = false;
+        bool needsIntensityUpdate_1_0;
 
         // Runtime datas used to compute light intensity
         Light       _light;
@@ -460,6 +460,46 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
 #endif
+        private void Awake()
+        {
+            Reset(); //init
+        }
+
+        public void Reset()
+        {
+            directionalIntensity = k_DefaultDirectionalLightIntensity;
+            punctualIntensity = k_DefaultPunctualLightIntensity;
+            areaIntensity = k_DefaultAreaLightIntensity;
+            enableSpotReflector = false;
+            m_InnerSpotPercent = 0.0f;
+            lightDimmer = 1.0f;
+            volumetricDimmer = 1.0f;
+            lightUnit = LightUnit.Lumen;
+            fadeDistance = 10000.0f;
+            affectDiffuse = true;
+            affectSpecular = true;
+            nonLightmappedOnly = false;
+            lightTypeExtent = LightTypeExtent.Punctual;
+            spotLightShape = SpotLightShape.Cone;
+            shapeWidth = 0.5f;
+            shapeHeight = 0.5f;
+            aspectRatio = 1.0f;
+            shapeRadius = 0.0f;
+            maxSmoothness = 1.0f;
+            applyRangeAttenuation = true;
+            useOldInspector = false;
+            featuresFoldout = true;
+            showAdditionalSettings = false;
+            displayLightIntensity = 0f;
+            displayAreaLightEmissiveMesh = false;
+            needsIntensityUpdate_1_0 = false;
+
+#if UNITY_EDITOR
+            timelineWorkaround = new TimelineWorkaround();
+#endif
+
+            InitDefaultHDAdditionalLightData(this);
+        }
 
         // As we have our own default value, we need to initialize the light intensity correctly
         public static void InitDefaultHDAdditionalLightData(HDAdditionalLightData lightData)

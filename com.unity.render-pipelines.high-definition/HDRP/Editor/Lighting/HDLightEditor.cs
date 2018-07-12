@@ -11,7 +11,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     [CustomEditorForRenderPipeline(typeof(Light), typeof(HDRenderPipelineAsset))]
     sealed partial class HDLightEditor : LightEditor
     {
-        [MenuItem("CONTEXT/Light/Remove HD Light", false, 0)]
+        [MenuItem("CONTEXT/Light/Remove Component", false, 0)]
         static void RemoveLight(MenuCommand menuCommand)
         {
             GameObject go = ((Light)menuCommand.context).gameObject;
@@ -22,6 +22,27 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Undo.DestroyObjectImmediate(go.GetComponent<Light>());
             Undo.DestroyObjectImmediate(go.GetComponent<HDAdditionalLightData>());
             Undo.DestroyObjectImmediate(go.GetComponent<AdditionalShadowData>());
+        }
+
+        [MenuItem("CONTEXT/Light/Reset", false, 0)]
+        static void ResetLight(MenuCommand menuCommand)
+        {
+            GameObject go = ((Light)menuCommand.context).gameObject;
+
+            Assert.IsNotNull(go);
+
+            Light light = go.GetComponent<Light>();
+            HDAdditionalLightData lightAdditionalData = go.GetComponent<HDAdditionalLightData>();
+            AdditionalShadowData shadowAdditionalData = go.GetComponent<AdditionalShadowData>();
+
+            Assert.IsNotNull(light);
+            Assert.IsNotNull(lightAdditionalData);
+            Assert.IsNotNull(shadowAdditionalData);
+
+            Undo.RecordObjects(new UnityEngine.Object[] { light, lightAdditionalData, shadowAdditionalData }, "Reset HD Light");
+            light.Reset();
+            lightAdditionalData.Reset();
+            shadowAdditionalData.Reset();
         }
 
         sealed class SerializedLightData
