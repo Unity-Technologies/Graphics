@@ -18,13 +18,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly string s_TransparentDepthPostpassStr = "TransparentDepthPostpass";
         public static readonly string s_MetaStr = "Meta";
         public static readonly string s_ShadowCasterStr = "ShadowCaster";
-        public static readonly string s_MeshDecalsStrNoMask = "DBufferMesh";
-        public static readonly string s_MeshDecalsStr = "DBufferMesh_MAOS";
-        public static readonly string s_MeshDecalsMSStr = "DBufferMesh_MS";
         public static readonly string s_MeshDecalsMStr = "DBufferMesh_M";
         public static readonly string s_MeshDecalsSStr = "DBufferMesh_S";
+        public static readonly string s_MeshDecalsMSStr = "DBufferMesh_MS";
         public static readonly string s_MeshDecalsAOStr = "DBufferMesh_AO";
-
+        public static readonly string s_MeshDecalsMAOStr = "DBufferMesh_MAO";
+        public static readonly string s_MeshDecalsAOSStr = "DBufferMesh_AOS";
+        public static readonly string s_MeshDecalsMAOSStr = "DBufferMesh_MAOS";
+       
         // ShaderPass name
         public static readonly ShaderPassName s_EmptyName = new ShaderPassName(s_EmptyStr);
         public static readonly ShaderPassName s_ForwardName = new ShaderPassName(s_ForwardStr);
@@ -39,12 +40,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly ShaderPassName s_TransparentDepthPrepassName = new ShaderPassName(s_TransparentDepthPrepassStr);
         public static readonly ShaderPassName s_TransparentBackfaceName = new ShaderPassName(s_TransparentBackfaceStr);
         public static readonly ShaderPassName s_TransparentDepthPostpassName = new ShaderPassName(s_TransparentDepthPostpassStr);
-        public static readonly ShaderPassName s_MeshDecalsNoMaskName = new ShaderPassName(s_MeshDecalsStrNoMask);
-        public static readonly ShaderPassName s_MeshDecalsName = new ShaderPassName(s_MeshDecalsStr);
-        public static readonly ShaderPassName s_MeshDecalsMSName = new ShaderPassName(s_MeshDecalsMSStr);
         public static readonly ShaderPassName s_MeshDecalsMName = new ShaderPassName(s_MeshDecalsMStr);
         public static readonly ShaderPassName s_MeshDecalsSName = new ShaderPassName(s_MeshDecalsSStr);
+        public static readonly ShaderPassName s_MeshDecalsMSName = new ShaderPassName(s_MeshDecalsMSStr);
         public static readonly ShaderPassName s_MeshDecalsAOName = new ShaderPassName(s_MeshDecalsAOStr);
+        public static readonly ShaderPassName s_MeshDecalsMAOName = new ShaderPassName(s_MeshDecalsMAOStr);
+        public static readonly ShaderPassName s_MeshDecalsAOSName = new ShaderPassName(s_MeshDecalsAOSStr);
+        public static readonly ShaderPassName s_MeshDecalsMAOSName = new ShaderPassName(s_MeshDecalsMAOSStr);
 
         // Legacy name
         public static readonly ShaderPassName s_AlwaysName = new ShaderPassName("Always");
