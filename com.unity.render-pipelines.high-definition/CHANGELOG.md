@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed an issue with distortion that was using previous frame instead of current frame
 - Fixed an issue where disabled light where not upgrade correctly to the new physical light unit system introduce in 2.0.5-preview
+- Fixed an issue where reseting HDLight do not reset all of its parameters
 
 ## [2.0.5-preview]
 
