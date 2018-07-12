@@ -470,7 +470,7 @@ namespace UnityEditor.VFX
                     string name = icon.ToString();
 
                     //TODO replace with editor default resource call when going to trunk
-                    Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectGraphPackageInfo.assetPackagePath+"/Editor/SceneWindow/Textures/" + name + ".png");
+                    Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectGraphPackageInfo.assetPackagePath+"/VisualEffectGraph/Editor/SceneWindow/Textures/" + name + ".png");
                     if (texture == null)
                     {
                         Debug.LogError("Can't find icon for " + name + " in Styles");
