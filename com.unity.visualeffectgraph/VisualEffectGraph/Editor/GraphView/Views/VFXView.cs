@@ -95,7 +95,7 @@ namespace UnityEditor.VFX.UI
 
         protected override IEnumerable<Descriptor> GetDescriptors()
         {
-            var systemFiles = System.IO.Directory.GetFiles(VisualEffectAssetEditorUtility.templatePath, "*.vfx").Select(t => t.Replace("\\", "/"));
+            var systemFiles = System.IO.Directory.GetFiles(VisualEffectAssetEditorUtility.templatePath, "*.vfx").Select(t => t.Replace("\\", "/").Replace(VisualEffectGraphPackageInfo.fileSystemPackagePath, VisualEffectGraphPackageInfo.assetPackagePath));
             var systemDesc = systemFiles.Select(t => new Descriptor() {modelDescriptor = t, category = "System", name = System.IO.Path.GetFileNameWithoutExtension(t)});
 
 

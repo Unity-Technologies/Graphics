@@ -145,14 +145,14 @@ namespace UnityEditor.VFX.UI
     }
     public class ResizableElement : VisualElement
     {
-        public ResizableElement() : this(UXMLHelper.GetUXMLPath("uxml/Resizable.uxml"))
+        public ResizableElement() : this("uxml/Resizable")
         {
             pickingMode = PickingMode.Ignore;
         }
 
         public ResizableElement(string uiFile)
         {
-            var tpl = EditorGUIUtility.Load(uiFile) as VisualTreeAsset;
+            var tpl = Resources.Load<VisualTreeAsset>(uiFile);
             AddStyleSheetPath("Resizable");
 
             tpl.CloneTree(this, new Dictionary<string, VisualElement>());
@@ -360,7 +360,7 @@ namespace UnityEditor.VFX.UI
 
         public static readonly Vector2 defaultSize = new Vector2(200, 160);
 
-        public StickyNote(Vector2 position) : this(UXMLHelper.GetUXMLPath("uxml/StickyNote.uxml"), position)
+        public StickyNote(Vector2 position) : this("uxml/StickyNote", position)
         {
             AddStyleSheetPath("Selectable");
             AddStyleSheetPath("StickyNote");
@@ -369,7 +369,7 @@ namespace UnityEditor.VFX.UI
 
         public StickyNote(string uiFile, Vector2 position)
         {
-            var tpl = EditorGUIUtility.Load(uiFile) as VisualTreeAsset;
+            var tpl = Resources.Load<VisualTreeAsset>(uiFile);
 
             tpl.CloneTree(this, new Dictionary<string, VisualElement>());
 

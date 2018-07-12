@@ -4,7 +4,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
-using UnityEngine.Graphing;
 using System.Reflection;
 
 namespace UnityEditor.VFX

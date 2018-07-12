@@ -52,13 +52,18 @@ namespace UnityEditor.VFX.UI
         private List<PropertyRM> m_Settings = new List<PropertyRM>();
 
 
-        public VFXNodeUI(string template) : base(template)
+        static string UXMLResourceToPackage(string resourcePath)
+        {
+            return VisualEffectGraphPackageInfo.assetPackagePath + "/VisualEffectGraph/Editor/Resources/" + resourcePath + ".uxml";
+        }
+
+        public VFXNodeUI(string template) : base(UXMLResourceToPackage(template))
         {
             AddStyleSheetPath("VFXNodeUI");
             Initialize();
         }
 
-        public VFXNodeUI() : base(UXMLHelper.GetUXMLPath("uxml/VFXNode.uxml"))
+        public VFXNodeUI() : base(UXMLResourceToPackage("uxml/VFXNode"))
         {
             AddStyleSheetPath("StyleSheets/GraphView/Node.uss");
             Initialize();

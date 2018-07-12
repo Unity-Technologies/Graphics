@@ -54,7 +54,7 @@ o.VFX_VARYING_FRAMEBLEND = uvData.blend;
 #endif
 ${VFXEnd}
 
-${VFXBegin:VFXFragmentCommonFunctions}#include "Assets/VFXEditor/Shaders/VFXCommonOutput.cginc"${VFXEnd}
+${VFXBegin:VFXFragmentCommonFunctions}#include "VisualEffectGraph/Shaders/VFXCommonOutput.cginc"${VFXEnd}
 
 ${VFXBegin:VFXLoadAttributesOrCull}
 #if VFX_HAS_INDIRECT_DRAW

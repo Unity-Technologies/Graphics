@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+
+    "com.unity.visualeffectgraph": "file:../../../com.unity.visualeffectgraph"
+  }
+}

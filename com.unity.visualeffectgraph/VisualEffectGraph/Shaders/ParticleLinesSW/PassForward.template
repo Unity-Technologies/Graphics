@@ -39,7 +39,7 @@ Pass
 #define VFX_VARYING_PIXELOFFSET pixelOffset
 #endif
 	
-	${VFXInclude("Assets/VFXEditor/Shaders/ParticleLinesSW/Pass.template")}	
+	${VFXInclude("Shaders/ParticleLinesSW/Pass.template")}	
 		
 	#pragma fragment frag
 	ps_output frag(ps_input i)

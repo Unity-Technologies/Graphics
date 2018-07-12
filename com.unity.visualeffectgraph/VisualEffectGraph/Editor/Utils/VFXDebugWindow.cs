@@ -30,8 +30,8 @@ namespace UnityEditor.VFX
             EditorGUILayout.LabelField("Run VFX Tests", EditorStyles.boldLabel);
             using (new GUILayout.HorizontalScope())
             {
-                if (GUILayout.Button("GUI Tests"))
-                    Test.VFXGUITests.RunGUITests();
+                /*if (GUILayout.Button("GUI Tests"))
+                    Test.VFXGUITests.RunGUITests();*/
             }
             EditorGUILayout.Space();
 
