@@ -146,6 +146,7 @@ MonoBehaviour:
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
+  contactShadows: 0
   viewBiasMin: 0.5
   viewBiasMax: 10
   viewBiasScale: 1
@@ -186,7 +187,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 1
+  version: 1.1
   directionalIntensity: 0.5
   punctualIntensity: 600
   areaIntensity: 200
@@ -194,6 +195,7 @@ MonoBehaviour:
   m_InnerSpotPercent: 0
   lightDimmer: 1
   volumetricDimmer: 1
+  lightUnit: 2
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
@@ -209,6 +211,8 @@ MonoBehaviour:
   useOldInspector: 0
   featuresFoldout: 1
   showAdditionalSettings: 0
+  displayLightIntensity: 0.5
+  displayAreaLightEmissiveMesh: 0
 --- !u!108 &77654856
 Light:
   m_ObjectHideFlags: 0
@@ -385,6 +389,11 @@ Prefab:
         type: 2}
       propertyPath: near clip plane
       value: 0.01
+      objectReference: {fileID: 0}
+    - target: {fileID: 114995348509370400, guid: c07ace9ab142ca9469fa377877c2f1e7,
+        type: 2}
+      propertyPath: ImageComparisonSettings.AverageCorrectnessThreshold
+      value: 0.00025
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 2}
@@ -580,6 +589,7 @@ MonoBehaviour:
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
+  contactShadows: 0
   viewBiasMin: 0.5
   viewBiasMax: 10
   viewBiasScale: 1
@@ -620,7 +630,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 1
+  version: 1.1
   directionalIntensity: 0.5
   punctualIntensity: 600
   areaIntensity: 200
@@ -628,6 +638,7 @@ MonoBehaviour:
   m_InnerSpotPercent: 0
   lightDimmer: 1
   volumetricDimmer: 1
+  lightUnit: 2
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
@@ -643,6 +654,8 @@ MonoBehaviour:
   useOldInspector: 0
   featuresFoldout: 1
   showAdditionalSettings: 0
+  displayLightIntensity: 0.5
+  displayAreaLightEmissiveMesh: 0
 --- !u!108 &1518427220
 Light:
   m_ObjectHideFlags: 0
@@ -796,6 +809,7 @@ MonoBehaviour:
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
+  contactShadows: 0
   viewBiasMin: 0.5
   viewBiasMax: 10
   viewBiasScale: 1
@@ -836,7 +850,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 1
+  version: 1.1
   directionalIntensity: 4
   punctualIntensity: 600
   areaIntensity: 200
@@ -844,6 +858,7 @@ MonoBehaviour:
   m_InnerSpotPercent: 0
   lightDimmer: 1
   volumetricDimmer: 1
+  lightUnit: 2
   fadeDistance: 10000
   affectDiffuse: 1
   affectSpecular: 1
@@ -859,6 +874,8 @@ MonoBehaviour:
   useOldInspector: 0
   featuresFoldout: 1
   showAdditionalSettings: 0
+  displayLightIntensity: 4
+  displayAreaLightEmissiveMesh: 0
 --- !u!108 &1925246182
 Light:
   m_ObjectHideFlags: 0
