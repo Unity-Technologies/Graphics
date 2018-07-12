@@ -1,10 +1,17 @@
 
-artifacts/**
-build/**
-DataSource/*
-Library/*
-obj/*
-Temp/*
+[Aa]rtifacts/
+[Bb]uild/
+[Ll]ibrary/
+[Oo]bj/
+[Tt]emp/
+[Ss]treaming[Aa]ssets/
+[Aa]ctual[Ii]mages/
+[Ll]og/
+[Aa]ctual[Ii]mages.meta
+[Ss]treaming[Aa]ssets.meta
+.vs
+.vscode
+.idea
 .DS_Store
 *.aspx
 *.browser
@@ -22,3 +29,8 @@ Temp/*
 *.sublime-workspace
 *.suo
 *.userprefs
+.npmrc
+ShaderGraph/DebugOutput.meta
+ShaderGraph/DebugOutput/**
+ShaderGraph/Testing/IntegrationTests/.Failed
+TestProjects/ShaderGraph/ProjectSettings/ProjectVersion.txt
