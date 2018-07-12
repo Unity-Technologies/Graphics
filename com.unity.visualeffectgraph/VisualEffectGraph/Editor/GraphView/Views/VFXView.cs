@@ -1100,7 +1100,7 @@ namespace UnityEditor.VFX.UI
 
         public EventPropagation ReinitComponents()
         {
-            foreach (var component in VFXManager.GetComponents())
+            foreach (var component in UnityEngine.Experimental.VFX.VFXManager.GetComponents())
                 component.Reinit();
             return EventPropagation.Stop;
         }

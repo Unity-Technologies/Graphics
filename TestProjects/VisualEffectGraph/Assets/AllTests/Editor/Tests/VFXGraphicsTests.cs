@@ -195,11 +195,11 @@ namespace UnityEditor.VFX.Test
         public void Init()
         {
             m_previousCaptureFrameRate = Time.captureFramerate;
-            m_previousFixedTimeStep = VFXManager.fixedTimeStep;
-            m_previousMaxDeltaTime = VFXManager.maxDeltaTime;
+            m_previousFixedTimeStep = UnityEngine.Experimental.VFX.VFXManager.fixedTimeStep;
+            m_previousMaxDeltaTime = UnityEngine.Experimental.VFX.VFXManager.maxDeltaTime;
             Time.captureFramerate = 20;
-            VFXManager.fixedTimeStep = 1.0f / 20.0f;
-            VFXManager.maxDeltaTime = 1.0f / 20.0f;
+            UnityEngine.Experimental.VFX.VFXManager.fixedTimeStep = 1.0f / 20.0f;
+            UnityEngine.Experimental.VFX.VFXManager.maxDeltaTime = 1.0f / 20.0f;
         }
 
         [UnityTest /* TestCaseSource(typeof(CollectScene), "scenes")  <= doesn't work for UnityTest for now */]
@@ -248,7 +248,7 @@ namespace UnityEditor.VFX.Test
                     Time.captureFramerate = 20;
 =======
                     /*Tristan*/ //EditorWindow.GetWindow(typeof(GameView)).Focus();
-                    UpdateScene(scene, (VFXManager.frameIndex - startFrameIndex) * frequency);
+                    UpdateScene(scene, (UnityEngine.Experimental.VFX.VFXManager.frameIndex - startFrameIndex) * frequency);
 >>>>>>> remotes/origin/vfx/main
                     scene.camera.Render();
                     yield return null;
@@ -279,8 +279,8 @@ namespace UnityEditor.VFX.Test
         public void TearDown()
         {
             Time.captureFramerate = m_previousCaptureFrameRate;
-            VFXManager.fixedTimeStep = m_previousFixedTimeStep;
-            VFXManager.maxDeltaTime = m_previousMaxDeltaTime;
+            UnityEngine.Experimental.VFX.VFXManager.fixedTimeStep = m_previousFixedTimeStep;
+            UnityEngine.Experimental.VFX.VFXManager.maxDeltaTime = m_previousMaxDeltaTime;
         }
     }
 }

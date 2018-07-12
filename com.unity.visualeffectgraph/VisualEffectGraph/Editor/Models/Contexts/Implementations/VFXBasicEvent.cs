@@ -9,7 +9,7 @@ namespace UnityEditor.VFX
     {
         public void OnClicked(string value)
         {
-            var allComponent = VFXManager.GetComponents();
+            var allComponent = UnityEngine.Experimental.VFX.VFXManager.GetComponents();
             foreach (var component in allComponent)
             {
                 component.SendEvent(value);

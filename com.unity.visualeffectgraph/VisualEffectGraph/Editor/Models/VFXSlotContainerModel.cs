@@ -37,7 +37,7 @@ namespace UnityEditor.VFX
 
         bool collapsed { get; set; }
 
-        CoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot);
+        VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot);
     }
 
     abstract class VFXSlotContainerModel<ParentType, ChildrenType> : VFXModel<ParentType, ChildrenType>, IVFXSlotContainer
@@ -408,9 +408,9 @@ namespace UnityEditor.VFX
 
         public virtual void UpdateOutputExpressions() {}
 
-        public virtual CoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
+        public virtual VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
         {
-            return (CoordinateSpace)int.MaxValue;
+            return (VFXCoordinateSpace)int.MaxValue;
         }
 
         //[SerializeField]

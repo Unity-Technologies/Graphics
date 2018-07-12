@@ -577,7 +577,8 @@ namespace UnityEditor.VFX.UI
         {
             using (StickyNodeChangeEvent evt = StickyNodeChangeEvent.GetPooled(this, change))
             {
-                panel.dispatcher.DispatchEvent(evt, panel);
+                // TODO Temp, fix that
+                //panel.dispatcher.DispatchEvent(evt, panel);
             }
         }
 

@@ -98,7 +98,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public CoordinateSpace space
+        public VFXCoordinateSpace space
         {
             get
             {
