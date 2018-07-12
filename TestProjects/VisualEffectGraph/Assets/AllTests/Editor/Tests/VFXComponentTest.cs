@@ -697,6 +697,31 @@ namespace UnityEditor.VFX.Test
                 }
                 yield return null;
             }
+
+            //Test ResetOverride function
+            foreach (var type in types)
+            {
+                var currentName = commonBaseName + type.ToString();
+                vfxComponent.ResetOverride(currentName);
+
+                //If we use bindings, internal value is restored but it doesn't change serialized property (strange but intended behavior)
+                var baseValue = bindingModes ? GetValue_A(type) : GetValue_B(type);
+
+                var currentValue = fnGet(type, vfxComponent, currentName);
+                if (type == VFXValueType.ColorGradient)
+                {
+                    Assert.IsTrue(fnCompareGradient((Gradient)baseValue, (Gradient)currentValue));
+                }
+                else if (type == VFXValueType.Curve)
+                {
+                    Assert.IsTrue(fnCompareCurve((AnimationCurve)baseValue, (AnimationCurve)currentValue));
+                }
+                else
+                {
+                    Assert.AreEqual(baseValue, currentValue);
+                }
+                yield return null;
+            }
         }
     }
 }
