@@ -68,23 +68,38 @@ void ApplyBlendMask(inout float4 dbuffer2, inout float2 dbuffer3, inout int matM
 	}
 	else if (blendParams.z == 1)
 	{
-		dbuffer2Mask = float4(1, 0, 1, 1);	// M, _, S, S alpha
+		dbuffer2Mask = float4(1, 0, 0, 0);	// M, _, _, _
 		dbuffer3Mask = float2(1, 0); // M alpha, _
 	}
 	else if (blendParams.z == 2)
 	{
-		dbuffer2Mask = float4(1, 0, 0, 0);	// M, _, _, _
-		dbuffer3Mask = float2(1, 0); // M alpha, _
+		dbuffer2Mask = float4(0, 1, 0, 0);	// _, AO, _, _
+		dbuffer3Mask = float2(0, 1); // _, AO alpha
 	}
 	else if (blendParams.z == 3)
+	{
+		dbuffer2Mask = float4(1, 1, 0, 0);	// M, AO, _, _
+		dbuffer3Mask = float2(1, 1); // M Alpha, AO alpha
+	}
+	else if (blendParams.z == 4)
 	{
 		dbuffer2Mask = float4(0, 0, 1, 1);	// _, _, S, S alpha
 		dbuffer3Mask = float2(0, 0); // _, _
 	}
-	else if (blendParams.z == 4)
+	else if (blendParams.z == 5)
 	{
-		dbuffer2Mask = float4(0, 1, 0, 0);	// _, AO, _, _
+		dbuffer2Mask = float4(1, 0, 1, 1);	// M, _, S, S alpha
+		dbuffer3Mask = float2(1, 0); // M alpha, _
+	}
+	else if (blendParams.z == 6)
+	{
+		dbuffer2Mask = float4(0, 1, 1, 1);	// _, AO, S, S alpha
 		dbuffer3Mask = float2(0, 1); // _, AO alpha
+	}
+	else if (blendParams.z == 7)
+	{
+		dbuffer2Mask = float4(1, 1, 1, 1);	// M, AO, S, S alpha
+		dbuffer3Mask = float2(1, 1); // M alpha, AO alpha
 	}
 
 	dbuffer2.xyz = (dbuffer2Mask.xyz == 1) ? src.xyz * src.w + dbuffer2.xyz * (1.0f - src.w) : dbuffer2.xyz;
