@@ -508,27 +508,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // Note: We can't access to the light component in OnAfterSerialize as it is not init() yet,
                 // so instead we use a boolean to do the upgrade in OnEnable().
-                // However if the light is not enabled, the light is not upgraded.
-                // To solve this issue we add a callback below that will force OnEnable() to upgrade the light.
-#if UNITY_EDITOR
-                //EditorApplication.update += EditorOnEnableWorkaround;
-#endif
+                // However OnEnable is not call when the light is disabled, so the HDLightEditor also call
+                // the UpgradeLight() code in this case
                 needsIntensityUpdate_1_0 = true;
             }
-
-            version = currentVersion;
         }
-
-#if UNITY_EDITOR
-        // See comment above, this is a workaround to upgrade Disabled light correctly.
-        void EditorOnEnableWorkaround()
-        {
-            OnEnable();
-            EditorApplication.update -= EditorOnEnableWorkaround;
-        }
-#endif
 
         private void OnEnable()
+        {
+            UpgradeLight();
+        }
+
+        public void UpgradeLight()
         {
             if (needsIntensityUpdate_1_0)
             {
@@ -558,6 +549,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 #pragma warning restore 0618
             }
+
+            version = currentVersion;
         }
     }
 }
