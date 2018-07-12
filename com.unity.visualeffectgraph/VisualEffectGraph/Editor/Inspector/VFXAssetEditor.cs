@@ -264,6 +264,8 @@ public class VisualEffectAssetEditor : Editor
         EditorGUILayout.BeginHorizontal();
 
         EditorGUILayout.PrefixLabel(EditorGUIUtility.TrTextContent("Culling Flags"));
+
+        var eventType = Event.current.type;
         if (EditorGUILayout.DropdownButton(new GUIContent(CullingMaskToString(cullingFlags)), FocusType.Passive))
         {
             var menu = new GenericMenu();
@@ -274,7 +276,11 @@ public class VisualEffectAssetEditor : Editor
                         resource.cullingFlags = (VFXCullingFlags)v;
                     }, val.Value);
             }
-            menu.DropDown(GUILayoutUtility.topLevel.GetLast());
+            var savedEventType = Event.current.type;
+            Event.current.type = eventType;
+            Rect buttonRect = GUILayoutUtility.GetLastRect();
+            Event.current.type = savedEventType;
+            menu.DropDown(buttonRect);
         }
 
         EditorGUILayout.EndHorizontal();
