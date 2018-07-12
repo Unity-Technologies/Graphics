@@ -511,7 +511,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // However if the light is not enabled, the light is not upgraded.
                 // To solve this issue we add a callback below that will force OnEnable() to upgrade the light.
 #if UNITY_EDITOR
-                EditorApplication.update += EditorOnEnableWorkaround;
+                //EditorApplication.update += EditorOnEnableWorkaround;
 #endif
                 needsIntensityUpdate_1_0 = true;
             }
