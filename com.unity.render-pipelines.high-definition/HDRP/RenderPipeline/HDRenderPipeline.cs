@@ -1453,11 +1453,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     drawSettings.SetShaderPassName(3, HDShaderPassNames.s_MeshDecalsSName);
                     drawSettings.SetShaderPassName(4, HDShaderPassNames.s_MeshDecalsMSName);
                     drawSettings.SetShaderPassName(5, HDShaderPassNames.s_MeshDecalsAOSName);
-                    drawSettings.SetShaderPassName(5, HDShaderPassNames.s_MeshDecalsMAOSName);
+                    drawSettings.SetShaderPassName(6, HDShaderPassNames.s_MeshDecalsMAOSName);
                 }
                 else
                 {
-                    drawSettings.SetShaderPassName(0, HDShaderPassNames.s_MeshDecalsSName);
+                    drawSettings.SetShaderPassName(0, HDShaderPassNames.s_MeshDecals3RTName);
                 }
                                                
                 FilterRenderersSettings filterRenderersSettings = new FilterRenderersSettings(true)

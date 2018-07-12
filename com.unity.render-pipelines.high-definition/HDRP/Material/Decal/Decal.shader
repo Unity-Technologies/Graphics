@@ -10,7 +10,7 @@ Shader "HDRenderPipeline/Decal"
 		[ToggleUI] _AlbedoMode("_AlbedoMode", Range(0.0, 1.0)) = 1.0
 		[HideInInspector] _NormalBlendSrc("_NormalBlendSrc", Float) = 0.0
 		[HideInInspector] _MaskBlendSrc("_MaskBlendSrc", Float) = 1.0
-		[HideInInspector] _MaskBlendMode("_MaskBlendMode", Float) = 0.0
+		[HideInInspector] _MaskBlendMode("_MaskBlendMode", Float) = 4.0 // smoothness 3RT default
     }
 
     HLSLINCLUDE
@@ -285,18 +285,18 @@ Shader "HDRenderPipeline/Decal"
 		// 7 - Metal
 		// 8 - AO
 		// 9 - Metal + AO
-		// 10 - Smoothness and also 3RT mode
+		// 10 - Smoothness 
 		// 11 - Metal + Smoothness
 		// 12 - AO + Smoothness
 		// 13 - Metal + AO + Smoothness
+		// 14 - 3RT
+
 		Pass
 		{
 			Name "DBufferMesh_M"  // Name is not used
 			Tags{"LightMode" = "DBufferMesh_M"} // Metalness 
-			// back faces with zfail, for cases when camera is inside the decal volume
-			Cull Front
 			ZWrite Off
-			ZTest Greater
+			ZTest LEqual
 			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
 			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
 			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
@@ -322,10 +322,8 @@ Shader "HDRenderPipeline/Decal"
 		{
 			Name "DBufferMesh_AO"  // Name is not used
 			Tags{"LightMode" = "DBufferMesh_AO"} // AO only
-												 // back faces with zfail, for cases when camera is inside the decal volume
-			Cull Front
 			ZWrite Off
-			ZTest Greater
+			ZTest LEqual
 			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
 			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
 			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
@@ -351,10 +349,8 @@ Shader "HDRenderPipeline/Decal"
 		{
 			Name "DBufferMesh_MAO"  // Name is not used
 			Tags{"LightMode" = "DBufferMesh_MAO"} // AO + Metalness
-												  // back faces with zfail, for cases when camera is inside the decal volume
-			Cull Front
 			ZWrite Off
-			ZTest Greater
+			ZTest LEqual
 			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
 			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
 			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
@@ -380,10 +376,8 @@ Shader "HDRenderPipeline/Decal"
 		{
 			Name "DBufferMesh_S"  // Name is not used
 			Tags{"LightMode" = "DBufferMesh_S"} // Smoothness 
-			// back faces with zfail, for cases when camera is inside the decal volume
-			Cull Front
 			ZWrite Off
-			ZTest Greater
+			ZTest LEqual
 			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
 			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
 			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
@@ -408,10 +402,8 @@ Shader "HDRenderPipeline/Decal"
 		{
 			Name "DBufferMesh_MS"  // Name is not used
 			Tags{"LightMode" = "DBufferMesh_MS"} // Smoothness and Metalness 
-			// back faces with zfail, for cases when camera is inside the decal volume
-			Cull Front
 			ZWrite Off
-			ZTest Greater
+			ZTest LEqual
 			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
 			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
 			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
@@ -437,10 +429,8 @@ Shader "HDRenderPipeline/Decal"
 		{
 			Name "DBufferMesh_AOS"  // Name is not used
 			Tags{"LightMode" = "DBufferMesh_AOS"} // AO + Smoothness
-			// back faces with zfail, for cases when camera is inside the decal volume
-			Cull Front
 			ZWrite Off
-			ZTest Greater
+			ZTest LEqual
 			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
 			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
 			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
@@ -466,15 +456,38 @@ Shader "HDRenderPipeline/Decal"
 		{
 			Name "DBufferMesh_MAOS"  // Name is not used
 			Tags{"LightMode" = "DBufferMesh_MAOS"} // Metalness AO and Smoothness
-			// back faces with zfail, for cases when camera is inside the decal volume
-			Cull Front
 			ZWrite Off
-			ZTest Greater
+			ZTest LEqual
 			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
 			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
 			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
 			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
 			Blend 3 Zero OneMinusSrcColor
+
+			HLSLPROGRAM
+
+			#define SHADERPASS SHADERPASS_DBUFFER_MESH
+			#include "../../ShaderVariables.hlsl"
+			#include "Decal.hlsl"
+			#include "ShaderPass/DecalSharePass.hlsl"
+			#include "DecalData.hlsl"
+			#include "../../ShaderPass/ShaderPassDBuffer.hlsl"
+
+			ENDHLSL
+		}
+
+		Pass
+		{
+			Name "DBufferMesh_3RT"  // Name is not used
+			Tags{"LightMode" = "DBufferMesh_3RT"} // Smoothness 
+			ZWrite Off
+			ZTest LEqual
+			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+
+			ColorMask BA 2	// smoothness/smoothness alpha
 
 			HLSLPROGRAM
 
