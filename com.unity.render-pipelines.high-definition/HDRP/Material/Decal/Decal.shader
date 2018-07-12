@@ -11,7 +11,6 @@ Shader "HDRenderPipeline/Decal"
 		[HideInInspector] _NormalBlendSrc("_NormalBlendSrc", Float) = 0.0
 		[HideInInspector] _MaskBlendSrc("_MaskBlendSrc", Float) = 1.0
 		[HideInInspector] _MaskBlendMode("_MaskBlendMode", Float) = 0.0
-		[HideInInspector] _MaskBlendMode2("_MaskBlendMode2", Float) = 0.0
     }
 
     HLSLINCLUDE
@@ -65,70 +64,24 @@ Shader "HDRenderPipeline/Decal"
         Tags{ "RenderPipeline" = "HDRenderPipeline"}
 
 		// c# code relies on the order in which the passes are declared, any change will need to be reflected in DecalUI.cs
-		// enum BlendMode
-		// {
-		//		Metal_AO_Smoothness,
-		//		Metal_Smoothness,
-		//		Metal,
-		//		Smoothness,
-		//		AO
-		// }
 
-        Pass
-        {
-            Name "DBufferProjector_MAOS"  // Name is not used
-            Tags { "LightMode" = "DBufferProjector_MAOS" } // Metalness AO and Smoothness
-            // back faces with zfail, for cases when camera is inside the decal volume
-            Cull Front
-            ZWrite Off
-            ZTest Greater
-            // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 3 Zero OneMinusSrcColor
+		// enum MaskBlendFlags
+		//{
+		//	Metal = 1 << 0,
+		//	AO = 1 << 1,
+		//	Smoothness = 1 << 2,
+		//}
 
-            HLSLPROGRAM
-
-            #define SHADERPASS SHADERPASS_DBUFFER_PROJECTOR
-            #include "../../ShaderVariables.hlsl"
-            #include "Decal.hlsl"
-            #include "ShaderPass/DecalSharePass.hlsl"
-            #include "DecalData.hlsl"
-            #include "../../ShaderPass/ShaderPassDBuffer.hlsl"
-
-            ENDHLSL
-        }
-
-		Pass
-		{
-			Name "DBufferProjector_MS"  // Name is not used
-			Tags{"LightMode" = "DBufferProjector_MS"} // Metalness and Smoothness
-			// back faces with zfail, for cases when camera is inside the decal volume
-			Cull Front
-			ZWrite Off
-			ZTest Greater
-			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 3 Zero OneMinusSrcColor
-
-			ColorMask RBA 2	// metal/smoothness/smoothness alpha 
-			ColorMask R 3	// metal alpha
-
-			HLSLPROGRAM
-
-			#define SHADERPASS SHADERPASS_DBUFFER_PROJECTOR
-			#include "../../ShaderVariables.hlsl"
-			#include "Decal.hlsl"
-			#include "ShaderPass/DecalSharePass.hlsl"
-			#include "DecalData.hlsl"
-			#include "../../ShaderPass/ShaderPassDBuffer.hlsl"
-
-			ENDHLSL
-		}
-
+		// Projectors
+		//
+		// 0 - Metal
+		// 1 - AO
+		// 2 - Metal + AO
+		// 3 - Smoothness also 3RT 
+		// 4 - Metal + Smoothness
+		// 5 - AO + Smoothness
+		// 6 - Metal + AO + Smoothness
+		//
 		Pass
 		{
 			Name "DBufferProjector_M"  // Name is not used
@@ -160,38 +113,9 @@ Shader "HDRenderPipeline/Decal"
 
 		Pass
 		{
-			Name "DBufferProjector_S"  // Name is not used
-			Tags{"LightMode" = "DBufferProjector_S"} // Smoothness 
-			// back faces with zfail, for cases when camera is inside the decal volume
-			Cull Front
-			ZWrite Off
-			ZTest Greater
-			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 3 Zero OneMinusSrcColor
-
-			ColorMask BA 2	// smoothness/smoothness alpha
-			ColorMask 0 3
-
-			HLSLPROGRAM
-
-			#define SHADERPASS SHADERPASS_DBUFFER_PROJECTOR
-			#include "../../ShaderVariables.hlsl"
-			#include "Decal.hlsl"
-			#include "ShaderPass/DecalSharePass.hlsl"
-			#include "DecalData.hlsl"
-			#include "../../ShaderPass/ShaderPassDBuffer.hlsl"
-
-			ENDHLSL
-		}
-
-		Pass
-		{
 			Name "DBufferProjector_AO"  // Name is not used
 			Tags{"LightMode" = "DBufferProjector_AO"} // AO only
-			// back faces with zfail, for cases when camera is inside the decal volume
+													  // back faces with zfail, for cases when camera is inside the decal volume
 			Cull Front
 			ZWrite Off
 			ZTest Greater
@@ -218,46 +142,24 @@ Shader "HDRenderPipeline/Decal"
 
 		Pass
 		{
-			Name "DBufferMesh"  // Name is not used
-			Tags{"LightMode" = "DBufferMesh"} // No mask
-
-			Cull Back
+			Name "DBufferProjector_MAO"  // Name is not used
+			Tags{"LightMode" = "DBufferProjector_MAO"} // AO + Metalness
+													   // back faces with zfail, for cases when camera is inside the decal volume
+			Cull Front
 			ZWrite Off
-			ZTest LEqual
-			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-
-			HLSLPROGRAM
-
-			#define SHADERPASS SHADERPASS_DBUFFER_MESH
-			#include "../../ShaderVariables.hlsl"
-			#include "Decal.hlsl"
-			#include "ShaderPass/DecalSharePass.hlsl"
-			#include "DecalData.hlsl"
-			#include "../../ShaderPass/ShaderPassDBuffer.hlsl"
-
-			ENDHLSL
-		}
-
-		Pass
-		{
-			Name "DBufferMesh_MAOS"  // Name is not used
-			Tags{"LightMode" = "DBufferMesh_MAOS"} // Metalness AO and Smoothness
-										 
-			Cull Back
-			ZWrite Off
-			ZTest LEqual
+			ZTest Greater
 			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
 			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
 			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
 			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
 			Blend 3 Zero OneMinusSrcColor
 
+			ColorMask RG 2	// metalness + ao
+			ColorMask RG 3	// metalness alpha + ao alpha
+
 			HLSLPROGRAM
 
-			#define SHADERPASS SHADERPASS_DBUFFER_MESH
+			#define SHADERPASS SHADERPASS_DBUFFER_PROJECTOR
 			#include "../../ShaderVariables.hlsl"
 			#include "Decal.hlsl"
 			#include "ShaderPass/DecalSharePass.hlsl"
@@ -269,12 +171,39 @@ Shader "HDRenderPipeline/Decal"
 
 		Pass
 		{
-			Name "DBufferMesh_MS"  // Name is not used
-			Tags{"LightMode" = "DBufferMesh_MS"} // Metalness and smoothness
-
-			Cull Back
+			Name "DBufferProjector_S"  // Name is not used
+			Tags{"LightMode" = "DBufferProjector_S"} // Smoothness 
+			// back faces with zfail, for cases when camera is inside the decal volume
+			Cull Front
 			ZWrite Off
-			ZTest LEqual
+			ZTest Greater
+			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+		
+			ColorMask BA 2	// smoothness/smoothness alpha
+		
+			HLSLPROGRAM
+
+			#define SHADERPASS SHADERPASS_DBUFFER_PROJECTOR
+			#include "../../ShaderVariables.hlsl"
+			#include "Decal.hlsl"
+			#include "ShaderPass/DecalSharePass.hlsl"
+			#include "DecalData.hlsl"
+			#include "../../ShaderPass/ShaderPassDBuffer.hlsl"
+
+			ENDHLSL
+		}
+
+		Pass
+		{
+			Name "DBufferProjector_MS"  // Name is not used
+			Tags{"LightMode" = "DBufferProjector_MS"} // Smoothness and Metalness 
+			// back faces with zfail, for cases when camera is inside the decal volume
+			Cull Front
+			ZWrite Off
+			ZTest Greater
 			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
 			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
 			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
@@ -286,7 +215,7 @@ Shader "HDRenderPipeline/Decal"
 
 			HLSLPROGRAM
 
-			#define SHADERPASS SHADERPASS_DBUFFER_MESH
+			#define SHADERPASS SHADERPASS_DBUFFER_PROJECTOR
 			#include "../../ShaderVariables.hlsl"
 			#include "Decal.hlsl"
 			#include "ShaderPass/DecalSharePass.hlsl"
@@ -296,14 +225,78 @@ Shader "HDRenderPipeline/Decal"
 			ENDHLSL
 		}
 
+
+		Pass
+		{
+			Name "DBufferProjector_AOS"  // Name is not used
+			Tags{"LightMode" = "DBufferProjector_AOS"} // AO + Smoothness
+			// back faces with zfail, for cases when camera is inside the decal volume
+			Cull Front
+			ZWrite Off
+			ZTest Greater
+			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 3 Zero OneMinusSrcColor
+
+			ColorMask GBA 2	// ao, smoothness, smoothness alpha
+			ColorMask G 3	// ao alpha
+
+			HLSLPROGRAM
+
+			#define SHADERPASS SHADERPASS_DBUFFER_PROJECTOR
+			#include "../../ShaderVariables.hlsl"
+			#include "Decal.hlsl"
+			#include "ShaderPass/DecalSharePass.hlsl"
+			#include "DecalData.hlsl"
+			#include "../../ShaderPass/ShaderPassDBuffer.hlsl"
+
+			ENDHLSL
+		}
+
+        Pass
+        {
+            Name "DBufferProjector_MAOS"  // Name is not used
+            Tags { "LightMode" = "DBufferProjector_MAOS" } // Metalness AO and Smoothness
+            // back faces with zfail, for cases when camera is inside the decal volume
+            Cull Front
+            ZWrite Off
+            ZTest Greater
+            // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 3 Zero OneMinusSrcColor
+
+            HLSLPROGRAM
+
+            #define SHADERPASS SHADERPASS_DBUFFER_PROJECTOR
+            #include "../../ShaderVariables.hlsl"
+            #include "Decal.hlsl"
+            #include "ShaderPass/DecalSharePass.hlsl"
+            #include "DecalData.hlsl"
+            #include "../../ShaderPass/ShaderPassDBuffer.hlsl"
+
+            ENDHLSL
+        }
+
+		// Mesh 
+		// 7 - Metal
+		// 8 - AO
+		// 9 - Metal + AO
+		// 10 - Smoothness and also 3RT mode
+		// 11 - Metal + Smoothness
+		// 12 - AO + Smoothness
+		// 13 - Metal + AO + Smoothness
 		Pass
 		{
 			Name "DBufferMesh_M"  // Name is not used
-			Tags{"LightMode" = "DBufferMesh_M"} // Metalness only
-
-			Cull Back
+			Tags{"LightMode" = "DBufferMesh_M"} // Metalness 
+			// back faces with zfail, for cases when camera is inside the decal volume
+			Cull Front
 			ZWrite Off
-			ZTest LEqual
+			ZTest Greater
 			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
 			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
 			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
@@ -327,41 +320,12 @@ Shader "HDRenderPipeline/Decal"
 
 		Pass
 		{
-			Name "DBufferMesh_S"  // Name is not used
-			Tags{"LightMode" = "DBufferMesh_S"} // Metalness only
-
-			Cull Back
-			ZWrite Off
-			ZTest LEqual
-			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 3 Zero OneMinusSrcColor
-
-			ColorMask BA 2	// smoothness/smoothness alpha
-			ColorMask 0 3	
-
-			HLSLPROGRAM
-
-			#define SHADERPASS SHADERPASS_DBUFFER_MESH
-			#include "../../ShaderVariables.hlsl"
-			#include "Decal.hlsl"
-			#include "ShaderPass/DecalSharePass.hlsl"
-			#include "DecalData.hlsl"
-			#include "../../ShaderPass/ShaderPassDBuffer.hlsl"
-
-			ENDHLSL
-		}
-
-		Pass
-		{
 			Name "DBufferMesh_AO"  // Name is not used
 			Tags{"LightMode" = "DBufferMesh_AO"} // AO only
-
-			Cull Back
+												 // back faces with zfail, for cases when camera is inside the decal volume
+			Cull Front
 			ZWrite Off
-			ZTest LEqual
+			ZTest Greater
 			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
 			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
 			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
@@ -382,6 +346,147 @@ Shader "HDRenderPipeline/Decal"
 
 			ENDHLSL
 		}
-    }
+
+		Pass
+		{
+			Name "DBufferMesh_MAO"  // Name is not used
+			Tags{"LightMode" = "DBufferMesh_MAO"} // AO + Metalness
+												  // back faces with zfail, for cases when camera is inside the decal volume
+			Cull Front
+			ZWrite Off
+			ZTest Greater
+			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 3 Zero OneMinusSrcColor
+
+			ColorMask RG 2	// metalness + ao
+			ColorMask RG 3	// metalness alpha + ao alpha
+
+			HLSLPROGRAM
+
+			#define SHADERPASS SHADERPASS_DBUFFER_MESH
+			#include "../../ShaderVariables.hlsl"
+			#include "Decal.hlsl"
+			#include "ShaderPass/DecalSharePass.hlsl"
+			#include "DecalData.hlsl"
+			#include "../../ShaderPass/ShaderPassDBuffer.hlsl"
+
+			ENDHLSL
+		}
+
+		Pass
+		{
+			Name "DBufferMesh_S"  // Name is not used
+			Tags{"LightMode" = "DBufferMesh_S"} // Smoothness 
+			// back faces with zfail, for cases when camera is inside the decal volume
+			Cull Front
+			ZWrite Off
+			ZTest Greater
+			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+
+			ColorMask BA 2	// smoothness/smoothness alpha
+
+			HLSLPROGRAM
+
+			#define SHADERPASS SHADERPASS_DBUFFER_MESH
+			#include "../../ShaderVariables.hlsl"
+			#include "Decal.hlsl"
+			#include "ShaderPass/DecalSharePass.hlsl"
+			#include "DecalData.hlsl"
+			#include "../../ShaderPass/ShaderPassDBuffer.hlsl"
+
+			ENDHLSL
+		}
+
+
+		Pass
+		{
+			Name "DBufferMesh_MS"  // Name is not used
+			Tags{"LightMode" = "DBufferMesh_MS"} // Smoothness and Metalness 
+			// back faces with zfail, for cases when camera is inside the decal volume
+			Cull Front
+			ZWrite Off
+			ZTest Greater
+			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 3 Zero OneMinusSrcColor
+
+			ColorMask RBA 2	// metal/smoothness/smoothness alpha 
+			ColorMask R 3	// metal alpha
+
+			HLSLPROGRAM
+
+			#define SHADERPASS SHADERPASS_DBUFFER_MESH
+			#include "../../ShaderVariables.hlsl"
+			#include "Decal.hlsl"
+			#include "ShaderPass/DecalSharePass.hlsl"
+			#include "DecalData.hlsl"
+			#include "../../ShaderPass/ShaderPassDBuffer.hlsl"
+
+			ENDHLSL
+		}
+
+		Pass
+		{
+			Name "DBufferMesh_AOS"  // Name is not used
+			Tags{"LightMode" = "DBufferMesh_AOS"} // AO + Smoothness
+			// back faces with zfail, for cases when camera is inside the decal volume
+			Cull Front
+			ZWrite Off
+			ZTest Greater
+			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 3 Zero OneMinusSrcColor
+
+			ColorMask GBA 2	// ao, smoothness, smoothness alpha
+			ColorMask G 3	// ao alpha
+
+			HLSLPROGRAM
+
+			#define SHADERPASS SHADERPASS_DBUFFER_MESH
+			#include "../../ShaderVariables.hlsl"
+			#include "Decal.hlsl"
+			#include "ShaderPass/DecalSharePass.hlsl"
+			#include "DecalData.hlsl"
+			#include "../../ShaderPass/ShaderPassDBuffer.hlsl"
+
+			ENDHLSL
+		}
+
+		Pass
+		{
+			Name "DBufferMesh_MAOS"  // Name is not used
+			Tags{"LightMode" = "DBufferMesh_MAOS"} // Metalness AO and Smoothness
+			// back faces with zfail, for cases when camera is inside the decal volume
+			Cull Front
+			ZWrite Off
+			ZTest Greater
+			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 3 Zero OneMinusSrcColor
+
+			HLSLPROGRAM
+
+			#define SHADERPASS SHADERPASS_DBUFFER_MESH
+			#include "../../ShaderVariables.hlsl"
+			#include "Decal.hlsl"
+			#include "ShaderPass/DecalSharePass.hlsl"
+			#include "DecalData.hlsl"
+			#include "../../ShaderPass/ShaderPassDBuffer.hlsl"
+
+			ENDHLSL
+		}
+	}
     CustomEditor "Experimental.Rendering.HDPipeline.DecalUI"
 }

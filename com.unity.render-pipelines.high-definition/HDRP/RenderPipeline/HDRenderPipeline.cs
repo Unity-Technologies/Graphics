@@ -1447,16 +1447,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 if(rtCount4)
                 {
-                    drawSettings.SetShaderPassName(0, HDShaderPassNames.s_MeshDecalsName);
-                    drawSettings.SetShaderPassName(1, HDShaderPassNames.s_MeshDecalsMSName);
-                    drawSettings.SetShaderPassName(2, HDShaderPassNames.s_MeshDecalsMName);
+                    drawSettings.SetShaderPassName(0, HDShaderPassNames.s_MeshDecalsMName);
+                    drawSettings.SetShaderPassName(1, HDShaderPassNames.s_MeshDecalsAOName);
+                    drawSettings.SetShaderPassName(2, HDShaderPassNames.s_MeshDecalsMAOName);
                     drawSettings.SetShaderPassName(3, HDShaderPassNames.s_MeshDecalsSName);
-                    drawSettings.SetShaderPassName(4, HDShaderPassNames.s_MeshDecalsAOName);
-
+                    drawSettings.SetShaderPassName(4, HDShaderPassNames.s_MeshDecalsMSName);
+                    drawSettings.SetShaderPassName(5, HDShaderPassNames.s_MeshDecalsAOSName);
+                    drawSettings.SetShaderPassName(5, HDShaderPassNames.s_MeshDecalsMAOSName);
                 }
                 else
                 {
-                    drawSettings.SetShaderPassName(0, HDShaderPassNames.s_MeshDecalsNoMaskName);
+                    drawSettings.SetShaderPassName(0, HDShaderPassNames.s_MeshDecalsSName);
                 }
                                                
                 FilterRenderersSettings filterRenderersSettings = new FilterRenderersSettings(true)
