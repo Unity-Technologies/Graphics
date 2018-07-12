@@ -19,23 +19,23 @@ namespace UnityEngine.Experimental.Rendering
         }
 
         [Range(0.0f, 1.0f)]
-        public float shadowDimmer = 1.0f;
-        public float shadowFadeDistance = 10000.0f;
-        public bool contactShadows      = false;
+        public float shadowDimmer;
+        public float shadowFadeDistance;
+        public bool contactShadows;
         // bias control
-        public float viewBiasMin        = 0.5f;
-        public float viewBiasMax        = 10.0f;
+        public float viewBiasMin;
+        public float viewBiasMax;
         [Range(0.0F, 15.0F)]
-        public float viewBiasScale      = 1.0f;
-        public float normalBiasMin      = 0.2f;
-        public float normalBiasMax      = 4.0f;
+        public float viewBiasScale;
+        public float normalBiasMin;
+        public float normalBiasMax;
         [Range(0.0F, 10.0F)]
-        public float normalBiasScale    = 1.0f;
-        public bool sampleBiasScale     = true;
-        public bool edgeLeakFixup       = false; // Causes large banding artifacts
-        public bool edgeToleranceNormal = true;
+        public float normalBiasScale;
+        public bool sampleBiasScale;
+        public bool edgeLeakFixup;
+        public bool edgeToleranceNormal;
         [Range(0.0F, 1.0F)]
-        public float edgeTolerance      = 1.0f;
+        public float edgeTolerance;
 
 
         // shadow related parameters
@@ -47,11 +47,11 @@ namespace UnityEngine.Experimental.Rendering
         };
 
         [HideInInspector, SerializeField]
-        private int shadowCascadeCount = 4;
+        private int shadowCascadeCount;
         [HideInInspector, SerializeField]
-        private float[] shadowCascadeRatios = new float[3] { 0.05f, 0.2f, 0.3f };
+        private float[] shadowCascadeRatios;
         [HideInInspector, SerializeField]
-        private float[] shadowCascadeBorders = new float[4] { 0.2f, 0.2f, 0.2f, 0.2f };
+        private float[] shadowCascadeBorders;
         [HideInInspector, SerializeField]
         private int shadowAlgorithm;
         [HideInInspector, SerializeField]
@@ -122,6 +122,37 @@ namespace UnityEngine.Experimental.Rendering
             }
             return -1;
         }
+
+        private void Awake()
+        {
+            Reset(); //Init
+        }
+
+        public void Reset()
+        {
+            shadowResolution = DefaultShadowResolution;
+            shadowDimmer = 1.0f;
+            shadowFadeDistance = 10000.0f;
+            contactShadows = false;
+            viewBiasMin = 0.5f;
+            viewBiasMax = 10.0f;
+            viewBiasScale = 1.0f;
+            normalBiasMin = 0.2f;
+            normalBiasMax = 4.0f;
+            normalBiasScale = 1.0f;
+            sampleBiasScale = true;
+            edgeLeakFixup = false; // Causes large banding artifacts
+            edgeToleranceNormal = true;
+            edgeTolerance = 1.0f;
+            shadowCascadeCount = 4;
+            shadowCascadeRatios = new float[3] { 0.05f, 0.2f, 0.3f };
+            shadowCascadeBorders = new float[4] { 0.2f, 0.2f, 0.2f, 0.2f };
+            shadowAlgorithm = 0;
+            shadowVariant = 0;
+            shadowPrecision = 0;
+            shadowData = new ShadowData();
+            shadowDatas = new ShadowData[0];
+        }
     }
 
 #if UNITY_EDITOR
@@ -146,10 +177,10 @@ namespace UnityEngine.Experimental.Rendering
         void OnEnable()
         {
             m_ShadowAlgorithm = serializedObject.FindProperty("shadowAlgorithm");
-            m_ShadowVariant   = serializedObject.FindProperty("shadowVariant");
-            m_ShadowData      = serializedObject.FindProperty("shadowData");
-            m_ShadowDatas     = serializedObject.FindProperty("shadowDatas");
-            m_ShadowCascadeCount  = serializedObject.FindProperty("shadowCascadeCount");
+            m_ShadowVariant = serializedObject.FindProperty("shadowVariant");
+            m_ShadowData = serializedObject.FindProperty("shadowData");
+            m_ShadowDatas = serializedObject.FindProperty("shadowDatas");
+            m_ShadowCascadeCount = serializedObject.FindProperty("shadowCascadeCount");
             m_ShadowCascadeRatios = serializedObject.FindProperty("shadowCascadeRatios");
             m_ShadowCascadeBorders = serializedObject.FindProperty("shadowCascadeBorders");
         }
