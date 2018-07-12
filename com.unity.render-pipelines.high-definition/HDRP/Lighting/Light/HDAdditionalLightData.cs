@@ -508,6 +508,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 // Note: We can't access to the light component in OnAfterSerialize as it is not init() yet,
                 // so instead we use a boolean to do the upgrade in OnEnable().
+                // However OnEnable is not call when the light is disabled, so the HDLightEditor also call
+                // the UpgradeLight() code in this case
                 needsIntensityUpdate_1_0 = true;
             }
         }
