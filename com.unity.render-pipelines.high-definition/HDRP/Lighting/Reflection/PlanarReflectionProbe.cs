@@ -20,8 +20,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         [SerializeField]
-        ReflectionProxyVolumeComponent m_ProxyVolumeReference = null;
-        [SerializeField]
         InfluenceVolume m_InfluenceVolume = new InfluenceVolume();
         [SerializeField]
         Vector3 m_CaptureLocalPosition;
@@ -62,7 +60,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool overrideFieldOfView { get { return m_OverrideFieldOfView; } }
         public float fieldOfViewOverride { get { return m_FieldOfViewOverride; } }
 
-        public ReflectionProxyVolumeComponent proxyVolumeReference { get { return m_ProxyVolumeReference; } }
         public InfluenceVolume influenceVolume { get { return m_InfluenceVolume; } }
         public BoundingSphere boundingSphere { get { return m_InfluenceVolume.GetBoundingSphereAt(transform); } }
 
@@ -126,8 +123,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get
             {
-                return m_ProxyVolumeReference != null
-                    ? m_ProxyVolumeReference.transform.localToWorldMatrix
+                return proxyVolume != null
+                    ? proxyVolume.transform.localToWorldMatrix
                     : influenceToWorld;
             }
         }
@@ -135,8 +132,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get
             {
-                return m_ProxyVolumeReference != null
-                    ? m_ProxyVolumeReference.proxyVolume.shapeType
+                return proxyVolume != null
+                    ? proxyVolume.proxyVolume.shapeType
                     : influenceVolume.shapeType;
             }
         }
@@ -144,12 +141,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get
             {
-                return m_ProxyVolumeReference != null
-                    ? m_ProxyVolumeReference.proxyVolume.extents
+                return proxyVolume != null
+                    ? proxyVolume.proxyVolume.extents
                     : influenceVolume.boxBaseSize;
             }
         }
-        public bool infiniteProjection { get { return m_ProxyVolumeReference != null && m_ProxyVolumeReference.proxyVolume.infiniteProjection; } }
+        public bool infiniteProjection { get { return proxyVolume != null && proxyVolume.proxyVolume.infiniteProjection; } }
 
         public bool useMirrorPlane
         {
