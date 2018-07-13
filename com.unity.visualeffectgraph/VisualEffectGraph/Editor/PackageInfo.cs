@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("com.unity.visualeffectgraph.EditorTests")]
-[assembly: InternalsVisibleTo("com.unity.visualeffectgraph.EditorTests-testable")]
+[assembly: InternalsVisibleTo("Unity.VisualEffectGraph.EditorTests")]
+[assembly: InternalsVisibleTo("Unity.VisualEffectGraph.EditorTests-testable")]
 
 namespace UnityEditor.VFX
 {

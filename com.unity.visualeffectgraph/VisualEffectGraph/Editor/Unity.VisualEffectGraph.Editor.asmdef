@@ -1,7 +1,7 @@
 {
-    "name": "com.unity.visualeffectgraph.Editor",
+    "name": "Unity.VisualEffectGraph.Editor",
     "references": [
-    	"com.unity.visualeffectgraph.Runtime"
+    	"Unity.VisualEffectGraph.Runtime"
 ],
     "optionalUnityReferences": [],
     "includePlatforms": [

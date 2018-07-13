@@ -1,5 +1,5 @@
 {
-    "name": "com.unity.visualeffectgraph.Runtime",
+    "name": "Unity.VisualEffectGraph.Runtime",
     "references": [],
     "optionalUnityReferences": [],
     "excludePlatforms": []

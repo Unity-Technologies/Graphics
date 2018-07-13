@@ -1,9 +1,6 @@
 {
-    "name": "com.unity.visualeffectgraph.EditorTests",
-    "references": [
-        "com.unity.visualeffectgraph.Runtime",
-        "com.unity.visualeffectgraph.Editor"
-    ],
+    "name": "Unity.VisualEffectGraph.EditorTests",
+    "references": [],
     "optionalUnityReferences": [
         "TestAssemblies"
     ],
