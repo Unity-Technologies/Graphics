@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed 7x7 tent filtering when using cascades.
 - Screenspace shadow resolve is now only done when rendering shadow cascades.
 - Updated the UI for the Lighweight pipeline asset.
+- Update assembly definitions to output assemblies that match Unity naming convention (Unity.*).
 
 ### Fixed
 - Post-processing now works with VR on PC.
