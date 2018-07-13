@@ -11,6 +11,9 @@ Shader "HDRenderPipeline/Decal"
 		[HideInInspector] _NormalBlendSrc("_NormalBlendSrc", Float) = 0.0
 		[HideInInspector] _MaskBlendSrc("_MaskBlendSrc", Float) = 1.0
 		[HideInInspector] _MaskBlendMode("_MaskBlendMode", Float) = 4.0 // smoothness 3RT default
+		[ToggleUI] _MaskmapMetal("_MaskmapMetal", Range(0.0, 1.0)) = 0.0
+		[ToggleUI] _MaskmapAO("_MaskmapAO", Range(0.0, 1.0)) = 0.0
+		[ToggleUI] _MaskmapSmoothness("_MaskmapSmoothness", Range(0.0, 1.0)) = 1.0
     }
 
     HLSLINCLUDE

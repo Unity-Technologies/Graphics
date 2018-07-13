@@ -56,7 +56,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected MaterialProperty maskBlendMode = new MaterialProperty();
         protected const string kMaskBlendMode = "_MaskBlendMode";
- 
+
+        protected MaterialProperty maskmapMetal = new MaterialProperty();
+        protected const string kMaskmapMetal = "_MaskmapMetal";
+
+        protected MaterialProperty maskmapAO = new MaterialProperty();
+        protected const string kMaskmapAO = "_MaskmapAO";
+
+        protected MaterialProperty maskmapSmoothness = new MaterialProperty();
+        protected const string kMaskmapSmoothness = "_MaskmapSmoothness";
+
         protected MaterialEditor m_MaterialEditor;
 
         // This is call by the inspector
@@ -72,6 +81,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             normalBlendSrc = FindProperty(kNormalBlendSrc, props);
             maskBlendSrc = FindProperty(kMaskBlendSrc, props);
             maskBlendMode = FindProperty(kMaskBlendMode, props);
+            maskmapMetal = FindProperty(kMaskmapMetal, props);
+            maskmapAO = FindProperty(kMaskmapAO, props);
+            maskmapSmoothness = FindProperty(kMaskmapSmoothness, props);
             
             // always instanced
             SerializedProperty instancing = m_MaterialEditor.serializedObject.FindProperty("m_EnableInstancingVariants");
@@ -141,8 +153,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUIUtility.labelWidth = 0f;
             float normalBlendSrcValue = normalBlendSrc.floatValue;
             float maskBlendSrcValue =  maskBlendSrc.floatValue;
-            float maskBlendModeValue = maskBlendMode.floatValue;
-            Decal.MaskBlendFlags maskBlendFlags = (Decal.MaskBlendFlags) maskBlendModeValue;              
+            //float maskBlendModeValue = maskBlendMode.floatValue;
+            Decal.MaskBlendFlags maskBlendFlags = 0; //(Decal.MaskBlendFlags) maskBlendModeValue;              
 
             HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
             bool perChannelMask = hdrp.renderPipelineSettings.decalSettings.perChannelMask;
@@ -162,18 +174,48 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     m_MaterialEditor.TexturePropertySingleLine(Styles.baseColorText2, baseColorMap, baseColor);                    
                 }
-                m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap);                               
-                normalBlendSrcValue = EditorGUILayout.Popup( "Normal blend source", (int)normalBlendSrcValue, blendSourceNames);               
+                m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap);
+                if (material.GetTexture(kNormalMap))
+                {
+                    normalBlendSrcValue = EditorGUILayout.Popup( "Normal blend source", (int)normalBlendSrcValue, blendSourceNames);                    
+                }
                 m_MaterialEditor.TexturePropertySingleLine(Styles.maskMapText, maskMap);
-                maskBlendSrcValue = EditorGUILayout.Popup( "Mask blend source", (int)maskBlendSrcValue, blendSourceNames);
-                EditorGUILayout.HelpBox("Individual mask map channel blending mode can be enabled/disabled in pipeline asset.\nEnabling this feature incurs a performance cost.", MessageType.Info);
-                if(perChannelMask)
-                {                   
-                    maskBlendFlags = (Decal.MaskBlendFlags)EditorGUILayout.EnumFlagsField( "Mask blend mode", maskBlendFlags);
-                    if (maskBlendFlags == 0)
-                        maskBlendFlags = Decal.MaskBlendFlags.Smoothness; // can not have nothing, to achieve this effect remove the mask map from shader
-                    if (maskBlendFlags == (Decal.MaskBlendFlags)(-1)) // everything
-                        maskBlendFlags = Decal.MaskBlendFlags.Metal | Decal.MaskBlendFlags.AO | Decal.MaskBlendFlags.Smoothness;
+                if (material.GetTexture(kMaskMap))
+                {
+                    maskBlendSrcValue = EditorGUILayout.Popup("Mask blend source", (int) maskBlendSrcValue, blendSourceNames);
+                    if (perChannelMask)
+                    {
+                        EditorGUILayout.HelpBox(
+                            "Disabling all mask map channels defaults to smoothness only.\n" +
+                            "To disable all channels remove the mask map from the shader.\n" +
+                            "Mask map channel selection mode can be disabled in pipeline asset, when disabled only smoothness is active.\n" +
+                            "Disabling mask map channel selection mode will improve performance.",
+                            MessageType.Info);
+                    }
+                    else
+                    {
+                        EditorGUILayout.HelpBox(
+                            "For better control of mask map channels enable mask map channel selection mode in pipeline asset.\nEnabling this feature incurs a performance cost.",
+                            MessageType.Info);
+                    }
+                    if (perChannelMask)
+                    {
+                        m_MaterialEditor.ShaderProperty(maskmapMetal, "Metal");
+                        m_MaterialEditor.ShaderProperty(maskmapAO, "AO");
+                        m_MaterialEditor.ShaderProperty(maskmapSmoothness, "Smoothness");
+                        if ((maskmapMetal.floatValue == 0.0f) && (maskmapAO.floatValue == 0.0f) &&
+                            (maskmapSmoothness.floatValue == 0.0f))
+                        {
+                            maskmapSmoothness.floatValue = 1.0f;
+                        }
+
+                        if (maskmapMetal.floatValue == 1.0f)
+                            maskBlendFlags |= Decal.MaskBlendFlags.Metal;
+                        if (maskmapAO.floatValue == 1.0f)
+                            maskBlendFlags |= Decal.MaskBlendFlags.AO;
+                        if (maskmapSmoothness.floatValue == 1.0f)
+                            maskBlendFlags |= Decal.MaskBlendFlags.Smoothness;
+                    }
                 }
                 m_MaterialEditor.ShaderProperty(decalBlend, Styles.decalBlendText);
                 EditorGUI.indentLevel--;
