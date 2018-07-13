@@ -5,7 +5,7 @@ using System;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [ExecuteInEditMode]
-    public class PlanarReflectionProbe : MonoBehaviour, ISerializationCallbackReceiver
+    public class PlanarReflectionProbe : HDProbe, ISerializationCallbackReceiver
     {
         [HideInInspector]
         const int currentVersion = 1;
