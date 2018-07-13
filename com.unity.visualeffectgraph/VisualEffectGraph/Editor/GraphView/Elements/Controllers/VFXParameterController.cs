@@ -63,7 +63,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        CoordinateSpace IPropertyRMProvider.space
+        VFXCoordinateSpace IPropertyRMProvider.space
         {
             get
             {
@@ -234,7 +234,7 @@ namespace UnityEditor.VFX.UI
             get { return true; }
         }
 
-        public CoordinateSpace space
+        public VFXCoordinateSpace space
         {
             get
             {
@@ -775,7 +775,7 @@ namespace UnityEditor.VFX.UI
         }
 
         public int depth { get { return 0; } }
-        public CoordinateSpace space
+        public VFXCoordinateSpace space
         {
             get
             {
@@ -840,7 +840,7 @@ namespace UnityEditor.VFX.UI
             get { return m_Controller.value; }
         }
 
-        public override CoordinateSpace space
+        public override VFXCoordinateSpace space
         {
             get
             {

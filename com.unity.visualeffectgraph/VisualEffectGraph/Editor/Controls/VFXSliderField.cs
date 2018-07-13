@@ -26,7 +26,7 @@ namespace UnityEditor.VFX.UIElements
             //forward the focus lost event
             using (BlurEvent newE = BlurEvent.GetPooled(this, e.relatedTarget, e.direction, panel.focusController))
             {
-                UIElementsUtility.eventDispatcher.DispatchEvent(newE, null);
+                SendEvent(newE);
             }
 
             e.StopPropagation();
@@ -99,7 +99,7 @@ namespace UnityEditor.VFX.UIElements
                 {
                     evt.target = this;
                     SetValueWithoutNotify(newValue);
-                    UIElementsUtility.eventDispatcher.DispatchEvent(evt, panel);
+                    SendEvent(evt);
                 }
             }
         }
@@ -124,7 +124,7 @@ namespace UnityEditor.VFX.UIElements
     {
         public VFXFloatSliderField()
         {
-            m_Slider = new Slider(0, 1, ValueChanged, Slider.Direction.Horizontal, (range.y - range.x) * 0.1f);
+            m_Slider = new Slider(0, 1, ValueChanged, SliderDirection.Horizontal, (range.y - range.x) * 0.1f);
             m_Slider.AddToClassList("textfield");
             m_Slider.valueChanged += ValueChanged;
 
@@ -191,7 +191,7 @@ namespace UnityEditor.VFX.UIElements
     {
         public VFXIntSliderField()
         {
-            m_Slider = new Slider(0, 1, ValueChanged, Slider.Direction.Horizontal, 0.1f);
+            m_Slider = new Slider(0, 1, ValueChanged, SliderDirection.Horizontal, 0.1f);
             m_Slider.AddToClassList("textfield");
             m_Slider.valueChanged += ValueChanged;
 
@@ -224,7 +224,7 @@ namespace UnityEditor.VFX.UIElements
     {
         public VFXLongSliderField()
         {
-            m_Slider = new Slider(0, 1, ValueChanged, Slider.Direction.Horizontal, 0.1f);
+            m_Slider = new Slider(0, 1, ValueChanged, SliderDirection.Horizontal, 0.1f);
             m_Slider.AddToClassList("textfield");
             m_Slider.valueChanged += ValueChanged;
 

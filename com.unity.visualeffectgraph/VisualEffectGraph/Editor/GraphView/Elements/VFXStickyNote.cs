@@ -96,7 +96,6 @@ namespace UnityEditor.VFX.UI
         public VFXStickyNote() : base(Vector2.zero)
         {
             this.RegisterCallback<StickyNodeChangeEvent>(OnUIChange);
-            this.RegisterCallback<ControllerChangedEvent>(OnControllerChange);
         }
 
         void OnUIChange(StickyNodeChangeEvent e)
@@ -122,7 +121,8 @@ namespace UnityEditor.VFX.UI
             e.StopPropagation();
         }
 
-        void OnControllerChange(ControllerChangedEvent e)
+        void IControlledElement.OnControllerEvent(VFXControllerEvent e) {}
+        void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {
             if (m_TitleField != null && !m_TitleField.HasFocus())
                 title = controller.title;

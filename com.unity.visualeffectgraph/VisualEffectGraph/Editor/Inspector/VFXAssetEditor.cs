@@ -242,6 +242,8 @@ public class VisualEffectAssetEditor : Editor
         bool enable = GUI.enabled; //Everything in external asset is disabled by default
         GUI.enabled = true;
 
+        var eventType = Event.current.type;
+
         var updateMode = resource.updateMode;
         EditorGUILayout.BeginHorizontal();
         EditorGUILayout.PrefixLabel(EditorGUIUtility.TrTextContent("Update Mode"));
@@ -255,7 +257,11 @@ public class VisualEffectAssetEditor : Editor
                     resource.updateMode = (VFXUpdateMode)v;
                 }, val);
             }
-            menu.DropDown(GUILayoutUtility.topLevel.GetLast());
+            var savedEventType = Event.current.type;
+            Event.current.type = eventType;
+            Rect buttonRect = GUILayoutUtility.GetLastRect();
+            Event.current.type = savedEventType;
+            menu.DropDown(buttonRect);
         }
 
         EditorGUILayout.EndHorizontal();
@@ -264,6 +270,7 @@ public class VisualEffectAssetEditor : Editor
         EditorGUILayout.BeginHorizontal();
 
         EditorGUILayout.PrefixLabel(EditorGUIUtility.TrTextContent("Culling Flags"));
+ 
         if (EditorGUILayout.DropdownButton(new GUIContent(CullingMaskToString(cullingFlags)), FocusType.Passive))
         {
             var menu = new GenericMenu();
@@ -274,7 +281,11 @@ public class VisualEffectAssetEditor : Editor
                         resource.cullingFlags = (VFXCullingFlags)v;
                     }, val.Value);
             }
-            menu.DropDown(GUILayoutUtility.topLevel.GetLast());
+            var savedEventType = Event.current.type;
+            Event.current.type = eventType;
+            Rect buttonRect = GUILayoutUtility.GetLastRect();
+            Event.current.type = savedEventType;
+            menu.DropDown(buttonRect);
         }
 
         EditorGUILayout.EndHorizontal();

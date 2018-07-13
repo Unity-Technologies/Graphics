@@ -35,6 +35,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
+        void IControlledElement.OnControllerEvent(VFXControllerEvent e) {}
 
         VFXNodeUI m_Node;
 
@@ -64,8 +65,6 @@ namespace UnityEditor.VFX.UI
             connector.Add(m_ConnectorHighlight);
 
             m_Node = node;
-
-            RegisterCallback<ControllerChangedEvent>(OnChange);
 
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
             Profiler.EndSample();
@@ -148,7 +147,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void OnChange(ControllerChangedEvent e)
+        void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {
             if (e.controller == controller)
             {

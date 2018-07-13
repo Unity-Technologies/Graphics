@@ -40,11 +40,11 @@ namespace UnityEditor.VFX
             return null;
         }
 
-        public sealed override CoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
+        public sealed override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
         {
             if (GetParent() != null)
                 return GetParent().space;
-            return (CoordinateSpace)int.MaxValue;
+            return (VFXCoordinateSpace)int.MaxValue;
         }
     }
 }

@@ -54,7 +54,7 @@ namespace UnityEditor.VFX
     {
         protected static string RenderPipeTemplate(string fileName)
         {
-            return VFXManager.renderPipeSettingsPath + "/templates/" + fileName;
+            return UnityEngine.Experimental.VFX.VFXManager.renderPipeSettingsPath + "/templates/" + fileName;
         }
 
         private VFXContext() { m_UICollapsed = false; } // Used by serialization
@@ -423,12 +423,12 @@ namespace UnityEditor.VFX
         [SerializeField]
         private VFXContextSlot[] m_OutputFlowSlot;
 
-        public override CoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
+        public override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
         {
             return space;
         }
 
-        public CoordinateSpace space
+        public VFXCoordinateSpace space
         {
             get
             {
@@ -436,7 +436,7 @@ namespace UnityEditor.VFX
                 {
                     return (m_Data as ISpaceable).space;
                 }
-                return CoordinateSpace.Local;
+                return VFXCoordinateSpace.Local;
             }
 
             set

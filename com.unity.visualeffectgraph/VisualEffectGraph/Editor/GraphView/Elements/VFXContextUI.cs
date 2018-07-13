@@ -110,7 +110,7 @@ namespace UnityEditor.VFX.UI
 
 
             var space = controller.context.space;
-            foreach (CoordinateSpace val in System.Enum.GetValues(typeof(CoordinateSpace)))
+            foreach (VFXCoordinateSpace val in System.Enum.GetValues(typeof(VFXCoordinateSpace)))
             {
                 if (val != space)
                     m_HeaderSpace.RemoveFromClassList("space" + val.ToString());
@@ -219,7 +219,7 @@ namespace UnityEditor.VFX.UI
         bool m_CanHaveBlocks = false;
         void OnSpace()
         {
-            controller.context.space = (CoordinateSpace)(((int)controller.context.space + 1) % (CoordinateSpaceInfo.SpaceCount));
+            controller.context.space = (VFXCoordinateSpace)(((int)controller.context.space + 1) % (CoordinateSpaceInfo.SpaceCount));
         }
 
         public bool CanDrop(IEnumerable<VFXBlockUI> blocks)

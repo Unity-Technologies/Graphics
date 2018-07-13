@@ -454,7 +454,7 @@ namespace UnityEditor.VFX
             }
 
             //< Final composition
-            var renderPipePath = VFXManager.renderPipeSettingsPath;
+            var renderPipePath = UnityEngine.Experimental.VFX.VFXManager.renderPipeSettingsPath;
             var renderPipeShaderIncludePath = renderPipePath;
             if(renderPipeShaderIncludePath.StartsWith(VisualEffectGraphPackageInfo.assetPackagePath))
             {
@@ -486,7 +486,7 @@ namespace UnityEditor.VFX
             if (context.GetData() is ISpaceable)
             {
                 var spaceable = context.GetData() as ISpaceable;
-                globalIncludeContent.WriteLineFormat("#define {0} 1", spaceable.space == CoordinateSpace.Global ? "VFX_WORLD_SPACE" : "VFX_LOCAL_SPACE");
+                globalIncludeContent.WriteLineFormat("#define {0} 1", spaceable.space == VFXCoordinateSpace.Global ? "VFX_WORLD_SPACE" : "VFX_LOCAL_SPACE");
             }
 
             var perPassIncludeContent = new VFXShaderWriter();
