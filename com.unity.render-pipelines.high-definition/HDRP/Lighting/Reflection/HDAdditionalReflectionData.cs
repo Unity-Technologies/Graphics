@@ -81,6 +81,7 @@ namespace UnityEngine.Experimental.Rendering
         void MigrateToHDProbeChild()
         {
             mode = legacyProbe.mode;
+            refreshMode = legacyProbe.refreshMode;
             m_Version = 2;
             OnAfterDeserialize();   //continue migrating if needed
         }
@@ -91,6 +92,15 @@ namespace UnityEngine.Experimental.Rendering
             {
                 base.mode = value;
                 legacyProbe.mode = value; //ensure compatibility till we capture without the legacy component
+            }
+        }
+
+        public override ReflectionProbeRefreshMode refreshMode
+        {
+            set
+            {
+                base.refreshMode = value;
+                legacyProbe.refreshMode = value; //ensure compatibility till we capture without the legacy component
             }
         }
     }
