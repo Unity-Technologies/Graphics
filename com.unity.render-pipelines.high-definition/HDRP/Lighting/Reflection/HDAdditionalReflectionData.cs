@@ -5,7 +5,7 @@ using System;
 namespace UnityEngine.Experimental.Rendering
 {
     [RequireComponent(typeof(ReflectionProbe))]
-    public class HDAdditionalReflectionData : MonoBehaviour, ISerializationCallbackReceiver
+    public class HDAdditionalReflectionData : HDProbe, ISerializationCallbackReceiver
     {
         [HideInInspector]
         const int currentVersion = 1;
