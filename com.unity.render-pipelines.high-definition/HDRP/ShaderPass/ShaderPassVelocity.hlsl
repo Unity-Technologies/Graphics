@@ -81,7 +81,6 @@ float3 TransformPreviousObjectToWorldNormal(float3 normalOS)
     return normalize(mul((float3x3)unity_MatrixPreviousM, normalOS));
 #else
     // Normal need to be multiply by inverse transpose
-    // mul(IT_M, norm) => mul(norm, I_M) => {dot(norm, I_M.col0), dot(norm, I_M.col1), dot(norm, I_M.col2)}
     return normalize(mul(normalOS, (float3x3)unity_MatrixPreviousMI));
 #endif
 }
