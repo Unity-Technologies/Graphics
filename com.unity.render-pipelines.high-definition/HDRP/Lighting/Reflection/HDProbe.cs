@@ -18,6 +18,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         [SerializeField]
         ReflectionProbeMode m_Mode = ReflectionProbeMode.Baked;
+        [SerializeField]
+        ReflectionProbeRefreshMode m_RefreshMode = ReflectionProbeRefreshMode.OnAwake;
 
         public ReflectionProxyVolumeComponent proxyVolume { get { return m_ProxyVolume; } }
         public float multiplier { get { return m_Multiplier; } }
@@ -26,6 +28,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get { return m_Mode; }
             set { m_Mode = value; }
+        }
+        public virtual ReflectionProbeRefreshMode refreshMode
+        {
+            get { return m_RefreshMode; }
+            set { m_RefreshMode = value; }
         }
     }
 }

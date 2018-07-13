@@ -24,8 +24,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         Vector3 m_CaptureLocalPosition;
         [SerializeField]
-        ReflectionProbeRefreshMode m_RefreshMode = ReflectionProbeRefreshMode.OnAwake;
-        [SerializeField]
         Texture m_CustomTexture;
         [SerializeField]
         Texture m_BakedTexture;
@@ -89,7 +87,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Texture customTexture { get { return m_CustomTexture; } set { m_CustomTexture = value; } }
         public Texture bakedTexture { get { return m_BakedTexture; } set { m_BakedTexture = value; }}
         public RenderTexture realtimeTexture { get { return m_RealtimeTexture; } internal set { m_RealtimeTexture = value; } }
-        public ReflectionProbeRefreshMode refreshMode { get { return m_RefreshMode; } }
         public FrameSettings frameSettings { get { return m_FrameSettings; } }
         public float captureNearPlane { get { return m_CaptureNearPlane; } }
         public float captureFarPlane { get { return m_CaptureFarPlane; } }
