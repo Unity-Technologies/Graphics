@@ -171,7 +171,7 @@ namespace UnityEditor.VFX.Test
             {
                 get
                 {
-                    return Directory.GetFiles("Assets/VFXTests/GraphicsTests/", "*.unity").Where(p => !ExcludedTests.Contains(Path.GetFileNameWithoutExtension(p))).Select(p =>
+                    return Directory.GetFiles("Assets/AllTests/VFXTests/GraphicsTests/", "*.unity").Where(p => !ExcludedTests.Contains(Path.GetFileNameWithoutExtension(p))).Select(p =>
                         {
                             return new SceneTest
                             {
@@ -242,6 +242,8 @@ namespace UnityEditor.VFX.Test
                 int expectedFrameIndex = startFrameIndex + waitFrameCount;
                 while (Time.frameCount != expectedFrameIndex)
                 {
+                    UpdateScene(scene, (Time.frameCount - startFrameIndex) * frequency);
+                    Time.captureFramerate = 20;
                     scene.camera.Render();
                     yield return null;
                 }
