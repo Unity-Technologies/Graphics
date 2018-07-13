@@ -24,9 +24,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         Vector3 m_CaptureLocalPosition;
         [SerializeField]
-        [FormerlySerializedAsAttribute("m_Dimmer")]
-        float m_Multiplier = 1.0f;
-        [SerializeField]
         [Range(0.0f, 1.0f)]
         float m_Weight = 1.0f;
         [SerializeField]
@@ -82,7 +79,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Bounds bounds { get { return m_InfluenceVolume.GetBoundsAt(transform); } }
         public Vector3 captureLocalPosition { get { return m_CaptureLocalPosition; } set { m_CaptureLocalPosition = value; } }
         public float weight { get { return m_Weight; } }
-        public float multiplier { get { return m_Multiplier; } }
         public ReflectionProbeMode mode { get { return m_Mode; } }
         public Matrix4x4 influenceToWorld
         {
