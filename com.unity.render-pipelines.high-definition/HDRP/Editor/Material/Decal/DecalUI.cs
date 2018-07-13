@@ -28,26 +28,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
         protected string[] blendSourceNames = Enum.GetNames(typeof(BlendSource));
 
-        // relies on the order shader passes are declared in decal.shader
-        enum BlendMode
-        {
-            None = 0,
-            Metal = 1,
-            AO = 2,
-            Metal_AO = 3,
-            Smoothness = 4,
-            Metal_Smoothness = 5,
-            AO_Smoothness = 6,
-            Metal_AO_Smoothness = 7
-        }
-
-        [Flags] enum MaskBlendFlags
-        {
-            Metal = 1 << 0, 
-            AO = 1 << 1,
-            Smoothness = 1 << 2,
-        }
-
         protected string[] blendModeNames = Enum.GetNames(typeof(BlendMode));
 
         protected MaterialProperty baseColorMap = new MaterialProperty();
@@ -101,7 +81,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
         static public void SetupMaterialKeywordsAndPass(Material material)
         {
-            MaskBlendFlags blendMode = (MaskBlendFlags)material.GetFloat(kMaskBlendMode);
+            Decal.MaskBlendFlags blendMode = (Decal.MaskBlendFlags)material.GetFloat(kMaskBlendMode);
 
             CoreUtils.SetKeyword(material, "_ALBEDOCONTRIBUTION", material.GetFloat(kAlbedoMode) == 1.0f);
             CoreUtils.SetKeyword(material, "_COLORMAP", material.GetTexture(kBaseColorMap));
@@ -120,31 +100,31 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecals3RTStr, true);
             switch (blendMode)
             {
-                case MaskBlendFlags.Metal:
+                case Decal.MaskBlendFlags.Metal:
                     material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMStr, true);
                     break;
 
-                case MaskBlendFlags.AO:
+                case Decal.MaskBlendFlags.AO:
                     material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsAOStr, true);
                     break;
 
-                case MaskBlendFlags.Metal | MaskBlendFlags.AO:
+                case Decal.MaskBlendFlags.Metal | Decal.MaskBlendFlags.AO:
                     material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMAOStr, true);
                     break;
 
-                case MaskBlendFlags.Smoothness:
+                case Decal.MaskBlendFlags.Smoothness:
                     material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsSStr, true);
                     break;
 
-                case MaskBlendFlags.Metal |MaskBlendFlags.Smoothness:
+                case Decal.MaskBlendFlags.Metal | Decal.MaskBlendFlags.Smoothness:
                     material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMSStr, true);
                     break;
 
-                case MaskBlendFlags.AO | MaskBlendFlags.Smoothness:
+                case Decal.MaskBlendFlags.AO | Decal.MaskBlendFlags.Smoothness:
                     material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsAOSStr, true);
                     break;
 
-                case MaskBlendFlags.Metal | MaskBlendFlags.AO | MaskBlendFlags.Smoothness:
+                case Decal.MaskBlendFlags.Metal | Decal.MaskBlendFlags.AO | Decal.MaskBlendFlags.Smoothness:
                     material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMAOSStr, true);
                     break;
             }
@@ -162,7 +142,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             float normalBlendSrcValue = normalBlendSrc.floatValue;
             float maskBlendSrcValue =  maskBlendSrc.floatValue;
             float maskBlendModeValue = maskBlendMode.floatValue;
-            MaskBlendFlags maskBlendFlags = (MaskBlendFlags) maskBlendModeValue;              
+            Decal.MaskBlendFlags maskBlendFlags = (Decal.MaskBlendFlags) maskBlendModeValue;              
 
             HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
             bool perChannelMask = hdrp.renderPipelineSettings.decalSettings.perChannelMask;
@@ -189,11 +169,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.HelpBox("Individual mask map channel blending mode can be enabled/disabled in pipeline asset.\nEnabling this feature incurs a performance cost.", MessageType.Info);
                 if(perChannelMask)
                 {                   
-                    maskBlendFlags = (MaskBlendFlags)EditorGUILayout.EnumFlagsField( "Mask blend mode", maskBlendFlags);
+                    maskBlendFlags = (Decal.MaskBlendFlags)EditorGUILayout.EnumFlagsField( "Mask blend mode", maskBlendFlags);
                     if (maskBlendFlags == 0)
-                        maskBlendFlags = MaskBlendFlags.Smoothness; // can not have nothing, to achieve this effect remove the mask map from shader
-                    if (maskBlendFlags == (MaskBlendFlags)(-1)) // everything
-                        maskBlendFlags = MaskBlendFlags.Metal | MaskBlendFlags.AO | MaskBlendFlags.Smoothness;
+                        maskBlendFlags = Decal.MaskBlendFlags.Smoothness; // can not have nothing, to achieve this effect remove the mask map from shader
+                    if (maskBlendFlags == (Decal.MaskBlendFlags)(-1)) // everything
+                        maskBlendFlags = Decal.MaskBlendFlags.Metal | Decal.MaskBlendFlags.AO | Decal.MaskBlendFlags.Smoothness;
                 }
                 m_MaterialEditor.ShaderProperty(decalBlend, Styles.decalBlendText);
                 EditorGUI.indentLevel--;

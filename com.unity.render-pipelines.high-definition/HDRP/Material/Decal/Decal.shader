@@ -65,6 +65,32 @@ Shader "HDRenderPipeline/Decal"
 
 		// c# code relies on the order in which the passes are declared, any change will need to be reflected in DecalUI.cs
 
+		// pass 0 is mesh 3RT mode
+		Pass
+		{
+			Name "DBufferMesh_3RT"  // Name is not used
+			Tags{"LightMode" = "DBufferMesh_3RT"} // Smoothness 
+			ZWrite Off
+			ZTest LEqual
+			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
+			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
+
+			ColorMask BA 2	// smoothness/smoothness alpha
+
+			HLSLPROGRAM
+
+			#define SHADERPASS SHADERPASS_DBUFFER_MESH
+			#include "../../ShaderVariables.hlsl"
+			#include "Decal.hlsl"
+			#include "ShaderPass/DecalSharePass.hlsl"
+			#include "DecalData.hlsl"
+			#include "../../ShaderPass/ShaderPassDBuffer.hlsl"
+
+			ENDHLSL
+		}
+
 		// enum MaskBlendFlags
 		//{
 		//	Metal = 1 << 0,
@@ -74,14 +100,15 @@ Shader "HDRenderPipeline/Decal"
 
 		// Projectors
 		//
-		// 0 - Metal
-		// 1 - AO
-		// 2 - Metal + AO
-		// 3 - Smoothness also 3RT 
-		// 4 - Metal + Smoothness
-		// 5 - AO + Smoothness
-		// 6 - Metal + AO + Smoothness
+		// 1 - Metal
+		// 2 - AO
+		// 3 - Metal + AO
+		// 4 - Smoothness also 3RT 
+		// 5 - Metal + Smoothness
+		// 6 - AO + Smoothness
+		// 7 - Metal + AO + Smoothness
 		//
+
 		Pass
 		{
 			Name "DBufferProjector_M"  // Name is not used
@@ -282,14 +309,13 @@ Shader "HDRenderPipeline/Decal"
         }
 
 		// Mesh 
-		// 7 - Metal
-		// 8 - AO
-		// 9 - Metal + AO
-		// 10 - Smoothness 
-		// 11 - Metal + Smoothness
-		// 12 - AO + Smoothness
-		// 13 - Metal + AO + Smoothness
-		// 14 - 3RT
+		// 8 - Metal
+		// 9 - AO
+		// 10 - Metal + AO
+		// 11 - Smoothness 
+		// 12 - Metal + Smoothness
+		// 13 - AO + Smoothness
+		// 14 - Metal + AO + Smoothness
 
 		Pass
 		{
@@ -463,31 +489,6 @@ Shader "HDRenderPipeline/Decal"
 			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
 			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
 			Blend 3 Zero OneMinusSrcColor
-
-			HLSLPROGRAM
-
-			#define SHADERPASS SHADERPASS_DBUFFER_MESH
-			#include "../../ShaderVariables.hlsl"
-			#include "Decal.hlsl"
-			#include "ShaderPass/DecalSharePass.hlsl"
-			#include "DecalData.hlsl"
-			#include "../../ShaderPass/ShaderPassDBuffer.hlsl"
-
-			ENDHLSL
-		}
-
-		Pass
-		{
-			Name "DBufferMesh_3RT"  // Name is not used
-			Tags{"LightMode" = "DBufferMesh_3RT"} // Smoothness 
-			ZWrite Off
-			ZTest LEqual
-			// using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-			Blend 0 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 1 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
-
-			ColorMask BA 2	// smoothness/smoothness alpha
 
 			HLSLPROGRAM
 

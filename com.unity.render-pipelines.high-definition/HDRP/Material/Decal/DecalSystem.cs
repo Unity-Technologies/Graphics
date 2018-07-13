@@ -410,7 +410,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             m_DecalDatas[m_DecalDatasCount].blendParams = m_BlendParams;
                             if(!perChannelMask)
                             {
-                                m_DecalDatas[m_DecalDatasCount].blendParams.z = 4.0f; // smoothness
+                                m_DecalDatas[m_DecalDatasCount].blendParams.z = (float)Decal.MaskBlendFlags.Smoothness; 
                             }
                                                         
                             // we have not allocated the textures in atlas yet, so only store references to them
@@ -481,18 +481,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 int totalToDraw = m_NumResults;
                 HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
                 bool perChannelMask = hdrp.renderPipelineSettings.decalSettings.perChannelMask;
-                int shaderPass = perChannelMask ? (int)m_Material.GetFloat("_MaskBlendMode") : 4; // relies on the order shader passes are declared in decal.shader and decalUI.cs
-                shaderPass--; // shader passes are 0 based 
-               
-                // enum BlendMode
-                // {
-                //		Metal_AO_Smoothness,
-                //		Metal_Smoothness,
-                //		Metal,
-                //		Smoothness,
-                //		AO
-                // }
-
+                int shaderPass = perChannelMask ? (int)m_Material.GetFloat("_MaskBlendMode") : (int)Decal.MaskBlendFlags.Smoothness; // relies on the order shader passes are declared in decal.shader and decalUI.cs
+              
                 for (; batchIndex < m_NumResults / kDrawIndexedBatchSize; batchIndex++)
                 {
                     m_PropertyBlock.SetMatrixArray(HDShaderIDs._NormalToWorldID, m_NormalToWorld[batchIndex]);
