@@ -235,11 +235,11 @@ namespace UnityEditor.VFX.Test
             */
         }
 
-        #pragma warning disable CS0414
+        #pragma warning disable 0414
         private static bool[] linkModes = { true, false };
         private static bool[] bindingModes = { true, false };
 
-        #pragma warning restore CS0414
+        #pragma warning restore 0414
         [UnityTest]
         [Timeout(1000 * 10)]
         public IEnumerator CreateComponentWithAllBasicTypeExposed([ValueSource("linkModes")] bool linkMode, [ValueSource("bindingModes")] bool bindingModes)

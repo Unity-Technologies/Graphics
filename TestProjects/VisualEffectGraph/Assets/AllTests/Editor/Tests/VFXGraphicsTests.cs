@@ -182,10 +182,10 @@ namespace UnityEditor.VFX.Test
             }
         }
 
-        #pragma warning disable CS0414
+        #pragma warning disable 0414
         private static SceneTest[] scenes = CollectScene.scenes.OfType<SceneTest>().ToArray();
 
-        #pragma warning restore CS0414
+        #pragma warning restore 0414
 
         int m_previousCaptureFrameRate;
         float m_previousFixedTimeStep;

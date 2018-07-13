@@ -15,7 +15,7 @@ namespace UnityEditor.VFX.UI
         public bool valueOnly {get; set; }
 
         public static VFXRecompileEvent Default = new VFXRecompileEvent();
-        public VFXViewController controller;
+        public VFXViewController controller = null;
     }
 
     partial class VFXViewController : Controller<VisualEffectResource>

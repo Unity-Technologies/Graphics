@@ -288,10 +288,10 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(ab, resultExpression.Get<float>(), 0.001f);
         }
 
-        #pragma warning disable CS0414
+        #pragma warning disable 0414
         private static float[] ProcessOperatorAbs_a = new[] { -0.1f, 0.0f, 3.0f };
 
-        #pragma warning restore CS0414
+        #pragma warning restore 0414
         [Test]
         public void ProcessOperatorSign([ValueSource("ProcessOperatorAbs_a")] float a)
         {
@@ -318,10 +318,10 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(r, resultExpression.Get<float>());
         }
 
-        #pragma warning disable CS0414
+        #pragma warning disable 0414
         private static int[] ProcessOperatorAbsInt_a = new[] { -51, 0, 16787153 };
 
-        #pragma warning restore CS0414
+        #pragma warning restore 0414
         [Test]
         public void ProcessOperatorAbsInt([ValueSource("ProcessOperatorAbsInt_a")] int a)
         {
@@ -349,11 +349,11 @@ namespace UnityEditor.VFX.Test
             Assert.Throws<NotImplementedException>(() => new VFXExpressionSign(value_a));
         }
 
-        #pragma warning disable CS0414
+        #pragma warning disable 0414
         private static int[] ProcessOperatorModuloInt_a = new[] { 78, 16777303 };
         private static int[] ProcessOperatorModuloInt_b = new[] { 7 };
 
-        #pragma warning restore CS0414
+        #pragma warning restore 0414
         [Test]
         public void ProcessOperatorModuloInt([ValueSource("ProcessOperatorModuloInt_a")] int a, [ValueSource("ProcessOperatorModuloInt_b")] int b)
         {
@@ -591,10 +591,10 @@ namespace UnityEditor.VFX.Test
             Assert.AreEqual(177.65288f, resultExpressionA.Get<float>(), 0.001f);
         }
 
-        #pragma warning disable CS0414
+        #pragma warning disable 0414
         static readonly float[] ProcessOperatorCeil_Values = { 4.0f, 1.5f, -0.5f};
 
-        #pragma warning restore CS0414
+        #pragma warning restore 0414
         [Test]
         public void ProcessOperatorCeil([ValueSource("ProcessOperatorCeil_Values")] float inValue)
         {

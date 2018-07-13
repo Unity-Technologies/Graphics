@@ -10,7 +10,7 @@ namespace UnityEditor.VFX.UI
 {
     class VFXControllerEvent
     {
-        public IControlledElement target;
+        public IControlledElement target = null;
     }
     abstract class Controller
     {

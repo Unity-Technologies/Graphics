@@ -468,7 +468,7 @@ namespace UnityEditor.VFX.UI
                 }
             }
         }
-        public string title
+        public string new title
         {
             get {return m_Title.text; }
             set
