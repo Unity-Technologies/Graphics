@@ -205,9 +205,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         };
         private HeightParametrization m_HeightParametrization = HeightParametrization.Amplitude;
 
-        bool ITerrainLayerCustomUI.OnTerrainLayerGUI(TerrainLayer terrainLayer, Terrain terrain, bool maskMapUsed)
+        private static bool DoesTerrainUseMaskMaps(Terrain terrain)
         {
-            if (!maskMapUsed)
+            var terrainLayers = terrain.terrainData.terrainLayers;
+            for (int i = 0; i < terrainLayers.Length; ++i)
+            {
+                if (terrainLayers[i].maskMapTexture != null)
+                    return true;
+            }
+            return false;
+        }
+
+        bool ITerrainLayerCustomUI.OnTerrainLayerGUI(TerrainLayer terrainLayer, Terrain terrain)
+        {
+            if (!DoesTerrainUseMaskMaps(terrain))
                 return false;
 
             var layerBlendMode = terrain.materialTemplate.GetFloat("_LayerBlendMode"); // Don't use the member field layerBlendMode as ShaderGUI.OnGUI might not be called if the material is folded.
