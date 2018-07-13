@@ -1750,7 +1750,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 RenderTargetIdentifier source = m_CameraColorBuffer;
 
                 // For console we are not allowed to resize the windows, so don't use our hack.
-                bool tempHACK = !IsConsolePlatform();
+                // We also don't do the copy if viewport size and render texture size match.
+                bool viewportAndRTSameSize = (hdcamera.actualWidth == m_CameraColorBuffer.rt.width && hdcamera.actualHeight == m_CameraColorBuffer.rt.height);
+                bool tempHACK = !IsConsolePlatform() && !viewportAndRTSameSize;
 
                 if (tempHACK)
                 {
