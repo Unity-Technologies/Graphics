@@ -14,8 +14,6 @@ namespace UnityEngine.Experimental.Rendering
         int m_Version;
 
         public ShapeType influenceShape;
-        [Range(0.0f, 1.0f)]
-        public float weight = 1.0f;
         public float influenceSphereRadius = 3.0f;
         public float sphereReprojectionVolumeRadius = 1.0f;
         public bool useSeparateProjectionVolume = false;
