@@ -1,6 +1,6 @@
 using UnityEngine.Serialization;
 using UnityEngine.Experimental.Rendering.HDPipeline;
-using System;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
 {
@@ -8,10 +8,13 @@ namespace UnityEngine.Experimental.Rendering
     public class HDAdditionalReflectionData : HDProbe, ISerializationCallbackReceiver
     {
         [HideInInspector]
-        const int currentVersion = 1;
+        const int currentVersion = 2;
 
         [SerializeField, FormerlySerializedAs("version")]
         int m_Version;
+
+        ReflectionProbe m_LegacyProbe;
+        ReflectionProbe legacyProbe { get { return m_LegacyProbe ?? (m_LegacyProbe = GetComponent<ReflectionProbe>()); } }
 
         public ShapeType influenceShape;
         public float influenceSphereRadius = 3.0f;
@@ -38,6 +41,8 @@ namespace UnityEngine.Experimental.Rendering
         [SerializeField] private float editorSimplifiedModeBlendNormalDistance;
         [SerializeField] private bool editorAdvancedModeEnabled;
 
+        bool needMigrateToHDProbeChild = false;
+
         public Vector3 boxBlendCenterOffset { get { return (blendDistanceNegative - blendDistancePositive) * 0.5f; } }
         public Vector3 boxBlendSizeOffset { get { return -(blendDistancePositive + blendDistanceNegative); } }
         public Vector3 boxBlendNormalCenterOffset { get { return (blendNormalDistanceNegative - blendNormalDistancePositive) * 0.5f; } }
@@ -56,7 +61,36 @@ namespace UnityEngine.Experimental.Rendering
             if (m_Version != currentVersion)
             {
                 // Add here data migration code
-                m_Version = currentVersion;
+                if (m_Version < 2)
+                {
+                    needMigrateToHDProbeChild = true;
+                }
+                else
+                {
+                    m_Version = currentVersion;
+                }
+            }
+        }
+
+        private void OnEnable()
+        {
+            if (needMigrateToHDProbeChild)
+                MigrateToHDProbeChild();
+        }
+
+        void MigrateToHDProbeChild()
+        {
+            mode = legacyProbe.mode;
+            m_Version = 2;
+            OnAfterDeserialize();   //continue migrating if needed
+        }
+
+        public override ReflectionProbeMode mode
+        {
+            set
+            {
+                base.mode = value;
+                legacyProbe.mode = value; //ensure compatibility till we capture without the legacy component
             }
         }
     }
