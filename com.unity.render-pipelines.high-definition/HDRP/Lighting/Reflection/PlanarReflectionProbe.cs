@@ -24,8 +24,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         Vector3 m_CaptureLocalPosition;
         [SerializeField]
-        ReflectionProbeMode m_Mode = ReflectionProbeMode.Baked;
-        [SerializeField]
         ReflectionProbeRefreshMode m_RefreshMode = ReflectionProbeRefreshMode.OnAwake;
         [SerializeField]
         Texture m_CustomTexture;
@@ -61,7 +59,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get
             {
-                switch (m_Mode)
+                switch (mode)
                 {
                     default:
                     case ReflectionProbeMode.Baked:
@@ -75,7 +73,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
         public Bounds bounds { get { return m_InfluenceVolume.GetBoundsAt(transform); } }
         public Vector3 captureLocalPosition { get { return m_CaptureLocalPosition; } set { m_CaptureLocalPosition = value; } }
-        public ReflectionProbeMode mode { get { return m_Mode; } }
         public Matrix4x4 influenceToWorld
         {
             get
