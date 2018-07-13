@@ -2157,7 +2157,7 @@ MonoBehaviour:
   m_OutputSlots:
   - {fileID: 114538583866338622}
   m_Type:
-    m_SerializableType: UnityEditor.VFX.FlipBook, Assembly-CSharp-Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    m_SerializableType: UnityEditor.VFX.FlipBook, Unity.VisualEffectGraph.Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 --- !u!114 &114205305024675898
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -3032,13 +3032,13 @@ MonoBehaviour:
     m_Owner: {fileID: 114522716186797740}
     m_Value:
       m_Type:
-        m_SerializableType: UnityEditor.VFX.FlipBook, Assembly-CSharp-Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_SerializableType: UnityEditor.VFX.FlipBook, Unity.VisualEffectGraph.Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
       m_SerializableObject: '{"x":4,"y":4}'
     m_Space: 2147483647
   m_Property:
     name: 
     m_serializedType:
-      m_SerializableType: UnityEditor.VFX.FlipBook, Assembly-CSharp-Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      m_SerializableType: UnityEditor.VFX.FlipBook, Unity.VisualEffectGraph.Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -3977,13 +3977,13 @@ MonoBehaviour:
     m_Owner: {fileID: 114718326368524836}
     m_Value:
       m_Type:
-        m_SerializableType: UnityEditor.VFX.FlipBook, Assembly-CSharp-Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_SerializableType: UnityEditor.VFX.FlipBook, Unity.VisualEffectGraph.Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
       m_SerializableObject: '{"x":4,"y":4}'
     m_Space: 2147483647
   m_Property:
     name: 
     m_serializedType:
-      m_SerializableType: UnityEditor.VFX.FlipBook, Assembly-CSharp-Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      m_SerializableType: UnityEditor.VFX.FlipBook, Unity.VisualEffectGraph.Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -4233,13 +4233,13 @@ MonoBehaviour:
     m_Owner: {fileID: 114718326368524836}
     m_Value:
       m_Type:
-        m_SerializableType: UnityEditor.VFX.FlipBook, Assembly-CSharp-Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_SerializableType: UnityEditor.VFX.FlipBook, Unity.VisualEffectGraph.Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
       m_SerializableObject: '{"x":4,"y":4}'
     m_Space: 2147483647
   m_Property:
     name: 
     m_serializedType:
-      m_SerializableType: UnityEditor.VFX.FlipBook, Assembly-CSharp-Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      m_SerializableType: UnityEditor.VFX.FlipBook, Unity.VisualEffectGraph.Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
     attributes: []
   m_Direction: 1
   m_LinkedSlots: []
@@ -4329,7 +4329,7 @@ MonoBehaviour:
   m_OutputSlots:
   - {fileID: 114973191670103692}
   m_Type:
-    m_SerializableType: UnityEditor.VFX.FlipBook, Assembly-CSharp-Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    m_SerializableType: UnityEditor.VFX.FlipBook, Unity.VisualEffectGraph.Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 --- !u!114 &114480949835606150
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4830,7 +4830,7 @@ MonoBehaviour:
   m_OutputSlots:
   - {fileID: 114624126028884256}
   m_Type:
-    m_SerializableType: UnityEditor.VFX.FlipBook, Assembly-CSharp-Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    m_SerializableType: UnityEditor.VFX.FlipBook, Unity.VisualEffectGraph.Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 --- !u!114 &114523866451161180
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -4994,13 +4994,13 @@ MonoBehaviour:
     m_Owner: {fileID: 114201256129106160}
     m_Value:
       m_Type:
-        m_SerializableType: UnityEditor.VFX.FlipBook, Assembly-CSharp-Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_SerializableType: UnityEditor.VFX.FlipBook, Unity.VisualEffectGraph.Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
       m_SerializableObject: '{"x":4,"y":4}'
     m_Space: 2147483647
   m_Property:
     name: 
     m_serializedType:
-      m_SerializableType: UnityEditor.VFX.FlipBook, Assembly-CSharp-Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      m_SerializableType: UnityEditor.VFX.FlipBook, Unity.VisualEffectGraph.Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
     attributes: []
   m_Direction: 1
   m_LinkedSlots:
@@ -5894,13 +5894,13 @@ MonoBehaviour:
     m_Owner: {fileID: 114522716186797740}
     m_Value:
       m_Type:
-        m_SerializableType: UnityEditor.VFX.FlipBook, Assembly-CSharp-Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_SerializableType: UnityEditor.VFX.FlipBook, Unity.VisualEffectGraph.Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
       m_SerializableObject: '{"x":4,"y":4}'
     m_Space: 2147483647
   m_Property:
     name: 
     m_serializedType:
-      m_SerializableType: UnityEditor.VFX.FlipBook, Assembly-CSharp-Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      m_SerializableType: UnityEditor.VFX.FlipBook, Unity.VisualEffectGraph.Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
     attributes: []
   m_Direction: 1
   m_LinkedSlots: []
@@ -5989,13 +5989,13 @@ MonoBehaviour:
     m_Owner: {fileID: 114478426089104570}
     m_Value:
       m_Type:
-        m_SerializableType: UnityEditor.VFX.FlipBook, Assembly-CSharp-Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_SerializableType: UnityEditor.VFX.FlipBook, Unity.VisualEffectGraph.Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
       m_SerializableObject: '{"x":4,"y":4}'
     m_Space: 2147483647
   m_Property:
     name: 
     m_serializedType:
-      m_SerializableType: UnityEditor.VFX.FlipBook, Assembly-CSharp-Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      m_SerializableType: UnityEditor.VFX.FlipBook, Unity.VisualEffectGraph.Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
     attributes: []
   m_Direction: 0
   m_LinkedSlots:
@@ -6739,7 +6739,7 @@ MonoBehaviour:
   m_OutputSlots:
   - {fileID: 114467511536373032}
   m_Type:
-    m_SerializableType: UnityEditor.VFX.FlipBook, Assembly-CSharp-Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+    m_SerializableType: UnityEditor.VFX.FlipBook, Unity.VisualEffectGraph.Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 --- !u!114 &114718754164378758
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -7095,13 +7095,13 @@ MonoBehaviour:
     m_Owner: {fileID: 114214122751800258}
     m_Value:
       m_Type:
-        m_SerializableType: UnityEditor.VFX.AABox, Assembly-CSharp-Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_SerializableType: UnityEditor.VFX.AABox, Unity.VisualEffectGraph.Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
       m_SerializableObject: '{"space":0,"center":{"x":0.0,"y":0.0,"z":0.0},"size":{"x":1.0,"y":1.0,"z":1.0}}'
     m_Space: 2147483647
   m_Property:
     name: bounds
     m_serializedType:
-      m_SerializableType: UnityEditor.VFX.AABox, Assembly-CSharp-Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      m_SerializableType: UnityEditor.VFX.AABox, Unity.VisualEffectGraph.Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -7274,13 +7274,13 @@ MonoBehaviour:
     m_Owner: {fileID: 114201256129106160}
     m_Value:
       m_Type:
-        m_SerializableType: UnityEditor.VFX.FlipBook, Assembly-CSharp-Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_SerializableType: UnityEditor.VFX.FlipBook, Unity.VisualEffectGraph.Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
       m_SerializableObject: '{"x":4,"y":4}'
     m_Space: 2147483647
   m_Property:
     name: 
     m_serializedType:
-      m_SerializableType: UnityEditor.VFX.FlipBook, Assembly-CSharp-Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      m_SerializableType: UnityEditor.VFX.FlipBook, Unity.VisualEffectGraph.Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
     attributes: []
   m_Direction: 0
   m_LinkedSlots: []
@@ -8700,13 +8700,13 @@ MonoBehaviour:
     m_Owner: {fileID: 114478426089104570}
     m_Value:
       m_Type:
-        m_SerializableType: UnityEditor.VFX.FlipBook, Assembly-CSharp-Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_SerializableType: UnityEditor.VFX.FlipBook, Unity.VisualEffectGraph.Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
       m_SerializableObject: '{"x":4,"y":4}'
     m_Space: 2147483647
   m_Property:
     name: 
     m_serializedType:
-      m_SerializableType: UnityEditor.VFX.FlipBook, Assembly-CSharp-Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      m_SerializableType: UnityEditor.VFX.FlipBook, Unity.VisualEffectGraph.Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
     attributes: []
   m_Direction: 1
   m_LinkedSlots: []
@@ -8961,6 +8961,7 @@ VisualEffectResource:
       reflectionProbeUsage: 0
       lightProbeUsage: 0
     m_CullingFlags: 3
+    m_UpdateMode: 0
   m_Systems: []
 --- !u!114 &8926484042661614528
 MonoBehaviour:
@@ -8986,13 +8987,13 @@ MonoBehaviour:
     m_Owner: {fileID: 114251324825604812}
     m_Value:
       m_Type:
-        m_SerializableType: UnityEditor.VFX.Transform, Assembly-CSharp-Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_SerializableType: UnityEditor.VFX.Transform, Unity.VisualEffectGraph.Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
       m_SerializableObject: '{"position":{"x":NaN,"y":NaN,"z":NaN},"angles":{"x":326.0874938964844,"y":321.98138427734377,"z":321.98138427734377},"scale":{"x":0.0,"y":0.0,"z":0.0}}'
     m_Space: 0
   m_Property:
     name: WorldToLocal
     m_serializedType:
-      m_SerializableType: UnityEditor.VFX.Transform, Assembly-CSharp-Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      m_SerializableType: UnityEditor.VFX.Transform, Unity.VisualEffectGraph.Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
     attributes: []
   m_Direction: 1
   m_LinkedSlots:

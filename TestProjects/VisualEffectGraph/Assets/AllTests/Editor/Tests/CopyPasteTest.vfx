@@ -1360,13 +1360,13 @@ MonoBehaviour:
     m_Owner: {fileID: 114219390408621712}
     m_Value:
       m_Type:
-        m_SerializableType: UnityEditor.VFX.AABox, Assembly-CSharp-Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_SerializableType: UnityEditor.VFX.AABox, Unity.VisualEffectGraph.Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
       m_SerializableObject: '{"space":0,"center":{"x":0.0,"y":0.0,"z":0.0},"size":{"x":1.0,"y":1.0,"z":1.0}}'
     m_Space: 0
   m_Property:
     name: o
     m_serializedType:
-      m_SerializableType: UnityEditor.VFX.AABox, Assembly-CSharp-Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      m_SerializableType: UnityEditor.VFX.AABox, Unity.VisualEffectGraph.Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
     attributes: []
   m_Direction: 1
   m_LinkedSlots: []
@@ -1423,13 +1423,13 @@ MonoBehaviour:
     m_Owner: {fileID: 114048700727034872}
     m_Value:
       m_Type:
-        m_SerializableType: UnityEditor.VFX.DirectionType, Assembly-CSharp-Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+        m_SerializableType: UnityEditor.VFX.DirectionType, Unity.VisualEffectGraph.Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
       m_SerializableObject: '{"space":0,"direction":{"x":0.0,"y":0.0,"z":1.0}}'
     m_Space: 0
   m_Property:
     name: Direction
     m_serializedType:
-      m_SerializableType: UnityEditor.VFX.DirectionType, Assembly-CSharp-Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+      m_SerializableType: UnityEditor.VFX.DirectionType, Unity.VisualEffectGraph.Editor-testable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
     attributes:
     - m_Type: 3
       m_Min: -Infinity
@@ -1908,4 +1908,5 @@ VisualEffectResource:
       reflectionProbeUsage: 0
       lightProbeUsage: 0
     m_CullingFlags: 3
+    m_UpdateMode: 0
   m_Systems: []
