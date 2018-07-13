@@ -1,10 +1,9 @@
 {
     "name": "HDRP_TestRunner",
     "references": [
-        "com.unity.postprocessing.Runtime",
-        "com.unity.render-pipelines.core.IncludePaths",
-        "com.unity.render-pipelines.core.Runtime",
-        "com.unity.render-pipelines.high-definition.Runtime",
+        "Unity.RenderPipelines.HighDefinition.Runtime",
+        "Unity.Postprocessing.Runtime",
+        "Unity.RenderPipelines.Core.Runtime",
         "UnityEngine.TestTools.Graphics"
     ],
     "optionalUnityReferences": [
@@ -12,5 +11,9 @@
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
-    "allowUnsafeCode": false
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": []
 }
