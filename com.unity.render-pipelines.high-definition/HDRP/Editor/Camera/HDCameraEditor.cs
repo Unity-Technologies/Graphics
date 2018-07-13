@@ -30,7 +30,7 @@ namespace UnityEditor.Experimental.Rendering
         }
 
         [MenuItem("CONTEXT/Camera/Reset", false, 0)]
-        static void ResetLight(MenuCommand menuCommand)
+        static void ResetCamera(MenuCommand menuCommand)
         {
             GameObject go = ((Camera)menuCommand.context).gameObject;
 
