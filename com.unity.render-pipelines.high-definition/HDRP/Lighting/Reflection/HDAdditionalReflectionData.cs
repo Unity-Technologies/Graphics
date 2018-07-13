@@ -42,8 +42,6 @@ namespace UnityEngine.Experimental.Rendering
         [SerializeField] private float editorSimplifiedModeBlendNormalDistance;
         [SerializeField] private bool editorAdvancedModeEnabled;
 
-        public ReflectionProxyVolumeComponent proxyVolumeComponent;
-
         public Vector3 boxBlendCenterOffset { get { return (blendDistanceNegative - blendDistancePositive) * 0.5f; } }
         public Vector3 boxBlendSizeOffset { get { return -(blendDistancePositive + blendDistanceNegative); } }
         public Vector3 boxBlendNormalCenterOffset { get { return (blendNormalDistanceNegative - blendNormalDistancePositive) * 0.5f; } }
