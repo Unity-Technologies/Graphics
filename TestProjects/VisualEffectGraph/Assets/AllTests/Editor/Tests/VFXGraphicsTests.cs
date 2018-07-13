@@ -171,7 +171,7 @@ namespace UnityEditor.VFX.Test
             {
                 get
                 {
-                    return Directory.GetFiles("Assets/VFXTests/GraphicsTests/", "*.unity").Where(p => !ExcludedTests.Contains(Path.GetFileNameWithoutExtension(p))).Select(p =>
+                    return Directory.GetFiles("Assets/AllTests/VFXTests/GraphicsTests/", "*.unity").Where(p => !ExcludedTests.Contains(Path.GetFileNameWithoutExtension(p))).Select(p =>
                         {
                             return new SceneTest
                             {
