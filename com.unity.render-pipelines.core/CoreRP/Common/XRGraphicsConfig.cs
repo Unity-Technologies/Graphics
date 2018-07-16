@@ -1,7 +1,13 @@
 using System;
 using UnityEditor;
-using UnityEngine.XR;
 using UnityEngine.Assertions;
+#if UNITY_2017_2_OR_NEWER
+using UnityEngine.XR;
+using XRSettings = UnityEngine.XR.XRSettings;
+#elif UNITY_5_6_OR_NEWER
+using UnityEngine.VR;
+using XRSettings = UnityEngine.VR.VRSettings;
+#endif
 
 namespace UnityEngine.Experimental.Rendering
 {
