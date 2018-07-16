@@ -1,5 +1,10 @@
 Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap_Gen"
 {
+    Properties
+    {
+        [HideInInspector] _DstBlend("DstBlend", Float) = 0.0
+    }
+
     SubShader
     {
         Tags { "SplatCount" = "8" }
@@ -56,8 +61,7 @@ Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap_Gen"
             v2f vert(appdata_t v)
             {
                 v2f o;
-                float3 positionWS = TransformObjectToWorld(v.vertex);
-                o.vertex = TransformWorldToHClip(positionWS);
+                o.vertex = TransformWorldToHClip(v.vertex);
                 o.texcoord = v.texcoord;
                 return o;
             }
@@ -97,8 +101,7 @@ Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap_Gen"
             v2f vert(appdata_t v)
             {
                 v2f o;
-                float3 positionWS = TransformObjectToWorld(v.vertex);
-                o.vertex = TransformWorldToHClip(positionWS);
+                o.vertex = TransformWorldToHClip(v.vertex);
                 o.texcoord = v.texcoord;
                 return o;
             }
