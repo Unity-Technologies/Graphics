@@ -1,7 +1,0 @@
-{
-    "name": "com.unity.render-pipelines.core.Runtime",
-    "optionalUnityReferences": [],
-    "includePlatforms": [],
-    "excludePlatforms": [],
-    "allowUnsafeCode": true
-}
