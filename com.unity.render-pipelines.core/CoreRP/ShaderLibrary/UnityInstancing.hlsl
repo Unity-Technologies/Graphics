@@ -295,7 +295,6 @@
             #define UNITY_MATRIX_M      UNITY_ACCESS_INSTANCED_PROP(unity_Builtins0, unity_ObjectToWorldArray)
             #define UNITY_MATRIX_I_M    UNITY_ACCESS_INSTANCED_PROP(MERGE_UNITY_BUILTINS_INDEX(UNITY_WORLDTOOBJECTARRAY_CB), unity_WorldToObjectArray)
         #endif
-        #undef MERGE_UNITY_BUILTINS_INDEX
     #endif
 
 #else // UNITY_INSTANCING_ENABLED
