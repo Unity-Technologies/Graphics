@@ -45,10 +45,14 @@ namespace UnityEditor.VFX
 
             if (type == null && !string.IsNullOrEmpty(name)) // if type wasn't found, resolve the assembly (to use VFX package assembly name instead)
             {
-                const string OldAssemblyName = "Assembly-CSharp-Editor";
-                const string NewAssemblyName = "Unity.VisualEffectGraph.Editor";
-                name = name.Replace(OldAssemblyName, NewAssemblyName);
+                name = name.Replace("Assembly-CSharp-Editor", "Unity.VisualEffectGraph.Editor");
                 type = Type.GetType(name);
+
+                if (type == null) // resolve runtime type if editor assembly didnt work
+                {
+                    name = name.Replace("Assembly-CSharp", "Unity.VisualEffectGraph.Runtime");
+                    type = Type.GetType(name);
+                }
 
                 if (type == null)
                     Debug.LogErrorFormat("Cannot get Type from name: {0}",name);
