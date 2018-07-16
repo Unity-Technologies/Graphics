@@ -235,11 +235,11 @@ namespace UnityEditor.VFX.Test
             */
         }
 
-        #pragma warning disable CS0414
+        #pragma warning disable 0414
         private static bool[] linkModes = { true, false };
         private static bool[] bindingModes = { true, false };
 
-        #pragma warning restore CS0414
+        #pragma warning restore 0414
         [UnityTest]
         [Timeout(1000 * 10)]
         public IEnumerator CreateComponentWithAllBasicTypeExposed([ValueSource("linkModes")] bool linkMode, [ValueSource("bindingModes")] bool bindingModes)
@@ -375,7 +375,7 @@ namespace UnityEditor.VFX.Test
                     try
                     {
                         var propertySheet = editor.serializedObject.FindProperty("m_PropertySheet");
-                        var fieldName = VisualEffectUtility.GetTypeField(VFXExpression.TypeToType(type)) + ".m_Array";
+                        var fieldName = VisualEffectSerializationUtility.GetTypeField(VFXExpression.TypeToType(type)) + ".m_Array";
                         var vfxField = propertySheet.FindPropertyRelative(fieldName);
                         if (vfxField != null)
                         {
@@ -455,7 +455,7 @@ namespace UnityEditor.VFX.Test
                         var propertySheet = editor.serializedObject.FindProperty("m_PropertySheet");
                         editor.serializedObject.Update();
 
-                        var fieldName = VisualEffectUtility.GetTypeField(VFXExpression.TypeToType(type)) + ".m_Array";
+                        var fieldName = VisualEffectSerializationUtility.GetTypeField(VFXExpression.TypeToType(type)) + ".m_Array";
                         var vfxField = propertySheet.FindPropertyRelative(fieldName);
                         if (vfxField != null)
                         {
@@ -507,7 +507,7 @@ namespace UnityEditor.VFX.Test
                         editor.serializedObject.Update();
 
                         var propertySheet = editor.serializedObject.FindProperty("m_PropertySheet");
-                        var fieldName = VisualEffectUtility.GetTypeField(VFXExpression.TypeToType(type)) + ".m_Array";
+                        var fieldName = VisualEffectSerializationUtility.GetTypeField(VFXExpression.TypeToType(type)) + ".m_Array";
                         var vfxField = propertySheet.FindPropertyRelative(fieldName);
                         if (vfxField != null)
                         {

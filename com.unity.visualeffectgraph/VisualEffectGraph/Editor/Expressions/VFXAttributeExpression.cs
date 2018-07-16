@@ -164,7 +164,7 @@ namespace UnityEditor.VFX
         XY = 3,
         XYZ = 4
     };
-    #pragma warning disable CS0659
+    #pragma warning disable 0659
     sealed class VFXAttributeExpression : VFXExpression
     {
         public VFXAttributeExpression(VFXAttribute attribute, VFXAttributeLocation location = VFXAttributeLocation.Current) : base(Flags.PerElement)
@@ -239,5 +239,5 @@ namespace UnityEditor.VFX
         }
     }
 
-    #pragma warning restore CS0659
+    #pragma warning restore 0659
 }

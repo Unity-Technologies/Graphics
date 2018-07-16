@@ -52,10 +52,10 @@ namespace UnityEditor.VFX.Test
             AssetDatabase.DeleteAsset(testAssetName);
         }
 
-        #pragma warning disable CS0414
+        #pragma warning disable 0414
         static private bool[] usePosition = { true, false };
 
-        #pragma warning restore CS0414
+        #pragma warning restore 0414
         [Test]
         public void LinkPositionOrVectorAndDirection([ValueSource("usePosition")] bool usePosition)
         {

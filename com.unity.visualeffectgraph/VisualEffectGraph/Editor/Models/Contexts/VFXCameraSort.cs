@@ -11,7 +11,7 @@ namespace UnityEditor.VFX
     {
         public VFXCameraSort() : base(VFXContextType.kUpdate, VFXDataType.kParticle, VFXDataType.kParticle) {}
         public override string name { get { return "CameraSort"; } }
-        public override string codeGeneratorTemplate { get { return "VFXEditor/Shaders/VFXCameraSort"; } }
+        public override string codeGeneratorTemplate { get { return VisualEffectGraphPackageInfo.assetPackagePath + "/VisualEffectGraph/Shaders/VFXCameraSort"; } }
         public override bool codeGeneratorCompute { get { return true; } }
         public override VFXTaskType taskType { get { return VFXTaskType.CameraSort; } }
 
@@ -25,7 +25,7 @@ namespace UnityEditor.VFX
 
         public override VFXExpressionMapper GetExpressionMapper(VFXDeviceTarget target)
         {
-            var localSpace = ((VFXDataParticle)GetData()).space == CoordinateSpace.Local;
+            var localSpace = ((VFXDataParticle)GetData()).space == VFXCoordinateSpace.Local;
             if (localSpace && target == VFXDeviceTarget.GPU) // Needs to add locaToWorld matrix
             {
                 var gpuMapper = new VFXExpressionMapper();

@@ -295,7 +295,7 @@ namespace UnityEditor.VFX
                 });
         }
 
-        static public VFXExpression ConvertSpace(VFXExpression input, VFXSlot targetSlot, CoordinateSpace space)
+        static public VFXExpression ConvertSpace(VFXExpression input, VFXSlot targetSlot, VFXCoordinateSpace space)
         {
             if (targetSlot.spaceable)
             {
@@ -308,9 +308,9 @@ namespace UnityEditor.VFX
             return input;
         }
 
-        static protected VFXExpression ConvertSpace(VFXExpression input, SpaceableType spaceType, CoordinateSpace space)
+        static protected VFXExpression ConvertSpace(VFXExpression input, SpaceableType spaceType, VFXCoordinateSpace space)
         {
-            var matrix = space == CoordinateSpace.Local ? VFXBuiltInExpression.WorldToLocal : VFXBuiltInExpression.LocalToWorld;
+            var matrix = space == VFXCoordinateSpace.Local ? VFXBuiltInExpression.WorldToLocal : VFXBuiltInExpression.LocalToWorld;
 
             if (spaceType == SpaceableType.Position)
             {

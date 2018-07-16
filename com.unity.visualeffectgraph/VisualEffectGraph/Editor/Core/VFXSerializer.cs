@@ -36,7 +36,25 @@ namespace UnityEditor.VFX
 
         public virtual void OnAfterDeserialize()
         {
-            m_Type = Type.GetType(m_SerializableType);
+            m_Type = GetType(m_SerializableType);
+        }
+
+        public static Type GetType(string name)
+        {
+            Type type = Type.GetType(name);
+
+            if (type == null && !string.IsNullOrEmpty(name)) // if type wasn't found, resolve the assembly (to use VFX package assembly name instead)
+            {
+                const string OldAssemblyName = "Assembly-CSharp-Editor";
+                const string NewAssemblyName = "Unity.VisualEffectGraph.Editor";
+                name = name.Replace(OldAssemblyName, NewAssemblyName);
+                type = Type.GetType(name);
+
+                if (type == null)
+                    Debug.LogErrorFormat("Cannot get Type from name: {0}",name);
+            }
+
+            return type;
         }
 
         [NonSerialized]
@@ -128,7 +146,7 @@ namespace UnityEditor.VFX
         public struct TypedSerializedData
         {
             public string data;
-            public string type;
+            public string type; // TODO This should have used SerializableType!
 
             public static TypedSerializedData Null = new TypedSerializedData();
         }
@@ -197,7 +215,7 @@ namespace UnityEditor.VFX
         {
             if (!string.IsNullOrEmpty(data.data))
             {
-                System.Type type = Type.GetType(data.type);
+                System.Type type = SerializableType.GetType(data.type);
                 if (type == null)
                 {
                     Debug.LogError("Can't find type " + data.type);

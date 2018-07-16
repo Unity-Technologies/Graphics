@@ -171,7 +171,7 @@ namespace UnityEditor.VFX.Test
             {
                 get
                 {
-                    return Directory.GetFiles("Assets/VFXTests/GraphicsTests/", "*.unity").Where(p => !ExcludedTests.Contains(Path.GetFileNameWithoutExtension(p))).Select(p =>
+                    return Directory.GetFiles("Assets/AllTests/VFXTests/GraphicsTests/", "*.unity").Where(p => !ExcludedTests.Contains(Path.GetFileNameWithoutExtension(p))).Select(p =>
                         {
                             return new SceneTest
                             {
@@ -182,10 +182,25 @@ namespace UnityEditor.VFX.Test
             }
         }
 
-        #pragma warning disable CS0414
+        #pragma warning disable 0414
         private static SceneTest[] scenes = CollectScene.scenes.OfType<SceneTest>().ToArray();
 
-        #pragma warning restore CS0414
+        #pragma warning restore 0414
+
+        int m_previousCaptureFrameRate;
+        float m_previousFixedTimeStep;
+        float m_previousMaxDeltaTime;
+
+        [SetUp]
+        public void Init()
+        {
+            m_previousCaptureFrameRate = Time.captureFramerate;
+            m_previousFixedTimeStep = UnityEngine.Experimental.VFX.VFXManager.fixedTimeStep;
+            m_previousMaxDeltaTime = UnityEngine.Experimental.VFX.VFXManager.maxDeltaTime;
+            Time.captureFramerate = 20;
+            UnityEngine.Experimental.VFX.VFXManager.fixedTimeStep = 1.0f / 20.0f;
+            UnityEngine.Experimental.VFX.VFXManager.maxDeltaTime = 1.0f / 20.0f;
+        }
 
         [UnityTest /* TestCaseSource(typeof(CollectScene), "scenes")  <= doesn't work for UnityTest for now */]
         [Timeout(1000 * 10)]
@@ -198,15 +213,13 @@ namespace UnityEditor.VFX.Test
 
             float simulateTime = 6.0f;
             float frequency = 1.0f / 20.0f;
-            uint waitFrameCount = (uint)(simulateTime / frequency);
+            int waitFrameCount = (int)(simulateTime / frequency);
 
             var scenePath = sceneTest.path;
             var threshold = 0.01f;
 
             var refCapturePath = scenePath.Replace(".unity", ".png");
             var currentCapturePath = scenePath.Replace(".unity", "_fail.png");
-
-            VFXManager.updateMode = VFXManagerUpdateMode.Force20Hz;
 
             var passes = new List<string>();
             if (!File.Exists(refCapturePath))
@@ -225,12 +238,13 @@ namespace UnityEditor.VFX.Test
 
                 AnimationMode.StartAnimationMode();
 
-                uint startFrameIndex = VFXManager.frameIndex;
-                uint expectedFrameIndex = startFrameIndex + waitFrameCount;
-                while (VFXManager.frameIndex != expectedFrameIndex)
+                int startFrameIndex = Time.frameCount;
+                int expectedFrameIndex = startFrameIndex + waitFrameCount;
+                while (Time.frameCount != expectedFrameIndex)
                 {
                     //EditorWindow.GetWindow(typeof(GameView)).Focus();
                     UpdateScene(scene, (VFXManager.frameIndex - startFrameIndex) * frequency);
+                    Time.captureFramerate = 20;
                     scene.camera.Render();
                     yield return null;
                 }
@@ -259,7 +273,9 @@ namespace UnityEditor.VFX.Test
         [TearDown]
         public void TearDown()
         {
-            VFXManager.updateMode = VFXManagerUpdateMode.Default;
+            Time.captureFramerate = m_previousCaptureFrameRate;
+            UnityEngine.Experimental.VFX.VFXManager.fixedTimeStep = m_previousFixedTimeStep;
+            UnityEngine.Experimental.VFX.VFXManager.maxDeltaTime = m_previousMaxDeltaTime;
         }
     }
 }
