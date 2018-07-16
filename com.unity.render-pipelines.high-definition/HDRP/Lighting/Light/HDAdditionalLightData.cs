@@ -28,7 +28,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
     // This structure contains all the old values for every recordable fields from the HD light editor
     // so we can force timeline to record changes on other fields from the LateUpdate function (editor only)
-    struct TimelineWorkaournd
+    struct TimelineWorkaround
     {
         public float oldDisplayLightIntensity;
         public float oldSpotAngle;
@@ -140,7 +140,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if UNITY_EDITOR
         // We need these old states to make timeline and the animator record the intensity value and the emissive mesh changes (editor-only)
         [System.NonSerialized]
-        TimelineWorkaournd timelineWorkaround;
+        TimelineWorkaround timelineWorkaround;
 #endif
 
         // For light that used the old intensity system we update them
@@ -506,13 +506,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // If we are deserializing an old version, convert the light intensity to the new system
             if (version <= 1.0f)
             {
+                // Note: We can't access to the light component in OnAfterSerialize as it is not init() yet,
+                // so instead we use a boolean to do the upgrade in OnEnable().
+                // However OnEnable is not call when the light is disabled, so the HDLightEditor also call
+                // the UpgradeLight() code in this case
                 needsIntensityUpdate_1_0 = true;
             }
-
-            version = currentVersion;
         }
 
         private void OnEnable()
+        {
+            UpgradeLight();
+        }
+
+        public void UpgradeLight()
         {
             if (needsIntensityUpdate_1_0)
             {
@@ -542,6 +549,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
 #pragma warning restore 0618
             }
+
+            version = currentVersion;
         }
     }
 }
