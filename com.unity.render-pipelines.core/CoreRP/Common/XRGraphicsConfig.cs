@@ -89,6 +89,25 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        public static int eyeTextureWidth
+        {
+            get
+            {
+                if (!enabled)
+                    Assert.IsFalse(enabled);
+                return XRSettings.eyeTextureWidth;
+            }
+        }
+        public static int eyeTextureHeight
+        {
+            get
+            {
+                if (!enabled)
+                    Assert.IsFalse(enabled);
+                return XRSettings.eyeTextureHeight;
+            }
+        }
+
         public static string[] supportedDevices
         {
             get
