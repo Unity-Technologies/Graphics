@@ -18,6 +18,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent decalBlendText = new GUIContent("Global Opacity", "Whole decal Opacity");
             public static GUIContent AlbedoModeText = new GUIContent("Affect BaseColor", "Base color + Opacity, Opacity only");
  			public static GUIContent MeshDecalDepthBiasText = new GUIContent("Mesh decal depth bias", "prevents z-fighting");
+	 		public static GUIContent DrawOrderText = new GUIContent("Draw order", "Controls draw order of decal projectors");
 
             public static GUIContent[] maskMapText =
             {
@@ -80,6 +81,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty decalMeshDepthBias = new MaterialProperty();
         protected const string kDecalMeshDepthBias = "_DecalMeshDepthBias";
 
+        protected MaterialProperty drawOrder = new MaterialProperty();
+        protected const string kDrawOrder = "_DrawOrder";
+
         protected MaterialEditor m_MaterialEditor;
 
         // This is call by the inspector
@@ -97,9 +101,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             maskBlendMode = FindProperty(kMaskBlendMode, props);
             maskmapMetal = FindProperty(kMaskmapMetal, props);
             maskmapAO = FindProperty(kMaskmapAO, props);
-            maskmapSmoothness = FindProperty(kMaskmapSmoothness, props);
-            decalMeshDepthBias = FindProperty(kDecalMeshDepthBias, props);
-            
+            maskmapSmoothness = FindProperty(kMaskmapSmoothness, props);            
+            decalMeshDepthBias = FindProperty(kDecalMeshDepthBias, props);            
+            drawOrder = FindProperty(kDrawOrder, props);
+
             // always instanced
             SerializedProperty instancing = m_MaterialEditor.serializedObject.FindProperty("m_EnableInstancingVariants");
             instancing.boolValue = true;
@@ -222,6 +227,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     }
                     EditorGUI.indentLevel--;
                 }
+                m_MaterialEditor.ShaderProperty(drawOrder, Styles.DrawOrderText);
                 m_MaterialEditor.ShaderProperty(decalBlend, Styles.decalBlendText);
                 m_MaterialEditor.ShaderProperty(decalMeshDepthBias, Styles.MeshDecalDepthBiasText);
                 EditorGUI.indentLevel--;
