@@ -5,10 +5,22 @@
 #include "VertMesh.hlsl"
 
 
+void MeshDecalsPositionZBias(inout VaryingsToPS input)
+{
+#if defined(UNITY_REVERSED_Z)
+	input.vmesh.positionCS.z -= _DecalMeshDepthBias * input.vmesh.positionCS.w;
+#else
+	input.vmesh.positionCS.z += _DecalMeshDepthBias * input.vmesh.positionCS.w;
+#endif
+}
+
 PackedVaryingsType Vert(AttributesMesh inputMesh)
 {
     VaryingsType varyingsType;
     varyingsType.vmesh = VertMesh(inputMesh);
+#if (SHADERPASS == SHADERPASS_DBUFFER_MESH)
+	MeshDecalsPositionZBias(varyingsType);
+#endif
     return PackVaryingsType(varyingsType);
 }
 
