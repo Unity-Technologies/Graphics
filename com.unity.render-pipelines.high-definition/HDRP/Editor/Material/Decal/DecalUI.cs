@@ -153,8 +153,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUIUtility.labelWidth = 0f;
             float normalBlendSrcValue = normalBlendSrc.floatValue;
             float maskBlendSrcValue =  maskBlendSrc.floatValue;
-            //float maskBlendModeValue = maskBlendMode.floatValue;
-            Decal.MaskBlendFlags maskBlendFlags = 0; //(Decal.MaskBlendFlags) maskBlendModeValue;              
+
+            Decal.MaskBlendFlags maskBlendFlags = (Decal.MaskBlendFlags)maskBlendMode.floatValue;              
 
             HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
             bool perChannelMask = hdrp.renderPipelineSettings.decalSettings.perChannelMask;
