@@ -4,14 +4,14 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [unreleased]
-- Update assembly definitions to output assemblies that match Unity naming convention (Unity.*).
-
 ## [3.0.0-preview]
 
 ### Fixed
 - Fixed an issue with distortion that was using previous frame instead of current frame
 - Fixed an issue where disabled light where not upgrade correctly to the new physical light unit system introduce in 2.0.5-preview
+
+### Changed
+- Update assembly definitions to output assemblies that match Unity naming convention (Unity.*).
 
 ## [2.0.5-preview]
 
