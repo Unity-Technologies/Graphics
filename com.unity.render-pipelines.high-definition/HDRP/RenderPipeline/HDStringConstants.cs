@@ -101,6 +101,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int _CookieAtlas = Shader.PropertyToID("_CookieAtlas");
         public static readonly int _CookieAtlasSize = Shader.PropertyToID("_CookieAtlasSize");
+        public static readonly int _CookieAtlasPadding = Shader.PropertyToID("_CookieAtlasPadding");
         public static readonly int _EnvCubemapTextures = Shader.PropertyToID("_EnvCubemapTextures");
         public static readonly int _Env2DTextures = Shader.PropertyToID("_Env2DTextures");
         public static readonly int _Env2DCaptureVP = Shader.PropertyToID("_Env2DCaptureVP");
@@ -323,6 +324,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _BlitScaleBiasRt = Shader.PropertyToID("_BlitScaleBiasRt");
         public static readonly int _BlitFaceIndex = Shader.PropertyToID("_BlitFaceIndex");
         public static readonly int _BlitTextureSize = Shader.PropertyToID("_BlitTextureSize");
+        public static readonly int _BlitPaddingSize = Shader.PropertyToID("_BlitPaddingSize");
 
         public static readonly int _WorldScales = Shader.PropertyToID("_WorldScales");
         public static readonly int _FilterKernels = Shader.PropertyToID("_FilterKernels");

@@ -167,7 +167,8 @@ namespace UnityEngine.Experimental.Rendering
                     false,
                     false,
                     true,
-                    generateMipMaps);
+                    generateMipMaps,
+                    name: "Texture2DAtlas");
 
             m_AtlasAllocator = new AtlasAllocator(width, height, powerOfTwoPadding);
         }

@@ -18,6 +18,7 @@ Shader "Hidden/HDRenderPipeline/Blit"
         uniform float _BlitMipLevel;
         uniform uint _BlitFaceIndex;
         uniform float2 _BlitTextureSize;
+        uniform uint _BlitPaddingSize;
 
         struct Attributes
         {
@@ -56,11 +57,10 @@ Shader "Hidden/HDRenderPipeline/Blit"
         Varyings VertQuadPadding(Attributes input)
         {
             Varyings output;
-            // 8 is the number of pixels to repeat times two
-            float2 paddingUV = ((_BlitTextureSize - 8) / _BlitTextureSize);
+            float2 paddingUV = 1 - ((_BlitTextureSize - _BlitPaddingSize) / _BlitTextureSize);
             output.positionCS = GetQuadVertexPosition(input.vertexID) * float4(_BlitScaleBiasRt.x, _BlitScaleBiasRt.y, 1, 1) + float4(_BlitScaleBiasRt.z, _BlitScaleBiasRt.w, 0, 0);
             output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
-            output.texcoord = GetQuadTexCoord(input.vertexID) * (_BlitScaleBias.xy + paddingUV) + _BlitScaleBias.zw + paddingUV / 2;
+            output.texcoord = GetQuadTexCoord(input.vertexID) * (_BlitScaleBias.xy + paddingUV) + _BlitScaleBias.zw - paddingUV / 2;
             return output;
         }
         
@@ -116,6 +116,18 @@ Shader "Hidden/HDRenderPipeline/Blit"
         float4 FragBilinearCube(VaryingsCube input) : SV_Target
         {
             return SAMPLE_TEXTURECUBE_LOD(_CubemapBlitTexture, sampler_LinearClamp, input.texcoord, _BlitMipLevel);
+        }
+
+        float4 FragNearestLatlongCube(Varyings input) : SV_Target
+        {
+            float3 coord = LatlongToDirectionCoordinate(input.texcoord);
+            return SAMPLE_TEXTURECUBE_LOD(_CubemapBlitTexture, sampler_PointClamp, coord, _BlitMipLevel);
+        }
+        
+        float4 FragBilinearLatlongCube(Varyings input) : SV_Target
+        {
+            float3 coord = LatlongToDirectionCoordinate(input.texcoord);
+            return SAMPLE_TEXTURECUBE_LOD(_CubemapBlitTexture, sampler_LinearClamp, coord, _BlitMipLevel);
         }
 
     ENDHLSL
@@ -209,6 +221,28 @@ Shader "Hidden/HDRenderPipeline/Blit"
             HLSLPROGRAM
                 #pragma vertex VertQuadPadding
                 #pragma fragment FragBilinearRepeat
+            ENDHLSL
+        }
+
+        // 8: Nearest Latlong cube
+        Pass
+        {
+            ZWrite Off ZTest Always Blend Off Cull Off
+
+            HLSLPROGRAM
+                #pragma vertex VertQuad
+                #pragma fragment FragNearestLatlongCube
+            ENDHLSL
+        }
+
+        // 9: Bilinear Latlong cube
+        Pass
+        {
+            ZWrite Off ZTest Always Blend Off Cull Off
+
+            HLSLPROGRAM
+                #pragma vertex VertQuad
+                #pragma fragment FragBilinearLatlongCube
             ENDHLSL
         }
 

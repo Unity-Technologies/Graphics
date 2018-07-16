@@ -2360,6 +2360,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 cmd.SetGlobalTexture(HDShaderIDs._CookieAtlas, m_CookieAtlas.AtlasTexture);
                 cmd.SetGlobalVector(HDShaderIDs._CookieAtlasSize, new Vector2(m_CookieAtlas.AtlasTexture.rt.width, m_CookieAtlas.AtlasTexture.rt.height));
+                cmd.SetGlobalInt(HDShaderIDs._CookieAtlasPadding, 64); //TODO: Hardcoded value
                 cmd.SetGlobalTexture(HDShaderIDs._EnvCubemapTextures, m_ReflectionProbeCache.GetTexCache());
                 cmd.SetGlobalTexture(HDShaderIDs._Env2DTextures, m_ReflectionPlanarProbeCache.GetTexCache());
                 cmd.SetGlobalMatrixArray(HDShaderIDs._Env2DCaptureVP, m_Env2DCaptureVP);

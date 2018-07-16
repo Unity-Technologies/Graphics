@@ -19,24 +19,27 @@ namespace UnityEngine.Experimental.Rendering
         void BlitCubemap(CommandBuffer cmd, Vector4 scaleBias, Texture texture)
         {
             int mipCount = GetTextureMipmapCount(texture);
+            
+            int padding = (int)Mathf.Pow(2, Mathf.Min(mipCount, 5)) * 2;
+            float padding_percent = padding / texture.width;
 
-            scaleBias.x /= 3;
-            scaleBias.y /= 2;
             for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
             {
                 cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                HDUtils.BlitCube(cmd, texture, new Vector4(1, 1, 0, 0), scaleBias, mipLevel, false);
+                HDUtils.BlitCube(cmd, texture, new Vector4(1 + padding_percent * 2, 1 + padding_percent * 2, - padding_percent, - padding_percent), scaleBias, mipLevel, true);
             }
         }
 
         void Blit2DTextureRepeat(CommandBuffer cmd, Vector4 scaleBias, Texture texture)
         {
             int mipCount = GetTextureMipmapCount(texture);
+
+            int padding = (int)Mathf.Pow(2, Mathf.Min(mipCount, 5)) * 2;
             
             for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
             {
                 cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                HDUtils.BlitPaddedQuad(cmd, texture, new Vector4(1, 1, 0, 0), scaleBias, mipLevel, true);
+                HDUtils.BlitPaddedQuad(cmd, texture, new Vector4(1, 1, 0, 0), scaleBias, mipLevel, true, padding);
             }
         }
 
@@ -49,16 +52,10 @@ namespace UnityEngine.Experimental.Rendering
 
         protected override void BlitTexture(CommandBuffer cmd, Vector4 scaleBias, Texture texture)
         {
+            // We handle ourself the 2D blit because cookies needs padding for trilinear filtering
             if (Is2D(texture))
-            {
-                // If the texture is in repeat mode, we blit it with a repeat padding to handle border filtering
-                if (texture.wrapMode == TextureWrapMode.Repeat)
-                    Blit2DTextureRepeat(cmd, scaleBias, texture);
-                else
-                    Blit2DTexture(cmd, scaleBias, texture);
-            }
+                Blit2DTextureRepeat(cmd, scaleBias, texture);
 
-            // 2D textures are handled by base.BlitTexture so here we blit CubeMaps
             if (IsCubemap(texture))
                 BlitCubemap(cmd, scaleBias, texture);
         }
@@ -68,12 +65,6 @@ namespace UnityEngine.Experimental.Rendering
             // This atlas only supports square textures
             if (height != width)
                 return false;
-
-            if (texture.wrapMode == TextureWrapMode.Repeat)
-            {
-                width += 8;
-                height += 8;
-            }
 
             // Compute the next highest power of two (ref https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2)
             int p = height;
@@ -97,7 +88,8 @@ namespace UnityEngine.Experimental.Rendering
                 // +-----+
                 // |0|1|2|
                 // +-----+
-                width *= 3;
+                // Correct Latlong texture size
+                width *= 2;
                 height *= 2;
             }
 
