@@ -2,7 +2,7 @@ Shader "HDRenderPipeline/TerrainLit"
 {
     Properties
     {
-        [HideInInspector] [Enum(Alpha, 0, Density, 1, Height, 2)] _LayerBlendMode("Layer Blend Mode", Int) = 0
+        [HideInInspector] [ToggleUI] _EnableHeightBlend("EnableHeightBlend", Float) = 0.0
         _HeightTransition("Height Transition", Range(0, 1.0)) = 0.0
 
         // TODO: support tri-planar?
@@ -47,7 +47,7 @@ Shader "HDRenderPipeline/TerrainLit"
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
     #pragma shader_feature _TERRAIN_8_LAYERS
-    #pragma shader_feature _ _TERRAIN_BLEND_DENSITY _TERRAIN_BLEND_HEIGHT
+    #pragma shader_feature _ _TERRAIN_BLEND_HEIGHT
     #pragma shader_feature _NORMALMAP
     #pragma shader_feature _MASKMAP
     // Sample normal in pixel shader when doing instancing

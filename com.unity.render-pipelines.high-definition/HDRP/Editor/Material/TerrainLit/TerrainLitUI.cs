@@ -11,16 +11,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         private class StylesLayer
         {
-            public readonly GUIContent layersText = new GUIContent("Inputs");
-            public readonly GUIContent layerMapMaskText = new GUIContent("Layer Mask", "Layer mask");
-            public readonly GUIContent layerBlendMode = new GUIContent("Layer Blend Mode", "Controls how terrain layers are blended.");
+            public readonly GUIContent enableHeightBlend = new GUIContent("Enable Height-based Blend", "Blend terrain layers based on height values.");
             public readonly GUIContent heightTransition = new GUIContent("Height Transition", "Size in world units of the smooth transition between layers.");
             public readonly GUIContent enableInstancedPerPixelNormal = new GUIContent("Enable Per-pixel Normal", "Enable per-pixel normal when the terrain uses instanced rendering.");
 
-            public readonly GUIContent diffuseTexture = new GUIContent("Diffuse", "Alpha: Density");
-            public readonly GUIContent tint = new GUIContent("Tint");
-            public readonly GUIContent enableDensity = new GUIContent("Enable Density");
-            public readonly GUIContent diffuseTextureWithoutDensity = new GUIContent("Diffuse");
+            public readonly GUIContent diffuseTexture = new GUIContent("Diffuse");
+            public readonly GUIContent colorTint = new GUIContent("Color Tint");
+            public readonly GUIContent opacityAsDensity = new GUIContent("Opacity as Density", "Enable Density Blend");
             public readonly GUIContent normalMapTexture = new GUIContent("Normal Map");
             public readonly GUIContent normalScale = new GUIContent("Normal Scale");
             public readonly GUIContent maskMapTexture = new GUIContent("Mask", "R: Metallic\nG: AO\nB: Height\nA: Smoothness");
@@ -46,8 +43,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
         }
 
-        MaterialProperty layerBlendMode;
-        const string kLayerBlendMode = "_LayerBlendMode";
+        MaterialProperty enableHeightBlend;
+        const string kEnableHeightBlend = "_EnableHeightBlend";
 
         // Height blend
         MaterialProperty heightTransition = null;
@@ -58,46 +55,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override void FindMaterialProperties(MaterialProperty[] props)
         {
-            layerBlendMode = FindProperty(kLayerBlendMode, props, false);
+            enableHeightBlend = FindProperty(kEnableHeightBlend, props, false);
             heightTransition = FindProperty(kHeightTransition, props, false);
             enableInstancedPerPixelNormal = FindProperty(kEnableInstancedPerPixelNormal, props, false);
-        }
-
-        // We use the user data to save a string that represent the referenced lit material
-        // so we can keep reference during serialization
-        void DoLayeringInputGUI()
-        {
-            EditorGUI.indentLevel++;
-            GUILayout.Label(styles.layersText, EditorStyles.boldLabel);
-
-            if (layerBlendMode != null)
-            {
-                m_MaterialEditor.ShaderProperty(layerBlendMode, styles.layerBlendMode);
-                if (layerBlendMode.floatValue == 2)
-                {
-                    EditorGUI.indentLevel++;
-                    m_MaterialEditor.ShaderProperty(heightTransition, styles.heightTransition);
-                    EditorGUI.indentLevel--;
-                }
-            }
-
-            EditorGUI.indentLevel--;
-        }
-
-        bool DoLayersGUI(AssetImporter materialImporter)
-        {
-            bool layerChanged = false;
-
-            GUI.changed = false;
-
-            DoLayeringInputGUI();
-
-            EditorGUILayout.Space();
-
-            layerChanged |= GUI.changed;
-            GUI.changed = false;
-
-            return layerChanged;
         }
 
         protected override bool ShouldEmissionBeEnabled(Material mat)
@@ -135,9 +95,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // TODO: planar/triplannar supprt
             //SetupLayersMappingKeywords(material);
 
-            int layerBlendMode = (int)material.GetFloat(kLayerBlendMode);
-            CoreUtils.SetKeyword(material, "_TERRAIN_BLEND_DENSITY", layerBlendMode == 1);
-            CoreUtils.SetKeyword(material, "_TERRAIN_BLEND_HEIGHT", layerBlendMode == 2);
+            bool enableHeightBlend = material.HasProperty(kEnableHeightBlend) && material.GetFloat(kEnableHeightBlend) > 0;
+            CoreUtils.SetKeyword(material, "_TERRAIN_BLEND_HEIGHT", enableHeightBlend);
 
             bool enableInstancedPerPixelNormal = material.GetFloat(kEnableInstancedPerPixelNormal) > 0.0f;
             CoreUtils.SetKeyword(material, "_TERRAIN_INSTANCED_PERPIXEL_NORMAL", enableInstancedPerPixelNormal);
@@ -159,6 +118,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.BeginChangeCheck();
             {
                 BaseMaterialPropertiesGUI();
+                if (enableHeightBlend != null)
+                {
+                    EditorGUI.indentLevel++;
+                    m_MaterialEditor.ShaderProperty(enableHeightBlend, styles.enableHeightBlend);
+                    if (enableHeightBlend.floatValue > 0)
+                    {
+                        EditorGUI.indentLevel++;
+                        m_MaterialEditor.ShaderProperty(heightTransition, styles.heightTransition);
+                        EditorGUI.indentLevel--;
+                    }
+                    EditorGUI.indentLevel--;
+                }
                 EditorGUILayout.Space();
             }
             if (EditorGUI.EndChangeCheck())
@@ -166,7 +137,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 optionsChanged = true;
             }
 
-            bool layerChanged = DoLayersGUI(materialImporter);
             bool enablePerPixelNormalChanged = false;
 
             EditorGUILayout.Space();
@@ -184,7 +154,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             EditorGUI.indentLevel--;
 
-            if (layerChanged || optionsChanged || enablePerPixelNormalChanged)
+            if (optionsChanged || enablePerPixelNormalChanged)
             {
                 foreach (var obj in m_MaterialEditor.targets)
                 {
@@ -205,9 +175,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         };
         private HeightParametrization m_HeightParametrization = HeightParametrization.Amplitude;
 
-        private static bool DoesTerrainUseMaskMaps(Terrain terrain)
+        private static bool DoesTerrainUseMaskMaps(TerrainLayer[] terrainLayers)
         {
-            var terrainLayers = terrain.terrainData.terrainLayers;
             for (int i = 0; i < terrainLayers.Length; ++i)
             {
                 if (terrainLayers[i].maskMapTexture != null)
@@ -218,43 +187,49 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         bool ITerrainLayerCustomUI.OnTerrainLayerGUI(TerrainLayer terrainLayer, Terrain terrain)
         {
-            if (!DoesTerrainUseMaskMaps(terrain))
+            var terrainLayers = terrain.terrainData.terrainLayers;
+            if (!DoesTerrainUseMaskMaps(terrainLayers))
                 return false;
 
-            var layerBlendMode = terrain.materialTemplate.GetFloat("_LayerBlendMode"); // Don't use the member field layerBlendMode as ShaderGUI.OnGUI might not be called if the material is folded.
-            bool densityUsed = layerBlendMode == 1;
-            bool heightUsed = layerBlendMode == 2;
-            
-            terrainLayer.diffuseTexture = EditorGUILayout.ObjectField(densityUsed ? styles.diffuseTexture : styles.diffuseTextureWithoutDensity, terrainLayer.diffuseTexture, typeof(Texture2D), false) as Texture2D;
+            // Don't use the member field enableHeightBlend as ShaderGUI.OnGUI might not be called if the material UI is folded.
+            bool heightBlend = terrain.materialTemplate.HasProperty(kEnableHeightBlend) && terrain.materialTemplate.GetFloat(kEnableHeightBlend) > 0;
+
+            terrainLayer.diffuseTexture = EditorGUILayout.ObjectField(styles.diffuseTexture, terrainLayer.diffuseTexture, typeof(Texture2D), false) as Texture2D;
             TerrainLayerUtility.ValidateDiffuseTextureUI(terrainLayer.diffuseTexture);
 
             var diffuseRemapMin = terrainLayer.diffuseRemapMin;
             var diffuseRemapMax = terrainLayer.diffuseRemapMax;
             EditorGUI.BeginChangeCheck();
 
+            bool enableDensity = false;
             if (terrainLayer.diffuseTexture != null)
             {
                 var rect = GUILayoutUtility.GetLastRect();
+                rect.height = 16;
                 rect.y += 16;
                 ++EditorGUI.indentLevel;
-                rect = EditorGUI.PrefixLabel(rect, styles.tint);
-                rect.width = 64;
-                rect.height = 16;
+                var tintRect = EditorGUI.PrefixLabel(rect, styles.colorTint);
                 --EditorGUI.indentLevel;
+                tintRect.width = 64;
                 var diffuseTint = new Color(diffuseRemapMax.x, diffuseRemapMax.y, diffuseRemapMax.z);
-                diffuseTint = EditorGUI.ColorField(rect, GUIContent.none, diffuseTint, true, false, false);
+                diffuseTint = EditorGUI.ColorField(tintRect, GUIContent.none, diffuseTint, true, false, false);
                 diffuseRemapMax.x = diffuseTint.r;
                 diffuseRemapMax.y = diffuseTint.g;
                 diffuseRemapMax.z = diffuseTint.b;
                 diffuseRemapMin.x = diffuseRemapMin.y = diffuseRemapMin.z = 0;
-            }
 
-            if (densityUsed)
-            {
-                bool enableDensity = EditorGUILayout.Toggle(styles.enableDensity, diffuseRemapMax.w == 1);
-                diffuseRemapMax.w = enableDensity ? 1 : 0;
-                diffuseRemapMin.w = terrainLayer.diffuseTexture == null && enableDensity ? 1 : 0;
+                if (!heightBlend)
+                {
+                    rect.y += 16;
+                    ++EditorGUI.indentLevel;
+                    var densityToggleRect = EditorGUI.PrefixLabel(rect, styles.opacityAsDensity);
+                    --EditorGUI.indentLevel;
+                    densityToggleRect.width = 64;
+                    enableDensity = EditorGUI.Toggle(densityToggleRect, diffuseRemapMin.w > 0);
+                }
             }
+            diffuseRemapMax.w = 1;
+            diffuseRemapMin.w = enableDensity ? 1 : 0;
 
             if (EditorGUI.EndChangeCheck())
             {
@@ -273,7 +248,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.Space();
             }
 
-            terrainLayer.maskMapTexture = EditorGUILayout.ObjectField(heightUsed ? styles.maskMapTexture : styles.maskMapTextureWithoutHeight, terrainLayer.maskMapTexture, typeof(Texture2D), false) as Texture2D;
+            terrainLayer.maskMapTexture = EditorGUILayout.ObjectField(heightBlend ? styles.maskMapTexture : styles.maskMapTextureWithoutHeight, terrainLayer.maskMapTexture, typeof(Texture2D), false) as Texture2D;
             TerrainLayerUtility.ValidateMaskMapTextureUI(terrainLayer.maskMapTexture);
 
             var maskMapRemapMin = terrainLayer.maskMapRemapMin;
@@ -296,7 +271,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     EditorGUILayout.MinMaxSlider(s_Styles.ao, ref min, ref max, 0, 1);
                     maskMapRemapMin.y = min; maskMapRemapMax.y = max;
 
-                    if (heightUsed)
+                    if (heightBlend)
                     {
                         EditorGUILayout.LabelField(styles.height);
                         ++EditorGUI.indentLevel;
@@ -304,7 +279,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         if (m_HeightParametrization == HeightParametrization.Amplitude)
                         {
                             // (height - heightBase) * amplitude
-                            float amplitude = maskMapRemapMax.z - maskMapRemapMin.z;
+                            float amplitude = Mathf.Max(maskMapRemapMax.z - maskMapRemapMin.z, Mathf.Epsilon); // to avoid divide by zero
                             float heightBase = -maskMapRemapMin.z / amplitude;
                             amplitude = EditorGUILayout.FloatField(styles.heightAmplitude, amplitude * 100) / 100;
                             heightBase = EditorGUILayout.FloatField(styles.heightBase, heightBase);
@@ -327,7 +302,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     maskMapRemapMin.x = maskMapRemapMax.x = EditorGUILayout.Slider(s_Styles.metallic, maskMapRemapMin.x, 0, 1);
                     maskMapRemapMin.y = maskMapRemapMax.y = EditorGUILayout.Slider(s_Styles.ao, maskMapRemapMin.y, 0, 1);
-                    if (heightUsed)
+                    if (heightBlend)
                         maskMapRemapMin.z = maskMapRemapMax.z = EditorGUILayout.FloatField(s_Styles.heightCm, maskMapRemapMin.z * 100) / 100;
                     maskMapRemapMin.w = maskMapRemapMax.w = EditorGUILayout.Slider(s_Styles.smoothness, maskMapRemapMin.w, 0, 1);
                 }
