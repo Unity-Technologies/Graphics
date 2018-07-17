@@ -28,6 +28,7 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUILayout.PropertyField(d.drawDistance, _.GetContent("Draw Distance"));
             EditorGUILayout.PropertyField(d.atlasWidth, _.GetContent("Atlas Width"));
             EditorGUILayout.PropertyField(d.atlasHeight, _.GetContent("Atlas Height"));
+            EditorGUILayout.PropertyField(d.perChannelMask, _.GetContent("Mask map channel selection"));
             --EditorGUI.indentLevel;
         }
     }

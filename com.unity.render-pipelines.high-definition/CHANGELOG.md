@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Exposed shadow budget parameters in HDRP asset
 - Add an option to generate an emissive mesh for area lights (currently rectangle light only). The mesh fits the size, intensity and color of the light.
 - Add an option to the HDRP asset to increase the resolution of volumetric lighting.
+- Add an decal mask map channel selection mode.
 - Add additional ligth unit support for punctual light (Lumens, Candela) and area lights (Lumens, Luminance)
 - Add dedicated Gizmo for the box Influence volume of HDReflectionProbe / PlanarReflectionProbe
 
