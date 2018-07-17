@@ -7,6 +7,7 @@ namespace UnityEditor.Experimental.Rendering
         public SerializedProperty root;
 
         public SerializedProperty cookieAtlasSize;
+        public SerializedProperty cookieAtlasMipPadding;
         public SerializedProperty reflectionProbeCacheSize;
         public SerializedProperty reflectionCubemapSize;
         public SerializedProperty reflectionCacheCompressed;
@@ -21,6 +22,7 @@ namespace UnityEditor.Experimental.Rendering
             this.root = root;
 
             cookieAtlasSize = root.Find((GlobalLightLoopSettings s) => s.cookieAtlasSize);
+            cookieAtlasMipPadding = root.Find((GlobalLightLoopSettings s) => s.cookieAtlasMipPadding);
 
             reflectionProbeCacheSize = root.Find((GlobalLightLoopSettings s) => s.reflectionProbeCacheSize);
             reflectionCubemapSize = root.Find((GlobalLightLoopSettings s) => s.reflectionCubemapSize);

@@ -8,33 +8,39 @@ namespace UnityEngine.Experimental.Rendering
 {
     public class PowerOfTwoTextureAtlas : Texture2DAtlas
     {
-        public PowerOfTwoTextureAtlas(int size, RenderTextureFormat format, bool generateMipMaps = true, FilterMode filterMode = FilterMode.Point)
+        int m_MipPadding;
+
+        public PowerOfTwoTextureAtlas(int size, int mipPadding, RenderTextureFormat format, bool generateMipMaps = true, FilterMode filterMode = FilterMode.Point)
             : base(size, size, format, generateMipMaps, filterMode, true)
         {
+            m_MipPadding = mipPadding;
+
             // Check if size is a power of two
             if ((size & (size - 1)) != 0)
                 Debug.Assert(false, "Power of two atlas was constructed with non power of two size: " + size);
+        }
+
+        int GetTexturePadding(int mipCount)
+        {
+            return (int)Mathf.Pow(2, Mathf.Min(mipCount, m_MipPadding)) * 2;
         }
         
         void BlitCubemap(CommandBuffer cmd, Vector4 scaleBias, Texture texture)
         {
             int mipCount = GetTextureMipmapCount(texture);
+            int padding = GetTexturePadding(mipCount);
             
-            int padding = (int)Mathf.Pow(2, Mathf.Min(mipCount, 5)) * 2;
-            float padding_percent = padding / texture.width;
-
             for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
             {
                 cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                HDUtils.BlitCube(cmd, texture, new Vector4(1 + padding_percent * 2, 1 + padding_percent * 2, - padding_percent, - padding_percent), scaleBias, mipLevel, true);
+                HDUtils.BlitCubeLatlong(cmd, texture, new Vector4(1, 1, 0 ,0), scaleBias, mipLevel, true, padding);
             }
         }
 
         void Blit2DTextureRepeat(CommandBuffer cmd, Vector4 scaleBias, Texture texture)
         {
             int mipCount = GetTextureMipmapCount(texture);
-
-            int padding = (int)Mathf.Pow(2, Mathf.Min(mipCount, 5)) * 2;
+            int padding = GetTexturePadding(mipCount);
             
             for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
             {
@@ -66,19 +72,9 @@ namespace UnityEngine.Experimental.Rendering
             if (height != width)
                 return false;
 
-            // Compute the next highest power of two (ref https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2)
-            int p = height;
-            p--;
-            p |= p >> 1;
-            p |= p >> 2;
-            p |= p >> 4;
-            p |= p >> 8;
-            p |= p >> 16;
-            p++;
-
             // Change the width and height of the texture to be power of two
-            width = p;
-            height = p;
+            width = Mathf.NextPowerOfTwo(width);
+            height = Mathf.NextPowerOfTwo(height);
 
             if (IsCubemap(texture))
             {

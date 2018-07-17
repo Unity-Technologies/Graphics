@@ -130,6 +130,19 @@ Shader "Hidden/HDRenderPipeline/Blit"
             return SAMPLE_TEXTURECUBE_LOD(_CubemapBlitTexture, sampler_LinearClamp, coord, _BlitMipLevel);
         }
 
+
+        float4 FragNearestOctahedralCube(Varyings input) : SV_Target
+        {
+            float3 coord = LatlongToDirectionCoordinate(input.texcoord);
+            return SAMPLE_TEXTURECUBE_LOD(_CubemapBlitTexture, sampler_PointClamp, coord, _BlitMipLevel);
+        }
+        
+        float4 FragBilinearOctahedralCube(Varyings input) : SV_Target
+        {
+            float3 coord = LatlongToDirectionCoordinate(input.texcoord);
+            return SAMPLE_TEXTURECUBE_LOD(_CubemapBlitTexture, sampler_LinearClamp, coord, _BlitMipLevel);
+        }
+
     ENDHLSL
 
     SubShader
@@ -243,6 +256,28 @@ Shader "Hidden/HDRenderPipeline/Blit"
             HLSLPROGRAM
                 #pragma vertex VertQuad
                 #pragma fragment FragBilinearLatlongCube
+            ENDHLSL
+        }
+
+        // 10: Nearest Octahedral cube
+        Pass
+        {
+            ZWrite Off ZTest Always Blend Off Cull Off
+
+            HLSLPROGRAM
+                #pragma vertex VertQuad
+                #pragma fragment FragNearestOctahedralCube
+            ENDHLSL
+        }
+
+        // 11: Bilinear Octahedral cube
+        Pass
+        {
+            ZWrite Off ZTest Always Blend Off Cull Off
+
+            HLSLPROGRAM
+                #pragma vertex VertQuad
+                #pragma fragment FragBilinearOctahedralCube
             ENDHLSL
         }
 

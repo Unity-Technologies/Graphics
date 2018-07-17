@@ -230,17 +230,35 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 6 : 7, MeshTopology.Quads, 4, 1, s_PropertyBlock);
         }
 
-        public static void BlitCube(CommandBuffer cmd, Texture source, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear)
+        public static void BlitCubeLatlong(CommandBuffer cmd, Texture source, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear, int padding)
         {
             s_PropertyBlock.SetTexture(HDShaderIDs._CubemapBlitTexture, source);
             s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBiasTex);
             s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
             s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevelTex);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitTextureSize, new Vector2(source.width, source.height));
+            s_PropertyBlock.SetInt(HDShaderIDs._BlitPaddingSize, padding);
 
             for (int i = 0; i < 6; i++)
             {
                 s_PropertyBlock.SetInt(HDShaderIDs._BlitFaceIndex, i);
                 cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 8 : 9, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+            }
+        }
+        
+        public static void BlitCubeOctahedral(CommandBuffer cmd, Texture source, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear, int padding)
+        {
+            s_PropertyBlock.SetTexture(HDShaderIDs._CubemapBlitTexture, source);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBiasTex);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
+            s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevelTex);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitTextureSize, new Vector2(source.width, source.height));
+            s_PropertyBlock.SetInt(HDShaderIDs._BlitPaddingSize, padding);
+
+            for (int i = 0; i < 6; i++)
+            {
+                s_PropertyBlock.SetInt(HDShaderIDs._BlitFaceIndex, i);
+                cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 10 : 11, MeshTopology.Quads, 4, 1, s_PropertyBlock);
             }
         }
 
