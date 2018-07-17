@@ -262,7 +262,7 @@ namespace UnityEditor.VFX
         public VFXCoordinateSpace space
         {
             get { return m_Space; }
-            set { m_Space = value; }
+            set { m_Space = value; Modified(); }
         }
 
         public override bool CanBeCompiled()
