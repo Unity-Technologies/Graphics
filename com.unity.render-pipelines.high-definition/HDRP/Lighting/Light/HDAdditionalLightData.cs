@@ -56,11 +56,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // To be able to have correct default values for our lights and to also control the conversion of intensity from the light editor (so it is compatible with GI)
         // we add intensity (for each type of light we want to manage).
         [System.Obsolete("directionalIntensity is deprecated, use intensity and lightUnit instead")]
-        public float directionalIntensity;
+        public float directionalIntensity = k_DefaultDirectionalLightIntensity;
         [System.Obsolete("punctualIntensity is deprecated, use intensity and lightUnit instead")]
-        public float punctualIntensity;
+        public float punctualIntensity = k_DefaultPunctualLightIntensity;
         [System.Obsolete("areaIntensity is deprecated, use intensity and lightUnit instead")]
-        public float areaIntensity;
+        public float areaIntensity = k_DefaultAreaLightIntensity;
 
         public const float k_DefaultDirectionalLightIntensity = Mathf.PI; // In lux
         public const float k_DefaultPunctualLightIntensity = 600.0f;      // Light default to 600 lumen, i.e ~48 candela
@@ -73,7 +73,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         // Only for Spotlight, should be hide for other light
-        public bool enableSpotReflector;
+        public bool enableSpotReflector = false;
 
         [Range(0.0f, 100.0f)]
         public float m_InnerSpotPercent; // To display this field in the UI this need to be public
@@ -84,55 +84,55 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         [Range(0.0f, 1.0f)]
-        public float lightDimmer;
+        public float lightDimmer = 1.0f;
 
         [Range(0.0f, 1.0f)]
-        public float volumetricDimmer;
+        public float volumetricDimmer = 1.0f;
 
         // Used internally to convert any light unit input into light intensity
-        public LightUnit lightUnit;
+        public LightUnit lightUnit = LightUnit.Lumen;
 
         // Not used for directional lights.
-        public float fadeDistance;
+        public float fadeDistance = 10000.0f;
 
-        public bool affectDiffuse;
-        public bool affectSpecular;
+        public bool affectDiffuse = true;
+        public bool affectSpecular = true;
 
         // This property work only with shadow mask and allow to say we don't render any lightMapped object in the shadow map
-        public bool nonLightmappedOnly;
+        public bool nonLightmappedOnly = false;
 
-        public LightTypeExtent lightTypeExtent;
+        public LightTypeExtent lightTypeExtent = LightTypeExtent.Punctual;
 
         // Only for Spotlight, should be hide for other light
-        public SpotLightShape spotLightShape;
+        public SpotLightShape spotLightShape = SpotLightShape.Cone;
 
         // Only for Rectangle/Line/box projector lights
-        public float shapeWidth;
+        public float shapeWidth = 0.5f;
 
         // Only for Rectangle/box projector lights
-        public float shapeHeight;
+        public float shapeHeight = 0.5f;
 
         // Only for pyramid projector
-        public float aspectRatio;
+        public float aspectRatio = 1.0f;
 
         // Only for Sphere/Disc
         public float shapeRadius;
 
         // Only for Spot/Point - use to cheaply fake specular spherical area light
         [Range(0.0f, 1.0f)]
-        public float maxSmoothness;
+        public float maxSmoothness = 1.0f;
 
         // If true, we apply the smooth attenuation factor on the range attenuation to get 0 value, else the attenuation is just inverse square and never reach 0
-        public bool applyRangeAttenuation;
+        public bool applyRangeAttenuation = true;
 
         // This is specific for the LightEditor GUI and not use at runtime
-        public bool useOldInspector;
-        public bool featuresFoldout;
-        public bool showAdditionalSettings;
+        public bool useOldInspector = false;
+        public bool featuresFoldout = true;
+        public bool showAdditionalSettings = false;
         public float displayLightIntensity;
 
         // When true, a mesh will be display to represent the area light (Can only be change in editor, component is added in Editor)
-        public bool displayAreaLightEmissiveMesh;
+        public bool displayAreaLightEmissiveMesh = false;
 
         // Duplication of HDLightEditor.k_MinAreaWidth, maybe do something about that
         const float k_MinAreaWidth = 0.01f; // Provide a small size of 1cm for line light
@@ -140,16 +140,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if UNITY_EDITOR
         // We need these old states to make timeline and the animator record the intensity value and the emissive mesh changes (editor-only)
         [System.NonSerialized]
-        TimelineWorkaround timelineWorkaround;
+        TimelineWorkaround timelineWorkaround = new TimelineWorkaround();
 #endif
 
         // For light that used the old intensity system we update them
         [System.NonSerialized]
-        bool needsIntensityUpdate_1_0;
+        bool needsIntensityUpdate_1_0 = false;
 
         // Runtime datas used to compute light intensity
-        Light       _light;
-        Light       m_Light
+        Light _light;
+        Light m_Light
         {
             get
             {
@@ -171,7 +171,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         SetLightIntensityPunctual(intensity);
                         break;
                     case LightTypeExtent.Line:
-                            m_Light.intensity = LightUtils.CalculateLineLightLumenToLuminance(intensity, shapeWidth);
+                        m_Light.intensity = LightUtils.CalculateLineLightLumenToLuminance(intensity, shapeWidth);
                         break;
                     case LightTypeExtent.Rectangle:
                         m_Light.intensity = LightUtils.ConvertRectLightLumenToLuminance(intensity, shapeWidth, shapeHeight);
@@ -181,9 +181,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             else
                 m_Light.intensity = intensity;
 
-        #if UNITY_EDITOR
+#if UNITY_EDITOR
             m_Light.SetLightDirty(); // Should be apply only to parameter that's affect GI, but make the code cleaner
-        #endif
+#endif
         }
 
         void SetLightIntensityPunctual(float intensity)
@@ -366,9 +366,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             if (m_Light.color != timelineWorkaround.oldLightColor
-                || transform.localScale !=timelineWorkaround.oldLocalScale
+                || transform.localScale != timelineWorkaround.oldLocalScale
                 || displayAreaLightEmissiveMesh != timelineWorkaround.oldDisplayAreaLightEmissiveMesh
-                || lightTypeExtent !=timelineWorkaround.oldLightTypeExtent
+                || lightTypeExtent != timelineWorkaround.oldLightTypeExtent
                 || m_Light.colorTemperature != timelineWorkaround.oldLightColorTemperature)
             {
                 UpdateAreaLightEmissiveMesh();
@@ -398,8 +398,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void UpdateAreaLightEmissiveMesh()
         {
-            MeshRenderer  emissiveMeshRenderer = GetComponent<MeshRenderer>();
-            MeshFilter    emissiveMeshFilter = GetComponent<MeshFilter>();
+            MeshRenderer emissiveMeshRenderer = GetComponent<MeshRenderer>();
+            MeshFilter emissiveMeshFilter = GetComponent<MeshFilter>();
 
             bool displayEmissiveMesh = IsAreaLight(lightTypeExtent) && lightTypeExtent != LightTypeExtent.Line && displayAreaLightEmissiveMesh;
 
@@ -419,7 +419,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     DestroyImmediate(emissiveMeshFilter);
 
                 // We don't have anything to do left if the dislay emissive mesh option is disabled
-                return ;
+                return;
             }
 
             Vector3 lightSize;
@@ -460,45 +460,41 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
 #endif
-        private void Awake()
-        {
-            Reset(); //init
-        }
 
-        public void Reset()
+        public void CopyTo(HDAdditionalLightData data)
         {
-            directionalIntensity = k_DefaultDirectionalLightIntensity;
-            punctualIntensity = k_DefaultPunctualLightIntensity;
-            areaIntensity = k_DefaultAreaLightIntensity;
-            enableSpotReflector = false;
-            m_InnerSpotPercent = 0.0f;
-            lightDimmer = 1.0f;
-            volumetricDimmer = 1.0f;
-            lightUnit = LightUnit.Lumen;
-            fadeDistance = 10000.0f;
-            affectDiffuse = true;
-            affectSpecular = true;
-            nonLightmappedOnly = false;
-            lightTypeExtent = LightTypeExtent.Punctual;
-            spotLightShape = SpotLightShape.Cone;
-            shapeWidth = 0.5f;
-            shapeHeight = 0.5f;
-            aspectRatio = 1.0f;
-            shapeRadius = 0.0f;
-            maxSmoothness = 1.0f;
-            applyRangeAttenuation = true;
-            useOldInspector = false;
-            featuresFoldout = true;
-            showAdditionalSettings = false;
-            displayLightIntensity = 0f;
-            displayAreaLightEmissiveMesh = false;
-            needsIntensityUpdate_1_0 = false;
+#pragma warning disable 0618
+            data.directionalIntensity = directionalIntensity;
+            data.punctualIntensity = punctualIntensity;
+            data.areaIntensity = areaIntensity;
+#pragma warning restore 0618
+            data.enableSpotReflector = enableSpotReflector;
+            data.m_InnerSpotPercent = m_InnerSpotPercent;
+            data.lightDimmer = lightDimmer;
+            data.volumetricDimmer = volumetricDimmer;
+            data.lightUnit = lightUnit;
+            data.fadeDistance = fadeDistance;
+            data.affectDiffuse = affectDiffuse;
+            data.affectSpecular = affectSpecular;
+            data.nonLightmappedOnly = nonLightmappedOnly;
+            data.lightTypeExtent = lightTypeExtent;
+            data.spotLightShape = spotLightShape;
+            data.shapeWidth = shapeWidth;
+            data.shapeHeight = shapeHeight;
+            data.aspectRatio = aspectRatio;
+            data.shapeRadius = shapeRadius;
+            data.maxSmoothness = maxSmoothness;
+            data.applyRangeAttenuation = applyRangeAttenuation;
+            data.useOldInspector = useOldInspector;
+            data.featuresFoldout = featuresFoldout;
+            data.showAdditionalSettings = showAdditionalSettings;
+            data.displayLightIntensity = displayLightIntensity;
+            data.displayAreaLightEmissiveMesh = displayAreaLightEmissiveMesh;
+            data.needsIntensityUpdate_1_0 = needsIntensityUpdate_1_0;
 
 #if UNITY_EDITOR
-            timelineWorkaround = new TimelineWorkaround();
+            data.timelineWorkaround = timelineWorkaround;
 #endif
-
-            InitDefaultHDAdditionalLightData(this);
         }
 
         // As we have our own default value, we need to initialize the light intensity correctly
@@ -539,7 +535,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             light.lightShadowCasterMode = LightShadowCasterMode.Everything;
         }
 
-        public void OnBeforeSerialize() {}
+        public void OnBeforeSerialize() { }
 
         public void OnAfterDeserialize()
         {
@@ -572,7 +568,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (needsIntensityUpdate_1_0)
             {
-// Pragma to disable the warning got by using deprecated properties (areaIntensity, directionalIntensity, ...)
+                // Pragma to disable the warning got by using deprecated properties (areaIntensity, directionalIntensity, ...)
 #pragma warning disable 0618
                 switch (lightTypeExtent)
                 {
