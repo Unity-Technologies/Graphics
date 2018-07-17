@@ -55,6 +55,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        public bool perChannelMask
+        {
+            get
+            {
+                HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+                if (hdrp != null)
+                {
+                    return hdrp.renderPipelineSettings.decalSettings.perChannelMask;
+                }
+                return false;
+            }
+        }
+
         public Camera CurrentCamera
         {
             get
@@ -163,6 +176,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_Blend = m_Material.GetFloat("_DecalBlend");
                 m_AlbedoContribution = m_Material.GetFloat("_AlbedoMode");
                 m_BaseColor = m_Material.GetVector("_BaseColor");
+                m_BlendParams = new Vector3(m_Material.GetFloat("_NormalBlendSrc"), m_Material.GetFloat("_MaskBlendSrc"), m_Material.GetFloat("_MaskBlendMode"));                
             }
 
             public DecalSet(Material material)
@@ -370,6 +384,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 Vector3 cameraPos = instance.CurrentCamera.transform.position;
                 Matrix4x4 worldToView = LightLoop.WorldToCamera(instance.CurrentCamera);
+                bool perChannelMask = instance.perChannelMask;
                 for (int resultIndex = 0; resultIndex < m_NumResults; resultIndex++)
                 {
                     int decalIndex = m_ResultIndices[resultIndex];
@@ -392,7 +407,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             m_DecalDatas[m_DecalDatasCount].worldToDecal = decalToWorldBatch[instanceCount].inverse;
                             m_DecalDatas[m_DecalDatasCount].normalToWorld = normalToWorldBatch[instanceCount];
                             m_DecalDatas[m_DecalDatasCount].baseColor = m_BaseColor;
-
+                            m_DecalDatas[m_DecalDatasCount].blendParams = m_BlendParams;
+                            if(!perChannelMask)
+                            {
+                                m_DecalDatas[m_DecalDatasCount].blendParams.z = (float)Decal.MaskBlendFlags.Smoothness; 
+                            }
+                                                        
                             // we have not allocated the textures in atlas yet, so only store references to them
                             m_DiffuseTextureScaleBias[m_DecalDatasCount] = m_Diffuse;
                             m_NormalTextureScaleBias[m_DecalDatasCount] = m_Normal;
@@ -459,17 +479,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     return;
                 int batchIndex = 0;
                 int totalToDraw = m_NumResults;
+                HDRenderPipelineAsset hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+                bool perChannelMask = hdrp.renderPipelineSettings.decalSettings.perChannelMask;
+                int shaderPass = perChannelMask ? (int)m_Material.GetFloat("_MaskBlendMode") : (int)Decal.MaskBlendFlags.Smoothness; // relies on the order shader passes are declared in decal.shader and decalUI.cs
+              
                 for (; batchIndex < m_NumResults / kDrawIndexedBatchSize; batchIndex++)
                 {
                     m_PropertyBlock.SetMatrixArray(HDShaderIDs._NormalToWorldID, m_NormalToWorld[batchIndex]);
-                    cmd.DrawMeshInstanced(m_DecalMesh, 0, KeyMaterial, 0, m_DecalToWorld[batchIndex], kDrawIndexedBatchSize, m_PropertyBlock);
+                    cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Material, shaderPass, m_DecalToWorld[batchIndex], kDrawIndexedBatchSize, m_PropertyBlock);
                     totalToDraw -= kDrawIndexedBatchSize;
                 }
 
                 if (totalToDraw > 0)
                 {
                     m_PropertyBlock.SetMatrixArray(HDShaderIDs._NormalToWorldID, m_NormalToWorld[batchIndex]);
-                    cmd.DrawMeshInstanced(m_DecalMesh, 0, KeyMaterial, 0, m_DecalToWorld[batchIndex], totalToDraw, m_PropertyBlock);
+                    cmd.DrawMeshInstanced(m_DecalMesh, 0, m_Material, shaderPass, m_DecalToWorld[batchIndex], totalToDraw, m_PropertyBlock);
                 }
             }
 
@@ -507,6 +531,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             private float m_Blend = 0;
             private float m_AlbedoContribution = 0;
             private Vector4 m_BaseColor;
+            private Vector3 m_BlendParams;
+            
 
             TextureScaleBias m_Diffuse = new TextureScaleBias();
             TextureScaleBias m_Normal = new TextureScaleBias();

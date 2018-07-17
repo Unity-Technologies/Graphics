@@ -95,7 +95,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void Update()
+        public void LateUpdate()
         {
             if (m_Handle != null)
             {
