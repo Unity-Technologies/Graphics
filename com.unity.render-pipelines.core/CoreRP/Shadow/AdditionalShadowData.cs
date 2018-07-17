@@ -3,8 +3,12 @@ namespace UnityEngine.Experimental.Rendering
     [RequireComponent(typeof(Light))]
     public class AdditionalShadowData : MonoBehaviour
     {
-        [HideInInspector]
-        public float version = 1.0f;
+// Currently m_Version is not used and produce a warning, remove these pragmas at the next version incrementation
+#pragma warning disable 414
+        [SerializeField]
+        [UnityEngine.Serialization.FormerlySerializedAs("version")]
+        private int m_Version = 1;
+#pragma warning restore 414
 
         public const int DefaultShadowResolution = 512;
 
@@ -32,7 +36,7 @@ namespace UnityEngine.Experimental.Rendering
         [Range(0.0F, 10.0F)]
         public float normalBiasScale    = 1.0f;
         public bool sampleBiasScale     = true;
-        public bool edgeLeakFixup       = true;
+        public bool edgeLeakFixup       = false; // Causes large banding artifacts
         public bool edgeToleranceNormal = true;
         [Range(0.0F, 1.0F)]
         public float edgeTolerance      = 1.0f;

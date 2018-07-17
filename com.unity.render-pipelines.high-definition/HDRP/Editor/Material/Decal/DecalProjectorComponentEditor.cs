@@ -80,6 +80,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_DecalProjectorComponent.OnMaterialChange -= OnMaterialChange;
         }
 
+        private void OnDestroy()
+        {
+            DestroyImmediate(m_MaterialEditor);
+        }
+
         public void OnMaterialChange()
         {
             // Update material editor with the new material

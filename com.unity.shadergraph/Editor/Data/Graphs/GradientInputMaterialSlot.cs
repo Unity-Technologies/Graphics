@@ -14,7 +14,7 @@ namespace UnityEditor.ShaderGraph
         Gradient m_Value = new Gradient();
 
         [SerializeField]
-        Gradient m_DefaultValue;
+        Gradient m_DefaultValue = new Gradient();
 
         public GradientInputMaterialSlot()
         {
