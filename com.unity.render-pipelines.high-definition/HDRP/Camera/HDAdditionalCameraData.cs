@@ -37,19 +37,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             None
         };
 
-        public ClearColorMode clearColorMode;
+        public ClearColorMode clearColorMode = ClearColorMode.Sky;
         [ColorUsage(true, true)]
-        public Color backgroundColorHDR;
-        public bool clearDepth;
+        public Color backgroundColorHDR = new Color(0.025f, 0.07f, 0.19f, 0.0f);
+        public bool clearDepth = true;
 
-        public RenderingPath renderingPath;
+        public RenderingPath renderingPath = RenderingPath.Default;
         [Tooltip("Layer Mask used for the volume interpolation for this camera.")]
-        public LayerMask volumeLayerMask;
+        public LayerMask volumeLayerMask = -1;
 
         // Physical parameters
-        public float aperture;
-        public float shutterSpeed;
-        public float iso;
+        public float aperture = 8f;
+        public float shutterSpeed = 1f / 200f;
+        public float iso = 400f;
 
         // To be able to turn on/off FrameSettings properties at runtime for debugging purpose without affecting the original one
         // we create a runtime copy (m_ActiveFrameSettings that is used, and any parametrization is done on serialized frameSettings)
@@ -68,30 +68,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         bool m_IsDebugRegistered = false;
         string m_CameraRegisterName;
 
-        // When we are a preview, there is no way inside Unity to make a disctinctoin between camera preview and material preview.
+        // When we are a preview, there is no way inside Unity to make a distinction between camera preview and material preview.
         // This property allow to say that we are an editor camera preview when the type is preview.
         public bool isEditorCameraPreview { get; set; }
 
-        private void Awake()
+        // This is use to copy data into camera for the Reset() workflow in camera editor
+        public void CopyTo(HDAdditionalCameraData data)
         {
-            Init();
-        }
+            data.clearColorMode = clearColorMode;
+            data.backgroundColorHDR = backgroundColorHDR;
+            data.clearDepth = clearDepth;
+            data.renderingPath = renderingPath;
+            data.volumeLayerMask = volumeLayerMask;
+            data.aperture = aperture;
+            data.shutterSpeed = shutterSpeed;
+            data.iso = iso;
 
-        public void Reset()
-        {
-            Init();
-        }
+            m_FrameSettings.CopyTo(data.m_FrameSettings);
+            m_FrameSettingsRuntime.CopyTo(data.m_FrameSettingsRuntime);
+            data.m_frameSettingsIsDirty = true; // Let's be sure it is dirty for update
 
-        private void Init()
-        {
-            clearColorMode = ClearColorMode.Sky;
-            backgroundColorHDR = new Color(0.025f, 0.07f, 0.19f, 0.0f);
-            clearDepth = true;
-            renderingPath = RenderingPath.Default;
-            volumeLayerMask = -1;
-            aperture = 8f;
-            shutterSpeed = 1f / 200f;
-            iso = 400f;
+            // We must not copy the following
+            //data.m_IsDebugRegistered = m_IsDebugRegistered;
+            //data.m_CameraRegisterName = m_CameraRegisterName;
+            //data.isEditorCameraPreview = isEditorCameraPreview;
         }
 
         // This is the function use outside to access FrameSettings. It return the current state of FrameSettings for the camera
