@@ -243,7 +243,7 @@ namespace UnityEditor.VFX.Test
                 while (Time.frameCount != expectedFrameIndex)
                 {
                     //EditorWindow.GetWindow(typeof(GameView)).Focus();
-                    UpdateScene(scene, (VFXManager.frameIndex - startFrameIndex) * frequency);
+                    UpdateScene(scene, (Time.frameCount - startFrameIndex) * frequency);
                     Time.captureFramerate = 20;
                     scene.camera.Render();
                     yield return null;
