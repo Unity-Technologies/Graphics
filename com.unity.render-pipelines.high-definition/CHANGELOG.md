@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed an issue with distortion that was using previous frame instead of current frame
 - Fixed an issue where disabled light where not upgrade correctly to the new physical light unit system introduce in 2.0.5-preview
+- Fixed an issue when manipulating a lot of decals, it was displaying a lot of errors in the inspector
+- Fixed an issue with PreIntegratedFGD texture being sometimes destroyed and not regenerated causing rendering to break
 - PostProcess input buffers are not copied anymore on PC if the viewport size matches the final render target size
 
 ## [2.0.5-preview]
