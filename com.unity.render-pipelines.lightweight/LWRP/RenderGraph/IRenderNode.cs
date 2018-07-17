@@ -5,7 +5,9 @@ namespace RenderGraph
 {
     public interface IRenderNode
     {
+        // Maybe Declare or DeclareResources
         void Setup(ref ResourceBuilder builder);
-        void Run(ref ResourceManager r, ScriptableRenderContext context);
+        // Maybe Record or RecordCommands
+        void Run(ref ResourceContext r, ScriptableRenderContext context);
     }
 }

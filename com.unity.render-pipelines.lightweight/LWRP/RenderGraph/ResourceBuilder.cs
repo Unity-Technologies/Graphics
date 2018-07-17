@@ -6,17 +6,17 @@ namespace RenderGraph
 {
     public struct ResourceBuilder
     {
-        public VirtualResource<T> Read<T>()
+        public Resource<AttachmentIdentifier> ReadAttachment()
         {
             throw new System.NotImplementedException();
         }
 
-        public VirtualResource<T> Write<T>()
+        public Resource<AttachmentIdentifier> WriteAttachment()
         {
             throw new System.NotImplementedException();
         }
 
-        public VirtualResource<T> Create<T>()
+        public Resource<AttachmentIdentifier> ReadWriteAttachment()
         {
             throw new System.NotImplementedException();
         }
