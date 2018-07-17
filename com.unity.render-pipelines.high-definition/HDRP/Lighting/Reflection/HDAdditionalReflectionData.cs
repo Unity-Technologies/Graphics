@@ -3,7 +3,7 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEngine.Experimental.Rendering
 {
-    [RequireComponent(typeof(ReflectionProbe), typeof(MeshFilter), typeof(MeshRenderer))]
+    [RequireComponent(typeof(ReflectionProbe))]
     public class HDAdditionalReflectionData : MonoBehaviour
     {
         [HideInInspector]
