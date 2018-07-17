@@ -10,7 +10,7 @@ void VFXGetHDRPLitData(out SurfaceData surfaceData, out float3 ambient, VFX_VARY
 	
 	surfaceData = VFXGetSurfaceData(i,normalWS,uvData,diffusionProfile);
 	BuiltinData builtinData = VFXGetBuiltinData(i,surfaceData,uvData);
-	BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
+	BSDFData bsdfData = ConvertSurfaceDataToBSDFData(i.VFX_VARYING_POSCS.xy,surfaceData);
 	
 	PreLightData preLightData = (PreLightData)0;
 	preLightData.diffuseFGD = 1.0f; 

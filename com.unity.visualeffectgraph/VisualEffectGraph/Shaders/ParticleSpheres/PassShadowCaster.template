@@ -33,7 +33,7 @@ Pass
 #define SHADERPASS SHADERPASS_SHADOWS
 #define USE_LEGACY_UNITY_MATRIX_VARIABLES
 		
-	${VFXInclude("Assets/VFXEditor/Shaders/ParticleSpheres/Pass.template")}	
+	${VFXInclude("Shaders/ParticleSpheres/Pass.template")}	
 		
 	#pragma fragment frag
 	ps_output frag(ps_input i)

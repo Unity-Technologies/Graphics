@@ -3,7 +3,9 @@
 
 float4 VFXTransformPositionWorldToClip(float3 posWS)
 {
+#if VFX_WORLD_SPACE
     posWS = GetCameraRelativePositionWS(posWS);
+#endif
     return TransformWorldToHClip(posWS);
 }
 
@@ -15,7 +17,9 @@ float4 VFXTransformPositionObjectToClip(float3 posOS)
 
 float3 VFXTransformPositionWorldToView(float3 posWS)
 {
+#if VFX_WORLD_SPACE
     posWS = GetCameraRelativePositionWS(posWS);
+#endif
     return TransformWorldToView(posWS);
 }
 

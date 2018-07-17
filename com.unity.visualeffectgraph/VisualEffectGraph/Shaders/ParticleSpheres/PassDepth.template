@@ -26,7 +26,7 @@ Pass
 #define VFX_VARYING_SPHERECENTER sphereInfo.xyz
 #define VFX_VARYING_SPHERERADIUS sphereInfo.w
 				
-	${VFXInclude("Assets/VFXEditor/Shaders/ParticleSpheres/Pass.template")}	
+	${VFXInclude("Shaders/ParticleSpheres/Pass.template")}	
 
 	#pragma fragment frag
 	ps_output frag(ps_input i)
