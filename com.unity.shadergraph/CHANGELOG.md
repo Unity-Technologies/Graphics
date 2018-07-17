@@ -84,6 +84,7 @@ You can now see the generated code for any specific node. To do so, right-click 
 - Sub graphs are now suffixed with (sub), so you can tell them apart from other nodes.
 - Boolean and Texture type properties now function correctly in sub-graphs.
 - The preview of a node does not obstruct the selection outliner anymore.
+- The Texture type default input now accepts render textures.
 - The Dielectric Specular node no longer resets its control values.
 - HD PBR subshader no longer duplicates surface description code into vertex shader.
 - You can now copy, paste, and duplicate sub-graph nodes with vector type input ports.
