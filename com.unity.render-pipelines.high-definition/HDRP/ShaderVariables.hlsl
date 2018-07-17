@@ -136,27 +136,6 @@ CBUFFER_END
 
 // ----------------------------------------------------------------------------
 
-CBUFFER_START(UnityPerFrame)
-    float4 glstate_lightmodel_ambient;
-    float4 unity_AmbientSky;
-    float4 unity_AmbientEquator;
-    float4 unity_AmbientGround;
-    float4 unity_IndirectSpecColor;
-
-#if !defined(USING_STEREO_MATRICES)
-    float4x4 glstate_matrix_projection;
-    float4x4 unity_MatrixV;
-    float4x4 unity_MatrixInvV;
-    float4x4 unity_MatrixVP;
-    float4 unity_StereoScaleOffset;
-    int unity_StereoEyeIndex;
-#endif
-
-    float4 unity_ShadowColor;
-CBUFFER_END
-
-// ----------------------------------------------------------------------------
-
 // These are the samplers available in the HDRenderPipeline.
 // Avoid declaring extra samplers as they are 4x SGPR each on GCN.
 SAMPLER(s_point_clamp_sampler);
@@ -190,9 +169,27 @@ SAMPLER(samplerunity_ProbeVolumeSH);
 
 // ----------------------------------------------------------------------------
 
+// Define that before including all the sub systems ShaderVariablesXXX.hlsl files in order to include constant buffer properties.
+#define SHADER_VARIABLES_INCLUDE_CB
+
 // Important: please use macros or functions to access the CBuffer data.
 // The member names and data layout can (and will) change!
-CBUFFER_START(UnityPerView)
+CBUFFER_START(UnityGlobal)
+    // ================================
+    //     PER FRAME CONSTANTS
+    // ================================
+    #if !defined(USING_STEREO_MATRICES)
+        float4x4 glstate_matrix_projection;
+        float4x4 unity_MatrixV;
+        float4x4 unity_MatrixInvV;
+        float4x4 unity_MatrixVP;
+        float4 unity_StereoScaleOffset;
+        int unity_StereoEyeIndex;
+    #endif
+
+    // ================================
+    //     PER VIEW CONSTANTS
+    // ================================
     // TODO: all affine matrices should be 3x4.
     float4x4 _ViewMatrix;
     float4x4 _InvViewMatrix;
@@ -275,37 +272,41 @@ CBUFFER_START(UnityPerView)
     float4 _VBufferPrevUvScaleAndLimit;
     float4 _VBufferPrevDepthEncodingParams;
     float4 _VBufferPrevDepthDecodingParams;
+
+    // ================================
+    //     LIGHTLOOP CONSTANTS
+    // ================================
+    #include "Lighting/LightLoop/ShaderVariablesLightLoop.hlsl"
+
+    // ======================================
+    //     SCREEN SPACE LIGHTING CONSTANTS
+    // ======================================
+    #include "Lighting/ShaderVariablesScreenSpaceLighting.hlsl"
+
+    // =========================================
+    //     ATMOSPHERIC SCATTERING CONSTANTS
+    // =========================================
+    #include "Lighting/AtmosphericScattering/ShaderVariablesAtmosphericScattering.hlsl"
+
+    // =========================================
+    //     SUBSURFACE SCATTERING CONSTANTS
+    // =========================================
+    #include "Material/SubsurfaceScattering/ShaderVariablesSubsurfaceScattering.hlsl"
+
+    // ================================
+    //     DECALS CONSTANTS
+    // ================================
+    #include "Material/Decal/ShaderVariablesDecal.hlsl"
+
 CBUFFER_END
 
-CBUFFER_START(UnityLightingParameters)
-// Buffer pyramid
-float4  _ColorPyramidSize;              // (x,y) = Actual Pixel Size, (z,w) = 1 / Actual Pixel Size
-float4  _DepthPyramidSize;              // (x,y) = Actual Pixel Size, (z,w) = 1 / Actual Pixel Size
-float4  _CameraMotionVectorsSize;       // (x,y) = Actual Pixel Size, (z,w) = 1 / Actual Pixel Size
-float4  _ColorPyramidScale;             // (x,y) = Screen Scale, z = lod count, w = unused
-float4  _DepthPyramidScale;             // (x,y) = Screen Scale, z = lod count, w = unused
-float4  _CameraMotionVectorsScale;      // (x,y) = Screen Scale, z = lod count, w = unused
-
-                                // Screen space lighting
-float   _SSRefractionInvScreenWeightDistance;     // Distance for screen space smoothstep with fallback
-float   _SSReflectionInvScreenWeightDistance;     // Distance for screen space smoothstep with fallback
-int     _SSReflectionEnabled;
-int     _SSReflectionProjectionModel;
-int     _SSReflectionHiZRayMarchBehindObject;
-int     _SSRefractionHiZRayMarchBehindObject;
-
-                                                // Ambiant occlusion
-float4 _AmbientOcclusionParam; // xyz occlusion color, w directLightStrenght
-CBUFFER_END
-
-// Rough refraction texture
-// Color pyramid (width, height, lodcount, Unused)
-TEXTURE2D(_ColorPyramidTexture);
-// Depth pyramid (width, height, lodcount, Unused)
-TEXTURE2D(_DepthPyramidTexture);
-// Ambient occlusion texture
-TEXTURE2D(_AmbientOcclusionTexture);
-TEXTURE2D(_CameraMotionVectorsTexture);
+// Undef in order to include all textures and buffers declarations
+#undef SHADER_VARIABLES_INCLUDE_CB
+#include "Lighting/LightLoop/ShaderVariablesLightLoop.hlsl"
+#include "Lighting/AtmosphericScattering/ShaderVariablesAtmosphericScattering.hlsl"
+#include "Lighting/ShaderVariablesScreenSpaceLighting.hlsl"
+#include "Material/Decal/ShaderVariablesDecal.hlsl"
+#include "Material/SubsurfaceScattering/ShaderVariablesSubsurfaceScattering.hlsl"
 
 // Custom generated by HDRP, not from Unity Engine (passed in via HDCamera)
 #if defined(USING_STEREO_MATRICES)
