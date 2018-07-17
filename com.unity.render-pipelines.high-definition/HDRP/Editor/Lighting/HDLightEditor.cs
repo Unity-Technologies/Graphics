@@ -185,6 +185,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     if (hdLightData != null)
                         hdLightData.UpdateAreaLightEmissiveMesh();
             };
+            
+            // If the light is disabled in the editor we force the light upgrade from his inspector
+            foreach (var additionalLightData in m_AdditionalLightDatas)
+                additionalLightData.UpgradeLight();
         }
 
         public override void OnInspectorGUI()
@@ -236,10 +240,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (m_UpdateAreaLightEmissiveMeshComponents)
                 UpdateAreaLightEmissiveMeshComponents();
-            
-            // If the light is disabled in the editor we force the light upgrade from his inspector
-            foreach (var additionalLightData in m_AdditionalLightDatas)
-                additionalLightData.UpgradeLight();
         }
 
         void DrawFoldout(SerializedProperty foldoutProperty, string title, Action func)
