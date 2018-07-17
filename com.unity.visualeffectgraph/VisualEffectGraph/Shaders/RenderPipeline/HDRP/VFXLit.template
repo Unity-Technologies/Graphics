@@ -1,4 +1,4 @@
-#include "Assets/VFXEditor/Shaders/RenderPipeline/HDRP/VFXLit.cginc"
+#include "Shaders/RenderPipeline/HDRP/VFXLit.cginc"
 
 void VFXGetHDRPLitData(out SurfaceData surfaceData, out float3 ambient, VFX_VARYING_PS_INPUTS i, float3 normalWS, const VFXUVData uvData)
 {

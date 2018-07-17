@@ -17,7 +17,7 @@ Pass
 	#define UNITY_MATERIAL_LIT
 	#define SHADERPASS SHADERPASS_GBUFFER
 	
-	${VFXInclude("Assets/VFXEditor/Shaders/RenderPipeline/HDRP/VFXLitVaryings.template")}	
+	${VFXInclude("Shaders/RenderPipeline/HDRP/VFXLitVaryings.template")}	
 	
 	struct ps_input
 	{
@@ -64,8 +64,8 @@ ${VFXBegin:VFXVertexAdditionalProcess}
 ${VFXHDRPLitFillVaryings}
 ${VFXEnd}
 
-	${VFXInclude("Assets/VFXEditor/Shaders/ParticleHexahedron/Pass.template")}		
-	${VFXInclude("Assets/VFXEditor/Shaders/RenderPipeline/HDRP/VFXLit.template")}	
+	${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}		
+	${VFXInclude("Shaders/RenderPipeline/HDRP/VFXLit.template")}	
 		
 	#pragma fragment frag
 	void frag(ps_input i, OUTPUT_GBUFFER(outGBuffer)

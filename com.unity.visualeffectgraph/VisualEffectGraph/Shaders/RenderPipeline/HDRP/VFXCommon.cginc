@@ -56,7 +56,7 @@ float4 VFXGetPOSSS(float4 posCS)
 
 float VFXSampleDepth(float4 posSS)
 {
-    return SAMPLE_TEXTURE2D(_MainDepthTexture, sampler_MainDepthTexture, _ScreenToTargetScale.xy * posSS.xyz / posSS.w);
+    return SAMPLE_TEXTURE2D(_CameraDepthTexture, sampler_CameraDepthTexture, _ScreenToTargetScale.xy * posSS.xyz / posSS.w);
 }
 
 float VFXLinearEyeDepth(float depth)
