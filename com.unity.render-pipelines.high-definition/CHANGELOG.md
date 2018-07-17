@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - PostProcess input buffers are not copied anymore on PC if the viewport size matches the final render target size
 - Fixed an issue when manipulating a lot of decals, it was displaying a lot of errors in the inspector
 - Fixed capture material with reflection probe
+- Refactored Constant Buffers to avoid hitting the maximum number of bound CBs in some cases.
 
 ### Added
 - Added support for RendererPriority on Renderer. This allow to control order of transparent rendering manually. HDRP have now two stage of sorting for transparent in addition to bact to front. Material have a priority then Renderer have a priority.
