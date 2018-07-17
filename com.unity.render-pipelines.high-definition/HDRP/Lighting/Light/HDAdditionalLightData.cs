@@ -47,7 +47,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [ExecuteInEditMode]
     public class HDAdditionalLightData : MonoBehaviour, ISerializationCallbackReceiver
     {
-        public const int currentVersion = 2;
+        private const int currentVersion = 2;
 
         [HideInInspector, SerializeField]
         [FormerlySerializedAs("m_Version")]
@@ -55,6 +55,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         private float version = currentVersion;
 // Currently m_Version is not used and produce a warning, remove these pragmas at the next version incrementation
 #pragma warning disable 414
+        [SerializeField]
         private int m_Version = currentVersion;
 #pragma warning restore 414
 
