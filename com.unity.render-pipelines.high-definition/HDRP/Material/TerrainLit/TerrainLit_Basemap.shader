@@ -16,10 +16,6 @@ Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap"
         [HideInInspector] _ZTestDepthEqualForOpaque("_ZTestDepthEqualForOpaque", Int) = 4 // Less equal
         [HideInInspector] _ZTestGBuffer("_ZTestGBuffer", Int) = 4
 
-        [ToggleUI] _DoubleSidedEnable("Double sided enable", Float) = 0.0
-        [Enum(Flip, 0, Mirror, 1, None, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
-        [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
-
         // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
         // value that exist to identify if the GI emission need to be enabled.
         // In our case we don't use such a mechanism but need to keep the code quiet. We declare the value and always enable it.
@@ -40,7 +36,6 @@ Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap"
     #pragma target 4.5
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
-    #pragma shader_feature _DOUBLESIDED_ON
     #pragma shader_feature _DISABLE_DBUFFER
     #pragma shader_feature _TERRAIN_INSTANCED_PERPIXEL_NORMAL
 
