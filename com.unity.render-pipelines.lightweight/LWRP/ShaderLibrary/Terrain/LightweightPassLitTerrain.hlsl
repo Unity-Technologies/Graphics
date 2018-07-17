@@ -155,16 +155,16 @@ VertexOutput SplatmapVert(VertexInput v)
 // Used in Standard Terrain shader
 half4 SpatmapFragment(VertexOutput IN) : SV_TARGET
 {
-    half4 splat_control;
+    half4 splatControl;
     half weight;
     half4 mixedDiffuse;
     half4 defaultSmoothness = half4(_Smoothness0, _Smoothness1, _Smoothness2, _Smoothness3);
     half3 normalTS;
-    SplatmapMix(IN, defaultSmoothness, splat_control, weight, mixedDiffuse, normalTS);
+    SplatmapMix(IN, defaultSmoothness, splatControl, weight, mixedDiffuse, normalTS);
 
     half3 albedo = mixedDiffuse.rgb;
     half smoothness = mixedDiffuse.a;
-    half metallic = dot(splat_control, half4(_Metallic0, _Metallic1, _Metallic2, _Metallic3));
+    half metallic = dot(splatControl, half4(_Metallic0, _Metallic1, _Metallic2, _Metallic3));
     half3 specular = half3(0.0h, 0.0h, 0.0h);
     half alpha = weight;
 
