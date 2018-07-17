@@ -586,7 +586,6 @@ half4 LightweightFragmentBlinnPhong(InputData inputData, half3 diffuse, half4 sp
     finalColor += specularColor;
 #endif
 
-    ApplyFog(finalColor, inputData.fogCoord);
     return half4(finalColor, alpha);
 }
 #endif

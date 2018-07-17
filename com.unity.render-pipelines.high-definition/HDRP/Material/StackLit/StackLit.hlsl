@@ -1064,6 +1064,11 @@ void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightDat
 
     float _s_r0m, s_r12, m_rr; // we will need these outside the loop for further calculations
 
+    // HACK: If we don't use a local table and write the result directly in preLightData.vLayerEnergyCoeff
+    // we get a warning 'array reference cannot be used as an l-value; not natively addressable, forcing loop to unroll'
+    // Caution: be sure NB_VLAYERS == 3 and complete the code after
+    float3 localvLayerEnergyCoeff[NB_VLAYERS];
+
     // Iterate over the layers
     for(int i = 0; i < NB_VLAYERS; ++i)
     {
@@ -1107,16 +1112,8 @@ void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightDat
         _s_ri0 = (e_ri0 > 0.0) ? _s_ri0/e_ri0 : 0.0;
 
         // Store the coefficient and variance
-        if(m_r0i > 0.0)
-        {
-            preLightData.vLayerEnergyCoeff[i] = m_R0i;
-            //preLightData.vLayerPerceptualRoughness[i] = LinearVarianceToPerceptualRoughness(_s_r0m);
-        }
-        else
-        {
-            preLightData.vLayerEnergyCoeff[i] = float3(0.0, 0.0, 0.0);
-            //preLightData.vLayerPerceptualRoughness[i] = 0.0;
-        }
+        localvLayerEnergyCoeff[i] = (m_r0i > 0.0) ? m_R0i : float3(0.0, 0.0, 0.0);
+        //preLightData.vLayerPerceptualRoughness[i] = (m_r0i > 0.0) ? LinearVarianceToPerceptualRoughness(_s_r0m) : 0.0;
 
         // Update energy
         R0i = e_R0i;
@@ -1145,6 +1142,11 @@ void ComputeAdding(float _cti, float3 V, in BSDFData bsdfData, inout PreLightDat
             ji0 *= j21;
         }
     }
+
+    // HACK: See note above why we need to do this
+    preLightData.vLayerEnergyCoeff[0] = localvLayerEnergyCoeff[0];
+    preLightData.vLayerEnergyCoeff[1] = localvLayerEnergyCoeff[1];
+    preLightData.vLayerEnergyCoeff[2] = localvLayerEnergyCoeff[2];
 
     //-------------------------------------------------------------
     // Post compute:

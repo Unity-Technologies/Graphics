@@ -369,7 +369,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 rendererSupportsLightProbeProxyVolumes = true,
                 rendererSupportsMotionVectors = true,
                 rendererSupportsReceiveShadows = false,
-                rendererSupportsReflectionProbes = true
+                rendererSupportsReflectionProbes = true,
+                rendererSupportsRendererPriority = true
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
@@ -1264,7 +1265,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var drawSettings = new DrawRendererSettings(hdCamera.camera, HDShaderPassNames.s_EmptyName)
             {
                 rendererConfiguration = rendererConfiguration,
-                sorting = { flags = SortFlags.CommonTransparent }
+                sorting = { flags = SortFlags.CommonTransparent | SortFlags.RendererPriority }
             };
 
             for (int i = 0; i < passNames.Length; ++i)
@@ -1307,7 +1308,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new ProfilingSample(cmd, "ApplyDistortion", CustomSamplerId.ApplyDistortion.GetSampler()))
             {
-                var colorPyramidRT = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorPyramid);
+                var colorPyramidRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorPyramid);
                 var pyramidScale = m_BufferPyramid.GetPyramidToScreenScale(hdCamera, colorPyramidRT);
 
                 // Need to account for the fact that the gaussian pyramid is actually rendered inside the camera viewport in a square texture so we mutiply by the PyramidToScreen scale
@@ -1766,7 +1767,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 RenderTargetIdentifier source = m_CameraColorBuffer;
 
                 // For console we are not allowed to resize the windows, so don't use our hack.
-                bool tempHACK = !IsConsolePlatform();
+                // We also don't do the copy if viewport size and render texture size match.
+                bool viewportAndRTSameSize = (hdcamera.actualWidth == m_CameraColorBuffer.rt.width && hdcamera.actualHeight == m_CameraColorBuffer.rt.height);
+                bool tempHACK = !IsConsolePlatform() && !viewportAndRTSameSize;
 
                 if (tempHACK)
                 {

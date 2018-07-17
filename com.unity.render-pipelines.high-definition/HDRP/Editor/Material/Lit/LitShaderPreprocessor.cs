@@ -23,7 +23,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 return true;
 
             bool isGBufferPass = snippet.passName == "GBuffer";
-            bool isForwardPass = snippet.passName == "Forward";
+            //bool isForwardPass = snippet.passName == "Forward";
             bool isDepthOnlyPass = snippet.passName == "DepthOnly";
             bool isTransparentForwardPass = snippet.passName == "TransparentDepthPostpass" || snippet.passName == "TransparentBackface" || snippet.passName == "TransparentDepthPrepass";
 

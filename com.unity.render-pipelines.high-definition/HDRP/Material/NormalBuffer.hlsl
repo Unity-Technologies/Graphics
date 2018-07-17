@@ -28,7 +28,12 @@ void EncodeIntoNormalBuffer(NormalData normalData, uint2 positionSS, out NormalB
 
     // RT1 - 8:8:8:8
     // Our tangent encoding is based on our normal.
-    float2 octNormalWS = PackNormalOctQuadEncode(normalData.normalWS);
+#if defined(SHADER_API_METAL) || defined(SHADER_API_VULKAN)
+    // With octahedral quad packing we get an artifact for reconstructed tangent at the center of this quad. We use rect packing instead to avoid it.
+    float2 octNormalWS = PackNormalOctRectEncode(normalData.normalWS);
+#else
+     float2 octNormalWS = PackNormalOctQuadEncode(normalData.normalWS);
+#endif
     float3 packNormalWS = PackFloat2To888(saturate(octNormalWS * 0.5 + 0.5));
     // We store perceptualRoughness instead of roughness because it is perceptually linear.
     outNormalBuffer0 = float4(packNormalWS, normalData.perceptualRoughness);
@@ -38,7 +43,11 @@ void DecodeFromNormalBuffer(float4 normalBuffer, uint2 positionSS, out NormalDat
 {
     float3 packNormalWS = normalBuffer.rgb;
     float2 octNormalWS = Unpack888ToFloat2(packNormalWS);
+#if defined(SHADER_API_METAL) || defined(SHADER_API_VULKAN)
+    normalData.normalWS = UnpackNormalOctRectEncode(octNormalWS * 2.0 - 1.0);
+#else
     normalData.normalWS = UnpackNormalOctQuadEncode(octNormalWS * 2.0 - 1.0);
+#endif
     normalData.perceptualRoughness = normalBuffer.a;
 }
 
