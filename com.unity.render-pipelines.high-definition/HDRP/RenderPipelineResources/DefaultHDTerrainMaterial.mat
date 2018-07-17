@@ -24,8 +24,6 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _CullMode: 2
-    - _DoubleSidedEnable: 0
-    - _DoubleSidedNormalMode: 1
     - _EnableInstancedPerPixelNormal: 1
     - _HeightTransition: 0
     - _LayerBlendMode: 0
@@ -39,5 +37,4 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}

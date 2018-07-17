@@ -26,10 +26,6 @@ Shader "HDRenderPipeline/TerrainLit"
         [HideInInspector] _ZTestDepthEqualForOpaque("_ZTestDepthEqualForOpaque", Int) = 4 // Less equal
         [HideInInspector] _ZTestGBuffer("_ZTestGBuffer", Int) = 4
 
-        [ToggleUI] _DoubleSidedEnable("Double sided enable", Float) = 0.0
-        [Enum(Flip, 0, Mirror, 1, None, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
-        [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
-
         [ToggleUI] _EnableInstancedPerPixelNormal("Instanced per pixel normal", Float) = 1.0
 
         // Caution: C# code in BaseLitUI.cs call LightmapEmissionFlagsProperty() which assume that there is an existing "_EmissionColor"
@@ -56,8 +52,6 @@ Shader "HDRenderPipeline/TerrainLit"
     #pragma shader_feature _MASKMAP
     // Sample normal in pixel shader when doing instancing
     #pragma shader_feature _TERRAIN_INSTANCED_PERPIXEL_NORMAL
-
-    #pragma shader_feature _DOUBLESIDED_ON
 
     //#pragma shader_feature _ _LAYER_MAPPING_PLANAR0 _LAYER_MAPPING_TRIPLANAR0
     //#pragma shader_feature _ _LAYER_MAPPING_PLANAR1 _LAYER_MAPPING_TRIPLANAR1

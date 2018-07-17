@@ -39,8 +39,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // terrain lightmap uvs are always taken from uv0
     input.texCoord1 = input.texCoord2 = input.texCoord0;
 
-    ApplyDoubleSidedFlipOrMirror(input); // Apply double sided flip on the vertex normal
-
     surfaceData.baseColor = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.texCoord0).rgb;
 
     surfaceData.perceptualSmoothness = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.texCoord0).a;

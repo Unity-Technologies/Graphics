@@ -36,8 +36,6 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     // terrain lightmap uvs are always taken from uv0
     input.texCoord1 = input.texCoord2 = input.texCoord0;
 
-    ApplyDoubleSidedFlipOrMirror(input); // Apply double sided flip on the vertex normal
-
     float3 normalTS;
     TerrainSplatBlend(input.texCoord0, input.worldToTangent[0], input.worldToTangent[1],
         surfaceData.baseColor, normalTS, surfaceData.perceptualSmoothness, surfaceData.metallic, surfaceData.ambientOcclusion);
