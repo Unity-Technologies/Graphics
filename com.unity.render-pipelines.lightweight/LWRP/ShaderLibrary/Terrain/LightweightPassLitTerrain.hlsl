@@ -61,10 +61,10 @@ void InitializeInputData(VertexOutput IN, half3 normalTS, out InputData input)
 #endif
 }
 
-void SplatmapMix(VertexOutput IN, half4 defaultAlpha, out half4 splat_control, out half weight, out half4 mixedDiffuse, inout half3 mixedNormal)
+void SplatmapMix(VertexOutput IN, half4 defaultAlpha, out half4 splatControl, out half weight, out half4 mixedDiffuse, inout half3 mixedNormal)
 {
-    splat_control = SAMPLE_TEXTURE2D(_Control, sampler_Control, IN.uvControlAndLM.xy);
-    weight = dot(splat_control, 1.0h);
+    splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, IN.uvControlAndLM.xy);
+    weight = dot(splatControl, 1.0h);
 
 #if !defined(SHADER_API_MOBILE) && defined(TERRAIN_SPLAT_ADDPASS)
     clip(weight == 0.0h ? -1.0h : 1.0h);
@@ -72,20 +72,22 @@ void SplatmapMix(VertexOutput IN, half4 defaultAlpha, out half4 splat_control, o
 
     // Normalize weights before lighting and restore weights in final modifier functions so that the overal
     // lighting result can be correctly weighted.
-    splat_control /= (weight + 1e-3h);
+    splatControl /= (weight + 1e-3h);
+
+    half4 alpha = defaultAlpha * splatControl;
 
     mixedDiffuse = 0.0h;
-    mixedDiffuse += splat_control.r * SAMPLE_TEXTURE2D(_Splat0, sampler_Splat0, IN.uvSplat01.xy) * half4(1.0h, 1.0h, 1.0h, defaultAlpha.r);
-    mixedDiffuse += splat_control.g * SAMPLE_TEXTURE2D(_Splat1, sampler_Splat0, IN.uvSplat01.zw) * half4(1.0h, 1.0h, 1.0h, defaultAlpha.g);
-    mixedDiffuse += splat_control.b * SAMPLE_TEXTURE2D(_Splat2, sampler_Splat0, IN.uvSplat23.xy) * half4(1.0h, 1.0h, 1.0h, defaultAlpha.b);
-    mixedDiffuse += splat_control.a * SAMPLE_TEXTURE2D(_Splat3, sampler_Splat0, IN.uvSplat23.zw) * half4(1.0h, 1.0h, 1.0h, defaultAlpha.a);
+    mixedDiffuse += SAMPLE_TEXTURE2D(_Splat0, sampler_Splat0, IN.uvSplat01.xy) * half4(splatControl.rrr, alpha.r);
+    mixedDiffuse += SAMPLE_TEXTURE2D(_Splat1, sampler_Splat0, IN.uvSplat01.zw) * half4(splatControl.ggg, alpha.g);
+    mixedDiffuse += SAMPLE_TEXTURE2D(_Splat2, sampler_Splat0, IN.uvSplat23.xy) * half4(splatControl.bbb, alpha.b);
+    mixedDiffuse += SAMPLE_TEXTURE2D(_Splat3, sampler_Splat0, IN.uvSplat23.zw) * half4(splatControl.aaa, alpha.a);
 
 #ifdef _TERRAIN_NORMAL_MAP
     half4 nrm = 0.0f;
-    nrm += splat_control.r * SAMPLE_TEXTURE2D(_Normal0, sampler_Normal0, IN.uvSplat01.xy);
-    nrm += splat_control.g * SAMPLE_TEXTURE2D(_Normal1, sampler_Normal0, IN.uvSplat01.zw);
-    nrm += splat_control.b * SAMPLE_TEXTURE2D(_Normal2, sampler_Normal0, IN.uvSplat23.xy);
-    nrm += splat_control.a * SAMPLE_TEXTURE2D(_Normal3, sampler_Normal0, IN.uvSplat23.zw);
+    nrm += SAMPLE_TEXTURE2D(_Normal0, sampler_Normal0, IN.uvSplat01.xy) * splatControl.r;
+    nrm += SAMPLE_TEXTURE2D(_Normal1, sampler_Normal0, IN.uvSplat01.zw) * splatControl.g;
+    nrm += SAMPLE_TEXTURE2D(_Normal2, sampler_Normal0, IN.uvSplat23.xy) * splatControl.b;
+    nrm += SAMPLE_TEXTURE2D(_Normal3, sampler_Normal0, IN.uvSplat23.zw) * splatControl.a;
     mixedNormal = UnpackNormal(nrm);
 #else
     mixedNormal = half3(0.0h, 0.0h, 1.0h);
