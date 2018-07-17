@@ -19,7 +19,7 @@ Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap_Gen"
         #pragma shader_feature _TERRAIN_8_LAYERS
         #pragma shader_feature _NORMALMAP
         #pragma shader_feature _MASKMAP
-        #pragma shader_feature _ _TERRAIN_BLEND_DENSITY _TERRAIN_BLEND_HEIGHT
+        #pragma shader_feature _ _TERRAIN_BLEND_HEIGHT
 
         #ifdef _MASKMAP
             // Needed because unity tries to match the name of the used textures to samplers. Masks can be used without splats in Metallic pass.

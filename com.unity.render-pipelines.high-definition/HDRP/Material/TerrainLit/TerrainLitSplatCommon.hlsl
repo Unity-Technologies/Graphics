@@ -156,56 +156,57 @@ void TerrainSplatBlend(float2 uv, float3 tangentWS, float3 bitangentWS,
     float weights[_LAYER_COUNT];
     ZERO_INITIALIZE_ARRAY(float, weights, _LAYER_COUNT);
 
-    #if defined(_TERRAIN_BLEND_HEIGHT) && defined(_MASKMAP)
-        // Modify blendMask to take into account the height of the layer. Higher height should be more visible.
-        float maxHeight = masks[0].z;
-        maxHeight = max(maxHeight, masks[1].z);
-        maxHeight = max(maxHeight, masks[2].z);
-        maxHeight = max(maxHeight, masks[3].z);
-        #ifdef _TERRAIN_8_LAYERS
-            maxHeight = max(maxHeight, masks[4].z);
-            maxHeight = max(maxHeight, masks[5].z);
-            maxHeight = max(maxHeight, masks[6].z);
-            maxHeight = max(maxHeight, masks[7].z);
-        #endif
+    #ifdef _MASKMAP
+        #ifdef _TERRAIN_BLEND_HEIGHT
+            // Modify blendMask to take into account the height of the layer. Higher height should be more visible.
+            float maxHeight = masks[0].z;
+            maxHeight = max(maxHeight, masks[1].z);
+            maxHeight = max(maxHeight, masks[2].z);
+            maxHeight = max(maxHeight, masks[3].z);
+            #ifdef _TERRAIN_8_LAYERS
+                maxHeight = max(maxHeight, masks[4].z);
+                maxHeight = max(maxHeight, masks[5].z);
+                maxHeight = max(maxHeight, masks[6].z);
+                maxHeight = max(maxHeight, masks[7].z);
+            #endif
 
-        // Make sure that transition is not zero otherwise the next computation will be wrong.
-        // The epsilon here also has to be bigger than the epsilon in the next computation.
-        float transition = max(_HeightTransition, 1e-5);
+            // Make sure that transition is not zero otherwise the next computation will be wrong.
+            // The epsilon here also has to be bigger than the epsilon in the next computation.
+            float transition = max(_HeightTransition, 1e-5);
 
-        // The goal here is to have all but the highest layer at negative heights, then we add the transition so that if the next highest layer is near transition it will have a positive value.
-        // Then we clamp this to zero and normalize everything so that highest layer has a value of 1.
-        float4 weightedHeights0 = { masks[0].z, masks[1].z, masks[2].z, masks[3].z };
-        weightedHeights0 = weightedHeights0 - maxHeight.xxxx;
-        // We need to add an epsilon here for active layers (hence the blendMask again) so that at least a layer shows up if everything's too low.
-        weightedHeights0 = (max(0, weightedHeights0 + transition) + 1e-6) * blendMasks0;
+            // The goal here is to have all but the highest layer at negative heights, then we add the transition so that if the next highest layer is near transition it will have a positive value.
+            // Then we clamp this to zero and normalize everything so that highest layer has a value of 1.
+            float4 weightedHeights0 = { masks[0].z, masks[1].z, masks[2].z, masks[3].z };
+            weightedHeights0 = weightedHeights0 - maxHeight.xxxx;
+            // We need to add an epsilon here for active layers (hence the blendMask again) so that at least a layer shows up if everything's too low.
+            weightedHeights0 = (max(0, weightedHeights0 + transition) + 1e-6) * blendMasks0;
 
-        #ifdef _TERRAIN_8_LAYERS
-            float4 weightedHeights1 = { masks[4].z, masks[5].z, masks[6].z, masks[7].z };
-            weightedHeights1 = weightedHeights1 - maxHeight.xxxx;
-            weightedHeights1 = (max(0, weightedHeights1 + transition) + 1e-6) * blendMasks1;
+            #ifdef _TERRAIN_8_LAYERS
+                float4 weightedHeights1 = { masks[4].z, masks[5].z, masks[6].z, masks[7].z };
+                weightedHeights1 = weightedHeights1 - maxHeight.xxxx;
+                weightedHeights1 = (max(0, weightedHeights1 + transition) + 1e-6) * blendMasks1;
+            #else
+                float4 weightedHeights1 = { 0, 0, 0, 0 };
+            #endif
+
+            // Normalize
+            float sumHeight = GetSumHeight(weightedHeights0, weightedHeights1);
+            blendMasks0 = weightedHeights0 / sumHeight.xxxx;
+            #ifdef _TERRAIN_8_LAYERS
+                blendMasks1 = weightedHeights1 / sumHeight.xxxx;
+            #endif
         #else
-            float4 weightedHeights1 = { 0, 0, 0, 0 };
-        #endif
-
-        // Normalize
-        float sumHeight = GetSumHeight(weightedHeights0, weightedHeights1);
-        blendMasks0 = weightedHeights0 / sumHeight.xxxx;
-        #ifdef _TERRAIN_8_LAYERS
-            blendMasks1 = weightedHeights1 / sumHeight.xxxx;
-        #endif
-
-    #elif defined(_TERRAIN_BLEND_DENSITY) && defined(_MASKMAP)
-        // Denser layers are more visible.
-        float4 opacityAsDensity0 = saturate((float4(albedo[0].a, albedo[1].a, albedo[2].a, albedo[3].a) - (float4(1.0, 1.0, 1.0, 1.0) - blendMasks0)) * 20.0); // 20.0 is the number of steps in inputAlphaMask (Density mask. We decided 20 empirically)
-        float4 useOpacityAsDensityParam0 = { _DiffuseRemapScale0.w, _DiffuseRemapScale1.w, _DiffuseRemapScale2.w, _DiffuseRemapScale3.w };
-        blendMasks0 = lerp(blendMasks0, opacityAsDensity0, useOpacityAsDensityParam0);
-        #ifdef _TERRAIN_8_LAYERS
-            float4 opacityAsDensity1 = saturate((float4(albedo[4].a, albedo[5].a, albedo[6].a, albedo[7].a) - (float4(1.0, 1.0, 1.0, 1.0) - blendMasks1)) * 20.0); // 20.0 is the number of steps in inputAlphaMask (Density mask. We decided 20 empirically)
-            float4 useOpacityAsDensityParam1 = { _DiffuseRemapScale4.w, _DiffuseRemapScale5.w, _DiffuseRemapScale6.w, _DiffuseRemapScale7.w };
-            blendMasks1 = lerp(blendMasks1, opacityAsDensity1, useOpacityAsDensityParam1);
-        #endif
-    #endif
+            // Denser layers are more visible.
+            float4 opacityAsDensity0 = saturate((float4(albedo[0].a, albedo[1].a, albedo[2].a, albedo[3].a) - (float4(1.0, 1.0, 1.0, 1.0) - blendMasks0)) * 20.0); // 20.0 is the number of steps in inputAlphaMask (Density mask. We decided 20 empirically)
+            float4 useOpacityAsDensityParam0 = { _DiffuseRemapScale0.w, _DiffuseRemapScale1.w, _DiffuseRemapScale2.w, _DiffuseRemapScale3.w }; // 1 is off
+            blendMasks0 = lerp(opacityAsDensity0, blendMasks0, useOpacityAsDensityParam0);
+            #ifdef _TERRAIN_8_LAYERS
+                float4 opacityAsDensity1 = saturate((float4(albedo[4].a, albedo[5].a, albedo[6].a, albedo[7].a) - (float4(1.0, 1.0, 1.0, 1.0) - blendMasks1)) * 20.0); // 20.0 is the number of steps in inputAlphaMask (Density mask. We decided 20 empirically)
+                float4 useOpacityAsDensityParam1 = { _DiffuseRemapScale4.w, _DiffuseRemapScale5.w, _DiffuseRemapScale6.w, _DiffuseRemapScale7.w };
+                blendMasks1 = lerp(opacityAsDensity1, blendMasks1, useOpacityAsDensityParam1);
+            #endif
+        #endif // if _TERRAIN_BLEND_HEIGHT
+    #endif // if _MASKMAP
 
     weights[0] = blendMasks0.x;
     weights[1] = blendMasks0.y;
@@ -218,17 +219,24 @@ void TerrainSplatBlend(float2 uv, float3 tangentWS, float3 bitangentWS,
         weights[7] = blendMasks1.w;
     #endif
 
-    #if defined(_TERRAIN_BLEND_DENSITY) && defined(_MASKMAP)
+    #if defined(_MASKMAP) && !defined(_TERRAIN_BLEND_HEIGHT)
+        bool densityBlendEnabled = any(useOpacityAsDensityParam0 < 1);
+        #ifdef _TERRAIN_8_LAYERS
+            densityBlendEnabled = densityBlendEnabled || any(useOpacityAsDensityParam1 < 1);
+        #endif
         // calculate weight of each layers
         // Algorithm is like this:
         // Top layer have priority on others layers
         // If a top layer doesn't use the full weight, the remaining can be use by the following layer.
         float weightsSum = 0.0;
 
-        UNITY_UNROLL for (int i = _LAYER_COUNT - 1; i >= 0; --i)
+        if (densityBlendEnabled)
         {
-            weights[i] = min(weights[i], (1.0 - weightsSum));
-            weightsSum = saturate(weightsSum + weights[i]);
+            UNITY_UNROLL for (int i = _LAYER_COUNT - 1; i >= 0; --i)
+            {
+                weights[i] = min(weights[i], (1.0 - weightsSum));
+                weightsSum = saturate(weightsSum + weights[i]);
+            }
         }
     #endif
 
