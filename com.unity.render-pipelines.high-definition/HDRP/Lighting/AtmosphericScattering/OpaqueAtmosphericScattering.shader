@@ -15,15 +15,15 @@ Shader "Hidden/HDRenderPipeline/OpaqueAtmosphericScattering"
 
             #pragma vertex Vert
             #pragma fragment Frag
-            
+
             #pragma multi_compile _ DEBUG_DISPLAY
 
             // #pragma enable_d3d11_debug_symbols
 
             #include "CoreRP/ShaderLibrary/Common.hlsl"
             #include "CoreRP/ShaderLibrary/Color.hlsl"
-            #include "../ShaderVariables.hlsl"
-            #include "AtmosphericScattering/AtmosphericScattering.hlsl"
+            #include "HDRP/ShaderVariables.hlsl"
+            #include "HDRP/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
 
             struct Attributes
             {

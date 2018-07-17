@@ -24,7 +24,7 @@ MonoBehaviour:
     enableVolumetrics: 1
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
-    enableForwardRenderingOnly: 0
+    enableForwardRenderingOnly: 1
     enableDepthPrepassWithDeferredRendering: 0
     enableTransparentPrepass: 1
     enableMotionVectors: 1
@@ -53,7 +53,7 @@ MonoBehaviour:
     supportSSR: 1
     supportSSAO: 1
     supportSubsurfaceScattering: 1
-    supportOnlyForward: 0
+    supportOnlyForward: 1
     increaseSssSampleCount: 0
     supportVolumetrics: 1
     increaseResolutionOfVolumetrics: 0

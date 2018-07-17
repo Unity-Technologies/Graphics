@@ -86,11 +86,6 @@
 #endif
 #endif // #ifdef DBUFFERMATERIAL_COUNT
 
-CBUFFER_START(UnityDecalParameters)
-    uint _EnableDBuffer;
-    float2 _DecalAtlasResolution;
-CBUFFER_END
-
 UNITY_INSTANCING_BUFFER_START(Decal)
     UNITY_DEFINE_INSTANCED_PROP(float4x4, _NormalToWorld)
 UNITY_INSTANCING_BUFFER_END(matrix)
