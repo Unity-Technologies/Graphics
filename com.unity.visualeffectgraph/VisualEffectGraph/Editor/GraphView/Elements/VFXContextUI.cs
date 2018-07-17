@@ -523,7 +523,7 @@ namespace UnityEditor.VFX.UI
             {
                 VFXView view = m_Context.GetFirstAncestorOfType<VFXView>();
                 m_Context.controller.ApplyChanges();
-                (m_Context.panel as BaseVisualElementPanel).ValidateLayout();
+                m_Context.panel.InternalValidateLayout();
 
                 view.PushUnderContext(m_Context, m_Context.layout.size.y - m_PrevSize);
             }
