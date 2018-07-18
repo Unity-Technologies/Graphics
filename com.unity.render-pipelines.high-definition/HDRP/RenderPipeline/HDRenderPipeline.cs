@@ -160,7 +160,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
         public int GetCookieAtlasMipCount()
         {
-            return (int)Math.Log(renderPipelineSettings.lightLoopSettings.cookieAtlasSize, 2);
+            return (int)Math.Log((int)renderPipelineSettings.lightLoopSettings.cookieAtlasSize, 2);
         }
 
         public int GetShadowSliceCount(uint atlasIndex) { return m_LightLoop.GetShadowSliceCount(atlasIndex); }

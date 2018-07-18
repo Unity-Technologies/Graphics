@@ -27,9 +27,9 @@ namespace UnityEngine.Experimental.Rendering
         
         void BlitCubemap(CommandBuffer cmd, Vector4 scaleBias, Texture texture)
         {
-            int mipCount = GetTextureMipmapCount(texture);
-            int pixelPadding = GetTexturePadding(mipCount);
             Vector2 textureSize = GetPowerOfTwoTextureSize(texture);
+            int mipCount = GetTextureMipmapCount((int)textureSize.x, (int)textureSize.y);
+            int pixelPadding = GetTexturePadding(mipCount);
             
             for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
             {
@@ -40,7 +40,7 @@ namespace UnityEngine.Experimental.Rendering
 
         void Blit2DTextureRepeat(CommandBuffer cmd, Vector4 scaleBias, Texture texture)
         {
-            int mipCount = GetTextureMipmapCount(texture);
+            int mipCount = GetTextureMipmapCount(texture.width, texture.height);
             int pixelPadding = GetTexturePadding(mipCount);
             Vector2 textureSize = GetPowerOfTwoTextureSize(texture);
 

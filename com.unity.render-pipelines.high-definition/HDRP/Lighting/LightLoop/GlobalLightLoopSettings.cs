@@ -34,9 +34,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     }
 
     [Serializable]
+    public enum CookieAtlasResolution
+    {
+        CookieAtlasResolution32 = 32,
+        CookieAtlasResolution64 = 64,
+        CookieAtlasResolution128 = 128,
+        CookieAtlasResolution256 = 256,
+        CookieAtlasResolution512 = 512,
+        CookieAtlasResolution1024 = 1024,
+        CookieAtlasResolution2048 = 2048,
+        CookieAtlasResolution4096 = 4096,
+        CookieAtlasResolution8192 = 8192,
+    }
+
+    [Serializable]
     public class GlobalLightLoopSettings
     {
-        public int cookieAtlasSize = 1024;
+        public CookieAtlasResolution cookieAtlasSize = CookieAtlasResolution.CookieAtlasResolution1024;
         public int cookieAtlasMaxValidMip = 5;
 
         public int planarReflectionProbeCacheSize = 2;

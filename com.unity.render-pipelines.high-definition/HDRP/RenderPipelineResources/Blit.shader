@@ -63,8 +63,9 @@ Shader "Hidden/HDRenderPipeline/Blit"
 
             output.positionCS = GetQuadVertexPosition(input.vertexID) * float4(_BlitScaleBiasRt.x, _BlitScaleBiasRt.y, 1, 1) + float4(_BlitScaleBiasRt.z, _BlitScaleBiasRt.w, 0, 0);
             output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
-            output.texcoord = GetQuadTexCoord(input.vertexID) * _BlitScaleBias.xy + _BlitScaleBias.zw;
+            output.texcoord = GetQuadTexCoord(input.vertexID);
             output.texcoord = (output.texcoord - offsetPaddding) * scalePadding;
+            output.texcoord = output.texcoord * _BlitScaleBias.xy + _BlitScaleBias.zw;
             return output;
         }
         

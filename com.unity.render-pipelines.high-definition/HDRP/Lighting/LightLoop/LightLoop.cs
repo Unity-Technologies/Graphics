@@ -525,7 +525,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DecalDatas = new ComputeBuffer(k_MaxDecalsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DecalData)));
 
             GlobalLightLoopSettings gLightLoopSettings = hdAsset.GetRenderPipelineSettings().lightLoopSettings;
-            m_CookieAtlas = new PowerOfTwoTextureAtlas(gLightLoopSettings.cookieAtlasSize, gLightLoopSettings.cookieAtlasMaxValidMip, RenderTextureFormat.ARGB32, true, FilterMode.Trilinear);
+            m_CookieAtlas = new PowerOfTwoTextureAtlas((int)gLightLoopSettings.cookieAtlasSize, gLightLoopSettings.cookieAtlasMaxValidMip, RenderTextureFormat.ARGB32, true, FilterMode.Trilinear);
 
             TextureFormat probeCacheFormat = gLightLoopSettings.reflectionCacheCompressed ? TextureFormat.BC6H : TextureFormat.RGBAHalf;
             m_ReflectionProbeCache = new ReflectionProbeCache(hdAsset, iblFilterGGX, gLightLoopSettings.reflectionProbeCacheSize, (int)gLightLoopSettings.reflectionCubemapSize, probeCacheFormat, true);
