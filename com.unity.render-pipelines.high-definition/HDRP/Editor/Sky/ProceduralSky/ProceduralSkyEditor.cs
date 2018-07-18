@@ -41,7 +41,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUILayout.Space();
 
-            base.CommonSkySettingsGUI(false);
+            uint uiElements = 0xFFFFFFFF;
+            uiElements &= ~(uint)(SkySettingsUIElement.Rotation);
+            base.CommonSkySettingsGUI(uiElements);
         }
     }
 }

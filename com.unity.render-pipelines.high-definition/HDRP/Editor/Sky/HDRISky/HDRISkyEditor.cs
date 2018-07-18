@@ -25,7 +25,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUILayout.Space();
 
-            base.CommonSkySettingsGUI();
+            uint uiElements = 0xFFFFFFFF;
+            uiElements &= ~(uint)(SkySettingsUIElement.IncludeSunInBaking);
+            base.CommonSkySettingsGUI(uiElements);
         }
     }
 }
