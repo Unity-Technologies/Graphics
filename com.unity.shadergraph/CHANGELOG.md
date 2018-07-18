@@ -46,6 +46,14 @@ Note: This functionality requires that you have enabled **two sided** on the Mas
 
 This adds gradient functionality via two new nodes. The Sample Gradient node samples a gradient given a Time parameter. You can define this gradient on the Gradient slot control view. The Gradient Asset node defines a gradient that can be sampled by multiple Sample Gradient nodes using different Time parameters.
 
+### Waveform nodes
+
+![](.data/wave_form_nodes.png)
+
+Math nodes now have a Waves category. The category has four different nodes: Triangle wave, Sawtooth wave, Square wave, and Noise Sine wave.
+The Triangle, Sawtooth, and Square wave nodes output a waveform with a range of -1 to 1 over a period of 1.
+The Noise Sine wave outputs a standard Sine wave with a range of -1 to 1 over a period of 2 * pi. For variance, random noise is added to the amplitude of the Sine wave, within a determined range.
+
 ## Normal Derive Nodes
 
 ![](.data/normal_derive_nodes.png)
