@@ -91,5 +91,6 @@ You can now see the generated code for any specific node. To do so, right-click 
 - The Dielectric Specular node no longer resets its control values.
 - HD PBR subshader no longer duplicates surface description code into vertex shader.
 - You can now copy, paste, and duplicate sub-graph nodes with vector type input ports.
+- Texture 2D Array and Texture 3D nodes can no longer be used in the vertex shader.
 - Shader graphs using alpha clip now generate correct depth and shadow passes.
 - The Texture type default input now accepts render textures.
