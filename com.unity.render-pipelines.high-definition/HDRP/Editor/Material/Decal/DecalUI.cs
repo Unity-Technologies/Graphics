@@ -177,12 +177,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUI.indentLevel++;
 
                 m_MaterialEditor.TexturePropertySingleLine((material.GetFloat(kAlbedoMode) == 1.0f) ? Styles.baseColorText : Styles.baseColorText2, baseColorMap, baseColor);
-                if (material.GetTexture(kBaseColorMap))
-                {
-                    EditorGUI.indentLevel++;
-                    m_MaterialEditor.ShaderProperty(albedoMode, Styles.AlbedoModeText);
-                    EditorGUI.indentLevel--;
-                }
+                // Currently always display Albedo contribution as we have an albedo tint that apply
+                EditorGUI.indentLevel++;
+                m_MaterialEditor.ShaderProperty(albedoMode, Styles.AlbedoModeText);
+                EditorGUI.indentLevel--;
 
                 m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap);
                 if (material.GetTexture(kNormalMap))
