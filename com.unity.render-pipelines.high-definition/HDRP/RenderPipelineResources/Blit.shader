@@ -5,6 +5,7 @@ Shader "Hidden/HDRenderPipeline/Blit"
         #pragma target 4.5
         #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
         #include "CoreRP/ShaderLibrary/Common.hlsl"
+        #include "CoreRP/ShaderLibrary/Packing.hlsl"
         #include "../ShaderVariables.hlsl"
 
         TEXTURE2D(_BlitTexture);
@@ -57,10 +58,13 @@ Shader "Hidden/HDRenderPipeline/Blit"
         Varyings VertQuadPadding(Attributes input)
         {
             Varyings output;
-            float2 paddingUV = 1 - ((_BlitTextureSize - _BlitPaddingSize) / _BlitTextureSize);
+            float2 scalePadding = ((_BlitTextureSize + float(_BlitPaddingSize)) / _BlitTextureSize);
+            float2 offsetPaddding = (float(_BlitPaddingSize) / 2.0) / (_BlitTextureSize + _BlitPaddingSize);
+
             output.positionCS = GetQuadVertexPosition(input.vertexID) * float4(_BlitScaleBiasRt.x, _BlitScaleBiasRt.y, 1, 1) + float4(_BlitScaleBiasRt.z, _BlitScaleBiasRt.w, 0, 0);
             output.positionCS.xy = output.positionCS.xy * float2(2.0f, -2.0f) + float2(-1.0f, 1.0f); //convert to -1..1
-            output.texcoord = GetQuadTexCoord(input.vertexID) * (_BlitScaleBias.xy + paddingUV) + _BlitScaleBias.zw - paddingUV / 2;
+            output.texcoord = GetQuadTexCoord(input.vertexID) * _BlitScaleBias.xy + _BlitScaleBias.zw;
+            output.texcoord = (output.texcoord - offsetPaddding) * scalePadding;
             return output;
         }
         
@@ -105,6 +109,7 @@ Shader "Hidden/HDRenderPipeline/Blit"
 
         float4 FragBilinearRepeat(Varyings input) : SV_Target
         {
+            // return float4(frac(input.texcoord), 0, 1);
             return SAMPLE_TEXTURE2D_LOD(_BlitTexture, sampler_LinearRepeat, input.texcoord, _BlitMipLevel);
         }
 
@@ -118,28 +123,18 @@ Shader "Hidden/HDRenderPipeline/Blit"
             return SAMPLE_TEXTURECUBE_LOD(_CubemapBlitTexture, sampler_LinearClamp, input.texcoord, _BlitMipLevel);
         }
 
-        float4 FragNearestLatlongCube(Varyings input) : SV_Target
-        {
-            float3 coord = LatlongToDirectionCoordinate(input.texcoord);
-            return SAMPLE_TEXTURECUBE_LOD(_CubemapBlitTexture, sampler_PointClamp, coord, _BlitMipLevel);
-        }
-        
-        float4 FragBilinearLatlongCube(Varyings input) : SV_Target
-        {
-            float3 coord = LatlongToDirectionCoordinate(input.texcoord);
-            return SAMPLE_TEXTURECUBE_LOD(_CubemapBlitTexture, sampler_LinearClamp, coord, _BlitMipLevel);
-        }
-
-
         float4 FragNearestOctahedralCube(Varyings input) : SV_Target
         {
-            float3 coord = LatlongToDirectionCoordinate(input.texcoord);
+            float3 coord = UnpackNormalOctQuadEncode(input.texcoord);
             return SAMPLE_TEXTURECUBE_LOD(_CubemapBlitTexture, sampler_PointClamp, coord, _BlitMipLevel);
         }
-        
+
         float4 FragBilinearOctahedralCube(Varyings input) : SV_Target
         {
-            float3 coord = LatlongToDirectionCoordinate(input.texcoord);
+            float2 coord2D = input.texcoord;
+            float3 coord = UnpackNormalOctQuadEncode(coord2D);
+
+            // return float4(coord * 0.5 + 0.5, 1);
             return SAMPLE_TEXTURECUBE_LOD(_CubemapBlitTexture, sampler_LinearClamp, coord, _BlitMipLevel);
         }
 
@@ -237,46 +232,24 @@ Shader "Hidden/HDRenderPipeline/Blit"
             ENDHLSL
         }
 
-        // 8: Nearest Latlong cube
+        // 8: Nearest Octahedral cube
         Pass
         {
             ZWrite Off ZTest Always Blend Off Cull Off
 
             HLSLPROGRAM
-                #pragma vertex VertQuad
-                #pragma fragment FragNearestLatlongCube
-            ENDHLSL
-        }
-
-        // 9: Bilinear Latlong cube
-        Pass
-        {
-            ZWrite Off ZTest Always Blend Off Cull Off
-
-            HLSLPROGRAM
-                #pragma vertex VertQuad
-                #pragma fragment FragBilinearLatlongCube
-            ENDHLSL
-        }
-
-        // 10: Nearest Octahedral cube
-        Pass
-        {
-            ZWrite Off ZTest Always Blend Off Cull Off
-
-            HLSLPROGRAM
-                #pragma vertex VertQuad
+                #pragma vertex VertQuadPadding
                 #pragma fragment FragNearestOctahedralCube
             ENDHLSL
         }
 
-        // 11: Bilinear Octahedral cube
+        // 9: Bilinear Octahedral cube
         Pass
         {
             ZWrite Off ZTest Always Blend Off Cull Off
 
             HLSLPROGRAM
-                #pragma vertex VertQuad
+                #pragma vertex VertQuadPadding
                 #pragma fragment FragBilinearOctahedralCube
             ENDHLSL
         }

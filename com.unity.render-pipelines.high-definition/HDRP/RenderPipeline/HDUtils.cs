@@ -219,47 +219,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 2 : 3, MeshTopology.Quads, 4, 1, s_PropertyBlock);
         }
 
-        public static void BlitPaddedQuad(CommandBuffer cmd, Texture source, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear, int paddingInPixels)
+        public static void BlitPaddedQuad(CommandBuffer cmd, Texture source, Vector2 textureSize, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear, int paddingInPixels)
         {
             s_PropertyBlock.SetTexture(HDShaderIDs._BlitTexture, source);
             s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBiasTex);
             s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
             s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevelTex);
-            s_PropertyBlock.SetVector(HDShaderIDs._BlitTextureSize, new Vector2(source.width, source.height));
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitTextureSize, textureSize);
             s_PropertyBlock.SetInt(HDShaderIDs._BlitPaddingSize, paddingInPixels);
-            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 6 : 7, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 7 : 6, MeshTopology.Quads, 4, 1, s_PropertyBlock);
         }
 
-        public static void BlitCubeLatlong(CommandBuffer cmd, Texture source, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear, int padding)
+        public static void BlitCubeOctahedral(CommandBuffer cmd, Texture source, Vector2 textureSize, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear, int paddingInPixels)
         {
             s_PropertyBlock.SetTexture(HDShaderIDs._CubemapBlitTexture, source);
             s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBiasTex);
             s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
             s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevelTex);
-            s_PropertyBlock.SetVector(HDShaderIDs._BlitTextureSize, new Vector2(source.width, source.height));
-            s_PropertyBlock.SetInt(HDShaderIDs._BlitPaddingSize, padding);
+            s_PropertyBlock.SetVector(HDShaderIDs._BlitTextureSize, textureSize);
+            s_PropertyBlock.SetInt(HDShaderIDs._BlitPaddingSize, paddingInPixels);
 
-            for (int i = 0; i < 6; i++)
-            {
-                s_PropertyBlock.SetInt(HDShaderIDs._BlitFaceIndex, i);
-                cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 8 : 9, MeshTopology.Quads, 4, 1, s_PropertyBlock);
-            }
-        }
-        
-        public static void BlitCubeOctahedral(CommandBuffer cmd, Texture source, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear, int padding)
-        {
-            s_PropertyBlock.SetTexture(HDShaderIDs._CubemapBlitTexture, source);
-            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBiasTex);
-            s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
-            s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevelTex);
-            s_PropertyBlock.SetVector(HDShaderIDs._BlitTextureSize, new Vector2(source.width, source.height));
-            s_PropertyBlock.SetInt(HDShaderIDs._BlitPaddingSize, padding);
-
-            for (int i = 0; i < 6; i++)
-            {
-                s_PropertyBlock.SetInt(HDShaderIDs._BlitFaceIndex, i);
-                cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 10 : 11, MeshTopology.Quads, 4, 1, s_PropertyBlock);
-            }
+            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 8 : 9, MeshTopology.Quads, 4, 1, s_PropertyBlock);
         }
 
         public static void BlitTexture(CommandBuffer cmd, RTHandleSystem.RTHandle source, RTHandleSystem.RTHandle destination, Vector4 scaleBias, float mipLevel, bool bilinear)

@@ -1,6 +1,7 @@
 #include "LightLoop.cs.hlsl"
 #include "../../Sky/SkyVariables.hlsl"
 #include "CoreRP/ShaderLibrary/GeometricTools.hlsl"
+#include "CoreRP/ShaderLibrary/Packing.hlsl"
 
 StructuredBuffer<uint> g_vLightListGlobal;      // don't support Buffer yet in unity
 
@@ -47,7 +48,7 @@ StructuredBuffer<ShadowData>           _ShadowDatas;
 TEXTURE2D(_CookieAtlas);
 SAMPLER(sampler_CookieAtlas);
 float2 _CookieAtlasSize;
-int _CookieAtlasPadding;
+int _CookieAtlasMaxValidMip;
 
 // Use texture array for reflection (or LatLong 2D array for mobile)
 TEXTURECUBE_ARRAY_ABSTRACT(_EnvCubemapTextures);
@@ -79,28 +80,58 @@ struct LightLoopContext
 // Cookie sampling functions
 // ----------------------------------------------------------------------------
 
+// Adjust UVs using the LOD padding size
+float2 RemapUV(float2 coord, float2 sizeInPixel, int maxLod)
+{
+    int paddingInPixels = pow(2.0, maxLod) * 2;
+    float2 scale = (sizeInPixel + paddingInPixels) / sizeInPixel;
+    float2 offset = (paddingInPixels / 2.0) / (sizeInPixel + paddingInPixels);
+    
+    return coord / scale + offset;
+}
+
+// Clamp the texture coordinates to prevent trilinear filtering from sampling outside of the texture
+float2 ClampUV(float2 coord, float2 sizeInPixel, float lod)
+{
+    float2 mipSize     = sizeInPixel / pow(2, lod);
+    float2 clampBorder = 0.5 * rcp(mipSize);
+
+    return clamp(coord, clampBorder, float2(1, 1) - clampBorder);
+}
+
+float2 HalfPixelSize(float2 sizeInPixel, float lod)
+{
+    return 0.5 * rcp(sizeInPixel / pow(2, lod));
+}
+
 // Used by directional and spot lights.
 float3 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, float4 scaleBias, bool repeat, float2 sampleDdx, float2 sampleDdy)
 {
-    float2  offset = scaleBias.zw;
-    float2  size = scaleBias.xy;
-    float2  sizeInPixel = size * _CookieAtlasSize;
-    float lod = ComputeTextureLOD(sampleDdx, sampleDdy, sizeInPixel);
+    float2 offset       = scaleBias.zw;
+    float2 scale        = scaleBias.xy;
+    float2 sizeInPixel  = scale * _CookieAtlasSize;
+    float lod           = ComputeTextureLOD(sampleDdx, sampleDdy, sizeInPixel);
+
+    // The maximum LOD we can use in fetch without having to clamp borders for trilinear filtering
+    float maxLod = min(_CookieAtlasMaxValidMip, floor(log2(sizeInPixel).x));
 
     // Clamp lod to the maximum level of the texture we are sampling
-    // Or to 5 which is the maximum lod where we can use trilinear sampling
-    lod = min(5, min(lod, log2(sizeInPixel).x));
+    lod = min(maxLod, lod);
 
-    // Clamp texture coordinates to prevent edge bleeding
-    float2  mipSize     = sizeInPixel / pow(2, lod);
-    float2  clampBorder = 0.5 * rcp(mipSize);
+    // Add 1/2 pixel to sample at the center of the pixel
+    coord += HalfPixelSize(sizeInPixel, lod);
 
-    float2 padd = ((sizeInPixel - _CookieAtlasPadding) / sizeInPixel);
-    coord = frac(coord * padd + (1 - padd) / 2);
-    // Clamp the sampling coord to half pixel borders relative to the mip level
-    coord = clamp(coord, clampBorder, float2(1, 1) - clampBorder);
-    float2 atlasCoords = coord * size + offset;
+    // Manage cookie in repeat mode
+    coord = frac(coord);
 
+    // Remap the uv to take in account the padding
+    coord = RemapUV(coord, sizeInPixel, maxLod);
+
+    // Apply atlas scale and offset
+    float2 atlasCoords = coord * scale + offset;
+
+#if 0
+    // Anisotripic filtering test
     float2 p = sqrt(pow(sampleDdx, 2) + pow(sampleDdy, 2));
     float pMax = max(p.x, p.y);
     float pMin = min(p.x, p.y);
@@ -127,7 +158,10 @@ float3 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, float4 sc
     }
     tauAniso /= N;
 
-    float3 color = tauAniso;//SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, atlasCoords, lod).rgb;
+    float3 color = tauAniso;
+#else
+    float3 color = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, atlasCoords, lod).rgb;
+#endif
     
     // Mip visualization (0 -> red, 10 -> blue)
     // color *= saturate(1 - abs(3 * lod / 10 - float4(0, 1, 2, 3))).rgb;
@@ -138,31 +172,34 @@ float3 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, float4 sc
 // Used by point lights.
 float3 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, float4 scaleBias, float2 sampleDdx, float2 sampleDdy)
 {
-    // We correct the size of the texture to get the size of one face of the cube
-    
-    float2 offset = scaleBias.zw;
-    float2 size = scaleBias.xy;
-    float2 sizeInPixel = size * _CookieAtlasSize;
+    float2 offset       = scaleBias.zw;
+    float2 scale        = scaleBias.xy;
+    float2 sizeInPixel  = scale * _CookieAtlasSize;
+    float lod           = ComputeTextureLOD(sampleDdx, sampleDdy, sizeInPixel);
 
-    // The latlong coordinates in x are from 0.5-1.5 so we remap it to 0-1
+    // The maximum LOD we can use in fetch without having to clamp borders for trilinear filtering
+    float maxLod = min(_CookieAtlasMaxValidMip, log2(sizeInPixel).x);
+
+    // Octahedral / LatLong mapping
+#if 1
+    // The latlong coordinates are from -1->1 so we remap it to 0->1
+    float2 atlasCoords = PackNormalOctQuadEncode(coord) * 0.5 + 0.5;
+#else
+    // The latlong coordinates in x are from 0.5->1.5 so we remap it to 0->1
     float2 atlasCoords = DirectionToLatLongCoordinate(coord) - float2(0.5, 0);
-    float2 padd = ((sizeInPixel - _CookieAtlasPadding / 2) / sizeInPixel);
-    atlasCoords = frac(atlasCoords * padd + (1 - padd) / 2);
-    atlasCoords = atlasCoords * size + offset;
-    // The latlong coordinates 
-    float lod = ComputeTextureLOD(sampleDdx, sampleDdy, sizeInPixel);
-    
+#endif
 
     // Clamp lod to the maximum level of the texture we are sampling
-    // Or to 5 which is the maximum lod where we can use trilinear sampling
-    lod = min(5, min(lod, log2(sizeInPixel).x));
-
-    lod = 0;
+    lod = min(maxLod, lod);
     
-    // Clamp texture coordinates to prevent edge bleeding
-    float2  mipSize     = sizeInPixel / pow(2, lod);
-    float2  clampBorder = 0.5 * rcp(mipSize);
-    // atlasCoords = clamp(atlasCoords, offset + clampBorder, offset + size - clampBorder);
+    // Add 1/2 pixel to sample at the center of the pixel
+    // atlasCoords += HalfPixelSize(sizeInPixel, lod);
+
+    // Remap the uv to take in account the padding (atlasCoord must be between 0 and 1)
+    atlasCoords = RemapUV(atlasCoords, sizeInPixel, maxLod);
+
+    // Apply atlas scale and offset
+    atlasCoords = atlasCoords * scale + offset;
 
     float3 color = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, atlasCoords, lod).rgb;
     

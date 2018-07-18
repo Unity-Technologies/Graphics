@@ -34,8 +34,8 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUILayout.LabelField(_.GetContent("Cookies"), EditorStyles.boldLabel);
             ++EditorGUI.indentLevel;
             EditorGUILayout.PropertyField(d.cookieAtlasSize, _.GetContent("Atlas Size (Squared)"));
-            EditorGUILayout.PropertyField(d.cookieAtlasMipPadding, _.GetContent("Atlas padding (mip level based)|Compute the padding in pixel for cookies in the atlas using this mip level"));
-            d.cookieAtlasMipPadding.intValue = Mathf.Clamp(d.cookieAtlasMipPadding.intValue, 0, 10);
+            EditorGUILayout.PropertyField(d.cookieAtlasMaxValidMip, _.GetContent("Maximum valid mip level|Use this mip level to add borders on textures in the atlas, so trilinear filtering is valid until this mip level"));
+            d.cookieAtlasMaxValidMip.intValue = Mathf.Clamp(d.cookieAtlasMaxValidMip.intValue, 0, 11);
             --EditorGUI.indentLevel;
         }
 

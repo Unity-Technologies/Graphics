@@ -73,8 +73,8 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
     uint i = 0; // Declare once to avoid the D3D11 compiler warning.
 
-    float3 positionRWSDdx = ddx(posInput.positionWS);
-    float3 positionRWSDdy = ddy(posInput.positionWS);
+    float3 positionRWSDdx = float3(0, 0, 0);//ddx(posInput.positionWS);
+    float3 positionRWSDdy = float3(0, 0, 0);//ddy(posInput.positionWS);
 
     if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
     {

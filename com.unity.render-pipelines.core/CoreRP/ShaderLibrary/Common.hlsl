@@ -536,24 +536,6 @@ float3 LatlongToDirectionCoordinate(float2 coord)
     return direction;
 }
 
-float2 DirectionToOctahedralCoordinate(float3 n)
-{
-    n /= ( abs( n.x ) + abs( n.y ) + abs( n.z ) );
-    n.xy = n.xy * 0.5 + 0.5;
-    n.z   = saturate(n.z*FLT_MAX);
-    return n;
-}
-
-float3 OctahedralToDirectionCoordinate(float2 encN)
-{
-    encN = encN * 2.0 - 1.0;
-    float3 n;
-    n.z = encN.z *(1.0 - abs( encN.x ) - abs( encN.y ));
-    n.xy = encN.xy;
-    n = normalize( n );
-    return n;
-}
-
 // ----------------------------------------------------------------------------
 // Depth encoding/decoding
 // ----------------------------------------------------------------------------

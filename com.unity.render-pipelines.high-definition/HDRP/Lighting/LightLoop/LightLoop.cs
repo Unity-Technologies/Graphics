@@ -525,7 +525,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DecalDatas = new ComputeBuffer(k_MaxDecalsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DecalData)));
 
             GlobalLightLoopSettings gLightLoopSettings = hdAsset.GetRenderPipelineSettings().lightLoopSettings;
-            m_CookieAtlas = new PowerOfTwoTextureAtlas(gLightLoopSettings.cookieAtlasSize, gLightLoopSettings.cookieAtlasMipPadding, RenderTextureFormat.ARGB32, true, FilterMode.Trilinear);
+            m_CookieAtlas = new PowerOfTwoTextureAtlas(gLightLoopSettings.cookieAtlasSize, gLightLoopSettings.cookieAtlasMaxValidMip, RenderTextureFormat.ARGB32, true, FilterMode.Trilinear);
 
             TextureFormat probeCacheFormat = gLightLoopSettings.reflectionCacheCompressed ? TextureFormat.BC6H : TextureFormat.RGBAHalf;
             m_ReflectionProbeCache = new ReflectionProbeCache(hdAsset, iblFilterGGX, gLightLoopSettings.reflectionProbeCacheSize, (int)gLightLoopSettings.reflectionCubemapSize, probeCacheFormat, true);
@@ -1960,14 +1960,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Vector2 GetCookieSize(Texture cookie)
         {
             CustomRenderTexture crt = cookie as CustomRenderTexture;
-            Cubemap cubemap = cookie as Cubemap;
             float width = cookie.width;
             float height = cookie.height;
 
-            if ((crt != null && crt.dimension == TextureDimension.Cube) || cubemap != null)
+            if ((crt != null && crt.dimension == TextureDimension.Cube) || cookie is Cubemap)
             {
-                width *= 3;
-                height *= 2;
+                // Correct size for octahedral
+                width = Mathf.ClosestPowerOfTwo((int)Mathf.Sqrt(width * width * 6));
+                height = Mathf.ClosestPowerOfTwo((int)Mathf.Sqrt(height * width * 6));
             }
 
             return new Vector2(width, height);
@@ -1978,7 +1978,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CookieAtlas.ResetAllocator();
 
             // Iterate over visible lights sorted by cookie size
-            foreach (var light in visibleLights.Where(l => l.light.cookie != null).OrderBy(l => GetCookieSize(l.light.cookie).magnitude))
+            foreach (var light in visibleLights.Where(l => l.light.cookie != null).OrderByDescending(l => GetCookieSize(l.light.cookie).magnitude))
             {
                 if (light.light.cookie == null)
                     continue ;
@@ -2360,7 +2360,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 cmd.SetGlobalTexture(HDShaderIDs._CookieAtlas, m_CookieAtlas.AtlasTexture);
                 cmd.SetGlobalVector(HDShaderIDs._CookieAtlasSize, new Vector2(m_CookieAtlas.AtlasTexture.rt.width, m_CookieAtlas.AtlasTexture.rt.height));
-                cmd.SetGlobalInt(HDShaderIDs._CookieAtlasPadding, 64); //TODO: Hardcoded value
+                cmd.SetGlobalInt(HDShaderIDs._CookieAtlasMaxValidMip, m_CookieAtlas.mipPadding);
                 cmd.SetGlobalTexture(HDShaderIDs._EnvCubemapTextures, m_ReflectionProbeCache.GetTexCache());
                 cmd.SetGlobalTexture(HDShaderIDs._Env2DTextures, m_ReflectionPlanarProbeCache.GetTexCache());
                 cmd.SetGlobalMatrixArray(HDShaderIDs._Env2DCaptureVP, m_Env2DCaptureVP);

@@ -37,7 +37,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class GlobalLightLoopSettings
     {
         public int cookieAtlasSize = 1024;
-        public int cookieAtlasMipPadding = 5;
+        public int cookieAtlasMaxValidMip = 5;
 
         public int planarReflectionProbeCacheSize = 2;
         public PlanarReflectionResolution planarReflectionTextureSize = PlanarReflectionResolution.PlanarReflectionResolution1024;
