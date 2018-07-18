@@ -5,43 +5,12 @@
 #include "CoreRP/ShaderLibrary/Filtering.hlsl"
 
 #include "AtmosphericScattering.cs.hlsl"
-#include "../SkyVariables.hlsl"
-#include "../../ShaderVariables.hlsl"
-#include "../../Lighting/Volumetrics/VBuffer.hlsl"
-
-TEXTURE3D(_VBufferLighting);
+#include "HDRP/ShaderVariables.hlsl"
+#include "HDRP/Lighting/Volumetrics/VBuffer.hlsl"
 
 #ifdef DEBUG_DISPLAY
-#include "../../Debug/DebugDisplay.hlsl"
+#include "HDRP/Debug/DebugDisplay.hlsl"
 #endif
-
-CBUFFER_START(AtmosphericScattering)
-int     _AtmosphericScatteringType;
-// Common
-float   _FogColorMode;
-float4  _FogColorDensity; // color in rgb, density in alpha
-float4  _MipFogParameters;
-// Linear fog
-float4  _LinearFogParameters;
-// Exp fog
-float4  _ExpFogParameters;
-CBUFFER_END
-
-#define _MipFogNear                     _MipFogParameters.x
-#define _MipFogFar                      _MipFogParameters.y
-#define _MipFogMaxMip                   _MipFogParameters.z
-
-#define _FogDensity                     _FogColorDensity.w
-#define _FogColor                       _FogColorDensity
-
-#define _LinearFogStart                 _LinearFogParameters.x
-#define _LinearFogOneOverRange          _LinearFogParameters.y
-#define _LinearFogHeightEnd             _LinearFogParameters.z
-#define _LinearFogHeightOneOverRange    _LinearFogParameters.w
-
-#define _ExpFogDistance                 _ExpFogParameters.x
-#define _ExpFogBaseHeight               _ExpFogParameters.y
-#define _ExpFogHeightAttenuation        _ExpFogParameters.z
 
 float3 GetFogColor(PositionInputs posInput)
 {
