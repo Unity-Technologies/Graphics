@@ -474,7 +474,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     lightData.lightUnit = LightUnit.Lux;
                     lightData.intensity = k_DefaultDirectionalLightIntensity;
                     break;
-                case LightType.Area: // Rectangle by default when light is created
+                case LightType.Rectangle: // Rectangle by default when light is created
                     lightData.lightUnit = LightUnit.Lumen;
                     lightData.intensity = k_DefaultAreaLightIntensity;
                     break;
@@ -486,7 +486,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Sanity check: lightData.lightTypeExtent is init to LightTypeExtent.Punctual (in case for unknow reasons we recreate additional data on an existing line)
-            if (light.type == LightType.Area && lightData.lightTypeExtent == LightTypeExtent.Punctual)
+            if (light.type == LightType.Rectangle && lightData.lightTypeExtent == LightTypeExtent.Punctual)
             {
                 lightData.lightTypeExtent = LightTypeExtent.Rectangle;
                 light.type = LightType.Point; // Same as in HDLightEditor
