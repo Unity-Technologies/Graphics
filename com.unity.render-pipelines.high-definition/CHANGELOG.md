@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue when manipulating a lot of decals, it was displaying a lot of errors in the inspector
 - Fixed capture material with reflection probe
 - Refactored Constant Buffers to avoid hitting the maximum number of bound CBs in some cases.
+- Fixed the light range affecting the transform scale when changed.
 
 ### Changed
 - Movde Render Pipeline Debug "Windows from Windows->General-> Render Pipeline debug windows" to "Windows from Windows->Analysis-> Render Pipeline debug windows"
