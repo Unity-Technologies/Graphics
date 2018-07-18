@@ -1,15 +1,13 @@
 {
-    "name": "HDRP_Tests",
+    "name": "Unity.RenderPipelines.Lightweight.Runtime",
     "references": [
-        "Unity.RenderPipelines.Core.Runtime",
         "Unity.Postprocessing.Runtime",
-        "Unity.RenderPipelines.HighDefinition.Runtime",
-        "UnityEngine.TestTools.Graphics"
+        "Unity.RenderPipelines.Core.Runtime"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [],
     "excludePlatforms": [],
-    "allowUnsafeCode": false,
+    "allowUnsafeCode": true,
     "overrideReferences": false,
     "precompiledReferences": [],
     "autoReferenced": true,

@@ -288,8 +288,6 @@ namespace UnityEditor.Experimental.Rendering
             if (EditorGUI.EndChangeCheck())
             {
                 s.SetModeTarget(p.mode.intValue);
-                foreach (var targetObject in p.so.targetObjects)
-                    HDReflectionProbeEditorUtility.ResetProbeSceneTextureInMaterial((ReflectionProbe)targetObject);
             }
         }
 

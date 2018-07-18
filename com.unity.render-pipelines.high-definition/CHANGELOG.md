@@ -6,12 +6,27 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [unreleased]
 
+## [3.0.1-preview]
+
+### Fixed
+- Fixed an issue with PreIntegratedFGD texture being sometimes destroyed and not regenerated causing rendering to break
+- PostProcess input buffers are not copied anymore on PC if the viewport size matches the final render target size
+- Fixed an issue when manipulating a lot of decals, it was displaying a lot of errors in the inspector
+- Fixed capture material with reflection probe
+
+### Added
+- Added support for RendererPriority on Renderer. This allow to control order of transparent rendering manually. HDRP have now two stage of sorting for transparent in addition to bact to front. Material have a priority then Renderer have a priority.
+- Add Coupling of (HD)Camera and HDAdditionalCameraData for reset and remove in inspector contextual menu of Camera
+- Add macro to forbid unity_ObjectToWorld/unity_WorldToObject to be use as it doesn't handle camera relative rendering
 
 ## [3.0.0-preview]
 
 ### Fixed
 - Fixed an issue with distortion that was using previous frame instead of current frame
 - Fixed an issue where disabled light where not upgrade correctly to the new physical light unit system introduce in 2.0.5-preview
+
+### Changed
+- Update assembly definitions to output assemblies that match Unity naming convention (Unity.*).
 
 ## [2.0.5-preview]
 
