@@ -575,12 +575,13 @@ namespace UnityEditor.VFX.UI
 
         void NotifyChange(StickyNodeChangeEvent.Change change)
         {
-            using (StickyNodeChangeEvent evt = StickyNodeChangeEvent.GetPooled(this, change))
+            if( OnChange != null)
             {
-                // TODO Temp, fix that
-                //panel.dispatcher.DispatchEvent(evt, panel);
+                OnChange(change);
             }
         }
+
+        public System.Action<StickyNodeChangeEvent.Change> OnChange;
 
         void OnContentsMouseDown(MouseDownEvent e)
         {
