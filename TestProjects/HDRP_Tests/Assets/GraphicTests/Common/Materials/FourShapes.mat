@@ -158,6 +158,7 @@ Material:
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _EnergyConservingSpecularColor: 1
+    - _HdrpVersion: 1
     - _HeightAmplitude: 0.14999999
     - _HeightCenter: 0
     - _HeightMapParametrization: 1

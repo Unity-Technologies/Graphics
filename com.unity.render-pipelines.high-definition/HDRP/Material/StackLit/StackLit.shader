@@ -192,7 +192,7 @@ Shader "HDRenderPipeline/StackLit"
         _DetailNormalScale("DetailNormal Scale", Range(0.0, 2.0)) = 1
 
         [HideInInspector] _DetailSmoothnessMapShow("DetailSmoothness Map Show", Float) = 0
-        _DetailSmoothnessMap("DetailSmoothness Map", 2D) = "grey" {} // Neutral is 0.5 for detail map
+        _DetailSmoothnessMap("DetailSmoothness Map", 2D) = "lineargrey" {} // Neutral is 0.5 for detail map
         _DetailSmoothnessMapUV("DetailSmoothness Map UV", Float) = 0.0
         _DetailSmoothnessMapUVLocal("DetailSmoothness Map UV Local", Float) = 0.0
         _DetailSmoothnessMapChannel("DetailSmoothness Map Channel", Float) = 0.0
@@ -323,6 +323,10 @@ Shader "HDRenderPipeline/StackLit"
 
 
     #pragma shader_feature _STACKLIT_DEBUG
+
+	// decal 3RT or 4RT toggle
+	#pragma multi_compile _ _DECALS_4RT
+
     //enable GPU instancing support
     #pragma multi_compile_instancing
 

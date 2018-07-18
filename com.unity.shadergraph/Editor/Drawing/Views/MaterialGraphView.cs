@@ -10,6 +10,9 @@ using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 using Node = UnityEditor.Experimental.UIElements.GraphView.Node;
 using Object = UnityEngine.Object;
 using UnityEditor.Graphs;
+#if UNITY_2018_3_OR_NEWER
+using ContextualMenu = UnityEngine.Experimental.UIElements.DropdownMenu;
+#endif
 
 namespace UnityEditor.ShaderGraph.Drawing
 {

@@ -63,9 +63,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             widgets.AddRange(new[]
             {
-                new DebugUI.Container
+                new DebugUI.Foldout
                 {
-                    displayName = "Lighting Settings",
+                    displayName = "Light Loop Settings",
                     children =
                     {
                         // Uncomment if you re-enable LIGHTLOOP_SINGLE_PASS multi_compile in lit*.shader
