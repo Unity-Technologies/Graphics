@@ -273,29 +273,10 @@ CBUFFER_START(UnityGlobal)
     float4 _VBufferPrevDepthEncodingParams;
     float4 _VBufferPrevDepthDecodingParams;
 
-    // ================================
-    //     LIGHTLOOP CONSTANTS
-    // ================================
     #include "Lighting/LightLoop/ShaderVariablesLightLoop.hlsl"
-
-    // ======================================
-    //     SCREEN SPACE LIGHTING CONSTANTS
-    // ======================================
-    #include "Lighting/ShaderVariablesScreenSpaceLighting.hlsl"
-
-    // =========================================
-    //     ATMOSPHERIC SCATTERING CONSTANTS
-    // =========================================
+    #include "Lighting/ScreenSpaceLighting/ShaderVariablesScreenSpaceLighting.hlsl"
     #include "Lighting/AtmosphericScattering/ShaderVariablesAtmosphericScattering.hlsl"
-
-    // =========================================
-    //     SUBSURFACE SCATTERING CONSTANTS
-    // =========================================
     #include "Material/SubsurfaceScattering/ShaderVariablesSubsurfaceScattering.hlsl"
-
-    // ================================
-    //     DECALS CONSTANTS
-    // ================================
     #include "Material/Decal/ShaderVariablesDecal.hlsl"
 
 CBUFFER_END
@@ -304,7 +285,7 @@ CBUFFER_END
 #undef SHADER_VARIABLES_INCLUDE_CB
 #include "Lighting/LightLoop/ShaderVariablesLightLoop.hlsl"
 #include "Lighting/AtmosphericScattering/ShaderVariablesAtmosphericScattering.hlsl"
-#include "Lighting/ShaderVariablesScreenSpaceLighting.hlsl"
+#include "Lighting/ScreenSpaceLighting/ShaderVariablesScreenSpaceLighting.hlsl"
 #include "Material/Decal/ShaderVariablesDecal.hlsl"
 #include "Material/SubsurfaceScattering/ShaderVariablesSubsurfaceScattering.hlsl"
 
