@@ -397,7 +397,7 @@ void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
 #endif
 
     GetLayerTexCoord(   input.texCoord0, input.texCoord1, input.texCoord2, input.texCoord3,
-                        input.positionWS, input.worldToTangent[2].xyz, layerTexCoord);
+                        input.positionRWS, input.worldToTangent[2].xyz, layerTexCoord);
 }
 
 void ApplyDisplacementTileScale(inout float height0, inout float height1, inout float height2, inout float height3)
@@ -548,7 +548,7 @@ float4 ApplyHeightBlend(float4 heights, float4 blendMask)
 
     // Normalize
     maxHeight = GetMaxHeight(maskedHeights);
-    maskedHeights = maskedHeights / maxHeight.xxxx;
+    maskedHeights = maskedHeights / max(maxHeight.xxxx, 1e-6);
 
     return maskedHeights.yzwx;
 }
@@ -769,7 +769,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
 #ifdef _ENABLE_GEOMETRIC_SPECULAR_AA
     // Specular AA
-    surfaceData.perceptualSmoothness = GeometricFilterPerceptualSmoothness(surfaceData.perceptualSmoothness, input.worldToTangent[2], _SpecularAAScreenSpaceVariance, _SpecularAAThreshold);
+    surfaceData.perceptualSmoothness = GeometricNormalFiltering(surfaceData.perceptualSmoothness, input.worldToTangent[2], _SpecularAAScreenSpaceVariance, _SpecularAAThreshold);
 #endif
 
     GetBuiltinData(input, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);

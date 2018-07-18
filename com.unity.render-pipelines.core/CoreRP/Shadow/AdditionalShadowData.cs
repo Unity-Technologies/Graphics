@@ -3,11 +3,8 @@ namespace UnityEngine.Experimental.Rendering
     [RequireComponent(typeof(Light))]
     public class AdditionalShadowData : MonoBehaviour
     {
-#pragma warning disable 414 // CS0414 The private field '...' is assigned but its value is never used
-        // We can't rely on Unity for our additional data, we need to version it ourself.
-        [SerializeField]
-        float m_Version = 1.0f;
-#pragma warning restore 414
+        [HideInInspector]
+        public float version = 1.0f;
 
         public const int DefaultShadowResolution = 512;
 
@@ -24,6 +21,7 @@ namespace UnityEngine.Experimental.Rendering
         [Range(0.0f, 1.0f)]
         public float shadowDimmer = 1.0f;
         public float shadowFadeDistance = 10000.0f;
+        public bool contactShadows      = false;
         // bias control
         public float viewBiasMin        = 0.5f;
         public float viewBiasMax        = 10.0f;
@@ -34,7 +32,7 @@ namespace UnityEngine.Experimental.Rendering
         [Range(0.0F, 10.0F)]
         public float normalBiasScale    = 1.0f;
         public bool sampleBiasScale     = true;
-        public bool edgeLeakFixup       = true;
+        public bool edgeLeakFixup       = false; // Causes large banding artifacts
         public bool edgeToleranceNormal = true;
         [Range(0.0F, 1.0F)]
         public float edgeTolerance      = 1.0f;

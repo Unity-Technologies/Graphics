@@ -25,7 +25,11 @@ PackedVaryingsToPS VertTesselation(VaryingsToDS input)
 #endif // TESSELLATION_ON
 
 void Frag(  PackedVaryingsToPS packedInput,
+            #ifdef WRITE_NORMAL_BUFFER
+            OUTPUT_NORMALBUFFER(outNormalBuffer)
+            #else
             out float4 outColor : SV_Target
+            #endif
             #ifdef _DEPTHOFFSET_ON
             , out float outputDepth : SV_Depth
             #endif
@@ -34,10 +38,10 @@ void Frag(  PackedVaryingsToPS packedInput,
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
 
     // input.positionSS is SV_Position
-    PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionWS);
+    PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS);
 
 #ifdef VARYINGS_NEED_POSITION_WS
-    float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
+    float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);
 #else
     float3 V = 0; // Avoid the division by 0
 #endif
@@ -46,15 +50,16 @@ void Frag(  PackedVaryingsToPS packedInput,
     BuiltinData builtinData;
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
-    // TODO: handle cubemap shadow
-    outColor = float4(0.0, 0.0, 0.0, 0.0);
-
 #ifdef _DEPTHOFFSET_ON
     outputDepth = posInput.deviceDepth;
 #endif
 
+#ifdef WRITE_NORMAL_BUFFER
+    ENCODE_INTO_NORMALBUFFER(surfaceData, posInput.positionSS, outNormalBuffer);
+#elif defined(SCENESELECTIONPASS)
     // We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
-#ifdef SCENESELECTIONPASS
-    outColor = float4(_ObjectId, _PassValue, 1, 1);
+    outColor = float4(_ObjectId, _PassValue, 1.0, 1.0);
+#else
+    outColor = float4(0.0, 0.0, 0.0, 0.0);
 #endif
 }

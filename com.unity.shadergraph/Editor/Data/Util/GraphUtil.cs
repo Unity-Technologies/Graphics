@@ -92,7 +92,7 @@ namespace UnityEditor.ShaderGraph
             {
                 return 2;
             }
-            else if (typeName.Equals("float"))
+            else if (typeName.Equals("Single"))
             {
                 return 1;
             }
@@ -365,14 +365,33 @@ namespace UnityEditor.ShaderGraph
             }
         }
 
-        public static System.Text.StringBuilder PreprocessShaderCode(string code, HashSet<string> activeFields, Dictionary<string, string> namedFragments = null, System.Text.StringBuilder result = null)
+        // returns the offset of the first non-whitespace character, in the range [start, end] inclusive ... will return end if none found
+        private static int SkipWhitespace(string str, int start, int end)
+        {
+            int index = start;
+
+            while (index < end)
+            {
+                char c = str[index];
+                if (!Char.IsWhiteSpace(c))
+                {
+                    break;
+                }
+                index++;
+            }
+            return index;
+        }
+
+        public static System.Text.StringBuilder PreprocessShaderCode(string code, HashSet<string> activeFields, Dictionary<string, string> namedFragments, System.Text.StringBuilder result, bool debugOutput)
         {
             if (result == null)
             {
                 result = new System.Text.StringBuilder();
             }
+
             int cur = 0;
             int end = code.Length;
+            bool skipEndln = false;
 
             while (cur < end)
             {
@@ -387,10 +406,7 @@ namespace UnityEditor.ShaderGraph
                 {
                     // found $ escape sequence
 
-                    // first append everything before the beginning of the escape sequence
-                    AppendSubstring(result, code, cur, true, dollar, false);
-
-                    // next find the end of the line (or if none found, the end of the code)
+                    // find the end of the line (or if none found, the end of the code)
                     int endln = code.IndexOf('\n', dollar + 1);
                     if (endln < 0)
                     {
@@ -412,7 +428,11 @@ namespace UnityEditor.ShaderGraph
                         int nameLength = curlyend - dollar + 1;
                         if ((curlyend < 0) || (nameLength <= 0))
                         {
-                            // no } found, or zero length name
+                            // no } found, or zero length name                            
+
+                            // append everything before the beginning of the escape sequence
+                            AppendSubstring(result, code, cur, true, dollar, false);
+
                             if (curlyend < 0)
                             {
                                 result.Append("// ERROR: unterminated escape sequence ('${' and '}' must be matched)\n");
@@ -432,6 +452,9 @@ namespace UnityEditor.ShaderGraph
                             // } found!
                             // ugh, this probably allocates memory -- wish we could do the name lookup direct from a substring
                             string name = code.Substring(dollar, nameLength);
+
+                            // append everything before the beginning of the escape sequence
+                            AppendSubstring(result, code, cur, true, dollar, false);
 
                             string fragment;
                             if ((namedFragments != null) && namedFragments.TryGetValue(name, out fragment))
@@ -463,6 +486,10 @@ namespace UnityEditor.ShaderGraph
                         if ((colon < 0) || (predicateLength <= 0))
                         {
                             // no colon found... error!  Spit out error and context
+
+                            // append everything before the beginning of the escape sequence
+                            AppendSubstring(result, code, cur, true, dollar, false);
+
                             if (colon < 0)
                             {
                                 result.Append("// ERROR: unterminated escape sequence ('$' and ':' must be matched)\n");
@@ -481,24 +508,39 @@ namespace UnityEditor.ShaderGraph
                             // colon found!
                             // ugh, this probably allocates memory -- wish we could do the field lookup direct from a substring
                             string predicate = code.Substring(dollar + 1, predicateLength);
-
+                            int nonwhitespace = SkipWhitespace(code, colon + 1, endln);
                             if (activeFields.Contains(predicate))
                             {
+                                // append everything before the beginning of the escape sequence
+                                AppendSubstring(result, code, cur, true, dollar, false);
+
                                 // predicate is active, append the line
-                                result.Append(' ', predicateLength + 2);
-                                AppendSubstring(result, code, colon, false, endln, false);
+                                AppendSubstring(result, code, nonwhitespace, true, endln, false);
                             }
                             else
                             {
-                                // predicate is not active -- comment out line
-                                result.Append("//");
-                                result.Append(' ', predicateLength);
-                                AppendSubstring(result, code, colon, false, endln, false);
+                                // predicate is not active
+                                if (debugOutput)
+                                {
+                                    // append everything before the beginning of the escape sequence
+                                    AppendSubstring(result, code, cur, true, dollar, false);
+                                    result.Append("// ");
+                                    AppendSubstring(result, code, nonwhitespace, true, endln, false);
+                                }
+                                else
+                                {
+                                    skipEndln = true;
+                                }
                             }
                         }
                         cur = endln + 1;
                     }
                 }
+            }
+
+            if (!skipEndln)
+            {
+                result.AppendLine();
             }
 
             return result;
@@ -693,6 +735,9 @@ namespace UnityEditor.ShaderGraph
                 if (requirements.requiresScreenPosition)
                     surfaceDescriptionInputStruct.AppendLine("float4 {0};", ShaderGeneratorNames.ScreenPosition);
 
+                if (requirements.requiresFaceSign)
+                    surfaceDescriptionInputStruct.AppendLine("float {0};", ShaderGeneratorNames.FaceSign);
+
                 results.previewMode = PreviewMode.Preview3D;
                 if (!isUber)
                 {
@@ -801,22 +846,33 @@ namespace UnityEditor.ShaderGraph
             return results;
         }
 
-        public static void GenerateSurfaceDescriptionStruct(ShaderStringBuilder surfaceDescriptionStruct, List<MaterialSlot> slots, bool isMaster)
+        public static void GenerateSurfaceDescriptionStruct(ShaderStringBuilder surfaceDescriptionStruct, List<MaterialSlot> slots, bool isMaster, string structName = "SurfaceDescription", HashSet<string> activeFields = null)
         {
-            surfaceDescriptionStruct.AppendLine("struct SurfaceDescription");
+            surfaceDescriptionStruct.AppendLine("struct {0}", structName);
             using (surfaceDescriptionStruct.BlockSemicolonScope())
             {
                 if (isMaster)
                 {
                     foreach (var slot in slots)
+                    {
+                        string hlslName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
                         surfaceDescriptionStruct.AppendLine("{0} {1};",
                             NodeUtils.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType),
-                            NodeUtils.GetHLSLSafeName(slot.shaderOutputName));
-                    //surfaceDescriptionStruct.Deindent();
+                            hlslName);
+
+                        if (activeFields != null)
+                        {
+                            activeFields.Add(structName + "." + hlslName);
+                        }
+                    }
                 }
                 else
                 {
                     surfaceDescriptionStruct.AppendLine("float4 PreviewOutput;");
+                    if (activeFields != null)
+                    {
+                        activeFields.Add(structName + ".PreviewOutput");
+                    }
                 }
             }
         }
@@ -889,14 +945,17 @@ namespace UnityEditor.ShaderGraph
                         var usedSlots = slots ?? masterNode.GetInputSlots<MaterialSlot>();
                         foreach (var input in usedSlots)
                         {
-                            var foundEdges = graph.GetEdges(input.slotReference).ToArray();
-                            if (foundEdges.Any())
+                            if (input != null)
                             {
-                                surfaceDescriptionFunction.AppendLine("surface.{0} = {1};", NodeUtils.GetHLSLSafeName(input.shaderOutputName), masterNode.GetSlotValue(input.id, mode));
-                            }
-                            else
-                            {
-                                surfaceDescriptionFunction.AppendLine("surface.{0} = {1};", NodeUtils.GetHLSLSafeName(input.shaderOutputName), input.GetDefaultValue(mode));
+                                var foundEdges = graph.GetEdges(input.slotReference).ToArray();
+                                if (foundEdges.Any())
+                                {
+                                    surfaceDescriptionFunction.AppendLine("surface.{0} = {1};", NodeUtils.GetHLSLSafeName(input.shaderOutputName), masterNode.GetSlotValue(input.id, mode));
+                                }
+                                else
+                                {
+                                    surfaceDescriptionFunction.AppendLine("surface.{0} = {1};", NodeUtils.GetHLSLSafeName(input.shaderOutputName), input.GetDefaultValue(mode));
+                                }
                             }
                         }
                     }
@@ -912,13 +971,23 @@ namespace UnityEditor.ShaderGraph
         }
 
         const string k_VertexDescriptionStructName = "VertexDescription";
-        public static void GenerateVertexDescriptionStruct(ShaderStringBuilder builder, List<MaterialSlot> slots)
+        public static void GenerateVertexDescriptionStruct(ShaderStringBuilder builder, List<MaterialSlot> slots, string structName = k_VertexDescriptionStructName, HashSet<string> activeFields = null)
         {
-            builder.AppendLine("struct {0}", k_VertexDescriptionStructName);
+            builder.AppendLine("struct {0}", structName);
             using (builder.BlockSemicolonScope())
             {
                 foreach (var slot in slots)
-                    builder.AppendLine("{0} {1};", NodeUtils.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType), NodeUtils.GetHLSLSafeName(slot.shaderOutputName));
+                {
+                    string hlslName = NodeUtils.GetHLSLSafeName(slot.shaderOutputName);
+                    builder.AppendLine("{0} {1};",
+                        NodeUtils.ConvertConcreteSlotValueTypeToString(AbstractMaterialNode.OutputPrecision.@float, slot.concreteValueType),
+                        hlslName);
+
+                    if (activeFields != null)
+                    {
+                        activeFields.Add(structName + "." + hlslName);
+                    }
+                }
             }
         }
 
@@ -928,9 +997,11 @@ namespace UnityEditor.ShaderGraph
             FunctionRegistry functionRegistry,
             PropertyCollector shaderProperties,
             GenerationMode mode,
-            List<AbstractMaterialNode> nodes,
+            List<INode> nodes,
             List<MaterialSlot> slots,
-            string graphInputStructName = "VertexDescriptionInputs")
+            string graphInputStructName = "VertexDescriptionInputs",
+            string functionName = "PopulateVertexData",
+            string graphOutputStructName = k_VertexDescriptionStructName)
         {
             if (graph == null)
                 return;
@@ -939,12 +1010,12 @@ namespace UnityEditor.ShaderGraph
 
             graph.CollectShaderProperties(shaderProperties, mode);
 
-            builder.AppendLine("{0} PopulateVertexData(VertexDescriptionInputs IN)", k_VertexDescriptionStructName);
+            builder.AppendLine("{0} {1}({2} IN)", graphOutputStructName, functionName, graphInputStructName);
             using (builder.BlockScope())
             {
                 ShaderGenerator sg = new ShaderGenerator();
-                builder.AppendLine("{0} description = ({0})0;", k_VertexDescriptionStructName);
-                foreach (var node in nodes)
+                builder.AppendLine("{0} description = ({0})0;", graphOutputStructName);
+                foreach (var node in nodes.OfType<AbstractMaterialNode>())
                 {
                     var generatesFunction = node as IGeneratesFunction;
                     if (generatesFunction != null)

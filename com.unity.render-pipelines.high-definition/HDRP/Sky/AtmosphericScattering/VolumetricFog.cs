@@ -8,12 +8,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class VolumetricFog : AtmosphericScattering
     {
-        public ColorParameter        albedo       = new ColorParameter(new Color(0.5f, 0.5f, 0.5f));
-        public MinFloatParameter     meanFreePath = new MinFloatParameter(1000000.0f, 1.0f);
-        public ClampedFloatParameter anisotropy   = new ClampedFloatParameter(0.0f, -1.0f, 1.0f);
+        public ColorParameter        albedo                 = new ColorParameter(Color.white);
+        public MinFloatParameter     meanFreePath           = new MinFloatParameter(1000000.0f, 1.0f);
+        public ClampedFloatParameter anisotropy             = new ClampedFloatParameter(0.0f, -1.0f, 1.0f);
+        public ClampedFloatParameter globalLightProbeDimmer = new ClampedFloatParameter(1.0f, 0.0f, 1.0f);
 
         // Override the volume blending function.
-        public override void Override(VolumeComponent state, float interpFactor)
+        public override void Override(VolumeComponent state, float lerpFactor)
         {
             VolumetricFog other = state as VolumetricFog;
 
@@ -23,12 +24,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float   otherExtinction = VolumeRenderingUtils.ExtinctionFromMeanFreePath(other.meanFreePath);
             Vector3 otherScattering = VolumeRenderingUtils.ScatteringFromExtinctionAndAlbedo(otherExtinction, (Vector3)(Vector4)other.albedo.value);
 
-            float   blendExtinction =   Mathf.Lerp(otherExtinction,  thisExtinction, interpFactor);
-            Vector3 blendScattering = Vector3.Lerp(otherScattering,  thisScattering, interpFactor);
-            float   blendAsymmetry  =   Mathf.Lerp(other.anisotropy, anisotropy,     interpFactor);
+            float   blendExtinction =   Mathf.Lerp(otherExtinction,  thisExtinction, lerpFactor);
+            Vector3 blendScattering = Vector3.Lerp(otherScattering,  thisScattering, lerpFactor);
+            float   blendAsymmetry  =   Mathf.Lerp(other.anisotropy, anisotropy,     lerpFactor);
 
             float   blendMeanFreePath = VolumeRenderingUtils.MeanFreePathFromExtinction(blendExtinction);
             Color   blendAlbedo       = (Color)(Vector4)VolumeRenderingUtils.AlbedoFromMeanFreePathAndScattering(blendMeanFreePath, blendScattering);
+            float   blendDimmer       = Mathf.Lerp(other.globalLightProbeDimmer, globalLightProbeDimmer, lerpFactor);
+
             blendAlbedo.a     = 1.0f;
 
             if (meanFreePath.overrideState)
@@ -44,6 +47,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (anisotropy.overrideState)
             {
                 other.anisotropy.value = blendAsymmetry;
+            }
+
+            if (globalLightProbeDimmer.overrideState)
+            {
+                other.globalLightProbeDimmer.value = blendDimmer;
             }
         }
 

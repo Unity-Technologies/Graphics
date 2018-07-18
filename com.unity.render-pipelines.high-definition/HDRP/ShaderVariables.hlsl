@@ -336,12 +336,50 @@ float4x4 OptimizeProjectionMatrix(float4x4 M)
     return M;
 }
 
+// Helper to handle camera relative space
+
+float4x4 ApplyCameraTranslationToMatrix(float4x4 modelMatrix)
+{
+    // To handle camera relative rendering we substract the camera position in the model matrix
+    // User must not use UNITY_MATRIX_M directly, unless they understand what they do
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    modelMatrix._m03_m13_m23 -= _WorldSpaceCameraPos;
+#endif
+    return modelMatrix;
+}
+
+float4x4 ApplyCameraTranslationToInverseMatrix(float4x4 inverseModelMatrix)
+{
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    // To handle camera relative rendering we need to apply translation before converting to object space
+    float4x4 translationMatrix = { { 1.0, 0.0, 0.0, _WorldSpaceCameraPos.x },{ 0.0, 1.0, 0.0, _WorldSpaceCameraPos.y },{ 0.0, 0.0, 1.0, _WorldSpaceCameraPos.z },{ 0.0, 0.0, 0.0, 1.0 } };
+    return mul(inverseModelMatrix, translationMatrix);
+#else
+    return inverseModelMatrix;
+#endif
+}
+
+// Define Model Matrix Macro
+// Note: In order to be able to define our macro to forbid usage of unity_ObjectToWorld/unity_WorldToObject
+// We need to declare inline function. Using uniform directly mean they are expand with the macro
+float4x4 GetUnityObjectToWorld() { return unity_ObjectToWorld; }
+float4x4 GetUnityWorldToObject() { return unity_WorldToObject; }
+
+#define UNITY_MATRIX_M     ApplyCameraTranslationToMatrix(GetUnityObjectToWorld())
+#define UNITY_MATRIX_I_M   ApplyCameraTranslationToInverseMatrix(GetUnityWorldToObject())
+
+#define unity_ObjectToWorld Use_Macro_UNITY_MATRIX_M_instead_of_unity_ObjectToWorld
+#define unity_WorldToObject Use_Macro_UNITY_MATRIX_I_M_instead_of_unity_WorldToObject
+
+// Define View/Projection matrix macro
 #ifdef USE_LEGACY_UNITY_MATRIX_VARIABLES
     #include "ShaderVariablesMatrixDefsLegacyUnity.hlsl"
 #else
     #include "ShaderVariablesMatrixDefsHDCamera.hlsl"
 #endif
 
+// This define allow to tell to unity instancing that we will use our camera relative functions (ApplyCameraTranslationToMatrix and  ApplyCameraTranslationToInverseMatrix) for the model view matrix
+#define MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
 #include "CoreRP/ShaderLibrary/UnityInstancing.hlsl"
 #include "ShaderVariablesFunctions.hlsl"
 

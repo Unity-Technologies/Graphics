@@ -5,13 +5,29 @@ using UnityEditor.Experimental.Rendering.LightweightPipeline;
 #endif
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
-using UnityEngine.XR;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     public partial class LightweightPipeline : RenderPipeline
     {
+        private static class PerFrameBuffer
+        {
+            public static int _GlossyEnvironmentColor;
+            public static int _SubtractiveShadowColor;
+        }
+
         public LightweightPipelineAsset pipelineAsset { get; private set; }
+
+        private IRendererSetup defaultRendererSetup
+        {
+            get
+            {
+                if (m_DefaultRendererSetup == null)
+                    m_DefaultRendererSetup = new DefaultRendererSetup();
+
+                return m_DefaultRendererSetup;
+            }
+        }
 
         CameraComparer m_CameraComparer = new CameraComparer();
 
@@ -20,6 +36,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         List<int> m_LocalLightIndices = new List<int>();
 
         bool m_IsCameraRendering;
+        private IRendererSetup m_DefaultRendererSetup;
 
         public LightweightPipeline(LightweightPipelineAsset asset)
         {
@@ -31,7 +48,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             PerFrameBuffer._GlossyEnvironmentColor = Shader.PropertyToID("_GlossyEnvironmentColor");
             PerFrameBuffer._SubtractiveShadowColor = Shader.PropertyToID("_SubtractiveShadowColor");
 
-            PerCameraBuffer._ScaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
+            SetupLightweightConstanstPass.PerCameraBuffer._ScaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
             m_Renderer = new LightweightForwardRenderer(asset);
 
             // Let engine know we have MSAA on for cases where we support MSAA backbuffer
@@ -62,6 +79,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 Debug.LogWarning("Nested camera rendering is forbidden. If you are calling camera.Render inside OnWillRenderObject callback, use BeginCameraRender callback instead.");
                 return;
             }
+            pipelineAsset.savedXRGraphicsConfig.renderScale = pipelineAsset.renderScale;
+            pipelineAsset.savedXRGraphicsConfig.viewportScale = 1.0f; // Placeholder until viewportScale is all hooked up
+            // Apply any changes to XRGConfig prior to this point
+            pipelineAsset.savedXRGraphicsConfig.SetConfig();
 
             base.Render(context, cameras);
             BeginFrameRendering(cameras);
@@ -79,8 +100,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 CommandBuffer cmd = CommandBufferPool.Get(renderCameraTag);
                 using (new ProfilingSample(cmd, renderCameraTag))
                 {
-                    m_IsCameraRendering = true;
-
                     CameraData cameraData;
                     InitializeCameraData(camera, out cameraData);
                     SetupPerCameraShaderConstants(cameraData);
@@ -98,40 +117,46 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     cmd.Clear();
 
 #if UNITY_EDITOR
-                    // Emit scene view UI
-                    if (cameraData.isSceneViewCamera)
-                        ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
+                    try
 #endif
-                    CullResults.Cull(ref cullingParameters, context, ref m_CullResults);
-                    List<VisibleLight> visibleLights = m_CullResults.visibleLights;
+                    {
+                        m_IsCameraRendering = true;
+#if UNITY_EDITOR
+                        // Emit scene view UI
+                        if (cameraData.isSceneViewCamera)
+                            ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
+#endif
+                        CullResults.Cull(ref cullingParameters, context, ref m_CullResults);
+                        List<VisibleLight> visibleLights = m_CullResults.visibleLights;
 
-                    RenderingData renderingData;
-                    InitializeRenderingData(ref cameraData, visibleLights, m_Renderer.maxSupportedLocalLightsPerPass, m_Renderer.maxSupportedVertexLights, out renderingData);
-                    m_Renderer.Setup(ref context, ref m_CullResults, ref renderingData);
-                    m_Renderer.Execute(ref context, ref m_CullResults, ref renderingData);
+                        RenderingData renderingData;
+                        InitializeRenderingData(ref cameraData, visibleLights,
+                            m_Renderer.maxSupportedLocalLightsPerPass, m_Renderer.maxSupportedVertexLights,
+                            out renderingData);
 
-                    m_IsCameraRendering = false;
+                        var setup = cameraData.camera.GetComponent<IRendererSetup>();
+                        if (setup == null)
+                            setup = defaultRendererSetup;
+
+                        setup.Setup(m_Renderer, ref context, ref m_CullResults, ref renderingData);
+                        m_Renderer.Execute(ref context, ref m_CullResults, ref renderingData);
+                    }
+#if UNITY_EDITOR
+                    catch (Exception)
+                    {
+                        CommandBufferPool.Release(cmd);
+                        throw;
+                    }
+                    finally
+#endif
+                    {
+                        m_IsCameraRendering = false;
+                    }
                 }
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
                 context.Submit();
             }
-        }
-
-        public static void RenderPostProcess(CommandBuffer cmd, PostProcessRenderContext context, ref CameraData cameraData, RenderTextureFormat colorFormat, RenderTargetIdentifier source, RenderTargetIdentifier dest, bool opaqueOnly)
-        {
-            context.Reset();
-            context.camera = cameraData.camera;
-            context.source = source;
-            context.sourceFormat = colorFormat;
-            context.destination = dest;
-            context.command = cmd;
-            context.flip = cameraData.camera.targetTexture == null;
-
-            if (opaqueOnly)
-                cameraData.postProcessLayer.RenderOpaqueOnly(context);
-            else
-                cameraData.postProcessLayer.Render(context);
         }
 
         void SetSupportedRenderingFeatures()
@@ -167,31 +192,50 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cameraData.isSceneViewCamera = camera.cameraType == CameraType.SceneView;
             cameraData.isOffscreenRender = camera.targetTexture != null && !cameraData.isSceneViewCamera;
             cameraData.isStereoEnabled = IsStereoEnabled(camera);
+
+            // TODO: There's currently an issue in engine side that breaks MSAA with texture2DArray.
+            // for now we force msaa disabled when using texture2DArray. This fixes VR multiple and single pass instanced modes.
+            if (cameraData.isStereoEnabled && XRGraphicsConfig.eyeTextureDesc.dimension == TextureDimension.Tex2DArray)
+                cameraData.msaaSamples = 1;
+
             cameraData.isHdrEnabled = camera.allowHDR && pipelineAsset.supportsHDR;
 
             cameraData.postProcessLayer = camera.GetComponent<PostProcessLayer>();
             cameraData.postProcessEnabled = cameraData.postProcessLayer != null && cameraData.postProcessLayer.isActiveAndEnabled;
 
-            // PostProcess for VR is not working atm. Disable it for now.
-            cameraData.postProcessEnabled &= !cameraData.isStereoEnabled;
-
             Rect cameraRect = camera.rect;
             cameraData.isDefaultViewport = (!(Math.Abs(cameraRect.x) > 0.0f || Math.Abs(cameraRect.y) > 0.0f ||
                                               Math.Abs(cameraRect.width) < 1.0f || Math.Abs(cameraRect.height) < 1.0f));
 
+            // If XR is enabled, use XR renderScale. 
             // Discard variations lesser than kRenderScaleThreshold.
-            // Scale is only enabled for gameview
-            // XR has it's own scaling mechanism.
-            cameraData.renderScale = (Mathf.Abs(1.0f - pipelineAsset.renderScale) < kRenderScaleThreshold) ? 1.0f : pipelineAsset.renderScale;
-            cameraData.renderScale = (camera.cameraType == CameraType.Game && !cameraData.isStereoEnabled) ? cameraData.renderScale : 1.0f;
+            // Scale is only enabled for gameview.
+            float usedRenderScale = XRGraphicsConfig.enabled ? pipelineAsset.savedXRGraphicsConfig.renderScale : pipelineAsset.renderScale;
+            cameraData.renderScale = (Mathf.Abs(1.0f - usedRenderScale) < kRenderScaleThreshold) ? 1.0f : usedRenderScale;
+            cameraData.renderScale = (camera.cameraType == CameraType.Game) ? cameraData.renderScale : 1.0f;
 
-            cameraData.requiresDepthTexture = pipelineAsset.supportsCameraDepthTexture || cameraData.postProcessEnabled || cameraData.isSceneViewCamera;
+            cameraData.requiresDepthTexture = pipelineAsset.supportsCameraDepthTexture || cameraData.isSceneViewCamera;
             cameraData.requiresSoftParticles = pipelineAsset.supportsSoftParticles;
             cameraData.requiresOpaqueTexture = pipelineAsset.supportsCameraOpaqueTexture;
             cameraData.opaqueTextureDownsampling = pipelineAsset.opaqueDownsampling;
 
             bool anyShadowsEnabled = pipelineAsset.supportsDirectionalShadows || pipelineAsset.supportsLocalShadows;
             cameraData.maxShadowDistance = (anyShadowsEnabled) ? pipelineAsset.shadowDistance : 0.0f;
+
+            LightweightAdditionalCameraData additionalCameraData = camera.gameObject.GetComponent<LightweightAdditionalCameraData>();
+            if (additionalCameraData != null)
+            {
+                cameraData.maxShadowDistance = (additionalCameraData.renderShadows) ? cameraData.maxShadowDistance : 0.0f;
+                cameraData.requiresDepthTexture &= additionalCameraData.requiresDepthTexture;
+                cameraData.requiresOpaqueTexture &= additionalCameraData.requiresColorTexture;
+            }
+            else if (!cameraData.isSceneViewCamera && camera.cameraType != CameraType.Reflection && camera.cameraType != CameraType.Preview)
+            {
+                cameraData.requiresDepthTexture = false;
+                cameraData.requiresOpaqueTexture = false;
+            }
+
+            cameraData.requiresDepthTexture |= cameraData.postProcessEnabled;
         }
 
         void InitializeRenderingData(ref CameraData cameraData, List<VisibleLight> visibleLights, int maxSupportedLocalLightsPerPass, int maxSupportedVertexLights, out RenderingData renderingData)
@@ -205,7 +249,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 for (int i = 0; i < visibleLights.Count; ++i)
                 {
-                    bool castShadows = visibleLights[i].light.shadows != LightShadows.None;
+                    Light light = visibleLights[i].light;
+                    bool castShadows = light != null && light.shadows != LightShadows.None;
                     if (visibleLights[i].lightType == LightType.Directional)
                     {
                         hasDirectionalShadowCastingLight |= castShadows;
@@ -230,7 +275,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             bool supportsScreenSpaceShadows = SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLES2;
 
             shadowData.renderDirectionalShadows = pipelineAsset.supportsDirectionalShadows && hasDirectionalShadowCastingLight;
-            shadowData.requiresScreenSpaceShadowResolve = shadowData.renderDirectionalShadows && supportsScreenSpaceShadows;
+
+            // we resolve shadows in screenspace when cascades are enabled to save ALU as computing cascade index + shadowCoord on fragment is expensive
+            shadowData.requiresScreenSpaceShadowResolve = shadowData.renderDirectionalShadows && supportsScreenSpaceShadows && pipelineAsset.cascadeCount > 1;
             shadowData.directionalLightCascadeCount = (shadowData.requiresScreenSpaceShadowResolve) ? pipelineAsset.cascadeCount : 1;
             shadowData.directionalShadowAtlasWidth = pipelineAsset.directionalShadowAtlasResolution;
             shadowData.directionalShadowAtlasHeight = pipelineAsset.directionalShadowAtlasResolution;
@@ -317,18 +364,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         void SetupPerCameraShaderConstants(CameraData cameraData)
         {
             float cameraWidth = (float)cameraData.camera.pixelWidth * cameraData.renderScale;
-            float cameraHeight = (float)cameraData.camera.pixelWidth * cameraData.renderScale;
-            Shader.SetGlobalVector(PerCameraBuffer._ScaledScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
-        }
-
-        bool IsStereoEnabled(Camera camera)
-        {
-#if !UNITY_SWITCH
-            bool isSceneViewCamera = camera.cameraType == CameraType.SceneView;
-            return XRSettings.isDeviceActive && !isSceneViewCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
-#else
-            return false;
-#endif
+            float cameraHeight = (float)cameraData.camera.pixelHeight * cameraData.renderScale;
+            Shader.SetGlobalVector(SetupLightweightConstanstPass.PerCameraBuffer._ScaledScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
         }
     }
 }

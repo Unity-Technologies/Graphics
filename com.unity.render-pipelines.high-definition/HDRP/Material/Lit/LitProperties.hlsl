@@ -116,7 +116,6 @@ float _PPDMinSamples;
 float _PPDLodThreshold;
 
 float3 _EmissiveColor;
-float _EmissiveIntensity;
 float _AlbedoAffectEmissive;
 
 float _EnableSpecularOcclusion;

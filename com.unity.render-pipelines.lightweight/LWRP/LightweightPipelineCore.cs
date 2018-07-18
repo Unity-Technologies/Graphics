@@ -86,32 +86,19 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         }
     }
 
-    public static class LightweightKeywords
+    public static class LightweightKeywordStrings
     {
-        public static readonly string AdditionalLightsText = "_ADDITIONAL_LIGHTS";
-        public static readonly string VertexLightsText = "_VERTEX_LIGHTS";
-        public static readonly string MixedLightingSubtractiveText = "_MIXED_LIGHTING_SUBTRACTIVE";
-        public static readonly string MainLightCookieText = "_MAIN_LIGHT_COOKIE";
-        public static readonly string DirectionalShadowsText = "_SHADOWS_ENABLED";
-        public static readonly string LocalShadowsText = "_LOCAL_SHADOWS_ENABLED";
-        public static readonly string SoftShadowsText = "_SHADOWS_SOFT";
-        public static readonly string CascadeShadowsText = "_SHADOWS_CASCADE";
+        public static readonly string AdditionalLights = "_ADDITIONAL_LIGHTS";
+        public static readonly string VertexLights = "_VERTEX_LIGHTS";
+        public static readonly string MixedLightingSubtractive = "_MIXED_LIGHTING_SUBTRACTIVE";
+        public static readonly string MainLightCookie = "_MAIN_LIGHT_COOKIE";
+        public static readonly string DirectionalShadows = "_SHADOWS_ENABLED";
+        public static readonly string LocalShadows = "_LOCAL_SHADOWS_ENABLED";
+        public static readonly string SoftShadows = "_SHADOWS_SOFT";
+        public static readonly string CascadeShadows = "_SHADOWS_CASCADE";
         public static readonly string DepthNoMsaa = "_DEPTH_NO_MSAA";
         public static readonly string DepthMsaa2 = "_DEPTH_MSAA_2";
         public static readonly string DepthMsaa4 = "_DEPTH_MSAA_4";
-
-#if UNITY_2018_2_OR_NEWER
-        public static readonly ShaderKeyword AdditionalLights = new ShaderKeyword(AdditionalLightsText);
-        public static readonly ShaderKeyword VertexLights = new ShaderKeyword(VertexLightsText);
-        public static readonly ShaderKeyword MixedLightingSubtractive = new ShaderKeyword(MixedLightingSubtractiveText);
-        public static readonly ShaderKeyword MainLightCookie = new ShaderKeyword(MainLightCookieText);
-        public static readonly ShaderKeyword DirectionalShadows = new ShaderKeyword(DirectionalShadowsText);
-        public static readonly ShaderKeyword LocalShadows = new ShaderKeyword(LocalShadowsText);
-        public static readonly ShaderKeyword SoftShadows = new ShaderKeyword(SoftShadowsText);
-
-        public static readonly ShaderKeyword Lightmap = new ShaderKeyword("LIGHTMAP_ON");
-        public static readonly ShaderKeyword DirectionalLightmap = new ShaderKeyword("DIRLIGHTMAP_COMBINED");
-#endif
     }
 
     public partial class LightweightPipeline
@@ -197,7 +184,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (pipelineAsset.keepSoftShadowVariants)
                     s_PipelineCapabilities |= PipelineCapabilities.SoftShadows;
             }
-        }
+    }
 
         public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
@@ -262,6 +249,29 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static bool IsSupportedCookieType(LightType lightType)
         {
             return lightType == LightType.Directional || lightType == LightType.Spot;
+        }
+
+        public static bool IsStereoEnabled(Camera camera)
+        {
+            bool isSceneViewCamera = camera.cameraType == CameraType.SceneView;
+            return XRGraphicsConfig.enabled && !isSceneViewCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
+        }
+
+        public static void RenderPostProcess(CommandBuffer cmd, PostProcessRenderContext context, ref CameraData cameraData, RenderTextureFormat colorFormat, RenderTargetIdentifier source, RenderTargetIdentifier dest, bool opaqueOnly)
+        {
+            Camera camera = cameraData.camera;
+            context.Reset();
+            context.camera = camera;
+            context.source = source;
+            context.sourceFormat = colorFormat;
+            context.destination = dest;
+            context.command = cmd;
+            context.flip = !IsStereoEnabled(camera) && camera.targetTexture == null;
+
+            if (opaqueOnly)
+                cameraData.postProcessLayer.RenderOpaqueOnly(context);
+            else
+                cameraData.postProcessLayer.Render(context);
         }
     }
 }

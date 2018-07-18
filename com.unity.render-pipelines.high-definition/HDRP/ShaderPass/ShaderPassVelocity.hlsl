@@ -86,6 +86,13 @@ float3 TransformPreviousObjectToWorldNormal(float3 normalOS)
 #endif
 }
 
+// Transforms local position to camera relative world space
+float3 TransformPreviousObjectToWorld(float3 positionOS)
+{
+    float4x4 previousModelMatrix = ApplyCameraTranslationToMatrix(unity_MatrixPreviousM);
+    return mul(previousModelMatrix, float4(positionOS, 1.0)).xyz;
+}
+
 void VelocityPositionZBias(VaryingsToPS input)
 {
 #if defined(UNITY_REVERSED_Z)
@@ -108,7 +115,7 @@ PackedVaryingsType Vert(AttributesMesh inputMesh,
     // It is not possible to correctly generate the motion vector for tesselated geometry as tessellation parameters can change
     // from one frame to another (adaptative, lod) + in Unity we only receive information for one non tesselated vertex.
     // So motion vetor will be based on interpolate previous position at vertex level instead.
-    varyingsType.vpass.positionCS = mul(_NonJitteredViewProjMatrix, float4(varyingsType.vmesh.positionWS, 1.0));
+    varyingsType.vpass.positionCS = mul(_NonJitteredViewProjMatrix, float4(varyingsType.vmesh.positionRWS, 1.0));
 
     // Note: unity_MotionVectorsParams.y is 0 is forceNoMotion is enabled
     bool forceNoMotion = unity_MotionVectorsParams.y == 0.0;
@@ -119,8 +126,18 @@ PackedVaryingsType Vert(AttributesMesh inputMesh,
     else
     {
         bool hasDeformation = unity_MotionVectorsParams.x > 0.0; // Skin or morph target
-        //Need to apply any vertex animation to the previous worldspace position, if we want it to show up in the velocity buffer
-        float3 previousPositionWS = mul(unity_MatrixPreviousM, hasDeformation ? float4(inputPass.previousPositionOS, 1.0) : float4(inputMesh.positionOS, 1.0)).xyz;
+
+        // Need to apply any vertex animation to the previous worldspace position, if we want it to show up in the velocity buffer
+#if defined(HAVE_MESH_MODIFICATION)
+        AttributesMesh previousMesh = inputMesh;
+        if (hasDeformation)
+            previousMesh.positionOS = inputPass.previousPositionOS;
+        previousMesh = ApplyMeshModification(previousMesh);
+        float3 previousPositionRWS = TransformPreviousObjectToWorld(previousMesh.positionOS);
+#else
+        float3 previousPositionRWS = TransformPreviousObjectToWorld(hasDeformation ? inputPass.previousPositionOS : inputMesh.positionOS);
+#endif
+
 #ifdef ATTRIBUTES_NEED_NORMAL
         float3 normalWS = TransformPreviousObjectToWorldNormal(inputMesh.normalOS);
 #else
@@ -128,13 +145,10 @@ PackedVaryingsType Vert(AttributesMesh inputMesh,
 #endif
 
  #if defined(HAVE_VERTEX_MODIFICATION)
-        ApplyVertexModification(inputMesh, normalWS, previousPositionWS, _LastTime);
+        ApplyVertexModification(inputMesh, normalWS, previousPositionRWS, _LastTime);
 #endif
 
-        //Need this since we are using the current position from VertMesh()
-        previousPositionWS = GetCameraRelativePositionWS(previousPositionWS);
-
-        varyingsType.vpass.previousPositionCS = mul(_PrevViewProjMatrix, float4(previousPositionWS, 1.0));
+        varyingsType.vpass.previousPositionCS = mul(_PrevViewProjMatrix, float4(previousPositionRWS, 1.0));
     }
 
     return PackVaryingsType(varyingsType);
@@ -170,10 +184,10 @@ void Frag(  PackedVaryingsToPS packedInput,
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
 
     // input.positionSS is SV_Position
-    PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionWS);
+    PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS);
 
 #ifdef VARYINGS_NEED_POSITION_WS
-    float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
+    float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);
 #else
     float3 V = 0; // Avoid the division by 0
 #endif
@@ -192,7 +206,10 @@ void Frag(  PackedVaryingsToPS packedInput,
     // TODO: How to allow overriden velocity vector from GetSurfaceAndBuiltinData ?
     float2 velocity = CalculateVelocity(inputPass.positionCS, inputPass.previousPositionCS);
 
-    EncodeVelocity(velocity, outColor);
+    // Convert from Clip space (-1..1) to NDC 0..1 space.
+    // Note it doesn't mean we don't have negative value, we store negative or positive offset in NDC space.
+    // Note: ((positionCS * 0.5 + 0.5) - (previousPositionCS * 0.5 + 0.5)) = (velocity * 0.5)
+    EncodeVelocity(velocity * 0.5, outColor);
 
     // Note: unity_MotionVectorsParams.y is 0 is forceNoMotion is enabled
     bool forceNoMotion = unity_MotionVectorsParams.y == 0.0;

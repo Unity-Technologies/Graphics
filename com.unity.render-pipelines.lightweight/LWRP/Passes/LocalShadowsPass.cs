@@ -6,6 +6,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     public class LocalShadowsPass : ScriptableRenderPass
     {
+        private static class LocalShadowConstantBuffer
+        {
+            public static int _LocalWorldToShadowAtlas;
+            public static int _LocalShadowStrength;
+            public static int _LocalShadowOffset0;
+            public static int _LocalShadowOffset1;
+            public static int _LocalShadowOffset2;
+            public static int _LocalShadowOffset3;
+            public static int _LocalShadowmapSize;
+        }
+        
         const int k_ShadowmapBufferBits = 16;
         RenderTexture m_LocalShadowmapTexture;
         RenderTextureFormat m_LocalShadowmapFormat;
@@ -14,8 +25,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         ShadowSliceData[] m_LocalLightSlices;
         float[] m_LocalShadowStrength;
 
-        const string k_SetupRenderTargetTag = "Setup Render Target";
         const string k_RenderLocalShadows = "Render Local Shadows";
+        
+        
+        private RenderTargetHandle destination { get; set; }
 
         public LocalShadowsPass(LightweightForwardRenderer renderer) : base(renderer)
         {
@@ -37,6 +50,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_LocalShadowmapFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.Shadowmap)
                 ? RenderTextureFormat.Shadowmap
                 : RenderTextureFormat.Depth;
+        }
+        
+        public void Setup(RenderTargetHandle destination)
+        {
+            this.destination = destination;
         }
 
         public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref RenderingData renderingData)
@@ -94,7 +112,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             int shadowSampling = 0;
 
             CommandBuffer cmd = CommandBufferPool.Get(k_RenderLocalShadows);
-            using (new ProfilingSample(cmd, k_SetupRenderTargetTag))
+            using (new ProfilingSample(cmd, k_RenderLocalShadows))
             {
                 // TODO: Add support to point light shadows. We make a simplification here that only works
                 // for spot lights and with max spot shadows per pass.
@@ -108,7 +126,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 m_LocalShadowmapTexture.wrapMode = TextureWrapMode.Clamp;
 
                 SetRenderTarget(cmd, m_LocalShadowmapTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                    ClearFlag.Depth, Color.black);
+                    ClearFlag.Depth, Color.black, TextureDimension.Tex2D);
 
                 for (int i = 0; i < localLightsCount; ++i)
                 {
@@ -171,7 +189,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             float invHalfShadowAtlasWidth = 0.5f * invShadowAtlasWidth;
             float invHalfShadowAtlasHeight = 0.5f * invShadowAtlasHeight;
 
-            cmd.SetGlobalTexture(RenderTargetHandles.LocalShadowmap, m_LocalShadowmapTexture);
+            cmd.SetGlobalTexture(destination.id, m_LocalShadowmapTexture);
             cmd.SetGlobalMatrixArray(LocalShadowConstantBuffer._LocalWorldToShadowAtlas, m_LocalShadowMatrices);
             cmd.SetGlobalFloatArray(LocalShadowConstantBuffer._LocalShadowStrength, m_LocalShadowStrength);
             cmd.SetGlobalVector(LocalShadowConstantBuffer._LocalShadowOffset0, new Vector4(-invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight, 0.0f, 0.0f));

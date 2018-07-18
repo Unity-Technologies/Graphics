@@ -82,7 +82,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] bool m_LocalShadowsSupported = true;
         [SerializeField] ShadowResolution m_LocalShadowsAtlasResolution = ShadowResolution._512;
         [SerializeField] bool m_SoftShadowsSupported = false;
-        [SerializeField] bool m_CustomShaderVariantStrippingSettings = false;
         [SerializeField] bool m_KeepAdditionalLightVariants = true;
         [SerializeField] bool m_KeepVertexLightVariants = true;
         [SerializeField] bool m_KeepDirectionalShadowVariants = true;
@@ -90,6 +89,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [SerializeField] bool m_KeepSoftShadowVariants = true;
 
         [SerializeField] LightweightPipelineResources m_ResourcesAsset;
+        [SerializeField] XRGraphicsConfig m_SavedXRConfig = XRGraphicsConfig.s_DefaultXRConfig;        
 
         // Deprecated
         [SerializeField] ShadowType m_ShadowType = ShadowType.HARD_SHADOWS;
@@ -204,7 +204,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             return null;
 #endif
         }
-
+        
         public int GetAssetVersion()
         {
             return k_AssetVersion;
@@ -254,6 +254,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public float renderScale
         {
             get { return m_RenderScale; }
+            set { m_RenderScale = value; }
         }
 
         public bool supportsDynamicBatching
@@ -274,6 +275,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public float shadowDistance
         {
             get { return m_ShadowDistance; }
+            set { m_ShadowDistance = value; }
         }
 
         public int cascadeCount
@@ -318,7 +320,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public bool customShaderVariantStripping
         {
-            get { return m_CustomShaderVariantStrippingSettings; }
+            get { return false; }
         }
 
         public bool keepAdditionalLightVariants
@@ -411,6 +413,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public Shader samplingShader
         {
             get { return resources != null ? resources.SamplingShader : null; }
+        }
+
+        public XRGraphicsConfig savedXRGraphicsConfig
+        {
+            get { return m_SavedXRConfig; }
+            set { m_SavedXRConfig = value;  }
         }
 
         public void OnBeforeSerialize()

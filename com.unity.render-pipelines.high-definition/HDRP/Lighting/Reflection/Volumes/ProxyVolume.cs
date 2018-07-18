@@ -6,7 +6,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class ProxyVolume
     {
         [SerializeField]
-        ShapeType m_ShapeType;
+        ShapeType m_ShapeType = ShapeType.Box;
 
         // Box
         [SerializeField]
@@ -14,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         Vector3 m_BoxOffset;
         [SerializeField]
-        bool m_BoxInfiniteProjection;
+        bool m_BoxInfiniteProjection = false;
 
         // Sphere
         [SerializeField]
@@ -22,7 +22,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         Vector3 m_SphereOffset;
         [SerializeField]
-        bool m_SphereInfiniteProjection;
+        bool m_SphereInfiniteProjection = false;
 
 
         public ShapeType shapeType { get { return m_ShapeType; } }

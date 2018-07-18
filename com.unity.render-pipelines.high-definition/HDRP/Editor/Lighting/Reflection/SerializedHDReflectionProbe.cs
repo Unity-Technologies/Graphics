@@ -43,6 +43,14 @@ namespace UnityEditor.Experimental.Rendering
         internal SerializedProperty weight;
         internal SerializedProperty multiplier;
 
+        internal SerializedProperty editorAdvancedModeBlendDistancePositive;
+        internal SerializedProperty editorAdvancedModeBlendDistanceNegative;
+        internal SerializedProperty editorSimplifiedModeBlendDistance;
+        internal SerializedProperty editorAdvancedModeBlendNormalDistancePositive;
+        internal SerializedProperty editorAdvancedModeBlendNormalDistanceNegative;
+        internal SerializedProperty editorSimplifiedModeBlendNormalDistance;
+        internal SerializedProperty editorAdvancedModeEnabled;
+
         internal SerializedProperty proxyVolumeComponent;
 
         public SerializedHDReflectionProbe(SerializedObject so, SerializedObject addso)
@@ -84,6 +92,46 @@ namespace UnityEditor.Experimental.Rendering
             blendNormalDistanceNegative = addso.Find((HDAdditionalReflectionData d) => d.blendNormalDistanceNegative);
             boxSideFadePositive = addso.Find((HDAdditionalReflectionData d) => d.boxSideFadePositive);
             boxSideFadeNegative = addso.Find((HDAdditionalReflectionData d) => d.boxSideFadeNegative);
+
+            editorAdvancedModeBlendDistancePositive = addso.FindProperty("editorAdvancedModeBlendDistancePositive");
+            editorAdvancedModeBlendDistanceNegative = addso.FindProperty("editorAdvancedModeBlendDistanceNegative");
+            editorSimplifiedModeBlendDistance = addso.FindProperty("editorSimplifiedModeBlendDistance");
+            editorAdvancedModeBlendNormalDistancePositive = addso.FindProperty("editorAdvancedModeBlendNormalDistancePositive");
+            editorAdvancedModeBlendNormalDistanceNegative = addso.FindProperty("editorAdvancedModeBlendNormalDistanceNegative");
+            editorSimplifiedModeBlendNormalDistance = addso.FindProperty("editorSimplifiedModeBlendNormalDistance");
+            editorAdvancedModeEnabled = addso.FindProperty("editorAdvancedModeEnabled");
+            //handle data migration from before editor value were saved
+            if(editorAdvancedModeBlendDistancePositive.vector3Value == Vector3.zero
+                && editorAdvancedModeBlendDistanceNegative.vector3Value == Vector3.zero
+                && editorSimplifiedModeBlendDistance.floatValue == 0f
+                && editorAdvancedModeBlendNormalDistancePositive.vector3Value == Vector3.zero
+                && editorAdvancedModeBlendNormalDistanceNegative.vector3Value == Vector3.zero
+                && editorSimplifiedModeBlendNormalDistance.floatValue == 0f
+                && (blendDistancePositive.vector3Value != Vector3.zero
+                    || blendDistanceNegative.vector3Value != Vector3.zero
+                    || blendNormalDistancePositive.vector3Value != Vector3.zero
+                    || blendNormalDistanceNegative.vector3Value != Vector3.zero))
+            {
+                Vector3 positive = blendDistancePositive.vector3Value;
+                Vector3 negative = blendDistanceNegative.vector3Value;
+                //exact advanced
+                editorAdvancedModeBlendDistancePositive.vector3Value = positive;
+                editorAdvancedModeBlendDistanceNegative.vector3Value = negative;
+                //aproximated simplified
+                editorSimplifiedModeBlendDistance.floatValue = Mathf.Max(positive.x, positive.y, positive.z, negative.x, negative.y, negative.z);
+
+                positive = blendNormalDistancePositive.vector3Value;
+                negative = blendNormalDistanceNegative.vector3Value;
+                //exact advanced
+                editorAdvancedModeBlendNormalDistancePositive.vector3Value = positive;
+                editorAdvancedModeBlendNormalDistanceNegative.vector3Value = negative;
+                //aproximated simplified
+                editorSimplifiedModeBlendNormalDistance.floatValue = Mathf.Max(positive.x, positive.y, positive.z, negative.x, negative.y, negative.z);
+
+                //display old data
+                editorAdvancedModeEnabled.boolValue = true;
+                Apply();
+            }
 
             proxyVolumeComponent = addso.Find((HDAdditionalReflectionData d) => d.proxyVolumeComponent);
         }

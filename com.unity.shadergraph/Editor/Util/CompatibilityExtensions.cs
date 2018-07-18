@@ -1,23 +1,14 @@
 using System;
 using UnityEngine;
 using UnityEngine.Experimental.UIElements;
-
-#if UNITY_2018_1
-using UnityEditor.Experimental.UIElements.GraphView;
+#if UNITY_2018_3_OR_NEWER
+using ContextualMenu = UnityEngine.Experimental.UIElements.DropdownMenu;
 #endif
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
     static class CompatibilityExtensions
     {
-#if UNITY_2018_1
-        public static void OpenTextEditor(this BlackboardField field)
-        {
-            field.RenameGo();
-        }
-
-#endif
-
         public static void AppendAction(this ContextualMenu contextualMenu, string actionName, Action action, Func<ContextualMenu.MenuAction.StatusFlags> actionStatusCallback)
         {
             Debug.Assert(action != null);
@@ -31,30 +22,11 @@ namespace UnityEditor.ShaderGraph.Drawing
             contextualMenu.AppendAction(actionName, e => action(), e => statusFlags);
         }
 
-        public static bool GetValue(this Toggle toggle)
-        {
-#if UNITY_2018_1
-            return toggle.on;
-#else
-            return toggle.value;
-#endif
-        }
-
-        public static void SetValue(this Toggle toggle, bool value)
-        {
-#if UNITY_2018_1
-            toggle.on = value;
-#else
-            toggle.value = value;
-#endif
-        }
-
 #if !UNITY_2018_3_OR_NEWER
         public static void MarkDirtyRepaint(this VisualElement element)
         {
             element.Dirty(ChangeType.Repaint);
         }
-
 #endif
 
 #if !UNITY_2018_3_OR_NEWER
@@ -67,8 +39,16 @@ namespace UnityEditor.ShaderGraph.Drawing
         {
             element.ReleaseMouseCapture();
         }
-
 #endif
+
+        public static void OnToggleChanged(this Toggle toggle, EventCallback<ChangeEvent<bool>> callback)
+        {
+#if UNITY_2018_3_OR_NEWER
+            toggle.OnValueChanged(callback);
+#else
+            toggle.OnToggle(() => callback(ChangeEvent<bool>.GetPooled(!toggle.value, toggle.value)));
+#endif
+        }
     }
 
     static class TrickleDownEnum

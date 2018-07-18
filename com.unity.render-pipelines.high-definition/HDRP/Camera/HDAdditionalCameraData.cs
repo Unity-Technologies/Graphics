@@ -1,4 +1,5 @@
 using UnityEngine.Serialization;
+using UnityEngine.Assertions;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -6,16 +7,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [RequireComponent(typeof(Camera))]
     public class HDAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver
     {
+        [HideInInspector]
+        public float version = 1.0f;
+
         // The light culling use standard projection matrices (non-oblique)
         // If the user overrides the projection matrix with an oblique one
         // He must also provide a callback to get the equivalent non oblique for the culling
         public delegate Matrix4x4 NonObliqueProjectionGetter(Camera camera);
-
-#pragma warning disable 414 // CS0414 The private field '...' is assigned but its value is never used
-        // We can't rely on Unity for our additional data, we need to version it ourself.
-        [SerializeField]
-        float m_Version = 1.0f;
-#pragma warning restore 414
 
         Camera m_camera;
 
@@ -44,7 +42,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Color backgroundColorHDR = new Color(0.025f, 0.07f, 0.19f, 0.0f);
         public bool clearDepth = true;
 
-        public RenderingPath renderingPath;
+        public RenderingPath renderingPath = RenderingPath.Default;
         [Tooltip("Layer Mask used for the volume interpolation for this camera.")]
         public LayerMask volumeLayerMask = -1;
 
@@ -70,9 +68,31 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         bool m_IsDebugRegistered = false;
         string m_CameraRegisterName;
 
-        // When we are a preview, there is no way inside Unity to make a disctinctoin between camera preview and material preview.
+        // When we are a preview, there is no way inside Unity to make a distinction between camera preview and material preview.
         // This property allow to say that we are an editor camera preview when the type is preview.
         public bool isEditorCameraPreview { get; set; }
+
+        // This is use to copy data into camera for the Reset() workflow in camera editor
+        public void CopyTo(HDAdditionalCameraData data)
+        {
+            data.clearColorMode = clearColorMode;
+            data.backgroundColorHDR = backgroundColorHDR;
+            data.clearDepth = clearDepth;
+            data.renderingPath = renderingPath;
+            data.volumeLayerMask = volumeLayerMask;
+            data.aperture = aperture;
+            data.shutterSpeed = shutterSpeed;
+            data.iso = iso;
+
+            m_FrameSettings.CopyTo(data.m_FrameSettings);
+            m_FrameSettingsRuntime.CopyTo(data.m_FrameSettingsRuntime);
+            data.m_frameSettingsIsDirty = true; // Let's be sure it is dirty for update
+
+            // We must not copy the following
+            //data.m_IsDebugRegistered = m_IsDebugRegistered;
+            //data.m_CameraRegisterName = m_CameraRegisterName;
+            //data.isEditorCameraPreview = isEditorCameraPreview;
+        }
 
         // This is the function use outside to access FrameSettings. It return the current state of FrameSettings for the camera
         // taking into account the customization via the debug menu
@@ -157,6 +177,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_camera == null)
                 return;
 
+            m_camera.allowMSAA = false; // We don't use this option in HD (it is legacy MSAA) and it produce a warning in the inspector UI if we let it
             m_camera.allowHDR = false;
 
             //  Tag as dirty so frameSettings are correctly initialize at next HDRenderPipeline.Render() call

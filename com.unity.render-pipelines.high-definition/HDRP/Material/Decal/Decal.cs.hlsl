@@ -7,10 +7,10 @@
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Decal+DecalSurfaceData:  static fields
 //
-#define DEBUGVIEW_DECAL_DECALSURFACEDATA_BASE_COLOR (10000)
-#define DEBUGVIEW_DECAL_DECALSURFACEDATA_NORMAL (10001)
-#define DEBUGVIEW_DECAL_DECALSURFACEDATA_MASK (10002)
-#define DEBUGVIEW_DECAL_DECALSURFACEDATA_HTILE_MASK (10003)
+#define DEBUGVIEW_DECAL_DECALSURFACEDATA_BASE_COLOR (200)
+#define DEBUGVIEW_DECAL_DECALSURFACEDATA_NORMAL (201)
+#define DEBUGVIEW_DECAL_DECALSURFACEDATA_MASK (202)
+#define DEBUGVIEW_DECAL_DECALSURFACEDATA_HTILE_MASK (203)
 
 //
 // UnityEngine.Experimental.Rendering.HDPipeline.Decal+DBufferMaterial:  static fields
@@ -43,31 +43,8 @@ struct DecalData
     float4 diffuseScaleBias;
     float4 normalScaleBias;
     float4 maskScaleBias;
+    float4 baseColor;
 };
-
-//
-// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.DecalData
-//
-float4x4 GetWorldToDecal(DecalData value)
-{
-    return value.worldToDecal;
-}
-float4x4 GetNormalToWorld(DecalData value)
-{
-    return value.normalToWorld;
-}
-float4 GetDiffuseScaleBias(DecalData value)
-{
-    return value.diffuseScaleBias;
-}
-float4 GetNormalScaleBias(DecalData value)
-{
-    return value.normalScaleBias;
-}
-float4 GetMaskScaleBias(DecalData value)
-{
-    return value.maskScaleBias;
-}
 
 //
 // Debug functions

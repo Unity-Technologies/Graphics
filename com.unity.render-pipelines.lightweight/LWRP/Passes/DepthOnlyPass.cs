@@ -4,38 +4,51 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     public class DepthOnlyPass : ScriptableRenderPass
     {
-        const string k_SetupRenderTargetTag = "Setup Render Target";
         const string k_DepthPrepassTag = "Depth Prepass";
 
         int kDepthBufferBits = 32;
+
+        private RenderTargetHandle depthAttachmentHandle { get; set; }
+        private RenderTextureDescriptor descriptor { get; set; }
+
+        public void Setup(
+            RenderTextureDescriptor baseDescriptor,
+            RenderTargetHandle depthAttachmentHandle,
+            SampleCount samples)
+        {
+            this.depthAttachmentHandle = depthAttachmentHandle;
+            baseDescriptor.colorFormat = RenderTextureFormat.Depth;
+            baseDescriptor.depthBufferBits = kDepthBufferBits;
+
+            if ((int)samples > 1)
+            {
+                baseDescriptor.bindMS = (int)samples > 1;
+                baseDescriptor.msaaSamples = (int)samples;
+            }
+
+            descriptor = baseDescriptor;
+        }
 
         public DepthOnlyPass(LightweightForwardRenderer renderer) : base(renderer)
         {
             RegisterShaderPassName("DepthOnly");
         }
 
-        public override void Setup(CommandBuffer cmd, RenderTextureDescriptor baseDescriptor, int[] colorAttachmentHandles, int depthAttachmentHandle = -1, int samples = 1)
-        {
-            base.Setup(cmd, baseDescriptor, colorAttachmentHandles, depthAttachmentHandle, samples);
-            baseDescriptor.colorFormat = RenderTextureFormat.Depth;
-            baseDescriptor.depthBufferBits = kDepthBufferBits;
-
-            if (samples > 1)
-            {
-                baseDescriptor.bindMS = samples > 1;
-                baseDescriptor.msaaSamples = samples;
-            }
-
-            cmd.GetTemporaryRT(depthAttachmentHandle, baseDescriptor, FilterMode.Point);
-        }
-
         public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_DepthPrepassTag);
-            using (new ProfilingSample(cmd, k_SetupRenderTargetTag))
+            using (new ProfilingSample(cmd, k_DepthPrepassTag))
             {
-                SetRenderTarget(cmd, GetSurface(depthAttachmentHandle), RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
-                    ClearFlag.Depth, Color.black);
+                cmd.GetTemporaryRT(depthAttachmentHandle.id, descriptor, FilterMode.Point);
+                SetRenderTarget(
+                    cmd,
+                    depthAttachmentHandle.Identifier(),
+                    RenderBufferLoadAction.DontCare,
+                    RenderBufferStoreAction.Store,
+                    ClearFlag.Depth,
+                    Color.black,
+                    descriptor.dimension);
+
                 context.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
@@ -53,5 +66,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
+
+
+        public override void Dispose(CommandBuffer cmd)
+        {
+            if (depthAttachmentHandle != RenderTargetHandle.CameraTarget)
+            {
+                cmd.ReleaseTemporaryRT(depthAttachmentHandle.id);
+                depthAttachmentHandle = RenderTargetHandle.CameraTarget;
+            }
+        }
+
     }
 }

@@ -11,9 +11,6 @@ using UnityEngine.Experimental.UIElements.StyleSheets;
 using UnityEngine.Rendering;
 using Edge = UnityEditor.Experimental.UIElements.GraphView.Edge;
 using Object = UnityEngine.Object;
-#if UNITY_2018_1
-using GeometryChangedEvent = UnityEngine.Experimental.UIElements.PostLayoutEvent;
-#endif
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -29,8 +26,6 @@ namespace UnityEditor.ShaderGraph.Drawing
     {
         MaterialGraphView m_GraphView;
         MasterPreviewView m_MasterPreviewView;
-
-        private EditorWindow m_EditorWindow;
 
         AbstractMaterialGraph m_Graph;
         PreviewManager m_PreviewManager;
@@ -62,11 +57,20 @@ namespace UnityEditor.ShaderGraph.Drawing
             set { m_PreviewManager = value; }
         }
 
-        public GraphEditorView(EditorWindow editorWindow, AbstractMaterialGraph graph, string assetName)
+        public string assetName
+        {
+            get { return m_BlackboardProvider.assetName; }
+            set
+            {
+                m_BlackboardProvider.assetName = value;
+                m_MasterPreviewView.assetName = value;
+            }
+        }
+
+        public GraphEditorView(EditorWindow editorWindow, AbstractMaterialGraph graph)
         {
             m_Graph = graph;
             AddStyleSheetPath("Styles/GraphEditorView");
-            m_EditorWindow = editorWindow;
             previewManager = new PreviewManager(graph);
 
             string serializedWindowLayout = EditorUserSettings.GetConfigValue(k_FloatingWindowsLayoutKey);
@@ -100,7 +104,6 @@ namespace UnityEditor.ShaderGraph.Drawing
 
             var content = new VisualElement { name = "content" };
             {
-                graph.name = assetName;
                 m_GraphView = new MaterialGraphView(graph) { name = "GraphView", persistenceKey = "MaterialGraphView" };
                 m_GraphView.SetupZoom(0.05f, ContentZoomer.DefaultMaxScale);
                 m_GraphView.AddManipulator(new ContentDragger());
@@ -110,14 +113,14 @@ namespace UnityEditor.ShaderGraph.Drawing
                 m_GraphView.RegisterCallback<KeyDownEvent>(OnSpaceDown);
                 content.Add(m_GraphView);
 
-                m_BlackboardProvider = new BlackboardProvider(assetName, graph);
+                m_BlackboardProvider = new BlackboardProvider(graph);
                 m_GraphView.Add(m_BlackboardProvider.blackboard);
                 Rect blackboardLayout = m_BlackboardProvider.blackboard.layout;
                 blackboardLayout.x = 10f;
                 blackboardLayout.y = 10f;
                 m_BlackboardProvider.blackboard.layout = blackboardLayout;
 
-                m_MasterPreviewView = new MasterPreviewView(assetName, previewManager, graph) { name = "masterPreview" };
+                m_MasterPreviewView = new MasterPreviewView(previewManager, graph) { name = "masterPreview" };
 
                 WindowDraggable masterPreviewViewDraggable = new WindowDraggable(null, this);
                 m_MasterPreviewView.AddManipulator(masterPreviewViewDraggable);
@@ -154,18 +157,7 @@ namespace UnityEditor.ShaderGraph.Drawing
 
         void OnSpaceDown(KeyDownEvent evt)
         {
-            if (evt.keyCode == KeyCode.Space && !evt.shiftKey && !evt.altKey && !evt.ctrlKey && !evt.commandKey)
-            {
-                if (graphView.nodeCreationRequest == null)
-                    return;
-
-                Vector2 referencePosition;
-                referencePosition = evt.imguiEvent.mousePosition;
-                Vector2 screenPoint = m_EditorWindow.position.position + referencePosition;
-
-                graphView.nodeCreationRequest(new NodeCreationContext() { screenMousePosition = screenPoint });
-            }
-            else if (evt.keyCode == KeyCode.F1)
+            if (evt.keyCode == KeyCode.F1)
             {
                 if (m_GraphView.selection.OfType<MaterialNodeView>().Count() == 1)
                 {

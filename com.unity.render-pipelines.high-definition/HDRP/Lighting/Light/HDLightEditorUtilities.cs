@@ -11,6 +11,32 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 #if UNITY_EDITOR
     public static class HDLightEditorUtilities
     {
+        // Don't use Handles.Disc as it break the highlight of the gizmo axis, use our own draw disc function instead for gizmo
+        public static void DrawWireDisc(Quaternion q, Vector3 position, Vector3 axis, float radius)
+        {
+            Matrix4x4 rotation = Matrix4x4.TRS(Vector3.zero, q, Vector3.one);
+
+            Gizmos.color = Color.white;
+            float theta = 0.0f;
+            float x = radius * Mathf.Cos(theta);
+            float y = radius * Mathf.Sin(theta);
+            Vector3 pos = rotation * new Vector3(x, y, 0);
+            pos += position;
+            Vector3 newPos = pos;
+            Vector3 lastPos = pos;
+            for (theta = 0.1f; theta < 2.0f * Mathf.PI; theta += 0.1f)
+            {
+                x = radius * Mathf.Cos(theta);
+                y = radius * Mathf.Sin(theta);
+
+                newPos = rotation * new Vector3(x, y, 0);
+                newPos += position;
+                Gizmos.DrawLine(pos, newPos);
+                pos = newPos;
+            }
+            Gizmos.DrawLine(pos, lastPos);
+        }
+
         public static void DrawSpotlightGizmo(Light spotlight, bool selected)
         {
             var flatRadiusAtRange = spotlight.range * Mathf.Tan(spotlight.spotAngle * Mathf.Deg2Rad * 0.5f);
@@ -25,9 +51,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var nearDiscDistance = Mathf.Cos(Mathf.Deg2Rad * spotlight.spotAngle / 2) * spotlight.shadowNearPlane;
             var nearDiscRadius = spotlight.shadowNearPlane * Mathf.Sin(spotlight.spotAngle * Mathf.Deg2Rad * 0.5f);
 
-
             //Draw Range disc
-            Handles.Disc(spotlight.gameObject.transform.rotation, spotlight.gameObject.transform.position + spotlight.gameObject.transform.forward * rangeDiscDistance, spotlight.gameObject.transform.forward, rangeDiscRadius, false, 1);
+            DrawWireDisc(spotlight.gameObject.transform.rotation, spotlight.gameObject.transform.position + spotlight.gameObject.transform.forward * rangeDiscDistance, spotlight.gameObject.transform.forward, rangeDiscRadius);
             //Draw Lines
 
             Gizmos.DrawLine(spotlight.gameObject.transform.position, spotlight.gameObject.transform.position + vectorLineUp * spotlight.range);
@@ -41,7 +66,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Handles.DrawWireArc(spotlight.gameObject.transform.position, spotlight.gameObject.transform.right, vectorLineUp, spotlight.spotAngle, spotlight.range);
                 Handles.DrawWireArc(spotlight.gameObject.transform.position, spotlight.gameObject.transform.up, vectorLineLeft, spotlight.spotAngle, spotlight.range);
                 //Draw Near Plane Disc
-                if (spotlight.shadows != LightShadows.None) Handles.Disc(spotlight.gameObject.transform.rotation, spotlight.gameObject.transform.position + spotlight.gameObject.transform.forward * nearDiscDistance, spotlight.gameObject.transform.forward, nearDiscRadius, false, 1);
+                if (spotlight.shadows != LightShadows.None)
+                    DrawWireDisc(spotlight.gameObject.transform.rotation, spotlight.gameObject.transform.position + spotlight.gameObject.transform.forward * nearDiscDistance, spotlight.gameObject.transform.forward, nearDiscRadius);
 
                 //Inner Cone
                 var additionalLightData = spotlight.GetComponent<HDAdditionalLightData>();
@@ -73,7 +99,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 var innerDiscDistance = Mathf.Cos(Mathf.Deg2Rad * innerAngle * 0.5f) * spotlight.range;
                 var innerDiscRadius = spotlight.range * Mathf.Sin(innerAngle * Mathf.Deg2Rad * 0.5f);
                 //Draw Range disc
-                Handles.Disc(spotlight.gameObject.transform.rotation, spotlight.gameObject.transform.position + spotlight.gameObject.transform.forward * innerDiscDistance, spotlight.gameObject.transform.forward, innerDiscRadius, false, 1);
+                DrawWireDisc(spotlight.gameObject.transform.rotation, spotlight.gameObject.transform.position + spotlight.gameObject.transform.forward * innerDiscDistance, spotlight.gameObject.transform.forward, innerDiscRadius);
             }
         }
 
@@ -236,7 +262,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public static void DrawDirectionalLightGizmo(Light directionalLight)
         {
             var gizmoSize = 0.2f;
-            Handles.Disc(directionalLight.transform.rotation, directionalLight.transform.position, directionalLight.gameObject.transform.forward, gizmoSize, false, 1);
+            DrawWireDisc(directionalLight.transform.rotation, directionalLight.transform.position, directionalLight.gameObject.transform.forward, gizmoSize);
             Gizmos.DrawLine(directionalLight.transform.position, directionalLight.transform.position + directionalLight.transform.forward);
             Gizmos.DrawLine(directionalLight.transform.position + directionalLight.transform.up * gizmoSize, directionalLight.transform.position + directionalLight.transform.up * gizmoSize + directionalLight.transform.forward);
             Gizmos.DrawLine(directionalLight.transform.position + directionalLight.transform.up * -gizmoSize, directionalLight.transform.position + directionalLight.transform.up * -gizmoSize + directionalLight.transform.forward);

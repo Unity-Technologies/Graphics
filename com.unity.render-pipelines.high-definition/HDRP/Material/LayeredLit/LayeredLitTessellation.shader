@@ -2,6 +2,9 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
 {
     Properties
     {
+        // Versioning of material to help for upgrading
+        [HideInInspector] _HdrpVersion("_HdrpVersion", Float) = 1
+
         // Following set of parameters represent the parameters node inside the MaterialGraph.
         // They are use to fill a SurfaceData. With a MaterialGraph this should not exist.
 
@@ -226,9 +229,8 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
 
         [ToggleUI]  _EnableSpecularOcclusion("Enable specular occlusion", Float) = 0.0
 
-        _EmissiveColor("EmissiveColor", Color) = (1, 1, 1)
+        [HDR] _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
         _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
-        _EmissiveIntensity("EmissiveIntensity", Float) = 0
         [ToggleUI] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
 
         [ToggleUI] _AlphaCutoffEnable("Alpha Cutoff Enable", Float) = 0.0
@@ -522,6 +524,8 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
 
             HLSLPROGRAM
 
+            // Note: Require _ObjectId and _PassValue variables
+
             #pragma hull Hull
             #pragma domain Domain
 
@@ -682,17 +686,25 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
 
             ZWrite On
 
-            ColorMask 0
-
             HLSLPROGRAM
 
             #pragma hull Hull
             #pragma domain Domain
 
+           // In deferred, depth only pass don't output anything.
+            // In forward it output the normal buffer
+            #pragma multi_compile _ WRITE_NORMAL_BUFFER
+
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
+
+            #ifdef WRITE_NORMAL_BUFFER // If enabled we need all regular interpolator
+            #include "../Lit/ShaderPass/LitSharePass.hlsl"
+            #else
             #include "../Lit/ShaderPass/LitDepthPass.hlsl"
+            #endif
+
             #include "LayeredLitData.hlsl"
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 

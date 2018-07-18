@@ -35,10 +35,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Shadow Mask 3")]
             public float shadowMask3;
 
-            [SurfaceDataAttributes("Emissive Color", false, true)]
+            [SurfaceDataAttributes("Emissive Color", false, false)]
             public Vector3 emissiveColor;
-            [SurfaceDataAttributes("Emissive Intensity")]
-            public float emissiveIntensity;
 
             // These is required for motion blur and temporalAA
             [SurfaceDataAttributes("Velocity")]
@@ -59,7 +57,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // LightTransportData
         // This struct is use to store information for Enlighten/Progressive light mapper. both at runtime or off line.
         //-----------------------------------------------------------------------------
-        [GenerateHLSL(PackingRules.Exact, false, true, 120)]
+        [GenerateHLSL(PackingRules.Exact, false, true, 150)]
         public struct LightTransportData
         {
             [SurfaceDataAttributes("", false, true)]

@@ -17,16 +17,32 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 add = HDUtils.s_DefaultHDAdditionalLightData;
             }
 
-            // TODO: Only take into account the light dimmer when we have real time GI.
+            // TODO: Currently color temperature is not handled at runtime, need to expose useColorTemperature publicly
+            Color cct = new Color(1.0f, 1.0f, 1.0f);
+#if UNITY_EDITOR
+            if (add.useColorTemperature)
+                cct = LightUtils.CorrelatedColorTemperatureToRGB(l.colorTemperature);
+#endif
 
+            // TODO: Only take into account the light dimmer when we have real time GI.
             ld.instanceID = l.GetInstanceID();
             ld.color = add.affectDiffuse ? LinearColor.Convert(l.color, l.intensity) : LinearColor.Black();
+            ld.color.red *= cct.r;
+            ld.color.green *= cct.g;
+            ld.color.blue *= cct.b;
             ld.indirectColor = add.affectDiffuse ? LightmapperUtils.ExtractIndirect(l) : LinearColor.Black();
+            ld.indirectColor.red *= cct.r;
+            ld.indirectColor.green *= cct.g;
+            ld.indirectColor.blue *= cct.b;
 
             // Note that the HDRI is correctly integrated in the GlobalIllumination system, we don't need to do anything regarding it.
 
+            // The difference is that `l.lightmapBakeType` is the intent, e.g.you want a mixed light with shadowmask. But then the overlap test might detect more than 4 overlapping volumes and force a light to fallback to baked.
+            // In that case `l.bakingOutput.lightmapBakeType` would be baked, instead of mixed, whereas `l.lightmapBakeType` would still be mixed. But this difference is only relevant in editor builds
 #if UNITY_EDITOR
             ld.mode = LightmapperUtils.Extract(l.lightmapBakeType);
+#else
+            ld.mode = LightmapperUtils.Extract(l.bakingOutput.lightmapBakeType);
 #endif
 
             ld.shadow = (byte)(l.shadows != LightShadows.None ? 1 : 0);

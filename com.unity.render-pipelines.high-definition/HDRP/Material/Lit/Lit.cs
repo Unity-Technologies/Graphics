@@ -124,7 +124,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // BSDFData
         //-----------------------------------------------------------------------------
 
-        [GenerateHLSL(PackingRules.Exact, false, true, 1030)]
+        [GenerateHLSL(PackingRules.Exact, false, true, 1050)]
         public struct BSDFData
         {
             public uint materialFeatures;
@@ -210,39 +210,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Init precomputed texture
         //-----------------------------------------------------------------------------
 
-        bool m_isInit;
-
         public Lit() {}
 
         public override void Build(HDRenderPipelineAsset hdAsset)
         {
-            PreIntegratedFGD.instance.Build();
+            PreIntegratedFGD.instance.Build(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
             LTCAreaLight.instance.Build();
-
-            m_isInit = false;
         }
 
         public override void Cleanup()
         {
-            PreIntegratedFGD.instance.Cleanup();
+            PreIntegratedFGD.instance.Cleanup(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
             LTCAreaLight.instance.Cleanup();
-
-            m_isInit = false;
         }
 
         public override void RenderInit(CommandBuffer cmd)
         {
-            if (m_isInit)
-                return;
-
-            PreIntegratedFGD.instance.RenderInit(cmd);
-
-            m_isInit = true;
+            PreIntegratedFGD.instance.RenderInit(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse, cmd);
         }
 
         public override void Bind()
         {
-            PreIntegratedFGD.instance.Bind();
+            PreIntegratedFGD.instance.Bind(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
             LTCAreaLight.instance.Bind();
         }
     }

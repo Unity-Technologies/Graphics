@@ -18,6 +18,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         private SerializedProperty m_FadeScaleProperty;
         private SerializedProperty m_UVScaleProperty;
         private SerializedProperty m_UVBiasProperty;
+        private SerializedProperty m_AffectsTransparencyProperty;
 
         public class DecalBoundsHandle : BoxBoundsHandle
         {
@@ -71,11 +72,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_FadeScaleProperty = serializedObject.FindProperty("m_FadeScale");
             m_UVScaleProperty = serializedObject.FindProperty("m_UVScale");
             m_UVBiasProperty = serializedObject.FindProperty("m_UVBias");
+            m_AffectsTransparencyProperty = serializedObject.FindProperty("m_AffectsTransparency");
         }
 
         private void OnDisable()
         {
             m_DecalProjectorComponent.OnMaterialChange -= OnMaterialChange;
+        }
+
+        private void OnDestroy()
+        {
+            DestroyImmediate(m_MaterialEditor);
         }
 
         public void OnMaterialChange()
@@ -118,6 +125,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.Slider(m_FadeScaleProperty, 0.0f, 1.0f, new GUIContent("Fade scale"));
             EditorGUILayout.PropertyField(m_UVScaleProperty);
             EditorGUILayout.PropertyField(m_UVBiasProperty);
+            EditorGUILayout.PropertyField(m_AffectsTransparencyProperty);
             if (EditorGUI.EndChangeCheck())
             {
                 serializedObject.ApplyModifiedProperties();

@@ -24,9 +24,12 @@ void ApplyBlendNormal(inout float4 dst, inout int matMask, float2 texCoords, int
     matMask |= mapMask;
 }
 
-void ApplyBlendDiffuse(inout float4 dst, inout int matMask, float2 texCoords, int mapMask, inout float blend, float lod)
+void ApplyBlendDiffuse(inout float4 dst, inout int matMask, float2 texCoords, float4 src, int mapMask, inout float blend, float lod, int diffuseTextureBound)
 {
-    float4 src = SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, texCoords, lod);
+	if(diffuseTextureBound)
+	{ 
+		src *= SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, texCoords, lod);
+	}
     src.w *= blend;
     blend = src.w;  // diffuse texture alpha affects all other channels
     dst.xyz = src.xyz * src.w + dst.xyz * (1.0f - src.w);
@@ -66,17 +69,20 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
         decalStart = 0;
     #endif
 
-        float3 positionWS = GetAbsolutePositionWS(posInput.positionWS);
+        float3 positionRWS = posInput.positionWS;
 
         // get world space ddx/ddy for adjacent pixels to be used later in mipmap lod calculation
-        float3 positionWSDdx = ddx(positionWS);
-        float3 positionWSDdy = ddy(positionWS);
+        float3 positionRWSDdx = ddx(positionRWS);
+        float3 positionRWSDdy = ddy(positionRWS);
 
         for (uint i = 0; i < decalCount; i++)
         {
             DecalData decalData = FetchDecal(decalStart, i);
 
-            float3 positionDS = mul(decalData.worldToDecal, float4(positionWS, 1.0)).xyz;
+            // Get the relative world camera to decal matrix
+            float4x4 worldToDecal = ApplyCameraTranslationToInverseMatrix(decalData.worldToDecal);
+
+            float3 positionDS = mul(worldToDecal, float4(positionRWS, 1.0)).xyz;
             positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.0f, 0.5);  // decal clip space
             if ((all(positionDS.xyz > 0.0f) && all(1.0f - positionDS.xyz > 0.0f)))
             {
@@ -102,8 +108,8 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
                 float2 sampleMask = clamp(positionDS.xz * decalData.maskScaleBias.xy + decalData.maskScaleBias.zw, maskMin, maskMax);
 
                 // need to compute the mipmap LOD manually because we are sampling inside a loop
-                float3 positionDSDdx = mul(decalData.worldToDecal, float4(positionWSDdx, 0.0)).xyz; // transform the derivatives to decal space, any translation is irrelevant
-                float3 positionDSDdy = mul(decalData.worldToDecal, float4(positionWSDdy, 0.0)).xyz;
+                float3 positionDSDdx = mul(worldToDecal, float4(positionRWSDdx, 0.0)).xyz; // transform the derivatives to decal space, any translation is irrelevant
+                float3 positionDSDdy = mul(worldToDecal, float4(positionRWSDdy, 0.0)).xyz;
 
                 float2 sampleDiffuseDdx = positionDSDdx.xz * decalData.diffuseScaleBias.xy; // factor in the atlas scale
                 float2 sampleDiffuseDdy = positionDSDdy.xz * decalData.diffuseScaleBias.xy;
@@ -118,13 +124,18 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
                 float lodMask = ComputeTextureLOD(sampleMaskDdx, sampleMaskDdy, _DecalAtlasResolution);
 
                 float decalBlend = decalData.normalToWorld[0][3];
+				float4 src = decalData.baseColor;
+				int diffuseTextureBound = (decalData.diffuseScaleBias.x > 0) && (decalData.diffuseScaleBias.y > 0);
+                
+				ApplyBlendDiffuse(DBuffer0, mask, sampleDiffuse, src, DBUFFERHTILEBIT_DIFFUSE, decalBlend, lodDiffuse, diffuseTextureBound);		
+				alpha = alpha < decalBlend ? decalBlend : alpha;    // use decal alpha if it is higher than transparent alpha
 
-                if((decalData.diffuseScaleBias.x > 0) && (decalData.diffuseScaleBias.y > 0))
-                {
-                    ApplyBlendDiffuse(DBuffer0, mask, sampleDiffuse, DBUFFERHTILEBIT_DIFFUSE, decalBlend, lodDiffuse);
-                    alpha = alpha < decalBlend ? decalBlend : alpha;    // use decal alpha if it is higher than transparent alpha
-                }
-
+				float albedoContribution = decalData.normalToWorld[1][3];
+				if (albedoContribution == 0.0f)
+				{
+					mask = 0;	// diffuse will not get modified						
+				}
+				
                 if ((decalData.normalScaleBias.x > 0) && (decalData.normalScaleBias.y > 0))
                 {
                     ApplyBlendNormal(DBuffer1, mask, sampleNormal, DBUFFERHTILEBIT_NORMAL, (float3x3)decalData.normalToWorld, decalBlend, lodNormal);
