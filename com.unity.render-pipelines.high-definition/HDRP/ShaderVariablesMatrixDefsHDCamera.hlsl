@@ -7,8 +7,6 @@
 
 #if defined(USING_STEREO_MATRICES)
 
-#define UNITY_MATRIX_M     unity_ObjectToWorld
-#define UNITY_MATRIX_I_M   unity_WorldToObject
 #define UNITY_MATRIX_V     _ViewMatrixStereo[unity_StereoEyeIndex]
 #define UNITY_MATRIX_I_V   _InvViewMatrixStereo[unity_StereoEyeIndex]
 #define UNITY_MATRIX_P     OptimizeProjectionMatrix(unity_StereoMatrixP[unity_StereoEyeIndex])
@@ -18,8 +16,6 @@
 
 #else
 
-#define UNITY_MATRIX_M     unity_ObjectToWorld
-#define UNITY_MATRIX_I_M   unity_WorldToObject
 #define UNITY_MATRIX_V     _ViewMatrix
 #define UNITY_MATRIX_I_V   _InvViewMatrix
 #define UNITY_MATRIX_P     OptimizeProjectionMatrix(_ProjMatrix)

@@ -9,8 +9,8 @@ using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using Object = UnityEngine.Object;
-#if UNITY_2018_1
-using GeometryChangedEvent = UnityEngine.Experimental.UIElements.PostLayoutEvent;
+#if UNITY_2018_3_OR_NEWER
+using ContextualMenu = UnityEngine.Experimental.UIElements.DropdownMenu;
 #endif
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector
@@ -55,6 +55,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         }
 
         VisualElement m_Preview;
+        Label m_Title;
 
         public VisualElement preview
         {
@@ -66,7 +67,13 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         static Type s_ContextualMenuManipulator = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEngine.Experimental.UIElements.ContextualMenuManipulator");
         static Type s_ObjectSelector = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEditor.ObjectSelector");
 
-        public MasterPreviewView(string assetName, PreviewManager previewManager, AbstractMaterialGraph graph)
+        public string assetName
+        {
+            get { return m_Title.text; }
+            set { m_Title.text = value; }
+        }
+
+        public MasterPreviewView(PreviewManager previewManager, AbstractMaterialGraph graph)
         {
             this.clippingOptions = ClippingOptions.ClipAndCacheContents;
             m_PreviewManager = previewManager;
@@ -78,7 +85,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
             var topContainer = new VisualElement() { name = "top" };
             {
-                var title = new Label(assetName.Split('/').Last()) { name = "title" };
+                m_Title = new Label() { name = "title" };
 
                 // Add preview collapse button on top of preview
                 m_CollapsePreviewContainer = new VisualElement { name = "collapse-container" };
@@ -94,7 +101,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
                         UpdatePreviewVisibility();
                     }));
 
-                topContainer.Add(title);
+                topContainer.Add(m_Title);
                 topContainer.Add(m_CollapsePreviewContainer);
             }
             Add(topContainer);

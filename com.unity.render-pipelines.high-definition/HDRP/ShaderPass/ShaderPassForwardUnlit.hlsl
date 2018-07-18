@@ -29,10 +29,10 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     FragInputs input = UnpackVaryingsMeshToFragInputs(packedInput.vmesh);
 
     // input.positionSS is SV_Position
-    PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionWS);
+    PositionInputs posInput = GetPositionInput(input.positionSS.xy, _ScreenSize.zw, input.positionSS.z, input.positionSS.w, input.positionRWS);
 
 #ifdef VARYINGS_NEED_POSITION_WS
-    float3 V = GetWorldSpaceNormalizeViewDir(input.positionWS);
+    float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);
 #else
     float3 V = 0; // Avoid the division by 0
 #endif
@@ -42,7 +42,7 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
     GetSurfaceAndBuiltinData(input, V, posInput, surfaceData, builtinData);
 
     // Not lit here (but emissive is allowed)
-    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(surfaceData);
+    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(input.positionSS.xy, surfaceData);
 
     // TODO: we must not access bsdfData here, it break the genericity of the code!
     float4 outColor = ApplyBlendMode(bsdfData.color + builtinData.emissiveColor, builtinData.opacity);

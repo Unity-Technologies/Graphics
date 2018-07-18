@@ -3,11 +3,11 @@ float3 GetDisplacementObjectScale(bool vertexDisplacement)
 {
     float3 objectScale = float3(1.0, 1.0, 1.0);
 
-        // TODO: This should be an uniform for the object, this code should be remove once we have it. - Workaround for now
-        // To handle object scaling with pixel displacement we need to multiply the view vector by the inverse scale.
-        // To Handle object scaling with vertex/tessellation displacement we must multiply displacement by object scale
-        // Currently we extract either the scale (ObjectToWorld) or the inverse scale (worldToObject) directly by taking the transform matrix
-        float4x4 worldTransform;
+    // TODO: This should be an uniform for the object, this code should be remove once we have it. - Workaround for now
+    // To handle object scaling with pixel displacement we need to multiply the view vector by the inverse scale.
+    // To Handle object scaling with vertex/tessellation displacement we must multiply displacement by object scale
+    // Currently we extract either the scale (ObjectToWorld) or the inverse scale (worldToObject) directly by taking the transform matrix
+    float4x4 worldTransform;
     if (vertexDisplacement)
     {
         worldTransform = GetObjectToWorldMatrix();

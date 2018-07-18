@@ -1,0 +1,11 @@
+{
+    "dependencies": {
+        "com.unity.postprocessing": "file:../../../com.unity.postprocessing",
+        "com.unity.testframework.graphics": "file:../../../com.unity.testframework.graphics",
+        "com.unity.textmeshpro": "1.2.4"
+    },
+    "testables": [
+        "com.unity.postprocessing",
+        "com.unity.testframework.graphics"
+    ]
+}

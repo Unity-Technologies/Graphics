@@ -66,12 +66,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             TriggerVolumeAtlasRefresh();
         }
 
-        public DensityVolume[] PrepareDensityVolumeData(CommandBuffer cmd)
+        public DensityVolume[] PrepareDensityVolumeData(CommandBuffer cmd, Camera currentCam, float time)
         {
             //Update volumes
+            bool animate = CoreUtils.AreAnimatedMaterialsEnabled(currentCam);
             foreach (DensityVolume volume in volumes)
             {
-                volume.PrepareParameters();
+                volume.PrepareParameters(animate, time);
             }
 
             if (atlasNeedsRefresh)

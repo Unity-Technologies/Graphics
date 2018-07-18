@@ -3,7 +3,7 @@
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
@@ -11,7 +11,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b6f86e1523e69a4282e92d393be89a4, type: 3}
   m_Name: HDRenderPipelineResources
   m_EditorClassIdentifier: 
+  version: 1
   defaultDiffuseMaterial: {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17,
+    type: 2}
+  defaultMirrorMaterial: {fileID: 2100000, guid: 6b17274157b33bc45b6a40e7d4ff51fe,
     type: 2}
   defaultDecalMaterial: {fileID: 2100000, guid: 500e733574922d04ea961553b1b26a63,
     type: 2}
@@ -49,7 +52,7 @@ MonoBehaviour:
     type: 3}
   deferredComputeShader: {fileID: 7200000, guid: 0b64f79746d2daf4198eaf6eab9af259,
     type: 3}
-  deferredDirectionalShadowComputeShader: {fileID: 7200000, guid: fbde6fae193b2a94e9fd97c163c204f4,
+  screenSpaceShadowComputeShader: {fileID: 7200000, guid: 3e6900e06dc185a4380af4dacb4db0a4,
     type: 3}
   volumeVoxelizationCS: {fileID: 7200000, guid: c20b371db720da244b73830ec74a343a,
     type: 3}
@@ -75,7 +78,10 @@ MonoBehaviour:
   hdriSky: {fileID: 4800000, guid: 9bd32a6ece529fd4f9408b8d7e00c10d, type: 3}
   proceduralSky: {fileID: 4800000, guid: ec63f47fd265df243a7b1d40f9ef7fe7, type: 3}
   skyboxCubemap: {fileID: 103, guid: 0000000000000000f000000000000000, type: 0}
-  preIntegratedFGD: {fileID: 4800000, guid: 123f13d52852ef547b2962de4bd9eaad, type: 3}
+  preIntegratedFGD_GGXDisneyDiffuse: {fileID: 4800000, guid: 123f13d52852ef547b2962de4bd9eaad,
+    type: 3}
+  preIntegratedFGD_CharlieClothLambert: {fileID: 4800000, guid: 3b3bf235775cf8b4baae7f3306787ab0,
+    type: 3}
   encodeBC6HCS: {fileID: 7200000, guid: aa922d239de60304f964e24488559eeb, type: 3}
   cubeToPanoShader: {fileID: 4800000, guid: 595434cc3b6405246b6cd3086d0b6f7d, type: 3}
   blitCubeTextureFace: {fileID: 4800000, guid: d850d0a2481878d4bbf17e5126b04163, type: 3}

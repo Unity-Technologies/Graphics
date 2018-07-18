@@ -44,7 +44,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string k_EmissiveColor = "_EmissiveColor";
         protected const string k_EmissiveColorMap = "_EmissiveColorMap";
         protected const string k_EmissiveColorMapUV = "_EmissiveColorMapUV";
-        protected const string k_EmissiveIntensity = "_EmissiveIntensity";
         protected const string k_AlbedoAffectEmissive = "_AlbedoAffectEmissive";
 
         // Coat
@@ -93,6 +92,25 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string k_IridescenceThickness = "_IridescenceThickness";
         protected const string k_IridescenceThicknessMap = "_IridescenceThicknessMap";
         protected const string k_IridescenceThicknessMapUV = "_IridescenceThicknessMapUV";
+        protected const string k_IridescenceMask = "_IridescenceMask";
+        protected const string k_IridescenceMaskMap = "_IridescenceMaskMap";
+        protected const string k_IridescenceMaskMapUV = "_IridescenceMaskMapUV";
+
+        // Details
+        protected const string k_EnableDetails = "_EnableDetails";
+        
+        protected const string k_DetailMask = "_DetailMask";
+        protected const string k_DetailMaskMap = "_DetailMaskMap";
+        protected const string k_DetailMaskMapUV = "_DetailMaskMapUV";
+
+        protected const string k_DetailSmoothness = "_DetailSmoothness";
+        protected const string k_DetailSmoothnessScale = "_DetailSmoothnessScale";
+        protected const string k_DetailSmoothnessMap = "_DetailSmoothnessMap";
+        protected const string k_DetailSmoothnessMapUV = "_DetailSmoothnessMapUV";
+
+        protected const string k_DetailNormalMap = "_DetailNormalMap";
+        protected const string k_DetailNormalMapUV = "_DetailNormalMapUV";
+        protected const string k_DetailNormalScale = "_DetailNormalScale";
 
         // Stencil is use to control lighting mode (regular, split lighting)
         protected const string kStencilRef = "_StencilRef";
@@ -100,8 +118,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kStencilRefMV = "_StencilRefMV";
         protected const string kStencilWriteMaskMV = "_StencilWriteMaskMV";
 
-        protected const string k_SpecularAntiAliasingEnabled = "_SpecularAntiAliasingEnabled";
-        protected const string k_NormalCurvatureToRoughnessEnabled = "_NormalCurvatureToRoughnessEnabled";
+        protected const string k_GeometricNormalFilteringEnabled = "_GeometricNormalFilteringEnabled";
+        protected const string k_TextureNormalFilteringEnabled = "_TextureNormalFilteringEnabled";
 
         #endregion
 
@@ -109,16 +127,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         private readonly GroupProperty _baseMaterialProperties = null;
         private readonly GroupProperty _materialProperties = null;
 
+        private Property EnableDetails;
         private Property EnableSSS;
         private Property EnableTransmission;
         private Property EnableCoat;
         private Property EnableCoatNormalMap;
         private Property EnableAnisotropy;
-        private Property EnableDualSpecularLobe;
+        private Property EnableDualSpecularLobe;        
         private Property EnableIridescence;
 
-        private Property EnableSpecularAA;
-        private Property EnableNormalCurvatureToRoughness;
+        private Property EnableGeometricNormalFiltering;
+        private Property EnableTextureNormalFiltering;
 
         public StackLitGUI()
         {
@@ -129,6 +148,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             });
 
             //
+            EnableDetails = new Property(this, k_EnableDetails, "Enable Details", "Enable Detail", true);
             EnableSSS = new Property(this, k_EnableSubsurfaceScattering, "Enable Subsurface Scattering", "Enable Subsurface Scattering", true);
             EnableTransmission = new Property(this, k_EnableTransmission, "Enable Transmission", "Enable Transmission", true);
             EnableCoat = new Property(this, k_EnableCoat, "Enable Coat", "Enable coat layer with true vertical physically based BSDF mixing", true);
@@ -137,14 +157,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EnableDualSpecularLobe = new Property(this, k_EnableDualSpecularLobe, "Enable Dual Specular Lobe", "Enable a second specular lobe, aim to simulate a mix of a narrow and a haze lobe that better match measured material", true);
             EnableIridescence = new Property(this, k_EnableIridescence, "Enable Iridescence", "Enable physically based iridescence layer", true);
 
-            EnableSpecularAA = new Property(this, k_SpecularAntiAliasingEnabled, k_SpecularAntiAliasingEnabled, k_SpecularAntiAliasingEnabled, true);
-            EnableNormalCurvatureToRoughness = new Property(this, k_NormalCurvatureToRoughnessEnabled, k_NormalCurvatureToRoughnessEnabled, k_NormalCurvatureToRoughnessEnabled, true);
+            EnableGeometricNormalFiltering = new Property(this, k_GeometricNormalFilteringEnabled, "Enable Geometric filtering", "Enable specular antialiasing", true);
+            EnableTextureNormalFiltering = new Property(this, k_TextureNormalFilteringEnabled, "Enable Texture filtering", "Require normal map to use _NA or _OSNA suffix for normal map name", true);
 
             // All material properties
+            // All GroupPropery below need to define a
+            // [HideInInspector] _XXXShow("_XXXShow", Float) = 0.0 parameter in the StackLit.shader to work
             _materialProperties = new GroupProperty(this, "_Material", new BaseProperty[]
             {
                 new GroupProperty(this, "_MaterialFeatures", "Material Features", new BaseProperty[]
                 {
+                    EnableDetails,
                     EnableDualSpecularLobe,
                     EnableAnisotropy,
                     EnableCoat,
@@ -163,6 +186,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     new TextureProperty(this, k_NormalMap, k_NormalScale, "Normal", "Normal Map", true, false, true),
                     new TextureProperty(this, k_AmbientOcclusionMap, k_AmbientOcclusion, "AmbientOcclusion", "AmbientOcclusion Map", false, false),
                 }),
+
+                new GroupProperty(this, "_Details", "Details", new BaseProperty[]
+                {
+                    new TextureProperty(this, k_DetailMaskMap, "", "Detail Mask Map", "Detail Mask Map", false, false),
+                    new TextureProperty(this, k_DetailNormalMap, k_DetailNormalScale, "Detail Normal Map", "Detail Normal Map Scale", true, false, true),
+                    new TextureProperty(this, k_DetailSmoothnessMap, k_DetailSmoothnessScale, "Detail Smoothness", "Detail Smoothness", true, false),
+                }, _ => EnableDetails.BoolValue == true),
 
                 new GroupProperty(this, "_DualSpecularLobe", "Dual Specular Lobe", new BaseProperty[]
                 {
@@ -187,8 +217,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 new GroupProperty(this, "_Iridescence", "Iridescence", new BaseProperty[]
                 {
-                    new Property(this, "_IridescenceIor", "IOR", "Index of refraction of iridescence layer", false),
-                    new Property(this, "_IridescenceThickness", "Thickness", "Iridescence thickness (Remap to 0..3000nm)", false),
+                    //just to test: to use the same EvalIridescence as lit, find a good mapping for the top IOR (over the iridescence dielectric film)
+                    //when having iridescence:
+                    //new Property(this, "_IridescenceIor", "TopIOR", "Index of refraction on top of iridescence layer", false),
+                    new TextureProperty(this, k_IridescenceMaskMap, k_IridescenceMask, "Iridescence Mask", "Iridescence Mask", false),
+                    new TextureProperty(this, k_IridescenceThicknessMap, k_IridescenceThickness, "Iridescence thickness (Remap to 0..3000nm)", "Iridescence thickness (Remap to 0..3000nm)", false),
                 }, _ => EnableIridescence.BoolValue == true),
 
                 new GroupProperty(this, "_SSS", "Sub-Surface Scattering", new BaseProperty[]
@@ -206,8 +239,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 new GroupProperty(this, "_Emissive", "Emissive", new BaseProperty[]
                 {
                     new TextureProperty(this, k_EmissiveColorMap, k_EmissiveColor, "Emissive Color", "Emissive", true, false),
-                    new Property(this, k_EmissiveIntensity, "Emissive Intensity", "Emissive", false),
                     new Property(this, k_AlbedoAffectEmissive, "Albedo Affect Emissive", "Specifies whether or not the emissive color is multiplied by the albedo.", false),
+                }),
+
+                new GroupProperty(this, "_SpecularAntiAliasing", "Specular Anti-Aliasing", new BaseProperty[]
+                {
+                    EnableTextureNormalFiltering,
+                    EnableGeometricNormalFiltering,
+                    new Property(this, "_SpecularAntiAliasingThreshold", "Threshold", "Threshold", false, _ => (EnableGeometricNormalFiltering.BoolValue || EnableTextureNormalFiltering.BoolValue) == true),
+                    new Property(this, "_SpecularAntiAliasingScreenSpaceVariance", "Screen Space Variance", "Screen Space Variance (should be less than 0.25)", false, _ => EnableGeometricNormalFiltering.BoolValue == true),
                 }),
 
                 new GroupProperty(this, "_Debug", "Debug", new BaseProperty[]
@@ -218,22 +258,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     new Property(this, "_DebugEnvLobeMask", "DebugEnvLobeMask", "xyz is Environments Lobe 0 1 2 Enable, w is Enable VLayering", false),
                     new Property(this, "_DebugLobeMask", "DebugLobeMask", "xyz is Analytical Lobe 0 1 2 Enable", false),
                     new Property(this, "_DebugAniso", "DebugAniso", "x is Hack Enable, y is factor", false),
-
-                    EnableSpecularAA,
-                    new Property(this, "_SpecularAntiAliasingScreenSpaceVariance", "Specular Aliasing Enable", "Specular Aliasing Enable", false, _ => EnableSpecularAA.BoolValue == true),
-                    new Property(this, "_SpecularAntiAliasingThreshold", "Specular Aliasing Enable", "Specular Aliasing Enable", false, _ => EnableSpecularAA.BoolValue == true),
-
-                    EnableNormalCurvatureToRoughness,
-                    new Property(this, "_NormalCurvatureToRoughnessScale", "Normal Curvature To Roughness Scale", "Normal Curvature To Roughness Scale", false, _ => EnableNormalCurvatureToRoughness.BoolValue == true),
-                    new Property(this, "_NormalCurvatureToRoughnessBias", "Normal Curvature To Roughness Bias", "Normal Curvature To Roughness Bias", false, _ => EnableNormalCurvatureToRoughness.BoolValue == true),
-                    new Property(this, "_NormalCurvatureToRoughnessExponent", "Normal Curvature To Roughness Exponent", "Normal Curvature To Roughness Exponent", false, _ => EnableNormalCurvatureToRoughness.BoolValue == true),
-                }),
+               }),
             });
         }
 
         protected override bool ShouldEmissionBeEnabled(Material material)
         {
-            return material.GetFloat(k_EmissiveIntensity) > 0.0f;
+            return (material.GetColor(k_EmissiveColor) != Color.black) || material.GetTexture(k_EmissiveColorMap);
         }
 
         protected override void FindBaseMaterialProperties(MaterialProperty[] props)
@@ -282,54 +313,72 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // TODO: Caution this can generate a lot of garbage collection call ?
             string useMapPropertyName = basePropertyName + "UseMap";
             string mapPropertyName = basePropertyName + "Map";
-            string remapPropertyName = basePropertyName + "Remap";
-            string invertPropertyName = basePropertyName + "RemapInverted";
-            string rangePropertyName = basePropertyName + "Range";
+            string remapPropertyName = basePropertyName + "MapRemap";
+            string invertPropertyName = basePropertyName + "MapRemapInverted";
+            string rangePropertyName = basePropertyName + "MapRange";
             string channelPropertyName = basePropertyName + "MapChannel";
             string channelMaskPropertyName = basePropertyName + "MapChannelMask";
 
             if (material.GetTexture(mapPropertyName))
             {
-                Vector4 rangeVector = material.GetVector(remapPropertyName);
-                if (material.HasProperty(invertPropertyName) && material.GetFloat(invertPropertyName) > 0.0f)
+                if (material.HasProperty(remapPropertyName) && material.HasProperty(rangePropertyName))
                 {
-                    float s = rangeVector.x;
-                    rangeVector.x = rangeVector.y;
-                    rangeVector.y = s;
+                    Vector4 rangeVector = material.GetVector(remapPropertyName);
+                    if (material.HasProperty(invertPropertyName) && material.GetFloat(invertPropertyName) > 0.0f)
+                    {
+                        float s = rangeVector.x;
+                        rangeVector.x = rangeVector.y;
+                        rangeVector.y = s;
+                    }
+
+                    material.SetVector(rangePropertyName, rangeVector);
                 }
 
-                material.SetFloat(useMapPropertyName, 1.0f);
-                material.SetVector(rangePropertyName, rangeVector);
-
-                int channel = (int)material.GetFloat(channelPropertyName);
-                switch (channel)
+                if (material.HasProperty(useMapPropertyName))
                 {
-                    case 0:
-                        material.SetVector(channelMaskPropertyName, new Vector4(1.0f, 0.0f, 0.0f, 0.0f));
-                        break;
-                    case 1:
-                        material.SetVector(channelMaskPropertyName, new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
-                        break;
-                    case 2:
-                        material.SetVector(channelMaskPropertyName, new Vector4(0.0f, 0.0f, 1.0f, 0.0f));
-                        break;
-                    case 3:
-                        material.SetVector(channelMaskPropertyName, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
-                        break;
+                    material.SetFloat(useMapPropertyName, 1.0f);
+                }
+
+                if (material.HasProperty(channelPropertyName))
+                {
+                    int channel = (int)material.GetFloat(channelPropertyName);
+                    switch (channel)
+                    {
+                        case 0:
+                            material.SetVector(channelMaskPropertyName, new Vector4(1.0f, 0.0f, 0.0f, 0.0f));
+                            break;
+                        case 1:
+                            material.SetVector(channelMaskPropertyName, new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
+                            break;
+                        case 2:
+                            material.SetVector(channelMaskPropertyName, new Vector4(0.0f, 0.0f, 1.0f, 0.0f));
+                            break;
+                        case 3:
+                            material.SetVector(channelMaskPropertyName, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
+                            break;
+                    }
                 }
             }
             else
             {
-                material.SetFloat(useMapPropertyName, 0.0f);
-                material.SetVector(rangePropertyName, new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
-                material.SetVector(channelMaskPropertyName, new Vector4(1.0f, 0.0f, 0.0f, 0.0f));
+                if (material.HasProperty(useMapPropertyName))
+                {
+                    material.SetFloat(useMapPropertyName, 0.0f);
+                }
+                if (material.HasProperty(rangePropertyName))
+                {
+                    material.SetVector(rangePropertyName, new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
+                }
+                if (material.HasProperty(channelPropertyName))
+                {
+                    material.SetVector(channelMaskPropertyName, new Vector4(1.0f, 0.0f, 0.0f, 0.0f));
+                }
             }
         }
 
         // All Setup Keyword functions must be static. It allow to create script to automatically update the shaders with a script if code change
         public static void SetupMaterialKeywordsAndPass(Material material)
         {
-            //TODO see BaseLitUI.cs:SetupBaseLitKeywords (stencil etc)
             SetupBaseUnlitKeywords(material);
             SetupBaseUnlitMaterialPass(material);
 
@@ -355,8 +404,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
-            //TODO: stencil state, displacement, wind, depthoffset, tessellation
-
             SetupMainTexForAlphaTestGI("_BaseColorMap", "_BaseColor", material);
 
             //TODO: disable DBUFFER
@@ -369,7 +416,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetupTextureMaterialProperty(material, k_Thickness);
             SetupTextureMaterialProperty(material, k_Anisotropy);
             SetupTextureMaterialProperty(material, k_IridescenceThickness);
+            SetupTextureMaterialProperty(material, k_IridescenceMask);
             SetupTextureMaterialProperty(material, k_CoatSmoothness);
+
+            // details
+            SetupTextureMaterialProperty(material, k_DetailMask);
+            SetupTextureMaterialProperty(material, k_DetailSmoothness);
 
             // Check if we are using specific UVs.
             TextureProperty.UVMapping[] uvIndices = new[]
@@ -385,8 +437,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 (TextureProperty.UVMapping)material.GetFloat(k_ThicknessMapUV),
                 (TextureProperty.UVMapping)material.GetFloat(k_AnisotropyMapUV),
                 (TextureProperty.UVMapping)material.GetFloat(k_IridescenceThicknessMapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_IridescenceMaskMapUV),
                 (TextureProperty.UVMapping)material.GetFloat(k_CoatSmoothnessMapUV),
                 (TextureProperty.UVMapping)material.GetFloat(k_CoatNormalMapUV),
+                // Details
+                (TextureProperty.UVMapping)material.GetFloat(k_DetailMaskMapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_DetailSmoothnessMapUV),
+                (TextureProperty.UVMapping)material.GetFloat(k_DetailNormalMapUV),
             };
 
             // Set keyword for mapping
@@ -401,6 +458,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 requireTriplanar = requireTriplanar || uvIndices[i] == TextureProperty.UVMapping.Triplanar;
             }
             CoreUtils.SetKeyword(material, "_USE_TRIPLANAR", requireTriplanar);
+
+            bool detailsEnabled = material.HasProperty(k_EnableDetails) && material.GetFloat(k_EnableDetails) > 0.0f;
+            CoreUtils.SetKeyword(material, "_USE_DETAILMAP", detailsEnabled);
 
             bool dualSpecularLobeEnabled = material.HasProperty(k_EnableDualSpecularLobe) && material.GetFloat(k_EnableDualSpecularLobe) > 0.0f;
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_DUAL_SPECULAR_LOBE", dualSpecularLobeEnabled);

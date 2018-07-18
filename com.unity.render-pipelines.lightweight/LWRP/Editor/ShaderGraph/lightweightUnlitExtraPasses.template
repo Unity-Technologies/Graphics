@@ -32,6 +32,8 @@ ${Graph}
     {
         float2 uv           : TEXCOORD0;
         float4 clipPos      : SV_POSITION;
+        UNITY_VERTEX_INPUT_INSTANCE_ID
+        UNITY_VERTEX_OUTPUT_STEREO
     };
 
     // x: global clip space bias, y: normal world space bias
@@ -42,6 +44,8 @@ ${Graph}
     {
         VertexOutput o;
         UNITY_SETUP_INSTANCE_ID(v);
+        UNITY_TRANSFER_INSTANCE_ID(v, o);
+        UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
         // Vertex transformations performed by graph
 ${VertexShader}
@@ -77,8 +81,9 @@ ${VertexShaderDescriptionInputs}
         return o;
     }
 
-    half4 ShadowPassFragment() : SV_TARGET
+    half4 ShadowPassFragment(VertexOutput IN) : SV_TARGET
     {
+        UNITY_SETUP_INSTANCE_ID(IN);
         return 0;
     }
 
@@ -120,12 +125,16 @@ ${Graph}
     {
         float2 uv           : TEXCOORD0;
         float4 clipPos      : SV_POSITION;
+        UNITY_VERTEX_INPUT_INSTANCE_ID
+        UNITY_VERTEX_OUTPUT_STEREO
     };
 
     VertexOutput vert(GraphVertexInput v)
     {
         VertexOutput o = (VertexOutput)0;
         UNITY_SETUP_INSTANCE_ID(v);
+        UNITY_TRANSFER_INSTANCE_ID(v, o);
+        UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
 
         // Vertex transformations performed by graph
 ${VertexShader}
@@ -141,8 +150,9 @@ ${VertexShaderDescriptionInputs}
         return o;
     }
 
-    half4 frag() : SV_TARGET
+    half4 frag(VertexOutput IN) : SV_TARGET
     {
+        UNITY_SETUP_INSTANCE_ID(IN);
         return 0;
     }
     ENDHLSL

@@ -30,12 +30,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             volumeScrollingAmount = textureScrollingSpeed;
         }
 
-        public void Update()
+        public void Update(bool animate, float time)
         {
             //Update scrolling based on deltaTime
             if (volumeMask != null)
             {
-                volumeScrollingAmount = volumeScrollingAmount + (textureScrollingSpeed * Time.deltaTime);
+                float animationTime = animate ? time : 0.0f;
+                volumeScrollingAmount = (textureScrollingSpeed * animationTime);
             }
         }
 
@@ -72,14 +73,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [AddComponentMenu("Rendering/Density Volume", 1100)]
     public class DensityVolume : MonoBehaviour
     {
-        public DensityVolumeParameters parameters = new DensityVolumeParameters(Color.grey, 10.0f, 0.0f);
+        public DensityVolumeParameters parameters = new DensityVolumeParameters(Color.white, 10.0f, 0.0f);
 
         private Texture3D previousVolumeMask = null;
 
         public Action OnTextureUpdated;
 
         //Gather and Update any parameters that may have changed
-        public void PrepareParameters()
+        public void PrepareParameters(bool animate, float time)
         {
             //Texture has been updated notify the manager
             if (previousVolumeMask != parameters.volumeMask)
@@ -88,7 +89,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 previousVolumeMask = parameters.volumeMask;
             }
 
-            parameters.Update();
+            parameters.Update(animate, time);
         }
 
         private void NotifyUpdatedTexure()

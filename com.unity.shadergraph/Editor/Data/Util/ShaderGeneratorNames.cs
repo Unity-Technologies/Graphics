@@ -9,6 +9,7 @@ namespace UnityEditor.ShaderGraph
 
         public const string ScreenPosition = "ScreenPosition";
         public const string VertexColor = "VertexColor";
+        public const string FaceSign = "FaceSign";
 
 
         public static string GetUVName(this UVChannel channel)

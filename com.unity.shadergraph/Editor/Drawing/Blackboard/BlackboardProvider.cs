@@ -35,7 +35,16 @@ namespace UnityEditor.ShaderGraph.Drawing
         //    set { m_ResizeBorderFrame.OnResizeFinished = value; }
         //}
 
-        public BlackboardProvider(string assetName, AbstractMaterialGraph graph)
+        public string assetName
+        {
+            get { return blackboard.title; }
+            set
+            {
+                blackboard.title = value;
+            }
+        }
+
+        public BlackboardProvider(AbstractMaterialGraph graph)
         {
             m_Graph = graph;
             m_ExposedIcon = Resources.Load<Texture2D>("GraphView/Nodes/BlackboardFieldExposed");
@@ -44,7 +53,6 @@ namespace UnityEditor.ShaderGraph.Drawing
             blackboard = new Blackboard()
             {
                 scrollable = true,
-                title = assetName.Split('/').Last(),
                 subTitle = FormatPath(graph.path),
                 editTextRequested = EditTextRequested,
                 addItemRequested = AddItemRequested,

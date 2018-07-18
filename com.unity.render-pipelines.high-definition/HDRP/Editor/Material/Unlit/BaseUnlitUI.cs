@@ -491,6 +491,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // A material's GI flag internally keeps track of whether emission is enabled at all, it's enabled but has no effect
             // or is enabled and may be modified at runtime. This state depends on the values of the current flag and emissive color.
             // The fixup routine makes sure that the material is in the correct state if/when changes are made to the mode or color.
+            if (material.HasProperty(kEmissionColor))
+                material.SetColor(kEmissionColor, Color.white); // kEmissionColor must always be white to allow our own material to control the GI (this allow to fallback from builtin unity to our system).
+                                                                // as it happen with old material that it isn't the case, we force it.
             MaterialEditor.FixupEmissiveFlag(material);
 
             // Commented out for now because unfortunately we used the hard coded property names used by the GI system for our own parameters

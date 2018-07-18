@@ -13,7 +13,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             public static GUIContent baseColorText = new GUIContent("Base Color + Opacity", "Albedo (RGB) and Opacity (A)");
 
-            public static GUIContent smoothnessMapChannelText = new GUIContent("Smoothness Source", "Smoothness texture and channel");
             public static GUIContent metallicText = new GUIContent("Metallic", "Metallic scale factor");
             public static GUIContent smoothnessText = new GUIContent("Smoothness", "Smoothness scale factor");
             public static GUIContent smoothnessRemappingText = new GUIContent("Smoothness Remapping", "Smoothness remapping");
@@ -80,8 +79,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Emissive
             public static string emissiveLabelText = "Emissive Inputs";
-            public static GUIContent emissiveText = new GUIContent("Emissive Color", "Emissive");
-            public static GUIContent emissiveIntensityText = new GUIContent("Emissive Intensity", "Emissive");
+            public static GUIContent emissiveText = new GUIContent("Emissive Color", "Emissive Color (linear RGB) in nits unit");
             public static GUIContent albedoAffectEmissiveText = new GUIContent("Albedo Affect Emissive", "Specifies whether or not the emissive color is multiplied by the albedo.");
 
             public static GUIContent normalMapSpaceWarning = new GUIContent("Object space normal can't be use with triplanar mapping.");
@@ -263,8 +261,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kEmissiveColor = "_EmissiveColor";
         protected MaterialProperty emissiveColorMap = null;
         protected const string kEmissiveColorMap = "_EmissiveColorMap";
-        protected MaterialProperty emissiveIntensity = null;
-        protected const string kEmissiveIntensity = "_EmissiveIntensity";
         protected MaterialProperty albedoAffectEmissive = null;
         protected const string kAlbedoAffectEmissive = "_AlbedoAffectEmissive";
         protected MaterialProperty UVEmissive = null;
@@ -359,7 +355,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             emissiveColorMode = FindProperty(kEmissiveColorMode, props);
             emissiveColor = FindProperty(kEmissiveColor, props);
             emissiveColorMap = FindProperty(kEmissiveColorMap, props);
-            emissiveIntensity = FindProperty(kEmissiveIntensity, props);
             albedoAffectEmissive = FindProperty(kAlbedoAffectEmissive, props);
 
             UVEmissive = FindProperty(kUVEmissive, props);
@@ -873,7 +868,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUI.indentLevel--;
             }
 
-            m_MaterialEditor.ShaderProperty(emissiveIntensity, Styles.emissiveIntensityText);
             m_MaterialEditor.ShaderProperty(albedoAffectEmissive, Styles.albedoAffectEmissiveText);
             EditorGUI.indentLevel--;
         }
@@ -890,9 +884,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_MaterialEditor.ShaderProperty(enableSpecularOcclusion, Styles.enableSpecularOcclusionText);
         }
 
-        protected override bool ShouldEmissionBeEnabled(Material mat)
+        protected override bool ShouldEmissionBeEnabled(Material material)
         {
-            return mat.GetFloat(kEmissiveIntensity) > 0.0f;
+            return (material.GetColor(kEmissiveColor) != Color.black) || material.GetTexture(kEmissiveColorMap);
         }
 
         protected override void SetupMaterialKeywordsAndPassInternal(Material material)
