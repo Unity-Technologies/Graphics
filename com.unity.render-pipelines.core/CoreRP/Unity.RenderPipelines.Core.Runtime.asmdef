@@ -1,5 +1,5 @@
 {
-    "name": "com.unity.render-pipelines.core.Runtime",
+    "name": "Unity.RenderPipelines.Core.Runtime",
     "optionalUnityReferences": [],
     "includePlatforms": [],
     "excludePlatforms": [],

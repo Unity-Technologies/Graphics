@@ -1,5 +1,5 @@
 {
-    "name": "com.unity.render-pipelines.core.IncludePaths",
+    "name": "Unity.RenderPipelines.Core.IncludePaths",
     "references": [],
     "includePlatforms": [
         "Editor"
