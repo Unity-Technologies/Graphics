@@ -82,10 +82,10 @@ namespace UnityEngine.TestTools.Graphics
                     "The expected image had format {0} but the actual image had format {1}.", expected.format,
                     actual.format);
 
-                using (var expectedPixels = new NativeArray<Color32>(expected.GetPixels32(0), Allocator.Temp))
-                using (var actualPixels = new NativeArray<Color32>(actual.GetPixels32(0), Allocator.Temp))
-                using (var diffPixels = new NativeArray<Color32>(expectedPixels.Length, Allocator.Temp))
-                using (var sumOverThreshold = new NativeArray<float>(Mathf.CeilToInt(expectedPixels.Length / (float)k_BatchSize), Allocator.Temp))
+                using (var expectedPixels = new NativeArray<Color32>(expected.GetPixels32(0), Allocator.TempJob))
+                using (var actualPixels = new NativeArray<Color32>(actual.GetPixels32(0), Allocator.TempJob))
+                using (var diffPixels = new NativeArray<Color32>(expectedPixels.Length, Allocator.TempJob))
+                using (var sumOverThreshold = new NativeArray<float>(Mathf.CeilToInt(expectedPixels.Length / (float)k_BatchSize), Allocator.TempJob))
                 {
                     if (settings == null)
                         settings = new ImageComparisonSettings();
