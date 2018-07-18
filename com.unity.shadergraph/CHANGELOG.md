@@ -46,6 +46,13 @@ Note: This functionality requires that you have enabled **two sided** on the Mas
 
 This adds gradient functionality via two new nodes. The Sample Gradient node samples a gradient given a Time parameter. You can define this gradient on the Gradient slot control view. The Gradient Asset node defines a gradient that can be sampled by multiple Sample Gradient nodes using different Time parameters.
 
+## Normal Derive Nodes
+
+![](.data/normal_derive_nodes.png)
+
+There are two Normal Derive Nodes: `Normal From Height` and `Normal Reconstruct Z`.
+`Normal From Height` uses Vector1 input to derive a normal map. `Normal Reconstruct Z` uses the X and Y components in Vector2 input to derive the proper Z value for a normal map. 
+
 ### Sphere Mask Node
 
 ![](.data/sphereMask.png)
@@ -91,3 +98,4 @@ You can now see the generated code for any specific node. To do so, right-click 
 - If the current render pipeline is not compatible, master nodes now display an error badge.
 - The preview shader now only considers the current render pipeline. Because of this there is less code to compile, and therefore the preview shader will compile faster.
 - When you rename a shader graph or sub shader graph locally on your disk, the title of the Shader Graph window, black board, and preview also updates.
+- `Normal Create` node has been renamed to `Normal From Texture`.
