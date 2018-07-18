@@ -1433,11 +1433,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // We need to copy depth buffer texture if we want to bind it at this stage
                 CopyDepthBufferIfNeeded(cmd);
 
+                bool rtCount4 = m_Asset.GetRenderPipelineSettings().decalSettings.perChannelMask;
                 // Depth texture is now ready, bind it.
                 cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, GetDepthTexture());
-                m_DbufferManager.ClearTargets(cmd, hdCamera);
-                HDUtils.SetRenderTarget(cmd, hdCamera, m_DbufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer); // do not clear anymore
-                m_DbufferManager.SetHTile(m_DbufferManager.bufferCount, cmd);
+                m_DbufferManager.ClearAndSetTargets(cmd, hdCamera, rtCount4, m_CameraDepthStencilBuffer);
                 renderContext.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
@@ -1446,13 +1445,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     rendererConfiguration = 0,
                     sorting = { flags = SortFlags.CommonOpaque }
                 };
-                drawSettings.SetShaderPassName(0, HDShaderPassNames.s_MeshDecalsName);
+
+                if(rtCount4)
+                {
+                    drawSettings.SetShaderPassName(0, HDShaderPassNames.s_MeshDecalsMName);
+                    drawSettings.SetShaderPassName(1, HDShaderPassNames.s_MeshDecalsAOName);
+                    drawSettings.SetShaderPassName(2, HDShaderPassNames.s_MeshDecalsMAOName);
+                    drawSettings.SetShaderPassName(3, HDShaderPassNames.s_MeshDecalsSName);
+                    drawSettings.SetShaderPassName(4, HDShaderPassNames.s_MeshDecalsMSName);
+                    drawSettings.SetShaderPassName(5, HDShaderPassNames.s_MeshDecalsAOSName);
+                    drawSettings.SetShaderPassName(6, HDShaderPassNames.s_MeshDecalsMAOSName);
+                }
+                else
+                {
+                    drawSettings.SetShaderPassName(0, HDShaderPassNames.s_MeshDecals3RTName);
+                }
+                                               
                 FilterRenderersSettings filterRenderersSettings = new FilterRenderersSettings(true)
                 {
                     renderQueueRange = HDRenderQueue.k_RenderQueue_AllOpaque
                 };
-                renderContext.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, filterRenderersSettings);
 
+                CoreUtils.SetKeyword(cmd, "_DECALS_4RT", m_Asset.GetRenderPipelineSettings().decalSettings.perChannelMask);
+
+                renderContext.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, filterRenderersSettings);
                 DecalSystem.instance.RenderIntoDBuffer(cmd);
                 m_DbufferManager.UnSetHTile(cmd);
                 m_DbufferManager.SetHTileTexture(cmd);  // mask per 8x8 tile used for optimization when looking up dbuffer values
