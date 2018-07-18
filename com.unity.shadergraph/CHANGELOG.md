@@ -71,6 +71,14 @@ This change expands Unity's support for Texture types via two new property types
 
 This adds a new node for LOD functionality on a Texture 2D Sample. Sample Texture 2D LOD uses the exact same input and output slots as Sample Texture 2D, but also includes an input for level of detail adjustments via a Vector1 slot. 
 
+### Texel Size Node
+
+![](.data/texel_size_node.png)
+
+With this node, you can get the special texture properties of a Texture 2D Asset via the `{texturename}_TexelSize` variable. Based on input from the Texture 2D Asset, the node outputs the width and height of the texel size in Vector1 format.
+
+**Note:** Do not use the default input to reference your texture Asset. It makes your graph perform worse. Connect this node to a separate Texture 2D Asset node per image example.
+
 ### Show generated code
 
 ![](.data/show_generated_code.gif)
