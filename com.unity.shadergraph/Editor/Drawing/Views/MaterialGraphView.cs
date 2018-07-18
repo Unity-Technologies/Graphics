@@ -87,17 +87,17 @@ namespace UnityEditor.ShaderGraph.Drawing
                 if (selection.OfType<MaterialNodeView>().Count() == 1 && selection.OfType<MaterialNodeView>().First().node is SubGraphNode)
                 {
                     evt.menu.AppendSeparator();
-                    evt.menu.AppendAction("Open Sub Graph", OpenSubGraph, ContextualMenu.MenuAction.StatusFlags.Normal);
+                    evt.menu.AppendAction("Open Sub Graph", OpenSubGraph, DropdownMenu.MenuAction.StatusFlags.Normal);
                 }
             }
             else if (evt.target is BlackboardField)
             {
-                evt.menu.AppendAction("Delete", (e) => DeleteSelectionImplementation("Delete", AskUser.DontAskUser), (e) => canDeleteSelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled);
+                evt.menu.AppendAction("Delete", (e) => DeleteSelectionImplementation("Delete", AskUser.DontAskUser), (e) => canDeleteSelection ? DropdownMenu.MenuAction.StatusFlags.Normal : DropdownMenu.MenuAction.StatusFlags.Disabled);
             }
             if (evt.target is MaterialGraphView)
             {
-                evt.menu.AppendAction("Collapse Previews", CollapsePreviews, ContextualMenu.MenuAction.StatusFlags.Normal);
-                evt.menu.AppendAction("Expand Previews", ExpandPreviews, ContextualMenu.MenuAction.StatusFlags.Normal);
+                evt.menu.AppendAction("Collapse Previews", CollapsePreviews, DropdownMenu.MenuAction.StatusFlags.Normal);
+                evt.menu.AppendAction("Expand Previews", ExpandPreviews, DropdownMenu.MenuAction.StatusFlags.Normal);
                 evt.menu.AppendSeparator();
             }
         }
@@ -135,22 +135,22 @@ namespace UnityEditor.ShaderGraph.Drawing
             ShaderGraphImporterEditor.ShowGraphEditWindow(path);
         }
 
-        ContextualMenu.MenuAction.StatusFlags SeeDocumentationStatus()
+        DropdownMenu.MenuAction.StatusFlags SeeDocumentationStatus()
         {
             if (selection.OfType<MaterialNodeView>().First().node.documentationURL == null)
-                return ContextualMenu.MenuAction.StatusFlags.Disabled;
-            return ContextualMenu.MenuAction.StatusFlags.Normal;
+                return DropdownMenu.MenuAction.StatusFlags.Disabled;
+            return DropdownMenu.MenuAction.StatusFlags.Normal;
         }
 
-        ContextualMenu.MenuAction.StatusFlags ConvertToPropertyStatus()
+        DropdownMenu.MenuAction.StatusFlags ConvertToPropertyStatus()
         {
             if (selection.OfType<MaterialNodeView>().Any(v => v.node != null))
             {
                 if (selection.OfType<MaterialNodeView>().Any(v => v.node is IPropertyFromNode))
-                    return ContextualMenu.MenuAction.StatusFlags.Normal;
-                return ContextualMenu.MenuAction.StatusFlags.Disabled;
+                    return DropdownMenu.MenuAction.StatusFlags.Normal;
+                return DropdownMenu.MenuAction.StatusFlags.Disabled;
             }
-            return ContextualMenu.MenuAction.StatusFlags.Hidden;
+            return DropdownMenu.MenuAction.StatusFlags.Hidden;
         }
 
         void ConvertToProperty()
@@ -180,15 +180,15 @@ namespace UnityEditor.ShaderGraph.Drawing
             }
         }
 
-        ContextualMenu.MenuAction.StatusFlags ConvertToInlineNodeStatus()
+        DropdownMenu.MenuAction.StatusFlags ConvertToInlineNodeStatus()
         {
             if (selection.OfType<MaterialNodeView>().Any(v => v.node != null))
             {
                 if (selection.OfType<MaterialNodeView>().Any(v => v.node is PropertyNode))
-                    return ContextualMenu.MenuAction.StatusFlags.Normal;
-                return ContextualMenu.MenuAction.StatusFlags.Disabled;
+                    return DropdownMenu.MenuAction.StatusFlags.Normal;
+                return DropdownMenu.MenuAction.StatusFlags.Disabled;
             }
-            return ContextualMenu.MenuAction.StatusFlags.Hidden;
+            return DropdownMenu.MenuAction.StatusFlags.Hidden;
         }
 
         void ConvertToInlineNode()
@@ -201,10 +201,10 @@ namespace UnityEditor.ShaderGraph.Drawing
                 ((AbstractMaterialGraph)propNode.owner).ReplacePropertyNodeWithConcreteNode(propNode);
         }
 
-        ContextualMenu.MenuAction.StatusFlags ConvertToSubgraphStatus()
+        DropdownMenu.MenuAction.StatusFlags ConvertToSubgraphStatus()
         {
-            if (onConvertToSubgraphClick == null) return ContextualMenu.MenuAction.StatusFlags.Hidden;
-            return selection.OfType<MaterialNodeView>().Any(v => v.node != null) ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Hidden;
+            if (onConvertToSubgraphClick == null) return DropdownMenu.MenuAction.StatusFlags.Hidden;
+            return selection.OfType<MaterialNodeView>().Any(v => v.node != null) ? DropdownMenu.MenuAction.StatusFlags.Normal : DropdownMenu.MenuAction.StatusFlags.Hidden;
         }
 
         void ConvertToSubgraph()

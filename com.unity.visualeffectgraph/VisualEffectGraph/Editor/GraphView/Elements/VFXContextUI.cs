@@ -557,7 +557,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void OnCreateBlock(ContextualMenu.MenuAction evt)
+        public void OnCreateBlock(DropdownMenu.MenuAction evt)
         {
             Vector2 referencePosition = evt.eventInfo.mousePosition;
 
@@ -620,7 +620,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (m_CanHaveBlocks)
                 {
-                    evt.menu.AppendAction("Create Block", OnCreateBlock, e => ContextualMenu.MenuAction.StatusFlags.Normal);
+                    evt.menu.AppendAction("Create Block", OnCreateBlock, e => DropdownMenu.MenuAction.StatusFlags.Normal);
                     evt.menu.AppendSeparator();
                 }
             }
