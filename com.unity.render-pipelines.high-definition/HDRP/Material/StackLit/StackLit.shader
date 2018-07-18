@@ -105,7 +105,7 @@ Shader "HDRenderPipeline/StackLit"
         _NormalMapUV("NormalMapUV", Float) = 0.0
         _NormalMapUVLocal("NormalMapUV Local", Float) = 0.0
         _NormalMapObjSpace("NormalMapObjSpace", Float) = 0.0
-        _NormalScale("Normal Scale", Range(0.0, 2.0)) = 1
+        _NormalScale("Normal Scale", Range(0.0, 8.0)) = 1
 
         [HideInInspector] _AmbientOcclusionMapShow("AmbientOcclusion Map Show", Float) = 0
         _AmbientOcclusion("AmbientOcclusion", Range(0.0, 1.0)) = 1
