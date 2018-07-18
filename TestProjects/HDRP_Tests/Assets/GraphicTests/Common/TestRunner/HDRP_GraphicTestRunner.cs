@@ -11,7 +11,7 @@ using UnityEditor;
 using EditorSceneManagement = UnityEditor.SceneManagement;
 #endif
 
-public class HDRP_GraphicTestRunner : IPrebuildSetup
+public class HDRP_GraphicTestRunner
 {
     [UnityTest, Category("HDRP Graphic Tests")]
     [PrebuildSetup("SetupGraphicsTestCases")]
@@ -50,6 +50,8 @@ public class HDRP_GraphicTestRunner : IPrebuildSetup
         ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null)?settings.ImageComparisonSettings:null);
     }
 
+// Old code to auto generate the lightmaps base on scene asset tag ... this should no be needed anymore apparently. The class need to herit from IPrebuildSetup
+/*
     public void Setup()
     {
 #if UNITY_EDITOR
@@ -104,6 +106,7 @@ public class HDRP_GraphicTestRunner : IPrebuildSetup
         }
 #endif
     }
+*/
 
 #if UNITY_EDITOR
 
