@@ -146,7 +146,7 @@ namespace UnityEditor.VFX.UI
             if (element != null)
             {
                 m_Label.style.font = element.style.font;
-                return m_Label.DoMeasure(-1, MeasureMode.Undefined, m_Label.style.height, MeasureMode.Exactly).x + m_Provider.depth * depthOffset;
+                return m_Label.MeasureTextSize(m_Label.text,-1, MeasureMode.Undefined, m_Label.style.height, MeasureMode.Exactly).x + m_Provider.depth * depthOffset;
             }
             return 40 + m_Provider.depth * depthOffset;
         }
