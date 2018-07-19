@@ -227,9 +227,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     }
                     EditorGUI.indentLevel--;
                 }
+
                 m_MaterialEditor.ShaderProperty(drawOrder, Styles.DrawOrderText);
-                m_MaterialEditor.ShaderProperty(decalBlend, Styles.decalBlendText);
                 m_MaterialEditor.ShaderProperty(decalMeshDepthBias, Styles.MeshDecalDepthBiasText);
+                m_MaterialEditor.ShaderProperty(decalBlend, Styles.decalBlendText);
+
                 EditorGUI.indentLevel--;
 
                 EditorGUILayout.HelpBox(
