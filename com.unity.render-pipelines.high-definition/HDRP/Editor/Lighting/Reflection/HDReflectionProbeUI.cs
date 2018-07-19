@@ -9,7 +9,7 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    public partial class HDReflectionProbeUI : BaseUI<SerializedHDReflectionProbe>
+    internal partial class HDReflectionProbeUI : BaseUI<SerializedHDReflectionProbe>
     {
         const int k_AnimBoolSingleFieldCount = 4;
         static readonly int k_ReflectionProbeModeCount = Enum.GetValues(typeof(ReflectionProbeMode)).Length;
@@ -93,7 +93,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             operations = 0;
 
             SetModeTarget(data.mode.hasMultipleDifferentValues ? -1 : data.mode.intValue);
-            SetShapeTarget(data.influenceShape.hasMultipleDifferentValues ? -1 : data.influenceShape.intValue);
+            SetShapeTarget(data.influenceVolume.shape.hasMultipleDifferentValues ? -1 : data.influenceVolume.shape.intValue);
 
             base.Update();
         }
