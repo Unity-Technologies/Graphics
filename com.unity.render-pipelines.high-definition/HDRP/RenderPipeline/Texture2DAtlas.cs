@@ -36,8 +36,8 @@ namespace UnityEngine.Experimental.Rendering
                 
                 if (powerOfTwoPadding)
                 {
-                    wPadd = (int)m_Rect.z % width;
-                    hPadd = (int)m_Rect.w % height;
+                    wPadd = (int)m_Rect.x % width;
+                    hPadd = (int)m_Rect.y % height;
                 }
 
                 //leaf node, check for fit

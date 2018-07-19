@@ -30,11 +30,12 @@ namespace UnityEngine.Experimental.Rendering
             Vector2 textureSize = GetPowerOfTwoTextureSize(texture);
             int mipCount = GetTextureMipmapCount((int)textureSize.x, (int)textureSize.y);
             int pixelPadding = GetTexturePadding(mipCount);
+            bool bilinear = texture.filterMode != FilterMode.Point;
             
             for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
             {
                 cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                HDUtils.BlitCubeOctahedral(cmd, texture, textureSize, new Vector4(2, 2, -1, -1), scaleBias, mipLevel, true, pixelPadding);
+                HDUtils.BlitCubeOctahedral(cmd, texture, textureSize, new Vector4(2, 2, -1, -1), scaleBias, mipLevel, bilinear, pixelPadding);
             }
         }
 
@@ -43,13 +44,14 @@ namespace UnityEngine.Experimental.Rendering
             int mipCount = GetTextureMipmapCount(texture.width, texture.height);
             int pixelPadding = GetTexturePadding(mipCount);
             Vector2 textureSize = GetPowerOfTwoTextureSize(texture);
+            bool bilinear = texture.filterMode != FilterMode.Point;
 
             using (new ProfilingSample(cmd, "Blit cubemap texture"))
             {
                 for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
                 {
                     cmd.SetRenderTarget(m_AtlasTexture, mipLevel);
-                    HDUtils.BlitPaddedQuad(cmd, texture, textureSize, new Vector4(1, 1, 0, 0), scaleBias, mipLevel, true, pixelPadding);
+                    HDUtils.BlitPaddedQuad(cmd, texture, textureSize, new Vector4(1, 1, 0, 0), scaleBias, mipLevel, bilinear, pixelPadding);
                 }
             }
         }
