@@ -8,11 +8,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [3.0.1-preview]
 
+### Added
+- Decal now support per channel selection mask. There is now two mode. One with BaseColor, Normal and Smoothness and another one more expensive with BaseColor, Normal, Smoothness, Metal and AO. Control is on HDRP Asset. This may require to launch an update script for old scene: 'Edit/Render Pipeline/Single step upgrade script/Upgrade all DecalMaterial MaskBlendMode'.
+
 ### Fixed
 - Fixed an issue with PreIntegratedFGD texture being sometimes destroyed and not regenerated causing rendering to break
 - PostProcess input buffers are not copied anymore on PC if the viewport size matches the final render target size
 - Fixed an issue when manipulating a lot of decals, it was displaying a lot of errors in the inspector
 - Fixed capture material with reflection probe
+- Refactored Constant Buffers to avoid hitting the maximum number of bound CBs in some cases.
+- Fixed the light range affecting the transform scale when changed.
 
 ### Changed
 - Movde Render Pipeline Debug "Windows from Windows->General-> Render Pipeline debug windows" to "Windows from Windows->Analysis-> Render Pipeline debug windows"
@@ -40,7 +45,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Exposed shadow budget parameters in HDRP asset
 - Add an option to generate an emissive mesh for area lights (currently rectangle light only). The mesh fits the size, intensity and color of the light.
 - Add an option to the HDRP asset to increase the resolution of volumetric lighting.
-- Add an decal mask map channel selection mode.
 - Add additional ligth unit support for punctual light (Lumens, Candela) and area lights (Lumens, Luminance)
 - Add dedicated Gizmo for the box Influence volume of HDReflectionProbe / PlanarReflectionProbe
 
