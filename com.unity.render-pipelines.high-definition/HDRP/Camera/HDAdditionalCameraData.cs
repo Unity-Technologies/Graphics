@@ -8,7 +8,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class HDAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver
     {
         [HideInInspector]
-        public float version = 1.0f;
+        const int currentVersion = 1;
+
+        [SerializeField, FormerlySerializedAs("version")]
+        int m_Version;
 
         // The light culling use standard projection matrices (non-oblique)
         // If the user overrides the projection matrix with an oblique one
@@ -213,6 +216,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // When FrameSettings are manipulated or RenderPath change we reset them to reflect the change, discarding all the Debug Windows change.
             // Tag as dirty so frameSettings are correctly initialize at next HDRenderPipeline.Render() call
             m_frameSettingsIsDirty = true;
+
+            if(m_Version != currentVersion)
+            {
+                // Add here data migration code
+                m_Version = currentVersion;
+            }
         }
 
         // This is called at the creation of the HD Additional Camera Data, to convert the legacy camera settings to HD
