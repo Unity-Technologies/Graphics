@@ -1828,7 +1828,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             }
 
                             LightVolumeType lightVolumeType = LightVolumeType.Box;
-                            if (additional != null && additional.influenceShape == ShapeType.Sphere)
+                            if (additional != null && additional.influenceVolume.shape == Shape.Sphere)
                                 lightVolumeType = LightVolumeType.Sphere;
                             ++envLightCount;
 
@@ -1846,7 +1846,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                 continue;
 
                             var lightVolumeType = LightVolumeType.Box;
-                            if (probe.influenceVolume.shapeType == ShapeType.Sphere)
+                            if (probe.influenceVolume.shape == Shape.Sphere)
                                 lightVolumeType = LightVolumeType.Sphere;
                             ++envLightCount;
 
@@ -2282,9 +2282,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (add == null)
             {
                 add = HDUtils.s_DefaultHDAdditionalReflectionData;
-                add.blendDistancePositive = Vector3.one * probe.blendDistance;
-                add.blendDistanceNegative = add.blendDistancePositive;
-                add.influenceShape = ShapeType.Box;
+                Vector3 distance = Vector3.one * probe.blendDistance;
+                add.influenceVolume.boxBlendDistancePositive = distance;
+                add.influenceVolume.boxBlendDistanceNegative = distance;
+                add.influenceVolume.shape = Shape.Box;
             }
             return add;
         }
