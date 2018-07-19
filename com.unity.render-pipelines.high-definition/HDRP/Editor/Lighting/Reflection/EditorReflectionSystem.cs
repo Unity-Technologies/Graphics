@@ -13,7 +13,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public static class EditorReflectionSystem
     {
-        static int _Cubemap = Shader.PropertyToID("_Cubemap");
         const HideFlags k_ReflectionSystemDictionaryHideFlags = HideFlags.HideInHierarchy | HideFlags.HideInInspector | HideFlags.DontSaveInBuild;
 
         public static bool IsCollidingWithOtherProbes(string targetPath, ReflectionProbe targetProbe, out ReflectionProbe collidingProbe)
@@ -145,16 +144,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (!UnityEditor.Lightmapping.BakeReflectionProbe(probe, path))
                 Debug.LogError("Failed to bake reflection probe to " + path);
             EditorUtility.ClearProgressBar();
-        }
-
-        public static void ResetProbeSceneTextureInMaterial(ReflectionProbe p)
-        {
-            var renderer = p.GetComponent<Renderer>();
-            renderer.sharedMaterial.SetTexture(_Cubemap, p.texture);
-        }
-
-        public static void ResetProbeSceneTextureInMaterial(PlanarReflectionProbe p)
-        {
         }
 
         static MethodInfo k_Lightmapping_BakeReflectionProbeSnapshot = typeof(UnityEditor.Lightmapping).GetMethod("BakeReflectionProbeSnapshot", BindingFlags.Static | BindingFlags.NonPublic);
