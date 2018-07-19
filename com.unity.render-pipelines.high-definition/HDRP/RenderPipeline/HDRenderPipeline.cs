@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Linq;
 using UnityEngine.Rendering.PostProcessing;
 using UnityEngine.Experimental.GlobalIllumination;
-using UnityEngine.XR;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -392,7 +391,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 #if !UNITY_SWITCH
             // VR is not supported currently in HD
-            if (XRSettings.isDeviceActive)
+            if (XRGraphicsConfig.enabled)
             {
                 CoreUtils.DisplayUnsupportedXRMessage();
 
