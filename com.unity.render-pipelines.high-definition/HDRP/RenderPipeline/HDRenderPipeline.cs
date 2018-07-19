@@ -390,7 +390,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return false;
             }
 
-#if !UNITY_SWITCH
             // VR is not supported currently in HD
             if (XRGraphicsConfig.enabled)
             {
@@ -398,8 +397,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 return false;
             }
-#endif
-
             return true;
         }
 
