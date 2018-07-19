@@ -11,43 +11,16 @@ namespace UnityEditor.Experimental.Rendering
     [CanEditMultipleObjects]
     partial class HDCameraEditor : Editor
     {
-        [MenuItem("CONTEXT/Camera/Remove Component", false, 0)]
-        static void RemoveCamera(MenuCommand menuCommand)
+        [MenuItem("CONTEXT/Camera/Remove HD Camera", false, 0)]
+        static void RemoveLight(MenuCommand menuCommand)
         {
             GameObject go = ((Camera)menuCommand.context).gameObject;
 
             Assert.IsNotNull(go);
-
-            Camera camera = go.GetComponent<Camera>();
-            HDAdditionalCameraData cameraAdditionalData = go.GetComponent<HDAdditionalCameraData>();
-
-            Assert.IsNotNull(camera);
-            Assert.IsNotNull(cameraAdditionalData);
 
             Undo.SetCurrentGroupName("Remove HD Camera");
-            Undo.DestroyObjectImmediate(camera);
-            Undo.DestroyObjectImmediate(cameraAdditionalData);
-        }
-
-        [MenuItem("CONTEXT/Camera/Reset", false, 0)]
-        static void ResetCamera(MenuCommand menuCommand)
-        {
-            GameObject go = ((Camera)menuCommand.context).gameObject;
-
-            Assert.IsNotNull(go);
-
-            Camera camera = go.GetComponent<Camera>();
-            HDAdditionalCameraData cameraAdditionalData = go.GetComponent<HDAdditionalCameraData>();
-
-            Assert.IsNotNull(camera);
-            Assert.IsNotNull(cameraAdditionalData);
-
-            Undo.SetCurrentGroupName("Reset HD Camera");
-            Undo.RecordObjects(new UnityEngine.Object[] { camera, cameraAdditionalData }, "Reset HD Camera");
-            camera.Reset();
-            // To avoid duplicating init code we copy default settings to Reset additional data
-            // Note: we can't call this code inside the HDAdditionalCameraData, thus why we don't wrap it in a Reset() function
-            HDUtils.s_DefaultHDAdditionalCameraData.CopyTo(cameraAdditionalData);
+            Undo.DestroyObjectImmediate(go.GetComponent<Camera>());
+            Undo.DestroyObjectImmediate(go.GetComponent<HDAdditionalCameraData>());
         }
 
         SerializedHDCamera m_SerializedCamera;

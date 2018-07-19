@@ -3,12 +3,8 @@ namespace UnityEngine.Experimental.Rendering
     [RequireComponent(typeof(Light))]
     public class AdditionalShadowData : MonoBehaviour
     {
-// Currently m_Version is not used and produce a warning, remove these pragmas at the next version incrementation
-#pragma warning disable 414
-        [SerializeField]
-        [UnityEngine.Serialization.FormerlySerializedAs("version")]
-        private int m_Version = 1;
-#pragma warning restore 414
+        [HideInInspector]
+        public float version = 1.0f;
 
         public const int DefaultShadowResolution = 512;
 

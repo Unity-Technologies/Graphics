@@ -1,5 +1,4 @@
 using UnityEngine.Serialization;
-using UnityEngine.Assertions;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -8,10 +7,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class HDAdditionalCameraData : MonoBehaviour, ISerializationCallbackReceiver
     {
         [HideInInspector]
-        const int currentVersion = 1;
-
-        [SerializeField, FormerlySerializedAs("version")]
-        int m_Version;
+        public float version = 1.0f;
 
         // The light culling use standard projection matrices (non-oblique)
         // If the user overrides the projection matrix with an oblique one
@@ -45,7 +41,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Color backgroundColorHDR = new Color(0.025f, 0.07f, 0.19f, 0.0f);
         public bool clearDepth = true;
 
-        public RenderingPath renderingPath = RenderingPath.Default;
+        public RenderingPath renderingPath;
         [Tooltip("Layer Mask used for the volume interpolation for this camera.")]
         public LayerMask volumeLayerMask = -1;
 
@@ -71,31 +67,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         bool m_IsDebugRegistered = false;
         string m_CameraRegisterName;
 
-        // When we are a preview, there is no way inside Unity to make a distinction between camera preview and material preview.
+        // When we are a preview, there is no way inside Unity to make a disctinctoin between camera preview and material preview.
         // This property allow to say that we are an editor camera preview when the type is preview.
         public bool isEditorCameraPreview { get; set; }
-
-        // This is use to copy data into camera for the Reset() workflow in camera editor
-        public void CopyTo(HDAdditionalCameraData data)
-        {
-            data.clearColorMode = clearColorMode;
-            data.backgroundColorHDR = backgroundColorHDR;
-            data.clearDepth = clearDepth;
-            data.renderingPath = renderingPath;
-            data.volumeLayerMask = volumeLayerMask;
-            data.aperture = aperture;
-            data.shutterSpeed = shutterSpeed;
-            data.iso = iso;
-
-            m_FrameSettings.CopyTo(data.m_FrameSettings);
-            m_FrameSettingsRuntime.CopyTo(data.m_FrameSettingsRuntime);
-            data.m_frameSettingsIsDirty = true; // Let's be sure it is dirty for update
-
-            // We must not copy the following
-            //data.m_IsDebugRegistered = m_IsDebugRegistered;
-            //data.m_CameraRegisterName = m_CameraRegisterName;
-            //data.isEditorCameraPreview = isEditorCameraPreview;
-        }
 
         // This is the function use outside to access FrameSettings. It return the current state of FrameSettings for the camera
         // taking into account the customization via the debug menu
@@ -216,12 +190,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // When FrameSettings are manipulated or RenderPath change we reset them to reflect the change, discarding all the Debug Windows change.
             // Tag as dirty so frameSettings are correctly initialize at next HDRenderPipeline.Render() call
             m_frameSettingsIsDirty = true;
-
-            if(m_Version != currentVersion)
-            {
-                // Add here data migration code
-                m_Version = currentVersion;
-            }
         }
 
         // This is called at the creation of the HD Additional Camera Data, to convert the legacy camera settings to HD

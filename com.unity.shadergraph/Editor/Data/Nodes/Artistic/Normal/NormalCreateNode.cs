@@ -4,9 +4,8 @@ using UnityEditor.Graphing;
 
 namespace UnityEditor.ShaderGraph
 {
-    [FormerName("UnityEditor.ShaderGraph.NormalCreateNode")]
-    [Title("Artistic", "Normal", "Normal From Texture")]
-    public class NormalFromTextureNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IGenerateProperties, IMayRequireMeshUV
+    [Title("Artistic", "Normal", "Normal Create")]
+    public class NormalCreateNode : AbstractMaterialNode, IGeneratesBodyCode, IGeneratesFunction, IGenerateProperties, IMayRequireMeshUV
     {
         public const int TextureInputId = 0;
         public const int UVInputId = 1;
@@ -22,20 +21,20 @@ namespace UnityEditor.ShaderGraph
         const string k_StrengthInputName = "Strength";
         const string k_OutputSlotName = "Out";
 
-        public NormalFromTextureNode()
+        public NormalCreateNode()
         {
-            name = "Normal From Texture";
+            name = "Normal Create";
             UpdateNodeAfterDeserialization();
         }
 
         public override string documentationURL
         {
-            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Normal-From-Texture-Node"; }
+            get { return "https://github.com/Unity-Technologies/ShaderGraph/wiki/Normal-Create-Node"; }
         }
 
         string GetFunctionName()
         {
-            return string.Format("Unity_NormalFromTexture_{0}", precision);
+            return string.Format("Unity_NormalCreate_{0}", precision);
         }
 
         public override bool hasPreview { get { return true; } }
