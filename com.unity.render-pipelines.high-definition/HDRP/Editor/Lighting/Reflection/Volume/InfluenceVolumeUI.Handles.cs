@@ -15,9 +15,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var c = Handles.color;
             Handles.matrix = matrix;
             Handles.color = k_GizmoThemeColorBase;
-            switch (d.shapeType)
+            switch (d.shape)
             {
-                case ShapeType.Box:
+                case Shape.Box:
                     {
                         var center = d.boxBaseOffset;
                         var size = d.boxBaseSize;
@@ -30,7 +30,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         d.boxBaseSize = size;
                         break;
                     }
-                case ShapeType.Sphere:
+                case Shape.Sphere:
                     {
                         var center = d.sphereBaseOffset;
                         var radius = d.sphereBaseRadius;
@@ -54,9 +54,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var c = Handles.color;
             Handles.matrix = matrix;
             Handles.color = k_GizmoThemeColorInfluence;
-            switch (d.shapeType)
+            switch (d.shape)
             {
-                case ShapeType.Box:
+                case Shape.Box:
                     {
                         var positive = d.boxInfluencePositiveFade;
                         var negative = d.boxInfluenceNegativeFade;
@@ -82,7 +82,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         s.data.Apply();
                         break;
                     }
-                case ShapeType.Sphere:
+                case Shape.Sphere:
                     {
                         var fade = d.sphereInfluenceFade;
                         DrawSphereFadeHandle(
@@ -104,9 +104,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var c = Handles.color;
             Handles.matrix = matrix;
             Handles.color = k_GizmoThemeColorInfluenceNormal;
-            switch (d.shapeType)
+            switch (d.shape)
             {
-                case ShapeType.Box:
+                case Shape.Box:
                     {
 
                         Vector3 positive = d.boxInfluenceNormalPositiveFade;
@@ -133,7 +133,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         s.data.Apply();
                         break;
                     }
-                case ShapeType.Sphere:
+                case Shape.Sphere:
                     {
                         var fade = d.sphereInfluenceNormalFade;
                         DrawSphereFadeHandle(

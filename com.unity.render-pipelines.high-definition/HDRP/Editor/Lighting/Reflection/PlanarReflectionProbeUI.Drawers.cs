@@ -118,7 +118,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static void Drawer_DifferentShapeError(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
         {
             var proxy = d.proxyVolumeReference.objectReferenceValue as ReflectionProxyVolumeComponent;
-            if (proxy != null && (int)proxy.proxyVolume.shapeType != d.influenceVolume.shapeType.enumValueIndex)
+            if (proxy != null && (int)proxy.proxyVolume.shapeType != d.influenceVolume.shape.enumValueIndex)
             {
                 EditorGUILayout.HelpBox(
                     "Proxy volume and influence volume have different shape types, this is not supported.",
@@ -178,7 +178,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (d.proxyVolumeReference.objectReferenceValue != null)
             {
                 var proxy = (ReflectionProxyVolumeComponent)d.proxyVolumeReference.objectReferenceValue;
-                if ((int)proxy.proxyVolume.shapeType != d.influenceVolume.shapeType.enumValueIndex)
+                if ((int)proxy.proxyVolume.shapeType != d.influenceVolume.shape.enumValueIndex)
                     EditorGUILayout.HelpBox(
                         "Proxy volume and influence volume have different shape types, this is not supported.",
                         MessageType.Error,
