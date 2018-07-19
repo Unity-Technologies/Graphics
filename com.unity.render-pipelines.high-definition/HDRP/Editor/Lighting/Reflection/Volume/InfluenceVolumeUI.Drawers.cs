@@ -53,15 +53,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     d.editorAdvancedModeEnabled.boolValue = advanced;
                     if (advanced)
                     {
-                        d.boxInfluencePositiveFade.vector3Value = d.editorAdvancedModeBlendDistancePositive.vector3Value;
-                        d.boxInfluenceNegativeFade.vector3Value = d.editorAdvancedModeBlendDistanceNegative.vector3Value;
-                        d.boxInfluenceNormalPositiveFade.vector3Value = d.editorAdvancedModeBlendNormalDistancePositive.vector3Value;
-                        d.boxInfluenceNormalNegativeFade.vector3Value = d.editorAdvancedModeBlendNormalDistanceNegative.vector3Value;
+                        d.boxBlendDistancePositive.vector3Value = d.editorAdvancedModeBlendDistancePositive.vector3Value;
+                        d.boxBlendDistanceNegative.vector3Value = d.editorAdvancedModeBlendDistanceNegative.vector3Value;
+                        d.boxBlendNormalDistancePositive.vector3Value = d.editorAdvancedModeBlendNormalDistancePositive.vector3Value;
+                        d.boxBlendNormalDistanceNegative.vector3Value = d.editorAdvancedModeBlendNormalDistanceNegative.vector3Value;
                     }
                     else
                     {
-                        d.boxInfluenceNegativeFade.vector3Value = d.boxInfluencePositiveFade.vector3Value = Vector3.one * d.editorSimplifiedModeBlendDistance.floatValue;
-                        d.boxInfluenceNormalNegativeFade.vector3Value = d.boxInfluenceNormalPositiveFade.vector3Value = Vector3.one * d.editorSimplifiedModeBlendNormalDistance.floatValue;
+                        d.boxBlendDistanceNegative.vector3Value = d.boxBlendDistancePositive.vector3Value = Vector3.one * d.editorSimplifiedModeBlendDistance.floatValue;
+                        d.boxBlendNormalDistanceNegative.vector3Value = d.boxBlendNormalDistancePositive.vector3Value = Vector3.one * d.editorSimplifiedModeBlendNormalDistance.floatValue;
                     }
                     d.Apply();
                 }
@@ -71,11 +71,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static void Drawer_SectionShapeBox(InfluenceVolumeUI s, SerializedInfluenceVolume d, Editor o)
         {
             bool advanced = d.editorAdvancedModeEnabled.boolValue;
-            var maxFadeDistance = d.boxBaseSize.vector3Value * 0.5f;
+            var maxFadeDistance = d.boxSize.vector3Value * 0.5f;
             var minFadeDistance = Vector3.zero;
 
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.PropertyField(d.boxBaseSize, _.GetContent("Box Size"));
+            EditorGUILayout.PropertyField(d.boxSize, _.GetContent("Box Size"));
             PlanarReflectionProbeUI.Drawer_ToolBarButton(0, o, GUILayout.Width(28f), GUILayout.MinHeight(22f));
             EditorGUILayout.EndHorizontal();
 
@@ -96,14 +96,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 CoreEditorUtils.DrawVector6(
                     CoreEditorUtils.GetContent("Face fade|Fade faces of the cubemap."),
-                    d.boxPositiveFaceFade, d.boxNegativeFaceFade, Vector3.zero, Vector3.one, HDReflectionProbeEditor.k_handlesColor);
+                    d.boxSideFadePositive, d.boxSideFadeNegative, Vector3.zero, Vector3.one, HDReflectionProbeEditor.k_handlesColor);
             }
         }
 
         static void Drawer_AdvancedBlendDistance(SerializedInfluenceVolume d, bool isNormal, Vector3 maxBlendDistance, GUIContent content)
         {
-            SerializedProperty blendDistancePositive = isNormal ? d.boxInfluenceNormalPositiveFade : d.boxInfluencePositiveFade;
-            SerializedProperty blendDistanceNegative = isNormal ? d.boxInfluenceNormalNegativeFade : d.boxInfluenceNegativeFade;
+            SerializedProperty blendDistancePositive = isNormal ? d.boxBlendNormalDistancePositive : d.boxBlendDistancePositive;
+            SerializedProperty blendDistanceNegative = isNormal ? d.boxBlendNormalDistanceNegative : d.boxBlendDistanceNegative;
             SerializedProperty editorAdvancedModeBlendDistancePositive = isNormal ? d.editorAdvancedModeBlendNormalDistancePositive : d.editorAdvancedModeBlendDistancePositive;
             SerializedProperty editorAdvancedModeBlendDistanceNegative = isNormal ? d.editorAdvancedModeBlendNormalDistanceNegative : d.editorAdvancedModeBlendDistanceNegative;
             SerializedProperty editorSimplifiedModeBlendDistance = isNormal ? d.editorSimplifiedModeBlendNormalDistance : d.editorSimplifiedModeBlendDistance;
@@ -151,14 +151,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void Drawer_SectionShapeSphere(InfluenceVolumeUI s, SerializedInfluenceVolume d, Editor o)
         {
-            var maxFaceDistance = d.sphereBaseRadius.floatValue;
+            var maxFaceDistance = d.sphereRadius.floatValue;
 
-            EditorGUILayout.PropertyField(d.sphereBaseRadius, _.GetContent("Radius"));
-            d.sphereBaseOffset.vector3Value = Vector3.zero;
+            EditorGUILayout.PropertyField(d.sphereRadius, _.GetContent("Radius"));
+            d.offset.vector3Value = Vector3.zero;
 
             EditorGUILayout.Space();
 
-            EditorGUILayout.Slider(d.sphereInfluenceFade, 0, maxFaceDistance, _.GetContent("Blend Distance"));
+            EditorGUILayout.Slider(d.sphereBlendDistance, 0, maxFaceDistance, _.GetContent("Blend Distance"));
         }
     }
 }
