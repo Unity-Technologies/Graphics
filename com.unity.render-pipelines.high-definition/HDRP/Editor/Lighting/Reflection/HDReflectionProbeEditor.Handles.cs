@@ -66,8 +66,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     {
                         alternativeBlendBox = s.alternativeBoxBlendHandle;
                         sphereHandle = s.sphereBlendHandle;
-                        probeBlendDistancePositive = sp.targetData.blendDistancePositive;
-                        probeBlendDistanceNegative = sp.targetData.blendDistanceNegative;
+                        probeBlendDistancePositive = sp.targetData.influenceVolume.boxBlendDistancePositive;
+                        probeBlendDistanceNegative = sp.targetData.influenceVolume.boxBlendDistanceNegative;
                         color = k_GizmoThemeColorInfluenceBlend;
                         break;
                     }
@@ -75,8 +75,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     {
                         alternativeBlendBox = s.alternativeBoxBlendNormalHandle;
                         sphereHandle = s.sphereBlendNormalHandle;
-                        probeBlendDistancePositive = sp.targetData.blendNormalDistancePositive;
-                        probeBlendDistanceNegative = sp.targetData.blendNormalDistanceNegative;
+                        probeBlendDistancePositive = sp.targetData.influenceVolume.boxBlendNormalDistancePositive;
+                        probeBlendDistanceNegative = sp.targetData.influenceVolume.boxBlendNormalDistanceNegative;
                         color = k_GizmoThemeColorInfluenceNormalBlend;
                         break;
                     }
@@ -125,7 +125,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 case Shape.Sphere:
                     {
                         sphereHandle.center = sp.target.center;
-                        sphereHandle.radius = Mathf.Clamp(sp.targetData.influenceSphereRadius - probeBlendDistancePositive.x, 0, sp.targetData.influenceSphereRadius);
+                        sphereHandle.radius = Mathf.Clamp(sp.targetData.influenceVolume.sphereRadius - probeBlendDistancePositive.x, 0, sp.targetData.influenceVolume.sphereRadius);
 
                         Handles.color = k_GizmoThemeColorExtent;
                         EditorGUI.BeginChangeCheck();
@@ -136,7 +136,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             Undo.RecordObject(sp.target, "Modified Reflection influence volume");
                             Undo.RecordObject(sp.targetData, "Modified Reflection influence volume");
 
-                            var influenceRadius = sp.targetData.influenceSphereRadius;
+                            var influenceRadius = sp.targetData.influenceVolume.sphereRadius;
                             var blendRadius = sphereHandle.radius;
 
                             var blendDistance = Mathf.Clamp(influenceRadius - blendRadius, 0, influenceRadius);
@@ -161,35 +161,35 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 default:
                 case InfluenceType.Standard:
                     {
-                        sp.blendDistancePositive.vector3Value = probeBlendDistancePositive;
-                        sp.blendDistanceNegative.vector3Value = probeBlendDistanceNegative;
+                        sp.influenceVolume.boxBlendDistancePositive.vector3Value = probeBlendDistancePositive;
+                        sp.influenceVolume.boxBlendDistanceNegative.vector3Value = probeBlendDistanceNegative;
 
                         //save advanced/simplified saved data
-                        if (sp.editorAdvancedModeEnabled.boolValue)
+                        if (sp.influenceVolume.editorAdvancedModeEnabled.boolValue)
                         {
-                            sp.editorAdvancedModeBlendDistancePositive.vector3Value = probeBlendDistancePositive;
-                            sp.editorAdvancedModeBlendDistanceNegative.vector3Value = probeBlendDistanceNegative;
+                            sp.influenceVolume.editorAdvancedModeBlendDistancePositive.vector3Value = probeBlendDistancePositive;
+                            sp.influenceVolume.editorAdvancedModeBlendDistanceNegative.vector3Value = probeBlendDistanceNegative;
                         }
                         else
                         {
-                            sp.editorSimplifiedModeBlendDistance.floatValue = probeBlendDistancePositive.x;
+                            sp.influenceVolume.editorSimplifiedModeBlendDistance.floatValue = probeBlendDistancePositive.x;
                         }
                         break;
                     }
                 case InfluenceType.Normal:
                     {
-                        sp.blendNormalDistancePositive.vector3Value = probeBlendDistancePositive;
-                        sp.blendNormalDistanceNegative.vector3Value = probeBlendDistanceNegative;
+                        sp.influenceVolume.boxBlendNormalDistancePositive.vector3Value = probeBlendDistancePositive;
+                        sp.influenceVolume.boxBlendNormalDistanceNegative.vector3Value = probeBlendDistanceNegative;
 
                         //save advanced/simplified saved data
-                        if (sp.editorAdvancedModeEnabled.boolValue)
+                        if (sp.influenceVolume.editorAdvancedModeEnabled.boolValue)
                         {
-                            sp.editorAdvancedModeBlendNormalDistancePositive.vector3Value = probeBlendDistancePositive;
-                            sp.editorAdvancedModeBlendNormalDistanceNegative.vector3Value = probeBlendDistanceNegative;
+                            sp.influenceVolume.editorAdvancedModeBlendNormalDistancePositive.vector3Value = probeBlendDistancePositive;
+                            sp.influenceVolume.editorAdvancedModeBlendNormalDistanceNegative.vector3Value = probeBlendDistanceNegative;
                         }
                         else
                         {
-                            sp.editorSimplifiedModeBlendNormalDistance.floatValue = probeBlendDistancePositive.x;
+                            sp.influenceVolume.editorSimplifiedModeBlendNormalDistance.floatValue = probeBlendDistancePositive.x;
                         }
                         break;
                     }
@@ -236,7 +236,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 case Shape.Sphere:
                     {
                         s.sphereInfluenceHandle.center = sp.target.center;
-                        s.sphereInfluenceHandle.radius = sp.targetData.influenceSphereRadius;
+                        s.sphereInfluenceHandle.radius = sp.targetData.influenceVolume.sphereRadius;
 
                         Handles.color = k_GizmoThemeColorExtent;
                         EditorGUI.BeginChangeCheck();
@@ -253,7 +253,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             HDReflectionProbeEditorUtility.ValidateAABB(sp.target, ref center, ref radius);
                             influenceRadius = radius.x;
 
-                            sp.targetData.influenceSphereRadius = influenceRadius;
+                            sp.targetData.influenceVolume.sphereRadius = influenceRadius;
 
                             //ApplyConstraintsOnTargets(s, sp, o);
 
