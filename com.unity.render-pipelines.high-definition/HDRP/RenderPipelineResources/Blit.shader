@@ -211,7 +211,7 @@ Shader "Hidden/HDRenderPipeline/Blit"
             ENDHLSL
         }
 
-        // 6: Nearest padded quad
+        // 6: Nearest repeat padded quad
         Pass
         {
             ZWrite Off ZTest Always Blend Off Cull Off
@@ -222,7 +222,7 @@ Shader "Hidden/HDRenderPipeline/Blit"
             ENDHLSL
         }
 
-        // 7: Bilinear padded quad
+        // 7: Bilinear repeat padded quad
         Pass
         {
             ZWrite Off ZTest Always Blend Off Cull Off
@@ -232,8 +232,30 @@ Shader "Hidden/HDRenderPipeline/Blit"
                 #pragma fragment FragBilinearRepeat
             ENDHLSL
         }
+        
+        // 8: Nearest clamp padded quad
+        Pass
+        {
+            ZWrite Off ZTest Always Blend Off Cull Off
 
-        // 8: Nearest Octahedral cube
+            HLSLPROGRAM
+                #pragma vertex VertQuadPadding
+                #pragma fragment FragNearest
+            ENDHLSL
+        }
+
+        // 9: Bilinear clamp padded quad
+        Pass
+        {
+            ZWrite Off ZTest Always Blend Off Cull Off
+
+            HLSLPROGRAM
+                #pragma vertex VertQuadPadding
+                #pragma fragment FragBilinear
+            ENDHLSL
+        }
+
+        // 10: Nearest Octahedral cube
         Pass
         {
             ZWrite Off ZTest Always Blend Off Cull Off
@@ -244,7 +266,7 @@ Shader "Hidden/HDRenderPipeline/Blit"
             ENDHLSL
         }
 
-        // 9: Bilinear Octahedral cube
+        // 11: Bilinear Octahedral cube
         Pass
         {
             ZWrite Off ZTest Always Blend Off Cull Off

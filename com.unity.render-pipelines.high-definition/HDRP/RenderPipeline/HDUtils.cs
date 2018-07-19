@@ -227,7 +227,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevelTex);
             s_PropertyBlock.SetVector(HDShaderIDs._BlitTextureSize, textureSize);
             s_PropertyBlock.SetInt(HDShaderIDs._BlitPaddingSize, paddingInPixels);
-            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 7 : 6, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+            if (source.wrapMode == TextureWrapMode.Repeat)
+                cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 7 : 6, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+            else
+                cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 9 : 8, MeshTopology.Quads, 4, 1, s_PropertyBlock);
         }
 
         public static void BlitCubeOctahedral(CommandBuffer cmd, Texture source, Vector2 textureSize, Vector4 scaleBiasTex, Vector4 scaleBiasRT, int mipLevelTex, bool bilinear, int paddingInPixels)
@@ -239,7 +242,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_PropertyBlock.SetVector(HDShaderIDs._BlitTextureSize, textureSize);
             s_PropertyBlock.SetInt(HDShaderIDs._BlitPaddingSize, paddingInPixels);
 
-            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 8 : 9, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 10 : 11, MeshTopology.Quads, 4, 1, s_PropertyBlock);
         }
 
         public static void BlitTexture(CommandBuffer cmd, RTHandleSystem.RTHandle source, RTHandleSystem.RTHandle destination, Vector4 scaleBias, float mipLevel, bool bilinear)

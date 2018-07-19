@@ -74,6 +74,8 @@ struct LightLoopContext
     int sampleReflection;
     ShadowContext shadowContext;
     float contactShadow; // Currently we support only one contact shadow per view
+    float3 positionRWSDdx;
+    float3 positionRWSDdy;
 };
 
 //-----------------------------------------------------------------------------
@@ -90,20 +92,6 @@ float2 RemapUV(float2 coord, float2 sizeInPixel, int maxLod)
     return coord / scale + offset;
 }
 
-// Clamp the texture coordinates to prevent trilinear filtering from sampling outside of the texture
-float2 ClampUV(float2 coord, float2 sizeInPixel, float lod)
-{
-    float2 mipSize     = sizeInPixel / pow(2, lod);
-    float2 clampBorder = 0.5 * rcp(mipSize);
-
-    return clamp(coord, clampBorder, float2(1, 1) - clampBorder);
-}
-
-float2 HalfPixelSize(float2 sizeInPixel, float lod)
-{
-    return 0.5 * rcp(sizeInPixel / pow(2, lod));
-}
-
 // Used by directional and spot lights.
 float3 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, float4 scaleBias, bool repeat, float2 sampleDdx, float2 sampleDdy)
 {
@@ -117,9 +105,6 @@ float3 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, float4 sc
 
     // Clamp lod to the maximum level of the texture we are sampling
     lod = min(maxLod, lod);
-
-    // Add 1/2 pixel to sample at the center of the pixel
-    coord += HalfPixelSize(sizeInPixel, lod);
 
     // Manage cookie in repeat mode
     coord = frac(coord);
@@ -192,9 +177,6 @@ float3 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, float4 
     // Clamp lod to the maximum level of the texture we are sampling
     lod = min(maxLod, lod);
     
-    // Add 1/2 pixel to sample at the center of the pixel
-    // atlasCoords += HalfPixelSize(sizeInPixel, lod);
-
     // Remap the uv to take in account the padding (atlasCoord must be between 0 and 1)
     atlasCoords = RemapUV(atlasCoords, sizeInPixel, maxLod);
 

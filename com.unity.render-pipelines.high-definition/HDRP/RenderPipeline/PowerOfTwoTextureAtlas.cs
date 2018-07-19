@@ -38,7 +38,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        void Blit2DTextureRepeat(CommandBuffer cmd, Vector4 scaleBias, Texture texture)
+        void Blit2DTexturePadding(CommandBuffer cmd, Vector4 scaleBias, Texture texture)
         {
             int mipCount = GetTextureMipmapCount(texture.width, texture.height);
             int pixelPadding = GetTexturePadding(mipCount);
@@ -65,7 +65,7 @@ namespace UnityEngine.Experimental.Rendering
         {
             // We handle ourself the 2D blit because cookies needs mipPadding for trilinear filtering
             if (Is2D(texture))
-                Blit2DTextureRepeat(cmd, scaleBias, texture);
+                Blit2DTexturePadding(cmd, scaleBias, texture);
 
             if (IsCubemap(texture))
                 BlitCubemap(cmd, scaleBias, texture);
