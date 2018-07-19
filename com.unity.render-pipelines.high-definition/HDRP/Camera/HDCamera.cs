@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
-using UnityEngine.XR;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -289,10 +288,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #if !UNITY_SWITCH
             if (m_frameSettings.enableStereo)
             {
-                screenWidth = XRSettings.eyeTextureWidth;
-                screenHeight = XRSettings.eyeTextureHeight;
+                screenWidth = XRGraphicsConfig.eyeTextureWidth;
+                screenHeight = XRGraphicsConfig.eyeTextureHeight;
 
-                var xrDesc = XRSettings.eyeTextureDesc;
+                var xrDesc = XRGraphicsConfig.eyeTextureDesc;
                 m_ActualWidth = xrDesc.width;
                 m_ActualHeight = xrDesc.height;
 
