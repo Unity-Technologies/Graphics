@@ -388,8 +388,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             m_DebugDisplayStatsItems = new DebugUI.Widget[]
             {
-                new DebugUI.Value { displayName = "Frame Rate", getter = () => 1f / Time.smoothDeltaTime, refreshRate = 1f / 30f },
-                new DebugUI.Value { displayName = "Frame Rate (ms)", getter = () => Time.smoothDeltaTime * 1000f, refreshRate = 1f / 30f }
+                new DebugUI.Value { displayName = "Frame Rate (fps)", getter = () => 1f / Time.smoothDeltaTime, refreshRate = 1f / 30f },
+                new DebugUI.Value { displayName = "Frame Time (ms)", getter = () => Time.smoothDeltaTime * 1000f, refreshRate = 1f / 30f }
             };
 
             var panel = DebugManager.instance.GetPanel(k_PanelDisplayStats, true);

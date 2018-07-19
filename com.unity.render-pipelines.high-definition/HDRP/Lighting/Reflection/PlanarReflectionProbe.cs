@@ -1,11 +1,18 @@
 using UnityEngine.Serialization;
 using UnityEngine.Rendering;
+using System;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [ExecuteInEditMode]
-    public class PlanarReflectionProbe : MonoBehaviour
+    public class PlanarReflectionProbe : MonoBehaviour, ISerializationCallbackReceiver
     {
+        [HideInInspector]
+        const int currentVersion = 1;
+
+        [SerializeField, FormerlySerializedAs("version")]
+        int m_Version;
+
         public enum CapturePositionMode
         {
             Static,
@@ -178,6 +185,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (isActiveAndEnabled)
                 ReflectionSystem.RegisterProbe(this);
+        }
+
+        public void OnBeforeSerialize()
+        {
+        }
+
+        public void OnAfterDeserialize()
+        {
+            if (m_Version != currentVersion)
+            {
+                // Add here data migration code
+                m_Version = currentVersion;
+            }
         }
     }
 }
