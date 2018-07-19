@@ -525,7 +525,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_DecalDatas = new ComputeBuffer(k_MaxDecalsOnScreen, System.Runtime.InteropServices.Marshal.SizeOf(typeof(DecalData)));
 
             GlobalLightLoopSettings gLightLoopSettings = hdAsset.GetRenderPipelineSettings().lightLoopSettings;
-            m_CookieAtlas = new PowerOfTwoTextureAtlas((int)gLightLoopSettings.cookieAtlasSize, gLightLoopSettings.cookieAtlasMaxValidMip, RenderTextureFormat.ARGB32, true, FilterMode.Trilinear);
+            m_CookieAtlas = new PowerOfTwoTextureAtlas((int)gLightLoopSettings.cookieAtlasSize, gLightLoopSettings.cookieAtlasMaxValidMip, RenderTextureFormat.ARGB32, FilterMode.Trilinear);
 
             TextureFormat probeCacheFormat = gLightLoopSettings.reflectionCacheCompressed ? TextureFormat.BC6H : TextureFormat.RGBAHalf;
             m_ReflectionProbeCache = new ReflectionProbeCache(hdAsset, iblFilterGGX, gLightLoopSettings.reflectionProbeCacheSize, (int)gLightLoopSettings.reflectionCubemapSize, probeCacheFormat, true);
@@ -2351,6 +2351,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd)
         {
+            Vector4 cookieAtlasSize = new Vector4(
+                m_CookieAtlas.AtlasTexture.rt.width,
+                m_CookieAtlas.AtlasTexture.rt.height,
+                1.0f / m_CookieAtlas.AtlasTexture.rt.width,
+                1.0f / m_CookieAtlas.AtlasTexture.rt.height
+            );
+
+            float padding = Mathf.Pow(2.0f, m_CookieAtlas.mipPadding) * 2.0f;
+            Vector4 cookieAtlasData = new Vector4(
+                m_CookieAtlas.mipPadding,
+                padding / (float)m_CookieAtlas.AtlasTexture.rt.width,
+                0,
+                0
+            );
+
             using (new ProfilingSample(cmd, "Push Global Parameters", CustomSamplerId.TPPushGlobalParameters.GetSampler()))
             {
                 Camera camera = hdCamera.camera;
@@ -2359,8 +2374,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ShadowMgr.BindResources(cmd, null, 0);
 
                 cmd.SetGlobalTexture(HDShaderIDs._CookieAtlas, m_CookieAtlas.AtlasTexture);
-                cmd.SetGlobalVector(HDShaderIDs._CookieAtlasSize, new Vector2(m_CookieAtlas.AtlasTexture.rt.width, m_CookieAtlas.AtlasTexture.rt.height));
-                cmd.SetGlobalInt(HDShaderIDs._CookieAtlasMaxValidMip, m_CookieAtlas.mipPadding);
+                cmd.SetGlobalVector(HDShaderIDs._CookieAtlasSize, cookieAtlasSize);
+                cmd.SetGlobalVector(HDShaderIDs._CookieAtlasData, cookieAtlasData);
                 cmd.SetGlobalTexture(HDShaderIDs._EnvCubemapTextures, m_ReflectionProbeCache.GetTexCache());
                 cmd.SetGlobalTexture(HDShaderIDs._Env2DTextures, m_ReflectionPlanarProbeCache.GetTexCache());
                 cmd.SetGlobalMatrixArray(HDShaderIDs._Env2DCaptureVP, m_Env2DCaptureVP);

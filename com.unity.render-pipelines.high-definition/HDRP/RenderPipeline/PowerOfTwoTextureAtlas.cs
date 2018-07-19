@@ -10,8 +10,8 @@ namespace UnityEngine.Experimental.Rendering
     {
         public int mipPadding;
 
-        public PowerOfTwoTextureAtlas(int size, int mipPadding, RenderTextureFormat format, bool generateMipMaps = true, FilterMode filterMode = FilterMode.Point)
-            : base(size, size, format, generateMipMaps, filterMode, true)
+        public PowerOfTwoTextureAtlas(int size, int mipPadding, RenderTextureFormat format, FilterMode filterMode = FilterMode.Point)
+            : base(size, size, format, filterMode, true)
         {
             this.mipPadding = mipPadding;
 
@@ -20,16 +20,16 @@ namespace UnityEngine.Experimental.Rendering
                 Debug.Assert(false, "Power of two atlas was constructed with non power of two size: " + size);
         }
 
-        int GetTexturePadding(int mipCount)
+        int GetTexturePadding()
         {
-            return (int)Mathf.Pow(2, Mathf.Min(mipCount, mipPadding)) * 2;
+            return (int)Mathf.Pow(2, mipPadding) * 2;
         }
         
         void BlitCubemap(CommandBuffer cmd, Vector4 scaleBias, Texture texture)
         {
             Vector2 textureSize = GetPowerOfTwoTextureSize(texture);
             int mipCount = GetTextureMipmapCount((int)textureSize.x, (int)textureSize.y);
-            int pixelPadding = GetTexturePadding(mipCount);
+            int pixelPadding = GetTexturePadding();
             bool bilinear = texture.filterMode != FilterMode.Point;
             
             for (int mipLevel = 0; mipLevel < mipCount; mipLevel++)
@@ -42,7 +42,7 @@ namespace UnityEngine.Experimental.Rendering
         void Blit2DTexturePadding(CommandBuffer cmd, Vector4 scaleBias, Texture texture)
         {
             int mipCount = GetTextureMipmapCount(texture.width, texture.height);
-            int pixelPadding = GetTexturePadding(mipCount);
+            int pixelPadding = GetTexturePadding();
             Vector2 textureSize = GetPowerOfTwoTextureSize(texture);
             bool bilinear = texture.filterMode != FilterMode.Point;
 

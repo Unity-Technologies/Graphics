@@ -151,7 +151,7 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
-        public Texture2DAtlas(int width, int height, RenderTextureFormat format, bool generateMipMaps = false, FilterMode filterMode = FilterMode.Point, bool powerOfTwoPadding = false)
+        public Texture2DAtlas(int width, int height, RenderTextureFormat format, FilterMode filterMode = FilterMode.Point, bool powerOfTwoPadding = false)
         {
             m_Width = width;
             m_Height = height;
@@ -167,7 +167,7 @@ namespace UnityEngine.Experimental.Rendering
                     false,
                     false,
                     true,
-                    generateMipMaps,
+                    false,
                     name: "Texture2DAtlas");
 
             m_AtlasAllocator = new AtlasAllocator(width, height, powerOfTwoPadding);

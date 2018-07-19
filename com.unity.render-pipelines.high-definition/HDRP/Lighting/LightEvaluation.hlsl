@@ -28,7 +28,7 @@ float3 EvaluateCookie_Directional(LightLoopContext lightLoopContext, Directional
     float2 positionNDC = positionCS * 0.5 + 0.5;
 
     // We let the sampler handle clamping to border.
-    return SampleCookie2D(lightLoopContext, positionNDC, lightData.cookieScaleBias, lightData.tileCookie, sampleDdx, sampleDdy);
+    return SampleCookie(lightLoopContext, positionNDC, lightData.cookieScaleBias, sampleDdx, sampleDdy);
 }
 
 // None of the outputs are premultiplied.
@@ -141,13 +141,11 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
     float3   positionLS   = mul(lightToSample, transpose(lightToWorld));
 
     float4 cookie;
+    float2 cookieUV;
 
-    UNITY_BRANCH if (lightType == GPULIGHTTYPE_POINT)
+    if (lightType == GPULIGHTTYPE_POINT)
     {
-        float2 sampleDdx = lightLoopContext.positionRWSDdx.xy * lightData.cookieScaleBias.xy;
-        float2 sampleDdy = lightLoopContext.positionRWSDdy.xy * lightData.cookieScaleBias.xy;
-
-        cookie.rgb = SampleCookieCube(lightLoopContext, positionLS, lightData.cookieScaleBias, sampleDdx, sampleDdy);
+        cookieUV = PackNormalOctQuadEncode(positionLS);
         cookie.a   = 1;
     }
     else
@@ -157,22 +155,25 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
         float2 positionCS   = positionLS.xy / perspectiveZ;
         bool   isInBounds   = Max3(abs(positionCS.x), abs(positionCS.y), 1.0 - positionLS.z) <= 1.0;
 
-        // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
-        float2 positionNDC = positionCS * 0.5 + 0.5;
-
-        lightLoopContext.positionRWSDdx    = mul(lightLoopContext.positionRWSDdx, transpose(lightToWorld));
-        lightLoopContext.positionRWSDdy    = mul(lightLoopContext.positionRWSDdy, transpose(lightToWorld));
+        lightLoopContext.positionRWSDdx = mul(lightLoopContext.positionRWSDdx, transpose(lightToWorld));
+        lightLoopContext.positionRWSDdy = mul(lightLoopContext.positionRWSDdy, transpose(lightToWorld));
 
         lightLoopContext.positionRWSDdx.xy /= perspectiveZ;
         lightLoopContext.positionRWSDdy.xy /= perspectiveZ;
     
-        float2 sampleDdx = lightLoopContext.positionRWSDdx.xy * lightData.cookieScaleBias.xy;
-        float2 sampleDdy = lightLoopContext.positionRWSDdy.xy * lightData.cookieScaleBias.xy;
+        cookieUV = positionCS;
 
         // Manually clamp to border (black).
-        cookie.rgb = SampleCookie2D(lightLoopContext, positionNDC, lightData.cookieScaleBias, false, sampleDdx, sampleDdy);
-        cookie.a   = isInBounds ? 1 : 0;
+        cookie.a = isInBounds ? 1 : 0;
     }
+
+    // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
+    cookieUV = cookieUV * 0.5 + 0.5;
+    
+    float2 sampleDdx = lightLoopContext.positionRWSDdx.xy * lightData.cookieScaleBias.xy;
+    float2 sampleDdy = lightLoopContext.positionRWSDdy.xy * lightData.cookieScaleBias.xy;
+
+    cookie.rgb = SampleCookie(lightLoopContext, cookieUV, lightData.cookieScaleBias, sampleDdx, sampleDdy);
 
     return cookie;
 }

@@ -19,34 +19,29 @@ struct LightLoopContext
 // ----------------------------------------------------------------------------
 
 // Adjust UVs using the LOD padding size
-float2 RemapUV(float2 coord, float2 sizeInPixel, int maxLod)
+float2 RemapUV(float2 coord, float2 size)
 {
-    int paddingInPixels = pow(2.0, maxLod) * 2;
-    float2 scale = (sizeInPixel + paddingInPixels) / sizeInPixel;
-    float2 offset = (paddingInPixels / 2.0) / (sizeInPixel + paddingInPixels);
+    float2 scale = rcp(size + _CookieAtlasData.y) * size;
+    float2 offset = 0.5 * (1.0 - scale);
     
-    return coord / scale + offset;
+    return coord * scale + offset;
 }
 
 // Used by directional and spot lights.
-float3 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, float4 scaleBias, bool repeat, float2 sampleDdx, float2 sampleDdy)
+float3 SampleCookie(LightLoopContext lightLoopContext, float2 coord, float4 scaleBias, float2 sampleDdx, float2 sampleDdy)
 {
     float2 offset       = scaleBias.zw;
     float2 scale        = scaleBias.xy;
-    float2 sizeInPixel  = scale * _CookieAtlasSize;
-    float lod           = ComputeTextureLOD(sampleDdx, sampleDdy, sizeInPixel);
-
-    // The maximum LOD we can use in fetch without having to clamp borders for trilinear filtering
-    float maxLod = min(_CookieAtlasMaxValidMip, floor(log2(sizeInPixel).x));
+    float lod           = ComputeTextureLOD(sampleDdx, sampleDdy, scale * _CookieAtlasSize.xy);
 
     // Clamp lod to the maximum level of the texture we are sampling
-    lod = min(maxLod, lod);
+    lod = min(_CookieAtlasData.x, lod);
 
     // Manage cookie in repeat mode
     coord = frac(coord);
 
     // Remap the uv to take in account the padding
-    coord = RemapUV(coord, sizeInPixel, maxLod);
+    coord = RemapUV(coord, scale);
 
     // Apply atlas scale and offset
     float2 atlasCoords = coord * scale + offset;
@@ -83,43 +78,6 @@ float3 SampleCookie2D(LightLoopContext lightLoopContext, float2 coord, float4 sc
 #else
     float3 color = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, atlasCoords, lod).rgb;
 #endif
-    
-    // Mip visualization (0 -> red, 10 -> blue)
-    // color *= saturate(1 - abs(3 * lod / 10 - float4(0, 1, 2, 3))).rgb;
-
-    return color;
-}
-
-// Used by point lights.
-float3 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, float4 scaleBias, float2 sampleDdx, float2 sampleDdy)
-{
-    float2 offset       = scaleBias.zw;
-    float2 scale        = scaleBias.xy;
-    float2 sizeInPixel  = scale * _CookieAtlasSize;
-    float lod           = ComputeTextureLOD(sampleDdx, sampleDdy, sizeInPixel);
-
-    // The maximum LOD we can use in fetch without having to clamp borders for trilinear filtering
-    float maxLod = min(_CookieAtlasMaxValidMip, log2(sizeInPixel).x);
-
-    // Octahedral / LatLong mapping
-#if 1
-    // The latlong coordinates are from -1->1 so we remap it to 0->1
-    float2 atlasCoords = PackNormalOctQuadEncode(coord) * 0.5 + 0.5;
-#else
-    // The latlong coordinates in x are from 0.5->1.5 so we remap it to 0->1
-    float2 atlasCoords = DirectionToLatLongCoordinate(coord) - float2(0.5, 0);
-#endif
-
-    // Clamp lod to the maximum level of the texture we are sampling
-    lod = min(maxLod, lod);
-    
-    // Remap the uv to take in account the padding (atlasCoord must be between 0 and 1)
-    atlasCoords = RemapUV(atlasCoords, sizeInPixel, maxLod);
-
-    // Apply atlas scale and offset
-    atlasCoords = atlasCoords * scale + offset;
-
-    float3 color = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, atlasCoords, lod).rgb;
     
     // Mip visualization (0 -> red, 10 -> blue)
     // color *= saturate(1 - abs(3 * lod / 10 - float4(0, 1, 2, 3))).rgb;

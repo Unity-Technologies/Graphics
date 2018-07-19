@@ -8,8 +8,8 @@
     uint _EnvLightCount;
     uint _EnvProxyCount;
     int  _EnvLightSkyEnabled;         // TODO: make it a bool
-    float2 _CookieAtlasSize;
-    int  _CookieAtlasMaxValidMip;
+    float4 _CookieAtlasSize;
+    float4 _CookieAtlasData;
 
     uint _NumTileFtplX;
     uint _NumTileFtplY;
