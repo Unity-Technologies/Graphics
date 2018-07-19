@@ -285,7 +285,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ActualHeight = camera.pixelHeight;
             var screenWidth = m_ActualWidth;
             var screenHeight = m_ActualHeight;
-#if !UNITY_SWITCH
             if (m_frameSettings.enableStereo)
             {
                 screenWidth = XRGraphicsConfig.eyeTextureWidth;
@@ -297,7 +296,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 ConfigureStereoMatrices();
             }
-#endif
 
             // Unfortunately sometime (like in the HDCameraEditor) HDUtils.hdrpSettings can be null because of scripts that change the current pipeline...
             m_msaaSamples = HDUtils.hdrpSettings != null ? HDUtils.hdrpSettings.msaaSampleCount : MSAASamples.None;
