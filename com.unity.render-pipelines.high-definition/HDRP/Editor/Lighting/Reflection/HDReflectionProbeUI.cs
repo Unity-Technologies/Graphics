@@ -13,7 +13,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         const int k_AnimBoolSingleFieldCount = 4;
         static readonly int k_ReflectionProbeModeCount = Enum.GetValues(typeof(ReflectionProbeMode)).Length;
-        static readonly int k_ReflectionInfluenceShapeCount = Enum.GetValues(typeof(ShapeType)).Length;
+        static readonly int k_ReflectionInfluenceShapeCount = Enum.GetValues(typeof(Shape)).Length;
         static readonly int k_AnimBoolsCount = k_ReflectionProbeModeCount + k_ReflectionInfluenceShapeCount + k_AnimBoolSingleFieldCount;
 
         [Flags]
@@ -109,7 +109,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 GetReflectionProbeModeBool(i).target = i == value;
         }
 
-        public AnimBool IsSectionExpandedShape(ShapeType value)
+        public AnimBool IsSectionExpandedShape(Shape value)
         {
             return m_AnimBools[k_AnimBoolSingleFieldCount + k_ReflectionProbeModeCount + (int)value];
         }
