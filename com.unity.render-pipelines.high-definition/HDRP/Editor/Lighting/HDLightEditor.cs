@@ -185,6 +185,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     if (hdLightData != null)
                         hdLightData.UpdateAreaLightEmissiveMesh();
             };
+            
+            // If the light is disabled in the editor we force the light upgrade from his inspector
+            foreach (var additionalLightData in m_AdditionalLightDatas)
+                additionalLightData.UpgradeLight();
         }
 
         public override void OnInspectorGUI()
@@ -236,10 +240,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (m_UpdateAreaLightEmissiveMeshComponents)
                 UpdateAreaLightEmissiveMeshComponents();
-            
-            // If the light is disabled in the editor we force the light upgrade from his inspector
-            foreach (var additionalLightData in m_AdditionalLightDatas)
-                additionalLightData.UpgradeLight();
         }
 
         void DrawFoldout(SerializedProperty foldoutProperty, string title, Action func)
@@ -366,7 +366,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (EditorGUI.EndChangeCheck())
             {
-                UpdateLightScale();
                 m_UpdateAreaLightEmissiveMeshComponents = true;
                 ((Light)target).SetLightDirty(); // Should be apply only to parameter that's affect GI, but make the code cleaner
             }
@@ -378,27 +377,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_AdditionalLightData.lightUnit.enumValueIndex = (int)DirectionalLightUnit.Lux;
             else
                 m_AdditionalLightData.lightUnit.enumValueIndex = (int)LightUnit.Lumen;
-        }
-
-        // Refect light size changes on transform local scale
-        void UpdateLightScale()
-        {
-            foreach (var hdLightData in m_AdditionalLightDatas)
-            {
-                switch (m_LightShape)
-                {
-                    case LightShape.Line:
-                        hdLightData.transform.localScale = new Vector3(m_AdditionalLightData.shapeWidth.floatValue, 0, 0);
-                        break;
-                    case LightShape.Rectangle:
-                        hdLightData.transform.localScale = new Vector3(m_AdditionalLightData.shapeWidth.floatValue, m_AdditionalLightData.shapeHeight.floatValue, 0);
-                        break;
-                    case LightShape.Point:
-                    case LightShape.Spot:
-                        hdLightData.transform.localScale = Vector3.one * settings.range.floatValue;
-                        break;
-                }
-            }
         }
 
         LightUnit LightIntensityUnitPopup(LightShape shape)

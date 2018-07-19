@@ -4,7 +4,28 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [unreleased]
+
 ## [3.0.1-preview]
+
+### Added
+- Decal now support per channel selection mask. There is now two mode. One with BaseColor, Normal and Smoothness and another one more expensive with BaseColor, Normal, Smoothness, Metal and AO. Control is on HDRP Asset. This may require to launch an update script for old scene: 'Edit/Render Pipeline/Single step upgrade script/Upgrade all DecalMaterial MaskBlendMode'.
+
+### Fixed
+- Fixed an issue with PreIntegratedFGD texture being sometimes destroyed and not regenerated causing rendering to break
+- PostProcess input buffers are not copied anymore on PC if the viewport size matches the final render target size
+- Fixed an issue when manipulating a lot of decals, it was displaying a lot of errors in the inspector
+- Fixed capture material with reflection probe
+- Refactored Constant Buffers to avoid hitting the maximum number of bound CBs in some cases.
+- Fixed the light range affecting the transform scale when changed.
+
+### Changed
+- Movde Render Pipeline Debug "Windows from Windows->General-> Render Pipeline debug windows" to "Windows from Windows->Analysis-> Render Pipeline debug windows"
+
+### Added
+- Added support for RendererPriority on Renderer. This allow to control order of transparent rendering manually. HDRP have now two stage of sorting for transparent in addition to bact to front. Material have a priority then Renderer have a priority.
+- Add Coupling of (HD)Camera and HDAdditionalCameraData for reset and remove in inspector contextual menu of Camera
+- Add macro to forbid unity_ObjectToWorld/unity_WorldToObject to be use as it doesn't handle camera relative rendering
 
 ## [3.0.0-preview]
 

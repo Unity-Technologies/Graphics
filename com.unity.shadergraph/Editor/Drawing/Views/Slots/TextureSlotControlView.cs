@@ -22,7 +22,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Slots
 
         void OnValueChanged(ChangeEvent<Object> evt)
         {
-            var texture = evt.newValue as Texture2D;
+            var texture = evt.newValue as Texture;
             if (texture != m_Slot.texture)
             {
                 m_Slot.owner.owner.owner.RegisterCompleteObjectUndo("Change Texture");
