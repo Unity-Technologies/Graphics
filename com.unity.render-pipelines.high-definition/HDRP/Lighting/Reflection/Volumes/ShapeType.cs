@@ -1,8 +1,8 @@
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    public enum ShapeType
+    public enum Shape
     {
         Box,
-        Sphere
+        Sphere,
     }
 }
