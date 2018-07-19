@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Decal now support per channel selection mask. There is now two mode. One with BaseColor, Normal and Smoothness and another one more expensive with BaseColor, Normal, Smoothness, Metal and AO. Control is on HDRP Asset. This may require to launch an update script for old scene: 'Edit/Render Pipeline/Single step upgrade script/Upgrade all DecalMaterial MaskBlendMode'.
 - Decal now supports depth bias for decal mesh, to prevent z-fighting
+- Decal material now supports draw order for decal projectors 
 
 ### Fixed
 - Fixed an issue with PreIntegratedFGD texture being sometimes destroyed and not regenerated causing rendering to break
