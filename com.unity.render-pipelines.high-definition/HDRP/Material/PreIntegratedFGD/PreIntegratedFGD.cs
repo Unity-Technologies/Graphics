@@ -83,9 +83,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void RenderInit(FGDIndex index, CommandBuffer cmd)
         {
-            // Here we have to test IsCreated because in some circumstances (like loading RenderDoc), the texture is internally destroyed but we don't know from C# side.
-            // In this case IsCreated will return false, allowing us to re-render the texture (setting the texture as current RT during DrawFullScreen will automatically re-create it internally)
-            if (m_isInit[(int)index] && m_PreIntegratedFGD[(int)index].IsCreated())
+            if (m_isInit[(int)index])
                 return;
 
             using (new ProfilingSample(cmd, "PreIntegratedFGD Material Generation"))

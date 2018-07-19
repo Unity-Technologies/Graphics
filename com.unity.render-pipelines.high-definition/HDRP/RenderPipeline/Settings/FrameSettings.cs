@@ -233,9 +233,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             List<DebugUI.Widget> widgets = new List<DebugUI.Widget>();
             widgets.AddRange(
-            new DebugUI.Widget[]
+                new DebugUI.Widget[]
             {
-                new DebugUI.Foldout
+                new DebugUI.Container
                 {
                     displayName = "Rendering Passes",
                     children =
@@ -250,7 +250,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         new DebugUI.BoolField { displayName = "Enable Postprocess", getter = () => frameSettings.enablePostprocess, setter = value => frameSettings.enablePostprocess = value },
                     }
                 },
-                new DebugUI.Foldout
+                new DebugUI.Container
                 {
                     displayName = "Rendering Settings",
                     children =
@@ -263,7 +263,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         new DebugUI.BoolField { displayName = "Enable MSAA", getter = () => frameSettings.enableMSAA, setter = value => frameSettings.enableMSAA = value },
                     }
                 },
-                new DebugUI.Foldout
+                new DebugUI.Container
                 {
                     displayName = "XR Settings",
                     children =
@@ -271,7 +271,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         new DebugUI.BoolField { displayName = "Enable Stereo Rendering", getter = () => frameSettings.enableStereo, setter = value => frameSettings.enableStereo = value }
                     }
                 },
-                new DebugUI.Foldout
+                new DebugUI.Container
                 {
                     displayName = "Lighting Settings",
                     children =

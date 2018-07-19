@@ -208,23 +208,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return;
         }
 
-        // Update decal material after we added AO and metal selection. It was default to 0 and need to default to 4 now.
-        static bool UpdateMaterial_DecalBlendMode(string path, Material mat)
-        {
-            if (mat.shader.name == "HDRenderPipeline/Decal")
-            {
-                float maskBlendMode = mat.GetFloat("_MaskBlendMode");
-
-                if (maskBlendMode == 0.0f)
-                {
-                    mat.SetFloat("_MaskBlendMode", 4.0f);
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         delegate bool UpdateMaterial(string path, Material mat);
         delegate void UpdateMaterialFile(string path);
 
@@ -251,8 +234,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         mat.shader.name == "HDRenderPipeline/LayeredLit" ||
                         mat.shader.name == "HDRenderPipeline/LayeredLitTessellation" ||
                         mat.shader.name == "HDRenderPipeline/StackLit" ||
-                        mat.shader.name == "HDRenderPipeline/Unlit" ||
-                        mat.shader.name == "HDRenderPipeline/Decal"
+                        mat.shader.name == "HDRenderPipeline/Unlit"
                          )
                     {
                         // Need to be processed in order - All function here should be re-entrant (i.e after upgrade it can be recall)
@@ -307,28 +289,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UpdateMaterialToNewerVersion("(EmissiveColor)", UpdateMaterial_EmissiveColor, UpdateMaterialFile_EmissiveColor);
         }
 
-        [MenuItem("Edit/Render Pipeline/Single step upgrade script/Upgrade all DecalMaterial MaskBlendMode", priority = CoreUtils.editMenuPriority3)]
-        static public void UpdateMaterialToNewerVersionDecalMaterialMaskBlendMode()
-        {
-            UpdateMaterialToNewerVersion("(DecalMaterial)", UpdateMaterial_DecalBlendMode);
-        }
-
         [MenuItem("Edit/Render Pipeline/Upgrade all Materials to latest version", priority = CoreUtils.editMenuPriority3)]
         static public void UpdateMaterialToNewerVersion()
         {
             // Add here all the material upgrade function supported in this version
             // Caution: All the functions here MUST be re-entrant (call multiple time) without failing.
 
-            int currentVersion = HDRPVersion.GetCurrentHDRPProjectVersion();
-            if (currentVersion < 1)
+            float currentVersion = HDRPVersion.GetCurrentHDRPProjectVersion();
+            if (currentVersion < 1.0)
             {
                 // Appear in hdrp version 1.0
                 UpdateMaterialToNewerVersion("(EmissiveColor)", UpdateMaterial_EmissiveColor, UpdateMaterialFile_EmissiveColor);
-            }
-            if (currentVersion < 2)
-            {
-                // Appear in hdrp version 2.0
-                UpdateMaterialToNewerVersion("(DecalMaterial)", UpdateMaterial_DecalBlendMode);
             }
         }
     }

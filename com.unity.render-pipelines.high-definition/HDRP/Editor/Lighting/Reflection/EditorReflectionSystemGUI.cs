@@ -57,10 +57,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                                 if (probe != null)
                                 {
                                     EditorReflectionSystem.BakeCustomReflectionProbe(probe, false);
+                                    EditorReflectionSystem.ResetProbeSceneTextureInMaterial(probe);
                                 }
                                 if (planarProbe != null)
                                 {
                                     EditorReflectionSystem.BakeCustomReflectionProbe(planarProbe, false);
+                                    EditorReflectionSystem.ResetProbeSceneTextureInMaterial(planarProbe);
                                 }
                             }
                         },
@@ -69,10 +71,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         if (probe != null)
                         {
                             EditorReflectionSystem.BakeCustomReflectionProbe(probe, true);
+                            EditorReflectionSystem.ResetProbeSceneTextureInMaterial(probe);
                         }
                         if (planarProbe != null)
                         {
                             EditorReflectionSystem.BakeCustomReflectionProbe(planarProbe, true);
+                            EditorReflectionSystem.ResetProbeSceneTextureInMaterial(planarProbe);
                         }
                         GUIUtility.ExitGUI();
                     }
@@ -99,10 +103,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         if (probe != null)
                         {
                             EditorReflectionSystem.BakeReflectionProbeSnapshot(probe);
+                            EditorReflectionSystem.ResetProbeSceneTextureInMaterial(probe);
                         }
                         if (planarProbe != null)
                         {
                             EditorReflectionSystem.BakeReflectionProbeSnapshot(planarProbe);
+                            EditorReflectionSystem.ResetProbeSceneTextureInMaterial(planarProbe);
                         }
                         GUIUtility.ExitGUI();
                     }

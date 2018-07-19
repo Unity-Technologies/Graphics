@@ -32,8 +32,6 @@ ${Graph}
 	{
 	    float2 uv           : TEXCOORD0;
 	    float4 clipPos      : SV_POSITION;
-        // Interpolators defined by graph
-${VertexOutputStruct}
         UNITY_VERTEX_INPUT_INSTANCE_ID
         UNITY_VERTEX_OUTPUT_STEREO
 	};
@@ -58,8 +56,7 @@ ${VertexShaderDescriptionInputs}
 	    VertexDescription vd = PopulateVertexData(vdi);
         v.vertex.xyz = vd.Position;
 
-	    // Vertex shader outputs defined by graph
-${VertexShaderOutputs}
+	    o.uv = uv1;
 	    
 	    float3 positionWS = TransformObjectToWorld(v.vertex.xyz);
         float3 normalWS = TransformObjectToWorldDir(v.normal);
@@ -87,23 +84,6 @@ ${VertexShaderOutputs}
     half4 ShadowPassFragment(VertexOutput IN) : SV_TARGET
     {
         UNITY_SETUP_INSTANCE_ID(IN);
-
-        // Pixel transformations performed by graph
-${PixelShader}
-        SurfaceDescriptionInputs surfaceInput = (SurfaceDescriptionInputs)0;
-
-		// Surface description inputs defined by graph
-${PixelShaderSurfaceInputs}
-        SurfaceDescription surf = PopulateSurfaceData(surfaceInput);
-
-		float Alpha = 1;
-		float AlphaClipThreshold = 0;
-
-		// Surface description remap performed by graph
-${PixelShaderSurfaceRemap}
- #if _AlphaClip
-		clip(Alpha - AlphaClipThreshold);
-#endif
         return 0;
     }
 
@@ -145,8 +125,6 @@ ${Graph}
 	{
 	    float2 uv           : TEXCOORD0;
 	    float4 clipPos      : SV_POSITION;
-        // Interpolators defined by graph
-${VertexOutputStruct}
         UNITY_VERTEX_INPUT_INSTANCE_ID
         UNITY_VERTEX_OUTPUT_STEREO
 	};
@@ -167,8 +145,7 @@ ${VertexShaderDescriptionInputs}
 	    VertexDescription vd = PopulateVertexData(vdi);
         v.vertex.xyz = vd.Position;
 
-	    // Vertex shader outputs defined by graph
-${VertexShaderOutputs}
+	    o.uv = uv1;
 	    o.clipPos = TransformObjectToHClip(v.vertex.xyz);
 	    return o;
     }
@@ -176,23 +153,6 @@ ${VertexShaderOutputs}
     half4 frag(VertexOutput IN) : SV_TARGET
     {
         UNITY_SETUP_INSTANCE_ID(IN);
-
-        // Pixel transformations performed by graph
-${PixelShader}
-        SurfaceDescriptionInputs surfaceInput = (SurfaceDescriptionInputs)0;
-
-		// Surface description inputs defined by graph
-${PixelShaderSurfaceInputs}
-        SurfaceDescription surf = PopulateSurfaceData(surfaceInput);
-
-		float Alpha = 1;
-		float AlphaClipThreshold = 0;
-
-		// Surface description remap performed by graph
-${PixelShaderSurfaceRemap}
- #if _AlphaClip
-		clip(Alpha - AlphaClipThreshold);
-#endif
         return 0;
     }
     ENDHLSL
