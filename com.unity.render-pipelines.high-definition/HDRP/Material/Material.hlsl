@@ -9,7 +9,7 @@
 #include "CoreRP/ShaderLibrary/CommonMaterial.hlsl"
 #include "CoreRP/ShaderLibrary/EntityLighting.hlsl"
 #include "CoreRP/ShaderLibrary/ImageBasedLighting.hlsl"
-#include "../Sky/AtmosphericScattering/AtmosphericScattering.hlsl"
+#include "HDRP/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
 
 // Guidelines for Material Keyword.
 // There is a set of Material Keyword that a HD shaders must define (or not define). We call them system KeyWord.
