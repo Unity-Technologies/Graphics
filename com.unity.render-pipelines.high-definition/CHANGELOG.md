@@ -4,6 +4,14 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- Move Render Pipeline Debug "Windows from Windows->General-> Render Pipeline debug windows" to "Windows from Windows->Analysis-> Render Pipeline debug windows
+
+### Fixed
+- Fixed the light range affecting the transform scale when changed.
+
 ## [2.0.6-preview]
 
 ### Fixed
@@ -12,7 +20,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed an issue when manipulating a lot of decals, it was displaying a lot of errors in the inspector
 - Fixed an issue with PreIntegratedFGD texture being sometimes destroyed and not regenerated causing rendering to break
 - PostProcess input buffers are not copied anymore on PC if the viewport size matches the final render target size
-- Fixed the light range affecting the transform scale when changed.
 
 ## [2.0.5-preview]
 
