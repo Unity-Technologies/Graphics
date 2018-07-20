@@ -217,7 +217,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 if (maskBlendMode == 0.0f)
                 {
-                    mat.SetFloat("_MaskBlendMode", 4.0f);
+                    mat.SetFloat("_MaskBlendMode", (float)Decal.MaskBlendFlags.Smoothness);
                     return true;
                 }
             }

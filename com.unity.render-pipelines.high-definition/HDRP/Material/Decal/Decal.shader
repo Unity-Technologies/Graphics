@@ -14,6 +14,7 @@ Shader "HDRenderPipeline/Decal"
 		[ToggleUI] _MaskmapMetal("_MaskmapMetal", Range(0.0, 1.0)) = 0.0
 		[ToggleUI] _MaskmapAO("_MaskmapAO", Range(0.0, 1.0)) = 0.0
 		[ToggleUI] _MaskmapSmoothness("_MaskmapSmoothness", Range(0.0, 1.0)) = 1.0
+		[HideInInspector] _DecalMeshDepthBias("_DecalMeshDepthBias", Float) = 0.0 
     }
 
     HLSLINCLUDE

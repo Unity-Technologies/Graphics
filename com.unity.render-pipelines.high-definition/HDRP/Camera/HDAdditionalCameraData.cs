@@ -217,7 +217,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Tag as dirty so frameSettings are correctly initialize at next HDRenderPipeline.Render() call
             m_frameSettingsIsDirty = true;
 
-            if(m_Version != currentVersion)
+            if (m_Version != currentVersion)
             {
                 // Add here data migration code
                 m_Version = currentVersion;
