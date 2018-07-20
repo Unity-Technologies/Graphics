@@ -110,7 +110,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static public float[] m_BoundingDistances = new float[1];
 
         private Dictionary<int, DecalSet> m_DecalSets = new Dictionary<int, DecalSet>();
-        private SortedDictionary<int, DecalSet> m_DecalSetsRenderList = new SortedDictionary<int, DecalSet>();
+        private SortedList<int, List<DecalSet>> m_DecalSetsRenderList = new SortedList<int, List<DecalSet>>(); // list of decalset lists sorted by material draw order
 
         // current camera
         private Camera m_Camera;
@@ -625,7 +625,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             foreach (var pair in m_DecalSetsRenderList)
             {
-                pair.Value.RenderIntoDBuffer(cmd);
+                foreach(var decalSet in pair.Value)
+                {
+                    decalSet.RenderIntoDBuffer(cmd);
+                }                
             }
         }
 
@@ -719,7 +722,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 if (pair.Value.CreateDrawData())
                 {
-                    m_DecalSetsRenderList.Add(pair.Value.DrawOrder, pair.Value);
+                    int key = pair.Value.DrawOrder;
+                    List<DecalSet> decalSetList;
+                    if (!m_DecalSetsRenderList.TryGetValue(key, out decalSetList))
+                    {
+                        decalSetList = new List<DecalSet>();
+                        m_DecalSetsRenderList.Add(key, decalSetList);
+                    }
+                    decalSetList.Add(pair.Value);
                 }
             }
         }
