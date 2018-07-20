@@ -1,9 +1,6 @@
-using UnityEditor.AnimatedValues;
-using UnityEngine.Events;
-using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     using _ = CoreEditorUtils;
     using CED = CoreEditorDrawer<ShadowInitParametersUI, SerializedShadowInitParameters>;

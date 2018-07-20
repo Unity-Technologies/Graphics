@@ -6,7 +6,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class HDRenderPipelineAsset : RenderPipelineAsset, ISerializationCallbackReceiver
     {
         [HideInInspector]
-        public float version = 1.0f;
+        const int currentVersion = 1;
+
+        // Currently m_Version is not used and produce a warning, remove these pragmas at the next version incrementation
+#pragma warning disable 414
+        [SerializeField]
+        int m_Version = currentVersion;
+#pragma warning restore 414
 
         HDRenderPipelineAsset()
         {
@@ -169,6 +175,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // When FrameSettings are manipulated we reset them to reflect the change, discarding all the Debug Windows change.
             // Tag as dirty so frameSettings are correctly initialize at next HDRenderPipeline.Render() call
             m_frameSettingsIsDirty = true;
+
+            if (m_Version != currentVersion)
+            {
+                // Add here data migration code
+                m_Version = currentVersion;
+            }
         }
     }
 }

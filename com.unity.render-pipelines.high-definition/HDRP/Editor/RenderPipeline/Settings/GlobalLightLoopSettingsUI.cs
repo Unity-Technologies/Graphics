@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     using _ = CoreEditorUtils;
     using CED = CoreEditorDrawer<GlobalLightLoopSettingsUI, SerializedGlobalLightLoopSettings>;
