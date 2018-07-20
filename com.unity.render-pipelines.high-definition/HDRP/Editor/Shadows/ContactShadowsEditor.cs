@@ -9,20 +9,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [VolumeComponentEditor(typeof(ContactShadows))]
     public class ContactShadowsEditor : VolumeComponentEditor
     {
-        public readonly GUIContent contactShadow = new GUIContent("Contact Shadows");
-        public readonly GUIContent contactShadowLength = new GUIContent("Length", "Length of rays used to gather contact shadows in world units.\nZero will disable the feature.");
-        public readonly GUIContent contactShadowDistanceScaleFactor = new GUIContent("Distance Scale Factor", "Contact Shadows are scaled up with distance. Use this parameter to dampen this effect.");
-        public readonly GUIContent contactShadowMaxDistance = new GUIContent("Max Distance", "Distance from the camera in world units at which contact shadows are faded out to zero.");
-        public readonly GUIContent contactShadowFadeDistance = new GUIContent("Fade Distance", "Distance in world units over which the contact shadows are faded out (see Max Distance).");
-        public readonly GUIContent contactShadowSampleCount = new GUIContent("Sample Count", "Number of samples when ray casting.");
-
-
         SerializedDataParameter m_Enable;
         SerializedDataParameter m_Length;
         SerializedDataParameter m_DistanceScaleFactor;
         SerializedDataParameter m_MaxDistance;
         SerializedDataParameter m_FadeDistance;
         SerializedDataParameter m_SampleCount;
+        SerializedDataParameter m_Opacity;
 
 
         public override void OnEnable()
@@ -35,6 +28,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_MaxDistance = Unpack(o.Find(x => x.maxDistance));
             m_FadeDistance = Unpack(o.Find(x => x.fadeDistance));
             m_SampleCount = Unpack(o.Find(x => x.sampleCount));
+            m_Opacity = Unpack(o.Find(x => x.opacity));
         }
 
         public override void OnInspectorGUI()
@@ -50,6 +44,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     PropertyField(m_MaxDistance, CoreEditorUtils.GetContent("Max Distance|Distance from the camera in world units at which contact shadows are faded out to zero."));
                     PropertyField(m_FadeDistance, CoreEditorUtils.GetContent("Fade Distance|Distance in world units over which the contact shadows fade out (see Max Distance)."));
                     PropertyField(m_SampleCount, CoreEditorUtils.GetContent("Sample Count|Number of samples when ray casting."));
+                    PropertyField(m_Opacity, CoreEditorUtils.GetContent("Opacity|Opacity of the resulting contact shadow."));
                 }
             }
         }

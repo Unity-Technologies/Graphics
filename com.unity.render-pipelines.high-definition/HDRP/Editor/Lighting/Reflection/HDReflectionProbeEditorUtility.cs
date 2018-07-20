@@ -1,13 +1,7 @@
-using System;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
-using UnityEngine.SceneManagement;
-using Object = UnityEngine.Object;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public static class HDReflectionProbeEditorUtility
     {
