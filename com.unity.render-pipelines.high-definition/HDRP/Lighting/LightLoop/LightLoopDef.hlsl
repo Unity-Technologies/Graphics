@@ -46,38 +46,7 @@ float3 SampleCookie(LightLoopContext lightLoopContext, float2 coord, float4 scal
     // Apply atlas scale and offset
     float2 atlasCoords = coord * scale + offset;
 
-#if 0
-    // Anisotripic filtering test
-    float2 p = sqrt(pow(sampleDdx, 2) + pow(sampleDdy, 2));
-    float pMax = max(p.x, p.y);
-    float pMin = min(p.x, p.y);
-
-    uint N = min(ceil(pMax / pMin), 8);
-    float lambda = log2(pMax / N);
-
-    float3 tauAniso = 0;
-    if (p.x > p.y)
-    {
-        for (uint i = 1; i <= N; i++)
-        {
-            float2 anisoCoord = float2(-0.5 + float(i) / (N + 1), 0) * clampBorder.x * 2;
-            tauAniso += SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, atlasCoords + anisoCoord, lambda).rgb;
-        }
-    }
-    else
-    {
-        for (uint i = 1; i <= N; i++)
-        {
-            float2 anisoCoord = float2(0, -0.5 + float(i) / (N + 1)) * clampBorder.y * 2;
-            tauAniso += SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, atlasCoords + anisoCoord, lambda).rgb;
-        }
-    }
-    tauAniso /= N;
-
-    float3 color = tauAniso;
-#else
     float3 color = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, atlasCoords, lod).rgb;
-#endif
     
     // Mip visualization (0 -> red, 10 -> blue)
     // color *= saturate(1 - abs(3 * lod / 10 - float4(0, 1, 2, 3))).rgb;

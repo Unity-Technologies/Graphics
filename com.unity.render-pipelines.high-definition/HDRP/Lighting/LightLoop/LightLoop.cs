@@ -292,10 +292,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ReflectionProbeCache m_ReflectionProbeCache;
         PowerOfTwoTextureAtlas m_CookieAtlas;
         TextureCacheCubemap m_CubeCookieTexArray;
-        bool m_CookieAtlasAllocationFailed;
         // TODO: This is bad design, refactor
-        Dictionary<VisibleLight, int> m_VisibleLightToDirectionalMap = new Dictionary<VisibleLight, int>();
-        Dictionary<VisibleLight, int> m_VisibleLightToPunctualMap = new Dictionary<VisibleLight, int>();
         List<Matrix4x4> m_Env2DCaptureVP = new List<Matrix4x4>();
 
         // For now we don't use shadow cascade borders.
@@ -907,8 +904,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (GetDominantLightWithShadows(additionalShadowData, light))
                 directionalLightData.contactShadowIndex = 0;
 
-            m_VisibleLightToDirectionalMap[light] = m_lightList.directionalLights.Count;
-
             m_lightList.directionalLights.Add(directionalLightData);
 
             return true;
@@ -1103,8 +1098,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             lightData.contactShadowIndex = -1;
-            
-            m_VisibleLightToPunctualMap[light] = m_lightList.lights.Count;
 
             m_lightList.lights.Add(lightData);
 
@@ -1539,9 +1532,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_DominantLightIndex = -1;
                 m_DominantLightValue = 0;
 
-                // Reset properties for cookie atlas updates
-                m_CookieAtlasAllocationFailed = false;
-
                 var stereoEnabled = m_FrameSettings.enableStereo;
 
                 Vector3 camPosWS = camera.transform.position;
@@ -1791,9 +1781,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         }
                     }
 
-                    if (m_CookieAtlasAllocationFailed)
-                        DefragmentCookieAtlas(cmd, cullResults.visibleLights);
-
                     //Activate contact shadows on dominant light
                     if (m_DominantLightIndex != -1)
                     {
@@ -1969,10 +1956,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Vector4 scaleBias = Vector4.zero;
 
             if (!m_CookieAtlas.AddTexture(cmd, ref scaleBias, cookie))
-            {
-                m_CookieAtlasAllocationFailed = true;
                 return Vector4.zero;
-            }
 
             return scaleBias;
         }
@@ -1991,35 +1975,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             return new Vector2(width, height);
-        }
-
-        void DefragmentCookieAtlas(CommandBuffer cmd, List< VisibleLight > visibleLights)
-        {
-            m_CookieAtlas.ResetAllocator();
-
-            // Iterate over visible lights sorted by cookie size
-            foreach (var light in visibleLights.Where(l => l.light.cookie != null).OrderByDescending(l => GetCookieSize(l.light.cookie).magnitude))
-            {
-                if (light.light.cookie == null)
-                    continue ;
-                
-
-                int index;
-                if (m_VisibleLightToPunctualMap.TryGetValue(light, out index))
-                {
-                    var lightData = m_lightList.lights[index];
-                    m_CookieAtlas.AddTexture(cmd, ref lightData.cookieScaleBias, light.light.cookie);
-                    m_lightList.lights[index] = lightData;
-                }
-                else
-                {
-                    index = m_VisibleLightToDirectionalMap[light];
-
-                    var dirLightData = m_lightList.directionalLights[index];
-                    m_CookieAtlas.AddTexture(cmd, ref dirLightData.cookieScaleBias, light.light.cookie);
-                    m_lightList.directionalLights[index] = dirLightData;
-                }
-            }
         }
 
         static float CalculateProbeLogVolume(Bounds bounds)
