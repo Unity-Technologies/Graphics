@@ -49,13 +49,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             sphereBlendDistance = root.Find((InfluenceVolume i) => i.sphereBlendDistance);
             sphereBlendNormalDistance = root.Find((InfluenceVolume i) => i.sphereBlendNormalDistance);
 
-            editorAdvancedModeBlendDistancePositive = root.FindPropertyRelative("editorAdvancedModeBlendDistancePositive");
-            editorAdvancedModeBlendDistanceNegative = root.FindPropertyRelative("editorAdvancedModeBlendDistanceNegative");
-            editorSimplifiedModeBlendDistance = root.FindPropertyRelative("editorSimplifiedModeBlendDistance");
-            editorAdvancedModeBlendNormalDistancePositive = root.FindPropertyRelative("editorAdvancedModeBlendNormalDistancePositive");
-            editorAdvancedModeBlendNormalDistanceNegative = root.FindPropertyRelative("editorAdvancedModeBlendNormalDistanceNegative");
-            editorSimplifiedModeBlendNormalDistance = root.FindPropertyRelative("editorSimplifiedModeBlendNormalDistance");
-            editorAdvancedModeEnabled = root.FindPropertyRelative("editorAdvancedModeEnabled");
+            editorAdvancedModeBlendDistancePositive = root.FindPropertyRelative("m_EditorAdvancedModeBlendDistancePositive");
+            editorAdvancedModeBlendDistanceNegative = root.FindPropertyRelative("m_EditorAdvancedModeBlendDistanceNegative");
+            editorSimplifiedModeBlendDistance = root.FindPropertyRelative("m_EditorSimplifiedModeBlendDistance");
+            editorAdvancedModeBlendNormalDistancePositive = root.FindPropertyRelative("m_EditorAdvancedModeBlendNormalDistancePositive");
+            editorAdvancedModeBlendNormalDistanceNegative = root.FindPropertyRelative("m_EditorAdvancedModeBlendNormalDistanceNegative");
+            editorSimplifiedModeBlendNormalDistance = root.FindPropertyRelative("m_EditorSimplifiedModeBlendNormalDistance");
+            editorAdvancedModeEnabled = root.FindPropertyRelative("m_EditorAdvancedModeEnabled");
             //handle data migration from before editor value were saved
             if(editorAdvancedModeBlendDistancePositive.vector3Value == Vector3.zero
                 && editorAdvancedModeBlendDistanceNegative.vector3Value == Vector3.zero
