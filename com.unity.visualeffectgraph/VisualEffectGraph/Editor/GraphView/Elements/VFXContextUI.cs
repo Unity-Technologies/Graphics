@@ -193,7 +193,7 @@ namespace UnityEditor.VFX.UI
 
             this.mainContainer.clippingOptions = ClippingOptions.NoClipping;
 
-            mainContainer.Q("contents").clippingOptions = ClippingOptions.ClipAndCacheContents;
+            //mainContainer.Q("contents").clippingOptions = ClippingOptions.ClipAndCacheContents;
 
             m_FlowInputConnectorContainer = this.Q("flow-inputs");
 
