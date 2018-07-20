@@ -777,7 +777,7 @@ namespace UnityEditor.VFX.UI
 
             if (panel != null)
             {
-                (panel as BaseVisualElementPanel).ValidateLayout();
+                panel.InternalValidateLayout();
                 controller.graph.UIInfos.uiBounds = GetElementsBounds(rootGroupNodeElements.Values.Concat(groupNodes.Values.Cast<GraphElement>()));
             }
         }
@@ -817,7 +817,7 @@ namespace UnityEditor.VFX.UI
 
                 if (addNew && panel != null)
                 {
-                    (panel as BaseVisualElementPanel).ValidateLayout();
+                    panel.InternalValidateLayout();
                 }
             }
         }
@@ -966,7 +966,7 @@ namespace UnityEditor.VFX.UI
 
         public Vector2 ScreenToViewPosition(Vector2 position)
         {
-            GUIView guiView = elementPanel.ownerObject as GUIView;
+            GUIView guiView = panel.InternalGetGUIView();
             if (guiView == null)
                 return position;
             return position - guiView.screenPosition.position;
@@ -974,7 +974,7 @@ namespace UnityEditor.VFX.UI
 
         public Vector2 ViewToScreenPosition(Vector2 position)
         {
-            GUIView guiView = elementPanel.ownerObject as GUIView;
+            GUIView guiView = panel.InternalGetGUIView();
             if (guiView == null)
                 return position;
             return position + guiView.screenPosition.position;
@@ -982,7 +982,7 @@ namespace UnityEditor.VFX.UI
 
         void OnCreateNode(NodeCreationContext ctx)
         {
-            GUIView guiView = elementPanel.ownerObject as GUIView;
+            GUIView guiView = panel.InternalGetGUIView();
             if (guiView == null)
                 return;
             Vector2 point = ScreenToViewPosition(ctx.screenMousePosition);

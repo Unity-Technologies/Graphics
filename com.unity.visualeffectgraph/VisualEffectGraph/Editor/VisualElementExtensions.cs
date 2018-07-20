@@ -1,10 +1,31 @@
 using UnityEngine;
 using UnityEditor;
 using UnityEngine.Experimental.UIElements;
+using System.Reflection;
 
 
 static class VisualElementExtensions
 {
+    static MethodInfo m_ValidateLayoutMethod;
+    public static void InternalValidateLayout(this IPanel panel)
+    {
+        if(m_ValidateLayoutMethod == null)
+            m_ValidateLayoutMethod = panel.GetType().GetMethod("ValidateLayout", BindingFlags.Instance | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic | BindingFlags.Public);
+
+        m_ValidateLayoutMethod.Invoke(panel, new object[] { });
+    }
+
+    static PropertyInfo m_OwnerPropertyInfo;
+
+    public static GUIView  InternalGetGUIView(this IPanel panel)
+    {
+        if (m_OwnerPropertyInfo == null)
+            m_OwnerPropertyInfo = panel.GetType().GetProperty("ownerObject", BindingFlags.Instance | BindingFlags.FlattenHierarchy | BindingFlags.NonPublic | BindingFlags.Public);
+
+
+        return (GUIView)m_OwnerPropertyInfo.GetValue(panel,new object[] {});
+    }
+
     public static bool HasFocus(this VisualElement visualElement)
     {
         if (visualElement.panel == null) return false;

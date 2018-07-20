@@ -95,14 +95,14 @@ namespace UnityEditor.VFX.UI
         VFXStickyNoteController m_Controller;
         public VFXStickyNote() : base(Vector2.zero)
         {
-            this.RegisterCallback<StickyNodeChangeEvent>(OnUIChange);
+            OnChange += OnUIChange;
         }
 
-        void OnUIChange(StickyNodeChangeEvent e)
+        void OnUIChange(StickyNodeChangeEvent.Change change)
         {
             if (m_Controller == null) return;
 
-            switch (e.change)
+            switch (change)
             {
                 case StickyNodeChangeEvent.Change.title:
                     m_Controller.title = title;
@@ -117,8 +117,6 @@ namespace UnityEditor.VFX.UI
                     m_Controller.textSize = textSize.ToString();
                     break;
             }
-
-            e.StopPropagation();
         }
 
         void IControlledElement.OnControllerEvent(VFXControllerEvent e) {}
