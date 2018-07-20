@@ -49,6 +49,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static HDRPVersion()
         {
+            /*
             // Compare project version with current version - Trigger an upgrade if user ask for it
             if (false) //GetCurrentHDRPProjectVersion() < hdrpVersion) // TODO: Disable for now as it doesn't work correctly
             {
@@ -58,6 +59,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     UpgradeMenuItems.UpdateMaterialToNewerVersion();
                 }
             }
+            */
         }
     }
 

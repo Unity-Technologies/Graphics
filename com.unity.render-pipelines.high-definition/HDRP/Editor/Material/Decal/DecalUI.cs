@@ -17,6 +17,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (BC7/BC5/DXT5(nm))");
             public static GUIContent decalBlendText = new GUIContent("Global Opacity", "Whole decal Opacity");
             public static GUIContent AlbedoModeText = new GUIContent("Affect BaseColor", "Base color + Opacity, Opacity only");
+ 			public static GUIContent MeshDecalDepthBiasText = new GUIContent("Mesh decal depth bias", "prevents z-fighting");
 
             public static GUIContent[] maskMapText =
             {
@@ -76,6 +77,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty maskmapSmoothness = new MaterialProperty();
         protected const string kMaskmapSmoothness = "_MaskmapSmoothness";
 
+        protected MaterialProperty decalMeshDepthBias = new MaterialProperty();
+        protected const string kDecalMeshDepthBias = "_DecalMeshDepthBias";
+
         protected MaterialEditor m_MaterialEditor;
 
         // This is call by the inspector
@@ -94,6 +98,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             maskmapMetal = FindProperty(kMaskmapMetal, props);
             maskmapAO = FindProperty(kMaskmapAO, props);
             maskmapSmoothness = FindProperty(kMaskmapSmoothness, props);
+            decalMeshDepthBias = FindProperty(kDecalMeshDepthBias, props);
             
             // always instanced
             SerializedProperty instancing = m_MaterialEditor.serializedObject.FindProperty("m_EnableInstancingVariants");
@@ -177,12 +182,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUI.indentLevel++;
 
                 m_MaterialEditor.TexturePropertySingleLine((material.GetFloat(kAlbedoMode) == 1.0f) ? Styles.baseColorText : Styles.baseColorText2, baseColorMap, baseColor);
-                if (material.GetTexture(kBaseColorMap))
-                {
-                    EditorGUI.indentLevel++;
-                    m_MaterialEditor.ShaderProperty(albedoMode, Styles.AlbedoModeText);
-                    EditorGUI.indentLevel--;
-                }
+                // Currently always display Albedo contribution as we have an albedo tint that apply
+                EditorGUI.indentLevel++;
+                m_MaterialEditor.ShaderProperty(albedoMode, Styles.AlbedoModeText);
+                EditorGUI.indentLevel--;
 
                 m_MaterialEditor.TexturePropertySingleLine(Styles.normalMapText, normalMap);
                 if (material.GetTexture(kNormalMap))
@@ -220,6 +223,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     EditorGUI.indentLevel--;
                 }
                 m_MaterialEditor.ShaderProperty(decalBlend, Styles.decalBlendText);
+                m_MaterialEditor.ShaderProperty(decalMeshDepthBias, Styles.MeshDecalDepthBiasText);
                 EditorGUI.indentLevel--;
 
                 EditorGUILayout.HelpBox(
