@@ -27,29 +27,6 @@ public class Test_Explorer : MonoBehaviour
     private int m_currentSceneIndex;
     private bool m_previewMode;
 
-#if UNITY_EDITOR
-    [PostProcessScene(666)]
-    public static void OnPostprocessScene()
-    {
-        var listScene = Directory.GetFiles("Assets/VFXTests/GraphicsTests/", "*.unity").Take(31).ToArray();
-
-        var scenes = EditorBuildSettings.scenes.ToList();
-        scenes.AddRange(listScene.Select(o => new EditorBuildSettingsScene(o, true)));
-        EditorBuildSettings.scenes = scenes.GroupBy(o => o.path).Select(o => o.First()).ToArray(); //Need to run twice...
-
-        var scene = SceneManager.GetActiveScene();
-        foreach (var obj in scene.GetRootGameObjects())
-        {
-            var testExplorer = obj.GetComponent<Test_Explorer>();
-            if (testExplorer != null)
-            {
-                testExplorer.m_scenes = listScene;
-            }
-        }
-    }
-
-#endif
-
     void Start()
     {
         m_currentSceneIndex = 0;
