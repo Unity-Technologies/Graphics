@@ -213,7 +213,7 @@ Shader "HDRenderPipeline/LitTessellation"
         _Color("Color", Color) = (1,1,1,1)
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
-        [ToggleUI] _SupportDBuffer("Support DBuffer", Float) = 1.0
+        [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
     }
 
     HLSLINCLUDE
@@ -257,7 +257,7 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma shader_feature _SPECULARCOLORMAP
     #pragma shader_feature _TRANSMITTANCECOLORMAP
 
-    #pragma shader_feature _DISABLE_DBUFFER
+    #pragma shader_feature _DISABLE_DECALS
     #pragma shader_feature _ENABLE_GEOMETRIC_SPECULAR_AA
 
     // Keyword for transparent
@@ -278,7 +278,7 @@ Shader "HDRenderPipeline/LitTessellation"
     #pragma multi_compile _ LOD_FADE_CROSSFADE
 
 	// decal 3RT or 4RT toggle
-	#pragma multi_compile _ _DECALS_4RT
+	#pragma multi_compile _ _DECALS_3RT _DECALS_4RT
 
     //enable GPU instancing support
     #pragma multi_compile_instancing

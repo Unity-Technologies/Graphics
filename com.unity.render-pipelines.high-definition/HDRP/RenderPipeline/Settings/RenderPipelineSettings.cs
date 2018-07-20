@@ -36,7 +36,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool supportDitheringCrossFade = true;
 
         // Engine
-        public bool         supportDBuffer = false;
+        [FormerlySerializedAs("supportDBuffer")]
+        public bool         supportDecals = true;
         public bool         supportMSAA = false;
         public MSAASamples  msaaSampleCount = MSAASamples.None;
         public bool         supportMotionVectors = true;
