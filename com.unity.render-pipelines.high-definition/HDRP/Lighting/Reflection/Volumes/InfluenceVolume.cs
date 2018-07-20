@@ -61,23 +61,56 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /// <summary>Offset of this influence volume to the component handling him.</summary>
         public Vector3 offset { get { return m_Offset; } set { m_Offset = value; } }
 
+        /// <summary>Size of the InfluenceVolume in Box Mode.</summary>
         public Vector3 boxSize { get { return m_BoxSize; } set { m_BoxSize = value; } }
 
+        /// <summary>Offset of sub volume defining fading.</summary>
         public Vector3 boxBlendOffset { get { return (boxBlendDistanceNegative - boxBlendDistancePositive) * 0.5f; } }
+        /// <summary>Size of sub volume defining fading.</summary>
         public Vector3 boxBlendSize { get { return -(boxBlendDistancePositive + boxBlendDistanceNegative); } }
+        /// <summary>
+        /// Position of fade sub volume maxOffset point relative to InfluenceVolume max corner.
+        /// Values between 0 (on InfluenceVolume hull) to half of boxSize corresponding axis.
+        /// </summary>
         public Vector3 boxBlendDistancePositive { get { return m_BoxBlendDistancePositive; } set { m_BoxBlendDistancePositive = value; } }
+        /// <summary>
+        /// Position of fade sub volume minOffset point relative to InfluenceVolume min corner.
+        /// Values between 0 (on InfluenceVolume hull) to half of boxSize corresponding axis.
+        /// </summary>
         public Vector3 boxBlendDistanceNegative { get { return m_BoxBlendDistanceNegative; } set { m_BoxBlendDistanceNegative = value; } }
+
+        /// <summary>Offset of sub volume defining fading relative to normal orientation.</summary>
         public Vector3 boxBlendNormalOffset { get { return (boxBlendNormalDistanceNegative - boxBlendNormalDistancePositive) * 0.5f; } }
+        /// <summary>Size of sub volume defining fading relative to normal orientation.</summary>
         public Vector3 boxBlendNormalSize { get { return -(boxBlendNormalDistancePositive + boxBlendNormalDistanceNegative); } }
+        /// <summary>
+        /// Position of normal fade sub volume maxOffset point relative to InfluenceVolume max corner.
+        /// Values between 0 (on InfluenceVolume hull) to half of boxSize corresponding axis (on origin for this axis).
+        /// </summary>
         public Vector3 boxBlendNormalDistancePositive { get { return m_BoxBlendNormalDistancePositive; } set { m_BoxBlendNormalDistancePositive = value; } }
+        /// <summary>
+        /// Position of normal fade sub volume minOffset point relative to InfluenceVolume min corner.
+        /// Values between 0 (on InfluenceVolume hull) to half of boxSize corresponding axis (on origin for this axis).
+        /// </summary>
         public Vector3 boxBlendNormalDistanceNegative { get { return m_BoxBlendNormalDistanceNegative; } set { m_BoxBlendNormalDistanceNegative = value; } }
 
+        /// <summary>Define fading percent of +X, +Y and +Z locally oriented face. (values from 0 to 1)</summary>
         public Vector3 boxSideFadePositive { get { return m_BoxSideFadePositive; } set { m_BoxSideFadePositive = value; } }
+        /// <summary>Define fading percent of -X, -Y and -Z locally oriented face. (values from 0 to 1)</summary>
         public Vector3 boxSideFadeNegative { get { return m_BoxSideFadeNegative; } set { m_BoxSideFadeNegative = value; } }
 
 
+        /// <summary>Radius of the InfluenceVolume in Sphere Mode.</summary>
         public float sphereRadius { get { return m_SphereRadius; } set { m_SphereRadius = value; } }
+        /// <summary>
+        /// Offset of the fade sub volume from InfluenceVolume hull.
+        /// Value between 0 (on InfluenceVolume hull) and sphereRadius (fade sub volume reduced to a point).
+        /// </summary>
         public float sphereBlendDistance { get { return m_SphereBlendDistance; } set { m_SphereBlendDistance = value; } }
+        /// <summary>
+        /// Offset of the normal fade sub volume from InfluenceVolume hull.
+        /// Value between 0 (on InfluenceVolume hull) and sphereRadius (fade sub volume reduced to a point).
+        /// </summary>
         public float sphereBlendNormalDistance { get { return m_SphereBlendNormalDistance; } set { m_SphereBlendNormalDistance = value; } }
 
         internal BoundingSphere GetBoundingSphereAt(Transform probeTransform)
