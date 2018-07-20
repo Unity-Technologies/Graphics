@@ -6,7 +6,7 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering.PostProcessing;
 using Object = UnityEngine.Object;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     using _ = CoreEditorUtils;
 
