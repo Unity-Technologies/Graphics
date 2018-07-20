@@ -151,7 +151,7 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
             float4x4 worldToDecal = ApplyCameraTranslationToInverseMatrix(decalData.worldToDecal);
 
             float3 positionDS = mul(worldToDecal, float4(positionRWS, 1.0)).xyz;
-            positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.0f, 0.5);  // decal clip space
+            positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.5f, 0.5);  // decal clip space
             if ((all(positionDS.xyz > 0.0f) && all(1.0f - positionDS.xyz > 0.0f)))
             {
                 float2 uvScale = float2(decalData.normalToWorld[3][0], decalData.normalToWorld[3][1]);

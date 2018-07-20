@@ -1,5 +1,3 @@
-using System.Collections;
-using UnityEngine;
 using UnityEditor;
 using UnityEditor.Experimental.Rendering;
 
