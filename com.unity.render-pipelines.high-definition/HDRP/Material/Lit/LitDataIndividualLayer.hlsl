@@ -237,7 +237,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #ifdef _DETAIL_MAP_IDX
     // See comment for baseColorOverlay
     float smoothnessDetailSpeed = saturate(abs(detailSmoothness) * ADD_IDX(_DetailSmoothnessScale));
-	float3 smoothnessOverlay = lerp(surfaceData.perceptualSmoothness, (detailSmoothness < 0.0) ? 0.0 : 1.0, smoothnessDetailSpeed);
+	float smoothnessOverlay = lerp(surfaceData.perceptualSmoothness, (detailSmoothness < 0.0) ? 0.0 : 1.0, smoothnessDetailSpeed);
     // Lerp with details mask
     surfaceData.perceptualSmoothness = lerp(surfaceData.perceptualSmoothness, saturate(smoothnessOverlay), detailMask);
 #endif
