@@ -110,7 +110,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         static public float[] m_BoundingDistances = new float[1];
 
         private Dictionary<int, DecalSet> m_DecalSets = new Dictionary<int, DecalSet>();
-        private SortedDictionary<int, DecalSet> m_DecalSetsRenderList = new SortedDictionary<int, DecalSet>();
 
         // current camera
         private Camera m_Camera;
@@ -368,12 +367,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-            public bool CreateDrawData()
+            public void CreateDrawData()
             {
                 if (m_Material == null)
-                    return false;
+                    return;
                 if (m_NumResults == 0)
-                    return false;
+                    return;
 
                 int instanceCount = 0;
                 int batchCount = 0;
@@ -439,7 +438,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 { 
                     AddToTextureList(ref instance.m_TextureList);
                 }
-                return true;
             }
 
             public void EndCull()
@@ -512,14 +510,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 get
                 {
                     return this.m_DecalsCount;
-                }
-            }
-
-            public int DrawOrder
-            {
-                get
-                {
-                    return this.m_Material.GetInt("_DrawOrder");
                 }
             }
 
@@ -623,7 +613,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_DecalMesh == null)
                 m_DecalMesh = CoreUtils.CreateCubeMesh(kMin, kMax);
 
-            foreach (var pair in m_DecalSetsRenderList)
+            foreach (var pair in m_DecalSets)
             {
                 pair.Value.RenderIntoDBuffer(cmd);
             }
@@ -713,14 +703,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_MaskTextureScaleBias = new TextureScaleBias[newDecalDatasSize];
                 m_BaseColor = new Vector4[newDecalDatasSize];
             }
-
-            m_DecalSetsRenderList.Clear();
             foreach (var pair in m_DecalSets)
             {
-                if (pair.Value.CreateDrawData())
-                {
-                    m_DecalSetsRenderList.Add(pair.Value.DrawOrder, pair.Value);
-                }
+                pair.Value.CreateDrawData();
             }
         }
 
