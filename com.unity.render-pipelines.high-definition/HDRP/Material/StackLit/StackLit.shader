@@ -325,7 +325,7 @@ Shader "HDRenderPipeline/StackLit"
     #pragma shader_feature _STACKLIT_DEBUG
 
 	// decal 3RT or 4RT toggle
-	#pragma multi_compile _ _DECALS_4RT
+	#pragma multi_compile _ _DECALS_3RT _DECALS_4RT
 
     //enable GPU instancing support
     #pragma multi_compile_instancing
