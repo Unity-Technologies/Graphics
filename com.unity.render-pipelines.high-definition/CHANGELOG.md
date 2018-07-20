@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed capture material with reflection probe
 - Refactored Constant Buffers to avoid hitting the maximum number of bound CBs in some cases.
 - Fixed the light range affecting the transform scale when changed.
+- Snap to grid now works for Decal projector resizing.
 
 ### Changed
 - Movde Render Pipeline Debug "Windows from Windows->General-> Render Pipeline debug windows" to "Windows from Windows->Analysis-> Render Pipeline debug windows"
