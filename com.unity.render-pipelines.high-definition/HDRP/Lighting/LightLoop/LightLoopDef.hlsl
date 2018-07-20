@@ -46,20 +46,12 @@ float3 SampleCookie(LightLoopContext lightLoopContext, float2 coord, float4 scal
     // Apply atlas scale and offset
     float2 atlasCoords = coord * scale + offset;
 
-    float3 color = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, sampler_CookieAtlas, atlasCoords, lod).rgb;
+    float3 color = SAMPLE_TEXTURE2D_LOD(_CookieAtlas, s_linear_clamp_sampler, atlasCoords, lod).rgb;
     
     // Mip visualization (0 -> red, 10 -> blue)
     // color *= saturate(1 - abs(3 * lod / 10 - float4(0, 1, 2, 3))).rgb;
 
     return color;
-}
-
-float3 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, int index, float2 sampleDdx, float2 sampleDdy)
-{
-    //TODO: hardcoded value
-    float lod = ComputeTextureLOD(sampleDdx, sampleDdy, 512);
-
-    return SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_CookieCubeArray, s_linear_clamp_sampler, coord, index, lod).rgb;
 }
 
 //-----------------------------------------------------------------------------

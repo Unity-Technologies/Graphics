@@ -141,13 +141,14 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
     float3   positionLS   = mul(lightToSample, transpose(lightToWorld));
 
     float4 cookie;
+    float2 cookieUV;
         
     float2 sampleDdx = lightLoopContext.positionRWSDdx.xy * lightData.cookieScaleBias.xy;
     float2 sampleDdy = lightLoopContext.positionRWSDdy.xy * lightData.cookieScaleBias.xy;
 
     if (lightType == GPULIGHTTYPE_POINT)
     {
-        cookie.rgb = SampleCookieCube(lightLoopContext, positionLS, lightData.cookieIndex, sampleDdx, sampleDdy);
+        cookieUV = PackNormalOctQuadEncode(positionLS);	
         cookie.a   = 1;
     }
     else
@@ -162,17 +163,17 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
 
         lightLoopContext.positionRWSDdx.xy /= perspectiveZ;
         lightLoopContext.positionRWSDdy.xy /= perspectiveZ;
-    
-        float2 cookieUV = positionCS;
 
-        // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
-        cookieUV = cookieUV * 0.5 + 0.5;
-
-        cookie.rgb = SampleCookie(lightLoopContext, cookieUV, lightData.cookieScaleBias, sampleDdx, sampleDdy);
+        cookieUV = positionCS;
 
         // Manually clamp to border (black).
         cookie.a = isInBounds ? 1 : 0;
     }
+
+    // Remap the texture coordinates from [-1, 1]^2 to [0, 1]^2.
+    cookieUV = cookieUV * 0.5 + 0.5;
+
+    cookie.rgb = SampleCookie(lightLoopContext, cookieUV, lightData.cookieScaleBias, sampleDdx, sampleDdy);
 
     return cookie;
 }
@@ -198,7 +199,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
     attenuation *= TransmittanceHomogeneousMedium(_GlobalExtinction, distVol);
 
     // Projector lights always have cookies, so we can perform clipping inside the if().
-    UNITY_BRANCH if (any(lightData.cookieIndex >= 0))
+    UNITY_BRANCH if (any(lightData.cookieScaleBias > 0.0))
     {
         float4 cookie = EvaluateCookie_Punctual(lightLoopContext, lightData, lightToSample);
 
