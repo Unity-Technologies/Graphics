@@ -6,12 +6,7 @@ using UnityEngine.TestTools.Graphics;
 using UnityEngine.SceneManagement;
 using UnityEngine.Events;
 
-#if UNITY_EDITOR
-using UnityEditor;
-using EditorSceneManagement = UnityEditor.SceneManagement;
-#endif
-
-public class HDRP_GraphicTestRunner : IPrebuildSetup
+public class HDRP_GraphicTestRunner
 {
     [UnityTest, Category("HDRP Graphic Tests")]
     [PrebuildSetup("SetupGraphicsTestCases")]
@@ -48,41 +43,6 @@ public class HDRP_GraphicTestRunner : IPrebuildSetup
             yield return null;
 
         ImageAssert.AreEqual(testCase.ReferenceImage, camera, (settings != null)?settings.ImageComparisonSettings:null);
-    }
-
-    public void Setup()
-    {
-#if UNITY_EDITOR
-        // For each scene in the build settings, force build of the lightmaps if it has "DoLightmap" label.
-        // Note that in the PreBuildSetup stage, TestRunner has already created a new scene with its testing monobehaviours
-
-        Scene trScene = EditorSceneManagement.EditorSceneManager.GetSceneAt(0);
-
-        foreach( EditorBuildSettingsScene scene in EditorBuildSettings.scenes)
-        {
-            SceneAsset sceneAsset = AssetDatabase.LoadAssetAtPath<SceneAsset>(scene.path);
-            var labels = new System.Collections.Generic.List<string>(AssetDatabase.GetLabels(sceneAsset));
-            if ( labels.Contains("DoLightmap") )
-            {
-
-                EditorSceneManagement.EditorSceneManager.OpenScene(scene.path, EditorSceneManagement.OpenSceneMode.Additive);
-
-                Scene currentScene = EditorSceneManagement.EditorSceneManager.GetSceneAt(1);
-
-                EditorSceneManagement.EditorSceneManager.SetActiveScene(currentScene);
-                
-                Lightmapping.giWorkflowMode = Lightmapping.GIWorkflowMode.OnDemand;
-
-                Lightmapping.Bake();
- 
-                EditorSceneManagement.EditorSceneManager.SaveScene( currentScene );
-
-                EditorSceneManagement.EditorSceneManager.SetActiveScene(trScene);
-
-                EditorSceneManagement.EditorSceneManager.CloseScene(currentScene, true);
-            }
-        }
-#endif
     }
 
 #if UNITY_EDITOR
