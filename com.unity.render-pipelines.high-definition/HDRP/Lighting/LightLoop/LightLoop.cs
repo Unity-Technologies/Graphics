@@ -291,6 +291,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         PlanarReflectionProbeCache m_ReflectionPlanarProbeCache;
         ReflectionProbeCache m_ReflectionProbeCache;
         PowerOfTwoTextureAtlas m_CookieAtlas;
+        TextureCacheCubemap m_CubeCookieTexArray;
         bool m_CookieAtlasAllocationFailed;
         // TODO: This is bad design, refactor
         Dictionary<VisibleLight, int> m_VisibleLightToDirectionalMap = new Dictionary<VisibleLight, int>();
@@ -526,6 +527,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             GlobalLightLoopSettings gLightLoopSettings = hdAsset.GetRenderPipelineSettings().lightLoopSettings;
             m_CookieAtlas = new PowerOfTwoTextureAtlas((int)gLightLoopSettings.cookieAtlasSize, gLightLoopSettings.cookieAtlasMaxValidMip, RenderTextureFormat.ARGB32, FilterMode.Trilinear);
+            m_CubeCookieTexArray = new TextureCacheCubemap("Cookie");
+            //TODO: hardcoded values
+            m_CubeCookieTexArray.AllocTextureArray(16, 512, TextureFormat.RGBA32, true, m_CubeToPanoMaterial);
+
 
             TextureFormat probeCacheFormat = gLightLoopSettings.reflectionCacheCompressed ? TextureFormat.BC6H : TextureFormat.RGBAHalf;
             m_ReflectionProbeCache = new ReflectionProbeCache(hdAsset, iblFilterGGX, gLightLoopSettings.reflectionProbeCacheSize, (int)gLightLoopSettings.reflectionCubemapSize, probeCacheFormat, true);
@@ -649,6 +654,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_CookieAtlas.Release();
                 m_CookieAtlas = null;
             }
+            if (m_CubeCookieTexArray != null)
+            {
+                m_CubeCookieTexArray.Release();
+                m_CubeCookieTexArray = null;
+            }
+
 
             ReleaseResolutionDependentBuffers();
 
@@ -714,6 +725,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_ReflectionProbeCache.NewFrame();
             m_ReflectionPlanarProbeCache.NewFrame();
+            m_CubeCookieTexArray.NewFrame();
         }
 
         public bool NeedResize()
@@ -1037,7 +1049,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (light.light.cookie != null)
             {
-                lightData.cookieScaleBias = FetchCookieAtlas(cmd, light.light.cookie);
+                switch (light.lightType)
+                {
+                    case LightType.Point:
+                        lightData.cookieIndex = m_CubeCookieTexArray.FetchSlice(cmd, light.light.cookie);
+                        break;
+                    default:
+                        lightData.cookieScaleBias = FetchCookieAtlas(cmd, light.light.cookie);
+                        break;
+                }
             }
             else if (light.lightType == LightType.Spot && additionalLightData.spotLightShape != SpotLightShape.Cone)
             {
@@ -2373,6 +2393,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_ShadowMgr.SyncData();
                 m_ShadowMgr.BindResources(cmd, null, 0);
 
+                cmd.SetGlobalTexture(HDShaderIDs._CookieCubeTextures, m_CubeCookieTexArray.GetTexCache());
                 cmd.SetGlobalTexture(HDShaderIDs._CookieAtlas, m_CookieAtlas.AtlasTexture);
                 cmd.SetGlobalVector(HDShaderIDs._CookieAtlasSize, cookieAtlasSize);
                 cmd.SetGlobalVector(HDShaderIDs._CookieAtlasData, cookieAtlasData);

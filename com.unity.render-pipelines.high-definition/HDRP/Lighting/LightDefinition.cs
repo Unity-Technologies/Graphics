@@ -69,7 +69,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public float angleScale;  // Spot light
         public float angleOffset; // Spot light
-        public Vector4 cookieScaleBias; // -1 if unused
+        public Vector4 cookieScaleBias;
+        public int cookieIndex; // -1 if unused
         public GPULightType lightType;
 
         public Vector3 right;   // If spot: rescaled by cot(outerHalfAngle); if projector: rescaled by (2 / shapeWidth)

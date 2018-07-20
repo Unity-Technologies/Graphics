@@ -57,6 +57,8 @@
     TEXTURE2D(_CookieAtlas);
     SAMPLER(sampler_CookieAtlas);
 
+    TEXTURECUBE_ARRAY_ABSTRACT(_CookieCubeArray);
+
     // Use texture array for reflection (or LatLong 2D array for mobile)
     TEXTURECUBE_ARRAY_ABSTRACT(_EnvCubemapTextures);
     TEXTURE2D_ARRAY(_Env2DTextures);

@@ -85,6 +85,14 @@ float3 SampleCookie(LightLoopContext lightLoopContext, float2 coord, float4 scal
     return color;
 }
 
+float3 SampleCookieCube(LightLoopContext lightLoopContext, float3 coord, int index, float2 sampleDdx, float2 sampleDdy)
+{
+    //TODO: hardcoded value
+    float lod = ComputeTextureLOD(sampleDdx, sampleDdy, 512);
+
+    return SAMPLE_TEXTURECUBE_ARRAY_LOD_ABSTRACT(_CookieCubeArray, s_linear_clamp_sampler, coord, index, lod).rgb;
+}
+
 //-----------------------------------------------------------------------------
 // Reflection probe / Sky sampling function
 // ----------------------------------------------------------------------------

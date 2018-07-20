@@ -114,6 +114,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _NumTiles = Shader.PropertyToID("_NumTiles");
 
         public static readonly int _CookieAtlas = Shader.PropertyToID("_CookieAtlas");
+        public static readonly int _CookieCubeTextures = Shader.PropertyToID("_CookieCubeArray");
         public static readonly int _CookieAtlasSize = Shader.PropertyToID("_CookieAtlasSize");
         public static readonly int _CookieAtlasData = Shader.PropertyToID("_CookieAtlasData");
         public static readonly int _EnvCubemapTextures = Shader.PropertyToID("_EnvCubemapTextures");

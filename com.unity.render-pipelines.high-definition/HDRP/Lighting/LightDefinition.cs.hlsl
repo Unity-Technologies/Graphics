@@ -78,6 +78,7 @@ struct LightData
     float angleScale;
     float angleOffset;
     float4 cookieScaleBias;
+    int cookieIndex;
     int lightType;
     float3 right;
     float3 up;
