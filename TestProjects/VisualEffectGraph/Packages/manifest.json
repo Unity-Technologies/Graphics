@@ -1,17 +1,21 @@
 {
   "dependencies": {
-	"com.unity.modules.ai": "1.0.0",
+    "com.unity.testframework.graphics": "file:../../../com.unity.testframework.graphics",
 	"com.unity.modules.animation": "1.0.0",
     "com.unity.modules.physics": "1.0.0",
     "com.unity.modules.xr": "1.0.0",
     "com.unity.modules.imgui": "1.0.0",
     "com.unity.modules.vr": "1.0.0",
     "com.unity.modules.ui": "1.0.0",
-    
+
     "com.unity.postprocessing": "file:../../../com.unity.postprocessing",
     "com.unity.render-pipelines.core": "file:../../../com.unity.render-pipelines.core",
     "com.unity.render-pipelines.high-definition": "file:../../../com.unity.render-pipelines.high-definition",
     "com.unity.visualeffectgraph": "file:../../../com.unity.visualeffectgraph",
     "com.unity.shadergraph": "file:../../../com.unity.shadergraph"
-  }
+  },
+  "testables": [
+    "com.unity.render-pipelines.visualeffectgraph",
+    "com.unity.testframework.graphics"
+  ]
 }
