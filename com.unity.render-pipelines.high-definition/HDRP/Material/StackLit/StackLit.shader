@@ -3,7 +3,7 @@ Shader "HDRenderPipeline/StackLit"
     Properties
     {
         // Versioning of material to help for upgrading
-        [HideInInspector] _HdrpVersion("_HdrpVersion", Float) = 1
+        [HideInInspector] _HdrpVersion("_HdrpVersion", Float) = 2
 
         // Following set of parameters represent the parameters node inside the MaterialGraph.
         // They are use to fill a SurfaceData. With a MaterialGraph this should not exist.
@@ -325,7 +325,7 @@ Shader "HDRenderPipeline/StackLit"
     #pragma shader_feature _STACKLIT_DEBUG
 
 	// decal 3RT or 4RT toggle
-	#pragma multi_compile _ _DECALS_4RT
+	#pragma multi_compile _ _DECALS_3RT _DECALS_4RT
 
     //enable GPU instancing support
     #pragma multi_compile_instancing

@@ -1,6 +1,3 @@
-#include "CoreRP/ShaderLibrary/Debug.hlsl"
-#include "Decal.cs.hlsl"
-
 #define DBufferType0 float4
 #define DBufferType1 float4
 #define DBufferType2 float4
@@ -51,22 +48,6 @@
 
 #endif
 
-UNITY_INSTANCING_BUFFER_START(Decal)
-    UNITY_DEFINE_INSTANCED_PROP(float4x4, _NormalToWorld)
-UNITY_INSTANCING_BUFFER_END(matrix)
-
-RW_TEXTURE2D(float, _DecalHTile); // DXGI_FORMAT_R8_UINT is not supported by Unity
-TEXTURE2D(_DecalHTileTexture);
-
-uint _DecalCount;
-StructuredBuffer<DecalData> _DecalDatas;
-
-TEXTURE2D_ARRAY(_DecalAtlas);
-SAMPLER(sampler_DecalAtlas);
-
-TEXTURE2D(_DecalAtlas2D);
-SAMPLER(_trilinear_clamp_sampler_DecalAtlas2D);
-
 // Must be in sync with RT declared in HDRenderPipeline.cs ::Rebuild
 void EncodeIntoDBuffer( DecalSurfaceData surfaceData
                         , out DBufferType0 outDBuffer0
@@ -97,7 +78,7 @@ void DecodeFromDBuffer(
 {
     ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
     surfaceData.baseColor = inDBuffer0;
-    surfaceData.normalWS.xyz = inDBuffer1.xyz * 2.0f - 1.0f;
+    surfaceData.normalWS.xyz = inDBuffer1.xyz * 2.0 - 1.0;
     surfaceData.normalWS.w = inDBuffer1.w;
     surfaceData.mask = inDBuffer2;
 #ifdef _DECALS_4RT
