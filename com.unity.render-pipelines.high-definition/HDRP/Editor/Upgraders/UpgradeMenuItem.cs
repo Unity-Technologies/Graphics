@@ -136,6 +136,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         float enableDecal = float.Parse(sub);
                         mat.SetFloat("_SupportDecals", enableDecal);
 
+                        // Decal need to also update keywords _DISABLE_DECALS
+                        HDEditorUtils.ResetMaterialKeywords(mat);
+
                         dirty = true;
                     }
                 }
@@ -143,7 +146,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             return dirty;
         }
-
 
         static void UpdateMaterialFile_Decals_2(string path)
         {
@@ -229,7 +231,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             finally
             {
                 EditorUtility.ClearProgressBar();
-                // No need to save in this case
+                // Save all dirty assets
             }
         }
 
@@ -244,7 +246,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             UpdateMaterialToNewerVersion("(EmissiveColor_1)", 1.0f, UpdateMaterial_EmissiveColor_1, UpdateMaterialFile_EmissiveColor_1);
             UpdateMaterialToNewerVersion("(Decals_2)", 2.0f, UpdateMaterial_Decals_2, UpdateMaterialFile_Decals_2);
 
-            // Caution: Version of latest script and default version in all HDRP shader must match
+            // Caution: Version of latest script and default version in all HDRP shader must match 
         }
     }
 }
