@@ -71,7 +71,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.PropertyField(d.supportShadowMask, _.GetContent("Support Shadow Mask|Enable memory (Extra Gbuffer in deferred) and shader variant for shadow mask."));
             EditorGUILayout.PropertyField(d.supportSSR, _.GetContent("Support SSR|Enable memory use by SSR effect."));
             EditorGUILayout.PropertyField(d.supportSSAO, _.GetContent("Support SSAO|Enable memory use by SSAO effect."));
-            EditorGUILayout.PropertyField(d.supportDBuffer, _.GetContent("Support Decal Buffer|Enable memory and variant of decal buffer."));
+            EditorGUILayout.PropertyField(d.supportDecals, _.GetContent("Support Decals|Enable memory and variant for decals buffer and cluster decals"));
             // TODO: Implement MSAA - Hide for now as it doesn't work
             //EditorGUILayout.PropertyField(d.supportMSAA, _.GetContent("Support Multi Sampling Anti-Aliasing|This feature doesn't work currently."));
             //EditorGUILayout.PropertyField(d.MSAASampleCount, _.GetContent("MSAA Sample Count|Allow to select the level of MSAA."));

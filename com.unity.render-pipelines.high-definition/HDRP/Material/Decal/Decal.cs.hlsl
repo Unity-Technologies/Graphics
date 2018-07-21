@@ -5,15 +5,6 @@
 #ifndef DECAL_CS_HLSL
 #define DECAL_CS_HLSL
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Decal+DecalSurfaceData:  static fields
-//
-#define DEBUGVIEW_DECAL_DECALSURFACEDATA_BASE_COLOR (200)
-#define DEBUGVIEW_DECAL_DECALSURFACEDATA_NORMAL (201)
-#define DEBUGVIEW_DECAL_DECALSURFACEDATA_MASK (202)
-#define DEBUGVIEW_DECAL_DECALSURFACEDATA_AOSBLEND (203)
-#define DEBUGVIEW_DECAL_DECALSURFACEDATA_HTILE_MASK (204)
-
-//
 // UnityEngine.Experimental.Rendering.HDPipeline.Decal+DBufferMaterial:  static fields
 //
 #define DBUFFERMATERIAL_COUNT (4)
@@ -48,64 +39,6 @@ struct DecalData
     float4 baseColor;
     float3 blendParams;
 };
-
-//
-// Accessors for UnityEngine.Experimental.Rendering.HDPipeline.DecalData
-//
-float4x4 GetWorldToDecal(DecalData value)
-{
-    return value.worldToDecal;
-}
-float4x4 GetNormalToWorld(DecalData value)
-{
-    return value.normalToWorld;
-}
-float4 GetDiffuseScaleBias(DecalData value)
-{
-    return value.diffuseScaleBias;
-}
-float4 GetNormalScaleBias(DecalData value)
-{
-    return value.normalScaleBias;
-}
-float4 GetMaskScaleBias(DecalData value)
-{
-    return value.maskScaleBias;
-}
-float4 GetBaseColor(DecalData value)
-{
-    return value.baseColor;
-}
-float3 GetBlendParams(DecalData value)
-{
-    return value.blendParams;
-}
-
-//
-// Debug functions
-//
-void GetGeneratedDecalSurfaceDataDebug(uint paramId, DecalSurfaceData decalsurfacedata, inout float3 result, inout bool needLinearToSRGB)
-{
-    switch (paramId)
-    {
-        case DEBUGVIEW_DECAL_DECALSURFACEDATA_BASE_COLOR:
-            result = decalsurfacedata.baseColor.xyz;
-            needLinearToSRGB = true;
-            break;
-        case DEBUGVIEW_DECAL_DECALSURFACEDATA_NORMAL:
-            result = decalsurfacedata.normalWS.xyz;
-            break;
-        case DEBUGVIEW_DECAL_DECALSURFACEDATA_MASK:
-            result = decalsurfacedata.mask.xyz;
-            break;
-        case DEBUGVIEW_DECAL_DECALSURFACEDATA_AOSBLEND:
-            result = float3(decalsurfacedata.MAOSBlend, 0.0);
-            break;
-        case DEBUGVIEW_DECAL_DECALSURFACEDATA_HTILE_MASK:
-            result = GetIndexColor(decalsurfacedata.HTileMask);
-            break;
-    }
-}
 
 
 #endif
