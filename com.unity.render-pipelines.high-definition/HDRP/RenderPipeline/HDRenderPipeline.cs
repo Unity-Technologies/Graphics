@@ -911,9 +911,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_ReflectionProbeCullResults.Cull();
 
                     m_DbufferManager.enableDBuffer = false;
-                    using (new ProfilingSample(cmd, "DBufferPrepareDrawData", CustomSamplerId.DBufferPrepareDrawData.GetSampler()))
+                    if (hdCamera.frameSettings.enableDecals)
                     {
-                        if (hdCamera.frameSettings.enableDecals)
+                        using (new ProfilingSample(cmd, "DBufferPrepareDrawData", CustomSamplerId.DBufferPrepareDrawData.GetSampler()))
                         {
                             DecalSystem.instance.EndCull();
                             m_DbufferManager.enableDBuffer = true;              // mesh decals are renderers managed by c++ runtime and we have no way to query if any are visible, so set to true
