@@ -8,9 +8,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     [InitializeOnLoad]
     public class HDRPVersion
     {
-        // 1 changed emissive color
-        // 2 add decal mode in decal material
-        static public int hdrpVersion = 2;
+        static public int hdrpVersion = 1;
 
         static public int GetCurrentHDRPProjectVersion()
         {

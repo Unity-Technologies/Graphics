@@ -3,7 +3,7 @@ Shader "HDRenderPipeline/Lit"
     Properties
     {
         // Versioning of material to help for upgrading
-        [HideInInspector] _HdrpVersion("_HdrpVersion", Float) = 1
+        [HideInInspector] _HdrpVersion("_HdrpVersion", Float) = 2
 
         // Following set of parameters represent the parameters node inside the MaterialGraph.
         // They are use to fill a SurfaceData. With a MaterialGraph this should not exist.
@@ -202,7 +202,7 @@ Shader "HDRenderPipeline/Lit"
         _Color("Color", Color) = (1,1,1,1)
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
-        [ToggleUI] _SupportDBuffer("Support DBuffer", Float) = 1.0
+        [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
     }
 
     HLSLINCLUDE
@@ -245,7 +245,7 @@ Shader "HDRenderPipeline/Lit"
     #pragma shader_feature _SPECULARCOLORMAP
     #pragma shader_feature _TRANSMITTANCECOLORMAP
 
-    #pragma shader_feature _DISABLE_DBUFFER
+    #pragma shader_feature _DISABLE_DECALS
     #pragma shader_feature _ENABLE_GEOMETRIC_SPECULAR_AA
 
     // Keyword for transparent
@@ -266,7 +266,7 @@ Shader "HDRenderPipeline/Lit"
     #pragma multi_compile _ LOD_FADE_CROSSFADE
 
 	// decal 3RT or 4RT toggle
-	#pragma multi_compile _ _DECALS_4RT
+	#pragma multi_compile _ _DECALS_3RT _DECALS_4RT
 
     //enable GPU instancing support
     #pragma multi_compile_instancing

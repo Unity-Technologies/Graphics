@@ -218,6 +218,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         if ((maskmapMetal.floatValue == 0.0f) && (maskmapAO.floatValue == 0.0f) && (maskmapSmoothness.floatValue == 0.0f))
                             maskmapSmoothness.floatValue = 1.0f;
 
+                        maskBlendFlags = 0; // Re-init the mask
+
                         if (maskmapMetal.floatValue == 1.0f)
                             maskBlendFlags |= Decal.MaskBlendFlags.Metal;
                         if (maskmapAO.floatValue == 1.0f)
@@ -225,12 +227,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         if (maskmapSmoothness.floatValue == 1.0f)
                             maskBlendFlags |= Decal.MaskBlendFlags.Smoothness;
                     }
+                    else // if perChannelMask is not enabled, force to have smoothness
+                    {
+                        maskBlendFlags = Decal.MaskBlendFlags.Smoothness;
+                    }
                     EditorGUI.indentLevel--;
                 }
 
                 m_MaterialEditor.ShaderProperty(drawOrder, Styles.DrawOrderText);
                 m_MaterialEditor.ShaderProperty(decalMeshDepthBias, Styles.MeshDecalDepthBiasText);
-                m_MaterialEditor.ShaderProperty(decalBlend, Styles.decalBlendText);
+                m_MaterialEditor.ShaderProperty(decalBlend, Styles.decalBlendText);                
 
                 EditorGUI.indentLevel--;
 
