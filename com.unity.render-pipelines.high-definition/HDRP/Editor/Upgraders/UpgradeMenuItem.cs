@@ -43,7 +43,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // if the _hdrpVersion was not written. So older material that haven't been updated can't be detected.
         // so for now we must check for _hdrpVersion in the .txt
         // maybe in a far future we can rely on just mat.GetFloat("_hdrpVersion")
-        static float UpdateMaterial_GetVersion(string path)
+        static float UpdateMaterial_GetVersion(string path, Material mat)
         {
             // Find the missing property in the file and update EmissiveColor
             string[] readText = File.ReadAllLines(path);
@@ -57,6 +57,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     return float.Parse(sub);
                 }
             }
+
+            // When _HdrpVersion don't exist we MUST create it, otherwise next call to
+            // mat.SetFloat("_HdrpVersion", value) will just put the default value instead of the value we pass!
+            // a call to GetFloat("_HdrpVersion") solve this.
+            float useless = mat.GetFloat("_HdrpVersion");
 
             return 0.0f;
         }
@@ -171,7 +176,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
 
                     EditorUtility.DisplayProgressBar(
-                        "Update material to new version...",
+                        "Update material to new version " + caption + "...",
                         string.Format("{0} / {1} materials updated.", i, length),
                         i / (float)(length - 1));
 
@@ -185,7 +190,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                          )
                     {
                         // Get current version
-                        float materialVersion = UpdateMaterial_GetVersion(path);
+                        float materialVersion = UpdateMaterial_GetVersion(path, mat);
 
                         if (materialVersion < scriptVersion)
                         {
@@ -193,6 +198,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                             // Update version number to script number (so next script can upgrade correctly)
                             mat.SetFloat("_HdrpVersion", scriptVersion);
+                            
 
                             // Checkout the file and tag it as dirty
                             CoreEditorUtils.CheckOutFile(VCSEnabled, mat);
@@ -231,7 +237,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             finally
             {
                 EditorUtility.ClearProgressBar();
-                // Save all dirty assets
+                // No need to save in this case
             }
         }
 
@@ -243,6 +249,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Add here all the material upgrade functions
             // Note: This is a slow path as we go through all files for each script + update the version number after each script execution,
             // but it is the safest way to do it currently for incremental upgrade
+            // Caution: When calling SaveAsset, Unity will update the material with latest addition at the same time, so for example
+            // unity can add a supportDecal when executing script for version 1 whereas they only appear in version 2 because it is now part
+            // of the shader. Most of the time this have no consequence, but we never know.
             UpdateMaterialToNewerVersion("(EmissiveColor_1)", 1.0f, UpdateMaterial_EmissiveColor_1, UpdateMaterialFile_EmissiveColor_1);
             UpdateMaterialToNewerVersion("(Decals_2)", 2.0f, UpdateMaterial_Decals_2, UpdateMaterialFile_Decals_2);
 
