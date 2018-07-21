@@ -2,6 +2,9 @@ Shader "HDRenderPipeline/Decal"
 {
     Properties
     {
+        // Versioning of material to help for upgrading
+        [HideInInspector] _HdrpVersion("_HdrpVersion", Float) = 2
+
 		_BaseColor("_BaseColor", Color) = (1,1,1,1)
         _BaseColorMap("BaseColorMap", 2D) = "white" {}
         _NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
