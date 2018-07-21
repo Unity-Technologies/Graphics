@@ -217,6 +217,7 @@ Shader "HDRenderPipeline/Decal"
 			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
 		
 			ColorMask BA 2	// smoothness/smoothness alpha
+            ColorMask 0 3   // Caution: We need to setup the mask to 0 in case perChannelMAsk is enabled as 4 RT are bind
 		
 			HLSLPROGRAM
 
@@ -417,6 +418,7 @@ Shader "HDRenderPipeline/Decal"
 			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
 
 			ColorMask BA 2	// smoothness/smoothness alpha
+            ColorMask 0 3   // Caution: We need to setup the mask to 0 in case perChannelMAsk is enabled as 4 RT are bind
 
 			HLSLPROGRAM
 
