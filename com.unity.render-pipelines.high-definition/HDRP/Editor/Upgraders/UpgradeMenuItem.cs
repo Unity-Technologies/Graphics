@@ -189,6 +189,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         mat.shader.name == "HDRenderPipeline/Decal"
                          )
                     {
+                        // We don't handle embed material as we can't rewrite fbx files
+                        if (Path.GetExtension(path).ToLower() == ".fbx")
+                        {
+                            continue;
+                        }
+
                         // Get current version
                         float materialVersion = UpdateMaterial_GetVersion(path, mat);
 
@@ -244,7 +250,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         [MenuItem("Edit/Render Pipeline/Upgrade all Materials to newer version", priority = CoreUtils.editMenuPriority3)]
         static public void UpdateMaterialToNewerVersion()
         {
-            // TODO: We need to handle material that are embed inside scene!
+            // TODO: We need to handle material that are embed inside scene! + How to handle embed material in fbx?
 
             // Add here all the material upgrade functions
             // Note: This is a slow path as we go through all files for each script + update the version number after each script execution,
