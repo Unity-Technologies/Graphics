@@ -97,7 +97,7 @@ void DecodeFromDBuffer(
 {
     ZERO_INITIALIZE(DecalSurfaceData, surfaceData);
     surfaceData.baseColor = inDBuffer0;
-    surfaceData.normalWS.xyz = inDBuffer1.xyz * 2.0f - 1.0f;
+    surfaceData.normalWS.xyz = inDBuffer1.xyz * 2.0 - 1.0;
     surfaceData.normalWS.w = inDBuffer1.w;
     surfaceData.mask = inDBuffer2;
 #ifdef _DECALS_4RT

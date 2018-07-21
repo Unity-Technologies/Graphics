@@ -910,13 +910,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     m_ReflectionProbeCullResults.Cull();
 
-                    m_DbufferManager.enableDBuffer = false;
+                    m_DbufferManager.enableDecals = false;
                     if (hdCamera.frameSettings.enableDecals)
                     {
                         using (new ProfilingSample(cmd, "DBufferPrepareDrawData", CustomSamplerId.DBufferPrepareDrawData.GetSampler()))
                         {
                             DecalSystem.instance.EndCull();
-                            m_DbufferManager.enableDBuffer = true;              // mesh decals are renderers managed by c++ runtime and we have no way to query if any are visible, so set to true
+                            m_DbufferManager.enableDecals = true;              // mesh decals are renderers managed by c++ runtime and we have no way to query if any are visible, so set to true
                             DecalSystem.instance.UpdateCachedMaterialData();    // textures, alpha or fade distances could've changed
                             DecalSystem.instance.CreateDrawData();              // prepare data is separate from draw
                             DecalSystem.instance.UpdateTextureAtlas(cmd);       // as this is only used for transparent pass, would've been nice not to have to do this if no transparent renderers are visible, needs to happen after CreateDrawData
@@ -1377,9 +1377,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
             // If we enable DBuffer, we need a full depth prepass
-            else if (hdCamera.frameSettings.enableDepthPrepassWithDeferredRendering || m_DbufferManager.enableDBuffer)
+            else if (hdCamera.frameSettings.enableDepthPrepassWithDeferredRendering || m_DbufferManager.enableDecals)
             {
-                using (new ProfilingSample(cmd, m_DbufferManager.enableDBuffer ? "Depth Prepass (deferred) force by DBuffer" : "Depth Prepass (deferred)", CustomSamplerId.DepthPrepass.GetSampler()))
+                using (new ProfilingSample(cmd, m_DbufferManager.enableDecals ? "Depth Prepass (deferred) force by Decals" : "Depth Prepass (deferred)", CustomSamplerId.DepthPrepass.GetSampler()))
                 {
                     cmd.DisableShaderKeyword("WRITE_NORMAL_BUFFER"); // Note: This only disable the output of normal buffer for Lit shader, not the other shader that don't use multicompile
 
