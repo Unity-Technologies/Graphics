@@ -20,7 +20,7 @@
 // - _ENABLE_FOG_ON_TRANSPARENT if fog is enable on transparent surface
 // - _DISABLE_DECALS if the material don't support decals
 
-#define HAVE_DECALS ( (defined(_DECALS_3RT) || defined(_DECALS_4RT)) && !defined(_DISABLE_DECALS) )
+#define HAVE_DECALS ( (defined(DECALS_3RT) || defined(DECALS_4RT)) && !defined(_DISABLE_DECALS) )
 
 //-----------------------------------------------------------------------------
 // ApplyBlendMode function
