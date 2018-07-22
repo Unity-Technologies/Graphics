@@ -435,9 +435,6 @@ Shader "HDRenderPipeline/LayeredLit"
     // enable dithering LOD crossfade
     #pragma multi_compile _ LOD_FADE_CROSSFADE
 
-	// decal 3RT or 4RT toggle
-	#pragma multi_compile _ _DECALS_3RT _DECALS_4RT
-
     //enable GPU instancing support
     #pragma multi_compile_instancing
 
@@ -549,6 +546,7 @@ Shader "HDRenderPipeline/LayeredLit"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
+            #pragma multi_compile _ DECALS_3RT DECALS_4RT
 
         #ifdef _ALPHATEST_ON
             // When we have alpha test, we will force a depth prepass so we always bypass the clip instruction in the GBuffer
@@ -706,6 +704,8 @@ Shader "HDRenderPipeline/LayeredLit"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
+            #pragma multi_compile _ DECALS_3RT DECALS_4RT
+
             // #include "../../Lighting/Forward.hlsl"
             //#pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
             #define LIGHTLOOP_TILE_PASS

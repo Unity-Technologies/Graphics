@@ -29,8 +29,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_TileLighting = new ShaderKeyword("USE_FPTL_LIGHTLIST");
             m_ClusterLighting = new ShaderKeyword("USE_CLUSTERED_LIGHTLIST");
             m_LodFadeCrossFade = new ShaderKeyword("LOD_FADE_CROSSFADE");
-            m_Decals3RT = new ShaderKeyword("_DECALS_3RT");
-            m_Decals4RT = new ShaderKeyword("_DECALS_4RT");
+            m_Decals3RT = new ShaderKeyword("DECALS_3RT");
+            m_Decals4RT = new ShaderKeyword("DECALS_4RT");
         }
 
         public virtual void AddStripperFuncs(Dictionary<string, VariantStrippingFunc> stripperFuncs) {}
