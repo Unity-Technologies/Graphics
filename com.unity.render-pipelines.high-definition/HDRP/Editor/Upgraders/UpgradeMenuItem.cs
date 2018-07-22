@@ -61,7 +61,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // When _HdrpVersion don't exist we MUST create it, otherwise next call to
             // mat.SetFloat("_HdrpVersion", value) will just put the default value instead of the value we pass!
             // a call to GetFloat("_HdrpVersion") solve this.
-            float useless = mat.GetFloat("_HdrpVersion");
+#pragma warning disable 219 // Silent warning
+            float unused = mat.GetFloat("_HdrpVersion");
+#pragma warning restore 219
 
             return 0.0f;
         }
