@@ -63,7 +63,14 @@ namespace UnityEditor.VFX
                 // If from here we still haven't found the type, try a last time with the name only.
                 if( type == null)
                 {
-                    type = Type.GetType(splitted[0]);
+                    AppDomain currentDomain = AppDomain.CurrentDomain;
+                    foreach (Assembly assembly in currentDomain.GetAssemblies())
+                    {
+                        type = assembly.GetType(splitted[0]);
+                        if (type != null)
+                            return type;
+                    }
+                        
                 }
 
                 if (type == null)
