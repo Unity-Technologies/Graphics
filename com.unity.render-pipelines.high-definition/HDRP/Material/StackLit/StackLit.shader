@@ -3,7 +3,7 @@ Shader "HDRenderPipeline/StackLit"
     Properties
     {
         // Versioning of material to help for upgrading
-        [HideInInspector] _HdrpVersion("_HdrpVersion", Float) = 1
+        [HideInInspector] _HdrpVersion("_HdrpVersion", Float) = 2
 
         // Following set of parameters represent the parameters node inside the MaterialGraph.
         // They are use to fill a SurfaceData. With a MaterialGraph this should not exist.
@@ -105,7 +105,7 @@ Shader "HDRenderPipeline/StackLit"
         _NormalMapUV("NormalMapUV", Float) = 0.0
         _NormalMapUVLocal("NormalMapUV Local", Float) = 0.0
         _NormalMapObjSpace("NormalMapObjSpace", Float) = 0.0
-        _NormalScale("Normal Scale", Range(0.0, 2.0)) = 1
+        _NormalScale("Normal Scale", Range(0.0, 8.0)) = 1
 
         [HideInInspector] _AmbientOcclusionMapShow("AmbientOcclusion Map Show", Float) = 0
         _AmbientOcclusion("AmbientOcclusion", Range(0.0, 1.0)) = 1
@@ -192,7 +192,7 @@ Shader "HDRenderPipeline/StackLit"
         _DetailNormalScale("DetailNormal Scale", Range(0.0, 2.0)) = 1
 
         [HideInInspector] _DetailSmoothnessMapShow("DetailSmoothness Map Show", Float) = 0
-        _DetailSmoothnessMap("DetailSmoothness Map", 2D) = "grey" {} // Neutral is 0.5 for detail map
+        _DetailSmoothnessMap("DetailSmoothness Map", 2D) = "lineargrey" {} // Neutral is 0.5 for detail map
         _DetailSmoothnessMapUV("DetailSmoothness Map UV", Float) = 0.0
         _DetailSmoothnessMapUVLocal("DetailSmoothness Map UV Local", Float) = 0.0
         _DetailSmoothnessMapChannel("DetailSmoothness Map Channel", Float) = 0.0
@@ -323,8 +323,10 @@ Shader "HDRenderPipeline/StackLit"
 
 
     #pragma shader_feature _STACKLIT_DEBUG
+
     //enable GPU instancing support
     #pragma multi_compile_instancing
+    #pragma instancing_options renderinglayer
 
     //-------------------------------------------------------------------------------------
     // Define
@@ -523,6 +525,8 @@ Shader "HDRenderPipeline/StackLit"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
+            // Setup DECALS_OFF so the shader stripper can remove variants
+            #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
 
             // #include "../../Lighting/Forward.hlsl" : nothing left in there.
             //#pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS

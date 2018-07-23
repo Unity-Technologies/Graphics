@@ -1,5 +1,3 @@
-using UnityEngine;
-using UnityEditor;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -15,6 +13,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             base.OnEnable();
 
+            // HDRI sky does not have control over sun display.
+            m_CommonUIElementsMask = 0xFFFFFFFF & ~(uint)(SkySettingsUIElement.IncludeSunInBaking);
+
             var o = new PropertyFetcher<HDRISky>(serializedObject);
             m_hdriSky = Unpack(o.Find(x => x.hdriSky));
         }
@@ -24,7 +25,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PropertyField(m_hdriSky);
 
             EditorGUILayout.Space();
-
             base.CommonSkySettingsGUI();
         }
     }
