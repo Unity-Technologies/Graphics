@@ -13,8 +13,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Shape m_Shape = Shape.Box;
         [SerializeField, FormerlySerializedAs("m_BoxBaseOffset")]
         Vector3 m_Offset;
+#pragma warning disable 649 //never assigned
         [SerializeField, Obsolete("Kept only for compatibility. Use m_Offset instead")]
         Vector3 m_SphereBaseOffset;
+#pragma warning restore 649 //never assigned
 
         // Box
         [SerializeField, FormerlySerializedAs("m_BoxBaseSize")]
