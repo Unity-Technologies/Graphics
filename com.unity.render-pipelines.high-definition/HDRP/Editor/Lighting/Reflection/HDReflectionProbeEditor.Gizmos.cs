@@ -1,7 +1,5 @@
-using UnityEditor.Experimental.Rendering.HDPipeline;
 using UnityEditorInternal;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -14,7 +12,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         [DrawGizmo(GizmoType.Active)]
         static void RenderGizmo(ReflectionProbe reflectionProbe, GizmoType gizmoType)
         {
-            HDReflectionProbeEditor e = GetEditorFor(reflectionProbe);
+            var e = GetEditorFor(reflectionProbe);
             if (e == null || !e.sceneViewEditing)
                 return;
 

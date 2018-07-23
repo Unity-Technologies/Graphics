@@ -52,7 +52,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     if (m_Version < 3)
                     {
-                        MigrateToHDProbeChild();
+                        MigrateToUseInfluenceVolume();
                     }
                     m_Version = currentVersion;
                 }
@@ -74,7 +74,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             OnAfterDeserialize();   //continue migrating if needed
         }
 
-        void MigrateToUseInfluanceVolume()
+        void MigrateToUseInfluenceVolume()
         {
 #pragma warning disable CS0618 // Type or member is obsolete
             influenceVolume.shape = influenceShape;

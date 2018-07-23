@@ -70,6 +70,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             so.Update();
             addso.Update();
+            //InfluenceVolume does not have Update. Add it here if it have in the futur.
 
             // Set the legacy blend distance to 0 so the legacy culling system use the probe extent
             legacyBlendDistance.floatValue = 0;
