@@ -6,7 +6,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [RequireComponent(typeof(ReflectionProbe))]
     public class HDAdditionalReflectionData : HDProbe, ISerializationCallbackReceiver
     {
-        const int currentVersion = 3;
+        enum Version
+        {
+            First,
+            Second,
+            HDProbeChild,
+            UseInfluenceVolume,
+            // Add new version here and they will automatically be the Current one
+            Max,
+            Current = Max - 1            
+        }
+
+        const int currentVersion = (int)Version.Current;
         [SerializeField, FormerlySerializedAs("version")]
         int m_Version;
 
@@ -34,6 +45,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #pragma warning restore 649 //never assigned
 
         bool needMigrateToHDProbeChild = false;
+        bool needMigrateToUseInfluenceVolume = false;
 
         public void OnBeforeSerialize()
         {
@@ -43,17 +55,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (m_Version != currentVersion)
             {
-                // Add here data migration code
-                if (m_Version < 2)
+                // Add here data migration code that use other component
+                // Note impossible to access other component at deserialization time
+                if (m_Version < (int)Version.HDProbeChild)
                 {
                     needMigrateToHDProbeChild = true;
                 }
-                else
+                else if (m_Version < (int)Version.UseInfluenceVolume)
                 {
-                    if (m_Version < 3)
-                    {
-                        MigrateToUseInfluenceVolume();
-                    }
+                    needMigrateToUseInfluenceVolume = true;
+                }
+                else
+                { 
+                    // Add here data migration code that do not use other component
                     m_Version = currentVersion;
                 }
             }
@@ -63,13 +77,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (needMigrateToHDProbeChild)
                 MigrateToHDProbeChild();
+            if (needMigrateToUseInfluenceVolume)
+                MigrateToUseInfluenceVolume();
         }
 
         void MigrateToHDProbeChild()
         {
             mode = legacyProbe.mode;
             refreshMode = legacyProbe.refreshMode;
-            m_Version = 2;
+            m_Version = (int)Version.HDProbeChild;
             needMigrateToHDProbeChild = false;
             OnAfterDeserialize();   //continue migrating if needed
         }
@@ -86,6 +102,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             influenceVolume.boxSideFadePositive = boxSideFadePositive;
             influenceVolume.boxSideFadeNegative = boxSideFadeNegative;
 #pragma warning restore CS0618 // Type or member is obsolete
+            m_Version = (int)Version.HDProbeChild;
+            needMigrateToUseInfluenceVolume = false;
+            OnAfterDeserialize();   //continue migrating if needed
 
             //Note: former editor parameters will be recreated as if non existent.
             //User will lose parameters corresponding to non used mode between simplified and advanced
