@@ -292,9 +292,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_NeedUpdateRealtimeEnv = false;
             }
 
-            // For the baking sky, we don't want to take the sun into account because we usually won't include it (this would cause double highlight in the reflection for example).
-            // So we pass null so that's it doesn't affect the hash and the rendering.
-            m_NeedUpdateBakingSky = m_BakingSkyRenderingContext.UpdateEnvironment(m_BakingSky, camera, null, m_UpdateRequired, cmd);
+            m_NeedUpdateBakingSky = m_BakingSkyRenderingContext.UpdateEnvironment(m_BakingSky, camera, sunLight, m_UpdateRequired, cmd);
             SkyUpdateContext currentSky = m_LightingOverrideSky.IsValid() ? m_LightingOverrideSky : m_VisualSky;
             m_NeedUpdateRealtimeEnv = m_SkyRenderingContext.UpdateEnvironment(currentSky, camera, sunLight, m_UpdateRequired, cmd);
 
