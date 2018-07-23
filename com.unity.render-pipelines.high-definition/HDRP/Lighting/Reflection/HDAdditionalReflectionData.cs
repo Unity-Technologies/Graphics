@@ -1,8 +1,7 @@
 using UnityEngine.Serialization;
-using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
 
-namespace UnityEngine.Experimental.Rendering
+namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [RequireComponent(typeof(ReflectionProbe))]
     [ExecuteInEditMode]
