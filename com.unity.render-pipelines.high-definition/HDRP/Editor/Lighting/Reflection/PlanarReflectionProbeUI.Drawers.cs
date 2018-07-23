@@ -77,7 +77,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     CED.Select(
                         (s, d, o) => s.influenceVolume,
                         (s, d, o) => d.influenceVolume,
-                        InfluenceVolumeUI.SectionFoldoutShape
+                        InfluenceVolumeUI.SectionFoldoutShapePlanar
                         ),
                     CED.Action(Drawer_DifferentShapeError),
                     SectionFoldoutCaptureSettings,

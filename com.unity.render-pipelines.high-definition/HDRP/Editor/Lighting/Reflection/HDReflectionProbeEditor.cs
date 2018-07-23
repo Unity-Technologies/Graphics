@@ -42,7 +42,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedHDReflectionProbe m_SerializedHdReflectionProbe;
         SerializedObject m_AdditionalDataSerializedObject;
         HDReflectionProbeUI m_UIState = new HDReflectionProbeUI();
-        InfluenceVolumeUI m_InfluenceVolumeUI = new InfluenceVolumeUI();
 
         int m_PositionHash = 0;
 
@@ -57,9 +56,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_AdditionalDataSerializedObject = new SerializedObject(additionalData);
             m_SerializedHdReflectionProbe = new SerializedHDReflectionProbe(serializedObject, m_AdditionalDataSerializedObject);
             m_UIState.owner = this;
-            m_UIState.Reset(
-                m_SerializedHdReflectionProbe,
-                Repaint);
+            m_UIState.Reset(m_SerializedHdReflectionProbe, Repaint);
 
             foreach (var t in targets)
             {

@@ -25,15 +25,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 // Influence editing
                 case EditMode.SceneViewEditMode.ReflectionProbeBox:
-                    InfluenceVolumeUI.DrawGizmos(e.m_InfluenceVolumeUI, reflectionData.influenceVolume, mat, InfluenceVolumeUI.HandleType.Base, InfluenceVolumeUI.HandleType.All);
+                    InfluenceVolumeUI.DrawGizmos(e.m_UIState.influenceVolume, reflectionData.influenceVolume, mat, InfluenceVolumeUI.HandleType.Base, InfluenceVolumeUI.HandleType.All);
                     break;
                 // Influence fade editing
                 case EditMode.SceneViewEditMode.GridBox:
-                    InfluenceVolumeUI.DrawGizmos(e.m_InfluenceVolumeUI, reflectionData.influenceVolume, mat, InfluenceVolumeUI.HandleType.Influence, InfluenceVolumeUI.HandleType.All);
+                    InfluenceVolumeUI.DrawGizmos(e.m_UIState.influenceVolume, reflectionData.influenceVolume, mat, InfluenceVolumeUI.HandleType.Influence, InfluenceVolumeUI.HandleType.All);
                     break;
                 // Influence normal fade editing
                 case EditMode.SceneViewEditMode.Collider:
-                    InfluenceVolumeUI.DrawGizmos(e.m_InfluenceVolumeUI, reflectionData.influenceVolume, mat, InfluenceVolumeUI.HandleType.InfluenceNormal, InfluenceVolumeUI.HandleType.All);
+                    InfluenceVolumeUI.DrawGizmos(e.m_UIState.influenceVolume, reflectionData.influenceVolume, mat, InfluenceVolumeUI.HandleType.InfluenceNormal, InfluenceVolumeUI.HandleType.All);
+                    break;
+                default:
+                    InfluenceVolumeUI.DrawGizmos(e.m_UIState.influenceVolume, reflectionData.influenceVolume, mat, InfluenceVolumeUI.HandleType.None, InfluenceVolumeUI.HandleType.Base);
                     break;
             }
         }
@@ -51,11 +54,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (!e.sceneViewEditing)
                 return;
 
-            //Gizmos_Influence(reflectionProbe, reflectionData, e, false);
-            //Gizmos_InfluenceFade(reflectionProbe, reflectionData, null, InfluenceType.Standard, false);
-            //Gizmos_InfluenceFade(reflectionProbe, reflectionData, null, InfluenceType.Normal, false);
 
-            //[TODO:] DrawInfluence here
 
             DrawVerticalRay(reflectionProbe.transform);
         }

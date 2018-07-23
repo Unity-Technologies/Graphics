@@ -18,7 +18,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 SectionPrimarySettings,
                 SectionProxyVolumeSettings,
-                SectionInfluenceVolumeSettings,
+                CED.Select(
+                        (s, d, o) => s.influenceVolume,
+                        (s, d, o) => d.influenceVolume,
+                        InfluenceVolumeUI.SectionFoldoutShape
+                        ),
                 SectionInfluenceProxyMismatch,
                 SectionCaptureSettings,
                 SectionAdditionalSettings,
@@ -468,6 +472,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             GUILayout.EndHorizontal();
         }
 
+        static public void Drawer_ToolBarButton(int buttonIndex, Editor owner, params GUILayoutOption[] styles)
+        {
+            if (GUILayout.Button(toolbar_Contents[buttonIndex], styles))
+            {
+                EditMode.ChangeEditMode(k_Toolbar_SceneViewEditModes[buttonIndex], GetBoundsGetter(owner)(), owner);
+            }
+        }
+
         static Func<Bounds> GetBoundsGetter(SerializedHDReflectionProbe p)
         {
             return () =>
@@ -477,6 +489,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     {
                         var rp = (ReflectionProbe)targetObject;
                         var b = rp.bounds;
+                        bounds.Encapsulate(b);
+                    }
+                    return bounds;
+                };
+        }
+
+        static Func<Bounds> GetBoundsGetter(Editor o)
+        {
+            return () =>
+                {
+                    var bounds = new Bounds();
+                    foreach (Component targetObject in o.targets)
+                    {
+                        var rp = targetObject.transform;
+                        var b = rp.position;
                         bounds.Encapsulate(b);
                     }
                     return bounds;
