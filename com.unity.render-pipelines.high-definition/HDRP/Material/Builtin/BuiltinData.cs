@@ -48,6 +48,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Distortion Blur")]
             public float distortionBlur;           // Define the color buffer mipmap level to use
 
+            [SurfaceDataAttributes("RenderingLayers")]
+            public uint renderingLayers;
+
             // Depth
             [SurfaceDataAttributes("Depth Offset")]
             public float depthOffset; // define the depth in unity unit to add in Z forward direction
@@ -57,7 +60,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // LightTransportData
         // This struct is use to store information for Enlighten/Progressive light mapper. both at runtime or off line.
         //-----------------------------------------------------------------------------
-        [GenerateHLSL(PackingRules.Exact, false, true, 150)]
+        [GenerateHLSL(PackingRules.Exact, false)]
         public struct LightTransportData
         {
             [SurfaceDataAttributes("", false, true)]
@@ -65,12 +68,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector3 emissiveColor; // HDR value
         };
 
+        public static RenderTextureFormat GetLightingBufferFormat()
+        {
+            return RenderTextureFormat.RGB111110Float;
+        }
+
+        public static bool GetLightingBufferSRGBFlag()
+        {
+            return false;
+        }
+
         public static RenderTextureFormat GetShadowMaskBufferFormat()
         {
             return RenderTextureFormat.ARGB32;
         }
 
-        public static bool GetShadowMaskSRGBFlag()
+        public static bool GetShadowMaskBufferSRGBFlag()
         {
             return false;
         }

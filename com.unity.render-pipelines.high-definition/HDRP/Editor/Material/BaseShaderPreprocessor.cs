@@ -22,6 +22,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected ShaderKeyword m_DecalsOFF;
         protected ShaderKeyword m_Decals3RT;
         protected ShaderKeyword m_Decals4RT;
+        protected ShaderKeyword m_LightLayers;
 
         public BaseShaderPreprocessor()
         {
@@ -33,6 +34,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_DecalsOFF = new ShaderKeyword("DECALS_OFF");
             m_Decals3RT = new ShaderKeyword("DECALS_3RT");
             m_Decals4RT = new ShaderKeyword("DECALS_4RT");
+            m_LightLayers = new ShaderKeyword("LIGHT_LAYERS");
         }
 
         public virtual void AddStripperFuncs(Dictionary<string, VariantStrippingFunc> stripperFuncs) {}
@@ -105,6 +107,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     return true;
             }
 
+
+            if (inputData.shaderKeywordSet.IsEnabled(m_LightLayers) && !hdrpAsset.renderPipelineSettings.supportLightLayers)
+                return true;
 
             return false;
         }

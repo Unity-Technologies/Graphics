@@ -14,12 +14,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Setup by users
         public bool enableShadow = true;
         public bool enableContactShadows = true;
+        public bool enableShadowMask = true;
         public bool enableSSR = true; // Depends on DepthPyramid
         public bool enableSSAO = true;
         public bool enableSubsurfaceScattering = true;
         public bool enableTransmission = true;  // Caution: this is only for debug, it doesn't save the cost of Transmission execution
         public bool enableAtmosphericScattering = true;
         public bool enableVolumetrics = true;
+        public bool enableLightLayers = true;
 
         // Setup by system
         public float diffuseGlobalDimmer = 1.0f;
@@ -48,20 +50,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableMSAA = false;
         public MSAASamples msaaSampleCount { get; private set; }
 
-        public bool enableShadowMask = true;
-
         public LightLoopSettings lightLoopSettings = new LightLoopSettings();
 
         public void CopyTo(FrameSettings frameSettings)
         {
             frameSettings.enableShadow = this.enableShadow;
             frameSettings.enableContactShadows = this.enableContactShadows;
+            frameSettings.enableShadowMask = this.enableShadowMask;
             frameSettings.enableSSR = this.enableSSR;
             frameSettings.enableSSAO = this.enableSSAO;
             frameSettings.enableSubsurfaceScattering = this.enableSubsurfaceScattering;
             frameSettings.enableTransmission = this.enableTransmission;
             frameSettings.enableAtmosphericScattering = this.enableAtmosphericScattering;
             frameSettings.enableVolumetrics = this.enableVolumetrics;
+            frameSettings.enableLightLayers = this.enableLightLayers;
 
             frameSettings.diffuseGlobalDimmer = this.diffuseGlobalDimmer;
             frameSettings.specularGlobalDimmer = this.specularGlobalDimmer;
@@ -87,8 +89,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             frameSettings.enableMSAA = this.enableMSAA;
 
-            frameSettings.enableShadowMask = this.enableShadowMask;
-
             this.lightLoopSettings.CopyTo(frameSettings.lightLoopSettings);
         }
 
@@ -113,6 +113,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             aggregate.enableShadow = srcFrameSettings.enableShadow;
             aggregate.enableContactShadows = srcFrameSettings.enableContactShadows;
+            aggregate.enableShadowMask = srcFrameSettings.enableShadowMask && renderPipelineSettings.supportShadowMask;            
             aggregate.enableSSR = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableSSR && renderPipelineSettings.supportSSR;
             aggregate.enableSSAO = srcFrameSettings.enableSSAO && renderPipelineSettings.supportSSAO;
             aggregate.enableSubsurfaceScattering = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableSubsurfaceScattering && renderPipelineSettings.supportSubsurfaceScattering;
@@ -127,6 +128,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // TODO: Add support of volumetric in planar reflection
             if (camera.cameraType == CameraType.Reflection)
                 aggregate.enableVolumetrics = false;
+
+            aggregate.enableLightLayers = srcFrameSettings.enableLightLayers && renderPipelineSettings.supportLightLayers;
 
             // We have to fall back to forward-only rendering when scene view is using wireframe rendering mode
             // as rendering everything in wireframe + deferred do not play well together
@@ -157,8 +160,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             aggregate.enableMSAA = srcFrameSettings.enableMSAA && renderPipelineSettings.supportMSAA;
 
-            aggregate.enableShadowMask = srcFrameSettings.enableShadowMask && renderPipelineSettings.supportShadowMask;
-
             aggregate.ConfigureMSAADependentSettings();
             aggregate.ConfigureStereoDependentSettings();
 
@@ -167,10 +168,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 aggregate.enableShadow = false;
                 aggregate.enableContactShadows = false;
+                aggregate.enableShadowMask = false;
                 aggregate.enableSSR = false;
                 aggregate.enableSSAO = false;
                 aggregate.enableAtmosphericScattering = false;
                 aggregate.enableVolumetrics = false;
+                aggregate.enableLightLayers = false;
                 aggregate.enableTransparentPrepass = false;
                 aggregate.enableMotionVectors = false;
                 aggregate.enableObjectMotionVectors = false;
@@ -178,8 +181,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 aggregate.enableTransparentPostpass = false;
                 aggregate.enableDistortion = false;
                 aggregate.enablePostprocess = false;
-                aggregate.enableStereo = false;
-                aggregate.enableShadowMask = false;
+                aggregate.enableStereo = false;                
             }
 
             LightLoopSettings.InitializeLightLoopSettings(camera, aggregate, renderPipelineSettings, srcFrameSettings, ref aggregate.lightLoopSettings);
@@ -286,7 +288,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         new DebugUI.BoolField { displayName = "Enable Contact Shadows", getter = () => frameSettings.enableContactShadows, setter = value => frameSettings.enableContactShadows = value },
                         new DebugUI.BoolField { displayName = "Enable ShadowMask", getter = () => frameSettings.enableShadowMask, setter = value => frameSettings.enableShadowMask = value },
                         new DebugUI.BoolField { displayName = "Enable Atmospheric Scattering", getter = () => frameSettings.enableAtmosphericScattering, setter = value => frameSettings.enableAtmosphericScattering = value },
-                        new DebugUI.BoolField { displayName = "Enable volumetrics", getter = () => frameSettings.enableVolumetrics, setter = value => frameSettings.enableVolumetrics = value },
+                        new DebugUI.BoolField { displayName = "Enable Volumetrics", getter = () => frameSettings.enableVolumetrics, setter = value => frameSettings.enableVolumetrics = value },
+                        new DebugUI.BoolField { displayName = "Enable LightLayers", getter = () => frameSettings.enableLightLayers, setter = value => frameSettings.enableLightLayers = value },
                     }
                 }
             });
