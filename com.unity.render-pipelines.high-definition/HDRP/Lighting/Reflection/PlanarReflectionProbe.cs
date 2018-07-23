@@ -6,7 +6,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [ExecuteInEditMode]
     public class PlanarReflectionProbe : HDProbe, ISerializationCallbackReceiver
     {
-        [HideInInspector]
         const int currentVersion = 2;
 
         [SerializeField, FormerlySerializedAs("version")]
