@@ -1,6 +1,6 @@
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     class SerializedRenderPipelineSettings
     {
@@ -9,7 +9,7 @@ namespace UnityEditor.Experimental.Rendering
         public SerializedProperty supportShadowMask;
         public SerializedProperty supportSSR;
         public SerializedProperty supportSSAO;
-        public SerializedProperty supportDBuffer;
+        public SerializedProperty supportDecals;
         public SerializedProperty supportMSAA;
         public SerializedProperty MSAASampleCount;
         public SerializedProperty supportSubsurfaceScattering;
@@ -35,7 +35,7 @@ namespace UnityEditor.Experimental.Rendering
             supportShadowMask               = root.Find((RenderPipelineSettings s) => s.supportShadowMask);
             supportSSR                      = root.Find((RenderPipelineSettings s) => s.supportSSR);
             supportSSAO                     = root.Find((RenderPipelineSettings s) => s.supportSSAO);
-            supportDBuffer                  = root.Find((RenderPipelineSettings s) => s.supportDBuffer);
+            supportDecals                   = root.Find((RenderPipelineSettings s) => s.supportDecals);
             supportMSAA                     = root.Find((RenderPipelineSettings s) => s.supportMSAA);
             MSAASampleCount                 = root.Find((RenderPipelineSettings s) => s.msaaSampleCount);
             supportSubsurfaceScattering     = root.Find((RenderPipelineSettings s) => s.supportSubsurfaceScattering);

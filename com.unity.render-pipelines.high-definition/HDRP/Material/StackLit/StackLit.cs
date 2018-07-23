@@ -169,34 +169,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Init precomputed textures
         //-----------------------------------------------------------------------------
 
-        bool m_isInit;
-
         public StackLit() {}
 
         public override void Build(HDRenderPipelineAsset hdAsset)
         {
             PreIntegratedFGD.instance.Build(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
             //LTCAreaLight.instance.Build();
-
-            m_isInit = false;
         }
 
         public override void Cleanup()
         {
             PreIntegratedFGD.instance.Cleanup(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
             //LTCAreaLight.instance.Cleanup();
-
-            m_isInit = false;
         }
 
         public override void RenderInit(CommandBuffer cmd)
         {
-            if (m_isInit)
-                return;
-
             PreIntegratedFGD.instance.RenderInit(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse, cmd);
-
-            m_isInit = true;
         }
 
         public override void Bind()

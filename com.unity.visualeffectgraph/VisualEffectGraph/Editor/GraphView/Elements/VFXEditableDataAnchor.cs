@@ -198,9 +198,18 @@ namespace UnityEditor.VFX.UI
             }
         }
 
+        public Rect internalRect
+        {
+            get
+            {
+                Rect layout = this.layout;
+                return new Rect(0.0f, 0.0f, layout.width, layout.height);
+            }
+        }
+
         public override bool ContainsPoint(Vector2 localPoint)
         {
-            return rect.Contains(localPoint);
+            return internalRect.Contains(localPoint);
         }
     }
 }

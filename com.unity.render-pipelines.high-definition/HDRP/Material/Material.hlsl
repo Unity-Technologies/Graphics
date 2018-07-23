@@ -9,7 +9,7 @@
 #include "CoreRP/ShaderLibrary/CommonMaterial.hlsl"
 #include "CoreRP/ShaderLibrary/EntityLighting.hlsl"
 #include "CoreRP/ShaderLibrary/ImageBasedLighting.hlsl"
-#include "../Sky/AtmosphericScattering/AtmosphericScattering.hlsl"
+#include "HDRP/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
 
 // Guidelines for Material Keyword.
 // There is a set of Material Keyword that a HD shaders must define (or not define). We call them system KeyWord.
@@ -18,6 +18,9 @@
 // - _BLENDMODE_ALPHA, _BLENDMODE_ADD, _BLENDMODE_PRE_MULTIPLY for blend mode
 // - _BLENDMODE_PRESERVE_SPECULAR_LIGHTING for correct lighting when blend mode are use with a Lit material
 // - _ENABLE_FOG_ON_TRANSPARENT if fog is enable on transparent surface
+// - _DISABLE_DECALS if the material don't support decals
+
+#define HAVE_DECALS ( (defined(DECALS_3RT) || defined(DECALS_4RT)) && !defined(_DISABLE_DECALS) )
 
 //-----------------------------------------------------------------------------
 // ApplyBlendMode function

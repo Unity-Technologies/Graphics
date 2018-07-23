@@ -476,7 +476,7 @@ namespace UnityEditor.VFX.Test
                                         case VFXValueType.Int32: return property.intValue;
                                         case VFXValueType.Uint32: return property.intValue; // there isn't uintValue
                                         case VFXValueType.Curve: return property.animationCurveValue;
-                                        case VFXValueType.ColorGradient: return null;//property.gradientValue;
+                                        case VFXValueType.ColorGradient: return property.gradientValue;
                                         case VFXValueType.Mesh: return property.objectReferenceValue;
                                         case VFXValueType.Texture2D:
                                         case VFXValueType.Texture2DArray:
@@ -529,7 +529,7 @@ namespace UnityEditor.VFX.Test
                                         case VFXValueType.Int32: propertyValue.intValue = (int)value; break;
                                         case VFXValueType.Uint32: propertyValue.intValue = (int)((uint)value); break; // there isn't uintValue
                                         case VFXValueType.Curve: propertyValue.animationCurveValue = (AnimationCurve)value; break;
-                                        case VFXValueType.ColorGradient: /*propertyValue.gradientValue = (Gradient)value; */break;
+                                        case VFXValueType.ColorGradient: propertyValue.gradientValue = (Gradient)value; break;
                                         case VFXValueType.Mesh: propertyValue.objectReferenceValue = (UnityEngine.Object)value; break;
                                         case VFXValueType.Texture2D:
                                         case VFXValueType.Texture2DArray:

@@ -10,7 +10,24 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     public partial class LightweightPipeline : RenderPipeline
     {
+        private static class PerFrameBuffer
+        {
+            public static int _GlossyEnvironmentColor;
+            public static int _SubtractiveShadowColor;
+        }
+
         public LightweightPipelineAsset pipelineAsset { get; private set; }
+
+        private IRendererSetup defaultRendererSetup
+        {
+            get
+            {
+                if (m_DefaultRendererSetup == null)
+                    m_DefaultRendererSetup = new DefaultRendererSetup();
+
+                return m_DefaultRendererSetup;
+            }
+        }
 
         CameraComparer m_CameraComparer = new CameraComparer();
 
@@ -19,6 +36,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         List<int> m_LocalLightIndices = new List<int>();
 
         bool m_IsCameraRendering;
+        private IRendererSetup m_DefaultRendererSetup;
 
         public LightweightPipeline(LightweightPipelineAsset asset)
         {
@@ -30,7 +48,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             PerFrameBuffer._GlossyEnvironmentColor = Shader.PropertyToID("_GlossyEnvironmentColor");
             PerFrameBuffer._SubtractiveShadowColor = Shader.PropertyToID("_SubtractiveShadowColor");
 
-            PerCameraBuffer._ScaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
+            SetupLightweightConstanstPass.PerCameraBuffer._ScaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
             m_Renderer = new LightweightForwardRenderer(asset);
 
             // Let engine know we have MSAA on for cases where we support MSAA backbuffer
@@ -115,7 +133,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                         InitializeRenderingData(ref cameraData, visibleLights,
                             m_Renderer.maxSupportedLocalLightsPerPass, m_Renderer.maxSupportedVertexLights,
                             out renderingData);
-                        m_Renderer.Setup(ref context, ref m_CullResults, ref renderingData);
+
+                        var setup = cameraData.camera.GetComponent<IRendererSetup>();
+                        if (setup == null)
+                            setup = defaultRendererSetup;
+
+                        setup.Setup(m_Renderer, ref context, ref m_CullResults, ref renderingData);
                         m_Renderer.Execute(ref context, ref m_CullResults, ref renderingData);
                     }
 #if UNITY_EDITOR
@@ -169,7 +192,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cameraData.isSceneViewCamera = camera.cameraType == CameraType.SceneView;
             cameraData.isOffscreenRender = camera.targetTexture != null && !cameraData.isSceneViewCamera;
             cameraData.isStereoEnabled = IsStereoEnabled(camera);
-            
+
             // TODO: There's currently an issue in engine side that breaks MSAA with texture2DArray.
             // for now we force msaa disabled when using texture2DArray. This fixes VR multiple and single pass instanced modes.
             if (cameraData.isStereoEnabled && XRGraphicsConfig.eyeTextureDesc.dimension == TextureDimension.Tex2DArray)
@@ -342,7 +365,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             float cameraWidth = (float)cameraData.camera.pixelWidth * cameraData.renderScale;
             float cameraHeight = (float)cameraData.camera.pixelHeight * cameraData.renderScale;
-            Shader.SetGlobalVector(PerCameraBuffer._ScaledScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
+            Shader.SetGlobalVector(SetupLightweightConstanstPass.PerCameraBuffer._ScaledScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
         }
     }
 }

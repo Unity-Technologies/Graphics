@@ -129,12 +129,12 @@ namespace UnityEditor.VFX.UI
         {
             if (evt.target == this && controller != null && controller.model is VFXInlineOperator)
             {
-                evt.menu.AppendAction("Convert to Parameter", OnConvertToParameter, e => ContextualMenu.MenuAction.StatusFlags.Normal);
+                evt.menu.AppendAction("Convert to Parameter", OnConvertToParameter, e => DropdownMenu.MenuAction.StatusFlags.Normal);
                 evt.menu.AppendSeparator();
             }
         }
 
-        void OnConvertToParameter(ContextualMenu.MenuAction evt)
+        void OnConvertToParameter(DropdownMenu.MenuAction evt)
         {
             controller.ConvertToParameter();
         }

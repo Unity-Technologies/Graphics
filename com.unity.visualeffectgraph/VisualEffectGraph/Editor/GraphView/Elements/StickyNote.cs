@@ -187,7 +187,7 @@ namespace UnityEditor.VFX.UI
     }
 
 
-    class StickyNodeChangeEvent : EventBase<StickyNodeChangeEvent>, IPropagatableEvent
+    class StickyNodeChangeEvent : EventBase<StickyNodeChangeEvent>
     {
         public static StickyNodeChangeEvent GetPooled(StickyNote target, Change change)
         {
@@ -278,7 +278,7 @@ namespace UnityEditor.VFX.UI
                 );
         }
 
-        void OnFitToText(ContextualMenu.MenuAction a)
+        void OnFitToText(DropdownMenu.MenuAction a)
         {
             FitText(false);
         }
@@ -287,12 +287,12 @@ namespace UnityEditor.VFX.UI
         {
             Vector2 preferredTitleSize = Vector2.zero;
             if (!string.IsNullOrEmpty(m_Title.text))
-                preferredTitleSize = m_Title.DoMeasure(0, MeasureMode.Undefined, 0, MeasureMode.Undefined); // This is the size of the string with the current title font and such
+                preferredTitleSize = m_Title.MeasureTextSize(m_Title.text,0, MeasureMode.Undefined, 0, MeasureMode.Undefined); // This is the size of the string with the current title font and such
 
             preferredTitleSize += AllExtraSpace(m_Title);
             preferredTitleSize.x += m_Title.ChangeCoordinatesTo(this, Vector2.zero).x + style.width - m_Title.ChangeCoordinatesTo(this, new Vector2(m_Title.layout.width, 0)).x;
 
-            Vector2 preferredContentsSizeOneLine = m_Contents.DoMeasure(0, MeasureMode.Undefined, 0, MeasureMode.Undefined);
+            Vector2 preferredContentsSizeOneLine = m_Contents.MeasureTextSize(m_Contents.text,0, MeasureMode.Undefined, 0, MeasureMode.Undefined);
 
             Vector2 contentExtraSpace = AllExtraSpace(m_Contents);
             preferredContentsSizeOneLine += contentExtraSpace;
@@ -315,7 +315,7 @@ namespace UnityEditor.VFX.UI
             {
                 width = Mathf.Max(preferredTitleSize.x + extraSpace.x, style.width);
                 float contextWidth = width - extraSpace.x - contentExtraSpace.x;
-                Vector2 preferredContentsSize = m_Contents.DoMeasure(contextWidth, MeasureMode.Exactly, 0, MeasureMode.Undefined);
+                Vector2 preferredContentsSize = m_Contents.MeasureTextSize(m_Contents.text,contextWidth, MeasureMode.Exactly, 0, MeasureMode.Undefined);
 
                 preferredContentsSize += contentExtraSpace;
 
@@ -419,20 +419,20 @@ namespace UnityEditor.VFX.UI
             {
                 /*foreach (Theme value in System.Enum.GetValues(typeof(Theme)))
                 {
-                    evt.menu.AppendAction("Theme/" + value.ToString(), OnChangeTheme, e => ContextualMenu.MenuAction.StatusFlags.Normal, value);
+                    evt.menu.AppendAction("Theme/" + value.ToString(), OnChangeTheme, e => DropdownMenu.MenuAction.StatusFlags.Normal, value);
                 }*/
                 if (theme == Theme.Black)
-                    evt.menu.AppendAction("Light Theme", OnChangeTheme, e => ContextualMenu.MenuAction.StatusFlags.Normal, Theme.Classic);
+                    evt.menu.AppendAction("Light Theme", OnChangeTheme, e => DropdownMenu.MenuAction.StatusFlags.Normal, Theme.Classic);
                 else
-                    evt.menu.AppendAction("Dark Theme", OnChangeTheme, e => ContextualMenu.MenuAction.StatusFlags.Normal, Theme.Black);
+                    evt.menu.AppendAction("Dark Theme", OnChangeTheme, e => DropdownMenu.MenuAction.StatusFlags.Normal, Theme.Black);
 
                 foreach (TextSize value in System.Enum.GetValues(typeof(TextSize)))
                 {
-                    evt.menu.AppendAction(value.ToString() + " Text Size", OnChangeSize, e => ContextualMenu.MenuAction.StatusFlags.Normal, value);
+                    evt.menu.AppendAction(value.ToString() + " Text Size", OnChangeSize, e => DropdownMenu.MenuAction.StatusFlags.Normal, value);
                 }
                 evt.menu.AppendSeparator();
 
-                evt.menu.AppendAction("Fit To Text", OnFitToText, e => ContextualMenu.MenuAction.StatusFlags.Normal);
+                evt.menu.AppendAction("Fit To Text", OnFitToText, e => DropdownMenu.MenuAction.StatusFlags.Normal);
                 evt.menu.AppendSeparator();
             }
         }
@@ -490,17 +490,17 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void OnChangeTheme(ContextualMenu.MenuAction action)
+        void OnChangeTheme(DropdownMenu.MenuAction action)
         {
             theme = (Theme)action.userData;
             NotifyChange(StickyNodeChangeEvent.Change.theme);
         }
 
-        void OnChangeSize(ContextualMenu.MenuAction action)
+        void OnChangeSize(DropdownMenu.MenuAction action)
         {
             textSize = (TextSize)action.userData;
             NotifyChange(StickyNodeChangeEvent.Change.textSize);
-            elementPanel.ValidateLayout();
+            panel.InternalValidateLayout();
 
             FitText(true);
         }
@@ -575,12 +575,13 @@ namespace UnityEditor.VFX.UI
 
         void NotifyChange(StickyNodeChangeEvent.Change change)
         {
-            using (StickyNodeChangeEvent evt = StickyNodeChangeEvent.GetPooled(this, change))
+            if( OnChange != null)
             {
-                // TODO Temp, fix that
-                //panel.dispatcher.DispatchEvent(evt, panel);
+                OnChange(change);
             }
         }
+
+        public System.Action<StickyNodeChangeEvent.Change> OnChange;
 
         void OnContentsMouseDown(MouseDownEvent e)
         {
