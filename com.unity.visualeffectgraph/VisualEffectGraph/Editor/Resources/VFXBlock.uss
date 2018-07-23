@@ -43,9 +43,7 @@ VFXContextUI VFXBlockUI.VFXContextSlotContainerUI.node #node-border #title.disab
 
 VFXBlockUI.VFXContextSlotContainerUI.node #title Toggle
 {
-    width:14;
-    height:14;
-    margin-right:0;
+    //margin-right:0;
 }
 VFXBlockUI.VFXContextSlotContainerUI.node #title #collapse-button
 {

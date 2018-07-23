@@ -296,6 +296,17 @@ namespace UnityEditor.VFX.UI
         {
             SelfChange();
         }
+        public void UpdateCollapse()
+        {
+            if (superCollapsed)
+            {
+                AddToClassList("superCollapsed");
+            }
+            else
+            {
+                RemoveFromClassList("superCollapsed");
+            }
+        }
 
         protected virtual void SelfChange()
         {
@@ -312,16 +323,13 @@ namespace UnityEditor.VFX.UI
                 style.positionTop = controller.position.y;
             }
 
-            if (controller.superCollapsed)
-            {
-                AddToClassList("superCollapsed");
-            }
-            else
-            {
-                RemoveFromClassList("superCollapsed");
-            }
-
             base.expanded = controller.expanded;
+            /*
+            if (m_CollapseButton != null)
+            {
+                m_CollapseButton.SetEnabled(false);
+                m_CollapseButton.SetEnabled(true);
+            }*/
 
             SyncSettings();
             SyncAnchors();
@@ -330,6 +338,9 @@ namespace UnityEditor.VFX.UI
             RefreshLayout();
             Profiler.EndSample();
             Profiler.EndSample();
+
+
+            UpdateCollapse();
         }
 
         public override bool expanded
@@ -431,6 +442,11 @@ namespace UnityEditor.VFX.UI
 
         public virtual void RefreshLayout()
         {
+        }
+
+        public virtual bool superCollapsed
+        {
+            get { return controller.model.superCollapsed; }
         }
     }
 }
