@@ -39,7 +39,8 @@ Shader "HDRenderPipeline/Decal"
 	#pragma shader_feature _MASK_BLEND_SRC_B
 
     #pragma multi_compile_instancing
-	#pragma multi_compile _ _DECALS_4RT
+    // No need to teset for DECALS_3RT we are in decal shader, so there is no OFF state
+	#pragma multi_compile _ DECALS_4RT
     //-------------------------------------------------------------------------------------
     // Define
     //-------------------------------------------------------------------------------------
