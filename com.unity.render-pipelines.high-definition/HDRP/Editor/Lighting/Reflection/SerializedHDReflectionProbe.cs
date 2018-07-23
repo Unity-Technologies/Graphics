@@ -64,7 +64,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             weight = addso.Find((HDAdditionalReflectionData d) => d.weight);
             multiplier = addso.Find((HDAdditionalReflectionData d) => d.multiplier);
-
         }
 
         public void Update()

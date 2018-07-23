@@ -4,11 +4,9 @@ using UnityEngine.Rendering;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [RequireComponent(typeof(ReflectionProbe))]
-    [ExecuteInEditMode]
     public class HDAdditionalReflectionData : HDProbe, ISerializationCallbackReceiver
     {
         const int currentVersion = 3;
-
         [SerializeField, FormerlySerializedAs("version")]
         int m_Version;
 
@@ -52,7 +50,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     if (m_Version < 3)
                     {
-                        MigrateToUseInfluanceVolume();
+                        MigrateToHDProbeChild();
                     }
                     m_Version = currentVersion;
                 }
@@ -62,9 +60,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void OnEnable()
         {
             if (needMigrateToHDProbeChild)
-                MigrateToUseInfluanceVolume();
+                MigrateToHDProbeChild();
             influenceVolume.OnSizeChanged += UpdateLegacySize;
         }
+        
         void OnDisable()
         {
             influenceVolume.OnSizeChanged -= UpdateLegacySize;
