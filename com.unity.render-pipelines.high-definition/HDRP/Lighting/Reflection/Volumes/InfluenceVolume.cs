@@ -7,7 +7,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [Serializable]
     public class InfluenceVolume
     {
-        internal event Action<Vector3, Vector3> OnSizeChanged;
+        HDProbe probe;
 
         [SerializeField, FormerlySerializedAs("m_ShapeType")]
         Shape m_Shape = Shape.Box;
@@ -58,7 +58,23 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         float m_SphereBlendNormalDistance;
 
         /// <summary>Shape of this InfluenceVolume.</summary>
-        public Shape shape { get { return m_Shape; } set { m_Shape = value; } }
+        public Shape shape
+        {
+            get { return m_Shape; }
+            set
+            {
+                m_Shape = value;
+                switch (m_Shape)
+                {
+                    case Shape.Box:
+                        probe.UpdatedInfluenceVolumeShape(m_BoxSize, offset);
+                        break;
+                    case Shape.Sphere:
+                        probe.UpdatedInfluenceVolumeShape(Vector3.one * (2 * m_SphereRadius), offset);
+                        break;
+                }
+            }
+        }
 
         /// <summary>Offset of this influence volume to the component handling him.</summary>
         public Vector3 offset { get { return m_Offset; } set { m_Offset = value; } }
@@ -70,10 +86,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             set
             {
                 m_BoxSize = value;
-                if (OnSizeChanged != null)
-                {
-                    OnSizeChanged.Invoke(m_BoxSize, offset);
-                }
+                probe.UpdatedInfluenceVolumeShape(m_BoxSize, offset);
             }
         }
 
@@ -120,10 +133,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             set
             {
                 m_SphereRadius = value;
-                if (OnSizeChanged != null)
-                {
-                    OnSizeChanged.Invoke(Vector3.one * m_SphereRadius, offset);
-                }
+                probe.UpdatedInfluenceVolumeShape(Vector3.one * (2 * m_SphereRadius), offset);
             }
         }
         /// <summary>
@@ -136,6 +146,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /// Value between 0 (on InfluenceVolume hull) and sphereRadius (fade sub volume reduced to a point).
         /// </summary>
         public float sphereBlendNormalDistance { get { return m_SphereBlendNormalDistance; } set { m_SphereBlendNormalDistance = value; } }
+
+        internal InfluenceVolume(HDProbe probe)
+        {
+            Init(probe);
+        }
+
+        internal void Init(HDProbe probe)
+        {
+            this.probe = probe;
+        }
 
         internal BoundingSphere GetBoundingSphereAt(Transform probeTransform)
         {

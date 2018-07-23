@@ -61,18 +61,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (needMigrateToHDProbeChild)
                 MigrateToHDProbeChild();
-            influenceVolume.OnSizeChanged += UpdateLegacySize;
-        }
-        
-        void OnDisable()
-        {
-            influenceVolume.OnSizeChanged -= UpdateLegacySize;
-        }
-
-        void UpdateLegacySize(Vector3 newSize, Vector3 newCenter)
-        {
-            legacyProbe.size = newSize;
-            legacyProbe.center = newCenter;
         }
 
         void MigrateToHDProbeChild()
@@ -116,6 +104,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 base.refreshMode = value;
                 legacyProbe.refreshMode = value; //ensure compatibility till we capture without the legacy component
             }
+        }
+
+        internal override void UpdatedInfluenceVolumeShape(Vector3 size, Vector3 offset)
+        {
+            legacyProbe.size = size;
+            legacyProbe.center = offset;
         }
     }
 }
