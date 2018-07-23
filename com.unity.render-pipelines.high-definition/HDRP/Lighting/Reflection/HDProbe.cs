@@ -1,16 +1,16 @@
-using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    public abstract class HDProbe : MonoBehaviour
+    [ExecuteInEditMode]
+    public abstract class HDProbe : MonoBehaviour, ISerializationCallbackReceiver
     {
         [SerializeField, FormerlySerializedAs("proxyVolumeComponent"), FormerlySerializedAs("m_ProxyVolumeReference")]
         ReflectionProxyVolumeComponent m_ProxyVolume = null;
 
         [SerializeField]
-        InfluenceVolume m_InfluenceVolume = new InfluenceVolume();
+        InfluenceVolume m_InfluenceVolume;
 
         [SerializeField, FormerlySerializedAsAttribute("dimmer"), FormerlySerializedAsAttribute("m_Dimmer"), FormerlySerializedAsAttribute("multiplier")]
         float m_Multiplier = 1.0f;
@@ -27,7 +27,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ReflectionProxyVolumeComponent proxyVolume { get { return m_ProxyVolume; } }
 
         /// <summary>InfluenceVolume of the probe.</summary>
-        public InfluenceVolume influenceVolume { get { return m_InfluenceVolume; } }
+        public InfluenceVolume influenceVolume { get { return m_InfluenceVolume; } private set { m_InfluenceVolume = value; } }
 
         /// <summary>Multiplier factor of reflection (non PBR parameter).</summary>
         public float multiplier { get { return m_Multiplier; } }
@@ -48,5 +48,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get { return m_RefreshMode; }
             set { m_RefreshMode = value; }
         }
+        
+        void Awake()
+        {
+            influenceVolume = new InfluenceVolume(this);
+        }
+
+        void ISerializationCallbackReceiver.OnBeforeSerialize()
+        {
+        }
+
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        {
+            influenceVolume.Init(this);
+        }
+
+        internal virtual void UpdatedInfluenceVolumeShape(Vector3 size, Vector3 offset) { }
     }
 }
