@@ -56,7 +56,7 @@ namespace UnityEditor.VFX
                 if (type == null) // resolve runtime type if editor assembly didnt work
                 {
                     splitted[1] = splitted[1].Replace(".Editor", ".Runtime");
-                    name = name.Replace("Assembly-CSharp", "Unity.VisualEffectGraph.Runtime");
+                    name = string.Join(",", splitted);
                     type = Type.GetType(name);
                 }
 
