@@ -667,13 +667,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             if (m_Asset.renderPipelineSettings.supportDecals)
             {
-                CoreUtils.SetKeyword(cmd, "_DECALS_3RT", !m_Asset.GetRenderPipelineSettings().decalSettings.perChannelMask);
-                CoreUtils.SetKeyword(cmd, "_DECALS_4RT", m_Asset.GetRenderPipelineSettings().decalSettings.perChannelMask);
+                CoreUtils.SetKeyword(cmd, "DECALS_OFF", false);
+                CoreUtils.SetKeyword(cmd, "DECALS_3RT", !m_Asset.GetRenderPipelineSettings().decalSettings.perChannelMask);
+                CoreUtils.SetKeyword(cmd, "DECALS_4RT", m_Asset.GetRenderPipelineSettings().decalSettings.perChannelMask);
             }
             else
             {
-                CoreUtils.SetKeyword(cmd, "_DECALS_3RT", false);
-                CoreUtils.SetKeyword(cmd, "_DECALS_4RT", false);
+                CoreUtils.SetKeyword(cmd, "DECALS_OFF", true);
+                CoreUtils.SetKeyword(cmd, "DECALS_3RT", false);
+                CoreUtils.SetKeyword(cmd, "DECALS_4RT", false);
             }
         }
 

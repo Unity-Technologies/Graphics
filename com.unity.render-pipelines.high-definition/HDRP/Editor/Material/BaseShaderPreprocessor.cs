@@ -19,6 +19,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected ShaderKeyword m_TileLighting;
         protected ShaderKeyword m_ClusterLighting;
         protected ShaderKeyword m_LodFadeCrossFade;
+        protected ShaderKeyword m_DecalsOFF;
         protected ShaderKeyword m_Decals3RT;
         protected ShaderKeyword m_Decals4RT;
 
@@ -29,8 +30,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             m_TileLighting = new ShaderKeyword("USE_FPTL_LIGHTLIST");
             m_ClusterLighting = new ShaderKeyword("USE_CLUSTERED_LIGHTLIST");
             m_LodFadeCrossFade = new ShaderKeyword("LOD_FADE_CROSSFADE");
-            m_Decals3RT = new ShaderKeyword("_DECALS_3RT");
-            m_Decals4RT = new ShaderKeyword("_DECALS_4RT");
+            m_DecalsOFF = new ShaderKeyword("DECALS_OFF");
+            m_Decals3RT = new ShaderKeyword("DECALS_3RT");
+            m_Decals4RT = new ShaderKeyword("DECALS_4RT");
         }
 
         public virtual void AddStripperFuncs(Dictionary<string, VariantStrippingFunc> stripperFuncs) {}
@@ -81,16 +83,28 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 return true;
 
             // Decal case
-            // If no decal, remove decal variant
-            if ((inputData.shaderKeywordSet.IsEnabled(m_Decals3RT) || inputData.shaderKeywordSet.IsEnabled(m_Decals4RT)) && !hdrpAsset.renderPipelineSettings.supportDecals)
-                return true;
 
-            // If decal but with 4RT remove 3RT variant and vice versa
-            if (inputData.shaderKeywordSet.IsEnabled(m_Decals3RT) && hdrpAsset.renderPipelineSettings.decalSettings.perChannelMask)
-                return true;
- 
-            if (inputData.shaderKeywordSet.IsEnabled(m_Decals4RT) && !hdrpAsset.renderPipelineSettings.decalSettings.perChannelMask)
-                return true;
+            // If decal support, remove unused variant
+            if (hdrpAsset.renderPipelineSettings.supportDecals)
+            {
+                // Remove the no decal case
+                if (inputData.shaderKeywordSet.IsEnabled(m_DecalsOFF))
+                    return true;
+
+                // If decal but with 4RT remove 3RT variant and vice versa
+                if (inputData.shaderKeywordSet.IsEnabled(m_Decals3RT) && hdrpAsset.renderPipelineSettings.decalSettings.perChannelMask)
+                    return true;
+
+                if (inputData.shaderKeywordSet.IsEnabled(m_Decals4RT) && !hdrpAsset.renderPipelineSettings.decalSettings.perChannelMask)
+                    return true;
+            }
+            else
+            {
+                // If no decal support, remove decal variant
+                if (inputData.shaderKeywordSet.IsEnabled(m_Decals3RT) || inputData.shaderKeywordSet.IsEnabled(m_Decals4RT))
+                    return true;
+            }
+
 
             return false;
         }

@@ -2,7 +2,7 @@
 #define DBufferType1 float4
 #define DBufferType2 float4
 
-#ifdef _DECALS_4RT
+#ifdef DECALS_4RT
 #define DBufferType3 float2
 
 #define OUTPUT_DBUFFER(NAME)							\
@@ -53,7 +53,7 @@ void EncodeIntoDBuffer( DecalSurfaceData surfaceData
                         , out DBufferType0 outDBuffer0
                         , out DBufferType1 outDBuffer1
                         , out DBufferType2 outDBuffer2
-#ifdef _DECALS_4RT
+#ifdef DECALS_4RT
 						, out DBufferType3 outDBuffer3
 #endif
                         )
@@ -61,7 +61,7 @@ void EncodeIntoDBuffer( DecalSurfaceData surfaceData
     outDBuffer0 = surfaceData.baseColor;
     outDBuffer1 = surfaceData.normalWS;
     outDBuffer2 = surfaceData.mask;
-#ifdef _DECALS_4RT
+#ifdef DECALS_4RT
 	outDBuffer3 = surfaceData.MAOSBlend;
 #endif
 }
@@ -70,7 +70,7 @@ void DecodeFromDBuffer(
     DBufferType0 inDBuffer0
     , DBufferType1 inDBuffer1
     , DBufferType2 inDBuffer2
-#ifdef _DECALS_4RT
+#ifdef DECALS_4RT
 	, DBufferType3 inDBuffer3
 #endif
     , out DecalSurfaceData surfaceData
@@ -81,7 +81,7 @@ void DecodeFromDBuffer(
     surfaceData.normalWS.xyz = inDBuffer1.xyz * 2.0 - 1.0;
     surfaceData.normalWS.w = inDBuffer1.w;
     surfaceData.mask = inDBuffer2;
-#ifdef _DECALS_4RT
+#ifdef DECALS_4RT
 	surfaceData.MAOSBlend = inDBuffer3;
 #else
 	surfaceData.MAOSBlend = float2(surfaceData.mask.w, surfaceData.mask.w);
