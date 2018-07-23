@@ -66,6 +66,9 @@ namespace UnityEditor.VFX.UI
 
             m_Node = node;
 
+            RegisterCallback<MouseEnterEvent>(OnMouseEnter);
+            RegisterCallback<MouseLeaveEvent>(OnMouseLeave);
+
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
             Profiler.EndSample();
         }
@@ -100,6 +103,31 @@ namespace UnityEditor.VFX.UI
             plus,
             minus,
             simple
+        }
+
+        bool m_EdgeDragging;
+        public override void OnStartEdgeDragging()
+        {
+            m_EdgeDragging = true;
+            highlight = false;
+        }
+
+        public override void OnStopEdgeDragging()
+        {
+            m_EdgeDragging = false;
+            highlight = true;
+        }
+
+        void OnMouseEnter(MouseEnterEvent e)
+        {
+            if (m_EdgeDragging && !highlight)
+                e.PreventDefault();
+        }
+
+        void OnMouseLeave(MouseLeaveEvent e)
+        {
+            if (m_EdgeDragging && !highlight)
+                e.PreventDefault();
         }
 
         public override bool collapsed

@@ -62,6 +62,7 @@ namespace UnityEditor.VFX.UI
             AddStyleSheetPath("VFXNodeUI");
             Initialize();
         }
+        VisualElement m_SelectionBorder;
 
         public VFXNodeUI() : base(UXMLResourceToPackage("uxml/VFXNode"))
         {
@@ -69,11 +70,65 @@ namespace UnityEditor.VFX.UI
             Initialize();
         }
 
+        bool m_Hovered;
+
+        void OnMouseEnter(MouseEnterEvent e)
+        {
+            m_Hovered = true;
+            UpdateBorder();
+            e.PreventDefault();
+            //e.StopPropagation();
+        }
+
+        void OnMouseLeave(MouseLeaveEvent e)
+        {
+            m_Hovered = false;
+            UpdateBorder();
+            e.PreventDefault();
+            //e.StopPropagation();
+        }
+
+        bool m_Selected;
+
+        public override void OnSelected()
+        {
+            m_Selected = true;
+            UpdateBorder();
+        }
+
+        public override void OnUnselected()
+        {
+            m_Selected = false;
+            UpdateBorder();
+        }
+
+        void UpdateBorder()
+        {
+            m_SelectionBorder.style.borderBottomWidth =
+                m_SelectionBorder.style.borderTopWidth =
+                    m_SelectionBorder.style.borderLeftWidth =
+                        m_SelectionBorder.style.borderRightWidth = (m_Selected ? 2 : (m_Hovered ? 1 : 0));
+
+
+            m_SelectionBorder.style.borderBottom =
+                m_SelectionBorder.style.borderTop =
+                    m_SelectionBorder.style.borderLeft =
+                        m_SelectionBorder.style.borderRight = (m_Selected ? 1 : (m_Hovered ? 1 : 0));
+
+
+            m_SelectionBorder.style.borderColor = m_Selected ? new Color(68.0f / 255.0f, 192.0f / 255.0f, 255.0f / 255.0f, 1.0f) : (m_Hovered ? new Color(68.0f / 255.0f, 192.0f / 255.0f, 255.0f / 255.0f, 0.5f) : Color.clear);
+        }
+
         void Initialize()
         {
             AddStyleSheetPath("VFXNode");
             AddToClassList("VFXNodeUI");
             clippingOptions = ClippingOptions.ClipContents;
+
+            RegisterCallback<MouseEnterEvent>(OnMouseEnter);
+            RegisterCallback<MouseLeaveEvent>(OnMouseLeave);
+
+            m_SelectionBorder = this.Query("selection-border");
         }
 
         void IControlledElement.OnControllerEvent(VFXControllerEvent e) {}
