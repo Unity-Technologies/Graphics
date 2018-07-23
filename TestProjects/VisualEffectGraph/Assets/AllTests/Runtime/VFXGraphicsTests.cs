@@ -47,7 +47,8 @@ namespace UnityEngine.VFX.Test
             "07_UnityLogo", //Unstable with HDRP. TODO investigate why
             "13_Decals", //doesn't render TODO investigate why
             "14_DecalsFlipBook", //doesn't render TODO investigate why
-            "05_MotionVectors" //possible GPU Hang on this, skip it temporally
+            "05_MotionVectors", //possible GPU Hang on this, skip it temporally
+            "04_Bounds" //this test rely on GameView aspect
         };
 
         [UnityTest, Category("VisualEffect")]
