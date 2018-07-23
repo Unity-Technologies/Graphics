@@ -49,7 +49,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             else
             {
                 // In case of deferred, we must be in sync with SubsurfaceScattering.hlsl and lit.hlsl files and setup the correct buffers
-                m_ColorMRTs[0] = gbufferManager.GetBuffer(0); // Note: This buffer must be sRGB (which is the case with Lit.shader)
+                m_ColorMRTs[0] = gbufferManager.GetSubsurfaceScatteringBuffer(0); // Note: This buffer must be sRGB (which is the case with Lit.shader)
                 m_ExternalBuffer[0] = true;
             }
 
