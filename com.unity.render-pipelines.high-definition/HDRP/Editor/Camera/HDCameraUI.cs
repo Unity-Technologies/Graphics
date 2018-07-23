@@ -36,6 +36,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 CED.Action(Drawer_FieldClearDepth),
                 CED.Action(Drawer_FieldCullingMask),
                 CED.Action(Drawer_FieldVolumeLayerMask),
+                CED.Action(Drawer_FieldVolumeAnchorOverride),
                 CED.space,
                 CED.Action(Drawer_Projection),
                 CED.Action(Drawer_FieldClippingPlanes),
@@ -153,6 +154,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static void Drawer_FieldVolumeLayerMask(HDCameraUI s, SerializedHDCamera p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.volumeLayerMask, _.GetContent("Volume Layer Mask"));
+        }
+        static void Drawer_FieldVolumeAnchorOverride(HDCameraUI s, SerializedHDCamera p, Editor owner)
+        {
+            EditorGUILayout.PropertyField(p.volumeAnchorOverride, _.GetContent("Volume Anchor Override"));
         }
 
         static void Drawer_FieldCullingMask(HDCameraUI s, SerializedHDCamera p, Editor owner)

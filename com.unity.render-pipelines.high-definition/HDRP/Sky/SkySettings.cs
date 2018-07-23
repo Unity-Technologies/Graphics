@@ -35,6 +35,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public EnvUpdateParameter       updateMode = new EnvUpdateParameter(EnvironementUpdateMode.OnChanged);
         [Tooltip("If environment update is set to realtime, period in seconds at which it is updated (0.0 means every frame).")]
         public MinFloatParameter        updatePeriod = new MinFloatParameter(0.0f, 0.0f);
+        [Tooltip("If set to true, the sun disk will be used in baked lighting (ambient and reflection probes).")]
+        public BoolParameter            includeSunInBaking = new BoolParameter(false);
 
         // Unused for now. In the future we might want to expose this option for very high range skies.
         bool m_useMIS = false;
@@ -55,6 +57,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 //<<<
 
                 hash = hash * 23 + updatePeriod.GetHashCode();
+                hash = hash * 23 + includeSunInBaking.GetHashCode();
                 return hash;
             }
         }
