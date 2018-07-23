@@ -40,7 +40,11 @@ float3x3 VFXGetWorldToViewRotMatrix()
 
 float3 VFXGetViewWorldPosition()
 {
-    return GetAbsolutePositionWS(GetCurrentViewPosition());
+    float3 pos = GetCurrentViewPosition();
+#if VFX_WORLD_SPACE
+    pos = GetAbsolutePositionWS(pos);
+#endif
+    return pos;
 }
 
 float4x4 VFXGetViewToWorldMatrix()

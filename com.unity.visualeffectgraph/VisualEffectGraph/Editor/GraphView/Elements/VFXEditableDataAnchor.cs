@@ -198,7 +198,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public new Rect rect
+        public Rect internalRect
         {
             get
             {
@@ -209,7 +209,7 @@ namespace UnityEditor.VFX.UI
 
         public override bool ContainsPoint(Vector2 localPoint)
         {
-            return rect.Contains(localPoint);
+            return internalRect.Contains(localPoint);
         }
     }
 }

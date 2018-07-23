@@ -45,13 +45,32 @@ namespace UnityEditor.VFX
 
             if (type == null && !string.IsNullOrEmpty(name)) // if type wasn't found, resolve the assembly (to use VFX package assembly name instead)
             {
-                name = name.Replace("Assembly-CSharp-Editor", "Unity.VisualEffectGraph.Editor");
+                string[] splitted = name.Split(',');
+                // Replace the assembly with the one containing VFXGraph type which will be either "Unity.VisualEffect.Graph.Editor" or "Unity.VisualEffect.Graph.Editor-testable"
+                splitted[1] = typeof(VFXGraph).Assembly.GetName().Name;
+
+                name = string.Join(",",splitted);
+
                 type = Type.GetType(name);
 
                 if (type == null) // resolve runtime type if editor assembly didnt work
                 {
-                    name = name.Replace("Assembly-CSharp", "Unity.VisualEffectGraph.Runtime");
+                    splitted[1] = splitted[1].Replace(".Editor", ".Runtime");
+                    name = string.Join(",", splitted);
                     type = Type.GetType(name);
+                }
+
+                // If from here we still haven't found the type, try a last time with the name only.
+                if( type == null)
+                {
+                    AppDomain currentDomain = AppDomain.CurrentDomain;
+                    foreach (Assembly assembly in currentDomain.GetAssemblies())
+                    {
+                        type = assembly.GetType(splitted[0]);
+                        if (type != null)
+                            return type;
+                    }
+                        
                 }
 
                 if (type == null)
