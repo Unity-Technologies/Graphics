@@ -1,3 +1,4 @@
+using System;
 #if UNITY_EDITOR
 using UnityEditor;
 using UnityEditor.Experimental.Rendering.HDPipeline;
@@ -24,6 +25,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Candela,
         Lux,
         Luminance,
+    }
+
+    // Light layering
+    public enum LightLayerEnum
+    {
+        Nothing = 0,   // Custom name for "Nothing" option
+        LightLayerDefault = 1 << 0,
+        LightLayer1 = 1 << 1,
+        LightLayer2 = 1 << 2,
+        LightLayer3 = 1 << 3,
+        LightLayer4 = 1 << 4,
+        LightLayer5 = 1 << 5,
+        LightLayer6 = 1 << 6,
+        LightLayer7 = 1 << 7,
+        Everything = 0xFF, // Custom name for "Everything" option
     }
 
     // This structure contains all the old values for every recordable fields from the HD light editor
@@ -142,6 +158,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Duplication of HDLightEditor.k_MinAreaWidth, maybe do something about that
         const float k_MinAreaWidth = 0.01f; // Provide a small size of 1cm for line light
+
+        public LightLayerEnum lightLayers = LightLayerEnum.LightLayerDefault;
+
+        // This function return a mask of light layers as uint and handle the case of Everything as being 0xFF and not -1
+        public uint GetLightLayers()
+        {
+            int value = Convert.ToInt32(lightLayers);
+            return value < 0 ? (uint)LightLayerEnum.Everything : (uint)value;
+        }
 
 #if UNITY_EDITOR
         // We need these old states to make timeline and the animator record the intensity value and the emissive mesh changes (editor-only)

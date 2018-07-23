@@ -10,5 +10,6 @@ SAMPLER(sampler_MaskMap);
 
 float _DecalBlend;
 float4 _BaseColor;
+float _DecalMeshDepthBias;
 
 #endif

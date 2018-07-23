@@ -5,7 +5,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class DBufferManager : MRTBufferManager
     {
-        public bool EnableDBUffer { get; set; }
+        public bool enableDecals { get; set; }
 
         RTHandleSystem.RTHandle m_HTile;
 
@@ -80,15 +80,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd)
         {
-            if (hdCamera.frameSettings.enableDBuffer)
+            if (hdCamera.frameSettings.enableDecals)
             {
-                cmd.SetGlobalInt(HDShaderIDs._EnableDBuffer, EnableDBUffer ? 1 : 0);
+                cmd.SetGlobalInt(HDShaderIDs._EnableDecals, enableDecals ? 1 : 0);
                 cmd.SetGlobalVector(HDShaderIDs._DecalAtlasResolution, new Vector2(HDUtils.hdrpSettings.decalSettings.atlasWidth, HDUtils.hdrpSettings.decalSettings.atlasHeight));
                 BindBufferAsTextures(cmd);
             }
             else
             {
-                cmd.SetGlobalInt(HDShaderIDs._EnableDBuffer, 0);
+                cmd.SetGlobalInt(HDShaderIDs._EnableDecals, 0);
                 // We still bind black textures to make sure that something is bound (can be a problem on some platforms)
                 for (int i = 0; i < m_BufferCount; ++i)
                 {
