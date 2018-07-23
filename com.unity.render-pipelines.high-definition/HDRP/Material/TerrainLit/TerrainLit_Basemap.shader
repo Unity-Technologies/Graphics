@@ -28,7 +28,7 @@ Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap"
         _MainTex("Albedo", 2D) = "white" {}
         _Color("Color", Color) = (1,1,1,1)
 
-        [ToggleUI] _SupportDBuffer("Support DBuffer", Float) = 1.0
+        [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
     }
 
     HLSLINCLUDE
@@ -36,7 +36,7 @@ Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap"
     #pragma target 4.5
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
-    #pragma shader_feature _DISABLE_DBUFFER
+    #pragma shader_feature _DISABLE_DECALS
     #pragma shader_feature _TERRAIN_INSTANCED_PERPIXEL_NORMAL
 
     //enable GPU instancing support

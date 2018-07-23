@@ -5,7 +5,8 @@ Material:
   serializedVersion: 6
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_Name: DefaultHDTerrainMaterial
   m_Shader: {fileID: 4800000, guid: eb607f5e8fc16e140b732f33d26c8c31, type: 3}
   m_ShaderKeywords: _TERRAIN_INSTANCED_PERPIXEL_NORMAL
@@ -24,14 +25,14 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Floats:
     - _CullMode: 2
+    - _EnableHeightBlend: 0
     - _EnableInstancedPerPixelNormal: 1
     - _HeightTransition: 0
-    - _LayerBlendMode: 0
     - _StencilRef: 2
     - _StencilRefMV: 128
     - _StencilWriteMask: 7
     - _StencilWriteMaskMV: 128
-    - _SupportDBuffer: 1
+    - _SupportDecals: 1
     - _ZTestDepthEqualForOpaque: 3
     - _ZTestGBuffer: 4
     - _ZWrite: 1
