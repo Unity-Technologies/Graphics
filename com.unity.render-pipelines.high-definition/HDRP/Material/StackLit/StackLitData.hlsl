@@ -445,5 +445,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     builtinData.distortionBlur = 0.0;
 #endif
 
+    // Use uniform directly - The float need to be cast to uint (as unity don't support to set a uint as uniform)
+    builtinData.renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
+
     builtinData.depthOffset = 0.0;
 }
