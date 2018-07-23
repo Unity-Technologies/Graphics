@@ -51,7 +51,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         
         void Awake()
         {
-            influenceVolume = new InfluenceVolume(this);
+            if (influenceVolume == null)
+                influenceVolume = new InfluenceVolume(this);
+            else
+                influenceVolume.Init(this);
         }
 
         void ISerializationCallbackReceiver.OnBeforeSerialize()
