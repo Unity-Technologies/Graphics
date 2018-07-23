@@ -8,6 +8,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         : SkySettingsEditor
     {
         SerializedDataParameter m_hdriSky;
+        SerializedDataParameter m_Lux;
+        SerializedDataParameter m_IntensityMode;
 
         public override void OnEnable()
         {
@@ -15,6 +17,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             var o = new PropertyFetcher<HDRISky>(serializedObject);
             m_hdriSky = Unpack(o.Find(x => x.hdriSky));
+            m_Lux = Unpack(o.Find(x => x.lux));
+            m_IntensityMode = Unpack(o.Find(x => x.skyIntensityMode));
         }
 
         public override void OnInspectorGUI()
@@ -22,6 +26,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             PropertyField(m_hdriSky);
 
             EditorGUILayout.Space();
+            
+            PropertyField(m_IntensityMode);
+
+            if (m_IntensityMode.value.enumValueIndex == (int)SkyIntensityMode.Lux)
+            {
+                // Hide EV and Multiplier fields
+                m_ShowProperties.value.intValue &= ~(int)SkySettingsPropertyFlags.ShowMultiplierAndEV;
+                PropertyField(m_Lux);
+            }
+            else
+            {
+                m_ShowProperties.value.intValue |= (int)SkySettingsPropertyFlags.ShowMultiplierAndEV;
+            }
 
             base.CommonSkySettingsGUI();
         }

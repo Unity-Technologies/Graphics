@@ -364,6 +364,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int _Cubemap = Shader.PropertyToID("_Cubemap");
         public static readonly int _SkyParam = Shader.PropertyToID("_SkyParam");
+        public static readonly int _SkyIntensity = Shader.PropertyToID("_SkyIntensity");
         public static readonly int _PixelCoordToViewDirWS = Shader.PropertyToID("_PixelCoordToViewDirWS");
 
         public static readonly int _Size = Shader.PropertyToID("_Size");

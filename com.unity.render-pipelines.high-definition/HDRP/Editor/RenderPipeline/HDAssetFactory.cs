@@ -101,6 +101,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 newAsset.GGXConvolve = Load<Shader>(HDRenderPipelinePath + "Material/GGXConvolution/GGXConvolve.shader");
                 newAsset.opaqueAtmosphericScattering = Load<Shader>(HDRenderPipelinePath + "Sky/OpaqueAtmosphericScattering.shader");
                 newAsset.hdriSky = Load<Shader>(HDRenderPipelinePath + "Sky/HDRISky/HDRISky.shader");
+                newAsset.integrateHdriSky = Load<Shader>(HDRenderPipelinePath + "Sky/HDRISky/IntegrateHDRISky.shader");
                 newAsset.proceduralSky = Load<Shader>(HDRenderPipelinePath + "Sky/ProceduralSky/ProceduralSky.shader");
                 // Skybox/Cubemap is a builtin shader, must use Sahder.Find to access it. It is fine because we are in the editor
                 newAsset.skyboxCubemap = Shader.Find("Skybox/Cubemap");
