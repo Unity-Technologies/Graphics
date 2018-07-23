@@ -846,6 +846,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float specularDimmer = m_FrameSettings.specularGlobalDimmer * additionalData.lightDimmer;
             if (diffuseDimmer  <= 0.0f && specularDimmer <= 0.0f)
                 return false;
+
+            directionalLightData.lightLayers = additionalData.GetLightLayers();
+
             // Light direction for directional is opposite to the forward direction
             directionalLightData.forward = light.light.transform.forward;
             // Rescale for cookies and windowing.
@@ -927,6 +930,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             int lightIndex, ref Vector3 lightDimensions)
         {
             var lightData = new LightData();
+
+            lightData.lightLayers = additionalLightData.GetLightLayers();
 
             lightData.lightType = gpuLightType;
 

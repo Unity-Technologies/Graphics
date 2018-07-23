@@ -147,11 +147,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 List<RenderPipelineMaterial> materialList = HDUtils.GetRenderPipelineMaterialList();
 
                 // TODO: Share this code to retrieve deferred material with HDRenderPipeline
-                // Find first material that have non 0 Gbuffer count and assign it as deferredMaterial
+                // Find first material that is a deferredMaterial
                 Type bsdfDataDeferredType = null;
                 foreach (RenderPipelineMaterial material in materialList)
                 {
-                    if (material.GetMaterialGBufferCount() > 0)
+                    if (material.IsDefferedMaterial())
                     {
                         bsdfDataDeferredType = material.GetType().GetNestedType("BSDFData");
                     }
