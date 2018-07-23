@@ -11,9 +11,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
   m_Name: HDRenderPipelineAsset
   m_EditorClassIdentifier: 
-  version: 1
-  m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
-    type: 2}
+  m_Version: 1
+  m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7, type: 2}
   m_FrameSettings:
     enableShadow: 1
     enableContactShadows: 1
@@ -25,7 +24,7 @@ MonoBehaviour:
     enableVolumetrics: 1
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
-    enableForwardRenderingOnly: 1
+    enableForwardRenderingOnly: 0
     enableDepthPrepassWithDeferredRendering: 0
     enableTransparentPrepass: 1
     enableMotionVectors: 1
@@ -67,7 +66,7 @@ MonoBehaviour:
     supportStereo: 0
     lightLoopSettings:
       cookieAtlasSize: 1024
-      cookieAtlasMaxValidMip: 3
+      cookieAtlasMaxValidMip: 5
       planarReflectionProbeCacheSize: 4
       planarReflectionTextureSize: 1024
       reflectionProbeCacheSize: 128
@@ -88,6 +87,6 @@ MonoBehaviour:
       drawDistance: 1000
       atlasWidth: 4096
       atlasHeight: 4096
+      perChannelMask: 0
   allowShaderVariantStripping: 1
-  diffusionProfileSettings: {fileID: 11400000, guid: 404820c4cf36ad944862fa59c56064f0,
-    type: 2}
+  diffusionProfileSettings: {fileID: 11400000, guid: 404820c4cf36ad944862fa59c56064f0, type: 2}
