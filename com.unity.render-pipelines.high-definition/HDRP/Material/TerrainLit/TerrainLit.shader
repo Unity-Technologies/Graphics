@@ -38,7 +38,7 @@ Shader "HDRenderPipeline/TerrainLit"
         _MainTex("Albedo", 2D) = "white" {}
         _Color("Color", Color) = (1,1,1,1)
 
-        [ToggleUI] _SupportDBuffer("Support DBuffer", Float) = 1.0
+        [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
     }
 
     HLSLINCLUDE
@@ -58,7 +58,7 @@ Shader "HDRenderPipeline/TerrainLit"
     //#pragma shader_feature _ _LAYER_MAPPING_PLANAR2 _LAYER_MAPPING_TRIPLANAR2
     //#pragma shader_feature _ _LAYER_MAPPING_PLANAR3 _LAYER_MAPPING_TRIPLANAR3
 
-    #pragma shader_feature _DISABLE_DBUFFER
+    #pragma shader_feature _DISABLE_DECALS
 
     //enable GPU instancing support
     #pragma multi_compile_instancing

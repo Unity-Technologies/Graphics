@@ -71,7 +71,7 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     surfaceData.specularOcclusion = 1.0;
 #endif
 
-#ifndef _DISABLE_DBUFFER
+#if HAVE_DECALS
     float alpha = 1;
     AddDecalContribution(posInput, surfaceData, alpha);
 #endif
