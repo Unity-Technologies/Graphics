@@ -118,8 +118,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get
             {
-                return additional.proxyVolumeComponent != null
-                    ? ConvertShape(additional.proxyVolumeComponent.proxyVolume.shapeType)
+                return additional.proxyVolume != null
+                    ? ConvertShape(additional.proxyVolume.proxyVolume.shapeType)
                     : influenceShapeType;
             }
         }
@@ -127,8 +127,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get
             {
-                return additional.proxyVolumeComponent != null
-                    ? additional.proxyVolumeComponent.proxyVolume.extents
+                return additional.proxyVolume != null
+                    ? additional.proxyVolume.proxyVolume.extents
                     : influenceExtents;
             }
         }
@@ -137,8 +137,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get
             {
-                return additional.proxyVolumeComponent != null
-                    ? additional.proxyVolumeComponent.proxyVolume.infiniteProjection
+                return additional.proxyVolume != null
+                    ? additional.proxyVolume.proxyVolume.infiniteProjection
                     : probe.boxProjection == 0;
             }
         }
@@ -147,8 +147,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get
             {
-                return additional.proxyVolumeComponent != null
-                    ? additional.proxyVolumeComponent.transform.localToWorldMatrix
+                return additional.proxyVolume != null
+                    ? additional.proxyVolume.transform.localToWorldMatrix
                     : influenceToWorld;
             }
         }
