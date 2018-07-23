@@ -667,7 +667,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             CoreUtils.SetKeyword(cmd, "LIGHT_LAYERS", enableLightLayers);
             cmd.SetGlobalInt(HDShaderIDs._EnableLightLayers, enableLightLayers ? 1 : 0);
-        }        
+        }
 
         public void ConfigureForDecal(CommandBuffer cmd)
         {
@@ -819,47 +819,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         m_CurrentDebugDisplaySettings = m_DebugDisplaySettings;
                     }
 
-                    using (new ProfilingSample(cmd, "Volume Update", CustomSamplerId.VolumeUpdate.GetSampler()))
-                    {
-                        LayerMask layerMask = -1;
-                        if (additionalCameraData != null)
-                        {
-                            layerMask = additionalCameraData.volumeLayerMask;
-                        }
-                        else
-                        {
-                            // Temporary hack:
-                            // For scene view, by default, we use the "main" camera volume layer mask if it exists
-                            // Otherwise we just remove the lighting override layers in the current sky to avoid conflicts
-                            // This is arbitrary and should be editable in the scene view somehow.
-                            if (camera.cameraType == CameraType.SceneView)
-                            {
-                                var mainCamera = Camera.main;
-                                bool needFallback = true;
-                                if (mainCamera != null)
-                                {
-                                    var mainCamAdditionalData = mainCamera.GetComponent<HDAdditionalCameraData>();
-                                    if (mainCamAdditionalData != null)
-                                    {
-                                        layerMask = mainCamAdditionalData.volumeLayerMask;
-                                        needFallback = false;
-                                    }
-                                }
-
-                                if (needFallback)
-                                {
-                                    // If the override layer is "Everything", we fall-back to "Everything" for the current layer mask to avoid issues by having no current layer
-                                    // In practice we should never have "Everything" as an override mask as it does not make sense (a warning is issued in the UI)
-                                    if (m_Asset.renderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask == -1)
-                                        layerMask = -1;
-                                    else
-                                        layerMask = (-1 & ~m_Asset.renderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask);
-                                }
-                            }
-                        }
-                        VolumeManager.instance.Update(camera.transform, layerMask);
-                    }
-
                     var postProcessLayer = camera.GetComponent<PostProcessLayer>();
 
                     // Disable post process if we enable debug mode or if the post process layer is disabled
@@ -877,6 +836,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // From this point, we should only use frame settings from the camera
                     hdCamera.Update(currentFrameSettings, postProcessLayer, m_VolumetricLightingSystem);
+
+                    using (new ProfilingSample(cmd, "Volume Update", CustomSamplerId.VolumeUpdate.GetSampler()))
+                    {
+                        VolumeManager.instance.Update(hdCamera.volumeAnchor, hdCamera.volumeLayerMask);
+                    }
 
                     Resize(hdCamera);
 
