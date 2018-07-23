@@ -68,6 +68,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             mode = legacyProbe.mode;
             refreshMode = legacyProbe.refreshMode;
             m_Version = 2;
+            needMigrateToHDProbeChild = false;
             OnAfterDeserialize();   //continue migrating if needed
         }
 
