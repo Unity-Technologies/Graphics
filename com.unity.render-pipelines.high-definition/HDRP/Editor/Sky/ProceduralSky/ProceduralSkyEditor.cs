@@ -41,7 +41,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUILayout.Space();
 
-            base.CommonSkySettingsGUI(false);
+            m_ShowProperties.value.intValue &= ~(int)SkySettingsPropertyFlags.ShowRotation;
+
+            base.CommonSkySettingsGUI();
         }
     }
 }
