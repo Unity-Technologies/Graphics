@@ -278,7 +278,7 @@ namespace UnityEditor.VFX.UI
                 );
         }
 
-        void OnFitToText(ContextualMenu.MenuAction a)
+        void OnFitToText(DropdownMenu.MenuAction a)
         {
             FitText(false);
         }
@@ -419,20 +419,20 @@ namespace UnityEditor.VFX.UI
             {
                 /*foreach (Theme value in System.Enum.GetValues(typeof(Theme)))
                 {
-                    evt.menu.AppendAction("Theme/" + value.ToString(), OnChangeTheme, e => ContextualMenu.MenuAction.StatusFlags.Normal, value);
+                    evt.menu.AppendAction("Theme/" + value.ToString(), OnChangeTheme, e => DropdownMenu.MenuAction.StatusFlags.Normal, value);
                 }*/
                 if (theme == Theme.Black)
-                    evt.menu.AppendAction("Light Theme", OnChangeTheme, e => ContextualMenu.MenuAction.StatusFlags.Normal, Theme.Classic);
+                    evt.menu.AppendAction("Light Theme", OnChangeTheme, e => DropdownMenu.MenuAction.StatusFlags.Normal, Theme.Classic);
                 else
-                    evt.menu.AppendAction("Dark Theme", OnChangeTheme, e => ContextualMenu.MenuAction.StatusFlags.Normal, Theme.Black);
+                    evt.menu.AppendAction("Dark Theme", OnChangeTheme, e => DropdownMenu.MenuAction.StatusFlags.Normal, Theme.Black);
 
                 foreach (TextSize value in System.Enum.GetValues(typeof(TextSize)))
                 {
-                    evt.menu.AppendAction(value.ToString() + " Text Size", OnChangeSize, e => ContextualMenu.MenuAction.StatusFlags.Normal, value);
+                    evt.menu.AppendAction(value.ToString() + " Text Size", OnChangeSize, e => DropdownMenu.MenuAction.StatusFlags.Normal, value);
                 }
                 evt.menu.AppendSeparator();
 
-                evt.menu.AppendAction("Fit To Text", OnFitToText, e => ContextualMenu.MenuAction.StatusFlags.Normal);
+                evt.menu.AppendAction("Fit To Text", OnFitToText, e => DropdownMenu.MenuAction.StatusFlags.Normal);
                 evt.menu.AppendSeparator();
             }
         }
@@ -490,13 +490,13 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void OnChangeTheme(ContextualMenu.MenuAction action)
+        void OnChangeTheme(DropdownMenu.MenuAction action)
         {
             theme = (Theme)action.userData;
             NotifyChange(StickyNodeChangeEvent.Change.theme);
         }
 
-        void OnChangeSize(ContextualMenu.MenuAction action)
+        void OnChangeSize(DropdownMenu.MenuAction action)
         {
             textSize = (TextSize)action.userData;
             NotifyChange(StickyNodeChangeEvent.Change.textSize);

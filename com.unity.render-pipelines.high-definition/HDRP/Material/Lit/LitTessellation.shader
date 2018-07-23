@@ -22,7 +22,7 @@ Shader "HDRenderPipeline/LitTessellation"
 
         _NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
         _NormalMapOS("NormalMapOS", 2D) = "white" {} // Object space normal map - no good default value
-        _NormalScale("_NormalScale", Range(0.0, 2.0)) = 1
+        _NormalScale("_NormalScale", Range(0.0, 8.0)) = 1
 
         _BentNormalMap("_BentNormalMap", 2D) = "bump" {}
         _BentNormalMapOS("_BentNormalMapOS", 2D) = "white" {}
@@ -276,6 +276,9 @@ Shader "HDRenderPipeline/LitTessellation"
 
     // enable dithering LOD crossfade
     #pragma multi_compile _ LOD_FADE_CROSSFADE
+
+	// decal 3RT or 4RT toggle
+	#pragma multi_compile _ _DECALS_4RT
 
     //enable GPU instancing support
     #pragma multi_compile_instancing

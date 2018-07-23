@@ -9,6 +9,9 @@ using UnityEditor.Graphing;
 using UnityEditor.Graphing.Util;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using Object = UnityEngine.Object;
+#if UNITY_2018_3_OR_NEWER
+using ContextualMenu = UnityEngine.Experimental.UIElements.DropdownMenu;
+#endif
 
 namespace UnityEditor.ShaderGraph.Drawing.Inspector
 {
@@ -61,7 +64,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
 
         List<string> m_DoNotShowPrimitives = new List<string>(new string[] {PrimitiveType.Plane.ToString()});
 
-        static Type s_ContextualMenuManipulator = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEngine.Experimental.UIElements.ContextualMenuManipulator");
+        static Type s_DropdownMenuManipulator = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEngine.Experimental.UIElements.DropdownMenuManipulator");
         static Type s_ObjectSelector = AppDomain.CurrentDomain.GetAssemblies().SelectMany(x => x.GetTypesOrNothing()).FirstOrDefault(t => t.FullName == "UnityEditor.ObjectSelector");
 
         public string assetName
@@ -167,7 +170,7 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
         {
             var image = new Image { name = "preview", image = StyleValue<Texture>.Create(m_PreviewRenderHandle.texture ?? texture) };
             image.AddManipulator(new Draggable(OnMouseDragPreviewMesh, true));
-            image.AddManipulator((IManipulator)Activator.CreateInstance(s_ContextualMenuManipulator, (Action<ContextualMenuPopulateEvent>)BuildContextualMenu));
+            image.AddManipulator((IManipulator)Activator.CreateInstance(s_DropdownMenuManipulator, (Action<ContextualMenuPopulateEvent>)BuildContextualMenu));
             return image;
         }
 
@@ -177,10 +180,10 @@ namespace UnityEditor.ShaderGraph.Drawing.Inspector
             {
                 if (m_DoNotShowPrimitives.Contains(primitiveTypeName))
                     continue;
-                evt.menu.AppendAction(primitiveTypeName, e => ChangePrimitiveMesh(primitiveTypeName), ContextualMenu.MenuAction.AlwaysEnabled);
+                evt.menu.AppendAction(primitiveTypeName, e => ChangePrimitiveMesh(primitiveTypeName), DropdownMenu.MenuAction.AlwaysEnabled);
             }
 
-            evt.menu.AppendAction("Custom Mesh", e => ChangeMeshCustom(), ContextualMenu.MenuAction.AlwaysEnabled);
+            evt.menu.AppendAction("Custom Mesh", e => ChangeMeshCustom(), DropdownMenu.MenuAction.AlwaysEnabled);
         }
 
         IMasterNode masterNode

@@ -369,7 +369,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 rendererSupportsLightProbeProxyVolumes = true,
                 rendererSupportsMotionVectors = true,
                 rendererSupportsReceiveShadows = false,
-                rendererSupportsReflectionProbes = true
+                rendererSupportsReflectionProbes = true,
+                rendererSupportsRendererPriority = true
             };
 
             Lightmapping.SetDelegate(GlobalIlluminationUtils.hdLightsDelegate);
@@ -1072,6 +1073,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         RenderSky(hdCamera, cmd);
 
+                        RenderTransparentDepthPrepass(m_CullResults, hdCamera, renderContext, cmd);
+
                         // Render pre refraction objects
                         RenderForward(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.PreRefraction);
 
@@ -1084,7 +1087,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         RenderForwardError(m_CullResults, hdCamera, renderContext, cmd);
 
                         // Fill depth buffer to reduce artifact for transparent object during postprocess
-                        RenderTransparentDepthPostpass(m_CullResults, hdCamera, renderContext, cmd, ForwardPass.Transparent);
+                        RenderTransparentDepthPostpass(m_CullResults, hdCamera, renderContext, cmd);
 
                         RenderColorPyramid(hdCamera, cmd, renderContext, false);
 
@@ -1264,7 +1267,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             var drawSettings = new DrawRendererSettings(hdCamera.camera, HDShaderPassNames.s_EmptyName)
             {
                 rendererConfiguration = rendererConfiguration,
-                sorting = { flags = SortFlags.CommonTransparent }
+                sorting = { flags = SortFlags.CommonTransparent | SortFlags.RendererPriority }
             };
 
             for (int i = 0; i < passNames.Length; ++i)
@@ -1307,7 +1310,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             using (new ProfilingSample(cmd, "ApplyDistortion", CustomSamplerId.ApplyDistortion.GetSampler()))
             {
-                var colorPyramidRT = hdCamera.GetPreviousFrameRT((int)HDCameraFrameHistoryType.ColorPyramid);
+                var colorPyramidRT = hdCamera.GetCurrentFrameRT((int)HDCameraFrameHistoryType.ColorPyramid);
                 var pyramidScale = m_BufferPyramid.GetPyramidToScreenScale(hdCamera, colorPyramidRT);
 
                 // Need to account for the fact that the gaussian pyramid is actually rendered inside the camera viewport in a square texture so we mutiply by the PyramidToScreen scale
@@ -1394,15 +1397,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     RenderOpaqueRenderList(cull, hdCamera, renderContext, cmd, m_DepthForwardOnlyPassNames, 0, HDRenderQueue.k_RenderQueue_AllOpaque);
                 }
             }
-
-            if (hdCamera.frameSettings.enableTransparentPrepass)
-            {
-                // Render transparent depth prepass after opaque one
-                using (new ProfilingSample(cmd, "Transparent Depth Prepass", CustomSamplerId.TransparentDepthPrepass.GetSampler()))
-                {
-                    RenderTransparentRenderList(cull, hdCamera, renderContext, cmd, m_TransparentDepthPrepassNames);
-                }
-            }
         }
 
         // RenderGBuffer do the gbuffer pass. This is solely call with deferred. If we use a depth prepass, then the depth prepass will perform the alpha testing for opaque apha tested and we don't need to do it anymore
@@ -1432,11 +1426,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // We need to copy depth buffer texture if we want to bind it at this stage
                 CopyDepthBufferIfNeeded(cmd);
 
+                bool rtCount4 = m_Asset.GetRenderPipelineSettings().decalSettings.perChannelMask;
                 // Depth texture is now ready, bind it.
                 cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, GetDepthTexture());
-                m_DbufferManager.ClearTargets(cmd, hdCamera);
-                HDUtils.SetRenderTarget(cmd, hdCamera, m_DbufferManager.GetBuffersRTI(), m_CameraDepthStencilBuffer); // do not clear anymore
-                m_DbufferManager.SetHTile(m_DbufferManager.bufferCount, cmd);
+                m_DbufferManager.ClearAndSetTargets(cmd, hdCamera, rtCount4, m_CameraDepthStencilBuffer);
                 renderContext.ExecuteCommandBuffer(cmd);
                 cmd.Clear();
 
@@ -1445,13 +1438,30 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     rendererConfiguration = 0,
                     sorting = { flags = SortFlags.CommonOpaque }
                 };
-                drawSettings.SetShaderPassName(0, HDShaderPassNames.s_MeshDecalsName);
+
+                if(rtCount4)
+                {
+                    drawSettings.SetShaderPassName(0, HDShaderPassNames.s_MeshDecalsMName);
+                    drawSettings.SetShaderPassName(1, HDShaderPassNames.s_MeshDecalsAOName);
+                    drawSettings.SetShaderPassName(2, HDShaderPassNames.s_MeshDecalsMAOName);
+                    drawSettings.SetShaderPassName(3, HDShaderPassNames.s_MeshDecalsSName);
+                    drawSettings.SetShaderPassName(4, HDShaderPassNames.s_MeshDecalsMSName);
+                    drawSettings.SetShaderPassName(5, HDShaderPassNames.s_MeshDecalsAOSName);
+                    drawSettings.SetShaderPassName(6, HDShaderPassNames.s_MeshDecalsMAOSName);
+                }
+                else
+                {
+                    drawSettings.SetShaderPassName(0, HDShaderPassNames.s_MeshDecals3RTName);
+                }
+
                 FilterRenderersSettings filterRenderersSettings = new FilterRenderersSettings(true)
                 {
                     renderQueueRange = HDRenderQueue.k_RenderQueue_AllOpaque
                 };
-                renderContext.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, filterRenderersSettings);
 
+                CoreUtils.SetKeyword(cmd, "_DECALS_4RT", m_Asset.GetRenderPipelineSettings().decalSettings.perChannelMask);
+
+                renderContext.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, filterRenderersSettings);
                 DecalSystem.instance.RenderIntoDBuffer(cmd);
                 m_DbufferManager.UnSetHTile(cmd);
                 m_DbufferManager.SetHTileTexture(cmd);  // mask per 8x8 tile used for optimization when looking up dbuffer values
@@ -1650,7 +1660,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderTransparentDepthPostpass(CullResults cullResults, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd, ForwardPass pass)
+        void RenderTransparentDepthPrepass(CullResults cull, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
+        {
+            if (hdCamera.frameSettings.enableTransparentPrepass)
+            {
+                // Render transparent depth prepass after opaque one
+                using (new ProfilingSample(cmd, "Transparent Depth Prepass", CustomSamplerId.TransparentDepthPrepass.GetSampler()))
+                {
+                    RenderTransparentRenderList(cull, hdCamera, renderContext, cmd, m_TransparentDepthPrepassNames);
+                }
+            }
+        }
+
+        void RenderTransparentDepthPostpass(CullResults cullResults, HDCamera hdCamera, ScriptableRenderContext renderContext, CommandBuffer cmd)
         {
             if (!hdCamera.frameSettings.enableTransparentPostpass)
                 return;
@@ -1750,7 +1772,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 RenderTargetIdentifier source = m_CameraColorBuffer;
 
                 // For console we are not allowed to resize the windows, so don't use our hack.
-                bool tempHACK = !IsConsolePlatform();
+                // We also don't do the copy if viewport size and render texture size match.
+                bool viewportAndRTSameSize = (hdcamera.actualWidth == m_CameraColorBuffer.rt.width && hdcamera.actualHeight == m_CameraColorBuffer.rt.height);
+                bool tempHACK = !IsConsolePlatform() && !viewportAndRTSameSize;
 
                 if (tempHACK)
                 {

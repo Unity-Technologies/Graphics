@@ -37,13 +37,76 @@ void ApplyBlendDiffuse(inout float4 dst, inout int matMask, float2 texCoords, fl
     matMask |= mapMask;
 }
 
-void ApplyBlendMask(inout float4 dst, inout int matMask, float2 texCoords, int mapMask, float blend, float lod)
+// albedoBlend is overall decal blend combined with distance fade and albedo alpha
+// decalBlend is decal blend with distance fade to be able to construct normal and mask blend if they come from mask map blue channel
+// normalBlend is calculated in this function and used later to blend the normal
+// blendParams are material settings to determing blend source and mode for normal and mask map
+void ApplyBlendMask(inout float4 dbuffer2, inout float2 dbuffer3, inout int matMask, float2 texCoords, int mapMask, float albedoBlend, float lod, float decalBlend, inout float normalBlend, float3 blendParams) // too many blends!!!
 {
     float4 src = SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, texCoords, lod);
-    src.z = src.w;
-    src.w = blend;
-    dst.xyz = src.xyz * src.w + dst.xyz * (1.0f - src.w);
-    dst.w = dst.w * (1.0f - src.w);
+	float maskBlend;
+	if (blendParams.x == 1.0f)	// normal blend source is mask blue channel
+		normalBlend = src.z * decalBlend;
+	else
+		normalBlend = albedoBlend; // normal blend source is albedo alpha
+
+	if (blendParams.y == 1.0f)	// mask blend source is mask blue channel
+		maskBlend = src.z * decalBlend;
+	else
+		maskBlend = albedoBlend; // mask blend siurce is albedo alpha
+
+    src.z = src.w;	// remap so smoothness goes to blue and mask blend goes to alpha
+    src.w = maskBlend;
+
+	float4 dbuffer2Mask;
+	float2 dbuffer3Mask;
+
+	if (blendParams.z == 0)
+	{
+		dbuffer2Mask = float4(1, 1, 1, 1);	// M, AO, S, S alpha
+		dbuffer3Mask = float2(1, 1); // M alpha, AO alpha
+	}
+	else if (blendParams.z == 1)
+	{
+		dbuffer2Mask = float4(1, 0, 0, 0);	// M, _, _, _
+		dbuffer3Mask = float2(1, 0); // M alpha, _
+	}
+	else if (blendParams.z == 2)
+	{
+		dbuffer2Mask = float4(0, 1, 0, 0);	// _, AO, _, _
+		dbuffer3Mask = float2(0, 1); // _, AO alpha
+	}
+	else if (blendParams.z == 3)
+	{
+		dbuffer2Mask = float4(1, 1, 0, 0);	// M, AO, _, _
+		dbuffer3Mask = float2(1, 1); // M Alpha, AO alpha
+	}
+	else if (blendParams.z == 4)
+	{
+		dbuffer2Mask = float4(0, 0, 1, 1);	// _, _, S, S alpha
+		dbuffer3Mask = float2(0, 0); // _, _
+	}
+	else if (blendParams.z == 5)
+	{
+		dbuffer2Mask = float4(1, 0, 1, 1);	// M, _, S, S alpha
+		dbuffer3Mask = float2(1, 0); // M alpha, _
+	}
+	else if (blendParams.z == 6)
+	{
+		dbuffer2Mask = float4(0, 1, 1, 1);	// _, AO, S, S alpha
+		dbuffer3Mask = float2(0, 1); // _, AO alpha
+	}
+	else if (blendParams.z == 7)
+	{
+		dbuffer2Mask = float4(1, 1, 1, 1);	// M, AO, S, S alpha
+		dbuffer3Mask = float2(1, 1); // M alpha, AO alpha
+	}
+
+	dbuffer2.xyz = (dbuffer2Mask.xyz == 1) ? src.xyz * src.w + dbuffer2.xyz * (1.0f - src.w) : dbuffer2.xyz;
+	dbuffer2.w = (dbuffer2Mask.w == 1) ? dbuffer2.w * (1.0f - src.w) : dbuffer2.w;
+
+	dbuffer3.xy = (dbuffer3Mask.xy == 1) ? dbuffer3.xy * (1.0f - src.w) : dbuffer3.xy;
+
     matMask |= mapMask;
 }
 
@@ -61,6 +124,11 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
         DBuffer0 = float4(0.0f, 0.0f, 0.0f, 1.0f);
         DBuffer1 = float4(0.5f, 0.5f, 0.5f, 1.0f);
         DBuffer2 = float4(0.0f, 0.0f, 0.0f, 1.0f);
+#ifdef _DECALS_4RT
+		DBuffer3 = float2(1.0f, 1.0f);
+#else
+		float2 DBuffer3 = float2(1.0f, 1.0f);
+#endif
 
     #ifdef LIGHTLOOP_TILE_PASS
         GetCountAndStart(posInput, LIGHTCATEGORY_DECAL, decalStart, decalCount);
@@ -83,7 +151,7 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
             float4x4 worldToDecal = ApplyCameraTranslationToInverseMatrix(decalData.worldToDecal);
 
             float3 positionDS = mul(worldToDecal, float4(positionRWS, 1.0)).xyz;
-            positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.0f, 0.5);  // decal clip space
+            positionDS = positionDS * float3(1.0, -1.0, 1.0) + float3(0.5, 0.5f, 0.5);  // decal clip space
             if ((all(positionDS.xyz > 0.0f) && all(1.0f - positionDS.xyz > 0.0f)))
             {
                 float2 uvScale = float2(decalData.normalToWorld[3][0], decalData.normalToWorld[3][1]);
@@ -123,12 +191,12 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
                 float2 sampleMaskDdy = positionDSDdy.xz * decalData.maskScaleBias.xy;
                 float lodMask = ComputeTextureLOD(sampleMaskDdx, sampleMaskDdy, _DecalAtlasResolution);
 
-                float decalBlend = decalData.normalToWorld[0][3];
+                float albedoBlend = decalData.normalToWorld[0][3];
 				float4 src = decalData.baseColor;
 				int diffuseTextureBound = (decalData.diffuseScaleBias.x > 0) && (decalData.diffuseScaleBias.y > 0);
                 
-				ApplyBlendDiffuse(DBuffer0, mask, sampleDiffuse, src, DBUFFERHTILEBIT_DIFFUSE, decalBlend, lodDiffuse, diffuseTextureBound);		
-				alpha = alpha < decalBlend ? decalBlend : alpha;    // use decal alpha if it is higher than transparent alpha
+				ApplyBlendDiffuse(DBuffer0, mask, sampleDiffuse, src, DBUFFERHTILEBIT_DIFFUSE, albedoBlend, lodDiffuse, diffuseTextureBound);		
+				alpha = alpha < albedoBlend ? albedoBlend : alpha;    // use decal alpha if it is higher than transparent alpha
 
 				float albedoContribution = decalData.normalToWorld[1][3];
 				if (albedoContribution == 0.0f)
@@ -136,14 +204,15 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
 					mask = 0;	// diffuse will not get modified						
 				}
 				
+				float normalBlend = albedoBlend;
+				if ((decalData.maskScaleBias.x > 0) && (decalData.maskScaleBias.y > 0))
+				{
+					ApplyBlendMask(DBuffer2, DBuffer3, mask, sampleMask, DBUFFERHTILEBIT_MASK, albedoBlend, lodMask, decalData.normalToWorld[0][3], normalBlend, decalData.blendParams);
+				}
+
                 if ((decalData.normalScaleBias.x > 0) && (decalData.normalScaleBias.y > 0))
                 {
-                    ApplyBlendNormal(DBuffer1, mask, sampleNormal, DBUFFERHTILEBIT_NORMAL, (float3x3)decalData.normalToWorld, decalBlend, lodNormal);
-                }
-
-                if ((decalData.maskScaleBias.x > 0) && (decalData.maskScaleBias.y > 0))
-                {
-                    ApplyBlendMask(DBuffer2, mask, sampleMask, DBUFFERHTILEBIT_MASK, decalBlend, lodMask);
+                    ApplyBlendNormal(DBuffer1, mask, sampleNormal, DBUFFERHTILEBIT_NORMAL, (float3x3)decalData.normalToWorld, normalBlend, lodNormal);
                 }
             }
         }
@@ -163,8 +232,10 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
         }
         if(mask & DBUFFERHTILEBIT_MASK)
         {
-            surfaceData.metallic = surfaceData.metallic * decalSurfaceData.mask.w + decalSurfaceData.mask.x;
-            surfaceData.ambientOcclusion = surfaceData.ambientOcclusion * decalSurfaceData.mask.w + decalSurfaceData.mask.y;
+#ifdef _DECALS_4RT // only smoothness in 3RT mode
+            surfaceData.metallic = surfaceData.metallic * decalSurfaceData.MAOSBlend.x + decalSurfaceData.mask.x;
+			surfaceData.ambientOcclusion = surfaceData.ambientOcclusion * decalSurfaceData.MAOSBlend.y + decalSurfaceData.mask.y;
+#endif
             surfaceData.perceptualSmoothness = surfaceData.perceptualSmoothness * decalSurfaceData.mask.w + decalSurfaceData.mask.z;
         }
     }

@@ -435,6 +435,9 @@ Shader "HDRenderPipeline/LayeredLit"
     // enable dithering LOD crossfade
     #pragma multi_compile _ LOD_FADE_CROSSFADE
 
+	// decal 3RT or 4RT toggle
+	#pragma multi_compile _ _DECALS_4RT
+
     //enable GPU instancing support
     #pragma multi_compile_instancing
 

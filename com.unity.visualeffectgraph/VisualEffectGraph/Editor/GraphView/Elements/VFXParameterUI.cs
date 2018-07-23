@@ -140,12 +140,12 @@ namespace UnityEditor.VFX.UI
         {
             if (evt.target == this && controller != null)
             {
-                evt.menu.AppendAction("Convert to Inline", OnConvertToInline, e => ContextualMenu.MenuAction.StatusFlags.Normal);
+                evt.menu.AppendAction("Convert to Inline", OnConvertToInline, e => DropdownMenu.MenuAction.StatusFlags.Normal);
                 evt.menu.AppendSeparator();
             }
         }
 
-        void OnConvertToInline(ContextualMenu.MenuAction evt)
+        void OnConvertToInline(DropdownMenu.MenuAction evt)
         {
             controller.ConvertToInline();
         }
