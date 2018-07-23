@@ -1,6 +1,5 @@
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
-using UnityEditor.Experimental.Rendering.HDPipeline;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -32,7 +31,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         internal SerializedProperty multiplier;
 
         internal SerializedProperty proxyVolumeComponent;
-        
+
         internal SerializedInfluenceVolume influenceVolume;
 
         public SerializedHDReflectionProbe(SerializedObject so, SerializedObject addso)
@@ -62,10 +61,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             farClip = so.FindProperty("m_FarClip");
             boxProjection = so.FindProperty("m_BoxProjection");
             legacyBlendDistance = so.FindProperty("m_BlendDistance");
-            
+
             weight = addso.Find((HDAdditionalReflectionData d) => d.weight);
             multiplier = addso.Find((HDAdditionalReflectionData d) => d.multiplier);
-            
+
         }
 
         public void Update()
