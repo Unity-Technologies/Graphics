@@ -26,7 +26,7 @@ void ApplyBlendNormal(inout float4 dst, inout int matMask, float2 texCoords, int
 
 void ApplyBlendDiffuse(inout float4 dst, inout int matMask, float2 texCoords, float4 src, int mapMask, inout float blend, float lod, int diffuseTextureBound)
 {
-	if(diffuseTextureBound)
+	if (diffuseTextureBound)
 	{ 
 		src *= SAMPLE_TEXTURE2D_LOD(_DecalAtlas2D, _trilinear_clamp_sampler_DecalAtlas2D, texCoords, lod);
 	}
@@ -112,9 +112,8 @@ void ApplyBlendMask(inout float4 dbuffer2, inout float2 dbuffer3, inout int matM
 
 void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData, inout float alpha)
 {
-    if(_EnableDBuffer)
+    if (_EnableDecals)
     {
-        DecalSurfaceData decalSurfaceData;
         int mask = 0;
         // the code in the macros, gets moved inside the conditionals by the compiler
         FETCH_DBUFFER(DBuffer, _DBufferTexture, posInput.positionSS);
@@ -124,7 +123,7 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
         DBuffer0 = float4(0.0f, 0.0f, 0.0f, 1.0f);
         DBuffer1 = float4(0.5f, 0.5f, 0.5f, 1.0f);
         DBuffer2 = float4(0.0f, 0.0f, 0.0f, 1.0f);
-#ifdef _DECALS_4RT
+#ifdef DECALS_4RT
 		DBuffer3 = float2(1.0f, 1.0f);
 #else
 		float2 DBuffer3 = float2(1.0f, 1.0f);
@@ -219,20 +218,22 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
 #else
         mask = UnpackByte(LOAD_TEXTURE2D(_DecalHTileTexture, posInput.positionSS / 8).r);
 #endif
+        DecalSurfaceData decalSurfaceData;
         DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);
         // using alpha compositing https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
-        if(mask & DBUFFERHTILEBIT_DIFFUSE)
+        if (mask & DBUFFERHTILEBIT_DIFFUSE)
         {
             surfaceData.baseColor.xyz = surfaceData.baseColor.xyz * decalSurfaceData.baseColor.w + decalSurfaceData.baseColor.xyz;
         }
 
-        if(mask & DBUFFERHTILEBIT_NORMAL)
+        if (mask & DBUFFERHTILEBIT_NORMAL)
         {
             surfaceData.normalWS.xyz = normalize(surfaceData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
         }
-        if(mask & DBUFFERHTILEBIT_MASK)
+
+        if (mask & DBUFFERHTILEBIT_MASK)
         {
-#ifdef _DECALS_4RT // only smoothness in 3RT mode
+#ifdef DECALS_4RT // only smoothness in 3RT mode
             surfaceData.metallic = surfaceData.metallic * decalSurfaceData.MAOSBlend.x + decalSurfaceData.mask.x;
 			surfaceData.ambientOcclusion = surfaceData.ambientOcclusion * decalSurfaceData.MAOSBlend.y + decalSurfaceData.mask.y;
 #endif

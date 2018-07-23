@@ -210,6 +210,7 @@ Material:
     - _Glossiness: 0.5
     - _GlossinessSource: 0
     - _GlossyReflections: 1
+    - _HdrpVersion: 2
     - _HeightAmplitude: 0.01
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 1
@@ -264,7 +265,7 @@ Material:
     - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
-    - _SupportDBuffer: 1
+    - _SupportDecals: 1
     - _SurfaceType: 0
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
