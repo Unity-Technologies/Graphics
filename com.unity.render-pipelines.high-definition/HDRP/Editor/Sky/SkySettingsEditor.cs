@@ -24,6 +24,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         SerializedDataParameter m_EnvUpdatePeriod;
         SerializedDataParameter m_IncludeSunInBaking;
 
+        protected uint m_CommonUIElementsMask = 0xFFFFFFFF;
+
         public override void OnEnable()
         {
             var o = new PropertyFetcher<SkySettings>(serializedObject);
@@ -37,16 +39,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         }
 
-        protected void CommonSkySettingsGUI(uint uiElementMask = 0xFFFFFFFF)
+        protected void CommonSkySettingsGUI()
         {
-            if ((uiElementMask & (uint)SkySettingsUIElement.Exposure) != 0)
+            if ((m_CommonUIElementsMask & (uint)SkySettingsUIElement.Exposure) != 0)
                 PropertyField(m_SkyExposure);
-            if ((uiElementMask & (uint)SkySettingsUIElement.Multiplier) != 0)
+            if ((m_CommonUIElementsMask & (uint)SkySettingsUIElement.Multiplier) != 0)
                 PropertyField(m_SkyMultiplier);
-            if ((uiElementMask & (uint)SkySettingsUIElement.Rotation) != 0)
+            if ((m_CommonUIElementsMask & (uint)SkySettingsUIElement.Rotation) != 0)
                 PropertyField(m_SkyRotation);
 
-            if ((uiElementMask & (uint)SkySettingsUIElement.UpdateMode) != 0)
+            if ((m_CommonUIElementsMask & (uint)SkySettingsUIElement.UpdateMode) != 0)
             {
                 PropertyField(m_EnvUpdateMode);
                 if (!m_EnvUpdateMode.value.hasMultipleDifferentValues && m_EnvUpdateMode.value.intValue == (int)EnvironementUpdateMode.Realtime)
@@ -56,7 +58,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     EditorGUI.indentLevel--;
                 }
             }
-            if ((uiElementMask & (uint)SkySettingsUIElement.IncludeSunInBaking) != 0)
+            if ((m_CommonUIElementsMask & (uint)SkySettingsUIElement.IncludeSunInBaking) != 0)
                 PropertyField(m_IncludeSunInBaking);
         }
     }
