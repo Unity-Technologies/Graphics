@@ -1,19 +1,22 @@
 using UnityEngine.Serialization;
 using UnityEngine.Experimental.Rendering.HDPipeline;
+using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering
 {
-    [RequireComponent(typeof(ReflectionProbe), typeof(MeshFilter), typeof(MeshRenderer))]
-    public class HDAdditionalReflectionData : MonoBehaviour
+    [RequireComponent(typeof(ReflectionProbe))]
+    public class HDAdditionalReflectionData : HDProbe, ISerializationCallbackReceiver
     {
         [HideInInspector]
-        public float version = 1.0f;
+        const int currentVersion = 2;
+
+        [SerializeField, FormerlySerializedAs("version")]
+        int m_Version;
+
+        ReflectionProbe m_LegacyProbe;
+        ReflectionProbe legacyProbe { get { return m_LegacyProbe ?? (m_LegacyProbe = GetComponent<ReflectionProbe>()); } }
 
         public ShapeType influenceShape;
-        [FormerlySerializedAsAttribute("dimmer")]
-        public float multiplier = 1.0f;
-        [Range(0.0f, 1.0f)]
-        public float weight = 1.0f;
         public float influenceSphereRadius = 3.0f;
         public float sphereReprojectionVolumeRadius = 1.0f;
         public bool useSeparateProjectionVolume = false;
@@ -38,7 +41,7 @@ namespace UnityEngine.Experimental.Rendering
         [SerializeField] private float editorSimplifiedModeBlendNormalDistance;
         [SerializeField] private bool editorAdvancedModeEnabled;
 
-        public ReflectionProxyVolumeComponent proxyVolumeComponent;
+        bool needMigrateToHDProbeChild = false;
 
         public Vector3 boxBlendCenterOffset { get { return (blendDistanceNegative - blendDistancePositive) * 0.5f; } }
         public Vector3 boxBlendSizeOffset { get { return -(blendDistancePositive + blendDistanceNegative); } }
@@ -48,5 +51,57 @@ namespace UnityEngine.Experimental.Rendering
 
         public float sphereBlendRadiusOffset { get { return -blendDistancePositive.x; } }
         public float sphereBlendNormalRadiusOffset { get { return -blendNormalDistancePositive.x; } }
+
+        public void OnBeforeSerialize()
+        {
+        }
+
+        public void OnAfterDeserialize()
+        {
+            if (m_Version != currentVersion)
+            {
+                // Add here data migration code
+                if (m_Version < 2)
+                {
+                    needMigrateToHDProbeChild = true;
+                }
+                else
+                {
+                    m_Version = currentVersion;
+                }
+            }
+        }
+
+        private void OnEnable()
+        {
+            if (needMigrateToHDProbeChild)
+                MigrateToHDProbeChild();
+        }
+
+        void MigrateToHDProbeChild()
+        {
+            mode = legacyProbe.mode;
+            refreshMode = legacyProbe.refreshMode;
+            m_Version = 2;
+            OnAfterDeserialize();   //continue migrating if needed
+        }
+
+        public override ReflectionProbeMode mode
+        {
+            set
+            {
+                base.mode = value;
+                legacyProbe.mode = value; //ensure compatibility till we capture without the legacy component
+            }
+        }
+
+        public override ReflectionProbeRefreshMode refreshMode
+        {
+            set
+            {
+                base.refreshMode = value;
+                legacyProbe.refreshMode = value; //ensure compatibility till we capture without the legacy component
+            }
+        }
     }
 }

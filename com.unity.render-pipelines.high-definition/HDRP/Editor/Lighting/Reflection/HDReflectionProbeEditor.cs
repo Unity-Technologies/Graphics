@@ -6,7 +6,7 @@ using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     [CustomEditorForRenderPipeline(typeof(ReflectionProbe), typeof(HDRenderPipelineAsset))]
     [CanEditMultipleObjects]
@@ -22,8 +22,6 @@ namespace UnityEditor.Experimental.Rendering
             Undo.SetCurrentGroupName("Remove HD Reflection Probe");
             Undo.DestroyObjectImmediate(go.GetComponent<ReflectionProbe>());
             Undo.DestroyObjectImmediate(go.GetComponent<HDAdditionalReflectionData>());
-            Undo.DestroyObjectImmediate(go.GetComponent<MeshRenderer>());
-            Undo.DestroyObjectImmediate(go.GetComponent<MeshFilter>());
         }
 
         static Dictionary<ReflectionProbe, HDReflectionProbeEditor> s_ReflectionProbeEditors = new Dictionary<ReflectionProbe, HDReflectionProbeEditor>();
@@ -68,13 +66,8 @@ namespace UnityEditor.Experimental.Rendering
             }
 
             InitializeAllTargetProbes();
-            ChangeVisibilityOfAllTargets(true);
         }
 
-        void OnDisable()
-        {
-            ChangeVisibilityOfAllTargets(false);
-        }
 
         public override void OnInspectorGUI()
         {
@@ -113,15 +106,8 @@ namespace UnityEditor.Experimental.Rendering
             var flags = visible ? HideFlags.None : HideFlags.HideInInspector;
             for (var i = 0; i < targets.Length; ++i)
             {
-                var target = targets[i];
                 var addData = adds[i];
-                var p = (ReflectionProbe)target;
-                var meshRenderer = p.GetComponent<MeshRenderer>();
-                var meshFilter = p.GetComponent<MeshFilter>();
-
                 addData.hideFlags = flags;
-                meshRenderer.hideFlags = flags;
-                meshFilter.hideFlags = flags;
             }
         }
 

@@ -12,8 +12,7 @@ MonoBehaviour:
   m_Name: HDRP_Test_Def_DepthPrepass
   m_EditorClassIdentifier: 
   version: 1
-  m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7,
-    type: 2}
+  m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7, type: 2}
   m_FrameSettings:
     enableShadow: 1
     enableContactShadows: 1
@@ -22,7 +21,7 @@ MonoBehaviour:
     enableSubsurfaceScattering: 1
     enableTransmission: 1
     enableAtmosphericScattering: 1
-    enableVolumetric: 1
+    enableVolumetrics: 1
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
     enableForwardRenderingOnly: 0
@@ -55,9 +54,11 @@ MonoBehaviour:
     supportSSAO: 1
     supportSubsurfaceScattering: 1
     supportOnlyForward: 0
-    enableUltraQualitySSS: 0
-    supportVolumetric: 1
+    increaseSssSampleCount: 0
+    supportVolumetrics: 1
+    increaseResolutionOfVolumetrics: 0
     supportRuntimeDebugDisplay: 0
+    supportDitheringCrossFade: 1
     supportDBuffer: 1
     supportMSAA: 0
     msaaSampleCount: 1
@@ -81,10 +82,13 @@ MonoBehaviour:
     shadowInitParams:
       shadowAtlasWidth: 4096
       shadowAtlasHeight: 4096
+      maxPointLightShadows: 6
+      maxSpotLightShadows: 12
+      maxDirectionalLightShadows: 1
     decalSettings:
       drawDistance: 1000
       atlasWidth: 4096
       atlasHeight: 4096
+      perChannelMask: 1
   allowShaderVariantStripping: 1
-  diffusionProfileSettings: {fileID: 11400000, guid: 802c802428a2d9640a87e821dfcdd9e8,
-    type: 2}
+  diffusionProfileSettings: {fileID: 11400000, guid: 802c802428a2d9640a87e821dfcdd9e8, type: 2}

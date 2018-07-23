@@ -4,7 +4,9 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [3.0.1-preview]
+
+## [3.0.0-preview]
 ### Added
 - Added camera additional data component to control shadows, depth and color texture.
 - pipeline now uses XRSEttings.eyeTextureResolutionScale as renderScale when in XR.
@@ -15,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Removed 7x7 tent filtering when using cascades.
 - Screenspace shadow resolve is now only done when rendering shadow cascades.
 - Updated the UI for the Lighweight pipeline asset.
+- Update assembly definitions to output assemblies that match Unity naming convention (Unity.*).
 
 ### Fixed
 - Post-processing now works with VR on PC.

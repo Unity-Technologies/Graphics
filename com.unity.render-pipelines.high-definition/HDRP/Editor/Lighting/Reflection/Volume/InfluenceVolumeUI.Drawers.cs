@@ -154,13 +154,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var maxFaceDistance = d.sphereBaseRadius.floatValue;
 
             EditorGUILayout.PropertyField(d.sphereBaseRadius, _.GetContent("Radius"));
-            //EditorGUILayout.PropertyField(d.sphereBaseOffset, _.GetContent("Offset"));
             d.sphereBaseOffset.vector3Value = Vector3.zero;
 
             EditorGUILayout.Space();
 
-            EditorGUILayout.Slider(d.sphereInfluenceFade, 0, maxFaceDistance, _.GetContent("Influence Fade"));
-            EditorGUILayout.Slider(d.sphereInfluenceNormalFade, 0, maxFaceDistance, _.GetContent("Influence Normal Fade"));
+            EditorGUILayout.Slider(d.sphereInfluenceFade, 0, maxFaceDistance, _.GetContent("Blend Distance"));
         }
     }
 }
