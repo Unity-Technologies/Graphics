@@ -308,6 +308,7 @@ $SurfaceDescription.Emission:     builtinData.emissiveColor =             surfac
 
         builtinData.distortion =                float2(0.0, 0.0);           // surfaceDescription.Distortion -- if distortion pass
         builtinData.distortionBlur =            0.0;                        // surfaceDescription.DistortionBlur -- if distortion pass
+        builtinData.renderingLayers =           0.0;
         builtinData.depthOffset =               0.0;                        // ApplyPerPixelDisplacement(input, V, layerTexCoord, blendMasks); #ifdef _DEPTHOFFSET_ON : ApplyDepthOffsetPositionInput(V, depthOffset, GetWorldToHClipMatrix(), posInput);
     }
 

@@ -437,6 +437,7 @@ Shader "HDRenderPipeline/LayeredLit"
 
     //enable GPU instancing support
     #pragma multi_compile_instancing
+    #pragma instancing_options renderinglayer
 
     //-------------------------------------------------------------------------------------
     // Define
@@ -548,6 +549,7 @@ Shader "HDRenderPipeline/LayeredLit"
             #pragma multi_compile _ SHADOWS_SHADOWMASK
             // Setup DECALS_OFF so the shader stripper can remove variants
             #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
+            #pragma multi_compile _ LIGHT_LAYERS
 
         #ifdef _ALPHATEST_ON
             // When we have alpha test, we will force a depth prepass so we always bypass the clip instruction in the GBuffer

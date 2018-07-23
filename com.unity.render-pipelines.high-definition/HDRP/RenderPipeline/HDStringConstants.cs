@@ -314,6 +314,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public static readonly int _VelocityTexture = Shader.PropertyToID("_VelocityTexture");
         public static readonly int _ShadowMaskTexture = Shader.PropertyToID("_ShadowMaskTexture");
+        public static readonly int _LightLayersTexture = Shader.PropertyToID("_LightLayersTexture");
         public static readonly int _DistortionTexture = Shader.PropertyToID("_DistortionTexture");
         public static readonly int _ColorPyramidTexture = Shader.PropertyToID("_ColorPyramidTexture");
         public static readonly int _DepthPyramidTexture = Shader.PropertyToID("_DepthPyramidTexture");
@@ -397,6 +398,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _NumVisibleDensityVolumes       = Shader.PropertyToID("_NumVisibleDensityVolumes");
         public static readonly int _VolumeMaskAtlas                = Shader.PropertyToID("_VolumeMaskAtlas");
         public static readonly int _VolumeMaskDimensions           = Shader.PropertyToID("_VolumeMaskDimensions");
+        
+        public static readonly int _EnableLightLayers                = Shader.PropertyToID("_EnableLightLayers");
 
         // Preintegrated texture name
         public static readonly int _PreIntegratedFGD_GGXDisneyDiffuse = Shader.PropertyToID("_PreIntegratedFGD_GGXDisneyDiffuse");

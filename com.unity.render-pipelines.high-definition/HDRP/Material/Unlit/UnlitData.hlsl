@@ -41,6 +41,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     builtinData.distortionBlur = 0.0;
 #endif
 
+    builtinData.renderingLayers = 0;
+
     builtinData.depthOffset = 0.0;
 
 #if defined(DEBUG_DISPLAY)
