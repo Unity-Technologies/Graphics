@@ -153,7 +153,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_BakingSky.skySettings = SkyManager.GetBakingSkySettings();
 
             // Update needs to happen before testing if the component is active other internal data structure are not properly updated yet.
-            VolumeManager.instance.Update(m_LightingOverrideVolumeStack, hdCamera.camera.transform, m_LightingOverrideLayerMask);
+            VolumeManager.instance.Update(m_LightingOverrideVolumeStack, hdCamera.volumeAnchor, m_LightingOverrideLayerMask);
             if (VolumeManager.instance.IsComponentActiveInMask<VisualEnvironment>(m_LightingOverrideLayerMask))
             {
                 SkySettings newSkyOverride = GetSkySetting(m_LightingOverrideVolumeStack);

@@ -26,10 +26,6 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
             #include "../Debug/DebugDisplay.hlsl"
             #include "../Material/Material.hlsl"
 
-            #ifdef SHADOWS_SHADOWMASK
-            TEXTURE2D(_ShadowMaskTexture);
-            #endif
-
             struct Attributes
             {
                 uint vertexID : SV_VertexID;
@@ -54,11 +50,8 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
                 PositionInputs posInput = GetPositionInput(input.positionCS.xy, _ScreenSize.zw, depth, UNITY_MATRIX_I_VP, UNITY_MATRIX_V);
 
                 BSDFData bsdfData;
-                BakeLightingData bakeLightingData;
-                DECODE_FROM_GBUFFER(posInput.positionSS, UINT_MAX, bsdfData, bakeLightingData.bakeDiffuseLighting);
-                #ifdef SHADOWS_SHADOWMASK
-                DecodeShadowMask(LOAD_TEXTURE2D(_ShadowMaskTexture, posInput.positionSS), bakeLightingData.bakeShadowMask);
-                #endif
+                BuiltinData builtinData;
+                DECODE_FROM_GBUFFER(posInput.positionSS, UINT_MAX, bsdfData, builtinData);
 
                 // Init to not expected value
                 float3 result = float3(-666.0, 0.0, 0.0);
@@ -72,26 +65,26 @@ Shader "Hidden/HDRenderPipeline/DebugViewMaterialGBuffer"
                 // Caution: This value is not the same than the builtin data bakeDiffuseLighting. It also include emissive and multiply by the albedo
                 else if (_DebugViewMaterial == DEBUGVIEWGBUFFER_BAKE_DIFFUSE_LIGHTING_WITH_ALBEDO_PLUS_EMISSIVE)
                 {
-                    result = bakeLightingData.bakeDiffuseLighting;;
+                    result = builtinData.bakeDiffuseLighting;;
                     result *= exp2(_DebugExposure);
                     needLinearToSRGB = true;
                 }
                 #ifdef SHADOWS_SHADOWMASK
                 else if (_DebugViewMaterial == DEBUGVIEWGBUFFER_BAKE_SHADOW_MASK0)
                 {
-                    result = bakeLightingData.bakeShadowMask.xxx;
+                    result = builtinData.shadowMask0.xxx;
                 }
                 else if (_DebugViewMaterial == DEBUGVIEWGBUFFER_BAKE_SHADOW_MASK1)
                 {
-                    result = bakeLightingData.bakeShadowMask.yyy;
+                    result = builtinData.shadowMask1.xxx;
                 }
                 else if (_DebugViewMaterial == DEBUGVIEWGBUFFER_BAKE_SHADOW_MASK2)
                 {
-                    result = bakeLightingData.bakeShadowMask.zzz;
+                    result = builtinData.shadowMask2.xxx;
                 }
                 else if (_DebugViewMaterial == DEBUGVIEWGBUFFER_BAKE_SHADOW_MASK3)
                 {
-                    result = bakeLightingData.bakeShadowMask.www;
+                    result = builtinData.shadowMask3.xxx;
                 }
                 #endif
 
