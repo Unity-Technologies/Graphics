@@ -48,34 +48,34 @@ Shader "Hidden/HDRenderPipeline/IntegrateHDRI"
             }
             
 
-real IntegrateHDRISky(TEXTURECUBE_ARGS(skybox, sampler_skybox), real3 N, uint sampleCount = 8192)
-{
-    real acc      = 0.0;
+            real IntegrateHDRISky(TEXTURECUBE_ARGS(skybox, sampler_skybox), real3 N, uint sampleCount = 8192)
+            {
+                real acc      = 0.0;
 
-    // Add some jittering on Hammersley2d
-    real2 randNum  = InitRandom(0.5);
+                // Add some jittering on Hammersley2d
+                real2 randNum  = InitRandom(0.5);
 
-    real3x3 localToWorld = GetLocalFrame(N);
+                real3x3 localToWorld = GetLocalFrame(N);
 
-    for (uint i = 0; i < sampleCount; ++i)
-    {
-        real2 u = frac(randNum + Hammersley2d(i, sampleCount));
+                for (uint i = 0; i < sampleCount; ++i)
+                {
+                    real2 u = frac(randNum + Hammersley2d(i, sampleCount));
 
-        real NdotL;
-        real weightOverPdf;
-        real3 L;
-        
-        ImportanceSampleLambert(u, localToWorld, L, NdotL, weightOverPdf);
-        real val = Luminance(SAMPLE_TEXTURECUBE_LOD(skybox, sampler_skybox, L, 0).rgb);
-        acc += NdotL * val;
-    }
+                    real NdotL;
+                    real weightOverPdf;
+                    real3 L;
+                    
+                    ImportanceSampleLambert(u, localToWorld, L, NdotL, weightOverPdf);
+                    real val = Luminance(SAMPLE_TEXTURECUBE_LOD(skybox, sampler_skybox, L, 0).rgb);
+                    acc += PI * val;
+                }
 
-    return acc / sampleCount;
-}
+                return acc / sampleCount;
+            }
 
             float4 Frag(Varyings input) : SV_Target
             {
-                float3 N = float3(0.0, 0.0, 1.0);
+                float3 N = float3(0.0, -1.0, 0.0);
 
                 float intensity = IntegrateHDRISky(TEXTURECUBE_PARAM(_Cubemap, s_trilinear_clamp_sampler), N);
 
