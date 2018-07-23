@@ -7,6 +7,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     [Serializable]
     public class InfluenceVolume
     {
+        internal event Action<Vector3, Vector3> OnSizeChanged;
+
         [SerializeField, FormerlySerializedAs("m_ShapeType")]
         Shape m_Shape = Shape.Box;
         [SerializeField, FormerlySerializedAs("m_BoxBaseOffset")]
@@ -16,7 +18,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Box
         [SerializeField, FormerlySerializedAs("m_BoxBaseSize")]
-        Vector3 m_BoxSize = Vector3.one;
+        Vector3 m_BoxSize = Vector3.one * 10;
         [SerializeField, FormerlySerializedAs("m_BoxInfluencePositiveFade")]
         Vector3 m_BoxBlendDistancePositive;
         [SerializeField, FormerlySerializedAs("m_BoxInfluenceNegativeFade")]
@@ -62,7 +64,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector3 offset { get { return m_Offset; } set { m_Offset = value; } }
 
         /// <summary>Size of the InfluenceVolume in Box Mode.</summary>
-        public Vector3 boxSize { get { return m_BoxSize; } set { m_BoxSize = value; } }
+        public Vector3 boxSize
+        {
+            get { return m_BoxSize; }
+            set
+            {
+                m_BoxSize = value;
+                if (OnSizeChanged != null)
+                {
+                    OnSizeChanged.Invoke(m_BoxSize, offset);
+                }
+            }
+        }
 
         /// <summary>Offset of sub volume defining fading.</summary>
         public Vector3 boxBlendOffset { get { return (boxBlendDistanceNegative - boxBlendDistancePositive) * 0.5f; } }
@@ -101,7 +114,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
 
         /// <summary>Radius of the InfluenceVolume in Sphere Mode.</summary>
-        public float sphereRadius { get { return m_SphereRadius; } set { m_SphereRadius = value; } }
+        public float sphereRadius
+        {
+            get { return m_SphereRadius; }
+            set
+            {
+                m_SphereRadius = value;
+                if (OnSizeChanged != null)
+                {
+                    OnSizeChanged.Invoke(Vector3.one * m_SphereRadius, offset);
+                }
+            }
+        }
         /// <summary>
         /// Offset of the fade sub volume from InfluenceVolume hull.
         /// Value between 0 (on InfluenceVolume hull) and sphereRadius (fade sub volume reduced to a point).
