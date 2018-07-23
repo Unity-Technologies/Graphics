@@ -2,6 +2,9 @@ Shader "HDRenderPipeline/Decal"
 {
     Properties
     {
+        // Versioning of material to help for upgrading
+        [HideInInspector] _HdrpVersion("_HdrpVersion", Float) = 2
+
 		_BaseColor("_BaseColor", Color) = (1,1,1,1)
         _BaseColorMap("BaseColorMap", 2D) = "white" {}
         _NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
@@ -15,6 +18,7 @@ Shader "HDRenderPipeline/Decal"
 		[ToggleUI] _MaskmapAO("_MaskmapAO", Range(0.0, 1.0)) = 0.0
 		[ToggleUI] _MaskmapSmoothness("_MaskmapSmoothness", Range(0.0, 1.0)) = 1.0
 		[HideInInspector] _DecalMeshDepthBias("_DecalMeshDepthBias", Float) = 0.0 
+		[HideInInspector] _DrawOrder("_DrawOrder", Int) = 0
     }
 
     HLSLINCLUDE
@@ -35,7 +39,8 @@ Shader "HDRenderPipeline/Decal"
 	#pragma shader_feature _MASK_BLEND_SRC_B
 
     #pragma multi_compile_instancing
-	#pragma multi_compile _ _DECALS_4RT
+    // No need to teset for DECALS_3RT we are in decal shader, so there is no OFF state
+	#pragma multi_compile _ DECALS_4RT
     //-------------------------------------------------------------------------------------
     // Define
     //-------------------------------------------------------------------------------------
@@ -214,6 +219,7 @@ Shader "HDRenderPipeline/Decal"
 			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
 		
 			ColorMask BA 2	// smoothness/smoothness alpha
+            ColorMask 0 3   // Caution: We need to setup the mask to 0 in case perChannelMAsk is enabled as 4 RT are bind
 		
 			HLSLPROGRAM
 
@@ -414,6 +420,7 @@ Shader "HDRenderPipeline/Decal"
 			Blend 2 SrcAlpha OneMinusSrcAlpha, Zero OneMinusSrcAlpha
 
 			ColorMask BA 2	// smoothness/smoothness alpha
+            ColorMask 0 3   // Caution: We need to setup the mask to 0 in case perChannelMAsk is enabled as 4 RT are bind
 
 			HLSLPROGRAM
 
