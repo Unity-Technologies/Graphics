@@ -13,6 +13,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ReflectionProbe m_LegacyProbe;
         ReflectionProbe legacyProbe { get { return m_LegacyProbe ?? (m_LegacyProbe = GetComponent<ReflectionProbe>()); } }
 
+#pragma warning disable 649 //never assigned
         //data only kept for migration, to be removed in future version
         [SerializeField, System.Obsolete("influenceShape is deprecated, use influenceVolume parameters instead")]
         Shape influenceShape;
@@ -30,6 +31,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Vector3 boxSideFadePositive = Vector3.one;
         [SerializeField, System.Obsolete("boxSideFadeNegative is deprecated, use influenceVolume parameters instead")]
         Vector3 boxSideFadeNegative = Vector3.one;
+#pragma warning restore 649 //never assigned
 
         bool needMigrateToHDProbeChild = false;
 
