@@ -224,27 +224,26 @@ float GetKeyWithCheck(uint index)
 void MERGE_PASS(uint3 groupId           : SV_GroupID,
                 uint3 groupThreadId     : SV_GroupThreadID)
 {
-    uint3 id = (uint3)0;
-    id.x = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP_MERGE_PASS + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP_MERGE_PASS;
+    uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP_MERGE_PASS + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP_MERGE_PASS;
 
-    if (id.x >= GetElementCount())
+    if (id >= GetElementCount())
         return;
 
     const int arraySize = subArraySize << 1;
-    const int arrayStart = arraySize * (id.x / arraySize);
+    const int arrayStart = arraySize * (id / arraySize);
 
     // If the current array considered is less than one half filled (due to element count), we can copy it directly as it is already sorted
     if (GetElementCount() - (uint)arrayStart <= subArraySize)
     {
 #if FINAL_PASS
-        sortedSequence[id.x] = inputSequence[id.x].value;
+        sortedSequence[id] = inputSequence[id].value;
 #else
-        sortedSequence[id.x] = inputSequence[id.x];
+        sortedSequence[id] = inputSequence[id];
 #endif
         return;
     }
 
-    const int arrayIndex = id.x - arrayStart;
+    const int arrayIndex = id - arrayStart;
     const int lastIndex = subArraySize - 1;
 
     // determine initial frame of the window
@@ -302,11 +301,11 @@ void MERGE_PASS(uint3 groupId           : SV_GroupID,
     uint value = inputSequence[(select0 ? index0 : index1)].value;
 
 #if FINAL_PASS
-    sortedSequence[id.x] = value;
+    sortedSequence[id] = value;
 #else
     float key = select0 ? key0 : key1;
     KVP kvp = { key, value };
-    sortedSequence[id.x] = kvp;
+    sortedSequence[id] = kvp;
 #endif
 
 }

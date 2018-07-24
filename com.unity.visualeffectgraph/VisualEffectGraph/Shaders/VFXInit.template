@@ -34,11 +34,9 @@ ${VFXGeneratedBlockFunction}
 void CSMain(uint3 groupId          : SV_GroupID,
             uint3 groupThreadId    : SV_GroupThreadID)
 {
-    uint id = 0;
-#if VFX_USE_SPAWNER_FROM_GPU
-    id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP;
-#else
-    id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
+    uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP;
+#if !VFX_USE_SPAWNER_FROM_GPU
+    id += groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
 #endif
 
 #if VFX_USE_SPAWNER_FROM_GPU
