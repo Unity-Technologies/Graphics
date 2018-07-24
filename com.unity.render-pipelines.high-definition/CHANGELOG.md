@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added the possibility to add an override transform on the camera for volume interpolation
 - Added desired lux intensity and auto multiplier for HDRI sky
 - Added gradient sky
+- Split EmissiveColor and bakeDiffuseLighting in forward avoiding the emissiveColor to be affect by SSAO
 
 ### Fixed
 - Fixed an issue with PreIntegratedFGD texture being sometimes destroyed and not regenerated causing rendering to break

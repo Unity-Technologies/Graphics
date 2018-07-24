@@ -100,7 +100,7 @@ void GetScreenSpaceAmbientOcclusionMultibounce(float2 positionSS, float NdotV, f
 void ApplyAmbientOcclusionFactor(AmbientOcclusionFactor aoFactor, inout BuiltinData builtinData, inout AggregateLighting lighting)
 {
     // Note: in case of deferred Lit, builtinData.bakeDiffuseLighting contain indirect diffuse + emissive,
-    // so Ambient occlusion is multiply by emissive which is wrong but not a big deal
+    // so Ambient occlusion is multiply by emissive which is incorrect but we accept the tradeoff
     builtinData.bakeDiffuseLighting *= aoFactor.indirectAmbientOcclusion;
     lighting.indirect.specularReflected *= aoFactor.indirectSpecularOcclusion;
     lighting.direct.diffuse *= aoFactor.directAmbientOcclusion;
@@ -118,6 +118,7 @@ void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BuiltinData
         switch (_DebugLightingMode)
         {
         case DEBUGLIGHTINGMODE_LUX_METER:
+            // Note: We don't include emissive here (and in deferred it is correct as lux calculation of bakeDiffuseLighting don't consider emissive)
             diffuseLighting = lighting.direct.diffuse + builtinData.bakeDiffuseLighting;
 
             //Compress lighting values for color picker if enabled
