@@ -37,31 +37,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
         
-        public override void UpdateSky(BuiltinSkyParameters builtinParams)
-        {
-            using (new ProfilingSample(builtinParams.commandBuffer, "Get hdri skybox intensity"))
-            {
-                // if (m_HdriSkyParams.updateHDRISkyIntensity)
-            }
-        }
-
         public override void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
         {
-            float lux = (m_HdriSkyParams.skyIntensityMode == SkyIntensityMode.Lux) ? m_HdriSkyParams.lux.value : 1;
-            float multiplier = (m_HdriSkyParams.skyIntensityMode == SkyIntensityMode.Exposure) ? m_HdriSkyParams.multiplier.value : 1;
+            float luxMultiplier = m_HdriSkyParams.desiredLuxValue.value / m_HdriSkyParams.upperHemisphereLuxValue.value;
+            float multiplier = (m_HdriSkyParams.skyIntensityMode == SkyIntensityMode.Exposure) ? m_HdriSkyParams.multiplier.value : luxMultiplier;
             float exposure = (m_HdriSkyParams.skyIntensityMode == SkyIntensityMode.Exposure) ? GetExposure(m_HdriSkyParams, builtinParams.debugSettings) : 0;
 
             m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Cubemap, m_HdriSkyParams.hdriSky);
-            m_SkyHDRIMaterial.SetVector(HDShaderIDs._SkyParam, new Vector4(exposure, multiplier, -m_HdriSkyParams.rotation, lux)); // -rotation to match Legacy...
+            m_SkyHDRIMaterial.SetVector(HDShaderIDs._SkyParam, new Vector4(exposure, multiplier, -m_HdriSkyParams.rotation, 0.0f)); // -rotation to match Legacy...
 
             using (new ProfilingSample(builtinParams.commandBuffer, "Draw sky"))
             {
-                // Bind a white texture if the intensity mode isn't lux so we sample an intensity of 1
-                // if (m_HdriSkyParams.skyIntensityMode == SkyIntensityMode.Lux)
-                    // m_SkyHDRIMaterial.SetTexture(HDShaderIDs._SkyIntensity, m_IntensityTexture);
-                // else
-                    m_SkyHDRIMaterial.SetTexture(HDShaderIDs._SkyIntensity, Texture2D.whiteTexture);
-    
                 // This matrix needs to be updated at the draw call frequency.
                 m_PropertyBlock.SetMatrix(HDShaderIDs._PixelCoordToViewDirWS, builtinParams.pixelCoordToViewDirMatrix);
     

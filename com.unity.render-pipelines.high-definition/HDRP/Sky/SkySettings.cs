@@ -62,8 +62,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public EnvUpdateParameter       updateMode = new EnvUpdateParameter(EnvironementUpdateMode.OnChanged);
         [Tooltip("If environment update is set to realtime, period in seconds at which it is updated (0.0 means every frame).")]
         public MinFloatParameter        updatePeriod = new MinFloatParameter(0.0f, 0.0f);
-        [HideInInspector]
-        public BoolParameter            updateHDRISkyIntensity = new BoolParameter(false);
         [Tooltip("If set to true, the sun disk will be used in baked lighting (ambient and reflection probes).")]
         public BoolParameter            includeSunInBaking = new BoolParameter(false);
 
@@ -79,7 +77,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 hash = hash * 23 + rotation.GetHashCode();
                 hash = hash * 23 + exposure.GetHashCode();
                 hash = hash * 23 + multiplier.GetHashCode();
-                hash = hash * 23 + lux.GetHashCode();
+                hash = hash * 23 + desiredLuxValue.GetHashCode();
 
                 // TODO: Fixme once we switch to .Net 4.6+
                 //>>>

@@ -15,9 +15,6 @@ Shader "Hidden/HDRenderPipeline/Sky/HDRISky"
     TEXTURECUBE(_Cubemap);
     SAMPLER(sampler_Cubemap);
 
-    TEXTURE2D(_SkyIntensity);
-    SAMPLER(sampler_SkyIntensity);
-
     float4   _SkyParam; // x exposure, y multiplier, z rotation, w lux
     float4x4 _PixelCoordToViewDirWS; // Actually just 3x3, but Unity can only set 4x4
 
@@ -53,8 +50,7 @@ Shader "Hidden/HDRenderPipeline/Sky/HDRISky"
         float3 rotDirY = float3(sinPhi, 0, cosPhi);
         dir = float3(dot(rotDirX, dir), dir.y, dot(rotDirY, dir));
 
-        float intensity = _SkyParam.w / SAMPLE_TEXTURE2D_LOD(_SkyIntensity, sampler_SkyIntensity, float2(0.5, 0.5), 0).x;
-        float3 skyColor = ClampToFloat16Max(SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb * exp2(_SkyParam.x) * _SkyParam.y * intensity);
+        float3 skyColor = ClampToFloat16Max(SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb * exp2(_SkyParam.x) * _SkyParam.y);
         return float4(skyColor, 1.0);
     }
 
