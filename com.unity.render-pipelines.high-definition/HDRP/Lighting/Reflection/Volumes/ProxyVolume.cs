@@ -21,10 +21,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField, Obsolete("Kept only for compatibility. Use m_Shape instead")]
         bool m_SphereInfiniteProjection = false;
 
+        /// <summary>The shape of the proxy</summary>
         public ShapeOrInfinite shape { get { return m_Shape; } private set { m_Shape = value; } }
 
+        /// <summary>The size of the proxy if it as a shape Box</summary>
         public Vector3 boxSize { get { return m_BoxSize; } set { m_BoxSize = value; } }
 
+        /// <summary>The radius of the proxy if it as a shape Sphere</summary>
         public float sphereRadius { get { return m_SphereRadius; } set { m_SphereRadius = value; } }
 
 
