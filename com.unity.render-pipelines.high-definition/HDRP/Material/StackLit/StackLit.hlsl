@@ -1827,7 +1827,7 @@ float3 GetBakedDiffuseLighting(SurfaceData surfaceData, BuiltinData builtinData,
 
     // Premultiply bake diffuse lighting information
     // preLightData.diffuseEnergy will be 1,1,1 if no vlayering or no VLAYERED_DIFFUSE_ENERGY_HACKED_TERM
-    return builtinData.bakeDiffuseLighting * preLightData.diffuseFGD * preLightData.diffuseEnergy * surfaceData.ambientOcclusion * bsdfData.diffuseColor;
+    return builtinData.bakeDiffuseLighting * preLightData.diffuseFGD * preLightData.diffuseEnergy * bsdfData.diffuseColor;
 }
 
 
