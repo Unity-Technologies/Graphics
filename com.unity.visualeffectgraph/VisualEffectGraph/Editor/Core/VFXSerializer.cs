@@ -283,6 +283,7 @@ namespace UnityEditor.VFX
                     sac.frames[i].value = curve.keys[i].value;
                     sac.frames[i].inTangent = curve.keys[i].inTangent;
                     sac.frames[i].outTangent = curve.keys[i].outTangent;
+                    sac.frames[i].tangentMode = 0; // Not used
                     sac.frames[i].leftTangentMode = AnimationUtility.GetKeyLeftTangentMode(curve, i);
                     sac.frames[i].rightTangentMode = AnimationUtility.GetKeyRightTangentMode(curve, i);
                     sac.frames[i].broken = AnimationUtility.GetKeyBroken(curve, i);

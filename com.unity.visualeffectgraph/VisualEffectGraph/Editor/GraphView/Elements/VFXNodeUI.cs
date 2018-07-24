@@ -152,7 +152,6 @@ namespace UnityEditor.VFX.UI
         }
 
         protected VisualElement m_SettingsDivider;
-        VisualElement           m_Content;
 
 
         public virtual bool hasSettingDivider
@@ -194,23 +193,6 @@ namespace UnityEditor.VFX.UI
                     }
                 }
 
-                if (m_SettingsDivider != null)
-                {
-                    if (hasSettings)
-                    {
-                        if (m_SettingsDivider.parent == null)
-                        {
-                            m_Content.Insert(0, m_SettingsDivider);
-                        }
-                    }
-                    else
-                    {
-                        if (m_SettingsDivider.parent != null)
-                        {
-                            m_SettingsDivider.RemoveFromHierarchy();
-                        }
-                    }
-                }
                 if (hasSettings)
                 {
                     settingsContainer.RemoveFromClassList("nosettings");
