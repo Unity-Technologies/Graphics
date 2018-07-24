@@ -17,6 +17,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         ProxyVolume m_ProxyVolume = new ProxyVolume();
 
+        /// <summary>Access to proxy volume parameters</summary>
         public ProxyVolume proxyVolume { get { return m_ProxyVolume; } }
 
         void ISerializationCallbackReceiver.OnBeforeSerialize()
