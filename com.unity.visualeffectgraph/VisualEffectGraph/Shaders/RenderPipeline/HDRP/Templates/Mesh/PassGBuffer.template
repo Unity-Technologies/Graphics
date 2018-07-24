@@ -1,0 +1,93 @@
+Pass
+{		
+	Tags { "LightMode"="GBuffer" }
+	
+	Stencil
+	{
+		WriteMask 7
+		Ref  2
+		Comp Always
+		Pass Replace
+	}	
+		
+	HLSLPROGRAM
+	#pragma target 4.5
+	
+	#define UNITY_MATERIAL_LIT
+	#define SHADERPASS SHADERPASS_GBUFFER
+	
+	${VFXInclude("Shaders/RenderPipeline/HDRP/VFXLitVaryings.template")}	
+	
+	struct ps_input
+	{
+		float4 pos : SV_POSITION;
+		
+		${VFXHDRPLitDeclareVaryings}
+		
+		float2 uv : TEXCOORD1;	
+		float3 normal : TEXCOORD2;
+		#if HDRP_USE_NORMAL_MAP
+		float4 tangent : TEXCOORD3;
+		#endif
+		#if USE_ALPHA_TEST
+		// x: alpha threshold
+		nointerpolation float builtInInterpolants : TEXCOORD4;
+		#endif
+	};
+	
+	struct ps_output
+	{
+		float4 color : SV_Target0;
+	};
+
+#define VFX_VARYING_PS_INPUTS ps_input
+#define VFX_VARYING_POSCS pos
+#define VFX_VARYING_COLOR color.rgb
+#define VFX_VARYING_ALPHA color.a
+#define VFX_VARYING_UV uv
+#define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x
+#define VFX_VARYING_NORMAL normal
+#if HDRP_USE_NORMAL_MAP
+#define VFX_VARYING_TANGENT tangent
+#endif
+
+				
+${VFXBegin:VFXVertexAdditionalProcess}
+${VFXHDRPLitFillVaryings}
+${VFXEnd}
+
+	${VFXInclude("Shaders/ParticleMeshes/Pass.template")}		
+	${VFXInclude("Shaders/RenderPipeline/HDRP/VFXLit.template")}	
+		
+	#pragma fragment frag
+	void frag(ps_input i, OUTPUT_GBUFFER(outGBuffer)
+#if USE_DOUBLE_SIDED
+	, bool frontFace : SV_IsFrontFace
+#endif
+	)
+	{
+		#if USE_DOUBLE_SIDED
+		const float faceMul = frontFace ? 1.0f : -1.0f;
+		#else
+		const float faceMul = 1.0f;
+		#endif
+		
+		float3 normalWS = normalize(i.normal * faceMul);
+		const VFXUVData uvData = GetUVData(i);
+		
+		#if HDRP_USE_NORMAL_MAP
+		float3 tangentWS = i.tangent;
+		float3 bitangentWS = cross(i.tangent,i.normal);
+		float3 n = SampleNormalMap(VFX_SAMPLER(normalMap),uvData);
+		float3x3 tbn = float3x3(tangentWS,bitangentWS,normalWS);
+		normalWS = normalize(lerp(normalWS,mul(n,tbn),i.materialProperties.z));
+		#endif
+
+		SurfaceData surfaceData;
+		float3 ambient;
+		VFXGetHDRPLitData(surfaceData,ambient,i,normalWS,uvData);
+		
+		ENCODE_INTO_GBUFFER(surfaceData, ambient, i.pos, outGBuffer);
+	}
+	ENDHLSL
+}

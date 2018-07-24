@@ -34,7 +34,6 @@ BuiltinData VFXGetBuiltinData(VFX_VARYING_PS_INPUTS i,const SurfaceData surfaceD
     #if HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR
     builtinData.emissiveColor *= i.emissiveColor;
     #endif
-    builtinData.emissiveIntensity = 1.0f;
     #endif
 
     return builtinData;
