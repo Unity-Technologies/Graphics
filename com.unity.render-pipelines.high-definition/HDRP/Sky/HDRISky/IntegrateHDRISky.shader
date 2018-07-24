@@ -4,6 +4,7 @@ Shader "Hidden/HDRenderPipeline/IntegrateHDRI"
     {
         [HideInInspector]
         _Cubemap ("", CUBE) = "white" {}
+        _InvOmegaP ("", Float) = 0
     }
 
     SubShader
@@ -18,6 +19,7 @@ Shader "Hidden/HDRenderPipeline/IntegrateHDRI"
             #pragma fragment Frag
             #pragma target 4.5
             #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+#pragma enable_d3d11_debug_symbols
 
             #include "CoreRP/ShaderLibrary/Common.hlsl"
             #include "CoreRP/ShaderLibrary/Color.hlsl"
@@ -36,6 +38,7 @@ Shader "Hidden/HDRenderPipeline/IntegrateHDRI"
             };
 
             TextureCube<float4> _Cubemap;
+            float _InvOmegaP;
 
             Varyings Vert(Attributes input)
             {
@@ -48,12 +51,12 @@ Shader "Hidden/HDRenderPipeline/IntegrateHDRI"
             }
             
 
-            real IntegrateHDRISky(TEXTURECUBE_ARGS(skybox, sampler_skybox), real3 N, uint sampleCount = 8192)
+            real IntegrateHDRISky(TEXTURECUBE_ARGS(skybox, sampler_skybox), real3 N, uint sampleCount = 4096)
             {
                 real acc      = 0.0;
 
                 // Add some jittering on Hammersley2d
-                real2 randNum  = InitRandom(0.5);
+                real2 randNum  = InitRandom(0.0);
 
                 real3x3 localToWorld = GetLocalFrame(N);
 
@@ -66,8 +69,17 @@ Shader "Hidden/HDRenderPipeline/IntegrateHDRI"
                     real3 L;
                     
                     ImportanceSampleLambert(u, localToWorld, L, NdotL, weightOverPdf);
-                    real val = Luminance(SAMPLE_TEXTURECUBE_LOD(skybox, sampler_skybox, L, 0).rgb);
-                    acc += PI * val;
+                    
+                    real pdf = NdotL / PI;
+                    real omegaS = rcp(sampleCount) * rcp(pdf);
+                    // _InvOmegaP = rcp(FOUR_PI / (6.0 * cubemapWidth * cubemapWidth));
+                    real mipLevel = 0.5 * log2(omegaS * _InvOmegaP);
+
+                    if (NdotL > 0.0)
+                    {
+                        real val = Luminance(SAMPLE_TEXTURECUBE_LOD(skybox, sampler_skybox, L, mipLevel).rgb);
+                        acc += PI * val;
+                    }
                 }
 
                 return acc / sampleCount;
@@ -75,7 +87,7 @@ Shader "Hidden/HDRenderPipeline/IntegrateHDRI"
 
             float4 Frag(Varyings input) : SV_Target
             {
-                float3 N = float3(0.0, -1.0, 0.0);
+                float3 N = float3(0.0, 1.0, 0.0);
 
                 float intensity = IntegrateHDRISky(TEXTURECUBE_PARAM(_Cubemap, s_trilinear_clamp_sampler), N);
 

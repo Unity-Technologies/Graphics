@@ -45,9 +45,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             using (new ProfilingSample(builtinParams.commandBuffer, "Get hdri skybox intensity"))
             {
-                if (m_HdriSkyParams.updateHDRISkyIntensity)
+                // if (m_HdriSkyParams.updateHDRISkyIntensity)
                 {
+                    float omegaP = (Mathf.PI * 4) / (6.0f * m_HdriSkyParams.hdriSky.value.width * m_HdriSkyParams.hdriSky.value.width);
                     m_IntegrateHDRISkyMaterial.SetTexture(HDShaderIDs._Cubemap, m_HdriSkyParams.hdriSky);
+                    m_IntegrateHDRISkyMaterial.SetFloat(HDShaderIDs._InvOmegaP, 1.0f / omegaP);
 
                     CoreUtils.SetRenderTarget(builtinParams.commandBuffer, m_IntensityTexture, ClearFlag.None);
                     CoreUtils.DrawFullScreen(builtinParams.commandBuffer, m_IntegrateHDRISkyMaterial);
