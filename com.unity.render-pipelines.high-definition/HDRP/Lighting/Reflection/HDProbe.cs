@@ -27,7 +27,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public ReflectionProxyVolumeComponent proxyVolume { get { return m_ProxyVolume; } }
 
         /// <summary>InfluenceVolume of the probe.</summary>
-        public InfluenceVolume influenceVolume { get { return m_InfluenceVolume; } private set { m_InfluenceVolume = value; } }
+        public InfluenceVolume influenceVolume
+        {
+            get
+            {
+                // We need to init influence volume with a probe. We can call a constructor with 'this' in this case,
+                // we can't do it in Awake (not call in editor) or on OnEnable either.
+                // So do a late init when trying to access it
+                if (m_InfluenceVolume == null)
+                    m_InfluenceVolume = new InfluenceVolume(this);
+                else if (!m_InfluenceVolume.IsInit())
+                {
+                    m_InfluenceVolume.Init(this);
+                }
+
+                return m_InfluenceVolume;
+            }
+
+            private set
+            {
+                m_InfluenceVolume = value;
+            }
+        }
 
         /// <summary>Multiplier factor of reflection (non PBR parameter).</summary>
         public float multiplier { get { return m_Multiplier; } }
@@ -47,14 +68,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get { return m_RefreshMode; }
             set { m_RefreshMode = value; }
-        }
-        
-        void Awake()
-        {
-            if (influenceVolume == null)
-                influenceVolume = new InfluenceVolume(this);
-            else
-                influenceVolume.Init(this);
         }
 
         void ISerializationCallbackReceiver.OnBeforeSerialize()
