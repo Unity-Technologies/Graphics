@@ -11,7 +11,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         HDRISky = 1,
         ProceduralSky = 2,
-        Gradient,
+        Gradient = 3,
     }
 
     // Keep this class first in the file. Otherwise it seems that the script type is not registered properly.
