@@ -6,7 +6,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class ProxyVolume
     {
         [SerializeField]
-        ShapeType m_ShapeType = ShapeType.Box;
+        Shape m_ShapeType = Shape.Box;
 
         // Box
         [SerializeField]
@@ -25,7 +25,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         bool m_SphereInfiniteProjection = false;
 
 
-        public ShapeType shapeType { get { return m_ShapeType; } }
+        public Shape shapeType { get { return m_ShapeType; } }
 
         public Vector3 boxSize { get { return m_BoxSize; } set { m_BoxSize = value; } }
         public Vector3 boxOffset { get { return m_BoxOffset; } set { m_BoxOffset = value; } }
@@ -41,8 +41,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 switch (shapeType)
                 {
-                    case ShapeType.Box: return m_BoxSize * 0.5f;
-                    case ShapeType.Sphere: return Vector3.one * m_SphereRadius;
+                    case Shape.Box: return m_BoxSize * 0.5f;
+                    case Shape.Sphere: return Vector3.one * m_SphereRadius;
                     default: return Vector3.one;
                 }
             }
@@ -52,8 +52,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get
             {
-                return shapeType == ShapeType.Box && boxInfiniteProjection
-                    || shapeType == ShapeType.Sphere && sphereInfiniteProjection;
+                return shapeType == Shape.Box && boxInfiniteProjection
+                    || shapeType == Shape.Sphere && sphereInfiniteProjection;
             }
         }
     }

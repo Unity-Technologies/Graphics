@@ -37,15 +37,5 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             size = b.size;
             return true;
         }
-
-        public static float CalculateSphereMaxBlendDistance(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor o)
-        {
-            return p.influenceSphereRadius.floatValue;
-        }
-
-        public static Vector3 CalculateBoxMaxBlendDistance(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor o)
-        {
-            return p.boxSize.vector3Value * 0.5f;
-        }
     }
 }
