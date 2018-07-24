@@ -279,11 +279,11 @@ namespace UnityEditor.VFX
         }
 
 
-        private static Dictionary<VFXExpression, VFXExpression> s_CacheOfExpressions = new Dictionary<VFXExpression, VFXExpression>();
+        private static Dictionary<VFXExpression, VFXExpression> s_ExpressionCache = new Dictionary<VFXExpression, VFXExpression>();
 
-        public static void ClearCacheOfExpressions()
+        public static void ClearCache()
         {
-            s_CacheOfExpressions.Clear();
+            s_ExpressionCache.Clear();
         }
 
         //Ideally, we should use HashSet<T>.TryGetValue https://msdn.microsoft.com/en-us/library/mt829070(v=vs.110).aspx
@@ -293,9 +293,9 @@ namespace UnityEditor.VFX
             for (int i = 0; i < m_Parents.Length; ++i)
             {
                 VFXExpression parentEq;
-                if (!s_CacheOfExpressions.TryGetValue(parents[i], out parentEq))
+                if (!s_ExpressionCache.TryGetValue(parents[i], out parentEq))
                 {
-                    s_CacheOfExpressions.Add(parents[i], parents[i]);
+                    s_ExpressionCache.Add(parents[i], parents[i]);
                 }
                 else
                 {
