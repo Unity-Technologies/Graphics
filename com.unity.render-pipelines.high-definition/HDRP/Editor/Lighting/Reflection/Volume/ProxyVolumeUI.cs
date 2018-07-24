@@ -17,7 +17,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         internal static Color k_GizmoThemeColorDisabled = new Color(0x99 / 255f, 0x89 / 255f, 0x59 / 255f, 0x10 / 255f);
         internal static Color k_GizmoThemeColorDisabledFace = new Color(0x99 / 255f, 0x89 / 255f, 0x59 / 255f, 0x10 / 255f);
 
-        static readonly int k_ShapeCount = Enum.GetValues(typeof(ShapeType)).Length;
+        static readonly int k_ShapeCount = Enum.GetValues(typeof(Shape)).Length;
 
         public static readonly CED.IDrawer SectionShape;
 
@@ -29,7 +29,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SectionShape = CED.Group(
                     CED.Action(Drawer_FieldShapeType),
                     CED.FadeGroup(
-                        (s, d, o, i) => s.IsSectionExpanded_Shape((ShapeType)i),
+                        (s, d, o, i) => s.IsSectionExpanded_Shape((Shape)i),
                         FadeOption.Indent,
                         SectionShapeBox,
                         SectionShapeSphere
@@ -49,16 +49,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             base.Update();
             if (data != null)
-                SetIsSectionExpanded_Shape((ShapeType)data.shapeType.intValue);
+                SetIsSectionExpanded_Shape((Shape)data.shapeType.intValue);
         }
 
-        void SetIsSectionExpanded_Shape(ShapeType shape)
+        void SetIsSectionExpanded_Shape(Shape shape)
         {
             for (var i = 0; i < k_ShapeCount; i++)
                 m_AnimBools[i].target = (int)shape == i;
         }
 
-        public AnimBool IsSectionExpanded_Shape(ShapeType shapeType)
+        public AnimBool IsSectionExpanded_Shape(Shape shapeType)
         {
             return m_AnimBools[(int)shapeType];
         }
@@ -86,10 +86,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             switch (proxyVolume.shapeType)
             {
-                case ShapeType.Box:
+                case Shape.Box:
                     Handles_EditBase_Box(transform, proxyVolume, ui, sourceAsset);
                     break;
-                case ShapeType.Sphere:
+                case Shape.Sphere:
                     Handles_EditBase_Sphere(transform, proxyVolume, ui, sourceAsset);
                     break;
             }
@@ -149,10 +149,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             switch (proxyVolume.shapeType)
             {
-                case ShapeType.Box:
+                case Shape.Box:
                     Gizmos_EditNone_Box(transform, proxyVolume, ui, sourceAsset);
                     break;
-                case ShapeType.Sphere:
+                case Shape.Sphere:
                     Gizmos_EditNone_Sphere(transform, proxyVolume, ui, sourceAsset);
                     break;
             }
