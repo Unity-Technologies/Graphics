@@ -5,38 +5,73 @@
     #define _LAYER_COUNT 4
 #endif
 
-#define DECLARE_TERRAIN_LAYER(n)    \
-    TEXTURE2D(_Splat##n);           \
-    TEXTURE2D(_Normal##n);          \
-    TEXTURE2D(_Mask##n);            \
-    float4 _Splat##n##_ST;          \
-    float _Metallic##n;             \
-    float _Smoothness##n;           \
-    float _NormalScale##n;          \
-    float4 _DiffuseRemapScale##n;   \
-    float4 _MaskMapRemapOffset##n;  \
-    float4 _MaskMapRemapScale##n
+#define DECLARE_TERRAIN_LAYER_TEXS(n)   \
+    TEXTURE2D(_Splat##n);               \
+    TEXTURE2D(_Normal##n);              \
+    TEXTURE2D(_Mask##n)
 
-DECLARE_TERRAIN_LAYER(0);
-DECLARE_TERRAIN_LAYER(1);
-DECLARE_TERRAIN_LAYER(2);
-DECLARE_TERRAIN_LAYER(3);
+DECLARE_TERRAIN_LAYER_TEXS(0);
+DECLARE_TERRAIN_LAYER_TEXS(1);
+DECLARE_TERRAIN_LAYER_TEXS(2);
+DECLARE_TERRAIN_LAYER_TEXS(3);
+#ifdef _TERRAIN_8_LAYERS
+    DECLARE_TERRAIN_LAYER_TEXS(4);
+    DECLARE_TERRAIN_LAYER_TEXS(5);
+    DECLARE_TERRAIN_LAYER_TEXS(6);
+    DECLARE_TERRAIN_LAYER_TEXS(7);
+    TEXTURE2D(_Control1);
+#endif
+
+#undef DECLARE_TERRAIN_LAYER_TEXS
 
 TEXTURE2D(_Control0);
 SAMPLER(sampler_Splat0);
 SAMPLER(sampler_Control0);
+TEXTURE2D(_MainTex);
+TEXTURE2D(_MetallicTex);
+SAMPLER(sampler_MainTex);
 
-#ifdef _TERRAIN_8_LAYERS
-    DECLARE_TERRAIN_LAYER(4);
-    DECLARE_TERRAIN_LAYER(5);
-    DECLARE_TERRAIN_LAYER(6);
-    DECLARE_TERRAIN_LAYER(7);
-    TEXTURE2D(_Control1);
+#ifdef UNITY_INSTANCING_ENABLED
+TEXTURE2D(_TerrainHeightmapTexture);
+TEXTURE2D(_TerrainNormalmapTexture);
 #endif
 
-#undef DECLARE_TERRAIN_LAYER
+#define DECLARE_TERRAIN_LAYER_PROPS(n)  \
+    float4 _Splat##n##_ST;              \
+    float _Metallic##n;                 \
+    float _Smoothness##n;               \
+    float _NormalScale##n;              \
+    float4 _DiffuseRemapScale##n;       \
+    float4 _MaskMapRemapOffset##n;      \
+    float4 _MaskMapRemapScale##n
 
-float _HeightTransition;
+CBUFFER_START(UnityPerMaterial)
+
+    DECLARE_TERRAIN_LAYER_PROPS(0);
+    DECLARE_TERRAIN_LAYER_PROPS(1);
+    DECLARE_TERRAIN_LAYER_PROPS(2);
+    DECLARE_TERRAIN_LAYER_PROPS(3);
+    #ifdef _TERRAIN_8_LAYERS
+        DECLARE_TERRAIN_LAYER_PROPS(4);
+        DECLARE_TERRAIN_LAYER_PROPS(5);
+        DECLARE_TERRAIN_LAYER_PROPS(6);
+        DECLARE_TERRAIN_LAYER_PROPS(7);
+    #endif
+
+    float _HeightTransition;
+
+    #ifdef UNITY_INSTANCING_ENABLED
+        float4 _TerrainHeightmapRecipSize;   // float4(1.0f/width, 1.0f/height, 1.0f/(width-1), 1.0f/(height-1))
+        float4 _TerrainHeightmapScale;       // float4(hmScale.x, hmScale.y / (float)(kMaxHeight), hmScale.z, 0.0f)
+    #endif
+
+CBUFFER_END
+
+#undef DECLARE_TERRAIN_LAYER_PROPS
+
+#ifdef HAVE_VERTEX_MODIFICATION
+#include "TerrainLitDataMeshModification.hlsl"
+#endif
 
 float GetSumHeight(float4 heights0, float4 heights1)
 {

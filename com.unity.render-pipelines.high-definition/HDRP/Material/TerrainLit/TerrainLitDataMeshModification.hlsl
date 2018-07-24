@@ -1,18 +1,7 @@
-#ifdef UNITY_INSTANCING_ENABLED
-    TEXTURE2D(_TerrainHeightmapTexture);
-    TEXTURE2D(_TerrainNormalmapTexture);
-    float4 _TerrainHeightmapRecipSize;   // float4(1.0f/width, 1.0f/height, 1.0f/(width-1), 1.0f/(height-1))
-    float4 _TerrainHeightmapScale;       // float4(hmScale.x, hmScale.y / (float)(kMaxHeight), hmScale.z, 0.0f)
-#endif
-
-#define API_HAS_GURANTEED_R16_SUPPORT 0 //!(SHADER_API_VULKAN)
 float UnpackHeightmap(float4 height)
 {
-#if (API_HAS_GURANTEED_R16_SUPPORT)
-    return height.r;
-#else
+    // 16-bit height value is packed into two 8-bit channels.
     return (height.r + height.g * 256.0f) / 257.0f; // (255.0f * height.r + 255.0f * 256.0f * height.g) / 65535.0f
-#endif
 }
 
 UNITY_INSTANCING_BUFFER_START(Terrain)
