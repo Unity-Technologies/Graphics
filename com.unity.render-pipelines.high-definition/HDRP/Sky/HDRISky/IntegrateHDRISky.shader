@@ -53,8 +53,8 @@ Shader "Hidden/HDRenderPipeline/IntegrateHDRI"
             real GetUpperHemisphereLuxValue(TEXTURECUBE_ARGS(skybox, sampler_skybox), real3 N, uint sampleCount = 16384)
             {
                 float sum = 0.0;
-                float dphi = 0.002;
-                float dtheta = 0.002;
+                float dphi = 0.005;
+                float dtheta = 0.005;
                 for (float phi = 0; phi < 2.0 * PI; phi += dphi)
                 {
                     for (float theta = 0; theta < PI / 2.0; theta += dtheta)
