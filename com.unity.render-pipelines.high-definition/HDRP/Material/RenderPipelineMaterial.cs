@@ -8,12 +8,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class RenderPipelineMaterial : Object
     {
         // GBuffer management
-        public virtual int GetMaterialGBufferCount() { return 0; }
-        public virtual void GetMaterialGBufferDescription(out RenderTextureFormat[] RTFormat, out bool[] sRGBFlag)
+        public virtual bool IsDefferedMaterial() { return false; }
+        public virtual int GetMaterialGBufferCount(HDRenderPipelineAsset asset) { return 0; }
+        public virtual void GetMaterialGBufferDescription(HDRenderPipelineAsset asset, out RenderTextureFormat[] RTFormat, out bool[] sRGBFlag, out GBufferUsage[] gBufferUsage)
         {
             RTFormat = null;
             sRGBFlag = null;
-        }
+            gBufferUsage = null;
+    }
 
         // Regular interface
         public virtual void Build(HDRenderPipelineAsset hdAsset) {}

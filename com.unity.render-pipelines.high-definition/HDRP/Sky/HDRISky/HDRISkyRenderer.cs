@@ -37,7 +37,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public override void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap)
+        public override void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk)
         {
             m_SkyHDRIMaterial.SetTexture(HDShaderIDs._Cubemap, m_HdriSkyParams.hdriSky);
             m_SkyHDRIMaterial.SetVector(HDShaderIDs._SkyParam, new Vector4(GetExposure(m_HdriSkyParams, builtinParams.debugSettings), m_HdriSkyParams.multiplier, -m_HdriSkyParams.rotation, 0.0f)); // -rotation to match Legacy...

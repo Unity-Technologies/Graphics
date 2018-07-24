@@ -846,6 +846,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float specularDimmer = m_FrameSettings.specularGlobalDimmer * additionalData.lightDimmer;
             if (diffuseDimmer  <= 0.0f && specularDimmer <= 0.0f)
                 return false;
+
+            directionalLightData.lightLayers = additionalData.GetLightLayers();
+
             // Light direction for directional is opposite to the forward direction
             directionalLightData.forward = light.light.transform.forward;
             // Rescale for cookies and windowing.
@@ -928,6 +931,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             var lightData = new LightData();
 
+            lightData.lightLayers = additionalLightData.GetLightLayers();
+
             lightData.lightType = gpuLightType;
 
             lightData.positionRWS = light.light.transform.position;
@@ -1002,7 +1007,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 var sinSpotOuterHalfAngle = Mathf.Sqrt(1.0f - cosSpotOuterHalfAngle * cosSpotOuterHalfAngle);
                 var cosSpotInnerHalfAngle = Mathf.Clamp(Mathf.Cos(spotAngle * 0.5f * innerConePercent * Mathf.Deg2Rad), 0.0f, 1.0f); // inner cone
 
-                var val = Mathf.Max(0.001f, (cosSpotInnerHalfAngle - cosSpotOuterHalfAngle));
+                var val = Mathf.Max(0.0001f, (cosSpotInnerHalfAngle - cosSpotOuterHalfAngle));
                 lightData.angleScale = 1.0f / val;
                 lightData.angleOffset = -cosSpotOuterHalfAngle * lightData.angleScale;
 

@@ -37,6 +37,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public struct DirectionalLightData
     {
         // Packing order depends on chronological access to avoid cache misses
+        public uint lightLayers;
 
         public Vector3 positionRWS;
         public Vector3 color;
@@ -61,6 +62,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public struct LightData
     {
         // Packing order depends on chronological access to avoid cache misses
+        public uint lightLayers;
 
         public Vector3 positionRWS;
         public Vector3 color;
