@@ -109,13 +109,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     : influenceToWorld;
             }
         }
-        public Shape proxyShape
+        public ShapeOrInfinite proxyShape
         {
             get
             {
                 return proxyVolume != null
-                    ? proxyVolume.proxyVolume.shapeType
-                    : influenceVolume.shape;
+                    ? proxyVolume.proxyVolume.shape
+                    : (ShapeOrInfinite)influenceVolume.shape;
             }
         }
         public Vector3 proxyExtents
@@ -127,7 +127,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     : influenceVolume.boxSize;
             }
         }
-        public bool infiniteProjection { get { return proxyVolume != null && proxyVolume.proxyVolume.infiniteProjection; } }
+        public bool infiniteProjection
+        {
+            get
+            {
+                return proxyVolume != null
+                    && proxyVolume.proxyVolume.shape == ShapeOrInfinite.Infinite;
+            }
+        }
 
         public bool useMirrorPlane
         {
