@@ -86,8 +86,6 @@ Shader "HDRenderPipeline/TerrainLit"
     // variable declaration
     //-------------------------------------------------------------------------------------
 
-    #include "../../Material/Lit/LitProperties.hlsl"
-
     // All our shaders use same name for entry point
     #pragma vertex Vert
     #pragma fragment Frag
@@ -169,36 +167,6 @@ Shader "HDRenderPipeline/TerrainLit"
             #include "TerrainLitSharePass.hlsl"
             #include "TerrainLitData.hlsl"
             #include "../../ShaderPass/ShaderPassLightTransport.hlsl"
-
-            ENDHLSL
-        }
-
-        Pass
-        {
-            Name "Motion Vectors"
-            Tags{ "LightMode" = "MotionVectors" } // Caution, this need to be call like this to setup the correct parameters by C++ (legacy Unity)
-
-            // If velocity pass (motion vectors) is enabled we tag the stencil so it don't perform CameraMotionVelocity
-            Stencil
-            {
-                WriteMask [_StencilWriteMaskMV]
-                Ref [_StencilRefMV]
-                Comp Always
-                Pass Replace
-            }
-
-            Cull[_CullMode]
-
-            ZWrite On
-
-            HLSLPROGRAM
-
-            #define SHADERPASS SHADERPASS_VELOCITY
-            #include "../../ShaderVariables.hlsl"
-            #include "../../Material/Material.hlsl"
-            #include "../Lit/ShaderPass/LitVelocityPass.hlsl"
-            #include "TerrainLitData.hlsl"
-            #include "../../ShaderPass/ShaderPassVelocity.hlsl"
 
             ENDHLSL
         }

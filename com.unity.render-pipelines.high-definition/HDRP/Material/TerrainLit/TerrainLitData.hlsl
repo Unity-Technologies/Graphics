@@ -4,11 +4,16 @@
 
 #include "CoreRP/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
 #include "../MaterialUtilities.hlsl"
-#include "../Lit/LitBuiltinData.hlsl"
-#include "../Decal/DecalUtilities.hlsl"
 
+// We don't use emission for terrain
+#define _EmissiveColor float3(0,0,0)
+#define _AlbedoAffectEmissive 0
+#include "../Lit/LitBuiltinData.hlsl"
+#undef _EmissiveColor
+#undef _AlbedoAffectEmissive
+
+#include "../Decal/DecalUtilities.hlsl"
 #include "TerrainLitSplatCommon.hlsl"
-#include "TerrainLitDataMeshModification.hlsl"
 
 void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {

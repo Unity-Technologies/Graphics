@@ -28,14 +28,14 @@ Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap_Gen"
         #endif
         #include "TerrainLitSplatCommon.hlsl"
 
-        struct appdata_t {
+        struct Attributes {
             float3 vertex : POSITION;
             float2 texcoord : TEXCOORD0;
         };
 
-        struct v2f
+        struct Varyings
         {
-            float4 vertex : SV_POSITION;
+            float4 positionCS : SV_POSITION;
             float2 texcoord : TEXCOORD0;
         };
 
@@ -55,24 +55,24 @@ Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap_Gen"
 
             HLSLPROGRAM
 
-            #pragma vertex vert
-            #pragma fragment frag
+            #pragma vertex Vert
+            #pragma fragment Frag
 
-            v2f vert(appdata_t v)
+            Varyings Vert(Attributes input)
             {
-                v2f o;
-                o.vertex = TransformWorldToHClip(v.vertex);
-                o.texcoord = v.texcoord;
-                return o;
+                Varyings output;
+                output.positionCS = TransformWorldToHClip(input.vertex);
+                output.texcoord = input.texcoord;
+                return output;
             }
 
-            float4 frag(v2f i) : SV_Target
+            float4 Frag(Varyings input) : SV_Target
             {
                 float4 albedo;
                 float3 normalTS;
                 float metallic;
                 float ao;
-                TerrainSplatBlend(i.texcoord, float3(0, 0, 0), float3(0, 0, 0),
+                TerrainSplatBlend(input.texcoord, float3(0, 0, 0), float3(0, 0, 0),
                     albedo.xyz, normalTS, albedo.w, metallic, ao);
 
                 return albedo;
@@ -95,24 +95,24 @@ Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap_Gen"
 
             HLSLPROGRAM
 
-            #pragma vertex vert
-            #pragma fragment frag
+            #pragma vertex Vert
+            #pragma fragment Frag
 
-            v2f vert(appdata_t v)
+            Varyings Vert(Attributes input)
             {
-                v2f o;
-                o.vertex = TransformWorldToHClip(v.vertex);
-                o.texcoord = v.texcoord;
-                return o;
+                Varyings output;
+                output.positionCS = TransformWorldToHClip(input.vertex);
+                output.texcoord = input.texcoord;
+                return output;
             }
 
-            float2 frag(v2f i) : SV_Target
+            float2 Frag(Varyings input) : SV_Target
             {
                 float4 albedo;
                 float3 normalTS;
                 float metallic;
                 float ao;
-                TerrainSplatBlend(i.texcoord, float3(0, 0, 0), float3(0, 0, 0),
+                TerrainSplatBlend(input.texcoord, float3(0, 0, 0), float3(0, 0, 0),
                     albedo.xyz, normalTS, albedo.w, metallic, ao);
 
                 return float2(metallic, ao);
