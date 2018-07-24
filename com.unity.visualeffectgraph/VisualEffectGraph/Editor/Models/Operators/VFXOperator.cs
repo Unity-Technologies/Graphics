@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Graphing;
 using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
@@ -54,15 +53,15 @@ namespace UnityEditor.VFX
             return changed;
         }
 
-        private static CoordinateSpace GetCommonSpaceFromSpaceableSlot(IEnumerable<VFXSlot> slots)
+        private static VFXCoordinateSpace GetCommonSpaceFromSpaceableSlot(IEnumerable<VFXSlot> slots)
         {
-            var space = (CoordinateSpace)int.MaxValue;
+            var space = (VFXCoordinateSpace)int.MaxValue;
             foreach (var slot in slots)
             {
                 if (slot.spaceable)
                 {
                     var currentSpace = slot.space;
-                    if (space == (CoordinateSpace)int.MaxValue
+                    if (space == (VFXCoordinateSpace)int.MaxValue
                         ||  space < currentSpace)
                     {
                         space = currentSpace;
@@ -103,7 +102,7 @@ namespace UnityEditor.VFX
             base.OnInvalidate(model, cause);
         }
 
-        public sealed override CoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
+        public sealed override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
         {
             return GetCommonSpaceFromSpaceableSlot(inputSlots);
         }

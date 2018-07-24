@@ -1,0 +1,11 @@
+{
+    "name":"com.unity.visualeffectgraph",
+    "version":"0.1.0",
+    "description":"Visual Effect Graph Editor : TBD",
+    "keywords":[
+        "vfx",
+        "visualeffect",
+        "graph",
+        "effect"
+    ]
+}

@@ -177,15 +177,21 @@ namespace UnityEditor.VFX
             GUILayout.Label(Contents.playRate, GUILayout.Width(44));
             playRate = EditorGUILayout.PowerSlider("", playRate, VisualEffectControl.minSlider, VisualEffectControl.maxSlider, VisualEffectControl.sliderPower, GUILayout.Width(138));
             effect.playRate = playRate * VisualEffectControl.valueToPlayRate;
+
+            var eventType = Event.current.type;
             if (EditorGUILayout.DropdownButton(Contents.setPlayRate, FocusType.Passive, GUILayout.Width(36)))
             {
                 GenericMenu menu = new GenericMenu();
-                Rect buttonRect = GUILayoutUtility.topLevel.GetLast();
                 foreach (var value in VisualEffectControl.setPlaybackValues)
                 {
                     menu.AddItem(EditorGUIUtility.TextContent(string.Format("{0}%", value)), false, SetPlayRate, value);
                 }
+                var savedEventType = Event.current.type;
+                Event.current.type = eventType;
+                Rect buttonRect = GUILayoutUtility.GetLastRect();
+                Event.current.type = savedEventType;
                 menu.DropDown(buttonRect);
+                
             }
             GUILayout.EndHorizontal();
         }
@@ -464,7 +470,7 @@ namespace UnityEditor.VFX
                     string name = icon.ToString();
 
                     //TODO replace with editor default resource call when going to trunk
-                    Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/VFXEditor/Editor/SceneWindow/Textures/" + name + ".png");
+                    Texture2D texture = AssetDatabase.LoadAssetAtPath<Texture2D>(VisualEffectGraphPackageInfo.assetPackagePath+"/VisualEffectGraph/Editor/SceneWindow/Textures/" + name + ".png");
                     if (texture == null)
                     {
                         Debug.LogError("Can't find icon for " + name + " in Styles");

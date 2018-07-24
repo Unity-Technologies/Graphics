@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.XR;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -13,12 +14,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Setup by users
         public bool enableShadow = true;
         public bool enableContactShadows = true;
+        public bool enableShadowMask = true;
         public bool enableSSR = true; // Depends on DepthPyramid
         public bool enableSSAO = true;
         public bool enableSubsurfaceScattering = true;
         public bool enableTransmission = true;  // Caution: this is only for debug, it doesn't save the cost of Transmission execution
         public bool enableAtmosphericScattering = true;
         public bool enableVolumetrics = true;
+        public bool enableLightLayers = true;
 
         // Setup by system
         public float diffuseGlobalDimmer = 1.0f;
@@ -31,7 +34,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableTransparentPrepass = true;
         public bool enableMotionVectors = true; // Enable/disable whole motion vectors pass (Camera + Object).
         public bool enableObjectMotionVectors = true;
-        public bool enableDBuffer = true;
+        [FormerlySerializedAs("enableDBuffer")]
+        public bool enableDecals = true;
         public bool enableRoughRefraction = true; // Depends on DepthPyramid - If not enable, just do a copy of the scene color (?) - how to disable rough refraction ?
         public bool enableTransparentPostpass = true;
         public bool enableDistortion = true;
@@ -46,20 +50,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool enableMSAA = false;
         public MSAASamples msaaSampleCount { get; private set; }
 
-        public bool enableShadowMask = true;
-
         public LightLoopSettings lightLoopSettings = new LightLoopSettings();
 
         public void CopyTo(FrameSettings frameSettings)
         {
             frameSettings.enableShadow = this.enableShadow;
             frameSettings.enableContactShadows = this.enableContactShadows;
+            frameSettings.enableShadowMask = this.enableShadowMask;
             frameSettings.enableSSR = this.enableSSR;
             frameSettings.enableSSAO = this.enableSSAO;
             frameSettings.enableSubsurfaceScattering = this.enableSubsurfaceScattering;
             frameSettings.enableTransmission = this.enableTransmission;
             frameSettings.enableAtmosphericScattering = this.enableAtmosphericScattering;
             frameSettings.enableVolumetrics = this.enableVolumetrics;
+            frameSettings.enableLightLayers = this.enableLightLayers;
 
             frameSettings.diffuseGlobalDimmer = this.diffuseGlobalDimmer;
             frameSettings.specularGlobalDimmer = this.specularGlobalDimmer;
@@ -70,7 +74,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             frameSettings.enableTransparentPrepass = this.enableTransparentPrepass;
             frameSettings.enableMotionVectors = this.enableMotionVectors;
             frameSettings.enableObjectMotionVectors = this.enableObjectMotionVectors;
-            frameSettings.enableDBuffer = this.enableDBuffer;
+            frameSettings.enableDecals = this.enableDecals;
             frameSettings.enableRoughRefraction = this.enableRoughRefraction;
             frameSettings.enableTransparentPostpass = this.enableTransparentPostpass;
             frameSettings.enableDistortion = this.enableDistortion;
@@ -84,8 +88,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             frameSettings.enableAsyncCompute = this.enableAsyncCompute;
 
             frameSettings.enableMSAA = this.enableMSAA;
-
-            frameSettings.enableShadowMask = this.enableShadowMask;
 
             this.lightLoopSettings.CopyTo(frameSettings.lightLoopSettings);
         }
@@ -111,6 +113,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             aggregate.enableShadow = srcFrameSettings.enableShadow;
             aggregate.enableContactShadows = srcFrameSettings.enableContactShadows;
+            aggregate.enableShadowMask = srcFrameSettings.enableShadowMask && renderPipelineSettings.supportShadowMask;            
             aggregate.enableSSR = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableSSR && renderPipelineSettings.supportSSR;
             aggregate.enableSSAO = srcFrameSettings.enableSSAO && renderPipelineSettings.supportSSAO;
             aggregate.enableSubsurfaceScattering = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableSubsurfaceScattering && renderPipelineSettings.supportSubsurfaceScattering;
@@ -126,6 +129,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (camera.cameraType == CameraType.Reflection)
                 aggregate.enableVolumetrics = false;
 
+            aggregate.enableLightLayers = srcFrameSettings.enableLightLayers && renderPipelineSettings.supportLightLayers;
+
             // We have to fall back to forward-only rendering when scene view is using wireframe rendering mode
             // as rendering everything in wireframe + deferred do not play well together
             aggregate.enableForwardRenderingOnly = srcFrameSettings.enableForwardRenderingOnly || GL.wireframe || renderPipelineSettings.supportOnlyForward;
@@ -134,7 +139,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             aggregate.enableTransparentPrepass = srcFrameSettings.enableTransparentPrepass;
             aggregate.enableMotionVectors = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableMotionVectors && renderPipelineSettings.supportMotionVectors;
             aggregate.enableObjectMotionVectors = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableObjectMotionVectors && renderPipelineSettings.supportMotionVectors;
-            aggregate.enableDBuffer = srcFrameSettings.enableDBuffer && renderPipelineSettings.supportDBuffer;
+            aggregate.enableDecals = srcFrameSettings.enableDecals && renderPipelineSettings.supportDecals;
             aggregate.enableRoughRefraction = srcFrameSettings.enableRoughRefraction;
             aggregate.enableTransparentPostpass = srcFrameSettings.enableTransparentPostpass;
             aggregate.enableDistortion = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableDistortion;
@@ -155,8 +160,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             aggregate.enableMSAA = srcFrameSettings.enableMSAA && renderPipelineSettings.supportMSAA;
 
-            aggregate.enableShadowMask = srcFrameSettings.enableShadowMask && renderPipelineSettings.supportShadowMask;
-
             aggregate.ConfigureMSAADependentSettings();
             aggregate.ConfigureStereoDependentSettings();
 
@@ -165,19 +168,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 aggregate.enableShadow = false;
                 aggregate.enableContactShadows = false;
+                aggregate.enableShadowMask = false;
                 aggregate.enableSSR = false;
                 aggregate.enableSSAO = false;
                 aggregate.enableAtmosphericScattering = false;
                 aggregate.enableVolumetrics = false;
+                aggregate.enableLightLayers = false;
                 aggregate.enableTransparentPrepass = false;
                 aggregate.enableMotionVectors = false;
                 aggregate.enableObjectMotionVectors = false;
-                aggregate.enableDBuffer = false;
+                aggregate.enableDecals = false;
                 aggregate.enableTransparentPostpass = false;
                 aggregate.enableDistortion = false;
                 aggregate.enablePostprocess = false;
-                aggregate.enableStereo = false;
-                aggregate.enableShadowMask = false;
+                aggregate.enableStereo = false;                
             }
 
             LightLoopSettings.InitializeLightLoopSettings(camera, aggregate, renderPipelineSettings, srcFrameSettings, ref aggregate.lightLoopSettings);
@@ -198,7 +202,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 enableMotionVectors = false;
 
                 // TODO: The work will be implemented piecemeal to support all passes
-                enableDBuffer = false; // no decals
+                enableDecals = false; // no decals
                 enableDistortion = false; // no gaussian final color
                 enablePostprocess = false;
                 enableRoughRefraction = false; // no gaussian pre-refraction
@@ -218,7 +222,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // TODO: The work will be implemented piecemeal to support all passes
                 enableMotionVectors = false;
-                enableDBuffer = false;
+                enableDecals = false;
                 enableDistortion = false;
                 enablePostprocess = false;
                 enableRoughRefraction = false;
@@ -233,9 +237,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             List<DebugUI.Widget> widgets = new List<DebugUI.Widget>();
             widgets.AddRange(
-                new DebugUI.Widget[]
+            new DebugUI.Widget[]
             {
-                new DebugUI.Container
+                new DebugUI.Foldout
                 {
                     displayName = "Rendering Passes",
                     children =
@@ -244,13 +248,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         new DebugUI.BoolField { displayName = "Enable Transparent Postpass", getter = () => frameSettings.enableTransparentPostpass, setter = value => frameSettings.enableTransparentPostpass = value },
                         new DebugUI.BoolField { displayName = "Enable Motion Vectors", getter = () => frameSettings.enableMotionVectors, setter = value => frameSettings.enableMotionVectors = value },
                         new DebugUI.BoolField { displayName = "Enable Object Motion Vectors", getter = () => frameSettings.enableObjectMotionVectors, setter = value => frameSettings.enableObjectMotionVectors = value },
-                        new DebugUI.BoolField { displayName = "Enable DBuffer", getter = () => frameSettings.enableDBuffer, setter = value => frameSettings.enableDBuffer = value },
+                        new DebugUI.BoolField { displayName = "Enable DBuffer", getter = () => frameSettings.enableDecals, setter = value => frameSettings.enableDecals = value },
                         new DebugUI.BoolField { displayName = "Enable Rough Refraction", getter = () => frameSettings.enableRoughRefraction, setter = value => frameSettings.enableRoughRefraction = value },
                         new DebugUI.BoolField { displayName = "Enable Distortion", getter = () => frameSettings.enableDistortion, setter = value => frameSettings.enableDistortion = value },
                         new DebugUI.BoolField { displayName = "Enable Postprocess", getter = () => frameSettings.enablePostprocess, setter = value => frameSettings.enablePostprocess = value },
                     }
                 },
-                new DebugUI.Container
+                new DebugUI.Foldout
                 {
                     displayName = "Rendering Settings",
                     children =
@@ -263,7 +267,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         new DebugUI.BoolField { displayName = "Enable MSAA", getter = () => frameSettings.enableMSAA, setter = value => frameSettings.enableMSAA = value },
                     }
                 },
-                new DebugUI.Container
+                new DebugUI.Foldout
                 {
                     displayName = "XR Settings",
                     children =
@@ -271,7 +275,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         new DebugUI.BoolField { displayName = "Enable Stereo Rendering", getter = () => frameSettings.enableStereo, setter = value => frameSettings.enableStereo = value }
                     }
                 },
-                new DebugUI.Container
+                new DebugUI.Foldout
                 {
                     displayName = "Lighting Settings",
                     children =
@@ -284,7 +288,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         new DebugUI.BoolField { displayName = "Enable Contact Shadows", getter = () => frameSettings.enableContactShadows, setter = value => frameSettings.enableContactShadows = value },
                         new DebugUI.BoolField { displayName = "Enable ShadowMask", getter = () => frameSettings.enableShadowMask, setter = value => frameSettings.enableShadowMask = value },
                         new DebugUI.BoolField { displayName = "Enable Atmospheric Scattering", getter = () => frameSettings.enableAtmosphericScattering, setter = value => frameSettings.enableAtmosphericScattering = value },
-                        new DebugUI.BoolField { displayName = "Enable volumetrics", getter = () => frameSettings.enableVolumetrics, setter = value => frameSettings.enableVolumetrics = value },
+                        new DebugUI.BoolField { displayName = "Enable Volumetrics", getter = () => frameSettings.enableVolumetrics, setter = value => frameSettings.enableVolumetrics = value },
+                        new DebugUI.BoolField { displayName = "Enable LightLayers", getter = () => frameSettings.enableLightLayers, setter = value => frameSettings.enableLightLayers = value },
                     }
                 }
             });

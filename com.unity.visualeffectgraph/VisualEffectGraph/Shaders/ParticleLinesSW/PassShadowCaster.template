@@ -30,7 +30,7 @@ Pass
 #define SHADERPASS SHADERPASS_SHADOWS
 #define USE_LEGACY_UNITY_MATRIX_VARIABLES
 		
-	${VFXInclude("Assets/VFXEditor/Shaders/ParticleLinesSW/Pass.template")}	
+	${VFXInclude("Shaders/ParticleLinesSW/Pass.template")}	
 		
 	#pragma fragment frag
 	float frag(ps_input i) : SV_TARGET

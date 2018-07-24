@@ -25,8 +25,10 @@ Pass
 
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
+#if USE_ALPHA_TEST
 #define VFX_VARYING_ALPHA builtInInterpolants.x
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
+#endif
 #define VFX_VARYING_OFFSETS offsets
 #define VFX_VARYING_FACEID faceID
 		
@@ -38,7 +40,7 @@ ${VFXEnd}
 #define SHADERPASS SHADERPASS_SHADOWS
 #define USE_LEGACY_UNITY_MATRIX_VARIABLES
 	
-	${VFXInclude("Assets/VFXEditor/Shaders/ParticleHexahedron/Pass.template")}	
+	${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}	
 		
 	#pragma fragment frag
 	float frag(ps_input i) : SV_Target0

@@ -5,7 +5,6 @@ using System.Linq;
 using NUnit.Framework;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.Graphing;
 using Object = UnityEngine.Object;
 using UnityEngine.Experimental.VFX;
 using System.Text;
@@ -617,10 +616,10 @@ namespace UnityEditor.VFX.Test
             }
         }
 
-        #pragma warning disable CS0414
+        #pragma warning disable 0414
         private static Type[] swizzleType = new Type[] { typeof(Operator.Swizzle) };
 
-        #pragma warning restore CS0414
+        #pragma warning restore 0414
         [Test]
         public void SwizzleOperator([ValueSource("swizzleType")] Type swizzleType)
         {

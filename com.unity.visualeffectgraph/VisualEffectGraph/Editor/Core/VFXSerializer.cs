@@ -36,7 +36,48 @@ namespace UnityEditor.VFX
 
         public virtual void OnAfterDeserialize()
         {
-            m_Type = Type.GetType(m_SerializableType);
+            m_Type = GetType(m_SerializableType);
+        }
+
+        public static Type GetType(string name)
+        {
+            Type type = Type.GetType(name);
+
+            if (type == null && !string.IsNullOrEmpty(name)) // if type wasn't found, resolve the assembly (to use VFX package assembly name instead)
+            {
+                string[] splitted = name.Split(',');
+                // Replace the assembly with the one containing VFXGraph type which will be either "Unity.VisualEffect.Graph.Editor" or "Unity.VisualEffect.Graph.Editor-testable"
+                splitted[1] = typeof(VFXGraph).Assembly.GetName().Name;
+
+                name = string.Join(",",splitted);
+
+                type = Type.GetType(name);
+
+                if (type == null) // resolve runtime type if editor assembly didnt work
+                {
+                    splitted[1] = splitted[1].Replace(".Editor", ".Runtime");
+                    name = string.Join(",", splitted);
+                    type = Type.GetType(name);
+                }
+
+                // If from here we still haven't found the type, try a last time with the name only.
+                if( type == null)
+                {
+                    AppDomain currentDomain = AppDomain.CurrentDomain;
+                    foreach (Assembly assembly in currentDomain.GetAssemblies())
+                    {
+                        type = assembly.GetType(splitted[0]);
+                        if (type != null)
+                            return type;
+                    }
+                        
+                }
+
+                if (type == null)
+                    Debug.LogErrorFormat("Cannot get Type from name: {0}",name);
+            }
+
+            return type;
         }
 
         [NonSerialized]
@@ -128,7 +169,7 @@ namespace UnityEditor.VFX
         public struct TypedSerializedData
         {
             public string data;
-            public string type;
+            public string type; // TODO This should have used SerializableType!
 
             public static TypedSerializedData Null = new TypedSerializedData();
         }
@@ -197,7 +238,7 @@ namespace UnityEditor.VFX
         {
             if (!string.IsNullOrEmpty(data.data))
             {
-                System.Type type = Type.GetType(data.type);
+                System.Type type = SerializableType.GetType(data.type);
                 if (type == null)
                 {
                     Debug.LogError("Can't find type " + data.type);
@@ -242,6 +283,7 @@ namespace UnityEditor.VFX
                     sac.frames[i].value = curve.keys[i].value;
                     sac.frames[i].inTangent = curve.keys[i].inTangent;
                     sac.frames[i].outTangent = curve.keys[i].outTangent;
+                    sac.frames[i].tangentMode = 0; // Not used
                     sac.frames[i].leftTangentMode = AnimationUtility.GetKeyLeftTangentMode(curve, i);
                     sac.frames[i].rightTangentMode = AnimationUtility.GetKeyRightTangentMode(curve, i);
                     sac.frames[i].broken = AnimationUtility.GetKeyBroken(curve, i);

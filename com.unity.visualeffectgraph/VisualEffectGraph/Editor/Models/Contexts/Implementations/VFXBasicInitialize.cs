@@ -13,7 +13,7 @@ namespace UnityEditor.VFX
 
         public VFXBasicInitialize() : base(VFXContextType.kInit, VFXDataType.kSpawnEvent, VFXDataType.kParticle) {}
         public override string name { get { return "Initialize"; } }
-        public override string codeGeneratorTemplate { get { return "VFXEditor/Shaders/VFXInit"; } }
+        public override string codeGeneratorTemplate { get { return VisualEffectGraphPackageInfo.assetPackagePath + "/VisualEffectGraph/Shaders/VFXInit"; } }
         public override bool codeGeneratorCompute { get { return true; } }
         public override VFXTaskType taskType { get { return VFXTaskType.Initialize; } }
 
@@ -47,10 +47,10 @@ namespace UnityEditor.VFX
             public AABox bounds = new AABox() { size = Vector3.one };
         }
 
-        public sealed override CoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
+        public sealed override VFXCoordinateSpace GetOutputSpaceFromSlot(VFXSlot slot)
         {
             if (slot.name == "bounds")
-                return CoordinateSpace.Local;
+                return VFXCoordinateSpace.Local;
             return base.GetOutputSpaceFromSlot(slot);
         }
 

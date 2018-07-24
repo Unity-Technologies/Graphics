@@ -1,0 +1,179 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2686e09ec7aef44bad2843e4416f057, type: 3}
+  m_Name: DiffusionProfiles
+  m_EditorClassIdentifier: 
+  profiles:
+  - name: Profile 1
+    scatteringDistance: {r: 2.9960785, g: 2.9960785, b: 2.9960785, a: 1}
+    transmissionTint: {r: 1, g: 1, b: 1, a: 1}
+    texturingMode: 0
+    transmissionMode: 0
+    thicknessRemap: {x: 0, y: 24.851986}
+    worldScale: 0.001
+    ior: 1.089
+    scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
+    scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
+    lerpWeight: 1
+  - name: Profile 2
+    scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    transmissionTint: {r: 1, g: 0, b: 0.44892502, a: 1}
+    texturingMode: 0
+    transmissionMode: 1
+    thicknessRemap: {x: 0, y: 5}
+    worldScale: 1
+    ior: 1.4
+    scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
+    scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
+    lerpWeight: 1
+  - name: Profile 3
+    scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    transmissionTint: {r: 1, g: 1, b: 1, a: 1}
+    texturingMode: 0
+    transmissionMode: 0
+    thicknessRemap: {x: 0, y: 5}
+    worldScale: 1
+    ior: 1.4
+    scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
+    scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
+    lerpWeight: 1
+  - name: Profile 4
+    scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    transmissionTint: {r: 1, g: 1, b: 1, a: 1}
+    texturingMode: 0
+    transmissionMode: 1
+    thicknessRemap: {x: 0, y: 5}
+    worldScale: 1
+    ior: 1.4
+    scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
+    scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
+    lerpWeight: 1
+  - name: Profile 5
+    scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    transmissionTint: {r: 1, g: 1, b: 1, a: 1}
+    texturingMode: 0
+    transmissionMode: 1
+    thicknessRemap: {x: 0, y: 5}
+    worldScale: 1
+    ior: 1.4
+    scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
+    scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
+    lerpWeight: 1
+  - name: Profile 6
+    scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    transmissionTint: {r: 1, g: 1, b: 1, a: 1}
+    texturingMode: 0
+    transmissionMode: 1
+    thicknessRemap: {x: 0, y: 5}
+    worldScale: 1
+    ior: 1.4
+    scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
+    scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
+    lerpWeight: 1
+  - name: Profile 7
+    scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    transmissionTint: {r: 1, g: 1, b: 1, a: 1}
+    texturingMode: 0
+    transmissionMode: 1
+    thicknessRemap: {x: 0, y: 5}
+    worldScale: 1
+    ior: 1.4
+    scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
+    scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
+    lerpWeight: 1
+  - name: Profile 8
+    scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    transmissionTint: {r: 1, g: 1, b: 1, a: 1}
+    texturingMode: 0
+    transmissionMode: 1
+    thicknessRemap: {x: 0, y: 5}
+    worldScale: 1
+    ior: 1.4
+    scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
+    scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
+    lerpWeight: 1
+  - name: Profile 9
+    scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    transmissionTint: {r: 1, g: 1, b: 1, a: 1}
+    texturingMode: 0
+    transmissionMode: 1
+    thicknessRemap: {x: 0, y: 5}
+    worldScale: 1
+    ior: 1.4
+    scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
+    scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
+    lerpWeight: 1
+  - name: Profile 10
+    scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    transmissionTint: {r: 1, g: 1, b: 1, a: 1}
+    texturingMode: 0
+    transmissionMode: 1
+    thicknessRemap: {x: 0, y: 5}
+    worldScale: 1
+    ior: 1.4
+    scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
+    scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
+    lerpWeight: 1
+  - name: Profile 11
+    scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    transmissionTint: {r: 1, g: 1, b: 1, a: 1}
+    texturingMode: 0
+    transmissionMode: 1
+    thicknessRemap: {x: 0, y: 5}
+    worldScale: 1
+    ior: 1.4
+    scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
+    scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
+    lerpWeight: 1
+  - name: Profile 12
+    scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    transmissionTint: {r: 1, g: 1, b: 1, a: 1}
+    texturingMode: 0
+    transmissionMode: 1
+    thicknessRemap: {x: 0, y: 5}
+    worldScale: 1
+    ior: 1.4
+    scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
+    scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
+    lerpWeight: 1
+  - name: Profile 13
+    scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    transmissionTint: {r: 1, g: 1, b: 1, a: 1}
+    texturingMode: 0
+    transmissionMode: 1
+    thicknessRemap: {x: 0, y: 5}
+    worldScale: 1
+    ior: 1.4
+    scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
+    scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
+    lerpWeight: 1
+  - name: Profile 14
+    scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    transmissionTint: {r: 1, g: 1, b: 1, a: 1}
+    texturingMode: 0
+    transmissionMode: 1
+    thicknessRemap: {x: 0, y: 5}
+    worldScale: 1
+    ior: 1.4
+    scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
+    scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
+    lerpWeight: 1
+  - name: Profile 15
+    scatteringDistance: {r: 0.5, g: 0.5, b: 0.5, a: 1}
+    transmissionTint: {r: 1, g: 1, b: 1, a: 1}
+    texturingMode: 0
+    transmissionMode: 1
+    thicknessRemap: {x: 0, y: 5}
+    worldScale: 1
+    ior: 1.4
+    scatterDistance1: {r: 0.3, g: 0.3, b: 0.3, a: 0}
+    scatterDistance2: {r: 0.5, g: 0.5, b: 0.5, a: 0}
+    lerpWeight: 1

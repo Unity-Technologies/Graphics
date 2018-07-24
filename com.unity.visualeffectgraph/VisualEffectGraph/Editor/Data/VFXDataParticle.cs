@@ -259,10 +259,10 @@ namespace UnityEditor.VFX
             }
         }
 
-        public CoordinateSpace space
+        public VFXCoordinateSpace space
         {
             get { return m_Space; }
-            set { m_Space = value; }
+            set { m_Space = value; Modified(); }
         }
 
         public override bool CanBeCompiled()
@@ -628,7 +628,7 @@ namespace UnityEditor.VFX
         [SerializeField]
         private uint m_Capacity = 65536;
         [SerializeField]
-        private CoordinateSpace m_Space;
+        private VFXCoordinateSpace m_Space;
         [NonSerialized]
         private StructureOfArrayProvider m_layoutAttributeCurrent = new StructureOfArrayProvider();
         [NonSerialized]

@@ -82,11 +82,11 @@ width:-1;
     max-height:0;
     height:0;
 }
-.node.collapsed #collapse-button > #icon {
+.node.collapsed > #node-border > #title > #collapse-button > #icon {
     background-image: resource("GraphView/Nodes/NodeChevronLeft.png");
 }
 
-.node.expanded #collapse-button > #icon {
+.node.expanded > #node-border > #title > #collapse-button > #icon {
     background-image : resource("GraphView/Nodes/NodeChevronDown.png");
 }
 
@@ -94,6 +94,7 @@ width:-1;
 {
     padding-top:6;
     padding-bottom:6;
+    flex: 1 1 auto;
 }
 
 .VFXNodeUI.node.superCollapsed #contents
@@ -246,4 +247,8 @@ width:-1;
 {
     height:0;
     border-bottom-width: 0;
+}
+#collapse-button:hover:enabled > #icon {
+    background-color:#DDD;
+    visibility:visible;
 }

@@ -165,6 +165,26 @@ public class VisualEffectAssetEditor : Editor
         if (renderer.bounds.size != Vector3.zero)
         {
             m_CurrentBounds = renderer.bounds;
+
+            //make sure that none of the bounds values are 0
+            if (m_CurrentBounds.size.x == 0)
+            {
+                Vector3 size = m_CurrentBounds.size;
+                size.x = (m_CurrentBounds.size.y + m_CurrentBounds.size.z) * 0.1f;
+                m_CurrentBounds.size = size;
+            }
+            if (m_CurrentBounds.size.y == 0)
+            {
+                Vector3 size = m_CurrentBounds.size;
+                size.y = (m_CurrentBounds.size.x + m_CurrentBounds.size.z) * 0.1f;
+                m_CurrentBounds.size = size;
+            }
+            if (m_CurrentBounds.size.z == 0)
+            {
+                Vector3 size = m_CurrentBounds.size;
+                size.z = (m_CurrentBounds.size.x + m_CurrentBounds.size.y) * 0.1f;
+                m_CurrentBounds.size = size;
+            }
         }
 
         if (m_FrameCount == kSafeFrame) // wait to frame before asking the renderer bounds as it is a computed value.
@@ -242,6 +262,8 @@ public class VisualEffectAssetEditor : Editor
         bool enable = GUI.enabled; //Everything in external asset is disabled by default
         GUI.enabled = true;
 
+        var eventType = Event.current.type;
+
         var updateMode = resource.updateMode;
         EditorGUILayout.BeginHorizontal();
         EditorGUILayout.PrefixLabel(EditorGUIUtility.TrTextContent("Update Mode"));
@@ -255,7 +277,11 @@ public class VisualEffectAssetEditor : Editor
                     resource.updateMode = (VFXUpdateMode)v;
                 }, val);
             }
-            menu.DropDown(GUILayoutUtility.topLevel.GetLast());
+            var savedEventType = Event.current.type;
+            Event.current.type = eventType;
+            Rect buttonRect = GUILayoutUtility.GetLastRect();
+            Event.current.type = savedEventType;
+            menu.DropDown(buttonRect);
         }
 
         EditorGUILayout.EndHorizontal();
@@ -264,6 +290,7 @@ public class VisualEffectAssetEditor : Editor
         EditorGUILayout.BeginHorizontal();
 
         EditorGUILayout.PrefixLabel(EditorGUIUtility.TrTextContent("Culling Flags"));
+ 
         if (EditorGUILayout.DropdownButton(new GUIContent(CullingMaskToString(cullingFlags)), FocusType.Passive))
         {
             var menu = new GenericMenu();
@@ -274,7 +301,11 @@ public class VisualEffectAssetEditor : Editor
                         resource.cullingFlags = (VFXCullingFlags)v;
                     }, val.Value);
             }
-            menu.DropDown(GUILayoutUtility.topLevel.GetLast());
+            var savedEventType = Event.current.type;
+            Event.current.type = eventType;
+            Rect buttonRect = GUILayoutUtility.GetLastRect();
+            Event.current.type = savedEventType;
+            menu.DropDown(buttonRect);
         }
 
         EditorGUILayout.EndHorizontal();

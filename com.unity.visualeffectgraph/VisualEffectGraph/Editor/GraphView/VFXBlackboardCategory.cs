@@ -57,7 +57,7 @@ namespace UnityEditor.VFX.UI
 
         public VFXBlackboardCategory()
         {
-            var tpl = EditorGUIUtility.Load(UXMLHelper.GetUXMLPath("uxml/VFXBlackboardSection.uxml")) as VisualTreeAsset;
+            var tpl = Resources.Load<VisualTreeAsset>("uxml/VFXBlackboardSection");
 
             m_MainContainer = tpl.CloneTree(null);
             m_MainContainer.AddToClassList("mainContainer");
@@ -174,7 +174,7 @@ namespace UnityEditor.VFX.UI
 
         public override VisualElement contentContainer { get { return m_RowsContainer; } }
 
-        public string title
+        public new string title
         {
             get { return m_TitleLabel.text; }
             set { m_TitleLabel.text = value; }
@@ -334,7 +334,7 @@ namespace UnityEditor.VFX.UI
         void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
             if (evt.target == this)
-                evt.menu.AppendAction("Rename", (a) => OpenTextEditor(), ContextualMenu.MenuAction.AlwaysEnabled);
+                evt.menu.AppendAction("Rename", (a) => OpenTextEditor(), DropdownMenu.MenuAction.AlwaysEnabled);
         }
 
         public void SyncParameters(HashSet<VFXParameterController> controllers)

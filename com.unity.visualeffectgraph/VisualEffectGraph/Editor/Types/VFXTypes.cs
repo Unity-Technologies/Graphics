@@ -34,7 +34,7 @@ namespace UnityEditor.VFX
 
     class CoordinateSpaceInfo
     {
-        public static readonly int SpaceCount = Enum.GetValues(typeof(CoordinateSpace)).Length;
+        public static readonly int SpaceCount = Enum.GetValues(typeof(VFXCoordinateSpace)).Length;
     }
 
     [VFXType, Serializable]

@@ -4,17 +4,51 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [unreleased]
+
+## [3.0.1-preview]
+
+### Added
+- Decal now support per channel selection mask. There is now two mode. One with BaseColor, Normal and Smoothness and another one more expensive with BaseColor, Normal, Smoothness, Metal and AO. Control is on HDRP Asset. This may require to launch an update script for old scene: 'Edit/Render Pipeline/Single step upgrade script/Upgrade all DecalMaterial MaskBlendMode'.
+- Decal now supports depth bias for decal mesh, to prevent z-fighting
+- Decal material now supports draw order for decal projectors 
+- Added LightLayers support (Base on mask from renderers name RenderingLayers and mask from light name LightLayers - if they match, the light apply) - cost an extra GBuffer in deferred (more bandwidth)
+- When LightLayers is enabled, the AmbientOclusion is store in the GBuffer in deferred path allowing to avoid double occlusion with SSAO. In forward the double occlusion is now always avoided.
+- Added the possibility to add an override transform on the camera for volume interpolation
 
 ### Fixed
-- Fixed a shader preprocessor issue when compiling DebugViewMaterialGBuffer.shader against Metal target
-- Added a temporary workaround to Lit.hlsl to avoid broken lighting code with Metal/AMD
-- Fixed compilation errors on Nintendo Switch (limited XRSetting support).
-- Fixed apply range attenuation option on punctual light
-- Fixed issue when using more than one volume mask texture with density volumes.
-- Fixed an error which prevented volumetric lighting from working if no density volumes with 3D textures were present.
-- Fixed issue with color temperature not take correctly into account with static lighting
-- Don't display fog when diffuse lighting, specular lighting, or lux meter debug mode are enabled.
+- Fixed an issue with PreIntegratedFGD texture being sometimes destroyed and not regenerated causing rendering to break
+- PostProcess input buffers are not copied anymore on PC if the viewport size matches the final render target size
+- Fixed an issue when manipulating a lot of decals, it was displaying a lot of errors in the inspector
+- Fixed capture material with reflection probe
+- Refactored Constant Buffers to avoid hitting the maximum number of bound CBs in some cases.
+- Fixed the light range affecting the transform scale when changed.
+- Snap to grid now works for Decal projector resizing.
+
+### Changed
+- Movde Render Pipeline Debug "Windows from Windows->General-> Render Pipeline debug windows" to "Windows from Windows->Analysis-> Render Pipeline debug windows"
+- Update detail map formula for smoothness and albedo, goal it to bright and dark perceptually and scale factor is use to control gradient speed
+- Refactor the Upgrade material system. Now a material can be update from older version at any time. Call Edit/Render Pipeline/Upgrade all Materials to newer version
+- Change name EnableDBuffer to EnableDecals at several place (shader, hdrp asset...), this require a call to Edit/Render Pipeline/Upgrade all Materials to newer version to have up to date material.
+- Refactor shader code: BakeLightingData structure have been replace by BuiltinData. Lot of shader code have been remove/change.
+- Refactor shader code: All GBuffer are now handled by the deferred material. Mean ShadowMask and LightLayers are control by lit material in lit.hlsl and not outside anymore. Lot of shader code have been remove/change.
+
+### Added
+- Added support for RendererPriority on Renderer. This allow to control order of transparent rendering manually. HDRP have now two stage of sorting for transparent in addition to bact to front. Material have a priority then Renderer have a priority.
+- Add Coupling of (HD)Camera and HDAdditionalCameraData for reset and remove in inspector contextual menu of Camera
+- Add macro to forbid unity_ObjectToWorld/unity_WorldToObject to be use as it doesn't handle camera relative rendering
+- Add opacity control on contact shadow
+
+## [3.0.0-preview]
+
+### Fixed
+- Fixed an issue with distortion that was using previous frame instead of current frame
+- Fixed an issue where disabled light where not upgrade correctly to the new physical light unit system introduce in 2.0.5-preview
+
+### Changed
+- Update assembly definitions to output assemblies that match Unity naming convention (Unity.*).
+
+## [2.0.5-preview]
 
 ### Added
 - Add option supportDitheringCrossFade on HDRP Asset to allow to remove shader variant during player build if needed
@@ -37,8 +71,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Improve UI for HDReflectionProbe / PlanarReflectionProbe
 
 ### Fixed
+- Fixed a shader preprocessor issue when compiling DebugViewMaterialGBuffer.shader against Metal target
+- Added a temporary workaround to Lit.hlsl to avoid broken lighting code with Metal/AMD
+- Fixed issue when using more than one volume texture mask with density volumes.
+- Fixed an error which prevented volumetric lighting from working if no density volumes with 3D textures were present.
 - Fix contact shadows applied on transmission
 - Fix issue with forward opaque lit shader variant being removed by the shader preprocessor
+- Fixed compilation errors on Nintendo Switch (limited XRSetting support).
+- Fixed apply range attenuation option on punctual light
+- Fixed issue with color temperature not take correctly into account with static lighting
+- Don't display fog when diffuse lighting, specular lighting, or lux meter debug mode are enabled.
 
 ## [2.0.4-preview]
 

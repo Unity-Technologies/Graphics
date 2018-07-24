@@ -60,7 +60,7 @@ o.viewToDecal1 = viewToDecal[1];
 o.viewToDecal2 = viewToDecal[2];
 	${VFXEnd}
 				
-	${VFXInclude("Assets/VFXEditor/Shaders/ParticleHexahedron/Pass.template")}	
+	${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}	
 		
 	#pragma fragment frag
 	ps_output frag(ps_input i)

@@ -303,7 +303,7 @@ namespace UnityEditor.VFX
                 get {return m_Parameter.type; }
             }
 
-            public override CoordinateSpace space
+            public override VFXCoordinateSpace space
             {
                 get
                 {
@@ -578,7 +578,7 @@ namespace UnityEditor.VFX
                 {
                     foreach (var fieldInfo in type.GetFields(BindingFlags.Public | BindingFlags.Instance))
                     {
-                        if (fieldInfo.FieldType == typeof(CoordinateSpace))
+                        if (fieldInfo.FieldType == typeof(VFXCoordinateSpace))
                             continue;
                         //Debug.Log("Push "+type.UserFriendlyName()+"."+fieldInfo.Name+"("+fieldInfo.FieldType.UserFriendlyName());
                         cmdList.Add(o =>

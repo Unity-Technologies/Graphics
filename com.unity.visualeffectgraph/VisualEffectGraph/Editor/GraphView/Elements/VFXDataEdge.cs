@@ -40,10 +40,11 @@ namespace UnityEditor.VFX.UI
         }
         public VFXDataEdge()
         {
-            RegisterCallback<ControllerChangedEvent>(OnChange);
         }
 
-        protected virtual void OnChange(ControllerChangedEvent e)
+        void IControlledElement.OnControllerEvent(VFXControllerEvent e) {}
+
+        void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {
             if (e.controller == controller)
             {

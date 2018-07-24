@@ -73,10 +73,10 @@ namespace UnityEditor.VFX.Test
             return m_ViewController.GetRootNodeController(op, 0);
         }
 
-        #pragma warning disable CS0414
+        #pragma warning disable 0414
         static private string[] variableOperators = { "Add", "DotProduct", "Clamp" };
 
-        #pragma warning restore CS0414
+        #pragma warning restore 0414
 
         [Test]
         public void LinkingValidOutputSlotToVariableOperatorChangesType([ValueSource("variableOperators")] string operatorName)

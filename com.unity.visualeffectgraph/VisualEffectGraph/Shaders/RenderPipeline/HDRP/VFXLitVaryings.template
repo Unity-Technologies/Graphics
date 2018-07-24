@@ -1,0 +1,58 @@
+#define HDRP_NEEDS_UVS (HDRP_USE_BASE_COLOR_MAP || HDRP_USE_MASK_MAP || HDRP_USE_NORMAL_MAP || HDRP_USE_EMISSIVE_MAP)
+#define HDRP_USE_EMISSIVE (HDRP_USE_EMISSIVE_MAP || HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR)
+
+#if (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR
+#define VFX_VARYING_COLOR color.rgb
+#define VFX_VARYING_ALPHA color.a
+#endif
+
+${VFXBegin:VFXHDRPLitDeclareVaryings}
+#if (VFX_NEEDS_COLOR_INTERPOLATOR && HDRP_USE_BASE_COLOR) || HDRP_USE_ADDITIONAL_BASE_COLOR
+nointerpolation float4 color : COLOR0;
+#endif
+#if HDRP_MATERIAL_TYPE_SPECULAR
+nointerpolation float3 specularColor : COLOR1;
+#endif
+#if HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR	
+nointerpolation float3 emissiveColor : COLOR2;
+#endif
+
+// x: smoothness
+// y: metallic/thickness
+// z: normal scale
+// w: emissive scale
+nointerpolation float4 materialProperties : TEXCOORD0;
+${VFXEnd}
+
+${VFXBegin:VFXHDRPLitFillVaryings}
+${VFXLoadParameter:{smoothness}}
+o.materialProperties.x = smoothness;
+#if HDRP_MATERIAL_TYPE_STANDARD
+${VFXLoadParameter:{metallic}}
+o.materialProperties.y = metallic;
+#elif HDRP_MATERIAL_TYPE_SPECULAR
+${VFXLoadParameter:{specularColor}}
+o.specularColor = specularColor;
+#elif HDRP_MATERIAL_TYPE_TRANSLUCENT
+${VFXLoadParameter:{thickness}}
+o.materialProperties.y = thickness;
+#endif
+#if HDRP_USE_NORMAL_MAP
+${VFXLoadParameter:{normalScale}}
+o.materialProperties.z = normalScale;
+#endif
+#if HDRP_USE_EMISSIVE_MAP
+${VFXLoadParameter:{emissiveScale}}
+o.materialProperties.w = emissiveScale;
+#endif
+#if HDRP_USE_EMISSIVE_COLOR
+o.emissiveColor = color;
+#elif HDRP_USE_ADDITIONAL_EMISSIVE_COLOR
+${VFXLoadParameter:{emissiveColor}}
+o.emissiveColor = emissiveColor;
+#endif
+#if HDRP_USE_ADDITIONAL_BASE_COLOR
+${VFXLoadParameter:{baseColor}}
+o.VFX_VARYING_COLOR.rgb = baseColor;
+#endif
+${VFXEnd}

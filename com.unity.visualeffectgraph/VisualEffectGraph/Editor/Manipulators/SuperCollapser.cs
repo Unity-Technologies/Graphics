@@ -30,7 +30,7 @@ namespace UnityEditor.VFX.UI
         {
             if (e.clickCount == 2)
             {
-                VFXStandaloneSlotContainerUI slotContainer = (VFXStandaloneSlotContainerUI)target;
+                VFXNodeUI slotContainer = (VFXNodeUI)target;
 
                 slotContainer.controller.superCollapsed = !slotContainer.superCollapsed;
             }

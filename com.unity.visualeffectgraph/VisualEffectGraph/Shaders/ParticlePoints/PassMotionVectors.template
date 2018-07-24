@@ -29,7 +29,7 @@ Pass
 	
 	struct ps_output
 	{
-		float2 motion : SV_Target0;
+		float4 motion : SV_Target0;
 	};
 
 #define VFX_VARYING_PS_INPUTS ps_input
@@ -44,7 +44,7 @@ o.previousPos = mul(_PreviousVP, float4(oldPosition,1.0f));
 o.currentPos = mul(_NonJitteredVP, float4(position,1.0f));
 ${VFXEnd}
 
-	${VFXInclude("Assets/VFXEditor/Shaders/ParticlePoints/Pass.template")}	
+	${VFXInclude("Shaders/ParticlePoints/Pass.template")}	
 		
 	#pragma fragment frag
 	ps_output frag(ps_input i)
@@ -64,7 +64,7 @@ ${VFXEnd}
 		p1.y = 1 - p1.y;
 		#endif
 		
-		o.motion = (p1 - p0).xy;
+		o.motion.xy = (p1 - p0).xy;
 		
 		return o;
 	}
