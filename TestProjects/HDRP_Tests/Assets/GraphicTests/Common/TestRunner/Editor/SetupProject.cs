@@ -43,25 +43,25 @@ public static class SetupProject
         }
     }
 
-    [MenuItem("Graphic Tests/Project Setup/RP: Deferred", false, 100)]
+    [MenuItem("Graphic Tests/Project Setup/RP: Deferred")]
     public static void SetRP_Deferred()
     {
         SetRPAsset("deferred");
     }
 
-    [MenuItem("Graphic Tests/Project Setup/RP: Deferred Depth Prepass", false, 101)]
+    [MenuItem("Graphic Tests/Project Setup/RP: Deferred Depth Prepass")]
     public static void SetRP_DeferredDepthPrepass()
     {
         SetRPAsset("deferred-depth-prepass");
     }
 
-    [MenuItem("Graphic Tests/Project Setup/RP: Deferred Depth Prepass Alpha Only", false, 102)]
+    [MenuItem("Graphic Tests/Project Setup/RP: Deferred Depth Prepass Alpha Only")]
     public static void SetRP_DeferredDepthPrepassAlphaOnly()
     {
         SetRPAsset("deferred-depth-prepass-alpha-only");
     }
 
-    [MenuItem("Graphic Tests/Project Setup/RP: Forward", false, 103)]
+    [MenuItem("Graphic Tests/Project Setup/RP: Forward")]
     public static void SetRP_Forward()
     {
         SetRPAsset("forward");

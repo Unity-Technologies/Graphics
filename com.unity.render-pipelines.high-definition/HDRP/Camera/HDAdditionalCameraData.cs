@@ -48,6 +48,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public RenderingPath renderingPath = RenderingPath.Default;
         [Tooltip("Layer Mask used for the volume interpolation for this camera.")]
         public LayerMask volumeLayerMask = -1;
+        [Tooltip("Transform used for the volume interpolation for this camera.")]
+        public Transform volumeAnchorOverride;
 
         // Physical parameters
         public float aperture = 8f;
@@ -83,6 +85,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             data.clearDepth = clearDepth;
             data.renderingPath = renderingPath;
             data.volumeLayerMask = volumeLayerMask;
+            data.volumeAnchorOverride = volumeAnchorOverride;
             data.aperture = aperture;
             data.shutterSpeed = shutterSpeed;
             data.iso = iso;

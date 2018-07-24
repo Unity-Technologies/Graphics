@@ -47,7 +47,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             this.serializedObject = serializedObject;
 
-            proxyVolumeReference = serializedObject.Find((PlanarReflectionProbe p) => p.proxyVolumeReference);
+            proxyVolumeReference = serializedObject.Find((PlanarReflectionProbe p) => p.proxyVolume);
             influenceVolume = new SerializedInfluenceVolume(serializedObject.Find((PlanarReflectionProbe p) => p.influenceVolume));
 
             captureLocalPosition = serializedObject.Find((PlanarReflectionProbe p) => p.captureLocalPosition);
@@ -75,7 +75,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var objs = new List<Object>();
             for (var i = 0; i < serializedObject.targetObjects.Length; i++)
             {
-                var p = ((PlanarReflectionProbe)serializedObject.targetObjects[i]).proxyVolumeReference;
+                var p = ((PlanarReflectionProbe)serializedObject.targetObjects[i]).proxyVolume;
                 if (p != null)
                     objs.Add(p);
             }
@@ -100,7 +100,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 var proxyVolumeTargets = reflectionProxyVolume.serializedObject.targetObjects;
                 for (var i = 0; i < serializedObject.targetObjects.Length; i++)
                 {
-                    if (proxyVolumeTargets[i] != ((PlanarReflectionProbe)serializedObject.targetObjects[i]).proxyVolumeReference)
+                    if (proxyVolumeTargets[i] != ((PlanarReflectionProbe)serializedObject.targetObjects[i]).proxyVolume)
                     {
                         updateProxyVolume = true;
                         break;

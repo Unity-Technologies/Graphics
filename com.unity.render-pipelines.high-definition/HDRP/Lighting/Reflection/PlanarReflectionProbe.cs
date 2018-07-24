@@ -5,7 +5,7 @@ using System;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [ExecuteInEditMode]
-    public class PlanarReflectionProbe : MonoBehaviour, ISerializationCallbackReceiver
+    public class PlanarReflectionProbe : HDProbe, ISerializationCallbackReceiver
     {
         [HideInInspector]
         const int currentVersion = 1;
@@ -20,21 +20,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         [SerializeField]
-        ReflectionProxyVolumeComponent m_ProxyVolumeReference = null;
-        [SerializeField]
         InfluenceVolume m_InfluenceVolume = new InfluenceVolume();
         [SerializeField]
         Vector3 m_CaptureLocalPosition;
-        [SerializeField]
-        [FormerlySerializedAsAttribute("m_Dimmer")]
-        float m_Multiplier = 1.0f;
-        [SerializeField]
-        [Range(0.0f, 1.0f)]
-        float m_Weight = 1.0f;
-        [SerializeField]
-        ReflectionProbeMode m_Mode = ReflectionProbeMode.Baked;
-        [SerializeField]
-        ReflectionProbeRefreshMode m_RefreshMode = ReflectionProbeRefreshMode.OnAwake;
         [SerializeField]
         Texture m_CustomTexture;
         [SerializeField]
@@ -62,7 +50,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool overrideFieldOfView { get { return m_OverrideFieldOfView; } }
         public float fieldOfViewOverride { get { return m_FieldOfViewOverride; } }
 
-        public ReflectionProxyVolumeComponent proxyVolumeReference { get { return m_ProxyVolumeReference; } }
         public InfluenceVolume influenceVolume { get { return m_InfluenceVolume; } }
         public BoundingSphere boundingSphere { get { return m_InfluenceVolume.GetBoundingSphereAt(transform); } }
 
@@ -70,7 +57,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get
             {
-                switch (m_Mode)
+                switch (mode)
                 {
                     default:
                     case ReflectionProbeMode.Baked:
@@ -84,9 +71,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
         public Bounds bounds { get { return m_InfluenceVolume.GetBoundsAt(transform); } }
         public Vector3 captureLocalPosition { get { return m_CaptureLocalPosition; } set { m_CaptureLocalPosition = value; } }
-        public float weight { get { return m_Weight; } }
-        public float multiplier { get { return m_Multiplier; } }
-        public ReflectionProbeMode mode { get { return m_Mode; } }
         public Matrix4x4 influenceToWorld
         {
             get
@@ -103,7 +87,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Texture customTexture { get { return m_CustomTexture; } set { m_CustomTexture = value; } }
         public Texture bakedTexture { get { return m_BakedTexture; } set { m_BakedTexture = value; }}
         public RenderTexture realtimeTexture { get { return m_RealtimeTexture; } internal set { m_RealtimeTexture = value; } }
-        public ReflectionProbeRefreshMode refreshMode { get { return m_RefreshMode; } }
         public FrameSettings frameSettings { get { return m_FrameSettings; } }
         public float captureNearPlane { get { return m_CaptureNearPlane; } }
         public float captureFarPlane { get { return m_CaptureFarPlane; } }
@@ -126,8 +109,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get
             {
-                return m_ProxyVolumeReference != null
-                    ? m_ProxyVolumeReference.transform.localToWorldMatrix
+                return proxyVolume != null
+                    ? proxyVolume.transform.localToWorldMatrix
                     : influenceToWorld;
             }
         }
@@ -135,8 +118,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get
             {
-                return m_ProxyVolumeReference != null
-                    ? m_ProxyVolumeReference.proxyVolume.shapeType
+                return proxyVolume != null
+                    ? proxyVolume.proxyVolume.shapeType
                     : influenceVolume.shapeType;
             }
         }
@@ -144,12 +127,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get
             {
-                return m_ProxyVolumeReference != null
-                    ? m_ProxyVolumeReference.proxyVolume.extents
+                return proxyVolume != null
+                    ? proxyVolume.proxyVolume.extents
                     : influenceVolume.boxBaseSize;
             }
         }
-        public bool infiniteProjection { get { return m_ProxyVolumeReference != null && m_ProxyVolumeReference.proxyVolume.infiniteProjection; } }
+        public bool infiniteProjection { get { return proxyVolume != null && proxyVolume.proxyVolume.infiniteProjection; } }
 
         public bool useMirrorPlane
         {

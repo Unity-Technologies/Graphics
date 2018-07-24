@@ -92,8 +92,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Handles.matrix = m;
             }
 
-            if (d.proxyVolumeReference != null)
-                ReflectionProxyVolumeComponentUI.DrawHandles_EditNone(s.reflectionProxyVolume, d.proxyVolumeReference);
+            if (d.proxyVolume != null)
+                ReflectionProxyVolumeComponentUI.DrawHandles_EditNone(s.reflectionProxyVolume, d.proxyVolume);
         }
 
         [DrawGizmo(GizmoType.Selected)]
@@ -146,8 +146,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
-            if (d.proxyVolumeReference != null)
-                ReflectionProxyVolumeComponentUI.DrawGizmos_EditNone(s.reflectionProxyVolume, d.proxyVolumeReference);
+            if (d.proxyVolume != null)
+                ReflectionProxyVolumeComponentUI.DrawGizmos_EditNone(s.reflectionProxyVolume, d.proxyVolume);
 
             var showFrustrum = s.showCaptureHandles
                 || EditMode.editMode == EditCenter;
