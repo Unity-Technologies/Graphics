@@ -1,6 +1,6 @@
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    [SkyUniqueID(150)]
+    [SkyUniqueID((int)SkyType.Gradient)]
     public class GradientSky : SkySettings
     {
         public ColorParameter top = new ColorParameter(Color.blue, true, false, true);
