@@ -50,7 +50,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public void GetUpperHemisphereLuxValue()
         {
             Cubemap hdri = m_hdriSky.value.objectReferenceValue as Cubemap;
-            HDRISky sky = target as HDRISky;
+
+            if (hdri == null)
+                return;
 
             float omegaP = (Mathf.PI * 4) / (6.0f * hdri.width * hdri.width);
             m_IntegrateHDRISkyMaterial.SetTexture(HDShaderIDs._Cubemap, hdri);
