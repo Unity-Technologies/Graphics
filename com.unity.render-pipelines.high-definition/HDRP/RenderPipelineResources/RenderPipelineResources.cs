@@ -59,6 +59,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Shader hdriSky;
         public Shader proceduralSky;
         public Shader skyboxCubemap;
+        public Shader gradientSky;
 
         // Material
         public Shader preIntegratedFGD_GGXDisneyDiffuse;
