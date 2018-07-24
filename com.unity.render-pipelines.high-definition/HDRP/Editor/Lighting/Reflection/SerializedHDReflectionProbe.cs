@@ -133,7 +133,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Apply();
             }
 
-            proxyVolumeComponent = addso.Find((HDAdditionalReflectionData d) => d.proxyVolumeComponent);
+            proxyVolumeComponent = addso.Find((HDAdditionalReflectionData d) => d.proxyVolume);
         }
 
         public void Update()
