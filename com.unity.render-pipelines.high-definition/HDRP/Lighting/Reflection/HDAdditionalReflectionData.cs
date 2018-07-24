@@ -17,7 +17,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Current = Max - 1            
         }
 
-        const int currentVersion = (int)Version.Current;
         [SerializeField, FormerlySerializedAs("version")]
         int m_Version;
 
@@ -53,7 +52,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void OnAfterDeserialize()
         {
-            if (m_Version != currentVersion)
+            if (m_Version != (int)Version.Current)
             {
                 // Add here data migration code that use other component
                 // Note impossible to access other component at deserialization time
@@ -66,9 +65,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     needMigrateToUseInfluenceVolume = true;
                 }
                 else
-                { 
+                {
                     // Add here data migration code that do not use other component
-                    m_Version = currentVersion;
+                    m_Version = (int)Version.Current;
                 }
             }
         }
@@ -102,7 +101,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             influenceVolume.boxSideFadePositive = boxSideFadePositive;
             influenceVolume.boxSideFadeNegative = boxSideFadeNegative;
 #pragma warning restore CS0618 // Type or member is obsolete
-            m_Version = (int)Version.HDProbeChild;
+            m_Version = (int)Version.UseInfluenceVolume;
             needMigrateToUseInfluenceVolume = false;
             OnAfterDeserialize();   //continue migrating if needed
 
