@@ -51,11 +51,11 @@ ${VFXEnd}
 		VFXClipSphereAndGetDepthOffsetAndNormal(oDepth, normalWS, i);
 				
 		SurfaceData surfaceData;
-		float3 ambient;
+		BuiltinData builtinData;
 		VFXUVData dummy;
-		VFXGetHDRPLitData(surfaceData,ambient,i,normalWS,dummy);
+		VFXGetHDRPLitData(surfaceData,builtinData,i,normalWS,dummy);
 		
-		ENCODE_INTO_GBUFFER(surfaceData, ambient, i.pos, outGBuffer);
+		ENCODE_INTO_GBUFFER(surfaceData, builtinData, i.pos, outGBuffer);
 	}
 	ENDHLSL
 }

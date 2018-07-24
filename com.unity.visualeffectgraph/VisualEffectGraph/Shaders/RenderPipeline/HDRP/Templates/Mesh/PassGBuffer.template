@@ -76,18 +76,18 @@ ${VFXEnd}
 		const VFXUVData uvData = GetUVData(i);
 		
 		#if HDRP_USE_NORMAL_MAP
-		float3 tangentWS = i.tangent;
-		float3 bitangentWS = cross(i.tangent,i.normal);
+		float3 tangentWS = normalize(i.tangent.xyz);
+		float3 bitangentWS = cross(i.normal,i.tangent.xyz) * i.tangent.w;
 		float3 n = SampleNormalMap(VFX_SAMPLER(normalMap),uvData);
 		float3x3 tbn = float3x3(tangentWS,bitangentWS,normalWS);
 		normalWS = normalize(lerp(normalWS,mul(n,tbn),i.materialProperties.z));
 		#endif
 
 		SurfaceData surfaceData;
-		float3 ambient;
-		VFXGetHDRPLitData(surfaceData,ambient,i,normalWS,uvData);
+		BuiltinData builtinData;
+		VFXGetHDRPLitData(surfaceData,builtinData,i,normalWS,uvData);
 		
-		ENCODE_INTO_GBUFFER(surfaceData, ambient, i.pos, outGBuffer);
+		ENCODE_INTO_GBUFFER(surfaceData, builtinData, i.pos, outGBuffer);
 	}
 	ENDHLSL
 }
