@@ -215,14 +215,14 @@ namespace UnityEditor.VFX
                 Handles.DrawLine(extremities.bottomCap, arcDirection * arcCone.radius0);
 
                 Handles.DrawLine(arcDirection * arcCone.radius0, extremities.topCap + arcDirection * arcCone.radius1);
+                float radius = arcCone.radius0 > arcCone.radius1 ? arcCone.radius0 : arcCone.radius1;
+                Vector3 center = arcCone.radius0 > arcCone.radius1 ? Vector3.zero : extremities.topCap;
+
+                ArcGizmo(center, radius, arc, m_ArcProperty, Quaternion.identity, true);
             }
 
             VFXConeGizmo.DrawCone(cone, this, ref extremities, m_CenterProperty, m_Radius0Property, m_Radius1Property, m_HeightProperty);
 
-            float radius = arcCone.radius0 > arcCone.radius1 ? arcCone.radius0 : arcCone.radius1;
-            Vector3 center = arcCone.radius0 > arcCone.radius1 ? Vector3.zero : extremities.topCap;
-
-            ArcGizmo(center, radius, arc, m_ArcProperty, Quaternion.identity, true);
         }
     }
 }
