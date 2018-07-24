@@ -1827,7 +1827,7 @@ float3 GetBakedDiffuseLighting(SurfaceData surfaceData, BuiltinData builtinData,
 
     // Premultiply bake diffuse lighting information
     // preLightData.diffuseEnergy will be 1,1,1 if no vlayering or no VLAYERED_DIFFUSE_ENERGY_HACKED_TERM
-    return builtinData.bakeDiffuseLighting * preLightData.diffuseFGD * preLightData.diffuseEnergy * surfaceData.ambientOcclusion * bsdfData.diffuseColor + builtinData.emissiveColor;
+    return builtinData.bakeDiffuseLighting * preLightData.diffuseFGD * preLightData.diffuseEnergy * surfaceData.ambientOcclusion * bsdfData.diffuseColor;
 }
 
 
@@ -2925,7 +2925,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 
     // Apply the albedo to the direct diffuse lighting (only once). The indirect (baked)
     // diffuse lighting has already had the albedo applied in GetBakedDiffuseLighting().
-    diffuseLighting = modifiedDiffuseColor * lighting.direct.diffuse + builtinData.bakeDiffuseLighting;
+    diffuseLighting = modifiedDiffuseColor * lighting.direct.diffuse + builtinData.bakeDiffuseLighting + builtinData.emissiveColor;
 
     specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
 

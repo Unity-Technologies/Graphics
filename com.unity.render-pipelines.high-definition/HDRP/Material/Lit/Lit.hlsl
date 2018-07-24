@@ -576,7 +576,9 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
     outGBuffer2.a  = PackFloatInt8bit(coatMask, materialFeatureId, 8);
 
     // RT3 - 11f:11f:10f
-    outGBuffer3 = float4(builtinData.bakeDiffuseLighting, 0.0);
+    // In deferred we encode emissive color with bakeDiffuseLighting. We don't have the room to store emissiveColor.
+    // It mean that any futher process that affect bakeDiffuseLighting will also affect emissiveColor, like SSAO for example.
+    outGBuffer3 = float4(builtinData.bakeDiffuseLighting + builtinData.emissiveColor, 0.0);
 
 #ifdef LIGHT_LAYERS
     // If we have light layers, take the opportunity to save AO and avoid double occlusion with SSAO
@@ -1062,7 +1064,7 @@ float3 GetBakedDiffuseLighting(SurfaceData surfaceData, BuiltinData builtinData,
     }
 
     // Premultiply bake diffuse lighting information with DisneyDiffuse pre-integration
-    return builtinData.bakeDiffuseLighting * preLightData.diffuseFGD * surfaceData.ambientOcclusion * bsdfData.diffuseColor + builtinData.emissiveColor;
+    return builtinData.bakeDiffuseLighting * preLightData.diffuseFGD * surfaceData.ambientOcclusion * bsdfData.diffuseColor;
 }
 
 //-----------------------------------------------------------------------------
@@ -2041,7 +2043,8 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 
     // Apply the albedo to the direct diffuse lighting (only once). The indirect (baked)
     // diffuse lighting has already had the albedo applied in GetBakedDiffuseLighting().
-    diffuseLighting = modifiedDiffuseColor * lighting.direct.diffuse + builtinData.bakeDiffuseLighting;
+    // Note: In deferred bakeDiffuseLighting also contain emissive and in this case emissiveColor is 0
+    diffuseLighting = modifiedDiffuseColor * lighting.direct.diffuse + builtinData.bakeDiffuseLighting + builtinData.emissiveColor;
 
     // If refraction is enable we use the transmittanceMask to lerp between current diffuse lighting and refraction value
     // Physically speaking, transmittanceMask should be 1, but for artistic reasons, we let the value vary
