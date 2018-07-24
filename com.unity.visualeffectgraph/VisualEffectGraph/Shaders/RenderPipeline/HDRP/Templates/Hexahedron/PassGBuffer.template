@@ -91,10 +91,11 @@ ${VFXEnd}
 		normalWS = normalize(normalWS);
 
 		SurfaceData surfaceData;
-		float3 ambient;
-		VFXGetHDRPLitData(surfaceData,ambient,i,normalWS,uvData);
+		BuiltinData builtinData;
+		VFXGetHDRPLitData(surfaceData,builtinData,i,normalWS,uvData);
 		
-		ENCODE_INTO_GBUFFER(surfaceData, ambient, i.pos, outGBuffer);
+		ENCODE_INTO_GBUFFER(surfaceData, builtinData, i.pos, outGBuffer);
+
 	}
 	ENDHLSL
 }
