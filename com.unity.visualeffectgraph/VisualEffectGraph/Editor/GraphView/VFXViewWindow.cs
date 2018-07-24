@@ -9,6 +9,7 @@ using UnityEngine.Experimental.UIElements;
 using UnityEditor.VFX;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityObject = UnityEngine.Object;
 
 namespace  UnityEditor.VFX.UI
 {
@@ -120,8 +121,44 @@ namespace  UnityEditor.VFX.UI
             return selectedResource;
         }
 
+
+        public static void CheckVFXManager()
+        {
+            UnityObject vfxmanager = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>("ProjectSettings/VFXManager.asset");
+            if (vfxmanager == null)
+                return;
+
+            SerializedObject obj = new SerializedObject(vfxmanager);
+
+            var pathProperty = obj.FindProperty("m_RenderPipeSettingsPath");
+            if( string.IsNullOrEmpty(pathProperty.stringValue))
+            {
+                pathProperty.stringValue = "Packages/com.unity.visualeffectgraph/VisualEffectGraph/Shaders/RenderPipeline/HDRP";
+            }
+
+            var indirectShaderProperty = obj.FindProperty("m_IndirectShader");
+            if (indirectShaderProperty.objectReferenceValue == null)
+            {
+                indirectShaderProperty.objectReferenceValue = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.unity.visualeffectgraph/VisualEffectGraph/Shaders/VFXFillIndirectArgs.compute");
+            }
+            var copyShaderProperty = obj.FindProperty("m_CopyBufferShader");
+            if (copyShaderProperty.objectReferenceValue == null)
+            {
+                copyShaderProperty.objectReferenceValue = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.unity.visualeffectgraph/VisualEffectGraph/Shaders/VFXCopyBuffer.compute");
+            }
+            var sortProperty = obj.FindProperty("m_SortShader");
+            if (sortProperty.objectReferenceValue == null)
+            {
+                sortProperty.objectReferenceValue = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.unity.visualeffectgraph/VisualEffectGraph/Shaders/Sort.compute");
+            }
+
+            obj.ApplyModifiedPropertiesWithoutUndo();
+        }
+
         protected void OnEnable()
         {
+            CheckVFXManager();
+
             graphView = new VFXView();
             graphView.StretchToParentSize();
             SetupFramingShortcutHandler(graphView);
