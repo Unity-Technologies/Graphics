@@ -99,8 +99,8 @@ void GetScreenSpaceAmbientOcclusionMultibounce(float2 positionSS, float NdotV, f
 
 void ApplyAmbientOcclusionFactor(AmbientOcclusionFactor aoFactor, inout BuiltinData builtinData, inout AggregateLighting lighting)
 {
-    // Note: in case of deferred Lit, builtinData.bakeDiffuseLighting contain indirect diffuse + emissive,
-    // so Ambient occlusion is multiply by emissive which is incorrect but we accept the tradeoff
+    // Note: in case of deferred Lit, builtinData.bakeDiffuseLighting contain indirect diffuse * surfaceData.ambientOcclusion + emissive,
+    // so emissive is affected by SSAO and we get a double darkening from SSAO and from AO which is incorrect but we accept the tradeoff
     builtinData.bakeDiffuseLighting *= aoFactor.indirectAmbientOcclusion;
     lighting.indirect.specularReflected *= aoFactor.indirectSpecularOcclusion;
     lighting.direct.diffuse *= aoFactor.directAmbientOcclusion;
