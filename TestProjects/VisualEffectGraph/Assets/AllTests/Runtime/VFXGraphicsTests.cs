@@ -45,8 +45,7 @@ namespace UnityEngine.VFX.Test
             "20_SpawnerChaining", // Unstable. TODO investigate why
             "RenderStates", // Unstable. There is an instability with shadow rendering. TODO Fix that
             "ConformAndSDF", // Turbulence is not deterministic
-            "13_Decals", //doesn't render TODO investigate why
-            "14_DecalsFlipBook", //doesn't render TODO investigate why
+            "13_Decals", //doesn't render TODO investigate why <= this one is in world space
             "05_MotionVectors", //possible GPU Hang on this, skip it temporally
         };
 
