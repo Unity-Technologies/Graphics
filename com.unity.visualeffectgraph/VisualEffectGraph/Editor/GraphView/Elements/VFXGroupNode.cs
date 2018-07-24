@@ -39,8 +39,6 @@ namespace UnityEditor.VFX.UI
 
         public VFXGroupNode()
         {
-            RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
-
             this.AddManipulator(new ContextualMenuManipulator(BuildContextualMenu));
 
             m_GroupDropArea = this.Query("dropArea");
@@ -88,7 +86,8 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        void OnControllerChanged(ControllerChangedEvent e)
+        void IControlledElement.OnControllerEvent(VFXControllerEvent e) {}
+        void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {
             if (e.controller == controller)
             {
@@ -160,7 +159,7 @@ namespace UnityEditor.VFX.UI
 
         public void UpdateControllerFromContent()
         {
-            bool changed = false;
+            /*bool changed = false;
             Controller[] content = this.containedElements.Where(t => t is VFXStickyNote || t is VFXNodeUI).Cast<IControlledElement>().Select(t => t.controller).ToArray();
             Controller[] controllerContent = controller.nodes.ToArray();
 
@@ -220,7 +219,7 @@ namespace UnityEditor.VFX.UI
             if (changed)
             {
                 OnMoved();
-            }
+            }*/
         }
 
         public void ElementsAddedToGroupNode(IEnumerable<GraphElement> elements)
@@ -235,11 +234,11 @@ namespace UnityEditor.VFX.UI
 
         public void ElementsRemovedFromGroupNode(IEnumerable<GraphElement> elements)
         {
-            /*if (!m_ModificationFromController && !inRemoveElement)
+            if (!m_ModificationFromController && !inRemoveElement)
             {
                 controller.RemoveNodes(elements.OfType<ISettableControlledElement<VFXNodeController>>().Select(t => t.controller));
                 controller.RemoveStickyNotes(elements.OfType<VFXStickyNote>().Select(t => t.controller));
-            }*/
+            }
         }
 
         public void GroupNodeTitleChanged(string title)

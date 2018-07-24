@@ -519,7 +519,7 @@ public class VFXMigration
     }
 
 
-        #pragma warning disable CS0414
+        #pragma warning disable 0414
     static Dictionary<System.Type, string> m_Properties = new Dictionary<System.Type, string>() {
         { typeof(Vector2), "m_Vector2f"},
         { typeof(Vector3), "m_Vector3f"},
@@ -538,7 +538,7 @@ public class VFXMigration
         { typeof(bool), "m_Bool"},
         { typeof(Matrix4x4), "m_Matrix4x4f"}
     };
-        #pragma warning restore CS0414
+        #pragma warning restore 0414
 
 
     static Dictionary<string, PropertyInfo> m_Setters = new Dictionary<string, PropertyInfo>()

@@ -235,11 +235,11 @@ namespace UnityEditor.VFX.Test
             */
         }
 
-        #pragma warning disable CS0414
+        #pragma warning disable 0414
         private static bool[] linkModes = { true, false };
         private static bool[] bindingModes = { true, false };
 
-        #pragma warning restore CS0414
+        #pragma warning restore 0414
         [UnityTest]
         [Timeout(1000 * 10)]
         public IEnumerator CreateComponentWithAllBasicTypeExposed([ValueSource("linkModes")] bool linkMode, [ValueSource("bindingModes")] bool bindingModes)
@@ -476,7 +476,7 @@ namespace UnityEditor.VFX.Test
                                         case VFXValueType.Int32: return property.intValue;
                                         case VFXValueType.Uint32: return property.intValue; // there isn't uintValue
                                         case VFXValueType.Curve: return property.animationCurveValue;
-                                        /*Tristan*/ //case VFXValueType.ColorGradient: return property.gradientValue;
+                                        case VFXValueType.ColorGradient: return property.gradientValue;
                                         case VFXValueType.Mesh: return property.objectReferenceValue;
                                         case VFXValueType.Texture2D:
                                         case VFXValueType.Texture2DArray:
@@ -529,7 +529,7 @@ namespace UnityEditor.VFX.Test
                                         case VFXValueType.Int32: propertyValue.intValue = (int)value; break;
                                         case VFXValueType.Uint32: propertyValue.intValue = (int)((uint)value); break; // there isn't uintValue
                                         case VFXValueType.Curve: propertyValue.animationCurveValue = (AnimationCurve)value; break;
-                                        /*Tristan*/ //case VFXValueType.ColorGradient: propertyValue.gradientValue = (Gradient)value; break;
+                                        case VFXValueType.ColorGradient: propertyValue.gradientValue = (Gradient)value; break;
                                         case VFXValueType.Mesh: propertyValue.objectReferenceValue = (UnityEngine.Object)value; break;
                                         case VFXValueType.Texture2D:
                                         case VFXValueType.Texture2DArray:

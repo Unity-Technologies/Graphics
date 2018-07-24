@@ -121,7 +121,7 @@ VoxelLighting EvaluateVoxelLighting(LightLoopContext context, uint featureFlags,
     VoxelLighting lighting;
     ZERO_INITIALIZE(VoxelLighting, lighting);
 
-    BakeLightingData unused; // Unused for now, so define once
+    BuiltinData unused; // Unused for now, so define once
 
     if (featureFlags & LIGHTFEATUREFLAGS_DIRECTIONAL)
     {

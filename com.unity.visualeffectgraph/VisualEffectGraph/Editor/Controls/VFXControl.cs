@@ -32,7 +32,7 @@ namespace UnityEditor.VFX.UIElements
                 {
                     evt.target = this;
                     SetValueWithoutNotify(newValue);
-                    UIElementsUtility.eventDispatcher.DispatchEvent(evt, panel);
+                    SendEvent(evt);
                 }
             }
         }

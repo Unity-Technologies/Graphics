@@ -34,8 +34,6 @@ namespace UnityEditor.VFX.UI
             get { return m_FlowOutputAnchors.AsReadOnly(); }
         }
 
-        IDataWatchHandle m_DataHandle;
-
         public override void OnDisable()
         {
             if (viewController != null)

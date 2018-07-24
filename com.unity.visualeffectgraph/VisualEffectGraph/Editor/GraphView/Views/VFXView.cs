@@ -166,11 +166,15 @@ namespace UnityEditor.VFX.UI
     {
         public HashSet<VFXEditableDataAnchor> allDataAnchors = new HashSet<VFXEditableDataAnchor>();
 
-        void OnRecompile(VFXRecompileEvent e)
+        void IControlledElement.OnControllerEvent(VFXControllerEvent e)
         {
-            foreach (var anchor in allDataAnchors)
+            if (e is VFXRecompileEvent)
             {
-                anchor.OnRecompile(e.valueOnly);
+                var recompileEvent = e as VFXRecompileEvent;
+                foreach (var anchor in allDataAnchors)
+                {
+                    anchor.OnRecompile(recompileEvent.valueOnly);
+                }
             }
         }
 
@@ -391,9 +395,6 @@ namespace UnityEditor.VFX.UI
 
             Add(m_NoAssetLabel);
 
-            RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
-            RegisterCallback<VFXRecompileEvent>(OnRecompile);
-
             m_Blackboard = new VFXBlackboard(this);
 
 
@@ -528,7 +529,7 @@ namespace UnityEditor.VFX.UI
             controller.Remove(selection.OfType<IControlledElement>().Select(t => t.controller).Concat(parametersToRemove.Cast<Controller>()));
         }
 
-        void OnControllerChanged(ControllerChangedEvent e)
+        void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {
             if (e.controller == controller)
             {
@@ -776,7 +777,7 @@ namespace UnityEditor.VFX.UI
 
             if (panel != null)
             {
-                (panel as BaseVisualElementPanel).ValidateLayout();
+                panel.InternalValidateLayout();
                 controller.graph.UIInfos.uiBounds = GetElementsBounds(rootGroupNodeElements.Values.Concat(groupNodes.Values.Cast<GraphElement>()));
             }
         }
@@ -816,7 +817,7 @@ namespace UnityEditor.VFX.UI
 
                 if (addNew && panel != null)
                 {
-                    (panel as BaseVisualElementPanel).ValidateLayout();
+                    panel.InternalValidateLayout();
                 }
             }
         }
@@ -965,7 +966,7 @@ namespace UnityEditor.VFX.UI
 
         public Vector2 ScreenToViewPosition(Vector2 position)
         {
-            GUIView guiView = elementPanel.ownerObject as GUIView;
+            GUIView guiView = panel.InternalGetGUIView();
             if (guiView == null)
                 return position;
             return position - guiView.screenPosition.position;
@@ -973,7 +974,7 @@ namespace UnityEditor.VFX.UI
 
         public Vector2 ViewToScreenPosition(Vector2 position)
         {
-            GUIView guiView = elementPanel.ownerObject as GUIView;
+            GUIView guiView = panel.InternalGetGUIView();
             if (guiView == null)
                 return position;
             return position + guiView.screenPosition.position;
@@ -981,7 +982,7 @@ namespace UnityEditor.VFX.UI
 
         void OnCreateNode(NodeCreationContext ctx)
         {
-            GUIView guiView = elementPanel.ownerObject as GUIView;
+            GUIView guiView = panel.InternalGetGUIView();
             if (guiView == null)
                 return;
             Vector2 point = ScreenToViewPosition(ctx.screenMousePosition);
@@ -1099,7 +1100,7 @@ namespace UnityEditor.VFX.UI
 
         public EventPropagation ReinitComponents()
         {
-            foreach (var component in VFXManager.GetComponents())
+            foreach (var component in UnityEngine.Experimental.VFX.VFXManager.GetComponents())
                 component.Reinit();
             return EventPropagation.Stop;
         }
@@ -1357,7 +1358,7 @@ namespace UnityEditor.VFX.UI
 
         void ElementRemovedFromGroupNode(Group groupNode, IEnumerable<GraphElement> elements)
         {
-            //(groupNode as VFXGroupNode).ElementsRemovedFromGroupNode(elements);
+            (groupNode as VFXGroupNode).ElementsRemovedFromGroupNode(elements);
         }
 
         void GroupNodeTitleChanged(Group groupNode, string title)
@@ -1590,7 +1591,7 @@ namespace UnityEditor.VFX.UI
             controller.AddStickyNote(position, group != null ? group.controller : null);
         }
 
-        void OnCreateNodeInGroupNode(ContextualMenu.MenuAction e)
+        void OnCreateNodeInGroupNode(DropdownMenu.MenuAction e)
         {
             Debug.Log("CreateMenuPosition" + e.eventInfo.mousePosition);
             //The targeted groupnode will be determined by a PickAll later
@@ -1604,13 +1605,13 @@ namespace UnityEditor.VFX.UI
             if (evt.target is VFXNodeUI)
             {
                 evt.menu.AppendAction("Group Selection", (e) => { GroupSelection(); },
-                    (e) => { return canGroupSelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled; });
+                    (e) => { return canGroupSelection ? DropdownMenu.MenuAction.StatusFlags.Normal : DropdownMenu.MenuAction.StatusFlags.Disabled; });
                 hasMenu = true;
             }
             if (evt.target is VFXView)
             {
                 evt.menu.AppendAction("New Sticky Note", (e) => { AddStickyNote(mousePosition); },
-                    (e) => { return ContextualMenu.MenuAction.StatusFlags.Normal; });
+                    (e) => { return DropdownMenu.MenuAction.StatusFlags.Normal; });
                 hasMenu = true;
             }
             if (hasMenu)
@@ -1618,18 +1619,18 @@ namespace UnityEditor.VFX.UI
             if (evt.target is VFXContextUI)
             {
                 evt.menu.AppendAction("Cut", (e) => { CutSelectionCallback(); },
-                    (e) => { return canCutSelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled; });
+                    (e) => { return canCutSelection ? DropdownMenu.MenuAction.StatusFlags.Normal : DropdownMenu.MenuAction.StatusFlags.Disabled; });
                 evt.menu.AppendAction("Copy", (e) => { CopySelectionCallback(); },
-                    (e) => { return canCopySelection ? ContextualMenu.MenuAction.StatusFlags.Normal : ContextualMenu.MenuAction.StatusFlags.Disabled; });
+                    (e) => { return canCopySelection ? DropdownMenu.MenuAction.StatusFlags.Normal : DropdownMenu.MenuAction.StatusFlags.Disabled; });
             }
 
             if (evt.target is VFXGroupNode)
             {
                 VFXGroupNode group = evt.target as VFXGroupNode;
-                evt.menu.AppendAction("Create Node", OnCreateNodeInGroupNode, e => ContextualMenu.MenuAction.StatusFlags.Normal);
+                evt.menu.AppendAction("Create Node", OnCreateNodeInGroupNode, e => DropdownMenu.MenuAction.StatusFlags.Normal);
 
                 evt.menu.AppendAction("New Sticky Note", (e) => { AddStickyNote(mousePosition, group); },
-                    (e) => { return ContextualMenu.MenuAction.StatusFlags.Normal; });
+                    (e) => { return DropdownMenu.MenuAction.StatusFlags.Normal; });
                 hasMenu = true;
                 evt.menu.AppendSeparator();
             }

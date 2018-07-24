@@ -3,7 +3,18 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
-    class VFXExpressionCondition : VFXExpression
+    // Must match enum in C++
+    public enum VFXCondition
+    {
+        Equal,
+        NotEqual,
+        Less,
+        LessOrEqual,
+        Greater,
+        GreaterOrEqual,
+    }
+
+class VFXExpressionCondition : VFXExpression
     {
         public VFXExpressionCondition()
             : this(VFXCondition.Equal, VFXValue.Constant(0.0f), VFXValue.Constant(0.0f))

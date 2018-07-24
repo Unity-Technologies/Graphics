@@ -20,7 +20,7 @@ namespace UnityEditor.VFX.UI
         bool expandable { get; }
         object value { get; set; }
         bool spaceable { get; }
-        CoordinateSpace space { get; set; }
+        VFXCoordinateSpace space { get; set; }
         bool IsSpaceInherited();
         string name { get; }
         VFXPropertyAttribute[] attributes { get; }
@@ -46,7 +46,7 @@ namespace UnityEditor.VFX.UI
             m_Name = name;
         }
 
-        CoordinateSpace IPropertyRMProvider.space { get { return CoordinateSpace.Local; } set {} }
+        VFXCoordinateSpace IPropertyRMProvider.space { get { return VFXCoordinateSpace.Local; } set {} }
 
         bool IPropertyRMProvider.IsSpaceInherited() { return false; }
 
@@ -146,7 +146,7 @@ namespace UnityEditor.VFX.UI
             if (element != null)
             {
                 m_Label.style.font = element.style.font;
-                return m_Label.DoMeasure(-1, MeasureMode.Undefined, m_Label.style.height, MeasureMode.Exactly).x + m_Provider.depth * depthOffset;
+                return m_Label.MeasureTextSize(m_Label.text,-1, MeasureMode.Undefined, m_Label.style.height, MeasureMode.Exactly).x + m_Provider.depth * depthOffset;
             }
             return 40 + m_Provider.depth * depthOffset;
         }

@@ -25,22 +25,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool supportSSR = true;
         public bool supportSSAO = true;
         public bool supportSubsurfaceScattering = true;
-        [FormerlySerializedAs("supportForwardOnly")]
-        public bool supportOnlyForward = false;
         public bool increaseSssSampleCount = false;
+        [FormerlySerializedAs("supportForwardOnly")]
         public bool supportVolumetrics = true;
         public bool increaseResolutionOfVolumetrics = false;
-
-        // reduce variant
-        public bool supportRuntimeDebugDisplay = true;
-        public bool supportDitheringCrossFade = true;
+        public bool supportLightLayers = false;
+        public bool supportOnlyForward = false;
 
         // Engine
-        public bool         supportDBuffer = false;
-        public bool         supportMSAA = false;
+        [FormerlySerializedAs("supportDBuffer")]
+        public bool supportDecals = true;
+        public bool supportMSAA = false;
         public MSAASamples  msaaSampleCount = MSAASamples.None;
-        public bool         supportMotionVectors = true;
-        public bool         supportStereo = false;
+        public bool supportMotionVectors = true;
+        public bool supportStereo = false;
+        public bool supportRuntimeDebugDisplay = true;
+        public bool supportDitheringCrossFade = true;
 
         public GlobalLightLoopSettings  lightLoopSettings = new GlobalLightLoopSettings();
         public ShadowInitParameters     shadowInitParams = new ShadowInitParameters();

@@ -8,9 +8,18 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
+    // TODO Move this
+    // Must match enum in C++
+    public enum VFXCoordinateSpace
+    {
+        Local = 0,
+        Global = 1,
+    }
+
+    // TODO Move this
     public interface ISpaceable
     {
-        CoordinateSpace space { get; set; }
+        VFXCoordinateSpace space { get; set; }
     }
 
     abstract class VFXData : VFXModel

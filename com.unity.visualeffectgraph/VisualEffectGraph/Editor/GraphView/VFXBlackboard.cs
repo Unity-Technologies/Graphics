@@ -16,7 +16,7 @@ using UnityEditor.SceneManagement;
 
 namespace  UnityEditor.VFX.UI
 {
-    class VFXBlackboardPropertyView : VisualElement, IControlledElement, IControlledElement<VFXParameterController>
+    class VFXBlackboardPropertyView : VisualElement, IControlledElement<VFXParameterController>
     {
         public VFXBlackboardPropertyView()
         {
@@ -122,6 +122,9 @@ namespace  UnityEditor.VFX.UI
             m_ExposedProperty = null;
             m_RangeProperty = null;
         }
+
+        void IControlledElement.OnControllerEvent(VFXControllerEvent e) {}
+        void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e) {}
 
         public void SelfChange(int change)
         {
@@ -253,7 +256,7 @@ namespace  UnityEditor.VFX.UI
             UnregisterCallback<GeometryChangedEvent>(OnGeometryChanged);
         }
     }
-    class VFXBlackboardField : BlackboardField, IControlledElement, IControlledElement<VFXParameterController>
+    class VFXBlackboardField : BlackboardField, IControlledElement<VFXParameterController>
     {
         public VFXBlackboardRow owner
         {
@@ -274,6 +277,8 @@ namespace  UnityEditor.VFX.UI
         {
             get { return owner.controller; }
         }
+        void IControlledElement.OnControllerEvent(VFXControllerEvent e) {}
+        void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e) {}
 
         public void SelfChange()
         {
@@ -340,14 +345,13 @@ namespace  UnityEditor.VFX.UI
 
             m_Field.owner = this;
             m_Properties.owner = this;
-
-            RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
         }
 
         public int m_CurrentOrder;
         public bool m_CurrentExposed;
 
-        void OnControllerChanged(ControllerChangedEvent e)
+        void IControlledElement.OnControllerEvent(VFXControllerEvent e) {}
+        void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {
             m_Field.text = controller.exposedName;
             m_Field.typeText = controller.portType != null ? controller.portType.UserFriendlyName() : "null";
@@ -442,7 +446,6 @@ namespace  UnityEditor.VFX.UI
         public VFXBlackboard(VFXView view)
         {
             m_View = view;
-            RegisterCallback<ControllerChangedEvent>(OnControllerChanged);
             editTextRequested = OnEditName;
             addItemRequested = OnAddItem;
 
@@ -731,14 +734,9 @@ namespace  UnityEditor.VFX.UI
             return row;
         }
 
-        struct CategoryNOrder
-        {
-            public string category;
-            public int order;
-        }
-
         Dictionary<string, bool> m_ExpandedStatus = new Dictionary<string, bool>();
-        void OnControllerChanged(ControllerChangedEvent e)
+        void IControlledElement.OnControllerEvent(VFXControllerEvent e) {}
+        void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)
         {
             if (e.controller == controller || e.controller is VFXParameterController) //optim : reorder only is only the order has changed
             {

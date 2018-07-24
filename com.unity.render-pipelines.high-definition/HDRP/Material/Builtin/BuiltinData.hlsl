@@ -8,51 +8,26 @@
 // Note: These parameters can be store in GBuffer if the writer wants
 //-----------------------------------------------------------------------------
 
+#include "CoreRP/ShaderLibrary/Debug.hlsl" // Require for GetIndexColor auto generated
 #include "BuiltinData.cs.hlsl"
+
+//-----------------------------------------------------------------------------
+// helper macro
+//-----------------------------------------------------------------------------
+
+#define BUILTIN_DATA_SHADOW_MASK float4(builtinData.shadowMask0, builtinData.shadowMask1, builtinData.shadowMask2, builtinData.shadowMask3)
 
 //-----------------------------------------------------------------------------
 // common Encode/Decode functions
 //-----------------------------------------------------------------------------
-struct BakeLightingData
-{
-    float3 bakeDiffuseLighting;
-#ifdef SHADOWS_SHADOWMASK
-    float4 bakeShadowMask;
-#endif
-};
+
 // Guideline for velocity buffer.
-// We support various architecture for HDRenderPipeline
-// - Forward only rendering
-// - Hybrid forward/deferred opaque
-// - Regular deferred
-// The velocity buffer is potentially fill in several pass.
-// - In gbuffer pass with extra RT
-// - In forward opaque pass (Can happen even when deferred) with MRT
+// The object velocity buffer is potentially fill in several pass.
+// - In gbuffer pass with extra RT (Not supported currently)
+// - In forward prepass pass
 // - In dedicated velocity pass
-// Also the velocity buffer is only fill in case of dynamic or deformable objects, static case can use camera reprojection to retrieve motion vector (<= TODO: this may be false with TAA due to jitter matrix)
-// or just previous and current transform
-
-// So here we decide the following rules:
-// - A deferred material can't override the velocity buffer format of builtinData, must use appropriate function
-// - If velocity buffer is enable in deferred material it is the last one
-// - Velocity buffer can be optionally enabled (either in forward or deferred)
-// - Velocity data can't be pack with other properties
-// - Same velocity buffer is use for all scenario, so if deferred define a velocity buffer, the same is reuse for forward case.
-// For these reasons we chose to avoid to pack velocity buffer with anything else in case of PackgbufferInFP16 (and also in case the format change)
-
-// Encode/Decode shadowmask/velocity/distortion in a buffer (either forward of deferred)
-
-// Design note: We assume that shadowmask/velocity/distortion fit into a single buffer (i.e not spread on several buffer)
-void EncodeShadowMask(float4 shadowMask, out float4 outBuffer)
-{
-    // RT - RGBA
-    outBuffer = shadowMask;
-}
-
-void DecodeShadowMask(float4 inBuffer, out float4 shadowMask)
-{
-    shadowMask = inBuffer;
-}
+// So same velocity buffer is use for all scenario, so if deferred define a velocity buffer, the same is reuse for forward case.
+// THis is similar to NormalBuffer
 
 // TODO: CAUTION: current DecodeVelocity is not used in motion vector / TAA pass as it come from Postprocess stack
 // This will be fix when postprocess will be integrated into HD, but it mean that we must not change the
@@ -100,19 +75,6 @@ void GetBuiltinDataDebug(uint paramId, BuiltinData builtinData, inout float3 res
         break;
     case DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION:
         result = float3((builtinData.distortion / (abs(builtinData.distortion) + 1) + 1) * 0.5, 0.5);
-        break;
-    }
-}
-
-void GetLightTransportDataDebug(uint paramId, LightTransportData lightTransportData, inout float3 result, inout bool needLinearToSRGB)
-{
-    GetGeneratedLightTransportDataDebug(paramId, lightTransportData, result, needLinearToSRGB);
-
-    switch (paramId)
-    {
-    case DEBUGVIEW_BUILTIN_LIGHTTRANSPORTDATA_EMISSIVE_COLOR:
-        // TODO: Need a tonemap ?
-        result = lightTransportData.emissiveColor;
         break;
     }
 }

@@ -131,7 +131,7 @@ namespace UnityEditor.VFX
                 }
                 else
                 {
-                    if (field.FieldType == typeof(CoordinateSpace)) // For space
+                    if (field.FieldType == typeof(VFXCoordinateSpace)) // For space
                         continue;
                     info.descendantCount = RecurseBuildParameterInfo(subList, field.FieldType, info.path);
                 }

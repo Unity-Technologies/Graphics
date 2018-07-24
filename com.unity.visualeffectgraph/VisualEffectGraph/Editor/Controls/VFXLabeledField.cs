@@ -107,7 +107,7 @@ namespace UnityEditor.VFX.UIElements
             using (ChangeEvent<U> evt = ChangeEvent<U>.GetPooled(e.previousValue, e.newValue))
             {
                 evt.target = this;
-                UIElementsUtility.eventDispatcher.DispatchEvent(evt, panel);
+                SendEvent(evt);
             }
         }
 
@@ -134,9 +134,9 @@ namespace UnityEditor.VFX.UIElements
 
         public void SetValueAndNotify(U newValue)
         {
-            #pragma warning disable CS0618
+            #pragma warning disable 0618
             (m_Control as INotifyValueChanged<U>).SetValueAndNotify(newValue);
-            #pragma warning restore CS0618
+            #pragma warning restore 0618
         }
 
         public void SetValueWithoutNotify(U newValue)
