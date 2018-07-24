@@ -50,7 +50,8 @@ Shader "Hidden/HDRenderPipeline/IntegrateHDRI"
             }
             
 
-            real GetUpperHemisphereLuxValue(TEXTURECUBE_ARGS(skybox, sampler_skybox), real3 N, uint sampleCount = 16384)
+            // Spherical integration of the upper hemisphere
+            real GetUpperHemisphereLuxValue(TEXTURECUBE_ARGS(skybox, sampler_skybox), real3 N)
             {
                 float sum = 0.0;
                 float dphi = 0.005;
@@ -66,37 +67,6 @@ Shader "Hidden/HDRenderPipeline/IntegrateHDRI"
                 }
                 sum *= dphi * dtheta;
                 return sum;
-
-                real acc      = 0.0;
-
-                // Add some jittering on Hammersley2d
-                real2 randNum  = InitRandom(0.0);
-
-                real3x3 localToWorld = GetLocalFrame(N);
-
-                for (uint i = 0; i < sampleCount; ++i)
-                {
-                    real2 u = frac(randNum + Hammersley2d(i, sampleCount));
-
-                    real NdotL;
-                    real weightOverPdf;
-                    real3 L;
-                    
-                    ImportanceSampleLambert(u, localToWorld, L, NdotL, weightOverPdf);
-                    
-                    real pdf = NdotL / PI;
-                    real omegaS = rcp(sampleCount) * rcp(pdf);
-                    // _InvOmegaP = rcp(FOUR_PI / (6.0 * cubemapWidth * cubemapWidth));
-                    real mipLevel = 0.5 * log2(omegaS * _InvOmegaP);
-
-                    if (NdotL > 0.0)
-                    {
-                        real val = Luminance(SAMPLE_TEXTURECUBE_LOD(skybox, sampler_skybox, L, mipLevel).rgb);
-                        acc += PI * val;
-                    }
-                }
-
-                return acc / sampleCount;
             }
 
             float4 Frag(Varyings input) : SV_Target
