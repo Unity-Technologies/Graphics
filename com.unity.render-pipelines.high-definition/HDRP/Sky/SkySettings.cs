@@ -54,15 +54,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public FloatParameter           exposure = new FloatParameter(0.0f);
         [Tooltip("Intensity multiplier for the sky.")]
         public MinFloatParameter        multiplier = new MinFloatParameter(1.0f, 0.0f);
+        [Tooltip("Auto multiplier from the HDRI sky")]
+        public MinFloatParameter        upperHemisphereLuxValue = new MinFloatParameter(1.0f, 0.0f);
         [Tooltip("Lux intensity multiplier for the sky")]
-        public FloatParameter           lux = new FloatParameter(20000);
+        public FloatParameter           desiredLuxValue = new FloatParameter(20000);
         [Tooltip("Specify how the environment lighting should be updated.")]
         public EnvUpdateParameter       updateMode = new EnvUpdateParameter(EnvironementUpdateMode.OnChanged);
         [Tooltip("If environment update is set to realtime, period in seconds at which it is updated (0.0 means every frame).")]
         public MinFloatParameter        updatePeriod = new MinFloatParameter(0.0f, 0.0f);
-        // Display all fields by default
-        public IntParameter             showProperties = new IntParameter(~0);
+        [HideInInspector]
         public BoolParameter            updateHDRISkyIntensity = new BoolParameter(false);
+        [Tooltip("If set to true, the sun disk will be used in baked lighting (ambient and reflection probes).")]
+        public BoolParameter            includeSunInBaking = new BoolParameter(false);
 
         // Unused for now. In the future we might want to expose this option for very high range skies.
         bool m_useMIS = false;
@@ -85,6 +88,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 //<<<
 
                 hash = hash * 23 + updatePeriod.GetHashCode();
+                hash = hash * 23 + includeSunInBaking.GetHashCode();
                 return hash;
             }
         }
