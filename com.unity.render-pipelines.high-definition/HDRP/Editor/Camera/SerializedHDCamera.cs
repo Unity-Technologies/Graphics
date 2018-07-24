@@ -37,6 +37,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public SerializedProperty renderingPath;
         public SerializedProperty clearDepth;
         public SerializedProperty volumeLayerMask;
+        public SerializedProperty volumeAnchorOverride;
         public SerializedFrameSettings frameSettings;
 
 
@@ -83,6 +84,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             renderingPath = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.renderingPath);
             clearDepth = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.clearDepth);
             volumeLayerMask = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.volumeLayerMask);
+            volumeAnchorOverride = serializedAdditionalDataObject.Find((HDAdditionalCameraData d) => d.volumeAnchorOverride);
             frameSettings = new SerializedFrameSettings(serializedAdditionalDataObject.FindProperty("m_FrameSettings"));
         }
 

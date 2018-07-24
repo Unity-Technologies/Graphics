@@ -51,8 +51,23 @@ Shader "Hidden/HDRenderPipeline/IntegrateHDRI"
             }
             
 
-            real IntegrateHDRISky(TEXTURECUBE_ARGS(skybox, sampler_skybox), real3 N, uint sampleCount = 4096)
+            real GetUpperHemisphereLuxValue(TEXTURECUBE_ARGS(skybox, sampler_skybox), real3 N, uint sampleCount = 16384)
             {
+                float sum = 0.0;
+                float dphi = 0.002;
+                float dtheta = 0.002;
+                for (float phi = 0; phi < 2.0 * PI; phi += dphi)
+                {
+                    for (float theta = 0; theta < PI / 2.0; theta += dtheta)
+                    {
+                        float3 L = TransformGLtoDX(SphericalToCartesian(phi, cos(theta)));
+                        real val = Luminance(SAMPLE_TEXTURECUBE_LOD(skybox, sampler_skybox, L, 0).rgb);
+                        sum += cos(theta) * sin(theta) * val;
+                    }
+                }
+                sum *= dphi * dtheta;
+                return sum;
+
                 real acc      = 0.0;
 
                 // Add some jittering on Hammersley2d
@@ -89,7 +104,7 @@ Shader "Hidden/HDRenderPipeline/IntegrateHDRI"
             {
                 float3 N = float3(0.0, 1.0, 0.0);
 
-                float intensity = IntegrateHDRISky(TEXTURECUBE_PARAM(_Cubemap, s_trilinear_clamp_sampler), N);
+                float intensity = GetUpperHemisphereLuxValue(TEXTURECUBE_PARAM(_Cubemap, s_trilinear_clamp_sampler), N);
 
                 return float4(intensity, 1.0, 1.0, 1.0);
             }
