@@ -12,6 +12,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         InfluenceVolume m_InfluenceVolume;
 
+        [SerializeField]
+        FrameSettings m_FrameSettings = null;
+
         [SerializeField, FormerlySerializedAsAttribute("dimmer"), FormerlySerializedAsAttribute("m_Dimmer"), FormerlySerializedAsAttribute("multiplier")]
         float m_Multiplier = 1.0f;
         [SerializeField, FormerlySerializedAsAttribute("weight")]
@@ -28,6 +31,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         /// <summary>InfluenceVolume of the probe.</summary>
         public InfluenceVolume influenceVolume { get { return m_InfluenceVolume; } private set { m_InfluenceVolume = value; } }
+
+        /// <summary>Frame settings in use with this probe.</summary>
+        public FrameSettings frameSettings { get { return m_FrameSettings; } }
 
         /// <summary>Multiplier factor of reflection (non PBR parameter).</summary>
         public float multiplier { get { return m_Multiplier; } protected set { m_Multiplier = value; } }
@@ -48,7 +54,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get { return m_RefreshMode; }
             set { m_RefreshMode = value; }
         }
-
+        
         internal void Awake()
         {
             if (influenceVolume == null)

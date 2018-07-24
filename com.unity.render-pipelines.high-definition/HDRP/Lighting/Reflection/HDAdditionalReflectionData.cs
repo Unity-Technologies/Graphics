@@ -12,6 +12,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Second,
             HDProbeChild,
             UseInfluenceVolume,
+            IntroduceFrameSettings,
             // Add new version here and they will automatically be the Current one
             Max,
             Current = Max - 1

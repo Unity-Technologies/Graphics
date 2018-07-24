@@ -24,8 +24,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         Texture m_BakedTexture;
         [SerializeField]
-        FrameSettings m_FrameSettings = null;
-        [SerializeField]
         float m_CaptureNearPlane = 1;
         [SerializeField]
         float m_CaptureFarPlane = 1000;
