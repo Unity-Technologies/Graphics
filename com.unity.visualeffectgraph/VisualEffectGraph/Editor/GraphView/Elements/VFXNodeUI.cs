@@ -152,7 +152,6 @@ namespace UnityEditor.VFX.UI
         }
 
         protected VisualElement m_SettingsDivider;
-        VisualElement           m_Content;
 
 
         public virtual bool hasSettingDivider
@@ -194,23 +193,6 @@ namespace UnityEditor.VFX.UI
                     }
                 }
 
-                if (m_SettingsDivider != null)
-                {
-                    if (hasSettings)
-                    {
-                        if (m_SettingsDivider.parent == null)
-                        {
-                            m_Content.Insert(0, m_SettingsDivider);
-                        }
-                    }
-                    else
-                    {
-                        if (m_SettingsDivider.parent != null)
-                        {
-                            m_SettingsDivider.RemoveFromHierarchy();
-                        }
-                    }
-                }
                 if (hasSettings)
                 {
                     settingsContainer.RemoveFromClassList("nosettings");
@@ -296,6 +278,17 @@ namespace UnityEditor.VFX.UI
         {
             SelfChange();
         }
+        public void UpdateCollapse()
+        {
+            if (superCollapsed)
+            {
+                AddToClassList("superCollapsed");
+            }
+            else
+            {
+                RemoveFromClassList("superCollapsed");
+            }
+        }
 
         protected virtual void SelfChange()
         {
@@ -312,16 +305,13 @@ namespace UnityEditor.VFX.UI
                 style.positionTop = controller.position.y;
             }
 
-            if (controller.superCollapsed)
-            {
-                AddToClassList("superCollapsed");
-            }
-            else
-            {
-                RemoveFromClassList("superCollapsed");
-            }
-
             base.expanded = controller.expanded;
+            /*
+            if (m_CollapseButton != null)
+            {
+                m_CollapseButton.SetEnabled(false);
+                m_CollapseButton.SetEnabled(true);
+            }*/
 
             SyncSettings();
             SyncAnchors();
@@ -330,6 +320,9 @@ namespace UnityEditor.VFX.UI
             RefreshLayout();
             Profiler.EndSample();
             Profiler.EndSample();
+
+
+            UpdateCollapse();
         }
 
         public override bool expanded
@@ -431,6 +424,11 @@ namespace UnityEditor.VFX.UI
 
         public virtual void RefreshLayout()
         {
+        }
+
+        public virtual bool superCollapsed
+        {
+            get { return controller.model.superCollapsed; }
         }
     }
 }

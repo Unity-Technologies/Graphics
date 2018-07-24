@@ -1,7 +1,7 @@
 #ifdef SHADER_VARIABLES_INCLUDE_CB
-    uint    _EnableDecals;
-    float2  _DecalAtlasResolution;
-    uint    _DecalCount;
+uint    _EnableDecals;
+float2  _DecalAtlasResolution;
+uint    _DecalCount;
 #else
 
 #include "HDRP/Material/Decal//Decal.cs.hlsl"

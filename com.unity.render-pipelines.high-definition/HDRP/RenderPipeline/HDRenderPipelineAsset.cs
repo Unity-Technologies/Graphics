@@ -108,6 +108,43 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [SerializeField]
         public DiffusionProfileSettings diffusionProfileSettings;
 
+        // HDRP use GetRenderingLayerMaskNames to create its light linking system
+        // Mean here we define our name for light linking.
+        [System.NonSerialized]
+        string[] m_RenderingLayerNames = null;
+        string[] renderingLayerNames
+        {
+            get
+            {
+                if (m_RenderingLayerNames == null)
+                {
+                    m_RenderingLayerNames = new string[32];
+
+                    // By design we can't touch this one, but we can rename it
+                    m_RenderingLayerNames[0] = "Light Layer default";
+
+                    // We only support up to 7 layer + default.
+                    for (int i = 1; i < 8; ++i)
+                    {
+                        m_RenderingLayerNames[i] = string.Format("Light Layer {0}", i);
+                    }
+
+                    // Unused
+                    for (int i = 8; i < m_RenderingLayerNames.Length; ++i)
+                    {
+                        m_RenderingLayerNames[i] = string.Format("Unused {0}", i);
+                    }
+                }
+
+                return m_RenderingLayerNames;
+            }
+        }
+
+        public override string[] GetRenderingLayerMaskNames()
+        {
+            return renderingLayerNames;
+        }
+
         public override Shader GetDefaultShader()
         {
             return m_RenderPipelineResources.defaultShader;
