@@ -142,7 +142,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (p.proxyVolumeComponent.objectReferenceValue != null)
             {
                 var proxy = (ReflectionProxyVolumeComponent)p.proxyVolumeComponent.objectReferenceValue;
-                if ((int)proxy.proxyVolume.shapeType != p.influenceVolume.shape.enumValueIndex)
+                if ((int)proxy.proxyVolume.shape != p.influenceVolume.shape.enumValueIndex)
                     EditorGUILayout.HelpBox(
                         "Proxy volume and influence volume have different shape types, this is not supported.",
                         MessageType.Error,

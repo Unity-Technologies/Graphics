@@ -27,6 +27,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
+        protected static EnvShapeType ConvertShape(ShapeOrInfinite shape)
+        {
+            switch (shape)
+            {
+                default:
+                case ShapeOrInfinite.Infinite:
+                case ShapeOrInfinite.Box:
+                    return EnvShapeType.Box;
+                case ShapeOrInfinite.Sphere:
+                    return EnvShapeType.Sphere;
+            }
+        }
+
         public ReflectionProbe reflectionProbe { get; protected set; }
         public PlanarReflectionProbe planarReflectionProbe { get; protected set; }
 
@@ -120,7 +133,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get
             {
                 return additional.proxyVolume != null
-                    ? ConvertShape(additional.proxyVolume.proxyVolume.shapeType)
+                    ? ConvertShape(additional.proxyVolume.proxyVolume.shape)
                     : influenceShapeType;
             }
         }
@@ -139,7 +152,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get
             {
                 return additional.proxyVolume != null
-                    ? additional.proxyVolume.proxyVolume.infiniteProjection
+                    ? additional.proxyVolume.proxyVolume.shape == ShapeOrInfinite.Infinite
                     : probe.boxProjection == 0;
             }
         }

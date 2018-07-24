@@ -5,4 +5,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Box,
         Sphere,
     }
+
+    public enum ShapeOrInfinite
+    {
+        Box,
+        Sphere,
+        Infinite
+    }
 }
