@@ -1,6 +1,5 @@
 {
   "dependencies": {
-    "com.unity.postprocessing": "file:../../../com.unity.postprocessing",
     "com.unity.render-pipelines.core": "file:../../../com.unity.render-pipelines.core",
     "com.unity.render-pipelines.high-definition": "file:../../../com.unity.render-pipelines.high-definition",
     "com.unity.render-pipelines.lightweight": "file:../../../com.unity.render-pipelines.lightweight",
