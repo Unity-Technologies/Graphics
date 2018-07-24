@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.XR;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
@@ -183,7 +184,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 if (pipelineAsset.keepSoftShadowVariants)
                     s_PipelineCapabilities |= PipelineCapabilities.SoftShadows;
             }
-        }
+    }
 
         public static void DrawFullScreen(CommandBuffer commandBuffer, Material material,
             MaterialPropertyBlock properties = null, int shaderPassId = 0)
@@ -248,6 +249,29 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public static bool IsSupportedCookieType(LightType lightType)
         {
             return lightType == LightType.Directional || lightType == LightType.Spot;
+        }
+
+        public static bool IsStereoEnabled(Camera camera)
+        {
+            bool isSceneViewCamera = camera.cameraType == CameraType.SceneView;
+            return XRGraphicsConfig.enabled && !isSceneViewCamera && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
+        }
+
+        public static void RenderPostProcess(CommandBuffer cmd, PostProcessRenderContext context, ref CameraData cameraData, RenderTextureFormat colorFormat, RenderTargetIdentifier source, RenderTargetIdentifier dest, bool opaqueOnly)
+        {
+            Camera camera = cameraData.camera;
+            context.Reset();
+            context.camera = camera;
+            context.source = source;
+            context.sourceFormat = colorFormat;
+            context.destination = dest;
+            context.command = cmd;
+            context.flip = !IsStereoEnabled(camera) && camera.targetTexture == null;
+
+            if (opaqueOnly)
+                cameraData.postProcessLayer.RenderOpaqueOnly(context);
+            else
+                cameraData.postProcessLayer.Render(context);
         }
     }
 }

@@ -397,7 +397,7 @@ void GetLayerTexCoord(FragInputs input, inout LayerTexCoord layerTexCoord)
 #endif
 
     GetLayerTexCoord(   input.texCoord0, input.texCoord1, input.texCoord2, input.texCoord3,
-                        input.positionWS, input.worldToTangent[2].xyz, layerTexCoord);
+                        input.positionRWS, input.worldToTangent[2].xyz, layerTexCoord);
 }
 
 void ApplyDisplacementTileScale(inout float height0, inout float height1, inout float height2, inout float height3)
@@ -755,7 +755,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.specularOcclusion = 1.0;
 #endif
 
-#ifndef _DISABLE_DBUFFER
+#if HAVE_DECALS
     AddDecalContribution(posInput, surfaceData, alpha);
 #endif
 

@@ -10,7 +10,11 @@ using UnityEditor.ShaderGraph.Drawing.Controls;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEngine.Experimental.UIElements.StyleSheets;
+using UnityEngine.Rendering;
 using Node = UnityEditor.Experimental.UIElements.GraphView.Node;
+#if UNITY_2018_3_OR_NEWER
+using ContextualMenu = UnityEngine.Experimental.UIElements.DropdownMenu;
+#endif
 
 namespace UnityEditor.ShaderGraph.Drawing
 {
@@ -143,9 +147,9 @@ namespace UnityEditor.ShaderGraph.Drawing
             var masterNode = node as IMasterNode;
             if (masterNode != null)
             {
-                if (!masterNode.IsPipelineCompatible(RenderPipelineManager.currentPipeline))
+                if (!masterNode.IsPipelineCompatible(GraphicsSettings.renderPipelineAsset))
                 {
-                    IconBadge wrongPipeline = IconBadge.CreateError("The current render pipeline is not compatible with this node preview.");
+                    IconBadge wrongPipeline = IconBadge.CreateError("The current render pipeline is not compatible with this master node.");
                     Add(wrongPipeline);
                     VisualElement title = this.Q("title");
                     wrongPipeline.AttachTo(title, SpriteAlignment.LeftCenter);
