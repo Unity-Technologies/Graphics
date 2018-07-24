@@ -9,8 +9,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public abstract void RenderSky(BuiltinSkyParameters builtinParams, bool renderForCubemap, bool renderSunDisk);
         public abstract bool IsValid();
 
-        public virtual void  UpdateSky(BuiltinSkyParameters builtinParams) {}
-
         protected float GetExposure(SkySettings skySettings, DebugDisplaySettings debugSettings)
         {
             float debugExposure = 0.0f;

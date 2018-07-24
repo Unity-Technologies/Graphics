@@ -68,15 +68,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override void OnInspectorGUI()
         {
             EditorGUI.BeginChangeCheck();
-            PropertyField(m_hdriSky);
-            if (EditorGUI.EndChangeCheck())
             {
-                GetUpperHemisphereLuxValue();
+                PropertyField(m_hdriSky);
+    
+                EditorGUILayout.Space();
+                
+                PropertyField(m_IntensityMode);
             }
-
-            EditorGUILayout.Space();
-            
-            PropertyField(m_IntensityMode);
+            if (EditorGUI.EndChangeCheck())
+                GetUpperHemisphereLuxValue();
 
             if (m_IntensityMode.value.enumValueIndex == (int)SkyIntensityMode.Lux)
             {
