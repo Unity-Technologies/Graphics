@@ -15,7 +15,7 @@ Shader "Hidden/HDRenderPipeline/Sky/HDRISky"
     TEXTURECUBE(_Cubemap);
     SAMPLER(sampler_Cubemap);
 
-    float4   _SkyParam; // x exposure, y multiplier, z rotation, w lux
+    float4   _SkyParam; // x exposure, y multiplier, z rotation
     float4x4 _PixelCoordToViewDirWS; // Actually just 3x3, but Unity can only set 4x4
 
     struct Attributes

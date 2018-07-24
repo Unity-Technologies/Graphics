@@ -46,21 +46,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             readBackTexture = null;
         }
 
+        // Compute the lux value in the upper hemisphere of the HDRI skybox
         public void GetUpperHemisphereLuxValue()
         {
             Cubemap hdri = m_hdriSky.value.objectReferenceValue as Cubemap;
-            // GPU texture readback
             HDRISky sky = target as HDRISky;
+
             float omegaP = (Mathf.PI * 4) / (6.0f * hdri.width * hdri.width);
             m_IntegrateHDRISkyMaterial.SetTexture(HDShaderIDs._Cubemap, hdri);
             m_IntegrateHDRISkyMaterial.SetFloat(HDShaderIDs._InvOmegaP, 1.0f / omegaP);
 
             Graphics.Blit(Texture2D.whiteTexture, m_IntensityTexture.rt, m_IntegrateHDRISkyMaterial);
 
+            // Copy the rendertexture containing the lux value inside a Texture2D
             RenderTexture.active = m_IntensityTexture.rt;
             readBackTexture.ReadPixels(new Rect(0.0f, 0.0f, 1, 1), 0, 0);
             RenderTexture.active = null;
 
+            // And then the value inside this texture
             Color hdriIntensity = readBackTexture.GetPixel(0, 0);
             m_UpperHemisphereLuxValue.value.floatValue = hdriIntensity.r;
         }
@@ -76,7 +79,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 PropertyField(m_IntensityMode);
             }
             if (EditorGUI.EndChangeCheck())
+            {
                 GetUpperHemisphereLuxValue();
+            }
 
             if (m_IntensityMode.value.enumValueIndex == (int)SkyIntensityMode.Lux)
             {
