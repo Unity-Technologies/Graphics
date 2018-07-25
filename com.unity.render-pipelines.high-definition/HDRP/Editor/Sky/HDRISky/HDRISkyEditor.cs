@@ -54,9 +54,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (hdri == null)
                 return;
 
-            float omegaP = (Mathf.PI * 4) / (6.0f * hdri.width * hdri.width);
             m_IntegrateHDRISkyMaterial.SetTexture(HDShaderIDs._Cubemap, hdri);
-            m_IntegrateHDRISkyMaterial.SetFloat(HDShaderIDs._InvOmegaP, 1.0f / omegaP);
 
             Graphics.Blit(Texture2D.whiteTexture, m_IntensityTexture.rt, m_IntegrateHDRISkyMaterial);
 

@@ -4,7 +4,6 @@ Shader "Hidden/HDRenderPipeline/IntegrateHDRI"
     {
         [HideInInspector]
         _Cubemap ("", CUBE) = "white" {}
-        _InvOmegaP ("", Float) = 0
     }
 
     SubShader
@@ -37,7 +36,6 @@ Shader "Hidden/HDRenderPipeline/IntegrateHDRI"
             };
 
             TextureCube<float4> _Cubemap;
-            float _InvOmegaP;
 
             Varyings Vert(Attributes input)
             {
@@ -50,7 +48,10 @@ Shader "Hidden/HDRenderPipeline/IntegrateHDRI"
             }
             
 
-            // Spherical integration of the upper hemisphere
+            // With HDRI that have a large range (including the sun) it can be challenging to
+            // compute the lux value without multiple importance sampling.
+            // We instead use a brute force Uniforme Spherical integration of the upper hemisphere
+            // with a large number of sample. This is fine as this happen in the editor.
             real GetUpperHemisphereLuxValue(TEXTURECUBE_ARGS(skybox, sampler_skybox), real3 N)
             {
                 float sum = 0.0;
@@ -60,6 +61,7 @@ Shader "Hidden/HDRenderPipeline/IntegrateHDRI"
                 {
                     for (float theta = 0; theta < PI / 2.0; theta += dtheta)
                     {
+                        // SphericalToCartesian function is for Z up, lets move to Y up with TransformGLtoDX
                         float3 L = TransformGLtoDX(SphericalToCartesian(phi, cos(theta)));
                         real val = Luminance(SAMPLE_TEXTURECUBE_LOD(skybox, sampler_skybox, L, 0).rgb);
                         sum += cos(theta) * sin(theta) * val;
@@ -71,6 +73,7 @@ Shader "Hidden/HDRenderPipeline/IntegrateHDRI"
 
             float4 Frag(Varyings input) : SV_Target
             {
+                // Integrate upper hemisphere (Y up)
                 float3 N = float3(0.0, 1.0, 0.0);
 
                 float intensity = GetUpperHemisphereLuxValue(TEXTURECUBE_PARAM(_Cubemap, s_trilinear_clamp_sampler), N);

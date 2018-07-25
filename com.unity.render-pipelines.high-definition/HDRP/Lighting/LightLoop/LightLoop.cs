@@ -2297,20 +2297,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_LightVolumeDataBuffer.SetData(m_lightList.lightVolumes);
         }
 
-        HDAdditionalReflectionData GetHDAdditionalReflectionData(VisibleReflectionProbe probe)
-        {
-            var add = probe.probe.GetComponent<HDAdditionalReflectionData>();
-            if (add == null)
-            {
-                add = HDUtils.s_DefaultHDAdditionalReflectionData;
-                Vector3 distance = Vector3.one * probe.blendDistance;
-                add.influenceVolume.boxBlendDistancePositive = distance;
-                add.influenceVolume.boxBlendDistanceNegative = distance;
-                add.influenceVolume.shape = Shape.Box;
-            }
-            return add;
-        }
-
         HDAdditionalLightData GetHDAdditionalLightData(VisibleLight light)
         {
             var add = light.light.GetComponent<HDAdditionalLightData>();
