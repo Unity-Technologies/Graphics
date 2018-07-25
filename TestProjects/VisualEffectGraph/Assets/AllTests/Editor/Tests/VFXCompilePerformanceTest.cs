@@ -42,7 +42,7 @@ namespace UnityEditor.VFX.Test
 
                     var sw = Stopwatch.StartNew();
                     graph.SetExpressionGraphDirty();
-                    VFXExpression.ClearCacheOfExpressions();
+                    VFXExpression.ClearCache();
                     graph.RecompileIfNeeded();
                     sw.Stop();
 
