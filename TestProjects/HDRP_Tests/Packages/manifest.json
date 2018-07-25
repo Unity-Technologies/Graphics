@@ -1,7 +1,6 @@
 {
   "dependencies": {
     "com.unity.package-manager-ui": "1.9.9",
-    "com.unity.postprocessing": "file:../../../com.unity.postprocessing",
     "com.unity.render-pipelines.core": "file:../../../com.unity.render-pipelines.core",
     "com.unity.render-pipelines.high-definition": "file:../../../com.unity.render-pipelines.high-definition",
     "com.unity.shadergraph": "file:../../../com.unity.shadergraph",

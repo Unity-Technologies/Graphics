@@ -3,7 +3,6 @@
     "com.unity.ads": "2.0.8",
     "com.unity.analytics": "2.0.16",
     "com.unity.package-manager-ui": "1.9.9",
-    "com.unity.postprocessing": "file:../../../com.unity.postprocessing",
     "com.unity.purchasing": "2.0.1",
     "com.unity.render-pipelines.core": "file:../../../com.unity.render-pipelines.core",
     "com.unity.render-pipelines.high-definition": "file:../../../com.unity.render-pipelines.high-definition",
