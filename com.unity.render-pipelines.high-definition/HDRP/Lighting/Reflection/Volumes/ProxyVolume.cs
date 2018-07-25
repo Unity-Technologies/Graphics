@@ -7,7 +7,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public class ProxyVolume
     {
         [SerializeField, FormerlySerializedAs("m_ShapeType")]
-        ShapeOrInfinite m_Shape = ShapeOrInfinite.Box;
+        ProxyShape m_Shape = ProxyShape.Box;
 
         // Box
         [SerializeField]
@@ -22,7 +22,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         bool m_SphereInfiniteProjection = false;
 
         /// <summary>The shape of the proxy</summary>
-        public ShapeOrInfinite shape { get { return m_Shape; } private set { m_Shape = value; } }
+        public ProxyShape shape { get { return m_Shape; } private set { m_Shape = value; } }
 
         /// <summary>The size of the proxy if it as a shape Box</summary>
         public Vector3 boxSize { get { return m_BoxSize; } set { m_BoxSize = value; } }
@@ -37,8 +37,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 switch (shape)
                 {
-                    case ShapeOrInfinite.Box: return m_BoxSize * 0.5f;
-                    case ShapeOrInfinite.Sphere: return Vector3.one * m_SphereRadius;
+                    case ProxyShape.Box: return m_BoxSize * 0.5f;
+                    case ProxyShape.Sphere: return Vector3.one * m_SphereRadius;
                     default: return Vector3.one;
                 }
             }
@@ -47,11 +47,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         internal void MigrateInfiniteProhjectionInShape()
         {
 #pragma warning disable CS0618 // Type or member is obsolete
-            if (shape == ShapeOrInfinite.Sphere && m_SphereInfiniteProjection
-                || shape == ShapeOrInfinite.Box && m_BoxInfiniteProjection)
+            if (shape == ProxyShape.Sphere && m_SphereInfiniteProjection
+                || shape == ProxyShape.Box && m_BoxInfiniteProjection)
 #pragma warning restore CS0618 // Type or member is obsolete
             {
-                shape = ShapeOrInfinite.Infinite;
+                shape = ProxyShape.Infinite;
             }
         }
     }

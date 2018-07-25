@@ -14,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             UseInfluenceVolume,
             // Add new version here and they will automatically be the Current one
             Max,
-            Current = Max - 1            
+            Current = Max - 1
         }
 
         [SerializeField, FormerlySerializedAs("version")]
@@ -26,7 +26,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #pragma warning disable 649 //never assigned
         //data only kept for migration, to be removed in future version
         [SerializeField, System.Obsolete("influenceShape is deprecated, use influenceVolume parameters instead")]
-        Shape influenceShape;
+        InfluenceShape influenceShape;
         [SerializeField, System.Obsolete("influenceSphereRadius is deprecated, use influenceVolume parameters instead")]
         float influenceSphereRadius = 3.0f;
         [SerializeField, System.Obsolete("blendDistancePositive is deprecated, use influenceVolume parameters instead")]
