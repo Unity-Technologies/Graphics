@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/Sky/HDRISky"
+Shader "Hidden/HDRenderPipeline/Sky/GradientSky"
 {
     HLSLINCLUDE
 
@@ -6,17 +6,19 @@ Shader "Hidden/HDRenderPipeline/Sky/HDRISky"
     #pragma fragment Frag
 
     #pragma target 4.5
-    #pragma only_renderers d3d11 ps4 xboxone vulkan metal switch
+    #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
     #include "CoreRP/ShaderLibrary/Common.hlsl"
     #include "CoreRP/ShaderLibrary/Color.hlsl"
     #include "CoreRP/ShaderLibrary/CommonLighting.hlsl"
+	#include "HDRP/ShaderVariables.hlsl"
 
-    TEXTURECUBE(_Cubemap);
-    SAMPLER(sampler_Cubemap);
-
-    float4   _SkyParam; // x exposure, y multiplier, z rotation
     float4x4 _PixelCoordToViewDirWS; // Actually just 3x3, but Unity can only set 4x4
+    
+	float4 _GradientBottom;
+    float4 _GradientMiddle;
+    float4 _GradientTop;
+    float _GradientDiffusion;
 
     struct Attributes
     {
@@ -37,28 +39,20 @@ Shader "Hidden/HDRenderPipeline/Sky/HDRISky"
 
     float4 Frag(Varyings input) : SV_Target
     {
-        // Points towards the camera
-        float3 viewDirWS = normalize(mul(float3(input.positionCS.xy, 1.0), (float3x3)_PixelCoordToViewDirWS));
-        // Reverse it to point into the scene
-        float3 dir = -viewDirWS;
-
-        // Rotate direction
-        float phi = DegToRad(_SkyParam.z);
-        float cosPhi, sinPhi;
-        sincos(phi, sinPhi, cosPhi);
-        float3 rotDirX = float3(cosPhi, 0, -sinPhi);
-        float3 rotDirY = float3(sinPhi, 0, cosPhi);
-        dir = float3(dot(rotDirX, dir), dir.y, dot(rotDirY, dir));
-
-        float3 skyColor = ClampToFloat16Max(SAMPLE_TEXTURECUBE_LOD(_Cubemap, sampler_Cubemap, dir, 0).rgb * exp2(_SkyParam.x) * _SkyParam.y);
-        return float4(skyColor, 1.0);
+		float3 viewDirWS = normalize(mul(float3(input.positionCS.xy, 1.0), (float3x3)_PixelCoordToViewDirWS));
+        float verticalGradient = viewDirWS.y * _GradientDiffusion;
+		float topLerpFactor = saturate(-verticalGradient);
+		float bottomLerpFactor = saturate(verticalGradient);
+		float3 color = lerp(_GradientMiddle.xyz, _GradientBottom.xyz, bottomLerpFactor);
+		color = lerp(color, _GradientTop.xyz, topLerpFactor);
+		return float4 (color, 1.0);
     }
+
 
     ENDHLSL
 
     SubShader
     {
-        // For cubemap
         Pass
         {
             ZWrite Off
@@ -71,7 +65,6 @@ Shader "Hidden/HDRenderPipeline/Sky/HDRISky"
 
         }
 
-        // For fullscreen Sky
         Pass
         {
             ZWrite Off

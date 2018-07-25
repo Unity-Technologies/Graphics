@@ -52,8 +52,10 @@ MonoBehaviour:
   GGXConvolve: {fileID: 4800000, guid: 123ed592ad5c2494b8aed301fd609e7b, type: 3}
   opaqueAtmosphericScattering: {fileID: 4800000, guid: 32f724728cf19904291226f239ec16f0, type: 3}
   hdriSky: {fileID: 4800000, guid: 9bd32a6ece529fd4f9408b8d7e00c10d, type: 3}
+  integrateHdriSky: {fileID: 4800000, guid: 48db2705cf2856d4e893eb30a6892d1b, type: 3}
   proceduralSky: {fileID: 4800000, guid: ec63f47fd265df243a7b1d40f9ef7fe7, type: 3}
   skyboxCubemap: {fileID: 103, guid: 0000000000000000f000000000000000, type: 0}
+  gradientSky: {fileID: 4800000, guid: 2b5d4f1b26f03dc4a873b093e0c4adb1, type: 3}
   preIntegratedFGD_GGXDisneyDiffuse: {fileID: 4800000, guid: 123f13d52852ef547b2962de4bd9eaad, type: 3}
   preIntegratedFGD_CharlieClothLambert: {fileID: 4800000, guid: 3b3bf235775cf8b4baae7f3306787ab0, type: 3}
   encodeBC6HCS: {fileID: 7200000, guid: aa922d239de60304f964e24488559eeb, type: 3}
