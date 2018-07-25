@@ -291,25 +291,15 @@ ${Graph}
 
         BuildSurfaceData(fragInputs, surfaceDescription, V, surfaceData);
 
-        // Builtin Data -- we don't call GetBuiltinData(fragInputs, surfaceData, ...)
-        // that function assumes there are specific global properties defined
-        // for shadergraph shaders, we fill it out here instead
-        ZERO_INITIALIZE(BuiltinData, builtinData);
+        // Builtin Data
+        ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
 
         builtinData.opacity =                   surfaceDescription.Alpha;
-        builtinData.bakeDiffuseLighting =       float3(0.0, 0.0, 0.0);
 
 $SurfaceDescription.Emission:     builtinData.emissiveColor =             surfaceDescription.Emission;
-        builtinData.velocity =                  float2(0.0, 0.0);
-        builtinData.shadowMask0 = 0.0;
-        builtinData.shadowMask1 = 0.0;
-        builtinData.shadowMask2 = 0.0;
-        builtinData.shadowMask3 = 0.0;
 
         builtinData.distortion =                float2(0.0, 0.0);           // surfaceDescription.Distortion -- if distortion pass
         builtinData.distortionBlur =            0.0;                        // surfaceDescription.DistortionBlur -- if distortion pass
-        builtinData.renderingLayers =           0.0;
-        builtinData.depthOffset =               0.0;                        // ApplyPerPixelDisplacement(input, V, layerTexCoord, blendMasks); #ifdef _DEPTHOFFSET_ON : ApplyDepthOffsetPositionInput(V, depthOffset, GetWorldToHClipMatrix(), posInput);
     }
 
     //-------------------------------------------------------------------------------------
