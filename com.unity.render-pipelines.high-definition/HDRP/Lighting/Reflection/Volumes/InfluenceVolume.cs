@@ -148,12 +148,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         /// Value between 0 (on InfluenceVolume hull) and sphereRadius (fade sub volume reduced to a point).
         /// </summary>
         public float sphereBlendNormalDistance { get { return m_SphereBlendNormalDistance; } set { m_SphereBlendNormalDistance = value; } }
-
-        internal InfluenceVolume(HDProbe probe)
-        {
-            Init(probe);
-        }
-
+        
         internal void Init(HDProbe probe)
         {
             this.probe = probe;
