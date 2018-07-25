@@ -78,9 +78,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        /// <summary>Return if an influence volume have been correctly initialize with a probe.</summary>
-        public bool IsInit() { return probe != null; }
-
         /// <summary>Offset of this influence volume to the component handling him.</summary>
         public Vector3 offset { get { return m_Offset; } set { m_Offset = value; } }
 

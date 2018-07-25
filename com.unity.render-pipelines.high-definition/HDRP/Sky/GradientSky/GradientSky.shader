@@ -43,9 +43,9 @@ Shader "Hidden/HDRenderPipeline/Sky/GradientSky"
         float verticalGradient = viewDirWS.y * _GradientDiffusion;
 		float topLerpFactor = saturate(-verticalGradient);
 		float bottomLerpFactor = saturate(verticalGradient);
-		float3 color = lerp(_GradientMiddle,_GradientBottom,bottomLerpFactor);
-		color = lerp(color.xyz,_GradientTop,topLerpFactor);
-		return float4 (color.xyz,1);
+		float3 color = lerp(_GradientMiddle.xyz, _GradientBottom.xyz, bottomLerpFactor);
+		color = lerp(color, _GradientTop.xyz, topLerpFactor);
+		return float4 (color, 1.0);
     }
 
 
