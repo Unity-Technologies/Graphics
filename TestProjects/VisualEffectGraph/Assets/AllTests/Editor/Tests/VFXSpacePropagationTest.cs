@@ -245,7 +245,7 @@ namespace UnityEditor.VFX.Test
             var positionSphere = ScriptableObject.CreateInstance<PositionSphere>();
             initializeContext.AddChild(positionSphere);
 
-            //Default is expected to be in local/local
+            //Default is expected to be in same space between block & context
             var slotSpherePositionExpressions = CollectParentExpression(positionSphere.inputSlots[0][0][0].GetExpression()).ToArray();
             Assert.IsTrue(slotSpherePositionExpressions.Any());
             Assert.IsFalse(slotSpherePositionExpressions.Any(o => o.operation == VFXExpressionOperation.LocalToWorld || o.operation == VFXExpressionOperation.WorldToLocal));
