@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.07875386, g: 0.07704143, b: 0.066761576, a: 1}
+  m_IndirectSpecularColor: {r: 0, g: 0, b: 0, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -159,6 +159,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &74334710
 GameObject:
   m_ObjectHideFlags: 0
@@ -205,6 +207,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &127561052
 GameObject:
   m_ObjectHideFlags: 0
@@ -251,6 +255,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &173526623
 GameObject:
   m_ObjectHideFlags: 0
@@ -295,6 +301,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
+  m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17, type: 2}
   m_StaticBatchInfo:
@@ -382,6 +389,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &225041350
 GameObject:
   m_ObjectHideFlags: 0
@@ -428,6 +437,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &243692027
 GameObject:
   m_ObjectHideFlags: 0
@@ -474,6 +485,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &250966354
 GameObject:
   m_ObjectHideFlags: 0
@@ -520,6 +533,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &260575850
 GameObject:
   m_ObjectHideFlags: 0
@@ -566,6 +581,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &286314541
 GameObject:
   m_ObjectHideFlags: 0
@@ -612,6 +629,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &294464788
 GameObject:
   m_ObjectHideFlags: 0
@@ -658,6 +677,8 @@ MonoBehaviour:
   m_UVScale: {x: 0.16, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &332810623
 GameObject:
   m_ObjectHideFlags: 0
@@ -704,6 +725,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &338930937
 GameObject:
   m_ObjectHideFlags: 0
@@ -750,6 +773,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &341993383
 GameObject:
   m_ObjectHideFlags: 0
@@ -796,6 +821,8 @@ MonoBehaviour:
   m_UVScale: {x: 0.16, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &369311313
 GameObject:
   m_ObjectHideFlags: 0
@@ -842,6 +869,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &374113650
 GameObject:
   m_ObjectHideFlags: 0
@@ -888,6 +917,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &399218098
 GameObject:
   m_ObjectHideFlags: 0
@@ -970,6 +1001,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &404697366
 GameObject:
   m_ObjectHideFlags: 0
@@ -1016,6 +1049,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &414065951
 GameObject:
   m_ObjectHideFlags: 0
@@ -1062,6 +1097,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &435068001
 GameObject:
   m_ObjectHideFlags: 0
@@ -1127,6 +1164,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
+  m_RendererPriority: 0
   m_Materials:
   - {fileID: 10100, guid: 0000000000000000e000000000000000, type: 0}
   m_StaticBatchInfo:
@@ -1194,6 +1232,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &466355172
 GameObject:
   m_ObjectHideFlags: 0
@@ -1240,6 +1280,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &521922984
 GameObject:
   m_ObjectHideFlags: 0
@@ -1286,6 +1328,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &541365535
 GameObject:
   m_ObjectHideFlags: 0
@@ -1332,6 +1376,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &558484125
 GameObject:
   m_ObjectHideFlags: 0
@@ -1378,6 +1424,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &576360073
 GameObject:
   m_ObjectHideFlags: 0
@@ -1424,6 +1472,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &578980835
 GameObject:
   m_ObjectHideFlags: 0
@@ -1470,6 +1520,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &650886796
 GameObject:
   m_ObjectHideFlags: 0
@@ -1516,6 +1568,8 @@ MonoBehaviour:
   m_UVScale: {x: 0.16, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &673193209
 GameObject:
   m_ObjectHideFlags: 0
@@ -1562,6 +1616,8 @@ MonoBehaviour:
   m_UVScale: {x: 0.5, y: 0.5}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &691491257
 GameObject:
   m_ObjectHideFlags: 0
@@ -1608,6 +1664,8 @@ MonoBehaviour:
   m_UVScale: {x: 0.16, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &723869257
 GameObject:
   m_ObjectHideFlags: 0
@@ -1654,6 +1712,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &730821749
 GameObject:
   m_ObjectHideFlags: 0
@@ -1750,6 +1810,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &748390694
 GameObject:
   m_ObjectHideFlags: 0
@@ -1796,6 +1858,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 35.9, y: 2.32}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &774909013
 GameObject:
   m_ObjectHideFlags: 0
@@ -1842,6 +1906,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &780717197
 GameObject:
   m_ObjectHideFlags: 0
@@ -1907,6 +1973,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
+  m_RendererPriority: 0
   m_Materials:
   - {fileID: 10100, guid: 0000000000000000e000000000000000, type: 0}
   m_StaticBatchInfo:
@@ -1974,6 +2041,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &792889985
 GameObject:
   m_ObjectHideFlags: 0
@@ -2020,6 +2089,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &800528687
 GameObject:
   m_ObjectHideFlags: 0
@@ -2066,6 +2137,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &853628977
 GameObject:
   m_ObjectHideFlags: 0
@@ -2112,6 +2185,8 @@ MonoBehaviour:
   m_UVScale: {x: 0.16, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &858039326
 GameObject:
   m_ObjectHideFlags: 0
@@ -2156,6 +2231,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
+  m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17, type: 2}
   m_StaticBatchInfo:
@@ -2243,6 +2319,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &916940777
 GameObject:
   m_ObjectHideFlags: 0
@@ -2289,6 +2367,8 @@ MonoBehaviour:
   m_UVScale: {x: 0.16, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &928243931
 GameObject:
   m_ObjectHideFlags: 0
@@ -2335,6 +2415,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &970943824
 GameObject:
   m_ObjectHideFlags: 0
@@ -2381,6 +2463,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &993425094
 GameObject:
   m_ObjectHideFlags: 0
@@ -2459,6 +2543,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &1005978163
 GameObject:
   m_ObjectHideFlags: 0
@@ -2506,6 +2592,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &1046408022
 GameObject:
   m_ObjectHideFlags: 0
@@ -2552,6 +2640,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &1095346273
 GameObject:
   m_ObjectHideFlags: 0
@@ -2598,6 +2688,8 @@ MonoBehaviour:
   m_UVScale: {x: 0.16, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &1112771833
 GameObject:
   m_ObjectHideFlags: 0
@@ -2644,6 +2736,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &1125739647
 GameObject:
   m_ObjectHideFlags: 0
@@ -2674,7 +2768,6 @@ MeshCollider:
   serializedVersion: 3
   m_Convex: 0
   m_CookingOptions: 14
-  m_SkinWidth: 0.01
   m_Mesh: {fileID: 10209, guid: 0000000000000000e000000000000000, type: 0}
 --- !u!23 &1125739649
 MeshRenderer:
@@ -2690,6 +2783,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
+  m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 1667710fc698271409ff13c2d6a27dd4, type: 2}
   m_StaticBatchInfo:
@@ -2774,18 +2868,15 @@ Prefab:
       propertyPath: m_LocalEulerAnglesHint.x
       value: 90
       objectReference: {fileID: 0}
-    - target: {fileID: 20109210616973140, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 2}
+    - target: {fileID: 20109210616973140, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 2}
       propertyPath: orthographic
       value: 1
       objectReference: {fileID: 0}
-    - target: {fileID: 20109210616973140, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 2}
+    - target: {fileID: 20109210616973140, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 2}
       propertyPath: orthographic size
       value: 9.31
       objectReference: {fileID: 0}
-    - target: {fileID: 20109210616973140, guid: c07ace9ab142ca9469fa377877c2f1e7,
-        type: 2}
+    - target: {fileID: 20109210616973140, guid: c07ace9ab142ca9469fa377877c2f1e7, type: 2}
       propertyPath: far clip plane
       value: 80
       objectReference: {fileID: 0}
@@ -2871,6 +2962,8 @@ MonoBehaviour:
   m_UVScale: {x: 0.16, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &1254724135
 GameObject:
   m_ObjectHideFlags: 0
@@ -2918,6 +3011,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &1278989599
 GameObject:
   m_ObjectHideFlags: 0
@@ -2983,6 +3078,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
+  m_RendererPriority: 0
   m_Materials:
   - {fileID: 10100, guid: 0000000000000000e000000000000000, type: 0}
   m_StaticBatchInfo:
@@ -3050,6 +3146,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &1330830820
 GameObject:
   m_ObjectHideFlags: 0
@@ -3128,6 +3226,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &1359134011
 GameObject:
   m_ObjectHideFlags: 0
@@ -3174,6 +3274,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &1385914845
 GameObject:
   m_ObjectHideFlags: 0
@@ -3220,6 +3322,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &1388927182
 GameObject:
   m_ObjectHideFlags: 0
@@ -3266,6 +3370,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &1401264637
 GameObject:
   m_ObjectHideFlags: 0
@@ -3312,6 +3418,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &1417088810
 GameObject:
   m_ObjectHideFlags: 0
@@ -3358,6 +3466,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &1428726872
 GameObject:
   m_ObjectHideFlags: 0
@@ -3404,6 +3514,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &1430823196
 GameObject:
   m_ObjectHideFlags: 0
@@ -3450,6 +3562,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &1434343681
 GameObject:
   m_ObjectHideFlags: 0
@@ -3496,6 +3610,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &1461738263
 GameObject:
   m_ObjectHideFlags: 0
@@ -3548,6 +3664,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &1498584143
 GameObject:
   m_ObjectHideFlags: 0
@@ -3594,6 +3712,8 @@ MonoBehaviour:
   m_UVScale: {x: 0.16, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &1563933641
 GameObject:
   m_ObjectHideFlags: 0
@@ -3640,6 +3760,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &1599307487
 GameObject:
   m_ObjectHideFlags: 0
@@ -3686,6 +3808,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &1599862839
 GameObject:
   m_ObjectHideFlags: 0
@@ -3783,6 +3907,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &1691808983
 GameObject:
   m_ObjectHideFlags: 0
@@ -3829,6 +3955,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &1697367095
 GameObject:
   m_ObjectHideFlags: 0
@@ -3894,6 +4022,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
+  m_RendererPriority: 0
   m_Materials:
   - {fileID: 10100, guid: 0000000000000000e000000000000000, type: 0}
   m_StaticBatchInfo:
@@ -3961,6 +4090,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &1761218374
 GameObject:
   m_ObjectHideFlags: 0
@@ -3990,7 +4121,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Profile: {fileID: 11400000, guid: 4f498417c99f5004da63865a022cb07d, type: 2}
-  m_BakingSkyUniqueID: 2
+  m_BakingSkyUniqueID: 1
 --- !u!114 &1761218376
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4099,7 +4230,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c6c2871f720b2af4e9210febdac74517, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 1
+  m_Version: 1
   shadowResolution: 512
   shadowDimmer: 1
   shadowFadeDistance: 10000
@@ -4144,7 +4275,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a68c43fe1f2a47cfa234b5eeaa98012, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 1.1
+  version: 2
+  m_Version: 2
   directionalIntensity: 3.1415927
   punctualIntensity: 600
   areaIntensity: 200
@@ -4170,6 +4302,7 @@ MonoBehaviour:
   showAdditionalSettings: 0
   displayLightIntensity: 3.1415927
   displayAreaLightEmissiveMesh: 0
+  lightLayers: 1
 --- !u!1 &1827502608
 GameObject:
   m_ObjectHideFlags: 0
@@ -4216,6 +4349,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &1878558920
 GameObject:
   m_ObjectHideFlags: 0
@@ -4262,6 +4397,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &1946326916
 GameObject:
   m_ObjectHideFlags: 0
@@ -4308,6 +4445,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &2003187185
 GameObject:
   m_ObjectHideFlags: 0
@@ -4354,6 +4493,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &2045259974
 GameObject:
   m_ObjectHideFlags: 0
@@ -4400,6 +4541,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &2058823762
 GameObject:
   m_ObjectHideFlags: 0
@@ -4484,6 +4627,8 @@ MonoBehaviour:
   m_UVScale: {x: 0.16, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &2101771495
 GameObject:
   m_ObjectHideFlags: 0
@@ -4530,6 +4675,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &2109464410
 GameObject:
   m_ObjectHideFlags: 0
@@ -4576,6 +4723,8 @@ MonoBehaviour:
   m_UVScale: {x: 0.16, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &2114125598
 GameObject:
   m_ObjectHideFlags: 0
@@ -4622,6 +4771,8 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &2121937319
 GameObject:
   m_ObjectHideFlags: 0
@@ -4668,6 +4819,8 @@ MonoBehaviour:
   m_UVScale: {x: 0.16, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}
 --- !u!1 &2125202485
 GameObject:
   m_ObjectHideFlags: 0
@@ -4714,3 +4867,5 @@ MonoBehaviour:
   m_UVScale: {x: 1, y: 1}
   m_UVBias: {x: 0, y: 0}
   m_AffectsTransparency: 0
+  m_Offset: {x: 0, y: -0.5, z: 0}
+  m_Size: {x: 1, y: 1, z: 1}

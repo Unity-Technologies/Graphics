@@ -17,13 +17,8 @@
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_VELOCITY (107)
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION (108)
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION_BLUR (109)
-#define DEBUGVIEW_BUILTIN_BUILTINDATA_DEPTH_OFFSET (110)
-
-//
-// UnityEngine.Experimental.Rendering.HDPipeline.Builtin+LightTransportData:  static fields
-//
-#define DEBUGVIEW_BUILTIN_LIGHTTRANSPORTDATA_DIFFUSE_COLOR (150)
-#define DEBUGVIEW_BUILTIN_LIGHTTRANSPORTDATA_EMISSIVE_COLOR (151)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_RENDERING_LAYERS (110)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_DEPTH_OFFSET (111)
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.Builtin+BuiltinData
 // PackingRules = Exact
@@ -39,6 +34,7 @@ struct BuiltinData
     float2 velocity;
     float2 distortion;
     float distortionBlur;
+    uint renderingLayers;
     float depthOffset;
 };
 
@@ -88,25 +84,11 @@ void GetGeneratedBuiltinDataDebug(uint paramId, BuiltinData builtindata, inout f
         case DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION_BLUR:
             result = builtindata.distortionBlur.xxx;
             break;
+        case DEBUGVIEW_BUILTIN_BUILTINDATA_RENDERING_LAYERS:
+            result = GetIndexColor(builtindata.renderingLayers);
+            break;
         case DEBUGVIEW_BUILTIN_BUILTINDATA_DEPTH_OFFSET:
             result = builtindata.depthOffset.xxx;
-            break;
-    }
-}
-
-//
-// Debug functions
-//
-void GetGeneratedLightTransportDataDebug(uint paramId, LightTransportData lighttransportdata, inout float3 result, inout bool needLinearToSRGB)
-{
-    switch (paramId)
-    {
-        case DEBUGVIEW_BUILTIN_LIGHTTRANSPORTDATA_DIFFUSE_COLOR:
-            result = lighttransportdata.diffuseColor;
-            needLinearToSRGB = true;
-            break;
-        case DEBUGVIEW_BUILTIN_LIGHTTRANSPORTDATA_EMISSIVE_COLOR:
-            result = lighttransportdata.emissiveColor;
             break;
     }
 }
