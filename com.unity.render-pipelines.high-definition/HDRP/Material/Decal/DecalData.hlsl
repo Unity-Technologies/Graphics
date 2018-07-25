@@ -38,17 +38,15 @@ void GetSurfaceData(FragInputs input, out DecalSurfaceData surfaceData)
 	surfaceData.baseColor.w = 0;	// dont blend any albedo
 #endif
 
-	float maskMapBlend;
+    // Default to _DecalBlend, if we use _NormalBlendSrc as maskmap and there is no maskmap, it mean we have 1
+	float maskMapBlend = _DecalBlend;
+
 #if _MASKMAP
     surfaceData.mask = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, texCoords);
-	maskMapBlend = surfaceData.mask.z * _DecalBlend;	// store before overwriting with smoothness
+	maskMapBlend *= surfaceData.mask.z;	// store before overwriting with smoothness
     surfaceData.mask.z = surfaceData.mask.w;
 	surfaceData.HTileMask |= DBUFFERHTILEBIT_MASK;
-#if _MASK_BLEND_SRC_B
-	surfaceData.mask.w = maskMapBlend;
-#else
-    surfaceData.mask.w = albedoMapBlend;
-#endif
+	surfaceData.mask.w = _MaskBlendSrc ? maskMapBlend : albedoMapBlend;
 #endif
 
 	// needs to be after mask, because blend source could be in the mask map blue
@@ -62,11 +60,7 @@ void GetSurfaceData(FragInputs input, out DecalSurfaceData surfaceData)
 #endif
 	surfaceData.normalWS.xyz = normalWS * 0.5f + 0.5f;
 	surfaceData.HTileMask |= DBUFFERHTILEBIT_NORMAL;
-#if _NORMAL_BLEND_SRC_B
-	surfaceData.normalWS.w = maskMapBlend;
-#else
-	surfaceData.normalWS.w = albedoMapBlend;
-#endif	
+	surfaceData.normalWS.w = _NormalBlendSrc ? maskMapBlend : albedoMapBlend;
 #endif
 	surfaceData.MAOSBlend.xy = float2(surfaceData.mask.w, surfaceData.mask.w);
 }
