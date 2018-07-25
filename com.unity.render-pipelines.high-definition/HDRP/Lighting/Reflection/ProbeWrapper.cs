@@ -15,14 +15,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             throw new ArgumentException();
         }
 
-        protected static EnvShapeType ConvertShape(Shape shape)
+        protected static EnvShapeType ConvertShape(InfluenceShape shape)
         {
             switch (shape)
             {
                 default:
-                case Shape.Box:
+                case InfluenceShape.Box:
                     return EnvShapeType.Box;
-                case Shape.Sphere:
+                case InfluenceShape.Sphere:
+                    return EnvShapeType.Sphere;
+            }
+        }
+
+        protected static EnvShapeType ConvertShape(ProxyShape shape)
+        {
+            switch (shape)
+            {
+                case ProxyShape.Box:
+                    return EnvShapeType.Box;
+                default:
+                case ProxyShape.Infinite:
+                case ProxyShape.Sphere:
                     return EnvShapeType.Sphere;
             }
         }
@@ -71,12 +84,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 add = HDUtils.s_DefaultHDAdditionalReflectionData;
                 if (add.influenceVolume == null)
                 {
-                    add.Awake();
+                    add.Awake(); // We need to init the 'default' data if it isn't
                 }                
                 Vector3 distance = Vector3.one * probe.blendDistance;
                 add.influenceVolume.boxBlendDistancePositive = distance;
                 add.influenceVolume.boxBlendDistanceNegative = distance;
-                add.influenceVolume.shape= Shape.Box;
+                add.influenceVolume.shape= InfluenceShape.Box;
             }
             return add;
         }
@@ -105,9 +118,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 switch (additional.influenceVolume.shape)
                 {
                     default:
-                    case Shape.Box:
+                    case InfluenceShape.Box:
                         return probe.bounds.extents;
-                    case Shape.Sphere:
+                    case InfluenceShape.Sphere:
                         return Vector3.one * additional.influenceVolume.sphereRadius;
                 }
             }
@@ -124,7 +137,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get
             {
                 return additional.proxyVolume != null
-                    ? ConvertShape(additional.proxyVolume.proxyVolume.shapeType)
+                    ? ConvertShape(additional.proxyVolume.proxyVolume.shape)
                     : influenceShapeType;
             }
         }
@@ -143,7 +156,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get
             {
                 return additional.proxyVolume != null
-                    ? additional.proxyVolume.proxyVolume.infiniteProjection
+                    ? additional.proxyVolume.proxyVolume.shape == ProxyShape.Infinite
                     : probe.boxProjection == 0;
             }
         }
@@ -178,9 +191,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 switch (planarReflectionProbe.influenceVolume.shape)
                 {
                     default:
-                    case Shape.Box:
+                    case InfluenceShape.Box:
                         return planarReflectionProbe.influenceVolume.boxSize * 0.5f;
-                    case Shape.Sphere:
+                    case InfluenceShape.Sphere:
                         return planarReflectionProbe.influenceVolume.sphereRadius * Vector3.one;
                 }
             }
