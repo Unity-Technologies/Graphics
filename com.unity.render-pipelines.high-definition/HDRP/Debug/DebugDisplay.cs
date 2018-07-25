@@ -228,6 +228,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return colorPickerDebugSettings.colorPickerMode;
         }
 
+        public DebugShowLight GetShowLightMask()
+        {
+            return lightingDebugSettings.showLight;
+        }
+
         public bool IsDebugDisplayEnabled()
         {
             return materialDebugSettings.IsDebugDisplayEnabled() || lightingDebugSettings.IsDebugDisplayEnabled() || mipMapDebugSettings.IsDebugDisplayEnabled() || IsDebugFullScreenEnabled();
@@ -610,6 +615,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public void RegisterLightingDebug()
         {
             var list = new List<DebugUI.Widget>();
+
+            list.Add(new DebugUI.EnumMaskField
+            {
+                displayName = "Show Light Type",
+                getter = () => lightingDebugSettings.showLight,
+                setter = value => lightingDebugSettings.showLight = (DebugShowLight)value
+            });
 
             list.Add(new DebugUI.EnumField
             {

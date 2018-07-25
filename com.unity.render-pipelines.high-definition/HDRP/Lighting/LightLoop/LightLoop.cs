@@ -838,13 +838,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return true;
         }
 
-        public bool GetDirectionalLightData(CommandBuffer cmd, ShadowSettings shadowSettings, GPULightType gpuLightType, VisibleLight light, HDAdditionalLightData additionalData, AdditionalShadowData additionalShadowData, int lightIndex)
+        public bool GetDirectionalLightData(CommandBuffer cmd, ShadowSettings shadowSettings, GPULightType gpuLightType, VisibleLight light, HDAdditionalLightData additionalData, AdditionalShadowData additionalShadowData, int lightIndex, DebugDisplaySettings debugDisplaySettings)
         {
             var directionalLightData = new DirectionalLightData();
 
             float diffuseDimmer = m_FrameSettings.diffuseGlobalDimmer * additionalData.lightDimmer;
             float specularDimmer = m_FrameSettings.specularGlobalDimmer * additionalData.lightDimmer;
             if (diffuseDimmer  <= 0.0f && specularDimmer <= 0.0f)
+                return false;
+            
+            // Discard light if disabled in debug display settings
+            if ((((int)debugDisplaySettings.lightingDebugSettings.showLight >> (int)GPULightType.Directional) & 1) == 0)
                 return false;
 
             directionalLightData.lightLayers = additionalData.GetLightLayers();
@@ -927,7 +931,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool GetLightData(CommandBuffer cmd, ShadowSettings shadowSettings, Camera camera, GPULightType gpuLightType,
             VisibleLight light, HDAdditionalLightData additionalLightData, AdditionalShadowData additionalshadowData,
-            int lightIndex, ref Vector3 lightDimensions)
+            int lightIndex, ref Vector3 lightDimensions, DebugDisplaySettings debugDisplaySettings)
         {
             var lightData = new LightData();
 
@@ -938,6 +942,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             lightData.positionRWS = light.light.transform.position;
 
             bool applyRangeAttenuation = additionalLightData.applyRangeAttenuation && (gpuLightType != GPULightType.ProjectorBox);
+
+            // Discard light if disabled in debug display settings
+            if ((((int)debugDisplaySettings.lightingDebugSettings.showLight >> (int)lightData.lightType) & 1) == 0)
+                return false;
 
             // In the shader we do range remapping: (x - start) / (end - start) = (dist^2 * rangeAttenuationScale + rangeAttenuationBias)
             if (applyRangeAttenuation)
@@ -1516,7 +1524,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Return true if BakedShadowMask are enabled
         public bool PrepareLightsForGPU(CommandBuffer cmd, HDCamera hdCamera, ShadowSettings shadowSettings, CullResults cullResults,
-            ReflectionProbeCullResults reflectionProbeCullResults, DensityVolumeList densityVolumes)
+            ReflectionProbeCullResults reflectionProbeCullResults, DensityVolumeList densityVolumes, DebugDisplaySettings debugDisplaySettings)
         {
             using (new ProfilingSample(cmd, "Prepare Lights For GPU"))
             {
@@ -1728,7 +1736,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         // Directional rendering side, it is separated as it is always visible so no volume to handle here
                         if (gpuLightType == GPULightType.Directional)
                         {
-                            if (GetDirectionalLightData(cmd, shadowSettings, gpuLightType, light, additionalLightData, additionalShadowData, lightIndex))
+                            if (GetDirectionalLightData(cmd, shadowSettings, gpuLightType, light, additionalLightData, additionalShadowData, lightIndex, debugDisplaySettings))
                             {
                                 directionalLightcount++;
 
@@ -1749,7 +1757,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         Vector3 lightDimensions = new Vector3(); // X = length or width, Y = height, Z = range (depth)
 
                         // Punctual, area, projector lights - the rendering side.
-                        if (GetLightData(cmd, shadowSettings, camera, gpuLightType, light, additionalLightData, additionalShadowData, lightIndex, ref lightDimensions))
+                        if (GetLightData(cmd, shadowSettings, camera, gpuLightType, light, additionalLightData, additionalShadowData, lightIndex, ref lightDimensions, debugDisplaySettings))
                         {
                             switch (lightCategory)
                             {
