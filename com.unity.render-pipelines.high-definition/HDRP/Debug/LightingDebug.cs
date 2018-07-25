@@ -48,6 +48,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         VisualizeShadowMap
     }
 
+    [Flags]
+    public enum DebugShowLight
+    {
+        None         = 0,
+        Directional  = 1 << GPULightType.Directional,
+        Point        = 1 << GPULightType.Point,
+        Spot         = (1 << GPULightType.ProjectorBox) | (1 << GPULightType.ProjectorPyramid) | (1 << GPULightType.Spot),
+        Line         = 1 << GPULightType.Line,
+        Rectangle    = 1 << GPULightType.Rectangle,
+    }
+
     [Serializable]
     public class LightingDebugSettings
     {
@@ -86,6 +97,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public float                environmentProxyDepthScale = 20;
 
         public float                debugExposure = 0.0f;
+
+        public DebugShowLight            showLight = (DebugShowLight)~0;
 
         public LightLoop.TileClusterDebug tileClusterDebug = LightLoop.TileClusterDebug.None;
         public LightLoop.TileClusterCategoryDebug tileClusterDebugByCategory = LightLoop.TileClusterCategoryDebug.Punctual;

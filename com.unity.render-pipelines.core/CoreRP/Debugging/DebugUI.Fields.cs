@@ -133,6 +133,11 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+        public class EnumMaskField : Field<Enum>
+        {
+            public Enum    value;
+        }
+
         public class ColorField : Field<Color>
         {
             public bool hdr = false;
