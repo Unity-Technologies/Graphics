@@ -119,7 +119,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_BuiltinParameters.hdCamera = null;
 
                 CoreUtils.SetRenderTarget(m_BuiltinParameters.commandBuffer, m_SkyboxCubemapRT, ClearFlag.None, 0, (CubemapFace)i);
-                skyContext.renderer.RenderSky(m_BuiltinParameters, true);
+                skyContext.renderer.RenderSky(m_BuiltinParameters, true, skyContext.skySettings.includeSunInBaking);
             }
 
             // Generate mipmap for our cubemap
@@ -257,7 +257,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_BuiltinParameters.debugSettings = debugSettings;
 
                     skyContext.renderer.SetRenderTargets(m_BuiltinParameters);
-                    skyContext.renderer.RenderSky(m_BuiltinParameters, false);
+                    // When rendering the visual sky for reflection probes, we need to remove the sun disk if skySettings.includeSunInBaking is false.
+                    skyContext.renderer.RenderSky(m_BuiltinParameters, false, hdCamera.camera.cameraType != CameraType.Reflection || skyContext.skySettings.includeSunInBaking);
                 }
             }
         }
