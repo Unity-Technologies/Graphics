@@ -11,7 +11,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
   m_Name: HDRenderPipelineAsset
   m_EditorClassIdentifier: 
-  version: 1
+  m_Version: 1
   m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7, type: 2}
   m_FrameSettings:
     enableShadow: 1
@@ -29,7 +29,7 @@ MonoBehaviour:
     enableTransparentPrepass: 1
     enableMotionVectors: 1
     enableObjectMotionVectors: 1
-    enableDBuffer: 1
+    enableDecals: 1
     enableRoughRefraction: 1
     enableTransparentPostpass: 1
     enableDistortion: 1
@@ -59,7 +59,7 @@ MonoBehaviour:
     increaseResolutionOfVolumetrics: 0
     supportRuntimeDebugDisplay: 1
     supportDitheringCrossFade: 1
-    supportDBuffer: 1
+    supportDecals: 1
     supportMSAA: 0
     msaaSampleCount: 1
     supportMotionVectors: 1
@@ -89,5 +89,6 @@ MonoBehaviour:
       drawDistance: 1000
       atlasWidth: 4096
       atlasHeight: 4096
+      perChannelMask: 0
   allowShaderVariantStripping: 1
   diffusionProfileSettings: {fileID: 11400000, guid: 404820c4cf36ad944862fa59c56064f0, type: 2}

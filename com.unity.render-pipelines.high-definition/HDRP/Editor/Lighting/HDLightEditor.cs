@@ -45,6 +45,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty volumetricDimmer;
             public SerializedProperty lightUnit;
             public SerializedProperty displayAreaLightEmissiveMesh;
+            public SerializedProperty lightLayers;
 
             // Editor stuff
             public SerializedProperty useOldInspector;
@@ -138,6 +139,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     volumetricDimmer = o.Find(x => x.volumetricDimmer),
                     lightUnit = o.Find(x => x.lightUnit),
                     displayAreaLightEmissiveMesh = o.Find(x => x.displayAreaLightEmissiveMesh),
+                    lightLayers = o.Find(x => x.lightLayers),                    
                     fadeDistance = o.Find(x => x.fadeDistance),
                     affectDiffuse = o.Find(x => x.affectDiffuse),
                     affectSpecular = o.Find(x => x.affectSpecular),
@@ -526,6 +528,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Additional Settings", EditorStyles.boldLabel);
                 EditorGUI.indentLevel++;
+                m_AdditionalLightData.lightLayers.intValue = Convert.ToInt32(EditorGUILayout.EnumFlagsField(s_Styles.lightLayer, (LightLayerEnum)m_AdditionalLightData.lightLayers.intValue));
                 EditorGUILayout.PropertyField(m_AdditionalLightData.affectDiffuse, s_Styles.affectDiffuse);
                 EditorGUILayout.PropertyField(m_AdditionalLightData.affectSpecular, s_Styles.affectSpecular);
                 if (m_LightShape != LightShape.Directional)

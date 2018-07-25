@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class SerializedHDReflectionProbe
     {
@@ -133,7 +133,7 @@ namespace UnityEditor.Experimental.Rendering
                 Apply();
             }
 
-            proxyVolumeComponent = addso.Find((HDAdditionalReflectionData d) => d.proxyVolumeComponent);
+            proxyVolumeComponent = addso.Find((HDAdditionalReflectionData d) => d.proxyVolume);
         }
 
         public void Update()
