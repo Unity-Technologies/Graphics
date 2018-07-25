@@ -49,7 +49,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             set { m_RefreshMode = value; }
         }
         
-        void Awake()
+        internal void Awake()
         {
             if (influenceVolume == null)
                 influenceVolume = new InfluenceVolume(this);
