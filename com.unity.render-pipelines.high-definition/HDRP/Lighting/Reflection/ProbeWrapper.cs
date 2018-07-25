@@ -31,10 +31,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             switch (shape)
             {
-                default:
-                case ProxyShape.Infinite:
                 case ProxyShape.Box:
                     return EnvShapeType.Box;
+                default:
+                case ProxyShape.Infinite:
                 case ProxyShape.Sphere:
                     return EnvShapeType.Sphere;
             }
