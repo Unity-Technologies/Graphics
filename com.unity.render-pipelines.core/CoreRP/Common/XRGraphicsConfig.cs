@@ -85,6 +85,8 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
 
+#if UNITY_EDITOR
+        // FIXME: We should probably have StereoREnderingPath defined in UnityEngine.XR, not UnityEditor...
         public static StereoRenderingPath stereoRenderingMode
         {
             get
@@ -103,6 +105,7 @@ namespace UnityEngine.Experimental.Rendering
 #endif
             }
         }
+#endif
         public static RenderTextureDescriptor eyeTextureDesc
         {
             get
