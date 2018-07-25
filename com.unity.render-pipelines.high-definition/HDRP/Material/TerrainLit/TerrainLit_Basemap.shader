@@ -106,6 +106,8 @@ Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
+            // Setup DECALS_OFF so the shader stripper can remove variants
+            #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
 
             #define SHADERPASS SHADERPASS_GBUFFER
             #include "../../ShaderVariables.hlsl"
@@ -184,10 +186,20 @@ Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap"
 
             HLSLPROGRAM
 
+            // In deferred, depth only pass don't output anything.
+            // In forward it output the normal buffer
+            #pragma multi_compile _ WRITE_NORMAL_BUFFER
+
             #define SHADERPASS SHADERPASS_DEPTH_ONLY
             #include "../../ShaderVariables.hlsl"
             #include "../../Material/Material.hlsl"
+
+            #ifdef WRITE_NORMAL_BUFFER // If enabled we need all regular interpolator
+            #include "../Lit/ShaderPass/LitSharePass.hlsl"
+            #else
             #include "../Lit/ShaderPass/LitDepthPass.hlsl"
+            #endif
+
             #include "TerrainLitData_Basemap.hlsl"
             #include "../../ShaderPass/ShaderPassDepthOnly.hlsl"
 
@@ -219,6 +231,9 @@ Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
+            // Setup DECALS_OFF so the shader stripper can remove variants
+            #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
+
             // #include "../../Lighting/Forward.hlsl"
             //#pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
             #define LIGHTLOOP_TILE_PASS
