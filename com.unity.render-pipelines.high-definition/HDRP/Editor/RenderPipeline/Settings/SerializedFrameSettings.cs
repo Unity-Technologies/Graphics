@@ -1,6 +1,6 @@
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class SerializedFrameSettings
     {
@@ -14,6 +14,7 @@ namespace UnityEditor.Experimental.Rendering
         public SerializedProperty enableTransmission;
         public SerializedProperty enableAtmosphericScattering;
         public SerializedProperty enableVolumetric;
+        public SerializedProperty enableLightLayers;        
 
         public SerializedProperty diffuseGlobalDimmer;
         public SerializedProperty specularGlobalDimmer;
@@ -24,7 +25,7 @@ namespace UnityEditor.Experimental.Rendering
         public SerializedProperty enableTransparentPrepass;
         public SerializedProperty enableMotionVectors;
         public SerializedProperty enableObjectMotionVectors;
-        public SerializedProperty enableDBuffer;
+        public SerializedProperty enableDecals;
         public SerializedProperty enableRoughRefraction;
         public SerializedProperty enableTransparentPostpass;
         public SerializedProperty enableDistortion;
@@ -55,6 +56,7 @@ namespace UnityEditor.Experimental.Rendering
             enableTransmission = root.Find((FrameSettings d) => d.enableTransmission);
             enableAtmosphericScattering = root.Find((FrameSettings d) => d.enableAtmosphericScattering);
             enableVolumetric = root.Find((FrameSettings d) => d.enableVolumetrics);
+            enableLightLayers = root.Find((FrameSettings d) => d.enableLightLayers);
             diffuseGlobalDimmer = root.Find((FrameSettings d) => d.diffuseGlobalDimmer);
             specularGlobalDimmer = root.Find((FrameSettings d) => d.specularGlobalDimmer);
             enableForwardRenderingOnly = root.Find((FrameSettings d) => d.enableForwardRenderingOnly);
@@ -62,7 +64,7 @@ namespace UnityEditor.Experimental.Rendering
             enableTransparentPrepass = root.Find((FrameSettings d) => d.enableTransparentPrepass);
             enableMotionVectors = root.Find((FrameSettings d) => d.enableMotionVectors);
             enableObjectMotionVectors = root.Find((FrameSettings d) => d.enableObjectMotionVectors);
-            enableDBuffer = root.Find((FrameSettings d) => d.enableDBuffer);
+            enableDecals = root.Find((FrameSettings d) => d.enableDecals);
             enableRoughRefraction = root.Find((FrameSettings d) => d.enableRoughRefraction);
             enableTransparentPostpass = root.Find((FrameSettings d) => d.enableTransparentPostpass);
             enableDistortion = root.Find((FrameSettings d) => d.enableDistortion);

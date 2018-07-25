@@ -8,9 +8,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     [InitializeOnLoad]
     public class HDRPVersion
     {
-        // 1 changed emissive color
-        // 2 add decal mode in decal material
-        static public int hdrpVersion = 2;
+        static public int hdrpVersion = 1;
 
         static public int GetCurrentHDRPProjectVersion()
         {
@@ -49,6 +47,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static HDRPVersion()
         {
+            /*
             // Compare project version with current version - Trigger an upgrade if user ask for it
             if (false) //GetCurrentHDRPProjectVersion() < hdrpVersion) // TODO: Disable for now as it doesn't work correctly
             {
@@ -58,6 +57,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     UpgradeMenuItems.UpdateMaterialToNewerVersion();
                 }
             }
+            */
         }
     }
 

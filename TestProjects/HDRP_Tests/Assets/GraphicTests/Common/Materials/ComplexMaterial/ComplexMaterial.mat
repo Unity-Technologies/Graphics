@@ -8,8 +8,7 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: ComplexMaterial
   m_Shader: {fileID: 4800000, guid: 6e4ae4064600d784cac1e41a9e6f2e59, type: 3}
-  m_ShaderKeywords: _DEPTHOFFSET_ON _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _MASKMAP
-    _NORMALMAP _NORMALMAP_TANGENT_SPACE _PIXEL_DISPLACEMENT _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
+  m_ShaderKeywords: _DEPTHOFFSET_ON _DISPLACEMENT_LOCK_TILING_SCALE _HEIGHTMAP _MASKMAP _NORMALMAP _NORMALMAP_TANGENT_SPACE _PIXEL_DISPLACEMENT _PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -165,6 +164,7 @@ Material:
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
     - _EnergyConservingSpecularColor: 1
+    - _HdrpVersion: 2
     - _HeightAmplitude: 0.06
     - _HeightCenter: 1
     - _HeightMapParametrization: 1
@@ -211,7 +211,7 @@ Material:
     - _SubsurfaceMask: 1
     - _SubsurfaceProfile: 0
     - _SubsurfaceRadius: 1
-    - _SupportDBuffer: 1
+    - _SupportDecals: 1
     - _SurfaceType: 0
     - _TessellationBackFaceCullEpsilon: -0.675
     - _TessellationFactor: 15

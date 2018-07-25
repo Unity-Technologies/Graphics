@@ -139,7 +139,7 @@ Material:
     - _EnableFogOnTransparent: 1
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
-    - _HdrpVersion: 1
+    - _HdrpVersion: 2
     - _HeightAmplitude: 0.02
     - _HeightCenter: 0.5
     - _HeightMax: 1
