@@ -48,8 +48,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get { return m_RefreshMode; }
             set { m_RefreshMode = value; }
         }
+<<<<<<< HEAD
 
+        void Awake()
+=======
+        
         internal void Awake()
+>>>>>>> HDRP/staging
         {
             if (influenceVolume == null)
                 influenceVolume = new InfluenceVolume();

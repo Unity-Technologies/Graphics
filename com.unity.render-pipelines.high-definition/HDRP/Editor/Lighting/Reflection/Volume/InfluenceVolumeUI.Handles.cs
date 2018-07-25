@@ -17,7 +17,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Handles.color = k_GizmoThemeColorBase;
             switch (d.shape)
             {
-                case Shape.Box:
+                case InfluenceShape.Box:
                     {
                         var center = d.offset;
                         var size = d.boxSize;
@@ -30,7 +30,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         d.boxSize = size;
                         break;
                     }
-                case Shape.Sphere:
+                case InfluenceShape.Sphere:
                     {
                         var center = d.offset;
                         var radius = d.sphereRadius;
@@ -56,7 +56,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Handles.color = k_GizmoThemeColorInfluence;
             switch (d.shape)
             {
-                case Shape.Box:
+                case InfluenceShape.Box:
                     {
                         var positive = d.boxBlendDistancePositive;
                         var negative = d.boxBlendDistanceNegative;
@@ -82,7 +82,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         s.data.Apply();
                         break;
                     }
-                case Shape.Sphere:
+                case InfluenceShape.Sphere:
                     {
                         var fade = d.sphereBlendDistance;
                         DrawSphereFadeHandle(
@@ -106,7 +106,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Handles.color = k_GizmoThemeColorInfluenceNormal;
             switch (d.shape)
             {
-                case Shape.Box:
+                case InfluenceShape.Box:
                     {
 
                         Vector3 positive = d.boxBlendNormalDistancePositive;
@@ -133,7 +133,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         s.data.Apply();
                         break;
                     }
-                case Shape.Sphere:
+                case InfluenceShape.Sphere:
                     {
                         var fade = d.sphereBlendNormalDistance;
                         DrawSphereFadeHandle(
