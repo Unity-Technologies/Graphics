@@ -17,6 +17,9 @@
 
     // Ambiant occlusion
     float4 _AmbientOcclusionParam; // xyz occlusion color, w directLightStrenght
+    
+    float4 _IndirectLightingMultiplier;
+    
 #else
     // Rough refraction texture
     // Color pyramid (width, height, lodcount, Unused)
