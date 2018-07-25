@@ -2,6 +2,7 @@
 - The Lightweight PBR subshader now normalizes normal, tangent, and view direction correctly.
 - Shader graphs using alpha clip now generate correct depth and shadow passes.
 - Texture 2D Array and Texture 3D nodes can no longer be used in the vertex shader.
+- Removed legacy matrices from Transfomation Matrix node.
 
 # 2.0.6
 
