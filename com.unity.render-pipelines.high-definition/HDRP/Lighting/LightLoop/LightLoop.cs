@@ -6,6 +6,7 @@ using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
+
     class ShadowSetup : IDisposable
     {
         // shadow related stuff
@@ -848,7 +849,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return false;
             
             // Discard light if disabled in debug display settings
-            if ((((int)debugDisplaySettings.lightingDebugSettings.showLight >> (int)GPULightType.Directional) & 1) == 0)
+            if (!debugDisplaySettings.lightingDebugSettings.showDirectionalLight)
                 return false;
 
             directionalLightData.lightLayers = additionalData.GetLightLayers();
@@ -944,8 +945,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             bool applyRangeAttenuation = additionalLightData.applyRangeAttenuation && (gpuLightType != GPULightType.ProjectorBox);
 
             // Discard light if disabled in debug display settings
-            if ((((int)debugDisplaySettings.lightingDebugSettings.showLight >> (int)lightData.lightType) & 1) == 0)
-                return false;
+            if (lightData.lightType.IsAreaLight())
+            {
+                if (!debugDisplaySettings.lightingDebugSettings.showAreaLight)
+                    return false;
+            }
+            else
+            {
+                if (!debugDisplaySettings.lightingDebugSettings.showPunctualLight)
+                    return false;
+            }
 
             // In the shader we do range remapping: (x - start) / (end - start) = (dist^2 * rangeAttenuationScale + rangeAttenuationBias)
             if (applyRangeAttenuation)
@@ -1300,12 +1309,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public bool GetEnvLightData(CommandBuffer cmd, Camera camera, ProbeWrapper probe)
+        public bool GetEnvLightData(CommandBuffer cmd, Camera camera, ProbeWrapper probe, DebugDisplaySettings debugDisplaySettings)
         {
             // For now we won't display real time probe when rendering one.
             // TODO: We may want to display last frame result but in this case we need to be careful not to update the atlas before all realtime probes are rendered (for frame coherency).
             // Unfortunately we don't have this information at the moment.
             if (probe.mode == ReflectionProbeMode.Realtime && camera.cameraType == CameraType.Reflection)
+                return false;
+            
+            // Discard probe if disabled in debug menu
+            if (!debugDisplaySettings.lightingDebugSettings.showReflectionProbe)
                 return false;
 
             var capturePosition = Vector3.zero;
@@ -1885,7 +1898,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         var probeWrapper = ProbeWrapper.Wrap(probe, planarProbe);
 
-                        if (GetEnvLightData(cmd, camera, probeWrapper))
+                        if (GetEnvLightData(cmd, camera, probeWrapper, debugDisplaySettings))
                         {
                             GetEnvLightVolumeDataAndBound(probeWrapper, lightVolumeType, worldToView);
                             if (stereoEnabled)

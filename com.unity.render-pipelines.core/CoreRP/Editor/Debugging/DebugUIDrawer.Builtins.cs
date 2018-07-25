@@ -309,24 +309,4 @@ namespace UnityEditor.Experimental.Rendering
             EditorGUILayout.EndVertical();
         }
     }
-
-    [DebugUIDrawer(typeof(DebugUI.EnumMaskField))]
-    public sealed class DebugUIDrawerMask : DebugUIDrawer
-    {
-        public override bool OnGUI(DebugUI.Widget widget, DebugState state)
-        {
-            var m = Cast<DebugUI.EnumMaskField>(widget);
-            var s = Cast<DebugStateEnumMask>(state);
-            
-            EditorGUI.BeginChangeCheck();
-
-            var rect = PrepareControlRect();
-            Enum value = EditorGUI.EnumFlagsField(rect, CoreEditorUtils.GetContent(widget.displayName), m.GetValue());
-
-            if (EditorGUI.EndChangeCheck())
-                Apply(m, s, value);
-
-            return true;
-        }
-    }
 }
