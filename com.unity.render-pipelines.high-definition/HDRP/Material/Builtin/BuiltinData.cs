@@ -9,7 +9,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // BuiltinData
         // This structure include common data that should be present in all material
         // and are independent from the BSDF parametrization.
-        // Note: These parameters can be store in GBuffer if the writer wants
+        // Note: These parameters can be store in GBuffer or not depends on storage available
         //-----------------------------------------------------------------------------
         [GenerateHLSL(PackingRules.Exact, false, true, 100)]
         public struct BuiltinData
@@ -23,6 +23,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // at the same time than material information.
             [SurfaceDataAttributes("Bake Diffuse Lighting", false, true)]
             public Vector3 bakeDiffuseLighting; // This is the result of sampling lightmap/lightprobe/proxyvolume
+            [SurfaceDataAttributes("Back Bake Diffuse Lighting", false, true)]
+            public Vector3 backBakeDiffuseLighting; // This is the result of sampling lightmap/lightprobe/proxyvolume from the back for transmission
 
             // Use for float instead of vector4 to ease the debug (no performance impact)
             // Note: We have no way to remove these value automatically based on either SHADEROPTIONS_BAKED_SHADOW_MASK_ENABLE or s_BakedShadowMaskEnable here. Unless we make two structure... For now always keep this value
@@ -48,10 +50,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             [SurfaceDataAttributes("Distortion Blur")]
             public float distortionBlur;           // Define the color buffer mipmap level to use
 
+            // Misc
             [SurfaceDataAttributes("RenderingLayers")]
             public uint renderingLayers;
 
-            // Depth
             [SurfaceDataAttributes("Depth Offset")]
             public float depthOffset; // define the depth in unity unit to add in Z forward direction
         };
