@@ -2039,9 +2039,13 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     // Subsurface scattering mode
     float3 modifiedDiffuseColor = GetModifiedDiffuseColorForSSS(bsdfData);
 
+    // Apply volume indirect multipler
+    builtinData.bakeDiffuseLighting *= _IndirectLightingMultiplier.x;
+    lighting.indirect.specularReflected *= _IndirectLightingMultiplier.y;
+
     // Apply the albedo to the direct diffuse lighting (only once). The indirect (baked)
     // diffuse lighting has already had the albedo applied in GetBakedDiffuseLighting().
-    diffuseLighting = modifiedDiffuseColor * lighting.direct.diffuse + builtinData.bakeDiffuseLighting * _IndirectLightingMultiplier.x;
+    diffuseLighting = modifiedDiffuseColor * lighting.direct.diffuse + builtinData.bakeDiffuseLighting;
 
     // If refraction is enable we use the transmittanceMask to lerp between current diffuse lighting and refraction value
     // Physically speaking, transmittanceMask should be 1, but for artistic reasons, we let the value vary
@@ -2049,7 +2053,7 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     diffuseLighting = lerp(diffuseLighting, lighting.indirect.specularTransmitted, bsdfData.transmittanceMask);
 #endif
 
-    specularLighting = lighting.direct.specular + lighting.indirect.specularReflected * _IndirectLightingMultiplier.y;
+    specularLighting = lighting.direct.specular + lighting.indirect.specularReflected;
     // Rescale the GGX to account for the multiple scattering.
     specularLighting *= 1.0 + bsdfData.fresnel0 * preLightData.energyCompensation;
 

@@ -30,8 +30,6 @@
     uint _NumTileClusteredX;
     uint _NumTileClusteredY;
 
-    float4 _IndirectLightingMultiplier;
-
     float4x4 _Env2DCaptureVP[MAX_ENV2D_LIGHT];
 
 #else
