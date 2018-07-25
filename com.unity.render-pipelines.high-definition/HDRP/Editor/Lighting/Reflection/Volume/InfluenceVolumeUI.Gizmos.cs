@@ -52,14 +52,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Gizmos.color = color;
             switch (d.shape)
             {
-                case Shape.Box:
+                case InfluenceShape.Box:
                 {
                     s.boxBaseHandle.center = d.offset;
                     s.boxBaseHandle.size = d.boxSize;
                     s.boxBaseHandle.DrawHull(isSolid);
                     break;
                 }
-                case Shape.Sphere:
+                case InfluenceShape.Sphere:
                 {
                     if (isSolid)
                         Gizmos.DrawSphere(d.offset, d.sphereRadius);
@@ -84,7 +84,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Gizmos.color = color;
             switch (d.shape)
             {
-                case Shape.Box:
+                case InfluenceShape.Box:
                 {
                     Gizmo6FacesBox refBox = isNormal ? s.boxInfluenceNormalHandle : s.boxInfluenceHandle;
                     refBox.center = d.offset + boxOffset;
@@ -92,7 +92,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     refBox.DrawHull(isSolid);
                     break;
                 }
-                case Shape.Sphere:
+                case InfluenceShape.Sphere:
                 {
                     if (isSolid)
                         Gizmos.DrawSphere(d.offset, d.sphereRadius + sphereOffset);

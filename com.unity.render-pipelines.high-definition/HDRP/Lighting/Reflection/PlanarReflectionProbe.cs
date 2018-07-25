@@ -109,13 +109,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     : influenceToWorld;
             }
         }
-        public ShapeOrInfinite proxyShape
+        public ProxyShape proxyShape
         {
             get
             {
                 return proxyVolume != null
                     ? proxyVolume.proxyVolume.shape
-                    : (ShapeOrInfinite)influenceVolume.shape;
+                    : (ProxyShape)influenceVolume.shape;
             }
         }
         public Vector3 proxyExtents
@@ -132,7 +132,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get
             {
                 return proxyVolume != null
-                    && proxyVolume.proxyVolume.shape == ShapeOrInfinite.Infinite;
+                    && proxyVolume.proxyVolume.shape == ProxyShape.Infinite;
             }
         }
 

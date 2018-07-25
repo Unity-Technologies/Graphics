@@ -10,7 +10,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         HDProbe probe;
 
         [SerializeField, FormerlySerializedAs("m_ShapeType")]
-        Shape m_Shape = Shape.Box;
+        InfluenceShape m_Shape = InfluenceShape.Box;
         [SerializeField, FormerlySerializedAs("m_BoxBaseOffset")]
         Vector3 m_Offset;
 #pragma warning disable 649 //never assigned
@@ -60,7 +60,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         float m_SphereBlendNormalDistance;
 
         /// <summary>Shape of this InfluenceVolume.</summary>
-        public Shape shape
+        public InfluenceShape shape
         {
             get { return m_Shape; }
             set
@@ -68,10 +68,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_Shape = value;
                 switch (m_Shape)
                 {
-                    case Shape.Box:
+                    case InfluenceShape.Box:
                         probe.UpdatedInfluenceVolumeShape(m_BoxSize, offset);
                         break;
-                    case Shape.Sphere:
+                    case InfluenceShape.Sphere:
                         probe.UpdatedInfluenceVolumeShape(Vector3.one * (2 * m_SphereRadius), offset);
                         break;
                 }
@@ -159,9 +159,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             switch (shape)
             {
                 default:
-                case Shape.Sphere:
+                case InfluenceShape.Sphere:
                     return new BoundingSphere(probeTransform.TransformPoint(offset), sphereRadius);
-                case Shape.Box:
+                case InfluenceShape.Box:
                 {
                     var position = probeTransform.TransformPoint(offset);
                     var radius = Mathf.Max(boxSize.x, Mathf.Max(boxSize.y, boxSize.z));
@@ -175,9 +175,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             switch (shape)
             {
                 default:
-                case Shape.Sphere:
+                case InfluenceShape.Sphere:
                     return new Bounds(probeTransform.position, Vector3.one * sphereRadius);
-                case Shape.Box:
+                case InfluenceShape.Box:
                 {
                     var position = probeTransform.TransformPoint(offset);
                     return new Bounds(position, boxSize);
@@ -192,7 +192,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         internal void MigrateOffsetSphere()
         {
-            if (shape == Shape.Sphere)
+            if (shape == InfluenceShape.Sphere)
             {
 #pragma warning disable CS0618 // Type or member is obsolete
                 m_Offset = m_SphereBaseOffset;
