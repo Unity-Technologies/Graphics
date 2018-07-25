@@ -166,7 +166,9 @@ void PostInitBuiltinData(   float3 V, inout PositionInputs posInput, SurfaceData
     else
 #endif
     {
+#ifdef MODIFY_BAKED_DIFFUSE_LIGHTING
         ModifyBakedDiffuseLighting(V, posInput, surfaceData, builtinData);
+#endif
     }
 }
 

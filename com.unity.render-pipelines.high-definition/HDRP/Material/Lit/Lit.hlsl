@@ -1047,6 +1047,9 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 // bake lighting function
 //-----------------------------------------------------------------------------
 
+// This define allow to say that we implement a ModifyBakedDiffuseLighting function to be call in PostInitBuiltinData
+#define MODIFY_BAKED_DIFFUSE_LIGHTING
+
 // This function allow to modify the content of (back) baked diffuse lighting when we gather builtinData
 // This is use to apply lighting model specific code, like pre-integration, transmission etc...
 // It is up to the lighting model implementer to chose if the modification are apply here or in PostEvaluateBSDF
