@@ -91,9 +91,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void MigrateToUseInfluenceVolume()
         {
+            influenceVolume.boxSize = legacyProbe.size;
 #pragma warning disable CS0618 // Type or member is obsolete
-            influenceVolume.shape = influenceShape;
             influenceVolume.sphereRadius = influenceSphereRadius;
+            influenceVolume.shape = influenceShape; //must be done after each size transfert
             influenceVolume.boxBlendDistancePositive = blendDistancePositive;
             influenceVolume.boxBlendDistanceNegative = blendDistanceNegative;
             influenceVolume.boxBlendNormalDistancePositive = blendNormalDistancePositive;
