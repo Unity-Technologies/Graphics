@@ -317,7 +317,7 @@ ${Graph}
         $SurfaceDescription.Normal:       normalTS =                   surfaceDescription.Normal;
 
         // compute world space normal
-        GetNormalWS(fragInputs, V, normalTS, surfaceData.normalWS);
+        GetNormalWS(fragInputs, normalTS, surfaceData.normalWS);
 
         // TODO: use surfaceDescription tangent definition for anisotropy
         surfaceData.tangentWS = normalize(fragInputs.worldToTangent[0].xyz);    // The tangent is not normalize in worldToTangent for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
@@ -365,46 +365,18 @@ ${Graph}
 
         BuildSurfaceData(fragInputs, surfaceDescription, V, surfaceData);
 
-        // Builtin Data -- we don't call GetBuiltinData(fragInputs, surfaceData, ...)
-        // that function assumes there are specific global properties defined
-        // for shadergraph shaders, we fill it out here instead
-        ZERO_INITIALIZE(BuiltinData, builtinData);
-        float3 bentNormalWS =                   surfaceData.normalWS;           // TODO : make bent normals work
-
-        builtinData.opacity =                   surfaceDescription.Alpha;
-        builtinData.bakeDiffuseLighting =       SampleBakedGI(fragInputs.positionRWS, bentNormalWS, fragInputs.texCoord1, fragInputs.texCoord2);    // see GetBuiltinData()
-
-        // It is safe to call this function here as surfaceData have been filled
-        // We want to know if we must enable transmission on GI for SSS material, if the material have no SSS, this code will be remove by the compiler.
-        BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS.xy, surfaceData);
-        if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
-        {
-            // For now simply recall the function with inverted normal, the compiler should be able to optimize the lightmap case to not resample the directional lightmap
-            // however it will not optimize the lightprobe case due to the proxy volume relying on dynamic if (we rely must get right of this dynamic if), not a problem for SH9, but a problem for proxy volume.
-            // TODO: optimize more this code.
-            // Add GI transmission contribution by resampling the GI for inverted vertex normal
-            builtinData.bakeDiffuseLighting += SampleBakedGI(fragInputs.positionRWS, -fragInputs.worldToTangent[2], fragInputs.texCoord1, fragInputs.texCoord2) * bsdfData.transmittance;
-        }
+        // Builtin Data
+        // For back lighting we use the oposite vertex normal 
+        InitBuiltinData(surfaceDescription.Alpha, surfaceData.normalWS, -fragInputs.worldToTangent[2], fragInputs.positionRWS, fragInputs.texCoord1, fragInputs.texCoord2, builtinData);
 
 $SurfaceDescription.Emission:     builtinData.emissiveColor =             surfaceDescription.Emission;
-        builtinData.velocity =                  float2(0.0, 0.0);
-#ifdef SHADOWS_SHADOWMASK
-        float4 shadowMask = SampleShadowMask(fragInputs.positionRWS, fragInputs.texCoord1);
-        builtinData.shadowMask0 = shadowMask.x;
-        builtinData.shadowMask1 = shadowMask.y;
-        builtinData.shadowMask2 = shadowMask.z;
-        builtinData.shadowMask3 = shadowMask.w;
-#else
-        builtinData.shadowMask0 = 0.0;
-        builtinData.shadowMask1 = 0.0;
-        builtinData.shadowMask2 = 0.0;
-        builtinData.shadowMask3 = 0.0;
-#endif
+
         builtinData.distortion =                float2(0.0, 0.0);           // surfaceDescription.Distortion -- if distortion pass
         builtinData.distortionBlur =            0.0;                        // surfaceDescription.DistortionBlur -- if distortion pass
-        // Use uniform directly - The float need to be cast to uint (as unity don't support to set a uint as uniform)
-        builtinData.renderingLayers =           _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
+
         builtinData.depthOffset =               0.0;                        // ApplyPerPixelDisplacement(input, V, layerTexCoord, blendMasks); #ifdef _DEPTHOFFSET_ON : ApplyDepthOffsetPositionInput(V, depthOffset, GetWorldToHClipMatrix(), posInput);
+
+        PostInitBuiltinData(V, posInput, surfaceData, builtinData);
     }
 
     //-------------------------------------------------------------------------------------

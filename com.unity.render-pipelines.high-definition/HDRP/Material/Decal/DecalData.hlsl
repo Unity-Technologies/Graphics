@@ -4,7 +4,6 @@
 #include "CoreRP/ShaderLibrary/Packing.hlsl"
 #include "CoreRP/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
 #include "CoreRP/ShaderLibrary/EntityLighting.hlsl"
-#include "../MaterialUtilities.hlsl"
 
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
 void GetSurfaceData(float2 texCoordDS, float4x4 normalToWorld, out DecalSurfaceData surfaceData)
@@ -58,8 +57,8 @@ void GetSurfaceData(FragInputs input, out DecalSurfaceData surfaceData)
 #if (SHADERPASS == SHADERPASS_DBUFFER_PROJECTOR)
 	float3 normalWS = mul((float3x3)normalToWorld, normalTS);
 #elif (SHADERPASS == SHADERPASS_DBUFFER_MESH)	
-	float3 normalWS;
-	GetNormalWS(input, 0, normalTS, normalWS);
+    // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
+    float3 normalWS = normalize(TransformTangentToWorld(normalTS, input.worldToTangent));
 #endif
 	surfaceData.normalWS.xyz = normalWS * 0.5f + 0.5f;
 	surfaceData.HTileMask |= DBUFFERHTILEBIT_NORMAL;
