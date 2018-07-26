@@ -35,9 +35,6 @@ Shader "HDRenderPipeline/Decal"
     #pragma shader_feature _MASKMAP
 	#pragma shader_feature _ALBEDOCONTRIBUTION
 
-	#pragma shader_feature _NORMAL_BLEND_SRC_B
-	#pragma shader_feature _MASK_BLEND_SRC_B
-
     #pragma multi_compile_instancing
     // No need to teset for DECALS_3RT we are in decal shader, so there is no OFF state
 	#pragma multi_compile _ DECALS_4RT
