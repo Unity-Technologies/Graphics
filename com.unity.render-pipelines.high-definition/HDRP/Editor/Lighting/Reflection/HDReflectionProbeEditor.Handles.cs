@@ -27,8 +27,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (!s.sceneViewEditing)
                 return;
-
-            var mat = Matrix4x4.TRS(p.target.transform.position, p.target.transform.rotation, Vector3.one);
+            
+            var mat = Matrix4x4.TRS(p.targetLegacy.transform.position, p.targetLegacy.transform.rotation, Vector3.one);
 
             EditorGUI.BeginChangeCheck();
 
@@ -36,15 +36,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 // Influence editing
                 case EditMode.SceneViewEditMode.ReflectionProbeBox:
-                    InfluenceVolumeUI.DrawHandles_EditBase(s.influenceVolume, p.targetData.influenceVolume, o, mat, p.targetData);
+                    InfluenceVolumeUI.DrawHandles_EditBase(s.influenceVolume, p.target.influenceVolume, o, mat, p.target);
                     break;
                 // Influence fade editing
                 case EditMode.SceneViewEditMode.GridBox:
-                    InfluenceVolumeUI.DrawHandles_EditInfluence(s.influenceVolume, p.targetData.influenceVolume, o, mat, p.targetData);
+                    InfluenceVolumeUI.DrawHandles_EditInfluence(s.influenceVolume, p.target.influenceVolume, o, mat, p.target);
                     break;
                 // Influence normal fade editing
                 case EditMode.SceneViewEditMode.Collider:
-                    InfluenceVolumeUI.DrawHandles_EditInfluenceNormal(s.influenceVolume, p.targetData.influenceVolume, o, mat, p.targetData);
+                    InfluenceVolumeUI.DrawHandles_EditInfluenceNormal(s.influenceVolume, p.target.influenceVolume, o, mat, p.target);
                     break;
                 // Origin editing
                 case EditMode.SceneViewEditMode.ReflectionProbeOrigin:
@@ -58,7 +58,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void Handle_OriginEditing(HDReflectionProbeUI s, SerializedHDReflectionProbe sp, Editor o)
         {
-            var p = (ReflectionProbe)sp.so.targetObject;
+            var p = (ReflectionProbe)sp.serializedLegacyObject.targetObject;
             var transformPosition = p.transform.position;
             var size = p.size;
 
