@@ -57,7 +57,7 @@ LightmapSettings:
   m_LightmapEditorSettings:
     serializedVersion: 10
     m_Resolution: 2
-    m_BakeResolution: 8
+    m_BakeResolution: 15
     m_AtlasSize: 1024
     m_AO: 0
     m_AOMaxDistance: 1
@@ -89,7 +89,7 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaIndirect: 2
     m_PVRFilteringAtrousPositionSigmaAO: 1
     m_ShowResolutionOverlay: 1
-  m_LightingDataAsset: {fileID: 112000006, guid: fcaf9eccbaa13734a915b4a09ad3ff8f, type: 2}
+  m_LightingDataAsset: {fileID: 112000008, guid: fcaf9eccbaa13734a915b4a09ad3ff8f, type: 2}
   m_UseShadowmask: 1
 --- !u!196 &4
 NavMeshSettings:
