@@ -146,9 +146,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             var hash = 0;
-            for (var i = 0; i < sp.so.targetObjects.Length; i++)
+            for (var i = 0; i < sp.serializedLegacyObject.targetObjects.Length; i++)
             {
-                var p = (ReflectionProbe)sp.so.targetObjects[i];
+                var p = (ReflectionProbe)sp.serializedLegacyObject.targetObjects[i];
                 var tr = p.GetComponent<Transform>();
                 hash ^= tr.position.GetHashCode();
             }
@@ -156,9 +156,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (hash != m_PositionHash)
             {
                 m_PositionHash = hash;
-                for (var i = 0; i < sp.so.targetObjects.Length; i++)
+                for (var i = 0; i < sp.serializedLegacyObject.targetObjects.Length; i++)
                 {
-                    var p = (ReflectionProbe)sp.so.targetObjects[i];
+                    var p = (ReflectionProbe)sp.serializedLegacyObject.targetObjects[i];
                     p.RenderProbe();
                 }
             }
@@ -171,19 +171,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 case InfluenceShape.Box:
                 {
                     var maxBlendDistance = sp.influenceVolume.boxSize.vector3Value;
-                    sp.targetData.influenceVolume.boxBlendDistancePositive = Vector3.Min(sp.targetData.influenceVolume.boxBlendDistancePositive, maxBlendDistance);
-                    sp.targetData.influenceVolume.boxBlendDistanceNegative = Vector3.Min(sp.targetData.influenceVolume.boxBlendDistanceNegative, maxBlendDistance);
-                    sp.targetData.influenceVolume.boxBlendNormalDistancePositive = Vector3.Min(sp.targetData.influenceVolume.boxBlendNormalDistancePositive, maxBlendDistance);
-                    sp.targetData.influenceVolume.boxBlendNormalDistanceNegative = Vector3.Min(sp.targetData.influenceVolume.boxBlendNormalDistanceNegative, maxBlendDistance);
+                    sp.target.influenceVolume.boxBlendDistancePositive = Vector3.Min(sp.target.influenceVolume.boxBlendDistancePositive, maxBlendDistance);
+                    sp.target.influenceVolume.boxBlendDistanceNegative = Vector3.Min(sp.target.influenceVolume.boxBlendDistanceNegative, maxBlendDistance);
+                    sp.target.influenceVolume.boxBlendNormalDistancePositive = Vector3.Min(sp.target.influenceVolume.boxBlendNormalDistancePositive, maxBlendDistance);
+                    sp.target.influenceVolume.boxBlendNormalDistanceNegative = Vector3.Min(sp.target.influenceVolume.boxBlendNormalDistanceNegative, maxBlendDistance);
                     break;
                 }
                 case InfluenceShape.Sphere:
                 {
                     var maxBlendDistance = Vector3.one * sp.influenceVolume.sphereRadius.floatValue;
-                    sp.targetData.influenceVolume.boxBlendDistancePositive = Vector3.Min(sp.targetData.influenceVolume.boxBlendDistancePositive, maxBlendDistance);
-                    sp.targetData.influenceVolume.boxBlendDistanceNegative = Vector3.Min(sp.targetData.influenceVolume.boxBlendDistanceNegative, maxBlendDistance);
-                    sp.targetData.influenceVolume.boxBlendNormalDistancePositive = Vector3.Min(sp.targetData.influenceVolume.boxBlendNormalDistancePositive, maxBlendDistance);
-                    sp.targetData.influenceVolume.boxBlendNormalDistanceNegative = Vector3.Min(sp.targetData.influenceVolume.boxBlendNormalDistanceNegative, maxBlendDistance);
+                    sp.target.influenceVolume.boxBlendDistancePositive = Vector3.Min(sp.target.influenceVolume.boxBlendDistancePositive, maxBlendDistance);
+                    sp.target.influenceVolume.boxBlendDistanceNegative = Vector3.Min(sp.target.influenceVolume.boxBlendDistanceNegative, maxBlendDistance);
+                    sp.target.influenceVolume.boxBlendNormalDistancePositive = Vector3.Min(sp.target.influenceVolume.boxBlendNormalDistancePositive, maxBlendDistance);
+                    sp.target.influenceVolume.boxBlendNormalDistanceNegative = Vector3.Min(sp.target.influenceVolume.boxBlendNormalDistanceNegative, maxBlendDistance);
                     break;
                 }
             }

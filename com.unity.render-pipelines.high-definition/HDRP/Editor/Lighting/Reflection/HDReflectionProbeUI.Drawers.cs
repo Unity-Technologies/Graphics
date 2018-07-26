@@ -105,9 +105,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (EditorGUI.EndChangeCheck())
                 p.multiplier.floatValue = Mathf.Max(0.0f, p.multiplier.floatValue);
 
-            if (p.so.targetObjects.Length == 1)
+            if (p.serializedLegacyObject.targetObjects.Length == 1)
             {
-                var probe = p.target;
+                var probe = p.targetLegacy;
                 if (probe.mode == ReflectionProbeMode.Custom && probe.customBakedTexture != null)
                 {
                     var cubemap = probe.customBakedTexture as Cubemap;
@@ -119,14 +119,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void Drawer_BakeActions(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
-            EditorReflectionSystemGUI.DrawBakeButton((ReflectionProbeMode)p.mode.intValue, p.target);
+            EditorReflectionSystemGUI.DrawBakeButton((ReflectionProbeMode)p.mode.intValue, p.targetLegacy);
         }
 
         static void Drawer_ProxyVolume(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
-            EditorGUILayout.PropertyField(p.proxyVolumeComponent, _.GetContent("Proxy Volume"));
+            EditorGUILayout.PropertyField(p.proxyVolumeReference, _.GetContent("Proxy Volume"));
 
-            if (p.proxyVolumeComponent.objectReferenceValue == null)
+            if (p.proxyVolumeReference.objectReferenceValue == null)
             {
                 EditorGUILayout.HelpBox(
                         "When no Proxy setted, Influence shape will be used as Proxy shape too.",
@@ -139,9 +139,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         #region Influence Volume
         static void Drawer_InfluenceProxyMissmatch(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
-            if (p.proxyVolumeComponent.objectReferenceValue != null)
+            if (p.proxyVolumeReference.objectReferenceValue != null)
             {
-                var proxy = (ReflectionProxyVolumeComponent)p.proxyVolumeComponent.objectReferenceValue;
+                var proxy = (ReflectionProxyVolumeComponent)p.proxyVolumeReference.objectReferenceValue;
                 if ((int)proxy.proxyVolume.shape != p.influenceVolume.shape.enumValueIndex)
                     EditorGUILayout.HelpBox(
                         "Proxy volume and influence volume have different shape types, this is not supported.",
@@ -369,7 +369,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 var center = p.boxOffset.vector3Value;
                 var size = p.boxSize.vector3Value;
-                if (HDReflectionProbeEditorUtility.ValidateAABB(p.target, ref center, ref size))
+                if (HDReflectionProbeEditorUtility.ValidateAABB(p.targetLegacy, ref center, ref size))
                 {
                     //clamp to contains object center instead of resizing
                     Vector3 projector = (center - p.boxOffset.vector3Value).normalized;
@@ -444,7 +444,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
         static void Drawer_Toolbar(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
-            if (p.so.targetObjects.Length > 1)
+            if (p.serializedLegacyObject.targetObjects.Length > 1)
                 return;
 
             // Show the master tool selector
@@ -463,7 +463,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 switch (EditMode.editMode)
                 {
                     case EditMode.SceneViewEditMode.ReflectionProbeOrigin:
-                        s.UpdateOldLocalSpace(p.target);
+                        s.UpdateOldLocalSpace(p.targetLegacy);
                         break;
                 }
             }
@@ -485,7 +485,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return () =>
                 {
                     var bounds = new Bounds();
-                    foreach (var targetObject in p.so.targetObjects)
+                    foreach (var targetObject in p.serializedLegacyObject.targetObjects)
                     {
                         var rp = (ReflectionProbe)targetObject;
                         var b = rp.bounds;
