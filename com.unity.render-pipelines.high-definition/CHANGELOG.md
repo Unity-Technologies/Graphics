@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed the light range affecting the transform scale when changed.
 - Snap to grid now works for Decal projector resizing.
 - Added a warning for 128x128 cookie texture without mipmaps
+- Replace the sampler used for density volumes for correct wrap mode handling
 
 ### Changed
 - Movde Render Pipeline Debug "Windows from Windows->General-> Render Pipeline debug windows" to "Windows from Windows->Analysis-> Render Pipeline debug windows"
