@@ -2922,6 +2922,10 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
 
     // Subsurface scattering mode
     float3 modifiedDiffuseColor = GetModifiedDiffuseColorForSSS(bsdfData);
+    
+    // Apply volume indirect multipler
+    builtinData.bakeDiffuseLighting *= _IndirectLightingMultiplier.x;
+    lighting.indirect.specularReflected *= _IndirectLightingMultiplier.y;
 
     // Apply the albedo to the direct diffuse lighting (only once). The indirect (baked)
     // diffuse lighting has already had the albedo applied in GetBakedDiffuseLighting().
