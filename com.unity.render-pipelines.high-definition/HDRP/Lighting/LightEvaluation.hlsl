@@ -345,6 +345,8 @@ float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext, P
             // Note: we do not modify the distance to the light, or the light angle for the back face.
             // This is a performance-saving optimization which makes sense as long as the thickness is small.
         }
+        
+        transmittance = lerp( bsdfData.transmittance, transmittance, lightData.shadowDimmer);
     }
 
     return transmittance;
