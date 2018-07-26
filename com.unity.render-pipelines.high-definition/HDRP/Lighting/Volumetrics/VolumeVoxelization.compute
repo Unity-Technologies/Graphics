@@ -92,7 +92,8 @@ float SampleVolumeMask(DensityVolumeData volumeData, float3 voxelCenterUVW, floa
     float halfTexelSize = 0.5f * rcp(mipSize);
     voxelCenterUVW.z    = clamp(voxelCenterUVW.z, offset + halfTexelSize, offset + rcpNumTextures - halfTexelSize);
     
-    return SAMPLE_TEXTURE3D_LOD(_VolumeMaskAtlas, s_trilinear_clamp_sampler, voxelCenterUVW, lod).a;
+    // Reminder: still no filtering across the the wrap in Z.
+    return SAMPLE_TEXTURE3D_LOD(_VolumeMaskAtlas, s_trilinear_repeat_sampler, voxelCenterUVW, lod).a;
 }
 
 
