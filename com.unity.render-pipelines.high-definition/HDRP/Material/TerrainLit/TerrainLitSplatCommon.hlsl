@@ -70,6 +70,18 @@ CBUFFER_END
 #include "TerrainLitDataMeshModification.hlsl"
 #endif
 
+// Declare distortion variables just to make the code compile with the Debug Menu.
+// See LitBuiltinData.hlsl:73.
+TEXTURE2D(_DistortionVectorMap);
+SAMPLER(sampler_DistortionVectorMap);
+
+float _DistortionScale;
+float _DistortionVectorScale;
+float _DistortionVectorBias;
+float _DistortionBlurScale;
+float _DistortionBlurRemapMin;
+float _DistortionBlurRemapMax;
+
 float GetSumHeight(float4 heights0, float4 heights1)
 {
     float sumHeight = heights0.x;
