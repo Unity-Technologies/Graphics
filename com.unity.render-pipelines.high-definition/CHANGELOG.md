@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added an option to disable light by type in the debug menu
 - Added gradient sky
 - Split EmissiveColor and bakeDiffuseLighting in forward avoiding the emissiveColor to be affect by SSAO
+- Added a volume to control indirect light intensity
 - Added EV 100 intensity unit for area lights
 
 ### Fixed
