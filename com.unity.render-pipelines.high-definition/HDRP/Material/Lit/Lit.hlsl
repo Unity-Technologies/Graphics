@@ -1284,7 +1284,6 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
     {
         // Caution: This function modify N and lightData.contactShadowIndex
         transmittance = PreEvaluatePunctualLightTransmission(lightLoopContext, posInput, distances.x, NdotL, L, bsdfData, N, lightData);
-        transmittance = lerp( bsdfData.transmittance, transmittance, lightData.shadowDimmer);
     }
 
     float3 color;
