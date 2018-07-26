@@ -25,6 +25,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Candela,
         Lux,
         Luminance,
+        Ev,
     }
 
     // Light layering

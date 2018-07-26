@@ -95,18 +95,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         enum DirectionalLightUnit
         {
             Lux = LightUnit.Lux,
+            Ev = LightUnit.Ev,
         }
 
         enum AreaLightUnit
         {
             Lumen = LightUnit.Lumen,
             Luminance = LightUnit.Luminance,
+            Ev = LightUnit.Ev,
         }
 
         enum PunctualLightUnit
         {
             Lumen = LightUnit.Lumen,
             Candela = LightUnit.Candela,
+            Ev = LightUnit.Ev,
         }
 
         const float k_MinAreaWidth = 0.01f; // Provide a small size of 1cm for line light
