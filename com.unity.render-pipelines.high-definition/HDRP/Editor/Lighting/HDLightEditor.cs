@@ -95,7 +95,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         enum DirectionalLightUnit
         {
             Lux = LightUnit.Lux,
-            Ev = LightUnit.Ev,
         }
 
         enum AreaLightUnit
@@ -109,7 +108,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             Lumen = LightUnit.Lumen,
             Candela = LightUnit.Candela,
-            Ev = LightUnit.Ev,
         }
 
         const float k_MinAreaWidth = 0.01f; // Provide a small size of 1cm for line light
@@ -447,19 +445,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // For area lights
             if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Luminance)
-            {
-                if (m_LightShape == LightShape.Rectangle)
-                    intensity = LightUtils.ConvertRectLightLumenToLuminance(intensity, m_AdditionalLightData.shapeWidth.floatValue, m_AdditionalLightData.shapeHeight.floatValue);
-                else if (m_LightShape == LightShape.Line)
-                    intensity = LightUtils.CalculateLineLightLumenToLuminance(intensity, m_AdditionalLightData.shapeWidth.floatValue);
-            }
+                intensity = LightUtils.ConvertAreaLightLumenToLuminance((LightTypeExtent)m_AdditionalLightData.lightTypeExtent.enumValueIndex, intensity, m_AdditionalLightData.shapeWidth.floatValue, m_AdditionalLightData.shapeHeight.floatValue);
             if (oldLightUnit == LightUnit.Luminance && newLightUnit == LightUnit.Lumen)
-            {
-                if (m_LightShape == LightShape.Rectangle)
-                    intensity = LightUtils.ConvertRectLightLuminanceToLumen(intensity, m_AdditionalLightData.shapeWidth.floatValue, m_AdditionalLightData.shapeHeight.floatValue);
-                else if (m_LightShape == LightShape.Line)
-                    intensity = LightUtils.CalculateLineLightLuminanceToLumen(intensity, m_AdditionalLightData.shapeWidth.floatValue);
-            }
+                intensity = LightUtils.ConvertAreaLightLuminanceToLumen((LightTypeExtent)m_AdditionalLightData.lightTypeExtent.enumValueIndex, intensity, m_AdditionalLightData.shapeWidth.floatValue, m_AdditionalLightData.shapeHeight.floatValue);
+            if (oldLightUnit == LightUnit.Luminance && newLightUnit == LightUnit.Ev)
+                intensity = LightUtils.ConvertLuminanceToEv(intensity);
+            if (oldLightUnit == LightUnit.Ev && newLightUnit == LightUnit.Luminance)
+                intensity = LightUtils.ConvertEvToLuminance(intensity);
+            if (oldLightUnit == LightUnit.Ev && newLightUnit == LightUnit.Lumen)
+                intensity = LightUtils.ConvertAreaLightEvToLumen((LightTypeExtent)m_AdditionalLightData.lightTypeExtent.enumValueIndex, intensity, m_AdditionalLightData.shapeWidth.floatValue, m_AdditionalLightData.shapeHeight.floatValue);
+            if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Ev)
+                intensity = LightUtils.ConvertAreaLightLumenToEv((LightTypeExtent)m_AdditionalLightData.lightTypeExtent.enumValueIndex, intensity, m_AdditionalLightData.shapeWidth.floatValue, m_AdditionalLightData.shapeHeight.floatValue);
 
             m_AdditionalLightData.intensity.floatValue = intensity;
         }
