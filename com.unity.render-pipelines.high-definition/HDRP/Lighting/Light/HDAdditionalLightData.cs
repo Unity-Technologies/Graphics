@@ -25,6 +25,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Candela,
         Lux,
         Luminance,
+        Ev100,
     }
 
     // Light layering
@@ -196,18 +197,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             if (lightUnit == LightUnit.Lumen)
             {
-                switch (lightTypeExtent)
-                {
-                    case LightTypeExtent.Punctual:
-                        SetLightIntensityPunctual(intensity);
-                        break;
-                    case LightTypeExtent.Line:
-                            m_Light.intensity = LightUtils.CalculateLineLightLumenToLuminance(intensity, shapeWidth);
-                        break;
-                    case LightTypeExtent.Rectangle:
-                        m_Light.intensity = LightUtils.ConvertRectLightLumenToLuminance(intensity, shapeWidth, shapeHeight);
-                        break;
-                }
+                if (lightTypeExtent == LightTypeExtent.Punctual)
+                    SetLightIntensityPunctual(intensity);
+                else
+                    m_Light.intensity = LightUtils.ConvertAreaLightLumenToLuminance(lightTypeExtent, intensity, shapeWidth, shapeHeight);
+            }
+            else if (lightUnit == LightUnit.Ev100)
+            {
+                m_Light.intensity = LightUtils.ConvertEvToLuminance(intensity);
             }
             else
                 m_Light.intensity = intensity;
