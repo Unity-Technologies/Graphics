@@ -25,7 +25,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Candela,
         Lux,
         Luminance,
-        Ev,
+        Ev100,
     }
 
     // Light layering
@@ -202,7 +202,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 else
                     m_Light.intensity = LightUtils.ConvertAreaLightLumenToLuminance(lightTypeExtent, intensity, shapeWidth, shapeHeight);
             }
-            else if (lightUnit == LightUnit.Ev)
+            else if (lightUnit == LightUnit.Ev100)
             {
                 m_Light.intensity = LightUtils.ConvertEvToLuminance(intensity);
             }
