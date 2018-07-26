@@ -24,6 +24,7 @@ Shader "Hidden/HDRenderPipeline/DebugFullScreen"
             #include "HDRP/ShaderVariables.hlsl"
             #include "HDRP/Debug/DebugDisplay.cs.hlsl"
             #include "HDRP/Material/Builtin/BuiltinData.hlsl"
+            #include "HDRP/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.cs.hlsl"
 
             CBUFFER_START (UnityDebug)
             float _FullScreenDebugMode;
