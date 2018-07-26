@@ -804,9 +804,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 using (new ProfilingSample(cmd, "HDRenderPipeline::Render", CustomSamplerId.HDRenderPipelineRender.GetSampler()))
                 {
-                    // Do anything we need to do upon a new frame.
-                    m_LightLoop.NewFrame(currentFrameSettings);
-
                     // If we render a reflection view or a preview we should not display any debug information
                     // This need to be call before ApplyDebugDisplaySettings()
                     if (camera.cameraType == CameraType.Reflection || camera.cameraType == CameraType.Preview)
@@ -841,6 +838,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         VolumeManager.instance.Update(hdCamera.volumeAnchor, hdCamera.volumeLayerMask);
                     }
+                    
+                    // Do anything we need to do upon a new frame.
+                    // The NewFrame must be after the VolumeManager update and before Resize because it uses properties set in NewFrame
+                    m_LightLoop.NewFrame(currentFrameSettings);
 
                     Resize(hdCamera);
 
