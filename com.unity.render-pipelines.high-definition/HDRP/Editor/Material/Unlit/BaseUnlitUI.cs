@@ -132,8 +132,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // See comment in LitProperties.hlsl
         const string kEmissionColor = "_EmissionColor";
 
-        bool m_ShowBlendModePopup = true;
-        protected virtual bool showBlendModePopup { get { return m_ShowBlendModePopup; } }
+        protected virtual SurfaceType defaultSurfaceType { get { return SurfaceType.Opaque; } }
+
+        protected virtual bool showBlendModePopup { get { return true; } }
 
         // The following set of functions are call by the ShaderGraph
         // It will allow to display our common parameters + setup keyword correctly for them
@@ -148,7 +149,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected virtual void FindBaseMaterialProperties(MaterialProperty[] props)
         {
             // Everything is optional (except surface type) so users that derive from this class can decide what they expose or not
-            surfaceType = FindProperty(kSurfaceType, props);
+            surfaceType = FindProperty(kSurfaceType, props, false);
             alphaCutoffEnable = FindProperty(kAlphaCutoffEnabled, props, false);
             alphaCutoff = FindProperty(kAlphaCutoff, props, false);
 
@@ -184,8 +185,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             enableMotionVectorForVertexAnimation = FindProperty(kEnableMotionVectorForVertexAnimation, props, false);
         }
 
+        protected SurfaceType surfaceTypeValue
+        {
+            get { return surfaceType != null ? (SurfaceType)surfaceType.floatValue : defaultSurfaceType; }
+        }
+
         void SurfaceTypePopup()
         {
+            if (surfaceType == null)
+                return;
+
             EditorGUI.showMixedValue = surfaceType.hasMixedValue;
             var mode = (SurfaceType)surfaceType.floatValue;
 
@@ -223,7 +232,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel++;
 
             SurfaceTypePopup();
-            if ((SurfaceType)surfaceType.floatValue == SurfaceType.Transparent)
+            if (surfaceTypeValue == SurfaceType.Transparent)
             {
                 if (blendMode != null && showBlendModePopup)
                     BlendModePopup();
@@ -248,7 +257,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 // With transparent object and few specific materials like Hair, we need more control on the cutoff to apply
                 // This allow to get a better sorting (with prepass), better shadow (better silhouettes fidelity) etc...
-                if ((SurfaceType)surfaceType.floatValue == SurfaceType.Transparent)
+                if (surfaceTypeValue == SurfaceType.Transparent)
                 {
                     if (alphaCutoffShadow != null)
                     {
@@ -280,10 +289,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUI.indentLevel--;
             }
 
-            if (transparentBackfaceEnable != null && ((SurfaceType)surfaceType.floatValue == SurfaceType.Transparent))
+            if (transparentBackfaceEnable != null && surfaceTypeValue == SurfaceType.Transparent)
                 m_MaterialEditor.ShaderProperty(transparentBackfaceEnable, StylesBaseUnlit.transparentBackfaceEnableText);
 
-            if (transparentSortPriority != null && ((SurfaceType)surfaceType.floatValue == SurfaceType.Transparent))
+            if (transparentSortPriority != null && surfaceTypeValue == SurfaceType.Transparent)
             {
                 EditorGUI.BeginChangeCheck();
                 m_MaterialEditor.ShaderProperty(transparentSortPriority, StylesBaseUnlit.transparentSortPriorityText);
@@ -345,7 +354,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bool alphaTestEnable = material.HasProperty(kAlphaCutoffEnabled) && material.GetFloat(kAlphaCutoffEnabled) > 0.0f;
             CoreUtils.SetKeyword(material, "_ALPHATEST_ON", alphaTestEnable);
 
-            SurfaceType surfaceType = (SurfaceType)material.GetFloat(kSurfaceType);
+            SurfaceType surfaceType = material.HasProperty(kSurfaceType) ? (SurfaceType)material.GetFloat(kSurfaceType) : SurfaceType.Opaque;
             CoreUtils.SetKeyword(material, "_SURFACE_TYPE_TRANSPARENT", surfaceType == SurfaceType.Transparent);
 
             bool enableBlendModePreserveSpecularLighting = (surfaceType == SurfaceType.Transparent) && material.HasProperty(kEnableBlendModePreserveSpecularLighting) && material.GetFloat(kEnableBlendModePreserveSpecularLighting) > 0.0f;

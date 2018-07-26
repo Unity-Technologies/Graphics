@@ -577,6 +577,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     hdCamera.SetupGlobalStereoParams(cmd);
 
                 cmd.SetGlobalInt(HDShaderIDs._SSReflectionEnabled, hdCamera.frameSettings.enableSSR ? 1 : 0);
+                cmd.SetGlobalVector(HDShaderIDs._IndirectLightingMultiplier, new Vector4(VolumeManager.instance.stack.GetComponent<IndirectLightingController>().indirectDiffuseIntensity, 0, 0 , 0));
 
                 PushGlobalRTHandle(
                     cmd,
@@ -804,9 +805,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 using (new ProfilingSample(cmd, "HDRenderPipeline::Render", CustomSamplerId.HDRenderPipelineRender.GetSampler()))
                 {
-                    // Do anything we need to do upon a new frame.
-                    m_LightLoop.NewFrame(currentFrameSettings);
-
                     // If we render a reflection view or a preview we should not display any debug information
                     // This need to be call before ApplyDebugDisplaySettings()
                     if (camera.cameraType == CameraType.Reflection || camera.cameraType == CameraType.Preview)
@@ -841,6 +839,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         VolumeManager.instance.Update(hdCamera.volumeAnchor, hdCamera.volumeLayerMask);
                     }
+                    
+                    // Do anything we need to do upon a new frame.
+                    // The NewFrame must be after the VolumeManager update and before Resize because it uses properties set in NewFrame
+                    m_LightLoop.NewFrame(currentFrameSettings);
 
                     Resize(hdCamera);
 
@@ -937,6 +939,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
                     CopyDepthBufferIfNeeded(cmd);
+                    // Depth texture is now ready, bind it (Depth buffer could have been bind before if DBuffer is enable)
+                    cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, GetDepthTexture());
+
                     RenderDepthPyramid(hdCamera, cmd, renderContext, FullScreenDebugMode.DepthPyramid);
 
                     // TODO: In the future we will render object velocity at the same time as depth prepass (we need C++ modification for this)
@@ -944,9 +949,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // We can't currently render object velocity after depth prepass because if there is no depth prepass we can have motion vector write that should have been rejected
                     RenderObjectsVelocity(m_CullResults, hdCamera, renderContext, cmd);
                     RenderCameraVelocity(m_CullResults, hdCamera, renderContext, cmd);
-
-                    // Depth texture is now ready, bind it (Depth buffer could have been bind before if DBuffer is enable)
-                    cmd.SetGlobalTexture(HDShaderIDs._CameraDepthTexture, GetDepthTexture());
 
                     // Caution: We require sun light here as some skies use the sun light to render, it means that UpdateSkyEnvironment must be called after PrepareLightsForGPU.
                     // TODO: Try to arrange code so we can trigger this call earlier and use async compute here to run sky convolution during other passes (once we move convolution shader to compute).
@@ -1155,7 +1157,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // Assign -1 in tracing model to notifiy we took the data.
                     // When debugging in forward, we want only the first time the pixel is drawn
-                    data.tracingModel = (Lit.ProjectionModel)(-1);
+                    data.tracingModel = (ScreenSpaceLighting.ProjectionModel)(-1);
                     m_DebugScreenSpaceTracingDataArray[0] = data;
                     m_DebugScreenSpaceTracingData.SetData(m_DebugScreenSpaceTracingDataArray);
                 }
