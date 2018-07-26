@@ -80,7 +80,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Texture customTexture { get { return m_CustomTexture; } set { m_CustomTexture = value; } }
         public Texture bakedTexture { get { return m_BakedTexture; } set { m_BakedTexture = value; }}
         public RenderTexture realtimeTexture { get { return m_RealtimeTexture; } internal set { m_RealtimeTexture = value; } }
-        public FrameSettings frameSettings { get { return m_FrameSettings; } }
         public float captureNearPlane { get { return m_CaptureNearPlane; } }
         public float captureFarPlane { get { return m_CaptureFarPlane; } }
         public CapturePositionMode capturePositionMode { get { return m_CapturePositionMode; } }
@@ -123,14 +122,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return proxyVolume != null
                     ? proxyVolume.proxyVolume.extents
                     : influenceVolume.boxSize;
-            }
-        }
-        public bool infiniteProjection
-        {
-            get
-            {
-                return proxyVolume != null
-                    && proxyVolume.proxyVolume.shape == ProxyShape.Infinite;
             }
         }
 
