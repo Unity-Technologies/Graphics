@@ -8,6 +8,8 @@ SAMPLER(sampler_NormalMap);
 TEXTURE2D(_MaskMap);
 SAMPLER(sampler_MaskMap);
 
+float _NormalBlendSrc;
+float _MaskBlendSrc;
 float _DecalBlend;
 float4 _BaseColor;
 float _DecalMeshDepthBias;
