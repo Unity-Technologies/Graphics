@@ -427,6 +427,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         ContactShadows m_ContactShadows = null;
         bool m_EnableContactShadow = false;
+        
+        IndirectLightingController m_indirectLightingController = null;
 
         // Following is an array of material of size eight for all combination of keyword: OUTPUT_SPLIT_LIGHTING - LIGHTLOOP_TILE_PASS - SHADOWS_SHADOWMASK - USE_FPTL_LIGHTLIST/USE_CLUSTERED_LIGHTLIST - DEBUG_DISPLAY
         Material[] m_deferredLightingMaterial;
@@ -691,6 +693,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_ContactShadows = VolumeManager.instance.stack.GetComponent<ContactShadows>();
             m_EnableContactShadow = m_FrameSettings.enableContactShadows && m_ContactShadows.enable && m_ContactShadows.length > 0;
+            m_indirectLightingController = VolumeManager.instance.stack.GetComponent<IndirectLightingController>();
 
             // Cluster
             {
@@ -1364,11 +1367,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Build light data
             var envLightData = new EnvLightData();
 
-            float indirectSpecularMultiplier = VolumeManager.instance.stack.GetComponent<IndirectLightingController>().indirectSpecularIntensity;
-
             envLightData.influenceShapeType = probe.influenceShapeType;
             envLightData.weight = probe.weight;
-            envLightData.multiplier = probe.multiplier * indirectSpecularMultiplier;
+            envLightData.multiplier = probe.multiplier * m_indirectLightingController.indirectSpecularIntensity;
             envLightData.influenceExtents = probe.influenceExtents;
             envLightData.blendNormalDistancePositive = probe.blendNormalDistancePositive;
             envLightData.blendNormalDistanceNegative = probe.blendNormalDistanceNegative;
