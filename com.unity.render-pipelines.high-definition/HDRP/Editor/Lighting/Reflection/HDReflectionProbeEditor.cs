@@ -138,9 +138,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void ApplyConstraintsOnTargets(HDReflectionProbeUI s, SerializedHDReflectionProbe sp, Editor o)
         {
-            switch ((Shape)sp.influenceVolume.shape.enumValueIndex)
+            switch ((InfluenceShape)sp.influenceVolume.shape.enumValueIndex)
             {
-                case Shape.Box:
+                case InfluenceShape.Box:
                 {
                     var maxBlendDistance = sp.influenceVolume.boxSize.vector3Value;
                     sp.targetData.influenceVolume.boxBlendDistancePositive = Vector3.Min(sp.targetData.influenceVolume.boxBlendDistancePositive, maxBlendDistance);
@@ -149,7 +149,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     sp.targetData.influenceVolume.boxBlendNormalDistanceNegative = Vector3.Min(sp.targetData.influenceVolume.boxBlendNormalDistanceNegative, maxBlendDistance);
                     break;
                 }
-                case Shape.Sphere:
+                case InfluenceShape.Sphere:
                 {
                     var maxBlendDistance = Vector3.one * sp.influenceVolume.sphereRadius.floatValue;
                     sp.targetData.influenceVolume.boxBlendDistancePositive = Vector3.Min(sp.targetData.influenceVolume.boxBlendDistancePositive, maxBlendDistance);

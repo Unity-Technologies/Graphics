@@ -48,13 +48,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get { return m_RefreshMode; }
             set { m_RefreshMode = value; }
         }
-        
+
         internal void Awake()
         {
             if (influenceVolume == null)
-                influenceVolume = new InfluenceVolume(this);
-            else
-                influenceVolume.Init(this);
+                influenceVolume = new InfluenceVolume();
+            influenceVolume.Init(this);
         }
 
         void ISerializationCallbackReceiver.OnBeforeSerialize()
