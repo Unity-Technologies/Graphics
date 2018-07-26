@@ -47,7 +47,7 @@ Shader "HDRenderPipeline/TerrainLit"
     #pragma only_renderers d3d11 ps4 xboxone vulkan metal
 
     #pragma shader_feature _TERRAIN_8_LAYERS
-    #pragma shader_feature _ _TERRAIN_BLEND_HEIGHT
+    #pragma shader_feature _TERRAIN_BLEND_HEIGHT
     #pragma shader_feature _NORMALMAP
     #pragma shader_feature _MASKMAP
     // Sample normal in pixel shader when doing instancing
