@@ -1364,10 +1364,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Build light data
             var envLightData = new EnvLightData();
 
+            float indirectSpecularMultiplier = VolumeManager.instance.stack.GetComponent<IndirectLightingController>().indirectSpecularIntensity;
 
             envLightData.influenceShapeType = probe.influenceShapeType;
             envLightData.weight = probe.weight;
-            envLightData.multiplier = probe.multiplier;
+            envLightData.multiplier = probe.multiplier * indirectSpecularMultiplier;
             envLightData.influenceExtents = probe.influenceExtents;
             envLightData.blendNormalDistancePositive = probe.blendNormalDistancePositive;
             envLightData.blendNormalDistanceNegative = probe.blendNormalDistanceNegative;
@@ -2309,7 +2310,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd)
         {
-            IndirectLightingController indirectLightVolume = VolumeManager.instance.stack.GetComponent< IndirectLightingController >();
+            IndirectLightingController indirectLightVolume = VolumeManager.instance.stack.GetComponent<IndirectLightingController>();
             Vector4 indirectLightData = new Vector4(indirectLightVolume.indirectDiffuseIntensity, indirectLightVolume.indirectSpecularIntensity, 0, 0);
 
             using (new ProfilingSample(cmd, "Push Global Parameters", CustomSamplerId.TPPushGlobalParameters.GetSampler()))
