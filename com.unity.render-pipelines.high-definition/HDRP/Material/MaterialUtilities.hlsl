@@ -166,6 +166,10 @@ void PostInitBuiltinData(   float3 V, inout PositionInputs posInput, SurfaceData
     else
 #endif
     {
+        // Apply control from the indirect lighting volume settings - This is apply here so we don't affect emissive 
+        // color in case of lit deferred for example and avoid material to have to deal with it
+        builtinData.bakeDiffuseLighting *= _IndirectLightingMultiplier.x;
+        builtinData.backBakeDiffuseLighting *= _IndirectLightingMultiplier.x;
 #ifdef MODIFY_BAKED_DIFFUSE_LIGHTING
         ModifyBakedDiffuseLighting(V, posInput, surfaceData, builtinData);
 #endif
