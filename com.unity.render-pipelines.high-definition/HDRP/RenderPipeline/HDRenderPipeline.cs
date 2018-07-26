@@ -577,6 +577,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     hdCamera.SetupGlobalStereoParams(cmd);
 
                 cmd.SetGlobalInt(HDShaderIDs._SSReflectionEnabled, hdCamera.frameSettings.enableSSR ? 1 : 0);
+                cmd.SetGlobalVector(HDShaderIDs._IndirectLightingMultiplier, new Vector4(VolumeManager.instance.stack.GetComponent<IndirectLightingController>().indirectDiffuseIntensity, 0, 0 , 0));
 
                 PushGlobalRTHandle(
                     cmd,
