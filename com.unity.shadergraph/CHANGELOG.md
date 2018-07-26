@@ -1,3 +1,5 @@
+# 2.1.0
+
 # 2.0.7
 - The Lightweight PBR subshader now normalizes normal, tangent, and view direction correctly.
 - Shader graphs using alpha clip now generate correct depth and shadow passes.
