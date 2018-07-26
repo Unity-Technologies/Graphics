@@ -11,8 +11,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     [CanEditMultipleObjects]
     partial class HDReflectionProbeEditor : Editor
     {
-        [MenuItem("CONTEXT/ReflectionProbe/Remove HD Reflection Probe", false, 0)]
-        static void RemoveLight(MenuCommand menuCommand)
+        [MenuItem("CONTEXT/ReflectionProbe/Remove Component", false, 0)]
+        static void RemoveReflectionProbe(MenuCommand menuCommand)
         {
             GameObject go = ((ReflectionProbe)menuCommand.context).gameObject;
 
@@ -21,6 +21,27 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Undo.SetCurrentGroupName("Remove HD Reflection Probe");
             Undo.DestroyObjectImmediate(go.GetComponent<ReflectionProbe>());
             Undo.DestroyObjectImmediate(go.GetComponent<HDAdditionalReflectionData>());
+        }
+
+        [MenuItem("CONTEXT/ReflectionProbe/Reset", false, 0)]
+        static void ResetReflectionProbe(MenuCommand menuCommand)
+        {
+            GameObject go = ((ReflectionProbe)menuCommand.context).gameObject;
+
+            Assert.IsNotNull(go);
+
+            ReflectionProbe reflectionProbe = go.GetComponent<ReflectionProbe>();
+            HDAdditionalReflectionData reflectionProbeAdditionalData = go.GetComponent<HDAdditionalReflectionData>();
+
+            Assert.IsNotNull(reflectionProbe);
+            Assert.IsNotNull(reflectionProbeAdditionalData);
+
+            Undo.SetCurrentGroupName("Reset HD Reflection Probe");
+            Undo.RecordObjects(new UnityEngine.Object[] { reflectionProbe, reflectionProbeAdditionalData }, "Reset HD Reflection Probe");
+            reflectionProbe.Reset();
+            // To avoid duplicating init code we copy default settings to Reset additional data
+            // Note: we can't call this code inside the HDAdditionalReflectionData, thus why we don't wrap it in Reset() function
+            HDUtils.s_DefaultHDAdditionalReflectionData.CopyTo(reflectionProbeAdditionalData);
         }
 
         static Dictionary<ReflectionProbe, HDReflectionProbeEditor> s_ReflectionProbeEditors = new Dictionary<ReflectionProbe, HDReflectionProbeEditor>();
