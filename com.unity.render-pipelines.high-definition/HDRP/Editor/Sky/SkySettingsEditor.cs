@@ -14,7 +14,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Multiplier = 1 << 1,
             Rotation = 1 << 2,
             UpdateMode = 1 << 3,
-            IncludeSunInBaking = 1 << 4
+            IncludeSunInBaking = 1 << 4,
+            IndentExposureAndMultiplier = 1 << 5,
         }
 
         SerializedDataParameter m_SkyExposure;
@@ -41,10 +42,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         protected void CommonSkySettingsGUI()
         {
+            
+            if ((m_CommonUIElementsMask & (uint)SkySettingsUIElement.IndentExposureAndMultiplier) != 0)
+                EditorGUI.indentLevel++;
             if ((m_CommonUIElementsMask & (uint)SkySettingsUIElement.Exposure) != 0)
                 PropertyField(m_SkyExposure);
             if ((m_CommonUIElementsMask & (uint)SkySettingsUIElement.Multiplier) != 0)
                 PropertyField(m_SkyMultiplier);
+            if ((m_CommonUIElementsMask & (uint)SkySettingsUIElement.IndentExposureAndMultiplier) != 0)
+                EditorGUI.indentLevel--;
             if ((m_CommonUIElementsMask & (uint)SkySettingsUIElement.Rotation) != 0)
                 PropertyField(m_SkyRotation);
 

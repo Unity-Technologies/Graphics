@@ -611,6 +611,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             var list = new List<DebugUI.Widget>();
 
+            list.Add(new DebugUI.Foldout
+            {
+                displayName = "Show Light By Type",
+                children = {
+                    new DebugUI.BoolField { displayName = "Show Directional Lights", getter = () => lightingDebugSettings.showDirectionalLight, setter = value => lightingDebugSettings.showDirectionalLight = value },
+                    new DebugUI.BoolField { displayName = "Show Punctual Lights", getter = () => lightingDebugSettings.showPunctualLight, setter = value => lightingDebugSettings.showPunctualLight = value },
+                    new DebugUI.BoolField { displayName = "Show Area Lights", getter = () => lightingDebugSettings.showAreaLight, setter = value => lightingDebugSettings.showAreaLight = value },
+                    new DebugUI.BoolField { displayName = "Show Reflection Probe", getter = () => lightingDebugSettings.showReflectionProbe, setter = value => lightingDebugSettings.showReflectionProbe = value },
+                }
+            });
+
             list.Add(new DebugUI.EnumField
             {
                 displayName = "Shadow Debug Mode",

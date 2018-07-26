@@ -363,6 +363,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _ThicknessRemap = Shader.PropertyToID("_ThicknessRemap");
 
         public static readonly int _Cubemap = Shader.PropertyToID("_Cubemap");
+        public static readonly int _InvOmegaP = Shader.PropertyToID("_InvOmegaP");
         public static readonly int _SkyParam = Shader.PropertyToID("_SkyParam");
         public static readonly int _PixelCoordToViewDirWS = Shader.PropertyToID("_PixelCoordToViewDirWS");
 
