@@ -21,7 +21,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         internal static readonly Color k_GizmoThemeColorDisabled = new Color(0x99 / 255f, 0x89 / 255f, 0x59 / 255f, 0x10 / 255f);
         internal static readonly Color k_GizmoThemeColorDisabledFace = new Color(0x99 / 255f, 0x89 / 255f, 0x59 / 255f, 0x10 / 255f);
 
-        static readonly int k_ShapeCount = Enum.GetValues(typeof(ShapeType)).Length;
+        static readonly int k_ShapeCount = Enum.GetValues(typeof(InfluenceShape)).Length;
 
         public Gizmo6FacesBox boxBaseHandle;
         public Gizmo6FacesBoxContained boxInfluenceHandle;
@@ -67,16 +67,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override void Update()
         {
             base.Update();
-            SetIsSectionExpanded_Shape((ShapeType)data.shapeType.intValue);
+            SetIsSectionExpanded_Shape((InfluenceShape)data.shape.intValue);
         }
 
-        void SetIsSectionExpanded_Shape(ShapeType shape)
+        void SetIsSectionExpanded_Shape(InfluenceShape shape)
         {
             for (var i = 0; i < k_ShapeCount; i++)
                 m_AnimBools[i].target = (int)shape == i;
         }
 
-        public AnimBool IsSectionExpanded_Shape(ShapeType shapeType)
+        public AnimBool IsSectionExpanded_Shape(InfluenceShape shapeType)
         {
             return m_AnimBools[(int)shapeType];
         }

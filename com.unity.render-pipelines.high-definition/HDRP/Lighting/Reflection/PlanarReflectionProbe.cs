@@ -1,14 +1,12 @@
 using UnityEngine.Serialization;
 using UnityEngine.Rendering;
-using System;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [ExecuteInEditMode]
     public class PlanarReflectionProbe : HDProbe, ISerializationCallbackReceiver
     {
-        [HideInInspector]
-        const int currentVersion = 1;
+        const int currentVersion = 2;
 
         [SerializeField, FormerlySerializedAs("version")]
         int m_Version;
@@ -16,11 +14,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public enum CapturePositionMode
         {
             Static,
-            MirrorCamera
+            MirrorCamera,
         }
 
-        [SerializeField]
-        InfluenceVolume m_InfluenceVolume = new InfluenceVolume();
         [SerializeField]
         Vector3 m_CaptureLocalPosition;
         [SerializeField]
@@ -50,8 +46,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool overrideFieldOfView { get { return m_OverrideFieldOfView; } }
         public float fieldOfViewOverride { get { return m_FieldOfViewOverride; } }
 
-        public InfluenceVolume influenceVolume { get { return m_InfluenceVolume; } }
-        public BoundingSphere boundingSphere { get { return m_InfluenceVolume.GetBoundingSphereAt(transform); } }
+        public BoundingSphere boundingSphere { get { return influenceVolume.GetBoundingSphereAt(transform); } }
 
         public Texture texture
         {
@@ -69,7 +64,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
         }
-        public Bounds bounds { get { return m_InfluenceVolume.GetBoundsAt(transform); } }
+        public Bounds bounds { get { return influenceVolume.GetBoundsAt(transform); } }
         public Vector3 captureLocalPosition { get { return m_CaptureLocalPosition; } set { m_CaptureLocalPosition = value; } }
         public Matrix4x4 influenceToWorld
         {
@@ -114,13 +109,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     : influenceToWorld;
             }
         }
-        public ShapeType proxyShape
+        public ProxyShape proxyShape
         {
             get
             {
                 return proxyVolume != null
-                    ? proxyVolume.proxyVolume.shapeType
-                    : influenceVolume.shapeType;
+                    ? proxyVolume.proxyVolume.shape
+                    : (ProxyShape)influenceVolume.shape;
             }
         }
         public Vector3 proxyExtents
@@ -129,10 +124,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 return proxyVolume != null
                     ? proxyVolume.proxyVolume.extents
-                    : influenceVolume.boxBaseSize;
+                    : influenceVolume.boxSize;
             }
         }
-        public bool infiniteProjection { get { return proxyVolume != null && proxyVolume.proxyVolume.infiniteProjection; } }
+        public bool infiniteProjection
+        {
+            get
+            {
+                return proxyVolume != null
+                    && proxyVolume.proxyVolume.shape == ProxyShape.Infinite;
+            }
+        }
 
         public bool useMirrorPlane
         {
@@ -179,6 +181,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             if (m_Version != currentVersion)
             {
                 // Add here data migration code
+                if(m_Version < 2)
+                {
+                    influenceVolume.MigrateOffsetSphere();
+                }
                 m_Version = currentVersion;
             }
         }

@@ -119,8 +119,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_COLORMAP", material.GetTexture(kBaseColorMap));
             CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap));
             CoreUtils.SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap)); 
-            CoreUtils.SetKeyword(material, "_NORMAL_BLEND_SRC_B", material.GetFloat(kNormalBlendSrc) == 1.0f);
-            CoreUtils.SetKeyword(material, "_MASK_BLEND_SRC_B", material.GetFloat(kMaskBlendSrc) == 1.0f);
 
             material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMStr, false);
             material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsAOStr, false);
