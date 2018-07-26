@@ -46,6 +46,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         bool needMigrateToHDProbeChild = false;
         bool needMigrateToUseInfluenceVolume = false;
 
+        public void CopyTo(HDAdditionalReflectionData data)
+        {
+            influenceVolume.CopyTo(data.influenceVolume);
+            data.influenceVolume.shape = influenceVolume.shape; //force the legacy probe to refresh its size
+
+            data.mode = mode;
+            data.refreshMode = refreshMode;
+            data.multiplier = multiplier;
+            data.weight = weight;
+        }
+
         public void OnBeforeSerialize()
         {
         }
