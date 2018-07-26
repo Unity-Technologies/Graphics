@@ -62,7 +62,6 @@ bool IsMatchingLightLayer(uint lightLayers, uint renderingLayers)
     return (lightLayers & renderingLayers) != 0;
 }
 
-// bakeDiffuseLighting is part of the prototype so a user is able to implement a "base pass" with GI and multipass direct light (aka old unity rendering path)
 void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BSDFData bsdfData, BuiltinData builtinData, uint featureFlags,
                 out float3 diffuseLighting,
                 out float3 specularLighting)

@@ -142,7 +142,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (p.proxyVolumeComponent.objectReferenceValue != null)
             {
                 var proxy = (ReflectionProxyVolumeComponent)p.proxyVolumeComponent.objectReferenceValue;
-                if ((int)proxy.proxyVolume.shapeType != p.influenceVolume.shape.enumValueIndex)
+                if ((int)proxy.proxyVolume.shape != p.influenceVolume.shape.enumValueIndex)
                     EditorGUILayout.HelpBox(
                         "Proxy volume and influence volume have different shape types, this is not supported.",
                         MessageType.Error,
@@ -333,12 +333,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (EditorGUI.EndChangeCheck())
                 s.SetShapeTarget(p.influenceVolume.shape.intValue);
 
-            switch ((Shape)p.influenceVolume.shape.enumValueIndex)
+            switch ((InfluenceShape)p.influenceVolume.shape.enumValueIndex)
             {
-                case Shape.Box:
+                case InfluenceShape.Box:
                     Drawer_InfluenceShapeBoxSettings(s, p, owner);
                     break;
-                case Shape.Sphere:
+                case InfluenceShape.Sphere:
                     Drawer_InfluenceShapeSphereSettings(s, p, owner);
                     break;
             }
@@ -398,11 +398,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void Drawer_InfluenceAreas(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
-            if (s.IsSectionExpandedShape(Shape.Box).value)
+            if (s.IsSectionExpandedShape(InfluenceShape.Box).value)
             {
                 Drawer_InfluenceBoxSettings(s, p, owner);
             }
-            if (s.IsSectionExpandedShape(Shape.Sphere).value)
+            if (s.IsSectionExpandedShape(InfluenceShape.Sphere).value)
             {
                 Drawer_InfluenceSphereSettings(s, p, owner);
             }
