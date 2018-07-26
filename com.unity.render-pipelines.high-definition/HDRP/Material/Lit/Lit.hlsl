@@ -203,16 +203,9 @@ uint TileVariantToFeatureFlags(uint variant, uint tileIndex)
 #include "HDRP/Lighting/LightDefinition.cs.hlsl"
 #include "HDRP/Lighting/Reflection/VolumeProjection.hlsl"
 
-#define SSRTID Reflection
-#include "HDRP/Lighting/Reflection/ScreenSpaceTracing.hlsl"
-#undef SSRTID
+#include "HDRP/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.hlsl"
 
 #if HAS_REFRACTION
-    #include "CoreRP/ShaderLibrary/Refraction.hlsl"
-    #define SSRTID Refraction
-    #include "HDRP/Lighting/Reflection/ScreenSpaceTracing.hlsl"
-    #undef SSRTID
-
     #if defined(_REFRACTION_PLANE)
     #define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelPlane(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
     #elif defined(_REFRACTION_SPHERE)
@@ -1695,7 +1688,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     {
         rayOriginWS             = posInput.positionWS;
         rayDirWS                = preLightData.iblR;
-        mipLevel                = PositivePow(preLightData.iblPerceptualRoughness, 0.8) * uint(max(_ColorPyramidScale.z - 1, 0));
+        mipLevel                = PlanarPerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness, _ColorPyramidScale.z);
         invScreenWeightDistance = _SSReflectionInvScreenWeightDistance;
 #ifdef DEBUG_DISPLAY
         debugMode               = DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFLECTION;
@@ -1975,7 +1968,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     if (IsEnvIndexTexture2D(lightData.envIndex))
     {
         // Empirical remapping
-        iblMipLevel = PositivePow(preLightData.iblPerceptualRoughness, 0.8) * uint(max(_ColorPyramidScale.z - 1, 0));
+        iblMipLevel = PlanarPerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness, _ColorPyramidScale.z);
     }
     else
 #endif
