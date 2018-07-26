@@ -2311,9 +2311,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd)
         {
-            IndirectLightingController indirectLightVolume = VolumeManager.instance.stack.GetComponent<IndirectLightingController>();
-            Vector4 indirectLightData = new Vector4(indirectLightVolume.indirectDiffuseIntensity, indirectLightVolume.indirectSpecularIntensity, 0, 0);
-
             using (new ProfilingSample(cmd, "Push Global Parameters", CustomSamplerId.TPPushGlobalParameters.GetSampler()))
             {
                 Camera camera = hdCamera.camera;
@@ -2343,8 +2340,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 cmd.SetGlobalInt(HDShaderIDs._NumTileClusteredX, GetNumTileClusteredX(hdCamera));
                 cmd.SetGlobalInt(HDShaderIDs._NumTileClusteredY, GetNumTileClusteredY(hdCamera));
-
-                cmd.SetGlobalVector(HDShaderIDs._IndirectLightingMultiplier, (indirectLightVolume != null) ? indirectLightData : Vector4.one);
 
                 if (m_FrameSettings.lightLoopSettings.enableBigTilePrepass)
                     cmd.SetGlobalBuffer(HDShaderIDs.g_vBigTileLightList, s_BigTileLightList);
