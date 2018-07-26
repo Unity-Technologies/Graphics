@@ -6,15 +6,15 @@ using UnityEditor.Experimental.Rendering;
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [CanEditMultipleObjects]
-    [VolumeComponentEditor(typeof(IndirectLightingControl))]
-    public class IndirectLightingControlEditor : VolumeComponentEditor
+    [VolumeComponentEditor(typeof(IndirectLightingController))]
+    public class IndirectLightingControllerEditor : VolumeComponentEditor
     {
         SerializedDataParameter m_IndirectDiffuseIntensity;
         SerializedDataParameter m_IndirectSpecularIntensity;
 
         public override void OnEnable()
         {
-            var o = new PropertyFetcher<IndirectLightingControl>(serializedObject);
+            var o = new PropertyFetcher<IndirectLightingController>(serializedObject);
 
             m_IndirectSpecularIntensity = Unpack(o.Find(x => x.indirectSpecularIntensity));
             m_IndirectDiffuseIntensity = Unpack(o.Find(x => x.indirectDiffuseIntensity));

@@ -2309,7 +2309,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd)
         {
-            IndirectLightingControl indirectLightVolume = VolumeManager.instance.stack.GetComponent< IndirectLightingControl >();
+            IndirectLightingController indirectLightVolume = VolumeManager.instance.stack.GetComponent< IndirectLightingController >();
             Vector4 indirectLightData = new Vector4(indirectLightVolume.indirectDiffuseIntensity, indirectLightVolume.indirectSpecularIntensity, 0, 0);
 
             using (new ProfilingSample(cmd, "Push Global Parameters", CustomSamplerId.TPPushGlobalParameters.GetSampler()))
