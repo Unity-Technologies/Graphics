@@ -85,7 +85,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 if (add.influenceVolume == null)
                 {
                     add.Awake(); // We need to init the 'default' data if it isn't
-                }                
+                }
                 Vector3 distance = Vector3.one * probe.blendDistance;
                 add.influenceVolume.boxBlendDistancePositive = distance;
                 add.influenceVolume.boxBlendDistanceNegative = distance;
@@ -150,16 +150,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     : influenceExtents;
             }
         }
-
-        public override bool infiniteProjection
-        {
-            get
-            {
-                return additional.proxyVolume != null
-                    ? additional.proxyVolume.proxyVolume.shape == ProxyShape.Infinite
-                    : probe.boxProjection == 0;
-            }
-        }
+        public override bool infiniteProjection { get { return additional.infiniteProjection; } }
 
         public override Matrix4x4 proxyToWorld
         {
