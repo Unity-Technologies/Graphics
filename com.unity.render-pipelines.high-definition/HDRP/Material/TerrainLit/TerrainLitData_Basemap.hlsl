@@ -5,6 +5,8 @@
 #include "CoreRP/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
 #include "../MaterialUtilities.hlsl"
 
+#include "TerrainLitSplatCommon.hlsl"
+
 // We don't use emission for terrain
 #define _EmissiveColor float3(0,0,0)
 #define _AlbedoAffectEmissive 0
@@ -13,7 +15,6 @@
 #undef _AlbedoAffectEmissive
 
 #include "../Decal/DecalUtilities.hlsl"
-#include "TerrainLitSplatCommon.hlsl"
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
@@ -89,7 +90,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #if defined(DEBUG_DISPLAY)
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
-        surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, layerTexCoord.base0.uv, _BaseColorMap0, _BaseColorMap0_TexelSize, _BaseColorMap0_MipInfo, surfaceData.baseColor);
+        // TODO: uncomment and fix me.
+        surfaceData.baseColor = 1;
+        // surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, input.texCoord0, _BaseColorMap0, _BaseColorMap0_TexelSize, _BaseColorMap0_MipInfo, surfaceData.baseColor);
         surfaceData.metallic = 0;
     }
 #endif
