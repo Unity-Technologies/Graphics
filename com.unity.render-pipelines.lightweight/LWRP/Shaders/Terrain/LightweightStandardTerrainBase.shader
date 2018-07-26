@@ -137,7 +137,8 @@ Shader "Hidden/LightweightPipeline/Terrain/Standard Terrain Base"
             ENDHLSL
         }
 
-        UsePass "Hidden/Nature/Terrain/Picking/TERRAINPICKING"
+        UsePass "Hidden/Nature/Terrain/Utilities/PICKING"
+        UsePass "Hidden/Nature/Terrain/Utilities/SELECTION"
     }
     FallBack "Hidden/InternalErrorShader"
     CustomEditor "LightweightStandardGUI"

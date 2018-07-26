@@ -121,7 +121,8 @@ Shader "LightweightPipeline/Terrain/Standard Terrain"
             ENDHLSL
         }
 
-        UsePass "Hidden/Nature/Terrain/Picking/TERRAINPICKING"
+        UsePass "Hidden/Nature/Terrain/Utilities/PICKING"
+        UsePass "Hidden/Nature/Terrain/Utilities/SELECTION"
     }
     Dependency "AddPassShader" = "Hidden/LightweightPipeline/Terrain/Standard Terrain Add Pass"
     Dependency "BaseMapShader" = "Hidden/LightweightPipeline/Terrain/Standard Terrain Base"

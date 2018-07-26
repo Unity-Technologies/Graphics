@@ -282,7 +282,8 @@ Shader "HDRenderPipeline/TerrainLit"
             ENDHLSL
         }
 
-        UsePass "Hidden/Nature/Terrain/Picking/TERRAINPICKING"
+        UsePass "Hidden/Nature/Terrain/Utilities/PICKING"
+        UsePass "Hidden/Nature/Terrain/Utilities/SELECTION"
     }
 
     Dependency "BaseMapShader" = "Hidden/HDRenderPipeline/TerrainLit_Basemap"
