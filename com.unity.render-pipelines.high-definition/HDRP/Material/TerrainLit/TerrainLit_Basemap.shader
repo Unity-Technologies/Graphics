@@ -256,6 +256,7 @@ Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap"
             ENDHLSL
         }
 
-        UsePass "Hidden/Nature/Terrain/Picking/TERRAINPICKING"
+        UsePass "Hidden/Nature/Terrain/Utilities/PICKING"
+        UsePass "Hidden/Nature/Terrain/Utilities/SELECTION"
     }
 }
