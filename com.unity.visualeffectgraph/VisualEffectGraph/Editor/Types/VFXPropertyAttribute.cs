@@ -157,7 +157,7 @@ namespace UnityEditor.VFX
             return null;
         }
 
-        private enum Type
+        public enum Type
         {
             kRange,
             kMin,
@@ -168,14 +168,14 @@ namespace UnityEditor.VFX
             kRegex
         }
 
-        private VFXPropertyAttribute(Type type, float min = -Mathf.Infinity, float max = Mathf.Infinity)
+        public VFXPropertyAttribute(Type type, float min = -Mathf.Infinity, float max = Mathf.Infinity)
         {
             m_Type = type;
             m_Min = min;
             m_Max = max;
         }
 
-        private VFXPropertyAttribute(Type type, string str, int regexMaxLength = int.MaxValue)
+        public VFXPropertyAttribute(Type type, string str, int regexMaxLength = int.MaxValue)
         {
             m_Type = type;
             m_Min = -Mathf.Infinity;
