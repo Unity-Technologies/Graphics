@@ -74,7 +74,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float3 normalTS = float3(0.0, 0.0, 1.0);
 #endif
 
-    GetNormalWS(input, V, normalTS, surfaceData.normalWS);
+    GetNormalWS(input, normalTS, surfaceData.normalWS);
     float3 bentNormalWS = surfaceData.normalWS;
 
     if (surfaceData.ambientOcclusion != 1.0f)
@@ -97,5 +97,5 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     }
 #endif
 
-    GetBuiltinData(input, surfaceData, 1, bentNormalWS, 0, builtinData);
+    GetBuiltinData(input, V, posInput, surfaceData, 1, bentNormalWS, 0, builtinData);
 }

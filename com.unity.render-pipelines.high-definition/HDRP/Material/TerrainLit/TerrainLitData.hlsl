@@ -67,7 +67,7 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     surfaceData.atDistance = 1000000.0;
     surfaceData.transmittanceMask = 0.0;
 
-    GetNormalWS(input, V, normalTS, surfaceData.normalWS);
+    GetNormalWS(input, normalTS, surfaceData.normalWS);
     float3 bentNormalWS = surfaceData.normalWS;
 
     // By default we use the ambient occlusion with Tri-ace trick (apply outside) for specular occlusion.
@@ -92,5 +92,5 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     }
 #endif
 
-    GetBuiltinData(input, surfaceData, 1, bentNormalWS, 0, builtinData);
+    GetBuiltinData(input, V, posInput, surfaceData, 1, bentNormalWS, 0, builtinData);
 }
