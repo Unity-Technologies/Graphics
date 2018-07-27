@@ -346,5 +346,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 && layer.antialiasingMode == PostProcessLayer.Antialiasing.TemporalAntialiasing
                 && layer.temporalAntialiasing.IsSupported();
         }
+        
+        // We need these at runtime for RenderPipelineResources upgrade
+        public static string GetHDRenderPipelinePath()
+        {
+            return "Packages/com.unity.render-pipelines.high-definition/HDRP/";
+        }
+
+        public static string GetPostProcessingPath()
+        {
+            return "Packages/com.unity.postprocessing/";
+        }
+
+        public static string GetCorePath()
+        {
+            return "Packages/com.unity.render-pipelines.core/CoreRP/";
+        }
+
     }
 }
