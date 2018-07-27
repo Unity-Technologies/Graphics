@@ -21,7 +21,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_Version;
 
         ReflectionProbe m_LegacyProbe;
-        ReflectionProbe legacyProbe { get { return m_LegacyProbe ?? (m_LegacyProbe = GetComponent<ReflectionProbe>()); } }
+        ReflectionProbe legacyProbe
+        {
+            get
+            {
+                if (m_LegacyProbe == null || m_LegacyProbe.Equals(null))
+                {
+                    m_LegacyProbe = GetComponent<ReflectionProbe>();
+                    return m_LegacyProbe;
+                }
+                else
+                {
+                    return m_LegacyProbe;
+                }
+            }
+        }
 
 #pragma warning disable 649 //never assigned
         //data only kept for migration, to be removed in future version
