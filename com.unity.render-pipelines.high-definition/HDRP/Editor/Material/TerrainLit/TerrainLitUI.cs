@@ -205,14 +205,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (terrainLayer.diffuseTexture != null)
             {
                 var rect = GUILayoutUtility.GetLastRect();
+                rect.y += 16 + 4;
+                rect.width = EditorGUIUtility.labelWidth + 64;
                 rect.height = 16;
-                rect.y += 16;
+
                 ++EditorGUI.indentLevel;
-                var tintRect = EditorGUI.PrefixLabel(rect, styles.colorTint);
-                --EditorGUI.indentLevel;
-                tintRect.width = 64;
+
                 var diffuseTint = new Color(diffuseRemapMax.x, diffuseRemapMax.y, diffuseRemapMax.z);
-                diffuseTint = EditorGUI.ColorField(tintRect, GUIContent.none, diffuseTint, true, false, false);
+                diffuseTint = EditorGUI.ColorField(rect, styles.colorTint, diffuseTint, true, false, false);
                 diffuseRemapMax.x = diffuseTint.r;
                 diffuseRemapMax.y = diffuseTint.g;
                 diffuseRemapMax.z = diffuseTint.b;
@@ -220,13 +220,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 if (!heightBlend)
                 {
-                    rect.y += 16;
-                    ++EditorGUI.indentLevel;
-                    var densityToggleRect = EditorGUI.PrefixLabel(rect, styles.opacityAsDensity);
-                    --EditorGUI.indentLevel;
-                    densityToggleRect.width = 64;
-                    enableDensity = EditorGUI.Toggle(densityToggleRect, diffuseRemapMin.w > 0);
+                    rect.y = rect.yMax + 2;
+                    enableDensity = EditorGUI.Toggle(rect, styles.opacityAsDensity, diffuseRemapMin.w > 0);
                 }
+
+                --EditorGUI.indentLevel;
             }
             diffuseRemapMax.w = 1;
             diffuseRemapMin.w = enableDensity ? 1 : 0;
@@ -242,10 +240,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (terrainLayer.normalMapTexture != null)
             {
+                var rect = GUILayoutUtility.GetLastRect();
+                rect.y += 16 + 4;
+                rect.width = EditorGUIUtility.labelWidth + 64;
+                rect.height = 16;
+
                 ++EditorGUI.indentLevel;
-                terrainLayer.normalScale = EditorGUILayout.FloatField(styles.normalScale, terrainLayer.normalScale);
+                terrainLayer.normalScale = EditorGUI.FloatField(rect, styles.normalScale, terrainLayer.normalScale);
                 --EditorGUI.indentLevel;
-                EditorGUILayout.Space();
             }
 
             terrainLayer.maskMapTexture = EditorGUILayout.ObjectField(heightBlend ? styles.maskMapTexture : styles.maskMapTextureWithoutHeight, terrainLayer.maskMapTexture, typeof(Texture2D), false) as Texture2D;
