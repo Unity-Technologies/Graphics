@@ -10,6 +10,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private RenderTargetHandle depthAttachmentHandle { get; set; }
         private RenderTextureDescriptor descriptor { get; set; }
+        public FilterRenderersSettings opaqueFilterSettings { get; private set; }
 
         public void Setup(
             RenderTextureDescriptor baseDescriptor,
@@ -29,12 +30,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             descriptor = baseDescriptor;
         }
 
-        public DepthOnlyPass(LightweightForwardRenderer renderer) : base(renderer)
+        public DepthOnlyPass()
         {
             RegisterShaderPassName("DepthOnly");
+            opaqueFilterSettings = new FilterRenderersSettings(true)
+            {
+                renderQueueRange = RenderQueueRange.opaque,
+            };
         }
 
-        public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref RenderingData renderingData)
+        public override void Execute(ref ScriptableRenderContext context,
+            ref CullResults cullResults,
+            ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_DepthPrepassTag);
             using (new ProfilingSample(cmd, k_DepthPrepassTag))
@@ -57,18 +64,18 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 {
                     Camera camera = renderingData.cameraData.camera;
                     context.StartMultiEye(camera);
-                    context.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, renderer.opaqueFilterSettings);
+                    context.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, opaqueFilterSettings);
                     context.StopMultiEye(camera);
                 }
                 else
-                    context.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, renderer.opaqueFilterSettings);
+                    context.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, opaqueFilterSettings);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
 
 
-        public override void Dispose(CommandBuffer cmd)
+        public override void FrameCleanup(CommandBuffer cmd)
         {
             if (depthAttachmentHandle != RenderTargetHandle.CameraTarget)
             {

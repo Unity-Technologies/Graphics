@@ -91,6 +91,56 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return intensity * ((width * height) * Mathf.PI);
         }
 
+        public static float ConvertEvToLuminance(float ev)
+        {
+            return Mathf.Pow(2, ev - 3);
+        }
+
+        public static float ConvertLuminanceToEv(float luminance)
+        {
+            const float k = 12.5f;
+
+            return (float)Math.Log((luminance * 100f) / k, 2);
+        }
+
+        public static float ConvertAreaLightLumenToLuminance(LightTypeExtent areaLightType, float lumen, float width, float height = 0)
+        {
+            switch (areaLightType)
+            {
+                case LightTypeExtent.Line:
+                    return LightUtils.CalculateLineLightLumenToLuminance(lumen, width);
+                case LightTypeExtent.Rectangle:
+                    return LightUtils.ConvertRectLightLumenToLuminance(lumen, width, height);
+            }
+            return lumen;
+        }
+
+        public static float ConvertAreaLightLuminanceToLumen(LightTypeExtent areaLightType, float luminance, float width, float height = 0)
+        {
+            switch (areaLightType)
+            {
+                case LightTypeExtent.Line:
+                    return LightUtils.CalculateLineLightLuminanceToLumen(luminance, width);
+                case LightTypeExtent.Rectangle:
+                    return LightUtils.ConvertRectLightLuminanceToLumen(luminance, width, height);
+            }
+            return luminance;
+        }
+
+        public static float ConvertAreaLightLumenToEv(LightTypeExtent areaLightType, float lumen, float width, float height)
+        {
+            float luminance = ConvertAreaLightLumenToLuminance(areaLightType, lumen, width, height);
+
+            return ConvertLuminanceToEv(luminance);
+        }
+
+        public static float ConvertAreaLightEvToLumen(LightTypeExtent areaLightType, float ev, float width, float height)
+        {
+            float luminance = ConvertEvToLuminance(ev);
+
+            return ConvertAreaLightLuminanceToLumen(areaLightType, luminance, width, height);
+        }
+
         // convert intensity (lumen) to nits
         public static float CalculateLineLightLumenToLuminance(float intensity, float lineWidth)
         {
