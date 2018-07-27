@@ -4,36 +4,9 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Experimental.VFX;
 
-namespace UnityEditor.VFX
-{
-    class AttributeVariantFromCurve : IVariantProvider
-    {
-        public Dictionary<string, object[]> variants
-        {
-            get
-            {
-                return new Dictionary<string, object[]>
-                {
-                    { "attribute", FromCurveAttributeProvider.AllAttributeFromCurve }
-                };
-            }
-        }
-    }
-
-    class FromCurveAttributeProvider : IStringProvider
-    {
-        public static string[] AllAttributeFromCurve = VFXAttribute.AllIncludingVariadicWritable.Except(new VFXAttribute[] { VFXAttribute.Age, VFXAttribute.Lifetime, VFXAttribute.Alive }.Select(e => e.name)).ToArray();
-
-        public string[] GetAvailableString()
-        {
-            return AllAttributeFromCurve;
-        }
-    }
-}
-
 namespace UnityEditor.VFX.Block
 {
-    [VFXInfo(category = "Attribute/Curve", variantProvider = typeof(AttributeVariantFromCurve))]
+    [VFXInfo(category = "Attribute/Curve", variantProvider = typeof(AttributeVariantReadWritable))]
     class AttributeFromCurve : VFXBlock
     {
         public enum CurveSampleMode
@@ -51,17 +24,30 @@ namespace UnityEditor.VFX.Block
             PerComponent
         }
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(FromCurveAttributeProvider))]
-        public string attribute = VFXAttribute.AllIncludingVariadic.First();
+        public enum ColorApplicationMode
+        {
+            Color = 1 << 0,
+            Alpha = 1 << 1,
+            ColorAndAlpha = Color | Alpha,
+        }
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), StringProvider(typeof(ReadWritableAttributeProvider)), Tooltip("Target Attribute")]
+        public string attribute = VFXAttribute.AllIncludingVariadicWritable.First();
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
         public AttributeCompositionMode Composition = AttributeCompositionMode.Overwrite;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
+        public AttributeCompositionMode AlphaComposition = AttributeCompositionMode.Overwrite;
 
         [VFXSetting, Tooltip("How to sample the curve")]
         public CurveSampleMode SampleMode = CurveSampleMode.OverLife;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
         public ComputeMode Mode = ComputeMode.PerComponent;
+
+        [VFXSetting, Tooltip("Select whether the color is applied to RGB, alpha, or both")]
+        public ColorApplicationMode ColorMode = ColorApplicationMode.ColorAndAlpha;
 
         [VFXSetting]
         public VariadicChannelOptions channels = VariadicChannelOptions.XYZ;
@@ -71,7 +57,8 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                return VFXBlockUtility.GetNameString(Composition) + " " + ObjectNames.NicifyVariableName(attribute) + " from Curve";
+                string attributeSource = currentAttribute.Equals(VFXAttribute.Color) ? "from Gradient" : "from Curve";
+                return string.Format("{0} {1} {2}", VFXBlockUtility.GetNameString(Composition), ObjectNames.NicifyVariableName(attribute), attributeSource);
             }
         }
 
@@ -100,17 +87,29 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                var attrib = currentAttribute;
                 VFXAttributeMode attributeMode = (Composition != AttributeCompositionMode.Overwrite) ? VFXAttributeMode.ReadWrite : VFXAttributeMode.Write;
-                if (attrib.variadic == VFXVariadic.True)
+                VFXAttributeMode alphaAttributeMode = (AlphaComposition != AttributeCompositionMode.Overwrite) ? VFXAttributeMode.ReadWrite : VFXAttributeMode.Write;
+
+                var attrib = currentAttribute;
+                if (attrib.Equals(VFXAttribute.Color))
                 {
-                    string channelsString = channels.ToString();
-                    for (int i = 0; i < channelsString.Length; i++)
-                        yield return new VFXAttributeInfo(VFXAttribute.Find(attrib.name + channelsString[i]), attributeMode);
+                    if ((ColorMode & ColorApplicationMode.Color) != 0)
+                        yield return new VFXAttributeInfo(VFXAttribute.Color, attributeMode);
+                    if ((ColorMode & ColorApplicationMode.Alpha) != 0)
+                        yield return new VFXAttributeInfo(VFXAttribute.Alpha, alphaAttributeMode);
                 }
                 else
                 {
-                    yield return new VFXAttributeInfo(attrib, attributeMode);
+                    if (attrib.variadic == VFXVariadic.True)
+                    {
+                        string channelsString = channels.ToString();
+                        for (int i = 0; i < channelsString.Length; i++)
+                            yield return new VFXAttributeInfo(VFXAttribute.Find(attrib.name + channelsString[i]), attributeMode);
+                    }
+                    else
+                    {
+                        yield return new VFXAttributeInfo(attrib, attributeMode);
+                    }
                 }
 
                 yield return new VFXAttributeInfo(VFXAttribute.Age, VFXAttributeMode.Read);
@@ -135,6 +134,12 @@ namespace UnityEditor.VFX.Block
                 if (VFXExpression.TypeToSize(attrib.type) == 1)
                     yield return "Mode";
 
+                if (!currentAttribute.Equals(VFXAttribute.Color))
+                {
+                    yield return "ColorMode";
+                    yield return "AlphaComposition";
+                }
+
                 foreach (var setting in base.filteredOutSettings)
                     yield return setting;
             }
@@ -150,9 +155,13 @@ namespace UnityEditor.VFX.Block
             get
             {
                 string source = "";
+
                 var attrib = currentAttribute;
 
-                int attributeSize = VFXExpression.TypeToSize(attrib.type);
+                bool isColor = currentAttribute.Equals(VFXAttribute.Color);
+                int attributeCount = isColor ? 2 : 1;
+
+                int attributeSize = isColor ? 4 : VFXExpression.TypeToSize(attrib.type);
                 int loopCount = 1;
                 if (attrib.variadic == VFXVariadic.True)
                 {
@@ -160,23 +169,56 @@ namespace UnityEditor.VFX.Block
                     loopCount = attributeSize;
                 }
 
-                string channelSource = GetFetchValueString(GenerateLocalAttributeName(attrib.name), attributeSize, Mode, SampleMode);
+                source += GetFetchValueString(GenerateLocalAttributeName(attrib.name), attributeSize, Mode, SampleMode);
 
-                for (int i = 0; i < loopCount; i++)
+                int attributeAddedCount = 0;
+                for (int attribIndex = 0; attribIndex < attributeCount; attribIndex++)
                 {
-                    string paramPostfix = (attrib.variadic == VFXVariadic.True) ? "." + channelNames[i] : "";
-                    string attributePostfix = (attrib.variadic == VFXVariadic.True) ? char.ToUpper(channels.ToString()[i]).ToString() : "";
+                    string attribName = attrib.name;
+                    if (isColor)
+                    {
+                        if (((int)ColorMode & (1 << attribIndex)) == 0)
+                            continue;
+                        if (attribIndex == 1)
+                            attribName = VFXAttribute.Alpha.name;
+                    }
 
-                    if (Composition == AttributeCompositionMode.Blend)
-                        channelSource += VFXBlockUtility.GetComposeString(Composition, attrib.name + attributePostfix, "value" + paramPostfix, "Blend");
-                    else
-                        channelSource += VFXBlockUtility.GetComposeString(Composition, attrib.name + attributePostfix, "value" + paramPostfix);
-
-                    if (i < loopCount - 1)
+                    string channelSource = "";
+                    if (attributeAddedCount > 0)
                         channelSource += "\n";
-                }
 
-                source += channelSource;
+                    for (int i = 0; i < loopCount; i++)
+                    {
+                        AttributeCompositionMode compositionMode = Composition;
+                        string paramPostfix = (attrib.variadic == VFXVariadic.True) ? "." + channelNames[i] : "";
+
+                        if (isColor)
+                        {
+                            if (attribIndex == 0)
+                            {
+                                paramPostfix = ".rgb";
+                            }
+                            else
+                            {
+                                paramPostfix = ".a";
+                                compositionMode = AlphaComposition;
+                            }
+                        }
+
+                        string attributePostfix = (attrib.variadic == VFXVariadic.True) ? char.ToUpper(channels.ToString()[i]).ToString() : "";
+
+                        if (compositionMode == AttributeCompositionMode.Blend)
+                            channelSource += VFXBlockUtility.GetComposeString(compositionMode, attribName + attributePostfix, "value" + paramPostfix, "Blend");
+                        else
+                            channelSource += VFXBlockUtility.GetComposeString(compositionMode, attribName + attributePostfix, "value" + paramPostfix);
+
+                        if (i < loopCount - 1)
+                            channelSource += "\n";
+                    }
+
+                    source += channelSource;
+                    attributeAddedCount++;
+                }
 
                 return source;
             }
@@ -206,7 +248,7 @@ namespace UnityEditor.VFX.Block
             {
                 if (currentAttribute.Equals(VFXAttribute.Color))
                 {
-                    output += string.Format("value = SampleGradient({0}, t).rgb;\n", localName);
+                    output += string.Format("value = SampleGradient({0}, t);\n", localName);
                 }
                 else
                 {
@@ -231,7 +273,7 @@ namespace UnityEditor.VFX.Block
                     size = channels.ToString().Length;
 
                 if (SampleMode == CurveSampleMode.BySpeed)
-                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "SpeedRange"));
+                    yield return new VFXPropertyWithValue(new VFXProperty(typeof(Vector2), "SpeedRange", new VFXPropertyAttribute[] { new VFXPropertyAttribute(VFXPropertyAttribute.Type.kMin, 0.0f) }));
                 else if (SampleMode == CurveSampleMode.Custom)
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "SampleTime"));
 
@@ -255,7 +297,7 @@ namespace UnityEditor.VFX.Block
                     }
                 }
 
-                if (Composition == AttributeCompositionMode.Blend)
+                if (Composition == AttributeCompositionMode.Blend || (attrib.Equals(VFXAttribute.Color) && AlphaComposition == AttributeCompositionMode.Blend))
                     yield return new VFXPropertyWithValue(new VFXProperty(typeof(float), "Blend"));
             }
         }
