@@ -4,16 +4,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     public class CopyDepthPass : ScriptableRenderPass
     {
-        Material m_DepthCopyMaterial;
-
         private RenderTargetHandle source { get; set; }
         private RenderTargetHandle destination { get; set; }
+        private Material depthCopyMaterial { get; set; }
 
-
-        public CopyDepthPass(LightweightForwardRenderer renderer) : base(renderer)
+        public CopyDepthPass(Material depthCopyMaterial)
         {
-            m_DepthCopyMaterial = renderer.GetMaterial(MaterialHandles.DepthCopy);
+            this.depthCopyMaterial = depthCopyMaterial;
         }
+
 
         public void Setup(RenderTargetHandle source, RenderTargetHandle destination)
         {
@@ -21,13 +20,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             this.destination = destination;
         }
 
-        public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref RenderingData renderingData)
+        public override void Execute(ref ScriptableRenderContext context,
+            ref CullResults cullResults,
+            ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get("Depth Copy");
             RenderTargetIdentifier depthSurface = source.Identifier();
             RenderTargetIdentifier copyDepthSurface = destination.Identifier();
 
-            RenderTextureDescriptor descriptor = renderer.CreateRTDesc(ref renderingData.cameraData);
+            RenderTextureDescriptor descriptor = LightweightForwardRenderer.CreateRTDesc(ref renderingData.cameraData);
             descriptor.colorFormat = RenderTextureFormat.Depth;
             descriptor.depthBufferBits = 32; //TODO: fix this ;
             descriptor.msaaSamples = 1;
@@ -47,20 +48,20 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     cmd.EnableShaderKeyword(LightweightKeywordStrings.DepthMsaa2);
                     cmd.DisableShaderKeyword(LightweightKeywordStrings.DepthMsaa4);
                 }
-                cmd.Blit(depthSurface, copyDepthSurface, m_DepthCopyMaterial);
+                cmd.Blit(depthSurface, copyDepthSurface, depthCopyMaterial);
             }
             else
             {
                 cmd.EnableShaderKeyword(LightweightKeywordStrings.DepthNoMsaa);
                 cmd.DisableShaderKeyword(LightweightKeywordStrings.DepthMsaa2);
                 cmd.DisableShaderKeyword(LightweightKeywordStrings.DepthMsaa4);
-                LightweightPipeline.CopyTexture(cmd, depthSurface, copyDepthSurface, m_DepthCopyMaterial);
+                LightweightPipeline.CopyTexture(cmd, depthSurface, copyDepthSurface, depthCopyMaterial);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
         }
         
-        public override void Dispose(CommandBuffer cmd)
+        public override void FrameCleanup(CommandBuffer cmd)
         {
             if (destination != RenderTargetHandle.CameraTarget)
             {

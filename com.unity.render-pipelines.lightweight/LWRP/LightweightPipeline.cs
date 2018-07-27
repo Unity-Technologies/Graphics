@@ -18,6 +18,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public LightweightPipelineAsset pipelineAsset { get; private set; }
 
+        
+        private IRendererSetup m_DefaultRendererSetup;
         private IRendererSetup defaultRendererSetup
         {
             get
@@ -36,7 +38,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         List<int> m_LocalLightIndices = new List<int>();
 
         bool m_IsCameraRendering;
-        private IRendererSetup m_DefaultRendererSetup;
 
         public LightweightPipeline(LightweightPipelineAsset asset)
         {
@@ -139,6 +140,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                             setup = defaultRendererSetup;
 
                         setup.Setup(m_Renderer, ref context, ref m_CullResults, ref renderingData);
+
                         m_Renderer.Execute(ref context, ref m_CullResults, ref renderingData);
                     }
 #if UNITY_EDITOR
