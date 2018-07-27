@@ -289,10 +289,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUI.indentLevel--;
             }
 
-            if (transparentBackfaceEnable != null && (surfaceTypeValue == SurfaceType.Transparent))
+            if (transparentBackfaceEnable != null && surfaceTypeValue == SurfaceType.Transparent)
                 m_MaterialEditor.ShaderProperty(transparentBackfaceEnable, StylesBaseUnlit.transparentBackfaceEnableText);
 
-            if (transparentSortPriority != null && (surfaceTypeValue == SurfaceType.Transparent))
+            if (transparentSortPriority != null && surfaceTypeValue == SurfaceType.Transparent)
             {
                 EditorGUI.BeginChangeCheck();
                 m_MaterialEditor.ShaderProperty(transparentSortPriority, StylesBaseUnlit.transparentSortPriorityText);

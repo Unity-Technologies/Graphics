@@ -38,8 +38,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         Vector4[] m_LightDistanceAttenuations;
         Vector4[] m_LightSpotDirections;
         Vector4[] m_LightSpotAttenuations;
+        
+        private int maxVisibleLocalLights { get; set; }
+        private ComputeBuffer perObjectLightIndices { get; set; }
 
-        public SetupLightweightConstanstPass(LightweightForwardRenderer renderer) : base(renderer)
+        public SetupLightweightConstanstPass()
         {
             PerCameraBuffer._MainLightPosition = Shader.PropertyToID("_MainLightPosition");
             PerCameraBuffer._MainLightColor = Shader.PropertyToID("_MainLightColor");
@@ -53,12 +56,26 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             PerCameraBuffer._AdditionalLightSpotAttenuation = Shader.PropertyToID("_AdditionalLightSpotAttenuation");
             PerCameraBuffer._LightIndexBuffer = Shader.PropertyToID("_LightIndexBuffer");
 
-            int maxVisibleLocalLights = renderer.maxVisibleLocalLights;
-            m_LightPositions = new Vector4[maxVisibleLocalLights];
-            m_LightColors = new Vector4[maxVisibleLocalLights];
-            m_LightDistanceAttenuations = new Vector4[maxVisibleLocalLights];
-            m_LightSpotDirections = new Vector4[maxVisibleLocalLights];
-            m_LightSpotAttenuations = new Vector4[maxVisibleLocalLights];
+            m_LightPositions = new Vector4[0];
+            m_LightColors = new Vector4[0];
+            m_LightDistanceAttenuations = new Vector4[0];
+            m_LightSpotDirections = new Vector4[0];
+            m_LightSpotAttenuations = new Vector4[0];
+        }
+
+        public void Setup(int maxVisibleLocalLights, ComputeBuffer perObjectLightIndices)
+        {
+            this.maxVisibleLocalLights = maxVisibleLocalLights;
+            this.perObjectLightIndices = perObjectLightIndices;
+            
+            if (m_LightColors.Length != maxVisibleLocalLights)
+            {
+                m_LightPositions = new Vector4[maxVisibleLocalLights];
+                m_LightColors = new Vector4[maxVisibleLocalLights];
+                m_LightDistanceAttenuations = new Vector4[maxVisibleLocalLights];
+                m_LightSpotDirections = new Vector4[maxVisibleLocalLights];
+                m_LightSpotAttenuations = new Vector4[maxVisibleLocalLights];
+            }
         }
 
         void InitializeLightConstants(List<VisibleLight> lights, int lightIndex, out Vector4 lightPos, out Vector4 lightColor, out Vector4 lightDistanceAttenuation, out Vector4 lightSpotDir,
@@ -153,7 +170,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         void SetupShaderLightConstants(CommandBuffer cmd, ref LightData lightData)
         {
             // Clear to default all light constant data
-            for (int i = 0; i < renderer.maxVisibleLocalLights; ++i)
+            for (int i = 0; i < maxVisibleLocalLights; ++i)
                 InitializeLightConstants(lightData.visibleLights, -1, out m_LightPositions[i],
                     out m_LightColors[i],
                     out m_LightDistanceAttenuations[i],
@@ -194,7 +211,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         void SetupAdditionalLightConstants(CommandBuffer cmd, ref LightData lightData)
         {
-            int maxVisibleLocalLights = renderer.maxVisibleLocalLights;
             List<VisibleLight> lights = lightData.visibleLights;
             if (lightData.totalAdditionalLightsCount > 0)
             {
@@ -218,8 +234,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 // if not using a compute buffer, engine will set indices in 2 vec4 constants
                 // unity_4LightIndices0 and unity_4LightIndices1
-                if (renderer.perObjectLightIndices != null)
-                    cmd.SetGlobalBuffer("_LightIndexBuffer", renderer.perObjectLightIndices);
+                if (perObjectLightIndices != null)
+                    cmd.SetGlobalBuffer("_LightIndexBuffer", perObjectLightIndices);
             }
             else
             {
@@ -260,7 +276,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CoreUtils.SetKeyword(cmd, "SOFTPARTICLES_ON", cameraData.requiresSoftParticles);
         }
 
-        public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref RenderingData renderingData)
+        public override void Execute(ref ScriptableRenderContext context,
+            ref CullResults cullResults,
+            ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get("SetupShaderConstants");
             SetupShaderLightConstants(cmd, ref renderingData.lightData);

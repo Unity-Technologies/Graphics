@@ -1,4 +1,4 @@
-# Next version
+## [3.1.0]
 
 ### HD Render Pipeline support
 
@@ -114,6 +114,7 @@ You can now see the generated code for any specific node. To do so, right-click 
 - If the current render pipeline is not compatible, master nodes now display an error badge.
 - The preview shader now only considers the current render pipeline. Because of this there is less code to compile, and therefore the preview shader will compile faster.
 - When you rename a shader graph or sub shader graph locally on your disk, the title of the Shader Graph window, black board, and preview also updates.
+- Removed legacy matrices from Transfomation Matrix node.
 - The Lightweight PBR subshader now normalizes normal, tangent, and view direction correctly.
 - Texture 2D Array and Texture 3D nodes can no longer be used in the vertex shader.
 - Shader graphs using alpha clip now generate correct depth and shadow passes.
