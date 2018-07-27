@@ -586,7 +586,16 @@ namespace UnityEditor.VFX
                     uniformMappings.Add(new VFXMapping(contextData.uniformMapper.GetName(uniform), expressionGraph.GetFlattenedIndex(uniform)));
 
                 // Retrieve all cpu mappings at context level (-1)
-                var cpuMappings = contextData.cpuMapper.CollectExpression(-1).Select(exp => new VFXMapping(exp.name, expressionGraph.GetFlattenedIndex(exp.exp)));
+                var cpuMappings = contextData.cpuMapper.CollectExpression(-1).Select(exp => new VFXMapping(exp.name, expressionGraph.GetFlattenedIndex(exp.exp))).ToArray();
+
+                //Check potential issue with invalid operation on CPU
+                foreach (var mapping in cpuMappings)
+                {
+                    if (mapping.index < 0)
+                    {
+                        throw new InvalidOperationException("Unable to compute CPU expression for mapping : " + mapping.name);
+                    }
+                }
 
                 taskDesc.buffers = bufferMappings.ToArray();
                 taskDesc.values = uniformMappings.ToArray();
