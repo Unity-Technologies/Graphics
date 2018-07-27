@@ -1,11 +1,11 @@
-## NOTE: We are migrating reported issues to fogbugz. Please log issues there.
+## NOTE: We have migrate reported issues to fogbugz. Please log issues via the in unity bug tracker.
 
 # Unity Scriptable Render Pipeline
 The Scriptable Render Pipeline (SRP) is a new Unity feature in active development. SRP has been designed to give artists and developers the tools they need to create modern, high-fidelity graphics in Unity. Including a built-in Lightweight Render Pipeline for use on all platforms, and a High Definition Render Pipeline (HDRP) for use on compute shader compatible platforms. These features are available in Unity 2018.1+.
 
 We are committed to an open and transparent development process, and as such you are welcome to take a look around if you are really curious.
 
-For a more detailed overview of the planned features and philosophy behind SRP, refer to the following Gdoc: [ScriptableRenderPipeline](https://docs.google.com/document/d/1e2jkr_-v5iaZRuHdnMrSv978LuJKYZhsIYnrDkNAuvQ/edit?usp=sharing)
+Detailed documentation is being added here: [Wiki](https://github.com/Unity-Technologies/ScriptableRenderPipeline/wiki)
 
 This feature is currently in preview. Some features may change or be removed before we move to a full release.  
 
