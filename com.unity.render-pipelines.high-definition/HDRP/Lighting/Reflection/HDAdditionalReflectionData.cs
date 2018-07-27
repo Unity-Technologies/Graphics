@@ -142,7 +142,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         internal override void UpdatedInfluenceVolumeShape(Vector3 size, Vector3 offset)
         {
             legacyProbe.size = size;
-            legacyProbe.center = offset;
+            legacyProbe.center = transform.rotation*offset;
         }
     }
 }
