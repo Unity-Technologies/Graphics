@@ -228,6 +228,7 @@ namespace UnityEditor.VFX.UI
             stickyNotes.Clear();
             rootNodes.Clear();
             rootGroupNodeElements.Clear();
+            VFXExpression.ClearCache();
         }
 
         void ConnectController()
