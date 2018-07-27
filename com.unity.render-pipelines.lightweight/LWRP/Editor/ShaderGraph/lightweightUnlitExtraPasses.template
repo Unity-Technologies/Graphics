@@ -28,7 +28,7 @@ ${Defines}
     #include "CoreRP/ShaderLibrary/Color.hlsl"
 
 ${Graph}
-    struct VertexOutput
+    struct GraphVertexOutput
     {
         float2 uv           : TEXCOORD0;
         float4 clipPos      : SV_POSITION;
@@ -40,9 +40,9 @@ ${VertexOutputStruct}
     float4 _ShadowBias;
     float3 _LightDirection;
 
-    VertexOutput ShadowPassVertex(GraphVertexInput v)
+    GraphVertexOutput ShadowPassVertex(GraphVertexInput v)
     {
-        VertexOutput o;
+        GraphVertexOutput o;
         UNITY_SETUP_INSTANCE_ID(v);
 
         // Vertex transformations performed by graph
@@ -80,7 +80,7 @@ ${VertexShaderOutputs}
         return o;
     }
 
-    half4 ShadowPassFragment() : SV_TARGET
+    half4 ShadowPassFragment(GraphVertexOutput IN ${FaceSign}) : SV_TARGET
     {
         // Pixel transformations performed by graph
 ${PixelShader}
@@ -135,7 +135,7 @@ ${Defines}
     #include "CoreRP/ShaderLibrary/Color.hlsl"
 
 ${Graph}
-    struct VertexOutput
+    struct GraphVertexOutput
     {
         float2 uv           : TEXCOORD0;
         float4 clipPos      : SV_POSITION;
@@ -143,9 +143,9 @@ ${Graph}
 ${VertexOutputStruct}
     };
 
-    VertexOutput vert(GraphVertexInput v)
+    GraphVertexOutput vert(GraphVertexInput v)
     {
-        VertexOutput o = (VertexOutput)0;
+        GraphVertexOutput o = (GraphVertexOutput)0;
         UNITY_SETUP_INSTANCE_ID(v);
 
         // Vertex transformations performed by graph
@@ -163,7 +163,7 @@ ${VertexShaderOutputs}
         return o;
     }
 
-    half4 frag() : SV_TARGET
+    half4 frag(GraphVertexOutput IN ${FaceSign}) : SV_TARGET
     {
         // Pixel transformations performed by graph
 ${PixelShader}
