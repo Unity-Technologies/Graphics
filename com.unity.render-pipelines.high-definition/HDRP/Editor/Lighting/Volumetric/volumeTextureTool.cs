@@ -19,7 +19,7 @@ namespace UnityEditor.Experimental.Rendering {
         private static GUIContent tileSizeLabel = new GUIContent("Texture Slice Size", "Dimensions of the created 3D Texture in pixels.  Width, Height and Depth are all the same size");
         private static GUIContent createLabel = new GUIContent("Create 3D Texture");
 
-        [MenuItem("Tools/HDRP Volumetric System/Create Volume Texture")]
+        [MenuItem("Window/Render Pipeline/Create Volume Texture")]
         static void Init()
         {
             VolumeTextureTool window = (VolumeTextureTool)EditorWindow.GetWindow(typeof(VolumeTextureTool));
