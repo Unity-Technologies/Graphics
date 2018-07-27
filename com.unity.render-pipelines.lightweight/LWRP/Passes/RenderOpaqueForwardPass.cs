@@ -4,13 +4,20 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     public class RenderOpaqueForwardPass : LightweightForwardPass
     {
-
         const string k_RenderOpaquesTag = "Render Opaques";
+        public FilterRenderersSettings opaqueFilterSettings { get; private set; }
 
-        public RenderOpaqueForwardPass(LightweightForwardRenderer renderer) : base(renderer)
-        {}
+        public RenderOpaqueForwardPass(Material errorMaterial) : base(errorMaterial)
+        {
+            opaqueFilterSettings = new FilterRenderersSettings(true)
+            {
+                renderQueueRange = RenderQueueRange.opaque,
+            };
+        }
 
-        public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref RenderingData renderingData)
+        public override void Execute(ref ScriptableRenderContext context,
+            ref CullResults cullResults,
+            ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_RenderOpaquesTag);
             using (new ProfilingSample(cmd, k_RenderOpaquesTag))
@@ -30,10 +37,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 Camera camera = renderingData.cameraData.camera;
                 var drawSettings = CreateDrawRendererSettings(camera, SortFlags.CommonOpaque, rendererConfiguration, dynamicBatching);
-                context.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, renderer.opaqueFilterSettings);
+                context.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, opaqueFilterSettings);
 
                 // Render objects that did not match any shader pass with error shader
-                RenderObjectsWithError(ref context, ref cullResults, camera, renderer.opaqueFilterSettings, SortFlags.None);
+                RenderObjectsWithError(ref context, ref cullResults, camera, opaqueFilterSettings, SortFlags.None);
             }
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

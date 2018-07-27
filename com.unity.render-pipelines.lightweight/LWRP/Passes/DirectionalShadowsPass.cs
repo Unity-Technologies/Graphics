@@ -35,7 +35,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         
         private RenderTargetHandle destination { get; set; }
 
-        public DirectionalShadowsPass(LightweightForwardRenderer renderer) : base(renderer)
+        public DirectionalShadowsPass()
         {
             RegisterShaderPassName("ShadowCaster");
 
@@ -66,7 +66,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             this.destination = destination;
         }
         
-        public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref RenderingData renderingData)
+        public override void Execute(ref ScriptableRenderContext context,
+            ref CullResults cullResults,
+            ref RenderingData renderingData)
         {
             if (renderingData.shadowData.renderDirectionalShadows)
             {
@@ -75,7 +77,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
-        public override void Dispose(CommandBuffer cmd)
+        public override void FrameCleanup(CommandBuffer cmd)
         {
             if (m_DirectionalShadowmapTexture)
             {

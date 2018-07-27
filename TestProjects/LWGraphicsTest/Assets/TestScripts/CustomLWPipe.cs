@@ -20,10 +20,10 @@ public class CustomLWPipe : MonoBehaviour, IRendererSetup
         if (m_Initialized)
             return;
 
-        m_SetupForwardRenderingPass = new SetupForwardRenderingPass(renderer);
-        m_CreateLightweightRenderTexturesPass = new CreateLightweightRenderTexturesPass(renderer);
-        m_SetupLightweightConstants = new SetupLightweightConstanstPass(renderer);
-        m_RenderOpaqueForwardPass = new RenderOpaqueForwardPass(renderer);
+        m_SetupForwardRenderingPass = new SetupForwardRenderingPass();
+        m_CreateLightweightRenderTexturesPass = new CreateLightweightRenderTexturesPass();
+        m_SetupLightweightConstants = new SetupLightweightConstanstPass();
+        m_RenderOpaqueForwardPass = new RenderOpaqueForwardPass(renderer.GetMaterial(MaterialHandles.Error));
 
         m_Initialized = true;
     }
@@ -36,7 +36,7 @@ public class CustomLWPipe : MonoBehaviour, IRendererSetup
         renderer.Clear();
 
         renderer.SetupPerObjectLightIndices(ref cullResults, ref renderingData.lightData);
-        RenderTextureDescriptor baseDescriptor = renderer.CreateRTDesc(ref renderingData.cameraData);
+        RenderTextureDescriptor baseDescriptor = LightweightForwardRenderer.CreateRTDesc(ref renderingData.cameraData);
         RenderTextureDescriptor shadowDescriptor = baseDescriptor;
         shadowDescriptor.dimension = TextureDimension.Tex2D;
 
@@ -53,6 +53,7 @@ public class CustomLWPipe : MonoBehaviour, IRendererSetup
         bool dynamicBatching = renderingData.supportsDynamicBatching;
         RendererConfiguration rendererConfiguration = LightweightForwardRenderer.GetRendererConfiguration(renderingData.lightData.totalAdditionalLightsCount);
 
+        m_SetupLightweightConstants.Setup(renderer.maxVisibleLocalLights, renderer.perObjectLightIndices);
         renderer.EnqueuePass(m_SetupLightweightConstants);
 
         m_RenderOpaqueForwardPass.Setup(baseDescriptor, colorHandle, depthHandle, LightweightForwardRenderer.GetCameraClearFlag(camera), camera.backgroundColor, rendererConfiguration, dynamicBatching);
