@@ -232,8 +232,11 @@ namespace UnityEditor.VFX.UI
 
         void ConnectController()
         {
-            if (controller.graph)
-                controller.graph.SetCompilationMode(m_IsRuntimeMode ? VFXCompilationMode.Runtime : VFXCompilationMode.Edition);
+            schedule.Execute(() =>
+            {
+                if (controller.graph)
+                    controller.graph.SetCompilationMode(m_IsRuntimeMode ? VFXCompilationMode.Runtime : VFXCompilationMode.Edition);
+            }).ExecuteLater(1);
 
             m_Controller.RegisterHandler(this);
             m_Controller.useCount++;
