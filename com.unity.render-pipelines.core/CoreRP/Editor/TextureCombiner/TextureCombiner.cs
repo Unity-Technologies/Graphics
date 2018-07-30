@@ -58,7 +58,7 @@ public class TextureCombiner
             return tex;
     }
 
-    public static TextureFormat[] TextureFormatsWithouthAlpha = new TextureFormat[] {
+    private static TextureFormat[] TextureFormatsWithouthAlpha = {
         TextureFormat.ASTC_RGB_10x10 ,
         TextureFormat.ASTC_RGB_12x12 ,
         TextureFormat.ASTC_RGB_4x4 ,
@@ -75,7 +75,9 @@ public class TextureCombiner
         TextureFormat.EAC_RG_SIGNED ,
         TextureFormat.ETC2_RGB ,
         TextureFormat.ETC_RGB4 ,
+        #if !UNITY_2018_3_OR_NEWER
         TextureFormat.ETC_RGB4_3DS ,
+        #endif
         TextureFormat.ETC_RGB4Crunched ,
         TextureFormat.PVRTC_RGB2 ,
         TextureFormat.PVRTC_RGB4 ,
@@ -121,7 +123,7 @@ public class TextureCombiner
     private int m_aChanel;
 
     // Chanels remaping
-    private Vector4[] m_remapings = new Vector4[] {
+    private Vector4[] m_remapings = {
         new Vector4(0f, 1f, 0f, 0f),
         new Vector4(0f, 1f, 0f, 0f),
         new Vector4(0f, 1f, 0f, 0f),

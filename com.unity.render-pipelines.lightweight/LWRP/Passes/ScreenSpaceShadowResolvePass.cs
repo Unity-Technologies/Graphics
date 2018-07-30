@@ -6,15 +6,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     public class ScreenSpaceShadowResolvePass : ScriptableRenderPass
     {
         RenderTextureFormat m_ColorFormat;
-        Material m_ScreenSpaceShadowsMaterial;
+        
+        private Material screenSpaceShadowsMaterial { get; set; }
 
-        public ScreenSpaceShadowResolvePass(LightweightForwardRenderer renderer) : base(renderer)
+        public ScreenSpaceShadowResolvePass(Material screenSpaceShadowsMaterial)
         {
             m_ColorFormat = SystemInfo.SupportsRenderTextureFormat(RenderTextureFormat.R8)
                 ? RenderTextureFormat.R8
                 : RenderTextureFormat.ARGB32;
 
-            m_ScreenSpaceShadowsMaterial = renderer.GetMaterial(MaterialHandles.ScrenSpaceShadow);
+            this.screenSpaceShadowsMaterial = screenSpaceShadowsMaterial;
         }
 
         private RenderTargetHandle colorAttachmentHandle { get; set; }
@@ -31,7 +32,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             descriptor = baseDescriptor;
         }
 
-        public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref RenderingData renderingData)
+        public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults,
+            ref RenderingData renderingData)
         {
             if (renderingData.shadowData.renderedDirectionalShadowQuality == LightShadows.None)
                 return;
@@ -49,7 +51,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             RenderTargetIdentifier screenSpaceOcclusionTexture = colorAttachmentHandle.Identifier();
             SetRenderTarget(cmd, screenSpaceOcclusionTexture, RenderBufferLoadAction.DontCare, RenderBufferStoreAction.Store,
                 ClearFlag.Color | ClearFlag.Depth, Color.white, descriptor.dimension);
-            cmd.Blit(screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, m_ScreenSpaceShadowsMaterial);
+            cmd.Blit(screenSpaceOcclusionTexture, screenSpaceOcclusionTexture, screenSpaceShadowsMaterial);
 
             if (renderingData.cameraData.isStereoEnabled)
             {
@@ -63,7 +65,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CommandBufferPool.Release(cmd);
         }
 
-        public override void Dispose(CommandBuffer cmd)
+        public override void FrameCleanup(CommandBuffer cmd)
         {
             if (colorAttachmentHandle != RenderTargetHandle.CameraTarget)
             {

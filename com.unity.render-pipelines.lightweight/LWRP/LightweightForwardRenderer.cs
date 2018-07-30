@@ -46,17 +46,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public ComputeBuffer perObjectLightIndices { get; private set; }
 
-        public FilterRenderersSettings opaqueFilterSettings { get; private set; }
-        public FilterRenderersSettings transparentFilterSettings { get; private set; }
 
         List<ScriptableRenderPass> m_ActiveRenderPassQueue = new List<ScriptableRenderPass>();
 
-        Material[] m_Materials;
-
+        readonly Material[] m_Materials;
         
         public LightweightForwardRenderer(LightweightPipelineAsset pipelineAsset)
         {
-            m_Materials = new Material[(int)MaterialHandles.Count]
+            this.pipelineAsset = pipelineAsset;
+            
+            m_Materials = new[]
             {
                 CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader"),
                 CoreUtils.CreateEngineMaterial(pipelineAsset.copyDepthShader),
@@ -66,17 +65,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             };
 
             postProcessRenderContext = new PostProcessRenderContext();
-
-            opaqueFilterSettings = new FilterRenderersSettings(true)
-            {
-                renderQueueRange = RenderQueueRange.opaque,
-            };
-
-            transparentFilterSettings = new FilterRenderersSettings(true)
-            {
-                renderQueueRange = RenderQueueRange.transparent,
-            };
         }
+
+        public LightweightPipelineAsset pipelineAsset { get; private set; }
 
         public void Dispose()
         {
@@ -90,7 +81,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 CoreUtils.Destroy(m_Materials[i]);
         }
 
-        public RenderTextureDescriptor CreateRTDesc(ref CameraData cameraData, float scaler = 1.0f)
+        public static RenderTextureDescriptor CreateRTDesc(ref CameraData cameraData, float scaler = 1.0f)
         {
             Camera camera = cameraData.camera;
             RenderTextureDescriptor desc;
@@ -177,7 +168,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CommandBuffer cmd = CommandBufferPool.Get("Release Resources");
 
             for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
-                m_ActiveRenderPassQueue[i].Dispose(cmd);
+                m_ActiveRenderPassQueue[i].FrameCleanup(cmd);
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);

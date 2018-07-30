@@ -4,14 +4,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     public class FinalBlitPass : ScriptableRenderPass
     {
-        Material m_BlitMaterial;
-
         private RenderTargetHandle colorAttachmentHandle { get; set; }
         private RenderTextureDescriptor descriptor { get; set; }
+        private Material blitMaterial { get; set; }
 
-        public FinalBlitPass(LightweightForwardRenderer renderer) : base(renderer)
+        public FinalBlitPass(Material blitMaterial)
         {
-            m_BlitMaterial = renderer.GetMaterial(MaterialHandles.Blit);
+            this.blitMaterial = blitMaterial;
         }
 
         public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle colorAttachmentHandle)
@@ -20,9 +19,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             this.descriptor = baseDescriptor;
         }
 
-        public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref RenderingData renderingData)
+        public override void Execute(ref ScriptableRenderContext context,
+            ref CullResults cullResults,
+            ref RenderingData renderingData)
         {
-            Material material = renderingData.cameraData.isStereoEnabled ? null : m_BlitMaterial;
+            Material material = renderingData.cameraData.isStereoEnabled ? null : blitMaterial;
             RenderTargetIdentifier sourceRT = colorAttachmentHandle.Identifier();
 
             CommandBuffer cmd = CommandBufferPool.Get("Final Blit Pass");
