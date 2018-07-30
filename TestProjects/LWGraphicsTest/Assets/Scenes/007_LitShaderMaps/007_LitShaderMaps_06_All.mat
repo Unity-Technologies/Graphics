@@ -4,11 +4,12 @@
 Material:
   serializedVersion: 6
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_Name: 007_LitShaderMaps_06_All
   m_Shader: {fileID: 4800000, guid: 8d2bb70cbf9db8d4da26e15b26e74248, type: 3}
-  m_ShaderKeywords: _EMISSION _GLOSSINESS_FROM_BASE_ALPHA _NORMALMAP _SPECGLOSSMAP
+  m_ShaderKeywords: _EMISSION _NORMALMAP _SPECGLOSSMAP
   m_LightmapFlags: 2
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -40,11 +41,11 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _EmissionMap:
         m_Texture: {fileID: 2800000, guid: 177c311e0971440e5bc66ab1cc327a72, type: 3}
-        m_Scale: {x: 1, y: 1}
+        m_Scale: {x: 2, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
         m_Texture: {fileID: 2800000, guid: f1448a581f9924ed3bb81538dc4589bb, type: 3}
-        m_Scale: {x: 3, y: 2}
+        m_Scale: {x: 2, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
         m_Texture: {fileID: 0}
@@ -63,13 +64,16 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AlphaClip: 0
+    - _Blend: 0
     - _BumpScale: 1
+    - _Cull: 2
     - _Cutoff: 0.5
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
     - _GlossMapScale: 1
     - _Glossiness: 0.5
-    - _GlossinessSource: 0
+    - _GlossinessSource: 1
     - _GlossyReflections: 1
     - _Metallic: 0
     - _Mode: 0
@@ -81,10 +85,11 @@ Material:
     - _SpecSource: 0
     - _SpecularHighlights: 1
     - _SrcBlend: 1
+    - _Surface: 0
     - _UVSec: 0
     - _ZWrite: 1
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _EmissionColor: {r: 0.20663926, g: 0.24034719, b: 0.28676468, a: 1}
+    - _EmissionColor: {r: 0.07386969, g: 0.11979348, b: 0.18867922, a: 1}
     - _ReflectColor: {r: 1, g: 1, b: 1, a: 1}
     - _SpecColor: {r: 1, g: 1, b: 1, a: 1}

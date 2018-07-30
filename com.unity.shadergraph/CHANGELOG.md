@@ -1,3 +1,5 @@
+## [3.2.0]
+
 ## [3.1.0]
 
 ### HD Render Pipeline support
@@ -22,7 +24,7 @@ The settings for master nodes now live in a small window that you can toggle on 
 
 ![](.data/editable_property_references.gif)
 
-You can now edit the Reference name for a property. To do so, select the property and type a new name next to Reference. If you want to reset to the default name, right-click Reference, and select Reset reference. 
+You can now edit the Reference name for a property. To do so, select the property and type a new name next to Reference. If you want to reset to the default name, right-click Reference, and select Reset reference.
 
 In the expanded property window, you can now also toggle if the property is exposed.
 
@@ -77,7 +79,7 @@ This change expands Unity's support for Texture types via two new property types
 
 ![](.data/texture_2d_lod_node.png)
 
-This adds a new node for LOD functionality on a Texture 2D Sample. Sample Texture 2D LOD uses the exact same input and output slots as Sample Texture 2D, but also includes an input for level of detail adjustments via a Vector1 slot. 
+This adds a new node for LOD functionality on a Texture 2D Sample. Sample Texture 2D LOD uses the exact same input and output slots as Sample Texture 2D, but also includes an input for level of detail adjustments via a Vector1 slot.
 
 ### Texel Size Node
 
@@ -93,6 +95,11 @@ With this node, you can get the special texture properties of a Texture 2D Asset
 
 You can now see the generated code for any specific node. To do so, right-click the node, and select Show Generated Code. The code snippet will now open in the code editor that you have linked to Unity.
 
+### Rotate About Axis node
+
+![](.data/rotate_about_axis_node.png)
+
+With the Rotate About Axis node, you can rotate a 3D vector space around an axis. For the rotation, you can specify an amount of degrees or a radian value.
 
 ### Bug fixes and minor changes
 
@@ -119,3 +126,7 @@ You can now see the generated code for any specific node. To do so, right-click 
 - Texture 2D Array and Texture 3D nodes can no longer be used in the vertex shader.
 - Shader graphs using alpha clip now generate correct depth and shadow passes.
 - `Normal Create` node has been renamed to `Normal From Texture`.
+- `Blend` node now supports Overwrite mode.
+- `Simple Noise` node no longer has a loop.
+- The `Polygon` node now calculates radius based on apothem.
+- `Normal Strength` node now calculates Z value more accurately.
