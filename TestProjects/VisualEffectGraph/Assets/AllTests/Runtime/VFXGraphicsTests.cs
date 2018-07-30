@@ -2,20 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Collections;
-using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.Experimental.VFX;
-using UnityEditor.VFX;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.Rendering;
-using Object = UnityEngine.Object;
 using System.IO;
 #if UNITY_EDITOR
-using NUnit.Framework;
+using UnityEditor;
+using UnityEditor.VFX;
 #endif
+using NUnit.Framework;
+using Object = UnityEngine.Object;
 
 namespace UnityEngine.VFX.Test
 {
@@ -54,7 +52,7 @@ namespace UnityEngine.VFX.Test
         [UseGraphicsTestCases]
         public IEnumerator Run(GraphicsTestCase testCase)
         {
-            SceneManager.LoadScene(testCase.ScenePath);
+            SceneManagement.SceneManager.LoadScene(testCase.ScenePath);
 
             // Always wait one frame for scene load
             yield return null;
