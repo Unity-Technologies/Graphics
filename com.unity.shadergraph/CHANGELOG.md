@@ -1,3 +1,5 @@
+## [3.2.0]
+
 ## [3.1.0]
 
 ### HD Render Pipeline support
