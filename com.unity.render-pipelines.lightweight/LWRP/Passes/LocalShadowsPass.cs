@@ -157,7 +157,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     {
                         // This way of computing the shadow slice only work for spots and with most 4 shadow casting lights per pass
                         // Change this when point lights are supported.
-                        Debug.Assert(localLightsCount <= 4 && shadowLight.lightType == LightType.Spot);
+                        Debug.Assert(shadowCastingLightsCount <= 4 && shadowLight.lightType == LightType.Spot);
 
                         // TODO: We need to pass bias and scale list to shader to be able to support multiple
                         // shadow casting local lights.

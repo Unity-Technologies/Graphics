@@ -42,7 +42,7 @@ namespace UnityEditor.TestTools.Graphics
             var allImages = CollectReferenceImagePathsFor(QualitySettings.activeColorSpace, Application.platform,
                 SystemInfo.graphicsDeviceType);
 
-            foreach (var scenePath in EditorBuildSettings.scenes.Select(s => s.path))
+            foreach (var scenePath in EditorBuildSettings.scenes.Where(s => s.enabled == true).Select(s => s.path).ToArray())
             {
                 Texture2D referenceImage = null;
 
