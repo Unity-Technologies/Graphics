@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [3.1.0-preview]
 
+### Fixed
+- Fixed assert errors caused by multi spot lights
+- Fixed LWRP-DirectionalShadowConstantBuffer params setting
+
 ## [3.0.0-preview]
 ### Added
 - Added camera additional data component to control shadows, depth and color texture.
