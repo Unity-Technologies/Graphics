@@ -17,7 +17,7 @@ namespace UnityEditor.VFX
         public override void OnEnable()
         {
             uvMode = UVMode.Simple;
-            blendMode = BlendMode.Masked;
+            //blendMode = BlendMode.Masked;
             base.OnEnable();
         }
 
@@ -82,7 +82,7 @@ namespace UnityEditor.VFX
                 foreach (var setting in base.filteredOutSettings)
                     yield return setting;
 
-                yield return "blendMode";
+                //yield return "blendMode";
                 yield return "uvMode";
             }
         }

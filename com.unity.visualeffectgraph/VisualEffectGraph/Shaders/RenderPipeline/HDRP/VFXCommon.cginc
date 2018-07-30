@@ -1,5 +1,6 @@
 #include "CoreRP/ShaderLibrary/common.hlsl"
 #include "HDRP/ShaderVariables.hlsl"
+#include "HDRP/ShaderPass/ShaderPass.cs.hlsl"
 
 float4 VFXTransformPositionWorldToClip(float3 posWS)
 {

@@ -1,6 +1,6 @@
 Pass
 {		
-	Tags { "LightMode"="GBuffer" }
+	Tags { "LightMode"="Forward" }
 	
 	Stencil
 	{
@@ -14,6 +14,9 @@ Pass
 	#pragma target 4.5
 	
 	#define UNITY_MATERIAL_LIT
+	#define LIGHTLOOP_TILE_PASS
+	#pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
+	#pragma enable_d3d11_debug_symbols
 	
 	${VFXInclude("Shaders/RenderPipeline/HDRP/VFXLitVaryings.template")}	
 	
@@ -39,6 +42,8 @@ Pass
 		float4 color : SV_Target0;
 	};
 
+${VFXHDRPLitVaryingsMacros}
+
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
 #define VFX_VARYING_UV uv
@@ -48,17 +53,16 @@ Pass
 #define VFX_VARYING_TANGENT tangent
 #endif
 
-				
 ${VFXBegin:VFXVertexAdditionalProcess}
 ${VFXHDRPLitFillVaryings}
 ${VFXEnd}
 
-	${VFXInclude("Shaders/ParticleMeshes/Pass.template")}	
-	#define SHADERPASS SHADERPASS_GBUFFER	
+	${VFXInclude("Shaders/ParticleMeshes/Pass.template")}
+	#define SHADERPASS SHADERPASS_FORWARD
 	${VFXInclude("Shaders/RenderPipeline/HDRP/VFXLit.template")}	
 		
 	#pragma fragment frag
-	void frag(ps_input i, OUTPUT_GBUFFER(outGBuffer)
+	void frag(ps_input i, out float4 outColor : SV_Target0
 #if USE_DOUBLE_SIDED
 	, bool frontFace : SV_IsFrontFace
 #endif
@@ -81,11 +85,21 @@ ${VFXEnd}
 		normalWS = normalize(lerp(normalWS,mul(n,tbn),i.materialProperties.z));
 		#endif
 
+		float3 diffuseLighting;
+        float3 specularLighting;
+		
 		SurfaceData surfaceData;
 		BuiltinData builtinData;
-		VFXGetHDRPLitData(surfaceData,builtinData,i,normalWS,uvData);
+		BSDFData bsdfData;
+		PreLightData preLightData;
+		uint2 tileIndex = uint2(i.pos.xy) / GetTileSize();
+		VFXGetHDRPLitData(surfaceData,builtinData,bsdfData,preLightData,i,normalWS,uvData,tileIndex);
 		
-		ENCODE_INTO_GBUFFER(surfaceData, builtinData, i.pos, outGBuffer);
+		PositionInputs posInput = GetPositionInput(i.pos.xy, _ScreenSize.zw, i.pos.z, i.pos.w, i.posRWS, tileIndex);
+		LightLoop(GetWorldSpaceNormalizeViewDir(i.posRWS), posInput, preLightData, bsdfData, builtinData, LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT, diffuseLighting, specularLighting);
+
+		outColor = ApplyBlendMode(diffuseLighting, specularLighting, builtinData.opacity);
+        outColor = EvaluateAtmosphericScattering(posInput, outColor);
 	}
 	ENDHLSL
 }

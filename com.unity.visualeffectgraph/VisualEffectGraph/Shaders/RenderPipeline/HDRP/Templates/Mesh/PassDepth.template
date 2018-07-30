@@ -1,0 +1,107 @@
+// Shadow pass
+Pass
+{		
+	Tags { "LightMode"="DepthOnly" }
+
+	ZWrite On
+	Blend Off
+	
+	HLSLPROGRAM
+	#pragma target 4.5
+	#define UNITY_MATERIAL_LIT
+	#pragma multi_compile _ WRITE_NORMAL_BUFFER
+	
+	struct ps_input
+	{		
+		float4 pos : SV_POSITION;
+		float2 uv : TEXCOORD0;	
+		//#if USE_ALPHA_TEST || VFX_USE_ALPHA_CURRENT
+		// x: alpha threshold
+		// y: alpha
+		// z: smoothness
+		// w: normalScale
+		nointerpolation float4 builtInInterpolants : TEXCOORD1;
+		//#endif
+		#ifdef WRITE_NORMAL_BUFFER
+		float3 normal : TEXCOORD2;
+		#if HDRP_USE_NORMAL_MAP
+		float4 tangent : TEXCOORD3;
+		#endif
+		#endif
+	};
+
+#define VFX_VARYING_PS_INPUTS ps_input
+#define VFX_VARYING_POSCS pos
+#define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x
+#define VFX_VARYING_UV uv
+#ifdef WRITE_NORMAL_BUFFER
+#define VFX_VARYING_NORMAL normal
+#if HDRP_USE_NORMAL_MAP
+#define VFX_VARYING_TANGENT tangent
+#endif
+#else
+#define VFX_VARYING_ALPHA builtInInterpolants.y
+#endif
+#define VFX_VARYING_SMOOTHNESS builtInInterpolants.z
+#if HDRP_USE_NORMAL_MAP
+#define VFX_VARYING_NORMALSCALE builtInInterpolants.w
+#endif
+		
+${VFXBegin:VFXVertexAdditionalProcess}
+${VFXHDRPLitFillVaryings}
+${VFXEnd}
+		
+	${VFXInclude("Shaders/ParticleMeshes/Pass.template")}	
+	#define SHADERPASS SHADERPASS_DEPTH_ONLY
+	${VFXInclude("Shaders/RenderPipeline/HDRP/VFXLit.template")}
+			
+	#pragma fragment frag
+	void frag(ps_input i
+#ifdef WRITE_NORMAL_BUFFER
+	, OUTPUT_NORMALBUFFER(outNormalBuffer)
+#if USE_DOUBLE_SIDED
+	, bool frontFace : SV_IsFrontFace
+#endif
+#else
+	, out float4 outColor : SV_Target
+#endif
+	)
+	{
+		float alpha = VFXGetFragmentColor(i).a;
+#if HDRP_USE_BASE_COLOR_MAP
+		alpha *= VFXGetTextureColor(VFX_SAMPLER(baseColorMap),i).a;
+#endif	
+		VFXClipFragmentColor(alpha,i);
+		
+#ifdef WRITE_NORMAL_BUFFER
+		#if USE_DOUBLE_SIDED
+		const float faceMul = frontFace ? 1.0f : -1.0f;
+		#else
+		const float faceMul = 1.0f;
+#endif
+		
+		float3 normalWS = normalize(i.normal * faceMul);
+		const VFXUVData uvData = GetUVData(i);
+		
+#if HDRP_USE_NORMAL_MAP
+		float3 tangentWS = normalize(i.tangent.xyz);
+		float3 bitangentWS = cross(normalWS,tangentWS) * (i.tangent.w * faceMul);
+		float3 n = SampleNormalMap(VFX_SAMPLER(normalMap),uvData);
+		float3x3 tbn = float3x3(tangentWS,bitangentWS,normalWS);
+		normalWS = normalize(lerp(normalWS,mul(n,tbn),i.VFX_VARYING_NORMALSCALE));
+#endif
+
+		SurfaceData surfaceData;
+		BuiltinData builtinData;
+		VFXGetHDRPLitData(surfaceData,builtinData,i,normalWS,uvData);
+
+		ENCODE_INTO_NORMALBUFFER(surfaceData, i.pos, outNormalBuffer);
+#elif defined(SCENESELECTIONPASS)
+		// We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
+		outColor = float4(_ObjectId, _PassValue, 1.0, 1.0);
+#else
+		outColor = (float4)0;
+#endif
+	}
+	ENDHLSL
+}
