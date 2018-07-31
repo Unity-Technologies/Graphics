@@ -18,12 +18,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         void OnSceneGUI()
         {
             var s = m_UIState;
-            var p = m_SerializedHdReflectionProbe;
+            var p = m_SerializedHDProbe as SerializedHDReflectionProbe;
             var o = this;
 
             BakeRealtimeProbeIfPositionChanged(s, p, o);
 
-            HDReflectionProbeUI.DoShortcutKey(p, o);
+            HDReflectionProbeUI.DoShortcutKey(o);
 
             if (!s.sceneViewEditing)
                 return;

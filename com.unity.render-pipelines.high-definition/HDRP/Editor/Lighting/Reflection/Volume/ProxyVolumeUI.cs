@@ -85,7 +85,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var mat = Gizmos.matrix;
             Color col = Gizmos.color;
 
-            Gizmos.matrix = t.localToWorldMatrix;
+            Gizmos.matrix = Matrix4x4.TRS(t.position, t.rotation, Vector3.one);
             Gizmos.color = k_GizmoThemeColorProjection;
 
             Gizmos.DrawWireSphere(Vector3.zero, d.sphereRadius);
@@ -99,7 +99,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var mat = Gizmos.matrix;
             Color col = Gizmos.color;
 
-            Gizmos.matrix = t.localToWorldMatrix;
+            Gizmos.matrix = Matrix4x4.TRS(t.position, t.rotation, Vector3.one);
             Gizmos.color = k_GizmoThemeColorProjection;
 
             Gizmos.DrawWireCube(Vector3.zero, d.boxSize);

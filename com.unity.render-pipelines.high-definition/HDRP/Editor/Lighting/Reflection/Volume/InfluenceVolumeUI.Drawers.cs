@@ -95,14 +95,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PropertyField(d.boxSize, _.GetContent("Box Size"));
-            PlanarReflectionProbeUI.Drawer_ToolBarButton(0, o, GUILayout.Width(28f), GUILayout.MinHeight(22f));
+            HDProbeUI.Drawer_InfluenceToolBarButton(0, o, GUILayout.Width(28f), GUILayout.MinHeight(22f));
             EditorGUILayout.EndHorizontal();
 
             if (drawOffset)
             {
                 EditorGUILayout.BeginHorizontal();
                 EditorGUILayout.PropertyField(d.offset, _.GetContent("Offset"));
-                HDReflectionProbeUI.Drawer_ToolBarButton(3, o, GUILayout.Width(28f), GUILayout.MinHeight(22f));
+                HDProbeUI.Drawer_CaptureToolBarButton(0, o, GUILayout.Width(28f), GUILayout.MinHeight(22f));
                 EditorGUILayout.EndHorizontal();
             }
 
@@ -113,7 +113,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 maxFadeDistance,
                 CoreEditorUtils.GetContent("Blend Distance|Area around the probe where it is blended with other probes. Only used in deferred probes.")
                 );
-            PlanarReflectionProbeUI.Drawer_ToolBarButton(1, o, GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight((advanced ? 3 : 1) * (EditorGUIUtility.singleLineHeight + 3)));
+            HDProbeUI.Drawer_InfluenceToolBarButton(1, o, GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight((advanced ? 3 : 1) * (EditorGUIUtility.singleLineHeight + 3)));
             EditorGUILayout.EndHorizontal();
 
             if (drawNormal)
@@ -125,7 +125,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     maxFadeDistance,
                     CoreEditorUtils.GetContent("Blend Normal Distance|Area around the probe where the normals influence the probe. Only used in deferred probes.")
                     );
-                PlanarReflectionProbeUI.Drawer_ToolBarButton(2, o, GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight((advanced ? 3 : 1) * (EditorGUIUtility.singleLineHeight + 3)));
+                HDProbeUI.Drawer_InfluenceToolBarButton(2, o, GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight((advanced ? 3 : 1) * (EditorGUIUtility.singleLineHeight + 3)));
                 EditorGUILayout.EndHorizontal();
             }
 
@@ -191,14 +191,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.PropertyField(d.sphereRadius, _.GetContent("Radius"));
-            PlanarReflectionProbeUI.Drawer_ToolBarButton(0, o, GUILayout.Width(28f), GUILayout.MinHeight(22f));
+            HDProbeUI.Drawer_InfluenceToolBarButton(0, o, GUILayout.Width(28f), GUILayout.MinHeight(22f));
             EditorGUILayout.EndHorizontal();
 
             if(drawOffset)
             {
                 EditorGUILayout.BeginHorizontal();
                 EditorGUILayout.PropertyField(d.offset, _.GetContent("Offset"));
-                HDReflectionProbeUI.Drawer_ToolBarButton(3, o, GUILayout.Width(28f), GUILayout.MinHeight(22f));
+                HDReflectionProbeUI.Drawer_InfluenceToolBarButton(3, o, GUILayout.Width(28f), GUILayout.MinHeight(22f));
                 EditorGUILayout.EndHorizontal();
             }
 
@@ -212,7 +212,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 d.sphereBlendDistance.floatValue = Mathf.Clamp(d.sphereBlendDistance.floatValue, 0, maxBlendDistance);
             }
-            PlanarReflectionProbeUI.Drawer_ToolBarButton(1, o, GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight + 3));
+            HDProbeUI.Drawer_InfluenceToolBarButton(1, o, GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight + 3));
             EditorGUILayout.EndHorizontal();
 
             if (drawNormal)
@@ -224,7 +224,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 {
                     d.sphereBlendNormalDistance.floatValue = Mathf.Clamp(d.sphereBlendNormalDistance.floatValue, 0, maxBlendDistance);
                 }
-                PlanarReflectionProbeUI.Drawer_ToolBarButton(2, o, GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight + 3));
+                HDProbeUI.Drawer_InfluenceToolBarButton(2, o, GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight + 3));
                 EditorGUILayout.EndHorizontal();
             }
         }

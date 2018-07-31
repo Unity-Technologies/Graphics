@@ -42,44 +42,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             refreshMode = serializedObject.Find((HDProbe p) => p.refreshMode);
         }
 
-        //void InstantiateProxyVolume(SerializedObject serializedObject)
-        //{
-        //    var objs = new List<Object>();
-        //    for (var i = 0; i < serializedObject.targetObjects.Length; i++)
-        //    {
-        //        var p = ((HDProbe)serializedObject.targetObjects[i]).proxyVolume;
-        //        if (p != null)
-        //            objs.Add(p);
-        //    }
-
-        //    proxyVolumeComponent = objs.Count > 0
-        //        ? new SerializedReflectionProxyVolumeComponent(new SerializedObject(objs.ToArray()))
-        //        : null;
-        //}
-
         internal virtual void Update()
         {
             serializedObject.Update();
             //InfluenceVolume does not have Update. Add it here if it have in the future.
-
-            ////Force SerializedReflectionProxyVolumeComponent to refresh
-            //var updateProxyVolume = proxyVolumeComponent != null
-            //    && serializedObject.targetObjects.Length != proxyVolumeComponent.serializedObject.targetObjects.Length;
-            //if (!updateProxyVolume && proxyVolumeComponent != null)
-            //{
-            //    var proxyVolumeTargets = proxyVolumeComponent.serializedObject.targetObjects;
-            //    for (var i = 0; i < serializedObject.targetObjects.Length; i++)
-            //    {
-            //        if (proxyVolumeTargets[i] != ((PlanarReflectionProbe)serializedObject.targetObjects[i]).proxyVolume)
-            //        {
-            //            updateProxyVolume = true;
-            //            break;
-            //        }
-            //    }
-            //}
-
-            //if (updateProxyVolume)
-            //    InstantiateProxyVolume(serializedObject);
         }
 
         internal virtual void Apply()
