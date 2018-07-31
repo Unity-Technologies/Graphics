@@ -620,7 +620,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (m_CanHaveBlocks)
                 {
-                    evt.menu.AppendAction("Create Block", OnCreateBlock, e => DropdownMenu.MenuAction.StatusFlags.Normal);
+                    evt.menu.InsertAction(0, "Create Block", OnCreateBlock, e => DropdownMenu.MenuAction.StatusFlags.Normal);
                     evt.menu.AppendSeparator();
                 }
             }
