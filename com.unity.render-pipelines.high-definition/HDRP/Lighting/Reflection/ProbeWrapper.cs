@@ -166,7 +166,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get
             {
                 return additional.proxyVolume != null
-                    ? additional.proxyVolume.transform.localToWorldMatrix
+                    ? Matrix4x4.TRS(additional.proxyVolume.transform.position, additional.proxyVolume.transform.rotation, Vector3.one)
                     : influenceToWorld;
             }
         }
