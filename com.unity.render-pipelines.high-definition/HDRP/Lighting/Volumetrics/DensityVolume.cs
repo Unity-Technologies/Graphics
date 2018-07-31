@@ -37,6 +37,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 float animationTime = animate ? time : 0.0f;
                 volumeScrollingAmount = (textureScrollingSpeed * animationTime);
+                // Switch from right-handed to left-handed coordinate system.
+                volumeScrollingAmount.x = -volumeScrollingAmount.x;
+                volumeScrollingAmount.y = -volumeScrollingAmount.y;
             }
         }
 
