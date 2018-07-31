@@ -5,13 +5,13 @@ using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    class ClothGUI : BaseLitGUI
+    class FabricGUI : BaseLitGUI
     {
         protected static class Styles
         {
             public static string InputsText = "Inputs";
 
-            public static GUIContent clothTypeText = new GUIContent("Cloth Type", "");
+            public static GUIContent fabricTypeText = new GUIContent("Fabric Type", "");
 
             public static GUIContent baseColorText = new GUIContent("Base Color + Opacity", "Albedo (RGB) and Opacity (A)");
 
@@ -57,7 +57,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent specularOcclusionWarning = new GUIContent("Require a cosine weighted bent normal and ambient occlusion maps");
         }
 
-        public enum ClothType
+        public enum FabricType
         {
             Silk,
             CottonWool,
@@ -109,8 +109,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected MaterialProperty fuzzTint = null;
         protected const string kFuzzTint = "_FuzzTint";
-        protected MaterialProperty clothType = null;
-        protected const string kClothType = "_ClothType";
+        protected MaterialProperty fabricType = null;
+        protected const string kFabricType = "_FabricType";
 
         protected MaterialProperty diffusionProfileID = null;
         protected const string kDiffusionProfileID = "_DiffusionProfile";
@@ -179,7 +179,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             bentNormalMap = FindProperty(kBentNormalMap, props);
 
             fuzzTint = FindProperty(kFuzzTint, props);
-            clothType = FindProperty(kClothType, props);           
+            fabricType = FindProperty(kFabricType, props);           
 
             // Sub surface
             diffusionProfileID = FindProperty(kDiffusionProfileID, props);
@@ -301,9 +301,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override void MaterialPropertiesGUI(Material material)
         {
-            GUILayout.Label("Cloth Options", EditorStyles.boldLabel);
+            GUILayout.Label("Fabric Options", EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
-            m_MaterialEditor.ShaderProperty(clothType, Styles.clothTypeText);
+            m_MaterialEditor.ShaderProperty(fabricType, Styles.fabricTypeText);
             EditorGUI.indentLevel--;
             m_MaterialEditor.ShaderProperty(fuzzTint, Styles.fuzzTintText);
 
@@ -399,7 +399,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             EditorGUI.indentLevel--;
 
-            m_MaterialEditor.ShaderProperty(enableSpecularOcclusion, Styles.enableSpecularOcclusionText);
+            if (enableSpecularOcclusion != null)
+            {
+                m_MaterialEditor.ShaderProperty(enableSpecularOcclusion, Styles.enableSpecularOcclusionText);
+            }            
         }
 
         protected override void VertexAnimationPropertiesGUI()
@@ -452,8 +455,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_SUBSURFACE_SCATTERING", material.GetFloat(kEnableSubsurfaceScattering) > 0.0f);
             CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_TRANSMISSION", material.GetFloat(kEnableTransmission) > 0.0f);
-            ClothType clothType = (ClothType)material.GetFloat(kClothType);
-            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_ANISOTROPY", clothType == ClothType.Silk);
+            FabricType fabricType = (FabricType)material.GetFloat(kFabricType);
+            CoreUtils.SetKeyword(material, "_MATERIAL_FEATURE_ANISOTROPY", fabricType == FabricType.Silk);
         }
     }
 } // namespace UnityEditor

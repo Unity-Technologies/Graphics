@@ -54,6 +54,7 @@ float _NormalScale;
 
 float4 _DetailMap_ST;
 float _DetailFuzz1;
+float _DetailAOScale;
 float _DetailNormalScale;
 float _DetailSmoothnessScale;
 
