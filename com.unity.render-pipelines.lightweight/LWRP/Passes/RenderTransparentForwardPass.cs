@@ -6,10 +6,20 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     {
         const string k_RenderTransparentsTag = "Render Transparents";
 
-        public RenderTransparentForwardPass(LightweightForwardRenderer renderer) : base(renderer)
-        {}
+        private FilterRenderersSettings transparentFilterSettings { get; set; }
 
-        public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref RenderingData renderingData)
+        public RenderTransparentForwardPass(Material errorMaterial) : base(errorMaterial)
+        {
+            transparentFilterSettings = new FilterRenderersSettings(true)
+            {
+                renderQueueRange = RenderQueueRange.transparent,
+            };
+
+        }
+
+        public override void Execute(ref ScriptableRenderContext context,
+            ref CullResults cullResults,
+            ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get(k_RenderTransparentsTag);
             using (new ProfilingSample(cmd, k_RenderTransparentsTag))
@@ -20,10 +30,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 Camera camera = renderingData.cameraData.camera;
                 var drawSettings = CreateDrawRendererSettings(camera, SortFlags.CommonTransparent, rendererConfiguration, dynamicBatching);
-                context.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, renderer.transparentFilterSettings);
+                context.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, transparentFilterSettings);
 
                 // Render objects that did not match any shader pass with error shader
-                RenderObjectsWithError(ref context, ref cullResults, camera, renderer.transparentFilterSettings, SortFlags.None);
+                RenderObjectsWithError(ref context, ref cullResults, camera, transparentFilterSettings, SortFlags.None);
             }
 
             context.ExecuteCommandBuffer(cmd);

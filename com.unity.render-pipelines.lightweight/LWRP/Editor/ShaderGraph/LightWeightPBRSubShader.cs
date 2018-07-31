@@ -13,7 +13,6 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
     [FormerName("UnityEditor.ShaderGraph.LightWeightPBRSubShader")]
     public class LightWeightPBRSubShader : IPBRSubShader
     {
-        static NeededCoordinateSpace m_VertexCoordinateSpace = NeededCoordinateSpace.Object;
         static NeededCoordinateSpace m_PixelCoordinateSpace = NeededCoordinateSpace.World;
 
         struct Pass
