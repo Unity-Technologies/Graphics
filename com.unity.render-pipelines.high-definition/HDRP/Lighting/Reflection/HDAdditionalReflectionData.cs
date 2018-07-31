@@ -22,19 +22,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_Version;
 
         ReflectionProbe m_LegacyProbe;
-        ReflectionProbe legacyProbe
+        /// <summary>Get the sibling component ReflectionProbe</summary>
+        public ReflectionProbe reflectionProbe
         {
             get
             {
-                if (m_LegacyProbe == null || m_LegacyProbe.Equals(null))
+                if(m_LegacyProbe == null || m_LegacyProbe.Equals(null))
                 {
                     m_LegacyProbe = GetComponent<ReflectionProbe>();
-                    return m_LegacyProbe;
                 }
-                else
-                {
-                    return m_LegacyProbe;
-                }
+                return m_LegacyProbe;
             }
         }
 
@@ -108,8 +105,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void MigrateToHDProbeChild()
         {
-            mode = legacyProbe.mode;
-            refreshMode = legacyProbe.refreshMode;
+            mode = reflectionProbe.mode;
+            refreshMode = reflectionProbe.refreshMode;
             m_Version = (int)Version.HDProbeChild;
             needMigrateToHDProbeChild = false;
             OnAfterDeserialize();   //continue migrating if needed
@@ -117,7 +114,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void MigrateToUseInfluenceVolume()
         {
-            influenceVolume.boxSize = legacyProbe.size;
+            influenceVolume.boxSize = reflectionProbe.size;
 #pragma warning disable CS0618 // Type or member is obsolete
             influenceVolume.sphereRadius = influenceSphereRadius;
             influenceVolume.shape = influenceShape; //must be done after each size transfert
@@ -141,7 +138,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             set
             {
                 base.mode = value;
-                legacyProbe.mode = value; //ensure compatibility till we capture without the legacy component
+                reflectionProbe.mode = value; //ensure compatibility till we capture without the legacy component
             }
         }
 
@@ -150,14 +147,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             set
             {
                 base.refreshMode = value;
-                legacyProbe.refreshMode = value; //ensure compatibility till we capture without the legacy component
+                reflectionProbe.refreshMode = value; //ensure compatibility till we capture without the legacy component
             }
         }
 
         internal override void UpdatedInfluenceVolumeShape(Vector3 size, Vector3 offset)
         {
-            legacyProbe.size = size;
-            legacyProbe.center = transform.rotation*offset;
+            reflectionProbe.size = size;
+            reflectionProbe.center = transform.rotation*offset;
         }
     }
 }
