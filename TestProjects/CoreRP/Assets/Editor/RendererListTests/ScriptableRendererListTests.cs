@@ -11,9 +11,12 @@ public class ScriptableRendererListTests
 {
     SceneSetup[]    m_CurrentLoadedScenes;
     Camera          m_TestCamera;
+    Culler          m_Culler;
 
     void Setup(string testName, string cameraName)
     {
+        m_Culler = new Culler();
+
         SetupTestScene(testName);
         SetupTestCamera(cameraName);
     }
@@ -73,7 +76,7 @@ public class ScriptableRendererListTests
         ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
 
         RenderersCullingResult result = new RenderersCullingResult();
-        Culling.CullRenderers(cullingParams, result);
+        m_Culler.CullRenderers(cullingParams, result);
 
         Assert.AreEqual(4, result.GetVisibleObjectCount());
 
@@ -111,7 +114,7 @@ public class ScriptableRendererListTests
         ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
 
         RenderersCullingResult result = new RenderersCullingResult();
-        Culling.CullRenderers(cullingParams, result);
+        m_Culler.CullRenderers(cullingParams, result);
 
         Assert.AreEqual(4, result.GetVisibleObjectCount());
 
@@ -141,7 +144,7 @@ public class ScriptableRendererListTests
         ScriptableCulling.FillCullingParameters(m_TestCamera, ref cullingParams);
 
         RenderersCullingResult result = new RenderersCullingResult();
-        Culling.CullRenderers(cullingParams, result);
+        m_Culler.CullRenderers(cullingParams, result);
 
         List<RendererListSettings> settingsList = new List<RendererListSettings>();
         RendererListSettings settings1 = new RendererListSettings(camera: m_TestCamera);

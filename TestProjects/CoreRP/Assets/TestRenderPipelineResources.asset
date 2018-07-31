@@ -9,8 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7c5aa0fc334e4504b92476a2330c8f3e, type: 3}
-  m_Name: TestRenderPipelineAsset
+  m_Script: {fileID: 11500000, guid: 6adc993ffda14e5499a520a2fc71d435, type: 3}
+  m_Name: TestRenderPipelineResources
   m_EditorClassIdentifier: 
-  renderPipelineResources: {fileID: 11400000, guid: df24feef003ab52448b07242df6dd297, type: 2}
-  useNewCulling: 0
+  defaultMaterial: {fileID: 2100000, guid: 40ec0bed15bc10643aea809314f8b46c, type: 2}
+  defaultShader: {fileID: 4800000, guid: ac08fb12c4fbcfb4fba23e9baaefee62, type: 3}

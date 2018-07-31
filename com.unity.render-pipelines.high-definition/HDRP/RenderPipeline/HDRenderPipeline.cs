@@ -138,6 +138,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // TEST NEW CULLING
         bool m_UseNewCulling = false;
+        Culler                          m_Culler = new Culler();
         RenderersCullingResult          m_RenderersCullingResult = new RenderersCullingResult();
         LightCullingResult              m_LightCullingResult = new LightCullingResult();
         ReflectionProbeCullingResult    m_ReflectionProbeCullingResult = new ReflectionProbeCullingResult();
@@ -347,7 +348,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 m_DbufferManager.CreateBuffers();
 
             m_SSSBufferManager.InitSSSBuffers(m_GbufferManager, m_Asset.renderPipelineSettings);
-            m_NormalBufferManager.InitNormalBuffers(m_GbufferManager, m_Asset.renderPipelineSettings);            
+            m_NormalBufferManager.InitNormalBuffers(m_GbufferManager, m_Asset.renderPipelineSettings);
 
             m_CameraColorBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.ARGBHalf, sRGB: false, enableRandomWrite: true, enableMSAA: true, name: "CameraColor");
             m_CameraSssDiffuseLightingBuffer = RTHandles.Alloc(Vector2.one, filterMode: FilterMode.Point, colorFormat: RenderTextureFormat.RGB111110Float, sRGB: false, enableRandomWrite: true, enableMSAA: true, name: "CameraSSSDiffuseLighting");
@@ -500,7 +501,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 AddPrepareRendererList(HDRendererList.DepthFull, hdCamera);
             }
-            else if (hdCamera.frameSettings.enableDepthPrepassWithDeferredRendering || m_DbufferManager.EnableDBUffer)
+            else if (hdCamera.frameSettings.enableDepthPrepassWithDeferredRendering || m_DbufferManager.enableDecals)
             {
                 AddPrepareRendererList(HDRendererList.DepthOnly, hdCamera);
                 AddPrepareRendererList(HDRendererList.DepthForwardOnly, hdCamera);
@@ -1127,9 +1128,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         if (m_UseNewCulling)
                         {
-                            Culling.CullRenderers(cullingParametersNew, m_RenderersCullingResult);
-                            Culling.CullLights(cullingParametersNew, m_LightCullingResult);
-                            Culling.CullReflectionProbes(cullingParametersNew, m_ReflectionProbeCullingResult);
+                            m_Culler.CullRenderers(cullingParametersNew, m_RenderersCullingResult);
+                            m_Culler.CullLights(cullingParametersNew, m_LightCullingResult);
+                            m_Culler.CullReflectionProbes(cullingParametersNew, m_ReflectionProbeCullingResult);
                             // We don't pass lights and reflection probes because we don't need per object lights/probes in HDRP.
                             Culling.PrepareRendererScene(m_RenderersCullingResult, null, null);
 
@@ -1641,7 +1642,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 using (new ProfilingSample(cmd, m_DbufferManager.enableDecals ? "Depth Prepass (deferred) force by Decals" : "Depth Prepass (deferred)", CustomSamplerId.DepthPrepass.GetSampler()))
                 {
                     cmd.DisableShaderKeyword("WRITE_NORMAL_BUFFER"); // Note: This only disable the output of normal buffer for Lit shader, not the other shader that don't use multicompile
-                    
+
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraDepthStencilBuffer);
 
                     // First deferred material
@@ -1908,7 +1909,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraColorBuffer, m_CameraDepthStencilBuffer);
                     if ((hdCamera.frameSettings.enableDecals) && (DecalSystem.m_DecalDatasCount > 0)) // enable d-buffer flag value is being interpreted more like enable decals in general now that we have clustered
-                                                                                                       // decal datas count is 0 if no decals affect transparency             
+                                                                                                       // decal datas count is 0 if no decals affect transparency
                     {
                         DecalSystem.instance.SetAtlas(cmd); // for clustered decals
                     }
