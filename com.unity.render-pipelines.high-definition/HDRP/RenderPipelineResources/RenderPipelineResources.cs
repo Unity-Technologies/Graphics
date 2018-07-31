@@ -11,7 +11,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         const int currentVersion = 2;
         [SerializeField]
         [FormerlySerializedAs("version")]
-        public float m_Version = 1.0f;
+        int m_Version = 1;
 
         // Default Material / Shader
         public Material defaultDiffuseMaterial;
