@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 - Fix HDReflectionProbe offset displayed in gizmo different than what is affected.
+- Fix decals getting into a state where they could not be removed or disabled.
 
 ## [3.1.0-preview]
 
