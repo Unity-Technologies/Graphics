@@ -1604,6 +1604,8 @@ namespace UnityEditor.VFX.UI
 
         public override void BuildContextualMenu(ContextualMenuPopulateEvent evt)
         {
+            base.BuildContextualMenu(evt);
+
             Vector2 mousePosition = evt.mousePosition;
             bool hasMenu = false;
             if (evt.target is VFXNodeUI)
@@ -1631,15 +1633,13 @@ namespace UnityEditor.VFX.UI
             if (evt.target is VFXGroupNode)
             {
                 VFXGroupNode group = evt.target as VFXGroupNode;
-                evt.menu.AppendAction("Create Node", OnCreateNodeInGroupNode, e => DropdownMenu.MenuAction.StatusFlags.Normal);
+                evt.menu.InsertAction(0, "Create Node", OnCreateNodeInGroupNode, e => DropdownMenu.MenuAction.StatusFlags.Normal);
 
                 evt.menu.AppendAction("New Sticky Note", (e) => { AddStickyNote(mousePosition, group); },
                     (e) => { return DropdownMenu.MenuAction.StatusFlags.Normal; });
                 hasMenu = true;
                 evt.menu.AppendSeparator();
             }
-
-            base.BuildContextualMenu(evt);
         }
 
         bool IDropTarget.CanAcceptDrop(List<ISelectable> selection)
