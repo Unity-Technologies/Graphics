@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [3.2.0-preview]
 
+### Fixed
+- Fix HDReflectionProbe offset displayed in gizmo different than what is affected.
+
 ## [3.1.0-preview]
 
 ### Added
@@ -37,7 +40,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Snap to grid now works for Decal projector resizing.
 - Added a warning for 128x128 cookie texture without mipmaps
 - Replace the sampler used for density volumes for correct wrap mode handling
-- Fix HDReflectionProbe offset displayed in gizmo different than what is affected.
 
 ### Changed
 - Movde Render Pipeline Debug "Windows from Windows->General-> Render Pipeline debug windows" to "Windows from Windows->Analysis-> Render Pipeline debug windows"
