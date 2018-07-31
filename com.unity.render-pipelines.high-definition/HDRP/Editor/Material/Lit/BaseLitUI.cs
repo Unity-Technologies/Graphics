@@ -220,7 +220,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             windShiverDirectionality = FindProperty(kWindShiverDirectionality, props, false);
 
             // Decal
-            supportDecals = FindProperty(kSupportDecals, props);
+            supportDecals = FindProperty(kSupportDecals, props, false);
 
             // specular AA
             enableGeometricSpecularAA = FindProperty(kEnableGeometricSpecularAA, props, false);
@@ -272,7 +272,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
-            m_MaterialEditor.ShaderProperty(supportDecals, StylesBaseLit.supportDecalsText);
+            if (supportDecals != null)
+            {
+                m_MaterialEditor.ShaderProperty(supportDecals, StylesBaseLit.supportDecalsText);
+            }            
 
             if (enableGeometricSpecularAA != null)
             {
@@ -449,7 +452,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetupMainTexForAlphaTestGI("_BaseColorMap", "_BaseColor", material);
 
             // Use negation so we don't create keyword by default
-            CoreUtils.SetKeyword(material, "_DISABLE_DECALS", material.GetFloat(kSupportDecals) == 0.0);
+            CoreUtils.SetKeyword(material, "_DISABLE_DECALS", material.HasProperty(kSupportDecals) && material.GetFloat(kSupportDecals) == 0.0);
 
             CoreUtils.SetKeyword(material, "_ENABLE_GEOMETRIC_SPECULAR_AA", material.HasProperty(kEnableGeometricSpecularAA) && material.GetFloat(kEnableGeometricSpecularAA) == 1.0);
         }

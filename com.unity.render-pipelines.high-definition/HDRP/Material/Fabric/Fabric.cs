@@ -6,17 +6,17 @@ using UnityEngine.Rendering;
 //-----------------------------------------------------------------------------
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    public class Cloth : RenderPipelineMaterial
+    public class Fabric : RenderPipelineMaterial
     {
         // If change, be sure it match what is done in Lit.hlsl: MaterialFeatureFlagsFromGBuffer
         // Material bit mask must match the size define LightDefinitions.s_MaterialFeatureMaskFlags value
         [GenerateHLSL(PackingRules.Exact)]
         public enum MaterialFeatureFlags
         {
-            ClothCottonWool = 1 << 0,
-            ClothSilk = 1 << 1,
-            ClothSubsurfaceScattering = 1 << 2,
-            ClothTransmission = 1 << 3
+            FabricCottonWool = 1 << 0,
+            FabricSilk = 1 << 1,
+            FabricSubsurfaceScattering = 1 << 2,
+            FabricTransmission = 1 << 3
         };
 
         //-----------------------------------------------------------------------------
@@ -116,39 +116,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Init precomputed textures
         //-----------------------------------------------------------------------------
 
-        bool m_isInit;
-
-        public Cloth() { }
+        public Fabric() {}
 
         public override void Build(HDRenderPipelineAsset hdAsset)
         {
-            PreIntegratedFGD.instance.Build(PreIntegratedFGD.FGDIndex.FGD_CharlieAndClothLambert);
+            PreIntegratedFGD.instance.Build(PreIntegratedFGD.FGDIndex.FGD_CharlieAndFabricLambert);
             //LTCAreaLight.instance.Build();
-
-            m_isInit = false;
         }
 
         public override void Cleanup()
         {
-            PreIntegratedFGD.instance.Cleanup(PreIntegratedFGD.FGDIndex.FGD_CharlieAndClothLambert);
+            PreIntegratedFGD.instance.Cleanup(PreIntegratedFGD.FGDIndex.FGD_CharlieAndFabricLambert);
             //LTCAreaLight.instance.Cleanup();
-
-            m_isInit = false;
         }
 
         public override void RenderInit(CommandBuffer cmd)
         {
-            if (m_isInit)
-                return;
-
-            PreIntegratedFGD.instance.RenderInit(PreIntegratedFGD.FGDIndex.FGD_CharlieAndClothLambert, cmd);
-
-            m_isInit = true;
+            PreIntegratedFGD.instance.RenderInit(PreIntegratedFGD.FGDIndex.FGD_CharlieAndFabricLambert, cmd);
         }
 
         public override void Bind()
         {
-            PreIntegratedFGD.instance.Bind(PreIntegratedFGD.FGDIndex.FGD_CharlieAndClothLambert);
+            PreIntegratedFGD.instance.Bind(PreIntegratedFGD.FGDIndex.FGD_CharlieAndFabricLambert);
             //LTCAreaLight.instance.Bind();
         }
     }

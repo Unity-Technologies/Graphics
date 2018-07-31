@@ -1,7 +1,7 @@
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
-#include "../MaterialUtilities.hlsl"
+#include "HDRP/Material/MaterialUtilities.hlsl"
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
@@ -25,28 +25,11 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     }
 #endif
 
+    // -------------------------------------------------------------
     // Builtin Data
-    builtinData.opacity = alpha;
+    // -------------------------------------------------------------
 
-    builtinData.bakeDiffuseLighting = SampleBakedGI(input.positionRWS, surfaceData.normalWS, input.texCoord1, input.texCoord2);
-
-    builtinData.emissiveColor = float3(0.0, 0.0, 0.0);
-    builtinData.velocity = float2(0.0, 0.0);
-
-#ifdef SHADOWS_SHADOWMASK
-    float4 shadowMask = SampleShadowMask(input.positionRWS, input.texCoord1);
-    builtinData.shadowMask0 = shadowMask.x;
-    builtinData.shadowMask1 = shadowMask.y;
-    builtinData.shadowMask2 = shadowMask.z;
-    builtinData.shadowMask3 = shadowMask.w;
-#else
-    builtinData.shadowMask0 = 0.0;
-    builtinData.shadowMask1 = 0.0;
-    builtinData.shadowMask2 = 0.0;
-    builtinData.shadowMask3 = 0.0;
-#endif
-
-    builtinData.distortion = float2(0.0, 0.0);
-    builtinData.distortionBlur = 0.0;
-    builtinData.depthOffset = 0.0;
+    // For back lighting we use the oposite vertex normal 
+    InitBuiltinData(alpha, surfaceData.normalWS, -input.worldToTangent[2], input.positionRWS, input.texCoord1, input.texCoord2, builtinData);
+    PostInitBuiltinData(V, posInput, surfaceData, builtinData);
 }

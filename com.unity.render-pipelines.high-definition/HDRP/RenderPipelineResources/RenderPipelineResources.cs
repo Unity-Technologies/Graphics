@@ -72,7 +72,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Material
         public Shader preIntegratedFGD_GGXDisneyDiffuse;
-        public Shader preIntegratedFGD_CharlieClothLambert;
+        public Shader preIntegratedFGD_CharlieFabricLambert;
 
         // Utilities / Core
         public ComputeShader encodeBC6HCS;
