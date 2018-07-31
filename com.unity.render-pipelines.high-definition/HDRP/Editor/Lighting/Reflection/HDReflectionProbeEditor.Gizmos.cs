@@ -48,6 +48,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             var reflectionData = reflectionProbe.GetComponent<HDAdditionalReflectionData>();
             Gizmos_CapturePoint(reflectionProbe, reflectionData, e);
+            var mat = reflectionProbe.transform.localToWorldMatrix;
+            InfluenceVolumeUI.DrawGizmos(e.m_UIState.influenceVolume, reflectionData.influenceVolume, mat, InfluenceVolumeUI.HandleType.None, InfluenceVolumeUI.HandleType.Base);
 
             if (!e.sceneViewEditing)
                 return;
