@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [3.2.0-preview]
 
+### Fixed
+- Fixed package upgrade crashing the editor
+
 ## [3.1.0-preview]
 
 ### Added
