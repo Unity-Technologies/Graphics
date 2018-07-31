@@ -181,10 +181,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             float invHalfShadowAtlasWidth = 0.5f * invShadowAtlasWidth;
             float invHalfShadowAtlasHeight = 0.5f * invShadowAtlasHeight;
             cmd.SetGlobalTexture(destination.id, m_DirectionalShadowmapTexture);
-            if (shadowData.directionalLightCascadeCount > 1)
-                cmd.SetGlobalMatrixArray(DirectionalShadowConstantBuffer._WorldToShadow, m_DirectionalShadowMatrices);
-            else
-                cmd.SetGlobalMatrix(DirectionalShadowConstantBuffer._WorldToShadow, m_DirectionalShadowMatrices[0]);
+            cmd.SetGlobalMatrixArray(DirectionalShadowConstantBuffer._WorldToShadow, m_DirectionalShadowMatrices);
             cmd.SetGlobalVector(DirectionalShadowConstantBuffer._ShadowData, new Vector4(light.shadowStrength, 0.0f, 0.0f, 0.0f));
             cmd.SetGlobalVector(DirectionalShadowConstantBuffer._DirShadowSplitSpheres0, m_CascadeSplitDistances[0]);
             cmd.SetGlobalVector(DirectionalShadowConstantBuffer._DirShadowSplitSpheres1, m_CascadeSplitDistances[1]);
