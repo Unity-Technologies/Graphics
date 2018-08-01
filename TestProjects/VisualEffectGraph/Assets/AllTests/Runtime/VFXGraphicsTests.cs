@@ -2,20 +2,18 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Collections;
-using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.Experimental.VFX;
-using UnityEditor.VFX;
 using UnityEngine.TestTools;
 using UnityEngine.TestTools.Graphics;
 using UnityEngine.Rendering;
-using Object = UnityEngine.Object;
 using System.IO;
 #if UNITY_EDITOR
-using NUnit.Framework;
+using UnityEditor;
+using UnityEditor.VFX;
 #endif
+using NUnit.Framework;
+using Object = UnityEngine.Object;
 
 namespace UnityEngine.VFX.Test
 {
@@ -24,6 +22,7 @@ namespace UnityEngine.VFX.Test
         static readonly float simulateTime = 6.0f;
         static readonly int captureFrameRate = 20;
         static readonly float frequency = 1.0f / (float)captureFrameRate;
+        static readonly int captureSize = 512;
 
         int m_previousCaptureFrameRate;
         float m_previousFixedTimeStep;
@@ -44,11 +43,8 @@ namespace UnityEngine.VFX.Test
             "20_SpawnerChaining", // Unstable. TODO investigate why
             "RenderStates", // Unstable. There is an instability with shadow rendering. TODO Fix that
             "ConformAndSDF", // Turbulence is not deterministic
-            "07_UnityLogo", //Unstable with HDRP. TODO investigate why
-            "13_Decals", //doesn't render TODO investigate why
-            "14_DecalsFlipBook", //doesn't render TODO investigate why
+            "13_Decals", //doesn't render TODO investigate why <= this one is in world space
             "05_MotionVectors", //possible GPU Hang on this, skip it temporally
-            "04_Bounds" //this test rely on GameView aspect
         };
 
         [UnityTest, Category("VisualEffect")]
@@ -56,7 +52,7 @@ namespace UnityEngine.VFX.Test
         [UseGraphicsTestCases]
         public IEnumerator Run(GraphicsTestCase testCase)
         {
-            SceneManager.LoadScene(testCase.ScenePath);
+            SceneManagement.SceneManager.LoadScene(testCase.ScenePath);
 
             // Always wait one frame for scene load
             yield return null;
@@ -74,6 +70,9 @@ namespace UnityEngine.VFX.Test
                 }
 #endif
 
+                var rt = RenderTexture.GetTemporary(captureSize, captureSize, 24);
+                camera.targetTexture = rt;
+
                 foreach (var component in vfxComponents)
                 {
                     component.Reinit();
@@ -87,13 +86,30 @@ namespace UnityEngine.VFX.Test
                     yield return null;
                 }
 
-                if (!ExcludedTestsButKeepLoadScene.Any(o => testCase.ScenePath.Contains(o)))
+                Texture2D actual = null;
+                try
                 {
-                    ImageAssert.AreEqual(testCase.ReferenceImage, camera, new ImageComparisonSettings() { AverageCorrectnessThreshold = 10e-5f });
+                    camera.targetTexture = null;
+                    actual = new Texture2D(captureSize, captureSize, TextureFormat.RGB24, false);
+                    RenderTexture.active = rt;
+                    actual.ReadPixels(new Rect(0, 0, captureSize, captureSize), 0, 0);
+                    RenderTexture.active = null;
+                    actual.Apply();
+
+                    if (!ExcludedTestsButKeepLoadScene.Any(o => testCase.ScenePath.Contains(o)))
+                    {
+                        ImageAssert.AreEqual(testCase.ReferenceImage, actual, new ImageComparisonSettings() { AverageCorrectnessThreshold = 10e-5f });
+                    }
+                    else
+                    {
+                        Debug.LogFormat("GraphicTest '{0}' result has been ignored", testCase.ReferenceImage);
+                    }
                 }
-                else
+                finally
                 {
-                    Debug.LogFormat("GraphicTest '{0}' result has been ignored", testCase.ReferenceImage);
+                    RenderTexture.ReleaseTemporary(rt);
+                    if (actual != null)
+                        UnityEngine.Object.Destroy(actual);
                 }
             }
         }

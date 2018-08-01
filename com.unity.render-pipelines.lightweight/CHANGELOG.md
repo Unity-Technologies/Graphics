@@ -4,7 +4,16 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [3.0.1-preview]
+## [3.2.0-preview]
+### Fixed
+- Scriptable passes no longer have missing material references. Now they access cached materials in the renderer.(case 1061353)
+- When you change a Shadow Cascade option in the Pipeline Asset, this no longer warns you that you've exceeded the array size for the _WorldToShadow property.
+
+## [3.1.0-preview]
+
+### Fixed
+- Fixed assert errors caused by multi spot lights
+- Fixed LWRP-DirectionalShadowConstantBuffer params setting
 
 ## [3.0.0-preview]
 ### Added

@@ -437,45 +437,10 @@ namespace UnityEngine.Experimental.Rendering
                 buffer.Release();
         }
 
-        // Just a sort function that doesn't allocate memory
-        // Note: Shoud be repalc by a radix sort for positive integer
-        public static int Partition(uint[] numbers, int left, int right)
+        public static unsafe void QuickSort(uint[] arr, int left, int right)
         {
-            uint pivot = numbers[left];
-            while (true)
-            {
-                while (numbers[left] < pivot)
-                    left++;
-
-                while (numbers[right] > pivot)
-                    right--;
-
-                if (left < right)
-                {
-                    uint temp = numbers[right];
-                    numbers[right] = numbers[left];
-                    numbers[left] = temp;
-                }
-                else
-                {
-                    return right;
-                }
-            }
-        }
-
-        public static void QuickSort(uint[] arr, int left, int right)
-        {
-            // For Recursion
-            if (left < right)
-            {
-                int pivot = Partition(arr, left, right);
-
-                if (pivot > 1)
-                    QuickSort(arr, left, pivot - 1);
-
-                if (pivot + 1 < right)
-                    QuickSort(arr, pivot + 1, right);
-            }
+            fixed (uint* ptr = arr)
+                CoreUnsafeUtils.QuickSort<uint>(ptr, left, right);
         }
 
         public static Mesh CreateCubeMesh(Vector3 min, Vector3 max)

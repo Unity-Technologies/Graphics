@@ -45,7 +45,8 @@ void Frag(PackedVaryingsToPS packedInput,
 #ifdef VARYINGS_NEED_POSITION_WS
     float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);
 #else
-    float3 V = 0; // Avoid the division by 0
+    // Unused
+    float3 V = float3(1.0, 1.0, 1.0); // Avoid the division by 0
 #endif
 
     SurfaceData surfaceData;
@@ -81,7 +82,6 @@ void Frag(PackedVaryingsToPS packedInput,
         float3 diffuseLighting;
         float3 specularLighting;
 
-        builtinData.bakeDiffuseLighting = GetBakedDiffuseLighting(surfaceData, builtinData, bsdfData, preLightData);
         LightLoop(V, posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
 
 #ifdef OUTPUT_SPLIT_LIGHTING

@@ -428,7 +428,7 @@ namespace UnityEditor.VFX.UI
 
         public virtual bool superCollapsed
         {
-            get { return controller.model.superCollapsed; }
+            get { return controller.superCollapsed; }
         }
     }
 }

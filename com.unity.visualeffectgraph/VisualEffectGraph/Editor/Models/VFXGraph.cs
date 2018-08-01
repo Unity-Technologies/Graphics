@@ -33,6 +33,7 @@ namespace UnityEditor.VFX
             foreach (var vfxAsset in vfxAssets)
             {
                 Debug.Log(string.Format("Recompile VFX asset: {0} ({1})", vfxAsset, AssetDatabase.GetAssetPath(vfxAsset)));
+                VFXExpression.ClearCache();
                 vfxAsset.GetResource().GetOrCreateGraph().SetExpressionGraphDirty();
                 vfxAsset.GetResource().GetOrCreateGraph().OnSaved();
             }

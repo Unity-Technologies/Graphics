@@ -15,16 +15,19 @@ AppendStructuredBuffer<uint> indirectBuffer;
 
 CBUFFER_START(updateParams)
     uint nbMax;
+	uint dispatchWidth;
 	uint systemSeed;
 CBUFFER_END
 
 ${VFXGeneratedBlockFunction}
 
 [numthreads(NB_THREADS_PER_GROUP,1,1)]
-void CSMain(uint3 id : SV_DispatchThreadID, uint3 groupId : SV_GroupThreadID)
+void CSMain(uint3 groupId          : SV_GroupID,
+            uint3 groupThreadId    : SV_GroupThreadID)
 {
-    uint index = id.x;
-	if (id.x < nbMax)
+	uint id = groupThreadId.x + groupId.x * NB_THREADS_PER_GROUP + groupId.y * dispatchWidth * NB_THREADS_PER_GROUP;
+	uint index = id;
+	if (id < nbMax)
 	{
 #if VFX_USE_ALIVE_CURRENT
 		${VFXLoadAttributes:{alive}}

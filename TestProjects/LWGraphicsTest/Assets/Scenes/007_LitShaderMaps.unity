@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.18263894, g: 0.22835018, b: 0.30714685, a: 1}
+  m_IndirectSpecularColor: {r: 0.18263882, g: 0.22834998, b: 0.30714673, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -89,8 +89,7 @@ LightmapSettings:
     m_PVRFilteringAtrousPositionSigmaIndirect: 2
     m_PVRFilteringAtrousPositionSigmaAO: 1
     m_ShowResolutionOverlay: 1
-  m_LightingDataAsset: {fileID: 112000002, guid: 6666d64eb9e654d1687ae92db85626c2,
-    type: 2}
+  m_LightingDataAsset: {fileID: 112000002, guid: 6666d64eb9e654d1687ae92db85626c2, type: 2}
   m_UseShadowmask: 0
 --- !u!196 &4
 NavMeshSettings:
@@ -125,7 +124,7 @@ GameObject:
   - component: {fileID: 35430818}
   - component: {fileID: 35430817}
   m_Layer: 0
-  m_Name: Sphere4
+  m_Name: Sphere_Normal
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -145,6 +144,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
+  m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: f07d64f004a1345ab989bfb4c08c1629, type: 2}
   m_StaticBatchInfo:
@@ -197,7 +197,7 @@ GameObject:
   - component: {fileID: 167879085}
   - component: {fileID: 167879084}
   m_Layer: 0
-  m_Name: Sphere2
+  m_Name: Sphere_BaseColor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -217,6 +217,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
+  m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: ae6dcf3efd53846d6a4c747e34721a86, type: 2}
   m_StaticBatchInfo:
@@ -269,7 +270,7 @@ GameObject:
   - component: {fileID: 316403773}
   - component: {fileID: 316403772}
   m_Layer: 0
-  m_Name: UnlitSphere (1)
+  m_Name: UnlitSphere_MainTex_color
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -289,6 +290,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
+  m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 46f4548be2fd99a49930be9c22b22312, type: 2}
   m_StaticBatchInfo:
@@ -341,7 +343,7 @@ GameObject:
   - component: {fileID: 442397143}
   - component: {fileID: 442397142}
   m_Layer: 0
-  m_Name: Sphere6
+  m_Name: Sphere_All
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -361,6 +363,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
+  m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 2eb5a64ab43ee410f80b503f2637eaa4, type: 2}
   m_StaticBatchInfo:
@@ -413,7 +416,7 @@ GameObject:
   - component: {fileID: 952102531}
   - component: {fileID: 952102530}
   m_Layer: 0
-  m_Name: Sphere1
+  m_Name: Sphere_None
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -433,6 +436,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
+  m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 874a014676eb94aa0b2df78530ae71ec, type: 2}
   m_StaticBatchInfo:
@@ -505,8 +509,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   ImageComparisonSettings:
-    TargetWidth: 1280
-    TargetHeight: 720
+    TargetWidth: 640
+    TargetHeight: 360
     PerPixelCorrectnessThreshold: 0.005
     AverageCorrectnessThreshold: 0.005
   WaitFrames: 0
@@ -537,6 +541,7 @@ Camera:
   m_projectionMatrixMode: 1
   m_SensorSize: {x: 36, y: 24}
   m_LensShift: {x: 0, y: 0}
+  m_GateFitMode: 2
   m_FocalLength: 50
   m_NormalizedViewPortRect:
     serializedVersion: 2
@@ -602,8 +607,8 @@ Light:
   m_Enabled: 1
   serializedVersion: 8
   m_Type: 1
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_Intensity: 0.75
+  m_Color: {r: 1, g: 0.86381423, b: 0.5801887, a: 1}
+  m_Intensity: 3
   m_Range: 10
   m_SpotAngle: 30
   m_CookieSize: 10
@@ -654,7 +659,7 @@ GameObject:
   - component: {fileID: 1511850538}
   - component: {fileID: 1511850537}
   m_Layer: 0
-  m_Name: Sphere5
+  m_Name: Sphere_Emission
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -674,6 +679,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
+  m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 4fe532de4bae248f4bfff4daa180fa2d, type: 2}
   m_StaticBatchInfo:
@@ -715,6 +721,72 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1555703432
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1555703434}
+  - component: {fileID: 1555703433}
+  m_Layer: 0
+  m_Name: Directional Light (1)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!108 &1555703433
+Light:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1555703432}
+  m_Enabled: 1
+  serializedVersion: 8
+  m_Type: 1
+  m_Color: {r: 0, g: 0.49680614, b: 1, a: 1}
+  m_Intensity: 3
+  m_Range: 10
+  m_SpotAngle: 30
+  m_CookieSize: 10
+  m_Shadows:
+    m_Type: 0
+    m_Resolution: -1
+    m_CustomResolution: -1
+    m_Strength: 1
+    m_Bias: 0.05
+    m_NormalBias: 0.4
+    m_NearPlane: 0.2
+  m_Cookie: {fileID: 0}
+  m_DrawHalo: 0
+  m_Flare: {fileID: 0}
+  m_RenderMode: 0
+  m_CullingMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_Lightmapping: 4
+  m_LightShadowCasterMode: 0
+  m_AreaSize: {x: 1, y: 1}
+  m_BounceIntensity: 1
+  m_ColorTemperature: 6570
+  m_UseColorTemperature: 0
+  m_ShadowRadius: 0
+  m_ShadowAngle: 0
+--- !u!4 &1555703434
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1555703432}
+  m_LocalRotation: {x: 0.17943864, y: 0.8204195, z: -0.37535754, w: 0.39219925}
+  m_LocalPosition: {x: 0, y: 3, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 10
+  m_LocalEulerAnglesHint: {x: 49.17, y: 128.9, z: 0}
 --- !u!1 &1664660672
 GameObject:
   m_ObjectHideFlags: 0
@@ -726,7 +798,7 @@ GameObject:
   - component: {fileID: 1664660674}
   - component: {fileID: 1664660673}
   m_Layer: 0
-  m_Name: Sphere3
+  m_Name: Sphere_Specular
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -746,6 +818,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
+  m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 5cf2933049f3c41858b74c8f37387bd7, type: 2}
   m_StaticBatchInfo:
@@ -798,7 +871,7 @@ GameObject:
   - component: {fileID: 1823431993}
   - component: {fileID: 1823431992}
   m_Layer: 0
-  m_Name: UnlitSphere
+  m_Name: UnlitSphere_GI_normal
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -818,6 +891,7 @@ MeshRenderer:
   m_LightProbeUsage: 1
   m_ReflectionProbeUsage: 1
   m_RenderingLayerMask: 4294967295
+  m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: 466de0b30ac50484c9d07caa7c51b179, type: 2}
   m_StaticBatchInfo:

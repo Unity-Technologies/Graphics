@@ -137,7 +137,6 @@ namespace UnityEditor.VFX
                     if (space != value)
                     {
                         GetMasterData().m_Space = value;
-                        InvalidateExpressionTree();
                         Invalidate(InvalidationCause.kSpaceChanged);
                     }
                 }
@@ -1010,6 +1009,10 @@ namespace UnityEditor.VFX
             //Propagate space change to children
             if (cause == InvalidationCause.kSpaceChanged)
             {
+                if (IsMasterSlot())
+                {
+                    InvalidateExpressionTree();
+                }
                 if (direction == Direction.kOutput)
                 {
                     PropagateToChildren(s =>
