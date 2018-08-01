@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
 
@@ -108,12 +107,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref RenderingData renderingData)
         {
             for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
-                m_ActiveRenderPassQueue[i].Execute(ref context, ref cullResults, ref renderingData);
+                m_ActiveRenderPassQueue[i].Execute(this, ref context, ref cullResults, ref renderingData);
 
             DisposePasses(ref context);
         }
 
-        
         public Material GetMaterial(MaterialHandles handle)
         {
             int handleID = (int)handle;

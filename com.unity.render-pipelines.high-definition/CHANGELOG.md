@@ -6,11 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [3.2.0-preview]
 
+### Added
+- Added a luminance meter in the debug menu
+
 ### Fixed
 - Fixed package upgrade crashing the editor
 - Fix HDReflectionProbe offset displayed in gizmo different than what is affected.
 - Fix decals getting into a state where they could not be removed or disabled.
-- The lux meter isn't affected by the sky anymore
+- Fix issue with package upgrading (HDRP resources asset is now versionned to worarkound package manager limitation)
+- Fix lux meter mode - The lux meter isn't affected by the sky anymore
 
 ## [3.1.0-preview]
 
