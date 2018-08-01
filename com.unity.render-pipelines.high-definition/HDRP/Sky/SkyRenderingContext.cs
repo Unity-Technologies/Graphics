@@ -257,10 +257,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_BuiltinParameters.debugSettings = debugSettings;
 
                     skyContext.renderer.SetRenderTargets(m_BuiltinParameters);
-                    // When rendering the visual sky for reflection probes, we need to remove the sun disk if skySettings.includeSunInBaking is false.
-                    skyContext.renderer.RenderSky(m_BuiltinParameters, false, hdCamera.camera.cameraType != CameraType.Reflection || skyContext.skySettings.includeSunInBaking);
+                    
+                    // If the luxmeter is enabled, we render a black sky
+                    if (debugSettings.lightingDebugSettings.debugLightingMode != DebugLightingMode.LuxMeter)
+                    {
+                        // When rendering the visual sky for reflection probes, we need to remove the sun disk if skySettings.includeSunInBaking is false.
+                        skyContext.renderer.RenderSky(m_BuiltinParameters, false, hdCamera.camera.cameraType != CameraType.Reflection || skyContext.skySettings.includeSunInBaking);
+                    }
+                    else
+                    {
+                        RenderBlackSky(cmd, false);
+                    }
                 }
             }
+        }
+
+        void RenderBlackSky(CommandBuffer cmd, bool renderToCubemap)
+        {
+            Material blackMaterial = new Material(Shader.Find("Hidden/HDRenderPipeline/Sky/Black"));
+            CoreUtils.DrawFullScreen(cmd, blackMaterial, null, renderToCubemap ? 0 : 1);
         }
     }
 }
