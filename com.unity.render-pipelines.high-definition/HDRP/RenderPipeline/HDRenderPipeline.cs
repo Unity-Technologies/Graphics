@@ -197,6 +197,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_Asset = asset;
 
+            // Upgrade the resources (re-import every references in RenderPipelineResources) if the resource version mismatches
+            // It's done here because we know every HDRP assets have been imported before
+            UpgradeResourcesIfNeeded();
+
+
             // Initial state of the RTHandle system.
             // Tells the system that we will require MSAA or not so that we can avoid wasteful render texture allocation.
             // TODO: Might want to initialize to at least the window resolution to avoid un-necessary re-alloc in the player
@@ -274,6 +279,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             MousePositionDebug.instance.Build();
 
             InitializeRenderStateBlocks();
+        }
+
+        void UpgradeResourcesIfNeeded()
+        {
+#if UNITY_EDITOR
+            m_Asset.renderPipelineResources.UpgradeIfNeeded();
+#endif
         }
 
         void InitializeRenderTextures()
