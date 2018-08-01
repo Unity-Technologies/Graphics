@@ -72,7 +72,7 @@ void SplatmapMix(VertexOutput IN, half4 defaultAlpha, out half4 splatControl, ou
 
     // Normalize weights before lighting and restore weights in final modifier functions so that the overal
     // lighting result can be correctly weighted.
-    splatControl /= (weight + 1e-3h);
+    splatControl /= (weight + HALF_MIN);
 
     half4 alpha = defaultAlpha * splatControl;
 
