@@ -9,18 +9,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         private RenderTargetHandle colorAttachmentHandle { get; set; }
         private RenderTargetHandle depthAttachmentHandle { get; set; }
         private RenderTextureDescriptor descriptor { get; set; }
-        private Material errorMaterial { get; set; }
         protected ClearFlag clearFlag { get; set; }
         protected Color clearColor { get; set; }
-
-        const string k_SwitchRTs = "Switch RT";
-
 
         List<ShaderPassName> m_LegacyShaderPassNames;
         protected RendererConfiguration rendererConfiguration;
         protected bool dynamicBatching;
 
-        protected LightweightForwardPass(Material errorMaterial)
+        protected LightweightForwardPass()
         {
             m_LegacyShaderPassNames = new List<ShaderPassName>();
             m_LegacyShaderPassNames.Add(new ShaderPassName("Always"));
@@ -29,8 +25,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_LegacyShaderPassNames.Add(new ShaderPassName("Vertex"));
             m_LegacyShaderPassNames.Add(new ShaderPassName("VertexLMRGBM"));
             m_LegacyShaderPassNames.Add(new ShaderPassName("VertexLM"));
-
-            this.errorMaterial = errorMaterial;
 
             RegisterShaderPassName("LightweightForward");
             RegisterShaderPassName("SRPDefaultUnlit");
@@ -80,8 +74,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        protected void RenderObjectsWithError(ref ScriptableRenderContext context, ref CullResults cullResults, Camera camera, FilterRenderersSettings filterSettings, SortFlags sortFlags)
+        protected void RenderObjectsWithError(LightweightForwardRenderer renderer, ref ScriptableRenderContext context, ref CullResults cullResults, Camera camera, FilterRenderersSettings filterSettings, SortFlags sortFlags)
         {
+            Material errorMaterial = renderer.GetMaterial(MaterialHandles.Error);
             if (errorMaterial != null)
             {
                 DrawRendererSettings errorSettings = new DrawRendererSettings(camera, m_LegacyShaderPassNames[0]);
