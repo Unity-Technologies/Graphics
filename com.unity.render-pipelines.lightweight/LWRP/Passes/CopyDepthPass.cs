@@ -6,13 +6,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     {
         private RenderTargetHandle source { get; set; }
         private RenderTargetHandle destination { get; set; }
-        private Material depthCopyMaterial { get; set; }
 
-        public CopyDepthPass(Material depthCopyMaterial)
-        {
-            this.depthCopyMaterial = depthCopyMaterial;
-        }
-
+        const string k_DepthCopyTag = "Depth Copy";
 
         public void Setup(RenderTargetHandle source, RenderTargetHandle destination)
         {
@@ -20,13 +15,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             this.destination = destination;
         }
 
-        public override void Execute(ref ScriptableRenderContext context,
+        public override void Execute(LightweightForwardRenderer renderer, ref ScriptableRenderContext context,
             ref CullResults cullResults,
             ref RenderingData renderingData)
         {
-            CommandBuffer cmd = CommandBufferPool.Get("Depth Copy");
+            CommandBuffer cmd = CommandBufferPool.Get(k_DepthCopyTag);
             RenderTargetIdentifier depthSurface = source.Identifier();
             RenderTargetIdentifier copyDepthSurface = destination.Identifier();
+            Material depthCopyMaterial = renderer.GetMaterial(MaterialHandles.DepthCopy);
 
             RenderTextureDescriptor descriptor = LightweightForwardRenderer.CreateRTDesc(ref renderingData.cameraData);
             descriptor.colorFormat = RenderTextureFormat.Depth;

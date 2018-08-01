@@ -15,7 +15,7 @@ public class CustomLWPipe : MonoBehaviour, IRendererSetup
     [NonSerialized]
     private bool m_Initialized = false;
 
-    private void Init(LightweightForwardRenderer renderer)
+    private void Init()
     {
         if (m_Initialized)
             return;
@@ -23,7 +23,7 @@ public class CustomLWPipe : MonoBehaviour, IRendererSetup
         m_SetupForwardRenderingPass = new SetupForwardRenderingPass();
         m_CreateLightweightRenderTexturesPass = new CreateLightweightRenderTexturesPass();
         m_SetupLightweightConstants = new SetupLightweightConstanstPass();
-        m_RenderOpaqueForwardPass = new RenderOpaqueForwardPass(renderer.GetMaterial(MaterialHandles.Error));
+        m_RenderOpaqueForwardPass = new RenderOpaqueForwardPass();
 
         m_Initialized = true;
     }
@@ -31,7 +31,7 @@ public class CustomLWPipe : MonoBehaviour, IRendererSetup
     public void Setup(LightweightForwardRenderer renderer, ref ScriptableRenderContext context,
         ref CullResults cullResults, ref RenderingData renderingData)
     {
-        Init(renderer);
+        Init();
 
         renderer.Clear();
 
