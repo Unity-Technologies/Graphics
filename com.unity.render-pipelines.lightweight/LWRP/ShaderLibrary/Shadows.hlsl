@@ -28,11 +28,7 @@ CBUFFER_START(_DirectionalShadowBuffer)
 // Last cascade is initialized with a no-op matrix. It always transforms
 // shadow coord to half(0, 0, NEAR_PLANE). We use this trick to avoid
 // branching since ComputeCascadeIndex can return cascade index = MAX_SHADOW_CASCADES
-#ifdef _SHADOWS_CASCADE
 float4x4    _WorldToShadow[MAX_SHADOW_CASCADES + 1];
-#else
-float4x4    _WorldToShadow;
-#endif
 float4      _DirShadowSplitSpheres0;
 float4      _DirShadowSplitSpheres1;
 float4      _DirShadowSplitSpheres2;
@@ -164,7 +160,6 @@ real SampleShadowmap(float4 shadowCoord, TEXTURE2D_SHADOW_ARGS(ShadowMap, sample
 
 half ComputeCascadeIndex(float3 positionWS)
 {
-    // TODO: profile if there's a performance improvement if we avoid indexing here
     float3 fromCenter0 = positionWS - _DirShadowSplitSpheres0.xyz;
     float3 fromCenter1 = positionWS - _DirShadowSplitSpheres1.xyz;
     float3 fromCenter2 = positionWS - _DirShadowSplitSpheres2.xyz;
@@ -183,7 +178,7 @@ float4 TransformWorldToShadowCoord(float3 positionWS)
     half cascadeIndex = ComputeCascadeIndex(positionWS);
     return mul(_WorldToShadow[cascadeIndex], float4(positionWS, 1.0));
 #else
-    return mul(_WorldToShadow, float4(positionWS, 1.0));
+    return mul(_WorldToShadow[0], float4(positionWS, 1.0));
 #endif
 }
 

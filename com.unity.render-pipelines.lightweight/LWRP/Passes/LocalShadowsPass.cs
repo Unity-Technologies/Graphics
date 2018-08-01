@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
@@ -64,7 +63,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             }
         }
 
-        public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults,
+        public override void Execute(LightweightForwardRenderer renderer, ref ScriptableRenderContext context,
+            ref CullResults cullResults,
             ref RenderingData renderingData)
         {
             if (renderingData.shadowData.renderLocalShadows)

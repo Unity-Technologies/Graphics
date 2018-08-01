@@ -8,14 +8,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     [CustomEditor(typeof(LightweightPipelineAsset))]
     public class LightweightPipelineAssetEditor : Editor
     {
+        bool generalSettingsFoldout = false;
+        bool qualitySettingsFoldout = false;
+        bool shadowsSettingsFoldout = false;
         internal class Styles
         {
             public static GUIContent generalSettingsLabel = new GUIContent("General");
-            public static GUIContent renderingLabel = new GUIContent("Rendering");
+            public static GUIContent qualityLabel = new GUIContent("Quality");
             public static GUIContent shadowLabel = new GUIContent("Shadows");
             public static GUIContent directionalShadowLabel = new GUIContent("Directional Shadows");
             public static GUIContent localShadowLabel = new GUIContent("Local Shadows");
-            public static GUIContent capabilitiesLabel = new GUIContent("Capabilities");
+            public static GUIContent featuresLabel = new GUIContent("Shader Features");
 
             public static GUIContent renderScaleLabel = new GUIContent("Render Scale", "Scales the camera render target allowing the game to render at a resolution different than native resolution. UI is always rendered at native resolution.");
 
@@ -104,22 +107,24 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         SerializedProperty m_CustomShaderVariantStripSettingsProp;
 
         SerializedProperty m_XRConfig;
-        
+
         public override void OnInspectorGUI()
         {
             serializedObject.Update();
 
             UpdateAnimationValues();
 
-            DrawCapabilitiesSettings();
+            DrawShaderFeaturesSettings();
             DrawGeneralSettings();
+            DrawQualitySettings();
+            DrawShadowSettings();
             EditorGUILayout.PropertyField(m_XRConfig);
 
             serializedObject.ApplyModifiedProperties();
         }
 
         void OnEnable()
-        {            
+        {
             m_RenderScale = serializedObject.FindProperty("m_RenderScale");
             m_MaxPixelLights = serializedObject.FindProperty("m_MaxPixelLights");
             m_SupportsVertexLightProp = serializedObject.FindProperty("m_SupportsVertexLight");
@@ -145,7 +150,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_ShowOpaqueTextureScale.valueChanged.AddListener(Repaint);
             m_ShowOpaqueTextureScale.value = m_RequireOpaqueTextureProp.boolValue;
             m_XRConfig = serializedObject.FindProperty("m_SavedXRConfig");
-            
         }
 
         void OnDisable()
@@ -160,17 +164,72 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_ShowOpaqueTextureScale.target = m_RequireOpaqueTextureProp.boolValue;
         }
 
+        void DrawShaderFeaturesSettings()
+        {
+            EditorGUILayout.LabelField(Styles.featuresLabel, EditorStyles.boldLabel);
+            EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(m_SupportsVertexLightProp, Styles.enableVertexLightLabel);
+            EditorGUILayout.PropertyField(m_DirectionalShadowsSupportedProp, Styles.supportsDirectionalShadows);
+            EditorGUILayout.PropertyField(m_LocalShadowSupportedProp, Styles.supportsLocalShadows);
+            EditorGUI.BeginDisabledGroup(!(m_DirectionalShadowsSupportedProp.boolValue || m_LocalShadowSupportedProp.boolValue));
+                EditorGUILayout.PropertyField(m_SoftShadowsSupportedProp, Styles.supportsSoftShadows);
+            EditorGUI.EndDisabledGroup();
+            EditorGUI.indentLevel--;
+            EditorGUILayout.Space();
+            EditorGUILayout.Space();
+        }
+
         void DrawGeneralSettings()
         {
-            EditorGUILayout.LabelField(Styles.generalSettingsLabel, EditorStyles.boldLabel);
-            EditorGUI.indentLevel++;
-            m_RenderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleLabel, m_RenderScale.floatValue, k_MinRenderScale, k_MaxRenderScale);
-            m_MaxPixelLights.intValue = EditorGUILayout.IntSlider(Styles.maxPixelLightsLabel, m_MaxPixelLights.intValue, 0, k_MaxSupportedPixelLights);
-            EditorGUILayout.Space();
-
-            bool directionalShadows = m_DirectionalShadowsSupportedProp.boolValue;
-            if (directionalShadows)
+            generalSettingsFoldout = EditorGUILayout.Foldout(generalSettingsFoldout, Styles.generalSettingsLabel, true);
+            if (generalSettingsFoldout)
             {
+                EditorGUI.indentLevel++;
+                EditorGUILayout.PropertyField(m_SupportsDynamicBatching, Styles.dynamicBatching);
+
+                EditorGUILayout.PropertyField(m_RequireDepthTextureProp, Styles.requireDepthTexture);
+                EditorGUI.BeginDisabledGroup(!m_RequireDepthTextureProp.boolValue);
+                EditorGUILayout.PropertyField(m_RequireSoftParticlesProp, Styles.requireSoftParticles);
+                EditorGUI.EndDisabledGroup();
+
+                EditorGUILayout.PropertyField(m_RequireOpaqueTextureProp, Styles.requireOpaqueTexture);
+                EditorGUI.indentLevel++;
+                EditorGUI.BeginDisabledGroup(!m_RequireOpaqueTextureProp.boolValue);
+                EditorGUILayout.PropertyField(m_OpaqueDownsamplingProp, Styles.opaqueDownsampling);
+                EditorGUI.EndDisabledGroup();
+                EditorGUI.indentLevel--;
+                EditorGUI.indentLevel--;
+                EditorGUILayout.Space();
+                EditorGUILayout.Space();
+            }
+        }
+
+        void DrawQualitySettings()
+        {
+            qualitySettingsFoldout = EditorGUILayout.Foldout(qualitySettingsFoldout, Styles.qualityLabel, true);
+            if (qualitySettingsFoldout)
+            {
+                EditorGUI.indentLevel++;
+
+                EditorGUILayout.PropertyField(m_HDR, Styles.hdrContent);
+                EditorGUILayout.PropertyField(m_MSAA, Styles.msaaContent);
+                m_RenderScale.floatValue = EditorGUILayout.Slider(Styles.renderScaleLabel, m_RenderScale.floatValue, k_MinRenderScale, k_MaxRenderScale);
+                m_MaxPixelLights.intValue = EditorGUILayout.IntSlider(Styles.maxPixelLightsLabel, m_MaxPixelLights.intValue, 0, k_MaxSupportedPixelLights);
+
+                EditorGUI.indentLevel--;
+                EditorGUILayout.Space();
+                EditorGUILayout.Space();
+            }
+        }
+
+        void DrawShadowSettings()
+        {
+            shadowsSettingsFoldout = EditorGUILayout.Foldout(shadowsSettingsFoldout, Styles.shadowLabel, true);
+            if (shadowsSettingsFoldout)
+            {
+                // Directional Shadows
+                EditorGUI.BeginDisabledGroup(!m_DirectionalShadowsSupportedProp.boolValue);
+                EditorGUI.indentLevel++;
                 EditorGUILayout.LabelField(Styles.directionalShadowLabel);
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_DirectionalShadowAtlasResolutionProp, Styles.directionalShadowAtlasResolution);
@@ -186,54 +245,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 EditorGUI.indentLevel--;
                 EditorGUILayout.Space();
-            }
+                EditorGUI.EndDisabledGroup();
 
-            bool localShadows = m_LocalShadowSupportedProp.boolValue;
-            if (localShadows)
-            {
+                // Local Shadows
+                EditorGUI.BeginDisabledGroup(!m_LocalShadowSupportedProp.boolValue);
                 EditorGUILayout.LabelField(Styles.localShadowLabel);
                 EditorGUI.indentLevel++;
                 EditorGUILayout.PropertyField(m_LocalShadowsAtlasResolutionProp, Styles.localShadowsAtlasResolution);
                 EditorGUI.indentLevel--;
-                EditorGUILayout.Space();
+                EditorGUI.indentLevel--;
+                EditorGUI.EndDisabledGroup();
             }
-
-            if (directionalShadows || localShadows)
-                EditorGUILayout.PropertyField(m_SoftShadowsSupportedProp, Styles.supportsSoftShadows);
-            EditorGUI.indentLevel--;
-            EditorGUILayout.Space();
-            EditorGUILayout.Space();
         }
-
-        void DrawCapabilitiesSettings()
-        {
-            EditorGUILayout.LabelField(Styles.capabilitiesLabel, EditorStyles.boldLabel);
-            EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(m_SupportsVertexLightProp, Styles.enableVertexLightLabel);
-            EditorGUILayout.PropertyField(m_RequireDepthTextureProp, Styles.requireDepthTexture);
-
-            EditorGUI.BeginDisabledGroup(!m_RequireDepthTextureProp.boolValue);
-            EditorGUILayout.PropertyField(m_RequireSoftParticlesProp, Styles.requireSoftParticles);
-            EditorGUI.EndDisabledGroup();
-
-            EditorGUILayout.PropertyField(m_RequireOpaqueTextureProp, Styles.requireOpaqueTexture);
-            EditorGUI.indentLevel++;
-            EditorGUI.BeginDisabledGroup(!m_RequireOpaqueTextureProp.boolValue);
-            EditorGUILayout.PropertyField(m_OpaqueDownsamplingProp, Styles.opaqueDownsampling);
-            EditorGUI.EndDisabledGroup();
-            EditorGUI.indentLevel--;
-
-            EditorGUILayout.PropertyField(m_HDR, Styles.hdrContent);
-            EditorGUILayout.PropertyField(m_MSAA, Styles.msaaContent);
-            EditorGUILayout.PropertyField(m_SupportsDynamicBatching, Styles.dynamicBatching);
-
-            EditorGUILayout.PropertyField(m_DirectionalShadowsSupportedProp, Styles.supportsDirectionalShadows);
-            EditorGUILayout.PropertyField(m_LocalShadowSupportedProp, Styles.supportsLocalShadows);
-
-            EditorGUI.indentLevel--;
-            EditorGUILayout.Space();
-            EditorGUILayout.Space();
-
-        }        
     }
 }

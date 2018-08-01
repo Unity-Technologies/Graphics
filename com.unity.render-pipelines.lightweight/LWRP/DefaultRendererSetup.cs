@@ -39,7 +39,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         [NonSerialized]
         private bool m_Initialized = false;
 
-        private void Init(LightweightForwardRenderer renderer)
+        private void Init()
         {
             if (m_Initialized)
                 return;
@@ -48,22 +48,22 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_DirectionalShadowPass = new DirectionalShadowsPass();
             m_LocalShadowPass = new LocalShadowsPass();
             m_SetupForwardRenderingPass = new SetupForwardRenderingPass();
-            m_ScreenSpaceShadowResovePass = new ScreenSpaceShadowResolvePass(renderer.GetMaterial(MaterialHandles.ScrenSpaceShadow));
+            m_ScreenSpaceShadowResovePass = new ScreenSpaceShadowResolvePass();
             m_CreateLightweightRenderTexturesPass = new CreateLightweightRenderTexturesPass();
             m_BeginXrRenderingPass = new BeginXRRenderingPass();
             m_SetupLightweightConstants = new SetupLightweightConstanstPass();
-            m_RenderOpaqueForwardPass = new RenderOpaqueForwardPass(renderer.GetMaterial(MaterialHandles.Error));
+            m_RenderOpaqueForwardPass = new RenderOpaqueForwardPass();
             m_OpaquePostProcessPass = new OpaquePostProcessPass();
             m_DrawSkyboxPass = new DrawSkyboxPass();
-            m_CopyDepthPass = new CopyDepthPass(renderer.GetMaterial(MaterialHandles.DepthCopy));
-            m_CopyColorPass = new CopyColorPass(renderer.GetMaterial(MaterialHandles.Sampling));
-            m_RenderTransparentForwardPass = new RenderTransparentForwardPass(renderer.GetMaterial(MaterialHandles.Error));
+            m_CopyDepthPass = new CopyDepthPass();
+            m_CopyColorPass = new CopyColorPass();
+            m_RenderTransparentForwardPass = new RenderTransparentForwardPass();
             m_TransparentPostProcessPass = new TransparentPostProcessPass();
-            m_FinalBlitPass = new FinalBlitPass(renderer.GetMaterial(MaterialHandles.Blit));
+            m_FinalBlitPass = new FinalBlitPass();
             m_EndXrRenderingPass = new EndXRRenderingPass();
             
             #if UNITY_EDITOR
-            m_SceneViewDepthCopyPass = new SceneViewDepthCopyPass(renderer.GetMaterial(MaterialHandles.DepthCopy));
+            m_SceneViewDepthCopyPass = new SceneViewDepthCopyPass();
             #endif
             
             // RenderTexture format depends on camera and pipeline (HDR, non HDR, etc)
@@ -82,7 +82,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public void Setup(LightweightForwardRenderer renderer, ref ScriptableRenderContext context,
             ref CullResults cullResults, ref RenderingData renderingData)
         {
-            Init(renderer);
+            Init();
 
             renderer.Clear();
 
