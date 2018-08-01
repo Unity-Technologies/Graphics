@@ -45,6 +45,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public SerializedProperty volumetricDimmer;
             public SerializedProperty lightUnit;
             public SerializedProperty displayAreaLightEmissiveMesh;
+            public SerializedProperty lightLayers;
 
             // Editor stuff
             public SerializedProperty useOldInspector;
@@ -100,6 +101,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             Lumen = LightUnit.Lumen,
             Luminance = LightUnit.Luminance,
+            Ev100 = LightUnit.Ev100,
         }
 
         enum PunctualLightUnit
@@ -138,6 +140,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     volumetricDimmer = o.Find(x => x.volumetricDimmer),
                     lightUnit = o.Find(x => x.lightUnit),
                     displayAreaLightEmissiveMesh = o.Find(x => x.displayAreaLightEmissiveMesh),
+                    lightLayers = o.Find(x => x.lightLayers),                    
                     fadeDistance = o.Find(x => x.fadeDistance),
                     affectDiffuse = o.Find(x => x.affectDiffuse),
                     affectSpecular = o.Find(x => x.affectSpecular),
@@ -185,6 +188,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     if (hdLightData != null)
                         hdLightData.UpdateAreaLightEmissiveMesh();
             };
+            
+            // If the light is disabled in the editor we force the light upgrade from his inspector
+            foreach (var additionalLightData in m_AdditionalLightDatas)
+                additionalLightData.UpgradeLight();
         }
 
         public override void OnInspectorGUI()
@@ -236,10 +243,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (m_UpdateAreaLightEmissiveMeshComponents)
                 UpdateAreaLightEmissiveMeshComponents();
-            
-            // If the light is disabled in the editor we force the light upgrade from his inspector
-            foreach (var additionalLightData in m_AdditionalLightDatas)
-                additionalLightData.UpgradeLight();
         }
 
         void DrawFoldout(SerializedProperty foldoutProperty, string title, Action func)
@@ -366,7 +369,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (EditorGUI.EndChangeCheck())
             {
-                UpdateLightScale();
                 m_UpdateAreaLightEmissiveMeshComponents = true;
                 ((Light)target).SetLightDirty(); // Should be apply only to parameter that's affect GI, but make the code cleaner
             }
@@ -378,27 +380,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 m_AdditionalLightData.lightUnit.enumValueIndex = (int)DirectionalLightUnit.Lux;
             else
                 m_AdditionalLightData.lightUnit.enumValueIndex = (int)LightUnit.Lumen;
-        }
-
-        // Refect light size changes on transform local scale
-        void UpdateLightScale()
-        {
-            foreach (var hdLightData in m_AdditionalLightDatas)
-            {
-                switch (m_LightShape)
-                {
-                    case LightShape.Line:
-                        hdLightData.transform.localScale = new Vector3(m_AdditionalLightData.shapeWidth.floatValue, 0, 0);
-                        break;
-                    case LightShape.Rectangle:
-                        hdLightData.transform.localScale = new Vector3(m_AdditionalLightData.shapeWidth.floatValue, m_AdditionalLightData.shapeHeight.floatValue, 0);
-                        break;
-                    case LightShape.Point:
-                    case LightShape.Spot:
-                        hdLightData.transform.localScale = Vector3.one * settings.range.floatValue;
-                        break;
-                }
-            }
         }
 
         LightUnit LightIntensityUnitPopup(LightShape shape)
@@ -464,19 +445,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // For area lights
             if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Luminance)
-            {
-                if (m_LightShape == LightShape.Rectangle)
-                    intensity = LightUtils.ConvertRectLightLumenToLuminance(intensity, m_AdditionalLightData.shapeWidth.floatValue, m_AdditionalLightData.shapeHeight.floatValue);
-                else if (m_LightShape == LightShape.Line)
-                    intensity = LightUtils.CalculateLineLightLumenToLuminance(intensity, m_AdditionalLightData.shapeWidth.floatValue);
-            }
+                intensity = LightUtils.ConvertAreaLightLumenToLuminance((LightTypeExtent)m_AdditionalLightData.lightTypeExtent.enumValueIndex, intensity, m_AdditionalLightData.shapeWidth.floatValue, m_AdditionalLightData.shapeHeight.floatValue);
             if (oldLightUnit == LightUnit.Luminance && newLightUnit == LightUnit.Lumen)
-            {
-                if (m_LightShape == LightShape.Rectangle)
-                    intensity = LightUtils.ConvertRectLightLuminanceToLumen(intensity, m_AdditionalLightData.shapeWidth.floatValue, m_AdditionalLightData.shapeHeight.floatValue);
-                else if (m_LightShape == LightShape.Line)
-                    intensity = LightUtils.CalculateLineLightLuminanceToLumen(intensity, m_AdditionalLightData.shapeWidth.floatValue);
-            }
+                intensity = LightUtils.ConvertAreaLightLuminanceToLumen((LightTypeExtent)m_AdditionalLightData.lightTypeExtent.enumValueIndex, intensity, m_AdditionalLightData.shapeWidth.floatValue, m_AdditionalLightData.shapeHeight.floatValue);
+            if (oldLightUnit == LightUnit.Luminance && newLightUnit == LightUnit.Ev100)
+                intensity = LightUtils.ConvertLuminanceToEv(intensity);
+            if (oldLightUnit == LightUnit.Ev100 && newLightUnit == LightUnit.Luminance)
+                intensity = LightUtils.ConvertEvToLuminance(intensity);
+            if (oldLightUnit == LightUnit.Ev100 && newLightUnit == LightUnit.Lumen)
+                intensity = LightUtils.ConvertAreaLightEvToLumen((LightTypeExtent)m_AdditionalLightData.lightTypeExtent.enumValueIndex, intensity, m_AdditionalLightData.shapeWidth.floatValue, m_AdditionalLightData.shapeHeight.floatValue);
+            if (oldLightUnit == LightUnit.Lumen && newLightUnit == LightUnit.Ev100)
+                intensity = LightUtils.ConvertAreaLightLumenToEv((LightTypeExtent)m_AdditionalLightData.lightTypeExtent.enumValueIndex, intensity, m_AdditionalLightData.shapeWidth.floatValue, m_AdditionalLightData.shapeHeight.floatValue);
 
             m_AdditionalLightData.intensity.floatValue = intensity;
         }
@@ -548,6 +527,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUILayout.Space();
                 EditorGUILayout.LabelField("Additional Settings", EditorStyles.boldLabel);
                 EditorGUI.indentLevel++;
+                m_AdditionalLightData.lightLayers.intValue = Convert.ToInt32(EditorGUILayout.EnumFlagsField(s_Styles.lightLayer, (LightLayerEnum)m_AdditionalLightData.lightLayers.intValue));
                 EditorGUILayout.PropertyField(m_AdditionalLightData.affectDiffuse, s_Styles.affectDiffuse);
                 EditorGUILayout.PropertyField(m_AdditionalLightData.affectSpecular, s_Styles.affectSpecular);
                 if (m_LightShape != LightShape.Directional)

@@ -12,7 +12,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
     [FormerName("UnityEditor.ShaderGraph.LightWeightUnlitSubShader")]
     public class LightWeightUnlitSubShader : IUnlitSubShader
     {
-        static NeededCoordinateSpace m_VertexCoordinateSpace = NeededCoordinateSpace.Object;
         static NeededCoordinateSpace m_PixelCoordinateSpace = NeededCoordinateSpace.World;
 
         struct Pass
@@ -34,6 +33,20 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             VertexShaderSlots = new List<int>()
             {
                 UnlitMasterNode.PositionSlotId
+            }
+        };
+
+        Pass m_DepthShadowPass = new Pass()
+        {
+            Name = "",
+            PixelShaderSlots = new List<int>()
+            {
+                PBRMasterNode.AlphaSlotId,
+                PBRMasterNode.AlphaThresholdSlotId
+            },
+            VertexShaderSlots = new List<int>()
+            {
+                PBRMasterNode.PositionSlotId
             }
         };
 
@@ -79,7 +92,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                         mode,
                         materialOptions));
 
-                subShader.AppendLines(GetExtraPassesFromTemplate(extraTemplate, masterNode, pass, mode, materialOptions));
+                subShader.AppendLines(GetShaderPassFromTemplate(
+                        extraTemplate,
+                        masterNode,
+                        m_DepthShadowPass,
+                        mode,
+                        materialOptions));
             }
 
             return subShader.ToString();
@@ -369,168 +387,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             resultPass = resultPass.Replace("${PixelShader}", pixelShader.ToString());
             resultPass = resultPass.Replace("${PixelShaderSurfaceInputs}", pixelShaderSurfaceInputs.ToString());
             resultPass = resultPass.Replace("${PixelShaderSurfaceRemap}", pixelShaderSurfaceRemap.ToString());
-
-            return resultPass;
-        }
-
-        static string GetExtraPassesFromTemplate(string template, UnlitMasterNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions)
-        {
-            // ----------------------------------------------------- //
-            //                         SETUP                         //
-            // ----------------------------------------------------- //
-
-            // -------------------------------------
-            // String builders
-
-            var dummyBuilder = new ShaderStringBuilder(0);
-            var shaderProperties = new PropertyCollector();
-            var functionBuilder = new ShaderStringBuilder(1);
-            var functionRegistry = new FunctionRegistry(functionBuilder);
-
-            var defines = new ShaderStringBuilder(2);
-            var graph = new ShaderStringBuilder(0);
-
-            var vertexDescriptionInputStruct = new ShaderStringBuilder(1);
-            var vertexDescriptionStruct = new ShaderStringBuilder(1);
-            var vertexDescriptionFunction = new ShaderStringBuilder(1);
-
-            var vertexInputStruct = new ShaderStringBuilder(1);
-
-            var vertexShader = new ShaderStringBuilder(2);
-            var vertexDescriptionInputs = new ShaderStringBuilder(2);
-
-            // -------------------------------------
-            // Get Slot and Node lists per stage
-
-            var vertexSlots = pass.VertexShaderSlots.Select(masterNode.FindSlot<MaterialSlot>).ToList();
-            var vertexNodes = ListPool<INode>.Get();
-            NodeUtils.DepthFirstCollectNodesFromNode(vertexNodes, masterNode, NodeUtils.IncludeSelf.Include, pass.VertexShaderSlots);
-
-            // -------------------------------------
-            // Get requirements
-
-            var vertexRequirements = ShaderGraphRequirements.FromNodes(vertexNodes, ShaderStageCapability.Vertex, false);
-
-            var modelRequiements = ShaderGraphRequirements.none;
-            modelRequiements.requiresNormal |= m_VertexCoordinateSpace;
-            modelRequiements.requiresPosition |= m_VertexCoordinateSpace;
-            modelRequiements.requiresMeshUVs.Add(UVChannel.UV1);
-
-            // ----------------------------------------------------- //
-            //                START SHADER GENERATION                //
-            // ----------------------------------------------------- //
-
-            // -------------------------------------
-            // Calculate material options
-
-            var cullingBuilder = new ShaderStringBuilder(1);
-
-            materialOptions.GetCull(cullingBuilder);
-
-            // -------------------------------------
-            // Generate defines
-
-            if (masterNode.IsSlotConnected(PBRMasterNode.AlphaThresholdSlotId))
-                defines.AppendLine("#define _AlphaClip 1");
-
-            // ----------------------------------------------------- //
-            //                START VERTEX DESCRIPTION               //
-            // ----------------------------------------------------- //
-
-            // -------------------------------------
-            // Generate Input structure for Vertex Description function
-            // TODO - Vertex Description Input requirements are needed to exclude intermediate translation spaces
-
-            vertexDescriptionInputStruct.AppendLine("struct VertexDescriptionInputs");
-            using (vertexDescriptionInputStruct.BlockSemicolonScope())
-            {
-                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresNormal, InterpolatorType.Normal, vertexDescriptionInputStruct);
-                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresTangent, InterpolatorType.Tangent, vertexDescriptionInputStruct);
-                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresBitangent, InterpolatorType.BiTangent, vertexDescriptionInputStruct);
-                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresViewDir, InterpolatorType.ViewDirection, vertexDescriptionInputStruct);
-                ShaderGenerator.GenerateSpaceTranslationSurfaceInputs(vertexRequirements.requiresPosition, InterpolatorType.Position, vertexDescriptionInputStruct);
-
-                if (vertexRequirements.requiresVertexColor)
-                    vertexDescriptionInputStruct.AppendLine("float4 {0};", ShaderGeneratorNames.VertexColor);
-
-                if (vertexRequirements.requiresScreenPosition)
-                    vertexDescriptionInputStruct.AppendLine("float4 {0};", ShaderGeneratorNames.ScreenPosition);
-
-                foreach (var channel in vertexRequirements.requiresMeshUVs.Distinct())
-                    vertexDescriptionInputStruct.AppendLine("half4 {0};", channel.GetUVName());
-            }
-
-            // -------------------------------------
-            // Generate Output structure for Vertex Description function
-
-            GraphUtil.GenerateVertexDescriptionStruct(vertexDescriptionStruct, vertexSlots);
-
-            // -------------------------------------
-            // Generate Vertex Description function
-
-            GraphUtil.GenerateVertexDescriptionFunction(
-                masterNode.owner as AbstractMaterialGraph,
-                vertexDescriptionFunction,
-                functionRegistry,
-                shaderProperties,
-                mode,
-                vertexNodes,
-                vertexSlots);
-
-            // ----------------------------------------------------- //
-            //           GENERATE VERTEX > PIXEL PIPELINE            //
-            // ----------------------------------------------------- //
-
-            // -------------------------------------
-            // Generate Input structure for Vertex shader
-
-            GraphUtil.GenerateApplicationVertexInputs(vertexRequirements.Union(modelRequiements), vertexInputStruct);
-
-            // -------------------------------------
-            // Generate standard transformations
-            // This method ensures all required transform data is available in vertex and pixel stages
-
-            ShaderGenerator.GenerateStandardTransforms(
-                3,
-                10,
-                dummyBuilder,
-                vertexShader,
-                vertexDescriptionInputs,
-                dummyBuilder,
-                dummyBuilder,
-                dummyBuilder,
-                ShaderGraphRequirements.none,
-                ShaderGraphRequirements.none,
-                modelRequiements,
-                vertexRequirements,
-                CoordinateSpace.World);
-
-            // ----------------------------------------------------- //
-            //                      FINALIZE                         //
-            // ----------------------------------------------------- //
-
-            // -------------------------------------
-            // Combine Graph sections
-
-            graph.AppendLine(shaderProperties.GetPropertiesDeclaration(1));
-
-            graph.AppendLine(vertexDescriptionInputStruct.ToString());
-
-            graph.AppendLine(functionBuilder.ToString());
-
-            graph.AppendLine(vertexDescriptionStruct.ToString());
-            graph.AppendLine(vertexDescriptionFunction.ToString());
-
-            graph.AppendLine(vertexInputStruct.ToString());
-
-            // -------------------------------------
-            // Generate final subshader
-
-            var resultPass = template.Replace("${Culling}", cullingBuilder.ToString());
-            resultPass = resultPass.Replace("${Defines}", defines.ToString());
-            resultPass = resultPass.Replace("${Graph}", graph.ToString());
-            resultPass = resultPass.Replace("${VertexShader}", vertexShader.ToString());
-            resultPass = resultPass.Replace("${VertexShaderDescriptionInputs}", vertexDescriptionInputs.ToString());
 
             return resultPass;
         }

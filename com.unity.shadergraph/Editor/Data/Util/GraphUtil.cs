@@ -28,6 +28,14 @@ namespace UnityEditor.ShaderGraph
         }
     };
 
+    [System.AttributeUsage(System.AttributeTargets.Struct)]
+    public class InterpolatorPack : System.Attribute
+    {
+        public InterpolatorPack()
+        {
+        }
+    }
+
     // attribute used to flag a field as needing an HLSL semantic applied
     // i.e.    float3 position : POSITION;
     //                           ^ semantic
@@ -221,6 +229,12 @@ namespace UnityEditor.ShaderGraph
             }
             result.Deindent();
             result.AddShaderChunk("};");
+
+            object[] packAttributes = t.GetCustomAttributes(typeof(InterpolatorPack), false);
+            if (packAttributes.Length > 0)
+            {
+                BuildPackedType(t, activeFields, result);
+            }
         }
 
         public static void BuildPackedType(System.Type unpacked, HashSet<string> activeFields, ShaderGenerator result)
@@ -347,24 +361,6 @@ namespace UnityEditor.ShaderGraph
             result.AddGenerator(unpacker);
         }
 
-        // an easier to use version of substring Append() -- explicit inclusion on each end, and checks for positive length
-        private static void AppendSubstring(System.Text.StringBuilder target, string str, int start, bool includeStart, int end, bool includeEnd)
-        {
-            if (!includeStart)
-            {
-                start++;
-            }
-            if (!includeEnd)
-            {
-                end--;
-            }
-            int count = end - start + 1;
-            if (count > 0)
-            {
-                target.Append(str, start, count);
-            }
-        }
-
         // returns the offset of the first non-whitespace character, in the range [start, end] inclusive ... will return end if none found
         private static int SkipWhitespace(string str, int start, int end)
         {
@@ -382,168 +378,391 @@ namespace UnityEditor.ShaderGraph
             return index;
         }
 
-        public static System.Text.StringBuilder PreprocessShaderCode(string code, HashSet<string> activeFields, Dictionary<string, string> namedFragments, System.Text.StringBuilder result, bool debugOutput)
+        public class TemplatePreprocessor
         {
-            if (result == null)
+            // inputs
+            HashSet<string> activeFields;
+            Dictionary<string, string> namedFragments;
+            string templatePath;
+            bool debugOutput;
+            string buildTypeAssemblyNameFormat;
+
+            // intermediates
+            HashSet<string> includedFiles;
+
+            // outputs
+            ShaderStringBuilder result;
+            List<string> sourceAssetDependencyPaths;
+
+            public TemplatePreprocessor(HashSet<string> activeFields, Dictionary<string, string> namedFragments, bool debugOutput, string templatePath, List<string> sourceAssetDependencyPaths, string buildTypeAssemblyNameFormat, ShaderStringBuilder outShaderCodeResult = null)
             {
-                result = new System.Text.StringBuilder();
+                this.activeFields = activeFields;
+                this.namedFragments = namedFragments;
+                this.debugOutput = debugOutput;
+                this.templatePath = templatePath;
+                this.sourceAssetDependencyPaths = sourceAssetDependencyPaths;
+                this.buildTypeAssemblyNameFormat = buildTypeAssemblyNameFormat;
+                this.result = outShaderCodeResult ?? new ShaderStringBuilder();
+                includedFiles = new HashSet<string>();
             }
 
-            int cur = 0;
-            int end = code.Length;
-            bool skipEndln = false;
-
-            while (cur < end)
+            public ShaderStringBuilder GetShaderCode()
             {
-                int dollar = code.IndexOf('$', cur);
-                if (dollar < 0)
-                {
-                    // no escape sequence found -- just append the remaining part of the code verbatim
-                    AppendSubstring(result, code, cur, true, end, false);
-                    cur = end;
-                }
-                else
-                {
-                    // found $ escape sequence
+                return result;
+            }
 
-                    // find the end of the line (or if none found, the end of the code)
-                    int endln = code.IndexOf('\n', dollar + 1);
-                    if (endln < 0)
+            public void ProcessTemplateFile(string filePath)
+            {
+                if (File.Exists(filePath) &&
+                    !includedFiles.Contains(filePath))
+                {
+                    includedFiles.Add(filePath);
+
+                    if (sourceAssetDependencyPaths != null)
+                        sourceAssetDependencyPaths.Add(filePath);
+
+                    string[] templateLines = File.ReadAllLines(filePath);
+                    foreach (string line in templateLines)
                     {
-                        endln = end;
+                        ProcessTemplateLine(line, 0, line.Length);
                     }
+                }
+            }
 
-                    // see if the character after '$' is '{', which would indicate a named fragment splice
-                    if ((dollar + 1 < endln) && (code[dollar + 1] == '{'))
+            private struct Token
+            {
+                public string s;
+                public int start;
+                public int end;
+
+                public Token(string s, int start, int end)
+                {
+                    this.s = s;
+                    this.start = start;
+                    this.end = end;
+                }
+
+                public static Token Invalid()
+                {
+                    return new Token(null, 0, 0);
+                }
+
+                public bool IsValid()
+                {
+                    return (s != null);
+                }
+
+                public bool Is(string other)
+                {
+                    int len = end - start;
+                    return (other.Length == len) && (0 == string.Compare(s, start, other, 0, len));
+                }
+                public string GetString()
+                {
+                    int len = end - start;
+                    if (len > 0)
                     {
-                        // named fragment splice
-                        // search for the '}' within the current line
-                        int curlystart = dollar + 1;
-                        int curlyend = -1;
-                        if (endln > curlystart + 1)
-                        {
-                            curlyend = code.IndexOf('}', curlystart + 1, endln - curlystart - 1);
-                        }
+                        return s.Substring(start, end - start);
+                    }
+                    return null;
+                }
+            }
 
-                        int nameLength = curlyend - dollar + 1;
-                        if ((curlyend < 0) || (nameLength <= 0))
-                        {
-                            // no } found, or zero length name                            
+            public void ProcessTemplateLine(string line, int start, int end)
+            {
+                bool appendEndln = true;
 
-                            // append everything before the beginning of the escape sequence
-                            AppendSubstring(result, code, cur, true, dollar, false);
-
-                            if (curlyend < 0)
-                            {
-                                result.Append("// ERROR: unterminated escape sequence ('${' and '}' must be matched)\n");
-                            }
-                            else
-                            {
-                                result.Append("// ERROR: name '${}' is empty\n");
-                            }
-
-                            // append the line (commented out) for context
-                            result.Append("//    ");
-                            AppendSubstring(result, code, dollar, true, endln, false);
-                            result.Append("\n");
-                        }
-                        else
-                        {
-                            // } found!
-                            // ugh, this probably allocates memory -- wish we could do the name lookup direct from a substring
-                            string name = code.Substring(dollar, nameLength);
-
-                            // append everything before the beginning of the escape sequence
-                            AppendSubstring(result, code, cur, true, dollar, false);
-
-                            string fragment;
-                            if ((namedFragments != null) && namedFragments.TryGetValue(name, out fragment))
-                            {
-                                // splice the fragment
-                                result.Append(fragment);
-                                // advance to just after the '}'
-                                cur = curlyend + 1;
-                            }
-                            else
-                            {
-                                // no named fragment found
-                                result.AppendFormat("/* Could not find named fragment '{0}' */", name);
-                                cur = curlyend + 1;
-                            }
-                        }
+                int cur = start;
+                while (cur < end)
+                {
+                    // find an escape code '$'
+                    int dollar = line.IndexOf('$', cur, end - cur);
+                    if (dollar < 0)
+                    {
+                        // no escape code found in the remaining code -- just append the rest verbatim
+                        AppendSubstring(line, cur, true, end, false);
+                        break;
                     }
                     else
                     {
-                        // it's a predicate
-                        // search for the colon within the current line
-                        int colon = -1;
-                        if (endln > dollar + 1)
+                        // found $ escape sequence
+                        Token command = ParseIdentifier(line, dollar+1, end);
+                        if (!command.IsValid())
                         {
-                            colon = code.IndexOf(':', dollar + 1, endln - dollar - 1);
-                        }
-
-                        int predicateLength = colon - dollar - 1;
-                        if ((colon < 0) || (predicateLength <= 0))
-                        {
-                            // no colon found... error!  Spit out error and context
-
-                            // append everything before the beginning of the escape sequence
-                            AppendSubstring(result, code, cur, true, dollar, false);
-
-                            if (colon < 0)
-                            {
-                                result.Append("// ERROR: unterminated escape sequence ('$' and ':' must be matched)\n");
-                            }
-                            else
-                            {
-                                result.Append("// ERROR: predicate is zero length\n");
-                            }
-
-                            // append the line (commented out) for context
-                            result.Append("//    ");
-                            AppendSubstring(result, code, dollar, true, endln, false);
+                            Error("ERROR: $ must be followed by a command string (if, splice, or include)", line, dollar+1);
+                            break;
                         }
                         else
                         {
-                            // colon found!
-                            // ugh, this probably allocates memory -- wish we could do the field lookup direct from a substring
-                            string predicate = code.Substring(dollar + 1, predicateLength);
-                            int nonwhitespace = SkipWhitespace(code, colon + 1, endln);
-                            if (activeFields.Contains(predicate))
+                            if (command.Is("include"))
                             {
-                                // append everything before the beginning of the escape sequence
-                                AppendSubstring(result, code, cur, true, dollar, false);
-
-                                // predicate is active, append the line
-                                AppendSubstring(result, code, nonwhitespace, true, endln, false);
+                                ProcessIncludeCommand(command, end);                                
+                                break;      // include command always ignores the rest of the line, error or not
+                            }
+                            else if (command.Is("splice"))
+                            {
+                                if (!ProcessSpliceCommand(command, end, ref cur))
+                                {
+                                    // error, skip the rest of the line
+                                    break;
+                                }
+                            }
+                            else if (command.Is("buildType"))
+                            {
+                                ProcessBuildTypeCommand(command, end);
+                                break;      // buildType command always ignores the rest of the line, error or not
                             }
                             else
                             {
-                                // predicate is not active
-                                if (debugOutput)
+                                // let's see if it is a predicate
+                                Token predicate = ParseUntil(line, dollar + 1, end, ':');
+                                if (!predicate.IsValid())
                                 {
-                                    // append everything before the beginning of the escape sequence
-                                    AppendSubstring(result, code, cur, true, dollar, false);
-                                    result.Append("// ");
-                                    AppendSubstring(result, code, nonwhitespace, true, endln, false);
+                                    Error("ERROR: unrecognized command: " + command.GetString(), line, command.start);
+                                    break;
                                 }
                                 else
                                 {
-                                    skipEndln = true;
+                                    if (!ProcessPredicate(predicate, end, ref cur, ref appendEndln))
+                                    {
+                                        break;  // skip the rest of the line
+                                    }
                                 }
                             }
                         }
-                        cur = endln + 1;
+                    }
+                }
+
+                if (appendEndln)
+                {
+                    result.AppendNewLine();
+                }
+            }
+
+            private void ProcessIncludeCommand(Token includeCommand, int lineEnd)
+            {
+                if (Expect(includeCommand.s, includeCommand.end, '('))
+                {
+                    Token param = ParseString(includeCommand.s, includeCommand.end + 1, lineEnd);
+
+                    if (!param.IsValid())
+                    {
+                        Error("ERROR: $include expected a string file path parameter", includeCommand.s, includeCommand.end + 1);
+                    }
+                    else
+                    {
+                        var includeLocation = Path.Combine(templatePath, param.GetString());
+                        if (!File.Exists(includeLocation))
+                        {
+                            Error("ERROR: $include cannot find file : " + includeLocation, includeCommand.s, param.start);
+                        }
+                        else
+                        {
+                            // skip a line, just to be sure we've cleaned up the current line
+                            result.AppendNewLine();
+                            result.AppendLine("//-------------------------------------------------------------------------------------");
+                            result.AppendLine("// TEMPLATE INCLUDE : " + param.GetString());
+                            result.AppendLine("//-------------------------------------------------------------------------------------");
+                            ProcessTemplateFile(includeLocation);
+                            result.AppendNewLine();
+                            result.AppendLine("//-------------------------------------------------------------------------------------");
+                            result.AppendLine("// END TEMPLATE INCLUDE : " + param.GetString());
+                            result.AppendLine("//-------------------------------------------------------------------------------------");
+                        }
                     }
                 }
             }
 
-            if (!skipEndln)
+            private bool ProcessSpliceCommand(Token spliceCommand, int lineEnd, ref int cur)
             {
-                result.AppendLine();
+                if (!Expect(spliceCommand.s, spliceCommand.end, '('))
+                {
+                    return false;
+                }
+                else
+                {
+                    Token param = ParseUntil(spliceCommand.s, spliceCommand.end + 1, lineEnd, ')');
+                    if (!param.IsValid())
+                    {
+                        Error("ERROR: splice command is missing a ')'", spliceCommand.s, spliceCommand.start);
+                        return false;
+                    }
+                    else
+                    {
+                        // append everything before the beginning of the escape sequence
+                        AppendSubstring(spliceCommand.s, cur, true, spliceCommand.start-1, false);
+
+                        // find the named fragment
+                        string name = param.GetString();     // unfortunately this allocates a new string
+                        string fragment;
+                        if ((namedFragments != null) && namedFragments.TryGetValue(name, out fragment))
+                        {
+                            // splice the fragment
+                            result.Append(fragment);
+                        }
+                        else
+                        {
+                            // no named fragment found
+                            result.Append("/* WARNING: $splice Could not find named fragment '{0}' */", name);
+                        }
+
+                        // advance to just after the ')' and continue parsing
+                        cur = param.end + 1;
+                    }
+                }
+                return true;
             }
 
-            return result;
+            private void ProcessBuildTypeCommand(Token command, int endLine)
+            {
+                if (Expect(command.s, command.end, '('))
+                {
+                    Token param = ParseUntil(command.s, command.end + 1, endLine, ')');
+                    if (!param.IsValid())
+                    {
+                        Error("ERROR: buildType command is missing a ')'", command.s, command.start);
+                    }
+                    else
+                    {
+                        string typeName = param.GetString();
+                        string assemblyQualifiedTypeName = string.Format(buildTypeAssemblyNameFormat, typeName);
+                        Type type = Type.GetType(assemblyQualifiedTypeName);
+                        if (type == null)
+                        {
+                            Error("ERROR: buildType could not find type : " + typeName, command.s, param.start);
+                        }
+                        else
+                        {
+                            result.AppendLine("// Generated Type: " + typeName);
+                            ShaderGenerator temp = new ShaderGenerator();
+                            BuildType(type, activeFields, temp);
+                            result.AppendLine(temp.GetShaderString(0, false));
+                        }
+                    }
+                }
+            }
+
+            private bool ProcessPredicate(Token predicate, int endLine, ref int cur, ref bool appendEndln)
+            {
+                // eval if(param)
+                string fieldName = predicate.GetString();
+                int nonwhitespace = SkipWhitespace(predicate.s, predicate.end + 1, endLine);
+                if (activeFields.Contains(fieldName))
+                {
+                    // predicate is active
+                    // append everything before the beginning of the escape sequence
+                    AppendSubstring(predicate.s, cur, true, predicate.start-1, false);
+
+                    // continue parsing the rest of the line, starting with the first nonwhitespace character
+                    cur = nonwhitespace;
+                    return true;
+                }
+                else
+                {
+                    // predicate is not active
+                    if (debugOutput)
+                    {
+                        // append everything before the beginning of the escape sequence
+                        AppendSubstring(predicate.s, cur, true, predicate.start-1, false);
+                        // append the rest of the line, commented out
+                        result.Append("// ");
+                        AppendSubstring(predicate.s, nonwhitespace, true, endLine, false);
+                    }
+                    else
+                    {
+                        // don't append anything
+                        appendEndln = false;
+                    }
+                    return false;
+                }
+            }
+
+            private Token ParseIdentifier(string code, int start, int end)
+            {
+                if (start < end)
+                {
+                    char c = code[start];
+                    if (Char.IsLetter(c) || (c == '_'))
+                    {
+                        int cur = start + 1;
+                        while (cur < end)
+                        {
+                            c = code[cur];
+                            if (!(Char.IsLetterOrDigit(c) || (c == '_')))
+                                break;
+                            cur++;
+                        }
+                        return new Token(code, start, cur);
+                    }
+                }
+                return Token.Invalid();
+            }
+
+            private Token ParseString(string line, int start, int end)
+            {
+                if (Expect(line, start, '"'))
+                {
+                    return ParseUntil(line, start + 1, end, '"');
+                }
+                return Token.Invalid();
+            }
+
+            private Token ParseUntil(string line, int start, int end, char endChar)
+            {
+                int cur = start;
+                while (cur < end)
+                {
+                    if (line[cur] == endChar)
+                    {
+                        return new Token(line, start, cur);
+                    }
+                    cur++;
+                }
+                return Token.Invalid();
+            }
+
+            private bool Expect(string line, int location, char expected)
+            {
+                if ((location < line.Length) && (line[location] == expected))
+                {
+                    return true;
+                }
+                Error("Expected '" + expected + "'", line, location);
+                return false;
+            }
+            private void Error(string error, string line, int location)
+            {
+                // append the line for context
+                result.Append("\n");
+                result.Append("// ");
+                AppendSubstring(line, 0, true, line.Length, false);
+                result.Append("\n");
+
+                // append the location marker, and error description
+                result.Append("// ");
+                result.AppendSpaces(location);
+                result.Append("^ ");
+                result.Append(error);
+                result.Append("\n");
+            }
+
+            // an easier to use version of substring Append() -- explicit inclusion on each end, and checks for positive length
+            private void AppendSubstring(string str, int start, bool includeStart, int end, bool includeEnd)
+            {
+                if (!includeStart)
+                {
+                    start++;
+                }
+                if (!includeEnd)
+                {
+                    end--;
+                }
+                int count = end - start + 1;
+                if (count > 0)
+                {
+                    result.Append(str, start, count);
+                }
+            }
         }
 
         public static void ApplyDependencies(HashSet<string> activeFields, List<Dependency[]> dependsList)

@@ -3,8 +3,9 @@
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
@@ -18,8 +19,9 @@ MonoBehaviour:
 --- !u!114 &114764462675500970
 MonoBehaviour:
   m_ObjectHideFlags: 3
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
@@ -33,17 +35,19 @@ MonoBehaviour:
   spectralLut:
     overrideState: 0
     value: {fileID: 2800000, guid: 318cbcd94840f1d48aca4d86234dc2e7, type: 3}
+    defaultState: 1
   intensity:
     overrideState: 1
-    value: 1
-  mobileOptimized:
+    value: 0.1
+  fastMode:
     overrideState: 1
     value: 1
 --- !u!114 &114901213439182114
 MonoBehaviour:
   m_ObjectHideFlags: 3
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
@@ -56,21 +60,23 @@ MonoBehaviour:
     value: 1
   midpoint:
     overrideState: 1
-    value: 1.01
+    value: 0.803
   scale:
     overrideState: 1
-    value: 0.0053
+    value: 0.0171
   steps:
     overrideState: 1
     value: 2
   pattern:
     overrideState: 1
-    value: {fileID: 2800000, guid: dde6d9c3ffacd4dd78f2a3fcd6446435, type: 3}
+    value: {fileID: 2800000, guid: a40e70950360e4acaa5790b3f8081f99, type: 3}
+    defaultState: 1
 --- !u!114 &114971891475011792
 MonoBehaviour:
   m_ObjectHideFlags: 3
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0

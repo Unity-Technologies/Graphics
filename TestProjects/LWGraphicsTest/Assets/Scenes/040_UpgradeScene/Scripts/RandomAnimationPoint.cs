@@ -1,15 +1,15 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 [ExecuteInEditMode]
-public class RandomAnimationPoint : MonoBehaviour
-{
+public class RandomAnimationPoint : MonoBehaviour {
+
     public int seed;
-    public Animator anim;
+	public Animator anim;
 
     void OnEnable()
-    {
+	{
         if (anim != null)
         {
             Random.InitState(seed);
@@ -20,9 +20,9 @@ public class RandomAnimationPoint : MonoBehaviour
         }
     }
 
-    void OnRenderObject()
-    {
-        if (anim != null)
+    void OnRenderObject(){
+        if(anim != null)
             anim.Update(Time.deltaTime);
     }
+
 }
