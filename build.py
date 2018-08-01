@@ -4,12 +4,12 @@ import logging
 
 def packages_list():
     return [
+        #ORDER IS IMPORTANT
+        ("com.unity.shadergraph", os.path.join("com.unity.shadergraph")),
         ("com.unity.render-pipelines.core", os.path.join("com.unity.render-pipelines.core")),
         ("com.unity.render-pipelines.lightweight", os.path.join("com.unity.render-pipelines.lightweight")),
         ("com.unity.render-pipelines.high-definition", os.path.join("com.unity.render-pipelines.high-definition")),
-        ("com.unity.shadergraph", os.path.join("com.unity.shadergraph")),
-        ("com.unity.postprocessing", os.path.join("com.unity.postprocessing")),
-        ("com.unity.testframework.graphics", os.path.join("com.unity.testframework.graphics")),
+        ("com.unity.testframework.graphics", os.path.join("com.unity.testframework.graphics"))
     ]
 
 def test_packages_list():
@@ -17,8 +17,7 @@ def test_packages_list():
         "com.unity.render-pipelines.core",
         "com.unity.render-pipelines.lightweight",
         "com.unity.render-pipelines.high-definition",
-        "com.unity.shadergraph",
-        "com.unity.postprocessing"
+        "com.unity.shadergraph"
     ]
 
 if __name__ == "__main__":

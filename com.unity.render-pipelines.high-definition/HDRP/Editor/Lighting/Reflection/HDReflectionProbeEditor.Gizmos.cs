@@ -1,6 +1,5 @@
 using UnityEditorInternal;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
@@ -18,20 +17,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 return;
 
             var reflectionData = reflectionProbe.GetComponent<HDAdditionalReflectionData>();
+            var mat = reflectionProbe.transform.localToWorldMatrix;
 
             switch (EditMode.editMode)
             {
                 // Influence editing
                 case EditMode.SceneViewEditMode.ReflectionProbeBox:
-                    Gizmos_Influence(reflectionProbe, reflectionData, e, true);
+                    InfluenceVolumeUI.DrawGizmos(e.m_UIState.influenceVolume, reflectionData.influenceVolume, mat, InfluenceVolumeUI.HandleType.Base, InfluenceVolumeUI.HandleType.All);
                     break;
                 // Influence fade editing
                 case EditMode.SceneViewEditMode.GridBox:
-                    Gizmos_InfluenceFade(reflectionProbe, reflectionData, e, InfluenceType.Standard, true);
+                    InfluenceVolumeUI.DrawGizmos(e.m_UIState.influenceVolume, reflectionData.influenceVolume, mat, InfluenceVolumeUI.HandleType.Influence, InfluenceVolumeUI.HandleType.All);
                     break;
                 // Influence normal fade editing
                 case EditMode.SceneViewEditMode.Collider:
-                    Gizmos_InfluenceFade(reflectionProbe, reflectionData, e, InfluenceType.Normal, true);
+                    InfluenceVolumeUI.DrawGizmos(e.m_UIState.influenceVolume, reflectionData.influenceVolume, mat, InfluenceVolumeUI.HandleType.InfluenceNormal, InfluenceVolumeUI.HandleType.All);
+                    break;
+                default:
+                    InfluenceVolumeUI.DrawGizmos(e.m_UIState.influenceVolume, reflectionData.influenceVolume, mat, InfluenceVolumeUI.HandleType.None, InfluenceVolumeUI.HandleType.Base);
                     break;
             }
         }
@@ -49,107 +52,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (!e.sceneViewEditing)
                 return;
 
-            //Gizmos_Influence(reflectionProbe, reflectionData, e, false);
-            Gizmos_InfluenceFade(reflectionProbe, reflectionData, null, InfluenceType.Standard, false);
-            Gizmos_InfluenceFade(reflectionProbe, reflectionData, null, InfluenceType.Normal, false);
+
 
             DrawVerticalRay(reflectionProbe.transform);
-        }
-
-        static void Gizmos_InfluenceFade(ReflectionProbe p, HDAdditionalReflectionData a, HDReflectionProbeEditor e, InfluenceType type, bool isEdit)
-        {
-            var col = Gizmos.color;
-            var mat = Gizmos.matrix;
-
-            Gizmo6FacesBoxContained box;
-            Vector3 boxCenterOffset;
-            Vector3 boxSizeOffset;
-            float sphereRadiusOffset;
-            Color color;
-            switch (type)
-            {
-                default:
-                case InfluenceType.Standard:
-                    {
-                        box = e != null ? e.m_UIState.alternativeBoxBlendHandle : null;
-                        boxCenterOffset = a.boxBlendCenterOffset;
-                        boxSizeOffset = a.boxBlendSizeOffset;
-                        sphereRadiusOffset = a.sphereBlendRadiusOffset;
-                        color = isEdit ? k_GizmoThemeColorInfluenceBlendFace : k_GizmoThemeColorInfluenceBlend;
-                        break;
-                    }
-                case InfluenceType.Normal:
-                    {
-                        box = e != null ? e.m_UIState.alternativeBoxBlendNormalHandle : null;
-                        boxCenterOffset = a.boxBlendNormalCenterOffset;
-                        boxSizeOffset = a.boxBlendNormalSizeOffset;
-                        sphereRadiusOffset = a.sphereBlendNormalRadiusOffset;
-                        color = isEdit ? k_GizmoThemeColorInfluenceNormalBlendFace : k_GizmoThemeColorInfluenceNormalBlend;
-                        break;
-                    }
-            }
-
-            Gizmos.matrix = HDReflectionProbeEditorUtility.GetLocalSpace(p);
-            switch (a.influenceShape)
-            {
-                case ShapeType.Box:
-                    {
-                        Gizmos.color = color;
-                        if (e != null) // e == null may occure when editor have still not been created at selection while the tool is not used for this part
-                        {
-                            box.DrawHull(isEdit);
-                        }
-                        else
-                        {
-                            if (isEdit)
-                                Gizmos.DrawCube(p.center + boxCenterOffset, p.size + boxSizeOffset);
-                            else
-                                Gizmos.DrawWireCube(p.center + boxCenterOffset, p.size + boxSizeOffset);
-                        }
-                        break;
-                    }
-                case ShapeType.Sphere:
-                    {
-                        Gizmos.color = color;
-                        if (isEdit)
-                            Gizmos.DrawSphere(p.center, a.influenceSphereRadius + sphereRadiusOffset);
-                        else
-                            Gizmos.DrawWireSphere(p.center, a.influenceSphereRadius + sphereRadiusOffset);
-                        break;
-                    }
-            }
-
-            Gizmos.matrix = mat;
-            Gizmos.color = col;
-        }
-
-        static void Gizmos_Influence(ReflectionProbe p, HDAdditionalReflectionData a, HDReflectionProbeEditor e, bool isEdit)
-        {
-            var col = Gizmos.color;
-            var mat = Gizmos.matrix;
-
-            Gizmos.matrix = HDReflectionProbeEditorUtility.GetLocalSpace(p);
-            switch (a.influenceShape)
-            {
-                case ShapeType.Box:
-                    {
-                        Gizmos.color = k_GizmoThemeColorExtentFace;
-                        e.m_UIState.alternativeBoxInfluenceHandle.DrawHull(isEdit);
-                        break;
-                    }
-                case ShapeType.Sphere:
-                    {
-                        Gizmos.color = k_GizmoThemeColorExtentFace;
-                        if (isEdit)
-                            Gizmos.DrawSphere(p.center, a.influenceSphereRadius);
-                        else
-                            Gizmos.DrawWireSphere(p.center, a.influenceSphereRadius);
-                        break;
-                    }
-            }
-
-            Gizmos.matrix = mat;
-            Gizmos.color = col;
         }
 
         static void DrawVerticalRay(Transform transform)

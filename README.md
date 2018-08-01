@@ -1,11 +1,11 @@
-## NOTE: We are migrating reported issues to fogbugz. Please log issues there.
+## NOTE: We have migrate reported issues to fogbugz. Please log issues via the in unity bug tracker.
 
 # Unity Scriptable Render Pipeline
 The Scriptable Render Pipeline (SRP) is a new Unity feature in active development. SRP has been designed to give artists and developers the tools they need to create modern, high-fidelity graphics in Unity. Including a built-in Lightweight Render Pipeline for use on all platforms, and a High Definition Render Pipeline (HDRP) for use on compute shader compatible platforms. These features are available in Unity 2018.1+.
 
 We are committed to an open and transparent development process, and as such you are welcome to take a look around if you are really curious.
 
-For a more detailed overview of the planned features and philosophy behind SRP, refer to the following Gdoc: [ScriptableRenderPipeline](https://docs.google.com/document/d/1e2jkr_-v5iaZRuHdnMrSv978LuJKYZhsIYnrDkNAuvQ/edit?usp=sharing)
+Detailed documentation is being added here: [Wiki](https://github.com/Unity-Technologies/ScriptableRenderPipeline/wiki)
 
 This feature is currently in preview. Some features may change or be removed before we move to a full release.  
 
@@ -19,7 +19,7 @@ To use the latest version of the SRP, follow the instructions below:
 
 This repository consists of a folder that should be cloned outside the Assets\ folder of your Unity project. We recommend creating a new project to test SRP. Do not clone this repo into an existing project unless you want to break it, or unless you are updating to a newer version of the SRP repo.
 
-After cloning you will need to edit your project's `packages.json` file (in either `UnityPackageManager/` or `Packages/`) to point to the SRP submodules you wish to use. See: https://github.com/Unity-Technologies/ScriptableRenderPipeline/blob/build/automation/TestProjects/GraphicsTests/Packages/manifest.json
+After cloning you will need to edit your project's `packages.json` file (in either `UnityPackageManager/` or `Packages/`) to point to the SRP submodules you wish to use. See: https://github.com/Unity-Technologies/ScriptableRenderPipeline/blob/master/TestProjects/HDRP_Tests/Packages/manifest.json
 
 This will link your project to the specific version of SRP you have cloned.
 

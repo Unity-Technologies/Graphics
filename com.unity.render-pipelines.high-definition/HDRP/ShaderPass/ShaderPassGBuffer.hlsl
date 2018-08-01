@@ -39,7 +39,8 @@ void Frag(  PackedVaryingsToPS packedInput,
 #ifdef VARYINGS_NEED_POSITION_WS
     float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);
 #else
-    float3 V = 0; // Avoid the division by 0
+    // Unused
+    float3 V = float3(1.0, 1.0, 1.0); // Avoid the division by 0
 #endif
 
     SurfaceData surfaceData;
@@ -50,11 +51,6 @@ void Frag(  PackedVaryingsToPS packedInput,
     ApplyDebugToSurfaceData(input.worldToTangent, surfaceData);
 #endif
 
-    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(input.positionSS.xy, surfaceData);
-
-    PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
-
-    builtinData.bakeDiffuseLighting = GetBakedDiffuseLighting(surfaceData, builtinData, bsdfData, preLightData);
     ENCODE_INTO_GBUFFER(surfaceData, builtinData, posInput.positionSS, outGBuffer);
 
 #ifdef _DEPTHOFFSET_ON

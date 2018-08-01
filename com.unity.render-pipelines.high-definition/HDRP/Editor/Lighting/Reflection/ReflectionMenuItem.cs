@@ -17,7 +17,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Selection.activeObject = plane;
 
             var planarProbe = plane.AddComponent<PlanarReflectionProbe>();
-            planarProbe.influenceVolume.boxBaseSize = new Vector3(10, 0.01f, 10);
+            planarProbe.influenceVolume.boxSize = new Vector3(10, 0.01f, 10);
 
             var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
             var material = hdrp != null ? hdrp.GetDefaultMirrorMaterial() : null;
@@ -34,7 +34,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var parent = menuCommand.context as GameObject;
             var go = CoreEditorUtils.CreateGameObject(parent, "Planar Reflection");
             var planarProbe = go.AddComponent<PlanarReflectionProbe>();
-            planarProbe.influenceVolume.boxBaseSize = new Vector3(1, 0.01f, 1);
+            planarProbe.influenceVolume.boxSize = new Vector3(1, 0.01f, 1);
             // Ensure it gets re-parented if this was a context click (otherwise does nothing)
             GameObjectUtility.SetParentAndAlign(go, menuCommand.context as GameObject);
             // Register the creation in the undo system
