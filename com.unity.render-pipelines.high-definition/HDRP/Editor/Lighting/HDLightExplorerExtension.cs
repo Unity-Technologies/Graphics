@@ -329,12 +329,12 @@ namespace UnityEditor
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Enum, HDStyles.ReflectionProbeShape, "m_Mode", 60, (r, prop, dep) =>           // 3: Shape
                 {
                     ReflectionProbe probe = prop.serializedObject.targetObject as ReflectionProbe;
-                    ShapeType influenceShape = reflectionProbeDataPairing[probe].influenceShape;
+                    InfluenceShape influenceShape = reflectionProbeDataPairing[probe].influenceVolume.shape;
                     EditorGUI.BeginChangeCheck();
-                    influenceShape = (ShapeType)EditorGUI.EnumPopup(r, influenceShape);
+                    influenceShape = (InfluenceShape)EditorGUI.EnumPopup(r, influenceShape);
                     if (EditorGUI.EndChangeCheck())
                     {
-                        reflectionProbeDataPairing[probe].influenceShape = influenceShape;
+                        reflectionProbeDataPairing[probe].influenceVolume.shape = influenceShape;
                     }
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.ReflectionProbeShadowDistance, "m_ShadowDistance", 90),        // 4: Shadow distance
