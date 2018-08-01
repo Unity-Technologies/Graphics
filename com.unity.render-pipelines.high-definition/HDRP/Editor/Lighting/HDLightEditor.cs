@@ -334,12 +334,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     // In case of change, think to update InitDefaultHDAdditionalLightData()
                     settings.lightType.enumValueIndex = (int)LightType.Point;
                     m_AdditionalLightData.lightTypeExtent.enumValueIndex = (int)LightTypeExtent.Rectangle;
+                    EditorGUI.BeginChangeCheck();
                     EditorGUILayout.PropertyField(m_AdditionalLightData.shapeWidth, s_Styles.shapeWidthRect);
                     EditorGUILayout.PropertyField(m_AdditionalLightData.shapeHeight, s_Styles.shapeHeightRect);
-                    m_AdditionalLightData.shapeWidth.floatValue = Mathf.Max(m_AdditionalLightData.shapeWidth.floatValue, k_MinAreaWidth);
-                    m_AdditionalLightData.shapeHeight.floatValue = Mathf.Max(m_AdditionalLightData.shapeHeight.floatValue, k_MinAreaWidth);
-                    settings.areaSizeX.floatValue = m_AdditionalLightData.shapeWidth.floatValue;
-                    settings.areaSizeY.floatValue = m_AdditionalLightData.shapeHeight.floatValue;
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        m_AdditionalLightData.shapeWidth.floatValue = Mathf.Max(m_AdditionalLightData.shapeWidth.floatValue, k_MinAreaWidth);
+                        m_AdditionalLightData.shapeHeight.floatValue = Mathf.Max(m_AdditionalLightData.shapeHeight.floatValue, k_MinAreaWidth);
+                        settings.areaSizeX.floatValue = m_AdditionalLightData.shapeWidth.floatValue;
+                        settings.areaSizeY.floatValue = m_AdditionalLightData.shapeHeight.floatValue;
+                    }
                     if (settings.isRealtime)
                         settings.shadowsType.enumValueIndex = (int)LightShadows.None;
                     break;
@@ -349,12 +353,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     //m_BaseData.type.enumValueIndex = (int)LightType.Area;
                     settings.lightType.enumValueIndex = (int)LightType.Point;
                     m_AdditionalLightData.lightTypeExtent.enumValueIndex = (int)LightTypeExtent.Line;
+                    EditorGUI.BeginChangeCheck();
                     EditorGUILayout.PropertyField(m_AdditionalLightData.shapeWidth, s_Styles.shapeWidthLine);
-                    m_AdditionalLightData.shapeWidth.floatValue = Mathf.Max(m_AdditionalLightData.shapeWidth.floatValue, k_MinAreaWidth);
-                    m_AdditionalLightData.shapeHeight.floatValue = Mathf.Max(m_AdditionalLightData.shapeHeight.floatValue, k_MinAreaWidth);
-                    // Fake line with a small rectangle in vanilla unity for GI
-                    settings.areaSizeX.floatValue = m_AdditionalLightData.shapeWidth.floatValue;
-                    settings.areaSizeY.floatValue = k_MinAreaWidth;
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        m_AdditionalLightData.shapeWidth.floatValue = Mathf.Max(m_AdditionalLightData.shapeWidth.floatValue, k_MinAreaWidth);
+                        m_AdditionalLightData.shapeHeight.floatValue = Mathf.Max(m_AdditionalLightData.shapeHeight.floatValue, k_MinAreaWidth);
+                        // Fake line with a small rectangle in vanilla unity for GI
+                        settings.areaSizeX.floatValue = m_AdditionalLightData.shapeWidth.floatValue;
+                        settings.areaSizeY.floatValue = k_MinAreaWidth;
+                    }
                     settings.shadowsType.enumValueIndex = (int)LightShadows.None;
                     break;
 
