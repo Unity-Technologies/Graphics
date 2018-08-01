@@ -118,6 +118,64 @@ float2 CalculateVelocity(float4 positionCS, float4 previousPositionCS)
 #endif
 }
 
+// For builtinData we want to allow the user to overwrite default GI in the surface shader / shader graph.
+// So we perform the following order of operation:
+// 1. InitBuiltinData - Init bakeDiffuseLighting and backBakeDiffuseLighting
+// 2. User can overwrite these value in the surface shader / shader graph
+// 3. PostInitBuiltinData - Handle debug mode + allow the current lighting model to update the data with ModifyBakedDiffuseLighting
+
+// This method initialize BuiltinData usual values and after update of builtinData by the caller must be follow by PostInitBuiltinData
+void InitBuiltinData(   float alpha, float3 normalWS, float3 backNormalWS, float3 positionRWS, float2 texCoord1, float2 texCoord2,
+                        out BuiltinData builtinData)
+{
+    ZERO_INITIALIZE(BuiltinData, builtinData);
+
+    builtinData.opacity = alpha;
+
+    // Sample lightmap/lightprobe/volume proxy
+    builtinData.bakeDiffuseLighting = SampleBakedGI(positionRWS, normalWS, texCoord1, texCoord2);
+    // We also sample the back lighting in case we have transmission. If not use this will be optimize out by the compiler
+    // For now simply recall the function with inverted normal, the compiler should be able to optimize the lightmap case to not resample the directional lightmap
+    // however it may not optimize the lightprobe case due to the proxy volume relying on dynamic if (to verify), not a problem for SH9, but a problem for proxy volume.
+    // TODO: optimize more this code.    
+    builtinData.backBakeDiffuseLighting = SampleBakedGI(positionRWS, backNormalWS, texCoord1, texCoord2);
+
+#ifdef SHADOWS_SHADOWMASK
+    float4 shadowMask = SampleShadowMask(positionRWS, texCoord1);
+    builtinData.shadowMask0 = shadowMask.x;
+    builtinData.shadowMask1 = shadowMask.y;
+    builtinData.shadowMask2 = shadowMask.z;
+    builtinData.shadowMask3 = shadowMask.w;
+#endif
+
+    // Use uniform directly - The float need to be cast to uint (as unity don't support to set a uint as uniform)
+    builtinData.renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
+}
+
+// InitBuiltinData must be call before calling PostInitBuiltinData
+void PostInitBuiltinData(   float3 V, inout PositionInputs posInput, SurfaceData surfaceData,
+                            inout BuiltinData builtinData)
+{
+#ifdef DEBUG_DISPLAY
+    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
+    {
+        // The lighting in SH or lightmap is assume to contain bounced light only (i.e no direct lighting),
+        // and is divide by PI (i.e Lambert is apply), so multiply by PI here to get back the illuminance
+        builtinData.bakeDiffuseLighting *= PI; // don't take into account backBakeDiffuseLighting
+    }
+    else
+#endif
+    {
+        // Apply control from the indirect lighting volume settings - This is apply here so we don't affect emissive 
+        // color in case of lit deferred for example and avoid material to have to deal with it
+        builtinData.bakeDiffuseLighting *= _IndirectLightingMultiplier.x;
+        builtinData.backBakeDiffuseLighting *= _IndirectLightingMultiplier.x;
+#ifdef MODIFY_BAKED_DIFFUSE_LIGHTING
+        ModifyBakedDiffuseLighting(V, posInput, surfaceData, builtinData);
+#endif
+    }
+}
+
 // Flipping or mirroring a normal can be done directly on the tangent space. This has the benefit to apply to the whole process either in surface gradient or not.
 // This function will modify FragInputs and this is not propagate outside of GetSurfaceAndBuiltinData(). This is ok as tangent space is not use outside of GetSurfaceAndBuiltinData().
 void ApplyDoubleSidedFlipOrMirror(inout FragInputs input)
@@ -139,12 +197,12 @@ void ApplyDoubleSidedFlipOrMirror(inout FragInputs input)
 }
 
 // This function convert the tangent space normal/tangent to world space and orthonormalize it + apply a correction of the normal if it is not pointing towards the near plane
-void GetNormalWS(FragInputs input, float3 V, float3 normalTS, out float3 normalWS)
+void GetNormalWS(FragInputs input, float3 normalTS, out float3 normalWS)
 {
-    #ifdef SURFACE_GRADIENT
+#ifdef SURFACE_GRADIENT
     normalWS = SurfaceGradientResolveNormal(input.worldToTangent[2], normalTS);
-    #else
+#else
     // We need to normalize as we use mikkt tangent space and this is expected (tangent space is not normalize)
     normalWS = normalize(TransformTangentToWorld(normalTS, input.worldToTangent));
-    #endif
+#endif
 }

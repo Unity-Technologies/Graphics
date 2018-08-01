@@ -27,6 +27,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4   unity_OrthoParams;
         public Vector4   projectionParams;
         public Vector4   screenParams;
+        public int       volumeLayerMask;
+        public Transform volumeAnchor;
 
         public VolumetricLightingSystem.VBufferParameters[] vBufferParams; // Double-buffered
 
@@ -319,6 +321,56 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 vlSys.UpdatePerCameraData(this);
             }
+
+            UpdateVolumeParameters();
+        }
+
+        void UpdateVolumeParameters()
+        {
+            volumeAnchor = null;
+            volumeLayerMask = -1;
+            if (m_AdditionalCameraData != null)
+            {
+                volumeLayerMask = m_AdditionalCameraData.volumeLayerMask;
+                volumeAnchor = m_AdditionalCameraData.volumeAnchorOverride;
+            }
+            else
+            {
+                // Temporary hack:
+                // For scene view, by default, we use the "main" camera volume layer mask if it exists
+                // Otherwise we just remove the lighting override layers in the current sky to avoid conflicts
+                // This is arbitrary and should be editable in the scene view somehow.
+                if (camera.cameraType == CameraType.SceneView)
+                {
+                    var mainCamera = Camera.main;
+                    bool needFallback = true;
+                    if (mainCamera != null)
+                    {
+                        var mainCamAdditionalData = mainCamera.GetComponent<HDAdditionalCameraData>();
+                        if (mainCamAdditionalData != null)
+                        {
+                            volumeLayerMask = mainCamAdditionalData.volumeLayerMask;
+                            volumeAnchor = mainCamAdditionalData.volumeAnchorOverride;
+                            needFallback = false;
+                        }
+                    }
+
+                    if (needFallback)
+                    {
+                        HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+                        // If the override layer is "Everything", we fall-back to "Everything" for the current layer mask to avoid issues by having no current layer
+                        // In practice we should never have "Everything" as an override mask as it does not make sense (a warning is issued in the UI)
+                        if (hdPipeline.asset.renderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask == -1)
+                            volumeLayerMask = -1;
+                        else
+                            volumeLayerMask = (-1 & ~hdPipeline.asset.renderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask);
+                    }
+                }
+            }
+
+            // If no override is provided, use the camera transform.
+            if (volumeAnchor == null)
+                volumeAnchor = camera.transform;
         }
 
         // Stopgap method used to extract stereo combined matrix state.

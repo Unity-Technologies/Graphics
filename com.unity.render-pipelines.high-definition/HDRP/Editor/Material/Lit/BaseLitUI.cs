@@ -57,7 +57,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent windShiverDragText = new GUIContent("Shiver Drag");
             public static GUIContent windShiverDirectionalityText = new GUIContent("Shiver Directionality");
 
-            public static GUIContent supportDBufferText = new GUIContent("Enable Decal", "Allow to specify if the material can receive decal or not");
+            public static GUIContent supportDecalsText = new GUIContent("Enable Decal", "Allow to specify if the material can receive decal or not");
 
             public static GUIContent enableGeometricSpecularAAText = new GUIContent("Enable geometric specular AA", "This reduce specular aliasing on highly dense mesh (Particularly useful when they don't use normal map)");
             public static GUIContent specularAAScreenSpaceVarianceText = new GUIContent("Screen space variance", "Allow to control the strength of the specular AA reduction. Higher mean more blurry result and less aliasing");
@@ -170,8 +170,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kTessellationBackFaceCullEpsilon = "_TessellationBackFaceCullEpsilon";
 
         // Decal
-        protected MaterialProperty supportDBuffer = null;
-        protected const string kSupportDBuffer = "_SupportDBuffer";
+        protected MaterialProperty supportDecals = null;
+        protected const string kSupportDecals = "_SupportDecals";
         protected MaterialProperty enableGeometricSpecularAA = null;
         protected const string kEnableGeometricSpecularAA = "_EnableGeometricSpecularAA";
         protected MaterialProperty specularAAScreenSpaceVariance = null;
@@ -183,24 +183,24 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             base.FindBaseMaterialProperties(props);
 
-            doubleSidedNormalMode = FindProperty(kDoubleSidedNormalMode, props);
-            depthOffsetEnable = FindProperty(kDepthOffsetEnable, props);
+            doubleSidedNormalMode = FindProperty(kDoubleSidedNormalMode, props, false);
+            depthOffsetEnable = FindProperty(kDepthOffsetEnable, props, false);
 
             // MaterialID
-            materialID = FindProperty(kMaterialID, props);
-            transmissionEnable = FindProperty(kTransmissionEnable, props);
+            materialID = FindProperty(kMaterialID, props, false);
+            transmissionEnable = FindProperty(kTransmissionEnable, props, false);
 
-            displacementMode = FindProperty(kDisplacementMode, props);
-            displacementLockObjectScale = FindProperty(kDisplacementLockObjectScale, props);
-            displacementLockTilingScale = FindProperty(kDisplacementLockTilingScale, props);
+            displacementMode = FindProperty(kDisplacementMode, props, false);
+            displacementLockObjectScale = FindProperty(kDisplacementLockObjectScale, props, false);
+            displacementLockTilingScale = FindProperty(kDisplacementLockTilingScale, props, false);
 
             // Per pixel displacement
-            ppdMinSamples = FindProperty(kPpdMinSamples, props);
-            ppdMaxSamples = FindProperty(kPpdMaxSamples, props);
-            ppdLodThreshold = FindProperty(kPpdLodThreshold, props);
-            ppdPrimitiveLength = FindProperty(kPpdPrimitiveLength, props);
-            ppdPrimitiveWidth  = FindProperty(kPpdPrimitiveWidth, props);
-            invPrimScale = FindProperty(kInvPrimScale, props);
+            ppdMinSamples = FindProperty(kPpdMinSamples, props, false);
+            ppdMaxSamples = FindProperty(kPpdMaxSamples, props, false);
+            ppdLodThreshold = FindProperty(kPpdLodThreshold, props, false);
+            ppdPrimitiveLength = FindProperty(kPpdPrimitiveLength, props, false);
+            ppdPrimitiveWidth  = FindProperty(kPpdPrimitiveWidth, props, false);
+            invPrimScale = FindProperty(kInvPrimScale, props, false);
 
             // tessellation specific, silent if not found
             tessellationMode = FindProperty(kTessellationMode, props, false);
@@ -212,15 +212,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             tessellationBackFaceCullEpsilon = FindProperty(kTessellationBackFaceCullEpsilon, props, false);
 
             // Wind
-            windEnable = FindProperty(kWindEnabled, props);
-            windInitialBend = FindProperty(kWindInitialBend, props);
-            windStiffness = FindProperty(kWindStiffness, props);
-            windDrag = FindProperty(kWindDrag, props);
-            windShiverDrag = FindProperty(kWindShiverDrag, props);
-            windShiverDirectionality = FindProperty(kWindShiverDirectionality, props);
+            windEnable = FindProperty(kWindEnabled, props, false);
+            windInitialBend = FindProperty(kWindInitialBend, props, false);
+            windStiffness = FindProperty(kWindStiffness, props, false);
+            windDrag = FindProperty(kWindDrag, props, false);
+            windShiverDrag = FindProperty(kWindShiverDrag, props, false);
+            windShiverDirectionality = FindProperty(kWindShiverDirectionality, props, false);
 
             // Decal
-            supportDBuffer = FindProperty(kSupportDBuffer, props);
+            supportDecals = FindProperty(kSupportDecals, props);
 
             // specular AA
             enableGeometricSpecularAA = FindProperty(kEnableGeometricSpecularAA, props, false);
@@ -253,66 +253,76 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUI.indentLevel++;
 
             // This follow double sided option
-            if (doubleSidedEnable.floatValue > 0.0f)
+            if (doubleSidedEnable != null && doubleSidedEnable.floatValue > 0.0f)
             {
                 EditorGUI.indentLevel++;
                 m_MaterialEditor.ShaderProperty(doubleSidedNormalMode, StylesBaseLit.doubleSidedNormalModeText);
                 EditorGUI.indentLevel--;
             }
 
-            m_MaterialEditor.ShaderProperty(materialID, StylesBaseLit.materialIDText);
-
-            if ((int)materialID.floatValue == (int)BaseLitGUI.MaterialId.LitSSS)
+            if (materialID != null)
             {
-                EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(transmissionEnable, StylesBaseLit.transmissionEnableText);
-                EditorGUI.indentLevel--;
+                m_MaterialEditor.ShaderProperty(materialID, StylesBaseLit.materialIDText);
+
+                if ((int)materialID.floatValue == (int)BaseLitGUI.MaterialId.LitSSS)
+                {
+                    EditorGUI.indentLevel++;
+                    m_MaterialEditor.ShaderProperty(transmissionEnable, StylesBaseLit.transmissionEnableText);
+                    EditorGUI.indentLevel--;
+                }
             }
 
-            m_MaterialEditor.ShaderProperty(supportDBuffer, StylesBaseLit.supportDBufferText);
+            m_MaterialEditor.ShaderProperty(supportDecals, StylesBaseLit.supportDecalsText);
 
-            m_MaterialEditor.ShaderProperty(enableGeometricSpecularAA, StylesBaseLit.enableGeometricSpecularAAText);
-
-            if (enableGeometricSpecularAA.floatValue > 0.0)
+            if (enableGeometricSpecularAA != null)
             {
-                EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(specularAAScreenSpaceVariance, StylesBaseLit.specularAAScreenSpaceVarianceText);
-                m_MaterialEditor.ShaderProperty(specularAAThreshold, StylesBaseLit.specularAAThresholdText);
-                EditorGUI.indentLevel--;
+                m_MaterialEditor.ShaderProperty(enableGeometricSpecularAA, StylesBaseLit.enableGeometricSpecularAAText);
+
+                if (enableGeometricSpecularAA.floatValue > 0.0)
+                {
+                    EditorGUI.indentLevel++;
+                    m_MaterialEditor.ShaderProperty(specularAAScreenSpaceVariance, StylesBaseLit.specularAAScreenSpaceVarianceText);
+                    m_MaterialEditor.ShaderProperty(specularAAThreshold, StylesBaseLit.specularAAThresholdText);
+                    EditorGUI.indentLevel--;
+                }
             }
 
-            m_MaterialEditor.ShaderProperty(enableMotionVectorForVertexAnimation, StylesBaseUnlit.enableMotionVectorForVertexAnimationText);
+            if (enableMotionVectorForVertexAnimation != null)
+                m_MaterialEditor.ShaderProperty(enableMotionVectorForVertexAnimation, StylesBaseUnlit.enableMotionVectorForVertexAnimationText);
 
-            EditorGUI.BeginChangeCheck();
-            m_MaterialEditor.ShaderProperty(displacementMode, StylesBaseLit.displacementModeText);
-            if (EditorGUI.EndChangeCheck())
+            if (displacementMode != null)
             {
-                UpdateDisplacement();
-            }
+                EditorGUI.BeginChangeCheck();
+                m_MaterialEditor.ShaderProperty(displacementMode, StylesBaseLit.displacementModeText);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    UpdateDisplacement();
+                }
 
-            if ((DisplacementMode)displacementMode.floatValue != DisplacementMode.None)
-            {
-                EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(displacementLockObjectScale, StylesBaseLit.lockWithObjectScaleText);
-                m_MaterialEditor.ShaderProperty(displacementLockTilingScale, StylesBaseLit.lockWithTilingRateText);
-                EditorGUI.indentLevel--;
-            }
+                if ((DisplacementMode)displacementMode.floatValue != DisplacementMode.None)
+                {
+                    EditorGUI.indentLevel++;
+                    m_MaterialEditor.ShaderProperty(displacementLockObjectScale, StylesBaseLit.lockWithObjectScaleText);
+                    m_MaterialEditor.ShaderProperty(displacementLockTilingScale, StylesBaseLit.lockWithTilingRateText);
+                    EditorGUI.indentLevel--;
+                }
 
-            if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel)
-            {
-                EditorGUILayout.Space();
-                EditorGUI.indentLevel++;
-                m_MaterialEditor.ShaderProperty(ppdMinSamples, StylesBaseLit.ppdMinSamplesText);
-                m_MaterialEditor.ShaderProperty(ppdMaxSamples, StylesBaseLit.ppdMaxSamplesText);
-                ppdMinSamples.floatValue = Mathf.Min(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
-                m_MaterialEditor.ShaderProperty(ppdLodThreshold, StylesBaseLit.ppdLodThresholdText);
-                m_MaterialEditor.ShaderProperty(ppdPrimitiveLength, StylesBaseLit.ppdPrimitiveLength);
-                ppdPrimitiveLength.floatValue = Mathf.Max(0.01f, ppdPrimitiveLength.floatValue);
-                m_MaterialEditor.ShaderProperty(ppdPrimitiveWidth, StylesBaseLit.ppdPrimitiveWidth);
-                ppdPrimitiveWidth.floatValue = Mathf.Max(0.01f, ppdPrimitiveWidth.floatValue);
-                invPrimScale.vectorValue = new Vector4(1.0f / ppdPrimitiveLength.floatValue, 1.0f / ppdPrimitiveWidth.floatValue); // Precompute
-                m_MaterialEditor.ShaderProperty(depthOffsetEnable, StylesBaseLit.depthOffsetEnableText);
-                EditorGUI.indentLevel--;
+                if ((DisplacementMode)displacementMode.floatValue == DisplacementMode.Pixel)
+                {
+                    EditorGUILayout.Space();
+                    EditorGUI.indentLevel++;
+                    m_MaterialEditor.ShaderProperty(ppdMinSamples, StylesBaseLit.ppdMinSamplesText);
+                    m_MaterialEditor.ShaderProperty(ppdMaxSamples, StylesBaseLit.ppdMaxSamplesText);
+                    ppdMinSamples.floatValue = Mathf.Min(ppdMinSamples.floatValue, ppdMaxSamples.floatValue);
+                    m_MaterialEditor.ShaderProperty(ppdLodThreshold, StylesBaseLit.ppdLodThresholdText);
+                    m_MaterialEditor.ShaderProperty(ppdPrimitiveLength, StylesBaseLit.ppdPrimitiveLength);
+                    ppdPrimitiveLength.floatValue = Mathf.Max(0.01f, ppdPrimitiveLength.floatValue);
+                    m_MaterialEditor.ShaderProperty(ppdPrimitiveWidth, StylesBaseLit.ppdPrimitiveWidth);
+                    ppdPrimitiveWidth.floatValue = Mathf.Max(0.01f, ppdPrimitiveWidth.floatValue);
+                    invPrimScale.vectorValue = new Vector4(1.0f / ppdPrimitiveLength.floatValue, 1.0f / ppdPrimitiveWidth.floatValue); // Precompute
+                    m_MaterialEditor.ShaderProperty(depthOffsetEnable, StylesBaseLit.depthOffsetEnableText);
+                    EditorGUI.indentLevel--;
+                }
             }
 
             EditorGUI.indentLevel--;
@@ -344,6 +354,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected override void VertexAnimationPropertiesGUI()
         {
+            if (windEnable == null)
+                return;
+
             EditorGUILayout.LabelField(StylesBaseLit.vertexAnimation, EditorStyles.boldLabel);
 
             EditorGUI.indentLevel++;
@@ -368,9 +381,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             SetupBaseUnlitKeywords(material);
 
-            bool doubleSidedEnable = material.GetFloat(kDoubleSidedEnable) > 0.0f;
-
-            if (doubleSidedEnable)
+            if (material.HasProperty(kDoubleSidedEnable) && material.GetFloat(kDoubleSidedEnable) > 0.0f)
             {
                 DoubleSidedNormalMode doubleSidedNormalMode = (DoubleSidedNormalMode)material.GetFloat(kDoubleSidedNormalMode);
                 switch (doubleSidedNormalMode)
@@ -391,7 +402,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // Set the reference value for the stencil test.
             int stencilRef = (int)StencilLightingUsage.RegularLighting;
-            if ((int)material.GetFloat(kMaterialID) == (int)BaseLitGUI.MaterialId.LitSSS)
+            if (material.HasProperty(kMaterialID) && (int)material.GetFloat(kMaterialID) == (int)BaseLitGUI.MaterialId.LitSSS)
             {
                 stencilRef = (int)StencilLightingUsage.SplitLighting;
             }
@@ -401,29 +412,32 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             material.SetInt(kStencilRefMV, (int)HDRenderPipeline.StencilBitMask.ObjectVelocity);
             material.SetInt(kStencilWriteMaskMV, (int)HDRenderPipeline.StencilBitMask.ObjectVelocity);
 
-            bool enableDisplacement = (DisplacementMode)material.GetFloat(kDisplacementMode) != DisplacementMode.None;
-            bool enableVertexDisplacement = (DisplacementMode)material.GetFloat(kDisplacementMode) == DisplacementMode.Vertex;
-            bool enablePixelDisplacement = (DisplacementMode)material.GetFloat(kDisplacementMode) == DisplacementMode.Pixel;
-            bool enableTessellationDisplacement = ((DisplacementMode)material.GetFloat(kDisplacementMode) == DisplacementMode.Tessellation) && material.HasProperty(kTessellationMode);
+            if (material.HasProperty(kDisplacementMode))
+            {
+                bool enableDisplacement = (DisplacementMode)material.GetFloat(kDisplacementMode) != DisplacementMode.None;
+                bool enableVertexDisplacement = (DisplacementMode)material.GetFloat(kDisplacementMode) == DisplacementMode.Vertex;
+                bool enablePixelDisplacement = (DisplacementMode)material.GetFloat(kDisplacementMode) == DisplacementMode.Pixel;
+                bool enableTessellationDisplacement = ((DisplacementMode)material.GetFloat(kDisplacementMode) == DisplacementMode.Tessellation) && material.HasProperty(kTessellationMode);
 
-            CoreUtils.SetKeyword(material, "_VERTEX_DISPLACEMENT", enableVertexDisplacement);
-            CoreUtils.SetKeyword(material, "_PIXEL_DISPLACEMENT", enablePixelDisplacement);
-            // Only set if tessellation exist
-            CoreUtils.SetKeyword(material, "_TESSELLATION_DISPLACEMENT", enableTessellationDisplacement);
+                CoreUtils.SetKeyword(material, "_VERTEX_DISPLACEMENT", enableVertexDisplacement);
+                CoreUtils.SetKeyword(material, "_PIXEL_DISPLACEMENT", enablePixelDisplacement);
+                // Only set if tessellation exist
+                CoreUtils.SetKeyword(material, "_TESSELLATION_DISPLACEMENT", enableTessellationDisplacement);
 
-            bool displacementLockObjectScale = material.GetFloat(kDisplacementLockObjectScale) > 0.0;
-            bool displacementLockTilingScale = material.GetFloat(kDisplacementLockTilingScale) > 0.0;
-            // Tessellation reuse vertex flag.
-            CoreUtils.SetKeyword(material, "_VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE", displacementLockObjectScale && (enableVertexDisplacement || enableTessellationDisplacement));
-            CoreUtils.SetKeyword(material, "_PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE", displacementLockObjectScale && enablePixelDisplacement);
-            CoreUtils.SetKeyword(material, "_DISPLACEMENT_LOCK_TILING_SCALE", displacementLockTilingScale && enableDisplacement);
+                bool displacementLockObjectScale = material.GetFloat(kDisplacementLockObjectScale) > 0.0;
+                bool displacementLockTilingScale = material.GetFloat(kDisplacementLockTilingScale) > 0.0;
+                // Tessellation reuse vertex flag.
+                CoreUtils.SetKeyword(material, "_VERTEX_DISPLACEMENT_LOCK_OBJECT_SCALE", displacementLockObjectScale && (enableVertexDisplacement || enableTessellationDisplacement));
+                CoreUtils.SetKeyword(material, "_PIXEL_DISPLACEMENT_LOCK_OBJECT_SCALE", displacementLockObjectScale && enablePixelDisplacement);
+                CoreUtils.SetKeyword(material, "_DISPLACEMENT_LOCK_TILING_SCALE", displacementLockTilingScale && enableDisplacement);
 
-            bool windEnabled = material.GetFloat(kWindEnabled) > 0.0f;
+                // Depth offset is only enabled if per pixel displacement is
+                bool depthOffsetEnable = (material.GetFloat(kDepthOffsetEnable) > 0.0f) && enablePixelDisplacement;
+                CoreUtils.SetKeyword(material, "_DEPTHOFFSET_ON", depthOffsetEnable);
+            }
+
+            bool windEnabled = material.HasProperty(kWindEnabled) && material.GetFloat(kWindEnabled) > 0.0f;
             CoreUtils.SetKeyword(material, "_VERTEX_WIND", windEnabled);
-
-            // Depth offset is only enabled if per pixel displacement is
-            bool depthOffsetEnable = (material.GetFloat(kDepthOffsetEnable) > 0.0f) && enablePixelDisplacement;
-            CoreUtils.SetKeyword(material, "_DEPTHOFFSET_ON", depthOffsetEnable);
 
             if (material.HasProperty(kTessellationMode))
             {
@@ -434,9 +448,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetupMainTexForAlphaTestGI("_BaseColorMap", "_BaseColor", material);
 
             // Use negation so we don't create keyword by default
-            CoreUtils.SetKeyword(material, "_DISABLE_DBUFFER", material.GetFloat(kSupportDBuffer) == 0.0);
+            CoreUtils.SetKeyword(material, "_DISABLE_DECALS", material.GetFloat(kSupportDecals) == 0.0);
 
-            CoreUtils.SetKeyword(material, "_ENABLE_GEOMETRIC_SPECULAR_AA", material.GetFloat(kEnableGeometricSpecularAA) == 1.0);
+            CoreUtils.SetKeyword(material, "_ENABLE_GEOMETRIC_SPECULAR_AA", material.HasProperty(kEnableGeometricSpecularAA) && material.GetFloat(kEnableGeometricSpecularAA) == 1.0);
         }
 
         static public void SetupBaseLitMaterialPass(Material material)

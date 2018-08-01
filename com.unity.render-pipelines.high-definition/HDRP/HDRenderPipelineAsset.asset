@@ -11,17 +11,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cf1dab834d4ec34195b920ea7bbf9ec, type: 3}
   m_Name: HDRenderPipelineAsset
   m_EditorClassIdentifier: 
-  version: 1
+  m_Version: 1
   m_RenderPipelineResources: {fileID: 11400000, guid: 3ce144cff5783da45aa5d4fdc2da14b7, type: 2}
   m_FrameSettings:
     enableShadow: 1
     enableContactShadows: 1
+    enableShadowMask: 1
     enableSSR: 1
     enableSSAO: 1
     enableSubsurfaceScattering: 1
     enableTransmission: 1
     enableAtmosphericScattering: 1
     enableVolumetrics: 1
+    enableLightLayers: 1
     diffuseGlobalDimmer: 1
     specularGlobalDimmer: 1
     enableForwardRenderingOnly: 0
@@ -29,7 +31,7 @@ MonoBehaviour:
     enableTransparentPrepass: 1
     enableMotionVectors: 1
     enableObjectMotionVectors: 1
-    enableDBuffer: 1
+    enableDecals: 1
     enableRoughRefraction: 1
     enableTransparentPostpass: 1
     enableDistortion: 1
@@ -39,7 +41,6 @@ MonoBehaviour:
     enableOpaqueObjects: 1
     enableTransparentObjects: 1
     enableMSAA: 0
-    enableShadowMask: 1
     lightLoopSettings:
       enableTileAndCluster: 1
       enableComputeLightEvaluation: 1
@@ -53,17 +54,18 @@ MonoBehaviour:
     supportSSR: 1
     supportSSAO: 1
     supportSubsurfaceScattering: 1
-    supportOnlyForward: 0
     increaseSssSampleCount: 0
     supportVolumetrics: 1
     increaseResolutionOfVolumetrics: 0
-    supportRuntimeDebugDisplay: 1
-    supportDitheringCrossFade: 1
-    supportDBuffer: 1
+    supportLightLayers: 0
+    supportOnlyForward: 0
+    supportDecals: 1
     supportMSAA: 0
     msaaSampleCount: 1
     supportMotionVectors: 1
     supportStereo: 0
+    supportRuntimeDebugDisplay: 1
+    supportDitheringCrossFade: 1
     lightLoopSettings:
       cookieSize: 128
       cookieTexArraySize: 16
@@ -89,5 +91,6 @@ MonoBehaviour:
       drawDistance: 1000
       atlasWidth: 4096
       atlasHeight: 4096
+      perChannelMask: 0
   allowShaderVariantStripping: 1
   diffusionProfileSettings: {fileID: 11400000, guid: 404820c4cf36ad944862fa59c56064f0, type: 2}

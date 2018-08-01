@@ -15,32 +15,32 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var c = Handles.color;
             Handles.matrix = matrix;
             Handles.color = k_GizmoThemeColorBase;
-            switch (d.shapeType)
+            switch (d.shape)
             {
-                case ShapeType.Box:
+                case InfluenceShape.Box:
                     {
-                        var center = d.boxBaseOffset;
-                        var size = d.boxBaseSize;
+                        var center = d.offset;
+                        var size = d.boxSize;
                         DrawBoxHandle(
                             s, d, o, sourceAsset,
                             s1 => s1.boxBaseHandle,
                             ref center,
                             ref size);
-                        d.boxBaseOffset = center;
-                        d.boxBaseSize = size;
+                        d.offset = center;
+                        d.boxSize = size;
                         break;
                     }
-                case ShapeType.Sphere:
+                case InfluenceShape.Sphere:
                     {
-                        var center = d.sphereBaseOffset;
-                        var radius = d.sphereBaseRadius;
+                        var center = d.offset;
+                        var radius = d.sphereRadius;
                         DrawSphereHandle(
                             s, d, o, sourceAsset,
                             s1 => s1.sphereBaseHandle,
                             ref center,
                             ref radius);
-                        d.sphereBaseOffset = center;
-                        d.sphereBaseRadius = radius;
+                        d.offset = center;
+                        d.sphereRadius = radius;
                         break;
                     }
             }
@@ -54,20 +54,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var c = Handles.color;
             Handles.matrix = matrix;
             Handles.color = k_GizmoThemeColorInfluence;
-            switch (d.shapeType)
+            switch (d.shape)
             {
-                case ShapeType.Box:
+                case InfluenceShape.Box:
                     {
-                        var positive = d.boxInfluencePositiveFade;
-                        var negative = d.boxInfluenceNegativeFade;
+                        var positive = d.boxBlendDistancePositive;
+                        var negative = d.boxBlendDistanceNegative;
                         DrawBoxFadeHandle(
                             s, d, o, sourceAsset,
                             s1 => s1.boxInfluenceHandle,
-                            d.boxBaseOffset, d.boxBaseSize,
+                            d.offset, d.boxSize,
                             ref positive,
                             ref negative);
-                        s.data.boxInfluencePositiveFade.vector3Value = positive;
-                        s.data.boxInfluenceNegativeFade.vector3Value = negative;
+                        s.data.boxBlendDistancePositive.vector3Value = positive;
+                        s.data.boxBlendDistanceNegative.vector3Value = negative;
 
                         //save advanced/simplified saved data
                         if (s.data.editorAdvancedModeEnabled.boolValue)
@@ -82,15 +82,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         s.data.Apply();
                         break;
                     }
-                case ShapeType.Sphere:
+                case InfluenceShape.Sphere:
                     {
-                        var fade = d.sphereInfluenceFade;
+                        var fade = d.sphereBlendDistance;
                         DrawSphereFadeHandle(
                             s, d, o, sourceAsset,
                             s1 => s1.sphereInfluenceHandle,
-                            d.sphereBaseOffset, d.sphereBaseRadius,
+                            d.offset, d.sphereRadius,
                             ref fade);
-                        d.sphereInfluenceFade = fade;
+                        d.sphereBlendDistance = fade;
                         break;
                     }
             }
@@ -104,21 +104,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var c = Handles.color;
             Handles.matrix = matrix;
             Handles.color = k_GizmoThemeColorInfluenceNormal;
-            switch (d.shapeType)
+            switch (d.shape)
             {
-                case ShapeType.Box:
+                case InfluenceShape.Box:
                     {
 
-                        Vector3 positive = d.boxInfluenceNormalPositiveFade;
-                        Vector3 negative = d.boxInfluenceNormalNegativeFade;
+                        Vector3 positive = d.boxBlendNormalDistancePositive;
+                        Vector3 negative = d.boxBlendNormalDistanceNegative;
                         DrawBoxFadeHandle(
                             s, d, o, sourceAsset,
                             s1 => s1.boxInfluenceNormalHandle,
-                            d.boxBaseOffset, d.boxBaseSize,
+                            d.offset, d.boxSize,
                             ref positive,
                             ref negative);
-                        s.data.boxInfluenceNormalPositiveFade.vector3Value = positive;
-                        s.data.boxInfluenceNormalNegativeFade.vector3Value = negative;
+                        s.data.boxBlendNormalDistancePositive.vector3Value = positive;
+                        s.data.boxBlendNormalDistanceNegative.vector3Value = negative;
 
                         //save advanced/simplified saved data
                         if (s.data.editorAdvancedModeEnabled.boolValue)
@@ -133,15 +133,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         s.data.Apply();
                         break;
                     }
-                case ShapeType.Sphere:
+                case InfluenceShape.Sphere:
                     {
-                        var fade = d.sphereInfluenceNormalFade;
+                        var fade = d.sphereBlendNormalDistance;
                         DrawSphereFadeHandle(
                             s, d, o, sourceAsset,
                             s1 => s1.sphereInfluenceNormalHandle,
-                            d.sphereBaseOffset, d.sphereBaseRadius,
+                            d.offset, d.sphereRadius,
                             ref fade);
-                        d.sphereInfluenceNormalFade = fade;
+                        d.sphereBlendNormalDistance = fade;
                         break;
                     }
             }

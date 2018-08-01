@@ -2,8 +2,8 @@
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
 #include "CoreRP/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
-#include "../MaterialUtilities.hlsl"
-#include "../Decal/DecalUtilities.hlsl"
+#include "HDRP/Material/MaterialUtilities.hlsl"
+#include "HDRP/Material/Decal/DecalUtilities.hlsl"
 
 // TODO: move this function to commonLighting.hlsl once validated it work correctly
 float GetSpecularOcclusionFromBentAO(float3 V, float3 bentNormalWS, SurfaceData surfaceData)
@@ -195,11 +195,11 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float3 bentNormalTS;
     float3 bentNormalWS;
     float alpha = GetSurfaceData(input, layerTexCoord, surfaceData, normalTS, bentNormalTS);
-    GetNormalWS(input, V, normalTS, surfaceData.normalWS);
+    GetNormalWS(input, normalTS, surfaceData.normalWS);
 
     // Use bent normal to sample GI if available
 #ifdef _BENTNORMALMAP
-    GetNormalWS(input, V, bentNormalTS, bentNormalWS);
+    GetNormalWS(input, bentNormalTS, bentNormalWS);
 #else
     bentNormalWS = surfaceData.normalWS;
 #endif
@@ -218,7 +218,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // This is use with anisotropic material
     surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 
-#ifndef _DISABLE_DBUFFER
+#if HAVE_DECALS
     AddDecalContribution(posInput, surfaceData, alpha);
 #endif
 
@@ -236,7 +236,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
 
     // Caution: surfaceData must be fully initialize before calling GetBuiltinData
-    GetBuiltinData(input, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);
+    GetBuiltinData(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);
 }
 
 #include "LitDataMeshModification.hlsl"

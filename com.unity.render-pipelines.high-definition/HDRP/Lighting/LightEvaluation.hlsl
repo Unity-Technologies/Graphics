@@ -28,7 +28,7 @@ float3 EvaluateCookie_Directional(LightLoopContext lightLoopContext, Directional
 // None of the outputs are premultiplied.
 // Note: When doing transmission we always have only one shadow sample to do: Either front or back. We use NdotL to know on which side we are
 void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs posInput,
-                               DirectionalLightData lightData, BakeLightingData bakeLightingData,
+                               DirectionalLightData lightData, BuiltinData builtinData,
                                float3 N, float3 L,
                                out float3 color, out float attenuation)
 {
@@ -50,7 +50,7 @@ void EvaluateLight_Directional(LightLoopContext lightLoopContext, PositionInputs
 #ifdef SHADOWS_SHADOWMASK
     // shadowMaskSelector.x is -1 if there is no shadow mask
     // Note that we override shadow value (in case we don't have any dynamic shadow)
-    shadow = shadowMask = (lightData.shadowMaskSelector.x >= 0.0) ? dot(bakeLightingData.bakeShadowMask, lightData.shadowMaskSelector) : 1.0;
+    shadow = shadowMask = (lightData.shadowMaskSelector.x >= 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, lightData.shadowMaskSelector) : 1.0;
 #endif
 
     // We test NdotL >= 0.0 to not sample the shadow map if it is not required.
@@ -163,7 +163,7 @@ float4 EvaluateCookie_Punctual(LightLoopContext lightLoopContext, LightData ligh
 // distances = {d, d^2, 1/d, d_proj}, where d_proj = dot(lightToSample, lightData.forward).
 // Note: When doing transmission we always have only one shadow sample to do: Either front or back. We use NdotL to know on which side we are
 void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs posInput,
-                            LightData lightData, BakeLightingData bakeLightingData,
+                            LightData lightData, BuiltinData builtinData,
                             float3 N, float3 L, float3 lightToSample, float4 distances,
                             out float3 color, out float attenuation)
 {
@@ -191,7 +191,7 @@ void EvaluateLight_Punctual(LightLoopContext lightLoopContext, PositionInputs po
 #ifdef SHADOWS_SHADOWMASK
     // shadowMaskSelector.x is -1 if there is no shadow mask
     // Note that we override shadow value (in case we don't have any dynamic shadow)
-    shadow = shadowMask = (lightData.shadowMaskSelector.x >= 0.0) ? dot(bakeLightingData.bakeShadowMask, lightData.shadowMaskSelector) : 1.0;
+    shadow = shadowMask = (lightData.shadowMaskSelector.x >= 0.0) ? dot(BUILTIN_DATA_SHADOW_MASK, lightData.shadowMaskSelector) : 1.0;
 #endif
 
     // We test NdotL >= 0.0 to not sample the shadow map if it is not required.
@@ -345,6 +345,8 @@ float3 PreEvaluatePunctualLightTransmission(LightLoopContext lightLoopContext, P
             // Note: we do not modify the distance to the light, or the light angle for the back face.
             // This is a performance-saving optimization which makes sense as long as the thickness is small.
         }
+        
+        transmittance = lerp( bsdfData.transmittance, transmittance, lightData.shadowDimmer);
     }
 
     return transmittance;

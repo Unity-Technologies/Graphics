@@ -22,14 +22,16 @@ CBUFFER_START(DeferredShadowParameters)
 uint    _DirectionalShadowIndex;
 float4  _DirectionalLightDirection;
 float4  _PunctualLightPosition;
-float4  _ScreenSpaceShadowsParameters;
+float4  _ContactShadowParamsParameters;
+float4  _ContactShadowParamsParameters2;
 int     _SampleCount;
 CBUFFER_END
 
-#define _ContactShadowLength                _ScreenSpaceShadowsParameters.x
-#define _ContactShadowDistanceScaleFactor   _ScreenSpaceShadowsParameters.y
-#define _ContactShadowFadeEnd               _ScreenSpaceShadowsParameters.z
-#define _ContactShadowFadeOneOverRange      _ScreenSpaceShadowsParameters.w
+#define _ContactShadowLength                _ContactShadowParamsParameters.x
+#define _ContactShadowDistanceScaleFactor   _ContactShadowParamsParameters.y
+#define _ContactShadowFadeEnd               _ContactShadowParamsParameters.z
+#define _ContactShadowFadeOneOverRange      _ContactShadowParamsParameters.w
+#define _ContactShadowOpacity               _ContactShadowParamsParameters2.x
 
 #define DEFERRED_SHADOW_TILE_SIZE 16
 
@@ -116,7 +118,7 @@ float ComputeContactShadow(PositionInputs posInput, float3 direction)
         contactShadow = 1.0 - result.x * saturate((_ContactShadowFadeEnd - posInput.linearDepth) * _ContactShadowFadeOneOverRange);
     }
 
-    return contactShadow;
+    return lerp(1.0, contactShadow, _ContactShadowOpacity);
 }
 
 [numthreads(DEFERRED_SHADOW_TILE_SIZE, DEFERRED_SHADOW_TILE_SIZE, 1)]

@@ -9,21 +9,17 @@
 //
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_OPACITY (100)
 #define DEBUGVIEW_BUILTIN_BUILTINDATA_BAKE_DIFFUSE_LIGHTING (101)
-#define DEBUGVIEW_BUILTIN_BUILTINDATA_SHADOW_MASK_0 (102)
-#define DEBUGVIEW_BUILTIN_BUILTINDATA_SHADOW_MASK_1 (103)
-#define DEBUGVIEW_BUILTIN_BUILTINDATA_SHADOW_MASK_2 (104)
-#define DEBUGVIEW_BUILTIN_BUILTINDATA_SHADOW_MASK_3 (105)
-#define DEBUGVIEW_BUILTIN_BUILTINDATA_EMISSIVE_COLOR (106)
-#define DEBUGVIEW_BUILTIN_BUILTINDATA_VELOCITY (107)
-#define DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION (108)
-#define DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION_BLUR (109)
-#define DEBUGVIEW_BUILTIN_BUILTINDATA_DEPTH_OFFSET (110)
-
-//
-// UnityEngine.Experimental.Rendering.HDPipeline.Builtin+LightTransportData:  static fields
-//
-#define DEBUGVIEW_BUILTIN_LIGHTTRANSPORTDATA_DIFFUSE_COLOR (150)
-#define DEBUGVIEW_BUILTIN_LIGHTTRANSPORTDATA_EMISSIVE_COLOR (151)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_BACK_BAKE_DIFFUSE_LIGHTING (102)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_SHADOW_MASK_0 (103)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_SHADOW_MASK_1 (104)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_SHADOW_MASK_2 (105)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_SHADOW_MASK_3 (106)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_EMISSIVE_COLOR (107)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_VELOCITY (108)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION (109)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION_BLUR (110)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_RENDERING_LAYERS (111)
+#define DEBUGVIEW_BUILTIN_BUILTINDATA_DEPTH_OFFSET (112)
 
 // Generated from UnityEngine.Experimental.Rendering.HDPipeline.Builtin+BuiltinData
 // PackingRules = Exact
@@ -31,6 +27,7 @@ struct BuiltinData
 {
     float opacity;
     float3 bakeDiffuseLighting;
+    float3 backBakeDiffuseLighting;
     float shadowMask0;
     float shadowMask1;
     float shadowMask2;
@@ -39,6 +36,7 @@ struct BuiltinData
     float2 velocity;
     float2 distortion;
     float distortionBlur;
+    uint renderingLayers;
     float depthOffset;
 };
 
@@ -62,6 +60,10 @@ void GetGeneratedBuiltinDataDebug(uint paramId, BuiltinData builtindata, inout f
             break;
         case DEBUGVIEW_BUILTIN_BUILTINDATA_BAKE_DIFFUSE_LIGHTING:
             result = builtindata.bakeDiffuseLighting;
+            needLinearToSRGB = true;
+            break;
+        case DEBUGVIEW_BUILTIN_BUILTINDATA_BACK_BAKE_DIFFUSE_LIGHTING:
+            result = builtindata.backBakeDiffuseLighting;
             needLinearToSRGB = true;
             break;
         case DEBUGVIEW_BUILTIN_BUILTINDATA_SHADOW_MASK_0:
@@ -88,25 +90,11 @@ void GetGeneratedBuiltinDataDebug(uint paramId, BuiltinData builtindata, inout f
         case DEBUGVIEW_BUILTIN_BUILTINDATA_DISTORTION_BLUR:
             result = builtindata.distortionBlur.xxx;
             break;
+        case DEBUGVIEW_BUILTIN_BUILTINDATA_RENDERING_LAYERS:
+            result = GetIndexColor(builtindata.renderingLayers);
+            break;
         case DEBUGVIEW_BUILTIN_BUILTINDATA_DEPTH_OFFSET:
             result = builtindata.depthOffset.xxx;
-            break;
-    }
-}
-
-//
-// Debug functions
-//
-void GetGeneratedLightTransportDataDebug(uint paramId, LightTransportData lighttransportdata, inout float3 result, inout bool needLinearToSRGB)
-{
-    switch (paramId)
-    {
-        case DEBUGVIEW_BUILTIN_LIGHTTRANSPORTDATA_DIFFUSE_COLOR:
-            result = lighttransportdata.diffuseColor;
-            needLinearToSRGB = true;
-            break;
-        case DEBUGVIEW_BUILTIN_LIGHTTRANSPORTDATA_EMISSIVE_COLOR:
-            result = lighttransportdata.emissiveColor;
             break;
     }
 }

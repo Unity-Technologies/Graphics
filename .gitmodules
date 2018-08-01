@@ -1,4 +1,0 @@
-[submodule "com.unity.postprocessing"]
-	path = com.unity.postprocessing
-	url = https://github.com/Unity-Technologies/PostProcessing.git
-	branch = v2

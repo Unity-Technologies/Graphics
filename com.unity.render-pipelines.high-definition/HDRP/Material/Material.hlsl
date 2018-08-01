@@ -9,7 +9,7 @@
 #include "CoreRP/ShaderLibrary/CommonMaterial.hlsl"
 #include "CoreRP/ShaderLibrary/EntityLighting.hlsl"
 #include "CoreRP/ShaderLibrary/ImageBasedLighting.hlsl"
-#include "../Sky/AtmosphericScattering/AtmosphericScattering.hlsl"
+#include "HDRP/Lighting/AtmosphericScattering/AtmosphericScattering.hlsl"
 
 // Guidelines for Material Keyword.
 // There is a set of Material Keyword that a HD shaders must define (or not define). We call them system KeyWord.
@@ -18,6 +18,9 @@
 // - _BLENDMODE_ALPHA, _BLENDMODE_ADD, _BLENDMODE_PRE_MULTIPLY for blend mode
 // - _BLENDMODE_PRESERVE_SPECULAR_LIGHTING for correct lighting when blend mode are use with a Lit material
 // - _ENABLE_FOG_ON_TRANSPARENT if fog is enable on transparent surface
+// - _DISABLE_DECALS if the material don't support decals
+
+#define HAVE_DECALS ( (defined(DECALS_3RT) || defined(DECALS_4RT)) && !defined(_DISABLE_DECALS) )
 
 //-----------------------------------------------------------------------------
 // ApplyBlendMode function
@@ -151,11 +154,7 @@ void UpdateLightingHierarchyWeights(inout float hierarchyWeight, inout float wei
         out GBufferType0 MERGE_NAME(NAME, 0) : SV_Target0,    \
         out GBufferType1 MERGE_NAME(NAME, 1) : SV_Target1
 
-#define ENCODE_INTO_GBUFFER(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, UNPOSITIONSS, NAME) EncodeIntoGBuffer(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, UNPOSITIONSS, MERGE_NAME(NAME,0), MERGE_NAME(NAME,1))
-
-#ifdef SHADOWS_SHADOWMASK
-    #define OUTPUT_GBUFFER_SHADOWMASK(NAME) ,out float4 NAME : SV_Target2
-#endif
+#define ENCODE_INTO_GBUFFER(SURFACE_DATA, BUILTIN_DATA, UNPOSITIONSS, NAME) EncodeIntoGBuffer(SURFACE_DATA, BUILTIN_DATA, UNPOSITIONSS, MERGE_NAME(NAME,0), MERGE_NAME(NAME,1))
 
 #elif GBUFFERMATERIAL_COUNT == 3
 
@@ -164,11 +163,7 @@ void UpdateLightingHierarchyWeights(inout float hierarchyWeight, inout float wei
         out GBufferType1 MERGE_NAME(NAME, 1) : SV_Target1,    \
         out GBufferType2 MERGE_NAME(NAME, 2) : SV_Target2
 
-#define ENCODE_INTO_GBUFFER(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, UNPOSITIONSS, NAME) EncodeIntoGBuffer(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, UNPOSITIONSS, MERGE_NAME(NAME,0), MERGE_NAME(NAME,1), MERGE_NAME(NAME,2))
-
-#ifdef SHADOWS_SHADOWMASK
-    #define OUTPUT_GBUFFER_SHADOWMASK(NAME) ,out float4 NAME : SV_Target3
-#endif
+#define ENCODE_INTO_GBUFFER(SURFACE_DATA, BUILTIN_DATA, UNPOSITIONSS, NAME) EncodeIntoGBuffer(SURFACE_DATA, BUILTIN_DATA, UNPOSITIONSS, MERGE_NAME(NAME,0), MERGE_NAME(NAME,1), MERGE_NAME(NAME,2))
 
 #elif GBUFFERMATERIAL_COUNT == 4
 
@@ -178,11 +173,7 @@ void UpdateLightingHierarchyWeights(inout float hierarchyWeight, inout float wei
         out GBufferType2 MERGE_NAME(NAME, 2) : SV_Target2,    \
         out GBufferType3 MERGE_NAME(NAME, 3) : SV_Target3
 
-#define ENCODE_INTO_GBUFFER(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, UNPOSITIONSS, NAME) EncodeIntoGBuffer(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, UNPOSITIONSS, MERGE_NAME(NAME, 0), MERGE_NAME(NAME, 1), MERGE_NAME(NAME, 2), MERGE_NAME(NAME, 3))
-
-#ifdef SHADOWS_SHADOWMASK
-    #define OUTPUT_GBUFFER_SHADOWMASK(NAME) ,out float4 NAME : SV_Target4
-#endif
+#define ENCODE_INTO_GBUFFER(SURFACE_DATA, BUILTIN_DATA, UNPOSITIONSS, NAME) EncodeIntoGBuffer(SURFACE_DATA, BUILTIN_DATA, UNPOSITIONSS, MERGE_NAME(NAME, 0), MERGE_NAME(NAME, 1), MERGE_NAME(NAME, 2), MERGE_NAME(NAME, 3))
 
 #elif GBUFFERMATERIAL_COUNT == 5
 
@@ -193,11 +184,7 @@ void UpdateLightingHierarchyWeights(inout float hierarchyWeight, inout float wei
         out GBufferType3 MERGE_NAME(NAME, 3) : SV_Target3,    \
         out GBufferType4 MERGE_NAME(NAME, 4) : SV_Target4
 
-#define ENCODE_INTO_GBUFFER(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, UNPOSITIONSS, NAME) EncodeIntoGBuffer(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, UNPOSITIONSS, MERGE_NAME(NAME, 0), MERGE_NAME(NAME, 1), MERGE_NAME(NAME, 2), MERGE_NAME(NAME, 3), MERGE_NAME(NAME, 4))
-
-#ifdef SHADOWS_SHADOWMASK
-    #define OUTPUT_GBUFFER_SHADOWMASK(NAME) ,out float4 NAME : SV_Target5
-#endif
+#define ENCODE_INTO_GBUFFER(SURFACE_DATA, BUILTIN_DATA, UNPOSITIONSS, NAME) EncodeIntoGBuffer(SURFACE_DATA, BUILTIN_DATA, UNPOSITIONSS, MERGE_NAME(NAME, 0), MERGE_NAME(NAME, 1), MERGE_NAME(NAME, 2), MERGE_NAME(NAME, 3), MERGE_NAME(NAME, 4))
 
 #elif GBUFFERMATERIAL_COUNT == 6
 
@@ -209,23 +196,39 @@ void UpdateLightingHierarchyWeights(inout float hierarchyWeight, inout float wei
         out GBufferType4 MERGE_NAME(NAME, 4) : SV_Target4,    \
         out GBufferType5 MERGE_NAME(NAME, 5) : SV_Target5
 
-#define ENCODE_INTO_GBUFFER(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, UNPOSITIONSS, NAME) EncodeIntoGBuffer(SURFACE_DATA, BAKE_DIFFUSE_LIGHTING, UNPOSITIONSS, MERGE_NAME(NAME, 0), MERGE_NAME(NAME, 1), MERGE_NAME(NAME, 2), MERGE_NAME(NAME, 3), MERGE_NAME(NAME, 4), MERGE_NAME(NAME, 5))
+#define ENCODE_INTO_GBUFFER(SURFACE_DATA, BUILTIN_DATA, UNPOSITIONSS, NAME) EncodeIntoGBuffer(SURFACE_DATA, BUILTIN_DATA, UNPOSITIONSS, MERGE_NAME(NAME, 0), MERGE_NAME(NAME, 1), MERGE_NAME(NAME, 2), MERGE_NAME(NAME, 3), MERGE_NAME(NAME, 4), MERGE_NAME(NAME, 5))
 
-#ifdef SHADOWS_SHADOWMASK
-    #define OUTPUT_GBUFFER_SHADOWMASK(NAME) ,out float4 NAME : SV_Target6
+#elif GBUFFERMATERIAL_COUNT == 7
+
+#define OUTPUT_GBUFFER(NAME)                            \
+        out GBufferType0 MERGE_NAME(NAME, 0) : SV_Target0,    \
+        out GBufferType1 MERGE_NAME(NAME, 1) : SV_Target1,    \
+        out GBufferType2 MERGE_NAME(NAME, 2) : SV_Target2,    \
+        out GBufferType3 MERGE_NAME(NAME, 3) : SV_Target3,    \
+        out GBufferType4 MERGE_NAME(NAME, 4) : SV_Target4,    \
+        out GBufferType5 MERGE_NAME(NAME, 5) : SV_Target5,    \
+        out GBufferType6 MERGE_NAME(NAME, 6) : SV_Target6
+
+#define ENCODE_INTO_GBUFFER(SURFACE_DATA, BUILTIN_DATA, UNPOSITIONSS, NAME) EncodeIntoGBuffer(SURFACE_DATA, BUILTIN_DATA, UNPOSITIONSS, MERGE_NAME(NAME, 0), MERGE_NAME(NAME, 1), MERGE_NAME(NAME, 2), MERGE_NAME(NAME, 3), MERGE_NAME(NAME, 4), MERGE_NAME(NAME, 5), MERGE_NAME(NAME, 6))
+
+#elif GBUFFERMATERIAL_COUNT == 8
+
+#define OUTPUT_GBUFFER(NAME)                            \
+        out GBufferType0 MERGE_NAME(NAME, 0) : SV_Target0,    \
+        out GBufferType1 MERGE_NAME(NAME, 1) : SV_Target1,    \
+        out GBufferType2 MERGE_NAME(NAME, 2) : SV_Target2,    \
+        out GBufferType3 MERGE_NAME(NAME, 3) : SV_Target3,    \
+        out GBufferType4 MERGE_NAME(NAME, 4) : SV_Target4,    \
+        out GBufferType5 MERGE_NAME(NAME, 5) : SV_Target5,    \
+        out GBufferType6 MERGE_NAME(NAME, 6) : SV_Target6,    \
+        out GBufferType7 MERGE_NAME(NAME, 7) : SV_Target7
+
+#define ENCODE_INTO_GBUFFER(SURFACE_DATA, BUILTIN_DATA, UNPOSITIONSS, NAME) EncodeIntoGBuffer(SURFACE_DATA, BUILTIN_DATA, UNPOSITIONSS, MERGE_NAME(NAME, 0), MERGE_NAME(NAME, 1), MERGE_NAME(NAME, 2), MERGE_NAME(NAME, 3), MERGE_NAME(NAME, 4), MERGE_NAME(NAME, 5), MERGE_NAME(NAME, 6), MERGE_NAME(NAME, 7))
+
 #endif
 
-#endif
-
-#define DECODE_FROM_GBUFFER(UNPOSITIONSS, FEATURE_FLAGS, BSDF_DATA, BAKE_DIFFUSE_LIGHTING) DecodeFromGBuffer(UNPOSITIONSS, FEATURE_FLAGS, BSDF_DATA, BAKE_DIFFUSE_LIGHTING)
+#define DECODE_FROM_GBUFFER(UNPOSITIONSS, FEATURE_FLAGS, BSDF_DATA, BUILTIN_DATA) DecodeFromGBuffer(UNPOSITIONSS, FEATURE_FLAGS, BSDF_DATA, BUILTIN_DATA)
 #define MATERIAL_FEATURE_FLAGS_FROM_GBUFFER(UNPOSITIONSS) MaterialFeatureFlagsFromGBuffer(UNPOSITIONSS)
-
-#ifdef SHADOWS_SHADOWMASK
-#define ENCODE_SHADOWMASK_INTO_GBUFFER(SHADOWMASK, NAME) EncodeShadowMask(SHADOWMASK, NAME)
-#else
-#define OUTPUT_GBUFFER_SHADOWMASK(NAME)
-#define ENCODE_SHADOWMASK_INTO_GBUFFER(SHADOWMASK, NAME)
-#endif
 
 #endif // #ifdef GBUFFERMATERIAL_COUNT
 

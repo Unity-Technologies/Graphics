@@ -5,7 +5,8 @@ Material:
   serializedVersion: 6
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_Name: TestStackMat_Dielectric_SSS
   m_Shader: {fileID: 4800000, guid: 3a796817b9614b347895c0e8db89b63a, type: 3}
   m_ShaderKeywords: _MATERIAL_FEATURE_SUBSURFACE_SCATTERING _MATERIAL_FEATURE_TRANSMISSION
@@ -20,9 +21,9 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _AmbientOcclusionMap:
-        m_Texture: {fileID: 2800000, guid: 73993dd804df9ad47abfdee49346e56b, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
+        m_Texture: {fileID: 2800000, guid: be4b71c50f9aa414ea41fcfb7a1ea330, type: 3}
+        m_Scale: {x: 2, y: 2}
+        m_Offset: {x: -0.05, y: 0.5}
     - _AnisotropyMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -227,11 +228,11 @@ Material:
     - _Drag: 1
     - _DstBlend: 0
     - _DualSpecularLobeShow: 0
-    - _EmissiveColorMapShow: 0
+    - _EmissiveColorMapShow: 1
     - _EmissiveColorMapUV: 0
     - _EmissiveColorMapUVLocal: 0
     - _EmissiveColorMode: 1
-    - _EmissiveShow: 0
+    - _EmissiveShow: 1
     - _EnableAnisotropy: 0
     - _EnableBlendModePreserveSpecularLighting: 1
     - _EnableCoat: 0
@@ -248,7 +249,7 @@ Material:
     - _EnableWind: 0
     - _EnergyConservingSpecularColor: 1
     - _GeometricNormalFilteringEnabled: 0
-    - _HdrpVersion: 1
+    - _HdrpVersion: 2
     - _HeightAmplitude: 0.02
     - _HeightCenter: 0.5
     - _HeightMapParametrization: 0
@@ -337,7 +338,6 @@ Material:
     - _SubsurfaceMaskMapUV: 0
     - _SubsurfaceMaskMapUVLocal: 0
     - _SubsurfaceMaskUseMap: 0
-    - _SupportDBuffer: 1
     - _SurfaceType: 0
     - _TexWorldScale: 1
     - _TexWorldScaleEmissive: 1
@@ -367,8 +367,8 @@ Material:
     - _ZWrite: 1
     m_Colors:
     - _AmbientOcclusionMapChannelMask: {r: 1, g: 0, b: 0, a: 0}
-    - _AmbientOcclusionMapRange: {r: 0, g: 1, b: 0, a: 0}
-    - _AmbientOcclusionMapRemap: {r: 0, g: 1, b: 0, a: 0}
+    - _AmbientOcclusionMapRange: {r: 0, g: 0.9999999, b: 0, a: 0}
+    - _AmbientOcclusionMapRemap: {r: 0, g: 0.9999999, b: 0, a: 0}
     - _AnisotropyMapChannelMask: {r: 1, g: 0, b: 0, a: 0}
     - _AnisotropyMapRange: {r: 0, g: 1, b: 0, a: 0}
     - _AnisotropyMapRemap: {r: 0, g: 1, b: 0, a: 0}
