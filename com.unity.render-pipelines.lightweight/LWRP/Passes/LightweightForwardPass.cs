@@ -12,19 +12,12 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         protected ClearFlag clearFlag { get; set; }
         protected Color clearColor { get; set; }
 
-        const string k_SwitchRTs = "Switch RT";
-
-        Material m_ErrorMaterial;
-
         List<ShaderPassName> m_LegacyShaderPassNames;
         protected RendererConfiguration rendererConfiguration;
         protected bool dynamicBatching;
 
-        protected LightweightForwardPass(LightweightForwardRenderer renderer) : base(renderer)
+        protected LightweightForwardPass()
         {
-
-            m_ErrorMaterial = renderer.GetMaterial(MaterialHandles.Error);
-
             m_LegacyShaderPassNames = new List<ShaderPassName>();
             m_LegacyShaderPassNames.Add(new ShaderPassName("Always"));
             m_LegacyShaderPassNames.Add(new ShaderPassName("ForwardBase"));
@@ -81,9 +74,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        protected void RenderObjectsWithError(ref ScriptableRenderContext context, ref CullResults cullResults, Camera camera, FilterRenderersSettings filterSettings, SortFlags sortFlags)
+        protected void RenderObjectsWithError(LightweightForwardRenderer renderer, ref ScriptableRenderContext context, ref CullResults cullResults, Camera camera, FilterRenderersSettings filterSettings, SortFlags sortFlags)
         {
-            if (m_ErrorMaterial != null)
+            Material errorMaterial = renderer.GetMaterial(MaterialHandles.Error);
+            if (errorMaterial != null)
             {
                 DrawRendererSettings errorSettings = new DrawRendererSettings(camera, m_LegacyShaderPassNames[0]);
                 for (int i = 1; i < m_LegacyShaderPassNames.Count; ++i)
@@ -91,7 +85,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                 errorSettings.sorting.flags = sortFlags;
                 errorSettings.rendererConfiguration = RendererConfiguration.None;
-                errorSettings.SetOverrideMaterial(m_ErrorMaterial, 0);
+                errorSettings.SetOverrideMaterial(errorMaterial, 0);
                 context.DrawRenderers(cullResults.visibleRenderers, ref errorSettings, filterSettings);
             }
         }

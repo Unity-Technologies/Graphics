@@ -9,7 +9,7 @@ namespace UnityEditor.TestTools.Graphics
         public void Setup()
         {
             File.WriteAllLines("Assets/StreamingAssets/SceneList.txt",
-                EditorBuildSettings.scenes.Select(s => s.path).ToArray());
+                EditorBuildSettings.scenes.Where(s => s.enabled == true).Select(s => s.path).ToArray());
         }
     }
 }

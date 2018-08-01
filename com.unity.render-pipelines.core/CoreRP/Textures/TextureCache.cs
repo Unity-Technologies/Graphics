@@ -16,6 +16,17 @@ namespace UnityEngine.Experimental.Rendering
         {
         }
 
+        bool TextureHasMipmaps(Texture texture)
+        {
+            var crt = texture as CustomRenderTexture;
+
+            if (texture is Texture2D)
+                return ((Texture2D)texture).mipmapCount > 1;
+            else if (crt is CustomRenderTexture)
+                return ((CustomRenderTexture)texture).useMipMap;
+            return false;
+        }
+
         public override void TransferToSlice(CommandBuffer cmd, int sliceIndex, Texture texture)
         {
             var mismatch = (m_Cache.width != texture.width) || (m_Cache.height != texture.height);
@@ -31,7 +42,10 @@ namespace UnityEngine.Experimental.Rendering
             }
             else
             {
-                cmd.CopyTexture(texture, 0, m_Cache, sliceIndex);
+                if (TextureHasMipmaps(texture))
+                    cmd.CopyTexture(texture, 0, m_Cache, sliceIndex);
+                else
+                    Debug.LogWarning("The texture '" + texture + "' should have mipmaps to be handeled by the cookie texture array");
             }
         }
 

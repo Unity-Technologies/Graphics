@@ -26,6 +26,23 @@ public class Test_Explorer : MonoBehaviour
 
     private int m_currentSceneIndex;
     private bool m_previewMode;
+#if UNITY_EDITOR
+    [PostProcessScene(666)]
+    public static void OnPostprocessScene()
+    {
+        var listScene = Directory.GetFiles("Assets/AllTests/VFXTests/GraphicsTests/", "*.unity").Take(31).ToArray();
+        var scene = SceneManager.GetActiveScene();
+        foreach (var obj in scene.GetRootGameObjects())
+        {
+            var testExplorer = obj.GetComponent<Test_Explorer>();
+            if (testExplorer != null)
+            {
+                testExplorer.m_scenes = listScene;
+            }
+        }
+    }
+#endif
+
 
     void Start()
     {

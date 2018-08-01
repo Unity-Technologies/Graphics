@@ -1,8 +1,15 @@
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
-    public enum ShapeType
+    public enum InfluenceShape
     {
         Box,
-        Sphere
+        Sphere,
+    }
+
+    public enum ProxyShape
+    {
+        Box,
+        Sphere,
+        Infinite
     }
 }

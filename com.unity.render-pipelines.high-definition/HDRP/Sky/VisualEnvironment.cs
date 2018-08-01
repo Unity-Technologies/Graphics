@@ -10,7 +10,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public enum SkyType
     {
         HDRISky = 1,
-        ProceduralSky = 2
+        ProceduralSky = 2,
+        Gradient = 3,
     }
 
     // Keep this class first in the file. Otherwise it seems that the script type is not registered properly.
