@@ -476,8 +476,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         public static bool GenerateShaderPass(AbstractMaterialNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions, HashSet<string> activeFields, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
         {
-            string templatePath = Path.Combine(Path.Combine(HDUtils.GetHDRenderPipelinePath(), "Editor"), "ShaderGraph");
+<<<<<<< HEAD
+            var templateLocation = Path.Combine(Path.Combine(Path.Combine(HDUtils.GetHDRenderPipelinePath(), "Editor"), "ShaderGraph"), pass.TemplateName);
+=======
+            string templatePath = Path.Combine(Path.Combine(HDEditorUtils.GetHDRenderPipelinePath(), "Editor"), "ShaderGraph");
             string templateLocation = Path.Combine(templatePath, pass.TemplateName);
+>>>>>>> master
             if (!File.Exists(templateLocation))
             {
                 // TODO: produce error here

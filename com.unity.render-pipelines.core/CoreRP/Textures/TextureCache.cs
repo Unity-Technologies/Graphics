@@ -18,12 +18,10 @@ namespace UnityEngine.Experimental.Rendering
 
         bool TextureHasMipmaps(Texture texture)
         {
-            var crt = texture as CustomRenderTexture;
-
             if (texture is Texture2D)
                 return ((Texture2D)texture).mipmapCount > 1;
-            else if (crt is CustomRenderTexture)
-                return ((CustomRenderTexture)texture).useMipMap;
+            else if (texture is RenderTexture)
+                return ((RenderTexture)texture).useMipMap;
             return false;
         }
 
