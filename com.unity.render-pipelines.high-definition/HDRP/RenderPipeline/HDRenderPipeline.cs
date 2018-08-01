@@ -1866,7 +1866,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void PushColorPickerDebugTexture(CommandBuffer cmd, RTHandleSystem.RTHandle textureID, HDCamera hdCamera)
         {
-            if (m_CurrentDebugDisplaySettings.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None || m_DebugDisplaySettings.falseColorDebugSettings.falseColor)
+            if (m_CurrentDebugDisplaySettings.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None || m_DebugDisplaySettings.falseColorDebugSettings.falseColor || m_DebugDisplaySettings.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuminanceMeter)
             {
                 using (new ProfilingSample(cmd, "Push To Color Picker"))
                 {
@@ -1878,7 +1878,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // TODO TEMP: Not sure I want to keep this special case. Gotta see how to get rid of it (not sure it will work correctly for non-full viewports.
         public void PushColorPickerDebugTexture(HDCamera hdCamera, CommandBuffer cmd, RenderTargetIdentifier textureID)
         {
-            if (m_CurrentDebugDisplaySettings.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None || m_DebugDisplaySettings.falseColorDebugSettings.falseColor)
+            if (m_CurrentDebugDisplaySettings.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None || m_DebugDisplaySettings.falseColorDebugSettings.falseColor || m_DebugDisplaySettings.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuminanceMeter)
             {
                 using (new ProfilingSample(cmd, "Push To Color Picker"))
                 {
@@ -1955,7 +1955,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 DecalSystem.instance.RenderDebugOverlay(hdCamera, cmd, m_CurrentDebugDisplaySettings, ref x, ref y, overlaySize, hdCamera.actualWidth);
 
-                if (m_CurrentDebugDisplaySettings.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None || m_CurrentDebugDisplaySettings.falseColorDebugSettings.falseColor)
+                if (m_CurrentDebugDisplaySettings.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None || m_CurrentDebugDisplaySettings.falseColorDebugSettings.falseColor || m_CurrentDebugDisplaySettings.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuminanceMeter)
                 {
                     ColorPickerDebugSettings colorPickerDebugSettings = m_CurrentDebugDisplaySettings.colorPickerDebugSettings;
                     FalseColorDebugSettings falseColorDebugSettings = m_CurrentDebugDisplaySettings.falseColorDebugSettings;
