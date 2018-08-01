@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fixed package upgrade crashing the editor
 - Fix HDReflectionProbe offset displayed in gizmo different than what is affected.
 - Fix decals getting into a state where they could not be removed or disabled.
+- The lux meter isn't affected by the sky anymore
 
 ## [3.1.0-preview]
 
