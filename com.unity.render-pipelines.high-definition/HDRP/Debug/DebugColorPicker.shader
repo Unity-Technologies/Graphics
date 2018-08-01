@@ -161,6 +161,11 @@ Shader "Hidden/HDRenderPipeline/DebugColorPicker"
                 //Decompress value if luxMeter is active
                 if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER && _ColorPickerMode != COLORPICKERDEBUGMODE_NONE)
                     result.rgb = result.rgb * LUXMETER_COMPRESSION_RATIO;
+                    
+                if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUMINANCE_METER)
+                {
+                    result = Luminance(result.rgb);
+                }
 
                 if (_FalseColor)
                     result.rgb = FasleColorRemap(Luminance(result.rgb), _FalseColorThresholds);
