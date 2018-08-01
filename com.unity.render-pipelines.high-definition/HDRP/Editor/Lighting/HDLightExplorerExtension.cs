@@ -15,7 +15,8 @@ namespace UnityEditor
             public AdditionalShadowData additionalShadowData;
             public bool isPrefab;
             public Object prefabRoot;
-            public LightData(HDAdditionalLightData hdAdditionalLightData, AdditionalShadowData additionalShadowData,bool isPrefab, Object prefabRoot)
+            
+            public LightData(HDAdditionalLightData hdAdditionalLightData, AdditionalShadowData additionalShadowData, bool isPrefab, Object prefabRoot)
             {
                 this.hdAdditionalLightData = hdAdditionalLightData;
                 this.additionalShadowData = additionalShadowData;
@@ -32,6 +33,7 @@ namespace UnityEditor
             public VolumeProfile profile;
             public FogType fogType;
             public SkyType skyType;
+            
             public VolumeData(bool isGlobal, VolumeProfile profile, bool hasBakingSky)
             {
                 this.isGlobal = isGlobal;
@@ -98,7 +100,6 @@ namespace UnityEditor
             public static readonly GUIContent ParallaxCorrection = EditorGUIUtility.TrTextContent("Parallax Correction");
             public static readonly GUIContent ReflectionProbeWeight = EditorGUIUtility.TrTextContent("Weight");
 
-
             public static readonly GUIContent[] LightmapBakeTypeTitles = { EditorGUIUtility.TrTextContent("Realtime"), EditorGUIUtility.TrTextContent("Mixed"), EditorGUIUtility.TrTextContent("Baked") };
             public static readonly int[] LightmapBakeTypeValues = { (int)LightmapBakeType.Realtime, (int)LightmapBakeType.Mixed, (int)LightmapBakeType.Baked };
         }
@@ -122,7 +123,8 @@ namespace UnityEditor
             foreach (Light light in lights)
             {
                 var prefabRoot = 
-                lightDataPairing[light] = new LightData(light.GetComponent<HDAdditionalLightData>(), light.GetComponent<AdditionalShadowData>(), PrefabUtility.GetCorrespondingObjectFromSource(light) == null ? false : true, PrefabUtility.GetCorrespondingObjectFromSource(PrefabUtility.FindPrefabRoot(light.gameObject)));
+                lightDataPairing[light] = new LightData(light.GetComponent<HDAdditionalLightData>(), light.GetComponent<AdditionalShadowData>(), 
+                PrefabUtility.GetCorrespondingObjectFromSource(light) == null ? false : true, PrefabUtility.GetCorrespondingObjectFromSource(PrefabUtility.FindPrefabRoot(light.gameObject)));
             }
             return lights;
         }
@@ -170,7 +172,7 @@ namespace UnityEditor
                 {
                     if(prop.serializedObject.FindProperty("m_UseColorTemperature").boolValue)
                     {
-                        prop= prop.serializedObject.FindProperty("m_ColorTemperature");
+                        prop = prop.serializedObject.FindProperty("m_ColorTemperature");
                         prop.floatValue = EditorGUI.FloatField(r,prop.floatValue);
                     }
                 }),
