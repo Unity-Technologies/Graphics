@@ -96,7 +96,7 @@ VaryingsToDS InterpolateWithBaryCoordsToDS(VaryingsToDS input0, VaryingsToDS inp
 VaryingsMeshType VertMesh(AttributesMesh input)
 {
 #if defined(HAVE_MESH_MODIFICATION)
-    input = ApplyMeshModification(input);
+    input = ApplyMeshModification(input, _Time);
 #endif
 
     VaryingsMeshType output;
@@ -108,17 +108,10 @@ VaryingsMeshType VertMesh(AttributesMesh input)
     float3 positionRWS = TransformObjectToWorld(input.positionOS);
 #ifdef ATTRIBUTES_NEED_NORMAL
     float3 normalWS = TransformObjectToWorldNormal(input.normalOS);
-#else
-    float3 normalWS = float3(0.0, 0.0, 0.0); // We need this case to be able to compile ApplyVertexModification that doesn't use normal.
 #endif
 
 #ifdef ATTRIBUTES_NEED_TANGENT
      float4 tangentWS = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
-#endif
-
-     // Do vertex modification in camera relative space (if enable)
-#if defined(HAVE_VERTEX_MODIFICATION)
-    ApplyVertexModification(input, normalWS, positionRWS, _Time);
 #endif
 
 #ifdef TESSELLATION_ON

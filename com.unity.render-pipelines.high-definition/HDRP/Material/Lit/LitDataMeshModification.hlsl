@@ -1,4 +1,5 @@
-// Note: positionWS can be either in camera relative space or not
+// Note: positionWS can be either in camera relative space or not, this is used for triplanar mapping
+// This function only return a displacement, normal need to be apply on the result
 float3 GetVertexDisplacement(float3 positionRWS, float3 normalWS, float2 texCoord0, float2 texCoord1, float2 texCoord2, float2 texCoord3, float4 vertexColor)
 {
     // This call will work for both LayeredLit and Lit shader
@@ -9,15 +10,16 @@ float3 GetVertexDisplacement(float3 positionRWS, float3 normalWS, float2 texCoor
     // TODO: do this algorithm for lod fetching as lod not available in vertex/domain shader
     // http://www.sebastiansylvan.com/post/the-problem-with-tessellation-in-directx-11/
     float lod = 0.0;
-    return ComputePerVertexDisplacement(layerTexCoord, vertexColor, lod) * normalWS;
+    return ComputePerVertexDisplacement(layerTexCoord, vertexColor, lod);
 }
 
 // Note: positionWS can be either in camera relative space or not
-void ApplyVertexModification(AttributesMesh input, float3 normalWS, inout float3 positionRWS, float4 time)
+// Time is _Time or _LastTime depends if we call it from velocity pass or not
+AttributesMesh ApplyMeshModification(AttributesMesh input, float4 time)
 {
 #if defined(_VERTEX_DISPLACEMENT)
 
-    positionRWS += GetVertexDisplacement(positionRWS, normalWS,
+    input.positionOS += input.normalOS * GetVertexDisplacement(TransformObjectToWorld(input.positionOS), TransformObjectToWorldNormal(input.normalOS),
     #ifdef ATTRIBUTES_NEED_TEXCOORD0
         input.uv0,
     #else
@@ -49,10 +51,12 @@ void ApplyVertexModification(AttributesMesh input, float3 normalWS, inout float3
 #ifdef _VERTEX_WIND
     // current wind implementation is in absolute world space
     float3 rootWP = GetObjectAbsolutePositionWS();
-    float3 absolutePositionWS = GetAbsolutePositionWS(positionRWS);
-    ApplyWindDisplacement(absolutePositionWS, normalWS, rootWP, _Stiffness, _Drag, _ShiverDrag, _ShiverDirectionality, _InitialBend, input.color.a, time);
-    positionRWS = GetCameraRelativePositionWS(absolutePositionWS);
+    float3 absolutePositionWS = GetAbsolutePositionWS(TransformObjectToWorld(input.positionOS));
+    ApplyWindDisplacement(absolutePositionWS, TransformObjectToWorldNormal(input.normalOS), rootWP, _Stiffness, _Drag, _ShiverDrag, _ShiverDirectionality, _InitialBend, input.color.a, time);
+    input.positionOS = TransformWorldToObject(GetCameraRelativePositionWS(absolutePositionWS));
 #endif
+
+    return input;
 }
 
 #ifdef TESSELLATION_ON
@@ -140,7 +144,7 @@ void ApplyTessellationModification(VaryingsMeshToDS input, float3 normalWS, inou
 {
 #if defined(_TESSELLATION_DISPLACEMENT)
 
-    positionRWS += GetVertexDisplacement(positionRWS, normalWS,
+    positionRWS += normalWS * GetVertexDisplacement(positionRWS, normalWS,
     #ifdef VARYINGS_DS_NEED_TEXCOORD0
         input.texCoord0,
     #else

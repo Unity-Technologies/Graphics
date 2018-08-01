@@ -132,7 +132,7 @@ PackedVaryingsType Vert(AttributesMesh inputMesh,
         AttributesMesh previousMesh = inputMesh;
         if (hasDeformation)
             previousMesh.positionOS = inputPass.previousPositionOS;
-        previousMesh = ApplyMeshModification(previousMesh);
+        previousMesh = ApplyMeshModification(previousMesh, _LastTime);
         float3 previousPositionRWS = TransformPreviousObjectToWorld(previousMesh.positionOS);
 #else
         float3 previousPositionRWS = TransformPreviousObjectToWorld(hasDeformation ? inputPass.previousPositionOS : inputMesh.positionOS);
@@ -140,12 +140,6 @@ PackedVaryingsType Vert(AttributesMesh inputMesh,
 
 #ifdef ATTRIBUTES_NEED_NORMAL
         float3 normalWS = TransformPreviousObjectToWorldNormal(inputMesh.normalOS);
-#else
-        float3 normalWS = float3(0.0, 0.0, 0.0);
-#endif
-
- #if defined(HAVE_VERTEX_MODIFICATION)
-        ApplyVertexModification(inputMesh, normalWS, previousPositionRWS, _LastTime);
 #endif
 
         varyingsType.vpass.previousPositionCS = mul(_PrevViewProjMatrix, float4(previousPositionRWS, 1.0));

@@ -447,7 +447,7 @@ Shader "HDRenderPipeline/LayeredLit"
     // Use surface gradient normal mapping as it handle correctly triplanar normal mapping and multiple UVSet
     #define SURFACE_GRADIENT
     // This shader support vertex modification
-    #define HAVE_VERTEX_MODIFICATION
+    #define HAVE_MESH_MODIFICATION
 
     // If we use subsurface scattering, enable output split lighting (for forward pass)
     #if defined(_MATERIAL_FEATURE_SUBSURFACE_SCATTERING) && !defined(_SURFACE_TYPE_TRANSPARENT)
