@@ -1,7 +1,7 @@
-// GBuffer pass
+// Forward pass
 Pass
 {		
-	Tags { "LightMode"="GBuffer" }
+	Tags { "LightMode"="Forward" }
 	
 	Stencil
 	{
@@ -15,7 +15,13 @@ Pass
 	#pragma target 4.5
 	
 	#define UNITY_MATERIAL_LIT
-	#define SHADERPASS SHADERPASS_GBUFFER
+	#define LIGHTLOOP_TILE_PASS
+	#define _SURFACE_TYPE_TRANSPARENT
+	#define _ENABLE_FOG_ON_TRANSPARENT
+	#define _BLENDMODE_PRE_MULTIPLY
+	#pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST 
+	#pragma multi_compile _ DEBUG_DISPLAY
+	//#pragma enable_d3d11_debug_symbols
 		
 	${VFXInclude("Shaders/RenderPipeline/HDRP/VFXLitVaryings.template")}		
 		
@@ -49,6 +55,8 @@ Pass
 		#endif
 	};
 	
+${VFXHDRPLitVaryingsMacros}	
+	
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
 #define VFX_VARYING_POSSS projPos
@@ -56,13 +64,17 @@ Pass
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
 #define VFX_VARYING_FRAMEBLEND builtInInterpolants.z
 #define VFX_VARYING_UV uv
+#define VFX_VARYING_NORMAL normal
+#if HDRP_USE_NORMAL_MAP
+#define VFX_VARYING_TANGENT tangent
+#endif
 
 ${VFXBegin:VFXVertexAdditionalProcess}
 ${VFXHDRPLitFillVaryings}
 
-o.normal = TransformDirectionVFXToWorld(-axisZ);
+o.normal = TransformDirectionVFXToWorld(normalize(-transpose(elementToVFX)[2].xyz));
 #if HDRP_USE_NORMAL_MAP || USE_NORMAL_BENDING
-o.tangent = TransformDirectionVFXToWorld(axisX);
+o.tangent = TransformDirectionVFXToWorld(normalize(transpose(elementToVFX)[0].xyz));
 #endif
 #if USE_NORMAL_BENDING
 ${VFXLoadParameter:{bentNormalFactor}}
@@ -71,10 +83,11 @@ o.bentFactors = vOffsets * bentNormalFactor;
 ${VFXEnd}
 	
 	${VFXInclude("Shaders/ParticleQuads/Pass.template")}
+	#define SHADERPASS SHADERPASS_FORWARD
 	${VFXInclude("Shaders/RenderPipeline/HDRP/VFXLit.template")}
 					
 	#pragma fragment frag
-	void frag(ps_input i, OUTPUT_GBUFFER(outGBuffer)
+	void frag(ps_input i, out float4 outColor : SV_Target0
 	#if USE_DOUBLE_SIDED
 	, bool frontFace : SV_IsFrontFace
 	#endif
@@ -95,7 +108,7 @@ ${VFXEnd}
 		
 		#if USE_NORMAL_BENDING	
 		float3 bentFactors = float3(i.bentFactors.xy,sqrt(1.0f - i.bentFactors.x * i.bentFactors.x * i.bentFactors.y * i.bentFactors.y));
-		normalWS = tangentWS * bentFactors.x + bitangentWS * bentFactors.y + normalWS * bentFactors.z;
+		normalWS = normalize(tangentWS * bentFactors.x + bitangentWS * bentFactors.y + normalWS * bentFactors.z);
 		tangentWS = normalize(cross(normalWS,bitangentWS));
 		bitangentWS = cross(tangentWS,normalWS);
 		tangentWS *= faceMul;
@@ -108,11 +121,47 @@ ${VFXEnd}
 		#endif
 		#endif
 		
+		float3 diffuseLighting;
+        float3 specularLighting;
+		
 		SurfaceData surfaceData;
 		BuiltinData builtinData;
-		VFXGetHDRPLitData(surfaceData,builtinData,i,normalWS,uvData);
+		BSDFData bsdfData;
+		PreLightData preLightData;
+		uint2 tileIndex = uint2(i.pos.xy) / GetTileSize();
+		VFXGetHDRPLitData(surfaceData,builtinData,bsdfData,preLightData,i,normalWS,uvData,tileIndex);
 		
-		ENCODE_INTO_GBUFFER(surfaceData, builtinData, i.pos, outGBuffer);
+		PositionInputs posInput = GetPositionInput(i.pos.xy, _ScreenSize.zw, i.pos.z, i.pos.w, i.posRWS, tileIndex);
+		LightLoop(GetWorldSpaceNormalizeViewDir(i.posRWS), posInput, preLightData, bsdfData, builtinData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE, diffuseLighting, specularLighting);
+
+		diffuseLighting *= builtinData.opacity;
+		specularLighting *= builtinData.opacity;
+		outColor = ApplyBlendMode(diffuseLighting, specularLighting, builtinData.opacity);
+        outColor = EvaluateAtmosphericScattering(posInput, outColor);
+
+		#ifdef DEBUG_DISPLAY
+		// Same code in ShaderPassForwardUnlit.shader
+		if (_DebugViewMaterial != 0)
+		{
+			float3 result = float3(1.0, 0.0, 1.0);
+
+			bool needLinearToSRGB = false;
+
+			GetPropertiesDataDebug(_DebugViewMaterial, result, needLinearToSRGB);
+			//GetVaryingsDataDebug(_DebugViewMaterial, i, result, needLinearToSRGB);
+			GetBuiltinDataDebug(_DebugViewMaterial, builtinData, result, needLinearToSRGB);
+			GetSurfaceDataDebug(_DebugViewMaterial, surfaceData, result, needLinearToSRGB);
+			GetBSDFDataDebug(_DebugViewMaterial, bsdfData, result, needLinearToSRGB);
+
+			// TEMP!
+			// For now, the final blit in the backbuffer performs an sRGB write
+			// So in the meantime we apply the inverse transform to linear data to compensate.
+			if (!needLinearToSRGB)
+				result = SRGBToLinear(max(0, result));
+
+			outColor = float4(result, 1.0);
+		}
+		#endif
 	}
 	ENDHLSL
 }

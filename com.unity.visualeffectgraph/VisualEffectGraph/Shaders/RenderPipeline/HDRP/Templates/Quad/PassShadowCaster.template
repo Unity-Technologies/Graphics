@@ -49,10 +49,6 @@ ${VFXBegin:VFXVertexAdditionalProcess}${VFXEnd}
 #endif
 		VFXClipFragmentColor(alpha,i);
 
-#ifndef USE_ALPHA_TEST
-		clip(alpha - 1e-5);
-#endif
-
 		return 0;
 	}
 	ENDHLSL

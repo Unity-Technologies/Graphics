@@ -32,19 +32,17 @@ Pass
 
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
+#define VFX_VARYING_ALPHA builtInInterpolants.y
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x
 #define VFX_VARYING_UV uv
+
 #ifdef WRITE_NORMAL_BUFFER
 #define VFX_VARYING_NORMAL normal
-#if HDRP_USE_NORMAL_MAP
-#define VFX_VARYING_TANGENT tangent
-#endif
-#else
-#define VFX_VARYING_ALPHA builtInInterpolants.y
-#endif
 #define VFX_VARYING_SMOOTHNESS builtInInterpolants.z
 #if HDRP_USE_NORMAL_MAP
+#define VFX_VARYING_TANGENT tangent
 #define VFX_VARYING_NORMALSCALE builtInInterpolants.w
+#endif
 #endif
 		
 ${VFXBegin:VFXVertexAdditionalProcess}
@@ -66,13 +64,7 @@ ${VFXEnd}
 	, out float4 outColor : SV_Target
 #endif
 	)
-	{
-		float alpha = VFXGetFragmentColor(i).a;
-#if HDRP_USE_BASE_COLOR_MAP
-		alpha *= VFXGetTextureColor(VFX_SAMPLER(baseColorMap),i).a;
-#endif	
-		VFXClipFragmentColor(alpha,i);
-		
+	{		
 #ifdef WRITE_NORMAL_BUFFER
 		#if USE_DOUBLE_SIDED
 		const float faceMul = frontFace ? 1.0f : -1.0f;
@@ -96,11 +88,18 @@ ${VFXEnd}
 		VFXGetHDRPLitData(surfaceData,builtinData,i,normalWS,uvData);
 
 		ENCODE_INTO_NORMALBUFFER(surfaceData, i.pos, outNormalBuffer);
-#elif defined(SCENESELECTIONPASS)
+#else
+		float alpha = VFXGetFragmentColor(i).a;
+#if HDRP_USE_BASE_COLOR_MAP
+		alpha *= VFXGetTextureColor(VFX_SAMPLER(baseColorMap),i).a;
+#endif	
+		VFXClipFragmentColor(alpha,i);
+#ifdef SCENESELECTIONPASS
 		// We use depth prepass for scene selection in the editor, this code allow to output the outline correctly
 		outColor = float4(_ObjectId, _PassValue, 1.0, 1.0);
 #else
 		outColor = (float4)0;
+#endif
 #endif
 	}
 	ENDHLSL

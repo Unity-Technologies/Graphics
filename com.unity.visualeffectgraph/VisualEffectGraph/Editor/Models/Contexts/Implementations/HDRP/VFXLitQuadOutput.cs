@@ -25,7 +25,6 @@ namespace UnityEditor.VFX
 
         public override void OnEnable()
         {
-            blendMode = BlendMode.Masked;
             base.OnEnable();
         }
 
@@ -73,17 +72,6 @@ namespace UnityEditor.VFX
 
             if (normalBending)
                 yield return slotExpressions.First(o => o.name == "bentNormalFactor");
-        }
-
-        protected override IEnumerable<string> filteredOutSettings
-        {
-            get
-            {
-                foreach (var setting in base.filteredOutSettings)
-                    yield return setting;
-
-                yield return "blendMode";
-            }
         }
 
         public override IEnumerable<string> additionalDefines
