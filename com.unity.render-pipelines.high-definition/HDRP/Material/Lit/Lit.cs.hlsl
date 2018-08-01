@@ -16,21 +16,6 @@
 #define MATERIALFEATUREFLAGS_LIT_CLEAR_COAT (64)
 
 //
-// UnityEngine.Experimental.Rendering.HDPipeline.Lit+ProjectionModel:  static fields
-//
-#define PROJECTIONMODEL_NONE (0)
-#define PROJECTIONMODEL_PROXY (1)
-#define PROJECTIONMODEL_HI_Z (2)
-#define PROJECTIONMODEL_LINEAR (3)
-
-//
-// UnityEngine.Experimental.Rendering.HDPipeline.Lit+HiZIntersectionKind:  static fields
-//
-#define HIZINTERSECTIONKIND_NONE (0)
-#define HIZINTERSECTIONKIND_CELL (1)
-#define HIZINTERSECTIONKIND_DEPTH (2)
-
-//
 // UnityEngine.Experimental.Rendering.HDPipeline.Lit+SurfaceData:  static fields
 //
 #define DEBUGVIEW_LIT_SURFACEDATA_MATERIAL_FEATURES (1000)

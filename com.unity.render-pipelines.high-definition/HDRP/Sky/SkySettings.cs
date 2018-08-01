@@ -23,14 +23,41 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             : base(value, overrideState) {}
     }
 
+    public enum SkyIntensityMode
+    {
+        Exposure,
+        Lux,
+    }
+
+    [System.Flags]
+    public enum SkySettingsPropertyFlags
+    {
+        ShowMultiplierAndEV = (1 << 0),
+        ShowRotation =        (1 << 1),
+        ShowUpdateMode =      (1 << 2),
+    }
+
+    [Serializable, DebuggerDisplay(k_DebuggerDisplay)]
+    public sealed class SkyIntensityParameter : VolumeParameter<SkyIntensityMode>
+    {
+        public SkyIntensityParameter(SkyIntensityMode value, bool overrideState = false)
+            : base(value, overrideState) {}
+    }
+
     public abstract class SkySettings : VolumeComponent
     {
         [Tooltip("Rotation of the sky.")]
         public ClampedFloatParameter    rotation = new ClampedFloatParameter(0.0f, 0.0f, 360.0f);
+        [Tooltip("Sky intensity mode")]
+        public SkyIntensityParameter    skyIntensityMode = new SkyIntensityParameter(SkyIntensityMode.Exposure);
         [Tooltip("Exposure of the sky in EV.")]
         public FloatParameter           exposure = new FloatParameter(0.0f);
         [Tooltip("Intensity multiplier for the sky.")]
         public MinFloatParameter        multiplier = new MinFloatParameter(1.0f, 0.0f);
+        [Tooltip("Auto multiplier from the HDRI sky")]
+        public MinFloatParameter        upperHemisphereLuxValue = new MinFloatParameter(1.0f, 0.0f);
+        [Tooltip("Lux intensity multiplier for the sky")]
+        public FloatParameter           desiredLuxValue = new FloatParameter(20000);
         [Tooltip("Specify how the environment lighting should be updated.")]
         public EnvUpdateParameter       updateMode = new EnvUpdateParameter(EnvironementUpdateMode.OnChanged);
         [Tooltip("If environment update is set to realtime, period in seconds at which it is updated (0.0 means every frame).")]
@@ -50,10 +77,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 hash = hash * 23 + rotation.GetHashCode();
                 hash = hash * 23 + exposure.GetHashCode();
                 hash = hash * 23 + multiplier.GetHashCode();
+                hash = hash * 23 + desiredLuxValue.GetHashCode();
 
                 // TODO: Fixme once we switch to .Net 4.6+
                 //>>>
                 hash = hash * 23 + ((int)updateMode.value).GetHashCode();
+                hash = hash * 23 + ((int)skyIntensityMode.value).GetHashCode();
                 //<<<
 
                 hash = hash * 23 + updatePeriod.GetHashCode();

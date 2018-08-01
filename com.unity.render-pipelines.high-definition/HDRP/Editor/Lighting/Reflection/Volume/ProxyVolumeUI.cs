@@ -17,7 +17,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         internal static Color k_GizmoThemeColorDisabled = new Color(0x99 / 255f, 0x89 / 255f, 0x59 / 255f, 0x10 / 255f);
         internal static Color k_GizmoThemeColorDisabledFace = new Color(0x99 / 255f, 0x89 / 255f, 0x59 / 255f, 0x10 / 255f);
 
-        static readonly int k_ShapeCount = Enum.GetValues(typeof(ShapeType)).Length;
+        static readonly int k_ShapeCount = Enum.GetValues(typeof(InfluenceShape)).Length;
 
         public static readonly CED.IDrawer SectionShape;
 
@@ -29,7 +29,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SectionShape = CED.Group(
                     CED.Action(Drawer_FieldShapeType),
                     CED.FadeGroup(
-                        (s, d, o, i) => s.IsSectionExpanded_Shape((ShapeType)i),
+                        (s, d, o, i) => s.IsSectionExpanded_Shape((InfluenceShape)i),
                         FadeOption.Indent,
                         SectionShapeBox,
                         SectionShapeSphere
@@ -49,47 +49,43 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             base.Update();
             if (data != null)
-                SetIsSectionExpanded_Shape((ShapeType)data.shapeType.intValue);
+                SetIsSectionExpanded_Shape((InfluenceShape)data.shape.intValue);
         }
 
-        void SetIsSectionExpanded_Shape(ShapeType shape)
+        void SetIsSectionExpanded_Shape(InfluenceShape shape)
         {
             for (var i = 0; i < k_ShapeCount; i++)
                 m_AnimBools[i].target = (int)shape == i;
         }
 
-        public AnimBool IsSectionExpanded_Shape(ShapeType shapeType)
+        public AnimBool IsSectionExpanded_Shape(InfluenceShape shapeType)
         {
             return m_AnimBools[(int)shapeType];
         }
 
         static void Drawer_FieldShapeType(ProxyVolumeUI s, SerializedProxyVolume d, Editor o)
         {
-            EditorGUILayout.PropertyField(d.shapeType, _.GetContent("Shape Type"));
+            EditorGUILayout.PropertyField(d.shape, _.GetContent("Shape Type"));
         }
 
         static void Drawer_SectionShapeBox(ProxyVolumeUI s, SerializedProxyVolume d, Editor o)
         {
             EditorGUILayout.PropertyField(d.boxSize, _.GetContent("Box Size"));
-            EditorGUILayout.PropertyField(d.boxOffset, _.GetContent("Box Offset"));
-            EditorGUILayout.PropertyField(d.boxInfiniteProjection, _.GetContent("Infinite Projection"));
         }
 
         static void Drawer_SectionShapeSphere(ProxyVolumeUI s, SerializedProxyVolume d, Editor o)
         {
             EditorGUILayout.PropertyField(d.sphereRadius, _.GetContent("Sphere Radius"));
-            EditorGUILayout.PropertyField(d.sphereOffset, _.GetContent("Sphere Offset"));
-            EditorGUILayout.PropertyField(d.sphereInfiniteProjection, _.GetContent("Infinite Projection"));
         }
 
         public static void DrawHandles_EditBase(Transform transform, ProxyVolume proxyVolume, ProxyVolumeUI ui, Object sourceAsset)
         {
-            switch (proxyVolume.shapeType)
+            switch (proxyVolume.shape)
             {
-                case ShapeType.Box:
+                case ProxyShape.Box:
                     Handles_EditBase_Box(transform, proxyVolume, ui, sourceAsset);
                     break;
-                case ShapeType.Sphere:
+                case ProxyShape.Sphere:
                     Handles_EditBase_Sphere(transform, proxyVolume, ui, sourceAsset);
                     break;
             }
@@ -101,7 +97,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void Handles_EditBase_Sphere(Transform transform, ProxyVolume proxyVolume, ProxyVolumeUI s, Object sourceAsset)
         {
-            s.sphereProjectionHandle.center = proxyVolume.sphereOffset;
+            s.sphereProjectionHandle.center = Vector3.zero;
             s.sphereProjectionHandle.radius = proxyVolume.sphereRadius;
 
             var mat = Handles.matrix;
@@ -113,7 +109,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 Undo.RecordObject(sourceAsset, "Modified Projection Volume");
 
-                proxyVolume.sphereOffset = s.sphereProjectionHandle.center;
                 proxyVolume.sphereRadius = s.sphereProjectionHandle.radius;
 
                 EditorUtility.SetDirty(sourceAsset);
@@ -123,7 +118,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void Handles_EditBase_Box(Transform transform, ProxyVolume proxyVolume, ProxyVolumeUI s, Object sourceAsset)
         {
-            s.boxProjectionHandle.center = proxyVolume.boxOffset;
+            s.boxProjectionHandle.center = Vector3.zero;
             s.boxProjectionHandle.size = proxyVolume.boxSize;
 
             var mat = Handles.matrix;
@@ -136,7 +131,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 Undo.RecordObject(sourceAsset, "Modified Projection Volume AABB");
 
-                proxyVolume.boxOffset = s.boxProjectionHandle.center;
                 proxyVolume.boxSize = s.boxProjectionHandle.size;
 
                 EditorUtility.SetDirty(sourceAsset);
@@ -147,12 +141,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public static void DrawGizmos_EditNone(Transform transform, ProxyVolume proxyVolume, ProxyVolumeUI ui, Object sourceAsset)
         {
-            switch (proxyVolume.shapeType)
+            switch (proxyVolume.shape)
             {
-                case ShapeType.Box:
+                case ProxyShape.Box:
                     Gizmos_EditNone_Box(transform, proxyVolume, ui, sourceAsset);
                     break;
-                case ShapeType.Sphere:
+                case ProxyShape.Sphere:
                     Gizmos_EditNone_Sphere(transform, proxyVolume, ui, sourceAsset);
                     break;
             }
@@ -164,7 +158,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Gizmos.matrix = t.localToWorldMatrix;
 
             Gizmos.color = k_GizmoThemeColorProjection;
-            Gizmos.DrawWireSphere(d.sphereOffset, d.sphereRadius);
+            Gizmos.DrawWireSphere(Vector3.zero, d.sphereRadius);
 
             Gizmos.matrix = mat;
         }
@@ -175,7 +169,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Gizmos.matrix = t.localToWorldMatrix;
 
             Gizmos.color = k_GizmoThemeColorProjection;
-            Gizmos.DrawWireCube(d.boxOffset, d.boxSize);
+            Gizmos.DrawWireCube(Vector3.zero, d.boxSize);
 
             Gizmos.matrix = mat;
         }

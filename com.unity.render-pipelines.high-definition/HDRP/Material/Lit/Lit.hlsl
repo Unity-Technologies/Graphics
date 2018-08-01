@@ -203,16 +203,9 @@ uint TileVariantToFeatureFlags(uint variant, uint tileIndex)
 #include "HDRP/Lighting/LightDefinition.cs.hlsl"
 #include "HDRP/Lighting/Reflection/VolumeProjection.hlsl"
 
-#define SSRTID Reflection
-#include "HDRP/Lighting/Reflection/ScreenSpaceTracing.hlsl"
-#undef SSRTID
+#include "HDRP/Lighting/ScreenSpaceLighting/ScreenSpaceLighting.hlsl"
 
 #if HAS_REFRACTION
-    #include "CoreRP/ShaderLibrary/Refraction.hlsl"
-    #define SSRTID Refraction
-    #include "HDRP/Lighting/Reflection/ScreenSpaceTracing.hlsl"
-    #undef SSRTID
-
     #if defined(_REFRACTION_PLANE)
     #define REFRACTION_MODEL(V, posInputs, bsdfData) RefractionModelPlane(V, posInputs.positionWS, bsdfData.normalWS, bsdfData.ior, bsdfData.thickness)
     #elif defined(_REFRACTION_SPHERE)
@@ -576,11 +569,15 @@ void EncodeIntoGBuffer( SurfaceData surfaceData
     outGBuffer2.a  = PackFloatInt8bit(coatMask, materialFeatureId, 8);
 
     // RT3 - 11f:11f:10f
-    outGBuffer3 = float4(builtinData.bakeDiffuseLighting, 0.0);
-
+    // In deferred we encode emissive color with bakeDiffuseLighting. We don't have the room to store emissiveColor.
+    // It mean that any futher process that affect bakeDiffuseLighting will also affect emissiveColor, like SSAO for example.
+    // Also if we don't have the room to store AO, then we apply it at this time on bakeDiffuseLighting which will cause a double occlusion with SSAO
 #ifdef LIGHT_LAYERS
+    outGBuffer3 = float4(builtinData.bakeDiffuseLighting + builtinData.emissiveColor, 0.0);
     // If we have light layers, take the opportunity to save AO and avoid double occlusion with SSAO
     OUT_GBUFFER_LIGHT_LAYERS = float4(0.0, 0.0, surfaceData.ambientOcclusion, builtinData.renderingLayers / 255.0);
+#else
+    outGBuffer3 = float4(builtinData.bakeDiffuseLighting * surfaceData.ambientOcclusion + builtinData.emissiveColor, 0.0);
 #endif
 
 #ifdef SHADOWS_SHADOWMASK
@@ -611,7 +608,7 @@ uint DecodeFromGBuffer(uint2 positionSS, uint tileFeatureFlags, out BSDFData bsd
     GBufferType2 inGBuffer2 = LOAD_TEXTURE2D(_GBufferTexture2, positionSS);
 
     // BuiltinData
-    builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D(_GBufferTexture3, positionSS).rgb;  // This also contain emissive
+    builtinData.bakeDiffuseLighting = LOAD_TEXTURE2D(_GBufferTexture3, positionSS).rgb;  // This also contain emissive (and * AO if no lightlayers)
 
     // Avoid to introduce a new variant for light layer as it is already long to compile
     if (_EnableLightLayers)
@@ -1043,26 +1040,34 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
 // bake lighting function
 //-----------------------------------------------------------------------------
 
-// GetBakedDiffuseLighting function compute the bake lighting + emissive color to be store in emissive buffer (Deferred case)
-// In forward it must be add to the final contribution.
-// This function require the 3 structure surfaceData, builtinData, bsdfData because it may require both the engine side data, and data that will not be store inside the gbuffer.
-float3 GetBakedDiffuseLighting(SurfaceData surfaceData, BuiltinData builtinData, BSDFData bsdfData, PreLightData preLightData)
+// This define allow to say that we implement a ModifyBakedDiffuseLighting function to be call in PostInitBuiltinData
+#define MODIFY_BAKED_DIFFUSE_LIGHTING
+
+// This function allow to modify the content of (back) baked diffuse lighting when we gather builtinData
+// This is use to apply lighting model specific code, like pre-integration, transmission etc...
+// It is up to the lighting model implementer to chose if the modification are apply here or in PostEvaluateBSDF
+void ModifyBakedDiffuseLighting(float3 V, PositionInputs posInput, SurfaceData surfaceData, inout BuiltinData builtinData)
 {
-#ifdef DEBUG_DISPLAY
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
-    {
-        // The lighting in SH or lightmap is assume to contain bounced light only (i.e no direct lighting), and is divide by PI (i.e Lambert is apply), so multiply by PI here to get back the illuminance
-        return builtinData.bakeDiffuseLighting * PI;
-    }
-#endif
+    // In case of deferred, all lighting model operation are done before storage in GBuffer, as we store emissive with bakeDiffuseLighting
 
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING)) // This test is static as it is done in GBuffer or forward pass, will be remove by compiler
-    {
-        bsdfData.diffuseColor = GetModifiedDiffuseColorForSSS(bsdfData); // local modification of bsdfData
+    // To get the data we need to do the whole process - compiler should optimize everything
+    BSDFData bsdfData = ConvertSurfaceDataToBSDFData(posInput.positionSS, surfaceData);
+    PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
+
+    // Add GI transmission contribution to bakeDiffuseLighting, we then drop backBakeDiffuseLighting (i.e it is not used anymore, this save VGPR in forward and in deferred we can't store it anyway)
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
+    {       
+        builtinData.bakeDiffuseLighting += builtinData.backBakeDiffuseLighting * bsdfData.transmittance;
     }
 
-    // Premultiply bake diffuse lighting information with DisneyDiffuse pre-integration
-    return builtinData.bakeDiffuseLighting * preLightData.diffuseFGD * surfaceData.ambientOcclusion * bsdfData.diffuseColor + builtinData.emissiveColor;
+    // For SSS we need to take into account the state of diffuseColor 
+    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_SUBSURFACE_SCATTERING))
+    {
+        bsdfData.diffuseColor = GetModifiedDiffuseColorForSSS(bsdfData);
+    }
+
+    // Premultiply (back) bake diffuse lighting information with DisneyDiffuse pre-integration
+    builtinData.bakeDiffuseLighting *= preLightData.diffuseFGD * bsdfData.diffuseColor;
 }
 
 //-----------------------------------------------------------------------------
@@ -1683,7 +1688,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
     {
         rayOriginWS             = posInput.positionWS;
         rayDirWS                = preLightData.iblR;
-        mipLevel                = PositivePow(preLightData.iblPerceptualRoughness, 0.8) * uint(max(_ColorPyramidScale.z - 1, 0));
+        mipLevel                = PlanarPerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness, _ColorPyramidScale.z);
         invScreenWeightDistance = _SSReflectionInvScreenWeightDistance;
 #ifdef DEBUG_DISPLAY
         debugMode               = DEBUGLIGHTINGMODE_SCREEN_SPACE_TRACING_REFLECTION;
@@ -1963,7 +1968,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     if (IsEnvIndexTexture2D(lightData.envIndex))
     {
         // Empirical remapping
-        iblMipLevel = PositivePow(preLightData.iblPerceptualRoughness, 0.8) * uint(max(_ColorPyramidScale.z - 1, 0));
+        iblMipLevel = PlanarPerceptualRoughnessToMipmapLevel(preLightData.iblPerceptualRoughness, _ColorPyramidScale.z);
     }
     else
 #endif
@@ -2040,8 +2045,9 @@ void PostEvaluateBSDF(  LightLoopContext lightLoopContext,
     float3 modifiedDiffuseColor = GetModifiedDiffuseColorForSSS(bsdfData);
 
     // Apply the albedo to the direct diffuse lighting (only once). The indirect (baked)
-    // diffuse lighting has already had the albedo applied in GetBakedDiffuseLighting().
-    diffuseLighting = modifiedDiffuseColor * lighting.direct.diffuse + builtinData.bakeDiffuseLighting;
+    // diffuse lighting has already multiply the albedo in ModifyBakedDiffuseLighting().
+    // Note: In deferred bakeDiffuseLighting also contain emissive and in this case emissiveColor is 0
+    diffuseLighting = modifiedDiffuseColor * lighting.direct.diffuse + builtinData.bakeDiffuseLighting + builtinData.emissiveColor;
 
     // If refraction is enable we use the transmittanceMask to lerp between current diffuse lighting and refraction value
     // Physically speaking, transmittanceMask should be 1, but for artistic reasons, we let the value vary

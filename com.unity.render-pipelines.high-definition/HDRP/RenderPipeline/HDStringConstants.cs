@@ -132,6 +132,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _NumTileFtplY = Shader.PropertyToID("_NumTileFtplY");
         public static readonly int _NumTileClusteredX = Shader.PropertyToID("_NumTileClusteredX");
         public static readonly int _NumTileClusteredY = Shader.PropertyToID("_NumTileClusteredY");
+        
+        public static readonly int _IndirectLightingMultiplier = Shader.PropertyToID("_IndirectLightingMultiplier");
 
         public static readonly int g_isLogBaseBufferEnabled = Shader.PropertyToID("g_isLogBaseBufferEnabled");
         public static readonly int g_vLayeredOffsetsBuffer = Shader.PropertyToID("g_vLayeredOffsetsBuffer");
@@ -363,6 +365,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public static readonly int _ThicknessRemap = Shader.PropertyToID("_ThicknessRemap");
 
         public static readonly int _Cubemap = Shader.PropertyToID("_Cubemap");
+        public static readonly int _InvOmegaP = Shader.PropertyToID("_InvOmegaP");
         public static readonly int _SkyParam = Shader.PropertyToID("_SkyParam");
         public static readonly int _PixelCoordToViewDirWS = Shader.PropertyToID("_PixelCoordToViewDirWS");
 
