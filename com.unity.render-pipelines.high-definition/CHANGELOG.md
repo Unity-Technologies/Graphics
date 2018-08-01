@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [3.2.0-preview]
 
+### Added
+- Added a luminance meter in the debug menu
+
 ### Fixed
 - Fixed package upgrade crashing the editor
 - Fix HDReflectionProbe offset displayed in gizmo different than what is affected.
