@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditor.AnimatedValues;
 using UnityEngine;
 using UnityEngine.Events;
@@ -39,7 +40,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent bakeTypeContent = CoreEditorUtils.GetContent("Type|'Baked Cubemap' uses the 'Auto Baking' mode from the Lighting window. If it is enabled then baking is automatic otherwise manual bake is needed (use the bake button below). \n'Custom' can be used if a custom cubemap is wanted. \n'Realtime' can be used to dynamically re-render the cubemap during runtime (via scripting).");
 
         static readonly GUIContent proxyVolumeContent = CoreEditorUtils.GetContent("Proxy Volume");
-        static readonly GUIContent paralaxCorrectionContent = CoreEditorUtils.GetContent("Parallax Correction|Parallax Correction causes reflections to appear to change based on the object's position within the probe's box, while still using a single probe as the source of the reflection. This works well for reflections on objects that are moving through enclosed spaces such as corridors and rooms. Setting Parallax Correction to False and the cubemap reflection will be treated as coming from infinitely far away. Note that this feature can be globally disabled from Graphics Settings -> Tier Settings");
+        protected static readonly GUIContent paralaxCorrectionContent = CoreEditorUtils.GetContent("Parallax Correction|Parallax Correction causes reflections to appear to change based on the object's position within the probe's box, while still using a single probe as the source of the reflection. This works well for reflections on objects that are moving through enclosed spaces such as corridors and rooms. Setting Parallax Correction to False and the cubemap reflection will be treated as coming from infinitely far away. Note that this feature can be globally disabled from Graphics Settings -> Tier Settings");
 
         static readonly GUIContent normalModeContent = CoreEditorUtils.GetContent("Normal|Normal parameters mode (only change for box shape).");
         static readonly GUIContent advancedModeContent = CoreEditorUtils.GetContent("Advanced|Advanced parameters mode (only change for box shape).");
@@ -76,33 +77,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         const string captureSettingsHeader = "Capture Settings";
         const string additionnalSettingsHeader = "Custom Settings";
 
-        static GUIContent[] s_InfluenceToolbar_Contents = null;
-        protected static GUIContent[] influenceToolbar_Contents
+        static Dictionary<ToolBar, GUIContent> s_Toolbar_Contents = null;
+        protected static Dictionary<ToolBar, GUIContent> toolbar_Contents
         {
             get
             {
-                return s_InfluenceToolbar_Contents ?? (s_InfluenceToolbar_Contents = new[]
+                return s_Toolbar_Contents ?? (s_Toolbar_Contents = new Dictionary<ToolBar, GUIContent>
                 {
-                    EditorGUIUtility.IconContent("EditCollider", "|Modify the base shape. (SHIFT+1)"),
-                    EditorGUIUtility.IconContent("PreMatCube", "|Modify the influence volume. (SHIFT+2)"),
-                    EditorGUIUtility.IconContent("SceneViewOrtho", "|Modify the influence normal volume. (SHIFT+3)"),
+                    { ToolBar.InfluenceShape,  EditorGUIUtility.IconContent("EditCollider", "|Modify the base shape. (SHIFT+1)") },
+                    { ToolBar.Blend,  EditorGUIUtility.IconContent("PreMatCube", "|Modify the influence volume. (SHIFT+2)") },
+                    { ToolBar.NormalBlend,  EditorGUIUtility.IconContent("SceneViewOrtho", "|Modify the influence normal volume. (SHIFT+3)") },
+                    { ToolBar.CapturePosition,  EditorGUIUtility.IconContent("MoveTool", "|Change the Offset of the shape.") }
                 });
             }
         }
-
-
-        //[TODO]extract in HDReflectionProbe?
-        static GUIContent[] s_CaptureToolbar_Contents = null;
-        protected static GUIContent[] captureToolbar_Contents
-        {
-            get
-            {
-                return s_CaptureToolbar_Contents ?? (s_CaptureToolbar_Contents = new[]
-                {
-                    EditorGUIUtility.IconContent("MoveTool", "|Change the Offset of the shape.")
-                });
-            }
-        }
-
     }
 }

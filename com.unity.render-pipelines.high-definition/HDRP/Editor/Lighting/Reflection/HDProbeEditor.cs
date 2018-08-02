@@ -21,12 +21,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         internal abstract HDProbe GetTarget(Object editorTarget);
 
         protected SerializedHDProbe m_SerializedHDProbe;
-        HDProbeUI m_UIState = new HDProbeUI();
+        HDProbeUI m_UIState;
         HDProbeUI[] m_UIHandleState;
         protected HDProbe[] m_TypedTargets;
 
         protected virtual void OnEnable()
         {
+            if(m_UIState == null)
+            {
+                m_UIState = HDProbeUI.CreateFor(this);
+            }
             m_UIState.Reset(m_SerializedHDProbe, Repaint);
 
             m_TypedTargets = new HDProbe[targets.Length];
@@ -34,7 +38,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             for (var i = 0; i < m_TypedTargets.Length; i++)
             {
                 m_TypedTargets[i] = GetTarget(targets[i]);
-                m_UIHandleState[i] = new HDProbeUI();
+                m_UIHandleState[i] = HDProbeUI.CreateFor(m_TypedTargets[i]);
                 m_UIHandleState[i].Reset(m_SerializedHDProbe, null);
 
                 s_StateMap[m_TypedTargets[i]] = m_UIHandleState[i];
@@ -63,7 +67,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             d.Apply();
         }
 
-        protected void OnSceneGUI()
+        protected virtual void OnSceneGUI()
         {
             for (var i = 0; i < m_TypedTargets.Length; i++)
             {
@@ -73,10 +77,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HDProbeUI.DrawHandles(m_UIHandleState[i], m_TypedTargets[i], this);
             }
 
+            m_UIState.DoShortcutKey(this);
+
             //[TODO]check
             //SceneViewOverlay_Window(_.GetContent("Planar Probe"), OnOverlayGUI, -100, target);
-
-            HDProbeUI.DoShortcutKey(this);
         }
 
 

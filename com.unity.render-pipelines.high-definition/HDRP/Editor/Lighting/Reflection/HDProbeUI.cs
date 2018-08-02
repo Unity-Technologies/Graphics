@@ -26,12 +26,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public bool showCaptureHandles { get; set; }
 
-        internal HDProbeUI CreateFor(HDProbe p)
+        internal static HDProbeUI CreateFor(HDProbeEditor o)
+        {
+            if (o is PlanarReflectionProbeEditor)
+                return new PlanarReflectionProbeUI();
+            else
+                return new HDReflectionProbeUI();
+        }
+        internal static HDProbeUI CreateFor(HDProbe p)
         {
             if (p is PlanarReflectionProbe)
                 return new PlanarReflectionProbeUI();
             else
-                return new HDProbeUI();
+                return new HDReflectionProbeUI();
         }
 
         public HDProbeUI()

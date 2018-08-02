@@ -10,8 +10,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent overrideFieldOfViewContent = CoreEditorUtils.GetContent("Override Field Of View");
         static readonly GUIContent fieldOfViewSolidAngleContent = CoreEditorUtils.GetContent("Field Of View");
 
-        new SerializedPlanarReflectionProbe data;
-
         public static CED.IDrawer Inspector;
        
         public static readonly CED.IDrawer SectionFoldoutCaptureSettings = CED.FoldoutGroup(
@@ -19,19 +17,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             (s, d, o) => s.isSectionExpandedCaptureSettings,
             FoldoutOption.Indent,
             CED.Action(Drawer_SectionCaptureSettings)
-            //CED.FadeGroup(
-            //    (s, d, o, i) =>
-            //    {
-            //        switch (i)
-            //        {
-            //            default:
-            //            case 0: return s.isSectionExpandedCaptureMirrorSettings;
-            //            case 1: return s.isSectionExpandedCaptureStaticSettings;
-            //        }
-            //    },
-            //    FadeOption.None,
-            //    SectionCaptureMirrorSettings,
-            //    SectionCaptureStaticSettings)
             );
 
         static PlanarReflectionProbeUI()
@@ -72,8 +57,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 hdrp.renderPipelineSettings.lightLoopSettings.planarReflectionCacheCompressed);
             GUI.enabled = true;
 
-            //Rect fieldOfViewRect = EditorGUILayout.GetControlRect();
-            //Rect overrideFieldOfViewRect = new Rect(fieldOfViewRect.x - fieldOfViewRect.height - 5, fieldOfViewRect.y - 1, fieldOfViewRect.height, fieldOfViewRect.height);
             bool on = serialized.overrideFieldOfView.boolValue;
             EditorGUI.BeginChangeCheck();
             on = EditorGUILayout.Toggle(overrideFieldOfViewContent, on);
@@ -99,15 +82,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         internal PlanarReflectionProbeUI()
         {
-            toolBars = new[] { ToolBar.Influence };
-            data = base.data as SerializedPlanarReflectionProbe;
-
+            toolBars = new[] { ToolBar.InfluenceShape | ToolBar.Blend };
         }
 
         public override void Update()
         {
-            isSectionExpandedCaptureMirrorSettings.target = data.isMirrored;
-            isSectionExpandedCaptureStaticSettings.target = !data.isMirrored;
+            SerializedPlanarReflectionProbe serialized = data as SerializedPlanarReflectionProbe;
+            isSectionExpandedCaptureMirrorSettings.target = serialized.isMirrored;
+            isSectionExpandedCaptureStaticSettings.target = !serialized.isMirrored;
             base.Update();
         }
     }

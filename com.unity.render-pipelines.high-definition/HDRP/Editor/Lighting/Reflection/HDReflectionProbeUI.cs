@@ -21,7 +21,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         internal HDReflectionProbeUI()
         {
-            toolBars = new[] { ToolBar.Influence, ToolBar.Capture };
+            toolBars = new[] { ToolBar.InfluenceShape | ToolBar.Blend | ToolBar.NormalBlend, ToolBar.CapturePosition };
         }
 
         [Flags]
