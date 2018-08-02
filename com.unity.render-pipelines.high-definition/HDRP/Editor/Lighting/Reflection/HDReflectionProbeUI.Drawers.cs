@@ -34,7 +34,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 CED.space,
                 CED.Action(Drawer_ReflectionProbeMode),
                 CED.space,
-                CED.FadeGroup((s, p, o, i) => ((HDReflectionProbeEditor)o).m_UIState.IsSectionExpandedMode((ReflectionProbeMode)i),
+                CED.FadeGroup((s, p, o, i) => s.IsSectionExpandedReflectionProbeMode((ReflectionProbeMode)i),
                     FadeOption.Indent,
                     CED.noop,                                                       // Baked
                     CED.Action((s, d, o) => Drawer_ModeSettingsRealtime(s, d, o)),  // Realtime
@@ -43,7 +43,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 );
 
         static readonly CED.IDrawer SectionCaptureSettings = CED.FoldoutGroup(
-                "Capture Settings",
+                captureSettingsHeader,
                 (s, p, o) => s.isSectionExpandedCaptureSettings,
                 FoldoutOption.Indent,
                 CED.Action(Drawer_CaptureSettings)

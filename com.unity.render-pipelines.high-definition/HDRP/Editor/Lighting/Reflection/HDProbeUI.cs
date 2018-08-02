@@ -6,23 +6,24 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    partial class HDProbeUI : BaseUI<SerializedHDProbe>
+    abstract partial class HDProbeUI : BaseUI<SerializedHDProbe>
     {
-        const int k_AnimBoolFields = 6;
-        static readonly int k_ReflectionProbeModeModeCount = Enum.GetValues(typeof(ReflectionProbeMode)).Length;
-        static readonly int k_AnimBoolTotal = k_AnimBoolFields + k_ReflectionProbeModeModeCount;
+        const int k_AnimBoolSingleFieldCount = 6;
+        static readonly int k_ReflectionProbeModeCount = Enum.GetValues(typeof(ReflectionProbeMode)).Length;
+        static readonly int k_ReflectionInfluenceShapeCount = Enum.GetValues(typeof(InfluenceShape)).Length;
+        static readonly int k_AnimBoolTotal = k_ReflectionProbeModeCount + k_AnimBoolSingleFieldCount + k_ReflectionInfluenceShapeCount;
 
         public InfluenceVolumeUI influenceVolume = new InfluenceVolumeUI();
         public FrameSettingsUI frameSettings = new FrameSettingsUI();
         public ReflectionProxyVolumeComponentUI reflectionProxyVolume = new ReflectionProxyVolumeComponentUI();
 
-        public AnimBool isSectionExpandedInfluenceSettings { get { return m_AnimBools[k_ReflectionProbeModeModeCount]; } }
-        public AnimBool isSectionExpandedCaptureSettings { get { return m_AnimBools[k_ReflectionProbeModeModeCount + 1]; } }
+        public AnimBool isSectionExpandedInfluenceSettings { get { return m_AnimBools[k_ReflectionProbeModeCount]; } }
+        public AnimBool isSectionExpandedCaptureSettings { get { return m_AnimBools[k_ReflectionProbeModeCount + 1]; } }
 
-        public AnimBool isSectionExpandedCaptureMirrorSettings { get { return m_AnimBools[k_ReflectionProbeModeModeCount + 2]; } }
-        public AnimBool isSectionExpandedCaptureStaticSettings { get { return m_AnimBools[k_ReflectionProbeModeModeCount + 3]; } }
-        public AnimBool isSectionExpendedProxyVolume { get { return m_AnimBools[k_ReflectionProbeModeModeCount + 4]; } }
-        public AnimBool isSectionExpendedAdditionalSettings { get { return m_AnimBools[k_ReflectionProbeModeModeCount + 5]; } }
+        public AnimBool isSectionExpandedCaptureMirrorSettings { get { return m_AnimBools[k_ReflectionProbeModeCount + 2]; } }
+        public AnimBool isSectionExpandedCaptureStaticSettings { get { return m_AnimBools[k_ReflectionProbeModeCount + 3]; } }
+        public AnimBool isSectionExpendedProxyVolume { get { return m_AnimBools[k_ReflectionProbeModeCount + 4]; } }
+        public AnimBool isSectionExpendedAdditionalSettings { get { return m_AnimBools[k_ReflectionProbeModeCount + 5]; } }
 
         public bool showCaptureHandles { get; set; }
 
@@ -55,9 +56,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return m_AnimBools[(int)mode];
         }
 
+        public void SetModeTarget(int value)
+        {
+            for (var i = 0; i < k_ReflectionProbeModeCount; i++)
+                GetReflectionProbeModeBool(i).target = i == value;
+        }
+
+        AnimBool GetReflectionProbeModeBool(int i)
+        {
+            return m_AnimBools[i];
+        }
+
         public override void Reset(SerializedHDProbe data, UnityAction repaint)
         {
-            //reflectionProxyVolume.Reset(data.proxyVolumeComponent, repaint);
             frameSettings.Reset(data.frameSettings, repaint);
             influenceVolume.Reset(data.influenceVolume, repaint);
             base.Reset(data, repaint);
@@ -65,10 +76,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public override void Update()
         {
-            for (var i = 0; i < k_ReflectionProbeModeModeCount; i++)
+            for (var i = 0; i < k_ReflectionProbeModeCount; i++)
                 m_AnimBools[i].target = i == data.mode.intValue;
-
-            //reflectionProxyVolume.Update();
+            
+            SetModeTarget(data.mode.hasMultipleDifferentValues ? -1 : data.mode.intValue);
+            influenceVolume.SetIsSectionExpanded_Shape(data.influenceVolume.shape.hasMultipleDifferentValues ? -1 : data.influenceVolume.shape.intValue);
+            
             frameSettings.Update();
             influenceVolume.Update();
             base.Update();

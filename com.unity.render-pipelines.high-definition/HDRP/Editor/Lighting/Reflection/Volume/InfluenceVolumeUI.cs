@@ -64,16 +64,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             boxInfluenceNormalHandle.faceColorsSelected = new Color[] { HDReflectionProbeEditor.k_GizmoThemeColorInfluenceNormalBlendFace };
         }
 
-        public override void Update()
+        public void SetIsSectionExpanded_Shape(InfluenceShape shape)
         {
-            base.Update();
-            SetIsSectionExpanded_Shape((InfluenceShape)data.shape.intValue);
+            SetIsSectionExpanded_Shape((int)shape);
         }
 
-        void SetIsSectionExpanded_Shape(InfluenceShape shape)
+        public void SetIsSectionExpanded_Shape(int shape)
         {
             for (var i = 0; i < k_ShapeCount; i++)
-                m_AnimBools[i].target = (int)shape == i;
+                m_AnimBools[i].target = shape == i;
         }
 
         public AnimBool IsSectionExpanded_Shape(InfluenceShape shapeType)

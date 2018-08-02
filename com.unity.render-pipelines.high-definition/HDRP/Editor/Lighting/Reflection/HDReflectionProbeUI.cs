@@ -13,12 +13,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     internal partial class HDReflectionProbeUI : HDProbeUI
     {
-        const int k_AnimBoolSingleFieldCount = 4;
-        static readonly int k_ReflectionProbeModeCount = Enum.GetValues(typeof(ReflectionProbeMode)).Length;
-        static readonly int k_ReflectionInfluenceShapeCount = Enum.GetValues(typeof(InfluenceShape)).Length;
-        static readonly int k_AnimBoolsCount = k_ReflectionProbeModeCount + k_ReflectionInfluenceShapeCount + k_AnimBoolSingleFieldCount;
-
-
         internal HDReflectionProbeUI()
         {
             toolBars = new[] { ToolBar.InfluenceShape | ToolBar.Blend | ToolBar.NormalBlend, ToolBar.CapturePosition };
@@ -54,49 +48,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override void Update()
         {
             operations = 0;
-
-            SetModeTarget(data.mode.hasMultipleDifferentValues ? -1 : data.mode.intValue);
-            SetShapeTarget(data.influenceVolume.shape.hasMultipleDifferentValues ? -1 : data.influenceVolume.shape.intValue);
-
-            influenceVolume.Update();
             base.Update();
-        }
-
-        public AnimBool IsSectionExpandedMode(ReflectionProbeMode mode)
-        {
-            return m_AnimBools[k_AnimBoolSingleFieldCount + (int)mode];
-        }
-
-        public void SetModeTarget(int value)
-        {
-            for (var i = 0; i < k_ReflectionProbeModeCount; i++)
-                GetReflectionProbeModeBool(i).target = i == value;
-        }
-
-        public AnimBool IsSectionExpandedShape(InfluenceShape value)
-        {
-            return m_AnimBools[k_AnimBoolSingleFieldCount + k_ReflectionProbeModeCount + (int)value];
-        }
-
-        public void SetShapeTarget(int value)
-        {
-            for (var i = 0; i < k_ReflectionInfluenceShapeCount; i++)
-                GetReflectionInfluenceShapeBool(i).target = i == value;
         }
 
         internal void UpdateOldLocalSpace(ReflectionProbe target)
         {
             oldLocalSpace = HDReflectionProbeEditorUtility.GetLocalSpace(target);
-        }
-
-        AnimBool GetReflectionProbeModeBool(int i)
-        {
-            return m_AnimBools[k_AnimBoolSingleFieldCount + i];
-        }
-
-        AnimBool GetReflectionInfluenceShapeBool(int i)
-        {
-            return m_AnimBools[k_AnimBoolSingleFieldCount + k_ReflectionProbeModeCount  + i];
         }
     }
 }
