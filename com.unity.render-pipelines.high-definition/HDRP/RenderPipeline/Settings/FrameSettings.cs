@@ -94,7 +94,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Init a FrameSettings from renderpipeline settings, frame settings and debug settings (if any)
         // This will aggregate the various option
-        public static void InitializeFrameSettings(Camera camera, RenderPipelineSettings renderPipelineSettings, FrameSettings srcFrameSettings, ref FrameSettings aggregate)
+        public static void InitializeFrameSettings(Camera camera, RenderPipelineSettings renderPipelineSettings, DebugDisplaySettings debugDisplaySettings, FrameSettings srcFrameSettings, ref FrameSettings aggregate)
         {
             if (aggregate == null)
                 aggregate = new FrameSettings();
@@ -182,6 +182,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 aggregate.enableDistortion = false;
                 aggregate.enablePostprocess = false;
                 aggregate.enableStereo = false;                
+            }
+
+            // Disable SSS if luxmeter is enabled
+            if (debugDisplaySettings.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter)
+            {
+                aggregate.enableSubsurfaceScattering = false;
             }
 
             LightLoopSettings.InitializeLightLoopSettings(camera, aggregate, renderPipelineSettings, srcFrameSettings, ref aggregate.lightLoopSettings);
