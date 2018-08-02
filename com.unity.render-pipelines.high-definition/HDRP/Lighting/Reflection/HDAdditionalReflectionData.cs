@@ -161,7 +161,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get
             {
-                return base.infiniteProjection || (proxyVolume != null && reflectionProbe.boxProjection);
+                return base.infiniteProjection || (proxyVolume == null && reflectionProbe.boxProjection);
             }
         }
     }
