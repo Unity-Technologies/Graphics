@@ -816,6 +816,37 @@ void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float3 viewFor
 }
 
 // ----------------------------------------------------------------------------
+// Terrain/Brush heightmap encoding/decoding
+// ----------------------------------------------------------------------------
+
+#if defined(SHADER_API_VULKAN) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3)
+
+float4 PackHeightmap(float height)
+{
+    uint a = (uint)(65535.0f * height);
+    return float4((a >> 0) & 0xFF, (a >> 8) & 0xFF, 0, 0) / 255.0f;
+}
+
+float UnpackHeightmap(float4 height)
+{
+    return (height.r + height.g * 256.0f) / 257.0f; // (255.0f * height.r + 255.0f * 256.0f * height.g) / 65535.0f
+}
+
+#else
+
+float4 PackHeightmap(float height)
+{
+    return float4(height, 0, 0, 0);
+}
+
+float UnpackHeightmap(float4 height)
+{
+    return height.r;
+}
+
+#endif
+
+// ----------------------------------------------------------------------------
 // Misc utilities
 // ----------------------------------------------------------------------------
 

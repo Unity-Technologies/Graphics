@@ -107,12 +107,6 @@ void SplatmapFinalColor(inout half4 color, half fogCoord)
     float4 _TerrainHeightmapScale;       // float4(hmScale.x, hmScale.y / (float)(kMaxHeight), hmScale.z, 0.0f)
 #endif
 
-float UnpackHeightmap(float4 height)
-{
-    // 16-bit height value is packed into two 8-bit channels.
-    return (height.r + height.g * 256.0f) / 257.0f; // (255.0f * height.r + 255.0f * 256.0f * height.g) / 65535.0f
-}
-
 UNITY_INSTANCING_BUFFER_START(Terrain)
     UNITY_DEFINE_INSTANCED_PROP(float4, _TerrainPatchInstanceData)  // float4(xBase, yBase, skipScale, ~)
 UNITY_INSTANCING_BUFFER_END(Terrain)
