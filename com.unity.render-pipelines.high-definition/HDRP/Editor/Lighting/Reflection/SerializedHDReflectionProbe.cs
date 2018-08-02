@@ -46,7 +46,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             legacyBlendDistance.floatValue = 0;
         }
 
-        public new void Apply()
+        internal override void Apply()
         {
             serializedLegacyObject.ApplyModifiedProperties();
             serializedObject.ApplyModifiedProperties();
