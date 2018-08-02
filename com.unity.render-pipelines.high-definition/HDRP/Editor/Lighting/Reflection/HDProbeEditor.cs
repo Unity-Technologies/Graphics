@@ -78,9 +78,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             m_UIState.DoShortcutKey(this);
-
-            //[TODO]check
-            //SceneViewOverlay_Window(_.GetContent("Planar Probe"), OnOverlayGUI, -100, target);
         }
 
 
