@@ -156,5 +156,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             reflectionProbe.size = size;
             reflectionProbe.center = transform.rotation*offset;
         }
+        
+        public override bool infiniteProjection
+        {
+            get
+            {
+                return base.infiniteProjection || (proxyVolume != null && reflectionProbe.boxProjection);
+            }
+        }
     }
 }
