@@ -1,5 +1,6 @@
 using UnityEngine.Serialization;
 using UnityEngine.Rendering;
+using UnityEngine.Assertions;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -167,6 +168,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void OnAfterDeserialize()
         {
+            Assert.IsNotNull(influenceVolume, "influenceVolume must have an instance at this point. See HDProbe.Awake()");
             if (m_Version != currentVersion)
             {
                 // Add here data migration code
@@ -176,6 +178,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
                 m_Version = currentVersion;
             }
+
+            influenceVolume.boxBlendNormalDistanceNegative = Vector3.zero;
+            influenceVolume.boxBlendNormalDistancePositive = Vector3.zero;
         }
     }
 }
