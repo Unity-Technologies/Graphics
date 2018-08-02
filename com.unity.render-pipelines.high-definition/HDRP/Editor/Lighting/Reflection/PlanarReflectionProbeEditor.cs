@@ -45,6 +45,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             probe.influenceVolume.Init(probe);
         }
 
+        protected override void OnSceneGUI()
+        {
+            base.OnSceneGUI();
+
+            SceneViewOverlay_Window(_.GetContent("Planar Probe"), OnOverlayGUI, -100, target);
+        }
+
 
         const float k_PreviewHeight = 128;
         List<Texture> m_PreviewedTextures = new List<Texture>();
