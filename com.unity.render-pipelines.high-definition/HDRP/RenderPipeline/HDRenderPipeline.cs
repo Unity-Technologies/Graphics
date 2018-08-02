@@ -785,7 +785,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 FrameSettings currentFrameSettings = new FrameSettings();
                 // Get the effective frame settings for this camera taking into account the global setting and camera type
-                FrameSettings.InitializeFrameSettings(camera, m_Asset.GetRenderPipelineSettings(), m_DebugDisplaySettings, srcFrameSettings, ref currentFrameSettings);
+                FrameSettings.InitializeFrameSettings(camera, m_Asset.GetRenderPipelineSettings(), srcFrameSettings, ref currentFrameSettings);
 
                 // This is the main command buffer used for the frame.
                 var cmd = CommandBufferPool.Get("");
@@ -835,6 +835,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     if (m_CurrentDebugDisplaySettings.IsDebugDisplayRemovePostprocess() || !HDUtils.IsPostProcessingActive(postProcessLayer))
                     {
                         currentFrameSettings.enablePostprocess = false;
+                    }
+                    
+                    // Disable SSS if luxmeter is enabled
+                    if (debugDisplaySettings.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter)
+                    {
+                        currentFrameSettings.enableSubsurfaceScattering = false;
                     }
 
                     var hdCamera = HDCamera.Get(camera);
