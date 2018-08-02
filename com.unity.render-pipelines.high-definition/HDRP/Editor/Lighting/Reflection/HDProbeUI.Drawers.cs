@@ -224,14 +224,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static internal void Drawer_ToolBarButton(ToolBar button, Editor owner, params GUILayoutOption[] options)
         {
-            //[TODO] change style here
-            GUIStyle style = "EditModeSingleButton";
-            
-            Rect rect = GUILayoutUtility.GetRect(toolbar_Contents[button], style, options);
-            bool isMouseOver = rect.Contains(Event.current.mousePosition);
-            bool isActive = EditMode.editMode == toolbar_Mode[button];
-            //style.Draw(rect, toolbar_Contents[button], isMouseOver && (GUI.enabled || isActive) && (isActive || GUIUtility.hotControl == 0), GUI.enabled && isActive, true, false);
-            if (GUILayout.Button(toolbar_Contents[button], options))
+            bool enabled = toolbar_Mode[button] == EditMode.editMode;
+            EditorGUI.BeginChangeCheck();
+            enabled = GUILayout.Toggle(enabled, toolbar_Contents[button], EditorStyles.miniButton, options);
+            if (EditorGUI.EndChangeCheck())
             {
                 EditMode.SceneViewEditMode targetMode = EditMode.editMode == toolbar_Mode[button] ? EditMode.SceneViewEditMode.None : toolbar_Mode[button];
                 EditMode.ChangeEditMode(targetMode, GetBoundsGetter(owner)(), owner);
