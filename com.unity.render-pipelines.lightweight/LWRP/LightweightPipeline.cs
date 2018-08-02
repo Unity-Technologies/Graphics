@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using Unity.Collections;
 #if UNITY_EDITOR
 using UnityEditor.Experimental.Rendering.LightweightPipeline;
 #endif
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
+using UnityEngine.Experimental.GlobalIllumination;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
@@ -58,6 +60,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             Shader.globalRenderPipeline = "LightweightPipeline";
             m_IsCameraRendering = false;
+
+            Lightmapping.SetDelegate(lightsDelegate);
         }
 
         public override void Dispose()
@@ -71,6 +75,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 #endif
 
             m_Renderer.Dispose();
+
+            Lightmapping.ResetDelegate();
         }
 
         public override void Render(ScriptableRenderContext context, Camera[] cameras)
@@ -369,5 +375,129 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             float cameraHeight = (float)cameraData.camera.pixelHeight * cameraData.renderScale;
             Shader.SetGlobalVector(SetupLightweightConstanstPass.PerCameraBuffer._ScaledScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
         }
+
+        public static bool LightDataGIExtract(Light light, ref LightDataGI lightData)
+        {
+            // TODO: Only take into account the light dimmer when we have real time GI.
+            lightData.instanceID = light.GetInstanceID();
+            lightData.color = LinearColor.Convert(light.color, light.intensity);
+            lightData.indirectColor = LightmapperUtils.ExtractIndirect(light);
+
+            // The difference is that `light.lightmapBakeType` is the intent, e.g.you want a mixed light with shadowmask. But then the overlap test might detect more than 4 overlapping volumes and force a light to fallback to baked.
+            // In that case `light.bakingOutput.lightmapBakeType` would be baked, instead of mixed, whereas `light.lightmapBakeType` would still be mixed. But this difference is only relevant in editor builds
+#if UNITY_EDITOR
+            lightData.mode = LightmapperUtils.Extract(light.lightmapBakeType);
+#else
+            lightData.mode = LightmapperUtils.Extract(light.bakingOutput.lightmapBakeType);
+#endif
+
+            lightData.shadow = (byte)(light.shadows != LightShadows.None ? 1 : 0);
+
+            if (true)
+            {
+                // For LWRP we need to divide the analytic light color by PI (HDRP do explicit PI division for Lambert, but built in Unity and the GI don't for punctual lights)
+                // We apply it on both direct and indirect are they are separated, seems that direct is not used if we used mixed mode with indirect or shadowmask bake.
+                lightData.color.intensity /= Mathf.PI;
+                lightData.indirectColor.intensity /= Mathf.PI;
+
+                switch (light.type)
+                {
+                    case LightType.Directional:
+                        lightData.orientation.SetLookRotation(light.transform.forward, Vector3.up);
+                        lightData.position = Vector3.zero;
+                        lightData.range = 0.0f;
+                        lightData.coneAngle = 0.0f;
+                        lightData.innerConeAngle = 0.0f;
+#if UNITY_EDITOR
+                        lightData.shape0 = light.shadows != LightShadows.None ? (Mathf.Deg2Rad * light.shadowAngle) : 0.0f;
+#else
+                        lightData.shape0 = 0.0f;
+#endif
+                        lightData.shape1 = 0.0f;
+                        lightData.type = UnityEngine.Experimental.GlobalIllumination.LightType.Directional;
+                        lightData.falloff = FalloffType.Undefined;
+                        break;
+
+                    case LightType.Spot:
+
+                        lightData.orientation = light.transform.rotation;
+                        lightData.position = light.transform.position;
+                        lightData.range = light.range;
+                        lightData.coneAngle = light.spotAngle * Mathf.Deg2Rad; // coneAngle is the full angle
+                        lightData.innerConeAngle = LightmapperUtils.ExtractInnerCone(light) * 0.5f;
+#if UNITY_EDITOR
+                        lightData.shape0 = light.shadows != LightShadows.None ? light.shadowRadius : 0.0f;
+#else
+                        lightData.shape0 = 0.0f;
+#endif
+                        lightData.shape1 = 0.0f;
+                        lightData.type = UnityEngine.Experimental.GlobalIllumination.LightType.Spot;
+                        lightData.falloff = FalloffType.InverseSquared;
+
+                        break;
+
+                    case LightType.Point:
+                        lightData.orientation = Quaternion.identity;
+                        lightData.position = light.transform.position;
+                        lightData.range = light.range;
+                        lightData.coneAngle = 0.0f;
+                        lightData.innerConeAngle = 0.0f;
+
+#if UNITY_EDITOR
+                        lightData.shape0 = light.shadows != LightShadows.None ? light.shadowRadius : 0.0f;
+#else
+                        lightData.shape0 = 0.0f;
+#endif
+                        lightData.shape1 = 0.0f;
+                        lightData.type = UnityEngine.Experimental.GlobalIllumination.LightType.Point;
+                        lightData.falloff = true ? FalloffType.InverseSquared : FalloffType.InverseSquaredNoRangeAttenuation;
+                        break;
+
+                    // Note: We don't support this type in HDRP, but ini just in case
+                    case LightType.Area:
+                        lightData.orientation = light.transform.rotation;
+                        lightData.position = light.transform.position;
+                        lightData.range = light.range;
+                        lightData.coneAngle = 0.0f;
+                        lightData.innerConeAngle = 0.0f;
+#if UNITY_EDITOR
+                        lightData.shape0 = light.areaSize.x;
+                        lightData.shape1 = light.areaSize.y;
+#else
+                        lightData.shape0 = 0.0f;
+                        lightData.shape1 = 0.0f;
+#endif
+                        lightData.type = UnityEngine.Experimental.GlobalIllumination.LightType.Rectangle;
+                        lightData.falloff = FalloffType.Undefined;
+                        break;
+
+                    default:
+                        Debug.Assert(false, "Encountered an unknown LightType.");
+                        break;
+                }
+            }
+
+            return true;
+        }
+
+        public static Lightmapping.RequestLightsDelegate lightsDelegate = (Light[] requests, NativeArray<LightDataGI> lightsOutput) =>
+        {
+            // Get all lights in the scene
+            LightDataGI lightData = new LightDataGI();
+            for (int i = 0; i < requests.Length; i++)
+            {
+                Light light = requests[i];
+#if UNITY_EDITOR
+                if (LightmapperUtils.Extract(light.lightmapBakeType) == LightMode.Realtime)
+                    lightData.InitNoBake(light.GetInstanceID());
+                else
+                    LightDataGIExtract(light, ref lightData);
+#else
+            ld.InitNoBake(l.GetInstanceID());
+#endif
+
+                lightsOutput[i] = lightData;
+            }
+        };
     }
 }
