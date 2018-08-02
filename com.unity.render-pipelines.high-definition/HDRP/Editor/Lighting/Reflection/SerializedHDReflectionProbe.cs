@@ -14,6 +14,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         internal SerializedProperty legacyBlendDistance;
         internal SerializedProperty boxSize;
         internal SerializedProperty boxOffset;
+        internal SerializedProperty legacyMode;
 
         internal new HDAdditionalReflectionData target { get { return serializedObject.targetObject as HDAdditionalReflectionData; } }
         internal ReflectionProbe targetLegacy { get { return serializedLegacyObject.targetObject as ReflectionProbe; } }
@@ -35,6 +36,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             nearClip = legacyProbe.FindProperty("m_NearClip");
             farClip = legacyProbe.FindProperty("m_FarClip");
             legacyBlendDistance = legacyProbe.FindProperty("m_BlendDistance");
+            legacyMode = legacyProbe.FindProperty("m_Mode");
         }
 
         internal override void Update()
@@ -48,6 +50,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         internal override void Apply()
         {
+            // Sync mode
+            legacyMode.intValue = mode.intValue;
             serializedLegacyObject.ApplyModifiedProperties();
             serializedObject.ApplyModifiedProperties();
         }
