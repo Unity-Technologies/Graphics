@@ -48,6 +48,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         internal override void Apply()
         {
+            switch(target.influenceVolume.shape)
+            {
+                case InfluenceShape.Box:
+                    boxSize.vector3Value = influenceVolume.boxSize.vector3Value;
+                    break;
+                case InfluenceShape.Sphere:
+                    boxSize.vector3Value = Vector3.one * influenceVolume.sphereRadius.floatValue;
+                    break;
+            }
             serializedLegacyObject.ApplyModifiedProperties();
             serializedObject.ApplyModifiedProperties();
         }
