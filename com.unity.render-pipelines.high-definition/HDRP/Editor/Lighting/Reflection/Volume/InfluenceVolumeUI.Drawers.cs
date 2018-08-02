@@ -94,7 +94,47 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var minFadeDistance = Vector3.zero;
 
             EditorGUILayout.BeginHorizontal();
+            EditorGUI.BeginChangeCheck();
             EditorGUILayout.PropertyField(d.boxSize, _.GetContent("Box Size"));
+            if (EditorGUI.EndChangeCheck())
+            {
+                Vector3 blendPositive = d.boxBlendDistancePositive.vector3Value;
+                Vector3 blendNegative = d.boxBlendDistanceNegative.vector3Value;
+                Vector3 blendNormalPositive = d.boxBlendNormalDistancePositive.vector3Value;
+                Vector3 blendNormalNegative = d.boxBlendNormalDistanceNegative.vector3Value;
+                Vector3 size = d.boxSize.vector3Value;
+                for(int i = 0; i<3; ++i)
+                {
+                    size[i] = Mathf.Max(0f, size[i]);
+                }
+                d.boxSize.vector3Value = size;
+                Vector3 halfSize = size * .5f;
+                for (int i = 0; i < 3; ++i)
+                {
+                    blendPositive[i] = Mathf.Clamp(blendPositive[i], 0f, halfSize[i]);
+                    blendNegative[i] = Mathf.Clamp(blendNegative[i], 0f, halfSize[i]);
+                    blendNormalPositive[i] = Mathf.Clamp(blendNormalPositive[i], 0f, halfSize[i]);
+                    blendNormalNegative[i] = Mathf.Clamp(blendNormalNegative[i], 0f, halfSize[i]);
+                }
+                d.boxBlendDistancePositive.vector3Value = blendPositive;
+                d.boxBlendDistanceNegative.vector3Value = blendNegative;
+                d.boxBlendNormalDistancePositive.vector3Value = blendNormalPositive;
+                d.boxBlendNormalDistanceNegative.vector3Value = blendNormalNegative;
+                if (d.editorAdvancedModeEnabled.boolValue)
+                {
+                    d.editorAdvancedModeBlendDistancePositive.vector3Value = d.boxBlendDistancePositive.vector3Value;
+                    d.editorAdvancedModeBlendDistanceNegative.vector3Value = d.boxBlendDistanceNegative.vector3Value;
+                    d.editorAdvancedModeBlendNormalDistancePositive.vector3Value = d.boxBlendNormalDistancePositive.vector3Value;
+                    d.editorAdvancedModeBlendNormalDistanceNegative.vector3Value = d.boxBlendNormalDistanceNegative.vector3Value;
+                }
+                else
+                {
+                    d.editorSimplifiedModeBlendDistance.floatValue = Mathf.Min(blendPositive.x, blendPositive.y, blendPositive.z, blendNegative.x, blendNegative.y, blendNegative.z);
+                    d.boxBlendDistancePositive.vector3Value = d.boxBlendDistanceNegative.vector3Value = Vector3.one * d.editorSimplifiedModeBlendDistance.floatValue;
+                    d.editorSimplifiedModeBlendNormalDistance.floatValue = Mathf.Min(blendNormalPositive.x, blendNormalPositive.y, blendNormalPositive.z, blendNormalNegative.x, blendNormalNegative.y, blendNormalNegative.z);
+                    d.boxBlendNormalDistancePositive.vector3Value = d.boxBlendNormalDistanceNegative.vector3Value = Vector3.one * d.editorSimplifiedModeBlendNormalDistance.floatValue;
+                }
+            }
             HDProbeUI.Drawer_ToolBarButton(HDProbeUI.ToolBar.InfluenceShape, o, GUILayout.Width(28f), GUILayout.MinHeight(22f));
             EditorGUILayout.EndHorizontal();
 
@@ -107,7 +147,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
             
             GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
-
+            
             EditorGUILayout.BeginHorizontal();
             Drawer_AdvancedBlendDistance(
                 d,

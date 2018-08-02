@@ -167,6 +167,51 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 center = b.center;
                 size = b.size;
 
+                var baseBlendSize = size - s.data.boxBlendDistancePositive.vector3Value - s.data.boxBlendDistanceNegative.vector3Value;
+                var blendSize = baseBlendSize;
+                var baseBlendNormalSize = size - s.data.boxBlendNormalDistancePositive.vector3Value - s.data.boxBlendNormalDistanceNegative.vector3Value;
+                var blendNormalSize = baseBlendNormalSize;
+                for(int i = 0; i < 3; ++i)
+                {
+                    blendSize[i] = Mathf.Max(0f, blendSize[i]);
+                    blendNormalSize[i] = Mathf.Max(0f, blendNormalSize[i]);
+                }
+                var blendHalfDiff = (baseBlendSize - blendSize) * 0.5f;
+                var blendNormalHalfDiff = (baseBlendNormalSize - blendNormalSize) * 0.5f;
+
+                s.data.boxBlendDistancePositive.vector3Value += blendHalfDiff;
+                s.data.boxBlendDistanceNegative.vector3Value += blendHalfDiff;
+                s.data.boxBlendNormalDistancePositive.vector3Value += blendNormalHalfDiff;
+                s.data.boxBlendNormalDistanceNegative.vector3Value += blendNormalHalfDiff;
+
+                if (s.data.editorAdvancedModeEnabled.boolValue)
+                {
+                    s.data.editorAdvancedModeBlendDistancePositive.vector3Value = s.data.boxBlendDistancePositive.vector3Value;
+                    s.data.editorAdvancedModeBlendDistanceNegative.vector3Value = s.data.boxBlendDistanceNegative.vector3Value;
+                    s.data.editorAdvancedModeBlendNormalDistancePositive.vector3Value = s.data.boxBlendNormalDistancePositive.vector3Value;
+                    s.data.editorAdvancedModeBlendNormalDistanceNegative.vector3Value = s.data.boxBlendNormalDistanceNegative.vector3Value;
+                }
+                else
+                {
+                    s.data.editorSimplifiedModeBlendDistance.floatValue = Mathf.Min(
+                        s.data.boxBlendDistancePositive.vector3Value.x,
+                        s.data.boxBlendDistancePositive.vector3Value.y,
+                        s.data.boxBlendDistancePositive.vector3Value.z,
+                        s.data.boxBlendDistanceNegative.vector3Value.x,
+                        s.data.boxBlendDistanceNegative.vector3Value.y,
+                        s.data.boxBlendDistanceNegative.vector3Value.z);
+                    s.data.boxBlendDistancePositive.vector3Value = s.data.boxBlendDistanceNegative.vector3Value = Vector3.one * s.data.editorSimplifiedModeBlendDistance.floatValue;
+                    s.data.editorSimplifiedModeBlendNormalDistance.floatValue = Mathf.Min(
+                        s.data.boxBlendNormalDistancePositive.vector3Value.x,
+                        s.data.boxBlendNormalDistancePositive.vector3Value.y,
+                        s.data.boxBlendNormalDistancePositive.vector3Value.z,
+                        s.data.boxBlendNormalDistanceNegative.vector3Value.x,
+                        s.data.boxBlendNormalDistanceNegative.vector3Value.y,
+                        s.data.boxBlendNormalDistanceNegative.vector3Value.z);
+                    s.data.boxBlendNormalDistancePositive.vector3Value = s.data.boxBlendNormalDistanceNegative.vector3Value = Vector3.one * s.data.editorSimplifiedModeBlendNormalDistance.floatValue;
+                }
+                s.data.Apply();
+
                 EditorUtility.SetDirty(sourceAsset);
             }
         }
