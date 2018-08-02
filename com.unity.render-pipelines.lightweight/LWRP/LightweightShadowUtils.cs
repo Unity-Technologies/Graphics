@@ -53,8 +53,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         }
 
         public static void RenderShadowSlice(CommandBuffer cmd, ref ScriptableRenderContext context,
-            ref ShadowSliceData shadowSliceData,
-            Matrix4x4 proj, Matrix4x4 view, DrawShadowsSettings settings)
+            ref ShadowSliceData shadowSliceData, ref DrawShadowsSettings settings,
+            Matrix4x4 proj, Matrix4x4 view)
         {
             cmd.SetViewport(new Rect(shadowSliceData.offsetX, shadowSliceData.offsetY, shadowSliceData.resolution, shadowSliceData.resolution));
             cmd.EnableScissorRect(new Rect(shadowSliceData.offsetX + 4, shadowSliceData.offsetY + 4, shadowSliceData.resolution - 8, shadowSliceData.resolution - 8));
