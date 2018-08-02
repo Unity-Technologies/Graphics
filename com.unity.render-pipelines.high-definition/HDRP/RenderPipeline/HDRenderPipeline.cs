@@ -832,6 +832,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         currentFrameSettings.enablePostprocess = false;
                     }
+                    
+                    // Disable SSS if luxmeter is enabled
+                    if (debugDisplaySettings.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter)
+                    {
+                        currentFrameSettings.enableSubsurfaceScattering = false;
+                    }
 
                     var hdCamera = HDCamera.Get(camera);
 
