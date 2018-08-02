@@ -8,6 +8,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         internal SerializedReflectionProxyVolumeComponent proxyVolumeComponent;
         internal SerializedProperty proxyVolumeReference;
+        internal SerializedProperty infiniteProjection;
 
         internal SerializedInfluenceVolume influenceVolume;
 
@@ -33,6 +34,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             proxyVolumeReference = serializedObject.Find((HDProbe p) => p.proxyVolume);
             influenceVolume = new SerializedInfluenceVolume(serializedObject.Find((HDProbe p) => p.influenceVolume));
+            infiniteProjection = serializedObject.Find((HDProbe p) => p.infiniteProjection);
 
             frameSettings = new SerializedFrameSettings(serializedObject.Find((HDProbe p) => p.frameSettings));
 

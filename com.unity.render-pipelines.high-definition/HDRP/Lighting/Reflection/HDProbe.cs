@@ -8,6 +8,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     {
         [SerializeField, FormerlySerializedAs("proxyVolumeComponent"), FormerlySerializedAs("m_ProxyVolumeReference")]
         ReflectionProxyVolumeComponent m_ProxyVolume = null;
+        [SerializeField]
+        bool m_InfiniteProjection = true; //usable when no proxy set
 
         [SerializeField]
         InfluenceVolume m_InfluenceVolume;
@@ -59,7 +61,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             get
             {
-                return proxyVolume != null && proxyVolume.proxyVolume.shape == ProxyShape.Infinite;
+                return proxyVolume != null && proxyVolume.proxyVolume.shape == ProxyShape.Infinite || m_InfiniteProjection;
+            }
+            set
+            {
+                m_InfiniteProjection = value;
             }
         }
 

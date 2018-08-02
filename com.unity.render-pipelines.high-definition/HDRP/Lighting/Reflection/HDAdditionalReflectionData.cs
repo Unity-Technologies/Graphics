@@ -12,7 +12,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Second,
             HDProbeChild,
             UseInfluenceVolume,
-            IntroduceFrameSettings,
+            MergeEditors,
             // Add new version here and they will automatically be the Current one
             Max,
             Current = Max - 1
@@ -57,6 +57,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         bool needMigrateToHDProbeChild = false;
         bool needMigrateToUseInfluenceVolume = false;
+        bool needMigrateToMergeEditors = false;
 
         public void CopyTo(HDAdditionalReflectionData data)
         {
@@ -87,6 +88,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     needMigrateToUseInfluenceVolume = true;
                 }
+                else if (m_Version < (int)Version.MergeEditors)
+                {
+                    needMigrateToMergeEditors = true;
+                }
                 else
                 {
                     // Add here data migration code that do not use other component
@@ -101,6 +106,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 MigrateToHDProbeChild();
             if (needMigrateToUseInfluenceVolume)
                 MigrateToUseInfluenceVolume();
+            if (needMigrateToMergeEditors)
+                MigrateToMergeEditors();
         }
 
         void MigrateToHDProbeChild()
@@ -131,6 +138,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             //Note: former editor parameters will be recreated as if non existent.
             //User will lose parameters corresponding to non used mode between simplified and advanced
+        }
+
+        void MigrateToMergeEditors()
+        {
+            infiniteProjection = !reflectionProbe.boxProjection;
+            m_Version = (int)Version.MergeEditors;
+            needMigrateToMergeEditors = false;
+            OnAfterDeserialize();   //continue migrating if needed
         }
 
         public override ReflectionProbeMode mode

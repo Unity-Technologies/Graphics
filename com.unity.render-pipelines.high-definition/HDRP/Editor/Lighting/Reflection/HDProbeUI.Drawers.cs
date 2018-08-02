@@ -93,7 +93,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected static void Drawer_SectionProxySettings(HDProbeUI s, SerializedHDProbe d, Editor o)
         {
-            EditorGUILayout.PropertyField(d.proxyVolumeReference, _.GetContent("Reference"));
+            EditorGUILayout.PropertyField(d.proxyVolumeReference, proxyVolumeContent);
+            
+            if (d.target.proxyVolume == null)
+            {
+                EditorGUILayout.PropertyField(d.infiniteProjection, useInfiniteProjectionContent);
+            }
 
             if (d.proxyVolumeReference.objectReferenceValue != null)
             {
@@ -109,7 +114,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             else
             {
                 EditorGUILayout.HelpBox(
-                        noProxyHelpBoxText,
+                        d.infiniteProjection.boolValue ? noProxyInfiniteHelpBoxText : noProxyHelpBoxText,
                         MessageType.Info,
                         true
                         );

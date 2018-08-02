@@ -14,7 +14,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         internal SerializedProperty legacyBlendDistance;
         internal SerializedProperty boxSize;
         internal SerializedProperty boxOffset;
-        internal SerializedProperty boxProjection;
 
         internal new HDAdditionalReflectionData target { get { return serializedObject.targetObject as HDAdditionalReflectionData; } }
         internal ReflectionProbe targetLegacy { get { return serializedLegacyObject.targetObject as ReflectionProbe; } }
@@ -35,7 +34,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             useOcclusionCulling = legacyProbe.FindProperty("m_UseOcclusionCulling");
             nearClip = legacyProbe.FindProperty("m_NearClip");
             farClip = legacyProbe.FindProperty("m_FarClip");
-            boxProjection = legacyProbe.FindProperty("m_BoxProjection");
             legacyBlendDistance = legacyProbe.FindProperty("m_BlendDistance");
         }
 
