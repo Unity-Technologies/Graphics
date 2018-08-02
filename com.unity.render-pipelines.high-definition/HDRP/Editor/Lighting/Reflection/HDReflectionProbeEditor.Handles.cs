@@ -15,45 +15,46 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Normal
         }
 
-        void OnSceneGUI()
+        protected override void OnSceneGUI()
         {
+            base.OnSceneGUI();
+
             var s = m_UIState;
             var p = m_SerializedHDProbe as SerializedHDReflectionProbe;
             var o = this;
 
             BakeRealtimeProbeIfPositionChanged(s, p, o);
 
-            HDReflectionProbeUI.DoShortcutKey(o);
 
-            if (!s.sceneViewEditing)
-                return;
+            //if (!s.sceneViewEditing)
+            //    return;
             
-            var mat = Matrix4x4.TRS(p.targetLegacy.transform.position, p.targetLegacy.transform.rotation, Vector3.one);
+            //var mat = Matrix4x4.TRS(p.targetLegacy.transform.position, p.targetLegacy.transform.rotation, Vector3.one);
 
-            EditorGUI.BeginChangeCheck();
+            //EditorGUI.BeginChangeCheck();
 
-            switch (EditMode.editMode)
-            {
-                // Influence editing
-                case EditMode.SceneViewEditMode.ReflectionProbeBox:
-                    InfluenceVolumeUI.DrawHandles_EditBase(s.influenceVolume, p.target.influenceVolume, o, mat, p.target);
-                    break;
-                // Influence fade editing
-                case EditMode.SceneViewEditMode.GridBox:
-                    InfluenceVolumeUI.DrawHandles_EditInfluence(s.influenceVolume, p.target.influenceVolume, o, mat, p.target);
-                    break;
-                // Influence normal fade editing
-                case EditMode.SceneViewEditMode.Collider:
-                    InfluenceVolumeUI.DrawHandles_EditInfluenceNormal(s.influenceVolume, p.target.influenceVolume, o, mat, p.target);
-                    break;
-                // Origin editing
-                case EditMode.SceneViewEditMode.ReflectionProbeOrigin:
-                    Handle_OriginEditing(s, p, o);
-                    break;
-            }
+            //switch (EditMode.editMode)
+            //{
+            //    // Influence editing
+            //    case EditMode.SceneViewEditMode.ReflectionProbeBox:
+            //        InfluenceVolumeUI.DrawHandles_EditBase(s.influenceVolume, p.target.influenceVolume, o, mat, p.target);
+            //        break;
+            //    // Influence fade editing
+            //    case EditMode.SceneViewEditMode.GridBox:
+            //        InfluenceVolumeUI.DrawHandles_EditInfluence(s.influenceVolume, p.target.influenceVolume, o, mat, p.target);
+            //        break;
+            //    // Influence normal fade editing
+            //    case EditMode.SceneViewEditMode.Collider:
+            //        InfluenceVolumeUI.DrawHandles_EditInfluenceNormal(s.influenceVolume, p.target.influenceVolume, o, mat, p.target);
+            //        break;
+            //    // Origin editing
+            //    case EditMode.SceneViewEditMode.ReflectionProbeOrigin:
+            //        Handle_OriginEditing(s, p, o);
+            //        break;
+            //}
 
-            if (EditorGUI.EndChangeCheck())
-                Repaint();
+            //if (EditorGUI.EndChangeCheck())
+            //    Repaint();
         }
 
         static void Handle_OriginEditing(HDReflectionProbeUI s, SerializedHDReflectionProbe sp, Editor o)

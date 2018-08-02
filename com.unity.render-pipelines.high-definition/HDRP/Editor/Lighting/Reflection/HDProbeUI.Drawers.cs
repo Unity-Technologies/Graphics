@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
@@ -41,11 +42,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         )
                     );
         }
-
-        protected const EditMode.SceneViewEditMode EditBaseShape = EditMode.SceneViewEditMode.ReflectionProbeBox;
-        protected const EditMode.SceneViewEditMode EditInfluenceShape = EditMode.SceneViewEditMode.GridBox;
-        protected const EditMode.SceneViewEditMode EditInfluenceNormalShape = EditMode.SceneViewEditMode.Collider;
-        protected const EditMode.SceneViewEditMode EditCenter = EditMode.SceneViewEditMode.ReflectionProbeOrigin;
 
         protected static void Drawer_DifferentShapeError(HDProbeUI s, SerializedHDProbe d, Editor o)
         {
@@ -138,22 +134,52 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         }
 
 
-
-        protected enum ToolBar { Influence, Capture }
-        protected ToolBar[] toolBars = new ToolBar[] { ToolBar.Influence, ToolBar.Capture };
-
-        static readonly EditMode.SceneViewEditMode[] k_InfluenceToolbar_SceneViewEditModes =
+        [Flags]
+        internal enum ToolBar
         {
-            EditBaseShape,
-            EditInfluenceShape,
-            EditInfluenceNormalShape,
-        };
+            InfluenceShape = 1<<0,
+            Blend = 1<<1,
+            NormalBlend = 1<<2,
+            CapturePosition = 1<<3
+        }
+        protected ToolBar[] toolBars = null;
 
-        static readonly EditMode.SceneViewEditMode[] k_CaptureToolbar_SceneViewEditModes =
+        protected const EditMode.SceneViewEditMode EditBaseShape = EditMode.SceneViewEditMode.ReflectionProbeBox;
+        protected const EditMode.SceneViewEditMode EditInfluenceShape = EditMode.SceneViewEditMode.GridBox;
+        protected const EditMode.SceneViewEditMode EditInfluenceNormalShape = EditMode.SceneViewEditMode.Collider;
+        protected const EditMode.SceneViewEditMode EditCenter = EditMode.SceneViewEditMode.ReflectionProbeOrigin;
+
+        static Dictionary<ToolBar, EditMode.SceneViewEditMode> s_Toolbar_Mode = null;
+        protected static Dictionary<ToolBar, EditMode.SceneViewEditMode> toolbar_Mode
         {
-            EditCenter
-        };
+            get
+            {
+                return s_Toolbar_Mode ?? (s_Toolbar_Mode = new Dictionary<ToolBar, EditMode.SceneViewEditMode>
+                {
+                    { ToolBar.InfluenceShape,  EditBaseShape },
+                    { ToolBar.Blend,  EditInfluenceShape },
+                    { ToolBar.NormalBlend,  EditInfluenceNormalShape },
+                    { ToolBar.CapturePosition,  EditCenter }
+                });
+            }
+        }
 
+        //[TODO] change this to be modifiable shortcuts
+        static Dictionary<KeyCode, ToolBar> s_Toolbar_ShortCutKey = null;
+        protected static Dictionary<KeyCode, ToolBar> toolbar_ShortCutKey
+        {
+            get
+            {
+                return s_Toolbar_ShortCutKey ?? (s_Toolbar_ShortCutKey = new Dictionary<KeyCode, ToolBar>
+                {
+                    { KeyCode.Alpha1, ToolBar.InfluenceShape },
+                    { KeyCode.Alpha2, ToolBar.Blend },
+                    { KeyCode.Alpha3, ToolBar.NormalBlend },
+                    { KeyCode.Alpha4, ToolBar.CapturePosition }
+                });
+            }
+        }
+        
         protected static void Drawer_Toolbars(HDProbeUI s, SerializedHDProbe d, Editor o)
         {
             GUILayout.BeginHorizontal();
@@ -162,34 +188,48 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             foreach(ToolBar toolBar in s.toolBars)
             {
-                switch (toolBar)
+                List<EditMode.SceneViewEditMode> listMode = new List<EditMode.SceneViewEditMode>();
+                List<GUIContent> listContent = new List<GUIContent>(); 
+                if ((toolBar & ToolBar.InfluenceShape) > 0)
                 {
-                    case ToolBar.Influence:
-                        EditMode.DoInspectorToolbar(k_InfluenceToolbar_SceneViewEditModes, influenceToolbar_Contents, GetBoundsGetter(o), o);
-                        break;
-                    case ToolBar.Capture:
-                        EditMode.DoInspectorToolbar(k_CaptureToolbar_SceneViewEditModes, captureToolbar_Contents, GetBoundsGetter(o), o);
-                        break;
+                    listMode.Add(toolbar_Mode[ToolBar.InfluenceShape]);
+                    listContent.Add(toolbar_Contents[ToolBar.InfluenceShape]);
                 }
+                if ((toolBar & ToolBar.Blend) > 0)
+                {
+                    listMode.Add(toolbar_Mode[ToolBar.Blend]);
+                    listContent.Add(toolbar_Contents[ToolBar.Blend]);
+                }
+                if ((toolBar & ToolBar.NormalBlend) > 0)
+                {
+                    listMode.Add(toolbar_Mode[ToolBar.NormalBlend]);
+                    listContent.Add(toolbar_Contents[ToolBar.NormalBlend]);
+                }
+                if ((toolBar & ToolBar.CapturePosition) > 0)
+                {
+                    listMode.Add(toolbar_Mode[ToolBar.CapturePosition]);
+                    listContent.Add(toolbar_Contents[ToolBar.CapturePosition]);
+                }
+                EditMode.DoInspectorToolbar(listMode.ToArray(), listContent.ToArray(), GetBoundsGetter(o), o);
             }
             GUILayout.FlexibleSpace();
             GUILayout.EndHorizontal();
         }
 
 
-        static public void Drawer_InfluenceToolBarButton(int buttonIndex, Editor owner, params GUILayoutOption[] styles)
+        static internal void Drawer_ToolBarButton(ToolBar button, Editor owner, params GUILayoutOption[] options)
         {
-            if (GUILayout.Button(influenceToolbar_Contents[buttonIndex], styles))
+            //[TODO] change style here
+            GUIStyle style = "EditModeSingleButton";
+            
+            Rect rect = GUILayoutUtility.GetRect(toolbar_Contents[button], style, options);
+            bool isMouseOver = rect.Contains(Event.current.mousePosition);
+            bool isActive = EditMode.editMode == toolbar_Mode[button];
+            //style.Draw(rect, toolbar_Contents[button], isMouseOver && (GUI.enabled || isActive) && (isActive || GUIUtility.hotControl == 0), GUI.enabled && isActive, true, false);
+            if (GUILayout.Button(toolbar_Contents[button], options))
             {
-                EditMode.ChangeEditMode(k_InfluenceToolbar_SceneViewEditModes[buttonIndex], GetBoundsGetter(owner)(), owner);
-            }
-        }
-
-        static public void Drawer_CaptureToolBarButton(int buttonIndex, Editor owner, params GUILayoutOption[] styles)
-        {
-            if (GUILayout.Button(captureToolbar_Contents[buttonIndex], styles))
-            {
-                EditMode.ChangeEditMode(k_CaptureToolbar_SceneViewEditModes[buttonIndex], GetBoundsGetter(owner)(), owner);
+                EditMode.SceneViewEditMode targetMode = EditMode.editMode == toolbar_Mode[button] ? EditMode.SceneViewEditMode.None : toolbar_Mode[button];
+                EditMode.ChangeEditMode(targetMode, GetBoundsGetter(owner)(), owner);
             }
         }
 
@@ -208,30 +248,33 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 };
         }
 
-        static readonly KeyCode[] k_ShortCutKeys =
-        {
-            KeyCode.Alpha1,
-            KeyCode.Alpha2,
-            KeyCode.Alpha3,
-        };
-
-        public static void DoShortcutKey(Editor owner)
+        public void DoShortcutKey(Editor owner)
         {
             var evt = Event.current;
             if (evt.type != EventType.KeyDown || !evt.shift)
                 return;
 
-            for (var i = 0; i < k_ShortCutKeys.Length; ++i)
+            ToolBar toolbar;
+            if(toolbar_ShortCutKey.TryGetValue(evt.keyCode, out toolbar))
             {
-                if (evt.keyCode == k_ShortCutKeys[i])
+                bool used = false;
+                foreach(ToolBar t in toolBars)
                 {
-                    var mode = EditMode.editMode == k_InfluenceToolbar_SceneViewEditModes[i]
-                        ? EditMode.SceneViewEditMode.None
-                        : k_InfluenceToolbar_SceneViewEditModes[i];
-                    EditMode.ChangeEditMode(mode, GetBoundsGetter(owner)(), owner);
-                    evt.Use();
-                    break;
+                    if((t&toolbar)>0)
+                    {
+                        used = true;
+                        break;
+                    }
                 }
+                if (!used)
+                {
+                    return;
+                }
+
+                var targetMode = toolbar_Mode[toolbar];
+                var mode = EditMode.editMode == targetMode ? EditMode.SceneViewEditMode.None : targetMode;
+                EditMode.ChangeEditMode(mode, GetBoundsGetter(owner)(), owner);
+                evt.Use();
             }
         }
     }

@@ -17,6 +17,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 SectionPrimarySettings,
                 ProxyVolumeSettings,
+                AdditionalProxyVolumeSettings,
                 CED.Select(
                         (s, d, o) => s.influenceVolume,
                         (s, d, o) => d.influenceVolume,
@@ -29,7 +30,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             };
         }
 
-        public static readonly CED.IDrawer SectionPrimarySettings = CED.Group(
+        static readonly CED.IDrawer SectionPrimarySettings = CED.Group(
                 CED.Action((s, d, o) => Drawer_Toolbars(s, d, o)),
                 CED.space,
                 CED.Action(Drawer_ReflectionProbeMode),
@@ -42,24 +43,43 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     )
                 );
 
-        public static readonly CED.IDrawer SectionCaptureSettings = CED.FoldoutGroup(
+        static readonly CED.IDrawer SectionCaptureSettings = CED.FoldoutGroup(
                 "Capture Settings",
                 (s, p, o) => s.isSectionExpandedCaptureSettings,
                 FoldoutOption.Indent,
                 CED.Action(Drawer_CaptureSettings)
                 );
 
+        static readonly CED.IDrawer AdditionalProxyVolumeSettings = CED.Action(Drawer_AdditionalProxyVolumeSettings);
+
+        static void Drawer_AdditionalProxyVolumeSettings(HDProbeUI s, SerializedHDProbe p, Editor owner)
+        {
+            HDReflectionProbeUI ui = ((HDReflectionProbeEditor)owner).m_UIState;
+            if (p.target.proxyVolume == null && ui.isSectionExpendedProxyVolume.value)
+            {
+                SerializedHDReflectionProbe serialized = (SerializedHDReflectionProbe)p;
+                EditorGUI.BeginChangeCheck();
+                ++EditorGUI.indentLevel;
+                EditorGUILayout.PropertyField(serialized.boxProjection, paralaxCorrectionContent);
+                --EditorGUI.indentLevel;
+                if (EditorGUI.EndChangeCheck())
+                {
+                    serialized.Apply();
+                }
+            }
+        }
+
         static void Drawer_CaptureSettings(HDProbeUI s, SerializedHDProbe p, Editor owner)
         {
             var renderPipelineAsset = (HDRenderPipelineAsset)GraphicsSettings.renderPipelineAsset;
             p.resolution.intValue = (int)renderPipelineAsset.GetRenderPipelineSettings().lightLoopSettings.reflectionCubemapSize;
-            EditorGUILayout.LabelField(CoreEditorUtils.GetContent("Resolution"), CoreEditorUtils.GetContent(p.resolution.intValue.ToString()));
+            EditorGUILayout.LabelField(resolutionContent, CoreEditorUtils.GetContent(p.resolution.intValue.ToString()));
 
-            EditorGUILayout.PropertyField(p.shadowDistance, CoreEditorUtils.GetContent("Shadow Distance"));
-            EditorGUILayout.PropertyField(p.cullingMask, CoreEditorUtils.GetContent("Culling Mask"));
-            EditorGUILayout.PropertyField(p.useOcclusionCulling, CoreEditorUtils.GetContent("Use Occlusion Culling"));
-            EditorGUILayout.PropertyField(p.nearClip, CoreEditorUtils.GetContent("Near Clip"));
-            EditorGUILayout.PropertyField(p.farClip, CoreEditorUtils.GetContent("Far Clip"));
+            EditorGUILayout.PropertyField(p.shadowDistance, shadowDistanceContent);
+            EditorGUILayout.PropertyField(p.cullingMask, cullingMaskContent);
+            EditorGUILayout.PropertyField(p.useOcclusionCulling, useOcclusionCullingContent);
+            EditorGUILayout.PropertyField(p.nearClip, nearClipCullingContent);
+            EditorGUILayout.PropertyField(p.farClip, farClipCullingContent);
         }
 
         static readonly GUIContent[] k_Content_ReflectionProbeMode = { new GUIContent("Baked"), new GUIContent("Custom"), new GUIContent("Realtime") };
