@@ -36,12 +36,6 @@ namespace UnityEditor.VFX.Block
             Custom
         }
 
-        public enum TargetPositionMode
-        {
-            None,
-            Same,
-            Next
-        }
 
         [SerializeField, VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
         [Tooltip(@"Shape used for this sequence")]
@@ -54,11 +48,12 @@ namespace UnityEditor.VFX.Block
         protected IndexMode index = IndexMode.ParticleID;
 
         [SerializeField, VFXSetting]
-        [Tooltip(@"Whether targetPosition Attribute should be computed:
-- None : no modification
-- Same: computed at same index as position
-- Next: computed at index + 1")]
-        protected TargetPositionMode TargetPosition = TargetPositionMode.Next;
+        [Tooltip("Write position")]
+        private bool writePosition = true;
+
+        [SerializeField, VFXSetting]
+        [Tooltip("Write target position")]
+        private bool writeTargetPosition = false;
 
         public override string name { get { return string.Format("Position : Sequential ({0})", shape); } }
         public override VFXContextType compatibleContexts { get { return VFXContextType.kInitAndUpdateAndOutput; } }
@@ -72,6 +67,18 @@ namespace UnityEditor.VFX.Block
         {
             [Tooltip("Index used to sample the sequential distribution")]
             public uint Index = 0;
+        }
+
+        public class InputPropertiesWritePosition
+        {
+            [Tooltip("Offset applied to the base index used to compute position")]
+            public int OffsetPosition = 0;
+        }
+
+        public class InputPropertiesWriteTargetPosition
+        {
+            [Tooltip("Offset applied to base the index used to compute target position")]
+            public int OffsetTargetPosition = 1;
         }
 
         public class InputPropertiesLine
@@ -120,15 +127,21 @@ namespace UnityEditor.VFX.Block
             {
                 var commonProperties = PropertiesFromType("InputProperties");
 
+                if (index == IndexMode.Custom)
+                    commonProperties = commonProperties.Concat(PropertiesFromType("InputPropertiesCustomIndex"));
+
+                if (writePosition)
+                    commonProperties = commonProperties.Concat(PropertiesFromType("InputPropertiesWritePosition"));
+
+                if (writeTargetPosition)
+                    commonProperties = commonProperties.Concat(PropertiesFromType("InputPropertiesWriteTargetPosition"));
+
                 switch (shape)
                 {
                     case SequentialShape.Line: commonProperties = commonProperties.Concat(PropertiesFromType("InputPropertiesLine")); break;
                     case SequentialShape.Circle: commonProperties = commonProperties.Concat(PropertiesFromType("InputPropertiesCircle")); break;
                     case SequentialShape.ThreeDimensional: commonProperties = commonProperties.Concat(PropertiesFromType("InputPropertiesThreeDimensional")); break;
                 }
-
-                if (index == IndexMode.Custom)
-                    commonProperties = commonProperties.Concat(PropertiesFromType("InputPropertiesCustomIndex"));
 
                 return commonProperties;
             }
@@ -141,9 +154,10 @@ namespace UnityEditor.VFX.Block
                 if (index == IndexMode.ParticleID)
                     yield return new VFXAttributeInfo(VFXAttribute.ParticleId, VFXAttributeMode.Read);
 
-                yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.ReadWrite);
+                if (writePosition)
+                    yield return new VFXAttributeInfo(VFXAttribute.Position, VFXAttributeMode.ReadWrite);
 
-                if (TargetPosition != TargetPositionMode.None)
+                if (writeTargetPosition)
                     yield return new VFXAttributeInfo(VFXAttribute.TargetPosition, VFXAttributeMode.ReadWrite);
             }
         }
@@ -189,21 +203,19 @@ namespace UnityEditor.VFX.Block
             {
                 var expressions = GetExpressionsFromSlots(this);
                 var indexExpr = (index == IndexMode.ParticleID) ? new VFXAttributeExpression(VFXAttribute.ParticleId) : expressions.First(o => o.name == "Index").exp;
-                var positionExpr = GetPositionFromIndex(indexExpr, expressions);
 
-                yield return new VFXNamedExpression(positionExpr, s_computedPosition);
-
-                if (TargetPosition != TargetPositionMode.None)
+                if (writePosition)
                 {
-                    if (TargetPosition == TargetPositionMode.Next)
-                    {
-                        indexExpr = indexExpr + VFXOperatorUtility.OneExpression[VFXValueType.Uint32];
-                        yield return new VFXNamedExpression(GetPositionFromIndex(indexExpr, expressions), s_computedTargetPosition);
-                    }
-                    else
-                    {
-                        yield return new VFXNamedExpression(positionExpr, s_computedTargetPosition);
-                    }
+                    var indexOffsetExpr = indexExpr + new VFXExpressionCastIntToUint(expressions.First(o => o.name == "OffsetPosition").exp);
+                    var positionExpr = GetPositionFromIndex(indexOffsetExpr, expressions);
+                    yield return new VFXNamedExpression(positionExpr, s_computedPosition);
+                }
+
+                if (writeTargetPosition)
+                {
+                    var indexOffsetExpr = indexExpr + new VFXExpressionCastIntToUint(expressions.First(o => o.name == "OffsetTargetPosition").exp);
+                    var positionExpr = GetPositionFromIndex(indexOffsetExpr, expressions);
+                    yield return new VFXNamedExpression(positionExpr, s_computedTargetPosition);
                 }
             }
         }
@@ -212,10 +224,15 @@ namespace UnityEditor.VFX.Block
         {
             get
             {
-                var source = string.Format("position += {0};", s_computedPosition);
-                if (TargetPosition != TargetPositionMode.None)
+                var source = string.Empty;
+                if (writePosition)
                 {
-                    source += string.Format("\ntargetPosition += {0};", s_computedTargetPosition);
+                    source += string.Format("position += {0};\n", s_computedPosition);
+                }
+
+                if (writeTargetPosition)
+                {
+                    source += string.Format("targetPosition += {0};\n", s_computedTargetPosition);
                 }
                 return source;
             }
