@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix lux meter mode - The lux meter isn't affected by the sky anymore
 - Fix area light size reset when multi-selected
 - Fixed filter pass number in HDUtils.BlitQuad
+- Fixed Lux meter mode that was applying SSS
+- Fixed planar reflections that were not working with tile/cluster (olbique matrix)
+- Fixed debug menu at runtime not working after nested prefab PR come to trunk
 
 ## [3.1.0-preview]
 
