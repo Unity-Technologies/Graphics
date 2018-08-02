@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The UI for Lightweight asset has been updated with new categories. A more clean structure and foldouts has been added to keep things organized.
 
 ### Fixed
+- Rendering no longer breaks when Android platform is selected in Build Settings. (case 1058812)
 - Scriptable passes no longer have missing material references. Now they access cached materials in the renderer.(case 1061353)
 - When you change a Shadow Cascade option in the Pipeline Asset, this no longer warns you that you've exceeded the array size for the _WorldToShadow property.
 - Terrain shader optimizations.
