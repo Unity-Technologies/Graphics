@@ -40,7 +40,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly GUIContent bakeTypeContent = CoreEditorUtils.GetContent("Type|'Baked Cubemap' uses the 'Auto Baking' mode from the Lighting window. If it is enabled then baking is automatic otherwise manual bake is needed (use the bake button below). \n'Custom' can be used if a custom cubemap is wanted. \n'Realtime' can be used to dynamically re-render the cubemap during runtime (via scripting).");
 
         static readonly GUIContent proxyVolumeContent = CoreEditorUtils.GetContent("Proxy Volume");
-        protected static readonly GUIContent paralaxCorrectionContent = CoreEditorUtils.GetContent("Parallax Correction|Parallax Correction causes reflections to appear to change based on the object's position within the probe's box, while still using a single probe as the source of the reflection. This works well for reflections on objects that are moving through enclosed spaces such as corridors and rooms. Setting Parallax Correction to False and the cubemap reflection will be treated as coming from infinitely far away. Note that this feature can be globally disabled from Graphics Settings -> Tier Settings");
+        protected static readonly GUIContent useInfiniteProjectionContent = CoreEditorUtils.GetContent("Same As Influence Volume|If enabled, parallax correction will occure, causing reflections to appear to change based on the object's position within the probe's box, while still using a single probe as the source of the reflection. This works well for reflections on objects that are moving through enclosed spaces such as corridors and rooms. When disabled, the cubemap reflection will be treated as coming from infinitely far away. Note that this feature can be globally disabled from Graphics Settings -> Tier Settings");
 
         static readonly GUIContent normalModeContent = CoreEditorUtils.GetContent("Normal|Normal parameters mode (only change for box shape).");
         static readonly GUIContent advancedModeContent = CoreEditorUtils.GetContent("Advanced|Advanced parameters mode (only change for box shape).");
@@ -69,10 +69,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         
 
         const string mimapHelpBoxText = "No mipmaps in the cubemap, Smoothness value in Standard shader will be ignored.";
-        const string noProxyHelpBoxText = "When no Proxy setted, Influence shape will be used as Proxy shape too.";
+        const string noProxyHelpBoxText = "Influence shape will be used as Projection shape too.";
+        const string noProxyInfiniteHelpBoxText = "Projection will be at infinite.";
         const string proxyInfluenceShapeMismatchHelpBoxText = "Proxy volume and influence volume have different shapes, this is not supported.";
 
-        const string proxySettingsHeader = "Proxy Volume";
+        const string proxySettingsHeader = "Projection Settings";
         //influenceVolume have its own header
         const string captureSettingsHeader = "Capture Settings";
         const string additionnalSettingsHeader = "Custom Settings";

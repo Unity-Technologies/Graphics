@@ -17,7 +17,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 SectionPrimarySettings,
                 ProxyVolumeSettings,
-                AdditionalProxyVolumeSettings,
                 CED.Select(
                         (s, d, o) => s.influenceVolume,
                         (s, d, o) => d.influenceVolume,
@@ -49,26 +48,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 FoldoutOption.Indent,
                 CED.Action(Drawer_CaptureSettings)
                 );
-
-        static readonly CED.IDrawer AdditionalProxyVolumeSettings = CED.Action(Drawer_AdditionalProxyVolumeSettings);
-
-        static void Drawer_AdditionalProxyVolumeSettings(HDProbeUI s, SerializedHDProbe p, Editor owner)
-        {
-            HDReflectionProbeUI ui = ((HDReflectionProbeEditor)owner).m_UIState;
-            if (p.target.proxyVolume == null && ui.isSectionExpendedProxyVolume.value)
-            {
-                SerializedHDReflectionProbe serialized = (SerializedHDReflectionProbe)p;
-                EditorGUI.BeginChangeCheck();
-                ++EditorGUI.indentLevel;
-                EditorGUILayout.PropertyField(serialized.boxProjection, paralaxCorrectionContent);
-                --EditorGUI.indentLevel;
-                if (EditorGUI.EndChangeCheck())
-                {
-                    serialized.Apply();
-                }
-            }
-        }
-
+        
         static void Drawer_CaptureSettings(HDProbeUI s, SerializedHDProbe p, Editor owner)
         {
             var renderPipelineAsset = (HDRenderPipelineAsset)GraphicsSettings.renderPipelineAsset;
