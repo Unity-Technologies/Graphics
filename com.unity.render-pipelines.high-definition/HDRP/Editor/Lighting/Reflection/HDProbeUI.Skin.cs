@@ -75,7 +75,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         const string proxySettingsHeader = "Projection Settings";
         //influenceVolume have its own header
-        const string captureSettingsHeader = "Capture Settings";
+        protected const string captureSettingsHeader = "Capture Settings";
         const string additionnalSettingsHeader = "Custom Settings";
 
         static Dictionary<ToolBar, GUIContent> s_Toolbar_Contents = null;
