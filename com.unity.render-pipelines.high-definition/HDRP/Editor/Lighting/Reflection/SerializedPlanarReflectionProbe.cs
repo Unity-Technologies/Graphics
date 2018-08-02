@@ -40,6 +40,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             overrideFieldOfView = serializedObject.Find((PlanarReflectionProbe p) => p.overrideFieldOfView);
             fieldOfViewOverride = serializedObject.Find((PlanarReflectionProbe p) => p.fieldOfViewOverride);
+
+            influenceVolume.editorSimplifiedModeBlendNormalDistance.floatValue = 0;
         }
 
 
