@@ -27,10 +27,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     cascadeIndex, shadowData.directionalLightCascadeCount, shadowData.directionalLightCascades, shadowResolution, shadowNearPlane, out viewMatrix, out projMatrix,
                     out splitData);
 
-            float cullingSphereRadius = splitData.cullingSphere.w;
             cascadeSplitDistance = splitData.cullingSphere;
-            cascadeSplitDistance.w = cullingSphereRadius * cullingSphereRadius;
-
             shadowSliceData.offsetX = (cascadeIndex % 2) * shadowResolution;
             shadowSliceData.offsetY = (cascadeIndex / 2) * shadowResolution;
             shadowSliceData.resolution = shadowResolution;
