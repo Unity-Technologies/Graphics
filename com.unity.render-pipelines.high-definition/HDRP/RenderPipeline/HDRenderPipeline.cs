@@ -785,7 +785,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 FrameSettings currentFrameSettings = new FrameSettings();
                 // Get the effective frame settings for this camera taking into account the global setting and camera type
-                FrameSettings.InitializeFrameSettings(camera, m_Asset.GetRenderPipelineSettings(), srcFrameSettings, ref currentFrameSettings);
+                FrameSettings.InitializeFrameSettings(camera, m_Asset.GetRenderPipelineSettings(), m_DebugDisplaySettings, srcFrameSettings, ref currentFrameSettings);
 
                 // This is the main command buffer used for the frame.
                 var cmd = CommandBufferPool.Get("");
