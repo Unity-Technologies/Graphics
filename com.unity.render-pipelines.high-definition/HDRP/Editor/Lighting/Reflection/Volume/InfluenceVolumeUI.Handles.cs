@@ -167,22 +167,28 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 center = b.center;
                 size = b.size;
 
-                var baseBlendSize = size - s.data.boxBlendDistancePositive.vector3Value - s.data.boxBlendDistanceNegative.vector3Value;
-                var blendSize = baseBlendSize;
-                var baseBlendNormalSize = size - s.data.boxBlendNormalDistancePositive.vector3Value - s.data.boxBlendNormalDistanceNegative.vector3Value;
-                var blendNormalSize = baseBlendNormalSize;
-                for(int i = 0; i < 3; ++i)
-                {
-                    blendSize[i] = Mathf.Max(0f, blendSize[i]);
-                    blendNormalSize[i] = Mathf.Max(0f, blendNormalSize[i]);
-                }
-                var blendHalfDiff = (baseBlendSize - blendSize) * 0.5f;
-                var blendNormalHalfDiff = (baseBlendNormalSize - blendNormalSize) * 0.5f;
 
-                s.data.boxBlendDistancePositive.vector3Value += blendHalfDiff;
-                s.data.boxBlendDistanceNegative.vector3Value += blendHalfDiff;
-                s.data.boxBlendNormalDistancePositive.vector3Value += blendNormalHalfDiff;
-                s.data.boxBlendNormalDistanceNegative.vector3Value += blendNormalHalfDiff;
+                Vector3 blendPositive = s.data.boxBlendDistancePositive.vector3Value;
+                Vector3 blendNegative = s.data.boxBlendDistanceNegative.vector3Value;
+                Vector3 blendNormalPositive = s.data.boxBlendNormalDistancePositive.vector3Value;
+                Vector3 blendNormalNegative = s.data.boxBlendNormalDistanceNegative.vector3Value;
+                for (int i = 0; i < 3; ++i)
+                {
+                    size[i] = Mathf.Max(0f, size[i]);
+                }
+                s.data.boxSize.vector3Value = size;
+                Vector3 halfSize = size * .5f;
+                for (int i = 0; i < 3; ++i)
+                {
+                    blendPositive[i] = Mathf.Clamp(blendPositive[i], 0f, halfSize[i]);
+                    blendNegative[i] = Mathf.Clamp(blendNegative[i], 0f, halfSize[i]);
+                    blendNormalPositive[i] = Mathf.Clamp(blendNormalPositive[i], 0f, halfSize[i]);
+                    blendNormalNegative[i] = Mathf.Clamp(blendNormalNegative[i], 0f, halfSize[i]);
+                }
+                s.data.boxBlendDistancePositive.vector3Value = blendPositive;
+                s.data.boxBlendDistanceNegative.vector3Value = blendNegative;
+                s.data.boxBlendNormalDistancePositive.vector3Value = blendNormalPositive;
+                s.data.boxBlendNormalDistanceNegative.vector3Value = blendNormalNegative;
 
                 if (s.data.editorAdvancedModeEnabled.boolValue)
                 {
@@ -210,6 +216,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         s.data.boxBlendNormalDistanceNegative.vector3Value.z);
                     s.data.boxBlendNormalDistancePositive.vector3Value = s.data.boxBlendNormalDistanceNegative.vector3Value = Vector3.one * s.data.editorSimplifiedModeBlendNormalDistance.floatValue;
                 }
+
                 s.data.Apply();
 
                 EditorUtility.SetDirty(sourceAsset);
@@ -241,8 +248,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 var sum = influenceSize - b.size;
                 var positiveNew = (sum - diff) * 0.5f;
                 var negativeNew = (sum + diff) * 0.5f;
-                var blendDistancePositive = Vector3.Max(Vector3.zero, Vector3.Min(positiveNew, influenceSize));
-                var blendDistanceNegative = Vector3.Max(Vector3.zero, Vector3.Min(negativeNew, influenceSize));
+                var blendDistancePositive = Vector3.Max(Vector3.zero, Vector3.Min(positiveNew, influenceSize * .5f));
+                var blendDistanceNegative = Vector3.Max(Vector3.zero, Vector3.Min(negativeNew, influenceSize * .5f));
 
                 positive = blendDistancePositive;
                 negative = blendDistanceNegative;
@@ -267,6 +274,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Undo.RecordObject(sourceAsset, "Modified Base Volume AABB");
 
                 radius = b.radius;
+                s.data.sphereBlendDistance.floatValue = Mathf.Clamp(s.data.sphereBlendDistance.floatValue, 0, radius);
+                s.data.sphereBlendNormalDistance.floatValue = Mathf.Clamp(s.data.sphereBlendNormalDistance.floatValue, 0, radius);
+                s.data.Apply();
 
                 EditorUtility.SetDirty(sourceAsset);
             }
