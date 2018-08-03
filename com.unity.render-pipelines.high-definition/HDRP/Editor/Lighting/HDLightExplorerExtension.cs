@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
-namespace UnityEditor
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     [LightingExplorerExtensionAttribute(typeof(HDRenderPipelineAsset))]
     public class HDLightExplorerExtension : DefaultLightingExplorerExtension
@@ -122,9 +122,15 @@ namespace UnityEditor
             var lights = UnityEngine.Object.FindObjectsOfType<Light>();
             foreach (Light light in lights)
             {
-                var prefabRoot = 
-                lightDataPairing[light] = new LightData(light.GetComponent<HDAdditionalLightData>(), light.GetComponent<AdditionalShadowData>(), 
-                PrefabUtility.GetCorrespondingObjectFromSource(light) == null ? false : true, PrefabUtility.GetCorrespondingObjectFromSource(PrefabUtility.FindPrefabRoot(light.gameObject)));
+                if (PrefabUtility.GetCorrespondingObjectFromSource(light) != null) // We have a prefab
+                {
+                    lightDataPairing[light] = new LightData(light.GetComponent<HDAdditionalLightData>(), light.GetComponent<AdditionalShadowData>(),
+                                                            true, PrefabUtility.GetCorrespondingObjectFromSource(PrefabUtility.GetOutermostPrefabInstanceRoot(light.gameObject)));
+                }
+                else
+                {
+                    lightDataPairing[light] = new LightData(light.GetComponent<HDAdditionalLightData>(), light.GetComponent<AdditionalShadowData>(), false, null);
+                }                
             }
             return lights;
         }
@@ -133,7 +139,7 @@ namespace UnityEditor
         {
             var reflectionProbes = Object.FindObjectsOfType<ReflectionProbe>();
             {
-                foreach(ReflectionProbe probe in reflectionProbes )
+                foreach (ReflectionProbe probe in reflectionProbes )
                 {
                     reflectionProbeDataPairing[probe] = probe.GetComponent<HDAdditionalReflectionData>();
                 }
@@ -170,7 +176,7 @@ namespace UnityEditor
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Color, HDStyles.Color, "m_Color", 60),                                         // 6: Color
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.ColorTemperature, "m_ColorTemperature", 100,(r, prop, dep) =>  // 7: Color Temperature
                 {
-                    if(prop.serializedObject.FindProperty("m_UseColorTemperature").boolValue)
+                    if (prop.serializedObject.FindProperty("m_UseColorTemperature").boolValue)
                     {
                         prop = prop.serializedObject.FindProperty("m_ColorTemperature");
                         prop.floatValue = EditorGUI.FloatField(r,prop.floatValue);
@@ -248,7 +254,7 @@ namespace UnityEditor
                     bool affectSpecular = lightDataPairing[light].hdAdditionalLightData.affectSpecular;
                     EditorGUI.BeginChangeCheck();
                     affectSpecular = EditorGUI.Toggle(r, affectSpecular);
-                    if(EditorGUI.EndChangeCheck())
+                    if (EditorGUI.EndChangeCheck())
                     {
                         lightDataPairing[light].hdAdditionalLightData.affectSpecular = affectSpecular;
                     }
@@ -257,8 +263,10 @@ namespace UnityEditor
                 {
                     Light light = prop.serializedObject.targetObject as Light;
                     bool isPrefab = lightDataPairing[light].isPrefab;
-                    if(isPrefab)
+                    if (isPrefab)
+                    {
                         EditorGUI.ObjectField(r, lightDataPairing[light].prefabRoot, typeof(GameObject),false);
+                    }
                 }),
 
             };
@@ -274,7 +282,7 @@ namespace UnityEditor
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.Priority, "priority", 60),                                     // 3: Priority
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.VolumeProfile, "sharedProfile", 100, (r, prop, dep) =>        // 4: Profile
                 {
-                    if(prop.objectReferenceValue != null )
+                    if (prop.objectReferenceValue != null )
                         EditorGUI.PropertyField(r, prop, GUIContent.none);
                 }),
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Checkbox, HDStyles.HasVisualEnvironment, "sharedProfile", 100, (r, prop, dep) =>// 5: Has Visual environment
@@ -288,7 +296,7 @@ namespace UnityEditor
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.SkyType, "sharedProfile", 100, (r, prop, dep) =>              // 6: Sky type
                 {
                     Volume volume = prop.serializedObject.targetObject as Volume;
-                    if(volumeDataPairing[volume].hasVisualEnvironment)
+                    if (volumeDataPairing[volume].hasVisualEnvironment)
                     {
                         SkyType skyType = volumeDataPairing[volume].skyType;
                         EditorGUI.BeginDisabledGroup(true);
@@ -299,7 +307,7 @@ namespace UnityEditor
                 new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Custom, HDStyles.FogType, "sharedProfile", 100, (r, prop, dep) =>              // 7: Fog type
                 {
                     Volume volume = prop.serializedObject.targetObject as Volume;
-                    if(volumeDataPairing[volume].hasVisualEnvironment)
+                    if (volumeDataPairing[volume].hasVisualEnvironment)
                     {
                         FogType fogType = volumeDataPairing[volume].fogType;
                         EditorGUI.BeginDisabledGroup(true);
