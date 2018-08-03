@@ -8,16 +8,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         private FilterRenderersSettings transparentFilterSettings { get; set; }
 
-        public RenderTransparentForwardPass(Material errorMaterial) : base(errorMaterial)
+        public RenderTransparentForwardPass()
         {
             transparentFilterSettings = new FilterRenderersSettings(true)
             {
                 renderQueueRange = RenderQueueRange.transparent,
             };
-
         }
 
-        public override void Execute(ref ScriptableRenderContext context,
+        public override void Execute(LightweightForwardRenderer renderer, ref ScriptableRenderContext context,
             ref CullResults cullResults,
             ref RenderingData renderingData)
         {
@@ -33,7 +32,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 context.DrawRenderers(cullResults.visibleRenderers, ref drawSettings, transparentFilterSettings);
 
                 // Render objects that did not match any shader pass with error shader
-                RenderObjectsWithError(ref context, ref cullResults, camera, transparentFilterSettings, SortFlags.None);
+                RenderObjectsWithError(renderer, ref context, ref cullResults, camera, transparentFilterSettings, SortFlags.None);
             }
 
             context.ExecuteCommandBuffer(cmd);
