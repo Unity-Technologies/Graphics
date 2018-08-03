@@ -62,6 +62,7 @@ void MATERIALFLAGSGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupI
             materialFeatureFlags |= MATERIAL_FEATURE_FLAGS_FROM_GBUFFER(posInput.positionSS);
         }
     }
+    materialFeatureFlags |= 1;
 
     InterlockedOr(ldsFeatureFlags, materialFeatureFlags);   //TODO: driver might optimize this or we might have to do a manual reduction
     GroupMemoryBarrierWithGroupSync();
