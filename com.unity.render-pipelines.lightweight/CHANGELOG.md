@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [3.2.0-preview]
 ### Changed
+- Receive Shadows property is now exposed in the material instead of in the renderer.
 - The UI for Lightweight asset has been updated with new categories. A more clean structure and foldouts has been added to keep things organized.
 
 ### Fixed
