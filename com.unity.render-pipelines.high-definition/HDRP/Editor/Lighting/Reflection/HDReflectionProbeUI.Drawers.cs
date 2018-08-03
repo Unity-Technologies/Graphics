@@ -94,8 +94,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static void Drawer_ModeSettingsRealtime(HDProbeUI s, SerializedHDProbe p, Editor owner)
         {
             SerializedHDReflectionProbe probe = (SerializedHDReflectionProbe)p;
-            EditorGUILayout.PropertyField(p.refreshMode, CoreEditorUtils.GetContent("Refresh Mode|Controls how this probe refreshes in the Player"));
-            EditorGUILayout.PropertyField(probe.timeSlicingMode, CoreEditorUtils.GetContent("Time Slicing|If enabled this probe will update over several frames, to help reduce the impact on the frame rate"));
+            //EditorGUILayout.PropertyField(p.refreshMode, CoreEditorUtils.GetContent("Refresh Mode|Controls how this probe refreshes in the Player"));
+            //EditorGUILayout.PropertyField(probe.timeSlicingMode, CoreEditorUtils.GetContent("Time Slicing|If enabled this probe will update over several frames, to help reduce the impact on the frame rate"));
         }
 
         #endregion

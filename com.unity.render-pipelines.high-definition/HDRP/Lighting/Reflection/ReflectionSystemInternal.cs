@@ -98,15 +98,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
 
             if (additional.mode == ReflectionProbeMode.Realtime)
             {
-                switch (additional.refreshMode)
-                {
-                    case ReflectionProbeRefreshMode.OnAwake:
-                        m_AdditionalDataReflectionProbe_RequestRealtimeRender.Add(additional);
-                        break;
-                    case ReflectionProbeRefreshMode.EveryFrame:
+                //switch (additional.refreshMode)
+                //{
+                //    case ReflectionProbeRefreshMode.OnAwake:
+                //        m_AdditionalDataReflectionProbe_RequestRealtimeRender.Add(additional);
+                //        break;
+                //    case ReflectionProbeRefreshMode.EveryFrame:
                         m_AdditionalDataReflectionProbe_RealtimeUpdate.Add(additional);
-                        break;
-                }
+                //        break;
+                //}
             }
         }
 
