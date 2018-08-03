@@ -214,8 +214,8 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
         // Skip density volumes (lights are sorted by category). TODO: improve data locality
         if (_LightVolumeData[l].lightCategory == LIGHTCATEGORY_DENSITY_VOLUME) { break; }
 
-        const float3 vMi = g_vBoundsBuffer[l];
-        const float3 vMa = g_vBoundsBuffer[l+g_iNrVisibLights];
+        const float3 vMi = g_vBoundsBuffer[l].xyz;
+        const float3 vMa = g_vBoundsBuffer[l+g_iNrVisibLights].xyz;
 
         if( all(vMa>vTileLL) && all(vMi<vTileUR))
         {
