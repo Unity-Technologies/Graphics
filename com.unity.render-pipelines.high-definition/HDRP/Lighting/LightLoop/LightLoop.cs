@@ -2401,7 +2401,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public bool outputSplitLighting;
         }
 
-        public void RenderDeferredDirectionalShadow(HDCamera hdCamera, RTHandleSystem.RTHandle deferredShadowRT, RenderTargetIdentifier depthTexture, CommandBuffer cmd)
+        public void RenderScreenSpaceShadows(HDCamera hdCamera, RTHandleSystem.RTHandle deferredShadowRT, RenderTargetIdentifier depthTexture, CommandBuffer cmd)
         {
             bool sunLightShadow = m_CurrentSunLight != null && m_CurrentSunLight.GetComponent<AdditionalShadowData>() != null && m_CurrentSunLightShadowIndex >= 0;
 
@@ -2412,14 +2412,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return;
             }
 
-            using (new ProfilingSample(cmd, "Deferred Directional Shadow", CustomSamplerId.TPDeferredDirectionalShadow.GetSampler()))
+            using (new ProfilingSample(cmd, "Deferred Directional Shadow", CustomSamplerId.TPScreenSpaceShadows.GetSampler()))
             {
                 Vector4         lightDirection = Vector4.zero;
                 Vector4         lightPosition = Vector4.zero;
                 int             kernel;
 
                 // Here we have three cases:
-                //  - if there is a sun light casting shadow, we need to use comput directional light shadows
+                //  - if there is a sun light casting shadow, we need to use compute directional light shadows
                 //    and contact shadows of the dominant light (or the directional if contact shadows are enabled on it)
                 //  - if there is no sun or it's not casting shadows, we don't need to compute it's costy directional
                 //    shadows so we only compute contact shadows for the dominant light
