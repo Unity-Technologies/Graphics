@@ -23,7 +23,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             var p = m_SerializedHDProbe as SerializedHDReflectionProbe;
             var o = this;
 
-            BakeRealtimeProbeIfPositionChanged(s, p, o);
+            if(EditMode.editMode == EditMode.SceneViewEditMode.ReflectionProbeOrigin)
+            {
+                Handle_OriginEditing(s, p, o);
+            }
         }
 
         static void Handle_OriginEditing(HDReflectionProbeUI s, SerializedHDReflectionProbe sp, Editor o)
