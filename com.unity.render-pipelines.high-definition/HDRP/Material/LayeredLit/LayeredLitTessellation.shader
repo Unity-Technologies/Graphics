@@ -3,7 +3,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
     Properties
     {
         // Versioning of material to help for upgrading
-        [HideInInspector] _HdrpVersion("_HdrpVersion", Float) = 1
+        [HideInInspector] _HdrpVersion("_HdrpVersion", Float) = 2
 
         // Following set of parameters represent the parameters node inside the MaterialGraph.
         // They are use to fill a SurfaceData. With a MaterialGraph this should not exist.
@@ -361,7 +361,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
         _Color("Color", Color) = (1,1,1,1)
         _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0.5
 
-        [ToggleUI] _SupportDBuffer("Support DBuffer", Float) = 1.0
+        [ToggleUI] _SupportDecals("Support Decals", Float) = 1.0
     }
 
     HLSLINCLUDE
@@ -430,7 +430,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
     #pragma shader_feature _HEIGHT_BASED_BLEND
     #pragma shader_feature _ _LAYEREDLIT_3_LAYERS _LAYEREDLIT_4_LAYERS
 
-    #pragma shader_feature _DISABLE_DBUFFER
+    #pragma shader_feature _DISABLE_DECALS
     #pragma shader_feature _ENABLE_GEOMETRIC_SPECULAR_AA
 
     // Keyword for transparent
@@ -448,6 +448,7 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
 
     // enable GPU instancing
     #pragma multi_compile_instancing
+    #pragma instancing_options renderinglayer
 
     //-------------------------------------------------------------------------------------
     // Define
@@ -567,6 +568,9 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
+            // Setup DECALS_OFF so the shader stripper can remove variants
+            #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
+            #pragma multi_compile _ LIGHT_LAYERS
 
         #ifdef _ALPHATEST_ON
             // When we have alpha test, we will force a depth prepass so we always bypass the clip instruction in the GBuffer
@@ -740,6 +744,9 @@ Shader "HDRenderPipeline/LayeredLitTessellation"
             #pragma multi_compile _ DIRLIGHTMAP_COMBINED
             #pragma multi_compile _ DYNAMICLIGHTMAP_ON
             #pragma multi_compile _ SHADOWS_SHADOWMASK
+            // Setup DECALS_OFF so the shader stripper can remove variants
+            #pragma multi_compile DECALS_OFF DECALS_3RT DECALS_4RT
+
             // #include "../../Lighting/Forward.hlsl"
             //#pragma multi_compile LIGHTLOOP_SINGLE_PASS LIGHTLOOP_TILE_PASS
             #define LIGHTLOOP_TILE_PASS

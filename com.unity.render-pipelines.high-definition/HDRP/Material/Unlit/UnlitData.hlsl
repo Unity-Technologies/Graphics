@@ -1,7 +1,6 @@
 //-------------------------------------------------------------------------------------
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
-#include "../MaterialUtilities.hlsl"
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
@@ -14,9 +13,8 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
 
     // Builtin Data
+    ZERO_INITIALIZE(BuiltinData, builtinData); // No call to InitBuiltinData as we don't have any lighting
     builtinData.opacity = alpha;
-
-    builtinData.bakeDiffuseLighting = float3(0.0, 0.0, 0.0);
 
 #ifdef _EMISSIVE_COLOR_MAP
     builtinData.emissiveColor = SAMPLE_TEXTURE2D(_EmissiveColorMap, sampler_EmissiveColorMap, TRANSFORM_TEX(input.texCoord0, _EmissiveColorMap)).rgb * _EmissiveColor;
@@ -24,24 +22,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     builtinData.emissiveColor = _EmissiveColor;
 #endif
 
-    builtinData.velocity = float2(0.0, 0.0);
-
-    builtinData.shadowMask0 = 0.0;
-    builtinData.shadowMask1 = 0.0;
-    builtinData.shadowMask2 = 0.0;
-    builtinData.shadowMask3 = 0.0;
-
 #if (SHADERPASS == SHADERPASS_DISTORTION) || defined(DEBUG_DISPLAY)
     float3 distortion = SAMPLE_TEXTURE2D(_DistortionVectorMap, sampler_DistortionVectorMap, input.texCoord0).rgb;
     distortion.rg = distortion.rg * _DistortionVectorScale.xx + _DistortionVectorBias.xx;
     builtinData.distortion = distortion.rg * _DistortionScale;
     builtinData.distortionBlur = clamp(distortion.b * _DistortionBlurScale, 0.0, 1.0) * (_DistortionBlurRemapMax - _DistortionBlurRemapMin) + _DistortionBlurRemapMin;
-#else
-    builtinData.distortion = float2(0.0, 0.0);
-    builtinData.distortionBlur = 0.0;
 #endif
-
-    builtinData.depthOffset = 0.0;
 
 #if defined(DEBUG_DISPLAY)
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)

@@ -97,18 +97,18 @@ void GetScreenSpaceAmbientOcclusionMultibounce(float2 positionSS, float NdotV, f
     aoFactor.directAmbientOcclusion = GTAOMultiBounce(directAmbientOcclusion, diffuseColor);
 }
 
-void ApplyAmbientOcclusionFactor(AmbientOcclusionFactor aoFactor, inout BakeLightingData bakeLightingData, inout AggregateLighting lighting)
+void ApplyAmbientOcclusionFactor(AmbientOcclusionFactor aoFactor, inout BuiltinData builtinData, inout AggregateLighting lighting)
 {
-    // Note: in case of Lit, bakeLightingData.bakeDiffuseLighting contain indirect diffuse + emissive,
-    // so Ambient occlusion is multiply by emissive which is wrong but not a big deal
-    bakeLightingData.bakeDiffuseLighting *= aoFactor.indirectAmbientOcclusion;
+    // Note: in case of deferred Lit, builtinData.bakeDiffuseLighting contain indirect diffuse * surfaceData.ambientOcclusion + emissive,
+    // so emissive is affected by SSAO and we get a double darkening from SSAO and from AO which is incorrect but we accept the tradeoff
+    builtinData.bakeDiffuseLighting *= aoFactor.indirectAmbientOcclusion;
     lighting.indirect.specularReflected *= aoFactor.indirectSpecularOcclusion;
     lighting.direct.diffuse *= aoFactor.directAmbientOcclusion;
 }
 
 #ifdef DEBUG_DISPLAY
 // mipmapColor is color use to store texture streaming information in XXXData.hlsl (look for DEBUGMIPMAPMODE_NONE)
-void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BakeLightingData bakeLightingData, AggregateLighting lighting, float3 mipmapColor,
+void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BuiltinData builtinData, AggregateLighting lighting, float3 mipmapColor,
                                     inout float3 diffuseLighting, inout float3 specularLighting)
 {
     if (_DebugLightingMode != 0)
@@ -118,7 +118,8 @@ void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BakeLightin
         switch (_DebugLightingMode)
         {
         case DEBUGLIGHTINGMODE_LUX_METER:
-            diffuseLighting = lighting.direct.diffuse + bakeLightingData.bakeDiffuseLighting;
+            // Note: We don't include emissive here (and in deferred it is correct as lux calculation of bakeDiffuseLighting don't consider emissive)
+            diffuseLighting = lighting.direct.diffuse + builtinData.bakeDiffuseLighting;
 
             //Compress lighting values for color picker if enabled
             if (_ColorPickerMode != COLORPICKERDEBUGMODE_NONE)
@@ -150,9 +151,9 @@ void PostEvaluateBSDFDebugDisplay(  AmbientOcclusionFactor aoFactor, BakeLightin
         case DEBUGLIGHTINGMODE_VISUALIZE_SHADOW_MASKS:
             #ifdef SHADOWS_SHADOWMASK
             diffuseLighting = float3(
-                bakeLightingData.bakeShadowMask.r / 2 + bakeLightingData.bakeShadowMask.g / 2,
-                bakeLightingData.bakeShadowMask.g / 2 + bakeLightingData.bakeShadowMask.b / 2,
-                bakeLightingData.bakeShadowMask.b / 2 + bakeLightingData.bakeShadowMask.a / 2
+                builtinData.shadowMask0 / 2 + builtinData.shadowMask1 / 2,
+                builtinData.shadowMask1 / 2 + builtinData.shadowMask2 / 2,
+                builtinData.shadowMask2 / 2 + builtinData.shadowMask3 / 2
             );
             specularLighting = float3(0, 0, 0);
             #endif

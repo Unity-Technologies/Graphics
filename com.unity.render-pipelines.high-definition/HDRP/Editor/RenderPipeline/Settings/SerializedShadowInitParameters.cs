@@ -1,6 +1,6 @@
 using UnityEngine.Experimental.Rendering;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     class SerializedShadowInitParameters
     {

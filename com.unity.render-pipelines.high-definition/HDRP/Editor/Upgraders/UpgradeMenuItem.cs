@@ -12,153 +12,67 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     public class UpgradeMenuItems
     {
-
-        //[MenuItem("Internal/HDRenderPipeline/Update/Update material for subsurface")]
-        static void UpdateMaterialForSubsurface()
+        // Remove a set of variables from the text file target by path
+        static void UpdateMaterialFile_RemoveLines(string path, string[] variableNames)
         {
-            try
+            string[] readText = File.ReadAllLines(path);
+            List<string> writeText = new List<string>();
+
+            foreach (string line in readText)
             {
-                var matIds = AssetDatabase.FindAssets("t:Material");
+                bool found = false;
 
-                for (int i = 0, length = matIds.Length; i < length; i++)
+                foreach (string str in variableNames)
                 {
-                    var path = AssetDatabase.GUIDToAssetPath(matIds[i]);
-                    var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
-
-                    EditorUtility.DisplayProgressBar(
-                        "Setup materials Keywords...",
-                        string.Format("{0} / {1} materials subsurface updated.", i, length),
-                        i / (float)(length - 1));
-
-                    bool VCSEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
-
-                    if (mat.shader.name == "HDRenderPipeline/LitTessellation" ||
-                        mat.shader.name == "HDRenderPipeline/Lit" ||
-                        mat.shader.name == "HDRenderPipeline/LayeredLit" ||
-                        mat.shader.name == "HDRenderPipeline/LayeredLitTessellation")
+                    if (line.Contains(str))
                     {
-                        float materialID = mat.GetInt("_MaterialID");
-                        if (materialID != 0.0)
-                            continue;
-
-                        if (mat.HasProperty("_SSSAndTransmissionType"))
-                        {
-                            CoreEditorUtils.CheckOutFile(VCSEnabled, mat);
-
-                            int materialSSSAndTransmissionID = mat.GetInt("_SSSAndTransmissionType");
-
-                            // Both;, SSS only, Transmission only
-                            if (materialSSSAndTransmissionID == 2.0)
-                            {
-                                mat.SetInt("_MaterialID", 5);
-                            }
-                            else
-                            {
-                                if (materialSSSAndTransmissionID == 0.0)
-                                    mat.SetFloat("_TransmissionEnable", 1.0f);
-                                else
-                                    mat.SetFloat("_TransmissionEnable", 0.0f);
-                            }
-
-                            EditorUtility.SetDirty(mat);
-                        }
+                        found = true;
                     }
                 }
+
+                if (!found)
+                    writeText.Add(line);
             }
-            finally
-            {
-                EditorUtility.ClearProgressBar();
-            }
+
+            File.WriteAllLines(path, writeText.ToArray());
+
+            return;
         }
 
-        //[MenuItem("Internal/HDRenderPipeline/Update/Update Height Maps parametrization")]
-        static void UpdateHeightMapParametrization()
+        // It is a pity but if we call mat.GetFloat("_hdrpVersion"), this return the default value
+        // if the _hdrpVersion was not written. So older material that haven't been updated can't be detected.
+        // so for now we must check for _hdrpVersion in the .txt
+        // maybe in a far future we can rely on just mat.GetFloat("_hdrpVersion")
+        static float UpdateMaterial_GetVersion(string path, Material mat)
         {
-            try
+            // Find the missing property in the file and update EmissiveColor
+            string[] readText = File.ReadAllLines(path);
+
+            foreach (string line in readText)
             {
-                var matIds = AssetDatabase.FindAssets("t:Material");
-
-                for (int i = 0, length = matIds.Length; i < length; i++)
+                if (line.Contains("_HdrpVersion:"))
                 {
-                    var path = AssetDatabase.GUIDToAssetPath(matIds[i]);
-                    var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
-
-                    EditorUtility.DisplayProgressBar(
-                        "Updating Materials...",
-                        string.Format("{0} / {1} materials updated.", i, length),
-                        i / (float)(length - 1));
-
-                    bool VCSEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
-
-                    if (mat.shader.name == "HDRenderPipeline/LitTessellation" ||
-                        mat.shader.name == "HDRenderPipeline/Lit")
-                    {
-                        // Need only test one of the new properties
-                        if (mat.HasProperty("_HeightPoMAmplitude"))
-                        {
-                            CoreEditorUtils.CheckOutFile(VCSEnabled, mat);
-
-                            float valueMax = mat.GetFloat("_HeightMax");
-                            float valueMin = mat.GetFloat("_HeightMin");
-                            float center = mat.GetFloat("_HeightCenter");
-                            float amplitude = valueMax - valueMin;
-                            mat.SetInt("_HeightMapParametrization", 1);
-                            mat.SetFloat("_HeightPoMAmplitude", amplitude);
-                            mat.SetFloat("_HeightTessAmplitude", amplitude);
-                            mat.SetFloat("_HeightOffset", 0.0f);
-                            mat.SetFloat("_HeightTessCenter", center);
-
-                            BaseLitGUI.DisplacementMode displaceMode = (BaseLitGUI.DisplacementMode)mat.GetInt("_DisplacementMode");
-                            if (displaceMode == BaseLitGUI.DisplacementMode.Pixel)
-                            {
-                                mat.SetFloat("_HeightCenter", 1.0f); // With PoM this is always 1.0f. We set it here to avoid having to open the UI to update it.
-                            }
-
-                            EditorUtility.SetDirty(mat);
-                        }
-                    }
-                    else if (mat.shader.name == "HDRenderPipeline/LayeredLit" ||
-                             mat.shader.name == "HDRenderPipeline/LayeredLitTessellation")
-                    {
-                        int numLayer = (int)mat.GetFloat("_LayerCount");
-
-                        if (mat.HasProperty("_HeightPoMAmplitude0"))
-                        {
-                            CoreEditorUtils.CheckOutFile(VCSEnabled, mat);
-
-                            for (int x = 0; x < numLayer; ++x)
-                            {
-                                float valueMax = mat.GetFloat("_HeightMax" + x);
-                                float valueMin = mat.GetFloat("_HeightMin" + x);
-                                float center = mat.GetFloat("_HeightCenter" + x);
-                                float amplitude = valueMax - valueMin;
-                                mat.SetInt("_HeightMapParametrization" + x, 1);
-                                mat.SetFloat("_HeightPoMAmplitude" + x, amplitude);
-                                mat.SetFloat("_HeightTessAmplitude" + x, amplitude);
-                                mat.SetFloat("_HeightOffset" + x, 0.0f);
-                                mat.SetFloat("_HeightTessCenter" + x, center);
-
-                                BaseLitGUI.DisplacementMode displaceMode = (BaseLitGUI.DisplacementMode)mat.GetInt("_DisplacementMode");
-                                if (displaceMode == BaseLitGUI.DisplacementMode.Pixel)
-                                {
-                                    mat.SetFloat("_HeightCenter" + x, 1.0f); // With PoM this is always 1.0f. We set it here to avoid having to open the UI to update it.
-                                }
-                            }
-
-                            EditorUtility.SetDirty(mat);
-                        }
-                    }
+                    int startPos = line.IndexOf(":") + 1;
+                    string sub = line.Substring(startPos);
+                    return float.Parse(sub);
                 }
             }
-            finally
-            {
-                EditorUtility.ClearProgressBar();
-            }
+
+            // When _HdrpVersion don't exist we MUST create it, otherwise next call to
+            // mat.SetFloat("_HdrpVersion", value) will just put the default value instead of the value we pass!
+            // a call to GetFloat("_HdrpVersion") solve this.
+#pragma warning disable 219 // Silent warning
+            float unused = mat.GetFloat("_HdrpVersion");
+#pragma warning restore 219
+
+            return 0.0f;
         }
+
+        // Version 1
 
         // Update EmissiveColor after we remove EmissiveIntensity from all shaders in 2018.2
         // Now EmissiveColor is HDR and it must be update to the value new EmissiveColor = old EmissiveColor * EmissiveIntensity
-        static bool UpdateMaterial_EmissiveColor(string path, Material mat)
+        static bool UpdateMaterial_EmissiveColor_1(string path, Material mat)
         {
             // Find the missing property in the file and update EmissiveColor
             string[] readText = File.ReadAllLines(path);
@@ -190,28 +104,67 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return false;
         }
 
-        static void UpdateMaterialFile_EmissiveColor(string path)
+        static void UpdateMaterialFile_EmissiveColor_1(string path)
         {
-            string[] readText = File.ReadAllLines(path);
+            string[] variablesNames = new string[1];
+            variablesNames[0] = "_EmissiveIntensity:";
+            UpdateMaterialFile_RemoveLines(path, variablesNames);
+        }
 
-            foreach (string line in readText)
+        // Version 2
+
+        // Update decal material after we added AO and metal selection. It was default to 0 and need to default to 4 now.
+        // Also we have rename _SupportDBuffer to _SupportDecals
+        static bool UpdateMaterial_Decals_2(string path, Material mat)
+        {
+            bool dirty = false;
+
+            if (mat.shader.name == "HDRenderPipeline/Decal")
             {
-                if (line.Contains("_EmissiveIntensity:"))
+                float maskBlendMode = mat.GetFloat("_MaskBlendMode");
+
+                if (maskBlendMode == 0.0f)
                 {
-                    // Remove emissive intensity line
-                    string[] writeText = readText.Where(l => l != line).ToArray();
-                    File.WriteAllLines(path, writeText);
-                    return;
+                    mat.SetFloat("_MaskBlendMode", (float)Decal.MaskBlendFlags.Smoothness);
+                    dirty = true;
+                }
+            }
+            else
+            {
+                // Find the missing property in the file and update EmissiveColor
+                string[] readText = File.ReadAllLines(path);
+
+                foreach (string line in readText)
+                {
+                    if (line.Contains("_SupportDBuffer:"))
+                    {
+                        int startPos = line.IndexOf(":") + 1;
+                        string sub = line.Substring(startPos);
+                        float enableDecal = float.Parse(sub);
+                        mat.SetFloat("_SupportDecals", enableDecal);
+
+                        // Decal need to also update keywords _DISABLE_DECALS
+                        HDEditorUtils.ResetMaterialKeywords(mat);
+
+                        dirty = true;
+                    }
                 }
             }
 
-            return;
+            return dirty;
+        }
+
+        static void UpdateMaterialFile_Decals_2(string path)
+        {
+            string[] variablesNames = new string[1];
+            variablesNames[0] = "_SupportDBuffer:";
+            UpdateMaterialFile_RemoveLines(path, variablesNames);
         }
 
         delegate bool UpdateMaterial(string path, Material mat);
         delegate void UpdateMaterialFile(string path);
 
-        static void UpdateMaterialToNewerVersion(string caption, UpdateMaterial updateMaterial, UpdateMaterialFile updateMaterialFile = null)
+        static void UpdateMaterialToNewerVersion(string caption, float scriptVersion, UpdateMaterial updateMaterial, UpdateMaterialFile updateMaterialFile = null)
         {
             bool VCSEnabled = (UnityEditor.VersionControl.Provider.enabled && UnityEditor.VersionControl.Provider.isActive);
             var matIds = AssetDatabase.FindAssets("t:Material");
@@ -234,14 +187,27 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         mat.shader.name == "HDRenderPipeline/LayeredLit" ||
                         mat.shader.name == "HDRenderPipeline/LayeredLitTessellation" ||
                         mat.shader.name == "HDRenderPipeline/StackLit" ||
-                        mat.shader.name == "HDRenderPipeline/Unlit"
+                        mat.shader.name == "HDRenderPipeline/Unlit" ||
+                        mat.shader.name == "HDRenderPipeline/Decal"
                          )
                     {
-                        // Need to be processed in order - All function here should be re-entrant (i.e after upgrade it can be recall)
-                        bool dirty = updateMaterial(path, mat);
-
-                        if (dirty)
+                        // We don't handle embed material as we can't rewrite fbx files
+                        if (Path.GetExtension(path).ToLower() == ".fbx")
                         {
+                            continue;
+                        }
+
+                        // Get current version
+                        float materialVersion = UpdateMaterial_GetVersion(path, mat);
+
+                        if (materialVersion < scriptVersion)
+                        {
+                            updateMaterial(path, mat);
+
+                            // Update version number to script number (so next script can upgrade correctly)
+                            mat.SetFloat("_HdrpVersion", scriptVersion);
+                            
+
                             // Checkout the file and tag it as dirty
                             CoreEditorUtils.CheckOutFile(VCSEnabled, mat);
                             EditorUtility.SetDirty(mat);
@@ -283,24 +249,21 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        [MenuItem("Edit/Render Pipeline/Single step upgrade script/Upgrade all Materials EmissionColor", priority = CoreUtils.editMenuPriority3)]
-        static public void UpdateMaterialToNewerVersionEmissiveColor()
-        {
-            UpdateMaterialToNewerVersion("(EmissiveColor)", UpdateMaterial_EmissiveColor, UpdateMaterialFile_EmissiveColor);
-        }
-
-        [MenuItem("Edit/Render Pipeline/Upgrade all Materials to latest version", priority = CoreUtils.editMenuPriority3)]
+        [MenuItem("Edit/Render Pipeline/Upgrade all Materials to newer version", priority = CoreUtils.editMenuPriority3)]
         static public void UpdateMaterialToNewerVersion()
         {
-            // Add here all the material upgrade function supported in this version
-            // Caution: All the functions here MUST be re-entrant (call multiple time) without failing.
+            // TODO: We need to handle material that are embed inside scene! + How to handle embed material in fbx?
 
-            float currentVersion = HDRPVersion.GetCurrentHDRPProjectVersion();
-            if (currentVersion < 1.0)
-            {
-                // Appear in hdrp version 1.0
-                UpdateMaterialToNewerVersion("(EmissiveColor)", UpdateMaterial_EmissiveColor, UpdateMaterialFile_EmissiveColor);
-            }
+            // Add here all the material upgrade functions
+            // Note: This is a slow path as we go through all files for each script + update the version number after each script execution,
+            // but it is the safest way to do it currently for incremental upgrade
+            // Caution: When calling SaveAsset, Unity will update the material with latest addition at the same time, so for example
+            // unity can add a supportDecal when executing script for version 1 whereas they only appear in version 2 because it is now part
+            // of the shader. Most of the time this have no consequence, but we never know.
+            UpdateMaterialToNewerVersion("(EmissiveColor_1)", 1.0f, UpdateMaterial_EmissiveColor_1, UpdateMaterialFile_EmissiveColor_1);
+            UpdateMaterialToNewerVersion("(Decals_2)", 2.0f, UpdateMaterial_Decals_2, UpdateMaterialFile_Decals_2);
+
+            // Caution: Version of latest script and default version in all HDRP shader must match 
         }
     }
 }

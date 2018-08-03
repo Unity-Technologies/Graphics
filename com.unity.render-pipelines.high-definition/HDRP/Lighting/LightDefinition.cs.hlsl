@@ -51,6 +51,7 @@
 // PackingRules = Exact
 struct DirectionalLightData
 {
+    uint lightLayers;
     float3 positionRWS;
     float3 color;
     int cookieIndex;
@@ -71,6 +72,7 @@ struct DirectionalLightData
 // PackingRules = Exact
 struct LightData
 {
+    uint lightLayers;
     float3 positionRWS;
     float3 color;
     float rangeAttenuationScale;
