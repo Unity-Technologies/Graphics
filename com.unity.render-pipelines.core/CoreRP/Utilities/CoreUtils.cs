@@ -491,7 +491,14 @@ namespace UnityEngine.Experimental.Rendering
 
         public static void DisplayUnsupportedAPIMessage()
         {
-            string msg = "Platform " + SystemInfo.operatingSystem + " with device " + SystemInfo.graphicsDeviceType.ToString() + " is not supported, no rendering will occur";
+            // If we are in the editor they are many possible targets that does not matches the current OS so we use the active build target instead
+#if UNITY_EDITOR
+            string currentPlatform = UnityEditor.EditorUserBuildSettings.activeBuildTarget.ToString();
+#else
+            string currentPlatform = SystemInfo.operatingSystem;
+#endif
+
+            string msg = "Platform " + currentPlatform + " with device " + SystemInfo.graphicsDeviceType.ToString() + " is not supported, no rendering will occur";
             DisplayUnsupportedMessage(msg);
         }
 
