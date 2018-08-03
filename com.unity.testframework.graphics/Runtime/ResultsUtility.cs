@@ -1,12 +1,10 @@
-﻿#if UNITY_EDITOR
+#if UNITY_EDITOR
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Xml;
 using NUnit.Framework;
-using NUnit.Framework.Interfaces;
-using UnityEditor.Graphs;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.TestTools.Graphics;
@@ -88,12 +86,8 @@ namespace UnityEditor.TestTools.Graphics
             if (!(test.Properties.ContainsKey("Image") ||
                   test.Properties.ContainsKey("DiffImage")))
                 return;
-
-            var colorSpace = UseGraphicsTestCasesAttribute.Provider.ColorSpace;
-            var platform = UseGraphicsTestCasesAttribute.Provider.Platform;
-            var graphicsDevice = UseGraphicsTestCasesAttribute.Provider.GraphicsDevice;
-
-            var dirName = Path.Combine(ActualImagesRoot, string.Format("{0}/{1}/{2}", colorSpace, platform, graphicsDevice));
+            
+            var dirName = Path.Combine(ActualImagesRoot, string.Format("{0}/{1}/{2}", UseGraphicsTestCasesAttribute.ColorSpace, UseGraphicsTestCasesAttribute.Platform, UseGraphicsTestCasesAttribute.GraphicsDevice));
             if (!Directory.Exists(dirName))
                 Directory.CreateDirectory(dirName);
 

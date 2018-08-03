@@ -20,6 +20,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             base.OnEnable();
 
+            // Procedural sky orientation depends on the sun direction
+            m_CommonUIElementsMask = 0xFFFFFFFF & ~(uint)(SkySettingsUIElement.Rotation);
+
             var o = new PropertyFetcher<ProceduralSky>(serializedObject);
 
             m_SunSize = Unpack(o.Find(x => x.sunSize));
@@ -41,7 +44,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUILayout.Space();
 
-            base.CommonSkySettingsGUI(false);
+            base.CommonSkySettingsGUI();
         }
     }
 }

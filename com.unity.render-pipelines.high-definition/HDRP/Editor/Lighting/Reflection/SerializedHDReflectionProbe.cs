@@ -1,9 +1,9 @@
 using UnityEngine;
-using UnityEngine.Experimental.Rendering;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    public class SerializedHDReflectionProbe
+    internal class SerializedHDReflectionProbe
     {
         internal ReflectionProbe target;
         internal HDAdditionalReflectionData targetData;
@@ -27,36 +27,20 @@ namespace UnityEditor.Experimental.Rendering
         internal SerializedProperty nearClip;
         internal SerializedProperty farClip;
         internal SerializedProperty boxProjection;
-
-        internal SerializedProperty influenceShape;
-        internal SerializedProperty influenceSphereRadius;
-        internal SerializedProperty useSeparateProjectionVolume;
-        internal SerializedProperty boxReprojectionVolumeSize;
-        internal SerializedProperty boxReprojectionVolumeCenter;
-        internal SerializedProperty sphereReprojectionVolumeRadius;
-        internal SerializedProperty blendDistancePositive;
-        internal SerializedProperty blendDistanceNegative;
-        internal SerializedProperty blendNormalDistancePositive;
-        internal SerializedProperty blendNormalDistanceNegative;
-        internal SerializedProperty boxSideFadePositive;
-        internal SerializedProperty boxSideFadeNegative;
         internal SerializedProperty weight;
         internal SerializedProperty multiplier;
 
-        internal SerializedProperty editorAdvancedModeBlendDistancePositive;
-        internal SerializedProperty editorAdvancedModeBlendDistanceNegative;
-        internal SerializedProperty editorSimplifiedModeBlendDistance;
-        internal SerializedProperty editorAdvancedModeBlendNormalDistancePositive;
-        internal SerializedProperty editorAdvancedModeBlendNormalDistanceNegative;
-        internal SerializedProperty editorSimplifiedModeBlendNormalDistance;
-        internal SerializedProperty editorAdvancedModeEnabled;
-
         internal SerializedProperty proxyVolumeComponent;
+
+        internal SerializedInfluenceVolume influenceVolume;
 
         public SerializedHDReflectionProbe(SerializedObject so, SerializedObject addso)
         {
             this.so = so;
             this.addso = addso;
+
+            proxyVolumeComponent = addso.Find((HDAdditionalReflectionData d) => d.proxyVolume);
+            influenceVolume = new SerializedInfluenceVolume(addso.Find((HDAdditionalReflectionData d) => d.influenceVolume));
 
             target = (ReflectionProbe)so.targetObject;
             targetData = target.GetComponent<HDAdditionalReflectionData>();
@@ -78,68 +62,15 @@ namespace UnityEditor.Experimental.Rendering
             boxProjection = so.FindProperty("m_BoxProjection");
             legacyBlendDistance = so.FindProperty("m_BlendDistance");
 
-            influenceShape = addso.Find((HDAdditionalReflectionData d) => d.influenceShape);
-            influenceSphereRadius = addso.Find((HDAdditionalReflectionData d) => d.influenceSphereRadius);
-            useSeparateProjectionVolume = addso.Find((HDAdditionalReflectionData d) => d.useSeparateProjectionVolume);
-            boxReprojectionVolumeSize = addso.Find((HDAdditionalReflectionData d) => d.boxReprojectionVolumeSize);
-            boxReprojectionVolumeCenter = addso.Find((HDAdditionalReflectionData d) => d.boxReprojectionVolumeCenter);
-            sphereReprojectionVolumeRadius = addso.Find((HDAdditionalReflectionData d) => d.sphereReprojectionVolumeRadius);
             weight = addso.Find((HDAdditionalReflectionData d) => d.weight);
             multiplier = addso.Find((HDAdditionalReflectionData d) => d.multiplier);
-            blendDistancePositive = addso.Find((HDAdditionalReflectionData d) => d.blendDistancePositive);
-            blendDistanceNegative = addso.Find((HDAdditionalReflectionData d) => d.blendDistanceNegative);
-            blendNormalDistancePositive = addso.Find((HDAdditionalReflectionData d) => d.blendNormalDistancePositive);
-            blendNormalDistanceNegative = addso.Find((HDAdditionalReflectionData d) => d.blendNormalDistanceNegative);
-            boxSideFadePositive = addso.Find((HDAdditionalReflectionData d) => d.boxSideFadePositive);
-            boxSideFadeNegative = addso.Find((HDAdditionalReflectionData d) => d.boxSideFadeNegative);
-
-            editorAdvancedModeBlendDistancePositive = addso.FindProperty("editorAdvancedModeBlendDistancePositive");
-            editorAdvancedModeBlendDistanceNegative = addso.FindProperty("editorAdvancedModeBlendDistanceNegative");
-            editorSimplifiedModeBlendDistance = addso.FindProperty("editorSimplifiedModeBlendDistance");
-            editorAdvancedModeBlendNormalDistancePositive = addso.FindProperty("editorAdvancedModeBlendNormalDistancePositive");
-            editorAdvancedModeBlendNormalDistanceNegative = addso.FindProperty("editorAdvancedModeBlendNormalDistanceNegative");
-            editorSimplifiedModeBlendNormalDistance = addso.FindProperty("editorSimplifiedModeBlendNormalDistance");
-            editorAdvancedModeEnabled = addso.FindProperty("editorAdvancedModeEnabled");
-            //handle data migration from before editor value were saved
-            if(editorAdvancedModeBlendDistancePositive.vector3Value == Vector3.zero
-                && editorAdvancedModeBlendDistanceNegative.vector3Value == Vector3.zero
-                && editorSimplifiedModeBlendDistance.floatValue == 0f
-                && editorAdvancedModeBlendNormalDistancePositive.vector3Value == Vector3.zero
-                && editorAdvancedModeBlendNormalDistanceNegative.vector3Value == Vector3.zero
-                && editorSimplifiedModeBlendNormalDistance.floatValue == 0f
-                && (blendDistancePositive.vector3Value != Vector3.zero
-                    || blendDistanceNegative.vector3Value != Vector3.zero
-                    || blendNormalDistancePositive.vector3Value != Vector3.zero
-                    || blendNormalDistanceNegative.vector3Value != Vector3.zero))
-            {
-                Vector3 positive = blendDistancePositive.vector3Value;
-                Vector3 negative = blendDistanceNegative.vector3Value;
-                //exact advanced
-                editorAdvancedModeBlendDistancePositive.vector3Value = positive;
-                editorAdvancedModeBlendDistanceNegative.vector3Value = negative;
-                //aproximated simplified
-                editorSimplifiedModeBlendDistance.floatValue = Mathf.Max(positive.x, positive.y, positive.z, negative.x, negative.y, negative.z);
-
-                positive = blendNormalDistancePositive.vector3Value;
-                negative = blendNormalDistanceNegative.vector3Value;
-                //exact advanced
-                editorAdvancedModeBlendNormalDistancePositive.vector3Value = positive;
-                editorAdvancedModeBlendNormalDistanceNegative.vector3Value = negative;
-                //aproximated simplified
-                editorSimplifiedModeBlendNormalDistance.floatValue = Mathf.Max(positive.x, positive.y, positive.z, negative.x, negative.y, negative.z);
-
-                //display old data
-                editorAdvancedModeEnabled.boolValue = true;
-                Apply();
-            }
-
-            proxyVolumeComponent = addso.Find((HDAdditionalReflectionData d) => d.proxyVolumeComponent);
         }
 
         public void Update()
         {
             so.Update();
             addso.Update();
+            //InfluenceVolume does not have Update. Add it here if it have in the futur.
 
             // Set the legacy blend distance to 0 so the legacy culling system use the probe extent
             legacyBlendDistance.floatValue = 0;

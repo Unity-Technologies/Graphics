@@ -4,12 +4,13 @@ using System.Linq;
 using UnityEditor.Graphing;
 using UnityEngine;              // Vector3,4
 using UnityEditor.ShaderGraph;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    public static class HDRPShaderStructs
+    internal static class HDRPShaderStructs
     {
-        struct AttributesMesh
+        internal struct AttributesMesh
         {
             [Semantic("POSITION")]              Vector3 positionOS;
             [Semantic("NORMAL")][Optional]      Vector3 normalOS;
@@ -21,7 +22,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             [Semantic("COLOR")][Optional]       Vector4 color;
         };
 
-        struct VaryingsMeshToPS
+        [InterpolatorPack]
+        internal struct VaryingsMeshToPS
         {
             [Semantic("SV_Position")]           Vector4 positionCS;
             [Optional]                          Vector3 positionRWS;
@@ -60,7 +62,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             };
         };
 
-        struct VaryingsMeshToDS
+        [InterpolatorPack]
+        internal struct VaryingsMeshToDS
         {
             Vector3 positionRWS;
             Vector3 normalWS;
@@ -82,7 +85,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             };
         };
 
-        struct FragInputs
+        internal struct FragInputs
         {
             public static Dependency[] dependencies = new Dependency[]
             {
@@ -99,7 +102,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         };
 
         // this describes the input to the pixel shader graph eval
-        public struct SurfaceDescriptionInputs
+        internal struct SurfaceDescriptionInputs
         {
             [Optional] Vector3 ObjectSpaceNormal;
             [Optional] Vector3 ViewSpaceNormal;
@@ -171,7 +174,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         };
 
         // this describes the input to the pixel shader graph eval
-        public struct VertexDescriptionInputs
+        internal struct VertexDescriptionInputs
         {
             [Optional] Vector3 ObjectSpaceNormal;
             [Optional] Vector3 ViewSpaceNormal;
@@ -446,31 +449,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
         }
-
-        public static void Generate(
-            ShaderGenerator codeResult,
-            HashSet<string> activeFields)
-        {
-            // propagate requirements using dependencies
-            {
-                ShaderSpliceUtil.ApplyDependencies(
-                    activeFields,
-                    new List<Dependency[]>()
-                {
-                    FragInputs.dependencies,
-                    VaryingsMeshToPS.standardDependencies,
-                    SurfaceDescriptionInputs.dependencies,
-                    VertexDescriptionInputs.dependencies
-                });
-            }
-
-            // generate code based on requirements
-            ShaderSpliceUtil.BuildType(typeof(AttributesMesh), activeFields, codeResult);
-            ShaderSpliceUtil.BuildType(typeof(VaryingsMeshToPS), activeFields, codeResult);
-            ShaderSpliceUtil.BuildType(typeof(VaryingsMeshToDS), activeFields, codeResult);
-            ShaderSpliceUtil.BuildPackedType(typeof(VaryingsMeshToPS), activeFields, codeResult);
-            ShaderSpliceUtil.BuildPackedType(typeof(VaryingsMeshToDS), activeFields, codeResult);
-        }
     };
 
     public struct Pass
@@ -498,7 +476,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         public static bool GenerateShaderPass(AbstractMaterialNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions, HashSet<string> activeFields, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
         {
-            var templateLocation = Path.Combine(Path.Combine(Path.Combine(HDEditorUtils.GetHDRenderPipelinePath(), "Editor"), "ShaderGraph"), pass.TemplateName);
+            string templatePath = Path.Combine(Path.Combine(HDUtils.GetHDRenderPipelinePath(), "Editor"), "ShaderGraph");
+            string templateLocation = Path.Combine(templatePath, pass.TemplateName);
             if (!File.Exists(templateLocation))
             {
                 // TODO: produce error here
@@ -506,9 +485,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             bool debugOutput = false;
-
-            if (sourceAssetDependencyPaths != null)
-                sourceAssetDependencyPaths.Add(templateLocation);
 
             // grab all of the active nodes (for pixel and vertex graphs)
             var vertexNodes = ListPool<INode>.Get();
@@ -607,11 +583,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             HDRPShaderStructs.AddRequiredFields(pass.RequiredFields, activeFields);
 
-            // apply dependencies to the active fields, and build interpolators (TODO: split this function)
-            var packedInterpolatorCode = new ShaderGenerator();
-            HDRPShaderStructs.Generate(
-                packedInterpolatorCode,
-                activeFields);
+            // propagate active field requirements using dependencies
+            ShaderSpliceUtil.ApplyDependencies(
+                activeFields,
+                new List<Dependency[]>()
+                {
+                    HDRPShaderStructs.FragInputs.dependencies,
+                    HDRPShaderStructs.VaryingsMeshToPS.standardDependencies,
+                    HDRPShaderStructs.SurfaceDescriptionInputs.dependencies,
+                    HDRPShaderStructs.VertexDescriptionInputs.dependencies
+                });
 
             // debug output all active fields
             var interpolatorDefines = new ShaderGenerator();
@@ -695,29 +676,29 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             // build the hash table of all named fragments      TODO: could make this Dictionary<string, ShaderGenerator / string>  ?
             Dictionary<string, string> namedFragments = new Dictionary<string, string>();
-            namedFragments.Add("${Defines}", defines.GetShaderString(2, false));
-            namedFragments.Add("${Graph}", graph.GetShaderString(2, false));
-            namedFragments.Add("${LightMode}", pass.LightMode);
-            namedFragments.Add("${PassName}", pass.Name);
-            namedFragments.Add("${Includes}", shaderPassIncludes.GetShaderString(2, false));
-            namedFragments.Add("${InterpolatorPacking}", packedInterpolatorCode.GetShaderString(2, false));
-            namedFragments.Add("${Blending}", blendCode.ToString());
-            namedFragments.Add("${Culling}", cullCode.ToString());
-            namedFragments.Add("${ZTest}", zTestCode.ToString());
-            namedFragments.Add("${ZWrite}", zWriteCode.ToString());
-            namedFragments.Add("${Stencil}", stencilCode.ToString());
-            namedFragments.Add("${ColorMask}", colorMaskCode.ToString());
-            namedFragments.Add("${LOD}", materialOptions.lod.ToString());
+            namedFragments.Add("Defines", defines.GetShaderString(2, false));
+            namedFragments.Add("Graph", graph.GetShaderString(2, false));
+            namedFragments.Add("LightMode", pass.LightMode);
+            namedFragments.Add("PassName", pass.Name);
+            namedFragments.Add("Includes", shaderPassIncludes.GetShaderString(2, false));
+            namedFragments.Add("Blending", blendCode.ToString());
+            namedFragments.Add("Culling", cullCode.ToString());
+            namedFragments.Add("ZTest", zTestCode.ToString());
+            namedFragments.Add("ZWrite", zWriteCode.ToString());
+            namedFragments.Add("Stencil", stencilCode.ToString());
+            namedFragments.Add("ColorMask", colorMaskCode.ToString());
+            namedFragments.Add("LOD", materialOptions.lod.ToString());
 
-            // process the template to generate the shader code for this pass   TODO: could make this a shared function
-            string[] templateLines = File.ReadAllLines(templateLocation);
-            System.Text.StringBuilder builder = new System.Text.StringBuilder();
-            foreach (string line in templateLines)
-            {
-                ShaderSpliceUtil.PreprocessShaderCode(line, activeFields, namedFragments, builder, debugOutput);
-            }
+            // this is the format string for building the 'C# qualified assembly type names' for $buildType() commands
+            string buildTypeAssemblyNameFormat = "UnityEditor.Experimental.Rendering.HDPipeline.HDRPShaderStructs+{0}, " + typeof(HDSubShaderUtilities).Assembly.FullName.ToString();
 
-            result.AddShaderChunk(builder.ToString(), false);
+            // process the template to generate the shader code for this pass
+            ShaderSpliceUtil.TemplatePreprocessor templatePreprocessor =
+                new ShaderSpliceUtil.TemplatePreprocessor(activeFields, namedFragments, debugOutput, templatePath, sourceAssetDependencyPaths, buildTypeAssemblyNameFormat);
+
+            templatePreprocessor.ProcessTemplateFile(templateLocation);
+
+            result.AddShaderChunk(templatePreprocessor.GetShaderCode().ToString(), false);
 
             return true;
         }
