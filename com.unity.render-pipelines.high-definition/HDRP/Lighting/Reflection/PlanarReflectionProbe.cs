@@ -40,8 +40,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Range(0, 180)]
         float m_FieldOfViewOverride = 90;
 
-        RenderTexture m_RealtimeTexture;
-
         public bool overrideFieldOfView { get { return m_OverrideFieldOfView; } }
         public float fieldOfViewOverride { get { return m_FieldOfViewOverride; } }
 
@@ -80,7 +78,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
         public Texture customTexture { get { return m_CustomTexture; } set { m_CustomTexture = value; } }
         public Texture bakedTexture { get { return m_BakedTexture; } set { m_BakedTexture = value; }}
-        public RenderTexture realtimeTexture { get { return m_RealtimeTexture; } internal set { m_RealtimeTexture = value; } }
         public float captureNearPlane { get { return m_CaptureNearPlane; } }
         public float captureFarPlane { get { return m_CaptureFarPlane; } }
         public CapturePositionMode capturePositionMode { get { return m_CapturePositionMode; } }

@@ -70,14 +70,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 serialized.Apply();
             }
 
-            GUI.enabled = false;
-            EditorGUILayout.LabelField(resolutionContent, CoreEditorUtils.GetContent(((int)hdrp.GetRenderPipelineSettings().lightLoopSettings.reflectionCubemapSize).ToString()));
-            EditorGUILayout.LabelField(shadowDistanceContent, EditorStyles.label);
-            EditorGUILayout.LabelField(cullingMaskContent, EditorStyles.label);
-            EditorGUILayout.LabelField(useOcclusionCullingContent, EditorStyles.label);
-            EditorGUILayout.LabelField(nearClipCullingContent, EditorStyles.label);
-            EditorGUILayout.LabelField(farClipCullingContent, EditorStyles.label);
-            GUI.enabled = true;
+            //GUI.enabled = false;
+            //EditorGUILayout.LabelField(resolutionContent, CoreEditorUtils.GetContent(((int)hdrp.GetRenderPipelineSettings().lightLoopSettings.reflectionCubemapSize).ToString()));
+            //EditorGUILayout.LabelField(shadowDistanceContent, EditorStyles.label);
+            //EditorGUILayout.LabelField(cullingMaskContent, EditorStyles.label);
+            //EditorGUILayout.LabelField(useOcclusionCullingContent, EditorStyles.label);
+            //EditorGUILayout.LabelField(nearClipCullingContent, EditorStyles.label);
+            //EditorGUILayout.LabelField(farClipCullingContent, EditorStyles.label);
+            //GUI.enabled = true;
         }
 
         internal PlanarReflectionProbeUI()

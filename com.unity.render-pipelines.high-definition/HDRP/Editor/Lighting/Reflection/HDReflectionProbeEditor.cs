@@ -134,7 +134,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 for (var i = 0; i < sp.serializedLegacyObject.targetObjects.Length; i++)
                 {
                     var p = (ReflectionProbe)sp.serializedLegacyObject.targetObjects[i];
-                    p.RenderProbe();
+                    var check = p.RenderProbe();
+                    Debug.Log(check);
                 }
             }
         }
