@@ -9,18 +9,18 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     partial class InfluenceVolumeUI
     {
         //[TODO: planar / non planar will be redone in next PR]
-        public static readonly CED.IDrawer SectionFoldoutShapePlanar;
-        public static readonly CED.IDrawer SectionFoldoutShape;
-        public static readonly CED.IDrawer SectionShapeBoxPlanar = CED.Action((s, p, o) => Drawer_SectionShapeBox( s, p, o, false, false, false));
-        public static readonly CED.IDrawer SectionShapeBox = CED.Action((s, p, o) => Drawer_SectionShapeBox(s, p, o, true, true, true));
-        public static readonly CED.IDrawer SectionShapeSpherePlanar = CED.Action((s, p, o) => Drawer_SectionShapeSphere(s, p, o, false, false));
-        public static readonly CED.IDrawer SectionShapeSphere = CED.Action((s, p, o) => Drawer_SectionShapeSphere(s, p, o, true, true));
+        internal static readonly CED.IDrawer SectionFoldoutShapePlanar;
+        internal static readonly CED.IDrawer SectionFoldoutShape;
+        static readonly CED.IDrawer SectionShapeBoxPlanar = CED.Action((s, p, o) => Drawer_SectionShapeBox( s, p, o, false, false, false));
+        static readonly CED.IDrawer SectionShapeBox = CED.Action((s, p, o) => Drawer_SectionShapeBox(s, p, o, true, true, true));
+        static readonly CED.IDrawer SectionShapeSpherePlanar = CED.Action((s, p, o) => Drawer_SectionShapeSphere(s, p, o, false, false));
+        static readonly CED.IDrawer SectionShapeSphere = CED.Action((s, p, o) => Drawer_SectionShapeSphere(s, p, o, true, true));
 
         static InfluenceVolumeUI()
         {
             SectionFoldoutShapePlanar = CED.Group(
                     CED.FoldoutGroup(
-                        "Influence Volume",
+                        influenceVolumeHeader,
                         (s, d, o) => s.isSectionExpandedShape,
                         FoldoutOption.Indent,
                         CED.Action(Drawer_InfluenceAdvancedSwitch),
@@ -36,7 +36,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     );
             SectionFoldoutShape = CED.Group(
                     CED.FoldoutGroup(
-                        "Influence Volume",
+                        influenceVolumeHeader,
                         (s, d, o) => s.isSectionExpandedShape,
                         FoldoutOption.Indent,
                         CED.Action(Drawer_InfluenceAdvancedSwitch),
@@ -54,7 +54,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static void Drawer_FieldShapeType(InfluenceVolumeUI s, SerializedInfluenceVolume d, Editor o)
         {
-            EditorGUILayout.PropertyField(d.shape, _.GetContent("Shape Type"));
+            EditorGUILayout.PropertyField(d.shape, shapeContent);
         }
 
         static void Drawer_InfluenceAdvancedSwitch(InfluenceVolumeUI s, SerializedInfluenceVolume d, Editor owner)
@@ -63,9 +63,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 GUILayout.FlexibleSpace();
 
+                if (d.shape.intValue == (int)InfluenceShape.Sphere)
+                {
+                    GUI.enabled = false;
+                }
+
                 bool advanced = d.editorAdvancedModeEnabled.boolValue;
-                advanced = !GUILayout.Toggle(!advanced, CoreEditorUtils.GetContent("Normal|Normal parameters mode (only change for box shape)."), EditorStyles.miniButtonLeft, GUILayout.Width(60f), GUILayout.ExpandWidth(false));
-                advanced = GUILayout.Toggle(advanced, CoreEditorUtils.GetContent("Advanced|Advanced parameters mode (only change for box shape)."), EditorStyles.miniButtonRight, GUILayout.Width(60f), GUILayout.ExpandWidth(false));
+                advanced = !GUILayout.Toggle(!advanced, normalModeContent, EditorStyles.miniButtonLeft, GUILayout.Width(60f), GUILayout.ExpandWidth(false));
+                advanced = GUILayout.Toggle(advanced, advancedModeContent, EditorStyles.miniButtonRight, GUILayout.Width(60f), GUILayout.ExpandWidth(false));
                 s.boxInfluenceHandle.allHandleControledByOne = s.boxInfluenceNormalHandle.allHandleControledByOne = !advanced;
                 if (d.editorAdvancedModeEnabled.boolValue ^ advanced)
                 {
@@ -84,6 +89,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     }
                     d.Apply();
                 }
+
+                if (d.shape.intValue == (int)InfluenceShape.Sphere)
+                {
+                    GUI.enabled = true;
+                }
             }
         }
 
@@ -95,7 +105,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUILayout.BeginHorizontal();
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(d.boxSize, _.GetContent("Box Size"));
+            EditorGUILayout.PropertyField(d.boxSize, boxSizeContent);
             if (EditorGUI.EndChangeCheck())
             {
                 Vector3 blendPositive = d.boxBlendDistancePositive.vector3Value;
@@ -129,9 +139,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
                 else
                 {
-                    d.editorSimplifiedModeBlendDistance.floatValue = Mathf.Min(blendPositive.x, blendPositive.y, blendPositive.z, blendNegative.x, blendNegative.y, blendNegative.z);
+                    d.editorSimplifiedModeBlendDistance.floatValue = Mathf.Max(blendPositive.x, blendPositive.y, blendPositive.z, blendNegative.x, blendNegative.y, blendNegative.z);
                     d.boxBlendDistancePositive.vector3Value = d.boxBlendDistanceNegative.vector3Value = Vector3.one * d.editorSimplifiedModeBlendDistance.floatValue;
-                    d.editorSimplifiedModeBlendNormalDistance.floatValue = Mathf.Min(blendNormalPositive.x, blendNormalPositive.y, blendNormalPositive.z, blendNormalNegative.x, blendNormalNegative.y, blendNormalNegative.z);
+                    d.editorSimplifiedModeBlendNormalDistance.floatValue = Mathf.Max(blendNormalPositive.x, blendNormalPositive.y, blendNormalPositive.z, blendNormalNegative.x, blendNormalNegative.y, blendNormalNegative.z);
                     d.boxBlendNormalDistancePositive.vector3Value = d.boxBlendNormalDistanceNegative.vector3Value = Vector3.one * d.editorSimplifiedModeBlendNormalDistance.floatValue;
                 }
             }
@@ -141,7 +151,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (drawOffset)
             {
                 EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.PropertyField(d.offset, _.GetContent("Offset"));
+                EditorGUILayout.PropertyField(d.offset, offsetContent);
                 HDProbeUI.Drawer_ToolBarButton(HDProbeUI.ToolBar.CapturePosition, o, GUILayout.Width(28f), GUILayout.MinHeight(22f));
                 EditorGUILayout.EndHorizontal();
             }
@@ -149,12 +159,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
             
             EditorGUILayout.BeginHorizontal();
-            Drawer_AdvancedBlendDistance(
-                d,
-                false,
-                maxFadeDistance,
-                CoreEditorUtils.GetContent("Blend Distance|Area around the probe where it is blended with other probes. Only used in deferred probes.")
-                );
+            Drawer_AdvancedBlendDistance(d, false, maxFadeDistance, blendDistanceContent);
             HDProbeUI.Drawer_ToolBarButton(HDProbeUI.ToolBar.Blend, o, GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight((advanced ? 2 : 1) * (EditorGUIUtility.singleLineHeight + 3)));
             EditorGUILayout.EndHorizontal();
             
@@ -163,12 +168,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (drawNormal)
             {
                 EditorGUILayout.BeginHorizontal();
-                Drawer_AdvancedBlendDistance(
-                    d,
-                    true,
-                    maxFadeDistance,
-                    CoreEditorUtils.GetContent("Blend Normal Distance|Area around the probe where the normals influence the probe. Only used in deferred probes.")
-                    );
+                Drawer_AdvancedBlendDistance(d, true, maxFadeDistance, blendNormalDistanceContent);
                 HDProbeUI.Drawer_ToolBarButton(HDProbeUI.ToolBar.NormalBlend, o, GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight((advanced ? 2 : 1) * (EditorGUIUtility.singleLineHeight + 3)));
                 EditorGUILayout.EndHorizontal();
                 
@@ -178,9 +178,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (advanced && drawFace)
             {
                 EditorGUILayout.BeginHorizontal();
-                CoreEditorUtils.DrawVector6(
-                    CoreEditorUtils.GetContent("Face fade|Fade faces of the cubemap."),
-                    d.boxSideFadePositive, d.boxSideFadeNegative, Vector3.zero, Vector3.one, HDReflectionProbeEditor.k_handlesColor);
+                CoreEditorUtils.DrawVector6(faceFadeContent, d.boxSideFadePositive, d.boxSideFadeNegative, Vector3.zero, Vector3.one, HDReflectionProbeEditor.k_handlesColor);
                 GUILayout.Space(28f + 9f); //add right margin for alignment
                 EditorGUILayout.EndHorizontal();
                 
@@ -221,6 +219,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 distance = EditorGUILayout.FloatField(content, distance);
                 if (EditorGUI.EndChangeCheck())
                 {
+                    distance = Mathf.Clamp(distance, 0f, Mathf.Max(maxBlendDistance.x, maxBlendDistance.y, maxBlendDistance.z));
                     Vector3 decal = Vector3.one * distance;
                     bdp.x = Mathf.Clamp(decal.x, 0f, maxBlendDistance.x);
                     bdp.y = Mathf.Clamp(decal.y, 0f, maxBlendDistance.y);
@@ -241,14 +240,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
 
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.PropertyField(d.sphereRadius, _.GetContent("Radius"));
+            EditorGUILayout.PropertyField(d.sphereRadius, radiusContent);
             HDProbeUI.Drawer_ToolBarButton(HDProbeUI.ToolBar.InfluenceShape, o, GUILayout.Width(28f), GUILayout.MinHeight(22f));
             EditorGUILayout.EndHorizontal();
 
             if(drawOffset)
             {
                 EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.PropertyField(d.offset, _.GetContent("Offset"));
+                EditorGUILayout.PropertyField(d.offset, offsetContent);
                 HDReflectionProbeUI.Drawer_ToolBarButton(HDProbeUI.ToolBar.CapturePosition, o, GUILayout.Width(28f), GUILayout.MinHeight(22f));
                 EditorGUILayout.EndHorizontal();
             }
@@ -258,7 +257,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUILayout.BeginHorizontal();
             EditorGUI.BeginChangeCheck();
-            EditorGUILayout.PropertyField(d.sphereBlendDistance, _.GetContent("Blend Distance|Area around the probe where it is blended with other probes. Only used in deferred probes."));
+            EditorGUILayout.PropertyField(d.sphereBlendDistance, blendDistanceContent);
             if (EditorGUI.EndChangeCheck())
             {
                 d.sphereBlendDistance.floatValue = Mathf.Clamp(d.sphereBlendDistance.floatValue, 0, maxBlendDistance);
@@ -270,7 +269,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 EditorGUILayout.BeginHorizontal();
                 EditorGUI.BeginChangeCheck();
-                EditorGUILayout.PropertyField(d.sphereBlendNormalDistance, _.GetContent("Blend Distance|Area around the probe where it is blended with other probes. Only used in deferred probes."));
+                EditorGUILayout.PropertyField(d.sphereBlendNormalDistance, blendNormalDistanceContent);
                 if (EditorGUI.EndChangeCheck())
                 {
                     d.sphereBlendNormalDistance.floatValue = Mathf.Clamp(d.sphereBlendNormalDistance.floatValue, 0, maxBlendDistance);
