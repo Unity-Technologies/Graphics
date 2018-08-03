@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added a luminance meter in the debug menu
 - Added support of Light, reflection probe, emissive material, volume settings related to lighting to Lighting explorer
+- Added support for 16bit shadows
 
 ### Fixed
 - Fix issue with package upgrading (HDRP resources asset is now versionned to worarkound package manager limitation)
