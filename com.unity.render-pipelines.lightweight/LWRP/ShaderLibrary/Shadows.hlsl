@@ -190,7 +190,7 @@ float4 ComputeShadowCoord(float4 clipPos)
 
 half MainLightRealtimeShadowAttenuation(float4 shadowCoord)
 {
-#if !defined(_SHADOWS_ENABLED)
+#if !defined(_SHADOWS_ENABLED) || defined(_RECEIVE_SHADOWS_OFF)
     return 1.0h;
 #endif
 
@@ -205,7 +205,7 @@ half MainLightRealtimeShadowAttenuation(float4 shadowCoord)
 
 half LocalLightRealtimeShadowAttenuation(int lightIndex, float3 positionWS)
 {
-#if !defined(_LOCAL_SHADOWS_ENABLED)
+#if !defined(_LOCAL_SHADOWS_ENABLED) || defined(_RECEIVE_SHADOWS_OFF)
     return 1.0h;
 #else
     float4 shadowCoord = mul(_LocalWorldToShadowAtlas[lightIndex], float4(positionWS, 1.0));
