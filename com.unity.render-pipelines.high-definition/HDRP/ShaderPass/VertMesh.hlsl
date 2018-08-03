@@ -95,14 +95,15 @@ VaryingsToDS InterpolateWithBaryCoordsToDS(VaryingsToDS input0, VaryingsToDS inp
 // TODO: Here we will also have all the vertex deformation (GPU skinning, vertex animation, morph target...) or we will need to generate a compute shaders instead (better! but require work to deal with unpacking like fp16)
 VaryingsMeshType VertMesh(AttributesMesh input)
 {
-#if defined(HAVE_MESH_MODIFICATION)
-    input = ApplyMeshModification(input, _Time);
-#endif
-
     VaryingsMeshType output;
 
     UNITY_SETUP_INSTANCE_ID(input);
     UNITY_TRANSFER_INSTANCE_ID(input, output);
+
+    // Terrain need instancing id to be set up before ApplyMeshModification
+#if defined(HAVE_MESH_MODIFICATION)
+    input = ApplyMeshModification(input, _Time);
+#endif
 
     // This return the camera relative position (if enable)
     float3 positionRWS = TransformObjectToWorld(input.positionOS);

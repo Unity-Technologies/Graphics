@@ -37,12 +37,6 @@ VertexDescriptionInputs AttributesMeshToVertexDescriptionInputs(AttributesMesh i
 
 AttributesMesh ApplyMeshModification(AttributesMesh input, float4 time)
 {
-    // Shader graph don't support time parameter for now
-    return ApplyMeshModification(input);
-}
-
-AttributesMesh ApplyMeshModification(AttributesMesh input)
-{
     // build graph inputs
     VertexDescriptionInputs vertexDescriptionInputs = AttributesMeshToVertexDescriptionInputs(input);
 
