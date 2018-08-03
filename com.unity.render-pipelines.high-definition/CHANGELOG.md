@@ -15,10 +15,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix decals getting into a state where they could not be removed or disabled.
 - Fix lux meter mode - The lux meter isn't affected by the sky anymore
 - Fix area light size reset when multi-selected
-- Fixed filter pass number in HDUtils.BlitQuad
-- Fixed Lux meter mode that was applying SSS
-- Fixed planar reflections that were not working with tile/cluster (olbique matrix)
-- Fixed debug menu at runtime not working after nested prefab PR come to trunk
+- Fix filter pass number in HDUtils.BlitQuad
+- Fix Lux meter mode that was applying SSS
+- Fix planar reflections that were not working with tile/cluster (olbique matrix)
+- Fix debug menu at runtime not working after nested prefab PR come to trunk
+- Fix scrolling issue in density volume
+
+### Changed
+- Shader code refactor: Split MaterialUtilities file in two parts BuiltinUtilities (independent of FragInputs) and MaterialUtilities (Dependent of FragInputs)
 
 ## [3.1.0-preview]
 
@@ -53,7 +57,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Replace the sampler used for density volumes for correct wrap mode handling
 
 ### Changed
-- Movde Render Pipeline Debug "Windows from Windows->General-> Render Pipeline debug windows" to "Windows from Windows->Analysis-> Render Pipeline debug windows"
+- Move Render Pipeline Debug "Windows from Windows->General-> Render Pipeline debug windows" to "Windows from Windows->Analysis-> Render Pipeline debug windows"
 - Update detail map formula for smoothness and albedo, goal it to bright and dark perceptually and scale factor is use to control gradient speed
 - Refactor the Upgrade material system. Now a material can be update from older version at any time. Call Edit/Render Pipeline/Upgrade all Materials to newer version
 - Change name EnableDBuffer to EnableDecals at several place (shader, hdrp asset...), this require a call to Edit/Render Pipeline/Upgrade all Materials to newer version to have up to date material.
