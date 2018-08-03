@@ -98,7 +98,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        private void TriggerVolumeAtlasRefresh()
+        public void TriggerVolumeAtlasRefresh()
         {
             atlasNeedsRefresh = true;
         }
