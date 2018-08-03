@@ -1,3 +1,5 @@
+#include "HDRP/Material/BuiltinUtilities.hlsl"
+
 void GetBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, SurfaceData surfaceData, float alpha, float3 bentNormalWS, float depthOffset, out BuiltinData builtinData)
 {
     // For back lighting we use the oposite vertex normal 
