@@ -169,6 +169,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 base.mode = value;
                 reflectionProbe.mode = value; //ensure compatibility till we capture without the legacy component
+                if(value == ReflectionProbeMode.Realtime)
+                {
+                    refreshMode = ReflectionProbeRefreshMode.EveryFrame;
+                }
             }
         }
 

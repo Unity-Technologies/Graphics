@@ -10,7 +10,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     partial class InfluenceVolumeUI : BaseUI<SerializedInfluenceVolume>
     {
         const int k_AnimBoolFields = 2;
-
         static readonly int k_ShapeCount = Enum.GetValues(typeof(InfluenceShape)).Length;
 
         public Gizmo6FacesBox boxBaseHandle;
