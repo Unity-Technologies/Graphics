@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.TestTools.Graphics
@@ -15,20 +15,6 @@ namespace UnityEngine.TestTools.Graphics
         /// </summary>
         /// <returns></returns>
         IEnumerable<GraphicsTestCase> GetTestCases();
-
-        /// <summary>
-        /// The color space that the test cases are for.
-        /// </summary>
-        ColorSpace ColorSpace { get; }
-
-        /// <summary>
-        /// The platform that the test cases are for.
-        /// </summary>
-        RuntimePlatform Platform { get; }
-
-        /// <summary>
-        /// The graphics device type that the test cases are for.
-        /// </summary>
-        GraphicsDeviceType GraphicsDevice { get; }
+        
     }
 }

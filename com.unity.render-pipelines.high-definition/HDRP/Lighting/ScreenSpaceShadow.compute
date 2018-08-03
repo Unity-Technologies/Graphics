@@ -149,7 +149,7 @@ void DEFERRED_DIRECTIONAL(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId 
     contactShadow = ComputeContactShadow(posInput, direction);
 #endif
 
-    _DeferredShadowTextureUAV[pixelCoord] = float4(shadow, contactShadow, 1.0, 1.0);
+    _DeferredShadowTextureUAV[pixelCoord] = float4(shadow, contactShadow, 1.0, 1.0); // Note: RT is RG16 format
 }
 
 [numthreads(DEFERRED_SHADOW_TILE_SIZE, DEFERRED_SHADOW_TILE_SIZE, 1)]
@@ -170,5 +170,5 @@ void DeferredContactShadow(uint2 groupThreadId : SV_GroupThreadID, uint2 groupId
 
     contactShadow = ComputeContactShadow(posInput, direction);
 
-    _DeferredShadowTextureUAV[pixelCoord] = float4(1.0, contactShadow, 1.0, 1.0);
+    _DeferredShadowTextureUAV[pixelCoord] = float4(1.0, contactShadow, 1.0, 1.0); // Note: RT is RG16 format
 }

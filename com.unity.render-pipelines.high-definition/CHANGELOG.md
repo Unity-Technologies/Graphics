@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 - Added a luminance meter in the debug menu
+- Added support of Light, reflection probe, emissive material, volume settings related to lighting to Lighting explorer
+- Added support for 16bit shadows
 
 ### Fixed
 - Fix issue with package upgrading (HDRP resources asset is now versionned to worarkound package manager limitation)
@@ -15,7 +17,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix decals getting into a state where they could not be removed or disabled.
 - Fix lux meter mode - The lux meter isn't affected by the sky anymore
 - Fix area light size reset when multi-selected
-- Fixed filter pass number in HDUtils.BlitQuad
+- Fix filter pass number in HDUtils.BlitQuad
+- Fix Lux meter mode that was applying SSS
+- Fix planar reflections that were not working with tile/cluster (olbique matrix)
+- Fix debug menu at runtime not working after nested prefab PR come to trunk
+- Fix scrolling issue in density volume
+
+### Changed
+- Shader code refactor: Split MaterialUtilities file in two parts BuiltinUtilities (independent of FragInputs) and MaterialUtilities (Dependent of FragInputs)
+- Change screen space shadow rendertarget format from ARGB32 to RG16
 
 ## [3.1.0-preview]
 
@@ -50,7 +60,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Replace the sampler used for density volumes for correct wrap mode handling
 
 ### Changed
-- Movde Render Pipeline Debug "Windows from Windows->General-> Render Pipeline debug windows" to "Windows from Windows->Analysis-> Render Pipeline debug windows"
+- Move Render Pipeline Debug "Windows from Windows->General-> Render Pipeline debug windows" to "Windows from Windows->Analysis-> Render Pipeline debug windows"
 - Update detail map formula for smoothness and albedo, goal it to bright and dark perceptually and scale factor is use to control gradient speed
 - Refactor the Upgrade material system. Now a material can be update from older version at any time. Call Edit/Render Pipeline/Upgrade all Materials to newer version
 - Change name EnableDBuffer to EnableDecals at several place (shader, hdrp asset...), this require a call to Edit/Render Pipeline/Upgrade all Materials to newer version to have up to date material.
