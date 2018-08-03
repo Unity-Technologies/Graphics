@@ -69,8 +69,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public int planarReflectionProbeCacheSize = 2;
         public PlanarReflectionResolution planarReflectionTextureSize = PlanarReflectionResolution.PlanarReflectionResolution1024;
-        public int reflectionProbeCacheSize = 128;
-        public CubeReflectionResolution reflectionCubemapSize = CubeReflectionResolution.CubeReflectionResolution128;
+        public int reflectionProbeCacheSize = 64;
+        public CubeReflectionResolution reflectionCubemapSize = CubeReflectionResolution.CubeReflectionResolution256;
         public bool reflectionCacheCompressed = false;
         public bool planarReflectionCacheCompressed = false;
         public SkyResolution skyReflectionSize = SkyResolution.SkyResolution256;
