@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added a luminance meter in the debug menu
 - Added support of Light, reflection probe, emissive material, volume settings related to lighting to Lighting explorer
+- Added support for 16bit shadows
 
 ### Fixed
 - Fix issue with package upgrading (HDRP resources asset is now versionned to worarkound package manager limitation)
@@ -23,9 +24,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix planar reflections that were not working with tile/cluster (olbique matrix)
 - Fix debug menu at runtime not working after nested prefab PR come to trunk
 - Fix scrolling issue in density volume
+- Fix an issue where the screen where darken when rendering camera preview
+- Fix display correct target platform when showing message to inform user that a platform is not supported
+- Remove workaround for metal and vulkan in normal buffer encoding/decoding
 
 ### Changed
 - Shader code refactor: Split MaterialUtilities file in two parts BuiltinUtilities (independent of FragInputs) and MaterialUtilities (Dependent of FragInputs)
+- Change screen space shadow rendertarget format from ARGB32 to RG16
 
 ## [3.1.0-preview]
 

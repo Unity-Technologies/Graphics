@@ -49,7 +49,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             atlasInit.baseInit.width           = (uint)shadowInit.shadowAtlasWidth;
             atlasInit.baseInit.height          = (uint)shadowInit.shadowAtlasHeight;
             atlasInit.baseInit.slices          = 1;
-            atlasInit.baseInit.shadowmapBits   = 32;
+            atlasInit.baseInit.shadowmapBits   = shadowInit.shadowMap16Bit ? 16u : 32u;
             atlasInit.baseInit.shadowmapFormat = RenderTextureFormat.Shadowmap;
             atlasInit.baseInit.samplerState    = SamplerState.Default();
             atlasInit.baseInit.comparisonSamplerState = ComparisonSamplerState.Default();
@@ -125,9 +125,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ShadowMgr = new ShadowManager(shadowSettings, ref scInit, ref budgets, m_Shadowmaps);
             // set global overrides - these need to match the override specified in LightLoop/Shadow.hlsl
             bool useGlobalOverrides = true;
-            m_ShadowMgr.SetGlobalShadowOverride(GPUShadowType.Point        , ShadowAlgorithm.PCF, ShadowVariant.V2, ShadowPrecision.High, useGlobalOverrides);
-            m_ShadowMgr.SetGlobalShadowOverride(GPUShadowType.Spot         , ShadowAlgorithm.PCF, ShadowVariant.V2, ShadowPrecision.High, useGlobalOverrides);
-            m_ShadowMgr.SetGlobalShadowOverride(GPUShadowType.Directional  , ShadowAlgorithm.PCF, ShadowVariant.V3, ShadowPrecision.High, useGlobalOverrides);
+            m_ShadowMgr.SetGlobalShadowOverride(GPUShadowType.Point        , ShadowAlgorithm.PCF, ShadowVariant.V2, shadowInit.shadowMap16Bit ? ShadowPrecision.Low : ShadowPrecision.High, useGlobalOverrides);
+            m_ShadowMgr.SetGlobalShadowOverride(GPUShadowType.Spot         , ShadowAlgorithm.PCF, ShadowVariant.V2, shadowInit.shadowMap16Bit ? ShadowPrecision.Low : ShadowPrecision.High, useGlobalOverrides);
+            m_ShadowMgr.SetGlobalShadowOverride(GPUShadowType.Directional  , ShadowAlgorithm.PCF, ShadowVariant.V3, shadowInit.shadowMap16Bit ? ShadowPrecision.Low : ShadowPrecision.High, useGlobalOverrides);
 
             m_ShadowMgr.SetShadowLightTypeDelegate(HDShadowLightType);
 
@@ -2401,7 +2401,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public bool outputSplitLighting;
         }
 
-        public void RenderDeferredDirectionalShadow(HDCamera hdCamera, RTHandleSystem.RTHandle deferredShadowRT, RenderTargetIdentifier depthTexture, CommandBuffer cmd)
+        public void RenderScreenSpaceShadows(HDCamera hdCamera, RTHandleSystem.RTHandle deferredShadowRT, RenderTargetIdentifier depthTexture, CommandBuffer cmd)
         {
             bool sunLightShadow = m_CurrentSunLight != null && m_CurrentSunLight.GetComponent<AdditionalShadowData>() != null && m_CurrentSunLightShadowIndex >= 0;
 
@@ -2412,14 +2412,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return;
             }
 
-            using (new ProfilingSample(cmd, "Deferred Directional Shadow", CustomSamplerId.TPDeferredDirectionalShadow.GetSampler()))
+            using (new ProfilingSample(cmd, "Deferred Directional Shadow", CustomSamplerId.TPScreenSpaceShadows.GetSampler()))
             {
                 Vector4         lightDirection = Vector4.zero;
                 Vector4         lightPosition = Vector4.zero;
                 int             kernel;
 
                 // Here we have three cases:
-                //  - if there is a sun light casting shadow, we need to use comput directional light shadows
+                //  - if there is a sun light casting shadow, we need to use compute directional light shadows
                 //    and contact shadows of the dominant light (or the directional if contact shadows are enabled on it)
                 //  - if there is no sun or it's not casting shadows, we don't need to compute it's costy directional
                 //    shadows so we only compute contact shadows for the dominant light
