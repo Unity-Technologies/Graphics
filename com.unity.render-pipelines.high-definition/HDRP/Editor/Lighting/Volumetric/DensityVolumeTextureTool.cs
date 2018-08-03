@@ -4,9 +4,10 @@ using UnityEditor;
 using UnityEngine.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 
-namespace UnityEditor.Experimental.Rendering {
+namespace UnityEditor.Experimental.Rendering
+{
 
-    public class VolumeTextureTool : EditorWindow 
+    public class DensityVolumeTextureTool : EditorWindow 
     {
         private Texture2D sourceTexture = null;
         private string assetPath;
@@ -14,15 +15,15 @@ namespace UnityEditor.Experimental.Rendering {
 
         private int tileSize = 0;
 
-        private static GUIContent windowTitle = new GUIContent("Create Volume Texture");
+        private static GUIContent windowTitle = new GUIContent("Create Density Volume Texture");
         private static GUIContent textureLabel = new GUIContent("Slice Texture");
         private static GUIContent tileSizeLabel = new GUIContent("Texture Slice Size", "Dimensions of the created 3D Texture in pixels.  Width, Height and Depth are all the same size");
         private static GUIContent createLabel = new GUIContent("Create 3D Texture");
 
-        [MenuItem("Tools/HDRP Volumetric System/Create Volume Texture")]
+        [MenuItem("Window/Rendering/Density Volume Texture Tool")]
         static void Init()
         {
-            VolumeTextureTool window = (VolumeTextureTool)EditorWindow.GetWindow(typeof(VolumeTextureTool));
+            DensityVolumeTextureTool window = (DensityVolumeTextureTool)EditorWindow.GetWindow(typeof(DensityVolumeTextureTool));
             window.titleContent = windowTitle;
             window.Show();
         }
