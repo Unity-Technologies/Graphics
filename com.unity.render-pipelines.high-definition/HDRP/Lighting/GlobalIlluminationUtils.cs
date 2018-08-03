@@ -122,7 +122,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         break;
 
                     // Note: We don't support this type in HDRP, but ini just in case
-                    case LightType.Area:
+                    case LightType.Rectangle:
                         ld.orientation = l.transform.rotation;
                         ld.position = l.transform.position;
                         ld.range = l.range;
