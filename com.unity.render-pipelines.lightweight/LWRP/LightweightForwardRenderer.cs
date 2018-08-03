@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
 
@@ -31,10 +30,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             get
             {
-                return SystemInfo.supportsComputeShaders &&
-                       SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore &&
-                       !Application.isMobilePlatform &&
-                       Application.platform != RuntimePlatform.WebGLPlayer;
+                // TODO: Graphics Emulation are breaking StructuredBuffers disabling it for now until 
+                // we have a fix for it
+                return false;
+                // return SystemInfo.supportsComputeShaders &&
+                //        SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore &&
+                //        !Application.isMobilePlatform &&
+                //        Application.platform != RuntimePlatform.WebGLPlayer;
             }
         }
 
@@ -108,12 +110,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         public void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref RenderingData renderingData)
         {
             for (int i = 0; i < m_ActiveRenderPassQueue.Count; ++i)
-                m_ActiveRenderPassQueue[i].Execute(ref context, ref cullResults, ref renderingData);
+                m_ActiveRenderPassQueue[i].Execute(this, ref context, ref cullResults, ref renderingData);
 
             DisposePasses(ref context);
         }
 
-        
         public Material GetMaterial(MaterialHandles handle)
         {
             int handleID = (int)handle;

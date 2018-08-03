@@ -17,7 +17,7 @@ namespace UnityEditor.TestTools.Graphics
     /// player.
     /// Will also build Lightmaps for specially labelled scenes.
     /// </summary>
-    public class SetupGraphicsTestCases : IPrebuildSetup
+    public class SetupGraphicsTestCases
     {
         static string bakeLabel = "TestRunnerBake";
 
@@ -26,7 +26,7 @@ namespace UnityEditor.TestTools.Graphics
             get
             {
                 var playmodeLauncher =
-                    typeof(UnityEditor.TestTools.RequirePlatformSupportAttribute).Assembly.GetType(
+                    typeof(RequirePlatformSupportAttribute).Assembly.GetType(
                         "UnityEditor.TestTools.TestRunner.PlaymodeLauncher");
                 var isRunningField = playmodeLauncher.GetField("IsRunning");
 
@@ -35,6 +35,11 @@ namespace UnityEditor.TestTools.Graphics
         }
 
         public void Setup()
+        {
+            Setup(EditorGraphicsTestCaseProvider.ReferenceImagesRoot);
+        }
+
+        public void Setup(string rootImageTemplatePath)
         {
             ColorSpace colorSpace;
             BuildTarget buildPlatform;
@@ -61,7 +66,7 @@ namespace UnityEditor.TestTools.Graphics
 
             foreach (var api in graphicsDevices)
             {
-                var images = EditorGraphicsTestCaseProvider.CollectReferenceImagePathsFor(colorSpace, runtimePlatform, api);
+                var images = EditorGraphicsTestCaseProvider.CollectReferenceImagePathsFor(rootImageTemplatePath, colorSpace, runtimePlatform, api);
 
                 Utils.SetupReferenceImageImportSettings(images.Values);
 
