@@ -110,33 +110,5 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             return editMode == EditMode.SceneViewEditMode.ReflectionProbeBox || editMode == EditMode.SceneViewEditMode.Collider || editMode == EditMode.SceneViewEditMode.GridBox ||
                 editMode == EditMode.SceneViewEditMode.ReflectionProbeOrigin;
         }
-
-        void BakeRealtimeProbeIfPositionChanged(HDReflectionProbeUI s, SerializedHDReflectionProbe sp, Editor o)
-        {
-            if (Application.isPlaying
-                || ((ReflectionProbeMode)sp.mode.intValue) != ReflectionProbeMode.Realtime)
-            {
-                m_PositionHash = 0;
-                return;
-            }
-
-            var hash = 0;
-            for (var i = 0; i < sp.serializedLegacyObject.targetObjects.Length; i++)
-            {
-                var p = (ReflectionProbe)sp.serializedLegacyObject.targetObjects[i];
-                var tr = p.GetComponent<Transform>();
-                hash ^= tr.position.GetHashCode();
-            }
-
-            if (hash != m_PositionHash)
-            {
-                m_PositionHash = hash;
-                for (var i = 0; i < sp.serializedLegacyObject.targetObjects.Length; i++)
-                {
-                    var p = (ReflectionProbe)sp.serializedLegacyObject.targetObjects[i];
-                    p.RenderProbe();
-                }
-            }
-        }
     }
 }

@@ -27,6 +27,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         ReflectionProbeMode m_Mode = ReflectionProbeMode.Baked;
         [SerializeField]
         ReflectionProbeRefreshMode m_RefreshMode = ReflectionProbeRefreshMode.OnAwake;
+        
+        RenderTexture m_RealtimeTexture = null;
 
         /// <summary>ProxyVolume currently used by this probe.</summary>
         public ReflectionProxyVolumeComponent proxyVolume { get { return m_ProxyVolume; } }
@@ -42,6 +44,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         /// <summary>Weight for blending amongst probes (non PBR parameter).</summary>
         public float weight { get { return m_Weight; } set { m_Weight = value; } }
+
+        /// <summary>Get the realtime acquired Render Texture</summary>
+        public RenderTexture realtimeTexture { get { return m_RealtimeTexture; } internal set { m_RealtimeTexture = value; } }
 
         /// <summary>The capture mode.</summary>
         public virtual ReflectionProbeMode mode

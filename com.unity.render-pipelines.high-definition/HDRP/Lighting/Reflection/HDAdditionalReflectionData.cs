@@ -108,6 +108,21 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 MigrateToUseInfluenceVolume();
             if (needMigrateToMergeEditors)
                 MigrateToMergeEditors();
+            
+            ReflectionSystem.RegisterProbe(this);
+        }
+
+        void OnDisable()
+        {
+            ReflectionSystem.UnregisterProbe(this);
+        }
+
+        void OnValidate()
+        {
+            ReflectionSystem.UnregisterProbe(this);
+
+            if (isActiveAndEnabled)
+                ReflectionSystem.RegisterProbe(this);
         }
 
         void MigrateToHDProbeChild()
