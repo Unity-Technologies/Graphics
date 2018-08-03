@@ -3,14 +3,17 @@
 
 #define MAX_VISIBLE_LIGHTS 16
 
+// TODO: Graphics Emulation are breaking structured buffers for now disabling it until we have a fix
+#define USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA 0
+
 // Must match check of use compute buffer in LightweightPipeline.cs
 // GLES check here because of WebGL 1.0 support
 // TODO: check performance of using StructuredBuffer on mobile as well
-#if defined(SHADER_API_MOBILE) || defined(SHADER_API_GLES) || defined(SHADER_API_GLCORE)
-#define USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA 0
-#else
-#define USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA 1
-#endif
+// #if defined(SHADER_API_MOBILE) || defined(SHADER_API_GLES) || defined(SHADER_API_GLCORE)
+// #define USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA 0
+// #else
+// #define USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA 1
+// #endif
 
 struct InputData
 {
