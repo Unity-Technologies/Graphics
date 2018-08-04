@@ -1,3 +1,4 @@
+using System;
 using UnityEngine.Rendering;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
@@ -5,7 +6,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public partial class Decal
     {
         // Main structure that store the user data (i.e user input of master node in material graph)
-        [GenerateHLSL(PackingRules.Exact, false, true, 200)]
+        [GenerateHLSL(PackingRules.Exact, false)]
         public struct DecalSurfaceData
         {
             [SurfaceDataAttributes("Base Color", false, true)]
@@ -14,15 +15,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector4 normalWS;
             [SurfaceDataAttributes("Mask", true)]
             public Vector4 mask;
+            [SurfaceDataAttributes("AOSBlend", true)]
+            public Vector2 MAOSBlend;
             [SurfaceDataAttributes("HTileMask")]
             public uint HTileMask;
         };
 
         [GenerateHLSL(PackingRules.Exact)]
         public enum DBufferMaterial
-        {
-            // Note: This count doesn't include the velocity buffer. On shader and csharp side the velocity buffer will be added by the framework
-            Count = 3
+        {           
+            Count = 4
         };
 
         [GenerateHLSL(PackingRules.Exact)]
@@ -40,14 +42,24 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // should this be combined into common class shared with Lit.cs???
         static public int GetMaterialDBufferCount() { return (int)DBufferMaterial.Count; }
 
-        static RenderTextureFormat[] m_RTFormat = { RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB32 };
-        static bool[] m_sRGBFlags = { true, false, false };
+        static RenderTextureFormat[] m_RTFormat = { RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB32, RenderTextureFormat.RG16 };
+        static bool[] m_sRGBFlags = { true, false, false, false };
 
         static public void GetMaterialDBufferDescription(out RenderTextureFormat[] RTFormat, out bool[] sRGBFlags)
         {
             RTFormat = m_RTFormat;
             sRGBFlags = m_sRGBFlags;
         }
+
+        // relies on the order shader passes are declared in decal.shader
+        [Flags]
+        public enum MaskBlendFlags
+        {
+            Metal = 1 << 0,
+            AO = 1 << 1,
+            Smoothness = 1 << 2,
+        }
+
     }
 
     // normal to world only uses 3x3 for actual matrix so some data is packed in the unused space
@@ -67,5 +79,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4 normalScaleBias;
         public Vector4 maskScaleBias;
         public Vector4 baseColor;
+        public Vector3 blendParams; // x normal blend source, y mask blend source, z mask blend mode
     };
 }

@@ -5,9 +5,6 @@
 #ifndef UNITY_SHADER_VARIABLES_MATRIX_DEFS_HDCAMERA_INCLUDED
 #define UNITY_SHADER_VARIABLES_MATRIX_DEFS_HDCAMERA_INCLUDED
 
-#define UNITY_MATRIX_M     ApplyCameraTranslationToMatrix(unity_ObjectToWorld)
-#define UNITY_MATRIX_I_M   ApplyCameraTranslationToInverseMatrix(unity_WorldToObject)
-
 #if defined(USING_STEREO_MATRICES)
 
 #define UNITY_MATRIX_V     _ViewMatrixStereo[unity_StereoEyeIndex]

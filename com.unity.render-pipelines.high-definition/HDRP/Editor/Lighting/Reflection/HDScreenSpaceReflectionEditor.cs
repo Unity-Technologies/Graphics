@@ -21,14 +21,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         public override void OnInspectorGUI()
         {
             OnCommonInspectorGUI();
-            var projectionModel = (Lit.ProjectionModel)m_DeferredProjectionModel.value.enumValueIndex;
+            var projectionModel = (ScreenSpaceLighting.ProjectionModel)m_DeferredProjectionModel.value.enumValueIndex;
             switch (projectionModel)
             {
-                case Lit.ProjectionModel.HiZ:
+                case ScreenSpaceLighting.ProjectionModel.HiZ:
                     EditorGUILayout.Separator();
                     OnHiZInspectorGUI();
                     break;
-                case Lit.ProjectionModel.Proxy:
+                case ScreenSpaceLighting.ProjectionModel.Proxy:
                     EditorGUILayout.Separator();
                     OnProxyInspectorGUI();
                     break;

@@ -1,17 +1,16 @@
 using System;
 using System.Reflection;
-using UnityEditor.Experimental.Rendering.HDPipeline;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     using CED = CoreEditorDrawer<HDReflectionProbeUI, SerializedHDReflectionProbe>;
     using _ = CoreEditorUtils;
 
-    public partial class HDReflectionProbeUI
+    internal partial class HDReflectionProbeUI
     {
         static HDReflectionProbeUI()
         {
@@ -19,7 +18,11 @@ namespace UnityEditor.Experimental.Rendering
             {
                 SectionPrimarySettings,
                 SectionProxyVolumeSettings,
-                SectionInfluenceVolumeSettings,
+                CED.Select(
+                        (s, d, o) => s.influenceVolume,
+                        (s, d, o) => d.influenceVolume,
+                        InfluenceVolumeUI.SectionFoldoutShape
+                        ),
                 SectionInfluenceProxyMismatch,
                 SectionCaptureSettings,
                 SectionAdditionalSettings,
@@ -46,7 +49,9 @@ namespace UnityEditor.Experimental.Rendering
                 "Proxy Volume",
                 (s, p, o) => s.isSectionExpandedProxyVolume,
                 FoldoutOption.Indent,
-                CED.Action(Drawer_ProxyVolume)
+                CED.Action(Drawer_ProxyVolume),
+                CED.space,
+                CED.Action(Drawer_ProjectionSettings)
                 );
 
         public static readonly CED.IDrawer SectionInfluenceVolumeSettings = CED.FoldoutGroup(
@@ -57,9 +62,7 @@ namespace UnityEditor.Experimental.Rendering
                 CED.space,
                 CED.Action(Drawer_InfluenceShape),
                 CED.space,
-                CED.Action(Drawer_InfluenceAreas),
-                CED.space,
-                CED.Action(Drawer_InfluenceSettings)
+                CED.Action(Drawer_InfluenceAreas)
                 );
 
         public static readonly CED.IDrawer SectionInfluenceProxyMismatch = CED.Action(Drawer_InfluenceProxyMissmatch);
@@ -139,7 +142,7 @@ namespace UnityEditor.Experimental.Rendering
             if (p.proxyVolumeComponent.objectReferenceValue != null)
             {
                 var proxy = (ReflectionProxyVolumeComponent)p.proxyVolumeComponent.objectReferenceValue;
-                if ((int)proxy.proxyVolume.shapeType != p.influenceShape.enumValueIndex)
+                if ((int)proxy.proxyVolume.shape != p.influenceVolume.shape.enumValueIndex)
                     EditorGUILayout.HelpBox(
                         "Proxy volume and influence volume have different shape types, this is not supported.",
                         MessageType.Error,
@@ -150,8 +153,8 @@ namespace UnityEditor.Experimental.Rendering
 
         static void Drawer_InfluenceBoxSettings(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
-            bool advanced = p.editorAdvancedModeEnabled.boolValue;
-            var maxBlendDistance = HDReflectionProbeEditorUtility.CalculateBoxMaxBlendDistance(s, p, owner);
+            bool advanced = p.influenceVolume.editorAdvancedModeEnabled.boolValue;
+            var maxBlendDistance = p.boxSize.vector3Value * 0.5f;
 
             EditorGUILayout.BeginHorizontal();
             Drawer_AdvancedBlendDistance(
@@ -183,23 +186,23 @@ namespace UnityEditor.Experimental.Rendering
             {
                 CoreEditorUtils.DrawVector6(
                     CoreEditorUtils.GetContent("Face fade|Fade faces of the cubemap."),
-                    p.boxSideFadePositive, p.boxSideFadeNegative, Vector3.zero, Vector3.one, HDReflectionProbeEditor.k_handlesColor);
+                    p.influenceVolume.boxSideFadePositive, p.influenceVolume.boxSideFadeNegative, Vector3.zero, Vector3.one, HDReflectionProbeEditor.k_handlesColor);
             }
         }
 
         static void Drawer_AdvancedBlendDistance(SerializedHDReflectionProbe p, bool isNormal, Vector3 maxBlendDistance, GUIContent content)
         {
-            SerializedProperty blendDistancePositive = isNormal ? p.blendNormalDistancePositive : p.blendDistancePositive;
-            SerializedProperty blendDistanceNegative = isNormal ? p.blendNormalDistanceNegative : p.blendDistanceNegative;
-            SerializedProperty editorAdvancedModeBlendDistancePositive = isNormal ? p.editorAdvancedModeBlendNormalDistancePositive : p.editorAdvancedModeBlendDistancePositive;
-            SerializedProperty editorAdvancedModeBlendDistanceNegative = isNormal ? p.editorAdvancedModeBlendNormalDistanceNegative : p.editorAdvancedModeBlendDistanceNegative;
-            SerializedProperty editorSimplifiedModeBlendDistance = isNormal ? p.editorSimplifiedModeBlendNormalDistance : p.editorSimplifiedModeBlendDistance;
+            SerializedProperty blendDistancePositive = isNormal ? p.influenceVolume.boxBlendNormalDistancePositive : p.influenceVolume.boxBlendDistancePositive;
+            SerializedProperty blendDistanceNegative = isNormal ? p.influenceVolume.boxBlendNormalDistanceNegative : p.influenceVolume.boxBlendDistanceNegative;
+            SerializedProperty editorAdvancedModeBlendDistancePositive = isNormal ? p.influenceVolume.editorAdvancedModeBlendNormalDistancePositive : p.influenceVolume.editorAdvancedModeBlendDistancePositive;
+            SerializedProperty editorAdvancedModeBlendDistanceNegative = isNormal ? p.influenceVolume.editorAdvancedModeBlendNormalDistanceNegative : p.influenceVolume.editorAdvancedModeBlendDistanceNegative;
+            SerializedProperty editorSimplifiedModeBlendDistance = isNormal ? p.influenceVolume.editorSimplifiedModeBlendNormalDistance : p.influenceVolume.editorSimplifiedModeBlendDistance;
             Vector3 bdp = blendDistancePositive.vector3Value;
             Vector3 bdn = blendDistanceNegative.vector3Value;
 
             EditorGUILayout.BeginVertical();
 
-            if (p.editorAdvancedModeEnabled.boolValue)
+            if (p.influenceVolume.editorAdvancedModeEnabled.boolValue)
             {
                 EditorGUI.BeginChangeCheck();
                 CoreEditorUtils.DrawVector6(
@@ -238,17 +241,17 @@ namespace UnityEditor.Experimental.Rendering
 
         static void Drawer_InfluenceSphereSettings(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
-            var maxBlendDistance = HDReflectionProbeEditorUtility.CalculateSphereMaxBlendDistance(s, p, owner);
+            var maxBlendDistance = p.influenceVolume.sphereRadius.floatValue;
 
-            var blendDistance = p.blendDistancePositive.vector3Value.x;
+            var blendDistance = p.influenceVolume.boxBlendDistancePositive.vector3Value.x;
             EditorGUILayout.BeginHorizontal();
             EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = p.blendDistancePositive.hasMultipleDifferentValues;
+            EditorGUI.showMixedValue = p.influenceVolume.boxBlendDistancePositive.hasMultipleDifferentValues;
             blendDistance = EditorGUILayout.Slider(CoreEditorUtils.GetContent("Blend Distance|Area around the probe where it is blended with other probes. Only used in deferred probes."), blendDistance, 0, maxBlendDistance);
             if (EditorGUI.EndChangeCheck())
             {
-                p.blendDistancePositive.vector3Value = Vector3.one * blendDistance;
-                p.blendDistanceNegative.vector3Value = Vector3.one * blendDistance;
+                p.influenceVolume.boxBlendDistancePositive.vector3Value = Vector3.one * blendDistance;
+                p.influenceVolume.boxBlendDistanceNegative.vector3Value = Vector3.one * blendDistance;
             }
             if (GUILayout.Button(toolbar_Contents[1], GUILayout.Width(28f), GUILayout.Height(EditorGUIUtility.singleLineHeight + 3)))
             {
@@ -256,15 +259,15 @@ namespace UnityEditor.Experimental.Rendering
             }
             EditorGUILayout.EndHorizontal();
 
-            var blendNormalDistance = p.blendNormalDistancePositive.vector3Value.x;
+            var blendNormalDistance = p.influenceVolume.boxBlendNormalDistancePositive.vector3Value.x;
             EditorGUILayout.BeginHorizontal();
             EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = p.blendNormalDistancePositive.hasMultipleDifferentValues;
+            EditorGUI.showMixedValue = p.influenceVolume.boxBlendNormalDistancePositive.hasMultipleDifferentValues;
             blendNormalDistance = EditorGUILayout.Slider(CoreEditorUtils.GetContent("Blend Normal Distance|Area around the probe where the normals influence the probe. Only used in deferred probes."), blendNormalDistance, 0, maxBlendDistance);
             if (EditorGUI.EndChangeCheck())
             {
-                p.blendNormalDistancePositive.vector3Value = Vector3.one * blendNormalDistance;
-                p.blendNormalDistanceNegative.vector3Value = Vector3.one * blendNormalDistance;
+                p.influenceVolume.boxBlendNormalDistancePositive.vector3Value = Vector3.one * blendNormalDistance;
+                p.influenceVolume.boxBlendNormalDistanceNegative.vector3Value = Vector3.one * blendNormalDistance;
             }
             if (GUILayout.Button(toolbar_Contents[2], GUILayout.Width(28f), GUILayout.Height(EditorGUIUtility.singleLineHeight + 3)))
             {
@@ -288,8 +291,6 @@ namespace UnityEditor.Experimental.Rendering
             if (EditorGUI.EndChangeCheck())
             {
                 s.SetModeTarget(p.mode.intValue);
-                foreach (var targetObject in p.so.targetObjects)
-                    HDReflectionProbeEditorUtility.ResetProbeSceneTextureInMaterial((ReflectionProbe)targetObject);
             }
         }
 
@@ -299,24 +300,24 @@ namespace UnityEditor.Experimental.Rendering
             {
                 GUILayout.FlexibleSpace();
 
-                bool advanced = p.editorAdvancedModeEnabled.boolValue;
+                bool advanced = p.influenceVolume.editorAdvancedModeEnabled.boolValue;
                 advanced = !GUILayout.Toggle(!advanced, CoreEditorUtils.GetContent("Normal|Normal parameters mode (only change for box shape)."), EditorStyles.miniButtonLeft, GUILayout.Width(60f), GUILayout.ExpandWidth(false));
                 advanced = GUILayout.Toggle(advanced, CoreEditorUtils.GetContent("Advanced|Advanced parameters mode (only change for box shape)."), EditorStyles.miniButtonRight, GUILayout.Width(60f), GUILayout.ExpandWidth(false));
                 s.alternativeBoxBlendHandle.allHandleControledByOne = s.alternativeBoxBlendNormalHandle.allHandleControledByOne = !advanced;
-                if (p.editorAdvancedModeEnabled.boolValue ^ advanced)
+                if (p.influenceVolume.editorAdvancedModeEnabled.boolValue ^ advanced)
                 {
-                    p.editorAdvancedModeEnabled.boolValue = advanced;
+                    p.influenceVolume.editorAdvancedModeEnabled.boolValue = advanced;
                     if (advanced)
                     {
-                        p.blendDistancePositive.vector3Value = p.editorAdvancedModeBlendDistancePositive.vector3Value;
-                        p.blendDistanceNegative.vector3Value = p.editorAdvancedModeBlendDistanceNegative.vector3Value;
-                        p.blendNormalDistancePositive.vector3Value = p.editorAdvancedModeBlendNormalDistancePositive.vector3Value;
-                        p.blendNormalDistanceNegative.vector3Value = p.editorAdvancedModeBlendNormalDistanceNegative.vector3Value;
+                        p.influenceVolume.boxBlendDistancePositive.vector3Value = p.influenceVolume.editorAdvancedModeBlendDistancePositive.vector3Value;
+                        p.influenceVolume.boxBlendDistanceNegative.vector3Value = p.influenceVolume.editorAdvancedModeBlendDistanceNegative.vector3Value;
+                        p.influenceVolume.boxBlendNormalDistancePositive.vector3Value = p.influenceVolume.editorAdvancedModeBlendNormalDistancePositive.vector3Value;
+                        p.influenceVolume.boxBlendNormalDistanceNegative.vector3Value = p.influenceVolume.editorAdvancedModeBlendNormalDistanceNegative.vector3Value;
                     }
                     else
                     {
-                        p.blendDistanceNegative.vector3Value = p.blendDistancePositive.vector3Value = Vector3.one * p.editorSimplifiedModeBlendDistance.floatValue;
-                        p.blendNormalDistanceNegative.vector3Value = p.blendNormalDistancePositive.vector3Value = Vector3.one * p.editorSimplifiedModeBlendNormalDistance.floatValue;
+                        p.influenceVolume.boxBlendDistanceNegative.vector3Value = p.influenceVolume.boxBlendDistancePositive.vector3Value = Vector3.one * p.influenceVolume.editorSimplifiedModeBlendDistance.floatValue;
+                        p.influenceVolume.boxBlendNormalDistanceNegative.vector3Value = p.influenceVolume.boxBlendNormalDistancePositive.vector3Value = Vector3.one * p.influenceVolume.editorSimplifiedModeBlendNormalDistance.floatValue;
                     }
                     p.Apply();
                 }
@@ -326,18 +327,18 @@ namespace UnityEditor.Experimental.Rendering
         static void Drawer_InfluenceShape(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
             EditorGUI.BeginChangeCheck();
-            EditorGUI.showMixedValue = p.influenceShape.hasMultipleDifferentValues;
-            EditorGUILayout.PropertyField(p.influenceShape, CoreEditorUtils.GetContent("Shape"));
+            EditorGUI.showMixedValue = p.influenceVolume.shape.hasMultipleDifferentValues;
+            EditorGUILayout.PropertyField(p.influenceVolume.shape, CoreEditorUtils.GetContent("Shape"));
             EditorGUI.showMixedValue = false;
             if (EditorGUI.EndChangeCheck())
-                s.SetShapeTarget(p.influenceShape.intValue);
+                s.SetShapeTarget(p.influenceVolume.shape.intValue);
 
-            switch ((ShapeType)p.influenceShape.enumValueIndex)
+            switch ((InfluenceShape)p.influenceVolume.shape.enumValueIndex)
             {
-                case ShapeType.Box:
+                case InfluenceShape.Box:
                     Drawer_InfluenceShapeBoxSettings(s, p, owner);
                     break;
-                case ShapeType.Sphere:
+                case InfluenceShape.Sphere:
                     Drawer_InfluenceShapeSphereSettings(s, p, owner);
                     break;
             }
@@ -380,7 +381,7 @@ namespace UnityEditor.Experimental.Rendering
         static void Drawer_InfluenceShapeSphereSettings(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
             EditorGUILayout.BeginHorizontal();
-            EditorGUILayout.PropertyField(p.influenceSphereRadius, CoreEditorUtils.GetContent("Radius"));
+            EditorGUILayout.PropertyField(p.influenceVolume.sphereRadius, CoreEditorUtils.GetContent("Radius"));
             if (GUILayout.Button(toolbar_Contents[0], GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.Height(EditorGUIUtility.singleLineHeight + 3)))
             {
                 EditMode.ChangeEditMode(EditMode.SceneViewEditMode.ReflectionProbeBox, GetBoundsGetter(p)(), owner);
@@ -397,17 +398,17 @@ namespace UnityEditor.Experimental.Rendering
 
         static void Drawer_InfluenceAreas(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
-            if (s.IsSectionExpandedShape(ShapeType.Box).value)
+            if (s.IsSectionExpandedShape(InfluenceShape.Box).value)
             {
                 Drawer_InfluenceBoxSettings(s, p, owner);
             }
-            if (s.IsSectionExpandedShape(ShapeType.Sphere).value)
+            if (s.IsSectionExpandedShape(InfluenceShape.Sphere).value)
             {
                 Drawer_InfluenceSphereSettings(s, p, owner);
             }
         }
 
-        static void Drawer_InfluenceSettings(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
+        static void Drawer_ProjectionSettings(HDReflectionProbeUI s, SerializedHDReflectionProbe p, Editor owner)
         {
             EditorGUILayout.PropertyField(p.boxProjection, CoreEditorUtils.GetContent("Parallax Correction|Parallax Correction causes reflections to appear to change based on the object's position within the probe's box, while still using a single probe as the source of the reflection. This works well for reflections on objects that are moving through enclosed spaces such as corridors and rooms. Setting Parallax Correction to False and the cubemap reflection will be treated as coming from infinitely far away. Note that this feature can be globally disabled from Graphics Settings -> Tier Settings"));
         }
@@ -471,6 +472,14 @@ namespace UnityEditor.Experimental.Rendering
             GUILayout.EndHorizontal();
         }
 
+        static public void Drawer_ToolBarButton(int buttonIndex, Editor owner, params GUILayoutOption[] styles)
+        {
+            if (GUILayout.Button(toolbar_Contents[buttonIndex], styles))
+            {
+                EditMode.ChangeEditMode(k_Toolbar_SceneViewEditModes[buttonIndex], GetBoundsGetter(owner)(), owner);
+            }
+        }
+
         static Func<Bounds> GetBoundsGetter(SerializedHDReflectionProbe p)
         {
             return () =>
@@ -480,6 +489,21 @@ namespace UnityEditor.Experimental.Rendering
                     {
                         var rp = (ReflectionProbe)targetObject;
                         var b = rp.bounds;
+                        bounds.Encapsulate(b);
+                    }
+                    return bounds;
+                };
+        }
+
+        static Func<Bounds> GetBoundsGetter(Editor o)
+        {
+            return () =>
+                {
+                    var bounds = new Bounds();
+                    foreach (Component targetObject in o.targets)
+                    {
+                        var rp = targetObject.transform;
+                        var b = rp.position;
                         bounds.Encapsulate(b);
                     }
                     return bounds;

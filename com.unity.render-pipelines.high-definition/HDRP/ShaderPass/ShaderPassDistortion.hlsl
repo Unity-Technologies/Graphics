@@ -34,7 +34,8 @@ float4 Frag(PackedVaryingsToPS packedInput) : SV_Target
 #ifdef VARYINGS_NEED_POSITION_WS
     float3 V = GetWorldSpaceNormalizeViewDir(input.positionRWS);
 #else
-    float3 V = 0; // Avoid the division by 0
+    // Unused
+    float3 V = float3(1.0, 1.0, 1.0); // Avoid the division by 0
 #endif
 
     // Perform alpha testing + get distortion

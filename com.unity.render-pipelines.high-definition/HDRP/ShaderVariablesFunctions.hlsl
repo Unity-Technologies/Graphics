@@ -252,4 +252,14 @@ float2 GetViewportScalePreviousFrame()
     return _ScreenToTargetScale.zw;
 }
 
+float4 SampleSkyTexture(float3 texCoord)
+{
+    return SAMPLE_TEXTURECUBE(_SkyTexture, s_trilinear_clamp_sampler, texCoord);
+}
+
+float4 SampleSkyTexture(float3 texCoord, float lod)
+{
+    return SAMPLE_TEXTURECUBE_LOD(_SkyTexture, s_trilinear_clamp_sampler, texCoord, lod);
+}
+
 #endif // UNITY_SHADER_VARIABLES_FUNCTIONS_INCLUDED

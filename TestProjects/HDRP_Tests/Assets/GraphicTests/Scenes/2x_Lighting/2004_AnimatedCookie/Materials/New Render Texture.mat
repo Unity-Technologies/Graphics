@@ -59,6 +59,7 @@ Material:
     - _DoubleSidedEnable: 0
     - _DstBlend: 0
     - _EnableFogOnTransparent: 0
+    - _HdrpVersion: 2
     - _PreRefractionPass: 0
     - _SrcBlend: 1
     - _StencilRef: 2

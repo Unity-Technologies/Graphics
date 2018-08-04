@@ -3,7 +3,7 @@ Shader "HDRenderPipeline/Unlit"
     Properties
     {
         // Versioning of material to help for upgrading
-        [HideInInspector] _HdrpVersion("_HdrpVersion", Float) = 1
+        [HideInInspector] _HdrpVersion("_HdrpVersion", Float) = 2
 
         // Be careful, do not change the name here to _Color. It will conflict with the "fake" parameters (see end of properties) required for GI.
         _UnlitColor("Color", Color) = (1,1,1,1)

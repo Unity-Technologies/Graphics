@@ -1,4 +1,8 @@
-# Next version
+## [3.3.0]
+
+## [3.2.0]
+
+## [3.1.0]
 
 ### HD Render Pipeline support
 
@@ -22,7 +26,7 @@ The settings for master nodes now live in a small window that you can toggle on 
 
 ![](.data/editable_property_references.gif)
 
-You can now edit the Reference name for a property. To do so, select the property and type a new name next to Reference. If you want to reset to the default name, right-click Reference, and select Reset reference. 
+You can now edit the Reference name for a property. To do so, select the property and type a new name next to Reference. If you want to reset to the default name, right-click Reference, and select Reset reference.
 
 In the expanded property window, you can now also toggle if the property is exposed.
 
@@ -46,6 +50,21 @@ Note: This functionality requires that you have enabled **two sided** on the Mas
 
 This adds gradient functionality via two new nodes. The Sample Gradient node samples a gradient given a Time parameter. You can define this gradient on the Gradient slot control view. The Gradient Asset node defines a gradient that can be sampled by multiple Sample Gradient nodes using different Time parameters.
 
+### Waveform nodes
+
+![](.data/wave_form_nodes.png)
+
+Math nodes now have a Waves category. The category has four different nodes: Triangle wave, Sawtooth wave, Square wave, and Noise Sine wave.
+The Triangle, Sawtooth, and Square wave nodes output a waveform with a range of -1 to 1 over a period of 1.
+The Noise Sine wave outputs a standard Sine wave with a range of -1 to 1 over a period of 2 * pi. For variance, random noise is added to the amplitude of the Sine wave, within a determined range.
+
+## Normal Derive Nodes
+
+![](.data/normal_derive_nodes.png)
+
+There are two Normal Derive Nodes: `Normal From Height` and `Normal Reconstruct Z`.
+`Normal From Height` uses Vector1 input to derive a normal map. `Normal Reconstruct Z` uses the X and Y components in Vector2 input to derive the proper Z value for a normal map. 
+
 ### Sphere Mask Node
 
 ![](.data/sphereMask.png)
@@ -62,7 +81,15 @@ This change expands Unity's support for Texture types via two new property types
 
 ![](.data/texture_2d_lod_node.png)
 
-This adds a new node for LOD functionality on a Texture 2D Sample. Sample Texture 2D LOD uses the exact same input and output slots as Sample Texture 2D, but also includes an input for level of detail adjustments via a Vector1 slot. 
+This adds a new node for LOD functionality on a Texture 2D Sample. Sample Texture 2D LOD uses the exact same input and output slots as Sample Texture 2D, but also includes an input for level of detail adjustments via a Vector1 slot.
+
+### Texel Size Node
+
+![](.data/texel_size_node.png)
+
+With this node, you can get the special texture properties of a Texture 2D Asset via the `{texturename}_TexelSize` variable. Based on input from the Texture 2D Asset, the node outputs the width and height of the texel size in Vector1 format.
+
+**Note:** Do not use the default input to reference your texture Asset. It makes your graph perform worse. Connect this node to a separate Texture 2D Asset node per image example.
 
 ### Show generated code
 
@@ -70,6 +97,11 @@ This adds a new node for LOD functionality on a Texture 2D Sample. Sample Textur
 
 You can now see the generated code for any specific node. To do so, right-click the node, and select Show Generated Code. The code snippet will now open in the code editor that you have linked to Unity.
 
+### Rotate About Axis node
+
+![](.data/rotate_about_axis_node.png)
+
+With the Rotate About Axis node, you can rotate a 3D vector space around an axis. For the rotation, you can specify an amount of degrees or a radian value.
 
 ### Bug fixes and minor changes
 
@@ -84,9 +116,19 @@ You can now see the generated code for any specific node. To do so, right-click 
 - Sub graphs are now suffixed with (sub), so you can tell them apart from other nodes.
 - Boolean and Texture type properties now function correctly in sub-graphs.
 - The preview of a node does not obstruct the selection outliner anymore.
+- The Texture type default input now accepts render textures.
 - The Dielectric Specular node no longer resets its control values.
 - HD PBR subshader no longer duplicates surface description code into vertex shader.
 - You can now copy, paste, and duplicate sub-graph nodes with vector type input ports.
 - If the current render pipeline is not compatible, master nodes now display an error badge.
 - The preview shader now only considers the current render pipeline. Because of this there is less code to compile, and therefore the preview shader will compile faster.
 - When you rename a shader graph or sub shader graph locally on your disk, the title of the Shader Graph window, black board, and preview also updates.
+- Removed legacy matrices from Transfomation Matrix node.
+- The Lightweight PBR subshader now normalizes normal, tangent, and view direction correctly.
+- Texture 2D Array and Texture 3D nodes can no longer be used in the vertex shader.
+- Shader graphs using alpha clip now generate correct depth and shadow passes.
+- `Normal Create` node has been renamed to `Normal From Texture`.
+- `Blend` node now supports Overwrite mode.
+- `Simple Noise` node no longer has a loop.
+- The `Polygon` node now calculates radius based on apothem.
+- `Normal Strength` node now calculates Z value more accurately.

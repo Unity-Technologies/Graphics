@@ -14,6 +14,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector2 m_UVScale = new Vector2(1, 1);
         public Vector2 m_UVBias = new Vector2(0, 0);
         public bool m_AffectsTransparency = false;
+        public Vector3 m_Offset = new Vector3(0, -0.5f, 0);
+        public Vector3 m_Size = new Vector3(1, 1, 1);
         private Material m_OldMaterial = null;
         private DecalSystem.DecalHandle m_Handle = null;
 
@@ -49,7 +51,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             Vector4 uvScaleBias = new Vector4(m_UVScale.x, m_UVScale.y, m_UVBias.x, m_UVBias.y);
-            m_Handle = DecalSystem.instance.AddDecal(transform, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material);
+            Matrix4x4 sizeOffset = Matrix4x4.Translate(m_Offset) * Matrix4x4.Scale(m_Size);
+            m_Handle = DecalSystem.instance.AddDecal(transform, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material);
         }
 
         public void OnDisable()
@@ -68,20 +71,27 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public event OnMaterialChangeDelegate OnMaterialChange;
 
         public void OnValidate()
-        {
-            // handle material changes
-            if (m_OldMaterial != m_Material)
+        {            
+            if (m_Handle != null) // don't do anything if OnEnable hasn't been called yet when scene is loading.
             {
-                if (m_Handle != null)
-                    DecalSystem.instance.RemoveDecal(m_Handle);
                 Vector4 uvScaleBias = new Vector4(m_UVScale.x, m_UVScale.y, m_UVBias.x, m_UVBias.y);
-                m_Handle = DecalSystem.instance.AddDecal(transform, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material);
-                m_OldMaterial = m_Material;
-
-                // notify the editor that material has changed so it can update the shader foldout
-                if (OnMaterialChange != null)
+                Matrix4x4 sizeOffset = Matrix4x4.Translate(m_Offset) * Matrix4x4.Scale(m_Size);
+                // handle material changes, because decals are stored as sets sorted by material, if material changes decal needs to be removed and re-added to that it goes into correct set
+                if (m_OldMaterial != m_Material)
                 {
-                    OnMaterialChange();
+                    DecalSystem.instance.RemoveDecal(m_Handle);
+                    m_Handle = DecalSystem.instance.AddDecal(transform, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Material);
+                    m_OldMaterial = m_Material;
+
+                    // notify the editor that material has changed so it can update the shader foldout
+                    if (OnMaterialChange != null)
+                    {
+                        OnMaterialChange();
+                    }
+                }
+                else // no material change, just update whatever else changed
+                {
+                    DecalSystem.instance.UpdateCachedData(transform, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Handle);
                 }
             }
 
@@ -95,40 +105,35 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void Update()
+        public void LateUpdate()
         {
             if (m_Handle != null)
             {
                 if (transform.hasChanged == true)
                 {
                     Vector4 uvScaleBias = new Vector4(m_UVScale.x, m_UVScale.y, m_UVBias.x, m_UVBias.y);
-                    DecalSystem.instance.UpdateCachedData(transform, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Handle);
+                    Matrix4x4 sizeOffset = Matrix4x4.Translate(m_Offset) * Matrix4x4.Scale(m_Size);
+                    DecalSystem.instance.UpdateCachedData(transform, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Handle);
                     transform.hasChanged = false;
                 }
             }
         }
 
-        private void DrawGizmo(bool selected)
-        {
-            var col = new Color(0.0f, 0.7f, 1f, 1.0f);
-            Matrix4x4 offset = Matrix4x4.Translate(new Vector3(0.0f, -0.5f, 0.0f));
-            Gizmos.matrix = transform.localToWorldMatrix * offset;
-            col.a = selected ? 0.5f : 0.2f;
-            Gizmos.color = col;
-            Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
-        }
-
         public void OnDrawGizmosSelected()
         {
-            DrawGizmo(true);
             // if this object is selected there is a chance the transform was changed so update culling info
             Vector4 uvScaleBias = new Vector4(m_UVScale.x, m_UVScale.y, m_UVBias.x, m_UVBias.y);
-            DecalSystem.instance.UpdateCachedData(transform, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Handle);
+            Matrix4x4 sizeOffset = Matrix4x4.Translate(m_Offset) * Matrix4x4.Scale(m_Size);
+            DecalSystem.instance.UpdateCachedData(transform, sizeOffset, m_DrawDistance, m_FadeScale, uvScaleBias, m_AffectsTransparency, m_Handle);
         }
 
         public void OnDrawGizmos()
         {
-            DrawGizmo(false);
+            var col = new Color(0.0f, 0.7f, 1f, 0.5f);
+            Matrix4x4 offsetScale = Matrix4x4.Translate(m_Offset) * Matrix4x4.Scale(m_Size);
+            Gizmos.matrix = transform.localToWorldMatrix * offsetScale;
+            Gizmos.color = col;
+            Gizmos.DrawWireCube(Vector3.zero, Vector3.one);
         }
 
         public bool IsValid()
