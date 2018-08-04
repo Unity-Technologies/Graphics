@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [3.3.0-preview]
 
+### Fixed
+- Fix an issue where the screen where darken when rendering camera preview
+- Fix display correct target platform when showing message to inform user that a platform is not supported
+- Remove workaround for metal and vulkan in normal buffer encoding/decoding
+
+### Changed
+- Changed default reflection probe to be 256x256x6 and array size to be 64
+
 ## [3.2.0-preview]
 
 ### Added
@@ -24,9 +32,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix planar reflections that were not working with tile/cluster (olbique matrix)
 - Fix debug menu at runtime not working after nested prefab PR come to trunk
 - Fix scrolling issue in density volume
-- Fix an issue where the screen where darken when rendering camera preview
-- Fix display correct target platform when showing message to inform user that a platform is not supported
-- Remove workaround for metal and vulkan in normal buffer encoding/decoding
 
 ### Changed
 - Shader code refactor: Split MaterialUtilities file in two parts BuiltinUtilities (independent of FragInputs) and MaterialUtilities (Dependent of FragInputs)
