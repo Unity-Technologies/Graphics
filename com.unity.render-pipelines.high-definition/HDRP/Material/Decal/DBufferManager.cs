@@ -5,7 +5,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class DBufferManager : MRTBufferManager
     {
-        public bool EnableDBUffer { get; set; }
+        public bool enableDecals { get; set; }
 
         RTHandleSystem.RTHandle m_HTile;
 
@@ -38,22 +38,34 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             RTHandles.Release(m_HTile);
         }
 
-        public void ClearTargets(CommandBuffer cmd, HDCamera camera)
+        public void ClearAndSetTargets(CommandBuffer cmd, HDCamera camera, bool rtCount4, RTHandleSystem.RTHandle cameraDepthStencilBuffer)
         {
             // for alpha compositing, color is cleared to 0, alpha to 1
             // https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch23.html
 
+            RenderTargetIdentifier[] RTIDs = new RenderTargetIdentifier[rtCount4 ? 4 :3];
+            // this clears the targets
             Color clearColor = new Color(0.0f, 0.0f, 0.0f, 1.0f);
             Color clearColorNormal = new Color(0.5f, 0.5f, 0.5f, 1.0f); // for normals 0.5 is neutral
+            Color clearColorAOSBlend = new Color(1.0f, 1.0f, 1.0f, 1.0f);
             HDUtils.SetRenderTarget(cmd, camera, m_RTs[0], ClearFlag.Color, clearColor);
             HDUtils.SetRenderTarget(cmd, camera, m_RTs[1], ClearFlag.Color, clearColorNormal);
             HDUtils.SetRenderTarget(cmd, camera, m_RTs[2], ClearFlag.Color, clearColor);
-            HDUtils.SetRenderTarget(cmd, camera, m_HTile, ClearFlag.Color, CoreUtils.clearColorAllBlack);
-        }
 
-        public void SetHTile(int bindSlot, CommandBuffer cmd)
-        {
-            cmd.SetRandomWriteTarget(bindSlot, m_HTile);
+            // names IDs have to be set every frame, because they can change
+            RTIDs[0] = m_RTs[0].nameID;
+            RTIDs[1] = m_RTs[1].nameID;
+            RTIDs[2] = m_RTs[2].nameID;
+            if (rtCount4)
+            {
+                HDUtils.SetRenderTarget(cmd, camera, m_RTs[3], ClearFlag.Color, clearColorAOSBlend);
+                RTIDs[3] = m_RTs[3].nameID;
+            }
+            HDUtils.SetRenderTarget(cmd, camera, m_HTile, ClearFlag.Color, CoreUtils.clearColorAllBlack);
+
+            // this actually sets the MRTs and HTile RWTexture, this is done separately because we do not have an api to clear MRTs to different colors
+            HDUtils.SetRenderTarget(cmd, camera, RTIDs, cameraDepthStencilBuffer); // do not clear anymore
+            cmd.SetRandomWriteTarget(rtCount4 ? 4 : 3, m_HTile);
         }
 
         public void UnSetHTile(CommandBuffer cmd)
@@ -68,15 +80,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void PushGlobalParams(HDCamera hdCamera, CommandBuffer cmd)
         {
-            if (hdCamera.frameSettings.enableDBuffer)
+            if (hdCamera.frameSettings.enableDecals)
             {
-                cmd.SetGlobalInt(HDShaderIDs._EnableDBuffer, EnableDBUffer ? 1 : 0);
+                cmd.SetGlobalInt(HDShaderIDs._EnableDecals, enableDecals ? 1 : 0);
                 cmd.SetGlobalVector(HDShaderIDs._DecalAtlasResolution, new Vector2(HDUtils.hdrpSettings.decalSettings.atlasWidth, HDUtils.hdrpSettings.decalSettings.atlasHeight));
                 BindBufferAsTextures(cmd);
             }
             else
             {
-                cmd.SetGlobalInt(HDShaderIDs._EnableDBuffer, 0);
+                cmd.SetGlobalInt(HDShaderIDs._EnableDecals, 0);
                 // We still bind black textures to make sure that something is bound (can be a problem on some platforms)
                 for (int i = 0; i < m_BufferCount; ++i)
                 {

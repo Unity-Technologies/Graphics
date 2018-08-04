@@ -6,15 +6,19 @@ using UnityEngine;
 using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
+using UnityEditor.Experimental.Rendering.HDPipeline;
+using UnityEngine.Events;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    public partial class HDReflectionProbeUI : BaseUI<SerializedHDReflectionProbe>
+    internal partial class HDReflectionProbeUI : BaseUI<SerializedHDReflectionProbe>
     {
         const int k_AnimBoolSingleFieldCount = 4;
         static readonly int k_ReflectionProbeModeCount = Enum.GetValues(typeof(ReflectionProbeMode)).Length;
-        static readonly int k_ReflectionInfluenceShapeCount = Enum.GetValues(typeof(ShapeType)).Length;
+        static readonly int k_ReflectionInfluenceShapeCount = Enum.GetValues(typeof(InfluenceShape)).Length;
         static readonly int k_AnimBoolsCount = k_ReflectionProbeModeCount + k_ReflectionInfluenceShapeCount + k_AnimBoolSingleFieldCount;
+
+        public InfluenceVolumeUI influenceVolume = new InfluenceVolumeUI();
 
         [Flags]
         public enum Operation
@@ -93,8 +97,9 @@ namespace UnityEditor.Experimental.Rendering
             operations = 0;
 
             SetModeTarget(data.mode.hasMultipleDifferentValues ? -1 : data.mode.intValue);
-            SetShapeTarget(data.influenceShape.hasMultipleDifferentValues ? -1 : data.influenceShape.intValue);
+            SetShapeTarget(data.influenceVolume.shape.hasMultipleDifferentValues ? -1 : data.influenceVolume.shape.intValue);
 
+            influenceVolume.Update();
             base.Update();
         }
 
@@ -109,7 +114,7 @@ namespace UnityEditor.Experimental.Rendering
                 GetReflectionProbeModeBool(i).target = i == value;
         }
 
-        public AnimBool IsSectionExpandedShape(ShapeType value)
+        public AnimBool IsSectionExpandedShape(InfluenceShape value)
         {
             return m_AnimBools[k_AnimBoolSingleFieldCount + k_ReflectionProbeModeCount + (int)value];
         }
@@ -133,6 +138,12 @@ namespace UnityEditor.Experimental.Rendering
         AnimBool GetReflectionInfluenceShapeBool(int i)
         {
             return m_AnimBools[k_AnimBoolSingleFieldCount + k_ReflectionProbeModeCount  + i];
+        }
+
+        public override void Reset(SerializedHDReflectionProbe data, UnityAction repaint)
+        {
+            influenceVolume.Reset(data.influenceVolume, repaint);
+            base.Reset(data, repaint);
         }
     }
 }

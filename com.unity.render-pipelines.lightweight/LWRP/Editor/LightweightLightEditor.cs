@@ -44,10 +44,10 @@ namespace UnityEditor.Experimental.Rendering.LightweightPipeline
         public bool spotOptionsValue { get { return typeIsSame && lightProperty.type == LightType.Spot; } }
         public bool pointOptionsValue { get { return typeIsSame && lightProperty.type == LightType.Point; } }
         public bool dirOptionsValue { get { return typeIsSame && lightProperty.type == LightType.Directional; } }
-        public bool areaOptionsValue { get { return typeIsSame && lightProperty.type == LightType.Area; } }
+        public bool areaOptionsValue { get { return typeIsSame && lightProperty.type == LightType.Rectangle; } }
 
         // Point light realtime shadows not supported
-        public bool runtimeOptionsValue { get { return typeIsSame && (lightProperty.type != LightType.Area && lightProperty.type != LightType.Point && !settings.isCompletelyBaked); } }
+        public bool runtimeOptionsValue { get { return typeIsSame && (lightProperty.type != LightType.Rectangle && lightProperty.type != LightType.Point && !settings.isCompletelyBaked); } }
         public bool bakedShadowRadius { get { return typeIsSame && (lightProperty.type == LightType.Point || lightProperty.type == LightType.Spot) && settings.isBakedOrMixed; } }
         public bool bakedShadowAngle { get { return typeIsSame && lightProperty.type == LightType.Directional && settings.isBakedOrMixed; } }
         public bool shadowOptionsValue { get { return shadowTypeIsSame && lightProperty.shadows != LightShadows.None; } }

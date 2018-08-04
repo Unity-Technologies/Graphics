@@ -16,7 +16,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public static void DrawHandles(PlanarReflectionProbeUI s, PlanarReflectionProbe d, Editor o)
         {
-            var mat = d.transform.localToWorldMatrix;
+            var mat = Matrix4x4.TRS(d.transform.position, d.transform.rotation, Vector3.one);
 
             switch (EditMode.editMode)
             {
@@ -92,8 +92,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Handles.matrix = m;
             }
 
-            if (d.proxyVolumeReference != null)
-                ReflectionProxyVolumeComponentUI.DrawHandles_EditNone(s.reflectionProxyVolume, d.proxyVolumeReference);
+            if (d.proxyVolume != null)
+                ReflectionProxyVolumeComponentUI.DrawHandles_EditNone(s.reflectionProxyVolume, d.proxyVolume);
         }
 
         [DrawGizmo(GizmoType.Selected)]
@@ -103,7 +103,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (!PlanarReflectionProbeEditor.TryGetUIStateFor(d, out s))
                 return;
 
-            var mat = d.transform.localToWorldMatrix;
+            var mat = Matrix4x4.TRS(d.transform.position, d.transform.rotation, Vector3.one);
 
             switch (EditMode.editMode)
             {
@@ -146,8 +146,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
             }
 
-            if (d.proxyVolumeReference != null)
-                ReflectionProxyVolumeComponentUI.DrawGizmos_EditNone(s.reflectionProxyVolume, d.proxyVolumeReference);
+            if (d.proxyVolume != null)
+                ReflectionProxyVolumeComponentUI.DrawGizmos_EditNone(s.reflectionProxyVolume, d.proxyVolume);
 
             var showFrustrum = s.showCaptureHandles
                 || EditMode.editMode == EditCenter;

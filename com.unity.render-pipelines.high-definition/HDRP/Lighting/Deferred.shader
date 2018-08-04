@@ -69,10 +69,6 @@ Shader "Hidden/HDRenderPipeline/Deferred"
             // variable declaration
             //-------------------------------------------------------------------------------------
 
-        #ifdef SHADOWS_SHADOWMASK
-            TEXTURE2D(_ShadowMaskTexture);
-        #endif
-
             struct Attributes
             {
                 uint vertexID : SV_VertexID;
@@ -110,17 +106,14 @@ Shader "Hidden/HDRenderPipeline/Deferred"
                 float3 V = GetWorldSpaceNormalizeViewDir(posInput.positionWS);
 
                 BSDFData bsdfData;
-                BakeLightingData bakeLightingData;
-                DECODE_FROM_GBUFFER(posInput.positionSS, UINT_MAX, bsdfData, bakeLightingData.bakeDiffuseLighting);
-                #ifdef SHADOWS_SHADOWMASK
-                DecodeShadowMask(LOAD_TEXTURE2D(_ShadowMaskTexture, posInput.positionSS), bakeLightingData.bakeShadowMask);
-                #endif
+                BuiltinData builtinData;
+                DECODE_FROM_GBUFFER(posInput.positionSS, UINT_MAX, bsdfData, builtinData);
 
                 PreLightData preLightData = GetPreLightData(V, posInput, bsdfData);
 
                 float3 diffuseLighting;
                 float3 specularLighting;
-                LightLoop(V, posInput, preLightData, bsdfData, bakeLightingData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE, diffuseLighting, specularLighting);
+                LightLoop(V, posInput, preLightData, bsdfData, builtinData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE, diffuseLighting, specularLighting);
 
                 Outputs outputs;
 
