@@ -38,11 +38,11 @@ namespace UnityEditor.Experimental.Rendering
 
         void OnGUI()
         {
-            EditorGUILayout.LabelField(textureLabel, null);
+            EditorGUILayout.LabelField(textureLabel);
             EditorGUI.indentLevel++;
             sourceTexture = ( EditorGUILayout.ObjectField((UnityEngine.Object)sourceTexture, typeof(Texture2D), false, null) as Texture2D);
             EditorGUI.indentLevel--;
-            tileSize = EditorGUILayout.IntField(tileSizeLabel, tileSize, null);
+            tileSize = EditorGUILayout.IntField(tileSizeLabel, tileSize);
 
             bool validData = (sourceTexture != null && IsTileSizeValid());
             bool create = false;
@@ -61,7 +61,7 @@ namespace UnityEditor.Experimental.Rendering
 
             using (new EditorGUI.DisabledScope(!validData))
             {
-                create = GUILayout.Button(createLabel, null);
+                create = GUILayout.Button(createLabel);
             }
 
             if (create)
