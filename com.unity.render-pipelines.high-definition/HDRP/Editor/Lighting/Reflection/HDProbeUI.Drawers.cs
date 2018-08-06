@@ -152,7 +152,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const EditMode.SceneViewEditMode EditBaseShape = EditMode.SceneViewEditMode.ReflectionProbeBox;
         protected const EditMode.SceneViewEditMode EditInfluenceShape = EditMode.SceneViewEditMode.GridBox;
         protected const EditMode.SceneViewEditMode EditInfluenceNormalShape = EditMode.SceneViewEditMode.Collider;
-        protected const EditMode.SceneViewEditMode EditCenter = EditMode.SceneViewEditMode.ReflectionProbeOrigin;
+        protected const EditMode.SceneViewEditMode EditCenter = EditMode.SceneViewEditMode.GridMove;
+        //Note: EditMode.SceneViewEditMode.ReflectionProbeOrigin is still used
+        //by legacy reflection probe and have its own mecanism that we don't want
 
         static Dictionary<ToolBar, EditMode.SceneViewEditMode> s_Toolbar_Mode = null;
         protected static Dictionary<ToolBar, EditMode.SceneViewEditMode> toolbar_Mode

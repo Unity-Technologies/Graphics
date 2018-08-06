@@ -105,7 +105,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         /// <summary>Offset of this influence volume to the component handling him.</summary>
-        public Vector3 offset { get { return m_Offset; } set { m_Offset = value; } }
+        public Vector3 offset
+        {
+            get { return m_Offset; }
+            set
+            {
+                m_Offset = value;
+                m_Probe.UpdatedInfluenceVolumeShape(boxSize, m_Offset);
+            }
+        }
 
         /// <summary>Size of the InfluenceVolume in Box Mode.</summary>
         public Vector3 boxSize

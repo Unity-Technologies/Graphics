@@ -150,10 +150,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if (drawOffset)
             {
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.PropertyField(d.offset, offsetContent);
-                HDProbeUI.Drawer_ToolBarButton(HDProbeUI.ToolBar.CapturePosition, o, GUILayout.Width(28f), GUILayout.MinHeight(22f));
-                EditorGUILayout.EndHorizontal();
+                Drawer_Offset(s, d, o);
             }
             
             GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
@@ -246,10 +243,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             if(drawOffset)
             {
-                EditorGUILayout.BeginHorizontal();
-                EditorGUILayout.PropertyField(d.offset, offsetContent);
-                HDReflectionProbeUI.Drawer_ToolBarButton(HDProbeUI.ToolBar.CapturePosition, o, GUILayout.Width(28f), GUILayout.MinHeight(22f));
-                EditorGUILayout.EndHorizontal();
+                Drawer_Offset(s, d, o);
             }
 
             EditorGUILayout.Space();
@@ -277,6 +271,25 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 HDProbeUI.Drawer_ToolBarButton(HDProbeUI.ToolBar.NormalBlend, o, GUILayout.ExpandHeight(true), GUILayout.Width(28f), GUILayout.MinHeight(22f), GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight + 3));
                 EditorGUILayout.EndHorizontal();
             }
+        }
+
+        static void Drawer_Offset(InfluenceVolumeUI s, SerializedInfluenceVolume d, Editor o)
+        {
+            HDProbeEditor editor = (HDProbeEditor)o;
+            InfluenceVolume influenceVolume = editor.GetTarget(editor.target).influenceVolume;
+            EditorGUILayout.BeginHorizontal();
+
+            EditorGUI.BeginChangeCheck();
+            EditorGUILayout.PropertyField(d.offset, offsetContent);
+            if(EditorGUI.EndChangeCheck())
+            {
+                //call the offset setter as it will update legacy reflection probe
+                influenceVolume.offset = d.offset.vector3Value;
+                d.Apply();
+            }
+
+            HDProbeUI.Drawer_ToolBarButton(HDProbeUI.ToolBar.CapturePosition, o, GUILayout.Width(28f), GUILayout.MinHeight(22f));
+            EditorGUILayout.EndHorizontal();
         }
     }
 }

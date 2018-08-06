@@ -22,22 +22,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 case EditInfluenceNormalShape:
                     InfluenceVolumeUI.DrawHandles_EditInfluenceNormal(s.influenceVolume, d.influenceVolume, o, mat, d);
                     break;
-                //[TODO]
-                //case EditCenter:
-                //{
-                //    EditorGUI.BeginChangeCheck();
-                //    var m = Handles.matrix;
-                //    Handles.matrix = mat;
-                //    var p = Handles.PositionHandle(d.captureLocalPosition, d.transform.rotation);
-                //    if (EditorGUI.EndChangeCheck())
-                //    {
-                //        Undo.RecordObject(d, "Translate Capture Position");
-                //        d.captureLocalPosition = p;
-                //        EditorUtility.SetDirty(d);
-                //    }
-                //    Handles.matrix = m;
-                //    break;
-                //}
+                case EditCenter:
+                    {
+                        using (new Handles.DrawingScope(Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one)))
+                        {
+                            Vector3 offsetWorld = d.transform.position + d.transform.rotation * d.influenceVolume.offset;
+                            EditorGUI.BeginChangeCheck();
+                            var newOffsetWorld = Handles.PositionHandle(offsetWorld, d.transform.rotation);
+                            if (EditorGUI.EndChangeCheck())
+                            {
+                                Vector3 newOffset = Quaternion.Inverse(d.transform.rotation) * (newOffsetWorld - d.transform.position);
+                                Undo.RecordObjects(new Object[] { d, d.transform }, "Translate Capture Position");
+                                d.influenceVolume.offset = newOffset;
+                                EditorUtility.SetDirty(d);
+                            }
+                        }
+                        break;
+                    }
             }
         }
 
