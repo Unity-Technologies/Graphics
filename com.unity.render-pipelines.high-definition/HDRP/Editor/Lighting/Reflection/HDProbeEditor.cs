@@ -69,17 +69,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected virtual void OnSceneGUI()
         {
-            for (var i = 0; i < m_TypedTargets.Length; i++)
-            {
-                m_UIHandleState[i].Update();
-                m_UIHandleState[i].influenceVolume.showInfluenceHandles = m_UIState.influenceVolume.isSectionExpandedShape.target;
-                m_UIHandleState[i].showCaptureHandles = m_UIState.isSectionExpandedCaptureSettings.target;
-                HDProbeUI.DrawHandles(m_UIHandleState[i], m_TypedTargets[i], this);
-            }
-
+            HDProbeUI.DrawHandles(m_UIState, m_SerializedHDProbe, this);
             m_UIState.DoShortcutKey(this);
         }
-
-
     }
 }
