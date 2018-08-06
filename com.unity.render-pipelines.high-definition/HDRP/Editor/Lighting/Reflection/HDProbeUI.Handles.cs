@@ -7,34 +7,40 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     partial class HDProbeUI
     {
 
-        internal static void DrawHandles(HDProbeUI s, HDProbe d, Editor o)
+        internal static void DrawHandles(HDProbeUI s, SerializedHDProbe d, Editor o)
         {
-            var mat = Matrix4x4.TRS(d.transform.position, d.transform.rotation, Vector3.one);
+            HDProbe probe = d.target as HDProbe;
+            var mat = Matrix4x4.TRS(probe.transform.position, probe.transform.rotation, Vector3.one);
 
             switch (EditMode.editMode)
             {
                 case EditBaseShape:
-                    InfluenceVolumeUI.DrawHandles_EditBase(s.influenceVolume, d.influenceVolume, o, mat, d);
+                    InfluenceVolumeUI.DrawHandles_EditBase(s.influenceVolume, probe.influenceVolume, o, mat, probe);
                     break;
                 case EditInfluenceShape:
-                    InfluenceVolumeUI.DrawHandles_EditInfluence(s.influenceVolume, d.influenceVolume, o, mat, d);
+                    InfluenceVolumeUI.DrawHandles_EditInfluence(s.influenceVolume, probe.influenceVolume, o, mat, probe);
                     break;
                 case EditInfluenceNormalShape:
-                    InfluenceVolumeUI.DrawHandles_EditInfluenceNormal(s.influenceVolume, d.influenceVolume, o, mat, d);
+                    InfluenceVolumeUI.DrawHandles_EditInfluenceNormal(s.influenceVolume, probe.influenceVolume, o, mat, probe);
                     break;
                 case EditCenter:
                     {
                         using (new Handles.DrawingScope(Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one)))
                         {
-                            Vector3 offsetWorld = d.transform.position + d.transform.rotation * d.influenceVolume.offset;
+                            Vector3 offsetWorld = probe.transform.position + probe.transform.rotation * probe.influenceVolume.offset;
                             EditorGUI.BeginChangeCheck();
-                            var newOffsetWorld = Handles.PositionHandle(offsetWorld, d.transform.rotation);
+                            var newOffsetWorld = Handles.PositionHandle(offsetWorld, probe.transform.rotation);
                             if (EditorGUI.EndChangeCheck())
                             {
-                                Vector3 newOffset = Quaternion.Inverse(d.transform.rotation) * (newOffsetWorld - d.transform.position);
-                                Undo.RecordObjects(new Object[] { d, d.transform }, "Translate Capture Position");
-                                d.influenceVolume.offset = newOffset;
-                                EditorUtility.SetDirty(d);
+                                Vector3 newOffset = Quaternion.Inverse(probe.transform.rotation) * (newOffsetWorld - probe.transform.position);
+                                Undo.RecordObjects(new Object[] { probe, probe.transform }, "Translate Influence Position");
+                                d.influenceVolume.offset.vector3Value = newOffset;
+                                d.influenceVolume.Apply();
+
+                                //call modification to legacy ReflectionProbe
+                                probe.influenceVolume.offset = newOffset;
+
+                                EditorUtility.SetDirty(probe);
                             }
                         }
                         break;
@@ -54,12 +60,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             switch (EditMode.editMode)
             {
                 case EditBaseShape:
-                    InfluenceVolumeUI.DrawGizmos(
-                    s.influenceVolume,
-                    d.influenceVolume,
-                    mat,
-                    InfluenceVolumeUI.HandleType.Base,
-                    InfluenceVolumeUI.HandleType.All);
+                    InfluenceVolumeUI.DrawGizmos(s.influenceVolume, d.influenceVolume, mat,
+                    InfluenceVolumeUI.HandleType.Base, InfluenceVolumeUI.HandleType.All);
                     break;
                 case EditInfluenceShape:
                     InfluenceVolumeUI.DrawGizmos(

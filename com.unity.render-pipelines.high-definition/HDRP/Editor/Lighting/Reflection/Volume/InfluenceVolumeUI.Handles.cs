@@ -67,7 +67,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                             s.data.boxBlendDistancePositive.vector3Value = positive;
                             s.data.boxBlendDistanceNegative.vector3Value = negative;
 
-                            ////save advanced/simplified saved data
+                            //save advanced/simplified saved data
                             if (s.data.editorAdvancedModeEnabled.boolValue)
                             {
                                 s.data.editorAdvancedModeBlendDistancePositive.vector3Value = positive;

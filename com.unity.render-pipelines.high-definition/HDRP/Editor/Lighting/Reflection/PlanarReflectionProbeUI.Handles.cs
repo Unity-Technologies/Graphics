@@ -8,21 +8,22 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         static readonly Color k_GizmoMirrorPlaneCamera = new Color(128f / 255f, 128f / 255f, 233f / 255f, 128f / 255f);
 
-        internal static void DrawHandles(PlanarReflectionProbeUI s, PlanarReflectionProbe d, Editor o)
+        internal static void DrawHandles(PlanarReflectionProbeUI s, SerializedPlanarReflectionProbe d, Editor o)
         {
+            PlanarReflectionProbe probe = d.target;
             HDProbeUI.DrawHandles(s, d, o);
 
-            if (d.useMirrorPlane)
+            if (probe.useMirrorPlane)
             {
                 var m = Handles.matrix;
-                var mat = Matrix4x4.TRS(d.transform.position, d.transform.rotation, Vector3.one*1.5f);
+                var mat = Matrix4x4.TRS(probe.transform.position, probe.transform.rotation, Vector3.one*1.5f);
                 using (new Handles.DrawingScope(k_GizmoMirrorPlaneCamera, mat))
                 {
                     Handles.ArrowHandleCap(
                         0,
-                        d.captureMirrorPlaneLocalPosition,
-                        Quaternion.LookRotation(d.captureMirrorPlaneLocalNormal),
-                        HandleUtility.GetHandleSize(d.captureMirrorPlaneLocalPosition),
+                        probe.captureMirrorPlaneLocalPosition,
+                        Quaternion.LookRotation(probe.captureMirrorPlaneLocalNormal),
+                        HandleUtility.GetHandleSize(probe.captureMirrorPlaneLocalPosition),
                         Event.current.type
                         );
                 }
