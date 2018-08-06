@@ -3,6 +3,7 @@
 //-------------------------------------------------------------------------------------
 #include "CoreRP/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
 #include "HDRP/Material/MaterialUtilities.hlsl"
+#include "HDRP/Material/BuiltinUtilities.hlsl"
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
