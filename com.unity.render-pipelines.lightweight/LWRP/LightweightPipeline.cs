@@ -179,7 +179,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                 supportedLightmapsModes = LightmapsMode.CombinedDirectional | LightmapsMode.NonDirectional,
                 rendererSupportsLightProbeProxyVolumes = false,
                 rendererSupportsMotionVectors = false,
-                rendererSupportsReceiveShadows = true,
+                rendererSupportsReceiveShadows = false,
                 rendererSupportsReflectionProbes = true
             };
             SceneViewDrawMode.SetupDrawMode();

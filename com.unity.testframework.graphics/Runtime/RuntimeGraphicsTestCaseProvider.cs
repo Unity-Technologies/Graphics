@@ -1,41 +1,15 @@
 using System.Collections.Generic;
 using System.IO;
-using UnityEngine;
-using UnityEngine.Rendering;
 
 namespace UnityEngine.TestTools.Graphics
 {
     internal class RuntimeGraphicsTestCaseProvider : IGraphicsTestCaseProvider
     {
-        public ColorSpace ColorSpace
-        {
-            get
-            {
-                return QualitySettings.activeColorSpace;
-            }
-        }
-
-        public RuntimePlatform Platform
-        {
-            get
-            {
-                return Application.platform;
-            }
-        }
-
-        public GraphicsDeviceType GraphicsDevice
-        {
-            get
-            {
-                return SystemInfo.graphicsDeviceType;
-            }
-        }
-
-        public IEnumerable<GraphicsTestCase> GetTestCases()
+       public IEnumerable<GraphicsTestCase> GetTestCases()
         {
             AssetBundle referenceImagesBundle = null;
 
-            var referenceImagesBundlePath = string.Format("{0}/referenceimages-{1}-{2}-{3}", Application.streamingAssetsPath, ColorSpace, Platform, GraphicsDevice);
+            var referenceImagesBundlePath = string.Format("{0}/referenceimages-{1}-{2}-{3}", Application.streamingAssetsPath, UseGraphicsTestCasesAttribute.ColorSpace, UseGraphicsTestCasesAttribute.Platform, UseGraphicsTestCasesAttribute.GraphicsDevice);
             if (File.Exists(referenceImagesBundlePath))
                 referenceImagesBundle = AssetBundle.LoadFromFile(referenceImagesBundlePath);
 

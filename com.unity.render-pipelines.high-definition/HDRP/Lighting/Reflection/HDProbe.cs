@@ -30,10 +30,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public InfluenceVolume influenceVolume { get { return m_InfluenceVolume; } private set { m_InfluenceVolume = value; } }
 
         /// <summary>Multiplier factor of reflection (non PBR parameter).</summary>
-        public float multiplier { get { return m_Multiplier; } protected set { m_Multiplier = value; } }
+        public float multiplier { get { return m_Multiplier; } set { m_Multiplier = value; } }
 
         /// <summary>Weight for blending amongst probes (non PBR parameter).</summary>
-        public float weight { get { return m_Weight; } protected set { m_Weight = value; } }
+        public float weight { get { return m_Weight; } set { m_Weight = value; } }
 
         /// <summary>The capture mode.</summary>
         public virtual ReflectionProbeMode mode

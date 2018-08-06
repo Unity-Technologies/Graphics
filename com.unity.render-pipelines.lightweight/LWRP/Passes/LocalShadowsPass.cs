@@ -174,7 +174,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
                         var settings = new DrawShadowsSettings(cullResults, shadowLightIndex);
                         LightweightShadowUtils.SetupShadowCasterConstants(cmd, ref shadowLight, proj, sliceResolution);
-                        LightweightShadowUtils.RenderShadowSlice(cmd, ref context, ref m_LocalLightSlices[i], proj, view, settings);
+                        LightweightShadowUtils.RenderShadowSlice(cmd, ref context, ref m_LocalLightSlices[i], ref settings, proj, view);
                     }
                 }
 
