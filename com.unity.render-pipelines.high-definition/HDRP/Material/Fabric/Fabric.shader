@@ -7,53 +7,79 @@ Shader "HDRenderPipeline/Fabric"
 
         // Reminder. Color here are in linear but the UI (color picker) do the conversion sRGB to linear
         // Be careful, do not change the name here to _Color. It will conflict with the "fake" parameters (see end of properties) required for GI.
+        
+        // Fabric type
+        [Enum(Silk, 0, CottonWool, 1)] _FabricType("Fabric Type", Float) = 0
+
+        // Value used to define which uv channel is used for the first set of textures
+        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVBase("UV Set for base", Float) = 0
+        [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
+
+        // Base color
         _BaseColor("BaseColor", Color) = (1,1,1,1)
         _BaseColorMap("BaseColorMap", 2D) = "white" {}
 
-        _Smoothness("Smoothness", Range(0.0, 1.0)) = 1.0
-        _MaskMap("MaskMap", 2D) = "white" {}
-        _SmoothnessRemapMin("SmoothnessRemapMin", Float) = 0.0
-        _SmoothnessRemapMax("SmoothnessRemapMax", Float) = 1.0
-        _AORemapMin("AORemapMin", Float) = 0.0
-        _AORemapMax("AORemapMax", Float) = 1.0
-
+        // Normal map
         _NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
         _NormalScale("_NormalScale", Range(0.0, 2.0)) = 1
 
-        _BentNormalMap("_BentNormalMap", 2D) = "bump" {}
+        // TODO
+        // _TangentMap("TangentMap", 2D) = "bump" {}
 
+        // Smoothness values (overriden by the mask map)
+        _Smoothness("Smoothness", Range(0.0, 1.0)) = 1.0
+    
+        // The mask texture and the matching remapping values for it        
+        _MaskMap("MaskMap", 2D) = "white" {}
+        _AORemapMin("AORemapMin", Float) = 0.0
+        _AORemapMax("AORemapMax", Float) = 1.0
+        _SmoothnessRemapMin("SmoothnessRemapMin", Float) = 0.0
+        _SmoothnessRemapMax("SmoothnessRemapMax", Float) = 1.0
+
+        // TODO
+        //_BentNormalMap("_BentNormalMap", 2D) = "bump" {}
+
+        // Fuzz Tint
         _FuzzTint("FuzzTint", Color) = (1.0, 1.0, 1.0)
-        [Enum(Silk, 0, CottonWool, 1)] _FabricType("Fabric Type", Float) = 0
 
+        // Detail Data
+        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail("UV Set for detail", Float) = 0
+        [HideInInspector] _UVMappingMaskDetail("_UVMappingMaskDetail", Color) = (1, 0, 0, 0)
         _DetailMap("DetailMap", 2D) = "black" {}
         _DetailMask("DetailMask", 2D) = "white" {}
-        _DetailFuzz1("_DetailFuzz1", Range(0.0, 1.0)) = 1
         _DetailAOScale("_DetailAOScale", Range(0.0, 2.0)) = 1
         _DetailNormalScale("_DetailNormalScale", Range(0.0, 2.0)) = 1
         _DetailSmoothnessScale("_DetailSmoothnessScale", Range(0.0, 2.0)) = 1
-
-        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail("UV Set for detail", Float) = 0
-        [HideInInspector] _UVDetailsMappingMask("_UVDetailsMappingMask", Color) = (1, 0, 0, 0)
         [ToggleUI] _LinkDetailsWithBase("LinkDetailsWithBase", Float) = 1.0
 
-        _TangentMap("TangentMap", 2D) = "bump" {}
+        // Emissive Data
+        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVEmissive("UV Set for emissive", Float) = 0
+        [HideInInspector] _UVMappingMaskEmissive("_UVMappingMaskEmissive", Color) = (1, 0, 0, 0)
+        [HDR] _EmissiveColor("EmissiveColor", Color) = (0, 0, 0)
+        _EmissiveColorMap("EmissiveColorMap", 2D) = "white" {}
+        [ToggleUI] _AlbedoAffectEmissive("Albedo Affect Emissive", Float) = 0.0
+
+        // Anisotropy Data
         _Anisotropy("Anisotropy", Range(-1.0, 1.0)) = 0
         _AnisotropyMap("AnisotropyMap", 2D) = "white" {}
 
+        // Diffusion Data
         _DiffusionProfile("Diffusion Profile", Int) = 0
+
+        // Transmission Data
+        [ToggleUI]  _EnableTransmission("_EnableTransmission", Float) = 0.0
+
+        // Subsurface Data
+        [ToggleUI]  _EnableSubsurfaceScattering("_EnableSubsurfaceScattering", Float) = 0.0
         _SubsurfaceMask("Subsurface Radius", Range(0.0, 1.0)) = 1.0
         _SubsurfaceMaskMap("Subsurface Radius Map", 2D) = "white" {}
+
+        // Thickness Data
         _Thickness("Thickness", Range(0.0, 1.0)) = 1.0
         _ThicknessMap("Thickness Map", 2D) = "white" {}
         _ThicknessRemap("Thickness Remap", Vector) = (0, 1, 0, 0)
 
-        [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVBase("UV Set for base", Float) = 0
-        [HideInInspector] _UVMappingMask("_UVMappingMask", Color) = (1, 0, 0, 0)
-
-        [ToggleUI]  _EnableSpecularOcclusion("Enable specular occlusion", Float) = 0.0
-
-        [ToggleUI]  _EnableSubsurfaceScattering("_EnableSubsurfaceScattering", Float) = 0.0
-        [ToggleUI]  _EnableTransmission("_EnableTransmission", Float) = 0.0
+        //[ToggleUI]  _EnableSpecularOcclusion("Enable specular occlusion", Float) = 0.0
 
         // Transparency
         [ToggleUI] _PreRefractionPass("PreRefractionPass", Float) = 0.0
@@ -79,6 +105,8 @@ Shader "HDRenderPipeline/Fabric"
 
         [ToggleUI] _EnableFogOnTransparent("Enable Fog", Float) = 1.0
         [ToggleUI] _EnableBlendModePreserveSpecularLighting("Enable Blend Mode Preserve Specular Lighting", Float) = 1.0
+
+        _EmissionColor("Color", Color) = (1, 1, 1)
 
         // HACK: GI Baking system relies on some properties existing in the shader ("_MainTex", "_Cutoff" and "_Color") for opacity handling, so we need to store our version of those parameters in the hard-coded name the GI baking system recognizes.
         _MainTex("Albedo", 2D) = "white" {}
@@ -106,6 +134,7 @@ Shader "HDRenderPipeline/Fabric"
     #pragma shader_feature _DETAIL_MAP
     #pragma shader_feature _SUBSURFACE_MASK_MAP
     #pragma shader_feature _THICKNESSMAP
+    #pragma shader_feature _EMISSIVE_COLOR_MAP
 
     // Keyword for transparent
     #pragma shader_feature _SURFACE_TYPE_TRANSPARENT
@@ -116,7 +145,7 @@ Shader "HDRenderPipeline/Fabric"
     // MaterialFeature are used as shader feature to allow compiler to optimize properly
     #pragma shader_feature _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
     #pragma shader_feature _MATERIAL_FEATURE_TRANSMISSION
-    #pragma shader_feature _MATERIAL_FEATURE_ANISOTROPY // Anisotropy is for Silk
+    #pragma shader_feature _MATERIAL_FEATURE_COTTON_WOOL
     
     //enable GPU instancing support
     #pragma multi_compile_instancing
