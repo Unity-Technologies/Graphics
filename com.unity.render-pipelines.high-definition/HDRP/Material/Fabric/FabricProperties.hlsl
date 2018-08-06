@@ -9,8 +9,8 @@ SAMPLER(sampler_BaseColorMap);
 
 TEXTURE2D(_MaskMap);
 SAMPLER(sampler_MaskMap);
-TEXTURE2D(_BentNormalMap); // Reuse sampler from normal map
-SAMPLER(sampler_BentNormalMap);
+//TEXTURE2D(_BentNormalMap); // Reuse sampler from normal map
+//SAMPLER(sampler_BentNormalMap);
 
 TEXTURE2D(_NormalMap);
 SAMPLER(sampler_NormalMap);
@@ -33,12 +33,21 @@ SAMPLER(sampler_SubsurfaceMaskMap);
 TEXTURE2D(_ThicknessMap);
 SAMPLER(sampler_ThicknessMap);
 
+TEXTURE2D(_EmissiveColorMap);
+SAMPLER(sampler_EmissiveColorMap);
+
 CBUFFER_START(UnityPerMaterial)
+
+float4 _UVMappingMask;
+float4 _UVMappingMaskDetail;
+float4 _UVMappingMaskEmissive;
 
 float4 _BaseColor;
 float4 _BaseColorMap_ST;
 float4 _BaseColorMap_TexelSize;
 float4 _BaseColorMap_MipInfo;
+
+float4 _FuzzTint;
 
 float _AlphaCutoff;
 
@@ -64,5 +73,9 @@ int   _DiffusionProfile;
 float _SubsurfaceMask;
 float _Thickness;
 float4 _ThicknessRemap;
+
+float4 _EmissiveColorMap_ST;
+float4 _EmissiveColor;
+float _AlbedoAffectEmissive;
 
 CBUFFER_END
