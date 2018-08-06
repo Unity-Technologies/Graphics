@@ -81,9 +81,7 @@ half DistanceAttenuation(half distanceSqr, half3 distanceAttenuation)
 {
     // We use a shared distance attenuation for additional directional and puctual lights
     // for directional lights attenuation will be 1
-    half quadFalloff = distanceAttenuation.x;
-    half denom = distanceSqr * quadFalloff + 1.0h;
-    half lightAtten = 1.0h / denom;
+    half lightAtten = 1.0h / distanceSqr;
 
     // We need to smoothly fade attenuation to light range. We start fading linearly at 80% of light range
     // Therefore:
