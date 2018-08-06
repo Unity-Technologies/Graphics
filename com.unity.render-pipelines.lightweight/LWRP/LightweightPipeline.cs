@@ -397,8 +397,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             {
                 // For LWRP we need to divide the analytic light color by PI (HDRP do explicit PI division for Lambert, but built in Unity and the GI don't for punctual lights)
                 // We apply it on both direct and indirect are they are separated, seems that direct is not used if we used mixed mode with indirect or shadowmask bake.
-                lightData.color.intensity /= Mathf.PI;
-                lightData.indirectColor.intensity /= Mathf.PI;
 
                 switch (light.type)
                 {
