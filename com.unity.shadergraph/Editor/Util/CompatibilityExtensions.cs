@@ -9,17 +9,17 @@ namespace UnityEditor.ShaderGraph.Drawing
 {
     static class CompatibilityExtensions
     {
-        public static void AppendAction(this DropdownMenu DropdownMenu, string actionName, Action action, Func<DropdownMenu.MenuAction.StatusFlags> actionStatusCallback)
+        public static void AppendAction(this ContextualMenu contextualMenu, string actionName, Action action, Func<ContextualMenu.MenuAction.StatusFlags> actionStatusCallback)
         {
             Debug.Assert(action != null);
             Debug.Assert(actionStatusCallback != null);
-            DropdownMenu.AppendAction(actionName, e => action(), e => actionStatusCallback());
+            contextualMenu.AppendAction(actionName, e => action(), e => actionStatusCallback());
         }
 
-        public static void AppendAction(this DropdownMenu DropdownMenu, string actionName, Action action, DropdownMenu.MenuAction.StatusFlags statusFlags)
+        public static void AppendAction(this ContextualMenu contextualMenu, string actionName, Action action, ContextualMenu.MenuAction.StatusFlags statusFlags)
         {
             Debug.Assert(action != null);
-            DropdownMenu.AppendAction(actionName, e => action(), e => statusFlags);
+            contextualMenu.AppendAction(actionName, e => action(), e => statusFlags);
         }
 
 #if !UNITY_2018_3_OR_NEWER
