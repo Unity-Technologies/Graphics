@@ -107,8 +107,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public static bool IsReflectionProbeEditMode(EditMode.SceneViewEditMode editMode)
         {
-            return editMode == EditMode.SceneViewEditMode.ReflectionProbeBox || editMode == EditMode.SceneViewEditMode.Collider || editMode == EditMode.SceneViewEditMode.GridBox ||
-                editMode == EditMode.SceneViewEditMode.ReflectionProbeOrigin;
+            return editMode == EditMode.SceneViewEditMode.ReflectionProbeBox
+                || editMode == EditMode.SceneViewEditMode.Collider
+                || editMode == EditMode.SceneViewEditMode.GridBox
+                || editMode == EditMode.SceneViewEditMode.GridMove;
         }
     }
 }

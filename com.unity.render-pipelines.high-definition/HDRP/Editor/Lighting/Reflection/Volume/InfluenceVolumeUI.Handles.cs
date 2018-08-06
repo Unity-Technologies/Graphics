@@ -50,52 +50,49 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public static void DrawHandles_EditInfluence(InfluenceVolumeUI s, InfluenceVolume d, Editor o, Matrix4x4 matrix, Object sourceAsset)
         {
-            var mat = Handles.matrix;
-            var c = Handles.color;
-            Handles.matrix = matrix;
-            Handles.color = k_GizmoThemeColorInfluence;
-            switch (d.shape)
+            using (new Handles.DrawingScope(k_GizmoThemeColorInfluence, matrix))
             {
-                case InfluenceShape.Box:
-                    {
-                        var positive = d.boxBlendDistancePositive;
-                        var negative = d.boxBlendDistanceNegative;
-                        DrawBoxFadeHandle(
-                            s, d, o, sourceAsset,
-                            s1 => s1.boxInfluenceHandle,
-                            d.offset, d.boxSize,
-                            ref positive,
-                            ref negative);
-                        s.data.boxBlendDistancePositive.vector3Value = positive;
-                        s.data.boxBlendDistanceNegative.vector3Value = negative;
+                switch (d.shape)
+                {
+                    case InfluenceShape.Box:
+                        {
+                            var positive = d.boxBlendDistancePositive;
+                            var negative = d.boxBlendDistanceNegative;
+                            DrawBoxFadeHandle(
+                                s, d, o, sourceAsset,
+                                s1 => s1.boxInfluenceHandle,
+                                d.offset, d.boxSize,
+                                ref positive,
+                                ref negative);
+                            s.data.boxBlendDistancePositive.vector3Value = positive;
+                            s.data.boxBlendDistanceNegative.vector3Value = negative;
 
-                        //save advanced/simplified saved data
-                        if (s.data.editorAdvancedModeEnabled.boolValue)
-                        {
-                            s.data.editorAdvancedModeBlendDistancePositive.vector3Value = positive;
-                            s.data.editorAdvancedModeBlendDistanceNegative.vector3Value = negative;
+                            ////save advanced/simplified saved data
+                            if (s.data.editorAdvancedModeEnabled.boolValue)
+                            {
+                                s.data.editorAdvancedModeBlendDistancePositive.vector3Value = positive;
+                                s.data.editorAdvancedModeBlendDistanceNegative.vector3Value = negative;
+                            }
+                            else
+                            {
+                                s.data.editorSimplifiedModeBlendDistance.floatValue = positive.x;
+                            }
+                            s.data.Apply();
+                            break;
                         }
-                        else
+                    case InfluenceShape.Sphere:
                         {
-                            s.data.editorSimplifiedModeBlendDistance.floatValue = positive.x;
+                            var fade = d.sphereBlendDistance;
+                            DrawSphereFadeHandle(
+                                s, d, o, sourceAsset,
+                                s1 => s1.sphereInfluenceHandle,
+                                d.offset, d.sphereRadius,
+                                ref fade);
+                            d.sphereBlendDistance = fade;
+                            break;
                         }
-                        s.data.Apply();
-                        break;
-                    }
-                case InfluenceShape.Sphere:
-                    {
-                        var fade = d.sphereBlendDistance;
-                        DrawSphereFadeHandle(
-                            s, d, o, sourceAsset,
-                            s1 => s1.sphereInfluenceHandle,
-                            d.offset, d.sphereRadius,
-                            ref fade);
-                        d.sphereBlendDistance = fade;
-                        break;
-                    }
+                }
             }
-            Handles.matrix = mat;
-            Handles.color = c;
         }
 
         public static void DrawHandles_EditInfluenceNormal(InfluenceVolumeUI s, InfluenceVolume d, Editor o, Matrix4x4 matrix, Object sourceAsset)
@@ -241,15 +238,15 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 Undo.RecordObject(sourceAsset, "Modified Influence Volume");
 
-                var center = baseOffset;
-                var influenceSize = baseSize;
+                var influenceCenter = baseOffset;
+                var halfInfluenceSize = baseSize * .5f;
 
-                var diff = 2 * (b.center - center);
-                var sum = influenceSize - b.size;
-                var positiveNew = (sum - diff) * 0.5f;
-                var negativeNew = (sum + diff) * 0.5f;
-                var blendDistancePositive = Vector3.Max(Vector3.zero, Vector3.Min(positiveNew, influenceSize * .5f));
-                var blendDistanceNegative = Vector3.Max(Vector3.zero, Vector3.Min(negativeNew, influenceSize * .5f));
+                var centerDiff = b.center - influenceCenter;
+                var halfSizeDiff = halfInfluenceSize - b.size * .5f;
+                var positiveNew = halfSizeDiff - centerDiff;
+                var negativeNew = halfSizeDiff + centerDiff;
+                var blendDistancePositive = Vector3.Max(Vector3.zero, Vector3.Min(positiveNew, halfInfluenceSize));
+                var blendDistanceNegative = Vector3.Max(Vector3.zero, Vector3.Min(negativeNew, halfInfluenceSize));
 
                 positive = blendDistancePositive;
                 negative = blendDistanceNegative;
