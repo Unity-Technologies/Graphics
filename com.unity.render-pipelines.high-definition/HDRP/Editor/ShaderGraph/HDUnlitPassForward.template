@@ -94,6 +94,7 @@ $splice(Defines)
         // used for shaders that don't need lighting
         #include "HDRP/Material/Material.hlsl"
     #endif
+    #include "HDRP/Material/BuiltinUtilities.hlsl"
     #include "HDRP/Material/MaterialUtilities.hlsl"
 
     // this function assumes the bitangent flip is encoded in tangentWS.w

@@ -4,11 +4,16 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [3.3.0-preview]
+
 ## [3.2.0-preview]
 ### Changed
+- Receive Shadows property is now exposed in the material instead of in the renderer.
 - The UI for Lightweight asset has been updated with new categories. A more clean structure and foldouts has been added to keep things organized.
 
 ### Fixed
+- Shadow casters are now properly culled per cascade. (case 1059142)
+- Rendering no longer breaks when Android platform is selected in Build Settings. (case 1058812)
 - Scriptable passes no longer have missing material references. Now they access cached materials in the renderer.(case 1061353)
 - When you change a Shadow Cascade option in the Pipeline Asset, this no longer warns you that you've exceeded the array size for the _WorldToShadow property.
 - Terrain shader optimizations.

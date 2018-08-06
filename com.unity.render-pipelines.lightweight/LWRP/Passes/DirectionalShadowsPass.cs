@@ -142,9 +142,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     success = LightweightShadowUtils.ExtractDirectionalLightMatrix(ref cullResults, ref shadowData, shadowLightIndex, cascadeIndex, shadowResolution, shadowNearPlane, out m_CascadeSplitDistances[cascadeIndex], out m_CascadeSlices[cascadeIndex], out view, out proj);
                     if (success)
                     {
+                        settings.splitData.cullingSphere = m_CascadeSplitDistances[cascadeIndex];
                         LightweightShadowUtils.SetupShadowCasterConstants(cmd, ref shadowLight, proj, shadowResolution);
-                        LightweightShadowUtils.RenderShadowSlice(cmd, ref context, ref m_CascadeSlices[cascadeIndex], proj,
-                            view, settings);
+                        LightweightShadowUtils.RenderShadowSlice(cmd, ref context, ref m_CascadeSlices[cascadeIndex], ref settings, proj, view);
                     }
                 }
 
@@ -187,7 +187,10 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             cmd.SetGlobalVector(DirectionalShadowConstantBuffer._DirShadowSplitSpheres1, m_CascadeSplitDistances[1]);
             cmd.SetGlobalVector(DirectionalShadowConstantBuffer._DirShadowSplitSpheres2, m_CascadeSplitDistances[2]);
             cmd.SetGlobalVector(DirectionalShadowConstantBuffer._DirShadowSplitSpheres3, m_CascadeSplitDistances[3]);
-            cmd.SetGlobalVector(DirectionalShadowConstantBuffer._DirShadowSplitSphereRadii, new Vector4(m_CascadeSplitDistances[0].w, m_CascadeSplitDistances[1].w, m_CascadeSplitDistances[2].w, m_CascadeSplitDistances[3].w));
+            cmd.SetGlobalVector(DirectionalShadowConstantBuffer._DirShadowSplitSphereRadii, new Vector4(m_CascadeSplitDistances[0].w * m_CascadeSplitDistances[0].w,
+                m_CascadeSplitDistances[1].w * m_CascadeSplitDistances[1].w,
+                m_CascadeSplitDistances[2].w * m_CascadeSplitDistances[2].w,
+                m_CascadeSplitDistances[3].w * m_CascadeSplitDistances[3].w));
             cmd.SetGlobalVector(DirectionalShadowConstantBuffer._ShadowOffset0, new Vector4(-invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight, 0.0f, 0.0f));
             cmd.SetGlobalVector(DirectionalShadowConstantBuffer._ShadowOffset1, new Vector4(invHalfShadowAtlasWidth, -invHalfShadowAtlasHeight, 0.0f, 0.0f));
             cmd.SetGlobalVector(DirectionalShadowConstantBuffer._ShadowOffset2, new Vector4(-invHalfShadowAtlasWidth, invHalfShadowAtlasHeight, 0.0f, 0.0f));
