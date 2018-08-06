@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine.XR;
 using UnityEngine.Serialization;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
@@ -147,11 +146,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Planar and real time cubemap doesn't need post process and render in FP16
             aggregate.enablePostprocess = camera.cameraType != CameraType.Reflection && srcFrameSettings.enablePostprocess;
 
-#if UNITY_SWITCH
-            aggregate.enableStereo = false;
-#else
-            aggregate.enableStereo = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableStereo && XRSettings.isDeviceActive && (camera.stereoTargetEye == StereoTargetEyeMask.Both) && renderPipelineSettings.supportStereo;
-#endif
+            aggregate.enableStereo = camera.cameraType != CameraType.Reflection && srcFrameSettings.enableStereo && XRGraphicsConfig.enabled && (camera.stereoTargetEye == StereoTargetEyeMask.Both);
 
             aggregate.enableAsyncCompute = srcFrameSettings.enableAsyncCompute && SystemInfo.supportsAsyncCompute;
 

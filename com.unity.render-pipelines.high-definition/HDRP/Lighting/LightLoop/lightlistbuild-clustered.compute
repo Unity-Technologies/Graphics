@@ -4,7 +4,14 @@
 #pragma kernel TileLightListGen_NoDepthRT_SrcBigTile        LIGHTLISTGEN=TileLightListGen_NoDepthRT_SrcBigTile                                                                  USE_TWO_PASS_TILED_LIGHTING
 #pragma kernel TileLightListGen_DepthRT_SrcBigTile          LIGHTLISTGEN=TileLightListGen_DepthRT_SrcBigTile            ENABLE_DEPTH_TEXTURE_BACKPLANE                          USE_TWO_PASS_TILED_LIGHTING
 #pragma kernel TileLightListGen_DepthRT_MSAA_SrcBigTile     LIGHTLISTGEN=TileLightListGen_DepthRT_MSAA_SrcBigTile       ENABLE_DEPTH_TEXTURE_BACKPLANE      MSAA_ENABLED        USE_TWO_PASS_TILED_LIGHTING
+
+#pragma kernel TileLightListGen_DepthRT_Oblique                     LIGHTLISTGEN=TileLightListGen_DepthRT_Oblique						ENABLE_DEPTH_TEXTURE_BACKPLANE			USE_OBLIQUE_MODE
+#pragma kernel TileLightListGen_DepthRT_MSAA_Oblique                LIGHTLISTGEN=TileLightListGen_DepthRT_MSAA_Oblique					ENABLE_DEPTH_TEXTURE_BACKPLANE			MSAA_ENABLED			USE_OBLIQUE_MODE
+#pragma kernel TileLightListGen_DepthRT_SrcBigTile_Oblique          LIGHTLISTGEN=TileLightListGen_DepthRT_SrcBigTile_Oblique            ENABLE_DEPTH_TEXTURE_BACKPLANE          USE_TWO_PASS_TILED_LIGHTING				USE_OBLIQUE_MODE
+#pragma kernel TileLightListGen_DepthRT_MSAA_SrcBigTile_Oblique     LIGHTLISTGEN=TileLightListGen_DepthRT_MSAA_SrcBigTile_Oblique       ENABLE_DEPTH_TEXTURE_BACKPLANE			MSAA_ENABLED        USE_TWO_PASS_TILED_LIGHTING			USE_OBLIQUE_MODE
+
 #pragma kernel ClearAtomic
+
 
 #include "CoreRP/ShaderLibrary/Common.hlsl"
 #include "ShaderBase.hlsl"
@@ -53,7 +60,7 @@ Texture2DMS<float> g_depth_tex : register( t0 );
 #else
 Texture2D g_depth_tex : register( t0 );
 #endif
-StructuredBuffer<float3> g_vBoundsBuffer : register( t1 );
+StructuredBuffer<float4> g_vBoundsBuffer : register( t1 );
 StructuredBuffer<LightVolumeData> _LightVolumeData : register(t2);
 StructuredBuffer<SFiniteLightBound> g_data : register( t3 );
 
@@ -94,20 +101,21 @@ groupshared uint lightOffs2;
 groupshared uint lightOffsSph;
 #endif
 
-float GetLinearDepth(float zDptBufSpace, uint eyeIndex)    // 0 is near 1 is far
+float GetLinearDepth(float2 pixXY, float zDptBufSpace, uint eyeIndex)    // 0 is near 1 is far
 {
     float4x4 g_mInvScrProjection = g_mInvScrProjectionArr[eyeIndex];
 
+#ifdef USE_OBLIQUE_MODE
+	float2 res2 = mul(g_mInvScrProjection, float4(pixXY, zDptBufSpace, 1.0)).zw;
+	return res2.x / res2.y;
+#else
     // for perspective projection m22 is zero and m23 is +1/-1 (depends on left/right hand proj)
     // however this function must also work for orthographic projection so we keep it like this.
     float m22 = g_mInvScrProjection[2].z, m23 = g_mInvScrProjection[2].w;
     float m32 = g_mInvScrProjection[3].z, m33 = g_mInvScrProjection[3].w;
 
     return (m22*zDptBufSpace+m23) / (m32*zDptBufSpace+m33);
-
-    //float3 vP = float3(0.0f,0.0f,zDptBufSpace);
-    //float4 v4Pres = mul(g_mInvScrProjection, float4(vP,1.0));
-    //return v4Pres.z / v4Pres.w;
+#endif
 }
 
 float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth, uint eyeIndex)
@@ -160,7 +168,6 @@ float4 FetchPlane(int l, int p, uint eyeIndex);
 bool CheckIntersection(int l, int k, uint2 viTilLL, uint2 viTilUR, float suggestedBase, uint eyeIndex)
 {
     // If this light's screen space depth bounds intersect this cluster...simple cluster test
-    // TODO: Unify this code with the code in CheckIntersectionBasic...
     unsigned int val = (clusterIdxs[l>>1]>>(16*(l&1)))&0xffff;
     bool bIsHit = ((val>>0)&0xff)<=((uint) k) && ((uint) k)<=((val>>8)&0xff);
     if(bIsHit)
@@ -231,11 +238,11 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
     GroupMemoryBarrierWithGroupSync();
 #endif
 
-    float dpt_ma=1.0;
+    //float linMaDist=g_fFarPlane;
 
 #ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
-    // establish min and max depth first
-    dpt_ma=0.0;
+    // establish max depth first
+    float linMaDist=0.0;
 
     for(int idx=t; idx<(TILE_SIZE_CLUSTERED*TILE_SIZE_CLUSTERED); idx+=NR_THREADS)
     {
@@ -252,27 +259,39 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
         for(int i=0; i<g_iNumSamplesMSAA; i++)
         {
         const float fDpth = FetchDepthMSAA(g_depth_tex, uPixCrd, i);
+		const float2 fracSampleCoord = g_depth_tex.GetSamplePosition(i).xy;		// this is optimized away when USE_OBLIQUE_MODE is NOT set.
 #else
         const float fDpth = FetchDepth(g_depth_tex, uPixCrd);
+		const float2 fracSampleCoord = float2(0.5,0.5);
 #endif
+
         if(fDpth<VIEWPORT_SCALE_Z)      // if not skydome
         {
-            dpt_ma = max(fDpth, dpt_ma);
+			// unclear here if stereoDWOffset is taken into account in g_mInvScrProjectionArr[eyeIndex] used in GetLinearDepth()
+			// otherwise it should not be included in uPixCrd when querying GetLinearDepth().
+			float linZ = GetLinearDepth(uPixCrd+fracSampleCoord, fDpth, eyeIndex);
+#if USE_LEFT_HAND_CAMERA_SPACE
+			float linDistZ = linZ;
+#else
+			float linDistZ = -linZ;
+#endif
+
+            linMaDist = max(linDistZ, linMaDist);
         }
 #ifdef MSAA_ENABLED
         }
 #endif
     }
 
-    // Why is this a uint? Doesn't InterlockedMax support shared mem floats?
-    InterlockedMax(ldsZMax, asuint(dpt_ma) );
+    linMaDist = max(linMaDist, 0.0);
+    InterlockedMax(ldsZMax, asuint(linMaDist) );
 
 
 #if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
     GroupMemoryBarrierWithGroupSync();
 #endif
-    dpt_ma = asfloat(ldsZMax);
-    if(dpt_ma<=0.0) dpt_ma = VIEWPORT_SCALE_Z;      // assume sky pixel
+    linMaDist = asfloat(ldsZMax);
+    if(linMaDist<=0.0) linMaDist = g_fFarPlane;      // assume sky pixel
 #endif
 
     // 'Normalized' coordinates of tile, for use with AABB bounds in g_vBoundsBuffer
@@ -296,8 +315,6 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
     for(int l=(int) t; l<(int) g_iNrVisibLights; l += NR_THREADS)
     {
 #endif
-        // TODO: Seems kinda funny that we repeat this exact code here, bigtile, and FPTL...
-
         const ScreenSpaceBoundsIndices boundsIndices = GenerateScreenSpaceBoundsIndices(l, g_iNrVisibLights, eyeIndex);
         const float2 vMi = g_vBoundsBuffer[boundsIndices.min].xy;
         const float2 vMa = g_vBoundsBuffer[boundsIndices.max].xy;
@@ -322,12 +339,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 #endif
 
 #ifdef ENABLE_DEPTH_TEXTURE_BACKPLANE
-
-#if USE_LEFT_HAND_CAMERA_SPACE
-    float fTileFarPlane = GetLinearDepth(dpt_ma, eyeIndex);
-#else // USE_LEFT_HAND_CAMERA_SPACE
-    float fTileFarPlane = -GetLinearDepth(dpt_ma, eyeIndex);
-#endif
+    float fTileFarPlane = linMaDist;
     float suggestedBase = SuggestLogBase50(fTileFarPlane);
 #else // ENABLE_DEPTH_TEXTURE_BACKPLANE
     float fTileFarPlane = g_fFarPlane;
@@ -340,7 +352,6 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
 #endif
 
     // sort lights (gives a more efficient execution in both deferred and tiled forward lighting).
-    // NOTE: Why not sort on console?
 #if !defined(SHADER_API_XBOXONE) && !defined(SHADER_API_PSSL)
     SORTLIST(coarseList, iNrCoarseLights, MAX_NR_COARSE_ENTRIES, t, NR_THREADS);
 #endif
@@ -356,10 +367,10 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
             const ScreenSpaceBoundsIndices l0Bounds = GenerateScreenSpaceBoundsIndices(l0, g_iNrVisibLights, eyeIndex);
             const ScreenSpaceBoundsIndices l1Bounds = GenerateScreenSpaceBoundsIndices(l1, g_iNrVisibLights, eyeIndex);
 
-            const unsigned int clustIdxMi0 = (const unsigned int)min(255, SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l0Bounds.min].z, eyeIndex), suggestedBase));
-            const unsigned int clustIdxMa0 = (const unsigned int)min(255, SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l0Bounds.max].z, eyeIndex), suggestedBase));
-            const unsigned int clustIdxMi1 = (const unsigned int)min(255, SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l1Bounds.min].z, eyeIndex), suggestedBase));
-            const unsigned int clustIdxMa1 = (const unsigned int)min(255, SnapToClusterIdx(GetLinearDepth(g_vBoundsBuffer[l1Bounds.max].z, eyeIndex), suggestedBase));
+            const unsigned int clustIdxMi0 = (const unsigned int)min(255, SnapToClusterIdx(g_vBoundsBuffer[l0Bounds.min].w, suggestedBase));
+            const unsigned int clustIdxMa0 = (const unsigned int)min(255, SnapToClusterIdx(g_vBoundsBuffer[l0Bounds.max].w, suggestedBase));
+            const unsigned int clustIdxMi1 = (const unsigned int)min(255, SnapToClusterIdx(g_vBoundsBuffer[l1Bounds.min].w, suggestedBase));
+            const unsigned int clustIdxMa1 = (const unsigned int)min(255, SnapToClusterIdx(g_vBoundsBuffer[l1Bounds.max].w, suggestedBase));
             clusterIdxs[l] = (clustIdxMa1<<24) | (clustIdxMi1<<16) | (clustIdxMa0<<8) | (clustIdxMi0<<0);
         }
     }
@@ -397,7 +408,6 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
     // to make it work correctly
     int shiftIndex[LIGHTCATEGORY_COUNT];
     ZERO_INITIALIZE_ARRAY(int, shiftIndex, LIGHTCATEGORY_COUNT);
-    // NOTE: Why is this indexed like this?
     shiftIndex[LIGHTCATEGORY_COUNT - 3] = _EnvLightIndexShift;
     shiftIndex[LIGHTCATEGORY_COUNT - 2] = _DecalIndexShift;
     shiftIndex[LIGHTCATEGORY_COUNT - 1] = _DensityVolumeIndexShift;

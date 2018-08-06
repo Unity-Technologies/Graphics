@@ -28,7 +28,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (!s.sceneViewEditing)
                 return;
 
-            var mat = p.target.transform.localToWorldMatrix;
+            var mat = Matrix4x4.TRS(p.target.transform.position, p.target.transform.rotation, Vector3.one);
 
             EditorGUI.BeginChangeCheck();
 
