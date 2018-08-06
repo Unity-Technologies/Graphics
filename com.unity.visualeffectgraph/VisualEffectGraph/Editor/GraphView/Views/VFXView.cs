@@ -393,9 +393,9 @@ namespace UnityEditor.VFX.UI
             m_NoAssetLabel.style.positionRight = 0;
             m_NoAssetLabel.style.positionTop = 0;
             m_NoAssetLabel.style.positionBottom = 0;
-            m_NoAssetLabel.style.textAlignment = TextAnchor.MiddleCenter;
+            m_NoAssetLabel.style.unityTextAlign = TextAnchor.MiddleCenter;
             m_NoAssetLabel.style.fontSize = 72;
-            m_NoAssetLabel.style.textColor = Color.white * 0.75f;
+            m_NoAssetLabel.style.color = Color.white * 0.75f;
 
             Add(m_NoAssetLabel);
 
