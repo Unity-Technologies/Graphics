@@ -8,14 +8,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         // This class will process a normal map and add the value of average normal length to the blue or alpha channel
         // The texture is saved as BC7.
-        // Tangent space normal map: BC7 RGB (normal xy - average normal length)
-        // Object space normal map: BC7 RGBA (normal xyz - average normal length)
-        static string s_Suffix = "_NA";
-        static string s_SuffixOS = "_OSNA"; // Suffix for object space case
-
-        static bool storeVariance = true; // Otherwise, we will store averageNormalLength
-        static float highestVarianceAllowed = 0.03125f; // 0.25 * 0.25 / 2 = 0.0625 / 2 = 0.03125;
-        static float lowestAverageNormalLengthAllowed = 0.8695f; // 0.03125 = (1-xx)/(4*(3*x-x*x*x)) where x is lowestAverageNormalLengthAllowed
+        // Tangent space normal map: BC7 RGB (normal xy - encoded variance)
+        // Object space normal map: BC7 RGBA (normal xyz - encoded variance)
+        static string s_Suffix = "_NF";
+        static string s_SuffixOS = "_OSNF"; // Suffix for object space case
 
         bool IsAssetTaggedAsTangentSpaceNormalMap()
         {
@@ -106,6 +102,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         // thresholds and remaps variance from [0, highestVarianceAllowed] to [0, 1]
         private static float GetEncodedVariance(float averageNormalLength)
         {
+            // Caution: This constant must be in sync with CommonMaterial.hlsl #define NORMALMAP_HIGHEST_VARIANCE
+            const float highestVarianceAllowed = 0.03125f; // 0.25 * 0.25 / 2 = 0.0625 / 2 = 0.03125;
+
             // To decide to store or not the averageNormalLength directly we need to consider:
             //
             // 1) useful range vs block compression and bit encoding of that range,
@@ -120,7 +119,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // of the average normal) is linear and so if we would store and filter averageNormalLength anyway
             // but limit our range to that part, we could just store and filter directly the variance in that
             // range too. (Note though that moments are linearly filterable cf LEAN, LEADR).
-            // For 1), compression can further compound artefacts too so we need to consider the useful range.
+            // For 1), compression can further compound artifacts too so we need to consider the useful range.
             //
             // We recall:
             //
@@ -150,13 +149,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // linearly as averageNormalLength goes to 1 with a slope of -1/4
             // http://www.wolframalpha.com/input/?i=y(x)+:%3D+(1+-+x*x)%2F(4*(3x+-+x*x*x));+x+from+0+to+1
 
-            // Remember we do + min(2.0 * variance, threshold * threshold)) to effectively limit the added_roughness^2
+            // Remember we do "+ min(2.0 * variance, threshold * threshold)" in NormalFiltering of CommonMaterial.hlsl
+            // to effectively limit the added_roughness^2
             // when doing normal map filtering by modifying underlying BSDF roughness.
             //
-            // An added variance of 0.1 gives an increase of roughness = sqrt(2*0.1) = 0.447, which is a huge
-            // increase already. For this reason, and since above we see that an averageNormalLength of about 0.6 gives
-            // such a 0.1 variance, we could actually just scale and bias the averageNormalLength by
-            // encodedAverageNormalLength = (averageNormalLength - 0.6f) / (1.0f - 0.6f);
+            // An added variance of 0.1 gives an increase of roughness = sqrt(2 * 0.1) = 0.447, which is a huge increase already.
+            // An added variance of 0.03125 gives an increase of roughness = sqrt(2 * 0.03125) = 0.25, which still a lot
             //
             // Also remember that we use a user specified threshold to effectively limit the added_roughness^2,
             // as shown above with + min(2.0 * variance, threshold * threshold)).
@@ -180,14 +178,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             //
             float encodedVariance = Math.Min(variance, highestVarianceAllowed) / highestVarianceAllowed;
             return encodedVariance;
-        }
-
-        // Thresholds and remaps averageNormalLength from [lowestAverageNormalLengthAllowed, 1.0] to [0, 1]
-        private static float GetEncodedAverageNormalLength(float averageNormalLength)
-        {
-            float encodedAverageNormalLength = (averageNormalLength - lowestAverageNormalLengthAllowed) / (1.0f - lowestAverageNormalLengthAllowed);
-            encodedAverageNormalLength = Math.Max(0.0f, encodedAverageNormalLength);
-            return encodedAverageNormalLength;
         }
 
         void OnPostprocessTexture(Texture2D texture)
@@ -217,34 +207,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                             int outputPosition = y * mipWidth + x;
 
-                            // Check what's already in that mip level (see comment below)
-                            Vector3 existingAverageNormal = (Vector4)c[outputPosition];
-                            existingAverageNormal = 2.0f * existingAverageNormal - Vector3.one;
-                            // Since we have enabled mipmaps, at this stage (OnPostprocessTexture), the mipmaps
-                            // have already been created and contain an average pixel value also, so we could use
-                            // that (from the c = texture.GetPixels(miplevel) array directly).
-                            // The value will be the average of the (n + 1)/2 range encoded values, which is the
-                            // (<n> + 1)/2 range encoded value of the average normal <n>: 
-                            // ie: let <> be defined as the average of footprint, we have
-                            // < (n + 1)/2 > = 1/2 [<n> + <1>] = (<n> + 1)/2
-                            // so we can just decode the average with 2*pixel_value - 1 like we did above with
-                            // existingAverageNormal.
-                            // TODO: Validate. Also, would be faster. Even us doing manually 2 pass would be faster,
-                            // reusing the previous level results doing the first pass where we calculate all averages,
-                            // than the second pass which calculates the average's length, normalizes and store
-                            // the final x,y,variance value.
-                            //
-                            // Whatever we decide to use (our own computation or what is already in the miplevel
-                            // pixel), we need to normalize the result and store the x,y components in the proper
-                            // (n + 1)/2 range encoded values in the R,G channels since only normalized normals
-                            // are two channel encoded.
+                            // Note: As an optimization we could check what is generated in the mipmap (as it is suppose to be the average already)
+                            // TODO: Do some test and see if it is equivalent, for now reprocess all normal from top mips.
+                            // Vector3 existingAverageNormal = (Vector4)c[outputPosition];
+                            // existingAverageNormal = 2.0f * existingAverageNormal - Vector3.one;
 
                             // Clamp to avoid any issue (shouldn't be required but sanitizes the normal map if needed)
                             // We will also write the custom data into the blue channel to streamline the unpacking
                             // shader code to fetch a 2 channel normal in RG whether we use normal map filtering or not.
                             float averageNormalLength = Math.Max(0.0f, Math.Min(1.0f, averageNormal.magnitude));
-                            float encodedVariance = GetEncodedVariance(averageNormalLength);
-                            float outputValue = storeVariance ? encodedVariance : GetEncodedAverageNormalLength(averageNormalLength);
+                            float outputValue = GetEncodedVariance(averageNormalLength);
 
                             // Finally, note that since we need to add custom data in a map channel, we can't use the Unity
                             // importer UI settings TextureType == NormalMap, since it leaves channel control to Unity in
@@ -277,7 +249,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 // For mip 0, set the normal length to 1.
                 {
                     Color[] c = texture.GetPixels(0);
-                    float outputValue = storeVariance ? GetEncodedVariance(1.0f) : GetEncodedAverageNormalLength(1.0f);
+                    float outputValue = GetEncodedVariance(1.0f);
                     for (int i = 0; i < c.Length; i++)
                     {
                         if (isNormalMapTangentSpace)
@@ -292,7 +264,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     }
                     texture.SetPixels(c, 0);
                 }
-                //texture.mipMapBias = -1.0f;
+                // Compression will be apply after this.
                 texture.Apply(updateMipmaps: false, makeNoLongerReadable: true);
             }
         }
