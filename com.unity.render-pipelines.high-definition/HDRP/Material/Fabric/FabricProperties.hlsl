@@ -22,8 +22,6 @@ SAMPLER(sampler_DetailMap);
 
 TEXTURE2D(_TangentMap);
 SAMPLER(sampler_TangentMap);
-TEXTURE2D(_TangentMapOS);
-SAMPLER(sampler_TangentMapOS);
 
 TEXTURE2D(_AnisotropyMap);
 SAMPLER(sampler_AnisotropyMap);

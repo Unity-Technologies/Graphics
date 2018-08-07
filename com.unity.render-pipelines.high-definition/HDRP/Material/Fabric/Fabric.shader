@@ -23,8 +23,8 @@ Shader "HDRenderPipeline/Fabric"
         _NormalMap("NormalMap", 2D) = "bump" {}     // Tangent space normal map
         _NormalScale("_NormalScale", Range(0.0, 2.0)) = 1
 
-        // TODO
-        // _TangentMap("TangentMap", 2D) = "bump" {}
+        // Tangent map
+        _TangentMap("TangentMap", 2D) = "bump" {}
 
         // Smoothness values (overriden by the mask map)
         _Smoothness("Smoothness", Range(0.0, 1.0)) = 1.0
