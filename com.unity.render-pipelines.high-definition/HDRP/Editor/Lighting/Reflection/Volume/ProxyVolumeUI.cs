@@ -159,6 +159,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 proxyVolume.sphereRadius = s.sphereProjectionHandle.radius;
 
+                //the gizmo is not an object of the scene. Flag it as dirty
                 EditorUtility.SetDirty(sourceAsset);
             }
         }
@@ -181,6 +182,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 proxyVolume.boxSize = s.boxProjectionHandle.size;
 
+                //the gizmo is not an object of the scene. Flag it as dirty
                 EditorUtility.SetDirty(sourceAsset);
             }
         }

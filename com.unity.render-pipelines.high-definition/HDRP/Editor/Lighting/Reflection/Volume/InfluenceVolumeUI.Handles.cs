@@ -215,8 +215,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 }
 
                 s.data.Apply();
-
-                EditorUtility.SetDirty(sourceAsset);
             }
         }
 
@@ -251,7 +249,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 positive = blendDistancePositive;
                 negative = blendDistanceNegative;
 
-                EditorUtility.SetDirty(sourceAsset);
             }
         }
 
@@ -274,8 +271,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 s.data.sphereBlendDistance.floatValue = Mathf.Clamp(s.data.sphereBlendDistance.floatValue, 0, radius);
                 s.data.sphereBlendNormalDistance.floatValue = Mathf.Clamp(s.data.sphereBlendNormalDistance.floatValue, 0, radius);
                 s.data.Apply();
-
-                EditorUtility.SetDirty(sourceAsset);
             }
         }
 
@@ -296,8 +291,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 Undo.RecordObject(sourceAsset, "Modified Influence volume");
 
                 radius = Mathf.Clamp(baseRadius - b.radius, 0, baseRadius);
-
-                EditorUtility.SetDirty(sourceAsset);
             }
         }
     }

@@ -39,8 +39,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                                 //call modification to legacy ReflectionProbe
                                 probe.influenceVolume.offset = newOffset;
-
-                                EditorUtility.SetDirty(probe);
                             }
                         }
                         break;
