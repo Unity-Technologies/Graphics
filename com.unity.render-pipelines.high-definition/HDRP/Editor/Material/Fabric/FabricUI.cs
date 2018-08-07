@@ -40,7 +40,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // public static GUIContent bentNormalMapText = new GUIContent("Bent normal map", "Use only with indirect diffuse lighting (Lightmap/light-probe) - Cosine weighted Bent Normal Map (average un-occluded direction) (BC7/BC5/DXT5(nm))");
 
             // Tangent map
-            // public static GUIContent tangentMapText = new GUIContent("Tangent Map", "Tangent Map (BC7/BC5/DXT5(nm))");
+            public static GUIContent tangentMapText = new GUIContent("Tangent Map", "Tangent Map (BC7/BC5/DXT5(nm))");
            
             // Anisotropy
             public static GUIContent anisotropyText = new GUIContent("Anisotropy", "Anisotropy scale factor");
@@ -128,6 +128,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const string kNormalMap = "_NormalMap";
         // protected MaterialProperty bentNormalMap = null;
         // protected const string kBentNormalMap = "_BentNormalMap";
+
+        // Tangent Map
+        protected MaterialProperty tangentMap = null;
+        protected const string kTangentMap = "_TangentMap";
 
         // Fuzz Tint
         protected MaterialProperty fuzzTint = null;
@@ -233,6 +237,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             normalMap = FindProperty(kNormalMap, props);
             normalScale = FindProperty(kNormalScale, props);
             // bentNormalMap = FindProperty(kBentNormalMap, props);
+
+            // Tangent map
+            tangentMap = FindProperty(kTangentMap, props);
 
             // Fuzz tint
             fuzzTint = FindProperty(kFuzzTint, props);
@@ -548,7 +555,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             FabricType fabricType = (FabricType)material.GetFloat(kFabricType);
             if(fabricType == FabricType.Silk)
             {
-                //m_MaterialEditor.TexturePropertySingleLine(Styles.tangentMapText, tangentMap);
+                m_MaterialEditor.TexturePropertySingleLine(Styles.tangentMapText, tangentMap);
                 m_MaterialEditor.ShaderProperty(anisotropy, Styles.anisotropyText);
                 m_MaterialEditor.TexturePropertySingleLine(Styles.anisotropyMapText, anisotropyMap);
             }

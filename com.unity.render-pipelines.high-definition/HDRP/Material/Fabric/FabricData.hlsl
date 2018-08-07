@@ -7,12 +7,12 @@
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
-    // TODO: Remove this zero initialize once we have written all the code
-    ZERO_INITIALIZE(SurfaceData, surfaceData);
-
+    // Initial value of the material features
+    surfaceData.materialFeatures = 0;
+    
 // Transform the preprocess macro into a material feature (note that silk flag is deduced from the abscence of this one)
 #ifdef _MATERIAL_FEATURE_COTTON_WOOL
-    surfaceData.materialFeatures = MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL;
+    surfaceData.materialFeatures |= MATERIALFEATUREFLAGS_FABRIC_COTTON_WOOL;
 #endif
 
 #ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
@@ -72,10 +72,21 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 
 #ifdef _NORMALMAP
     float2 derivative = UnpackDerivativeNormalRGorAG(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, uvBase), _NormalScale);
-    float3 gradient =  SurfaceGradientFromTBN(derivative, input.worldToTangent[0], input.worldToTangent[1]) + detailGradient * detailMasks.x;
+    #ifdef _DETAIL_MAP
+        float3 gradient =  SurfaceGradientFromTBN(derivative, input.worldToTangent[0], input.worldToTangent[1]) + detailGradient * detailMasks.x;
+    #else
+        float3 gradient =  SurfaceGradientFromTBN(derivative, input.worldToTangent[0], input.worldToTangent[1]);
+    #endif
     surfaceData.normalWS = SurfaceGradientResolveNormal(input.worldToTangent[2], gradient);
 #else
     surfaceData.normalWS = input.worldToTangent[2];
+#endif
+
+#ifdef _TANGENTMAP
+    float3 tangentTS = UnpackNormalmapRGorAG(SAMPLE_TEXTURE2D(_TangentMap, sampler_TangentMap, uvBase, 1.0));
+    surfaceData.tangentWS = TransformTangentToWorld(tangentTS, input.worldToTangent);
+#else
+    surfaceData.tangentWS = normalize(input.worldToTangent[0].xyz); // The tangent is not normalize in worldToTangent for mikkt. TODO: Check if it expected that we normalize with Morten. Tag: SURFACE_GRADIENT
 #endif
 
     // Make the tagent match the normal
@@ -102,6 +113,14 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.perceptualSmoothness = lerp(surfaceData.perceptualSmoothness, saturate(smoothnessOverlay), detailMask.x);
 #endif
     
+// If a detail map was provided, modify the matching ao
+#ifdef _DETAIL_MAP
+    float aoDetailSpeed = saturate(abs(detailAO) * _DetailAOScale);
+    float aoOverlay = lerp(surfaceData.ambientOcclusion, (aoDetailSpeed < 0.0) ? 0.0 : 1.0, aoDetailSpeed);
+    surfaceData.ambientOcclusion = lerp(surfaceData.ambientOcclusion, saturate(aoOverlay), detailMask.x);
+#endif
+    
+
     // Propagate the fuzz tint
     surfaceData.fuzzTint = _FuzzTint.xyz;
 
@@ -113,6 +132,9 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     #else
         surfaceData.subsurfaceMask = _SubsurfaceMask;
     #endif
+#else
+    surfaceData.subsurfaceMask = 0.0;
+    surfaceData.diffusionProfile = 0;
 #endif
 
 #ifdef _MATERIALFEATUREFLAGS_FABRIC_TRANSMISSION
