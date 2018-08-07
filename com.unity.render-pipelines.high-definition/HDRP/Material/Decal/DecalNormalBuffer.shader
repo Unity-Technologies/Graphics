@@ -12,9 +12,7 @@ Shader "Hidden/HDRenderPipeline/Material/Decal/DecalNormalBuffer"
         TEXTURE2D(_DBufferTexture1);
         RW_TEXTURE2D(float4, _NormalBuffer);
         
-
-        SamplerState sampler_PointClamp;
-
+        
         struct Attributes
         {
             uint vertexID : SV_VertexID;
@@ -30,13 +28,13 @@ Shader "Hidden/HDRenderPipeline/Material/Decal/DecalNormalBuffer"
         {
             Varyings output;
             output.positionCS = GetFullScreenTriangleVertexPosition(input.vertexID);
-            output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);// *_BlitScaleBias.xy + _BlitScaleBias.zw;
+            output.texcoord = GetFullScreenTriangleTexCoord(input.vertexID);
             return output;
         }
 
         float4 FragNearest(Varyings input) : SV_Target
         {
-            float4 DBufferNormal = SAMPLE_TEXTURE2D(_DBufferTexture1, sampler_PointClamp, input.texcoord) * float4(2.0f, 2.0f, 2.0f, 1.0f) - float4(1.0f, 1.0f, 1.0f, 0.0f);
+            float4 DBufferNormal =  LOAD_TEXTURE2D(_DBufferTexture1, input.texcoord * _ScreenSize.xy) * float4(2.0f, 2.0f, 2.0f, 1.0f) - float4(1.0f, 1.0f, 1.0f, 0.0f);
             float4 GBufferNormal = _NormalBuffer[input.texcoord * _ScreenSize.xy];
             NormalData normalData;
             DecodeFromNormalBuffer(GBufferNormal, uint2(0, 0), normalData);
