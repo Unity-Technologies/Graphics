@@ -15,13 +15,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             switch (EditMode.editMode)
             {
                 case EditBaseShape:
-                    InfluenceVolumeUI.DrawHandles_EditBase(s.influenceVolume, probe.influenceVolume, o, mat, probe);
+                    InfluenceVolumeUI.DrawHandles_EditBase(s.influenceVolume, d.influenceVolume, o, mat, probe);
                     break;
                 case EditInfluenceShape:
-                    InfluenceVolumeUI.DrawHandles_EditInfluence(s.influenceVolume, probe.influenceVolume, o, mat, probe);
+                    InfluenceVolumeUI.DrawHandles_EditInfluence(s.influenceVolume, d.influenceVolume, o, mat, probe);
                     break;
                 case EditInfluenceNormalShape:
-                    InfluenceVolumeUI.DrawHandles_EditInfluenceNormal(s.influenceVolume, probe.influenceVolume, o, mat, probe);
+                    InfluenceVolumeUI.DrawHandles_EditInfluenceNormal(s.influenceVolume, d.influenceVolume, o, mat, probe);
                     break;
                 case EditCenter:
                     {
@@ -58,8 +58,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             switch (EditMode.editMode)
             {
                 case EditBaseShape:
-                    InfluenceVolumeUI.DrawGizmos(s.influenceVolume, d.influenceVolume, mat,
-                    InfluenceVolumeUI.HandleType.Base, InfluenceVolumeUI.HandleType.All);
+                    InfluenceVolumeUI.DrawGizmos(
+                        s.influenceVolume, d.influenceVolume, mat,
+                        InfluenceVolumeUI.HandleType.Base,
+                        InfluenceVolumeUI.HandleType.All);
                     break;
                 case EditInfluenceShape:
                     InfluenceVolumeUI.DrawGizmos(
