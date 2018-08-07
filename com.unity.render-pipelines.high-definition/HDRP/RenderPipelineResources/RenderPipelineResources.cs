@@ -72,7 +72,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         // Material
         public Shader preIntegratedFGD_GGXDisneyDiffuse;
-        public Shader preIntegratedFGD_CharlieClothLambert;
+        public Shader preIntegratedFGD_CharlieFabricLambert;
 
         // Utilities / Core
         public ComputeShader encodeBC6HCS;
@@ -168,7 +168,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Material
             preIntegratedFGD_GGXDisneyDiffuse = Load<Shader>(HDRenderPipelinePath + "Material/PreIntegratedFGD/PreIntegratedFGD_GGXDisneyDiffuse.shader");
-            preIntegratedFGD_CharlieClothLambert = Load<Shader>(HDRenderPipelinePath + "Material/PreIntegratedFGD/PreIntegratedFGD_CharlieClothLambert.shader");
+            preIntegratedFGD_CharlieFabricLambert = Load<Shader>(HDRenderPipelinePath + "Material/PreIntegratedFGD/PreIntegratedFGD_CharlieClothLambert.shader");
 
             // Utilities / Core
             encodeBC6HCS = Load<ComputeShader>(CorePath + "CoreResources/EncodeBC6H.compute");
