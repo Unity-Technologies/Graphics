@@ -8,10 +8,7 @@ void VFXGetHDRPLitData(out SurfaceData surfaceData, out BuiltinData builtinData,
 	const uint diffusionProfile = 0;
 	#endif
 	
-	float3 posRWS = (float3)0;
-	#ifdef VFX_VARYING_POSRWS
-    posRWS = i.VFX_VARYING_POSRWS;
-	#endif
+	float3 posRWS = VFXGetPositionRWS(i);
 	float4 posSS = i.VFX_VARYING_POSCS;
 	PositionInputs posInput = GetPositionInput(posSS.xy, _ScreenSize.zw, posSS.z, posSS.w, posRWS, tileIndex);
 	
@@ -21,7 +18,7 @@ void VFXGetHDRPLitData(out SurfaceData surfaceData, out BuiltinData builtinData,
 
 	preLightData = GetPreLightData(GetWorldSpaceNormalizeViewDir(posRWS),posInput,bsdfData);
 	preLightData.diffuseFGD = 1.0f;
-	builtinData = VFXGetBuiltinData(i,surfaceData,bsdfData,preLightData,uvData,alpha);
+	builtinData = VFXGetBuiltinData(i,posInput,surfaceData,bsdfData,preLightData,uvData,alpha);
 }
 
 void VFXGetHDRPLitData(out SurfaceData surfaceData, out BuiltinData builtinData, VFX_VARYING_PS_INPUTS i, float3 normalWS, const VFXUVData uvData)

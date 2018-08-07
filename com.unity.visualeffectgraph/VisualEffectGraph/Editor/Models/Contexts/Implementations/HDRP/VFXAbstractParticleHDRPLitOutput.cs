@@ -34,8 +34,14 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Lighting")]
         protected MaterialType materialType = MaterialType.Standard;
 
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
+        protected bool onlyAmbientLighting = false;
+
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Range(1, 15)]
         protected uint diffusionProfile = 1;
+
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
+        protected bool multiplyThicknessWithAlpha = false;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool useBaseColorMap = false;
@@ -223,6 +229,8 @@ namespace UnityEditor.VFX
 
                     case MaterialType.Translucent:
                         yield return "HDRP_MATERIAL_TYPE_TRANSLUCENT";
+                        if (multiplyThicknessWithAlpha)
+                            yield return "HDRP_MULTIPLY_THICKNESS_WITH_ALPHA";
                         break;
 
                     default: break;
@@ -252,6 +260,9 @@ namespace UnityEditor.VFX
 
                 if (doubleSided)
                     yield return "USE_DOUBLE_SIDED";
+
+                if (onlyAmbientLighting)
+                    yield return "USE_ONLY_AMBIENT_LIGHTING";
             }
         }
 
@@ -263,7 +274,10 @@ namespace UnityEditor.VFX
                     yield return setting;
 
                 if (materialType != MaterialType.Translucent)
+                {
                     yield return "diffusionProfile";
+                    yield return "multiplyThicknessWithAlpha";
+                }
 
                 if (!allowTextures)
                 {

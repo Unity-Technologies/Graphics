@@ -1,9 +1,11 @@
+// Upgrade NOTE: replaced 'defined at' with 'defined (at)'
+
 
 #ifdef DEBUG_DISPLAY
 #include "HDRP/Debug/DebugDisplay.hlsl"
 #endif
 #ifndef SHADERPASS
-#error THIS is an errror
+#error SHADERPASS must be defined (at) this point
 #endif
 
 #if (SHADERPASS != SHADERPASS_FORWARD)
@@ -12,26 +14,20 @@
 #include "HDRP/Lighting/Lighting.hlsl"
 #endif
 
-float3 VFXSampleLightProbes(float3 normalWS)
-{
-    real4 SHCoefficients[7];
-    SHCoefficients[0] = unity_SHAr;
-    SHCoefficients[1] = unity_SHAg;
-    SHCoefficients[2] = unity_SHAb;
-    SHCoefficients[3] = unity_SHBr;
-    SHCoefficients[4] = unity_SHBg;
-    SHCoefficients[5] = unity_SHBb;
-    SHCoefficients[6] = unity_SHC;
+#include "HDRP/Material/BuiltinUtilities.hlsl"
 
-    return SampleSH9(SHCoefficients, normalWS);
+float3 VFXGetPositionRWS(VFX_VARYING_PS_INPUTS i)
+{
+	float3 posRWS = (float3)0;
+	#ifdef VFX_VARYING_POSRWS
+    posRWS = i.VFX_VARYING_POSRWS;
+	#endif
+	return posRWS;
 }
 
-BuiltinData VFXGetBuiltinData(VFX_VARYING_PS_INPUTS i,const SurfaceData surfaceData, const BSDFData bsdfData, const PreLightData preLightData, const VFXUVData uvData, float opacity = 1.0f)
+BuiltinData VFXGetBuiltinData(VFX_VARYING_PS_INPUTS i,const PositionInputs posInputs, const SurfaceData surfaceData, const BSDFData bsdfData, const PreLightData preLightData, const VFXUVData uvData, float opacity = 1.0f)
 {
     BuiltinData builtinData = (BuiltinData)0;
-    builtinData.opacity = opacity;
-    builtinData.bakeDiffuseLighting = VFXSampleLightProbes(surfaceData.normalWS);
-	builtinData.renderingLayers = _EnableLightLayers ? asuint(unity_RenderingLayer.x) : DEFAULT_LIGHT_LAYERS;
 
     #if HDRP_USE_EMISSIVE
     builtinData.emissiveColor = float3(1,1,1);
@@ -43,7 +39,8 @@ BuiltinData VFXGetBuiltinData(VFX_VARYING_PS_INPUTS i,const SurfaceData surfaceD
     #endif
     #endif
 
-    builtinData.bakeDiffuseLighting = GetBakedDiffuseLighting(surfaceData, builtinData, bsdfData, preLightData);
+	InitBuiltinData(opacity,surfaceData.normalWS,-surfaceData.normalWS,posInputs.positionWS,(float2)0,(float2)0, builtinData); // We dont care about uvs are we dont sample lightmaps
+	PostInitBuiltinData(GetWorldSpaceNormalizeViewDir(posInputs.positionWS),posInputs,surfaceData, builtinData);
 
     return builtinData;
 }
@@ -84,7 +81,7 @@ SurfaceData VFXGetSurfaceData(VFX_VARYING_PS_INPUTS i, float3 normalWS,const VFX
     #elif HDRP_MATERIAL_TYPE_TRANSLUCENT
     surfaceData.materialFeatures = MATERIALFEATUREFLAGS_LIT_TRANSMISSION;
 	#ifdef VFX_VARYING_THICKNESS
-    surfaceData.thickness = i.VFX_VARYING_THICKNESS;
+    surfaceData.thickness = i.VFX_VARYING_THICKNESS * opacity;
 	#endif
     surfaceData.diffusionProfile = diffusionProfile;
     surfaceData.subsurfaceMask = 1.0f;
