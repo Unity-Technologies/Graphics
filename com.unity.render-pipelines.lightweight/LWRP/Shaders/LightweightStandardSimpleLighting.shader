@@ -47,6 +47,8 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
         [HideInInspector] _DstBlend("__dst", Float) = 0.0
         [HideInInspector] _ZWrite("__zw", Float) = 1.0
         [HideInInspector] _Cull("__cull", Float) = 2.0
+
+        [ToogleOff] _ReceiveShadows("Receive Shadows", Float) = 1.0
     }
 
     SubShader
@@ -78,6 +80,7 @@ Shader "LightweightPipeline/Standard (Simple Lighting)"
             #pragma shader_feature _GLOSSINESS_FROM_BASE_ALPHA
             #pragma shader_feature _NORMALMAP
             #pragma shader_feature _EMISSION
+            #pragma shader_feature _RECEIVE_SHADOWS_OFF
 
             // -------------------------------------
             // Lightweight Pipeline keywords

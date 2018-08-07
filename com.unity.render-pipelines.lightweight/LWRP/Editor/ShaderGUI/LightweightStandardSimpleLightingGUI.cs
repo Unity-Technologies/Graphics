@@ -117,6 +117,8 @@ public class LightweightStandardSimpleLightingGUI : LightweightShaderGUI
         MaterialEditor.FixupEmissiveFlag(material);
         bool shouldEmissionBeEnabled = (material.globalIlluminationFlags & MaterialGlobalIlluminationFlags.EmissiveIsBlack) == 0;
         CoreUtils.SetKeyword(material, "_EMISSION", shouldEmissionBeEnabled);
+
+        CoreUtils.SetKeyword(material, "_RECEIVE_SHADOWS_OFF", material.GetFloat("_ReceiveShadows") == 0.0f);
     }
 
     private void UpdateMaterialSpecularSource(Material material)
