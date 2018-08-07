@@ -440,6 +440,7 @@ Shader "HDRenderPipeline/Lit"
 
             ZWrite On
 
+            // decals rely on this to mask out the pixels that need to be updated in the normal buffer (forward)
             Stencil
             {
                 Comp Always
