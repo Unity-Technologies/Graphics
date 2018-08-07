@@ -49,9 +49,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 newAsset.Init();
 
-                // decal
-                newAsset.decalNormalBuffer = Load<Shader>(HDRenderPipelinePath + "Material/Decal/DecalNormalBuffer.shader");
-
                 AssetDatabase.CreateAsset(newAsset, pathName);
                 ProjectWindowUtil.ShowCreatedAsset(newAsset);
             }
