@@ -61,7 +61,6 @@ Shader "Hidden/HDRenderPipeline/Material/Decal/DecalNormalBuffer"
             // not optimal because we also process pixels that might not have any normals
             Stencil
             {
-                WriteMask 255
                 Ref 2
                 Comp Equal
                 Pass Zero

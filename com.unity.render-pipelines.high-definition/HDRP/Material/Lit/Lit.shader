@@ -442,8 +442,6 @@ Shader "HDRenderPipeline/Lit"
 
             Stencil
             {
-                WriteMask 255
-                Ref[_StencilRef]
                 Comp Always
                 Pass IncrSat
             }

@@ -47,7 +47,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             for (int gbufferIndex = 0; gbufferIndex < m_BufferCount; ++gbufferIndex)
             {
-                m_RTs[gbufferIndex] = RTHandles.Alloc(Vector2.one, colorFormat: rtFormat[gbufferIndex], sRGB: sRGBFlags[gbufferIndex], filterMode: FilterMode.Point, name: string.Format("GBuffer{0}", gbufferIndex), enableRandomWrite: gbufferIndex == 1);
+                m_RTs[gbufferIndex] = RTHandles.Alloc(Vector2.one, colorFormat: rtFormat[gbufferIndex], sRGB: sRGBFlags[gbufferIndex], filterMode: FilterMode.Point, name: string.Format("GBuffer{0}", gbufferIndex), enableRandomWrite: gbufferIndex == 1); // normal buffer is used as RWTexture to composite decals in forward
                 m_RTIDs[gbufferIndex] = m_RTs[gbufferIndex].nameID;
                 m_TextureShaderIDs[gbufferIndex] = HDShaderIDs._GBufferTexture[gbufferIndex];
 
