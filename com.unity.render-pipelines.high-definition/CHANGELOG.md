@@ -6,6 +6,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [3.3.0-preview]
 
+### Added
+- Added an error message to say to use Metal or Vulkan when trying to use OpenGL API
+
 ### Fixed
 - Fix an issue where the screen where darken when rendering camera preview
 - Fix display correct target platform when showing message to inform user that a platform is not supported
