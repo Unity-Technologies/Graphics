@@ -1,6 +1,7 @@
 using System;
 #if UNITY_EDITOR
 using UnityEditor;
+using UnityEditor.Experimental.Rendering;
 using UnityEditor.Experimental.Rendering.HDPipeline;
 #endif
 using UnityEngine.Serialization;
@@ -287,81 +288,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 return useColorTemperatureProperty.boolValue;
             }
-        }
-
-        private void DrawGizmos(bool selected)
-        {
-            var light = gameObject.GetComponent<Light>();
-            var gizmoColor = light.color;
-            gizmoColor.a = selected ? 1.0f : 0.3f; // Fade for the gizmo
-            Gizmos.color = Handles.color = gizmoColor;
-
-            if (lightTypeExtent == LightTypeExtent.Punctual)
-            {
-                switch (light.type)
-                {
-                    case LightType.Directional:
-                        HDLightEditorUtilities.DrawDirectionalLightGizmo(light);
-                        break;
-                    case LightType.Point:
-                        HDLightEditorUtilities.DrawPointlightGizmo(light, selected);
-                        break;
-                    case LightType.Spot:
-                        if (spotLightShape == SpotLightShape.Cone)
-                            HDLightEditorUtilities.DrawSpotlightGizmo(light, selected);
-                        else if (spotLightShape == SpotLightShape.Pyramid)
-                            HDLightEditorUtilities.DrawFrustumlightGizmo(light);
-                        else if (spotLightShape == SpotLightShape.Box)
-                            HDLightEditorUtilities.DrawFrustumlightGizmo(light);
-                        break;
-                }
-            }
-            else
-            {
-                switch (lightTypeExtent)
-                {
-                    case LightTypeExtent.Rectangle:
-                        HDLightEditorUtilities.DrawArealightGizmo(light);
-                        break;
-                    case LightTypeExtent.Line:
-                        HDLightEditorUtilities.DrawArealightGizmo(light);
-                        break;
-                }
-            }
-
-            if (selected)
-            {
-                DrawVerticalRay();
-            }
-        }
-
-        // Trace a ray down to better locate the light location
-        private void DrawVerticalRay()
-        {
-            Ray ray = new Ray(transform.position, Vector3.down);
-            RaycastHit hit;
-            if (Physics.Raycast(ray, out hit))
-            {
-                Handles.color = Color.green;
-                Handles.zTest = UnityEngine.Rendering.CompareFunction.LessEqual;
-                Handles.DrawLine(transform.position, hit.point);
-                Handles.DrawWireDisc(hit.point, hit.normal, 0.5f);
-
-                Handles.color = Color.red;
-                Handles.zTest = UnityEngine.Rendering.CompareFunction.Greater;
-                Handles.DrawLine(transform.position, hit.point);
-                Handles.DrawWireDisc(hit.point, hit.normal, 0.5f);
-            }
-        }
-
-        private void OnDrawGizmos()
-        {
-            // DrawGizmos(false);
-        }
-
-        private void OnDrawGizmosSelected()
-        {
-            DrawGizmos(true);
         }
 
         // TODO: There are a lot of old != current checks and assignation in this function, maybe think about using another system ?
