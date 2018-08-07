@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Changed
 - Changed default reflection probe to be 256x256x6 and array size to be 64
+- Increased the precision when comparing Planar or HD reflection probe volumes
 
 ### Added
 - Added a new Fabric shader model that supports Silk and Cotton/Wool
