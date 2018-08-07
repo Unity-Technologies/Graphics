@@ -11,8 +11,7 @@ Shader "Hidden/HDRenderPipeline/Material/Decal/DecalNormalBuffer"
 
         TEXTURE2D(_DBufferTexture1);
         RW_TEXTURE2D(float4, _NormalBuffer);
-        
-        
+                
         struct Attributes
         {
             uint vertexID : SV_VertexID;
@@ -34,7 +33,7 @@ Shader "Hidden/HDRenderPipeline/Material/Decal/DecalNormalBuffer"
 
         float4 FragNearest(Varyings input) : SV_Target
         {
-            float4 DBufferNormal =  LOAD_TEXTURE2D(_DBufferTexture1, input.texcoord * _ScreenSize.xy) * float4(2.0f, 2.0f, 2.0f, 1.0f) - float4(1.0f, 1.0f, 1.0f, 0.0f);
+            float4 DBufferNormal = LOAD_TEXTURE2D(_DBufferTexture1, input.texcoord * _ScreenSize.xy) * float4(2.0f, 2.0f, 2.0f, 1.0f) - float4(1.0f, 1.0f, 1.0f, 0.0f);
             float4 GBufferNormal = _NormalBuffer[input.texcoord * _ScreenSize.xy];
             NormalData normalData;
             DecodeFromNormalBuffer(GBufferNormal, uint2(0, 0), normalData);
@@ -56,6 +55,10 @@ Shader "Hidden/HDRenderPipeline/Material/Decal/DecalNormalBuffer"
             ZTest Always
             Blend Off
             Cull Off
+
+            // depth prepass increments stencil to 1
+            // dbuffer increments it to 2
+            // not optimal because we also process pixels that might not have any normals
             Stencil
             {
                 WriteMask 255

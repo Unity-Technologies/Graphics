@@ -940,7 +940,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // We can now bind the normal buffer to be use by any effect
                     m_NormalBufferManager.BindNormalBuffers(cmd);
 
-                    if (hdCamera.frameSettings.enableForwardRenderingOnly)
+                    if ((hdCamera.frameSettings.enableForwardRenderingOnly) && (!hdCamera.frameSettings.enableMSAA)) // MSAA not supported
                     {
                         using (new ProfilingSample(cmd, "DBuffer Normal (forward)", CustomSamplerId.DBufferNormal.GetSampler()))
                         {
