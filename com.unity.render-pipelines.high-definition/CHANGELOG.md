@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Fix display correct target platform when showing message to inform user that a platform is not supported
 - Remove workaround for metal and vulkan in normal buffer encoding/decoding
 - Fixed an issue with color picker not working in forward
+- Fixed an issue where reseting HDLight do not reset all of its parameters
 
 ### Changed
 - Changed default reflection probe to be 256x256x6 and array size to be 64
@@ -91,7 +92,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - Fixed an issue with distortion that was using previous frame instead of current frame
 - Fixed an issue where disabled light where not upgrade correctly to the new physical light unit system introduce in 2.0.5-preview
-- Fixed an issue where reseting HDLight do not reset all of its parameters
 
 ### Changed
 - Update assembly definitions to output assemblies that match Unity naming convention (Unity.*).
