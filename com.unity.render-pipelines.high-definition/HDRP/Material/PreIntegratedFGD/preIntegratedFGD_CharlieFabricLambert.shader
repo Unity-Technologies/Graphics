@@ -1,4 +1,4 @@
-Shader "Hidden/HDRenderPipeline/preIntegratedFGD_CharlieClothLambert"
+Shader "Hidden/HDRenderPipeline/preIntegratedFGD_CharlieFabricLambert"
 {
     SubShader
     {
@@ -47,7 +47,7 @@ Shader "Hidden/HDRenderPipeline/preIntegratedFGD_CharlieClothLambert"
                 float3 N                    = float3(0.0, 0.0, 1.0);
 
                 // Pre integrate GGX with smithJoint visibility as well as DisneyDiffuse
-                float4 preFGD = IntegrateCharlieAndClothLambertFGD(V, N, PerceptualRoughnessToRoughness(perceptualRoughness));
+                float4 preFGD = IntegrateCharlieAndFabricLambertFGD(V, N, PerceptualRoughnessToRoughness(perceptualRoughness));
 
                 return float4(preFGD.xyz, 1.0);
             }

@@ -48,7 +48,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 newAsset.name = Path.GetFileName(pathName);
 
                 newAsset.Init();
-
+                
                 AssetDatabase.CreateAsset(newAsset, pathName);
                 ProjectWindowUtil.ShowCreatedAsset(newAsset);
             }
