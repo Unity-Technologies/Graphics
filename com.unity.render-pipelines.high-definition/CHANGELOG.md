@@ -4,11 +4,22 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [3.3.0-preview]
+
+### Fixed
+- Fix an issue where the screen where darken when rendering camera preview
+- Fix display correct target platform when showing message to inform user that a platform is not supported
+- Remove workaround for metal and vulkan in normal buffer encoding/decoding
+
+### Changed
+- Changed default reflection probe to be 256x256x6 and array size to be 64
+
 ## [3.2.0-preview]
 
 ### Added
 - Added a luminance meter in the debug menu
 - Added support of Light, reflection probe, emissive material, volume settings related to lighting to Lighting explorer
+- Added support for 16bit shadows
 
 ### Fixed
 - Fix issue with package upgrading (HDRP resources asset is now versionned to worarkound package manager limitation)
