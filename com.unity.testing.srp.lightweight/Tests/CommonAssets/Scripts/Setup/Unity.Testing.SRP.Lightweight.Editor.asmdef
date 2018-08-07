@@ -1,0 +1,19 @@
+{
+    "name": "LWEditorTests",
+    "references": [
+        "UnityEditor.TestTools.Graphics",
+        "LWGraphicsTests"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": []
+}
