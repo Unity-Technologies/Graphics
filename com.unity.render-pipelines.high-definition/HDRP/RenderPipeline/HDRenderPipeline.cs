@@ -82,6 +82,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_applyDistortionKernel;
 
         Material m_CameraMotionVectorsMaterial;
+        Material m_DecalNormalBufferMaterial;
 
         // Debug material
         Material m_DebugViewMaterialGBuffer;
@@ -246,6 +247,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CopyStencilForNoLighting.SetInt(HDShaderIDs._StencilRef, (int)StencilLightingUsage.NoLighting);
             m_CopyStencilForNoLighting.SetInt(HDShaderIDs._StencilMask, (int)StencilBitMask.LightingMask);
             m_CameraMotionVectorsMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.cameraMotionVectors);
+            m_DecalNormalBufferMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.decalNormalBuffer);
 
             m_CopyDepth = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.copyDepthBuffer);
 
@@ -510,6 +512,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             CoreUtils.Destroy(m_CopyStencilForNoLighting);
             CoreUtils.Destroy(m_CameraMotionVectorsMaterial);
+            CoreUtils.Destroy(m_DecalNormalBufferMaterial);
 
             CoreUtils.Destroy(m_DebugViewMaterialGBuffer);
             CoreUtils.Destroy(m_DebugViewMaterialGBufferShadowMask);
@@ -936,6 +939,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     // We can now bind the normal buffer to be use by any effect
                     m_NormalBufferManager.BindNormalBuffers(cmd);
+
+                    if (hdCamera.frameSettings.enableForwardRenderingOnly)
+                    {
+                        using (new ProfilingSample(cmd, "DBuffer Normal (forward)", CustomSamplerId.DBufferNormal.GetSampler()))
+                        {
+                            HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraDepthStencilBuffer);
+                            cmd.SetRandomWriteTarget(1, m_NormalBufferManager.GetNormalBuffer(0));                                                   
+                            cmd.DrawProcedural(Matrix4x4.identity, m_DecalNormalBufferMaterial, 0, MeshTopology.Triangles, 3, 1);
+                            cmd.ClearRandomWriteTargets();
+                        }
+                    }
 
                     // In both forward and deferred, everything opaque should have been rendered at this point so we can safely copy the depth buffer for later processing.
                     CopyDepthBufferIfNeeded(cmd);

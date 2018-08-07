@@ -441,6 +441,14 @@ Shader "HDRenderPipeline/Lit"
 
             ZWrite On
 
+            Stencil
+            {
+                WriteMask 255
+                Ref[_StencilRef]
+                Comp Always
+                Pass IncrSat
+            }
+
             HLSLPROGRAM
 
             // In deferred, depth only pass don't output anything.
