@@ -99,12 +99,12 @@ ${VFXEnd}
 		const float faceMul = 1.0f;
 		#endif
 			
-		float3 normalWS = i.normal * faceMul;
+		float3 normalWS = i.VFX_VARYING_NORMAL * faceMul;
 		const VFXUVData uvData = GetUVData(i);
 		
 		#if HDRP_USE_NORMAL_MAP || USE_NORMAL_BENDING
 		float3 tangentWS = i.tangent;
-		float3 bitangentWS = cross(i.tangent,i.normal);
+		float3 bitangentWS = cross(i.tangent,i.VFX_VARYING_NORMAL);
 		
 		#if USE_NORMAL_BENDING	
 		float3 bentFactors = float3(i.bentFactors.xy,sqrt(1.0f - i.bentFactors.x * i.bentFactors.x * i.bentFactors.y * i.bentFactors.y));
@@ -131,8 +131,19 @@ ${VFXEnd}
 		uint2 tileIndex = uint2(i.pos.xy) / GetTileSize();
 		VFXGetHDRPLitData(surfaceData,builtinData,bsdfData,preLightData,i,normalWS,uvData,tileIndex);
 		
+		clip(builtinData.opacity - 1e-4);
+		
 		PositionInputs posInput = GetPositionInput(i.pos.xy, _ScreenSize.zw, i.pos.z, i.pos.w, i.posRWS, tileIndex);
-		LightLoop(GetWorldSpaceNormalizeViewDir(i.posRWS), posInput, preLightData, bsdfData, builtinData, LIGHT_FEATURE_MASK_FLAGS_OPAQUE, diffuseLighting, specularLighting);
+		
+		#if IS_OPAQUE_PARTICLE
+		uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_OPAQUE;
+		#elif USE_ONLY_AMBIENT_LIGHTING
+		uint featureFlags = LIGHTFEATUREFLAGS_ENV;
+		#else
+		uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT;
+		#endif
+		
+		LightLoop(GetWorldSpaceNormalizeViewDir(i.posRWS), posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
 
 		diffuseLighting *= builtinData.opacity;
 		specularLighting *= builtinData.opacity;

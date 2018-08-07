@@ -15,8 +15,12 @@ Pass
 	
 	#define UNITY_MATERIAL_LIT
 	#define LIGHTLOOP_TILE_PASS
+	#define _SURFACE_TYPE_TRANSPARENT
+	#define _ENABLE_FOG_ON_TRANSPARENT
+	#define _BLENDMODE_PRE_MULTIPLY
 	#pragma multi_compile USE_FPTL_LIGHTLIST USE_CLUSTERED_LIGHTLIST
-	#pragma enable_d3d11_debug_symbols
+	#pragma multi_compile _ DEBUG_DISPLAY
+	//#pragma enable_d3d11_debug_symbols
 	
 	${VFXInclude("Shaders/RenderPipeline/HDRP/VFXLitVaryings.template")}	
 	
@@ -96,10 +100,43 @@ ${VFXEnd}
 		VFXGetHDRPLitData(surfaceData,builtinData,bsdfData,preLightData,i,normalWS,uvData,tileIndex);
 		
 		PositionInputs posInput = GetPositionInput(i.pos.xy, _ScreenSize.zw, i.pos.z, i.pos.w, i.posRWS, tileIndex);
-		LightLoop(GetWorldSpaceNormalizeViewDir(i.posRWS), posInput, preLightData, bsdfData, builtinData, LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT, diffuseLighting, specularLighting);
+		
+		#if IS_OPAQUE_PARTICLE
+		uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_OPAQUE;
+		#elif USE_ONLY_AMBIENT_LIGHTING
+		uint featureFlags = LIGHTFEATUREFLAGS_ENV;
+		#else
+		uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT;
+		#endif
+		
+		LightLoop(GetWorldSpaceNormalizeViewDir(i.posRWS), posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
 
 		outColor = ApplyBlendMode(diffuseLighting, specularLighting, builtinData.opacity);
         outColor = EvaluateAtmosphericScattering(posInput, outColor);
+		
+		#ifdef DEBUG_DISPLAY
+		// Same code in ShaderPassForwardUnlit.shader
+		if (_DebugViewMaterial != 0)
+		{
+			float3 result = float3(1.0, 0.0, 1.0);
+
+			bool needLinearToSRGB = false;
+
+			GetPropertiesDataDebug(_DebugViewMaterial, result, needLinearToSRGB);
+			//GetVaryingsDataDebug(_DebugViewMaterial, i, result, needLinearToSRGB);
+			GetBuiltinDataDebug(_DebugViewMaterial, builtinData, result, needLinearToSRGB);
+			GetSurfaceDataDebug(_DebugViewMaterial, surfaceData, result, needLinearToSRGB);
+			GetBSDFDataDebug(_DebugViewMaterial, bsdfData, result, needLinearToSRGB);
+
+			// TEMP!
+			// For now, the final blit in the backbuffer performs an sRGB write
+			// So in the meantime we apply the inverse transform to linear data to compensate.
+			if (!needLinearToSRGB)
+				result = SRGBToLinear(max(0, result));
+
+			outColor = float4(result, 1.0);
+		}
+		#endif
 	}
 	ENDHLSL
 }

@@ -15,7 +15,6 @@ Pass
 	#pragma target 4.5
 	
 	#define UNITY_MATERIAL_LIT
-	#define SHADERPASS SHADERPASS_GBUFFER
 		
 	${VFXInclude("Shaders/RenderPipeline/HDRP/VFXLitVaryings.template")}		
 		
@@ -49,6 +48,8 @@ Pass
 		#endif
 	};
 	
+${VFXHDRPLitVaryingsMacros}		
+	
 #define VFX_VARYING_PS_INPUTS ps_input
 #define VFX_VARYING_POSCS pos
 #define VFX_VARYING_POSSS projPos
@@ -56,13 +57,17 @@ Pass
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.y
 #define VFX_VARYING_FRAMEBLEND builtInInterpolants.z
 #define VFX_VARYING_UV uv
+#define VFX_VARYING_NORMAL normal
+#if HDRP_USE_NORMAL_MAP
+#define VFX_VARYING_TANGENT tangent
+#endif
 
 ${VFXBegin:VFXVertexAdditionalProcess}
 ${VFXHDRPLitFillVaryings}
 
-o.normal = TransformDirectionVFXToWorld(-axisZ);
+o.normal = TransformDirectionVFXToWorld(normalize(-transpose(elementToVFX)[2].xyz));
 #if HDRP_USE_NORMAL_MAP || USE_NORMAL_BENDING
-o.tangent = TransformDirectionVFXToWorld(axisX);
+o.tangent = TransformDirectionVFXToWorld(normalize(transpose(elementToVFX)[0].xyz));
 #endif
 #if USE_NORMAL_BENDING
 ${VFXLoadParameter:{bentNormalFactor}}
@@ -71,6 +76,7 @@ o.bentFactors = vOffsets * bentNormalFactor;
 ${VFXEnd}
 	
 	${VFXInclude("Shaders/ParticleQuads/Pass.template")}
+	#define SHADERPASS SHADERPASS_GBUFFER
 	${VFXInclude("Shaders/RenderPipeline/HDRP/VFXLit.template")}
 					
 	#pragma fragment frag
@@ -86,16 +92,16 @@ ${VFXEnd}
 		const float faceMul = 1.0f;
 		#endif
 			
-		float3 normalWS = i.normal * faceMul;
+		float3 normalWS = i.VFX_VARYING_NORMAL * faceMul;
 		const VFXUVData uvData = GetUVData(i);
 		
 		#if HDRP_USE_NORMAL_MAP || USE_NORMAL_BENDING
 		float3 tangentWS = i.tangent;
-		float3 bitangentWS = cross(i.tangent,i.normal);
+		float3 bitangentWS = cross(i.tangent,i.VFX_VARYING_NORMAL);
 		
 		#if USE_NORMAL_BENDING	
 		float3 bentFactors = float3(i.bentFactors.xy,sqrt(1.0f - i.bentFactors.x * i.bentFactors.x * i.bentFactors.y * i.bentFactors.y));
-		normalWS = tangentWS * bentFactors.x + bitangentWS * bentFactors.y + normalWS * bentFactors.z;
+		normalWS = normalize(tangentWS * bentFactors.x + bitangentWS * bentFactors.y + normalWS * bentFactors.z);
 		tangentWS = normalize(cross(normalWS,bitangentWS));
 		bitangentWS = cross(tangentWS,normalWS);
 		tangentWS *= faceMul;
