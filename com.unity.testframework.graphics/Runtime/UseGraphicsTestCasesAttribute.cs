@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using NUnit.Framework.Interfaces;
 using NUnit.Framework.Internal;
+using UnityEngine.Rendering;
 using Attribute = System.Attribute;
 
 namespace UnityEngine.TestTools.Graphics
@@ -12,20 +13,55 @@ namespace UnityEngine.TestTools.Graphics
     /// </summary>
     public class UseGraphicsTestCasesAttribute : Attribute, ITestBuilder
     {
+        string m_ReferenceImagePath = string.Empty;
+
+        public UseGraphicsTestCasesAttribute()
+        {}
+
+        public UseGraphicsTestCasesAttribute(string referenceImagePath)
+        {
+            m_ReferenceImagePath = referenceImagePath;
+        }
+
         /// <summary>
         /// The <c>IGraphicsTestCaseProvider</c> which will be used to generate the <c>GraphicsTestCase</c> instances for the tests.
         /// </summary>
-        public static IGraphicsTestCaseProvider Provider
+        public IGraphicsTestCaseProvider Provider
         {
             get
             {
 #if UNITY_EDITOR
-                return new UnityEditor.TestTools.Graphics.EditorGraphicsTestCaseProvider();
+                return new UnityEditor.TestTools.Graphics.EditorGraphicsTestCaseProvider(m_ReferenceImagePath);
 #else
                 return new RuntimeGraphicsTestCaseProvider();
 #endif
             }
         }
+
+        public static ColorSpace ColorSpace
+        {
+            get
+            {
+                return QualitySettings.activeColorSpace;
+            }
+        }
+
+        public static RuntimePlatform Platform
+        {
+            get
+            {
+                return Application.platform;
+            }
+        }
+
+        public static GraphicsDeviceType GraphicsDevice
+        {
+            get
+            {
+                return SystemInfo.graphicsDeviceType;
+            }
+        }
+
 
         IEnumerable<TestMethod> ITestBuilder.BuildFrom(IMethodInfo method, Test suite)
         {
@@ -54,9 +90,9 @@ namespace UnityEngine.TestTools.Graphics
                 throw;
             }
 
-            suite.Properties.Set("ColorSpace", provider.ColorSpace);
-            suite.Properties.Set("RuntimePlatform", provider.Platform);
-            suite.Properties.Set("GraphicsDevice", provider.GraphicsDevice);
+            suite.Properties.Set("ColorSpace", ColorSpace);
+            suite.Properties.Set("RuntimePlatform", Platform);
+            suite.Properties.Set("GraphicsDevice", GraphicsDevice);
 
             Console.WriteLine("Generated {0} graphics test cases.", results.Count);
             return results;

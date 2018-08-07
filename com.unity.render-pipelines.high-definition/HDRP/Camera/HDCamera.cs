@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
-using UnityEngine.XR;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -288,19 +287,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ActualHeight = camera.pixelHeight;
             var screenWidth = m_ActualWidth;
             var screenHeight = m_ActualHeight;
-#if !UNITY_SWITCH
             if (m_frameSettings.enableStereo)
             {
-                screenWidth = XRSettings.eyeTextureWidth;
-                screenHeight = XRSettings.eyeTextureHeight;
+                screenWidth = XRGraphicsConfig.eyeTextureWidth;
+                screenHeight = XRGraphicsConfig.eyeTextureHeight;
 
-                var xrDesc = XRSettings.eyeTextureDesc;
+                var xrDesc = XRGraphicsConfig.eyeTextureDesc;
                 m_ActualWidth = xrDesc.width;
                 m_ActualHeight = xrDesc.height;
 
                 ConfigureStereoMatrices();
             }
-#endif
 
             // Unfortunately sometime (like in the HDCameraEditor) HDUtils.hdrpSettings can be null because of scripts that change the current pipeline...
             m_msaaSamples = HDUtils.hdrpSettings != null ? HDUtils.hdrpSettings.msaaSampleCount : MSAASamples.None;

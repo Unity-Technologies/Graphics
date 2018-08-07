@@ -216,7 +216,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBias, scaleBiasTex);
             s_PropertyBlock.SetVector(HDShaderIDs._BlitScaleBiasRt, scaleBiasRT);
             s_PropertyBlock.SetFloat(HDShaderIDs._BlitMipLevel, mipLevelTex);
-            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 2 : 3, MeshTopology.Quads, 4, 1, s_PropertyBlock);
+            cmd.DrawProcedural(Matrix4x4.identity, GetBlitMaterial(), bilinear ? 3 : 2, MeshTopology.Quads, 4, 1, s_PropertyBlock);
         }
 
         public static void BlitTexture(CommandBuffer cmd, RTHandleSystem.RTHandle source, RTHandleSystem.RTHandle destination, Vector4 scaleBias, float mipLevel, bool bilinear)
@@ -346,5 +346,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 && layer.antialiasingMode == PostProcessLayer.Antialiasing.TemporalAntialiasing
                 && layer.temporalAntialiasing.IsSupported();
         }
+        
+        // We need these at runtime for RenderPipelineResources upgrade
+        public static string GetHDRenderPipelinePath()
+        {
+            return "Packages/com.unity.render-pipelines.high-definition/HDRP/";
+        }
+
+        public static string GetPostProcessingPath()
+        {
+            return "Packages/com.unity.postprocessing/";
+        }
+
+        public static string GetCorePath()
+        {
+            return "Packages/com.unity.render-pipelines.core/CoreRP/";
+        }
+
     }
 }
