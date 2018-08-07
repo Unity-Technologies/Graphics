@@ -123,7 +123,7 @@ float3 ADD_IDX(GetNormalTS)(FragInputs input, LayerTexCoord layerTexCoord, float
         #ifdef SURFACE_GRADIENT
         normalTS += detailNormalTS * detailMask;
         #else
-        normalTS = lerp(normalTS, BlendNormalRNM(normalTS, detailNormalTS), detailMask);
+        normalTS = lerp(normalTS, BlendNormalRNM(normalTS, detailNormalTS), detailMask); // todo: detailMask should lerp the angle of the quaternion rotation, not the normals
         #endif
     #endif
 #else
@@ -209,13 +209,13 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
     surfaceData.baseColor = SAMPLE_UVMAPPING_TEXTURE2D(ADD_IDX(_BaseColorMap), ADD_ZERO_IDX(sampler_BaseColorMap), ADD_IDX(layerTexCoord.base)).rgb * ADD_IDX(_BaseColor).rgb;
 #ifdef _DETAIL_MAP_IDX
 	
-	// Goal: we want the detail albedo map to be able to darken down to black and brighten up to white the surface albedo.
-	// The scale control the speed of the gradient. We simply remap detailAlbedo from [0..1] to [-1..1] then perform a lerp to black or white
-	// with a factor based on speed.
+    // Goal: we want the detail albedo map to be able to darken down to black and brighten up to white the surface albedo.
+    // The scale control the speed of the gradient. We simply remap detailAlbedo from [0..1] to [-1..1] then perform a lerp to black or white
+    // with a factor based on speed.
     // For base color we interpolate in sRGB space (approximate here as square) as it get a nicer perceptual gradient
-	float albedoDetailSpeed = saturate(abs(detailAlbedo) * ADD_IDX(_DetailAlbedoScale));
-	float3 baseColorOverlay = lerp(sqrt(surfaceData.baseColor), (detailAlbedo < 0.0) ? float3(0.0, 0.0, 0.0) : float3(1.0, 1.0, 1.0), albedoDetailSpeed * albedoDetailSpeed);
-	baseColorOverlay *= baseColorOverlay;							   
+    float albedoDetailSpeed = saturate(abs(detailAlbedo) * ADD_IDX(_DetailAlbedoScale));
+    float3 baseColorOverlay = lerp(sqrt(surfaceData.baseColor), (detailAlbedo < 0.0) ? float3(0.0, 0.0, 0.0) : float3(1.0, 1.0, 1.0), albedoDetailSpeed * albedoDetailSpeed);
+    baseColorOverlay *= baseColorOverlay;							   
     // Lerp with details mask
     surfaceData.baseColor = lerp(surfaceData.baseColor, saturate(baseColorOverlay), detailMask);
 #endif
@@ -237,7 +237,7 @@ float ADD_IDX(GetSurfaceData)(FragInputs input, LayerTexCoord layerTexCoord, out
 #ifdef _DETAIL_MAP_IDX
     // See comment for baseColorOverlay
     float smoothnessDetailSpeed = saturate(abs(detailSmoothness) * ADD_IDX(_DetailSmoothnessScale));
-	float smoothnessOverlay = lerp(surfaceData.perceptualSmoothness, (detailSmoothness < 0.0) ? 0.0 : 1.0, smoothnessDetailSpeed);
+    float smoothnessOverlay = lerp(surfaceData.perceptualSmoothness, (detailSmoothness < 0.0) ? 0.0 : 1.0, smoothnessDetailSpeed);
     // Lerp with details mask
     surfaceData.perceptualSmoothness = lerp(surfaceData.perceptualSmoothness, saturate(smoothnessOverlay), detailMask);
 #endif
