@@ -15,6 +15,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public int      shadowAtlasWidth = kDefaultShadowAtlasSize;
         public int      shadowAtlasHeight = kDefaultShadowAtlasSize;
+        public bool		shadowMap16Bit;
 
         public int      maxPointLightShadows = kDefaultMaxPointLightShadows;
         public int      maxSpotLightShadows = kDefaultMaxSpotLightShadows;

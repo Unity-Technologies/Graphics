@@ -16,7 +16,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public static void DrawHandles(PlanarReflectionProbeUI s, PlanarReflectionProbe d, Editor o)
         {
-            var mat = d.transform.localToWorldMatrix;
+            var mat = Matrix4x4.TRS(d.transform.position, d.transform.rotation, Vector3.one);
 
             switch (EditMode.editMode)
             {
@@ -103,7 +103,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (!PlanarReflectionProbeEditor.TryGetUIStateFor(d, out s))
                 return;
 
-            var mat = d.transform.localToWorldMatrix;
+            var mat = Matrix4x4.TRS(d.transform.position, d.transform.rotation, Vector3.one);
 
             switch (EditMode.editMode)
             {

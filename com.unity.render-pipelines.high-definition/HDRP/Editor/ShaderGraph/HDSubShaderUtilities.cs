@@ -4,6 +4,7 @@ using System.Linq;
 using UnityEditor.Graphing;
 using UnityEngine;              // Vector3,4
 using UnityEditor.ShaderGraph;
+using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -475,7 +476,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     {
         public static bool GenerateShaderPass(AbstractMaterialNode masterNode, Pass pass, GenerationMode mode, SurfaceMaterialOptions materialOptions, HashSet<string> activeFields, ShaderGenerator result, List<string> sourceAssetDependencyPaths)
         {
-            string templatePath = Path.Combine(Path.Combine(HDEditorUtils.GetHDRenderPipelinePath(), "Editor"), "ShaderGraph");
+            string templatePath = Path.Combine(Path.Combine(HDUtils.GetHDRenderPipelinePath(), "Editor"), "ShaderGraph");
             string templateLocation = Path.Combine(templatePath, pass.TemplateName);
             if (!File.Exists(templateLocation))
             {

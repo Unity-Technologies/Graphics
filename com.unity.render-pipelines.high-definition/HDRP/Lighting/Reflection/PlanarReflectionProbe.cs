@@ -105,7 +105,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             get
             {
                 return proxyVolume != null
-                    ? proxyVolume.transform.localToWorldMatrix
+                    ? Matrix4x4.TRS(proxyVolume.transform.position, proxyVolume.transform.rotation, Vector3.one)
                     : influenceToWorld;
             }
         }

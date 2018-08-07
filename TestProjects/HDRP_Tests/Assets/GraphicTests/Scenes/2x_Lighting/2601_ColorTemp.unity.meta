@@ -1,7 +1,7 @@
 fileFormatVersion: 2
 guid: 34a3a4a7a56d3014dad3114e6b523742
 labels:
-- DoLightmap
+- TestRunnerBake
 DefaultImporter:
   externalObjects: {}
   userData: 

@@ -30,10 +30,13 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         {
             get
             {
-                return SystemInfo.supportsComputeShaders &&
-                       SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore &&
-                       !Application.isMobilePlatform &&
-                       Application.platform != RuntimePlatform.WebGLPlayer;
+                // TODO: Graphics Emulation are breaking StructuredBuffers disabling it for now until 
+                // we have a fix for it
+                return false;
+                // return SystemInfo.supportsComputeShaders &&
+                //        SystemInfo.graphicsDeviceType != GraphicsDeviceType.OpenGLCore &&
+                //        !Application.isMobilePlatform &&
+                //        Application.platform != RuntimePlatform.WebGLPlayer;
             }
         }
 

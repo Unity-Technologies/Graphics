@@ -101,7 +101,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             s.sphereProjectionHandle.radius = proxyVolume.sphereRadius;
 
             var mat = Handles.matrix;
-            Handles.matrix = transform.localToWorldMatrix;
+            Handles.matrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one); 
             Handles.color = k_GizmoThemeColorProjection;
             EditorGUI.BeginChangeCheck();
             s.sphereProjectionHandle.DrawHandle();
@@ -122,7 +122,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             s.boxProjectionHandle.size = proxyVolume.boxSize;
 
             var mat = Handles.matrix;
-            Handles.matrix = transform.localToWorldMatrix;
+            Handles.matrix = Matrix4x4.TRS(transform.position, transform.rotation, Vector3.one);
 
             Handles.color = k_GizmoThemeColorProjection;
             EditorGUI.BeginChangeCheck();
@@ -155,7 +155,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static void Gizmos_EditNone_Sphere(Transform t, ProxyVolume d, ProxyVolumeUI s, Object o)
         {
             var mat = Gizmos.matrix;
-            Gizmos.matrix = t.localToWorldMatrix;
+            Gizmos.matrix = Matrix4x4.TRS(t.position, t.rotation, Vector3.one);
 
             Gizmos.color = k_GizmoThemeColorProjection;
             Gizmos.DrawWireSphere(Vector3.zero, d.sphereRadius);
@@ -166,7 +166,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static void Gizmos_EditNone_Box(Transform t, ProxyVolume d, ProxyVolumeUI s, Object o)
         {
             var mat = Gizmos.matrix;
-            Gizmos.matrix = t.localToWorldMatrix;
+            Gizmos.matrix = Matrix4x4.TRS(t.position, t.rotation, Vector3.one);
 
             Gizmos.color = k_GizmoThemeColorProjection;
             Gizmos.DrawWireCube(Vector3.zero, d.boxSize);

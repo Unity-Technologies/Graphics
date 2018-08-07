@@ -126,8 +126,6 @@ public class VFXMigration
         public Dictionary<string, ComponentData> componentPaths;
     }
 
-
-    [MenuItem("VFX Editor/Migrate Components")]
     public static void MigrateComponents()
     {
         List<FileVFXComponents> files = new List<FileVFXComponents>();
@@ -200,8 +198,6 @@ public class VFXMigration
             EditorSceneManager.SaveScene(EditorSceneManager.GetSceneByPath(file.path));
         }
     }
-
-    [MenuItem("VFX Editor/Migrate Components in Current Scene")]
     public static void MigrateComponentsCurrentScnene()
     {
         HashSet<GameObject> prefabs = new HashSet<GameObject>();

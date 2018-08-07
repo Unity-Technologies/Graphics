@@ -134,9 +134,7 @@ namespace UnityEditor.Experimental.Rendering
                     return;
                 }
 
-                GL.sRGBWrite = QualitySettings.activeColorSpace == ColorSpace.Linear;
                 previewCamera.Render();
-                GL.sRGBWrite = false;
                 Graphics.DrawTexture(cameraRect, previewCamera.targetTexture, new Rect(0, 0, 1, 1), 0, 0, 0, 0, GUI.color, GUITextureBlit2SRGBMaterial);
             }
         }

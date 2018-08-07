@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.Experimental.UIElements.GraphView;
 using UnityEngine.Experimental.UIElements;
+using UnityEngine.Experimental.UIElements.StyleEnums;
 using UnityEngine.Experimental.UIElements.StyleSheets;
 using System.Linq;
 
@@ -10,8 +11,10 @@ namespace UnityEditor.VFX.UI
 {
     internal class VFXEdge : Edge
     {
-        public virtual void OnDisplayChanged()
+
+        public VFXEdge()
         {
+            edgeControl.style.overflow = Overflow.Hidden;
         }
     }
 

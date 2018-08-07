@@ -14,7 +14,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // Lighting
         MinLightingFullScreenDebug,
         SSAO,
-        DeferredShadows,
+        ScreenSpaceShadows,
         PreRefractionColorPyramid,
         DepthPyramid,
         FinalColorPyramid,

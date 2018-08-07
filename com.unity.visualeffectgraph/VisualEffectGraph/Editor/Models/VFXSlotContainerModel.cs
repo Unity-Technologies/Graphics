@@ -59,7 +59,8 @@ namespace UnityEditor.VFX
         // Get properties with value from nested class fields
         protected IEnumerable<VFXPropertyWithValue> PropertiesFromType(string typeName)
         {
-            return PropertiesFromType(GetType().GetNestedType(typeName));
+            //using are own GetRecursiveNestedType is needed for .net 4.0 compability 
+            return PropertiesFromType(GetType().GetRecursiveNestedType(typeName));
         }
 
         // Get properties with value from type fields

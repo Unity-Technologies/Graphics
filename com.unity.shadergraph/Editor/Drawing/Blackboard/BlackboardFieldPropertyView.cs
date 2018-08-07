@@ -332,7 +332,7 @@ namespace UnityEditor.ShaderGraph.Drawing
                     m_ReferenceNameField.value = m_Property.referenceName;
                     m_ReferenceNameField.RemoveFromClassList("modified");
                     DirtyNodes(ModificationScope.Graph);
-                }, DropdownMenu.MenuAction.AlwaysEnabled);
+                }, ContextualMenu.MenuAction.AlwaysEnabled);
         }
 
         VisualElement AddRow(string labelText, VisualElement control)
