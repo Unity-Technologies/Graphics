@@ -60,13 +60,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // The base color of the object mixed with the base color texture
     surfaceData.baseColor = SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, uvBase).rgb * _BaseColor.rgb;
 
-#ifdef _DETAIL_MAP
-    float aoDetailSpeed = saturate(abs(detailAO) * _DetailAOScale);
-    float3 baseColorOverlay = lerp(sqrt(surfaceData.baseColor), (detailAO < 0.0) ? float3(0.0, 0.0, 0.0) : float3(1.0, 1.0, 1.0), aoDetailSpeed * aoDetailSpeed);
-    baseColorOverlay *= baseColorOverlay;                              
-    surfaceData.baseColor = lerp(surfaceData.baseColor, saturate(baseColorOverlay), detailMask.x);
-#endif
-
     // Extract the alpha value (will be useful if we need to trigger the alpha test)
     float alpha = SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, uvBase).a * _BaseColor.a;
 
@@ -119,7 +112,6 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float aoOverlay = lerp(surfaceData.ambientOcclusion, (aoDetailSpeed < 0.0) ? 0.0 : 1.0, aoDetailSpeed);
     surfaceData.ambientOcclusion = lerp(surfaceData.ambientOcclusion, saturate(aoOverlay), detailMask.x);
 #endif
-    
 
     // Propagate the fuzz tint
     surfaceData.fuzzTint = _FuzzTint.xyz;
