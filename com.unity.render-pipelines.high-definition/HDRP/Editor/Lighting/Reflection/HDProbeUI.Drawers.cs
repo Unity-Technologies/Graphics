@@ -97,7 +97,12 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             
             if (d.target.proxyVolume == null)
             {
-                EditorGUILayout.PropertyField(d.infiniteProjection, useInfiniteProjectionContent);
+                EditorGUI.BeginChangeCheck();
+                d.infiniteProjection.boolValue = !EditorGUILayout.Toggle(useInfiniteProjectionContent, !d.infiniteProjection.boolValue);
+                if(EditorGUI.EndChangeCheck())
+                {
+                    d.Apply();
+                }
             }
 
             if (d.proxyVolumeReference.objectReferenceValue != null)
