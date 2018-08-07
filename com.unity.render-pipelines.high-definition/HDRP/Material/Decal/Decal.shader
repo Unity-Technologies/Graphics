@@ -79,8 +79,6 @@ Shader "HDRenderPipeline/Decal"
 
             Stencil
             {
-                WriteMask 255
-                Ref[_StencilRef]
                 Comp Always
                 Pass IncrSat
             }
@@ -131,8 +129,6 @@ Shader "HDRenderPipeline/Decal"
 
             Stencil
             {
-                WriteMask 255
-                Ref[_StencilRef]
                 Comp Always
                 Pass IncrSat
             }
@@ -169,8 +165,6 @@ Shader "HDRenderPipeline/Decal"
 													  // back faces with zfail, for cases when camera is inside the decal volume
             Stencil
             {
-                WriteMask 255
-                Ref[_StencilRef]
                 Comp Always
                 Pass IncrSat
             }
@@ -206,8 +200,6 @@ Shader "HDRenderPipeline/Decal"
 													   // back faces with zfail, for cases when camera is inside the decal volume
             Stencil
             {
-                WriteMask 255
-                Ref[_StencilRef]
                 Comp Always
                 Pass IncrSat
             }
@@ -243,8 +235,6 @@ Shader "HDRenderPipeline/Decal"
 
             Stencil
             {
-                WriteMask 255
-                Ref[_StencilRef]
                 Comp Always
                 Pass IncrSat
             }
@@ -280,8 +270,6 @@ Shader "HDRenderPipeline/Decal"
 
             Stencil
             {
-                WriteMask 255
-                Ref[_StencilRef]
                 Comp Always
                 Pass IncrSat
             }
@@ -319,8 +307,6 @@ Shader "HDRenderPipeline/Decal"
 
             Stencil
             {
-                WriteMask 255
-                Ref[_StencilRef]
                 Comp Always
                 Pass IncrSat
             }
@@ -357,8 +343,6 @@ Shader "HDRenderPipeline/Decal"
 
             Stencil
             {
-                WriteMask 255
-                Ref[_StencilRef]
                 Comp Always
                 Pass IncrSat
             }
@@ -401,8 +385,6 @@ Shader "HDRenderPipeline/Decal"
 
             Stencil
             {
-                WriteMask 255
-                Ref[_StencilRef]
                 Comp Always
                 Pass IncrSat
             }
@@ -437,8 +419,6 @@ Shader "HDRenderPipeline/Decal"
 
             Stencil
             {
-                WriteMask 255
-                Ref[_StencilRef]
                 Comp Always
                 Pass IncrSat
             }
@@ -473,8 +453,6 @@ Shader "HDRenderPipeline/Decal"
 
             Stencil
             {
-                WriteMask 255
-                Ref[_StencilRef]
                 Comp Always
                 Pass IncrSat
             }
@@ -509,8 +487,6 @@ Shader "HDRenderPipeline/Decal"
 
             Stencil
             {
-                WriteMask 255
-                Ref[_StencilRef]
                 Comp Always
                 Pass IncrSat
             }
@@ -545,8 +521,6 @@ Shader "HDRenderPipeline/Decal"
 
             Stencil
             {
-                WriteMask 255
-                Ref[_StencilRef]
                 Comp Always
                 Pass IncrSat
             }
@@ -581,8 +555,6 @@ Shader "HDRenderPipeline/Decal"
 
             Stencil
             {
-                WriteMask 255
-                Ref[_StencilRef]
                 Comp Always
                 Pass IncrSat
             }
@@ -617,8 +589,6 @@ Shader "HDRenderPipeline/Decal"
 
             Stencil
             {
-                WriteMask 255
-                Ref[_StencilRef]
                 Comp Always
                 Pass IncrSat
             }
