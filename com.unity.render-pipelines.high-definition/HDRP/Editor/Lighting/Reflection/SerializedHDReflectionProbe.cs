@@ -10,11 +10,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         internal SerializedProperty renderDynamicObjects;
         internal SerializedProperty customBakedTexture;
         internal SerializedProperty timeSlicingMode;
-        internal SerializedProperty intensityMultiplier;
-        internal SerializedProperty legacyBlendDistance;
-        internal SerializedProperty boxSize;
-        internal SerializedProperty boxOffset;
-        internal SerializedProperty legacyMode;
+
+        SerializedProperty legacyBlendDistance;
+        SerializedProperty legacySize;
+        //SerializedProperty legacyOffset;
+        SerializedProperty legacyMode;
 
         internal new HDAdditionalReflectionData target { get { return serializedObject.targetObject as HDAdditionalReflectionData; } }
         internal ReflectionProbe targetLegacy { get { return serializedLegacyObject.targetObject as ReflectionProbe; } }
@@ -26,9 +26,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             customBakedTexture = legacyProbe.FindProperty("m_CustomBakedTexture");
             renderDynamicObjects = legacyProbe.FindProperty("m_RenderDynamicObjects");
             timeSlicingMode = legacyProbe.FindProperty("m_TimeSlicingMode");
-            intensityMultiplier = legacyProbe.FindProperty("m_IntensityMultiplier");
-            boxSize = legacyProbe.FindProperty("m_BoxSize");
-            boxOffset = legacyProbe.FindProperty("m_BoxOffset");
+            legacySize = legacyProbe.FindProperty("m_BoxSize");
+            //legacyOffset = legacyProbe.FindProperty("m_BoxOffset");
             resolution = legacyProbe.FindProperty("m_Resolution");
             shadowDistance = legacyProbe.FindProperty("m_ShadowDistance");
             cullingMask = legacyProbe.FindProperty("m_CullingMask");
@@ -50,20 +49,23 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         internal override void Apply()
         {
-            //sync size
+            //sync size with legacy reflection probe
             switch(target.influenceVolume.shape)
             {
                 case InfluenceShape.Box:
-                    boxSize.vector3Value = influenceVolume.boxSize.vector3Value;
+                    legacySize.vector3Value = influenceVolume.boxSize.vector3Value;
                     break;
                 case InfluenceShape.Sphere:
-                    boxSize.vector3Value = Vector3.one * influenceVolume.sphereRadius.floatValue;
+                    legacySize.vector3Value = Vector3.one * influenceVolume.sphereRadius.floatValue;
                     break;
             }
-            // Sync mode
+
+            // Sync mode with legacy reflection probe
             legacyMode.intValue = mode.intValue;
+
             serializedLegacyObject.ApplyModifiedProperties();
-            serializedObject.ApplyModifiedProperties();
+            base.Apply();
+            //serializedObject.ApplyModifiedProperties(); //done in base methode
         }
     }
 }
