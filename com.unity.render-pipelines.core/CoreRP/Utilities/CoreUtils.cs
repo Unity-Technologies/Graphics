@@ -19,6 +19,9 @@ namespace UnityEngine.Experimental.Rendering
 
     public static class CoreUtils
     {
+        // Keep a reference to default values for Reset purpose
+        static public AdditionalShadowData s_DefaultAdditionalShadowData { get { return ComponentSingleton<AdditionalShadowData>.instance; } }
+
         // Data useful for various cubemap processes.
         // Ref: https://msdn.microsoft.com/en-us/library/windows/desktop/bb204881(v=vs.85).aspx
         static public readonly Vector3[] lookAtList =
