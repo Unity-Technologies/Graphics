@@ -74,6 +74,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (EditorGUI.EndChangeCheck())
             {
                 ui.SetModeTarget(p.mode.intValue);
+                p.Apply();
             }
         }
 
