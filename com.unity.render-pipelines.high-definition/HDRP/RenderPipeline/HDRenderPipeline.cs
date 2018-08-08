@@ -400,6 +400,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 CoreUtils.DisplayUnsupportedAPIMessage();
 
+                // Display more information to the users when it should have use Metal instead of OpenGL
+                if (SystemInfo.graphicsDeviceType.ToString().StartsWith("OpenGL"))
+                {
+                    if (SystemInfo.operatingSystem.StartsWith("Mac"))
+                        CoreUtils.DisplayUnsupportedMessage("Use Metal API instead.");
+                    else if (SystemInfo.operatingSystem.StartsWith("Windows"))
+                        CoreUtils.DisplayUnsupportedMessage("Use Vulkan API instead.");
+                }
+
                 return false;
             }
 
