@@ -6,6 +6,28 @@ using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
+    public static class VisibleLightExtensionMethods
+    {
+        public static Vector3 GetPosition(this VisibleLight value)
+        {
+            return value.localToWorld.GetColumn(3);
+        }
+
+        public static Vector3 GetForward(this VisibleLight value)
+        {
+            return value.localToWorld.GetColumn(2);
+        }
+
+        public static Vector3 GetUp(this VisibleLight value)
+        {
+            return value.localToWorld.GetColumn(1);
+        }
+
+        public static Vector3 GetRight(this VisibleLight value)
+        {
+            return value.localToWorld.GetColumn(0);
+        }
+    }
 
     class ShadowSetup : IDisposable
     {
@@ -435,7 +457,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         ContactShadows m_ContactShadows = null;
         bool m_EnableContactShadow = false;
-        
+
         IndirectLightingController m_indirectLightingController = null;
 
         // Following is an array of material of size eight for all combination of keyword: OUTPUT_SPLIT_LIGHTING - LIGHTLOOP_TILE_PASS - SHADOWS_SHADOWMASK - USE_FPTL_LIGHTLIST/USE_CLUSTERED_LIGHTLIST - DEBUG_DISPLAY
@@ -726,7 +748,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 s_GenListPerTileKernel = buildPerTileLightListShader.FindKernel(m_FrameSettings.lightLoopSettings.enableBigTilePrepass ? "TileLightListGen_SrcBigTile_FeatureFlags" : "TileLightListGen_FeatureFlags");
                 s_GenListPerTileKernel_Oblique = buildPerTileLightListShader.FindKernel(m_FrameSettings.lightLoopSettings.enableBigTilePrepass ? "TileLightListGen_SrcBigTile_FeatureFlags_Oblique" : "TileLightListGen_FeatureFlags_Oblique");
-                
+
             }
             else
             {
@@ -835,12 +857,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return new Vector3(light.finalColor.r, light.finalColor.g, light.finalColor.b);
         }
 
-        bool GetDominantLightWithShadows(AdditionalShadowData additionalShadowData, VisibleLight light, int lightIndex = -1)
+        bool GetDominantLightWithShadows(AdditionalShadowData additionalShadowData, VisibleLight light, Light lightComponent, int lightIndex = -1)
         {
-            // Ratio of the size of the light on screen and its intensity, gives a value used to compare light importance
-            float lightDominanceValue = light.screenRect.size.magnitude * light.light.intensity;
+            // Can happen for particle lights (where we don't support shadows anyway)
+            if (lightComponent == null)
+                return false;
 
-            if (additionalShadowData == null || !additionalShadowData.contactShadows || light.light.shadows == LightShadows.None)
+            // Ratio of the size of the light on screen and its intensity, gives a value used to compare light importance
+            float lightDominanceValue = light.screenRect.size.magnitude * lightComponent.intensity;
+
+            if (additionalShadowData == null || !additionalShadowData.contactShadows || lightComponent.shadows == LightShadows.None)
                 return false;
             if (lightDominanceValue <= m_DominantLightValue || m_DominantLightValue == Single.PositiveInfinity)
                 return false;
@@ -856,7 +882,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             return true;
         }
 
-        public bool GetDirectionalLightData(CommandBuffer cmd, ShadowSettings shadowSettings, GPULightType gpuLightType, VisibleLight light, HDAdditionalLightData additionalData, AdditionalShadowData additionalShadowData, int lightIndex, DebugDisplaySettings debugDisplaySettings)
+        public bool GetDirectionalLightData(CommandBuffer cmd, ShadowSettings shadowSettings, GPULightType gpuLightType, VisibleLight light, Light lightComponent, HDAdditionalLightData additionalData, AdditionalShadowData additionalShadowData, int lightIndex, DebugDisplaySettings debugDisplaySettings)
         {
             var directionalLightData = new DirectionalLightData();
 
@@ -864,7 +890,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             float specularDimmer = m_FrameSettings.specularGlobalDimmer * additionalData.lightDimmer;
             if (diffuseDimmer  <= 0.0f && specularDimmer <= 0.0f)
                 return false;
-            
+
             // Discard light if disabled in debug display settings
             if (!debugDisplaySettings.lightingDebugSettings.showDirectionalLight)
                 return false;
@@ -872,11 +898,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             directionalLightData.lightLayers = additionalData.GetLightLayers();
 
             // Light direction for directional is opposite to the forward direction
-            directionalLightData.forward = light.light.transform.forward;
+            directionalLightData.forward = light.GetForward();
             // Rescale for cookies and windowing.
-            directionalLightData.right      = light.light.transform.right * 2 / Mathf.Max(additionalData.shapeWidth, 0.001f);
-            directionalLightData.up         = light.light.transform.up    * 2 / Mathf.Max(additionalData.shapeHeight, 0.001f);
-            directionalLightData.positionRWS = light.light.transform.position;
+            directionalLightData.right      = light.GetRight() * 2 / Mathf.Max(additionalData.shapeWidth, 0.001f);
+            directionalLightData.up         = light.GetUp() * 2 / Mathf.Max(additionalData.shapeHeight, 0.001f);
+            directionalLightData.positionRWS = light.GetPosition();
             directionalLightData.color = GetLightColor(light);
 
             // Caution: This is bad but if additionalData == HDUtils.s_DefaultHDAdditionalLightData it mean we are trying to promote legacy lights, which is the case for the preview for example, so we need to multiply by PI as legacy Unity do implicit divide by PI for direct intensity.
@@ -888,26 +914,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             directionalLightData.volumetricDimmer = additionalData.volumetricDimmer;
             directionalLightData.shadowIndex = directionalLightData.cookieIndex = -1;
 
-            if (light.light.cookie != null)
+            if (lightComponent != null && lightComponent.cookie != null)
             {
-                directionalLightData.tileCookie = light.light.cookie.wrapMode == TextureWrapMode.Repeat ? 1 : 0;
-                directionalLightData.cookieIndex = m_CookieTexArray.FetchSlice(cmd, light.light.cookie);
+                directionalLightData.tileCookie = lightComponent.cookie.wrapMode == TextureWrapMode.Repeat ? 1 : 0;
+                directionalLightData.cookieIndex = m_CookieTexArray.FetchSlice(cmd, lightComponent.cookie);
             }
             // fix up shadow information
             int shadowIdx;
             if (m_ShadowIndices.TryGetValue(lightIndex, out shadowIdx))
             {
                 directionalLightData.shadowIndex = shadowIdx;
-                m_CurrentSunLight = light.light;
+                m_CurrentSunLight = lightComponent;
                 m_CurrentSunLightShadowIndex = shadowIdx;
             }
 
             directionalLightData.shadowMaskSelector = Vector4.zero;
 
-            if (IsBakedShadowMaskLight(light.light))
+            if (IsBakedShadowMaskLight(lightComponent))
             {
-                directionalLightData.shadowMaskSelector[light.light.bakingOutput.occlusionMaskChannel] = 1.0f;
-                directionalLightData.nonLightmappedOnly = light.light.lightShadowCasterMode == LightShadowCasterMode.NonLightmappedOnly ? 1 : 0;
+                directionalLightData.shadowMaskSelector[lightComponent.bakingOutput.occlusionMaskChannel] = 1.0f;
+                directionalLightData.nonLightmappedOnly = lightComponent.lightShadowCasterMode == LightShadowCasterMode.NonLightmappedOnly ? 1 : 0;
             }
             else
             {
@@ -917,12 +943,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Fallback to the first non shadow casting directional light.
-            m_CurrentSunLight = m_CurrentSunLight == null ? light.light : m_CurrentSunLight;
+            m_CurrentSunLight = m_CurrentSunLight == null ? lightComponent : m_CurrentSunLight;
 
             directionalLightData.contactShadowIndex = -1;
 
             // The first shadow casting directional light with contact shadow enabled is always taken as dominant light
-            if (GetDominantLightWithShadows(additionalShadowData, light))
+            if (GetDominantLightWithShadows(additionalShadowData, light, lightComponent))
                 directionalLightData.contactShadowIndex = 0;
 
             m_lightList.directionalLights.Add(directionalLightData);
@@ -948,7 +974,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         }
 
         public bool GetLightData(CommandBuffer cmd, ShadowSettings shadowSettings, Camera camera, GPULightType gpuLightType,
-            VisibleLight light, HDAdditionalLightData additionalLightData, AdditionalShadowData additionalshadowData,
+            VisibleLight light, Light lightComponent, HDAdditionalLightData additionalLightData, AdditionalShadowData additionalshadowData,
             int lightIndex, ref Vector3 lightDimensions, DebugDisplaySettings debugDisplaySettings)
         {
             var lightData = new LightData();
@@ -957,7 +983,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             lightData.lightType = gpuLightType;
 
-            lightData.positionRWS = light.light.transform.position;
+            lightData.positionRWS = light.GetPosition();
 
             bool applyRangeAttenuation = additionalLightData.applyRangeAttenuation && (gpuLightType != GPULightType.ProjectorBox);
 
@@ -989,9 +1015,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             lightData.color = GetLightColor(light);
 
-            lightData.forward = light.light.transform.forward;
-            lightData.up = light.light.transform.up;
-            lightData.right = light.light.transform.right;
+            lightData.forward = light.GetForward();
+            lightData.up = light.GetUp();
+            lightData.right = light.GetRight();
 
             lightDimensions.x = additionalLightData.shapeWidth;
             lightDimensions.y = additionalLightData.shapeHeight;
@@ -1077,16 +1103,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             lightData.cookieIndex = -1;
             lightData.shadowIndex = -1;
 
-            if (light.light.cookie != null)
+            if (lightComponent != null && lightComponent.cookie != null)
             {
                 // TODO: add texture atlas support for cookie textures.
                 switch (light.lightType)
                 {
                     case LightType.Spot:
-                        lightData.cookieIndex = m_CookieTexArray.FetchSlice(cmd, light.light.cookie);
+                        lightData.cookieIndex = m_CookieTexArray.FetchSlice(cmd, lightComponent.cookie);
                         break;
                     case LightType.Point:
-                        lightData.cookieIndex = m_CubeCookieTexArray.FetchSlice(cmd, light.light.cookie);
+                        lightData.cookieIndex = m_CubeCookieTexArray.FetchSlice(cmd, lightComponent.cookie);
                         break;
                 }
             }
@@ -1119,11 +1145,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             lightData.shadowMaskSelector = Vector4.zero;
 
-            if (IsBakedShadowMaskLight(light.light))
+            if (IsBakedShadowMaskLight(lightComponent))
             {
-                lightData.shadowMaskSelector[light.light.bakingOutput.occlusionMaskChannel] = 1.0f;
+                lightData.shadowMaskSelector[lightComponent.bakingOutput.occlusionMaskChannel] = 1.0f;
                 // TODO: make this option per light, not global
-                lightData.nonLightmappedOnly = light.light.lightShadowCasterMode == LightShadowCasterMode.NonLightmappedOnly ? 1 : 0;
+                lightData.nonLightmappedOnly = lightComponent.lightShadowCasterMode == LightShadowCasterMode.NonLightmappedOnly ? 1 : 0;
             }
             else
             {
@@ -1138,7 +1164,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Check if the current light is dominant and store it's index to change it's property later,
             // as we can't know which one will be dominant before checking all the lights
-            GetDominantLightWithShadows(additionalshadowData, light, m_lightList.lights.Count -1);
+            GetDominantLightWithShadows(additionalshadowData, light, lightComponent, m_lightList.lights.Count -1);
 
             return true;
         }
@@ -1178,7 +1204,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 const float pi = 3.1415926535897932384626433832795f;
                 const float degToRad = (float)(pi / 180.0);
 
-                var sa = light.light.spotAngle;
+                var sa = light.spotAngle;
                 var cs = Mathf.Cos(0.5f * sa * degToRad);
                 var si = Mathf.Sin(0.5f * sa * degToRad);
 
@@ -1333,7 +1359,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // Unfortunately we don't have this information at the moment.
             if (probe.mode == ReflectionProbeMode.Realtime && camera.cameraType == CameraType.Reflection)
                 return false;
-            
+
             // Discard probe if disabled in debug menu
             if (!debugDisplaySettings.lightingDebugSettings.showReflectionProbe)
                 return false;
@@ -1546,6 +1572,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool IsBakedShadowMaskLight(Light light)
         {
+            // This can happen for particle lights.
+            if (light == null)
+                return false;
+
             return light.bakingOutput.lightmapBakeType == LightmapBakeType.Mixed &&
                 light.bakingOutput.mixedLightingMode == MixedLightingMode.Shadowmask &&
                 light.bakingOutput.occlusionMaskChannel != -1;     // We need to have an occlusion mask channel assign, else we have no shadow mask
@@ -1595,10 +1625,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         for (int i = 0; i < lcnt; ++i)
                         {
                             VisibleLight vl = cullResults.visibleLights[i];
-                            if (vl.light.shadows == LightShadows.None)
+                            var lightComponent = vl.light;
+
+                            // This can happen for particle light which don't have a proper game object. We don't support shadows for them.
+                            if (lightComponent == null)
                                 continue;
 
-                            AdditionalShadowData asd = vl.light.GetComponent<AdditionalShadowData>();
+                            if (lightComponent.shadows == LightShadows.None)
+                                continue;
+
+                            AdditionalShadowData asd = lightComponent.GetComponent<AdditionalShadowData>();
                             if (asd != null && asd.shadowDimmer > 0.0f)
                             {
                                 m_ShadowRequests.Add(i);
@@ -1643,9 +1679,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     for (int lightIndex = 0, numLights = cullResults.visibleLights.Count; (lightIndex < numLights) && (sortCount < lightCount); ++lightIndex)
                     {
                         var light = cullResults.visibleLights[lightIndex];
+                        var lightComponent = light.light;
 
                         // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning HDUtils.s_DefaultHDAdditionalLightData
-                        var additionalData = GetHDAdditionalLightData(light);
+                        var additionalData = GetHDAdditionalLightData(lightComponent);
 
                         LightCategory lightCategory = LightCategory.Count;
                         GPULightType gpuLightType = GPULightType.Point;
@@ -1755,17 +1792,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         int lightIndex = (int)(sortKey & 0xFFFF);
 
                         var light = cullResults.visibleLights[lightIndex];
+                        var lightComponent = light.light;
 
-                        m_enableBakeShadowMask = m_enableBakeShadowMask || IsBakedShadowMaskLight(light.light);
+                        m_enableBakeShadowMask = m_enableBakeShadowMask || IsBakedShadowMaskLight(lightComponent);
 
                         // Light should always have additional data, however preview light right don't have, so we must handle the case by assigning HDUtils.s_DefaultHDAdditionalLightData
-                        var additionalLightData = GetHDAdditionalLightData(light);
-                        var additionalShadowData = light.light.GetComponent<AdditionalShadowData>(); // Can be null
+                        var additionalLightData = GetHDAdditionalLightData(lightComponent);
+                        var additionalShadowData = lightComponent != null ? lightComponent.GetComponent<AdditionalShadowData>() : null; // Can be null
 
                         // Directional rendering side, it is separated as it is always visible so no volume to handle here
                         if (gpuLightType == GPULightType.Directional)
                         {
-                            if (GetDirectionalLightData(cmd, shadowSettings, gpuLightType, light, additionalLightData, additionalShadowData, lightIndex, debugDisplaySettings))
+                            if (GetDirectionalLightData(cmd, shadowSettings, gpuLightType, light, lightComponent, additionalLightData, additionalShadowData, lightIndex, debugDisplaySettings))
                             {
                                 directionalLightcount++;
 
@@ -1786,7 +1824,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         Vector3 lightDimensions = new Vector3(); // X = length or width, Y = height, Z = range (depth)
 
                         // Punctual, area, projector lights - the rendering side.
-                        if (GetLightData(cmd, shadowSettings, camera, gpuLightType, light, additionalLightData, additionalShadowData, lightIndex, ref lightDimensions, debugDisplaySettings))
+                        if (GetLightData(cmd, shadowSettings, camera, gpuLightType, light, lightComponent, additionalLightData, additionalShadowData, lightIndex, ref lightDimensions, debugDisplaySettings))
                         {
                             switch (lightCategory)
                             {
@@ -2118,7 +2156,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     projArr[eyeIndex] = CameraProjectionStereoLHS(hdCamera.camera, (Camera.StereoscopicEye)eyeIndex);
                     projscrArr[eyeIndex] = temp * projArr[eyeIndex];
                     invProjscrArr[eyeIndex] = projscrArr[eyeIndex].inverse;
-                    
+
                 }
             }
             else
@@ -2328,9 +2366,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_LightVolumeDataBuffer.SetData(m_lightList.lightVolumes);
         }
 
-        HDAdditionalLightData GetHDAdditionalLightData(VisibleLight light)
+        HDAdditionalLightData GetHDAdditionalLightData(Light light)
         {
-            var add = light.light.GetComponent<HDAdditionalLightData>();
+            // Light reference can be null for particle lights.
+            var add = light != null ? light.GetComponent<HDAdditionalLightData>() : null;
             if (add == null)
             {
                 add = HDUtils.s_DefaultHDAdditionalLightData;
