@@ -271,18 +271,23 @@ namespace UnityEditor.VFX
             }
         }
 
+        protected virtual void WriteBlendMode(VFXShaderWriter writer)
+        {
+            if (blendMode == BlendMode.Additive)
+                writer.WriteLine("Blend SrcAlpha One");
+            else if (blendMode == BlendMode.Alpha)
+                writer.WriteLine("Blend SrcAlpha OneMinusSrcAlpha");
+            else if (blendMode == BlendMode.AlphaPremultiplied)
+                writer.WriteLine("Blend One OneMinusSrcAlpha");
+        }
+
         protected virtual VFXShaderWriter renderState
         {
             get
             {
                 var rs = new VFXShaderWriter();
 
-                if (blendMode == BlendMode.Additive)
-                    rs.WriteLine("Blend SrcAlpha One");
-                else if (blendMode == BlendMode.Alpha)
-                    rs.WriteLine("Blend SrcAlpha OneMinusSrcAlpha");
-                else if (blendMode == BlendMode.AlphaPremultiplied)
-                    rs.WriteLine("Blend One OneMinusSrcAlpha");
+                WriteBlendMode(rs);
 
                 var zTest = zTestMode;
                 if (zTest == ZTestMode.Default)

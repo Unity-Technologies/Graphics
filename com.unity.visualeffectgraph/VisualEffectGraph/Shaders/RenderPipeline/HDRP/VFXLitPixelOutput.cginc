@@ -24,8 +24,10 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
 	#endif
 	LightLoop(GetWorldSpaceNormalizeViewDir(i.VFX_VARYING_POSRWS), posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
 
+	#ifdef _BLENDMODE_PRE_MULTIPLY
 	diffuseLighting *= builtinData.opacity;
 	specularLighting *= builtinData.opacity;
+	#endif
 	
 	float4 outColor = ApplyBlendMode(diffuseLighting, specularLighting, builtinData.opacity);
     outColor = EvaluateAtmosphericScattering(posInput, outColor);

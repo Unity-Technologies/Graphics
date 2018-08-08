@@ -34,7 +34,7 @@ namespace UnityEditor.VFX
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Header("Lighting")]
         protected MaterialType materialType = MaterialType.Standard;
 
-        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector)]
+        [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool onlyAmbientLighting = false;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField, Range(1, 15)]
@@ -261,7 +261,7 @@ namespace UnityEditor.VFX
                 if (doubleSided)
                     yield return "USE_DOUBLE_SIDED";
 
-                if (onlyAmbientLighting)
+                if (onlyAmbientLighting && !isBlendModeOpaque)
                     yield return "USE_ONLY_AMBIENT_LIGHTING";
             }
         }
@@ -290,6 +290,50 @@ namespace UnityEditor.VFX
 
                 if ((colorMode & ColorMode.Emissive) != 0)
                     yield return "useEmissive";
+
+                if (isBlendModeOpaque)
+                    yield return "onlyAmbientLighting";
+            }
+        }
+
+        // HDRP always premultiplies in shader
+        protected override void WriteBlendMode(VFXShaderWriter writer)
+        {
+            if (blendMode == BlendMode.Additive)
+                writer.WriteLine("Blend One One");
+            else if (blendMode == BlendMode.Alpha)
+                writer.WriteLine("Blend One OneMinusSrcAlpha");
+            else if (blendMode == BlendMode.AlphaPremultiplied)
+                writer.WriteLine("Blend One OneMinusSrcAlpha");
+        }
+
+        public override IEnumerable<KeyValuePair<string, VFXShaderWriter>> additionalReplacements
+        {
+            get
+            {
+                foreach (var kvp in base.additionalReplacements)
+                    yield return kvp;
+
+                // HDRP Forward specific defines
+                var forwardDefines = new VFXShaderWriter();
+                forwardDefines.WriteLine("#define _ENABLE_FOG_ON_TRANSPARENT");
+                forwardDefines.WriteLine("#define _DISABLE_DECALS");
+                switch (blendMode)
+                {
+                    case BlendMode.Alpha:
+                        forwardDefines.WriteLine("#define _BLENDMODE_ALPHA");
+                        break;
+                    case BlendMode.Additive:
+                        forwardDefines.WriteLine("#define _BLENDMODE_ADD");
+                        break;
+                    case BlendMode.AlphaPremultiplied:
+                        forwardDefines.WriteLine("#define _BLENDMODE_PRE_MULTIPLY");
+                        break;
+                }
+                if (!isBlendModeOpaque)
+                    forwardDefines.WriteLine("#define _SURFACE_TYPE_TRANSPARENT");
+
+                yield return new KeyValuePair<string, VFXShaderWriter>("${VFXHDRPForwardDefines}", forwardDefines);    
             }
         }
     }
