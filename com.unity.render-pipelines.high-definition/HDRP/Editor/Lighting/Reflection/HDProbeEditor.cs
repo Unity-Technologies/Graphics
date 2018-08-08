@@ -69,6 +69,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected virtual void OnSceneGUI()
         {
+            //mandatory update as for strange reason the serialized rollback one update here
+            m_UIState.Update();
+            m_SerializedHDProbe.Update();
+
             HDProbeUI.DrawHandles(m_UIState, m_SerializedHDProbe, this);
             m_UIState.DoShortcutKey(this);
         }
