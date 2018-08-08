@@ -101,6 +101,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             HDAdditionalReflectionData probe = (HDAdditionalReflectionData)m_AdditionalDataSerializedObject.targetObject;
             probe.influenceVolume.Init(probe);
+
+            //unhide previously hidden components
+            probe.hideFlags = HideFlags.None;
         }
     }
 }
