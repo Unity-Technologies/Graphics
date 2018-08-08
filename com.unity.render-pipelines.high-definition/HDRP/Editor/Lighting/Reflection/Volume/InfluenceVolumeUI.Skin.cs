@@ -18,8 +18,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         static readonly Color k_GizmoThemeColorDisabledFace = new Color(0x99 / 255f, 0x89 / 255f, 0x59 / 255f, 0x10 / 255f);
 
         static readonly GUIContent shapeContent = CoreEditorUtils.GetContent("Shape");
-        static readonly GUIContent boxSizeContent = CoreEditorUtils.GetContent("Box Size");
-        static readonly GUIContent offsetContent = CoreEditorUtils.GetContent("Offset");
+        static readonly GUIContent boxSizeContent = CoreEditorUtils.GetContent("Box Size|The size of the box in which the reflections will be applied to objects. The value is not affected by the Transform of the Game Object.");
+        static readonly GUIContent offsetContent = CoreEditorUtils.GetContent("Offset|The center of the InfluenceVolume in which the reflections will be applied to objects. The value is relative to the position of the Game Object.");
         static readonly GUIContent blendDistanceContent = CoreEditorUtils.GetContent("Blend Distance|Area around the probe where it is blended with other probes. Only used in deferred probes.");
         static readonly GUIContent blendNormalDistanceContent = CoreEditorUtils.GetContent("Blend Normal Distance|Area around the probe where the normals influence the probe. Only used in deferred probes.");
         static readonly GUIContent faceFadeContent = CoreEditorUtils.GetContent("Face fade|Fade faces of the cubemap.");
