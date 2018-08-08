@@ -415,7 +415,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // VisualEnvironment sets global fog parameters: _GlobalAnisotropy, _GlobalScattering, _GlobalExtinction.
 
-            if (!hdCamera.frameSettings.enableVolumetrics || visualEnvironment.fogType != FogType.Volumetric)
+            if (!hdCamera.frameSettings.enableVolumetrics || visualEnvironment.fogType.value != FogType.Volumetric)
             {
                 // Set the neutral black texture.
                 cmd.SetGlobalTexture(HDShaderIDs._VBufferLighting, CoreUtils.blackVolumeTexture);
@@ -453,7 +453,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return densityVolumes;
 
             var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-            if (visualEnvironment.fogType != FogType.Volumetric)
+            if (visualEnvironment.fogType.value != FogType.Volumetric)
                 return densityVolumes;
 
             using (new ProfilingSample(cmd, "Prepare Visible Density Volume List"))
@@ -512,7 +512,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return;
 
             var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-            if (visualEnvironment.fogType != FogType.Volumetric)
+            if (visualEnvironment.fogType.value != FogType.Volumetric)
                 return;
 
             using (new ProfilingSample(cmd, "Volume Voxelization"))
@@ -620,7 +620,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 return;
 
             var visualEnvironment = VolumeManager.instance.stack.GetComponent<VisualEnvironment>();
-            if (visualEnvironment.fogType != FogType.Volumetric)
+            if (visualEnvironment.fogType.value != FogType.Volumetric)
                 return;
 
             using (new ProfilingSample(cmd, "Volumetric Lighting"))

@@ -319,6 +319,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // For now we don't use shadow cascade borders.
         static public readonly bool s_UseCascadeBorders = false;
 
+        // Keep sorting array around to avoid garbage
+        uint[] m_SortKeys = null;
+
+        void UpdateSortKeysArray(int count)
+        {
+            if (m_SortKeys == null ||count > m_SortKeys.Length)
+            {
+                m_SortKeys = new uint[count];
+            }
+        }
+
+        // Matrix used for Light list building
+        // Keep them around to avoid allocations
+        Matrix4x4[] m_LightListProjMatrices = new Matrix4x4[2];
+        Matrix4x4[] m_LightListProjscrMatrices = new Matrix4x4[2];
+        Matrix4x4[] m_LightListInvProjscrMatrices = new Matrix4x4[2];
+
+        Matrix4x4[] m_LightListProjHMatrices = new Matrix4x4[2];
+        Matrix4x4[] m_LightListInvProjHMatrices = new Matrix4x4[2];
+
         public class LightList
         {
             public List<DirectionalLightData> directionalLights;
@@ -1674,7 +1694,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     int areaLightCount = 0;
 
                     int lightCount = Math.Min(cullResults.visibleLights.Count, k_MaxLightsOnScreen);
-                    var sortKeys = new uint[lightCount];
+                    UpdateSortKeysArray(lightCount);
                     int sortCount = 0;
                     for (int lightIndex = 0, numLights = cullResults.visibleLights.Count; (lightIndex < numLights) && (sortCount < lightCount); ++lightIndex)
                     {
@@ -1765,10 +1785,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                         uint shadow = m_ShadowIndices.ContainsKey(lightIndex) ? 1u : 0;
                         // 5 bit (0x1F) light category, 5 bit (0x1F) GPULightType, 5 bit (0x1F) lightVolume, 1 bit for shadow casting, 16 bit index
-                        sortKeys[sortCount++] = (uint)lightCategory << 27 | (uint)gpuLightType << 22 | (uint)lightVolumeType << 17 | shadow << 16 | (uint)lightIndex;
+                        m_SortKeys[sortCount++] = (uint)lightCategory << 27 | (uint)gpuLightType << 22 | (uint)lightVolumeType << 17 | shadow << 16 | (uint)lightIndex;
                     }
 
-                    CoreUtils.QuickSort(sortKeys, 0, sortCount - 1); // Call our own quicksort instead of Array.Sort(sortKeys, 0, sortCount) so we don't allocate memory (note the SortCount-1 that is different from original call).
+                    CoreUtils.QuickSort(m_SortKeys, 0, sortCount - 1); // Call our own quicksort instead of Array.Sort(sortKeys, 0, sortCount) so we don't allocate memory (note the SortCount-1 that is different from original call).
 
                     // TODO: Refactor shadow management
                     // The good way of managing shadow:
@@ -1785,7 +1805,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
                     {
                         // In 1. we have already classify and sorted the light, we need to use this sorted order here
-                        uint sortKey = sortKeys[sortIndex];
+                        uint sortKey = m_SortKeys[sortIndex];
                         LightCategory lightCategory = (LightCategory)((sortKey >> 27) & 0x1F);
                         GPULightType gpuLightType = (GPULightType)((sortKey >> 22) & 0x1F);
                         LightVolumeType lightVolumeType = (LightVolumeType)((sortKey >> 17) & 0x1F);
@@ -1878,7 +1898,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                     var totalProbes = cullResults.visibleReflectionProbes.Count + reflectionProbeCullResults.visiblePlanarReflectionProbeCount;
                     int probeCount = Math.Min(totalProbes, k_MaxEnvLightsOnScreen);
-                    sortKeys = new uint[probeCount];
+                    UpdateSortKeysArray(probeCount);
                     sortCount = 0;
 
                     for (int probeIndex = 0, numProbes = totalProbes; (probeIndex < numProbes) && (sortCount < probeCount); probeIndex++)
@@ -1910,7 +1930,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                             var logVolume = CalculateProbeLogVolume(probe.bounds);
 
-                            sortKeys[sortCount++] = PackProbeKey(logVolume, lightVolumeType, 0u, probeIndex); // Sort by volume
+                            m_SortKeys[sortCount++] = PackProbeKey(logVolume, lightVolumeType, 0u, probeIndex); // Sort by volume
                         }
                         else
                         {
@@ -1928,17 +1948,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                             var logVolume = CalculateProbeLogVolume(probe.bounds);
 
-                            sortKeys[sortCount++] = PackProbeKey(logVolume, lightVolumeType, 1u, planarProbeIndex); // Sort by volume
+                            m_SortKeys[sortCount++] = PackProbeKey(logVolume, lightVolumeType, 1u, planarProbeIndex); // Sort by volume
                         }
                     }
 
                     // Not necessary yet but call it for future modification with sphere influence volume
-                    CoreUtils.QuickSort(sortKeys, 0, sortCount - 1); // Call our own quicksort instead of Array.Sort(sortKeys, 0, sortCount) so we don't allocate memory (note the SortCount-1 that is different from original call).
+                    CoreUtils.QuickSort(m_SortKeys, 0, sortCount - 1); // Call our own quicksort instead of Array.Sort(sortKeys, 0, sortCount) so we don't allocate memory (note the SortCount-1 that is different from original call).
 
                     for (int sortIndex = 0; sortIndex < sortCount; ++sortIndex)
                     {
                         // In 1. we have already classify and sorted the light, we need to use this sorted order here
-                        uint sortKey = sortKeys[sortIndex];
+                        uint sortKey = m_SortKeys[sortIndex];
                         LightVolumeType lightVolumeType;
                         int probeIndex;
                         int listType;
@@ -2139,9 +2159,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             bool isOrthographic = camera.orthographic;
 
             // camera to screen matrix (and it's inverse)
-            var projArr = new Matrix4x4[2];
-            var projscrArr = new Matrix4x4[2];
-            var invProjscrArr = new Matrix4x4[2];
             if (m_FrameSettings.enableStereo)
             {
                 // XRTODO: If possible, we could generate a non-oblique stereo projection
@@ -2153,19 +2170,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 // Once we generate this non-oblique projection matrix, it can be shared across both eyes (un-array)
                 for (int eyeIndex = 0; eyeIndex < 2; eyeIndex++)
                 {
-                    projArr[eyeIndex] = CameraProjectionStereoLHS(hdCamera.camera, (Camera.StereoscopicEye)eyeIndex);
-                    projscrArr[eyeIndex] = temp * projArr[eyeIndex];
-                    invProjscrArr[eyeIndex] = projscrArr[eyeIndex].inverse;
+                    m_LightListProjMatrices[eyeIndex] = CameraProjectionStereoLHS(hdCamera.camera, (Camera.StereoscopicEye)eyeIndex);
+                    m_LightListProjscrMatrices[eyeIndex] = temp * m_LightListProjMatrices[eyeIndex];
+                    m_LightListInvProjscrMatrices[eyeIndex] = m_LightListProjscrMatrices[eyeIndex].inverse;
 
                 }
             }
             else
             {
-                projArr[0] = GeometryUtils.GetProjectionMatrixLHS(hdCamera.camera);
-                projscrArr[0] = temp * projArr[0];
-                invProjscrArr[0] = projscrArr[0].inverse;
+                m_LightListProjMatrices[0] = GeometryUtils.GetProjectionMatrixLHS(hdCamera.camera);
+                m_LightListProjscrMatrices[0] = temp * m_LightListProjMatrices[0];
+                m_LightListInvProjscrMatrices[0] = m_LightListProjscrMatrices[0].inverse;
             }
-            var isProjectionOblique = GeometryUtils.IsProjectionMatrixOblique(projArr[0]);
+            var isProjectionOblique = GeometryUtils.IsProjectionMatrixOblique(m_LightListProjMatrices[0]);
 
             // generate screen-space AABBs (used for both fptl and clustered).
             if (m_lightCount != 0)
@@ -2175,20 +2192,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 temp.SetRow(2, new Vector4(0.0f, 0.0f, 0.5f, 0.5f));
                 temp.SetRow(3, new Vector4(0.0f, 0.0f, 0.0f, 1.0f));
 
-                var projhArr = new Matrix4x4[2];
-                var invProjhArr = new Matrix4x4[2];
                 if (m_FrameSettings.enableStereo)
                 {
                     for (int eyeIndex = 0; eyeIndex < 2; eyeIndex++)
                     {
-                        projhArr[eyeIndex] = temp * projArr[eyeIndex];
-                        invProjhArr[eyeIndex] = projhArr[eyeIndex].inverse;
+                        m_LightListProjHMatrices[eyeIndex] = temp * m_LightListProjMatrices[eyeIndex];
+                        m_LightListInvProjHMatrices[eyeIndex] = m_LightListProjHMatrices[eyeIndex].inverse;
                     }
                 }
                 else
                 {
-                    projhArr[0] = temp * projArr[0];
-                    invProjhArr[0] = projhArr[0].inverse;
+                    m_LightListProjHMatrices[0] = temp * m_LightListProjMatrices[0];
+                    m_LightListInvProjHMatrices[0] = m_LightListProjHMatrices[0].inverse;
                 }
 
                 var genAABBKernel = isProjectionOblique ? s_GenAABBKernel_Oblique : s_GenAABBKernel;
@@ -2199,8 +2214,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeIntParam(buildScreenAABBShader, HDShaderIDs.g_iNrVisibLights, m_lightCount);
                 cmd.SetComputeBufferParam(buildScreenAABBShader, genAABBKernel, HDShaderIDs.g_data, s_ConvexBoundsBuffer);
 
-                cmd.SetComputeMatrixArrayParam(buildScreenAABBShader, HDShaderIDs.g_mProjectionArr, projhArr);
-                cmd.SetComputeMatrixArrayParam(buildScreenAABBShader, HDShaderIDs.g_mInvProjectionArr, invProjhArr);
+                cmd.SetComputeMatrixArrayParam(buildScreenAABBShader, HDShaderIDs.g_mProjectionArr, m_LightListProjHMatrices);
+                cmd.SetComputeMatrixArrayParam(buildScreenAABBShader, HDShaderIDs.g_mInvProjectionArr, m_LightListInvProjHMatrices);
 
                 // In stereo, we output two sets of AABB bounds
                 cmd.SetComputeBufferParam(buildScreenAABBShader, genAABBKernel, HDShaderIDs.g_vBoundsBuffer, s_AABBBoundsBuffer);
@@ -2220,8 +2235,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs._EnvLightIndexShift, m_lightList.lights.Count);
                 cmd.SetComputeIntParam(buildPerBigTileLightListShader, HDShaderIDs._DecalIndexShift, m_lightList.lights.Count + m_lightList.envLights.Count);
 
-                cmd.SetComputeMatrixArrayParam(buildPerBigTileLightListShader, HDShaderIDs.g_mScrProjectionArr, projscrArr);
-                cmd.SetComputeMatrixArrayParam(buildPerBigTileLightListShader, HDShaderIDs.g_mInvScrProjectionArr, invProjscrArr);
+                cmd.SetComputeMatrixArrayParam(buildPerBigTileLightListShader, HDShaderIDs.g_mScrProjectionArr, m_LightListProjscrMatrices);
+                cmd.SetComputeMatrixArrayParam(buildPerBigTileLightListShader, HDShaderIDs.g_mInvScrProjectionArr, m_LightListInvProjscrMatrices);
 
                 cmd.SetComputeFloatParam(buildPerBigTileLightListShader, HDShaderIDs.g_fNearPlane, camera.nearClipPlane);
                 cmd.SetComputeFloatParam(buildPerBigTileLightListShader, HDShaderIDs.g_fFarPlane, camera.farClipPlane);
@@ -2254,8 +2269,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 cmd.SetComputeBufferParam(buildPerTileLightListShader, genListPerTileKernel, HDShaderIDs._LightVolumeData, s_LightVolumeDataBuffer);
                 cmd.SetComputeBufferParam(buildPerTileLightListShader, genListPerTileKernel, HDShaderIDs.g_data, s_ConvexBoundsBuffer);
 
-                cmd.SetComputeMatrixParam(buildPerTileLightListShader, HDShaderIDs.g_mScrProjection, projscrArr[0]);
-                cmd.SetComputeMatrixParam(buildPerTileLightListShader, HDShaderIDs.g_mInvScrProjection, invProjscrArr[0]);
+                cmd.SetComputeMatrixParam(buildPerTileLightListShader, HDShaderIDs.g_mScrProjection, m_LightListProjscrMatrices[0]);
+                cmd.SetComputeMatrixParam(buildPerTileLightListShader, HDShaderIDs.g_mInvScrProjection, m_LightListInvProjscrMatrices[0]);
 
                 cmd.SetComputeTextureParam(buildPerTileLightListShader, genListPerTileKernel, HDShaderIDs.g_depth_tex, cameraDepthBufferRT);
                 cmd.SetComputeBufferParam(buildPerTileLightListShader, genListPerTileKernel, HDShaderIDs.g_vLightList, s_LightList);
@@ -2285,7 +2300,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // Cluster
-            VoxelLightListGeneration(cmd, hdCamera, projscrArr, invProjscrArr, cameraDepthBufferRT);
+            VoxelLightListGeneration(cmd, hdCamera, m_LightListProjscrMatrices, m_LightListInvProjscrMatrices, cameraDepthBufferRT);
 
             if (enableFeatureVariants)
             {
