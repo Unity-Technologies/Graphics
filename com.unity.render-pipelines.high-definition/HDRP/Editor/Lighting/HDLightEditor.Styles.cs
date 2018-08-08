@@ -38,6 +38,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public readonly GUIContent shapeWidthLine = new GUIContent("Length", "Length of the line light");
             public readonly GUIContent shapeWidthRect = new GUIContent("Size X", "SizeX of the rectangle light");
             public readonly GUIContent shapeHeightRect = new GUIContent("Size Y", "SizeY of the rectangle light");
+            public readonly GUIContent shapeWidthSphere = new GUIContent("Radius", "Radius of the sphere light");
+            public readonly GUIContent shapeWidthDisc = new GUIContent("Radius X", "Radius of the disc light along the X axis");
+            public readonly GUIContent shapeHeightDisc = new GUIContent("Radius Y", "Radius of the disc light along the Y axis");
             public readonly GUIContent aspectRatioPyramid = new GUIContent("Aspect ratio", "");
             public readonly GUIContent shapeWidthBox = new GUIContent("Size X", "");
             public readonly GUIContent shapeHeightBox = new GUIContent("Size Y", "");

@@ -1274,6 +1274,50 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightVolumeData.boxInvRange.Set(Mathf.Infinity, Mathf.Infinity, Mathf.Infinity);
                 lightVolumeData.featureFlags = (uint)LightFeatureFlags.Area;
             }
+            // BEGIN: Patapom (18/08/08) 
+            else if (gpuLightType == GPULightType.Sphere)
+            {
+                Vector3 vx = xAxisVS;
+                Vector3 vy = yAxisVS;
+                Vector3 vz = zAxisVS;
+
+                bound.center   = positionVS;
+                bound.boxAxisX = vx * range;
+                bound.boxAxisY = vy * range;
+                bound.boxAxisZ = vz * range;
+                bound.scaleXY.Set(1.0f, 1.0f);
+                bound.radius = range;
+
+                // fill up ldata
+                lightVolumeData.lightAxisX = vx;
+                lightVolumeData.lightAxisY = vy;
+                lightVolumeData.lightAxisZ = vz;
+                lightVolumeData.lightPos = bound.center;
+                lightVolumeData.radiusSq = range * range;
+                lightVolumeData.featureFlags = (uint)LightFeatureFlags.Punctual;
+            }
+            else if (gpuLightType == GPULightType.Disk)
+            {
+                Vector3 dimensions = new Vector3(lightDimensions.x + 2 * range, lightDimensions.y + 2 * range, range); // One-sided
+                Vector3 extents = 0.5f * dimensions;
+                Vector3 centerVS = positionVS + extents.z * zAxisVS;
+
+                bound.center = centerVS;
+                bound.boxAxisX = extents.x * xAxisVS;
+                bound.boxAxisY = extents.y * yAxisVS;
+                bound.boxAxisZ = extents.z * zAxisVS;
+                bound.scaleXY.Set(1.0f, 1.0f);
+                bound.radius = extents.magnitude;
+
+                lightVolumeData.lightPos     = centerVS;
+                lightVolumeData.lightAxisX   = xAxisVS;
+                lightVolumeData.lightAxisY   = yAxisVS;
+                lightVolumeData.lightAxisZ   = zAxisVS;
+                lightVolumeData.boxInnerDist = extents;
+                lightVolumeData.boxInvRange.Set(Mathf.Infinity, Mathf.Infinity, Mathf.Infinity);
+                lightVolumeData.featureFlags = (uint)LightFeatureFlags.Area;
+            }
+            // END: Patapom (18/08/08)
             else if (gpuLightType == GPULightType.ProjectorBox)
             {
                 Vector3 dimensions  = new Vector3(lightDimensions.x, lightDimensions.y, range);  // One-sided
@@ -1705,6 +1749,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                                     gpuLightType = GPULightType.Line;
                                     lightVolumeType = LightVolumeType.Box;
                                     break;
+
+                                // BEGIN: Patapom (18/08/08) 
+                                case LightTypeExtent.Sphere:
+                                    if (areaLightCount >= k_MaxAreaLightsOnScreen)
+                                        continue;
+                                    gpuLightType = GPULightType.Sphere;
+                                    lightVolumeType = LightVolumeType.Sphere;
+                                    break;
+
+                                case LightTypeExtent.Disk:
+                                    if (areaLightCount >= k_MaxAreaLightsOnScreen)
+                                        continue;
+                                    gpuLightType = GPULightType.Disk;
+                                    lightVolumeType = LightVolumeType.Box;
+                                    break;
+                                // END: Patapom (18/08/08)
 
                                 default:
                                     Debug.Assert(false, "Encountered an unknown LightType.");

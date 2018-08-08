@@ -103,13 +103,45 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        public static void DrawArealightGizmo(Light arealight)
+        public static void DrawArealightGizmo(Light arealight, HDAdditionalLightData additionalLightData)
         {
-            var RectangleSize = new Vector3(arealight.areaSize.x, arealight.areaSize.y, 0);
-            // Remove scale for light, not take into account
-            var localToWorldMatrix = Matrix4x4.TRS(arealight.transform.position, arealight.transform.rotation, Vector3.one);
+            Matrix4x4   localToWorldMatrix;
+            if ( additionalLightData.lightTypeExtent == LightTypeExtent.Sphere )
+            {
+                localToWorldMatrix = Camera.current.cameraToWorldMatrix;
+                localToWorldMatrix.SetColumn( 3, new Vector4( arealight.transform.position.x, arealight.transform.position.y, arealight.transform.position.z, 1 ) );
+            }
+            else
+            {
+                localToWorldMatrix = Matrix4x4.TRS(arealight.transform.position, arealight.transform.rotation, Vector3.one);    // Remove scale for light, not take into account
+            }
+
             Gizmos.matrix = localToWorldMatrix;
-            Gizmos.DrawWireCube(Vector3.zero, RectangleSize);
+
+            switch ( additionalLightData.lightTypeExtent )
+            {
+                case LightTypeExtent.Rectangle:
+                case LightTypeExtent.Line:
+                    var RectangleSize = new Vector3(arealight.areaSize.x, arealight.areaSize.y, 0);
+                    Gizmos.DrawWireCube(Vector3.zero, RectangleSize);
+                    break;
+
+                case LightTypeExtent.Sphere:
+                case LightTypeExtent.Disk: {
+                    const int N = 40;
+                    float   Rx = additionalLightData.shapeWidth;
+                    float   Ry = additionalLightData.lightTypeExtent == LightTypeExtent.Disk ? additionalLightData.shapeHeight : Rx;
+                    for ( int i=0; i <= N; i++ )
+                    {
+                        float   a0 = 2*Mathf.PI * i / N;
+                        float   a1 = 2*Mathf.PI * (i+1) / N;
+                        Gizmos.DrawLine( new Vector3( Rx * Mathf.Cos( a0 ), Ry * Mathf.Sin( a0 ), 0 ),
+                                         new Vector3( Rx * Mathf.Cos( a1 ), Ry * Mathf.Sin( a1 ), 0 ) );
+                    }
+                break;
+                }
+            }
+
             Gizmos.matrix = Matrix4x4.identity;
             Gizmos.DrawWireSphere(arealight.transform.position, arealight.range);
         }

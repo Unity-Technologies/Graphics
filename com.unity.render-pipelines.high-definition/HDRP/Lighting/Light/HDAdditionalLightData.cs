@@ -13,19 +13,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Punctual, // Fallback on LightShape type
         Rectangle,
         Line,
-        // Sphere,
-        // Disc,
+        Sphere,
+        Disk,
     };
 
     public enum SpotLightShape { Cone, Pyramid, Box };
 
     public enum LightUnit
     {
-        Lumen,
-        Candela,
-        Lux,
-        Luminance,
-        Ev100,
+        Lumen,      // lm = total power/flux emitted by the light
+        Candela,    // lm/sr = flux per steradian
+        Lux,        // lm/m² = flux per unit area
+        Luminance,  // lm/m²/sr = flux per unit area and per steradian
+        Ev100,      // ISO 100 Exposure Value (https://en.wikipedia.org/wiki/Exposure_value)
     }
 
     // Light layering
@@ -321,10 +321,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 switch (lightTypeExtent)
                 {
                     case LightTypeExtent.Rectangle:
-                        HDLightEditorUtilities.DrawArealightGizmo(light);
+                        HDLightEditorUtilities.DrawArealightGizmo(light, this);
                         break;
                     case LightTypeExtent.Line:
-                        HDLightEditorUtilities.DrawArealightGizmo(light);
+                        HDLightEditorUtilities.DrawArealightGizmo(light, this);
+                        break;
+                    case LightTypeExtent.Sphere:
+                        HDLightEditorUtilities.DrawArealightGizmo(light, this);
+                        break;
+                    case LightTypeExtent.Disk:
+                        HDLightEditorUtilities.DrawArealightGizmo(light, this);
                         break;
                 }
             }
@@ -469,6 +475,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     shapeWidth = lightSize.x;
                     shapeHeight = lightSize.y;
                     break;
+                case LightTypeExtent.Disk:
+                    shapeWidth = lightSize.x;
+                    shapeHeight = lightSize.y;
+                    break;
                 default:
                     break;
             }
@@ -575,6 +585,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         break;
                     case LightTypeExtent.Line:
                     case LightTypeExtent.Rectangle:
+                    case LightTypeExtent.Sphere:
+                    case LightTypeExtent.Disk:
                         lightUnit = LightUnit.Lumen;
                         intensity = areaIntensity;
                         break;
