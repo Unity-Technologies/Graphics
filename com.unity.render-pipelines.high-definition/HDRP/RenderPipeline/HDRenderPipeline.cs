@@ -750,11 +750,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
 
             // TODO: Render only visible probes
-            var probeTypeToRender = ReflectionProbeType.ReflectionProbe;
-            var isPlanarReflection = cameras.Any(c => c.cameraType == CameraType.Reflection);
-            if (!isPlanarReflection)
-                probeTypeToRender |= ReflectionProbeType.PlanarReflection;
-            ReflectionSystem.RenderAllRealtimeProbes(probeTypeToRender);
+            var isReflection = cameras.Any(c => c.cameraType == CameraType.Reflection);
+            if (!isReflection)
+                ReflectionSystem.RenderAllRealtimeProbes(ReflectionProbeType.PlanarReflection);
 
             // We first update the state of asset frame settings as they can be use by various camera
             // but we keep the dirty state to correctly reset other camera that use RenderingPath.Default.
