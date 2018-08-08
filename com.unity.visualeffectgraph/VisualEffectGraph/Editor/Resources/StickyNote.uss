@@ -1,3 +1,8 @@
+* Label#title, * TextField#title-field,* Label#contents, * TextField#contents-field
+{
+    font:resource("GraphView/DummyFont(LucidaGrande).ttf");
+}
+
 .sticky-note
 {
     min-height:100;
