@@ -1,4 +1,3 @@
-// GBuffer pass
 Pass
 {		
 	Tags { "LightMode"="GBuffer" }

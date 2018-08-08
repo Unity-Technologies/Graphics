@@ -1,4 +1,3 @@
-// Shadow pass
 Pass
 {		
 	Tags { "LightMode"="DepthOnly" }
@@ -66,28 +65,8 @@ ${VFXEnd}
 	)
 	{		
 #ifdef WRITE_NORMAL_BUFFER
-		#if USE_DOUBLE_SIDED
-		const float faceMul = frontFace ? 1.0f : -1.0f;
-		#else
-		const float faceMul = 1.0f;
-#endif
-		
-		float3 normalWS = normalize(i.normal * faceMul);
-		const VFXUVData uvData = GetUVData(i);
-		
-#if HDRP_USE_NORMAL_MAP
-		float3 tangentWS = normalize(i.tangent.xyz);
-		float3 bitangentWS = cross(normalWS,tangentWS) * (i.tangent.w * faceMul);
-		float3 n = SampleNormalMap(VFX_SAMPLER(normalMap),uvData);
-		float3x3 tbn = float3x3(tangentWS,bitangentWS,normalWS);
-		normalWS = normalize(lerp(normalWS,mul(n,tbn),i.VFX_VARYING_NORMALSCALE));
-#endif
-
-		SurfaceData surfaceData;
-		BuiltinData builtinData;
-		VFXGetHDRPLitData(surfaceData,builtinData,i,normalWS,uvData);
-
-		ENCODE_INTO_NORMALBUFFER(surfaceData, i.pos, outNormalBuffer);
+		${VFXComputeNormalWS}
+		VFXComputePixelOutputToNormalBuffer(i,normalWS,uvData,outNormalBuffer);
 #else
 		float alpha = VFXGetFragmentColor(i).a;
 #if HDRP_USE_BASE_COLOR_MAP

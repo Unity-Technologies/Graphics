@@ -2,15 +2,7 @@
 Pass
 {		
 	Tags { "LightMode"="Forward" }
-	
-	Stencil
-	{
-		WriteMask 7
-		Ref  2
-		Comp Always
-		Pass Replace
-	}	
-		
+			
 	HLSLPROGRAM
 	#pragma target 4.5
 	

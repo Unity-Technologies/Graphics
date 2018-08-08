@@ -50,7 +50,6 @@ ${VFXHDRPLitVaryingsMacros}
 #define VFX_VARYING_TANGENT tangent
 #endif
 
-				
 ${VFXBegin:VFXVertexAdditionalProcess}
 ${VFXHDRPLitFillVaryings}
 ${VFXEnd}

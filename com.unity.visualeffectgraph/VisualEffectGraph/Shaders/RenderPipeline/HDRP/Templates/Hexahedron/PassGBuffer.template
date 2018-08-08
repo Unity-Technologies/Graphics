@@ -15,7 +15,6 @@ Pass
 	#pragma target 4.5
 	
 	#define UNITY_MATERIAL_LIT
-	#define SHADERPASS SHADERPASS_GBUFFER
 	
 	${VFXInclude("Shaders/RenderPipeline/HDRP/VFXLitVaryings.template")}	
 	
@@ -66,7 +65,8 @@ ${VFXBegin:VFXVertexAdditionalProcess}
 ${VFXHDRPLitFillVaryings}
 ${VFXEnd}
 
-	${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}		
+	${VFXInclude("Shaders/ParticleHexahedron/Pass.template")}	
+	#define SHADERPASS SHADERPASS_GBUFFER	
 	${VFXInclude("Shaders/RenderPipeline/HDRP/VFXLit.template")}	
 		
 	#pragma fragment frag
@@ -84,7 +84,7 @@ ${VFXEnd}
 		float3 normalWS;
 		const VFXUVData uvData = GetUVData(i,VFXCubeGetUV(i));
 		
-		#if HDRP_USE_NORMAL_MAP
+		#if USE_NORMAL_MAP
 		float3 n = SampleNormalMap(VFX_SAMPLER(normalMap),uvData);
 		normalWS = VFXCubeTransformNormalTS(i,n,frontFace);
 		normalWS = lerp(VFXCubeGetLocalNormal(i) * faceMul,normalWS,i.materialProperties.z);

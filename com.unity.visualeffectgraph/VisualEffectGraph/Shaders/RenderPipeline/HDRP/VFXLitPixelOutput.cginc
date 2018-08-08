@@ -65,4 +65,14 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
  \
 	ENCODE_INTO_GBUFFER(surfaceData, builtinData, i.VFX_VARYING_POSCS, outGBuffer); \
 }
+
+#define VFXComputePixelOutputToNormalBuffer(i,normalWS,uvData,outNormalBuffer) \
+{ \
+	SurfaceData surfaceData; \
+	BuiltinData builtinData; \
+	VFXGetHDRPLitData(surfaceData,builtinData,i,normalWS,uvData); \
+ \
+	ENCODE_INTO_NORMALBUFFER(surfaceData, i.VFX_VARYING_POSCS, outNormalBuffer); \
+}
+
 #endif

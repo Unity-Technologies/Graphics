@@ -1,4 +1,3 @@
-// Depth pass
 Pass
 {		
 	Tags { "LightMode"="DepthOnly" }
@@ -9,7 +8,7 @@ Pass
 	HLSLPROGRAM
 	#pragma target 4.5
 	#define UNITY_MATERIAL_LIT
-	//#pragma multi_compile _ WRITE_NORMAL_BUFFER
+	#pragma multi_compile _ WRITE_NORMAL_BUFFER
 	
 	struct ps_input
 	{
@@ -79,7 +78,7 @@ ${VFXEnd}
 	{
 #ifdef WRITE_NORMAL_BUFFER		
 		${VFXComputeNormalWS}		
-		VFXComputePixelOutputToGBuffer(i,normalWS,uvData,outGBuffer);
+		VFXComputePixelOutputToNormalBuffer(i,normalWS,uvData,outNormalBuffer);
 #else
 		float alpha = VFXGetFragmentColor(i).a;
 #if HDRP_USE_BASE_COLOR_MAP

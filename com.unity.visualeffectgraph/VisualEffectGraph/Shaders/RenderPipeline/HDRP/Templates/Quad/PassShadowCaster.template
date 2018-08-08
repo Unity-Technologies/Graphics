@@ -1,4 +1,3 @@
-// Shadow pass
 Pass
 {		
 	Tags { "LightMode"=${VFXPassShadow} }
