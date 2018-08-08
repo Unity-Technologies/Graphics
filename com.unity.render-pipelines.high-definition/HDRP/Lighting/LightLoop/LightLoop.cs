@@ -1015,7 +1015,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             lightData.color = GetLightColor(light);
 
-            lightData.forward = light.GetUp();
+            lightData.forward = light.GetForward();
             lightData.up = light.GetUp();
             lightData.right = light.GetRight();
 
