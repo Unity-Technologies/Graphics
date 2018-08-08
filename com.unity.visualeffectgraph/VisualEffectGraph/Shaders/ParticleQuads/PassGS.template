@@ -22,17 +22,29 @@ void geom(point uint intStream[1] : TEXCOORD0,inout TriangleStream<VFX_VARYING_P
 	
 	const float4x4 elementToVFX = GetElementToVFXMatrix(axisX,axisY,axisZ,float3(angleX,angleY,angleZ),pivot,size,position);
 	
+	VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
+	
+	#ifdef VFX_VARYING_NORMAL
+	o.VFX_VARYING_NORMAL = TransformDirectionVFXToWorld(normalize(-transpose(elementToVFX)[2].xyz));
+	#endif
+	#ifdef VFX_VARYING_TANGENT
+	o.VFX_VARYING_TANGENT = TransformDirectionVFXToWorld(normalize(transpose(elementToVFX)[0].xyz));
+	#endif
+	
 	[unroll]
 	for (int id = 0; id < 4; ++id)
 	{
-		VFX_VARYING_PS_INPUTS o = (VFX_VARYING_PS_INPUTS)0;
-		
 		o.VFX_VARYING_UV.x = float((id & 2) >> 1);
 		o.VFX_VARYING_UV.y = float(id & 1);
 						
 		const float2 vOffsets = o.VFX_VARYING_UV.xy * 2.0f - 1.0f;
 		const float3 vPos = mul(elementToVFX,float4(vOffsets,0.0f,1.0f)).xyz;
 		o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
+		
+		#ifdef VFX_VARYING_BENTFACTORS
+		${VFXLoadParameter:{bentNormalFactor}}
+		o.VFX_VARYING_BENTFACTORS = vOffsets * bentNormalFactor;
+		#endif
 
 		${VFXVertexCommonProcess}
 		

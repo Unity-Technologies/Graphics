@@ -940,6 +940,12 @@ PreLightData GetPreLightData(float3 V, PositionInputs posInput, inout BSDFData b
         preLightData.coatIblR = reflect(-V, N);
         preLightData.coatIblF = F_Schlick(CLEAR_COAT_F0, NdotV) * bsdfData.coatMask;
     }
+    else
+    {
+        preLightData.coatPartLambdaV = 0;
+        preLightData.coatIblR = 0;
+        preLightData.coatIblF = 0;
+    }
 
     // Handle IBL + area light + multiscattering.
     // Note: use the not modified by anisotropy iblPerceptualRoughness here.
