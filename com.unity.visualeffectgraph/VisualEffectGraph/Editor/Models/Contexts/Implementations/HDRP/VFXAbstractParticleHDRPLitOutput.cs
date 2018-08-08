@@ -243,7 +243,7 @@ namespace UnityEditor.VFX
                     if (useMaskMap)
                         yield return "HDRP_USE_MASK_MAP";
                     if (useNormalMap)
-                        yield return "HDRP_USE_NORMAL_MAP";
+                        yield return "USE_NORMAL_MAP";
                     if (useEmissiveMap)
                         yield return "HDRP_USE_EMISSIVE_MAP";
                 }

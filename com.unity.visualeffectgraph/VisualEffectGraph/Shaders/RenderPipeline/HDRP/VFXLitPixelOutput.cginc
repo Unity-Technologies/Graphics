@@ -1,12 +1,4 @@
-#define VFXComputePixelOutputToGBuffer(i,normalWS,uvData,outGBuffer) \
-{ \
-	SurfaceData surfaceData; \
-	BuiltinData builtinData; \
-	VFXGetHDRPLitData(surfaceData,builtinData,i,normalWS,uvData); \
- \
-	ENCODE_INTO_GBUFFER(surfaceData, builtinData, i.VFX_VARYING_POSCS, outGBuffer); \
-}
-
+#if (SHADERPASS == SHADERPASS_FORWARD)
 float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, const VFXUVData uvData)
 {	
 	float3 diffuseLighting;
@@ -30,7 +22,6 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
 	#else
 	uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT;
 	#endif
-	
 	LightLoop(GetWorldSpaceNormalizeViewDir(i.VFX_VARYING_POSRWS), posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
 
 	diffuseLighting *= builtinData.opacity;
@@ -65,3 +56,13 @@ float4 VFXGetPixelOutputForward(const VFX_VARYING_PS_INPUTS i, float3 normalWS, 
 	
 	return outColor;
 }
+#else
+#define VFXComputePixelOutputToGBuffer(i,normalWS,uvData,outGBuffer) \
+{ \
+	SurfaceData surfaceData; \
+	BuiltinData builtinData; \
+	VFXGetHDRPLitData(surfaceData,builtinData,i,normalWS,uvData); \
+ \
+	ENCODE_INTO_GBUFFER(surfaceData, builtinData, i.VFX_VARYING_POSCS, outGBuffer); \
+}
+#endif

@@ -32,7 +32,7 @@ Pass
 		
 		float2 uv : TEXCOORD1;	
 		float3 normal : TEXCOORD2;
-		#if HDRP_USE_NORMAL_MAP
+		#if USE_NORMAL_MAP
 		float4 tangent : TEXCOORD3;
 		#endif
 		#if USE_ALPHA_TEST
@@ -53,7 +53,7 @@ ${VFXHDRPLitVaryingsMacros}
 #define VFX_VARYING_UV uv
 #define VFX_VARYING_ALPHATHRESHOLD builtInInterpolants.x
 #define VFX_VARYING_NORMAL normal
-#if HDRP_USE_NORMAL_MAP
+#if USE_NORMAL_MAP
 #define VFX_VARYING_TANGENT tangent
 #endif
 
@@ -72,23 +72,7 @@ ${VFXEnd}
 #endif
 	)
 	{
-		#if USE_DOUBLE_SIDED
-		const float faceMul = frontFace ? 1.0f : -1.0f;
-		#else
-		const float faceMul = 1.0f;
-		#endif
-		
-		float3 normalWS = normalize(i.normal * faceMul);
-		const VFXUVData uvData = GetUVData(i);
-		
-		#if HDRP_USE_NORMAL_MAP
-		float3 tangentWS = normalize(i.tangent.xyz);
-		float3 bitangentWS = cross(normalWS,tangentWS) * (i.tangent.w * faceMul);
-		float3 n = SampleNormalMap(VFX_SAMPLER(normalMap),uvData);
-		float3x3 tbn = float3x3(tangentWS,bitangentWS,normalWS);
-		normalWS = normalize(lerp(normalWS,mul(n,tbn),i.materialProperties.z));
-		#endif
-
+		${VFXComputeNormalWS}
 		outColor = VFXGetPixelOutputForward(i,normalWS,uvData);
 	}
 	ENDHLSL
