@@ -188,6 +188,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         mat.shader.name == "HDRenderPipeline/LayeredLitTessellation" ||
                         mat.shader.name == "HDRenderPipeline/StackLit" ||
                         mat.shader.name == "HDRenderPipeline/Unlit" ||
+                        mat.shader.name == "HDRenderPipeline/Fabric" ||
                         mat.shader.name == "HDRenderPipeline/Decal"
                          )
                     {

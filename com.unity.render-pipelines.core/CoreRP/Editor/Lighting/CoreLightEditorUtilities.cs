@@ -1,15 +1,11 @@
-#if UNITY_EDITOR
 using System;
 using System.Reflection;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
-#endif
 
-namespace UnityEditor.Experimental.Rendering.HDPipeline
+namespace UnityEditor.Experimental.Rendering
 {
-#if UNITY_EDITOR
-    public static class HDLightEditorUtilities
+    public static class CoreLightEditorUtilities
     {
         // Don't use Handles.Disc as it break the highlight of the gizmo axis, use our own draw disc function instead for gizmo
         public static void DrawWireDisc(Quaternion q, Vector3 position, Vector3 axis, float radius)
@@ -37,7 +33,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Gizmos.DrawLine(pos, lastPos);
         }
 
-        public static void DrawSpotlightGizmo(Light spotlight, bool selected)
+        public static void DrawSpotlightGizmo(Light spotlight, float innerSpotPercent, bool selected)
         {
             var flatRadiusAtRange = spotlight.range * Mathf.Tan(spotlight.spotAngle * Mathf.Deg2Rad * 0.5f);
 
@@ -70,16 +66,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     DrawWireDisc(spotlight.gameObject.transform.rotation, spotlight.gameObject.transform.position + spotlight.gameObject.transform.forward * nearDiscDistance, spotlight.gameObject.transform.forward, nearDiscRadius);
 
                 //Inner Cone
-                var additionalLightData = spotlight.GetComponent<HDAdditionalLightData>();
-                DrawInnerCone(spotlight, additionalLightData);
+                DrawInnerCone(spotlight, innerSpotPercent);
             }
         }
 
-        public static void DrawInnerCone(Light spotlight, HDAdditionalLightData additionalLightData)
+        // innerSpotPercent - 0 to 1 value (percentage 0 - 100%)
+        public static void DrawInnerCone(Light spotlight, float innerSpotPercent)
         {
-            if (additionalLightData == null) return;
-
-            var flatRadiusAtRange = spotlight.range * Mathf.Tan(spotlight.spotAngle * additionalLightData.m_InnerSpotPercent * 0.01f * Mathf.Deg2Rad * 0.5f);
+            var flatRadiusAtRange = spotlight.range * Mathf.Tan(spotlight.spotAngle * innerSpotPercent * Mathf.Deg2Rad * 0.5f);
 
             var vectorLineUp = Vector3.Normalize(spotlight.gameObject.transform.position + spotlight.gameObject.transform.forward * spotlight.range + spotlight.gameObject.transform.up * flatRadiusAtRange - spotlight.gameObject.transform.position);
             var vectorLineDown = Vector3.Normalize(spotlight.gameObject.transform.position + spotlight.gameObject.transform.forward * spotlight.range + spotlight.gameObject.transform.up * -flatRadiusAtRange - spotlight.gameObject.transform.position);
@@ -93,7 +87,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Gizmos.DrawLine(spotlight.gameObject.transform.position, spotlight.gameObject.transform.position + vectorLineRight * spotlight.range);
             Gizmos.DrawLine(spotlight.gameObject.transform.position, spotlight.gameObject.transform.position + vectorLineLeft * spotlight.range);
 
-            var innerAngle = spotlight.spotAngle * additionalLightData.GetInnerSpotPercent01();
+            var innerAngle = spotlight.spotAngle * innerSpotPercent;
             if (innerAngle > 0)
             {
                 var innerDiscDistance = Mathf.Cos(Mathf.Deg2Rad * innerAngle * 0.5f) * spotlight.range;
@@ -118,15 +112,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             if (pointlight.shadows != LightShadows.None && selected) Gizmos.DrawWireSphere(pointlight.transform.position, pointlight.shadowNearPlane);
             Gizmos.DrawWireSphere(pointlight.transform.position, pointlight.range);
-        }
-
-        public static void DrawSpherelightGizmo(Light spherelight)
-        {
-            var additionalLightData = spherelight.GetComponent<HDAdditionalLightData>();
-            if (additionalLightData == null) return;
-            Gizmos.DrawSphere(spherelight.transform.position, additionalLightData.shapeWidth);
-            if (spherelight.shadows != LightShadows.None) Gizmos.DrawWireSphere(spherelight.transform.position, spherelight.shadowNearPlane);
-            Gizmos.DrawWireSphere(spherelight.transform.position, spherelight.range);
         }
 
         // Same as Gizmo.DrawFrustum except that when aspect is below one, fov represent fovX instead of fovY
@@ -237,28 +222,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Gizmos.DrawLine(s4, e4);
         }
 
-        public static void DrawFrustumlightGizmo(Light frustumlight)
-        {
-            var additionalLightData = frustumlight.GetComponent<HDAdditionalLightData>();
-            if (additionalLightData == null) return;
-
-            Matrix4x4 matrix = new Matrix4x4(frustumlight.transform.right, frustumlight.transform.up, frustumlight.transform.forward, frustumlight.transform.position);
-            Gizmos.matrix = matrix;
-            if (additionalLightData.spotLightShape == SpotLightShape.Pyramid)
-            {
-                DrawLightPyramidFrustum(Vector3.zero, frustumlight.spotAngle, frustumlight.range, 0.0f, additionalLightData.aspectRatio);
-            }
-            else // Ortho frustum
-            {
-                //DrawLightOrthoFrustum(Vector3.zero, additionalLightData.shapeWidth, additionalLightData.shapeHeight, frustumlight.range, 0.0f);
-
-                Vector3 frustumCenter = new Vector3(0.0f, 0.0f, 0.5f * frustumlight.range);
-                Vector3 frustumsize = new Vector3(additionalLightData.shapeWidth, additionalLightData.shapeHeight, frustumlight.range);
-                Gizmos.DrawWireCube(frustumCenter, frustumsize);
-            }
-            Gizmos.matrix = Matrix4x4.identity;
-        }
-
         public static void DrawDirectionalLightGizmo(Light directionalLight)
         {
             var gizmoSize = 0.2f;
@@ -269,17 +232,5 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Gizmos.DrawLine(directionalLight.transform.position + directionalLight.transform.right * gizmoSize, directionalLight.transform.position + directionalLight.transform.right * gizmoSize + directionalLight.transform.forward);
             Gizmos.DrawLine(directionalLight.transform.position + directionalLight.transform.right * -gizmoSize, directionalLight.transform.position + directionalLight.transform.right * -gizmoSize + directionalLight.transform.forward);
         }
-
-        public static void DrawCross(Transform m_transform)
-        {
-            var gizmoSize = 0.25f;
-            Gizmos.DrawLine(m_transform.position, m_transform.position + m_transform.TransformVector(m_transform.root.forward * gizmoSize / m_transform.localScale.z));
-            Gizmos.DrawLine(m_transform.position, m_transform.position + m_transform.TransformVector(m_transform.root.forward * -gizmoSize / m_transform.localScale.z));
-            Gizmos.DrawLine(m_transform.position, m_transform.position + m_transform.TransformVector(m_transform.root.up * gizmoSize / m_transform.localScale.y));
-            Gizmos.DrawLine(m_transform.position, m_transform.position + m_transform.TransformVector(m_transform.root.up * -gizmoSize / m_transform.localScale.y));
-            Gizmos.DrawLine(m_transform.position, m_transform.position + m_transform.TransformVector(m_transform.root.right * gizmoSize / m_transform.localScale.x));
-            Gizmos.DrawLine(m_transform.position, m_transform.position + m_transform.TransformVector(m_transform.root.right * -gizmoSize / m_transform.localScale.x));
-        }
     }
-#endif
 }
