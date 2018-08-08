@@ -8,7 +8,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     public class RenderPipelineResources : ScriptableObject
     {
-        const int currentVersion = 2;
+        const int currentVersion = 3;
         [SerializeField]
         [FormerlySerializedAs("version")]
         int m_Version = 1;
@@ -167,7 +167,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             // Material
             preIntegratedFGD_GGXDisneyDiffuse = Load<Shader>(HDRenderPipelinePath + "Material/PreIntegratedFGD/PreIntegratedFGD_GGXDisneyDiffuse.shader");
-            preIntegratedFGD_CharlieFabricLambert = Load<Shader>(HDRenderPipelinePath + "Material/PreIntegratedFGD/PreIntegratedFGD_CharlieClothLambert.shader");
+            preIntegratedFGD_CharlieFabricLambert = Load<Shader>(HDRenderPipelinePath + "Material/PreIntegratedFGD/PreIntegratedFGD_CharlieFabricLambert.shader");
 
             // Utilities / Core
             encodeBC6HCS = Load<ComputeShader>(CorePath + "CoreResources/EncodeBC6H.compute");
