@@ -42,7 +42,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public bool sceneViewEditing
         {
-            get { return HDReflectionProbeEditor.IsReflectionProbeEditMode(EditMode.editMode) && EditMode.IsOwner(owner); }
+            get { return HDProbeUI.IsProbeEditMode(EditMode.editMode) && EditMode.IsOwner(owner); }
         }
 
         public override void Update()

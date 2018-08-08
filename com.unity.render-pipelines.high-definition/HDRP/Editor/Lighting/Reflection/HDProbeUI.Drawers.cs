@@ -160,6 +160,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected const EditMode.SceneViewEditMode EditCenter = EditMode.SceneViewEditMode.GridMove;
         //Note: EditMode.SceneViewEditMode.ReflectionProbeOrigin is still used
         //by legacy reflection probe and have its own mecanism that we don't want
+        
+        internal static bool IsProbeEditMode(EditMode.SceneViewEditMode editMode)
+        {
+            return editMode == EditBaseShape
+                || editMode == EditInfluenceShape
+                || editMode == EditInfluenceNormalShape
+                || editMode == EditCenter;
+        }
 
         static Dictionary<ToolBar, EditMode.SceneViewEditMode> s_Toolbar_Mode = null;
         protected static Dictionary<ToolBar, EditMode.SceneViewEditMode> toolbar_Mode

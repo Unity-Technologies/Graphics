@@ -79,7 +79,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         public bool sceneViewEditing
         {
-            get { return IsReflectionProbeEditMode(EditMode.editMode) && EditMode.IsOwner(this); }
+            get { return HDProbeUI.IsProbeEditMode(EditMode.editMode) && EditMode.IsOwner(this); }
         }
         
         protected override void OnEnable()
@@ -103,14 +103,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             HDAdditionalReflectionData probe = (HDAdditionalReflectionData)m_AdditionalDataSerializedObject.targetObject;
             probe.influenceVolume.Init(probe);
-        }
-
-        public static bool IsReflectionProbeEditMode(EditMode.SceneViewEditMode editMode)
-        {
-            return editMode == EditMode.SceneViewEditMode.ReflectionProbeBox
-                || editMode == EditMode.SceneViewEditMode.Collider
-                || editMode == EditMode.SceneViewEditMode.GridBox
-                || editMode == EditMode.SceneViewEditMode.GridMove;
         }
     }
 }
