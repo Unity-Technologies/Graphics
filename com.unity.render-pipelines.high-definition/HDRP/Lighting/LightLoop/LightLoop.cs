@@ -2735,7 +2735,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 }
             }
 
-#if UNITY_EDITOR
             if (lightingDebug.displayLightVolumes)
             {
                 // First of all let's do the regions for the light sources (we only support Poncutal and Area)
@@ -2744,7 +2743,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     // Let's build the light's bounding sphere matrix
                     Light currentLegacyLight = cullResults.visibleLights[lightIdx].light;
+                    if (currentLegacyLight == null) continue;
                     HDAdditionalLightData currentHDRLight = currentLegacyLight.GetComponent<HDAdditionalLightData>();
+                    if (currentHDRLight == null) continue;
 
                     MaterialPropertyBlock materialBlock = new MaterialPropertyBlock();
                     Matrix4x4 positionMat = Matrix4x4.Translate(currentLegacyLight.transform.position);
@@ -2834,7 +2835,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     cmd.DrawMesh(targetMesh, positionMat, m_DebugLightVolumeMaterial, 0, -1, materialBlock);
                 }
             }
-#endif
         }
     }
 }

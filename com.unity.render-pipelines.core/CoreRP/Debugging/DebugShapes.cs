@@ -3,7 +3,7 @@ namespace UnityEngine.Experimental.Rendering
     public partial class DebugShapes
     {
         // Singleton
-        private static DebugShapes s_Instance = null;
+        static DebugShapes s_Instance = null;
 
         static public DebugShapes instance
         {
@@ -18,13 +18,13 @@ namespace UnityEngine.Experimental.Rendering
             }
         }
         
-        private Mesh m_sphereMesh = null;
-        private Mesh m_boxMesh = null;
-        private Mesh m_coneMesh = null;
-        private Mesh m_pyramidMesh = null;
+        Mesh m_sphereMesh = null;
+        Mesh m_boxMesh = null;
+        Mesh m_coneMesh = null;
+        Mesh m_pyramidMesh = null;
 
         // This code has been grabbed from http://wiki.unity3d.com/index.php/ProceduralPrimitives
-        private void BuildSphere(ref Mesh outputMesh, float radius, uint longSubdiv, uint latSubdiv)
+        void BuildSphere(ref Mesh outputMesh, float radius, uint longSubdiv, uint latSubdiv)
         {
             // Make sure it is empty before pushing anything to it
             outputMesh.Clear();
@@ -121,7 +121,7 @@ namespace UnityEngine.Experimental.Rendering
             outputMesh.RecalculateBounds();
         }
 
-        private void BuildBox(ref Mesh outputMesh, float length, float width, float height)
+        void BuildBox(ref Mesh outputMesh, float length, float width, float height)
         {
             outputMesh.Clear();
 
@@ -225,7 +225,7 @@ namespace UnityEngine.Experimental.Rendering
             outputMesh.RecalculateBounds();
         }
 
-        private void BuildCone(ref Mesh outputMesh, float height, float topRadius, float bottomRadius, int nbSides)
+        void BuildCone(ref Mesh outputMesh, float height, float topRadius, float bottomRadius, int nbSides)
         {
             outputMesh.Clear();
 
@@ -396,7 +396,7 @@ namespace UnityEngine.Experimental.Rendering
             outputMesh.RecalculateBounds();
         }
 
-        private void BuildPyramid(ref Mesh outputMesh, float width, float height, float depth)
+        void BuildPyramid(ref Mesh outputMesh, float width, float height, float depth)
         {
             outputMesh.Clear();
 
@@ -456,7 +456,7 @@ namespace UnityEngine.Experimental.Rendering
             outputMesh.RecalculateBounds();
         }
 
-        private void BuildShapes()
+        void BuildShapes()
         {
             m_sphereMesh = new Mesh();
             BuildSphere(ref m_sphereMesh, 1.0f, 24, 16);
