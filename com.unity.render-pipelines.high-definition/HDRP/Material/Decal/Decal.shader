@@ -79,8 +79,10 @@ Shader "HDRenderPipeline/Decal"
 
             Stencil
             {
+                WriteMask[_StencilMask]
+                Ref[_StencilRef]
                 Comp Always
-                Pass IncrSat
+                Pass Replace
             }
 
 			ZWrite Off
@@ -129,8 +131,10 @@ Shader "HDRenderPipeline/Decal"
 
             Stencil
             {
+                WriteMask[_StencilMask]
+                Ref[_StencilRef]
                 Comp Always
-                Pass IncrSat
+                Pass Replace
             }
 
 			// back faces with zfail, for cases when camera is inside the decal volume
@@ -165,8 +169,10 @@ Shader "HDRenderPipeline/Decal"
 													  // back faces with zfail, for cases when camera is inside the decal volume
             Stencil
             {
+                WriteMask[_StencilMask]
+                Ref[_StencilRef]
                 Comp Always
-                Pass IncrSat
+                Pass Replace
             }
 
 			Cull Front
@@ -200,8 +206,10 @@ Shader "HDRenderPipeline/Decal"
 													   // back faces with zfail, for cases when camera is inside the decal volume
             Stencil
             {
+                WriteMask[_StencilMask]
+                Ref[_StencilRef]
                 Comp Always
-                Pass IncrSat
+                Pass Replace
             }
 
 			Cull Front
@@ -235,8 +243,10 @@ Shader "HDRenderPipeline/Decal"
 
             Stencil
             {
+                WriteMask[_StencilMask]
+                Ref[_StencilRef]
                 Comp Always
-                Pass IncrSat
+                Pass Replace
             }
 
 			// back faces with zfail, for cases when camera is inside the decal volume
@@ -270,8 +280,10 @@ Shader "HDRenderPipeline/Decal"
 
             Stencil
             {
+                WriteMask[_StencilMask]
+                Ref[_StencilRef]
                 Comp Always
-                Pass IncrSat
+                Pass Replace
             }
 
 			// back faces with zfail, for cases when camera is inside the decal volume
@@ -307,8 +319,10 @@ Shader "HDRenderPipeline/Decal"
 
             Stencil
             {
+                WriteMask[_StencilMask]
+                Ref[_StencilRef]
                 Comp Always
-                Pass IncrSat
+                Pass Replace
             }
 
 			// back faces with zfail, for cases when camera is inside the decal volume
@@ -343,8 +357,10 @@ Shader "HDRenderPipeline/Decal"
 
             Stencil
             {
+                WriteMask[_StencilMask]
+                Ref[_StencilRef]
                 Comp Always
-                Pass IncrSat
+                Pass Replace
             }
 
             // back faces with zfail, for cases when camera is inside the decal volume
@@ -385,8 +401,10 @@ Shader "HDRenderPipeline/Decal"
 
             Stencil
             {
+                WriteMask[_StencilMask]
+                Ref[_StencilRef]
                 Comp Always
-                Pass IncrSat
+                Pass Replace
             }
 
 			ZWrite Off
@@ -419,8 +437,10 @@ Shader "HDRenderPipeline/Decal"
 
             Stencil
             {
+                WriteMask[_StencilMask]
+                Ref[_StencilRef]
                 Comp Always
-                Pass IncrSat
+                Pass Replace
             }
 
 			ZWrite Off
@@ -453,8 +473,10 @@ Shader "HDRenderPipeline/Decal"
 
             Stencil
             {
+                WriteMask[_StencilMask]
+                Ref[_StencilRef]
                 Comp Always
-                Pass IncrSat
+                Pass Replace
             }
 
 			ZWrite Off
@@ -487,8 +509,10 @@ Shader "HDRenderPipeline/Decal"
 
             Stencil
             {
+                WriteMask[_StencilMask]
+                Ref[_StencilRef]
                 Comp Always
-                Pass IncrSat
+                Pass Replace
             }
 
 			ZWrite Off
@@ -521,8 +545,10 @@ Shader "HDRenderPipeline/Decal"
 
             Stencil
             {
+                WriteMask[_StencilMask]
+                Ref[_StencilRef]
                 Comp Always
-                Pass IncrSat
+                Pass Replace
             }
 
 			ZWrite Off
@@ -555,8 +581,10 @@ Shader "HDRenderPipeline/Decal"
 
             Stencil
             {
+                WriteMask[_StencilMask]
+                Ref[_StencilRef]
                 Comp Always
-                Pass IncrSat
+                Pass Replace
             }
 
 			ZWrite Off
@@ -589,8 +617,10 @@ Shader "HDRenderPipeline/Decal"
 
             Stencil
             {
+                WriteMask[_StencilMask]
+                Ref[_StencilRef]
                 Comp Always
-                Pass IncrSat
+                Pass Replace
             }
 
 			ZWrite Off

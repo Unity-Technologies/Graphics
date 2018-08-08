@@ -137,6 +137,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             Clear           = 0,             // 0x0
             LightingMask    = 7,             // 0x7  - 3 bit
+            Decals          = 8,             // 0x8  - 1 bit
             ObjectVelocity  = 128,           // 0x80 - 1 bit
             All             = 255            // 0xFF - 8 bit
         }
@@ -252,6 +253,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CopyStencilForNoLighting.SetInt(HDShaderIDs._StencilMask, (int)StencilBitMask.LightingMask);
             m_CameraMotionVectorsMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.cameraMotionVectors);
             m_DecalNormalBufferMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.decalNormalBuffer);
+            m_DecalNormalBufferMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilBitMask.Decals);
+            m_DecalNormalBufferMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilBitMask.Decals);
 
             m_CopyDepth = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.copyDepthBuffer);
 

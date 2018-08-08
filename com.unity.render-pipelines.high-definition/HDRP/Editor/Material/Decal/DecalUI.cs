@@ -118,8 +118,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             CoreUtils.SetKeyword(material, "_ALBEDOCONTRIBUTION", material.GetFloat(kAlbedoMode) == 1.0f);
             CoreUtils.SetKeyword(material, "_COLORMAP", material.GetTexture(kBaseColorMap));
             CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap));
-            CoreUtils.SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap)); 
+            CoreUtils.SetKeyword(material, "_MASKMAP", material.GetTexture(kMaskMap));
 
+            material.SetInt(HDShaderIDs._StencilRef, (int)HDRenderPipeline.StencilBitMask.Decals);
+            material.SetInt(HDShaderIDs._StencilMask, (int)HDRenderPipeline.StencilBitMask.Decals);
             material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMStr, false);
             material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsAOStr, false);
             material.SetShaderPassEnabled(HDShaderPassNames.s_MeshDecalsMAOStr, false);
