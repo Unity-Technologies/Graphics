@@ -1035,7 +1035,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             lightData.color = GetLightColor(light);
 
-            lightData.forward = light.GetUp();
+            lightData.forward = light.GetForward();
             lightData.up = light.GetUp();
             lightData.right = light.GetRight();
 
@@ -1893,6 +1893,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     m_areaLightCount = areaLightCount;
 
                     // Redo everything but this time with envLights
+                    Debug.Assert(k_MaxEnvLightsOnScreen <= 256); //for key construction
                     int envLightCount = 0;
 
                     var totalProbes = cullResults.visibleReflectionProbes.Count + reflectionProbeCullResults.visiblePlanarReflectionProbeCount;
@@ -2049,22 +2050,26 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         static float CalculateProbeLogVolume(Bounds bounds)
         {
-            float boxVolume = 8 * bounds.extents.x * bounds.extents.y * bounds.extents.z;
-            float logVolume = Mathf.Clamp(256 + Mathf.Log(boxVolume, 1.05f), 0, 4095); // Allow for negative exponents
+            //Notes:
+            // - 1+ term is to prevent having negative values in the log result
+            // - 1000* is too keep 3 digit after the dot while we truncate the result later
+            // - 1048575 is 2^20-1 as we pack the result on 20bit later
+            float boxVolume = 8f* bounds.extents.x * bounds.extents.y * bounds.extents.z;
+            float logVolume = Mathf.Clamp(Mathf.Log(1 + boxVolume, 1.05f)*1000, 0, 1048575);
             return logVolume;
         }
 
         static void UnpackProbeSortKey(uint sortKey, out LightVolumeType lightVolumeType, out int probeIndex, out int listType)
         {
-            lightVolumeType = (LightVolumeType)((sortKey >> 17) & 0x3);
-            probeIndex = (int)(sortKey & 0xFFFF);
-            listType = (int)((sortKey >> 16) & 1);
+            lightVolumeType = (LightVolumeType)((sortKey >> 9) & 0x3);
+            probeIndex = (int)(sortKey & 0xFF);
+            listType = (int)((sortKey >> 8) & 1);
         }
 
         static uint PackProbeKey(float logVolume, LightVolumeType lightVolumeType, uint listType, int probeIndex)
         {
-            // 12 bit volume, 3 bit LightVolumeType, 1 bit list type, 16 bit index
-            return (uint)logVolume << 20 | (uint)lightVolumeType << 17 | listType << 16 | ((uint)probeIndex & 0xFFFF);
+            // 20 bit volume, 3 bit LightVolumeType, 1 bit list type, 8 bit index
+            return (uint)logVolume << 12 | (uint)lightVolumeType << 9 | listType << 8 | ((uint)probeIndex & 0xFF);
         }
 
         void VoxelLightListGeneration(CommandBuffer cmd, HDCamera hdCamera, Matrix4x4[] projscrArr, Matrix4x4[] invProjscrArr, RenderTargetIdentifier cameraDepthBufferRT)
