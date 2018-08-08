@@ -479,7 +479,7 @@ real3 EvalIridescence(real eta_1, real cosTheta1, real iridescenceThickness, rea
 }
 
 //-----------------------------------------------------------------------------
-// Cloth
+// Fabric
 //-----------------------------------------------------------------------------
 
 // Ref: https://knarkowicz.wordpress.com/2018/01/04/cloth-shading/
@@ -527,15 +527,15 @@ real V_Ashikhmin(real NdotL, real NdotV)
     return 1.0 / (4.0 * (NdotL + NdotV - NdotL * NdotV));
 }
 
-// A diffuse term use with cloth done by tech artist - empirical
-real ClothLambertNoPI(real roughness)
+// A diffuse term use with fabric done by tech artist - empirical
+real FabricLambertNoPI(real roughness)
 {
     return lerp(1.0, 0.5, roughness);
 }
 
-real ClothLambert(real roughness)
+real FabricLambert(real roughness)
 {
-    return INV_PI * ClothLambertNoPI(roughness);
+    return INV_PI * FabricLambertNoPI(roughness);
 }
 
 

@@ -18,9 +18,6 @@
         $FragInputs.color:              output.color = input.color;
         #if SHADER_STAGE_FRAGMENT
         $FragInputs.isFrontFace:        output.isFrontFace = IS_FRONT_VFACE(input.cullFace, true, false);       // TODO: SHADER_STAGE_FRAGMENT only
-        $FragInputs.isFrontFace:        // Handle handness of the view matrix (In Unity view matrix default to a determinant of -1)
-        $FragInputs.isFrontFace:        // when we render a cubemap the view matrix handness is flipped (due to convention used for cubemap) we have a determinant of +1
-        $FragInputs.isFrontFace:        output.isFrontFace = _DetViewMatrix < 0.0 ? output.isFrontFace : !output.isFrontFace;
         #endif // SHADER_STAGE_FRAGMENT
 
         return output;

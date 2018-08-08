@@ -400,6 +400,15 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 CoreUtils.DisplayUnsupportedAPIMessage();
 
+                // Display more information to the users when it should have use Metal instead of OpenGL
+                if (SystemInfo.graphicsDeviceType.ToString().StartsWith("OpenGL"))
+                {
+                    if (SystemInfo.operatingSystem.StartsWith("Mac"))
+                        CoreUtils.DisplayUnsupportedMessage("Use Metal API instead.");
+                    else if (SystemInfo.operatingSystem.StartsWith("Windows"))
+                        CoreUtils.DisplayUnsupportedMessage("Use Vulkan API instead.");
+                }
+
                 return false;
             }
 
@@ -833,7 +842,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         currentFrameSettings.enablePostprocess = false;
                     }
-                    
+
                     // Disable SSS if luxmeter is enabled
                     if (debugDisplaySettings.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter)
                     {
@@ -854,7 +863,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         VolumeManager.instance.Update(hdCamera.volumeAnchor, hdCamera.volumeLayerMask);
                     }
-                    
+
                     // Do anything we need to do upon a new frame.
                     // The NewFrame must be after the VolumeManager update and before Resize because it uses properties set in NewFrame
                     m_LightLoop.NewFrame(currentFrameSettings);
@@ -1150,7 +1159,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 #endif
                     PushFullScreenDebugTexture(hdCamera, cmd, m_CameraColorBuffer, FullScreenDebugMode.ScreenSpaceTracing);
                     // Caution: RenderDebug need to take into account that we have flip the screen (so anything capture before the flip will be flipped)
-                    RenderDebug(hdCamera, cmd);
+                    RenderDebug(hdCamera, cmd, m_CullResults);
 
 #if UNITY_EDITOR
                     // We need to make sure the viewport is correctly set for the editor rendering. It might have been changed by debug overlay rendering just before.
@@ -1567,7 +1576,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_SkyManager.RenderSky(hdCamera, m_LightLoop.GetCurrentSunLight(), m_CameraColorBuffer, m_CameraDepthStencilBuffer, m_CurrentDebugDisplaySettings, cmd);
 
-            if (visualEnv.fogType != FogType.None)
+            if (visualEnv.fogType.value != FogType.None)
                 m_SkyManager.RenderOpaqueAtmosphericScattering(cmd);
         }
 
@@ -1823,12 +1832,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void ApplyDebugDisplaySettings(HDCamera hdCamera, CommandBuffer cmd)
         {
+            // See ShaderPassForward.hlsl: for forward shaders, if DEBUG_DISPLAY is enabled and no DebugLightingMode or DebugMipMapMod
+            // modes have been set, lighting is automatically skipped (To avoid some crashed due to lighting RT not set on console).
+            // However debug mode like colorPickerModes and false color don't need DEBUG_DISPLAY and must work with the lighting.
+            // So we will enabled DEBUG_DISPLAY independently
+
+            // Enable globally the keyword DEBUG_DISPLAY on shader that support it with multicompile
+            CoreUtils.SetKeyword(cmd, "DEBUG_DISPLAY", m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled());
+
             if (m_CurrentDebugDisplaySettings.IsDebugDisplayEnabled() ||
                 m_CurrentDebugDisplaySettings.colorPickerDebugSettings.colorPickerMode != ColorPickerDebugMode.None)
             {
-                // enable globally the keyword DEBUG_DISPLAY on shader that support it with multicompile
-                cmd.EnableShaderKeyword("DEBUG_DISPLAY");
-
                 // This is for texture streaming
                 m_CurrentDebugDisplaySettings.UpdateMaterials();
 
@@ -1859,11 +1873,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
                 // The DebugNeedsExposure test allows us to set a neutral value if exposure is not needed. This way we don't need to make various tests inside shaders but only in this function.
                 cmd.SetGlobalFloat(HDShaderIDs._DebugExposure, m_CurrentDebugDisplaySettings.DebugNeedsExposure() ? lightingDebugSettings.debugExposure : 0.0f);
-            }
-            else
-            {
-                // TODO: Be sure that if there is no change in the state of this keyword, it doesn't imply any work on CPU side! else we will need to save the sate somewher
-                cmd.DisableShaderKeyword("DEBUG_DISPLAY");
             }
         }
 
@@ -1910,7 +1919,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        void RenderDebug(HDCamera hdCamera, CommandBuffer cmd)
+        void RenderDebug(HDCamera hdCamera, CommandBuffer cmd, CullResults cullResults)
         {
             // We don't want any overlay for these kind of rendering
             if (hdCamera.camera.cameraType == CameraType.Reflection || hdCamera.camera.cameraType == CameraType.Preview)
@@ -1954,7 +1963,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera.actualWidth);
                 }
 
-                m_LightLoop.RenderDebugOverlay(hdCamera, cmd, m_CurrentDebugDisplaySettings, ref x, ref y, overlaySize, hdCamera.actualWidth);
+                m_LightLoop.RenderDebugOverlay(hdCamera, cmd, m_CurrentDebugDisplaySettings, ref x, ref y, overlaySize, hdCamera.actualWidth, cullResults);
 
                 DecalSystem.instance.RenderDebugOverlay(hdCamera, cmd, m_CurrentDebugDisplaySettings, ref x, ref y, overlaySize, hdCamera.actualWidth);
 

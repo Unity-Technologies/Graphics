@@ -128,7 +128,7 @@ namespace UnityEngine.Experimental.Rendering
 
         public void DemandResize(RTHandle rth)
         {
-            Assert.IsTrue(m_ResizeOnDemandRTs.Contains(rth), string.Format("The RTHandle {0} is not an resize on demand handle in this RTHandleSystem. Please call SwitchToResizeOnDemand(rth, true) before resizing on demand.", rth));
+            Assert.IsTrue(m_ResizeOnDemandRTs.Contains(rth), "The RTHandle is not an resize on demand handle in this RTHandleSystem. Please call SwitchToResizeOnDemand(rth, true) before resizing on demand.");
 
             for (int i = 0, c = (int)RTCategory.Count; i < c; ++i)
             {
