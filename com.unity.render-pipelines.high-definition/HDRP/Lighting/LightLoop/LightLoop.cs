@@ -442,6 +442,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         Material[] m_deferredLightingMaterial;
         Material m_DebugViewTilesMaterial;
         Material m_DebugShadowMapMaterial;
+        Material m_DebugLightVolumeMaterial;
         Material m_CubeToPanoMaterial;
 
         Light m_CurrentSunLight;
@@ -517,6 +518,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_DebugViewTilesMaterial = CoreUtils.CreateEngineMaterial(m_Resources.debugViewTilesShader);
             m_DebugShadowMapMaterial = CoreUtils.CreateEngineMaterial(m_Resources.debugShadowMapShader);
+            m_DebugLightVolumeMaterial = CoreUtils.CreateEngineMaterial(m_Resources.debugLightVolumeShader);
             m_CubeToPanoMaterial = CoreUtils.CreateEngineMaterial(m_Resources.cubeToPanoShader);
 
             m_lightList = new LightList();
@@ -2642,7 +2644,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             }
         }
 
-        public void RenderDebugOverlay(HDCamera hdCamera, CommandBuffer cmd, DebugDisplaySettings debugDisplaySettings, ref float x, ref float y, float overlaySize, float width)
+        public void RenderDebugOverlay(HDCamera hdCamera, CommandBuffer cmd, DebugDisplaySettings debugDisplaySettings, ref float x, ref float y, float overlaySize, float width, CullResults cullResults)
         {
             LightingDebugSettings lightingDebug = debugDisplaySettings.lightingDebugSettings;
 
@@ -2732,6 +2734,107 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     HDUtils.NextOverlayCoord(ref x, ref y, overlaySize, overlaySize, hdCamera.actualWidth);
                 }
             }
+
+#if UNITY_EDITOR
+            if (lightingDebug.displayLightVolumes)
+            {
+                // First of all let's do the regions for the light sources (we only support Poncutal and Area)
+                int numLights = cullResults.visibleLights.Count;
+                for (int lightIdx = 0; lightIdx < numLights; ++lightIdx)
+                {
+                    // Let's build the light's bounding sphere matrix
+                    Light currentLegacyLight = cullResults.visibleLights[lightIdx].light;
+                    HDAdditionalLightData currentHDRLight = currentLegacyLight.GetComponent<HDAdditionalLightData>();
+
+                    MaterialPropertyBlock materialBlock = new MaterialPropertyBlock();
+                    Matrix4x4 positionMat = Matrix4x4.Translate(currentLegacyLight.transform.position);
+
+                    if(currentLegacyLight.type == LightType.Point || currentLegacyLight.type == LightType.Area)
+                    {
+                        materialBlock.SetVector("_Range", new Vector3(currentLegacyLight.range, currentLegacyLight.range, currentLegacyLight.range));
+                        switch (currentHDRLight.lightTypeExtent)
+                        {
+                            case LightTypeExtent.Punctual:
+                                {
+                                    materialBlock.SetColor("_Color", new Color(0.0f, 1.0f, 0.0f, 0.5f));
+                                    materialBlock.SetVector("_Offset", new Vector3(0, 0, 0));
+                                    cmd.DrawMesh(DebugShapes.instance.RequestSphereMesh(), positionMat, m_DebugLightVolumeMaterial, 0, -1, materialBlock);
+                                }
+                                break;
+                            case LightTypeExtent.Rectangle:
+                                {
+                                    materialBlock.SetColor("_Color", new Color(0.0f, 1.0f, 1.0f, 0.5f));
+                                    materialBlock.SetVector("_Offset", new Vector3(0, 0, 0));
+                                    cmd.DrawMesh(DebugShapes.instance.RequestSphereMesh(), positionMat, m_DebugLightVolumeMaterial, 0, -1, materialBlock);
+                                }
+                                break;
+                            case LightTypeExtent.Line:
+                                {
+                                    materialBlock.SetColor("_Color", new Color(1.0f, 0.0f, 0.5f, 0.5f));
+                                    materialBlock.SetVector("_Offset", new Vector3(0, 0, 0));
+                                    cmd.DrawMesh(DebugShapes.instance.RequestSphereMesh(), positionMat, m_DebugLightVolumeMaterial, 0, -1, materialBlock);
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                    else if(currentLegacyLight.type == LightType.Spot)
+                    {
+                        if(currentHDRLight.spotLightShape == SpotLightShape.Cone)
+                        {
+                            float bottomRadius = Mathf.Tan(currentLegacyLight.spotAngle * Mathf.PI / 360.0f) * currentLegacyLight.range;
+                            materialBlock.SetColor("_Color", new Color(1.0f, 0.5f, 0.0f, 0.5f));
+                            materialBlock.SetVector("_Range", new Vector3(bottomRadius, bottomRadius, currentLegacyLight.range));
+                            materialBlock.SetVector("_Offset", new Vector3(0, 0, 0));
+                            cmd.DrawMesh(DebugShapes.instance.RequestConeMesh(), currentLegacyLight.gameObject.transform.localToWorldMatrix, m_DebugLightVolumeMaterial, 0, -1, materialBlock);
+                        }
+                        else if(currentHDRLight.spotLightShape == SpotLightShape.Box)
+                        {
+                            materialBlock.SetColor("_Color", new Color(1.0f, 0.5f, 0.0f, 0.5f));
+                            materialBlock.SetVector("_Range", new Vector3(currentHDRLight.shapeWidth, currentHDRLight.shapeHeight, currentLegacyLight.range));
+                            materialBlock.SetVector("_Offset", new Vector3(0, 0, currentLegacyLight.range / 2.0f));
+                            cmd.DrawMesh(DebugShapes.instance.RequestBoxMesh(), currentLegacyLight.gameObject.transform.localToWorldMatrix, m_DebugLightVolumeMaterial, 0, -1, materialBlock);
+                        }
+                        else if (currentHDRLight.spotLightShape == SpotLightShape.Pyramid)
+                        {
+                            float bottomWidth = Mathf.Tan(currentLegacyLight.spotAngle * Mathf.PI / 360.0f) * currentLegacyLight.range;
+                            materialBlock.SetColor("_Color", new Color(1.0f, 0.5f, 0.0f, 0.5f));
+                            materialBlock.SetVector("_Range", new Vector3(currentHDRLight.aspectRatio * bottomWidth * 2, bottomWidth * 2 , currentLegacyLight.range));
+                            materialBlock.SetVector("_Offset", new Vector3(0, 0, 0));
+                            cmd.DrawMesh(DebugShapes.instance.RequestPyramidMesh(), currentLegacyLight.gameObject.transform.localToWorldMatrix, m_DebugLightVolumeMaterial, 0, -1, materialBlock);
+                        }
+                    }
+                }
+
+                // Now let's do the same but for reflection probes
+                int numProbes = cullResults.visibleReflectionProbes.Count;
+                for (int probeIdx = 0; probeIdx < numProbes; ++probeIdx)
+                {
+                    // Let's build the light's bounding sphere matrix
+                    ReflectionProbe currentLegacyProbe = cullResults.visibleReflectionProbes[probeIdx].probe;
+                    HDAdditionalReflectionData currentHDProbe = currentLegacyProbe.GetComponent<HDAdditionalReflectionData>();
+
+                    MaterialPropertyBlock materialBlock = new MaterialPropertyBlock();
+                    Mesh targetMesh = null;
+                    if (currentHDProbe.influenceVolume.shape == InfluenceShape.Sphere)
+                    {
+                        materialBlock.SetVector("_Range", new Vector3(currentHDProbe.influenceVolume.sphereRadius, currentHDProbe.influenceVolume.sphereRadius, currentHDProbe.influenceVolume.sphereRadius));
+                        targetMesh = DebugShapes.instance.RequestSphereMesh();
+                    }
+                    else
+                    {
+                        materialBlock.SetVector("_Range", new Vector3(currentHDProbe.influenceVolume.boxSize.x, currentHDProbe.influenceVolume.boxSize.y, currentHDProbe.influenceVolume.boxSize.z));
+                        targetMesh = DebugShapes.instance.RequestBoxMesh();
+                    }
+
+                    materialBlock.SetColor("_Color", new Color(1.0f, 1.0f, 0.0f, 0.5f));
+                    materialBlock.SetVector("_Offset", new Vector3(0, 0, 0));
+                    Matrix4x4 positionMat = Matrix4x4.Translate(currentLegacyProbe.transform.position);
+                    cmd.DrawMesh(targetMesh, positionMat, m_DebugLightVolumeMaterial, 0, -1, materialBlock);
+                }
+            }
+#endif
         }
     }
 }
