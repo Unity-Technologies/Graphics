@@ -50,6 +50,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         float m_EditorSimplifiedModeBlendNormalDistance;
         [SerializeField, FormerlySerializedAs("editorAdvancedModeEnabled")]
         bool m_EditorAdvancedModeEnabled;
+        [SerializeField]
+        Vector3 m_EditorAdvancedModeFaceFadePositive = Vector3.one;
+        [SerializeField]
+        Vector3 m_EditorAdvancedModeFaceFadeNegative = Vector3.one;
 
         // Sphere
         [SerializeField, FormerlySerializedAs("m_SphereBaseRadius")]
@@ -83,6 +87,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             data.m_EditorAdvancedModeBlendNormalDistanceNegative = m_EditorAdvancedModeBlendNormalDistanceNegative;
             data.m_EditorSimplifiedModeBlendNormalDistance = m_EditorSimplifiedModeBlendNormalDistance;
             data.m_EditorAdvancedModeEnabled = m_EditorAdvancedModeEnabled;
+            data.m_EditorAdvancedModeFaceFadePositive = m_EditorAdvancedModeFaceFadePositive;
+            data.m_EditorAdvancedModeFaceFadeNegative = m_EditorAdvancedModeFaceFadeNegative;
         }
 
         /// <summary>Shape of this InfluenceVolume.</summary>

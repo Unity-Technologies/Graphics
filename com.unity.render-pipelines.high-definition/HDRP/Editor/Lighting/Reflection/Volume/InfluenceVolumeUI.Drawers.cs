@@ -81,11 +81,14 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         d.boxBlendDistanceNegative.vector3Value = d.editorAdvancedModeBlendDistanceNegative.vector3Value;
                         d.boxBlendNormalDistancePositive.vector3Value = d.editorAdvancedModeBlendNormalDistancePositive.vector3Value;
                         d.boxBlendNormalDistanceNegative.vector3Value = d.editorAdvancedModeBlendNormalDistanceNegative.vector3Value;
+                        d.boxSideFadePositive.vector3Value = d.editorAdvancedModeFaceFadePositive.vector3Value;
+                        d.boxSideFadeNegative.vector3Value = d.editorAdvancedModeFaceFadeNegative.vector3Value;
                     }
                     else
                     {
                         d.boxBlendDistanceNegative.vector3Value = d.boxBlendDistancePositive.vector3Value = Vector3.one * d.editorSimplifiedModeBlendDistance.floatValue;
                         d.boxBlendNormalDistanceNegative.vector3Value = d.boxBlendNormalDistancePositive.vector3Value = Vector3.one * d.editorSimplifiedModeBlendNormalDistance.floatValue;
+                        d.boxSideFadeNegative.vector3Value = d.boxSideFadePositive.vector3Value = Vector3.one;
                     }
                     d.Apply();
                 }
@@ -175,7 +178,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             if (advanced && drawFace)
             {
                 EditorGUILayout.BeginHorizontal();
-                CoreEditorUtils.DrawVector6(faceFadeContent, d.boxSideFadePositive, d.boxSideFadeNegative, Vector3.zero, Vector3.one, HDReflectionProbeEditor.k_handlesColor);
+                EditorGUI.BeginChangeCheck();
+                CoreEditorUtils.DrawVector6(faceFadeContent, d.editorAdvancedModeFaceFadePositive, d.editorAdvancedModeFaceFadeNegative, Vector3.zero, Vector3.one, HDReflectionProbeEditor.k_handlesColor);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    d.boxSideFadePositive.vector3Value = d.editorAdvancedModeFaceFadePositive.vector3Value;
+                    d.boxSideFadeNegative.vector3Value = d.editorAdvancedModeFaceFadeNegative.vector3Value;
+                }
                 GUILayout.Space(28f + 9f); //add right margin for alignment
                 EditorGUILayout.EndHorizontal();
                 
