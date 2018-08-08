@@ -795,6 +795,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 });
             }
 
+            list.Add(new DebugUI.BoolField { displayName = "Display Light Volumes", getter = () => lightingDebugSettings.displayLightVolumes, setter = value => lightingDebugSettings.displayLightVolumes = value, onValueChanged = RefreshLightingDebug });
+
             if (DebugNeedsExposure())
                 list.Add(new DebugUI.FloatField { displayName = "Debug Exposure", getter = () => lightingDebugSettings.debugExposure, setter = value => lightingDebugSettings.debugExposure = value });
 
