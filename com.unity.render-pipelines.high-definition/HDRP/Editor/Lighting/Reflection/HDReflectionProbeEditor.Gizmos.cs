@@ -87,7 +87,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 material = new Material(Shader.Find("Debug/ReflectionProbePreview"));
             }
-            material.SetTexture("_Cubemap", e.GetTexture());
+            material.SetTexture("_Cubemap", p.texture);
             material.SetPass(0);
             Graphics.DrawMeshNow(sphere, Matrix4x4.TRS(p.transform.position, Quaternion.identity, Vector3.one));
         }

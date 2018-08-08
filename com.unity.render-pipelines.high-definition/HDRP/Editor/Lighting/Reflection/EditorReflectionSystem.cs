@@ -75,6 +75,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             AssetDatabase.ImportAsset(path);
             probe.customTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+            EditorUtility.SetDirty(probe);
         }
 
         public static void BakeAllPlanarReflectionProbes()
@@ -165,6 +166,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             {
                 bakedTexture = new Texture2D(rt.width, rt.height, TextureFormat.RGBAHalf, true, false);
                 probe.bakedTexture = bakedTexture;
+
+                EditorUtility.SetDirty(probe);
             }
 
             ReflectionSystem.Render(probe, rt);
