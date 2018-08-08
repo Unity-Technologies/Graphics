@@ -833,7 +833,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         currentFrameSettings.enablePostprocess = false;
                     }
-                    
+
                     // Disable SSS if luxmeter is enabled
                     if (debugDisplaySettings.lightingDebugSettings.debugLightingMode == DebugLightingMode.LuxMeter)
                     {
@@ -854,7 +854,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     {
                         VolumeManager.instance.Update(hdCamera.volumeAnchor, hdCamera.volumeLayerMask);
                     }
-                    
+
                     // Do anything we need to do upon a new frame.
                     // The NewFrame must be after the VolumeManager update and before Resize because it uses properties set in NewFrame
                     m_LightLoop.NewFrame(currentFrameSettings);
@@ -1567,7 +1567,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_SkyManager.RenderSky(hdCamera, m_LightLoop.GetCurrentSunLight(), m_CameraColorBuffer, m_CameraDepthStencilBuffer, m_CurrentDebugDisplaySettings, cmd);
 
-            if (visualEnv.fogType != FogType.None)
+            if (visualEnv.fogType.value != FogType.None)
                 m_SkyManager.RenderOpaqueAtmosphericScattering(cmd);
         }
 
@@ -1823,7 +1823,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public void ApplyDebugDisplaySettings(HDCamera hdCamera, CommandBuffer cmd)
         {
-            // See ShaderPassForward.hlsl: for forward shaders, if DEBUG_DISPLAY is enabled and no DebugLightingMode or DebugMipMapMod 
+            // See ShaderPassForward.hlsl: for forward shaders, if DEBUG_DISPLAY is enabled and no DebugLightingMode or DebugMipMapMod
             // modes have been set, lighting is automatically skipped (To avoid some crashed due to lighting RT not set on console).
             // However debug mode like colorPickerModes and false color don't need DEBUG_DISPLAY and must work with the lighting.
             // So we will enabled DEBUG_DISPLAY independently
