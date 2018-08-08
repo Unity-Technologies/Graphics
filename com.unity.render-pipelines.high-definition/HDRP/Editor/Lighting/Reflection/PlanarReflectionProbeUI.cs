@@ -1,64 +1,95 @@
-using System;
-using UnityEditor.AnimatedValues;
-using UnityEngine.Events;
-using UnityEngine.Experimental.Rendering.HDPipeline;
-using UnityEngine.Rendering;
-
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    partial class PlanarReflectionProbeUI : BaseUI<SerializedPlanarReflectionProbe>
+    using UnityEngine;
+    using UnityEngine.Experimental.Rendering.HDPipeline;
+    using UnityEngine.Rendering;
+    using CED = CoreEditorDrawer<HDProbeUI, SerializedHDProbe>;
+
+    partial class PlanarReflectionProbeUI : HDProbeUI
     {
-        const int k_AnimBoolFields = 6;
-        static readonly int k_ReflectionProbeModeModeCount = Enum.GetValues(typeof(ReflectionProbeMode)).Length;
-        static readonly int k_AnimBoolTotal = k_AnimBoolFields + k_ReflectionProbeModeModeCount;
+        static readonly GUIContent overrideFieldOfViewContent = CoreEditorUtils.GetContent("Override Field Of View");
+        static readonly GUIContent fieldOfViewSolidAngleContent = CoreEditorUtils.GetContent("Field Of View");
 
-        public InfluenceVolumeUI influenceVolume = new InfluenceVolumeUI();
-        public FrameSettingsUI frameSettings = new FrameSettingsUI();
-        public ReflectionProxyVolumeComponentUI reflectionProxyVolume = new ReflectionProxyVolumeComponentUI();
+        public static CED.IDrawer Inspector;
+       
+        public static readonly CED.IDrawer SectionFoldoutCaptureSettings = CED.FoldoutGroup(
+            "Capture Settings",
+            (s, d, o) => s.isSectionExpandedCaptureSettings,
+            FoldoutOption.Indent,
+            CED.Action(Drawer_SectionCaptureSettings)
+            );
 
-        public AnimBool isSectionExpandedInfluenceSettings { get { return m_AnimBools[k_ReflectionProbeModeModeCount]; } }
-        public AnimBool isSectionExpandedCaptureSettings { get { return m_AnimBools[k_ReflectionProbeModeModeCount + 1]; } }
-
-        public AnimBool isSectionExpandedCaptureMirrorSettings { get { return m_AnimBools[k_ReflectionProbeModeModeCount + 2]; } }
-        public AnimBool isSectionExpandedCaptureStaticSettings { get { return m_AnimBools[k_ReflectionProbeModeModeCount + 3]; } }
-        public AnimBool isSectionExpendedProxyVolume { get { return m_AnimBools[k_ReflectionProbeModeModeCount + 4]; } }
-        public AnimBool isSectionExpendedAdditionalSettings { get { return m_AnimBools[k_ReflectionProbeModeModeCount + 5]; } }
-
-        public bool showCaptureHandles { get; set; }
-
-        public PlanarReflectionProbeUI()
-            : base(k_AnimBoolTotal)
+        static PlanarReflectionProbeUI()
         {
-            isSectionExpandedInfluenceSettings.value = true;
-            isSectionExpandedCaptureSettings.value = true;
-            isSectionExpendedProxyVolume.value = true;
-            isSectionExpendedAdditionalSettings.value = false;
+            Inspector = CED.Group(
+                  CED.Action(Drawer_Toolbars),
+                  CED.space,
+                  ProxyVolumeSettings,
+                  CED.Select(
+                      (s, d, o) => s.influenceVolume,
+                      (s, d, o) => d.influenceVolume,
+                      InfluenceVolumeUI.SectionFoldoutShapePlanar
+                      ),
+                  CED.Action(Drawer_DifferentShapeError),
+                  SectionFoldoutCaptureSettings,
+                  SectionFoldoutAdditionalSettings,
+                  CED.Select(
+                      (s, d, o) => s.frameSettings,
+                      (s, d, o) => d.frameSettings,
+                      FrameSettingsUI.Inspector
+                      ),
+                  CED.space,
+                  CED.Action(Drawer_SectionBakeButton)
+                  );
         }
 
-        public AnimBool IsSectionExpandedReflectionProbeMode(ReflectionProbeMode mode)
+        protected static void Drawer_SectionCaptureSettings(HDProbeUI s, SerializedHDProbe d, Editor o)
         {
-            return m_AnimBools[(int)mode];
+            SerializedPlanarReflectionProbe serialized = (SerializedPlanarReflectionProbe)d;
+            var hdrp = GraphicsSettings.renderPipelineAsset as HDRenderPipelineAsset;
+            GUI.enabled = false;
+            EditorGUILayout.LabelField(
+                CoreEditorUtils.GetContent("Probe Texture Size (Set By HDRP)"),
+                CoreEditorUtils.GetContent(hdrp.renderPipelineSettings.lightLoopSettings.planarReflectionTextureSize.ToString()),
+                EditorStyles.label);
+            EditorGUILayout.Toggle(
+                CoreEditorUtils.GetContent("Probe Compression (Set By HDRP)"),
+                hdrp.renderPipelineSettings.lightLoopSettings.planarReflectionCacheCompressed);
+            GUI.enabled = true;
+
+            bool on = serialized.overrideFieldOfView.boolValue;
+            EditorGUI.BeginChangeCheck();
+            on = EditorGUILayout.Toggle(overrideFieldOfViewContent, on);
+            if (on)
+            {
+                serialized.fieldOfViewOverride.floatValue = EditorGUILayout.FloatField(fieldOfViewSolidAngleContent, serialized.fieldOfViewOverride.floatValue);
+            }
+            if (EditorGUI.EndChangeCheck())
+            {
+                serialized.overrideFieldOfView.boolValue = on;
+                serialized.Apply();
+            }
+
+            //GUI.enabled = false;
+            //EditorGUILayout.LabelField(resolutionContent, CoreEditorUtils.GetContent(((int)hdrp.GetRenderPipelineSettings().lightLoopSettings.reflectionCubemapSize).ToString()));
+            //EditorGUILayout.LabelField(shadowDistanceContent, EditorStyles.label);
+            //EditorGUILayout.LabelField(cullingMaskContent, EditorStyles.label);
+            //EditorGUILayout.LabelField(useOcclusionCullingContent, EditorStyles.label);
+            //EditorGUILayout.LabelField(nearClipCullingContent, EditorStyles.label);
+            //EditorGUILayout.LabelField(farClipCullingContent, EditorStyles.label);
+            //GUI.enabled = true;
         }
 
-        public override void Reset(SerializedPlanarReflectionProbe data, UnityAction repaint)
+        internal PlanarReflectionProbeUI()
         {
-            reflectionProxyVolume.Reset(data.reflectionProxyVolume, repaint);
-            frameSettings.Reset(data.frameSettings, repaint);
-            influenceVolume.Reset(data.influenceVolume, repaint);
-            base.Reset(data, repaint);
+            toolBars = new[] { ToolBar.InfluenceShape | ToolBar.Blend };
         }
 
         public override void Update()
         {
-            for (var i = 0; i < k_ReflectionProbeModeModeCount; i++)
-                m_AnimBools[i].target = i == data.mode.intValue;
-
-            isSectionExpandedCaptureMirrorSettings.target = data.isMirrored;
-            isSectionExpandedCaptureStaticSettings.target = !data.isMirrored;
-
-            reflectionProxyVolume.Update();
-            frameSettings.Update();
-            influenceVolume.Update();
+            SerializedPlanarReflectionProbe serialized = data as SerializedPlanarReflectionProbe;
+            isSectionExpandedCaptureMirrorSettings.target = serialized.isMirrored;
+            isSectionExpandedCaptureStaticSettings.target = !serialized.isMirrored;
             base.Update();
         }
     }
