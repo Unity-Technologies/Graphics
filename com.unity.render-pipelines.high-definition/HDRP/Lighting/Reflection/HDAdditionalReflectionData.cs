@@ -158,6 +158,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         void MigrateToMergeEditors()
         {
             infiniteProjection = !reflectionProbe.boxProjection;
+            reflectionProbe.boxProjection = false;
             m_Version = (int)Version.MergeEditors;
             needMigrateToMergeEditors = false;
             OnAfterDeserialize();   //continue migrating if needed
