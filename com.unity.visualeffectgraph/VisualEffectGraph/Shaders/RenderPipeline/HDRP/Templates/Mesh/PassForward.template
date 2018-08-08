@@ -89,54 +89,7 @@ ${VFXEnd}
 		normalWS = normalize(lerp(normalWS,mul(n,tbn),i.materialProperties.z));
 		#endif
 
-		float3 diffuseLighting;
-        float3 specularLighting;
-		
-		SurfaceData surfaceData;
-		BuiltinData builtinData;
-		BSDFData bsdfData;
-		PreLightData preLightData;
-		uint2 tileIndex = uint2(i.pos.xy) / GetTileSize();
-		VFXGetHDRPLitData(surfaceData,builtinData,bsdfData,preLightData,i,normalWS,uvData,tileIndex);
-		
-		PositionInputs posInput = GetPositionInput(i.pos.xy, _ScreenSize.zw, i.pos.z, i.pos.w, i.posRWS, tileIndex);
-		
-		#if IS_OPAQUE_PARTICLE
-		uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_OPAQUE;
-		#elif USE_ONLY_AMBIENT_LIGHTING
-		uint featureFlags = LIGHTFEATUREFLAGS_ENV;
-		#else
-		uint featureFlags = LIGHT_FEATURE_MASK_FLAGS_TRANSPARENT;
-		#endif
-		
-		LightLoop(GetWorldSpaceNormalizeViewDir(i.posRWS), posInput, preLightData, bsdfData, builtinData, featureFlags, diffuseLighting, specularLighting);
-
-		outColor = ApplyBlendMode(diffuseLighting, specularLighting, builtinData.opacity);
-        outColor = EvaluateAtmosphericScattering(posInput, outColor);
-		
-		#ifdef DEBUG_DISPLAY
-		// Same code in ShaderPassForwardUnlit.shader
-		if (_DebugViewMaterial != 0)
-		{
-			float3 result = float3(1.0, 0.0, 1.0);
-
-			bool needLinearToSRGB = false;
-
-			GetPropertiesDataDebug(_DebugViewMaterial, result, needLinearToSRGB);
-			//GetVaryingsDataDebug(_DebugViewMaterial, i, result, needLinearToSRGB);
-			GetBuiltinDataDebug(_DebugViewMaterial, builtinData, result, needLinearToSRGB);
-			GetSurfaceDataDebug(_DebugViewMaterial, surfaceData, result, needLinearToSRGB);
-			GetBSDFDataDebug(_DebugViewMaterial, bsdfData, result, needLinearToSRGB);
-
-			// TEMP!
-			// For now, the final blit in the backbuffer performs an sRGB write
-			// So in the meantime we apply the inverse transform to linear data to compensate.
-			if (!needLinearToSRGB)
-				result = SRGBToLinear(max(0, result));
-
-			outColor = float4(result, 1.0);
-		}
-		#endif
+		outColor = VFXGetPixelOutputForward(i,normalWS,uvData);
 	}
 	ENDHLSL
 }

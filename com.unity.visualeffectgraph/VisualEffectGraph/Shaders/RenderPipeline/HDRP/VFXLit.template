@@ -29,4 +29,7 @@ void VFXGetHDRPLitData(out SurfaceData surfaceData, out BuiltinData builtinData,
 	VFXGetHDRPLitData(surfaceData,builtinData,bsdfData,preLightData,i,normalWS,uvData,uint2(0,0));
 }
 
+#include "Shaders/RenderPipeline/HDRP/VFXLitPixelOutput.cginc"
+
+
 

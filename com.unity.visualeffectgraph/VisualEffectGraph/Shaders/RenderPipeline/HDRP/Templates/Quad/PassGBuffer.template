@@ -114,11 +114,7 @@ ${VFXEnd}
 		#endif
 		#endif
 		
-		SurfaceData surfaceData;
-		BuiltinData builtinData;
-		VFXGetHDRPLitData(surfaceData,builtinData,i,normalWS,uvData);
-		
-		ENCODE_INTO_GBUFFER(surfaceData, builtinData, i.pos, outGBuffer);
+		VFXComputePixelOutputToGBuffer(i,normalWS,uvData,outGBuffer);
 	}
 	ENDHLSL
 }

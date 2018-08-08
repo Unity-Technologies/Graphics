@@ -25,17 +25,21 @@ float3 VFXGetPositionRWS(VFX_VARYING_PS_INPUTS i)
 	return posRWS;
 }
 
-BuiltinData VFXGetBuiltinData(VFX_VARYING_PS_INPUTS i,const PositionInputs posInputs, const SurfaceData surfaceData, const BSDFData bsdfData, const PreLightData preLightData, const VFXUVData uvData, float opacity = 1.0f)
+BuiltinData VFXGetBuiltinData(const VFX_VARYING_PS_INPUTS i,const PositionInputs posInputs, const SurfaceData surfaceData, const BSDFData bsdfData, const PreLightData preLightData, const VFXUVData uvData, float opacity = 1.0f)
 {
     BuiltinData builtinData = (BuiltinData)0;
 
     #if HDRP_USE_EMISSIVE
     builtinData.emissiveColor = float3(1,1,1);
     #if HDRP_USE_EMISSIVE_MAP
-    builtinData.emissiveColor *= SampleTexture(VFX_SAMPLER(emissiveMap),uvData).rgb * i.materialProperties.w;
+	float emissiveScale = 1.0f;
+	#ifdef VFX_VARYING_EMISSIVESCALE
+	emissiveScale = i.VFX_VARYING_EMISSIVESCALE;
+	#endif
+    builtinData.emissiveColor *= SampleTexture(VFX_SAMPLER(emissiveMap),uvData).rgb * emissiveScale;
     #endif
-    #if HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR
-    builtinData.emissiveColor *= i.emissiveColor;
+    #if defined(VFX_VARYING_EMISSIVE) && (HDRP_USE_EMISSIVE_COLOR || HDRP_USE_ADDITIONAL_EMISSIVE_COLOR)
+    builtinData.emissiveColor *= i.VFX_VARYING_EMISSIVE;
     #endif
     #endif
 
@@ -45,7 +49,7 @@ BuiltinData VFXGetBuiltinData(VFX_VARYING_PS_INPUTS i,const PositionInputs posIn
     return builtinData;
 }
 
-SurfaceData VFXGetSurfaceData(VFX_VARYING_PS_INPUTS i, float3 normalWS,const VFXUVData uvData, uint diffusionProfile, out float opacity)
+SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,const VFXUVData uvData, uint diffusionProfile, out float opacity)
 {
     SurfaceData surfaceData = (SurfaceData)0;
 
