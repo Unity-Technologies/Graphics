@@ -91,15 +91,11 @@ float4 SampleEnv(LightLoopContext lightLoopContext, int index, float3 texCoord, 
     {
         if (cacheType == ENVCACHETYPE_TEXTURE2D)
         {
-            // _Env2DCaptureVP transform from this camera view space to capture camera clip space.
-            // And it uses a non device dependent projection matrix (clip space range is [-1..1]^3)
-            float4 positionCS = mul(_Env2DCaptureVP[index], float4(texCoord, 1.0));
-            float3 ndc = (positionCS.xyz * rcp(positionCS.w)) * 0.5 + 0.5;
+            //_Env2DCaptureVP is in capture space
+            float3 ndc = ComputeNormalizedDeviceCoordinatesWithZ(texCoord, _Env2DCaptureVP[index]);
 
             color.rgb = SAMPLE_TEXTURE2D_ARRAY_LOD(_Env2DTextures, s_trilinear_clamp_sampler, ndc.xy, index, lod).rgb;
-            // Clip against oblique near clip plane and side clip planes.
-            // Don't clip against far clip plane to handle properly infinite projection.
-            color.a = any(ndc.xyz < 0) || any(ndc.xy > 1) ? 0.0 : 1.0;
+            color.a = any(ndc.xyz < 0) || any(ndc.xyz > 1) ? 0.0 : 1.0;
         }
         else if (cacheType == ENVCACHETYPE_CUBEMAP)
         {

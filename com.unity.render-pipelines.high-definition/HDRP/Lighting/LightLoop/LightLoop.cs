@@ -1361,11 +1361,11 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     out worldToCamera, out projection, out capturePosition, out captureRotation,
                     camera);
 
+                var gpuProj = GL.GetGPUProjectionMatrix(projection, true); // Had to change this from 'false'
                 var gpuView = worldToCamera;
 
                 // We transform it to object space by translating the capturePosition
-                // Provide non device dependent projection matrix (clip space range is [-1..1]^3)
-                var vp = projection * gpuView * Matrix4x4.Translate(capturePosition);
+                var vp = gpuProj * gpuView * Matrix4x4.Translate(capturePosition);
                 m_Env2DCaptureVP[fetchIndex] = vp;
             }
             else if (probe.reflectionProbe != null)

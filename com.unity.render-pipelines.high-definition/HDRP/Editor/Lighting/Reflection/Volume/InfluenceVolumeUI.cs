@@ -10,6 +10,17 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     partial class InfluenceVolumeUI : BaseUI<SerializedInfluenceVolume>
     {
         const int k_AnimBoolFields = 2;
+        internal static readonly Color k_GizmoThemeColorBase = new Color(255f / 255f, 229f / 255f, 148f / 255f, 80f / 255f);
+        internal static readonly Color k_GizmoThemeColorBaseFace = new Color(255f / 255f, 229f / 255f, 148f / 255f, 45f / 255f);
+        internal static readonly Color k_GizmoThemeColorInfluence = new Color(83f / 255f, 255f / 255f, 95f / 255f, 75f / 255f);
+        internal static readonly Color k_GizmoThemeColorInfluenceFace = new Color(83f / 255f, 255f / 255f, 95f / 255f, 17f / 255f);
+        internal static readonly Color k_GizmoThemeColorInfluenceNormal = new Color(0f / 255f, 229f / 255f, 255f / 255f, 80f / 255f);
+        internal static readonly Color k_GizmoThemeColorInfluenceNormalFace = new Color(0f / 255f, 229f / 255f, 255f / 255f, 36f / 255f);
+        internal static readonly Color k_GizmoThemeColorProjection = new Color(0x00 / 255f, 0xE5 / 255f, 0xFF / 255f, 0x20 / 255f);
+        internal static readonly Color k_GizmoThemeColorProjectionFace = new Color(0x00 / 255f, 0xE5 / 255f, 0xFF / 255f, 0x20 / 255f);
+        internal static readonly Color k_GizmoThemeColorDisabled = new Color(0x99 / 255f, 0x89 / 255f, 0x59 / 255f, 0x10 / 255f);
+        internal static readonly Color k_GizmoThemeColorDisabledFace = new Color(0x99 / 255f, 0x89 / 255f, 0x59 / 255f, 0x10 / 255f);
+
         static readonly int k_ShapeCount = Enum.GetValues(typeof(InfluenceShape)).Length;
 
         public Gizmo6FacesBox boxBaseHandle;
@@ -53,15 +64,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             boxInfluenceNormalHandle.faceColorsSelected = new Color[] { HDReflectionProbeEditor.k_GizmoThemeColorInfluenceNormalBlendFace };
         }
 
-        public void SetIsSectionExpanded_Shape(InfluenceShape shape)
+        public override void Update()
         {
-            SetIsSectionExpanded_Shape((int)shape);
+            base.Update();
+            SetIsSectionExpanded_Shape((InfluenceShape)data.shape.intValue);
         }
 
-        public void SetIsSectionExpanded_Shape(int shape)
+        void SetIsSectionExpanded_Shape(InfluenceShape shape)
         {
             for (var i = 0; i < k_ShapeCount; i++)
-                m_AnimBools[i].target = shape == i;
+                m_AnimBools[i].target = (int)shape == i;
         }
 
         public AnimBool IsSectionExpanded_Shape(InfluenceShape shapeType)
