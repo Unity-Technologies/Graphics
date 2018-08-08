@@ -75,8 +75,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         SerializedObject m_AdditionalDataSerializedObject;
         internal HDReflectionProbeUI m_UIState = new HDReflectionProbeUI();
 
-        int m_PositionHash = 0;
-
         public bool sceneViewEditing
         {
             get { return HDProbeUI.IsProbeEditMode(EditMode.editMode) && EditMode.IsOwner(this); }

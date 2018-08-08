@@ -5,8 +5,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     internal abstract class SerializedHDProbe
     {
         internal SerializedObject serializedObject;
-
-        internal SerializedReflectionProxyVolumeComponent proxyVolumeComponent;
+        
         internal SerializedProperty proxyVolumeReference;
         internal SerializedProperty infiniteProjection;
 
