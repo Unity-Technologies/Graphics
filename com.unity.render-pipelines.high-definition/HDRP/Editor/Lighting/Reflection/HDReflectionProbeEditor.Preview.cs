@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Experimental.Rendering.HDPipeline;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
@@ -13,16 +12,10 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 return false;  // We only handle one preview for reflection probes
 
             // Ensure valid cube map editor (if possible)
-            Texture texture = GetTexture();
-            if (m_CubemapEditor != null && m_CubemapEditor.target as Texture != texture)
-            {
-                DestroyImmediate(m_CubemapEditor);
-                m_CubemapEditor = null;
-            }
             if (ValidPreviewSetup() && m_CubemapEditor == null)
             {
                 Editor editor = m_CubemapEditor;
-                CreateCachedEditor(GetTexture(), typeof(HDCubemapInspector), ref editor);
+                CreateCachedEditor(((ReflectionProbe)target).texture, typeof(HDCubemapInspector), ref editor);
                 m_CubemapEditor = editor as HDCubemapInspector;
             }
 
@@ -54,31 +47,16 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 GUILayout.EndHorizontal();
                 return;
             }
-            
-            Texture tex = GetTexture();
-            if (tex != null && targets.Length == 1)
+
+            var p = target as ReflectionProbe;
+            if (p != null && p.texture != null && targets.Length == 1)
                 m_CubemapEditor.DrawPreview(position);
         }
 
         bool ValidPreviewSetup()
         {
-            return GetTexture() != null;
-        }
-
-        Texture GetTexture()
-        {
-            HDProbe additional = GetTarget(target);
-            if (additional != null && additional.mode == UnityEngine.Rendering.ReflectionProbeMode.Realtime)
-            {
-                return additional.realtimeTexture;
-            }
-            else
-            {
-                var p = target as ReflectionProbe;
-                if (p != null)
-                    return p.texture;
-            }
-            return null;
+            var p = target as ReflectionProbe;
+            return p != null && p.texture != null;
         }
 
         private void OnDestroy()

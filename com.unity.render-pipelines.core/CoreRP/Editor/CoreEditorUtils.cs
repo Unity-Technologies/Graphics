@@ -254,17 +254,11 @@ namespace UnityEditor.Experimental.Rendering
                     throw new System.ArgumentException("Colors must be a 2x3 array.");
 
             GUILayout.BeginVertical();
-            Rect rect = EditorGUI.IndentedRect(GUILayoutUtility.GetRect(0, float.MaxValue, EditorGUIUtility.singleLineHeight, EditorGUIUtility.singleLineHeight));
-            if (label != GUIContent.none)
-            {
-                var labelRect = rect;
-                labelRect.x -= 12f;
-                labelRect.width = EditorGUIUtility.labelWidth;
-                EditorGUI.LabelField(labelRect, label);
-                rect.x += EditorGUIUtility.labelWidth - 12f;
-                rect.width -= EditorGUIUtility.labelWidth - 12f;
-            }
-            
+            if(label != GUIContent.none)
+                EditorGUILayout.LabelField(label);
+            ++EditorGUI.indentLevel;
+
+            var rect = GUILayoutUtility.GetRect(0, float.MaxValue, EditorGUIUtility.singleLineHeight, EditorGUIUtility.singleLineHeight);
             var v = positive.vector3Value;
             EditorGUI.BeginChangeCheck();
             v = DrawVector3(rect, k_DrawVector6_Label, v, min, max, false, colors == null ? null : colors[0]);
@@ -273,21 +267,20 @@ namespace UnityEditor.Experimental.Rendering
 
             GUILayout.Space(EditorGUIUtility.standardVerticalSpacing);
 
-            rect = EditorGUI.IndentedRect(GUILayoutUtility.GetRect(0, float.MaxValue, EditorGUIUtility.singleLineHeight, EditorGUIUtility.singleLineHeight));
-            rect.x += EditorGUIUtility.labelWidth - 12f;
-            rect.width -= EditorGUIUtility.labelWidth - 12f;
+            rect = GUILayoutUtility.GetRect(0, float.MaxValue, EditorGUIUtility.singleLineHeight, EditorGUIUtility.singleLineHeight);
             v = negative.vector3Value;
             EditorGUI.BeginChangeCheck();
             v = DrawVector3(rect, k_DrawVector6_Label, v, min, max, true, colors == null ? null : colors[1]);
             if (EditorGUI.EndChangeCheck())
                 negative.vector3Value = v;
+            --EditorGUI.indentLevel;
             GUILayout.EndVertical();
         }
 
         static Vector3 DrawVector3(Rect rect, GUIContent[] labels, Vector3 value, Vector3 min, Vector3 max, bool addMinusPrefix, Color[] colors)
         {
             float[] multifloat = new float[] { value.x, value.y, value.z };
-            //rect = EditorGUI.IndentedRect(rect);
+            rect = EditorGUI.IndentedRect(rect);
             float fieldWidth = rect.width / 3f;
             EditorGUI.BeginChangeCheck();
             EditorGUI.MultiFloatField(rect, labels, multifloat);
@@ -301,11 +294,11 @@ namespace UnityEditor.Experimental.Rendering
             //Suffix is a hack as sublabel only work with 1 character
             if(addMinusPrefix)
             {
-                Rect suffixRect = new Rect(rect.x-19, rect.y, 100, rect.height);
+                Rect suffixRect = new Rect(rect.x-33, rect.y, 100, rect.height);
                 for(int i = 0; i < 3; ++i)
                 {
                     EditorGUI.LabelField(suffixRect, "-");
-                    suffixRect.x += fieldWidth + .66f;
+                    suffixRect.x += fieldWidth + .5f;
                 }
             }
 
@@ -315,7 +308,7 @@ namespace UnityEditor.Experimental.Rendering
                 if (colors.Length != 3)
                     throw new System.ArgumentException("colors must have 3 elements.");
 
-                Rect suffixRect = new Rect(rect.x - 8, rect.y, 100, rect.height);
+                Rect suffixRect = new Rect(rect.x - 23, rect.y, 100, rect.height);
                 GUIStyle colorMark = new GUIStyle(EditorStyles.label);
                 colorMark.normal.textColor = colors[0];
                 EditorGUI.LabelField(suffixRect, "|", colorMark);
