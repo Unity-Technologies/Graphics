@@ -13,7 +13,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         SerializedProperty legacyBlendDistance;
         SerializedProperty legacySize;
-        //SerializedProperty legacyOffset;
+        SerializedProperty legacyOffset;
         SerializedProperty legacyMode;
 
         internal new HDAdditionalReflectionData target { get { return serializedObject.targetObject as HDAdditionalReflectionData; } }
@@ -27,7 +27,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             renderDynamicObjects = legacyProbe.FindProperty("m_RenderDynamicObjects");
             timeSlicingMode = legacyProbe.FindProperty("m_TimeSlicingMode");
             legacySize = legacyProbe.FindProperty("m_BoxSize");
-            //legacyOffset = legacyProbe.FindProperty("m_BoxOffset");
+            legacyOffset = legacyProbe.FindProperty("m_BoxOffset");
             resolution = legacyProbe.FindProperty("m_Resolution");
             shadowDistance = legacyProbe.FindProperty("m_ShadowDistance");
             cullingMask = legacyProbe.FindProperty("m_CullingMask");
@@ -42,6 +42,13 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         {
             serializedLegacyObject.Update();
             base.Update();
+
+            //check if the transform have been rotated
+            if (legacyOffset.vector3Value != ((Component)serializedLegacyObject.targetObject).transform.rotation * influenceVolume.offset.vector3Value)
+            {
+                //call the offset setter as it will update legacy reflection probe
+                ((HDAdditionalReflectionData)serializedObject.targetObject).influenceVolume.offset = influenceVolume.offset.vector3Value;
+            }
 
             // Set the legacy blend distance to 0 so the legacy culling system use the probe extent
             legacyBlendDistance.floatValue = 0;
