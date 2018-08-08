@@ -84,6 +84,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public bool                 displaySkyReflection = false;
         public float                skyReflectionMipmap = 0.0f;
 
+        public bool                 displayLightVolumes = false;
+
         public float                environmentProxyDepthScale = 20;
 
         public float                debugExposure = 0.0f;
