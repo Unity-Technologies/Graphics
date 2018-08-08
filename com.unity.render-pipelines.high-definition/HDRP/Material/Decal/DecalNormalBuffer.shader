@@ -40,7 +40,7 @@ Shader "Hidden/HDRenderPipeline/Material/Decal/DecalNormalBuffer"
             normalData.normalWS.xyz = normalize(normalData.normalWS.xyz * DBufferNormal.w + DBufferNormal.xyz);
             EncodeIntoNormalBuffer(normalData, uint2(0, 0), GBufferNormal);
             _NormalBuffer[input.texcoord * _ScreenSize.xy] = GBufferNormal;
-            return GBufferNormal;
+            return float4(0, 0, 0, 0); // normal buffer is written into as a RWTexture
         }
 
     ENDHLSL
@@ -56,14 +56,12 @@ Shader "Hidden/HDRenderPipeline/Material/Decal/DecalNormalBuffer"
             Blend Off
             Cull Off
 
-            // depth prepass increments stencil to 1
-            // dbuffer increments it to 2
-            // not optimal because we also process pixels that might not have any normals
             Stencil
             {
-                Ref 2
+                ReadMask[_StencilMask]
+                Ref[_StencilRef]
                 Comp Equal
-                Pass Zero
+                Pass Zero   // doesn't really matter, but clear to 0 for debugging 
             }
 
             HLSLPROGRAM
