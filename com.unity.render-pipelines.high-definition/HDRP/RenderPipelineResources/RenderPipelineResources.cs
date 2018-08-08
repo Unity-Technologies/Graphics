@@ -26,6 +26,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Shader debugViewTilesShader;
         public Shader debugFullScreenShader;
         public Shader debugColorPickerShader;
+        public Shader debugLightVolumeShader;
 
         // Lighting resources
         public Shader deferredShader;
@@ -122,6 +123,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             debugViewTilesShader = Load<Shader>(HDRenderPipelinePath + "Debug/DebugViewTiles.Shader");
             debugFullScreenShader = Load<Shader>(HDRenderPipelinePath + "Debug/DebugFullScreen.Shader");
             debugColorPickerShader = Load<Shader>(HDRenderPipelinePath + "Debug/DebugColorPicker.Shader");
+            debugLightVolumeShader  = Load<Shader>(HDRenderPipelinePath + "Debug/DebugLightVolume.Shader");
 
             deferredShader = Load<Shader>(HDRenderPipelinePath + "Lighting/Deferred.Shader");
             colorPyramidCS = Load<ComputeShader>(HDRenderPipelinePath + "RenderPipelineResources/ColorPyramid.compute");

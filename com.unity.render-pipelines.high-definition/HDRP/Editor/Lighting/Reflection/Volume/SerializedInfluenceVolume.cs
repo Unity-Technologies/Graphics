@@ -12,10 +12,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         internal SerializedProperty boxSize;
         internal SerializedProperty boxBlendDistancePositive;
         internal SerializedProperty boxBlendDistanceNegative;
-        //internal SerializedProperty boxBlendSize;
         internal SerializedProperty boxBlendNormalDistancePositive;
         internal SerializedProperty boxBlendNormalDistanceNegative;
-        //internal SerializedProperty boxBlendNormalSize;
         internal SerializedProperty boxSideFadePositive;
         internal SerializedProperty boxSideFadeNegative;
         internal SerializedProperty sphereRadius;
@@ -29,6 +27,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         internal SerializedProperty editorAdvancedModeBlendNormalDistanceNegative;
         internal SerializedProperty editorSimplifiedModeBlendNormalDistance;
         internal SerializedProperty editorAdvancedModeEnabled;
+        internal SerializedProperty editorAdvancedModeFaceFadePositive;
+        internal SerializedProperty editorAdvancedModeFaceFadeNegative;
 
         public SerializedInfluenceVolume(SerializedProperty root)
         {
@@ -39,10 +39,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             boxSize = root.Find((InfluenceVolume i) => i.boxSize);
             boxBlendDistancePositive = root.Find((InfluenceVolume i) => i.boxBlendDistancePositive);
             boxBlendDistanceNegative = root.Find((InfluenceVolume i) => i.boxBlendDistanceNegative);
-            //boxBlendSize = root.Find((InfluenceVolume i) => i.boxBlendSize);
             boxBlendNormalDistancePositive = root.Find((InfluenceVolume i) => i.boxBlendNormalDistancePositive);
             boxBlendNormalDistanceNegative = root.Find((InfluenceVolume i) => i.boxBlendNormalDistanceNegative);
-            //boxBlendNormalSize = root.Find((InfluenceVolume i) => i.boxBlendNormalSize);
             boxSideFadePositive = root.Find((InfluenceVolume i) => i.boxSideFadePositive);
             boxSideFadeNegative = root.Find((InfluenceVolume i) => i.boxSideFadeNegative);
             sphereRadius = root.Find((InfluenceVolume i) => i.sphereRadius);
@@ -56,15 +54,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             editorAdvancedModeBlendNormalDistanceNegative = root.FindPropertyRelative("m_EditorAdvancedModeBlendNormalDistanceNegative");
             editorSimplifiedModeBlendNormalDistance = root.FindPropertyRelative("m_EditorSimplifiedModeBlendNormalDistance");
             editorAdvancedModeEnabled = root.FindPropertyRelative("m_EditorAdvancedModeEnabled");
+            editorAdvancedModeFaceFadePositive = root.FindPropertyRelative("m_EditorAdvancedModeFaceFadePositive");
+            editorAdvancedModeFaceFadeNegative = root.FindPropertyRelative("m_EditorAdvancedModeFaceFadeNegative");
+
             //handle data migration from before editor value were saved
-            if(editorAdvancedModeBlendDistancePositive.vector3Value == Vector3.zero
+            if (editorAdvancedModeBlendDistancePositive.vector3Value == Vector3.zero
                 && editorAdvancedModeBlendDistanceNegative.vector3Value == Vector3.zero
                 && editorSimplifiedModeBlendDistance.floatValue == 0f
                 && editorAdvancedModeBlendNormalDistancePositive.vector3Value == Vector3.zero
                 && editorAdvancedModeBlendNormalDistanceNegative.vector3Value == Vector3.zero
                 && editorSimplifiedModeBlendNormalDistance.floatValue == 0f
                 && (boxBlendDistancePositive.vector3Value != Vector3.zero
-                    || boxBlendDistanceNegative.vector3Value != Vector3.zero))
+                    || boxBlendDistanceNegative.vector3Value != Vector3.zero
+                    || boxBlendNormalDistancePositive.vector3Value != Vector3.zero
+                    || boxBlendNormalDistanceNegative.vector3Value != Vector3.zero))
             {
                 Vector3 positive = boxBlendDistancePositive.vector3Value;
                 Vector3 negative = boxBlendDistanceNegative.vector3Value;
@@ -89,6 +92,20 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     || negative.x != negative.y
                     || negative.x != negative.z
                     || positive.x != negative.x;
+                Apply();
+            }
+            if(editorAdvancedModeFaceFadePositive.vector3Value == Vector3.one
+                && editorAdvancedModeFaceFadeNegative.vector3Value == Vector3.one
+                && (boxSideFadePositive.vector3Value != Vector3.one
+                    || boxSideFadeNegative.vector3Value != Vector3.one))
+            {
+                editorAdvancedModeFaceFadePositive.vector3Value = boxSideFadePositive.vector3Value;
+                editorAdvancedModeFaceFadeNegative.vector3Value = boxSideFadeNegative.vector3Value;
+                if(!editorAdvancedModeEnabled.boolValue)
+                {
+                    boxSideFadePositive.vector3Value = Vector3.one;
+                    boxSideFadeNegative.vector3Value = Vector3.one;
+                }
                 Apply();
             }
         }

@@ -166,7 +166,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         // This function return a mask of light layers as uint and handle the case of Everything as being 0xFF and not -1
         public uint GetLightLayers()
         {
-            int value = Convert.ToInt32(lightLayers);
+            int value = (int)(lightLayers);
             return value < 0 ? (uint)LightLayerEnum.Everything : (uint)value;
         }
 
@@ -546,7 +546,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
             m_Version = currentVersion;
             version = currentVersion;
-            
+
 #pragma warning restore 0618
         }
     }
