@@ -821,25 +821,25 @@ void ApplyDepthOffsetPositionInput(float3 V, float depthOffsetVS, float3 viewFor
 
 #if defined(SHADER_API_VULKAN) || defined(SHADER_API_GLES) || defined(SHADER_API_GLES3)
 
-float4 PackHeightmap(float height)
+real4 PackHeightmap(real height)
 {
-    uint a = (uint)(65535.0f * height);
-    return float4((a >> 0) & 0xFF, (a >> 8) & 0xFF, 0, 0) / 255.0f;
+    uint a = (uint)(65535.0 * height);
+    return real4((a >> 0) & 0xFF, (a >> 8) & 0xFF, 0, 0) / 255.0;
 }
 
-float UnpackHeightmap(float4 height)
+real UnpackHeightmap(real4 height)
 {
-    return (height.r + height.g * 256.0f) / 257.0f; // (255.0f * height.r + 255.0f * 256.0f * height.g) / 65535.0f
+    return (height.r + height.g * 256.0) / 257.0; // (255.0 * height.r + 255.0 * 256.0 * height.g) / 65535.0
 }
 
 #else
 
-float4 PackHeightmap(float height)
+real4 PackHeightmap(real height)
 {
-    return float4(height, 0, 0, 0);
+    return real4(height, 0, 0, 0);
 }
 
-float UnpackHeightmap(float4 height)
+real UnpackHeightmap(real4 height)
 {
     return height.r;
 }
