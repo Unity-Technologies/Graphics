@@ -13,7 +13,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         internal SerializedFrameSettings frameSettings;
 
-        internal SerializedProperty lightLayer;
+        internal SerializedProperty lightLayers;
         internal SerializedProperty weight;
         internal SerializedProperty multiplier;
 
@@ -39,7 +39,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             frameSettings = new SerializedFrameSettings(serializedObject.Find((HDProbe p) => p.frameSettings));
 
-            lightLayer = serializedObject.Find((HDProbe p) => p.lightLayer);
+            lightLayers = serializedObject.Find((HDProbe p) => p.lightLayers);
             weight = serializedObject.Find((HDProbe p) => p.weight);
             multiplier = serializedObject.Find((HDProbe p) => p.multiplier);
 
