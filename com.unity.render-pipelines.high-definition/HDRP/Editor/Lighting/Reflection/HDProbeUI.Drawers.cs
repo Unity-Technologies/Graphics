@@ -128,6 +128,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected static void Drawer_SectionCustomSettings(HDProbeUI s, SerializedHDProbe d, Editor o)
         {
+            EditorGUILayout.PropertyField(d.lightLayer, lightLayerContent);
+
             EditorGUILayout.PropertyField(d.weight, weightContent);
 
             EditorGUI.BeginChangeCheck();
