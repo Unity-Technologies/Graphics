@@ -166,8 +166,11 @@ void LightLoop( float3 V, PositionInputs posInput, PreLightData preLightData, BS
 
     // Define macro for a better understanding of the loop
 #define EVALUATE_BSDF_ENV(envLightData, TYPE, type) \
-    IndirectLighting lighting = EvaluateBSDF_Env(context, V, posInput, preLightData, envLightData, bsdfData, envLightData.influenceShapeType, MERGE_NAME(GPUIMAGEBASEDLIGHTINGTYPE_, TYPE), MERGE_NAME(type, HierarchyWeight)); \
-    AccumulateIndirectLighting(lighting, aggregateLighting);
+    if (IsMatchingLightLayer(envLightData.lightLayers, builtinData.renderingLayers)) \
+    { \
+        IndirectLighting lighting = EvaluateBSDF_Env(context, V, posInput, preLightData, envLightData, bsdfData, envLightData.influenceShapeType, MERGE_NAME(GPUIMAGEBASEDLIGHTINGTYPE_, TYPE), MERGE_NAME(type, HierarchyWeight)); \
+        AccumulateIndirectLighting(lighting, aggregateLighting); \
+    }
 
     // First loop iteration
     if (featureFlags & (LIGHTFEATUREFLAGS_ENV | LIGHTFEATUREFLAGS_SKY | LIGHTFEATUREFLAGS_SSREFRACTION | LIGHTFEATUREFLAGS_SSREFLECTION))
