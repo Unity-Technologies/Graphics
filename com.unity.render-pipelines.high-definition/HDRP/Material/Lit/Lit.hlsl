@@ -1869,9 +1869,12 @@ float3   LTC_Evaluate( float3 N, float3 V, float3 P, float3x3 Minv, float3 cente
     float3 V1 = 0.5 * (L_[1] - L_[2]);
     float3 V2 = 0.5 * (L_[1] - L_[0]);
 
-    C  = mul( Minv, C );
-    V1 = mul( Minv, V1 );
-    V2 = mul( Minv, V2 );
+//    C  = mul( Minv, C );
+//    V1 = mul( Minv, V1 );
+//    V2 = mul( Minv, V2 );
+    C  = mul( C , Minv );
+    V1 = mul( V1, Minv );
+    V2 = mul( V2, Minv );
 
 
     float3  V3 = cross(V2, V1);             // Normal to ellipse's plane
@@ -2040,11 +2043,13 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
     float3  N = bsdfData.normalWS;
     float3  P = positionWS;
     float3  center = lightData.positionRWS;
-    float3  axisX = halfWidth * lightData.right;
-    float3  axisY = halfHeight * lightData.up;
+    float3  axisX = 2*halfWidth * lightData.right;
+    float3  axisY = 2*halfHeight * lightData.up;
 
 
-lighting.diffuse = lighting.specular = LTC_Evaluate( N, V, P, preLightData.ltcTransformDiffuse, center, axisX, axisY );
+lighting.diffuse = LTC_Evaluate( N, V, P, preLightData.ltcTransformDiffuse, center, axisX, axisY );
+lighting.specular = LTC_Evaluate( N, V, P, preLightData.ltcTransformSpecular, center, axisX, axisY );
+
 
 /*
     float ltcValue;
@@ -2071,75 +2076,6 @@ lighting.diffuse = lighting.specular = LTC_Evaluate( N, V, P, preLightData.ltcTr
     lighting.diffuse *= lightData.color;
     lighting.specular *= lightData.color;
 
-/*
-    // Translate the light s.t. the shaded point is at the origin of the coordinate system.
-    lightData.positionRWS -= positionWS;
-
-    float4x3 lightVerts;
-
-    // TODO: some of this could be precomputed.
-    lightVerts[0] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up *  halfHeight;
-    lightVerts[1] = lightData.positionRWS + lightData.right *  halfWidth + lightData.up * -halfHeight;
-    lightVerts[2] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up * -halfHeight;
-    lightVerts[3] = lightData.positionRWS + lightData.right * -halfWidth + lightData.up *  halfHeight;
-
-    // Rotate the endpoints into the local coordinate system.
-    lightVerts = mul(lightVerts, transpose(preLightData.orthoBasisViewNormal));
-
-    float ltcValue;
-
-    // Evaluate the diffuse part
-    // Polygon irradiance in the transformed configuration.
-    ltcValue  = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformDiffuse));
-    ltcValue *= lightData.diffuseScale;
-    // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-    // See comment for specular magnitude, it apply to diffuse as well
-    lighting.diffuse = preLightData.diffuseFGD * ltcValue;
-
-    UNITY_BRANCH if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
-    {
-        // Flip the view vector and the normal. The bitangent stays the same.
-        float3x3 flipMatrix = float3x3(-1,  0,  0,
-                                        0,  1,  0,
-                                        0,  0, -1);
-
-        // Use the Lambertian approximation for performance reasons.
-        // The matrix multiplication should not generate any extra ALU on GCN.
-        float3x3 ltcTransform = mul(flipMatrix, k_identity3x3);
-
-        // Polygon irradiance in the transformed configuration.
-        // TODO: double evaluation is very inefficient! This is a temporary solution.
-        ltcValue  = PolygonIrradiance(mul(lightVerts, ltcTransform));
-        ltcValue *= lightData.diffuseScale;
-        // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-        lighting.diffuse += bsdfData.transmittance * ltcValue;
-    }
-
-    // Evaluate the specular part
-    // Polygon irradiance in the transformed configuration.
-    ltcValue  = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformSpecular));
-    ltcValue *= lightData.specularScale;
-    // We need to multiply by the magnitude of the integral of the BRDF
-    // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
-    // This value is what we store in specularFGD, so reuse it
-    lighting.specular += preLightData.specularFGD * ltcValue;
-
-    // Evaluate the coat part
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
-    {
-        ltcValue = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformCoat));
-        ltcValue *= lightData.specularScale;
-        // For clear coat we don't fetch specularFGD we can use directly the perfect fresnel coatIblF
-        lighting.diffuse *= (1.0 - preLightData.coatIblF);
-        lighting.specular *= (1.0 - preLightData.coatIblF);
-        lighting.specular += preLightData.coatIblF * ltcValue;
-    }
-
-    // Save ALU by applying 'lightData.color' only once.
-    lighting.diffuse *= lightData.color;
-    lighting.specular *= lightData.color;
-
 #ifdef DEBUG_DISPLAY
     if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
     {
@@ -2149,7 +2085,7 @@ lighting.diffuse = lighting.specular = LTC_Evaluate( N, V, P, preLightData.ltcTr
         lighting.diffuse *= PI * lightData.diffuseScale;
     }
 #endif
-*/
+
 
 #endif
 
