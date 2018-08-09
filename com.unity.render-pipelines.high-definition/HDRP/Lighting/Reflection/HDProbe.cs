@@ -62,11 +62,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             set { m_RefreshMode = value; }
         }
 
-        public virtual bool infiniteProjection
+        public bool infiniteProjection
         {
             get
             {
-                return proxyVolume != null && proxyVolume.proxyVolume.shape == ProxyShape.Infinite || m_InfiniteProjection;
+                return (proxyVolume != null && proxyVolume.proxyVolume.shape == ProxyShape.Infinite)
+                    || (proxyVolume == null && m_InfiniteProjection);
             }
             set
             {
