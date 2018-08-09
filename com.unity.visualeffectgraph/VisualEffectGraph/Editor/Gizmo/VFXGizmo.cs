@@ -204,7 +204,7 @@ namespace UnityEditor.VFX
         {
             Matrix4x4 oldMatrix = Handles.matrix;
 
-            if (currentSpace == VFXCoordinateSpace.Local)
+            if (currentSpace == VFXCoordinateSpace.Global)
             {
                 if (component == null) return;
                 Handles.matrix = component.transform.localToWorldMatrix;
