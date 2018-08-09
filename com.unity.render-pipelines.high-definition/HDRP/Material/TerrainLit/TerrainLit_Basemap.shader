@@ -48,10 +48,8 @@ Shader "Hidden/HDRenderPipeline/TerrainLit_Basemap"
     //-------------------------------------------------------------------------------------
 
     #define UNITY_MATERIAL_LIT // Need to be define before including Material.hlsl
-    // Use surface gradient normal mapping as it handle correctly triplanar normal mapping and multiple UVSet
     #define SURFACE_GRADIENT
-    // This shader support vertex modification
-    #define HAVE_VERTEX_MODIFICATION
+    #define HAVE_MESH_MODIFICATION
 
     //-------------------------------------------------------------------------------------
     // Include

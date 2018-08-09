@@ -66,7 +66,7 @@ CBUFFER_END
 
 #undef DECLARE_TERRAIN_LAYER_PROPS
 
-#ifdef HAVE_VERTEX_MODIFICATION
+#ifdef HAVE_MESH_MODIFICATION
 #include "TerrainLitDataMeshModification.hlsl"
 #endif
 
