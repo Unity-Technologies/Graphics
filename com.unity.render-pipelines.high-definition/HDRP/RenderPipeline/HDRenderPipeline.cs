@@ -138,6 +138,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Clear           = 0,             // 0x0
             LightingMask    = 7,             // 0x7  - 3 bit
             Decals          = 8,             // 0x8  - 1 bit
+            StackLit        = 16,            // 0x10  - 1 bit
             ObjectVelocity  = 128,           // 0x80 - 1 bit
             All             = 255            // 0xFF - 8 bit
         }
@@ -253,8 +254,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_CopyStencilForNoLighting.SetInt(HDShaderIDs._StencilMask, (int)StencilBitMask.LightingMask);
             m_CameraMotionVectorsMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.cameraMotionVectors);
             m_DecalNormalBufferMaterial = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.decalNormalBuffer);
-            m_DecalNormalBufferMaterial.SetInt(HDShaderIDs._StencilRef, (int)StencilBitMask.Decals);
-            m_DecalNormalBufferMaterial.SetInt(HDShaderIDs._StencilMask, (int)StencilBitMask.Decals);
 
             m_CopyDepth = CoreUtils.CreateEngineMaterial(asset.renderPipelineResources.copyDepthBuffer);
 
@@ -969,12 +968,28 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     // We can now bind the normal buffer to be use by any effect
                     m_NormalBufferManager.BindNormalBuffers(cmd);
 
-                    if ((hdCamera.frameSettings.enableForwardRenderingOnly) && (!hdCamera.frameSettings.enableMSAA)) // MSAA not supported
+                    if (!hdCamera.frameSettings.enableMSAA) // MSAA not supported
                     {
                         using (new ProfilingSample(cmd, "DBuffer Normal (forward)", CustomSamplerId.DBufferNormal.GetSampler()))
                         {
+                            int stencilMask;
+                            int stencilRef;
+                            if (hdCamera.frameSettings.enableForwardRenderingOnly) // in forward rendering all pixels that decals wrote into have to be composited
+                            {
+                                stencilMask = (int)StencilBitMask.Decals;
+                                stencilRef = (int)StencilBitMask.Decals;
+                            }
+                            else // in deferred rendering only pixels affected by both forward materials and decals need to be composited
+                            {
+                                stencilMask = (int)StencilBitMask.Decals | (int)StencilBitMask.StackLit;
+                                stencilRef = (int)StencilBitMask.Decals | (int)StencilBitMask.StackLit;
+                            }
+
+                            m_DecalNormalBufferMaterial.SetInt(HDShaderIDs._DecalNormalBufferStencilReadMask, stencilMask);
+                            m_DecalNormalBufferMaterial.SetInt(HDShaderIDs._DecalNormalBufferStencilRef, stencilRef);
+                        
                             HDUtils.SetRenderTarget(cmd, hdCamera, m_CameraDepthStencilBuffer);
-                            cmd.SetRandomWriteTarget(1, m_NormalBufferManager.GetNormalBuffer(0));                                                   
+                            cmd.SetRandomWriteTarget(1, m_NormalBufferManager.GetNormalBuffer(0));
                             cmd.DrawProcedural(Matrix4x4.identity, m_DecalNormalBufferMaterial, 0, MeshTopology.Triangles, 3, 1);
                             cmd.ClearRandomWriteTargets();
                         }
