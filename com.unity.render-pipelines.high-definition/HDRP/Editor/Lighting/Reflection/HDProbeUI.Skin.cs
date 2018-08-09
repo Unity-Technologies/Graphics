@@ -44,6 +44,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         static readonly GUIContent weightContent = CoreEditorUtils.GetContent("Weight|Blend weight applied on this reflection probe. This can be used for fading in or out a reflection probe.");
         static readonly GUIContent multiplierContent = CoreEditorUtils.GetContent("Intensity Multiplier|Allows you to boost or dimmer the reflected cubemap. Values above 1 will make reflections brighter and values under 1 will make reflections darker. Using values different than 1 is not physically correct.");
+        static readonly GUIContent lightLayerContent = CoreEditorUtils.GetContent("Light Layer|Specifies the current light layers that the light affect. Corresponding renderer with the same flags will be lit by this light.");
 
         static readonly GUIContent textureSizeContent = CoreEditorUtils.GetContent("Probe Texture Size (Set By HDRP)");
         static readonly GUIContent compressionTextureContent = CoreEditorUtils.GetContent("Probe Compression (Set By HDRP)");
