@@ -29,7 +29,7 @@ Pass
 		#ifdef WRITE_NORMAL_BUFFER
 		float4 normal : TEXCOORD2; // normal scale is stored in w
 		#if USE_NORMAL_MAP || USE_NORMAL_BENDING
-		float4 tangent : TEXCOORD3;
+		float3 tangent : TEXCOORD3;
 		#endif
 		#if USE_NORMAL_BENDING
 		float2 bentFactors : TEXCOORD6;
