@@ -47,7 +47,7 @@ Shader "Hidden/HDRenderPipeline/DebugLightVolume"
                 return output;
             }
 
-            float4 frag(VaryingsDefault varying) : SV_TARGET0
+            float4 frag(VaryingsDefault varying) : SV_Target
             {
                 return _Color;
             }
