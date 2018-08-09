@@ -1710,6 +1710,278 @@ DirectLighting EvaluateBSDF_Sphere( LightLoopContext lightLoopContext,
     return lighting;
 }
 
+
+// From http://blog.selfshadow.com/ltc/webgl/ltc_disk.html
+//Disk InitDisk(float3 center, float3 dirx, float3 diry, float halfx, float halfy)
+//{
+//    Disk disk;
+//
+//    disk.center = center;
+//    disk.dirx   = dirx;
+//    disk.diry   = diry;
+//    disk.halfx  = halfx;
+//    disk.halfy  = halfy;
+//
+//    float3 diskNormal = cross(disk.dirx, disk.diry);
+//    disk.plane = float4(diskNormal, -dot(diskNormal, disk.center));
+//
+//    return disk;
+//}
+//
+//void InitDiskPoints(Disk disk, out float3 points[4])
+//{
+//    float3 ex = disk.halfx*disk.dirx;
+//    float3 ey = disk.halfy*disk.diry;
+//
+//    points[0] = disk.center - ex - ey;
+//    points[1] = disk.center + ex - ey;
+//    points[2] = disk.center + ex + ey;
+//    points[3] = disk.center - ex + ey;
+//}
+
+// An extended version of the implementation from
+// "How to solve a cubic equation, revisited"
+// http://momentsingraphics.de/?p=105
+float3 SolveCubic(float4 Coefficient)
+{
+    // Normalize the polynomial
+    Coefficient.xyz /= Coefficient.w;
+    // Divide middle coefficients by three
+    Coefficient.yz /= 3.0;
+
+    float A = Coefficient.w;
+    float B = Coefficient.z;
+    float C = Coefficient.y;
+    float D = Coefficient.x;
+
+    // Compute the Hessian and the discriminant
+    float3 Delta = float3(
+        -Coefficient.z*Coefficient.z + Coefficient.y,
+        -Coefficient.y*Coefficient.z + Coefficient.x,
+        dot(float2(Coefficient.z, -Coefficient.y), Coefficient.xy)
+    );
+
+    float Discriminant = dot(float2(4.0*Delta.x, -Delta.y), Delta.zy);
+
+    float3 RootsA, RootsD;
+
+    float2 xlc, xsc;
+
+    // Algorithm A
+    {
+        float A_a = 1.0;
+        float C_a = Delta.x;
+        float D_a = -2.0*B*Delta.x + Delta.y;
+
+        // Take the cubic root of a normalized complex number
+        float Theta = atan2( sqrt(Discriminant), -D_a ) / 3.0;
+
+        float x_1a = 2.0*sqrt(-C_a) * cos( Theta );
+        float x_3a = 2.0*sqrt(-C_a) * cos( Theta + (2.0/3.0)*PI );
+
+        float xl;
+        if ((x_1a + x_3a) > 2.0*B)
+            xl = x_1a;
+        else
+            xl = x_3a;
+
+        xlc = float2(xl - B, A);
+    }
+
+    // Algorithm D
+    {
+        float A_d = D;
+        float C_d = Delta.z;
+        float D_d = -D*Delta.y + 2.0*C*Delta.z;
+
+        // Take the cubic root of a normalized complex number
+        float Theta = atan2( D*sqrt(Discriminant), -D_d ) / 3.0;
+
+        float x_1d = 2.0*sqrt(-C_d)*cos( Theta );
+        float x_3d = 2.0*sqrt(-C_d)*cos( Theta + (2.0/3.0)*PI );
+
+        float xs;
+        if (x_1d + x_3d < 2.0*C)
+            xs = x_1d;
+        else
+            xs = x_3d;
+
+        xsc = float2(-D, xs + C);
+    }
+
+    float E =  xlc.y*xsc.y;
+    float F = -xlc.x*xsc.y - xlc.y*xsc.x;
+    float G =  xlc.x*xsc.x;
+
+    float2 xmc = float2(C*F - B*G, -B*F + C*E);
+
+    float3 Root = float3(xsc.x/xsc.y, xmc.x/xmc.y, xlc.x/xlc.y);
+
+    if (Root.x < Root.y && Root.x < Root.z)
+        Root.xyz = Root.yxz;
+    else if (Root.z < Root.x && Root.z < Root.y)
+        Root.xyz = Root.xzy;
+
+    return Root;
+}
+
+float3   LTC_Evaluate( float3 N, float3 V, float3 P, float3x3 Minv, float3 center, float3 axisX, float3 axisY )
+{
+    // construct orthonormal basis around N
+    float3  T1 = normalize(V - N*dot(V, N));
+    float3  T2 = cross(N, T1);
+
+    // rotate area light in (T1, T2, N) basis
+//    float3x3    R = transpose( float3x3(T1, T2, N) );
+    float3x3    R = float3x3(T1, T2, N);
+
+/*    center -= P;   // Center is now in local space
+    center = mul( R, center );
+    axisX = mul( R, axisX );
+    axisY = mul( R, axisY );
+
+//    // polygon (allocate 5 vertices for clipping)
+//    float3  L_[3];
+//    L_[0] = mul(R, points[0] - P);
+//    L_[1] = mul(R, points[1] - P);
+//    L_[2] = mul(R, points[2] - P);
+
+    // init ellipse
+    float3  C  = mul( Minv, center );
+    float3  V1 = mul( Minv, axisX );
+    float3  V2 = mul( Minv, axisY );
+*/
+
+
+    // polygon (allocate 5 vertices for clipping)
+    float3  points[3];
+    points[0] = center - axisX - axisY;
+    points[1] = center + axisX - axisY;
+    points[2] = center + axisX + axisY;
+
+    float3  L_[3];
+    L_[0] = mul( R, points[0] - P );
+    L_[1] = mul( R, points[1] - P );
+    L_[2] = mul( R, points[2] - P );
+
+    // init ellipse
+    float3 C  = 0.5 * (L_[0] + L_[2]);
+    float3 V1 = 0.5 * (L_[1] - L_[2]);
+    float3 V2 = 0.5 * (L_[1] - L_[0]);
+
+    C  = mul( Minv, C );
+    V1 = mul( Minv, V1 );
+    V2 = mul( Minv, V2 );
+
+
+    float3  V3 = cross(V2, V1);             // Normal to ellipse's plane
+    if( dot( V3, C ) < 0.0 )
+        return 0.0;
+//        return float3( 1, 0, 0 );
+
+    // compute eigenvectors of ellipse
+    float a, b;
+    float d11 = dot(V1, V1);
+    float d22 = dot(V2, V2);
+    float d12 = dot(V1, V2);
+    if (abs(d12)/sqrt(d11*d22) > 0.0001)
+    {
+        float   tr = d11 + d22;
+        float   det = -d12*d12 + d11*d22;
+
+        // use sqrt matrix to solve for eigenvalues
+        det = sqrt(det);
+        float   u = 0.5*sqrt(tr - 2.0*det);
+        float   v = 0.5*sqrt(tr + 2.0*det);
+        float   e_max = Sq(u + v);
+        float   e_min = Sq(u - v);
+
+        float3 V1_, V2_;
+
+        if (d11 > d22)
+        {
+            V1_ = d12*V1 + (e_max - d11)*V2;
+            V2_ = d12*V1 + (e_min - d11)*V2;
+        }
+        else
+        {
+            V1_ = d12*V2 + (e_max - d22)*V1;
+            V2_ = d12*V2 + (e_min - d22)*V1;
+        }
+
+        a = 1.0 / e_max;
+        b = 1.0 / e_min;
+        V1 = normalize(V1_);
+        V2 = normalize(V2_);
+    }
+    else
+    {
+        a = 1.0 / dot(V1, V1);
+        b = 1.0 / dot(V2, V2);
+        V1 *= sqrt(a);
+        V2 *= sqrt(b);
+    }
+
+    V3 = cross(V1, V2);
+    if ( dot(C, V3) < 0.0 )
+        V3 = -V3;
+
+    float   L  = dot(V3, C);
+    float   x0 = dot(V1, C) / L;
+    float   y0 = dot(V2, C) / L;
+
+    float   E1 = rsqrt(a);
+    float   E2 = rsqrt(b);
+
+    a *= L*L;
+    b *= L*L;
+
+    float   c0 = a*b;
+    float   c1 = a*b*(1.0 + x0*x0 + y0*y0) - a - b;
+    float   c2 = 1.0 - a*(1.0 + x0*x0) - b*(1.0 + y0*y0);
+    float   c3 = 1.0;
+
+    float3  roots = SolveCubic(float4(c0, c1, c2, c3));
+    float   e1 = roots.x;
+    float   e2 = roots.y;
+    float   e3 = roots.z;
+
+    float3  avgDir = float3(a*x0/(a - e2), b*y0/(b - e2), 1.0);
+
+//    float3x3 rotate = mat3_from_columns(V1, V2, V3);
+    float3x3    rotate = transpose( float3x3( V1, V2, V3 ) );
+
+    avgDir = normalize( mul( rotate, avgDir ) );
+
+    float   L1 = sqrt(-e2/e3);
+    float   L2 = sqrt(-e2/e1);
+
+    float formFactor = L1*L2*rsqrt((1.0 + L1*L1)*(1.0 + L2*L2));
+
+//    // use tabulated horizon-clipped sphere
+//    float2 uv = float2(avgDir.z*0.5 + 0.5, formFactor);
+//    uv = uv*LUT_SCALE + LUT_BIAS;
+//    float scale = texture2D(ltc_2, uv).w;
+//    return formFactor * scale;
+
+//return float3( 1, 1, 0 );
+//return formFactor;
+
+    #if 1
+        float   sinSqSigma = min( formFactor, 0.999 );
+        float   cosOmega   = clamp( avgDir.z , -1, 1 );
+    #else
+        // Clamp invalid values to avoid visual artifacts.
+        float3  F = formFactor * avgDir;
+        float   f2         = saturate(dot(F, F));
+        float   sinSqSigma = min(sqrt(f2), 0.999);
+        float   cosOmega   = clamp(F.z * rsqrt(f2), -1, 1);
+    #endif
+
+    return DiffuseSphereLightIrradiance( sinSqSigma, cosOmega );
+}
+
+
 DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
                                     float3 V, PositionInputs posInput,
                                     PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
@@ -1747,15 +2019,15 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
                                    radius));
 
     // Compute the light attenuation.
-#ifdef ELLIPSOIDAL_ATTENUATION
-    // The attenuation volume is an axis-aligned ellipsoid s.t.
-    // r1 = (r + w / 2), r2 = (r + h / 2), r3 = r.
-    float intensity = EllipsoidalDistanceAttenuation(unL, invHalfDim);
-#else
-    // The attenuation volume is an axis-aligned box s.t.
-    // hX = (r + w / 2), hY = (r + h / 2), hZ = r.
-    float intensity = BoxDistanceAttenuation(unL, invHalfDim);
-#endif
+    #ifdef ELLIPSOIDAL_ATTENUATION
+        // The attenuation volume is an axis-aligned ellipsoid s.t.
+        // r1 = (r + w / 2), r2 = (r + h / 2), r3 = r.
+        float intensity = EllipsoidalDistanceAttenuation(unL, invHalfDim);
+    #else
+        // The attenuation volume is an axis-aligned box s.t.
+        // hX = (r + w / 2), hY = (r + h / 2), hZ = r.
+        float intensity = BoxDistanceAttenuation(unL, invHalfDim);
+    #endif
 
     // Terminate if the shaded point is too far away.
     if (intensity == 0.0)
@@ -1764,6 +2036,42 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
     lightData.diffuseScale  *= intensity;
     lightData.specularScale *= intensity;
 
+
+    float3  N = bsdfData.normalWS;
+    float3  P = positionWS;
+    float3  center = lightData.positionRWS;
+    float3  axisX = halfWidth * lightData.right;
+    float3  axisY = halfHeight * lightData.up;
+
+
+lighting.diffuse = lighting.specular = LTC_Evaluate( N, V, P, preLightData.ltcTransformDiffuse, center, axisX, axisY );
+
+/*
+    float ltcValue;
+    ltcValue  = LTC_Evaluate( N, V, P, preLightData.ltcTransformDiffuse, center, axisX, axisY );
+
+//    ltcValue  = LTC_Evaluate( mul(lightVerts, preLightData.ltcTransformDiffuse) );
+    ltcValue *= lightData.diffuseScale;
+    // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
+    // See comment for specular magnitude, it apply to diffuse as well
+    lighting.diffuse = preLightData.diffuseFGD * ltcValue;
+
+    // Evaluate the specular part
+    // Polygon irradiance in the transformed configuration.
+    ltcValue  = LTC_Evaluate( N, V, P, preLightData.ltcTransformSpecular, center, axisX, axisY );
+//    ltcValue  = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformSpecular));
+    ltcValue *= lightData.specularScale;
+    // We need to multiply by the magnitude of the integral of the BRDF
+    // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
+    // This value is what we store in specularFGD, so reuse it
+    lighting.specular += preLightData.specularFGD * ltcValue;
+*/
+
+    // Save ALU by applying 'lightData.color' only once.
+    lighting.diffuse *= lightData.color;
+    lighting.specular *= lightData.color;
+
+/*
     // Translate the light s.t. the shaded point is at the origin of the coordinate system.
     lightData.positionRWS -= positionWS;
 
@@ -1841,6 +2149,7 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
         lighting.diffuse *= PI * lightData.diffuseScale;
     }
 #endif
+*/
 
 #endif
 
