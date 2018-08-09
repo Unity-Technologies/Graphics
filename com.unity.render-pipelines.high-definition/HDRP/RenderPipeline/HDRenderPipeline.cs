@@ -752,7 +752,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // TODO: Render only visible probes
             var probeTypeToRender = ReflectionProbeType.ReflectionProbe;
             var isPlanarReflection = cameras.Any(c => c.cameraType == CameraType.Reflection);
-            if (!isPlanarReflection)
+            if (isPlanarReflection)
                 probeTypeToRender |= ReflectionProbeType.PlanarReflection;
             ReflectionSystem.RenderAllRealtimeProbes(probeTypeToRender);
 
