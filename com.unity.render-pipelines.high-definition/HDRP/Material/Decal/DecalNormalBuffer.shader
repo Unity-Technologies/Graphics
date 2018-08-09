@@ -1,5 +1,13 @@
 Shader "Hidden/HDRenderPipeline/Material/Decal/DecalNormalBuffer"
 {
+
+    Properties
+    {
+        // Stencil state
+        [HideInInspector] _DecalNormalBufferStencilRef("_DecalNormalBufferStencilRef", Int) = 0           // set at runtime
+        [HideInInspector] _DecalNormalBufferStencilReadMask("_DecalNormalBufferStencilReadMask", Int) = 0 // set at runtime
+    }
+
     HLSLINCLUDE
 
         #pragma target 4.5
@@ -58,8 +66,8 @@ Shader "Hidden/HDRenderPipeline/Material/Decal/DecalNormalBuffer"
 
             Stencil
             {
-                ReadMask[_StencilMask]
-                Ref[_StencilRef]
+                ReadMask[_DecalNormalBufferStencilReadMask]
+                Ref[_DecalNormalBufferStencilRef]
                 Comp Equal
                 Pass Zero   // doesn't really matter, but clear to 0 for debugging 
             }
