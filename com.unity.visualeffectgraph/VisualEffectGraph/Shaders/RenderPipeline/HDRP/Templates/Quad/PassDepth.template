@@ -81,7 +81,7 @@ ${VFXEnd}
 		VFXComputePixelOutputToNormalBuffer(i,normalWS,uvData,outNormalBuffer);
 #else
 		float alpha = VFXGetFragmentColor(i).a;
-#if HDRP_USE_BASE_COLOR_MAP
+#if HDRP_USE_BASE_COLOR_MAP_ALPHA
 		alpha *= VFXGetTextureColor(VFX_SAMPLER(baseColorMap),i).a;	
 #endif
 		VFXClipFragmentColor(alpha,i);
