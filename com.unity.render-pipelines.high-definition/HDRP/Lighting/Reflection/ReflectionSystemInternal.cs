@@ -51,10 +51,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
 
             if (previous != null)
             {
-                m_PlanarReflectionProbes.UnionWith(previous.m_PlanarReflectionProbes);
-                m_PlanarReflectionProbes.UnionWith(previous.m_PlanarReflectionProbes);
+                m_AdditionalDataReflectionProbes.UnionWith(previous.m_AdditionalDataReflectionProbes);
                 m_AdditionalDataReflectionProbe_RequestRealtimeRender.UnionWith(previous.m_AdditionalDataReflectionProbe_RequestRealtimeRender);
                 m_AdditionalDataReflectionProbe_RealtimeUpdate.UnionWith(previous.m_AdditionalDataReflectionProbe_RealtimeUpdate);
+                m_PlanarReflectionProbes.UnionWith(previous.m_PlanarReflectionProbes);
                 m_PlanarReflectionProbe_DirtyBounds.UnionWith(m_PlanarReflectionProbes);
                 m_PlanarReflectionProbe_RequestRealtimeRender.UnionWith(previous.m_PlanarReflectionProbe_RequestRealtimeRender);
                 m_PlanarReflectionProbe_RealtimeUpdate.UnionWith(previous.m_PlanarReflectionProbe_RealtimeUpdate);
