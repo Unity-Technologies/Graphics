@@ -15,8 +15,8 @@ SAMPLER(sampler_MaskMap);
 TEXTURE2D(_NormalMap);
 SAMPLER(sampler_NormalMap);
 
-TEXTURE2D(_DetailMask);
-SAMPLER(sampler_DetailMask);
+TEXTURE2D(_FuzzDetailMap);
+SAMPLER(sampler_FuzzDetailMap);
 TEXTURE2D(_DetailMap);
 SAMPLER(sampler_DetailMap);
 
@@ -39,6 +39,8 @@ CBUFFER_START(UnityPerMaterial)
 float4 _UVMappingMask;
 float4 _UVMappingMaskDetail;
 float4 _UVMappingMaskEmissive;
+
+float4 _DoubleSidedConstants;
 
 float4 _BaseColor;
 float4 _BaseColorMap_ST;

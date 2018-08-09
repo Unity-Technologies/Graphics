@@ -7,6 +7,8 @@
 
 void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs posInput, out SurfaceData surfaceData, out BuiltinData builtinData)
 {
+    ApplyDoubleSidedFlipOrMirror(input); // Apply double sided flip on the vertex normal
+    
     // Initial value of the material features
     surfaceData.materialFeatures = 0;
     
@@ -42,37 +44,54 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Apply offset and tiling
     uvDetails = uvDetails * _DetailMap_ST.xy + _DetailMap_ST.zw;
 
+
+// The Mask map also contains the detail mask flag, se we need to read it first
+#ifdef _MASKMAP
+    float4 maskValue = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, uvBase);
+#else
+    #ifdef _DETAIL_MAP
+        // If we have no mask map, but we have a detail map; we use the detail map and the smoothness is the value version
+        float4 maskValue = float4(1, 1, 1, _Smoothness);
+    #else
+        // If we have no mask map, no detail map AO is 1, smoothness is the value and mask
+        float4 maskValue = float4(1, 1, 0, _Smoothness);
+    #endif
+#endif
+
 // We need to start by reading the detail (if any available to override the initial values)
 #ifdef _DETAIL_MAP
-    float4 detailMasks = SAMPLE_TEXTURE2D(_DetailMask, sampler_DetailMask, uvDetails);
-    float2 detailAOAndSmoothness = SAMPLE_TEXTURE2D(_DetailMap, sampler_DetailMap, uvDetails).rb;
-    float detailAO = detailAOAndSmoothness.r * 2.0 - 1.0;
-    float detailSmoothness = detailAOAndSmoothness.g * 2.0 - 1.0;
+    float4 detailSample = SAMPLE_TEXTURE2D(_DetailMap, sampler_DetailMap, uvDetails);
+    float detailAO = detailSample.x * 2.0 - 1.0;
+    float detailSmoothness = detailSample.z * 2.0 - 1.0;
 
     // Handle the normal detail
-    float2 detailDerivative = UnpackDerivativeNormalRGorAG(SAMPLE_TEXTURE2D(_DetailMap, sampler_DetailMap, uvDetails), _DetailNormalScale);
+    float2 detailDerivative = UnpackDerivativeNormalRGorAG(float4(detailSample.w, detailSample.y, 1, 1), _DetailNormalScale);
     float3 detailGradient =  SurfaceGradientFromTBN(detailDerivative, input.worldToTangent[0], input.worldToTangent[1]);
 #else
+    float4 detailSample = float4(1.0, 0.0, 0.0, 1.0);
     float3 detailGradient = float3(0.0, 0.0, 0.0);
-    float detailMask = 0.0;
 #endif
     
     // The base color of the object mixed with the base color texture
     surfaceData.baseColor = SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, uvBase).rgb * _BaseColor.rgb;
 
     // Extract the alpha value (will be useful if we need to trigger the alpha test)
-    float alpha = SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, uvBase).a * _BaseColor.a;
+    float alpha = SAMPLE_TEXTURE2D(_BaseColorMap, sampler_BaseColorMap, uvBase).a * _BaseColor.a * detailSample.r;
 
 #ifdef _NORMALMAP
     float2 derivative = UnpackDerivativeNormalRGorAG(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, uvBase), _NormalScale);
     #ifdef _DETAIL_MAP
-        float3 gradient =  SurfaceGradientFromTBN(derivative, input.worldToTangent[0], input.worldToTangent[1]) + detailGradient * detailMasks.x;
+        float3 gradient =  SurfaceGradientFromTBN(derivative, input.worldToTangent[0], input.worldToTangent[1]) + detailGradient * maskValue.z;
     #else
         float3 gradient =  SurfaceGradientFromTBN(derivative, input.worldToTangent[0], input.worldToTangent[1]);
     #endif
     surfaceData.normalWS = SurfaceGradientResolveNormal(input.worldToTangent[2], gradient);
 #else
-    surfaceData.normalWS = input.worldToTangent[2];
+    #ifdef _DETAIL_MAP
+        surfaceData.normalWS = SurfaceGradientResolveNormal(input.worldToTangent[2], detailGradient);
+    #else
+        surfaceData.normalWS = input.worldToTangent[2];
+    #endif
 #endif
 
 #ifdef _TANGENTMAP
@@ -85,17 +104,14 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // Make the tagent match the normal
     surfaceData.tangentWS = Orthonormalize(input.worldToTangent[0], surfaceData.normalWS);
 
-#ifdef _MASKMAP
-    float4 maskSample = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, uvBase);
-#endif
 
 #ifdef _MASKMAP
-    surfaceData.ambientOcclusion = lerp(_AORemapMin, _AORemapMax, maskSample.y);
-    surfaceData.perceptualSmoothness = lerp(_SmoothnessRemapMin, _SmoothnessRemapMax, maskSample.w);
+    surfaceData.ambientOcclusion = lerp(_AORemapMin, _AORemapMax, maskValue.y);
+    surfaceData.perceptualSmoothness = lerp(_SmoothnessRemapMin, _SmoothnessRemapMax, maskValue.w);
     surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(surfaceData.normalWS, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
 #else
-    surfaceData.perceptualSmoothness = _Smoothness;
-    surfaceData.ambientOcclusion = 1.0;
+    surfaceData.ambientOcclusion = maskValue.y;
+    surfaceData.perceptualSmoothness = maskValue.w;
     surfaceData.specularOcclusion = 1.0;
 #endif
 
@@ -103,18 +119,22 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #ifdef _DETAIL_MAP
     float smoothnessDetailSpeed = saturate(abs(detailSmoothness) * _DetailSmoothnessScale);
     float smoothnessOverlay = lerp(surfaceData.perceptualSmoothness, (detailSmoothness < 0.0) ? 0.0 : 1.0, smoothnessDetailSpeed);
-    surfaceData.perceptualSmoothness = lerp(surfaceData.perceptualSmoothness, saturate(smoothnessOverlay), detailMask.x);
+    surfaceData.perceptualSmoothness = lerp(surfaceData.perceptualSmoothness, saturate(smoothnessOverlay), maskValue.z);
 #endif
     
 // If a detail map was provided, modify the matching ao
 #ifdef _DETAIL_MAP
     float aoDetailSpeed = saturate(abs(detailAO) * _DetailAOScale);
     float aoOverlay = lerp(surfaceData.ambientOcclusion, (aoDetailSpeed < 0.0) ? 0.0 : 1.0, aoDetailSpeed);
-    surfaceData.ambientOcclusion = lerp(surfaceData.ambientOcclusion, saturate(aoOverlay), detailMask.x);
+    surfaceData.ambientOcclusion = lerp(surfaceData.ambientOcclusion, saturate(aoOverlay), maskValue.z);
 #endif
 
     // Propagate the fuzz tint
     surfaceData.fuzzTint = _FuzzTint.xyz;
+
+#ifdef _FUZZDETAIL_MAP
+    surfaceData.fuzzTint *= SAMPLE_TEXTURE2D(_FuzzDetailMap, sampler_FuzzDetailMap, uvDetails).rgb;
+#endif
 
 #ifdef _MATERIAL_FEATURE_SUBSURFACE_SCATTERING
     surfaceData.diffusionProfile = _DiffusionProfile;
