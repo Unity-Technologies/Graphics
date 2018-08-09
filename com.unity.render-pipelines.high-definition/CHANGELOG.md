@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added an error message to say to use Metal or Vulkan when trying to use OpenGL API
 - Added a new Fabric shader model that supports Silk and Cotton/Wool
+- Added a new HDRP Lighting Debug mode to visualize Light Volumes for Point, Spot, Line, Rectangular and Reflection Probes
 
 ### Fixed
 - Fix an issue where the screen where darken when rendering camera preview
@@ -21,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Changed default reflection probe to be 256x256x6 and array size to be 64
 - Removed dependence on the NdotL for thickness evaluation for translucency (based on artist's input)
 - Increased the precision when comparing Planar or HD reflection probe volumes
+- Remove various GC alloc in C#. Slightly better performance
 
 ## [3.2.0-preview]
 

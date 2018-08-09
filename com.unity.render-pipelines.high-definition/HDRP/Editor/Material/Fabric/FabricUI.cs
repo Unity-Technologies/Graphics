@@ -32,8 +32,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static GUIContent aoRemappingText = new GUIContent("AmbientOcclusion Remapping", "AmbientOcclusion remapping");
             
             // Mask
-            public static GUIContent maskMapSText = new GUIContent("Mask Map - X, AO(G), D(B), S(A)", "Mask map");
-            public static GUIContent maskMapSpecularText = new GUIContent("Mask Map - AO(G), D(B), S(A)", "Mask map");
+            public static GUIContent maskMapSText = new GUIContent("Mask Map - X, AO(G), DM(B), S(A)", "Mask map");
+            public static GUIContent maskMapSpecularText = new GUIContent("Mask Map - AO(G), DM(B), S(A)", "Mask map");
 
             // Normal map
             public static GUIContent normalMapText = new GUIContent("Normal Map", "Normal Map (BC7/BC5/DXT5(nm))");
@@ -50,8 +50,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             public static string detailText = "Detail Inputs";
             public static GUIContent UVDetailMappingText = new GUIContent("Detail UV mapping", "");
             public static GUIContent detailMapNormalText = new GUIContent("Detail Map AO(R) Ny(G) S(B) Nx(A)", "Detail Map");
-            public static GUIContent detailMaskText = new GUIContent("Detail Mask (R)", "Detail Mask");
-            public static GUIContent detailFuzz1Text = new GUIContent("Fuzz Detail 1", "Fuzz Detail factor");
+            public static GUIContent FuzzDetailText = new GUIContent("Fuzz Detail", "Fuzz Detail factor");
             public static GUIContent detailAOScaleText = new GUIContent("Detail AO", "Detail AO Scale factor");
             public static GUIContent detailNormalScaleText = new GUIContent("Detail NormalScale", "Normal Scale factor");
             public static GUIContent detailSmoothnessScaleText = new GUIContent("Detail SmoothnessScale", "Smoothness Scale factor");
@@ -171,9 +170,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
         protected MaterialProperty detailMap = null;
         protected const string kDetailMap = "_DetailMap";
 
-        // Detail Mask
-        protected MaterialProperty detailMask = null;
-        protected const string kDetailMask = "_DetailMask";
+        // Fuzz Detail
+        protected MaterialProperty fuzzDetailMap = null;
+        protected const string kFuzzDetailMap = "_FuzzDetailMap";
 
         // Link detail with base
         protected MaterialProperty linkDetailsWithBase = null;
@@ -266,7 +265,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             
             // Detail map and rmapping
             detailMap = FindProperty(kDetailMap, props);
-            detailMask = FindProperty(kDetailMask, props);
+            fuzzDetailMap = FindProperty(kFuzzDetailMap, props);
             detailAOScale = FindProperty(kDetailAOScale, props);
             detailNormalScale = FindProperty(kDetailNormalScale, props);
             detailSmoothnessScale = FindProperty(kDetailSmoothnessScale, props);
@@ -342,9 +341,6 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             EditorGUILayout.LabelField(Styles.InputsText, EditorStyles.boldLabel);
             EditorGUI.indentLevel++;
 
-            // Define the UV mapping for the base textures
-            BaseUVMappingInputGUI();
-
             // The base color map and matching base color value
             m_MaterialEditor.TexturePropertySingleLine(Styles.baseColorText, baseColorMap, baseColor);
 
@@ -393,6 +389,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             // Anisotropy GUI
             ShaderAnisoInputGUI(material);
 
+            // Define the UV mapping for the base textures
+            BaseUVMappingInputGUI();
+
             EditorGUI.indentLevel--;
         }
 
@@ -402,9 +401,19 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             EditorGUI.indentLevel++;
             m_MaterialEditor.TexturePropertySingleLine(Styles.detailMapNormalText, detailMap);
-            m_MaterialEditor.TexturePropertySingleLine(Styles.detailMaskText, detailMask);
 
             if (material.GetTexture(kDetailMap))
+            {
+                EditorGUI.indentLevel++;
+                m_MaterialEditor.ShaderProperty(detailAOScale, Styles.detailAOScaleText);
+                m_MaterialEditor.ShaderProperty(detailNormalScale, Styles.detailNormalScaleText);
+                m_MaterialEditor.ShaderProperty(detailSmoothnessScale, Styles.detailSmoothnessScaleText);
+                EditorGUI.indentLevel--;
+            }
+
+            m_MaterialEditor.TexturePropertySingleLine(Styles.FuzzDetailText, fuzzDetailMap);
+
+            if (material.GetTexture(kDetailMap) || material.GetTexture(kFuzzDetailMap))
             {
                 EditorGUI.indentLevel++;
 
@@ -421,13 +430,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 EditorGUI.indentLevel++;
                 m_MaterialEditor.ShaderProperty(linkDetailsWithBase, Styles.linkDetailsWithBaseText);
                 EditorGUI.indentLevel--;
-
                 m_MaterialEditor.TextureScaleOffsetProperty(detailMap);
-                //m_MaterialEditor.ShaderProperty(detailFuzz1, Styles.detailFuzz1Text);
-                m_MaterialEditor.ShaderProperty(detailAOScale, Styles.detailAOScaleText);
-                m_MaterialEditor.ShaderProperty(detailNormalScale, Styles.detailNormalScaleText);
-                m_MaterialEditor.ShaderProperty(detailSmoothnessScale, Styles.detailSmoothnessScaleText);
-                EditorGUI.indentLevel--;
             }
             EditorGUI.indentLevel--;
         }
@@ -605,7 +608,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             SetupBaseLitMaterialPass(material);
 
             // With details map, we always use a normal map and Unity provide a default (0, 0, 1) normal map for it
-            CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap) || material.GetTexture(kDetailMap));
+            CoreUtils.SetKeyword(material, "_NORMALMAP", material.GetTexture(kNormalMap));
 
             // However, the tangent map flag is only bound to the presence of a tangent map
             // CoreUtils.SetKeyword(material, "_TANGENTMAP", material.GetTexture(kTangentMap));
@@ -620,6 +623,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             CoreUtils.SetKeyword(material, "_ANISOTROPYMAP", material.GetTexture(kAnisotropyMap));
             CoreUtils.SetKeyword(material, "_DETAIL_MAP", material.GetTexture(kDetailMap));
+            CoreUtils.SetKeyword(material, "_FUZZDETAIL_MAP", material.GetTexture(kFuzzDetailMap));
             CoreUtils.SetKeyword(material, "_SUBSURFACE_MASK_MAP", material.GetTexture(kSubsurfaceMaskMap));
             CoreUtils.SetKeyword(material, "_THICKNESSMAP", material.GetTexture(kThicknessMap));
             CoreUtils.SetKeyword(material, "_EMISSIVE_COLOR_MAP", material.GetTexture(kEmissiveColorMap)); 
