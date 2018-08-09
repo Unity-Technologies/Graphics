@@ -25,6 +25,15 @@ namespace UnityEditor.VFX
             BaseColorAndEmissive = BaseColor | Emissive,
         }
 
+        [Flags]
+        public enum BaseColorMapMode
+        {
+            None = 0,
+            Color = 1 << 0,
+            Alpha = 1 << 1,
+            ColorAndAlpha = Color | Alpha
+        }
+
         private readonly string[] kMaterialTypeToName = new string[] {
             "StandardProperties",
             "SpecularColorProperties",
@@ -44,7 +53,7 @@ namespace UnityEditor.VFX
         protected bool multiplyThicknessWithAlpha = false;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
-        protected bool useBaseColorMap = false;
+        protected BaseColorMapMode useBaseColorMap = BaseColorMapMode.ColorAndAlpha;
 
         [VFXSetting(VFXSettingAttribute.VisibleFlags.InInspector), SerializeField]
         protected bool useMaskMap = false;
@@ -136,7 +145,7 @@ namespace UnityEditor.VFX
 
                 if (allowTextures)
                 {
-                    if (useBaseColorMap)
+                    if (useBaseColorMap != BaseColorMapMode.None)
                         properties = properties.Concat(PropertiesFromType("BaseColorMapProperties"));
                 }
 
@@ -187,7 +196,7 @@ namespace UnityEditor.VFX
 
             if (allowTextures)
             {
-                if (useBaseColorMap)
+                if (useBaseColorMap != BaseColorMapMode.None)
                     yield return slotExpressions.First(o => o.name == "baseColorMap");
                 if (useMaskMap)
                     yield return slotExpressions.First(o => o.name == "maskMap");
@@ -238,8 +247,12 @@ namespace UnityEditor.VFX
 
                 if (allowTextures)
                 {
-                    if (useBaseColorMap)
+                    if (useBaseColorMap != BaseColorMapMode.None)
                         yield return "HDRP_USE_BASE_COLOR_MAP";
+                    if ((useBaseColorMap & BaseColorMapMode.Color) != 0)
+                        yield return "HDRP_USE_BASE_COLOR_MAP_COLOR";
+                    if ((useBaseColorMap & BaseColorMapMode.Alpha) != 0)
+                        yield return "HDRP_USE_BASE_COLOR_MAP_ALPHA";
                     if (useMaskMap)
                         yield return "HDRP_USE_MASK_MAP";
                     if (useNormalMap)

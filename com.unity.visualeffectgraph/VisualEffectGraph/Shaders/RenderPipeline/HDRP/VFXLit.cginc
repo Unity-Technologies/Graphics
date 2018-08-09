@@ -65,7 +65,13 @@ SurfaceData VFXGetSurfaceData(const VFX_VARYING_PS_INPUTS i, float3 normalWS,con
 	#endif
     #endif
     #if HDRP_USE_BASE_COLOR_MAP
-    color.a *= SampleTexture(VFX_SAMPLER(baseColorMap),uvData).a;
+	float4 colorMap = SampleTexture(VFX_SAMPLER(baseColorMap),uvData);
+	#if HDRP_USE_BASE_COLOR_MAP_COLOR
+	color.xyz *= colorMap.xyz;
+	#endif
+	#if HDRP_USE_BASE_COLOR_MAP_ALPHA
+    color.a *= colorMap.a;
+	#endif
     #endif
 	color.a *= VFXGetSoftParticleFade(i);
     VFXClipFragmentColor(color.a,i);
