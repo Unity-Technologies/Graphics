@@ -46,7 +46,7 @@ Shader "HDRenderPipeline/Fabric"
         [Enum(UV0, 0, UV1, 1, UV2, 2, UV3, 3)] _UVDetail("UV Set for detail", Float) = 0
         [HideInInspector] _UVMappingMaskDetail("_UVMappingMaskDetail", Color) = (1, 0, 0, 0)
         _DetailMap("DetailMap", 2D) = "black" {}
-        _DetailMask("DetailMask", 2D) = "white" {}
+        _FuzzDetailMap("FuzzDetailMap", 2D) = "white" {}
         _DetailAOScale("_DetailAOScale", Range(0.0, 2.0)) = 1
         _DetailNormalScale("_DetailNormalScale", Range(0.0, 2.0)) = 1
         _DetailSmoothnessScale("_DetailSmoothnessScale", Range(0.0, 2.0)) = 1
@@ -80,6 +80,11 @@ Shader "HDRenderPipeline/Fabric"
         _ThicknessRemap("Thickness Remap", Vector) = (0, 1, 0, 0)
 
         //[ToggleUI]  _EnableSpecularOcclusion("Enable specular occlusion", Float) = 0.0
+
+        // Double sided
+        [ToggleUI] _DoubleSidedEnable("Double sided enable", Float) = 0.0
+        [Enum(Flip, 0, Mirror, 1, None, 2)] _DoubleSidedNormalMode("Double sided normal mode", Float) = 1
+        [HideInInspector] _DoubleSidedConstants("_DoubleSidedConstants", Vector) = (1, 1, -1, 0)
 
         // Transparency
         [ToggleUI] _PreRefractionPass("PreRefractionPass", Float) = 0.0
@@ -124,6 +129,7 @@ Shader "HDRenderPipeline/Fabric"
     //-------------------------------------------------------------------------------------
 
     #pragma shader_feature _ALPHATEST_ON
+    #pragma shader_feature _DOUBLESIDED_ON
 
     #pragma shader_feature _NORMALMAP
     #pragma shader_feature _MASKMAP
@@ -132,6 +138,7 @@ Shader "HDRenderPipeline/Fabric"
     #pragma shader_feature _TANGENTMAP
     #pragma shader_feature _ANISOTROPYMAP
     #pragma shader_feature _DETAIL_MAP
+    #pragma shader_feature _FUZZDETAIL_MAP
     #pragma shader_feature _SUBSURFACE_MASK_MAP
     #pragma shader_feature _THICKNESSMAP
     #pragma shader_feature _EMISSIVE_COLOR_MAP
@@ -274,6 +281,7 @@ Shader "HDRenderPipeline/Fabric"
             // In case of forward we want to have depth equal for opaque alpha tested mesh
             ZTest [_ZTestDepthEqualForOpaque]
             ZWrite [_ZWrite]
+            Cull[_CullMode]
 
             HLSLPROGRAM
 
