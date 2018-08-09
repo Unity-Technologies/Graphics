@@ -365,7 +365,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     settings.lightType.enumValueIndex = (int)LightType.Point;
 
                     m_AdditionalLightData.lightTypeExtent.enumValueIndex = (int)LightTypeExtent.Sphere;
-                    EditorGUILayout.PropertyField(m_AdditionalLightData.shapeWidth, s_Styles.shapeWidthSphere);
+//                     EditorGUILayout.PropertyField(m_AdditionalLightData.shapeWidth, s_Styles.shapeWidthSphere);
+                    m_AdditionalLightData.shapeWidth.floatValue = 2.0f * EditorGUILayout.FloatField( s_Styles.shapeWidthDisc, 0.5f * m_AdditionalLightData.shapeWidth.floatValue );
                     m_AdditionalLightData.shapeWidth.floatValue = Mathf.Max(m_AdditionalLightData.shapeWidth.floatValue, k_MinAreaWidth);
 
                     // Fake line with a small rectangle in vanilla unity for GI
@@ -380,8 +381,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                     settings.lightType.enumValueIndex = (int)LightType.Point;
 
                     m_AdditionalLightData.lightTypeExtent.enumValueIndex = (int)LightTypeExtent.Disk;
-                    EditorGUILayout.PropertyField(m_AdditionalLightData.shapeWidth, s_Styles.shapeWidthDisc);
-                    EditorGUILayout.PropertyField(m_AdditionalLightData.shapeHeight, s_Styles.shapeHeightDisc);
+//                     EditorGUILayout.PropertyField(m_AdditionalLightData.shapeWidth, s_Styles.shapeWidthDisc);
+//                     EditorGUILayout.PropertyField(m_AdditionalLightData.shapeHeight, s_Styles.shapeHeightDisc);
+                    m_AdditionalLightData.shapeWidth.floatValue = 2.0f * EditorGUILayout.FloatField( s_Styles.shapeWidthDisc, 0.5f * m_AdditionalLightData.shapeWidth.floatValue );
+                    m_AdditionalLightData.shapeHeight.floatValue = 2.0f * EditorGUILayout.FloatField( s_Styles.shapeHeightDisc, 0.5f * m_AdditionalLightData.shapeHeight.floatValue );
+
                     m_AdditionalLightData.shapeWidth.floatValue = Mathf.Max(m_AdditionalLightData.shapeWidth.floatValue, k_MinAreaWidth);
                     m_AdditionalLightData.shapeHeight.floatValue = Mathf.Max(m_AdditionalLightData.shapeHeight.floatValue, k_MinAreaWidth);
 

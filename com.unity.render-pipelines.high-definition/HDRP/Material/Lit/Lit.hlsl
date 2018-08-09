@@ -1950,11 +1950,25 @@ DirectLighting EvaluateBSDF_Sphere( LightLoopContext lightLoopContext,
                                     float3 V, PositionInputs posInput,
                                     PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
 {
-    // The sphere is only a front-facing disk
-    float3x3    faceLight = GetLocalFrame( normalize( posInput.positionWS - lightData.positionRWS ) );
+    // The sphere is only a front-facing disk so let's rebuild a local frame for that disk
+    float3      light = lightData.positionRWS - posInput.positionWS;
+    float       D = length(light);
+                light *= D > 1e-6 ? 1.0 / D : 1.0;
+    float3x3    faceLight = GetLocalFrame( -light );
     lightData.right = faceLight[0];
     lightData.up = faceLight[1];
     lightData.forward = faceLight[2];
+
+
+    // Then we recompute the disk's center and radius to match the solid angle covered by the sphere
+    float   R = 0.5 * lightData.size.x; // Sphere's radius
+    float   D2R2 = max( 0.001, D*D - R*R );
+    float   d = D2R2 / D;               // Distance to disk center
+    float   r = sqrt( D2R2 ) * R / D;   // Disk radius
+
+    lightData.positionRWS = posInput.positionWS + d * light;    // New position for the disk
+    lightData.size = 2.0 * r;                                   // New radius for the disk
+
 
 //DirectLighting lighting;
 //ZERO_INITIALIZE(DirectLighting, lighting);
