@@ -397,7 +397,7 @@ real4 IntegrateGGXAndDisneyDiffuseFGD(real3 V, real3 N, real roughness, uint sam
 #endif
 
 #if !defined SHADER_API_GLES
-real4 IntegrateCharlieAndClothLambertFGD(real3 V, real3 N, real roughness, uint sampleCount = 8192)
+real4 IntegrateCharlieAndFabricLambertFGD(real3 V, real3 N, real roughness, uint sampleCount = 8192)
 {
     real NdotV     = ClampNdotV(dot(N, V));
     real4 acc      = real4(0.0, 0.0, 0.0, 0.0);
@@ -441,13 +441,13 @@ real4 IntegrateCharlieAndClothLambertFGD(real3 V, real3 N, real roughness, uint 
             acc.y += weightOverPdf;
         }
 
-        // for cloth Lambert we still use a Cosine importance sampling
+        // for Fabric Lambert we still use a Cosine importance sampling
         ImportanceSampleLambert(u, localToWorld, L, NdotL, weightOverPdf);
 
         if (NdotL > 0.0)
         {
-            real clothLambert = ClothLambertNoPI(roughness);
-            acc.z += clothLambert * weightOverPdf;
+            real fabricLambert = FabricLambertNoPI(roughness);
+            acc.z += fabricLambert * weightOverPdf;
         }
     }
 
@@ -457,7 +457,7 @@ real4 IntegrateCharlieAndClothLambertFGD(real3 V, real3 N, real roughness, uint 
 }
 #else
 // Not supported due to lack of random library in GLES 2
-#define IntegrateCharlieAndClothLambertFGD ERROR_ON_UNSUPPORTED_FUNCTION(IntegrateCharlieAndClothLambertFGD)
+#define IntegrateCharlieAndFabricLambertFGD ERROR_ON_UNSUPPORTED_FUNCTION(IntegrateCharlieAndFabricLambertFGD)
 #endif
 
 uint GetIBLRuntimeFilterSampleCount(uint mipLevel)

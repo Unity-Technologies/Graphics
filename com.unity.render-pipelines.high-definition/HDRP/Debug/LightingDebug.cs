@@ -9,6 +9,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         DiffuseLighting,
         SpecularLighting,
         LuxMeter,
+        LuminanceMeter,
         VisualizeCascade,
         VisualizeShadowMasks,
         IndirectDiffuseOcclusion,
@@ -82,6 +83,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         public bool                 displaySkyReflection = false;
         public float                skyReflectionMipmap = 0.0f;
+
+        public bool                 displayLightVolumes = false;
 
         public float                environmentProxyDepthScale = 20;
 

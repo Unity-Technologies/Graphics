@@ -4,6 +4,49 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [3.3.0-preview]
+
+### Added
+- Added an error message to say to use Metal or Vulkan when trying to use OpenGL API
+- Added a new Fabric shader model that supports Silk and Cotton/Wool
+- Added a new HDRP Lighting Debug mode to visualize Light Volumes for Point, Spot, Line, Rectangular and Reflection Probes
+
+### Fixed
+- Fix an issue where the screen where darken when rendering camera preview
+- Fix display correct target platform when showing message to inform user that a platform is not supported
+- Remove workaround for metal and vulkan in normal buffer encoding/decoding
+- Fixed an issue with color picker not working in forward
+- Fixed an issue where reseting HDLight do not reset all of its parameters
+
+### Changed
+- Changed default reflection probe to be 256x256x6 and array size to be 64
+- Removed dependence on the NdotL for thickness evaluation for translucency (based on artist's input)
+- Increased the precision when comparing Planar or HD reflection probe volumes
+- Remove various GC alloc in C#. Slightly better performance
+
+## [3.2.0-preview]
+
+### Added
+- Added a luminance meter in the debug menu
+- Added support of Light, reflection probe, emissive material, volume settings related to lighting to Lighting explorer
+- Added support for 16bit shadows
+
+### Fixed
+- Fix issue with package upgrading (HDRP resources asset is now versionned to worarkound package manager limitation)
+- Fix HDReflectionProbe offset displayed in gizmo different than what is affected.
+- Fix decals getting into a state where they could not be removed or disabled.
+- Fix lux meter mode - The lux meter isn't affected by the sky anymore
+- Fix area light size reset when multi-selected
+- Fix filter pass number in HDUtils.BlitQuad
+- Fix Lux meter mode that was applying SSS
+- Fix planar reflections that were not working with tile/cluster (olbique matrix)
+- Fix debug menu at runtime not working after nested prefab PR come to trunk
+- Fix scrolling issue in density volume
+
+### Changed
+- Shader code refactor: Split MaterialUtilities file in two parts BuiltinUtilities (independent of FragInputs) and MaterialUtilities (Dependent of FragInputs)
+- Change screen space shadow rendertarget format from ARGB32 to RG16
+
 ## [3.1.0-preview]
 
 ### Added
@@ -19,6 +62,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Split EmissiveColor and bakeDiffuseLighting in forward avoiding the emissiveColor to be affect by SSAO
 - Added a volume to control indirect light intensity
 - Added EV 100 intensity unit for area lights
+- Added support for RendererPriority on Renderer. This allow to control order of transparent rendering manually. HDRP have now two stage of sorting for transparent in addition to bact to front. Material have a priority then Renderer have a priority.
+- Add Coupling of (HD)Camera and HDAdditionalCameraData for reset and remove in inspector contextual menu of Camera
+- Add Coupling of (HD)ReflectionProbe and HDAdditionalReflectionData for reset and remove in inspector contextual menu of ReflectoinProbe
+- Add macro to forbid unity_ObjectToWorld/unity_WorldToObject to be use as it doesn't handle camera relative rendering
+- Add opacity control on contact shadow
 
 ### Fixed
 - Fixed an issue with PreIntegratedFGD texture being sometimes destroyed and not regenerated causing rendering to break
@@ -32,7 +80,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Replace the sampler used for density volumes for correct wrap mode handling
 
 ### Changed
-- Movde Render Pipeline Debug "Windows from Windows->General-> Render Pipeline debug windows" to "Windows from Windows->Analysis-> Render Pipeline debug windows"
+- Move Render Pipeline Debug "Windows from Windows->General-> Render Pipeline debug windows" to "Windows from Windows->Analysis-> Render Pipeline debug windows"
 - Update detail map formula for smoothness and albedo, goal it to bright and dark perceptually and scale factor is use to control gradient speed
 - Refactor the Upgrade material system. Now a material can be update from older version at any time. Call Edit/Render Pipeline/Upgrade all Materials to newer version
 - Change name EnableDBuffer to EnableDecals at several place (shader, hdrp asset...), this require a call to Edit/Render Pipeline/Upgrade all Materials to newer version to have up to date material.
@@ -42,13 +90,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Refactor shader code: GetBakedDiffuseLighting is not call anymore in GBuffer or forward pass, including the ConvertSurfaceDataToBSDFData and GetPreLightData, this is done in ModifyBakedDiffuseLighting now
 - Refactor shader code: Added a backBakeDiffuseLighting to BuiltinData to handle lighting for transmission
 - Refactor shader code: Material must now call InitBuiltinData (Init all to zero + init bakeDiffuseLighting and backBakeDiffuseLighting ) and PostInitBuiltinData
-
-### Added
-- Added support for RendererPriority on Renderer. This allow to control order of transparent rendering manually. HDRP have now two stage of sorting for transparent in addition to bact to front. Material have a priority then Renderer have a priority.
-- Add Coupling of (HD)Camera and HDAdditionalCameraData for reset and remove in inspector contextual menu of Camera
-- Add Coupling of (HD)ReflectionProbe and HDAdditionalReflectionData for reset and remove in inspector contextual menu of ReflectoinProbe
-- Add macro to forbid unity_ObjectToWorld/unity_WorldToObject to be use as it doesn't handle camera relative rendering
-- Add opacity control on contact shadow
 
 ## [3.0.0-preview]
 

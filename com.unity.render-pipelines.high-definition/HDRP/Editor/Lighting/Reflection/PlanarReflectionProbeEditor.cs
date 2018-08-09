@@ -55,6 +55,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 s_StateMap[m_TypedTargets[i]] = m_UIHandleState[i];
             }
+            
+            PlanarReflectionProbe probe = (PlanarReflectionProbe)target;
+            probe.influenceVolume.Init(probe);
         }
 
         void OnDisable()
