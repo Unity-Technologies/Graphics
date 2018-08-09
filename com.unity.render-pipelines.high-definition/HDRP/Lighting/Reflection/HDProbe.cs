@@ -30,6 +30,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         
         RenderTexture m_RealtimeTexture = null;
 
+        /// <summary>Light layer to use by this probe.</summary>
+        public LightLayerEnum lightLayer = LightLayerEnum.LightLayerDefault;
+
         /// <summary>ProxyVolume currently used by this probe.</summary>
         public ReflectionProxyVolumeComponent proxyVolume { get { return m_ProxyVolume; } }
 
