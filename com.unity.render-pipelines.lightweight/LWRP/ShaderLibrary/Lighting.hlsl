@@ -40,10 +40,9 @@
 struct LightInput
 {
     float4  position;
-    half3   color;
-    half4   distanceAttenuation;
+    half4   color;
+    half4   distanceAndSpotAttenuation;
     half4   spotDirection;
-    half4   spotAttenuation;
 };
 
 // Abstraction over Light shading data.
@@ -77,7 +76,7 @@ half CookieAttenuation(float3 worldPos)
 
 // Matches Unity Vanila attenuation
 // Attenuation smoothly decreases to light range.
-half DistanceAttenuation(half distanceSqr, half3 distanceAttenuation)
+half DistanceAttenuation(half distanceSqr, half2 distanceAttenuation)
 {
     // We use a shared distance attenuation for additional directional and puctual lights
     // for directional lights attenuation will be 1
@@ -90,11 +89,11 @@ half DistanceAttenuation(half distanceSqr, half3 distanceAttenuation)
     // We can rewrite that to fit a MAD by doing
     // distanceSqr * (1.0 / (fadeDistanceSqr - lightRangeSqr)) + (-lightRangeSqr / (fadeDistanceSqr - lightRangeSqr)
     // distanceSqr *        distanceAttenuation.y            +             distanceAttenuation.z
-    half smoothFactor = saturate(distanceSqr * distanceAttenuation.y + distanceAttenuation.z);
+    half smoothFactor = saturate(distanceSqr * distanceAttenuation.x + distanceAttenuation.y);
     return lightAtten * smoothFactor;
 }
 
-half SpotAttenuation(half3 spotDirection, half3 lightDirection, half4 spotAttenuation)
+half SpotAttenuation(half3 spotDirection, half3 lightDirection, half2 spotAttenuation)
 {
     // Spot Attenuation with a linear falloff can be defined as
     // (SdotL - cosOuterAngle) / (cosInnerAngle - cosOuterAngle)
@@ -116,8 +115,8 @@ half4 GetLightDirectionAndAttenuation(LightInput lightInput, float3 positionWS)
     float distanceSqr = max(dot(posToLightVec, posToLightVec), FLT_MIN);
 
     directionAndAttenuation.xyz = half3(posToLightVec * rsqrt(distanceSqr));
-    directionAndAttenuation.w = DistanceAttenuation(distanceSqr, lightInput.distanceAttenuation.xyz);
-    directionAndAttenuation.w *= SpotAttenuation(lightInput.spotDirection.xyz, directionAndAttenuation.xyz, lightInput.spotAttenuation);
+    directionAndAttenuation.w = DistanceAttenuation(distanceSqr, lightInput.distanceAndSpotAttenuation.xy);
+    directionAndAttenuation.w *= SpotAttenuation(lightInput.spotDirection.xyz, directionAndAttenuation.xyz, lightInput.distanceAndSpotAttenuation.zw);
     return directionAndAttenuation;
 }
 
@@ -126,7 +125,7 @@ half4 GetMainLightDirectionAndAttenuation(LightInput lightInput, float3 position
     half4 directionAndAttenuation = GetLightDirectionAndAttenuation(lightInput, positionWS);
 
     // Cookies disabled for now due to amount of shader variants
-    //directionAndAttenuation.w *= CookieAttenuation(positionWS);
+    // directionAndAttenuation.w *= CookieAttenuation(positionWS);
 
     return directionAndAttenuation;
 }
@@ -166,10 +165,9 @@ Light GetLight(half i, float3 positionWS)
     // objects granularity level. We will only be able to do that when scriptable culling kicks in.
     // TODO: Use StructuredBuffer on PC/Console and profile access speed on mobile that support it.
     lightInput.position = _AdditionalLightPosition[lightIndex];
-    lightInput.color = _AdditionalLightColor[lightIndex].rgb;
-    lightInput.distanceAttenuation = _AdditionalLightDistanceAttenuation[lightIndex];
+    lightInput.color = _AdditionalLightColor[lightIndex];
+    lightInput.distanceAndSpotAttenuation = _AdditionalLightAttenuation[lightIndex];
     lightInput.spotDirection = _AdditionalLightSpotDir[lightIndex];
-    lightInput.spotAttenuation = _AdditionalLightSpotAttenuation[lightIndex];
 
     half4 directionAndRealtimeAttenuation = GetLightDirectionAndAttenuation(lightInput, positionWS);
 
@@ -177,8 +175,8 @@ Light GetLight(half i, float3 positionWS)
     light.index = lightIndex;
     light.direction = directionAndRealtimeAttenuation.xyz;
     light.attenuation = directionAndRealtimeAttenuation.w;
-    light.subtractiveModeAttenuation = lightInput.distanceAttenuation.w;
-    light.color = lightInput.color;
+    light.subtractiveModeAttenuation = lightInput.color.w;
+    light.color = lightInput.color.rgb;
 
     return light;
 }

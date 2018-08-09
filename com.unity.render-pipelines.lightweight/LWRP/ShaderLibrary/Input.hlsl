@@ -43,9 +43,8 @@ float4x4 _WorldToLight;
 half4 _AdditionalLightCount;
 float4 _AdditionalLightPosition[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightColor[MAX_VISIBLE_LIGHTS];
-half4 _AdditionalLightDistanceAttenuation[MAX_VISIBLE_LIGHTS];
+half4 _AdditionalLightAttenuation[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightSpotDir[MAX_VISIBLE_LIGHTS];
-half4 _AdditionalLightSpotAttenuation[MAX_VISIBLE_LIGHTS];
 
 float4 _ScaledScreenParams;
 CBUFFER_END
