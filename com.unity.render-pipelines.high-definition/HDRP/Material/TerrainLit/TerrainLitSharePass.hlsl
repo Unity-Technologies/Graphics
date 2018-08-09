@@ -7,7 +7,7 @@
 // Attributes
 #define ATTRIBUTES_NEED_NORMAL
 #define ATTRIBUTES_NEED_TEXCOORD0
-#define ATTRIBUTES_NEED_TANGENT // will be filled by ApplyPreVertexModification()
+#define ATTRIBUTES_NEED_TANGENT // will be filled by ApplyMeshModification()
 
 #if SHADERPASS == SHADERPASS_LIGHT_TRANSPORT
     #define ATTRIBUTES_NEED_TEXCOORD1

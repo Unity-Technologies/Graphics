@@ -2,7 +2,7 @@ UNITY_INSTANCING_BUFFER_START(Terrain)
     UNITY_DEFINE_INSTANCED_PROP(float4, _TerrainPatchInstanceData)  // float4(xBase, yBase, skipScale, ~)
 UNITY_INSTANCING_BUFFER_END(Terrain)
 
-void ApplyPreVertexModification(inout AttributesMesh input)
+AttributesMesh ApplyMeshModification(AttributesMesh input)
 {
 #ifdef UNITY_INSTANCING_ENABLED
     float2 patchVertex = input.positionOS.xy;
@@ -31,6 +31,7 @@ void ApplyPreVertexModification(inout AttributesMesh input)
     input.tangentOS.xyz = cross(float3(0,0,1), input.normalOS);
     input.tangentOS.w = 1;
 #endif
+    return input;
 }
 
 void ApplyVertexModification(AttributesMesh input, float3 normalWS, inout float3 positionWS, float4 time)
