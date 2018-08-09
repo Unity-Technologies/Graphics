@@ -1043,7 +1043,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightData.angleOffset = 1.0f;
             }
 
-            if (lightData.lightType == GPULightType.Rectangle || lightData.lightType == GPULightType.Line)
+            if (lightData.lightType == GPULightType.Rectangle || lightData.lightType == GPULightType.Line || lightData.lightType == GPULightType.Disk || lightData.lightType == GPULightType.Sphere)
             {
                 lightData.size = new Vector2(additionalLightData.shapeWidth, additionalLightData.shapeHeight);
             }
