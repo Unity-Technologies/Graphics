@@ -11,7 +11,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
     [CustomEditorForRenderPipeline(typeof(Light), typeof(HDRenderPipelineAsset))]
     sealed partial class HDLightEditor : LightEditor
     {
-        [MenuItem("CONTEXT/Light/Remove HD Light", false, 0)]
+        [MenuItem("CONTEXT/Light/Remove Component", false, 0)]
         static void RemoveLight(MenuCommand menuCommand)
         {
             GameObject go = ((Light)menuCommand.context).gameObject;
@@ -22,6 +22,29 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             Undo.DestroyObjectImmediate(go.GetComponent<Light>());
             Undo.DestroyObjectImmediate(go.GetComponent<HDAdditionalLightData>());
             Undo.DestroyObjectImmediate(go.GetComponent<AdditionalShadowData>());
+        }
+
+        [MenuItem("CONTEXT/Light/Reset", false, 0)]
+        static void ResetLight(MenuCommand menuCommand)
+        {
+            GameObject go = ((Light)menuCommand.context).gameObject;
+
+            Assert.IsNotNull(go);
+
+            Light light = go.GetComponent<Light>();
+            HDAdditionalLightData lightAdditionalData = go.GetComponent<HDAdditionalLightData>();
+            AdditionalShadowData shadowAdditionalData = go.GetComponent<AdditionalShadowData>();
+
+            Assert.IsNotNull(light);
+            Assert.IsNotNull(lightAdditionalData);
+            Assert.IsNotNull(shadowAdditionalData);
+
+            Undo.RecordObjects(new UnityEngine.Object[] { light, lightAdditionalData, shadowAdditionalData }, "Reset HD Light");
+            light.Reset();
+            // To avoid duplicating init code we copy default settings to Reset additional data
+            // Note: we can't call this code inside the HDAdditionalLightData, thus why we don't wrap it in a Reset() function
+            HDUtils.s_DefaultHDAdditionalLightData.CopyTo(lightAdditionalData);
+            CoreUtils.s_DefaultAdditionalShadowData.CopyTo(shadowAdditionalData);
         }
 
         sealed class SerializedLightData
@@ -330,31 +353,39 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
                 case LightShape.Rectangle:
                     // TODO: Currently if we use Area type as it is offline light in legacy, the light will not exist at runtime
-                    //m_BaseData.type.enumValueIndex = (int)LightType.Area;
+                    //m_BaseData.type.enumValueIndex = (int)LightType.Rectangle;
                     // In case of change, think to update InitDefaultHDAdditionalLightData()
                     settings.lightType.enumValueIndex = (int)LightType.Point;
                     m_AdditionalLightData.lightTypeExtent.enumValueIndex = (int)LightTypeExtent.Rectangle;
+                    EditorGUI.BeginChangeCheck();
                     EditorGUILayout.PropertyField(m_AdditionalLightData.shapeWidth, s_Styles.shapeWidthRect);
                     EditorGUILayout.PropertyField(m_AdditionalLightData.shapeHeight, s_Styles.shapeHeightRect);
-                    m_AdditionalLightData.shapeWidth.floatValue = Mathf.Max(m_AdditionalLightData.shapeWidth.floatValue, k_MinAreaWidth);
-                    m_AdditionalLightData.shapeHeight.floatValue = Mathf.Max(m_AdditionalLightData.shapeHeight.floatValue, k_MinAreaWidth);
-                    settings.areaSizeX.floatValue = m_AdditionalLightData.shapeWidth.floatValue;
-                    settings.areaSizeY.floatValue = m_AdditionalLightData.shapeHeight.floatValue;
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        m_AdditionalLightData.shapeWidth.floatValue = Mathf.Max(m_AdditionalLightData.shapeWidth.floatValue, k_MinAreaWidth);
+                        m_AdditionalLightData.shapeHeight.floatValue = Mathf.Max(m_AdditionalLightData.shapeHeight.floatValue, k_MinAreaWidth);
+                        settings.areaSizeX.floatValue = m_AdditionalLightData.shapeWidth.floatValue;
+                        settings.areaSizeY.floatValue = m_AdditionalLightData.shapeHeight.floatValue;
+                    }
                     if (settings.isRealtime)
                         settings.shadowsType.enumValueIndex = (int)LightShadows.None;
                     break;
 
                 case LightShape.Line:
                     // TODO: Currently if we use Area type as it is offline light in legacy, the light will not exist at runtime
-                    //m_BaseData.type.enumValueIndex = (int)LightType.Area;
+                    //m_BaseData.type.enumValueIndex = (int)LightType.Rectangle;
                     settings.lightType.enumValueIndex = (int)LightType.Point;
                     m_AdditionalLightData.lightTypeExtent.enumValueIndex = (int)LightTypeExtent.Line;
+                    EditorGUI.BeginChangeCheck();
                     EditorGUILayout.PropertyField(m_AdditionalLightData.shapeWidth, s_Styles.shapeWidthLine);
-                    m_AdditionalLightData.shapeWidth.floatValue = Mathf.Max(m_AdditionalLightData.shapeWidth.floatValue, k_MinAreaWidth);
-                    m_AdditionalLightData.shapeHeight.floatValue = Mathf.Max(m_AdditionalLightData.shapeHeight.floatValue, k_MinAreaWidth);
-                    // Fake line with a small rectangle in vanilla unity for GI
-                    settings.areaSizeX.floatValue = m_AdditionalLightData.shapeWidth.floatValue;
-                    settings.areaSizeY.floatValue = k_MinAreaWidth;
+                    if (EditorGUI.EndChangeCheck())
+                    {
+                        m_AdditionalLightData.shapeWidth.floatValue = Mathf.Max(m_AdditionalLightData.shapeWidth.floatValue, k_MinAreaWidth);
+                        m_AdditionalLightData.shapeHeight.floatValue = Mathf.Max(m_AdditionalLightData.shapeHeight.floatValue, k_MinAreaWidth);
+                        // Fake line with a small rectangle in vanilla unity for GI
+                        settings.areaSizeX.floatValue = m_AdditionalLightData.shapeWidth.floatValue;
+                        settings.areaSizeY.floatValue = k_MinAreaWidth;
+                    }
                     settings.shadowsType.enumValueIndex = (int)LightShadows.None;
                     break;
 

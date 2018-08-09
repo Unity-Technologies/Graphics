@@ -17,7 +17,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 return;
 
             var reflectionData = reflectionProbe.GetComponent<HDAdditionalReflectionData>();
-            var mat = reflectionProbe.transform.localToWorldMatrix;
+            var mat = Matrix4x4.TRS(reflectionProbe.transform.position, reflectionProbe.transform.rotation, Vector3.one);
 
             switch (EditMode.editMode)
             {
@@ -48,6 +48,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
             var reflectionData = reflectionProbe.GetComponent<HDAdditionalReflectionData>();
             Gizmos_CapturePoint(reflectionProbe, reflectionData, e);
+            var mat = Matrix4x4.TRS(reflectionProbe.transform.position, reflectionProbe.transform.rotation, Vector3.one); 
+            InfluenceVolumeUI.DrawGizmos(e.m_UIState.influenceVolume, reflectionData.influenceVolume, mat, InfluenceVolumeUI.HandleType.None, InfluenceVolumeUI.HandleType.Base);
 
             if (!e.sceneViewEditing)
                 return;

@@ -88,6 +88,9 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
 
             InitializeAllTargetProbes();
+
+            HDAdditionalReflectionData probe = (HDAdditionalReflectionData)m_AdditionalDataSerializedObject.targetObject;
+            probe.influenceVolume.Init(probe);
         }
 
 

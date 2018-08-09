@@ -31,11 +31,13 @@ namespace UnityEditor.ShaderGraph
             return
                 @"
 {
-    {precision} tau = 6.28318530718;
-    {precision}2 uv = (UV * 2 - 1) / {precision}2(Width, Height);
+    {precision} pi = 3.14159265359;
+    {precision} aWidth = Width * cos(pi / Sides);
+    {precision} aHeight = Height * cos(pi / Sides);
+    {precision}2 uv = (UV * 2 - 1) / {precision}2(aWidth, aHeight);
     uv.y *= -1;
     {precision} pCoord = atan2(uv.x, uv.y);
-    {precision} r = tau / Sides;
+    {precision} r = 2 * pi / Sides;
     {precision} distance = cos(floor(0.5 + pCoord / r) * r - pCoord) * length(uv);
     Out = saturate((1 - distance) / fwidth(distance));
 }

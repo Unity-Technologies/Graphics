@@ -19,11 +19,16 @@ struct VertexOutput
     float4 uvSplat01                : TEXCOORD1; // xy: splat0, zw: splat1
     float4 uvSplat23                : TEXCOORD2; // xy: splat2, zw: splat3
 #endif
+
+#if _NORMALMAP
+    half4 normal                    : TEXCOORD3;    // xyz: normal, w: viewDir.x
+    half4 tangent                   : TEXCOORD4;    // xyz: tangent, w: viewDir.y
+    half4 binormal                  : TEXCOORD5;    // xyz: binormal, w: viewDir.z
+#else
     half3 normal                    : TEXCOORD3;
-#ifdef _NORMALMAP
-    half3 tangent                   : TEXCOORD4;
-    half3 binormal                  : TEXCOORD5;
+    half3 viewDir                   : TEXCOORD4;
 #endif
+
     half4 fogFactorAndVertexLight   : TEXCOORD6; // x: fogFactor, yzw: vertex light
     float3 positionWS               : TEXCOORD7;
     float4 shadowCoord              : TEXCOORD8;
@@ -37,12 +42,14 @@ void InitializeInputData(VertexOutput IN, half3 normalTS, out InputData input)
     input.positionWS = IN.positionWS;
 
 #ifdef _NORMALMAP
-    input.normalWS = TangentToWorldNormal(normalTS, IN.tangent, IN.binormal, IN.normal);
+    half3 viewDir = half3(IN.normal.w, IN.tangent.w, IN.binormal.w);
+    input.normalWS = TangentToWorldNormal(normalTS, IN.tangent.xyz, IN.binormal.xyz, IN.normal.xyz);
 #else
-    input.normalWS = normalize(IN.normal);
+    half3 viewDir = IN.viewDir;
+    input.normalWS = FragmentNormalWS(IN.normal);
 #endif
 
-    input.viewDirectionWS = SafeNormalize(GetCameraPositionWS() - IN.positionWS);
+    input.viewDirectionWS = FragmentViewDirWS(viewDir);
 #ifdef _SHADOWS_ENABLED
     input.shadowCoord = IN.shadowCoord;
 #else
@@ -58,34 +65,36 @@ void InitializeInputData(VertexOutput IN, half3 normalTS, out InputData input)
 
 #ifndef TERRAIN_SPLAT_BASEPASS
 
-void SplatmapMix(VertexOutput IN, half4 defaultAlpha, out half4 splat_control, out half weight, out half4 mixedDiffuse, inout half3 mixedNormal)
+void SplatmapMix(VertexOutput IN, half4 defaultAlpha, out half4 splatControl, out half weight, out half4 mixedDiffuse, inout half3 mixedNormal)
 {
-    splat_control = SAMPLE_TEXTURE2D(_Control, sampler_Control, IN.uvMainAndLM.xy);
-    weight = dot(splat_control, 1);
+    splatControl = SAMPLE_TEXTURE2D(_Control, sampler_Control, IN.uvMainAndLM.xy);
+    weight = dot(splatControl, 1.0h);
 
 #if !defined(SHADER_API_MOBILE) && defined(TERRAIN_SPLAT_ADDPASS)
-    clip(weight == 0.0f ? -1 : 1);
+    clip(weight == 0.0h ? -1.0h : 1.0h);
 #endif
 
     // Normalize weights before lighting and restore weights in final modifier functions so that the overal
     // lighting result can be correctly weighted.
-    splat_control /= (weight + 1e-3f);
+    splatControl /= (weight + HALF_MIN);
 
-    mixedDiffuse = 0.0f;
-    mixedDiffuse += splat_control.r * SAMPLE_TEXTURE2D(_Splat0, sampler_Splat0, IN.uvSplat01.xy) * half4(1.0, 1.0, 1.0, defaultAlpha.r);
-    mixedDiffuse += splat_control.g * SAMPLE_TEXTURE2D(_Splat1, sampler_Splat0, IN.uvSplat01.zw) * half4(1.0, 1.0, 1.0, defaultAlpha.g);
-    mixedDiffuse += splat_control.b * SAMPLE_TEXTURE2D(_Splat2, sampler_Splat0, IN.uvSplat23.xy) * half4(1.0, 1.0, 1.0, defaultAlpha.b);
-    mixedDiffuse += splat_control.a * SAMPLE_TEXTURE2D(_Splat3, sampler_Splat0, IN.uvSplat23.zw) * half4(1.0, 1.0, 1.0, defaultAlpha.a);
+    half4 alpha = defaultAlpha * splatControl;
+
+    mixedDiffuse = 0.0h;
+    mixedDiffuse += SAMPLE_TEXTURE2D(_Splat0, sampler_Splat0, IN.uvSplat01.xy) * half4(splatControl.rrr, alpha.r);
+    mixedDiffuse += SAMPLE_TEXTURE2D(_Splat1, sampler_Splat0, IN.uvSplat01.zw) * half4(splatControl.ggg, alpha.g);
+    mixedDiffuse += SAMPLE_TEXTURE2D(_Splat2, sampler_Splat0, IN.uvSplat23.xy) * half4(splatControl.bbb, alpha.b);
+    mixedDiffuse += SAMPLE_TEXTURE2D(_Splat3, sampler_Splat0, IN.uvSplat23.zw) * half4(splatControl.aaa, alpha.a);
 
 #ifdef _NORMALMAP
     half4 nrm = 0.0f;
-    nrm += splat_control.r * SAMPLE_TEXTURE2D(_Normal0, sampler_Normal0, IN.uvSplat01.xy);
-    nrm += splat_control.g * SAMPLE_TEXTURE2D(_Normal1, sampler_Normal0, IN.uvSplat01.zw);
-    nrm += splat_control.b * SAMPLE_TEXTURE2D(_Normal2, sampler_Normal0, IN.uvSplat23.xy);
-    nrm += splat_control.a * SAMPLE_TEXTURE2D(_Normal3, sampler_Normal0, IN.uvSplat23.zw);
+    nrm += SAMPLE_TEXTURE2D(_Normal0, sampler_Normal0, IN.uvSplat01.xy) * splatControl.r;
+    nrm += SAMPLE_TEXTURE2D(_Normal1, sampler_Normal0, IN.uvSplat01.zw) * splatControl.g;
+    nrm += SAMPLE_TEXTURE2D(_Normal2, sampler_Normal0, IN.uvSplat23.xy) * splatControl.b;
+    nrm += SAMPLE_TEXTURE2D(_Normal3, sampler_Normal0, IN.uvSplat23.zw) * splatControl.a;
     mixedNormal = UnpackNormal(nrm);
 #else
-    mixedNormal = half3(0, 0, 1);
+    mixedNormal = half3(0.0h, 0.0h, 1.0h);
 #endif
 }
 
@@ -157,11 +166,19 @@ VertexOutput SplatmapVert(VertexInput v)
     o.uvSplat23.xy = TRANSFORM_TEX(v.texcoord, _Splat2);
     o.uvSplat23.zw = TRANSFORM_TEX(v.texcoord, _Splat3);
 #endif
+
+    half3 viewDir = VertexViewDirWS(GetCameraPositionWS() - positionWS.xyz);
+
 #ifdef _NORMALMAP
     float4 vertexTangent = float4(cross(v.normal, float3(0, 0, 1)), -1.0);
-    OutputTangentToWorld(vertexTangent, v.normal, o.tangent, o.binormal, o.normal);
+    OutputTangentToWorld(vertexTangent, v.normal, o.tangent.xyz, o.binormal.xyz, o.normal.xyz);
+
+    o.normal.w = viewDir.x;
+    o.tangent.w = viewDir.y;
+    o.binormal.w = viewDir.z;
 #else
     o.normal = TransformObjectToWorldNormal(v.normal);
+    o.viewDir = viewDir;
 #endif
     o.fogFactorAndVertexLight.x = ComputeFogFactor(clipPos.z);
     o.fogFactorAndVertexLight.yzw = VertexLighting(positionWS, o.normal);
@@ -169,11 +186,11 @@ VertexOutput SplatmapVert(VertexInput v)
     o.clipPos = clipPos;
 
 #ifdef _SHADOWS_ENABLED
-#if SHADOWS_SCREEN
-    o.shadowCoord = ComputeShadowCoord(o.clipPos);
-#else
-    o.shadowCoord = TransformWorldToShadowCoord(positionWS);
-#endif
+    #if SHADOWS_SCREEN
+        o.shadowCoord = ComputeShadowCoord(o.clipPos);
+    #else
+        o.shadowCoord = TransformWorldToShadowCoord(positionWS);
+    #endif
 #endif
 
     return o;
@@ -191,26 +208,26 @@ half4 SplatmapFragment(VertexOutput IN) : SV_TARGET
     half metallic = SAMPLE_TEXTURE2D(_MetallicTex, sampler_MetallicTex, IN.uvMainAndLM.xy).r;
     half alpha = 1;
 #else
-    half4 splat_control;
+    half4 splatControl;
     half weight;
     half4 mixedDiffuse;
     half4 defaultSmoothness = half4(_Smoothness0, _Smoothness1, _Smoothness2, _Smoothness3);
     half3 normalTS;
-    SplatmapMix(IN, defaultSmoothness, splat_control, weight, mixedDiffuse, normalTS);
+    SplatmapMix(IN, defaultSmoothness, splatControl, weight, mixedDiffuse, normalTS);
 
     half3 albedo = mixedDiffuse.rgb;
     half smoothness = mixedDiffuse.a;
-    half metallic = dot(splat_control, half4(_Metallic0, _Metallic1, _Metallic2, _Metallic3));
+    half metallic = dot(splatControl, half4(_Metallic0, _Metallic1, _Metallic2, _Metallic3));
     half alpha = weight;
 #endif
 
     InputData inputData;
     InitializeInputData(IN, normalTS, inputData);
-    half4 color = LightweightFragmentPBR(inputData, albedo, metallic, half3(0, 0, 0), smoothness, /* occlusion */ 1.0, /* emission */ half3(0, 0, 0), alpha);
+    half4 color = LightweightFragmentPBR(inputData, albedo, metallic, half3(0.0h, 0.0h, 0.0h), smoothness, /* occlusion */ 1.0, /* emission */ half3(0, 0, 0), alpha);
 
     SplatmapFinalColor(color, inputData.fogCoord);
 
-    return half4(color.rgb, 1);
+    return half4(color.rgb, 1.0h);
 }
 
 // Shadow pass
