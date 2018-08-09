@@ -462,7 +462,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             clearFlags = CameraClearFlags.Nothing;
             backgroundColor = Color.white;
 
-            capturePosition = additional.transform.TransformPoint(additional.transform.position);
+            capturePosition = additional.transform.position; //at the moment capture position is at probe position
             captureRotation = Quaternion.identity;
 
             worldToCamera = GeometryUtils.CalculateWorldToCameraMatrixRHS(capturePosition, captureRotation);
