@@ -1590,154 +1590,8 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
     return lighting;
 }
 
-//-----------------------------------------------------------------------------
-// EvaluateBSDF_Sphere - Approximation with Linearly Transformed Cosines
-//-----------------------------------------------------------------------------
-
-DirectLighting EvaluateBSDF_Sphere( LightLoopContext lightLoopContext,
-                                    float3 V, PositionInputs posInput,
-                                    PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
-{
-    DirectLighting lighting;
-    ZERO_INITIALIZE(DirectLighting, lighting);
-
-    float3 positionWS = posInput.positionWS;
-
-#ifdef LIT_DISPLAY_REFERENCE_AREA
-    IntegrateBSDF_LineRef(V, positionWS, preLightData, lightData, bsdfData,
-                          lighting.diffuse, lighting.specular);
-#else
-    float  len = lightData.size.x;
-    float3 T   = lightData.right;
-
-    float3 unL = lightData.positionRWS - positionWS;
-
-    // Pick the major axis of the ellipsoid.
-    float3 axis = lightData.right;
-
-    // We define the ellipsoid s.t. r1 = (r + len / 2), r2 = r3 = r.
-    // TODO: This could be precomputed.
-    float radius         = rsqrt(lightData.rangeAttenuationScale); //  // rangeAttenuationScale is inverse Square Radius
-    float invAspectRatio = saturate(radius / (radius + (0.5 * len)));
-
-    // Compute the light attenuation.
-    float intensity = EllipsoidalDistanceAttenuation(unL, lightData.rangeAttenuationScale, lightData.rangeAttenuationBias,
-                                                     axis, invAspectRatio);
-
-    // Terminate if the shaded point is too far away.
-    if (intensity == 0.0)
-        return lighting;
-
-    lightData.diffuseScale  *= intensity;
-    lightData.specularScale *= intensity;
-
-    // Translate the light s.t. the shaded point is at the origin of the coordinate system.
-    lightData.positionRWS -= positionWS;
-
-    // TODO: some of this could be precomputed.
-    float3 P1 = lightData.positionRWS - T * (0.5 * len);
-    float3 P2 = lightData.positionRWS + T * (0.5 * len);
-
-    // Rotate the endpoints into the local coordinate system.
-    P1 = mul(P1, transpose(preLightData.orthoBasisViewNormal));
-    P2 = mul(P2, transpose(preLightData.orthoBasisViewNormal));
-
-    // Compute the binormal in the local coordinate system.
-    float3 B = normalize(cross(P1, P2));
-
-    float ltcValue;
-
-    // Evaluate the diffuse part
-    ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformDiffuse);
-    ltcValue *= lightData.diffuseScale;
-    // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-
-    // See comment for specular magnitude, it apply to diffuse as well
-    lighting.diffuse = preLightData.diffuseFGD * ltcValue;
-
-    UNITY_BRANCH if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_TRANSMISSION))
-    {
-        // Flip the view vector and the normal. The bitangent stays the same.
-        float3x3 flipMatrix = float3x3(-1,  0,  0,
-                                        0,  1,  0,
-                                        0,  0, -1);
-
-        // Use the Lambertian approximation for performance reasons.
-        // The matrix multiplication should not generate any extra ALU on GCN.
-        // TODO: double evaluation is very inefficient! This is a temporary solution.
-        ltcValue  = LTCEvaluate(P1, P2, B, mul(flipMatrix, k_identity3x3));
-        ltcValue *= lightData.diffuseScale;
-        // We use diffuse lighting for accumulation since it is going to be blurred during the SSS pass.
-        // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
-        lighting.diffuse += bsdfData.transmittance * ltcValue;
-    }
-
-    // Evaluate the specular part
-    ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformSpecular);
-    ltcValue *= lightData.specularScale;
-    // We need to multiply by the magnitude of the integral of the BRDF
-    // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
-    // This value is what we store in specularFGD, so reuse it
-    lighting.specular = preLightData.specularFGD * ltcValue;
-
-    // Evaluate the coat part
-    if (HasFlag(bsdfData.materialFeatures, MATERIALFEATUREFLAGS_LIT_CLEAR_COAT))
-    {
-        ltcValue = LTCEvaluate(P1, P2, B, preLightData.ltcTransformCoat);
-        ltcValue *= lightData.specularScale;
-        // For clear coat we don't fetch specularFGD we can use directly the perfect fresnel coatIblF
-        lighting.diffuse *= (1.0 - preLightData.coatIblF);
-        lighting.specular *= (1.0 - preLightData.coatIblF);
-        lighting.specular += preLightData.coatIblF * ltcValue;
-    }
-
-    // Save ALU by applying 'lightData.color' only once.
-    lighting.diffuse *= lightData.color;
-    lighting.specular *= lightData.color;
-
-#ifdef DEBUG_DISPLAY
-    if (_DebugLightingMode == DEBUGLIGHTINGMODE_LUX_METER)
-    {
-        // Only lighting, not BSDF
-        // Apply area light on lambert then multiply by PI to cancel Lambert
-        lighting.diffuse = LTCEvaluate(P1, P2, B, k_identity3x3);
-        lighting.diffuse *= PI * lightData.diffuseScale;
-    }
-#endif
-
-#endif // LIT_DISPLAY_REFERENCE_AREA
-
-    return lighting;
-}
-
 
 // From http://blog.selfshadow.com/ltc/webgl/ltc_disk.html
-//Disk InitDisk(float3 center, float3 dirx, float3 diry, float halfx, float halfy)
-//{
-//    Disk disk;
-//
-//    disk.center = center;
-//    disk.dirx   = dirx;
-//    disk.diry   = diry;
-//    disk.halfx  = halfx;
-//    disk.halfy  = halfy;
-//
-//    float3 diskNormal = cross(disk.dirx, disk.diry);
-//    disk.plane = float4(diskNormal, -dot(diskNormal, disk.center));
-//
-//    return disk;
-//}
-//
-//void InitDiskPoints(Disk disk, out float3 points[4])
-//{
-//    float3 ex = disk.halfx*disk.dirx;
-//    float3 ey = disk.halfy*disk.diry;
-//
-//    points[0] = disk.center - ex - ey;
-//    points[1] = disk.center + ex - ey;
-//    points[2] = disk.center + ex + ey;
-//    points[3] = disk.center - ex + ey;
-//}
 
 // An extended version of the implementation from
 // "How to solve a cubic equation, revisited"
@@ -2043,19 +1897,15 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
     float3  N = bsdfData.normalWS;
     float3  P = positionWS;
     float3  center = lightData.positionRWS;
-    float3  axisX = 2*halfWidth * lightData.right;
-    float3  axisY = 2*halfHeight * lightData.up;
+    float3  axisX = halfWidth * lightData.right;
+    float3  axisY = halfHeight * lightData.up;
 
 
-lighting.diffuse = LTC_Evaluate( N, V, P, preLightData.ltcTransformDiffuse, center, axisX, axisY );
-lighting.specular = LTC_Evaluate( N, V, P, preLightData.ltcTransformSpecular, center, axisX, axisY );
-
-
-/*
+//lighting.diffuse = LTC_Evaluate( N, V, P, preLightData.ltcTransformDiffuse, center, axisX, axisY );
+//lighting.specular = LTC_Evaluate( N, V, P, preLightData.ltcTransformSpecular, center, axisX, axisY );
+//*
     float ltcValue;
     ltcValue  = LTC_Evaluate( N, V, P, preLightData.ltcTransformDiffuse, center, axisX, axisY );
-
-//    ltcValue  = LTC_Evaluate( mul(lightVerts, preLightData.ltcTransformDiffuse) );
     ltcValue *= lightData.diffuseScale;
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
     // See comment for specular magnitude, it apply to diffuse as well
@@ -2064,13 +1914,12 @@ lighting.specular = LTC_Evaluate( N, V, P, preLightData.ltcTransformSpecular, ce
     // Evaluate the specular part
     // Polygon irradiance in the transformed configuration.
     ltcValue  = LTC_Evaluate( N, V, P, preLightData.ltcTransformSpecular, center, axisX, axisY );
-//    ltcValue  = PolygonIrradiance(mul(lightVerts, preLightData.ltcTransformSpecular));
     ltcValue *= lightData.specularScale;
     // We need to multiply by the magnitude of the integral of the BRDF
     // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
     // This value is what we store in specularFGD, so reuse it
     lighting.specular += preLightData.specularFGD * ltcValue;
-*/
+//*/
 
     // Save ALU by applying 'lightData.color' only once.
     lighting.diffuse *= lightData.color;
@@ -2081,7 +1930,7 @@ lighting.specular = LTC_Evaluate( N, V, P, preLightData.ltcTransformSpecular, ce
     {
         // Only lighting, not BSDF
         // Apply area light on lambert then multiply by PI to cancel Lambert
-        lighting.diffuse = PolygonIrradiance(mul(lightVerts, k_identity3x3));
+        lighting.diffuse = LTC_Evaluate( N, V, P, k_identity3x3, center, axisX, axisY );
         lighting.diffuse *= PI * lightData.diffuseScale;
     }
 #endif
@@ -2091,6 +1940,31 @@ lighting.specular = LTC_Evaluate( N, V, P, preLightData.ltcTransformSpecular, ce
 
     return lighting;
 }
+
+
+//-----------------------------------------------------------------------------
+// EvaluateBSDF_Sphere - Approximation with Linearly Transformed Cosines
+//-----------------------------------------------------------------------------
+
+DirectLighting EvaluateBSDF_Sphere( LightLoopContext lightLoopContext,
+                                    float3 V, PositionInputs posInput,
+                                    PreLightData preLightData, LightData lightData, BSDFData bsdfData, BuiltinData builtinData)
+{
+    // The sphere is only a front-facing disk
+    float3x3    faceLight = GetLocalFrame( normalize( posInput.positionWS - lightData.positionRWS ) );
+    lightData.right = faceLight[0];
+    lightData.up = faceLight[1];
+    lightData.forward = faceLight[2];
+
+//DirectLighting lighting;
+//ZERO_INITIALIZE(DirectLighting, lighting);
+//lighting.diffuse = 10.0 * saturate( dot( bsdfData.normalWS, -lightData.forward ) );
+//lighting.diffuse = 10.0 * saturate( dot( bsdfData.normalWS, lightData.right ) );
+//return lighting;
+
+    return EvaluateBSDF_Disk( lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData );
+}
+
 
 
 DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,

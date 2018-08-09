@@ -1043,9 +1043,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 lightData.angleOffset = 1.0f;
             }
 
-            if (lightData.lightType == GPULightType.Rectangle || lightData.lightType == GPULightType.Line || lightData.lightType == GPULightType.Disk || lightData.lightType == GPULightType.Sphere)
+            if (lightData.lightType == GPULightType.Rectangle || lightData.lightType == GPULightType.Line || lightData.lightType == GPULightType.Disk)
             {
                 lightData.size = new Vector2(additionalLightData.shapeWidth, additionalLightData.shapeHeight);
+            }
+            else if (lightData.lightType == GPULightType.Sphere)
+            {
+                lightData.size = new Vector2(additionalLightData.shapeWidth, additionalLightData.shapeWidth);
             }
 
             float distanceToCamera = (lightData.positionRWS - camera.transform.position).magnitude;

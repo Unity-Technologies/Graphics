@@ -129,8 +129,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                 case LightTypeExtent.Sphere:
                 case LightTypeExtent.Disk: {
                     const int N = 40;
-                    float   Rx = additionalLightData.shapeWidth;
-                    float   Ry = additionalLightData.lightTypeExtent == LightTypeExtent.Disk ? additionalLightData.shapeHeight : Rx;
+                    float   Rx = 0.5f * additionalLightData.shapeWidth;
+                    float   Ry = additionalLightData.lightTypeExtent == LightTypeExtent.Disk ? 0.5f * additionalLightData.shapeHeight : Rx;
                     for ( int i=0; i <= N; i++ )
                     {
                         float   a0 = 2*Mathf.PI * i / N;
