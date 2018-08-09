@@ -423,6 +423,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             camera.backgroundColor = camera.backgroundColor;
             camera.projectionMatrix = projection;
             camera.worldToCameraMatrix = worldToCamera;
+            camera.cullingMask = additional.reflectionProbe.cullingMask;
 
             var ctr = camera.transform;
             ctr.position = capturePosition;
