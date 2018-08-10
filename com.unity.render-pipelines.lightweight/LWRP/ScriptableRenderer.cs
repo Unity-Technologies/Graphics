@@ -5,7 +5,7 @@ using UnityEngine.Rendering.PostProcessing;
 
 namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
-    public class LightweightForwardRenderer
+    public class ScriptableRenderer
     {
         // Lights are culled per-object. In platforms that don't use StructuredBuffer
         // the engine will set 4 light indices in the following constant unity_4LightIndices0
@@ -53,7 +53,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         readonly Material[] m_Materials;
         
-        public LightweightForwardRenderer(LightweightPipelineAsset pipelineAsset)
+        public ScriptableRenderer(LightweightPipelineAsset pipelineAsset)
         {
             this.pipelineAsset = pipelineAsset;
             
