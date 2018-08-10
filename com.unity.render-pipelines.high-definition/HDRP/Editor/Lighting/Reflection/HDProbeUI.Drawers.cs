@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEditorInternal;
 using UnityEngine;
+using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
 
@@ -128,7 +129,11 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected static void Drawer_SectionCustomSettings(HDProbeUI s, SerializedHDProbe d, Editor o)
         {
-            d.lightLayers.intValue = Convert.ToInt32(EditorGUILayout.EnumFlagsField(lightLayersContent, (LightLayerEnum)d.lightLayers.intValue));
+            var hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+            using (new SettingsDisableScope(hdPipeline.asset.renderPipelineSettings.supportLightLayers))
+            {
+                d.lightLayers.intValue = Convert.ToInt32(EditorGUILayout.EnumFlagsField(lightLayersContent, (LightLayerEnum)d.lightLayers.intValue));
+            }
 
             EditorGUILayout.PropertyField(d.weight, weightContent);
 
