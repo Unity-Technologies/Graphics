@@ -6,10 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [3.3.0-preview]
 ### Added
+- Add callbacks to LWRP that can be attached to a camera (IBeforeCameraRender, IAfterDepthPrePass, IAfterOpaquePass, IAfterOpaquePostProcess, IAfterSkyboxPass, IAfterTransparentPass, IAfterRender)
+
+###Changed
+- Clean up LWRP creation of render textures. If we are not going straight to screen ensure that we create both depth and color targets.
 - UNITY_DECLARE_FRAMEBUFFER_INPUT and UNITY_READ_FRAMEBUFFER_INPUT macros were added. They are necessary for reading transient attachments.
 - UNITY_MATRIX_I_VP is now defined.
-
-### Changed
 - Renamed LightweightForwardRenderer to ScriptableRenderer.
 - Moved all light constants to _LightBuffer CBUFFER. Now _PerCamera CBUFFER contains all other per camera constants.
 

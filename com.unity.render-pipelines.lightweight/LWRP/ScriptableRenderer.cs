@@ -55,8 +55,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         
         public ScriptableRenderer(LightweightPipelineAsset pipelineAsset)
         {
-            this.pipelineAsset = pipelineAsset;
-            
             m_Materials = new[]
             {
                 CoreUtils.CreateEngineMaterial("Hidden/InternalErrorShader"),
@@ -68,8 +66,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
             postProcessRenderContext = new PostProcessRenderContext();
         }
-
-        public LightweightPipelineAsset pipelineAsset { get; private set; }
 
         public void Dispose()
         {
@@ -100,12 +96,11 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             desc.colorFormat = cameraData.isHdrEnabled ? RenderTextureFormat.DefaultHDR :
                 RenderTextureFormat.Default;
             desc.enableRandomWrite = false;
+            desc.sRGB = true;
             desc.width = (int)((float)desc.width * renderScale * scaler);
             desc.height = (int)((float)desc.height * renderScale * scaler);
             return desc;
         }
-
-
 
         public void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref RenderingData renderingData)
         {
@@ -139,14 +134,14 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             m_ActiveRenderPassQueue.Add(pass);
         }
 
-        public static bool RequiresIntermediateColorTexture(ref CameraData cameraData, RenderTextureDescriptor baseDescriptor, bool requiresCameraDepth)
+        public static bool RequiresIntermediateColorTexture(ref CameraData cameraData, RenderTextureDescriptor baseDescriptor)
         {
             if (cameraData.isOffscreenRender)
                 return false;
 
             bool isScaledRender = !Mathf.Approximately(cameraData.renderScale, 1.0f);
             bool isTargetTexture2DArray = baseDescriptor.dimension == TextureDimension.Tex2DArray;
-            return requiresCameraDepth || cameraData.isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
+            return cameraData.isSceneViewCamera || isScaledRender || cameraData.isHdrEnabled ||
                 cameraData.postProcessEnabled || cameraData.requiresOpaqueTexture || isTargetTexture2DArray || !cameraData.isDefaultViewport;
         }
 
