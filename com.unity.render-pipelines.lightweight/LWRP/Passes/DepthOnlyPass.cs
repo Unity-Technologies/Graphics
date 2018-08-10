@@ -9,8 +9,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         int kDepthBufferBits = 32;
 
         private RenderTargetHandle depthAttachmentHandle { get; set; }
-        private RenderTextureDescriptor descriptor { get; set; }
-        public FilterRenderersSettings opaqueFilterSettings { get; private set; }
+        internal RenderTextureDescriptor descriptor { get; set; }
+        private FilterRenderersSettings opaqueFilterSettings { get; set; }
 
         public void Setup(
             RenderTextureDescriptor baseDescriptor,

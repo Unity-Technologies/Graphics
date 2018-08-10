@@ -30,7 +30,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             if (colorAttachmentHandle != RenderTargetHandle.CameraTarget)
             {
                 var colorDescriptor = descriptor;
-                colorDescriptor.depthBufferBits = k_DepthStencilBufferBits; // TODO: does the color RT always need depth?
+                colorDescriptor.depthBufferBits = 0;
                 colorDescriptor.sRGB = true;
                 colorDescriptor.msaaSamples = (int) samples;
                 cmd.GetTemporaryRT(colorAttachmentHandle.id, colorDescriptor, FilterMode.Bilinear);
