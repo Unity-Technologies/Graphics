@@ -5,6 +5,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [3.3.0-preview]
+### Added
+- UNITY_DECLARE_FRAMEBUFFER_INPUT and UNITY_READ_FRAMEBUFFER_INPUT macros were added. They are necessary for reading transient attachments.
+- UNITY_MATRIX_I_VP is now defined.
+
+### Changed
+- Renamed LightweightForwardRenderer to ScriptableRenderer.
+- Moved all light constants to _LightBuffer CBUFFER. Now _PerCamera CBUFFER contains all other per camera constants.
+
+### Fixed
+- Lightweight Unlit shader UI doesn't throw an error about missing receive shadow property anymore.
 
 ### Changed
 - Change real-time attenuation to inverse square.

@@ -8,6 +8,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
     {
         static Camera s_RenderCamera = null;
         static HDAdditionalCameraData s_RenderCameraData;
+        static int frame = Time.frameCount;
+
+        HashSet<HDAdditionalReflectionData> m_AdditionalDataReflectionProbes;
+        HashSet<HDAdditionalReflectionData> m_AdditionalDataReflectionProbe_RealtimeUpdate;
+        HashSet<HDAdditionalReflectionData> m_AdditionalDataReflectionProbe_RequestRealtimeRender;
+        HDAdditionalReflectionData[] m_AdditionalDataReflectionProbe_RealtimeUpdate_WorkArray;
 
         HashSet<PlanarReflectionProbe> m_PlanarReflectionProbes;
         HashSet<PlanarReflectionProbe> m_PlanarReflectionProbe_DirtyBounds;
@@ -31,8 +37,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             m_PlanarReflectionProbesArray = new PlanarReflectionProbe[parameters.maxActivePlanarReflectionProbe];
             m_PlanarReflectionProbeBoundsArray = new BoundingSphere[parameters.maxActivePlanarReflectionProbe];
             m_PlanarReflectionProbe_RealtimeUpdate_WorkArray = new PlanarReflectionProbe[parameters.maxPlanarReflectionProbePerCamera];
+            m_AdditionalDataReflectionProbe_RealtimeUpdate_WorkArray = new HDAdditionalReflectionData[parameters.maxPlanarReflectionProbePerCamera]; ;
 
             // Persistent collections
+            m_AdditionalDataReflectionProbes = new HashSet<HDAdditionalReflectionData>();
+            m_AdditionalDataReflectionProbe_RealtimeUpdate = new HashSet<HDAdditionalReflectionData>();
+            m_AdditionalDataReflectionProbe_RequestRealtimeRender = new HashSet<HDAdditionalReflectionData>();
             m_PlanarReflectionProbes = new HashSet<PlanarReflectionProbe>();
             m_PlanarReflectionProbe_DirtyBounds = new HashSet<PlanarReflectionProbe>();
             m_PlanarReflectionProbe_RequestRealtimeRender = new HashSet<PlanarReflectionProbe>();
@@ -41,6 +51,9 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
 
             if (previous != null)
             {
+                m_AdditionalDataReflectionProbes.UnionWith(previous.m_AdditionalDataReflectionProbes);
+                m_AdditionalDataReflectionProbe_RequestRealtimeRender.UnionWith(previous.m_AdditionalDataReflectionProbe_RequestRealtimeRender);
+                m_AdditionalDataReflectionProbe_RealtimeUpdate.UnionWith(previous.m_AdditionalDataReflectionProbe_RealtimeUpdate);
                 m_PlanarReflectionProbes.UnionWith(previous.m_PlanarReflectionProbes);
                 m_PlanarReflectionProbe_DirtyBounds.UnionWith(m_PlanarReflectionProbes);
                 m_PlanarReflectionProbe_RequestRealtimeRender.UnionWith(previous.m_PlanarReflectionProbe_RequestRealtimeRender);
@@ -78,6 +91,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             }
         }
 
+        public void RegisterProbe(HDAdditionalReflectionData additional)
+        {
+            m_AdditionalDataReflectionProbes.Add(additional);
+            //SetProbeBoundsDirty(probe);
+
+            if (additional.mode == ReflectionProbeMode.Realtime)
+            {
+                //switch (additional.refreshMode)
+                //{
+                //    case ReflectionProbeRefreshMode.OnAwake:
+                //        m_AdditionalDataReflectionProbe_RequestRealtimeRender.Add(additional);
+                //        break;
+                //    case ReflectionProbeRefreshMode.EveryFrame:
+                        m_AdditionalDataReflectionProbe_RealtimeUpdate.Add(additional);
+                //        break;
+                //}
+            }
+        }
+
         public void UnregisterProbe(PlanarReflectionProbe planarProbe)
         {
             m_PlanarReflectionProbes.Remove(planarProbe);
@@ -86,6 +118,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             m_PlanarReflectionProbe_RequestRealtimeRender.Remove(planarProbe);
             m_PlanarReflectionProbe_RealtimeUpdate.Remove(planarProbe);
             m_PlanarReflectionProbe_PerCamera_RealtimeUpdate.Remove(planarProbe);
+        }
+
+        public void UnregisterProbe(HDAdditionalReflectionData additional)
+        {
+            m_AdditionalDataReflectionProbes.Remove(additional);
+            m_AdditionalDataReflectionProbe_RequestRealtimeRender.Remove(additional);
+            m_AdditionalDataReflectionProbe_RealtimeUpdate.Remove(additional);
         }
 
         public void PrepareCull(Camera camera, ReflectionProbeCullResults results)
@@ -123,7 +162,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
                 {
                     var probe = m_PlanarReflectionProbe_RealtimeUpdate_WorkArray[i];
 
-                    if (!IsRealtimeTextureValid(probe.realtimeTexture))
+                    if (!IsRealtimeTextureValid(probe.realtimeTexture, true))
                     {
                         if (probe.realtimeTexture != null)
                             probe.realtimeTexture.Release();
@@ -157,7 +196,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
                 {
                     var probe = m_PlanarReflectionProbe_RealtimeUpdate_WorkArray[i];
 
-                    if (!IsRealtimeTextureValid(probe.realtimeTexture))
+                    if (!IsRealtimeTextureValid(probe.realtimeTexture, true))
                     {
                         if (probe.realtimeTexture != null)
                             probe.realtimeTexture.Release();
@@ -172,6 +211,41 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
                     Render(probe, probe.realtimeTexture);
                 }
             }
+            
+            if ((probeTypes & ReflectionProbeType.ReflectionProbe) != 0 && frame != Time.frameCount)
+            {
+                //do only one per frame
+                frame = Time.frameCount;
+
+                // Discard disabled probes in requested render probes
+                m_AdditionalDataReflectionProbe_RequestRealtimeRender.IntersectWith(m_AdditionalDataReflectionProbes);
+                // Include all realtime probe modes
+                m_AdditionalDataReflectionProbe_RequestRealtimeRender.UnionWith(m_AdditionalDataReflectionProbe_RealtimeUpdate);
+                
+                var length = Mathf.Min(m_AdditionalDataReflectionProbe_RequestRealtimeRender.Count, m_AdditionalDataReflectionProbe_RealtimeUpdate_WorkArray.Length);
+                m_AdditionalDataReflectionProbe_RequestRealtimeRender.CopyTo(m_AdditionalDataReflectionProbe_RealtimeUpdate_WorkArray);
+                m_AdditionalDataReflectionProbe_RequestRealtimeRender.Clear();
+
+                // 1. Allocate if necessary target texture
+                for (var i = 0; i < length; i++)
+                {
+                    var additional = m_AdditionalDataReflectionProbe_RealtimeUpdate_WorkArray[i];
+
+                    if (!IsRealtimeTextureValid(additional.realtimeTexture, false))
+                    {
+                        if (additional.realtimeTexture != null)
+                            additional.realtimeTexture.Release();
+                        additional.realtimeTexture = NewRenderTarget(additional);
+                    }
+                }
+
+                // 2. Render
+                for (var i = 0; i < length; i++)
+                {
+                    var additional = m_AdditionalDataReflectionProbe_RealtimeUpdate_WorkArray[i];
+                    Render(additional, additional.realtimeTexture);
+                }
+            }
         }
 
         public RenderTexture NewRenderTarget(PlanarReflectionProbe probe)
@@ -181,6 +255,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             rt.useMipMap = true;
             rt.autoGenerateMips = false;
             rt.name = CoreUtils.GetRenderTargetAutoName(m_Parameters.planarReflectionProbeSize, m_Parameters.planarReflectionProbeSize, 1, RenderTextureFormat.ARGBHalf, "PlanarProbeRT");
+            rt.Create();
+            return rt;
+        }
+
+        public RenderTexture NewRenderTarget(HDAdditionalReflectionData probe)
+        {
+            var rt = new RenderTexture(m_Parameters.reflectionProbeSize, m_Parameters.reflectionProbeSize, 0, RenderTextureFormat.ARGBHalf);
+            // No hide and don't save for this one
+            rt.useMipMap = true;
+            rt.autoGenerateMips = false;
+            rt.name = CoreUtils.GetRenderTargetAutoName(m_Parameters.reflectionProbeSize, m_Parameters.reflectionProbeSize, 1, RenderTextureFormat.ARGBHalf, "ProbeRT");
+            rt.dimension = TextureDimension.Cube;
             rt.Create();
             return rt;
         }
@@ -205,13 +291,20 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
         //    }
         //}
 
-        bool IsRealtimeTextureValid(RenderTexture renderTexture)
+        bool IsRealtimeTextureValid(RenderTexture renderTexture, bool isPlanar)
         {
-            return renderTexture != null
-                && renderTexture.width == m_Parameters.planarReflectionProbeSize
-                && renderTexture.height == m_Parameters.planarReflectionProbeSize
-                && renderTexture.format == RenderTextureFormat.ARGBHalf
-                && renderTexture.useMipMap;
+            if(isPlanar)
+                return renderTexture != null
+                    && renderTexture.width == m_Parameters.planarReflectionProbeSize
+                    && renderTexture.height == m_Parameters.planarReflectionProbeSize
+                    && renderTexture.format == RenderTextureFormat.ARGBHalf
+                    && renderTexture.useMipMap;
+            else
+                return renderTexture != null
+                    && renderTexture.width == m_Parameters.reflectionProbeSize
+                    && renderTexture.height == m_Parameters.reflectionProbeSize
+                    && renderTexture.format == RenderTextureFormat.ARGBHalf
+                    && renderTexture.useMipMap;
         }
 
         public void RequestRealtimeRender(PlanarReflectionProbe probe)
@@ -233,6 +326,18 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             renderCamera.Render();
             GL.invertCulling = false;
             renderCamera.targetTexture = null;
+            target.IncrementUpdateCount();
+        }
+
+        public void Render(HDAdditionalReflectionData additional, RenderTexture target, Camera viewerCamera = null)
+        {
+            var renderCamera = GetRenderCamera();
+
+            // Copy current frameSettings of this probe to the HDAdditionalData of the render camera
+            //probe.frameSettings.CopyTo(s_RenderCameraData.GetFrameSettings());
+            
+            SetupCameraForRender(renderCamera, additional, viewerCamera);
+            renderCamera.RenderToCubemap(target);
             target.IncrementUpdateCount();
         }
 
@@ -295,6 +400,36 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
             ctr.rotation = captureRotation;
         }
 
+        static void SetupCameraForRender(Camera camera, HDAdditionalReflectionData additional, Camera viewerCamera = null)
+        {
+            float nearClipPlane, farClipPlane, aspect, fov;
+            Color backgroundColor;
+            CameraClearFlags clearFlags;
+            Vector3 capturePosition;
+            Quaternion captureRotation;
+            Matrix4x4 worldToCamera, projection;
+
+            CalculateCaptureCameraProperties(additional,
+                out nearClipPlane, out farClipPlane,
+                out aspect, out fov, out clearFlags, out backgroundColor,
+                out worldToCamera, out projection,
+                out capturePosition, out captureRotation, viewerCamera);
+
+            camera.farClipPlane = farClipPlane;
+            camera.nearClipPlane = nearClipPlane;
+            camera.fieldOfView = fov;
+            camera.aspect = aspect;
+            camera.clearFlags = clearFlags;
+            camera.backgroundColor = camera.backgroundColor;
+            camera.projectionMatrix = projection;
+            camera.worldToCameraMatrix = worldToCamera;
+            camera.cullingMask = additional.reflectionProbe.cullingMask;
+
+            var ctr = camera.transform;
+            ctr.position = capturePosition;
+            ctr.rotation = captureRotation;
+        }
+
         public static void CalculateCaptureCameraViewProj(PlanarReflectionProbe probe, out Matrix4x4 worldToCamera, out Matrix4x4 projection, out Vector3 capturePosition, out Quaternion captureRotation, Camera viewerCamera = null)
         {
             float nearClipPlane, farClipPlane, aspect, fov;
@@ -317,6 +452,22 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline.Internal
                 CalculateMirroredCaptureCameraProperties(probe, viewerCamera, out nearClipPlane, out farClipPlane, out aspect, out fov, out clearFlags, out backgroundColor, out worldToCamera, out projection, out capturePosition, out captureRotation);
             else
                 CalculateStaticCaptureCameraProperties(probe, out nearClipPlane, out farClipPlane, out aspect, out fov, out clearFlags, out backgroundColor, out worldToCamera, out projection, out capturePosition, out captureRotation);
+        }
+
+        public static void CalculateCaptureCameraProperties(HDAdditionalReflectionData additional, out float nearClipPlane, out float farClipPlane, out float aspect, out float fov, out CameraClearFlags clearFlags, out Color backgroundColor, out Matrix4x4 worldToCamera, out Matrix4x4 projection, out Vector3 capturePosition, out Quaternion captureRotation, Camera viewerCamera = null)
+        {
+            nearClipPlane = additional.reflectionProbe.nearClipPlane;
+            farClipPlane = additional.reflectionProbe.farClipPlane;
+            aspect = 1f;
+            fov = 90f;
+            clearFlags = CameraClearFlags.Nothing;
+            backgroundColor = Color.white;
+
+            capturePosition = additional.transform.position; //at the moment capture position is at probe position
+            captureRotation = Quaternion.identity;
+
+            worldToCamera = GeometryUtils.CalculateWorldToCameraMatrixRHS(capturePosition, captureRotation);
+            projection = Matrix4x4.Perspective(fov, aspect, nearClipPlane, farClipPlane);
         }
 
         static bool IsProbeCaptureMirrored(PlanarReflectionProbe probe, Camera viewerCamera)

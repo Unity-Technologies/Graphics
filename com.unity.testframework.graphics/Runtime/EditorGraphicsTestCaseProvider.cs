@@ -55,8 +55,7 @@ namespace UnityEditor.TestTools.Graphics
             var fullPathPrefix = string.Format("{0}/{1}/{2}/{3}/", referenceImageRoot, colorSpace, runtimePlatform, graphicsApi);
 
             foreach (var assetPath in AssetDatabase.GetAllAssetPaths()
-                .Where(p => p.StartsWith(referenceImageRoot, StringComparison.OrdinalIgnoreCase))
-                .Where(p => fullPathPrefix.StartsWith(Path.GetDirectoryName(p)))
+                .Where(p => p.StartsWith(fullPathPrefix, StringComparison.OrdinalIgnoreCase))
                 .OrderBy(p => p.Count(ch => ch == '/')))
             {
                 // Skip directories
