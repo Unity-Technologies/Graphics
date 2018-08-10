@@ -36,6 +36,11 @@ half4 _SubtractiveShadowColor;
 CBUFFER_END
 
 CBUFFER_START(_PerCamera)
+float4x4 _InvCameraViewProj;
+float4 _ScaledScreenParams;
+CBUFFER_END
+
+CBUFFER_START(_LightBuffer)
 float4 _MainLightPosition;
 half4 _MainLightColor;
 float4x4 _WorldToLight;
@@ -46,8 +51,6 @@ half4 _AdditionalLightColor[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightDistanceAttenuation[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightSpotDir[MAX_VISIBLE_LIGHTS];
 half4 _AdditionalLightSpotAttenuation[MAX_VISIBLE_LIGHTS];
-
-float4 _ScaledScreenParams;
 CBUFFER_END
 
 #if USE_STRUCTURED_BUFFER_FOR_LIGHT_DATA
@@ -61,7 +64,7 @@ StructuredBuffer<int> _LightIndexBuffer;
 #define UNITY_MATRIX_P     OptimizeProjectionMatrix(glstate_matrix_projection)
 #define UNITY_MATRIX_I_P   ERROR_UNITY_MATRIX_I_P_IS_NOT_DEFINED
 #define UNITY_MATRIX_VP    unity_MatrixVP
-#define UNITY_MATRIX_I_VP  ERROR_UNITY_MATRIX_I_VP_IS_NOT_DEFINED
+#define UNITY_MATRIX_I_VP  _InvCameraViewProj
 #define UNITY_MATRIX_MV    mul(UNITY_MATRIX_V, UNITY_MATRIX_M)
 #define UNITY_MATRIX_T_MV  transpose(UNITY_MATRIX_MV)
 #define UNITY_MATRIX_IT_MV transpose(mul(UNITY_MATRIX_I_M, UNITY_MATRIX_I_V))
