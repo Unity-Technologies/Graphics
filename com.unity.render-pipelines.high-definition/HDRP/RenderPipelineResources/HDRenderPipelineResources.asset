@@ -4,14 +4,15 @@
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8b6f86e1523e69a4282e92d393be89a4, type: 3}
   m_Name: HDRenderPipelineResources
   m_EditorClassIdentifier: 
-  version: 1
+  m_Version: 2
   defaultDiffuseMaterial: {fileID: 2100000, guid: 73c176f402d2c2f4d929aa5da7585d17, type: 2}
   defaultMirrorMaterial: {fileID: 2100000, guid: 6b17274157b33bc45b6a40e7d4ff51fe, type: 2}
   defaultDecalMaterial: {fileID: 2100000, guid: 500e733574922d04ea961553b1b26a63, type: 2}
@@ -22,6 +23,7 @@ MonoBehaviour:
   debugViewTilesShader: {fileID: 4800000, guid: c7c2bd17b06ceb4468e14081aaf1b96f, type: 3}
   debugFullScreenShader: {fileID: 4800000, guid: e874aca2df8300a488258738c31f85cf, type: 3}
   debugColorPickerShader: {fileID: 4800000, guid: 8137b807709e178498f22ed710864bb0, type: 3}
+  debugLightVolumeShader: {fileID: 4800000, guid: f62fc49f20e79e64ba43db3cfd447d80, type: 3}
   deferredShader: {fileID: 4800000, guid: 00dd221e34a6ab349a1196b0f2fab693, type: 3}
   colorPyramidCS: {fileID: 7200000, guid: 4e3267a1135742441a14298d8dcac04a, type: 3}
   depthPyramidCS: {fileID: 7200000, guid: 64a553bb564274041906f78ffba955e4, type: 3}
@@ -57,7 +59,7 @@ MonoBehaviour:
   skyboxCubemap: {fileID: 103, guid: 0000000000000000f000000000000000, type: 0}
   gradientSky: {fileID: 4800000, guid: 2b5d4f1b26f03dc4a873b093e0c4adb1, type: 3}
   preIntegratedFGD_GGXDisneyDiffuse: {fileID: 4800000, guid: 123f13d52852ef547b2962de4bd9eaad, type: 3}
-  preIntegratedFGD_CharlieClothLambert: {fileID: 4800000, guid: 3b3bf235775cf8b4baae7f3306787ab0, type: 3}
+  preIntegratedFGD_CharlieFabricLambert: {fileID: 4800000, guid: 3b3bf235775cf8b4baae7f3306787ab0, type: 3}
   encodeBC6HCS: {fileID: 7200000, guid: aa922d239de60304f964e24488559eeb, type: 3}
   cubeToPanoShader: {fileID: 4800000, guid: 595434cc3b6405246b6cd3086d0b6f7d, type: 3}
   blitCubeTextureFace: {fileID: 4800000, guid: d850d0a2481878d4bbf17e5126b04163, type: 3}

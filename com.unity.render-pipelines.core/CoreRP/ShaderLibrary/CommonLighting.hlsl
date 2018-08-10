@@ -262,6 +262,20 @@ real SphericalCapIntersectionSolidArea(real cosC1, real cosC2, real cosB)
     return area;
 }
 
+// ref: Practical Realtime Strategies for Accurate Indirect Occlusion
+// http://blog.selfshadow.com/publications/s2016-shading-course/#course_content
+// Original Cone-Cone method with cosine weighted assumption (p129 s2016_pbs_activision_occlusion)
+real GetSpecularOcclusionFromBentAO(real3 V, real3 bentNormalWS, real3 normalWS, real ambientOcclusion, real roughness)
+{
+    // Retrieve cone angle
+    // Ambient occlusion is cosine weighted, thus use following equation. See slide 129
+    real cosAv = sqrt(1.0 - ambientOcclusion);
+    roughness = max(roughness, 0.01); // Clamp to 0.01 to avoid edge cases
+    real cosAs = exp2((-log(10.0) / log(2.0)) * Sq(roughness));
+    real cosB = dot(bentNormalWS, reflect(-V, normalWS));
+    return SphericalCapIntersectionSolidArea(cosAv, cosAs, cosB) / (TWO_PI * (1.0 - cosAs));
+}
+
 // Ref: Steve McAuley - Energy-Conserving Wrapped Diffuse
 real ComputeWrappedDiffuseLighting(real NdotL, real w)
 {
@@ -357,6 +371,26 @@ real3x3 GetLocalFrame(real3 localZ, real3 localX)
     real3 localY = cross(localZ, localX);
 
     return real3x3(localX, localY, localZ);
+}
+
+// Construct a right-handed view-dependent orthogonal basis around the normal:
+// b0-b2 is the view-normal aka reflection plane.
+real3x3 GetOrthoBasisViewNormal(real3 V, real3 N, real unclampedNdotV, bool testSingularity = false)
+{
+    real3x3 orthoBasisViewNormal;
+    if (testSingularity && (abs(1.0 - unclampedNdotV) <= FLT_EPS))
+    {
+        // In this case N == V, and azimuth orientation around N shouldn't matter for the caller,
+        // we can use any quaternion-based method, like Frisvad or Reynold's (Pixar): 
+        orthoBasisViewNormal = GetLocalFrame(N);
+    }
+    else
+    {
+        orthoBasisViewNormal[0] = normalize(V - N * unclampedNdotV);
+        orthoBasisViewNormal[2] = N;
+        orthoBasisViewNormal[1] = cross(orthoBasisViewNormal[2], orthoBasisViewNormal[0]);
+    }
+    return orthoBasisViewNormal;
 }
 
 #endif // UNITY_COMMON_LIGHTING_INCLUDED

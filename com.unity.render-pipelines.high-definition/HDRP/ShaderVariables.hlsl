@@ -209,7 +209,6 @@ CBUFFER_START(UnityGlobal)
 #else
     float3 _WorldSpaceCameraPos;
 #endif
-    float  _DetViewMatrix;              // determinant(_ViewMatrix)
     float4 _ScreenSize;                 // { w, h, 1 / w, 1 / h }
     float4 _ScreenToTargetScale;        // { w / RTHandle.maxWidth, h / RTHandle.maxHeight } : xy = currFrame, zw = prevFrame
 

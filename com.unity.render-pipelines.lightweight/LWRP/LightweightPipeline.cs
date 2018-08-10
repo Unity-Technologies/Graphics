@@ -12,10 +12,17 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     public partial class LightweightPipeline : RenderPipeline
     {
-        private static class PerFrameBuffer
+        static class PerFrameBuffer
         {
             public static int _GlossyEnvironmentColor;
             public static int _SubtractiveShadowColor;
+        }
+
+        static class PerCameraBuffer
+        {
+            // TODO: This needs to account for stereo rendering
+            public static int _InvCameraViewProj;
+            public static int _ScaledScreenParams;
         }
 
         public LightweightPipelineAsset pipelineAsset { get; private set; }
@@ -35,11 +42,9 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         CameraComparer m_CameraComparer = new CameraComparer();
 
-        LightweightForwardRenderer m_Renderer;
+        ScriptableRenderer m_Renderer;
         CullResults m_CullResults;
         List<int> m_LocalLightIndices = new List<int>();
-
-        bool m_IsCameraRendering;
 
         public LightweightPipeline(LightweightPipelineAsset asset)
         {
@@ -51,15 +56,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             PerFrameBuffer._GlossyEnvironmentColor = Shader.PropertyToID("_GlossyEnvironmentColor");
             PerFrameBuffer._SubtractiveShadowColor = Shader.PropertyToID("_SubtractiveShadowColor");
 
-            SetupLightweightConstanstPass.PerCameraBuffer._ScaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
-            m_Renderer = new LightweightForwardRenderer(asset);
+            PerCameraBuffer._InvCameraViewProj = Shader.PropertyToID("_InvCameraViewProj");
+            PerCameraBuffer._ScaledScreenParams = Shader.PropertyToID("_ScaledScreenParams");
+            m_Renderer = new ScriptableRenderer(asset);
 
             // Let engine know we have MSAA on for cases where we support MSAA backbuffer
             if (QualitySettings.antiAliasing != pipelineAsset.msaaSampleCount)
                 QualitySettings.antiAliasing = pipelineAsset.msaaSampleCount;
 
             Shader.globalRenderPipeline = "LightweightPipeline";
-            m_IsCameraRendering = false;
 
             Lightmapping.SetDelegate(lightsDelegate);
         }
@@ -81,11 +86,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         public override void Render(ScriptableRenderContext context, Camera[] cameras)
         {
-            if (m_IsCameraRendering)
-            {
-                Debug.LogWarning("Nested camera rendering is forbidden. If you are calling camera.Render inside OnWillRenderObject callback, use BeginCameraRender callback instead.");
-                return;
-            }
             pipelineAsset.savedXRGraphicsConfig.renderScale = pipelineAsset.renderScale;
             pipelineAsset.savedXRGraphicsConfig.viewportScale = 1.0f; // Placeholder until viewportScale is all hooked up
             // Apply any changes to XRGConfig prior to this point
@@ -103,7 +103,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             foreach (Camera camera in cameras)
             {
                 BeginCameraRendering(camera);
-                string renderCameraTag = "Render " + camera.name;
+                string renderCameraTag = camera.name;
                 CommandBuffer cmd = CommandBufferPool.Get(renderCameraTag);
                 using (new ProfilingSample(cmd, renderCameraTag))
                 {
@@ -124,42 +124,25 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
                     cmd.Clear();
 
 #if UNITY_EDITOR
-                    try
+                    // Emit scene view UI
+                    if (cameraData.isSceneViewCamera)
+                        ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
 #endif
-                    {
-                        m_IsCameraRendering = true;
-#if UNITY_EDITOR
-                        // Emit scene view UI
-                        if (cameraData.isSceneViewCamera)
-                            ScriptableRenderContext.EmitWorldGeometryForSceneView(camera);
-#endif
-                        CullResults.Cull(ref cullingParameters, context, ref m_CullResults);
-                        List<VisibleLight> visibleLights = m_CullResults.visibleLights;
+                    CullResults.Cull(ref cullingParameters, context, ref m_CullResults);
+                    List<VisibleLight> visibleLights = m_CullResults.visibleLights;
 
-                        RenderingData renderingData;
-                        InitializeRenderingData(ref cameraData, visibleLights,
-                            m_Renderer.maxSupportedLocalLightsPerPass, m_Renderer.maxSupportedVertexLights,
-                            out renderingData);
+                    RenderingData renderingData;
+                    InitializeRenderingData(ref cameraData, visibleLights,
+                        m_Renderer.maxSupportedLocalLightsPerPass, m_Renderer.maxSupportedVertexLights,
+                        out renderingData);
 
-                        var setup = cameraData.camera.GetComponent<IRendererSetup>();
-                        if (setup == null)
-                            setup = defaultRendererSetup;
+                    var setup = cameraData.camera.GetComponent<IRendererSetup>();
+                    if (setup == null)
+                        setup = defaultRendererSetup;
 
-                        setup.Setup(m_Renderer, ref context, ref m_CullResults, ref renderingData);
+                    setup.Setup(m_Renderer, ref context, ref m_CullResults, ref renderingData);
 
-                        m_Renderer.Execute(ref context, ref m_CullResults, ref renderingData);
-                    }
-#if UNITY_EDITOR
-                    catch (Exception)
-                    {
-                        CommandBufferPool.Release(cmd);
-                        throw;
-                    }
-                    finally
-#endif
-                    {
-                        m_IsCameraRendering = false;
-                    }
+                    m_Renderer.Execute(ref context, ref m_CullResults, ref renderingData);
                 }
                 context.ExecuteCommandBuffer(cmd);
                 CommandBufferPool.Release(cmd);
@@ -371,9 +354,16 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 
         void SetupPerCameraShaderConstants(CameraData cameraData)
         {
+            Camera camera = cameraData.camera;
             float cameraWidth = (float)cameraData.camera.pixelWidth * cameraData.renderScale;
             float cameraHeight = (float)cameraData.camera.pixelHeight * cameraData.renderScale;
-            Shader.SetGlobalVector(SetupLightweightConstanstPass.PerCameraBuffer._ScaledScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
+            Shader.SetGlobalVector(PerCameraBuffer._ScaledScreenParams, new Vector4(cameraWidth, cameraHeight, 1.0f + 1.0f / cameraWidth, 1.0f + 1.0f / cameraHeight));
+
+            Matrix4x4 projMatrix = GL.GetGPUProjectionMatrix(camera.projectionMatrix, false);
+            Matrix4x4 viewMatrix = camera.worldToCameraMatrix;
+            Matrix4x4 viewProjMatrix = projMatrix * viewMatrix;
+            Matrix4x4 invViewProjMatrix = Matrix4x4.Inverse(viewProjMatrix);
+            Shader.SetGlobalMatrix(PerCameraBuffer._InvCameraViewProj, invViewProjMatrix);
         }
 
         public static bool LightDataGIExtract(Light light, ref LightDataGI lightData)

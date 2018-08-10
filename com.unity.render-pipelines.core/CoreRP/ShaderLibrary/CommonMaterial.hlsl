@@ -2,6 +2,12 @@
 #define UNITY_COMMON_MATERIAL_INCLUDED
 
 //-----------------------------------------------------------------------------
+// Define constants
+//-----------------------------------------------------------------------------
+
+#define DEFAULT_SPECULAR_VALUE 0.04
+
+//-----------------------------------------------------------------------------
 // Helper functions for roughness
 //-----------------------------------------------------------------------------
 
@@ -50,7 +56,7 @@ void ConvertAnisotropyToRoughness(real perceptualRoughness, real anisotropy, out
 
 void ConvertRoughnessToAnisotropy(real roughnessT, real roughnessB, out real anisotropy)
 {
-    anisotropy = ((roughnessT - roughnessB) / (roughnessT + roughnessB + 0.0001));
+    anisotropy = ((roughnessT - roughnessB) / max(roughnessT + roughnessB, 0.0001));
 }
 
 // Same as ConvertAnisotropyToRoughness but
@@ -74,6 +80,14 @@ real VarianceToRoughness(real variance)
     return sqrt(2.0 / (variance + 2.0));
 }
 
+// Normal Map Filtering - This must match HDRP\Editor\AssetProcessors\NormalMapFilteringTexturePostprocessor.cs - highestVarianceAllowed (TODO: Move in core)
+#define NORMALMAP_HIGHEST_VARIANCE 0.03125
+
+float DecodeVariance(float gradientW)
+{
+    return gradientW * NORMALMAP_HIGHEST_VARIANCE;
+}
+
 // Return modified perceptualSmoothness based on provided variance (get from GeometricNormalVariance + TextureNormalVariance)
 float NormalFiltering(float perceptualSmoothness, float variance, float threshold)
 {
@@ -81,7 +95,7 @@ float NormalFiltering(float perceptualSmoothness, float variance, float threshol
     // Ref: Geometry into Shading - http://graphics.pixar.com/library/BumpRoughness/paper.pdf - equation (3)
     float squaredRoughness = saturate(roughness * roughness + min(2.0 * variance, threshold * threshold)); // threshold can be really low, square the value for easier control
 
-    return 1.0 - RoughnessToPerceptualRoughness(sqrt(squaredRoughness));
+    return RoughnessToPerceptualSmoothness(sqrt(squaredRoughness));
 }
 
 // Reference: Error Reduction and Simplification for Shading Anti-Aliasing
@@ -117,6 +131,8 @@ float GeometricNormalFiltering(float perceptualSmoothness, float3 geometricNorma
 // like Toksvig.
 float TextureNormalVariance(float avgNormalLength)
 {
+    float variance = 0.0;
+
     if (avgNormalLength < 1.0)
     {
         float avgNormLen2 = avgNormalLength * avgNormalLength;
@@ -129,10 +145,10 @@ float TextureNormalVariance(float avgNormalLength)
         // Relationship between gaussian lobe and vMF lobe is 2 * variance = 1 / (2 * kappa) = roughness^2
         // (Equation 36 of  Normal map filtering based on The Order : 1886 SIGGRAPH course notes implementation).
         // So to get variance we must use variance = 1 / (4 * kappa)
-        return 0.25 * kappa;
+        variance = 0.25 / kappa;
     }
 
-    return 0.0;
+    return variance;
 }
 
 float TextureNormalFiltering(float perceptualSmoothness, float avgNormalLength, float threshold)

@@ -194,7 +194,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
                         lightDataPairing[light].hdAdditionalLightData.intensity = intensity;
                     }
                 }), 
-                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.Intensity, "m_Intensity", 60, (r, prop, dep) =>                // 9: Unit
+                new LightingExplorerTableColumn(LightingExplorerTableColumn.DataType.Float, HDStyles.Unit, "m_Intensity", 60, (r, prop, dep) =>                // 9: Unit
                 {
                     Light light = prop.serializedObject.targetObject as Light;
                     LightUnit unit = lightDataPairing[light].hdAdditionalLightData.lightUnit;

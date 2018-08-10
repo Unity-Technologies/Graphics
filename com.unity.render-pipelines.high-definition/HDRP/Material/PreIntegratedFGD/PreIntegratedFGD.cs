@@ -22,7 +22,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public enum FGDIndex
         {
             FGD_GGXAndDisneyDiffuse = 0,
-            FGD_CharlieAndClothLambert = 1,
+            FGD_CharlieAndFabricLambert = 1,
             Count = 2
         }
 
@@ -61,13 +61,13 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                         m_PreIntegratedFGD[(int)index].Create();
                         break;
 
-                    case FGDIndex.FGD_CharlieAndClothLambert:
-                        m_PreIntegratedFGDMaterial[(int)index] = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.preIntegratedFGD_CharlieClothLambert);
+                    case FGDIndex.FGD_CharlieAndFabricLambert:
+                        m_PreIntegratedFGDMaterial[(int)index] = CoreUtils.CreateEngineMaterial(hdrp.renderPipelineResources.preIntegratedFGD_CharlieFabricLambert);
                         m_PreIntegratedFGD[(int)index] = new RenderTexture(128, 128, 0, RenderTextureFormat.ARGB2101010, RenderTextureReadWrite.Linear);
                         m_PreIntegratedFGD[(int)index].hideFlags = HideFlags.HideAndDontSave;
                         m_PreIntegratedFGD[(int)index].filterMode = FilterMode.Bilinear;
                         m_PreIntegratedFGD[(int)index].wrapMode = TextureWrapMode.Clamp;
-                        m_PreIntegratedFGD[(int)index].name = CoreUtils.GetRenderTargetAutoName(128, 128, 1, RenderTextureFormat.ARGB2101010, "preIntegratedFGD_CharlieClothLambert");
+                        m_PreIntegratedFGD[(int)index].name = CoreUtils.GetRenderTargetAutoName(128, 128, 1, RenderTextureFormat.ARGB2101010, "preIntegratedFGD_CharlieFabricLambert");
                         m_PreIntegratedFGD[(int)index].Create();
                         break;
 
@@ -119,8 +119,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                     Shader.SetGlobalTexture(HDShaderIDs._PreIntegratedFGD_GGXDisneyDiffuse, m_PreIntegratedFGD[(int)index]);
                     break;
 
-                case FGDIndex.FGD_CharlieAndClothLambert:
-                    Shader.SetGlobalTexture(HDShaderIDs._PreIntegratedFGD_CharlieAndCloth, m_PreIntegratedFGD[(int)index]);
+                case FGDIndex.FGD_CharlieAndFabricLambert:
+                    Shader.SetGlobalTexture(HDShaderIDs._PreIntegratedFGD_CharlieAndFabric, m_PreIntegratedFGD[(int)index]);
                     break;
 
                 default:
