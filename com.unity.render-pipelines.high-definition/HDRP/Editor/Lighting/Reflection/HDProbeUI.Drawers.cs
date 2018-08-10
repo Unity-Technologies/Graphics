@@ -128,7 +128,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 
         protected static void Drawer_SectionCustomSettings(HDProbeUI s, SerializedHDProbe d, Editor o)
         {
-            EditorGUILayout.PropertyField(d.lightLayers, lightLayersContent);
+            d.lightLayers.intValue = Convert.ToInt32(EditorGUILayout.EnumFlagsField(lightLayersContent, (LightLayerEnum)d.lightLayers.intValue));
 
             EditorGUILayout.PropertyField(d.weight, weightContent);
 
