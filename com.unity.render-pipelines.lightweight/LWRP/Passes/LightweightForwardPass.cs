@@ -74,7 +74,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         }
 
         [Conditional("DEVELOPMENT_BUILD"), Conditional("UNITY_EDITOR")]
-        protected void RenderObjectsWithError(LightweightForwardRenderer renderer, ref ScriptableRenderContext context, ref CullResults cullResults, Camera camera, FilterRenderersSettings filterSettings, SortFlags sortFlags)
+        protected void RenderObjectsWithError(ScriptableRenderer renderer, ref ScriptableRenderContext context, ref CullResults cullResults, Camera camera, FilterRenderersSettings filterSettings, SortFlags sortFlags)
         {
             Material errorMaterial = renderer.GetMaterial(MaterialHandles.Error);
             if (errorMaterial != null)
