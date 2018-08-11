@@ -206,8 +206,6 @@ Shader "HDRenderPipeline/TerrainLit"
 
             ZWrite On
 
-            ColorMask 0
-
             HLSLPROGRAM
 
             // In deferred, depth only pass don't output anything.
