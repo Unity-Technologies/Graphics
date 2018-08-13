@@ -1593,13 +1593,12 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 
 // From http://blog.selfshadow.com/ltc/webgl/ltc_disk.html
 
-// An extended version of the implementation from
-// "How to solve a cubic equation, revisited"
-// http://momentsingraphics.de/?p=105
+// An extended version of the implementation from "How to solve a cubic equation, revisited" (From http://momentsingraphics.de/?p=105)
 float3 SolveCubic(float4 Coefficient)
 {
     // Normalize the polynomial
-    Coefficient.xyz /= Coefficient.w;
+//  Coefficient.xyz /= Coefficient.w; // No use in our case: w=1
+
     // Divide middle coefficients by three
     Coefficient.yz /= 3.0;
 
@@ -1628,8 +1627,7 @@ float3 SolveCubic(float4 Coefficient)
         float D_a = -2.0*B*Delta.x + Delta.y;
 
         // Take the cubic root of a normalized complex number
-//        float Theta = atan2( sqrt(Discriminant), -D_a ) / 3.0;
-        float Theta = atan2( sqrt( max( 0.0, Discriminant ) ), -D_a ) / 3.0;
+        float Theta = atan2( sqrt(Discriminant), -D_a ) / 3.0;
 
         float x_1a = 2.0*sqrt( max( 0.0, -C_a ) ) * cos( Theta );
         float x_3a = 2.0*sqrt( max( 0.0, -C_a ) ) * cos( Theta + (2.0/3.0)*PI );
@@ -1650,8 +1648,7 @@ float3 SolveCubic(float4 Coefficient)
         float D_d = -D*Delta.y + 2.0*C*Delta.z;
 
         // Take the cubic root of a normalized complex number
-//        float Theta = atan2( D*sqrt(Discriminant), -D_d ) / 3.0;
-        float Theta = atan2( D*sqrt( max( 0.0, Discriminant ) ), -D_d ) / 3.0;
+        float Theta = atan2( D*sqrt(Discriminant), -D_d ) / 3.0;
 
         float x_1d = 2.0*sqrt( max( 0.0, -C_d ) )*cos( Theta );
         float x_3d = 2.0*sqrt( max( 0.0, -C_d ) )*cos( Theta + (2.0/3.0)*PI );
@@ -1701,8 +1698,9 @@ float3   LTC_Evaluate( float3 N, float3 V, float3 P, float3x3 Minv, float3 cente
     float   d12 = dot( V1, V2 );
     float   d11d22 = d11 * d22;
     float   d12d12 = d12 * d12;
-//    if ( abs(d12) > 0.0001 * sqrt(d11d22) ) // This produces artifacts due to precision issues
-    if ( d12d12 > 0.00001 * d11d22 )
+
+//  if ( abs(d12) > 0.0001 * sqrt(d11d22) ) // This produces artifacts due to precision issues
+    if ( d12d12 > 0.0001 * d11d22 )
     {
         float   tr = d11 + d22;
         float   det = -d12d12 + d11d22;
@@ -1763,11 +1761,13 @@ float3   LTC_Evaluate( float3 N, float3 V, float3 P, float3x3 Minv, float3 cente
     float   e2 = roots.y;
     float   e3 = roots.z;
 
-//a = b = 1;
-//x0 = y0 = 1;
-//e2 = 0;
-    float3  avgDir = float3( a*x0/(a - e2), b*y0/(b - e2), 1.0 );
-//    float3  avgDir = float3( a * x0 * (b - e2), b * y0 * (a - e2), (a - e2) * (b - e2) );
+    #if 1
+        float   ae2 = a - e2;
+        float   be2 = b - e2;
+        float3  avgDir = float3( a * x0 * be2, b * y0 * ae2, ae2 * be2 );   // No change except we avoid divisions...
+    #else
+        float3  avgDir = float3( a*x0/(a - e2), b*y0/(b - e2), 1.0 );
+    #endif
 
     avgDir = normalize( mul( avgDir, float3x3( V1, V2, V3 ) ) );
 
@@ -1782,9 +1782,7 @@ float3   LTC_Evaluate( float3 N, float3 V, float3 P, float3x3 Minv, float3 cente
 //    float scale = texture2D(ltc_2, uv).w;
 //    return formFactor * scale;
 
-//return float3( 1, 1, 0 );
-//return formFactor;
-
+    // Use table fitting
     #if 1
         float   sinSqSigma = min( formFactor, 0.999 );
         float   cosOmega   = clamp( avgDir.z , -1, 1 );
@@ -1795,20 +1793,6 @@ float3   LTC_Evaluate( float3 N, float3 V, float3 P, float3x3 Minv, float3 cente
         float   sinSqSigma = min(sqrt(f2), 0.999);
         float   cosOmega   = clamp(F.z * rsqrt(f2), -1, 1);
     #endif
-
-//sinSqSigma = 0.8;
-//cosOmega = 1;
-//cosOmega = 1;
-
-//if ( IsNan(cosOmega) )
-//    return float3( 1, 0, 1 );
-//if ( isinf(cosOmega) )
-//    return float3( 1, 1, 0 );
-//return cosOmega < 0 ? -cosOmega * float3( 0, 0, 1 ) : cosOmega * float3( 1, 0, 0 );
-//cosOmega = max( 0.01, cosOmega );
-//return 1000000.0 * length(avgDir);
-//return length(avgDir) <= 1e-3 ? float3( 1, 0, 0 ) : float3( 0, 0, 1 );
-//return length(avgDir) > 1e-6 ? float3( 0, 0, 1 ) : float3( 1, 0, 0 );
 
     return DiffuseSphereLightIrradiance( sinSqSigma, cosOmega );
 }
@@ -1830,10 +1814,7 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
     float3 unL = lightData.positionRWS - positionWS;
 
     if (dot(lightData.forward, unL) >= 0.0001)
-    {
-//        lighting.diffuse = float3( 1, 0, 0 );
         return lighting;    // The light is back-facing.
-    }
 
     // Rotate the light direction into the light space.
     float3x3 lightToWorld = float3x3(lightData.right, lightData.up, -lightData.forward);
@@ -1863,10 +1844,7 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
 
     // Terminate if the shaded point is too far away.
     if ( intensity == 0.0 )
-    {
-//        lighting.diffuse = float3( 0, 1, 0 );
         return lighting;
-    }
 
     lightData.diffuseScale  *= intensity;
     lightData.specularScale *= intensity;
@@ -1878,10 +1856,6 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
     float3  axisX = halfWidth * lightData.right;
     float3  axisY = halfHeight * lightData.up;
 
-
-//lighting.diffuse = LTC_Evaluate( N, V, P, preLightData.ltcTransformDiffuse, center, axisX, axisY, preLightData );
-//lighting.specular = LTC_Evaluate( N, V, P, preLightData.ltcTransformSpecular, center, axisX, axisY, preLightData );
-//*
     float ltcValue;
     ltcValue  = LTC_Evaluate( N, V, P, preLightData.ltcTransformDiffuse, center, axisX, axisY, preLightData );
     ltcValue *= lightData.diffuseScale;
@@ -1897,22 +1871,6 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
     // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
     // This value is what we store in specularFGD, so reuse it
     lighting.specular += preLightData.specularFGD * ltcValue;
-//*/
-
-
-
-
-//lighting.diffuse = LTC_Evaluate( N, V, P, preLightData.ltcTransformDiffuse, center, axisX, axisY, preLightData );
-//lighting.diffuse = LTC_Evaluate( N, V, P, k_identity3x3, center, axisX, axisY, preLightData );
-//lighting.diffuse = lightData.diffuseScale;
-//lighting.diffuse = preLightData.diffuseFGD;
-
-//lighting.diffuse  = 0;
-//lighting.specular  = 0;
-
-
-
-
 
     // Save ALU by applying 'lightData.color' only once.
     lighting.diffuse *= lightData.color;
@@ -1927,7 +1885,6 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
         lighting.diffuse *= PI * lightData.diffuseScale;
     }
 #endif
-
 
 #endif
 
@@ -1954,8 +1911,10 @@ DirectLighting EvaluateBSDF_Sphere( LightLoopContext lightLoopContext,
     lightData.forward = faceLight[2];
 
     // Then we recompute the disk's center and radius to match the solid angle covered by the sphere
-    float   R = 0.5 * lightData.size.x; // Sphere's radius
-    float   D2R2 = max( 0.001, D*D - R*R );
+    float   R = 0.5 * lightData.size.x; // Sphere radius
+            R = min( R, D-1e-3 );       // Easy choice: make the sphere *shrink* if we get too close
+
+    float   D2R2 = D*D - R*R;
     float   d = D2R2 / D;               // Distance to disk center
     float   r = sqrt( D2R2 ) * R / D;   // Disk radius
 
