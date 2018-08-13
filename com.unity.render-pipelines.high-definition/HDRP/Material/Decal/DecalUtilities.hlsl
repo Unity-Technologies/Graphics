@@ -234,7 +234,9 @@ void AddDecalContribution(PositionInputs posInput, inout SurfaceData surfaceData
         if (mask & DBUFFERHTILEBIT_MASK)
         {
 #ifdef DECALS_4RT // only smoothness in 3RT mode
+    #if !defined(UNITY_MATERIAL_FABRIC)
             surfaceData.metallic = surfaceData.metallic * decalSurfaceData.MAOSBlend.x + decalSurfaceData.mask.x;
+    #endif
 			surfaceData.ambientOcclusion = surfaceData.ambientOcclusion * decalSurfaceData.MAOSBlend.y + decalSurfaceData.mask.y;
 #endif
             surfaceData.perceptualSmoothness = surfaceData.perceptualSmoothness * decalSurfaceData.mask.w + decalSurfaceData.mask.z;
