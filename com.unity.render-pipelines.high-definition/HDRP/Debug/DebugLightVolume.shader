@@ -26,7 +26,7 @@ Shader "Hidden/HDRenderPipeline/DebugLightVolume"
 
             struct AttributesDefault
             {
-                Vector3 positionOS : POSITION;
+                float3 positionOS : POSITION;
             };
 
             struct VaryingsDefault
