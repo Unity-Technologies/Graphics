@@ -1202,7 +1202,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
 {
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
-
+/*
     float3 L = -lightData.forward;
     float3 N = bsdfData.normalWS;
     float NdotL = dot(N, L);
@@ -1249,7 +1249,7 @@ DirectLighting EvaluateBSDF_Directional(LightLoopContext lightLoopContext,
         lighting.diffuse = color * intensity * lightData.diffuseScale;
     }
 #endif
-
+*/
     return lighting;
 }
 
@@ -1263,7 +1263,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
 {
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
-
+/*
     float3 L;
     float3 lightToSample;
     float4 distances; // {d, d^2, 1/d, d_proj}
@@ -1321,7 +1321,7 @@ DirectLighting EvaluateBSDF_Punctual(LightLoopContext lightLoopContext,
         lighting.diffuse = color * intensity * lightData.diffuseScale;
     }
 #endif
-
+*/
     return lighting;
 }
 
@@ -1337,7 +1337,7 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
 {
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
-
+/*
     float3 positionWS = posInput.positionWS;
 
 #ifdef LIT_DISPLAY_REFERENCE_AREA
@@ -1443,7 +1443,7 @@ DirectLighting EvaluateBSDF_Line(   LightLoopContext lightLoopContext,
 #endif
 
 #endif // LIT_DISPLAY_REFERENCE_AREA
-
+*/
     return lighting;
 }
 
@@ -1459,7 +1459,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 {
     DirectLighting lighting;
     ZERO_INITIALIZE(DirectLighting, lighting);
-
+/*
     float3 positionWS = posInput.positionWS;
 
 #ifdef LIT_DISPLAY_REFERENCE_AREA
@@ -1586,7 +1586,7 @@ DirectLighting EvaluateBSDF_Rect(   LightLoopContext lightLoopContext,
 #endif
 
 #endif // LIT_DISPLAY_REFERENCE_AREA
-
+*/
     return lighting;
 }
 
@@ -1628,10 +1628,11 @@ float3 SolveCubic(float4 Coefficient)
         float D_a = -2.0*B*Delta.x + Delta.y;
 
         // Take the cubic root of a normalized complex number
-        float Theta = atan2( sqrt(Discriminant), -D_a ) / 3.0;
+//        float Theta = atan2( sqrt(Discriminant), -D_a ) / 3.0;
+        float Theta = atan2( sqrt( max( 0.0, Discriminant ) ), -D_a ) / 3.0;
 
-        float x_1a = 2.0*sqrt(-C_a) * cos( Theta );
-        float x_3a = 2.0*sqrt(-C_a) * cos( Theta + (2.0/3.0)*PI );
+        float x_1a = 2.0*sqrt( max( 0.0, -C_a ) ) * cos( Theta );
+        float x_3a = 2.0*sqrt( max( 0.0, -C_a ) ) * cos( Theta + (2.0/3.0)*PI );
 
         float xl;
         if ((x_1a + x_3a) > 2.0*B)
@@ -1649,10 +1650,11 @@ float3 SolveCubic(float4 Coefficient)
         float D_d = -D*Delta.y + 2.0*C*Delta.z;
 
         // Take the cubic root of a normalized complex number
-        float Theta = atan2( D*sqrt(Discriminant), -D_d ) / 3.0;
+//        float Theta = atan2( D*sqrt(Discriminant), -D_d ) / 3.0;
+        float Theta = atan2( D*sqrt( max( 0.0, Discriminant ) ), -D_d ) / 3.0;
 
-        float x_1d = 2.0*sqrt(-C_d)*cos( Theta );
-        float x_3d = 2.0*sqrt(-C_d)*cos( Theta + (2.0/3.0)*PI );
+        float x_1d = 2.0*sqrt( max( 0.0, -C_d ) )*cos( Theta );
+        float x_3d = 2.0*sqrt( max( 0.0, -C_d ) )*cos( Theta + (2.0/3.0)*PI );
 
         float xs;
         if (x_1d + x_3d < 2.0*C)
@@ -1669,7 +1671,7 @@ float3 SolveCubic(float4 Coefficient)
 
     float2 xmc = float2(C*F - B*G, -B*F + C*E);
 
-    float3 Root = float3(xsc.x/xsc.y, xmc.x/xmc.y, xlc.x/xlc.y);
+    float3  Root = float3(xsc.x/xsc.y, xmc.x/xmc.y, xlc.x/xlc.y);
 
     if (Root.x < Root.y && Root.x < Root.z)
         Root.xyz = Root.yxz;
@@ -1679,15 +1681,30 @@ float3 SolveCubic(float4 Coefficient)
     return Root;
 }
 
-float3   LTC_Evaluate( float3 N, float3 V, float3 P, float3x3 Minv, float3 center, float3 axisX, float3 axisY )
+float3   LTC_Evaluate( float3 N, float3 V, float3 P, float3x3 Minv, float3 center, float3 axisX, float3 axisY, PreLightData preLightData )
 {
     // construct orthonormal basis around N
-    float3  T1 = normalize(V - N*dot(V, N));
-    float3  T2 = cross(N, T1);
+//    float3  T1 = normalize(V - N*dot(V, N));
+////T1 = V - N * dot( V, N );
+////if ( length(T1) != 0.0 )
+////    T1 /= length(T1);
+////else
+////    T1 = float3( 0, 0, 1 );
+//
+//    float3  T2 = cross(N, T1);
+//
+//
+//    // rotate area light in (T1, T2, N) basis
+////    float3x3    R = transpose( float3x3(T1, T2, N) );
+//    float3x3    R = float3x3(T1, T2, N);
+//
+////  float3x3    R = GetLocalFrame( N );
 
-    // rotate area light in (T1, T2, N) basis
-//    float3x3    R = transpose( float3x3(T1, T2, N) );
-    float3x3    R = float3x3(T1, T2, N);
+//    float3x3    R = preLightData.orthoBasisViewNormal;
+//    float3x3    R = transpose(preLightData.orthoBasisViewNormal);
+    float3x3    R = mul( transpose(preLightData.orthoBasisViewNormal), Minv );  // <== This can be stored in PreLightData instead of storing separate Minv and the basis! => We can gain a mul!
+
+    // Rotate the endpoints into the local coordinate system.
 
 /*    center -= P;   // Center is now in local space
     center = mul( R, center );
@@ -1707,55 +1724,58 @@ float3   LTC_Evaluate( float3 N, float3 V, float3 P, float3x3 Minv, float3 cente
 */
 
 
-    // polygon (allocate 5 vertices for clipping)
-    float3  points[3];
-    points[0] = center - axisX - axisY;
-    points[1] = center + axisX - axisY;
-    points[2] = center + axisX + axisY;
-
-    float3  L_[3];
-    L_[0] = mul( R, points[0] - P );
-    L_[1] = mul( R, points[1] - P );
-    L_[2] = mul( R, points[2] - P );
+    // Allocate 3 points: Center + 2 axes
+//    float3  points[3];
+//    points[0] = center - axisX - axisY;
+//    points[1] = center + axisX - axisY;
+//    points[2] = center + axisX + axisY;
+//
+//    float3  L_[3];
+//    L_[0] = mul( R, points[0] - P );
+//    L_[1] = mul( R, points[1] - P );
+//    L_[2] = mul( R, points[2] - P );
+//
+//    // init ellipse
+//    float3 C  = 0.5 * (L_[0] + L_[2]);
+//    float3 V1 = 0.5 * (L_[1] - L_[2]);
+//    float3 V2 = 0.5 * (L_[1] - L_[0]);
 
     // init ellipse
-    float3 C  = 0.5 * (L_[0] + L_[2]);
-    float3 V1 = 0.5 * (L_[1] - L_[2]);
-    float3 V2 = 0.5 * (L_[1] - L_[0]);
+    float3  C  = mul( center - P, R );  // Relative center
+    float3  V1 = mul( axisX, R );
+    float3  V2 = mul( axisY, R );
 
-//    C  = mul( Minv, C );
-//    V1 = mul( Minv, V1 );
-//    V2 = mul( Minv, V2 );
-    C  = mul( C , Minv );
-    V1 = mul( V1, Minv );
-    V2 = mul( V2, Minv );
-
+//    C  = mul( C , Minv );
+//    V1 = mul( V1, Minv );
+//    V2 = mul( V2, Minv );
 
     float3  V3 = cross(V2, V1);             // Normal to ellipse's plane
     if( dot( V3, C ) < 0.0 )
-        return 0.0;
-//        return float3( 1, 0, 0 );
+//        return 0.0;
+        return float3( 1, 0, 0 );
 
     // compute eigenvectors of ellipse
-    float a, b;
-    float d11 = dot(V1, V1);
-    float d22 = dot(V2, V2);
-    float d12 = dot(V1, V2);
-    if (abs(d12)/sqrt(d11*d22) > 0.0001)
+    float   a, b;
+    float   d11 = dot(V1, V1);
+    float   d22 = dot(V2, V2);
+    float   d12 = dot(V1, V2);
+    float   d11d22 = d11 * d22;
+    float   d12d12 = d12 * d12;
+//    if ( abs(d12) > 0.0001 * sqrt(d11d22) )
+    if ( d12d12 > 0.0001 * d11d22 )
     {
         float   tr = d11 + d22;
-        float   det = -d12*d12 + d11*d22;
+        float   det = -d12d12 + d11d22;
 
         // use sqrt matrix to solve for eigenvalues
         det = sqrt(det);
-        float   u = 0.5*sqrt(tr - 2.0*det);
-        float   v = 0.5*sqrt(tr + 2.0*det);
-        float   e_max = Sq(u + v);
-        float   e_min = Sq(u - v);
+        float   u = 0.5 * sqrt( max( 0.0, tr - 2.0*det ) );
+        float   v = 0.5 * sqrt( max( 0.0, tr + 2.0*det ) );
+        float   e_max = Sq( u + v );
+        float   e_min = Sq( u - v );
 
-        float3 V1_, V2_;
-
-        if (d11 > d22)
+        float3  V1_, V2_;
+        if ( d11 > d22 )
         {
             V1_ = d12*V1 + (e_max - d11)*V2;
             V2_ = d12*V1 + (e_min - d11)*V2;
@@ -1768,8 +1788,10 @@ float3   LTC_Evaluate( float3 N, float3 V, float3 P, float3x3 Minv, float3 cente
 
         a = 1.0 / e_max;
         b = 1.0 / e_min;
-        V1 = normalize(V1_);
-        V2 = normalize(V2_);
+        V1 = normalize( V1_ );
+        V2 = normalize( V2_ );
+//        V1 = length( V1_ ) > 1e-6 ? V1_ / length(V1_) : V1_;
+//        V2 = length( V2_ ) > 1e-6 ? V2_ / length(V2_) : V2_;
     }
     else
     {
@@ -1779,8 +1801,8 @@ float3   LTC_Evaluate( float3 N, float3 V, float3 P, float3x3 Minv, float3 cente
         V2 *= sqrt(b);
     }
 
-    V3 = cross(V1, V2);
-    if ( dot(C, V3) < 0.0 )
+    V3 = cross( V1, V2 );
+    if ( dot( C, V3 ) <= 0.0 )
         V3 = -V3;
 
     float   L  = dot(V3, C);
@@ -1803,17 +1825,25 @@ float3   LTC_Evaluate( float3 N, float3 V, float3 P, float3x3 Minv, float3 cente
     float   e2 = roots.y;
     float   e3 = roots.z;
 
-    float3  avgDir = float3(a*x0/(a - e2), b*y0/(b - e2), 1.0);
+//a = b = 1;
+//x0 = y0 = 1;
+//e2 = 0;
+//    float3  avgDir = float3( a*x0/(a - e2), b*y0/(b - e2), 1.0 );
+float3  avgDir = float3( a * x0 * (b - e2), b * y0 * (a - e2), (a - e2) * (b - e2) );
 
 //    float3x3 rotate = mat3_from_columns(V1, V2, V3);
-    float3x3    rotate = transpose( float3x3( V1, V2, V3 ) );
+//    float3x3    rotate = transpose( float3x3( V1, V2, V3 ) );
+//    avgDir = normalize( mul( rotate, avgDir ) );
+    avgDir = normalize( mul( avgDir, float3x3( V1, V2, V3 ) ) );
 
-    avgDir = normalize( mul( rotate, avgDir ) );
 
-    float   L1 = sqrt(-e2/e3);
-    float   L2 = sqrt(-e2/e1);
+//avgDir = normalize( mul( avgDir, k_identity3x3 ) );
 
-    float formFactor = L1*L2*rsqrt((1.0 + L1*L1)*(1.0 + L2*L2));
+
+    float   L1 = sqrt( -e2 / e3 );
+    float   L2 = sqrt( -e2 / e1 );
+
+    float   formFactor = L1*L2 * rsqrt( (1.0 + L1*L1) * (1.0 + L2*L2) );
 
 //    // use tabulated horizon-clipped sphere
 //    float2 uv = float2(avgDir.z*0.5 + 0.5, formFactor);
@@ -1834,6 +1864,20 @@ float3   LTC_Evaluate( float3 N, float3 V, float3 P, float3x3 Minv, float3 cente
         float   sinSqSigma = min(sqrt(f2), 0.999);
         float   cosOmega   = clamp(F.z * rsqrt(f2), -1, 1);
     #endif
+
+sinSqSigma = 0.8;
+//cosOmega = 1;
+//cosOmega = 1;
+
+//if ( IsNan(cosOmega) )
+//    return float3( 1, 0, 1 );
+//if ( isinf(cosOmega) )
+//    return float3( 1, 1, 0 );
+//return cosOmega < 0 ? -cosOmega * float3( 0, 0, 1 ) : cosOmega * float3( 1, 0, 0 );
+//cosOmega = max( 0.01, cosOmega );
+//return 1000000.0 * length(avgDir);
+//return length(avgDir) <= 1e-3 ? float3( 1, 0, 0 ) : float3( 0, 0, 1 );
+//return length(avgDir) > 1e-6 ? float3( 0, 0, 1 ) : float3( 1, 0, 0 );
 
     return DiffuseSphereLightIrradiance( sinSqSigma, cosOmega );
 }
@@ -1856,8 +1900,8 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
 
     if (dot(lightData.forward, unL) >= 0.0001)
     {
-        // The light is back-facing.
-        return lighting;
+        lighting.diffuse = float3( 1, 0, 0 );
+        return lighting;    // The light is back-facing.
     }
 
     // Rotate the light direction into the light space.
@@ -1887,8 +1931,11 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
     #endif
 
     // Terminate if the shaded point is too far away.
-    if (intensity == 0.0)
+    if ( intensity == 0.0 )
+    {
+        lighting.diffuse = float3( 0, 1, 0 );
         return lighting;
+    }
 
     lightData.diffuseScale  *= intensity;
     lightData.specularScale *= intensity;
@@ -1901,11 +1948,11 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
     float3  axisY = halfHeight * lightData.up;
 
 
-//lighting.diffuse = LTC_Evaluate( N, V, P, preLightData.ltcTransformDiffuse, center, axisX, axisY );
-//lighting.specular = LTC_Evaluate( N, V, P, preLightData.ltcTransformSpecular, center, axisX, axisY );
-//*
+//lighting.diffuse = LTC_Evaluate( N, V, P, preLightData.ltcTransformDiffuse, center, axisX, axisY, preLightData );
+//lighting.specular = LTC_Evaluate( N, V, P, preLightData.ltcTransformSpecular, center, axisX, axisY, preLightData );
+/*
     float ltcValue;
-    ltcValue  = LTC_Evaluate( N, V, P, preLightData.ltcTransformDiffuse, center, axisX, axisY );
+    ltcValue  = LTC_Evaluate( N, V, P, preLightData.ltcTransformDiffuse, center, axisX, axisY, preLightData );
     ltcValue *= lightData.diffuseScale;
     // We don't multiply by 'bsdfData.diffuseColor' here. It's done only once in PostEvaluateBSDF().
     // See comment for specular magnitude, it apply to diffuse as well
@@ -1913,13 +1960,28 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
 
     // Evaluate the specular part
     // Polygon irradiance in the transformed configuration.
-    ltcValue  = LTC_Evaluate( N, V, P, preLightData.ltcTransformSpecular, center, axisX, axisY );
+    ltcValue  = LTC_Evaluate( N, V, P, preLightData.ltcTransformSpecular, center, axisX, axisY, preLightData );
     ltcValue *= lightData.specularScale;
     // We need to multiply by the magnitude of the integral of the BRDF
     // ref: http://advances.realtimerendering.com/s2016/s2016_ltc_fresnel.pdf
     // This value is what we store in specularFGD, so reuse it
     lighting.specular += preLightData.specularFGD * ltcValue;
 //*/
+
+
+
+
+lighting.diffuse = LTC_Evaluate( N, V, P, preLightData.ltcTransformDiffuse, center, axisX, axisY, preLightData );
+//lighting.diffuse = LTC_Evaluate( N, V, P, k_identity3x3, center, axisX, axisY, preLightData );
+//lighting.diffuse = lightData.diffuseScale;
+//lighting.diffuse = preLightData.diffuseFGD;
+
+//lighting.diffuse  = 0;
+lighting.specular  = 0;
+
+
+
+
 
     // Save ALU by applying 'lightData.color' only once.
     lighting.diffuse *= lightData.color;
@@ -1930,7 +1992,7 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
     {
         // Only lighting, not BSDF
         // Apply area light on lambert then multiply by PI to cancel Lambert
-        lighting.diffuse = LTC_Evaluate( N, V, P, k_identity3x3, center, axisX, axisY );
+        lighting.diffuse = LTC_Evaluate( N, V, P, k_identity3x3, center, axisX, axisY, preLightData );
         lighting.diffuse *= PI * lightData.diffuseScale;
     }
 #endif
@@ -1954,27 +2016,36 @@ DirectLighting EvaluateBSDF_Sphere( LightLoopContext lightLoopContext,
     float3      light = lightData.positionRWS - posInput.positionWS;
     float       D = length(light);
                 light *= D > 1e-6 ? 1.0 / D : 1.0;
+
+//light = float3( 0, -1, 0 );
+
     float3x3    faceLight = GetLocalFrame( -light );
     lightData.right = faceLight[0];
     lightData.up = faceLight[1];
     lightData.forward = faceLight[2];
 
-
-    // Then we recompute the disk's center and radius to match the solid angle covered by the sphere
-    float   R = 0.5 * lightData.size.x; // Sphere's radius
-    float   D2R2 = max( 0.001, D*D - R*R );
-    float   d = D2R2 / D;               // Distance to disk center
-    float   r = sqrt( D2R2 ) * R / D;   // Disk radius
-
-    lightData.positionRWS = posInput.positionWS + d * light;    // New position for the disk
-    lightData.size = 2.0 * r;                                   // New radius for the disk
-
+//lightData.right = float3( 1, 0, 0 );
+//lightData.up = float3( 0, 0, 1 );
+//lightData.forward = float3( 0, -1, 0 );
+//
+//    // Then we recompute the disk's center and radius to match the solid angle covered by the sphere
+//    float   R = 0.5 * lightData.size.x; // Sphere's radius
+//    float   D2R2 = max( 0.001, D*D - R*R );
+//    float   d = D2R2 / D;               // Distance to disk center
+//    float   r = sqrt( D2R2 ) * R / D;   // Disk radius
+//
+//    lightData.positionRWS = posInput.positionWS + d * light;    // New position for the disk
+//    lightData.size = 2.0 * r;                                   // New radius for the disk
 
 //DirectLighting lighting;
 //ZERO_INITIALIZE(DirectLighting, lighting);
 //lighting.diffuse = 10.0 * saturate( dot( bsdfData.normalWS, -lightData.forward ) );
 //lighting.diffuse = 10.0 * saturate( dot( bsdfData.normalWS, lightData.right ) );
 //return lighting;
+
+//preLightData.ltcTransformDiffuse = k_identity3x3;
+//preLightData.ltcTransformSpecular = k_identity3x3;
+
 
     return EvaluateBSDF_Disk( lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData );
 }
@@ -1986,21 +2057,21 @@ DirectLighting EvaluateBSDF_Area(LightLoopContext lightLoopContext,
     PreLightData preLightData, LightData lightData,
     BSDFData bsdfData, BuiltinData builtinData)
 {
-//    DirectLighting lighting;
-//    ZERO_INITIALIZE(DirectLighting, lighting);
-//
+    DirectLighting lighting;
+    ZERO_INITIALIZE(DirectLighting, lighting);
+
 //lighting.diffuse = lighting.specular = 100 * float3( 1, 0, 1 );
 //return lighting;
 
     switch ( lightData.lightType )
     {
-        case GPULIGHTTYPE_LINE:
-            return EvaluateBSDF_Line(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
+//        case GPULIGHTTYPE_LINE:
+//            return EvaluateBSDF_Line(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
         case GPULIGHTTYPE_SPHERE:
             return EvaluateBSDF_Sphere(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
         case GPULIGHTTYPE_DISK:
             return EvaluateBSDF_Disk(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
-//        case GPULIGHTTYPE_RECTANGLE:
+////        case GPULIGHTTYPE_RECTANGLE:
         default:
             return EvaluateBSDF_Rect(lightLoopContext, V, posInput, preLightData, lightData, bsdfData, builtinData);
     }
@@ -2019,7 +2090,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
 {
     IndirectLighting lighting;
     ZERO_INITIALIZE(IndirectLighting, lighting);
-
+/*
     // -------------------------------
     // Early out
     // -------------------------------
@@ -2285,7 +2356,7 @@ IndirectLighting EvaluateBSDF_SSLighting(LightLoopContext lightLoopContext,
         return lighting;
     }
 #endif
-
+*/
     return lighting;
 }
 
@@ -2302,6 +2373,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
 {
     IndirectLighting lighting;
     ZERO_INITIALIZE(IndirectLighting, lighting);
+/*
 #if !HAS_REFRACTION
     if (GPUImageBasedLightingType == GPUIMAGEBASEDLIGHTINGTYPE_REFRACTION)
         return lighting;
@@ -2420,7 +2492,7 @@ IndirectLighting EvaluateBSDF_Env(  LightLoopContext lightLoopContext,
     else
         lighting.specularTransmitted = envLighting * preLightData.transparentTransmittance;
 #endif
-
+*/
     return lighting;
 }
 
