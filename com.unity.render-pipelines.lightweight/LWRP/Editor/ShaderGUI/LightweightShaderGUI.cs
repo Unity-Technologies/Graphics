@@ -49,7 +49,7 @@ public abstract class LightweightShaderGUI : ShaderGUI
         cullingProp = FindProperty("_Cull", properties);
         alphaClipProp = FindProperty("_AlphaClip", properties);
         alphaCutoffProp = FindProperty("_Cutoff", properties);
-        receiveShadowsProp = FindProperty("_ReceiveShadows", properties);
+        receiveShadowsProp = FindProperty("_ReceiveShadows", properties, false);
     }
 
     public virtual void ShaderPropertiesGUI(Material material)

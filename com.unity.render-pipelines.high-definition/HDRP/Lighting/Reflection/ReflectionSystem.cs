@@ -16,9 +16,19 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             s_Instance.RegisterProbe(planarProbe);
         }
 
+        public static void RegisterProbe(HDAdditionalReflectionData probe)
+        {
+            s_Instance.RegisterProbe(probe);
+        }
+
         public static void UnregisterProbe(PlanarReflectionProbe planarProbe)
         {
             s_Instance.UnregisterProbe(planarProbe);
+        }
+
+        public static void UnregisterProbe(HDAdditionalReflectionData probe)
+        {
+            s_Instance.UnregisterProbe(probe);
         }
 
         public static void RequestRealtimeRender(PlanarReflectionProbe probe)

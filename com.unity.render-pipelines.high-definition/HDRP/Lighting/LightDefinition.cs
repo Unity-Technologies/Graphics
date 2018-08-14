@@ -130,6 +130,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
     public struct EnvLightData
     {
         // Packing order depends on chronological access to avoid cache misses
+        public uint lightLayers;
 
         // Proxy properties
         public Vector3 capturePositionRWS;

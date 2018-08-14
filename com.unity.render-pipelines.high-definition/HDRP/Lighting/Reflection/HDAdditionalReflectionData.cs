@@ -12,6 +12,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             Second,
             HDProbeChild,
             UseInfluenceVolume,
+            MergeEditors,
             // Add new version here and they will automatically be the Current one
             Max,
             Current = Max - 1
@@ -21,19 +22,16 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         int m_Version;
 
         ReflectionProbe m_LegacyProbe;
-        ReflectionProbe legacyProbe
+        /// <summary>Get the sibling component ReflectionProbe</summary>
+        public ReflectionProbe reflectionProbe
         {
             get
             {
-                if (m_LegacyProbe == null || m_LegacyProbe.Equals(null))
+                if(m_LegacyProbe == null || m_LegacyProbe.Equals(null))
                 {
                     m_LegacyProbe = GetComponent<ReflectionProbe>();
-                    return m_LegacyProbe;
                 }
-                else
-                {
-                    return m_LegacyProbe;
-                }
+                return m_LegacyProbe;
             }
         }
 
@@ -59,6 +57,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         bool needMigrateToHDProbeChild = false;
         bool needMigrateToUseInfluenceVolume = false;
+        bool needMigrateToMergeEditors = false;
 
         public void CopyTo(HDAdditionalReflectionData data)
         {
@@ -89,6 +88,10 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 {
                     needMigrateToUseInfluenceVolume = true;
                 }
+                else if (m_Version < (int)Version.MergeEditors)
+                {
+                    needMigrateToMergeEditors = true;
+                }
                 else
                 {
                     // Add here data migration code that do not use other component
@@ -103,12 +106,29 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                 MigrateToHDProbeChild();
             if (needMigrateToUseInfluenceVolume)
                 MigrateToUseInfluenceVolume();
+            if (needMigrateToMergeEditors)
+                MigrateToMergeEditors();
+            
+            ReflectionSystem.RegisterProbe(this);
+        }
+
+        void OnDisable()
+        {
+            ReflectionSystem.UnregisterProbe(this);
+        }
+
+        void OnValidate()
+        {
+            ReflectionSystem.UnregisterProbe(this);
+
+            if (isActiveAndEnabled)
+                ReflectionSystem.RegisterProbe(this);
         }
 
         void MigrateToHDProbeChild()
         {
-            mode = legacyProbe.mode;
-            refreshMode = legacyProbe.refreshMode;
+            mode = reflectionProbe.mode;
+            refreshMode = reflectionProbe.refreshMode;
             m_Version = (int)Version.HDProbeChild;
             needMigrateToHDProbeChild = false;
             OnAfterDeserialize();   //continue migrating if needed
@@ -116,7 +136,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
 
         void MigrateToUseInfluenceVolume()
         {
-            influenceVolume.boxSize = legacyProbe.size;
+            influenceVolume.boxSize = reflectionProbe.size;
 #pragma warning disable CS0618 // Type or member is obsolete
             influenceVolume.sphereRadius = influenceSphereRadius;
             influenceVolume.shape = influenceShape; //must be done after each size transfert
@@ -135,12 +155,25 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             //User will lose parameters corresponding to non used mode between simplified and advanced
         }
 
+        void MigrateToMergeEditors()
+        {
+            infiniteProjection = !reflectionProbe.boxProjection;
+            reflectionProbe.boxProjection = false;
+            m_Version = (int)Version.MergeEditors;
+            needMigrateToMergeEditors = false;
+            OnAfterDeserialize();   //continue migrating if needed
+        }
+
         public override ReflectionProbeMode mode
         {
             set
             {
                 base.mode = value;
-                legacyProbe.mode = value; //ensure compatibility till we capture without the legacy component
+                reflectionProbe.mode = value; //ensure compatibility till we capture without the legacy component
+                if(value == ReflectionProbeMode.Realtime)
+                {
+                    refreshMode = ReflectionProbeRefreshMode.EveryFrame;
+                }
             }
         }
 
@@ -149,14 +182,14 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             set
             {
                 base.refreshMode = value;
-                legacyProbe.refreshMode = value; //ensure compatibility till we capture without the legacy component
+                reflectionProbe.refreshMode = value; //ensure compatibility till we capture without the legacy component
             }
         }
 
         internal override void UpdatedInfluenceVolumeShape(Vector3 size, Vector3 offset)
         {
-            legacyProbe.size = size;
-            legacyProbe.center = transform.rotation*offset;
+            reflectionProbe.size = size;
+            reflectionProbe.center = transform.rotation*offset;
         }
     }
 }
