@@ -510,8 +510,8 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             material.SetInt(kStencilWriteMaskMV, (int)HDRenderPipeline.StencilBitMask.ObjectVelocity);
 
             // for depth only pass to be used in decal to normal buffer compositing
-            material.SetInt(kStencilDepthPrepassRef, (int)HDRenderPipeline.StencilBitMask.StackLit);
-            material.SetInt(kStencilDepthPrepassWriteMask, (int)HDRenderPipeline.StencilBitMask.StackLit);
+            material.SetInt(kStencilDepthPrepassRef, (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer);
+            material.SetInt(kStencilDepthPrepassWriteMask, (int)HDRenderPipeline.StencilBitMask.DecalsForwardOutputNormalBuffer);
         }
     }
 } // namespace UnityEditor

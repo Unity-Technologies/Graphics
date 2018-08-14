@@ -135,12 +135,12 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         [Flags]
         public enum StencilBitMask
         {
-            Clear           = 0,             // 0x0
-            LightingMask    = 7,             // 0x7  - 3 bit
-            Decals          = 8,             // 0x8  - 1 bit
-            StackLit        = 16,            // 0x10  - 1 bit
-            ObjectVelocity  = 128,           // 0x80 - 1 bit
-            All             = 255            // 0xFF - 8 bit
+            Clear                           = 0,    // 0x0
+            LightingMask                    = 7,    // 0x7  - 3 bit
+            Decals                          = 8,    // 0x8  - 1 bit
+            DecalsForwardOutputNormalBuffer = 16,   // 0x10  - 1 bit
+            ObjectVelocity                  = 128,  // 0x80 - 1 bit
+            All                             = 255   // 0xFF - 8 bit
         }
 
         RenderStateBlock m_DepthStateOpaque;
@@ -981,8 +981,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
                             }
                             else // in deferred rendering only pixels affected by both forward materials and decals need to be composited
                             {
-                                stencilMask = (int)StencilBitMask.Decals | (int)StencilBitMask.StackLit;
-                                stencilRef = (int)StencilBitMask.Decals | (int)StencilBitMask.StackLit;
+                                stencilMask = (int)StencilBitMask.Decals | (int)StencilBitMask.DecalsForwardOutputNormalBuffer;
+                                stencilRef = (int)StencilBitMask.Decals | (int)StencilBitMask.DecalsForwardOutputNormalBuffer;
                             }
 
                             m_DecalNormalBufferMaterial.SetInt(HDShaderIDs._DecalNormalBufferStencilReadMask, stencilMask);
