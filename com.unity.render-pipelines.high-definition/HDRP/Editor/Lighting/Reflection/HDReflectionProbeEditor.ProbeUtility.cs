@@ -2,7 +2,7 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     partial class HDReflectionProbeEditor
     {
-        void InitializeAllTargetProbes()
+        void InitializeTargetProbe()
         {
             // For an unknown reason, newly created probes sometype have the type "Quad" (value = 1)
             // This type of probe is not supported by Unity since 5.4

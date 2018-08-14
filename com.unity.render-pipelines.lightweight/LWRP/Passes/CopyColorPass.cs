@@ -21,7 +21,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             this.destination = destination;
         }
 
-        public override void Execute(LightweightForwardRenderer renderer, ref ScriptableRenderContext context,
+        public override void Execute(ScriptableRenderer renderer, ref ScriptableRenderContext context,
             ref CullResults cullResults,
             ref RenderingData renderingData)
         {
@@ -30,7 +30,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             Downsampling downsampling = renderingData.cameraData.opaqueTextureDownsampling;
             float opaqueScaler = m_OpaqueScalerValues[(int)downsampling];
 
-            RenderTextureDescriptor opaqueDesc = LightweightForwardRenderer.CreateRTDesc(ref renderingData.cameraData, opaqueScaler);
+            RenderTextureDescriptor opaqueDesc = ScriptableRenderer.CreateRTDesc(ref renderingData.cameraData, opaqueScaler);
             RenderTargetIdentifier colorRT = source.Identifier();
             RenderTargetIdentifier opaqueColorRT = destination.Identifier();
 

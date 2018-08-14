@@ -9,8 +9,8 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
         int kDepthBufferBits = 32;
 
         private RenderTargetHandle depthAttachmentHandle { get; set; }
-        private RenderTextureDescriptor descriptor { get; set; }
-        public FilterRenderersSettings opaqueFilterSettings { get; private set; }
+        internal RenderTextureDescriptor descriptor { get; set; }
+        private FilterRenderersSettings opaqueFilterSettings { get; set; }
 
         public void Setup(
             RenderTextureDescriptor baseDescriptor,
@@ -39,7 +39,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             };
         }
 
-        public override void Execute(LightweightForwardRenderer renderer, ref ScriptableRenderContext context,
+        public override void Execute(ScriptableRenderer renderer, ref ScriptableRenderContext context,
             ref CullResults cullResults,
             ref RenderingData renderingData)
         {
