@@ -148,10 +148,10 @@ void TerrainSplatBlend(float2 uv, float3 tangentWS, float3 bitangentWS,
 
 #ifdef _MASKMAP
     #define SampleMasks(i, blendMask) RemapMasks(SAMPLE_TEXTURE2D_GRAD(_Mask##i, sampler_Splat0, splatuv, splatdxuv, splatdyuv), blendMask, _Metallic##i, _Smoothness##i, _MaskMapRemapOffset##i, _MaskMapRemapScale##i)
-    #define NullMask(i)               float4(0, 0, _MaskMapRemapOffset##i.z, 0) // only height matters when weight is zero.
+    #define NullMask(i)               float4(0, 1, _MaskMapRemapOffset##i.z, 0) // only height matters when weight is zero.
 #else
-    #define SampleMasks(i, blendMask) float4(_Metallic##i, 0, 0, albedo[i].a * _Smoothness##i)
-    #define NullMask(i)               float4(0, 0, 0, 0)
+    #define SampleMasks(i, blendMask) float4(_Metallic##i, 1, 0, albedo[i].a * _Smoothness##i)
+    #define NullMask(i)               float4(0, 1, 0, 0)
 #endif
 
 #define SampleResults(i, mask)                                                                          \
@@ -302,5 +302,5 @@ void TerrainSplatBlend(float2 uv, float3 tangentWS, float3 bitangentWS,
     #endif
     outSmoothness = outMasks.z;
     outMetallic = outMasks.x;
-    outAO = saturate(1 - outMasks.y);
+    outAO = outMasks.y;
 }
