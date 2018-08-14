@@ -16,8 +16,7 @@ Shader "Hidden/HDRenderPipeline/Material/Decal/DecalNormalBuffer"
         #include "../../ShaderVariables.hlsl"
         #include "Decal.hlsl"
         #include "../NormalBuffer.hlsl"
-
-        TEXTURE2D(_DBufferTexture1);
+        
         RW_TEXTURE2D(float4, _NormalBuffer);
                 
         struct Attributes
@@ -31,6 +30,8 @@ Shader "Hidden/HDRenderPipeline/Material/Decal/DecalNormalBuffer"
             float2 texcoord   : TEXCOORD0;
         };
 
+        DECLARE_DBUFFER_TEXTURE(_DBufferTexture);
+
         Varyings Vert(Attributes input)
         {
             Varyings output;
@@ -41,11 +42,14 @@ Shader "Hidden/HDRenderPipeline/Material/Decal/DecalNormalBuffer"
 
         float4 FragNearest(Varyings input) : SV_Target
         {
-            float4 DBufferNormal = LOAD_TEXTURE2D(_DBufferTexture1, input.texcoord * _ScreenSize.xy) * float4(2.0f, 2.0f, 2.0f, 1.0f) - float4(1.0f, 1.0f, 1.0f, 0.0f);
+            FETCH_DBUFFER(DBuffer, _DBufferTexture, input.texcoord * _ScreenSize.xy);
+            DecalSurfaceData decalSurfaceData;
+            DECODE_FROM_DBUFFER(DBuffer, decalSurfaceData);
+
             float4 GBufferNormal = _NormalBuffer[input.texcoord * _ScreenSize.xy];
             NormalData normalData;
             DecodeFromNormalBuffer(GBufferNormal, uint2(0, 0), normalData);
-            normalData.normalWS.xyz = normalize(normalData.normalWS.xyz * DBufferNormal.w + DBufferNormal.xyz);
+            normalData.normalWS.xyz = normalize(normalData.normalWS.xyz * decalSurfaceData.normalWS.w + decalSurfaceData.normalWS.xyz);
             EncodeIntoNormalBuffer(normalData, uint2(0, 0), GBufferNormal);
             _NormalBuffer[input.texcoord * _ScreenSize.xy] = GBufferNormal;
             return float4(0, 0, 0, 0); // normal buffer is written into as a RWTexture
