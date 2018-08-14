@@ -82,7 +82,7 @@ namespace UnityEditor.VFX.UI
             {
                 get;
             }
-            public abstract CoordinateSpace space
+            public abstract VFXCoordinateSpace space
             {
                 get;
             }

@@ -235,11 +235,11 @@ namespace UnityEditor.VFX.Test
             */
         }
 
-        #pragma warning disable CS0414
+        #pragma warning disable 0414
         private static bool[] linkModes = { true, false };
         private static bool[] bindingModes = { true, false };
 
-        #pragma warning restore CS0414
+        #pragma warning restore 0414
         [UnityTest]
         [Timeout(1000 * 10)]
         public IEnumerator CreateComponentWithAllBasicTypeExposed([ValueSource("linkModes")] bool linkMode, [ValueSource("bindingModes")] bool bindingModes)
@@ -375,7 +375,7 @@ namespace UnityEditor.VFX.Test
                     try
                     {
                         var propertySheet = editor.serializedObject.FindProperty("m_PropertySheet");
-                        var fieldName = VisualEffectUtility.GetTypeField(VFXExpression.TypeToType(type)) + ".m_Array";
+                        var fieldName = VisualEffectSerializationUtility.GetTypeField(VFXExpression.TypeToType(type)) + ".m_Array";
                         var vfxField = propertySheet.FindPropertyRelative(fieldName);
                         if (vfxField != null)
                         {
@@ -455,7 +455,7 @@ namespace UnityEditor.VFX.Test
                         var propertySheet = editor.serializedObject.FindProperty("m_PropertySheet");
                         editor.serializedObject.Update();
 
-                        var fieldName = VisualEffectUtility.GetTypeField(VFXExpression.TypeToType(type)) + ".m_Array";
+                        var fieldName = VisualEffectSerializationUtility.GetTypeField(VFXExpression.TypeToType(type)) + ".m_Array";
                         var vfxField = propertySheet.FindPropertyRelative(fieldName);
                         if (vfxField != null)
                         {
@@ -476,7 +476,7 @@ namespace UnityEditor.VFX.Test
                                         case VFXValueType.Int32: return property.intValue;
                                         case VFXValueType.Uint32: return property.intValue; // there isn't uintValue
                                         case VFXValueType.Curve: return property.animationCurveValue;
-                                        /*Tristan*/ //case VFXValueType.ColorGradient: return property.gradientValue;
+                                        case VFXValueType.ColorGradient: return property.gradientValue;
                                         case VFXValueType.Mesh: return property.objectReferenceValue;
                                         case VFXValueType.Texture2D:
                                         case VFXValueType.Texture2DArray:
@@ -507,7 +507,7 @@ namespace UnityEditor.VFX.Test
                         editor.serializedObject.Update();
 
                         var propertySheet = editor.serializedObject.FindProperty("m_PropertySheet");
-                        var fieldName = VisualEffectUtility.GetTypeField(VFXExpression.TypeToType(type)) + ".m_Array";
+                        var fieldName = VisualEffectSerializationUtility.GetTypeField(VFXExpression.TypeToType(type)) + ".m_Array";
                         var vfxField = propertySheet.FindPropertyRelative(fieldName);
                         if (vfxField != null)
                         {
@@ -529,7 +529,7 @@ namespace UnityEditor.VFX.Test
                                         case VFXValueType.Int32: propertyValue.intValue = (int)value; break;
                                         case VFXValueType.Uint32: propertyValue.intValue = (int)((uint)value); break; // there isn't uintValue
                                         case VFXValueType.Curve: propertyValue.animationCurveValue = (AnimationCurve)value; break;
-                                        /*Tristan*/ //case VFXValueType.ColorGradient: propertyValue.gradientValue = (Gradient)value; break;
+                                        case VFXValueType.ColorGradient: propertyValue.gradientValue = (Gradient)value; break;
                                         case VFXValueType.Mesh: propertyValue.objectReferenceValue = (UnityEngine.Object)value; break;
                                         case VFXValueType.Texture2D:
                                         case VFXValueType.Texture2DArray:
@@ -681,6 +681,31 @@ namespace UnityEditor.VFX.Test
                 var currentName = commonBaseName + type.ToString();
                 var baseValue = GetValue_B(type);
                 Assert.IsTrue(fnHas(type, vfxComponent, currentName));
+
+                var currentValue = fnGet(type, vfxComponent, currentName);
+                if (type == VFXValueType.ColorGradient)
+                {
+                    Assert.IsTrue(fnCompareGradient((Gradient)baseValue, (Gradient)currentValue));
+                }
+                else if (type == VFXValueType.Curve)
+                {
+                    Assert.IsTrue(fnCompareCurve((AnimationCurve)baseValue, (AnimationCurve)currentValue));
+                }
+                else
+                {
+                    Assert.AreEqual(baseValue, currentValue);
+                }
+                yield return null;
+            }
+
+            //Test ResetOverride function
+            foreach (var type in types)
+            {
+                var currentName = commonBaseName + type.ToString();
+                vfxComponent.ResetOverride(currentName);
+
+                //If we use bindings, internal value is restored but it doesn't change serialized property (strange but intended behavior)
+                var baseValue = bindingModes ? GetValue_A(type) : GetValue_B(type);
 
                 var currentValue = fnGet(type, vfxComponent, currentName);
                 if (type == VFXValueType.ColorGradient)

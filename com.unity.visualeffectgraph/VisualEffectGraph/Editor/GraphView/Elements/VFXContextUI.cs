@@ -110,7 +110,7 @@ namespace UnityEditor.VFX.UI
 
 
             var space = controller.context.space;
-            foreach (CoordinateSpace val in System.Enum.GetValues(typeof(CoordinateSpace)))
+            foreach (VFXCoordinateSpace val in System.Enum.GetValues(typeof(VFXCoordinateSpace)))
             {
                 if (val != space)
                     m_HeaderSpace.RemoveFromClassList("space" + val.ToString());
@@ -193,7 +193,7 @@ namespace UnityEditor.VFX.UI
 
             this.mainContainer.clippingOptions = ClippingOptions.NoClipping;
 
-            mainContainer.Q("contents").clippingOptions = ClippingOptions.ClipAndCacheContents;
+            //mainContainer.Q("contents").clippingOptions = ClippingOptions.ClipAndCacheContents;
 
             m_FlowInputConnectorContainer = this.Q("flow-inputs");
 
@@ -219,7 +219,7 @@ namespace UnityEditor.VFX.UI
         bool m_CanHaveBlocks = false;
         void OnSpace()
         {
-            controller.context.space = (CoordinateSpace)(((int)controller.context.space + 1) % (CoordinateSpaceInfo.SpaceCount));
+            controller.context.space = (VFXCoordinateSpace)(((int)controller.context.space + 1) % (CoordinateSpaceInfo.SpaceCount));
         }
 
         public bool CanDrop(IEnumerable<VFXBlockUI> blocks)
@@ -523,7 +523,7 @@ namespace UnityEditor.VFX.UI
             {
                 VFXView view = m_Context.GetFirstAncestorOfType<VFXView>();
                 m_Context.controller.ApplyChanges();
-                (m_Context.panel as BaseVisualElementPanel).ValidateLayout();
+                m_Context.panel.InternalValidateLayout();
 
                 view.PushUnderContext(m_Context, m_Context.layout.size.y - m_PrevSize);
             }
@@ -557,7 +557,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public void OnCreateBlock(ContextualMenu.MenuAction evt)
+        public void OnCreateBlock(DropdownMenu.MenuAction evt)
         {
             Vector2 referencePosition = evt.eventInfo.mousePosition;
 
@@ -620,7 +620,7 @@ namespace UnityEditor.VFX.UI
             {
                 if (m_CanHaveBlocks)
                 {
-                    evt.menu.AppendAction("Create Block", OnCreateBlock, e => ContextualMenu.MenuAction.StatusFlags.Normal);
+                    evt.menu.InsertAction(0, "Create Block", OnCreateBlock, e => DropdownMenu.MenuAction.StatusFlags.Normal);
                     evt.menu.AppendSeparator();
                 }
             }

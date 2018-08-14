@@ -17,7 +17,7 @@ namespace UnityEditor.VFX
 
         private void CollectAndAddUniforms(VFXExpression exp, IEnumerable<string> names)
         {
-            if (!exp.IsAny(VFXExpression.Flags.NotCompilabeOnCPU))
+            if (!exp.IsAny(VFXExpression.Flags.NotCompilableOnCPU))
             {
                 string prefix;
                 Dictionary<VFXExpression, List<string>> expressions;

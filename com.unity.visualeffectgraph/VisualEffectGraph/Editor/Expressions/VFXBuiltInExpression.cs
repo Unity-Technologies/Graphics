@@ -5,7 +5,7 @@ using UnityEngine.Experimental.VFX;
 
 namespace UnityEditor.VFX
 {
-    #pragma warning disable CS0659
+    #pragma warning disable 0659
     sealed class VFXBuiltInExpression : VFXExpression
     {
         public static readonly VFXExpression TotalTime = new VFXBuiltInExpression(VFXExpressionOperation.TotalTime);
@@ -58,5 +58,5 @@ namespace UnityEditor.VFX
             return this;
         }
     }
-    #pragma warning restore CS0659
+    #pragma warning restore 0659
 }

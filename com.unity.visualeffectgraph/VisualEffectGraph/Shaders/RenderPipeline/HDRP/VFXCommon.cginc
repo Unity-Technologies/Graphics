@@ -1,10 +1,12 @@
 #include "CoreRP/ShaderLibrary/common.hlsl"
 #include "HDRP/ShaderVariables.hlsl"
-#include "HDRP/Sky/AtmosphericScattering/AtmosphericScattering.hlsl"
+#include "HDRP/ShaderPass/ShaderPass.cs.hlsl"
 
 float4 VFXTransformPositionWorldToClip(float3 posWS)
 {
+#if VFX_WORLD_SPACE
     posWS = GetCameraRelativePositionWS(posWS);
+#endif
     return TransformWorldToHClip(posWS);
 }
 
@@ -16,7 +18,9 @@ float4 VFXTransformPositionObjectToClip(float3 posOS)
 
 float3 VFXTransformPositionWorldToView(float3 posWS)
 {
+#if VFX_WORLD_SPACE
     posWS = GetCameraRelativePositionWS(posWS);
+#endif
     return TransformWorldToView(posWS);
 }
 
@@ -37,7 +41,11 @@ float3x3 VFXGetWorldToViewRotMatrix()
 
 float3 VFXGetViewWorldPosition()
 {
-    return GetAbsolutePositionWS(GetCurrentViewPosition());
+    float3 pos = GetCurrentViewPosition();
+#if VFX_WORLD_SPACE
+    pos = GetAbsolutePositionWS(pos);
+#endif
+    return pos;
 }
 
 float4x4 VFXGetViewToWorldMatrix()
@@ -57,7 +65,7 @@ float4 VFXGetPOSSS(float4 posCS)
 
 float VFXSampleDepth(float4 posSS)
 {
-    return SAMPLE_TEXTURE2D(_MainDepthTexture, sampler_MainDepthTexture, _ScreenToTargetScale.xy * posSS.xyz / posSS.w);
+    return SAMPLE_TEXTURE2D(_CameraDepthTexture, sampler_CameraDepthTexture, _ScreenToTargetScale.xy * posSS.xyz / posSS.w);
 }
 
 float VFXLinearEyeDepth(float depth)

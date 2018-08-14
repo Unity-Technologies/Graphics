@@ -3,8 +3,12 @@ namespace UnityEngine.Experimental.Rendering
     [RequireComponent(typeof(Light))]
     public class AdditionalShadowData : MonoBehaviour
     {
-        [HideInInspector]
-        public float version = 1.0f;
+// Currently m_Version is not used and produce a warning, remove these pragmas at the next version incrementation
+#pragma warning disable 414
+        [SerializeField]
+        [UnityEngine.Serialization.FormerlySerializedAs("version")]
+        private int m_Version = 1;
+#pragma warning restore 414
 
         public const int DefaultShadowResolution = 512;
 
@@ -21,21 +25,21 @@ namespace UnityEngine.Experimental.Rendering
         [Range(0.0f, 1.0f)]
         public float shadowDimmer = 1.0f;
         public float shadowFadeDistance = 10000.0f;
-        public bool contactShadows      = false;
+        public bool contactShadows = false;
         // bias control
-        public float viewBiasMin        = 0.5f;
-        public float viewBiasMax        = 10.0f;
+        public float viewBiasMin = 0.5f;
+        public float viewBiasMax = 10f;
         [Range(0.0F, 15.0F)]
-        public float viewBiasScale      = 1.0f;
-        public float normalBiasMin      = 0.2f;
-        public float normalBiasMax      = 4.0f;
+        public float viewBiasScale = 1.0f;
+        public float normalBiasMin = 0.2f;
+        public float normalBiasMax = 4.0f;
         [Range(0.0F, 10.0F)]
-        public float normalBiasScale    = 1.0f;
-        public bool sampleBiasScale     = true;
-        public bool edgeLeakFixup       = false; // Causes large banding artifacts
+        public float normalBiasScale = 1.0f;
+        public bool sampleBiasScale = true;
+        public bool edgeLeakFixup = false; // Causes large banding artifacts
         public bool edgeToleranceNormal = true;
         [Range(0.0F, 1.0F)]
-        public float edgeTolerance      = 1.0f;
+        public float edgeTolerance = 1.0f;
 
 
         // shadow related parameters
@@ -53,13 +57,13 @@ namespace UnityEngine.Experimental.Rendering
         [HideInInspector, SerializeField]
         private float[] shadowCascadeBorders = new float[4] { 0.2f, 0.2f, 0.2f, 0.2f };
         [HideInInspector, SerializeField]
-        private int shadowAlgorithm;
+        private int shadowAlgorithm = 0;
         [HideInInspector, SerializeField]
-        private int shadowVariant;
+        private int shadowVariant = 0;
         [HideInInspector, SerializeField]
-        private int shadowPrecision;
+        private int shadowPrecision = 0;
         [HideInInspector, SerializeField]
-        private ShadowData shadowData;
+        private ShadowData shadowData = new ShadowData();
         [HideInInspector, SerializeField]
         private ShadowData[] shadowDatas = new ShadowData[0];
 
@@ -122,6 +126,35 @@ namespace UnityEngine.Experimental.Rendering
             }
             return -1;
         }
+
+        public void CopyTo(AdditionalShadowData data)
+        {
+            data.shadowResolution = shadowResolution;
+            data.shadowDimmer = shadowDimmer;
+            data.shadowFadeDistance = shadowFadeDistance;
+            data.contactShadows = contactShadows;
+            data.viewBiasMin = viewBiasMin;
+            data.viewBiasMax = viewBiasMax;
+            data.viewBiasScale = viewBiasScale;
+            data.normalBiasMin = normalBiasMin;
+            data.normalBiasMax = normalBiasMax;
+            data.normalBiasScale = normalBiasScale;
+            data.sampleBiasScale = sampleBiasScale;
+            data.edgeLeakFixup = edgeLeakFixup;
+            data.edgeToleranceNormal = edgeToleranceNormal;
+            data.edgeTolerance = edgeTolerance;
+            data.shadowCascadeCount = shadowCascadeCount;
+            data.shadowCascadeRatios = new float[shadowCascadeRatios.Length];
+            shadowCascadeRatios.CopyTo(data.shadowCascadeRatios, 0);
+            data.shadowCascadeBorders = new float[shadowCascadeBorders.Length];
+            shadowCascadeBorders.CopyTo(data.shadowCascadeBorders, 0);
+            data.shadowAlgorithm = shadowAlgorithm;
+            data.shadowVariant = shadowVariant;
+            data.shadowPrecision = shadowPrecision;
+            data.shadowData = shadowData;
+            data.shadowDatas = new ShadowData[shadowDatas.Length];
+            shadowDatas.CopyTo(data.shadowDatas, 0);
+        }
     }
 
 #if UNITY_EDITOR
@@ -146,10 +179,10 @@ namespace UnityEngine.Experimental.Rendering
         void OnEnable()
         {
             m_ShadowAlgorithm = serializedObject.FindProperty("shadowAlgorithm");
-            m_ShadowVariant   = serializedObject.FindProperty("shadowVariant");
-            m_ShadowData      = serializedObject.FindProperty("shadowData");
-            m_ShadowDatas     = serializedObject.FindProperty("shadowDatas");
-            m_ShadowCascadeCount  = serializedObject.FindProperty("shadowCascadeCount");
+            m_ShadowVariant = serializedObject.FindProperty("shadowVariant");
+            m_ShadowData = serializedObject.FindProperty("shadowData");
+            m_ShadowDatas = serializedObject.FindProperty("shadowDatas");
+            m_ShadowCascadeCount = serializedObject.FindProperty("shadowCascadeCount");
             m_ShadowCascadeRatios = serializedObject.FindProperty("shadowCascadeRatios");
             m_ShadowCascadeBorders = serializedObject.FindProperty("shadowCascadeBorders");
         }

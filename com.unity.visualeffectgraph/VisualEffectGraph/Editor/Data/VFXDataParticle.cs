@@ -259,10 +259,10 @@ namespace UnityEditor.VFX
             }
         }
 
-        public CoordinateSpace space
+        public VFXCoordinateSpace space
         {
             get { return m_Space; }
-            set { m_Space = value; }
+            set { m_Space = value; Modified(); }
         }
 
         public override bool CanBeCompiled()
@@ -586,7 +586,16 @@ namespace UnityEditor.VFX
                     uniformMappings.Add(new VFXMapping(contextData.uniformMapper.GetName(uniform), expressionGraph.GetFlattenedIndex(uniform)));
 
                 // Retrieve all cpu mappings at context level (-1)
-                var cpuMappings = contextData.cpuMapper.CollectExpression(-1).Select(exp => new VFXMapping(exp.name, expressionGraph.GetFlattenedIndex(exp.exp)));
+                var cpuMappings = contextData.cpuMapper.CollectExpression(-1).Select(exp => new VFXMapping(exp.name, expressionGraph.GetFlattenedIndex(exp.exp))).ToArray();
+
+                //Check potential issue with invalid operation on CPU
+                foreach (var mapping in cpuMappings)
+                {
+                    if (mapping.index < 0)
+                    {
+                        throw new InvalidOperationException("Unable to compute CPU expression for mapping : " + mapping.name);
+                    }
+                }
 
                 taskDesc.buffers = bufferMappings.ToArray();
                 taskDesc.values = uniformMappings.ToArray();
@@ -628,7 +637,7 @@ namespace UnityEditor.VFX
         [SerializeField]
         private uint m_Capacity = 65536;
         [SerializeField]
-        private CoordinateSpace m_Space;
+        private VFXCoordinateSpace m_Space;
         [NonSerialized]
         private StructureOfArrayProvider m_layoutAttributeCurrent = new StructureOfArrayProvider();
         [NonSerialized]

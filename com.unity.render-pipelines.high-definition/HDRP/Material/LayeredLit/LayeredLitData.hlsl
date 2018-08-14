@@ -734,12 +734,12 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.atDistance = 1000000.0;
     surfaceData.transmittanceMask = 0.0;
 
-    GetNormalWS(input, V, normalTS, surfaceData.normalWS);
+    GetNormalWS(input, normalTS, surfaceData.normalWS);
     // Use bent normal to sample GI if available
     // If any layer use a bent normal map, then bentNormalTS contain the interpolated result of bentnormal and normalmap (in case no bent normal are available)
     // Note: the code in LitDataInternal ensure that we fallback on normal map for layer that have no bentnormal
 #if defined(_BENTNORMALMAP0) || defined(_BENTNORMALMAP1) || defined(_BENTNORMALMAP2) || defined(_BENTNORMALMAP3)
-    GetNormalWS(input, V, bentNormalTS, bentNormalWS);
+    GetNormalWS(input, bentNormalTS, bentNormalWS);
 #else // if no bent normal are available at all just keep the calculation fully
     bentNormalWS = surfaceData.normalWS;
 #endif
@@ -748,14 +748,18 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // If user provide bent normal then we process a better term
 #if (defined(_BENTNORMALMAP0) || defined(_BENTNORMALMAP1) || defined(_BENTNORMALMAP2) || defined(_BENTNORMALMAP3)) && defined(_ENABLESPECULAROCCLUSION)
     // If we have bent normal and ambient occlusion, process a specular occlusion
-    surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAO(V, bentNormalWS, surfaceData);
+    #ifdef SPECULAR_OCCLUSION_USE_SPTD
+    surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAOPivot(V, bentNormalWS, surfaceData.normalWS, surfaceData.ambientOcclusion, PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness));
+    #else
+    surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAO(V, bentNormalWS, surfaceData.normalWS, surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
+    #endif
 #elif defined(_MASKMAP0) || defined(_MASKMAP1) || defined(_MASKMAP2) || defined(_MASKMAP3)
     surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(dot(surfaceData.normalWS, V), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
 #else
     surfaceData.specularOcclusion = 1.0;
 #endif
 
-#ifndef _DISABLE_DBUFFER
+#if HAVE_DECALS
     AddDecalContribution(posInput, surfaceData, alpha);
 #endif
 
@@ -772,7 +776,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     surfaceData.perceptualSmoothness = GeometricNormalFiltering(surfaceData.perceptualSmoothness, input.worldToTangent[2], _SpecularAAScreenSpaceVariance, _SpecularAAThreshold);
 #endif
 
-    GetBuiltinData(input, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);
+    GetBuiltinData(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);
 }
 
 #include "../Lit/LitDataMeshModification.hlsl"

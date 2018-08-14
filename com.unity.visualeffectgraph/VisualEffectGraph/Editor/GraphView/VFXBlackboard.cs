@@ -734,12 +734,6 @@ namespace  UnityEditor.VFX.UI
             return row;
         }
 
-        struct CategoryNOrder
-        {
-            public string category;
-            public int order;
-        }
-
         Dictionary<string, bool> m_ExpandedStatus = new Dictionary<string, bool>();
         void IControlledElement.OnControllerEvent(VFXControllerEvent e) {}
         void IControlledElement.OnControllerChanged(ref ControllerChangedEvent e)

@@ -541,5 +541,48 @@ namespace UnityEditor.VFX
             VFXExpression seed = new VFXExpressionBitwiseXor(hash, VFXBuiltInExpression.SystemSeed);
             return new VFXExpressionFixedRandom(seed, perElement);
         }
+
+        static public VFXExpression SequentialLine(VFXExpression start, VFXExpression end, VFXExpression index, VFXExpression count)
+        {
+            VFXExpression dt = new VFXExpressionCastUintToFloat(VFXOperatorUtility.Modulo(index, count));
+            dt = dt / new VFXExpressionCastUintToFloat(count);
+            dt = new VFXExpressionCombine(dt, dt, dt);
+            return VFXOperatorUtility.Lerp(start, end, dt);
+        }
+
+        static public VFXExpression SequentialCircle(VFXExpression center, VFXExpression radius, VFXExpression normal, VFXExpression up, VFXExpression index, VFXExpression count)
+        {
+            VFXExpression dt = new VFXExpressionCastUintToFloat(VFXOperatorUtility.Modulo(index, count));
+            dt = dt / new VFXExpressionCastUintToFloat(count);
+
+            var cos = new VFXExpressionCos(dt * VFXOperatorUtility.TauExpression[VFXValueType.Float]) as VFXExpression;
+            var sin = new VFXExpressionSin(dt * VFXOperatorUtility.TauExpression[VFXValueType.Float]) as VFXExpression;
+            var left = VFXOperatorUtility.Normalize(VFXOperatorUtility.Cross(normal, up));
+
+            radius = new VFXExpressionCombine(radius, radius, radius);
+            sin = new VFXExpressionCombine(sin, sin, sin);
+            cos = new VFXExpressionCombine(cos, cos, cos);
+
+            return center + (cos * up + sin * left) * radius;
+        }
+
+        static public VFXExpression Sequential3D(VFXExpression origin, VFXExpression axisX, VFXExpression axisY, VFXExpression axisZ, VFXExpression index, VFXExpression countX, VFXExpression countY, VFXExpression countZ)
+        {
+            index = VFXOperatorUtility.Modulo(index, countX * countY * countZ);
+            var z = new VFXExpressionCastUintToFloat(VFXOperatorUtility.Modulo(index, countZ));
+            var y = new VFXExpressionCastUintToFloat(VFXOperatorUtility.Modulo(index / countZ, countY));
+            var x = new VFXExpressionCastUintToFloat(index / (countX * countZ));
+
+            var volumeSize = new VFXExpressionCombine(new VFXExpressionCastUintToFloat(countX), new VFXExpressionCastUintToFloat(countY), new VFXExpressionCastUintToFloat(countZ));
+            var dt = new VFXExpressionCombine(x, y, z) / volumeSize;
+            dt = dt * VFXOperatorUtility.TwoExpression[VFXValueType.Float3] - VFXOperatorUtility.OneExpression[VFXValueType.Float3];
+
+            var r = origin;
+            r += new VFXExpressionCombine(dt.x, dt.x, dt.x) * axisX;
+            r += new VFXExpressionCombine(dt.y, dt.y, dt.y) * axisY;
+            r += new VFXExpressionCombine(dt.z, dt.z, dt.z) * axisZ;
+
+            return r;
+        }
     }
 }

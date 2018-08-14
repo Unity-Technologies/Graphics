@@ -2,18 +2,17 @@ using System.Collections.Generic;
 using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEngine.Experimental.Rendering;
 using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine.Rendering;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     [CustomEditorForRenderPipeline(typeof(ReflectionProbe), typeof(HDRenderPipelineAsset))]
     [CanEditMultipleObjects]
-    partial class HDReflectionProbeEditor : Editor
+    partial class HDReflectionProbeEditor : HDProbeEditor
     {
-        [MenuItem("CONTEXT/ReflectionProbe/Remove HD Reflection Probe", false, 0)]
-        static void RemoveLight(MenuCommand menuCommand)
+        [MenuItem("CONTEXT/ReflectionProbe/Remove Component", false, 0)]
+        static void RemoveReflectionProbe(MenuCommand menuCommand)
         {
             GameObject go = ((ReflectionProbe)menuCommand.context).gameObject;
 
@@ -22,11 +21,44 @@ namespace UnityEditor.Experimental.Rendering
             Undo.SetCurrentGroupName("Remove HD Reflection Probe");
             Undo.DestroyObjectImmediate(go.GetComponent<ReflectionProbe>());
             Undo.DestroyObjectImmediate(go.GetComponent<HDAdditionalReflectionData>());
-            Undo.DestroyObjectImmediate(go.GetComponent<MeshRenderer>());
-            Undo.DestroyObjectImmediate(go.GetComponent<MeshFilter>());
+        }
+
+        [MenuItem("CONTEXT/ReflectionProbe/Reset", false, 0)]
+        static void ResetReflectionProbe(MenuCommand menuCommand)
+        {
+            GameObject go = ((ReflectionProbe)menuCommand.context).gameObject;
+
+            Assert.IsNotNull(go);
+
+            ReflectionProbe reflectionProbe = go.GetComponent<ReflectionProbe>();
+            HDAdditionalReflectionData reflectionProbeAdditionalData = go.GetComponent<HDAdditionalReflectionData>();
+
+            Assert.IsNotNull(reflectionProbe);
+            Assert.IsNotNull(reflectionProbeAdditionalData);
+
+            Undo.SetCurrentGroupName("Reset HD Reflection Probe");
+            Undo.RecordObjects(new UnityEngine.Object[] { reflectionProbe, reflectionProbeAdditionalData }, "Reset HD Reflection Probe");
+            reflectionProbe.Reset();
+            // To avoid duplicating init code we copy default settings to Reset additional data
+            // Note: we can't call this code inside the HDAdditionalReflectionData, thus why we don't wrap it in Reset() function
+            if(HDUtils.s_DefaultHDAdditionalReflectionData.influenceVolume == null)
+            {
+                HDUtils.s_DefaultHDAdditionalReflectionData.Awake();
+            }
+            HDUtils.s_DefaultHDAdditionalReflectionData.CopyTo(reflectionProbeAdditionalData);
         }
 
         static Dictionary<ReflectionProbe, HDReflectionProbeEditor> s_ReflectionProbeEditors = new Dictionary<ReflectionProbe, HDReflectionProbeEditor>();
+
+        internal override HDProbe GetTarget(Object editorTarget)
+        {
+            return (HDProbe)s_ReflectionProbeEditors[(ReflectionProbe)editorTarget].m_AdditionalDataSerializedObject.targetObject;
+        }
+
+        protected override void Draw(HDProbeUI s, SerializedHDProbe serialized, Editor owner)
+        {
+            HDReflectionProbeUI.Inspector.Draw(s, serialized, owner);
+        }
 
         static HDReflectionProbeEditor GetEditorFor(ReflectionProbe p)
         {
@@ -39,27 +71,20 @@ namespace UnityEditor.Experimental.Rendering
 
             return null;
         }
-
-        SerializedHDReflectionProbe m_SerializedHdReflectionProbe;
+        
         SerializedObject m_AdditionalDataSerializedObject;
-        HDReflectionProbeUI m_UIState = new HDReflectionProbeUI();
-
-        int m_PositionHash = 0;
+        internal HDReflectionProbeUI m_UIState = new HDReflectionProbeUI();
 
         public bool sceneViewEditing
         {
-            get { return IsReflectionProbeEditMode(EditMode.editMode) && EditMode.IsOwner(this); }
+            get { return HDProbeUI.IsProbeEditMode(EditMode.editMode) && EditMode.IsOwner(this); }
         }
-
-        void OnEnable()
+        
+        protected override void OnEnable()
         {
             var additionalData = CoreEditorUtils.GetAdditionalData<HDAdditionalReflectionData>(targets);
             m_AdditionalDataSerializedObject = new SerializedObject(additionalData);
-            m_SerializedHdReflectionProbe = new SerializedHDReflectionProbe(serializedObject, m_AdditionalDataSerializedObject);
-            m_UIState.owner = this;
-            m_UIState.Reset(
-                m_SerializedHdReflectionProbe,
-                Repaint);
+            m_SerializedHDProbe = new SerializedHDReflectionProbe(serializedObject, m_AdditionalDataSerializedObject);
 
             foreach (var t in targets)
             {
@@ -67,131 +92,18 @@ namespace UnityEditor.Experimental.Rendering
                 s_ReflectionProbeEditors[p] = this;
             }
 
-            InitializeAllTargetProbes();
-            ChangeVisibilityOfAllTargets(true);
-        }
+            base.OnEnable();
 
-        void OnDisable()
-        {
-            ChangeVisibilityOfAllTargets(false);
-        }
+            m_UIState.owner = this;
+            m_UIState.Reset(m_SerializedHDProbe, Repaint);
+            
+            InitializeTargetProbe();
 
-        public override void OnInspectorGUI()
-        {
-            //InspectColorsGUI();
+            HDAdditionalReflectionData probe = (HDAdditionalReflectionData)m_AdditionalDataSerializedObject.targetObject;
+            probe.influenceVolume.Init(probe);
 
-            var s = m_UIState;
-            var p = m_SerializedHdReflectionProbe;
-
-            s.Update();
-            p.Update();
-
-            HDReflectionProbeUI.Inspector.Draw(s, p, this);
-
-            PerformOperations(s, p, this);
-
-            p.Apply();
-
-            HideAdditionalComponents(false);
-
-            HDReflectionProbeUI.DoShortcutKey(p, this);
-        }
-
-        public static bool IsReflectionProbeEditMode(EditMode.SceneViewEditMode editMode)
-        {
-            return editMode == EditMode.SceneViewEditMode.ReflectionProbeBox || editMode == EditMode.SceneViewEditMode.Collider || editMode == EditMode.SceneViewEditMode.GridBox ||
-                editMode == EditMode.SceneViewEditMode.ReflectionProbeOrigin;
-        }
-
-        static void PerformOperations(HDReflectionProbeUI s, SerializedHDReflectionProbe p, HDReflectionProbeEditor o)
-        {
-        }
-
-        void HideAdditionalComponents(bool visible)
-        {
-            var adds = CoreEditorUtils.GetAdditionalData<HDAdditionalReflectionData>(targets);
-            var flags = visible ? HideFlags.None : HideFlags.HideInInspector;
-            for (var i = 0; i < targets.Length; ++i)
-            {
-                var target = targets[i];
-                var addData = adds[i];
-                var p = (ReflectionProbe)target;
-                var meshRenderer = p.GetComponent<MeshRenderer>();
-                var meshFilter = p.GetComponent<MeshFilter>();
-
-                addData.hideFlags = flags;
-                meshRenderer.hideFlags = flags;
-                meshFilter.hideFlags = flags;
-            }
-        }
-
-        void BakeRealtimeProbeIfPositionChanged(HDReflectionProbeUI s, SerializedHDReflectionProbe sp, Editor o)
-        {
-            if (Application.isPlaying
-                || ((ReflectionProbeMode)sp.mode.intValue) != ReflectionProbeMode.Realtime)
-            {
-                m_PositionHash = 0;
-                return;
-            }
-
-            var hash = 0;
-            for (var i = 0; i < sp.so.targetObjects.Length; i++)
-            {
-                var p = (ReflectionProbe)sp.so.targetObjects[i];
-                var tr = p.GetComponent<Transform>();
-                hash ^= tr.position.GetHashCode();
-            }
-
-            if (hash != m_PositionHash)
-            {
-                m_PositionHash = hash;
-                for (var i = 0; i < sp.so.targetObjects.Length; i++)
-                {
-                    var p = (ReflectionProbe)sp.so.targetObjects[i];
-                    p.RenderProbe();
-                }
-            }
-        }
-
-        static void InspectColorsGUI()
-        {
-            EditorGUILayout.LabelField("Color Theme", EditorStyles.largeLabel);
-            k_GizmoThemeColorExtent = EditorGUILayout.ColorField("Extent", k_GizmoThemeColorExtent);
-            k_GizmoThemeColorExtentFace = EditorGUILayout.ColorField("Extent Face", k_GizmoThemeColorExtentFace);
-            k_GizmoThemeColorInfluenceBlend = EditorGUILayout.ColorField("Influence Blend", k_GizmoThemeColorInfluenceBlend);
-            k_GizmoThemeColorInfluenceBlendFace = EditorGUILayout.ColorField("Influence Blend Face", k_GizmoThemeColorInfluenceBlendFace);
-            k_GizmoThemeColorInfluenceNormalBlend = EditorGUILayout.ColorField("Influence Normal Blend", k_GizmoThemeColorInfluenceNormalBlend);
-            k_GizmoThemeColorInfluenceNormalBlendFace = EditorGUILayout.ColorField("Influence Normal Blend Face", k_GizmoThemeColorInfluenceNormalBlendFace);
-            k_GizmoThemeColorProjection = EditorGUILayout.ColorField("Projection", k_GizmoThemeColorProjection);
-            k_GizmoThemeColorProjectionFace = EditorGUILayout.ColorField("Projection Face", k_GizmoThemeColorProjectionFace);
-            k_GizmoThemeColorDisabled = EditorGUILayout.ColorField("Disabled", k_GizmoThemeColorDisabled);
-            k_GizmoThemeColorDisabledFace = EditorGUILayout.ColorField("Disabled Face", k_GizmoThemeColorDisabledFace);
-            EditorGUILayout.Space();
-        }
-
-        static void ApplyConstraintsOnTargets(HDReflectionProbeUI s, SerializedHDReflectionProbe sp, Editor o)
-        {
-            switch ((ShapeType)sp.influenceShape.enumValueIndex)
-            {
-                case ShapeType.Box:
-                {
-                    var maxBlendDistance = HDReflectionProbeEditorUtility.CalculateBoxMaxBlendDistance(s, sp, o);
-                    sp.targetData.blendDistancePositive = Vector3.Min(sp.targetData.blendDistancePositive, maxBlendDistance);
-                    sp.targetData.blendDistanceNegative = Vector3.Min(sp.targetData.blendDistanceNegative, maxBlendDistance);
-                    sp.targetData.blendNormalDistancePositive = Vector3.Min(sp.targetData.blendNormalDistancePositive, maxBlendDistance);
-                    sp.targetData.blendNormalDistanceNegative = Vector3.Min(sp.targetData.blendNormalDistanceNegative, maxBlendDistance);
-                    break;
-                }
-                case ShapeType.Sphere:
-                {
-                    var maxBlendDistance = Vector3.one * HDReflectionProbeEditorUtility.CalculateSphereMaxBlendDistance(s, sp, o);
-                    sp.targetData.blendDistancePositive = Vector3.Min(sp.targetData.blendDistancePositive, maxBlendDistance);
-                    sp.targetData.blendDistanceNegative = Vector3.Min(sp.targetData.blendDistanceNegative, maxBlendDistance);
-                    sp.targetData.blendNormalDistancePositive = Vector3.Min(sp.targetData.blendNormalDistancePositive, maxBlendDistance);
-                    sp.targetData.blendNormalDistanceNegative = Vector3.Min(sp.targetData.blendNormalDistanceNegative, maxBlendDistance);
-                    break;
-                }
-            }
+            //unhide previously hidden components
+            probe.hideFlags = HideFlags.None;
         }
     }
 }

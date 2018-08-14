@@ -28,7 +28,7 @@ namespace UnityEditor.VFX.UI
             }
         }
 
-        public CoordinateSpace space
+        public VFXCoordinateSpace space
         {
             get
             {
@@ -649,17 +649,15 @@ namespace UnityEditor.VFX.UI
                 // If the vfxwindow is hidden then Update will not be called, which in turn will not recompile the expression graph. so try recompiling it now
                 m_Controller.viewController.RecompileExpressionGraphIfNeeded();
                 stack.Clear();
-                int stackSize = stack.Count;
                 foreach (var action in m_ValueBuilder)
                 {
                     action(stack);
-                    stackSize = stack.Count;
                 }
 
                 return stack.First();
             }
         }
-        public override CoordinateSpace space
+        public override VFXCoordinateSpace space
         {
             get
             {

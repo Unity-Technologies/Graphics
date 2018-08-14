@@ -121,13 +121,13 @@ namespace UnityEditor.VFX
             }
         }
 
-        public CoordinateSpace space
+        public VFXCoordinateSpace space
         {
             get
             {
                 if (spaceable)
                     return GetMasterData().m_Space;
-                return (CoordinateSpace)int.MaxValue;
+                return (VFXCoordinateSpace)int.MaxValue;
             }
 
             set
@@ -137,7 +137,6 @@ namespace UnityEditor.VFX
                     if (space != value)
                     {
                         GetMasterData().m_Space = value;
-                        InvalidateExpressionTree();
                         Invalidate(InvalidationCause.kSpaceChanged);
                     }
                 }
@@ -614,14 +613,14 @@ namespace UnityEditor.VFX
             masterSlot.m_SlotsSpaceable = spaceableCollection.ToArray();
             if (masterSlot.m_SlotsSpaceable.Any())
             {
-                if (masterSlot.m_MasterData.m_Space == (CoordinateSpace)int.MaxValue)
+                if (masterSlot.m_MasterData.m_Space == (VFXCoordinateSpace)int.MaxValue)
                 {
-                    masterSlot.m_MasterData.m_Space = CoordinateSpace.Local;
+                    masterSlot.m_MasterData.m_Space = VFXCoordinateSpace.Local;
                 }
             }
             else
             {
-                masterSlot.m_MasterData.m_Space = (CoordinateSpace)int.MaxValue;
+                masterSlot.m_MasterData.m_Space = (VFXCoordinateSpace)int.MaxValue;
             }
         }
 
@@ -676,7 +675,7 @@ namespace UnityEditor.VFX
             {
                 m_Owner = null,
                 m_Value = new VFXSerializableObject(property.type, value),
-                m_Space = (CoordinateSpace)int.MaxValue,
+                m_Space = (VFXCoordinateSpace)int.MaxValue,
             };
 
             PropagateToChildren(s => {
@@ -883,12 +882,12 @@ namespace UnityEditor.VFX
 
             var toInvalidate = new HashSet<VFXSlot>();
 
-            masterSlot.SetOutExpression(masterSlot.m_InExpression, toInvalidate, masterSlot.owner != null ? masterSlot.owner.GetOutputSpaceFromSlot(this) : (CoordinateSpace)int.MaxValue);
+            masterSlot.SetOutExpression(masterSlot.m_InExpression, toInvalidate, masterSlot.owner != null ? masterSlot.owner.GetOutputSpaceFromSlot(this) : (VFXCoordinateSpace)int.MaxValue);
             masterSlot.PropagateToChildren(s =>
                 {
                     var exp = s.ExpressionToChildren(s.m_OutExpression);
                     for (int i = 0; i < s.GetNbChildren(); ++i)
-                        s[i].SetOutExpression(exp != null ? exp[i] : s[i].m_InExpression, toInvalidate, masterSlot.owner != null ? masterSlot.owner.GetOutputSpaceFromSlot(s) : (CoordinateSpace)int.MaxValue);
+                        s[i].SetOutExpression(exp != null ? exp[i] : s[i].m_InExpression, toInvalidate, masterSlot.owner != null ? masterSlot.owner.GetOutputSpaceFromSlot(s) : (VFXCoordinateSpace)int.MaxValue);
                 });
 
             foreach (var slot in toInvalidate)
@@ -921,10 +920,10 @@ namespace UnityEditor.VFX
             return exp;
         }
 
-        private void SetOutExpression(VFXExpression exp, HashSet<VFXSlot> toInvalidate, CoordinateSpace convertToSpace = (CoordinateSpace)int.MaxValue)
+        private void SetOutExpression(VFXExpression exp, HashSet<VFXSlot> toInvalidate, VFXCoordinateSpace convertToSpace = (VFXCoordinateSpace)int.MaxValue)
         {
             exp = VFXPropertyAttribute.ApplyToExpressionGraph(m_Property.attributes, exp);
-            if (convertToSpace != (CoordinateSpace)int.MaxValue)
+            if (convertToSpace != (VFXCoordinateSpace)int.MaxValue)
             {
                 exp = ConvertSpace(exp, this, convertToSpace);
             }
@@ -1010,6 +1009,10 @@ namespace UnityEditor.VFX
             //Propagate space change to children
             if (cause == InvalidationCause.kSpaceChanged)
             {
+                if (IsMasterSlot())
+                {
+                    InvalidateExpressionTree();
+                }
                 if (direction == Direction.kOutput)
                 {
                     PropagateToChildren(s =>
@@ -1083,12 +1086,12 @@ namespace UnityEditor.VFX
         {
             public MasterData()
             {
-                m_Space = (CoordinateSpace)int.MaxValue;
+                m_Space = (VFXCoordinateSpace)int.MaxValue;
             }
 
             public VFXModel m_Owner;
             public VFXSerializableObject m_Value;
-            public CoordinateSpace m_Space; //can be undefined
+            public VFXCoordinateSpace m_Space; //can be undefined
         }
 
         [SerializeField]

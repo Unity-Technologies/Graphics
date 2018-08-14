@@ -110,8 +110,9 @@ namespace UnityEditor.VFX
         public virtual CullMode defaultCullMode { get { return CullMode.Off; } }
         public virtual ZTestMode defaultZTestMode { get { return ZTestMode.LEqual; } }
 
+        public virtual bool supportSoftParticles { get { return useSoftParticle && !isBlendModeOpaque; } }
 
-        public virtual bool supportSoftParticles { get { return useSoftParticle && (blendMode != BlendMode.Opaque && blendMode != BlendMode.Masked); } }
+        protected bool isBlendModeOpaque { get { return blendMode == BlendMode.Opaque || blendMode == BlendMode.Masked; } }
 
         protected bool usesFlipbook { get { return supportsUV && (uvMode == UVMode.Flipbook || uvMode == UVMode.FlipbookBlend); } }
 
@@ -191,7 +192,7 @@ namespace UnityEditor.VFX
         {
             get
             {
-                if (blendMode == BlendMode.Opaque || blendMode == BlendMode.Masked)
+                if (isBlendModeOpaque)
                     yield return "IS_OPAQUE_PARTICLE";
                 if (blendMode == BlendMode.Masked)
                     yield return "USE_ALPHA_TEST";
@@ -241,11 +242,11 @@ namespace UnityEditor.VFX
                 if (!supportsUV)
                     yield return "uvMode";
 
-                if (blendMode == BlendMode.Masked || blendMode == BlendMode.Opaque)
+                if (isBlendModeOpaque)
+                {
                     yield return "preRefraction";
-
-                if (blendMode == BlendMode.Opaque || blendMode == BlendMode.Masked)
                     yield return "useSoftParticle";
+                }
             }
         }
 
@@ -270,18 +271,23 @@ namespace UnityEditor.VFX
             }
         }
 
+        protected virtual void WriteBlendMode(VFXShaderWriter writer)
+        {
+            if (blendMode == BlendMode.Additive)
+                writer.WriteLine("Blend SrcAlpha One");
+            else if (blendMode == BlendMode.Alpha)
+                writer.WriteLine("Blend SrcAlpha OneMinusSrcAlpha");
+            else if (blendMode == BlendMode.AlphaPremultiplied)
+                writer.WriteLine("Blend One OneMinusSrcAlpha");
+        }
+
         protected virtual VFXShaderWriter renderState
         {
             get
             {
                 var rs = new VFXShaderWriter();
 
-                if (blendMode == BlendMode.Additive)
-                    rs.WriteLine("Blend SrcAlpha One");
-                else if (blendMode == BlendMode.Alpha)
-                    rs.WriteLine("Blend SrcAlpha OneMinusSrcAlpha");
-                else if (blendMode == BlendMode.AlphaPremultiplied)
-                    rs.WriteLine("Blend One OneMinusSrcAlpha");
+                WriteBlendMode(rs);
 
                 var zTest = zTestMode;
                 if (zTest == ZTestMode.Default)
@@ -302,7 +308,7 @@ namespace UnityEditor.VFX
                 switch (zWriteMode)
                 {
                     case ZWriteMode.Default:
-                        if (blendMode == BlendMode.Masked || blendMode == BlendMode.Opaque)
+                        if (isBlendModeOpaque)
                             rs.WriteLine("ZWrite On");
                         else
                             rs.WriteLine("ZWrite Off");

@@ -73,37 +73,6 @@ namespace UnityEditor.VFX.UI
             controller.block.enabled = !controller.block.enabled;
         }
 
-/*
-        // This function is a placeholder for common stuff to do before we delegate the action to the drop target
-        private void HandleDropEvent(IMGUIEvent evt, List<ISelectable> selection, IDropTarget dropTarget)
-        {
-            if (dropTarget == null)
-                return;
-
-            switch ((EventType)evt.imguiEvent.type)
-            {
-                case EventType.DragUpdated:
-                {
-                    Vector2 savedPos = evt.imguiEvent.mousePosition;
-                    evt.imguiEvent.mousePosition = (dropTarget as VisualElement).WorldToLocal(evt.originalMousePosition);
-                    dropTarget.DragUpdated(evt, selection, dropTarget);
-                    evt.imguiEvent.mousePosition = savedPos;
-                }
-                break;
-                case EventType.DragExited:
-                    dropTarget.DragExited();
-                    break;
-                case EventType.DragPerform:
-                {
-                    Vector2 savedPos = evt.imguiEvent.mousePosition;
-                    evt.imguiEvent.mousePosition = (dropTarget as VisualElement).WorldToLocal(evt.originalMousePosition);
-                    dropTarget.DragPerform(evt, selection, dropTarget);
-                    evt.imguiEvent.mousePosition = savedPos;
-                }
-                break;
-            }
-        }*/
-
         protected override void SelfChange()
         {
             base.SelfChange();
@@ -122,6 +91,10 @@ namespace UnityEditor.VFX.UI
                 inputContainer.SetEnabled(controller.block.enabled);
             if (settingsContainer != null)
                 settingsContainer.SetEnabled(controller.block.enabled);
+        }
+        public override bool superCollapsed
+        {
+            get { return false; }
         }
     }
 }

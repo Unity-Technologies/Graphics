@@ -38,7 +38,7 @@ namespace UnityEditor.VFX
         protected const float handleSize = 0.1f;
         protected const float arcHandleSizeMultiplier = 1.25f;
 
-        public CoordinateSpace currentSpace { get; set; }
+        public VFXCoordinateSpace currentSpace { get; set; }
         public VisualEffect component {get; set; }
 
         public bool PositionGizmo(ref Vector3 position, bool always)
@@ -204,7 +204,7 @@ namespace UnityEditor.VFX
         {
             Matrix4x4 oldMatrix = Handles.matrix;
 
-            if (currentSpace == CoordinateSpace.Local)
+            if (currentSpace == VFXCoordinateSpace.Global)
             {
                 if (component == null) return;
                 Handles.matrix = component.transform.localToWorldMatrix;

@@ -21,30 +21,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             LitClearCoat            = 1 << 6
         };
 
-        public enum RefractionModel
-        {
-            None = 0,
-            Plane = 1,
-            Sphere = 2
-        };
-
-        [GenerateHLSL]
-        public enum ProjectionModel
-        {
-            None = 0,
-            Proxy = 1,
-            HiZ = 2,
-            Linear = 3
-        };
-
-        [GenerateHLSL]
-        public enum HiZIntersectionKind
-        {
-            None,
-            Cell,
-            Depth
-        }
-
         //-----------------------------------------------------------------------------
         // SurfaceData
         //-----------------------------------------------------------------------------
@@ -133,6 +109,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             public Vector3 diffuseColor;
             public Vector3 fresnel0;
 
+            public float ambientOcclusion; // Caution: This is accessible only if light layer is enabled, otherwise it is 1
             public float specularOcclusion;
 
             [SurfaceDataAttributes(new string[] { "Normal WS", "Normal View Space" }, true)]
@@ -181,36 +158,79 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         };
 
         //-----------------------------------------------------------------------------
-        // RenderLoop management
-        //-----------------------------------------------------------------------------
-
-        [GenerateHLSL(PackingRules.Exact)]
-        public enum GBufferMaterial
-        {
-            // Note: This count doesn't include the velocity buffer. On shader and csharp side the velocity buffer will be added by the framework
-            Count = 4
-        };
-
-        //-----------------------------------------------------------------------------
         // GBuffer management
         //-----------------------------------------------------------------------------
 
-        public override int GetMaterialGBufferCount() { return (int)GBufferMaterial.Count; }
+        public override bool IsDefferedMaterial() { return true; }
 
-        RenderTextureFormat[] m_RTFormat4 = { RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB32, RenderTextureFormat.ARGB32, RenderTextureFormat.RGB111110Float };
-        bool[] m_RTsRGBFlag4 = { true, false, false, false };
-
-        public override void GetMaterialGBufferDescription(out RenderTextureFormat[] RTFormat, out bool[] sRGBFlag)
+        protected void GetGBufferOptions(HDRenderPipelineAsset asset, out int gBufferCount, out bool supportShadowMask, out bool supportLightLayers)
         {
-            RTFormat = m_RTFormat4;
-            sRGBFlag = m_RTsRGBFlag4;
+            // Caution: This must be in sync with GBUFFERMATERIAL_COUNT definition in 
+            supportShadowMask = asset.renderPipelineSettings.supportShadowMask;
+            supportLightLayers = asset.renderPipelineSettings.supportLightLayers;
+            gBufferCount = 4 + (supportShadowMask ? 1 : 0) + (supportLightLayers ? 1 : 0);
         }
+
+        // This must return the number of GBuffer to allocate
+        public override int GetMaterialGBufferCount(HDRenderPipelineAsset asset)
+        {
+            int gBufferCount;
+            bool unused0;
+            bool unused1;
+            GetGBufferOptions(asset, out gBufferCount, out unused0, out unused1);
+
+            return gBufferCount;
+        }
+
+        public override void GetMaterialGBufferDescription(HDRenderPipelineAsset asset, out RenderTextureFormat[] RTFormat, out bool[] sRGBFlag, out GBufferUsage[] gBufferUsage)
+        {
+            int gBufferCount;
+            bool supportShadowMask;
+            bool supportLightLayers;
+            GetGBufferOptions(asset, out gBufferCount, out supportShadowMask, out supportLightLayers);
+
+            RTFormat = new RenderTextureFormat[gBufferCount];
+            sRGBFlag = new bool[gBufferCount];
+            gBufferUsage = new GBufferUsage[gBufferCount];            
+
+            RTFormat[0] = RenderTextureFormat.ARGB32; // Albedo sRGB / SSSBuffer
+            sRGBFlag[0] = true;
+            gBufferUsage[0] = GBufferUsage.SubsurfaceScattering;
+            RTFormat[1] = RenderTextureFormat.ARGB32; // Normal Buffer
+            sRGBFlag[1] = false;
+            gBufferUsage[1] = GBufferUsage.Normal;
+            RTFormat[2] = RenderTextureFormat.ARGB32; // Data
+            sRGBFlag[2] = false;
+            gBufferUsage[2] = GBufferUsage.None;
+            RTFormat[3] = Builtin.GetLightingBufferFormat();
+            sRGBFlag[3] = Builtin.GetLightingBufferSRGBFlag();
+            gBufferUsage[3] = GBufferUsage.None;
+
+            int index = 4;
+
+            if (supportLightLayers)
+            {
+                RTFormat[index] = RenderTextureFormat.ARGB32;
+                sRGBFlag[index] = false;
+                gBufferUsage[index] = GBufferUsage.LightLayers;
+                index++;
+            }
+
+            // All buffer above are fixed. However shadow mask buffer can be setup or not depends on light in view.
+            // Thus it need to be the last one, so all indexes stay the same
+            if (supportShadowMask)
+            {
+                RTFormat[index] = Builtin.GetShadowMaskBufferFormat();
+                sRGBFlag[index] = Builtin.GetShadowMaskBufferSRGBFlag();
+                gBufferUsage[index] = GBufferUsage.ShadowMask;
+                index++;
+            }
+        }
+
 
         //-----------------------------------------------------------------------------
         // Init precomputed texture
         //-----------------------------------------------------------------------------
-
-        bool m_isInit;
 
         public Lit() {}
 
@@ -218,26 +238,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         {
             PreIntegratedFGD.instance.Build(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
             LTCAreaLight.instance.Build();
-
-            m_isInit = false;
         }
 
         public override void Cleanup()
         {
             PreIntegratedFGD.instance.Cleanup(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse);
             LTCAreaLight.instance.Cleanup();
-
-            m_isInit = false;
         }
 
         public override void RenderInit(CommandBuffer cmd)
         {
-            if (m_isInit)
-                return;
-
             PreIntegratedFGD.instance.RenderInit(PreIntegratedFGD.FGDIndex.FGD_GGXAndDisneyDiffuse, cmd);
-
-            m_isInit = true;
         }
 
         public override void Bind()

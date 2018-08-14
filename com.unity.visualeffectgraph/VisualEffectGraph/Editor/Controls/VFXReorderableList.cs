@@ -112,14 +112,14 @@ namespace UnityEditor.VFX.UI
         {
             if (m_SelectedLine != -1 && m_SelectedLine < m_ListContainer.childCount)
             {
-                m_ListContainer.ElementAt(m_SelectedLine).pseudoStates &= ~PseudoStates.Selected;
+                m_ListContainer.ElementAt(m_SelectedLine).RemoveFromClassList("selected");
             }
 
             m_SelectedLine = index;
 
             if (m_SelectedLine != -1 && m_SelectedLine < m_ListContainer.childCount)
             {
-                m_ListContainer.ElementAt(m_SelectedLine).pseudoStates |= PseudoStates.Selected;
+                m_ListContainer.ElementAt(m_SelectedLine).AddToClassList("selected");
                 m_Remove.SetEnabled(CanRemove());
             }
             else

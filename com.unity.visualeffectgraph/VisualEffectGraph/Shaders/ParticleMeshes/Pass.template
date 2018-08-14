@@ -9,6 +9,12 @@ struct vs_input
 {
 	float3 pos : POSITION;
 	float2 uv : TEXCOORD0;
+	#ifdef VFX_VARYING_NORMAL
+	float3 normal : NORMAL;
+	#endif
+	#ifdef VFX_VARYING_TANGENT
+	float4 tangent : TANGENT;
+	#endif
 };
 
 #pragma vertex vert
@@ -31,6 +37,13 @@ VFX_VARYING_PS_INPUTS vert(vs_input i, uint instanceID : SV_InstanceID)
 	float3 vPos = mul(elementToVFX,float4(i.pos,1.0f)).xyz;
 
 	o.VFX_VARYING_POSCS = TransformPositionVFXToClip(vPos);
+	
+	#ifdef VFX_VARYING_NORMAL // TODO Should use inverse transpose
+	o.VFX_VARYING_NORMAL = normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,i.normal)));
+	#endif
+	#ifdef VFX_VARYING_TANGENT
+	o.VFX_VARYING_TANGENT = float4(normalize(TransformDirectionVFXToWorld(mul((float3x3)elementToVFX,i.tangent.xyz))),i.tangent.w);
+	#endif
 
 	${VFXVertexCommonProcess}
 
@@ -41,4 +54,29 @@ VFX_VARYING_PS_INPUTS vert(vs_input i, uint instanceID : SV_InstanceID)
 	return o;
 }
 
+${VFXBegin:VFXComputeNormalWS}
+#if USE_DOUBLE_SIDED
+const float faceMul = frontFace ? 1.0f : -1.0f;
+#else
+const float faceMul = 1.0f;
+#endif
+
+float3 normalWS = normalize(i.VFX_VARYING_NORMAL * faceMul);
+const VFXUVData uvData = GetUVData(i);
+
+#if defined(VFX_VARYING_TANGENT) && USE_NORMAL_MAP
+float3 tangentWS = normalize(i.VFX_VARYING_TANGENT.xyz);
+float3 bitangentWS = cross(normalWS,tangentWS) * (i.VFX_VARYING_TANGENT.w * faceMul);
+float3 n = SampleNormalMap(VFX_SAMPLER(normalMap),uvData);
+float3x3 tbn = float3x3(tangentWS,bitangentWS,normalWS);
+float normalScale = 1.0f;
+#ifdef VFX_VARYING_NORMALSCALE
+normalScale = i.VFX_VARYING_NORMALSCALE;
+#endif
+normalWS = normalize(lerp(normalWS,mul(n,tbn),normalScale));
+#endif
+${VFXEnd}
+
 ${VFXFragmentCommonFunctions}
+
+${VFXBegin:VFXVertexAdditionalProcess}${VFXEnd}

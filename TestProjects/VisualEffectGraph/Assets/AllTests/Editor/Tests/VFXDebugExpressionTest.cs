@@ -83,7 +83,7 @@ namespace UnityEditor.VFX.Test
             Assert.IsTrue(maxFrame > 0);
 
             maxFrame = 512;
-            while (!(VFXDebugUtil.GetExpressionFloat(vfxComponent, expressionIndex) > 0.01f) && --maxFrame > 0)
+            while (!(VisualEffectUtility.GetExpressionFloat(vfxComponent, expressionIndex) > 0.01f) && --maxFrame > 0)
             {
                 yield return null;
             }
@@ -91,6 +91,62 @@ namespace UnityEditor.VFX.Test
 
             UnityEngine.Object.DestroyImmediate(gameObj);
             UnityEngine.Object.DestroyImmediate(cameraObj);
+        }
+
+        [UnityTest]
+        public IEnumerator CreateAsset_And_Check_Exception_On_Invalid_Graph()
+        {
+            var graph = MakeTemporaryGraph();
+
+            var spawnerContext = ScriptableObject.CreateInstance<VFXBasicSpawner>();
+            graph.AddChild(spawnerContext);
+            var constantRate = ScriptableObject.CreateInstance<VFXSpawnerConstantRate>();
+            graph.AddChild(constantRate);
+
+            // Attach to a valid particle system so that spawner is compiled
+            var initContext = ScriptableObject.CreateInstance<VFXBasicInitialize>();
+            graph.AddChild(initContext);
+            var quadOutput = ScriptableObject.CreateInstance<VFXQuadOutput>();
+            graph.AddChild(quadOutput);
+            var meshOutput = ScriptableObject.CreateInstance<VFXMeshOutput>();
+            graph.AddChild(meshOutput);
+            spawnerContext.LinkTo(initContext);
+            initContext.LinkTo(quadOutput);
+            initContext.LinkTo(meshOutput);
+
+            var branch = ScriptableObject.CreateInstance<Operator.Branch>();
+            graph.AddChild(branch);
+            branch.SetOperandType((SerializableType)typeof(Mesh));
+            Assert.IsTrue(branch.outputSlots[0].Link(meshOutput.inputSlots.First(s => s.property.type == typeof(Mesh))));
+
+            var compare = ScriptableObject.CreateInstance<Operator.Condition>();
+            graph.AddChild(compare);
+            Assert.IsTrue(compare.outputSlots[0].Link(branch.inputSlots[0]));
+
+            var modulo = ScriptableObject.CreateInstance<Operator.Modulo>();
+            graph.AddChild(modulo);
+            modulo.SetOperandType((SerializableType)typeof(uint));
+            modulo.inputSlots[1].value = 2u;
+            Assert.IsTrue(modulo.outputSlots[0].Link(compare.inputSlots[0]));
+
+            var particleId = ScriptableObject.CreateInstance<VFXAttributeParameter>();
+            graph.AddChild(particleId);
+            particleId.SetSettingValue("attribute", VFXAttribute.ParticleId.name);
+
+            graph.RecompileIfNeeded(); //at this point, compilation is still legal
+            particleId.outputSlots[0].Link(modulo.inputSlots[0]);
+
+            graph.RecompileIfNeeded();
+            LogAssert.Expect(LogType.Error, new System.Text.RegularExpressions.Regex("InvalidOperationException"));
+
+            branch.outputSlots[0].UnlinkAll();
+            graph.RecompileIfNeeded(); //Back to a legal state
+
+            quadOutput.SetSettingValue("blendMode", VFXAbstractParticleOutput.BlendMode.Masked);
+            Assert.IsTrue(modulo.outputSlots[0].Link(quadOutput.inputSlots.First(o => o.name.Contains("alphaThreshold"))));
+            graph.RecompileIfNeeded(); //Should also be legal (alphaTreshold relying on particleId)
+
+            yield return null;
         }
     }
 }

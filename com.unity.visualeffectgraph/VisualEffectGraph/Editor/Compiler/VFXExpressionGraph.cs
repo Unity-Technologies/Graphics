@@ -99,7 +99,7 @@ namespace UnityEditor.VFX
                 var sortedList = m_ExpressionsData.Where(kvp =>
                     {
                         var exp = kvp.Key;
-                        return !exp.IsAny(VFXExpression.Flags.NotCompilabeOnCPU);
+                        return !exp.IsAny(VFXExpression.Flags.NotCompilableOnCPU);
                     }).ToList(); // remove per element expression from flattened data // TODO Remove uniform constants too
 
                 sortedList.Sort((kvpA, kvpB) => kvpB.Value.depth.CompareTo(kvpA.Value.depth));

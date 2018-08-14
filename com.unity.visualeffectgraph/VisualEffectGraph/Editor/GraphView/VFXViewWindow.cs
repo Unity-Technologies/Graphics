@@ -9,6 +9,7 @@ using UnityEngine.Experimental.UIElements;
 using UnityEditor.VFX;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityObject = UnityEngine.Object;
 
 namespace  UnityEditor.VFX.UI
 {
@@ -120,8 +121,12 @@ namespace  UnityEditor.VFX.UI
             return selectedResource;
         }
 
+
+
         protected void OnEnable()
         {
+            VFXManagerEditor.CheckVFXManager();
+
             graphView = new VFXView();
             graphView.StretchToParentSize();
             SetupFramingShortcutHandler(graphView);
