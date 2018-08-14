@@ -1680,7 +1680,7 @@ float3 SolveCubic(float4 Coefficient)
 
 float3   LTC_Evaluate( float3 N, float3 V, float3 P, float3x3 Minv, float3 center, float3 axisX, float3 axisY, PreLightData preLightData )
 {
-    float3x3    R = mul( transpose(preLightData.orthoBasisViewNormal), Minv );  // <== This could be stored in PreLightData instead of storing separate Minv and the basis! => We could gain a mul... But apparently the Minv matrix alone is required for other operations
+    float3x3    R = mul( transpose(preLightData.orthoBasisViewNormal), Minv );
 
     // init ellipse
     float3  C  = mul( center - P, R );  // Relative center
@@ -1910,9 +1910,16 @@ DirectLighting EvaluateBSDF_Sphere( LightLoopContext lightLoopContext,
     lightData.up = faceLight[1];
     lightData.forward = faceLight[2];
 
+    DirectLighting lighting;
+    ZERO_INITIALIZE(DirectLighting, lighting);
+
     // Then we recompute the disk's center and radius to match the solid angle covered by the sphere
     float   R = 0.5 * lightData.size.x; // Sphere radius
-            R = min( R, D-1e-3 );       // Easy choice: make the sphere *shrink* if we get too close
+    if ( D - R < 1e-3 ) {
+        return lighting;    // Inside the sphere
+    }
+
+//            R = min( R, D-1e-3 );       // Easy choice: make the sphere *shrink* if we get too close
 
     float   D2R2 = D*D - R*R;
     float   d = D2R2 / D;               // Distance to disk center
