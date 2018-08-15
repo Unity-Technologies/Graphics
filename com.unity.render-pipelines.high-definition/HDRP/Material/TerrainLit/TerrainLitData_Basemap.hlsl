@@ -7,6 +7,15 @@
 
 #include "TerrainLitSplatCommon.hlsl"
 
+TEXTURE2D(_MainTex);
+TEXTURE2D(_MetallicTex);
+SAMPLER(sampler_MainTex);
+
+#ifdef DEBUG_DISPLAY
+float4 _MainTex_TexelSize;
+float4 _MainTex_MipInfo;
+#endif
+
 // We don't use emission for terrain
 #define _EmissiveColor float3(0,0,0)
 #define _AlbedoAffectEmissive 0
@@ -87,12 +96,10 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     AddDecalContribution(posInput, surfaceData, alpha);
 #endif
 
-#if defined(DEBUG_DISPLAY)
+#ifdef DEBUG_DISPLAY
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
-        // TODO: uncomment and fix me.
-        surfaceData.baseColor = 1;
-        // surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, input.texCoord0, _BaseColorMap0, _BaseColorMap0_TexelSize, _BaseColorMap0_MipInfo, surfaceData.baseColor);
+        surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, input.texCoord0, _MainTex, _MainTex_TexelSize, _MainTex_MipInfo, surfaceData.baseColor);
         surfaceData.metallic = 0;
     }
 #endif

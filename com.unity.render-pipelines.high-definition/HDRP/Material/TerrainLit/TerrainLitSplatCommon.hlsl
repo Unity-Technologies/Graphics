@@ -27,9 +27,6 @@ DECLARE_TERRAIN_LAYER_TEXS(3);
 TEXTURE2D(_Control0);
 SAMPLER(sampler_Splat0);
 SAMPLER(sampler_Control0);
-TEXTURE2D(_MainTex);
-TEXTURE2D(_MetallicTex);
-SAMPLER(sampler_MainTex);
 
 #ifdef UNITY_INSTANCING_ENABLED
 TEXTURE2D(_TerrainHeightmapTexture);
@@ -45,7 +42,30 @@ TEXTURE2D(_TerrainNormalmapTexture);
     float4 _MaskMapRemapOffset##n;      \
     float4 _MaskMapRemapScale##n
 
-CBUFFER_START(UnityPerMaterial)
+CBUFFER_START(UnityTerrain)
+
+    #ifdef DEBUG_DISPLAY
+        float4 _Control0_TexelSize;
+        float4 _Control0_MipInfo;
+        float4 _Splat0_TexelSize;
+        float4 _Splat0_MipInfo;
+        float4 _Splat1_TexelSize;
+        float4 _Splat1_MipInfo;
+        float4 _Splat2_TexelSize;
+        float4 _Splat2_MipInfo;
+        float4 _Splat3_TexelSize;
+        float4 _Splat3_MipInfo;
+        #ifdef _TERRAIN_8_LAYERS
+            float4 _Splat4_TexelSize;
+            float4 _Splat4_MipInfo;
+            float4 _Splat5_TexelSize;
+            float4 _Splat5_MipInfo;
+            float4 _Splat6_TexelSize;
+            float4 _Splat6_MipInfo;
+            float4 _Splat7_TexelSize;
+            float4 _Splat7_MipInfo;
+        #endif
+    #endif
 
     DECLARE_TERRAIN_LAYER_PROPS(0);
     DECLARE_TERRAIN_LAYER_PROPS(1);
@@ -59,8 +79,10 @@ CBUFFER_START(UnityPerMaterial)
     #endif
 
     float _HeightTransition;
-    float4 _TerrainHeightmapRecipSize;   // float4(1.0f/width, 1.0f/height, 1.0f/(width-1), 1.0f/(height-1))
-    float4 _TerrainHeightmapScale;       // float4(hmScale.x, hmScale.y / (float)(kMaxHeight), hmScale.z, 0.0f)
+    #ifdef UNITY_INSTANCING_ENABLED
+        float4 _TerrainHeightmapRecipSize;   // float4(1.0f/width, 1.0f/height, 1.0f/(width-1), 1.0f/(height-1))
+        float4 _TerrainHeightmapScale;       // float4(hmScale.x, hmScale.y / (float)(kMaxHeight), hmScale.z, 0.0f)
+    #endif
 
 CBUFFER_END
 
