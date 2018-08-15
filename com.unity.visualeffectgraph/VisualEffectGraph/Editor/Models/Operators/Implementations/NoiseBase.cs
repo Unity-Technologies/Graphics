@@ -7,6 +7,24 @@ namespace UnityEditor.VFX.Operator
 {
     abstract class NoiseBase : VFXOperator
     {
+        public class InputProperties1D
+        {
+            [Tooltip("The coordinate in the noise field to take the sample from.")]
+            public float coordinate = 0.0f;
+        }
+
+        public class InputProperties2D
+        {
+            [Tooltip("The coordinate in the noise field to take the sample from.")]
+            public Vector2 coordinate = Vector2.zero;
+        }
+
+        public class InputProperties3D
+        {
+            [Tooltip("The coordinate in the noise field to take the sample from.")]
+            public Vector3 coordinate = Vector3.zero;
+        }
+
         public class InputPropertiesCommon
         {
             [Tooltip("The magnitude of the noise.")]
@@ -24,11 +42,28 @@ namespace UnityEditor.VFX.Operator
             public float o;
         }
 
+        public enum DimensionCount
+        {
+            One,
+            Two,
+            Three
+        }
+
+        [VFXSetting, Tooltip("Controls whether particles are spawned on the base of the cone, or throughout the entire volume.")]
+        public DimensionCount dimensions = DimensionCount.One;
+
         protected override IEnumerable<VFXPropertyWithValue> inputProperties
         {
             get
             {
-                var properties = PropertiesFromType("InputProperties");
+                IEnumerable<VFXPropertyWithValue> properties = null;
+                if (dimensions == DimensionCount.One)
+                    properties = PropertiesFromType("InputProperties1D");
+                else if (dimensions == DimensionCount.Two)
+                    properties = PropertiesFromType("InputProperties2D");
+                else
+                    properties = PropertiesFromType("InputProperties3D");
+
                 properties = properties.Concat(PropertiesFromType("InputPropertiesCommon"));
                 return properties;
             }
