@@ -8,8 +8,7 @@ Material:
   m_PrefabInternal: {fileID: 0}
   m_Name: Layered_TextureMask_RedGreenBlue
   m_Shader: {fileID: 4800000, guid: 81d02e8644315b742b154842a3a2f98c, type: 3}
-  m_ShaderKeywords: _LAYEREDLIT_4_LAYERS _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1
-    _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
+  m_ShaderKeywords: _LAYEREDLIT_4_LAYERS _NORMALMAP_TANGENT_SPACE0 _NORMALMAP_TANGENT_SPACE1 _NORMALMAP_TANGENT_SPACE2 _NORMALMAP_TANGENT_SPACE3
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
@@ -348,6 +347,7 @@ Material:
     - _EnableMotionVectorForVertexAnimation: 0
     - _EnableSpecularOcclusion: 0
     - _EnableWind: 0
+    - _HdrpVersion: 2
     - _HeightAmplitude: 0.02
     - _HeightAmplitude0: 0.02
     - _HeightAmplitude1: 0.02
@@ -484,7 +484,7 @@ Material:
     - _SubsurfaceRadius1: 1
     - _SubsurfaceRadius2: 1
     - _SubsurfaceRadius3: 1
-    - _SupportDBuffer: 1
+    - _SupportDecals: 1
     - _SurfaceType: 0
     - _TexWorldScale: 1
     - _TexWorldScale0: 1
@@ -528,7 +528,7 @@ Material:
     - _BaseColor1: {r: 1, g: 0, b: 0, a: 1}
     - _BaseColor2: {r: 0, g: 1, b: 0, a: 1}
     - _BaseColor3: {r: 0, g: 0, b: 1, a: 1}
-    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Color: {r: 0, g: 0, b: 0, a: 1}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissiveColor: {r: 0, g: 0, b: 0, a: 1}

@@ -2,6 +2,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Camera))]
+    [ImageEffectAllowedInSceneView]
     public class LightweightAdditionalCameraData : MonoBehaviour
     {
         [Tooltip("If enabled shadows will render for this camera.")]

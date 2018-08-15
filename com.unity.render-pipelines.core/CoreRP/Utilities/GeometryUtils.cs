@@ -194,12 +194,14 @@ namespace UnityEngine.Experimental.Rendering
                     1.0f,
                     1.0f);
             var q = inversion * cps;
-            var c = clipPlane * (2.0f / Vector4.Dot(clipPlane, q));
+            Vector4 M4 = new Vector4(projection[3], projection[7], projection[11], projection[15]);
 
-            projection[2] = c.x - projection[3];
-            projection[6] = c.y - projection[7];
-            projection[10] = c.z - projection[11];
-            projection[14] = c.w - projection[15];
+            var c = clipPlane * ((2.0f*Vector4.Dot(M4, q)) / Vector4.Dot(clipPlane, q));
+
+            projection[2] = c.x - M4.x;
+            projection[6] = c.y - M4.y;
+            projection[10] = c.z - M4.z;
+            projection[14] = c.w - M4.w;
 
             return projection;
         }
@@ -244,6 +246,11 @@ namespace UnityEngine.Experimental.Rendering
         public static Matrix4x4 GetProjectionMatrixLHS(this Camera camera)
         {
             return camera.projectionMatrix * FlipMatrixLHSRHS;
+        }
+
+        public static bool IsProjectionMatrixOblique(Matrix4x4 projectionMatrix)
+        {
+            return projectionMatrix[2] != 0 || projectionMatrix[6] != 0;
         }
 
         public static Matrix4x4 CalculateProjectionMatrix(Camera camera)

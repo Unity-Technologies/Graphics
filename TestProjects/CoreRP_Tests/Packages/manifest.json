@@ -1,0 +1,10 @@
+{
+    "dependencies": {
+    	"com.unity.render-pipelines.core": "file:../../../com.unity.render-pipelines.core",
+    	"com.unity.testing.srp.core": "file:../../../com.unity.testing.srp.core"
+    },
+    "testables": [
+        "com.unity.render-pipelines.core",
+        "com.unity.testing.srp.core"
+    ]
+}

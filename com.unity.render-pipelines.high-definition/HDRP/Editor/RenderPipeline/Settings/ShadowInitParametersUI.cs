@@ -1,9 +1,6 @@
-using UnityEditor.AnimatedValues;
-using UnityEngine.Events;
-using UnityEngine.Experimental.Rendering.HDPipeline;
 using UnityEngine;
 
-namespace UnityEditor.Experimental.Rendering
+namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
     using _ = CoreEditorUtils;
     using CED = CoreEditorDrawer<ShadowInitParametersUI, SerializedShadowInitParameters>;
@@ -26,6 +23,7 @@ namespace UnityEditor.Experimental.Rendering
             ++EditorGUI.indentLevel;
             EditorGUILayout.PropertyField(d.shadowAtlasWidth, _.GetContent("Atlas Width"));
             EditorGUILayout.PropertyField(d.shadowAtlasHeight, _.GetContent("Atlas Height"));
+            EditorGUILayout.PropertyField(d.shadowMap16Bit, _.GetContent("16-bit Shadow Maps"));
             --EditorGUI.indentLevel;
 
             EditorGUILayout.Space();

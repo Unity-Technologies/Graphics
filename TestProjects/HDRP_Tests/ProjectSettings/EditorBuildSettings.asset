@@ -9,6 +9,12 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1101_Unlit.unity
     guid: 7fe3f9e94b4355641ba1534c54d5c356
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1102_Unlit_Distortion.unity
+    guid: a6e4a81e1988f24459f57a881905a465
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1103_Unlit_Distortion_DepthTest.unity
+    guid: 27d04b0368c7fef4eb423d76cc0e48dc
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1201_Lit_Features.unity
     guid: 51392325eef9416439dc126a37256e6f
   - enabled: 1
@@ -23,6 +29,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1205_Lit_Transparent_Refraction.unity
     guid: 530aef5d08a1569479cc65b219b8f9fb
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1206_Lit_Transparent_Distortion.unity
+    guid: fc3cc4c68d873e64ca12fcfc828d7ee4
   - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1207_Lit_Displacement.unity
     guid: ac4701d765fa26b4f83d2fb9ed6b3c08
@@ -42,11 +51,17 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/1x_Materials/1212_Lit_Emission.unity
     guid: f465136a9ac4cb1429a4a1761d07c3c3
   - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1213_Lit_Anisotropy.unity
+    guid: e0ebb398c814c2645af130d8b2e6b9aa
+  - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1301_SubSurfaceScattering.unity
     guid: 201c29a239df4c74ea9e1ab47082abea
   - enabled: 1
     path: Assets/GraphicTests/Scenes/1x_Materials/1401_StackLit.unity
     guid: 695dac9017b946a49a338d466a6d50ff
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/1x_Materials/1501_Fabric.unity
+    guid: ce2b258da0df8d245b659390b6c2ac51
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2001_Dynamic_Directional.unity
     guid: 09baf18a7e1f6584f86675e6a2141c66
@@ -63,9 +78,6 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2005_Area_Light_Meshes.unity
     guid: 359ded33a047fd540b5e19a98547f5e2
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2102_GI_Emission.unity
-    guid: b8f49ca9a12abb4468116e9422139e63
-  - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2201_ReflectionProbes_Priority.unity
     guid: d485acf0535eb4b42a9a3847f4a8274a
   - enabled: 1
@@ -78,8 +90,11 @@ EditorBuildSettings:
     path: Assets/GraphicTests/Scenes/2x_Lighting/2204_ReflectionProbes_Lights.unity
     guid: 21d198bbbf9143d40b227ad2fe71706f
   - enabled: 1
-    path: Assets/GraphicTests/Scenes/2x_Lighting/2205_ReflectionProbes_influence.unity
-    guid: 423802799a6e57644a5d581a894f4646
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2206_PlanarReflectionVFace.unity
+    guid: d4d352e2cbfbfac4686e77b69fe84ec0
+  - enabled: 1
+    path: Assets/GraphicTests/Scenes/2x_Lighting/2207_ReflectionProbeVFace.unity
+    guid: 4814073d6e6ec404bba1f26bec73307a
   - enabled: 1
     path: Assets/GraphicTests/Scenes/2x_Lighting/2301_Shadow_Mask.unity
     guid: 1029947770f955b4290bbdd8b641f7f1

@@ -1,11 +1,11 @@
-## NOTE: We are migrating reported issues to fogbugz. Please log issues there.
+## NOTE: We have migrate reported issues to fogbugz. Please log issues via the in unity bug tracker.
 
 # Unity Scriptable Render Pipeline
 The Scriptable Render Pipeline (SRP) is a new Unity feature in active development. SRP has been designed to give artists and developers the tools they need to create modern, high-fidelity graphics in Unity. Including a built-in Lightweight Render Pipeline for use on all platforms, and a High Definition Render Pipeline (HDRP) for use on compute shader compatible platforms. These features are available in Unity 2018.1+.
 
 We are committed to an open and transparent development process, and as such you are welcome to take a look around if you are really curious.
 
-For a more detailed overview of the planned features and philosophy behind SRP, refer to the following Gdoc: [ScriptableRenderPipeline](https://docs.google.com/document/d/1e2jkr_-v5iaZRuHdnMrSv978LuJKYZhsIYnrDkNAuvQ/edit?usp=sharing)
+Detailed documentation is being added here: [Wiki](https://github.com/Unity-Technologies/ScriptableRenderPipeline/wiki)
 
 This feature is currently in preview. Some features may change or be removed before we move to a full release.  
 
@@ -14,12 +14,12 @@ This feature is currently in preview. Some features may change or be removed bef
 [High Definition Pipeline Blogpost](https://blogs.unity3d.com/2018/03/16/the-high-definition-render-pipeline-focused-on-visual-quality/)
 
 ## How to use the latest version
-__Note: The Master branch is our current development branch and may not work on the latest publicly available version of Unity. You should always use the latest release tag and latest Unity beta version for testing purposes.__
+__Note: The Master branch is our current development branch and may not work on the latest publicly available version of Unity. To determine which version of SRP you should use with your version of Unity, go to Package Manager (Window > Package Manager) to see what versions of SRP are available for your version of Unity Editor. Then you can search the Tags tab of the Branch dropdown in the SRP GitHub for that tag number.__
 To use the latest version of the SRP, follow the instructions below:
 
 This repository consists of a folder that should be cloned outside the Assets\ folder of your Unity project. We recommend creating a new project to test SRP. Do not clone this repo into an existing project unless you want to break it, or unless you are updating to a newer version of the SRP repo.
 
-After cloning you will need to edit your project's `packages.json` file (in either `UnityPackageManager/` or `Packages/`) to point to the SRP submodules you wish to use. See: https://github.com/Unity-Technologies/ScriptableRenderPipeline/blob/build/automation/TestProjects/GraphicsTests/Packages/manifest.json
+After cloning you will need to edit your project's `packages.json` file (in either `UnityPackageManager/` or `Packages/`) to point to the SRP submodules you wish to use. See: https://github.com/Unity-Technologies/ScriptableRenderPipeline/blob/master/TestProjects/HDRP_Tests/Packages/manifest.json
 
 This will link your project to the specific version of SRP you have cloned.
 

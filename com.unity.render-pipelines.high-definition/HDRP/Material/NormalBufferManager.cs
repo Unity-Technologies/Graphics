@@ -32,7 +32,7 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             else
             {
                 // In case of deferred, we must be in sync with NormalBuffer.hlsl and lit.hlsl files and setup the correct buffers
-                m_ColorMRTs[0] = gbufferManager.GetBuffer(1); // Normal + Roughness is GBuffer(1)
+                m_ColorMRTs[0] = gbufferManager.GetNormalBuffer(0); // Normal + Roughness
                 m_ExternalBuffer[0] = true;
             }
         }

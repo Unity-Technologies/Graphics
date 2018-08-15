@@ -5,35 +5,20 @@ using UnityEngine.Rendering;
 
 namespace UnityEditor.Experimental.Rendering.HDPipeline
 {
-    public class SerializedPlanarReflectionProbe
+    internal class SerializedPlanarReflectionProbe : SerializedHDProbe
     {
-        public SerializedObject serializedObject;
+        internal SerializedProperty captureLocalPosition;
+        internal SerializedProperty capturePositionMode;
+        internal SerializedProperty captureMirrorPlaneLocalPosition;
+        internal SerializedProperty captureMirrorPlaneLocalNormal;
+        internal SerializedProperty customTexture;
 
-        public SerializedProperty proxyVolumeReference;
-        public SerializedReflectionProxyVolumeComponent reflectionProxyVolume;
+        internal SerializedProperty overrideFieldOfView;
+        internal SerializedProperty fieldOfViewOverride;
 
-        public SerializedInfluenceVolume influenceVolume;
+        internal new PlanarReflectionProbe target { get { return serializedObject.targetObject as PlanarReflectionProbe; } }
 
-        public SerializedProperty captureLocalPosition;
-        public SerializedProperty captureNearPlane;
-        public SerializedProperty captureFarPlane;
-        public SerializedProperty capturePositionMode;
-        public SerializedProperty captureMirrorPlaneLocalPosition;
-        public SerializedProperty captureMirrorPlaneLocalNormal;
-        public SerializedProperty weight;
-        public SerializedProperty multiplier;
-        public SerializedProperty mode;
-        public SerializedProperty refreshMode;
-        public SerializedProperty customTexture;
-
-        public SerializedProperty overrideFieldOfView;
-        public SerializedProperty fieldOfViewOverride;
-
-        public SerializedFrameSettings frameSettings;
-
-        public PlanarReflectionProbe target { get { return serializedObject.targetObject as PlanarReflectionProbe; } }
-
-        public bool isMirrored
+        internal bool isMirrored
         {
             get
             {
@@ -43,80 +28,32 @@ namespace UnityEditor.Experimental.Rendering.HDPipeline
             }
         }
 
-        public SerializedPlanarReflectionProbe(SerializedObject serializedObject)
+        internal SerializedPlanarReflectionProbe(SerializedObject serializedObject) : base(serializedObject)
         {
-            this.serializedObject = serializedObject;
-
-            proxyVolumeReference = serializedObject.Find((PlanarReflectionProbe p) => p.proxyVolumeReference);
-            influenceVolume = new SerializedInfluenceVolume(serializedObject.Find((PlanarReflectionProbe p) => p.influenceVolume));
-
             captureLocalPosition = serializedObject.Find((PlanarReflectionProbe p) => p.captureLocalPosition);
-            captureNearPlane = serializedObject.Find((PlanarReflectionProbe p) => p.captureNearPlane);
-            captureFarPlane = serializedObject.Find((PlanarReflectionProbe p) => p.captureFarPlane);
+            nearClip = serializedObject.Find((PlanarReflectionProbe p) => p.captureNearPlane);
+            farClip = serializedObject.Find((PlanarReflectionProbe p) => p.captureFarPlane);
             capturePositionMode = serializedObject.Find((PlanarReflectionProbe p) => p.capturePositionMode);
             captureMirrorPlaneLocalPosition = serializedObject.Find((PlanarReflectionProbe p) => p.captureMirrorPlaneLocalPosition);
             captureMirrorPlaneLocalNormal = serializedObject.Find((PlanarReflectionProbe p) => p.captureMirrorPlaneLocalNormal);
-            weight = serializedObject.Find((PlanarReflectionProbe p) => p.weight);
-            multiplier = serializedObject.Find((PlanarReflectionProbe p) => p.multiplier);
-            mode = serializedObject.Find((PlanarReflectionProbe p) => p.mode);
-            refreshMode = serializedObject.Find((PlanarReflectionProbe p) => p.refreshMode);
             customTexture = serializedObject.Find((PlanarReflectionProbe p) => p.customTexture);
 
             overrideFieldOfView = serializedObject.Find((PlanarReflectionProbe p) => p.overrideFieldOfView);
             fieldOfViewOverride = serializedObject.Find((PlanarReflectionProbe p) => p.fieldOfViewOverride);
 
-            frameSettings = new SerializedFrameSettings(serializedObject.Find((PlanarReflectionProbe p) => p.frameSettings));
-
-            InstantiateProxyVolume(serializedObject);
+            influenceVolume.editorSimplifiedModeBlendNormalDistance.floatValue = 0;
         }
 
-        void InstantiateProxyVolume(SerializedObject serializedObject)
+
+        internal override void Update()
         {
-            var objs = new List<Object>();
-            for (var i = 0; i < serializedObject.targetObjects.Length; i++)
-            {
-                var p = ((PlanarReflectionProbe)serializedObject.targetObjects[i]).proxyVolumeReference;
-                if (p != null)
-                    objs.Add(p);
-            }
+            base.Update();
 
-            reflectionProxyVolume = objs.Count > 0
-                ? new SerializedReflectionProxyVolumeComponent(new SerializedObject(objs.ToArray()))
-                : null;
-        }
-
-        public void Update()
-        {
-            serializedObject.Update();
-
+            //temporarily force value until other mode are supported
             mode.enumValueIndex = (int)ReflectionProbeMode.Realtime;
             refreshMode.enumValueIndex = (int)ReflectionProbeRefreshMode.EveryFrame;
             capturePositionMode.enumValueIndex = (int)PlanarReflectionProbe.CapturePositionMode.MirrorCamera;
-
-            var updateProxyVolume = reflectionProxyVolume != null
-                && serializedObject.targetObjects.Length != reflectionProxyVolume.serializedObject.targetObjects.Length;
-            if (!updateProxyVolume && reflectionProxyVolume != null)
-            {
-                var proxyVolumeTargets = reflectionProxyVolume.serializedObject.targetObjects;
-                for (var i = 0; i < serializedObject.targetObjects.Length; i++)
-                {
-                    if (proxyVolumeTargets[i] != ((PlanarReflectionProbe)serializedObject.targetObjects[i]).proxyVolumeReference)
-                    {
-                        updateProxyVolume = true;
-                        break;
-                    }
-                }
-            }
-
-            if (updateProxyVolume)
-                InstantiateProxyVolume(serializedObject);
         }
 
-        public void Apply()
-        {
-            serializedObject.ApplyModifiedProperties();
-            if (reflectionProxyVolume != null)
-                reflectionProxyVolume.Apply();
-        }
     }
 }

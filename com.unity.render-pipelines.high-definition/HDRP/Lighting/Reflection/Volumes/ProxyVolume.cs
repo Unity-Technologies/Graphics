@@ -1,59 +1,57 @@
 using System;
+using UnityEngine.Serialization;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
     [Serializable]
     public class ProxyVolume
     {
-        [SerializeField]
-        ShapeType m_ShapeType = ShapeType.Box;
+        [SerializeField, FormerlySerializedAs("m_ShapeType")]
+        ProxyShape m_Shape = ProxyShape.Box;
 
         // Box
         [SerializeField]
         Vector3 m_BoxSize = Vector3.one;
-        [SerializeField]
-        Vector3 m_BoxOffset;
-        [SerializeField]
+        [SerializeField, Obsolete("Kept only for compatibility. Use m_Shape instead")]
         bool m_BoxInfiniteProjection = false;
 
         // Sphere
         [SerializeField]
         float m_SphereRadius = 1;
-        [SerializeField]
-        Vector3 m_SphereOffset;
-        [SerializeField]
+        [SerializeField, Obsolete("Kept only for compatibility. Use m_Shape instead")]
         bool m_SphereInfiniteProjection = false;
 
+        /// <summary>The shape of the proxy</summary>
+        public ProxyShape shape { get { return m_Shape; } private set { m_Shape = value; } }
 
-        public ShapeType shapeType { get { return m_ShapeType; } }
-
+        /// <summary>The size of the proxy if it as a shape Box</summary>
         public Vector3 boxSize { get { return m_BoxSize; } set { m_BoxSize = value; } }
-        public Vector3 boxOffset { get { return m_BoxOffset; } set { m_BoxOffset = value; } }
-        public bool boxInfiniteProjection { get { return m_BoxInfiniteProjection; } }
 
+        /// <summary>The radius of the proxy if it as a shape Sphere</summary>
         public float sphereRadius { get { return m_SphereRadius; } set { m_SphereRadius = value; } }
-        public Vector3 sphereOffset { get { return m_SphereOffset; } set { m_SphereOffset = value; } }
-        public bool sphereInfiniteProjection { get { return m_SphereInfiniteProjection; } }
 
-        public Vector3 extents
+
+        internal Vector3 extents
         {
             get
             {
-                switch (shapeType)
+                switch (shape)
                 {
-                    case ShapeType.Box: return m_BoxSize * 0.5f;
-                    case ShapeType.Sphere: return Vector3.one * m_SphereRadius;
+                    case ProxyShape.Box: return m_BoxSize * 0.5f;
+                    case ProxyShape.Sphere: return Vector3.one * m_SphereRadius;
                     default: return Vector3.one;
                 }
             }
         }
 
-        public bool infiniteProjection
+        internal void MigrateInfiniteProhjectionInShape()
         {
-            get
+#pragma warning disable CS0618 // Type or member is obsolete
+            if (shape == ProxyShape.Sphere && m_SphereInfiniteProjection
+                || shape == ProxyShape.Box && m_BoxInfiniteProjection)
+#pragma warning restore CS0618 // Type or member is obsolete
             {
-                return shapeType == ShapeType.Box && boxInfiniteProjection
-                    || shapeType == ShapeType.Sphere && sphereInfiniteProjection;
+                shape = ProxyShape.Infinite;
             }
         }
     }
