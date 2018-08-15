@@ -113,7 +113,7 @@ float GeneratePerlinNoise1D(const float coordinate)
     float1 n10 = dot(g10, float2(fx.y, 1.0f));
     float1 fade_x = PerlinNoiseFade(Pf.x);
     float1 n_x = lerp(n00, n10, fade_x);
-    return 2.3f * n_x;
+    return (2.3f * n_x) * 0.5f + 0.5f;
 }
 
 float GeneratePerlinNoise2D(const float2 coordinate)
@@ -146,7 +146,7 @@ float GeneratePerlinNoise2D(const float2 coordinate)
     float2 fade_xy = PerlinNoiseFade(Pf.xy);
     float2 n_x = lerp(float2(n00, n01), float2(n10, n11), fade_xy.x);
     float n_xy = lerp(n_x.x, n_x.y, fade_xy.y);
-    return 2.3f * n_xy;
+    return (2.3f * n_xy) * 0.5f + 0.5f;
 }
 
 float GeneratePerlinNoise3D(const float3 coordinate)
@@ -215,7 +215,7 @@ float GeneratePerlinNoise3D(const float3 coordinate)
     float4 n_z = lerp(float4(n000, n100, n010, n110), float4(n001, n101, n011, n111), fade_xyz.z);
     float2 n_yz = lerp(n_z.xy, n_z.zw, fade_xyz.y);
     float n_xyz = lerp(n_yz.x, n_yz.y, fade_xyz.x);
-    return 2.2f * n_xyz;
+    return (2.2f * n_xyz) * 0.5f + 0.5f;
 }
 
 NOISE_TEMPLATE(PerlinNoise, float, GeneratePerlinNoise1D);
@@ -243,7 +243,7 @@ float GenerateSimplexNoise1D(float coordinate)
     float3 g;
     g.x = a0.x * x0.x;
     g.yz = a0.yz * x12.xy;
-    return 130.0f * dot(m, g);
+    return (130.0f * dot(m, g)) * 0.5f + 0.5f;
 }
 
 float GenerateSimplexNoise2D(float2 coordinate)
@@ -268,7 +268,7 @@ float GenerateSimplexNoise2D(float2 coordinate)
     float3 g;
     g.x = a0.x  * x0.x + h.x  * x0.y;
     g.yz = a0.yz * x12.xz + h.yz * x12.yw;
-    return 130.0f * dot(m, g);
+    return (130.0f * dot(m, g)) * 0.5f + 0.5f;
 }
 
 float GenerateSimplexNoise3D(float3 coordinate)
@@ -337,7 +337,7 @@ float GenerateSimplexNoise3D(float3 coordinate)
     // Mix final noise value
     float4 m = max(0.6f - float4(dot(x0, x0), dot(x1, x1), dot(x2, x2), dot(x3, x3)), 0.0f);
     m = m * m;
-    return 42.0f * dot(m * m, float4(dot(p0, x0), dot(p1, x1), dot(p2, x2), dot(p3, x3)));
+    return (42.0f * dot(m * m, float4(dot(p0, x0), dot(p1, x1), dot(p2, x2), dot(p3, x3)))) * 0.5f + 0.5f;
 }
 
 NOISE_TEMPLATE(SimplexNoise, float, GenerateSimplexNoise1D);
@@ -351,12 +351,14 @@ float3 VoroHash3(float2 p)
     return frac(sin(q) * 43758.5453f);
 }
 
-float GenerateVoroNoise(float2 coordinate, float2 uv)
+float GenerateVoroNoise(float2 coordinate, float amplitude, float frequency, float warp, float smoothness)
 {
+    coordinate *= frequency;
+
     float2 p = floor(coordinate);
     float2 f = frac(coordinate);
 
-    float k = 1.0f + 63.0f * pow(1.0f - uv.y, 4.0f);
+    float k = 1.0f + 63.0f * pow(1.0f - smoothness, 4.0f);
 
     float va = 0.0f;
     float wt = 0.0f;
@@ -365,7 +367,7 @@ float GenerateVoroNoise(float2 coordinate, float2 uv)
         for (int i = -2; i <= 2; i++)
         {
             float2 g = float2(float(i), float(j));
-            float3 o = VoroHash3(p + g) * float3(uv.x, uv.x, 1.0f);
+            float3 o = VoroHash3(p + g) * float3(warp.xx, 1.0f);
             float2 r = g - f + o.xy;
             float d = dot(r, r);
             float ww = pow(1.0f - smoothstep(0.0f, 1.414f, sqrt(d)), k);
@@ -374,5 +376,5 @@ float GenerateVoroNoise(float2 coordinate, float2 uv)
         }
     }
 
-    return va / wt;
+    return ((va / wt) * 2 - 1) * amplitude;
 }
