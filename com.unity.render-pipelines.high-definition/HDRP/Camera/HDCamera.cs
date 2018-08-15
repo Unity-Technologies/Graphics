@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.PostProcessing;
-using UnityEngine.XR;
 
 namespace UnityEngine.Experimental.Rendering.HDPipeline
 {
@@ -16,7 +15,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Matrix4x4 projMatrix;
         public Matrix4x4 nonJitteredProjMatrix;
         public Vector4   worldSpaceCameraPos;
-        public float     detViewMatrix;
         public Vector4   screenSize;
         public Frustum   frustum;
         public Vector4[] frustumPlaneEquations;
@@ -27,6 +25,8 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
         public Vector4   unity_OrthoParams;
         public Vector4   projectionParams;
         public Vector4   screenParams;
+        public int       volumeLayerMask;
+        public Transform volumeAnchor;
 
         public VolumetricLightingSystem.VBufferParameters[] vBufferParams; // Double-buffered
 
@@ -238,7 +238,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             projMatrix = gpuProj;
             nonJitteredProjMatrix = gpuNonJitteredProj;
             cameraPos = pos;
-            detViewMatrix = viewMatrix.determinant;
 
             if (ShaderConfig.s_CameraRelativeRendering != 0)
             {
@@ -286,19 +285,17 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             m_ActualHeight = camera.pixelHeight;
             var screenWidth = m_ActualWidth;
             var screenHeight = m_ActualHeight;
-#if !UNITY_SWITCH
             if (m_frameSettings.enableStereo)
             {
-                screenWidth = XRSettings.eyeTextureWidth;
-                screenHeight = XRSettings.eyeTextureHeight;
+                screenWidth = XRGraphicsConfig.eyeTextureWidth;
+                screenHeight = XRGraphicsConfig.eyeTextureHeight;
 
-                var xrDesc = XRSettings.eyeTextureDesc;
+                var xrDesc = XRGraphicsConfig.eyeTextureDesc;
                 m_ActualWidth = xrDesc.width;
                 m_ActualHeight = xrDesc.height;
 
                 ConfigureStereoMatrices();
             }
-#endif
 
             // Unfortunately sometime (like in the HDCameraEditor) HDUtils.hdrpSettings can be null because of scripts that change the current pipeline...
             m_msaaSamples = HDUtils.hdrpSettings != null ? HDUtils.hdrpSettings.msaaSampleCount : MSAASamples.None;
@@ -319,6 +316,56 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             {
                 vlSys.UpdatePerCameraData(this);
             }
+
+            UpdateVolumeParameters();
+        }
+
+        void UpdateVolumeParameters()
+        {
+            volumeAnchor = null;
+            volumeLayerMask = -1;
+            if (m_AdditionalCameraData != null)
+            {
+                volumeLayerMask = m_AdditionalCameraData.volumeLayerMask;
+                volumeAnchor = m_AdditionalCameraData.volumeAnchorOverride;
+            }
+            else
+            {
+                // Temporary hack:
+                // For scene view, by default, we use the "main" camera volume layer mask if it exists
+                // Otherwise we just remove the lighting override layers in the current sky to avoid conflicts
+                // This is arbitrary and should be editable in the scene view somehow.
+                if (camera.cameraType == CameraType.SceneView)
+                {
+                    var mainCamera = Camera.main;
+                    bool needFallback = true;
+                    if (mainCamera != null)
+                    {
+                        var mainCamAdditionalData = mainCamera.GetComponent<HDAdditionalCameraData>();
+                        if (mainCamAdditionalData != null)
+                        {
+                            volumeLayerMask = mainCamAdditionalData.volumeLayerMask;
+                            volumeAnchor = mainCamAdditionalData.volumeAnchorOverride;
+                            needFallback = false;
+                        }
+                    }
+
+                    if (needFallback)
+                    {
+                        HDRenderPipeline hdPipeline = RenderPipelineManager.currentPipeline as HDRenderPipeline;
+                        // If the override layer is "Everything", we fall-back to "Everything" for the current layer mask to avoid issues by having no current layer
+                        // In practice we should never have "Everything" as an override mask as it does not make sense (a warning is issued in the UI)
+                        if (hdPipeline.asset.renderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask == -1)
+                            volumeLayerMask = -1;
+                        else
+                            volumeLayerMask = (-1 & ~hdPipeline.asset.renderPipelineSettings.lightLoopSettings.skyLightingOverrideLayerMask);
+                    }
+                }
+            }
+
+            // If no override is provided, use the camera transform.
+            if (volumeAnchor == null)
+                volumeAnchor = camera.transform;
         }
 
         // Stopgap method used to extract stereo combined matrix state.
@@ -330,9 +377,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             // What constants in UnityPerPass need updating for stereo considerations?
             // _ViewProjMatrix - It is used directly for generating tesselation factors. This should be the same
             //                   across both eyes for consistency, and to keep shadow-generation eye-independent
-            // _DetViewMatrix -  Used for isFrontFace determination, should be the same for both eyes. There is the scenario
-            //                   where there might be multi-eye sets that are divergent enough where this assumption is not valid,
-            //                   but that's a future problem
             // _InvProjParam -   Intention was for generating linear depths, but not currently used.  Will need to be stereo-ized if
             //                   actually needed.
             // _FrustumPlanes -  Also used for generating tesselation factors.  Should be fine to use the combined stereo VP
@@ -359,8 +403,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             viewMatrix = stereoCombinedViewMatrix;
             var stereoCombinedProjMatrix = cullingParams.cullStereoProj;
             projMatrix = GL.GetGPUProjectionMatrix(stereoCombinedProjMatrix, true);
-
-            detViewMatrix = viewMatrix.determinant;
 
             frustum = Frustum.Create(viewProjMatrix, true, true);
 
@@ -495,7 +537,6 @@ namespace UnityEngine.Experimental.Rendering.HDPipeline
             cmd.SetGlobalMatrix(HDShaderIDs._NonJitteredViewProjMatrix, nonJitteredViewProjMatrix);
             cmd.SetGlobalMatrix(HDShaderIDs._PrevViewProjMatrix,        prevViewProjMatrix);
             cmd.SetGlobalVector(HDShaderIDs._WorldSpaceCameraPos,       worldSpaceCameraPos);
-            cmd.SetGlobalFloat(HDShaderIDs._DetViewMatrix,             detViewMatrix);
             cmd.SetGlobalVector(HDShaderIDs._ScreenSize,                screenSize);
             cmd.SetGlobalVector(HDShaderIDs._ScreenToTargetScale,       doubleBufferedViewportScale);
             cmd.SetGlobalVector(HDShaderIDs._ZBufferParams,             zBufferParams);

@@ -4,9 +4,6 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     public class CreateLightweightRenderTexturesPass : ScriptableRenderPass
     {
-        public CreateLightweightRenderTexturesPass(LightweightForwardRenderer renderer) : base(renderer)
-        {}
-
         const int k_DepthStencilBufferBits = 32;
         private RenderTargetHandle colorAttachmentHandle { get; set; }
         private RenderTargetHandle depthAttachmentHandle { get; set; }
@@ -25,13 +22,15 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             descriptor = baseDescriptor;
         }
 
-        public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderer renderer, ref ScriptableRenderContext context,
+            ref CullResults cullResults,
+            ref RenderingData renderingData)
         {
             CommandBuffer cmd = CommandBufferPool.Get("");
             if (colorAttachmentHandle != RenderTargetHandle.CameraTarget)
             {
                 var colorDescriptor = descriptor;
-                colorDescriptor.depthBufferBits = k_DepthStencilBufferBits; // TODO: does the color RT always need depth?
+                colorDescriptor.depthBufferBits = 0;
                 colorDescriptor.sRGB = true;
                 colorDescriptor.msaaSamples = (int) samples;
                 cmd.GetTemporaryRT(colorAttachmentHandle.id, colorDescriptor, FilterMode.Bilinear);
@@ -51,7 +50,7 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
             CommandBufferPool.Release(cmd);
         }
 
-        public override void Dispose(CommandBuffer cmd)
+        public override void FrameCleanup(CommandBuffer cmd)
         {
             if (colorAttachmentHandle != RenderTargetHandle.CameraTarget)
             {

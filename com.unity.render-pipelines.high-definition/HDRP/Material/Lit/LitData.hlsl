@@ -2,21 +2,11 @@
 // Fill SurfaceData/Builtin data function
 //-------------------------------------------------------------------------------------
 #include "CoreRP/ShaderLibrary/Sampling/SampleUVMapping.hlsl"
-#include "../MaterialUtilities.hlsl"
-#include "../Decal/DecalUtilities.hlsl"
+#include "HDRP/Material/MaterialUtilities.hlsl"
+#include "HDRP/Material/Decal/DecalUtilities.hlsl"
 
-// TODO: move this function to commonLighting.hlsl once validated it work correctly
-float GetSpecularOcclusionFromBentAO(float3 V, float3 bentNormalWS, SurfaceData surfaceData)
-{
-    // Retrieve cone angle
-    // Ambient occlusion is cosine weighted, thus use following equation. See slide 129
-    float cosAv = sqrt(1.0 - surfaceData.ambientOcclusion);
-    float roughness = max(PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness), 0.01); // Clamp to 0.01 to avoid edge cases
-    float cosAs = exp2((-log(10.0)/log(2.0)) * Sq(roughness));
-    float cosB = dot(bentNormalWS, reflect(-V, surfaceData.normalWS));
-
-    return SphericalCapIntersectionSolidArea(cosAv, cosAs, cosB) / (TWO_PI * (1.0 - cosAs));
-}
+//#include "HDRP/Material/SphericalCapPivot/SPTDistribution.hlsl"
+//#define SPECULAR_OCCLUSION_USE_SPTD
 
 // Struct that gather UVMapping info of all layers + common calculation
 // This is use to abstract the mapping that can differ on layers
@@ -195,11 +185,11 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     float3 bentNormalTS;
     float3 bentNormalWS;
     float alpha = GetSurfaceData(input, layerTexCoord, surfaceData, normalTS, bentNormalTS);
-    GetNormalWS(input, V, normalTS, surfaceData.normalWS);
+    GetNormalWS(input, normalTS, surfaceData.normalWS);
 
     // Use bent normal to sample GI if available
 #ifdef _BENTNORMALMAP
-    GetNormalWS(input, V, bentNormalTS, bentNormalWS);
+    GetNormalWS(input, bentNormalTS, bentNormalWS);
 #else
     bentNormalWS = surfaceData.normalWS;
 #endif
@@ -208,7 +198,11 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // If user provide bent normal then we process a better term
 #if defined(_BENTNORMALMAP) && defined(_ENABLESPECULAROCCLUSION)
     // If we have bent normal and ambient occlusion, process a specular occlusion
-    surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAO(V, bentNormalWS, surfaceData);
+    #ifdef SPECULAR_OCCLUSION_USE_SPTD
+    surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAOPivot(V, bentNormalWS, surfaceData.normalWS, surfaceData.ambientOcclusion, PerceptualSmoothnessToPerceptualRoughness(surfaceData.perceptualSmoothness));
+    #else
+    surfaceData.specularOcclusion = GetSpecularOcclusionFromBentAO(V, bentNormalWS, surfaceData.normalWS, surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
+    #endif
 #elif defined(_MASKMAP)
     surfaceData.specularOcclusion = GetSpecularOcclusionFromAmbientOcclusion(ClampNdotV(dot(surfaceData.normalWS, V)), surfaceData.ambientOcclusion, PerceptualSmoothnessToRoughness(surfaceData.perceptualSmoothness));
 #else
@@ -218,7 +212,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
     // This is use with anisotropic material
     surfaceData.tangentWS = Orthonormalize(surfaceData.tangentWS, surfaceData.normalWS);
 
-#ifndef _DISABLE_DBUFFER
+#if HAVE_DECALS
     AddDecalContribution(posInput, surfaceData, alpha);
 #endif
 
@@ -236,7 +230,7 @@ void GetSurfaceAndBuiltinData(FragInputs input, float3 V, inout PositionInputs p
 #endif
 
     // Caution: surfaceData must be fully initialize before calling GetBuiltinData
-    GetBuiltinData(input, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);
+    GetBuiltinData(input, V, posInput, surfaceData, alpha, bentNormalWS, depthOffset, builtinData);
 }
 
 #include "LitDataMeshModification.hlsl"

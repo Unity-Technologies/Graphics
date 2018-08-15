@@ -4,23 +4,24 @@ namespace UnityEngine.Experimental.Rendering.LightweightPipeline
 {
     public class SceneViewDepthCopyPass : ScriptableRenderPass
     {
+        const string k_CopyDepthToCameraTag = "Copy Depth to Camera";
+
         private RenderTargetHandle source { get; set; }
-
-
-        public SceneViewDepthCopyPass(LightweightForwardRenderer renderer) : base(renderer)
-        {}
 
         public void Setup(RenderTargetHandle source)
         {
             this.source = source;
         }
 
-        public override void Execute(ref ScriptableRenderContext context, ref CullResults cullResults, ref RenderingData renderingData)
+        public override void Execute(ScriptableRenderer renderer, ref ScriptableRenderContext context,
+            ref CullResults cullResults,
+            ref RenderingData renderingData)
         {
             // Restore Render target for additional editor rendering.
             // Note: Scene view camera always perform depth prepass
-            CommandBuffer cmd = CommandBufferPool.Get("Copy Depth to Camera");
+            CommandBuffer cmd = CommandBufferPool.Get(k_CopyDepthToCameraTag);
             CoreUtils.SetRenderTarget(cmd, BuiltinRenderTextureType.CameraTarget);
+            cmd.SetGlobalTexture("_CameraDepthAttachment", source.Identifier());
             cmd.EnableShaderKeyword(LightweightKeywordStrings.DepthNoMsaa);
             cmd.DisableShaderKeyword(LightweightKeywordStrings.DepthMsaa2);
             cmd.DisableShaderKeyword(LightweightKeywordStrings.DepthMsaa4);

@@ -2,9 +2,14 @@
 // https://github.com/wolfgangfengel/GPU-Pro-7
 
 #pragma kernel TileLightListGen                             LIGHTLISTGEN=TileLightListGen
-#pragma kernel TileLightListGen_SrcBigTile                  LIGHTLISTGEN=TileLightListGen_SrcBigTile                    USE_TWO_PASS_TILED_LIGHTING
-#pragma kernel TileLightListGen_FeatureFlags                LIGHTLISTGEN=TileLightListGen_FeatureFlags                  USE_FEATURE_FLAGS
-#pragma kernel TileLightListGen_SrcBigTile_FeatureFlags     LIGHTLISTGEN=TileLightListGen_SrcBigTile_FeatureFlags       USE_TWO_PASS_TILED_LIGHTING     USE_FEATURE_FLAGS
+#pragma kernel TileLightListGen_SrcBigTile                  LIGHTLISTGEN=TileLightListGen_SrcBigTile							USE_TWO_PASS_TILED_LIGHTING
+#pragma kernel TileLightListGen_FeatureFlags                LIGHTLISTGEN=TileLightListGen_FeatureFlags							USE_FEATURE_FLAGS
+#pragma kernel TileLightListGen_SrcBigTile_FeatureFlags     LIGHTLISTGEN=TileLightListGen_SrcBigTile_FeatureFlags				USE_TWO_PASS_TILED_LIGHTING     USE_FEATURE_FLAGS
+#pragma kernel TileLightListGen_Oblique                             LIGHTLISTGEN=TileLightListGen_Oblique								USE_OBLIQUE_MODE
+#pragma kernel TileLightListGen_SrcBigTile_Oblique                  LIGHTLISTGEN=TileLightListGen_SrcBigTile_Oblique                    USE_TWO_PASS_TILED_LIGHTING		USE_OBLIQUE_MODE
+#pragma kernel TileLightListGen_FeatureFlags_Oblique                LIGHTLISTGEN=TileLightListGen_FeatureFlags_Oblique                  USE_FEATURE_FLAGS				USE_OBLIQUE_MODE
+#pragma kernel TileLightListGen_SrcBigTile_FeatureFlags_Oblique     LIGHTLISTGEN=TileLightListGen_SrcBigTile_FeatureFlags_Oblique       USE_TWO_PASS_TILED_LIGHTING     USE_FEATURE_FLAGS	 USE_OBLIQUE_MODE
+
 
 //#pragma #pragma enable_d3d11_debug_symbols
 
@@ -22,6 +27,7 @@
 #define FINE_PRUNING_ENABLED
 #define PERFORM_SPHERICAL_INTERSECTION_TESTS
 
+
 uniform int g_iNrVisibLights;
 uniform uint2 g_viDimensions;
 uniform float4x4 g_mInvScrProjection;
@@ -32,7 +38,7 @@ uniform int _DecalIndexShift;
 uniform uint g_BaseFeatureFlags;
 
 Texture2D g_depth_tex : register( t0 );
-StructuredBuffer<float3> g_vBoundsBuffer : register( t1 );
+StructuredBuffer<float4> g_vBoundsBuffer : register( t1 );
 StructuredBuffer<LightVolumeData> _LightVolumeData : register(t2);
 StructuredBuffer<SFiniteLightBound> g_data : register( t3 );
 
@@ -72,24 +78,20 @@ groupshared uint ldsFeatureFlags;
 RWStructuredBuffer<uint> g_TileFeatureFlags;
 #endif
 
-//float GetLinearDepth(float3 vP)
-//{
-//  float4 v4Pres = mul(g_mInvScrProjection, float4(vP,1.0));
-//  return v4Pres.z / v4Pres.w;
-//}
 
-float GetLinearDepth(float zDptBufSpace)    // 0 is near 1 is far
+float GetLinearDepth(float2 pixXY, float zDptBufSpace)    // 0 is near 1 is far
 {
-    // for perspective projection m22 is zero and m23 is +1/-1 (depends on left/right hand proj)
+#ifdef USE_OBLIQUE_MODE
+	float2 res2 = mul(g_mInvScrProjection, float4(pixXY, zDptBufSpace, 1.0)).zw;
+	return res2.x / res2.y;
+#else
+	// for perspective projection m22 is zero and m23 is +1/-1 (depends on left/right hand proj)
     // however this function must also work for orthographic projection so we keep it like this.
     float m22 = g_mInvScrProjection[2].z, m23 = g_mInvScrProjection[2].w;
     float m32 = g_mInvScrProjection[3].z, m33 = g_mInvScrProjection[3].w;
 
     return (m22*zDptBufSpace+m23) / (m32*zDptBufSpace+m33);
-
-    //float3 vP = float3(0.0f,0.0f,zDptBufSpace);
-    //float4 v4Pres = mul(g_mInvScrProjection, float4(vP,1.0));
-    //return v4Pres.z / v4Pres.w;
+#endif
 }
 
 float3 GetViewPosFromLinDepth(float2 v2ScrPos, float fLinDepth)
@@ -172,7 +174,7 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
             int idx = i * NR_THREADS + t;
             uint2 uCrd = min( uint2(viTilLL.x+(idx&0xf), viTilLL.y+(idx>>4)), uint2(iWidth-1, iHeight-1) );
             const float fDepth = FetchDepth(g_depth_tex, uCrd);
-            vLinDepths[i] = GetLinearDepth(fDepth);
+            vLinDepths[i] = GetLinearDepth(uCrd+float2(0.5,0.5), fDepth);
             if(fDepth<VIEWPORT_SCALE_Z)     // if not skydome
             {
                 dpt_mi = min(fDepth, dpt_mi);
@@ -212,8 +214,8 @@ void LIGHTLISTGEN(uint threadID : SV_GroupIndex, uint3 u3GroupID : SV_GroupID)
         // Skip density volumes (lights are sorted by category). TODO: improve data locality
         if (_LightVolumeData[l].lightCategory == LIGHTCATEGORY_DENSITY_VOLUME) { break; }
 
-        const float3 vMi = g_vBoundsBuffer[l];
-        const float3 vMa = g_vBoundsBuffer[l+g_iNrVisibLights];
+        const float3 vMi = g_vBoundsBuffer[l].xyz;
+        const float3 vMa = g_vBoundsBuffer[l+g_iNrVisibLights].xyz;
 
         if( all(vMa>vTileLL) && all(vMi<vTileUR))
         {
