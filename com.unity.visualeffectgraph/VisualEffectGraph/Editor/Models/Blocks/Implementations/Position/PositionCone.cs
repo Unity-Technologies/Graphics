@@ -107,7 +107,7 @@ float3 base = float3(0.0f, 0.0f, 0.0f);
 
                 outSource += @"
 direction.xzy = normalize(float3(pos * sincosSlope.x, sincosSlope.y));
-position.xzy += lerp(base, float3(pos * Cone_radius1, Cone_height), hNorm) + Cone_center;
+position.xzy += lerp(base, float3(pos * Cone_radius1, Cone_height), hNorm) + Cone_center.xzy;
 ";
 
                 return outSource;
