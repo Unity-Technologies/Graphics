@@ -82,12 +82,29 @@ void GetSurfaceAndBuiltinData(inout FragInputs input, float3 V, inout PositionIn
     AddDecalContribution(posInput, surfaceData, alpha);
 #endif
 
-#if defined(DEBUG_DISPLAY)
+#ifdef DEBUG_DISPLAY
     if (_DebugMipMapMode != DEBUGMIPMAPMODE_NONE)
     {
-        // TODO: uncomment and fix me.
-        surfaceData.baseColor = 1;
-        // surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, input.texCoord0, _BaseColorMap0, _BaseColorMap0_TexelSize, _BaseColorMap0_MipInfo, surfaceData.baseColor);
+        if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_CONTROL)
+            surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, input.texCoord0, _Control0, _Control0_TexelSize, _Control0_MipInfo, surfaceData.baseColor);
+        else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER0)
+            surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, input.texCoord0 * _Splat0_ST.xy + _Splat0_ST.zw, _Splat0, _Splat0_TexelSize, _Splat0_MipInfo, surfaceData.baseColor);
+        else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER1)
+            surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, input.texCoord0 * _Splat1_ST.xy + _Splat1_ST.zw, _Splat1, _Splat1_TexelSize, _Splat1_MipInfo, surfaceData.baseColor);
+        else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER2)
+            surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, input.texCoord0 * _Splat2_ST.xy + _Splat2_ST.zw, _Splat2, _Splat2_TexelSize, _Splat2_MipInfo, surfaceData.baseColor);
+        else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER3)
+            surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, input.texCoord0 * _Splat3_ST.xy + _Splat3_ST.zw, _Splat3, _Splat3_TexelSize, _Splat3_MipInfo, surfaceData.baseColor);
+    #ifdef _TERRAIN_8_LAYERS
+        else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER4)
+            surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, input.texCoord0 * _Splat4_ST.xy + _Splat4_ST.zw, _Splat4, _Splat4_TexelSize, _Splat4_MipInfo, surfaceData.baseColor);
+        else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER5)
+            surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, input.texCoord0 * _Splat5_ST.xy + _Splat5_ST.zw, _Splat5, _Splat5_TexelSize, _Splat5_MipInfo, surfaceData.baseColor);
+        else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER6)
+            surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, input.texCoord0 * _Splat6_ST.xy + _Splat6_ST.zw, _Splat6, _Splat6_TexelSize, _Splat6_MipInfo, surfaceData.baseColor);
+        else if (_DebugMipMapModeTerrainTexture == DEBUGMIPMAPMODETERRAINTEXTURE_LAYER7)
+            surfaceData.baseColor = GetTextureDataDebug(_DebugMipMapMode, input.texCoord0 * _Splat7_ST.xy + _Splat7_ST.zw, _Splat7, _Splat7_TexelSize, _Splat7_MipInfo, surfaceData.baseColor);
+    #endif
         surfaceData.metallic = 0;
     }
 #endif
