@@ -1919,7 +1919,8 @@ float3   LTC_Evaluate( float3x3 Minv, float3 center, float3 axisX, float3 axisY,
 
 //formFactor *= 8;
 //formFactor = TWO_PI;
-
+//    if ( formFactor > PI )
+//        return float3( 1, 0, 0 );
 
 //    // use tabulated horizon-clipped sphere
 //    float2 uv = float2(avgDir.z*0.5 + 0.5, formFactor);
@@ -1928,9 +1929,23 @@ float3   LTC_Evaluate( float3x3 Minv, float3 center, float3 axisX, float3 axisY,
 //    return formFactor * scale;
 
     // Use table fitting
-    #if 1
+    #if 0
         // Assume formFactor = Projected irradiance, as indicated in paper by Heitz & Hill "Real-Time Line- and Disk-Light Shading with Linearly Transformed Cosines"
         // Then we need to find a sphere providing the same irradiance, then compute its solid angle to retrieve the apex half-angle we need
+        //
+        // Following https://www.iquilezles.org/www/articles/sphereao/sphereao.htm, the formulation of projected irradiance given by a sphere is:
+        //  E_proj = 2PI * (1 - cos(omega) * sin²(sigma))
+        // We have thus:
+        //  sin²(sigma) = (1 - E_proj/2PI) / cos(omega)
+        //
+        float   cosOmega   = clamp( avgDir.z , -1, 1 );
+        float   sqSinSigma = min( (1 - formFactor * INV_PI) / max( 1e-3, cosOmega ), 0.999 );
+//return formFactor * INV_TWO_PI;
+//return sqSinSigma;
+    #elif 1
+        // Assume formFactor = Projected irradiance, as indicated in paper by Heitz & Hill "Real-Time Line- and Disk-Light Shading with Linearly Transformed Cosines"
+        // Then we need to find a sphere providing the same irradiance, then compute its solid angle to retrieve the apex half-angle we need
+        //
         // The solid angle of such sphere is given by Omega=2PI(1-cos(sigma)) where sigma is the half apex angle
         // We have thus:
         //  cos(sigma) = 1 - Omega/2PI
@@ -1944,9 +1959,6 @@ float3   LTC_Evaluate( float3x3 Minv, float3 center, float3 axisX, float3 axisY,
 //return sqSinSigma;
         float   cosOmega   = clamp( avgDir.z , -1, 1 );
     #elif 1
-
-// Clearly shows the problem when sqSinSigma = 1!
-
 //        float   sqSinSigma = min( formFactor, 0.999 );
         float   sqSinSigma = min( formFactor * INV_TWO_PI, 0.999 );
         float   cosOmega   = clamp( avgDir.z , -1, 1 );
@@ -2044,7 +2056,7 @@ DirectLighting EvaluateBSDF_Disk( LightLoopContext lightLoopContext,
 
 
 lighting.diffuse = 0;
-lighting.specular = 40 * LTC_Evaluate( preLightData.ltcTransformSpecular, center, axisX, axisY, preLightData, posInput );
+lighting.specular = 1 * LTC_Evaluate( preLightData.ltcTransformSpecular, center, axisX, axisY, preLightData, posInput );
 
 
 
