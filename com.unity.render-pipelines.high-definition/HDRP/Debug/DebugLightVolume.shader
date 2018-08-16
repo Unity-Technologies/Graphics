@@ -42,7 +42,7 @@ Shader "Hidden/HDRenderPipeline/DebugLightVolume"
             {
                 VaryingsDefault output;
 
-                float3 positionRWS = TransformObjectToWorld(att.positionOS * _Range + _Offset);
+                float3 positionRWS = TransformObjectToWorld(att.positionOS.xyz * _Range + _Offset);
                 output.positionCS = TransformWorldToHClip(positionRWS);
                 return output;
             }
